@@ -10,13 +10,18 @@ PDF_FILENAME = "fishing_synopsis.pdf"
 TXT_OUTPUT = "fishing_regs.txt"
 JSON_OUTPUT = "fishing_data.json"
 
-# Keywords to filter out map text/junk rows
 INVALID_KEYWORDS = [
     "Kilometres", "courtesy of", "purchase a larger map", 
     "reprinted", "Haig-Brown", "scale", "www.", ".ca", ".com",
-    "Department of Fisheries", "Management Unit", "Road", "Hwy",
-    "Please refer to", "Check website for", "Species"
+    "Department of Fisheries", "Management Unit", 
+    "Please refer to", "Check website for", 
+    "Regulation Changes", "NOTE:", "front cover", "back cover"
 ]
+
+# The vertical pixel gap threshold. 
+# Gaps smaller than this are treated as the SAME item (wrapped text).
+# Gaps larger than this are treated as NEW items.
+VERTICAL_GAP_THRESHOLD = 3.0 
 
 def download_pdf(url, filename):
     if os.path.exists(filename):
@@ -37,7 +42,6 @@ def download_pdf(url, filename):
 # --- HELPER FUNCTIONS ---
 
 def is_fish_vector(curve):
-    """ Detects the vector fish icon based on size and shape. """
     width = curve['x1'] - curve['x0']
     height = curve['bottom'] - curve['top']
     if not (4 < width < 40) or not (4 < height < 40): return False
@@ -55,14 +59,9 @@ def get_fish_locations(page):
 
 def clean_text(text):
     if not text: return ""
-    text = text.replace('\n', ' ').strip()
-    return re.sub(r'\s+', ' ', text)
+    return re.sub(r'\s+', ' ', text).strip()
 
 def extract_management_unit(text):
-    """
-    Extracts patterns like '1-15', '5-2', '7-20' from the text.
-    Returns (cleaned_name, mu_found).
-    """
     match = re.search(r'(.*?)\b(\d{1,2}-\d{1,2})\b(.*)', text)
     if match:
         name_part = match.group(1).strip()
@@ -73,29 +72,93 @@ def extract_management_unit(text):
     return text, None
 
 def is_valid_row(name, regs):
-    combined = (name + " " + regs).lower()
+    combined = (name + " " + " ".join(regs)).lower()
+    combined = re.sub(r'\s+', ' ', combined)
     if any(k.lower() in combined for k in INVALID_KEYWORDS): return False
-    if "WATER BODY" in name or "EXCEPTIONS" in regs: return False
-    if not name.strip() and not regs.strip(): return False
+    if "WATER BODY" in name: return False 
+    if not name.strip() and not regs: return False
     return True
 
-def split_regulations(text):
+# --- NEW LOGIC: SPATIAL TEXT EXTRACTION ---
+
+def extract_text_by_spatial_layout(page, bbox):
     """
-    Splits a regulation string into a list based on newlines and semicolons.
-    Cleans up whitespace for each item.
+    Extracts text from a bbox, grouping lines based on vertical spacing.
+    Returns a list of distinct strings (regulations).
     """
-    if not text: return []
-    # Split by newline OR semicolon
-    parts = re.split(r'[;\n]', text)
-    # Clean and filter empty strings
-    cleaned = [p.strip() for p in parts if p.strip()]
-    return cleaned
+    if not bbox: return []
+    x0, top, x1, bottom = bbox
+    
+    # 1. Crop the page to just this single cell
+    try:
+        cell_crop = page.crop((x0, top, x1, bottom))
+    except ValueError:
+        return []
+
+    # 2. Extract words with precise coordinates
+    # x_tolerance=2 allows letters close together to merge into words
+    words = cell_crop.extract_words(x_tolerance=2, y_tolerance=2, keep_blank_chars=True)
+    
+    if not words: return []
+
+    # 3. Group words into visual lines
+    # We group by 'top' coordinate (allowing slight wiggle room)
+    lines = []
+    current_line = [words[0]]
+    
+    for word in words[1:]:
+        last_word = current_line[-1]
+        # If the top of this word is roughly aligned with the last word...
+        if abs(word['top'] - last_word['top']) < 3:
+            current_line.append(word)
+        else:
+            lines.append(current_line)
+            current_line = [word]
+    lines.append(current_line)
+
+    # 4. Analyze Vertical Gaps between Lines
+    final_items = []
+    current_text_block = []
+
+    for i, line in enumerate(lines):
+        # Build the string for this specific line
+        line_text = " ".join([w['text'] for w in line])
+        
+        # Replace symbols in text immediately
+        line_text = line_text.replace('\uf0dc', ' [Includes tributaries] ').replace('*', ' [Includes tributaries] ')
+        
+        if i == 0:
+            current_text_block.append(line_text)
+            continue
+            
+        # Compare current line with previous line
+        prev_line = lines[i-1]
+        
+        # Gap = Top of current line - Bottom of previous line
+        # Note: 'bottom' in pdfplumber is Y-coordinate from top of page
+        gap = line[0]['top'] - prev_line[0]['bottom']
+        
+        # Check if we should SPLIT or MERGE
+        if gap > VERTICAL_GAP_THRESHOLD:
+            # Significant gap -> Flush current block and start new one
+            final_items.append(" ".join(current_text_block))
+            current_text_block = [line_text]
+        else:
+            # Small gap -> Continued sentence -> Merge
+            current_text_block.append(line_text)
+
+    # Flush the last block
+    if current_text_block:
+        final_items.append(" ".join(current_text_block))
+
+    # Clean up whitespace
+    return [clean_text(item) for item in final_items if item.strip()]
 
 def parse_water_col(text, bbox, fish_locations):
-    text = clean_text(text)
+    # Standard cleanup for Name column
+    text = text.replace('\n', ' ').strip()
     symbols = []
     
-    # 1. Text Symbols
     if '\uf0dc' in text or '*' in text:
         symbols.append("Includes Tributaries")
         text = text.replace('\uf0dc', '').replace('*', '')
@@ -104,7 +167,6 @@ def parse_water_col(text, bbox, fish_locations):
         symbols.append("Classified Waters")
         text = re.sub(r'\bCW\b', '', text)
 
-    # 2. Vector Symbols
     if bbox:
         x0, top, x1, bottom = bbox
         for (fx, fy) in fish_locations:
@@ -112,12 +174,8 @@ def parse_water_col(text, bbox, fish_locations):
                 symbols.append("Stocked")
                 break 
 
-    return text.strip(), symbols
-
-def parse_regs_col(text):
-    # We do NOT remove newlines here immediately, because we want to split by them later
-    text = text.replace('\uf0dc', ' [Includes tributaries] ').replace('*', ' [Includes tributaries] ')
-    return text.strip()
+    text = re.sub(r'\s+', ' ', text).strip()
+    return text, symbols
 
 def get_table_geometry(page):
     tables = page.find_tables(table_settings={"vertical_strategy": "lines", "horizontal_strategy": "lines"})
@@ -135,10 +193,11 @@ def get_table_geometry(page):
             
     return x0, divider, x1, top
 
-def process_table(table, fish_locations):
+def process_table(page, table, fish_locations):
     structured_data = []
     current_entry = None
 
+    # Get raw text for Col 1 (Names) - Standard extract is fine here
     text_rows = table.extract()
     row_objs = table.rows 
 
@@ -149,13 +208,17 @@ def process_table(table, fish_locations):
         
         c1_box = row.cells[0]
         c1_raw = text_rows[i][0] or ""
-        c2_raw = text_rows[i][1] if len(text_rows[i]) > 1 else ""
+        
+        # --- NEW LOGIC FOR COLUMN 2 ---
+        # Instead of table.extract(), we use our spatial function
+        # to process the raw PDF area of the cell
+        c2_box = row.cells[1]
+        c2_regs_list = extract_text_by_spatial_layout(page, c2_box)
 
+        # Parse Name
         name_text, c1_syms = parse_water_col(c1_raw, c1_box, fish_locations)
-        # Note: We pass raw text to parse_regs_col to preserve newlines for splitting later
-        regs = parse_regs_col(c2_raw)
-
-        if not is_valid_row(name_text, regs): continue
+        
+        if not is_valid_row(name_text, c2_regs_list): continue
 
         if name_text:
             final_name, mu = extract_management_unit(name_text)
@@ -166,12 +229,14 @@ def process_table(table, fish_locations):
                 "Water": final_name,
                 "MU": mu,
                 "Symbols": c1_syms,
-                "Regs": regs 
+                "regs": c2_regs_list # Already a list of clean strings
             }
-        elif current_entry and regs:
-            # Append with a newline separator to ensure clean splitting
-            current_entry["Regs"] += "\n" + regs
+        elif current_entry and c2_regs_list:
+            # This is a continuation row in the table (visually),
+            # so we just add these new spatial blocks to the existing list.
+            current_entry["regs"].extend(c2_regs_list)
             
+            # Check for latent symbols in Col 1
             _, extra_syms = parse_water_col(c1_raw, c1_box, fish_locations)
             if extra_syms:
                 current_entry["Symbols"] = list(set(current_entry["Symbols"] + extra_syms))
@@ -180,16 +245,9 @@ def process_table(table, fish_locations):
     return structured_data
 
 def get_region_name(text):
-    """
-    Scans page text for 'REGION X - Name'.
-    Cleanly extracts strictly the region name.
-    """
-    # Regex captures REGION + Number + Dash + Name
-    # Stops at newline or specific keywords
     match = re.search(r'(REGION\s+\d+[A-Z]?\s*[-–]\s*[^\n\r]+)', text)
     if match:
         raw_region = match.group(1).strip()
-        # Split by newline or common junk headers that follow immediately
         clean = re.split(r'(\n|CONTACT|Regional|Water-Specific|General)', raw_region)[0]
         return clean.strip()
     return None
@@ -209,11 +267,10 @@ def extract_fishing_data():
         for page in pdf.pages: 
             page_text = page.extract_text() or ""
             
-            # 1. DETECT REGION
             found_region = get_region_name(page_text)
             if found_region:
                 current_region_name = found_region
-                
+            
             if current_region_name not in all_regions_data:
                 all_regions_data[current_region_name] = {}
 
@@ -251,49 +308,41 @@ def extract_fishing_data():
             tables = crop.find_tables(table_settings)
             
             for table in tables:
-                data = process_table(table, fish_locs)
+                # Pass 'page' object so we can crop cells for spatial analysis
+                data = process_table(page, table, fish_locs)
                 
                 for entry in data:
                     water_name = entry['Water']
                     mu = entry['MU']
                     
-                    # Convert raw Regs string into a clean List
-                    reg_list = split_regulations(entry['Regs'])
-                    
-                    # 1. Text Output
                     sym_str = ", ".join(entry['Symbols']) if entry['Symbols'] else "None"
                     mu_str = f" (MU: {mu})" if mu else ""
-                    regs_str = "\n         ".join(reg_list) # Pretty print for text file
+                    
+                    # regs is already a list of correctly split items
+                    regs_str = "\n         ".join(entry['regs'])
                     
                     f_txt.write(f"WATER:   {water_name}{mu_str}\n")
                     f_txt.write(f"SYMBOLS: {sym_str}\n")
                     f_txt.write(f"REGS:    {regs_str}\n")
                     f_txt.write("-" * 50 + "\n")
 
-                    # 2. JSON Output
                     water_key = water_name.lower()
                     
                     if water_key in all_regions_data[current_region_name]:
                         existing = all_regions_data[current_region_name][water_key]
-                        
-                        # Merge regs (extend list, avoid dupes if necessary)
-                        for r in reg_list:
+                        for r in entry['regs']:
                             if r not in existing['regs']:
                                 existing['regs'].append(r)
-                                
                         existing['symbols'] = list(set(existing['symbols'] + entry['Symbols']))
-                        
                         if not existing.get('management_unit') and mu:
                             existing['management_unit'] = mu
                     else:
                         all_regions_data[current_region_name][water_key] = {
                             "symbols": entry['Symbols'],
-                            "regs": reg_list, # List of strings
+                            "regs": entry['regs'],
                             "management_unit": mu
                         }
 
-    # --- FINAL CLEANUP ---
-    # remove regions with 0 items
     final_regions_data = {k: v for k, v in all_regions_data.items() if len(v) > 0}
 
     final_json = {
