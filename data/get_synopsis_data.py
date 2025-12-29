@@ -63,23 +63,13 @@ def extract_management_unit(text):
     Extracts patterns like '1-15', '5-2', '7-20' from the text.
     Returns (cleaned_name, mu_found).
     """
-    # Regex looks for digit-digit at the end of the string or surrounded by spaces
-    # We use a non-greedy match for the name part
     match = re.search(r'(.*?)\b(\d{1,2}-\d{1,2})\b(.*)', text)
-    
     if match:
-        # Group 1: Name before MU
-        # Group 2: The MU (e.g. 1-15)
-        # Group 3: Anything after (rare, but handles stray chars)
-        
         name_part = match.group(1).strip()
         mu = match.group(2).strip()
         suffix = match.group(3).strip()
-        
-        # Recombine name if there was suffix text (unlikely but safe)
         final_name = f"{name_part} {suffix}".strip()
         return final_name, mu
-    
     return text, None
 
 def is_valid_row(name, regs):
@@ -88,6 +78,18 @@ def is_valid_row(name, regs):
     if "WATER BODY" in name or "EXCEPTIONS" in regs: return False
     if not name.strip() and not regs.strip(): return False
     return True
+
+def split_regulations(text):
+    """
+    Splits a regulation string into a list based on newlines and semicolons.
+    Cleans up whitespace for each item.
+    """
+    if not text: return []
+    # Split by newline OR semicolon
+    parts = re.split(r'[;\n]', text)
+    # Clean and filter empty strings
+    cleaned = [p.strip() for p in parts if p.strip()]
+    return cleaned
 
 def parse_water_col(text, bbox, fish_locations):
     text = clean_text(text)
@@ -113,9 +115,9 @@ def parse_water_col(text, bbox, fish_locations):
     return text.strip(), symbols
 
 def parse_regs_col(text):
-    text = clean_text(text)
+    # We do NOT remove newlines here immediately, because we want to split by them later
     text = text.replace('\uf0dc', ' [Includes tributaries] ').replace('*', ' [Includes tributaries] ')
-    return re.sub(r'\s+', ' ', text).strip()
+    return text.strip()
 
 def get_table_geometry(page):
     tables = page.find_tables(table_settings={"vertical_strategy": "lines", "horizontal_strategy": "lines"})
@@ -150,12 +152,12 @@ def process_table(table, fish_locations):
         c2_raw = text_rows[i][1] if len(text_rows[i]) > 1 else ""
 
         name_text, c1_syms = parse_water_col(c1_raw, c1_box, fish_locations)
+        # Note: We pass raw text to parse_regs_col to preserve newlines for splitting later
         regs = parse_regs_col(c2_raw)
 
         if not is_valid_row(name_text, regs): continue
 
         if name_text:
-            # Extract MU from the clean name
             final_name, mu = extract_management_unit(name_text)
             
             if current_entry: structured_data.append(current_entry)
@@ -164,11 +166,12 @@ def process_table(table, fish_locations):
                 "Water": final_name,
                 "MU": mu,
                 "Symbols": c1_syms,
-                "Regs": regs
+                "Regs": regs 
             }
         elif current_entry and regs:
-            current_entry["Regs"] += " " + regs
-            # Check for latent symbols/MU in continuation lines (rare but possible)
+            # Append with a newline separator to ensure clean splitting
+            current_entry["Regs"] += "\n" + regs
+            
             _, extra_syms = parse_water_col(c1_raw, c1_box, fish_locations)
             if extra_syms:
                 current_entry["Symbols"] = list(set(current_entry["Symbols"] + extra_syms))
@@ -179,15 +182,15 @@ def process_table(table, fish_locations):
 def get_region_name(text):
     """
     Scans page text for 'REGION X - Name'.
-    Returns strictly the clean region name or None.
+    Cleanly extracts strictly the region name.
     """
-    # Regex stops capturing at the first newline or double space to avoid junk
+    # Regex captures REGION + Number + Dash + Name
+    # Stops at newline or specific keywords
     match = re.search(r'(REGION\s+\d+[A-Z]?\s*[-–]\s*[^\n\r]+)', text)
     if match:
         raw_region = match.group(1).strip()
-        # Post-process: Remove common noise if regex grabbed too much
-        # Split by newline if it somehow got in, or common next-line headers
-        clean = re.split(r'\n|CONTACT|Regional|Water-Specific', raw_region)[0]
+        # Split by newline or common junk headers that follow immediately
+        clean = re.split(r'(\n|CONTACT|Regional|Water-Specific|General)', raw_region)[0]
         return clean.strip()
     return None
 
@@ -197,31 +200,23 @@ def extract_fishing_data():
     download_pdf(PDF_URL, PDF_FILENAME)
     print(f"Scanning {PDF_FILENAME}...")
     
-    # We use a temp dict to collect data, then filter empty ones later
-    # Format: { "Region Name": { "water_key": {data} } }
     all_regions_data = {} 
-    
     last_geom = None 
-    current_region_name = "General Information" # Default fallback
+    current_region_name = "General Information"
 
     with pdfplumber.open(PDF_FILENAME) as pdf, open(TXT_OUTPUT, "w", encoding="utf-8") as f_txt:
         
-        # Start scanning from page 14 where tables typically start
         for page in pdf.pages: 
             page_text = page.extract_text() or ""
             
-            # 1. DETECT REGION NAME
-            # We check every page. If a new header appears, we switch regions.
-            # If not, we assume we are still in the previous region.
+            # 1. DETECT REGION
             found_region = get_region_name(page_text)
             if found_region:
                 current_region_name = found_region
                 
-            # Initialize dict if new
             if current_region_name not in all_regions_data:
                 all_regions_data[current_region_name] = {}
 
-            # Skip pages that clearly aren't tables
             if "EXCEPTIONS" not in page_text: 
                 continue
 
@@ -230,7 +225,6 @@ def extract_fishing_data():
             fish_locs = get_fish_locations(page)
             geom = get_table_geometry(page)
             
-            # Geometry Inheritance
             if geom[1]: 
                 last_geom = geom
             elif last_geom:
@@ -240,7 +234,6 @@ def extract_fishing_data():
             else:
                 continue 
 
-            # Extract Table
             x0, divider, x1, top = geom
             table_settings = {
                 "vertical_strategy": "explicit", 
@@ -264,45 +257,48 @@ def extract_fishing_data():
                     water_name = entry['Water']
                     mu = entry['MU']
                     
-                    # 1. Write to Text File (Human Readable)
+                    # Convert raw Regs string into a clean List
+                    reg_list = split_regulations(entry['Regs'])
+                    
+                    # 1. Text Output
                     sym_str = ", ".join(entry['Symbols']) if entry['Symbols'] else "None"
                     mu_str = f" (MU: {mu})" if mu else ""
+                    regs_str = "\n         ".join(reg_list) # Pretty print for text file
                     
                     f_txt.write(f"WATER:   {water_name}{mu_str}\n")
                     f_txt.write(f"SYMBOLS: {sym_str}\n")
-                    f_txt.write(f"REGS:    {entry['Regs']}\n")
+                    f_txt.write(f"REGS:    {regs_str}\n")
                     f_txt.write("-" * 50 + "\n")
 
-                    # 2. Add to Memory (JSON Structure)
-                    # Normalize key to lowercase
+                    # 2. JSON Output
                     water_key = water_name.lower()
                     
-                    # If this water body already exists in this region (split across pages), append regs
                     if water_key in all_regions_data[current_region_name]:
                         existing = all_regions_data[current_region_name][water_key]
-                        # Merge regs
-                        if entry['Regs'] not in existing['regs']:
-                            existing['regs'].append(entry['Regs'])
-                        # Merge symbols
+                        
+                        # Merge regs (extend list, avoid dupes if necessary)
+                        for r in reg_list:
+                            if r not in existing['regs']:
+                                existing['regs'].append(r)
+                                
                         existing['symbols'] = list(set(existing['symbols'] + entry['Symbols']))
-                        # Keep MU if missing (rare)
+                        
                         if not existing.get('management_unit') and mu:
                             existing['management_unit'] = mu
                     else:
-                        # Create new entry
                         all_regions_data[current_region_name][water_key] = {
                             "symbols": entry['Symbols'],
-                            "regs": [entry['Regs']],
+                            "regs": reg_list, # List of strings
                             "management_unit": mu
                         }
 
-    # --- FINAL JSON CLEANUP ---
-    # Filter out regions that ended up having no water bodies (headers only)
-    final_regions_data = {k: v for k, v in all_regions_data.items() if v}
+    # --- FINAL CLEANUP ---
+    # remove regions with 0 items
+    final_regions_data = {k: v for k, v in all_regions_data.items() if len(v) > 0}
 
     final_json = {
         "regionsData": final_regions_data,
-        "regionOverviews": {} # Placeholder structure as requested
+        "regionOverviews": {} 
     }
 
     with open(JSON_OUTPUT, 'w', encoding='utf-8') as f_json:
