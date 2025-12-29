@@ -1,158 +1,213 @@
 import pdfplumber
+import re
+
+# --- CONFIGURATION ---
+# Keywords that indicate a row is actually map text/garbage, not a regulation
+INVALID_KEYWORDS = [
+    "Kilometres", "courtesy of", "purchase a larger map", 
+    "reprinted", "Haig-Brown", "scale", "www.", ".ca", ".com",
+    "Department of Fisheries", "Management Unit", "Road", "Hwy"
+]
+
+def is_fish_vector(curve):
+    """ Detects the vector fish icon based on size and shape. """
+    width = curve['x1'] - curve['x0']
+    height = curve['bottom'] - curve['top']
+    
+    # Fish icon sizing (approx 5px - 40px)
+    if not (4 < width < 40) or not (4 < height < 40): return False
+    
+    # Aspect ratio check
+    ratio = width / height if height > 0 else 0
+    return 0.2 < ratio < 5.0
+
+def get_fish_locations(page):
+    """ Returns center coordinates (x, y) for all fish vectors. """
+    centers = []
+    for curve in page.curves:
+        if is_fish_vector(curve):
+            cx = (curve['x0'] + curve['x1']) / 2
+            cy = (curve['top'] + curve['bottom']) / 2
+            centers.append((cx, cy))
+    return centers
 
 def clean_text(text):
     if not text: return ""
-    return text.replace('\uf0dc', ' [SYMBOL/FISH] ').replace('\n', ' ').strip()
+    # Standardize whitespace
+    text = text.replace('\n', ' ').strip()
+    return re.sub(r'\s+', ' ', text)
+
+def is_valid_row(name, regs):
+    """ Filters out rows that contain map legends or disclaimer text. """
+    combined = (name + " " + regs).lower()
+    
+    # Check 1: Explicit junk keywords
+    if any(k.lower() in combined for k in INVALID_KEYWORDS):
+        return False
+        
+    # Check 2: Header rows
+    if "WATER BODY" in name or "EXCEPTIONS" in regs:
+        return False
+        
+    # Check 3: Empty rows
+    if not name.strip() and not regs.strip():
+        return False
+        
+    return True
+
+def parse_water_col(text, bbox, fish_locations):
+    """ Extracts symbols from Col 1 and returns cleaned name + symbol list. """
+    text = clean_text(text)
+    symbols = []
+    
+    # 1. Text Symbols
+    if '\uf0dc' in text or '*' in text:
+        symbols.append("Tributaries")
+        text = text.replace('\uf0dc', '').replace('*', '')
+
+    if "CW" in text and re.search(r'\bCW\b', text):
+        symbols.append("Classified Waters")
+        text = re.sub(r'\bCW\b', '', text)
+
+    # 2. Vector Symbols (Spatial Match)
+    if bbox:
+        x0, top, x1, bottom = bbox
+        for (fx, fy) in fish_locations:
+            if x0 < fx < x1 and top < fy < bottom:
+                symbols.append("Stocked")
+                break 
+
+    return text.strip(), symbols
+
+def parse_regs_col(text):
+    """ Replaces symbols in Col 2 with [Bracketed Text]. """
+    text = clean_text(text)
+    # Replace tributary symbols in-place
+    text = text.replace('\uf0dc', ' [TRIBUTARY] ').replace('*', ' [TRIBUTARY] ')
+    return re.sub(r'\s+', ' ', text).strip()
 
 def get_table_geometry(page):
-    """
-    Finds the largest table on the page and calculates the divider 
-    based on the first non-merged row's cells.
-    """
-    # 1. FIND TABLES
-    # We use 'lines' strategy which is generally most accurate for these grids
-    tables = page.find_tables(table_settings={
-        "vertical_strategy": "lines", 
-        "horizontal_strategy": "lines"
-    })
+    """ specific logic to find the vertical divider between columns. """
+    tables = page.find_tables(table_settings={"vertical_strategy": "lines", "horizontal_strategy": "lines"})
+    if not tables: return None, None, None, None
 
-    if not tables:
-        return None, None, None, None
-
-    # 2. IDENTIFY THE BIGGEST TABLE
-    biggest_table = max(tables, key=lambda t: (t.bbox[2] - t.bbox[0]) * (t.bbox[3] - t.bbox[1]))
+    # Assume the largest table is the main data table
+    main_table = max(tables, key=lambda t: (t.bbox[2]-t.bbox[0]) * (t.bbox[3]-t.bbox[1]))
+    x0, top, x1, bottom = main_table.bbox
     
-    x0, top, x1, bottom = biggest_table.bbox
-    left_edge = x0
-    right_edge = x1
-    table_start_y = top
-
-    # 3. FIND DIVIDER USING TABLE CELLS
-    # The table object already knows where the cells are. 
-    # We just need the X-coordinate of the right side of the first column.
+    # Find the divider by looking at the first split row
+    cells = sorted(main_table.cells, key=lambda c: (c[1], c[0]))
     divider = None
-    
-    # Sort cells by vertical position (top) then horizontal (left)
-    # biggest_table.cells is a list of tuples: (x0, top, x1, bottom)
-    cells = sorted(biggest_table.cells, key=lambda c: (c[1], c[0]))
-
-    for cell in cells:
-        cell_x0, cell_top, cell_x1, cell_bottom = cell
-        
-        # Check if this cell starts at the left margin of the table
-        # (Allowing a tiny 2px variance for float precision)
-        if abs(cell_x0 - left_edge) < 2:
-            
-            # CRITICAL CHECK: Does this cell span the entire width? (Merged Header)
-            # If so, skip it. We need a row that is split.
-            if abs(cell_x1 - right_edge) < 5:
-                continue
-            
-            # Found a split cell! The divider is the right edge of this cell.
-            divider = cell_x1
+    for c in cells:
+        # Check if cell starts at left edge but ends before right edge
+        if abs(c[0] - x0) < 2 and abs(c[2] - x1) > 5:
+            divider = c[2]
             break
+            
+    return x0, divider, x1, top
 
-    return left_edge, divider, right_edge, table_start_y
-
-def process_table_data(table):
+def process_table(table, fish_locations):
     structured_data = []
     current_entry = None
 
-    for row in table:
-        if not row or len(row) < 2: continue
+    text_rows = table.extract()
+    row_objs = table.rows 
+
+    if len(text_rows) != len(row_objs): return []
+
+    for i, row in enumerate(row_objs):
+        if not row.cells or len(row.cells) < 2: continue
         
-        col1 = clean_text(row[0])
-        col2 = clean_text(row[1])
+        # --- Extract Raw Data ---
+        c1_box = row.cells[0]
+        c1_raw = text_rows[i][0] or ""
+        c2_raw = text_rows[i][1] if len(text_rows[i]) > 1 else ""
 
-        if not col1 and not col2: continue
-        if "WATER BODY" in col1 or "EXCEPTIONS" in col2: continue
-        if "Legend" in col1: continue
+        # --- Parse & Clean ---
+        name, c1_syms = parse_water_col(c1_raw, c1_box, fish_locations)
+        regs = parse_regs_col(c2_raw)
 
-        # Merging Logic
-        if col1:
+        # --- Filter Garbage Rows ---
+        if not is_valid_row(name, regs):
+            continue
+
+        # --- Merge Logic ---
+        if name:
+            # New Entry
             if current_entry: structured_data.append(current_entry)
-            current_entry = {"Water/Unit": col1, "Regs": col2}
-        elif current_entry and col2:
-            current_entry["Regs"] += "$" + col2
+            current_entry = {
+                "Water": name, 
+                "Symbols": c1_syms,
+                "Regs": regs
+            }
+        elif current_entry and regs:
+            # Continuation
+            current_entry["Regs"] += " " + regs
+            # Check for hidden symbols in empty Col 1 cells
+            _, extra_syms = parse_water_col(c1_raw, c1_box, fish_locations)
+            if extra_syms:
+                current_entry["Symbols"] = list(set(current_entry["Symbols"] + extra_syms))
 
     if current_entry: structured_data.append(current_entry)
     return structured_data
 
-def extract_fishing_regs_final(pdf_path, output_txt_path):
+def extract_fishing_regs(pdf_path, output_path):
     print(f"Scanning {pdf_path}...")
-    
     last_geom = None 
 
-    with pdfplumber.open(pdf_path) as pdf, open(output_txt_path, "w", encoding="utf-8") as f:
+    with pdfplumber.open(pdf_path) as pdf, open(output_path, "w", encoding="utf-8") as f:
         
+        # Pages 14+ contain the water-specific tables
         for page in pdf.pages[14:]: 
-            text_check = page.extract_text()
-            if not text_check or "EXCEPTIONS" not in text_check: continue
+            # Quick check to skip non-table pages
+            if "EXCEPTIONS" not in (page.extract_text() or ""): continue
 
             f.write(f"\n{'='*20} PAGE {page.page_number} {'='*20}\n")
             
-            # 1. Get Geometry
-            left, divider, right, start_y = get_table_geometry(page)
+            # 1. Page-Level Analysis
+            fish_locs = get_fish_locations(page)
+            geom = get_table_geometry(page)
             
-            # 2. Logic to handle detection failures (Inheritance)
-            if left and right and divider:
-                # CASE A: Perfect detection
-                last_geom = (left, divider, right)
-                
-            elif left and right and not divider:
-                # CASE B: Found table borders, but logic couldn't determine divider
-                if last_geom:
-                    print(f"  Pg {page.page_number}: Found borders, inheriting divider.")
-                    _, old_div, _ = last_geom
-                    divider = old_div
-                    # Update geometry with current borders but old divider
-                    last_geom = (left, divider, right)
-                else:
-                    print(f"  Pg {page.page_number}: Found borders but no divider/history. Skipping.")
-                    continue
+            # 2. Geometry Inheritance (Handle pages with broken lines)
+            if geom[1]: # valid divider found
+                last_geom = geom
+            elif last_geom:
+                # Use current page margins but previous page divider
+                x0, _, x1, top = geom if geom[0] else last_geom
+                divider = last_geom[1]
+                geom = (x0, divider, x1, top)
+            else:
+                continue # Skip if no geometry established
 
-            elif not left:
-                # CASE C: No table found at all
-                if last_geom:
-                    print(f"  Pg {page.page_number}: No table structure. Inheriting layout.")
-                    left, divider, right = last_geom
-                    start_y = 50 
-                else:
-                    print(f"  Pg {page.page_number}: No table found and no history. Skipping.")
-                    continue
-
-            # 3. Define Precise Explicit Lines
-            vertical_lines = [left, divider, right]
-            
-            # 4. Crop & Extract
-            try:
-                table_area = page.crop((0, start_y, page.width, page.height))
-            except ValueError:
-                table_area = page
-
+            # 3. Extract Tables using Explicit Columns
+            x0, divider, x1, top = geom
             table_settings = {
                 "vertical_strategy": "explicit", 
-                "explicit_vertical_lines": vertical_lines,
+                "explicit_vertical_lines": [x0, divider, x1],
                 "horizontal_strategy": "lines", 
                 "intersection_y_tolerance": 10,
                 "text_x_tolerance": 2, 
             }
+            
+            # Crop to ignore header text above the table
+            try:
+                crop = page.crop((0, top, page.width, page.height))
+            except:
+                crop = page
 
-            tables = table_area.extract_tables(table_settings)
-
-            if not tables:
-                print(f"  Pg {page.page_number}: Geometry found, but extraction failed.")
-            else:
-                print(f"  Pg {page.page_number}: Success! Found {len(tables)} tables.")
-
+            tables = crop.find_tables(table_settings)
+            
             for table in tables:
-                data = process_table_data(table)
+                data = process_table(table, fish_locs)
+                
                 for entry in data:
-                    f.write(f"WATER: {entry['Water/Unit']}\n")
-                    f.write(f"REGS:  {entry['Regs']}\n")
+                    sym_str = ", ".join(entry['Symbols']) if entry['Symbols'] else "None"
+                    f.write(f"WATER:   {entry['Water']}\n")
+                    f.write(f"SYMBOLS: {sym_str}\n")
+                    f.write(f"REGS:    {entry['Regs']}\n")
                     f.write("-" * 50 + "\n")
 
-    print(f"Extraction complete.")
+    print(f"Done. Saved to {output_path}")
 
 if __name__ == "__main__":
-    extract_fishing_regs_final('fishing_synopsis.pdf', 'final_regs_output.txt')
+    extract_fishing_regs('fishing_synopsis.pdf', 'final_regs_clean.txt')
