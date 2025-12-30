@@ -10,12 +10,14 @@ PDF_FILENAME = "fishing_synopsis.pdf"
 TXT_OUTPUT = "fishing_regs.txt"
 JSON_OUTPUT = "fishing_data.json"
 
+# Global blacklist for rows that are purely map garbage
 INVALID_KEYWORDS = [
     "Kilometres", "courtesy of", "purchase a larger map", 
     "reprinted", "Haig-Brown", "scale", "www.", ".ca", ".com",
     "Department of Fisheries", "Management Unit", 
     "Please refer to", "Check website for", 
-    "Regulation Changes", "NOTE:", "front cover", "back cover"
+    "Regulation Changes", "NOTE:", "front cover", "back cover",
+    "Confluence of", "Map page", "See map"
 ]
 
 VERTICAL_GAP_THRESHOLD = 3.0 
@@ -23,51 +25,6 @@ VERTICAL_GAP_THRESHOLD = 3.0
 # --- REGULATION PARSING LOGIC ---
 
 class RegParser:
-    """
-    Parses raw regulation text strings into structured objects.
-    
-    This class handles the complexity of PDF text extraction where lines might be 
-    mashed together, split arbitrarily, or contain complex lists of rules.
-
-    --- EXAMPLES ---
-
-    Example 1: Mashed Headers (Pre-clean fix)
-    Input:  "No Fishing Bait ban"
-    Output: [
-        {"type": "Fishing Closure", "details": "No Fishing", ...},
-        {"type": "Gear Restriction", "details": "Bait ban", ...}
-    ]
-
-    Example 2: Complex Lists with Dates
-    Input:  "Trout daily quota = 2, July 1-Sept 30"
-    Output: [
-        {
-            "type": "Quota / Catch Limit",
-            "details": "Trout daily quota = 2, July 1-Sept 30",
-            "date_range": "July 1-Sept 30"
-        }
-    ]
-    * Note: The date is not split because it doesn't look like a separate rule.
-
-    Example 3: Distinct Rules separated by commas
-    Input:  "Bait ban, single barbless hook"
-    Output: [
-        {"type": "Gear Restriction", "details": "Bait ban", ...},
-        {"type": "Gear Restriction", "details": "single barbless hook", ...}
-    ]
-
-    Example 4: Context Preservation (Smart Split)
-    Input:  "Class II water (a) from bridge to falls, and (b) from falls to mouth"
-    Output: [
-        {
-            "type": "Classified Waters",
-            "details": "Class II water (a) from bridge to falls, and (b) from falls to mouth",
-            ...
-        }
-    ]
-    * Note: It detects the (a)/(b) list structure and conjunctions to avoid splitting.
-    """
-    
     PATTERNS = {
         "Advisory": [r"WARNING", r"Mercury", r"Thin ice", r"NOTICE", r"consumption"],
         "Fishing Closure": [r"No Fishing", r"Closed", r"No Ice Fishing"],
@@ -82,10 +39,6 @@ class RegParser:
 
     @staticmethod
     def classify(text):
-        """
-        Determines the Regulation Type based on keyword matching.
-        The PATTERNS dict is ordered by priority (e.g. Advisory > Quota).
-        """
         for category, patterns in RegParser.PATTERNS.items():
             for pat in patterns:
                 if re.search(pat, text, re.IGNORECASE):
@@ -94,45 +47,25 @@ class RegParser:
 
     @staticmethod
     def pre_clean(text):
-        """
-        Inserts separators between distinct regulation types that got mashed together
-        due to PDF layout issues (missing newlines).
-        """
-        # Fix: "No Fishing Bait ban" -> "No Fishing; Bait ban"
         text = re.sub(r'(Fishing)\s+(Bait)', r'\1; \2', text, flags=re.IGNORECASE)
-        # Fix: "No Fishing Artificial fly" -> "No Fishing; Artificial fly"
         text = re.sub(r'(Fishing)\s+(Artificial)', r'\1; \2', text, flags=re.IGNORECASE)
-        # Fix: "No Fishing Single barbless" -> "No Fishing; Single barbless"
         text = re.sub(r'(Fishing)\s+(Single)', r'\1; \2', text, flags=re.IGNORECASE)
-        # Fix: "Quota = 2 bait ban" -> "Quota = 2; bait ban"
         text = re.sub(r'(\d)\s+(bait)', r'\1; \2', text, flags=re.IGNORECASE)
-        # Fix: "(see page 4) WARNING!" -> "(see page 4); WARNING!"
         text = re.sub(r'([^\.;])\s+(WARNING!)', r'\1; \2', text)
         text = re.sub(r'([^\.;])\s+(NOTICE)', r'\1; \2', text)
         return text
 
     @staticmethod
     def clean_and_split(text):
-        """
-        Intelligently splits a raw text block into distinct regulation items.
-        Respects sentence structure, parentheses, and conjunctions.
-        """
         text = re.sub(r'\s+', ' ', text).strip()
-        
-        # 1. Soften Semicolons:
-        # Don't split on semicolons if they are just separating list items grammatically
-        # e.g., "...Sept 30; and (b)..." -> "...Sept 30, and (b)..."
+        # Soften semicolons
         text = re.sub(r';\s*(?=(?:and|or|but)\b)', ', ', text, flags=re.IGNORECASE)
         text = re.sub(r';\s*(?=\([a-z0-9]+\))', ', ', text, flags=re.IGNORECASE)
 
-        # 2. Hard Split on remaining Semicolons (These are definite breaks)
         initial_chunks = [c.strip() for c in text.split(';') if c.strip()]
-        
         final_items = []
         
         for chunk in initial_chunks:
-            # 3. Soft Split on Periods (sentences)
-            # Lookbehind ensures we don't split abbreviations like "B.C." or "U.S."
             sentences = re.split(r'(?<![A-Z])\.\s+', chunk)
             
             for sentence in sentences:
@@ -143,32 +76,14 @@ class RegParser:
                     part = part.strip()
                     if not part: continue
                     
-                    # --- MERGE HEURISTICS ---
-                    # We default to SPLITTING, unless we find a reason to MERGE.
                     should_merge = False
-                    
-                    # A. Unbalanced Parens: "Quota = 2 (none > 50cm" -> MERGE
-                    if current_item.count('(') > current_item.count(')'):
-                        should_merge = True
-                        
-                    # B. Conjunctions: "...and (b)..." -> MERGE
-                    elif re.match(r'^(and|but|or)\b', part, re.IGNORECASE):
-                        should_merge = True
-                        
-                    # C. List Items: "(a)...", "(ii)..." -> MERGE (usually belongs to prev clause)
-                    elif re.match(r'^\([a-z0-9]+\)', part, re.IGNORECASE):
-                        should_merge = True
-                        
-                    # D. Date Range Only: "July 1-Sept 30" -> MERGE
-                    # If the chunk is JUST a date, it likely belongs to the previous rule.
-                    elif re.match(r'^[A-Z][a-z]{2,9}\s*\d{1,2}\s*[-–]\s*[A-Z][a-z]{2,9}\s*\d{1,2}', part):
-                        should_merge = True
-                        
-                    # E. Lowercase continuation: "bait ban" -> SPLIT, "unless fishing for..." -> MERGE
+                    if current_item.count('(') > current_item.count(')'): should_merge = True
+                    elif re.match(r'^(and|but|or)\b', part, re.IGNORECASE): should_merge = True
+                    elif re.match(r'^\([a-z0-9]+\)', part, re.IGNORECASE): should_merge = True
+                    elif part.startswith('('): should_merge = True
+                    elif re.match(r'^[A-Z][a-z]{2,9}\s*\d{1,2}\s*[-–]\s*[A-Z][a-z]{2,9}\s*\d{1,2}', part): should_merge = True
                     elif part[0].islower():
-                        # If it starts with a strong keyword (e.g. "bait ban"), it's likely a new rule
-                        strong_start_keywords = r'^(bait|single|no|artificial|fly|barbless|quota)\b'
-                        if not re.match(strong_start_keywords, part, re.IGNORECASE):
+                        if not any(re.match(r'^(bait|single|no|artificial|fly|barbless|quota)\b', part, re.IGNORECASE) for _ in [1]):
                             should_merge = True
 
                     if should_merge:
@@ -195,15 +110,12 @@ class RegParser:
             date_match = re.search(RegParser.DATE_PATTERN, chunk)
             if date_match:
                 res["date_range"] = date_match.group(1)
-            
             results.append(res)
-            
         return results
 
 # --- HELPER FUNCTIONS ---
 
 def deduplicate_regs(regs_list):
-    """ Removes duplicates from list of regs based on type+details. """
     seen = set()
     unique = []
     for r in regs_list:
@@ -214,30 +126,16 @@ def deduplicate_regs(regs_list):
     return unique
 
 def merge_orphaned_details(regs_list):
-    """
-    Merges items that look like continuations (e.g. "(See map...)") 
-    into the previous item.
-    """
     if not regs_list: return []
-    
     merged = [regs_list[0]]
-    
     for i in range(1, len(regs_list)):
         current = regs_list[i]
         prev = merged[-1]
-        
         txt = current['details'].strip()
         should_merge_back = False
         
-        # 1. Parenthetical References: "(See map...)", "(see page...)"
-        if txt.startswith('(') and txt.endswith(')'):
-            should_merge_back = True
-            
-        # 2. Conjunction starts: "and (b)..."
-        elif re.match(r'^(and|but|or)\b', txt, re.IGNORECASE):
-            should_merge_back = True
-            
-        # 3. Just a date range that got split?
+        if txt.startswith('(') and txt.endswith(')'): should_merge_back = True
+        elif re.match(r'^(and|but|or)\b', txt, re.IGNORECASE): should_merge_back = True
         elif current['type'] == "General Restriction" and current['date_range'] == txt:
              if prev['date_range'] is None:
                  prev['date_range'] = current['date_range']
@@ -249,8 +147,26 @@ def merge_orphaned_details(regs_list):
                 prev['date_range'] = current['date_range']
         else:
             merged.append(current)
-            
     return merged
+
+def get_clean_key_name(raw_name):
+    """
+    Cleans the waterbody name to use as a dictionary key.
+    Removes quotes, parentheses, and extra whitespace.
+    Example: "“LITTLE PETER” LAKE (south of...)" -> "little peter lake"
+    """
+    if not raw_name: return ""
+    
+    # Remove content inside parentheses (usually location info)
+    clean = re.sub(r'\(.*?\)', '', raw_name)
+    
+    # Remove quotes
+    clean = clean.replace('“', '').replace('”', '').replace('"', '').replace("'", "")
+    
+    # Normalize whitespace
+    clean = re.sub(r'\s+', ' ', clean).strip().lower()
+    
+    return clean
 
 # --- STANDARD PDF EXTRACTION ---
 
@@ -338,6 +254,13 @@ def extract_text_by_spatial_layout(page, bbox):
         line_text = " ".join([w['text'] for w in line])
         line_text = line_text.replace('\uf0dc', ' [Includes tributaries] ').replace('*', ' [Includes tributaries] ')
         
+        # --- MAP GARBAGE FILTER ---
+        # Filter out lines that are just short nonsense or map labels
+        if len(line_text) < 4 and not re.search(r'\d', line_text): 
+            continue
+        if any(bad in line_text for bad in ["Kilometers", "Confluence of"]):
+            continue
+
         if i == 0:
             current_text_block.append(line_text)
             continue
@@ -444,6 +367,10 @@ def process_table(page, table, fish_locations):
                                 current_entry["original_reg_text"] += "\n" + raw_line
             else:
                 final_name, mus = extract_all_mus(name_text)
+                
+                # --- APPLY CLEAN KEY LOGIC HERE ---
+                # We store the raw name for display, but use clean name for key later
+                
                 if current_entry: 
                     current_entry["regs"] = merge_orphaned_details(deduplicate_regs(current_entry["regs"]))
                     structured_data.append(current_entry)
@@ -451,7 +378,7 @@ def process_table(page, table, fish_locations):
                 raw_text_block = "\n".join(c2_raw_list)
                 
                 current_entry = {
-                    "Water": final_name,
+                    "unprocessed_name": final_name, # STORE RAW NAME
                     "MUs": mus,
                     "Symbols": c1_syms,
                     "original_reg_text": raw_text_block,
@@ -479,8 +406,6 @@ def get_region_name(text):
         clean = re.split(r'(\n|CONTACT|Regional|Water-Specific|General)', raw_region)[0]
         return clean.strip()
     return None
-
-# --- MAIN LOGIC ---
 
 def extract_fishing_data():
     download_pdf(PDF_URL, PDF_FILENAME)
@@ -539,49 +464,34 @@ def extract_fishing_data():
                 data = process_table(page, table, fish_locs)
                 
                 for entry in data:
-                    water_name = entry['Water']
+                    # Raw Name for text output
+                    raw_name = entry['unprocessed_name']
                     mu = entry['MUs']
                     
                     sym_str = ", ".join(entry['Symbols']) if entry['Symbols'] else "None"
                     mu_str = f" (MUs: {', '.join(mu)})" if mu else ""
-                    
                     raw_text_pretty = entry['original_reg_text'].replace('\n', '\n         ')
                     
-                    f_txt.write(f"WATER:   {water_name}{mu_str}\n")
+                    f_txt.write(f"WATER:   {raw_name}{mu_str}\n")
                     f_txt.write(f"SYMBOLS: {sym_str}\n")
                     f_txt.write(f"REGS:    {raw_text_pretty}\n")
                     f_txt.write("-" * 50 + "\n")
 
-                    water_key = water_name.lower()
+                    # CLEAN KEY GENERATION
+                    clean_key = get_clean_key_name(raw_name)
                     
-                    if water_key in all_regions_data[current_region_name]:
-                        existing = all_regions_data[current_region_name][water_key]
-                        
-                        combined_regs = existing['regs'] + entry['regs']
-                        # Deduplicate AND Merge Orphans
-                        existing['regs'] = merge_orphaned_details(deduplicate_regs(combined_regs))
-                                
-                        existing['symbols'] = list(set(existing['symbols'] + entry['Symbols']))
-                        
-                        if entry['original_reg_text']:
-                            new_lines = entry['original_reg_text'].split('\n')
-                            for line in new_lines:
-                                if line.strip() and line not in existing['original_reg_text']:
-                                    existing['original_reg_text'] += "\n" + line
-
-                        if entry['MUs']:
-                            current_mus = existing.get('management_units', [])
-                            if not current_mus: current_mus = []
-                            existing['management_units'] = list(set(current_mus + entry['MUs']))
-                            
-                    else:
-                        entry['regs'] = merge_orphaned_details(deduplicate_regs(entry['regs']))
-                        all_regions_data[current_region_name][water_key] = {
-                            "symbols": entry['Symbols'],
-                            "original_reg_text": entry['original_reg_text'],
-                            "regs": entry['regs'],
-                            "management_units": entry['MUs']
-                        }
+                    # ARRAY STRUCTURE LOGIC
+                    if clean_key not in all_regions_data[current_region_name]:
+                        all_regions_data[current_region_name][clean_key] = []
+                    
+                    # Append this specific entry to the list for this key
+                    all_regions_data[current_region_name][clean_key].append({
+                        "unprocessed_name": raw_name,
+                        "symbols": entry['Symbols'],
+                        "original_reg_text": entry['original_reg_text'],
+                        "regs": entry['regs'],
+                        "management_units": entry['MUs']
+                    })
 
     final_regions_data = {k: v for k, v in all_regions_data.items() if len(v) > 0}
 

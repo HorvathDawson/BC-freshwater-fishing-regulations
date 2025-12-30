@@ -959,11 +959,6 @@ REGS:    No Fishing from boundary signs at outlet of Chehalis Lake to main loggi
 WATER:   CHILLIWACK LAKE (MUs: 2-4)
 SYMBOLS: None
 REGS:    No wild trout over 50 cm, 1 bull trout over 60 cm
---------------------------------------------------
-WATER:   CHILLIWACK / VEDDER RIVERS (does not include Sumas River) (see map on page 24) (MUs: 2-4)
-SYMBOLS: Includes Tributaries
-REGS:    No Fishing upstream from a line between two fishing boundary signs on either side of the Chilliwack River 100 m downstream of the confluence of the Chilliwack River and Slesse Creek
-         No Fishing downstream of a line between two fishing boundary signs on either side of the Chilliwack River 100m downstream of the confluence of the Chilliwack River and Slesse Creek to Tamihi Rapids Bridge, Apr 1-June 30
          No Fishing downstream of Tamihi Rapids Bridge to Vedder Crossing Bridge, May 1-June 30
          Downstream of Vedder Crossing Bridge: (a) fly fishing only, bait ban, hatchery rainbow trout catch and release (50 cm or less), and hatch- ery cutthroat catch and release, May 1-31; (b) No Fishing June 1-30; (c) hatchery rainbow trout of any length 50 cm or less: daily quota = 4, July 1-Apr 30
 --------------------------------------------------
@@ -978,10 +973,6 @@ REGS:    No Fishing May 1-June 30
 WATER:   COLVIN CREEK (MUs: 2-5)
 SYMBOLS: None
 REGS:    No Fishing
---------------------------------------------------
-WATER:   COQUIHALLA RIVER TABLE LEGEND: (MUs: 2-17)
-SYMBOLS: Includes Tributaries
-REGS:    No Fishing upstream of the northern entrance to the upper most railway tunnel, Nov 1-June 30 (see map on page 24)
          Fly fishing only; bait ban upstream of the northern entrance to the upper most railway tunnel, Jul 1-Oct 31
          No Fishing downstream of the southern entrance to the lower most railway tunnel, Apr 1-Oct 31
          No Fishing at Othello Tunnels from the northern entrance to the upper most railway tunnel to the southern entrance of the lower most tunnel; approximately 700 m length
@@ -2052,10 +2043,6 @@ SYMBOLS: None
 REGS:    No Fishing Jan 1-Apr 30
          Kokanee daily quota = 2
          Single barbless hook
---------------------------------------------------
-WATER:   MAHOOD LAKE (see map on page 28 for area closure) (MUs: 3-46)
-SYMBOLS: None
-REGS:    No Fishing within the fishing boundary signs at the western tip of the lake near the mouth of Canim River, Jan 1-June 30
          Trout/char catch and release, bait ban and single barbless hook: within fishing boundary signs at the western tip of the lake, July 1-Dec 31
          No Fishing within 200 m of the Mahood River outlet, Jan 1-June 30
          No Fishing within 200 m of the Mahood River outlet, Jan 1-June 30 Trout/char catch and release, bait ban and single barbless hook: within 200 m of the mouth of the Mahood River outlet, July 1-Dec 31
@@ -2265,14 +2252,6 @@ REGS:    Rainbow trout and char catch and release downstream of the falls; bait 
 WATER:   SHUMWAY LAKE (MUs: 3-20)
 SYMBOLS: None
 REGS:    No Fishing north of fishing boundary signs located at south end of lake, Apr 1-Oct 31
---------------------------------------------------
-WATER:   SHUSWAP LAKE (see maps on page 28) (includes Little Shuswap Lake, that part of South Thompson River between Shuswap Lake and Little Shuswap Lake, Seymour, Anstey and Salmon arms and Mara Lake unless stated otherwise) (MUs: 3-26)
-SYMBOLS: None
-REGS:    No Fishing Mar 15-May 14, and rainbow trout and char catch and release, May 15-Mar 14, in the waters lying west of a line between signs at Henstridge Road and Wharf Road to a line between signs on the south and north shores of Little Shuswap Lake (see map A on page 28)
-         page 28) No Fishing in the entire area north of Albas, Mar 15-May 14 (see map B on page 28)
-         No Fishing in the entire area north of Albas, Mar 15-May 14 (see map B on page 28) No Fishing east of a line between fishing boundary signs on Murdock and Semaphore points, to Hwy 1 bridge, Mar 15-May 14 (see map C
-         on page 28) No fishing in Salmon Arm Bay, west of line between Engineer’s Point and Sunnybrae Point (see map on page 28), for the conservation
-         of chinook and coho salmon stocks, Sept 1-Dec 31 (anglers fishing from the community pier in the city of Salmon Arm are exempt from the closure)
          No Ice Fishing
          Rainbow trout daily quota = 1 (none under 50 cm), annual quota = 5
          Char daily quota = 1 (none under 60 cm), annual quota = 5
@@ -2620,7 +2599,6 @@ WATER:   DUNCAN RIVER (MUs: 4-19)
 SYMBOLS: Includes Tributaries
 REGS:    Exempt from spring closure, exempt from regional Nov 1-Mar 31 bull trout catch and release, bait ban
          Rainbow trout daily quota = 5 (any size), bull trout daily quota = 2 (any size)
-         No Fishing downstream of Duncan Dam to the confluence of the Duncan River and the Lardeau River
 --------------------------------------------------
 WATER:   DUTCH CREEK (MUs: 4-26)
 SYMBOLS: Includes Tributaries
@@ -2829,10 +2807,6 @@ WATER:   KOOTENAY LAKE, ALL PARTS (Main Body, Upper West Arm and Lower West Arm)
 SYMBOLS: None
 REGS:    Burbot catch and release
          Bass daily quota = unlimited; yellow perch daily quota = unlimited
---------------------------------------------------
-WATER:   KOOTENAY LAKE - MAIN BODY (for location see map on page 34) (MUs: 4-19)
-SYMBOLS: None
-REGS:    A person in a boat may angle with an unlimited number of rods.
          Kokanee daily quota = 0
          Bull trout daily quota = 1; rainbow trout daily quota = 10 (any size)
          Bull trout daily quota = 1; rainbow trout daily quota = 10 (any size) Conservation Surcharge Stamp required to keep rainbow trout over 50 cm, annual quota = 20
@@ -2876,10 +2850,6 @@ REGS:    Bull trout catch and release
 WATER:   LARCHWOOD LAKE (MUs: 4-20)
 SYMBOLS: Stocked
 REGS:    No Ice Fishing; trout/char daily quota = 1 (none under 50 cm); bait ban, single barbless hook
---------------------------------------------------
-WATER:   LARDEAU RIVER (MUs: 4-29, 4-30)
-SYMBOLS: Includes Tributaries
-REGS:    No Fishing downstream of fishing boundary signs at Trout Lake outlet, to fishing boundary signs approximately 600m downstream near the confluence of Mobbs Creek
          Exempt from spring closure (Apr 1-Jun 14), exempt from trout/char release (Nov 1-Mar 31)
          Rainbow trout daily quota = 5 (any size), bull trout daily quota = 2 (any size)
 --------------------------------------------------
@@ -3544,10 +3514,6 @@ SYMBOLS: None
 REGS:    No Fishing Oct 1-June 30
          Trout/char catch and release; bait ban; artificial fly only
 --------------------------------------------------
-WATER:   CANIM LAKE (see map on page 42) (MUs: 5-1)
-SYMBOLS: None
-REGS:    No Fishing within the waters of the small bay at the mouth of Eagle Creek northerly of a line drawn between two boundary signs located on opposite shores of the bay, Sept 1-Sept 30
---------------------------------------------------
 WATER:   CANIM RIVER (also in M.U. ) (MUs: 3-46, 5-15)
 SYMBOLS: None
 REGS:    Trout/char catch and release; bait ban
@@ -3647,10 +3613,6 @@ REGS:    No Fishing upstream of Iltasyuko River [Includes tributaries] , includi
          Bait ban all parts [Includes tributaries]
          Fly fishing only from (a) Anahim Lake to Iltasyuko River, June 15- Mar 31, and (b) Crag Creek to fishing boundary signs approximately 500 m upstream of canyon, July 15-Sept 30
          No powered boats between signs 0.5 km and 3.5 km upstream of canyon, Aug 1-Aug 31
-         From Crag Creek to signs 500 m upstream of the canyon [Includes tributaries] : Class I water June 1-Sept 30 and Steelhead Stamp mandatory June 1-Sept 30; see map below (Non-residents see notice on page 42)
-         1-Sept 30; see map below (Non-residents see notice on page 42) From signs 100 m downstream of canyon to tidal boundary [Includes tributaries] : Class I water June 1-Sept 30 and Steelhead Stamp mandatory June
-         1-Sept 30: see map below
-         From Anahim Lake to Iltasyuko River [Includes tributaries] : Class II water June 16-Oct 31 (see map below); Steelhead Stamp not required
 --------------------------------------------------
 WATER:   DECEPTION LAKE (MUs: 5-15)
 SYMBOLS: None
@@ -3665,7 +3627,6 @@ REGS:    No Ice Fishing
 WATER:   “DOG” LAKE (MUs: 5-2)
 SYMBOLS: Stocked
 REGS:    No Ice Fishing; trout/char daily quota = 1; bait ban, single barbless hook
-         Unnamed lake approximately 6 km south/southwest of the confluence of Dog and Pigeon Creeks
 --------------------------------------------------
 WATER:   DONNELY LAKE (MUs: 5-1)
 SYMBOLS: Stocked
@@ -3683,17 +3644,14 @@ REGS:    No Fishing southeast of a line between fishing boundary signs on opposi
 --------------------------------------------------
 WATER:   LOWER PORTIONS OF THE DEAN RIV
 SYMBOLS: None
-REGS:    ER
+REGS:    
 --------------------------------------------------
 WATER:   Sakumtha CLASS 1 - R Lower Section Kimsquit Dean reek Canyon C Channel ull a k s o oN Creek Kalone CLASS 1 - Ma Subject to Annual D
 SYMBOLS: Stocked
 REGS:    Sigutlat o Anahim Lake k Lake
-         s y u R River a Ilt
-         D CLASS 2 - Upper Section ean
+         s y u R River a Ilt CLASS 2 - Upper Section ean
          Dean R R iv
-         Crag C
-         r kee Takia
-         PR T O W V E IN E C D I S A M L U PA IR RK e r
+         Crag C Takia
          ain Section raw (see page 42)
 --------------------------------------------------
 
@@ -4280,21 +4238,8 @@ WATER:   BABINE LAKE (MUs: 6-6)
 SYMBOLS: None
 REGS:    No Fishing east of a line from Gullwing Creek to the south shore of Babine Lake
          No Fishing within a 400 m radius of the mouth of Pinkut Creek, Aug 15-Sept 15
-         That section of flowing water between Babine and Nilkitkwa lakes, known as "Rainbow Alley", is designated Babine River (see map 2 page 51); see Babine River regulations below (paragraphs 3 and 4)
---------------------------------------------------
-WATER:   BABINE RIVER (MUs: 6-8)
-SYMBOLS: Includes Tributaries, Classified Waters
-REGS:    Angling prohibited for non-guided non-resident aliens on Saturdays and Sundays from the juvenile fish counting weir located at the outlet of Nilkitkwa Lake to the Nilkitkwa River confluence, Sept 1-Oct 31 (See map page 56)
-         the outlet of Nilkitkwa Lake to the Nilkitkwa River confluence, Sept 1-Oct 31 (See map page 56) No Fishing between fishing boundary signs approximately 100 m upstream of and 80 m downstream of the adult fish counting fence, located approximately 1.8 km downstream of Nilkitkwa Lake
-         Open all year in the stream channel known as “Rainbow Alley” located between Babine and Nilkitkwa lakes (see map 2 page 51)
-         Open all year in the stream channel known as “Rainbow Alley” located between Babine and Nilkitkwa lakes (see map 2 page 51) Fly fishing only (a) from the Fort Babine Bridge downstream to signs 100 m upstream of the adult fish counting fence (including Nilkitkwa Lake), during open times and (b) from signs about 80 m downstream of the adult fish counting fence to Nichyeskwa Creek, June 16-Sept 30; includes "Rainbow Alley"
          Bait ban
          No angling from boats from the adult fish counting fence (described above) downstream to the Babine River’s confluence with the Skeena River
-         Class 1 water Sept 1-Oct 31; Steelhead Stamp mandatory Sept 1-Oct 31 from the juvenile fish counting weir located at the outlet of Nilkitkwa Lake downstream to the Babine River’s confluence with the Skeena River (See map page 56)
---------------------------------------------------
-WATER:   BASALT LAKE (MUs: 6-1)
-SYMBOLS: None
-REGS:    Nilkitkwa Lake downstream to the Babine River’s confluence with the Skeena River (See map ) No Ice Fishing; trout catch and release; bait ban, single barbless hook
 --------------------------------------------------
 WATER:   BEAR RIVER (Sustut Watershed) (MUs: 6-18)
 SYMBOLS: Includes Tributaries
@@ -4512,13 +4457,7 @@ SYMBOLS: Classified Waters
 REGS:    Angling prohibited for non-guided non-resident aliens on Saturdays and Sundays, all year
          Bait ban
          Class II water all year [Includes tributaries] ; Steelhead Stamp mandatory Sept 1-Oct 31 [Includes tributaries]
---------------------------------------------------
-WATER:   KITSUMKALUM (Kalum) RIVER (MUs: 6-15)
-SYMBOLS: Includes Tributaries, Classified Waters
-REGS:    Angling prohibited for non-guided non-resident aliens on Saturdays from the outlet of Kitsumkalum Lake to Glacier Creek confluence all year (See map page 56)
-         all year (See map page 56) Angling prohibited for non-guided non-resident aliens on Sundays for the entire river all year
          Class II water all year [Includes tributaries] ; Steelhead Stamp mandatory Aug 7 - May 31
-         Bait ban
 --------------------------------------------------
 WATER:   KITWANGA RIVER (MUs: 6-30)
 SYMBOLS: Includes Tributaries, Classified Waters
@@ -4582,11 +4521,6 @@ REGS:    Lake trout daily quota = 3: EITHER none over 60 cm, OR only 1 over 60 c
 WATER:   LAKELSE LAKE (MUs: 6-11)
 SYMBOLS: None
 REGS:    Rainbow trout over 50 cm catch and release
---------------------------------------------------
-WATER:   LAKELSE RIVER (MUs: 6-10)
-SYMBOLS: Includes Tributaries, Classified Waters
-REGS:    Angling prohibited for non-guided non-resident aliens from the outlet of Lakelse Lake to the power line crossing, located 3.5 km upstream of the Lakelse River mouth, all year (See map page 55)
-         upstream of the Lakelse River mouth, all year (See map page 55) Fly fishing only between Lakelse Lake and CNR Bridge, Mar 1-May 31
          Bait ban, no powered boats
          Class I water all year; Steelhead Stamp mandatory Sept 1-May 31
 --------------------------------------------------
@@ -4665,8 +4599,6 @@ REGS:    No Fishing
 WATER:   NILKITKWA LAKE (MUs: 6-8)
 SYMBOLS: None
 REGS:    Fly fishing only, bait ban (EXCEPT dead fin fish may be used as bait when set lining; see page 8 in the Provincial Regulations)
-         Fly fishing only, bait ban (EXCEPT dead fin fish may be used as bait when set lining; see page 8 in the Provincial Regulations) That section of flowing water between Babine and Nilkitkwa Lakes known as “Rainbow Alley” is open for fishing all year (see also Babine
-         River) (See map 2 page 51)
 --------------------------------------------------
 WATER:   NITHI RIVER (MUs: 6-4)
 SYMBOLS: None
@@ -4726,10 +4658,6 @@ WATER:   SILVERTHORNE (Erickson) LAKE (MUs: 6-9)
 SYMBOLS: None
 REGS:    No Fishing within 50 m of the outlet, May 1-June 30
 --------------------------------------------------
-WATER:   SKEENA RIVER/KISPIOX RIVER CONFLUENCE (MUs: 6-8)
-SYMBOLS: None
-REGS:    Waters within 3 white fishing boundary signs located at the confluence of the Skeena and Kispiox rivers: no angling from boats
---------------------------------------------------
 WATER:   SKEENA RIVER (MUs: 6-10)
 SYMBOLS: Includes Tributaries
 REGS:    Bait ban
@@ -4737,7 +4665,6 @@ REGS:    Bait ban
 WATER:   SKEENA RIVER (mainstem only) (MUs: 6-10)
 SYMBOLS: Classified Waters
 REGS:    There are two separate Class II waters on the Skeena River (non-residents and non-resident aliens require separate licences describing which section they are fishing): (a) from Exchamsiks River to 1.5 km upstream of Kitsumkalum River (known as “Skeena River 2”), July 1-Sept 30; and (b) 1.5 km upstream of Zymoetz River (known as “Skeena River Section 4”), July 1-Dec 31; Steelhead Stamp not mandatory for Skeena River 2 unless fishing for steelhead. Steelhead Stamp is mandatory in Skeena River Section 4 during the Classified Waters period from July 1-Dec 31
-         Angling prohibited for non-guided non-resident aliens in Skeena River Section 4 on Saturdays and Sundays in two zones: (a) Shegunia River confluence to Sedan Creek confluence July 1-Dec 31 (See map page 54), and (b) Chimdemash Creek confluence to 1.5 km upstream of Zymoetz River confluence, July 1 - Dec 31, (See map page 55)
 --------------------------------------------------
 WATER:   SQUIRREL LAKE (MUs: 6-1)
 SYMBOLS: None
@@ -4862,16 +4789,11 @@ REGS:    No Fishing from McDonell Lake downstream approximately 3 km to fishing 
          Angling prohibited for non-guided non-resident aliens on Fridays, Saturdays, and Sundays Jul 24 - Dec 31
          Downstream of Limonite Creek (Zymoetz River B): Class II water Jul 24 - May 31; Steelhead Stamp mandatory Jul 24 - May 31;
          Angling prohibited for non-guided non-resident aliens on Fridays, Saturdays, and Sundays Jul 24 - May 31
-         K
-         Kis p io x R
-         Confluence of Shequnia River and Skeena River KISPIOX VILLAGE Shegunia River K si p oi
+         and Skeena River KISPIOX VILLAGE Shegunia River p oi
          x V a ell
          y R d . Old Hazelton
-         New Hazelton r e v Ri
-         er v i R
-         a g n a S a n e d w e an C it K k e re Kitwanga S e k K its e g u e c Confluence of Sedan Creek la
-         and Skeena River R iv e r 0 5 10 20
-         Kilometers Angling prohibited for non-guided non-resident aliens on Saturdays and Sundays from the Shegunia nfluence, July 1-Dec 31.
+         New Hazelton r e v v i R S a n e d w e an C it re Kitwanga S K its e g u
+         and Skeena River R 0 5 10 20 Angling prohibited for non-guided non-resident aliens on Saturdays and Sundays from the Shegunia nfluence, July 1-Dec 31.
          2025-2027 BC Freshwater Fishing Regulations Synopsis
 --------------------------------------------------
 
@@ -4884,11 +4806,6 @@ REGS:    No Fishing Nov 1-Apr 30
 WATER:   AMANITA LAKE (MUs: 7-17)
 SYMBOLS: None
 REGS:    Electric motor only - max 7.5 kW
---------------------------------------------------
-WATER:   ANZAC RIVER (MUs: 7-23)
-SYMBOLS: Includes Tributaries
-REGS:    No Fishing within 500 m radius of the Upper Anzac bridge Aug 15-Mar 31, located at approximately UTM 10 552426, 6093011 (see map on page 62)
-         Fly fishing only Jul 1-Mar 31 upstream of the North Anzac River confluence (see map on page 62)
 --------------------------------------------------
 WATER:   ARCTIC LAKE (MUs: 7-23)
 SYMBOLS: None
@@ -4966,11 +4883,6 @@ REGS:    No Fishing Nov 1-Apr 30
 WATER:   CLUCULZ LAKE (MUs: 7-12)
 SYMBOLS: None
 REGS:    Lake trout catch and release; no set lines
---------------------------------------------------
-WATER:   CROOKED RIVER (MUs: 7-24)
-SYMBOLS: None
-REGS:    No Fishing downstream (north) of the 200 Road Bridge, Apr 1-June 30 (see map on page 62)
-         Rainbow trout catch and release and exempt from spring closure upstream (south) of the 200 Road Bridge, Apr 1-June 30 (see map on page 62)
 --------------------------------------------------
 WATER:   CUNNINGHAM LAKE (MUs: 7-25)
 SYMBOLS: None
@@ -5566,10 +5478,6 @@ WATER:   LETAIN LAKE (MUs: 7-52)
 SYMBOLS: None
 REGS:    No Fishing within 100 m of fishing boundary sign at outlet, May 15-July 31
          Rainbow trout daily and possession quotas = 2 (none over 50 cm); bait ban, single hook
---------------------------------------------------
-WATER:   LIARD RIVER WATERSHED (see map on page 63) (MUs: 7-53)
-SYMBOLS: None
-REGS:    Bull trout catch and release from all lakes and streams, Aug 15-Oct 15
          Bull trout daily and possession quotas = 1 (none under 30 cm or over 50 cm) from all lakes and streams, Oct 16-Aug 14
 --------------------------------------------------
 WATER:   LOWER BLUE LAKE (MUs: 7-21)
