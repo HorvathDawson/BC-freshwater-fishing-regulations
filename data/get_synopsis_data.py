@@ -23,6 +23,51 @@ VERTICAL_GAP_THRESHOLD = 3.0
 # --- REGULATION PARSING LOGIC ---
 
 class RegParser:
+    """
+    Parses raw regulation text strings into structured objects.
+    
+    This class handles the complexity of PDF text extraction where lines might be 
+    mashed together, split arbitrarily, or contain complex lists of rules.
+
+    --- EXAMPLES ---
+
+    Example 1: Mashed Headers (Pre-clean fix)
+    Input:  "No Fishing Bait ban"
+    Output: [
+        {"type": "Fishing Closure", "details": "No Fishing", ...},
+        {"type": "Gear Restriction", "details": "Bait ban", ...}
+    ]
+
+    Example 2: Complex Lists with Dates
+    Input:  "Trout daily quota = 2, July 1-Sept 30"
+    Output: [
+        {
+            "type": "Quota / Catch Limit",
+            "details": "Trout daily quota = 2, July 1-Sept 30",
+            "date_range": "July 1-Sept 30"
+        }
+    ]
+    * Note: The date is not split because it doesn't look like a separate rule.
+
+    Example 3: Distinct Rules separated by commas
+    Input:  "Bait ban, single barbless hook"
+    Output: [
+        {"type": "Gear Restriction", "details": "Bait ban", ...},
+        {"type": "Gear Restriction", "details": "single barbless hook", ...}
+    ]
+
+    Example 4: Context Preservation (Smart Split)
+    Input:  "Class II water (a) from bridge to falls, and (b) from falls to mouth"
+    Output: [
+        {
+            "type": "Classified Waters",
+            "details": "Class II water (a) from bridge to falls, and (b) from falls to mouth",
+            ...
+        }
+    ]
+    * Note: It detects the (a)/(b) list structure and conjunctions to avoid splitting.
+    """
+    
     PATTERNS = {
         "Advisory": [r"WARNING", r"Mercury", r"Thin ice", r"NOTICE", r"consumption"],
         "Fishing Closure": [r"No Fishing", r"Closed", r"No Ice Fishing"],
@@ -37,6 +82,10 @@ class RegParser:
 
     @staticmethod
     def classify(text):
+        """
+        Determines the Regulation Type based on keyword matching.
+        The PATTERNS dict is ordered by priority (e.g. Advisory > Quota).
+        """
         for category, patterns in RegParser.PATTERNS.items():
             for pat in patterns:
                 if re.search(pat, text, re.IGNORECASE):
@@ -45,53 +94,165 @@ class RegParser:
 
     @staticmethod
     def pre_clean(text):
-        # Insert separators for mashed types
+        """
+        Inserts separators between distinct regulation types that got mashed together
+        due to PDF layout issues (missing newlines).
+        """
+        # Fix: "No Fishing Bait ban" -> "No Fishing; Bait ban"
         text = re.sub(r'(Fishing)\s+(Bait)', r'\1; \2', text, flags=re.IGNORECASE)
+        # Fix: "No Fishing Artificial fly" -> "No Fishing; Artificial fly"
         text = re.sub(r'(Fishing)\s+(Artificial)', r'\1; \2', text, flags=re.IGNORECASE)
+        # Fix: "No Fishing Single barbless" -> "No Fishing; Single barbless"
         text = re.sub(r'(Fishing)\s+(Single)', r'\1; \2', text, flags=re.IGNORECASE)
+        # Fix: "Quota = 2 bait ban" -> "Quota = 2; bait ban"
         text = re.sub(r'(\d)\s+(bait)', r'\1; \2', text, flags=re.IGNORECASE)
+        # Fix: "(see page 4) WARNING!" -> "(see page 4); WARNING!"
         text = re.sub(r'([^\.;])\s+(WARNING!)', r'\1; \2', text)
         text = re.sub(r'([^\.;])\s+(NOTICE)', r'\1; \2', text)
         return text
 
     @staticmethod
+    def clean_and_split(text):
+        """
+        Intelligently splits a raw text block into distinct regulation items.
+        Respects sentence structure, parentheses, and conjunctions.
+        """
+        text = re.sub(r'\s+', ' ', text).strip()
+        
+        # 1. Soften Semicolons:
+        # Don't split on semicolons if they are just separating list items grammatically
+        # e.g., "...Sept 30; and (b)..." -> "...Sept 30, and (b)..."
+        text = re.sub(r';\s*(?=(?:and|or|but)\b)', ', ', text, flags=re.IGNORECASE)
+        text = re.sub(r';\s*(?=\([a-z0-9]+\))', ', ', text, flags=re.IGNORECASE)
+
+        # 2. Hard Split on remaining Semicolons (These are definite breaks)
+        initial_chunks = [c.strip() for c in text.split(';') if c.strip()]
+        
+        final_items = []
+        
+        for chunk in initial_chunks:
+            # 3. Soft Split on Periods (sentences)
+            # Lookbehind ensures we don't split abbreviations like "B.C." or "U.S."
+            sentences = re.split(r'(?<![A-Z])\.\s+', chunk)
+            
+            for sentence in sentences:
+                parts = sentence.split(',')
+                current_item = parts[0]
+                
+                for part in parts[1:]:
+                    part = part.strip()
+                    if not part: continue
+                    
+                    # --- MERGE HEURISTICS ---
+                    # We default to SPLITTING, unless we find a reason to MERGE.
+                    should_merge = False
+                    
+                    # A. Unbalanced Parens: "Quota = 2 (none > 50cm" -> MERGE
+                    if current_item.count('(') > current_item.count(')'):
+                        should_merge = True
+                        
+                    # B. Conjunctions: "...and (b)..." -> MERGE
+                    elif re.match(r'^(and|but|or)\b', part, re.IGNORECASE):
+                        should_merge = True
+                        
+                    # C. List Items: "(a)...", "(ii)..." -> MERGE (usually belongs to prev clause)
+                    elif re.match(r'^\([a-z0-9]+\)', part, re.IGNORECASE):
+                        should_merge = True
+                        
+                    # D. Date Range Only: "July 1-Sept 30" -> MERGE
+                    # If the chunk is JUST a date, it likely belongs to the previous rule.
+                    elif re.match(r'^[A-Z][a-z]{2,9}\s*\d{1,2}\s*[-–]\s*[A-Z][a-z]{2,9}\s*\d{1,2}', part):
+                        should_merge = True
+                        
+                    # E. Lowercase continuation: "bait ban" -> SPLIT, "unless fishing for..." -> MERGE
+                    elif part[0].islower():
+                        # If it starts with a strong keyword (e.g. "bait ban"), it's likely a new rule
+                        strong_start_keywords = r'^(bait|single|no|artificial|fly|barbless|quota)\b'
+                        if not re.match(strong_start_keywords, part, re.IGNORECASE):
+                            should_merge = True
+
+                    if should_merge:
+                        current_item += ", " + part
+                    else:
+                        final_items.append(current_item)
+                        current_item = part
+                
+                final_items.append(current_item)
+
+        return [i.strip() for i in final_items if i.strip()]
+
+    @staticmethod
     def parse_reg(text):
         text = RegParser.pre_clean(text)
-
-        if ";" in text:
-            parts = [p.strip() for p in text.split(';') if p.strip()]
-            results = []
-            for p in parts:
-                results.extend(RegParser.parse_reg(p))
-            return results
-
-        if "," in text:
-            parts = [p.strip() for p in text.split(',')]
-            significant_count = 0
-            for p in parts:
-                if RegParser.classify(p) != "General Restriction":
-                    significant_count += 1
+        chunks = RegParser.clean_and_split(text)
+        results = []
+        for chunk in chunks:
+            res = {
+                "type": RegParser.classify(chunk),
+                "details": chunk,
+                "date_range": None
+            }
+            date_match = re.search(RegParser.DATE_PATTERN, chunk)
+            if date_match:
+                res["date_range"] = date_match.group(1)
             
-            if significant_count > 1:
-                split_results = []
-                for p in parts:
-                    sub_res = RegParser.parse_reg(p)
-                    split_results.extend(sub_res) 
-                return split_results
+            results.append(res)
+            
+        return results
 
-        result = {
-            "type": RegParser.classify(text),
-            "details": text,
-            "date_range": None
-        }
+# --- HELPER FUNCTIONS ---
 
-        date_match = re.search(RegParser.DATE_PATTERN, text)
-        if date_match:
-            result["date_range"] = date_match.group(1)
+def deduplicate_regs(regs_list):
+    """ Removes duplicates from list of regs based on type+details. """
+    seen = set()
+    unique = []
+    for r in regs_list:
+        comp = (r['type'], r['details'].strip())
+        if comp not in seen:
+            seen.add(comp)
+            unique.append(r)
+    return unique
 
-        return [result]
+def merge_orphaned_details(regs_list):
+    """
+    Merges items that look like continuations (e.g. "(See map...)") 
+    into the previous item.
+    """
+    if not regs_list: return []
+    
+    merged = [regs_list[0]]
+    
+    for i in range(1, len(regs_list)):
+        current = regs_list[i]
+        prev = merged[-1]
+        
+        txt = current['details'].strip()
+        should_merge_back = False
+        
+        # 1. Parenthetical References: "(See map...)", "(see page...)"
+        if txt.startswith('(') and txt.endswith(')'):
+            should_merge_back = True
+            
+        # 2. Conjunction starts: "and (b)..."
+        elif re.match(r'^(and|but|or)\b', txt, re.IGNORECASE):
+            should_merge_back = True
+            
+        # 3. Just a date range that got split?
+        elif current['type'] == "General Restriction" and current['date_range'] == txt:
+             if prev['date_range'] is None:
+                 prev['date_range'] = current['date_range']
+                 should_merge_back = True
 
-# --- STANDARD HELPER FUNCTIONS ---
+        if should_merge_back:
+            prev['details'] += " " + txt
+            if prev['date_range'] is None and current['date_range']:
+                prev['date_range'] = current['date_range']
+        else:
+            merged.append(current)
+            
+    return merged
+
+# --- STANDARD PDF EXTRACTION ---
 
 def download_pdf(url, filename):
     if os.path.exists(filename):
@@ -148,23 +309,6 @@ def is_valid_row(name, regs):
     if not name.strip() and not regs: return False
     return True
 
-# --- NEW HELPER: CONTENT-BASED DEDUPLICATION ---
-def deduplicate_regs(regs_list):
-    """
-    Removes duplicates from a list of regulation dictionaries.
-    Uniqueness is determined by the content (type + details).
-    """
-    seen = set()
-    unique = []
-    for r in regs_list:
-        # Create a hashable tuple for comparison
-        # (Using type and details is usually sufficient)
-        comp = (r['type'], r['details'])
-        if comp not in seen:
-            seen.add(comp)
-            unique.append(r)
-    return unique
-
 def extract_text_by_spatial_layout(page, bbox):
     if not bbox: return []
     x0, top, x1, bottom = bbox
@@ -210,15 +354,7 @@ def extract_text_by_spatial_layout(page, bbox):
     if current_text_block:
         spatial_blocks.append(" ".join(current_text_block))
 
-    final_reg_list = []
-    for block in spatial_blocks:
-        parts = block.split(';')
-        for p in parts:
-            cleaned = clean_text(p)
-            if cleaned:
-                final_reg_list.append(cleaned)
-
-    return final_reg_list
+    return [clean_text(b) for b in spatial_blocks]
 
 def parse_water_col(text, bbox, fish_locations):
     text_raw = text.replace('\n', ' ').strip()
@@ -261,6 +397,7 @@ def get_table_geometry(page):
 def process_table(page, table, fish_locations):
     structured_data = []
     current_entry = None
+    last_c2_box = None 
 
     text_rows = table.extract()
     row_objs = table.rows 
@@ -274,17 +411,24 @@ def process_table(page, table, fish_locations):
         c1_raw = text_rows[i][0] or ""
         
         c2_box = row.cells[1]
-        c2_raw_list = extract_text_by_spatial_layout(page, c2_box)
+        
+        is_duplicate_regs = (c2_box == last_c2_box)
+        last_c2_box = c2_box 
+
+        if is_duplicate_regs:
+            c2_raw_list = []
+            structured_regs = []
+        else:
+            c2_raw_list = extract_text_by_spatial_layout(page, c2_box)
+            structured_regs = []
+            for raw_reg in c2_raw_list:
+                parsed_list = RegParser.parse_reg(raw_reg)
+                structured_regs.extend(parsed_list)
 
         name_text, c1_syms = parse_water_col(c1_raw, c1_box, fish_locations)
-        
-        structured_regs = []
-        for raw_reg in c2_raw_list:
-            parsed_list = RegParser.parse_reg(raw_reg)
-            structured_regs.extend(parsed_list)
 
         if not name_text and not c2_raw_list: continue
-        if not is_valid_row(name_text, c2_raw_list): continue
+        if c2_raw_list and not is_valid_row(name_text, c2_raw_list): continue
 
         if name_text:
             if is_mu_line(name_text):
@@ -295,15 +439,13 @@ def process_table(page, table, fish_locations):
                         current_entry["Symbols"] = list(set(current_entry["Symbols"] + c1_syms))
                     if structured_regs:
                         current_entry["regs"].extend(structured_regs)
-                        
-                        raw_text_block = "\n".join(c2_raw_list)
-                        if raw_text_block:
-                            current_entry["original_reg_text"] += "\n" + raw_text_block
+                        for raw_line in c2_raw_list:
+                            if raw_line not in current_entry["original_reg_text"]:
+                                current_entry["original_reg_text"] += "\n" + raw_line
             else:
                 final_name, mus = extract_all_mus(name_text)
                 if current_entry: 
-                    # Deduplicate before saving
-                    current_entry["regs"] = deduplicate_regs(current_entry["regs"])
+                    current_entry["regs"] = merge_orphaned_details(deduplicate_regs(current_entry["regs"]))
                     structured_data.append(current_entry)
                 
                 raw_text_block = "\n".join(c2_raw_list)
@@ -317,19 +459,15 @@ def process_table(page, table, fish_locations):
                 }
         elif current_entry and structured_regs:
             current_entry["regs"].extend(structured_regs)
-            
-            raw_text_block = "\n".join(c2_raw_list)
-            if raw_text_block:
-                # Basic string deduplication for the parent field
-                if raw_text_block not in current_entry["original_reg_text"]:
-                    current_entry["original_reg_text"] += "\n" + raw_text_block
-                
+            for raw_line in c2_raw_list:
+                if raw_line not in current_entry["original_reg_text"]:
+                    current_entry["original_reg_text"] += "\n" + raw_line
             _, extra_syms = parse_water_col(c1_raw, c1_box, fish_locations)
             if extra_syms:
                 current_entry["Symbols"] = list(set(current_entry["Symbols"] + extra_syms))
 
     if current_entry: 
-        current_entry["regs"] = deduplicate_regs(current_entry["regs"])
+        current_entry["regs"] = merge_orphaned_details(deduplicate_regs(current_entry["regs"]))
         structured_data.append(current_entry)
         
     return structured_data
@@ -419,17 +557,17 @@ def extract_fishing_data():
                     if water_key in all_regions_data[current_region_name]:
                         existing = all_regions_data[current_region_name][water_key]
                         
-                        # Merge Dicts using Deduplicate Helper
                         combined_regs = existing['regs'] + entry['regs']
-                        existing['regs'] = deduplicate_regs(combined_regs)
+                        # Deduplicate AND Merge Orphans
+                        existing['regs'] = merge_orphaned_details(deduplicate_regs(combined_regs))
                                 
                         existing['symbols'] = list(set(existing['symbols'] + entry['Symbols']))
                         
-                        # Merge Original Text
                         if entry['original_reg_text']:
-                            # Simple check to avoid double printing the same block
-                            if entry['original_reg_text'] not in existing['original_reg_text']:
-                                existing['original_reg_text'] += "\n" + entry['original_reg_text']
+                            new_lines = entry['original_reg_text'].split('\n')
+                            for line in new_lines:
+                                if line.strip() and line not in existing['original_reg_text']:
+                                    existing['original_reg_text'] += "\n" + line
 
                         if entry['MUs']:
                             current_mus = existing.get('management_units', [])
@@ -437,9 +575,7 @@ def extract_fishing_data():
                             existing['management_units'] = list(set(current_mus + entry['MUs']))
                             
                     else:
-                        # Ensure new entries are also deduplicated (sanity check)
-                        entry['regs'] = deduplicate_regs(entry['regs'])
-                        
+                        entry['regs'] = merge_orphaned_details(deduplicate_regs(entry['regs']))
                         all_regions_data[current_region_name][water_key] = {
                             "symbols": entry['Symbols'],
                             "original_reg_text": entry['original_reg_text'],
