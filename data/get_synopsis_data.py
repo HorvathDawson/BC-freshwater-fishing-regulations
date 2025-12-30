@@ -45,6 +45,7 @@ class RegParser:
 
     @staticmethod
     def pre_clean(text):
+        # Insert separators for mashed types
         text = re.sub(r'(Fishing)\s+(Bait)', r'\1; \2', text, flags=re.IGNORECASE)
         text = re.sub(r'(Fishing)\s+(Artificial)', r'\1; \2', text, flags=re.IGNORECASE)
         text = re.sub(r'(Fishing)\s+(Single)', r'\1; \2', text, flags=re.IGNORECASE)
@@ -82,7 +83,6 @@ class RegParser:
             "type": RegParser.classify(text),
             "details": text,
             "date_range": None
-            # Removed 'original_text' as requested
         }
 
         date_match = re.search(RegParser.DATE_PATTERN, text)
@@ -148,10 +148,26 @@ def is_valid_row(name, regs):
     if not name.strip() and not regs: return False
     return True
 
+# --- NEW HELPER: CONTENT-BASED DEDUPLICATION ---
+def deduplicate_regs(regs_list):
+    """
+    Removes duplicates from a list of regulation dictionaries.
+    Uniqueness is determined by the content (type + details).
+    """
+    seen = set()
+    unique = []
+    for r in regs_list:
+        # Create a hashable tuple for comparison
+        # (Using type and details is usually sufficient)
+        comp = (r['type'], r['details'])
+        if comp not in seen:
+            seen.add(comp)
+            unique.append(r)
+    return unique
+
 def extract_text_by_spatial_layout(page, bbox):
     if not bbox: return []
     x0, top, x1, bottom = bbox
-    
     try:
         cell_crop = page.crop((x0, top, x1, bottom))
     except ValueError:
@@ -257,7 +273,6 @@ def process_table(page, table, fish_locations):
         c1_box = row.cells[0]
         c1_raw = text_rows[i][0] or ""
         
-        # This returns a LIST of strings (e.g. ["No fishing", "Bait ban"])
         c2_box = row.cells[1]
         c2_raw_list = extract_text_by_spatial_layout(page, c2_box)
 
@@ -268,11 +283,11 @@ def process_table(page, table, fish_locations):
             parsed_list = RegParser.parse_reg(raw_reg)
             structured_regs.extend(parsed_list)
 
+        if not name_text and not c2_raw_list: continue
         if not is_valid_row(name_text, c2_raw_list): continue
 
         if name_text:
             if is_mu_line(name_text):
-                # Continuation of Previous MU
                 if current_entry:
                     _, extra_mus = extract_all_mus(name_text)
                     current_entry["MUs"].extend(extra_mus)
@@ -280,39 +295,43 @@ def process_table(page, table, fish_locations):
                         current_entry["Symbols"] = list(set(current_entry["Symbols"] + c1_syms))
                     if structured_regs:
                         current_entry["regs"].extend(structured_regs)
-                        # Append raw text to parent field
+                        
                         raw_text_block = "\n".join(c2_raw_list)
                         if raw_text_block:
                             current_entry["original_reg_text"] += "\n" + raw_text_block
             else:
-                # New Water Body
                 final_name, mus = extract_all_mus(name_text)
-                if current_entry: structured_data.append(current_entry)
+                if current_entry: 
+                    # Deduplicate before saving
+                    current_entry["regs"] = deduplicate_regs(current_entry["regs"])
+                    structured_data.append(current_entry)
                 
-                # Combine the raw list into a single block for the parent field
                 raw_text_block = "\n".join(c2_raw_list)
                 
                 current_entry = {
                     "Water": final_name,
                     "MUs": mus,
                     "Symbols": c1_syms,
-                    "original_reg_text": raw_text_block, # NEW PARENT FIELD
+                    "original_reg_text": raw_text_block,
                     "regs": structured_regs
                 }
         elif current_entry and structured_regs:
-            # Continuation of Regulations
             current_entry["regs"].extend(structured_regs)
             
-            # Append raw text to parent field
             raw_text_block = "\n".join(c2_raw_list)
             if raw_text_block:
-                current_entry["original_reg_text"] += "\n" + raw_text_block
+                # Basic string deduplication for the parent field
+                if raw_text_block not in current_entry["original_reg_text"]:
+                    current_entry["original_reg_text"] += "\n" + raw_text_block
                 
             _, extra_syms = parse_water_col(c1_raw, c1_box, fish_locations)
             if extra_syms:
                 current_entry["Symbols"] = list(set(current_entry["Symbols"] + extra_syms))
 
-    if current_entry: structured_data.append(current_entry)
+    if current_entry: 
+        current_entry["regs"] = deduplicate_regs(current_entry["regs"])
+        structured_data.append(current_entry)
+        
     return structured_data
 
 def get_region_name(text):
@@ -388,8 +407,6 @@ def extract_fishing_data():
                     sym_str = ", ".join(entry['Symbols']) if entry['Symbols'] else "None"
                     mu_str = f" (MUs: {', '.join(mu)})" if mu else ""
                     
-                    # For Text Output, we can now use the nice parent field!
-                    # Indent it slightly for readability
                     raw_text_pretty = entry['original_reg_text'].replace('\n', '\n         ')
                     
                     f_txt.write(f"WATER:   {water_name}{mu_str}\n")
@@ -402,18 +419,17 @@ def extract_fishing_data():
                     if water_key in all_regions_data[current_region_name]:
                         existing = all_regions_data[current_region_name][water_key]
                         
-                        # Merge Dicts (avoid exact duplicates by checking 'details')
-                        existing_details = {r['details'] for r in existing['regs']}
-                        for r in entry['regs']:
-                            if r['details'] not in existing_details:
-                                existing['regs'].append(r)
-                                existing_details.add(r['details'])
+                        # Merge Dicts using Deduplicate Helper
+                        combined_regs = existing['regs'] + entry['regs']
+                        existing['regs'] = deduplicate_regs(combined_regs)
                                 
                         existing['symbols'] = list(set(existing['symbols'] + entry['Symbols']))
                         
-                        # Merge Original Text (Append with newline)
+                        # Merge Original Text
                         if entry['original_reg_text']:
-                            existing['original_reg_text'] += "\n" + entry['original_reg_text']
+                            # Simple check to avoid double printing the same block
+                            if entry['original_reg_text'] not in existing['original_reg_text']:
+                                existing['original_reg_text'] += "\n" + entry['original_reg_text']
 
                         if entry['MUs']:
                             current_mus = existing.get('management_units', [])
@@ -421,9 +437,12 @@ def extract_fishing_data():
                             existing['management_units'] = list(set(current_mus + entry['MUs']))
                             
                     else:
+                        # Ensure new entries are also deduplicated (sanity check)
+                        entry['regs'] = deduplicate_regs(entry['regs'])
+                        
                         all_regions_data[current_region_name][water_key] = {
                             "symbols": entry['Symbols'],
-                            "original_reg_text": entry['original_reg_text'], # NEW FIELD
+                            "original_reg_text": entry['original_reg_text'],
                             "regs": entry['regs'],
                             "management_units": entry['MUs']
                         }

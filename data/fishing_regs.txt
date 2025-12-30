@@ -1296,6 +1296,7 @@ WATER:   KHARTOUM LAKE (MUs: 2-12)
 SYMBOLS: None
 REGS:    Wild trout/char daily quota = 2 (no wild trout 40 cm or more), hatchery rainbow trout (see diagram on page 13) = 6
          single barbless hook
+         Wild trout/char daily quota = 2 (no wild trout 40 cm or more), hatchery rainbow trout (see diagram on page 13) = 6
          single barbless hook Rainbow trout/hatchery steelhead quota = 6 in the aggregate
 --------------------------------------------------
 WATER:   KLEIN LAKE (MUs: 2-5)
@@ -2246,6 +2247,7 @@ REGS:    No Fishing Jan 1-June 30
          Downstream of Goodwin Falls: Rainbow trout daily quota = 2 (none over 35 cm), char catch and release
          bait ban
          Upstream of Goodwin Falls: Trout/char catch and release
+         bait ban
 --------------------------------------------------
 WATER:   MAKA CREEK (MUs: 3-13)
 SYMBOLS: None
@@ -2477,6 +2479,7 @@ SYMBOLS: None
 REGS:    No Fishing Mar 15-May 14, and rainbow trout and char catch and release, May 15-Mar 14, in the waters lying west of a line between signs at Henstridge Road and Wharf Road to a line between signs on the south and north shores of Little Shuswap Lake (see map A on page 28)
          page 28) No Fishing in the entire area north of Albas, Mar 15-May 14 (see map B on page 28)
          No Fishing in the entire area north of Albas, Mar 15-May 14 (see map B on page 28) No Fishing east of a line between fishing boundary signs on Murdock and Semaphore points, to Hwy 1 bridge, Mar 15-May 14 (see map C
+         on page 28)
          on page 28) No fishing in Salmon Arm Bay, west of line between Engineer’s Point and Sunnybrae Point (see map on page 28), for the conservation
          of chinook and coho salmon stocks, Sept 1-Dec 31 (anglers fishing from the community pier in the city of Salmon Arm are exempt from the closure)
          No Ice Fishing
@@ -2771,6 +2774,7 @@ REGS:    Engine power restriction - 7.5 kW (10 hp)
 WATER:   COAL CREEK (downstream of Old MF&M Railway bridge 7 km upstream of Elk River) (MUs: 4-23)
 SYMBOLS: None
 REGS:    Youth/Disabled Accompanied Water year round (see page 4)
+         Youth/Disabled Accompanied Water year round (see page 4)
          Part described is NOT a Classified Water
 --------------------------------------------------
 WATER:   COFFEE CREEK (MUs: 4-18)
@@ -3089,6 +3093,7 @@ REGS:    A person in a boat may angle with an unlimited number of rods.
          Kokanee daily quota = 0
          Bull trout daily quota = 1
          rainbow trout daily quota = 10 (any size)
+         Bull trout daily quota = 1
          rainbow trout daily quota = 10 (any size) Conservation Surcharge Stamp required to keep rainbow trout over 50 cm, annual quota = 20
 --------------------------------------------------
 WATER:   KOOTENAY LAKE’S TRIBUTARIES (MUs: 4-7, 4-19)
@@ -3994,6 +3999,7 @@ REGS:    No Fishing upstream of Iltasyuko River [Includes tributaries] , includi
          No powered boats between signs 0.5 km and 3.5 km upstream of canyon, Aug 1-Aug 31
          From Crag Creek to signs 500 m upstream of the canyon [Includes tributaries] : Class I water June 1-Sept 30 and Steelhead Stamp mandatory June 1-Sept 30
          see map below (Non-residents see notice on page 42)
+         1-Sept 30
          see map below (Non-residents see notice on page 42) From signs 100 m downstream of canyon to tidal boundary [Includes tributaries] : Class I water June 1-Sept 30 and Steelhead Stamp mandatory June
          1-Sept 30: see map below
          From Anahim Lake to Iltasyuko River [Includes tributaries] : Class II water June 16-Oct 31 (see map below)
@@ -5163,6 +5169,7 @@ WATER:   NILKITKWA LAKE (MUs: 6-8)
 SYMBOLS: None
 REGS:    Fly fishing only, bait ban (EXCEPT dead fin fish may be used as bait when set lining
          see page 8 in the Provincial Regulations)
+         Fly fishing only, bait ban (EXCEPT dead fin fish may be used as bait when set lining
          see page 8 in the Provincial Regulations) That section of flowing water between Babine and Nilkitkwa Lakes known as “Rainbow Alley” is open for fishing all year (see also Babine
          River) (See map 2 page 51)
 --------------------------------------------------

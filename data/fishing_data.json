@@ -5452,7 +5452,7 @@
             },
             "khartoum lake": {
                 "symbols": [],
-                "original_reg_text": "Wild trout/char daily quota = 2 (no wild trout 40 cm or more), hatchery rainbow trout (see diagram on page 13) = 6\nsingle barbless hook\nsingle barbless hook Rainbow trout/hatchery steelhead quota = 6 in the aggregate",
+                "original_reg_text": "Wild trout/char daily quota = 2 (no wild trout 40 cm or more), hatchery rainbow trout (see diagram on page 13) = 6\nsingle barbless hook\nWild trout/char daily quota = 2 (no wild trout 40 cm or more), hatchery rainbow trout (see diagram on page 13) = 6\nsingle barbless hook Rainbow trout/hatchery steelhead quota = 6 in the aggregate",
                 "regs": [
                     {
                         "type": "Quota / Catch Limit",
@@ -5462,11 +5462,6 @@
                     {
                         "type": "Gear Restriction",
                         "details": "single barbless hook",
-                        "date_range": null
-                    },
-                    {
-                        "type": "Quota / Catch Limit",
-                        "details": "Wild trout/char daily quota = 2 (no wild trout 40 cm or more), hatchery rainbow trout (see diagram on page 13) = 6",
                         "date_range": null
                     },
                     {
@@ -9277,11 +9272,6 @@
                         "type": "Gear Restriction",
                         "details": "bait ban and single barbless hook: within 200 m of the mouth of the Mahood River outlet",
                         "date_range": null
-                    },
-                    {
-                        "type": "General Restriction",
-                        "details": "July 1-Dec 31",
-                        "date_range": "July 1-Dec 31"
                     }
                 ],
                 "management_units": [
@@ -9290,7 +9280,7 @@
             },
             "mahood river": {
                 "symbols": [],
-                "original_reg_text": "No Fishing Jan 1-June 30\nDownstream of Goodwin Falls: Rainbow trout daily quota = 2 (none over 35 cm), char catch and release\nbait ban\nUpstream of Goodwin Falls: Trout/char catch and release",
+                "original_reg_text": "No Fishing Jan 1-June 30\nDownstream of Goodwin Falls: Rainbow trout daily quota = 2 (none over 35 cm), char catch and release\nbait ban\nUpstream of Goodwin Falls: Trout/char catch and release\nbait ban",
                 "regs": [
                     {
                         "type": "Fishing Closure",
@@ -9315,11 +9305,6 @@
                     {
                         "type": "Quota / Catch Limit",
                         "details": "Upstream of Goodwin Falls: Trout/char catch and release",
-                        "date_range": null
-                    },
-                    {
-                        "type": "Gear Restriction",
-                        "details": "bait ban",
                         "date_range": null
                     }
                 ],
@@ -10097,11 +10082,6 @@
                         "date_range": "April 1-Sept 30"
                     },
                     {
-                        "type": "Access Restriction",
-                        "details": "Youth/Disabled Accompanied Water April 1-Sept 30 (see page 4)",
-                        "date_range": "April 1-Sept 30"
-                    },
-                    {
                         "type": "Advisory",
                         "details": "WARNING! Dangerous thin ice due to aeration!",
                         "date_range": null
@@ -10265,7 +10245,7 @@
             },
             "shuswap lake (see maps on page 28) (includes little shuswap lake, that part of south thompson river between shuswap lake and little shuswap lake, seymour, anstey and salmon arms and mara lake unless stated otherwise)": {
                 "symbols": [],
-                "original_reg_text": "No Fishing Mar 15-May 14, and rainbow trout and char catch and release, May 15-Mar 14, in the waters lying west of a line between signs at Henstridge Road and Wharf Road to a line between signs on the south and north shores of Little Shuswap Lake (see map A on page 28)\npage 28) No Fishing in the entire area north of Albas, Mar 15-May 14 (see map B on page 28)\nNo Fishing in the entire area north of Albas, Mar 15-May 14 (see map B on page 28) No Fishing east of a line between fishing boundary signs on Murdock and Semaphore points, to Hwy 1 bridge, Mar 15-May 14 (see map C\non page 28) No fishing in Salmon Arm Bay, west of line between Engineer’s Point and Sunnybrae Point (see map on page 28), for the conservation\nof chinook and coho salmon stocks, Sept 1-Dec 31 (anglers fishing from the community pier in the city of Salmon Arm are exempt from the closure)\nNo Ice Fishing\nRainbow trout daily quota = 1 (none under 50 cm), annual quota = 5\nChar daily quota = 1 (none under 60 cm), annual quota = 5\nBait ban, single barbless hook (anglers fishing from the community pier in the city of Salmon Arm are exempt from the bait ban)\nConservation Surcharge Stamp required to catch and keep rainbow trout over 50 cm or char over 60 cm",
+                "original_reg_text": "No Fishing Mar 15-May 14, and rainbow trout and char catch and release, May 15-Mar 14, in the waters lying west of a line between signs at Henstridge Road and Wharf Road to a line between signs on the south and north shores of Little Shuswap Lake (see map A on page 28)\npage 28) No Fishing in the entire area north of Albas, Mar 15-May 14 (see map B on page 28)\nNo Fishing in the entire area north of Albas, Mar 15-May 14 (see map B on page 28) No Fishing east of a line between fishing boundary signs on Murdock and Semaphore points, to Hwy 1 bridge, Mar 15-May 14 (see map C\non page 28)\non page 28) No fishing in Salmon Arm Bay, west of line between Engineer’s Point and Sunnybrae Point (see map on page 28), for the conservation\nof chinook and coho salmon stocks, Sept 1-Dec 31 (anglers fishing from the community pier in the city of Salmon Arm are exempt from the closure)\nNo Ice Fishing\nRainbow trout daily quota = 1 (none under 50 cm), annual quota = 5\nChar daily quota = 1 (none under 60 cm), annual quota = 5\nBait ban, single barbless hook (anglers fishing from the community pier in the city of Salmon Arm are exempt from the bait ban)\nConservation Surcharge Stamp required to catch and keep rainbow trout over 50 cm or char over 60 cm",
                 "regs": [
                     {
                         "type": "Fishing Closure",
@@ -10345,11 +10325,6 @@
                     {
                         "type": "Quota / Catch Limit",
                         "details": "Char daily quota = 1 (none under 60 cm)",
-                        "date_range": null
-                    },
-                    {
-                        "type": "Quota / Catch Limit",
-                        "details": "annual quota = 5",
                         "date_range": null
                     },
                     {
@@ -11506,13 +11481,8 @@
             },
             "coal creek (downstream of old mf&m railway bridge 7 km upstream of elk river)": {
                 "symbols": [],
-                "original_reg_text": "Youth/Disabled Accompanied Water year round (see page 4)\nPart described is NOT a Classified Water",
+                "original_reg_text": "Youth/Disabled Accompanied Water year round (see page 4)\nYouth/Disabled Accompanied Water year round (see page 4)\nPart described is NOT a Classified Water",
                 "regs": [
-                    {
-                        "type": "Access Restriction",
-                        "details": "Youth/Disabled Accompanied Water year round (see page 4)",
-                        "date_range": null
-                    },
                     {
                         "type": "Access Restriction",
                         "details": "Youth/Disabled Accompanied Water year round (see page 4)",
@@ -11718,8 +11688,8 @@
                     }
                 ],
                 "management_units": [
-                    "4-6",
-                    "4-33"
+                    "4-33",
+                    "4-6"
                 ]
             },
             "creston valley wildlife management area (cvwma) waters": {
@@ -12800,7 +12770,7 @@
             },
             "kootenay lake - main body (for location see map on page 34)": {
                 "symbols": [],
-                "original_reg_text": "A person in a boat may angle with an unlimited number of rods.\nKokanee daily quota = 0\nBull trout daily quota = 1\nrainbow trout daily quota = 10 (any size)\nrainbow trout daily quota = 10 (any size) Conservation Surcharge Stamp required to keep rainbow trout over 50 cm, annual quota = 20",
+                "original_reg_text": "A person in a boat may angle with an unlimited number of rods.\nKokanee daily quota = 0\nBull trout daily quota = 1\nrainbow trout daily quota = 10 (any size)\nBull trout daily quota = 1\nrainbow trout daily quota = 10 (any size) Conservation Surcharge Stamp required to keep rainbow trout over 50 cm, annual quota = 20",
                 "regs": [
                     {
                         "type": "Boating Restriction",
@@ -12820,11 +12790,6 @@
                     {
                         "type": "Quota / Catch Limit",
                         "details": "rainbow trout daily quota = 10 (any size)",
-                        "date_range": null
-                    },
-                    {
-                        "type": "Quota / Catch Limit",
-                        "details": "Bull trout daily quota = 1",
                         "date_range": null
                     },
                     {
@@ -16635,7 +16600,7 @@
                 "symbols": [
                     "Classified Waters"
                 ],
-                "original_reg_text": "No Fishing upstream of Iltasyuko River [Includes tributaries] , including upstream of Anahim Lake [Includes tributaries] , Apr 1-June 14\nNo Fishing from Iltasyuko River to Crag Creek [Includes tributaries]\nNo Fishing from Crag Creek to fishing boundary signs approximately 500 m upstream of canyon [Includes tributaries] , Oct 1-May 31\nNo Fishing from fishing boundary signs approximately 500 m upstream of canyon to signs 100 m downstream of canyon\nNo Fishing from fishing boundary signs approximately 100 m downstream of canyon to tidal boundary, Oct 1 - May 31\nTrout/char daily quota = 1 (none under 35 cm)\nBait ban all parts [Includes tributaries]\nFly fishing only from (a) Anahim Lake to Iltasyuko River, June 15- Mar 31, and (b) Crag Creek to fishing boundary signs approximately 500 m upstream of canyon, July 15-Sept 30\nNo powered boats between signs 0.5 km and 3.5 km upstream of canyon, Aug 1-Aug 31\nFrom Crag Creek to signs 500 m upstream of the canyon [Includes tributaries] : Class I water June 1-Sept 30 and Steelhead Stamp mandatory June 1-Sept 30\nsee map below (Non-residents see notice on page 42)\nsee map below (Non-residents see notice on page 42) From signs 100 m downstream of canyon to tidal boundary [Includes tributaries] : Class I water June 1-Sept 30 and Steelhead Stamp mandatory June\n1-Sept 30: see map below\nFrom Anahim Lake to Iltasyuko River [Includes tributaries] : Class II water June 16-Oct 31 (see map below)\nSteelhead Stamp not required",
+                "original_reg_text": "No Fishing upstream of Iltasyuko River [Includes tributaries] , including upstream of Anahim Lake [Includes tributaries] , Apr 1-June 14\nNo Fishing from Iltasyuko River to Crag Creek [Includes tributaries]\nNo Fishing from Crag Creek to fishing boundary signs approximately 500 m upstream of canyon [Includes tributaries] , Oct 1-May 31\nNo Fishing from fishing boundary signs approximately 500 m upstream of canyon to signs 100 m downstream of canyon\nNo Fishing from fishing boundary signs approximately 100 m downstream of canyon to tidal boundary, Oct 1 - May 31\nTrout/char daily quota = 1 (none under 35 cm)\nBait ban all parts [Includes tributaries]\nFly fishing only from (a) Anahim Lake to Iltasyuko River, June 15- Mar 31, and (b) Crag Creek to fishing boundary signs approximately 500 m upstream of canyon, July 15-Sept 30\nNo powered boats between signs 0.5 km and 3.5 km upstream of canyon, Aug 1-Aug 31\nFrom Crag Creek to signs 500 m upstream of the canyon [Includes tributaries] : Class I water June 1-Sept 30 and Steelhead Stamp mandatory June 1-Sept 30\nsee map below (Non-residents see notice on page 42)\n1-Sept 30\nsee map below (Non-residents see notice on page 42) From signs 100 m downstream of canyon to tidal boundary [Includes tributaries] : Class I water June 1-Sept 30 and Steelhead Stamp mandatory June\n1-Sept 30: see map below\nFrom Anahim Lake to Iltasyuko River [Includes tributaries] : Class II water June 16-Oct 31 (see map below)\nSteelhead Stamp not required",
                 "regs": [
                     {
                         "type": "Fishing Closure",
@@ -21696,7 +21661,7 @@
             },
             "nilkitkwa lake": {
                 "symbols": [],
-                "original_reg_text": "Fly fishing only, bait ban (EXCEPT dead fin fish may be used as bait when set lining\nsee page 8 in the Provincial Regulations)\nsee page 8 in the Provincial Regulations) That section of flowing water between Babine and Nilkitkwa Lakes known as “Rainbow Alley” is open for fishing all year (see also Babine\nRiver) (See map 2 page 51)",
+                "original_reg_text": "Fly fishing only, bait ban (EXCEPT dead fin fish may be used as bait when set lining\nsee page 8 in the Provincial Regulations)\nFly fishing only, bait ban (EXCEPT dead fin fish may be used as bait when set lining\nsee page 8 in the Provincial Regulations) That section of flowing water between Babine and Nilkitkwa Lakes known as “Rainbow Alley” is open for fishing all year (see also Babine\nRiver) (See map 2 page 51)",
                 "regs": [
                     {
                         "type": "Gear Restriction",
@@ -21706,11 +21671,6 @@
                     {
                         "type": "General Restriction",
                         "details": "see page 8 in the Provincial Regulations)",
-                        "date_range": null
-                    },
-                    {
-                        "type": "Gear Restriction",
-                        "details": "Fly fishing only, bait ban (EXCEPT dead fin fish may be used as bait when set lining",
                         "date_range": null
                     },
                     {
