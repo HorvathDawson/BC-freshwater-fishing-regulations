@@ -10,14 +10,18 @@ PDF_FILENAME = "fishing_synopsis.pdf"
 TXT_OUTPUT = "fishing_regs.txt"
 JSON_OUTPUT = "fishing_data.json"
 
-# Global blacklist for rows that are purely map garbage
+# --- GLOBAL FILTERING CONFIGURATION ---
+# This list controls which rows are completely discarded.
+# If ANY of these substrings appear in the Water Body Name OR the Regulation Text,
+# the ENTIRE row is assumed to be map noise (e.g. legends, ads, map scales) and is skipped.
+# NOTE: Do not add words here that might appear in valid regulations (e.g. "Confluence").
 INVALID_KEYWORDS = [
     "Kilometres", "courtesy of", "purchase a larger map", 
     "reprinted", "Haig-Brown", "scale", "www.", ".ca", ".com",
     "Department of Fisheries", "Management Unit", 
     "Please refer to", "Check website for", 
     "Regulation Changes", "NOTE:", "front cover", "back cover",
-    "Confluence of", "Map page", "See map"
+    # "Map page", "See map" # Uncomment these only if they are consistently garbage and not part of rules
 ]
 
 VERTICAL_GAP_THRESHOLD = 3.0 
@@ -58,8 +62,11 @@ class RegParser:
     @staticmethod
     def clean_and_split(text):
         text = re.sub(r'\s+', ' ', text).strip()
-        # Soften semicolons
-        text = re.sub(r';\s*(?=(?:and|or|but)\b)', ', ', text, flags=re.IGNORECASE)
+        
+        # FIX 1: Soften semicolons before "includes" so they don't force a hard split
+        # Old: r';\s*(?=(?:and|or|but)\b)'
+        # New: r';\s*(?=(?:and|or|but|includes)\b)'
+        text = re.sub(r';\s*(?=(?:and|or|but|includes)\b)', ', ', text, flags=re.IGNORECASE)
         text = re.sub(r';\s*(?=\([a-z0-9]+\))', ', ', text, flags=re.IGNORECASE)
 
         initial_chunks = [c.strip() for c in text.split(';') if c.strip()]
@@ -134,8 +141,9 @@ def merge_orphaned_details(regs_list):
         txt = current['details'].strip()
         should_merge_back = False
         
+        # FIX 2: Added 'includes' to the list of keywords that trigger a merge (lines 148-149)
         if txt.startswith('(') and txt.endswith(')'): should_merge_back = True
-        elif re.match(r'^(and|but|or)\b', txt, re.IGNORECASE): should_merge_back = True
+        elif re.match(r'^(and|but|or|includes)\b', txt, re.IGNORECASE): should_merge_back = True
         elif current['type'] == "General Restriction" and current['date_range'] == txt:
              if prev['date_range'] is None:
                  prev['date_range'] = current['date_range']
@@ -153,19 +161,11 @@ def get_clean_key_name(raw_name):
     """
     Cleans the waterbody name to use as a dictionary key.
     Removes quotes, parentheses, and extra whitespace.
-    Example: "“LITTLE PETER” LAKE (south of...)" -> "little peter lake"
     """
     if not raw_name: return ""
-    
-    # Remove content inside parentheses (usually location info)
     clean = re.sub(r'\(.*?\)', '', raw_name)
-    
-    # Remove quotes
     clean = clean.replace('“', '').replace('”', '').replace('"', '').replace("'", "")
-    
-    # Normalize whitespace
     clean = re.sub(r'\s+', ' ', clean).strip().lower()
-    
     return clean
 
 # --- STANDARD PDF EXTRACTION ---
@@ -218,14 +218,33 @@ def is_mu_line(text):
     return len(leftover) < 2 and re.search(r'\d{1,2}-\d{1,2}', text)
 
 def is_valid_row(name, regs):
+    """
+    Validates if a row (Water Body Name + Regulations) should be kept.
+    This is the SINGLE source of truth for filtering out map garbage.
+    It checks against the INVALID_KEYWORDS global list.
+    """
     combined = (name + " " + " ".join(regs)).lower()
     combined = re.sub(r'\s+', ' ', combined)
-    if any(k.lower() in combined for k in INVALID_KEYWORDS): return False
-    if "WATER BODY" in name: return False 
-    if not name.strip() and not regs: return False
+    
+    # 1. Check against the global blocklist
+    if any(k.lower() in combined for k in INVALID_KEYWORDS): 
+        return False
+    
+    # 2. Hard check for the "WATER BODY" header row
+    if "WATER BODY" in name: 
+        return False 
+        
+    # 3. Filter empty rows
+    if not name.strip() and not regs: 
+        return False
+        
     return True
 
 def extract_text_by_spatial_layout(page, bbox):
+    """
+    Extracts text blocks from a specific bounding box (bbox) on the page.
+    It reconstructs lines based on Y-coordinates and groups paragraphs based on vertical gaps.
+    """
     if not bbox: return []
     x0, top, x1, bottom = bbox
     try:
@@ -254,12 +273,7 @@ def extract_text_by_spatial_layout(page, bbox):
         line_text = " ".join([w['text'] for w in line])
         line_text = line_text.replace('\uf0dc', ' [Includes tributaries] ').replace('*', ' [Includes tributaries] ')
         
-        # --- MAP GARBAGE FILTER ---
-        # Filter out lines that are just short nonsense or map labels
-        if len(line_text) < 4 and not re.search(r'\d', line_text): 
-            continue
-        if any(bad in line_text for bad in ["Kilometers", "Confluence of"]):
-            continue
+        # NOTE: No content filtering happens here. All text is passed to is_valid_row.
 
         if i == 0:
             current_text_block.append(line_text)
@@ -342,6 +356,7 @@ def process_table(page, table, fish_locations):
             c2_raw_list = []
             structured_regs = []
         else:
+            # Extracts ALL text blocks regardless of content
             c2_raw_list = extract_text_by_spatial_layout(page, c2_box)
             structured_regs = []
             for raw_reg in c2_raw_list:
@@ -351,6 +366,8 @@ def process_table(page, table, fish_locations):
         name_text, c1_syms = parse_water_col(c1_raw, c1_box, fish_locations)
 
         if not name_text and not c2_raw_list: continue
+        
+        # --- VALIDATION STEP ---
         if c2_raw_list and not is_valid_row(name_text, c2_raw_list): continue
 
         if name_text:
@@ -368,9 +385,6 @@ def process_table(page, table, fish_locations):
             else:
                 final_name, mus = extract_all_mus(name_text)
                 
-                # --- APPLY CLEAN KEY LOGIC HERE ---
-                # We store the raw name for display, but use clean name for key later
-                
                 if current_entry: 
                     current_entry["regs"] = merge_orphaned_details(deduplicate_regs(current_entry["regs"]))
                     structured_data.append(current_entry)
@@ -378,7 +392,7 @@ def process_table(page, table, fish_locations):
                 raw_text_block = "\n".join(c2_raw_list)
                 
                 current_entry = {
-                    "unprocessed_name": final_name, # STORE RAW NAME
+                    "unprocessed_name": final_name,
                     "MUs": mus,
                     "Symbols": c1_syms,
                     "original_reg_text": raw_text_block,
@@ -464,7 +478,6 @@ def extract_fishing_data():
                 data = process_table(page, table, fish_locs)
                 
                 for entry in data:
-                    # Raw Name for text output
                     raw_name = entry['unprocessed_name']
                     mu = entry['MUs']
                     
@@ -477,14 +490,11 @@ def extract_fishing_data():
                     f_txt.write(f"REGS:    {raw_text_pretty}\n")
                     f_txt.write("-" * 50 + "\n")
 
-                    # CLEAN KEY GENERATION
                     clean_key = get_clean_key_name(raw_name)
                     
-                    # ARRAY STRUCTURE LOGIC
                     if clean_key not in all_regions_data[current_region_name]:
                         all_regions_data[current_region_name][clean_key] = []
                     
-                    # Append this specific entry to the list for this key
                     all_regions_data[current_region_name][clean_key].append({
                         "unprocessed_name": raw_name,
                         "symbols": entry['Symbols'],

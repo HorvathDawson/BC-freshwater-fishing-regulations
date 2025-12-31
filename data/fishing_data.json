@@ -5104,7 +5104,7 @@
                 {
                     "unprocessed_name": "CHILLIWACK LAKE",
                     "symbols": [],
-                    "original_reg_text": "No wild trout over 50 cm, 1 bull trout over 60 cm\nNo Fishing downstream of Tamihi Rapids Bridge to Vedder Crossing Bridge, May 1-June 30\nDownstream of Vedder Crossing Bridge: (a) fly fishing only, bait ban, hatchery rainbow trout catch and release (50 cm or less), and hatch- ery cutthroat catch and release, May 1-31; (b) No Fishing June 1-30; (c) hatchery rainbow trout of any length 50 cm or less: daily quota = 4, July 1-Apr 30",
+                    "original_reg_text": "No wild trout over 50 cm, 1 bull trout over 60 cm",
                     "regs": [
                         {
                             "type": "General Restriction",
@@ -5115,6 +5115,30 @@
                             "type": "General Restriction",
                             "details": "1 bull trout over 60 cm",
                             "date_range": null
+                        }
+                    ],
+                    "management_units": [
+                        "2-4"
+                    ]
+                }
+            ],
+            "chilliwack / vedder rivers": [
+                {
+                    "unprocessed_name": "CHILLIWACK / VEDDER RIVERS (does not include Sumas River) (see map on page 24)",
+                    "symbols": [
+                        "Includes Tributaries"
+                    ],
+                    "original_reg_text": "No Fishing upstream from a line between two fishing boundary signs on either side of the Chilliwack River 100 m downstream of the confluence of the Chilliwack River and Slesse Creek\nNo Fishing downstream of a line between two fishing boundary signs on either side of the Chilliwack River 100m downstream of the confluence of the Chilliwack River and Slesse Creek to Tamihi Rapids Bridge, Apr 1-June 30\nNo Fishing downstream of Tamihi Rapids Bridge to Vedder Crossing Bridge, May 1-June 30\nDownstream of Vedder Crossing Bridge: (a) fly fishing only, bait ban, hatchery rainbow trout catch and release (50 cm or less), and hatch- ery cutthroat catch and release, May 1-31; (b) No Fishing June 1-30; (c) hatchery rainbow trout of any length 50 cm or less: daily quota = 4, July 1-Apr 30",
+                    "regs": [
+                        {
+                            "type": "Fishing Closure",
+                            "details": "No Fishing upstream from a line between two fishing boundary signs on either side of the Chilliwack River 100 m downstream of the confluence of the Chilliwack River and Slesse Creek",
+                            "date_range": null
+                        },
+                        {
+                            "type": "Fishing Closure",
+                            "details": "No Fishing downstream of a line between two fishing boundary signs on either side of the Chilliwack River 100m downstream of the confluence of the Chilliwack River and Slesse Creek to Tamihi Rapids Bridge, Apr 1-June 30",
+                            "date_range": "Apr 1-June 30"
                         },
                         {
                             "type": "Fishing Closure",
@@ -5182,12 +5206,31 @@
                 {
                     "unprocessed_name": "COLVIN CREEK",
                     "symbols": [],
-                    "original_reg_text": "No Fishing\nFly fishing only; bait ban upstream of the northern entrance to the upper most railway tunnel, Jul 1-Oct 31\nNo Fishing downstream of the southern entrance to the lower most railway tunnel, Apr 1-Oct 31\nNo Fishing at Othello Tunnels from the northern entrance to the upper most railway tunnel to the southern entrance of the lower most tunnel; approximately 700 m length\nTrout/char (including steelhead) catch and release, bait ban, downstream of the southern entrance to the lower most railway tunnel, Nov 1-Mar 31",
+                    "original_reg_text": "No Fishing",
                     "regs": [
                         {
                             "type": "Fishing Closure",
                             "details": "No Fishing",
                             "date_range": null
+                        }
+                    ],
+                    "management_units": [
+                        "2-5"
+                    ]
+                }
+            ],
+            "coquihalla river table legend:": [
+                {
+                    "unprocessed_name": "COQUIHALLA RIVER TABLE LEGEND:",
+                    "symbols": [
+                        "Includes Tributaries"
+                    ],
+                    "original_reg_text": "No Fishing upstream of the northern entrance to the upper most railway tunnel, Nov 1-June 30 (see map on page 24)\nFly fishing only; bait ban upstream of the northern entrance to the upper most railway tunnel, Jul 1-Oct 31\nNo Fishing downstream of the southern entrance to the lower most railway tunnel, Apr 1-Oct 31\nNo Fishing at Othello Tunnels from the northern entrance to the upper most railway tunnel to the southern entrance of the lower most tunnel; approximately 700 m length\nTrout/char (including steelhead) catch and release, bait ban, downstream of the southern entrance to the lower most railway tunnel, Nov 1-Mar 31",
+                    "regs": [
+                        {
+                            "type": "Fishing Closure",
+                            "details": "No Fishing upstream of the northern entrance to the upper most railway tunnel, Nov 1-June 30 (see map on page 24)",
+                            "date_range": "Nov 1-June 30"
                         },
                         {
                             "type": "General Restriction",
@@ -5226,7 +5269,7 @@
                         }
                     ],
                     "management_units": [
-                        "2-5"
+                        "2-17"
                     ]
                 }
             ],
@@ -10550,7 +10593,7 @@
                 {
                     "unprocessed_name": "MACHETE LAKE (including that portion known as “Bear”Lake)",
                     "symbols": [],
-                    "original_reg_text": "No Fishing Jan 1-Apr 30\nKokanee daily quota = 2\nSingle barbless hook\nTrout/char catch and release, bait ban and single barbless hook: within fishing boundary signs at the western tip of the lake, July 1-Dec 31\nNo Fishing within 200 m of the Mahood River outlet, Jan 1-June 30\nNo Fishing within 200 m of the Mahood River outlet, Jan 1-June 30 Trout/char catch and release, bait ban and single barbless hook: within 200 m of the mouth of the Mahood River outlet, July 1-Dec 31",
+                    "original_reg_text": "No Fishing Jan 1-Apr 30\nKokanee daily quota = 2\nSingle barbless hook",
                     "regs": [
                         {
                             "type": "Fishing Closure",
@@ -10566,6 +10609,23 @@
                             "type": "Gear Restriction",
                             "details": "Single barbless hook",
                             "date_range": null
+                        }
+                    ],
+                    "management_units": [
+                        "3-30"
+                    ]
+                }
+            ],
+            "mahood lake": [
+                {
+                    "unprocessed_name": "MAHOOD LAKE (see map on page 28 for area closure)",
+                    "symbols": [],
+                    "original_reg_text": "No Fishing within the fishing boundary signs at the western tip of the lake near the mouth of Canim River, Jan 1-June 30\nTrout/char catch and release, bait ban and single barbless hook: within fishing boundary signs at the western tip of the lake, July 1-Dec 31\nNo Fishing within 200 m of the Mahood River outlet, Jan 1-June 30\nNo Fishing within 200 m of the Mahood River outlet, Jan 1-June 30 Trout/char catch and release, bait ban and single barbless hook: within 200 m of the mouth of the Mahood River outlet, July 1-Dec 31",
+                    "regs": [
+                        {
+                            "type": "Fishing Closure",
+                            "details": "No Fishing within the fishing boundary signs at the western tip of the lake near the mouth of Canim River, Jan 1-June 30",
+                            "date_range": "Jan 1-June 30"
                         },
                         {
                             "type": "Quota / Catch Limit",
@@ -10594,7 +10654,7 @@
                         }
                     ],
                     "management_units": [
-                        "3-30"
+                        "3-46"
                     ]
                 }
             ],
@@ -11701,12 +11761,54 @@
                 {
                     "unprocessed_name": "SHUMWAY LAKE",
                     "symbols": [],
-                    "original_reg_text": "No Fishing north of fishing boundary signs located at south end of lake, Apr 1-Oct 31\nNo Ice Fishing\nRainbow trout daily quota = 1 (none under 50 cm), annual quota = 5\nChar daily quota = 1 (none under 60 cm), annual quota = 5\nBait ban, single barbless hook (anglers fishing from the community pier in the city of Salmon Arm are exempt from the bait ban)\nConservation Surcharge Stamp required to catch and keep rainbow trout over 50 cm or char over 60 cm",
+                    "original_reg_text": "No Fishing north of fishing boundary signs located at south end of lake, Apr 1-Oct 31",
                     "regs": [
                         {
                             "type": "Fishing Closure",
                             "details": "No Fishing north of fishing boundary signs located at south end of lake, Apr 1-Oct 31",
                             "date_range": "Apr 1-Oct 31"
+                        }
+                    ],
+                    "management_units": [
+                        "3-20"
+                    ]
+                }
+            ],
+            "shuswap lake": [
+                {
+                    "unprocessed_name": "SHUSWAP LAKE (see maps on page 28) (includes Little Shuswap Lake, that part of South Thompson River between Shuswap Lake and Little Shuswap Lake, Seymour, Anstey and Salmon arms and Mara Lake unless stated otherwise)",
+                    "symbols": [],
+                    "original_reg_text": "No Fishing Mar 15-May 14, and rainbow trout and char catch and release, May 15-Mar 14, in the waters lying west of a line between signs at Henstridge Road and Wharf Road to a line between signs on the south and north shores of Little Shuswap Lake (see map A on page 28)\npage 28) No Fishing in the entire area north of Albas, Mar 15-May 14 (see map B on page 28)\nNo Fishing in the entire area north of Albas, Mar 15-May 14 (see map B on page 28) No Fishing east of a line between fishing boundary signs on Murdock and Semaphore points, to Hwy 1 bridge, Mar 15-May 14 (see map C\non page 28) No fishing in Salmon Arm Bay, west of line between Engineer’s Point and Sunnybrae Point (see map on page 28), for the conservation\nof chinook and coho salmon stocks, Sept 1-Dec 31 (anglers fishing from the community pier in the city of Salmon Arm are exempt from the closure)\nNo Ice Fishing\nRainbow trout daily quota = 1 (none under 50 cm), annual quota = 5\nChar daily quota = 1 (none under 60 cm), annual quota = 5\nBait ban, single barbless hook (anglers fishing from the community pier in the city of Salmon Arm are exempt from the bait ban)\nConservation Surcharge Stamp required to catch and keep rainbow trout over 50 cm or char over 60 cm",
+                    "regs": [
+                        {
+                            "type": "Fishing Closure",
+                            "details": "No Fishing Mar 15-May 14, and rainbow trout and char catch and release, May 15-Mar 14, in the waters lying west of a line between signs at Henstridge Road and Wharf Road to a line between signs on the south and north shores of Little Shuswap Lake (see map A on page 28)",
+                            "date_range": "Mar 15-May 14"
+                        },
+                        {
+                            "type": "Fishing Closure",
+                            "details": "page 28) No Fishing in the entire area north of Albas, Mar 15-May 14 (see map B on page 28)",
+                            "date_range": "Mar 15-May 14"
+                        },
+                        {
+                            "type": "Fishing Closure",
+                            "details": "No Fishing in the entire area north of Albas, Mar 15-May 14 (see map B on page 28) No Fishing east of a line between fishing boundary signs on Murdock and Semaphore points, to Hwy 1 bridge, Mar 15-May 14 (see map C",
+                            "date_range": "Mar 15-May 14"
+                        },
+                        {
+                            "type": "General Restriction",
+                            "details": "on page 28)",
+                            "date_range": null
+                        },
+                        {
+                            "type": "Fishing Closure",
+                            "details": "on page 28) No fishing in Salmon Arm Bay, west of line between Engineer’s Point and Sunnybrae Point (see map on page 28), for the conservation",
+                            "date_range": null
+                        },
+                        {
+                            "type": "General Restriction",
+                            "details": "of chinook and coho salmon stocks, Sept 1-Dec 31 (anglers fishing from the community pier in the city of Salmon Arm are exempt from the closure)",
+                            "date_range": "Sept 1-Dec 31"
                         },
                         {
                             "type": "Fishing Closure",
@@ -11740,7 +11842,7 @@
                         }
                     ],
                     "management_units": [
-                        "3-20"
+                        "3-26"
                     ]
                 }
             ],
@@ -13476,7 +13578,7 @@
                     "symbols": [
                         "Includes Tributaries"
                     ],
-                    "original_reg_text": "Exempt from spring closure, exempt from regional Nov 1-Mar 31 bull trout catch and release, bait ban\nRainbow trout daily quota = 5 (any size), bull trout daily quota = 2 (any size)",
+                    "original_reg_text": "Exempt from spring closure, exempt from regional Nov 1-Mar 31 bull trout catch and release, bait ban\nRainbow trout daily quota = 5 (any size), bull trout daily quota = 2 (any size)\nNo Fishing downstream of Duncan Dam to the confluence of the Duncan River and the Lardeau River",
                     "regs": [
                         {
                             "type": "Quota / Catch Limit",
@@ -13491,6 +13593,11 @@
                         {
                             "type": "Quota / Catch Limit",
                             "details": "Rainbow trout daily quota = 5 (any size), bull trout daily quota = 2 (any size)",
+                            "date_range": null
+                        },
+                        {
+                            "type": "Fishing Closure",
+                            "details": "No Fishing downstream of Duncan Dam to the confluence of the Duncan River and the Lardeau River",
                             "date_range": null
                         }
                     ],
@@ -14573,7 +14680,7 @@
                 {
                     "unprocessed_name": "KOOTENAY LAKE, ALL PARTS (Main Body, Upper West Arm and Lower West Arm)",
                     "symbols": [],
-                    "original_reg_text": "Burbot catch and release\nBass daily quota = unlimited; yellow perch daily quota = unlimited\nKokanee daily quota = 0\nBull trout daily quota = 1; rainbow trout daily quota = 10 (any size)\nBull trout daily quota = 1; rainbow trout daily quota = 10 (any size) Conservation Surcharge Stamp required to keep rainbow trout over 50 cm, annual quota = 20",
+                    "original_reg_text": "Burbot catch and release\nBass daily quota = unlimited; yellow perch daily quota = unlimited",
                     "regs": [
                         {
                             "type": "Quota / Catch Limit",
@@ -14588,6 +14695,23 @@
                         {
                             "type": "Quota / Catch Limit",
                             "details": "yellow perch daily quota = unlimited",
+                            "date_range": null
+                        }
+                    ],
+                    "management_units": [
+                        "4-19"
+                    ]
+                }
+            ],
+            "kootenay lake - main body": [
+                {
+                    "unprocessed_name": "KOOTENAY LAKE - MAIN BODY (for location see map on page 34)",
+                    "symbols": [],
+                    "original_reg_text": "A person in a boat may angle with an unlimited number of rods.\nKokanee daily quota = 0\nBull trout daily quota = 1; rainbow trout daily quota = 10 (any size)\nBull trout daily quota = 1; rainbow trout daily quota = 10 (any size) Conservation Surcharge Stamp required to keep rainbow trout over 50 cm, annual quota = 20",
+                    "regs": [
+                        {
+                            "type": "Boating Restriction",
+                            "details": "A person in a boat may angle with an unlimited number of rods.",
                             "date_range": null
                         },
                         {
@@ -14787,7 +14911,7 @@
                     "symbols": [
                         "Stocked"
                     ],
-                    "original_reg_text": "No Ice Fishing; trout/char daily quota = 1 (none under 50 cm); bait ban, single barbless hook\nExempt from spring closure (Apr 1-Jun 14), exempt from trout/char release (Nov 1-Mar 31)\nRainbow trout daily quota = 5 (any size), bull trout daily quota = 2 (any size)",
+                    "original_reg_text": "No Ice Fishing; trout/char daily quota = 1 (none under 50 cm); bait ban, single barbless hook",
                     "regs": [
                         {
                             "type": "Fishing Closure",
@@ -14808,6 +14932,25 @@
                             "type": "Gear Restriction",
                             "details": "single barbless hook",
                             "date_range": null
+                        }
+                    ],
+                    "management_units": [
+                        "4-20"
+                    ]
+                }
+            ],
+            "lardeau river": [
+                {
+                    "unprocessed_name": "LARDEAU RIVER",
+                    "symbols": [
+                        "Includes Tributaries"
+                    ],
+                    "original_reg_text": "No Fishing downstream of fishing boundary signs at Trout Lake outlet, to fishing boundary signs approximately 600m downstream near the confluence of Mobbs Creek\nExempt from spring closure (Apr 1-Jun 14), exempt from trout/char release (Nov 1-Mar 31)\nRainbow trout daily quota = 5 (any size), bull trout daily quota = 2 (any size)",
+                    "regs": [
+                        {
+                            "type": "Fishing Closure",
+                            "details": "No Fishing downstream of fishing boundary signs at Trout Lake outlet, to fishing boundary signs approximately 600m downstream near the confluence of Mobbs Creek",
+                            "date_range": null
                         },
                         {
                             "type": "Quota / Catch Limit",
@@ -14821,7 +14964,8 @@
                         }
                     ],
                     "management_units": [
-                        "4-20"
+                        "4-29",
+                        "4-30"
                     ]
                 }
             ],
@@ -17834,12 +17978,7 @@
                     "regs": [
                         {
                             "type": "Fishing Closure",
-                            "details": "No Fishing for bass",
-                            "date_range": null
-                        },
-                        {
-                            "type": "General Restriction",
-                            "details": "Includes: Beaver",
+                            "details": "No Fishing for bass Includes: Beaver",
                             "date_range": null
                         },
                         {
@@ -18299,6 +18438,23 @@
                     ],
                     "management_units": [
                         "5-15"
+                    ]
+                }
+            ],
+            "canim lake": [
+                {
+                    "unprocessed_name": "CANIM LAKE (see map on page 42)",
+                    "symbols": [],
+                    "original_reg_text": "No Fishing within the waters of the small bay at the mouth of Eagle Creek northerly of a line drawn between two boundary signs located on opposite shores of the bay, Sept 1-Sept 30",
+                    "regs": [
+                        {
+                            "type": "Fishing Closure",
+                            "details": "No Fishing within the waters of the small bay at the mouth of Eagle Creek northerly of a line drawn between two boundary signs located on opposite shores of the bay, Sept 1-Sept 30",
+                            "date_range": "Sept 1-Sept 30"
+                        }
+                    ],
+                    "management_units": [
+                        "5-1"
                     ]
                 }
             ],
@@ -18810,7 +18966,7 @@
                     "symbols": [
                         "Classified Waters"
                     ],
-                    "original_reg_text": "No Fishing upstream of Iltasyuko River [Includes tributaries] , including upstream of Anahim Lake [Includes tributaries] , Apr 1-June 14\nNo Fishing from Iltasyuko River to Crag Creek [Includes tributaries]\nNo Fishing from Crag Creek to fishing boundary signs approximately 500 m upstream of canyon [Includes tributaries] , Oct 1-May 31\nNo Fishing from fishing boundary signs approximately 500 m upstream of canyon to signs 100 m downstream of canyon\nNo Fishing from fishing boundary signs approximately 100 m downstream of canyon to tidal boundary, Oct 1 - May 31\nTrout/char daily quota = 1 (none under 35 cm)\nBait ban all parts [Includes tributaries]\nFly fishing only from (a) Anahim Lake to Iltasyuko River, June 15- Mar 31, and (b) Crag Creek to fishing boundary signs approximately 500 m upstream of canyon, July 15-Sept 30\nNo powered boats between signs 0.5 km and 3.5 km upstream of canyon, Aug 1-Aug 31",
+                    "original_reg_text": "No Fishing upstream of Iltasyuko River [Includes tributaries] , including upstream of Anahim Lake [Includes tributaries] , Apr 1-June 14\nNo Fishing from Iltasyuko River to Crag Creek [Includes tributaries]\nNo Fishing from Crag Creek to fishing boundary signs approximately 500 m upstream of canyon [Includes tributaries] , Oct 1-May 31\nNo Fishing from fishing boundary signs approximately 500 m upstream of canyon to signs 100 m downstream of canyon\nNo Fishing from fishing boundary signs approximately 100 m downstream of canyon to tidal boundary, Oct 1 - May 31\nTrout/char daily quota = 1 (none under 35 cm)\nBait ban all parts [Includes tributaries]\nFly fishing only from (a) Anahim Lake to Iltasyuko River, June 15- Mar 31, and (b) Crag Creek to fishing boundary signs approximately 500 m upstream of canyon, July 15-Sept 30\nNo powered boats between signs 0.5 km and 3.5 km upstream of canyon, Aug 1-Aug 31\nFrom Crag Creek to signs 500 m upstream of the canyon [Includes tributaries] : Class I water June 1-Sept 30 and Steelhead Stamp mandatory June 1-Sept 30; see map below (Non-residents see notice on page 42)\n1-Sept 30; see map below (Non-residents see notice on page 42) From signs 100 m downstream of canyon to tidal boundary [Includes tributaries] : Class I water June 1-Sept 30 and Steelhead Stamp mandatory June\n1-Sept 30: see map below\nFrom Anahim Lake to Iltasyuko River [Includes tributaries] : Class II water June 16-Oct 31 (see map below); Steelhead Stamp not required",
                     "regs": [
                         {
                             "type": "Fishing Closure",
@@ -18856,6 +19012,41 @@
                             "type": "Boating Restriction",
                             "details": "No powered boats between signs 0.5 km and 3.5 km upstream of canyon, Aug 1-Aug 31",
                             "date_range": "Aug 1-Aug 31"
+                        },
+                        {
+                            "type": "Classified Waters",
+                            "details": "From Crag Creek to signs 500 m upstream of the canyon [Includes tributaries] : Class I water June 1-Sept 30 and Steelhead Stamp mandatory June 1-Sept 30",
+                            "date_range": "June 1-Sept 30"
+                        },
+                        {
+                            "type": "Advisory",
+                            "details": "see map below (Non-residents see notice on page 42)",
+                            "date_range": null
+                        },
+                        {
+                            "type": "General Restriction",
+                            "details": "1-Sept 30",
+                            "date_range": null
+                        },
+                        {
+                            "type": "Advisory",
+                            "details": "see map below (Non-residents see notice on page 42) From signs 100 m downstream of canyon to tidal boundary [Includes tributaries] : Class I water June 1-Sept 30 and Steelhead Stamp mandatory June",
+                            "date_range": "June 1-Sept 30"
+                        },
+                        {
+                            "type": "General Restriction",
+                            "details": "1-Sept 30: see map below",
+                            "date_range": null
+                        },
+                        {
+                            "type": "Classified Waters",
+                            "details": "From Anahim Lake to Iltasyuko River [Includes tributaries] : Class II water June 16-Oct 31 (see map below)",
+                            "date_range": "June 16-Oct 31"
+                        },
+                        {
+                            "type": "Classified Waters",
+                            "details": "Steelhead Stamp not required",
+                            "date_range": null
                         }
                     ],
                     "management_units": [
@@ -18935,7 +19126,7 @@
                     "symbols": [
                         "Stocked"
                     ],
-                    "original_reg_text": "No Ice Fishing; trout/char daily quota = 1; bait ban, single barbless hook",
+                    "original_reg_text": "No Ice Fishing; trout/char daily quota = 1; bait ban, single barbless hook\nUnnamed lake approximately 6 km south/southwest of the confluence of Dog and Pigeon Creeks",
                     "regs": [
                         {
                             "type": "Fishing Closure",
@@ -18955,6 +19146,11 @@
                         {
                             "type": "Gear Restriction",
                             "details": "single barbless hook",
+                            "date_range": null
+                        },
+                        {
+                            "type": "General Restriction",
+                            "details": "Unnamed lake approximately 6 km south/southwest of the confluence of Dog and Pigeon Creeks",
                             "date_range": null
                         }
                     ],
@@ -19059,8 +19255,14 @@
                 {
                     "unprocessed_name": "LOWER PORTIONS OF THE DEAN RIV",
                     "symbols": [],
-                    "original_reg_text": "",
-                    "regs": [],
+                    "original_reg_text": "ER",
+                    "regs": [
+                        {
+                            "type": "General Restriction",
+                            "details": "ER",
+                            "date_range": null
+                        }
+                    ],
                     "management_units": []
                 }
             ],
@@ -19070,7 +19272,7 @@
                     "symbols": [
                         "Stocked"
                     ],
-                    "original_reg_text": "Sigutlat o Anahim Lake k Lake\ns y u R River a Ilt CLASS 2 - Upper Section ean\nDean R R iv\nCrag C Takia\nain Section raw (see page 42)",
+                    "original_reg_text": "Sigutlat o Anahim Lake k Lake\ns y u R River a Ilt\nD CLASS 2 - Upper Section ean\nDean R R iv\nCrag C\nr kee Takia\nPR T O W V E IN E C D I S A M L U PA IR RK e r\nain Section raw (see page 42)",
                     "regs": [
                         {
                             "type": "General Restriction",
@@ -19079,7 +19281,12 @@
                         },
                         {
                             "type": "General Restriction",
-                            "details": "s y u R River a Ilt CLASS 2 - Upper Section ean",
+                            "details": "s y u R River a Ilt",
+                            "date_range": null
+                        },
+                        {
+                            "type": "General Restriction",
+                            "details": "D CLASS 2 - Upper Section ean",
                             "date_range": null
                         },
                         {
@@ -19089,7 +19296,17 @@
                         },
                         {
                             "type": "General Restriction",
-                            "details": "Crag C Takia",
+                            "details": "Crag C",
+                            "date_range": null
+                        },
+                        {
+                            "type": "General Restriction",
+                            "details": "r kee Takia",
+                            "date_range": null
+                        },
+                        {
+                            "type": "General Restriction",
+                            "details": "PR T O W V E IN E C D I S A M L U PA IR RK e r",
                             "date_range": null
                         },
                         {
@@ -22373,7 +22590,7 @@
                 {
                     "unprocessed_name": "BABINE LAKE",
                     "symbols": [],
-                    "original_reg_text": "No Fishing east of a line from Gullwing Creek to the south shore of Babine Lake\nNo Fishing within a 400 m radius of the mouth of Pinkut Creek, Aug 15-Sept 15\nBait ban\nNo angling from boats from the adult fish counting fence (described above) downstream to the Babine River’s confluence with the Skeena River",
+                    "original_reg_text": "No Fishing east of a line from Gullwing Creek to the south shore of Babine Lake\nNo Fishing within a 400 m radius of the mouth of Pinkut Creek, Aug 15-Sept 15\nThat section of flowing water between Babine and Nilkitkwa lakes, known as \"Rainbow Alley\", is designated Babine River (see map 2 page 51); see Babine River regulations below (paragraphs 3 and 4)",
                     "regs": [
                         {
                             "type": "Fishing Closure",
@@ -22386,6 +22603,51 @@
                             "date_range": "Aug 15-Sept 15"
                         },
                         {
+                            "type": "General Restriction",
+                            "details": "That section of flowing water between Babine and Nilkitkwa lakes, known as \"Rainbow Alley\", is designated Babine River (see map 2 page 51)",
+                            "date_range": null
+                        },
+                        {
+                            "type": "General Restriction",
+                            "details": "see Babine River regulations below (paragraphs 3 and 4)",
+                            "date_range": null
+                        }
+                    ],
+                    "management_units": [
+                        "6-6"
+                    ]
+                }
+            ],
+            "babine river": [
+                {
+                    "unprocessed_name": "BABINE RIVER",
+                    "symbols": [
+                        "Includes Tributaries",
+                        "Classified Waters"
+                    ],
+                    "original_reg_text": "Angling prohibited for non-guided non-resident aliens on Saturdays and Sundays from the juvenile fish counting weir located at the outlet of Nilkitkwa Lake to the Nilkitkwa River confluence, Sept 1-Oct 31 (See map page 56)\nthe outlet of Nilkitkwa Lake to the Nilkitkwa River confluence, Sept 1-Oct 31 (See map page 56) No Fishing between fishing boundary signs approximately 100 m upstream of and 80 m downstream of the adult fish counting fence, located approximately 1.8 km downstream of Nilkitkwa Lake\nOpen all year in the stream channel known as “Rainbow Alley” located between Babine and Nilkitkwa lakes (see map 2 page 51)\nOpen all year in the stream channel known as “Rainbow Alley” located between Babine and Nilkitkwa lakes (see map 2 page 51) Fly fishing only (a) from the Fort Babine Bridge downstream to signs 100 m upstream of the adult fish counting fence (including Nilkitkwa Lake), during open times and (b) from signs about 80 m downstream of the adult fish counting fence to Nichyeskwa Creek, June 16-Sept 30; includes \"Rainbow Alley\"\nBait ban\nNo angling from boats from the adult fish counting fence (described above) downstream to the Babine River’s confluence with the Skeena River\nClass 1 water Sept 1-Oct 31; Steelhead Stamp mandatory Sept 1-Oct 31 from the juvenile fish counting weir located at the outlet of Nilkitkwa Lake downstream to the Babine River’s confluence with the Skeena River (See map page 56)",
+                    "regs": [
+                        {
+                            "type": "General Restriction",
+                            "details": "Angling prohibited for non-guided non-resident aliens on Saturdays and Sundays from the juvenile fish counting weir located at the outlet of Nilkitkwa Lake to the Nilkitkwa River confluence, Sept 1-Oct 31 (See map page 56)",
+                            "date_range": "Sept 1-Oct 31"
+                        },
+                        {
+                            "type": "Fishing Closure",
+                            "details": "the outlet of Nilkitkwa Lake to the Nilkitkwa River confluence, Sept 1-Oct 31 (See map page 56) No Fishing between fishing boundary signs approximately 100 m upstream of and 80 m downstream of the adult fish counting fence, located approximately 1.8 km downstream of Nilkitkwa Lake",
+                            "date_range": "Sept 1-Oct 31"
+                        },
+                        {
+                            "type": "General Restriction",
+                            "details": "Open all year in the stream channel known as “Rainbow Alley” located between Babine and Nilkitkwa lakes (see map 2 page 51)",
+                            "date_range": null
+                        },
+                        {
+                            "type": "General Restriction",
+                            "details": "Open all year in the stream channel known as “Rainbow Alley” located between Babine and Nilkitkwa lakes (see map 2 page 51) Fly fishing only (a) from the Fort Babine Bridge downstream to signs 100 m upstream of the adult fish counting fence (including Nilkitkwa Lake), during open times and (b) from signs about 80 m downstream of the adult fish counting fence to Nichyeskwa Creek, June 16-Sept 30, includes \"Rainbow Alley\"",
+                            "date_range": "June 16-Sept 30"
+                        },
+                        {
                             "type": "Gear Restriction",
                             "details": "Bait ban",
                             "date_range": null
@@ -22394,10 +22656,52 @@
                             "type": "Boating Restriction",
                             "details": "No angling from boats from the adult fish counting fence (described above) downstream to the Babine River’s confluence with the Skeena River",
                             "date_range": null
+                        },
+                        {
+                            "type": "General Restriction",
+                            "details": "Class 1 water Sept 1-Oct 31",
+                            "date_range": "Sept 1-Oct 31"
+                        },
+                        {
+                            "type": "Classified Waters",
+                            "details": "Steelhead Stamp mandatory Sept 1-Oct 31 from the juvenile fish counting weir located at the outlet of Nilkitkwa Lake downstream to the Babine River’s confluence with the Skeena River (See map page 56)",
+                            "date_range": "Sept 1-Oct 31"
                         }
                     ],
                     "management_units": [
-                        "6-6"
+                        "6-8"
+                    ]
+                }
+            ],
+            "basalt lake": [
+                {
+                    "unprocessed_name": "BASALT LAKE",
+                    "symbols": [],
+                    "original_reg_text": "Nilkitkwa Lake downstream to the Babine River’s confluence with the Skeena River (See map ) No Ice Fishing; trout catch and release; bait ban, single barbless hook",
+                    "regs": [
+                        {
+                            "type": "Fishing Closure",
+                            "details": "Nilkitkwa Lake downstream to the Babine River’s confluence with the Skeena River (See map ) No Ice Fishing",
+                            "date_range": null
+                        },
+                        {
+                            "type": "Quota / Catch Limit",
+                            "details": "trout catch and release",
+                            "date_range": null
+                        },
+                        {
+                            "type": "Gear Restriction",
+                            "details": "bait ban",
+                            "date_range": null
+                        },
+                        {
+                            "type": "Gear Restriction",
+                            "details": "single barbless hook",
+                            "date_range": null
+                        }
+                    ],
+                    "management_units": [
+                        "6-1"
                     ]
                 }
             ],
@@ -23201,12 +23505,7 @@
                     "regs": [
                         {
                             "type": "Fishing Closure",
-                            "details": "No Fishing upstream of fishing boundary signs downstream of lower culvert near fish cannery in Prince Rupert",
-                            "date_range": null
-                        },
-                        {
-                            "type": "General Restriction",
-                            "details": "Includes “Oldfield” Creek",
+                            "details": "No Fishing upstream of fishing boundary signs downstream of lower culvert near fish cannery in Prince Rupert Includes “Oldfield” Creek",
                             "date_range": null
                         }
                     ],
@@ -23545,7 +23844,7 @@
                     "symbols": [
                         "Classified Waters"
                     ],
-                    "original_reg_text": "Angling prohibited for non-guided non-resident aliens on Saturdays and Sundays, all year\nBait ban\nClass II water all year [Includes tributaries] ; Steelhead Stamp mandatory Sept 1-Oct 31 [Includes tributaries]\nClass II water all year [Includes tributaries] ; Steelhead Stamp mandatory Aug 7 - May 31",
+                    "original_reg_text": "Angling prohibited for non-guided non-resident aliens on Saturdays and Sundays, all year\nBait ban\nClass II water all year [Includes tributaries] ; Steelhead Stamp mandatory Sept 1-Oct 31 [Includes tributaries]",
                     "regs": [
                         {
                             "type": "General Restriction",
@@ -23566,15 +23865,50 @@
                             "type": "Classified Waters",
                             "details": "Steelhead Stamp mandatory Sept 1-Oct 31 [Includes tributaries]",
                             "date_range": "Sept 1-Oct 31"
+                        }
+                    ],
+                    "management_units": [
+                        "6-9"
+                    ]
+                }
+            ],
+            "kitsumkalum river": [
+                {
+                    "unprocessed_name": "KITSUMKALUM (Kalum) RIVER",
+                    "symbols": [
+                        "Includes Tributaries",
+                        "Classified Waters"
+                    ],
+                    "original_reg_text": "Angling prohibited for non-guided non-resident aliens on Saturdays from the outlet of Kitsumkalum Lake to Glacier Creek confluence all year (See map page 56)\nall year (See map page 56) Angling prohibited for non-guided non-resident aliens on Sundays for the entire river all year\nClass II water all year [Includes tributaries] ; Steelhead Stamp mandatory Aug 7 - May 31\nBait ban",
+                    "regs": [
+                        {
+                            "type": "General Restriction",
+                            "details": "Angling prohibited for non-guided non-resident aliens on Saturdays from the outlet of Kitsumkalum Lake to Glacier Creek confluence all year (See map page 56)",
+                            "date_range": null
+                        },
+                        {
+                            "type": "General Restriction",
+                            "details": "all year (See map page 56) Angling prohibited for non-guided non-resident aliens on Sundays for the entire river all year",
+                            "date_range": null
+                        },
+                        {
+                            "type": "Classified Waters",
+                            "details": "Class II water all year [Includes tributaries]",
+                            "date_range": null
                         },
                         {
                             "type": "Classified Waters",
                             "details": "Steelhead Stamp mandatory Aug 7 - May 31",
                             "date_range": "Aug 7 - May 31"
+                        },
+                        {
+                            "type": "Gear Restriction",
+                            "details": "Bait ban",
+                            "date_range": null
                         }
                     ],
                     "management_units": [
-                        "6-9"
+                        "6-15"
                     ]
                 }
             ],
@@ -23919,12 +24253,37 @@
                 {
                     "unprocessed_name": "LAKELSE LAKE",
                     "symbols": [],
-                    "original_reg_text": "Rainbow trout over 50 cm catch and release\nBait ban, no powered boats\nClass I water all year; Steelhead Stamp mandatory Sept 1-May 31",
+                    "original_reg_text": "Rainbow trout over 50 cm catch and release",
                     "regs": [
                         {
                             "type": "Quota / Catch Limit",
                             "details": "Rainbow trout over 50 cm catch and release",
                             "date_range": null
+                        }
+                    ],
+                    "management_units": [
+                        "6-11"
+                    ]
+                }
+            ],
+            "lakelse river": [
+                {
+                    "unprocessed_name": "LAKELSE RIVER",
+                    "symbols": [
+                        "Includes Tributaries",
+                        "Classified Waters"
+                    ],
+                    "original_reg_text": "Angling prohibited for non-guided non-resident aliens from the outlet of Lakelse Lake to the power line crossing, located 3.5 km upstream of the Lakelse River mouth, all year (See map page 55)\nupstream of the Lakelse River mouth, all year (See map page 55) Fly fishing only between Lakelse Lake and CNR Bridge, Mar 1-May 31\nBait ban, no powered boats\nClass I water all year; Steelhead Stamp mandatory Sept 1-May 31",
+                    "regs": [
+                        {
+                            "type": "Boating Restriction",
+                            "details": "Angling prohibited for non-guided non-resident aliens from the outlet of Lakelse Lake to the power line crossing, located 3.5 km upstream of the Lakelse River mouth, all year (See map page 55)",
+                            "date_range": null
+                        },
+                        {
+                            "type": "General Restriction",
+                            "details": "upstream of the Lakelse River mouth, all year (See map page 55) Fly fishing only between Lakelse Lake and CNR Bridge, Mar 1-May 31",
+                            "date_range": "Mar 1-May 31"
                         },
                         {
                             "type": "Gear Restriction",
@@ -23948,7 +24307,7 @@
                         }
                     ],
                     "management_units": [
-                        "6-11"
+                        "6-10"
                     ]
                 }
             ],
@@ -24315,7 +24674,7 @@
                 {
                     "unprocessed_name": "NILKITKWA LAKE",
                     "symbols": [],
-                    "original_reg_text": "Fly fishing only, bait ban (EXCEPT dead fin fish may be used as bait when set lining; see page 8 in the Provincial Regulations)",
+                    "original_reg_text": "Fly fishing only, bait ban (EXCEPT dead fin fish may be used as bait when set lining; see page 8 in the Provincial Regulations)\nFly fishing only, bait ban (EXCEPT dead fin fish may be used as bait when set lining; see page 8 in the Provincial Regulations) That section of flowing water between Babine and Nilkitkwa Lakes known as “Rainbow Alley” is open for fishing all year (see also Babine\nRiver) (See map 2 page 51)",
                     "regs": [
                         {
                             "type": "General Restriction",
@@ -24330,6 +24689,16 @@
                         {
                             "type": "General Restriction",
                             "details": "see page 8 in the Provincial Regulations)",
+                            "date_range": null
+                        },
+                        {
+                            "type": "General Restriction",
+                            "details": "see page 8 in the Provincial Regulations) That section of flowing water between Babine and Nilkitkwa Lakes known as “Rainbow Alley” is open for fishing all year (see also Babine",
+                            "date_range": null
+                        },
+                        {
+                            "type": "General Restriction",
+                            "details": "River) (See map 2 page 51)",
                             "date_range": null
                         }
                     ],
@@ -24648,6 +25017,23 @@
                     ]
                 }
             ],
+            "skeena river/kispiox river confluence": [
+                {
+                    "unprocessed_name": "SKEENA RIVER/KISPIOX RIVER CONFLUENCE",
+                    "symbols": [],
+                    "original_reg_text": "Waters within 3 white fishing boundary signs located at the confluence of the Skeena and Kispiox rivers: no angling from boats",
+                    "regs": [
+                        {
+                            "type": "Boating Restriction",
+                            "details": "Waters within 3 white fishing boundary signs located at the confluence of the Skeena and Kispiox rivers: no angling from boats",
+                            "date_range": null
+                        }
+                    ],
+                    "management_units": [
+                        "6-8"
+                    ]
+                }
+            ],
             "skeena river": [
                 {
                     "unprocessed_name": "SKEENA RIVER",
@@ -24671,7 +25057,7 @@
                     "symbols": [
                         "Classified Waters"
                     ],
-                    "original_reg_text": "There are two separate Class II waters on the Skeena River (non-residents and non-resident aliens require separate licences describing which section they are fishing): (a) from Exchamsiks River to 1.5 km upstream of Kitsumkalum River (known as “Skeena River 2”), July 1-Sept 30; and (b) 1.5 km upstream of Zymoetz River (known as “Skeena River Section 4”), July 1-Dec 31; Steelhead Stamp not mandatory for Skeena River 2 unless fishing for steelhead. Steelhead Stamp is mandatory in Skeena River Section 4 during the Classified Waters period from July 1-Dec 31",
+                    "original_reg_text": "There are two separate Class II waters on the Skeena River (non-residents and non-resident aliens require separate licences describing which section they are fishing): (a) from Exchamsiks River to 1.5 km upstream of Kitsumkalum River (known as “Skeena River 2”), July 1-Sept 30; and (b) 1.5 km upstream of Zymoetz River (known as “Skeena River Section 4”), July 1-Dec 31; Steelhead Stamp not mandatory for Skeena River 2 unless fishing for steelhead. Steelhead Stamp is mandatory in Skeena River Section 4 during the Classified Waters period from July 1-Dec 31\nAngling prohibited for non-guided non-resident aliens in Skeena River Section 4 on Saturdays and Sundays in two zones: (a) Shegunia River confluence to Sedan Creek confluence July 1-Dec 31 (See map page 54), and (b) Chimdemash Creek confluence to 1.5 km upstream of Zymoetz River confluence, July 1 - Dec 31, (See map page 55)",
                     "regs": [
                         {
                             "type": "Classified Waters",
@@ -24686,6 +25072,11 @@
                         {
                             "type": "Classified Waters",
                             "details": "Steelhead Stamp is mandatory in Skeena River Section 4 during the Classified Waters period from July 1-Dec 31",
+                            "date_range": "July 1-Dec 31"
+                        },
+                        {
+                            "type": "General Restriction",
+                            "details": "Angling prohibited for non-guided non-resident aliens in Skeena River Section 4 on Saturdays and Sundays in two zones: (a) Shegunia River confluence to Sedan Creek confluence July 1-Dec 31 (See map page 54), and (b) Chimdemash Creek confluence to 1.5 km upstream of Zymoetz River confluence, July 1 - Dec 31, (See map page 55)",
                             "date_range": "July 1-Dec 31"
                         }
                     ],
@@ -25300,7 +25691,7 @@
                         "Includes Tributaries",
                         "Classified Waters"
                     ],
-                    "original_reg_text": "No Fishing from McDonell Lake downstream approximately 3 km to fishing boundary signs\nNo Fishing between fishing boundary signs in Zymoetz Canyon\nNo Fishing upstream of fishing boundary sign at the transmission line crossing (located downstream of Zymoetz Canyon), Jan 1-June 15\nBait ban\nUpstream of Limonite Creek (Zymoetz River A): Class I water Jul 24 - Dec 31; Steelhead Stamp mandatory Jul 24 - Dec 31;\nAngling prohibited for non-guided non-resident aliens on Fridays, Saturdays, and Sundays Jul 24 - Dec 31\nDownstream of Limonite Creek (Zymoetz River B): Class II water Jul 24 - May 31; Steelhead Stamp mandatory Jul 24 - May 31;\nAngling prohibited for non-guided non-resident aliens on Fridays, Saturdays, and Sundays Jul 24 - May 31\nand Skeena River KISPIOX VILLAGE Shegunia River p oi\nx V a ell\ny R d . Old Hazelton\nNew Hazelton r e v v i R S a n e d w e an C it re Kitwanga S K its e g u\nand Skeena River R 0 5 10 20 Angling prohibited for non-guided non-resident aliens on Saturdays and Sundays from the Shegunia nfluence, July 1-Dec 31.\n2025-2027 BC Freshwater Fishing Regulations Synopsis",
+                    "original_reg_text": "No Fishing from McDonell Lake downstream approximately 3 km to fishing boundary signs\nNo Fishing between fishing boundary signs in Zymoetz Canyon\nNo Fishing upstream of fishing boundary sign at the transmission line crossing (located downstream of Zymoetz Canyon), Jan 1-June 15\nBait ban\nUpstream of Limonite Creek (Zymoetz River A): Class I water Jul 24 - Dec 31; Steelhead Stamp mandatory Jul 24 - Dec 31;\nAngling prohibited for non-guided non-resident aliens on Fridays, Saturdays, and Sundays Jul 24 - Dec 31\nDownstream of Limonite Creek (Zymoetz River B): Class II water Jul 24 - May 31; Steelhead Stamp mandatory Jul 24 - May 31;\nAngling prohibited for non-guided non-resident aliens on Fridays, Saturdays, and Sundays Jul 24 - May 31\nK\nKis p io x R\nConfluence of Shequnia River and Skeena River KISPIOX VILLAGE Shegunia River K si p oi\nx V a ell\ny R d . Old Hazelton\nNew Hazelton r e v Ri\ner v i R\na g n a S a n e d w e an C it K k e re Kitwanga S e k K its e g u e c Confluence of Sedan Creek la\nand Skeena River R iv e r 0 5 10 20\nKilometers Angling prohibited for non-guided non-resident aliens on Saturdays and Sundays from the Shegunia nfluence, July 1-Dec 31.\n2025-2027 BC Freshwater Fishing Regulations Synopsis",
                     "regs": [
                         {
                             "type": "Fishing Closure",
@@ -25354,8 +25745,23 @@
                         },
                         {
                             "type": "General Restriction",
-                            "details": "Saturdays, and Sundays Jul 24 - May 31 and Skeena River KISPIOX VILLAGE Shegunia River p oi",
+                            "details": "Saturdays, and Sundays Jul 24 - May 31",
                             "date_range": "Jul 24 - May 31"
+                        },
+                        {
+                            "type": "General Restriction",
+                            "details": "K",
+                            "date_range": null
+                        },
+                        {
+                            "type": "General Restriction",
+                            "details": "Kis p io x R",
+                            "date_range": null
+                        },
+                        {
+                            "type": "General Restriction",
+                            "details": "Confluence of Shequnia River and Skeena River KISPIOX VILLAGE Shegunia River K si p oi",
+                            "date_range": null
                         },
                         {
                             "type": "General Restriction",
@@ -25374,7 +25780,22 @@
                         },
                         {
                             "type": "General Restriction",
-                            "details": "New Hazelton r e v v i R S a n e d w e an C it re Kitwanga S K its e g u and Skeena River R 0 5 10 20 Angling prohibited for non-guided non-resident aliens on Saturdays and Sundays from the Shegunia nfluence, July 1-Dec 31.",
+                            "details": "New Hazelton r e v Ri",
+                            "date_range": null
+                        },
+                        {
+                            "type": "General Restriction",
+                            "details": "er v i R",
+                            "date_range": null
+                        },
+                        {
+                            "type": "General Restriction",
+                            "details": "a g n a S a n e d w e an C it K k e re Kitwanga S e k K its e g u e c Confluence of Sedan Creek la and Skeena River R iv e r 0 5 10 20",
+                            "date_range": null
+                        },
+                        {
+                            "type": "General Restriction",
+                            "details": "Kilometers Angling prohibited for non-guided non-resident aliens on Saturdays and Sundays from the Shegunia nfluence, July 1-Dec 31.",
                             "date_range": "July 1-Dec 31"
                         },
                         {
@@ -25431,6 +25852,35 @@
                     ],
                     "management_units": [
                         "7-17"
+                    ]
+                }
+            ],
+            "anzac river": [
+                {
+                    "unprocessed_name": "ANZAC RIVER",
+                    "symbols": [
+                        "Includes Tributaries"
+                    ],
+                    "original_reg_text": "No Fishing within 500 m radius of the Upper Anzac bridge Aug 15-Mar 31, located at approximately UTM 10 552426, 6093011 (see map on page 62)\nFly fishing only Jul 1-Mar 31 upstream of the North Anzac River confluence (see map on page 62)",
+                    "regs": [
+                        {
+                            "type": "Fishing Closure",
+                            "details": "No Fishing within 500 m radius of the Upper Anzac bridge Aug 15-Mar 31, located at approximately UTM 10 552426",
+                            "date_range": "Aug 15-Mar 31"
+                        },
+                        {
+                            "type": "General Restriction",
+                            "details": "6093011 (see map on page 62)",
+                            "date_range": null
+                        },
+                        {
+                            "type": "General Restriction",
+                            "details": "Fly fishing only Jul 1-Mar 31 upstream of the North Anzac River confluence (see map on page 62)",
+                            "date_range": "Jul 1-Mar 31"
+                        }
+                    ],
+                    "management_units": [
+                        "7-23"
                     ]
                 }
             ],
@@ -25827,6 +26277,28 @@
                     ],
                     "management_units": [
                         "7-12"
+                    ]
+                }
+            ],
+            "crooked river": [
+                {
+                    "unprocessed_name": "CROOKED RIVER",
+                    "symbols": [],
+                    "original_reg_text": "No Fishing downstream (north) of the 200 Road Bridge, Apr 1-June 30 (see map on page 62)\nRainbow trout catch and release and exempt from spring closure upstream (south) of the 200 Road Bridge, Apr 1-June 30 (see map on page 62)",
+                    "regs": [
+                        {
+                            "type": "Fishing Closure",
+                            "details": "No Fishing downstream (north) of the 200 Road Bridge, Apr 1-June 30 (see map on page 62)",
+                            "date_range": "Apr 1-June 30"
+                        },
+                        {
+                            "type": "Quota / Catch Limit",
+                            "details": "Rainbow trout catch and release and exempt from spring closure upstream (south) of the 200 Road Bridge, Apr 1-June 30 (see map on page 62)",
+                            "date_range": "Apr 1-June 30"
+                        }
+                    ],
+                    "management_units": [
+                        "7-24"
                     ]
                 }
             ],
@@ -28790,7 +29262,7 @@
                 {
                     "unprocessed_name": "LETAIN LAKE",
                     "symbols": [],
-                    "original_reg_text": "No Fishing within 100 m of fishing boundary sign at outlet, May 15-July 31\nRainbow trout daily and possession quotas = 2 (none over 50 cm); bait ban, single hook\nBull trout daily and possession quotas = 1 (none under 30 cm or over 50 cm) from all lakes and streams, Oct 16-Aug 14",
+                    "original_reg_text": "No Fishing within 100 m of fishing boundary sign at outlet, May 15-July 31\nRainbow trout daily and possession quotas = 2 (none over 50 cm); bait ban, single hook",
                     "regs": [
                         {
                             "type": "Fishing Closure",
@@ -28811,6 +29283,23 @@
                             "type": "Gear Restriction",
                             "details": "single hook",
                             "date_range": null
+                        }
+                    ],
+                    "management_units": [
+                        "7-52"
+                    ]
+                }
+            ],
+            "liard river watershed": [
+                {
+                    "unprocessed_name": "LIARD RIVER WATERSHED (see map on page 63)",
+                    "symbols": [],
+                    "original_reg_text": "Bull trout catch and release from all lakes and streams, Aug 15-Oct 15\nBull trout daily and possession quotas = 1 (none under 30 cm or over 50 cm) from all lakes and streams, Oct 16-Aug 14",
+                    "regs": [
+                        {
+                            "type": "Quota / Catch Limit",
+                            "details": "Bull trout catch and release from all lakes and streams, Aug 15-Oct 15",
+                            "date_range": "Aug 15-Oct 15"
                         },
                         {
                             "type": "Quota / Catch Limit",
@@ -28819,7 +29308,7 @@
                         }
                     ],
                     "management_units": [
-                        "7-52"
+                        "7-53"
                     ]
                 }
             ],
@@ -29519,12 +30008,7 @@
                     "regs": [
                         {
                             "type": "Fishing Closure",
-                            "details": "No Fishing",
-                            "date_range": null
-                        },
-                        {
-                            "type": "General Restriction",
-                            "details": "Includes all unnamed lakes within 2 km of Bluey Lake (except Bluey Lake itself and Kentucky Lake)",
+                            "details": "No Fishing Includes all unnamed lakes within 2 km of Bluey Lake (except Bluey Lake itself and Kentucky Lake)",
                             "date_range": null
                         }
                     ],
