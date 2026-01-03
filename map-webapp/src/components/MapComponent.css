@@ -1,0 +1,166 @@
+html, body {
+  margin: 0;
+  padding: 0;
+  /* Prevent global page scrolling */
+  overflow: hidden; 
+}
+
+.map-container {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  /* Crucial: Stops the popup from creating scrollbars when moving near edges */
+  overflow: hidden; 
+}
+
+.map-controls {
+  /* Made smaller (was 300px) */
+  width: 200px;
+  /* Reduced padding (was 20px) */
+  padding: 10px;
+  background-color: #f8f9fa;
+  border-right: 1px solid #dee2e6;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  box-sizing: border-box; /* Ensures padding doesn't add to width */
+}
+
+.map {
+  flex-grow: 1;
+  height: 100%;
+  position: relative; 
+}
+
+.file-input-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px; /* Reduced gap */
+  margin-bottom: 15px;
+}
+
+.file-input {
+  display: none;
+}
+
+.file-input-label {
+  display: inline-block;
+  padding: 8px 10px; /* Smaller padding */
+  background-color: #007bff;
+  color: white;
+  border-radius: 4px;
+  cursor: pointer;
+  text-align: center;
+  font-size: 0.85rem; /* Smaller font */
+  transition: background-color 0.2s;
+}
+
+.file-input-label:hover {
+  background-color: #0056b3;
+}
+
+.clear-button {
+  padding: 8px 10px; /* Smaller padding */
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem; /* Smaller font */
+  transition: background-color 0.2s;
+}
+
+.clear-button:hover {
+  background-color: #c82333;
+}
+
+.error-message {
+  color: #721c24;
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+  padding: 8px;
+  border-radius: 4px;
+  margin-bottom: 15px;
+  word-break: break-word;
+  font-size: 0.8rem;
+}
+
+.loaded-layers h3 {
+  margin-top: 0;
+  margin-bottom: 8px;
+  font-size: 0.95rem; /* Smaller header */
+}
+
+.loaded-layers ul {
+  padding-left: 15px;
+  margin: 0;
+}
+
+.loaded-layers li {
+  margin-bottom: 4px;
+  color: #495057;
+  font-size: 0.8rem; /* Smaller list text */
+  word-wrap: break-word;
+}
+
+/* =========================================
+   POPUP STYLES (Dark, Compact, Non-Intrusive)
+========================================= */
+
+.ol-popup {
+  position: absolute;
+  background-color: rgba(35, 35, 35, 0.95);
+  color: #ffffff;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.4);
+  padding: 8px 10px;
+  border-radius: 4px;
+  bottom: 15px; /* Pushed up slightly more */
+  left: -50%;
+  transform: translateX(-50%);
+  min-width: 120px;
+  max-width: 200px;
+  pointer-events: none;
+  font-size: 11px; /* Smaller text */
+  z-index: 1000;
+}
+
+.ol-popup:after {
+  top: 100%;
+  border: solid transparent;
+  content: " ";
+  height: 0;
+  width: 0;
+  position: absolute;
+  pointer-events: none;
+  border-top-color: rgba(35, 35, 35, 0.95);
+  border-width: 6px; /* Smaller arrow */
+  left: 50%;
+  margin-left: -6px;
+}
+
+.popup-content h4 {
+  margin: 0 0 5px 0;
+  color: #61dafb;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  padding-bottom: 3px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.popup-row {
+  margin-bottom: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap; /* Prevents wrapping causing jumpiness */
+  line-height: 1.3;
+}
+
+.popup-row strong {
+  color: #aaaaaa;
+  margin-right: 4px;
+  font-weight: normal;
+}
+
+.popup-row span {
+  color: #ffffff;
+}
