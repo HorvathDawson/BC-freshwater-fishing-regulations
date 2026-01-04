@@ -7,7 +7,6 @@ import os
 # --- CONFIGURATION ---
 PDF_URL = "https://www2.gov.bc.ca/assets/gov/sports-recreation-arts-and-culture/outdoor-recreation/fishing-and-hunting/freshwater-fishing/fishing_synopsis.pdf"
 
-# Always use the output directory next to this script for outputs
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 OUTPUT_DIR = os.path.join(SCRIPT_DIR, "output")
 os.makedirs(OUTPUT_DIR, exist_ok=True)
@@ -15,18 +14,26 @@ PDF_FILENAME = os.path.join(OUTPUT_DIR, "fishing_synopsis.pdf")
 TXT_OUTPUT = os.path.join(OUTPUT_DIR, "fishing_regs.txt")
 JSON_OUTPUT = os.path.join(OUTPUT_DIR, "fishing_data.json")
 
+# --- VALID REGIONS WHITELIST ---
+VALID_REGIONS = {
+    "1": "Vancouver Island",
+    "2": "Lower Mainland",
+    "3": "Thompson-Nicola",
+    "4": "Kootenay",
+    "5": "Cariboo",
+    "6": "Skeena",
+    "7A": "Omineca",
+    "7B": "Peace",
+    "8": "Okanagan"
+}
+
 # --- GLOBAL FILTERING CONFIGURATION ---
-# This list controls which rows are completely discarded.
-# If ANY of these substrings appear in the Water Body Name OR the Regulation Text,
-# the ENTIRE row is assumed to be map noise (e.g. legends, ads, map scales) and is skipped.
-# NOTE: Do not add words here that might appear in valid regulations (e.g. "Confluence").
 INVALID_KEYWORDS = [
     "Kilometres", "courtesy of", "purchase a larger map", 
     "reprinted", "Haig-Brown", "scale", "www.", ".ca", ".com",
     "Department of Fisheries", "Management Unit", 
     "Please refer to", "Check website for", 
     "Regulation Changes", "NOTE:", "front cover", "back cover",
-    # "Map page", "See map" # Uncomment these only if they are consistently garbage and not part of rules
 ]
 
 VERTICAL_GAP_THRESHOLD = 3.0 
@@ -67,10 +74,6 @@ class RegParser:
     @staticmethod
     def clean_and_split(text):
         text = re.sub(r'\s+', ' ', text).strip()
-        
-        # FIX 1: Soften semicolons before "includes" so they don't force a hard split
-        # Old: r';\s*(?=(?:and|or|but)\b)'
-        # New: r';\s*(?=(?:and|or|but|includes)\b)'
         text = re.sub(r';\s*(?=(?:and|or|but|includes)\b)', ', ', text, flags=re.IGNORECASE)
         text = re.sub(r';\s*(?=\([a-z0-9]+\))', ', ', text, flags=re.IGNORECASE)
 
@@ -79,15 +82,12 @@ class RegParser:
         
         for chunk in initial_chunks:
             sentences = re.split(r'(?<![A-Z])\.\s+', chunk)
-            
             for sentence in sentences:
                 parts = sentence.split(',')
                 current_item = parts[0]
-                
                 for part in parts[1:]:
                     part = part.strip()
                     if not part: continue
-                    
                     should_merge = False
                     if current_item.count('(') > current_item.count(')'): should_merge = True
                     elif re.match(r'^(and|but|or)\b', part, re.IGNORECASE): should_merge = True
@@ -103,7 +103,6 @@ class RegParser:
                     else:
                         final_items.append(current_item)
                         current_item = part
-                
                 final_items.append(current_item)
 
         return [i.strip() for i in final_items if i.strip()]
@@ -146,7 +145,6 @@ def merge_orphaned_details(regs_list):
         txt = current['details'].strip()
         should_merge_back = False
         
-        # FIX 2: Added 'includes' to the list of keywords that trigger a merge (lines 148-149)
         if txt.startswith('(') and txt.endswith(')'): should_merge_back = True
         elif re.match(r'^(and|but|or|includes)\b', txt, re.IGNORECASE): should_merge_back = True
         elif current['type'] == "General Restriction" and current['date_range'] == txt:
@@ -163,17 +161,41 @@ def merge_orphaned_details(regs_list):
     return merged
 
 def get_clean_key_name(raw_name):
-    """
-    Cleans the waterbody name to use as a dictionary key.
-    Removes quotes, parentheses, and extra whitespace.
-    """
     if not raw_name: return ""
     clean = re.sub(r'\(.*?\)', '', raw_name)
     clean = clean.replace('“', '').replace('”', '').replace('"', '').replace("'", "")
     clean = re.sub(r'\s+', ' ', clean).strip().lower()
     return clean
 
-# --- STANDARD PDF EXTRACTION ---
+# --- VALIDATION HELPERS ---
+
+def validate_region_match(region_name, mu_list):
+    """
+    Checks if MUs match the Region Number.
+    RELAXED RULE: Valid if AT LEAST ONE MU matches the region number.
+    This allows cross-region waters (e.g., Stellako 6-4, 7-12) to pass.
+    """
+    if not mu_list: return True 
+    
+    # Extract Region Number (e.g. "7" from "REGION 7A")
+    reg_match = re.search(r'REGION\s+(\d+)', region_name, re.IGNORECASE)
+    if not reg_match: return True 
+    
+    reg_num_str = reg_match.group(1)
+    
+    for mu in mu_list:
+        # Pass immediately if Haida Gwaii exception matches
+        if reg_num_str == "1" and (mu.startswith("6-12") or mu.startswith("6-13")):
+            return True
+            
+        # Pass immediately if ANY MU matches current region
+        if mu.startswith(f"{reg_num_str}-"):
+            return True
+            
+    # Fail only if NO MUs matched the current region
+    return False
+
+# --- PDF EXTRACTION ---
 
 def download_pdf(url, filename):
     if os.path.exists(filename):
@@ -226,33 +248,14 @@ def is_mu_line(text):
     return len(leftover) < 2 and re.search(r'\d{1,2}-\d{1,2}', text)
 
 def is_valid_row(name, regs):
-    """
-    Validates if a row (Water Body Name + Regulations) should be kept.
-    This is the SINGLE source of truth for filtering out map garbage.
-    It checks against the INVALID_KEYWORDS global list.
-    """
     combined = (name + " " + " ".join(regs)).lower()
     combined = re.sub(r'\s+', ' ', combined)
-    
-    # 1. Check against the global blocklist
-    if any(k.lower() in combined for k in INVALID_KEYWORDS): 
-        return False
-    
-    # 2. Hard check for the "WATER BODY" header row
-    if "WATER BODY" in name: 
-        return False 
-        
-    # 3. Filter empty rows
-    if not name.strip() and not regs: 
-        return False
-        
+    if any(k.lower() in combined for k in INVALID_KEYWORDS): return False
+    if "WATER BODY" in name: return False 
+    if not name.strip() and not regs: return False
     return True
 
 def extract_text_by_spatial_layout(page, bbox):
-    """
-    Extracts text blocks from a specific bounding box (bbox) on the page.
-    It reconstructs lines based on Y-coordinates and groups paragraphs based on vertical gaps.
-    """
     if not bbox: return []
     x0, top, x1, bottom = bbox
     try:
@@ -281,8 +284,6 @@ def extract_text_by_spatial_layout(page, bbox):
         line_text = " ".join([w['text'] for w in line])
         line_text = line_text.replace('\uf0dc', ' [Includes tributaries] ').replace('*', ' [Includes tributaries] ')
         
-        # NOTE: No content filtering happens here. All text is passed to is_valid_row.
-
         if i == 0:
             current_text_block.append(line_text)
             continue
@@ -354,7 +355,6 @@ def process_table(page, table, fish_locations):
         
         c1_box = row.cells[0]
         c1_raw = text_rows[i][0] or ""
-        
         c2_box = row.cells[1]
         
         is_duplicate_regs = (c2_box == last_c2_box)
@@ -364,7 +364,6 @@ def process_table(page, table, fish_locations):
             c2_raw_list = []
             structured_regs = []
         else:
-            # Extracts ALL text blocks regardless of content
             c2_raw_list = extract_text_by_spatial_layout(page, c2_box)
             structured_regs = []
             for raw_reg in c2_raw_list:
@@ -374,8 +373,6 @@ def process_table(page, table, fish_locations):
         name_text, c1_syms = parse_water_col(c1_raw, c1_box, fish_locations)
 
         if not name_text and not c2_raw_list: continue
-        
-        # --- VALIDATION STEP ---
         if c2_raw_list and not is_valid_row(name_text, c2_raw_list): continue
 
         if name_text:
@@ -421,12 +418,41 @@ def process_table(page, table, fish_locations):
         
     return structured_data
 
-def get_region_name(text):
-    match = re.search(r'(REGION\s+\d+[A-Z]?\s*[-–]\s*[^\n\r]+)', text)
+# --- FIX: IMPROVED REGION NAME DETECTION WITH LOOKAHEAD ---
+def clean_doubled_chars(text):
+    """Fixes text like 'RREEGGIIOONN' -> 'REGION'"""
+    if not text: return ""
+    return re.sub(r'(.)\1', r'\1', text)
+
+def get_header_region(page_obj):
+    """
+    Scans the top 20% of the page for Region Headers using multiple methods.
+    """
+    header_crop = page_obj.crop((0, 0, page_obj.width, page_obj.height * 0.20))
+    raw_text = header_crop.extract_text() or ""
+    
+    # 1. Standard Regex
+    match = re.search(r'REGION\s+(\d+[A-Z]?)', raw_text, re.IGNORECASE)
+    
+    # 2. De-duplication Regex (For broken PDF text)
+    if not match:
+        clean_text = clean_doubled_chars(raw_text)
+        match = re.search(r'REGION\s+(\d+[A-Z]?)', clean_text, re.IGNORECASE)
+    
+    # 3. Fallbacks for specific unparseable headers
+    if not match:
+        if "Zone A (Omineca)" in raw_text or "OminecaRegionFisheries" in raw_text:
+            return "REGION 7A - Omineca"
+        if "General Zone A Regulations" in raw_text:
+            return "REGION 7A - Omineca"
+        if "Zone B (Peace)" in raw_text or "General ZONE B Regulations" in raw_text:
+            return "REGION 7B - Peace"
+
     if match:
-        raw_region = match.group(1).strip()
-        clean = re.split(r'(\n|CONTACT|Regional|Water-Specific|General)', raw_region)[0]
-        return clean.strip()
+        region_id = match.group(1).upper()
+        if region_id in VALID_REGIONS:
+            return f"REGION {region_id} - {VALID_REGIONS[region_id]}"
+    
     return None
 
 def extract_fishing_data():
@@ -438,21 +464,38 @@ def extract_fishing_data():
     current_region_name = "General Information"
 
     with pdfplumber.open(PDF_FILENAME) as pdf, open(TXT_OUTPUT, "w", encoding="utf-8") as f_txt:
+        number_pages_skip_beginning = 10
+        pages = pdf.pages[number_pages_skip_beginning:]
         
-        for page in pdf.pages: 
-            page_text = page.extract_text() or ""
+        for i, page in enumerate(pages):
+            page_num = number_pages_skip_beginning + i + 1
             
-            found_region = get_region_name(page_text)
-            if found_region:
+            # --- ROBUST REGION DETECTION STRATEGY ---
+            found_region = get_header_region(page)
+            
+            # If current page has no header, but indicates a new section, LOOK AHEAD
+            if not found_region:
+                page_text = page.extract_text() or ""
+                if "CONTACT INFORMATION" in page_text:
+                    if i + 1 < len(pages):
+                        next_page_region = get_header_region(pages[i+1])
+                        if next_page_region:
+                            found_region = next_page_region
+                            print(f"[DEBUG] Lookahead Success on Page {page_num}: Found '{found_region}' on next page.")
+
+            if found_region and found_region != current_region_name:
+                print(f"[DEBUG] Switching Region from '{current_region_name}' to '{found_region}' at Page {page_num}")
                 current_region_name = found_region
             
             if current_region_name not in all_regions_data:
                 all_regions_data[current_region_name] = {}
 
+            # Parse Body
+            page_text = page.extract_text() or ""
             if "EXCEPTIONS" not in page_text: 
                 continue
 
-            f_txt.write(f"\n{'='*20} PAGE {page.page_number} ({current_region_name}) {'='*20}\n")
+            f_txt.write(f"\n{'='*20} PAGE {page_num} ({current_region_name}) {'='*20}\n")
             
             fish_locs = get_fish_locations(page)
             geom = get_table_geometry(page)
@@ -488,6 +531,9 @@ def extract_fishing_data():
                 for entry in data:
                     raw_name = entry['unprocessed_name']
                     mu = entry['MUs']
+                    
+                    if not validate_region_match(current_region_name, mu):
+                        print(f"WARNING: Region Mismatch! Entry '{raw_name}' has MUs {mu} but is currently filed under '{current_region_name}'")
                     
                     sym_str = ", ".join(entry['Symbols']) if entry['Symbols'] else "None"
                     mu_str = f" (MUs: {', '.join(mu)})" if mu else ""

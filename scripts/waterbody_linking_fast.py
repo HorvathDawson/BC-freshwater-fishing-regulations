@@ -1,18 +1,21 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Link Fishing Regulations to FWA Waterbodies
+Fast Waterbody Linking Using Pre-built Index
 
 This script matches waterbody names from the fishing synopsis JSON
-to actual geographic features in the FWA geodatabase.
+to actual geographic features using a pre-built index for O(1) lookups.
+
+MUST RUN build_waterbody_index.py FIRST to create the index file.
 
 Input:
 - scripts/output/fishing_data.json (from get_synopsis_data.py)
-- scripts/output/FWA_named_waterbodies.gdb (from filter_unnamed_streams.py)
+- scripts/output/waterbody_index.json (from build_waterbody_index.py)
 
 Output:
 - Console output showing matches and mismatches
-- JSON file with linked waterbodies
+- scripts/output/linked_waterbodies.json
+- scripts/output/matching_report.json
 
 Author: BC Freshwater Fishing Regulations Project
 Date: January 3, 2026
@@ -24,10 +27,9 @@ import signal
 import sys
 import os
 import time
+import csv
 from pathlib import Path
 from difflib import SequenceMatcher
-import geopandas as gpd
-import fiona
 
 # ANSI color codes for terminal output
 COLOR_GREEN = '\033[92m'  # Success/Match
@@ -36,30 +38,24 @@ COLOR_RED = '\033[91m'  # Error/No match
 COLOR_CYAN = '\033[96m'  # Info/Similar names
 COLOR_RESET = '\033[0m'  # Reset to default
 
+
 def normalize_name(name):
     """
     Normalize a waterbody name for comparison.
     
     Removes quotes, parentheses (and their contents), extra whitespace.
     Converts to lowercase for case-insensitive matching.
-    
-    Args:
-        name: Raw waterbody name
-        
-    Returns:
-        Normalized name string
     """
     if not name:
         return ""
     
     # Remove all types of quotes (regular and smart/curly quotes)
-    # Unicode characters: U+201C ("), U+201D ("), U+2018 ('), U+2019 (')
-    clean = name.replace('"', '').replace("'", '')  # Regular quotes (U+0022, U+0027)
-    clean = clean.replace('\u201c', '').replace('\u201d', '')  # Left/right double quotes
-    clean = clean.replace('\u2018', '').replace('\u2019', '')  # Left/right single quotes
-    clean = clean.replace('`', '')  # Backticks
+    clean = name.replace('"', '').replace("'", '')
+    clean = clean.replace('\u201c', '').replace('\u201d', '')
+    clean = clean.replace('\u2018', '').replace('\u2019', '')
+    clean = clean.replace('`', '')
     
-    # Remove parentheses and their contents (e.g., "ERROCK" ("Squakum") -> ERROCK)
+    # Remove parentheses and their contents
     clean = re.sub(r'\([^)]*\)', '', clean)
     
     # Remove extra whitespace
@@ -76,17 +72,11 @@ def extract_quoted_text(name):
     Extract text within quotes from a name.
     
     For names like '"BIG QUALICUM" RIVER', extracts 'BIG QUALICUM'
-    
-    Args:
-        name: Raw waterbody name
-        
-    Returns:
-        Text within quotes (normalized), or None if no quotes found
     """
     if not name:
         return None
     
-    # Try to find text within smart/curly quotes (U+201C, U+201D)
+    # Try to find text within smart/curly quotes
     match = re.search(r'\u201c([^\u201d]+)\u201d', name)
     if match:
         return normalize_name(match.group(1))
@@ -102,12 +92,6 @@ def extract_quoted_text(name):
 def extract_zone_from_mu(management_units):
     """
     Extract zone number from management unit string.
-    
-    Args:
-        management_units: List of MU strings like ["1-15", "1-16"]
-        
-    Returns:
-        Zone number as string (e.g., "1") or None
     """
     if not management_units or len(management_units) == 0:
         return None
@@ -121,145 +105,73 @@ def extract_zone_from_mu(management_units):
     return None
 
 
-def find_similar_names(waterbody_name, zone, gdb_path, top_n=5):
+def find_similar_names(waterbody_name, zone, index, top_n=5):
     """
-    Find similar waterbody names using fuzzy matching.
+    Find similar waterbody names using fuzzy matching from the index.
     
     Args:
         waterbody_name: Name to search for (already normalized)
         zone: Zone number as string
-        gdb_path: Path to FWA_named_waterbodies.gdb
+        index: Pre-built waterbody index
         top_n: Number of top similar names to return
         
     Returns:
         List of tuples (similarity_ratio, name, type) sorted by similarity
     """
-    if not zone:
+    if not zone or zone not in index:
         return []
     
     similar_names = []
+    zone_data = index[zone]
     
-    # Check streams
-    stream_layer = f"STREAMS_ZONE_{zone}"
-    try:
-        streams = gpd.read_file(str(gdb_path), layer=stream_layer)
-        for name in streams['GNIS_NAME'].dropna().unique():
-            normalized = normalize_name(name)
-            if normalized:  # Skip empty names
-                ratio = SequenceMatcher(None, waterbody_name, normalized).ratio()
-                if ratio > 0.6:  # Only include if somewhat similar
-                    similar_names.append((ratio, name, 'stream'))
-    except:
-        pass
-    
-    # Check lakes
-    lake_layer = f"LAKES_ZONE_{zone}"
-    try:
-        lakes = gpd.read_file(str(gdb_path), layer=lake_layer)
-        for name_field in ['GNIS_NAME_1', 'GNIS_NAME_2']:
-            if name_field in lakes.columns:
-                for name in lakes[name_field].dropna().unique():
-                    normalized = normalize_name(name)
-                    if normalized:  # Skip empty names
-                        ratio = SequenceMatcher(None, waterbody_name, normalized).ratio()
-                        if ratio > 0.6:  # Only include if somewhat similar
-                            similar_names.append((ratio, name, 'lake'))
-    except:
-        pass
+    # Compare against all names in this zone
+    for indexed_name, features in zone_data.items():
+        ratio = SequenceMatcher(None, waterbody_name, indexed_name).ratio()
+        if ratio > 0.6:  # Only include if somewhat similar
+            # Get type from first feature
+            feature_type = features[0]['type'] if features else 'unknown'
+            original_name = features[0]['gnis_name'] if features else indexed_name
+            similar_names.append((ratio, original_name, feature_type))
     
     # Sort by similarity and return top N
     similar_names.sort(reverse=True, key=lambda x: x[0])
     return similar_names[:top_n]
 
 
-def find_waterbody_matches(waterbody_name, zone, gdb_path):
+def find_waterbody_matches(waterbody_name, zone, index):
     """
-    Search for matching waterbody in FWA geodatabase.
+    Search for matching waterbody in the pre-built index (O(1) lookup).
     
     Args:
         waterbody_name: Name to search for (already normalized)
         zone: Zone number as string
-        gdb_path: Path to FWA_named_waterbodies.gdb
+        index: Pre-built waterbody index
         
     Returns:
-        List of matching features with all GDB attributes (empty if no matches)
+        List of matching features (empty if no matches)
     """
-    if not zone:
+    if not zone or zone not in index:
         return []
     
-    matches = []
+    zone_data = index[zone]
     
-    # Try streams layer first
-    stream_layer = f"STREAMS_ZONE_{zone}"
-    try:
-        streams = gpd.read_file(str(gdb_path), layer=stream_layer)
-        
-        # Normalize GNIS_NAME and compare
-        streams['normalized_name'] = streams['GNIS_NAME'].apply(lambda x: normalize_name(x) if x else "")
-        stream_matches = streams[streams['normalized_name'] == waterbody_name]
-        
-        if len(stream_matches) > 0:
-            for idx, row in stream_matches.iterrows():
-                # Convert row to dict, excluding geometry for JSON serialization
-                feature_dict = row.drop('geometry').to_dict() if 'geometry' in row else row.to_dict()
-                # Convert any non-serializable types
-                feature_dict = {k: (str(v) if not isinstance(v, (str, int, float, bool, type(None))) else v) 
-                               for k, v in feature_dict.items()}
-                
-                matches.append({
-                    'type': 'stream',
-                    'gnis_name': row['GNIS_NAME'],
-                    'layer': stream_layer,
-                    'feature_id': str(idx),
-                    'attributes': feature_dict
-                })
-    except Exception as e:
-        pass  # Layer doesn't exist or can't be read
+    # O(1) lookup!
+    if waterbody_name in zone_data:
+        return zone_data[waterbody_name]
     
-    # Try lakes layer
-    lake_layer = f"LAKES_ZONE_{zone}"
-    try:
-        lakes = gpd.read_file(str(gdb_path), layer=lake_layer)
-        
-        # Check both GNIS_NAME_1 and GNIS_NAME_2 for lakes
-        for name_field in ['GNIS_NAME_1', 'GNIS_NAME_2']:
-            if name_field in lakes.columns:
-                lakes[f'normalized_{name_field}'] = lakes[name_field].apply(lambda x: normalize_name(x) if x else "")
-                lake_matches = lakes[lakes[f'normalized_{name_field}'] == waterbody_name]
-                
-                if len(lake_matches) > 0:
-                    for idx, row in lake_matches.iterrows():
-                        # Avoid duplicates
-                        already_added = any(m['feature_id'] == str(idx) and m['layer'] == lake_layer for m in matches)
-                        if not already_added:
-                            # Convert row to dict, excluding geometry
-                            feature_dict = row.drop('geometry').to_dict() if 'geometry' in row else row.to_dict()
-                            feature_dict = {k: (str(v) if not isinstance(v, (str, int, float, bool, type(None))) else v) 
-                                           for k, v in feature_dict.items()}
-                            
-                            matches.append({
-                                'type': 'lake',
-                                'gnis_name': row.get('GNIS_NAME_1', '') or row.get('GNIS_NAME_2', ''),
-                                'layer': lake_layer,
-                                'feature_id': str(idx),
-                                'matched_field': name_field,
-                                'attributes': feature_dict
-                            })
-    except Exception as e:
-        pass  # Layer doesn't exist or can't be read
-    
-    return matches
+    return []
 
 
 def main():
     """
-    Main function to link waterbodies from fishing data to FWA geodatabase.
+    Main function to link waterbodies using pre-built index.
     """
     # Set up paths
     script_dir = Path(__file__).parent
     json_path = script_dir / "output" / "fishing_data.json"
-    gdb_path = script_dir / "output" / "FWA_named_waterbodies.gdb"
+    index_path = script_dir / "output" / "waterbody_index.json"
     output_json = script_dir / "output" / "linked_waterbodies.json"
+    gdb_path = script_dir / "output" / "FWA_named_waterbodies.gdb"
     
     # Validate inputs exist
     if not json_path.exists():
@@ -270,13 +182,28 @@ def main():
         print(f"ERROR: FWA geodatabase not found: {gdb_path}")
         return
     
+    # Check if index exists, if not build it
+    if not index_path.exists():
+        print(f"{COLOR_YELLOW}Waterbody index not found. Building index first...{COLOR_RESET}\n")
+        
+        try:
+            from build_waterbody_index import main as build_index
+            build_index()
+            print(f"\n{COLOR_GREEN}Index built successfully!{COLOR_RESET}\n")
+        except Exception as e:
+            print(f"{COLOR_RED}ERROR: Failed to build index: {e}{COLOR_RESET}")
+            return
+    
     print(f"Loading fishing data from: {json_path}")
     with open(json_path, 'r', encoding='utf-8') as f:
         fishing_data = json.load(f)
     
-    print(f"FWA geodatabase: {gdb_path}")
+    print(f"Loading waterbody index from: {index_path}")
+    with open(index_path, 'r', encoding='utf-8') as f:
+        waterbody_index = json.load(f)
+    
     print("\n" + "="*80)
-    print("WATERBODY LINKING REPORT")
+    print("FAST WATERBODY LINKING REPORT")
     print("="*80 + "\n")
     
     # Start time tracking
@@ -292,10 +219,13 @@ def main():
     # Results structure
     linked_data = {}
     unmatched_list = []
-    matched_list = []  # Successful matches with full GDB data
+    matched_list = []
     
     # Process each region
     regions_data = fishing_data.get('regionsData', {})
+    
+    # Estimate total for progress
+    estimated_total = sum(len(wb) for wb in regions_data.values())
     
     for region_name, waterbodies in regions_data.items():
         print(f"\n{'-'*80}")
@@ -310,14 +240,11 @@ def main():
             
             total_waterbodies += 1
             
-            # Progress estimation every 50 waterbodies
+            # Progress estimation every 100 waterbodies
             current_time = time.time()
-            if total_waterbodies % 50 == 0 and total_waterbodies > 0:
+            if total_waterbodies % 100 == 0 and total_waterbodies > 0:
                 elapsed = current_time - start_time
                 rate = total_waterbodies / elapsed
-                # Estimate total waterbodies (rough approximation)
-                regions_data_items = fishing_data.get('regionsData', {})
-                estimated_total = sum(len(wb) for wb in regions_data_items.values())
                 remaining = estimated_total - total_waterbodies
                 eta_seconds = remaining / rate if rate > 0 else 0
                 eta_mins = int(eta_seconds / 60)
@@ -339,24 +266,23 @@ def main():
             # Normalize name
             normalized_name = normalize_name(unprocessed_name)
             
-            # Search for matches
-            matches = find_waterbody_matches(normalized_name, zone, gdb_path)
+            # Fast O(1) lookup in index
+            matches = find_waterbody_matches(normalized_name, zone, waterbody_index)
             
             # If no match and name has quotes, try matching just the quoted part
             if len(matches) == 0:
                 quoted_text = extract_quoted_text(unprocessed_name)
                 if quoted_text and quoted_text != normalized_name:
-                    matches = find_waterbody_matches(quoted_text, zone, gdb_path)
+                    matches = find_waterbody_matches(quoted_text, zone, waterbody_index)
                     if len(matches) > 0:
-                        # Found match using quoted text
-                        normalized_name = quoted_text  # Update for reporting
+                        normalized_name = quoted_text
             
             # Report results
             if len(matches) == 0:
                 total_unmatched += 1
                 
                 # Find similar names for debugging
-                similar = find_similar_names(normalized_name, zone, gdb_path, top_n=3)
+                similar = find_similar_names(normalized_name, zone, waterbody_index, top_n=3)
                 
                 if similar:
                     similar_str = ", ".join([f"{name} ({type_}, {ratio:.2f})" for ratio, name, type_ in similar])
@@ -386,7 +312,7 @@ def main():
                 match = matches[0]
                 print(f"  {COLOR_GREEN}[OK] MATCHED:{COLOR_RESET} '{unprocessed_name}' -> {match['type'].upper()}: '{match['gnis_name']}' | Zone: {zone}")
                 
-                # Add to matched list with full GDB attributes
+                # Add to matched list
                 matched_list.append({
                     'region': region_name,
                     'waterbody_key': waterbody_key,
@@ -408,7 +334,7 @@ def main():
                 total_multiple_matches += 1
                 print(f"  {COLOR_YELLOW}[WARN] MULTIPLE MATCHES ({len(matches)}):{COLOR_RESET} '{unprocessed_name}' | Zone: {zone}")
                 
-                # Add all matches to matched list
+                # Add all matches
                 matched_list.append({
                     'region': region_name,
                     'waterbody_key': waterbody_key,
@@ -447,48 +373,68 @@ def main():
     print(f"\n{COLOR_CYAN}Processing time:{COLOR_RESET} {total_mins}m {total_secs}s ({rate:.1f} waterbodies/sec)")
     print("="*80 + "\n")
     
-    # Save results
-    output_data = {
-        'linked_waterbodies': linked_data,
-        'unmatched': unmatched_list,
-        'statistics': {
-            'total_waterbodies': total_waterbodies,
-            'total_matched': total_matched,
-            'total_unmatched': total_unmatched,
-            'total_multiple_matches': total_multiple_matches
-        }
-    }
-    
-    print(f"Saving results to: {output_json}")
-    with open(output_json, 'w', encoding='utf-8') as f:
-        json.dump(output_data, f, indent=2, ensure_ascii=False)
-    
-    # Save detailed report with matched and unmatched data
-    report_path = script_dir / "output" / "matching_report.json"
-    report_data = {
+    # Save matched waterbodies
+    matched_path = script_dir / "output" / "matched_waterbodies.json"
+    matched_data = {
         'summary': {
-            'total_waterbodies': total_waterbodies,
             'total_matched': total_matched,
-            'total_unmatched': total_unmatched,
-            'total_multiple_matches': total_multiple_matches,
-            'match_rate': f"{total_matched/total_waterbodies*100:.1f}%" if total_waterbodies > 0 else "0%"
+            'single_matches': total_matched - total_multiple_matches,
+            'multiple_matches': total_multiple_matches,
+            'match_rate': f"{total_matched/total_waterbodies*100:.1f}%" if total_waterbodies > 0 else "0%",
+            'processing_time': f"{total_mins}m {total_secs}s"
         },
-        'matched_waterbodies': matched_list,
-        'unmatched_waterbodies': unmatched_list
+        'matched_waterbodies': matched_list
     }
     
-    print(f"Saving detailed report to: {report_path}")
-    with open(report_path, 'w', encoding='utf-8') as f:
-        json.dump(report_data, f, indent=2, ensure_ascii=False)
+    print(f"Saving matched waterbodies to: {matched_path}")
+    with open(matched_path, 'w', encoding='utf-8') as f:
+        json.dump(matched_data, f, indent=2, ensure_ascii=False)
     
-    print("Done!")
+    # Save unmatched waterbodies as CSV
+    unmatched_path = script_dir / "output" / "unmatched_waterbodies.csv"
+    
+    print(f"Saving unmatched waterbodies to: {unmatched_path}")
+    with open(unmatched_path, 'w', encoding='utf-8', newline='') as f:
+        if unmatched_list:
+            fieldnames = ['region', 'waterbody_key', 'unprocessed_name', 'normalized_name', 
+                         'zone', 'management_units', 'similar_1', 'similarity_1', 'type_1',
+                         'similar_2', 'similarity_2', 'type_2', 'similar_3', 'similarity_3', 'type_3']
+            writer = csv.DictWriter(f, fieldnames=fieldnames)
+            writer.writeheader()
+            
+            for item in unmatched_list:
+                row = {
+                    'region': item['region'],
+                    'waterbody_key': item['waterbody_key'],
+                    'unprocessed_name': item['unprocessed_name'],
+                    'normalized_name': item['normalized_name'],
+                    'zone': item['zone'],
+                    'management_units': ', '.join(item['management_units']) if item['management_units'] else ''
+                }
+                
+                # Add similar names (up to 3)
+                similar_names = item.get('similar_names', [])
+                for i in range(3):
+                    if i < len(similar_names):
+                        ratio, name, type_ = similar_names[i]
+                        row[f'similar_{i+1}'] = name
+                        row[f'similarity_{i+1}'] = f"{ratio:.2f}"
+                        row[f'type_{i+1}'] = type_
+                    else:
+                        row[f'similar_{i+1}'] = ''
+                        row[f'similarity_{i+1}'] = ''
+                        row[f'type_{i+1}'] = ''
+                
+                writer.writerow(row)
+    
+    print(f"{COLOR_GREEN}Done!{COLOR_RESET}\n")
 
 
 def signal_handler(sig, frame):
     """Handle Ctrl+C gracefully"""
     print(f"\n\n{COLOR_YELLOW}[INTERRUPTED]{COLOR_RESET} Script stopped by user (Ctrl+C)")
     print("Exiting...")
-    os._exit(0)  # Force immediate exit without cleanup
+    os._exit(0)
 
 
 if __name__ == "__main__":

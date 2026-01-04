@@ -1,59 +1,5 @@
 {
     "regionsData": {
-        "REGION 1 - VANCOUVER ISLAND • Several lakes in the region REGION 5 - CARIBOO": {
-            "alice lake": [
-                {
-                    "unprocessed_name": "ALICE LAKE",
-                    "symbols": [
-                        "Includes Tributaries",
-                        "Stocked"
-                    ],
-                    "original_reg_text": "No powered boats",
-                    "regs": [
-                        {
-                            "type": "Boating Restriction",
-                            "details": "No powered boats",
-                            "date_range": null
-                        }
-                    ],
-                    "management_units": [
-                        "2-7"
-                    ]
-                }
-            ],
-            "alouette lake": [
-                {
-                    "unprocessed_name": "ALOUETTE LAKE",
-                    "symbols": [],
-                    "original_reg_text": "Bull trout (char) release\nNo vessels in swimming areas, as buoyed and signed; speed restriction (8 km/h) at S. end of lake, S. of a line drawn from the BC Parks boat ramp to signs on the E. side of the lake",
-                    "regs": [
-                        {
-                            "type": "Quota / Catch Limit",
-                            "details": "Bull trout (char) release",
-                            "date_range": null
-                        },
-                        {
-                            "type": "Boating Restriction",
-                            "details": "No vessels in swimming areas, as buoyed and signed",
-                            "date_range": null
-                        },
-                        {
-                            "type": "Boating Restriction",
-                            "details": "speed restriction (8 km/h) at S. end of lake",
-                            "date_range": null
-                        },
-                        {
-                            "type": "Boating Restriction",
-                            "details": "S. of a line drawn from the BC Parks boat ramp to signs on the E. side of the lake",
-                            "date_range": null
-                        }
-                    ],
-                    "management_units": [
-                        "2-8"
-                    ]
-                }
-            ]
-        },
         "REGION 1 - Vancouver Island": {
             "adam river": [
                 {
@@ -25810,7 +25756,7 @@
                 }
             ]
         },
-        "REGION 2R -E LGoIOwNer 6 M - aSiknelaennda": {
+        "REGION 7A - Omineca": {
             "airline lake": [
                 {
                     "unprocessed_name": "AIRLINE LAKE",
