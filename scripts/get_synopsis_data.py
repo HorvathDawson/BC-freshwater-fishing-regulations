@@ -29,11 +29,11 @@ VALID_REGIONS = {
 
 # --- GLOBAL FILTERING CONFIGURATION ---
 INVALID_KEYWORDS = [
-    "Kilometres", "courtesy of", "purchase a larger map", 
-    "reprinted", "Haig-Brown", "scale", "www.", ".ca", ".com",
+    "courtesy of", "purchase a larger map", 
+    "reprinted", "Haig-Brown", "www.", ".ca", ".com",
     "Department of Fisheries", "Management Unit", 
     "Please refer to", "Check website for", 
-    "Regulation Changes", "NOTE:", "front cover", "back cover",
+    "Regulation Changes", "front cover", "back cover"
 ]
 
 VERTICAL_GAP_THRESHOLD = 3.0 

@@ -2517,6 +2517,28 @@
                     ]
                 }
             ],
+            "nitinat lake": [
+                {
+                    "unprocessed_name": "NITINAT LAKE",
+                    "symbols": [],
+                    "original_reg_text": "Note: Nitinat Lake is tidal water; tidal regulations apply and a (federal) Tidal Waters Sport Fishing Licence is required",
+                    "regs": [
+                        {
+                            "type": "General Restriction",
+                            "details": "Note: Nitinat Lake is tidal water",
+                            "date_range": null
+                        },
+                        {
+                            "type": "General Restriction",
+                            "details": "tidal regulations apply and a (federal) Tidal Waters Sport Fishing Licence is required",
+                            "date_range": null
+                        }
+                    ],
+                    "management_units": [
+                        "1-3"
+                    ]
+                }
+            ],
             "nitinat river": [
                 {
                     "unprocessed_name": "NITINAT RIVER",
@@ -3706,6 +3728,35 @@
                         {
                             "type": "Gear Restriction",
                             "details": "single barbless hook",
+                            "date_range": null
+                        }
+                    ],
+                    "management_units": [
+                        "1-8"
+                    ]
+                }
+            ],
+            "toquart river": [
+                {
+                    "unprocessed_name": "TOQUART RIVER",
+                    "symbols": [
+                        "Includes Tributaries"
+                    ],
+                    "original_reg_text": "Fly fishing only upstream of the Toquart mainline logging bridge when open; No Fishing upstream of the boundary sign located near the falls approximately 800 m downstream of Toquart Lake (including the Upper Toquart River) between Nov 1-May 31. Note: this includes the river upstream of the lake",
+                    "regs": [
+                        {
+                            "type": "General Restriction",
+                            "details": "Fly fishing only upstream of the Toquart mainline logging bridge when open",
+                            "date_range": null
+                        },
+                        {
+                            "type": "Fishing Closure",
+                            "details": "No Fishing upstream of the boundary sign located near the falls approximately 800 m downstream of Toquart Lake (including the Upper Toquart River) between Nov 1-May 31",
+                            "date_range": "Nov 1-May 31"
+                        },
+                        {
+                            "type": "General Restriction",
+                            "details": "Note: this includes the river upstream of the lake",
                             "date_range": null
                         }
                     ],
@@ -5628,12 +5679,17 @@
                 {
                     "unprocessed_name": "FRASER RIVER (upstream of the CPR Bridge at Mission)",
                     "symbols": [],
-                    "original_reg_text": "Dead fin fish may be used for bait only when fishing for sturgeon (see page 8 in the Provincial Regulations)\nNo Fishing in the non-tidal portion of the Fraser River in Region 2 from one hour after sunset to one hour before sunrise\nNo Fishing in the Jesperson’s Side Channel, Herrling Side Channel, and Seabird Island north Side Channel May 15-July 31. See page 26 for a map of the No Fishing areas\nNo Fishing for steelhead Fraser River Mainstem Aug 15-Dec 31\nBoats less than 20 m in length, under power or anchored, must not impede the passage of commercial vessels",
+                    "original_reg_text": "Dead fin fish may be used for bait only when fishing for sturgeon (see page 8 in the Provincial Regulations)\nDead fin fish may be used for bait only when fishing for sturgeon (see page 8 in the Provincial Regulations) No Fishing in the area bounded by a line commencing at a fishing boundary sign located at the eastern end of Landstrom Bar (Scale Bar) to a fishing boundary sign on the opposite bank of the river, thence to a fishing boundary sign at the southern end of Croft Island, thence to a fishing boundary sign on the nearest bank of the river in a westerly direction, thence following the bank of the river in a westerly direction to the Point of Commencement, May 1-Oct 31\nNo Fishing in the non-tidal portion of the Fraser River in Region 2 from one hour after sunset to one hour before sunrise\nNo Fishing in the Jesperson’s Side Channel, Herrling Side Channel, and Seabird Island north Side Channel May 15-July 31. See page 26 for a map of the No Fishing areas\nNo Fishing for steelhead Fraser River Mainstem Aug 15-Dec 31\nBoats less than 20 m in length, under power or anchored, must not impede the passage of commercial vessels",
                     "regs": [
                         {
                             "type": "General Restriction",
                             "details": "Dead fin fish may be used for bait only when fishing for sturgeon (see page 8 in the Provincial Regulations)",
                             "date_range": null
+                        },
+                        {
+                            "type": "Fishing Closure",
+                            "details": "Dead fin fish may be used for bait only when fishing for sturgeon (see page 8 in the Provincial Regulations) No Fishing in the area bounded by a line commencing at a fishing boundary sign located at the eastern end of Landstrom Bar (Scale Bar) to a fishing boundary sign on the opposite bank of the river, thence to a fishing boundary sign at the southern end of Croft Island, thence to a fishing boundary sign on the nearest bank of the river in a westerly direction, thence following the bank of the river in a westerly direction to the Point of Commencement, May 1-Oct 31",
+                            "date_range": "May 1-Oct 31"
                         },
                         {
                             "type": "Fishing Closure",
@@ -6360,6 +6416,35 @@
                     ],
                     "management_units": [
                         "2-10"
+                    ]
+                }
+            ],
+            "lillooet lake, lillooet river": [
+                {
+                    "unprocessed_name": "LILLOOET LAKE, LILLOOET RIVER",
+                    "symbols": [
+                        "Includes Tributaries"
+                    ],
+                    "original_reg_text": "Because regional quotas and gear restrictions are different in lakes and streams, please note: the channel between Lillooet Lake and Little Lillooet Lake is part of the Lillooet River. This channel starts at the southern end of Lillooet Lake where it is defined by the point of land on the west side and by a sign immediately across the channel and next to the main logging road on the east. Little Lillooet Lake’s lower boundary is approximately 1 km upstream of Billygoat Creek (see map below and Little Lillooet Lake’s entry below)",
+                    "regs": [
+                        {
+                            "type": "Quota / Catch Limit",
+                            "details": "Because regional quotas and gear restrictions are different in lakes and streams, please note: the channel between Lillooet Lake and Little Lillooet Lake is part of the Lillooet River",
+                            "date_range": null
+                        },
+                        {
+                            "type": "General Restriction",
+                            "details": "This channel starts at the southern end of Lillooet Lake where it is defined by the point of land on the west side and by a sign immediately across the channel and next to the main logging road on the east",
+                            "date_range": null
+                        },
+                        {
+                            "type": "General Restriction",
+                            "details": "Little Lillooet Lake’s lower boundary is approximately 1 km upstream of Billygoat Creek (see map below and Little Lillooet Lake’s entry below)",
+                            "date_range": null
+                        }
+                    ],
+                    "management_units": [
+                        "2-9"
                     ]
                 }
             ],
@@ -14686,6 +14771,70 @@
                     ]
                 }
             ],
+            "kootenay lake - upper west arm": [
+                {
+                    "unprocessed_name": "KOOTENAY LAKE - UPPER WEST ARM (for location see map on page 34)",
+                    "symbols": [],
+                    "original_reg_text": "Rainbow trout catch and release, Jan 1-May 31; trout/char daily quota = 2 (only 1 bull trout) Kokanee catch and release, EXCEPT Apr 1-Apr 3 and July 1-July 2 only, when daily quota = 5; NOTE: The combined daily quota for kokanee from the Upper West Arm (when open to kokanee harvest) and the Lower West Arm (when open to kokanee harvest) cannot exceed 5",
+                    "regs": [
+                        {
+                            "type": "Quota / Catch Limit",
+                            "details": "Rainbow trout catch and release, Jan 1-May 31",
+                            "date_range": "Jan 1-May 31"
+                        },
+                        {
+                            "type": "Quota / Catch Limit",
+                            "details": "trout/char daily quota = 2 (only 1 bull trout) Kokanee catch and release",
+                            "date_range": null
+                        },
+                        {
+                            "type": "Quota / Catch Limit",
+                            "details": "EXCEPT Apr 1-Apr 3 and July 1-July 2 only, when daily quota = 5",
+                            "date_range": "Apr 1-Apr 3"
+                        },
+                        {
+                            "type": "Quota / Catch Limit",
+                            "details": "NOTE: The combined daily quota for kokanee from the Upper West Arm (when open to kokanee harvest) and the Lower West Arm (when open to kokanee harvest) cannot exceed 5",
+                            "date_range": null
+                        }
+                    ],
+                    "management_units": [
+                        "4-7"
+                    ]
+                }
+            ],
+            "kootenay lake - lower west arm": [
+                {
+                    "unprocessed_name": "KOOTENAY LAKE - LOWER WEST ARM (for location see map on page 34)",
+                    "symbols": [],
+                    "original_reg_text": "Trout/char daily quota = 2 (only 1 bull trout); kokanee daily quota = 5, but only on Saturday and Sunday of each week. Kokanee catch and release Monday through Friday of each week. NOTE: the combined daily quota for kokanee from the Upper West Arm (when open to kokanee harvest) and the Lower West Arm (when open to kokanee harvest) cannot exceed 5",
+                    "regs": [
+                        {
+                            "type": "Quota / Catch Limit",
+                            "details": "Trout/char daily quota = 2 (only 1 bull trout)",
+                            "date_range": null
+                        },
+                        {
+                            "type": "Quota / Catch Limit",
+                            "details": "kokanee daily quota = 5, but only on Saturday and Sunday of each week",
+                            "date_range": null
+                        },
+                        {
+                            "type": "Quota / Catch Limit",
+                            "details": "Kokanee catch and release Monday through Friday of each week",
+                            "date_range": null
+                        },
+                        {
+                            "type": "Quota / Catch Limit",
+                            "details": "NOTE: the combined daily quota for kokanee from the Upper West Arm (when open to kokanee harvest) and the Lower West Arm (when open to kokanee harvest) cannot exceed 5",
+                            "date_range": null
+                        }
+                    ],
+                    "management_units": [
+                        "4-7"
+                    ]
+                }
+            ],
             "kootenay lake’s tributaries": [
                 {
                     "unprocessed_name": "KOOTENAY LAKE’S TRIBUTARIES",
@@ -17690,7 +17839,7 @@
                         "Includes Tributaries",
                         "Classified Waters"
                     ],
-                    "original_reg_text": "No Fishing upstream of Tweedsmuir Provincial Park plus Tenas Lake, Apr 1-June 30\nNo Fishing from Tenas Lake to fishing boundary signs near Atnarko Park campsite\nTrout/char daily quota = 1 (none under 25 cm and all cutthroat trout catch and release) EXCEPT: on Bella Coola R. MAINSTEM ONLY, trout/ char daily quota = 2, of which only one may be a trout (cutthroat or rainbow) and none may be under 25 cm, no cutthroat may be over 33 cm, and no rainbow may be over 50 cm), Apr 1-May 31 ONLY, EXCEPT: char catch and release (on TRIBUTARIES ONLY), Sept 1-May 31\nBait ban downstream of eastern boundary of Tweedsmuir Provincial Park, Sept 1- May 15\nNo angling from powered boats on mainstems of Atnarko River and Bella Coola River\nNo powered boats on Atnarko River, from Goat Creek to the confluence with Talchako River\nNo Fishing for steelhead",
+                    "original_reg_text": "No Fishing upstream of Tweedsmuir Provincial Park plus Tenas Lake, Apr 1-June 30\nNo Fishing from Tenas Lake to fishing boundary signs near Atnarko Park campsite\nTrout/char daily quota = 1 (none under 25 cm and all cutthroat trout catch and release) EXCEPT: on Bella Coola R. MAINSTEM ONLY, trout/ char daily quota = 2, of which only one may be a trout (cutthroat or rainbow) and none may be under 25 cm, no cutthroat may be over 33 cm, and no rainbow may be over 50 cm), Apr 1-May 31 ONLY, EXCEPT: char catch and release (on TRIBUTARIES ONLY), Sept 1-May 31\nBait ban downstream of eastern boundary of Tweedsmuir Provincial Park, Sept 1- May 15\nNo angling from powered boats on mainstems of Atnarko River and Bella Coola River\nNo powered boats on Atnarko River, from Goat Creek to the confluence with Talchako River\nNo Fishing for steelhead\nClass II water downstream of Young Creek, Mar 1-May 31. NOTE: Classified Waters Licence or Steelhead Stamp not required until reopened to steelhead fishing",
                     "regs": [
                         {
                             "type": "Fishing Closure",
@@ -17735,6 +17884,16 @@
                         {
                             "type": "Fishing Closure",
                             "details": "No Fishing for steelhead",
+                            "date_range": null
+                        },
+                        {
+                            "type": "Classified Waters",
+                            "details": "Class II water downstream of Young Creek, Mar 1-May 31",
+                            "date_range": "Mar 1-May 31"
+                        },
+                        {
+                            "type": "Classified Waters",
+                            "details": "NOTE: Classified Waters Licence or Steelhead Stamp not required until reopened to steelhead fishing",
                             "date_range": null
                         }
                     ],
@@ -18332,7 +18491,7 @@
                         "Includes Tributaries",
                         "Classified Waters"
                     ],
-                    "original_reg_text": "Bait ban; No Fishing for steelhead\nDownstream of Sitkatapa Creek: see Atnarko/Bella Coola Rivers [Includes tributaries]",
+                    "original_reg_text": "Bait ban; No Fishing for steelhead\nClass II water Mar 1-May 31. NOTE: Classified Waters Licence or Steelhead Stamp not required until reopened to steelhead fishing\nDownstream of Sitkatapa Creek: see Atnarko/Bella Coola Rivers [Includes tributaries]",
                     "regs": [
                         {
                             "type": "Gear Restriction",
@@ -18342,6 +18501,16 @@
                         {
                             "type": "Fishing Closure",
                             "details": "No Fishing for steelhead",
+                            "date_range": null
+                        },
+                        {
+                            "type": "Classified Waters",
+                            "details": "Class II water Mar 1-May 31",
+                            "date_range": "Mar 1-May 31"
+                        },
+                        {
+                            "type": "Classified Waters",
+                            "details": "NOTE: Classified Waters Licence or Steelhead Stamp not required until reopened to steelhead fishing",
                             "date_range": null
                         },
                         {
@@ -18912,7 +19081,7 @@
                     "symbols": [
                         "Classified Waters"
                     ],
-                    "original_reg_text": "No Fishing upstream of Iltasyuko River [Includes tributaries] , including upstream of Anahim Lake [Includes tributaries] , Apr 1-June 14\nNo Fishing from Iltasyuko River to Crag Creek [Includes tributaries]\nNo Fishing from Crag Creek to fishing boundary signs approximately 500 m upstream of canyon [Includes tributaries] , Oct 1-May 31\nNo Fishing from fishing boundary signs approximately 500 m upstream of canyon to signs 100 m downstream of canyon\nNo Fishing from fishing boundary signs approximately 100 m downstream of canyon to tidal boundary, Oct 1 - May 31\nTrout/char daily quota = 1 (none under 35 cm)\nBait ban all parts [Includes tributaries]\nFly fishing only from (a) Anahim Lake to Iltasyuko River, June 15- Mar 31, and (b) Crag Creek to fishing boundary signs approximately 500 m upstream of canyon, July 15-Sept 30\nNo powered boats between signs 0.5 km and 3.5 km upstream of canyon, Aug 1-Aug 31\nFrom Crag Creek to signs 500 m upstream of the canyon [Includes tributaries] : Class I water June 1-Sept 30 and Steelhead Stamp mandatory June 1-Sept 30; see map below (Non-residents see notice on page 42)\n1-Sept 30; see map below (Non-residents see notice on page 42) From signs 100 m downstream of canyon to tidal boundary [Includes tributaries] : Class I water June 1-Sept 30 and Steelhead Stamp mandatory June\n1-Sept 30: see map below\nFrom Anahim Lake to Iltasyuko River [Includes tributaries] : Class II water June 16-Oct 31 (see map below); Steelhead Stamp not required",
+                    "original_reg_text": "No Fishing upstream of Iltasyuko River [Includes tributaries] , including upstream of Anahim Lake [Includes tributaries] , Apr 1-June 14\nNo Fishing from Iltasyuko River to Crag Creek [Includes tributaries]\nNo Fishing from Crag Creek to fishing boundary signs approximately 500 m upstream of canyon [Includes tributaries] , Oct 1-May 31\nNo Fishing from fishing boundary signs approximately 500 m upstream of canyon to signs 100 m downstream of canyon\nNo Fishing from fishing boundary signs approximately 100 m downstream of canyon to tidal boundary, Oct 1 - May 31\nTrout/char daily quota = 1 (none under 35 cm)\nBait ban all parts [Includes tributaries]\nFly fishing only from (a) Anahim Lake to Iltasyuko River, June 15- Mar 31, and (b) Crag Creek to fishing boundary signs approximately 500 m upstream of canyon, July 15-Sept 30\nNo powered boats between signs 0.5 km and 3.5 km upstream of canyon, Aug 1-Aug 31\nFrom Crag Creek to signs 500 m upstream of the canyon [Includes tributaries] : Class I water June 1-Sept 30 and Steelhead Stamp mandatory June 1-Sept 30; see map below (Non-residents see notice on page 42)\n1-Sept 30; see map below (Non-residents see notice on page 42) From signs 100 m downstream of canyon to tidal boundary [Includes tributaries] : Class I water June 1-Sept 30 and Steelhead Stamp mandatory June\n1-Sept 30: see map below\nFrom Anahim Lake to Iltasyuko River [Includes tributaries] : Class II water June 16-Oct 31 (see map below); Steelhead Stamp not required\nNOTE: \"canyon\" means lower canyon 3-5 km from river’s mouth",
                     "regs": [
                         {
                             "type": "Fishing Closure",
@@ -18992,6 +19161,11 @@
                         {
                             "type": "Classified Waters",
                             "details": "Steelhead Stamp not required",
+                            "date_range": null
+                        },
+                        {
+                            "type": "General Restriction",
+                            "details": "NOTE: \"canyon\" means lower canyon 3-5 km from river’s mouth",
                             "date_range": null
                         }
                     ],
@@ -23020,11 +23194,16 @@
                 {
                     "unprocessed_name": "CRANBERRY RIVER",
                     "symbols": [],
-                    "original_reg_text": "No Fishing between fishing boundary signs upstream of and downstream of Cranberry River Canyon\nBait ban",
+                    "original_reg_text": "No Fishing between fishing boundary signs upstream of and downstream of Cranberry River Canyon\nNote: the section of river from Cranberry-Kiteen junction to Nass River is the Cranberry River\nBait ban",
                     "regs": [
                         {
                             "type": "Fishing Closure",
                             "details": "No Fishing between fishing boundary signs upstream of and downstream of Cranberry River Canyon",
+                            "date_range": null
+                        },
+                        {
+                            "type": "General Restriction",
+                            "details": "Note: the section of river from Cranberry-Kiteen junction to Nass River is the Cranberry River",
                             "date_range": null
                         },
                         {
@@ -24219,7 +24398,7 @@
                         "Includes Tributaries",
                         "Classified Waters"
                     ],
-                    "original_reg_text": "Angling prohibited for non-guided non-resident aliens from the outlet of Lakelse Lake to the power line crossing, located 3.5 km upstream of the Lakelse River mouth, all year (See map page 55)\nupstream of the Lakelse River mouth, all year (See map page 55) Fly fishing only between Lakelse Lake and CNR Bridge, Mar 1-May 31\nBait ban, no powered boats\nClass I water all year; Steelhead Stamp mandatory Sept 1-May 31",
+                    "original_reg_text": "Angling prohibited for non-guided non-resident aliens from the outlet of Lakelse Lake to the power line crossing, located 3.5 km upstream of the Lakelse River mouth, all year (See map page 55)\nupstream of the Lakelse River mouth, all year (See map page 55) Fly fishing only between Lakelse Lake and CNR Bridge, Mar 1-May 31\nBait ban, no powered boats\nNote: The mouth of the river is designated by signs 1.7 km downstream of Lakelse River logging road bridge\nClass I water all year; Steelhead Stamp mandatory Sept 1-May 31",
                     "regs": [
                         {
                             "type": "Boating Restriction",
@@ -24239,6 +24418,11 @@
                         {
                             "type": "Boating Restriction",
                             "details": "no powered boats",
+                            "date_range": null
+                        },
+                        {
+                            "type": "General Restriction",
+                            "details": "Note: The mouth of the river is designated by signs 1.7 km downstream of Lakelse River logging road bridge",
                             "date_range": null
                         },
                         {
@@ -27077,11 +27261,16 @@
                     "symbols": [
                         "Stocked"
                     ],
-                    "original_reg_text": "No powered boats",
+                    "original_reg_text": "No powered boats\nNote: La Salle Lake \"west\" is only stocked",
                     "regs": [
                         {
                             "type": "Boating Restriction",
                             "details": "No powered boats",
+                            "date_range": null
+                        },
+                        {
+                            "type": "General Restriction",
+                            "details": "Note: La Salle Lake \"west\" is only stocked",
                             "date_range": null
                         }
                     ],
@@ -27643,6 +27832,23 @@
                     ],
                     "management_units": [
                         "7-23"
+                    ]
+                }
+            ],
+            "pinchi lake": [
+                {
+                    "unprocessed_name": "PINCHI LAKE",
+                    "symbols": [],
+                    "original_reg_text": "NOTE: see mercury warning on page 75",
+                    "regs": [
+                        {
+                            "type": "Advisory",
+                            "details": "NOTE: see mercury warning on page 75",
+                            "date_range": null
+                        }
+                    ],
+                    "management_units": [
+                        "7-25"
                     ]
                 }
             ],

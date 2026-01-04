@@ -478,6 +478,10 @@ WATER:   NIMPKISH RIVER (MUs: 1-11)
 SYMBOLS: Includes Tributaries
 REGS:    No Fishing upstream of Davie River, Dec 1-May 15
 --------------------------------------------------
+WATER:   NITINAT LAKE (MUs: 1-3)
+SYMBOLS: None
+REGS:    Note: Nitinat Lake is tidal water; tidal regulations apply and a (federal) Tidal Waters Sport Fishing Licence is required
+--------------------------------------------------
 WATER:   NITINAT RIVER (MUs: 1-4)
 SYMBOLS: Includes Tributaries
 REGS:    Exempt from July 15-Aug 31 summer closure
@@ -693,6 +697,10 @@ REGS:    Electric motor only - max 7.5 kW
 WATER:   TOQUART LAKE (MUs: 1-8)
 SYMBOLS: None
 REGS:    No trout over 50 cm; bait ban, single barbless hook
+--------------------------------------------------
+WATER:   TOQUART RIVER (MUs: 1-8)
+SYMBOLS: Includes Tributaries
+REGS:    Fly fishing only upstream of the Toquart mainline logging bridge when open; No Fishing upstream of the boundary sign located near the falls approximately 800 m downstream of Toquart Lake (including the Upper Toquart River) between Nov 1-May 31. Note: this includes the river upstream of the lake
 --------------------------------------------------
 WATER:   TOY LAKE (MUs: 1-7)
 SYMBOLS: None
@@ -1059,6 +1067,7 @@ REGS:    No powered boats
 WATER:   FRASER RIVER (upstream of the CPR Bridge at Mission) (MUs: 2-4)
 SYMBOLS: None
 REGS:    Dead fin fish may be used for bait only when fishing for sturgeon (see page 8 in the Provincial Regulations)
+         Dead fin fish may be used for bait only when fishing for sturgeon (see page 8 in the Provincial Regulations) No Fishing in the area bounded by a line commencing at a fishing boundary sign located at the eastern end of Landstrom Bar (Scale Bar) to a fishing boundary sign on the opposite bank of the river, thence to a fishing boundary sign at the southern end of Croft Island, thence to a fishing boundary sign on the nearest bank of the river in a westerly direction, thence following the bank of the river in a westerly direction to the Point of Commencement, May 1-Oct 31
          No Fishing in the non-tidal portion of the Fraser River in Region 2 from one hour after sunset to one hour before sunrise
          No Fishing in the Jesperson’s Side Channel, Herrling Side Channel, and Seabird Island north Side Channel May 15-July 31. See page 26 for a map of the No Fishing areas
          No Fishing for steelhead Fraser River Mainstem Aug 15-Dec 31
@@ -1200,6 +1209,10 @@ REGS:    No powered boats
 WATER:   LILLOOET LAKE (MUs: 2-10)
 SYMBOLS: None
 REGS:    No wild trout over 50 cm, 1 bull trout over 60 cm
+--------------------------------------------------
+WATER:   LILLOOET LAKE, LILLOOET RIVER (MUs: 2-9)
+SYMBOLS: Includes Tributaries
+REGS:    Because regional quotas and gear restrictions are different in lakes and streams, please note: the channel between Lillooet Lake and Little Lillooet Lake is part of the Lillooet River. This channel starts at the southern end of Lillooet Lake where it is defined by the point of land on the west side and by a sign immediately across the channel and next to the main logging road on the east. Little Lillooet Lake’s lower boundary is approximately 1 km upstream of Billygoat Creek (see map below and Little Lillooet Lake’s entry below)
 --------------------------------------------------
 WATER:   LILY (“Paq”) LAKE (MUs: 2-5)
 SYMBOLS: None
@@ -2826,6 +2839,14 @@ REGS:    A person in a boat may angle with an unlimited number of rods.
          Bull trout daily quota = 1; rainbow trout daily quota = 10 (any size)
          Bull trout daily quota = 1; rainbow trout daily quota = 10 (any size) Conservation Surcharge Stamp required to keep rainbow trout over 50 cm, annual quota = 20
 --------------------------------------------------
+WATER:   KOOTENAY LAKE - UPPER WEST ARM (for location see map on page 34) (MUs: 4-7)
+SYMBOLS: None
+REGS:    Rainbow trout catch and release, Jan 1-May 31; trout/char daily quota = 2 (only 1 bull trout) Kokanee catch and release, EXCEPT Apr 1-Apr 3 and July 1-July 2 only, when daily quota = 5; NOTE: The combined daily quota for kokanee from the Upper West Arm (when open to kokanee harvest) and the Lower West Arm (when open to kokanee harvest) cannot exceed 5
+--------------------------------------------------
+WATER:   KOOTENAY LAKE - LOWER WEST ARM (for location see map on page 34) (MUs: 4-7)
+SYMBOLS: None
+REGS:    Trout/char daily quota = 2 (only 1 bull trout); kokanee daily quota = 5, but only on Saturday and Sunday of each week. Kokanee catch and release Monday through Friday of each week. NOTE: the combined daily quota for kokanee from the Upper West Arm (when open to kokanee harvest) and the Lower West Arm (when open to kokanee harvest) cannot exceed 5
+--------------------------------------------------
 WATER:   KOOTENAY LAKE’S TRIBUTARIES (MUs: 4-7, 4-19)
 SYMBOLS: None
 REGS:    Bull trout catch and release
@@ -3423,6 +3444,7 @@ REGS:    No Fishing upstream of Tweedsmuir Provincial Park plus Tenas Lake, Apr 
          No angling from powered boats on mainstems of Atnarko River and Bella Coola River
          No powered boats on Atnarko River, from Goat Creek to the confluence with Talchako River
          No Fishing for steelhead
+         Class II water downstream of Young Creek, Mar 1-May 31. NOTE: Classified Waters Licence or Steelhead Stamp not required until reopened to steelhead fishing
 --------------------------------------------------
 WATER:   AVALANCHE LAKE (MUs: 5-6)
 SYMBOLS: None
@@ -3526,6 +3548,7 @@ REGS:    Engine power restriction - 7.5 kW (10 hp)
 WATER:   BURNT BRIDGE CREEK (upstream of Sitkatapa Creek) (MUs: 5-11)
 SYMBOLS: Includes Tributaries, Classified Waters
 REGS:    Bait ban; No Fishing for steelhead
+         Class II water Mar 1-May 31. NOTE: Classified Waters Licence or Steelhead Stamp not required until reopened to steelhead fishing
          Downstream of Sitkatapa Creek: see Atnarko/Bella Coola Rivers [Includes tributaries]
 --------------------------------------------------
 WATER:   CAMERON CREEK (MUs: 5-15)
@@ -3640,6 +3663,7 @@ REGS:    No Fishing upstream of Iltasyuko River [Includes tributaries] , includi
          1-Sept 30; see map below (Non-residents see notice on page 42) From signs 100 m downstream of canyon to tidal boundary [Includes tributaries] : Class I water June 1-Sept 30 and Steelhead Stamp mandatory June
          1-Sept 30: see map below
          From Anahim Lake to Iltasyuko River [Includes tributaries] : Class II water June 16-Oct 31 (see map below); Steelhead Stamp not required
+         NOTE: "canyon" means lower canyon 3-5 km from river’s mouth
 --------------------------------------------------
 WATER:   DECEPTION LAKE (MUs: 5-15)
 SYMBOLS: None
@@ -4351,6 +4375,7 @@ REGS:    See Zymoetz River
 WATER:   CRANBERRY RIVER (MUs: 6-15)
 SYMBOLS: None
 REGS:    No Fishing between fishing boundary signs upstream of and downstream of Cranberry River Canyon
+         Note: the section of river from Cranberry-Kiteen junction to Nass River is the Cranberry River
          Bait ban
 --------------------------------------------------
 WATER:   DALA RIVER (MUs: 6-3)
@@ -4577,6 +4602,7 @@ SYMBOLS: Includes Tributaries, Classified Waters
 REGS:    Angling prohibited for non-guided non-resident aliens from the outlet of Lakelse Lake to the power line crossing, located 3.5 km upstream of the Lakelse River mouth, all year (See map page 55)
          upstream of the Lakelse River mouth, all year (See map page 55) Fly fishing only between Lakelse Lake and CNR Bridge, Mar 1-May 31
          Bait ban, no powered boats
+         Note: The mouth of the river is designated by signs 1.7 km downstream of Lakelse River logging road bridge
          Class I water all year; Steelhead Stamp mandatory Sept 1-May 31
 --------------------------------------------------
 WATER:   LEAN-TO CREEK (MUs: 6-15)
@@ -5128,6 +5154,7 @@ REGS:    No powered boats
 WATER:   LA SALLE LAKES (MUs: 7-3)
 SYMBOLS: Stocked
 REGS:    No powered boats
+         Note: La Salle Lake "west" is only stocked
 --------------------------------------------------
 WATER:   LITTLE LOST LAKE (MUs: 7-3)
 SYMBOLS: Stocked
@@ -5236,6 +5263,10 @@ REGS:    No Fishing Nov 1-Apr 30
 WATER:   PARSNIP RIVER (MUs: 7-23)
 SYMBOLS: None
 REGS:    Exempt from spring closure
+--------------------------------------------------
+WATER:   PINCHI LAKE (MUs: 7-25)
+SYMBOLS: None
+REGS:    NOTE: see mercury warning on page 75
 --------------------------------------------------
 
 ==================== PAGE 67 (REGION 7A - Omineca) ====================
