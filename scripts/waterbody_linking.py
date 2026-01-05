@@ -45,28 +45,55 @@ COLOR_RESET = '\033[0m'  # Reset to default
 # --- MANUAL NAME CORRECTIONS (LOOKUP TABLE) ---
 NAME_CORRECTIONS = {
     # 1. SPLIT EXAMPLE
-    "chilliwack / vedder rivers (does not include sumas river) (see map on page 24)": {
+    "chilliwack / vedder rivers (does not include sumas river)": {
         "name": ["chilliwack river", "vedder river"],
         "note": "Split combined entry into distinct rivers"
+    },
+    "lillooet lake, lillooet river": {
+        "name": ["lillooet lake", "lillooet river"],
+        "note": "Split combined entry into distinct waterbodies."
+    },
+    "caribou lakes": {
+        "name": ["north caribou lake", "south caribou lake"],
+        "note": "Split into North Caribou Lake and South Caribou Lake"
     },
     
     # 2. SPELLING / ALIAS CORRECTIONS
     "toquart lake": {"name": "toquaht lake", "note": "Spelling mismatch"},
     "toquart river": {"name": "toquaht river", "note": "Spelling mismatch"},
     # "tee pee lakes": {"name": "tepee lakes", "note": "Spelling mismatch"},
-    # "trepanier river": {"name": "trepanier creek", "note": "Gazetteer lists as Creek"},
-    "tuc-el-nuit lake": {"name": "tugulnuit lake", "note": "Spelling mismatch"},
-
+    # "trepanier river": {"name": "trepanier creek", "note": "gazetteer lists as creek"},
+    "tuc-el-nuit lake": {"name": "tugulnuit lake", "note": "spelling mismatch"},
+    "maggie lake": {"name": "makii lake", "note": "renamed in gazette (https://apps.gov.bc.ca/pub/bcgnws/names/62541.html)"},
+    "mahatta river": {"name": "mahatta creek", "note": "gazetteer lists as creek"},
+    '"big qualicum" river': {"name": "qualicum river", "note": "i think this is just qualicum river"},
+    '"maxwell lake" (lake maxwell)': {"name": "lake maxwell", "note": "it is 'lake maxwell'"},
+    'arrow park (mosquito) creek': {"name": "mosquito creek", "note": "gazetteer lists as 'mosquito creek'"},
+    "lake revelstoke": {"name": "revelstoke lake", "note": "Name order correction to match gazetteer"},
+    "lake revelstoke's tributaries": {"name": "revelstoke lake tributaries", "note": "Name order correction to match gazetteer"},
+    
+    
     # 3. IGNORABLE ENTRIES
     "arrow lakes": {
         "name": "arrow lakes",
         "note": "IGNORE: Regulation refers to Upper/Lower Arrow Lake details"
     },
-    "arrow lakes’ tributaries": {
+    "arrow lakes' tributaries": {
         "name": "arrow lakes tributaries",
         "note": "IGNORE: Likely covered by Upper/Lower tributaries"
     },
+    '"link" river': {
+        "name": "link river",
+        "note": "IGNORE: Listed as 'Marble (Link) River' in gazzetteer"
+    },
 }
+
+def soft_normalize_name(name):
+    """Soft normalize for NAME_CORRECTIONS lookup - only standardizes quotes and case."""
+    if not name: return ""
+    # Replace fancy quotes with standard quotes
+    clean = name.replace('\u201c', '"').replace('\u201d', '"').replace('\u2018', "'").replace('\u2019', "'").replace('`', "'")
+    return clean.lower().strip()
 
 def normalize_name(name):
     """Normalize a waterbody name for comparison."""
@@ -200,14 +227,20 @@ def main():
             management_units = entry.get('management_units', [])
             zone = extract_zone_from_mu(management_units)
             
+            # DEBUG: Check if zone extraction is working
+            if total_waterbodies == 1:
+                print(f"DEBUG: management_units = {management_units}, zone = {zone}")
+                print(f"DEBUG: Available zones in index: {list(waterbody_index.keys())[:5]}")
+
             names_to_check = [original_unprocessed]
             match_note = None
             is_manual = False
             
-            lower_orig = original_unprocessed.lower().strip()
+            # Use soft normalization for NAME_CORRECTIONS lookup
+            soft_normalized = soft_normalize_name(original_unprocessed)
             
-            if lower_orig in NAME_CORRECTIONS:
-                correction = NAME_CORRECTIONS[lower_orig]
+            if soft_normalized in NAME_CORRECTIONS:
+                correction = NAME_CORRECTIONS[soft_normalized]
                 is_manual = True
                 
                 if isinstance(correction, dict):

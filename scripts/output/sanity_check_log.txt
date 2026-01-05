@@ -1,0 +1,25 @@
+FOUND 7 POTENTIAL ERRORS:
+PAGE 19 | [SUSPICIOUS DUPLICATE] Current Water 'LOIS LAKE' has identical regs to Previous Water 'LIZARD POND'.
+          -> Length: 74 chars
+          -> FULL TEXT: Trout daily quota = 1; artificial fly only, bait ban, single barbless hook
+PAGE 37 | [SUSPICIOUS DUPLICATE] Current Water 'BOX LAKE' has identical regs to Previous Water 'BOTTS LAKE'.
+          -> Length: 62 chars
+          -> FULL TEXT: Brook trout daily quota = 20; electric motor only - max 7.5 kW
+PAGE 59 | [POSSIBLE MERGE ERROR] Current Name 'SKEENA RIVER (MAINSTEM ONLY)' contains Previous Name 'SKEENA RIVER'.
+          -> Unsafe Suffix: '(MAINSTEM ONLY)'
+PAGE 66 | [SUSPICIOUS DUPLICATE] Current Water 'HAUTETE LAKE' has identical regs to Previous Water 'HATDUDATEHL LAKE'.
+          -> Length: 66 chars
+          -> FULL TEXT: No Fishing Nov 1-Apr 30
+Lake trout catch and release; no set lines
+PAGE 67 | [SUSPICIOUS DUPLICATE] Current Water 'TOMIAS LAKE' has identical regs to Previous Water 'TOMAS LAKE'.
+          -> Length: 66 chars
+          -> FULL TEXT: No Fishing Nov 1-Apr 30
+Lake trout catch and release; no set lines
+PAGE 67 | [SUSPICIOUS DUPLICATE] Current Water 'YELLOWHEAD LAKE' has identical regs to Previous Water 'WITCH LAKE'.
+          -> Length: 66 chars
+          -> FULL TEXT: No Fishing Nov 1-Apr 30
+Lake trout catch and release; no set lines
+PAGE 77 | [SUSPICIOUS DUPLICATE] Current Water 'TUC-EL-NUIT LAKE' has identical regs to Previous Water 'TROUT LAKE'.
+          -> Length: 84 chars
+          -> FULL TEXT: Bass daily quota = 8, yellow perch daily quota = 20
+Electric motor only - max 7.5 kW
