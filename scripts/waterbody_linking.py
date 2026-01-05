@@ -1,17 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Fast Waterbody Linking Using Pre-built Index
-
-This script matches waterbody names from the fishing synopsis JSON
-to actual geographic features using a pre-built index.
+Fast Waterbody Linking (Deep Scan Version)
 
 Features:
-- O(1) Exact Matching
-- Heuristic Matching (Possessives, Plurals, Singular <-> Plural)
-- Manual Lookup Table with Notes
-- SPLIT Support (Mapping 1 input name to multiple geographic features)
-- Detailed CSV/JSON reporting
+- Uses your EXACT Name Corrections table.
+- Scans `waterbody_key` AND `unprocessed_name` from every regulation block.
+- Normalizes smart quotes (matched “ ” to " ") to ensure dictionary hits.
+- Returns "Sibling" structure: [GIS Matches] + [Regulation Blocks].
 
 Input:
 - scripts/output/fishing_data.json
@@ -20,9 +16,6 @@ Input:
 Output:
 - scripts/output/matched_waterbodies.json
 - scripts/output/unmatched_waterbodies.csv
-
-Author: BC Freshwater Fishing Regulations Project
-Date: January 4, 2026
 """
 
 import json
@@ -35,14 +28,13 @@ import csv
 from pathlib import Path
 from difflib import SequenceMatcher
 
-# ANSI color codes for terminal output
-COLOR_GREEN = '\033[92m'  # Success/Match
-COLOR_YELLOW = '\033[93m'  # Warning/Multiple matches or partials
-COLOR_RED = '\033[91m'  # Error/No match
-COLOR_CYAN = '\033[96m'  # Info/Similar names
-COLOR_RESET = '\033[0m'  # Reset to default
+# ANSI color codes
+C_GREEN = '\033[92m'
+C_RED = '\033[91m'
+C_CYAN = '\033[96m'
+C_RESET = '\033[0m'
 
-# --- MANUAL NAME CORRECTIONS (LOOKUP TABLE) ---
+
 NAME_CORRECTIONS = {
     # 1. SPLIT EXAMPLE
     "chilliwack / vedder rivers (does not include sumas river)": {
@@ -87,278 +79,219 @@ NAME_CORRECTIONS = {
         "note": "IGNORE: Listed as 'Marble (Link) River' in gazzetteer"
     },
 }
-
-def soft_normalize_name(name):
-    """Soft normalize for NAME_CORRECTIONS lookup - only standardizes quotes and case."""
+# --- PIPELINE FUNCTIONS ---
+def sanitize_name(name):
+    """
+    STEP 1: SANITIZE
+    Converts raw dirty text into a 'Clean Key' for dictionary lookup.
+    """
     if not name: return ""
-    # Replace fancy quotes with standard quotes
-    clean = name.replace('\u201c', '"').replace('\u201d', '"').replace('\u2018', "'").replace('\u2019', "'").replace('`', "'")
-    return clean.lower().strip()
+    # Smart quotes -> Standard quotes
+    clean = name.replace('\u201c', '"').replace('\u201d', '"')
+    clean = clean.replace('\u2018', "'").replace('\u2019', "'").replace('`', "'")
+    # Collapse whitespace
+    clean = re.sub(r'\s+', ' ', clean)
+    return clean.strip().lower()
 
-def normalize_name(name):
-    """Normalize a waterbody name for comparison."""
+def prepare_for_gis(name):
+    """
+    STEP 4 helper: PREPARE
+    Strips noise (quotes, parens) solely for the GIS string match.
+    """
     if not name: return ""
-    clean = name.replace('"', '').replace("'", '').replace('\u201c', '').replace('\u201d', '').replace('\u2018', '').replace('\u2019', '').replace('`', '')
+    # Remove quotes
+    clean = name.replace('"', '').replace("'", '')
+    # Remove parens content
     clean = re.sub(r'\([^)]*\)', '', clean)
-    clean = re.sub(r'\s+', ' ', clean).strip()
-    return clean.lower()
+    return clean.strip()
 
-def extract_quoted_text(name):
-    """Extract text within quotes."""
-    if not name: return None
-    match = re.search(r'\u201c([^\u201d]+)\u201d', name)
-    if match: return normalize_name(match.group(1))
-    match = re.search(r'"([^"]+)"', name)
-    if match: return normalize_name(match.group(1))
-    return None
+def search_gis_index(clean_name, zones, index):
+    """
+    STEP 4: SEARCH
+    Searches the GIS index using 3 strategies.
+    """
+    gis_name = prepare_for_gis(clean_name)
+    matches = []
+    
+    # Strategy A: Exact
+    for zone in zones:
+        if zone in index and gis_name in index[zone]:
+            found = index[zone][gis_name]
+            for f in found: f['_source_zone'] = zone
+            matches.extend(found)
+    
+    if matches: return matches, "exact"
 
-def generate_variations(normalized_name):
-    """Generate heuristic variations (plurals, possessives)."""
+    # Strategy B: Quoted Text (e.g., 'river "x"')
+    quoted_match = re.search(r'"([^"]+)"', clean_name)
+    if quoted_match:
+        quoted_text = quoted_match.group(1).strip()
+        if quoted_text != gis_name:
+            for zone in zones:
+                if zone in index and quoted_text in index[zone]:
+                    found = index[zone][quoted_text]
+                    for f in found: f['_source_zone'] = zone
+                    matches.extend(found)
+            if matches: return matches, "quoted"
+
+    # Strategy C: Heuristics
     variations = []
-    
-    # 1. Singular <-> Plural Logic
-    if normalized_name.endswith(" lakes"):
-        variations.append(normalized_name[:-1]) 
-    elif normalized_name.endswith(" lake"):
-        variations.append(normalized_name + "s")
+    if gis_name.endswith(" lakes"): variations.append(gis_name[:-1])
+    elif gis_name.endswith(" lake"): variations.append(gis_name + "s")
+    if " lakes tributaries" in gis_name: variations.append(gis_name.replace(" lakes tributaries", " lake tributary"))
+    elif gis_name.endswith(" tributaries"): variations.append(gis_name.replace(" tributaries", " tributary"))
 
-    # 2. Possessives & Tributaries
-    if " lakes tributaries" in normalized_name:
-        variations.append(normalized_name.replace(" lakes tributaries", " lake tributary"))
-    if " rivers tributaries" in normalized_name:
-        variations.append(normalized_name.replace(" rivers tributaries", " river tributary"))
-    elif normalized_name.endswith(" tributaries"):
-        variations.append(normalized_name.replace(" tributaries", " tributary"))
-    
-    # 3. Outlet Streams
-    if " lakes outlet stream" in normalized_name:
-        variations.append(normalized_name.replace(" lakes outlet stream", " lake tributary"))
-        variations.append(normalized_name.replace(" lakes outlet stream", " lake outlet"))
+    for v in variations:
+        for zone in zones:
+            if zone in index and v in index[zone]:
+                found = index[zone][v]
+                for f in found: f['_source_zone'] = zone
+                matches.extend(found)
+        if matches: return matches, "heuristic"
 
-    # 4. Generic Plurals
-    if " lakes " in normalized_name:
-        variations.append(normalized_name.replace(" lakes ", " lake "))
-    if " rivers " in normalized_name:
-        variations.append(normalized_name.replace(" rivers ", " river "))
+    return [], None
+
+# --- MAIN LOGIC ---
+
+def process_waterbody(key, regs, index, all_stats):
+    """Runs the pipeline for a single waterbody group."""
+    
+    # 0. Context
+    zones = set()
+    unprocessed_names = {key} # Start with key
+    for r in regs:
+        # Collect Names
+        if r.get('unprocessed_name'): unprocessed_names.add(r['unprocessed_name'])
+        # Collect Zones
+        for mu in r.get('management_units', []):
+            m = re.match(r'(\d+)-', mu)
+            if m: zones.add(m.group(1))
+    
+    target_zones = list(zones)
+    
+    # PIPELINE EXECUTION
+    final_gis_matches = []
+    pipeline_log = []
+    
+    # Iterate over every potential name found in the raw data
+    for raw_name in unprocessed_names:
         
-    return variations
+        # 1. SANITIZE
+        clean_key = sanitize_name(raw_name)
+        
+        # 2. CORRECT (Lookup)
+        targets = [clean_key] # Default: search for yourself
+        is_correction = False
+        
+        if clean_key in NAME_CORRECTIONS:
+            entry = NAME_CORRECTIONS[clean_key]
+            
+            # --- FIX: Handle Dictionary Structure Correctly ---
+            val = entry.get('name')
+            if isinstance(val, list):
+                targets = val
+            else:
+                targets = [val]
+            # --------------------------------------------------
 
-def extract_zone_from_mu(management_units):
-    """Extract zone number from management unit string."""
-    if not management_units or len(management_units) == 0: return None
-    match = re.match(r'(\d+)-', management_units[0])
-    if match: return match.group(1)
-    return None
+            pipeline_log.append(f"Correction: '{clean_key}' -> {targets}")
+            is_correction = True
+            
+        # 3. SEARCH (GIS)
+        for target in targets:
+            matches, method = search_gis_index(target, target_zones, index)
+            
+            if matches:
+                for m in matches:
+                    m['_match_method'] = method
+                    m['_matched_on'] = target
+                final_gis_matches.extend(matches)
+            elif is_correction:
+                pipeline_log.append(f"{C_RED}FAILED TARGET:{C_RESET} '{target}'")
 
-def get_unique_id(feature):
-    """Safely extract a unique ID from a feature (handles Lakes vs Rivers)."""
-    # Lakes have 'waterbody_poly_id', Rivers have 'linear_feature_id'
-    return feature.get('waterbody_poly_id', feature.get('linear_feature_id', 'unknown_id'))
-
-def find_similar_names(waterbody_name, zone, index, top_n=5):
-    """Find similar waterbody names using fuzzy matching."""
-    if not zone or zone not in index: return []
-    similar_names = []
-    zone_data = index[zone]
-    for indexed_name, features in zone_data.items():
-        ratio = SequenceMatcher(None, waterbody_name, indexed_name).ratio()
-        if ratio > 0.6:
-            feature_type = features[0]['type'] if features else 'unknown'
-            original_name = features[0]['gnis_name'] if features else indexed_name
-            similar_names.append((ratio, original_name, feature_type))
-    similar_names.sort(reverse=True, key=lambda x: x[0])
-    return similar_names[:top_n]
-
-def find_waterbody_matches(waterbody_name, zone, index):
-    """O(1) lookup in index."""
-    if not zone or zone not in index: return []
-    return index[zone].get(waterbody_name, [])
+    # Result grouping
+    unique_gis = {m['feature_id']: m for m in final_gis_matches}.values() # Deduplicate by ID
+    final_gis_matches = list(unique_gis)
+    
+    if final_gis_matches:
+        all_stats['matched'] += 1
+        print(f"  {C_GREEN}[MATCH]{C_RESET} '{key}' -> {len(final_gis_matches)} features")
+        return {
+            "match_status": "matched",
+            "normalized_name": sanitize_name(key),
+            "gis_matches": final_gis_matches,
+            "regulations": regs,
+            "pipeline_log": pipeline_log
+        }
+    else:
+        print(f"  {C_RED}[NO MATCH]{C_RESET} '{key}'")
+        # Find suggestions for debugging
+        sim = []
+        clean_main = prepare_for_gis(sanitize_name(key))
+        for z in target_zones:
+            if z in index:
+                for k in index[z]:
+                    if SequenceMatcher(None, clean_main, k).ratio() > 0.6:
+                        sim.append(f"{k} ({z})")
+        
+        return {
+            "match_status": "unmatched",
+            "normalized_name": sanitize_name(key),
+            "gis_matches": [],
+            "regulations": regs,
+            "pipeline_log": pipeline_log,
+            "debug_sim": sim[:3],
+            "debug_zones": target_zones
+        }
 
 def main():
     script_dir = Path(__file__).parent
     json_path = script_dir / "output" / "fishing_data.json"
     index_path = script_dir / "output" / "waterbody_index.json"
     
-    if not json_path.exists():
-        print(f"ERROR: Fishing data JSON not found: {json_path}")
+    if not json_path.exists() or not index_path.exists():
+        print("Missing input files.")
         return
-    if not index_path.exists():
-        print(f"{COLOR_YELLOW}Index not found. Building...{COLOR_RESET}")
-        try:
-            from build_waterbody_index import main as build_index
-            build_index()
-        except Exception as e:
-            print(f"{COLOR_RED}ERROR: {e}{COLOR_RESET}")
-            return
-    
-    print(f"Loading data...")
+
+    print("Loading data...")
+    # Explicit utf-8 to prevent charmap errors on Windows
     with open(json_path, 'r', encoding='utf-8') as f: fishing_data = json.load(f)
-    with open(index_path, 'r', encoding='utf-8') as f: waterbody_index = json.load(f)
+    with open(index_path, 'r', encoding='utf-8') as f: index = json.load(f)
+
+    print(f"\n{'-'*60}\nSTARTING MATCHING PIPELINE\n{'-'*60}")
     
-    print("\n" + "="*80 + "\nFAST WATERBODY LINKING REPORT\n" + "="*80 + "\n")
+    results = {}
+    unmatched_rows = []
+    stats = {'matched': 0, 'total': 0}
     
-    start_time = time.time()
-    total_waterbodies = 0
-    total_matched = 0
-    total_unmatched = 0
-    
-    matched_list = []
-    unmatched_list = []
-    
-    regions_data = fishing_data.get('regionsData', {})
-    estimated_total = sum(len(wb) for wb in regions_data.values())
-    
-    for region_name, waterbodies in regions_data.items():
-        print(f"\n{'-'*80}\nREGION: {region_name}\n{'-'*80}")
+    for region, waterbodies in fishing_data.get('regionsData', {}).items():
+        print(f"\nREGION: {region}")
+        for key, regs in waterbodies.items():
+            if not regs: continue
+            stats['total'] += 1
+            
+            res = process_waterbody(key, regs, index, stats)
+            res['region'] = region
+            results[key] = res
+            
+            if res['match_status'] == "unmatched":
+                unmatched_rows.append([
+                    region, key, 
+                    res['normalized_name'], 
+                    res['debug_zones'], 
+                    ", ".join(res['debug_sim'])
+                ])
+
+    # Save
+    with open(script_dir / "output" / "matched_waterbodies.json", 'w', encoding='utf-8') as f:
+        json.dump(results, f, indent=2, ensure_ascii=False)
         
-        for waterbody_key, entries in waterbodies.items():
-            if not entries: continue
-            total_waterbodies += 1
-            
-            if total_waterbodies % 100 == 0:
-                elapsed = time.time() - start_time
-                rate = total_waterbodies / elapsed if elapsed > 0 else 0
-                remaining = estimated_total - total_waterbodies
-                eta = int((remaining / rate) / 60) if rate > 0 else 0
-                print(f"{COLOR_CYAN}[PROGRESS]{COLOR_RESET} {total_waterbodies}/{estimated_total} | ETA: {eta}m")
-            
-            entry = entries[0]
-            original_unprocessed = entry.get('unprocessed_name', waterbody_key)
-            management_units = entry.get('management_units', [])
-            zone = extract_zone_from_mu(management_units)
-            
-            # DEBUG: Check if zone extraction is working
-            if total_waterbodies == 1:
-                print(f"DEBUG: management_units = {management_units}, zone = {zone}")
-                print(f"DEBUG: Available zones in index: {list(waterbody_index.keys())[:5]}")
+    with open(script_dir / "output" / "unmatched_waterbodies.csv", 'w', newline='', encoding='utf-8') as f:
+        w = csv.writer(f)
+        w.writerow(["Region", "Key", "Sanitized Key", "Zones", "Suggestions"])
+        w.writerows(unmatched_rows)
 
-            names_to_check = [original_unprocessed]
-            match_note = None
-            is_manual = False
-            
-            # Use soft normalization for NAME_CORRECTIONS lookup
-            soft_normalized = soft_normalize_name(original_unprocessed)
-            
-            if soft_normalized in NAME_CORRECTIONS:
-                correction = NAME_CORRECTIONS[soft_normalized]
-                is_manual = True
-                
-                if isinstance(correction, dict):
-                    val = correction.get("name")
-                    match_note = correction.get("note")
-                else:
-                    val = correction
-                    match_note = "Manual correction"
-                
-                if isinstance(val, list):
-                    names_to_check = val
-                    print(f"  {COLOR_CYAN}[SPLIT]{COLOR_RESET} '{original_unprocessed}' -> {val}")
-                else:
-                    names_to_check = [val]
-                    print(f"  {COLOR_CYAN}[CORRECT]{COLOR_RESET} '{original_unprocessed}' -> '{val}'")
-
-            all_found_matches = []
-            
-            for name_variant in names_to_check:
-                normalized_name = normalize_name(name_variant)
-                current_matches = find_waterbody_matches(normalized_name, zone, waterbody_index)
-                method = "exact"
-                
-                if not current_matches:
-                    quoted = extract_quoted_text(name_variant)
-                    if quoted and quoted != normalized_name:
-                        current_matches = find_waterbody_matches(quoted, zone, waterbody_index)
-                        if current_matches: method = "quoted"
-                
-                if not current_matches:
-                    variations = generate_variations(normalized_name)
-                    for v in variations:
-                        current_matches = find_waterbody_matches(v, zone, waterbody_index)
-                        if current_matches: 
-                            method = "heuristic"
-                            if not is_manual: 
-                                print(f"  {COLOR_CYAN}[INFO]{COLOR_RESET} Heuristic: '{normalized_name}' -> '{v}'")
-                            break
-                
-                if current_matches:
-                    for m in current_matches:
-                        m['_match_method'] = method
-                        m['_matched_on_name'] = name_variant
-                    all_found_matches.extend(current_matches)
-                else:
-                    if len(names_to_check) > 1:
-                         print(f"  {COLOR_RED}[PARTIAL FAIL]{COLOR_RESET} Split part '{name_variant}' not found")
-
-            # --- REPORTING LOGIC ---
-            similar = []
-            if not all_found_matches:
-                sim_base = normalize_name(names_to_check[0])
-                similar = find_similar_names(sim_base, zone, waterbody_index, top_n=3)
-
-            if all_found_matches:
-                total_matched += 1
-                unique_names = list(set(m['gnis_name'] for m in all_found_matches))
-                # FIX: Use get_unique_id helper to avoid KeyError
-                unique_ids = list(set(get_unique_id(m) for m in all_found_matches))
-                
-                if len(unique_names) > 1:
-                    match_type = "SPLIT/MULTIPLE" if len(names_to_check) > 1 else "AMBIGUOUS"
-                    color = COLOR_GREEN if len(names_to_check) > 1 else COLOR_YELLOW
-                    print(f"  {color}[OK] {match_type}:{COLOR_RESET} '{original_unprocessed}' -> {unique_names}")
-                elif len(unique_ids) > 1:
-                    print(f"  {COLOR_YELLOW}[WARN] DUPLICATE NAMES ({len(unique_ids)}):{COLOR_RESET} '{original_unprocessed}' -> {unique_names[0]}")
-                else:
-                    print(f"  {COLOR_GREEN}[OK]{COLOR_RESET} '{original_unprocessed}' -> {unique_names[0]}")
-                
-                matched_list.append({
-                    'region': region_name,
-                    'waterbody_key': waterbody_key,
-                    'original_name': original_unprocessed,
-                    'zone': zone,
-                    'management_units': management_units,
-                    'matches': all_found_matches,
-                    'note': match_note,
-                    'is_manual_correction': is_manual,
-                    'is_split': len(names_to_check) > 1
-                })
-            else:
-                total_unmatched += 1
-                sim_str = ", ".join([f"{n} ({r:.2f})" for r, n, _ in similar])
-                print(f"  {COLOR_RED}[NO MATCH]{COLOR_RESET} '{original_unprocessed}' | Sim: {sim_str}")
-                
-                unmatched_list.append({
-                    'region': region_name,
-                    'waterbody_key': waterbody_key,
-                    'original_name': original_unprocessed,
-                    'zone': zone,
-                    'management_units': management_units,
-                    'similar_names': similar,
-                    'note': match_note
-                })
-
-    print("\n" + "="*80 + f"\nSUMMARY: {total_matched}/{total_waterbodies} matched ({total_matched/total_waterbodies*100:.1f}%) | Time: {time.time()-start_time:.2f}s\n" + "="*80)
-    
-    matched_path = script_dir / "output" / "matched_waterbodies.json"
-    with open(matched_path, 'w', encoding='utf-8') as f:
-        json.dump({'matched': matched_list}, f, indent=2, ensure_ascii=False)
-        
-    unmatched_path = script_dir / "output" / "unmatched_waterbodies.csv"
-    with open(unmatched_path, 'w', encoding='utf-8', newline='') as f:
-        writer = csv.writer(f)
-        header = ['Region', 'Waterbody Key', 'Original Name', 'Zone', 'Management Units', 'Note', 'Similar 1', 'Score 1', 'Type 1', 'Similar 2', 'Score 2', 'Type 2']
-        writer.writerow(header)
-        for item in unmatched_list:
-            mus = ", ".join(item.get('management_units', [])) if item.get('management_units') else ""
-            row = [item['region'], item['waterbody_key'], item['original_name'], item['zone'], mus, item.get('note', '')]
-            sims = item.get('similar_names', [])
-            for i in range(2):
-                if i < len(sims):
-                    row.extend([sims[i][1], f"{sims[i][0]:.2f}", sims[i][2]])
-                else:
-                    row.extend(['', '', ''])
-            writer.writerow(row)
-            
-    print(f"{COLOR_GREEN}Done! Files saved to output/ folder.{COLOR_RESET}\n")
+    print(f"\nDONE. Matched: {stats['matched']}/{stats['total']}")
 
 if __name__ == "__main__":
     signal.signal(signal.SIGINT, lambda s, f: sys.exit(0))

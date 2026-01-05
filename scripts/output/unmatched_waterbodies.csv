@@ -1,164 +1,178 @@
-Region,Waterbody Key,Original Name,Zone,Management Units,Note,Similar 1,Score 1,Type 1,Similar 2,Score 2,Type 2
-REGION 1 - Vancouver Island,bear river,BEAR RIVER,1,1-10,,Clear River,0.86,stream,Heber River,0.86,stream
-REGION 1 - Vancouver Island,link river,“LINK” RIVER,1,1-13,IGNORE: Listed as 'Marble (Link) River' in gazzetteer,Elk River,0.84,stream,Leiner River,0.82,stream
-REGION 1 - Vancouver Island,pete’s pond unnamed lake at the head of san juan river,“PETE’S POND” Unnamed lake at the head of San Juan River,1,1-3,,,,,,,
-REGION 1 - Vancouver Island,stowell lake,“STOWELL LAKE” (Lake Stowell),1,1-1,,Stella Lake,0.87,lake,Tugwell Lake,0.83,lake
-REGION 1 - Vancouver Island,strathcona park waters,STRATHCONA PARK WATERS,1,1-9,,,,,,,
-REGION 1 - Vancouver Island,weston lake,“WESTON LAKE”,1,1-1,,Beston Lake,0.91,lake,Wheaton Lake,0.87,lake
-REGION 2 - Lower Mainland,errock lake,“ERROCK” (“Squakum”) LAKE,2,2-8,,Peacock Lake,0.78,lake,Percy Lake,0.76,lake
-REGION 2 - Lower Mainland,hatzic lake and slough,HATZIC LAKE AND SLOUGH,2,2-8,,Hatzic Slough,0.74,stream,Katzie Slough,0.69,stream
-REGION 2 - Lower Mainland,jones lake,“JONES” LAKE,2,2-3,,Joe Lake,0.89,lake,Joan Lake,0.84,lake
-REGION 2 - Lower Mainland,little campbell river,LITTLE CAMPBELL RIVER,2,2-4,,Campbell River,0.80,stream,Little Toba River,0.74,stream
-REGION 2 - Lower Mainland,little stawamus creek,LITTLE STAWAMUS CREEK,2,2-8,,Little Tamihi Creek,0.80,stream,Little Muddy Creek,0.77,stream
-REGION 2 - Lower Mainland,lonzo creek,LONZO (“Marshall”) CREEK,2,2-4,,Loon Creek,0.86,stream,Don Creek,0.80,stream
-REGION 2 - Lower Mainland,lucille lake,LUCILLE LAKE,2,2-9,,Louie Lake,0.82,lake,Lillooet Lake,0.80,lake
-REGION 2 - Lower Mainland,mckay creek,MCKAY CREEK,2,2-8,,Mackay Creek,0.96,stream,McKenny Creek,0.83,stream
-REGION 2 - Lower Mainland,minnekhada marsh,MINNEKHADA MARSH,2,2-8,,,,,,,
-REGION 2 - Lower Mainland,paq lake,“PAQ” LAKE,2,2-5,,Page Lake,0.82,lake,Alpha Lake,0.78,lake
-REGION 2 - Lower Mainland,sardis park pond,SARDIS PARK POND,2,2-4,,Sardis Pond,0.81,lake,jerry sulina park pond,0.63,point
-REGION 2 - Lower Mainland,south alouette river,SOUTH ALOUETTE RIVER,2,2-8,,North Alouette River,0.90,stream,Alouette River,0.82,stream
-REGION 2 - Lower Mainland,squamish powerhouse channel,SQUAMISH POWERHOUSE CHANNEL,2,2-6,,Sapperton Channel,0.64,stream,,,
-REGION 2 - Lower Mainland,sweltzer creek,SWELTZER CREEK,2,2-3,,Settler Creek,0.81,stream,Saltery Creek,0.81,stream
-REGION 2 - Lower Mainland,weaver lake and weaver creek,WEAVER LAKE and WEAVER CREEK,2,2-19,,,,,,,
-REGION 3 - Thompson-Nicola,clanwilliam lake,CLANWILLIAM LAKE,3,3-34,,Willis Lake,0.74,lake,Will Lake,0.72,lake
-REGION 3 - Thompson-Nicola,deep lake,DEEP LAKE,3,3-28,,Deer Lake,0.89,lake,Efdee Lake,0.84,lake
-REGION 3 - Thompson-Nicola,jackpine lake,JACKPINE LAKE,3,3-28,,Jackson Lake,0.80,lake,Jacko Lake,0.78,lake
-REGION 3 - Thompson-Nicola,little dum lake,LITTLE DUM LAKE,3,3-28,,Little Windy Lake,0.81,lake,Little Dixon Lake,0.81,lake
-REGION 3 - Thompson-Nicola,little lac des roches,LITTLE LAC DES ROCHES (at west end of Lac Des Roches),3,3-30,,Lac des Roches,0.80,lake,Little Creek,0.61,stream
-REGION 3 - Thompson-Nicola,lorenzo lake,LORENZO LAKE,3,3-39,,Long Lake,0.76,lake,Lolo Lake,0.76,lake
-REGION 3 - Thompson-Nicola,lower kane lake,LOWER KANE LAKE,3,3-13,,Logan Lake,0.72,lake,Kane Lakes,0.72,lake
-REGION 3 - Thompson-Nicola,mcarthur island slough,MCARTHUR ISLAND SLOUGH,3,3-28,,,,,,,
-REGION 3 - Thompson-Nicola,rainbow lake,RAINBOW LAKE,3,3-12,,Sanborn Lake,0.75,lake,Caribou Lake,0.75,lake
-REGION 3 - Thompson-Nicola,rose lake,ROSE LAKE,3,3-20,,Rouse Lake,0.95,lake,Roscoe Lake,0.90,lake
-REGION 3 - Thompson-Nicola,sicamous narrows,SICAMOUS NARROWS,3,3-26,,Sicamous Creek,0.67,stream,,,
-REGION 3 - Thompson-Nicola,tulip lake,TULIP LAKE,3,3-20,,Turnip Lake,0.86,lake,Tule Lake,0.84,lake
-REGION 3 - Thompson-Nicola,upper kane lake,UPPER KANE LAKE,3,3-13,,Upper Buse Lake,0.80,lake,Upper Loon Lake,0.80,lake
-REGION 4 - Kootenay,alces lake,“ALCES” LAKE,4,4-24,,Talc Lake,0.84,lake,Ailsa Lake,0.80,lake
-REGION 4 - Kootenay,alta lake,“ALTA” LAKE,4,4-3,,Wapta Lake,0.84,lake,Ailsa Lake,0.84,lake
-REGION 4 - Kootenay,arrow lakes,ARROW LAKES,4,"4-15, 4-32",IGNORE: Regulation refers to Upper/Lower Arrow Lake details,Narao Lakes,0.82,lake,Upper Arrow Lake,0.74,lake
-REGION 4 - Kootenay,arrow lakes’ tributaries,ARROW LAKES’ TRIBUTARIES,,,IGNORE: Likely covered by Upper/Lower tributaries,,,,,,
-REGION 4 - Kootenay,cameron slough,CAMERON SLOUGH,4,4-21,,Cameron Lake,0.69,lake,Taylor Slough,0.67,wetland
-REGION 4 - Kootenay,champion lakes no. 1 & 2,CHAMPION LAKES NO. 1 & 2,4,4-8,,Champion Lakes,0.74,lake,Champion Lakes Tributary,0.62,stream
-REGION 4 - Kootenay,champion lake no. 3,CHAMPION LAKE NO. 3,4,4-8,,Champion Lakes,0.79,lake,Chain Lake,0.69,lake
-REGION 4 - Kootenay,creston valley wildlife management area waters,CRESTON VALLEY WILDLIFE MANAGEMENT AREA (CVWMA) WATERS,4,4-6,,,,,,,
-REGION 4 - Kootenay,fisher maiden lake,FISHER MAIDEN LAKE,4,4-26,,Fishermaiden Lake,0.97,lake,Fishermaiden Lake Tributary,0.76,stream
-REGION 4 - Kootenay,garbutt lake,GARBUTT LAKE,4,4-22,,Barrett Lake,0.75,lake,Barbour Lake,0.75,lake
-REGION 4 - Kootenay,idlewild lake,IDLEWILD LAKE (old Cranbrook Reservoir),4,4-3,,Cleland Lake,0.72,lake,Little Wilson Lake,0.71,lake
-REGION 4 - Kootenay,kikomun creek park,KIKOMUN CREEK PARK (all lakes in the park),4,4-22,,Kikomun Creek,0.84,stream,Kikomun Creek Tributary,0.78,stream
-REGION 4 - Kootenay,koocanusa reservoir,KOOCANUSA RESERVOIR,4,"4-2, 4-3, 4-22",,,,,,,
-REGION 4 - Kootenay,"kootenay lake, all parts","KOOTENAY LAKE, ALL PARTS (Main Body, Upper West Arm and Lower West Arm)",4,4-19,,Kootenay Lake,0.70,lake,Kootenay Lake Tributary,0.68,stream
-REGION 4 - Kootenay,kootenay lake - main body,KOOTENAY LAKE - MAIN BODY,4,4-19,,Kootenay Lake,0.68,lake,Kootenay Lake Tributary,0.67,stream
-REGION 4 - Kootenay,kootenay lake - upper west arm,KOOTENAY LAKE - UPPER WEST ARM,4,4-7,,Kootenay Lake Tributary,0.68,stream,Kootenay Lake,0.60,lake
-REGION 4 - Kootenay,kootenay lake - lower west arm,KOOTENAY LAKE - LOWER WEST ARM,4,4-7,,Kootenay Lake Tributary,0.68,stream,Kootenay Lake,0.60,lake
-REGION 4 - Kootenay,lewis slough,LEWIS (“Cameron”) SLOUGH,4,4-21,,Six Mile Slough,0.67,lake,Taylor Slough,0.64,wetland
-REGION 4 - Kootenay,little mitten lake,“LITTLE MITTEN” LAKE (approx. 400 m west of Mitten Lake),4,4-34,,Little Chief Lake,0.80,lake,Little Mosquito Lake,0.79,lake
-REGION 4 - Kootenay,little slocan lake’s tributaries,LITTLE SLOCAN LAKE’S TRIBUTARIES,4,4-16,,Upper Little Slocan Lake Tributary,0.83,stream,Lower Little Slocan Lake Tributary,0.83,stream
-REGION 4 - Kootenay,mcclain lake,“MCCLAIN” LAKE,4,4-34,,Chain Lake,0.82,lake,Cabin Lake,0.82,lake
-REGION 4 - Kootenay,mcnaughton lake,MCNAUGHTON LAKE,4,4-36,,Cinnamon Lake,0.71,lake,Pingston Lake,0.71,lake
-REGION 4 - Kootenay,moses creek,MOSES CREEK,4,4-39,,Moose Creek,0.91,stream,Moores Creek,0.87,stream
-REGION 4 - Kootenay,pend d’oreille river,PEND D’OREILLE RIVER (Includes the reservoirs behind Waneta Dam and Seven Mile Dam),4,4-8,,Pend-d'Oreille River,0.95,stream,Pend-d'Oreille River Tributary,0.75,stream
-REGION 4 - Kootenay,pend d’oreille river’s tributaries,PEND D’OREILLE RIVER’S TRIBUTARIES (except Salmo River),4,4-8,,Pend-d'Oreille River Tributary,0.89,stream,Pend-d'Oreille River,0.71,stream
-REGION 4 - Kootenay,premier lake’s tributaries,PREMIER LAKE’S TRIBUTARIES,4,4-21,,Parmater Lake Tributary,0.79,stream,Erie Lake Tributary,0.77,stream
-REGION 4 - Kootenay,rock island lake,ROCK ISLAND LAKE,4,4-25,,Rock Isle Lake,0.87,lake,Island Lake,0.81,lake
-REGION 4 - Kootenay,sam’s folly lake,SAM’S FOLLY LAKE,4,4-34,,Hall Lake,0.67,lake,Mill Lake,0.67,lake
-REGION 4 - Kootenay,seven mile reservoir’s tributaries,SEVEN MILE RESERVOIR’S TRIBUTARIES,4,4-8,,Seven Mile Creek Tributary,0.78,stream,Ten Mile Creek Tributary,0.70,stream
-REGION 4 - Kootenay,seven mile reservoir,SEVEN MILE RESERVOIR,4,4-8,,Seven Mile Creek,0.78,stream,Seven Mile Creek Tributary,0.74,stream
-REGION 4 - Kootenay,slewiskin creek,SLEWISKIN (Macdonald) CREEK,4,4-15,,Lewis Creek,0.85,stream,Ewin Creek,0.80,stream
-REGION 4 - Kootenay,spring lake,“SPRING” LAKE,4,4-22,,King Lake,0.80,lake,Sink Lake,0.80,lake
-REGION 4 - Kootenay,waneta reservoir,WANETA RESERVOIR,4,4-8,,,,,,,
-REGION 4 - Kootenay,waneta reservoir’s tributaries,WANETA RESERVOIR’S TRIBUTARIES,4,4-8,,Garnet Creek Tributary,0.67,stream,Argenta Creek Tributary,0.65,stream
-REGION 4 - Kootenay,white river white rivers),WHITE RIVER White Rivers),,,,,,,,,
-REGION 4 - Kootenay,whiteswan lake’s inlet & outlet streams,WHITESWAN LAKE’S INLET & OUTLET STREAMS,4,4-24,,,,,,,
-REGION 4 - Kootenay,whitetail lake’s inlet & outlet streams,WHITETAIL LAKE’S INLET & OUTLET STREAMS,4,4-26,,Whitetail Lake Tributary,0.61,stream,,,
-REGION 4 - Kootenay,wigwam river forest service road),WIGWAM RIVER (downstream of the access road adjacent to km 42 on the Bighorn (Ram) Forest Service Road),4,4-2,,,,,,,
-REGION 5 - Cariboo,"atnarko/bella coola rivers except: burnt bridge creek upstream of sitkatapa creek, hunlen creek upstream of hunlen falls, and young entries for these three waters)","ATNARKO/BELLA COOLA RIVERS EXCEPT: Burnt Bridge Creek upstream of Sitkatapa Creek, Hunlen Creek upstream of Hunlen Falls, and Young entries for these three waters)",5,"5-6, 5-8, 5-11",,,,,,,
-REGION 5 - Cariboo,baby charlotte lake,BABY CHARLOTTE LAKE,5,5-6,,Charlotte Lake,0.85,lake,Little Charlotte Lake,0.75,lake
-REGION 5 - Cariboo,ballon lake,BALLON LAKE,5,5-2,,Baillon Lake,0.96,lake,Bacon Lake,0.86,lake
-REGION 5 - Cariboo,beaver creek chain of lakes,BEAVER CREEK chain of lakes,5,5-2,,Beavertail Lake,0.62,lake,Beaver Creek,0.62,stream
-REGION 5 - Cariboo,blackwater river,“BLACKWATER” RIVER,5,5-13,,Blackwater Lake,0.77,lake,MacKay River,0.71,stream
-REGION 5 - Cariboo,bowron lake park waters other than bowron lake,BOWRON LAKE Park waters other than Bowron Lake,5,5-16,,,,,,,
-REGION 5 - Cariboo,chilko lake’s tributary streams,CHILKO LAKE’S tributary streams,5,5-4,,Euchiniko Lakes Tributary,0.76,stream,Shiko Lake Tributary,0.76,stream
-REGION 5 - Cariboo,chipmunk lake,CHIPMUNK LAKE,6,6-1,,Chapman Lake,0.80,lake,Chismaina Lake,0.74,lake
-REGION 5 - Cariboo,cruise lake,“CRUISE” LAKE,5,5-6,,Cruiser Lake,0.96,lake,Chris Lake,0.86,lake
-REGION 5 - Cariboo,dog lake,“DOG” LAKE,5,5-2,,Long Lake,0.82,lake,Douglas Lake,0.80,lake
-REGION 5 - Cariboo,lower portions of the dean rive,LOWER PORTIONS OF THE DEAN RIVE,,,,,,,,,
-REGION 5 - Cariboo,saku th class 1 - r lower section dean channel on reek kalone creek class 1 - ma,Saku th CLASS 1 - R Lower Section Dean Channel oN reek Kalone Creek CLASS 1 - Ma,,,,,,,,,
-REGION 5 - Cariboo,frog lake,FROG LAKE,5,5-6,,Roger Lake,0.84,lake,Roe Lake,0.82,lake
-REGION 5 - Cariboo,geese lake,“GEESE” LAKE (2 km northeast of Eliguk Lake),5,5-12,,McLeese Lake,0.82,lake,Goose Lake,0.80,lake
-REGION 5 - Cariboo,kestrel lake,“KESTREL” LAKE,5,5-2,,Koster Lake,0.78,lake,Dester Lake,0.78,lake
-REGION 5 - Cariboo,little bishop lake,“LITTLE BISHOP” LAKE (approx. 1.7 km northeast of Bishop Lake),5,5-13,,Little Horse Lake,0.80,lake,Little Sapeye Lake,0.78,lake
-REGION 5 - Cariboo,little jones lake,“LITTLE JONES” LAKE,5,5-2,,Little Horse Lake,0.82,lake,Little Koeye Lake,0.82,lake
-REGION 5 - Cariboo,maydoe lake,MAYDOE LAKE,5,5-6,,Madden Lake,0.82,lake,Hyde Lake,0.80,lake
-REGION 5 - Cariboo,meridian lake,MERIDIAN LAKE,5,5-1,,Sheridan Lake,0.85,lake,Marian Lake,0.83,lake
-REGION 5 - Cariboo,paddy lake,PADDY LAKE,5,5-1,,Teddy Lake,0.80,lake,Purdy Lake,0.80,lake
-REGION 5 - Cariboo,pigeon lake #1,“PIGEON LAKE #1”,5,5-2,,Widgeon Lake,0.77,lake,Philemon Lake,0.74,lake
-REGION 5 - Cariboo,redfern lake,REDFERN LAKE,5,5-15,,Green Lake,0.82,lake,Redwater Lake,0.80,lake
-REGION 5 - Cariboo,rye lake,“RYE” LAKE,5,5-2,,Bryne Lake,0.89,lake,Roe Lake,0.88,lake
-REGION 5 - Cariboo,sardine lake,SARDINE LAKE,5,5-2,,Spain Lake,0.82,lake,Marie Lake,0.82,lake
-REGION 5 - Cariboo,secret lake,SECRET LAKE,5,5-6,,Vert Lake,0.80,lake,Stewart Lake,0.78,lake
-REGION 5 - Cariboo,sinkhole lake,“SINKHOLE” LAKE,5,5-2,,Snake Lake,0.78,lake,Shiko Lake,0.78,lake
-REGION 5 - Cariboo,slim lake,“SLIM” LAKE,5,5-4,,Slum Lake,0.89,lake,Si Lake,0.88,lake
-REGION 5 - Cariboo,squirrel lake,SQUIRREL LAKE,6,6-1,,Surel Lake,0.87,lake,Square Lake,0.83,lake
-REGION 5 - Cariboo,sunshine lake,SUNSHINE (“Ant”) LAKE,5,5-11,,Suzannie Lake,0.77,lake,Squiness Lake,0.77,lake
-REGION 5 - Cariboo,toms lake,TOMS LAKE,6,6-1,,Top Lake,0.82,lake,Holmes Lake,0.80,lake
-REGION 5 - Cariboo,wentworth lakes,WENTWORTH LAKES,5,5-13,,Cotsworth Lake,0.76,lake,Wentworth Creek,0.73,stream
-REGION 6 - Skeena,chilkoot trail national historic park waters,CHILKOOT TRAIL NATIONAL HISTORIC PARK WATERS,6,6-28,,,,,,,
-REGION 6 - Skeena,chipmunk lake,CHIPMUNK LAKE,6,6-1,,Chapman Lake,0.80,lake,Chismaina Lake,0.74,lake
-REGION 6 - Skeena,copper river,COPPER RIVER,6,6-9,,Tkope River,0.78,stream,Clore River,0.78,stream
-REGION 6 - Skeena,diana creek,“DIANA” CREEK,6,6-14,,Dinan Creek,0.91,stream,Danah Creek,0.91,stream
-REGION 6 - Skeena,east gribbell creek,“EAST GRIBBELL” CREEK,6,6-3,,Atrill Creek,0.77,stream,East Side Creek,0.76,stream
-REGION 6 - Skeena,ishkheenickh river,ISHKHEENICKH RIVER,6,6-14,,Skeena River,0.73,stream,Shegunia River,0.69,stream
-REGION 6 - Skeena,ksi hlginx river,KSI HLGINX RIVER (formerly Ishkheenickh River),6,6-14,,Koshin River,0.79,stream,Ksi Hlginx Tributary,0.78,stream
-REGION 6 - Skeena,ksi sgasginist creek,KSI SGASGINIST CREEK (formerly Seaskinnish Creek),6,6-15,,Ksi Sgasginist,0.82,stream,Higgins Creek,0.73,stream
-REGION 6 - Skeena,ksi sii aks river,KSI SII AKS RIVER (formerly Tseax River),6,6-14,,Ksi Sii Aks Tributary,0.79,stream,Ksi Sii Aks,0.79,stream
-REGION 6 - Skeena,ksi x’anmas river,KSI X’ANMAS RIVER (formerly Kwinamass River),6,6-14,,Ksi X'anmas Tributary,0.78,stream,Ksi X'anmas,0.77,stream
-REGION 6 - Skeena,kwinamass river,KWINAMASS RIVER,6,6-14,,Nass River,0.80,stream,Kwinageese River,0.77,stream
-REGION 6 - Skeena,mcdonnel lake,MCDONNEL LAKE,6,6-9,,McDonell Lake,0.92,lake,McDowell Lake,0.85,lake
-REGION 6 - Skeena,mcqueen creek,MCQUEEN CREEK,6,6-30,,McEwan Creek,0.80,stream,Cheeny Creek,0.80,stream
-REGION 6 - Skeena,oldfield creek,“OLDFIELD” CREEK,6,6-14,,Bodel Creek,0.80,stream,Wildfire Creek,0.79,stream
-REGION 6 - Skeena,rancheria river’s tributaries,RANCHERIA RIVER’S TRIBUTARIES,6,6-25,,Little Rancheria River Tributary,0.80,stream,Blanchet River Tributary,0.77,stream
-REGION 6 - Skeena,seaskinnish creek,SEASKINNISH CREEK,6,6-15,,North Seaskinnish Creek,0.85,stream,Bearskin Creek,0.77,stream
-REGION 6 - Skeena,seeley creek,“SEELEY” CREEK (outlet of Seeley Lake),6,6-9,,Steel Creek,0.87,stream,Lesley Creek,0.83,stream
-REGION 6 - Skeena,skeena river/kispiox river confluence,SKEENA RIVER/KISPIOX RIVER CONFLUENCE,6,6-8,,,,,,,
-REGION 6 - Skeena,squirrel lake,SQUIRREL LAKE,6,6-1,,Surel Lake,0.87,lake,Square Lake,0.83,lake
-REGION 6 - Skeena,toms lake,TOMS LAKE,6,6-1,,Top Lake,0.82,lake,Holmes Lake,0.80,lake
-REGION 6 - Skeena,tseax river,TSEAX RIVER,6,6-14,,Tezwa River,0.82,stream,Skeena River,0.78,stream
-REGION 7A - Omineca,blackwater river,BLACKWATER RIVER,7,7-10,,Blackwater Creek,0.81,stream,Blackwater Lake,0.77,lake
-REGION 7A - Omineca,bobtail lake,BOBTAIL (Naltesby) LAKE,7,7-12,,Trail Lake,0.82,lake,Boreal Lake,0.78,lake
-REGION 7A - Omineca,davis bay,DAVIS BAY (in Finlay Reach of Williston Lake),7,7-37,,Davids Lake,0.70,lake,Davies Lake,0.70,lake
-REGION 7A - Omineca,dina creek,DINA CREEK,7,7-30,,Nina Creek,0.90,stream,Inati Creek,0.86,stream
-REGION 7A - Omineca,dina lake #1,DINA LAKE #1,7,7-30,,Dina Lakes,0.82,lake,Dia Lake,0.80,lake
-REGION 7A - Omineca,dina lake #2,DINA LAKE #2,7,7-30,,Dina Lakes,0.82,lake,Dia Lake,0.80,lake
-REGION 7A - Omineca,east hautete lake,EAST HAUTETE LAKE,7,7-27,,East Hautête Lake,0.94,lake,Hautête Lake,0.76,lake
-REGION 7A - Omineca,endako river,ENDAKO RIVER,7,7-12,,Nechako River,0.80,stream,Snake River,0.78,stream
-REGION 7A - Omineca,eye lake,EYE LAKE,7,7-26,,Fyfe Lake,0.82,lake,Eena Lake,0.82,lake
-REGION 7A - Omineca,hautete lake,HAUTETE LAKE,7,7-27,,Hautête Lake,0.92,lake,Hat Lake,0.80,lake
-REGION 7A - Omineca,klwali lake,KLWALI LAKE,7,7-28,,Klawli Lake,0.91,lake,Lazuli Lake,0.82,lake
-REGION 7A - Omineca,little lost lake,LITTLE LOST LAKE,7,7-3,,Little Lake,0.81,lake,Little Heart Lake,0.79,lake
-REGION 7A - Omineca,little tomas lake,“LITTLE TOMAS” LAKE,7,7-25,,Little Dismal Lake,0.80,lake,Little Lake,0.79,lake
-REGION 7A - Omineca,lower beaverpond lake,“LOWER BEAVERPOND” LAKE (lowermost of the two Beaverpond lakes),7,7-38,,Beaverpond Lakes,0.81,lake,Lower Belle Lake,0.76,lake
-REGION 7A - Omineca,mt. milligan lake,“MT. MILLIGAN” LAKE,7,7-28,,Milligan Lake,0.87,lake,Tie Mill Lake,0.73,lake
-REGION 7A - Omineca,nation arm,NATION ARM (Williston Lake),7,7-30,,Nation Lakes,0.73,lake,Nation River,0.73,stream
-REGION 7A - Omineca,nautley river,NAUTLEY RIVER,7,7-13,,Paul River,0.78,stream,Alces River,0.75,stream
-REGION 7A - Omineca,shandy lake,SHANDY LAKE,7,7-5,,Hand Lake,0.90,lake,Shanley Lake,0.87,lake
-REGION 7A - Omineca,tebbutt lake,TEBBUTT LAKE,7,7-13,,Tent Lake,0.76,lake,Buth Lake,0.76,lake
-REGION 7A - Omineca,thorn creek,THORN CREEK,7,7-39,,Thorne Creek,0.96,stream,Horn Creek,0.95,stream
-REGION 7A - Omineca,witch lake,WITCH LAKE,7,7-28,,Tucha Lake,0.80,lake,Etcho Lake,0.80,lake
-REGION 7B - Peace,chinaman lake,“CHINAMAN” LAKE,7,7-35,,Chinchaga Lakes,0.79,lake,Norman Lake,0.75,lake
-REGION 7B - Peace,chunamun lake,CHUNAMUN LAKE,7,7-35,,Chu Lake,0.76,lake,Chain Lakes,0.75,lake
-REGION 7B - Peace,liard river watershed,LIARD RIVER WATERSHED,7,7-53,,Liard River,0.69,stream,Liard River Tributary,0.67,stream
-REGION 7B - Peace,radar lake,RADAR LAKE,7,7-20,,Adam Lake,0.84,lake,Adams Lake,0.80,lake
-REGION 8 - Okanagan,bighorn reservoir,BIGHORN RESERVOIR (Lakeview Irrigation District),8,8-11,,Big Horn Reservoir,0.97,manmade,McKinley Reservoir,0.69,lake
-REGION 8 - Okanagan,bluey lake potholes,“BLUEY LAKE POTHOLES”,8,8-6,,Bluey Lake,0.69,lake,Blue Lake,0.64,lake
-REGION 8 - Okanagan,clifford lake,CLIFFORD (Cliff) LAKE,8,8-5,,Ford Lake,0.82,lake,Gulliford Lake,0.81,lake
-REGION 8 - Okanagan,five o’clock lake,FIVE O’CLOCK LAKE (approx. 800 m southeast of Cup Lake),8,8-14,,Whitecloud Lake,0.65,lake,Lodwick Lake,0.64,lake
-REGION 8 - Okanagan,hall road pond,HALL ROAD (Mission) POND,8,8-10,,Hamilton Pond,0.67,lake,Art Pond,0.64,lake
-REGION 8 - Okanagan,headwater lake #1,HEADWATER LAKE #1,8,8-8,,Headwater Lakes,0.88,lake,Headwater Lakes Tributary,0.71,stream
-REGION 8 - Okanagan,okanagan river oxbows,OKANAGAN RIVER OXBOWS,8,8-1,,Okanagan River,0.80,stream,Okanagan River Tributary,0.71,stream
-REGION 8 - Okanagan,pinaus lake,PINAUS LAKE,,,,,,,,,
-REGION 8 - Okanagan,rickey lake,RICKEY LAKE,8,8-5,,Tracey Lake,0.82,lake,Ripley Lake,0.82,lake
-REGION 8 - Okanagan,rose valley reservoir,ROSE VALLEY RESERVOIR (Lakeview Irrigation District),8,8-11,,Rose Valley Lake,0.70,lake,McKinley Reservoir,0.67,lake
-REGION 8 - Okanagan,sawmill lake,SAWMILL LAKE,8,8-1,,Swalwell Lake,0.80,lake,Saltwell Lake,0.80,lake
-REGION 8 - Okanagan,tee pee lakes,TEE PEE LAKES,8,8-6,,Tepee Lakes,0.92,lake,Pete Lake,0.73,lake
-REGION 8 - Okanagan,trepanier river,TREPANIER RIVER,8,8-8,,Trépanier Creek,0.73,stream,Granby River,0.67,stream
-REGION 8 - Okanagan,unnamed lakes,UNNAMED LAKES (located immediately north and south of Bluey Lake),8,8-6,,Dungate Lakes,0.77,lake,Nahm Lake,0.73,lake
+Region,Key,Sanitized Key,Zones,Suggestions
+REGION 1 - Vancouver Island,bear river,bear river,['1'],"bear lake (1), wakeman river (1), seymour river (1)"
+REGION 1 - Vancouver Island,healy lake’s outlet stream,healy lake's outlet stream,['1'],healy lake tributary (1)
+REGION 1 - Vancouver Island,link river,link river,['1'],"wakeman river (1), kenneth river (1), kingcome river (1)"
+REGION 1 - Vancouver Island,pete’s pond unnamed lake at the head of san juan river,pete's pond unnamed lake at the head of san juan river,['1'],
+REGION 1 - Vancouver Island,stowell lake,stowell lake,['1'],"viola lake (1), royal lake (1), boydell lake (1)"
+REGION 1 - Vancouver Island,strathcona park waters,strathcona park waters,['1'],
+REGION 1 - Vancouver Island,weston lake,weston lake,['1'],"huaskin lake (1), lee lake (1), broughton lake (1)"
+REGION 2 - Lower Mainland,brunette river’s tributaries,brunette river's tributaries,['2'],"fraser river tributary (2), butter creek tributary (2), harrison river tributary (2)"
+REGION 2 - Lower Mainland,errock lake,errock lake,['2'],"trout lake (2), hicks lake (2), elbow lake (2)"
+REGION 2 - Lower Mainland,hatzic lake and slough,hatzic lake and slough,['2'],"hatzic lake (2), bateson slough (2), nicomen slough (2)"
+REGION 2 - Lower Mainland,jones lake,jones lake,['2'],"olive lake (2), dickson lake (2), deer lake (2)"
+REGION 2 - Lower Mainland,little campbell river,little campbell river,['2'],"powell river (2), little toba river (2), klite river (2)"
+REGION 2 - Lower Mainland,little stawamus creek,little stawamus creek,['2'],"tretheway creek (2), south statlu creek (2), statlu creek (2)"
+REGION 2 - Lower Mainland,lonzo creek,lonzo creek,['2'],"stokke creek (2), doctors creek (2), cogburn creek (2)"
+REGION 2 - Lower Mainland,lucille lake,lucille lake,['2'],"olive lake (2), statlu lake (2), wilson lake (2)"
+REGION 2 - Lower Mainland,mckay creek,mckay creek,['2'],"mckay lake (2), stokke creek (2), eagle creek (2)"
+REGION 2 - Lower Mainland,minnekhada marsh,minnekhada marsh,['2'],
+REGION 2 - Lower Mainland,paq lake,paq lake,['2'],"weaver lake (2), statlu lake (2), grace lake (2)"
+REGION 2 - Lower Mainland,sardis park pond,sardis park pond,['2'],"sardis pond (2), rampart ponds (2), jerry sulina park pond (2)"
+REGION 2 - Lower Mainland,south alouette river,south alouette river,['2'],"alouette lake (2), sumallo river (2), stave river (2)"
+REGION 2 - Lower Mainland,squamish powerhouse channel,squamish powerhouse channel,['2'],sapperton channel (2)
+REGION 2 - Lower Mainland,squamish river’s tributaries,squamish river's tributaries,['2'],"fraser river tributary (2), harrison river tributary (2), chehalis river tributary (2)"
+REGION 2 - Lower Mainland,sweltzer creek,sweltzer creek,['2'],"big silver creek (2), stokke creek (2), twenty mile creek (2)"
+REGION 2 - Lower Mainland,weaver lake and weaver creek,weaver lake and weaver creek,['2'],
+REGION 3 - Thompson-Nicola,clanwilliam lake,clanwilliam lake,['3'],"logan lake (3), canoe lake (3), clink lake (3)"
+REGION 3 - Thompson-Nicola,coldwater river’s tributaries,coldwater river's tributaries,['3'],"nicola river tributary (3), cowan creek tributary (3), tyner creek tributary (3)"
+REGION 3 - Thompson-Nicola,deep lake,deep lake,['3'],"ridge lakes (3), wyse lakes (3), gump lake (3)"
+REGION 3 - Thompson-Nicola,jackpine lake,jackpine lake,['3'],"logan lake (3), mamit lake (3), paska lake (3)"
+REGION 3 - Thompson-Nicola,little dum lake,little dum lake,['3'],"riley lake (3), little disdero lakes (3), little shuswap lake (3)"
+REGION 3 - Thompson-Nicola,little lac des roches,little lac des roches,['3'],"lac des roches (3), little creek (3)"
+REGION 3 - Thompson-Nicola,lorenzo lake,lorenzo lake,['3'],"ridge lakes (3), morgan lake (3), tolman lake (3)"
+REGION 3 - Thompson-Nicola,lower kane lake,lower kane lake,['3'],"morgan lake (3), tolman lake (3), logan lake (3)"
+REGION 3 - Thompson-Nicola,mcarthur island slough,mcarthur island slough,['3'],
+REGION 3 - Thompson-Nicola,rainbow lake,rainbow lake,['3'],"ridge lakes (3), morgan lake (3), tolman lake (3)"
+REGION 3 - Thompson-Nicola,rose lake,rose lake,['3'],"ridge lakes (3), wyse lakes (3), logan lake (3)"
+REGION 3 - Thompson-Nicola,sicamous narrows,sicamous narrows,['3'],sicamous creek (3)
+REGION 3 - Thompson-Nicola,tulip lake,tulip lake,['3'],"tolman lake (3), gump lake (3), tupper lake (3)"
+REGION 3 - Thompson-Nicola,upper kane lake,upper kane lake,['3'],"morgan lake (3), tupper lake (3), paska lake (3)"
+REGION 4 - Kootenay,alces lake,alces lake,['4'],"back lake (4), eohippus lake (4), lunette lake (4)"
+REGION 4 - Kootenay,alta lake,alta lake,['4'],"kinbasket lake (4), back lake (4), lunette lake (4)"
+REGION 4 - Kootenay,arrow lakes,arrow lakes,['4'],"dog lake (4), munroe lake (4), rock lake (4)"
+REGION 4 - Kootenay,arrow lakes’ tributaries,arrow lakes' tributaries,[],
+REGION 4 - Kootenay,cameron slough,cameron slough,['4'],"six mile slough (4), cameron lake (4), taylor slough (4)"
+REGION 4 - Kootenay,champion lakes no. 1 & 2,champion lakes no. 1 & 2,['4'],"champion lakes (4), champion lakes tributary (4)"
+REGION 4 - Kootenay,champion lake no. 3,champion lake no. 3,['4'],"champion lakes (4), cinnamon lake (4), chain lake (4)"
+REGION 4 - Kootenay,connor lake’s tributaries,connor lake's tributaries,['4'],"connor lakes (4), revelstoke lake tributary (4), mckinnon creek tributary (4)"
+REGION 4 - Kootenay,creston valley wildlife management area waters,creston valley wildlife management area waters,['4'],
+REGION 4 - Kootenay,elk river’s tributaries,elk river's tributaries,['4'],"columbia river tributary (4), jordan river tributary (4), park creek tributary (4)"
+REGION 4 - Kootenay,fisher maiden lake,fisher maiden lake,['4'],"erie lake (4), chain lake (4), fussee lake (4)"
+REGION 4 - Kootenay,flathead river’s tributaries,flathead river's tributaries,['4'],"columbia river tributary (4), jordan river tributary (4), clear creek tributary (4)"
+REGION 4 - Kootenay,garbutt lake,garbutt lake,['4'],"lunette lake (4), beatty lake (4), elizabeth lake (4)"
+REGION 4 - Kootenay,idlewild lake,idlewild lake,['4'],"wedgwood lake (4), twin lakes (4), erie lake (4)"
+REGION 4 - Kootenay,kikomun creek park,kikomun creek park,['4'],"corn creek marsh (4), mckinnon creek tributary (4), mckinnon creek (4)"
+REGION 4 - Kootenay,koocanusa reservoir,koocanusa reservoir,['4'],
+REGION 4 - Kootenay,"kootenay lake, all parts","kootenay lake, all parts",['4'],"kootenay lake (4), kootenay lake tributary (4)"
+REGION 4 - Kootenay,kootenay lake - main body,kootenay lake - main body,['4'],"kootenay lake (4), kootenay lake tributary (4)"
+REGION 4 - Kootenay,kootenay lake - upper west arm,kootenay lake - upper west arm,['4'],"kootenay lake (4), kootenay lake tributary (4)"
+REGION 4 - Kootenay,kootenay lake - lower west arm,kootenay lake - lower west arm,['4'],"kootenay lake (4), kootenay lake tributary (4)"
+REGION 4 - Kootenay,lewis slough,lewis slough,['4'],"six mile slough (4), taylor slough (4), french slough (4)"
+REGION 4 - Kootenay,little mitten lake,little mitten lake,['4'],"lunette lake (4), three sisters lake (4), lytle lake (4)"
+REGION 4 - Kootenay,little slocan lake’s tributaries,little slocan lake's tributaries,['4'],"lower little slocan lake (4), upper little slocan lake (4), little wilson lake (4)"
+REGION 4 - Kootenay,mcclain lake,mcclain lake,['4'],"cerulean lake (4), ptarmigan lake (4), munroe lake (4)"
+REGION 4 - Kootenay,mcnaughton lake,mcnaughton lake,['4'],"munroe lake (4), nestor lake (4), coney lake (4)"
+REGION 4 - Kootenay,moses creek,moses creek,['4'],"boulder creek (4), murder creek (4), mckinnon creek (4)"
+REGION 4 - Kootenay,pend d’oreille river,pend d'oreille river,['4'],"palliser river (4), north white river (4), pend-doreille river tributary (4)"
+REGION 4 - Kootenay,pend d’oreille river’s tributaries,pend d'oreille river's tributaries,['4'],"columbia river tributary (4), jordan river tributary (4), copeland creek tributary (4)"
+REGION 4 - Kootenay,premier lake’s tributaries,premier lake's tributaries,['4'],"premier lake (4), sorcerer creek tributary (4), revelstoke lake tributary (4)"
+REGION 4 - Kootenay,rock island lake,rock island lake,['4'],"rock isle lake (4), cerulean lake (4), rock lake (4)"
+REGION 4 - Kootenay,salmo river’s tributaries,salmo river's tributaries,['4'],"columbia river tributary (4), seymour creek tributary (4), jordan river tributary (4)"
+REGION 4 - Kootenay,sam’s folly lake,sam's folly lake,['4'],"shiell lake (4), saugum lake (4), hall lake (4)"
+REGION 4 - Kootenay,seven mile reservoir’s tributaries,seven mile reservoir's tributaries,['4'],"sale creek tributary (4), sibley creek tributary (4), sweeper bill creek tributary (4)"
+REGION 4 - Kootenay,seven mile reservoir,seven mile reservoir,['4'],"twelve mile creek tributary (4), twelve mile creek (4), five mile creek (4)"
+REGION 4 - Kootenay,slewiskin creek,slewiskin creek,['4'],"mckinnon creek (4), long creek (4), hiren creek (4)"
+REGION 4 - Kootenay,spring lake,spring lake,['4'],"ptarmigan lake (4), dog lake (4), high lake (4)"
+REGION 4 - Kootenay,waneta reservoir,waneta reservoir,['4'],
+REGION 4 - Kootenay,waneta reservoir’s tributaries,waneta reservoir's tributaries,['4'],"granite creek tributary (4), downie creek tributary (4), carnes creek tributary (4)"
+REGION 4 - Kootenay,white river white rivers),white river white rivers),[],
+REGION 4 - Kootenay,whiteswan lake’s inlet & outlet streams,whiteswan lake's inlet & outlet streams,['4'],
+REGION 4 - Kootenay,whitetail lake’s inlet & outlet streams,whitetail lake's inlet & outlet streams,['4'],whitetail lake tributary (4)
+REGION 4 - Kootenay,wigwam river forest service road),wigwam river forest service road),['4'],
+REGION 5 - Cariboo,"atnarko/bella coola rivers except: burnt bridge creek upstream of sitkatapa creek, hunlen creek upstream of hunlen falls, and young entries for these three waters)","atnarko/bella coola rivers except: burnt bridge creek upstream of sitkatapa creek, hunlen creek upstream of hunlen falls, and young entries for these three waters)",['5'],
+REGION 5 - Cariboo,baby charlotte lake,baby charlotte lake,['5'],"rosette lake (5), blackwater lake (5), abbott lake (5)"
+REGION 5 - Cariboo,ballon lake,ballon lake,['5'],"willan lake (5), abrams lake (5), bidwell lakes (5)"
+REGION 5 - Cariboo,beaver creek chain of lakes,beaver creek chain of lakes,['5'],"beavertail lake (5), beaver creek (5)"
+REGION 5 - Cariboo,blackwater river,blackwater river,['5'],"blackwater lake (5), fraser river (5), bella coola river (5)"
+REGION 5 - Cariboo,bowron lake park waters other than bowron lake,bowron lake park waters other than bowron lake,['5'],
+REGION 5 - Cariboo,chilko lake’s tributary streams,chilko lake's tributary streams,['5'],"chilko river tributary (5), chilcotin river tributary (5), brittany lake tributary (5)"
+REGION 5 - Cariboo,chipmunk lake,chipmunk lake,['6'],"stinking lake (6), snipe lake (6), klinkit lake (6)"
+REGION 5 - Cariboo,cruise lake,cruise lake,['5'],"vic lake (5), rushes lake (5), abrams lake (5)"
+REGION 5 - Cariboo,dog lake,dog lake,['5'],"vic lake (5), rocky lake (5), augers lake (5)"
+REGION 5 - Cariboo,lower portions of the dean rive,lower portions of the dean rive,[],
+REGION 5 - Cariboo,saku th class 1 - r lower section dean channel on reek kalone creek class 1 - ma,saku th class 1 - r lower section dean channel on reek kalone creek class 1 - ma,[],
+REGION 5 - Cariboo,frog lake,frog lake,['5'],"rocky lake (5), konni lake (5), girdwood lake (5)"
+REGION 5 - Cariboo,geese lake,geese lake,['5'],"rushes lake (5), augers lake (5), glasgow lakes (5)"
+REGION 5 - Cariboo,kestrel lake,kestrel lake,['5'],"rushes lake (5), augers lake (5), kondor lake (5)"
+REGION 5 - Cariboo,little bishop lake,little bishop lake,['5'],"le bourdais lake (5), little lake (5), lily pad lake (5)"
+REGION 5 - Cariboo,little jones lake,little jones lake,['5'],"tyee lake (5), joan lake (5), le bourdais lake (5)"
+REGION 5 - Cariboo,maydoe lake,maydoe lake,['5'],"augers lake (5), murray taylor lake (5), marsh lake (5)"
+REGION 5 - Cariboo,meridian lake,meridian lake,['5'],"willan lake (5), brittany lake (5), marsh lake (5)"
+REGION 5 - Cariboo,paddy lake,paddy lake,['5'],"brittany lake (5), girdwood lake (5), rawhide lake (5)"
+REGION 5 - Cariboo,pigeon lake #1,pigeon lake #1,['5'],"big lake (5), dragon lake (5), keno lake (5)"
+REGION 5 - Cariboo,redfern lake,redfern lake,['5'],"rushes lake (5), augers lake (5), milefive lake (5)"
+REGION 5 - Cariboo,rye lake,rye lake,['5'],"vic lake (5), rushes lake (5), abrams lake (5)"
+REGION 5 - Cariboo,sardine lake,sardine lake,['5'],"willan lake (5), rushes lake (5), marsh lake (5)"
+REGION 5 - Cariboo,secret lake,secret lake,['5'],"vic lake (5), rushes lake (5), rosette lake (5)"
+REGION 5 - Cariboo,sinkhole lake,sinkhole lake,['5'],"rushes lake (5), chilko lake (5), tsuniah lake (5)"
+REGION 5 - Cariboo,slim lake,slim lake,['5'],"vic lake (5), tsuniah lake (5), konni lake (5)"
+REGION 5 - Cariboo,squirrel lake,squirrel lake,['6'],"snipe lake (6), summit lake (6), silver lakes (6)"
+REGION 5 - Cariboo,sunshine lake,sunshine lake,['5'],"rushes lake (5), tsuniah lake (5), konni lake (5)"
+REGION 5 - Cariboo,tanya lake’s tributaries,tanya lake's tributaries,['5'],"tanya lakes (5), brittany lake tributary (5), brittany creek tributary (5)"
+REGION 5 - Cariboo,toms lake,toms lake,['6'],"mess lake (6), snipe lake (6), aconitum lake (6)"
+REGION 5 - Cariboo,wentworth lakes,wentworth lakes,['5'],"kondor lake (5), vert lake (5), swartz lake (5)"
+REGION 6 - Skeena,chilkoot trail national historic park waters,chilkoot trail national historic park waters,['6'],
+REGION 6 - Skeena,chipmunk lake,chipmunk lake,['6'],"stinking lake (6), snipe lake (6), klinkit lake (6)"
+REGION 6 - Skeena,copper river,copper river,['6'],"oona river (6), spiller river (6), bowser river (6)"
+REGION 6 - Skeena,diana creek,diana creek,['6'],"diana lake (6), billy creek (6), kitkatla creek (6)"
+REGION 6 - Skeena,east gribbell creek,east gribbell creek,['6'],"sezill creek (6), skowill creek (6), storie creek (6)"
+REGION 6 - Skeena,ishkheenickh river,ishkheenickh river,['6'],"skeena river (6), sweetin river (6), kitseguecla river (6)"
+REGION 6 - Skeena,ksi hlginx river,ksi hlginx river,['6'],"spiller river (6), salmon river (6), kispiox river (6)"
+REGION 6 - Skeena,ksi sgasginist creek,ksi sgasginist creek,['6'],"klinkit creek (6), gingras creek (6), granite creek (6)"
+REGION 6 - Skeena,ksi sii aks river,ksi sii aks river,['6'],"kowesas river (6), exchamsiks river (6), shames river (6)"
+REGION 6 - Skeena,ksi x’anmas river,ksi x'anmas river,['6'],"salmon river (6), kispiox river (6), sweetin river (6)"
+REGION 6 - Skeena,kwinamass river,kwinamass river,['6'],"oona river (6), jennings river (6), kispiox river (6)"
+REGION 6 - Skeena,mcdonnel lake,mcdonnel lake,['6'],"mess lake (6), snipe lake (6), aconitum lake (6)"
+REGION 6 - Skeena,mcqueen creek,mcqueen creek,['6'],"porcher creek (6), phoenix creek (6), useless creek (6)"
+REGION 6 - Skeena,oldfield creek,oldfield creek,['6'],"foote creek (6), billy creek (6), kadeya creek (6)"
+REGION 6 - Skeena,rancheria river’s tributaries,rancheria river's tributaries,['6'],"porcher creek tributary (6), oona river tributary (6), spiller river tributary (6)"
+REGION 6 - Skeena,seaskinnish creek,seaskinnish creek,['6'],"useless creek (6), kitsu creek (6), sezill creek (6)"
+REGION 6 - Skeena,seeley creek,seeley creek,['6'],"seeley lake (6), useless creek (6), foote creek (6)"
+REGION 6 - Skeena,skeena river/kispiox river confluence,skeena river/kispiox river confluence,['6'],
+REGION 6 - Skeena,squirrel lake,squirrel lake,['6'],"snipe lake (6), summit lake (6), silver lakes (6)"
+REGION 6 - Skeena,toms lake,toms lake,['6'],"mess lake (6), snipe lake (6), aconitum lake (6)"
+REGION 6 - Skeena,tseax river,tseax river,['6'],"oona river (6), spiller river (6), bowser river (6)"
+REGION 6 - Skeena,west road river’s tributaries,west road river's tributaries,['6'],"oona river tributary (6), spiller river tributary (6), stikine river tributary (6)"
+REGION 7A - Omineca,blackwater river,blackwater river,['7'],"blackwater lake (7), chilako river (7), kotsine river (7)"
+REGION 7A - Omineca,bobtail lake,bobtail lake,['7'],"hostli lake (7), norman lake (7), dahl lake (7)"
+REGION 7A - Omineca,davis bay,davis bay,['7'],"avis lake (7), davie lake (7), davids lake (7)"
+REGION 7A - Omineca,dina creek,dina creek,['7'],"midwinter creek (7), calendar creek (7), thinahtea creek (7)"
+REGION 7A - Omineca,dina lake #1,dina lake #1,['7'],"midwinter lake (7), norman lake (7), dahl lake (7)"
+REGION 7A - Omineca,dina lake #2,dina lake #2,['7'],"midwinter lake (7), norman lake (7), dahl lake (7)"
+REGION 7A - Omineca,east hautete lake,east hautete lake,['7'],"shesta lake (7), tent lake (7), steele lake (7)"
+REGION 7A - Omineca,endako river,endako river,['7'],"petitot river (7), nechako river (7), chilako river (7)"
+REGION 7A - Omineca,eye lake,eye lake,['7'],"july lake (7), june lake (7), february lake (7)"
+REGION 7A - Omineca,hautete lake,hautete lake,['7'],"june lake (7), hostli lake (7), theodore lake (7)"
+REGION 7A - Omineca,klwali lake,klwali lake,['7'],"hostli lake (7), roaring lake (7), zelkwas lake (7)"
+REGION 7A - Omineca,little lost lake,little lost lake,['7'],"naltesby lake (7), tent lake (7), trout lake (7)"
+REGION 7A - Omineca,little tomas lake,little tomas lake,['7'],"little murch lake (7), elliott lake (7), toms lake (7)"
+REGION 7A - Omineca,lower beaverpond lake,lower beaverpond lake,['7'],"beverly lake (7), clover lake (7), great beaver lake (7)"
+REGION 7A - Omineca,mt. milligan lake,mt. milligan lake,['7'],"one island lake (7), tang lake (7), mollie lake (7)"
+REGION 7A - Omineca,nation arm,nation arm,['7'],"plantation lake (7), nation lakes (7), nation river (7)"
+REGION 7A - Omineca,nautley river,nautley river,['7'],"nechako river (7), stuart river (7), kotsine river (7)"
+REGION 7A - Omineca,shandy lake,shandy lake,['7'],"norman lake (7), barton lake (7), shesta lake (7)"
+REGION 7A - Omineca,tebbutt lake,tebbutt lake,['7'],"february lake (7), naltesby lake (7), buck lake (7)"
+REGION 7A - Omineca,thorn creek,thorn creek,['7'],"thorne lake (7), midwinter creek (7), thinahtea creek (7)"
+REGION 7A - Omineca,west road river’s tributaries,west road river's tributaries,['7'],"petitot river tributary (7), liard river tributary (7), nechako river tributary (7)"
+REGION 7A - Omineca,witch lake,witch lake,['7'],"midwinter lake (7), theodore lake (7), dahl lake (7)"
+REGION 7B - Peace,chinaman lake,chinaman lake,['7'],"norman lake (7), berman lake (7), heron lake (7)"
+REGION 7B - Peace,chunamun lake,chunamun lake,['7'],"june lake (7), norman lake (7), lumpy lake (7)"
+REGION 7B - Peace,liard river watershed,liard river watershed,['7'],"liard river tributary (7), liard river (7)"
+REGION 7B - Peace,radar lake,radar lake,['7'],"february lake (7), norman lake (7), dahl lake (7)"
+REGION 8 - Okanagan,bighorn reservoir,bighorn reservoir,['8'],"mcculloch reservoir (8), mckinley reservoir (8), big horn reservoir (8)"
+REGION 8 - Okanagan,bluey lake potholes,bluey lake potholes,['8'],"bluey lake (8), blue lake (8)"
+REGION 8 - Okanagan,clifford lake,clifford lake,['8'],"round lake (8), glacier lake (8), otter lake (8)"
+REGION 8 - Okanagan,five o’clock lake,five o'clock lake,['8'],"lodwick lake (8), hook lake (8), biely lake (8)"
+REGION 8 - Okanagan,granby river’s tributaries,granby river's tributaries,['8'],"round creek tributary (8), salmon river tributary (8), skaist river tributary (8)"
+REGION 8 - Okanagan,hall road pond,hall road pond,['8'],"hamilton pond (8), art pond (8)"
+REGION 8 - Okanagan,headwater lake #1,headwater lake #1,['8'],"richter lake (8), deadman lake (8), halfway lake (8)"
+REGION 8 - Okanagan,kettle river’s tributaries,kettle river's tributaries,['8'],"salmon river tributary (8), skaist river tributary (8), skagit river tributary (8)"
+REGION 8 - Okanagan,okanagan river oxbows,okanagan river oxbows,['8'],"okanagan river tributary (8), okanagan river (8)"
+REGION 8 - Okanagan,pinaus lake,pinaus lake,[],
+REGION 8 - Okanagan,rickey lake,rickey lake,['8'],"dry lake (8), nickel plate lake (8), osprey lake (8)"
+REGION 8 - Okanagan,rose valley reservoir,rose valley reservoir,['8'],"rose valley lake (8), mckinley reservoir (8), deer valley creek tributary (8)"
+REGION 8 - Okanagan,sawmill lake,sawmill lake,['8'],"allison lake (8), chain lake (8), siwash lake (8)"
+REGION 8 - Okanagan,tee pee lakes,tee pee lakes,['8'],"otter lake (8), tepee lakes (8), westmere lake (8)"
+REGION 8 - Okanagan,trepanier river,trepanier river,['8'],"tulameen river (8), pasayten river (8), trépanier creek (8)"
+REGION 8 - Okanagan,unnamed lakes,unnamed lakes,['8'],"round lake (8), cathedral lakes (8), lorne lake (8)"
+REGION 8 - Okanagan,west kettle river’s tributaries,west kettle river's tributaries,['8'],"salmon river tributary (8), skaist river tributary (8), skagit river tributary (8)"
