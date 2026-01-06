@@ -1,473 +1,290 @@
 import pdfplumber
 import re
+import numpy as np
+from collections import namedtuple
+from sklearn.cluster import DBSCAN
+from sklearn.preprocessing import StandardScaler
+from PIL import Image
+import os
 
 # --- CONFIGURATION ---
+DBSCAN_EPS = 0.15 
+DBSCAN_MIN_SAMPLES = 3 
+CLUSTER_PASS_THRESHOLD = 0.80 
+
+# Visual Audit Thresholds
+COLOR_DIFF_THRESHOLD = 30 
+LUMINANCE_THRESHOLD = 180 
+MIN_INK_PIXELS_STANDARD = 4
+MIN_INK_PIXELS_SYMBOL = 1
+SYMBOLS_TO_RELAX = ".,:;'-_\"`~"
+
+# Font Size Thresholds
+MIN_FONT_SIZE = 4.0
+MAX_FONT_SIZE = 30.0
+
+# Spatial Layout Constants
 VERTICAL_GAP_THRESHOLD = 3.0
-
-# Maximum vertical separation in units to consider text part of main content
-# (filters legend text that appears far below the main water body name)
 MAX_VERTICAL_SEPARATION = 30
-
-# Keywords that indicate map/legend content that should be filtered out
 MAP_KEYWORDS = ["legend", "map", "scale", "courtesy"]
-
-# Maximum text length for single-letter map legend entries (e.g., "K")
 MAX_SINGLE_LETTER_LENGTH = 2
+
+Sequence = namedtuple('Sequence', ['bbox', 'y_mid', 'avg_render_idx', 'text', 'char_indices'])
+
+# --- 1. GHOST FILTERING CORE ---
+
+def get_global_background_palette(page_image_pil):
+    small = page_image_pil.resize((200, int(200 * page_image_pil.height / page_image_pil.width)))
+    colors = small.convert("P", palette=Image.ADAPTIVE, colors=256).convert("RGB").getcolors(maxcolors=256*256)
+    colors.sort(key=lambda x: x[0], reverse=True)
+    backgrounds = []
+    for count, rgb in colors:
+        if sum(rgb) < 150: continue 
+        backgrounds.append(np.array(rgb))
+        if len(backgrounds) >= 2: break
+    if len(backgrounds) < 2: backgrounds.append(np.array([255, 255, 255]))
+    return backgrounds
+
+def check_char_sanity(char, page_image_array, scale, bg_palette):
+    fs = char.get('size', 0)
+    if fs < MIN_FONT_SIZE or fs > MAX_FONT_SIZE: return False
+    if char['text'].strip() == '': return True
+    
+    x0, y0, x1, y1 = [int(v * scale) for v in [char['x0'], char['top'], char['x1'], char['bottom']]]
+    h, w = page_image_array.shape[:2]
+    crop = page_image_array[max(0,y0):min(h,y1), max(0,x0):min(w,x1)]
+    if crop.size == 0: return True
+    
+    pixels = crop.reshape(-1, 3)
+    bg1, bg2 = bg_palette[0], bg_palette[1]
+    
+    is_distinct = (np.linalg.norm(pixels - bg1, axis=1) > COLOR_DIFF_THRESHOLD) & \
+                  (np.linalg.norm(pixels - bg2, axis=1) > COLOR_DIFF_THRESHOLD)
+    is_dark = np.dot(pixels, [0.299, 0.587, 0.114]) < LUMINANCE_THRESHOLD
+    
+    ink_count = np.sum(is_distinct & is_dark)
+    thresh = MIN_INK_PIXELS_SYMBOL if char['text'] in SYMBOLS_TO_RELAX else MIN_INK_PIXELS_STANDARD
+    return ink_count >= thresh
+
+def check_group_sanity(chars, page_image_array, scale, bg_palette):
+    if not "".join([c['text'] for c in chars]).strip(): return False
+    bad_chars = sum(1 for c in chars if not check_char_sanity(c, page_image_array, scale, bg_palette))
+    return (bad_chars / len(chars)) < 0.2
+
+def get_cleaned_page(page):
+    resolution = 400
+    scale = resolution / 72
+    img = page.to_image(resolution=resolution).original.convert('RGB')
+    np_img = np.array(img)
+    bg_pal = get_global_background_palette(img)
+    
+    all_chars = page.chars
+    for i, c in enumerate(all_chars): c['render_index'] = i
+    
+    chars_sorted = sorted(all_chars, key=lambda c: c['top'])
+    lines = []
+    for c in chars_sorted:
+        placed = False
+        for l in lines:
+            overlap = max(0, min(c['bottom'], l[-1]['bottom']) - max(c['top'], l[-1]['top']))
+            if overlap / (c['bottom'] - c['top']) > 0.4:
+                l.append(c); placed = True; break
+        if not placed: lines.append([c])
+
+    sequences, raw_groups = [], []
+    for row in lines:
+        row.sort(key=lambda x: x['render_index'])
+        active = [row[0]]
+        for i in range(1, len(row)):
+            if -3 < (row[i]['x0'] - active[-1]['x1']) < 3: active.append(row[i])
+            else:
+                txt = "".join([c['text'] for c in active])
+                if txt.strip():
+                    idx = [c['render_index'] for c in active]
+                    sequences.append(Sequence((min(c['x0'] for c in active), min(c['top'] for c in active), max(c['x1'] for c in active), max(c['bottom'] for c in active)), (active[0]['top']+active[0]['bottom'])/2, sum(idx)/len(idx), txt, idx))
+                    raw_groups.append(active)
+                active = [row[i]]
+        if active:
+            txt = "".join([c['text'] for c in active])
+            if txt.strip():
+                idx = [c['render_index'] for c in active]
+                sequences.append(Sequence((min(c['x0'] for c in active), min(c['top'] for c in active), max(c['x1'] for c in active), max(c['bottom'] for c in active)), (active[0]['top']+active[0]['bottom'])/2, sum(idx)/len(idx), txt, idx))
+                raw_groups.append(active)
+
+    if not sequences: return page
+
+    X = np.array([[s.y_mid, s.avg_render_idx] for s in sequences])
+    labels = DBSCAN(eps=DBSCAN_EPS, min_samples=DBSCAN_MIN_SAMPLES).fit(StandardScaler().fit_transform(X)).labels_
+
+    keep_indices = set()
+    for k in set(labels):
+        indices = [i for i, x in enumerate(labels) if x == k]
+        if k == -1:
+            for idx in indices:
+                if check_group_sanity(raw_groups[idx], np_img, scale, bg_pal):
+                    keep_indices.update(sequences[idx].char_indices)
+        else:
+            sane_count = sum(1 for idx in indices if check_group_sanity(raw_groups[idx], np_img, scale, bg_pal))
+            if (sane_count / len(indices)) >= CLUSTER_PASS_THRESHOLD:
+                for idx in indices: keep_indices.update(sequences[idx].char_indices)
+
+    return page.filter(lambda o: o.get("render_index") in keep_indices if o.get("object_type") == "char" else True)
+
+# --- 2. SPATIAL EXTRACTION ---
 
 def clean_text(text): 
     return re.sub(r'\s+', ' ', text).strip() if text else ""
 
-def clean_doubled_chars(text):
-    """
-    Removes doubled characters only when it appears to be a PDF artifact.
-    Only applies the fix if most characters in the text are doubled (e.g., "WWAATTEERR" -> "WATER").
-    This avoids removing legitimate double letters like "oo" in "hook" or "ss" in "class".
-    """
-    if not text or len(text) < 4:
-        return text
-    
-    # Check if this looks like a doubled artifact
-    # Count how many character pairs are identical
-    doubled_count = 0
-    total_pairs = 0
-    
-    for i in range(0, len(text) - 1, 2):
-        if i + 1 < len(text):
-            total_pairs += 1
-            if text[i] == text[i + 1]:
-                doubled_count += 1
-    
-    # If more than 70% of pairs are doubled, it's likely an artifact
-    if total_pairs > 0 and (doubled_count / total_pairs) > 0.7:
-        # Remove every other character
-        result = ''.join([text[i] for i in range(0, len(text), 2)])
-        return result
-    
-    return text
-
-# --- SPATIAL EXTRACTION HELPERS (Fixed Logic) ---
-
 def extract_visual_lines(page, bbox):
-    """
-    Extracts text lines from a bbox, filtering out 'ghost' text from 
-    adjacent rows using a minimum height threshold.
-    Also filters out text that is spatially separated from the main content
-    (like legend text appearing at the bottom of a cell).
-    """
     if not bbox: return []
-    x0, top, x1, bottom = bbox
-    
-    try: 
-        cell_crop = page.crop((x0, top, x1, bottom))
-    except ValueError: 
-        return []
-
-    words = cell_crop.extract_words(x_tolerance=2, y_tolerance=2, keep_blank_chars=True)
+    try: cell_crop = page.crop(bbox)
+    except: return []
+    words = cell_crop.extract_words(x_tolerance=2, y_tolerance=2)
     if not words: return []
-
-    # --- FIX: MINIMUM HEIGHT FILTER ---
-    # Discard words with tiny height (< 4.0 units).
-    # Real text is > 6.0 units. Artifacts/Bleed are usually < 1.0.
-    valid_words = []
-    for w in words:
-        if (w['bottom'] - w['top']) > 4.0:
-            valid_words.append(w)
-    # ----------------------------------
-
-    if not valid_words: return []
-
-    # Group words into lines
-    lines = []
-    current_line = [valid_words[0]]
-    for word in valid_words[1:]:
-        if abs(word['top'] - current_line[-1]['top']) < 3:
-            current_line.append(word)
-        else:
-            lines.append(current_line)
-            current_line = [word]
-    lines.append(current_line)
-
-    # Calculate the average vertical position of each line
-    line_positions = []
-    for line in lines:
-        avg_top = sum(w['top'] for w in line) / len(line)
-        line_positions.append(avg_top)
     
-    # If we have multiple lines, filter out lines that are spatially separated
-    # from the main group (likely legend/map text at bottom of cell)
-    if len(lines) > 1:
-        # Calculate gaps between consecutive lines
-        gaps = []
-        for i in range(len(line_positions) - 1):
-            gap = line_positions[i+1] - line_positions[i]
-            gaps.append(gap)
-        
-        # If there's a large gap (> MAX_VERTICAL_SEPARATION), filter out lines after it
-        # This handles cases like "COQUIHALLA RIVER" followed by "TABLE LEGEND:" much lower
-        max_gap_idx = None
-        max_gap = 0
-        for i, gap in enumerate(gaps):
-            if gap > max_gap:
-                max_gap = gap
-                max_gap_idx = i
-        
-        # Only filter if the largest gap is significantly large
-        if max_gap > MAX_VERTICAL_SEPARATION:
-            # Keep lines before the large gap, discard lines after
-            lines = lines[:max_gap_idx + 1]
-
-    text_lines = []
-    for line in lines:
-        text = " ".join([w['text'] for w in line])
-        text_lines.append(clean_text(text))
-    
-    return text_lines
-
-def extract_text_by_spatial_layout(page, bbox):
-    """
-    Extracts regulation text blocks, filtering out 'ghost' text from
-    adjacent rows using a minimum height threshold.
-    """
-    if not bbox: return []
-    x0, top, x1, bottom = bbox
-    try: 
-        cell_crop = page.crop((x0, top, x1, bottom))
-    except ValueError: 
-        return []
-
-    words = cell_crop.extract_words(x_tolerance=2, y_tolerance=2, keep_blank_chars=True)
-    if not words: return []
-
-    # --- FIX: MINIMUM HEIGHT FILTER ---
-    valid_words = []
-    for w in words:
-        if (w['bottom'] - w['top']) > 4.0:
-            valid_words.append(w)
-    
-    words = valid_words
-    if not words: return []
-    # ----------------------------------
-
     lines = []
     current_line = [words[0]]
     for word in words[1:]:
-        if abs(word['top'] - current_line[-1]['top']) < 3: 
-            current_line.append(word)
-        else: 
-            lines.append(current_line)
-            current_line = [word]
+        if abs(word['top'] - current_line[-1]['top']) < 3: current_line.append(word)
+        else: lines.append(current_line); current_line = [word]
     lines.append(current_line)
 
-    spatial_blocks = []
-    current_text_block = []
+    if len(lines) > 1:
+        line_tops = [sum(w['top'] for w in l)/len(l) for l in lines]
+        for i in range(len(line_tops)-1):
+            if line_tops[i+1] - line_tops[i] > MAX_VERTICAL_SEPARATION:
+                lines = lines[:i+1]; break
+                
+    return [clean_text(" ".join([w['text'] for w in l])) for l in lines]
+
+def extract_text_blocks(page, bbox):
+    if not bbox: return []
+    try: cell_crop = page.crop(bbox)
+    except: return []
+    words = cell_crop.extract_words(x_tolerance=2, y_tolerance=2)
+    if not words: return []
     
+    lines = []
+    current_line = [words[0]]
+    for w in words[1:]:
+        if abs(w['top'] - current_line[-1]['top']) < 3: current_line.append(w)
+        else: lines.append(current_line); current_line = [w]
+    lines.append(current_line)
+
+    blocks, current_block = [], []
     for i, line in enumerate(lines):
-        line_text = " ".join([w['text'] for w in line])
-        line_text = line_text.replace('\uf0dc', ' [Includes tributaries] ').replace('*', ' [Includes tributaries] ')
-        
-        if i == 0: 
-            current_text_block.append(line_text)
-            continue
-            
-        gap = line[0]['top'] - lines[i-1][0]['bottom']
-        if gap > VERTICAL_GAP_THRESHOLD: 
-            spatial_blocks.append(" ".join(current_text_block))
-            current_text_block = [line_text]
-        else: 
-            current_text_block.append(line_text)
-            
-    if current_text_block: 
-        spatial_blocks.append(" ".join(current_text_block))
-        
-    return [clean_text(b) for b in spatial_blocks]
-
-def extract_and_clean_water_name(page, bbox, fish_locations):
-    raw_lines = extract_visual_lines(page, bbox)
-    if not raw_lines: return "", []
-
-    full_text = " ".join(raw_lines)
-    symbols = []
-
-    if '\uf0dc' in full_text or '*' in full_text or "Includes tributaries" in full_text:
-        symbols.append("Includes Tributaries")
-    if "CW" in full_text and re.search(r'\bCW\b', full_text):
-        symbols.append("Classified Waters")
-    if bbox:
-        x0, top, x1, bottom = bbox
-        for (fx, fy) in fish_locations:
-            if x0 < fx < x1 and top < fy < bottom:
-                symbols.append("Stocked")
-                break 
-
-    clean_lines = []
-    for i, line in enumerate(raw_lines):
-        if line.strip().endswith(":"): continue
-        if i > 0 and any(x in line.lower() for x in ["legend", "map", "page ", "see "]): continue
-        
-        clean_line = line.replace('\uf0dc', '').replace('*', '')
-        clean_line = re.sub(r'\[?Includes tributaries\]?', '', clean_line, flags=re.IGNORECASE)
-        clean_line = re.sub(r'\bCW\b', '', clean_line)
-        
-        clean_line = clean_line.strip()
-        if clean_line:
-            clean_lines.append(clean_line)
-
-    final_name = " ".join(clean_lines).strip()
-    final_name = re.sub(r'\s+', ' ', final_name)
-    
-    return final_name, symbols
+        txt = " ".join([w['text'] for w in line]).replace('\uf0dc', ' [Tributaries] ').replace('*', ' [Tributaries] ')
+        if i == 0: current_block.append(txt); continue
+        if (line[0]['top'] - lines[i-1][0]['bottom']) > VERTICAL_GAP_THRESHOLD:
+            blocks.append(clean_text(" ".join(current_block)))
+            current_block = [txt]
+        else: current_block.append(txt)
+    if current_block: blocks.append(clean_text(" ".join(current_block)))
+    return blocks
 
 def get_table_geometry(page):
     tables = page.find_tables(table_settings={"vertical_strategy": "lines", "horizontal_strategy": "lines"})
     if not tables: return None, None, None, None
-    main_table = max(tables, key=lambda t: (t.bbox[2]-t.bbox[0]) * (t.bbox[3]-t.bbox[1]))
-    x0, top, x1, bottom = main_table.bbox
-    cells = sorted(main_table.cells, key=lambda c: (c[1], c[0]))
+    main = max(tables, key=lambda t: (t.bbox[2]-t.bbox[0]) * (t.bbox[3]-t.bbox[1]))
+    x0, top, x1, _ = main.bbox
     divider = None
-    for c in cells:
+    for c in sorted(main.cells, key=lambda x: (x[1], x[0])):
         if abs(c[0] - x0) < 2 and abs(c[2] - x1) > 5: divider = c[2]; break
     return x0, divider, x1, top
 
-def is_fish_vector(curve):
-    """Check if a curve object looks like a fish icon (stocked water indicator)."""
-    width = curve['x1'] - curve['x0']
-    height = curve['bottom'] - curve['top']
-    if not (4 < width < 40) or not (4 < height < 40):
-        return False
-    ratio = width / height if height > 0 else 0
-    return 0.2 < ratio < 5.0
-
 def get_fish_locations(page):
-    """Extract the center coordinates of all fish icons on the page."""
     centers = []
     for curve in page.curves:
-        if is_fish_vector(curve):
-            centers.append(((curve['x0'] + curve['x1']) / 2, (curve['top'] + curve['bottom']) / 2))
+        w, h = curve['x1']-curve['x0'], curve['bottom']-curve['top']
+        if (4 < w < 40) and (4 < h < 40) and (0.2 < w/h < 5.0):
+            centers.append(((curve['x0']+curve['x1'])/2, (curve['top']+curve['bottom'])/2))
     return centers
 
-def extract_rows_from_page(page):
-    """
-    Extracts rows from a page table into structured dictionaries.
-    Returns list of dicts like: {'water': 'LAKE NAME', 'regs': 'regulations text', 'symbols': ['Stocked', 'Classified Waters']}
-    Filters out map/legend content and other non-data rows.
-    Handles merged cells where one water body name spans multiple regulation rows.
-    """
-    # Get basic geometry
-    geometry = get_table_geometry(page)
-    if not geometry or geometry[0] is None:
-        return []
-    
-    x0, divider, x1, top = geometry
-    
-    # Get fish locations for stocked water detection
-    fish_locations = get_fish_locations(page)
-    
-    # Get the full table to find its bottom boundary
-    tables = page.find_tables(table_settings={"vertical_strategy": "lines", "horizontal_strategy": "lines"})
-    if not tables:
-        return []
-    
-    main_table = max(tables, key=lambda t: (t.bbox[2]-t.bbox[0]) * (t.bbox[3]-t.bbox[1]))
-    table_bottom = main_table.bbox[3]
-    
-    # Crop page to just the table area
-    try:
-        table_page = page.crop((x0, top, x1, table_bottom))
-    except:
-        return []
-    
-    v_lines = [x0, x1]
-    if divider:
-        v_lines.append(divider)
-    
-    table_settings = {
-        "vertical_strategy": "explicit",
-        "explicit_vertical_lines": v_lines,
-        "horizontal_strategy": "lines",
-        "intersection_y_tolerance": 10
-    }
-    
-    tables = table_page.find_tables(table_settings)
-    if not tables:
-        return []
-    
-    results = []
-    current_entry = None
-    last_c1_box = None
-    
-    for table in tables:
-        for row in table.rows:
-            if len(row.cells) < 2:
-                continue
-            
-            c1, c2 = row.cells[0], row.cells[1]
-            
-            # If c1 is None, this row is part of a merged cell from above
-            # If c2 is None, skip this row (no regulations)
-            if not c2:
-                continue
-            
-            # Check if this is a merged cell (c1 is None OR same as previous water body cell)
-            is_merged_cell = (c1 is None) or (c1 == last_c1_box)
-            
-            # Only update last_c1_box if c1 is not None
-            if c1 is not None:
-                last_c1_box = c1
-            
-            # Extract text from each cell using spatial layout extraction
-            # This preserves multi-line regulation blocks
-            # For merged cells (c1 is None), use the water name from current_entry
-            if c1 is not None:
-                water_lines = extract_visual_lines(page, c1)
-                water = " ".join(water_lines) if water_lines else ""
-                
-                # Detect symbols for this water body
-                symbols = []
-                full_text = water + " " + " ".join(water_lines)
-                
-                # Check for "Includes Tributaries" symbol (bullet or asterisk)
-                if '\uf0dc' in full_text or '*' in full_text or "Includes tributaries" in full_text:
-                    symbols.append("Includes Tributaries")
-                
-                # Check for "Classified Waters" (CW)
-                if "CW" in full_text and re.search(r'\bCW\b', full_text):
-                    symbols.append("Classified Waters")
-                
-                # Check for "Stocked" (fish icon in the cell area)
-                if c1:
-                    c1_x0, c1_top, c1_x1, c1_bottom = c1
-                    for (fx, fy) in fish_locations:
-                        if c1_x0 < fx < c1_x1 and c1_top < fy < c1_bottom:
-                            symbols.append("Stocked")
-                            break
-                
-                # Clean the water name by removing symbol markers
-                # Remove bullet character and asterisk
-                water = water.replace('\uf0dc', '').replace('*', '')
-                # Remove "CW" marker
-                water = re.sub(r'\bCW\b', '', water)
-                # Remove "Includes tributaries" text if present
-                water = re.sub(r'\[?Includes tributaries\]?', '', water, flags=re.IGNORECASE)
-                # Clean up extra whitespace
-                water = re.sub(r'\s+', ' ', water).strip()
-            else:
-                # This is a continuation row - use the water name and symbols from current_entry
-                water = current_entry["water"] if current_entry else ""
-                symbols = current_entry["symbols"] if current_entry else []
-            
-            regs_blocks = extract_text_by_spatial_layout(page, c2)
-            regs = "\n".join(regs_blocks) if regs_blocks else ""
-            
-            # Just strip whitespace - don't clean doubled chars to preserve original text
-            water = water.strip()
-            regs = regs.strip()
-            
-            # Skip if both are empty
-            if not water and not regs:
-                continue
-            
-            # Filter out map/legend content
-            # Filter out map/legend content
-            # Only filter if the WATER NAME itself contains map keywords (not regulations)
-            # This allows legitimate regulations like "(see map on page 24)" to pass through
-            water_lower = water.lower()
-            is_map_keyword = any(keyword in water_lower for keyword in MAP_KEYWORDS)
-            
-            # Check for very short single-letter content (likely map legend like "K")
-            is_single_letter = (len(water.strip()) <= MAX_SINGLE_LETTER_LENGTH and len(regs.strip()) <= MAX_SINGLE_LETTER_LENGTH)
-            
-            # Skip this row if it looks like map content
-            if is_map_keyword or is_single_letter:
-                continue
-            
-            # Handle merged cells: If this row shares the same water body cell as the previous row,
-            # append regulations to the current entry instead of creating a new one
-            if is_merged_cell and current_entry:
-                # Append regulations from this row to the current entry
-                if regs:
-                    if current_entry["regs"]:
-                        current_entry["regs"] += "\n" + regs
-                    else:
-                        current_entry["regs"] = regs
-            else:
-                # This is a new water body - finalize the previous entry if any
-                if current_entry:
-                    results.append(current_entry)
-                
-                # Start a new entry
-                current_entry = {
-                    "water": water,
-                    "regs": regs,
-                    "symbols": symbols
-                }
-    
-    # Don't forget the last entry!
-    if current_entry:
-        results.append(current_entry)
-    
-    return results
+# --- 3. RE-ADDED FOR TEST COMPATIBILITY ---
 
 def get_table_text_sizes(page):
-    """
-    Gets all unique text sizes in the data portion of the table (excluding maps/graphics).
-    Returns sorted list of font sizes found in the table.
-    """
-    geometry = get_table_geometry(page)
-    if not geometry or geometry[0] is None:
-        return []
-    
-    x0, divider, x1, top = geometry
-    
-    # Get the full table bbox
-    tables = page.find_tables(table_settings={"vertical_strategy": "lines", "horizontal_strategy": "lines"})
-    if not tables:
-        return []
-    
-    main_table = max(tables, key=lambda t: (t.bbox[2]-t.bbox[0]) * (t.bbox[3]-t.bbox[1]))
-    
-    # Find the last valid data row by checking for map content
-    last_valid_y = main_table.bbox[3]
-    
-    # Check rows from bottom up to find where map content starts
-    for row in reversed(main_table.rows):
-        if len(row.cells) < 2:
-            continue
-        
-        c1, c2 = row.cells[0], row.cells[1]
-        if not c1 or not c2:
-            continue
-        
-        # Extract text from cells
-        try:
-            water = page.crop(c1).extract_text() or ""
-            regs = page.crop(c2).extract_text() or ""
-            combined = (water + " " + regs).lower().strip()
-            
-            # Check if this looks like map content
-            is_map = any(k in combined for k in MAP_KEYWORDS)
-            is_single_letter = len(water.strip()) <= MAX_SINGLE_LETTER_LENGTH and len(regs.strip()) <= MAX_SINGLE_LETTER_LENGTH
-            
-            if is_map or is_single_letter:
-                # This row has map content, so valid data ends above this
-                last_valid_y = c1[1]  # Top of this cell
-            else:
-                # Found a valid data row, stop searching
-                break
-        except:
-            continue
-    
-    # Crop to table area excluding map content
+    """Re-added to satisfy test_extract_synopsis.py imports."""
+    clean_page = get_cleaned_page(page)
+    geo = get_table_geometry(clean_page)
+    if not geo or geo[0] is None: return []
+    x0, div, x1, top = geo
     try:
-        table_crop = page.crop((x0, top, x1, last_valid_y))
-        chars = table_crop.chars
-        if not chars:
-            return []
-        
-        sizes = set()
-        for char in chars:
-            if 'size' in char:
-                sizes.add(round(char['size'], 1))
-        
-        return sorted(list(sizes))
-    except:
-        return []
+        # Check chars within the table area
+        table_crop = clean_page.crop((x0, top, x1, clean_page.bbox[3]))
+        sizes = sorted(list(set(round(c['size'], 1) for c in table_crop.chars if 'size' in c)))
+        return sizes
+    except: return []
+
+# --- 4. MAIN WRAPPER ---
+
+def extract_rows_from_page(page):
+    # PRE-PROCESS: Filter ghost text
+    clean_page = get_cleaned_page(page)
+    
+    geo = get_table_geometry(clean_page)
+    if not geo or geo[0] is None: return []
+    x0, divider, x1, top = geo
+    
+    # We need the bottom boundary too
+    tables = clean_page.find_tables(table_settings={"vertical_strategy": "lines", "horizontal_strategy": "lines"})
+    main_table = max(tables, key=lambda t: (t.bbox[2]-t.bbox[0]) * (t.bbox[3]-t.bbox[1]))
+    bottom = main_table.bbox[3]
+    
+    fish_locs = get_fish_locations(clean_page)
+    
+    v_lines = [x0, x1]
+    if divider: v_lines.append(divider)
+    
+    table_settings = {"vertical_strategy": "explicit", "explicit_vertical_lines": v_lines, "horizontal_strategy": "lines", "intersection_y_tolerance": 10}
+    
+    # Create the crop and find internal tables
+    try:
+        table_page = clean_page.crop((x0, top, x1, bottom))
+        tables = table_page.find_tables(table_settings)
+    except: return []
+    
+    if not tables: return []
+    
+    results, current_entry, last_c1 = [], None, None
+    for table in tables:
+        for row in table.rows:
+            if len(row.cells) < 2 or not row.cells[1]: continue
+            c1, c2 = row.cells[0], row.cells[1]
+            is_merged = (c1 is None) or (c1 == last_c1)
+            if c1: last_c1 = c1
+            
+            if not is_merged:
+                water_lines = extract_visual_lines(clean_page, c1)
+                water = " ".join(water_lines)
+                symbols = []
+                if any(x in water.lower() for x in ['\uf0dc', '*', 'tributaries']): symbols.append("Includes Tributaries")
+                if "CW" in water: symbols.append("Classified Waters")
+                for (fx, fy) in fish_locs:
+                    if c1[0] < fx < c1[2] and c1[1] < fy < c1[3]: symbols.append("Stocked"); break
+                
+                water = re.sub(r'\uf0dc|\*|CW|\[?Includes tributaries\]?', '', water, flags=re.I).strip()
+                water = clean_text(water)
+            else:
+                water = current_entry['water'] if current_entry else ""
+                symbols = current_entry['symbols'] if current_entry else []
+
+            regs = "\n".join(extract_text_blocks(clean_page, c2))
+            if not water and not regs: continue
+            if any(k in water.lower() for k in MAP_KEYWORDS) or (len(water) < 2 and len(regs) < 2): continue
+
+            if is_merged and current_entry:
+                current_entry['regs'] += "\n" + regs
+            else:
+                if current_entry: results.append(current_entry)
+                current_entry = {"water": water, "regs": regs, "symbols": symbols}
+                
+    if current_entry: results.append(current_entry)
+    return results
+
+if __name__ == "__main__":
+    PDF_PATH = os.path.join("output", "fishing_synopsis.pdf")
+    if os.path.exists(PDF_PATH):
+        with pdfplumber.open(PDF_PATH) as pdf:
+            data = extract_rows_from_page(pdf.pages[16])
+            for entry in data:
+                print(f"WATER: {entry['water']}\nSYMBOLS: {entry['symbols']}\nREGS: {entry['regs']}\n{'-'*30}")
