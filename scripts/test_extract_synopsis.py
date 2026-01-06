@@ -93,7 +93,8 @@ PAGES_WITH_TABLES = [
 def test_row_extraction_integrity(parser, pdf, page_num):
     """Verify each page returns data and filters out headers."""
     raw_page = pdf.pages[page_num - 1]
-    rows = parser.extract_rows(raw_page)
+    result = parser.extract_rows(raw_page)
+    rows = result['rows']
     
     assert len(rows) > 0, f"Page {page_num}: No rows extracted."
     
@@ -110,7 +111,8 @@ def test_row_extraction_integrity(parser, pdf, page_num):
 @pytest.mark.parametrize("page_num, expected", EXPECTED_FIRST_ROWS.items())
 def test_first_row_content(parser, pdf, page_num, expected):
     """Verify the very first data row matches expectations (No-skip logic)."""
-    rows = parser.extract_rows(pdf.pages[page_num - 1])
+    result = parser.extract_rows(pdf.pages[page_num - 1])
+    rows = result['rows']
     actual = rows[0]
     
     assert expected["water"] in actual["water"], f"Page {page_num} first row mismatch."
@@ -123,7 +125,8 @@ def test_first_row_content(parser, pdf, page_num, expected):
 @pytest.mark.parametrize("page_num, expected", EXPECTED_LAST_ROWS.items())
 def test_last_row_content(parser, pdf, page_num, expected):
     """Verify the last row of the page is captured correctly."""
-    rows = parser.extract_rows(pdf.pages[page_num - 1])
+    result = parser.extract_rows(pdf.pages[page_num - 1])
+    rows = result['rows']
     actual = rows[-1]
     
     assert expected["water"] in actual["water"], f"Page {page_num} last row mismatch."
@@ -136,7 +139,8 @@ def test_last_row_content(parser, pdf, page_num, expected):
 @pytest.mark.parametrize("page_num, symbol_checks", EXPECTED_SYMBOLS.items())
 def test_symbol_logic(parser, pdf, page_num, symbol_checks):
     """Test Stocked, Classified, and Incl. Tribs detection."""
-    rows = parser.extract_rows(pdf.pages[page_num - 1])
+    result = parser.extract_rows(pdf.pages[page_num - 1])
+    rows = result['rows']
     
     for check in symbol_checks:
         matching_rows = [r for r in rows if check["water"] in r["water"]]
@@ -147,6 +151,18 @@ def test_symbol_logic(parser, pdf, page_num, symbol_checks):
             assert sym in actual_symbols, f"{check['water']} missing symbol {sym}. Got: {actual_symbols}"
             
 
+def test_page_metadata_extraction(parser, pdf):
+    """Test that page metadata (Region/Number) is extracted correctly."""
+    # Test Page 37 (Columbia River)
+    page_37 = parser.extract_rows(pdf.pages[36])
+    assert page_37["metadata"]["page_number"] == 37
+    assert "REGION 4 - Kootenay" in page_37["metadata"]["region"]
+
+    # Test Page 17 (Vancouver Island)
+    page_17 = parser.extract_rows(pdf.pages[16])
+    assert page_17["metadata"]["page_number"] == 17
+    assert "REGION 1 - Vancouver Island" in page_17["metadata"]["region"]
+
 def test_columbia_river_multiple_mus(parser, pdf):
     """
     Test specifically for COLUMBIA RIVER on Page 37.
@@ -155,7 +171,8 @@ def test_columbia_river_multiple_mus(parser, pdf):
     """
     # Page 37 is index 36
     page = pdf.pages[36]
-    rows = parser.extract_rows(page)
+    result = parser.extract_rows(page)
+    rows = result['rows']
     
     # Find the Columbia River row
     columbia = next((r for r in rows if "COLUMBIA RIVER" in r["water"]), None)
@@ -179,7 +196,8 @@ def test_columbia_river_multiple_mus(parser, pdf):
 def test_management_unit_lookbehind(parser, pdf):
     """Verify that MUs in notes like '(also in M.U. 5-15)' are NOT in the MU column."""
     page = pdf.pages[16]
-    rows = parser.extract_rows(page)
+    result = parser.extract_rows(page)
+    rows = result['rows']
     elk = next(r for r in rows if "ELK RIVER" in r["water"])
     
     # NEW: Check list membership
@@ -193,7 +211,8 @@ def test_parsing_separation(parser, pdf):
     but separates items into a list.
     """
     page = pdf.pages[16]
-    rows = parser.extract_rows(page)
+    result = parser.extract_rows(page)
+    rows = result['rows']
     copper = next(r for r in rows if "COPPER CREEK" in r["water"])
     
     # Check that we found multiple distinct regulations (it has bait ban + classified)
@@ -206,7 +225,8 @@ def test_parsing_separation(parser, pdf):
 def test_within_bbox_buffer_check(parser, pdf):
     """Specifically check for CRAIGFLOWER CREEK which fails if buffers are missing."""
     page = pdf.pages[16]
-    rows = parser.extract_rows(page)
+    result = parser.extract_rows(page)
+    rows = result['rows']
     craig = [r for r in rows if "CRAIGFLOWER" in r["water"]]
     assert len(craig) > 0, "CRAIGFLOWER CREEK missing. within_bbox might be too strict."
     assert "1-1" in craig[0]["mu"]
@@ -214,12 +234,14 @@ def test_within_bbox_buffer_check(parser, pdf):
 def test_canim_river_specific_logic(parser, pdf):
     """Verify Canim River on page 31 retains bracketed notes in water body but excludes from MU."""
     page = pdf.pages[30]
-    rows = parser.extract_rows(page)
+    result = parser.extract_rows(page)
+    rows = result['rows']
     
     canim = next((r for r in rows if "CANIM RIVER" in r["water"]), None)
     assert canim is not None, "CANIM RIVER not found on page 31"
     
     assert "3-46" in canim["mu"]
+
     assert "5-15" not in canim["mu"]
     assert "(also in M.U. 5-15)" in canim["water"]
     assert regs_contain(canim, "catch and release")
@@ -234,10 +256,16 @@ EMPTY_PAGES = [
 def test_no_false_positives_on_non_table_pages(parser, pdf, page_num):
     """Verify that pages not in the known list do not return data."""
     raw_page = pdf.pages[page_num - 1]
-    rows = parser.extract_rows(raw_page)
+    result = parser.extract_rows(raw_page)
+    rows = result['rows']
     assert len(rows) == 0, f"Page {page_num} detected rows but should be empty."
 
 
+# ==========================================
+#      PART 2: REGULATION PARSER TESTS
+# ==========================================
+
+# Each tuple is (description, input_str, expected_list)
 # ==========================================
 #      PART 2: REGULATION PARSER TESTS
 # ==========================================
@@ -347,9 +375,35 @@ TEST_CASES = [
             "The standard 100 m closure around a fish rearing facility has been reduced to a no fishing area from the hatchery fence to signs approximately 35 m downstream",
             "Fly fishing only, Sept 1-Nov 30 (where open)"
         ]
+    ),
+    (
+        "Columbia River Pg 37 (Complex Exemptions)",
+        """No Fishing from Revelstoke Dam downstream to Hwy 1 bridge in Revelstoke. 
+        No Fishing from a line between the old Robson Ferry landing and a sign on the south river bank, downstream approximately 950 m to the CPR Bridge, Mar 1-June 30. 
+        Where angling is permitted: EXEMPT from the regional Nov 1-Mar 31 trout/char catch and release and the regional Apr 1-June 14 closure. 
+        Bass daily quota = unlimited. 
+        Kokanee daily quota = 15 from Keenleyside Dam to a line between the old Robson Ferry landing and a sign on the south river bank. 
+        Walleye daily quota = 16 from Keenleyside Dam to the Washington state border. 
+        From Keenleyside Dam downstream to the Washington state border and connected reaches: the Kootenay River (Columbia River confluence to Brilliant Dam) and the Pend d’Oreille River (Columbia River confluence to Waneta Dam): Northern pike daily quota = unlimited and bass daily quota = unlimited. 
+        Burbot catch and release. 
+        Speed restriction (10 km/h) from Mud Lake to Columbia Lake, no power boats in wetlands, no towing and engine power restriction - 15 kW (20 hp), in main channel from Fairmont to Donald. 
+        See Upper Arrow Lake for the portion of the Columbia River which may be found downstream of the Hwy 1 bridge in Revelstoke (depending on reservoir level)""",
+        [
+            "No Fishing from Revelstoke Dam downstream to Hwy 1 bridge in Revelstoke",
+            "No Fishing from a line between the old Robson Ferry landing and a sign on the south river bank, downstream approximately 950 m to the CPR Bridge, Mar 1-June 30",
+            "Where angling is permitted: EXEMPT from the regional Nov 1-Mar 31 trout/char catch and release and the regional Apr 1-June 14 closure",
+            "Bass daily quota = unlimited",
+            "Kokanee daily quota = 15 from Keenleyside Dam to a line between the old Robson Ferry landing and a sign on the south river bank",
+            "Walleye daily quota = 16 from Keenleyside Dam to the Washington state border",
+            "From Keenleyside Dam downstream to the Washington state border and connected reaches: the Kootenay River (Columbia River confluence to Brilliant Dam) and the Pend d’Oreille River (Columbia River confluence to Waneta Dam): Northern pike daily quota = unlimited and bass daily quota = unlimited",
+            "Burbot catch and release",
+            "Speed restriction (10 km/h) from Mud Lake to Columbia Lake",
+            "no power boats in wetlands",
+            "no towing and engine power restriction - 15 kW (20 hp), in main channel from Fairmont to Donald",
+            "See Upper Arrow Lake for the portion of the Columbia River which may be found downstream of the Hwy 1 bridge in Revelstoke (depending on reservoir level)"
+        ]
     )
 ]
-
 @pytest.mark.parametrize("desc, input_text, expected", TEST_CASES)
 def test_reg_parsing(desc, input_text, expected):
     """

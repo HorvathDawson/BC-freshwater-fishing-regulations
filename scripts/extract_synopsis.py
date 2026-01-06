@@ -63,7 +63,6 @@ class FishingSynopsisParser:
                 for pat in patterns:
                     if re.search(pat, text, re.IGNORECASE): return category
             return "General Restriction"
-
         @staticmethod
         def pre_clean(text):
             text = text.replace('\n', ' ')
@@ -77,11 +76,24 @@ class FishingSynopsisParser:
             keyword_pattern = r'(?<!;)\s+\b(' + '|'.join(FishingSynopsisParser.RegParser.START_KEYWORDS) + r')\b'
             text = re.sub(keyword_pattern, r'; \1', text, flags=re.IGNORECASE)
             
+            # 1.5 FIX: Remove semicolons that were inserted right after a period (sentence boundary)
+            text = re.sub(r'\.\s*;\s*', '. ', text)
+            
             # 2. Fix: Remove semicolons inside parentheses/includes
             text = re.sub(r'(\bincluding|\bincludes|\bexcept|\(|\[)\s*;\s*', r'\1 ', text, flags=re.IGNORECASE)
 
             # 3. Fix: Remove semicolons after Forward Slashes
             text = re.sub(r'/\s*;\s*', '/', text)
+            
+            # 3.1 FIX: Remove semicolons after Colons (Fixes boundary descriptions followed by quotas)
+            # e.g., "...Waneta Dam): ; Northern pike..." -> "...Waneta Dam): Northern pike..."
+            text = re.sub(r'(:)\s*;\s*', r'\1 ', text)
+
+            # 3.2 FIX: Protect "EXEMPT" clauses from internal splitting
+            # The parser tries to split on "trout" and "char" inside "EXEMPT from ... trout/char catch and release"
+            # We run this twice to handle multiple keywords appearing in the exemption string
+            text = re.sub(r'(EXEMPT\s+from\s+[^;]+?)\s*;\s*', r'\1 ', text, flags=re.IGNORECASE)
+            text = re.sub(r'(EXEMPT\s+from\s+[^;]+?)\s*;\s*', r'\1 ', text, flags=re.IGNORECASE)
 
             # 3.5 FIX: Specific Healer for "Wild/Hatchery" + Species
             text = re.sub(r'\b(Wild|Hatchery)\s*;\s*(Rainbow|Cutthroat|Steelhead|Trout|Char)', r'\1 \2', text, flags=re.IGNORECASE)
@@ -102,19 +114,31 @@ class FishingSynopsisParser:
             fish_names = r'(Walleye|Pike|Perch|Bass|Trout|Char|Salmon|Steelhead|Kokanee|Burbot|Crayfish)'
             quota_merge_pattern = rf'\b{fish_names}\s*;\s*(Daily|Quota|Limit)'
             text = re.sub(quota_merge_pattern, r'\1 \2', text, flags=re.IGNORECASE)
+            
+            # 6.5 FIX: Daily/Limit + Quota (e.g., "daily; quota")
+            text = re.sub(r'\b(daily|limit)\s*;\s*(quota|limit)', r'\1 \2', text, flags=re.IGNORECASE)
+            
+            # 6.6 FIX: Species + "catch and release" (multi-word action phrase)
+            fish_species = r'(Walleye|Pike|Perch|Bass|Trout|Char|Salmon|Steelhead|Kokanee|Burbot|Crayfish)'
+            text = re.sub(rf'\b{fish_species}\s*;\s*catch\s+and\s+release', r'\1 catch and release', text, flags=re.IGNORECASE)
 
             # 7. FIX: Coquihalla Healer (Mandatory Comma)
             text = re.sub(r'(catch\s+and\s+release),\s*;\s*(bait\s+ban)', r'\1, \2', text, flags=re.IGNORECASE)
 
             # 8. Generic Species + Quota Action (Backup)
-            species_merge_pattern = r'\b(Trout|Char|Steelhead|Salmon|Kokanee|Chinook|Coho|Rainbow|Cutthroat|Bass|Walleye|Pike)(.*?);\s*(catch|limit|quota|daily|release)'
+            species_merge_pattern = r'\b(Trout|Char|Steelhead|Salmon|Kokanee|Chinook|Coho|Rainbow|Cutthroat|Bass|Walleye|Pike|Burbot)(.*?);\s*(catch|limit|quota|daily|release)'
             def merge_match(match):
                 species = match.group(1)
                 middle = match.group(2)
                 action = match.group(3)
                 if len(middle) < 40: return f"{species}{middle} {action}"
                 return match.group(0)
-            text = re.sub(species_merge_pattern, merge_match, text, flags=re.IGNORECASE)
+            # Apply repeatedly until no more merges happen
+            for _ in range(5):  # Max 5 iterations to prevent infinite loops
+                new_text = re.sub(species_merge_pattern, merge_match, text, flags=re.IGNORECASE)
+                if new_text == text:
+                    break
+                text = new_text
 
             # 9. FIX: "Exempt From Single"
             text = re.sub(r'(\bfrom)\s*;\s*(single)', r'\1 \2', text, flags=re.IGNORECASE)
@@ -129,14 +153,13 @@ class FishingSynopsisParser:
             text = re.sub(r'(\ba)\s*;\s*(no\s+fishing)', r'\1 \2', text, flags=re.IGNORECASE)
 
             return text
-
         @staticmethod
         def clean_and_split(text):
             initial_chunks = [c.strip() for c in text.split(';') if c.strip()]
             final_items = []
             for chunk in initial_chunks:
-                # Use positive lookbehind for lowercase and lookahead for uppercase to split sentences
-                sentences = re.split(r'(?<=[a-z])\.\s+(?=[A-Z])', chunk)
+                # Use positive lookbehind for lowercase/digit and lookahead for uppercase to split sentences
+                sentences = re.split(r'(?<=[a-z0-9])\.\s+(?=[A-Z])', chunk)
                 for sentence in sentences:
                     clean_sentence = sentence.strip(' ,;.') 
                     if clean_sentence:
@@ -162,6 +185,7 @@ class FishingSynopsisParser:
                     
                 results.append(res)
             return results
+
     # --- 1. PAGE CLEANING ENGINE ---
 
     def _get_bg_palette(self, img_pil):
@@ -310,12 +334,63 @@ class FishingSynopsisParser:
 
     # --- 3. EXTRACTION ENGINE ---
 
+    def _extract_region_header(self, page):
+        """
+        Scans the top 15% of the page for large text resembling 'REGION X - Name'.
+        Returns the found string or None.
+        """
+        w, h = page.width, page.height
+        
+        # Look only at the top 15% of the page
+        header_area = page.within_bbox((0, 0, w, h * 0.15))
+        
+        # Extract words with size info
+        words = header_area.extract_words(keep_blank_chars=True)
+        
+        # Filter for large text (headers are usually > 12pt, typically 14-20pt)
+        header_text = []
+        for word in words:
+            # Check font size (heuristic: headers are usually larger than body text ~9pt)
+            if word['bottom'] - word['top'] > 10: 
+                header_text.append(word['text'])
+        
+        full_text = " ".join(header_text)
+        
+        # Regex to find "REGION 4 - Kootenay" or "REGION 7A - Omineca"
+        match = re.search(r"(REGION\s+\d+[A-Z]?\s*[-–]\s*[A-Za-z\s]+)", full_text, re.IGNORECASE)
+        
+        if match:
+            return match.group(1).strip()
+        
+        # Fallback: Just return the largest text line found if it contains "REGION"
+        if "REGION" in full_text.upper():
+            return full_text.strip()
+            
+        return None
+
     def extract_rows(self, raw_page, save_debug=False):
-        print(f"\n--- Processing Page {raw_page.page_number} ---")
+        page_num = raw_page.page_number
+        print(f"\n--- Processing Page {page_num} ---")
+        
+        # 1. Clean the page (removes background noise)
         page = self.get_cleaned_page(raw_page)
         
+        # 2. Extract Metadata (Region Name)
+        region_header = self._extract_region_header(page)
+        
+        metadata = {
+            "page_number": page_num,
+            "region": region_header
+        }
+        
+        # Initialize the return object
+        result = {
+            "metadata": metadata,
+            "rows": []
+        }
+        
         tables = page.find_tables(table_settings={"vertical_strategy": "lines", "horizontal_strategy": "lines"})
-        if not tables: return []
+        if not tables: return result
         
         main_t = max(tables, key=lambda t: (t.bbox[2]-t.bbox[0]) * (t.bbox[3]-t.bbox[1]))
         x0, top, x1, bottom = main_t.bbox
@@ -325,7 +400,7 @@ class FishingSynopsisParser:
             div_x = next(c[2] for c in sorted(main_t.cells, key=itemgetter(1, 0)) if abs(c[0]-x0) < 2 and abs(c[2]-x1) > 5)
         except StopIteration:
             print(f"  [Notice] Could not find column divider - skipping non-regulation table")
-            return []
+            return result
         
         h_buf, v_buf = 2.0, 1.0
         
@@ -368,7 +443,7 @@ class FishingSynopsisParser:
             
             if not has_header:
                 print(f"  [Notice] No header row found - skipping entire table")
-                return []
+                return result
         
         if save_debug: 
             self._generate_audit_image(page, raw_page.page_number)
@@ -427,8 +502,9 @@ class FishingSynopsisParser:
             if (w_txt.strip() or mus) and (w_txt or r_txt or mus or all_syms):
                 structured_data.append({'water': w_txt, 'mu': mus, 'regs': r_txt, 'symbols': all_syms})
         
-        print(f"  [Success] Extracted {len(structured_data)} data rows.")
-        return structured_data
+        result["rows"] = structured_data
+        print(f"  [Success] Extracted {len(structured_data)} data rows for {region_header or 'Unknown Region'}.")
+        return result
 
     def get_color_sections(self, page, x0, top, bottom):
         img = page.to_image(resolution=150).original
@@ -450,14 +526,16 @@ class FishingSynopsisParser:
         
         # 1. Handle Empty Input
         if not text: 
-            return ([] if is_regs else ""), symbols, [] # Return empty list for MUs
+            return ([] if is_regs else ""), symbols, [] 
         
         # 2. Extract Management Units (MUs)
+        # Finds patterns like '4-8', '4-15' but ignores '(5-15)' or 'M.U. 5-15'
         mu_pattern = r'(?<!\()(?<!M\.U\. )\b\d{1,2}-\d{1,2}\b'
+        
         if not is_regs:
             found_mus = re.findall(mu_pattern, text)
             if found_mus:
-                # Store unique MUs while preserving order
+                # Store unique MUs preserving order
                 mu_list = list(dict.fromkeys(found_mus))
                 for mu in mu_list: text = text.replace(mu, "")
         
@@ -485,7 +563,6 @@ class FishingSynopsisParser:
             else:
                 return [], symbols, mu_list
 
-        # Return text, symbols, and the LIST of MUs
         return cleaned_text, symbols, mu_list
 
 
@@ -503,32 +580,59 @@ def smart_wrap(text, width):
         wrapped_lines.extend(textwrap.wrap(para, width=width))
     return wrapped_lines
 
-def print_pretty_table(data):
-    if not data: return
+def print_pretty_table(page_result):
+    if not page_result or not page_result.get("rows"):
+        return
+
+    meta = page_result["metadata"]
+    rows = page_result["rows"]
+
+    # Print Page Metadata Header
+    print("\n" + "#" * 60)
+    print(f"  PAGE: {meta['page_number']}  |  REGION: {meta['region'] or 'N/A'}")
+    print("#" * 60)
+
     avail = shutil.get_terminal_size((80, 20)).columns - 15
     w_w, m_w, s_w = int(avail * 0.25), int(avail * 0.10), int(avail * 0.15)
     r_w = avail - w_w - m_w - s_w
     
     sep = f"{'-'*w_w}-+-{'-'*m_w}-+-{'-'*s_w}-+-{'-'*r_w}"
-    print(f"\n{'WATER BODY':<{w_w}} | {'MU':<{m_w}} | {'SYMBOLS':<{s_w}} | {'REGULATIONS'}\n{'='*len(sep)}")
+    print(f"{'WATER BODY':<{w_w}} | {'MU':<{m_w}} | {'SYMBOLS':<{s_w}} | {'REGULATIONS'}\n{'='*len(sep)}")
     
-    for row in data:
+    for row in rows:
         w_l = smart_wrap(row['water'], width=w_w) or [""]
         
-        # --- CHANGED: Join the list of MUs for display ---
-        mu_str = ", ".join(row['mu']) if isinstance(row['mu'], list) else str(row['mu'])
+        mu_val = row.get('mu', [])
+        mu_str = ", ".join(mu_val) if isinstance(mu_val, list) else str(mu_val)
         m_l = smart_wrap(mu_str, width=m_w) or [""]
-        # -------------------------------------------------
         
         s_l = smart_wrap(", ".join(row['symbols']), width=s_w) or [""]
         
+        # --- CHANGED: HANGING INDENT + SPACING LOGIC ---
         reg_data = row['regs']
+        r_l = []
         if isinstance(reg_data, list):
-            reg_text_display = "\n".join([item['details'] for item in reg_data])
+            for i, item in enumerate(reg_data):
+                # Wrap each specific regulation item individually
+                # initial_indent puts the bullet on the first line
+                # subsequent_indent adds spaces to align the next lines (hanging indent)
+                lines = textwrap.wrap(
+                    item['details'], 
+                    width=r_w, 
+                    initial_indent="* ", 
+                    subsequent_indent="  " 
+                )
+                r_l.extend(lines)
+                
+                # Add a blank line between points (but not after the last one)
+                if i < len(reg_data) - 1:
+                    r_l.append("")
         else:
-            reg_text_display = str(reg_data)
-            
-        r_l = smart_wrap(reg_text_display, width=r_w) or [""]
+            # Fallback if data is malformed
+            r_l = smart_wrap(str(reg_data), width=r_w)
+        
+        if not r_l: r_l = [""]
+        # -----------------------------------------------
         
         for i in range(max(len(w_l), len(m_l), len(r_l), len(s_l))):
             w = w_l[i] if i < len(w_l) else ""
@@ -537,18 +641,19 @@ def print_pretty_table(data):
             r = r_l[i] if i < len(r_l) else ""
             print(f"{w:<{w_w}} | {m:<{m_w}} | {s:<{s_w}} | {r}")
         print(sep)
-
+        
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--page", type=int, default=17)
+    parser.add_argument("--page", type=int, default=37)
     parser.add_argument("--debug", action="store_true")
     args = parser.parse_args()
     
     p = FishingSynopsisParser()
     PDF_PATH = os.path.join(p.output_dir, "fishing_synopsis.pdf")
+    
     with pdfplumber.open(PDF_PATH) as pdf:
-        data = p.extract_rows(pdf.pages[args.page - 1], save_debug=args.debug)
-        print_pretty_table(data)
+        page_result = p.extract_rows(pdf.pages[args.page - 1], save_debug=args.debug)
+        print_pretty_table(page_result)
 
 if __name__ == "__main__":
     main()
