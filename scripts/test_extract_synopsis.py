@@ -303,6 +303,23 @@ TEST_CASES = [
         ]
     ),
     (
+        "Coquihalla River Page 24: Full regulation block (multiple closures + restrictions)",
+        """No Fishing upstream of the northern entrance to the upper most railway tunnel, Nov 1-June 30 (see map on page 24). 
+        Fly fishing only. 
+        bait ban upstream of the northern entrance to the upper most railway tunnel, Jul 1-Oct 31. 
+        No Fishing downstream of the southern entrance to the lower most railway tunnel, Apr 1-Oct 31. 
+        No Fishing at Othello Tunnels from the northern entrance to the upper most railway tunnel to the southern entrance of the lower most tunnel, approximately 700 m length. 
+        Trout/char (including steelhead) catch and release, bait ban, downstream of the southern entrance to the lower most railway tunnel, Nov 1-Mar 31""",
+        [
+            "No Fishing upstream of the northern entrance to the upper most railway tunnel, Nov 1-June 30 (see map on page 24)",
+            "Fly fishing only",
+            "bait ban upstream of the northern entrance to the upper most railway tunnel, Jul 1-Oct 31",
+            "No Fishing downstream of the southern entrance to the lower most railway tunnel, Apr 1-Oct 31",
+            "No Fishing at Othello Tunnels from the northern entrance to the upper most railway tunnel to the southern entrance of the lower most tunnel, approximately 700 m length",
+            "Trout/char (including steelhead) catch and release, bait ban, downstream of the southern entrance to the lower most railway tunnel, Nov 1-Mar 31"
+        ]
+    ),
+    (
         "Cultus Lake: Adjective + Species (No Wild Trout)",
         "No wild trout over 50 cm, 1 bull trout over 60 cm",
         [
@@ -443,5 +460,18 @@ def test_reg_parsing(desc, input_text, expected):
     # Normalize (strip whitespace) for comparison
     expected_norm = [s.strip() for s in expected]
     actual_norm = [s.strip() for s in actual_details]
+    
+    # Debug output
+    if actual_norm != expected_norm:
+        print(f"\n\n{'='*80}")
+        print(f"FAILED: {desc}")
+        print(f"{'='*80}")
+        print(f"\nExpected {len(expected_norm)} items:")
+        for i, item in enumerate(expected_norm, 1):
+            print(f"  {i}. {item}")
+        print(f"\nActual {len(actual_norm)} items:")
+        for i, item in enumerate(actual_norm, 1):
+            print(f"  {i}. {item}")
+        print(f"{'='*80}\n")
     
     assert actual_norm == expected_norm, f"Failed on: {desc}"

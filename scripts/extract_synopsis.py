@@ -160,8 +160,12 @@ class FishingSynopsisParser:
             initial_chunks = [c.strip() for c in text.split(';') if c.strip()]
             final_items = []
             for chunk in initial_chunks:
-                # Use positive lookbehind for lowercase/digit and lookahead for uppercase to split sentences
-                sentences = re.split(r'(?<=[a-z0-9])\.\s+(?=[A-Z])', chunk)
+                # Build regex pattern to split on period + space + (uppercase OR start keyword)
+                # This catches both "...tunnel. No Fishing..." and "...only. bait ban..."
+                # Lookbehind changed to accept any character (not just [a-z0-9]) to handle cases like "...24). Fly fishing"
+                keyword_pattern = '|'.join(re.escape(kw) for kw in FishingSynopsisParser.RegParser.START_KEYWORDS)
+                split_pattern = rf'\.\s+(?=[A-Z]|(?:{keyword_pattern}))'
+                sentences = re.split(split_pattern, chunk, flags=re.IGNORECASE)
                 for sentence in sentences:
                     clean_sentence = sentence.strip(' ,;.') 
                     if clean_sentence:
