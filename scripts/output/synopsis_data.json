@@ -1,5 +1,5 @@
 {
-  "How to Read the Regional Water-Specific Tables": {
+  "REGION 1 - VANCOUVER ISLAND": {
     "alice lake": [
       {
         "water": "ALICE LAKE",
@@ -1314,8 +1314,8 @@
           }
         ],
         "symbols": [
-          "Incl. Tribs",
           "Stocked",
+          "Incl. Tribs",
           "Classified"
         ],
         "page": 17
@@ -9698,7 +9698,7 @@
       }
     ]
   },
-  "REGION 3 - Thompson-Nicola Water-Specific Regulations": {
+  "REGION 3 - Thompson-Nicola": {
     "abbott lake": [
       {
         "water": "ABBOTT LAKE",
@@ -27564,7 +27564,7 @@
       }
     ]
   },
-  "REGION 7A - Omineca Regional": {
+  "REGION 7A - Omineca": {
     "airline lake": [
       {
         "water": "AIRLINE LAKE",
@@ -28526,9 +28526,7 @@
         ],
         "page": 65
       }
-    ]
-  },
-  "REGION 7A - Omineca": {
+    ],
     "hart lake (fort st. james)": [
       {
         "water": "HART LAKE (Fort St. James)",

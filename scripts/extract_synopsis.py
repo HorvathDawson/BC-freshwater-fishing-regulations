@@ -10,11 +10,13 @@ from collections import namedtuple
 from sklearn.cluster import DBSCAN
 from sklearn.preprocessing import StandardScaler
 from PIL import Image, ImageDraw
+import matplotlib.pyplot as plt
+import matplotlib.patches as patches
 
 Sequence = namedtuple('Sequence', ['bbox', 'y_mid', 'avg_render_idx', 'text', 'char_indices'])
 
 class FishingSynopsisParser:
-    def __init__(self, output_dir="output", debug_dir="debug_crops", audit_dir="debug_frames"):
+    def __init__(self, output_dir="output", debug_dir="debug", audit_dir="debug"):
         self.output_dir = output_dir
         self.debug_dir = os.path.join(output_dir, debug_dir)
         self.audit_dir = os.path.join(output_dir, audit_dir)
@@ -221,7 +223,7 @@ class FishingSynopsisParser:
         bad_chars = sum(1 for c in chars if not self._check_char_sanity(c, np_img, scale, bg_pal))
         return (bad_chars / len(chars)) < 0.2
 
-    def get_cleaned_page(self, page):
+    def get_cleaned_page(self, page, save_debug=False, page_num=None):
         resolution = 400
         scale = resolution / 72
         img = page.to_image(resolution=resolution).original.convert('RGB')
@@ -268,17 +270,28 @@ class FishingSynopsisParser:
         X = np.array([[s.y_mid, s.avg_render_idx] for s in sequences])
         labels = DBSCAN(eps=self.DBSCAN_EPS, min_samples=self.DBSCAN_MIN_SAMPLES).fit(StandardScaler().fit_transform(X)).labels_
         
+        # Calculate passthrough rates for each cluster
+        cluster_stats = {}
         keep_indices = set()
         for k in set(labels):
             indices = [i for i, val in enumerate(labels) if val == k]
             if k == -1:
+                kept = 0
                 for idx in indices:
                     if self._check_group_sanity(raw_groups[idx], np_img, scale, bg_pal):
                         keep_indices.update(sequences[idx].char_indices)
+                        kept += 1
+                cluster_stats[k] = {'total': len(indices), 'kept': kept, 'rate': kept / len(indices) if len(indices) > 0 else 0}
             else:
                 sane_count = sum(1 for idx in indices if self._check_group_sanity(raw_groups[idx], np_img, scale, bg_pal))
-                if (sane_count / len(indices)) >= self.CLUSTER_PASS_THRESHOLD:
+                passthrough = (sane_count / len(indices)) >= self.CLUSTER_PASS_THRESHOLD
+                if passthrough:
                     for idx in indices: keep_indices.update(sequences[idx].char_indices)
+                cluster_stats[k] = {'total': len(indices), 'kept': len(indices) if passthrough else 0, 'rate': 1.0 if passthrough else 0.0}
+        
+        # Save debug visualizations if requested
+        if save_debug and page_num is not None:
+            self._save_cluster_debug(page, page_num, sequences, labels, cluster_stats, keep_indices, np_img, scale)
 
         # ============================================================================
         # WARNING: THIS CODE IS BROKEN AND SHOULD NOT BE SHIPPED
@@ -296,10 +309,16 @@ class FishingSynopsisParser:
         # ============================================================================
         
         # Debug: Print first line characters sorted by render_index
-        if lines and lines[0]:
+        if save_debug and lines and lines[0]:
             first_line_chars = sorted(lines[0], key=lambda c: c.get('render_index', 0))
             first_line_text = ''.join([c.get('text', '') for c in first_line_chars])
-            print(f"  [Debug] First line chars (n={len(first_line_chars)}): {first_line_text}")
+            render_indices = [c.get('render_index', -1) for c in first_line_chars]
+            # Print characters with their render indices aligned
+            char_display = ' '.join([f"{c.get('text', ' '):>4}" for c in first_line_chars])
+            idx_display = ' '.join([f"{c.get('render_index', -1):>4}" for c in first_line_chars])
+            print(f"  [Debug] First line chars (n={len(first_line_chars)}):")
+            print(f"    Chars:   {char_display}")
+            print(f"    Indices: {idx_display}")
 
         # Remove overlapping characters from first line only
         overlap_exists = False
@@ -342,7 +361,7 @@ class FishingSynopsisParser:
         keep_indices -= chars_to_remove
         
         # Debug: Print what remains on first line
-        if lines and lines[0]:
+        if save_debug and lines and lines[0]:
             remaining = [c for c in sorted(lines[0], key=lambda c: c.get('render_index', 0)) if c['render_index'] in keep_indices]
             remaining_text = ''.join([c.get('text', '') for c in remaining])
             print(f"  [Debug] After overlap removal (n={len(remaining)}): {remaining_text}")
@@ -354,6 +373,130 @@ class FishingSynopsisParser:
         return page.filter(lambda o: o.get("render_index") in keep_indices if o.get("object_type") == "char" else True)
 
     # --- 2. SYMBOL & DEBUG LOGIC ---
+
+    def _save_cluster_debug(self, page, page_num, sequences, labels, cluster_stats, keep_indices, np_img, scale):
+        """Save cluster scatter plot and character bbox images organized by cluster."""
+        page_debug_dir = os.path.join(self.debug_dir, f"page_{page_num:03d}")
+        os.makedirs(page_debug_dir, exist_ok=True)
+        
+        # 0. Create bbox visualization of all groups BEFORE clustering (colored by render_index)
+        fig, ax = plt.subplots(figsize=(14, 10))
+        ax.imshow(np_img)
+        
+        # Get render indices for colormap
+        render_indices = np.array([s.avg_render_idx for s in sequences])
+        if len(render_indices) > 0:
+            vmin, vmax = render_indices.min(), render_indices.max()
+        else:
+            vmin, vmax = 0, 1
+        
+        # Create colormap
+        cmap = plt.cm.viridis
+        norm = plt.Normalize(vmin=vmin, vmax=vmax)
+        
+        # Draw bounding boxes for each sequence, colored by render index
+        for seq in sequences:
+            color = cmap(norm(seq.avg_render_idx))
+            x0, y0 = seq.bbox[0] * scale, seq.bbox[1] * scale
+            x1, y1 = seq.bbox[2] * scale, seq.bbox[3] * scale
+            
+            rect = patches.Rectangle((x0, y0), x1 - x0, y1 - y0,
+                                    linewidth=1.5, edgecolor='black', 
+                                    facecolor=color, alpha=0.5)
+            ax.add_patch(rect)
+        
+        # Add colorbar
+        sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
+        sm.set_array([])
+        cbar = plt.colorbar(sm, ax=ax, fraction=0.046, pad=0.04)
+        cbar.set_label('Average Render Index', fontsize=12)
+        
+        ax.set_title(f'Page {page_num} - All Groups Before Clustering (colored by render index)', fontsize=12)
+        ax.axis('off')
+        
+        pre_cluster_path = os.path.join(page_debug_dir, 'pre_clustering_render_order.png')
+        plt.savefig(pre_cluster_path, dpi=150, bbox_inches='tight')
+        plt.close()
+        print(f"  [Debug] Saved pre-clustering visualization: {pre_cluster_path}")
+        
+        # 1. Create scatter plot of clusters
+        fig, ax = plt.subplots(figsize=(12, 8))
+        
+        # Extract data for plotting
+        X = np.array([[s.y_mid, s.avg_render_idx] for s in sequences])
+        unique_labels = set(labels)
+        colors = plt.cm.Spectral(np.linspace(0, 1, len(unique_labels)))
+        
+        for k, col in zip(unique_labels, colors):
+            if k == -1:
+                col = 'black'  # Noise points
+            
+            class_member_mask = (labels == k)
+            xy = X[class_member_mask]
+            
+            stats = cluster_stats.get(k, {})
+            rate = stats.get('rate', 0)
+            total = stats.get('total', 0)
+            kept = stats.get('kept', 0)
+            
+            label = f"Cluster {k}: {kept}/{total} ({rate*100:.1f}%)"
+            ax.scatter(xy[:, 0], xy[:, 1], c=[col], s=100, alpha=0.6, edgecolors='black', label=label)
+        
+        ax.set_xlabel('Y Position (mid)', fontsize=12)
+        ax.set_ylabel('Average Render Index', fontsize=12)
+        ax.set_title(f'Page {page_num} - DBSCAN Clusters (eps={self.DBSCAN_EPS}, min_samples={self.DBSCAN_MIN_SAMPLES})', fontsize=14)
+        ax.legend(loc='best', fontsize=9)
+        ax.grid(True, alpha=0.3)
+        
+        scatter_path = os.path.join(page_debug_dir, 'cluster_scatter.png')
+        plt.savefig(scatter_path, dpi=150, bbox_inches='tight')
+        plt.close()
+        print(f"  [Debug] Saved cluster scatter: {scatter_path}")
+        
+        # 2. Save character bbox images for each cluster
+        for k in unique_labels:
+            cluster_dir = os.path.join(page_debug_dir, f"cluster_{k if k != -1 else 'noise'}")
+            os.makedirs(cluster_dir, exist_ok=True)
+            
+            # Get sequences in this cluster
+            cluster_mask = (labels == k)
+            cluster_sequences = [seq for i, seq in enumerate(sequences) if cluster_mask[i]]
+            
+            if not cluster_sequences:
+                continue
+            
+            # Create visualization showing all characters in this cluster
+            fig, ax = plt.subplots(figsize=(14, 10))
+            ax.imshow(np_img)
+            
+            stats = cluster_stats.get(k, {})
+            kept = stats.get('kept', 0)
+            total = stats.get('total', 0)
+            rate = stats.get('rate', 0)
+            
+            # Draw bounding boxes for each character in this cluster
+            for seq in cluster_sequences:
+                for char_idx in seq.char_indices:
+                    # Find the character by render_index
+                    char = next((c for c in page.chars if c.get('render_index') == char_idx), None)
+                    if char:
+                        x0, y0, x1, y1 = char['x0'] * scale, char['top'] * scale, char['x1'] * scale, char['bottom'] * scale
+                        
+                        # Color: green if kept, red if filtered out
+                        color = 'green' if char_idx in keep_indices else 'red'
+                        rect = patches.Rectangle((x0, y0), x1 - x0, y1 - y0, 
+                                                linewidth=1, edgecolor=color, facecolor='none', alpha=0.7)
+                        ax.add_patch(rect)
+            
+            status = "KEPT" if kept == total else f"FILTERED ({kept}/{total})"
+            ax.set_title(f"Cluster {k if k != -1 else 'Noise'} - {status} - Passthrough: {rate*100:.1f}%", fontsize=12)
+            ax.axis('off')
+            
+            cluster_img_path = os.path.join(cluster_dir, 'character_bboxes.png')
+            plt.savefig(cluster_img_path, dpi=150, bbox_inches='tight')
+            plt.close()
+        
+        print(f"  [Debug] Saved cluster visualizations to: {page_debug_dir}")
 
     def detect_visual_symbols(self, section_context):
         """Identifies icons via vector curve geometry and rejects large map artifacts."""
@@ -374,7 +517,8 @@ class FishingSynopsisParser:
         return symbols
 
     def _generate_audit_image(self, clean_page, page_num):
-        if not os.path.exists(self.audit_dir): os.makedirs(self.audit_dir, exist_ok=True)
+        page_debug_dir = os.path.join(self.audit_dir, f"page_{page_num:03d}")
+        os.makedirs(page_debug_dir, exist_ok=True)
         res = 150
         scale = res / 72
         im = clean_page.to_image(resolution=res).original.convert("RGBA")
@@ -383,12 +527,14 @@ class FishingSynopsisParser:
         for char in clean_page.chars:
             draw.rectangle([char['x0']*scale, char['top']*scale, char['x1']*scale, char['bottom']*scale], outline=(255, 0, 0, 80))
         combined = Image.alpha_composite(im, overlay)
-        save_path = os.path.join(self.audit_dir, f"page_{page_num}_audit.png")
+        save_path = os.path.join(page_debug_dir, "character_audit.png")
         combined.save(save_path)
         print(f"  [Debug] Saved character audit: {save_path}")
 
-    def _save_row_crops(self, page, sections, div_x, x0, x1):
-        if not os.path.exists(self.debug_dir): os.makedirs(self.debug_dir, exist_ok=True)
+    def _save_row_crops(self, page, page_num, sections, div_x, x0, x1):
+        page_debug_dir = os.path.join(self.debug_dir, f"page_{page_num:03d}")
+        row_crops_dir = os.path.join(page_debug_dir, "row_crops")
+        os.makedirs(row_crops_dir, exist_ok=True)
         page_img = page.to_image(resolution=150)
         img_w, img_h = page_img.original.size
         scale = img_w / float(page.width)
@@ -400,8 +546,8 @@ class FishingSynopsisParser:
             draw = ImageDraw.Draw(crop)
             rel_div = int((div_x * scale) - l)
             draw.line([(rel_div, 0), (rel_div, crop.height)], fill="red", width=2)
-            crop.save(os.path.join(self.debug_dir, f"row_{i:03d}.png"))
-        print(f"  [Debug] Saved {len(sections)} row crops to: {self.debug_dir}")
+            crop.save(os.path.join(row_crops_dir, f"row_{i:03d}.png"))
+        print(f"  [Debug] Saved {len(sections)} row crops to: {row_crops_dir}")
 
     # --- 3. EXTRACTION ENGINE ---
 
@@ -460,7 +606,7 @@ class FishingSynopsisParser:
         print(f"\n--- Processing Page {page_num} ---")
         
         # 1. Clean the page (removes background noise)
-        page = self.get_cleaned_page(raw_page)
+        page = self.get_cleaned_page(raw_page, save_debug=save_debug, page_num=page_num)
         
         # 2. Extract Metadata (Region Name)
         region_header = self._extract_region_header(page)
@@ -533,8 +679,8 @@ class FishingSynopsisParser:
                 return result
         
         if save_debug: 
-            self._generate_audit_image(page, raw_page.page_number)
-            self._save_row_crops(page, sections, div_x, x0, x1)
+            self._generate_audit_image(page, page_num)
+            self._save_row_crops(page, page_num, sections, div_x, x0, x1)
 
         structured_data = []
 
