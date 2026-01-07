@@ -280,6 +280,77 @@ class FishingSynopsisParser:
                 if (sane_count / len(indices)) >= self.CLUSTER_PASS_THRESHOLD:
                     for idx in indices: keep_indices.update(sequences[idx].char_indices)
 
+        # ============================================================================
+        # WARNING: THIS CODE IS BROKEN AND SHOULD NOT BE SHIPPED
+        # ============================================================================
+        # The overlap detection below incorrectly removes valid characters (e.g., 
+        # the 'c' in "Omineca"). Using mean render_index as a threshold is a naive
+        # approach that doesn't distinguish between watermarks and actual content.
+        # 
+        # FIXME: Implement proper watermark detection using:
+        #   - Text pattern matching (detect repeated region names)
+        #   - Spatial clustering (group characters by position/alignment)
+        #   - Font metadata (watermarks often use different fonts)
+        # 
+        # Leaving this as a TODO for later is BAD PRACTICE. Fix it properly NOW.
+        # ============================================================================
+        
+        # Debug: Print first line characters sorted by render_index
+        if lines and lines[0]:
+            first_line_chars = sorted(lines[0], key=lambda c: c.get('render_index', 0))
+            first_line_text = ''.join([c.get('text', '') for c in first_line_chars])
+            print(f"  [Debug] First line chars (n={len(first_line_chars)}): {first_line_text}")
+
+        # Remove overlapping characters from first line only
+        overlap_exists = False
+        
+        if lines and lines[0]:
+            # Get only the characters from first line that are in keep_indices
+            line_chars = [c for c in lines[0] if c['render_index'] in keep_indices]
+            
+            # Check each character against all others on the same line for any overlap
+            for i, c1 in enumerate(line_chars):
+                for j in range(i + 1, len(line_chars)):
+                    c2 = line_chars[j]
+                    # Shrink bboxes by 10% to avoid accidental overlap from font rendering
+                    shrink = 0.1
+                    c1_w, c1_h = c1['x1'] - c1['x0'], c1['bottom'] - c1['top']
+                    c2_w, c2_h = c2['x1'] - c2['x0'], c2['bottom'] - c2['top']
+                    
+                    c1_x0 = c1['x0'] + c1_w * shrink
+                    c1_x1 = c1['x1'] - c1_w * shrink
+                    c1_top = c1['top'] + c1_h * shrink
+                    c1_bottom = c1['bottom'] - c1_h * shrink
+                    
+                    c2_x0 = c2['x0'] + c2_w * shrink
+                    c2_x1 = c2['x1'] - c2_w * shrink
+                    c2_top = c2['top'] + c2_h * shrink
+                    c2_bottom = c2['bottom'] - c2_h * shrink
+                    
+                    x_overlap = max(0, min(c1_x1, c2_x1) - max(c1_x0, c2_x0))
+                    y_overlap = max(0, min(c1_bottom, c2_bottom) - max(c1_top, c2_top))
+                    
+                    if x_overlap * y_overlap > 0:
+                        overlap_exists = True
+                        break
+        
+        chars_to_remove = set()
+        if overlap_exists:
+            mean_render_idx = np.mean([c['render_index'] for c in lines[0] if c['render_index'] in keep_indices])
+            chars_to_remove = set([c['render_index'] for c in lines[0] if c['render_index'] < mean_render_idx and c['render_index'] in keep_indices])
+        # Update keep_indices to exclude duplicates
+        keep_indices -= chars_to_remove
+        
+        # Debug: Print what remains on first line
+        if lines and lines[0]:
+            remaining = [c for c in sorted(lines[0], key=lambda c: c.get('render_index', 0)) if c['render_index'] in keep_indices]
+            remaining_text = ''.join([c.get('text', '') for c in remaining])
+            print(f"  [Debug] After overlap removal (n={len(remaining)}): {remaining_text}")
+        
+        # ===========================================================================
+        # END OF BROKEN CODE
+        # ==========================================================================
+
         return page.filter(lambda o: o.get("render_index") in keep_indices if o.get("object_type") == "char" else True)
 
     # --- 2. SYMBOL & DEBUG LOGIC ---
@@ -356,15 +427,31 @@ class FishingSynopsisParser:
         
         full_text = " ".join(header_text)
         
-        # Regex to find "REGION 4 - Kootenay" or "REGION 7A - Omineca"
-        match = re.search(r"(REGION\s+\d+[A-Z]?\s*[-–]\s*[A-Za-z\s]+)", full_text, re.IGNORECASE)
+        # If no large text found, try with a lower threshold (8pt)
+        if not full_text.strip():
+            header_text = []
+            for word in words:
+                if word['bottom'] - word['top'] > 8:
+                    header_text.append(word['text'])
+            full_text = " ".join(header_text)
+        
+        # Regex to find "REGION 4 - Kootenay" or "REGION 7A - Omineca" or "REGION 3 - Thompson-Nicola"
+        # Handles region names with hyphens (Thompson-Nicola) and spaces (Lower Mainland)
+        # Pattern: REGION + number + optional letter + dash + region name (words with hyphens/spaces)
+        match = re.search(r"(REGION\s+\d+[A-Z]?\s*[-–]\s+[A-Za-z]+(?:[-\s][A-Za-z]+)*)", full_text, re.IGNORECASE)
         
         if match:
-            return match.group(1).strip()
+            region = match.group(1).strip()
+            # Remove common suffix words that aren't part of the region name
+            region = re.sub(r'\s+(Water-Specific|Regional|Water|Regulations|Specific|EXCEPTIONS|BODY).*$', '', region, flags=re.IGNORECASE)
+            return region.strip()
         
-        # Fallback: Just return the largest text line found if it contains "REGION"
-        if "REGION" in full_text.upper():
-            return full_text.strip()
+        # Fallback: Look for just "REGION X -" pattern and be more flexible
+        match = re.search(r"(REGION\s+\d+[A-Z]?\s*[-–]\s+[\w-]+(?:\s+[\w-]+)?)", full_text, re.IGNORECASE)
+        if match:
+            region = match.group(1).strip()
+            region = re.sub(r'\s+(Water-Specific|Regional|Water|Regulations|Specific|EXCEPTIONS|BODY).*$', '', region, flags=re.IGNORECASE)
+            return region.strip()
             
         return None
 
@@ -500,7 +587,13 @@ class FishingSynopsisParser:
             
             # Only include rows that have a water body name OR management units (real regulation data)
             if (w_txt.strip() or mus) and (w_txt or r_txt or mus or all_syms):
-                structured_data.append({'water': w_txt, 'mu': mus, 'regs': r_txt, 'symbols': all_syms})
+                structured_data.append({
+                    'water': w_txt, 
+                    'mu': mus, 
+                    'regs': r_txt, 
+                    'symbols': all_syms,
+                    'page': page_num
+                })
         
         result["rows"] = structured_data
         print(f"  [Success] Extracted {len(structured_data)} data rows for {region_header or 'Unknown Region'}.")
@@ -641,19 +734,143 @@ def print_pretty_table(page_result):
             r = r_l[i] if i < len(r_l) else ""
             print(f"{w:<{w_w}} | {m:<{m_w}} | {s:<{s_w}} | {r}")
         print(sep)
+
+
+# ==========================================
+#      FULL PDF EXTRACTOR CLASS
+# ==========================================
+
+class SynopsisExtractor:
+    """
+    High-level class that handles downloading and extracting the entire
+    BC Freshwater Fishing Synopsis PDF, organizing results by region.
+    """
+    
+    SYNOPSIS_URL = "https://www2.gov.bc.ca/assets/gov/sports-recreation-arts-and-culture/outdoor-recreation/fishing-and-hunting/freshwater-fishing/fishing_synopsis.pdf"
+    
+    def __init__(self, output_dir="output"):
+        self.parser = FishingSynopsisParser(output_dir=output_dir)
+        self.output_dir = output_dir
+        self.pdf_path = os.path.join(output_dir, "fishing_synopsis.pdf")
         
+    def download_pdf(self, url=None, filename=None):
+        """Download the PDF if it doesn't already exist."""
+        if url is None:
+            url = self.SYNOPSIS_URL
+        if filename is None:
+            filename = self.pdf_path
+            
+        if os.path.exists(filename):
+            print(f"PDF already exists at {filename}")
+            return
+            
+        print(f"Downloading PDF from {url}...")
+        try:
+            import requests
+            headers = {'User-Agent': 'Mozilla/5.0'}
+            response = requests.get(url, stream=True, headers=headers)
+            response.raise_for_status()
+            with open(filename, 'wb') as f:
+                for chunk in response.iter_content(chunk_size=8192):
+                    f.write(chunk)
+            print(f"Download complete: {filename}")
+        except Exception as e:
+            print(f"Error downloading PDF: {e}")
+            exit()
+    
+    def extract_all_pages(self):
+        """
+        Extract rows from all pages in the PDF and organize by region.
+        Returns a dictionary with regions as keys and lists of waterbody entries as values.
+        
+        Structure:
+        {
+            "REGION 1 - Vancouver Island": {
+                "alice lake": [row1, row2, ...],
+                "campbell river": [row1],
+                ...
+            },
+            "REGION 2 - Lower Mainland": {
+                ...
+            }
+        }
+        """
+        if not os.path.exists(self.pdf_path):
+            print(f"PDF not found at {self.pdf_path}. Downloading...")
+            self.download_pdf()
+        
+        print(f"Extracting all pages from {self.pdf_path}...")
+        
+        regions_data = {}
+        current_region = "Unknown Region"
+        
+        with pdfplumber.open(self.pdf_path) as pdf:
+            for page_num, page in enumerate(pdf.pages, start=1):
+                # Extract rows from this page
+                result = self.parser.extract_rows(page)
+                
+                # Update current region if metadata has it
+                if result['metadata'].get('region'):
+                    current_region = result['metadata']['region']
+                
+                # Skip pages with no rows
+                if not result['rows']:
+                    continue
+                
+                # Initialize region in output dict if needed
+                if current_region not in regions_data:
+                    regions_data[current_region] = {}
+                
+                # Add rows to the appropriate region
+                for row in result['rows']:
+                    # Normalize waterbody name for grouping (lowercase, strip whitespace)
+                    water_name = row['water'].strip().lower()
+                    
+                    # Initialize array for this waterbody if needed
+                    if water_name not in regions_data[current_region]:
+                        regions_data[current_region][water_name] = []
+                    
+                    # Append this row to the array for this waterbody
+                    regions_data[current_region][water_name].append(row)
+                
+                # Progress indicator
+                if page_num % 10 == 0:
+                    print(f"  Processed {page_num} pages...")
+        
+        print(f"Extraction complete. Found {len(regions_data)} regions.")
+        return regions_data
+    
+    def save_to_json(self, data, filename="synopsis_data.json"):
+        """Save the extracted data to a JSON file."""
+        import json
+        output_path = os.path.join(self.output_dir, filename)
+        with open(output_path, 'w', encoding='utf-8') as f:
+            json.dump(data, f, indent=2, ensure_ascii=False)
+        print(f"Saved data to {output_path}")
+        return output_path
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--page", type=int, default=37)
     parser.add_argument("--debug", action="store_true")
+    parser.add_argument("--extract-all", action="store_true", help="Extract all pages and save to JSON")
     args = parser.parse_args()
     
-    p = FishingSynopsisParser()
-    PDF_PATH = os.path.join(p.output_dir, "fishing_synopsis.pdf")
-    
-    with pdfplumber.open(PDF_PATH) as pdf:
-        page_result = p.extract_rows(pdf.pages[args.page - 1], save_debug=args.debug)
-        print_pretty_table(page_result)
+    if args.extract_all:
+        # Use the new SynopsisExtractor class
+        extractor = SynopsisExtractor()
+        extractor.download_pdf()
+        data = extractor.extract_all_pages()
+        extractor.save_to_json(data)
+    else:
+        # Single page extraction (original behavior)
+        p = FishingSynopsisParser()
+        PDF_PATH = os.path.join(p.output_dir, "fishing_synopsis.pdf")
+        
+        with pdfplumber.open(PDF_PATH) as pdf:
+            page_result = p.extract_rows(pdf.pages[args.page - 1], save_debug=args.debug)
+            print_pretty_table(page_result)
 
 if __name__ == "__main__":
     main()
