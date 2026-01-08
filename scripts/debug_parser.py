@@ -2,6 +2,7 @@ import json
 import os
 import argparse
 import time
+from datetime import datetime
 from google import genai
 from google.genai import types
 from extract_synopsis import WaterbodyRow, ExtractionResults
@@ -184,43 +185,118 @@ class ParsedWaterbody:
         )
 
 @define
-class BatchProgress:
-    """Track progress of batch processing."""
-    total_items: int
+class SessionState:
+    """Complete session state for resumable parsing."""
+    input_rows: List[WaterbodyRow]  # Full input data
+    results: List[Optional[ParsedWaterbody]]  # Parsed results as class instances, indexed by position
     processed_items: List[int]  # Indices of successfully processed items
-    failed_items: List[Dict[str, Any]]  # Items that failed validation with error info
-    results: List[Optional[Dict[str, Any]]]  # Parsed results indexed by original position
+    failed_items: List[Dict[str, Any]]  # Items that failed with error info
+    retry_counts: Dict[int, int]  # Track retry attempts per item index
+    total_items: int
+    created_at: str  # ISO timestamp
+    last_updated: str  # ISO timestamp
     
     def to_dict(self) -> Dict[str, Any]:
+        """Convert session state to dictionary for JSON serialization."""
+        # Convert input_rows (WaterbodyRow instances) to dicts
+        input_rows_dicts = []
+        for row in self.input_rows:
+            if hasattr(row, 'to_dict'):
+                input_rows_dicts.append(row.to_dict())
+            else:
+                # Fallback for simple objects with __dict__
+                input_rows_dicts.append({'water': row.water, 'raw_regs': row.raw_regs})
+        
+        # Convert results (ParsedWaterbody instances or None) to dicts
+        results_dicts = []
+        for result in self.results:
+            if result is not None:
+                results_dicts.append(result.to_dict())
+            else:
+                results_dicts.append(None)
+        
+        # Convert retry_counts keys to strings (JSON requires string keys)
+        retry_counts_str = {str(k): v for k, v in self.retry_counts.items()}
+        
         return {
-            'total_items': self.total_items,
+            'input_rows': input_rows_dicts,
+            'results': results_dicts,
             'processed_items': self.processed_items,
             'failed_items': self.failed_items,
-            'results': self.results
+            'retry_counts': retry_counts_str,
+            'total_items': self.total_items,
+            'created_at': self.created_at,
+            'last_updated': self.last_updated
         }
     
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> 'BatchProgress':
+    def from_dict(cls, data: Dict[str, Any]) -> 'SessionState':
+        """Create SessionState from dictionary loaded from JSON."""
+        # Convert input_rows dicts back to WaterbodyRow instances
+        input_rows = []
+        for row_dict in data['input_rows']:
+            if 'water' in row_dict and 'raw_regs' in row_dict:
+                # If WaterbodyRow has from_dict, use it
+                if hasattr(WaterbodyRow, 'from_dict'):
+                    input_rows.append(WaterbodyRow.from_dict(row_dict))
+                else:
+                    # Create simple object with required attributes
+                    input_rows.append(type('WaterbodyRow', (), row_dict)())
+            else:
+                input_rows.append(row_dict)
+        
+        # Convert results dicts back to ParsedWaterbody instances
+        results = []
+        for result_dict in data['results']:
+            if result_dict is not None:
+                results.append(ParsedWaterbody.from_dict(result_dict))
+            else:
+                results.append(None)
+        
+        # Convert retry_counts keys back to integers
+        retry_counts = {int(k): v for k, v in data.get('retry_counts', {}).items()}
+        
         return cls(
-            total_items=data['total_items'],
+            input_rows=input_rows,
+            results=results,
             processed_items=data['processed_items'],
             failed_items=data['failed_items'],
-            results=data['results']
+            retry_counts=retry_counts,
+            total_items=data['total_items'],
+            created_at=data['created_at'],
+            last_updated=data['last_updated']
         )
     
     def save(self, filepath: str):
-        """Save progress to file."""
+        """Save session state to JSON file."""
         os.makedirs(os.path.dirname(filepath), exist_ok=True)
+        self.last_updated = datetime.now().isoformat()
         with open(filepath, 'w', encoding='utf-8') as f:
             json.dump(self.to_dict(), f, indent=2, ensure_ascii=False)
     
     @classmethod
-    def load(cls, filepath: str) -> Optional['BatchProgress']:
-        """Load progress from file."""
+    def load(cls, filepath: str) -> Optional['SessionState']:
+        """Load session state from JSON file."""
         if not os.path.exists(filepath):
             return None
         with open(filepath, 'r', encoding='utf-8') as f:
             return cls.from_dict(json.load(f))
+    
+    @classmethod
+    def create_new(cls, input_rows: List[WaterbodyRow]) -> 'SessionState':
+        """Create new session state."""
+        total = len(input_rows)
+        now = datetime.now().isoformat()
+        return cls(
+            input_rows=input_rows,
+            results=[None] * total,
+            processed_items=[],
+            failed_items=[],
+            retry_counts={},
+            total_items=total,
+            created_at=now,
+            last_updated=now
+        )
 
 class ValidationError(Exception):
     """Custom exception for validation failures."""
@@ -290,7 +366,10 @@ class FishingSynopsisParser:
             Each object in the array corresponds to a waterbody with its regulations. 
             Rules must exist within the regulation block they are extracted from.
             
-            CRITICAL: Return EXACTLY {len(waterbody_rows)} items in the same order as input. Process ALL items completely.
+            CRITICAL REQUIREMENTS:
+            1. Return EXACTLY {len(waterbody_rows)} items in the EXACT SAME ORDER as input
+            2. Copy "waterbody_name" VERBATIM from "Waterbody Name:" in input - do not modify, rephrase, or correct spelling
+            3. Process ALL items completely - do not skip any
             
             DIRECTIONS:
             1. HIERARCHY: Map the input text into 'geographic_groups'.
@@ -303,12 +382,11 @@ class FishingSynopsisParser:
             8. FORMATTING: Ensure valid JSON output.
             9. RULES EXTRACTION: Extract all rules, even if they overlap in meaning. One rule per object. Multiple rules can exist in one block of text.
             10. MAKE SURE ALL ENTRIES ARE FILLED OUT AS PER THE SCHEMA BELOW. DO NOT LEAVE ANYTHING BLANK. DO NOT SKIP ANY RULES OR WATERBODIES.
-            11. ALL ITEMS SHOULD BE PROCESSED IN THE ORDER THEY APPEAR IN THE INPUT.
             
             JSON SCHEMA:
             List of objects:
             {{
-                "waterbody_name": "Name from input",
+                "waterbody_name": "EXACT VERBATIM name from 'Waterbody Name:' field - copy exactly, do not modify",
                 "raw_text": "The full verbatim regulation block. Does not include name only text.",
                 "cleaned_text": "The block of text with repaired word-breaks and newlines. Mains full context. Has fixed Punctuation.",
                 "geographic_groups": [
@@ -471,8 +549,12 @@ class FishingSynopsisParser:
                         # Validate each item using dataclass
                         for idx, entry in enumerate(parsed_result):
                             try:
+                                # First check: waterbody_name must be EXACTLY verbatim from input
+                                if entry.get('waterbody_name') != waterbody_rows[idx].water:
+                                    validation_errors.append(f"Item {idx}: Name not verbatim - expected '{waterbody_rows[idx].water}', got '{entry.get('waterbody_name')}'")
+                                
                                 parsed = ParsedWaterbody.from_dict(entry)
-                                expected_name = waterbody_rows[idx].water if idx < len(waterbody_rows) else None
+                                expected_name = waterbody_rows[idx].water
                                 item_errors = parsed.validate(expected_name)
                                 validation_errors.extend([f"Item {idx}: {err}" for err in item_errors])
                             except Exception as e:
@@ -502,85 +584,127 @@ class FishingSynopsisParser:
 
 # --- BATCH DEBUG RUNNER ---
 
-def run_llm_parsing(waterbody_rows: List, output_file='output/llm_parser/llm_parsed_results.json', 
-                    batch_size=10, progress_file='output/llm_parser/progress.json', resume=False):
+def run_llm_parsing(waterbody_rows: Optional[List] = None, output_file='output/llm_parser/llm_parsed_results.json', 
+                    batch_size=10, session_file='output/llm_parser/session.json', resume=False):
     """
     Run LLM parsing with batching support and progress tracking.
     
     Args:
-        waterbody_rows: List of waterbody objects to parse (required)
+        waterbody_rows: List of waterbody objects to parse (optional if resuming)
         output_file: Final output file path
         batch_size: Number of items to process per batch (smaller = more consistent, less rate limiting)
-        progress_file: Path to save/load progress
-        resume: Whether to resume from previous progress
+        session_file: Path to save/load session state (JSON file)
+        resume: Whether to resume from previous session
     """
     parser = FishingSynopsisParser.LLMBatchParser()
     print(f"\n{'='*80}\nRunning LLM Batch Parsing...\n{'='*80}")
     
-    total_items = len(waterbody_rows)
+    # Load or create session state
+    session = None
+    
+    # Check if session file exists
+    existing_session = SessionState.load(session_file)
+    
+    if existing_session and len(existing_session.processed_items) > 0:
+        # Session file exists with completed items
+        if resume:
+            # User explicitly requested resume
+            session = existing_session
+            waterbody_rows = session.input_rows  # Load from session
+            print(f"✓ Resumed from session file: {len(session.processed_items)}/{session.total_items} items completed")
+            print(f"   Session created: {session.created_at}")
+            print(f"   Last updated: {session.last_updated}")
+        else:
+            # Ask user if they want to resume
+            print(f"\n⚠ Found existing session: {len(existing_session.processed_items)}/{existing_session.total_items} items completed")
+            print(f"   Session file: {session_file}")
+            print(f"   Created: {existing_session.created_at}")
+            
+            response = input("\nDo you want to resume from this session? [Y/n]: ").strip().lower()
+            
+            if response in ('', 'y', 'yes'):
+                session = existing_session
+                waterbody_rows = session.input_rows  # Load from session
+                print(f"✓ Resuming from existing session...")
+            else:
+                print(f"✓ Starting fresh (old session will be overwritten)")
+                # Delete old session file
+                if os.path.exists(session_file):
+                    os.remove(session_file)
+    elif resume:
+        print("⚠ --resume flag provided but no session file found")
+        if waterbody_rows is None:
+            print("✗ Error: Cannot resume without session file and no input data provided")
+            print("   Either provide --file or use an existing session")
+            exit(1)
+    
+    # Check if we have input data
+    if waterbody_rows is None:
+        print("✗ Error: No input data provided. Use --file to specify input data.")
+        exit(1)
+    
+    if session is None:
+        session = SessionState.create_new(waterbody_rows)
+    
+    total_items = session.total_items
     print(f"Total items to process: {total_items}")
     print(f"Batch size: {batch_size}")
     
-    # Load or create progress
-    progress = None
-    
-    # Check if progress file exists
-    existing_progress = BatchProgress.load(progress_file)
-    
-    if existing_progress and len(existing_progress.processed_items) > 0:
-        # Progress file exists with completed items
-        if resume:
-            # User explicitly requested resume
-            progress = existing_progress
-            print(f"✓ Resumed from progress file: {len(progress.processed_items)}/{total_items} items completed")
-        else:
-            # Ask user if they want to resume
-            print(f"\n⚠ Found existing progress: {len(existing_progress.processed_items)}/{existing_progress.total_items} items completed")
-            print(f"   Progress file: {progress_file}")
-            
-            response = input("\nDo you want to resume from this progress? [Y/n]: ").strip().lower()
-            
-            if response in ('', 'y', 'yes'):
-                progress = existing_progress
-                print(f"✓ Resuming from existing progress...")
-            else:
-                print(f"✓ Starting fresh (old progress will be overwritten)")
-                # Delete old progress file
-                if os.path.exists(progress_file):
-                    os.remove(progress_file)
-    elif resume:
-        print("⚠ --resume flag provided but no progress file found, starting from beginning")
-    
-    if progress is None:
-        progress = BatchProgress(
-            total_items=total_items,
-            processed_items=[],
-            failed_items=[],
-            results=[None] * total_items
-        )
-    
     # Determine which items need processing
-    items_to_process = [i for i in range(total_items) if i not in progress.processed_items]
+    # Only exclude successfully processed items
+    # Failed items will be retried when user manually resumes (after deleting session file)
+    items_to_process = [i for i in range(total_items) if i not in session.processed_items]
     
     if not items_to_process:
         print("✓ All items already processed!")
-        # Compile final results
-        final_results = [r for r in progress.results if r is not None]
+        # Compile final results from parsed class instances
+        final_results = [r.to_dict() for r in session.results if r is not None]
         os.makedirs(os.path.dirname(output_file), exist_ok=True)
         with open(output_file, 'w', encoding='utf-8') as f:
             json.dump(final_results, f, indent=2, ensure_ascii=False)
         print(f"✓ Saved final results to: {output_file}")
-        return final_results
+        return session.results
     
     print(f"Items remaining to process: {len(items_to_process)}")
+    
+    # Track timing for progress estimates
+    start_time = datetime.now()
     
     # Process in batches
     for batch_start in range(0, len(items_to_process), batch_size):
         batch_indices = items_to_process[batch_start:batch_start + batch_size]
         batch_rows = [waterbody_rows[i] for i in batch_indices]
         
-        print(f"\n--- Batch {batch_start // batch_size + 1}/{(len(items_to_process) + batch_size - 1) // batch_size} ---")
-        print(f"Processing indices: {batch_indices[0]}-{batch_indices[-1]} ({len(batch_indices)} items)")
+        batch_num = batch_start // batch_size + 1
+        total_batches = (len(items_to_process) + batch_size - 1) // batch_size
+        
+        print(f"\n{'='*80}")
+        print(f"Batch {batch_num}/{total_batches}")
+        print(f"Indices: {batch_indices[0]}-{batch_indices[-1]} ({len(batch_indices)} items)")
+        
+        # Calculate progress percentage
+        completed_so_far = len(session.processed_items)
+        progress_pct = (completed_so_far / total_items) * 100
+        print(f"Overall Progress: {completed_so_far}/{total_items} ({progress_pct:.1f}%)")
+        
+        # Estimate time remaining
+        if completed_so_far > 0:
+            elapsed = (datetime.now() - start_time).total_seconds()
+            items_per_second = completed_so_far / elapsed
+            remaining_items = total_items - completed_so_far
+            estimated_seconds = remaining_items / items_per_second if items_per_second > 0 else 0
+            
+            if estimated_seconds < 60:
+                time_remaining = f"{int(estimated_seconds)}s"
+            elif estimated_seconds < 3600:
+                time_remaining = f"{int(estimated_seconds / 60)}m {int(estimated_seconds % 60)}s"
+            else:
+                hours = int(estimated_seconds / 3600)
+                mins = int((estimated_seconds % 3600) / 60)
+                time_remaining = f"{hours}h {mins}m"
+            
+            print(f"Estimated time remaining: {time_remaining}")
+        print(f"{'='*80}")
         
         # Parse batch
         batch_results = parser.parse_synopsis_batch(batch_rows)
@@ -590,65 +714,206 @@ def run_llm_parsing(waterbody_rows: List, output_file='output/llm_parser/llm_par
             error_msg = batch_results['error']
             print(f"✗ Batch failed: {error_msg}")
             
-            # Save failed items for manual review
-            for idx in batch_indices:
-                progress.failed_items.append({
-                    'index': idx,
-                    'waterbody': waterbody_rows[idx].water,
-                    'error': error_msg
-                })
+            # Track retry counts for each item in failed batch
+            max_retries = 3
+            any_permanently_failed = False
             
-            # Save progress and stop if it's a rate limit error
-            progress.save(progress_file)
+            for idx in batch_indices:
+                retry_count = session.retry_counts.get(idx, 0)
+                session.retry_counts[idx] = retry_count + 1
+                
+                if session.retry_counts[idx] >= max_retries:
+                    # Max retries reached, mark as permanently failed
+                    if idx not in [f['index'] for f in session.failed_items]:
+                        session.failed_items.append({
+                            'index': idx,
+                            'waterbody': waterbody_rows[idx].water,
+                            'error': error_msg,
+                            'retries': retry_count + 1
+                        })
+                    any_permanently_failed = True
+                    print(f"  ✗ Item {idx} ({waterbody_rows[idx].water}) PERMANENTLY FAILED after {max_retries} retries")
+            
+            # Save session
+            session.save(session_file)
+            
+            # Exit if any items permanently failed - user must manually resume to retry
+            if any_permanently_failed:
+                print(f"\n{'='*80}")
+                print(f"⚠ STOPPED: {len([i for i in batch_indices if session.retry_counts.get(i, 0) >= max_retries])} items permanently failed")
+                print(f"\nFailed items need manual review:")
+                for idx in batch_indices:
+                    if session.retry_counts.get(idx, 0) >= max_retries:
+                        print(f"  - Index {idx}: {waterbody_rows[idx].water}")
+                print(f"\nSession saved to: {session_file}")
+                print(f"\nTo retry failed items:")
+                print(f"  1. Review the errors above")
+                print(f"  2. Fix any issues in the input data if needed")
+                print(f"  3. Delete session file to retry: rm {session_file}")
+                print(f"  4. Run again with --resume")
+                print(f"{'='*80}")
+                exit(1)
+            
+            # Apply exponential backoff before retrying
+            retry_attempt = max([session.retry_counts.get(i, 0) for i in batch_indices])
+            if retry_attempt > 0:
+                backoff_time = (2 ** (retry_attempt - 1)) * 5  # 5s, 10s, 20s
+                print(f"⚠ Waiting {backoff_time}s before retry (attempt {retry_attempt + 1}/{max_retries})...")
+                time.sleep(backoff_time)
+            
+            # Stop if rate limited
             if 'rate limit' in error_msg.lower() or '429' in error_msg:
-                print(f"\n⚠ Rate limited. Progress saved to: {progress_file}")
+                print(f"\n⚠ Rate limited. Session saved to: {session_file}")
                 print(f"Run with --resume to continue from where you left off")
                 return None
+            
             continue
         
-        # Store results
+        # Store results as ParsedWaterbody class instances, maintaining order
         if isinstance(batch_results, list):
-            for i, result in enumerate(batch_results):
+            for i, result_dict in enumerate(batch_results):
                 if i < len(batch_indices):
                     idx = batch_indices[i]
-                    progress.results[idx] = result
-                    progress.processed_items.append(idx)
+                    # Convert dict to ParsedWaterbody class instance
+                    parsed_waterbody = ParsedWaterbody.from_dict(result_dict)
+                    # Store in correct position to maintain order
+                    session.results[idx] = parsed_waterbody
+                    session.processed_items.append(idx)
             
-            print(f"✓ Batch completed: {len(batch_results)} items parsed")
+            print(f"✓ Batch completed successfully")
         else:
             print(f"✗ Unexpected result format: {type(batch_results)}")
         
-        # Save progress after each batch
-        progress.save(progress_file)
-        print(f"✓ Progress saved ({len(progress.processed_items)}/{total_items} completed)")
+        # Save session after each batch - results are in order by index
+        session.save(session_file)
+        
+        # Show running summary
+        success_count = len(session.processed_items)
+        fail_count = len(session.failed_items)
+        print(f"Session: {success_count} succeeded, {fail_count} failed")
         
         # Small delay between batches to avoid rate limiting
         if batch_start + batch_size < len(items_to_process):
             time.sleep(1)
     
-    # Compile final results
-    final_results = [r for r in progress.results if r is not None]
+    # Check if all items were processed
+    unprocessed_indices = [i for i in range(total_items) if i not in session.processed_items]
     
     # Report on any failed items
-    if progress.failed_items:
-        print(f"\n⚠ {len(progress.failed_items)} items failed validation:")
-        for failed in progress.failed_items:
-            print(f"  - Index {failed['index']}: {failed['waterbody']} - {failed['error']}")
+    if session.failed_items:
+        print(f"\n⚠ {len(session.failed_items)} items permanently failed after retries:")
+        for failed in session.failed_items:
+            retries = failed.get('retries', 0)
+            print(f"  - Index {failed['index']}: {failed['waterbody']} - {failed['error']} ({retries} attempts)")
     
-    # Save final output
+    # Compile final results - maintain order, include all items
+    # Convert ParsedWaterbody instances to dicts for JSON output
+    # For failed items, include error placeholder
+    final_results_dicts = []
+    for idx in range(total_items):
+        if session.results[idx] is not None:
+            # Convert class instance to dict
+            final_results_dicts.append(session.results[idx].to_dict())
+        else:
+            # Item failed - create error placeholder to maintain order
+            failed_info = next((f for f in session.failed_items if f['index'] == idx), None)
+            error_msg = failed_info['error'] if failed_info else 'Unknown error'
+            final_results_dicts.append({
+                'waterbody_name': waterbody_rows[idx].water,
+                'error': f"FAILED_TO_PARSE: {error_msg}",
+                'raw_text': waterbody_rows[idx].raw_regs,
+                'cleaned_text': '',
+                'geographic_groups': []
+            })
+    
+    # Save final output as JSON
     os.makedirs(os.path.dirname(output_file), exist_ok=True)
     with open(output_file, 'w', encoding='utf-8') as f:
-        json.dump(final_results, f, indent=2, ensure_ascii=False)
+        json.dump(final_results_dicts, f, indent=2, ensure_ascii=False)
     
-    print(f"\n✓ Completed! Saved {len(final_results)} results to: {output_file}")
+    success_count = len(session.processed_items)
+    failed_count = len(session.failed_items)
+    print(f"\n✓ Completed! Saved {len(final_results_dicts)} results to: {output_file}")
+    print(f"   {success_count} succeeded, {failed_count} permanently failed")
     
-    # Clean up progress file if fully successful
-    if len(progress.processed_items) == total_items and not progress.failed_items:
-        if os.path.exists(progress_file):
-            os.remove(progress_file)
-            print(f"✓ Removed progress file (all items successful)")
+    if unprocessed_indices:
+        print(f"\n⚠ WARNING: {len(unprocessed_indices)} items were never processed!")
+        print(f"   This should not happen. Check indices: {unprocessed_indices[:10]}...")
     
-    return final_results
+    # Clean up session file if fully successful
+    if len(session.processed_items) == total_items and not session.failed_items:
+        if os.path.exists(session_file):
+            os.remove(session_file)
+            print(f"✓ Removed session file (all items successful)")
+    
+    return session.results  # Return class instances, not dicts
+
+def export_session(session_file: str, output_file: str):
+    """
+    Export current session results to JSON output file.
+    
+    Args:
+        session_file: Path to session file to export
+        output_file: Path to save exported results
+    """
+    print(f"\n{'='*80}\nExporting Session to JSON...\n{'='*80}")
+    
+    # Load session
+    session = SessionState.load(session_file)
+    if session is None:
+        print(f"✗ Error: Session file not found: {session_file}")
+        exit(1)
+    
+    print(f"Session info:")
+    print(f"  Created: {session.created_at}")
+    print(f"  Last updated: {session.last_updated}")
+    print(f"  Total items: {session.total_items}")
+    print(f"  Processed: {len(session.processed_items)}")
+    print(f"  Failed: {len(session.failed_items)}")
+    
+    # Convert results to dicts, maintaining order
+    final_results_dicts = []
+    for idx in range(session.total_items):
+        if session.results[idx] is not None:
+            # Convert ParsedWaterbody instance to dict
+            final_results_dicts.append(session.results[idx].to_dict())
+        else:
+            # Item not yet processed or failed
+            if idx in session.processed_items:
+                # This shouldn't happen but handle it
+                print(f"  ⚠ Warning: Item {idx} marked as processed but result is None")
+            
+            # Check if it's a failed item
+            failed_info = next((f for f in session.failed_items if f['index'] == idx), None)
+            if failed_info:
+                # Include error placeholder
+                error_msg = failed_info.get('error', 'Unknown error')
+                final_results_dicts.append({
+                    'waterbody_name': session.input_rows[idx].water,
+                    'error': f"FAILED_TO_PARSE: {error_msg}",
+                    'raw_text': session.input_rows[idx].raw_regs,
+                    'cleaned_text': '',
+                    'geographic_groups': []
+                })
+            else:
+                # Not processed yet - include placeholder
+                final_results_dicts.append({
+                    'waterbody_name': session.input_rows[idx].water,
+                    'error': 'NOT_YET_PROCESSED',
+                    'raw_text': session.input_rows[idx].raw_regs,
+                    'cleaned_text': '',
+                    'geographic_groups': []
+                })
+    
+    # Save to output file
+    os.makedirs(os.path.dirname(output_file), exist_ok=True)
+    with open(output_file, 'w', encoding='utf-8') as f:
+        json.dump(final_results_dicts, f, indent=2, ensure_ascii=False)
+    
+    print(f"\n✓ Exported {len(final_results_dicts)} items to: {output_file}")
+    print(f"  Successfully parsed: {len([r for r in session.results if r is not None])}")
+    print(f"  Failed: {len(session.failed_items)}")
+    print(f"  Not yet processed: {session.total_items - len(session.processed_items) - len(session.failed_items)}")
 
 def print_prompt(waterbody_rows: List):
     """Print the prompt that would be sent to the LLM."""
@@ -690,29 +955,89 @@ if __name__ == "__main__":
         description='Parse fishing regulations using LLM with batch processing and validation',
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
-Examples:
-  # Parse regulations from file
-  python debug_parser.py --file synopsis_raw_data.json
+WORKFLOW EXAMPLES:
+
+1. Start New Parsing Job
+   python debug_parser.py --file scripts/output/extract_synopsis/synopsis_raw_data.json
+   
+   - Processes in batches (default 10 items)
+   - Saves progress to session.json after each batch
+   - Shows time estimates and progress percentage
+   
+2. Check What the LLM Will See
+   python debug_parser.py --file synopsis_raw_data.json --prompt
+   
+   - Displays the full prompt without making API calls
+   - Useful for debugging or understanding the parsing instructions
+   
+3. If Processing is Interrupted (rate limit, error, Ctrl+C)
+   python debug_parser.py --resume
+   
+   - No --file needed! Session contains all input data
+   - Continues from where it left off
+   - Retries failed items (max 3 attempts)
+   
+4. Check Current Progress
+   python debug_parser.py --export-session
+   
+   - Exports current session state to JSON output
+   - Shows completed, failed, and pending items
+   - Useful for inspecting partial results
+   
+5. After Completion, Validate Results
+   python debug_parser.py --validate output/llm_parser/llm_parsed_results.json
+   
+   - Checks all parsed data for completeness
+   - Validates names match input exactly
+   - Reports any errors or missing data
+
+COMPLETE WORKFLOW:
   
-  # Resume interrupted processing
-  python debug_parser.py --file synopsis_raw_data.json --resume
+  Step 1: Start parsing
+    $ python debug_parser.py --file synopsis_raw_data.json --batch-size 5
+    
+  Step 2: If interrupted, resume
+    $ python debug_parser.py --resume
+    
+  Step 3: Check progress anytime
+    $ python debug_parser.py --export-session --output progress_check.json
+    
+  Step 4: Validate final output
+    $ python debug_parser.py --validate output/llm_parser/llm_parsed_results.json
+
+CUSTOM PATHS:
   
-  # Validate existing results
-  python debug_parser.py --validate llm_parsed_results.json
+  # Use custom session and output files
+  python debug_parser.py --file data.json --session-file my_session.json --output my_results.json
   
-  # View prompt without processing
-  python debug_parser.py --file synopsis_raw_data.json --prompt
+  # Resume from custom session
+  python debug_parser.py --resume --session-file my_session.json
+
+TROUBLESHOOTING:
+
+  - If items fail permanently (after 3 retries):
+    1. Script exits with error details
+    2. Review errors printed to console
+    3. Fix input data if needed
+    4. Delete session file: rm output/llm_parser/session.json
+    5. Run again from start
+    
+  - To change batch size (if hitting rate limits):
+    python debug_parser.py --file data.json --batch-size 3
+    
+  - Session file is human-readable JSON - you can inspect it:
+    cat output/llm_parser/session.json
         """
     )
     
     # Input/Output arguments
     io_group = parser.add_argument_group('Input/Output')
     io_group.add_argument('--file', type=str, metavar='PATH',
-                         help='Path to synopsis_raw_data.json file to parse (required for parsing)')
+                         help='Path to synopsis_raw_data.json file to parse (not required if resuming)')
     io_group.add_argument('--output', default='output/llm_parser/llm_parsed_results.json', metavar='PATH',
                          help='Path to save parsed results (default: output/llm_parser/llm_parsed_results.json)')
-    io_group.add_argument('--progress-file', default='output/llm_parser/progress.json', metavar='PATH',
-                         help='Path to progress file for resuming (default: output/llm_parser/progress.json)')
+    io_group.add_argument('--session-file', default='output/llm_parser/session.json', metavar='PATH',
+                         help='Path to session file for resuming (default: output/llm_parser/session.json)')
     
     # Processing arguments
     proc_group = parser.add_argument_group('Processing')
@@ -727,8 +1052,15 @@ Examples:
                              help='Validate an existing parsed JSON file')
     action_group.add_argument('--prompt', action='store_true',
                              help='Print the LLM prompt without making API calls')
+    action_group.add_argument('--export-session', action='store_true',
+                             help='Export current session results to output JSON file')
     
     args = parser.parse_args()
+    
+    # Handle export session mode
+    if args.export_session:
+        export_session(args.session_file, args.output)
+        exit(0)
     
     # Handle validation mode
     if args.validate:
@@ -764,25 +1096,29 @@ Examples:
             exit(1)
         exit(0)
     
-    # For all other modes, require --file
-    if not args.file:
-        parser.error("--file is required (unless using --validate)")
-    
-    # Load waterbody rows
-    waterbody_rows = load_waterbody_rows_from_file(args.file)
-    if waterbody_rows is None:
-        exit(1)
+    # Load waterbody rows if --file provided
+    waterbody_rows = None
+    if args.file:
+        waterbody_rows = load_waterbody_rows_from_file(args.file)
+        if waterbody_rows is None:
+            exit(1)
+    elif not args.resume:
+        # If not resuming and no file, error
+        parser.error("--file is required (unless using --validate or --resume)")
     
     # Handle prompt mode
     if args.prompt:
+        if waterbody_rows is None:
+            print("Error: --prompt requires --file")
+            exit(1)
         print_prompt(waterbody_rows)
         exit(0)
     
-    # Run LLM parsing
+    # Run LLM parsing (waterbody_rows can be None if resuming)
     run_llm_parsing(
         waterbody_rows=waterbody_rows,
         output_file=args.output,
         batch_size=args.batch_size,
-        progress_file=args.progress_file,
+        session_file=args.session_file,
         resume=args.resume
     )
