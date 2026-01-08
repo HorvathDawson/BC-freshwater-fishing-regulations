@@ -1,0 +1,359 @@
+[
+  {
+    "waterbody_name": "HEMMINGSEN CREEK",
+    "raw_text": "No Fishing",
+    "cleaned_text": "No Fishing.",
+    "geographic_groups": [
+      {
+        "location": "",
+        "raw_text": "No Fishing",
+        "cleaned_text": "No Fishing.",
+        "rules": [
+          {
+            "verbatim_text": "No Fishing",
+            "rule": "No Fishing",
+            "type": "closure",
+            "dates": null,
+            "species": null
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "waterbody_name": "HENRY LAKE",
+    "raw_text": "Trout catch and release;\n artificial fly only, bait ban, single barbless hook",
+    "cleaned_text": "Trout catch and release; artificial fly only, bait ban, single barbless hook.",
+    "geographic_groups": [
+      {
+        "location": "",
+        "raw_text": "Trout catch and release;\n artificial fly only, bait ban, single barbless hook",
+        "cleaned_text": "Trout catch and release; artificial fly only, bait ban, single barbless hook.",
+        "rules": [
+          {
+            "verbatim_text": "Trout catch and release",
+            "rule": "Trout catch and release",
+            "type": "harvest",
+            "dates": null,
+            "species": ["trout"]
+          },
+          {
+            "verbatim_text": "artificial fly only",
+            "rule": "Artificial fly only",
+            "type": "gear_restriction",
+            "dates": null,
+            "species": null
+          },
+          {
+            "verbatim_text": "bait ban",
+            "rule": "Bait ban",
+            "type": "gear_restriction",
+            "dates": null,
+            "species": null
+          },
+          {
+            "verbatim_text": "single barbless hook",
+            "rule": "Single barbless hook",
+            "type": "gear_restriction",
+            "dates": null,
+            "species": null
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "waterbody_name": "HIGGENS LAKE",
+    "raw_text": "Trout catch and release;\n bait ban, single barbless hook",
+    "cleaned_text": "Trout catch and release; bait ban, single barbless hook.",
+    "geographic_groups": [
+      {
+        "location": "",
+        "raw_text": "Trout catch and release;\n bait ban, single barbless hook",
+        "cleaned_text": "Trout catch and release; bait ban, single barbless hook.",
+        "rules": [
+          {
+            "verbatim_text": "Trout catch and release",
+            "rule": "Trout catch and release",
+            "type": "harvest",
+            "dates": null,
+            "species": ["trout"]
+          },
+          {
+            "verbatim_text": "bait ban",
+            "rule": "Bait ban",
+            "type": "gear_restriction",
+            "dates": null,
+            "species": null
+          },
+          {
+            "verbatim_text": "single barbless hook",
+            "rule": "Single barbless hook",
+            "type": "gear_restriction",
+            "dates": null,
+            "species": null
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "waterbody_name": "HONNA RIVER",
+    "raw_text": "Bait ban Nov 1-Apr 30; cutthroat trout catch and release\n Class II water Sept 1-Apr 30; Steelhead Stamp mandatory Dec 1-Apr 30",
+    "cleaned_text": "Bait ban Nov 1-Apr 30; cutthroat trout catch and release. Class II water Sept 1-Apr 30; Steelhead Stamp mandatory Dec 1-Apr 30.",
+    "geographic_groups": [
+      {
+        "location": "",
+        "raw_text": "Bait ban Nov 1-Apr 30; cutthroat trout catch and release\n Class II water Sept 1-Apr 30; Steelhead Stamp mandatory Dec 1-Apr 30",
+        "cleaned_text": "Bait ban Nov 1-Apr 30; cutthroat trout catch and release. Class II water Sept 1-Apr 30; Steelhead Stamp mandatory Dec 1-Apr 30.",
+        "rules": [
+          {
+            "verbatim_text": "Bait ban Nov 1-Apr 30",
+            "rule": "Bait ban",
+            "type": "gear_restriction",
+            "dates": ["Nov 1-Apr 30"],
+            "species": null
+          },
+          {
+            "verbatim_text": "cutthroat trout catch and release",
+            "rule": "Cutthroat trout catch and release",
+            "type": "harvest",
+            "dates": null,
+            "species": ["cutthroat trout"]
+          },
+          {
+            "verbatim_text": "Class II water Sept 1-Apr 30",
+            "rule": "Class II water",
+            "type": "licensing",
+            "dates": ["Sept 1-Apr 30"],
+            "species": null
+          },
+          {
+            "verbatim_text": "Steelhead Stamp mandatory Dec 1-Apr 30",
+            "rule": "Steelhead Stamp mandatory",
+            "type": "licensing",
+            "dates": ["Dec 1-Apr 30"],
+            "species": ["steelhead"]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "waterbody_name": "KOKISH RIVER",
+    "raw_text": "No Fishing from boundary signs in Kokish canyon to Ida Lake, Nov 1-Apr 30;\n No Fishing from the log boom located approximately 100 m upstream of the IPP intake to signs at the tail of the canyon pool located\n approximately 250 m downstream\n No Fishing between signs at the IPP tail race confluence downstream approximately 500 m to signs",
+    "cleaned_text": "No Fishing from boundary signs in Kokish canyon to Ida Lake, Nov 1-Apr 30. No Fishing from the log boom located approximately 100 m upstream of the IPP intake to signs at the tail of the canyon pool located approximately 250 m downstream. No Fishing between signs at the IPP tail race confluence downstream approximately 500 m to signs.",
+    "geographic_groups": [
+      {
+        "location": "from boundary signs in Kokish canyon to Ida Lake",
+        "raw_text": "No Fishing from boundary signs in Kokish canyon to Ida Lake, Nov 1-Apr 30",
+        "cleaned_text": "No Fishing from boundary signs in Kokish canyon to Ida Lake, Nov 1-Apr 30.",
+        "rules": [
+          {
+            "verbatim_text": "No Fishing from boundary signs in Kokish canyon to Ida Lake, Nov 1-Apr 30",
+            "rule": "No Fishing",
+            "type": "closure",
+            "dates": ["Nov 1-Apr 30"],
+            "species": null
+          }
+        ]
+      },
+      {
+        "location": "from the log boom located approximately 100 m upstream of the IPP intake to signs at the tail of the canyon pool located approximately 250 m downstream",
+        "raw_text": "No Fishing from the log boom located approximately 100 m upstream of the IPP intake to signs at the tail of the canyon pool located\n approximately 250 m downstream",
+        "cleaned_text": "No Fishing from the log boom located approximately 100 m upstream of the IPP intake to signs at the tail of the canyon pool located approximately 250 m downstream.",
+        "rules": [
+          {
+            "verbatim_text": "No Fishing from the log boom located approximately 100 m upstream of the IPP intake to signs at the tail of the canyon pool located approximately 250 m downstream",
+            "rule": "No Fishing",
+            "type": "closure",
+            "dates": null,
+            "species": null
+          }
+        ]
+      },
+      {
+        "location": "between signs at the IPP tail race confluence downstream approximately 500 m to signs",
+        "raw_text": "No Fishing between signs at the IPP tail race confluence downstream approximately 500 m to signs",
+        "cleaned_text": "No Fishing between signs at the IPP tail race confluence downstream approximately 500 m to signs.",
+        "rules": [
+          {
+            "verbatim_text": "No Fishing between signs at the IPP tail race confluence downstream approximately 500 m to signs",
+            "rule": "No Fishing",
+            "type": "closure",
+            "dates": null,
+            "species": null
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "waterbody_name": "LITTLE QUALICUM RIVER",
+    "raw_text": "No Fishing July 15-Aug 31\u00dc, No Fishing - All tributaries\n No Fishing from the falls in Little Qualicum Falls Provincial Park downstream to the hatchery fence, Dec 1-May 31\n The standard 100 m closure around a fish rearing facility has been reduced to a no fishing area from the hatchery fence to signs\n approximately 35 m downstream\n Fly fishing only, Sept 1-Nov 30 (where open)",
+    "cleaned_text": "No Fishing July 15-Aug 31. No Fishing - All tributaries. No Fishing from the falls in Little Qualicum Falls Provincial Park downstream to the hatchery fence, Dec 1-May 31. The standard 100 m closure around a fish rearing facility has been reduced to a no fishing area from the hatchery fence to signs approximately 35 m downstream. Fly fishing only, Sept 1-Nov 30 (where open).",
+    "geographic_groups": [
+      {
+        "location": "",
+        "raw_text": "No Fishing July 15-Aug 31\u00dc",
+        "cleaned_text": "No Fishing July 15-Aug 31.",
+        "rules": [
+          {
+            "verbatim_text": "No Fishing July 15-Aug 31",
+            "rule": "No Fishing",
+            "type": "closure",
+            "dates": ["July 15-Aug 31"],
+            "species": null
+          }
+        ]
+      },
+      {
+        "location": "All tributaries",
+        "raw_text": "No Fishing - All tributaries",
+        "cleaned_text": "No Fishing - All tributaries.",
+        "rules": [
+          {
+            "verbatim_text": "No Fishing - All tributaries",
+            "rule": "No Fishing",
+            "type": "closure",
+            "dates": null,
+            "species": null
+          }
+        ]
+      },
+      {
+        "location": "from the falls in Little Qualicum Falls Provincial Park downstream to the hatchery fence",
+        "raw_text": "No Fishing from the falls in Little Qualicum Falls Provincial Park downstream to the hatchery fence, Dec 1-May 31",
+        "cleaned_text": "No Fishing from the falls in Little Qualicum Falls Provincial Park downstream to the hatchery fence, Dec 1-May 31.",
+        "rules": [
+          {
+            "verbatim_text": "No Fishing from the falls in Little Qualicum Falls Provincial Park downstream to the hatchery fence, Dec 1-May 31",
+            "rule": "No Fishing",
+            "type": "closure",
+            "dates": ["Dec 1-May 31"],
+            "species": null
+          }
+        ]
+      },
+      {
+        "location": "from the hatchery fence to signs approximately 35 m downstream",
+        "raw_text": "The standard 100 m closure around a fish rearing facility has been reduced to a no fishing area from the hatchery fence to signs\n approximately 35 m downstream",
+        "cleaned_text": "The standard 100 m closure around a fish rearing facility has been reduced to a no fishing area from the hatchery fence to signs approximately 35 m downstream.",
+        "rules": [
+          {
+            "verbatim_text": "no fishing area from the hatchery fence to signs approximately 35 m downstream",
+            "rule": "No Fishing",
+            "type": "closure",
+            "dates": null,
+            "species": null
+          }
+        ]
+      },
+      {
+        "location": "where open",
+        "raw_text": "Fly fishing only, Sept 1-Nov 30 (where open)",
+        "cleaned_text": "Fly fishing only, Sept 1-Nov 30 (where open).",
+        "rules": [
+          {
+            "verbatim_text": "Fly fishing only, Sept 1-Nov 30 (where open)",
+            "rule": "Fly fishing only",
+            "type": "gear_restriction",
+            "dates": ["Sept 1-Nov 30"],
+            "species": null
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "waterbody_name": "NANAIMO RIVER",
+    "raw_text": "No Fishing July 15-Aug 31                         \n No Fishing from power line crossing at “Bore Hole” upstream to fishing boundary signs at the mouth of Boulder Creek\n No Fishing from the Cedar Road Bridge upstream to the Hwy 19 bridge, Sept 1-Oct 15\n No Fishing upstream of the Hwy 1 bridge\u00dc, Dec 1-May 31\n Artificial fly only upstream of the westernmost of the two Nanaimo Lakes, known locally as “Second” Lake, including tributaries\n Engine power restriction on parts - 7.5 kW (10 hp)",
+    "cleaned_text": "No Fishing July 15-Aug 31. No Fishing from power line crossing at “Bore Hole” upstream to fishing boundary signs at the mouth of Boulder Creek. No Fishing from the Cedar Road Bridge upstream to the Hwy 19 bridge, Sept 1-Oct 15. No Fishing upstream of the Hwy 1 bridge, Dec 1-May 31. Artificial fly only upstream of the westernmost of the two Nanaimo Lakes, known locally as “Second” Lake, including tributaries. Engine power restriction on parts - 7.5 kW (10 hp).",
+    "geographic_groups": [
+      {
+        "location": "",
+        "raw_text": "No Fishing July 15-Aug 31",
+        "cleaned_text": "No Fishing July 15-Aug 31.",
+        "rules": [
+          {
+            "verbatim_text": "No Fishing July 15-Aug 31",
+            "rule": "No Fishing",
+            "type": "closure",
+            "dates": ["July 15-Aug 31"],
+            "species": null
+          }
+        ]
+      },
+      {
+        "location": "from power line crossing at “Bore Hole” upstream to fishing boundary signs at the mouth of Boulder Creek",
+        "raw_text": "No Fishing from power line crossing at “Bore Hole” upstream to fishing boundary signs at the mouth of Boulder Creek",
+        "cleaned_text": "No Fishing from power line crossing at “Bore Hole” upstream to fishing boundary signs at the mouth of Boulder Creek.",
+        "rules": [
+          {
+            "verbatim_text": "No Fishing from power line crossing at “Bore Hole” upstream to fishing boundary signs at the mouth of Boulder Creek",
+            "rule": "No Fishing",
+            "type": "closure",
+            "dates": null,
+            "species": null
+          }
+        ]
+      },
+      {
+        "location": "from the Cedar Road Bridge upstream to the Hwy 19 bridge",
+        "raw_text": "No Fishing from the Cedar Road Bridge upstream to the Hwy 19 bridge, Sept 1-Oct 15",
+        "cleaned_text": "No Fishing from the Cedar Road Bridge upstream to the Hwy 19 bridge, Sept 1-Oct 15.",
+        "rules": [
+          {
+            "verbatim_text": "No Fishing from the Cedar Road Bridge upstream to the Hwy 19 bridge, Sept 1-Oct 15",
+            "rule": "No Fishing",
+            "type": "closure",
+            "dates": ["Sept 1-Oct 15"],
+            "species": null
+          }
+        ]
+      },
+      {
+        "location": "upstream of the Hwy 1 bridge",
+        "raw_text": "No Fishing upstream of the Hwy 1 bridge\u00dc, Dec 1-May 31",
+        "cleaned_text": "No Fishing upstream of the Hwy 1 bridge, Dec 1-May 31.",
+        "rules": [
+          {
+            "verbatim_text": "No Fishing upstream of the Hwy 1 bridge, Dec 1-May 31",
+            "rule": "No Fishing",
+            "type": "closure",
+            "dates": ["Dec 1-May 31"],
+            "species": null
+          }
+        ]
+      },
+      {
+        "location": "upstream of the westernmost of the two Nanaimo Lakes, known locally as “Second” Lake, including tributaries",
+        "raw_text": "Artificial fly only upstream of the westernmost of the two Nanaimo Lakes, known locally as “Second” Lake, including tributaries",
+        "cleaned_text": "Artificial fly only upstream of the westernmost of the two Nanaimo Lakes, known locally as “Second” Lake, including tributaries.",
+        "rules": [
+          {
+            "verbatim_text": "Artificial fly only upstream of the westernmost of the two Nanaimo Lakes, known locally as “Second” Lake, including tributaries",
+            "rule": "Artificial fly only",
+            "type": "gear_restriction",
+            "dates": null,
+            "species": null
+          }
+        ]
+      },
+      {
+        "location": "on parts",
+        "raw_text": "Engine power restriction on parts - 7.5 kW (10 hp)",
+        "cleaned_text": "Engine power restriction on parts - 7.5 kW (10 hp).",
+        "rules": [
+          {
+            "verbatim_text": "Engine power restriction on parts - 7.5 kW (10 hp)",
+            "rule": "Engine power restriction - 7.5 kW (10 hp)",
+            "type": "gear_restriction",
+            "dates": null,
+            "species": null
+          }
+        ]
+      }
+    ]
+  }
+]
