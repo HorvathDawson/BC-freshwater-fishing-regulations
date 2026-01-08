@@ -183,6 +183,56 @@ class ParsedWaterbody:
             cleaned_text=data.get('cleaned_text', ''),
             geographic_groups=groups
         )
+    
+    @classmethod
+    def validate_batch(cls, parsed_batch: List[Dict[str, Any]], input_rows: List) -> List[str]:
+        """Validate a batch of parsed results matches input order and content.
+        
+        This is the critical validation that ensures:
+        1. Output has same count as input
+        2. Output[idx] corresponds to input[idx] (order preservation)
+        3. Names are copied verbatim
+        4. All individual waterbody validations pass
+        
+        Args:
+            parsed_batch: List of parsed waterbody dicts from LLM
+            input_rows: List of input WaterbodyRow objects
+        
+        Returns:
+            List of error messages (empty if valid)
+        """
+        validation_errors = []
+        
+        # Check basic structure
+        if not isinstance(parsed_batch, list):
+            validation_errors.append(f"Result is not a list, got {type(parsed_batch).__name__}")
+            return validation_errors
+        
+        # Check count matches (ORDER VALIDATION: must have same number of items)
+        if len(parsed_batch) != len(input_rows):
+            validation_errors.append(f"Expected {len(input_rows)} items, got {len(parsed_batch)}")
+            return validation_errors
+        
+        # Validate each item at its position (ORDER VALIDATION: position idx must match)
+        for idx, entry in enumerate(parsed_batch):
+            try:
+                # ORDER + VERBATIM VALIDATION: output[idx].name must exactly match input[idx].name
+                # This single check validates both correct ordering AND verbatim copying
+                if entry.get('waterbody_name') != input_rows[idx].water:
+                    validation_errors.append(
+                        f"Item {idx}: Name/order mismatch - expected '{input_rows[idx].water}', "
+                        f"got '{entry.get('waterbody_name')}'"
+                    )
+                
+                # Convert to dataclass and validate structure
+                parsed = cls.from_dict(entry)
+                expected_name = input_rows[idx].water
+                item_errors = parsed.validate(expected_name)
+                validation_errors.extend([f"Item {idx}: {err}" for err in item_errors])
+            except Exception as e:
+                validation_errors.append(f"Item {idx}: Failed to parse - {e}")
+        
+        return validation_errors
 
 @define
 class SessionState:
@@ -346,21 +396,22 @@ def validate_partial_json(json_path: str, input_rows: Optional[List] = None) -> 
         'items_checked': len(data)
     }
 
-class FishingSynopsisParser:
-    class LLMBatchParser:
-        @staticmethod
-        def get_prompt(waterbody_rows: List):
-            """
-            Enforces a hierarchical subject-predicate relationship while preserving
-            full block context and individual rules.
-            
-            Args:
-                waterbody_rows: List of WaterbodyRow or TestRow objects with water and raw_regs attributes
-            """
-            # Format inputs from WaterbodyRow objects
-            batch_inputs = [f"Waterbody Name: {row.water} | Regulation Block: {row.raw_regs}" for row in waterbody_rows]
-            
-            return f"""
+class SynopsisParser:
+    """Parser for fishing regulation synopsis data using LLM."""
+    
+    @staticmethod
+    def get_prompt(waterbody_rows: List):
+        """
+        Enforces a hierarchical subject-predicate relationship while preserving
+        full block context and individual rules.
+        
+        Args:
+            waterbody_rows: List of WaterbodyRow or TestRow objects with water and raw_regs attributes
+        """
+        # Format inputs from WaterbodyRow objects
+        batch_inputs = [f"Waterbody Name: {row.water} | Regulation Block: {row.raw_regs}" for row in waterbody_rows]
+        
+        return f"""
             You are a legal data architect. Parse this list of fishing regulation blocks into a JSON array. 
             All information must be preserved. All verbatim text must keep original punctuation and line breaks.
             Each object in the array corresponds to a waterbody with its regulations. 
@@ -511,75 +562,56 @@ class FishingSynopsisParser:
             {json.dumps(batch_inputs)}
             """
 
-        @classmethod
-        def parse_synopsis_batch(cls, waterbody_rows: List, retry_count: int = 0, max_retries: int = 3):
-            """
-            Parse a list of WaterbodyRow or TestRow objects with retry logic.
+    @classmethod
+    def parse_synopsis_batch(cls, waterbody_rows: List, retry_count: int = 0, max_retries: int = 3):
+        """
+        Parse a list of WaterbodyRow or TestRow objects with retry logic.
+        
+        Args:
+            waterbody_rows: List of objects with water and raw_regs attributes
+            retry_count: Current retry attempt
+            max_retries: Maximum number of retries for rate limiting
+        """
+        try:
+            prompt = cls.get_prompt(waterbody_rows)
             
-            Args:
-                waterbody_rows: List of objects with water and raw_regs attributes
-                retry_count: Current retry attempt
-                max_retries: Maximum number of retries for rate limiting
-            """
-            try:
-                prompt = cls.get_prompt(waterbody_rows)
-                
-                response = client.models.generate_content(
-                    model='gemini-2.5-flash-lite', # Updated to the latest stable flash
-                    # model='gemini-2.0-flash',
-                    contents=prompt,
-                    config=types.GenerateContentConfig(
-                        response_mime_type='application/json',
-                        temperature=0.1
-                    )
+            response = client.models.generate_content(
+                model='gemini-2.5-flash-lite', # Updated to the latest stable flash
+                # model='gemini-2.0-flash',
+                contents=prompt,
+                config=types.GenerateContentConfig(
+                    response_mime_type='application/json',
+                    temperature=0.1
                 )
+            )
+            
+            if response.text:
+                parsed_result = json.loads(response.text)
                 
-                if response.text:
-                    parsed_result = json.loads(response.text)
-                    
-                    # Validate the result using dataclasses
-                    validation_errors = []
-                    
-                    # Check basic structure
-                    if not isinstance(parsed_result, list):
-                        validation_errors.append(f"Result is not a list, got {type(parsed_result).__name__}")
-                    elif len(parsed_result) != len(waterbody_rows):
-                        validation_errors.append(f"Expected {len(waterbody_rows)} items, got {len(parsed_result)}")
-                    else:
-                        # Validate each item using dataclass
-                        for idx, entry in enumerate(parsed_result):
-                            try:
-                                # First check: waterbody_name must be EXACTLY verbatim from input
-                                if entry.get('waterbody_name') != waterbody_rows[idx].water:
-                                    validation_errors.append(f"Item {idx}: Name not verbatim - expected '{waterbody_rows[idx].water}', got '{entry.get('waterbody_name')}'")
-                                
-                                parsed = ParsedWaterbody.from_dict(entry)
-                                expected_name = waterbody_rows[idx].water
-                                item_errors = parsed.validate(expected_name)
-                                validation_errors.extend([f"Item {idx}: {err}" for err in item_errors])
-                            except Exception as e:
-                                validation_errors.append(f"Item {idx}: Failed to parse - {e}")
-                    
-                    if validation_errors:
-                        raise ValidationError(f"Validation failed: {'; '.join(validation_errors[:5])}...")  # Show first 5
-                    
-                    return parsed_result
+                # Validate batch using ParsedWaterbody.validate_batch()
+                # This checks: count, order, verbatim names, and all structure validations
+                validation_errors = ParsedWaterbody.validate_batch(parsed_result, waterbody_rows)
+                
+                if validation_errors:
+                    raise ValidationError(f"Validation failed: {'; '.join(validation_errors[:5])}...")  # Show first 5
+                
+                return parsed_result
+            else:
+                return {"error": "Empty response from model"}
+        except Exception as e:
+            error_msg = str(e)
+            
+            # Check for rate limiting
+            if 'rate limit' in error_msg.lower() or '429' in error_msg:
+                if retry_count < max_retries:
+                    wait_time = (2 ** retry_count) * 5  # Exponential backoff: 5s, 10s, 20s
+                    print(f"⚠ Rate limited. Waiting {wait_time}s before retry {retry_count + 1}/{max_retries}...")
+                    time.sleep(wait_time)
+                    return cls.parse_synopsis_batch(waterbody_rows, retry_count + 1, max_retries)
                 else:
-                    return {"error": "Empty response from model"}
-            except Exception as e:
-                error_msg = str(e)
-                
-                # Check for rate limiting
-                if 'rate limit' in error_msg.lower() or '429' in error_msg:
-                    if retry_count < max_retries:
-                        wait_time = (2 ** retry_count) * 5  # Exponential backoff: 5s, 10s, 20s
-                        print(f"⚠ Rate limited. Waiting {wait_time}s before retry {retry_count + 1}/{max_retries}...")
-                        time.sleep(wait_time)
-                        return cls.parse_synopsis_batch(waterbody_rows, retry_count + 1, max_retries)
-                    else:
-                        return {"error": f"Rate limit exceeded after {max_retries} retries"}
-                
-                return {"error": error_msg}
+                    return {"error": f"Rate limit exceeded after {max_retries} retries"}
+            
+            return {"error": error_msg}
 
 
 # --- BATCH DEBUG RUNNER ---
@@ -596,7 +628,7 @@ def run_llm_parsing(waterbody_rows: Optional[List] = None, output_file='output/l
         session_file: Path to save/load session state (JSON file)
         resume: Whether to resume from previous session
     """
-    parser = FishingSynopsisParser.LLMBatchParser()
+    parser = SynopsisParser()
     print(f"\n{'='*80}\nRunning LLM Batch Parsing...\n{'='*80}")
     
     # Load or create session state
@@ -917,7 +949,7 @@ def export_session(session_file: str, output_file: str):
 
 def print_prompt(waterbody_rows: List):
     """Print the prompt that would be sent to the LLM."""
-    parser = FishingSynopsisParser.LLMBatchParser()
+    parser = SynopsisParser()
 
     prompt = parser.get_prompt(waterbody_rows)
     print(prompt)
