@@ -94,12 +94,6 @@ class APIKeyManager:
 api_key_manager = APIKeyManager(API_KEYS, max_failures=3)
 
 @define(frozen=True, cache_hash=True)
-class TestRow:
-    """Simplified row for testing with only water name and raw regulations."""
-    water: str
-    raw_regs: str
-
-@define(frozen=True, cache_hash=True)
 class ParsedRule:
     """A single parsed fishing regulation rule."""
     verbatim_text: str
@@ -343,9 +337,15 @@ class ParsedWaterbody:
 
 @define
 class SessionState:
-    """Complete session state for resumable parsing."""
-    input_rows: List[WaterbodyRow]  # Full input data
-    results: List[Optional[ParsedWaterbody]]  # Parsed results as class instances, indexed by position
+    """Complete session state for resumable parsing.
+    
+    CRITICAL: Order preservation is maintained throughout:
+    - input_rows: Original input order (index 0 is first input, etc.)
+    - results: Indexed array matching input_rows (results[i] corresponds to input_rows[i])
+    - Final output iterates through range(total_items) to preserve exact order
+    """
+    input_rows: List[WaterbodyRow]  # Full input data in original order
+    results: List[Optional[ParsedWaterbody]]  # Parsed results indexed by position - results[i] = parsed input_rows[i]
     processed_items: List[int]  # Indices of successfully processed items
     failed_items: List[Dict[str, Any]]  # Items that failed with error info
     validation_failures: List[Dict[str, Any]]  # Items that failed validation (reset on resume for retry)
@@ -698,7 +698,7 @@ class SynopsisParser:
         full block context and individual rules.
         
         Args:
-            waterbody_rows: List of WaterbodyRow or TestRow objects with water and raw_regs attributes
+            waterbody_rows: List of WaterbodyRow objects with water and raw_regs attributes
         """
         # Format inputs from WaterbodyRow objects
         batch_inputs = [f"Waterbody Name: {row.water} | Regulation Block: {row.raw_regs}" for row in waterbody_rows]
@@ -721,11 +721,47 @@ class SynopsisParser:
             9. RULES EXTRACTION: Extract all rules, even if they overlap in meaning. One rule per object. Multiple rules can exist in one block of text.
             10. MAKE SURE ALL ENTRIES ARE FILLED OUT AS PER THE SCHEMA BELOW. DO NOT LEAVE ANYTHING BLANK. DO NOT SKIP ANY RULES OR WATERBODIES.
             
-            CRITICAL REQUIREMENTS:
+            CRITICAL REQUIREMENTS - ORDER AND VERBATIM COPYING:
             1. Return EXACTLY {len(waterbody_rows)} items in the EXACT SAME ORDER as input
-            2. Copy "waterbody_name" VERBATIM from "Waterbody Name:" in input - do not modify, rephrase, or correct spelling
-            3. Copy "raw_text" VERBATIM from "Regulation Block:" in input - do not modify, rephrase, or correct spelling
-            4. Process ALL items completely - do not skip any
+            2. Output array index MUST match input array index (output[0] = input[0], output[1] = input[1], etc.)
+            3. Copy "waterbody_name" VERBATIM from "Waterbody Name:" in input - CHARACTER-FOR-CHARACTER, byte-for-byte copy
+            4. Copy "raw_text" VERBATIM from "Regulation Block:" in input - CHARACTER-FOR-CHARACTER, byte-for-byte copy
+            5. Process ALL items completely - do not skip any
+            
+            CRITICAL: DO NOT "FIX" OR "CORRECT" NAMES AND RAW TEXT:
+            ⚠️ WRONG EXAMPLES - DO NOT DO THIS:
+            - Input: "CAYCUSE RIVER" → waterbody_name: "CAYUSE RIVER" ❌ WRONG - You changed spelling
+            - Input: '"PETE\'S POND" Unnamed lake at the head of San Juan River' → waterbody_name: "PETE'S POND" ❌ WRONG - You removed text
+            - Input: "COQUIHALLA RIVER" → waterbody_name: "Coquihalla River" ❌ WRONG - You changed capitalization
+            - Input: "Lake   St. Mary" → waterbody_name: "Lake St. Mary" ❌ WRONG - You fixed spacing
+            
+            ✓ CORRECT EXAMPLES:
+            - Input: "CAYCUSE RIVER" → waterbody_name: "CAYCUSE RIVER" ✓ (even if it looks like a typo)
+            - Input: '"PETE\'S POND" Unnamed lake at the head of San Juan River' → waterbody_name: '"PETE\'S POND" Unnamed lake at the head of San Juan River' ✓ (copy ALL of it)
+            - Input: "COQUIHALLA RIVER" → waterbody_name: "COQUIHALLA RIVER" ✓ (preserve exact capitalization)
+            - Input: "Lake   St. Mary" → waterbody_name: "Lake   St. Mary" ✓ (preserve spacing, even if weird)
+            
+            IMPORTANT: WHEN TO BE A DUMB COPIER VS WHEN TO USE INTELLIGENCE:
+            
+            VERBATIM COPYING REQUIRED (no modification allowed):
+            - "waterbody_name" field → Copy EXACTLY from input "Waterbody Name:" - character for character
+            - "raw_text" field (at waterbody level) → Copy EXACTLY from input "Regulation Block:" - character for character
+            - "raw_text" field (in geographic groups) → Copy EXACTLY from parent waterbody raw_text - must be exact substring
+            - "verbatim_text" field (in rules) → Copy EXACTLY from geographic group's raw_text - must be exact substring
+            
+            INTELLIGENCE AND PROCESSING REQUIRED (use your understanding):
+            - "location" field → Extract and describe the geographic area (e.g., "upstream of dam", "tributaries", "downstream of bridge [Including Tributaries]")
+            - "cleaned_text" field → Fix word-breaks, remove newlines, correct punctuation, make readable, coherent and easy to understand the actual requirements while preserving the original meaning completely. 
+            - "rule" field → Extract and normalize the specific rule (e.g., "No Fishing", "Bait ban")
+            - "type" field → Classify the rule type (closure|harvest|gear_restriction|restriction|licensing|access|note)
+            - "species" field → Identify fish species mentioned (use knowledge of fish names)
+            - "dates" field → Extract date ranges in their original format
+            - Splitting regulations into geographic_groups → Use understanding of geographic context
+            - Splitting text into individual rules → Use understanding of regulatory structure
+            
+            REMEMBER: You are a LEGAL DATA ARCHITECT with expertise in fishing regulations.
+            - Be a photocopier for names and raw source text
+            - Be an intelligent parser for extracting meaning, structure, species, locations, and rule types
             
             
             CRITICAL: VERBATIM_TEXT REQUIREMENTS
@@ -882,10 +918,10 @@ class SynopsisParser:
     @classmethod
     def parse_synopsis_batch(cls, waterbody_rows: List, api_manager: APIKeyManager = None):
         """
-        Parse a list of WaterbodyRow or TestRow objects with API key rotation.
+        Parse a list of WaterbodyRow objects with API key rotation.
         
         Args:
-            waterbody_rows: List of objects with water and raw_regs attributes
+            waterbody_rows: List of WaterbodyRow objects with water and raw_regs attributes
             api_manager: APIKeyManager instance for handling multiple keys
         """
         if api_manager is None:
@@ -914,17 +950,69 @@ class SynopsisParser:
                     api_manager.record_failure()
                     return {"error": f"Malformed JSON from model: {e}"}
                 
-                # Validate batch using ParsedWaterbody.validate_batch()
-                # This checks: count, order, verbatim names, and all structure validations
-                validation_errors = ParsedWaterbody.validate_batch(parsed_result, waterbody_rows)
+                # Validate batch structure (count and basic format)
+                if not isinstance(parsed_result, list):
+                    return {"error": f"Result is not a list, got {type(parsed_result).__name__}"}
                 
-                if validation_errors:
-                    # Validation errors are not API failures, don't affect key rotation
-                    raise ValidationError(f"Validation failed: {'; '.join(validation_errors[:5])}...")  # Show first 5
+                if len(parsed_result) != len(waterbody_rows):
+                    return {"error": f"Expected {len(waterbody_rows)} items, got {len(parsed_result)}"}
                 
-                # Success! Reset failure count for this key
+                # Validate each item individually and collect results
+                validated_results = []
+                item_errors = []
+                
+                for idx, entry in enumerate(parsed_result):
+                    try:
+                        # Validate this specific item
+                        input_row = waterbody_rows[idx]
+                        
+                        # Check name matches (ORDER + VERBATIM VALIDATION)
+                        if entry.get('waterbody_name') != input_row.water:
+                            error_msg = f"Name/order mismatch - expected '{input_row.water}', got '{entry.get('waterbody_name')}'"
+                            item_errors.append({
+                                'batch_index': idx,
+                                'waterbody': input_row.water,
+                                'error': error_msg,
+                                'error_type': 'name_mismatch'
+                            })
+                            validated_results.append(None)
+                            continue
+                        
+                        # Convert to dataclass and validate structure
+                        parsed = ParsedWaterbody.from_dict(entry)
+                        validation_errors = parsed.validate(input_row.water, input_row.raw_regs)
+                        
+                        if validation_errors:
+                            error_msg = '; '.join(validation_errors[:3]) + ('...' if len(validation_errors) > 3 else '')
+                            item_errors.append({
+                                'batch_index': idx,
+                                'waterbody': input_row.water,
+                                'error': error_msg,
+                                'error_type': 'validation_error',
+                                'all_errors': validation_errors
+                            })
+                            validated_results.append(None)
+                        else:
+                            # Item passed validation
+                            validated_results.append(entry)
+                    
+                    except Exception as e:
+                        item_errors.append({
+                            'batch_index': idx,
+                            'waterbody': waterbody_rows[idx].water,
+                            'error': f"Failed to parse - {str(e)}",
+                            'error_type': 'parse_error'
+                        })
+                        validated_results.append(None)
+                
+                # Return results with partial success info
                 api_manager.record_success()
-                return parsed_result
+                return {
+                    'results': validated_results,
+                    'item_errors': item_errors,
+                    'success_count': len([r for r in validated_results if r is not None]),
+                    'failed_count': len(item_errors)
+                }
             else:
                 api_manager.record_failure()
                 return {"error": "Empty response from model"}
@@ -949,6 +1037,72 @@ class SynopsisParser:
                     return {"error": f"All API keys exhausted. Key status: {api_manager.get_status()}"}
             
             return {"error": error_msg}
+
+
+# --- FAILURE LOGGING ---
+
+def log_failure_details(failure_log_file: str, batch_indices: List[int], item_errors: List[Dict], waterbody_rows: List):
+    """
+    Log detailed failure information to a file for analysis and prompt improvement.
+    
+    Args:
+        failure_log_file: Path to the failure log file
+        batch_indices: Indices of items in the batch
+        item_errors: List of error dictionaries with keys: batch_index, waterbody, error, error_type
+        waterbody_rows: Full list of input rows
+    """
+    os.makedirs(os.path.dirname(failure_log_file), exist_ok=True)
+    
+    # Prepare log entry
+    log_entry = {
+        'timestamp': datetime.now().isoformat(),
+        'batch_indices': batch_indices,
+        'failures': []
+    }
+    
+    for error_info in item_errors:
+        batch_idx = error_info['batch_index']
+        actual_idx = batch_indices[batch_idx]
+        input_row = waterbody_rows[actual_idx]
+        
+        failure_detail = {
+            'index': actual_idx,
+            'waterbody_name': input_row.water,
+            'raw_regs': input_row.raw_regs,
+            'error_type': error_info['error_type'],
+            'error': error_info['error']
+        }
+        
+        # Add all validation errors if available
+        if 'all_errors' in error_info:
+            failure_detail['all_validation_errors'] = error_info['all_errors']
+        
+        log_entry['failures'].append(failure_detail)
+    
+    # Append to log file
+    file_exists = os.path.exists(failure_log_file)
+    with open(failure_log_file, 'a', encoding='utf-8') as f:
+        if file_exists:
+            f.write(',\n')
+        else:
+            f.write('[\n')
+        json.dump(log_entry, f, indent=2, ensure_ascii=False)
+    
+    # Create a summary file for easier review
+    summary_file = failure_log_file.replace('.json', '_summary.txt')
+    with open(summary_file, 'a', encoding='utf-8') as f:
+        f.write(f"\n{'='*80}\n")
+        f.write(f"Batch Failures at {log_entry['timestamp']}\n")
+        f.write(f"{'='*80}\n")
+        for failure in log_entry['failures']:
+            f.write(f"\n[{failure['index']}] {failure['waterbody_name']}\n")
+            f.write(f"Error Type: {failure['error_type']}\n")
+            f.write(f"Error: {failure['error']}\n")
+            f.write(f"Input: {failure['raw_regs'][:200]}...\n")
+            if 'all_validation_errors' in failure:
+                f.write(f"All Errors:\n")
+                for err in failure['all_validation_errors']:
+                    f.write(f"  - {err}\n")
 
 
 # --- BATCH DEBUG RUNNER ---
@@ -1113,10 +1267,11 @@ def run_llm_parsing(waterbody_rows: Optional[List] = None, output_file='output/l
                 # Parse batch
                 batch_results = parser.parse_synopsis_batch(batch_rows)
                 
-                # Check for errors
-                if isinstance(batch_results, dict) and "error" in batch_results:
+                # Check for complete batch errors (API errors, etc.)
+                if isinstance(batch_results, dict) and "error" in batch_results and "results" not in batch_results:
+                    # Complete batch failure (API error, malformed JSON, etc.)
                     error_msg = batch_results['error']
-                    print(f"  ✗ Failed: {error_msg}")
+                    print(f"  ✗ Batch Failed: {error_msg}")
                     
                     # Check if all API keys are exhausted
                     if api_key_manager.all_keys_exhausted():
@@ -1126,7 +1281,7 @@ def run_llm_parsing(waterbody_rows: Optional[List] = None, output_file='output/l
                         print(f"\n   Wait for quota reset and run with --resume to continue.")
                         return None
                     
-                    # Track retry counts
+                    # Track retry counts for entire batch
                     max_retries = 3
                     for idx in batch_indices:
                         retry_count = session.retry_counts.get(idx, 0)
@@ -1138,7 +1293,7 @@ def run_llm_parsing(waterbody_rows: Optional[List] = None, output_file='output/l
                                 session.failed_items.append({
                                     'index': idx,
                                     'waterbody': waterbody_rows[idx].water,
-                                    'error': f"Revalidation: {error_msg}",
+                                    'error': f"Revalidation batch error: {error_msg}",
                                     'retries': retry_count + 1
                                 })
                             print(f"    ✗ Item {idx} permanently failed after {max_retries} retries")
@@ -1146,16 +1301,54 @@ def run_llm_parsing(waterbody_rows: Optional[List] = None, output_file='output/l
                     session.save(session_file)
                     continue
                 
-                # Store results at correct positions
-                if isinstance(batch_results, list):
-                    for i, result_dict in enumerate(batch_results):
-                        if i < len(batch_indices):
-                            idx = batch_indices[i]
+                # Handle partial batch success (new format)
+                if isinstance(batch_results, dict) and "results" in batch_results:
+                    results_list = batch_results['results']
+                    item_errors = batch_results.get('item_errors', [])
+                    success_count = batch_results.get('success_count', 0)
+                    failed_count = batch_results.get('failed_count', 0)
+                    
+                    # Process successful items - preserve order by mapping batch index to actual index
+                    for i, result_dict in enumerate(results_list):
+                        if result_dict is not None and i < len(batch_indices):
+                            idx = batch_indices[i]  # Map batch position to actual dataset position
                             # Convert dict to ParsedWaterbody instance
                             parsed_waterbody = ParsedWaterbody.from_dict(result_dict)
-                            # Store in correct position
+                            # Store in correct position - session.results[idx] maintains input order
                             session.results[idx] = parsed_waterbody
-                            session.processed_items.append(idx)
+                            if idx not in session.processed_items:
+                                session.processed_items.append(idx)
+                            # Reset retry count on success
+                            if idx in session.retry_counts:
+                                del session.retry_counts[idx]
+                    
+                    # Log failed items for analysis
+                    if item_errors:
+                        failure_log_file = 'output/llm_parser/failure_log.json'
+                        log_failure_details(failure_log_file, batch_indices, item_errors, waterbody_rows)
+                        
+                        # Track individual item failures
+                        for error_info in item_errors:
+                            batch_idx = error_info['batch_index']  # Index within the batch (0-9)
+                            actual_idx = batch_indices[batch_idx]  # Actual index in full dataset
+                            retry_count = session.retry_counts.get(actual_idx, 0)
+                            session.retry_counts[actual_idx] = retry_count + 1
+                    
+                    print(f"  ✓ Partial Success: {success_count}/{len(batch_indices)} items succeeded")
+                    if failed_count > 0:
+                        print(f"    Failed items logged to failure_log.json")
+                    
+                # Handle old format (full list of dicts) for backwards compatibility
+                elif isinstance(batch_results, list):
+                    for i, result_dict in enumerate(batch_results):
+                        if i < len(batch_indices):
+                            idx = batch_indices[i]  # Map batch position to actual dataset position
+                            # Convert dict to ParsedWaterbody instance
+                            parsed_waterbody = ParsedWaterbody.from_dict(result_dict)
+                            # Store in correct position - session.results[idx] maintains input order
+                            session.results[idx] = parsed_waterbody
+                            if idx not in session.processed_items:
+                                session.processed_items.append(idx)
                     
                     print(f"  ✓ Success")
                 else:
@@ -1187,8 +1380,25 @@ def run_llm_parsing(waterbody_rows: Optional[List] = None, output_file='output/l
     
     if not items_to_process:
         print("✓  All items already processed!")
-        # Compile final results from parsed class instances
-        final_results = [r.to_dict() for r in session.results if r is not None]
+        # Compile final results from parsed class instances - maintain order
+        final_results = []
+        for idx in range(total_items):
+            if session.results[idx] is not None:
+                final_results.append(session.results[idx].to_dict())
+            else:
+                # Include error placeholder for failed items to maintain order
+                failed_info = next((f for f in session.failed_items if f['index'] == idx), None)
+                if not failed_info:
+                    failed_info = next((f for f in session.validation_failures if f['index'] == idx), None)
+                error_msg = failed_info['error'] if failed_info else 'Not processed'
+                final_results.append({
+                    'waterbody_name': waterbody_rows[idx].water,
+                    'error': f"FAILED_TO_PARSE: {error_msg}",
+                    'raw_text': waterbody_rows[idx].raw_regs,
+                    'cleaned_text': '',
+                    'geographic_groups': []
+                })
+        
         os.makedirs(os.path.dirname(output_file), exist_ok=True)
         with open(output_file, 'w', encoding='utf-8') as f:
             json.dump(final_results, f, indent=2, ensure_ascii=False)
@@ -1237,10 +1447,11 @@ def run_llm_parsing(waterbody_rows: Optional[List] = None, output_file='output/l
         # Parse batch
         batch_results = parser.parse_synopsis_batch(batch_rows)
         
-        # Check for errors
-        if isinstance(batch_results, dict) and "error" in batch_results:
+        # Check for complete batch errors (API errors, malformed JSON, etc.)
+        if isinstance(batch_results, dict) and "error" in batch_results and "results" not in batch_results:
+            # Complete batch failure
             error_msg = batch_results['error']
-            print(f"  ✗ Failed: {error_msg}")
+            print(f"  ✗ Batch Failed: {error_msg}")
             
             # Check if all API keys are exhausted
             if api_key_manager.all_keys_exhausted():
@@ -1250,89 +1461,73 @@ def run_llm_parsing(waterbody_rows: Optional[List] = None, output_file='output/l
                 print(f"\n   Wait for quota reset and run with --resume to continue.")
                 return None
             
-            # Determine if this is a validation error
-            is_validation_error = 'validation failed' in error_msg.lower()
-            
-            # Track retry counts for each item in failed batch
+            # Track retry counts for entire batch
             max_retries = 3
-            any_permanently_failed = False
-            
             for idx in batch_indices:
                 retry_count = session.retry_counts.get(idx, 0)
                 session.retry_counts[idx] = retry_count + 1
-                
-                if session.retry_counts[idx] >= max_retries:
-                    # Max retries reached, mark as permanently failed
-                    failure_record = {
-                        'index': idx,
-                        'waterbody': waterbody_rows[idx].water,
-                        'error': error_msg,
-                        'retries': retry_count + 1,
-                        'is_validation': is_validation_error
-                    }
-                    
-                    # Add to appropriate list based on error type
-                    if is_validation_error:
-                        # Validation failures - will be reset on resume
-                        if idx not in [f['index'] for f in session.validation_failures]:
-                            session.validation_failures.append(failure_record)
-                        print(f"    ✗ Item {idx} validation failed after {max_retries} retries")
-                    else:
-                        # Other failures (parsing, API errors, etc)
-                        if idx not in [f['index'] for f in session.failed_items]:
-                            session.failed_items.append(failure_record)
-                        print(f"    ✗ Item {idx} permanently failed after {max_retries} retries")
-                    
-                    any_permanently_failed = True
-            
-            # Save session
-            session.save(session_file)
-            
-            # Exit if any items permanently failed - user must manually resume to retry
-            if any_permanently_failed:
-                print(f"\n{'─'*80}")
-                failed_count = len([i for i in batch_indices if session.retry_counts.get(i, 0) >= max_retries])
-                validation_count = len([i for i in batch_indices if i in [f['index'] for f in session.validation_failures]])
-                other_count = failed_count - validation_count
-                
-                print(f"⚠  STOPPED: {failed_count} items failed after {max_retries} retries")
-                if validation_count > 0:
-                    print(f"   {validation_count} validation failures (retry with --resume)")
-                if other_count > 0:
-                    print(f"   {other_count} other failures")
-                    
-                print(f"\nFailed items:")
-                for idx in batch_indices:
-                    if session.retry_counts.get(idx, 0) >= max_retries:
-                        print(f"  [{idx}] {waterbody_rows[idx].water}")
-                print(f"\nSession saved to: {session_file}")
-                print(f"\nNext steps:")
-                print(f"  1. Review errors above")
-                print(f"  2. Fix input data if needed")
-                print(f"  3. Delete session file: rm {session_file}")
-                print(f"  4. Run with --resume")
-                print(f"{'─'*80}")
-                exit(1)
             
             # Apply exponential backoff before retrying
             retry_attempt = max([session.retry_counts.get(i, 0) for i in batch_indices])
-            if retry_attempt > 0:
+            if retry_attempt > 0 and retry_attempt < max_retries:
                 backoff_time = (2 ** (retry_attempt - 1)) * 5  # 5s, 10s, 20s
-                print(f"  ⏳ Retry {retry_attempt + 1}/{max_retries} in {backoff_time}s...")
+                print(f"  ⏳ Retry {retry_attempt}/{max_retries} in {backoff_time}s...")
                 time.sleep(backoff_time)
             
+            session.save(session_file)
             continue
         
-        # Store results as ParsedWaterbody class instances, maintaining order
-        if isinstance(batch_results, list):
+        # Handle partial batch success (new format)
+        if isinstance(batch_results, dict) and "results" in batch_results:
+            results_list = batch_results['results']
+            item_errors = batch_results.get('item_errors', [])
+            success_count = batch_results.get('success_count', 0)
+            failed_count = batch_results.get('failed_count', 0)
+            
+            # Process successful items - preserve order by mapping batch index to actual index
+            for i, result_dict in enumerate(results_list):
+                if result_dict is not None and i < len(batch_indices):
+                    idx = batch_indices[i]  # Map batch position to actual dataset position
+                    # Convert dict to ParsedWaterbody instance
+                    parsed_waterbody = ParsedWaterbody.from_dict(result_dict)
+                    # Store in correct position - session.results[idx] maintains input order
+                    session.results[idx] = parsed_waterbody
+                    if idx not in session.processed_items:
+                        session.processed_items.append(idx)
+                    # Reset retry count on success
+                    if idx in session.retry_counts:
+                        del session.retry_counts[idx]
+            
+            # Log failed items for analysis
+            if item_errors:
+                failure_log_file = 'output/llm_parser/failure_log.json'
+                log_failure_details(failure_log_file, batch_indices, item_errors, waterbody_rows)
+                
+                # Track individual item failures - these will be retried at the end
+                for error_info in item_errors:
+                    batch_idx = error_info['batch_index']  # Index within the batch (0-9)
+                    actual_idx = batch_indices[batch_idx]  # Actual index in full dataset
+                    retry_count = session.retry_counts.get(actual_idx, 0)
+                    session.retry_counts[actual_idx] = retry_count + 1
+            
+            # Show running summary
+            total_success = len(session.processed_items)
+            total_pending = session.total_items - total_success - len(session.failed_items)
+            print(f"  ✓ Partial Success: {success_count}/{len(batch_indices)} items succeeded | Total: {total_success} OK, {total_pending} pending")
+            if failed_count > 0:
+                print(f"    {failed_count} items will be retried at end (logged to failure_log.json)")
+        
+        # Handle old format (full list of dicts) for backwards compatibility
+        elif isinstance(batch_results, list):
             for i, result_dict in enumerate(batch_results):
                 if i < len(batch_indices):
-                    idx = batch_indices[i]
-                    # Convert dict to ParsedWaterbody class instance
+                    idx = batch_indices[i]  # Map batch position to actual dataset position
+                    # Convert dict to ParsedWaterbody instance
                     parsed_waterbody = ParsedWaterbody.from_dict(result_dict)
-                    # Store in correct position to maintain order
+                    # Store in correct position - session.results[idx] maintains input order
                     session.results[idx] = parsed_waterbody
-                    session.processed_items.append(idx)
+                    if idx not in session.processed_items:
+                        session.processed_items.append(idx)
             
             # Show running summary
             success_count = len(session.processed_items)
@@ -1348,6 +1543,113 @@ def run_llm_parsing(waterbody_rows: Optional[List] = None, output_file='output/l
         # Small delay between batches to avoid rate limiting
         if batch_start + batch_size < len(items_to_process):
             time.sleep(1)
+    
+    # After main processing, retry failed items (those with retry_counts > 0 but not yet processed)
+    failed_to_retry = [i for i in range(total_items) 
+                       if i not in session.processed_items 
+                       and session.retry_counts.get(i, 0) > 0
+                       and session.retry_counts.get(i, 0) < 3]
+    
+    if failed_to_retry:
+        print(f"\n{'─'*80}")
+        print(f"RETRYING FAILED ITEMS ({len(failed_to_retry)} items)")
+        print(f"{'─'*80}")
+        
+        retry_start_time = datetime.now()
+        max_retries = 3
+        
+        for batch_start in range(0, len(failed_to_retry), batch_size):
+            batch_indices = failed_to_retry[batch_start:batch_start + batch_size]
+            batch_rows = [waterbody_rows[i] for i in batch_indices]
+            
+            batch_num = batch_start // batch_size + 1
+            total_retry_batches = (len(failed_to_retry) + batch_size - 1) // batch_size
+            
+            retry_progress = (batch_start / len(failed_to_retry)) * 100
+            
+            print(f"\n[Retry Batch {batch_num}/{total_retry_batches}] Indices {batch_indices[0]}-{batch_indices[-1]} | "
+                  f"Retry Progress: {retry_progress:.0f}%")
+            print(f"  API Keys: {api_key_manager.get_status()}")
+            
+            # Parse batch
+            batch_results = parser.parse_synopsis_batch(batch_rows)
+            
+            # Check for complete batch errors
+            if isinstance(batch_results, dict) and "error" in batch_results and "results" not in batch_results:
+                error_msg = batch_results['error']
+                print(f"  ✗ Batch Failed: {error_msg}")
+                
+                if api_key_manager.all_keys_exhausted():
+                    print(f"\n⚠  All API keys exhausted during retries!")
+                    print(f"   Key status: {api_key_manager.get_status()}")
+                    session.save(session_file)
+                    break
+                
+                # Mark as permanently failed if max retries reached
+                for idx in batch_indices:
+                    if session.retry_counts[idx] >= max_retries:
+                        if idx not in [f['index'] for f in session.failed_items]:
+                            session.failed_items.append({
+                                'index': idx,
+                                'waterbody': waterbody_rows[idx].water,
+                                'error': f"Retry failed: {error_msg}",
+                                'retries': session.retry_counts[idx]
+                            })
+                session.save(session_file)
+                continue
+            
+            # Handle partial batch success
+            if isinstance(batch_results, dict) and "results" in batch_results:
+                results_list = batch_results['results']
+                item_errors = batch_results.get('item_errors', [])
+                success_count = batch_results.get('success_count', 0)
+                
+                # Process successful items - preserve order by mapping batch index to actual index
+                for i, result_dict in enumerate(results_list):
+                    if result_dict is not None and i < len(batch_indices):
+                        idx = batch_indices[i]  # Map batch position to actual dataset position
+                        parsed_waterbody = ParsedWaterbody.from_dict(result_dict)
+                        # Store in correct position - session.results[idx] maintains input order
+                        session.results[idx] = parsed_waterbody
+                        if idx not in session.processed_items:
+                            session.processed_items.append(idx)
+                        # Clear retry count on success
+                        if idx in session.retry_counts:
+                            del session.retry_counts[idx]
+                
+                # Log failures and mark as permanently failed if max retries reached
+                if item_errors:
+                    failure_log_file = 'output/llm_parser/failure_log.json'
+                    log_failure_details(failure_log_file, batch_indices, item_errors, waterbody_rows)
+                    
+                    for error_info in item_errors:
+                        batch_idx = error_info['batch_index']  # Index within the batch (0-9)
+                        actual_idx = batch_indices[batch_idx]  # Actual index in full dataset
+                        
+                        if session.retry_counts[actual_idx] >= max_retries:
+                            # Permanently failed
+                            if actual_idx not in [f['index'] for f in session.failed_items]:
+                                session.failed_items.append({
+                                    'index': actual_idx,
+                                    'waterbody': waterbody_rows[actual_idx].water,
+                                    'error': error_info['error'],
+                                    'retries': session.retry_counts[actual_idx],
+                                    'error_type': error_info['error_type']
+                                })
+                
+                print(f"  ✓ Retry Result: {success_count}/{len(batch_indices)} items succeeded")
+            
+            session.save(session_file)
+            
+            # Small delay between retry batches
+            if batch_start + batch_size < len(failed_to_retry):
+                time.sleep(1)
+        
+        retry_elapsed = (datetime.now() - retry_start_time).total_seconds()
+        retry_succeeded = len([i for i in failed_to_retry if i in session.processed_items])
+        print(f"\n{'─'*80}")
+        print(f"Retry phase complete: {retry_succeeded}/{len(failed_to_retry)} items recovered ({int(retry_elapsed)}s)")
+        print(f"{'─'*80}\n")
     
     # Check if all items were processed
     unprocessed_indices = [i for i in range(total_items) if i not in session.processed_items]

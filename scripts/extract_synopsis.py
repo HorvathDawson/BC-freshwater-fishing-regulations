@@ -24,24 +24,6 @@ Sequence = namedtuple('Sequence', ['bbox', 'y_mid', 'avg_render_idx', 'text', 'c
 # ==========================================
 
 @define(frozen=True, cache_hash=True)
-class RegulationItem:
-    """Represents a single parsed regulation item."""
-    details: str
-    type: str
-    has_exceptions: bool
-    has_multiple_types: bool
-    dates: List[str] = field(factory=list)
-    
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary for JSON serialization."""
-        return asdict(self)
-    
-    @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> 'RegulationItem':
-        """Create RegulationItem from dictionary."""
-        return cls(**data)
-
-@define(frozen=True, cache_hash=True)
 class WaterbodyRow:
     """Represents a single waterbody row extracted from the PDF."""
     water: str
@@ -58,33 +40,6 @@ class WaterbodyRow:
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> 'WaterbodyRow':
         """Create WaterbodyRow from dictionary."""
-        return cls(**data)
-
-@define(frozen=True, cache_hash=True)
-class ParsedWaterbodyRow:
-    """Represents a waterbody row with parsed regulations."""
-    water: str
-    mu: List[str]
-    raw_regs: str
-    symbols: List[str]
-    page: int
-    image: str
-    parsed_regs: List[RegulationItem]
-    
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary for JSON serialization."""
-        data = asdict(self)
-        # Convert nested RegulationItems to dicts
-        data['parsed_regs'] = [reg.to_dict() if hasattr(reg, 'to_dict') else reg for reg in self.parsed_regs]
-        return data
-    
-    @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> 'ParsedWaterbodyRow':
-        """Create ParsedWaterbodyRow from dictionary."""
-        # Convert nested parsed_regs dicts back to RegulationItem objects
-        data = data.copy()
-        data['parsed_regs'] = [RegulationItem.from_dict(reg) if isinstance(reg, dict) else reg 
-                               for reg in data['parsed_regs']]
         return cls(**data)
 
 @define(frozen=True, cache_hash=True)
@@ -124,27 +79,6 @@ class PageResult:
         )
 
 @define(frozen=True, cache_hash=True)
-class ParsedPageResult:
-    """Result of a page with parsed regulations."""
-    metadata: PageMetadata
-    rows: List[ParsedWaterbodyRow]
-    
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary for JSON serialization."""
-        return {
-            'metadata': self.metadata.to_dict(),
-            'rows': [row.to_dict() for row in self.rows]
-        }
-    
-    @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> 'ParsedPageResult':
-        """Create ParsedPageResult from dictionary."""
-        return cls(
-            metadata=PageMetadata.from_dict(data['metadata']),
-            rows=[ParsedWaterbodyRow.from_dict(row) for row in data['rows']]
-        )
-
-@define(frozen=True, cache_hash=True)
 class ExtractionResults:
     """Results from extracting all pages from the PDF."""
     pages: List[PageResult]
@@ -167,34 +101,6 @@ class ExtractionResults:
         return iter(self.pages)
     
     def __getitem__(self, index):
-        """Allow indexing into pages."""
-        return self.pages[index]
-
-@define(frozen=True, cache_hash=True)
-class ParsedExtractionResults:
-    """Results from parsing all extracted pages."""
-    pages: List[ParsedPageResult]
-    
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary for JSON serialization."""
-        return [page.to_dict() for page in self.pages]
-    
-    @classmethod
-    def from_dict(cls, data: List[Dict[str, Any]]) -> 'ParsedExtractionResults':
-        """Create ParsedExtractionResults from list of dictionaries."""
-        return cls(pages=[ParsedPageResult.from_dict(page) for page in data])
-    
-    def __len__(self) -> int:
-        """Return number of pages."""
-        return len(self.pages)
-    
-    def __iter__(self):
-        """Allow iteration over pages."""
-        return iter(self.pages)
-    
-    def __getitem__(self, index):
-        """Allow indexing into pages."""
-        return self.pages[index]
         """Allow indexing into pages."""
         return self.pages[index]
 
@@ -225,452 +131,6 @@ class FishingSynopsisParser:
         self.MAX_SYMBOL_DIM = 25.0 
         self.MAP_REJECTION_DIM = 35.0 
 
-    # --- REG PARSER (NESTED CLASS) ---
-    class RegParser:
-        # Capitalized words that are nouns and shouldn't start new regulation items
-        INVALID_START_WORDS = [
-            'January', 'February', 'March', 'April', 'May', 'June', 'July', 
-            'August', 'September', 'October', 'November', 'December',
-            'Lake', 'River', 'Creek', 'Stream', 'Bridge', 'Road', 'Highway',
-            'North', 'South', 'East', 'West', 'Northeast', 'Northwest', 'Southeast', 'Southwest',
-            'Tributaries', 'Includes', 'Island', 'Bay', 'Inlet', 'Sound',
-            'Fork', 'Falls', 'Rapids', 'Canyon', 'Valley', 'Mountain', 'Hill',
-            'Park', 'Forest', 'Service', 'Provincial', 'National'
-        ]
-        CONTINUATION_WORDS = [
-            'and', 'or', 'but', 'include', 'including', 'includes', 'with', 'without', 'to', 'between', 'other than', 'aside from', 'note:', '=', '-', 'of'
-        ]
-        ADDITIONAL_END_CONTIONUATION_WORDS = [
-            # words that can never be the end to a sentence but can be the start of the next
-            'from', 'the'
-        ]
-        SPECIAL_CASE_WORDS = [
-            'except', 'excepting', 'excluding', 'additional'
-        ]
-        COMMA_SPECIAL_CASE_WORDS = [
-            'downstream', 'upstream'
-        ]
-        
-        FISH_TYPES = [
-            'rainbow trout', 'bull trout', 'lake trout', 'cutthroat trout', 'brook trout',
-            'hatchery trout', 'wild trout', 'trout', 'char', 'smallmouth bass', 'bass',
-            'kokanee', 'walleye', 'northern pike', 'yellow perch', 'burbot',
-            'whitefish', 'arctic grayling', 'salmon', 'steelhead', 'hatchery steelhead'
-        ]
-        COMMON_PREFIXES = ['Mt', 'St', 'Dr', 'Mr', 'Mrs', 'Ms', 'Jr', 'Sr', 'Ave', 'Rd', 'Blvd', 'Hwy', 'Ft', 'Fr', 'Rev', 'Hon', 'Prof', 'No', 'R']
-        
-        START_KEYWORDS = [
-            "No Fishing", "No Ice Fishing", "No angling", "No vessels", 
-            "No powered boats", "No power boats", "No wild trout",
-            "No rainbow trout", "No Wild" , "No trout", "No hooks", "Closed", "EXEMPT", 
-            "Refer to", "Open", "A person in a boat", "WARNING", 
-            "Bait ban", "Single barbless hook", "Single barbless", "Single hook", 
-            "Artificial fly only", "Fly fishing only", "Barbless hook",
-            "Trout daily quota", "Trout catch and release", "Trout/char daily quota",
-            "Trout/char catch and release", "Trout/char daily and possession",
-            "Smallmouth bass daily quota", "Bass daily quota", "Bass catch and release",
-            "Kokanee daily quota", "Kokanee catch and release",
-            "Hatchery trout daily quota", "Hatchery steelhead daily quota",
-            "Rainbow trout daily quota", "Rainbow trout catch and release",
-            "Rainbow trout and char", "Rainbow trout over 50 cm",
-            "Bull trout release", "Bull trout catch and release",
-            "Bull trout daily quota",
-            "Lake trout daily quota", "Lake trout catch and release", 
-            "Lake trout possession quota",
-            "Cutthroat trout daily quota", "Cutthroat trout catch and release",
-            "Cutthroat catch and release",
-            "Brook trout daily quota",
-            "Char daily quota", "Char catch and release",
-            "Walleye daily quota", "Walleye catch and release",
-            "Northern pike daily quota",
-            "Yellow perch daily quota",
-            "Burbot daily quota", "Burbot catch and release", "Trout/char (including steelhead) catch and release",
-            "Whitefish daily quota", "Arctic grayling daily quota",
-            "Daily quota", "Native char", 
-            "Class I water", "Class II water", "Steelhead Stamp", "Class 1 water",
-            "Tidal waters", "Non-tidal salmon",
-            "Electric motor only", "Engine power restriction", "Speed restriction", 
-            "Speed restrictions", "Motorized vehicle closure", "No towing", 
-            "Youth/Disabled", "Walk-in access",
-            "Additional opening", "Unnamed lake in", "wheelchair accessible fishing"
-        ]
-
-        
-        @staticmethod
-        def find_balanced(text, open_char='(', close_char=')'):
-            starts = [m.start() for m in re.finditer(re.escape(open_char), text)]
-            if not starts: return []
-            results = []
-            for start in starts:
-                if any(start > r[0] and start < r[1] for r in results): continue
-                count = 0
-                for i in range(start, len(text)):
-                    if text[i] == open_char: count += 1
-                    elif text[i] == close_char: count -= 1
-                    if count == 0:
-                        results.append((start, i + 1))
-                        break
-            return results
-
-        @staticmethod
-        def pre_clean(text):
-            """Repairs word-breaks and replaces bracketed content with placeholders."""
-            # Fix hyphenated word breaks (hatch-\nery -> hatchery)
-            text = re.sub(r'(\w+)-\s*\n\s*(\w+)', r'\1\2', text)
-            
-            # Remove spaces around forward slashes (trout / char -> trout/char)
-            text = re.sub(r'\s*/\s*', '/', text)
-            
-            # Add comma after [Includes Tributaries] if next non-whitespace is a letter
-            text = re.sub(r'\[Includes Tributaries\](?=\s*[A-Za-z])', r'[Includes Tributaries],', text)
-            
-            replacement_map = {}
-            placeholder_counter = 0
-            
-            # Replace outermost balanced brackets with placeholders
-            for char_pair in [('(', ')'), ('[', ']')]:
-                ranges = FishingSynopsisParser.RegParser.find_balanced(text, char_pair[0], char_pair[1])
-                for start, end in reversed(ranges):
-                    # Check if there's a semicolon before this bracket (excluding whitespace)
-                    check_start = start - 1
-                    while check_start >= 0 and text[check_start].isspace():
-                        check_start -= 1
-                    
-                    # If semicolon found, include it in the block
-                    if check_start >= 0 and text[check_start] == ';':
-                        actual_start = check_start
-                        block = text[check_start:end]
-                    else:
-                        actual_start = start
-                        block = text[start:end]
-                    
-                    # Remove newlines inside bracketed content
-                    block = block.replace('\n', ' ')
-                    # Clean up multiple spaces
-                    block = re.sub(r'\s+', ' ', block)
-                    placeholder = f"__BRACKET_PLACEHOLDER_{placeholder_counter}__"
-                    replacement_map[placeholder] = block
-                    text = text[:actual_start] + placeholder + text[end:]
-                    placeholder_counter += 1
-            
-            # Replace common abbreviated prefixes with placeholders
-            prefix_counter = 0
-            for prefix in FishingSynopsisParser.RegParser.COMMON_PREFIXES:
-                # Match prefix followed by period (case insensitive)
-                pattern = re.compile(rf'\b{re.escape(prefix)}\.', re.IGNORECASE)
-                matches = list(pattern.finditer(text))
-                for match in reversed(matches):
-                    placeholder = f"__PREFIX_PLACEHOLDER_{prefix_counter}__"
-                    replacement_map[placeholder] = match.group(0)
-                    text = text[:match.start()] + placeholder + text[match.end():]
-                    prefix_counter += 1
-            
-            # Replace measurements (number + unit) with placeholders
-            unit_counter = 0
-            # Common units: length, weight, power, temperature, speed
-            units = [
-                'cm', 'mm', 'm', 'km', 'mi', 'ft', 'in',  # length
-                'kg', 'g', 'lb', 'oz',  # weight
-                'kW', 'hp',  # power
-                '°C', '°F',  # temperature
-                'km/h', 'mph'  # speed
-            ]
-            for unit in units:
-                # Match number (with optional decimal) + optional space/newline + unit (with word boundary)
-                pattern = re.compile(rf'\b(\d+(?:\.\d+)?)\s*\n?\s*{re.escape(unit)}\b', re.IGNORECASE)
-                matches = list(pattern.finditer(text))
-                for match in reversed(matches):
-                    # Remove newlines and normalize spaces in the matched text
-                    normalized_text = re.sub(r'\s*\n\s*', ' ', match.group(0))
-                    placeholder = f"__UNIT_PLACEHOLDER_{unit_counter}__"
-                    replacement_map[placeholder] = normalized_text
-                    text = text[:match.start()] + placeholder + text[match.end():]
-                    unit_counter += 1
-            
-            # Replace date ranges with placeholders
-            date_counter = 0
-            # Month names and abbreviations
-            months = [
-                'January', 'February', 'March', 'April', 'May', 'June',
-                'July', 'August', 'September', 'October', 'November', 'December',
-                'Jan', 'Feb', 'Mar', 'Apr', 'Jun', 'Jul', 'Aug', 'Sep', 'Sept', 'Oct', 'Nov', 'Dec'
-            ]
-            months_pattern = '|'.join(re.escape(m) for m in months)
-            # Match date ranges like "Nov 1-June 30" or "Apr 1-Oct 31" with possible newlines
-            date_range_pattern = re.compile(
-                rf'\b({months_pattern})\s*\n?\s*(\d{{1,2}})\s*-\s*({months_pattern})\s*\n?\s*(\d{{1,2}})\b',
-                re.IGNORECASE
-            )
-            matches = list(date_range_pattern.finditer(text))
-            for match in reversed(matches):
-                # Remove newlines and normalize spaces in the matched text
-                normalized_text = re.sub(r'\s*\n\s*', ' ', match.group(0))
-                normalized_text = re.sub(r'\s+', ' ', normalized_text)  # Collapse multiple spaces
-                placeholder = f"__DATE_PLACEHOLDER_{date_counter}__"
-                replacement_map[placeholder] = normalized_text
-                text = text[:match.start()] + placeholder + text[match.end():]
-                date_counter += 1
-            
-            # Add newline after period followed by capital letter
-            text = re.sub(r'\.(\s*)([A-Z])', r'.\n\2', text)
-            
-            return text.strip(), replacement_map
-
-        @staticmethod
-        def clean_and_split(text):
-            # Split on newlines and semicolons (bracket content already replaced with placeholders)
-            raw_chunks = re.split(r'[\n]', text)
-            
-            final_items = []
-            for chunk in raw_chunks:
-                clean = re.sub(r'\s+', ' ', chunk).strip()
-                
-                if not clean:
-                    continue
-                
-                # Check if chunk starts with an invalid start word (capitalized noun)
-                starts_with_invalid = any(clean.startswith(word) for word in FishingSynopsisParser.RegParser.INVALID_START_WORDS)
-                starts_with_continuation = any(clean.lower().startswith(word.lower()) for word in FishingSynopsisParser.RegParser.CONTINUATION_WORDS)
-                prev_ends_with_continuation = any(re.search(rf'{re.escape(word)}$', final_items[-1], re.IGNORECASE) for word in FishingSynopsisParser.RegParser.CONTINUATION_WORDS + FishingSynopsisParser.RegParser.ADDITIONAL_END_CONTIONUATION_WORDS) if final_items else False
-                prev_ends_with_prefix = bool(re.search(r'__PREFIX_PLACEHOLDER_\d+__$', final_items[-1])) if final_items else False
-                
-                # Check if line starts with a START_KEYWORD
-                starts_with_keyword = any(clean.lower().startswith(keyword.lower()) for keyword in FishingSynopsisParser.RegParser.START_KEYWORDS)
-                
-                if final_items and (
-                    clean[0].islower() 
-                    or starts_with_invalid
-                    or clean.startswith(( '__BRACKET_PLACEHOLDER_', '__PREFIX_PLACEHOLDER_','__UNIT_PLACEHOLDER_', '__DATE_PLACEHOLDER_')) 
-                    or starts_with_continuation
-                    or prev_ends_with_continuation
-                    or prev_ends_with_prefix
-                    ):
-                    # If previous line ends with semicolon and current starts lowercase, replace semicolon with comma
-                    prev = final_items[-1]
-                    if clean[0].islower() and prev.rstrip().endswith(';'):
-                        prev = prev.rstrip()[:-1].rstrip() + ','  # Replace trailing semicolon with comma
-                    
-                    # If merging a line that starts with a START_KEYWORD, add comma separator
-                    if starts_with_keyword:
-                        final_items[-1] = f"{prev}, {clean}"
-                    else:
-                        final_items[-1] = f"{prev} {clean}"
-                else:
-                    final_items.append(clean)
-            
-            # Post-process: split items by semicolons or commas before start keywords
-            processed_items = []
-            for item in final_items:
-                # Check if item contains any special case word
-                contains_special = any(word.lower() in item.lower() for word in FishingSynopsisParser.RegParser.SPECIAL_CASE_WORDS)
-                contains_comma_special = any(word.lower() in item.lower() for word in FishingSynopsisParser.RegParser.COMMA_SPECIAL_CASE_WORDS)
-                
-                if contains_special:
-                    # Don't split items with special case words
-                    processed_items.append(item)
-                else:  
-                    temp_item = item
-                    if not contains_comma_special:
-                        # Replace commas before START_KEYWORDS with semicolons to split on them
-                        sorted_keywords = sorted(FishingSynopsisParser.RegParser.START_KEYWORDS, key=len, reverse=True)
-                        
-                        for keyword in sorted_keywords:
-                            # Pattern: comma followed by optional whitespace, then the keyword (case insensitive)
-                            pattern = re.compile(rf',(\s*)({re.escape(keyword)})\b', re.IGNORECASE)
-                            temp_item = pattern.sub(r';\1\2', temp_item)
-                        
-                        # Also replace commas before digit + fish type patterns (e.g., ", 1 bull trout")
-                        for fish in sorted(FishingSynopsisParser.RegParser.FISH_TYPES, key=len, reverse=True):
-                            # Pattern: comma + space + digit + space + fish type
-                            pattern = re.compile(rf',(\s*)(\d+\s+{re.escape(fish)})\b', re.IGNORECASE)
-                            temp_item = pattern.sub(r';\1\2', temp_item)
-                        
-                    # Now split on semicolons
-                    if ';' in temp_item:
-                        parts = re.split(r';\s*', temp_item)
-                        processed_items.extend([p for p in parts])
-                    else:
-                        processed_items.append(item)
-                    
-            
-            # each line strip ending punctionation and whitespace and capitalize first letter
-            def capitalize_first(s):
-                s = s.strip()
-                if s:
-                    return s[0].upper() + s[1:]
-                return s
-            
-            processed_items = [capitalize_first(re.sub(r'[;.,\s]+$', '', it)) for it in processed_items if it.strip()]
-            
-            return processed_items
-        
-        @staticmethod
-        def classify_regulation(text):
-            """
-            Classify a regulation into a type based on its content.
-            Uses priority-based classification: the most restrictive/significant type wins.
-            Priority: closure > harvest > gear_restriction > restriction > designation > licensing > exemption > access > reference > other
-            
-            Returns: (primary_type, all_matching_types)
-            """
-            text_lower = text.lower()
-            matching_types = []
-            
-            # 1. CLOSURE (highest priority - most restrictive)
-            closure_keywords = [
-                'no fishing', 'closed', 'angling prohibited', 'fishing prohibited'
-            ]
-            if any(keyword in text_lower for keyword in closure_keywords):
-                matching_types.append('closure')
-            
-            # 2. HARVEST (quotas, limits, catch-and-release, size restrictions)
-            harvest_keywords = [
-                'quota', 'daily quota', 'possession quota', 'annual quota',
-                'catch and release', 'release', 
-                'none under', 'none over', 'only 1', 'only one',
-                'cm', 'size', 'length',
-                'aggregate', 'combined'
-            ]
-            if any(keyword in text_lower for keyword in harvest_keywords):
-                matching_types.append('harvest')
-            
-            # 3. GEAR RESTRICTION (tackle/bait/method restrictions, rods)
-            gear_keywords = [
-                'bait ban', 'barbless', 'single hook', 'single barbless',
-                'artificial fly', 'fly fishing only', 'fly only',
-                'no hooks', 'hook', 'no bait', 'dead fin fish',
-                'no set line', 'set lining',
-                'rod', 'rods', 'unlimited number of rods'
-            ]
-            if any(keyword in text_lower for keyword in gear_keywords):
-                matching_types.append('gear_restriction')
-            
-            # 4. RESTRICTION (boats, motors, ice fishing, speed, vessels)
-            # Note: Removed location descriptors (boundary signs, within X m) as these describe
-            # the scope of other rules rather than being restrictions themselves
-            restriction_keywords = [
-                'no powered boats', 'no power boats', 'electric motor', 
-                'engine power', 'no vessels', 'no towing', 'speed restriction',
-                'no ice fishing', 'no angling from',
-                'no motorized', 'motor only', 'hp', 'kw',
-                'no set lines'
-            ]
-            if any(keyword in text_lower for keyword in restriction_keywords):
-                matching_types.append('restriction')
-            
-            # 5. DESIGNATION (water classifications, special status)
-            designation_keywords = [
-                'class i', 'class ii', 'class 1', 'class 2',
-                'classified waters'
-            ]
-            if any(keyword in text_lower for keyword in designation_keywords):
-                matching_types.append('designation')
-            
-            # 6. LICENSING (licence/stamp requirements)
-            licensing_keywords = [
-                'licence required', 'license required', 'stamp required',
-                'steelhead stamp', 'conservation surcharge',
-                'tidal waters sport fishing licence', 'classified licence',
-                'stamp mandatory', 'stamp not required'
-            ]
-            if any(keyword in text_lower for keyword in licensing_keywords):
-                matching_types.append('licensing')
-            
-            # 7. EXEMPTION (exemptions from other rules)
-            if 'exempt' in text_lower:
-                matching_types.append('exemption')
-            
-            # 8. ACCESS (accessibility and access information - not restrictions)
-            access_keywords = [
-                'wheelchair accessible', 'youth/disabled', 'disabled accompanied',
-                'walk-in only', 'walk-in access'
-            ]
-            if any(keyword in text_lower for keyword in access_keywords):
-                matching_types.append('access')
-            
-            # 9. REFERENCE (meta-references to other pages/sections)
-            reference_keywords = [
-                'refer to page', 'see page', 'refer to the', 'see the',
-                'for updated regulations', 'check page'
-            ]
-            if any(keyword in text_lower for keyword in reference_keywords):
-                matching_types.append('reference')
-            
-            # 10. OTHER (anything not captured above)
-            if not matching_types:
-                matching_types.append('other')
-            
-            # Return primary type (first match = highest priority) and all matches
-            return matching_types[0], matching_types
-        
-        @staticmethod
-        def has_exceptions(text):
-            """Detect if a regulation contains exceptions or multiple nested rules."""
-            text_upper = text.upper()
-            exception_indicators = [
-                'EXCEPT:', 'EXCEPT ', 'EXCEPTION', 
-                'EXCLUDING', 'OTHER THAN',
-                'ONLY,', ' ONLY ', 'MAINSTEM ONLY', 'TRIBUTARIES ONLY',
-                ' (A) ', ' (B) ', ' (C) ',
-                ' AND (', ' OR ('
-            ]
-            return any(indicator in text_upper for indicator in exception_indicators)
-        
-        @staticmethod
-        def extract_dates(text):
-            """Extract all date patterns found in the regulation text."""
-            import re
-            dates = []
-            
-            # Pattern 1: Month abbreviations with day ranges (e.g., "Nov 1-Apr 30", "Jan 1 to Mar 31")
-            month_abbr = r'(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)'
-            month_full = r'(?:January|February|March|April|May|June|July|August|September|October|November|December)'
-            
-            # Match patterns like "Nov 1-Apr 30" or "Jan 1 to Mar 31"
-            pattern1 = rf'{month_abbr}\s+\d{{1,2}}\s*[-–to]+\s*{month_abbr}\s+\d{{1,2}}'
-            dates.extend(re.findall(pattern1, text, re.IGNORECASE))
-            
-            # Match single dates like "Apr 1" or "December 15"
-            pattern2 = rf'(?:{month_abbr}|{month_full})\s+\d{{1,2}}'
-            single_dates = re.findall(pattern2, text, re.IGNORECASE)
-            # Filter out those already captured in ranges
-            for date in single_dates:
-                if not any(date in existing for existing in dates):
-                    dates.append(date)
-            
-            # Pattern 2: "year round"
-            if re.search(r'\byear\s+round\b', text, re.IGNORECASE):
-                dates.append('year round')
-            
-            return dates
-        
-        @classmethod
-        def parse_reg(cls, text):
-            cleaned, replacement_map = cls.pre_clean(text)
-            chunks = cls.clean_and_split(cleaned)
-            
-            # Restore bracketed content from placeholders
-            restored_chunks = []
-            for chunk in chunks:
-                for placeholder, original in replacement_map.items():
-                    chunk = chunk.replace(placeholder, original)
-                restored_chunks.append(chunk)
-            
-            result = []
-            for c in restored_chunks:
-                primary_type, all_types = cls.classify_regulation(c)
-                result.append(RegulationItem(
-                    details=c,
-                    type=primary_type,
-                    has_exceptions=cls.has_exceptions(c),
-                    has_multiple_types=len(all_types) > 1,
-                    dates=cls.extract_dates(c)
-                ))
-            
-            return result
-
-
-    
     def _get_bg_palette(self, img_pil):
         small = img_pil.resize((200, int(200 * img_pil.height / img_pil.width)))
         colors = small.convert("P", palette=Image.ADAPTIVE, colors=256).convert("RGB").getcolors(maxcolors=256*256)
@@ -1409,41 +869,6 @@ class FishingSynopsisParser:
         sections.append({'y0': start_y, 'y1': bottom, 'color': last_color or (255,255,255)})
         return sections
 
-    def parse_regulations_from_raw(self, raw_data: PageResult) -> ParsedPageResult:
-        """
-        Apply regulation parsing to raw extracted data.
-        Takes the output from extract_rows and adds parsed regulation details.
-        
-        Args:
-            raw_data: PageResult from extract_rows
-        
-        Returns:
-            ParsedPageResult with parsed regulations
-        """
-        if not raw_data or not raw_data.rows:
-            return ParsedPageResult(metadata=raw_data.metadata, rows=[])
-        
-        parsed_rows = []
-        for row in raw_data.rows:
-            # Apply RegParser to the raw regulation text
-            if row.raw_regs and row.raw_regs.strip():
-                parsed_regs = self.RegParser.parse_reg(row.raw_regs)
-            else:
-                parsed_regs = []
-            
-            # Create ParsedWaterbodyRow with both raw and parsed data
-            parsed_rows.append(ParsedWaterbodyRow(
-                water=row.water,
-                mu=row.mu,
-                raw_regs=row.raw_regs,
-                symbols=row.symbols,
-                page=row.page,
-                image=row.image,
-                parsed_regs=parsed_regs
-            ))
-        
-        return ParsedPageResult(metadata=raw_data.metadata, rows=parsed_rows)
-    
     def process_column_text(self, text, is_regs=False):
         symbols, mu_list = [], []
         
@@ -1531,31 +956,8 @@ def print_pretty_table(page_result: PageResult):
         
         s_l = smart_wrap(", ".join(row.symbols), width=s_w) or [""]
         
-        # Handle both raw and parsed data
-        # ParsedWaterbodyRow has 'parsed_regs', WaterbodyRow has 'raw_regs'
-        r_l = []
-        if hasattr(row, 'parsed_regs'):
-            # Parsed regulations with structure
-            reg_data = row.parsed_regs
-            if isinstance(reg_data, list):
-                for i, item in enumerate(reg_data):
-                    details = item.details if hasattr(item, 'details') else str(item)
-                    lines = textwrap.wrap(
-                        details, 
-                        width=r_w, 
-                        initial_indent="* ", 
-                        subsequent_indent="  " 
-                    )
-                    r_l.extend(lines)
-                    if i < len(reg_data) - 1:
-                        r_l.append("")
-            else:
-                r_l = smart_wrap(str(reg_data), width=r_w)
-        else:
-            # Raw regulations - just display the text
-            r_l = smart_wrap(row.raw_regs, width=r_w)
-        
-        if not r_l: r_l = [""]
+        # Display raw regulations text
+        r_l = smart_wrap(row.raw_regs, width=r_w) or [""]
         
         for i in range(max(len(w_l), len(m_l), len(r_l), len(s_l))):
             w = w_l[i] if i < len(w_l) else ""
@@ -1655,27 +1057,7 @@ class SynopsisExtractor:
         print(f"Raw extraction complete. Extracted {len(all_pages)} pages with data.")
         return ExtractionResults(pages=all_pages)
     
-    def parse_all_regulations(self, raw_pages_data: ExtractionResults) -> ParsedExtractionResults:
-        """
-        Apply regulation parsing to all pages of raw data.
-        
-        Args:
-            raw_pages_data: ExtractionResults from extract_all_pages
-        
-        Returns:
-            ParsedExtractionResults with parsed regulations added
-        """
-        print(f"Parsing regulations for {len(raw_pages_data)} pages...")
-        
-        parsed_pages = []
-        for page_data in raw_pages_data.pages:
-            parsed_page = self.parser.parse_regulations_from_raw(page_data)
-            parsed_pages.append(parsed_page)
-        
-        print(f"Regulation parsing complete.")
-        return ParsedExtractionResults(pages=parsed_pages)
-    
-    def save_to_json(self, data, filename: str = "synopsis_data.json") -> str:
+    def save_to_json(self, data, filename: str = "synopsis_raw_data.json") -> str:
         """Save the extracted data to a JSON file."""
         output_path = os.path.join(self.output_dir, filename)
         
@@ -1693,7 +1075,6 @@ def main():
     parser.add_argument("--page", type=int, default=37, help="Single page to extract (for testing)")
     parser.add_argument("--debug", action="store_true", help="Save debug visualizations")
     parser.add_argument("--extract-raw", action="store_true", help="Extract raw data from all pages and save to JSON")
-    parser.add_argument("--parse-regulations", type=str, help="Parse regulations from raw data JSON file")
     args = parser.parse_args()
     
     if args.extract_raw:
@@ -1702,27 +1083,7 @@ def main():
         extractor.download_pdf()
         raw_data = extractor.extract_all_pages(save_debug=args.debug)
         extractor.save_to_json(raw_data, filename="synopsis_raw_data.json")
-        print("\nRaw extraction complete. Run with --parse-regulations synopsis_raw_data.json to parse regulations.")
-    
-    elif args.parse_regulations:
-        # Parse regulations from raw data file
-        import json
-        extractor = SynopsisExtractor()
-        
-        input_path = args.parse_regulations
-        if not os.path.isabs(input_path):
-            input_path = os.path.join(extractor.output_dir, input_path)
-        
-        print(f"Loading raw data from {input_path}...")
-        with open(input_path, 'r', encoding='utf-8') as f:
-            json_data = json.load(f)
-        
-        # Reconstruct ExtractionResults from JSON
-        raw_data = ExtractionResults.from_dict(json_data)
-        
-        parsed_data = extractor.parse_all_regulations(raw_data)
-        extractor.save_to_json(parsed_data, filename="synopsis_parsed_data.json")
-        print("\nRegulation parsing complete.")
+        print("\nRaw extraction complete.")
     
     else:
         # Single page extraction (for testing)

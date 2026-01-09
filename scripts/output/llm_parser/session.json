@@ -15409,16 +15409,294 @@
         }
       ]
     },
-    null,
-    null,
-    null,
-    null,
-    null,
-    null,
-    null,
-    null,
-    null,
-    null,
+    {
+      "waterbody_name": "ASH RIVER",
+      "raw_text": "No Fishing from Elsie Lake to Dickson Lake\nNo Fishing from Dickson Lake to signs 200 m downstream of Lanternman Falls, Dec 1-Apr 30\nNo Fishing from Dickson Falls downstream 30 m to signs",
+      "cleaned_text": "No Fishing from Elsie Lake to Dickson Lake. No Fishing from Dickson Lake to signs 200 m downstream of Lanternman Falls, Dec 1-Apr 30. No Fishing from Dickson Falls downstream 30 m to signs.",
+      "geographic_groups": [
+        {
+          "location": "from Elsie Lake to Dickson Lake",
+          "raw_text": "No Fishing from Elsie Lake to Dickson Lake",
+          "cleaned_text": "No Fishing from Elsie Lake to Dickson Lake.",
+          "rules": [
+            {
+              "verbatim_text": "No Fishing from Elsie Lake to Dickson Lake",
+              "rule": "No Fishing",
+              "type": "closure",
+              "dates": "null",
+              "species": "null"
+            }
+          ]
+        },
+        {
+          "location": "from Dickson Lake to signs 200 m downstream of Lanternman Falls",
+          "raw_text": "No Fishing from Dickson Lake to signs 200 m downstream of Lanternman Falls, Dec 1-Apr 30",
+          "cleaned_text": "No Fishing from Dickson Lake to signs 200 m downstream of Lanternman Falls, Dec 1-Apr 30.",
+          "rules": [
+            {
+              "verbatim_text": "No Fishing from Dickson Lake to signs 200 m downstream of Lanternman Falls, Dec 1-Apr 30",
+              "rule": "No Fishing",
+              "type": "closure",
+              "dates": [
+                "Dec 1-Apr 30"
+              ],
+              "species": "null"
+            }
+          ]
+        },
+        {
+          "location": "from Dickson Falls downstream 30 m to signs",
+          "raw_text": "No Fishing from Dickson Falls downstream 30 m to signs",
+          "cleaned_text": "No Fishing from Dickson Falls downstream 30 m to signs.",
+          "rules": [
+            {
+              "verbatim_text": "No Fishing from Dickson Falls downstream 30 m to signs",
+              "rule": "No Fishing",
+              "type": "closure",
+              "dates": "null",
+              "species": "null"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "waterbody_name": "BAINBRIDGE LAKE",
+      "raw_text": "No angling from boats; Youth/Disabled Accompanied Water year round (see page 4)",
+      "cleaned_text": "No angling from boats; Youth/Disabled Accompanied Water year round (see page 4).",
+      "geographic_groups": [
+        {
+          "location": "",
+          "raw_text": "No angling from boats; Youth/Disabled Accompanied Water year round (see page 4)",
+          "cleaned_text": "No angling from boats; Youth/Disabled Accompanied Water year round (see page 4).",
+          "rules": [
+            {
+              "verbatim_text": "No angling from boats",
+              "rule": "No angling from boats",
+              "type": "restriction",
+              "dates": "null",
+              "species": "null"
+            },
+            {
+              "verbatim_text": "Youth/Disabled Accompanied Water year round (see page 4)",
+              "rule": "Youth/Disabled Accompanied Water",
+              "type": "restriction",
+              "dates": [
+                "year round"
+              ],
+              "species": "null"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "waterbody_name": "BEAR LAKE",
+      "raw_text": "See Cowichan Lake",
+      "cleaned_text": "See Cowichan Lake.",
+      "geographic_groups": [
+        {
+          "location": "",
+          "raw_text": "See Cowichan Lake",
+          "cleaned_text": "See Cowichan Lake.",
+          "rules": [
+            {
+              "verbatim_text": "See Cowichan Lake",
+              "rule": "See Cowichan Lake",
+              "type": "note",
+              "dates": "null",
+              "species": "null"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "waterbody_name": "BEAR RIVER",
+      "raw_text": "See Amor de Cosmos Creek",
+      "cleaned_text": "See Amor de Cosmos Creek.",
+      "geographic_groups": [
+        {
+          "location": "",
+          "raw_text": "See Amor de Cosmos Creek",
+          "cleaned_text": "See Amor de Cosmos Creek.",
+          "rules": [
+            {
+              "verbatim_text": "See Amor de Cosmos Creek",
+              "rule": "See Amor de Cosmos Creek",
+              "type": "note",
+              "dates": "null",
+              "species": "null"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "waterbody_name": "BEAVER LAKE",
+      "raw_text": "Smallmouth bass daily quota = 4; engine power restriction - 7.5 kW (10 hp), no towing on parts",
+      "cleaned_text": "Smallmouth bass daily quota = 4; engine power restriction - 7.5 kW (10 hp), no towing on parts.",
+      "geographic_groups": [
+        {
+          "location": "",
+          "raw_text": "Smallmouth bass daily quota = 4; engine power restriction - 7.5 kW (10 hp), no towing on parts",
+          "cleaned_text": "Smallmouth bass daily quota = 4; engine power restriction - 7.5 kW (10 hp), no towing on parts.",
+          "rules": [
+            {
+              "verbatim_text": "Smallmouth bass daily quota = 4",
+              "rule": "Smallmouth bass daily quota = 4",
+              "type": "harvest",
+              "dates": "null",
+              "species": [
+                "Smallmouth bass"
+              ]
+            },
+            {
+              "verbatim_text": "engine power restriction - 7.5 kW (10 hp)",
+              "rule": "Engine power restriction - 7.5 kW (10 hp)",
+              "type": "restriction",
+              "dates": "null",
+              "species": "null"
+            },
+            {
+              "verbatim_text": "no towing on parts",
+              "rule": "No towing on parts",
+              "type": "restriction",
+              "dates": "null",
+              "species": "null"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "waterbody_name": "BENSON RIVER",
+      "raw_text": "Fly fishing only",
+      "cleaned_text": "Fly fishing only.",
+      "geographic_groups": [
+        {
+          "location": "",
+          "raw_text": "Fly fishing only",
+          "cleaned_text": "Fly fishing only.",
+          "rules": [
+            {
+              "verbatim_text": "Fly fishing only",
+              "rule": "Fly fishing only",
+              "type": "gear_restriction",
+              "dates": "null",
+              "species": "null"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "waterbody_name": "\"BIG QUALICUM\" RIVER",
+      "raw_text": "See Qualicum River",
+      "cleaned_text": "See Qualicum River.",
+      "geographic_groups": [
+        {
+          "location": "",
+          "raw_text": "See Qualicum River",
+          "cleaned_text": "See Qualicum River.",
+          "rules": [
+            {
+              "verbatim_text": "See Qualicum River",
+              "rule": "See Qualicum River",
+              "type": "note",
+              "dates": "null",
+              "species": "null"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "waterbody_name": "BLACK CREEK",
+      "raw_text": "No Fishing Dec 1-May 31 and July 15-Aug 31",
+      "cleaned_text": "No Fishing Dec 1-May 31 and July 15-Aug 31.",
+      "geographic_groups": [
+        {
+          "location": "",
+          "raw_text": "No Fishing Dec 1-May 31 and July 15-Aug 31",
+          "cleaned_text": "No Fishing Dec 1-May 31 and July 15-Aug 31.",
+          "rules": [
+            {
+              "verbatim_text": "No Fishing Dec 1-May 31",
+              "rule": "No Fishing",
+              "type": "closure",
+              "dates": [
+                "Dec 1-May 31"
+              ],
+              "species": "null"
+            },
+            {
+              "verbatim_text": "No Fishing Dec 1-May 31 and July 15-Aug 31",
+              "rule": "No Fishing",
+              "type": "closure",
+              "dates": [
+                "Dec 1-May 31",
+                "July 15-Aug 31"
+              ],
+              "species": "null"
+            },
+            {
+              "verbatim_text": "July 15-Aug 31",
+              "rule": "No Fishing",
+              "type": "closure",
+              "dates": [
+                "July 15-Aug 31"
+              ],
+              "species": "null"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "waterbody_name": "BLACKBURN LAKE",
+      "raw_text": "No powered boats",
+      "cleaned_text": "No powered boats.",
+      "geographic_groups": [
+        {
+          "location": "",
+          "raw_text": "No powered boats",
+          "cleaned_text": "No powered boats.",
+          "rules": [
+            {
+              "verbatim_text": "No powered boats",
+              "rule": "No powered boats",
+              "type": "restriction",
+              "dates": "null",
+              "species": "null"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "waterbody_name": "BLACKWATER LAKE",
+      "raw_text": "Trout daily quota = 2",
+      "cleaned_text": "Trout daily quota = 2.",
+      "geographic_groups": [
+        {
+          "location": "",
+          "raw_text": "Trout daily quota = 2",
+          "cleaned_text": "Trout daily quota = 2.",
+          "rules": [
+            {
+              "verbatim_text": "Trout daily quota = 2",
+              "rule": "Trout daily quota = 2",
+              "type": "harvest",
+              "dates": "null",
+              "species": [
+                "Trout"
+              ]
+            }
+          ]
+        }
+      ]
+    },
     null,
     null,
     null,
@@ -30616,21 +30894,21 @@
     566,
     567,
     568,
-    569
+    569,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19
   ],
   "failed_items": [],
   "validation_failures": [],
   "retry_counts": {
-    "10": 1,
-    "11": 1,
-    "12": 1,
-    "13": 1,
-    "14": 1,
-    "15": 1,
-    "16": 1,
-    "17": 1,
-    "18": 1,
-    "19": 1,
     "20": 1,
     "21": 1,
     "22": 1,
@@ -30660,129 +30938,9 @@
     "156": 1,
     "157": 1,
     "158": 1,
-    "159": 1,
-    "190": 1,
-    "191": 1,
-    "192": 1,
-    "193": 1,
-    "194": 1,
-    "195": 1,
-    "196": 1,
-    "197": 1,
-    "198": 1,
-    "199": 1,
-    "200": 1,
-    "201": 1,
-    "202": 1,
-    "203": 1,
-    "204": 1,
-    "205": 1,
-    "206": 1,
-    "207": 1,
-    "208": 1,
-    "209": 1,
-    "240": 1,
-    "241": 1,
-    "242": 1,
-    "243": 1,
-    "244": 1,
-    "245": 1,
-    "246": 1,
-    "247": 1,
-    "248": 1,
-    "249": 1,
-    "370": 1,
-    "371": 1,
-    "372": 1,
-    "373": 1,
-    "374": 1,
-    "375": 1,
-    "376": 1,
-    "377": 1,
-    "378": 1,
-    "379": 1,
-    "400": 1,
-    "401": 1,
-    "402": 1,
-    "403": 1,
-    "404": 1,
-    "405": 1,
-    "406": 1,
-    "407": 1,
-    "408": 1,
-    "409": 1,
-    "430": 1,
-    "431": 1,
-    "432": 1,
-    "433": 1,
-    "434": 1,
-    "435": 1,
-    "436": 1,
-    "437": 1,
-    "438": 1,
-    "439": 1,
-    "440": 1,
-    "441": 1,
-    "442": 1,
-    "443": 1,
-    "444": 1,
-    "445": 1,
-    "446": 1,
-    "447": 1,
-    "448": 1,
-    "449": 1,
-    "500": 1,
-    "501": 1,
-    "502": 1,
-    "503": 1,
-    "504": 1,
-    "505": 1,
-    "506": 1,
-    "507": 1,
-    "508": 1,
-    "509": 1,
-    "520": 1,
-    "521": 1,
-    "522": 1,
-    "523": 1,
-    "524": 1,
-    "525": 1,
-    "526": 1,
-    "527": 1,
-    "528": 1,
-    "529": 1,
-    "570": 1,
-    "571": 1,
-    "572": 1,
-    "573": 1,
-    "574": 1,
-    "575": 1,
-    "576": 1,
-    "577": 1,
-    "578": 1,
-    "579": 1,
-    "580": 1,
-    "581": 1,
-    "582": 1,
-    "583": 1,
-    "584": 1,
-    "585": 1,
-    "586": 1,
-    "587": 1,
-    "588": 1,
-    "589": 1,
-    "590": 1,
-    "591": 1,
-    "592": 1,
-    "593": 1,
-    "594": 1,
-    "595": 1,
-    "596": 1,
-    "597": 1,
-    "598": 1,
-    "599": 1
+    "159": 1
   },
   "total_items": 1395,
   "created_at": "2026-01-08T15:56:34.889063",
-  "last_updated": "2026-01-08T16:07:20.606983"
+  "last_updated": "2026-01-08T20:43:05.522488"
 }
