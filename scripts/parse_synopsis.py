@@ -9,17 +9,97 @@ from extract_synopsis import WaterbodyRow, ExtractionResults
 from attrs import define
 from typing import List, Dict, Any, Optional
 
-# Configuration
-API_KEY = os.environ.get("GOOGLE_API_KEY", "AIzaSyBPZigLsxFIU7JOFSux8ZqS03p9-E878VE")
-client = genai.Client(api_key=API_KEY)
+# Configuration - Multiple API keys for rotation
+# To add more API keys, uncomment the lines below and add your keys.
+# The system will automatically rotate through keys when one fails 3 times.
+# This helps avoid rate limits by distributing load across multiple keys.
+API_KEYS = [
+    {"id": "horvath.dawson", "key": os.environ.get("GOOGLE_API_KEY", "AIzaSyBPZigLsxFIU7JOFSux8ZqS03p9-E878VE")},
+    {"id": "darcy.turin", "key": os.environ.get("GOOGLE_API_KEY_2", "AIzaSyC9C-PueILJLJ32bWpUzAV7sQ3R-VXpSUA")},
+    {"id": "datswrite", "key": os.environ.get("GOOGLE_API_KEY_3", "AIzaSyA83jZlnUeswsdnljezcSld6UQE2hPys-M")},
+    {"id": "helpfulhints116", "key": os.environ.get("GOOGLE_API_KEY_4", "AIzaSyD4jJOcWpml2ATn9Jo_6iY-B3sdh68jOi0")},
+]
 
-@define(frozen=True)
+class APIKeyManager:
+    """Manages multiple API keys with automatic rotation on failures."""
+    
+    def __init__(self, api_keys: List[Dict[str, str]], max_failures: int = 3):
+        self.api_keys = api_keys
+        self.max_failures = max_failures
+        self.current_index = 0
+        self.failure_counts = {key["id"]: 0 for key in api_keys}
+        self.clients = {key["id"]: genai.Client(api_key=key["key"]) for key in api_keys}
+    
+    def get_current_client(self) -> genai.Client:
+        """Get the current active API client."""
+        current_key_id = self.api_keys[self.current_index]["id"]
+        return self.clients[current_key_id]
+    
+    def get_current_key_id(self) -> str:
+        """Get the current active API key identifier."""
+        return self.api_keys[self.current_index]["id"]
+    
+    def record_success(self):
+        """Record a successful API call - resets failure count for current key."""
+        current_key_id = self.get_current_key_id()
+        self.failure_counts[current_key_id] = 0
+    
+    def record_failure(self) -> bool:
+        """Record a failure for current key and rotate if needed.
+        
+        Returns:
+            True if we should continue (another key available), False if all keys exhausted
+        """
+        current_key_id = self.get_current_key_id()
+        self.failure_counts[current_key_id] += 1
+        
+        # Check if current key has hit max failures
+        if self.failure_counts[current_key_id] >= self.max_failures:
+            print(f"  ⚠  API key '{current_key_id}' failed {self.max_failures} times, rotating...")
+            
+            # Try to find a key that hasn't failed max times
+            start_index = self.current_index
+            for _ in range(len(self.api_keys)):
+                self.current_index = (self.current_index + 1) % len(self.api_keys)
+                next_key_id = self.get_current_key_id()
+                
+                if self.failure_counts[next_key_id] < self.max_failures:
+                    print(f"  ↻  Switched to API key '{next_key_id}'")
+                    return True
+                
+                # If we've checked all keys and we're back to start
+                if self.current_index == start_index:
+                    break
+            
+            # All keys have failed max times
+            return False
+        
+        return True
+    
+    def all_keys_exhausted(self) -> bool:
+        """Check if all API keys have reached max failures."""
+        return all(count >= self.max_failures for count in self.failure_counts.values())
+    
+    def get_status(self) -> str:
+        """Get a status string showing failure counts for all keys."""
+        status_parts = []
+        for key in self.api_keys:
+            key_id = key["id"]
+            failures = self.failure_counts[key_id]
+            current = "*" if key_id == self.get_current_key_id() else " "
+            status_parts.append(f"{current}{key_id}: {failures}/{self.max_failures}")
+        return " | ".join(status_parts)
+
+# Initialize API key manager
+api_key_manager = APIKeyManager(API_KEYS, max_failures=3)
+
+@define(frozen=True, cache_hash=True)
 class TestRow:
     """Simplified row for testing with only water name and raw regulations."""
     water: str
     raw_regs: str
 
-@define(frozen=True)
+@define(frozen=True, cache_hash=True)
 class ParsedRule:
     """A single parsed fishing regulation rule."""
     verbatim_text: str
@@ -29,7 +109,11 @@ class ParsedRule:
     species: Optional[List[str]]
     
     def validate(self, parent_text: str) -> List[str]:
-        """Validate this rule. Returns list of error messages."""
+        """Validate this rule. Returns list of error messages.
+        
+        Args:
+            parent_text: The geographic group's raw_text that should contain this rule's verbatim_text
+        """
         errors = []
         
         # Check required fields are non-empty
@@ -37,6 +121,15 @@ class ParsedRule:
             errors.append("verbatim_text is empty")
         if not self.rule or not self.rule.strip():
             errors.append("rule is empty")
+        
+        # Validate verbatim_text actually appears in parent (geographic group's raw_text)
+        if self.verbatim_text and parent_text:
+            # Normalize for comparison (remove extra whitespace, case insensitive)
+            verbatim_normalized = ' '.join(self.verbatim_text.replace('\n', ' ').split()).lower()
+            parent_normalized = ' '.join(parent_text.replace('\n', ' ').split()).lower()
+            
+            if verbatim_normalized not in parent_normalized:
+                errors.append(f"verbatim_text not found in geographic group's raw_text")
         
         # Validate rule type
         valid_types = {'closure', 'harvest', 'gear_restriction', 'restriction', 'licensing', 'access', 'note'}
@@ -49,19 +142,16 @@ class ParsedRule:
         if self.species is not None and not isinstance(self.species, list):
             errors.append(f"species must be list or None, got {type(self.species).__name__}")
         
-        # Validate dates appear in source text
-        if self.dates and isinstance(self.dates, list):
+        # Validate dates appear in verbatim_text only (not parent text)
+        if self.dates and isinstance(self.dates, list) and self.verbatim_text:
             for date in self.dates:
                 # Normalize for comparison (remove spaces, case insensitive)
                 date_normalized = date.replace(' ', '').replace('-', '').lower()
-                parent_normalized = parent_text.replace(' ', '').replace('\n', '').replace('-', '').lower()
+                verbatim_normalized = self.verbatim_text.replace(' ', '').replace('\n', '').replace('-', '').lower()
                 
-                # Check if date appears in parent text (with some flexibility)
-                if date_normalized not in parent_normalized:
-                    # Try checking verbatim_text instead
-                    verbatim_normalized = self.verbatim_text.replace(' ', '').replace('\n', '').replace('-', '').lower()
-                    if date_normalized not in verbatim_normalized:
-                        errors.append(f"Date '{date}' not found in source text")
+                # Check if date appears in verbatim_text
+                if date_normalized not in verbatim_normalized:
+                    errors.append(f"Date '{date}' not found in verbatim_text")
         
         return errors
     
@@ -83,7 +173,7 @@ class ParsedRule:
             species=species
         )
 
-@define(frozen=True)
+@define(frozen=True, cache_hash=True)
 class ParsedGeographicGroup:
     """A geographic subdivision of regulations for a waterbody."""
     location: str
@@ -118,7 +208,7 @@ class ParsedGeographicGroup:
             rules=rules
         )
 
-@define(frozen=True)
+@define(frozen=True, cache_hash=True)
 class ParsedWaterbody:
     """Complete parsed result for a single waterbody."""
     waterbody_name: str
@@ -126,17 +216,33 @@ class ParsedWaterbody:
     cleaned_text: str
     geographic_groups: List[ParsedGeographicGroup]
     
-    def validate(self, expected_name: Optional[str] = None) -> List[str]:
-        """Validate this waterbody result. Returns list of error messages."""
+    def validate(self, expected_name: str, expected_raw_text: str = None) -> List[str]:
+        """Validate this waterbody result. Returns list of error messages.
+        
+        Args:
+            expected_name: Required expected name from input - must always be provided
+            expected_raw_text: Expected raw regulation text from input - should match exactly
+        """
         errors = []
         
         # Check required fields
         if not self.waterbody_name or not self.waterbody_name.strip():
             errors.append("waterbody_name is empty")
         
-        # Check name matches expected
-        if expected_name and self.waterbody_name.strip() != expected_name.strip():
+        # Check name matches expected (REQUIRED - no optional)
+        if not expected_name:
+            errors.append("expected_name not provided to validate()")
+        elif self.waterbody_name.strip() != expected_name.strip():
             errors.append(f"Name mismatch: expected '{expected_name}', got '{self.waterbody_name}'")
+        
+        # Check raw_text matches input raw_regs exactly
+        if expected_raw_text is not None:
+            if self.raw_text != expected_raw_text:
+                # Show a preview of the difference
+                preview_len = 100
+                expected_preview = expected_raw_text[:preview_len] + ('...' if len(expected_raw_text) > preview_len else '')
+                actual_preview = self.raw_text[:preview_len] + ('...' if len(self.raw_text) > preview_len else '')
+                errors.append(f"raw_text doesn't match input raw_regs exactly. Expected: '{expected_preview}', Got: '{actual_preview}'")
         
         # Validate geographic groups
         if not self.geographic_groups or len(self.geographic_groups) == 0:
@@ -227,7 +333,8 @@ class ParsedWaterbody:
                 # Convert to dataclass and validate structure
                 parsed = cls.from_dict(entry)
                 expected_name = input_rows[idx].water
-                item_errors = parsed.validate(expected_name)
+                expected_raw_text = input_rows[idx].raw_regs
+                item_errors = parsed.validate(expected_name, expected_raw_text)
                 validation_errors.extend([f"Item {idx}: {err}" for err in item_errors])
             except Exception as e:
                 validation_errors.append(f"Item {idx}: Failed to parse - {e}")
@@ -241,6 +348,7 @@ class SessionState:
     results: List[Optional[ParsedWaterbody]]  # Parsed results as class instances, indexed by position
     processed_items: List[int]  # Indices of successfully processed items
     failed_items: List[Dict[str, Any]]  # Items that failed with error info
+    validation_failures: List[Dict[str, Any]]  # Items that failed validation (reset on resume for retry)
     retry_counts: Dict[int, int]  # Track retry attempts per item index
     total_items: int
     created_at: str  # ISO timestamp
@@ -273,6 +381,7 @@ class SessionState:
             'results': results_dicts,
             'processed_items': self.processed_items,
             'failed_items': self.failed_items,
+            'validation_failures': self.validation_failures,
             'retry_counts': retry_counts_str,
             'total_items': self.total_items,
             'created_at': self.created_at,
@@ -311,6 +420,7 @@ class SessionState:
             results=results,
             processed_items=data['processed_items'],
             failed_items=data['failed_items'],
+            validation_failures=data.get('validation_failures', []),  # Default to empty list for old sessions
             retry_counts=retry_counts,
             total_items=data['total_items'],
             created_at=data['created_at'],
@@ -342,6 +452,7 @@ class SessionState:
             results=[None] * total,
             processed_items=[],
             failed_items=[],
+            validation_failures=[],
             retry_counts={},
             total_items=total,
             created_at=now,
@@ -352,49 +463,230 @@ class ValidationError(Exception):
     """Custom exception for validation failures."""
     pass
 
+def validate_input_rows(rows: List) -> List[str]:
+    """Validate input rows have required fields.
+    
+    Args:
+        rows: List of waterbody row objects to validate
+    
+    Returns:
+        List of error messages (empty if valid)
+    """
+    errors = []
+    
+    if not rows or len(rows) == 0:
+        errors.append("Input rows list is empty")
+        return errors
+    
+    for idx, row in enumerate(rows):
+        # Check required attributes exist
+        if not hasattr(row, 'water'):
+            errors.append(f"Row {idx}: missing 'water' attribute")
+        elif not row.water or not str(row.water).strip():
+            errors.append(f"Row {idx}: 'water' is empty")
+        
+        if not hasattr(row, 'raw_regs'):
+            errors.append(f"Row {idx}: missing 'raw_regs' attribute")
+        elif not row.raw_regs or not str(row.raw_regs).strip():
+            errors.append(f"Row {idx}: 'raw_regs' is empty")
+    
+    return errors
+
 def validate_partial_json(json_path: str, input_rows: Optional[List] = None) -> Dict[str, Any]:
-    """Validate a partial or complete LLM output JSON file.
+    """Validate a session file or parsed results JSON file.
+    
+    Automatically detects file type:
+    - Session file: has 'input_rows', 'results', 'processed_items', etc.
+    - Parsed results: list of waterbody objects
     
     Args:
         json_path: Path to JSON file to validate
-        input_rows: Optional list of input rows for name validation
+        input_rows: Optional list of input rows for name validation (ignored for session files)
     
     Returns:
-        Dict with 'valid', 'errors', and 'warnings' keys
+        Dict with 'valid', 'errors', 'warnings', 'file_type', and 'items_checked' keys
     """
     if not os.path.exists(json_path):
-        return {'valid': False, 'errors': [f"File not found: {json_path}"], 'warnings': []}
+        return {'valid': False, 'errors': [f"File not found: {json_path}"], 'warnings': [], 'file_type': 'unknown'}
     
     try:
         with open(json_path, 'r', encoding='utf-8') as f:
             data = json.load(f)
     except json.JSONDecodeError as e:
-        return {'valid': False, 'errors': [f"Invalid JSON: {e}"], 'warnings': []}
-    
-    if not isinstance(data, list):
-        return {'valid': False, 'errors': ["JSON must be a list of waterbody results"], 'warnings': []}
+        return {'valid': False, 'errors': [f"Invalid JSON: {e}"], 'warnings': [], 'file_type': 'unknown'}
     
     all_errors = []
     all_warnings = []
+    file_type = 'unknown'
     
-    for idx, item in enumerate(data):
+    # Detect file type
+    if isinstance(data, dict) and 'input_rows' in data and 'results' in data and 'processed_items' in data:
+        # This is a session file
+        file_type = 'session'
+        
         try:
-            # Convert to dataclass and validate
-            parsed = ParsedWaterbody.from_dict(item)
-            expected_name = input_rows[idx].water if (input_rows and idx < len(input_rows)) else None
-            errors = parsed.validate(expected_name)
+            session = SessionState.from_dict(data)
             
-            if errors:
-                all_errors.extend([f"Item {idx} ({parsed.waterbody_name}): {err}" for err in errors])
+            # Use input_rows from session itself
+            session_input_rows = session.input_rows
+            
+            # Validate session structure
+            if session.total_items != len(session.input_rows):
+                all_errors.append(f"Session total_items ({session.total_items}) doesn't match input_rows count ({len(session.input_rows)})")
+            
+            if len(session.results) != session.total_items:
+                all_errors.append(f"Session results array length ({len(session.results)}) doesn't match total_items ({session.total_items})")
+            
+            # Validate each processed result
+            items_checked = 0
+            for idx in session.processed_items:
+                if idx >= len(session.results):
+                    all_errors.append(f"Processed item index {idx} out of bounds (results length: {len(session.results)})")
+                    continue
+                
+                result = session.results[idx]
+                if result is None:
+                    all_errors.append(f"Item {idx}: Marked as processed but result is None")
+                    continue
+                
+                # Validate the parsed waterbody
+                try:
+                    expected_name = session_input_rows[idx].water if idx < len(session_input_rows) else None
+                    expected_raw_text = session_input_rows[idx].raw_regs if idx < len(session_input_rows) else None
+                    errors = result.validate(expected_name, expected_raw_text)
+                    
+                    if errors:
+                        all_errors.extend([f"Item {idx} ({result.waterbody_name}): {err}" for err in errors])
+                    items_checked += 1
+                except Exception as e:
+                    all_errors.append(f"Item {idx}: Validation failed - {e}")
+            
+            # Report on unprocessed items
+            unprocessed_count = session.total_items - len(session.processed_items) - len(session.failed_items) - len(session.validation_failures)
+            if unprocessed_count > 0:
+                all_warnings.append(f"{unprocessed_count} items not yet processed")
+            
+            # Report on failed items
+            if session.failed_items:
+                all_warnings.append(f"{len(session.failed_items)} items permanently failed")
+                for failed in session.failed_items[:5]:
+                    all_warnings.append(f"  - Index {failed['index']}: {failed.get('waterbody', 'unknown')}")
+            
+            # Report on validation failures
+            if session.validation_failures:
+                all_warnings.append(f"{len(session.validation_failures)} items failed validation (will retry on --resume)")
+                for failed in session.validation_failures[:5]:
+                    all_warnings.append(f"  - Index {failed['index']}: {failed.get('waterbody', 'unknown')}")
+            
+            return {
+                'valid': len(all_errors) == 0,
+                'errors': all_errors,
+                'warnings': all_warnings,
+                'file_type': file_type,
+                'items_checked': items_checked,
+                'session_info': {
+                    'total_items': session.total_items,
+                    'processed': len(session.processed_items),
+                    'failed': len(session.failed_items),
+                    'validation_failed': len(session.validation_failures),
+                    'created_at': session.created_at,
+                    'last_updated': session.last_updated
+                }
+            }
+            
         except Exception as e:
-            all_errors.append(f"Item {idx}: Failed to parse - {e}")
+            all_errors.append(f"Failed to load session: {e}")
+            return {
+                'valid': False,
+                'errors': all_errors,
+                'warnings': all_warnings,
+                'file_type': file_type
+            }
     
-    return {
-        'valid': len(all_errors) == 0,
-        'errors': all_errors,
-        'warnings': all_warnings,
-        'items_checked': len(data)
-    }
+    elif isinstance(data, list):
+        # This is a parsed results file
+        file_type = 'parsed_results'
+        
+        for idx, item in enumerate(data):
+            # Check for error placeholders
+            if isinstance(item, dict) and 'error' in item:
+                all_warnings.append(f"Item {idx} ({item.get('waterbody_name', 'unknown')}): {item['error']}")
+                continue
+            
+            try:
+                # Convert to dataclass and validate
+                parsed = ParsedWaterbody.from_dict(item)
+                expected_name = input_rows[idx].water if (input_rows and idx < len(input_rows)) else None
+                expected_raw_text = input_rows[idx].raw_regs if (input_rows and idx < len(input_rows)) else None
+                errors = parsed.validate(expected_name, expected_raw_text)
+                
+                if errors:
+                    all_errors.extend([f"Item {idx} ({parsed.waterbody_name}): {err}" for err in errors])
+            except Exception as e:
+                all_errors.append(f"Item {idx}: Failed to parse - {e}")
+        
+        return {
+            'valid': len(all_errors) == 0,
+            'errors': all_errors,
+            'warnings': all_warnings,
+            'file_type': file_type,
+            'items_checked': len(data)
+        }
+    
+    else:
+        return {
+            'valid': False,
+            'errors': ["JSON must be either a session object or a list of waterbody results"],
+            'warnings': all_warnings,
+            'file_type': 'unknown'
+        }
+
+def revalidate_session_results(session: 'SessionState') -> List[int]:
+    """Revalidate all processed items in session with current validation rules.
+    
+    This allows validation improvements to catch previously-processed items that
+    now fail validation. Returns list of indices that need reprocessing.
+    
+    Args:
+        session: SessionState with processed results
+    
+    Returns:
+        List of indices that failed revalidation
+    """
+    failed_indices = []
+    
+    print(f"\n{'='*80}")
+    print(f"Revalidating {len(session.processed_items)} processed items with current validation rules...")
+    print(f"{'='*80}")
+    
+    for idx in session.processed_items:
+        if idx >= len(session.results) or session.results[idx] is None:
+            print(f"⚠ Item {idx}: Result is None, marking for reprocessing")
+            failed_indices.append(idx)
+            continue
+        
+        result = session.results[idx]
+        expected_name = session.input_rows[idx].water
+        expected_raw_text = session.input_rows[idx].raw_regs
+        
+        # Validate with current rules
+        errors = result.validate(expected_name, expected_raw_text)
+        
+        if errors:
+            print(f"✗ Item {idx} ({result.waterbody_name}): Failed revalidation")
+            for err in errors[:3]:
+                print(f"    - {err}")
+            if len(errors) > 3:
+                print(f"    ... and {len(errors) - 3} more errors")
+            failed_indices.append(idx)
+    
+    if failed_indices:
+        print(f"\n⚠ {len(failed_indices)} items failed revalidation and will be reprocessed")
+        print(f"Indices: {failed_indices[:20]}{'...' if len(failed_indices) > 20 else ''}")
+    else:
+        print(f"\n✓ All {len(session.processed_items)} processed items passed revalidation")
+    
+    return failed_indices
 
 class SynopsisParser:
     """Parser for fishing regulation synopsis data using LLM."""
@@ -417,28 +709,53 @@ class SynopsisParser:
             Each object in the array corresponds to a waterbody with its regulations. 
             Rules must exist within the regulation block they are extracted from.
             
-            CRITICAL REQUIREMENTS:
-            1. Return EXACTLY {len(waterbody_rows)} items in the EXACT SAME ORDER as input
-            2. Copy "waterbody_name" VERBATIM from "Waterbody Name:" in input - do not modify, rephrase, or correct spelling
-            3. Process ALL items completely - do not skip any
-            
             DIRECTIONS:
             1. HIERARCHY: Map the input text into 'geographic_groups'.
             2. CONTEXT: For each group, provide 'raw_text' (verbatim from input) and 'cleaned_text' (fixed word-breaks, collapsed hyphens, single line).
             3. RULES: Split the 'cleaned_text' of that group into individual rule objects in the 'rules' array.
-            4. LISTS: Split nested lists (a, b, c) into individual rule objects.
+            4. LISTS: Split nested lists (a, b, c) into individual rule objects that are referencing the proper location.
             5. VERBATIM: Do not summarize. Every word of the original text must exist within the 'geographic_groups'.
             6. TYPES: Classify each rule into one of: closure, harvest, gear_restriction, restriction, licensing, access, note.
-            7. DATES & SPECIES: Extract date ranges and species into arrays, or null if none found.
+            7. DATES & SPECIES: Extract date ranges and species into arrays, or null if none found. Dates should be in the exact format as found in the text.
             8. FORMATTING: Ensure valid JSON output.
             9. RULES EXTRACTION: Extract all rules, even if they overlap in meaning. One rule per object. Multiple rules can exist in one block of text.
             10. MAKE SURE ALL ENTRIES ARE FILLED OUT AS PER THE SCHEMA BELOW. DO NOT LEAVE ANYTHING BLANK. DO NOT SKIP ANY RULES OR WATERBODIES.
+            
+            CRITICAL REQUIREMENTS:
+            1. Return EXACTLY {len(waterbody_rows)} items in the EXACT SAME ORDER as input
+            2. Copy "waterbody_name" VERBATIM from "Waterbody Name:" in input - do not modify, rephrase, or correct spelling
+            3. Copy "raw_text" VERBATIM from "Regulation Block:" in input - do not modify, rephrase, or correct spelling
+            4. Process ALL items completely - do not skip any
+            
+            
+            CRITICAL: VERBATIM_TEXT REQUIREMENTS
+            - The "verbatim_text" field in each rule MUST be an EXACT substring copied character-for-character from the geographic group's "raw_text"
+            - DO NOT rephrase, rewrite, paraphrase, or reconstruct the text
+            - DO NOT add words that aren't in the original (like repeating "No Fishing" for each date range)
+            - DO NOT skip connecting words like "and", "or", "from"
+            - Include ALL context necessary to understand the rule, even if it means the verbatim_text is longer and/or contains other rules
+            - The verbatim_text must be findable in raw_text using exact string matching (case-insensitive, whitespace-normalized)
+            
+            EXAMPLES OF CORRECT VERBATIM_TEXT:
+                CORRECT: If raw_text is "No Fishing Dec 1-May 31 and July 15-Aug 31"
+                    Rule 1 verbatim_text: "No Fishing Dec 1-May 31"
+                    Rule 2 verbatim_text: "No Fishing Dec 1-May 31 and July 15-Aug 31"
+                
+                WRONG: If raw_text is "No Fishing Dec 1-May 31 and July 15-Aug 31"
+                    Rule 2 verbatim_text: "No Fishing July 15-Aug 31" (WRONG - "No Fishing July" doesn't appear in raw_text)
+                
+                CORRECT: If raw_text is "Trout/char catch and release, bait ban"
+                    Rule 1 verbatim_text: "Trout/char catch and release, bait ban" (full context)
+                    Rule 2 verbatim_text: "bait ban" (substring that appears in raw_text in correct location)
+                
+                WRONG: If raw_text is "Trout/char catch and release, bait ban"
+                    Rule 1 verbatim_text: "Trout/char catch and release only" (WRONG - "only" not in raw_text)
             
             JSON SCHEMA:
             List of objects:
             {{
                 "waterbody_name": "EXACT VERBATIM name from 'Waterbody Name:' field - copy exactly, do not modify",
-                "raw_text": "The full verbatim regulation block. Does not include name only text.",
+                "raw_text": "EXACT VERBATIM full regulation block from the 'Regulation Block:' field. Does not include name only the text. - copy exactly, do not modify",
                 "cleaned_text": "The block of text with repaired word-breaks and newlines. Mains full context. Has fixed Punctuation.",
                 "geographic_groups": [
                     {{
@@ -447,7 +764,7 @@ class SynopsisParser:
                         "cleaned_text": "The block of text with repaired word-breaks, no newlines, and corrected punctuation. Maintains full context.",
                         "rules": [
                             {{
-                                "verbatim_text": "The complete context for the specific legal instruction",
+                                "verbatim_text": "EXACT substring from geographic group's raw_text - must be findable via exact string matching. Include full context needed to understand the rule. DO NOT paraphrase or add words not in the original.",
                                 "rule": "Specific rule extracted, normalized. E.g., 'No Fishing', 'Trout catch and release'. One rule per object. Multiple rules can exist in one block of text.",
                                 "type": "closure|harvest|gear_restriction|restriction|licensing|access|note",
                                 "dates": ["Date ranges found, or null"],
@@ -458,7 +775,7 @@ class SynopsisParser:
                 ]
             }}
             
-            A few examples:
+            A Complete example with the format desired is shown below:
             ---
             INPUT:
             Waterbody Name: "Coquihalla River" | Regulation Block: "No Fishing upstream of the northern entrance to the upper most railway tunnel, Nov 1-June 30 (see map on page 24)\\nFly fishing only; bait ban upstream of the northern entrance to the upper most railway tunnel, Jul 1-Oct 31\\nNo Fishing downstream of the southern entrance to the lower most railway tunnel, Apr 1-Oct 31\\nNo Fishing at Othello Tunnels from the northern entrance to the upper most railway tunnel to the southern entrance of the lower most tunnel;\\napproximately 700 m length\\nTrout/char (including steelhead) catch and release, bait ban, downstream of the southern entrance to the lower most railway tunnel, Nov\\n1-Mar 31"
@@ -563,53 +880,73 @@ class SynopsisParser:
             """
 
     @classmethod
-    def parse_synopsis_batch(cls, waterbody_rows: List, retry_count: int = 0, max_retries: int = 3):
+    def parse_synopsis_batch(cls, waterbody_rows: List, api_manager: APIKeyManager = None):
         """
-        Parse a list of WaterbodyRow or TestRow objects with retry logic.
+        Parse a list of WaterbodyRow or TestRow objects with API key rotation.
         
         Args:
             waterbody_rows: List of objects with water and raw_regs attributes
-            retry_count: Current retry attempt
-            max_retries: Maximum number of retries for rate limiting
+            api_manager: APIKeyManager instance for handling multiple keys
         """
+        if api_manager is None:
+            api_manager = api_key_manager
+        
         try:
             prompt = cls.get_prompt(waterbody_rows)
+            current_client = api_manager.get_current_client()
             
-            response = client.models.generate_content(
+            response = current_client.models.generate_content(
                 model='gemini-2.5-flash-lite', # Updated to the latest stable flash
                 # model='gemini-2.0-flash',
                 contents=prompt,
                 config=types.GenerateContentConfig(
                     response_mime_type='application/json',
-                    temperature=0.1
+                    temperature=0.1,
+                    cached_content=None
                 )
             )
             
             if response.text:
-                parsed_result = json.loads(response.text)
+                # Parse JSON - if malformed, this will raise JSONDecodeError
+                try:
+                    parsed_result = json.loads(response.text)
+                except json.JSONDecodeError as e:
+                    api_manager.record_failure()
+                    return {"error": f"Malformed JSON from model: {e}"}
                 
                 # Validate batch using ParsedWaterbody.validate_batch()
                 # This checks: count, order, verbatim names, and all structure validations
                 validation_errors = ParsedWaterbody.validate_batch(parsed_result, waterbody_rows)
                 
                 if validation_errors:
+                    # Validation errors are not API failures, don't affect key rotation
                     raise ValidationError(f"Validation failed: {'; '.join(validation_errors[:5])}...")  # Show first 5
                 
+                # Success! Reset failure count for this key
+                api_manager.record_success()
                 return parsed_result
             else:
+                api_manager.record_failure()
                 return {"error": "Empty response from model"}
+        except ValidationError as e:
+            # Validation errors should trigger retries (model didn't follow instructions)
+            # But don't count as API failures
+            return {"error": str(e)}
         except Exception as e:
             error_msg = str(e)
             
-            # Check for rate limiting
-            if 'rate limit' in error_msg.lower() or '429' in error_msg:
-                if retry_count < max_retries:
-                    wait_time = (2 ** retry_count) * 5  # Exponential backoff: 5s, 10s, 20s
-                    print(f"⚠ Rate limited. Waiting {wait_time}s before retry {retry_count + 1}/{max_retries}...")
+            # Record failure and check if we should rotate keys
+            can_continue = api_manager.record_failure()
+            
+            # Check for rate limiting or API errors
+            if 'rate limit' in error_msg.lower() or '429' in error_msg or 'quota' in error_msg.lower():
+                if can_continue and not api_manager.all_keys_exhausted():
+                    # Try again with the rotated key
+                    wait_time = 2  # Short wait before trying next key
                     time.sleep(wait_time)
-                    return cls.parse_synopsis_batch(waterbody_rows, retry_count + 1, max_retries)
+                    return cls.parse_synopsis_batch(waterbody_rows, api_manager)
                 else:
-                    return {"error": f"Rate limit exceeded after {max_retries} retries"}
+                    return {"error": f"All API keys exhausted. Key status: {api_manager.get_status()}"}
             
             return {"error": error_msg}
 
@@ -630,6 +967,19 @@ def run_llm_parsing(waterbody_rows: Optional[List] = None, output_file='output/l
     """
     parser = SynopsisParser()
     print(f"\n{'='*80}\nRunning LLM Batch Parsing...\n{'='*80}")
+    
+    # Validate input rows if provided (before loading session)
+    if waterbody_rows is not None:
+        input_errors = validate_input_rows(waterbody_rows)
+        if input_errors:
+            print(f"\n✗ Input validation failed:")
+            for err in input_errors[:10]:
+                print(f"  - {err}")
+            if len(input_errors) > 10:
+                print(f"  ... and {len(input_errors) - 10} more errors")
+            print(f"\nFix input data before running parser.")
+            exit(1)
+        print(f"✓ Input validation passed ({len(waterbody_rows)} rows)")
     
     # Load or create session state
     session = None
@@ -681,6 +1031,154 @@ def run_llm_parsing(waterbody_rows: Optional[List] = None, output_file='output/l
     total_items = session.total_items
     print(f"Total items to process: {total_items}")
     print(f"Batch size: {batch_size}")
+    print(f"API keys available: {len(API_KEYS)} ({', '.join(k['id'] for k in API_KEYS)})")
+    
+    # If resuming, revalidate processed items with current validation rules
+    # AND include permanently failed items for retry
+    revalidation_failed = []
+    if resume and (len(session.processed_items) > 0 or len(session.failed_items) > 0 or len(session.validation_failures) > 0):
+        revalidation_failed = revalidate_session_results(session)
+        
+        # Add all null/None results for reprocessing
+        null_results = [i for i in range(session.total_items) if session.results[i] is None]
+        if null_results:
+            print(f"\n⚠  Found {len(null_results)} null results, will reprocess")
+            for idx in null_results:
+                if idx not in revalidation_failed:
+                    revalidation_failed.append(idx)
+        
+        # Add permanently failed items for retry on resume
+        permanently_failed_indices = [f['index'] for f in session.failed_items]
+        if permanently_failed_indices:
+            print(f"⚠  Retrying {len(permanently_failed_indices)} previously failed items")
+            # Add to revalidation_failed list (avoid duplicates)
+            for idx in permanently_failed_indices:
+                if idx not in revalidation_failed:
+                    revalidation_failed.append(idx)
+        
+        # ALWAYS retry validation failures on resume (these are likely prompt/validation issues)
+        validation_failed_indices = [f['index'] for f in session.validation_failures]
+        if validation_failed_indices:
+            print(f"⚠  Retrying {len(validation_failed_indices)} validation failures")
+            # Add to revalidation_failed list (avoid duplicates)
+            for idx in validation_failed_indices:
+                if idx not in revalidation_failed:
+                    revalidation_failed.append(idx)
+            
+            # Clear validation_failures list - they're being retried
+            session.validation_failures = []
+        
+        if revalidation_failed:
+            # Remove failed items from processed_items list
+            session.processed_items = [i for i in session.processed_items if i not in revalidation_failed]
+            
+            # Clear their results so they get reprocessed
+            for idx in revalidation_failed:
+                session.results[idx] = None
+                # Reset retry count for fresh attempts
+                if idx in session.retry_counts:
+                    del session.retry_counts[idx]
+            
+            # Remove from failed_items if they were there
+            session.failed_items = [f for f in session.failed_items if f['index'] not in revalidation_failed]
+            
+            # Save updated session
+            session.save(session_file)
+            print(f"✓  Session updated: {len(revalidation_failed)} items marked for reprocessing\n")
+            
+            # Reprocess failed items in batches BEFORE continuing with unprocessed items
+            print(f"{'─'*80}")
+            print(f"REVALIDATION ({len(revalidation_failed)} items)")
+            print(f"{'─'*80}")
+            
+            revalidation_start_time = datetime.now()
+            
+            for batch_start in range(0, len(revalidation_failed), batch_size):
+                batch_indices = revalidation_failed[batch_start:batch_start + batch_size]
+                batch_rows = [waterbody_rows[i] for i in batch_indices]
+                
+                batch_num = batch_start // batch_size + 1
+                total_batches = (len(revalidation_failed) + batch_size - 1) // batch_size
+                
+                # Calculate progress
+                revalidation_completed = batch_start
+                revalidation_progress_pct = (revalidation_completed / len(revalidation_failed)) * 100
+                total_session_completed = len(session.processed_items)
+                total_session_progress_pct = (total_session_completed / total_items) * 100
+                
+                print(f"\n[Batch {batch_num}/{total_batches}] Indices {batch_indices[0]}-{batch_indices[-1]} | "
+                      f"Revalidation: {revalidation_progress_pct:.0f}% | Overall: {total_session_progress_pct:.0f}%")
+                print(f"  API Keys: {api_key_manager.get_status()}")
+                
+                # Parse batch
+                batch_results = parser.parse_synopsis_batch(batch_rows)
+                
+                # Check for errors
+                if isinstance(batch_results, dict) and "error" in batch_results:
+                    error_msg = batch_results['error']
+                    print(f"  ✗ Failed: {error_msg}")
+                    
+                    # Check if all API keys are exhausted
+                    if api_key_manager.all_keys_exhausted():
+                        print(f"\n⚠  All API keys exhausted!")
+                        print(f"   Key status: {api_key_manager.get_status()}")
+                        print(f"   Session saved to: {session_file}")
+                        print(f"\n   Wait for quota reset and run with --resume to continue.")
+                        return None
+                    
+                    # Track retry counts
+                    max_retries = 3
+                    for idx in batch_indices:
+                        retry_count = session.retry_counts.get(idx, 0)
+                        session.retry_counts[idx] = retry_count + 1
+                        
+                        if session.retry_counts[idx] >= max_retries:
+                            # Mark as permanently failed
+                            if idx not in [f['index'] for f in session.failed_items]:
+                                session.failed_items.append({
+                                    'index': idx,
+                                    'waterbody': waterbody_rows[idx].water,
+                                    'error': f"Revalidation: {error_msg}",
+                                    'retries': retry_count + 1
+                                })
+                            print(f"    ✗ Item {idx} permanently failed after {max_retries} retries")
+                    
+                    session.save(session_file)
+                    continue
+                
+                # Store results at correct positions
+                if isinstance(batch_results, list):
+                    for i, result_dict in enumerate(batch_results):
+                        if i < len(batch_indices):
+                            idx = batch_indices[i]
+                            # Convert dict to ParsedWaterbody instance
+                            parsed_waterbody = ParsedWaterbody.from_dict(result_dict)
+                            # Store in correct position
+                            session.results[idx] = parsed_waterbody
+                            session.processed_items.append(idx)
+                    
+                    print(f"  ✓ Success")
+                else:
+                    print(f"  ✗ Unexpected result format: {type(batch_results)}")
+                
+                # Save after each batch
+                session.save(session_file)
+                
+                # Small delay between batches
+                if batch_start + batch_size < len(revalidation_failed):
+                    time.sleep(1)
+            
+            # Summary of revalidation reprocessing
+            revalidation_elapsed = (datetime.now() - revalidation_start_time).total_seconds()
+            revalidation_success = len([i for i in revalidation_failed if i in session.processed_items])
+            revalidation_failed_count = len([i for i in revalidation_failed if i not in session.processed_items])
+            
+            print(f"\n{'─'*80}")
+            if revalidation_failed_count > 0:
+                print(f"Revalidation complete: {revalidation_success}/{len(revalidation_failed)} succeeded ({int(revalidation_elapsed)}s)")
+            else:
+                print(f"Revalidation complete: All {revalidation_success} items succeeded ({int(revalidation_elapsed)}s)")
+            print(f"{'─'*80}\n")
     
     # Determine which items need processing
     # Only exclude successfully processed items
@@ -688,21 +1186,23 @@ def run_llm_parsing(waterbody_rows: Optional[List] = None, output_file='output/l
     items_to_process = [i for i in range(total_items) if i not in session.processed_items]
     
     if not items_to_process:
-        print("✓ All items already processed!")
+        print("✓  All items already processed!")
         # Compile final results from parsed class instances
         final_results = [r.to_dict() for r in session.results if r is not None]
         os.makedirs(os.path.dirname(output_file), exist_ok=True)
         with open(output_file, 'w', encoding='utf-8') as f:
             json.dump(final_results, f, indent=2, ensure_ascii=False)
-        print(f"✓ Saved final results to: {output_file}")
+        print(f"✓  Saved final results to: {output_file}")
         return session.results
-    
-    print(f"Items remaining to process: {len(items_to_process)}")
     
     # Track timing for progress estimates
     start_time = datetime.now()
     
     # Process in batches
+    print(f"{'─'*80}")
+    print(f"PROCESSING ({len(items_to_process)} items remaining)")
+    print(f"{'─'*80}")
+    
     for batch_start in range(0, len(items_to_process), batch_size):
         batch_indices = items_to_process[batch_start:batch_start + batch_size]
         batch_rows = [waterbody_rows[i] for i in batch_indices]
@@ -710,33 +1210,29 @@ def run_llm_parsing(waterbody_rows: Optional[List] = None, output_file='output/l
         batch_num = batch_start // batch_size + 1
         total_batches = (len(items_to_process) + batch_size - 1) // batch_size
         
-        print(f"\n{'='*80}")
-        print(f"Batch {batch_num}/{total_batches}")
-        print(f"Indices: {batch_indices[0]}-{batch_indices[-1]} ({len(batch_indices)} items)")
-        
-        # Calculate progress percentage
+        # Calculate progress
+        normal_completed_so_far = batch_start
         completed_so_far = len(session.processed_items)
         progress_pct = (completed_so_far / total_items) * 100
-        print(f"Overall Progress: {completed_so_far}/{total_items} ({progress_pct:.1f}%)")
         
         # Estimate time remaining
-        if completed_so_far > 0:
+        time_str = ""
+        if normal_completed_so_far > 0:
             elapsed = (datetime.now() - start_time).total_seconds()
-            items_per_second = completed_so_far / elapsed
-            remaining_items = total_items - completed_so_far
-            estimated_seconds = remaining_items / items_per_second if items_per_second > 0 else 0
+            items_per_second = normal_completed_so_far / elapsed
+            remaining_items = len(items_to_process) - normal_completed_so_far
+            est_seconds = remaining_items / items_per_second if items_per_second > 0 else 0
             
-            if estimated_seconds < 60:
-                time_remaining = f"{int(estimated_seconds)}s"
-            elif estimated_seconds < 3600:
-                time_remaining = f"{int(estimated_seconds / 60)}m {int(estimated_seconds % 60)}s"
+            if est_seconds < 60:
+                time_str = f" | ETA: {int(est_seconds)}s"
+            elif est_seconds < 3600:
+                time_str = f" | ETA: {int(est_seconds / 60)}m"
             else:
-                hours = int(estimated_seconds / 3600)
-                mins = int((estimated_seconds % 3600) / 60)
-                time_remaining = f"{hours}h {mins}m"
-            
-            print(f"Estimated time remaining: {time_remaining}")
-        print(f"{'='*80}")
+                time_str = f" | ETA: {int(est_seconds / 3600)}h {int((est_seconds % 3600) / 60)}m"
+        
+        print(f"\n[Batch {batch_num}/{total_batches}] Indices {batch_indices[0]}-{batch_indices[-1]} | "
+              f"Overall: {progress_pct:.0f}%{time_str}")
+        print(f"  API Keys: {api_key_manager.get_status()}")
         
         # Parse batch
         batch_results = parser.parse_synopsis_batch(batch_rows)
@@ -744,7 +1240,18 @@ def run_llm_parsing(waterbody_rows: Optional[List] = None, output_file='output/l
         # Check for errors
         if isinstance(batch_results, dict) and "error" in batch_results:
             error_msg = batch_results['error']
-            print(f"✗ Batch failed: {error_msg}")
+            print(f"  ✗ Failed: {error_msg}")
+            
+            # Check if all API keys are exhausted
+            if api_key_manager.all_keys_exhausted():
+                print(f"\n⚠  All API keys exhausted!")
+                print(f"   Key status: {api_key_manager.get_status()}")
+                print(f"   Session saved to: {session_file}")
+                print(f"\n   Wait for quota reset and run with --resume to continue.")
+                return None
+            
+            # Determine if this is a validation error
+            is_validation_error = 'validation failed' in error_msg.lower()
             
             # Track retry counts for each item in failed batch
             max_retries = 3
@@ -756,48 +1263,63 @@ def run_llm_parsing(waterbody_rows: Optional[List] = None, output_file='output/l
                 
                 if session.retry_counts[idx] >= max_retries:
                     # Max retries reached, mark as permanently failed
-                    if idx not in [f['index'] for f in session.failed_items]:
-                        session.failed_items.append({
-                            'index': idx,
-                            'waterbody': waterbody_rows[idx].water,
-                            'error': error_msg,
-                            'retries': retry_count + 1
-                        })
+                    failure_record = {
+                        'index': idx,
+                        'waterbody': waterbody_rows[idx].water,
+                        'error': error_msg,
+                        'retries': retry_count + 1,
+                        'is_validation': is_validation_error
+                    }
+                    
+                    # Add to appropriate list based on error type
+                    if is_validation_error:
+                        # Validation failures - will be reset on resume
+                        if idx not in [f['index'] for f in session.validation_failures]:
+                            session.validation_failures.append(failure_record)
+                        print(f"    ✗ Item {idx} validation failed after {max_retries} retries")
+                    else:
+                        # Other failures (parsing, API errors, etc)
+                        if idx not in [f['index'] for f in session.failed_items]:
+                            session.failed_items.append(failure_record)
+                        print(f"    ✗ Item {idx} permanently failed after {max_retries} retries")
+                    
                     any_permanently_failed = True
-                    print(f"  ✗ Item {idx} ({waterbody_rows[idx].water}) PERMANENTLY FAILED after {max_retries} retries")
             
             # Save session
             session.save(session_file)
             
             # Exit if any items permanently failed - user must manually resume to retry
             if any_permanently_failed:
-                print(f"\n{'='*80}")
-                print(f"⚠ STOPPED: {len([i for i in batch_indices if session.retry_counts.get(i, 0) >= max_retries])} items permanently failed")
-                print(f"\nFailed items need manual review:")
+                print(f"\n{'─'*80}")
+                failed_count = len([i for i in batch_indices if session.retry_counts.get(i, 0) >= max_retries])
+                validation_count = len([i for i in batch_indices if i in [f['index'] for f in session.validation_failures]])
+                other_count = failed_count - validation_count
+                
+                print(f"⚠  STOPPED: {failed_count} items failed after {max_retries} retries")
+                if validation_count > 0:
+                    print(f"   {validation_count} validation failures (retry with --resume)")
+                if other_count > 0:
+                    print(f"   {other_count} other failures")
+                    
+                print(f"\nFailed items:")
                 for idx in batch_indices:
                     if session.retry_counts.get(idx, 0) >= max_retries:
-                        print(f"  - Index {idx}: {waterbody_rows[idx].water}")
+                        print(f"  [{idx}] {waterbody_rows[idx].water}")
                 print(f"\nSession saved to: {session_file}")
-                print(f"\nTo retry failed items:")
-                print(f"  1. Review the errors above")
-                print(f"  2. Fix any issues in the input data if needed")
-                print(f"  3. Delete session file to retry: rm {session_file}")
-                print(f"  4. Run again with --resume")
-                print(f"{'='*80}")
+                print(f"\nNext steps:")
+                print(f"  1. Review errors above")
+                print(f"  2. Fix input data if needed")
+                print(f"  3. Delete session file: rm {session_file}")
+                print(f"  4. Run with --resume")
+                print(f"{'─'*80}")
                 exit(1)
             
             # Apply exponential backoff before retrying
             retry_attempt = max([session.retry_counts.get(i, 0) for i in batch_indices])
             if retry_attempt > 0:
                 backoff_time = (2 ** (retry_attempt - 1)) * 5  # 5s, 10s, 20s
-                print(f"⚠ Waiting {backoff_time}s before retry (attempt {retry_attempt + 1}/{max_retries})...")
+                print(f"  ⏳ Retry {retry_attempt + 1}/{max_retries} in {backoff_time}s...")
                 time.sleep(backoff_time)
-            
-            # Stop if rate limited
-            if 'rate limit' in error_msg.lower() or '429' in error_msg:
-                print(f"\n⚠ Rate limited. Session saved to: {session_file}")
-                print(f"Run with --resume to continue from where you left off")
-                return None
             
             continue
         
@@ -812,17 +1334,16 @@ def run_llm_parsing(waterbody_rows: Optional[List] = None, output_file='output/l
                     session.results[idx] = parsed_waterbody
                     session.processed_items.append(idx)
             
-            print(f"✓ Batch completed successfully")
+            # Show running summary
+            success_count = len(session.processed_items)
+            fail_count = len(session.failed_items)
+            validation_fail_count = len(session.validation_failures)
+            print(f"  ✓ Success | Total: {success_count} OK, {fail_count + validation_fail_count} failed")
         else:
-            print(f"✗ Unexpected result format: {type(batch_results)}")
+            print(f"  ✗ Unexpected result format: {type(batch_results)}")
         
         # Save session after each batch - results are in order by index
         session.save(session_file)
-        
-        # Show running summary
-        success_count = len(session.processed_items)
-        fail_count = len(session.failed_items)
-        print(f"Session: {success_count} succeeded, {fail_count} failed")
         
         # Small delay between batches to avoid rate limiting
         if batch_start + batch_size < len(items_to_process):
@@ -831,12 +1352,22 @@ def run_llm_parsing(waterbody_rows: Optional[List] = None, output_file='output/l
     # Check if all items were processed
     unprocessed_indices = [i for i in range(total_items) if i not in session.processed_items]
     
-    # Report on any failed items
+    # Report on failed items and validation failures
     if session.failed_items:
-        print(f"\n⚠ {len(session.failed_items)} items permanently failed after retries:")
-        for failed in session.failed_items:
-            retries = failed.get('retries', 0)
-            print(f"  - Index {failed['index']}: {failed['waterbody']} - {failed['error']} ({retries} attempts)")
+        print(f"\n⚠  {len(session.failed_items)} items permanently failed:")
+        for failed in session.failed_items[:5]:
+            error_preview = failed['error'][:80] + '...' if len(failed['error']) > 80 else failed['error']
+            print(f"  [{failed['index']}] {failed['waterbody']}: {error_preview}")
+        if len(session.failed_items) > 5:
+            print(f"  ... and {len(session.failed_items) - 5} more")
+    
+    if session.validation_failures:
+        print(f"\n⚠  {len(session.validation_failures)} validation failures (retry with --resume):")
+        for failed in session.validation_failures[:5]:
+            error_preview = failed['error'][:80] + '...' if len(failed['error']) > 80 else failed['error']
+            print(f"  [{failed['index']}] {failed['waterbody']}: {error_preview}")
+        if len(session.validation_failures) > 5:
+            print(f"  ... and {len(session.validation_failures) - 5} more")
     
     # Compile final results - maintain order, include all items
     # Convert ParsedWaterbody instances to dicts for JSON output
@@ -849,6 +1380,8 @@ def run_llm_parsing(waterbody_rows: Optional[List] = None, output_file='output/l
         else:
             # Item failed - create error placeholder to maintain order
             failed_info = next((f for f in session.failed_items if f['index'] == idx), None)
+            if not failed_info:
+                failed_info = next((f for f in session.validation_failures if f['index'] == idx), None)
             error_msg = failed_info['error'] if failed_info else 'Unknown error'
             final_results_dicts.append({
                 'waterbody_name': waterbody_rows[idx].water,
@@ -865,18 +1398,27 @@ def run_llm_parsing(waterbody_rows: Optional[List] = None, output_file='output/l
     
     success_count = len(session.processed_items)
     failed_count = len(session.failed_items)
-    print(f"\n✓ Completed! Saved {len(final_results_dicts)} results to: {output_file}")
-    print(f"   {success_count} succeeded, {failed_count} permanently failed")
+    validation_fail_count = len(session.validation_failures)
+    total_failures = failed_count + validation_fail_count
+    
+    print(f"\n{'─'*80}")
+    print(f"✓  Completed! Saved to: {output_file}")
+    print(f"   {success_count} succeeded, {total_failures} failed")
+    if validation_fail_count > 0:
+        print(f"   ({validation_fail_count} validation failures - retry with --resume)")
+    if failed_count > 0:
+        print(f"   ({failed_count} other failures)")
     
     if unprocessed_indices:
-        print(f"\n⚠ WARNING: {len(unprocessed_indices)} items were never processed!")
-        print(f"   This should not happen. Check indices: {unprocessed_indices[:10]}...")
+        print(f"\n⚠  WARNING: {len(unprocessed_indices)} items were never processed")
+        print(f"   Indices: {unprocessed_indices[:10]}...")
     
     # Clean up session file if fully successful
-    if len(session.processed_items) == total_items and not session.failed_items:
+    if len(session.processed_items) == total_items and not session.failed_items and not session.validation_failures:
         if os.path.exists(session_file):
             os.remove(session_file)
-            print(f"✓ Removed session file (all items successful)")
+            print(f"✓  Removed session file (all successful)")
+    print(f"{'─'*80}")
     
     return session.results  # Return class instances, not dicts
 
@@ -990,60 +1532,74 @@ if __name__ == "__main__":
 WORKFLOW EXAMPLES:
 
 1. Start New Parsing Job
-   python debug_parser.py --file scripts/output/extract_synopsis/synopsis_raw_data.json
+   python parse_synopsis.py --file scripts/output/extract_synopsis/synopsis_raw_data.json
    
    - Processes in batches (default 10 items)
    - Saves progress to session.json after each batch
    - Shows time estimates and progress percentage
    
 2. Check What the LLM Will See
-   python debug_parser.py --file synopsis_raw_data.json --prompt
+   python parse_synopsis.py --file synopsis_raw_data.json --prompt
    
    - Displays the full prompt without making API calls
    - Useful for debugging or understanding the parsing instructions
    
 3. If Processing is Interrupted (rate limit, error, Ctrl+C)
-   python debug_parser.py --resume
+   python parse_synopsis.py --resume
    
    - No --file needed! Session contains all input data
    - Continues from where it left off
    - Retries failed items (max 3 attempts)
    
 4. Check Current Progress
-   python debug_parser.py --export-session
+   python parse_synopsis.py --export-session
    
    - Exports current session state to JSON output
    - Shows completed, failed, and pending items
    - Useful for inspecting partial results
    
-5. After Completion, Validate Results
-   python debug_parser.py --validate output/llm_parser/llm_parsed_results.json
+5. Validate Results (auto-detects session or parsed results)
    
-   - Checks all parsed data for completeness
-   - Validates names match input exactly
-   - Reports any errors or missing data
+   a) Validate session file (uses embedded input data)
+      python parse_synopsis.py --validate output/llm_parser/session.json
+      
+      - Auto-detects session format
+      - Shows progress (processed/failed/pending)
+      - No --file needed (session contains input)
+   
+   b) Validate parsed results with input comparison
+      python parse_synopsis.py --validate output/llm_parser/llm_parsed_results.json --file synopsis_raw_data.json
+      
+      - Checks names and raw_text match input exactly
+      - Validates all structure and content
+   
+   c) Validate parsed results (structure only)
+      python parse_synopsis.py --validate output/llm_parser/llm_parsed_results.json
+      
+      - Checks data structure without input comparison
 
 COMPLETE WORKFLOW:
   
   Step 1: Start parsing
-    $ python debug_parser.py --file synopsis_raw_data.json --batch-size 5
+    $ python parse_synopsis.py --file synopsis_raw_data.json --batch-size 5
     
   Step 2: If interrupted, resume
-    $ python debug_parser.py --resume
+    $ python parse_synopsis.py --resume
     
   Step 3: Check progress anytime
-    $ python debug_parser.py --export-session --output progress_check.json
+    $ python parse_synopsis.py --export-session --output progress_check.json
     
-  Step 4: Validate final output
-    $ python debug_parser.py --validate output/llm_parser/llm_parsed_results.json
+  Step 4: Validate session or final output
+    $ python parse_synopsis.py --validate output/llm_parser/session.json
+    $ python parse_synopsis.py --validate output/llm_parser/llm_parsed_results.json --file synopsis_raw_data.json
 
 CUSTOM PATHS:
   
   # Use custom session and output files
-  python debug_parser.py --file data.json --session-file my_session.json --output my_results.json
+  python parse_synopsis.py --file data.json --session-file my_session.json --output my_results.json
   
   # Resume from custom session
-  python debug_parser.py --resume --session-file my_session.json
+  python parse_synopsis.py --resume --session-file my_session.json
 
 TROUBLESHOOTING:
 
@@ -1055,7 +1611,7 @@ TROUBLESHOOTING:
     5. Run again from start
     
   - To change batch size (if hitting rate limits):
-    python debug_parser.py --file data.json --batch-size 3
+    python parse_synopsis.py --file data.json --batch-size 3
     
   - Session file is human-readable JSON - you can inspect it:
     cat output/llm_parser/session.json
@@ -1081,7 +1637,7 @@ TROUBLESHOOTING:
     # Action arguments (mutually exclusive)
     action_group = parser.add_argument_group('Actions')
     action_group.add_argument('--validate', type=str, metavar='PATH',
-                             help='Validate an existing parsed JSON file')
+                             help='Validate a session or parsed results JSON file (auto-detects type)')
     action_group.add_argument('--prompt', action='store_true',
                              help='Print the LLM prompt without making API calls')
     action_group.add_argument('--export-session', action='store_true',
@@ -1098,7 +1654,7 @@ TROUBLESHOOTING:
     if args.validate:
         print(f"\n{'='*80}\nValidating JSON file...\n{'='*80}")
         
-        # Load input rows if --file provided for name matching
+        # Load input rows if --file provided for name matching (only used for non-session files)
         input_rows = None
         if args.file:
             input_rows = load_waterbody_rows_from_file(args.file)
@@ -1106,8 +1662,19 @@ TROUBLESHOOTING:
         result = validate_partial_json(args.validate, input_rows)
         
         print(f"\nValidation Results:")
+        print(f"  File type: {result.get('file_type', 'unknown')}")
         print(f"  Items checked: {result.get('items_checked', 0)}")
         print(f"  Valid: {result['valid']}")
+        
+        # Show session info if available
+        if result.get('file_type') == 'session' and 'session_info' in result:
+            info = result['session_info']
+            print(f"\nSession Info:")
+            print(f"  Total items: {info['total_items']}")
+            print(f"  Processed: {info['processed']}")
+            print(f"  Failed: {info['failed']}")
+            print(f"  Created: {info['created_at']}")
+            print(f"  Last updated: {info['last_updated']}")
         
         if result['errors']:
             print(f"\n  Errors ({len(result['errors'])}):")
@@ -1120,6 +1687,8 @@ TROUBLESHOOTING:
             print(f"\n  Warnings ({len(result['warnings'])}):")
             for warn in result['warnings'][:10]:
                 print(f"    - {warn}")
+            if len(result['warnings']) > 10:
+                print(f"    ... and {len(result['warnings']) - 10} more")
         
         if result['valid']:
             print("\n✓ All checks passed!")

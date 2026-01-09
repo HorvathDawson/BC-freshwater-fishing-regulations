@@ -23,7 +23,7 @@ Sequence = namedtuple('Sequence', ['bbox', 'y_mid', 'avg_render_idx', 'text', 'c
 #      DATA CLASSES
 # ==========================================
 
-@define(frozen=True)
+@define(frozen=True, cache_hash=True)
 class RegulationItem:
     """Represents a single parsed regulation item."""
     details: str
@@ -41,7 +41,7 @@ class RegulationItem:
         """Create RegulationItem from dictionary."""
         return cls(**data)
 
-@define(frozen=True)
+@define(frozen=True, cache_hash=True)
 class WaterbodyRow:
     """Represents a single waterbody row extracted from the PDF."""
     water: str
@@ -60,7 +60,7 @@ class WaterbodyRow:
         """Create WaterbodyRow from dictionary."""
         return cls(**data)
 
-@define(frozen=True)
+@define(frozen=True, cache_hash=True)
 class ParsedWaterbodyRow:
     """Represents a waterbody row with parsed regulations."""
     water: str
@@ -87,7 +87,7 @@ class ParsedWaterbodyRow:
                                for reg in data['parsed_regs']]
         return cls(**data)
 
-@define(frozen=True)
+@define(frozen=True, cache_hash=True)
 class PageMetadata:
     """Metadata for a single page."""
     page_number: int
@@ -102,7 +102,7 @@ class PageMetadata:
         """Create PageMetadata from dictionary."""
         return cls(**data)
 
-@define(frozen=True)
+@define(frozen=True, cache_hash=True)
 class PageResult:
     """Result of extracting a single page."""
     metadata: PageMetadata
@@ -123,7 +123,7 @@ class PageResult:
             rows=[WaterbodyRow.from_dict(row) for row in data['rows']]
         )
 
-@define(frozen=True)
+@define(frozen=True, cache_hash=True)
 class ParsedPageResult:
     """Result of a page with parsed regulations."""
     metadata: PageMetadata
@@ -144,7 +144,7 @@ class ParsedPageResult:
             rows=[ParsedWaterbodyRow.from_dict(row) for row in data['rows']]
         )
 
-@define(frozen=True)
+@define(frozen=True, cache_hash=True)
 class ExtractionResults:
     """Results from extracting all pages from the PDF."""
     pages: List[PageResult]
@@ -170,7 +170,7 @@ class ExtractionResults:
         """Allow indexing into pages."""
         return self.pages[index]
 
-@define(frozen=True)
+@define(frozen=True, cache_hash=True)
 class ParsedExtractionResults:
     """Results from parsing all extracted pages."""
     pages: List[ParsedPageResult]
@@ -1302,16 +1302,32 @@ class FishingSynopsisParser:
             # Process waterbody column (name, symbols, MUs)
             w_txt, w_sym, mus = self.process_waterbody_column(water_raw)
             
-            # For regulations: just extract symbols, keep text raw
-            r_sym = []
-            if re.search(r'[\uf0dc\uf02a\*]', regs_raw) or "Includes tributaries" in regs_raw or "Incl. Tribs" in regs_raw:
-                if "Incl. Tribs" not in r_sym:
-                    r_sym.append("Incl. Tribs")
-            
             if "WATER BODY" in w_txt.upper() or "MGMT UNIT" in w_txt.upper():
                 continue
                 
-            all_syms = list(set(v_sym_raw + w_sym + r_sym))
+            all_syms = list(set(v_sym_raw + w_sym))
+            
+            # Normalize unicode characters to preserve context while standardizing format
+            regs_raw = regs_raw.replace('\xa0', ' ')  # Non-breaking space → regular space
+            regs_raw = regs_raw.replace('\u2013', '-')  # En-dash → hyphen
+            regs_raw = regs_raw.replace('\u2014', '-')  # Em-dash → hyphen
+            regs_raw = regs_raw.replace('\u2018', "'").replace('\u2019', "'")  # Curly single quotes → straight
+            regs_raw = regs_raw.replace('\u201c', '"').replace('\u201d', '"')  # Curly double quotes → straight
+            
+            # Replace tributaries symbols with standardized placeholder text
+            trib_pattern = r'[\uf0dc\uf02a\*]'
+            regs_raw = re.sub(trib_pattern, '[Includes Tributaries]', regs_raw)
+            regs_raw = regs_raw.replace("Includes tributaries", "[Includes Tributaries]")
+            regs_raw = regs_raw.replace("Incl. Tribs", "[Includes Tributaries]")
+            
+            # Normalize whitespace: replace multiple spaces/newlines with single space/newline
+            regs_raw = re.sub(r'[ \t]+', ' ', regs_raw)  # Multiple spaces/tabs → single space
+            regs_raw = re.sub(r'\n+', '\n', regs_raw)  # Multiple newlines → single newline
+            regs_raw = re.sub(r' *\n *', '\n', regs_raw)  # Remove all spaces around newlines
+            regs_raw = regs_raw.strip()
+            
+            
+            
             
             # Only include rows that have a water body name OR management units (real regulation data)
             if (w_txt.strip() or mus) and (w_txt or regs_raw.strip() or mus or all_syms):
@@ -1343,6 +1359,13 @@ class FishingSynopsisParser:
         if not text:
             return "", symbols, mu_list
         
+        # Normalize unicode characters first
+        text = text.replace('\xa0', ' ')  # Non-breaking space → regular space
+        text = text.replace('\u2013', '-')  # En-dash → hyphen
+        text = text.replace('\u2014', '-')  # Em-dash → hyphen
+        text = text.replace('\u2018', "'").replace('\u2019', "'")  # Curly single quotes → straight
+        text = text.replace('\u201c', '"').replace('\u201d', '"')  # Curly double quotes → straight
+        
         # Extract Management Units (MUs)
         mu_pattern = r'(?<!\()(?<!M\.U\. )\b\d{1,2}-\d{1,2}\b'
         found_mus = re.findall(mu_pattern, text)
@@ -1364,12 +1387,12 @@ class FishingSynopsisParser:
             text = re.sub(trib_pattern, "", text)
             text = text.replace("Includes tributaries", "").replace("Incl. Tribs", "")
         
-        # Clean Text
-        lines = text.split('\n')
-        cleaned_lines = [re.sub(r'[ \t]+', ' ', l).strip() for l in lines]
-        cleaned_text = "\n".join(cleaned_lines).strip()
+        # Clean Text - normalize whitespace
+        text = re.sub(r'\n+', ' ', text)  # Multiple newlines → single space (waterbody names should be one line)
+        text = re.sub(r'[ \t]+', ' ', text)  # Multiple spaces/tabs → single space (do this AFTER newline replacement)
+        text = text.strip()
         
-        return cleaned_text, symbols, mu_list
+        return text, symbols, mu_list
     
     def get_color_sections(self, page, x0, top, bottom):
         img = page.to_image(resolution=150).original
