@@ -15,10 +15,12 @@ Logic Flow:
    - Assign POLY_ID for each type if the point falls inside.
    - ERROR LOGGING: If a point falls inside NOTHING, log it to a CSV.
 6. Output: Split EVERYTHING by Zone (Streams, Lakes, Wetlands, Manmade, Points).
+7. OPTIONAL: Build searchable waterbody index from processed data.
 """
 
 import os
 import sys
+import argparse
 
 # --- FIX FOR "Cannot find header.dxf" WARNING ---
 os.environ["GDAL_SKIP"] = "DXF" 
@@ -44,6 +46,9 @@ import gc
 import warnings
 import numpy as np
 from concurrent.futures import ProcessPoolExecutor
+import json
+import re
+from collections import defaultdict
 
 # Enable KML Driver
 fiona.drvsupport.supported_drivers['KML'] = 'rw'
@@ -62,14 +67,45 @@ def spatial_join_worker(args):
     left_chunk, right_gdf = args
     return gpd.sjoin(left_chunk, right_gdf, predicate='intersects', how='inner')
 
+def normalize_name(name):
+    """Normalize a waterbody name for comparison."""
+    if not name or str(name) == 'nan':
+        return ""
+    
+    # Remove all types of quotes
+    clean = str(name).replace('"', '').replace("'", '')
+    clean = clean.replace('\u201c', '').replace('\u201d', '')
+    clean = clean.replace('\u2018', '').replace('\u2019', '')
+    clean = clean.replace('`', '')
+    
+    # Remove parentheses and their contents
+    clean = re.sub(r'\([^)]*\)', '', clean)
+    
+    # Remove extra whitespace
+    clean = re.sub(r'\s+', ' ', clean).strip()
+    
+    # Lowercase for comparison
+    clean = clean.lower()
+    
+    return clean
+
 class FWAProcessor:
-    def __init__(self, streams_gdb: str, lakes_gdb: str, wildlife_gpkg: str, kml_path: str, output_gdb: str):
+    def __init__(self, streams_gdb: str, lakes_gdb: str, wildlife_gpkg: str, kml_path: str, output_gdb: str,
+                 process_streams=True, process_lakes=True, process_wetlands=True, 
+                 process_manmade=True, process_points=True):
         self.streams_gdb = Path(streams_gdb)
         self.lakes_gdb = Path(lakes_gdb)
         self.wildlife_gpkg = Path(wildlife_gpkg)
         self.kml_path = Path(kml_path)
         self.output_gdb = Path(output_gdb)
         self.n_cores = max(1, os.cpu_count() - 1)
+        
+        # Feature flags
+        self.process_streams = process_streams
+        self.process_lakes = process_lakes
+        self.process_wetlands = process_wetlands
+        self.process_manmade = process_manmade
+        self.process_points = process_points
         
         self.stats = {
             'total_streams_read': 0,
@@ -151,6 +187,9 @@ class FWAProcessor:
 
     def load_lakes(self):
         logger.info("=== STEP 2a: Loading Lakes ===")
+        if not self.process_lakes:
+            logger.info("Skipping lakes (disabled)")
+            return gpd.GeoDataFrame()
         try:
             lakes = gpd.read_file(str(self.lakes_gdb), layer='FWA_LAKES_POLY')
             self.stats['total_lakes'] = len(lakes)
@@ -161,6 +200,9 @@ class FWAProcessor:
 
     def load_wetlands(self):
         logger.info("=== STEP 2b: Loading Wetlands ===")
+        if not self.process_wetlands:
+            logger.info("Skipping wetlands (disabled)")
+            return gpd.GeoDataFrame()
         try:
             wetlands = gpd.read_file(str(self.lakes_gdb), layer='FWA_WETLANDS_POLY')
             self.stats['total_wetlands'] = len(wetlands)
@@ -171,6 +213,9 @@ class FWAProcessor:
 
     def load_manmade(self):
         logger.info("=== STEP 2c: Loading Manmade Waterbodies ===")
+        if not self.process_manmade:
+            logger.info("Skipping manmade waterbodies (disabled)")
+            return gpd.GeoDataFrame()
         try:
             manmade = gpd.read_file(str(self.lakes_gdb), layer='FWA_MANMADE_WATERBODIES_POLY')
             self.stats['total_manmade'] = len(manmade)
@@ -181,6 +226,9 @@ class FWAProcessor:
 
     def load_kml_points(self):
         logger.info("=== STEP 2d: Loading KML Points ===")
+        if not self.process_points:
+            logger.info("Skipping KML points (disabled)")
+            return gpd.GeoDataFrame()
         if not self.kml_path.exists():
             logger.warning(f"KML file not found: {self.kml_path}")
             return gpd.GeoDataFrame()
@@ -489,36 +537,315 @@ class FWAProcessor:
 
             time.sleep(0.1)
 
-    def run(self, test_mode=False):
+    def build_waterbody_index(self):
+        """Build indexed lookup structure from processed geodatabase."""
+        logger.info("=== STEP 5: Building Waterbody Index ===")
+        
+        output_path = self.output_gdb.parent / "waterbody_index.json"
+        
+        if not self.output_gdb.exists():
+            logger.error(f"GDB not found: {self.output_gdb}")
+            return
+        
+        # Structure: index[zone][normalized_name] = [list of features]
+        index = defaultdict(lambda: defaultdict(list))
+        
+        # Cache for Polygons
+        poly_cache = defaultdict(lambda: defaultdict(dict))
+        
+        try:
+            layers = fiona.listlayers(str(self.output_gdb))
+        except Exception as e:
+            logger.error(f"Error reading GDB layers: {e}")
+            return
+
+        # Categorize layers
+        stream_layers = [l for l in layers if l.startswith('STREAMS_ZONE_')] if self.process_streams else []
+        point_layers = [l for l in layers if l.startswith('LABELED_POINTS_ZONE_')] if self.process_points else []
+        
+        polygon_groups = []
+        if self.process_lakes:
+            polygon_groups.append(('lake', [l for l in layers if l.startswith('LAKES_ZONE_')]))
+        if self.process_wetlands:
+            polygon_groups.append(('wetland', [l for l in layers if l.startswith('WETLANDS_ZONE_')]))
+        if self.process_manmade:
+            polygon_groups.append(('manmade', [l for l in layers if l.startswith('MANMADE_ZONE_')]))
+        
+        total_features = 0
+        
+        # Process Polygons First (for cache)
+        for type_label, layer_list in polygon_groups:
+            if not layer_list:
+                continue
+                
+            logger.info(f"Indexing {type_label} layers...")
+            
+            for layer_name in layer_list:
+                zone_match = re.search(r'ZONE_(\d+)', layer_name)
+                if not zone_match:
+                    continue
+                zone = zone_match.group(1)
+                
+                try:
+                    gdf = gpd.read_file(str(self.output_gdb), layer=layer_name)
+                    layer_count = 0
+                    
+                    for idx, row in gdf.iterrows():
+                        feature_dict = row.drop('geometry').to_dict() if 'geometry' in row else row.to_dict()
+                        feature_dict = {k: (str(v) if not isinstance(v, (str, int, float, bool, type(None))) else v) 
+                                       for k, v in feature_dict.items()}
+                        
+                        # Cache polygon by ID
+                        poly_id = row.get('WATERBODY_POLY_ID')
+                        if poly_id and str(poly_id) != 'nan':
+                            cached_feature = {
+                                'type': type_label,
+                                'gnis_name': row.get('GNIS_NAME_1') or row.get('GNIS_NAME'),
+                                'layer': layer_name,
+                                'feature_id': str(idx),
+                                'attributes': feature_dict,
+                                'is_primary_polygon': True
+                            }
+                            poly_cache[zone][type_label][int(poly_id)] = cached_feature
+
+                        # Index by GNIS Name
+                        check_fields = ['GNIS_NAME_1', 'GNIS_NAME_2', 'GNIS_NAME']
+                        for name_field in check_fields:
+                            if name_field not in gdf.columns:
+                                continue
+                            
+                            gnis_name = row.get(name_field)
+                            normalized = normalize_name(gnis_name)
+                            
+                            if normalized:
+                                feature_data = {
+                                    'type': type_label,
+                                    'gnis_name': gnis_name,
+                                    'layer': layer_name,
+                                    'feature_id': str(idx),
+                                    'matched_field': name_field,
+                                    'attributes': feature_dict
+                                }
+                                
+                                existing = index[zone][normalized]
+                                if not any(f['feature_id'] == str(idx) and f['layer'] == layer_name for f in existing):
+                                    index[zone][normalized].append(feature_data)
+                                    layer_count += 1
+                                    total_features += 1
+                    
+                    logger.info(f"  ✓ {layer_name}: {layer_count} features")
+                    
+                except Exception as e:
+                    logger.warning(f"  ⚠ {layer_name}: Error - {e}")
+
+        # Process Streams
+        if stream_layers:
+            logger.info("Indexing stream layers...")
+            for layer_name in stream_layers:
+                zone_match = re.search(r'ZONE_(\d+)', layer_name)
+                if not zone_match:
+                    continue
+                zone = zone_match.group(1)
+                
+                try:
+                    streams = gpd.read_file(str(self.output_gdb), layer=layer_name)
+                    layer_count = 0
+                    
+                    for idx, row in streams.iterrows():
+                        gnis_name = row.get('GNIS_NAME')
+                        normalized = normalize_name(gnis_name)
+                        
+                        if normalized:
+                            feature_dict = row.drop('geometry').to_dict() if 'geometry' in row else row.to_dict()
+                            feature_dict = {k: (str(v) if not isinstance(v, (str, int, float, bool, type(None))) else v) 
+                                           for k, v in feature_dict.items()}
+                            
+                            feature_data = {
+                                'type': 'stream',
+                                'gnis_name': gnis_name,
+                                'layer': layer_name,
+                                'feature_id': str(idx),
+                                'attributes': feature_dict
+                            }
+                            
+                            index[zone][normalized].append(feature_data)
+                            layer_count += 1
+                            total_features += 1
+                    
+                    logger.info(f"  ✓ {layer_name}: {layer_count} features")
+                    
+                except Exception as e:
+                    logger.warning(f"  ⚠ {layer_name}: Error - {e}")
+
+        # Process Labelled Points
+        if point_layers:
+            logger.info("Indexing labelled point layers...")
+            
+            for layer_name in point_layers:
+                zone_match = re.search(r'ZONE_(\d+)', layer_name)
+                if not zone_match:
+                    continue
+                zone = zone_match.group(1)
+                
+                try:
+                    points = gpd.read_file(str(self.output_gdb), layer=layer_name)
+                    layer_count = 0
+                    
+                    for idx, row in points.iterrows():
+                        # Determine point name
+                        name_candidates = ['Name', 'name', 'label', 'GNIS_NAME']
+                        point_name = None
+                        for col in name_candidates:
+                            if col in row and pd.notna(row[col]):
+                                point_name = row[col]
+                                break
+                        
+                        normalized = normalize_name(point_name)
+                        if not normalized:
+                            continue
+
+                        # Add point feature
+                        feature_dict = row.drop('geometry').to_dict() if 'geometry' in row else row.to_dict()
+                        feature_dict = {k: (str(v) if not isinstance(v, (str, int, float, bool, type(None))) else v) 
+                                       for k, v in feature_dict.items()}
+                        
+                        point_feature = {
+                            'type': 'point',
+                            'gnis_name': point_name,
+                            'layer': layer_name,
+                            'feature_id': str(idx),
+                            'attributes': feature_dict
+                        }
+                        
+                        index[zone][normalized].append(point_feature)
+                        layer_count += 1
+                        total_features += 1
+                        
+                        # Link matched polygons
+                        link_map = [
+                            ('LAKE_POLY_ID', 'lake'),
+                            ('WETLAND_POLY_ID', 'wetland'),
+                            ('MANMADE_POLY_ID', 'manmade')
+                        ]
+                        
+                        for col_id, type_key in link_map:
+                            poly_id_val = row.get(col_id)
+                            
+                            if pd.notna(poly_id_val):
+                                try:
+                                    pid = int(poly_id_val)
+                                    if pid in poly_cache[zone][type_key]:
+                                        linked_poly = poly_cache[zone][type_key][pid].copy()
+                                        linked_poly['linked_via_point'] = True
+                                        linked_poly['point_name_used'] = point_name
+                                        index[zone][normalized].append(linked_poly)
+                                except (ValueError, TypeError):
+                                    pass
+
+                    logger.info(f"  ✓ {layer_name}: {layer_count} points")
+                    
+                except Exception as e:
+                    logger.warning(f"  ⚠ {layer_name}: Error - {e}")
+
+        # Convert to regular dict and save
+        output_index = {}
+        for zone, names in index.items():
+            output_index[zone] = dict(names)
+        
+        total_unique_names = sum(len(names) for names in index.values())
+        
+        logger.info(f"Index Statistics:")
+        logger.info(f"  Total features indexed: {total_features}")
+        logger.info(f"  Unique names: {total_unique_names}")
+        logger.info(f"  Zones covered: {len(output_index)}")
+        
+        with open(output_path, 'w', encoding='utf-8') as f:
+            json.dump(output_index, f, indent=2, ensure_ascii=False)
+        
+        logger.info(f"Index saved to: {output_path}")
+
+    def run(self, test_mode=False, build_index=False):
         start = time.time()
         
-        raw_streams = self.load_streams_raw(test_mode)
+        raw_streams = self.load_streams_raw(test_mode) if self.process_streams else gpd.GeoDataFrame()
         lakes = self.load_lakes()
         wetlands = self.load_wetlands()
         manmade = self.load_manmade()
         points = self.load_kml_points()
 
-        enriched_points = self.enrich_kml_points(points, lakes, wetlands, manmade)
-        enriched_streams = self.enrich_streams(raw_streams, lakes)
+        enriched_points = self.enrich_kml_points(points, lakes, wetlands, manmade) if self.process_points else gpd.GeoDataFrame()
+        enriched_streams = self.enrich_streams(raw_streams, lakes) if self.process_streams else gpd.GeoDataFrame()
 
         self.split_and_save(enriched_streams, lakes, wetlands, manmade, enriched_points)
+        
+        if build_index:
+            self.build_waterbody_index()
         
         end = time.time()
         logger.info("="*50)
         logger.info("PROCESSING COMPLETE")
         logger.info(f"Total Time: {(end-start)/60:.2f} mins")
-        logger.info(f"Original Named Streams: {self.stats['original_named_streams']:,}")
-        logger.info(f"River Tributaries Found: {self.stats['river_tributaries_found']:,}")
-        logger.info(f"Lake Tributaries Corrected: {self.stats['lake_tributaries_corrected']:,}")
-        logger.info(f"Final Streams: {self.stats['final_streams_count']:,}")
-        logger.info(f"Lakes: {self.stats['total_lakes']:,}")
-        logger.info(f"Wetlands: {self.stats['total_wetlands']:,}")
-        logger.info(f"Manmade: {self.stats['total_manmade']:,}")
-        logger.info(f"KML Points: {self.stats['total_kml_points']:,}")
+        if self.process_streams:
+            logger.info(f"Original Named Streams: {self.stats['original_named_streams']:,}")
+            logger.info(f"River Tributaries Found: {self.stats['river_tributaries_found']:,}")
+            logger.info(f"Lake Tributaries Corrected: {self.stats['lake_tributaries_corrected']:,}")
+            logger.info(f"Final Streams: {self.stats['final_streams_count']:,}")
+        if self.process_lakes:
+            logger.info(f"Lakes: {self.stats['total_lakes']:,}")
+        if self.process_wetlands:
+            logger.info(f"Wetlands: {self.stats['total_wetlands']:,}")
+        if self.process_manmade:
+            logger.info(f"Manmade: {self.stats['total_manmade']:,}")
+        if self.process_points:
+            logger.info(f"KML Points: {self.stats['total_kml_points']:,}")
         logger.info(f"Output: {self.output_gdb}")
         logger.info("="*50)
 
 def main():
+    parser = argparse.ArgumentParser(
+        description='Process BC FWA data and split by wildlife management zones',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  # Full processing with index building
+  python FWA_zone_processing.py --build-index
+  
+  # Build index only from existing GDB
+  python FWA_zone_processing.py --build-index-only
+  
+  # Test mode (5 layers only)
+  python FWA_zone_processing.py --test-mode
+  
+  # Skip streams processing
+  python FWA_zone_processing.py --skip-streams
+  
+  # Process only lakes and build index
+  python FWA_zone_processing.py --skip-streams --skip-wetlands --skip-manmade --skip-points --build-index
+  
+  # Rebuild index for only streams and lakes
+  python FWA_zone_processing.py --build-index-only --skip-wetlands --skip-manmade --skip-points
+        """
+    )
+    
+    parser.add_argument('--test-mode', action='store_true',
+                       help='Test mode: process only 5 stream layers')
+    parser.add_argument('--build-index', action='store_true',
+                       help='Build waterbody index after processing')
+    parser.add_argument('--build-index-only', action='store_true',
+                       help='Only build the index from existing GDB (skip all processing)')
+    parser.add_argument('--skip-streams', action='store_true',
+                       help='Skip stream processing')
+    parser.add_argument('--skip-lakes', action='store_true',
+                       help='Skip lake processing')
+    parser.add_argument('--skip-wetlands', action='store_true',
+                       help='Skip wetlands processing')
+    parser.add_argument('--skip-manmade', action='store_true',
+                       help='Skip manmade waterbodies processing')
+    parser.add_argument('--skip-points', action='store_true',
+                       help='Skip KML points processing')
+    
+    args = parser.parse_args()
+    
     script_dir = Path(__file__).resolve().parent
     project_root = script_dir.parent
     base_data = project_root / "data" / "ftp.geobc.gov.bc.ca" / "sections" / "outgoing" / "bmgs" / "FWA_Public"
@@ -528,9 +855,32 @@ def main():
     wildlife_gpkg = base_data / "WAA_WILDLIFE_MGMT_UNITS_SVW.gpkg"
     kml_path = project_root / "data" / "labelled" / "unnamed_lakes.kml"
     
-    output_gdb = script_dir / "output" / "FWA_Zone_Grouped.gdb"
+    output_gdb = script_dir / "output" / "FWA_zone_processing" / "FWA_Zone_Grouped.gdb"
     
-    if not streams_gdb.exists():
+    # Handle build-index-only mode
+    if args.build_index_only:
+        if not output_gdb.exists():
+            print(f"Error: Output GDB not found at {output_gdb}")
+            print("Please run the full processing first before building index.")
+            return
+        
+        logger.info("Building index from existing GDB...")
+        processor = FWAProcessor(
+            str(streams_gdb), 
+            str(lakes_gdb), 
+            str(wildlife_gpkg), 
+            str(kml_path), 
+            str(output_gdb),
+            process_streams=not args.skip_streams,
+            process_lakes=not args.skip_lakes,
+            process_wetlands=not args.skip_wetlands,
+            process_manmade=not args.skip_manmade,
+            process_points=not args.skip_points
+        )
+        processor.build_waterbody_index()
+        return
+    
+    if not streams_gdb.exists() and not args.skip_streams:
         print(f"Error: Streams GDB not found at {streams_gdb}")
         return
 
@@ -539,9 +889,14 @@ def main():
         str(lakes_gdb), 
         str(wildlife_gpkg), 
         str(kml_path), 
-        str(output_gdb)
+        str(output_gdb),
+        process_streams=not args.skip_streams,
+        process_lakes=not args.skip_lakes,
+        process_wetlands=not args.skip_wetlands,
+        process_manmade=not args.skip_manmade,
+        process_points=not args.skip_points
     )
-    processor.run(test_mode=False)
+    processor.run(test_mode=args.test_mode, build_index=args.build_index)
 
 if __name__ == "__main__":
     main()
