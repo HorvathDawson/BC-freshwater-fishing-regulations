@@ -1,0 +1,3450 @@
+
+================================================================================
+Batch Failures at 2026-01-09T15:00:43.133736
+================================================================================
+
+[72] GOLD RIVER
+--------------------------------------------------------------------------------
+Error Type: validation_error
+Error: Group 1 (downstream of the Muchalat River [Includes Tributaries]): Rule 0: Date 'Dec 1-Aug 15' not found in verbatim_text
+
+Full Input (raw_regs):
+**No Fishing** upstream of the Muchalat River[Includes Tributaries] (see river specific regulations for Muchalat River)
+**No Fishing** downstream of the Muchalat River[Includes Tributaries], Dec 1-**Aug 15**, but not including the Muchalat or Heber Rivers (see river specific
+regulations for those waters)
+**No Fishing** between the cascade falls (located approximately 6.5 km upstream of Muchalat Inlet, UTM 709137E, 5512420N) and fishing
+boundary signs approximately 80 m downstream
+No powered boats
+
+Model Output:
+{
+  "waterbody_name": "GOLD RIVER",
+  "raw_text": "**No Fishing** upstream of the Muchalat River[Includes Tributaries] (see river specific regulations for Muchalat River)\n**No Fishing** downstream of the Muchalat River[Includes Tributaries], Dec 1-**Aug 15**, but not including the Muchalat or Heber Rivers (see river specific\nregulations for those waters)\n**No Fishing** between the cascade falls (located approximately 6.5 km upstream of Muchalat Inlet, UTM 709137E, 5512420N) and fishing\nboundary signs approximately 80 m downstream\nNo powered boats",
+  "cleaned_text": "**No Fishing** upstream of the Muchalat River [Includes Tributaries] (see river specific regulations for Muchalat River). **No Fishing** downstream of the Muchalat River [Includes Tributaries], Dec 1-**Aug 15**, but not including the Muchalat or Heber Rivers (see river specific regulations for those waters). **No Fishing** between the cascade falls (located approximately 6.5 km upstream of Muchalat Inlet, UTM 709137E, 5512420N) and fishing boundary signs approximately 80 m downstream. No powered boats.",
+  "geographic_groups": [
+    {
+      "location": "upstream of the Muchalat River [Includes Tributaries]",
+      "raw_text": "**No Fishing** upstream of the Muchalat River[Includes Tributaries] (see river specific regulations for Muchalat River)",
+      "cleaned_text": "**No Fishing** upstream of the Muchalat River [Includes Tributaries] (see river specific regulations for Muchalat River).",
+      "rules": [
+        {
+          "verbatim_text": "**No Fishing** upstream of the Muchalat River[Includes Tributaries]",
+          "rule": "No Fishing",
+          "type": "closure",
+          "dates": null,
+          "species": null
+        }
+      ]
+    },
+    {
+      "location": "downstream of the Muchalat River [Includes Tributaries]",
+      "raw_text": "**No Fishing** downstream of the Muchalat River[Includes Tributaries], Dec 1-**Aug 15**, but not including the Muchalat or Heber Rivers (see river specific\nregulations for those waters)",
+      "cleaned_text": "**No Fishing** downstream of the Muchalat River [Includes Tributaries], Dec 1-**Aug 15**, but not including the Muchalat or Heber Rivers.",
+      "rules": [
+        {
+          "verbatim_text": "**No Fishing** downstream of the Muchalat River[Includes Tributaries], Dec 1-**Aug 15**",
+          "rule": "No Fishing",
+          "type": "closure",
+          "dates": [
+            "Dec 1-Aug 15"
+          ],
+          "species": null
+        }
+      ]
+    },
+    {
+      "location": "between the cascade falls (UTM 709137E, 5512420N) and fishing boundary signs approximately 80 m downstream",
+      "raw_text": "**No Fishing** between the cascade falls (located approximately 6.5 km upstream of Muchalat Inlet, UTM 709137E, 5512420N) and fishing\nboundary signs approximately 80 m downstream",
+      "cleaned_text": "**No Fishing** between the cascade falls (located approximately 6.5 km upstream of Muchalat Inlet, UTM 709137E, 5512420N) and fishing boundary signs approximately 80 m downstream.",
+      "rules": [
+        {
+          "verbatim_text": "**No Fishing** between the cascade falls (located approximately 6.5 km upstream of Muchalat Inlet, UTM 709137E, 5512420N) and fishing\nboundary signs approximately 80 m downstream",
+          "rule": "No Fishing",
+          "type": "closure",
+          "dates": null,
+          "species": null
+        }
+      ]
+    },
+    {
+      "location": "",
+      "raw_text": "No powered boats",
+      "cleaned_text": "No powered boats.",
+      "rules": [
+        {
+          "verbatim_text": "No powered boats",
+          "rule": "No powered boats",
+          "type": "restriction",
+          "dates": null,
+          "species": null
+        }
+      ]
+    }
+  ]
+}
+
+All Validation Errors:
+  - Group 1 (downstream of the Muchalat River [Includes Tributaries]): Rule 0: Date 'Dec 1-Aug 15' not found in verbatim_text
+
+
+================================================================================
+Batch Failures at 2026-01-09T15:02:10.863355
+================================================================================
+
+[93] HONNA RIVER
+--------------------------------------------------------------------------------
+Error Type: validation_error
+Error: Group 0 (): Rule 2: verbatim_text not found in geographic group's raw_text
+
+Full Input (raw_regs):
+Bait ban Nov 1-Apr 30; cutthroat trout catch and release
+**Class II water Sept 1-Apr 30; Steelhead Stamp mandatory Dec 1-Apr 30**
+
+Model Output:
+{
+  "waterbody_name": "HONNA RIVER",
+  "raw_text": "Bait ban Nov 1-Apr 30; cutthroat trout catch and release\n**Class II water Sept 1-Apr 30; Steelhead Stamp mandatory Dec 1-Apr 30**",
+  "cleaned_text": "Bait ban Nov 1-Apr 30; cutthroat trout catch and release. Class II water Sept 1-Apr 30; Steelhead Stamp mandatory Dec 1-Apr 30.",
+  "geographic_groups": [
+    {
+      "location": "",
+      "raw_text": "Bait ban Nov 1-Apr 30; cutthroat trout catch and release\n**Class II water Sept 1-Apr 30; Steelhead Stamp mandatory Dec 1-Apr 30**",
+      "cleaned_text": "Bait ban Nov 1-Apr 30; cutthroat trout catch and release. Class II water Sept 1-Apr 30; Steelhead Stamp mandatory Dec 1-Apr 30.",
+      "rules": [
+        {
+          "verbatim_text": "Bait ban Nov 1-Apr 30",
+          "rule": "Bait ban",
+          "type": "gear_restriction",
+          "dates": [
+            "Nov 1-Apr 30"
+          ],
+          "species": null
+        },
+        {
+          "verbatim_text": "cutthroat trout catch and release",
+          "rule": "Cutthroat trout catch and release",
+          "type": "harvest",
+          "dates": null,
+          "species": [
+            "cutthroat trout"
+          ]
+        },
+        {
+          "verbatim_text": "**Class II water Sept 1-Apr 30**",
+          "rule": "Class II water",
+          "type": "licensing",
+          "dates": [
+            "Sept 1-Apr 30"
+          ],
+          "species": null
+        },
+        {
+          "verbatim_text": "Steelhead Stamp mandatory Dec 1-Apr 30**",
+          "rule": "Steelhead Stamp mandatory",
+          "type": "licensing",
+          "dates": [
+            "Dec 1-Apr 30"
+          ],
+          "species": [
+            "steelhead"
+          ]
+        }
+      ]
+    }
+  ]
+}
+
+All Validation Errors:
+  - Group 0 (): Rule 2: verbatim_text not found in geographic group's raw_text
+
+
+================================================================================
+Batch Failures at 2026-01-09T15:18:54.474485
+================================================================================
+
+[578] ALEXANDER CREEK (upstream of the easternmost Hwy 3 bridge)
+--------------------------------------------------------------------------------
+Error Type: validation_error
+Error: Group 0 (Including Tributaries): Rule 3: verbatim_text not found in geographic group's raw_text
+
+Full Input (raw_regs):
+**No Fishing** Sept 1-Oct 31
+Trout/char catch and release and bait ban, June 15-Aug 31
+**Class II water when open, including tributaries - Michel Creek classified licence required for non-resident anglers**
+
+Model Output:
+{
+  "waterbody_name": "ALEXANDER CREEK (upstream of the easternmost Hwy 3 bridge)",
+  "raw_text": "**No Fishing** Sept 1-Oct 31\nTrout/char catch and release and bait ban, June 15-Aug 31\n**Class II water when open, including tributaries - Michel Creek classified licence required for non-resident anglers**",
+  "cleaned_text": "No Fishing Sept 1-Oct 31. Trout/char catch and release and bait ban, June 15-Aug 31. Class II water when open, including tributaries - Michel Creek classified licence required for non-resident anglers.",
+  "geographic_groups": [
+    {
+      "location": "Including Tributaries",
+      "raw_text": "**No Fishing** Sept 1-Oct 31\nTrout/char catch and release and bait ban, June 15-Aug 31\n**Class II water when open, including tributaries - Michel Creek classified licence required for non-resident anglers**",
+      "cleaned_text": "No Fishing Sept 1-Oct 31. Trout/char catch and release and bait ban, June 15-Aug 31. Class II water when open, including tributaries - Michel Creek classified licence required for non-resident anglers.",
+      "rules": [
+        {
+          "verbatim_text": "**No Fishing** Sept 1-Oct 31",
+          "rule": "No Fishing",
+          "type": "closure",
+          "dates": [
+            "Sept 1-Oct 31"
+          ],
+          "species": null
+        },
+        {
+          "verbatim_text": "Trout/char catch and release and bait ban, June 15-Aug 31",
+          "rule": "Trout/char catch and release",
+          "type": "harvest",
+          "dates": [
+            "June 15-Aug 31"
+          ],
+          "species": [
+            "trout",
+            "char"
+          ]
+        },
+        {
+          "verbatim_text": "bait ban, June 15-Aug 31",
+          "rule": "Bait ban",
+          "type": "gear_restriction",
+          "dates": [
+            "June 15-Aug 31"
+          ],
+          "species": null
+        },
+        {
+          "verbatim_text": "**Class II water when open, including tributaries**",
+          "rule": "Class II water",
+          "type": "licensing",
+          "dates": null,
+          "species": null
+        },
+        {
+          "verbatim_text": "Michel Creek classified licence required for non-resident anglers",
+          "rule": "Michel Creek classified licence required for non-residents",
+          "type": "licensing",
+          "dates": null,
+          "species": null
+        }
+      ]
+    }
+  ]
+}
+
+All Validation Errors:
+  - Group 0 (Including Tributaries): Rule 3: verbatim_text not found in geographic group's raw_text
+
+
+================================================================================
+Batch Failures at 2026-01-09T15:20:40.853432
+================================================================================
+
+[597] CADORNA CREEK 4-23
+--------------------------------------------------------------------------------
+Error Type: validation_error
+Error: Group 2 (including tributaries): Rule 0: verbatim_text not found in geographic group's raw_text
+
+Full Input (raw_regs):
+**No Fishing** Sept 1-Oct 31; trout/char catch and release and bait ban, June 15-Aug 31
+**Class II water when open, including tributaries - Elk River classified licence required for non-resident anglers**
+
+Model Output:
+{
+  "waterbody_name": "CADORNA CREEK 4-23",
+  "raw_text": "**No Fishing** Sept 1-Oct 31; trout/char catch and release and bait ban, June 15-Aug 31\n**Class II water when open, including tributaries - Elk River classified licence required for non-resident anglers**",
+  "cleaned_text": "**No Fishing** Sept 1-Oct 31; trout/char catch and release and bait ban, June 15-Aug 31. **Class II water when open, including tributaries - Elk River classified licence required for non-resident anglers**.",
+  "geographic_groups": [
+    {
+      "location": "",
+      "raw_text": "**No Fishing** Sept 1-Oct 31",
+      "cleaned_text": "**No Fishing** Sept 1-Oct 31.",
+      "rules": [
+        {
+          "verbatim_text": "**No Fishing** Sept 1-Oct 31",
+          "rule": "No Fishing",
+          "type": "closure",
+          "dates": [
+            "Sept 1-Oct 31"
+          ],
+          "species": null
+        }
+      ]
+    },
+    {
+      "location": "",
+      "raw_text": "trout/char catch and release and bait ban, June 15-Aug 31",
+      "cleaned_text": "Trout/char catch and release and bait ban, June 15-Aug 31.",
+      "rules": [
+        {
+          "verbatim_text": "trout/char catch and release and bait ban, June 15-Aug 31",
+          "rule": "Trout/char catch and release",
+          "type": "harvest",
+          "dates": [
+            "June 15-Aug 31"
+          ],
+          "species": [
+            "trout",
+            "char"
+          ]
+        },
+        {
+          "verbatim_text": "bait ban, June 15-Aug 31",
+          "rule": "Bait ban",
+          "type": "gear_restriction",
+          "dates": [
+            "June 15-Aug 31"
+          ],
+          "species": null
+        }
+      ]
+    },
+    {
+      "location": "including tributaries",
+      "raw_text": "**Class II water when open, including tributaries - Elk River classified licence required for non-resident anglers**",
+      "cleaned_text": "**Class II water when open, including tributaries - Elk River classified licence required for non-resident anglers**.",
+      "rules": [
+        {
+          "verbatim_text": "**Class II water when open, including tributaries**",
+          "rule": "Class II water",
+          "type": "licensing",
+          "dates": null,
+          "species": null
+        },
+        {
+          "verbatim_text": "Elk River classified licence required for non-resident anglers",
+          "rule": "Elk River classified licence required for non-resident anglers",
+          "type": "licensing",
+          "dates": null,
+          "species": null
+        }
+      ]
+    }
+  ]
+}
+
+All Validation Errors:
+  - Group 2 (including tributaries): Rule 0: verbatim_text not found in geographic group's raw_text
+
+[612] COLUMBIA RIVER
+--------------------------------------------------------------------------------
+Error Type: validation_error
+Error: Group 2 (Where angling is permitted): Rule 1: verbatim_text not found in geographic group's raw_text
+
+Full Input (raw_regs):
+**No Fishing** from Revelstoke Dam downstream to Hwy 1 bridge in Revelstoke
+**No Fishing** from a line between the old Robson Ferry landing and a sign on the south river bank, downstream approximately 950 m to the
+CPR Bridge, Mar 1-June 30
+Where angling is permitted: EXEMPT from the regional Nov 1-Mar 31 trout/char catch and release and the regional Apr 1-June 14 closure
+Bass daily quota = unlimited
+Kokanee daily quota = 15 from Keenleyside Dam to a line between the old Robson Ferry landing and a sign on the south river bank
+Walleye daily quota = 16 from Keenleyside Dam to the Washington state border
+From Keenleyside Dam downstream to the Washington state border and connected reaches: the Kootenay River (Columbia River
+confluence to Brilliant Dam) and the Pend d'Oreille River (Columbia River confluence to Waneta Dam): Northern pike daily quota =
+unlimited and bass daily quota = unlimited
+Burbot catch and release
+Speed restriction (10 km/h) from Mud Lake to Columbia Lake, no power boats in wetlands, no towing and engine power restriction -
+15 kW (20 hp), in main channel from Fairmont to Donald
+See Upper Arrow Lake for the portion of the Columbia River which may be found downstream of the Hwy 1 bridge in Revelstoke
+(depending on reservoir level)
+
+Model Output:
+{
+  "waterbody_name": "COLUMBIA RIVER",
+  "raw_text": "**No Fishing** from Revelstoke Dam downstream to Hwy 1 bridge in Revelstoke\n**No Fishing** from a line between the old Robson Ferry landing and a sign on the south river bank, downstream approximately 950 m to the\nCPR Bridge, Mar 1-June 30\nWhere angling is permitted: EXEMPT from the regional Nov 1-Mar 31 trout/char catch and release and the regional Apr 1-June 14 closure\nBass daily quota = unlimited\nKokanee daily quota = 15 from Keenleyside Dam to a line between the old Robson Ferry landing and a sign on the south river bank\nWalleye daily quota = 16 from Keenleyside Dam to the Washington state border\nFrom Keenleyside Dam downstream to the Washington state border and connected reaches: the Kootenay River (Columbia River\nconfluence to Brilliant Dam) and the Pend d'Oreille River (Columbia River confluence to Waneta Dam): Northern pike daily quota =\nunlimited and bass daily quota = unlimited\nBurbot catch and release\nSpeed restriction (10 km/h) from Mud Lake to Columbia Lake, no power boats in wetlands, no towing and engine power restriction -\n15 kW (20 hp), in main channel from Fairmont to Donald\nSee Upper Arrow Lake for the portion of the Columbia River which may be found downstream of the Hwy 1 bridge in Revelstoke\n(depending on reservoir level)",
+  "cleaned_text": "**No Fishing** from Revelstoke Dam downstream to Hwy 1 bridge in Revelstoke. **No Fishing** from a line between the old Robson Ferry landing and a sign on the south river bank, downstream approximately 950 m to the CPR Bridge, Mar 1-June 30. Where angling is permitted: EXEMPT from the regional Nov 1-Mar 31 trout/char catch and release and the regional Apr 1-June 14 closure. Bass daily quota = unlimited. Kokanee daily quota = 15 from Keenleyside Dam to a line between the old Robson Ferry landing and a sign on the south river bank. Walleye daily quota = 16 from Keenleyside Dam to the Washington state border. From Keenleyside Dam downstream to the Washington state border and connected reaches: Northern pike daily quota = unlimited and bass daily quota = unlimited. Burbot catch and release. Speed restriction (10 km/h) from Mud Lake to Columbia Lake; no power boats in wetlands; no towing and engine power restriction - 15 kW (20 hp), in main channel from Fairmont to Donald. See Upper Arrow Lake for the portion of the Columbia River which may be found downstream of the Hwy 1 bridge in Revelstoke (depending on reservoir level).",
+  "geographic_groups": [
+    {
+      "location": "from Revelstoke Dam downstream to Hwy 1 bridge in Revelstoke",
+      "raw_text": "**No Fishing** from Revelstoke Dam downstream to Hwy 1 bridge in Revelstoke",
+      "cleaned_text": "**No Fishing** from Revelstoke Dam downstream to Hwy 1 bridge in Revelstoke.",
+      "rules": [
+        {
+          "verbatim_text": "**No Fishing** from Revelstoke Dam downstream to Hwy 1 bridge in Revelstoke",
+          "rule": "No Fishing",
+          "type": "closure",
+          "dates": null,
+          "species": null
+        }
+      ]
+    },
+    {
+      "location": "from a line between the old Robson Ferry landing and a sign on the south river bank, downstream approximately 950 m to the CPR Bridge",
+      "raw_text": "**No Fishing** from a line between the old Robson Ferry landing and a sign on the south river bank, downstream approximately 950 m to the\nCPR Bridge, Mar 1-June 30",
+      "cleaned_text": "**No Fishing** from a line between the old Robson Ferry landing and a sign on the south river bank, downstream approximately 950 m to the CPR Bridge, Mar 1-June 30.",
+      "rules": [
+        {
+          "verbatim_text": "**No Fishing** from a line between the old Robson Ferry landing and a sign on the south river bank, downstream approximately 950 m to the\nCPR Bridge, Mar 1-June 30",
+          "rule": "No Fishing",
+          "type": "closure",
+          "dates": [
+            "Mar 1-June 30"
+          ],
+          "species": null
+        }
+      ]
+    },
+    {
+      "location": "Where angling is permitted",
+      "raw_text": "Where angling is permitted: EXEMPT from the regional Nov 1-Mar 31 trout/char catch and release and the regional Apr 1-June 14 closure\nBass daily quota = unlimited\nBurbot catch and release",
+      "cleaned_text": "Where angling is permitted: EXEMPT from the regional Nov 1-Mar 31 trout/char catch and release and the regional Apr 1-June 14 closure. Bass daily quota = unlimited. Burbot catch and release.",
+      "rules": [
+        {
+          "verbatim_text": "EXEMPT from the regional Nov 1-Mar 31 trout/char catch and release",
+          "rule": "Exempt from regional Nov 1-Mar 31 trout/char catch and release",
+          "type": "note",
+          "dates": [
+            "Nov 1-Mar 31"
+          ],
+          "species": [
+            "trout",
+            "char"
+          ]
+        },
+        {
+          "verbatim_text": "EXEMPT from the regional Apr 1-June 14 closure",
+          "rule": "Exempt from regional Apr 1-June 14 closure",
+          "type": "note",
+          "dates": [
+            "Apr 1-June 14"
+          ],
+          "species": null
+        },
+        {
+          "verbatim_text": "Bass daily quota = unlimited",
+          "rule": "Bass daily quota = unlimited",
+          "type": "harvest",
+          "dates": null,
+          "species": [
+            "bass"
+          ]
+        },
+        {
+          "verbatim_text": "Burbot catch and release",
+          "rule": "Burbot catch and release",
+          "type": "harvest",
+          "dates": null,
+          "species": [
+            "burbot"
+          ]
+        }
+      ]
+    },
+    {
+      "location": "from Keenleyside Dam to a line between the old Robson Ferry landing and a sign on the south river bank",
+      "raw_text": "Kokanee daily quota = 15 from Keenleyside Dam to a line between the old Robson Ferry landing and a sign on the south river bank",
+      "cleaned_text": "Kokanee daily quota = 15 from Keenleyside Dam to a line between the old Robson Ferry landing and a sign on the south river bank.",
+      "rules": [
+        {
+          "verbatim_text": "Kokanee daily quota = 15 from Keenleyside Dam to a line between the old Robson Ferry landing and a sign on the south river bank",
+          "rule": "Kokanee daily quota = 15",
+          "type": "harvest",
+          "dates": null,
+          "species": [
+            "kokanee"
+          ]
+        }
+      ]
+    },
+    {
+      "location": "from Keenleyside Dam to the Washington state border",
+      "raw_text": "Walleye daily quota = 16 from Keenleyside Dam to the Washington state border",
+      "cleaned_text": "Walleye daily quota = 16 from Keenleyside Dam to the Washington state border.",
+      "rules": [
+        {
+          "verbatim_text": "Walleye daily quota = 16 from Keenleyside Dam to the Washington state border",
+          "rule": "Walleye daily quota = 16",
+          "type": "harvest",
+          "dates": null,
+          "species": [
+            "walleye"
+          ]
+        }
+      ]
+    },
+    {
+      "location": "From Keenleyside Dam downstream to the Washington state border and connected reaches: the Kootenay River (Columbia River confluence to Brilliant Dam) and the Pend d'Oreille River (Columbia River confluence to Waneta Dam)",
+      "raw_text": "From Keenleyside Dam downstream to the Washington state border and connected reaches: the Kootenay River (Columbia River\nconfluence to Brilliant Dam) and the Pend d'Oreille River (Columbia River confluence to Waneta Dam): Northern pike daily quota =\nunlimited and bass daily quota = unlimited",
+      "cleaned_text": "From Keenleyside Dam downstream to the Washington state border and connected reaches: Northern pike daily quota = unlimited and bass daily quota = unlimited.",
+      "rules": [
+        {
+          "verbatim_text": "Northern pike daily quota =\nunlimited",
+          "rule": "Northern pike daily quota = unlimited",
+          "type": "harvest",
+          "dates": null,
+          "species": [
+            "northern pike"
+          ]
+        },
+        {
+          "verbatim_text": "bass daily quota = unlimited",
+          "rule": "Bass daily quota = unlimited",
+          "type": "harvest",
+          "dates": null,
+          "species": [
+            "bass"
+          ]
+        }
+      ]
+    },
+    {
+      "location": "from Mud Lake to Columbia Lake",
+      "raw_text": "Speed restriction (10 km/h) from Mud Lake to Columbia Lake",
+      "cleaned_text": "Speed restriction (10 km/h) from Mud Lake to Columbia Lake.",
+      "rules": [
+        {
+          "verbatim_text": "Speed restriction (10 km/h) from Mud Lake to Columbia Lake",
+          "rule": "Speed restriction (10 km/h)",
+          "type": "restriction",
+          "dates": null,
+          "species": null
+        }
+      ]
+    },
+    {
+      "location": "wetlands",
+      "raw_text": "no power boats in wetlands",
+      "cleaned_text": "No power boats in wetlands.",
+      "rules": [
+        {
+          "verbatim_text": "no power boats in wetlands",
+          "rule": "No power boats",
+          "type": "restriction",
+          "dates": null,
+          "species": null
+        }
+      ]
+    },
+    {
+      "location": "main channel from Fairmont to Donald",
+      "raw_text": "no towing and engine power restriction -\n15 kW (20 hp), in main channel from Fairmont to Donald",
+      "cleaned_text": "No towing and engine power restriction - 15 kW (20 hp), in main channel from Fairmont to Donald.",
+      "rules": [
+        {
+          "verbatim_text": "no towing",
+          "rule": "No towing",
+          "type": "restriction",
+          "dates": null,
+          "species": null
+        },
+        {
+          "verbatim_text": "engine power restriction -\n15 kW (20 hp), in main channel from Fairmont to Donald",
+          "rule": "Engine power restriction - 15 kW (20 hp)",
+          "type": "gear_restriction",
+          "dates": null,
+          "species": null
+        }
+      ]
+    },
+    {
+      "location": "portion downstream of Hwy 1 bridge in Revelstoke",
+      "raw_text": "See Upper Arrow Lake for the portion of the Columbia River which may be found downstream of the Hwy 1 bridge in Revelstoke\n(depending on reservoir level)",
+      "cleaned_text": "See Upper Arrow Lake for the portion of the Columbia River which may be found downstream of the Hwy 1 bridge in Revelstoke (depending on reservoir level).",
+      "rules": [
+        {
+          "verbatim_text": "See Upper Arrow Lake for the portion of the Columbia River which may be found downstream of the Hwy 1 bridge in Revelstoke",
+          "rule": "See Upper Arrow Lake",
+          "type": "note",
+          "dates": null,
+          "species": null
+        }
+      ]
+    }
+  ]
+}
+
+All Validation Errors:
+  - Group 2 (Where angling is permitted): Rule 1: verbatim_text not found in geographic group's raw_text
+
+[625] DUNCAN RIVER
+--------------------------------------------------------------------------------
+Error Type: validation_error
+Error: Group 0 (): Rule 0: verbatim_text not found in geographic group's raw_text
+
+Full Input (raw_regs):
+**Exempt from spring closure, exempt from regional Nov 1-Mar 31 bull trout catch and release, bait ban
+Rainbow trout daily quota = 5 (any size), bull trout daily quota = 2 (any size)
+No Fishing downstream of Duncan Dam to the confluence of the Duncan River and the Lardeau River**
+
+Model Output:
+{
+  "waterbody_name": "DUNCAN RIVER",
+  "raw_text": "**Exempt from spring closure, exempt from regional Nov 1-Mar 31 bull trout catch and release, bait ban\nRainbow trout daily quota = 5 (any size), bull trout daily quota = 2 (any size)\nNo Fishing downstream of Duncan Dam to the confluence of the Duncan River and the Lardeau River**",
+  "cleaned_text": "**Exempt from spring closure, exempt from regional Nov 1-Mar 31 bull trout catch and release, bait ban. Rainbow trout daily quota = 5 (any size), bull trout daily quota = 2 (any size). No Fishing downstream of Duncan Dam to the confluence of the Duncan River and the Lardeau River**.",
+  "geographic_groups": [
+    {
+      "location": "",
+      "raw_text": "**Exempt from spring closure, exempt from regional Nov 1-Mar 31 bull trout catch and release, bait ban\nRainbow trout daily quota = 5 (any size), bull trout daily quota = 2 (any size)**",
+      "cleaned_text": "**Exempt from spring closure, exempt from regional Nov 1-Mar 31 bull trout catch and release, bait ban. Rainbow trout daily quota = 5 (any size), bull trout daily quota = 2 (any size)**.",
+      "rules": [
+        {
+          "verbatim_text": "**Exempt from spring closure**",
+          "rule": "Exempt from spring closure",
+          "type": "note",
+          "dates": null,
+          "species": null
+        },
+        {
+          "verbatim_text": "exempt from regional Nov 1-Mar 31 bull trout catch and release",
+          "rule": "Exempt from regional bull trout catch and release",
+          "type": "note",
+          "dates": [
+            "Nov 1-Mar 31"
+          ],
+          "species": [
+            "bull trout"
+          ]
+        },
+        {
+          "verbatim_text": "bait ban",
+          "rule": "Bait ban",
+          "type": "gear_restriction",
+          "dates": null,
+          "species": null
+        },
+        {
+          "verbatim_text": "Rainbow trout daily quota = 5 (any size)",
+          "rule": "Rainbow trout daily quota = 5 (any size)",
+          "type": "harvest",
+          "dates": null,
+          "species": [
+            "rainbow trout"
+          ]
+        },
+        {
+          "verbatim_text": "bull trout daily quota = 2 (any size)",
+          "rule": "Bull trout daily quota = 2 (any size)",
+          "type": "harvest",
+          "dates": null,
+          "species": [
+            "bull trout"
+          ]
+        }
+      ]
+    },
+    {
+      "location": "downstream of Duncan Dam to the confluence of the Duncan River and the Lardeau River",
+      "raw_text": "**No Fishing downstream of Duncan Dam to the confluence of the Duncan River and the Lardeau River**",
+      "cleaned_text": "**No Fishing downstream of Duncan Dam to the confluence of the Duncan River and the Lardeau River**.",
+      "rules": [
+        {
+          "verbatim_text": "**No Fishing downstream of Duncan Dam to the confluence of the Duncan River and the Lardeau River**",
+          "rule": "No Fishing",
+          "type": "closure",
+          "dates": null,
+          "species": null
+        }
+      ]
+    }
+  ]
+}
+
+All Validation Errors:
+  - Group 0 (): Rule 0: verbatim_text not found in geographic group's raw_text
+
+
+================================================================================
+Batch Failures at 2026-01-09T15:22:34.690626
+================================================================================
+
+[659] JORDAN RIVER
+--------------------------------------------------------------------------------
+Error Type: validation_error
+Error: Group 0 (upstream of Kirkup Creek): Rule 1: Date 'June 15-Oct 31' not found in verbatim_text
+
+Full Input (raw_regs):
+**No Fishing** upstream of Kirkup Creek, Nov 1-June 14
+Upstream of Kirkup Creek: both bait ban and trout/char catch and release, June 15-Oct 31
+**No Fishing** from Kirkup Creek downstream, including Kirkup Creek
+
+Model Output:
+{
+  "waterbody_name": "JORDAN RIVER",
+  "raw_text": "**No Fishing** upstream of Kirkup Creek, Nov 1-June 14\nUpstream of Kirkup Creek: both bait ban and trout/char catch and release, June 15-Oct 31\n**No Fishing** from Kirkup Creek downstream, including Kirkup Creek",
+  "cleaned_text": "**No Fishing** upstream of Kirkup Creek, Nov 1-June 14. Upstream of Kirkup Creek: both bait ban and trout/char catch and release, June 15-Oct 31. **No Fishing** from Kirkup Creek downstream, including Kirkup Creek.",
+  "geographic_groups": [
+    {
+      "location": "upstream of Kirkup Creek",
+      "raw_text": "**No Fishing** upstream of Kirkup Creek, Nov 1-June 14\nUpstream of Kirkup Creek: both bait ban and trout/char catch and release, June 15-Oct 31",
+      "cleaned_text": "**No Fishing** upstream of Kirkup Creek, Nov 1-June 14. Upstream of Kirkup Creek: both bait ban and trout/char catch and release, June 15-Oct 31.",
+      "rules": [
+        {
+          "verbatim_text": "**No Fishing** upstream of Kirkup Creek, Nov 1-June 14",
+          "rule": "No Fishing",
+          "type": "closure",
+          "dates": [
+            "Nov 1-June 14"
+          ],
+          "species": null
+        },
+        {
+          "verbatim_text": "bait ban",
+          "rule": "Bait ban",
+          "type": "gear_restriction",
+          "dates": [
+            "June 15-Oct 31"
+          ],
+          "species": null
+        },
+        {
+          "verbatim_text": "trout/char catch and release, June 15-Oct 31",
+          "rule": "Trout/char catch and release",
+          "type": "harvest",
+          "dates": [
+            "June 15-Oct 31"
+          ],
+          "species": [
+            "trout",
+            "char"
+          ]
+        }
+      ]
+    },
+    {
+      "location": "from Kirkup Creek downstream, including Kirkup Creek",
+      "raw_text": "**No Fishing** from Kirkup Creek downstream, including Kirkup Creek",
+      "cleaned_text": "**No Fishing** from Kirkup Creek downstream, including Kirkup Creek.",
+      "rules": [
+        {
+          "verbatim_text": "**No Fishing** from Kirkup Creek downstream, including Kirkup Creek",
+          "rule": "No Fishing",
+          "type": "closure",
+          "dates": null,
+          "species": null
+        }
+      ]
+    }
+  ]
+}
+
+All Validation Errors:
+  - Group 0 (upstream of Kirkup Creek): Rule 1: Date 'June 15-Oct 31' not found in verbatim_text
+
+[671] KOOTENAY LAKE - UPPER WEST ARM (for location see map on page 34)
+--------------------------------------------------------------------------------
+Error Type: validation_error
+Error: Group 0 (Upper West Arm): Rule 3: verbatim_text not found in geographic group's raw_text
+
+Full Input (raw_regs):
+Rainbow trout catch and release, Jan 1-May 31; trout/char daily quota = 2 (only 1 bull trout)
+Kokanee catch and release, EXCEPT Apr 1-Apr 3 and July 1-July 2 only, when daily quota = 5; NOTE: The combined daily quota for kokanee
+from the Upper West Arm (when open to kokanee harvest) and the Lower West Arm (when open to kokanee harvest) cannot exceed 5
+
+Model Output:
+{
+  "waterbody_name": "KOOTENAY LAKE - UPPER WEST ARM (for location see map on page 34)",
+  "raw_text": "Rainbow trout catch and release, Jan 1-May 31; trout/char daily quota = 2 (only 1 bull trout)\nKokanee catch and release, EXCEPT Apr 1-Apr 3 and July 1-July 2 only, when daily quota = 5; NOTE: The combined daily quota for kokanee\nfrom the Upper West Arm (when open to kokanee harvest) and the Lower West Arm (when open to kokanee harvest) cannot exceed 5",
+  "cleaned_text": "Rainbow trout catch and release, Jan 1-May 31; trout/char daily quota = 2 (only 1 bull trout). Kokanee catch and release, EXCEPT Apr 1-Apr 3 and July 1-July 2 only, when daily quota = 5; NOTE: The combined daily quota for kokanee from the Upper West Arm (when open to kokanee harvest) and the Lower West Arm (when open to kokanee harvest) cannot exceed 5.",
+  "geographic_groups": [
+    {
+      "location": "Upper West Arm",
+      "raw_text": "Rainbow trout catch and release, Jan 1-May 31; trout/char daily quota = 2 (only 1 bull trout)\nKokanee catch and release, EXCEPT Apr 1-Apr 3 and July 1-July 2 only, when daily quota = 5; NOTE: The combined daily quota for kokanee\nfrom the Upper West Arm (when open to kokanee harvest) and the Lower West Arm (when open to kokanee harvest) cannot exceed 5",
+      "cleaned_text": "Rainbow trout catch and release, Jan 1-May 31; trout/char daily quota = 2 (only 1 bull trout). Kokanee catch and release, EXCEPT Apr 1-Apr 3 and July 1-July 2 only, when daily quota = 5; NOTE: The combined daily quota for kokanee from the Upper West Arm (when open to kokanee harvest) and the Lower West Arm (when open to kokanee harvest) cannot exceed 5.",
+      "rules": [
+        {
+          "verbatim_text": "Rainbow trout catch and release, Jan 1-May 31",
+          "rule": "Rainbow trout catch and release",
+          "type": "harvest",
+          "dates": [
+            "Jan 1-May 31"
+          ],
+          "species": [
+            "rainbow trout"
+          ]
+        },
+        {
+          "verbatim_text": "trout/char daily quota = 2 (only 1 bull trout)",
+          "rule": "Trout/char daily quota = 2 (only 1 bull trout)",
+          "type": "harvest",
+          "dates": null,
+          "species": [
+            "trout",
+            "char",
+            "bull trout"
+          ]
+        },
+        {
+          "verbatim_text": "Kokanee catch and release, EXCEPT Apr 1-Apr 3 and July 1-July 2 only",
+          "rule": "Kokanee catch and release",
+          "type": "harvest",
+          "dates": null,
+          "species": [
+            "kokanee"
+          ]
+        },
+        {
+          "verbatim_text": "daily quota = 5, Apr 1-Apr 3 and July 1-July 2 only",
+          "rule": "Kokanee daily quota = 5",
+          "type": "harvest",
+          "dates": [
+            "Apr 1-Apr 3",
+            "July 1-July 2"
+          ],
+          "species": [
+            "kokanee"
+          ]
+        },
+        {
+          "verbatim_text": "NOTE: The combined daily quota for kokanee\nfrom the Upper West Arm (when open to kokanee harvest) and the Lower West Arm (when open to kokanee harvest) cannot exceed 5",
+          "rule": "Combined daily quota limit for kokanee across West Arms",
+          "type": "harvest",
+          "dates": null,
+          "species": [
+            "kokanee"
+          ]
+        }
+      ]
+    }
+  ]
+}
+
+All Validation Errors:
+  - Group 0 (Upper West Arm): Rule 3: verbatim_text not found in geographic group's raw_text
+
+[674] KOOTENAY RIVER (downstream of Idaho border)
+--------------------------------------------------------------------------------
+Error Type: validation_error
+Error: Group 1 (Downstream from the Idaho border to CPR Bridge near Creston and from Corra Linn Dam to the Columbia River): Rule 1: verbatim_text not found in geographic group's raw_text
+
+Full Input (raw_regs):
+**No Fishing** from CPR Bridge near Creston downstream 2 km to navigation dolphin
+Downstream from the Idaho border to CPR Bridge near Creston and from Corra Linn Dam to the Columbia River: EXEMPT from Apr 1-June 14 closure AND from Nov 1-Mar 31 trout/char catch and release
+Burbot catch and release from Idaho border near Creston to Kootenay Lake, including tributaries to that part
+Walleye daily quota = 16 from the Brilliant Dam to the confluence with the Columbia River
+From the Brilliant Dam to the confluence with the Columbia River: northern pike and bass daily quota = unlimited
+
+Model Output:
+{
+  "waterbody_name": "KOOTENAY RIVER (downstream of Idaho border)",
+  "raw_text": "**No Fishing** from CPR Bridge near Creston downstream 2 km to navigation dolphin\nDownstream from the Idaho border to CPR Bridge near Creston and from Corra Linn Dam to the Columbia River: EXEMPT from Apr 1-June 14 closure AND from Nov 1-Mar 31 trout/char catch and release\nBurbot catch and release from Idaho border near Creston to Kootenay Lake, including tributaries to that part\nWalleye daily quota = 16 from the Brilliant Dam to the confluence with the Columbia River\nFrom the Brilliant Dam to the confluence with the Columbia River: northern pike and bass daily quota = unlimited",
+  "cleaned_text": "**No Fishing** from CPR Bridge near Creston downstream 2 km to navigation dolphin. Downstream from the Idaho border to CPR Bridge near Creston and from Corra Linn Dam to the Columbia River: EXEMPT from Apr 1-June 14 closure AND from Nov 1-Mar 31 trout/char catch and release. Burbot catch and release from Idaho border near Creston to Kootenay Lake, including tributaries to that part. Walleye daily quota = 16 from the Brilliant Dam to the confluence with the Columbia River. From the Brilliant Dam to the confluence with the Columbia River: northern pike and bass daily quota = unlimited.",
+  "geographic_groups": [
+    {
+      "location": "from CPR Bridge near Creston downstream 2 km to navigation dolphin",
+      "raw_text": "**No Fishing** from CPR Bridge near Creston downstream 2 km to navigation dolphin",
+      "cleaned_text": "**No Fishing** from CPR Bridge near Creston downstream 2 km to navigation dolphin.",
+      "rules": [
+        {
+          "verbatim_text": "**No Fishing** from CPR Bridge near Creston downstream 2 km to navigation dolphin",
+          "rule": "No Fishing",
+          "type": "closure",
+          "dates": null,
+          "species": null
+        }
+      ]
+    },
+    {
+      "location": "Downstream from the Idaho border to CPR Bridge near Creston and from Corra Linn Dam to the Columbia River",
+      "raw_text": "Downstream from the Idaho border to CPR Bridge near Creston and from Corra Linn Dam to the Columbia River: EXEMPT from Apr 1-June 14 closure AND from Nov 1-Mar 31 trout/char catch and release",
+      "cleaned_text": "Downstream from the Idaho border to CPR Bridge near Creston and from Corra Linn Dam to the Columbia River: EXEMPT from Apr 1-June 14 closure AND from Nov 1-Mar 31 trout/char catch and release.",
+      "rules": [
+        {
+          "verbatim_text": "EXEMPT from Apr 1-June 14 closure",
+          "rule": "Exempt from closure",
+          "type": "access",
+          "dates": [
+            "Apr 1-June 14"
+          ],
+          "species": null
+        },
+        {
+          "verbatim_text": "EXEMPT from ... Nov 1-Mar 31 trout/char catch and release",
+          "rule": "Exempt from catch and release restriction",
+          "type": "harvest",
+          "dates": [
+            "Nov 1-Mar 31"
+          ],
+          "species": [
+            "trout",
+            "char"
+          ]
+        }
+      ]
+    },
+    {
+      "location": "from Idaho border near Creston to Kootenay Lake, including tributaries to that part",
+      "raw_text": "Burbot catch and release from Idaho border near Creston to Kootenay Lake, including tributaries to that part",
+      "cleaned_text": "Burbot catch and release from Idaho border near Creston to Kootenay Lake, including tributaries to that part.",
+      "rules": [
+        {
+          "verbatim_text": "Burbot catch and release from Idaho border near Creston to Kootenay Lake, including tributaries to that part",
+          "rule": "Burbot catch and release",
+          "type": "harvest",
+          "dates": null,
+          "species": [
+            "burbot"
+          ]
+        }
+      ]
+    },
+    {
+      "location": "from the Brilliant Dam to the confluence with the Columbia River",
+      "raw_text": "Walleye daily quota = 16 from the Brilliant Dam to the confluence with the Columbia River\nFrom the Brilliant Dam to the confluence with the Columbia River: northern pike and bass daily quota = unlimited",
+      "cleaned_text": "Walleye daily quota = 16 from the Brilliant Dam to the confluence with the Columbia River. From the Brilliant Dam to the confluence with the Columbia River: northern pike and bass daily quota = unlimited.",
+      "rules": [
+        {
+          "verbatim_text": "Walleye daily quota = 16 from the Brilliant Dam to the confluence with the Columbia River",
+          "rule": "Walleye daily quota = 16",
+          "type": "harvest",
+          "dates": null,
+          "species": [
+            "walleye"
+          ]
+        },
+        {
+          "verbatim_text": "northern pike and bass daily quota = unlimited",
+          "rule": "Northern pike and bass daily quota = unlimited",
+          "type": "harvest",
+          "dates": null,
+          "species": [
+            "northern pike",
+            "bass"
+          ]
+        }
+      ]
+    }
+  ]
+}
+
+All Validation Errors:
+  - Group 1 (Downstream from the Idaho border to CPR Bridge near Creston and from Corra Linn Dam to the Columbia River): Rule 1: verbatim_text not found in geographic group's raw_text
+
+
+================================================================================
+Batch Failures at 2026-01-09T15:24:04.233594
+================================================================================
+
+[706] MICHEL CREEK (downstream of the easternmost Hwy 3 bridge)
+--------------------------------------------------------------------------------
+Error Type: validation_error
+Error: Group 1 (): Rule 0: Date 'June 15-Oct 31' not found in verbatim_text
+
+Full Input (raw_regs):
+**Class II water when open, including tributaries**
+Trout/char daily quota = 1 (none under 30 cm) and bait ban, June 15-Oct 31.
+
+Model Output:
+{
+  "waterbody_name": "MICHEL CREEK (downstream of the easternmost Hwy 3 bridge)",
+  "raw_text": "**Class II water when open, including tributaries**\nTrout/char daily quota = 1 (none under 30 cm) and bait ban, June 15-Oct 31.",
+  "cleaned_text": "Class II water when open, including tributaries. Trout/char daily quota = 1 (none under 30 cm) and bait ban, June 15-Oct 31.",
+  "geographic_groups": [
+    {
+      "location": "Includes Tributaries",
+      "raw_text": "**Class II water when open, including tributaries**",
+      "cleaned_text": "Class II water when open, including tributaries.",
+      "rules": [
+        {
+          "verbatim_text": "**Class II water when open, including tributaries**",
+          "rule": "Class II water",
+          "type": "licensing",
+          "dates": null,
+          "species": null
+        }
+      ]
+    },
+    {
+      "location": "",
+      "raw_text": "Trout/char daily quota = 1 (none under 30 cm) and bait ban, June 15-Oct 31.",
+      "cleaned_text": "Trout/char daily quota = 1 (none under 30 cm) and bait ban, June 15-Oct 31.",
+      "rules": [
+        {
+          "verbatim_text": "Trout/char daily quota = 1 (none under 30 cm)",
+          "rule": "Trout/char daily quota = 1 (none under 30 cm)",
+          "type": "harvest",
+          "dates": [
+            "June 15-Oct 31"
+          ],
+          "species": [
+            "trout",
+            "char"
+          ]
+        },
+        {
+          "verbatim_text": "bait ban, June 15-Oct 31",
+          "rule": "Bait ban",
+          "type": "gear_restriction",
+          "dates": [
+            "June 15-Oct 31"
+          ],
+          "species": null
+        }
+      ]
+    }
+  ]
+}
+
+All Validation Errors:
+  - Group 1 (): Rule 0: Date 'June 15-Oct 31' not found in verbatim_text
+
+
+================================================================================
+Batch Failures at 2026-01-09T15:26:55.646003
+================================================================================
+
+[775] UPPER ELK LAKE
+--------------------------------------------------------------------------------
+Error Type: validation_error
+Error: Group 0 (): Rule 0: verbatim_text not found in geographic group's raw_text
+
+Full Input (raw_regs):
+**No Ice Fishing;** trout/char daily quota = 2; bait ban, single barbless hook; no powered boats
+
+Model Output:
+{
+  "waterbody_name": "UPPER ELK LAKE",
+  "raw_text": "**No Ice Fishing;** trout/char daily quota = 2; bait ban, single barbless hook; no powered boats",
+  "cleaned_text": "**No Ice Fishing**; trout/char daily quota = 2; bait ban, single barbless hook; no powered boats.",
+  "geographic_groups": [
+    {
+      "location": "",
+      "raw_text": "**No Ice Fishing;** trout/char daily quota = 2; bait ban, single barbless hook; no powered boats",
+      "cleaned_text": "**No Ice Fishing**; trout/char daily quota = 2; bait ban, single barbless hook; no powered boats.",
+      "rules": [
+        {
+          "verbatim_text": "**No Ice Fishing**",
+          "rule": "No Ice Fishing",
+          "type": "closure",
+          "dates": null,
+          "species": null
+        },
+        {
+          "verbatim_text": "trout/char daily quota = 2",
+          "rule": "Trout/char daily quota = 2",
+          "type": "harvest",
+          "dates": null,
+          "species": [
+            "trout",
+            "char"
+          ]
+        },
+        {
+          "verbatim_text": "bait ban",
+          "rule": "Bait ban",
+          "type": "gear_restriction",
+          "dates": null,
+          "species": null
+        },
+        {
+          "verbatim_text": "single barbless hook",
+          "rule": "Single barbless hook",
+          "type": "gear_restriction",
+          "dates": null,
+          "species": null
+        },
+        {
+          "verbatim_text": "no powered boats",
+          "rule": "No powered boats",
+          "type": "restriction",
+          "dates": null,
+          "species": null
+        }
+      ]
+    }
+  ]
+}
+
+All Validation Errors:
+  - Group 0 (): Rule 0: verbatim_text not found in geographic group's raw_text
+
+[786] WHITETAIL LAKE
+--------------------------------------------------------------------------------
+Error Type: validation_error
+Error: Group 0 (): Rule 0: verbatim_text not found in geographic group's raw_text
+
+Full Input (raw_regs):
+**No Ice Fishing;** rainbow trout daily quota = 1 (none under 50 cm); brook trout daily quota = 20
+Bait ban, single barbless hook
+No towing
+
+Model Output:
+{
+  "waterbody_name": "WHITETAIL LAKE",
+  "raw_text": "**No Ice Fishing;** rainbow trout daily quota = 1 (none under 50 cm); brook trout daily quota = 20\nBait ban, single barbless hook\nNo towing",
+  "cleaned_text": "**No Ice Fishing**; rainbow trout daily quota = 1 (none under 50 cm); brook trout daily quota = 20. Bait ban, single barbless hook. No towing.",
+  "geographic_groups": [
+    {
+      "location": "",
+      "raw_text": "**No Ice Fishing;** rainbow trout daily quota = 1 (none under 50 cm); brook trout daily quota = 20\nBait ban, single barbless hook\nNo towing",
+      "cleaned_text": "**No Ice Fishing**; rainbow trout daily quota = 1 (none under 50 cm); brook trout daily quota = 20. Bait ban, single barbless hook. No towing.",
+      "rules": [
+        {
+          "verbatim_text": "**No Ice Fishing**",
+          "rule": "No Ice Fishing",
+          "type": "closure",
+          "dates": null,
+          "species": null
+        },
+        {
+          "verbatim_text": "rainbow trout daily quota = 1 (none under 50 cm)",
+          "rule": "Rainbow trout daily quota = 1 (none under 50 cm)",
+          "type": "harvest",
+          "dates": null,
+          "species": [
+            "rainbow trout"
+          ]
+        },
+        {
+          "verbatim_text": "brook trout daily quota = 20",
+          "rule": "Brook trout daily quota = 20",
+          "type": "harvest",
+          "dates": null,
+          "species": [
+            "brook trout"
+          ]
+        },
+        {
+          "verbatim_text": "Bait ban",
+          "rule": "Bait ban",
+          "type": "gear_restriction",
+          "dates": null,
+          "species": null
+        },
+        {
+          "verbatim_text": "single barbless hook",
+          "rule": "Single barbless hook",
+          "type": "gear_restriction",
+          "dates": null,
+          "species": null
+        },
+        {
+          "verbatim_text": "No towing",
+          "rule": "No towing",
+          "type": "restriction",
+          "dates": null,
+          "species": null
+        }
+      ]
+    }
+  ]
+}
+
+All Validation Errors:
+  - Group 0 (): Rule 0: verbatim_text not found in geographic group's raw_text
+
+[799] ABBOTT LAKE
+--------------------------------------------------------------------------------
+Error Type: validation_error
+Error: Group 0 (): Rule 0: verbatim_text not found in geographic group's raw_text
+
+Full Input (raw_regs):
+**No Ice Fishing;** trout/char daily quota = 1 (none under 50 cm); bait ban, single barbless hook; electric motor only (max 7.5 kW)
+
+Model Output:
+{
+  "waterbody_name": "ABBOTT LAKE",
+  "raw_text": "**No Ice Fishing;** trout/char daily quota = 1 (none under 50 cm); bait ban, single barbless hook; electric motor only (max 7.5 kW)",
+  "cleaned_text": "**No Ice Fishing**; trout/char daily quota = 1 (none under 50 cm); bait ban, single barbless hook; electric motor only (max 7.5 kW).",
+  "geographic_groups": [
+    {
+      "location": "",
+      "raw_text": "**No Ice Fishing;** trout/char daily quota = 1 (none under 50 cm); bait ban, single barbless hook; electric motor only (max 7.5 kW)",
+      "cleaned_text": "**No Ice Fishing**; trout/char daily quota = 1 (none under 50 cm); bait ban, single barbless hook; electric motor only (max 7.5 kW).",
+      "rules": [
+        {
+          "verbatim_text": "**No Ice Fishing**",
+          "rule": "No Ice Fishing",
+          "type": "closure",
+          "dates": null,
+          "species": null
+        },
+        {
+          "verbatim_text": "trout/char daily quota = 1 (none under 50 cm)",
+          "rule": "Trout/char daily quota = 1 (none under 50 cm)",
+          "type": "harvest",
+          "dates": null,
+          "species": [
+            "trout",
+            "char"
+          ]
+        },
+        {
+          "verbatim_text": "bait ban",
+          "rule": "Bait ban",
+          "type": "gear_restriction",
+          "dates": null,
+          "species": null
+        },
+        {
+          "verbatim_text": "single barbless hook",
+          "rule": "Single barbless hook",
+          "type": "gear_restriction",
+          "dates": null,
+          "species": null
+        },
+        {
+          "verbatim_text": "electric motor only (max 7.5 kW)",
+          "rule": "Electric motor only (max 7.5 kW)",
+          "type": "gear_restriction",
+          "dates": null,
+          "species": null
+        }
+      ]
+    }
+  ]
+}
+
+All Validation Errors:
+  - Group 0 (): Rule 0: verbatim_text not found in geographic group's raw_text
+
+[807] BALLON LAKE
+--------------------------------------------------------------------------------
+Error Type: validation_error
+Error: Group 0 (): Rule 0: verbatim_text not found in geographic group's raw_text
+
+Full Input (raw_regs):
+**No Ice Fishing;** trout catch and release; bait ban, single barbless hook
+
+Model Output:
+{
+  "waterbody_name": "BALLON LAKE",
+  "raw_text": "**No Ice Fishing;** trout catch and release; bait ban, single barbless hook",
+  "cleaned_text": "**No Ice Fishing**; trout catch and release; bait ban, single barbless hook.",
+  "geographic_groups": [
+    {
+      "location": "",
+      "raw_text": "**No Ice Fishing;** trout catch and release; bait ban, single barbless hook",
+      "cleaned_text": "**No Ice Fishing**; trout catch and release; bait ban, single barbless hook.",
+      "rules": [
+        {
+          "verbatim_text": "**No Ice Fishing**",
+          "rule": "No Ice Fishing",
+          "type": "closure",
+          "dates": null,
+          "species": null
+        },
+        {
+          "verbatim_text": "trout catch and release",
+          "rule": "Trout catch and release",
+          "type": "harvest",
+          "dates": null,
+          "species": [
+            "trout"
+          ]
+        },
+        {
+          "verbatim_text": "bait ban",
+          "rule": "Bait ban",
+          "type": "gear_restriction",
+          "dates": null,
+          "species": null
+        },
+        {
+          "verbatim_text": "single barbless hook",
+          "rule": "Single barbless hook",
+          "type": "gear_restriction",
+          "dates": null,
+          "species": null
+        }
+      ]
+    }
+  ]
+}
+
+All Validation Errors:
+  - Group 0 (): Rule 0: verbatim_text not found in geographic group's raw_text
+
+[809] BASALT LAKE
+--------------------------------------------------------------------------------
+Error Type: validation_error
+Error: Group 0 (): Rule 0: verbatim_text not found in geographic group's raw_text
+
+Full Input (raw_regs):
+**No Ice Fishing;** trout catch and release; bait ban, single barbless hook
+
+Model Output:
+{
+  "waterbody_name": "BASALT LAKE",
+  "raw_text": "**No Ice Fishing;** trout catch and release; bait ban, single barbless hook",
+  "cleaned_text": "**No Ice Fishing**; trout catch and release; bait ban, single barbless hook.",
+  "geographic_groups": [
+    {
+      "location": "",
+      "raw_text": "**No Ice Fishing;** trout catch and release; bait ban, single barbless hook",
+      "cleaned_text": "**No Ice Fishing**; trout catch and release; bait ban, single barbless hook.",
+      "rules": [
+        {
+          "verbatim_text": "**No Ice Fishing**",
+          "rule": "No Ice Fishing",
+          "type": "closure",
+          "dates": null,
+          "species": null
+        },
+        {
+          "verbatim_text": "trout catch and release",
+          "rule": "Trout catch and release",
+          "type": "harvest",
+          "dates": null,
+          "species": [
+            "trout"
+          ]
+        },
+        {
+          "verbatim_text": "bait ban",
+          "rule": "Bait ban",
+          "type": "gear_restriction",
+          "dates": null,
+          "species": null
+        },
+        {
+          "verbatim_text": "single barbless hook",
+          "rule": "Single barbless hook",
+          "type": "gear_restriction",
+          "dates": null,
+          "species": null
+        }
+      ]
+    }
+  ]
+}
+
+All Validation Errors:
+  - Group 0 (): Rule 0: verbatim_text not found in geographic group's raw_text
+
+
+================================================================================
+Batch Failures at 2026-01-09T15:30:26.127136
+================================================================================
+
+[856] EARLE LAKE
+--------------------------------------------------------------------------------
+Error Type: validation_error
+Error: Group 0 (): Rule 0: verbatim_text not found in geographic group's raw_text
+
+Full Input (raw_regs):
+**No Ice Fishing;** trout daily quota = 1; bait ban, single barbless hook
+
+Model Output:
+{
+  "waterbody_name": "EARLE LAKE",
+  "raw_text": "**No Ice Fishing;** trout daily quota = 1; bait ban, single barbless hook",
+  "cleaned_text": "**No Ice Fishing;** trout daily quota = 1; bait ban, single barbless hook.",
+  "geographic_groups": [
+    {
+      "location": "",
+      "raw_text": "**No Ice Fishing;** trout daily quota = 1; bait ban, single barbless hook",
+      "cleaned_text": "**No Ice Fishing;** trout daily quota = 1; bait ban, single barbless hook.",
+      "rules": [
+        {
+          "verbatim_text": "**No Ice Fishing**",
+          "rule": "No Ice Fishing",
+          "type": "access",
+          "dates": null,
+          "species": null
+        },
+        {
+          "verbatim_text": "trout daily quota = 1",
+          "rule": "Trout daily quota = 1",
+          "type": "harvest",
+          "dates": null,
+          "species": [
+            "trout"
+          ]
+        },
+        {
+          "verbatim_text": "bait ban",
+          "rule": "Bait ban",
+          "type": "gear_restriction",
+          "dates": null,
+          "species": null
+        },
+        {
+          "verbatim_text": "single barbless hook",
+          "rule": "Single barbless hook",
+          "type": "gear_restriction",
+          "dates": null,
+          "species": null
+        }
+      ]
+    }
+  ]
+}
+
+All Validation Errors:
+  - Group 0 (): Rule 0: verbatim_text not found in geographic group's raw_text
+
+[859] ELK LAKE
+--------------------------------------------------------------------------------
+Error Type: validation_error
+Error: Group 0 (): Rule 0: verbatim_text not found in geographic group's raw_text
+
+Full Input (raw_regs):
+**No Ice Fishing;** trout daily quota = 1 (none under 50 cm); single barbless hook; electric motor only - max 7.5 kW
+
+Model Output:
+{
+  "waterbody_name": "ELK LAKE",
+  "raw_text": "**No Ice Fishing;** trout daily quota = 1 (none under 50 cm); single barbless hook; electric motor only - max 7.5 kW",
+  "cleaned_text": "**No Ice Fishing;** trout daily quota = 1 (none under 50 cm); single barbless hook; electric motor only - max 7.5 kW.",
+  "geographic_groups": [
+    {
+      "location": "",
+      "raw_text": "**No Ice Fishing;** trout daily quota = 1 (none under 50 cm); single barbless hook; electric motor only - max 7.5 kW",
+      "cleaned_text": "**No Ice Fishing;** trout daily quota = 1 (none under 50 cm); single barbless hook; electric motor only - max 7.5 kW.",
+      "rules": [
+        {
+          "verbatim_text": "**No Ice Fishing**",
+          "rule": "No Ice Fishing",
+          "type": "access",
+          "dates": null,
+          "species": null
+        },
+        {
+          "verbatim_text": "trout daily quota = 1 (none under 50 cm)",
+          "rule": "Trout daily quota = 1 (none under 50 cm)",
+          "type": "harvest",
+          "dates": null,
+          "species": [
+            "trout"
+          ]
+        },
+        {
+          "verbatim_text": "single barbless hook",
+          "rule": "Single barbless hook",
+          "type": "gear_restriction",
+          "dates": null,
+          "species": null
+        },
+        {
+          "verbatim_text": "electric motor only - max 7.5 kW",
+          "rule": "Electric motor only - max 7.5 kW",
+          "type": "restriction",
+          "dates": null,
+          "species": null
+        }
+      ]
+    }
+  ]
+}
+
+All Validation Errors:
+  - Group 0 (): Rule 0: verbatim_text not found in geographic group's raw_text
+
+[868] FROG LAKE
+--------------------------------------------------------------------------------
+Error Type: validation_error
+Error: Group 0 (): Rule 0: verbatim_text not found in geographic group's raw_text
+
+Full Input (raw_regs):
+**No Ice Fishing;** trout daily quota = 1; bait ban, single barbless hook
+
+Model Output:
+{
+  "waterbody_name": "FROG LAKE",
+  "raw_text": "**No Ice Fishing;** trout daily quota = 1; bait ban, single barbless hook",
+  "cleaned_text": "**No Ice Fishing;** trout daily quota = 1; bait ban, single barbless hook.",
+  "geographic_groups": [
+    {
+      "location": "",
+      "raw_text": "**No Ice Fishing;** trout daily quota = 1; bait ban, single barbless hook",
+      "cleaned_text": "**No Ice Fishing;** trout daily quota = 1; bait ban, single barbless hook.",
+      "rules": [
+        {
+          "verbatim_text": "**No Ice Fishing**",
+          "rule": "No Ice Fishing",
+          "type": "access",
+          "dates": null,
+          "species": null
+        },
+        {
+          "verbatim_text": "trout daily quota = 1",
+          "rule": "Trout daily quota = 1",
+          "type": "harvest",
+          "dates": null,
+          "species": [
+            "trout"
+          ]
+        },
+        {
+          "verbatim_text": "bait ban",
+          "rule": "Bait ban",
+          "type": "gear_restriction",
+          "dates": null,
+          "species": null
+        },
+        {
+          "verbatim_text": "single barbless hook",
+          "rule": "Single barbless hook",
+          "type": "gear_restriction",
+          "dates": null,
+          "species": null
+        }
+      ]
+    }
+  ]
+}
+
+All Validation Errors:
+  - Group 0 (): Rule 0: verbatim_text not found in geographic group's raw_text
+
+[870] "GEESE" LAKE (2 km northeast of Eliguk Lake)
+--------------------------------------------------------------------------------
+Error Type: validation_error
+Error: Group 0 (): Rule 0: verbatim_text not found in geographic group's raw_text
+
+Full Input (raw_regs):
+**No Ice Fishing;** trout catch and release; bait ban, single barbless hook
+
+Model Output:
+{
+  "waterbody_name": "\"GEESE\" LAKE (2 km northeast of Eliguk Lake)",
+  "raw_text": "**No Ice Fishing;** trout catch and release; bait ban, single barbless hook",
+  "cleaned_text": "**No Ice Fishing;** trout catch and release; bait ban, single barbless hook.",
+  "geographic_groups": [
+    {
+      "location": "",
+      "raw_text": "**No Ice Fishing;** trout catch and release; bait ban, single barbless hook",
+      "cleaned_text": "**No Ice Fishing;** trout catch and release; bait ban, single barbless hook.",
+      "rules": [
+        {
+          "verbatim_text": "**No Ice Fishing**",
+          "rule": "No Ice Fishing",
+          "type": "access",
+          "dates": null,
+          "species": null
+        },
+        {
+          "verbatim_text": "trout catch and release",
+          "rule": "Trout catch and release",
+          "type": "harvest",
+          "dates": null,
+          "species": [
+            "trout"
+          ]
+        },
+        {
+          "verbatim_text": "bait ban",
+          "rule": "Bait ban",
+          "type": "gear_restriction",
+          "dates": null,
+          "species": null
+        },
+        {
+          "verbatim_text": "single barbless hook",
+          "rule": "Single barbless hook",
+          "type": "gear_restriction",
+          "dates": null,
+          "species": null
+        }
+      ]
+    }
+  ]
+}
+
+All Validation Errors:
+  - Group 0 (): Rule 0: verbatim_text not found in geographic group's raw_text
+
+[874] GREENLEE LAKE
+--------------------------------------------------------------------------------
+Error Type: validation_error
+Error: Group 0 (): Rule 0: verbatim_text not found in geographic group's raw_text
+
+Full Input (raw_regs):
+**No Ice Fishing;** trout daily quota = 1 (none under 50 cm); single barbless hook; electric motor only - max 7.5 kW
+
+Model Output:
+{
+  "waterbody_name": "GREENLEE LAKE",
+  "raw_text": "**No Ice Fishing;** trout daily quota = 1 (none under 50 cm); single barbless hook; electric motor only - max 7.5 kW",
+  "cleaned_text": "**No Ice Fishing;** trout daily quota = 1 (none under 50 cm); single barbless hook; electric motor only - max 7.5 kW.",
+  "geographic_groups": [
+    {
+      "location": "",
+      "raw_text": "**No Ice Fishing;** trout daily quota = 1 (none under 50 cm); single barbless hook; electric motor only - max 7.5 kW",
+      "cleaned_text": "**No Ice Fishing;** trout daily quota = 1 (none under 50 cm); single barbless hook; electric motor only - max 7.5 kW.",
+      "rules": [
+        {
+          "verbatim_text": "**No Ice Fishing**",
+          "rule": "No Ice Fishing",
+          "type": "access",
+          "dates": null,
+          "species": null
+        },
+        {
+          "verbatim_text": "trout daily quota = 1 (none under 50 cm)",
+          "rule": "Trout daily quota = 1 (none under 50 cm)",
+          "type": "harvest",
+          "dates": null,
+          "species": [
+            "trout"
+          ]
+        },
+        {
+          "verbatim_text": "single barbless hook",
+          "rule": "Single barbless hook",
+          "type": "gear_restriction",
+          "dates": null,
+          "species": null
+        },
+        {
+          "verbatim_text": "electric motor only - max 7.5 kW",
+          "rule": "Electric motor only - max 7.5 kW",
+          "type": "restriction",
+          "dates": null,
+          "species": null
+        }
+      ]
+    }
+  ]
+}
+
+All Validation Errors:
+  - Group 0 (): Rule 0: verbatim_text not found in geographic group's raw_text
+
+[879] HIDDEN LAKE
+--------------------------------------------------------------------------------
+Error Type: validation_error
+Error: Group 0 (): Rule 0: verbatim_text not found in geographic group's raw_text
+
+Full Input (raw_regs):
+**No Ice Fishing;** trout daily quota = 1; bait ban, single barbless hook
+
+Model Output:
+{
+  "waterbody_name": "HIDDEN LAKE",
+  "raw_text": "**No Ice Fishing;** trout daily quota = 1; bait ban, single barbless hook",
+  "cleaned_text": "**No Ice Fishing;** trout daily quota = 1; bait ban, single barbless hook.",
+  "geographic_groups": [
+    {
+      "location": "",
+      "raw_text": "**No Ice Fishing;** trout daily quota = 1; bait ban, single barbless hook",
+      "cleaned_text": "**No Ice Fishing;** trout daily quota = 1; bait ban, single barbless hook.",
+      "rules": [
+        {
+          "verbatim_text": "**No Ice Fishing**",
+          "rule": "No Ice Fishing",
+          "type": "access",
+          "dates": null,
+          "species": null
+        },
+        {
+          "verbatim_text": "trout daily quota = 1",
+          "rule": "Trout daily quota = 1",
+          "type": "harvest",
+          "dates": null,
+          "species": [
+            "trout"
+          ]
+        },
+        {
+          "verbatim_text": "bait ban",
+          "rule": "Bait ban",
+          "type": "gear_restriction",
+          "dates": null,
+          "species": null
+        },
+        {
+          "verbatim_text": "single barbless hook",
+          "rule": "Single barbless hook",
+          "type": "gear_restriction",
+          "dates": null,
+          "species": null
+        }
+      ]
+    }
+  ]
+}
+
+All Validation Errors:
+  - Group 0 (): Rule 0: verbatim_text not found in geographic group's raw_text
+
+[896] "KESTREL" LAKE
+--------------------------------------------------------------------------------
+Error Type: validation_error
+Error: Group 0 (): Rule 0: verbatim_text not found in geographic group's raw_text
+
+Full Input (raw_regs):
+**No Ice Fishing;** trout daily quota = 1 (none under 50 cm); bait ban, single barbless hook
+Unnamed lake approximately 11 km northeast of McLeese Lake and 2 km south of Beaver Lake Road
+
+Model Output:
+{
+  "waterbody_name": "\"KESTREL\" LAKE",
+  "raw_text": "**No Ice Fishing;** trout daily quota = 1 (none under 50 cm); bait ban, single barbless hook\nUnnamed lake approximately 11 km northeast of McLeese Lake and 2 km south of Beaver Lake Road",
+  "cleaned_text": "**No Ice Fishing;** trout daily quota = 1 (none under 50 cm); bait ban, single barbless hook. Unnamed lake approximately 11 km northeast of McLeese Lake and 2 km south of Beaver Lake Road.",
+  "geographic_groups": [
+    {
+      "location": "",
+      "raw_text": "**No Ice Fishing;** trout daily quota = 1 (none under 50 cm); bait ban, single barbless hook\nUnnamed lake approximately 11 km northeast of McLeese Lake and 2 km south of Beaver Lake Road",
+      "cleaned_text": "**No Ice Fishing;** trout daily quota = 1 (none under 50 cm); bait ban, single barbless hook. Unnamed lake approximately 11 km northeast of McLeese Lake and 2 km south of Beaver Lake Road.",
+      "rules": [
+        {
+          "verbatim_text": "**No Ice Fishing**",
+          "rule": "No Ice Fishing",
+          "type": "access",
+          "dates": null,
+          "species": null
+        },
+        {
+          "verbatim_text": "trout daily quota = 1 (none under 50 cm)",
+          "rule": "Trout daily quota = 1 (none under 50 cm)",
+          "type": "harvest",
+          "dates": null,
+          "species": [
+            "trout"
+          ]
+        },
+        {
+          "verbatim_text": "bait ban",
+          "rule": "Bait ban",
+          "type": "gear_restriction",
+          "dates": null,
+          "species": null
+        },
+        {
+          "verbatim_text": "single barbless hook",
+          "rule": "Single barbless hook",
+          "type": "gear_restriction",
+          "dates": null,
+          "species": null
+        }
+      ]
+    }
+  ]
+}
+
+All Validation Errors:
+  - Group 0 (): Rule 0: verbatim_text not found in geographic group's raw_text
+
+
+================================================================================
+Batch Failures at 2026-01-09T15:41:53.254713
+================================================================================
+
+[1173] MCMILLAN CREEK
+--------------------------------------------------------------------------------
+Error Type: validation_error
+Error: Group 0 (): Rule 2: verbatim_text not found in geographic group's raw_text
+
+Full Input (raw_regs):
+Youth/Disabled Accompanied Water year round (see page 4)
+Exempt from spring closure and from bait ban
+
+Model Output:
+{
+  "waterbody_name": "MCMILLAN CREEK",
+  "raw_text": "Youth/Disabled Accompanied Water year round (see page 4)\nExempt from spring closure and from bait ban",
+  "cleaned_text": "Youth/Disabled Accompanied Water year round (see page 4). Exempt from spring closure and from bait ban.",
+  "geographic_groups": [
+    {
+      "location": "",
+      "raw_text": "Youth/Disabled Accompanied Water year round (see page 4)\nExempt from spring closure and from bait ban",
+      "cleaned_text": "Youth/Disabled Accompanied Water year round (see page 4). Exempt from spring closure and from bait ban.",
+      "rules": [
+        {
+          "verbatim_text": "Youth/Disabled Accompanied Water year round (see page 4)",
+          "rule": "Youth/Disabled Accompanied Water",
+          "type": "access",
+          "dates": [
+            "year round"
+          ],
+          "species": null
+        },
+        {
+          "verbatim_text": "Exempt from spring closure",
+          "rule": "Exempt from spring closure",
+          "type": "closure",
+          "dates": null,
+          "species": null
+        },
+        {
+          "verbatim_text": "Exempt from ... bait ban",
+          "rule": "Exempt from bait ban",
+          "type": "gear_restriction",
+          "dates": null,
+          "species": null
+        }
+      ]
+    }
+  ]
+}
+
+All Validation Errors:
+  - Group 0 (): Rule 2: verbatim_text not found in geographic group's raw_text
+
+
+================================================================================
+Batch Failures at 2026-01-09T15:47:55.509038
+================================================================================
+
+[1393] WOOD LAKE
+--------------------------------------------------------------------------------
+Error Type: validation_error
+Error: Group 0 (): Rule 0: verbatim_text not found in geographic group's raw_text; Group 0 (): Rule 1: verbatim_text not found in geographic group's raw_text
+
+Full Input (raw_regs):
+**No Ice Fishing
+No Fishing** for kokanee Sept 1-Mar 31
+Kokanee daily quota = 3, Apr 1-Aug 31
+Yellow perch daily quota = 20
+Speed restriction (10 km/h) on parts
+
+Model Output:
+{
+  "waterbody_name": "WOOD LAKE",
+  "raw_text": "**No Ice Fishing\nNo Fishing** for kokanee Sept 1-Mar 31\nKokanee daily quota = 3, Apr 1-Aug 31\nYellow perch daily quota = 20\nSpeed restriction (10 km/h) on parts",
+  "cleaned_text": "**No Ice Fishing**. **No Fishing** for kokanee Sept 1-Mar 31. Kokanee daily quota = 3, Apr 1-Aug 31. Yellow perch daily quota = 20. Speed restriction (10 km/h) on parts.",
+  "geographic_groups": [
+    {
+      "location": "",
+      "raw_text": "**No Ice Fishing\nNo Fishing** for kokanee Sept 1-Mar 31\nKokanee daily quota = 3, Apr 1-Aug 31\nYellow perch daily quota = 20",
+      "cleaned_text": "**No Ice Fishing**. **No Fishing** for kokanee Sept 1-Mar 31. Kokanee daily quota = 3, Apr 1-Aug 31. Yellow perch daily quota = 20.",
+      "rules": [
+        {
+          "verbatim_text": "**No Ice Fishing**",
+          "rule": "No Ice Fishing",
+          "type": "closure",
+          "dates": null,
+          "species": null
+        },
+        {
+          "verbatim_text": "**No Fishing** for kokanee Sept 1-Mar 31",
+          "rule": "No Fishing for kokanee",
+          "type": "closure",
+          "dates": [
+            "Sept 1-Mar 31"
+          ],
+          "species": [
+            "kokanee"
+          ]
+        },
+        {
+          "verbatim_text": "Kokanee daily quota = 3, Apr 1-Aug 31",
+          "rule": "Kokanee daily quota = 3",
+          "type": "harvest",
+          "dates": [
+            "Apr 1-Aug 31"
+          ],
+          "species": [
+            "kokanee"
+          ]
+        },
+        {
+          "verbatim_text": "Yellow perch daily quota = 20",
+          "rule": "Yellow perch daily quota = 20",
+          "type": "harvest",
+          "dates": null,
+          "species": [
+            "yellow perch"
+          ]
+        }
+      ]
+    },
+    {
+      "location": "parts of lake",
+      "raw_text": "Speed restriction (10 km/h) on parts",
+      "cleaned_text": "Speed restriction (10 km/h) on parts.",
+      "rules": [
+        {
+          "verbatim_text": "Speed restriction (10 km/h) on parts",
+          "rule": "Speed restriction (10 km/h)",
+          "type": "restriction",
+          "dates": null,
+          "species": null
+        }
+      ]
+    }
+  ]
+}
+
+All Validation Errors:
+  - Group 0 (): Rule 0: verbatim_text not found in geographic group's raw_text
+  - Group 0 (): Rule 1: verbatim_text not found in geographic group's raw_text
+
+
+================================================================================
+Batch Failures at 2026-01-09T15:49:33.845712
+================================================================================
+
+[93] HONNA RIVER
+--------------------------------------------------------------------------------
+Error Type: validation_error
+Error: Group 0 (): Rule 2: verbatim_text not found in geographic group's raw_text; Group 0 (): Rule 3: verbatim_text not found in geographic group's raw_text
+
+Full Input (raw_regs):
+Bait ban Nov 1-Apr 30; cutthroat trout catch and release
+**Class II water Sept 1-Apr 30; Steelhead Stamp mandatory Dec 1-Apr 30**
+
+Model Output:
+{
+  "waterbody_name": "HONNA RIVER",
+  "raw_text": "Bait ban Nov 1-Apr 30; cutthroat trout catch and release\n**Class II water Sept 1-Apr 30; Steelhead Stamp mandatory Dec 1-Apr 30**",
+  "cleaned_text": "Bait ban Nov 1-Apr 30; cutthroat trout catch and release. **Class II water Sept 1-Apr 30; Steelhead Stamp mandatory Dec 1-Apr 30**.",
+  "geographic_groups": [
+    {
+      "location": "",
+      "raw_text": "Bait ban Nov 1-Apr 30; cutthroat trout catch and release\n**Class II water Sept 1-Apr 30; Steelhead Stamp mandatory Dec 1-Apr 30**",
+      "cleaned_text": "Bait ban Nov 1-Apr 30; cutthroat trout catch and release. **Class II water Sept 1-Apr 30; Steelhead Stamp mandatory Dec 1-Apr 30**.",
+      "rules": [
+        {
+          "verbatim_text": "Bait ban Nov 1-Apr 30",
+          "rule": "Bait ban",
+          "type": "gear_restriction",
+          "dates": [
+            "Nov 1-Apr 30"
+          ],
+          "species": null
+        },
+        {
+          "verbatim_text": "cutthroat trout catch and release",
+          "rule": "Cutthroat trout catch and release",
+          "type": "harvest",
+          "dates": null,
+          "species": [
+            "cutthroat trout"
+          ]
+        },
+        {
+          "verbatim_text": "**Class II water Sept 1-Apr 30**",
+          "rule": "Class II water",
+          "type": "licensing",
+          "dates": [
+            "Sept 1-Apr 30"
+          ],
+          "species": null
+        },
+        {
+          "verbatim_text": "**Steelhead Stamp mandatory Dec 1-Apr 30**",
+          "rule": "Steelhead Stamp mandatory",
+          "type": "licensing",
+          "dates": [
+            "Dec 1-Apr 30"
+          ],
+          "species": [
+            "steelhead"
+          ]
+        }
+      ]
+    }
+  ]
+}
+
+All Validation Errors:
+  - Group 0 (): Rule 2: verbatim_text not found in geographic group's raw_text
+  - Group 0 (): Rule 3: verbatim_text not found in geographic group's raw_text
+
+[612] COLUMBIA RIVER
+--------------------------------------------------------------------------------
+Error Type: validation_error
+Error: Group 2 (Where angling is permitted): Rule 1: verbatim_text not found in geographic group's raw_text
+
+Full Input (raw_regs):
+**No Fishing** from Revelstoke Dam downstream to Hwy 1 bridge in Revelstoke
+**No Fishing** from a line between the old Robson Ferry landing and a sign on the south river bank, downstream approximately 950 m to the
+CPR Bridge, Mar 1-June 30
+Where angling is permitted: EXEMPT from the regional Nov 1-Mar 31 trout/char catch and release and the regional Apr 1-June 14 closure
+Bass daily quota = unlimited
+Kokanee daily quota = 15 from Keenleyside Dam to a line between the old Robson Ferry landing and a sign on the south river bank
+Walleye daily quota = 16 from Keenleyside Dam to the Washington state border
+From Keenleyside Dam downstream to the Washington state border and connected reaches: the Kootenay River (Columbia River
+confluence to Brilliant Dam) and the Pend d'Oreille River (Columbia River confluence to Waneta Dam): Northern pike daily quota =
+unlimited and bass daily quota = unlimited
+Burbot catch and release
+Speed restriction (10 km/h) from Mud Lake to Columbia Lake, no power boats in wetlands, no towing and engine power restriction -
+15 kW (20 hp), in main channel from Fairmont to Donald
+See Upper Arrow Lake for the portion of the Columbia River which may be found downstream of the Hwy 1 bridge in Revelstoke
+(depending on reservoir level)
+
+Model Output:
+{
+  "waterbody_name": "COLUMBIA RIVER",
+  "raw_text": "**No Fishing** from Revelstoke Dam downstream to Hwy 1 bridge in Revelstoke\n**No Fishing** from a line between the old Robson Ferry landing and a sign on the south river bank, downstream approximately 950 m to the\nCPR Bridge, Mar 1-June 30\nWhere angling is permitted: EXEMPT from the regional Nov 1-Mar 31 trout/char catch and release and the regional Apr 1-June 14 closure\nBass daily quota = unlimited\nKokanee daily quota = 15 from Keenleyside Dam to a line between the old Robson Ferry landing and a sign on the south river bank\nWalleye daily quota = 16 from Keenleyside Dam to the Washington state border\nFrom Keenleyside Dam downstream to the Washington state border and connected reaches: the Kootenay River (Columbia River\nconfluence to Brilliant Dam) and the Pend d'Oreille River (Columbia River confluence to Waneta Dam): Northern pike daily quota =\nunlimited and bass daily quota = unlimited\nBurbot catch and release\nSpeed restriction (10 km/h) from Mud Lake to Columbia Lake, no power boats in wetlands, no towing and engine power restriction -\n15 kW (20 hp), in main channel from Fairmont to Donald\nSee Upper Arrow Lake for the portion of the Columbia River which may be found downstream of the Hwy 1 bridge in Revelstoke\n(depending on reservoir level)",
+  "cleaned_text": "**No Fishing** from Revelstoke Dam downstream to Hwy 1 bridge in Revelstoke. **No Fishing** from a line between the old Robson Ferry landing and a sign on the south river bank, downstream approximately 950 m to the CPR Bridge, Mar 1-June 30. Where angling is permitted: EXEMPT from the regional Nov 1-Mar 31 trout/char catch and release and the regional Apr 1-June 14 closure. Bass daily quota = unlimited. Kokanee daily quota = 15 from Keenleyside Dam to a line between the old Robson Ferry landing and a sign on the south river bank. Walleye daily quota = 16 from Keenleyside Dam to the Washington state border. From Keenleyside Dam downstream to the Washington state border and connected reaches (the Kootenay River from Columbia River confluence to Brilliant Dam and the Pend d'Oreille River from Columbia River confluence to Waneta Dam): Northern pike daily quota = unlimited and bass daily quota = unlimited. Burbot catch and release. Speed restriction (10 km/h) from Mud Lake to Columbia Lake, no power boats in wetlands, no towing and engine power restriction - 15 kW (20 hp), in main channel from Fairmont to Donald. See Upper Arrow Lake for the portion of the Columbia River which may be found downstream of the Hwy 1 bridge in Revelstoke (depending on reservoir level).",
+  "geographic_groups": [
+    {
+      "location": "from Revelstoke Dam downstream to Hwy 1 bridge in Revelstoke",
+      "raw_text": "**No Fishing** from Revelstoke Dam downstream to Hwy 1 bridge in Revelstoke",
+      "cleaned_text": "**No Fishing** from Revelstoke Dam downstream to Hwy 1 bridge in Revelstoke.",
+      "rules": [
+        {
+          "verbatim_text": "**No Fishing** from Revelstoke Dam downstream to Hwy 1 bridge in Revelstoke",
+          "rule": "No Fishing",
+          "type": "closure",
+          "dates": null,
+          "species": null
+        }
+      ]
+    },
+    {
+      "location": "from a line between the old Robson Ferry landing and a sign on the south river bank, downstream approximately 950 m to the CPR Bridge",
+      "raw_text": "**No Fishing** from a line between the old Robson Ferry landing and a sign on the south river bank, downstream approximately 950 m to the\nCPR Bridge, Mar 1-June 30",
+      "cleaned_text": "**No Fishing** from a line between the old Robson Ferry landing and a sign on the south river bank, downstream approximately 950 m to the CPR Bridge, Mar 1-June 30.",
+      "rules": [
+        {
+          "verbatim_text": "**No Fishing** from a line between the old Robson Ferry landing and a sign on the south river bank, downstream approximately 950 m to the\nCPR Bridge, Mar 1-June 30",
+          "rule": "No Fishing",
+          "type": "closure",
+          "dates": [
+            "Mar 1-June 30"
+          ],
+          "species": null
+        }
+      ]
+    },
+    {
+      "location": "Where angling is permitted",
+      "raw_text": "Where angling is permitted: EXEMPT from the regional Nov 1-Mar 31 trout/char catch and release and the regional Apr 1-June 14 closure\nBass daily quota = unlimited\nBurbot catch and release",
+      "cleaned_text": "Where angling is permitted: EXEMPT from the regional Nov 1-Mar 31 trout/char catch and release and the regional Apr 1-June 14 closure. Bass daily quota = unlimited. Burbot catch and release.",
+      "rules": [
+        {
+          "verbatim_text": "EXEMPT from the regional Nov 1-Mar 31 trout/char catch and release",
+          "rule": "Exempt from regional trout/char catch and release",
+          "type": "harvest",
+          "dates": [
+            "Nov 1-Mar 31"
+          ],
+          "species": [
+            "trout",
+            "char"
+          ]
+        },
+        {
+          "verbatim_text": "EXEMPT from ... the regional Apr 1-June 14 closure",
+          "rule": "Exempt from regional closure",
+          "type": "closure",
+          "dates": [
+            "Apr 1-June 14"
+          ],
+          "species": null
+        },
+        {
+          "verbatim_text": "Bass daily quota = unlimited",
+          "rule": "Bass daily quota = unlimited",
+          "type": "harvest",
+          "dates": null,
+          "species": [
+            "bass"
+          ]
+        },
+        {
+          "verbatim_text": "Burbot catch and release",
+          "rule": "Burbot catch and release",
+          "type": "harvest",
+          "dates": null,
+          "species": [
+            "burbot"
+          ]
+        }
+      ]
+    },
+    {
+      "location": "from Keenleyside Dam to a line between the old Robson Ferry landing and a sign on the south river bank",
+      "raw_text": "Kokanee daily quota = 15 from Keenleyside Dam to a line between the old Robson Ferry landing and a sign on the south river bank",
+      "cleaned_text": "Kokanee daily quota = 15 from Keenleyside Dam to a line between the old Robson Ferry landing and a sign on the south river bank.",
+      "rules": [
+        {
+          "verbatim_text": "Kokanee daily quota = 15 from Keenleyside Dam to a line between the old Robson Ferry landing and a sign on the south river bank",
+          "rule": "Kokanee daily quota = 15",
+          "type": "harvest",
+          "dates": null,
+          "species": [
+            "kokanee"
+          ]
+        }
+      ]
+    },
+    {
+      "location": "from Keenleyside Dam to the Washington state border",
+      "raw_text": "Walleye daily quota = 16 from Keenleyside Dam to the Washington state border",
+      "cleaned_text": "Walleye daily quota = 16 from Keenleyside Dam to the Washington state border.",
+      "rules": [
+        {
+          "verbatim_text": "Walleye daily quota = 16 from Keenleyside Dam to the Washington state border",
+          "rule": "Walleye daily quota = 16",
+          "type": "harvest",
+          "dates": null,
+          "species": [
+            "walleye"
+          ]
+        }
+      ]
+    },
+    {
+      "location": "From Keenleyside Dam downstream to the Washington state border and connected reaches: the Kootenay River (Columbia River confluence to Brilliant Dam) and the Pend d'Oreille River (Columbia River confluence to Waneta Dam)",
+      "raw_text": "From Keenleyside Dam downstream to the Washington state border and connected reaches: the Kootenay River (Columbia River\nconfluence to Brilliant Dam) and the Pend d'Oreille River (Columbia River confluence to Waneta Dam): Northern pike daily quota =\nunlimited and bass daily quota = unlimited",
+      "cleaned_text": "From Keenleyside Dam downstream to the Washington state border and connected reaches (the Kootenay River from Columbia River confluence to Brilliant Dam and the Pend d'Oreille River from Columbia River confluence to Waneta Dam): Northern pike daily quota = unlimited and bass daily quota = unlimited.",
+      "rules": [
+        {
+          "verbatim_text": "Northern pike daily quota =\nunlimited",
+          "rule": "Northern pike daily quota = unlimited",
+          "type": "harvest",
+          "dates": null,
+          "species": [
+            "northern pike"
+          ]
+        },
+        {
+          "verbatim_text": "bass daily quota = unlimited",
+          "rule": "Bass daily quota = unlimited",
+          "type": "harvest",
+          "dates": null,
+          "species": [
+            "bass"
+          ]
+        }
+      ]
+    },
+    {
+      "location": "from Mud Lake to Columbia Lake",
+      "raw_text": "Speed restriction (10 km/h) from Mud Lake to Columbia Lake",
+      "cleaned_text": "Speed restriction (10 km/h) from Mud Lake to Columbia Lake.",
+      "rules": [
+        {
+          "verbatim_text": "Speed restriction (10 km/h) from Mud Lake to Columbia Lake",
+          "rule": "Speed restriction (10 km/h)",
+          "type": "restriction",
+          "dates": null,
+          "species": null
+        }
+      ]
+    },
+    {
+      "location": "wetlands",
+      "raw_text": "no power boats in wetlands",
+      "cleaned_text": "No power boats in wetlands.",
+      "rules": [
+        {
+          "verbatim_text": "no power boats in wetlands",
+          "rule": "No power boats",
+          "type": "restriction",
+          "dates": null,
+          "species": null
+        }
+      ]
+    },
+    {
+      "location": "main channel from Fairmont to Donald",
+      "raw_text": "no towing and engine power restriction -\n15 kW (20 hp), in main channel from Fairmont to Donald",
+      "cleaned_text": "No towing and engine power restriction - 15 kW (20 hp), in main channel from Fairmont to Donald.",
+      "rules": [
+        {
+          "verbatim_text": "no towing",
+          "rule": "No towing",
+          "type": "restriction",
+          "dates": null,
+          "species": null
+        },
+        {
+          "verbatim_text": "engine power restriction -\n15 kW (20 hp), in main channel from Fairmont to Donald",
+          "rule": "Engine power restriction - 15 kW (20 hp)",
+          "type": "restriction",
+          "dates": null,
+          "species": null
+        }
+      ]
+    },
+    {
+      "location": "downstream of the Hwy 1 bridge in Revelstoke (depending on reservoir level)",
+      "raw_text": "See Upper Arrow Lake for the portion of the Columbia River which may be found downstream of the Hwy 1 bridge in Revelstoke\n(depending on reservoir level)",
+      "cleaned_text": "See Upper Arrow Lake for the portion of the Columbia River which may be found downstream of the Hwy 1 bridge in Revelstoke (depending on reservoir level).",
+      "rules": [
+        {
+          "verbatim_text": "See Upper Arrow Lake for the portion of the Columbia River which may be found downstream of the Hwy 1 bridge in Revelstoke\n(depending on reservoir level)",
+          "rule": "Refer to Upper Arrow Lake regulations",
+          "type": "note",
+          "dates": null,
+          "species": null
+        }
+      ]
+    }
+  ]
+}
+
+All Validation Errors:
+  - Group 2 (Where angling is permitted): Rule 1: verbatim_text not found in geographic group's raw_text
+
+[625] DUNCAN RIVER
+--------------------------------------------------------------------------------
+Error Type: validation_error
+Error: Group 0 (): Rule 0: verbatim_text not found in geographic group's raw_text; Group 0 (): Rule 1: verbatim_text not found in geographic group's raw_text; Group 0 (): Rule 2: verbatim_text not found in geographic group's raw_text...
+
+Full Input (raw_regs):
+**Exempt from spring closure, exempt from regional Nov 1-Mar 31 bull trout catch and release, bait ban
+Rainbow trout daily quota = 5 (any size), bull trout daily quota = 2 (any size)
+No Fishing downstream of Duncan Dam to the confluence of the Duncan River and the Lardeau River**
+
+Model Output:
+{
+  "waterbody_name": "DUNCAN RIVER",
+  "raw_text": "**Exempt from spring closure, exempt from regional Nov 1-Mar 31 bull trout catch and release, bait ban\nRainbow trout daily quota = 5 (any size), bull trout daily quota = 2 (any size)\nNo Fishing downstream of Duncan Dam to the confluence of the Duncan River and the Lardeau River**",
+  "cleaned_text": "**Exempt from spring closure, exempt from regional Nov 1-Mar 31 bull trout catch and release, bait ban. Rainbow trout daily quota = 5 (any size), bull trout daily quota = 2 (any size). No Fishing downstream of Duncan Dam to the confluence of the Duncan River and the Lardeau River.**",
+  "geographic_groups": [
+    {
+      "location": "",
+      "raw_text": "**Exempt from spring closure, exempt from regional Nov 1-Mar 31 bull trout catch and release, bait ban\nRainbow trout daily quota = 5 (any size), bull trout daily quota = 2 (any size)**",
+      "cleaned_text": "**Exempt from spring closure, exempt from regional Nov 1-Mar 31 bull trout catch and release, bait ban. Rainbow trout daily quota = 5 (any size), bull trout daily quota = 2 (any size).**",
+      "rules": [
+        {
+          "verbatim_text": "**Exempt from spring closure**",
+          "rule": "Exempt from spring closure",
+          "type": "closure",
+          "dates": null,
+          "species": null
+        },
+        {
+          "verbatim_text": "**exempt from regional Nov 1-Mar 31 bull trout catch and release**",
+          "rule": "Exempt from regional bull trout catch and release",
+          "type": "harvest",
+          "dates": [
+            "Nov 1-Mar 31"
+          ],
+          "species": [
+            "bull trout"
+          ]
+        },
+        {
+          "verbatim_text": "**bait ban**",
+          "rule": "Bait ban",
+          "type": "gear_restriction",
+          "dates": null,
+          "species": null
+        },
+        {
+          "verbatim_text": "**Rainbow trout daily quota = 5 (any size)**",
+          "rule": "Rainbow trout daily quota = 5",
+          "type": "harvest",
+          "dates": null,
+          "species": [
+            "rainbow trout"
+          ]
+        },
+        {
+          "verbatim_text": "**bull trout daily quota = 2 (any size)**",
+          "rule": "Bull trout daily quota = 2",
+          "type": "harvest",
+          "dates": null,
+          "species": [
+            "bull trout"
+          ]
+        }
+      ]
+    },
+    {
+      "location": "downstream of Duncan Dam to the confluence of the Duncan River and the Lardeau River",
+      "raw_text": "**No Fishing downstream of Duncan Dam to the confluence of the Duncan River and the Lardeau River**",
+      "cleaned_text": "**No Fishing downstream of Duncan Dam to the confluence of the Duncan River and the Lardeau River.**",
+      "rules": [
+        {
+          "verbatim_text": "**No Fishing downstream of Duncan Dam to the confluence of the Duncan River and the Lardeau River**",
+          "rule": "No Fishing",
+          "type": "closure",
+          "dates": null,
+          "species": null
+        }
+      ]
+    }
+  ]
+}
+
+All Validation Errors:
+  - Group 0 (): Rule 0: verbatim_text not found in geographic group's raw_text
+  - Group 0 (): Rule 1: verbatim_text not found in geographic group's raw_text
+  - Group 0 (): Rule 2: verbatim_text not found in geographic group's raw_text
+  - Group 0 (): Rule 3: verbatim_text not found in geographic group's raw_text
+  - Group 0 (): Rule 4: verbatim_text not found in geographic group's raw_text
+
+[659] JORDAN RIVER
+--------------------------------------------------------------------------------
+Error Type: validation_error
+Error: Group 0 (upstream of Kirkup Creek): Rule 1: verbatim_text not found in geographic group's raw_text
+
+Full Input (raw_regs):
+**No Fishing** upstream of Kirkup Creek, Nov 1-June 14
+Upstream of Kirkup Creek: both bait ban and trout/char catch and release, June 15-Oct 31
+**No Fishing** from Kirkup Creek downstream, including Kirkup Creek
+
+Model Output:
+{
+  "waterbody_name": "JORDAN RIVER",
+  "raw_text": "**No Fishing** upstream of Kirkup Creek, Nov 1-June 14\nUpstream of Kirkup Creek: both bait ban and trout/char catch and release, June 15-Oct 31\n**No Fishing** from Kirkup Creek downstream, including Kirkup Creek",
+  "cleaned_text": "**No Fishing** upstream of Kirkup Creek, Nov 1-June 14. Upstream of Kirkup Creek: both bait ban and trout/char catch and release, June 15-Oct 31. **No Fishing** from Kirkup Creek downstream, including Kirkup Creek.",
+  "geographic_groups": [
+    {
+      "location": "upstream of Kirkup Creek",
+      "raw_text": "**No Fishing** upstream of Kirkup Creek, Nov 1-June 14\nUpstream of Kirkup Creek: both bait ban and trout/char catch and release, June 15-Oct 31",
+      "cleaned_text": "**No Fishing** upstream of Kirkup Creek, Nov 1-June 14. Upstream of Kirkup Creek: both bait ban and trout/char catch and release, June 15-Oct 31.",
+      "rules": [
+        {
+          "verbatim_text": "**No Fishing** upstream of Kirkup Creek, Nov 1-June 14",
+          "rule": "No Fishing",
+          "type": "closure",
+          "dates": [
+            "Nov 1-June 14"
+          ],
+          "species": null
+        },
+        {
+          "verbatim_text": "bait ban ... June 15-Oct 31",
+          "rule": "Bait ban",
+          "type": "gear_restriction",
+          "dates": [
+            "June 15-Oct 31"
+          ],
+          "species": null
+        },
+        {
+          "verbatim_text": "trout/char catch and release, June 15-Oct 31",
+          "rule": "Trout/char catch and release",
+          "type": "harvest",
+          "dates": [
+            "June 15-Oct 31"
+          ],
+          "species": [
+            "trout",
+            "char"
+          ]
+        }
+      ]
+    },
+    {
+      "location": "from Kirkup Creek downstream, including Kirkup Creek",
+      "raw_text": "**No Fishing** from Kirkup Creek downstream, including Kirkup Creek",
+      "cleaned_text": "**No Fishing** from Kirkup Creek downstream, including Kirkup Creek.",
+      "rules": [
+        {
+          "verbatim_text": "**No Fishing** from Kirkup Creek downstream, including Kirkup Creek",
+          "rule": "No Fishing",
+          "type": "closure",
+          "dates": null,
+          "species": null
+        }
+      ]
+    }
+  ]
+}
+
+All Validation Errors:
+  - Group 0 (upstream of Kirkup Creek): Rule 1: verbatim_text not found in geographic group's raw_text
+
+[674] KOOTENAY RIVER (downstream of Idaho border)
+--------------------------------------------------------------------------------
+Error Type: validation_error
+Error: Group 1 (downstream from the Idaho border to CPR Bridge near Creston and from Corra Linn Dam to the Columbia River): Rule 1: verbatim_text not found in geographic group's raw_text; Group 3 (from the Brilliant Dam to the confluence with the Columbia River): Rule 1: verbatim_text not found in geographic group's raw_text
+
+Full Input (raw_regs):
+**No Fishing** from CPR Bridge near Creston downstream 2 km to navigation dolphin
+Downstream from the Idaho border to CPR Bridge near Creston and from Corra Linn Dam to the Columbia River: EXEMPT from Apr 1-June 14 closure AND from Nov 1-Mar 31 trout/char catch and release
+Burbot catch and release from Idaho border near Creston to Kootenay Lake, including tributaries to that part
+Walleye daily quota = 16 from the Brilliant Dam to the confluence with the Columbia River
+From the Brilliant Dam to the confluence with the Columbia River: northern pike and bass daily quota = unlimited
+
+Model Output:
+{
+  "waterbody_name": "KOOTENAY RIVER (downstream of Idaho border)",
+  "raw_text": "**No Fishing** from CPR Bridge near Creston downstream 2 km to navigation dolphin\nDownstream from the Idaho border to CPR Bridge near Creston and from Corra Linn Dam to the Columbia River: EXEMPT from Apr 1-June 14 closure AND from Nov 1-Mar 31 trout/char catch and release\nBurbot catch and release from Idaho border near Creston to Kootenay Lake, including tributaries to that part\nWalleye daily quota = 16 from the Brilliant Dam to the confluence with the Columbia River\nFrom the Brilliant Dam to the confluence with the Columbia River: northern pike and bass daily quota = unlimited",
+  "cleaned_text": "**No Fishing** from CPR Bridge near Creston downstream 2 km to navigation dolphin. Downstream from the Idaho border to CPR Bridge near Creston and from Corra Linn Dam to the Columbia River: EXEMPT from Apr 1-June 14 closure AND from Nov 1-Mar 31 trout/char catch and release. Burbot catch and release from Idaho border near Creston to Kootenay Lake, including tributaries to that part. Walleye daily quota = 16 from the Brilliant Dam to the confluence with the Columbia River. From the Brilliant Dam to the confluence with the Columbia River: northern pike and bass daily quota = unlimited.",
+  "geographic_groups": [
+    {
+      "location": "from CPR Bridge near Creston downstream 2 km to navigation dolphin",
+      "raw_text": "**No Fishing** from CPR Bridge near Creston downstream 2 km to navigation dolphin",
+      "cleaned_text": "**No Fishing** from CPR Bridge near Creston downstream 2 km to navigation dolphin.",
+      "rules": [
+        {
+          "verbatim_text": "**No Fishing** from CPR Bridge near Creston downstream 2 km to navigation dolphin",
+          "rule": "No Fishing",
+          "type": "closure",
+          "dates": null,
+          "species": null
+        }
+      ]
+    },
+    {
+      "location": "downstream from the Idaho border to CPR Bridge near Creston and from Corra Linn Dam to the Columbia River",
+      "raw_text": "Downstream from the Idaho border to CPR Bridge near Creston and from Corra Linn Dam to the Columbia River: EXEMPT from Apr 1-June 14 closure AND from Nov 1-Mar 31 trout/char catch and release",
+      "cleaned_text": "Downstream from the Idaho border to CPR Bridge near Creston and from Corra Linn Dam to the Columbia River: EXEMPT from Apr 1-June 14 closure AND from Nov 1-Mar 31 trout/char catch and release.",
+      "rules": [
+        {
+          "verbatim_text": "EXEMPT from Apr 1-June 14 closure",
+          "rule": "Exempt from closure",
+          "type": "closure",
+          "dates": [
+            "Apr 1-June 14"
+          ],
+          "species": null
+        },
+        {
+          "verbatim_text": "EXEMPT from ... Nov 1-Mar 31 trout/char catch and release",
+          "rule": "Exempt from trout/char catch and release",
+          "type": "harvest",
+          "dates": [
+            "Nov 1-Mar 31"
+          ],
+          "species": [
+            "trout",
+            "char"
+          ]
+        }
+      ]
+    },
+    {
+      "location": "from Idaho border near Creston to Kootenay Lake, including tributaries",
+      "raw_text": "Burbot catch and release from Idaho border near Creston to Kootenay Lake, including tributaries to that part",
+      "cleaned_text": "Burbot catch and release from Idaho border near Creston to Kootenay Lake, including tributaries to that part.",
+      "rules": [
+        {
+          "verbatim_text": "Burbot catch and release from Idaho border near Creston to Kootenay Lake, including tributaries to that part",
+          "rule": "Burbot catch and release",
+          "type": "harvest",
+          "dates": null,
+          "species": [
+            "burbot"
+          ]
+        }
+      ]
+    },
+    {
+      "location": "from the Brilliant Dam to the confluence with the Columbia River",
+      "raw_text": "Walleye daily quota = 16 from the Brilliant Dam to the confluence with the Columbia River\nFrom the Brilliant Dam to the confluence with the Columbia River: northern pike and bass daily quota = unlimited",
+      "cleaned_text": "Walleye daily quota = 16 from the Brilliant Dam to the confluence with the Columbia River. From the Brilliant Dam to the confluence with the Columbia River: northern pike and bass daily quota = unlimited.",
+      "rules": [
+        {
+          "verbatim_text": "Walleye daily quota = 16 from the Brilliant Dam to the confluence with the Columbia River",
+          "rule": "Walleye daily quota = 16",
+          "type": "harvest",
+          "dates": null,
+          "species": [
+            "walleye"
+          ]
+        },
+        {
+          "verbatim_text": "northern pike ... daily quota = unlimited",
+          "rule": "Northern pike daily quota = unlimited",
+          "type": "harvest",
+          "dates": null,
+          "species": [
+            "northern pike"
+          ]
+        },
+        {
+          "verbatim_text": "bass daily quota = unlimited",
+          "rule": "Bass daily quota = unlimited",
+          "type": "harvest",
+          "dates": null,
+          "species": [
+            "bass"
+          ]
+        }
+      ]
+    }
+  ]
+}
+
+All Validation Errors:
+  - Group 1 (downstream from the Idaho border to CPR Bridge near Creston and from Corra Linn Dam to the Columbia River): Rule 1: verbatim_text not found in geographic group's raw_text
+  - Group 3 (from the Brilliant Dam to the confluence with the Columbia River): Rule 1: verbatim_text not found in geographic group's raw_text
+
+[706] MICHEL CREEK (downstream of the easternmost Hwy 3 bridge)
+--------------------------------------------------------------------------------
+Error Type: validation_error
+Error: Group 1 (): Rule 0: verbatim_text not found in geographic group's raw_text
+
+Full Input (raw_regs):
+**Class II water when open, including tributaries**
+Trout/char daily quota = 1 (none under 30 cm) and bait ban, June 15-Oct 31.
+
+Model Output:
+{
+  "waterbody_name": "MICHEL CREEK (downstream of the easternmost Hwy 3 bridge)",
+  "raw_text": "**Class II water when open, including tributaries**\nTrout/char daily quota = 1 (none under 30 cm) and bait ban, June 15-Oct 31.",
+  "cleaned_text": "**Class II water when open, including tributaries.** Trout/char daily quota = 1 (none under 30 cm) and bait ban, June 15-Oct 31.",
+  "geographic_groups": [
+    {
+      "location": "Including tributaries",
+      "raw_text": "**Class II water when open, including tributaries**",
+      "cleaned_text": "**Class II water when open, including tributaries.**",
+      "rules": [
+        {
+          "verbatim_text": "**Class II water when open, including tributaries**",
+          "rule": "Class II water",
+          "type": "licensing",
+          "dates": null,
+          "species": null
+        }
+      ]
+    },
+    {
+      "location": "",
+      "raw_text": "Trout/char daily quota = 1 (none under 30 cm) and bait ban, June 15-Oct 31.",
+      "cleaned_text": "Trout/char daily quota = 1 (none under 30 cm) and bait ban, June 15-Oct 31.",
+      "rules": [
+        {
+          "verbatim_text": "Trout/char daily quota = 1 (none under 30 cm), June 15-Oct 31",
+          "rule": "Trout/char daily quota = 1 (none under 30 cm)",
+          "type": "harvest",
+          "dates": [
+            "June 15-Oct 31"
+          ],
+          "species": [
+            "trout",
+            "char"
+          ]
+        },
+        {
+          "verbatim_text": "bait ban, June 15-Oct 31",
+          "rule": "Bait ban",
+          "type": "gear_restriction",
+          "dates": [
+            "June 15-Oct 31"
+          ],
+          "species": null
+        }
+      ]
+    }
+  ]
+}
+
+All Validation Errors:
+  - Group 1 (): Rule 0: verbatim_text not found in geographic group's raw_text
+
+[1173] MCMILLAN CREEK
+--------------------------------------------------------------------------------
+Error Type: validation_error
+Error: Group 0 (): Rule 2: verbatim_text not found in geographic group's raw_text
+
+Full Input (raw_regs):
+Youth/Disabled Accompanied Water year round (see page 4)
+Exempt from spring closure and from bait ban
+
+Model Output:
+{
+  "waterbody_name": "MCMILLAN CREEK",
+  "raw_text": "Youth/Disabled Accompanied Water year round (see page 4)\nExempt from spring closure and from bait ban",
+  "cleaned_text": "Youth/Disabled Accompanied Water year round (see page 4). Exempt from spring closure and from bait ban.",
+  "geographic_groups": [
+    {
+      "location": "",
+      "raw_text": "Youth/Disabled Accompanied Water year round (see page 4)\nExempt from spring closure and from bait ban",
+      "cleaned_text": "Youth/Disabled Accompanied Water year round (see page 4). Exempt from spring closure and from bait ban.",
+      "rules": [
+        {
+          "verbatim_text": "Youth/Disabled Accompanied Water year round (see page 4)",
+          "rule": "Youth/Disabled Accompanied Water",
+          "type": "access",
+          "dates": [
+            "year round"
+          ],
+          "species": null
+        },
+        {
+          "verbatim_text": "Exempt from spring closure",
+          "rule": "Exempt from spring closure",
+          "type": "closure",
+          "dates": null,
+          "species": null
+        },
+        {
+          "verbatim_text": "Exempt from ... bait ban",
+          "rule": "Exempt from bait ban",
+          "type": "gear_restriction",
+          "dates": null,
+          "species": null
+        }
+      ]
+    }
+  ]
+}
+
+All Validation Errors:
+  - Group 0 (): Rule 2: verbatim_text not found in geographic group's raw_text
+
+[1393] WOOD LAKE
+--------------------------------------------------------------------------------
+Error Type: validation_error
+Error: Group 0 (): Rule 0: verbatim_text not found in geographic group's raw_text; Group 0 (): Rule 1: verbatim_text not found in geographic group's raw_text
+
+Full Input (raw_regs):
+**No Ice Fishing
+No Fishing** for kokanee Sept 1-Mar 31
+Kokanee daily quota = 3, Apr 1-Aug 31
+Yellow perch daily quota = 20
+Speed restriction (10 km/h) on parts
+
+Model Output:
+{
+  "waterbody_name": "WOOD LAKE",
+  "raw_text": "**No Ice Fishing\nNo Fishing** for kokanee Sept 1-Mar 31\nKokanee daily quota = 3, Apr 1-Aug 31\nYellow perch daily quota = 20\nSpeed restriction (10 km/h) on parts",
+  "cleaned_text": "**No Ice Fishing. No Fishing** for kokanee Sept 1-Mar 31. Kokanee daily quota = 3, Apr 1-Aug 31. Yellow perch daily quota = 20. Speed restriction (10 km/h) on parts.",
+  "geographic_groups": [
+    {
+      "location": "",
+      "raw_text": "**No Ice Fishing\nNo Fishing** for kokanee Sept 1-Mar 31\nKokanee daily quota = 3, Apr 1-Aug 31\nYellow perch daily quota = 20",
+      "cleaned_text": "**No Ice Fishing. No Fishing** for kokanee Sept 1-Mar 31. Kokanee daily quota = 3, Apr 1-Aug 31. Yellow perch daily quota = 20.",
+      "rules": [
+        {
+          "verbatim_text": "**No Ice Fishing**",
+          "rule": "No Ice Fishing",
+          "type": "closure",
+          "dates": null,
+          "species": null
+        },
+        {
+          "verbatim_text": "**No Fishing** for kokanee Sept 1-Mar 31",
+          "rule": "No Fishing for kokanee",
+          "type": "closure",
+          "dates": [
+            "Sept 1-Mar 31"
+          ],
+          "species": [
+            "kokanee"
+          ]
+        },
+        {
+          "verbatim_text": "Kokanee daily quota = 3, Apr 1-Aug 31",
+          "rule": "Kokanee daily quota = 3",
+          "type": "harvest",
+          "dates": [
+            "Apr 1-Aug 31"
+          ],
+          "species": [
+            "kokanee"
+          ]
+        },
+        {
+          "verbatim_text": "Yellow perch daily quota = 20",
+          "rule": "Yellow perch daily quota = 20",
+          "type": "harvest",
+          "dates": null,
+          "species": [
+            "yellow perch"
+          ]
+        }
+      ]
+    },
+    {
+      "location": "on parts",
+      "raw_text": "Speed restriction (10 km/h) on parts",
+      "cleaned_text": "Speed restriction (10 km/h) on parts.",
+      "rules": [
+        {
+          "verbatim_text": "Speed restriction (10 km/h) on parts",
+          "rule": "Speed restriction (10 km/h)",
+          "type": "restriction",
+          "dates": null,
+          "species": null
+        }
+      ]
+    }
+  ]
+}
+
+All Validation Errors:
+  - Group 0 (): Rule 0: verbatim_text not found in geographic group's raw_text
+  - Group 0 (): Rule 1: verbatim_text not found in geographic group's raw_text
+
+
+================================================================================
+Batch Failures at 2026-01-09T15:56:44.493883
+================================================================================
+
+[72] GOLD RIVER
+--------------------------------------------------------------------------------
+Error Type: validation_error
+Error: Group 1 (downstream of the Muchalat River [Includes Tributaries]): Rule 0: Date 'Dec 1-**Aug 15**' contains asterisks (must be cleaned)
+
+Full Input (raw_regs):
+**No Fishing** upstream of the Muchalat River[Includes Tributaries] (see river specific regulations for Muchalat River)
+**No Fishing** downstream of the Muchalat River[Includes Tributaries], Dec 1-**Aug 15**, but not including the Muchalat or Heber Rivers (see river specific
+regulations for those waters)
+**No Fishing** between the cascade falls (located approximately 6.5 km upstream of Muchalat Inlet, UTM 709137E, 5512420N) and fishing
+boundary signs approximately 80 m downstream
+No powered boats
+
+Model Output:
+{
+  "waterbody_name": "GOLD RIVER",
+  "raw_text": "**No Fishing** upstream of the Muchalat River[Includes Tributaries] (see river specific regulations for Muchalat River)\n**No Fishing** downstream of the Muchalat River[Includes Tributaries], Dec 1-**Aug 15**, but not including the Muchalat or Heber Rivers (see river specific\nregulations for those waters)\n**No Fishing** between the cascade falls (located approximately 6.5 km upstream of Muchalat Inlet, UTM 709137E, 5512420N) and fishing\nboundary signs approximately 80 m downstream\nNo powered boats",
+  "cleaned_text": "**No Fishing** upstream of the Muchalat River [Includes Tributaries] (see river specific regulations for Muchalat River). **No Fishing** downstream of the Muchalat River [Includes Tributaries], Dec 1-**Aug 15**, but not including the Muchalat or Heber Rivers (see river specific regulations for those waters). **No Fishing** between the cascade falls (located approximately 6.5 km upstream of Muchalat Inlet, UTM 709137E, 5512420N) and fishing boundary signs approximately 80 m downstream. No powered boats.",
+  "geographic_groups": [
+    {
+      "location": "upstream of the Muchalat River [Includes Tributaries]",
+      "raw_text": "**No Fishing** upstream of the Muchalat River[Includes Tributaries] (see river specific regulations for Muchalat River)",
+      "cleaned_text": "**No Fishing** upstream of the Muchalat River [Includes Tributaries] (see river specific regulations for Muchalat River).",
+      "rules": [
+        {
+          "verbatim_text": "**No Fishing** upstream of the Muchalat River[Includes Tributaries] (see river specific regulations for Muchalat River)",
+          "rule": "No Fishing",
+          "type": "closure",
+          "dates": null,
+          "species": null
+        }
+      ]
+    },
+    {
+      "location": "downstream of the Muchalat River [Includes Tributaries]",
+      "raw_text": "**No Fishing** downstream of the Muchalat River[Includes Tributaries], Dec 1-**Aug 15**, but not including the Muchalat or Heber Rivers (see river specific\nregulations for those waters)",
+      "cleaned_text": "**No Fishing** downstream of the Muchalat River [Includes Tributaries], Dec 1-**Aug 15**, but not including the Muchalat or Heber Rivers (see river specific regulations for those waters).",
+      "rules": [
+        {
+          "verbatim_text": "**No Fishing** downstream of the Muchalat River[Includes Tributaries], Dec 1-**Aug 15**, but not including the Muchalat or Heber Rivers (see river specific\nregulations for those waters)",
+          "rule": "No Fishing",
+          "type": "closure",
+          "dates": [
+            "Dec 1-**Aug 15**"
+          ],
+          "species": null
+        }
+      ]
+    },
+    {
+      "location": "between the cascade falls (located approximately 6.5 km upstream of Muchalat Inlet, UTM 709137E, 5512420N) and fishing boundary signs approximately 80 m downstream",
+      "raw_text": "**No Fishing** between the cascade falls (located approximately 6.5 km upstream of Muchalat Inlet, UTM 709137E, 5512420N) and fishing\nboundary signs approximately 80 m downstream",
+      "cleaned_text": "**No Fishing** between the cascade falls (located approximately 6.5 km upstream of Muchalat Inlet, UTM 709137E, 5512420N) and fishing boundary signs approximately 80 m downstream.",
+      "rules": [
+        {
+          "verbatim_text": "**No Fishing** between the cascade falls (located approximately 6.5 km upstream of Muchalat Inlet, UTM 709137E, 5512420N) and fishing\nboundary signs approximately 80 m downstream",
+          "rule": "No Fishing",
+          "type": "closure",
+          "dates": null,
+          "species": null
+        }
+      ]
+    },
+    {
+      "location": "",
+      "raw_text": "No powered boats",
+      "cleaned_text": "No powered boats.",
+      "rules": [
+        {
+          "verbatim_text": "No powered boats",
+          "rule": "No powered boats",
+          "type": "restriction",
+          "dates": null,
+          "species": null
+        }
+      ]
+    }
+  ]
+}
+
+All Validation Errors:
+  - Group 1 (downstream of the Muchalat River [Includes Tributaries]): Rule 0: Date 'Dec 1-**Aug 15**' contains asterisks (must be cleaned)
+
+
+================================================================================
+Batch Failures at 2026-01-09T15:57:47.809416
+================================================================================
+
+[72] GOLD RIVER
+--------------------------------------------------------------------------------
+Error Type: validation_error
+Error: Group 1 (downstream of the Muchalat River [Includes Tributaries], but not including the Muchalat or Heber Rivers): Rule 0: Date 'Dec 1-**Aug 15**' contains asterisks (must be cleaned)
+
+Full Input (raw_regs):
+**No Fishing** upstream of the Muchalat River[Includes Tributaries] (see river specific regulations for Muchalat River)
+**No Fishing** downstream of the Muchalat River[Includes Tributaries], Dec 1-**Aug 15**, but not including the Muchalat or Heber Rivers (see river specific
+regulations for those waters)
+**No Fishing** between the cascade falls (located approximately 6.5 km upstream of Muchalat Inlet, UTM 709137E, 5512420N) and fishing
+boundary signs approximately 80 m downstream
+No powered boats
+
+Model Output:
+{
+  "waterbody_name": "GOLD RIVER",
+  "raw_text": "**No Fishing** upstream of the Muchalat River[Includes Tributaries] (see river specific regulations for Muchalat River)\n**No Fishing** downstream of the Muchalat River[Includes Tributaries], Dec 1-**Aug 15**, but not including the Muchalat or Heber Rivers (see river specific\nregulations for those waters)\n**No Fishing** between the cascade falls (located approximately 6.5 km upstream of Muchalat Inlet, UTM 709137E, 5512420N) and fishing\nboundary signs approximately 80 m downstream\nNo powered boats",
+  "cleaned_text": "**No Fishing** upstream of the Muchalat River [Includes Tributaries] (see river specific regulations for Muchalat River). **No Fishing** downstream of the Muchalat River [Includes Tributaries], Dec 1-**Aug 15**, but not including the Muchalat or Heber Rivers (see river specific regulations for those waters). **No Fishing** between the cascade falls (located approximately 6.5 km upstream of Muchalat Inlet, UTM 709137E, 5512420N) and fishing boundary signs approximately 80 m downstream. No powered boats.",
+  "geographic_groups": [
+    {
+      "location": "upstream of the Muchalat River [Includes Tributaries]",
+      "raw_text": "**No Fishing** upstream of the Muchalat River[Includes Tributaries] (see river specific regulations for Muchalat River)",
+      "cleaned_text": "**No Fishing** upstream of the Muchalat River [Includes Tributaries] (see river specific regulations for Muchalat River).",
+      "rules": [
+        {
+          "verbatim_text": "**No Fishing** upstream of the Muchalat River[Includes Tributaries] (see river specific regulations for Muchalat River)",
+          "rule": "No Fishing",
+          "type": "closure",
+          "dates": null,
+          "species": null
+        }
+      ]
+    },
+    {
+      "location": "downstream of the Muchalat River [Includes Tributaries], but not including the Muchalat or Heber Rivers",
+      "raw_text": "**No Fishing** downstream of the Muchalat River[Includes Tributaries], Dec 1-**Aug 15**, but not including the Muchalat or Heber Rivers (see river specific\nregulations for those waters)",
+      "cleaned_text": "**No Fishing** downstream of the Muchalat River [Includes Tributaries], Dec 1-**Aug 15**, but not including the Muchalat or Heber Rivers (see river specific regulations for those waters).",
+      "rules": [
+        {
+          "verbatim_text": "**No Fishing** downstream of the Muchalat River[Includes Tributaries], Dec 1-**Aug 15**, but not including the Muchalat or Heber Rivers (see river specific\nregulations for those waters)",
+          "rule": "No Fishing",
+          "type": "closure",
+          "dates": [
+            "Dec 1-**Aug 15**"
+          ],
+          "species": null
+        }
+      ]
+    },
+    {
+      "location": "between the cascade falls (located approximately 6.5 km upstream of Muchalat Inlet, UTM 709137E, 5512420N) and fishing boundary signs approximately 80 m downstream",
+      "raw_text": "**No Fishing** between the cascade falls (located approximately 6.5 km upstream of Muchalat Inlet, UTM 709137E, 5512420N) and fishing\nboundary signs approximately 80 m downstream",
+      "cleaned_text": "**No Fishing** between the cascade falls (located approximately 6.5 km upstream of Muchalat Inlet, UTM 709137E, 5512420N) and fishing boundary signs approximately 80 m downstream.",
+      "rules": [
+        {
+          "verbatim_text": "**No Fishing** between the cascade falls (located approximately 6.5 km upstream of Muchalat Inlet, UTM 709137E, 5512420N) and fishing\nboundary signs approximately 80 m downstream",
+          "rule": "No Fishing",
+          "type": "closure",
+          "dates": null,
+          "species": null
+        }
+      ]
+    },
+    {
+      "location": "",
+      "raw_text": "No powered boats",
+      "cleaned_text": "No powered boats.",
+      "rules": [
+        {
+          "verbatim_text": "No powered boats",
+          "rule": "No powered boats",
+          "type": "restriction",
+          "dates": null,
+          "species": null
+        }
+      ]
+    }
+  ]
+}
+
+All Validation Errors:
+  - Group 1 (downstream of the Muchalat River [Includes Tributaries], but not including the Muchalat or Heber Rivers): Rule 0: Date 'Dec 1-**Aug 15**' contains asterisks (must be cleaned)
+
+[612] COLUMBIA RIVER
+--------------------------------------------------------------------------------
+Error Type: validation_error
+Error: Group 2 (Where angling is permitted): Rule 1: verbatim_text not found in geographic group's raw_text
+
+Full Input (raw_regs):
+**No Fishing** from Revelstoke Dam downstream to Hwy 1 bridge in Revelstoke
+**No Fishing** from a line between the old Robson Ferry landing and a sign on the south river bank, downstream approximately 950 m to the
+CPR Bridge, Mar 1-June 30
+Where angling is permitted: EXEMPT from the regional Nov 1-Mar 31 trout/char catch and release and the regional Apr 1-June 14 closure
+Bass daily quota = unlimited
+Kokanee daily quota = 15 from Keenleyside Dam to a line between the old Robson Ferry landing and a sign on the south river bank
+Walleye daily quota = 16 from Keenleyside Dam to the Washington state border
+From Keenleyside Dam downstream to the Washington state border and connected reaches: the Kootenay River (Columbia River
+confluence to Brilliant Dam) and the Pend d'Oreille River (Columbia River confluence to Waneta Dam): Northern pike daily quota =
+unlimited and bass daily quota = unlimited
+Burbot catch and release
+Speed restriction (10 km/h) from Mud Lake to Columbia Lake, no power boats in wetlands, no towing and engine power restriction -
+15 kW (20 hp), in main channel from Fairmont to Donald
+See Upper Arrow Lake for the portion of the Columbia River which may be found downstream of the Hwy 1 bridge in Revelstoke
+(depending on reservoir level)
+
+Model Output:
+{
+  "waterbody_name": "COLUMBIA RIVER",
+  "raw_text": "**No Fishing** from Revelstoke Dam downstream to Hwy 1 bridge in Revelstoke\n**No Fishing** from a line between the old Robson Ferry landing and a sign on the south river bank, downstream approximately 950 m to the\nCPR Bridge, Mar 1-June 30\nWhere angling is permitted: EXEMPT from the regional Nov 1-Mar 31 trout/char catch and release and the regional Apr 1-June 14 closure\nBass daily quota = unlimited\nKokanee daily quota = 15 from Keenleyside Dam to a line between the old Robson Ferry landing and a sign on the south river bank\nWalleye daily quota = 16 from Keenleyside Dam to the Washington state border\nFrom Keenleyside Dam downstream to the Washington state border and connected reaches: the Kootenay River (Columbia River\nconfluence to Brilliant Dam) and the Pend d'Oreille River (Columbia River confluence to Waneta Dam): Northern pike daily quota =\nunlimited and bass daily quota = unlimited\nBurbot catch and release\nSpeed restriction (10 km/h) from Mud Lake to Columbia Lake, no power boats in wetlands, no towing and engine power restriction -\n15 kW (20 hp), in main channel from Fairmont to Donald\nSee Upper Arrow Lake for the portion of the Columbia River which may be found downstream of the Hwy 1 bridge in Revelstoke\n(depending on reservoir level)",
+  "cleaned_text": "**No Fishing** from Revelstoke Dam downstream to Hwy 1 bridge in Revelstoke. **No Fishing** from a line between the old Robson Ferry landing and a sign on the south river bank, downstream approximately 950 m to the CPR Bridge, Mar 1-June 30. Where angling is permitted: EXEMPT from the regional Nov 1-Mar 31 trout/char catch and release and the regional Apr 1-June 14 closure. Bass daily quota = unlimited. Kokanee daily quota = 15 from Keenleyside Dam to a line between the old Robson Ferry landing and a sign on the south river bank. Walleye daily quota = 16 from Keenleyside Dam to the Washington state border. From Keenleyside Dam downstream to the Washington state border and connected reaches (the Kootenay River and Pend d'Oreille River): Northern pike daily quota = unlimited and bass daily quota = unlimited. Burbot catch and release. Speed restriction (10 km/h) from Mud Lake to Columbia Lake; no power boats in wetlands; no towing and engine power restriction - 15 kW (20 hp) in main channel from Fairmont to Donald. See Upper Arrow Lake for the portion of the Columbia River which may be found downstream of the Hwy 1 bridge in Revelstoke.",
+  "geographic_groups": [
+    {
+      "location": "from Revelstoke Dam downstream to Hwy 1 bridge in Revelstoke",
+      "raw_text": "**No Fishing** from Revelstoke Dam downstream to Hwy 1 bridge in Revelstoke",
+      "cleaned_text": "**No Fishing** from Revelstoke Dam downstream to Hwy 1 bridge in Revelstoke.",
+      "rules": [
+        {
+          "verbatim_text": "**No Fishing** from Revelstoke Dam downstream to Hwy 1 bridge in Revelstoke",
+          "rule": "No Fishing",
+          "type": "closure",
+          "dates": null,
+          "species": null
+        }
+      ]
+    },
+    {
+      "location": "from a line between the old Robson Ferry landing and a sign on the south river bank, downstream approximately 950 m to the CPR Bridge",
+      "raw_text": "**No Fishing** from a line between the old Robson Ferry landing and a sign on the south river bank, downstream approximately 950 m to the\nCPR Bridge, Mar 1-June 30",
+      "cleaned_text": "**No Fishing** from a line between the old Robson Ferry landing and a sign on the south river bank, downstream approximately 950 m to the CPR Bridge, Mar 1-June 30.",
+      "rules": [
+        {
+          "verbatim_text": "**No Fishing** from a line between the old Robson Ferry landing and a sign on the south river bank, downstream approximately 950 m to the\nCPR Bridge, Mar 1-June 30",
+          "rule": "No Fishing",
+          "type": "closure",
+          "dates": [
+            "Mar 1-June 30"
+          ],
+          "species": null
+        }
+      ]
+    },
+    {
+      "location": "Where angling is permitted",
+      "raw_text": "Where angling is permitted: EXEMPT from the regional Nov 1-Mar 31 trout/char catch and release and the regional Apr 1-June 14 closure\nBass daily quota = unlimited",
+      "cleaned_text": "Where angling is permitted: EXEMPT from the regional Nov 1-Mar 31 trout/char catch and release and the regional Apr 1-June 14 closure. Bass daily quota = unlimited.",
+      "rules": [
+        {
+          "verbatim_text": "EXEMPT from the regional Nov 1-Mar 31 trout/char catch and release",
+          "rule": "Exempt from regional trout/char catch and release",
+          "type": "note",
+          "dates": null,
+          "species": [
+            "trout",
+            "char"
+          ]
+        },
+        {
+          "verbatim_text": "EXEMPT from the regional ... Apr 1-June 14 closure",
+          "rule": "Exempt from regional spring closure",
+          "type": "note",
+          "dates": null,
+          "species": null
+        },
+        {
+          "verbatim_text": "Bass daily quota = unlimited",
+          "rule": "Bass daily quota = unlimited",
+          "type": "harvest",
+          "dates": null,
+          "species": [
+            "Bass"
+          ]
+        }
+      ]
+    },
+    {
+      "location": "from Keenleyside Dam to a line between the old Robson Ferry landing and a sign on the south river bank",
+      "raw_text": "Kokanee daily quota = 15 from Keenleyside Dam to a line between the old Robson Ferry landing and a sign on the south river bank",
+      "cleaned_text": "Kokanee daily quota = 15 from Keenleyside Dam to a line between the old Robson Ferry landing and a sign on the south river bank.",
+      "rules": [
+        {
+          "verbatim_text": "Kokanee daily quota = 15 from Keenleyside Dam to a line between the old Robson Ferry landing and a sign on the south river bank",
+          "rule": "Kokanee daily quota = 15",
+          "type": "harvest",
+          "dates": null,
+          "species": [
+            "Kokanee"
+          ]
+        }
+      ]
+    },
+    {
+      "location": "from Keenleyside Dam to the Washington state border",
+      "raw_text": "Walleye daily quota = 16 from Keenleyside Dam to the Washington state border",
+      "cleaned_text": "Walleye daily quota = 16 from Keenleyside Dam to the Washington state border.",
+      "rules": [
+        {
+          "verbatim_text": "Walleye daily quota = 16 from Keenleyside Dam to the Washington state border",
+          "rule": "Walleye daily quota = 16",
+          "type": "harvest",
+          "dates": null,
+          "species": [
+            "Walleye"
+          ]
+        }
+      ]
+    },
+    {
+      "location": "From Keenleyside Dam downstream to the Washington state border and connected reaches: the Kootenay River (Columbia River confluence to Brilliant Dam) and the Pend d'Oreille River (Columbia River confluence to Waneta Dam)",
+      "raw_text": "From Keenleyside Dam downstream to the Washington state border and connected reaches: the Kootenay River (Columbia River\nconfluence to Brilliant Dam) and the Pend d'Oreille River (Columbia River confluence to Waneta Dam): Northern pike daily quota =\nunlimited and bass daily quota = unlimited",
+      "cleaned_text": "From Keenleyside Dam downstream to the Washington state border and connected reaches (Kootenay River and Pend d'Oreille River): Northern pike daily quota = unlimited and bass daily quota = unlimited.",
+      "rules": [
+        {
+          "verbatim_text": "Northern pike daily quota =\nunlimited",
+          "rule": "Northern pike daily quota = unlimited",
+          "type": "harvest",
+          "dates": null,
+          "species": [
+            "Northern pike"
+          ]
+        },
+        {
+          "verbatim_text": "bass daily quota = unlimited",
+          "rule": "Bass daily quota = unlimited",
+          "type": "harvest",
+          "dates": null,
+          "species": [
+            "bass"
+          ]
+        }
+      ]
+    },
+    {
+      "location": "",
+      "raw_text": "Burbot catch and release",
+      "cleaned_text": "Burbot catch and release.",
+      "rules": [
+        {
+          "verbatim_text": "Burbot catch and release",
+          "rule": "Burbot catch and release",
+          "type": "harvest",
+          "dates": null,
+          "species": [
+            "Burbot"
+          ]
+        }
+      ]
+    },
+    {
+      "location": "from Mud Lake to Columbia Lake",
+      "raw_text": "Speed restriction (10 km/h) from Mud Lake to Columbia Lake",
+      "cleaned_text": "Speed restriction (10 km/h) from Mud Lake to Columbia Lake.",
+      "rules": [
+        {
+          "verbatim_text": "Speed restriction (10 km/h) from Mud Lake to Columbia Lake",
+          "rule": "Speed restriction (10 km/h)",
+          "type": "restriction",
+          "dates": null,
+          "species": null
+        }
+      ]
+    },
+    {
+      "location": "wetlands",
+      "raw_text": "no power boats in wetlands",
+      "cleaned_text": "No power boats in wetlands.",
+      "rules": [
+        {
+          "verbatim_text": "no power boats in wetlands",
+          "rule": "No power boats",
+          "type": "restriction",
+          "dates": null,
+          "species": null
+        }
+      ]
+    },
+    {
+      "location": "main channel from Fairmont to Donald",
+      "raw_text": "no towing and engine power restriction -\n15 kW (20 hp), in main channel from Fairmont to Donald",
+      "cleaned_text": "No towing and engine power restriction - 15 kW (20 hp) in main channel from Fairmont to Donald.",
+      "rules": [
+        {
+          "verbatim_text": "no towing",
+          "rule": "No towing",
+          "type": "restriction",
+          "dates": null,
+          "species": null
+        },
+        {
+          "verbatim_text": "engine power restriction -\n15 kW (20 hp), in main channel from Fairmont to Donald",
+          "rule": "Engine power restriction (15 kW / 20 hp)",
+          "type": "restriction",
+          "dates": null,
+          "species": null
+        }
+      ]
+    },
+    {
+      "location": "downstream of the Hwy 1 bridge in Revelstoke (depending on reservoir level)",
+      "raw_text": "See Upper Arrow Lake for the portion of the Columbia River which may be found downstream of the Hwy 1 bridge in Revelstoke\n(depending on reservoir level)",
+      "cleaned_text": "See Upper Arrow Lake for the portion of the Columbia River which may be found downstream of the Hwy 1 bridge in Revelstoke (depending on reservoir level).",
+      "rules": [
+        {
+          "verbatim_text": "See Upper Arrow Lake for the portion of the Columbia River which may be found downstream of the Hwy 1 bridge in Revelstoke\n(depending on reservoir level)",
+          "rule": "See Upper Arrow Lake for regulations",
+          "type": "note",
+          "dates": null,
+          "species": null
+        }
+      ]
+    }
+  ]
+}
+
+All Validation Errors:
+  - Group 2 (Where angling is permitted): Rule 1: verbatim_text not found in geographic group's raw_text
+
+[659] JORDAN RIVER
+--------------------------------------------------------------------------------
+Error Type: validation_error
+Error: Group 0 (upstream of Kirkup Creek): Rule 1: verbatim_text not found in geographic group's raw_text
+
+Full Input (raw_regs):
+**No Fishing** upstream of Kirkup Creek, Nov 1-June 14
+Upstream of Kirkup Creek: both bait ban and trout/char catch and release, June 15-Oct 31
+**No Fishing** from Kirkup Creek downstream, including Kirkup Creek
+
+Model Output:
+{
+  "waterbody_name": "JORDAN RIVER",
+  "raw_text": "**No Fishing** upstream of Kirkup Creek, Nov 1-June 14\nUpstream of Kirkup Creek: both bait ban and trout/char catch and release, June 15-Oct 31\n**No Fishing** from Kirkup Creek downstream, including Kirkup Creek",
+  "cleaned_text": "**No Fishing** upstream of Kirkup Creek, Nov 1-June 14. Upstream of Kirkup Creek: both bait ban and trout/char catch and release, June 15-Oct 31. **No Fishing** from Kirkup Creek downstream, including Kirkup Creek.",
+  "geographic_groups": [
+    {
+      "location": "upstream of Kirkup Creek",
+      "raw_text": "**No Fishing** upstream of Kirkup Creek, Nov 1-June 14\nUpstream of Kirkup Creek: both bait ban and trout/char catch and release, June 15-Oct 31",
+      "cleaned_text": "**No Fishing** upstream of Kirkup Creek, Nov 1-June 14. Upstream of Kirkup Creek: both bait ban and trout/char catch and release, June 15-Oct 31.",
+      "rules": [
+        {
+          "verbatim_text": "**No Fishing** upstream of Kirkup Creek, Nov 1-June 14",
+          "rule": "No Fishing",
+          "type": "closure",
+          "dates": [
+            "Nov 1-June 14"
+          ],
+          "species": null
+        },
+        {
+          "verbatim_text": "bait ban ... June 15-Oct 31",
+          "rule": "Bait ban",
+          "type": "gear_restriction",
+          "dates": [
+            "June 15-Oct 31"
+          ],
+          "species": null
+        },
+        {
+          "verbatim_text": "trout/char catch and release, June 15-Oct 31",
+          "rule": "Trout/char catch and release",
+          "type": "harvest",
+          "dates": [
+            "June 15-Oct 31"
+          ],
+          "species": [
+            "trout",
+            "char"
+          ]
+        }
+      ]
+    },
+    {
+      "location": "from Kirkup Creek downstream, including Kirkup Creek",
+      "raw_text": "**No Fishing** from Kirkup Creek downstream, including Kirkup Creek",
+      "cleaned_text": "**No Fishing** from Kirkup Creek downstream, including Kirkup Creek.",
+      "rules": [
+        {
+          "verbatim_text": "**No Fishing** from Kirkup Creek downstream, including Kirkup Creek",
+          "rule": "No Fishing",
+          "type": "closure",
+          "dates": null,
+          "species": null
+        }
+      ]
+    }
+  ]
+}
+
+All Validation Errors:
+  - Group 0 (upstream of Kirkup Creek): Rule 1: verbatim_text not found in geographic group's raw_text
+
+[674] KOOTENAY RIVER (downstream of Idaho border)
+--------------------------------------------------------------------------------
+Error Type: validation_error
+Error: Group 1 (Downstream from the Idaho border to CPR Bridge near Creston and from Corra Linn Dam to the Columbia River): Rule 1: verbatim_text not found in geographic group's raw_text; Group 3 (from the Brilliant Dam to the confluence with the Columbia River): Rule 1: verbatim_text not found in geographic group's raw_text
+
+Full Input (raw_regs):
+**No Fishing** from CPR Bridge near Creston downstream 2 km to navigation dolphin
+Downstream from the Idaho border to CPR Bridge near Creston and from Corra Linn Dam to the Columbia River: EXEMPT from Apr 1-June 14 closure AND from Nov 1-Mar 31 trout/char catch and release
+Burbot catch and release from Idaho border near Creston to Kootenay Lake, including tributaries to that part
+Walleye daily quota = 16 from the Brilliant Dam to the confluence with the Columbia River
+From the Brilliant Dam to the confluence with the Columbia River: northern pike and bass daily quota = unlimited
+
+Model Output:
+{
+  "waterbody_name": "KOOTENAY RIVER (downstream of Idaho border)",
+  "raw_text": "**No Fishing** from CPR Bridge near Creston downstream 2 km to navigation dolphin\nDownstream from the Idaho border to CPR Bridge near Creston and from Corra Linn Dam to the Columbia River: EXEMPT from Apr 1-June 14 closure AND from Nov 1-Mar 31 trout/char catch and release\nBurbot catch and release from Idaho border near Creston to Kootenay Lake, including tributaries to that part\nWalleye daily quota = 16 from the Brilliant Dam to the confluence with the Columbia River\nFrom the Brilliant Dam to the confluence with the Columbia River: northern pike and bass daily quota = unlimited",
+  "cleaned_text": "**No Fishing** from CPR Bridge near Creston downstream 2 km to navigation dolphin. Downstream from the Idaho border to CPR Bridge near Creston and from Corra Linn Dam to the Columbia River: EXEMPT from Apr 1-June 14 closure AND from Nov 1-Mar 31 trout/char catch and release. Burbot catch and release from Idaho border near Creston to Kootenay Lake, including tributaries to that part. Walleye daily quota = 16 from the Brilliant Dam to the confluence with the Columbia River. From the Brilliant Dam to the confluence with the Columbia River: northern pike and bass daily quota = unlimited.",
+  "geographic_groups": [
+    {
+      "location": "from CPR Bridge near Creston downstream 2 km to navigation dolphin",
+      "raw_text": "**No Fishing** from CPR Bridge near Creston downstream 2 km to navigation dolphin",
+      "cleaned_text": "**No Fishing** from CPR Bridge near Creston downstream 2 km to navigation dolphin.",
+      "rules": [
+        {
+          "verbatim_text": "**No Fishing** from CPR Bridge near Creston downstream 2 km to navigation dolphin",
+          "rule": "No Fishing",
+          "type": "closure",
+          "dates": null,
+          "species": null
+        }
+      ]
+    },
+    {
+      "location": "Downstream from the Idaho border to CPR Bridge near Creston and from Corra Linn Dam to the Columbia River",
+      "raw_text": "Downstream from the Idaho border to CPR Bridge near Creston and from Corra Linn Dam to the Columbia River: EXEMPT from Apr 1-June 14 closure AND from Nov 1-Mar 31 trout/char catch and release",
+      "cleaned_text": "Downstream from the Idaho border to CPR Bridge near Creston and from Corra Linn Dam to the Columbia River: EXEMPT from Apr 1-June 14 closure AND from Nov 1-Mar 31 trout/char catch and release.",
+      "rules": [
+        {
+          "verbatim_text": "EXEMPT from Apr 1-June 14 closure",
+          "rule": "Exempt from regional spring closure",
+          "type": "note",
+          "dates": null,
+          "species": null
+        },
+        {
+          "verbatim_text": "EXEMPT from ... Nov 1-Mar 31 trout/char catch and release",
+          "rule": "Exempt from regional trout/char catch and release",
+          "type": "note",
+          "dates": null,
+          "species": [
+            "trout",
+            "char"
+          ]
+        }
+      ]
+    },
+    {
+      "location": "from Idaho border near Creston to Kootenay Lake, including tributaries to that part",
+      "raw_text": "Burbot catch and release from Idaho border near Creston to Kootenay Lake, including tributaries to that part",
+      "cleaned_text": "Burbot catch and release from Idaho border near Creston to Kootenay Lake, including tributaries to that part.",
+      "rules": [
+        {
+          "verbatim_text": "Burbot catch and release from Idaho border near Creston to Kootenay Lake, including tributaries to that part",
+          "rule": "Burbot catch and release",
+          "type": "harvest",
+          "dates": null,
+          "species": [
+            "Burbot"
+          ]
+        }
+      ]
+    },
+    {
+      "location": "from the Brilliant Dam to the confluence with the Columbia River",
+      "raw_text": "Walleye daily quota = 16 from the Brilliant Dam to the confluence with the Columbia River\nFrom the Brilliant Dam to the confluence with the Columbia River: northern pike and bass daily quota = unlimited",
+      "cleaned_text": "Walleye daily quota = 16 from the Brilliant Dam to the confluence with the Columbia River. From the Brilliant Dam to the confluence with the Columbia River: northern pike and bass daily quota = unlimited.",
+      "rules": [
+        {
+          "verbatim_text": "Walleye daily quota = 16 from the Brilliant Dam to the confluence with the Columbia River",
+          "rule": "Walleye daily quota = 16",
+          "type": "harvest",
+          "dates": null,
+          "species": [
+            "Walleye"
+          ]
+        },
+        {
+          "verbatim_text": "northern pike ... daily quota = unlimited",
+          "rule": "Northern pike daily quota = unlimited",
+          "type": "harvest",
+          "dates": null,
+          "species": [
+            "northern pike"
+          ]
+        },
+        {
+          "verbatim_text": "bass daily quota = unlimited",
+          "rule": "Bass daily quota = unlimited",
+          "type": "harvest",
+          "dates": null,
+          "species": [
+            "bass"
+          ]
+        }
+      ]
+    }
+  ]
+}
+
+All Validation Errors:
+  - Group 1 (Downstream from the Idaho border to CPR Bridge near Creston and from Corra Linn Dam to the Columbia River): Rule 1: verbatim_text not found in geographic group's raw_text
+  - Group 3 (from the Brilliant Dam to the confluence with the Columbia River): Rule 1: verbatim_text not found in geographic group's raw_text
+
+[1173] MCMILLAN CREEK
+--------------------------------------------------------------------------------
+Error Type: validation_error
+Error: Group 0 (): Rule 2: verbatim_text not found in geographic group's raw_text
+
+Full Input (raw_regs):
+Youth/Disabled Accompanied Water year round (see page 4)
+Exempt from spring closure and from bait ban
+
+Model Output:
+{
+  "waterbody_name": "MCMILLAN CREEK",
+  "raw_text": "Youth/Disabled Accompanied Water year round (see page 4)\nExempt from spring closure and from bait ban",
+  "cleaned_text": "Youth/Disabled Accompanied Water year round (see page 4). Exempt from spring closure and from bait ban.",
+  "geographic_groups": [
+    {
+      "location": "",
+      "raw_text": "Youth/Disabled Accompanied Water year round (see page 4)\nExempt from spring closure and from bait ban",
+      "cleaned_text": "Youth/Disabled Accompanied Water year round (see page 4). Exempt from spring closure and from bait ban.",
+      "rules": [
+        {
+          "verbatim_text": "Youth/Disabled Accompanied Water year round (see page 4)",
+          "rule": "Youth/Disabled Accompanied Water",
+          "type": "access",
+          "dates": null,
+          "species": null
+        },
+        {
+          "verbatim_text": "Exempt from spring closure",
+          "rule": "Exempt from spring closure",
+          "type": "note",
+          "dates": null,
+          "species": null
+        },
+        {
+          "verbatim_text": "Exempt from ... bait ban",
+          "rule": "Exempt from bait ban",
+          "type": "note",
+          "dates": null,
+          "species": null
+        }
+      ]
+    }
+  ]
+}
+
+All Validation Errors:
+  - Group 0 (): Rule 2: verbatim_text not found in geographic group's raw_text
+
+[1393] WOOD LAKE
+--------------------------------------------------------------------------------
+Error Type: validation_error
+Error: Group 0 (): Rule 0: verbatim_text not found in geographic group's raw_text; Group 0 (): Rule 1: verbatim_text not found in geographic group's raw_text
+
+Full Input (raw_regs):
+**No Ice Fishing
+No Fishing** for kokanee Sept 1-Mar 31
+Kokanee daily quota = 3, Apr 1-Aug 31
+Yellow perch daily quota = 20
+Speed restriction (10 km/h) on parts
+
+Model Output:
+{
+  "waterbody_name": "WOOD LAKE",
+  "raw_text": "**No Ice Fishing\nNo Fishing** for kokanee Sept 1-Mar 31\nKokanee daily quota = 3, Apr 1-Aug 31\nYellow perch daily quota = 20\nSpeed restriction (10 km/h) on parts",
+  "cleaned_text": "**No Ice Fishing**. **No Fishing** for kokanee Sept 1-Mar 31. Kokanee daily quota = 3, Apr 1-Aug 31. Yellow perch daily quota = 20. Speed restriction (10 km/h) on parts.",
+  "geographic_groups": [
+    {
+      "location": "",
+      "raw_text": "**No Ice Fishing\nNo Fishing** for kokanee Sept 1-Mar 31\nKokanee daily quota = 3, Apr 1-Aug 31\nYellow perch daily quota = 20",
+      "cleaned_text": "**No Ice Fishing**. **No Fishing** for kokanee Sept 1-Mar 31. Kokanee daily quota = 3, Apr 1-Aug 31. Yellow perch daily quota = 20.",
+      "rules": [
+        {
+          "verbatim_text": "**No Ice Fishing**",
+          "rule": "No Ice Fishing",
+          "type": "closure",
+          "dates": null,
+          "species": null
+        },
+        {
+          "verbatim_text": "**No Fishing** for kokanee Sept 1-Mar 31",
+          "rule": "No Fishing for kokanee",
+          "type": "closure",
+          "dates": [
+            "Sept 1-Mar 31"
+          ],
+          "species": [
+            "kokanee"
+          ]
+        },
+        {
+          "verbatim_text": "Kokanee daily quota = 3, Apr 1-Aug 31",
+          "rule": "Kokanee daily quota = 3",
+          "type": "harvest",
+          "dates": [
+            "Apr 1-Aug 31"
+          ],
+          "species": [
+            "Kokanee"
+          ]
+        },
+        {
+          "verbatim_text": "Yellow perch daily quota = 20",
+          "rule": "Yellow perch daily quota = 20",
+          "type": "harvest",
+          "dates": null,
+          "species": [
+            "Yellow perch"
+          ]
+        }
+      ]
+    },
+    {
+      "location": "on parts",
+      "raw_text": "Speed restriction (10 km/h) on parts",
+      "cleaned_text": "Speed restriction (10 km/h) on parts.",
+      "rules": [
+        {
+          "verbatim_text": "Speed restriction (10 km/h) on parts",
+          "rule": "Speed restriction (10 km/h)",
+          "type": "restriction",
+          "dates": null,
+          "species": null
+        }
+      ]
+    }
+  ]
+}
+
+All Validation Errors:
+  - Group 0 (): Rule 0: verbatim_text not found in geographic group's raw_text
+  - Group 0 (): Rule 1: verbatim_text not found in geographic group's raw_text
+
+
+================================================================================
+Batch Failures at 2026-01-09T15:59:02.532558
+================================================================================
+
+[1393] WOOD LAKE
+--------------------------------------------------------------------------------
+Error Type: validation_error
+Error: Group 0 (): Rule 0: verbatim_text not found in geographic group's raw_text; Group 0 (): Rule 1: verbatim_text not found in geographic group's raw_text
+
+Full Input (raw_regs):
+**No Ice Fishing
+No Fishing** for kokanee Sept 1-Mar 31
+Kokanee daily quota = 3, Apr 1-Aug 31
+Yellow perch daily quota = 20
+Speed restriction (10 km/h) on parts
+
+Model Output:
+{
+  "waterbody_name": "WOOD LAKE",
+  "raw_text": "**No Ice Fishing\nNo Fishing** for kokanee Sept 1-Mar 31\nKokanee daily quota = 3, Apr 1-Aug 31\nYellow perch daily quota = 20\nSpeed restriction (10 km/h) on parts",
+  "cleaned_text": "**No Ice Fishing. No Fishing** for kokanee Sept 1-Mar 31. Kokanee daily quota = 3, Apr 1-Aug 31. Yellow perch daily quota = 20. Speed restriction (10 km/h) on parts.",
+  "geographic_groups": [
+    {
+      "location": "",
+      "raw_text": "**No Ice Fishing\nNo Fishing** for kokanee Sept 1-Mar 31\nKokanee daily quota = 3, Apr 1-Aug 31\nYellow perch daily quota = 20",
+      "cleaned_text": "**No Ice Fishing. No Fishing** for kokanee Sept 1-Mar 31. Kokanee daily quota = 3, Apr 1-Aug 31. Yellow perch daily quota = 20.",
+      "rules": [
+        {
+          "verbatim_text": "**No Ice Fishing**",
+          "rule": "No Ice Fishing",
+          "type": "closure",
+          "dates": null,
+          "species": null
+        },
+        {
+          "verbatim_text": "**No Fishing** for kokanee Sept 1-Mar 31",
+          "rule": "No Fishing for kokanee",
+          "type": "closure",
+          "dates": [
+            "Sept 1-Mar 31"
+          ],
+          "species": [
+            "kokanee"
+          ]
+        },
+        {
+          "verbatim_text": "Kokanee daily quota = 3, Apr 1-Aug 31",
+          "rule": "Kokanee daily quota = 3",
+          "type": "harvest",
+          "dates": [
+            "Apr 1-Aug 31"
+          ],
+          "species": [
+            "kokanee"
+          ]
+        },
+        {
+          "verbatim_text": "Yellow perch daily quota = 20",
+          "rule": "Yellow perch daily quota = 20",
+          "type": "harvest",
+          "dates": null,
+          "species": [
+            "yellow perch"
+          ]
+        }
+      ]
+    },
+    {
+      "location": "parts",
+      "raw_text": "Speed restriction (10 km/h) on parts",
+      "cleaned_text": "Speed restriction (10 km/h) on parts.",
+      "rules": [
+        {
+          "verbatim_text": "Speed restriction (10 km/h) on parts",
+          "rule": "Speed restriction (10 km/h)",
+          "type": "restriction",
+          "dates": null,
+          "species": null
+        }
+      ]
+    }
+  ]
+}
+
+All Validation Errors:
+  - Group 0 (): Rule 0: verbatim_text not found in geographic group's raw_text
+  - Group 0 (): Rule 1: verbatim_text not found in geographic group's raw_text
+

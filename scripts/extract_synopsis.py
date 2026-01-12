@@ -32,6 +32,7 @@ class WaterbodyRow:
     symbols: List[str]
     page: int
     image: str
+    region: Optional[str] = None
     
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for JSON serialization."""
@@ -66,7 +67,7 @@ class PageResult:
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for JSON serialization."""
         return {
-            'metadata': self.metadata.to_dict(),
+            'context': self.metadata.to_dict(),
             'rows': [row.to_dict() for row in self.rows]
         }
     
@@ -74,7 +75,7 @@ class PageResult:
     def from_dict(cls, data: Dict[str, Any]) -> 'PageResult':
         """Create PageResult from dictionary."""
         return cls(
-            metadata=PageMetadata.from_dict(data['metadata']),
+            metadata=PageMetadata.from_dict(data['context']),
             rows=[WaterbodyRow.from_dict(row) for row in data['rows']]
         )
 
@@ -457,6 +458,143 @@ class FishingSynopsisParser:
                     symbols.append("Stocked")
         return symbols
 
+    def _is_bold_font(self, char: Dict[str, Any]) -> bool:
+        """
+        Determine if a character uses a bold font.
+        
+        PDFs can indicate bold in several ways:
+        1. Font name contains 'Bold', 'Heavy', 'Black', etc.
+        2. Font weight > 400 (if available)
+        3. Font name ends with '-B' or ',Bold'
+        
+        Args:
+            char: Character dict from pdfplumber with 'fontname' key
+        
+        Returns:
+            True if character is bold, False otherwise
+        """
+        fontname = char.get('fontname', '')
+        if not fontname:
+            return False
+        
+        # Check for common bold indicators in font name
+        fontname_upper = fontname.upper()
+        bold_indicators = ['BOLD', 'HEAVY', 'BLACK', 'SEMIBOLD', '-B', ',BOLD']
+        
+        return any(indicator in fontname_upper for indicator in bold_indicators)
+    
+    def extract_text_with_bold(self, page_section) -> str:
+        """
+        Extract text from a page section with bold formatting preserved using Markdown syntax.
+    
+        Args:
+            page_section: A pdfplumber page or filtered page section
+        
+        Returns:
+            Text string with bold portions wrapped in **
+        """
+        chars = page_section.chars
+        if not chars:
+            return ""
+        
+        # Group characters into lines based on vertical position
+        result_lines = []
+        current_line = []
+        current_line_top = None
+        line_height_threshold = 5  # Points - characters within this vertical distance are on same line
+        
+        # Sort all characters by top position first
+        chars_by_top = sorted(chars, key=lambda c: c.get('top', 0))
+        
+        for char in chars_by_top:
+            char_top = char.get('top', 0)
+            
+            # Check if this character is on a new line
+            if current_line_top is None:
+                current_line_top = char_top
+            elif abs(char_top - current_line_top) > line_height_threshold:
+                # Process the completed line - IMPORTANT: sort by x0 before processing
+                if current_line:
+                    current_line.sort(key=lambda c: c.get('x0', 0))
+                    result_lines.append(self._process_line_with_bold(current_line))
+                current_line = []
+                current_line_top = char_top
+            
+            current_line.append(char)
+        
+        # Process the last line - IMPORTANT: sort by x0 before processing
+        if current_line:
+            current_line.sort(key=lambda c: c.get('x0', 0))
+            result_lines.append(self._process_line_with_bold(current_line))
+        
+        return '\n'.join(result_lines)
+
+    def _process_line_with_bold(self, chars: List[Dict[str, Any]]) -> str:
+        """
+        Process a line of characters, grouping them by bold status and building a string
+        with ** markers around bold segments.
+        
+        Args:
+            chars: List of character dicts on the same line, already sorted by x0
+        
+        Returns:
+            String with bold text wrapped in **
+        """
+        if not chars:
+            return ""
+        
+        result = []
+        current_segment = []
+        current_segment_chars = []  # Track actual char objects for spacing detection
+        current_is_bold = None
+        
+        for i, char in enumerate(chars):
+            text = char.get('text', '')
+            is_bold = self._is_bold_font(char)
+            
+            # Detect if we need a space before this character
+            # Check horizontal gap between this char and previous char in segment
+            needs_space = False
+            if current_segment_chars:
+                prev_char = current_segment_chars[-1]
+                # Calculate gap: current char's left edge - previous char's right edge
+                gap = char.get('x0', 0) - prev_char.get('x1', 0)
+                # If gap is larger than ~20% of the character width, insert space
+                char_width = char.get('width', 0)
+                if char_width > 0 and gap > char_width * 0.2:
+                    needs_space = True
+            
+            # If bold status changed, flush current segment
+            if current_is_bold is not None and is_bold != current_is_bold:
+                segment_text = ''.join(current_segment)
+                if segment_text:  # Only add non-empty segments
+                    if current_is_bold:
+                        result.append(f"**{segment_text}**")
+                    else:
+                        result.append(segment_text)
+                current_segment = []
+                current_segment_chars = []
+                needs_space = False  # Space will be handled between segments naturally
+            
+            # Add space if needed before adding the character
+            if needs_space and current_segment:
+                current_segment.append(' ')
+            
+            current_segment.append(text)
+            current_segment_chars.append(char)
+            current_is_bold = is_bold
+        
+        # Flush the last segment
+        if current_segment:
+            segment_text = ''.join(current_segment)
+            if segment_text:
+                if current_is_bold:
+                    result.append(f"**{segment_text}**")
+                else:
+                    result.append(segment_text)
+        
+        return ''.join(result)
+
     def _generate_audit_image(self, clean_page, page_num):
         page_debug_dir = os.path.join(self.audit_dir, f"page_{page_num:03d}")
         os.makedirs(page_debug_dir, exist_ok=True)
@@ -756,8 +894,9 @@ class FishingSynopsisParser:
             left = row_context.within_bbox((left_x0, left_y0, left_x1, left_y1))
             right = row_context.within_bbox((right_x0, right_y0, right_x1, right_y1))
             
-            water_raw = left.extract_text(layout=True) or ""
-            regs_raw = right.extract_text(layout=True) or ""
+            # Extract text with bold formatting preserved (using ** Markdown syntax)
+            water_raw = self.extract_text_with_bold(left) or ""
+            regs_raw = self.extract_text_with_bold(right) or ""
             
             # Process waterbody column (name, symbols, MUs)
             w_txt, w_sym, mus = self.process_waterbody_column(water_raw)
@@ -775,10 +914,31 @@ class FishingSynopsisParser:
             regs_raw = regs_raw.replace('\u201c', '"').replace('\u201d', '"')  # Curly double quotes → straight
             
             # Replace tributaries symbols with standardized placeholder text
-            trib_pattern = r'[\uf0dc\uf02a\*]'
+            trib_pattern = r'[\uf0dc\uf02a]'
             regs_raw = re.sub(trib_pattern, '[Includes Tributaries]', regs_raw)
             regs_raw = regs_raw.replace("Includes tributaries", "[Includes Tributaries]")
             regs_raw = regs_raw.replace("Incl. Tribs", "[Includes Tributaries]")
+            
+            # Fix dates/numbers split across lines with bold markers
+            # Step 1: Remove bolded whitespace (spaces/tabs only) and replace with single space
+            # "**   **" → " ", "**\t\t**" → " "
+            regs_raw = re.sub(r'\*\*[ \t]+\*\*', ' ', regs_raw)
+            
+            # Step 2: Remove bold markers around newlines (keep the newline)
+            # "June **\n**1" → "June \n1"
+            regs_raw = re.sub(r'\*\*\s*\n\s*\*\*', '\n', regs_raw)
+            
+            # Step 2: Fix date ranges split by newlines
+            # Pattern matches: Month Day-Month\nDay or Month\nDay-Month Day
+            # Examples: "Apr 1-June\n14" → "Apr 1-June 14", "June\n15-Mar 31" → "June 15-Mar 31"
+            month_pattern = r'(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|June?|July?|Aug(?:ust)?|Sept?(?:ember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)'
+            # Match: (month + optional spaces/digits/hyphens) + newline + (digits)
+            date_newline_pattern = rf'({month_pattern}(?:\s+\d+)?\s*-\s*{month_pattern}?)\s*\n\s*(\d+)'
+            regs_raw = re.sub(date_newline_pattern, r'\1 \2', regs_raw, flags=re.IGNORECASE)
+            
+            # Also handle: Month\nDay (at start of date range)
+            date_start_pattern = rf'({month_pattern})\s*\n\s*(\d+)'
+            regs_raw = re.sub(date_start_pattern, r'\1 \2', regs_raw, flags=re.IGNORECASE)
             
             # Normalize whitespace: replace multiple spaces/newlines with single space/newline
             regs_raw = re.sub(r'[ \t]+', ' ', regs_raw)  # Multiple spaces/tabs → single space
@@ -800,7 +960,8 @@ class FishingSynopsisParser:
                     raw_regs=regs_raw.strip(),
                     symbols=all_syms,
                     page=page_num,
-                    image=image_key
+                    image=image_key,
+                    region=region_header
                 ))
         
         result = PageResult(metadata=metadata, rows=structured_data)
@@ -827,8 +988,13 @@ class FishingSynopsisParser:
         text = text.replace('\u201c', '"').replace('\u201d', '"')  # Curly double quotes → straight
         
         # Extract Management Units (MUs)
-        mu_pattern = r'(?<!\()(?<!M\.U\. )\b\d{1,2}-\d{1,2}\b'
-        found_mus = re.findall(mu_pattern, text)
+        # Updated pattern to handle MUs:
+        # - At the start of text (^)
+        # - After whitespace (\s)
+        # - Directly attached to letters (e.g., "LAKE1-11")
+        # But NOT after opening paren or "M.U. "
+        mu_pattern = r'(?<!\()(?<!M\.U\. )(?:(?<=\s)|(?<=[A-Za-z])|^)(\d{1,2}-\d{1,2})\b'
+        found_mus = re.findall(mu_pattern, text, re.MULTILINE)
         if found_mus:
             mu_list = list(dict.fromkeys(found_mus))
             for mu in mu_list:

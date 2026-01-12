@@ -79,59 +79,6 @@ EXPECTED_SYMBOLS = {
     ],
 }
 
-# Build expected regions for all pages in each range
-EXPECTED_REGIONS = []
-for page in range(16, 22):
-    EXPECTED_REGIONS.append((page, "REGION 1 - Vancouver Island"))
-for page in range(24, 29):
-    EXPECTED_REGIONS.append((page, "REGION 2 - Lower Mainland"))
-for page in range(31, 35):
-    EXPECTED_REGIONS.append((page, "REGION 3 - Thompson-Nicola"))
-for page in range(37, 43):
-    EXPECTED_REGIONS.append((page, "REGION 4 - Kootenay"))
-for page in range(49, 54):
-    EXPECTED_REGIONS.append((page, "REGION 5 - Cariboo"))
-for page in range(56, 61):
-    EXPECTED_REGIONS.append((page, "REGION 6 - Skeena"))
-for page in range(65, 68):
-    EXPECTED_REGIONS.append((page, "REGION 7A - Omineca"))
-for page in range(71, 73):
-    EXPECTED_REGIONS.append((page, "REGION 7B - Peace"))
-for page in range(75, 78):
-    EXPECTED_REGIONS.append((page, "REGION 8 - Okanagan"))
-
-# Derive list of pages with tables from EXPECTED_REGIONS
-PAGES_WITH_TABLES = [page_num for page_num, _ in EXPECTED_REGIONS]
-
-@pytest.mark.parametrize("page_num, expected_region", EXPECTED_REGIONS)
-def test_region_metadata_extraction(parser, pdf, page_num, expected_region):
-    """Verify that region metadata is correctly extracted for each region."""
-    result = parser.extract_rows(pdf.pages[page_num - 1])
-    metadata = result.metadata
-    
-    assert metadata.region is not None, f"Page {page_num}: Region is None"
-    # Use exact equality to ensure we're not capturing extra text
-    assert metadata.region == expected_region, \
-        f"Page {page_num}: Expected '{expected_region}' but got '{metadata.region}'"
-
-@pytest.mark.parametrize("page_num", PAGES_WITH_TABLES)
-def test_row_extraction_integrity(parser, pdf, page_num):
-    """Verify each page returns data and filters out headers."""
-    raw_page = pdf.pages[page_num - 1]
-    result = parser.extract_rows(raw_page)
-    rows = result.rows
-    
-    assert len(rows) > 0, f"Page {page_num}: No rows extracted."
-    
-    for row in rows:
-        assert "WATER BODY" not in row.water.upper()
-        # Raw data has: water, mu, raw_regs, symbols, page, image
-        assert hasattr(row, 'water') and hasattr(row, 'mu') and hasattr(row, 'raw_regs')
-        assert hasattr(row, 'symbols') and hasattr(row, 'page') and hasattr(row, 'image')
-        assert isinstance(row.symbols, list)
-        # raw_regs should be a string (not parsed yet)
-        assert isinstance(row.raw_regs, str), f"raw_regs for {row.water} is not a string"
-
 @pytest.mark.parametrize("page_num, expected", EXPECTED_FIRST_ROWS.items())
 def test_first_row_content(parser, pdf, page_num, expected):
     """Verify the very first data row matches expectations (No-skip logic)."""
@@ -268,6 +215,62 @@ def test_canim_river_specific_logic(parser, pdf):
     assert "5-15" not in canim.mu
     assert "(also in M.U. 5-15)" in canim.water
     assert raw_regs_contain(canim, "catch and release")
+
+
+
+# Build expected regions for all pages in each range
+EXPECTED_REGIONS = []
+for page in range(16, 22):
+    EXPECTED_REGIONS.append((page, "REGION 1 - Vancouver Island"))
+for page in range(24, 29):
+    EXPECTED_REGIONS.append((page, "REGION 2 - Lower Mainland"))
+for page in range(31, 35):
+    EXPECTED_REGIONS.append((page, "REGION 3 - Thompson-Nicola"))
+for page in range(37, 43):
+    EXPECTED_REGIONS.append((page, "REGION 4 - Kootenay"))
+for page in range(49, 54):
+    EXPECTED_REGIONS.append((page, "REGION 5 - Cariboo"))
+for page in range(56, 61):
+    EXPECTED_REGIONS.append((page, "REGION 6 - Skeena"))
+for page in range(65, 68):
+    EXPECTED_REGIONS.append((page, "REGION 7A - Omineca"))
+for page in range(71, 73):
+    EXPECTED_REGIONS.append((page, "REGION 7B - Peace"))
+for page in range(75, 78):
+    EXPECTED_REGIONS.append((page, "REGION 8 - Okanagan"))
+
+# Derive list of pages with tables from EXPECTED_REGIONS
+PAGES_WITH_TABLES = [page_num for page_num, _ in EXPECTED_REGIONS]
+
+@pytest.mark.parametrize("page_num, expected_region", EXPECTED_REGIONS)
+def test_region_metadata_extraction(parser, pdf, page_num, expected_region):
+    """Verify that region metadata is correctly extracted for each region."""
+    result = parser.extract_rows(pdf.pages[page_num - 1])
+    metadata = result.metadata
+    
+    assert metadata.region is not None, f"Page {page_num}: Region is None"
+    # Use exact equality to ensure we're not capturing extra text
+    assert metadata.region == expected_region, \
+        f"Page {page_num}: Expected '{expected_region}' but got '{metadata.region}'"
+
+@pytest.mark.parametrize("page_num", PAGES_WITH_TABLES)
+def test_row_extraction_integrity(parser, pdf, page_num):
+    """Verify each page returns data and filters out headers."""
+    raw_page = pdf.pages[page_num - 1]
+    result = parser.extract_rows(raw_page)
+    rows = result.rows
+    
+    assert len(rows) > 0, f"Page {page_num}: No rows extracted."
+    
+    for row in rows:
+        assert "WATER BODY" not in row.water.upper()
+        # Raw data has: water, mu, raw_regs, symbols, page, image
+        assert hasattr(row, 'water') and hasattr(row, 'mu') and hasattr(row, 'raw_regs')
+        assert hasattr(row, 'symbols') and hasattr(row, 'page') and hasattr(row, 'image')
+        assert isinstance(row.symbols, list)
+        # raw_regs should be a string (not parsed yet)
+        assert isinstance(row.raw_regs, str), f"raw_regs for {row.water} is not a string"
+
 
 TOTAL_PAGES = 88 
 EMPTY_PAGES = [
