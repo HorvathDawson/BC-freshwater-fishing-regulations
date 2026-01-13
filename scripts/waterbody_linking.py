@@ -27,13 +27,13 @@ Output:
 Usage:
     # Run full pipeline
     python waterbody_linking.py
-    
+
     # Run only matching step
     python waterbody_linking.py --step match
-    
+
     # Export to GDB only (requires matched_waterbodies.json)
     python waterbody_linking.py --step export-gdb
-    
+
     # Create reverse index only
     python waterbody_linking.py --step reverse-index
 """
@@ -695,6 +695,50 @@ def process_waterbody(
     # Deduplicate by feature_id
     unique_matches = {m["feature_id"]: m for m in all_matches}.values()
     final_matches = list(unique_matches)
+    
+    # Check if regulations include "Incl. Tribs" symbol
+    # If yes, also match all tributaries of this waterbody
+    has_incl_tribs = any(
+        "Incl. Tribs" in reg.get("symbols", [])
+        for reg in regulations
+    )
+    
+    if has_incl_tribs and final_matches:
+        pipeline_log.append(f"Found 'Incl. Tribs' symbol - searching for tributaries...")
+        tributary_matches = []
+        
+        # Search for streams that have TRIBUTARY_OF matching this waterbody
+        # Use the original waterbody name (not normalized) for tributary matching
+        tributary_search_names = [waterbody_key]
+        
+        # Also try target names if corrections were applied
+        if applied_correction and applied_correction.target_names:
+            tributary_search_names.extend(applied_correction.target_names)
+        
+        for trib_name in tributary_search_names:
+            # Search for "X Tributary" pattern (normalized)
+            trib_search = normalize_name(trib_name + " tributary")
+            trib_results = search_gis_index(trib_search, zones, index, matched_kml_points)
+            
+            if trib_results:
+                # Filter to only include streams (tributaries should be streams)
+                stream_tribs = [m for m in trib_results if m.get("type") == "stream"]
+                if stream_tribs:
+                    tributary_matches.extend(stream_tribs)
+                    pipeline_log.append(
+                        f"Found {len(stream_tribs)} tributaries for '{trib_name}'"
+                    )
+        
+        # Deduplicate and add to final matches
+        if tributary_matches:
+            # Combine with existing matches and deduplicate
+            all_with_tribs = list(final_matches) + tributary_matches
+            unique_with_tribs = {m["feature_id"]: m for m in all_with_tribs}.values()
+            tribs_added = len(unique_with_tribs) - len(final_matches)
+            final_matches = list(unique_with_tribs)
+            pipeline_log.append(
+                f"Added {tribs_added} unique tributary feature(s) due to 'Incl. Tribs'"
+            )
 
     if final_matches:
         stats["matched"] += 1
@@ -1082,23 +1126,23 @@ def save_linking_warnings(
 
 def create_reverse_index(matched_results: Dict, output_dir: Path) -> None:
     """Create a reverse index: feature_id -> regulation data.
-    
+
     This allows looking up regulations by GIS feature ID.
-    
+
     Args:
         matched_results: Dictionary of matched waterbody results
         output_dir: Directory to save the reverse index
     """
     print(f"\n{'-'*60}\nCREATING REVERSE INDEX\n{'-'*60}")
-    
+
     reverse_index = {}
     feature_count = 0
-    
+
     for region, waterbodies in matched_results.items():
         for waterbody_key, wb_data in waterbodies.items():
             if wb_data["match_status"] != "matched":
                 continue
-                
+
             # Extract regulation summary (remove internal fields)
             regulation_summary = {
                 "region": region,
@@ -1106,49 +1150,55 @@ def create_reverse_index(matched_results: Dict, output_dir: Path) -> None:
                 "original_names": wb_data["original_waterbody_names"],
                 "regulations": wb_data["regulations"],
             }
-            
+
             # Add each GIS feature to the reverse index
             for gis_match in wb_data["gis_matches"]:
                 feature_id = gis_match["feature_id"]
-                
+
                 # Features can be linked to multiple waterbodies (e.g., tributaries)
                 # Store as list to handle multi-regulation features
                 if feature_id not in reverse_index:
                     reverse_index[feature_id] = []
-                    
-                reverse_index[feature_id].append({
-                    **regulation_summary,
-                    "feature_type": gis_match["type"],
-                    "feature_zone": gis_match.get("_source_zone"),
-                    "matched_on_name": gis_match.get("_matched_on"),
-                })
+
+                reverse_index[feature_id].append(
+                    {
+                        **regulation_summary,
+                        "feature_type": gis_match["type"],
+                        "feature_zone": gis_match.get("_source_zone"),
+                        "matched_on_name": gis_match.get("_matched_on"),
+                    }
+                )
                 feature_count += 1
-    
+
     output_path = output_dir / "feature_regulation_index.json"
     with open(output_path, "w", encoding="utf-8") as f:
         json.dump(reverse_index, f, indent=2, ensure_ascii=False)
-    
+
     unique_features = len(reverse_index)
-    print(f"Created reverse index: {unique_features} unique features, {feature_count} total feature-regulation links")
+    print(
+        f"Created reverse index: {unique_features} unique features, {feature_count} total feature-regulation links"
+    )
     print(f"Output: {output_path}")
 
 
-def export_to_gdb(matched_results: Dict, waterbody_index: Dict, output_dir: Path) -> None:
+def export_to_gdb(
+    matched_results: Dict, waterbody_index: Dict, output_dir: Path
+) -> None:
     """Export matched waterbodies to a geodatabase.
-    
+
     Creates a GDB with separate feature classes for streams, points, and polygons.
     Each feature includes regulation data as attributes.
-    
+
     NOTE: Geometries are read from the source GDB, not from waterbody_index.json
     (which doesn't contain geometry to keep file size manageable).
-    
+
     Args:
         matched_results: Dictionary of matched waterbody results
         waterbody_index: GIS waterbody index (used to find layer names)
         output_dir: Directory to create the GDB
     """
     print(f"\n{'-'*60}\nEXPORTING TO GEODATABASE\n{'-'*60}")
-    
+
     try:
         import fiona
         from fiona.crs import CRS
@@ -1158,104 +1208,134 @@ def export_to_gdb(matched_results: Dict, waterbody_index: Dict, output_dir: Path
         print("Error: fiona, shapely, and geopandas are required for GDB export")
         print("Install with: conda install -c conda-forge fiona shapely geopandas")
         return
-    
+
     # Find source GDB path (sibling to waterbody_index.json)
     script_dir = Path(__file__).parent
     source_gdb = script_dir / "output" / "fwa_preprocessing" / "FWA_Zone_Grouped.gdb"
-    
+
     if not source_gdb.exists():
         print(f"Error: Source GDB not found: {source_gdb}")
         print("Run fwa_preprocessing.py first to create the GDB")
         return
-    
+
     gdb_path = output_dir / "matched_waterbodies.gdb"
-    
+
     # Remove existing GDB if present
     if gdb_path.exists():
         import shutil
+
         shutil.rmtree(gdb_path)
-    
+
     # Build lookup: unique_id -> regulation data
     # For streams: LINEAR_FEATURE_ID
     # For polygons: WATERBODY_POLY_ID
     # For points: use layer + FID (points don't have unique IDs across layers)
+    # Features can match multiple waterbodies (e.g., by name AND by tributary relationship)
     print("Building feature ID to regulation lookup...")
     feature_reg_lookup = {}
     matched_layer_set = set()  # Track which layers we need
-    
+
     for region, waterbodies in matched_results.items():
         for waterbody_key, wb_data in waterbodies.items():
             if wb_data["match_status"] != "matched":
                 continue
-            
-            # Serialize regulations to JSON string
-            regulations_json = json.dumps(wb_data["regulations"], ensure_ascii=False)
-            
+
             for gis_match in wb_data["gis_matches"]:
                 feature_type = gis_match["type"]
                 layer_name = gis_match.get("layer", "")
-                
+
                 if not layer_name:
                     continue
-                
+
                 matched_layer_set.add(layer_name)
-                
-                # Build attributes for this feature
-                attributes = {
-                    "FEATURE_ID": gis_match["feature_id"][:254],
-                    "REGION": region[:100],
-                    "WATERBODY": waterbody_key[:254],
-                    "ORIG_NAMES": ", ".join(wb_data["original_waterbody_names"])[:254],
-                    "FEATURE_TYP": feature_type[:50],
-                    "SOURCE_ZON": str(gis_match.get("_source_zone", ""))[:10],
-                    "MATCHED_ON": str(gis_match.get("_matched_on", ""))[:254],
-                    "REGS_JSON": regulations_json[:32000],
-                }
-                
-                # Add GIS attributes
                 gis_attrs = gis_match.get("attributes", {})
-                if "GNIS_NAME" in gis_attrs:
-                    attributes["GNIS_NAME"] = str(gis_attrs.get("GNIS_NAME", ""))[:254]
-                if "GNIS_NAME_1" in gis_attrs:
-                    attributes["GNIS_NAME"] = str(gis_attrs.get("GNIS_NAME_1", ""))[:254]
-                if "WATERBODY_POLY_ID" in gis_attrs:
-                    attributes["WB_POLY_ID"] = str(gis_attrs["WATERBODY_POLY_ID"])[:50]
-                
+
                 # Determine unique key based on feature type
+                key = None
                 if feature_type == "stream":
                     # Use LINEAR_FEATURE_ID for streams
                     unique_id = gis_attrs.get("LINEAR_FEATURE_ID")
                     if unique_id:
                         key = ("stream", str(unique_id))
-                        feature_reg_lookup[key] = attributes
                 elif feature_type in ["lake", "wetland", "manmade"]:
                     # Use WATERBODY_POLY_ID for polygons
                     unique_id = gis_attrs.get("WATERBODY_POLY_ID")
                     if unique_id:
                         key = ("polygon", str(unique_id))
-                        feature_reg_lookup[key] = attributes
                 elif feature_type == "point":
                     # Points: use layer + feature_id (no unique ID field)
                     key = ("point", layer_name, gis_match["feature_id"])
+                
+                if not key:
+                    continue
+                
+                # Check if feature already has regulations from another waterbody match
+                if key in feature_reg_lookup:
+                    # Merge regulations: add new regulations to existing list
+                    existing = feature_reg_lookup[key]
+                    existing_regs = json.loads(existing["REGS_JSON"])
+                    new_regs = wb_data["regulations"]
+                    merged_regs = existing_regs + new_regs
+                    
+                    # Update fields
+                    existing["REGS_JSON"] = json.dumps(merged_regs, ensure_ascii=False)[:32000]
+                    # Add to waterbody names list
+                    existing_wb_names = existing["WATERBODY"].split(" | ")
+                    if waterbody_key not in existing_wb_names:
+                        existing["WATERBODY"] = (existing["WATERBODY"] + " | " + waterbody_key)[:254]
+                    # Add to original names list
+                    existing_orig = set(existing["ORIG_NAMES"].split(", "))
+                    new_orig = set(wb_data["original_waterbody_names"])
+                    merged_orig = sorted(existing_orig | new_orig)
+                    existing["ORIG_NAMES"] = ", ".join(merged_orig)[:254]
+                    # Add to matched_on list
+                    existing_matched = existing["MATCHED_ON"].split(" | ")
+                    new_matched = str(gis_match.get("_matched_on", ""))
+                    if new_matched and new_matched not in existing_matched:
+                        existing["MATCHED_ON"] = (existing["MATCHED_ON"] + " | " + new_matched)[:254]
+                else:
+                    # First time seeing this feature - create new entry
+                    regulations_json = json.dumps(wb_data["regulations"], ensure_ascii=False)
+                    
+                    attributes = {
+                        "FEATURE_ID": gis_match["feature_id"][:254],
+                        "REGION": region[:100],
+                        "WATERBODY": waterbody_key[:254],
+                        "ORIG_NAMES": ", ".join(wb_data["original_waterbody_names"])[:254],
+                        "FEATURE_TYP": feature_type[:50],
+                        "SOURCE_ZON": str(gis_match.get("_source_zone", ""))[:10],
+                        "MATCHED_ON": str(gis_match.get("_matched_on", ""))[:254],
+                        "REGS_JSON": regulations_json[:32000],
+                    }
+                    
+                    # Add GIS attributes
+                    if "GNIS_NAME" in gis_attrs:
+                        attributes["GNIS_NAME"] = str(gis_attrs.get("GNIS_NAME", ""))[:254]
+                    if "GNIS_NAME_1" in gis_attrs:
+                        attributes["GNIS_NAME"] = str(gis_attrs.get("GNIS_NAME_1", ""))[:254]
+                    if "WATERBODY_POLY_ID" in gis_attrs:
+                        attributes["WB_POLY_ID"] = str(gis_attrs["WATERBODY_POLY_ID"])[:50]
+                    # Include TRIBUTARY_OF field for streams
+                    if "TRIBUTARY_OF" in gis_attrs:
+                        attributes["TRIB_OF"] = str(gis_attrs.get("TRIBUTARY_OF", ""))[:254]
+                    
                     feature_reg_lookup[key] = attributes
-    
-    print(f"Found {len(feature_reg_lookup)} feature-regulation links across {len(matched_layer_set)} layers")
-    
+
+    print(
+        f"Found {len(feature_reg_lookup)} unique features with regulations across {len(matched_layer_set)} layers"
+    )
+
     # Read features from source GDB and add regulation attributes
     print("Reading features from source GDB and adding regulations...")
-    
-    features_by_type = {
-        "streams": [],
-        "points": [],
-        "polygons": []
-    }
-    
+
+    features_by_type = {"streams": [], "points": [], "polygons": []}
+
     feature_count = 0
     skipped_count = 0
-    
+
     # Track KML points with polygon links: (zone, poly_id, poly_type) -> reg_attrs
     point_polygon_links = {}
-    
+
     # Process each matched layer
     for layer_name in sorted(matched_layer_set):
         try:
@@ -1275,123 +1355,128 @@ def export_to_gdb(matched_results: Dict, waterbody_index: Dict, output_dir: Path
                     unique_field = "WATERBODY_POLY_ID"
                 else:
                     continue
-                
+
                 # Read features
                 for feat in src:
                     # Build lookup key based on feature type
                     if lookup_type == "point":
                         # Points: use layer + FID
-                        fid = str(feat['id'])
+                        fid = str(feat["id"])
                         key = (lookup_type, layer_name, fid)
                     else:
                         # Streams and polygons: use unique ID field
-                        unique_id = feat['properties'].get(unique_field)
+                        unique_id = feat["properties"].get(unique_field)
                         if not unique_id:
                             continue
                         key = (lookup_type, str(unique_id))
-                    
+
                     # Check if this feature has regulations
                     if key not in feature_reg_lookup:
                         continue
-                    
+
                     # Get regulation attributes
                     reg_attrs = feature_reg_lookup[key]
-                    
+
                     # Merge with GDB properties (regulation attrs take precedence)
-                    properties = {**feat['properties'], **reg_attrs}
-                    
-                    features_by_type[output_type].append({
-                        "geometry": feat['geometry'],
-                        "properties": properties
-                    })
+                    properties = {**feat["properties"], **reg_attrs}
+
+                    features_by_type[output_type].append(
+                        {"geometry": feat["geometry"], "properties": properties}
+                    )
                     feature_count += 1
-                    
+
                     # If this is a KML point with polygon links, track them
                     if output_type == "points":
                         # Extract zone from layer name (e.g., "LABELED_POINTS_ZONE_2" -> "2")
                         zone = layer_name.split("_")[-1]
-                        
+
                         # Check for polygon ID fields
                         poly_links = [
                             ("LAKE_POLY_ID", "lake", f"LAKES_ZONE_{zone}"),
                             ("WETLAND_POLY_ID", "wetland", f"WETLANDS_ZONE_{zone}"),
                             ("MANMADE_POLY_ID", "manmade", f"MANMADE_ZONE_{zone}"),
                         ]
-                        
+
                         for poly_field, poly_type, poly_layer in poly_links:
-                            poly_id = feat['properties'].get(poly_field)
-                            if poly_id and str(poly_id) != "nan" and str(poly_id) != "None":
+                            poly_id = feat["properties"].get(poly_field)
+                            if (
+                                poly_id
+                                and str(poly_id) != "nan"
+                                and str(poly_id) != "None"
+                            ):
                                 # Store link with regulation attrs
                                 link_key = (poly_layer, str(poly_id), poly_type)
                                 point_polygon_links[link_key] = reg_attrs.copy()
                                 # Mark as linked from point
                                 point_polygon_links[link_key]["LINKED_PT"] = "Yes"
-                    
+
         except Exception as e:
             print(f"Warning: Error reading layer {layer_name}: {e}")
             skipped_count += 1
-    
+
     print(f"Collected {feature_count} features with regulations")
-    
+
     # Add linked polygons from KML points
     if point_polygon_links:
         print(f"Processing {len(point_polygon_links)} polygon links from KML points...")
         linked_poly_count = 0
-        
+
         for (poly_layer, poly_id, poly_type), reg_attrs in point_polygon_links.items():
             try:
                 with fiona.open(str(source_gdb), layer=poly_layer) as src:
                     # Search for polygon with matching WATERBODY_POLY_ID
                     for feat in src:
-                        feat_poly_id = str(feat['properties'].get('WATERBODY_POLY_ID', ''))
+                        feat_poly_id = str(
+                            feat["properties"].get("WATERBODY_POLY_ID", "")
+                        )
                         if feat_poly_id == poly_id:
                             # Found the linked polygon - add it with regulations
-                            properties = {**feat['properties'], **reg_attrs}
-                            
-                            features_by_type["polygons"].append({
-                                "geometry": feat['geometry'],
-                                "properties": properties
-                            })
+                            properties = {**feat["properties"], **reg_attrs}
+
+                            features_by_type["polygons"].append(
+                                {"geometry": feat["geometry"], "properties": properties}
+                            )
                             linked_poly_count += 1
                             feature_count += 1
                             break  # Found the polygon, move to next link
-                            
+
             except Exception as e:
                 # Layer might not exist (e.g., no lakes in this zone)
                 pass
-        
+
         print(f"Added {linked_poly_count} linked polygons from KML points")
-    
+
     # Define schema for regulation fields (will be added to existing GDB properties)
     regulation_fields = {
         "REGION": "str:100",
         "WATERBODY": "str:254",
         "ORIG_NAMES": "str:254",
         "MATCHED_ON": "str:254",
+        "TRIB_OF": "str:254",  # TRIBUTARY_OF field for streams
         "REGS_JSON": "str:32000",
         "LINKED_PT": "str:10",  # Indicates polygon was linked from KML point
     }
-    
+
     # Auto-detect schema from first feature of each type
     schemas = {}
     for layer_name, features in features_by_type.items():
         if not features:
             continue
-        
+
         # Get sample feature to determine geometry type and properties
         sample_feat = features[0]
-        geom_type = sample_feat['geometry']['type']
-        
+        geom_type = sample_feat["geometry"]["type"]
+
         # Promote to Multi* types
         if geom_type == "LineString":
             geom_type = "MultiLineString"
         elif geom_type == "Polygon":
             geom_type = "MultiPolygon"
-        
+
         # Collect all unique property keys from all features
         all_props = {}
         for feat in features:
-            for key, value in feat['properties'].items():
+            for key, value in feat["properties"].items():
                 if key not in all_props:
                     # Determine type
                     if isinstance(value, int):
@@ -1400,25 +1485,22 @@ def export_to_gdb(matched_results: Dict, waterbody_index: Dict, output_dir: Path
                         all_props[key] = "float"
                     else:
                         all_props[key] = "str:254"
-        
+
         # Override with regulation field types
         all_props.update(regulation_fields)
-        
-        schemas[layer_name] = {
-            "geometry": geom_type,
-            "properties": all_props
-        }
-    
+
+        schemas[layer_name] = {"geometry": geom_type, "properties": all_props}
+
     print(f"Created schemas for {len(schemas)} output layers")
-    
+
     # Write each layer
     for layer_name, features in features_by_type.items():
         if not features:
             print(f"Skipping {layer_name}: no features")
             continue
-        
+
         schema = schemas[layer_name]
-        
+
         with fiona.open(
             str(gdb_path),  # GDB path only
             "w",
@@ -1436,33 +1518,41 @@ def export_to_gdb(matched_results: Dict, waterbody_index: Dict, output_dir: Path
                     if value is None:
                         value = "" if schema["properties"][key].startswith("str") else 0
                     props[key] = value
-                
+
                 geom = feature["geometry"]
-                geom_type = geom['type']
-                
+                geom_type = geom["type"]
+
                 # Convert single geometries to Multi* if needed for schema
-                if schema["geometry"] == "MultiLineString" and geom_type == "LineString":
-                    geom = {"type": "MultiLineString", "coordinates": [geom["coordinates"]]}
+                if (
+                    schema["geometry"] == "MultiLineString"
+                    and geom_type == "LineString"
+                ):
+                    geom = {
+                        "type": "MultiLineString",
+                        "coordinates": [geom["coordinates"]],
+                    }
                 elif schema["geometry"] == "MultiPolygon" and geom_type == "Polygon":
-                    geom = {"type": "MultiPolygon", "coordinates": [geom["coordinates"]]}
-                
-                dst.write({
-                    "geometry": geom,
-                    "properties": props
-                })
-        
+                    geom = {
+                        "type": "MultiPolygon",
+                        "coordinates": [geom["coordinates"]],
+                    }
+
+                dst.write({"geometry": geom, "properties": props})
+
         print(f"Wrote {len(features)} features to {layer_name} layer")
-    
+
     print(f"GDB created: {gdb_path} ({feature_count} total features)")
 
 
-def load_input_data(script_dir: Path, grouped_results_path: Optional[str] = None) -> Tuple[Dict, Dict, Path, Path]:
+def load_input_data(
+    script_dir: Path, grouped_results_path: Optional[str] = None
+) -> Tuple[Dict, Dict, Path, Path]:
     """Load input data files.
-    
+
     Args:
         script_dir: Script directory path
         grouped_results_path: Optional custom path to grouped_results.json
-    
+
     Returns:
         Tuple of (grouped_dict, index, grouped_path, index_path)
     """
@@ -1498,18 +1588,20 @@ def load_input_data(script_dir: Path, grouped_results_path: Optional[str] = None
         print(f"Found {len(grouped_dict)} regions in data (using 'grouped' key)")
     else:
         raise ValueError(f"Could not find 'regions' or 'grouped' key in {grouped_path}")
-    
+
     return grouped_dict, index, grouped_path, index_path
 
 
-def run_matching(grouped_dict: Dict, index: Dict, output_dir: Path) -> Tuple[Dict, List, Dict, Set, Set]:
+def run_matching(
+    grouped_dict: Dict, index: Dict, output_dir: Path
+) -> Tuple[Dict, List, Dict, Set, Set]:
     """Run the waterbody matching process.
-    
+
     Args:
         grouped_dict: Dictionary of grouped regulations by region
         index: GIS waterbody index
         output_dir: Output directory
-    
+
     Returns:
         Tuple of (results, unmatched_rows, stats, all_kml_points, matched_kml_points)
     """
@@ -1595,10 +1687,16 @@ def run_matching(grouped_dict: Dict, index: Dict, output_dir: Path) -> Tuple[Dic
     return results, unmatched_rows, stats, all_kml_points, matched_kml_points
 
 
-def save_all_results(results: Dict, unmatched_rows: List, stats: Dict, 
-                     all_kml_points: Set, matched_kml_points: Set, output_dir: Path) -> None:
+def save_all_results(
+    results: Dict,
+    unmatched_rows: List,
+    stats: Dict,
+    all_kml_points: Set,
+    matched_kml_points: Set,
+    output_dir: Path,
+) -> None:
     """Save all matching results to files.
-    
+
     Args:
         results: Matched waterbody results
         unmatched_rows: Unmatched waterbody data
@@ -1613,14 +1711,14 @@ def save_all_results(results: Dict, unmatched_rows: List, stats: Dict,
         print(f"  {stats['ignored']} waterbodies ignored")
     if "warnings" in stats:
         print(f"  {stats['warnings']} matches have warnings")
-    
+
     save_matched_results(results, output_dir)
     save_unmatched_csv(
         unmatched_rows, output_dir, ignored_count=stats.get("ignored", 0)
     )
     save_warnings_log(results, output_dir)
     save_linking_warnings(all_kml_points, matched_kml_points, results, output_dir)
-    
+
     print(f"{'-'*60}")
 
 
@@ -1648,35 +1746,33 @@ Examples:
   
   # Run matching and reverse index, skip GDB export
   python waterbody_linking.py --skip-gdb
-        """
+        """,
     )
     parser.add_argument(
         "--input",
         help="Path to grouped_results.json file (relative to scripts/ or absolute)",
-        metavar="PATH"
+        metavar="PATH",
     )
     parser.add_argument(
         "--step",
         choices=["match", "export-gdb", "reverse-index", "all"],
         default="all",
-        help="Which step to run (default: all)"
+        help="Which step to run (default: all)",
     )
     parser.add_argument(
-        "--skip-gdb",
-        action="store_true",
-        help="Skip GDB export in full pipeline"
+        "--skip-gdb", action="store_true", help="Skip GDB export in full pipeline"
     )
     parser.add_argument(
         "--skip-reverse-index",
         action="store_true",
-        help="Skip reverse index creation in full pipeline"
+        help="Skip reverse index creation in full pipeline",
     )
-    
+
     args = parser.parse_args()
     script_dir = Path(__file__).parent
     output_dir = script_dir / "output" / "waterbody_linking"
     output_dir.mkdir(parents=True, exist_ok=True)
-    
+
     try:
         # STEP 1: Load data (always needed)
         if args.step in ["match", "all"]:
@@ -1688,46 +1784,58 @@ Examples:
             matched_path = output_dir / "matched_waterbodies.json"
             if not matched_path.exists():
                 print(f"Error: {matched_path} not found")
-                print("Run matching step first: python waterbody_linking.py --step match")
+                print(
+                    "Run matching step first: python waterbody_linking.py --step match"
+                )
                 return
-            
+
             with open(matched_path, "r", encoding="utf-8") as f:
                 results = json.load(f)
-            
+
             # Load index if needed for GDB export
             if args.step == "export-gdb":
-                index_path = script_dir / "output" / "fwa_preprocessing" / "waterbody_index.json"
+                index_path = (
+                    script_dir / "output" / "fwa_preprocessing" / "waterbody_index.json"
+                )
                 if not index_path.exists():
                     print(f"Error: {index_path} not found")
                     return
                 with open(index_path, "r", encoding="utf-8") as f:
                     index = json.load(f)
-        
+
         # STEP 2: Run matching
         if args.step in ["match", "all"]:
-            results, unmatched_rows, stats, all_kml_points, matched_kml_points = run_matching(
-                grouped_dict, index, output_dir
+            results, unmatched_rows, stats, all_kml_points, matched_kml_points = (
+                run_matching(grouped_dict, index, output_dir)
             )
             save_all_results(
-                results, unmatched_rows, stats, all_kml_points, matched_kml_points, output_dir
+                results,
+                unmatched_rows,
+                stats,
+                all_kml_points,
+                matched_kml_points,
+                output_dir,
             )
-        
+
         # STEP 3: Create reverse index
-        if args.step == "reverse-index" or (args.step == "all" and not args.skip_reverse_index):
+        if args.step == "reverse-index" or (
+            args.step == "all" and not args.skip_reverse_index
+        ):
             create_reverse_index(results, output_dir)
-        
+
         # STEP 4: Export to GDB
         if args.step == "export-gdb" or (args.step == "all" and not args.skip_gdb):
             export_to_gdb(results, index, output_dir)
-        
+
         print(f"\n{C_GREEN}✓ Pipeline complete{C_RESET}")
-        
+
     except FileNotFoundError as e:
         print(f"Error: {e}")
         sys.exit(1)
     except Exception as e:
         print(f"Error: {e}")
         import traceback
+
         traceback.print_exc()
         sys.exit(1)
 

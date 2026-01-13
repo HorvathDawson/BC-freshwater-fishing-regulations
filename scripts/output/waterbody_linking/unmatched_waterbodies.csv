@@ -19,15 +19,14 @@ REGION 4 - Kootenay,KIKOMUN CREEK PARK,kikomun creek park,,,['4-22'],"kikomun cr
 REGION 4 - Kootenay,LEWIS SLOUGH,lewis slough,,,['4-21'],"six mile slough, taylor slough, french slough"
 REGION 4 - Kootenay,LITTLE MITTEN LAKE,little mitten lake,,,['4-34'],"little chief lake, little mosquito lake, little gem lake"
 REGION 4 - Kootenay,MOSES CREEK,moses creek,,,['4-39'],"moose creek, moores creek, bose creek"
-REGION 4 - Kootenay,PREMIER LAKE'S TRIBUTARIES,premier lake's tributaries,,,['4-21'],"parmater lake tributary, erie lake tributary, deer lake tributary"
 REGION 4 - Kootenay,SLEWISKIN CREEK,slewiskin creek,,,['4-15'],"lewis creek, ewin creek, swiss creek"
 REGION 4 - Kootenay,SPRING LAKE,spring lake,,,['4-22'],"silver spring lake, king lake, sink lake"
-REGION 4 - Kootenay,WHITESWAN LAKE'S INLET & OUTLET STREAMS,whiteswan lake's inlet & outlet streams,,,['4-24'],
+REGION 4 - Kootenay,WHITESWAN LAKE'S INLET & OUTLET STREAMS,whiteswan lake's inlet & outlet streams,,,['4-24'],whiteswan lake tributary
 REGION 5 - Cariboo,"ATNARKO/BELLA COOLA RIVERS EXCEPT: Burnt Bridge Creek upstream of Sitkatapa Creek, Hunlen Creek upstream of Hunlen Falls, and Young Creek upstream of Hwy 20","atnarko/bella coola rivers except: burnt bridge creek upstream of sitkatapa creek, hunlen creek upstream of hunlen falls, and young creek upstream of hwy 20",,,"['5-11', '5-6', '5-8']",
 REGION 5 - Cariboo,BEAVER CREEK chain of lakes,beaver creek chain of lakes,,,['5-2'],"beavertail lake, beaver creek"
 REGION 5 - Cariboo,BLACKWATER RIVER,blackwater river,,,['5-13'],"blackwater lake, mackay river, kwatna river"
 REGION 5 - Cariboo,BOWRON LAKE Park waters other than Bowron Lake,bowron lake park waters other than bowron lake,,,['5-16'],
-REGION 5 - Cariboo,CHILKO LAKE'S tributary streams,chilko lake's tributary streams,,,['5-4'],"euchiniko lakes tributary, shiko lake tributary, lucile lakes tributary"
+REGION 5 - Cariboo,CHILKO LAKE'S tributary streams,chilko lake's tributary streams,,,['5-4'],"euchiniko lakes tributary, shiko lake tributary, chisel lake tributary"
 REGION 5 - Cariboo,CHIPMUNK LAKE,chipmunk lake,,,['6-1'],"chapman lake, chismaina lake, chipmunk creek"
 REGION 5 - Cariboo,FROG LAKE,frog lake,,,['5-6'],"roger lake, roe lake, fox lake"
 REGION 5 - Cariboo,MAYDOE LAKE,maydoe lake,,,['5-6'],"madden lake, hyde lake, maze lake"
@@ -79,7 +78,7 @@ REGION 7B - Peace,CHINAMAN LAKE,chinaman lake,,,['7-35'],"chinchaga lakes, norma
 REGION 7B - Peace,CHUNAMUN LAKE,chunamun lake,,,['7-35'],"chu lake, chain lakes, duncan lake"
 REGION 7B - Peace,LIARD RIVER WATERSHED,liard river watershed,,,['7-53'],"liard river, liard river tributary"
 REGION 7B - Peace,RADAR LAKE,radar lake,,,['7-20'],"adam lake, adams lake, darby lake"
-REGION 8 - Okanagan,BLUEY LAKE POTHOLES,bluey lake potholes,,,['8-6'],"bluey lake, blue lake"
+REGION 8 - Okanagan,BLUEY LAKE POTHOLES,bluey lake potholes,,,['8-6'],"bluey lake, blue lake, bluey lake tributary"
 REGION 8 - Okanagan,CLIFFORD LAKE,clifford lake,,,['8-5'],"ford lake, gulliford lake, clier lake"
 REGION 8 - Okanagan,FIVE O'CLOCK LAKE,five o'clock lake,,,['8-14'],"whitecloud lake, lodwick lake, hook lake"
 REGION 8 - Okanagan,HALL ROAD POND,hall road pond,,,['8-10'],"hamilton pond, art pond"

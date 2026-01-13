@@ -232,6 +232,7 @@ def process_stream_layer_worker(args):
 
         for idx, row in streams.iterrows():
             gnis_name = row.get("GNIS_NAME")
+            tributary_of = row.get("TRIBUTARY_OF")
             normalized = normalize_name(gnis_name)
 
             if normalized:
@@ -252,16 +253,24 @@ def process_stream_layer_worker(args):
                 feature_data = {
                     "type": "stream",
                     "gnis_name": gnis_name,
+                    "tributary_of": tributary_of,
                     "layer": layer_name,
                     "feature_id": str(idx),
                     "attributes": feature_dict,
                 }
 
+                # Index by GNIS_NAME
                 if normalized not in layer_results:
                     layer_results[normalized] = []
-
                 layer_results[normalized].append(feature_data)
                 feature_count += 1
+
+                # FIX 3: Also index by TRIBUTARY_OF as "X Tributary" for linking
+                if tributary_of:
+                    tributary_normalized = normalize_name(tributary_of + " tributary")
+                    if tributary_normalized not in layer_results:
+                        layer_results[tributary_normalized] = []
+                    layer_results[tributary_normalized].append(feature_data)
 
         return (zone, layer_results, feature_count, layer_name)
 
@@ -892,6 +901,9 @@ class FWAProcessor:
             self.get_code_depth
         )
 
+        # Initialize TRIBUTARY_OF field
+        streams_gdf["TRIBUTARY_OF"] = None
+
         originally_unnamed_mask = (streams_gdf["GNIS_NAME"].isna()) | (
             streams_gdf["GNIS_NAME"].str.strip() == ""
         )
@@ -901,6 +913,33 @@ class FWAProcessor:
         logger.info(
             f"Protected {self.stats['original_named_streams']:,} originally named streams."
         )
+
+        # FIX 1: Unnamed streams with same watershed code as named streams inherit the name
+        logger.info(
+            "Assigning names to unnamed streams with same watershed code as named streams..."
+        )
+        name_by_code = streams_gdf.loc[
+            named_mask, ["clean_code", "GNIS_NAME"]
+        ].drop_duplicates(subset="clean_code")
+        code_to_name = pd.Series(
+            name_by_code["GNIS_NAME"].values, index=name_by_code["clean_code"]
+        )
+
+        # Map unnamed streams to names via clean_code
+        inherited_names = streams_gdf.loc[originally_unnamed_mask, "clean_code"].map(
+            code_to_name
+        )
+        inherited_mask = originally_unnamed_mask & inherited_names.notna()
+        streams_gdf.loc[inherited_mask, "GNIS_NAME"] = inherited_names[inherited_mask]
+        logger.info(
+            f" -> Inherited names for {inherited_mask.sum():,} unnamed stream segments (same watershed code)"
+        )
+
+        # Update masks after inheriting names
+        originally_unnamed_mask = (streams_gdf["GNIS_NAME"].isna()) | (
+            streams_gdf["GNIS_NAME"].str.strip() == ""
+        )
+        named_mask = ~originally_unnamed_mask
 
         logger.info("Assigning River Tributary names...")
 
@@ -914,100 +953,128 @@ class FWAProcessor:
             index=name_df["clean_code"],
         )
 
-        # Use vectorized string operations
-        parents = streams_gdf.loc[originally_unnamed_mask, "parent_code"].map(name_map)
-        matched_mask = originally_unnamed_mask & parents.notna()
+        # Use vectorized string operations to find parent names
+        # This applies to BOTH unnamed and originally named streams
+        all_streams_parents = streams_gdf["parent_code"].map(name_map)
+        streams_with_parent = all_streams_parents.notna()
 
-        streams_gdf.loc[matched_mask, "GNIS_NAME"] = (
-            parents[matched_mask] + " Tributary"
+        # Set TRIBUTARY_OF for all streams with a parent (both named and unnamed)
+        streams_gdf.loc[streams_with_parent, "TRIBUTARY_OF"] = all_streams_parents[
+            streams_with_parent
+        ]
+
+        # Only update GNIS_NAME for originally unnamed streams
+        unnamed_with_parent = originally_unnamed_mask & streams_with_parent
+        streams_gdf.loc[unnamed_with_parent, "GNIS_NAME"] = (
+            all_streams_parents[unnamed_with_parent] + " Tributary"
         )
-        self.stats["river_tributaries_found"] = matched_mask.sum()
-        logger.info(f" -> Initial river matches: {matched_mask.sum():,}")
+
+        self.stats["river_tributaries_found"] = unnamed_with_parent.sum()
+        logger.info(
+            f" -> Set TRIBUTARY_OF for {streams_with_parent.sum():,} streams (named and unnamed)"
+        )
+        logger.info(
+            f" -> Enriched names for {unnamed_with_parent.sum():,} unnamed tributaries"
+        )
 
         if not lakes_gdf.empty:
             logger.info("Verifying Lake Tributaries...")
 
-            # Pre-filter candidates once
-            candidate_mask = (originally_unnamed_mask) & (
-                streams_gdf["GNIS_NAME"].str.endswith(" Tributary", na=False)
+            # Check ALL streams (both named and unnamed) that touch lakes
+            # We'll set TRIBUTARY_OF for all, but only update GNIS_NAME for unnamed
+            candidate_streams = streams_gdf.copy()
+            completed_codes = set()
+
+            # Pre-filter and prepare lakes
+            named_lakes = lakes_gdf[
+                (lakes_gdf["GNIS_NAME_1"].notna())
+                & (lakes_gdf["GNIS_NAME_1"].str.strip() != "")
+            ].copy()
+
+            # Vectorized depth calculation
+            named_lakes["depth"] = named_lakes["FWA_WATERSHED_CODE"].apply(
+                self.get_code_depth
             )
+            named_lakes = named_lakes.sort_values("depth", ascending=False)
+            unique_depths = sorted(named_lakes["depth"].unique(), reverse=True)
 
-            if not candidate_mask.any():
-                logger.info(" -> No candidates to verify, skipping lake enrichment")
-            else:
-                candidate_streams = streams_gdf[candidate_mask].copy()
-                completed_codes = set()
+            total_corrected = 0
+            total_trib_of_set = 0
 
-                # Pre-filter and prepare lakes
-                named_lakes = lakes_gdf[
-                    (lakes_gdf["GNIS_NAME_1"].notna())
-                    & (lakes_gdf["GNIS_NAME_1"].str.strip() != "")
-                ].copy()
+            if candidate_streams.crs != named_lakes.crs:
+                named_lakes = named_lakes.to_crs(candidate_streams.crs)
 
-                # Vectorized depth calculation
-                named_lakes["depth"] = named_lakes["FWA_WATERSHED_CODE"].apply(
-                    self.get_code_depth
+            for lake_depth in unique_depths:
+                lakes_at_depth = named_lakes[named_lakes["depth"] == lake_depth][
+                    ["geometry", "GNIS_NAME_1", "depth"]
+                ]
+
+                # Check streams with higher depth than lake (tributaries flow into lakes)
+                current_candidates = candidate_streams[
+                    (~candidate_streams["clean_code"].isin(completed_codes))
+                    & (candidate_streams["depth"] > lake_depth)
+                ]
+
+                if current_candidates.empty:
+                    continue
+
+                join_result = self.parallel_spatial_join(
+                    current_candidates[["geometry", "FWA_WATERSHED_CODE"]],
+                    lakes_at_depth,
                 )
-                named_lakes = named_lakes.sort_values("depth", ascending=False)
-                unique_depths = sorted(named_lakes["depth"].unique(), reverse=True)
 
-                total_corrected = 0
-
-                if candidate_streams.crs != named_lakes.crs:
-                    named_lakes = named_lakes.to_crs(candidate_streams.crs)
-
-                for lake_depth in unique_depths:
-                    lakes_at_depth = named_lakes[named_lakes["depth"] == lake_depth][
-                        ["geometry", "GNIS_NAME_1", "depth"]
-                    ]
-
-                    # More efficient filtering using boolean indexing
-                    current_candidates = candidate_streams[
-                        (~candidate_streams["clean_code"].isin(completed_codes))
-                        & (candidate_streams["depth"] > lake_depth)
-                    ]
-
-                    if current_candidates.empty:
-                        continue
-
-                    join_result = self.parallel_spatial_join(
-                        current_candidates[["geometry", "FWA_WATERSHED_CODE"]],
-                        lakes_at_depth,
+                if not join_result.empty:
+                    code_to_lake = (
+                        join_result.groupby("FWA_WATERSHED_CODE")["GNIS_NAME_1"]
+                        .first()
+                        .to_dict()
                     )
 
-                    if not join_result.empty:
-                        code_to_lake = (
-                            join_result.groupby("FWA_WATERSHED_CODE")["GNIS_NAME_1"]
-                            .first()
-                            .to_dict()
-                        )
+                    mask_codes = streams_gdf["FWA_WATERSHED_CODE"].isin(
+                        code_to_lake.keys()
+                    )
 
-                        mask_codes = streams_gdf["FWA_WATERSHED_CODE"].isin(
-                            code_to_lake.keys()
-                        )
-                        mask_safe_update = mask_codes & originally_unnamed_mask
+                    # Set TRIBUTARY_OF for ALL streams that touch lakes (named and unnamed)
+                    lake_names = streams_gdf.loc[mask_codes, "FWA_WATERSHED_CODE"].map(
+                        code_to_lake
+                    )
+                    streams_gdf.loc[mask_codes, "TRIBUTARY_OF"] = lake_names
+                    total_trib_of_set += mask_codes.sum()
 
-                        lake_names = streams_gdf.loc[
-                            mask_safe_update, "FWA_WATERSHED_CODE"
+                    # Only update GNIS_NAME for originally unnamed streams
+                    mask_unnamed_update = mask_codes & originally_unnamed_mask
+                    if mask_unnamed_update.any():
+                        lake_names_unnamed = streams_gdf.loc[
+                            mask_unnamed_update, "FWA_WATERSHED_CODE"
                         ].map(code_to_lake)
-                        streams_gdf.loc[mask_safe_update, "GNIS_NAME"] = (
-                            lake_names + " Tributary"
+                        streams_gdf.loc[mask_unnamed_update, "GNIS_NAME"] = (
+                            lake_names_unnamed + " Tributary"
                         )
+                        total_corrected += mask_unnamed_update.sum()
 
-                        completed_codes.update(code_to_lake.keys())
-                        total_corrected += len(code_to_lake)
+                    completed_codes.update(code_to_lake.keys())
 
             self.stats["lake_tributaries_corrected"] = total_corrected
-            logger.info(f" -> Corrected {total_corrected:,} tributary systems.")
+            logger.info(
+                f" -> Set TRIBUTARY_OF for {total_trib_of_set:,} streams touching lakes (named and unnamed)"
+            )
+            logger.info(
+                f" -> Enriched names for {total_corrected:,} unnamed lake tributaries"
+            )
+        else:
+            logger.info(" -> Skipping lake tributary processing (no lakes loaded)")
 
         final_streams = streams_gdf[
             (streams_gdf["GNIS_NAME"].notna())
             & (streams_gdf["GNIS_NAME"].str.strip() != "")
         ].copy()
 
-        final_streams = final_streams.drop(
-            columns=["clean_code", "parent_code", "depth"]
-        )
+        # Drop temporary columns but keep TRIBUTARY_OF
+        temp_cols = ["clean_code", "parent_code", "depth"]
+        cols_to_drop = [c for c in temp_cols if c in final_streams.columns]
+        if cols_to_drop:
+            final_streams = final_streams.drop(columns=cols_to_drop)
+
         self.stats["final_streams_count"] = len(final_streams)
 
         # Force garbage collection after heavy processing
@@ -1142,6 +1209,7 @@ class FWAProcessor:
             if not joined_streams.empty:
                 z_streams = joined_streams[joined_streams["ZONE_GROUP"] == zone]
                 if not z_streams.empty:
+                    # Streams are linear, use LINEAR_FEATURE_ID for deduplication
                     z_streams = z_streams.drop_duplicates(subset=["LINEAR_FEATURE_ID"])
                     keep_cols = [
                         c for c in streams_gdf.columns if c in z_streams.columns
@@ -1163,9 +1231,17 @@ class FWAProcessor:
             if not joined_lakes.empty:
                 z_lakes = joined_lakes[joined_lakes["ZONE_GROUP"] == zone]
                 if not z_lakes.empty:
+                    # FIX: Deduplicate by POLY_ID to keep multi-polygon lakes (like Kinbasket) intact
                     dedup = (
-                        "WATERBODY_KEY" if "WATERBODY_KEY" in z_lakes.columns else None
+                        "WATERBODY_POLY_ID"
+                        if "WATERBODY_POLY_ID" in z_lakes.columns
+                        else (
+                            "WATERBODY_KEY"
+                            if "WATERBODY_KEY" in z_lakes.columns
+                            else None
+                        )
                     )
+
                     if dedup:
                         z_lakes = z_lakes.drop_duplicates(subset=[dedup])
                     else:
@@ -1189,9 +1265,17 @@ class FWAProcessor:
             if not joined_wetlands.empty:
                 z_wet = joined_wetlands[joined_wetlands["ZONE_GROUP"] == zone]
                 if not z_wet.empty:
+                    # FIX: Deduplicate by POLY_ID
                     dedup = (
-                        "WATERBODY_KEY" if "WATERBODY_KEY" in z_wet.columns else None
+                        "WATERBODY_POLY_ID"
+                        if "WATERBODY_POLY_ID" in z_wet.columns
+                        else (
+                            "WATERBODY_KEY"
+                            if "WATERBODY_KEY" in z_wet.columns
+                            else None
+                        )
                     )
+
                     if dedup:
                         z_wet = z_wet.drop_duplicates(subset=[dedup])
                     else:
@@ -1215,9 +1299,17 @@ class FWAProcessor:
             if not joined_manmade.empty:
                 z_man = joined_manmade[joined_manmade["ZONE_GROUP"] == zone]
                 if not z_man.empty:
+                    # FIX: Deduplicate by POLY_ID
                     dedup = (
-                        "WATERBODY_KEY" if "WATERBODY_KEY" in z_man.columns else None
+                        "WATERBODY_POLY_ID"
+                        if "WATERBODY_POLY_ID" in z_man.columns
+                        else (
+                            "WATERBODY_KEY"
+                            if "WATERBODY_KEY" in z_man.columns
+                            else None
+                        )
                     )
+
                     if dedup:
                         z_man = z_man.drop_duplicates(subset=[dedup])
                     else:
@@ -1473,10 +1565,13 @@ class FWAProcessor:
         logger.info(f"  Unique names: {total_unique_names}")
         logger.info(f"  Zones covered: {len(output_index)}")
 
+        logger.info(f"Writing index to: {output_path}")
         with open(output_path, "w", encoding="utf-8") as f:
-            json.dump(output_index, f, indent=2, ensure_ascii=False)
-
-        logger.info(f"Index saved to: {output_path}")
+            # Write without indentation to reduce file size dramatically
+            json.dump(output_index, f, ensure_ascii=False, separators=(",", ":"))
+        logger.info(
+            f"Index saved successfully ({output_path.stat().st_size / 1024 / 1024:.1f} MB)"
+        )
 
     def run(self, test_mode=False, build_index=False):
         start = time.time()

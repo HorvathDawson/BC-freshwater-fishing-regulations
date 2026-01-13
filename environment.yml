@@ -1,0 +1,19 @@
+name: fish
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - pdfplumber
+  - numpy
+  - scikit-learn
+  - pillow
+  - matplotlib
+  - pandas
+  - geopandas
+  - fiona
+  - google-genai
+  - pyyaml
+  - pytest
+  - pip
+  - pip:
+    - google-genai

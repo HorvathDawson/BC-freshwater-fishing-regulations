@@ -15,7 +15,7 @@ SECTION 1: UNMATCHED KML POINTS
 SECTION 2: UNMATCHED NAME CORRECTION TARGETS
 ================================================================================
 
-The following 2 target names from NAME_CORRECTIONS were not matched in GIS.
+The following 1 target names from NAME_CORRECTIONS were not matched in GIS.
 This could indicate:
   - The target name has a typo or incorrect spelling
   - The GIS feature is missing from the index
@@ -23,12 +23,6 @@ This could indicate:
   - The correction should be updated or removed
 
 --------------------------------------------------------------------------------
-
-REGION 4 - Kootenay
---------------------------------------------------------------------------------
-
-PREMIER LAKE'S TRIBUTARIES:
-  ⚠ premier lake tributary
 
 REGION 6 - Skeena
 --------------------------------------------------------------------------------
