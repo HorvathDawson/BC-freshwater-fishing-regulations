@@ -89,26 +89,18 @@ def load_stream_layer_worker(args):
     """Worker function to load a single stream layer in parallel.
 
     Streams are stored across 200+ separate layers in the GDB. This function loads
-    one layer at a time and extracts only the columns we need, reducing memory usage.
+    one layer at a time with all available columns.
 
     Args:
         args: Tuple of (gdb_path, layer_name)
 
     Returns:
-        GeoDataFrame with essential columns, or None if loading fails
+        GeoDataFrame with all columns, or None if loading fails
     """
     gdb_path, layer_name = args
     try:
         gdf = gpd.read_file(str(gdb_path), layer=layer_name)
-        # Only keep columns we actually need to reduce memory footprint
-        cols = [
-            "FWA_WATERSHED_CODE",  # Hierarchical watershed identifier
-            "GNIS_NAME",  # Geographic names (if already named)
-            "geometry",  # Stream line geometry
-            "LINEAR_FEATURE_ID",  # Unique identifier for deduplication
-        ]
-        existing = [c for c in cols if c in gdf.columns]
-        return gdf[existing]
+        return gdf
     except Exception as e:
         logger.warning(f"Skipping {layer_name}: {e}")
         return None
