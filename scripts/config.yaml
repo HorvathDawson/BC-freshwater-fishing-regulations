@@ -1,0 +1,61 @@
+# BC Freshwater Fishing Regulations Pipeline Configuration
+
+# Output Directories
+directories:
+  output: "output"
+  extract: "output/extract_synopsis"
+  parse: "output/llm_parser"
+  fwa: "output/FWA_zone_processing"
+  data: "data"
+
+# PDF Extraction Settings
+extraction:
+  dbscan_eps: 0.15
+  dbscan_min_samples: 3
+  cluster_pass_threshold: 0.80
+  color_diff_threshold: 30
+  luminance_threshold: 180
+  min_ink_pixels_standard: 4
+  min_font_size: 4.0
+  max_font_size: 30.0
+  min_symbol_dim: 4.0
+  max_symbol_dim: 25.0
+  map_rejection_dim: 35.0
+
+# LLM Parsing Settings
+parsing:
+  batch_size: 45
+  max_retries: 3
+  # model: "gemini-3-flash-preview"
+  model: "gemini-2.5-flash"
+
+# API Keys (override with environment variables)
+api_keys:
+  - id: "horvath.dawson"
+    env_var: "GOOGLE_API_KEY"
+    default: "AIzaSyBPZigLsxFIU7JOFSux8ZqS03p9-E878VE"
+  - id: "darcy.turin"
+    env_var: "GOOGLE_API_KEY_2"
+    default: "AIzaSyC9C-PueILJLJ32bWpUzAV7sQ3R-VXpSUA"
+  - id: "datswrite"
+    env_var: "GOOGLE_API_KEY_3"
+    default: "AIzaSyA83jZlnUeswsdnljezcSld6UQE2hPys-M"
+  - id: "helpfulhints116"
+    env_var: "GOOGLE_API_KEY_4"
+    default: "AIzaSyD4jJOcWpml2ATn9Jo_6iY-B3sdh68jOi0"
+  - id: "ridgedvids"
+    env_var: "GOOGLE_API_KEY_5"
+    default: "AIzaSyB5eO1OVh7j1iCtJdYUQ8xUp0SicOyAIAE"
+  - id: "rylee1"
+    env_var: "GOOGLE_API_KEY_6"
+    default: "AIzaSyDVOdruzqiaMnzwcYarGKQkx3J9KCNq6KM"
+  - id: "rylee2"
+    env_var: "GOOGLE_API_KEY_7"
+    default: "AIzaSyCHNmUhAZ-SljDr2ARCT2QohRVyV5i-M-s"
+
+# FWA Processing Settings
+fwa:
+  streams_gdb: "data/ftp.geobc.gov.bc.ca/sections/outgoing/bmgs/FWA_BC/FWA_STREAM_NETWORKS_SP.gdb"
+  lakes_gdb: "data/ftp.geobc.gov.bc.ca/sections/outgoing/bmgs/FWA_BC/FWA_LAKES_POLY.gdb"
+  wildlife_gpkg: "data/ftp.geobc.gov.bc.ca/sections/outgoing/bmgs/FWA_BC/wildlife_mgmt_units.gpkg"
+  kml_path: "data/labelled/unnamed_lakes.kml"

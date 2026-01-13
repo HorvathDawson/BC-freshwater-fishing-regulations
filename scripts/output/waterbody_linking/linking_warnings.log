@@ -1,0 +1,37 @@
+WATERBODY LINKING WARNINGS LOG
+================================================================================
+
+This file contains warnings about potential issues in the linking process.
+
+
+================================================================================
+SECTION 1: UNMATCHED KML POINTS
+================================================================================
+
+✓ All 61 KML points matched to regulations
+
+
+================================================================================
+SECTION 2: UNMATCHED NAME CORRECTION TARGETS
+================================================================================
+
+The following 2 target names from NAME_CORRECTIONS were not matched in GIS.
+This could indicate:
+  - The target name has a typo or incorrect spelling
+  - The GIS feature is missing from the index
+  - The feature is in a different management zone
+  - The correction should be updated or removed
+
+--------------------------------------------------------------------------------
+
+REGION 4 - Kootenay
+--------------------------------------------------------------------------------
+
+PREMIER LAKE'S TRIBUTARIES:
+  ⚠ premier lake tributary
+
+REGION 6 - Skeena
+--------------------------------------------------------------------------------
+
+RANCHERIA RIVER'S TRIBUTARIES:
+  ⚠ rancheria river tributary

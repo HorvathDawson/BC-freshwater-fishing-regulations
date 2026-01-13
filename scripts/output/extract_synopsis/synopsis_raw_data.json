@@ -12,8 +12,8 @@
         ],
         "raw_regs": "No powered boats",
         "symbols": [
-          "Stocked",
-          "Incl. Tribs"
+          "Incl. Tribs",
+          "Stocked"
         ],
         "page": 6,
         "image": "page_006_row_000.png",
@@ -58,8 +58,8 @@
         ],
         "raw_regs": "**Class II water Apr 1-Oct 31; Steelhead Stamp mandatory Apr 1-June 30**",
         "symbols": [
-          "Classified",
-          "Incl. Tribs"
+          "Incl. Tribs",
+          "Classified"
         ],
         "page": 16,
         "image": "page_016_row_001.png",
@@ -485,12 +485,13 @@
         "region": "REGION 1 - Vancouver Island"
       },
       {
-        "water": "COPPER CREEK 6-12",
-        "mu": [],
+        "water": "COPPER CREEK",
+        "mu": [
+          "6-12"
+        ],
         "raw_regs": "**No Fishing** from Skidegate Lake to signs at second bridge 6 km upstream of tidal boundary, Feb 1-Apr 30\nBait ban Nov 1-Apr 30[Includes Tributaries]; cutthroat trout catch and release\n**Class II water Sept 1-Apr 30**[Includes Tributaries]**; Steelhead Stamp mandatory Dec 1-Apr 30**[Includes Tributaries]",
         "symbols": [
-          "Classified",
-          "Incl. Tribs"
+          "Classified"
         ],
         "page": 17,
         "image": "page_017_row_002.png",
@@ -612,8 +613,8 @@
         ],
         "raw_regs": "Bait ban Nov 1-Apr 30;** Class II water Sept 1-Apr 30; Steelhead Stamp mandatory Dec 1-Apr 30**",
         "symbols": [
-          "Classified",
-          "Incl. Tribs"
+          "Incl. Tribs",
+          "Classified"
         ],
         "page": 17,
         "image": "page_017_row_012.png",
@@ -633,13 +634,14 @@
         "region": "REGION 1 - Vancouver Island"
       },
       {
-        "water": "DEENA CREEK 6-12",
-        "mu": [],
+        "water": "DEENA CREEK",
+        "mu": [
+          "6-12"
+        ],
         "raw_regs": "**No Fishing** upstream of fishing boundary signs at second bridge approximately 5 km upstream of the tidal boundary[Includes Tributaries], Feb 1-May 31;\nCutthroat catch and release;\nBait ban Nov 1-Apr 30[Includes Tributaries]; C**lass II water Sept 1-Apr 30; Steelhead Stamp mandatory Dec 1-Apr 30**",
         "symbols": [
-          "Classified",
           "Stocked",
-          "Incl. Tribs"
+          "Classified"
         ],
         "page": 17,
         "image": "page_017_row_014.png",
@@ -1145,8 +1147,8 @@
         ],
         "raw_regs": "Bait ban Nov 1-Apr 30; cutthroat trout catch and release\n**Class II water Sept 1-Apr 30; Steelhead Stamp mandatory Dec 1-Apr 30**",
         "symbols": [
-          "Classified",
-          "Incl. Tribs"
+          "Incl. Tribs",
+          "Classified"
         ],
         "page": 18,
         "image": "page_018_row_026.png",
@@ -1225,8 +1227,8 @@
         ],
         "raw_regs": "**Class II water Apr 1-Oct 31; Steelhead Stamp mandatory Apr 1-June 30**",
         "symbols": [
-          "Classified",
-          "Incl. Tribs"
+          "Incl. Tribs",
+          "Classified"
         ],
         "page": 18,
         "image": "page_018_row_033.png",
@@ -1263,8 +1265,8 @@
         ],
         "raw_regs": "**Class II water Apr 1-Oct 31; Steelhead Stamp mandatory Apr 1-June 30**",
         "symbols": [
-          "Classified",
-          "Incl. Tribs"
+          "Incl. Tribs",
+          "Classified"
         ],
         "page": 18,
         "image": "page_018_row_036.png",
@@ -1473,8 +1475,8 @@
         ],
         "raw_regs": "**Class II water Sept 1-Apr 30; Steelhead Stamp mandatory Dec 1-Apr 30\nNo Fishing** upstream of fishing boundary signs on third bridge approximately 10 km upstream of the tidal boundary, Feb 1-Apr 30\nBait ban Nov 1-Apr 30",
         "symbols": [
-          "Classified",
-          "Incl. Tribs"
+          "Incl. Tribs",
+          "Classified"
         ],
         "page": 19,
         "image": "page_019_row_010.png",
@@ -1793,8 +1795,8 @@
         ],
         "raw_regs": "Bait ban Nov 1-Apr 30;** Class II water Sept 1-Apr 30; Steelhead Stamp mandatory Dec 1-Apr 30**",
         "symbols": [
-          "Classified",
-          "Incl. Tribs"
+          "Incl. Tribs",
+          "Classified"
         ],
         "page": 19,
         "image": "page_019_row_037.png",
@@ -1905,8 +1907,8 @@
         ],
         "raw_regs": "**No Fishing** May 1-June 15\nHatchery steelhead daily quota = 1\n**No Fishing **upstream of the Quatse River fishway (approximately 1.4 km upstream of Dick Booth Creek), Dec 1-June 15\nBait ban, May 1-Nov 30",
         "symbols": [
-          "Stocked",
-          "Incl. Tribs"
+          "Incl. Tribs",
+          "Stocked"
         ],
         "page": 20,
         "image": "page_020_row_002.png",
@@ -2048,12 +2050,13 @@
         "region": "REGION 1 - Vancouver Island"
       },
       {
-        "water": "SEYMOUR RIVER 1-14",
-        "mu": [],
+        "water": "SEYMOUR RIVER",
+        "mu": [
+          "1-14"
+        ],
         "raw_regs": "**Class II water Aug 15-Oct 31**[Includes Tributaries]**; Steelhead Stamp not required unless fishing for steelhead**",
         "symbols": [
-          "Classified",
-          "Incl. Tribs"
+          "Classified"
         ],
         "page": 20,
         "image": "page_020_row_014.png",
@@ -2256,8 +2259,8 @@
         ],
         "raw_regs": "Bait ban Nov 1-Apr 30; Cutthroat trout catch and release\n**Class II water Sept 1-Apr 30; Steelhead Stamp mandatory Dec 1-Apr 30**\nTidal waters regulations apply to waters downstream of tidal boundary sign located 1.5 km upstream of Hwy 16 Bridge",
         "symbols": [
-          "Classified",
-          "Incl. Tribs"
+          "Incl. Tribs",
+          "Classified"
         ],
         "page": 20,
         "image": "page_020_row_031.png",
@@ -2517,8 +2520,8 @@
         ],
         "raw_regs": "**Class II water Apr 1-Oct 31; Steelhead Stamp mandatory Apr 1-June 30**",
         "symbols": [
-          "Classified",
-          "Incl. Tribs"
+          "Incl. Tribs",
+          "Classified"
         ],
         "page": 21,
         "image": "page_021_row_019.png",
@@ -2592,8 +2595,8 @@
         ],
         "raw_regs": "**No Fishing** from Yakoun Lake downstream approximately 13 km to fishing boundary signs, Oct 1-Apr 30\nBait ban Nov 1-Apr 30\nCutthroat trout catch and release\nNo powered boats\n**Class II water Sept 1-Apr 30; Steelhead Stamp mandatory Dec 1-Apr 30**",
         "symbols": [
-          "Classified",
-          "Incl. Tribs"
+          "Incl. Tribs",
+          "Classified"
         ],
         "page": 21,
         "image": "page_021_row_025.png",
@@ -3570,8 +3573,8 @@
         ],
         "raw_regs": "**No Fishing** Dec 1-Mar 31; trout/char catch and release, bait ban, single barbless hook",
         "symbols": [
-          "Stocked",
-          "Incl. Tribs"
+          "Incl. Tribs",
+          "Stocked"
         ],
         "page": 25,
         "image": "page_025_row_040.png",
@@ -3807,8 +3810,8 @@
         ],
         "raw_regs": "**No Fishing** Feb 1-June 15\nTrout/char 20-30 cm in lenth Jun 16-Jan 31\nYouth/Disabled Accompanied Water year round (see page 4)",
         "symbols": [
-          "Stocked",
-          "Incl. Tribs"
+          "Incl. Tribs",
+          "Stocked"
         ],
         "page": 26,
         "image": "page_026_row_013.png",
@@ -4795,8 +4798,8 @@
         ],
         "raw_regs": "**No Fishing** from fishing boundary signs at log booms on Weaver Lake downstream to where Sakwi Creek enters Weaver Creek\nEngine power restriction on Weaver Lake - 7.5 kW (10 hp)",
         "symbols": [
-          "Stocked",
-          "Incl. Tribs"
+          "Incl. Tribs",
+          "Stocked"
         ],
         "page": 28,
         "image": "page_028_row_019.png",
@@ -6751,8 +6754,7 @@
         ],
         "raw_regs": "**No Fishing** Oct 1-May 31\nTrout/char daily quota = 2 (none under 35 cm)\nAdditional opening from the CNR Bridge downstream of Deadman River to CNR Bridge upstream of Bonaparte River, May 1-31; trout/char\ncatch and release and artificial fly only, May 1-31\nUpstream of boundary signs 1 km downstream of Martel: bait ban\nNo angling from boats\n**Downstream of signs at Kamloops Lake: Class II water Oct 1-Dec 31 and Steelhead Stamp mandatory Oct 1-Dec 31 (when open)**",
         "symbols": [
-          "Classified",
-          "Incl. Tribs"
+          "Classified"
         ],
         "page": 34,
         "image": "page_034_row_021.png",
@@ -6944,12 +6946,13 @@
     },
     "rows": [
       {
-        "water": "ABRUZZI CREEK 4-23",
-        "mu": [],
+        "water": "ABRUZZI CREEK",
+        "mu": [
+          "4-23"
+        ],
         "raw_regs": "**No Fishing** Sept 1-Oct 31; trout/char catch and release and bait ban, June 15-Aug 31\n**Class II water when open, including tributaries**",
         "symbols": [
-          "Classified",
-          "Incl. Tribs"
+          "Classified"
         ],
         "page": 37,
         "image": "page_037_row_000.png",
@@ -6988,8 +6991,8 @@
         ],
         "raw_regs": "**No Fishing** Sept 1-Oct 31\nTrout/char catch and release and bait ban, June 15-Aug 31\n**Class II water when open, including tributaries - Michel Creek classified licence required for non-resident anglers**",
         "symbols": [
-          "Classified",
-          "Incl. Tribs"
+          "Incl. Tribs",
+          "Classified"
         ],
         "page": 37,
         "image": "page_037_row_003.png",
@@ -7002,8 +7005,7 @@
         ],
         "raw_regs": "**No Fishing Sept 1-Oct 31\nTrout/char catch and release and bait ban June 15-Aug 31\nClass II water when open, including tributaries - Michel Creek classified licence required for non-resident anglers**",
         "symbols": [
-          "Classified",
-          "Incl. Tribs"
+          "Classified"
         ],
         "page": 37,
         "image": "page_037_row_004.png",
@@ -7131,8 +7133,8 @@
         ],
         "raw_regs": "A tributary of Wigwam River; see Wigwam River[Includes Tributaries]",
         "symbols": [
-          "Classified",
-          "Incl. Tribs"
+          "Incl. Tribs",
+          "Classified"
         ],
         "page": 37,
         "image": "page_037_row_015.png",
@@ -7191,8 +7193,8 @@
         ],
         "raw_regs": "Trout/char catch and release from Galbraith Creek to Van Creek[Includes Tributaries], Aberfeldie Dam to Tie Mill Dam[Includes Tributaries] and Quinn Creek[Includes Tributaries]\nOther parts: trout/char daily quota = 1 (none under 30 cm), June 15-Oct 31\nBait ban, June 15-Oct 31\n**Class II water when open, including tributaries**",
         "symbols": [
-          "Classified",
-          "Incl. Tribs"
+          "Incl. Tribs",
+          "Classified"
         ],
         "page": 37,
         "image": "page_037_row_020.png",
@@ -7210,12 +7212,13 @@
         "region": "REGION 4 - Kootenay"
       },
       {
-        "water": "CADORNA CREEK 4-23",
-        "mu": [],
+        "water": "CADORNA CREEK",
+        "mu": [
+          "4-23"
+        ],
         "raw_regs": "**No Fishing** Sept 1-Oct 31; trout/char catch and release and bait ban, June 15-Aug 31\n**Class II water when open, including tributaries - Elk River classified licence required for non-resident anglers**",
         "symbols": [
-          "Classified",
-          "Incl. Tribs"
+          "Classified"
         ],
         "page": 37,
         "image": "page_037_row_022.png",
@@ -7616,15 +7619,14 @@
         "region": "REGION 4 - Kootenay"
       },
       {
-        "water": "ELK RIVER (upstream of Elko Dam) 3",
+        "water": "ELK RIVER (upstream of Elko Dam)",
         "mu": [
           "4-2",
           "4-23"
         ],
         "raw_regs": "Bait ban, June 15-Oct 31\nTrout/char catch and release June 15-Oct 31: from Lower Elk Lake to Forsyth Cr, from Line Creek Bridge to CPR Bridge at Sparwood, from\nHwy 3 bridge at Hosmer to the northern Hwy 3 bridge at Fernie, and from the bridge at Morrissey to Elko Dam\nAll other parts: trout/char daily quota = 1 (none under 30 cm), June 15-Oct 31\nBull trout catch and release\nElectric motor only - max 7.5 kW\n**Class II water when open, including tributaries**",
         "symbols": [
-          "Classified",
-          "Incl. Tribs"
+          "Classified"
         ],
         "page": 38,
         "image": "page_038_row_017.png",
@@ -7637,23 +7639,21 @@
         ],
         "raw_regs": "Trout/Char daily quota = 1 (no cutthroat under 30 cm, no bull trout under 75 cm) and bait ban, June 15-Oct 31\nElectric motor only - max 7.5 kW\n**Class II water when open, including tributaries**",
         "symbols": [
-          "Classified",
-          "Incl. Tribs"
+          "Classified"
         ],
         "page": 38,
         "image": "page_038_row_018.png",
         "region": "REGION 4 - Kootenay"
       },
       {
-        "water": "ELK RIVER'S TRIBUTARIES (see exceptions) 3",
+        "water": "ELK RIVER'S TRIBUTARIES (see exceptions)",
         "mu": [
           "4-2",
           "4-23"
         ],
         "raw_regs": "**No Fishing** Sept 1-Oct 31\nTrout/char daily quota = 1 (none under 30 cm) and bait ban, June 15-Aug 31\nBull trout catch and release\n**EXCEPTIONS - SEE SEPARATE LISTINGS FOR: Abruzzi Cr., Alexander Cr.**[Includes Tributaries]** upstream of the easternmost Hwy 3 bridge, Bighorn\n(Ram) Cr., Cadorna Cr., Fording R. downstream of Josephine Falls, Forsyth Cr. from Connor Lk. downstream 3 km, Line Cr.**[Includes Tributaries]**, Grave\nCreek**[Includes Tributaries]**, Michel Cr.**[Includes Tributaries]**, Morrissey Cr.**[Includes Tributaries]**, Wigwam River\nALL tributaries** (EXCEPT Coal Creek downstream of old MF&M Railway Bridge 7 km upstream of Elk River) **are Class II waters when open**",
         "symbols": [
-          "Classified",
-          "Incl. Tribs"
+          "Classified"
         ],
         "page": 38,
         "image": "page_038_row_019.png",
@@ -7725,8 +7725,7 @@
         ],
         "raw_regs": "Trout/char catch and release, June 15-Mar 31 and bait ban, June 15-Oct 31\n**Class II water when open, including tributaries - Elk River classified licence required for non-resident anglers**",
         "symbols": [
-          "Classified",
-          "Incl. Tribs"
+          "Classified"
         ],
         "page": 38,
         "image": "page_038_row_025.png",
@@ -7739,20 +7738,21 @@
         ],
         "raw_regs": "**No Fishing**",
         "symbols": [
-          "Classified",
-          "Incl. Tribs"
+          "Incl. Tribs",
+          "Classified"
         ],
         "page": 38,
         "image": "page_038_row_026.png",
         "region": "REGION 4 - Kootenay"
       },
       {
-        "water": "FORSYTH CREEK 4-23",
-        "mu": [],
+        "water": "FORSYTH CREEK",
+        "mu": [
+          "4-23"
+        ],
         "raw_regs": "**No Fishing** from Connor Lake downstream 3 km\nFor remainder, see Elk River's tributaries\n**Class II water when/where open, including tributaries**",
         "symbols": [
-          "Classified",
-          "Incl. Tribs"
+          "Classified"
         ],
         "page": 38,
         "image": "page_038_row_027.png",
@@ -7872,12 +7872,13 @@
         "region": "REGION 4 - Kootenay"
       },
       {
-        "water": "HELLROARING CREEK 4-20",
-        "mu": [],
+        "water": "HELLROARING CREEK",
+        "mu": [
+          "4-20"
+        ],
         "raw_regs": "**No Fishing** downstream of Angus Creek\n**Class II water when/where open, including tributaries - St. Mary River classified licence required for non-resident anglers**",
         "symbols": [
-          "Classified",
-          "Incl. Tribs"
+          "Classified"
         ],
         "page": 39,
         "image": "page_039_row_007.png",
@@ -8081,7 +8082,7 @@
         "region": "REGION 4 - Kootenay"
       },
       {
-        "water": "KOOCANUSA RESERVOIR 2",
+        "water": "KOOCANUSA RESERVOIR",
         "mu": [
           "4-2",
           "4-3",
@@ -8162,7 +8163,7 @@
         "region": "REGION 4 - Kootenay"
       },
       {
-        "water": "1 KOOTENAY RIVER 2 (upstream of Koocanusa Reservoir) 4 5",
+        "water": "KOOTENAY RIVER (upstream of Koocanusa Reservoir)",
         "mu": [
           "4-2",
           "4-21",
@@ -8173,8 +8174,7 @@
         ],
         "raw_regs": "Bait ban all year\nTrout/char catch and release, Nov 1-Mar 31\nBurbot catch and release upstream of the Montana border\nUpstream of Koocanusa Reservoir to White River: EXEMPT from Apr 1-June 14 closure; trout/char daily quota = 1 (no trout under 30 cm and\nno bull trout under 75 cm), Apr 1-Oct 31\nUpstream of White River: trout/char daily quota = 1 (no trout under 30 cm and no bull trout under 75 cm), Jun 15-Oct 31\n**Upstream of White River, including tributaries: Class II water when open**",
         "symbols": [
-          "Classified",
-          "Incl. Tribs"
+          "Classified"
         ],
         "page": 39,
         "image": "page_039_row_032.png",
@@ -8387,8 +8387,7 @@
         ],
         "raw_regs": "**No Fishing** Sept 1-Oct 31\nTrout/char catch and release, June 15-Aug 31\nBait ban\n**Class II water when open, including tributaries - Wigwam River classified licence required for non-resident anglers**",
         "symbols": [
-          "Classified",
-          "Incl. Tribs"
+          "Classified"
         ],
         "page": 40,
         "image": "page_040_row_015.png",
@@ -8401,8 +8400,7 @@
         ],
         "raw_regs": "**No Fishing** Sept 1-Oct 31\nTrout/char daily quota = 1 (none under 30 cm) and bait ban, June 15-Aug 31\n**Class II water when open, including tributaries - Wigwam River classified licence required for non-resident anglers**",
         "symbols": [
-          "Classified",
-          "Incl. Tribs"
+          "Classified"
         ],
         "page": 40,
         "image": "page_040_row_016.png",
@@ -8542,8 +8540,8 @@
         ],
         "raw_regs": "**Class II water when open, including tributaries**\nTrout/char catch and release, June 15-Mar 31 and bait ban, June 15-Oct 31.",
         "symbols": [
-          "Classified",
-          "Incl. Tribs"
+          "Incl. Tribs",
+          "Classified"
         ],
         "page": 40,
         "image": "page_040_row_028.png",
@@ -8556,8 +8554,7 @@
         ],
         "raw_regs": "**Class II water when open, including tributaries**\nTrout/char daily quota = 1 (none under 30 cm) and bait ban, June 15-Oct 31.",
         "symbols": [
-          "Classified",
-          "Incl. Tribs"
+          "Classified"
         ],
         "page": 40,
         "image": "page_040_row_029.png",
@@ -8607,8 +8604,8 @@
         ],
         "raw_regs": "**No Fishing** Sept 1-Oct 31\nTrout/char catch and release and bait ban, June 15-Aug 31\n**Class II water when open, including all tributaries - Elk River classified licence required for non-resident anglers**",
         "symbols": [
-          "Classified",
-          "Incl. Tribs"
+          "Incl. Tribs",
+          "Classified"
         ],
         "page": 40,
         "image": "page_040_row_033.png",
@@ -8769,12 +8766,13 @@
         "region": "REGION 4 - Kootenay"
       },
       {
-        "water": "NORTH (Fork) WHITE RIVER 4-24",
-        "mu": [],
+        "water": "NORTH (Fork) WHITE RIVER",
+        "mu": [
+          "4-24"
+        ],
         "raw_regs": "Trout/char catch and release; bait ban; Class II water when open, including tributaries",
         "symbols": [
-          "Classified",
-          "Incl. Tribs"
+          "Classified"
         ],
         "page": 41,
         "image": "page_041_row_002.png",
@@ -8824,8 +8822,8 @@
         ],
         "raw_regs": "Bait ban\nCutthroat trout and bull trout catch and release; brook trout daily quota = 20\n**Class II water when/where open, including tributaries - St. Mary River classified licence required for non-resident anglers**",
         "symbols": [
-          "Classified",
-          "Incl. Tribs"
+          "Incl. Tribs",
+          "Classified"
         ],
         "page": 41,
         "image": "page_041_row_006.png",
@@ -8884,8 +8882,8 @@
         ],
         "raw_regs": "Trout/char catch and release; bait ban, June 15-Oct 31\n**Class II water when open, including all tributaries - Bull River classified licence required for non-resident anglers**",
         "symbols": [
-          "Classified",
-          "Incl. Tribs"
+          "Incl. Tribs",
+          "Classified"
         ],
         "page": 41,
         "image": "page_041_row_011.png",
@@ -8971,12 +8969,13 @@
         "region": "REGION 4 - Kootenay"
       },
       {
-        "water": "ST. MARY RIVER 4-20",
-        "mu": [],
+        "water": "ST. MARY RIVER",
+        "mu": [
+          "4-20"
+        ],
         "raw_regs": "Trout/char catch and release\nTrout/char daily quota = 1 (none under 30 cm) on all tributaries, June 15-Oct 31, see tables for exceptions\nBait ban[Includes Tributaries]\n**Class II water when open, including tributaries (except Joseph Creek)**",
         "symbols": [
-          "Classified",
-          "Incl. Tribs"
+          "Classified"
         ],
         "page": 41,
         "image": "page_041_row_019.png",
@@ -9101,8 +9100,8 @@
         ],
         "raw_regs": "**No Fishing** from a point on the creek closest to km 38 on the Skookumchuck Forest Service Road to Buhl Creek, Sept 1-Oct 31\n(mainstem only)\nTrout/char catch and release; bait ban\n**Class II water when/where open, including tributaries**",
         "symbols": [
-          "Classified",
-          "Incl. Tribs"
+          "Incl. Tribs",
+          "Classified"
         ],
         "page": 41,
         "image": "page_041_row_030.png",
@@ -9489,8 +9488,8 @@
         ],
         "raw_regs": "Upstream of and including North White River; trout/char catch and release\nBull trout catch and release on all parts, Sept 1-Oct 31\nTrout/char daily quota = 1 (none under 30 cm) downstream of North White River, June 15-Oct 31\nBait ban on all parts, June 15-Oct 31\n**Class II water when open, including tributaries**",
         "symbols": [
-          "Classified",
-          "Incl. Tribs"
+          "Incl. Tribs",
+          "Classified"
         ],
         "page": 42,
         "image": "page_042_row_021.png",
@@ -9549,8 +9548,7 @@
         ],
         "raw_regs": "Trout/char catch and release\nBait ban\n**Class II water when open, including tributaries**",
         "symbols": [
-          "Classified",
-          "Incl. Tribs"
+          "Classified"
         ],
         "page": 42,
         "image": "page_042_row_026.png",
@@ -9563,8 +9561,8 @@
         ],
         "raw_regs": "**No Fishing** Sept 1-Oct 31\nTrout/char catch and release; bait ban\n**Class II water when open, including tributaries**",
         "symbols": [
-          "Classified",
-          "Incl. Tribs"
+          "Incl. Tribs",
+          "Classified"
         ],
         "page": 42,
         "image": "page_042_row_027.png",
@@ -9736,8 +9734,8 @@
         ],
         "raw_regs": "**No Fishing** upstream of Tweedsmuir Provincial Park plus Tenas Lake, Apr 1-June 30\n**No Fishing** from Tenas Lake to fishing boundary signs near Atnarko Park campsite\nTrout/char daily quota = 1 (none under 25 cm and all cutthroat trout catch and release) EXCEPT: on Bella Coola R. MAINSTEM ONLY, trout/\nchar daily quota = 2, of which only one may be a trout (cutthroat or rainbow) and none may be under 25 cm, no cutthroat may be over 33\ncm, and no rainbow may be over 50 cm), Apr 1-May 31 ONLY, EXCEPT: char catch and release (on TRIBUTARIES ONLY), Sept 1-May 31\nBait ban downstream of eastern boundary of Tweedsmuir Provincial Park, Sept 1- May 15\nNo angling from powered boats on mainstems of Atnarko River and Bella Coola River\nNo powered boats on Atnarko River, from Goat Creek to the confluence with Talchako River\n**No Fishing** for steelhead\n**Class II water downstream of Young Creek, Mar 1-May 31. NOTE: Classified Waters Licence or Steelhead Stamp not required until\nreopened to steelhead fishing**",
         "symbols": [
-          "Classified",
-          "Incl. Tribs"
+          "Incl. Tribs",
+          "Classified"
         ],
         "page": 49,
         "image": "page_049_row_004.png",
@@ -10032,8 +10030,8 @@
         ],
         "raw_regs": "Bait ban; **No Fishing** for steelhead\n**Class II water Mar 1-May 31. NOTE: Classified Waters Licence or Steelhead Stamp not required until reopened to steelhead fishing**\nDownstream of Sitkatapa Creek: see Atnarko/Bella Coola Rivers[Includes Tributaries]",
         "symbols": [
-          "Classified",
-          "Incl. Tribs"
+          "Incl. Tribs",
+          "Classified"
         ],
         "page": 49,
         "image": "page_049_row_029.png",
@@ -10095,15 +10093,15 @@
         "region": "REGION 5 - Cariboo"
       },
       {
-        "water": "CHILCOTIN RIVER 5-13",
+        "water": "CHILCOTIN RIVER",
         "mu": [
           "5-12",
+          "5-13",
           "5-14"
         ],
         "raw_regs": "**No Fishing** upstream of Chilko River, Apr 1-June 30\n**No Fishing** downstream of Chilko River, Oct 1-June 10\nNo trout/char under 30 cm downstream of Chilko River\nNo hooks greater than 15 mm from point to shank, Oct 1-May 31; bait ban\nNo angling from powered boats\n**Downstream of Chilko River**[Includes Tributaries]**: Class II water Oct 1-May 31 and Steelhead Stamp mandatory Oct 1-May 31** (if opened for fall or spring\nfishing; see Notice on page 42)",
         "symbols": [
-          "Classified",
-          "Incl. Tribs"
+          "Classified"
         ],
         "page": 49,
         "image": "page_049_row_035.png",
@@ -10140,12 +10138,13 @@
         "region": "REGION 5 - Cariboo"
       },
       {
-        "water": "CHILKO RIVER 5-5",
-        "mu": [],
+        "water": "CHILKO RIVER",
+        "mu": [
+          "5-5"
+        ],
         "raw_regs": "**No Fishing** Nov 1-June 10\nTrout/char catch and release; bait ban\nFly fishing only upstream of Brittany Creek\nNo angling from powered boats upstream of bridge at Henry's Crossing, Sept 11-Sept 30; speed restriction (5 km/h) on part\n**Class II water upstream of Brittany Creek**[Includes Tributaries]**, June 11-Oct 31 (Steelhead Stamp not required)**",
         "symbols": [
-          "Classified",
-          "Incl. Tribs"
+          "Classified"
         ],
         "page": 50,
         "image": "page_050_row_001.png",
@@ -10185,12 +10184,13 @@
         "region": "REGION 5 - Cariboo"
       },
       {
-        "water": "CHUCKWALLA RIVER 5-7",
-        "mu": [],
+        "water": "CHUCKWALLA RIVER",
+        "mu": [
+          "5-7"
+        ],
         "raw_regs": "**No Fishing** entire river, June 1-Aug 31; **No Fishing** between fishing boundary signs at Ten Mile Pool\n**Class II water**[Includes Tributaries]** Apr 1-May 31 and Steelhead Stamp mandatory Apr 1-May 31**",
         "symbols": [
-          "Classified",
-          "Incl. Tribs"
+          "Classified"
         ],
         "page": 50,
         "image": "page_050_row_005.png",
@@ -10282,8 +10282,7 @@
         ],
         "raw_regs": "**No Fishing** upstream of Iltasyuko River[Includes Tributaries], including upstream of Anahim Lake[Includes Tributaries], Apr 1-June 14\n**No Fishing** from Iltasyuko River to Crag Creek[Includes Tributaries]\n**No Fishing** from Crag Creek to fishing boundary signs approximately 500 m upstream of canyon[Includes Tributaries], Oct 1-May 31\n**No Fishing** from fishing boundary signs approximately 500 m upstream of canyon to signs 100 m downstream of canyon\n**No Fishing** from fishing boundary signs approximately 100 m downstream of canyon to tidal boundary, Oct 1 - May 31\nTrout/char daily quota = 1 (none under 35 cm)\nBait ban all parts[Includes Tributaries]\nFly fishing only from** (a)** Anahim Lake to Iltasyuko River, June 15- Mar 31, and** (b)** Crag Creek to fishing boundary signs approximately 500 m\nupstream of canyon, July 15-Sept 30\nNo powered boats between signs 0.5 km and 3.5 km upstream of canyon, Aug 1-Aug 31\n**From Crag Creek to signs 500 m upstream of the canyon**[Includes Tributaries]**: Class I water June 1-Sept 30 and Steelhead Stamp mandatory June 1-Sept 30; see map below (Non-residents see notice on **page 42**)\nFrom signs 100 m downstream of canyon to tidal boundary**[Includes Tributaries]**: Class I water June 1-Sept 30 and Steelhead Stamp mandatory June 1-Sept 30: see map below\nFrom Anahim Lake to Iltasyuko River**[Includes Tributaries]**: Class II water June 16-Oct 31 (see map below); Steelhead Stamp not required**\nNOTE: \"canyon\" means lower canyon 3-5 km from river's mouth",
         "symbols": [
-          "Classified",
-          "Incl. Tribs"
+          "Classified"
         ],
         "page": 50,
         "image": "page_050_row_013.png",
@@ -10699,8 +10698,7 @@
         ],
         "raw_regs": "**No Fishing** Nov 1-May 31\nTrout/char catch and release; artificial fly only, bait ban\nNo angling from powered boats from Woodjam Bridge to Quesnel Lake\n**Class II water**[Includes Tributaries]** June 1-Oct 31; Steelhead Stamp not required**",
         "symbols": [
-          "Classified",
-          "Incl. Tribs"
+          "Classified"
         ],
         "page": 51,
         "image": "page_051_row_027.png",
@@ -10873,12 +10871,13 @@
         "region": "REGION 5 - Cariboo"
       },
       {
-        "water": "KILBELLA RIVER 5-7",
-        "mu": [],
+        "water": "KILBELLA RIVER",
+        "mu": [
+          "5-7"
+        ],
         "raw_regs": "**No Fishing** June 1-Aug 31\n**Class II water**[Includes Tributaries]**, Apr 1-May 31; Steelhead Stamp mandatory Apr 1-May 31**",
         "symbols": [
-          "Classified",
-          "Incl. Tribs"
+          "Classified"
         ],
         "page": 51,
         "image": "page_051_row_042.png",
@@ -11136,8 +11135,8 @@
         ],
         "raw_regs": "**Class II water Apr 1-May 31; Steelhead Stamp mandatory Apr 1-May 31**",
         "symbols": [
-          "Classified",
-          "Incl. Tribs"
+          "Incl. Tribs",
+          "Classified"
         ],
         "page": 52,
         "image": "page_052_row_020.png",
@@ -11912,8 +11911,8 @@
         ],
         "raw_regs": "**Angling prohibited for non-guided non-resident aliens on Saturdays and Sundays from the juvenile fish counting weir located at\nthe outlet of Nilkitkwa Lake to the Nilkitkwa River confluence, Sept 1-Oct 31 (See map **page 56**)\nNo Fishing** between fishing boundary signs approximately 100 m upstream of and 80 m downstream of the adult fish counting fence,\nlocated approximately 1.8 km downstream of Nilkitkwa Lake\nOpen all year in the stream channel known as \"Rainbow Alley\" located between Babine and Nilkitkwa lakes (see map 2 page 51)\nFly fishing only (a) from the Fort Babine Bridge downstream to signs 100 m upstream of the adult fish counting fence (including Nilkitkwa\nLake), during open times and (b) from signs about 80 m downstream of the adult fish counting fence to Nichyeskwa Creek, June 16-Sept 30; includes \"Rainbow Alley\"\nBait ban\nNo angling from boats from the adult fish counting fence (described above) downstream to the Babine River's confluence with the Skeena\nRiver\n**Class 1 water Sept 1-Oct 31; Steelhead Stamp mandatory Sept 1-Oct 31 from the juvenile fish counting weir located at the outlet of\nNilkitkwa Lake downstream to the Babine River's confluence with the Skeena River (See map **page 56**)**",
         "symbols": [
-          "Classified",
-          "Incl. Tribs"
+          "Incl. Tribs",
+          "Classified"
         ],
         "page": 56,
         "image": "page_056_row_003.png",
@@ -12018,8 +12017,8 @@
         ],
         "raw_regs": "**Angling prohibited for non-guided non-resident aliens on Saturdays and Sundays, Sept 1-Oct 31\nSee Suskwa River and Telkwa River\nNo Fishing** upstream of Morice/Bulkley River confluence\nBait ban\nNo angling from boats from Morice River to CNR Bridge at Barrett, Aug 15-Dec 31, and in Moricetown Canyon or within 100 m downstream,\nall year\n**Class II water Sept 1-Oct 31 and Steelhead Stamp mandatory Sept 1-Oct 31**",
         "symbols": [
-          "Classified",
-          "Incl. Tribs"
+          "Incl. Tribs",
+          "Classified"
         ],
         "page": 56,
         "image": "page_056_row_012.png",
@@ -12116,12 +12115,13 @@
         "region": "REGION 6 - Skeena"
       },
       {
-        "water": "DAMDOCHAX CREEK 6-17",
-        "mu": [],
+        "water": "DAMDOCHAX CREEK",
+        "mu": [
+          "6-17"
+        ],
         "raw_regs": "Bait ban\n**Class II water Sept 1-Oct 31**[Includes Tributaries]**; Steelhead Stamp mandatory Sept 1-Oct 31**[Includes Tributaries]",
         "symbols": [
-          "Classified",
-          "Incl. Tribs"
+          "Classified"
         ],
         "page": 56,
         "image": "page_056_row_021.png",
@@ -12210,8 +12210,8 @@
         ],
         "raw_regs": "Bait ban\n**Class II water all year; Steelhead Stamp not required unless angling for steelhead**",
         "symbols": [
-          "Classified",
-          "Incl. Tribs"
+          "Incl. Tribs",
+          "Classified"
         ],
         "page": 57,
         "image": "page_057_row_001.png",
@@ -12270,8 +12270,8 @@
         ],
         "raw_regs": "Bait ban\n**Class I water all year; Steelhead Stamp mandatory Apr 1-May 31**",
         "symbols": [
-          "Classified",
-          "Incl. Tribs"
+          "Incl. Tribs",
+          "Classified"
         ],
         "page": 57,
         "image": "page_057_row_006.png",
@@ -12439,8 +12439,8 @@
         ],
         "raw_regs": "**Angling prohibited for non-guided non-resident aliens on Saturdays and Sundays, Sept 1-Oct 31**\nBait ban\nNo angling from boats, no powered boats\n**Class II water Sept 1-Oct 31; Steelhead Stamp mandatory Sept 1-Oct 31**\nSee Skeena River/Kispiox River confluence",
         "symbols": [
-          "Classified",
-          "Incl. Tribs"
+          "Incl. Tribs",
+          "Classified"
         ],
         "page": 57,
         "image": "page_057_row_020.png",
@@ -12479,12 +12479,13 @@
     },
     "rows": [
       {
-        "water": "KITSEGUECLA RIVER 6-9",
-        "mu": [],
+        "water": "KITSEGUECLA RIVER",
+        "mu": [
+          "6-9"
+        ],
         "raw_regs": "**Angling prohibited for non-guided non-resident aliens on Saturdays and Sundays, all year**\nBait ban\n**Class II water all year**[Includes Tributaries]**; Steelhead Stamp mandatory Sept 1-Oct 31**[Includes Tributaries]",
         "symbols": [
-          "Classified",
-          "Incl. Tribs"
+          "Classified"
         ],
         "page": 58,
         "image": "page_058_row_000.png",
@@ -12497,8 +12498,8 @@
         ],
         "raw_regs": "**Angling prohibited for non-guided non-resident aliens on Saturdays from the outlet of Kitsumkalum Lake to Glacier Creek confluence\nall year (See map page 56)\nAngling prohibited for non-guided non-resident aliens on Sundays for the entire river all year\nClass II water all year**[Includes Tributaries]** ; Steelhead Stamp mandatory Aug 7 - May 31**\nBait ban",
         "symbols": [
-          "Classified",
-          "Incl. Tribs"
+          "Incl. Tribs",
+          "Classified"
         ],
         "page": 58,
         "image": "page_058_row_001.png",
@@ -12511,8 +12512,8 @@
         ],
         "raw_regs": "**Angling prohibited for non-guided non-resident aliens on Saturdays and Sundays, all year**\nBait ban\n**Class II water all year; Steelhead Stamp mandatory Sept 1-Oct 31**",
         "symbols": [
-          "Classified",
-          "Incl. Tribs"
+          "Incl. Tribs",
+          "Classified"
         ],
         "page": 58,
         "image": "page_058_row_002.png",
@@ -12547,8 +12548,8 @@
         ],
         "raw_regs": "Bait ban\n**Class II water all year; Steelhead Stamp mandatory Sept 1-Oct 31**",
         "symbols": [
-          "Classified",
-          "Incl. Tribs"
+          "Incl. Tribs",
+          "Classified"
         ],
         "page": 58,
         "image": "page_058_row_005.png",
@@ -12605,8 +12606,8 @@
         ],
         "raw_regs": "**No Fishing** upstream from the lower bridge abutments, July 1-Aug 20\n**Class II water Apr 1-Sept 30; Steelhead Stamp mandatory Apr 1-May 31**",
         "symbols": [
-          "Classified",
-          "Incl. Tribs"
+          "Incl. Tribs",
+          "Classified"
         ],
         "page": 58,
         "image": "page_058_row_010.png",
@@ -12619,8 +12620,8 @@
         ],
         "raw_regs": "**Class II water Sept 1-Oct 31; Steelhead Stamp mandatory Sept 1-Oct 31**\nBait ban",
         "symbols": [
-          "Classified",
-          "Incl. Tribs"
+          "Incl. Tribs",
+          "Classified"
         ],
         "page": 58,
         "image": "page_058_row_011.png",
@@ -12633,8 +12634,8 @@
         ],
         "raw_regs": "See Ksi X'anmas River",
         "symbols": [
-          "Classified",
-          "Incl. Tribs"
+          "Incl. Tribs",
+          "Classified"
         ],
         "page": 58,
         "image": "page_058_row_012.png",
@@ -12681,8 +12682,8 @@
         ],
         "raw_regs": "**Angling prohibited for non-guided non-resident aliens from the outlet of Lakelse Lake to the power line crossing, located 3.5 km\nupstream of the Lakelse River mouth, all year (See map **page 55**)**\nFly fishing only between Lakelse Lake and CNR Bridge, Mar 1-May 31\nBait ban, no powered boats\nNote: The mouth of the river is designated by signs 1.7 km downstream of Lakelse River logging road bridge\n**Class I water all year; Steelhead Stamp mandatory Sept 1-May 31**",
         "symbols": [
-          "Classified",
-          "Incl. Tribs"
+          "Incl. Tribs",
+          "Classified"
         ],
         "page": 58,
         "image": "page_058_row_016.png",
@@ -12776,8 +12777,8 @@
         ],
         "raw_regs": "**Angling prohibited for non-guided non-resident aliens on Saturdays and Sundays, Sept 1-Oct 31\nNo Fishing** from fishing boundary signs near outlet of Morice Lake (UTM: 602539.02E, 5997165.96N) to the fishing boundary signs\napproximately 2 km downstream (the \"Dunes\", UTM: 603741.00E, 5998628.00N)\n**No Fishing** Jan 1-Sept 30 from fishing boundary signs approximately 2 km downstream (the \"Dunes\", UTM: 603741.00E, 5998628.00N) of\nMorice Lake to Gosnell Creek\n**No Fishing** from Gosnell Creek to Lamprey Creek, Jan 1-Aug 31; Fly fishing only from Gosnell Creek to Lamprey Creek, Sept 1-Sept 30\nBait ban\nNo angling from boats, Aug 15-Dec 31 (all parts)\n**Class II water Sept 1-Oct 31; Steelhead Stamp mandatory Sept 1-Oct 31**",
         "symbols": [
-          "Classified",
-          "Incl. Tribs"
+          "Incl. Tribs",
+          "Classified"
         ],
         "page": 58,
         "image": "page_058_row_024.png",
@@ -13062,12 +13063,13 @@
         "region": "REGION 6 - Skeena"
       },
       {
-        "water": "SKEENA RIVER (mainstem only) 6-10",
-        "mu": [],
+        "water": "SKEENA RIVER (mainstem only)",
+        "mu": [
+          "6-10"
+        ],
         "raw_regs": "**There are two separate Class II waters on the Skeena River** (non-residents and non-resident aliens require separate licences describing\nwhich section they are fishing): **(a)** from Exchamsiks River to 1.5 km upstream of Kitsumkalum River (known as \"Skeena River 2\"), July 1-Sept 30; and **(b)** 1.5 km upstream of Zymoetz River (known as \"Skeena River Section 4\"), July 1-Dec 31; **Steelhead Stamp** not mandatory for\nSkeena River 2 unless fishing for steelhead. **Steelhead Stamp** is mandatory in Skeena River Section 4 during the Classified Waters period\nfrom July 1-Dec 31\n**Angling prohibited for non-guided non-resident aliens** in Skeena River Section 4 on Saturdays and Sundays in two zones: **(a)** Shegunia\nRiver confluence to Sedan Creek confluence July 1-Dec 31 (See map page 54), and **(b)** Chimdemash Creek confluence to 1.5 km upstream of\nZymoetz River confluence, July 1 - Dec 31, (See map page 55)",
         "symbols": [
-          "Classified",
-          "Incl. Tribs"
+          "Classified"
         ],
         "page": 59,
         "image": "page_059_row_021.png",
@@ -13096,14 +13098,14 @@
         "region": "REGION 6 - Skeena"
       },
       {
-        "water": "STELLAKO RIVER 6-4",
+        "water": "STELLAKO RIVER",
         "mu": [
+          "6-4",
           "7-12"
         ],
         "raw_regs": "**No Fishing** Nov 15-May 14; **Class II water**[Includes Tributaries] **when open (Steelhead Stamp not required)**\nRainbow trout catch and release\nFly fishing only between fishing boundary signs approximately 250 m and 4 km downstream of the bridge near the François Lake outlet\nNo powered boats from François Lake to the falls\nSee restrictions for François Lake's outlet area",
         "symbols": [
-          "Classified",
-          "Incl. Tribs"
+          "Classified"
         ],
         "page": 59,
         "image": "page_059_row_024.png",
@@ -13116,8 +13118,8 @@
         ],
         "raw_regs": "**Angling prohibited for non-guided non-resident aliens** on Saturdays and Sundays, all year\nBait ban\n**Class I water all year; Steelhead Stamp mandatory Sept 1-Oct 31**",
         "symbols": [
-          "Classified",
-          "Incl. Tribs"
+          "Incl. Tribs",
+          "Classified"
         ],
         "page": 59,
         "image": "page_059_row_025.png",
@@ -13141,8 +13143,8 @@
         ],
         "raw_regs": "**No Fishing** upstream of BCR Bridge at Bear River mouth\nBait ban\n**Class I water Sept 1-Oct 31; Steelhead Stamp mandatory Sept 1-Oct 31**",
         "symbols": [
-          "Classified",
-          "Incl. Tribs"
+          "Incl. Tribs",
+          "Classified"
         ],
         "page": 59,
         "image": "page_059_row_027.png",
@@ -13235,8 +13237,8 @@
         ],
         "raw_regs": "**Angling prohibited for non-guided non-resident aliens** Sept 1-Oct 31\nBait ban\n**Class II water Sept 1-Oct 31 and Steelhead Stamp mandatory Sept 1-Oct 31**",
         "symbols": [
-          "Classified",
-          "Incl. Tribs"
+          "Incl. Tribs",
+          "Classified"
         ],
         "page": 60,
         "image": "page_060_row_002.png",
@@ -13350,8 +13352,8 @@
         ],
         "raw_regs": "No Fishing from McDonell Lake downstream approximately 3 km to fishing boundary signs\nNo Fishing between fishing boundary signs in Zymoetz Canyon\nNo Fishing upstream of fishing boundary sign at the transmission line crossing (located downstream of Zymoetz Canyon), Jan 1-June 15\nBait ban\nUpstream of Limonite Creek (Zymoetz River A): Class I water Jul 24 - Dec 31; Steelhead Stamp mandatory Jul 24 - Dec 31;\n**Angling prohibited for non-guided non-resident aliens on Fridays, Saturdays, and Sundays Jul 24 - Dec 31**\nDownstream of Limonite Creek (Zymoetz River B): Class II water Jul 24 - May 31; Steelhead Stamp mandatory Jul 24 - May 31;\n**Angling prohibited for non-guided non-resident aliens on Fridays, Saturdays, and Sundays Jul 24 - May 31**",
         "symbols": [
-          "Classified",
-          "Incl. Tribs"
+          "Incl. Tribs",
+          "Classified"
         ],
         "page": 60,
         "image": "page_060_row_012.png",
@@ -14483,12 +14485,13 @@
         "region": "REGION 7A - Omineca"
       },
       {
-        "water": "STELLAKO RIVER 7-12",
-        "mu": [],
+        "water": "STELLAKO RIVER",
+        "mu": [
+          "7-12"
+        ],
         "raw_regs": "**No Fishing** Nov 15-May 14; **Class II water**[Includes Tributaries]** when open (Steelhead Stamp not required)**\nRainbow trout catch and release\nFly fishing only between fishing boundary signs approximately 250 m and 4 km downstream of the bridge near the François Lake outlet\nNo powered boats from François Lake to the falls\nSee Region 6 tables for restrictions applying to François Lake's outlet area",
         "symbols": [
-          "Classified",
-          "Incl. Tribs"
+          "Classified"
         ],
         "page": 67,
         "image": "page_067_row_010.png",
@@ -15309,9 +15312,7 @@
           "7-31"
         ],
         "raw_regs": "**No Fishing**",
-        "symbols": [
-          "Incl. Tribs"
-        ],
+        "symbols": [],
         "page": 72,
         "image": "page_072_row_001.png",
         "region": "REGION 7B - Peace"
@@ -15322,9 +15323,7 @@
           "7-31"
         ],
         "raw_regs": "Arctic grayling catch and release; Kokanee daily quota = 10",
-        "symbols": [
-          "Incl. Tribs"
-        ],
+        "symbols": [],
         "page": 72,
         "image": "page_072_row_002.png",
         "region": "REGION 7B - Peace"
@@ -15744,12 +15743,12 @@
         "region": "REGION 8 - Okanagan"
       },
       {
-        "water": "ELLISON LAKE 8-8",
-        "mu": [],
-        "raw_regs": "Yellow perch daily quota = 20",
-        "symbols": [
-          "Incl. Tribs"
+        "water": "ELLISON LAKE",
+        "mu": [
+          "8-8"
         ],
+        "raw_regs": "Yellow perch daily quota = 20",
+        "symbols": [],
         "page": 75,
         "image": "page_075_row_021.png",
         "region": "REGION 8 - Okanagan"
