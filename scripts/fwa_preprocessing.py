@@ -731,7 +731,7 @@ class FWAProcessor:
         and assigned the WATERBODY_POLY_ID if it falls inside. This allows the web app
         to show fishing regulations for waterbodies that don't have official GNIS names.
 
-        ERROR DETECTION: Points that don't fall in any polygon are logged to CSV,
+        ERROR DETECTION: Points that don't fall in any polygon are logged to file,
         as they likely represent GPS errors or waterbodies missing from FWA data.
 
         QUALITY CHECK: Warns if points match named polygons (they should match unnamed ones).
@@ -749,6 +749,13 @@ class FWAProcessor:
 
         if points_gdf.empty:
             return points_gdf
+
+        # Prepare log file for KML point issues
+        kml_log_path = self.output_gdb.parent / "kml_point_issues.log"
+        kml_log_path.parent.mkdir(parents=True, exist_ok=True)
+        self._kml_log = open(kml_log_path, "w", encoding="utf-8")
+        self._kml_log.write("KML Point Enrichment Issues\n")
+        self._kml_log.write("=" * 80 + "\n\n")
 
         # Reproject points to match polygon CRS for accurate spatial joins
         target_crs = lakes_gdf.crs
@@ -809,19 +816,30 @@ class FWAProcessor:
                 name_map = joined.groupby("idx_temp")[name_col].first()
                 matched_names = name_map[name_map.notna()]
                 if len(matched_names) > 0:
-                    logger.warning(
-                        f"  ⚠ {len(matched_names)} KML points matched NAMED {poly_type_name} (expected: unnamed)"
-                    )
-                    # Sample logging (first 5 matches)
-                    for idx, name in list(matched_names.head(5).items()):
+                    msg = f"  ⚠ {len(matched_names)} KML points matched NAMED {poly_type_name} (expected: unnamed)"
+                    logger.warning(msg)
+                    if hasattr(self, "_kml_log"):
+                        self._kml_log.write(f"\n{msg}\n")
+                    # Log all matches to file
+                    for idx, name in matched_names.items():
                         point_name = (
                             points.loc[idx, "Name"]
                             if "Name" in points.columns
                             else f"Point {idx}"
                         )
-                        logger.warning(f"    • {point_name} → {name}")
+                        detail = f"    • {point_name} → {name}"
+                        if hasattr(self, "_kml_log"):
+                            self._kml_log.write(detail + "\n")
+                        # Only log first 5 to console
+                        if list(matched_names.items()).index((idx, name)) < 5:
+                            logger.warning(detail)
                     if len(matched_names) > 5:
-                        logger.warning(f"    ... and {len(matched_names) - 5} more")
+                        summary = (
+                            f"    ... and {len(matched_names) - 5} more (see log file)"
+                        )
+                        logger.warning(summary)
+                        if hasattr(self, "_kml_log"):
+                            self._kml_log.write(summary + "\n")
 
             return points
 
@@ -857,25 +875,32 @@ class FWAProcessor:
         ]
 
         if not unmatched.empty:
-            error_log_path = self.output_gdb.parent / "unmatched_points_error_log.csv"
-            logger.warning(
-                f"!! ALERT !! {len(unmatched)} KML points did not fall inside any waterbody polygon."
-            )
-            logger.warning(f"Saving list of unmatched points to: {error_log_path}")
+            msg = f"!! ALERT !! {len(unmatched)} KML points did not fall inside any waterbody polygon."
+            logger.warning(msg)
 
-            # Ensure output directory exists
-            error_log_path.parent.mkdir(parents=True, exist_ok=True)
+            if hasattr(self, "_kml_log"):
+                self._kml_log.write(f"\n\nUNMATCHED POINTS\n")
+                self._kml_log.write("=" * 80 + "\n")
+                self._kml_log.write(f"{msg}\n\n")
 
-            # Extract relevant identification columns for the error log
-            log_cols = ["geometry"]
-            for col in ["Name", "name", "Description", "description", "label"]:
-                if col in unmatched.columns:
-                    log_cols.insert(0, col)
+                # Write details of unmatched points
+                for idx, row in unmatched.iterrows():
+                    point_name = None
+                    for col in ["Name", "name", "Description", "description", "label"]:
+                        if col in row and pd.notna(row[col]):
+                            point_name = row[col]
+                            break
+                    if point_name:
+                        self._kml_log.write(f"  • {point_name} (ID: {idx})\n")
+                    else:
+                        self._kml_log.write(f"  • Point {idx} (no name)\n")
 
-            try:
-                unmatched[log_cols].to_csv(error_log_path, index=True)
-            except Exception as e:
-                logger.error(f"Could not write error log: {e}")
+        # Close log file
+        if hasattr(self, "_kml_log"):
+            self._kml_log.write("\n" + "=" * 80 + "\n")
+            self._kml_log.write(f"Log file location: {kml_log_path}\n")
+            self._kml_log.close()
+            logger.info(f"KML point issues logged to: {kml_log_path}")
 
         return points_gdf
 
@@ -974,13 +999,16 @@ class FWAProcessor:
 
             # Check ALL streams (both named and unnamed) that touch lakes
             # We'll set TRIBUTARY_OF for all, but only update GNIS_NAME for unnamed
-            candidate_streams = streams_gdf.copy()
+            # NOTE: Use boolean mask instead of copy to save memory
             completed_codes = set()
 
-            # Pre-filter and prepare lakes
-            named_lakes = lakes_gdf[
-                (lakes_gdf["GNIS_NAME_1"].notna())
-                & (lakes_gdf["GNIS_NAME_1"].str.strip() != "")
+            # Pre-filter and prepare lakes (select only needed columns to reduce memory)
+            lakes_mask = (lakes_gdf["GNIS_NAME_1"].notna()) & (
+                lakes_gdf["GNIS_NAME_1"].str.strip() != ""
+            )
+            # Only keep columns we need for spatial join
+            named_lakes = lakes_gdf.loc[
+                lakes_mask, ["geometry", "GNIS_NAME_1", "FWA_WATERSHED_CODE"]
             ].copy()
 
             # Vectorized depth calculation
@@ -993,8 +1021,8 @@ class FWAProcessor:
             total_corrected = 0
             total_trib_of_set = 0
 
-            if candidate_streams.crs != named_lakes.crs:
-                named_lakes = named_lakes.to_crs(candidate_streams.crs)
+            if streams_gdf.crs != named_lakes.crs:
+                named_lakes = named_lakes.to_crs(streams_gdf.crs)
 
             for lake_depth in unique_depths:
                 lakes_at_depth = named_lakes[named_lakes["depth"] == lake_depth][
@@ -1002,18 +1030,25 @@ class FWAProcessor:
                 ]
 
                 # Check streams with higher depth than lake (tributaries flow into lakes)
-                current_candidates = candidate_streams[
-                    (~candidate_streams["clean_code"].isin(completed_codes))
-                    & (candidate_streams["depth"] > lake_depth)
-                ]
+                # Use boolean mask to avoid copying
+                candidates_mask = (~streams_gdf["clean_code"].isin(completed_codes)) & (
+                    streams_gdf["depth"] > lake_depth
+                )
 
-                if current_candidates.empty:
+                if not candidates_mask.any():
                     continue
 
+                # Only select needed columns for spatial join to reduce memory
                 join_result = self.parallel_spatial_join(
-                    current_candidates[["geometry", "FWA_WATERSHED_CODE"]],
+                    streams_gdf.loc[
+                        candidates_mask, ["geometry", "FWA_WATERSHED_CODE"]
+                    ],
                     lakes_at_depth,
                 )
+
+                # Clear lakes_at_depth immediately
+                del lakes_at_depth
+                gc.collect()
 
                 if not join_result.empty:
                     code_to_lake = (
@@ -1053,6 +1088,10 @@ class FWAProcessor:
             logger.info(
                 f" -> Enriched names for {total_corrected:,} unnamed lake tributaries"
             )
+
+            # Clean up temporary lake data
+            del named_lakes
+            gc.collect()
         else:
             logger.info(" -> Skipping lake tributary processing (no lakes loaded)")
 
@@ -1074,23 +1113,34 @@ class FWAProcessor:
 
         return final_streams
 
-    def parallel_spatial_join(self, target_gdf, zone_gdf):
+    def parallel_spatial_join(self, target_gdf, zone_gdf, batch_size=None):
         if len(target_gdf) == 0:
             return gpd.GeoDataFrame()
 
+        # For very large datasets (>1M features), use reduced parallelism to avoid memory issues
+        if len(target_gdf) > 1_000_000:
+            effective_cores = max(4, self.n_cores // 2)  # Use half the cores
+            logger.info(
+                f"  Large dataset detected ({len(target_gdf):,} features) - using {effective_cores} cores to reduce memory usage"
+            )
+        else:
+            effective_cores = self.n_cores
+
         logger.info(
-            f"  Starting parallel spatial join for {len(target_gdf):,} features using {self.n_cores} cores..."
+            f"  Starting parallel spatial join for {len(target_gdf):,} features using {effective_cores} cores..."
         )
 
-        chunks = np.array_split(target_gdf, self.n_cores)
+        chunks = np.array_split(target_gdf, effective_cores)
         args = [(chunk, zone_gdf) for chunk in chunks]
         results = []
 
-        with ProcessPoolExecutor(max_workers=self.n_cores) as executor:
+        with ProcessPoolExecutor(max_workers=effective_cores) as executor:
             for i, res in enumerate(executor.map(spatial_join_worker, args), 1):
                 results.append(res)
-                if i % max(1, self.n_cores // 4) == 0:  # Progress every 25% of chunks
-                    logger.info(f"  Completed {i}/{self.n_cores} chunks...")
+                if (
+                    i % max(1, effective_cores // 4) == 0
+                ):  # Progress every 25% of chunks
+                    logger.info(f"  Completed {i}/{effective_cores} chunks...")
 
         if results:
             logger.info(f"  Concatenating {len(results)} result chunks...")
@@ -1106,6 +1156,142 @@ class FWAProcessor:
             logger.info(f"  Spatial join complete: {len(final_gdf):,} features")
             return final_gdf
         return gpd.GeoDataFrame()
+
+    def _save_streams_by_zone(self, joined_streams, unique_zones, target_crs):
+        """Save stream features split by zone."""
+        total_zones = len(unique_zones)
+        for zone_idx, zone in enumerate(unique_zones, 1):
+            if zone_idx % 10 == 0:
+                percent = (zone_idx / total_zones) * 100
+                logger.info(
+                    f"  Saving streams: {zone_idx}/{total_zones} ({percent:.1f}%)"
+                )
+
+            z_streams = joined_streams[joined_streams["ZONE_GROUP"] == zone]
+            if not z_streams.empty:
+                z_streams = z_streams.drop_duplicates(subset=["LINEAR_FEATURE_ID"])
+                z_streams = gpd.GeoDataFrame(
+                    z_streams, geometry="geometry", crs=target_crs
+                )
+                z_streams.to_file(
+                    str(self.output_gdb),
+                    layer=f"STREAMS_ZONE_{zone}",
+                    driver="OpenFileGDB",
+                )
+                time.sleep(0.05)
+
+    def _save_lakes_by_zone(
+        self, joined_lakes, unique_zones, target_crs, zone_field, lakes_gdf
+    ):
+        """Save lake features split by zone."""
+        total_zones = len(unique_zones)
+        for zone_idx, zone in enumerate(unique_zones, 1):
+            if zone_idx % 10 == 0:
+                percent = (zone_idx / total_zones) * 100
+                logger.info(
+                    f"  Saving lakes: {zone_idx}/{total_zones} ({percent:.1f}%)"
+                )
+
+            z_lakes = joined_lakes[joined_lakes["ZONE_GROUP"] == zone]
+            if not z_lakes.empty:
+                dedup = (
+                    "WATERBODY_POLY_ID"
+                    if "WATERBODY_POLY_ID" in z_lakes.columns
+                    else "WATERBODY_KEY" if "WATERBODY_KEY" in z_lakes.columns else None
+                )
+                if dedup:
+                    z_lakes = z_lakes.drop_duplicates(subset=[dedup])
+                else:
+                    z_lakes = z_lakes.drop_duplicates()
+
+                z_lakes = gpd.GeoDataFrame(z_lakes, geometry="geometry", crs=target_crs)
+                z_lakes.to_file(
+                    str(self.output_gdb),
+                    layer=f"LAKES_ZONE_{zone}",
+                    driver="OpenFileGDB",
+                )
+                time.sleep(0.05)
+
+    def _save_wetlands_by_zone(self, joined_wetlands, unique_zones, target_crs):
+        """Save wetland features split by zone."""
+        total_zones = len(unique_zones)
+        for zone_idx, zone in enumerate(unique_zones, 1):
+            if zone_idx % 10 == 0:
+                percent = (zone_idx / total_zones) * 100
+                logger.info(
+                    f"  Saving wetlands: {zone_idx}/{total_zones} ({percent:.1f}%)"
+                )
+
+            z_wet = joined_wetlands[joined_wetlands["ZONE_GROUP"] == zone]
+            if not z_wet.empty:
+                dedup = (
+                    "WATERBODY_POLY_ID"
+                    if "WATERBODY_POLY_ID" in z_wet.columns
+                    else "WATERBODY_KEY" if "WATERBODY_KEY" in z_wet.columns else None
+                )
+                if dedup:
+                    z_wet = z_wet.drop_duplicates(subset=[dedup])
+                else:
+                    z_wet = z_wet.drop_duplicates()
+
+                z_wet = gpd.GeoDataFrame(z_wet, geometry="geometry", crs=target_crs)
+                z_wet.to_file(
+                    str(self.output_gdb),
+                    layer=f"WETLANDS_ZONE_{zone}",
+                    driver="OpenFileGDB",
+                )
+                time.sleep(0.05)
+
+    def _save_manmade_by_zone(self, joined_manmade, unique_zones, target_crs):
+        """Save manmade waterbody features split by zone."""
+        total_zones = len(unique_zones)
+        for zone_idx, zone in enumerate(unique_zones, 1):
+            if zone_idx % 10 == 0:
+                percent = (zone_idx / total_zones) * 100
+                logger.info(
+                    f"  Saving manmade: {zone_idx}/{total_zones} ({percent:.1f}%)"
+                )
+
+            z_man = joined_manmade[joined_manmade["ZONE_GROUP"] == zone]
+            if not z_man.empty:
+                dedup = (
+                    "WATERBODY_POLY_ID"
+                    if "WATERBODY_POLY_ID" in z_man.columns
+                    else "WATERBODY_KEY" if "WATERBODY_KEY" in z_man.columns else None
+                )
+                if dedup:
+                    z_man = z_man.drop_duplicates(subset=[dedup])
+                else:
+                    z_man = z_man.drop_duplicates()
+
+                z_man = gpd.GeoDataFrame(z_man, geometry="geometry", crs=target_crs)
+                z_man.to_file(
+                    str(self.output_gdb),
+                    layer=f"MANMADE_ZONE_{zone}",
+                    driver="OpenFileGDB",
+                )
+                time.sleep(0.05)
+
+    def _save_points_by_zone(self, joined_points, unique_zones, target_crs):
+        """Save point features split by zone."""
+        total_zones = len(unique_zones)
+        for zone_idx, zone in enumerate(unique_zones, 1):
+            if zone_idx % 10 == 0:
+                percent = (zone_idx / total_zones) * 100
+                logger.info(
+                    f"  Saving points: {zone_idx}/{total_zones} ({percent:.1f}%)"
+                )
+
+            z_pts = joined_points[joined_points["ZONE_GROUP"] == zone]
+            if not z_pts.empty:
+                z_pts = z_pts.drop_duplicates(subset=["geometry"])
+                z_pts = gpd.GeoDataFrame(z_pts, geometry="geometry", crs=target_crs)
+                z_pts.to_file(
+                    str(self.output_gdb),
+                    layer=f"LABELED_POINTS_ZONE_{zone}",
+                    driver="OpenFileGDB",
+                )
+                time.sleep(0.05)
 
     def split_and_save(
         self, streams_gdf, lakes_gdf, wetlands_gdf, manmade_gdf, points_gdf
@@ -1156,39 +1342,59 @@ class FWAProcessor:
         if not points_gdf.empty and points_gdf.crs != target_crs:
             points_gdf = points_gdf.to_crs(target_crs)
 
-        # Spatial joins with reused wildlife geometry
-        joined_streams = gpd.GeoDataFrame()
+        # MEMORY OPTIMIZATION: Process each dataset type separately and save immediately
+        # This avoids holding 5 large spatial join results in memory simultaneously
+
+        # Process streams
+        logger.info("Processing Streams by Zone...")
         if not streams_gdf.empty:
             logger.info("Joining Streams to Zones...")
             joined_streams = self.parallel_spatial_join(streams_gdf, wildlife_zones)
+            self._save_streams_by_zone(joined_streams, unique_zones, target_crs)
+            del joined_streams
+            gc.collect()
 
-        joined_lakes = gpd.GeoDataFrame()
+        # Process lakes
+        logger.info("Processing Lakes by Zone...")
         if not lakes_gdf.empty:
             logger.info("Joining Lakes to Zones...")
             joined_lakes = self.parallel_spatial_join(lakes_gdf, wildlife_zones)
+            self._save_lakes_by_zone(
+                joined_lakes, unique_zones, target_crs, zone_field, lakes_gdf
+            )
+            del joined_lakes
+            gc.collect()
 
-        joined_wetlands = gpd.GeoDataFrame()
+        # Process wetlands
+        logger.info("Processing Wetlands by Zone...")
         if not wetlands_gdf.empty:
             logger.info("Joining Wetlands to Zones...")
             joined_wetlands = self.parallel_spatial_join(wetlands_gdf, wildlife_zones)
+            self._save_wetlands_by_zone(joined_wetlands, unique_zones, target_crs)
+            del joined_wetlands
+            gc.collect()
 
-        joined_manmade = gpd.GeoDataFrame()
+        # Process manmade
+        logger.info("Processing Manmade Waterbodies by Zone...")
         if not manmade_gdf.empty:
             logger.info("Joining Manmade Waterbodies to Zones...")
             joined_manmade = self.parallel_spatial_join(manmade_gdf, wildlife_zones)
+            self._save_manmade_by_zone(joined_manmade, unique_zones, target_crs)
+            del joined_manmade
+            gc.collect()
 
-        joined_points = gpd.GeoDataFrame()
+        # Process points
+        logger.info("Processing KML Points by Zone...")
         if not points_gdf.empty:
             logger.info("Joining KML Points to Zones...")
             joined_points = self.parallel_spatial_join(points_gdf, wildlife_zones)
+            self._save_points_by_zone(joined_points, unique_zones, target_crs)
+            del joined_points
+            gc.collect()
 
-        logger.info(f"Saving features for {total_zones} zones...")
-        for zone_idx, zone in enumerate(unique_zones, 1):
-            percent = (zone_idx / total_zones) * 100
-            logger.info(
-                f"[{zone_idx}/{total_zones}] ({percent:.1f}%) Saving Zone {zone}..."
-            )
-
+        # Save zone outlines
+        logger.info("Saving zone outlines...")
+        for zone in unique_zones:
             if zone in zone_outlines.index:
                 outline = zone_outlines.loc[[zone]]
                 outline.to_file(
@@ -1196,162 +1402,9 @@ class FWAProcessor:
                     layer=f"ZONE_OUTLINE_{zone}",
                     driver="OpenFileGDB",
                 )
-                time.sleep(0.1)
+                time.sleep(0.05)
 
-            if not joined_streams.empty:
-                z_streams = joined_streams[joined_streams["ZONE_GROUP"] == zone]
-                if not z_streams.empty:
-                    # Streams are linear, use LINEAR_FEATURE_ID for deduplication
-                    z_streams = z_streams.drop_duplicates(subset=["LINEAR_FEATURE_ID"])
-                    keep_cols = [
-                        c for c in streams_gdf.columns if c in z_streams.columns
-                    ]
-                    if "geometry" not in keep_cols:
-                        keep_cols.append("geometry")
-                    # Include management unit field from spatial join
-                    if zone_field in z_streams.columns and zone_field not in keep_cols:
-                        keep_cols.append(zone_field)
-                    z_streams = gpd.GeoDataFrame(
-                        z_streams[keep_cols], geometry="geometry", crs=target_crs
-                    )
-                    z_streams.to_file(
-                        str(self.output_gdb),
-                        layer=f"STREAMS_ZONE_{zone}",
-                        driver="OpenFileGDB",
-                    )
-
-            if not joined_lakes.empty:
-                z_lakes = joined_lakes[joined_lakes["ZONE_GROUP"] == zone]
-                if not z_lakes.empty:
-                    # FIX: Deduplicate by POLY_ID to keep multi-polygon lakes (like Kinbasket) intact
-                    dedup = (
-                        "WATERBODY_POLY_ID"
-                        if "WATERBODY_POLY_ID" in z_lakes.columns
-                        else (
-                            "WATERBODY_KEY"
-                            if "WATERBODY_KEY" in z_lakes.columns
-                            else None
-                        )
-                    )
-
-                    if dedup:
-                        z_lakes = z_lakes.drop_duplicates(subset=[dedup])
-                    else:
-                        z_lakes = z_lakes.drop_duplicates()
-
-                    keep_cols = [c for c in lakes_gdf.columns if c in z_lakes.columns]
-                    if "geometry" not in keep_cols:
-                        keep_cols.append("geometry")
-                    # Include management unit field from spatial join
-                    if zone_field in z_lakes.columns and zone_field not in keep_cols:
-                        keep_cols.append(zone_field)
-                    z_lakes = gpd.GeoDataFrame(
-                        z_lakes[keep_cols], geometry="geometry", crs=target_crs
-                    )
-                    z_lakes.to_file(
-                        str(self.output_gdb),
-                        layer=f"LAKES_ZONE_{zone}",
-                        driver="OpenFileGDB",
-                    )
-
-            if not joined_wetlands.empty:
-                z_wet = joined_wetlands[joined_wetlands["ZONE_GROUP"] == zone]
-                if not z_wet.empty:
-                    # FIX: Deduplicate by POLY_ID
-                    dedup = (
-                        "WATERBODY_POLY_ID"
-                        if "WATERBODY_POLY_ID" in z_wet.columns
-                        else (
-                            "WATERBODY_KEY"
-                            if "WATERBODY_KEY" in z_wet.columns
-                            else None
-                        )
-                    )
-
-                    if dedup:
-                        z_wet = z_wet.drop_duplicates(subset=[dedup])
-                    else:
-                        z_wet = z_wet.drop_duplicates()
-
-                    keep_cols = [c for c in wetlands_gdf.columns if c in z_wet.columns]
-                    if "geometry" not in keep_cols:
-                        keep_cols.append("geometry")
-                    # Include management unit field from spatial join
-                    if zone_field in z_wet.columns and zone_field not in keep_cols:
-                        keep_cols.append(zone_field)
-                    z_wet = gpd.GeoDataFrame(
-                        z_wet[keep_cols], geometry="geometry", crs=target_crs
-                    )
-                    z_wet.to_file(
-                        str(self.output_gdb),
-                        layer=f"WETLANDS_ZONE_{zone}",
-                        driver="OpenFileGDB",
-                    )
-
-            if not joined_manmade.empty:
-                z_man = joined_manmade[joined_manmade["ZONE_GROUP"] == zone]
-                if not z_man.empty:
-                    # FIX: Deduplicate by POLY_ID
-                    dedup = (
-                        "WATERBODY_POLY_ID"
-                        if "WATERBODY_POLY_ID" in z_man.columns
-                        else (
-                            "WATERBODY_KEY"
-                            if "WATERBODY_KEY" in z_man.columns
-                            else None
-                        )
-                    )
-
-                    if dedup:
-                        z_man = z_man.drop_duplicates(subset=[dedup])
-                    else:
-                        z_man = z_man.drop_duplicates()
-
-                    keep_cols = [c for c in manmade_gdf.columns if c in z_man.columns]
-                    if "geometry" not in keep_cols:
-                        keep_cols.append("geometry")
-                    # Include management unit field from spatial join
-                    if zone_field in z_man.columns and zone_field not in keep_cols:
-                        keep_cols.append(zone_field)
-                    z_man = gpd.GeoDataFrame(
-                        z_man[keep_cols], geometry="geometry", crs=target_crs
-                    )
-                    z_man.to_file(
-                        str(self.output_gdb),
-                        layer=f"MANMADE_ZONE_{zone}",
-                        driver="OpenFileGDB",
-                    )
-
-            if not joined_points.empty:
-                z_pts = joined_points[joined_points["ZONE_GROUP"] == zone]
-                if not z_pts.empty:
-                    z_pts = z_pts.drop_duplicates(subset=["geometry"])
-                    keep_cols = [c for c in points_gdf.columns if c in z_pts.columns]
-                    if "geometry" not in keep_cols:
-                        keep_cols.append("geometry")
-                    # Include management unit field from spatial join
-                    if zone_field in z_pts.columns and zone_field not in keep_cols:
-                        keep_cols.append(zone_field)
-                    z_pts = gpd.GeoDataFrame(
-                        z_pts[keep_cols], geometry="geometry", crs=target_crs
-                    )
-                    z_pts.to_file(
-                        str(self.output_gdb),
-                        layer=f"LABELED_POINTS_ZONE_{zone}",
-                        driver="OpenFileGDB",
-                    )
-
-            # Clean up zone-specific data every 10 zones to prevent memory buildup
-            if zone_idx % 10 == 0:
-                gc.collect()
-
-            time.sleep(0.1)
-
-        logger.info(f"All {total_zones} zones processed.")
-
-        # Final cleanup of joined data
-        del joined_streams, joined_lakes, joined_wetlands, joined_manmade, joined_points
-        gc.collect()
+        logger.info(f"All {len(unique_zones)} zones processed.")
 
     def build_waterbody_index(self):
         """Build indexed lookup structure from processed geodatabase."""
