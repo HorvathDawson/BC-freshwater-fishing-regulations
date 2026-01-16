@@ -235,13 +235,16 @@ class FWAPrimalGraph:
             gdf["GNIS_NAME"] = gdf.apply(fill_name, axis=1)
         return gdf
 
-    def build(self, limit=None):
+    def build(self, limit=None, layers=None):
         logger.info("Step 1: Loading Segments...")
         try:
-            layers = fiona.listlayers(str(self.streams_gdb))
-            layers = [l for l in layers if not l.startswith("_") and len(l) <= 4]
-            if limit:
-                layers = layers[:limit]
+            if layers is None:
+                layers = fiona.listlayers(str(self.streams_gdb))
+                layers = [l for l in layers if not l.startswith("_") and len(l) <= 4]
+                if limit:
+                    layers = layers[:limit]
+            elif isinstance(layers, str):
+                layers = [layers]
         except Exception:
             return
         print(f"Processing {len(layers)} layers in parallel with 14 workers...")
@@ -304,6 +307,7 @@ class FWAPrimalGraph:
                 stream_order=stream_order,
                 length=length,
                 tributary_of="",
+                lake_tributary="",
                 weight=1.0 + visual_offset,
                 edge_index=parallel_count,
             )
@@ -655,13 +659,32 @@ class FWAPrimalGraph:
                     data = self.G.edges[v, r, edge_key]
                     name = data.get("gnis_name", "")
                     lake = data.get("lake_name", "")
+
+                    # Initialize both tributary fields
                     data["tributary_of"] = "Tailwater"
-                    upstream_tributary = "Tailwater"
-                    if lake:
-                        upstream_tributary = lake
-                    stack.append((v, upstream_tributary, data, edge_key))
+                    data["lake_tributary"] = lake if lake else ""
+
+                    # Track what to inherit upstream (separate for lakes and streams)
+                    upstream_lake_tributary = lake if lake else ""
+                    upstream_stream_tributary = "Tailwater"
+
+                    stack.append(
+                        (
+                            v,
+                            upstream_stream_tributary,
+                            upstream_lake_tributary,
+                            data,
+                            edge_key,
+                        )
+                    )
         while stack:
-            u, inherited_tributary, downstream_data, downstream_key = stack.pop()
+            (
+                u,
+                inherited_stream_tributary,
+                inherited_lake_tributary,
+                downstream_data,
+                downstream_key,
+            ) = stack.pop()
             for v in self.G.predecessors(u):
                 for edge_key in self.G[v][u]:
                     edge_id = (v, u, edge_key)
@@ -672,39 +695,52 @@ class FWAPrimalGraph:
                     current_name = data.get("gnis_name", "")
                     current_lake = data.get("lake_name", "")
                     downstream_name = downstream_data.get("gnis_name", "")
-                    downstream_lake = downstream_data.get("lake_name", "")
                     downstream_tributary_of = downstream_data.get("tributary_of", "")
-                    # Track if we're in/near a lake (to prevent name from overriding lake tributary)
-                    in_lake_context = False
-                    # Logic matches your requested priority
-                    # If current stream is inside a lake OR flows into a lake, it's tributary of that lake
-                    if current_lake or downstream_lake:
-                        lake_name = current_lake if current_lake else downstream_lake
-                        data["tributary_of"] = lake_name
-                        upstream_tributary = lake_name
-                        in_lake_context = True
-                    elif current_name and current_name == downstream_name:
+
+                    # ==== LAKE TRIBUTARY LOGIC (separate field) ====
+                    # If current edge is in/through a lake, set that lake as lake_tributary
+                    if current_lake:
+                        data["lake_tributary"] = current_lake
+                        upstream_lake_tributary = current_lake
+                    # Otherwise, inherit lake tributary from downstream (until we hit a new lake)
+                    elif inherited_lake_tributary:
+                        data["lake_tributary"] = inherited_lake_tributary
+                        upstream_lake_tributary = inherited_lake_tributary
+                    else:
+                        data["lake_tributary"] = ""
+                        upstream_lake_tributary = ""
+
+                    # ==== STREAM TRIBUTARY LOGIC (ignores lakes) ====
+                    # If current stream name matches downstream stream name, they're the same stream
+                    if current_name and current_name == downstream_name:
                         data["tributary_of"] = downstream_tributary_of
-                        upstream_tributary = inherited_tributary
-                    elif inherited_tributary:
-                        data["tributary_of"] = inherited_tributary
-                        upstream_tributary = inherited_tributary
-                    elif (
-                        downstream_name and downstream_name != current_name
-                    ):  # Prevent self-tributary
+                        upstream_stream_tributary = inherited_stream_tributary
+                    # If we have an inherited stream tributary, use it
+                    elif inherited_stream_tributary:
+                        data["tributary_of"] = inherited_stream_tributary
+                        upstream_stream_tributary = inherited_stream_tributary
+                    # If downstream is a different named stream, current is tributary of it
+                    elif downstream_name and downstream_name != current_name:
                         data["tributary_of"] = downstream_name
-                        upstream_tributary = downstream_name
+                        upstream_stream_tributary = downstream_name
                     else:
                         data["tributary_of"] = ""
-                        upstream_tributary = ""
-                    # Only update upstream_tributary to current_name if we're NOT in a lake context
-                    if (
-                        current_name
-                        and current_name != upstream_tributary
-                        and not in_lake_context
-                    ):
-                        upstream_tributary = current_name
-                    stack.append((v, upstream_tributary, data, edge_key))
+                        upstream_stream_tributary = ""
+
+                    # If current edge has a name and it's not the same as what we're inheriting,
+                    # update upstream_stream_tributary to the current name
+                    if current_name and current_name != upstream_stream_tributary:
+                        upstream_stream_tributary = current_name
+
+                    stack.append(
+                        (
+                            v,
+                            upstream_stream_tributary,
+                            upstream_lake_tributary,
+                            data,
+                            edge_key,
+                        )
+                    )
         logger.info("Tributary enrichment complete.")
 
     def filter_watershed(self, target_name):
