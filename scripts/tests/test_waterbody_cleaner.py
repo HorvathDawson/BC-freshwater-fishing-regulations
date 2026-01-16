@@ -30,8 +30,14 @@ def test_clean_waterbody_name():
         ("Multiple   Spaces", "Multiple Spaces"),
         ("", ""),
         # Nested parentheses test case
-        ("WIGWAM RIVER (upstream of the Forest Service recreation site adjacent to km 42 on the Bighorn (Ram) Forest Service Road)", "WIGWAM RIVER"),
-        ("WIGWAM RIVER (downstream of the access road adjacent to km 42 on the Bighorn (Ram) Forest Service Road)", "WIGWAM RIVER"),
+        (
+            "WIGWAM RIVER (upstream of the Forest Service recreation site adjacent to km 42 on the Bighorn (Ram) Forest Service Road)",
+            "WIGWAM RIVER",
+        ),
+        (
+            "WIGWAM RIVER (downstream of the access road adjacent to km 42 on the Bighorn (Ram) Forest Service Road)",
+            "WIGWAM RIVER",
+        ),
     ]
 
     print("Testing clean_waterbody_name():")

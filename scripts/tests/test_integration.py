@@ -15,7 +15,7 @@ import pandas as pd
 from shapely.geometry import LineString, Point, Polygon
 import fiona
 
-from fwa_modules.stream_preprocessing import StreamPreprocessor
+from fwa_modules.stream_preprocessing_simple import StreamPreprocessor
 from fwa_modules.kml_enrichment import KMLEnricher
 from fwa_modules.network_analysis import NetworkAnalyzer
 from fwa_modules.models import ZoneAssignment
@@ -69,16 +69,54 @@ def mock_streams_gdb(temp_workspace):
 
 @pytest.fixture
 def mock_lakes_gdb(temp_workspace):
-    """Create mock lakes GDB with test data."""
+    """Create mock lakes GDB with test data at realistic BC coordinates."""
     gdb_path = temp_workspace / "test_lakes.gdb"
 
-    # Create test lake
+    # Create test lakes using real BC WGS84 coordinates from unnamed_lakes.kml
+    # Point 1: (-125.477748, 50.134073) - unnamed lake c - map b
+    # Point 2: (-125.640115, 50.192516) - unnamed lake b - map a
+    # Create small lakes around these points
+
+    # Convert WGS84 points to EPSG:3005 to create polygons
+    import geopandas as gpd
+    from shapely.geometry import Point as ShapelyPoint
+
+    # Points in WGS84
+    point1_wgs84 = gpd.GeoSeries(
+        [ShapelyPoint(-125.477748, 50.134073)], crs="EPSG:4326"
+    )
+    point2_wgs84 = gpd.GeoSeries(
+        [ShapelyPoint(-125.640115, 50.192516)], crs="EPSG:4326"
+    )
+
+    # Convert to EPSG:3005
+    point1_3005 = point1_wgs84.to_crs("EPSG:3005").iloc[0]
+    point2_3005 = point2_wgs84.to_crs("EPSG:3005").iloc[0]
+
+    # Create 200m x 200m boxes around each point
+    x1, y1 = point1_3005.x, point1_3005.y
+    x2, y2 = point2_3005.x, point2_3005.y
+
     lakes_data = {
         "WATERBODY_POLY_ID": [1, 2],
-        "GNIS_NAME_1": ["Harrison Lake", None],
+        "GNIS_NAME_1": ["Test Named Lake", None],  # One named, one unnamed
         "geometry": [
-            Polygon([(2, -0.5), (2, 0.5), (3, 0.5), (3, -0.5)]),
-            Polygon([(5, -0.5), (5, 0.5), (6, 0.5), (6, -0.5)]),
+            Polygon(
+                [
+                    (x1 - 100, y1 - 100),
+                    (x1 - 100, y1 + 100),
+                    (x1 + 100, y1 + 100),
+                    (x1 + 100, y1 - 100),
+                ]
+            ),
+            Polygon(
+                [
+                    (x2 - 100, y2 - 100),
+                    (x2 - 100, y2 + 100),
+                    (x2 + 100, y2 + 100),
+                    (x2 + 100, y2 - 100),
+                ]
+            ),
         ],
     }
 
@@ -90,24 +128,21 @@ def mock_lakes_gdb(temp_workspace):
 
 @pytest.fixture
 def mock_kml_points(temp_workspace):
-    """Create mock KML points."""
-    kml_path = temp_workspace / "test_points.kml"
+    """Create mock KML points using real coordinates from unnamed_lakes.kml."""
 
-    # Create test points
+    # Use real BC coordinates from unnamed_lakes.kml
     points_data = {
-        "Name": ["Point in Harrison Lake", "Point in unnamed lake", "Point nowhere"],
+        "Name": ["unnamed lake c - map b", "unnamed lake b - map a", "Point nowhere"],
         "geometry": [
-            Point(2.5, 0.0),  # Inside Harrison Lake
-            Point(5.5, 0.0),  # Inside unnamed lake
-            Point(10.0, 10.0),  # Not in any lake
+            Point(-125.477748, 50.134073),  # Should match lake 1
+            Point(-125.640115, 50.192516),  # Should match lake 2
+            Point(-110.0, 50.0),  # Far east, won't match
         ],
     }
 
     points_gdf = gpd.GeoDataFrame(points_data, crs="EPSG:4326")
 
-    # Convert to proper CRS for testing
-    points_gdf = points_gdf.to_crs("EPSG:3005")
-
+    # Keep in WGS84 like a real KML file would be
     # Save as GPKG (easier than KML for testing)
     gpkg_path = temp_workspace / "test_points.gpkg"
     points_gdf.to_file(str(gpkg_path), driver="GPKG")
@@ -126,8 +161,10 @@ class TestStreamPreprocessing:
 
         result = processor.run()
 
-        assert result == output_gdb
-        assert output_gdb.exists()
+        # Simplified version outputs .gpkg instead of .gdb
+        expected_output = temp_workspace / "cleaned_streams.gpkg"
+        assert result == expected_output
+        assert expected_output.exists()
 
         # Check stats
         assert processor.stats["total_streams_read"] == 5
@@ -144,8 +181,9 @@ class TestStreamPreprocessing:
 
         processor.run()
 
-        # Load results
-        result = gpd.read_file(str(output_gdb), layer="100A")
+        # Load results (GPKG output, layer name normalized to _100A)
+        output_gpkg = temp_workspace / "cleaned_streams.gpkg"
+        result = gpd.read_file(str(output_gpkg), layer="_100A")
 
         # S5 should have Thompson River name now
         braid_stream = result[result["LINEAR_FEATURE_ID"] == "S5"]
@@ -160,8 +198,9 @@ class TestStreamPreprocessing:
 
         processor.run()
 
-        # Load results
-        result = gpd.read_file(str(output_gdb), layer="100A")
+        # Load results (GPKG output, layer name normalized to _100A)
+        output_gpkg = temp_workspace / "cleaned_streams.gpkg"
+        result = gpd.read_file(str(output_gpkg), layer="_100A")
 
         # S4 should be filtered (2 levels away)
         assert "S4" not in result["LINEAR_FEATURE_ID"].values
@@ -209,20 +248,20 @@ class TestKMLEnrichment:
         # Load results
         points = gpd.read_file(str(output_points))
 
-        # First point should match Harrison Lake (ID 1)
-        harrison_point = points[points["Name"] == "Point in Harrison Lake"]
-        assert len(harrison_point) == 1
-        assert harrison_point.iloc[0]["LAKE_POLY_ID"] == 1
+        # First point should match Test Named Lake (ID 1)
+        point1 = points[points["Name"] == "unnamed lake c - map b"]
+        assert len(point1) == 1
+        assert point1.iloc[0]["LAKE_POLY_ID"] == 1
 
         # Second point should match unnamed lake (ID 2)
-        unnamed_point = points[points["Name"] == "Point in unnamed lake"]
-        assert len(unnamed_point) == 1
-        assert unnamed_point.iloc[0]["LAKE_POLY_ID"] == 2
+        point2 = points[points["Name"] == "unnamed lake b - map a"]
+        assert len(point2) == 1
+        assert point2.iloc[0]["LAKE_POLY_ID"] == 2
 
         # Third point should not match
-        nowhere_point = points[points["Name"] == "Point nowhere"]
-        assert len(nowhere_point) == 1
-        assert pd.isna(nowhere_point.iloc[0]["LAKE_POLY_ID"])
+        point3 = points[points["Name"] == "Point nowhere"]
+        assert len(point3) == 1
+        assert pd.isna(point3.iloc[0]["LAKE_POLY_ID"])
 
 
 class TestZoneAssignment:

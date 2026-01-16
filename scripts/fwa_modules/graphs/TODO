@@ -1,0 +1,5 @@
+1. make parallel loading.
+2. Need to have a way to filter max unnamed stream depth. no unnamed stream into deeper unnamed stream (use fwa watershed codes or order to determine depth)
+3. add tests from existing ones
+4. have a way to split into zones. ideally use the end points of the segment to make it speedy? 
+5. maybe we can do linking with graph later? 

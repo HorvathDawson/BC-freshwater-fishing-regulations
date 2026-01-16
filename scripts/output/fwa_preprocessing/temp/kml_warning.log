@@ -1,0 +1,75 @@
+KML Point Enrichment Warning Log
+================================================================================
+
+SECTION 1: UNMATCHED POINTS
+--------------------------------------------------------------------------------
+
+!! WARNING: 1 points did not match any waterbody polygon !!
+
+These points may indicate:
+  - GPS coordinate errors
+  - Waterbodies missing from FWA database
+  - Points placed outside waterbody boundaries
+
+Point: marsh pond
+  Coordinates: (450116.822503, 1259700.295969)
+  Index: 31
+
+
+================================================================================
+SECTION 2: POINTS MATCHING NAMED POLYGONS
+--------------------------------------------------------------------------------
+
+!! QUALITY ALERT: 9 points matched NAMED waterbodies !!
+
+These should typically match UNNAMED waterbodies.
+Review these matches for accuracy:
+
+Point: mine lake
+  Matched lakes: Main Lake
+  Polygon ID: 710006533
+  Point Index: 26
+
+Point: little dum lake
+  Matched lakes: Dum Lake
+  Polygon ID: 700121056
+  Point Index: 35
+
+Point: upper kane lake
+  Matched lakes: Kane Lakes
+  Polygon ID: 700115709
+  Point Index: 42
+
+Point: lower kane lake
+  Matched lakes: Kane Lakes
+  Polygon ID: 700115722
+  Point Index: 43
+
+Point: alces lake
+  Matched lakes: Moose Lake
+  Polygon ID: 705018114
+  Point Index: 45
+
+Point: champion lake no. 2
+  Matched lakes: Champion Lakes
+  Polygon ID: 705019144
+  Point Index: 47
+
+Point: champion lake no. 3
+  Matched lakes: Champion Lakes
+  Polygon ID: 705019153
+  Point Index: 48
+
+Point: rock isle lake
+  Matched lakes: Rock Isle Lake
+  Polygon ID: 705000862
+  Point Index: 51
+
+Point: paddy lake
+  Matched lakes: Squirrel Lake
+  Polygon ID: 700130982
+  Point Index: 60
+
+
+================================================================================
+Log file: /mnt/c/Users/DawsonHorvath/Documents/Workspace/BC-freshwater-fishing-regulations/scripts/output/fwa_preprocessing/temp/kml_warning.log

@@ -1,440 +1,366 @@
 """
 Test tributary assignment for Guichon Creek watershed (GUIC).
 
-Verifies that the network analysis correctly assigns tributary relationships
-without lakes, focusing on named and unnamed stream hierarchy.
+Tests the simplified watershed hierarchy approach:
+- TRIBUTARY_OF field should be populated for all streams
+- Originally unnamed streams get renamed to "X Tributary"
+- Lake tributaries detected via WATERBODY_KEY
+- Braided streams inherit names from main channel
 """
 
 import sys
 from pathlib import Path
 
-# Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 import geopandas as gpd
 import pandas as pd
 import pytest
-from fwa_modules.network_analysis import NetworkAnalyzer
+import fiona
+import logging
+
+# Import processing functions
+from fwa_preprocessing import FWAProcessor
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 class TestGuichonTributaries:
-    """Test tributary assignments in Guichon Creek watershed."""
+    """Test tributary assignments using simplified approach."""
 
     @pytest.fixture(scope="class")
     def setup_data(self):
-        """Load GUIC layer and run network analysis."""
-        # Paths
-        base_dir = Path(__file__).parent.parent
-        streams_gdb = base_dir / "output" / "fwa_preprocessing" / "FWA_Zone_Grouped.gdb"
-        output_dir = base_dir / "output" / "test_guichon"
-
-        # Create a minimal lakes GDB with just Mamit Lake for testing
-        lakes_gdb = output_dir / "test_lakes.gdb"
-
-        # Load the full lakes dataset and extract just Mamit Lake
-        # The correct path based on the data directory structure
-        full_lakes_gdb = (
-            base_dir.parent
-            / "data"
-            / "ftp.geobc.gov.bc.ca"
-            / "sections"
-            / "outgoing"
-            / "bmgs"
-            / "FWA_Public"
-            / "FWA_BC"
-            / "FWA_BC.gdb"
-        )
-
+        """Build test data on-the-fly from raw FWA for GUIC watershed only."""
+        base_dir = Path(__file__).parent.parent.parent
+        
+        # Paths to raw data
+        streams_gdb = base_dir / "data" / "ftp.geobc.gov.bc.ca" / "sections" / "outgoing" / "bmgs" / "FWA_Public" / "FWA_STREAM_NETWORKS_SP" / "FWA_STREAM_NETWORKS_SP.gdb"
+        fwa_bc_gdb = base_dir / "data" / "ftp.geobc.gov.bc.ca" / "sections" / "outgoing" / "bmgs" / "FWA_Public" / "FWA_BC" / "FWA_BC.gdb"
+        
+        if not streams_gdb.exists():
+            pytest.skip(f"Raw FWA streams not found: {streams_gdb}")
+        if not fwa_bc_gdb.exists():
+            pytest.skip(f"Raw FWA BC not found: {fwa_bc_gdb}")
+        
+        logger.info("=" * 80)
+        logger.info("LOADING GUICHON CREEK WATERSHED (GUIC) FOR TESTING")
+        logger.info("=" * 80)
+        
+        # Load GUIC streams only
+        logger.info("Loading GUIC streams...")
         try:
-            if full_lakes_gdb.exists():
-                all_lakes = gpd.read_file(str(full_lakes_gdb), layer="FWA_LAKES_POLY")
-
-                # Filter to just Mamit Lake (WATERBODY_POLY_ID = 700089332)
-                mamit_lake = all_lakes[all_lakes["WATERBODY_POLY_ID"] == 700089332]
-
-                if len(mamit_lake) > 0:
-                    # Save to test GDB
-                    mamit_lake.to_file(
-                        str(lakes_gdb), layer="FWA_LAKES_POLY", driver="OpenFileGDB"
-                    )
-                    print(f"\nCreated test lakes GDB with Mamit Lake at {lakes_gdb}")
-                else:
-                    print(
-                        f"\nWarning: Mamit Lake (700089332) not found in full lakes dataset"
-                    )
-                    lakes_gdb = None
-            else:
-                print(f"\nWarning: Full lakes GDB not found at {full_lakes_gdb}")
-                lakes_gdb = None
+            streams_gdf = gpd.read_file(str(streams_gdb), layer="GUIC")
+            logger.info(f"✓ Loaded {len(streams_gdf):,} streams from GUIC")
         except Exception as e:
-            print(f"\nWarning: Could not create test lakes GDB: {e}")
-            lakes_gdb = None
+            pytest.skip(f"Could not load GUIC layer: {e}")
+        
+        # Load lakes from FWA_BC.gdb
+        logger.info("Loading lakes...")
+        try:
+            # Load all lakes, then filter to GUIC watershed
+            lakes_gdf = gpd.read_file(str(fwa_bc_gdb), layer="FWA_LAKES_POLY")
+            logger.info(f"✓ Loaded {len(lakes_gdf):,} lakes")
+            
+            # Filter to GUIC watershed codes
+            guic_codes = streams_gdf["FWA_WATERSHED_CODE"].unique()
+            # Extract watershed group (first 8 chars) from codes
+            guic_groups = set(code[:8] if isinstance(code, str) and len(code) >= 8 else None for code in guic_codes)
+            guic_groups.discard(None)
+            
+            # Filter lakes to GUIC watershed
+            lakes_gdf = lakes_gdf[
+                lakes_gdf["FWA_WATERSHED_CODE"].apply(
+                    lambda x: x[:8] if isinstance(x, str) and len(x) >= 8 else None
+                ).isin(guic_groups)
+            ].copy()
+            logger.info(f"✓ Filtered to {len(lakes_gdf):,} GUIC lakes")
+            
+            # Filter to just named lakes for speed
+            lakes_gdf = lakes_gdf[
+                (lakes_gdf["GNIS_NAME_1"].notna()) & 
+                (lakes_gdf["GNIS_NAME_1"].str.strip() != "")
+            ].copy()
+            logger.info(f"✓ Filtered to {len(lakes_gdf):,} named lakes")
+        except Exception as e:
+            logger.warning(f"Could not load lakes: {e}")
+            lakes_gdf = gpd.GeoDataFrame()
+        
+        # Create a temporary processor just to use its methods
+        logger.info("Processing streams...")
+        processor = FWAProcessor(
+            streams_gdb=str(streams_gdb),
+            lakes_gdb=str(fwa_bc_gdb),
+            wildlife_gpkg="",
+            kml_path="",
+            output_gpkg=""
+        )
+        
+        # Run stream enrichment
+        streams_gdf = processor.enrich_streams(streams_gdf, lakes_gdf)
+        
+        logger.info(f"✓ Processing complete: {len(streams_gdf):,} streams")
+        logger.info("=" * 80)
+        
+        return {"streams": streams_gdf, "lakes": lakes_gdf}
 
-        # Create output directory
-        output_dir.mkdir(parents=True, exist_ok=True)
+    def test_guichon_outlet_streams_not_tributary_of_mamit(self, setup_data):
+        """
+        Test that Guichon Creek outlet (stream 701305409) is NOT marked as
+        tributary of Mamit Lake.
 
-        # Load ALL stream data from GDB (all layers) and filter to GUIC watershed
-        print("\n=== Loading stream data ===")
-        import fiona
+        This stream flows OUT of Mamit Lake, so it should maintain its
+        Guichon Creek identity and NOT be marked as lake tributary.
+        """
+        streams = setup_data["streams"]
 
-        layers = fiona.listlayers(str(streams_gdb))
-        print(f"Found {len(layers)} layers in GDB")
+        # Find the outlet stream
+        outlet = streams[streams["LINEAR_FEATURE_ID"] == 701305409]
 
-        # Load all layers and concatenate (GUIC watershed is in one of them)
-        all_streams = []
-        for layer_name in layers:
-            streams = gpd.read_file(str(streams_gdb), layer=layer_name)
-            all_streams.append(streams)
+        assert len(outlet) > 0, "Outlet stream 701305409 not found"
 
-        all_streams_df = gpd.GeoDataFrame(pd.concat(all_streams, ignore_index=True))
+        outlet_row = outlet.iloc[0]
+        gnis_name = outlet_row["GNIS_NAME"]
+        tributary_of = outlet_row["TRIBUTARY_OF"]
 
-        # Filter to GUIC watershed group
-        guic = all_streams_df[all_streams_df["WATERSHED_GROUP_CODE"] == "GUIC"].copy()
-        print(f"Loaded {len(guic)} GUIC stream segments")
+        print(f"\nStream 701305409 (Guichon Creek outlet):")
+        print(f"  GNIS_NAME: {gnis_name}")
+        print(f"  TRIBUTARY_OF: {tributary_of}")
 
-        # Initialize analyzer
-        analyzer = NetworkAnalyzer(
-            streams_gdb=streams_gdb,
-            lakes_gdb=lakes_gdb,
-            output_tributary_map=output_dir / "tributary_map.json",
-            output_lake_segments=output_dir / "lake_segments.json",
-            output_graph=output_dir / "graph.graphml",
+        # Should maintain Guichon Creek name
+        assert (
+            gnis_name == "Guichon Creek"
+        ), f"Expected 'Guichon Creek', got '{gnis_name}'"
+
+        # Should NOT be tributary of Mamit Lake
+        assert tributary_of != "Mamit Lake", (
+            f"Outlet stream incorrectly marked as tributary of Mamit Lake. "
+            f"TRIBUTARY_OF={tributary_of}"
         )
 
-        # Build graph using only GUIC layer
-        print("\n=== Building GUIC Network Graph ===")
-        graph = analyzer.build_network_graph()
+    def test_stream_701305652_is_tributary_of_gypsum_lake(self, setup_data):
+        """
+        Test that stream 701305652 is tributary of Gypsum Lake.
 
-        # Detect lake nodes
-        graph = analyzer.detect_lake_nodes(graph)
+        This stream should be detected as a Gypsum Lake tributary via WATERBODY_KEY.
+        """
+        streams = setup_data["streams"]
 
-        # Find lake segments
-        lake_segments = analyzer.find_lake_segments(graph)
+        # Find the stream
+        stream = streams[streams["LINEAR_FEATURE_ID"] == 701305652]
 
-        # Assign tributaries
-        tributary_assignments = analyzer.assign_tributaries(graph, lake_segments)
+        assert len(stream) > 0, "Stream 701305652 not found"
 
-        return {
-            "graph": graph,
-            "tributary_assignments": tributary_assignments,
-            "lake_segments": lake_segments,
-            "streams_gdb": streams_gdb,
-            "guic": guic,  # Pass the loaded data to avoid reopening GDB
-        }
+        stream_row = stream.iloc[0]
+        gnis_name = stream_row["GNIS_NAME"]
+        tributary_of = stream_row["TRIBUTARY_OF"]
 
-    def test_rey_creek_is_tributary_of_guichon(self, setup_data):
-        """Verify Rey Creek is assigned as tributary of Guichon Creek."""
-        tributary_assignments = setup_data["tributary_assignments"]
-        guic = setup_data["guic"]
+        print(f"\nStream 701305652:")
+        print(f"  GNIS_NAME: {gnis_name}")
+        print(f"  TRIBUTARY_OF: {tributary_of}")
 
-        # Find Rey Creek segments (GNIS_NAME = 'Rey Creek')
-        rey_creek_segments = guic[guic["GNIS_NAME"] == "Rey Creek"]
+        # Should be tributary of Gypsum Lake (not Guichon Creek)
+        assert (
+            tributary_of == "Gypsum Lake"
+        ), f"Expected 'Gypsum Lake', got '{tributary_of}'"
 
-        assert len(rey_creek_segments) > 0, "No Rey Creek segments found in GUIC layer"
+    def test_mamit_lake_tributaries(self, setup_data):
+        """
+        Test that streams 701303054, 701303219, and 701302532 are all
+        tributaries of Mamit Lake.
 
-        print(f"\nFound {len(rey_creek_segments)} Rey Creek segments")
+        These streams flow into Mamit Lake and should be detected as lake tributaries.
+        """
+        streams = setup_data["streams"]
 
-        # Check each Rey Creek segment
-        guichon_count = 0
-        other_count = 0
-        none_count = 0
+        test_streams = [701303054, 701303219, 701302532]
+        
+        for stream_id in test_streams:
+            stream = streams[streams["LINEAR_FEATURE_ID"] == stream_id]
+            
+            assert len(stream) > 0, f"Stream {stream_id} not found"
+            
+            stream_row = stream.iloc[0]
+            gnis_name = stream_row["GNIS_NAME"]
+            tributary_of = stream_row["TRIBUTARY_OF"]
+            watershed_code = stream_row["FWA_WATERSHED_CODE"]
+            waterbody_key = stream_row["WATERBODY_KEY"]
+            parent_code = stream_row.get("parent_code", None)
+            
+            print(f"\nStream {stream_id}:")
+            print(f"  GNIS_NAME: {gnis_name}")
+            print(f"  TRIBUTARY_OF: {tributary_of}")
+            print(f"  FWA_WATERSHED_CODE: {watershed_code}")
+            print(f"  WATERBODY_KEY: {waterbody_key}")
+            print(f"  parent_code: {parent_code}")
+            
+            # Check if parent exists and what it is
+            if parent_code:
+                parent = streams[streams["clean_code"] == parent_code]
+                if not parent.empty:
+                    print(f"  Parent stream TRIBUTARY_OF: {parent.iloc[0]['TRIBUTARY_OF']}")
+            
+            # Should be tributary of Mamit Lake
+            assert (
+                tributary_of == "Mamit Lake"
+            ), f"Stream {stream_id}: Expected 'Mamit Lake', got '{tributary_of}'"
 
-        for _, segment in rey_creek_segments.iterrows():
-            feature_id = segment["LINEAR_FEATURE_ID"]
+    def test_stream_701303849_is_tributary_of_dupuis_creek(self, setup_data):
+        """
+        Test that stream 701303849 is tributary of Dupuis Creek, not Mamit Lake.
+        
+        This tests that named streams (Dupuis Creek) stop the propagation of lake
+        tributary status - only unnamed streams should inherit lake tributary status.
+        """
+        streams = setup_data["streams"]
 
-            if feature_id in tributary_assignments:
-                assignment = tributary_assignments[feature_id]
-                tributary_of = assignment.tributary_of
+        # Find the stream
+        stream = streams[streams["LINEAR_FEATURE_ID"] == 701303849]
 
-                print(f"  Feature {feature_id}: tributary_of = {tributary_of}")
+        assert len(stream) > 0, "Stream 701303849 not found"
 
-                if tributary_of == "Guichon Creek":
-                    guichon_count += 1
-                elif tributary_of is None:
-                    none_count += 1
-                else:
-                    other_count += 1
-                    print(
-                        f"    ⚠️  WRONG: Expected 'Guichon Creek', got '{tributary_of}'"
-                    )
-            else:
-                none_count += 1
-                print(f"  Feature {feature_id}: NOT ASSIGNED")
+        stream_row = stream.iloc[0]
+        gnis_name = stream_row["GNIS_NAME"]
+        tributary_of = stream_row["TRIBUTARY_OF"]
 
-        print(f"\nRey Creek tributary assignments:")
-        print(f"  Guichon Creek: {guichon_count}")
-        print(f"  Other: {other_count}")
-        print(f"  None: {none_count}")
+        print(f"\nStream 701303849:")
+        print(f"  GNIS_NAME: {gnis_name}")
+        print(f"  TRIBUTARY_OF: {tributary_of}")
 
-        # At least some Rey Creek segments should be tributary of Guichon
-        # (The most downstream segments might not have a parent)
-        assert guichon_count > 0, "No Rey Creek segments assigned to Guichon Creek"
+        # Should be tributary of Dupuis Creek (not Mamit Lake)
+        assert (
+            tributary_of == "Dupuis Creek"
+        ), f"Expected 'Dupuis Creek', got '{tributary_of}'"
 
-    def test_unnamed_stream_is_tributary_of_rey_creek(self, setup_data):
-        """Verify unnamed stream 701304751 is assigned as tributary of Rey Creek."""
-        tributary_assignments = setup_data["tributary_assignments"]
+    def test_guichon_creek_braid_701305931_not_tailwater(self, setup_data):
+        """
+        Test that braid segment 701305931 has same tributary assignment as
+        main channel 701305928.
 
-        # The specific unnamed stream
-        feature_id = 701304751
+        Braids should inherit the same TRIBUTARY_OF as their main channel.
+        """
+        streams = setup_data["streams"]
+
+        # Find braid and main channel
+        braid = streams[streams["LINEAR_FEATURE_ID"] == 701305931]
+        main = streams[streams["LINEAR_FEATURE_ID"] == 701305928]
+
+        assert len(braid) > 0, "Braid stream 701305931 not found"
+        assert len(main) > 0, "Main channel stream 701305928 not found"
+
+        braid_row = braid.iloc[0]
+        main_row = main.iloc[0]
+
+        braid_name = braid_row["GNIS_NAME"]
+        braid_trib = braid_row["TRIBUTARY_OF"]
+        main_name = main_row["GNIS_NAME"]
+        main_trib = main_row["TRIBUTARY_OF"]
+
+        print(f"\nBraid 701305931:")
+        print(f"  GNIS_NAME: {braid_name}")
+        print(f"  TRIBUTARY_OF: {braid_trib}")
+        print(f"\nMain 701305928:")
+        print(f"  GNIS_NAME: {main_name}")
+        print(f"  TRIBUTARY_OF: {main_trib}")
+
+        # Both should have Guichon Creek name
+        assert (
+            braid_name == main_name
+        ), f"Braid name '{braid_name}' != main name '{main_name}'"
+
+        # Both should have same TRIBUTARY_OF
+        assert (
+            braid_trib == main_trib
+        ), f"Braid TRIBUTARY_OF '{braid_trib}' != main TRIBUTARY_OF '{main_trib}'"
 
         assert (
-            feature_id in tributary_assignments
-        ), f"Feature {feature_id} not found in tributary assignments"
+            braid_trib != "Mamit Lake"
+        ), f"Expected TRIBUTARY_OF not to be 'Mamit Lake', got '{braid_trib}'"
 
-        assignment = tributary_assignments[feature_id]
-        tributary_of = assignment.tributary_of
+    def test_all_streams_have_tributary_of(self, setup_data):
+        """
+        Test that ALL streams have a TRIBUTARY_OF field.
 
-        print(f"\nFeature {feature_id}:")
-        print(f"  tributary_of = {tributary_of}")
+        Even streams without parents should have the field (possibly NULL/None).
+        """
+        streams = setup_data["streams"]
 
+        # Check that TRIBUTARY_OF column exists
         assert (
-            tributary_of == "Rey Creek"
-        ), f"Expected 'Rey Creek', got '{tributary_of}'"
+            "TRIBUTARY_OF" in streams.columns
+        ), "TRIBUTARY_OF column missing from streams"
 
-    def test_all_rey_creek_unnamed_tributaries(self, setup_data):
-        """Verify all unnamed streams flowing DIRECTLY into Rey Creek are assigned correctly."""
-        tributary_assignments = setup_data["tributary_assignments"]
-        guic = setup_data["guic"]
+        print(f"\n✓ All {len(streams):,} streams have TRIBUTARY_OF field")
 
-        # Find all streams with Rey Creek as DIRECT parent in watershed code
-        # Rey Creek code: 100-190442-244975-296261-383667
-        rey_creek_code = "100-190442-244975-296261-383667"
+        # Count how many have values
+        has_tributary = streams["TRIBUTARY_OF"].notna().sum()
+        no_tributary = streams["TRIBUTARY_OF"].isna().sum()
 
-        # Find unnamed tributaries whose parent code is exactly Rey Creek
-        # (not grandchildren via Eve Creek, Phelps Creek, etc.)
-        from fwa_modules.utils import clean_watershed_code, get_parent_code
+        print(f"  With TRIBUTARY_OF: {has_tributary:,}")
+        print(f"  Without TRIBUTARY_OF: {no_tributary:,}")
 
-        direct_tributaries = []
-        for _, segment in guic.iterrows():
-            if pd.notna(segment["GNIS_NAME"]):  # Skip named streams
-                continue
+        # Most streams should have a parent
+        assert has_tributary > 0, "No streams have TRIBUTARY_OF assigned"
 
-            watershed_code = segment["FWA_WATERSHED_CODE"]
-            if pd.isna(watershed_code):
-                continue
+    def test_originally_named_streams_not_renamed(self, setup_data):
+        """
+        Test that streams with original GNIS names are NOT renamed.
 
-            clean_code = clean_watershed_code(str(watershed_code))
-            if not clean_code:
-                continue
+        Only originally unnamed streams should get "X Tributary" names.
+        """
+        streams = setup_data["streams"]
 
-            parent_code = get_parent_code(clean_code)
+        # Sample some known named streams
+        guichon_streams = streams[streams["GNIS_NAME"] == "Guichon Creek"]
 
-            # Check if parent is exactly Rey Creek
-            if parent_code == rey_creek_code:
-                direct_tributaries.append(segment)
+        assert len(guichon_streams) > 0, "No Guichon Creek segments found"
 
-        direct_tributaries_df = (
-            pd.DataFrame(direct_tributaries) if direct_tributaries else pd.DataFrame()
-        )
+        print(f"\n✓ Found {len(guichon_streams):,} Guichon Creek segments")
 
-        print(
-            f"\nFound {len(direct_tributaries_df)} unnamed streams with Rey Creek as DIRECT parent"
-        )
-
-        rey_creek_count = 0
-        tailwater_count = 0
-        other_count = 0
-        none_count = 0
-
-        for _, segment in direct_tributaries_df.iterrows():
-            feature_id = segment["LINEAR_FEATURE_ID"]
-            watershed_code = segment["FWA_WATERSHED_CODE"]
-
-            if feature_id in tributary_assignments:
-                assignment = tributary_assignments[feature_id]
-                tributary_of = assignment.tributary_of
-
-                if tributary_of == "Rey Creek":
-                    rey_creek_count += 1
-                elif tributary_of == "Tailwater":
-                    tailwater_count += 1
-                    print(
-                        f"  ⚠️  Feature {feature_id} ({watershed_code}): WRONG - assigned to Tailwater"
-                    )
-                elif tributary_of is None:
-                    none_count += 1
-                    print(
-                        f"  ⚠️  Feature {feature_id} ({watershed_code}): WRONG - not assigned"
-                    )
-                else:
-                    other_count += 1
-                    print(
-                        f"  ⚠️  Feature {feature_id} ({watershed_code}): WRONG - assigned to {tributary_of}"
-                    )
-            else:
-                none_count += 1
-                print(f"  ⚠️  Feature {feature_id} ({watershed_code}): NOT ASSIGNED")
-
-        print(f"\nDirect unnamed Rey Creek tributary assignments:")
-        print(f"  Rey Creek: {rey_creek_count}")
-        print(f"  Tailwater: {tailwater_count}")
-        print(f"  Other: {other_count}")
-        print(f"  None: {none_count}")
-
-        # All direct unnamed tributaries should be assigned to Rey Creek
-        if len(direct_tributaries_df) > 0:
+        # None should have " Tributary" suffix (they're the main river)
+        for idx, row in guichon_streams.iterrows():
+            gnis_name = row["GNIS_NAME"]
             assert (
-                tailwater_count == 0
-            ), f"{tailwater_count} tributaries wrongly assigned to Tailwater"
-            assert (
-                other_count == 0
-            ), f"{other_count} tributaries assigned to wrong stream"
-            assert rey_creek_count > 0, "No tributaries assigned to Rey Creek"
+                " Tributary" not in gnis_name
+            ), f"Named stream incorrectly renamed: {gnis_name}"
 
-    def test_all_guichon_unnamed_tributaries(self, setup_data):
-        """Verify unnamed streams flowing into Guichon Creek (not via Rey Creek) are assigned correctly."""
-        tributary_assignments = setup_data["tributary_assignments"]
-        guic = setup_data["guic"]
+    def test_unnamed_tributaries_have_parent_name(self, setup_data):
+        """
+        Test that streams renamed to "X Tributary" have matching TRIBUTARY_OF.
 
-        # Find all streams with Guichon Creek as parent in watershed code
-        # Guichon Creek code: 100-190442-244975-296261
-        guichon_code = "100-190442-244975-296261"
-        rey_creek_code = "100-190442-244975-296261-383667"
+        If GNIS_NAME is "Guichon Creek Tributary", TRIBUTARY_OF should be "Guichon Creek".
+        """
+        streams = setup_data["streams"]
 
-        # Find unnamed tributaries (parent code matches Guichon but NOT Rey Creek)
-        potential_tributaries = guic[
-            (guic["GNIS_NAME"].isna())  # Unnamed
-            & (guic["FWA_WATERSHED_CODE"].str.startswith(guichon_code + "-", na=False))
-            & (
-                ~guic["FWA_WATERSHED_CODE"].str.startswith(
-                    rey_creek_code + "-", na=False
-                )
-            )  # Exclude Rey Creek tributaries
+        # Find streams with " Tributary" suffix
+        tributary_streams = streams[
+            streams["GNIS_NAME"].str.contains(" Tributary", na=False)
         ]
 
-        print(
-            f"\nFound {len(potential_tributaries)} unnamed streams with Guichon Creek as direct parent"
-        )
+        print(f"\n✓ Found {len(tributary_streams):,} streams with ' Tributary' suffix")
 
-        guichon_count = 0
-        tailwater_count = 0
-        other_count = 0
-        none_count = 0
+        if len(tributary_streams) > 0:
+            # Check first 10
+            sample = tributary_streams.head(10)
+            mismatches = 0
 
-        for _, segment in potential_tributaries.iterrows():
-            feature_id = segment["LINEAR_FEATURE_ID"]
-            watershed_code = segment["FWA_WATERSHED_CODE"]
+            for idx, row in sample.iterrows():
+                gnis_name = row["GNIS_NAME"]
+                tributary_of = row["TRIBUTARY_OF"]
 
-            if feature_id in tributary_assignments:
-                assignment = tributary_assignments[feature_id]
-                tributary_of = assignment.tributary_of
+                # Extract parent name from "X Tributary"
+                expected_parent = gnis_name.replace(" Tributary", "")
 
-                if tributary_of == "Guichon Creek":
-                    guichon_count += 1
-                elif tributary_of == "Tailwater":
-                    tailwater_count += 1
+                if tributary_of != expected_parent:
                     print(
-                        f"  ⚠️  Feature {feature_id} ({watershed_code}): WRONG - assigned to Tailwater"
+                        f"  ⚠️ Mismatch: '{gnis_name}' has TRIBUTARY_OF='{tributary_of}'"
                     )
-                elif tributary_of is None:
-                    none_count += 1
-                    print(
-                        f"  ⚠️  Feature {feature_id} ({watershed_code}): WRONG - not assigned"
-                    )
-                else:
-                    other_count += 1
-                    print(
-                        f"  ⚠️  Feature {feature_id} ({watershed_code}): assigned to {tributary_of}"
-                    )
-            else:
-                none_count += 1
-                print(f"  ⚠️  Feature {feature_id} ({watershed_code}): NOT ASSIGNED")
+                    mismatches += 1
 
-        print(f"\nUnnamed Guichon Creek tributary assignments:")
-        print(f"  Guichon Creek: {guichon_count}")
-        print(f"  Tailwater: {tailwater_count}")
-        print(f"  Other: {other_count}")
-        print(f"  None: {none_count}")
-
-        # Most unnamed tributaries should be assigned to Guichon Creek
-        # (Some might legitimately be outlets or assigned to other named tributaries)
-        assert guichon_count > 0, "No tributaries assigned to Guichon Creek"
-
-    def test_mamit_lake_segments_and_tributaries(self, setup_data):
-        """Verify Mamit Lake segments are detected and upstream streams are assigned to lake."""
-        tributary_assignments = setup_data["tributary_assignments"]
-        lake_segments = setup_data["lake_segments"]
-        guic = setup_data["guic"]
-
-        # Check if we have any lake segments for Mamit Lake (WATERBODY_POLY_ID = 700089332)
-        mamit_lake_segments = {
-            fid: poly_id
-            for fid, poly_id in lake_segments.items()
-            if poly_id == 700089332
-        }
-
-        print(
-            f"\nFound {len(mamit_lake_segments)} lake segments in Mamit Lake (poly_id 700089332)"
-        )
-
-        if len(mamit_lake_segments) == 0:
-            pytest.skip(
-                "No Mamit Lake segments detected - lake polygon may not be loaded"
-            )
-
-        # Print the lake segments
-        for feature_id, poly_id in mamit_lake_segments.items():
-            stream = guic[guic["LINEAR_FEATURE_ID"] == feature_id]
-            if len(stream) > 0:
-                print(
-                    f"  Lake segment {feature_id}: {stream.iloc[0]['GNIS_NAME'] or 'unnamed'}"
-                )
-
-        # Check if expected features are in lake segments
-        print("\nExpected features in lake_segments dict:")
-        for fid in [701303105, 701302965]:
-            if fid in lake_segments:
-                print(f"  ✓ {fid} in lake_segments (poly_id {lake_segments[fid]})")
-            else:
-                print(f"  ✗ {fid} NOT in lake_segments")
-
-        # Test specific features that should be Mamit Lake tributaries
-        expected_mamit_lake_features = [
-            701304356,  # Unnamed stream, edge type 1450
-            701304361,  # Unnamed stream, edge type 1410
-            701304285,  # Unnamed stream, edge type 1000
-            701303105,  # Guichon Creek segment in lake
-            701302965,  # Guichon Creek segment in lake
-        ]
-
-        print(
-            f"\nChecking {len(expected_mamit_lake_features)} features that should be Mamit Lake tributaries:"
-        )
-
-        failures = []
-        for feature_id in expected_mamit_lake_features:
-            if feature_id in tributary_assignments:
-                assignment = tributary_assignments[feature_id]
-                tributary_of = assignment.tributary_of
-
-                stream = guic[guic["LINEAR_FEATURE_ID"] == feature_id]
-                name = stream.iloc[0]["GNIS_NAME"] if len(stream) > 0 else "unknown"
-
-                if tributary_of == "Mamit Lake":
-                    print(f"  ✓ {feature_id} ({name or 'unnamed'}): {tributary_of}")
-                else:
-                    print(
-                        f"  ✗ {feature_id} ({name or 'unnamed'}): {tributary_of} (expected Mamit Lake)"
-                    )
-                    failures.append(
-                        f"{feature_id} assigned to '{tributary_of}' instead of 'Mamit Lake'"
-                    )
-            else:
-                stream = guic[guic["LINEAR_FEATURE_ID"] == feature_id]
-                if len(stream) == 0:
-                    print(f"  ⚠ {feature_id}: Not found in GUIC layer")
-                else:
-                    print(f"  ✗ {feature_id}: Not assigned")
-                    failures.append(f"{feature_id} not assigned")
-
-        # Report all failures at once
-        if failures:
-            pytest.fail(
-                f"{len(failures)} features incorrectly assigned:\n  "
-                + "\n  ".join(failures)
-            )
+            assert (
+                mismatches == 0
+            ), f"{mismatches} tributary names don't match TRIBUTARY_OF"
 
 
 if __name__ == "__main__":
-    # Run tests with verbose output
     pytest.main([__file__, "-v", "-s"])

@@ -695,31 +695,32 @@ def process_waterbody(
     # Deduplicate by feature_id
     unique_matches = {m["feature_id"]: m for m in all_matches}.values()
     final_matches = list(unique_matches)
-    
+
     # Check if regulations include "Incl. Tribs" symbol
     # If yes, also match all tributaries of this waterbody
-    has_incl_tribs = any(
-        "Incl. Tribs" in reg.get("symbols", [])
-        for reg in regulations
-    )
-    
+    has_incl_tribs = any("Incl. Tribs" in reg.get("symbols", []) for reg in regulations)
+
     if has_incl_tribs and final_matches:
-        pipeline_log.append(f"Found 'Incl. Tribs' symbol - searching for tributaries...")
+        pipeline_log.append(
+            f"Found 'Incl. Tribs' symbol - searching for tributaries..."
+        )
         tributary_matches = []
-        
+
         # Search for streams that have TRIBUTARY_OF matching this waterbody
         # Use the original waterbody name (not normalized) for tributary matching
         tributary_search_names = [waterbody_key]
-        
+
         # Also try target names if corrections were applied
         if applied_correction and applied_correction.target_names:
             tributary_search_names.extend(applied_correction.target_names)
-        
+
         for trib_name in tributary_search_names:
             # Search for "X Tributary" pattern (normalized)
             trib_search = normalize_name(trib_name + " tributary")
-            trib_results = search_gis_index(trib_search, zones, index, matched_kml_points)
-            
+            trib_results = search_gis_index(
+                trib_search, zones, index, matched_kml_points
+            )
+
             if trib_results:
                 # Filter to only include streams (tributaries should be streams)
                 stream_tribs = [m for m in trib_results if m.get("type") == "stream"]
@@ -728,7 +729,7 @@ def process_waterbody(
                     pipeline_log.append(
                         f"Found {len(stream_tribs)} tributaries for '{trib_name}'"
                     )
-        
+
         # Deduplicate and add to final matches
         if tributary_matches:
             # Combine with existing matches and deduplicate
@@ -1265,10 +1266,10 @@ def export_to_gdb(
                 elif feature_type == "point":
                     # Points: use layer + feature_id (no unique ID field)
                     key = ("point", layer_name, gis_match["feature_id"])
-                
+
                 if not key:
                     continue
-                
+
                 # Check if feature already has regulations from another waterbody match
                 if key in feature_reg_lookup:
                     # Merge regulations: add new regulations to existing list
@@ -1276,13 +1277,17 @@ def export_to_gdb(
                     existing_regs = json.loads(existing["REGS_JSON"])
                     new_regs = wb_data["regulations"]
                     merged_regs = existing_regs + new_regs
-                    
+
                     # Update fields
-                    existing["REGS_JSON"] = json.dumps(merged_regs, ensure_ascii=False)[:32000]
+                    existing["REGS_JSON"] = json.dumps(merged_regs, ensure_ascii=False)[
+                        :32000
+                    ]
                     # Add to waterbody names list
                     existing_wb_names = existing["WATERBODY"].split(" | ")
                     if waterbody_key not in existing_wb_names:
-                        existing["WATERBODY"] = (existing["WATERBODY"] + " | " + waterbody_key)[:254]
+                        existing["WATERBODY"] = (
+                            existing["WATERBODY"] + " | " + waterbody_key
+                        )[:254]
                     # Add to original names list
                     existing_orig = set(existing["ORIG_NAMES"].split(", "))
                     new_orig = set(wb_data["original_waterbody_names"])
@@ -1292,33 +1297,47 @@ def export_to_gdb(
                     existing_matched = existing["MATCHED_ON"].split(" | ")
                     new_matched = str(gis_match.get("_matched_on", ""))
                     if new_matched and new_matched not in existing_matched:
-                        existing["MATCHED_ON"] = (existing["MATCHED_ON"] + " | " + new_matched)[:254]
+                        existing["MATCHED_ON"] = (
+                            existing["MATCHED_ON"] + " | " + new_matched
+                        )[:254]
                 else:
                     # First time seeing this feature - create new entry
-                    regulations_json = json.dumps(wb_data["regulations"], ensure_ascii=False)
-                    
+                    regulations_json = json.dumps(
+                        wb_data["regulations"], ensure_ascii=False
+                    )
+
                     attributes = {
                         "FEATURE_ID": gis_match["feature_id"][:254],
                         "REGION": region[:100],
                         "WATERBODY": waterbody_key[:254],
-                        "ORIG_NAMES": ", ".join(wb_data["original_waterbody_names"])[:254],
+                        "ORIG_NAMES": ", ".join(wb_data["original_waterbody_names"])[
+                            :254
+                        ],
                         "FEATURE_TYP": feature_type[:50],
                         "SOURCE_ZON": str(gis_match.get("_source_zone", ""))[:10],
                         "MATCHED_ON": str(gis_match.get("_matched_on", ""))[:254],
                         "REGS_JSON": regulations_json[:32000],
                     }
-                    
+
                     # Add GIS attributes
                     if "GNIS_NAME" in gis_attrs:
-                        attributes["GNIS_NAME"] = str(gis_attrs.get("GNIS_NAME", ""))[:254]
+                        attributes["GNIS_NAME"] = str(gis_attrs.get("GNIS_NAME", ""))[
+                            :254
+                        ]
                     if "GNIS_NAME_1" in gis_attrs:
-                        attributes["GNIS_NAME"] = str(gis_attrs.get("GNIS_NAME_1", ""))[:254]
+                        attributes["GNIS_NAME"] = str(gis_attrs.get("GNIS_NAME_1", ""))[
+                            :254
+                        ]
                     if "WATERBODY_POLY_ID" in gis_attrs:
-                        attributes["WB_POLY_ID"] = str(gis_attrs["WATERBODY_POLY_ID"])[:50]
+                        attributes["WB_POLY_ID"] = str(gis_attrs["WATERBODY_POLY_ID"])[
+                            :50
+                        ]
                     # Include TRIBUTARY_OF field for streams
                     if "TRIBUTARY_OF" in gis_attrs:
-                        attributes["TRIB_OF"] = str(gis_attrs.get("TRIBUTARY_OF", ""))[:254]
-                    
+                        attributes["TRIB_OF"] = str(gis_attrs.get("TRIBUTARY_OF", ""))[
+                            :254
+                        ]
+
                     feature_reg_lookup[key] = attributes
 
     print(
