@@ -14,6 +14,7 @@ Features include:
 
 import json
 import re
+import logging
 from pathlib import Path
 from collections import defaultdict
 from concurrent.futures import ProcessPoolExecutor
@@ -21,9 +22,8 @@ from typing import Dict, List, Tuple, Optional
 import fiona
 import geopandas as gpd
 import pandas as pd
-from .utils import setup_logging
 
-logger = setup_logging(__name__)
+logger = logging.getLogger(__name__)
 
 
 def normalize_name(name: str) -> Optional[str]:

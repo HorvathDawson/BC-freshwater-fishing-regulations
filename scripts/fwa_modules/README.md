@@ -2,102 +2,207 @@
 
 This directory contains the core modules for processing BC Freshwater Atlas (FWA) data to create a comprehensive stream and waterbody database with tributary relationships and lake assignments.
 
-## 📁 Module Overview
+## 📁 Current Module Status
 
-| Module | Purpose | Key Functions |
-|--------|---------|---------------|
-| `models.py` | Data structures for streams, lakes, and tributary relationships | `StreamEdge`, `TributaryAssignment` |
-| `stream_preprocessing.py` | Clean and merge stream segments | `process_streams()` |
-| `kml_enrichment.py` | Link KML points to waterbody polygons | `enrich_points()` |
-| `network_analysis.py` | Build stream network graph and assign tributaries | `StreamNetworkAnalyzer` |
-| `zone_splitting.py` | Split features by wildlife management zones | `split_by_zones()` |
-| `index_builder.py` | Build spatial index for web application | `build_waterbody_index()` |
-| `utils.py` | Shared utilities for spatial operations | `parallel_spatial_join()` |
+| Module | Status | Purpose |
+|--------|--------|---------|
+| `graph_builder.py` | ✅ **Active** | Builds stream network graph with tributary enrichment |
+| `index_builder.py` | ✅ **Active** | Builds searchable JSON index for web application |
+| `__init__.py` | ✅ **Active** | Package initialization |
 
-## 🔄 Processing Pipeline
+### Deprecated/Removed Modules
+The following modules were part of the old implementation and have been removed:
+- ~~`models.py`~~ - Data structures (deprecated in favor of graph-based approach)
+- ~~`utils.py`~~ - Shared utilities (deprecated)
+- ~~`kml_enrichment.py`~~ - KML point enrichment (deprecated)
+- ~~`fwa_preprocessing.py`~~ - Old preprocessing script (deprecated)
 
+## 🔄 Current Processing Pipeline
+
+### Phase 1: Graph Building (`graph_builder.py`)
+
+**Purpose**: Build a directed graph representing the BC stream network with full tributary relationships.
+
+**Input Data Sources**:
+- FWA Stream Networks (2.6M stream segments)
+- FWA Lakes (386K lake polygons)
+- FWA Watershed Codes (hierarchical watershed identifiers)
+
+**Graph Structure**:
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                         RAW FWA DATA                            │
-│  • Stream Network (2.6M features)                               │
-│  • Lakes (386K polygons)                                        │
-│  • Wetlands (4.7M polygons)                                     │
-│  • Manmade Waterbodies (28K polygons)                           │
-│  • KML Points (unnamed lakes from user labeling)               │
-└────────────────────────┬────────────────────────────────────────┘
-                         │
-                         ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                    PHASE 1: Stream Preprocessing                │
-│                   (stream_preprocessing.py)                     │
-│                                                                 │
-│  1. Remove Noise                                                │
-│     • Filter unnamed streams >1 level from named streams        │
-│                                                                 │
-│  2. Merge Braided Streams                                       │
-│     • Combine segments with same watershed code                │
-│     • Preserve longest segment as representative               │
-│                                                                 │
-│  Output: cleaned_streams.gdb                                    │
-└────────────────────────┬────────────────────────────────────────┘
-                         │
-                         ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                 PHASE 2: KML Point Enrichment                   │
-│                    (kml_enrichment.py)                          │
-│                                                                 │
-│  1. Spatial Join                                                │
-│     • Match KML points to containing waterbody polygons         │
-│                                                                 │
-│  2. Warning Log                                                 │
-│     • Flag points outside all waterbody polygons                │
-│     • Report points matching named lakes (expected: unnamed)    │
-│                                                                 │
-│  Output: streams with WATERBODY_POLY_ID enriched                │
-└────────────────────────┬────────────────────────────────────────┘
-                         │
-                         ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                  PHASE 3: Network Analysis                      │
-│                   (network_analysis.py)                         │
-│                                                                 │
-│  ┌───────────────────────────────────────────────────────────┐ │
-│  │  STEP 1: Build Stream Network Graph                       │ │
-│  │                                                            │ │
-│  │    ┌────────┐        ┌────────┐        ┌────────┐        │ │
-│  │    │ Stream │─────>  │ Stream │─────>  │ Stream │        │ │
-│  │    │   A    │        │   B    │        │   C    │        │ │
-│  │    └────────┘        └────────┘        └────────┘        │ │
-│  │         │                  │                  │           │ │
-│  │         └──────────┬───────┴──────────────────┘           │ │
-│  │                    │                                       │ │
-│  │              Connection Edges                              │ │
-│  │    (link downstream node to upstream node)                │ │
-│  │                                                            │ │
-│  │  • Nodes: Stream endpoints (DOWNSTREAM_ROUTE_MEASURE)     │ │
-│  │  • Edges: Stream segments + Connection edges              │ │
-│  │  • Direction: Flows downstream (following route measure)  │ │
-│  └───────────────────────────────────────────────────────────┘ │
-│                                                                 │
-│  ┌───────────────────────────────────────────────────────────┐ │
-│  │  STEP 2: Assign Tributaries via Watershed Hierarchy       │ │
-│  │                                                            │ │
-│  │    Watershed Code Hierarchy:                              │ │
-│  │    100-190442-244975-296261         (Guichon Creek)       │ │
-│  │       └─ 100-190442-244975-296261-383667 (Rey Creek)      │ │
-│  │             └─ 100-190442-244975-296261-383667-456789     │ │
-│  │                                        (Unnamed tributary) │ │
-│  │                                                            │ │
-│  │  Logic:                                                    │ │
-│  │  • Named stream: Find parent by removing last segment     │ │
-│  │  • Unnamed stream: Inherit name from watershed code       │ │
-│  │  • Unnamed tributary: "Tributary of [Parent Name]"        │ │
-│  └───────────────────────────────────────────────────────────┘ │
-│                                                                 │
-│  ┌───────────────────────────────────────────────────────────┐ │
-│  │  STEP 3: Lake Tributary Assignment (3 Phases)             │ │
-│  │                                                            │ │
-│  │  Phase 1: Lake Segments (Polygon-based)                   │ │
+Nodes: Stream segment endpoints (x,y coordinates rounded to 3 decimals)
+Edges: Stream segments (keyed by LINEAR_FEATURE_ID)
+Direction: Flows downstream (v → u, where v=upstream, u=downstream)
+Type: NetworkX MultiDiGraph (allows parallel edges)
+```
+
+**Processing Steps**:
+
+1. **Build Graph** (`build()`)
+   - Parallel layer processing (14 workers)
+   - Filter ditches and invalid watershed codes
+   - Name propagation by FWA_WATERSHED_CODE
+   - Lake name enrichment via WATERBODY_KEY lookup
+   - Creates nodes at stream endpoints
+   - Adds edges with attributes: `gnis_name`, `lake_name`, `fwa_watershed_code`, `stream_order`, etc.
+
+2. **Preprocess Graph** (`preprocess_graph()`)
+   - Remove spurious stream order 1 edges to roots (apparent tailwaters)
+   - Clean up isolated nodes
+   - Graph integrity validation
+
+3. **Filter Unnamed Depth** (`filter_unnamed_depth()`)
+   - BFS from named streams to compute distance
+   - Remove unnamed streams N+ systems away from named waterbodies
+   - Includes all upstream segments of removed edges
+   - Exports removed edge data to JSON
+
+4. **Enrich Tributaries** (`enrich_tributaries()`)
+   - DFS traversal from outlet roots upstream
+   - Populates two separate fields:
+     - `stream_tributary_of`: Named stream this is tributary to
+     - `lake_tributary_of`: Lake this stream flows into
+   - Handles lake context propagation
+   - Named streams stop lake tributary propagation
+
+5. **Filter Watershed** (`filter_watershed()`)
+   - Extract specific watershed by stream name
+   - Uses connected component analysis
+
+6. **Export** (`export()`)
+   - Exports to pickle (.gpickle) - primary format
+   - Attempts GraphML export (may fail on large graphs)
+
+**Key Features**:
+- Memory-efficient parallel processing
+- Handles BC's full 2.6M stream network
+- Separate tracking of stream vs lake tributary relationships
+- Watershed hierarchy preservation
+- Lake tributary propagation upstream
+
+**Output**:
+- Graph files: `.gpickle` (pickle), `.graphml` (if successful)
+- Removed edge logs: `output/removed_unnamed_depth_edges.json`
+- Spurious edge logs: `output/removed_spurious_edges.json`
+
+### Phase 2: Index Building (`index_builder.py`)
+
+**Purpose**: Build searchable JSON index from processed geodatabase for web application.
+
+**Index Structure**:
+```python
+index[zone][normalized_name] = [list of features]
+```
+
+**Processing Steps**:
+
+1. **Process Polygon Layers**
+   - Lakes, wetlands, manmade waterbodies
+   - Indexed by GNIS_NAME
+   - Parallel processing by layer
+
+2. **Process Stream Layers**
+   - Indexed by both GNIS_NAME and TRIBUTARY_OF
+   - Links streams to parent streams
+
+3. **Process Labeled Points**
+   - KML points linked to containing polygons
+   - Enables search for unnamed lakes
+
+**Features Indexed**:
+- Streams (by name and tributary relationship)
+- Lakes (by name)
+- Wetlands (by name)
+- Manmade waterbodies (by name)
+- Labeled points (linked to polygons)
+
+**Output**:
+- `feature_regulation_index.json` - searchable index for web app
+
+## 🎯 Implementation Checklist
+
+### ✅ Completed
+- [x] Graph-based stream network representation
+- [x] Parallel processing for large datasets
+- [x] Stream tributary enrichment (DFS-based)
+- [x] Lake tributary enrichment (separate field)
+- [x] Unnamed stream depth filtering
+- [x] Spurious edge removal
+- [x] Graph export (pickle + GraphML)
+- [x] Searchable index building
+- [x] Multi-zone support
+- [x] Comprehensive test suite (Guichon Creek)
+
+### 🚧 In Progress / Planned
+- [ ] Integration with web application
+- [ ] Zone-based graph splitting for web delivery
+- [ ] Optimize memory usage for province-wide processing
+- [ ] Add more watershed test cases
+- [ ] Performance profiling and optimization
+
+## 📊 Performance Notes
+
+**Memory Usage**:
+- Province-wide graph: ~8-12 GB RAM
+- Parallel workers: 14 (configurable)
+- Periodic garbage collection to manage memory
+
+**Processing Time** (approximate):
+- Build graph: 10-20 minutes (all layers)
+- Enrich tributaries: 5-10 minutes
+- Filter unnamed depth: 5-10 minutes
+- Export: 2-5 minutes
+
+## 🧪 Testing
+
+Test file: `scripts/tests/test_graph_builder.py`
+
+Tests cover:
+- Graph construction
+- Tributary assignment (stream and lake)
+- Lake tributary propagation
+- Named stream behavior
+- Guichon Creek watershed (includes Mamit Lake)
+
+Run tests:
+```bash
+pytest scripts/tests/test_graph_builder.py -v -s
+```
+
+## 📝 Usage Example
+
+```python
+from fwa_modules.graph_builder import FWAPrimalGraph
+
+# Build graph for specific watershed
+builder = FWAPrimalGraph()
+builder.validate_paths()
+builder.load_lakes()
+builder.build(layers=["GUIC"])  # Guichon Creek only
+builder.preprocess_graph()
+builder.enrich_tributaries()
+builder.export("guichon_creek.graphml")
+
+# Or build province-wide
+builder.build()  # All layers
+builder.filter_unnamed_depth(threshold=2)
+builder.enrich_tributaries()
+builder.export("bc_full.graphml")
+```
+
+## 🔗 Dependencies
+
+- `networkx` - Graph data structure and algorithms
+- `geopandas` - Spatial data processing
+- `fiona` - Reading GDB layers
+- `shapely` - Geometry operations
+- `pandas` - Data manipulation
+
+## 📚 Related Files
+
+- `scripts/tests/test_graph_builder.py` - Comprehensive test suite
+- `scripts/output/fwa_preprocessing/` - Processed geodatabases
+- `scripts/fwa_modules/output/` - Graph outputs and logs
 │  │  ┌──────────────────────────────────────────────┐         │ │
 │  │  │         Mamit Lake (WATERBODY_POLY_ID)       │         │ │
 │  │  │  ╔════════════════════════════════════════╗  │         │ │

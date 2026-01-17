@@ -1,23 +1,15 @@
 """
-FWA Processing Modules - Simplified Watershed Hierarchy Approach
+FWA Processing Modules - Graph-Based Stream Network Analysis
 
-This package provides modular components for processing BC Freshwater Atlas data
-using watershed code hierarchy instead of complex network analysis.
+This package provides modules for processing BC Freshwater Atlas data:
+- graph_builder: Build stream network graph with tributary enrichment
+- index_builder: Build searchable JSON index for web application
 """
 
-from .utils import (
-    clean_watershed_code,
-    get_parent_code,
-    get_code_depth,
-    setup_logging,
-)
-
-from .models import ProcessingStats
+from .graph_builder import FWAPrimalGraph
+from .index_builder import IndexBuilder
 
 __all__ = [
-    "clean_watershed_code",
-    "get_parent_code",
-    "get_code_depth",
-    "setup_logging",
-    "ProcessingStats",
+    "FWAPrimalGraph",
+    "IndexBuilder",
 ]

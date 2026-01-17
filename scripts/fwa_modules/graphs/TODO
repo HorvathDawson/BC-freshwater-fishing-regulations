@@ -1,8 +1,0 @@
-2. Need to have a way to filter max unnamed stream depth. no unnamed stream into deeper unnamed stream (use fwa watershed codes or order to determine depth)
-3. add tests from existing ones
-4. have a way to split into zones. ideally use the end points of the segment to make it speedy? 
-5. maybe we can do linking with graph later? 
-
----
-1. tribuatry of headwater above lake should inherit the lake not the main stream. for example above lake they should all be tributaries of mamit lake not guichon stream if they leave from guichon stream since guichon stream went through mamit lake. right now only main stream is tributary of lake.
-2. should the streams in a named lake always be order 0 for depth filtering?? to do this we need to make it so the named item stopping coniditon is also on lake_name having a value in the edge.  
