@@ -1,0 +1,149 @@
+AzureAD+DawsonHorvath@AB-R914HQ44 MINGW64 /
+$ /c/Users/DawsonHorvath/miniconda3/envs/geo/python.exe ~/Documents/Workspace/BC-freshwater-fishing-regulations/scripts/fwa_modules/graph_builder.py -d -u
+2026-01-17 19:10:33,396 - NumExpr defaulting to 16 threads.
+2026-01-17 19:10:43,608 - Loaded 7118 lake keys.
+2026-01-17 19:10:43,643 - Step 1: Loading Segments...
+Processing 246 layers in parallel with 14 workers...
+2026-01-17 19:10:44,504 - NumExpr defaulting to 16 threads.
+2026-01-17 19:10:44,529 - NumExpr defaulting to 16 threads.
+2026-01-17 19:10:44,532 - NumExpr defaulting to 16 threads.
+2026-01-17 19:10:44,534 - NumExpr defaulting to 16 threads.
+2026-01-17 19:10:44,562 - NumExpr defaulting to 16 threads.
+2026-01-17 19:10:44,566 - NumExpr defaulting to 16 threads.
+2026-01-17 19:10:44,566 - NumExpr defaulting to 16 threads.
+2026-01-17 19:10:44,569 - NumExpr defaulting to 16 threads.
+2026-01-17 19:10:44,570 - NumExpr defaulting to 16 threads.
+2026-01-17 19:10:44,575 - NumExpr defaulting to 16 threads.
+2026-01-17 19:10:44,576 - NumExpr defaulting to 16 threads.
+2026-01-17 19:10:44,577 - NumExpr defaulting to 16 threads.
+2026-01-17 19:10:44,598 - NumExpr defaulting to 16 threads.
+2026-01-17 19:10:44,598 - NumExpr defaulting to 16 threads.
+.........................
+Merging results into graph...
+
+Graph Built: 4,652,630 Nodes, 4,699,252 Edges
+2026-01-17 19:14:53,900 - Step 1.5: Preprocessing Graph - Removing spurious order-1 tailwater edges...
+2026-01-17 19:14:57,493 - Iteration 1: Found 27803 root nodes (out-degree 0).
+2026-01-17 19:14:57,603 - Stream order distribution of edges to roots: {1: 17895, 2: 6307, 3: 2402, 4: 833, 5: 256, 6: 70, 7: 25, 8: 8, 9: 6, 10: 2}
+2026-01-17 19:14:57,644 - Iteration 1: Removed 17895 order-1 edges.
+2026-01-17 19:15:03,786 - Iteration 2: Found 45396 root nodes (out-degree 0).
+2026-01-17 19:15:03,882 - Iteration 2: Removed 3273 order-1 edges.
+2026-01-17 19:15:10,050 - Iteration 3: Found 48491 root nodes (out-degree 0).
+2026-01-17 19:15:10,131 - Iteration 3: Removed 1424 order-1 edges.
+2026-01-17 19:15:16,243 - Iteration 4: Found 49786 root nodes (out-degree 0).
+2026-01-17 19:15:16,330 - Iteration 4: Removed 865 order-1 edges.
+2026-01-17 19:15:22,527 - Iteration 5: Found 50586 root nodes (out-degree 0).
+2026-01-17 19:15:22,602 - Iteration 5: Removed 363 order-1 edges.
+2026-01-17 19:15:28,726 - Iteration 6: Found 50925 root nodes (out-degree 0).
+2026-01-17 19:15:28,805 - Iteration 6: Removed 256 order-1 edges.
+2026-01-17 19:15:34,899 - Iteration 7: Found 51163 root nodes (out-degree 0).
+2026-01-17 19:15:34,975 - Iteration 7: Removed 132 order-1 edges.
+2026-01-17 19:15:41,070 - Iteration 8: Found 51287 root nodes (out-degree 0).
+2026-01-17 19:15:41,144 - Iteration 8: Removed 98 order-1 edges.
+2026-01-17 19:15:47,268 - Iteration 9: Found 51380 root nodes (out-degree 0).
+2026-01-17 19:15:47,349 - Iteration 9: Removed 56 order-1 edges.
+2026-01-17 19:15:53,482 - Iteration 10: Found 51434 root nodes (out-degree 0).
+2026-01-17 19:15:53,554 - Iteration 10: Removed 45 order-1 edges.
+2026-01-17 19:15:59,650 - Iteration 11: Found 51476 root nodes (out-degree 0).
+2026-01-17 19:15:59,725 - Iteration 11: Removed 29 order-1 edges.
+2026-01-17 19:16:05,849 - Iteration 12: Found 51499 root nodes (out-degree 0).
+2026-01-17 19:16:05,924 - Iteration 12: Removed 17 order-1 edges.
+2026-01-17 19:16:12,038 - Iteration 13: Found 51516 root nodes (out-degree 0).
+2026-01-17 19:16:12,113 - Iteration 13: Removed 13 order-1 edges.
+2026-01-17 19:16:18,251 - Iteration 14: Found 51529 root nodes (out-degree 0).
+2026-01-17 19:16:18,328 - Iteration 14: Removed 11 order-1 edges.
+2026-01-17 19:16:24,640 - Iteration 15: Found 51539 root nodes (out-degree 0).
+2026-01-17 19:16:24,720 - Iteration 15: Removed 11 order-1 edges.
+2026-01-17 19:16:30,878 - Iteration 16: Found 51548 root nodes (out-degree 0).
+2026-01-17 19:16:30,952 - Iteration 16: Removed 8 order-1 edges.
+2026-01-17 19:16:37,114 - Iteration 17: Found 51554 root nodes (out-degree 0).
+2026-01-17 19:16:37,188 - Iteration 17: Removed 6 order-1 edges.
+2026-01-17 19:16:43,273 - Iteration 18: Found 51558 root nodes (out-degree 0).
+2026-01-17 19:16:43,350 - Iteration 18: Removed 3 order-1 edges.
+2026-01-17 19:16:49,435 - Iteration 19: Found 51561 root nodes (out-degree 0).
+2026-01-17 19:16:49,512 - Iteration 19: Removed 3 order-1 edges.
+2026-01-17 19:16:55,618 - Iteration 20: Found 51564 root nodes (out-degree 0).
+2026-01-17 19:16:55,690 - Iteration 20: Removed 2 order-1 edges.
+2026-01-17 19:17:01,873 - Iteration 21: Found 51565 root nodes (out-degree 0).
+2026-01-17 19:17:01,949 - Iteration 21: Removed 1 order-1 edges.
+2026-01-17 19:17:08,101 - Iteration 22: Found 51565 root nodes (out-degree 0).
+2026-01-17 19:17:08,176 - No more order-1 edges to remove after 22 iteration(s).
+2026-01-17 19:17:17,267 - Total removed: 24511 order-1 edges leading to roots.
+2026-01-17 19:17:17,267 - Removed 41651 isolated nodes (nodes with no connections after edge removal).
+2026-01-17 19:17:23,629 - Graph after cleanup: 4,610,979 Nodes, 4,674,741 Edges
+2026-01-17 19:17:26,142 - Step 1.6: Filtering unnamed streams by depth (threshold=2)...
+2026-01-17 19:17:26,142 - Phase 1: Collecting named stream anchors...
+2026-01-17 19:17:29,427 - Found 786,472 named stream edges as anchors.
+2026-01-17 19:17:29,427 - Phase 2: Measuring distances from named streams...
+2026-01-17 19:17:29,427 - Pre-computing edge data cache...
+2026-01-17 19:17:35,191 - Pre-computing predecessor cache...
+2026-01-17 19:42:56,123 - Processed 4,383,816 edge traversals. Computed 4,456,964 edge distances.
+2026-01-17 19:42:56,124 - Phase 2.5: Correcting distances to prevent network breaks...
+2026-01-17 19:43:33,973 - Corrected 4,559 edge distances.
+2026-01-17 19:43:33,973 - Phase 3: Marking unnamed edges at corrected distance >= 2...
+2026-01-17 19:43:43,712 - Raw distance statistics: {0: 789026, 1: 1594465, 2: 1313858, 3: 566524, 4: 152142, 5: 31302, 6: 6728, 7: 2027, 8: 586, 9: 194, 10: 86, 11: 22, 12: 4}
+2026-01-17 19:43:43,712 - Corrected distance statistics: {0: 790834, 1: 1595034, 2: 1312627, 3: 565754, 4: 151898, 5: 31197, 6: 6705, 7: 2023, 8: 586, 9: 194, 10: 86, 11: 22, 12: 4}
+2026-01-17 19:43:43,712 - Marked 2,071,096 edges for removal at threshold 2.
+2026-01-17 19:43:43,712 - Debug mode: Storing unnamed_depth_distance_raw and unnamed_depth_distance_corrected...
+2026-01-17 19:43:57,763 - Phase 4: Expanding to include all upstream segments...
+2026-01-17 20:11:19,317 - Total edges to remove (including upstream): 2,187,905
+2026-01-17 20:11:19,318 - Phase 5: Exporting removed edge data...
+2026-01-17 20:12:24,037 - Exported 2,187,905 removed edges to C:\Users\DawsonHorvath\Documents\Workspace\BC-freshwater-fishing-regulations\scripts\output\fwa_modules\removed_unnamed_depth_edges.json
+2026-01-17 20:12:28,403 - Phase 6: Removing edges from graph...
+2026-01-17 20:12:44,604 - Removed 2,187,905 edges and 2,179,490 isolated nodes.
+2026-01-17 20:12:48,018 - Graph after filtering: 2,431,489 Nodes, 2,486,836 Edges
+2026-01-17 20:12:53,095 - Step 2: Enriching Tributary Data (DFS Backwards from Out-Degree Roots)...
+2026-01-17 20:12:55,064 - Debug Mode: Initializing debug flags...
+2026-01-17 20:12:55,960 - Debug Mode: Marking 9914 search roots out of 2431489 nodes.
+2026-01-17 20:13:03,701 - Tributary enrichment complete.
+2026-01-17 20:13:04,099 - Exporting to pickle format: C:\Users\DawsonHorvath\Documents\Workspace\BC-freshwater-fishing-regulations\scripts\output\fwa_modules\fwa_bc_primal_full.gpickle...
+2026-01-17 20:13:17,002 - Pickle export complete: C:\Users\DawsonHorvath\Documents\Workspace\BC-freshwater-fishing-regulations\scripts\output\fwa_modules\fwa_bc_primal_full.gpickle
+2026-01-17 20:13:17,002 - Exporting to GraphML format: C:\Users\DawsonHorvath\Documents\Workspace\BC-freshwater-fishing-regulations\scripts\output\fwa_modules\fwa_bc_primal_full.graphml...
+2026-01-17 20:20:41,982 - GraphML export complete: C:\Users\DawsonHorvath\Documents\Workspace\BC-freshwater-fishing-regulations\scripts\output\fwa_modules\fwa_bc_primal_full.graphml
+2026-01-17 20:20:41,993 - Done.
+
+
+
+(fish) dawson.horvath@AB-R914HQ44:/mnt/c/Users/DawsonHorvath/Documents/Workspace/BC-freshwater-fishing-regulations/scripts$ python fwa_modules/graph_builder.py -L GUIC LNIC -d -u -t 10
+2026-01-17 18:58:11,066 - Loaded 7118 lake keys.
+2026-01-17 18:58:11,098 - Step 1: Loading Segments...
+Processing 2 layers in parallel with 14 workers...
+.
+Merging results into graph...
+
+Graph Built: 21,492 Nodes, 21,655 Edges
+2026-01-17 18:58:15,412 - Step 1.5: Preprocessing Graph - Removing spurious order-1 tailwater edges...
+2026-01-17 18:58:15,425 - Iteration 1: Found 4 root nodes (out-degree 0).
+2026-01-17 18:58:15,426 - Stream order distribution of edges to roots: {1: 3, 8: 1}
+2026-01-17 18:58:15,426 - Iteration 1: Removed 3 order-1 edges.
+2026-01-17 18:58:15,483 - Iteration 2: Found 6 root nodes (out-degree 0).
+2026-01-17 18:58:15,483 - Iteration 2: Removed 3 order-1 edges.
+2026-01-17 18:58:15,537 - Iteration 3: Found 7 root nodes (out-degree 0).
+2026-01-17 18:58:15,538 - No more order-1 edges to remove after 3 iteration(s).
+2026-01-17 18:58:15,623 - Total removed: 6 order-1 edges leading to roots.
+2026-01-17 18:58:15,623 - Removed 6 isolated nodes (nodes with no connections after edge removal).       
+2026-01-17 18:58:15,648 - Graph after cleanup: 21,486 Nodes, 21,649 Edges
+2026-01-17 18:58:15,704 - Step 1.6: Filtering unnamed streams by depth (threshold=10)...
+2026-01-17 18:58:15,704 - Phase 1: Collecting named stream anchors...
+2026-01-17 18:58:15,723 - Found 5,243 named stream edges as anchors.
+2026-01-17 18:58:15,724 - Phase 2: Measuring distances from named streams...
+2026-01-17 18:58:15,724 - Pre-computing edge data cache...
+2026-01-17 18:58:15,753 - Pre-computing predecessor cache...
+2026-01-17 18:58:16,033 - Processed 21,485 edge traversals. Computed 21,649 edge distances.
+2026-01-17 18:58:16,033 - Phase 2.5: Correcting distances to prevent network breaks...
+2026-01-17 18:58:16,160 - Corrected 23 edge distances.
+2026-01-17 18:58:16,161 - Phase 3: Marking unnamed edges at corrected distance >= 10...
+2026-01-17 18:58:16,193 - Raw distance statistics: {0: 5243, 1: 9117, 2: 5511, 3: 1539, 4: 221, 5: 18}
+2026-01-17 18:58:16,193 - Corrected distance statistics: {0: 5243, 1: 9140, 2: 5495, 3: 1535, 4: 219, 5: 17}
+2026-01-17 18:58:16,193 - Marked 0 edges for removal at threshold 10.
+2026-01-17 18:58:16,193 - Debug mode: Storing unnamed_depth_distance_raw and unnamed_depth_distance_corrected...
+2026-01-17 18:58:16,275 - No edges to remove. Skipping.
+2026-01-17 18:58:16,282 - Step 2: Enriching Tributary Data (DFS Backwards from Out-Degree Roots)...
+2026-01-17 18:58:16,295 - Debug Mode: Initializing debug flags...
+2026-01-17 18:58:16,300 - Debug Mode: Marking 1 search roots out of 21486 nodes.
+2026-01-17 18:58:16,373 - Tributary enrichment complete.
+2026-01-17 18:58:16,376 - Exporting to pickle format: /mnt/c/Users/DawsonHorvath/Documents/Workspace/BC-freshwater-fishing-regulations/scripts/output/fwa_modules/fwa_primal_GUIC_LNIC.gpickle...
+2026-01-17 18:58:16,548 - Pickle export complete: /mnt/c/Users/DawsonHorvath/Documents/Workspace/BC-freshwater-fishing-regulations/scripts/output/fwa_modules/fwa_primal_GUIC_LNIC.gpickle
+2026-01-17 18:58:16,548 - Exporting to GraphML format: /mnt/c/Users/DawsonHorvath/Documents/Workspace/BC-freshwater-fishing-regulations/scripts/output/fwa_modules/fwa_primal_GUIC_LNIC.graphml...
+2026-01-17 18:58:19,056 - GraphML export complete: /mnt/c/Users/DawsonHorvath/Documents/Workspace/BC-freshwater-fishing-regulations/scripts/output/fwa_modules/fwa_primal_GUIC_LNIC.graphml
+2026-01-17 18:58:19,056 - Done.

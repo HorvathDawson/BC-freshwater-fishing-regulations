@@ -1,200 +1,305 @@
 # FWA Processing Modules
 
-This directory contains the core modules for processing BC Freshwater Atlas (FWA) data to create a comprehensive stream and waterbody database with tributary relationships and lake assignments.
+Stream and waterbody data processing pipeline for BC Freshwater Atlas (FWA). Builds network graph with tributary relationships, extracts metadata with zone assignments, splits features into zone-based layers, and creates search indices.
 
-## 📁 Current Module Status
+## 📁 Active Modules
 
-| Module | Status | Purpose |
-|--------|--------|---------|
-| `graph_builder.py` | ✅ **Active** | Builds stream network graph with tributary enrichment |
-| `index_builder.py` | ✅ **Active** | Builds searchable JSON index for web application |
-| `__init__.py` | ✅ **Active** | Package initialization |
+| Module | Purpose |
+|--------|---------|
+| `graph_builder.py` | Build stream network graph with tributary enrichment |
+| `metadata_builder.py` | Extract metadata from graph and add zone assignments |
+| `geo_splitter.py` | Split all features into zone-based GeoPackage layers |
+| `index_builder.py` | Build searchable JSON index for web application |
+| `enrich_kml_points.py` | Match KML labeled points to waterbody polygons |
 
-### Deprecated/Removed Modules
-The following modules were part of the old implementation and have been removed:
-- ~~`models.py`~~ - Data structures (deprecated in favor of graph-based approach)
-- ~~`utils.py`~~ - Shared utilities (deprecated)
-- ~~`kml_enrichment.py`~~ - KML point enrichment (deprecated)
-- ~~`fwa_preprocessing.py`~~ - Old preprocessing script (deprecated)
+## 🔄 Processing Pipeline
 
-## 🔄 Current Processing Pipeline
+### 1. Graph Builder (`graph_builder.py`)
 
-### Phase 1: Graph Building (`graph_builder.py`)
+**Builds directed network graph of BC stream system with tributary relationships.**
 
-**Purpose**: Build a directed graph representing the BC stream network with full tributary relationships.
+**Input**: 
+- FWA Stream Networks (2.6M segments)
+- FWA Lakes (386K polygons)
+- FWA Watershed Codes
 
-**Input Data Sources**:
-- FWA Stream Networks (2.6M stream segments)
-- FWA Lakes (386K lake polygons)
-- FWA Watershed Codes (hierarchical watershed identifiers)
+**Output**: `fwa_bc_primal_full.gpickle` (~2.5GB)
 
 **Graph Structure**:
+- **Nodes**: Stream endpoints (x,y coordinates)
+- **Edges**: Stream segments (LINEAR_FEATURE_ID)
+- **Direction**: Downstream flow (v→u)
+
+**Processing**:
+1. **Build** - Parallel load of stream layers, filter ditches/bad codes, propagate names by watershed code
+2. **Preprocess** - Remove spurious order-1 tailwater edges, clean isolated nodes
+3. **Filter Unnamed** (optional) - Remove unnamed streams N+ systems from named waterbodies via BFS
+4. **Enrich Tributaries** - DFS traversal to populate `stream_tributary_of` and `lake_tributary_of`
+5. **Export** - Save as pickle/GraphML
+
+**Usage**:
+```bash
+# Build full BC graph
+python graph_builder.py
+
+# Build with unnamed filtering
+python graph_builder.py -u -t 2
+
+# Extract specific watershed
+python graph_builder.py "Guichon Creek"
 ```
-Nodes: Stream segment endpoints (x,y coordinates rounded to 3 decimals)
-Edges: Stream segments (keyed by LINEAR_FEATURE_ID)
-Direction: Flows downstream (v → u, where v=upstream, u=downstream)
-Type: NetworkX MultiDiGraph (allows parallel edges)
+
+### 2. Metadata Builder (`metadata_builder.py`)
+
+**Extracts all graph attributes and adds zone assignments for fast lookups.**
+
+**Input**:
+- Graph pickle (from step 1)
+- Wildlife Management Units (WAA_WILDLIFE_MGMT_UNITS_SVW.gpkg)
+- FWA_BC.gdb (lakes, wetlands, manmade polygons)
+
+**Output**: `stream_metadata.pickle` (~200-300MB)
+
+**Metadata Structure**:
+```python
+{
+  'zone_metadata': {...},  # Zone info, mgmt units, bounds
+  'streams': {
+    '169001958': {
+      'gnis_name': 'Guichon Creek',
+      'stream_tributary_of': 'Thompson River',
+      'lake_tributary_of': 'Nicola Lake',
+      'zones': ['1', '2'],
+      'mgmt_units': ['1-15', '2-3'],
+      'cross_boundary': True,
+      ...
+    }
+  },
+  'lakes': {...},
+  'wetlands': {...},
+  'manmade': {...}
+}
 ```
 
-**Processing Steps**:
+**Processing**:
+1. **Load Zones** - Build spatial index (STRtree) for fast point-in-polygon queries
+2. **Extract Stream Metadata** - Read all graph edge attributes, assign zones based on endpoints
+3. **Process Polygons** - Extract lake/wetland/manmade metadata, assign zones by centroid
+4. **Save** - Pickle metadata table for fast loading
 
-1. **Build Graph** (`build()`)
-   - Parallel layer processing (14 workers)
-   - Filter ditches and invalid watershed codes
-   - Name propagation by FWA_WATERSHED_CODE
-   - Lake name enrichment via WATERBODY_KEY lookup
-   - Creates nodes at stream endpoints
-   - Adds edges with attributes: `gnis_name`, `lake_name`, `fwa_watershed_code`, `stream_order`, etc.
+**Usage**:
+```bash
+python metadata_builder.py
+```
 
-2. **Preprocess Graph** (`preprocess_graph()`)
-   - Remove spurious stream order 1 edges to roots (apparent tailwaters)
-   - Clean up isolated nodes
-   - Graph integrity validation
+### 3. Geo Splitter (`geo_splitter.py`)
 
-3. **Filter Unnamed Depth** (`filter_unnamed_depth()`)
-   - BFS from named streams to compute distance
-   - Remove unnamed streams N+ systems away from named waterbodies
-   - Includes all upstream segments of removed edges
-   - Exports removed edge data to JSON
+**Splits all waterbody features into zone-based GeoPackage layers.**
 
-4. **Enrich Tributaries** (`enrich_tributaries()`)
-   - DFS traversal from outlet roots upstream
-   - Populates two separate fields:
-     - `stream_tributary_of`: Named stream this is tributary to
-     - `lake_tributary_of`: Lake this stream flows into
-   - Handles lake context propagation
-   - Named streams stop lake tributary propagation
+**Input**:
+- stream_metadata.pickle (from step 2)
+- fwa_bc_primal_full.gpickle (from step 1)
+- FWA_BC.gdb (for polygon geometries)
+- WAA_WILDLIFE_MGMT_UNITS_SVW.gpkg (for zone boundaries)
 
-5. **Filter Watershed** (`filter_watershed()`)
-   - Extract specific watershed by stream name
-   - Uses connected component analysis
+**Output**: `waterbodies_by_zone.gpkg` (zone-organized layers)
 
-6. **Export** (`export()`)
-   - Exports to pickle (.gpickle) - primary format
-   - Attempts GraphML export (may fail on large graphs)
+**Layer Structure**:
+```
+zone_1_boundaries    (management unit polygons)
+zone_1_streams       (LineStrings from graph)
+zone_1_lakes         (polygons)
+zone_1_wetlands      (polygons)
+zone_1_manmade       (polygons)
+zone_2_boundaries
+zone_2_streams
+...
+```
 
-**Key Features**:
-- Memory-efficient parallel processing
-- Handles BC's full 2.6M stream network
-- Separate tracking of stream vs lake tributary relationships
-- Watershed hierarchy preservation
-- Lake tributary propagation upstream
+**Processing**:
+1. **Load Metadata & Graph** - Load preprocessed data
+2. **Create Stream Geometries** - Reconstruct LineStrings from graph node coordinates
+3. **Filter Polygons** - Load and filter lakes/wetlands/manmade by zone
+4. **Add Zone Boundaries** - Include management unit outlines
+5. **Write to GeoPackage** - Incremental writing with memory management
 
-**Output**:
-- Graph files: `.gpickle` (pickle), `.graphml` (if successful)
-- Removed edge logs: `output/removed_unnamed_depth_edges.json`
-- Spurious edge logs: `output/removed_spurious_edges.json`
+**Usage**:
+```bash
+python geo_splitter.py
+```
 
-### Phase 2: Index Building (`index_builder.py`)
+### 4. Index Builder (`index_builder.py`)
 
-**Purpose**: Build searchable JSON index from processed geodatabase for web application.
+**Creates searchable JSON index for web application.**
+
+**Input**:
+- stream_metadata.pickle (from step 2)
+- enriched_kml_points.json (from KML enricher)
+
+**Output**: `waterbody_index.json`
 
 **Index Structure**:
 ```python
-index[zone][normalized_name] = [list of features]
+{
+  '1': {  # Zone number
+    'guichon creek': [
+      {
+        'type': 'stream',
+        'linear_feature_id': '169001958',
+        'gnis_name': 'Guichon Creek',
+        'zones': ['1', '2'],
+        ...
+      }
+    ],
+    'mamit lake': [...]
+  },
+  '2': {...}
+}
 ```
 
-**Processing Steps**:
+**Processing**:
+1. **Load Metadata** - Read from pickle
+2. **Normalize & Index** - Group by zone and normalized name
+3. **Add KML Points** - Include labeled points
+4. **Export** - JSON files for web app
 
-1. **Process Polygon Layers**
-   - Lakes, wetlands, manmade waterbodies
-   - Indexed by GNIS_NAME
-   - Parallel processing by layer
-
-2. **Process Stream Layers**
-   - Indexed by both GNIS_NAME and TRIBUTARY_OF
-   - Links streams to parent streams
-
-3. **Process Labeled Points**
-   - KML points linked to containing polygons
-   - Enables search for unnamed lakes
-
-**Features Indexed**:
-- Streams (by name and tributary relationship)
-- Lakes (by name)
-- Wetlands (by name)
-- Manmade waterbodies (by name)
-- Labeled points (linked to polygons)
-
-**Output**:
-- `feature_regulation_index.json` - searchable index for web app
-
-## 🎯 Implementation Checklist
-
-### ✅ Completed
-- [x] Graph-based stream network representation
-- [x] Parallel processing for large datasets
-- [x] Stream tributary enrichment (DFS-based)
-- [x] Lake tributary enrichment (separate field)
-- [x] Unnamed stream depth filtering
-- [x] Spurious edge removal
-- [x] Graph export (pickle + GraphML)
-- [x] Searchable index building
-- [x] Multi-zone support
-- [x] Comprehensive test suite (Guichon Creek)
-
-### 🚧 In Progress / Planned
-- [ ] Integration with web application
-- [ ] Zone-based graph splitting for web delivery
-- [ ] Optimize memory usage for province-wide processing
-- [ ] Add more watershed test cases
-- [ ] Performance profiling and optimization
-
-## 📊 Performance Notes
-
-**Memory Usage**:
-- Province-wide graph: ~8-12 GB RAM
-- Parallel workers: 14 (configurable)
-- Periodic garbage collection to manage memory
-
-**Processing Time** (approximate):
-- Build graph: 10-20 minutes (all layers)
-- Enrich tributaries: 5-10 minutes
-- Filter unnamed depth: 5-10 minutes
-- Export: 2-5 minutes
-
-## 🧪 Testing
-
-Test file: `scripts/tests/test_graph_builder.py`
-
-Tests cover:
-- Graph construction
-- Tributary assignment (stream and lake)
-- Lake tributary propagation
-- Named stream behavior
-- Guichon Creek watershed (includes Mamit Lake)
-
-Run tests:
+**Usage**:
 ```bash
-pytest scripts/tests/test_graph_builder.py -v -s
+python index_builder.py
 ```
 
-## 📝 Usage Example
+### 5. KML Point Enricher (`enrich_kml_points.py`)
 
-```python
-from fwa_modules.graph_builder import FWAPrimalGraph
+**Matches user-labeled KML points to waterbody polygons.**
 
-# Build graph for specific watershed
-builder = FWAPrimalGraph()
-builder.validate_paths()
-builder.load_lakes()
-builder.build(layers=["GUIC"])  # Guichon Creek only
-builder.preprocess_graph()
-builder.enrich_tributaries()
-builder.export("guichon_creek.graphml")
+**Input**:
+- KML file with labeled points (data/labelled/unnamed_lakes.kml)
+- FWA_BC.gdb (lakes, wetlands, manmade polygons)
 
-# Or build province-wide
-builder.build()  # All layers
-builder.filter_unnamed_depth(threshold=2)
-builder.enrich_tributaries()
-builder.export("bc_full.graphml")
+**Output**: `enriched_kml_points.json`
+
+**Processing**: Spatial join of KML points to polygons, extract WATERBODY_KEY
+
+**Usage**:
+```bash
+python enrich_kml_points.py
 ```
 
-## 🔗 Dependencies
+## 📊 Data Flow
 
-- `networkx` - Graph data structure and algorithms
-- `geopandas` - Spatial data processing
-- `fiona` - Reading GDB layers
+```
+FWA Stream Networks ──┐
+FWA Lakes ────────────┼──> 1. graph_builder.py ──> fwa_bc_primal_full.gpickle
+FWA Watershed Codes ──┘                                      │
+                                                             │
+Wildlife Mgmt Units ──┐                                      │
+FWA_BC.gdb ───────────┼──> 2. metadata_builder.py ──────────┴──> stream_metadata.pickle
+                      │                                                    │
+                      │                                                    │
+                      │                                                    ├──> 3. geo_splitter.py ──> waterbodies_by_zone.gpkg
+                      │                                                    │         (zone-based layers)
+                      │                                                    │
+                      └──> 4. index_builder.py ───────────────────────────┴──> waterbody_index.json
+                             (with enriched_kml_points.json)                     (searchable index)
+```
+
+## 🎯 Key Outputs
+
+| File | Size | Purpose |
+|------|------|---------|
+| `fwa_bc_primal_full.gpickle` | ~2.5GB | Network graph with tributary enrichment |
+| `stream_metadata.pickle` | ~250MB | All feature metadata + zone assignments |
+| `waterbodies_by_zone.gpkg` | ~2-4GB | Zone-based feature layers for GIS viewing |
+| `waterbody_index.json` | ~50-100MB | Searchable index for web application |
+| `enriched_kml_points.json` | <1MB | KML points matched to waterbodies |
+
+## 📋 Execution Order
+
+```bash
+# 1. Build graph (one-time, ~2-3 hours)
+python graph_builder.py -u -t 2
+
+# 2. Extract metadata with zones (~30-60 min)
+python metadata_builder.py
+
+# 3. Split features by zone (~1-2 hours)
+python geo_splitter.py
+
+# 4. Build search index (optional, ~5-10 min)
+python index_builder.py
+
+# 5. Enrich KML points (as needed, ~2-3 min)
+python enrich_kml_points.py
+```
+
+## 🔍 Metadata Structure
+
+### Stream Metadata
+- `linear_feature_id` - Segment ID
+- `gnis_name` - Stream name
+- `stream_tributary_of` - Parent stream
+- `lake_tributary_of` - Lake it flows into
+- `fwa_watershed_code` - Watershed hierarchy
+- `stream_order` - Strahler order
+- `zones` - Wildlife management zones (e.g., `['1', '2']`)
+- `mgmt_units` - Management units (e.g., `['1-15', '2-3']`)
+- `cross_boundary` - Crosses zone boundary (bool)
+
+### Polygon Metadata (Lakes/Wetlands/Manmade)
+- `waterbody_key` - Unique ID
+- `gnis_name` - Feature name
+- `feature_type` - `'lakes'`, `'wetlands'`, or `'manmade'`
+- `zones` - Wildlife management zones
+- `mgmt_units` - Management units
+
+### Zone Metadata
+- `zone_number` - Zone ID (e.g., `'1'`)
+- `mgmt_units` - List of management units
+- `mgmt_unit_details` - Full details per unit (name, region, bounds)
+
+## ⚙️ Command Options
+
+### graph_builder.py
+```bash
+-p, --pickle PATH      # Load existing graph
+-l, --limit N          # Limit layers for testing
+-d, --debug            # Mark search roots
+-u, --filter-unnamed   # Filter unnamed streams
+-t, --threshold N      # Unnamed filter threshold (default: 2)
+```
+
+### metadata_builder.py
+```bash
+--graph-path PATH      # Graph pickle location
+--zones-path PATH      # Wildlife units GeoPackage
+--lakes-gdb-path PATH  # FWA_BC.gdb location
+--output-path PATH     # Output pickle location
+```
+
+### geo_splitter.py
+```bash
+--metadata-path PATH   # stream_metadata.pickle location
+--graph-path PATH      # Graph pickle location
+--lakes-gdb-path PATH  # FWA_BC.gdb location
+--zones-path PATH      # Wildlife units GeoPackage
+--output-path PATH     # Output GeoPackage location
+```
+
+### index_builder.py
+```bash
+--metadata-path PATH    # stream_metadata.pickle location
+--kml-points-path PATH  # enriched_kml_points.json location
+--output-path PATH      # Output JSON location
+```
+
+## 🚀 Performance
+
+- **graph_builder.py**: 2-3 hours for full BC (14 parallel workers)
+- **metadata_builder.py**: 30-60 minutes (spatial index acceleration)
+- **geo_splitter.py**: 1-2 hours for full BC (processes one zone at a time)
+- **index_builder.py**: 5-10 minutes (simple dictionary iteration)
+- **Memory**: Peak ~10-15GB RAM during graph building and zone splitting
+- **Storage**: ~5-7GB total for all outputs
 - `shapely` - Geometry operations
 - `pandas` - Data manipulation
 
