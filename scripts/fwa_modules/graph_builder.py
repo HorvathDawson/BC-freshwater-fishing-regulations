@@ -14,7 +14,6 @@ Enriches graph with:
 - Lake name enrichment via WATERBODY_KEY lookup
 """
 import os, sys, logging, warnings, argparse, gc, json
-import time
 
 
 # Suppress GDAL warnings about missing DXF driver
@@ -306,48 +305,23 @@ class FWAPrimalGraph:
         logger.info(
             "Step 1.5: Preprocessing Graph - Removing spurious order-1 tailwater edges..."
         )
-        logger.info(
-            "  This iteratively removes stream_order=1 edges that lead to dead-end nodes."
-        )
-        logger.info(
-            f"  Starting with {self.G.number_of_nodes():,} nodes and {self.G.number_of_edges():,} edges."
-        )
-        logger.info(
-            "  Expected time for full dataset: ~2-3 minutes (20-25 iterations typical)"
-        )
 
         total_edges_removed = 0
         iteration = 0
-        phase_start = time.time()
 
         while True:
             iteration += 1
-            iteration_start = time.time()
-
             # Find all roots (nodes with out_degree == 0, appearing as tailwater)
-            logger.info(f"Iteration {iteration}: Finding root nodes...")
             roots = [n for n, d in self.G.out_degree() if d == 0]
             logger.info(
-                f"Iteration {iteration}: Found {len(roots):,} root nodes (out-degree 0) in {time.time() - iteration_start:.1f}s"
+                f"Iteration {iteration}: Found {len(roots)} root nodes (out-degree 0)."
             )
 
             edges_to_remove = []
             order_counts = {}
 
             # Check edges leading to these roots
-            check_start = time.time()
-            logger.info(
-                f"Iteration {iteration}: Checking edges to {len(roots):,} roots..."
-            )
-            for i, root in enumerate(roots):
-                if i > 0 and i % 10000 == 0:
-                    elapsed = time.time() - check_start
-                    rate = i / elapsed
-                    remaining = (len(roots) - i) / rate
-                    logger.info(
-                        f"  Progress: {i:,}/{len(roots):,} roots ({i*100//len(roots)}%) - ETA: {remaining:.0f}s"
-                    )
-
+            for root in roots:
                 for predecessor in list(self.G.predecessors(root)):
                     for edge_key in list(self.G[predecessor][root].keys()):
                         edge_data = self.G.edges[predecessor, root, edge_key]
@@ -373,47 +347,34 @@ class FWAPrimalGraph:
                 logger.info(
                     f"No more order-1 edges to remove after {iteration} iteration(s)."
                 )
-                logger.info(
-                    f"Total preprocessing time: {time.time() - phase_start:.1f}s"
-                )
                 break
 
             # Remove the spurious edges
-            remove_start = time.time()
             num_edges_removed = len(edges_to_remove)
-            logger.info(
-                f"Iteration {iteration}: Removing {num_edges_removed:,} order-1 edges..."
-            )
             for u, v, key in edges_to_remove:
                 self.G.remove_edge(u, v, key)
 
             total_edges_removed += num_edges_removed
             logger.info(
-                f"Iteration {iteration}: Removed {num_edges_removed:,} edges in {time.time() - remove_start:.1f}s (Total so far: {total_edges_removed:,})"
+                f"Iteration {iteration}: Removed {num_edges_removed} order-1 edges."
             )
 
             # Clear edges_to_remove list
             del edges_to_remove
             gc.collect()
 
-            iteration_time = time.time() - iteration_start
-            logger.info(f"Iteration {iteration}: Complete in {iteration_time:.1f}s")
-
         # Remove isolated nodes that may have been created
         # An isolated node has no edges connected to it (degree 0)
-        cleanup_start = time.time()
-        logger.info("Removing isolated nodes created by edge removal...")
         isolated_nodes = list(nx.isolates(self.G))
         self.G.remove_nodes_from(isolated_nodes)
         num_isolated = len(isolated_nodes)
         del isolated_nodes
         gc.collect()
-        logger.info(f"Isolated node cleanup took {time.time() - cleanup_start:.1f}s")
         logger.info(
-            f"Total removed: {total_edges_removed:,} order-1 edges leading to roots."
+            f"Total removed: {total_edges_removed} order-1 edges leading to roots."
         )
         logger.info(
-            f"Removed {num_isolated:,} isolated nodes (nodes with no connections after edge removal)."
+            f"Removed {num_isolated} isolated nodes (nodes with no connections after edge removal)."
         )
         logger.info(
             f"Graph after cleanup: {self.G.number_of_nodes():,} Nodes, {self.G.number_of_edges():,} Edges"
@@ -426,93 +387,25 @@ class FWAPrimalGraph:
         Remove unnamed stream segments that are N or more stream systems away
         from the nearest named waterbody. Also removes all upstream segments.
         If debug=True, stores the distance value in edge attribute 'unnamed_depth_distance'.
-
-        PERFORMANCE ANALYSIS (Full BC Dataset: ~4.6M nodes, ~4.7M edges):
-        ================================================================
-        TOTAL TIME: ~50-60 minutes
-
-        MAJOR BOTTLENECKS:
-        1. Phase 2b - Predecessor Cache Building: ~25 minutes (50% of total time)
-           - Iterates 4.6M nodes calling G.predecessors() for each
-           - NetworkX graph traversal is expensive at this scale
-           - OPTIMIZATION IDEA: Could build this from edge list instead
-
-        2. Phase 4 - Upstream Expansion BFS: ~25 minutes (45% of total time)
-           - BFS traversal of ~2M edges to find all upstream segments
-           - Each edge requires checking all predecessors
-           - OPTIMIZATION IDEA: Could reverse graph direction to use successors
-
-        3. Other phases: ~5-10 minutes combined
-           - Phase 2d BFS: Benefits from cached predecessors
-           - Phase 5 export: JSON serialization of 2M edges
-           - Phase 6 removal: NetworkX edge deletion
-
-        WHY IT'S SLOW:
-        - NetworkX MultiDiGraph is not optimized for large-scale graph operations
-        - Each .predecessors() call traverses internal edge dictionary
-        - No spatial indexing or graph database optimizations
-        - Python loops over millions of elements
-
-        POTENTIAL OPTIMIZATIONS (not implemented):
-        - Use scipy sparse matrices instead of NetworkX
-        - Build reverse edge index once at graph construction
-        - Use numba/cython for hot loops
-        - Stream processing instead of loading entire graph in memory
         """
-        overall_start = time.time()
         logger.info(
             f"Step 1.6: Filtering unnamed streams by depth (threshold={threshold})..."
         )
-        logger.info(
-            "  This removes unnamed streams that are too far from any named waterbody."
-        )
-        logger.info(
-            f"  Starting with {self.G.number_of_nodes():,} nodes and {self.G.number_of_edges():,} edges."
-        )
-        logger.info("  Expected time for full dataset: ~50-60 minutes total")
-        logger.info("    - Phase 1 (collect anchors): ~3s")
-        logger.info(
-            "    - Phase 2 (BFS distance calc): ~25-30 minutes (SLOW: iterates ~4.4M edges)"
-        )
-        logger.info("    - Phase 2.5 (correction pass): ~1 minute")
-        logger.info("    - Phase 3 (mark for removal): ~10s")
-        logger.info(
-            "    - Phase 4 (upstream expansion): ~25-30 minutes (SLOW: BFS through ~2M edges)"
-        )
-        logger.info("    - Phase 5 (export removed): ~1 minute")
-        logger.info("    - Phase 6 (remove from graph): ~15s")
-
         # Phase 1: Collect named stream starting points
-        phase1_start = time.time()
         logger.info("Phase 1: Collecting named stream anchors...")
         named_edges = []
         for u, v, key, data in self.G.edges(keys=True, data=True):
             if data.get("gnis_name", ""):
                 named_edges.append((u, v, key))
-        phase1_time = time.time() - phase1_start
-        logger.info(
-            f"Found {len(named_edges):,} named stream edges as anchors in {phase1_time:.1f}s"
-        )
+        logger.info(f"Found {len(named_edges):,} named stream edges as anchors.")
         if not named_edges:
             logger.warning("No named streams found. Skipping unnamed depth filtering.")
             return
         # Phase 2: BFS upstream from named streams
-        phase2_start = time.time()
         logger.info("Phase 2: Measuring distances from named streams...")
-        logger.info(
-            "  This is the SLOWEST phase - BFS traversal upstream from all named streams."
-        )
-        logger.info(
-            f"  Will process up to {self.G.number_of_edges():,} edges (typical: ~4.4M traversals)"
-        )
 
         # Pre-compute edge data cache for O(1) lookups (huge speedup)
-        cache_start = time.time()
-        logger.info("  Sub-step 2a: Pre-computing edge data cache...")
-        logger.info(f"    Building cache for {self.G.number_of_edges():,} edges...")
-        logger.info(
-            "    WHY NEEDED: Avoids millions of repeated dictionary lookups during BFS"
-        )
+        logger.info("Pre-computing edge data cache...")
         edge_data_cache = {
             (u, v, k): {
                 "fwa": data.get("fwa_watershed_code", ""),
@@ -520,65 +413,19 @@ class FWAPrimalGraph:
             }
             for u, v, k, data in self.G.edges(keys=True, data=True)
         }
-        cache_time = time.time() - cache_start
-        logger.info(f"  Sub-step 2a: Edge cache built in {cache_time:.1f}s")
 
         # Pre-compute predecessor cache for O(1) lookups
-        pred_cache_start = time.time()
-        logger.info("  Sub-step 2b: Pre-computing predecessor cache...")
-        logger.info(
-            f"    Building predecessor lists for {self.G.number_of_nodes():,} nodes..."
-        )
-        logger.info(
-            "    WHY SLOW: NetworkX .predecessors() is expensive when called millions of times"
-        )
-        logger.info(
-            "    BOTTLENECK: This is iterating over 4.6M nodes - expect ~25 minutes"
-        )
-        logger.info(
-            "    REASON: Each node lookup requires graph traversal in NetworkX's internal structure"
-        )
-
-        pred_cache = {}
-        node_count = 0
-        last_log = pred_cache_start
-        for node in self.G.nodes():
-            pred_cache[node] = list(self.G.predecessors(node))
-            node_count += 1
-
-            # Log progress every 30 seconds
-            current_time = time.time()
-            if current_time - last_log > 30:
-                elapsed = current_time - pred_cache_start
-                rate = node_count / elapsed
-                remaining_nodes = self.G.number_of_nodes() - node_count
-                eta = remaining_nodes / rate
-                pct = node_count * 100 / self.G.number_of_nodes()
-                logger.info(
-                    f"    Progress: {node_count:,}/{self.G.number_of_nodes():,} nodes ({pct:.1f}%) - "
-                    f"Rate: {rate:,.0f} nodes/sec - ETA: {eta/60:.1f} min"
-                )
-                last_log = current_time
-
-        pred_cache_time = time.time() - pred_cache_start
-        logger.info(
-            f"  Sub-step 2b: Predecessor cache built in {pred_cache_time:.1f}s ({pred_cache_time/60:.1f} min)"
-        )
+        logger.info("Pre-computing predecessor cache...")
+        pred_cache = {node: list(self.G.predecessors(node)) for node in self.G.nodes()}
 
         edge_distance = {}  # (u, v, key) -> min_distance
         queue = deque()
         # Initialize: Add all named stream edges with distance=0
-        init_start = time.time()
-        logger.info("  Sub-step 2c: Initializing BFS queue...")
         for u, v, key in named_edges:
             edge_id = (u, v, key)
             edge_distance[edge_id] = 0
             edge_data = self.G.edges[u, v, key]
             queue.append((u, edge_data.get("fwa_watershed_code", ""), 0))
-        logger.info(
-            f"  Sub-step 2c: Initialized {len(queue):,} starting edges in {time.time() - init_start:.1f}s"
-        )
-
         # Clear named_edges to free memory
         del named_edges
         gc.collect()
@@ -586,13 +433,6 @@ class FWAPrimalGraph:
         # Track visited nodes to avoid reprocessing
         visited_nodes = set()
         iteration = 0
-
-        bfs_start = time.time()
-        last_log = bfs_start
-        logger.info("  Sub-step 2d: Running BFS traversal upstream...")
-        logger.info(
-            "    This will process millions of edges - progress logged every 30s"
-        )
 
         # BFS upstream - only visit each node once
         while queue:
@@ -627,39 +467,15 @@ class FWAPrimalGraph:
                         # Only add to queue if not already visited
                         if pred_u not in visited_nodes:
                             queue.append((pred_u, edge_fwa, new_distance))
-
-            # Log progress every 30 seconds
-            current_time = time.time()
-            if current_time - last_log > 30:
-                elapsed = current_time - bfs_start
-                rate = iteration / elapsed
-                queue_size = len(queue)
-                logger.info(
-                    f"    Progress: {iteration:,} edges processed, {len(edge_distance):,} distances computed, "
-                    f"{queue_size:,} in queue - Rate: {rate:,.0f} edges/sec"
-                )
-                last_log = current_time
-
             # Memory cleanup every 10000 iterations
             if iteration % 10000 == 0:
                 gc.collect()
-
-        bfs_time = time.time() - bfs_start
-        phase2_time = time.time() - phase2_start
         logger.info(
-            f"  Sub-step 2d: BFS complete - processed {iteration:,} edge traversals in {bfs_time:.1f}s"
-        )
-        logger.info(
-            f"Phase 2: Complete in {phase2_time:.1f}s ({phase2_time/60:.1f} min) - Computed {len(edge_distance):,} edge distances."
+            f"Processed {iteration:,} edge traversals. Computed {len(edge_distance):,} edge distances."
         )
 
         # Phase 2.5: Correct distances to ensure network consistency (single-pass BFS)
-        phase25_start = time.time()
         logger.info("Phase 2.5: Correcting distances to prevent network breaks...")
-        logger.info(
-            "  This ensures downstream segments don't have higher distance than upstream."
-        )
-        logger.info("  Expected time: ~30-60 seconds")
         corrected_distance = {}
 
         # Initialize all edges with their BFS distance
@@ -668,25 +484,16 @@ class FWAPrimalGraph:
 
         # Single-pass correction: BFS from source nodes, propagating minimum distances
         # Find all source nodes (in-degree 0) - headwaters
-        sources_start = time.time()
-        logger.info("  Finding source nodes (headwaters)...")
         sources = [n for n, d in self.G.in_degree() if d == 0]
-        logger.info(
-            f"  Found {len(sources):,} source nodes in {time.time() - sources_start:.1f}s"
-        )
 
         # Track how many upstream edges have been processed for each node
         upstream_processed = {n: 0 for n in self.G.nodes()}
         queue = deque(sources)
         processed_nodes = set(sources)
         total_corrections = 0
-        correction_iteration = 0
-        last_log = time.time()
 
-        logger.info("  Running correction BFS...")
         while queue:
             node = queue.popleft()
-            correction_iteration += 1
 
             # Process all edges flowing out of this node
             for next_node in self.G.successors(node):
@@ -723,29 +530,11 @@ class FWAPrimalGraph:
                     queue.append(next_node)
                     processed_nodes.add(next_node)
 
-            # Log progress every 30 seconds
-            current_time = time.time()
-            if current_time - last_log > 30:
-                elapsed = current_time - phase25_start
-                rate = correction_iteration / elapsed
-                logger.info(
-                    f"  Progress: {correction_iteration:,} nodes processed, {total_corrections:,} corrections made - "
-                    f"Rate: {rate:,.0f} nodes/sec"
-                )
-                last_log = current_time
-
-        phase25_time = time.time() - phase25_start
-        logger.info(
-            f"Phase 2.5: Corrected {total_corrections:,} edge distances in {phase25_time:.1f}s"
-        )
+        logger.info(f"Corrected {total_corrections:,} edge distances.")
 
         # Phase 3: Mark edges for removal based on corrected threshold
-        phase3_start = time.time()
         logger.info(
             f"Phase 3: Marking unnamed edges at corrected distance >= {threshold}..."
-        )
-        logger.info(
-            "  Iterating through all computed distances to mark edges for removal."
         )
         edges_marked = set()
         raw_distance_stats = {}
@@ -769,7 +558,6 @@ class FWAPrimalGraph:
             if not edge_name and corrected_dist >= threshold:
                 edges_marked.add(edge_id)
 
-        phase3_time = time.time() - phase3_start
         logger.info(
             f"Raw distance statistics: {dict(sorted(raw_distance_stats.items()))}"
         )
@@ -777,12 +565,11 @@ class FWAPrimalGraph:
             f"Corrected distance statistics: {dict(sorted(corrected_distance_stats.items()))}"
         )
         logger.info(
-            f"Phase 3: Marked {len(edges_marked):,} edges for removal at threshold {threshold} in {phase3_time:.1f}s"
+            f"Marked {len(edges_marked):,} edges for removal at threshold {threshold}."
         )
 
         # Store distances in edge attributes if debug mode
         if debug:
-            debug_start = time.time()
             logger.info(
                 "Debug mode: Storing unnamed_depth_distance_raw and unnamed_depth_distance_corrected..."
             )
@@ -795,7 +582,6 @@ class FWAPrimalGraph:
                     self.G.edges[u, v, key][
                         "unnamed_depth_distance_corrected"
                     ] = corrected_dist
-            logger.info(f"Debug attributes stored in {time.time() - debug_start:.1f}s")
 
         # Clear distance dicts to free memory
         del edge_distance
@@ -806,30 +592,14 @@ class FWAPrimalGraph:
         if not edges_marked:
             logger.info("No edges to remove. Skipping.")
             return
-
         # Phase 4: Expand to all upstream segments
-        phase4_start = time.time()
         logger.info("Phase 4: Expanding to include all upstream segments...")
-        logger.info(
-            "  This BFS expands from marked edges to include ALL upstream segments."
-        )
-        logger.info(f"  Starting from {len(edges_marked):,} marked edges...")
-        logger.info(
-            "  BOTTLENECK: Will traverse upstream through ~2M edges - expect ~25-30 minutes"
-        )
-        logger.info(
-            "  WHY SLOW: For each edge, must find all predecessors and check all their edges"
-        )
-
         all_edges_to_remove = set(edges_marked)
         queue = deque(edges_marked)
         iteration = 0
-        last_log = phase4_start
-
         while queue:
             u, v, key = queue.popleft()
             iteration += 1
-
             # Find all edges flowing into u (upstream)
             for pred_u in pred_cache.get(u, []):
                 for pred_key in self.G[pred_u][u]:
@@ -837,42 +607,17 @@ class FWAPrimalGraph:
                     if edge_id not in all_edges_to_remove:
                         all_edges_to_remove.add(edge_id)
                         queue.append(edge_id)
-
-            # Log progress every 30 seconds
-            current_time = time.time()
-            if current_time - last_log > 30:
-                elapsed = current_time - phase4_start
-                rate = iteration / elapsed
-                queue_size = len(queue)
-                logger.info(
-                    f"  Progress: {iteration:,} edges processed, {len(all_edges_to_remove):,} marked for removal, "
-                    f"{queue_size:,} in queue - Rate: {rate:,.0f} edges/sec"
-                )
-                last_log = current_time
-
             # Memory cleanup every 5000 iterations
             if iteration % 5000 == 0:
                 gc.collect()
-
-        phase4_time = time.time() - phase4_start
-        logger.info(
-            f"Phase 4: Complete in {phase4_time:.1f}s ({phase4_time/60:.1f} min)"
-        )
         logger.info(
             f"Total edges to remove (including upstream): {len(all_edges_to_remove):,}"
         )
         # Phase 5: Export removed data
-        phase5_start = time.time()
         logger.info("Phase 5: Exporting removed edge data...")
-        logger.info(f"  Building JSON export for {len(all_edges_to_remove):,} edges...")
         removed_edge_data = []
-        export_iteration = 0
-        last_log = phase5_start
-
         for edge_id in all_edges_to_remove:
             u, v, key = edge_id
-            export_iteration += 1
-
             if self.G.has_edge(u, v, key):  # Check if edge still exists
                 edge_data = self.G.edges[u, v, key]
                 removed_edge_data.append(
@@ -891,71 +636,31 @@ class FWAPrimalGraph:
                         "to_node": v,
                     }
                 )
-
-            # Log progress every 30 seconds
-            current_time = time.time()
-            if current_time - last_log > 30:
-                elapsed = current_time - phase5_start
-                rate = export_iteration / elapsed
-                pct = export_iteration * 100 / len(all_edges_to_remove)
-                logger.info(
-                    f"  Progress: {export_iteration:,}/{len(all_edges_to_remove):,} ({pct:.1f}%) - "
-                    f"Rate: {rate:,.0f} edges/sec"
-                )
-                last_log = current_time
-
         self.output_dir.mkdir(parents=True, exist_ok=True)
         removed_edges_file = self.output_dir / "removed_unnamed_depth_edges.json"
-
-        write_start = time.time()
-        logger.info(f"  Writing JSON file to {removed_edges_file}...")
         with open(removed_edges_file, "w") as f:
             json.dump(removed_edge_data, f, indent=2)
-        write_time = time.time() - write_start
-        phase5_time = time.time() - phase5_start
-        logger.info(f"  JSON write took {write_time:.1f}s")
         logger.info(
-            f"Phase 5: Exported {len(removed_edge_data):,} removed edges in {phase5_time:.1f}s"
+            f"Exported {len(removed_edge_data):,} removed edges to {removed_edges_file}"
         )
         # Clear removed_edge_data
         del removed_edge_data
         gc.collect()
-
         # Phase 6: Remove from graph
-        phase6_start = time.time()
         logger.info("Phase 6: Removing edges from graph...")
-        logger.info(
-            f"  Removing {len(all_edges_to_remove):,} edges from NetworkX graph..."
-        )
-        remove_start = time.time()
         for edge_id in all_edges_to_remove:
             u, v, key = edge_id
             if self.G.has_edge(u, v, key):
                 self.G.remove_edge(u, v, key)
-        remove_time = time.time() - remove_start
-        logger.info(f"  Edge removal took {remove_time:.1f}s")
-
         # Remove isolated nodes
-        isolate_start = time.time()
-        logger.info("  Finding and removing isolated nodes...")
         isolated_nodes = list(nx.isolates(self.G))
         self.G.remove_nodes_from(isolated_nodes)
-        isolate_time = time.time() - isolate_start
-
-        phase6_time = time.time() - phase6_start
-        logger.info(f"  Isolated node removal took {isolate_time:.1f}s")
         logger.info(
-            f"Phase 6: Removed {len(all_edges_to_remove):,} edges and {len(isolated_nodes):,} isolated nodes in {phase6_time:.1f}s"
+            f"Removed {len(all_edges_to_remove):,} edges and {len(isolated_nodes):,} isolated nodes."
         )
         logger.info(
             f"Graph after filtering: {self.G.number_of_nodes():,} Nodes, {self.G.number_of_edges():,} Edges"
         )
-
-        overall_time = time.time() - overall_start
-        logger.info(
-            f"filter_unnamed_depth() TOTAL TIME: {overall_time:.1f}s ({overall_time/60:.1f} minutes)"
-        )
-
         # Force garbage collection
         gc.collect()
 
@@ -1111,79 +816,37 @@ class FWAPrimalGraph:
             return
         # Determine base filename without extension
         base_filename = filename.replace(".graphml", "")
-
-        export_start = time.time()
-        logger.info("=" * 60)
-        logger.info("EXPORT PHASE")
-        logger.info("=" * 60)
-        logger.info(
-            f"Exporting graph with {self.G.number_of_nodes():,} nodes and {self.G.number_of_edges():,} edges"
-        )
-        logger.info("Expected times:")
-        logger.info("  - Pickle export: ~10-15 seconds")
-        logger.info("  - GraphML attribute cleaning: ~5-10 seconds")
-        logger.info("  - GraphML write: ~5-10 minutes (may fail on very large graphs)")
-
         # Export to pickle first (more reliable, doesn't run out of memory)
         pickle_path = self.output_dir / f"{base_filename}.gpickle"
-        pickle_start = time.time()
         logger.info(f"Exporting to pickle format: {pickle_path}...")
         import pickle
 
         with open(pickle_path, "wb") as f:
             pickle.dump(self.G, f, protocol=pickle.HIGHEST_PROTOCOL)
-        pickle_time = time.time() - pickle_start
-        logger.info(f"Pickle export complete in {pickle_time:.1f}s: {pickle_path}")
-
+        logger.info(f"Pickle export complete: {pickle_path}")
         # Clean attributes for GraphML export
         graphml_path = self.output_dir / filename
-        clean_start = time.time()
-        logger.info(f"Preparing for GraphML export: {graphml_path}...")
-        logger.info("  Cleaning edge attributes (replacing None values)...")
-
-        edge_count = 0
+        logger.info(f"Exporting to GraphML format: {graphml_path}...")
         for u, v, key, data in self.G.edges(keys=True, data=True):
-            edge_count += 1
             for k, val in list(data.items()):
                 if val is None:
                     data[k] = ""
-
-        logger.info(f"  Cleaned {edge_count:,} edges")
-        logger.info("  Cleaning node attributes (replacing None, converting bool)...")
-
-        node_count = 0
         for n, data in self.G.nodes(data=True):
-            node_count += 1
             for k, val in list(data.items()):
                 if val is None:
                     data[k] = ""
                 if isinstance(val, bool):
                     data[k] = str(val)
-
-        clean_time = time.time() - clean_start
-        logger.info(f"  Cleaned {node_count:,} nodes")
-        logger.info(f"  Attribute cleaning complete in {clean_time:.1f}s")
-
         # Try to export to GraphML (may fail on large graphs due to memory)
-        graphml_start = time.time()
-        logger.info("Writing GraphML file (this may take several minutes)...")
         try:
             nx.write_graphml(self.G, str(graphml_path))
-            graphml_time = time.time() - graphml_start
-            logger.info(
-                f"GraphML export complete in {graphml_time:.1f}s ({graphml_time/60:.1f} min): {graphml_path}"
-            )
+            logger.info(f"GraphML export complete: {graphml_path}")
         except MemoryError:
             logger.warning(
                 f"GraphML export failed due to MemoryError. Use pickle file: {pickle_path}"
             )
         except Exception as e:
             logger.error(f"GraphML export failed: {e}. Use pickle file: {pickle_path}")
-
-        export_time = time.time() - export_start
-        logger.info(
-            f"Total export time: {export_time:.1f}s ({export_time/60:.1f} minutes)"
-        )
         logger.info("Done.")
 
 
@@ -1220,10 +883,6 @@ if __name__ == "__main__":
         help="Distance threshold for unnamed stream filtering (default: 2)",
     )
     args = parser.parse_args()
-
-    # Track overall execution time
-    script_start = time.time()
-
     builder = FWAPrimalGraph()
 
     # Load from pickle or build from scratch
@@ -1259,16 +918,3 @@ if __name__ == "__main__":
             builder.export(f"fwa_primal_{layers_str}.graphml")
         else:
             builder.export("fwa_bc_primal_full.graphml")
-
-    # Print execution summary
-    total_time = time.time() - script_start
-    logger.info("=" * 60)
-    logger.info("EXECUTION COMPLETE")
-    logger.info("=" * 60)
-    logger.info(
-        f"Total execution time: {total_time:.1f}s ({total_time/60:.1f} minutes)"
-    )
-    logger.info(
-        f"Final graph: {builder.G.number_of_nodes():,} nodes, {builder.G.number_of_edges():,} edges"
-    )
-    logger.info("=" * 60)
