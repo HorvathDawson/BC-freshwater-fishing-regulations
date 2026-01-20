@@ -114,6 +114,10 @@ def _process_stream_chunk(chunk, zones_gdf, zone_index):
             "lake_name": data.get("lake_name", ""),
             "stream_tributary_of": data.get("stream_tributary_of", ""),
             "lake_tributary_of": data.get("lake_tributary_of", ""),
+            "unnamed_depth_distance_raw": data.get("unnamed_depth_distance_raw"),
+            "unnamed_depth_distance_corrected": data.get(
+                "unnamed_depth_distance_corrected"
+            ),
             # Zone assignments
             "zones": all_zones,
             "mgmt_units": all_mgmt_units,
@@ -148,6 +152,8 @@ class MetadataBuilder:
         self.output_path = output_path
 
         self.G = None
+        self.node_coords = None  # O(1) coordinate lookups
+        self.edge_attrs = None  # O(1) edge attribute lookups
         self.zones_gdf = None
         self.zone_index = None
         self.zone_metadata = {}
@@ -159,14 +165,21 @@ class MetadataBuilder:
         self.manmade_metadata = {}
 
     def load_graph(self):
-        """Load the stream network graph."""
+        """Load the stream network graph and lookup dictionaries (igraph format)."""
         logger.info(f"Loading graph from: {self.graph_path}")
 
         with open(self.graph_path, "rb") as f:
-            self.G = pickle.load(f)
+            data = pickle.load(f)
+
+        self.G = data["graph"]  # igraph format
+        self.node_coords = data["node_coords"]  # O(1) coordinate lookups
+        self.edge_attrs = data["edge_attrs"]  # O(1) edge attribute lookups
 
         logger.info(
-            f"  Loaded graph: {self.G.number_of_nodes():,} nodes, {self.G.number_of_edges():,} edges"
+            f"  Loaded graph: {self.G.vcount():,} nodes, {self.G.ecount():,} edges"
+        )
+        logger.info(
+            f"  Loaded lookups: {len(self.node_coords):,} node coords, {len(self.edge_attrs):,} edge attrs"
         )
 
     def load_zones(self):
@@ -269,19 +282,17 @@ class MetadataBuilder:
             logger.error("Graph not loaded. Call load_graph() first.")
             return
 
-        total_edges = self.G.number_of_edges()
-        logger.info(f"  Processing {total_edges:,} stream edges...")
+        # Build edge data list using constant-time lookups
+        total_edges = len(self.edge_attrs)
+        logger.info(
+            f"  Processing {total_edges:,} stream edges (using O(1) lookups)..."
+        )
 
-        # Convert edges to list for chunking
         edges_data = []
-        for u, v, key, data in self.G.edges(keys=True, data=True):
-            # Get endpoint coordinates
-            u_x = self.G.nodes[u]["x"]
-            u_y = self.G.nodes[u]["y"]
-            v_x = self.G.nodes[v]["x"]
-            v_y = self.G.nodes[v]["y"]
-
-            edges_data.append((key, u_x, u_y, v_x, v_y, data))
+        for key, attrs in self.edge_attrs.items():
+            u_x, u_y = attrs["source_coords"]
+            v_x, v_y = attrs["target_coords"]
+            edges_data.append((key, u_x, u_y, v_x, v_y, attrs))
 
         # Split into chunks for parallel processing
         chunk_size = max(1000, total_edges // (num_workers * 4))

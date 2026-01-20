@@ -208,6 +208,31 @@ class GeoSplitter:
                         # Get geometry
                         geom = shape(feature["geometry"])
 
+                        # Determine minzoom based on stream_order for tippecanoe
+                        stream_order = metadata.get("stream_order")
+                        if stream_order is not None:
+                            # Very aggressive filtering - only show major rivers when zoomed out
+                            if stream_order >= 7:
+                                minzoom = (
+                                    4  # Absolute largest rivers visible from zoom 4
+                                )
+                            elif stream_order >= 6:
+                                minzoom = 6  # Very large rivers from zoom 6
+                            elif stream_order >= 5:
+                                minzoom = 7  # Large rivers from zoom 7
+                            elif stream_order >= 4:
+                                minzoom = 8  # Major rivers from zoom 8
+                            elif stream_order == 3:
+                                minzoom = (
+                                    9  # Medium rivers from zoom 9 (rounded from 8.5)
+                                )
+                            elif stream_order == 2:
+                                minzoom = 10  # Smaller streams from zoom 10
+                            else:  # stream_order == 1
+                                minzoom = 11  # Smallest streams from zoom 11
+                        else:
+                            minzoom = 11  # Default for streams without order
+
                         # Build feature attributes
                         feature_data = {
                             "linear_feature_id": linear_feature_id_str,
@@ -216,12 +241,18 @@ class GeoSplitter:
                                 "stream_tributary_of", ""
                             ),
                             "lake_tributary_of": metadata.get("lake_tributary_of", ""),
-                            "stream_order": metadata.get("stream_order"),
+                            "stream_order": stream_order,
                             "length": metadata.get("length", 0),
                             "waterbody_key": metadata.get("waterbody_key", ""),
                             "lake_name": metadata.get("lake_name", ""),
                             "fwa_watershed_code": metadata.get(
                                 "fwa_watershed_code", ""
+                            ),
+                            "unnamed_depth_distance_raw": metadata.get(
+                                "unnamed_depth_distance_raw"
+                            ),
+                            "unnamed_depth_distance_corrected": metadata.get(
+                                "unnamed_depth_distance_corrected"
                             ),
                             "zones": ",".join(zones),
                             "mgmt_units": ",".join(metadata.get("mgmt_units", [])),
@@ -230,6 +261,7 @@ class GeoSplitter:
                                 zones[0], "#4169E1"
                             ),  # Use first zone color
                             "stroke_width": 1.5,
+                            "tippecanoe:minzoom": minzoom,  # Control visibility in tiles
                             "geometry": geom,
                         }
 
@@ -330,6 +362,21 @@ class GeoSplitter:
                     # Create geometry
                     geom = shape(feature["geometry"])
 
+                    # Calculate area in square meters for size-based minzoom
+                    area_sqm = geom.area  # BC Albers is in meters
+
+                    # Assign minzoom based on size - larger features visible at lower zooms
+                    if area_sqm >= 10_000_000:  # >= 10 km²
+                        minzoom = 4  # Very large waterbodies
+                    elif area_sqm >= 1_000_000:  # >= 1 km²
+                        minzoom = 6  # Large waterbodies
+                    elif area_sqm >= 100_000:  # >= 0.1 km²
+                        minzoom = 8  # Medium waterbodies
+                    elif area_sqm >= 10_000:  # >= 0.01 km²
+                        minzoom = 10  # Small waterbodies
+                    else:
+                        minzoom = 12  # Very small waterbodies
+
                     feature_data = {
                         "WATERBODY_KEY": waterbody_key_str,
                         "gnis_name": gnis_name,
@@ -341,6 +388,8 @@ class GeoSplitter:
                         "fill_opacity": 0.4,
                         "stroke_color": self.zone_colors.get(zones[0], "#1E3A8A"),
                         "stroke_width": 1.0,
+                        "area_sqm": area_sqm,  # Store for reference
+                        "tippecanoe:minzoom": minzoom,  # Size-based visibility
                         "geometry": geom,
                     }
 
@@ -393,6 +442,7 @@ class GeoSplitter:
         zone_gdf["stroke_color"] = self.zone_colors.get(zone, "#888888")
         zone_gdf["stroke_width"] = 2.0
         zone_gdf["stroke_opacity"] = 0.8
+        zone_gdf["tippecanoe:minzoom"] = 0  # Zone boundaries visible from zoom 0
 
         logger.info(f"  Zone {zone} has {len(zone_gdf)} management units")
 
