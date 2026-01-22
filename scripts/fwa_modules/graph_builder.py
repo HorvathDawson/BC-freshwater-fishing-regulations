@@ -1,17 +1,10 @@
 #!/usr/bin/env python3
 """
-FWA Graph Builder - Stream Network Graph Construction with Tributary Enrichment
+FWA Graph Builder - igraph Implementation
+Stream Network Graph Construction with Tributary Enrichment
 
-Builds a primal graph representation of BC Freshwater Atlas (FWA) stream network:
-- Nodes: Stream segment endpoints (coordinates)
-- Edges: Stream segments (LINEAR_FEATURE_ID)
-- Direction: Flows downstream
-
-Enriches graph with:
-- Stream tributary relationships (stream_tributary_of)
-- Lake tributary relationships (lake_tributary_of)
-- Watershed hierarchy via FWA_WATERSHED_CODE
-- Lake name enrichment via WATERBODY_KEY lookup
+This is an igraph port of graph_builder.py for improved performance.
+Builds a primal graph representation of BC Freshwater Atlas (FWA) stream network.
 """
 import os, sys, logging, warnings, argparse, gc, json
 
@@ -32,7 +25,7 @@ from multiprocessing import Pool
 from collections import deque
 import geopandas as gpd
 import pandas as pd
-import networkx as nx
+import igraph as ig
 import fiona
 from pathlib import Path
 from shapely.geometry import LineString, MultiLineString, shape
@@ -83,11 +76,6 @@ def process_layer_worker(args):
                 if not geom_data:
                     continue
 
-                # # Filter ditches
-                # f_source = props.get("FEATURE_SOURCE")
-                # if f_source and "ditch" in f_source.lower():
-                #     continue
-
                 # Filter bad watershed codes
                 code = props.get("FWA_WATERSHED_CODE")
                 if code and code.startswith("999-999999"):
@@ -98,6 +86,7 @@ def process_layer_worker(args):
                     if code not in code_to_name:
                         code_to_name[code] = name
                 features_list.append((feature, code, name))
+
             # Second pass: process features with name propagation
             for feature, code, name in features_list:
                 props = feature["properties"]
@@ -135,7 +124,7 @@ def process_layer_worker(args):
                         lake_name_val = lake_lookup[k]
 
                 gnis_name = name if name else ""
-                # Store edge data (will compute parallel counts in main thread)
+                # Store edge data
                 edge_data = {
                     "v": v,
                     "u": u,
@@ -158,7 +147,7 @@ def process_layer_worker(args):
     return nodes_data, edges_data
 
 
-class FWAPrimalGraph:
+class FWAPrimalGraphIGraph:
     def __init__(self):
         self.script_dir = Path(__file__).resolve().parent
         self.project_root = self.script_dir.parent.parent
@@ -173,8 +162,11 @@ class FWAPrimalGraph:
         # Output directory for graph exports
         self.output_dir = self.script_dir.parent / "output" / "fwa_modules"
         self.output_dir.mkdir(parents=True, exist_ok=True)
-        # MultiDiGraph allows parallel edges
-        self.G = nx.MultiDiGraph()
+
+        # igraph uses integer vertex IDs, so we need mapping
+        self.G = ig.Graph(directed=True)
+        self.node_id_to_index = {}  # Maps string node IDs to integer indices
+        self.index_to_node_id = {}  # Maps integer indices to string node IDs
         self.lake_lookup = {}
         self.edge_counts = {}  # Track parallel edges for visual offset
         self.layers_used = None  # Track which layers were processed
@@ -191,9 +183,12 @@ class FWAPrimalGraph:
 
         logger.info(f"Loading graph from pickle: {pickle_path}...")
         with open(pickle_path, "rb") as f:
-            self.G = pickle.load(f)
+            data = pickle.load(f)
+            self.G = data["graph"]
+            self.node_id_to_index = data["node_id_to_index"]
+            self.index_to_node_id = data["index_to_node_id"]
         logger.info(
-            f"Loaded graph: {self.G.number_of_nodes():,} Nodes, {self.G.number_of_edges():,} Edges"
+            f"Loaded graph: {self.G.vcount():,} Nodes, {self.G.ecount():,} Edges"
         )
         return True
 
@@ -212,89 +207,169 @@ class FWAPrimalGraph:
         except Exception:
             pass
 
+    def _get_or_create_vertex(self, node_id, x, y):
+        """Get vertex index for node_id, creating if it doesn't exist."""
+        if node_id in self.node_id_to_index:
+            return self.node_id_to_index[node_id]
+
+        # Create new vertex
+        idx = self.G.vcount()
+        self.G.add_vertex()
+        self.node_id_to_index[node_id] = idx
+        self.index_to_node_id[idx] = node_id
+
+        # Set attributes
+        self.G.vs[idx]["name"] = node_id
+        self.G.vs[idx]["x"] = x
+        self.G.vs[idx]["y"] = y
+        self.G.vs[idx]["size"] = 0.1
+        self.G.vs[idx]["label"] = ""
+
+        return idx
+
     def build(self, limit=None, layers=None):
-        logger.info("Step 1: Loading Segments...")
+        import time
+
+        start_time = time.time()
+
+        logger.info("=" * 80)
+        logger.info("STEP 1: BUILDING GRAPH FROM FWA STREAM NETWORK")
+        logger.info("=" * 80)
+
         try:
             if layers is None:
+                logger.info("Discovering layers in GDB...")
                 layers = fiona.listlayers(str(self.streams_gdb))
                 layers = [l for l in layers if not l.startswith("_") and len(l) <= 4]
+                logger.info(f"  Found {len(layers)} valid layers")
                 if limit:
                     layers = layers[:limit]
+                    logger.info(f"  Limited to first {limit} layers")
             elif isinstance(layers, str):
                 layers = [layers]
             # Store layers for filename generation
             self.layers_used = layers
         except Exception:
             return
-        print(f"Processing {len(layers)} layers in parallel with 14 workers...")
+
+        logger.info(f"\nProcessing {len(layers)} layers: {', '.join(layers)}")
+        logger.info(f"Parallel processing with 14 workers...\n")
         # Prepare arguments for workers
         worker_args = [
             (layer, str(self.streams_gdb), self.lake_lookup) for layer in layers
         ]
+
         # Process layers in parallel
         all_nodes_data = []
         all_edges_data = []
+        logger.info("Phase 1.1: Extracting features from layers in parallel...")
         with Pool(processes=14) as pool:
             results = pool.map(process_layer_worker, worker_args)
             # Collect results and clean memory periodically
             for i, (nodes_data, edges_data) in enumerate(results):
                 all_nodes_data.extend(nodes_data)
                 all_edges_data.extend(edges_data)
-                if i % 10 == 0:
-                    print(".", end="", flush=True)
+
+                # Progress update every 10 layers
+                if (i + 1) % 10 == 0 or (i + 1) == len(results):
+                    progress = ((i + 1) / len(results)) * 100
+                    logger.info(
+                        f"  Processed {i+1}/{len(results)} layers ({progress:.1f}%) - {len(all_edges_data):,} edges collected"
+                    )
+
                 # Periodic cleanup
                 if i % 50 == 0 and i > 0:
                     gc.collect()
-        print("\nMerging results into graph...")
+
+        logger.info(
+            f"\nPhase 1.2: Merging {len(all_nodes_data):,} node records and {len(all_edges_data):,} edge records into graph..."
+        )
         # Add all unique nodes
+        logger.info("  Deduplicating nodes...")
         unique_nodes = {}
         for node_id, x, y in all_nodes_data:
             if node_id not in unique_nodes:
                 unique_nodes[node_id] = (x, y)
+
+        logger.info(f"  Creating {len(unique_nodes):,} unique vertices...")
         for node_id, (x, y) in unique_nodes.items():
-            self.G.add_node(node_id, x=x, y=y, size=0.1, label="")
+            self._get_or_create_vertex(node_id, x, y)
+
         del unique_nodes
         del all_nodes_data
         gc.collect()
+
         # Add all edges with parallel edge counting
+        edge_list = []  # (source_idx, target_idx)
+        edge_attrs = {
+            "linear_feature_id": [],
+            "fwa_watershed_code": [],
+            "fwa_watershed_code_clean": [],
+            "gnis_name": [],
+            "waterbody_key": [],
+            "lake_name": [],
+            "stream_order": [],
+            "length": [],
+            "stream_tributary_of": [],
+            "lake_tributary_of": [],
+            "weight": [],
+            "edge_index": [],
+        }
+
         for edge_data in all_edges_data:
-            v = edge_data["v"]
-            u = edge_data["u"]
-            sid = edge_data["sid"]
-            fwa_watershed_code = edge_data["fwa_watershed_code"]
-            gnis_name = edge_data["gnis_name"]
-            waterbody_key = edge_data["waterbody_key"]
-            lake_name = edge_data["lake_name"]
-            stream_order = edge_data["stream_order"]
-            length = edge_data["length"]
+            v_id = edge_data["v"]
+            u_id = edge_data["u"]
+
+            # Get vertex indices (nodes should already exist)
+            v_idx = self.node_id_to_index[v_id]
+            u_idx = self.node_id_to_index[u_id]
+
             # Count parallel edges for visual offset
-            edge_key_pair = (v, u)
+            edge_key_pair = (v_id, u_id)
             parallel_count = self.edge_counts.get(edge_key_pair, 0)
             self.edge_counts[edge_key_pair] = parallel_count + 1
             visual_offset = parallel_count * 0.02
-            # Add edge to graph
-            self.G.add_edge(
-                v,
-                u,
-                key=sid,
-                linear_feature_id=sid,
-                fwa_watershed_code=fwa_watershed_code,
-                fwa_watershed_code_clean=clean_code_helper(fwa_watershed_code),
-                gnis_name=gnis_name,
-                waterbody_key=waterbody_key,
-                lake_name=lake_name,
-                stream_order=stream_order,
-                length=length,
-                stream_tributary_of="",
-                lake_tributary_of="",
-                weight=1.0 + visual_offset,
-                edge_index=parallel_count,
+
+            # Add edge to list
+            edge_list.append((v_idx, u_idx))
+
+            # Store attributes
+            edge_attrs["linear_feature_id"].append(edge_data["sid"])
+            edge_attrs["fwa_watershed_code"].append(edge_data["fwa_watershed_code"])
+            edge_attrs["fwa_watershed_code_clean"].append(
+                clean_code_helper(edge_data["fwa_watershed_code"])
             )
+            edge_attrs["gnis_name"].append(edge_data["gnis_name"])
+            edge_attrs["waterbody_key"].append(edge_data["waterbody_key"])
+            edge_attrs["lake_name"].append(edge_data["lake_name"])
+            edge_attrs["stream_order"].append(edge_data["stream_order"])
+            edge_attrs["length"].append(edge_data["length"])
+            edge_attrs["stream_tributary_of"].append("")
+            edge_attrs["lake_tributary_of"].append("")
+            edge_attrs["weight"].append(1.0 + visual_offset)
+            edge_attrs["edge_index"].append(parallel_count)
+
+        # Add all edges at once (more efficient)
+        logger.info(f"  Adding {len(edge_list):,} edges to graph...")
+        self.G.add_edges(edge_list)
+
+        # Set edge attributes
+        logger.info(f"  Setting edge attributes ({len(edge_attrs)} attribute types)...")
+        for attr_name, attr_values in edge_attrs.items():
+            self.G.es[attr_name] = attr_values
+
         del all_edges_data
+        del edge_list
+        del edge_attrs
         gc.collect()
-        print(
-            f"\nGraph Built: {self.G.number_of_nodes():,} Nodes, {self.G.number_of_edges():,} Edges"
+
+        elapsed = time.time() - start_time
+        logger.info(f"\n{'='*80}")
+        logger.info(
+            f"GRAPH BUILD COMPLETE: {self.G.vcount():,} nodes, {self.G.ecount():,} edges"
         )
+        logger.info(f"Build time: {elapsed:.1f}s ({elapsed/60:.1f} minutes)")
+        logger.info(f"{'='*80}\n")
 
     def preprocess_graph(self):
         """
@@ -302,17 +377,22 @@ class FWAPrimalGraph:
         Remove edges with STREAM_ORDER == 1 that lead to roots (apparent tailwaters).
         Iterates until no more such edges are found (handles cascading effects).
         """
-        logger.info(
-            "Step 1.5: Preprocessing Graph - Removing spurious order-1 tailwater edges..."
-        )
+        import time
+
+        start_time = time.time()
+
+        logger.info("=" * 80)
+        logger.info("STEP 1.5: PREPROCESSING - REMOVING SPURIOUS EDGES")
+        logger.info("=" * 80)
+        logger.info("Removing stream_order=1 edges leading to tailwater roots...\n")
 
         total_edges_removed = 0
         iteration = 0
 
         while True:
             iteration += 1
-            # Find all roots (nodes with out_degree == 0, appearing as tailwater)
-            roots = [n for n, d in self.G.out_degree() if d == 0]
+            # Find all roots (vertices with out_degree == 0, appearing as tailwater)
+            roots = [v.index for v in self.G.vs if v.outdegree() == 0]
             logger.info(
                 f"Iteration {iteration}: Found {len(roots)} root nodes (out-degree 0)."
             )
@@ -322,24 +402,19 @@ class FWAPrimalGraph:
 
             # Check edges leading to these roots
             for root in roots:
-                for predecessor in list(self.G.predecessors(root)):
-                    for edge_key in list(self.G[predecessor][root].keys()):
-                        edge_data = self.G.edges[predecessor, root, edge_key]
-                        stream_order = edge_data.get("stream_order")
-                        # Track stream order distribution
-                        order_counts[stream_order] = (
-                            order_counts.get(stream_order, 0) + 1
-                        )
-                        # If this edge has stream order 1, it's likely spurious
-                        if stream_order == 1:
-                            edges_to_remove.append((predecessor, root, edge_key))
+                for edge in self.G.es.select(_target=root):
+                    stream_order = edge["stream_order"]
+                    # Track stream order distribution
+                    order_counts[stream_order] = order_counts.get(stream_order, 0) + 1
+                    # If this edge has stream order 1, it's likely spurious
+                    if stream_order == 1:
+                        edges_to_remove.append(edge.index)
 
             if iteration == 1:
                 logger.info(
                     f"Stream order distribution of edges to roots: {dict(sorted(order_counts.items()))}"
                 )
 
-            # Clear order_counts dict as it's no longer needed
             del order_counts
 
             # If no edges to remove, we're done
@@ -351,82 +426,110 @@ class FWAPrimalGraph:
 
             # Remove the spurious edges
             num_edges_removed = len(edges_to_remove)
-            for u, v, key in edges_to_remove:
-                self.G.remove_edge(u, v, key)
+            self.G.delete_edges(edges_to_remove)
 
             total_edges_removed += num_edges_removed
             logger.info(
                 f"Iteration {iteration}: Removed {num_edges_removed} order-1 edges."
             )
 
-            # Clear edges_to_remove list
             del edges_to_remove
             gc.collect()
 
-        # Remove isolated nodes that may have been created
-        # An isolated node has no edges connected to it (degree 0)
-        isolated_nodes = list(nx.isolates(self.G))
-        self.G.remove_nodes_from(isolated_nodes)
-        num_isolated = len(isolated_nodes)
-        del isolated_nodes
-        gc.collect()
-        logger.info(
-            f"Total removed: {total_edges_removed} order-1 edges leading to roots."
-        )
-        logger.info(
-            f"Removed {num_isolated} isolated nodes (nodes with no connections after edge removal)."
-        )
-        logger.info(
-            f"Graph after cleanup: {self.G.number_of_nodes():,} Nodes, {self.G.number_of_edges():,} Edges"
-        )
-        # Force garbage collection after cleanup
+        # Remove isolated vertices
+        isolated = [v.index for v in self.G.vs if v.degree() == 0]
+        num_isolated = len(isolated)
+        if isolated:
+            # Update mappings before deletion
+            for idx in sorted(isolated, reverse=True):
+                node_id = self.index_to_node_id[idx]
+                del self.node_id_to_index[node_id]
+                del self.index_to_node_id[idx]
+
+            self.G.delete_vertices(isolated)
+
+            # Rebuild mappings after vertex deletion (indices shift)
+            self.node_id_to_index = {}
+            self.index_to_node_id = {}
+            for v in self.G.vs:
+                node_id = v["name"]
+                self.node_id_to_index[node_id] = v.index
+                self.index_to_node_id[v.index] = node_id
+
+        del isolated
         gc.collect()
 
-    def filter_unnamed_depth(self, threshold=2, debug=False):
+        elapsed = time.time() - start_time
+        logger.info(f"\n{'='*80}")
+        logger.info("PREPROCESSING COMPLETE")
+        logger.info(f"  Removed: {total_edges_removed:,} spurious edges")
+        logger.info(f"  Removed: {num_isolated:,} isolated nodes")
+        logger.info(f"  Result: {self.G.vcount():,} nodes, {self.G.ecount():,} edges")
+        logger.info(f"  Time: {elapsed:.1f}s")
+        logger.info(f"{'='*80}\n")
+        gc.collect()
+
+    def filter_unnamed_depth(self, threshold=2):
         """
         Remove unnamed stream segments that are N or more stream systems away
         from the nearest named waterbody. Also removes all upstream segments.
-        If debug=True, stores the distance value in edge attribute 'unnamed_depth_distance'.
+        Stores distance values in edge attributes 'unnamed_depth_distance_raw' and 'unnamed_depth_distance_corrected'.
         """
+        import time
+
+        start_time = time.time()
+
+        logger.info("=" * 80)
+        logger.info(f"STEP 1.6: FILTERING UNNAMED STREAMS (threshold={threshold})")
+        logger.info("=" * 80)
         logger.info(
-            f"Step 1.6: Filtering unnamed streams by depth (threshold={threshold})..."
+            f"Initial graph: {self.G.vcount():,} nodes, {self.G.ecount():,} edges\n"
         )
+
         # Phase 1: Collect named stream starting points
-        logger.info("Phase 1: Collecting named stream anchors...")
+        logger.info("[PHASE 1/6] Collecting named stream anchors...")
         named_edges = []
-        for u, v, key, data in self.G.edges(keys=True, data=True):
-            if data.get("gnis_name", ""):
-                named_edges.append((u, v, key))
+        for edge in self.G.es:
+            if edge["gnis_name"]:
+                named_edges.append(edge.index)
         logger.info(f"Found {len(named_edges):,} named stream edges as anchors.")
+
         if not named_edges:
             logger.warning("No named streams found. Skipping unnamed depth filtering.")
             return
-        # Phase 2: BFS upstream from named streams
-        logger.info("Phase 2: Measuring distances from named streams...")
 
-        # Pre-compute edge data cache for O(1) lookups (huge speedup)
-        logger.info("Pre-computing edge data cache...")
-        edge_data_cache = {
-            (u, v, k): {
-                "fwa": data.get("fwa_watershed_code", ""),
-                "name": data.get("gnis_name", ""),
+        # Phase 2: BFS upstream from named streams
+        phase2_start = time.time()
+        logger.info(
+            "\n[PHASE 2/6] Measuring distances from named streams (BFS upstream)..."
+        )
+
+        # Pre-compute edge data cache for O(1) lookups
+        logger.info("  Building edge data cache...")
+        edge_data_cache = {}
+        for edge in self.G.es:
+            edge_data_cache[edge.index] = {
+                "fwa": edge["fwa_watershed_code"],
+                "name": edge["gnis_name"],
+                "source": edge.source,
+                "target": edge.target,
             }
-            for u, v, k, data in self.G.edges(keys=True, data=True)
-        }
 
         # Pre-compute predecessor cache for O(1) lookups
         logger.info("Pre-computing predecessor cache...")
-        pred_cache = {node: list(self.G.predecessors(node)) for node in self.G.nodes()}
+        pred_cache = {}
+        for v in self.G.vs:
+            pred_cache[v.index] = [e.source for e in self.G.es.select(_target=v.index)]
 
-        edge_distance = {}  # (u, v, key) -> min_distance
+        edge_distance = {}  # edge_index -> min_distance
         queue = deque()
+
         # Initialize: Add all named stream edges with distance=0
-        for u, v, key in named_edges:
-            edge_id = (u, v, key)
-            edge_distance[edge_id] = 0
-            edge_data = self.G.edges[u, v, key]
-            queue.append((u, edge_data.get("fwa_watershed_code", ""), 0))
-        # Clear named_edges to free memory
+        for edge_idx in named_edges:
+            edge_distance[edge_idx] = 0
+            edge_info = edge_data_cache[edge_idx]
+            queue.append((edge_info["source"], edge_info["fwa"], 0))
+
         del named_edges
         gc.collect()
 
@@ -446,11 +549,13 @@ class FWAPrimalGraph:
 
             # Look at all edges flowing INTO current_node (predecessors)
             for pred_u in pred_cache.get(current_node, []):
-                for key in self.G[pred_u][current_node]:
-                    edge_id = (pred_u, current_node, key)
-                    edge_info = edge_data_cache[edge_id]
+                # Find edges from pred_u to current_node
+                for edge in self.G.es.select(_source=pred_u, _target=current_node):
+                    edge_idx = edge.index
+                    edge_info = edge_data_cache[edge_idx]
                     edge_fwa = edge_info["fwa"]
                     edge_name = edge_info["name"]
+
                     # Calculate distance for this edge
                     if edge_name:  # Named stream
                         new_distance = 0
@@ -458,95 +563,148 @@ class FWAPrimalGraph:
                         new_distance = prev_distance
                     else:  # Different unnamed stream
                         new_distance = prev_distance + 1
+
                     # Only process if better distance or first visit
                     if (
-                        edge_id not in edge_distance
-                        or new_distance < edge_distance[edge_id]
+                        edge_idx not in edge_distance
+                        or new_distance < edge_distance[edge_idx]
                     ):
-                        edge_distance[edge_id] = new_distance
+                        edge_distance[edge_idx] = new_distance
                         # Only add to queue if not already visited
                         if pred_u not in visited_nodes:
                             queue.append((pred_u, edge_fwa, new_distance))
-            # Memory cleanup every 10000 iterations
-            if iteration % 10000 == 0:
+
+            # Progress logging and memory cleanup
+            if iteration % 50000 == 0 and iteration > 0:
+                logger.info(
+                    f"    BFS progress: {iteration:,} traversals, {len(edge_distance):,} edges measured"
+                )
                 gc.collect()
+
+        phase2_elapsed = time.time() - phase2_start
         logger.info(
-            f"Processed {iteration:,} edge traversals. Computed {len(edge_distance):,} edge distances."
+            f"  ✓ BFS complete: {iteration:,} traversals, {len(edge_distance):,} edges measured ({phase2_elapsed:.1f}s)"
         )
 
-        # Phase 2.5: Correct distances to ensure network consistency (single-pass BFS)
-        logger.info("Phase 2.5: Correcting distances to prevent network breaks...")
+        # Phase 2.5: Correct distances to ensure network consistency
+        phase25_start = time.time()
+        logger.info(
+            "\n[PHASE 2.5/6] Correcting distances to ensure network consistency..."
+        )
         corrected_distance = {}
 
         # Initialize all edges with their BFS distance
-        for edge_id, dist in edge_distance.items():
-            corrected_distance[edge_id] = dist
+        for edge_idx, dist in edge_distance.items():
+            corrected_distance[edge_idx] = dist
 
         # Single-pass correction: BFS from source nodes, propagating minimum distances
-        # Find all source nodes (in-degree 0) - headwaters
-        sources = [n for n, d in self.G.in_degree() if d == 0]
+        sources = [v.index for v in self.G.vs if v.indegree() == 0]
+        logger.info(
+            f"  Starting downstream propagation from {len(sources):,} headwaters..."
+        )
 
         # Track how many upstream edges have been processed for each node
-        upstream_processed = {n: 0 for n in self.G.nodes()}
+        upstream_processed = {v.index: 0 for v in self.G.vs}
         queue = deque(sources)
         processed_nodes = set(sources)
         total_corrections = 0
+        edges_processed = 0
 
         while queue:
             node = queue.popleft()
 
             # Process all edges flowing out of this node
-            for next_node in self.G.successors(node):
-                for edge_key in self.G[node][next_node]:
-                    edge_id = (node, next_node, edge_key)
+            for edge in self.G.es.select(_source=node):
+                edge_idx = edge.index
+                next_node = edge.target
+                edges_processed += 1
 
-                    if edge_id not in corrected_distance:
-                        continue
+                if edge_idx not in corrected_distance:
+                    continue
 
-                    # Find minimum distance among all upstream edges feeding into this edge's start node
-                    min_upstream = corrected_distance[edge_id]
+                # Find minimum distance among all upstream edges feeding into this edge's start node (node)
+                min_upstream = corrected_distance[edge_idx]
 
-                    for pred_node in self.G.predecessors(node):
-                        for pred_key in self.G[pred_node][node]:
-                            pred_edge_id = (pred_node, node, pred_key)
-                            if pred_edge_id in corrected_distance:
-                                min_upstream = min(
-                                    min_upstream, corrected_distance[pred_edge_id]
-                                )
+                # Look at all edges flowing INTO 'node' (the source of current edge)
+                for pred_edge in self.G.es.select(_target=node):
+                    pred_idx = pred_edge.index
+                    if pred_idx in corrected_distance:
+                        min_upstream = min(min_upstream, corrected_distance[pred_idx])
 
-                    # Update if we found a lower distance
-                    if min_upstream < corrected_distance[edge_id]:
-                        corrected_distance[edge_id] = min_upstream
-                        total_corrections += 1
+                # Update if we found a lower distance
+                if min_upstream < corrected_distance[edge_idx]:
+                    corrected_distance[edge_idx] = min_upstream
+                    total_corrections += 1
 
                 # Track that we've processed one more upstream edge for next_node
                 upstream_processed[next_node] += 1
 
                 # Add next_node to queue when all its upstream edges are processed
                 if (
-                    upstream_processed[next_node] == self.G.in_degree(next_node)
+                    upstream_processed[next_node] == self.G.vs[next_node].indegree()
                     and next_node not in processed_nodes
                 ):
                     queue.append(next_node)
                     processed_nodes.add(next_node)
 
-        logger.info(f"Corrected {total_corrections:,} edge distances.")
+        phase25_elapsed = time.time() - phase25_start
+        logger.info(
+            f"  ✓ Processed {edges_processed:,} edges, made {total_corrections:,} corrections ({phase25_elapsed:.1f}s)"
+        )
+
+        # Verify distances are reasonable (upstream edges should have >= distance of downstream)
+        logger.info("  Verifying distance consistency...")
+        violations = []
+        for edge_idx, dist in corrected_distance.items():
+            edge = self.G.es[edge_idx]
+            source_node = edge.source
+
+            # Check all edges flowing into this edge's source
+            for upstream_edge in self.G.es.select(_target=source_node):
+                upstream_idx = upstream_edge.index
+                if upstream_idx in corrected_distance:
+                    upstream_dist = corrected_distance[upstream_idx]
+                    # Upstream should be >= downstream (further from named streams)
+                    if upstream_dist < dist:
+                        violations.append(
+                            {
+                                "edge": edge_idx,
+                                "edge_dist": dist,
+                                "upstream_edge": upstream_idx,
+                                "upstream_dist": upstream_dist,
+                                "difference": dist - upstream_dist,
+                            }
+                        )
+
+        if violations:
+            logger.warning(
+                f"Found {len(violations)} edges where upstream has lower distance (may indicate correction needed)"
+            )
+            # Show first few violations
+            for v in violations[:5]:
+                logger.warning(
+                    f"  Edge {v['edge']} (dist={v['edge_dist']}) > Upstream {v['upstream_edge']} (dist={v['upstream_dist']})"
+                )
+        else:
+            logger.info(
+                f"✓ Distance consistency verified: All upstream edges have >= distance of downstream"
+            )
 
         # Phase 3: Mark edges for removal based on corrected threshold
+        phase3_start = time.time()
         logger.info(
-            f"Phase 3: Marking unnamed edges at corrected distance >= {threshold}..."
+            f"\n[PHASE 3/6] Marking unnamed edges at distance >= {threshold}..."
         )
         edges_marked = set()
         raw_distance_stats = {}
         corrected_distance_stats = {}
 
-        for edge_id in edge_distance.keys():
-            u, v, key = edge_id
-            edge_data = self.G.edges[u, v, key]
-            edge_name = edge_data.get("gnis_name", "")
+        for edge_idx in edge_distance.keys():
+            edge = self.G.es[edge_idx]
+            edge_name = edge["gnis_name"]
 
-            raw_dist = edge_distance[edge_id]
-            corrected_dist = corrected_distance.get(edge_id, raw_dist)
+            raw_dist = edge_distance[edge_idx]
+            corrected_dist = corrected_distance.get(edge_idx, raw_dist)
 
             # Track statistics
             raw_distance_stats[raw_dist] = raw_distance_stats.get(raw_dist, 0) + 1
@@ -556,298 +714,438 @@ class FWAPrimalGraph:
 
             # Mark unnamed edges at or above threshold (using corrected distance)
             if not edge_name and corrected_dist >= threshold:
-                edges_marked.add(edge_id)
+                edges_marked.add(edge_idx)
 
+        phase3_elapsed = time.time() - phase3_start
         logger.info(
-            f"Raw distance statistics: {dict(sorted(raw_distance_stats.items()))}"
+            f"  Raw distance distribution: {dict(sorted(raw_distance_stats.items()))}"
         )
         logger.info(
-            f"Corrected distance statistics: {dict(sorted(corrected_distance_stats.items()))}"
+            f"  Corrected distance distribution: {dict(sorted(corrected_distance_stats.items()))}"
         )
         logger.info(
-            f"Marked {len(edges_marked):,} edges for removal at threshold {threshold}."
+            f"  ✓ Marked {len(edges_marked):,} edges for removal ({phase3_elapsed:.1f}s)"
         )
 
-        # Store distances in edge attributes if debug mode
-        if debug:
-            logger.info(
-                "Debug mode: Storing unnamed_depth_distance_raw and unnamed_depth_distance_corrected..."
-            )
-            for edge_id in edge_distance.keys():
-                u, v, key = edge_id
-                if self.G.has_edge(u, v, key):
-                    raw_dist = edge_distance[edge_id]
-                    corrected_dist = corrected_distance.get(edge_id, raw_dist)
-                    self.G.edges[u, v, key]["unnamed_depth_distance_raw"] = raw_dist
-                    self.G.edges[u, v, key][
-                        "unnamed_depth_distance_corrected"
-                    ] = corrected_dist
+        # Store distances in edge attributes
+        logger.info(
+            "Storing unnamed_depth_distance_raw and unnamed_depth_distance_corrected..."
+        )
+        # Initialize all edges with None
+        self.G.es["unnamed_depth_distance_raw"] = [None] * self.G.ecount()
+        self.G.es["unnamed_depth_distance_corrected"] = [None] * self.G.ecount()
 
-        # Clear distance dicts to free memory
+        for edge_idx in edge_distance.keys():
+            raw_dist = edge_distance[edge_idx]
+            corrected_dist = corrected_distance.get(edge_idx, raw_dist)
+            self.G.es[edge_idx]["unnamed_depth_distance_raw"] = raw_dist
+            self.G.es[edge_idx]["unnamed_depth_distance_corrected"] = corrected_dist
+
+        # Clear distance dicts to free memory (but keep pred_cache for Phase 4)
         del edge_distance
         del corrected_distance
         del raw_distance_stats
         del corrected_distance_stats
         gc.collect()
+
         if not edges_marked:
             logger.info("No edges to remove. Skipping.")
+            # Clean up pred_cache before returning
+            del pred_cache
             return
+
         # Phase 4: Expand to all upstream segments
-        logger.info("Phase 4: Expanding to include all upstream segments...")
+        phase4_start = time.time()
+        logger.info(f"\n[PHASE 4/6] Expanding to all upstream segments...")
         all_edges_to_remove = set(edges_marked)
         queue = deque(edges_marked)
         iteration = 0
+
         while queue:
-            u, v, key = queue.popleft()
+            edge_idx = queue.popleft()
+            edge = self.G.es[edge_idx]
+            u = edge.source
             iteration += 1
+
             # Find all edges flowing into u (upstream)
             for pred_u in pred_cache.get(u, []):
-                for pred_key in self.G[pred_u][u]:
-                    edge_id = (pred_u, u, pred_key)
-                    if edge_id not in all_edges_to_remove:
-                        all_edges_to_remove.add(edge_id)
-                        queue.append(edge_id)
+                for pred_edge in self.G.es.select(_source=pred_u, _target=u):
+                    pred_idx = pred_edge.index
+                    if pred_idx not in all_edges_to_remove:
+                        all_edges_to_remove.add(pred_idx)
+                        queue.append(pred_idx)
+
             # Memory cleanup every 5000 iterations
             if iteration % 5000 == 0:
                 gc.collect()
+
+        # Clean up pred_cache now that we're done with Phase 4
+        del pred_cache
+        del edge_data_cache
+
+        phase4_elapsed = time.time() - phase4_start
+        expanded_count = len(all_edges_to_remove) - len(edges_marked)
         logger.info(
-            f"Total edges to remove (including upstream): {len(all_edges_to_remove):,}"
+            f"  ✓ Expanded from {len(edges_marked):,} to {len(all_edges_to_remove):,} edges (+{expanded_count:,} upstream, {phase4_elapsed:.1f}s)"
         )
-        # Phase 5: Export removed data
-        logger.info("Phase 5: Exporting removed edge data...")
-        removed_edge_data = []
-        for edge_id in all_edges_to_remove:
-            u, v, key = edge_id
-            if self.G.has_edge(u, v, key):  # Check if edge still exists
-                edge_data = self.G.edges[u, v, key]
-                removed_edge_data.append(
-                    {
-                        "linear_feature_id": edge_data.get("linear_feature_id", ""),
-                        "fwa_watershed_code": edge_data.get("fwa_watershed_code", ""),
-                        "fwa_watershed_code_clean": edge_data.get(
-                            "fwa_watershed_code_clean", ""
-                        ),
-                        "gnis_name": edge_data.get("gnis_name", ""),
-                        "waterbody_key": edge_data.get("waterbody_key", ""),
-                        "lake_name": edge_data.get("lake_name", ""),
-                        "stream_order": edge_data.get("stream_order"),
-                        "length": edge_data.get("length", 0),
-                        "from_node": u,
-                        "to_node": v,
-                    }
+
+        # Verify no network breaks: check that if we're removing an edge,
+        # we're also removing ALL its upstream edges
+        logger.info(
+            "Verifying Phase 4 expansion (all upstream edges will be removed)..."
+        )
+        expansion_violations = []
+        for edge_idx in all_edges_to_remove:
+            edge = self.G.es[edge_idx]
+            source_node = edge.source
+
+            # Check all edges flowing into this edge's source
+            for upstream_edge in self.G.es.select(_target=source_node):
+                upstream_idx = upstream_edge.index
+                if upstream_idx not in all_edges_to_remove:
+                    # Found an upstream edge that's NOT marked for removal!
+                    expansion_violations.append(
+                        {
+                            "edge": edge_idx,
+                            "upstream_edge": upstream_idx,
+                            "upstream_dist": edge_distance.get(upstream_idx, "N/A"),
+                            "upstream_name": upstream_edge["gnis_name"],
+                        }
+                    )
+
+        if expansion_violations:
+            logger.error(
+                f"NETWORK BREAK: Found {len(expansion_violations)} upstream edges NOT marked for removal!"
+            )
+            # Show first few violations
+            for v in expansion_violations[:10]:
+                logger.error(
+                    f"  Removing edge {v['edge']}, but keeping upstream {v['upstream_edge']} (dist={v['upstream_dist']}, name='{v['upstream_name']}')"
                 )
+        else:
+            logger.info(
+                f"✓ Expansion verified: All upstream edges of {len(all_edges_to_remove)} removed edges are also marked"
+            )
+
+        # Phase 5: Export removed data
+        phase5_start = time.time()
+        logger.info(f"\n[PHASE 5/6] Exporting removed edge data...")
+        removed_edge_data = []
+
+        for edge_idx in all_edges_to_remove:
+            edge = self.G.es[edge_idx]
+            source_name = self.index_to_node_id[edge.source]
+            target_name = self.index_to_node_id[edge.target]
+
+            removed_edge_data.append(
+                {
+                    "linear_feature_id": edge["linear_feature_id"],
+                    "fwa_watershed_code": edge["fwa_watershed_code"],
+                    "fwa_watershed_code_clean": edge["fwa_watershed_code_clean"],
+                    "gnis_name": edge["gnis_name"],
+                    "waterbody_key": edge["waterbody_key"],
+                    "lake_name": edge["lake_name"],
+                    "stream_order": edge["stream_order"],
+                    "length": edge["length"],
+                    "from_node": source_name,
+                    "to_node": target_name,
+                }
+            )
+
         self.output_dir.mkdir(parents=True, exist_ok=True)
         removed_edges_file = self.output_dir / "removed_unnamed_depth_edges.json"
         with open(removed_edges_file, "w") as f:
             json.dump(removed_edge_data, f, indent=2)
+
+        phase5_elapsed = time.time() - phase5_start
         logger.info(
-            f"Exported {len(removed_edge_data):,} removed edges to {removed_edges_file}"
+            f"  ✓ Exported {len(removed_edge_data):,} edges to {removed_edges_file.name} ({phase5_elapsed:.1f}s)"
         )
-        # Clear removed_edge_data
+
         del removed_edge_data
         gc.collect()
+
         # Phase 6: Remove from graph
-        logger.info("Phase 6: Removing edges from graph...")
-        for edge_id in all_edges_to_remove:
-            u, v, key = edge_id
-            if self.G.has_edge(u, v, key):
-                self.G.remove_edge(u, v, key)
-        # Remove isolated nodes
-        isolated_nodes = list(nx.isolates(self.G))
-        self.G.remove_nodes_from(isolated_nodes)
+        phase6_start = time.time()
         logger.info(
-            f"Removed {len(all_edges_to_remove):,} edges and {len(isolated_nodes):,} isolated nodes."
+            f"\n[PHASE 6/6] Removing {len(all_edges_to_remove):,} edges from graph..."
         )
-        logger.info(
-            f"Graph after filtering: {self.G.number_of_nodes():,} Nodes, {self.G.number_of_edges():,} Edges"
-        )
-        # Force garbage collection
+
+        # Sort edge indices in descending order for safe deletion
+        edges_to_delete = sorted(all_edges_to_remove, reverse=True)
+        self.G.delete_edges(edges_to_delete)
+
+        # Remove isolated vertices
+        isolated = [v.index for v in self.G.vs if v.degree() == 0]
+        num_isolated = len(isolated)
+
+        if isolated:
+            # Sort in descending order for safe deletion
+            isolated = sorted(isolated, reverse=True)
+
+            # Delete isolated vertices
+            self.G.delete_vertices(isolated)
+
+            # Rebuild mappings after vertex deletion (indices shift)
+            self.node_id_to_index = {}
+            self.index_to_node_id = {}
+            for v in self.G.vs:
+                node_id = v["name"]
+                self.node_id_to_index[node_id] = v.index
+                self.index_to_node_id[v.index] = node_id
+
+        del isolated
         gc.collect()
 
-    def enrich_tributaries(self, debug=False):
+        phase6_elapsed = time.time() - phase6_start
+        total_elapsed = time.time() - start_time
+
+        logger.info(
+            f"  ✓ Removed {len(edges_to_delete):,} edges and {num_isolated:,} nodes ({phase6_elapsed:.1f}s)"
+        )
+        logger.info(f"\n{'='*80}")
+        logger.info("UNNAMED STREAM FILTERING COMPLETE")
+        logger.info(
+            f"  Edges removed: {len(edges_to_delete):,} ({len(edges_to_delete)/self.G.ecount()*100:.1f}% of remaining)"
+        )
+        logger.info(f"  Nodes removed: {num_isolated:,}")
+        logger.info(
+            f"  Final graph: {self.G.vcount():,} nodes, {self.G.ecount():,} edges"
+        )
+        logger.info(
+            f"  Total time: {total_elapsed:.1f}s ({total_elapsed/60:.1f} minutes)"
+        )
+        logger.info(f"{'='*80}\n")
+        gc.collect()
+
+    def enrich_tributaries(self):
         """
         DFS Traversal from Roots to Leaves.
         """
-        logger.info(
-            "Step 2: Enriching Tributary Data (DFS Backwards from Out-Degree Roots)..."
-        )
-        roots = [n for n, d in self.G.out_degree() if d == 0]
-        if debug:
-            logger.info("Debug Mode: Initializing debug flags...")
-            nx.set_node_attributes(self.G, False, "is_search_root")
-            logger.info(
-                f"Debug Mode: Marking {len(roots)} search roots out of {self.G.number_of_nodes()} nodes."
-            )
-            for r in roots:
-                self.G.nodes[r]["is_search_root"] = True
+        import time
+
+        start_time = time.time()
+
+        logger.info("=" * 80)
+        logger.info("STEP 2: ENRICHING TRIBUTARY RELATIONSHIPS")
+        logger.info("=" * 80)
+
+        roots = [v.index for v in self.G.vs if v.outdegree() == 0]
+        logger.info(f"Found {len(roots):,} root nodes (tailwaters)")
+        logger.info(f"Starting DFS traversal upstream...\n")
+
         stack = []
         visited_edges = set()
+
         # Process first edges attached to roots
         for r in roots:
-            for v in self.G.predecessors(r):
-                # Now iterating explicit string keys (SIDs)
-                for edge_key in self.G[v][r]:
-                    edge_id = (v, r, edge_key)
-                    if edge_id in visited_edges:
-                        continue
-                    visited_edges.add(edge_id)
-                    data = self.G.edges[v, r, edge_key]
-                    name = data.get("gnis_name", "")
-                    lake = data.get("lake_name", "")
+            for edge in self.G.es.select(_target=r):
+                edge_idx = edge.index
+                if edge_idx in visited_edges:
+                    continue
+                visited_edges.add(edge_idx)
 
-                    # Initialize both tributary fields
-                    data["stream_tributary_of"] = "Tailwater"
-                    data["lake_tributary_of"] = lake if lake else ""
+                v = edge.source
+                name = edge["gnis_name"]
+                lake = edge["lake_name"]
 
-                    # Track what to inherit upstream (separate for lakes and streams)
-                    upstream_lake_tributary = lake if lake else ""
-                    upstream_stream_tributary = "Tailwater"
+                # Initialize both tributary fields
+                edge["stream_tributary_of"] = "Tailwater"
+                edge["lake_tributary_of"] = lake if lake else ""
 
-                    stack.append(
-                        (
-                            v,
-                            upstream_stream_tributary,
-                            upstream_lake_tributary,
-                            data,
-                            edge_key,
-                        )
+                # Track what to inherit upstream (separate for lakes and streams)
+                upstream_lake_tributary = lake if lake else ""
+                upstream_stream_tributary = "Tailwater"
+
+                stack.append(
+                    (
+                        v,
+                        upstream_stream_tributary,
+                        upstream_lake_tributary,
+                        edge,
                     )
+                )
+
         while stack:
             (
                 u,
                 inherited_stream_tributary,
                 inherited_lake_tributary,
-                downstream_data,
-                downstream_key,
+                downstream_edge,
             ) = stack.pop()
-            for v in self.G.predecessors(u):
-                for edge_key in self.G[v][u]:
-                    edge_id = (v, u, edge_key)
-                    if edge_id in visited_edges:
-                        continue
-                    visited_edges.add(edge_id)
-                    data = self.G.edges[v, u, edge_key]
-                    current_name = data.get("gnis_name", "")
-                    current_lake = data.get("lake_name", "")
-                    downstream_name = downstream_data.get("gnis_name", "")
-                    downstream_stream_tributary_of = downstream_data.get(
-                        "stream_tributary_of", ""
+
+            for edge in self.G.es.select(_target=u):
+                edge_idx = edge.index
+                if edge_idx in visited_edges:
+                    continue
+                visited_edges.add(edge_idx)
+
+                v = edge.source
+                current_name = edge["gnis_name"]
+                current_lake = edge["lake_name"]
+                downstream_name = downstream_edge["gnis_name"]
+                downstream_stream_tributary_of = downstream_edge["stream_tributary_of"]
+
+                # ==== LAKE TRIBUTARY LOGIC (separate field) ====
+                # If current edge is in/through a lake, set that lake as lake_tributary_of
+                if current_lake:
+                    edge["lake_tributary_of"] = current_lake
+                    upstream_lake_tributary = current_lake
+                # Otherwise, inherit lake tributary from downstream (until we hit a new lake)
+                elif inherited_lake_tributary:
+                    edge["lake_tributary_of"] = inherited_lake_tributary
+                    upstream_lake_tributary = inherited_lake_tributary
+                else:
+                    edge["lake_tributary_of"] = ""
+                    upstream_lake_tributary = ""
+
+                # ==== STREAM TRIBUTARY LOGIC (ignores lakes) ====
+                # If current stream name matches downstream stream name, they're the same stream
+                if current_name and current_name == downstream_name:
+                    edge["stream_tributary_of"] = downstream_stream_tributary_of
+                    upstream_stream_tributary = inherited_stream_tributary
+                # If we have an inherited stream tributary, use it
+                elif inherited_stream_tributary:
+                    edge["stream_tributary_of"] = inherited_stream_tributary
+                    upstream_stream_tributary = inherited_stream_tributary
+                # If downstream is a different named stream, current is tributary of it
+                elif downstream_name and downstream_name != current_name:
+                    edge["stream_tributary_of"] = downstream_name
+                    upstream_stream_tributary = downstream_name
+                else:
+                    edge["stream_tributary_of"] = ""
+                    upstream_stream_tributary = ""
+
+                # If current edge has a name and it's not the same as what we're inheriting,
+                # update upstream_stream_tributary to the current name
+                if current_name and current_name != upstream_stream_tributary:
+                    upstream_stream_tributary = current_name
+
+                stack.append(
+                    (
+                        v,
+                        upstream_stream_tributary,
+                        upstream_lake_tributary,
+                        edge,
                     )
+                )
 
-                    # ==== LAKE TRIBUTARY LOGIC (separate field) ====
-                    # If current edge is in/through a lake, set that lake as lake_tributary_of
-                    if current_lake:
-                        data["lake_tributary_of"] = current_lake
-                        upstream_lake_tributary = current_lake
-                    # Otherwise, inherit lake tributary from downstream (until we hit a new lake)
-                    elif inherited_lake_tributary:
-                        data["lake_tributary_of"] = inherited_lake_tributary
-                        upstream_lake_tributary = inherited_lake_tributary
-                    else:
-                        data["lake_tributary_of"] = ""
-                        upstream_lake_tributary = ""
-
-                    # ==== STREAM TRIBUTARY LOGIC (ignores lakes) ====
-                    # If current stream name matches downstream stream name, they're the same stream
-                    if current_name and current_name == downstream_name:
-                        data["stream_tributary_of"] = downstream_stream_tributary_of
-                        upstream_stream_tributary = inherited_stream_tributary
-                    # If we have an inherited stream tributary, use it
-                    elif inherited_stream_tributary:
-                        data["stream_tributary_of"] = inherited_stream_tributary
-                        upstream_stream_tributary = inherited_stream_tributary
-                    # If downstream is a different named stream, current is tributary of it
-                    elif downstream_name and downstream_name != current_name:
-                        data["stream_tributary_of"] = downstream_name
-                        upstream_stream_tributary = downstream_name
-                    else:
-                        data["stream_tributary_of"] = ""
-                        upstream_stream_tributary = ""
-
-                    # If current edge has a name and it's not the same as what we're inheriting,
-                    # update upstream_stream_tributary to the current name
-                    if current_name and current_name != upstream_stream_tributary:
-                        upstream_stream_tributary = current_name
-
-                    stack.append(
-                        (
-                            v,
-                            upstream_stream_tributary,
-                            upstream_lake_tributary,
-                            data,
-                            edge_key,
-                        )
-                    )
-        logger.info("Tributary enrichment complete.")
-
-    def filter_watershed(self, target_name):
-        logger.info(f"Filtering for river system: '{target_name}'...")
-        search_lower = target_name.lower()
-        target_edges = []
-        # MultiDiGraph iteration includes keys
-        for u, v, key, data in self.G.edges(keys=True, data=True):
-            if search_lower in data.get("gnis_name", "").lower():
-                target_edges.append((u, v, key))
-        if not target_edges:
-            logger.error(f"Target river name '{target_name}' not found in graph.")
-            logger.error(
-                "Try without -u flag or load more layers with -l, or check spelling."
-            )
-            return False
-        logger.info("Extracting connected component...")
-        undirected = self.G.to_undirected()
-        seed_nodes = set()
-        for u, v, key in target_edges:
-            seed_nodes.add(u)
-            seed_nodes.add(v)
-        full_watershed_nodes = set()
-        for seed in seed_nodes:
-            if seed not in full_watershed_nodes:
-                comp = nx.node_connected_component(undirected, seed)
-                full_watershed_nodes.update(comp)
-        self.G = self.G.subgraph(list(full_watershed_nodes)).copy()
-        logger.info(
-            f"Filtered Watershed: {self.G.number_of_nodes():,} Nodes, {self.G.number_of_edges():,} Edges."
-        )
-        return True
+        elapsed = time.time() - start_time
+        logger.info(f"{'='*80}")
+        logger.info("TRIBUTARY ENRICHMENT COMPLETE")
+        logger.info(f"  Processed: {len(visited_edges):,} edges")
+        logger.info(f"  Time: {elapsed:.1f}s")
+        logger.info(f"{'='*80}\n")
 
     def export(self, filename="fwa_primal.graphml"):
-        if self.G.number_of_nodes() == 0:
+        if self.G.vcount() == 0:
             return
+
+        import time
+
+        start_time = time.time()
+
+        logger.info("=" * 80)
+        logger.info("EXPORTING GRAPH")
+        logger.info("=" * 80)
+
         # Determine base filename without extension
         base_filename = filename.replace(".graphml", "")
-        # Export to pickle first (more reliable, doesn't run out of memory)
+
+        # Build constant-time lookup dictionaries for fast access without graph
+        logger.info("Building constant-time lookup dictionaries...")
+
+        # Node coordinates lookup: node_id -> (x, y)
+        node_coords = {}
+        for v in self.G.vs:
+            node_id = v["name"]
+            node_coords[node_id] = (v["x"], v["y"])
+
+        # Edge attributes lookup: edge_key -> {all attributes}
+        edge_attrs = {}
+        for edge in self.G.es:
+            edge_key = edge["linear_feature_id"]
+            source_id = self.index_to_node_id[edge.source]
+            target_id = self.index_to_node_id[edge.target]
+
+            edge_attrs[edge_key] = {
+                "source": source_id,
+                "target": target_id,
+                "source_coords": node_coords[source_id],
+                "target_coords": node_coords[target_id],
+                "fwa_watershed_code": edge["fwa_watershed_code"],
+                "fwa_watershed_code_clean": edge["fwa_watershed_code_clean"],
+                "gnis_name": edge["gnis_name"],
+                "waterbody_key": edge["waterbody_key"],
+                "lake_name": edge["lake_name"],
+                "stream_order": edge["stream_order"],
+                "length": edge["length"],
+                "stream_tributary_of": edge["stream_tributary_of"],
+                "lake_tributary_of": edge["lake_tributary_of"],
+                "weight": edge["weight"],
+                "edge_index": edge["edge_index"],
+            }
+
+            # Add debug attributes if they exist
+            if "unnamed_depth_distance_raw" in self.G.es.attributes():
+                edge_attrs[edge_key]["unnamed_depth_distance_raw"] = edge[
+                    "unnamed_depth_distance_raw"
+                ]
+                edge_attrs[edge_key]["unnamed_depth_distance_corrected"] = edge[
+                    "unnamed_depth_distance_corrected"
+                ]
+
+        logger.info(
+            f"Built lookups for {len(node_coords):,} nodes and {len(edge_attrs):,} edges"
+        )
+
+        # Export to pickle first (saves igraph object + mappings + lookups)
         pickle_path = self.output_dir / f"{base_filename}.gpickle"
         logger.info(f"Exporting to pickle format: {pickle_path}...")
         import pickle
 
         with open(pickle_path, "wb") as f:
-            pickle.dump(self.G, f, protocol=pickle.HIGHEST_PROTOCOL)
+            pickle.dump(
+                {
+                    "graph": self.G,
+                    "node_id_to_index": self.node_id_to_index,
+                    "index_to_node_id": self.index_to_node_id,
+                    "node_coords": node_coords,  # O(1) coordinate lookups
+                    "edge_attrs": edge_attrs,  # O(1) edge attribute lookups
+                },
+                f,
+                protocol=pickle.HIGHEST_PROTOCOL,
+            )
         logger.info(f"Pickle export complete: {pickle_path}")
-        # Clean attributes for GraphML export
+
+        # Export to GraphML
         graphml_path = self.output_dir / filename
         logger.info(f"Exporting to GraphML format: {graphml_path}...")
-        for u, v, key, data in self.G.edges(keys=True, data=True):
-            for k, val in list(data.items()):
-                if val is None:
-                    data[k] = ""
-        for n, data in self.G.nodes(data=True):
-            for k, val in list(data.items()):
-                if val is None:
-                    data[k] = ""
-                if isinstance(val, bool):
-                    data[k] = str(val)
-        # Try to export to GraphML (may fail on large graphs due to memory)
+
+        # Clean None values for GraphML export
+        for attr in self.G.vs.attributes():
+            values = self.G.vs[attr]
+            cleaned = [v if v is not None else "" for v in values]
+            self.G.vs[attr] = cleaned
+
+        for attr in self.G.es.attributes():
+            values = self.G.es[attr]
+            cleaned = [v if v is not None else "" for v in values]
+            self.G.es[attr] = cleaned
+
         try:
-            nx.write_graphml(self.G, str(graphml_path))
-            logger.info(f"GraphML export complete: {graphml_path}")
-        except MemoryError:
-            logger.warning(
-                f"GraphML export failed due to MemoryError. Use pickle file: {pickle_path}"
-            )
+            self.G.write_graphml(str(graphml_path))
+            logger.info(f"  ✓ GraphML: {graphml_path.name}")
         except Exception as e:
-            logger.error(f"GraphML export failed: {e}. Use pickle file: {pickle_path}")
-        logger.info("Done.")
+            logger.error(f"  ✗ GraphML export failed: {e}")
+            logger.info(f"    Use pickle file instead: {pickle_path.name}")
+
+        elapsed = time.time() - start_time
+        logger.info(f"\n{'='*80}")
+        logger.info("EXPORT COMPLETE")
+        logger.info(f"  Files: {pickle_path.parent}")
+        logger.info(f"  Time: {elapsed:.1f}s")
+        logger.info(f"{'='*80}\n")
 
 
 if __name__ == "__main__":
@@ -867,9 +1165,6 @@ if __name__ == "__main__":
         help="Specific layer names to process (e.g., GUIC LNIC)",
     )
     parser.add_argument(
-        "-d", "--debug", action="store_true", help="Mark search roots in graph"
-    )
-    parser.add_argument(
         "-u",
         "--filter-unnamed",
         action="store_true",
@@ -883,7 +1178,8 @@ if __name__ == "__main__":
         help="Distance threshold for unnamed stream filtering (default: 2)",
     )
     args = parser.parse_args()
-    builder = FWAPrimalGraph()
+
+    builder = FWAPrimalGraphIGraph()
 
     # Load from pickle or build from scratch
     if args.pickle:
@@ -901,16 +1197,14 @@ if __name__ == "__main__":
             builder.preprocess_graph()
             # Optional: Filter unnamed streams by depth
             if args.filter_unnamed:
-                builder.filter_unnamed_depth(threshold=args.threshold, debug=args.debug)
-            builder.enrich_tributaries(debug=args.debug)
+                builder.filter_unnamed_depth(threshold=args.threshold)
+            builder.enrich_tributaries()
 
-    # Filter to specific watershed if target provided
+    # Export
     if args.target:
-        if not builder.filter_watershed(args.target):
-            logger.error("Cannot export: target watershed not found in graph.")
-            sys.exit(1)
-        clean_name = args.target.replace(" ", "_")
-        builder.export(f"fwa_primal_{clean_name}.graphml")
+        # TODO: Implement filter_watershed
+        logger.error("Watershed filtering not yet implemented in igraph version")
+        sys.exit(1)
     else:
         # Include layer names in filename if specific layers were used
         if args.layers and builder.layers_used:

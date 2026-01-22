@@ -1,428 +1,539 @@
 #!/usr/bin/env python3
 """
-GPKG to PMTiles Converter
-
-Converts the waterbodies_by_zone.gpkg GeoPackage from geo_splitter.py
-into a PMTiles vector tile archive with all layers properly included.
-
-The script:
-1. Reads all layers from the input GPKG
-2. Generates vector tiles using tippecanoe
-3. Converts to PMTiles format for efficient web serving
-
-Requirements:
-    - tippecanoe (https://github.com/felt/tippecanoe)
-    - pmtiles Python package: pip install pmtiles
-    - fiona, geopandas
+Stream Network to PMTiles Converter (Grouped/Whole-River Ranking)
 """
 
-import os
-import sys
+import argparse
 import logging
 import subprocess
 import json
-import tempfile
-import shutil
+import pickle
+import sys
 from pathlib import Path
-from typing import List, Dict, Optional
-import fiona
+from typing import Dict, List
+from datetime import datetime
 import geopandas as gpd
-from pmtiles.convert import mbtiles_to_pmtiles
+import pandas as pd
+import fiona
+
+# ==========================================
+# 1. SCORING CONFIGURATION
+# ==========================================
+WEIGHTS = {
+    "order": 20.0,  # Applied to the MAX order in the group
+    "magnitude": 1.0,  # Applied to the MAX magnitude in the group
+    "length_km": 0.5,  # Applied to the TOTAL length of the group
+    "has_name": 100.0,  # Applied if ANY segment in group has a name
+}
+
+# ==========================================
+# 2. RANKING CONFIGURATION
+# ==========================================
+# Keys = The PMTiles Zoom Level (minzoom)
+# Values = How many rivers (groups) are allowed to appear at this level or lower
+STREAM_ZOOM_CAPS = {
+    5: 60,  # Top 60 Major Rivers visible at z5
+    6: 300,  # Top 300 visible at z6
+    7: 1_500,
+    8: 6_000,
+    9: 25_000,
+    10: 100_000,
+    11: 300_000,
+    # Everything else defaults to z12
+}
+
+LAKE_ZOOM_THRESHOLDS = {
+    4: 100_000_000,
+    5: 25_000_000,
+    6: 5_000_000,
+    7: 1_000_000,
+    8: 250_000,
+    9: 50_000,
+    10: 10_000,
+    11: 0,
+}
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 
-class GpkgToPmtilesConverter:
-    """Converts GeoPackage to PMTiles vector tiles."""
-
+class StreamConverter:
     def __init__(
         self,
         input_gpkg: Path,
         output_pmtiles: Path,
-        max_zoom: int = 14,
-        min_zoom: int = 4,
-        base_zoom: int = 12,
-        simplification: int = 10,
+        metadata_path: Path,
+        work_dir: Path,
     ):
-        """
-        Initialize the converter.
-
-        Args:
-            input_gpkg: Path to input GeoPackage
-            output_pmtiles: Path to output PMTiles file
-            max_zoom: Maximum zoom level (default: 14)
-            min_zoom: Minimum zoom level (default: 4)
-            base_zoom: Base zoom for detail level (default: 12)
-            simplification: Simplification factor for tippecanoe (default: 10)
-        """
         self.input_gpkg = input_gpkg
         self.output_pmtiles = output_pmtiles
-        self.max_zoom = max_zoom
-        self.min_zoom = min_zoom
-        self.base_zoom = base_zoom
-        self.simplification = simplification
+        self.metadata_path = metadata_path
+        self.work_dir = work_dir
+        self.geojson_path = work_dir / "prepared_data.geojsonseq"
 
-    def check_dependencies(self) -> bool:
-        """
-        Check if required tools are installed.
+        self.work_dir.mkdir(parents=True, exist_ok=True)
+        # Maps 'linear_feature_id' (str) -> minzoom (int)
+        self.watershed_minzoom_map: Dict[str, int] = {}
 
-        Returns:
-            bool: True if all dependencies are available
-        """
-        # Check tippecanoe
+    def _get_lake_minzoom(self, value: float) -> int:
+        for zoom in sorted(LAKE_ZOOM_THRESHOLDS.keys()):
+            if value >= LAKE_ZOOM_THRESHOLDS[zoom]:
+                return zoom
+        return 12
+
+    def load_scores_from_metadata(self):
+        if not self.metadata_path.exists():
+            logger.error(f"Metadata file not found: {self.metadata_path}")
+            sys.exit(1)
+
+        logger.info(f"Loading metadata from {self.metadata_path.name}...")
+
         try:
-            result = subprocess.run(
-                ["tippecanoe", "--version"],
-                capture_output=True,
-                text=True,
-                timeout=5,
+            with open(self.metadata_path, "rb") as f:
+                data = pickle.load(f)
+                streams_data = data.get("streams", data)
+
+            # ---------------------------------------------------------
+            # GROUPING STAGE: Aggregate segments by Watershed Code
+            # ---------------------------------------------------------
+            logger.info("Grouping segments by FWA Watershed Code...")
+
+            # Dictionary to hold aggregated stats for each unique watershed code
+            # Key: watershed_code, Value: { stats... }
+            grouped_watersheds = {}
+
+            for lin_id, props in streams_data.items():
+                # Try to find the grouping key.
+                # Priority: fwa_watershed_code -> watershed_code -> fallback to ID
+                w_code = str(
+                    props.get("fwa_watershed_code")
+                    or props.get("watershed_code")
+                    or lin_id
+                )
+
+                if w_code not in grouped_watersheds:
+                    grouped_watersheds[w_code] = {
+                        "ids": [],  # List of linear_feature_ids in this river
+                        "max_order": 0,
+                        "max_mag": 0,
+                        "total_len": 0.0,
+                        "has_name": 0,
+                    }
+
+                group = grouped_watersheds[w_code]
+
+                # Append the linear_feature_id to this group
+                group["ids"].append(str(lin_id))
+
+                # Aggregate Stats
+                s_order = props.get("stream_order", 0) or 0
+                s_mag = props.get("stream_magnitude", 0) or 0
+                s_len = (props.get("length_metre", 0) or 0) / 1000.0
+                s_name = 1 if props.get("gnis_name") else 0
+
+                group["max_order"] = max(group["max_order"], s_order)
+                group["max_mag"] = max(group["max_mag"], s_mag)
+                group["total_len"] += s_len
+                # If ANY segment in the river has a name, the whole river "has a name"
+                if s_name > 0:
+                    group["has_name"] = 1
+
+            logger.info(
+                f"Aggregated {len(streams_data)} segments into {len(grouped_watersheds)} unique rivers/groups."
             )
-            if result.returncode == 0:
-                logger.info("✓ tippecanoe found")
-            else:
-                logger.error("tippecanoe not found")
-                logger.info("Install: https://github.com/felt/tippecanoe")
-                return False
-        except (subprocess.TimeoutExpired, FileNotFoundError):
-            logger.error("tippecanoe not found")
-            logger.info("Install: https://github.com/felt/tippecanoe")
-            return False
 
-        # Check pmtiles Python library
+            # ---------------------------------------------------------
+            # SCORING STAGE: Score the Groups
+            # ---------------------------------------------------------
+            scored_groups = []
+            for w_code, stats in grouped_watersheds.items():
+                score = (
+                    (stats["max_order"] * WEIGHTS["order"])
+                    + (stats["max_mag"] * WEIGHTS["magnitude"])
+                    + (stats["total_len"] * WEIGHTS["length_km"])
+                    + (stats["has_name"] * WEIGHTS["has_name"])
+                )
+                scored_groups.append(
+                    {
+                        "code": w_code,
+                        "score": score,
+                        "ids": stats[
+                            "ids"
+                        ],  # We need the list of IDs to apply the zoom later
+                    }
+                )
+
+            logger.info("Sorting groups by importance...")
+            scored_groups.sort(key=lambda x: x["score"], reverse=True)
+
+            # ---------------------------------------------------------
+            # ASSIGNMENT STAGE: Map IDs to Zoom
+            # ---------------------------------------------------------
+            self.watershed_minzoom_map = {}
+            caps_sorted = sorted(STREAM_ZOOM_CAPS.items())
+
+            for rank, group_item in enumerate(scored_groups):
+                assigned_zoom = 12
+
+                # Determine zoom based on the Rank of the Group
+                for zoom_level, cap in caps_sorted:
+                    if rank < cap:
+                        assigned_zoom = zoom_level
+                        break
+
+                # Apply this zoom to ALL segments in this group
+                for segment_id in group_item["ids"]:
+                    self.watershed_minzoom_map[segment_id] = assigned_zoom
+
+            logger.info("✓ Group-based zoom assignment complete.")
+
+        except Exception as e:
+            logger.error(f"Failed to process metadata: {e}")
+            sys.exit(1)
+
+    def print_stats(self):
+        """Prints the zoom distribution histogram based on the MAP (ideal state)."""
+        logger.info("\n" + "=" * 70)
+        logger.info(" STREAM DISTRIBUTION ANALYSIS (Based on Grouped Ranks)")
+        logger.info("=" * 70)
+
+        if not self.watershed_minzoom_map:
+            return
+
+        # Count segments per zoom
+        zoom_segment_counts = {z: 0 for z in range(4, 13)}
+        for z in self.watershed_minzoom_map.values():
+            if z in zoom_segment_counts:
+                zoom_segment_counts[z] += 1
+
+        # Count unique watersheds per zoom by grouping segment IDs
+        # We need to reverse the logic: for each watershed code, find its assigned zoom
+        zoom_watershed_sets = {z: set() for z in range(4, 13)}
+
+        # Build a reverse map: segment_id -> watershed_code
+        # We'll need to track which watershed each segment belongs to
+        segment_to_watershed = {}
+
+        # Re-process the metadata to get watershed groupings
         try:
-            from pmtiles.convert import mbtiles_to_pmtiles
+            with open(self.metadata_path, "rb") as f:
+                data = pickle.load(f)
+                streams_data = data.get("streams", data)
 
-            logger.info("✓ pmtiles Python library found")
-        except ImportError:
-            logger.error("pmtiles Python library not found")
-            logger.info("Install: pip install pmtiles")
-            return False
+            # Group segments by watershed code
+            for lin_id, props in streams_data.items():
+                w_code = str(
+                    props.get("fwa_watershed_code")
+                    or props.get("watershed_code")
+                    or lin_id
+                )
+                segment_to_watershed[str(lin_id)] = w_code
 
-        return True
+            # Now count unique watersheds per zoom
+            for segment_id, zoom in self.watershed_minzoom_map.items():
+                if segment_id in segment_to_watershed:
+                    watershed_code = segment_to_watershed[segment_id]
+                    zoom_watershed_sets[zoom].add(watershed_code)
 
-    def get_layers(self) -> List[str]:
-        """
-        Get list of all layers in the GeoPackage.
+        except Exception as e:
+            logger.warning(f"Could not calculate unique watersheds: {e}")
 
-        Returns:
-            List of layer names
-        """
-        layers = fiona.listlayers(str(self.input_gpkg))
-        logger.info(f"Found {len(layers)} layers in {self.input_gpkg.name}")
-        return layers
+        # Print Unique Watersheds
+        logger.info("\n📍 UNIQUE WATERSHED CODES PER ZOOM LEVEL")
+        logger.info("-" * 70)
 
-    def get_layer_info(self, layer_name: str) -> Dict:
-        """
-        Get information about a layer.
+        total_watersheds = sum(len(s) for s in zoom_watershed_sets.values())
+        watershed_cumulative = 0
 
-        Args:
-            layer_name: Name of the layer
+        logger.info(
+            f"{'Zoom':<5} | {'Count':<10} | {'%':<6} | {'Cum%':<6} | {'Distribution'}"
+        )
+        logger.info("-" * 70)
 
-        Returns:
-            Dict with layer metadata
-        """
-        with fiona.open(str(self.input_gpkg), layer=layer_name) as src:
-            return {
-                "name": layer_name,
-                "count": len(src),
-                "crs": src.crs,
-                "schema": src.schema,
-                "bounds": src.bounds,
-            }
+        for z in sorted(zoom_watershed_sets.keys()):
+            count = len(zoom_watershed_sets[z])
+            watershed_cumulative += count
+            pct = (count / total_watersheds) * 100 if total_watersheds > 0 else 0
+            cum_pct = (
+                (watershed_cumulative / total_watersheds) * 100
+                if total_watersheds > 0
+                else 0
+            )
+            bar = "█" * int(pct / 2)
+            logger.info(
+                f"z{z:<4} | {count:<10,} | {pct:>5.1f}% | {cum_pct:>5.1f}% | {bar}"
+            )
 
-    def convert_to_geojsonseq(self, layers: List[str], output_dir: Path) -> List[Path]:
-        """
-        Convert GPKG layers to GeoJSON sequence files for tippecanoe.
+        logger.info("-" * 70)
+        logger.info(
+            f"{'TOTAL':<5} | {total_watersheds:<10,} | {'100.0%':<6} | {'100.0%':<6} |"
+        )
 
-        Args:
-            layers: List of layer names to convert
-            output_dir: Directory to write GeoJSON files
+        # Print Total Segments
+        logger.info("\n📊 TOTAL SEGMENTS PER ZOOM LEVEL")
+        logger.info("-" * 70)
 
-        Returns:
-            List of paths to generated GeoJSON files
-        """
-        logger.info(f"\n=== Converting {len(layers)} layers to GeoJSON ===")
-        geojson_files = []
+        segment_cumulative = 0
+        total_segments = sum(zoom_segment_counts.values())
 
-        for idx, layer_name in enumerate(layers, 1):
-            try:
-                logger.info(f"  [{idx}/{len(layers)}] Converting {layer_name}...")
+        logger.info(
+            f"{'Zoom':<5} | {'Count':<10} | {'%':<6} | {'Cum%':<6} | {'Distribution'}"
+        )
+        logger.info("-" * 70)
 
-                # Read layer
-                gdf = gpd.read_file(self.input_gpkg, layer=layer_name)
+        for z in sorted(zoom_segment_counts.keys()):
+            count = zoom_segment_counts[z]
+            segment_cumulative += count
+            pct = (count / total_segments) * 100 if total_segments > 0 else 0
+            cum_pct = (
+                (segment_cumulative / total_segments) * 100 if total_segments > 0 else 0
+            )
+            bar = "█" * int(pct / 2)
+            logger.info(
+                f"z{z:<4} | {count:<10,} | {pct:>5.1f}% | {cum_pct:>5.1f}% | {bar}"
+            )
 
-                if len(gdf) == 0:
-                    logger.warning(f"    Skipping empty layer: {layer_name}")
-                    continue
+        logger.info("-" * 70)
+        logger.info(
+            f"{'TOTAL':<5} | {total_segments:<10,} | {'100.0%':<6} | {'100.0%':<6} |"
+        )
+        logger.info("=" * 70 + "\n")
 
-                # Ensure proper CRS (WGS84 for web tiles)
-                if gdf.crs != "EPSG:4326":
-                    gdf = gdf.to_crs("EPSG:4326")
+    def prepare_geojson(self):
+        """Writes GeoJSONSeq using linear_feature_id lookup."""
+        logger.info("=== STAGE 1: Generating GeoJSONSeq ===")
+        if self.geojson_path.exists():
+            self.geojson_path.unlink()
 
-                # Add layer name as attribute for tippecanoe
-                gdf["layer"] = layer_name
+        try:
+            layers = fiona.listlayers(self.input_gpkg)
+        except Exception as e:
+            logger.error(f"Cannot open GPKG: {e}")
+            sys.exit(1)
 
-                # Write as GeoJSON with explicit flush
-                output_file = output_dir / f"{layer_name}.geojson"
+        count = 0
+        # Initialize stats for written distribution
+        written_stats = {z: 0 for z in range(0, 13)}
 
-                # Use fiona engine for more reliable writing
-                import fiona
-
-                gdf.to_file(output_file, driver="GeoJSON", engine="fiona")
-
-                # Verify the file was written completely
-                if not output_file.exists():
-                    logger.error(f"    Failed to write {output_file.name}")
-                    continue
-
-                geojson_files.append(output_file)
-
-                logger.info(f"    ✓ Wrote {len(gdf):,} features to {output_file.name}")
-
-            except Exception as e:
-                logger.error(f"    Failed to convert {layer_name}: {e}")
+        for layer_name in layers:
+            logger.info(f"Processing {layer_name}...")
+            gdf = gpd.read_file(self.input_gpkg, layer=layer_name)
+            if gdf.empty:
                 continue
 
-        return geojson_files
+            if gdf.crs != "EPSG:4326":
+                gdf = gdf.to_crs("EPSG:4326")
 
-    def run_tippecanoe(self, geojson_files: List[Path], temp_mbtiles: Path) -> bool:
-        """
-        Run tippecanoe to create MBTiles from GeoJSON files.
+            # Column normalization (lowercase)
+            gdf.columns = [c.lower() for c in gdf.columns]
 
-        Args:
-            geojson_files: List of GeoJSON files to process
-            temp_mbtiles: Output MBTiles path
+            # --- STREAMS ---
+            if "stream" in layer_name.lower():
+                # CORRECTED LOOKUP: Use 'linear_feature_id' to match pickle keys
+                if "linear_feature_id" in gdf.columns:
+                    # Map strictly on string ID
+                    gdf["tippecanoe:minzoom"] = (
+                        gdf["linear_feature_id"]
+                        .astype(str)
+                        .map(self.watershed_minzoom_map)
+                    )
 
-        Returns:
-            bool: True if successful
-        """
-        logger.info(f"\n=== Running tippecanoe ===")
+                    # Log orphan count
+                    missing = gdf["tippecanoe:minzoom"].isna().sum()
+                    if missing > 0:
+                        logger.warning(
+                            f"  - {missing} streams had no rank. Defaulting to z12."
+                        )
 
-        # Build tippecanoe command
+                    # Fill orphans with deepest zoom (z12)
+                    gdf["tippecanoe:minzoom"] = (
+                        gdf["tippecanoe:minzoom"].fillna(12).astype(int)
+                    )
+
+                else:
+                    logger.error(
+                        f"  ! 'linear_feature_id' column missing in {layer_name}. Defaulting to z12."
+                    )
+                    gdf["tippecanoe:minzoom"] = 12
+
+            # --- LAKES / WETLANDS ---
+            elif any(x in layer_name.lower() for x in ["lake", "wetland", "poly"]):
+                if "area_sqm" in gdf.columns:
+                    areas = gdf["area_sqm"]
+                elif "area_ha" in gdf.columns:
+                    areas = gdf["area_ha"] * 10000
+                else:
+                    areas = gdf.geometry.area * 1.2e10
+
+                gdf["tippecanoe:minzoom"] = areas.apply(self._get_lake_minzoom).astype(
+                    int
+                )
+
+            # --- OTHERS (Boundaries, etc) ---
+            else:
+                gdf["tippecanoe:minzoom"] = 0
+
+            # Update verification stats
+            if "tippecanoe:minzoom" in gdf.columns:
+                vals = gdf["tippecanoe:minzoom"].value_counts()
+                for z, c in vals.items():
+                    written_stats[z] = written_stats.get(z, 0) + c
+
+            # --- WRITE ---
+            with open(self.geojson_path, "a") as f:
+                for _, row in gdf.iterrows():
+                    properties = {
+                        k: v for k, v in row.drop("geometry").items() if pd.notnull(v)
+                    }
+                    # Use actual layer name so frontend can filter by it
+                    properties["layer"] = layer_name
+
+                    feat = {
+                        "type": "Feature",
+                        "properties": properties,
+                        "geometry": row["geometry"].__geo_interface__,
+                        "tippecanoe": {"minzoom": int(row["tippecanoe:minzoom"])},
+                    }
+                    f.write(json.dumps(feat) + "\n")
+            count += len(gdf)
+
+        # --- FINAL ACTUAL DISTRIBUTION LOG ---
+        logger.info(f"Written {count} features.")
+        logger.info("\n" + "=" * 60)
+        logger.info(" FINAL WRITTEN DISTRIBUTION (Actual Output)")
+        logger.info("=" * 60)
+
+        total_written = sum(written_stats.values())
+        for z in sorted(written_stats.keys()):
+            count = written_stats[z]
+            pct = (count / total_written) * 100 if total_written > 0 else 0
+            bar = "█" * int(pct / 2)
+            logger.info(f"z{z:<4} | {count:<10,} | {pct:>5.1f}% | {bar}")
+        logger.info("=" * 60 + "\n")
+
+    def generate_tiles(self):
+        logger.info("=== STAGE 2: Tippecanoe ===")
+
         cmd = [
             "tippecanoe",
             "-o",
-            str(temp_mbtiles),
-            "--force",  # Overwrite existing
-            f"--minimum-zoom={self.min_zoom}",
-            f"--maximum-zoom={self.max_zoom}",
-            f"--base-zoom={self.base_zoom}",
-            f"--simplification={self.simplification}",
-            "--no-tiny-polygon-reduction",  # Prevent small polygons from disappearing
-            "--drop-densest-as-needed",  # Drop features if tile is too large
-            "--extend-zooms-if-still-dropping",  # Extend zoom if needed
-            "--coalesce-densest-as-needed",  # Combine close features
-            "--detect-shared-borders",  # Preserve shared polygon borders (critical for zone boundaries)
-            "--preserve-input-order",  # Keep layer ordering
-            "--read-parallel",  # Faster processing
-            "--maximum-tile-bytes=5000000",  # Allow up to 5MB tiles (default is 500KB)
-            "--maximum-tile-features=500000",  # Allow more features per tile
-            "--layer=waterbodies",  # Single layer name for all features
-            "--attribution=FWA BC, Province of British Columbia",
-            "--name=BC Freshwater Atlas",
-            "--description=BC Freshwater fishing regulations waterbodies by zone",
+            str(self.output_pmtiles),
+            "--force",
+            "--hilbert",  # Put features in Hilbert Curve order instead of the usual Z-Order. This improves the odds that spatially adjacent features will be sequentially adjacent, and should improve density calculations and spatial coalescing. It should be the default eventually
+            "--minimum-zoom=4",
+            "--maximum-zoom=12",
+            # "--read-parallel",
+            # "--drop-smallest-as-needed",
+            # "--coalesce-smallest-as-needed",
+            # "-zg", "--extend-zooms-if-still-dropping",
+            # "--detect-shared-borders", # DEPRECATED. In the manner of TopoJSON, detect borders that are shared between multiple polygons and simplify them identically in each polygon. This takes more time and memory than considering each polygon individually. Use no-simplification-of-shared-nodes instead, which is faster and more correct.
+            "--no-simplification-of-shared-nodes",
+            "--no-tiny-polygon-reduction",
+            "--simplification=15",
+            # "--low-detail=6",
+            # "--full-detail=11",
+            "--simplification-at-maximum-zoom=1",
+            "--read-parallel",
+            "--layer=waterbodies",
+            str(self.geojson_path),
         ]
 
-        # Add all GeoJSON files
-        for geojson_file in geojson_files:
-            cmd.append(str(geojson_file))
+        logger.info(f"Running: {' '.join(cmd)}")
 
-        logger.info(f"Command: {' '.join(cmd[:10])}... ({len(geojson_files)} files)")
+        # Stream output with progress on same line
+        process = subprocess.Popen(
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            universal_newlines=True,
+        )
 
-        try:
-            result = subprocess.run(
-                cmd,
-                capture_output=True,
-                text=True,
-                timeout=3600,  # 1 hour timeout
-            )
-
-            if result.returncode == 0:
-                logger.info("✓ Tippecanoe completed successfully")
-                if result.stdout:
-                    logger.debug(f"Output: {result.stdout}")
-                return True
+        last_line = ""
+        for line in process.stdout:
+            line = line.rstrip()
+            # Progress lines and "Read X million features" - overwrite same line
+            if (
+                "%" in line
+                or line.strip().startswith(
+                    ("0.", "1.", "2.", "3.", "4.", "5.", "6.", "7.", "8.", "9.")
+                )
+                or line.startswith("Read ")
+            ):
+                print(f"\r{line}", end="", flush=True)
+                last_line = line
             else:
-                logger.error(f"Tippecanoe failed with code {result.returncode}")
-                if result.stderr:
-                    logger.error(f"Error: {result.stderr}")
-                return False
+                # Non-progress lines: print normally
+                if last_line:
+                    print()  # New line after progress
+                    last_line = ""
+                print(line)
 
-        except subprocess.TimeoutExpired:
-            logger.error("Tippecanoe timed out after 1 hour")
-            return False
-        except Exception as e:
-            logger.error(f"Failed to run tippecanoe: {e}")
-            return False
+        process.wait()
 
-    def convert_to_pmtiles(self, mbtiles_path: Path) -> bool:
-        """
-        Convert MBTiles to PMTiles format using Python library.
+        if last_line:
+            print()  # Final newline after progress
 
-        Args:
-            mbtiles_path: Path to input MBTiles file
-
-        Returns:
-            bool: True if successful
-        """
-        logger.info(f"\n=== Converting to PMTiles ===")
-
-        try:
-            # Use the Python pmtiles library for conversion
-            mbtiles_to_pmtiles(
-                str(mbtiles_path), str(self.output_pmtiles), self.max_zoom
-            )
-            logger.info("✓ PMTiles conversion completed successfully")
-            return True
-
-        except Exception as e:
-            logger.error(f"Failed to convert to PMTiles: {e}")
-            return False
-
-    def run(self) -> bool:
-        """
-        Execute the full conversion pipeline.
-
-        Returns:
-            bool: True if successful
-        """
-        logger.info("=== GPKG to PMTiles Conversion ===")
-        logger.info(f"Input:  {self.input_gpkg}")
-        logger.info(f"Output: {self.output_pmtiles}")
-
-        # Step 1: Check dependencies
-        if not self.check_dependencies():
-            return False
-
-        # Step 2: Validate input
-        if not self.input_gpkg.exists():
-            logger.error(f"Input file not found: {self.input_gpkg}")
-            return False
-
-        # Step 3: Get layers
-        try:
-            layers = self.get_layers()
-            if not layers:
-                logger.error("No layers found in GeoPackage")
-                return False
-        except Exception as e:
-            logger.error(f"Failed to read GeoPackage: {e}")
-            return False
-
-        # Step 4: Create temp directory
-        with tempfile.TemporaryDirectory() as temp_dir:
-            temp_path = Path(temp_dir)
-            logger.info(f"\nUsing temp directory: {temp_path}")
-
-            # Step 5: Convert to GeoJSON
-            geojson_files = self.convert_to_geojsonseq(layers, temp_path)
-            if not geojson_files:
-                logger.error("No GeoJSON files created")
-                return False
-
-            # Step 6: Run tippecanoe
-            temp_mbtiles = temp_path / "temp.mbtiles"
-            if not self.run_tippecanoe(geojson_files, temp_mbtiles):
-                return False
-
-            # Check MBTiles was created
-            if not temp_mbtiles.exists():
-                logger.error("MBTiles file was not created")
-                return False
-
-            mbtiles_size_mb = temp_mbtiles.stat().st_size / (1024 * 1024)
-            logger.info(f"MBTiles size: {mbtiles_size_mb:.1f} MB")
-
-            # Step 7: Convert to PMTiles
-            if not self.convert_to_pmtiles(temp_mbtiles):
-                return False
-
-        # Step 8: Verify output
-        if not self.output_pmtiles.exists():
-            logger.error("PMTiles file was not created")
-            return False
-
-        output_size_mb = self.output_pmtiles.stat().st_size / (1024 * 1024)
-        logger.info(f"\n=== Conversion Complete ===")
-        logger.info(f"Output: {self.output_pmtiles}")
-        logger.info(f"Size: {output_size_mb:.1f} MB")
-        logger.info(f"Zoom levels: {self.min_zoom} - {self.max_zoom}")
-
-        return True
+        if process.returncode == 0:
+            logger.info(f"✓ SUCCESS! PMTiles created at: {self.output_pmtiles}")
+        else:
+            logger.error("Tippecanoe conversion failed.")
+            sys.exit(1)
 
 
 def main():
-    """Main entry point."""
-    import argparse
-
-    parser = argparse.ArgumentParser(
-        description="Convert GeoPackage to PMTiles vector tiles"
-    )
-    parser.add_argument(
-        "--input",
-        type=Path,
-        help="Input GeoPackage file",
-    )
-    parser.add_argument(
-        "--output",
-        type=Path,
-        help="Output PMTiles file",
-    )
-    parser.add_argument(
-        "--max-zoom",
-        type=int,
-        default=14,
-        help="Maximum zoom level (default: 14)",
-    )
-    parser.add_argument(
-        "--min-zoom",
-        type=int,
-        default=4,
-        help="Minimum zoom level (default: 4)",
-    )
-    parser.add_argument(
-        "--base-zoom",
-        type=int,
-        default=12,
-        help="Base zoom for detail level (default: 12)",
-    )
-    parser.add_argument(
-        "--simplification",
-        type=int,
-        default=10,
-        help="Simplification factor for tippecanoe (default: 10)",
-    )
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--input", type=Path, help="Input GeoPackage")
+    parser.add_argument("--output", type=Path, help="Output PMTiles")
+    parser.add_argument("--metadata", type=Path, help="Metadata pickle path")
+    parser.add_argument("--dry-run", action="store_true", help="Stop after stats")
+    parser.add_argument("--work-dir", type=Path, default=Path("./temp_work"))
 
     args = parser.parse_args()
 
-    # Set default paths
+    # Defaults
     script_dir = Path(__file__).parent
-    project_root = script_dir.parent.parent
-
-    input_path = args.input or (
+    default_metadata = (
+        script_dir.parent / "output" / "fwa_modules" / "stream_metadata.pickle"
+    )
+    default_output = (
+        script_dir.parent.parent
+        / "map-webapp"
+        / "public"
+        / "data"
+        / "waterbodies_bc.pmtiles"
+    )
+    default_input = (
         script_dir.parent / "output" / "fwa_modules" / "waterbodies_by_zone.gpkg"
     )
-    output_path = args.output or (
-        script_dir.parent / "output" / "fwa_modules" / "waterbodies_bc.pmtiles"
-    )
 
-    # Create output directory if needed
-    output_path.parent.mkdir(parents=True, exist_ok=True)
+    metadata_path = args.metadata or default_metadata
+    output_path = args.output or default_output
+    input_path = args.input or default_input
 
-    # Run conversion
-    converter = GpkgToPmtilesConverter(
-        input_path,
-        output_path,
-        max_zoom=args.max_zoom,
-        min_zoom=args.min_zoom,
-        base_zoom=args.base_zoom,
-        simplification=args.simplification,
-    )
+    # Setup logging to both console and file
+    log_dir = script_dir.parent / "output" / "fwa_modules"
+    log_dir.mkdir(parents=True, exist_ok=True)
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    log_file = log_dir / f"gpkg_to_pmtiles_{timestamp}.log"
 
-    success = converter.run()
-    return 0 if success else 1
+    # Add file handler to existing logger
+    file_handler = logging.FileHandler(log_file)
+    file_handler.setLevel(logging.INFO)
+    file_handler.setFormatter(logging.Formatter("%(asctime)s - %(message)s"))
+    logger.addHandler(file_handler)
+
+    logger.info(f"Log file: {log_file}")
+
+    converter = StreamConverter(input_path, output_path, metadata_path, args.work_dir)
+    converter.load_scores_from_metadata()
+    converter.print_stats()
+
+    if args.dry_run:
+        return
+
+    converter.prepare_geojson()
+    converter.generate_tiles()
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    main()

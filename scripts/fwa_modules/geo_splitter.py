@@ -8,6 +8,10 @@ Splits all waterbody features into zone-based layers using metadata:
 - Zone boundaries: Adds zone outline layers
 
 Outputs a single GeoPackage with layers organized by zone.
+
+NOTE: tippecanoe:minzoom is calculated dynamically during PMTiles generation
+using cached statistics from metadata_builder. This allows changing zoom
+behavior without regenerating the GPKG!
 """
 
 import os
@@ -28,6 +32,18 @@ import networkx as nx
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(message)s")
 logger = logging.getLogger(__name__)
+
+# Zone color scheme
+ZONE_COLORS = {
+    "1": "#FF6B6B",  # Red
+    "2": "#4ECDC4",  # Teal
+    "3": "#45B7D1",  # Blue
+    "4": "#FFA07A",  # Light Salmon
+    "5": "#98D8C8",  # Mint
+    "6": "#F7DC6F",  # Yellow
+    "7": "#BB8FCE",  # Purple
+    "8": "#85C1E2",  # Sky Blue
+}
 
 
 def _write_layer_worker(
@@ -140,6 +156,9 @@ class GeoSplitter:
     def create_all_stream_geometries(self) -> Dict[str, gpd.GeoDataFrame]:
         """Create stream geometries for ALL zones in a single pass by streaming from GDB.
 
+        Uses distribution-based filtering to maintain consistent stream density across zones
+        at each zoom level. Percentile thresholds are configurable via STREAM_DENSITY_CONFIG.
+
         Returns:
             Dictionary mapping zone number to GeoDataFrame with stream geometries
         """
@@ -164,7 +183,9 @@ class GeoSplitter:
             f"  Found {len(stream_layers)} stream layers (4-letter watershed codes)"
         )
 
-        # Stream all layers
+        # Stream all layers and create geometries
+        logger.info("  Creating stream geometries...")
+
         total_processed = 0
         not_in_metadata_count = 0
         total_layers = len(stream_layers)
@@ -182,7 +203,7 @@ class GeoSplitter:
 
                         if total_processed % 250000 == 0:
                             logger.info(
-                                f"  Progress: {idx}/{total_layers} layers, {total_processed:,} streams processed"
+                                f"    Progress: {idx}/{total_layers} layers, {total_processed:,} streams processed"
                             )
 
                         # Get LINEAR_FEATURE_ID
@@ -208,32 +229,7 @@ class GeoSplitter:
                         # Get geometry
                         geom = shape(feature["geometry"])
 
-                        # Determine minzoom based on stream_order for tippecanoe
-                        stream_order = metadata.get("stream_order")
-                        if stream_order is not None:
-                            # Very aggressive filtering - only show major rivers when zoomed out
-                            if stream_order >= 7:
-                                minzoom = (
-                                    4  # Absolute largest rivers visible from zoom 4
-                                )
-                            elif stream_order >= 6:
-                                minzoom = 6  # Very large rivers from zoom 6
-                            elif stream_order >= 5:
-                                minzoom = 7  # Large rivers from zoom 7
-                            elif stream_order >= 4:
-                                minzoom = 8  # Major rivers from zoom 8
-                            elif stream_order == 3:
-                                minzoom = (
-                                    9  # Medium rivers from zoom 9 (rounded from 8.5)
-                                )
-                            elif stream_order == 2:
-                                minzoom = 10  # Smaller streams from zoom 10
-                            else:  # stream_order == 1
-                                minzoom = 11  # Smallest streams from zoom 11
-                        else:
-                            minzoom = 11  # Default for streams without order
-
-                        # Build feature attributes
+                        # Build feature attributes (minzoom calculated during PMTiles generation)
                         feature_data = {
                             "linear_feature_id": linear_feature_id_str,
                             "gnis_name": metadata.get("gnis_name", ""),
@@ -241,7 +237,7 @@ class GeoSplitter:
                                 "stream_tributary_of", ""
                             ),
                             "lake_tributary_of": metadata.get("lake_tributary_of", ""),
-                            "stream_order": stream_order,
+                            "stream_order": metadata.get("stream_order"),
                             "length": metadata.get("length", 0),
                             "waterbody_key": metadata.get("waterbody_key", ""),
                             "lake_name": metadata.get("lake_name", ""),
@@ -261,7 +257,6 @@ class GeoSplitter:
                                 zones[0], "#4169E1"
                             ),  # Use first zone color
                             "stroke_width": 1.5,
-                            "tippecanoe:minzoom": minzoom,  # Control visibility in tiles
                             "geometry": geom,
                         }
 
@@ -270,7 +265,7 @@ class GeoSplitter:
                             streams_by_zone[zone].append(feature_data)
 
             except Exception as e:
-                logger.error(f"  Failed to process layer {layer_name}: {e}")
+                logger.error(f"    Failed to process layer {layer_name}: {e}")
                 continue
 
         logger.info(f"  Processed {total_processed:,} streams total")
@@ -283,7 +278,7 @@ class GeoSplitter:
             if features:
                 gdf = gpd.GeoDataFrame(features, crs="EPSG:3005")  # BC Albers
                 result[zone] = gdf
-                logger.info(f"  Zone {zone}: {len(gdf):,} stream features")
+                logger.info(f"  Zone {zone}: {len(gdf):,} streams")
             else:
                 result[zone] = None
 
@@ -362,20 +357,8 @@ class GeoSplitter:
                     # Create geometry
                     geom = shape(feature["geometry"])
 
-                    # Calculate area in square meters for size-based minzoom
+                    # Calculate area in square meters (used for minzoom during PMTiles generation)
                     area_sqm = geom.area  # BC Albers is in meters
-
-                    # Assign minzoom based on size - larger features visible at lower zooms
-                    if area_sqm >= 10_000_000:  # >= 10 km²
-                        minzoom = 4  # Very large waterbodies
-                    elif area_sqm >= 1_000_000:  # >= 1 km²
-                        minzoom = 6  # Large waterbodies
-                    elif area_sqm >= 100_000:  # >= 0.1 km²
-                        minzoom = 8  # Medium waterbodies
-                    elif area_sqm >= 10_000:  # >= 0.01 km²
-                        minzoom = 10  # Small waterbodies
-                    else:
-                        minzoom = 12  # Very small waterbodies
 
                     feature_data = {
                         "WATERBODY_KEY": waterbody_key_str,
@@ -388,8 +371,7 @@ class GeoSplitter:
                         "fill_opacity": 0.4,
                         "stroke_color": self.zone_colors.get(zones[0], "#1E3A8A"),
                         "stroke_width": 1.0,
-                        "area_sqm": area_sqm,  # Store for reference
-                        "tippecanoe:minzoom": minzoom,  # Size-based visibility
+                        "area_sqm": area_sqm,  # Store for minzoom calculation in PMTiles generation
                         "geometry": geom,
                     }
 
