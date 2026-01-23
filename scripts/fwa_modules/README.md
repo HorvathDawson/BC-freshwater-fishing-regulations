@@ -118,10 +118,38 @@ zone_2_streams
 
 **Processing**:
 1. **Load Metadata & Graph** - Load preprocessed data
-2. **Create Stream Geometries** - Reconstruct LineStrings from graph node coordinates
-3. **Filter Polygons** - Load and filter lakes/wetlands/manmade by zone
-4. **Add Zone Boundaries** - Include management unit outlines
-5. **Write to GeoPackage** - Incremental writing with memory management
+2. **Analyze Stream Distribution** - First pass to calculate stream order percentiles per zone
+3. **Create Stream Geometries** - Reconstruct LineStrings from graph node coordinates with adaptive minzoom
+4. **Filter Polygons** - Load and filter lakes/wetlands/manmade by zone
+5. **Add Zone Boundaries** - Include management unit outlines
+6. **Write to GeoPackage** - Incremental writing with memory management
+
+**Stream Density Control**:
+
+The module uses **distribution-based filtering** to maintain consistent stream density across zones. Instead of absolute stream order thresholds, it uses **percentile-based thresholds** that adapt to each zone's stream order distribution.
+
+- Edit [stream_density_config.py](stream_density_config.py) to tune density parameters
+- Default configuration shows top 5% of streams at zoom 4, progressively more as you zoom in
+- Alternative configs available: `AGGRESSIVE_CONFIG`, `PERMISSIVE_CONFIG`, `BALANCED_CONFIG`
+
+Example configuration:
+```python
+STREAM_DENSITY_CONFIG = {
+    4: 0.95,   # Zoom 4: Show only top 5% of streams (highest order)
+    5: 0.90,   # Zoom 5: Show top 10%
+    6: 0.85,   # Zoom 6: Show top 15%
+    7: 0.75,   # Zoom 7: Show top 25%
+    8: 0.60,   # Zoom 8: Show top 40%
+    9: 0.45,   # Zoom 9: Show top 55%
+    10: 0.25,  # Zoom 10: Show top 75%
+    11: 0.0,   # Zoom 11+: Show all streams (100%)
+}
+```
+
+To change the density:
+1. Open `stream_density_config.py`
+2. Modify the `STREAM_DENSITY_CONFIG` values (higher percentile = fewer streams)
+3. Re-run `geo_splitter.py` to regenerate the GeoPackage
 
 **Usage**:
 ```bash

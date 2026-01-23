@@ -356,8 +356,11 @@ class StreamConverter:
                     )
                     gdf["tippecanoe:minzoom"] = 12
 
-            # --- LAKES / WETLANDS ---
-            elif any(x in layer_name.lower() for x in ["lake", "wetland", "poly"]):
+            # --- LAKES / WETLANDS / MANMADE / RESERVOIRS (All Polygon Waterbodies) ---
+            elif any(
+                x in layer_name.lower()
+                for x in ["lake", "wetland", "manmade", "manmade"]
+            ):
                 if "area_sqm" in gdf.columns:
                     areas = gdf["area_sqm"]
                 elif "area_ha" in gdf.columns:
@@ -422,16 +425,17 @@ class StreamConverter:
             "--hilbert",  # Put features in Hilbert Curve order instead of the usual Z-Order. This improves the odds that spatially adjacent features will be sequentially adjacent, and should improve density calculations and spatial coalescing. It should be the default eventually
             "--minimum-zoom=4",
             "--maximum-zoom=12",
-            # "--read-parallel",
             # "--drop-smallest-as-needed",
             # "--coalesce-smallest-as-needed",
             # "-zg", "--extend-zooms-if-still-dropping",
             # "--detect-shared-borders", # DEPRECATED. In the manner of TopoJSON, detect borders that are shared between multiple polygons and simplify them identically in each polygon. This takes more time and memory than considering each polygon individually. Use no-simplification-of-shared-nodes instead, which is faster and more correct.
             "--no-simplification-of-shared-nodes",
-            "--no-tiny-polygon-reduction",
-            "--simplification=15",
-            # "--low-detail=6",
-            # "--full-detail=11",
+            "--no-tiny-polygon-reduction",  # Don't combine the area of very small polygons into small squares that represent their combined area.
+            "--simplification=12",  # 15 works good?
+            # "--low-detail=5",
+            # "--full-detail=8",
+            "--no-feature-limit",
+            "--no-tile-size-limit",
             "--simplification-at-maximum-zoom=1",
             "--read-parallel",
             "--layer=waterbodies",
