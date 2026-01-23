@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import maplibregl from 'maplibre-gl';
 import { Protocol } from 'pmtiles';
 import { layers, LIGHT } from '@protomaps/basemaps'; 
@@ -23,7 +23,6 @@ interface FeatureInfo {
     properties: Record<string, any>;
     geometry?: any; 
     id?: string | number;
-    // We keep these for re-querying logic
     source?: string;
     sourceLayer?: string;
     idKey?: string; 
@@ -33,7 +32,7 @@ interface FeatureOption extends FeatureInfo {
     id: string;
 }
 
-// Helper for sorting
+// Helper: Calculate geometry size for sorting tie-breakers
 const calculateGeometrySize = (geometry: any): number => {
     if (!geometry || !geometry.coordinates) return 0;
     const calcLineLen = (coords: number[][]) => {
@@ -62,9 +61,6 @@ const Map = () => {
     const [disambiguationPosition, setDisambiguationPosition] = useState<{ x: number; y: number } | null>(null);
     const [isMobilePanelCollapsed, setIsMobilePanelCollapsed] = useState(false);
 
-    // Track selected ID in a ref so the moveend listener can access it without closure stale state
-    const selectedFeatureRef = useRef<FeatureInfo | null>(null);
-
     const [layerVisibility, setLayerVisibility] = useState<LayerVisibility>({
         zones: true,
         streams: true,
@@ -75,14 +71,15 @@ const Map = () => {
 
     const clearSelection = () => {
         setSelectedFeature(null);
-        selectedFeatureRef.current = null; // Sync ref
         setDisambiguationOptions([]);
         setDisambiguationPosition(null);
         setIsMobilePanelCollapsed(false); 
         
+        // Remove the dynamic vector highlight layers
         if (mapRef.current) {
-            const source = mapRef.current.getSource('selected-source') as maplibregl.GeoJSONSource;
-            if (source) source.setData({ type: 'FeatureCollection', features: [] });
+            ['selection-highlight-fill', 'selection-highlight-line'].forEach(id => {
+                if (mapRef.current!.getLayer(id)) mapRef.current!.removeLayer(id);
+            });
         }
     };
 
@@ -144,16 +141,11 @@ const Map = () => {
         map.addControl(new maplibregl.ScaleControl(), 'bottom-left');
 
         map.on('load', () => {
-            // Highlight Source (Hover)
+            // Hover Highlight (GeoJSON - Fast/Transient)
             map.addSource('highlight-source', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
             map.addLayer({ id: 'highlight-line', type: 'line', source: 'highlight-source', paint: { 'line-color': '#00ffff', 'line-width': 3, 'line-opacity': 0.8 } });
             map.addLayer({ id: 'highlight-fill', type: 'fill', source: 'highlight-source', paint: { 'fill-color': '#00ffff', 'fill-opacity': 0.2 }, filter: ['==', '$type', 'Polygon'] });
             
-            // Selection Source (Persistent) - Using GeoJSON for reliability
-            map.addSource('selected-source', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
-            map.addLayer({ id: 'selected-fill', type: 'fill', source: 'selected-source', paint: { 'fill-color': '#2563eb', 'fill-opacity': 0.4 }, filter: ['==', '$type', 'Polygon'] });
-            map.addLayer({ id: 'selected-line', type: 'line', source: 'selected-source', paint: { 'line-color': '#2563eb', 'line-width': 5, 'line-opacity': 1 } });
-
             for (let zone = 1; zone <= 8; zone++) {
                 const streamId = `zone-${zone}-streams`;
                 const streamFilter = layerVisibility.lakes
@@ -163,50 +155,9 @@ const Map = () => {
             }
         });
 
-        // 1. Collapse Logic
+        // Collapse on user interaction
         map.on('movestart', (e) => {
-            if (e.originalEvent) {
-                setIsMobilePanelCollapsed(true);
-            }
-        });
-
-        // 2. Self-Healing Geometry Logic
-        // When zoom/move ends, check if we can find a better version of the selected feature
-        map.on('moveend', () => {
-            const currentSelected = selectedFeatureRef.current;
-            if (!currentSelected || !currentSelected.id) return;
-
-            // Query viewport for features that match our selected ID
-            const features = map.queryRenderedFeatures({
-                layers: [
-                    'zone-1-streams', 'zone-2-streams', 'zone-3-streams', 'zone-4-streams',
-                    'zone-5-streams', 'zone-6-streams', 'zone-7-streams', 'zone-8-streams',
-                    // Include lakes/wetlands if needed
-                ].concat(Array.from({ length: 8 }, (_, i) => [
-                    `zone-${i + 1}-lakes-fill`, `zone-${i + 1}-wetlands-fill`
-                ]).flat())
-            });
-
-            // Find matching feature by ID
-            const match = features.find(f => {
-                const fId = (f.properties?.linear_feature_id || f.properties?.waterbody_key || f.id)?.toString();
-                return fId === currentSelected.id;
-            });
-
-            if (match) {
-                // Found a higher-res version in the current tile view!
-                const source = map.getSource('selected-source') as maplibregl.GeoJSONSource;
-                if (source) {
-                    source.setData({
-                        type: 'FeatureCollection',
-                        features: [{
-                            type: 'Feature',
-                            geometry: match.toJSON().geometry, // Use the new crisp geometry
-                            properties: match.properties
-                        } as any]
-                    });
-                }
-            }
+            if (e.originalEvent) setIsMobilePanelCollapsed(true);
         });
 
         const interactableLayers = Array.from({ length: 8 }, (_, i) => [
@@ -225,6 +176,7 @@ const Map = () => {
             const features = map.queryRenderedFeatures(bbox, { layers: interactableLayers });
             map.getCanvas().style.cursor = features.length > 0 ? 'pointer' : '';
 
+            // Hover Highlight Logic (Simple GeoJSON copy is fine for hover)
             const source = map.getSource('highlight-source') as maplibregl.GeoJSONSource;
             if (source) {
                 const uniqueFeatures = features.filter((v, i, a) => 
@@ -266,7 +218,7 @@ const Map = () => {
             const options: FeatureOption[] = features.map((feature, index) => {
                 const plainGeometry = feature.toJSON().geometry; 
                 
-                // Determine ID key
+                // Identify the specific ID key used in the tiles
                 const props = feature.properties || {};
                 let idKey = 'linear_feature_id';
                 let idVal = props.linear_feature_id;
@@ -290,21 +242,31 @@ const Map = () => {
                 };
             });
 
+            // Filter unique
             const uniqueOptions = options.filter((option, index, self) => 
                 index === self.findIndex(o => o.id === option.id)
             );
 
+            // --- SORTING LOGIC ---
             uniqueOptions.sort((a, b) => {
+                // 1. Manmade to BOTTOM
+                const isManmadeA = a.type === 'manmade';
+                const isManmadeB = b.type === 'manmade';
+                if (isManmadeA && !isManmadeB) return 1; 
+                if (!isManmadeA && isManmadeB) return -1;
+
+                // 2. Lakes to TOP
                 const isLakeA = a.type === 'lake';
                 const isLakeB = b.type === 'lake';
                 if (isLakeA && !isLakeB) return -1;
                 if (!isLakeA && isLakeB) return 1;
 
+                // 3. Stream Order (Descending)
                 const orderA = a.properties.stream_order !== undefined ? a.properties.stream_order : -1;
                 const orderB = b.properties.stream_order !== undefined ? b.properties.stream_order : -1;
-                
                 if (orderA !== orderB) return orderB - orderA;
 
+                // 4. Size (Descending)
                 const sizeA = calculateGeometrySize(a.geometry);
                 const sizeB = calculateGeometrySize(b.geometry);
                 return sizeB - sizeA;
@@ -314,7 +276,6 @@ const Map = () => {
 
             if (uniqueOptions.length === 1) {
                 setSelectedFeature(uniqueOptions[0]);
-                selectedFeatureRef.current = uniqueOptions[0]; // Sync ref
             } else {
                 setDisambiguationOptions(uniqueOptions);
                 setDisambiguationPosition({ x: e.point.x, y: e.point.y });
@@ -328,69 +289,90 @@ const Map = () => {
         };
     }, []);
 
-    // --- ZOOM & SELECTION UPDATE LOGIC ---
+    // --- SELECTION HIGHLIGHT & ZOOM ---
     useEffect(() => {
         if (!mapRef.current) return;
         const map = mapRef.current;
-        const source = map.getSource('selected-source') as maplibregl.GeoJSONSource;
-        
-        // Sync ref just in case
-        selectedFeatureRef.current = selectedFeature;
 
-        if (source) {
-            if (selectedFeature && selectedFeature.geometry) {
-                // 1. Initial Render (Low Res Snapshot)
-                source.setData({ 
-                    type: 'FeatureCollection', 
-                    features: [{ 
-                        type: 'Feature', 
-                        geometry: selectedFeature.geometry, 
-                        properties: selectedFeature.properties 
-                    } as any] 
+        // Cleanup old vector layers
+        ['selection-highlight-fill', 'selection-highlight-line'].forEach(id => {
+            if (map.getLayer(id)) map.removeLayer(id);
+        });
+
+        if (selectedFeature && selectedFeature.source && selectedFeature.sourceLayer && selectedFeature.idKey) {
+            // Determine styles
+            const isPolygon = selectedFeature.type === 'lake' || selectedFeature.type === 'wetland' || selectedFeature.type === 'manmade';
+            const idVal = selectedFeature.id.toString();
+            const numId = parseInt(idVal);
+            
+            // FIXED: Use 'any' expression. 
+            // Checks if ID matches string OR number. Handles mismatched types in tiles.
+            const filter = [
+                'any',
+                ['==', ['get', selectedFeature.idKey], idVal],
+                ['==', ['get', selectedFeature.idKey], isNaN(numId) ? -1 : numId]
+            ];
+
+            if (isPolygon) {
+                map.addLayer({
+                    id: 'selection-highlight-fill',
+                    type: 'fill',
+                    source: selectedFeature.source,
+                    'source-layer': selectedFeature.sourceLayer,
+                    paint: { 'fill-color': '#2563eb', 'fill-opacity': 0.5 },
+                    filter: filter
                 });
+            }
+            
+            // Add line outline for both polygons and lines
+            map.addLayer({
+                id: 'selection-highlight-line',
+                type: 'line',
+                source: selectedFeature.source,
+                'source-layer': selectedFeature.sourceLayer,
+                paint: { 'line-color': '#2563eb', 'line-width': 4, 'line-opacity': 1 },
+                filter: filter
+            });
 
-                if (!isMobilePanelCollapsed) {
-                    const bounds = new maplibregl.LngLatBounds();
-                    const extend = (coord: any) => {
-                        if (Array.isArray(coord) && typeof coord[0] === 'number') {
-                            bounds.extend(coord as [number, number]);
-                        } else if (Array.isArray(coord)) {
-                            coord.forEach(extend);
-                        }
+            // Zoom logic
+            if (!isMobilePanelCollapsed && selectedFeature.geometry) {
+                const bounds = new maplibregl.LngLatBounds();
+                const extend = (coord: any) => {
+                    if (Array.isArray(coord) && typeof coord[0] === 'number') {
+                        bounds.extend(coord as [number, number]);
+                    } else if (Array.isArray(coord)) {
+                        coord.forEach(extend);
+                    }
+                };
+                extend(selectedFeature.geometry.coordinates);
+
+                const isMobile = window.innerWidth <= 768;
+                let padding = {};
+
+                if (isMobile) {
+                    padding = { 
+                        top: 80, 
+                        bottom: window.innerHeight * 0.65,
+                        left: 40, 
+                        right: 40 
                     };
-                    extend(selectedFeature.geometry.coordinates);
-
-                    const isMobile = window.innerWidth <= 768;
-                    let padding = {};
-
-                    if (isMobile) {
-                        padding = { 
-                            top: 80, 
-                            bottom: window.innerHeight * 0.65,
-                            left: 40, 
-                            right: 40 
-                        };
-                    } else {
-                        padding = { 
-                            top: 50, 
-                            bottom: 50, 
-                            left: 50, 
-                            right: 400 
-                        };
-                    }
-
-                    if (!bounds.isEmpty()) {
-                        map.fitBounds(bounds, {
-                            padding,
-                            maxZoom: 11, // Cap at 11
-                            animate: true,
-                            duration: 1000
-                        });
-                    }
+                } else {
+                    padding = { 
+                        top: 50, 
+                        bottom: 50, 
+                        left: 50, 
+                        right: 400 
+                    };
                 }
 
-            } else {
-                source.setData({ type: 'FeatureCollection', features: [] });
+                if (!bounds.isEmpty()) {
+                    map.fitBounds(bounds, {
+                        padding,
+                        maxZoom: 11,
+                        animate: true,
+                        duration: 1000
+                    });
+                }
             }
         }
     }, [selectedFeature, isMobilePanelCollapsed]);
@@ -399,6 +381,7 @@ const Map = () => {
         if (!mapRef.current || !mapRef.current.isStyleLoaded()) return;
         const map = mapRef.current;
         for (let zone = 1; zone <= 8; zone++) {
+             // ... (Layer visibility logic matches previous versions) ...
              const fill = `zone-${zone}-boundaries-fill`;
              const line = `zone-${zone}-boundaries-line`;
              if (map.getLayer(fill)) map.setLayoutProperty(fill, 'visibility', layerVisibility.zones ? 'visible' : 'none');
@@ -414,10 +397,8 @@ const Map = () => {
             }
              const lakeId = `zone-${zone}-lakes-fill`;
              if (map.getLayer(lakeId)) map.setLayoutProperty(lakeId, 'visibility', layerVisibility.lakes ? 'visible' : 'none');
-             
              const wetlandId = `zone-${zone}-wetlands-fill`;
              if (map.getLayer(wetlandId)) map.setLayoutProperty(wetlandId, 'visibility', layerVisibility.wetlands ? 'visible' : 'none');
-             
              const manmadeId = `zone-${zone}-manmade-fill`;
              if (map.getLayer(manmadeId)) map.setLayoutProperty(manmadeId, 'visibility', layerVisibility.manmade ? 'visible' : 'none');
         }
@@ -467,7 +448,6 @@ const Map = () => {
                     onSelect={(option) => {
                         clearSelection();
                         setSelectedFeature(option);
-                        selectedFeatureRef.current = option;
                     }}
                     onClose={() => clearSelection()}
                     isCollapsed={isMobilePanelCollapsed}
