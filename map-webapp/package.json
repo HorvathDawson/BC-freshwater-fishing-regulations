@@ -10,9 +10,11 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@ngageoint/geopackage": "^4.2.6",
-    "ol": "^10.7.0",
-    "ol-load-geopackage": "^1.0.3",
+    "@mapbox/vector-tile": "^2.0.3",
+    "@protomaps/basemaps": "^5.7.0",
+    "maplibre-gl": "^5.16.0",
+    "pbf": "^4.0.1",
+    "pmtiles": "^4.3.2",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
   },

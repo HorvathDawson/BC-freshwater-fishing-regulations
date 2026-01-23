@@ -1,95 +1,74 @@
-# GeoPackage Map Viewer
+# BC Map Web App
 
-A simple React TypeScript Vite application for viewing GeoPackage files on an interactive map using OpenLayers.
+A simple, clean web application for displaying BC map data using MapLibre GL JS and PMTiles.
 
 ## Features
 
-- Interactive map with OpenStreetMap base layer
-- Load and display GeoPackage (.gpkg) files  
-- View multiple vector layers from GeoPackage
+- Interactive map with BC PMTiles base layer
+- MapLibre GL JS for rendering
+- Navigation controls
+- Scale control
 - Responsive design
-- Clean, modern interface
+
+## Tech Stack
+
+- **React** - UI framework
+- **TypeScript** - Type safety
+- **MapLibre GL JS** - Map rendering
+- **PMTiles** - Efficient tile format
+- **Vite** - Build tool
 
 ## Getting Started
 
-To start the development server:
+### Install Dependencies
+
+```bash
+npm install
+```
+
+### Development
+
 ```bash
 npm run dev
 ```
 
-## Usage
+### Build for Production
 
-1. Click "Choose GeoPackage File" to select a .gpkg file
-2. The map will load and display vector layers from the GeoPackage
-3. Use mouse to pan and zoom around the map
-4. Click "Clear Layers" to remove loaded data
-
-Currently, two official plugins are available:
-
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm run build
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### Preview Production Build
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm run preview
 ```
+
+## Project Structure
+
+```
+map-webapp/
+├── src/
+│   ├── components/
+│   │   └── Map.tsx          # Map component
+│   ├── App.tsx              # Main app component
+│   ├── App.css              # App styles
+│   ├── index.css            # Global styles
+│   └── main.tsx             # Entry point
+├── public/
+│   └── data/
+│       └── bc.pmtiles       # BC map tiles
+└── package.json
+```
+
+## Map Component
+
+The Map component is a clean, reusable React component that:
+- Initializes MapLibre with PMTiles protocol
+- Loads the BC PMTiles base layer
+- Adds navigation and scale controls
+- Handles proper cleanup on unmount
+
+## Customization
+
+To modify the map layers, edit [src/components/Map.tsx](src/components/Map.tsx) and update the `style.layers` array with your desired layer configuration.
