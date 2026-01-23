@@ -1,15 +1,13 @@
 import type { LayerSpecification } from 'maplibre-gl';
 
-// Zone color scheme - vibrant colors with good contrast against basemap
-export const ZONE_COLORS: Record<string, string> = {
-    '1': '#E63946',  // Vibrant Red
-    '2': '#06D6A0',  // Emerald Green
-    '3': '#118AB2',  // Ocean Blue
-    '4': '#FF6F00',  // Vivid Orange
-    '5': '#8338EC',  // Bright Purple
-    '6': '#FFB703',  // Golden Yellow
-    '7': '#EF476F',  // Hot Pink
-    '8': '#2A9D8F',  // Teal
+// Feature type colors
+const FEATURE_COLORS = {
+    zones: '#E0E0E0',      // Light gray for zone boundaries
+    streams: '#4A90E2',    // Blue for streams
+    lakes: '#64B5F6',      // Light blue for lakes
+    wetlands: '#81C784',   // Green for wetlands
+    manmade: '#9575CD',    // Purple for manmade waterbodies
+    hover: '#FFD700',      // Gold for hover highlight
 };
 
 // Helper function to create layers for each zone
@@ -18,7 +16,6 @@ export const createZoneLayers = (): LayerSpecification[] => {
     
     for (let zone = 1; zone <= 8; zone++) {
         const zoneStr = zone.toString();
-        const color = ZONE_COLORS[zoneStr];
         
         // Zone boundaries (lowest layer) - always visible
         zoneLayers.push({
@@ -30,7 +27,7 @@ export const createZoneLayers = (): LayerSpecification[] => {
             minzoom: 0,
             maxzoom: 24,
             paint: {
-                'fill-color': color,
+                'fill-color': FEATURE_COLORS.zones,
                 'fill-opacity': 0.08,  // Reduced opacity for more subtle background
                 'fill-antialias': true
             }
@@ -45,7 +42,7 @@ export const createZoneLayers = (): LayerSpecification[] => {
             minzoom: 0,
             maxzoom: 24,
             paint: {
-                'line-color': color,
+                'line-color': FEATURE_COLORS.zones,
                 'line-width': [
                     'interpolate',
                     ['linear'],
@@ -95,7 +92,7 @@ export const createZoneLayers = (): LayerSpecification[] => {
             minzoom: 0,
             maxzoom: 24,
             paint: {
-                'line-color': color,
+                'line-color': FEATURE_COLORS.wetlands,
                 'line-width': [
                     'interpolate',
                     ['linear'],
@@ -122,7 +119,7 @@ export const createZoneLayers = (): LayerSpecification[] => {
             minzoom: 0,
             maxzoom: 24,
             paint: {
-                'fill-color': color,
+                'fill-color': FEATURE_COLORS.lakes,
                 'fill-opacity': 0.4,
                 'fill-antialias': true
             }
@@ -137,7 +134,7 @@ export const createZoneLayers = (): LayerSpecification[] => {
             minzoom: 0,
             maxzoom: 24,
             paint: {
-                'line-color': color,
+                'line-color': FEATURE_COLORS.lakes,
                 'line-width': [
                     'interpolate',
                     ['linear'],
@@ -164,7 +161,7 @@ export const createZoneLayers = (): LayerSpecification[] => {
             minzoom: 0,
             maxzoom: 24,
             paint: {
-                'fill-color': color,
+                'fill-color': FEATURE_COLORS.manmade,
                 'fill-opacity': 0.35,
                 'fill-antialias': true
             }
@@ -179,7 +176,7 @@ export const createZoneLayers = (): LayerSpecification[] => {
             minzoom: 0,
             maxzoom: 24,
             paint: {
-                'line-color': color,
+                'line-color': FEATURE_COLORS.manmade,
                 'line-width': [
                     'interpolate',
                     ['linear'],
@@ -208,7 +205,7 @@ export const createZoneLayers = (): LayerSpecification[] => {
             minzoom: 0,
             maxzoom: 24,
             paint: {
-                'line-color': color,
+                'line-color': FEATURE_COLORS.streams,
                 'line-width': [
                     'interpolate',
                     ['linear'],
@@ -286,7 +283,7 @@ export const createZoneLayers = (): LayerSpecification[] => {
             minzoom: 8,  // Show highlights at zoom 8 and above
             maxzoom: 24,
             paint: {
-                'line-color': '#FFD700',  // Bright gold color for visibility
+                'line-color': FEATURE_COLORS.hover,  // Bright gold color for visibility
                 'line-width': [
                     'interpolate',
                     ['linear'],

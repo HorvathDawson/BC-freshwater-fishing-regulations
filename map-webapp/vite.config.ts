@@ -7,9 +7,13 @@ export default defineConfig({
   server: {
     fs: {
       allow: ['..']
+    },
+    headers: {
+      'Cache-Control': 'no-cache',
+      'Accept-Ranges': 'bytes'
     }
   },
-  assetsInclude: ['**/*.wasm'],
+  assetsInclude: ['**/*.wasm', '**/*.pmtiles'],
   optimizeDeps: {
     exclude: ['@ngageoint/geopackage']
   }
