@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import maplibregl from 'maplibre-gl';
 import { Protocol } from 'pmtiles';
 import { layers, LIGHT } from '@protomaps/basemaps'; 
+import { Layers, X } from 'lucide-react';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { createZoneLayers } from '../map/styles';
 import InfoPanel from './InfoPanel';
@@ -32,7 +33,6 @@ interface FeatureOption extends FeatureInfo {
     id: string;
 }
 
-// Helper: Calculate geometry size for sorting tie-breakers
 const calculateGeometrySize = (geometry: any): number => {
     if (!geometry || !geometry.coordinates) return 0;
     const calcLineLen = (coords: number[][]) => {
@@ -61,6 +61,9 @@ const Map = () => {
     const [disambiguationPosition, setDisambiguationPosition] = useState<{ x: number; y: number } | null>(null);
     const [isMobilePanelCollapsed, setIsMobilePanelCollapsed] = useState(false);
 
+    // FIXED: Default Open on Desktop (>768px), Closed on Mobile
+    const [isLayerMenuOpen, setIsLayerMenuOpen] = useState(() => window.innerWidth > 768);
+
     const [layerVisibility, setLayerVisibility] = useState<LayerVisibility>({
         zones: true,
         streams: true,
@@ -75,7 +78,6 @@ const Map = () => {
         setDisambiguationPosition(null);
         setIsMobilePanelCollapsed(false); 
         
-        // Remove the dynamic vector highlight layers
         if (mapRef.current) {
             ['selection-highlight-fill', 'selection-highlight-line'].forEach(id => {
                 if (mapRef.current!.getLayer(id)) mapRef.current!.removeLayer(id);
@@ -85,6 +87,14 @@ const Map = () => {
 
     useEffect(() => {
         if (!mapContainerRef.current) return;
+
+        // Clear any stored attribution state before creating the map
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && key.includes('maplibregl-attrib')) {
+                localStorage.removeItem(key);
+            }
+        }
 
         const canvas = document.createElement('canvas');
         const size = 16;
@@ -134,14 +144,41 @@ const Map = () => {
             maxZoom: 12,
             minZoom: 4,
             hash: true,
+            attributionControl: { compact: true }
         });
 
         if (wetlandPatternData) map.addImage('wetland-pattern', wetlandPatternData);
+        
         map.addControl(new maplibregl.NavigationControl(), 'top-right');
         map.addControl(new maplibregl.ScaleControl(), 'bottom-left');
+        
+        // Watch for attribution control and force it to start collapsed
+        const observer = new MutationObserver(() => {
+            const attribElement = document.querySelector('.maplibregl-ctrl-attrib');
+            if (attribElement && attribElement.classList.contains('maplibregl-compact-show')) {
+                // Only remove on initial load, not when user actively clicks
+                if (!map.loaded()) {
+                    attribElement.classList.remove('maplibregl-compact-show');
+                }
+            }
+        });
+        
+        // Start observing
+        const attribContainer = document.querySelector('.maplibregl-ctrl-bottom-right');
+        if (attribContainer) {
+            observer.observe(attribContainer, { 
+                attributes: true, 
+                attributeFilter: ['class'],
+                subtree: true 
+            });
+        }
+        
+        // Stop observing after map loads
+        map.once('load', () => {
+            observer.disconnect();
+        });
 
         map.on('load', () => {
-            // Hover Highlight (GeoJSON - Fast/Transient)
             map.addSource('highlight-source', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
             map.addLayer({ id: 'highlight-line', type: 'line', source: 'highlight-source', paint: { 'line-color': '#00ffff', 'line-width': 3, 'line-opacity': 0.8 } });
             map.addLayer({ id: 'highlight-fill', type: 'fill', source: 'highlight-source', paint: { 'fill-color': '#00ffff', 'fill-opacity': 0.2 }, filter: ['==', '$type', 'Polygon'] });
@@ -155,7 +192,6 @@ const Map = () => {
             }
         });
 
-        // Collapse on user interaction
         map.on('movestart', (e) => {
             if (e.originalEvent) setIsMobilePanelCollapsed(true);
         });
@@ -176,7 +212,6 @@ const Map = () => {
             const features = map.queryRenderedFeatures(bbox, { layers: interactableLayers });
             map.getCanvas().style.cursor = features.length > 0 ? 'pointer' : '';
 
-            // Hover Highlight Logic (Simple GeoJSON copy is fine for hover)
             const source = map.getSource('highlight-source') as maplibregl.GeoJSONSource;
             if (source) {
                 const uniqueFeatures = features.filter((v, i, a) => 
@@ -218,7 +253,6 @@ const Map = () => {
             const options: FeatureOption[] = features.map((feature, index) => {
                 const plainGeometry = feature.toJSON().geometry; 
                 
-                // Identify the specific ID key used in the tiles
                 const props = feature.properties || {};
                 let idKey = 'linear_feature_id';
                 let idVal = props.linear_feature_id;
@@ -242,31 +276,33 @@ const Map = () => {
                 };
             });
 
-            // Filter unique
             const uniqueOptions = options.filter((option, index, self) => 
                 index === self.findIndex(o => o.id === option.id)
             );
 
             // --- SORTING LOGIC ---
             uniqueOptions.sort((a, b) => {
-                // 1. Manmade to BOTTOM
                 const isManmadeA = a.type === 'manmade';
                 const isManmadeB = b.type === 'manmade';
                 if (isManmadeA && !isManmadeB) return 1; 
                 if (!isManmadeA && isManmadeB) return -1;
 
-                // 2. Lakes to TOP
                 const isLakeA = a.type === 'lake';
                 const isLakeB = b.type === 'lake';
                 if (isLakeA && !isLakeB) return -1;
                 if (!isLakeA && isLakeB) return 1;
 
-                // 3. Stream Order (Descending)
                 const orderA = a.properties.stream_order !== undefined ? a.properties.stream_order : -1;
                 const orderB = b.properties.stream_order !== undefined ? b.properties.stream_order : -1;
                 if (orderA !== orderB) return orderB - orderA;
 
-                // 4. Size (Descending)
+                const nameA = a.properties.gnis_name || a.properties.lake_name || a.properties.name;
+                const nameB = b.properties.gnis_name || b.properties.lake_name || b.properties.name;
+                const hasNameA = !!nameA;
+                const hasNameB = !!nameB;
+                if (hasNameA && !hasNameB) return -1;
+                if (!hasNameA && hasNameB) return 1;
+
                 const sizeA = calculateGeometrySize(a.geometry);
                 const sizeB = calculateGeometrySize(b.geometry);
                 return sizeB - sizeA;
@@ -294,19 +330,15 @@ const Map = () => {
         if (!mapRef.current) return;
         const map = mapRef.current;
 
-        // Cleanup old vector layers
         ['selection-highlight-fill', 'selection-highlight-line'].forEach(id => {
             if (map.getLayer(id)) map.removeLayer(id);
         });
 
         if (selectedFeature && selectedFeature.source && selectedFeature.sourceLayer && selectedFeature.idKey) {
-            // Determine styles
             const isPolygon = selectedFeature.type === 'lake' || selectedFeature.type === 'wetland' || selectedFeature.type === 'manmade';
             const idVal = selectedFeature.id.toString();
             const numId = parseInt(idVal);
             
-            // FIXED: Use 'any' expression. 
-            // Checks if ID matches string OR number. Handles mismatched types in tiles.
             const filter = [
                 'any',
                 ['==', ['get', selectedFeature.idKey], idVal],
@@ -324,7 +356,6 @@ const Map = () => {
                 });
             }
             
-            // Add line outline for both polygons and lines
             map.addLayer({
                 id: 'selection-highlight-line',
                 type: 'line',
@@ -334,7 +365,6 @@ const Map = () => {
                 filter: filter
             });
 
-            // Zoom logic
             if (!isMobilePanelCollapsed && selectedFeature.geometry) {
                 const bounds = new maplibregl.LngLatBounds();
                 const extend = (coord: any) => {
@@ -377,11 +407,11 @@ const Map = () => {
         }
     }, [selectedFeature, isMobilePanelCollapsed]);
 
+    // --- LAYER VISIBILITY ---
     useEffect(() => {
         if (!mapRef.current || !mapRef.current.isStyleLoaded()) return;
         const map = mapRef.current;
         for (let zone = 1; zone <= 8; zone++) {
-             // ... (Layer visibility logic matches previous versions) ...
              const fill = `zone-${zone}-boundaries-fill`;
              const line = `zone-${zone}-boundaries-line`;
              if (map.getLayer(fill)) map.setLayoutProperty(fill, 'visibility', layerVisibility.zones ? 'visible' : 'none');
@@ -395,12 +425,21 @@ const Map = () => {
                     : ['==', ['get', 'layer'], `zone_${zone}_streams`];
                 map.setFilter(streamId, streamFilter);
             }
-             const lakeId = `zone-${zone}-lakes-fill`;
-             if (map.getLayer(lakeId)) map.setLayoutProperty(lakeId, 'visibility', layerVisibility.lakes ? 'visible' : 'none');
-             const wetlandId = `zone-${zone}-wetlands-fill`;
-             if (map.getLayer(wetlandId)) map.setLayoutProperty(wetlandId, 'visibility', layerVisibility.wetlands ? 'visible' : 'none');
-             const manmadeId = `zone-${zone}-manmade-fill`;
-             if (map.getLayer(manmadeId)) map.setLayoutProperty(manmadeId, 'visibility', layerVisibility.manmade ? 'visible' : 'none');
+
+             const lakeFill = `zone-${zone}-lakes-fill`;
+             const lakeLine = `zone-${zone}-lakes-line`;
+             if (map.getLayer(lakeFill)) map.setLayoutProperty(lakeFill, 'visibility', layerVisibility.lakes ? 'visible' : 'none');
+             if (map.getLayer(lakeLine)) map.setLayoutProperty(lakeLine, 'visibility', layerVisibility.lakes ? 'visible' : 'none');
+             
+             const wetlandFill = `zone-${zone}-wetlands-fill`;
+             const wetlandLine = `zone-${zone}-wetlands-line`;
+             if (map.getLayer(wetlandFill)) map.setLayoutProperty(wetlandFill, 'visibility', layerVisibility.wetlands ? 'visible' : 'none');
+             if (map.getLayer(wetlandLine)) map.setLayoutProperty(wetlandLine, 'visibility', layerVisibility.wetlands ? 'visible' : 'none');
+             
+             const manmadeFill = `zone-${zone}-manmade-fill`;
+             const manmadeLine = `zone-${zone}-manmade-line`;
+             if (map.getLayer(manmadeFill)) map.setLayoutProperty(manmadeFill, 'visibility', layerVisibility.manmade ? 'visible' : 'none');
+             if (map.getLayer(manmadeLine)) map.setLayoutProperty(manmadeLine, 'visibility', layerVisibility.manmade ? 'visible' : 'none');
         }
     }, [layerVisibility]);
 
@@ -416,22 +455,54 @@ const Map = () => {
                 position: 'absolute',
                 top: '12px',
                 left: '12px',
-                backgroundColor: 'white',
-                border: '1px solid black',
-                boxShadow: '4px 4px 0 rgba(0,0,0,1)',
-                padding: '16px',
                 zIndex: 1,
-                minWidth: '160px'
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '8px'
             }}>
-                <div style={{ fontWeight: '800', marginBottom: '12px', fontSize: '11px', textTransform: 'uppercase', borderBottom: '2px solid #eee', paddingBottom: '8px', letterSpacing: '0.1em' }}>
-                    Layers
-                </div>
-                {['zones', 'streams', 'lakes', 'wetlands', 'manmade'].map((key) => (
-                    <label key={key} style={{ display: 'flex', alignItems: 'center', marginBottom: '8px', cursor: 'pointer', fontSize: '12px', fontWeight: '500', textTransform: 'uppercase' }}>
-                        <input type="checkbox" checked={layerVisibility[key as keyof LayerVisibility]} onChange={() => toggleLayer(key as keyof LayerVisibility)} style={{ marginRight: '8px', cursor: 'pointer', accentColor: 'black' }} />
-                        {key}
-                    </label>
-                ))}
+                <button
+                    onClick={() => setIsLayerMenuOpen(!isLayerMenuOpen)}
+                    style={{
+                        width: '40px',
+                        height: '40px',
+                        backgroundColor: 'white',
+                        border: '1px solid black',
+                        boxShadow: '4px 4px 0 rgba(0,0,0,1)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: 'pointer',
+                        padding: 0
+                    }}
+                    title="Toggle Layers"
+                >
+                    {isLayerMenuOpen ? <X size={20} strokeWidth={2.5} /> : <Layers size={20} strokeWidth={2.5} />}
+                </button>
+
+                {isLayerMenuOpen && (
+                    <div style={{
+                        backgroundColor: 'white',
+                        border: '1px solid black',
+                        boxShadow: '4px 4px 0 rgba(0,0,0,1)',
+                        padding: '16px',
+                        minWidth: '160px'
+                    }}>
+                        <div style={{ fontWeight: '800', marginBottom: '12px', fontSize: '11px', textTransform: 'uppercase', borderBottom: '2px solid #eee', paddingBottom: '8px', letterSpacing: '0.1em' }}>
+                            Layers
+                        </div>
+                        {['zones', 'streams', 'lakes', 'wetlands', 'manmade'].map((key) => (
+                            <label key={key} style={{ display: 'flex', alignItems: 'center', marginBottom: '8px', cursor: 'pointer', fontSize: '12px', fontWeight: '500', textTransform: 'uppercase' }}>
+                                <input 
+                                    type="checkbox" 
+                                    checked={layerVisibility[key as keyof LayerVisibility]} 
+                                    onChange={() => toggleLayer(key as keyof LayerVisibility)} 
+                                    style={{ marginRight: '8px', cursor: 'pointer', accentColor: 'black' }} 
+                                />
+                                {key}
+                            </label>
+                        ))}
+                    </div>
+                )}
             </div>
 
             <InfoPanel 

@@ -22,7 +22,6 @@ const Icons = {
 };
 
 const InfoPanel = ({ feature, onClose, isCollapsed = false, onSetCollapse }: InfoPanelProps) => {
-    // Touch tracking
     const touchStartY = useRef<number>(0);
 
     const handleTouchStart = (e: React.TouchEvent) => {
@@ -32,15 +31,10 @@ const InfoPanel = ({ feature, onClose, isCollapsed = false, onSetCollapse }: Inf
     const handleTouchEnd = (e: React.TouchEvent) => {
         const touchEndY = e.changedTouches[0].clientY;
         const diffY = touchEndY - touchStartY.current;
-        const threshold = 50; // min px to trigger swipe
+        const threshold = 50; 
 
-        if (diffY > threshold) {
-            // Swiped Down -> Collapse
-            onSetCollapse(true);
-        } else if (diffY < -threshold) {
-            // Swiped Up -> Expand
-            onSetCollapse(false);
-        }
+        if (diffY > threshold) onSetCollapse(true);
+        else if (diffY < -threshold) onSetCollapse(false);
     };
 
     const renderContent = () => {
@@ -51,7 +45,6 @@ const InfoPanel = ({ feature, onClose, isCollapsed = false, onSetCollapse }: Inf
 
         return (
             <>
-                {/* Header now handles Swipe Gestures */}
                 <div 
                     className="panel-header" 
                     onClick={() => onSetCollapse(!isCollapsed)}
@@ -98,7 +91,26 @@ const InfoPanel = ({ feature, onClose, isCollapsed = false, onSetCollapse }: Inf
                             <p>"{props.regulation_text_snippet}"</p>
                         </div>
                     )}
-                    {/* ... details ... */}
+                    
+                    <div className="data-section">
+                        <h3>DETAILS</h3>
+                        <div className="grid-2">
+                            <div className="stat-box">
+                                <span className="label">ZONE</span>
+                                <span className="value">{props.zones || "-"}</span>
+                            </div>
+                            <div className="stat-box">
+                                <span className="label">MGMT UNIT</span>
+                                <span className="value">{props.mgmt_units || "-"}</span>
+                            </div>
+                        </div>
+                        {props.fwa_watershed_code && (
+                            <div className="stat-box mt-2">
+                                <span className="label">WATERSHED CODE</span>
+                                <span className="value code">{props.fwa_watershed_code}</span>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </>
         );
@@ -116,25 +128,21 @@ const InfoPanel = ({ feature, onClose, isCollapsed = false, onSetCollapse }: Inf
 
             <style>{`
                 :root { --bg: #ffffff; --text: #1a1a1a; }
+                
                 .panel-desktop {
-                    position: absolute;
-                    top: 0; right: 0; bottom: 0; width: 350px;
-                    background: var(--bg);
-                    border-left: 1px solid #000;
-                    transform: translateX(100%);
-                    transition: transform 0.2s cubic-bezier(0,0,0,1);
-                    z-index: 1000;
-                    display: flex; flex-direction: column;
+                    position: absolute; top: 0; right: 0; bottom: 0; width: 350px;
+                    background: var(--bg); border-left: 1px solid #000;
+                    transform: translateX(100%); transition: transform 0.2s cubic-bezier(0,0,0,1);
+                    z-index: 1000; display: flex; flex-direction: column; box-sizing: border-box;
                 }
                 .panel-desktop.visible { transform: translateX(0); }
-
+                
                 .panel-mobile { display: none; }
 
                 .panel-header { padding: 24px; border-bottom: 2px solid #000; background: #f8f8f8; cursor: pointer; touch-action: none; }
                 .mobile-handle-bar { display: none; }
                 .header-row { display: flex; justify-content: space-between; margin-bottom: 12px; pointer-events: none; }
-                .header-row button { pointer-events: auto; } /* Re-enable close button clicks */
-                
+                .header-row button { pointer-events: auto; }
                 .type-tag { font-size: 11px; font-weight: 800; background: #000; color: #fff; padding: 4px 8px; text-transform: uppercase; }
                 .square-btn { background: none; border: 1px solid transparent; cursor: pointer; padding: 4px; color: #000; }
                 .square-btn:hover { background: #e5e5e5; border: 1px solid #000; }
@@ -152,14 +160,26 @@ const InfoPanel = ({ feature, onClose, isCollapsed = false, onSetCollapse }: Inf
                 .raw-text-block { background: #f1f1f1; padding: 16px; margin-bottom: 32px; border: 1px solid #ddd; }
                 .block-label { font-size: 9px; font-weight: 700; color: #666; margin-bottom: 8px; }
                 .raw-text-block p { margin: 0; font-size: 12px; line-height: 1.5; font-family: monospace; }
+                .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+                .mt-2 { margin-top: 12px; }
+                .stat-box { border: 1px solid #e5e5e5; padding: 8px; display: flex; flex-direction: column; gap: 4px; }
+                .value.code { font-family: monospace; }
 
                 @media (max-width: 768px) {
                     .panel-desktop { display: none; }
+                    
                     .panel-mobile {
                         display: flex;
                         flex-direction: column;
                         position: fixed;
-                        bottom: 0; left: 0; right: 0;
+                        bottom: 0; 
+                        
+                        /* FIX: Pin to edges, auto width */
+                        left: 0; 
+                        right: 0;
+                        width: auto;
+                        margin: 0;
+                        
                         background: #fff;
                         border-top: 2px solid #000;
                         height: 70vh;
@@ -167,16 +187,16 @@ const InfoPanel = ({ feature, onClose, isCollapsed = false, onSetCollapse }: Inf
                         transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
                         z-index: 2000;
                         box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
+                        box-sizing: border-box;
                     }
+                    
                     .panel-mobile.visible { transform: translateY(0); }
                     .panel-mobile:not(.visible) { display: none; }
                     .panel-mobile.collapsed { transform: translateY(calc(100% - 160px)); }
 
                     .mobile-handle-bar {
-                        display: block;
-                        width: 40px; height: 4px;
-                        background: #ccc;
-                        margin: 0 auto 16px auto;
+                        display: block; width: 40px; height: 4px;
+                        background: #ccc; margin: 0 auto 16px auto;
                     }
                 }
             `}</style>
