@@ -1,0 +1,2005 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2" xmlns:gx="http://www.google.com/kml/ext/2.2" xmlns:kml="http://www.opengis.net/kml/2.2" xmlns:atom="http://www.w3.org/2005/Atom">
+<Document>
+	<name>unnamed_lakes.kml</name>
+	<Style id="failed">
+	</Style>
+	<Style id="failed0">
+	</Style>
+	<Style id="failed1">
+	</Style>
+	<StyleMap id="failed10">
+		<Pair>
+			<key>normal</key>
+			<styleUrl>#failed46</styleUrl>
+		</Pair>
+		<Pair>
+			<key>highlight</key>
+			<styleUrl>#failed78</styleUrl>
+		</Pair>
+	</StyleMap>
+	<Style id="failed100">
+	</Style>
+	<Style id="failed101">
+	</Style>
+	<Style id="failed102">
+	</Style>
+	<Style id="failed103">
+	</Style>
+	<StyleMap id="failed104">
+		<Pair>
+			<key>normal</key>
+			<styleUrl>#failed8</styleUrl>
+		</Pair>
+		<Pair>
+			<key>highlight</key>
+			<styleUrl>#failed26</styleUrl>
+		</Pair>
+	</StyleMap>
+	<Style id="failed105">
+	</Style>
+	<Style id="failed106">
+	</Style>
+	<StyleMap id="failed107">
+		<Pair>
+			<key>normal</key>
+			<styleUrl>#failed40</styleUrl>
+		</Pair>
+		<Pair>
+			<key>highlight</key>
+			<styleUrl>#failed85</styleUrl>
+		</Pair>
+	</StyleMap>
+	<Style id="failed108">
+	</Style>
+	<Style id="failed109">
+	</Style>
+	<Style id="failed11">
+	</Style>
+	<Style id="failed110">
+	</Style>
+	<Style id="failed111">
+	</Style>
+	<StyleMap id="failed112">
+		<Pair>
+			<key>normal</key>
+			<styleUrl>#failed94</styleUrl>
+		</Pair>
+		<Pair>
+			<key>highlight</key>
+			<styleUrl>#failed11</styleUrl>
+		</Pair>
+	</StyleMap>
+	<StyleMap id="failed12">
+		<Pair>
+			<key>normal</key>
+			<styleUrl>#failed50</styleUrl>
+		</Pair>
+		<Pair>
+			<key>highlight</key>
+			<styleUrl>#failed33</styleUrl>
+		</Pair>
+	</StyleMap>
+	<StyleMap id="failed13">
+		<Pair>
+			<key>normal</key>
+			<styleUrl>#failed72</styleUrl>
+		</Pair>
+		<Pair>
+			<key>highlight</key>
+			<styleUrl>#failed89</styleUrl>
+		</Pair>
+	</StyleMap>
+	<Style id="failed14">
+	</Style>
+	<Style id="failed15">
+	</Style>
+	<Style id="failed16">
+	</Style>
+	<Style id="failed17">
+	</Style>
+	<StyleMap id="failed18">
+		<Pair>
+			<key>normal</key>
+			<styleUrl>#failed65</styleUrl>
+		</Pair>
+		<Pair>
+			<key>highlight</key>
+			<styleUrl>#failed22</styleUrl>
+		</Pair>
+	</StyleMap>
+	<StyleMap id="failed19">
+		<Pair>
+			<key>normal</key>
+			<styleUrl>#failed37</styleUrl>
+		</Pair>
+		<Pair>
+			<key>highlight</key>
+			<styleUrl>#failed71</styleUrl>
+		</Pair>
+	</StyleMap>
+	<Style id="failed2">
+	</Style>
+	<StyleMap id="failed20">
+		<Pair>
+			<key>normal</key>
+			<styleUrl>#failed81</styleUrl>
+		</Pair>
+		<Pair>
+			<key>highlight</key>
+			<styleUrl>#failed96</styleUrl>
+		</Pair>
+	</StyleMap>
+	<Style id="failed21">
+	</Style>
+	<Style id="failed22">
+	</Style>
+	<Style id="failed23">
+	</Style>
+	<Style id="failed24">
+	</Style>
+	<StyleMap id="failed25">
+		<Pair>
+			<key>normal</key>
+			<styleUrl>#failed53</styleUrl>
+		</Pair>
+		<Pair>
+			<key>highlight</key>
+			<styleUrl>#failed17</styleUrl>
+		</Pair>
+	</StyleMap>
+	<Style id="failed26">
+	</Style>
+	<Style id="failed27">
+	</Style>
+	<StyleMap id="failed28">
+		<Pair>
+			<key>normal</key>
+			<styleUrl>#failed5</styleUrl>
+		</Pair>
+		<Pair>
+			<key>highlight</key>
+			<styleUrl>#failed24</styleUrl>
+		</Pair>
+	</StyleMap>
+	<StyleMap id="failed29">
+		<Pair>
+			<key>normal</key>
+			<styleUrl>#failed1</styleUrl>
+		</Pair>
+		<Pair>
+			<key>highlight</key>
+			<styleUrl>#failed49</styleUrl>
+		</Pair>
+	</StyleMap>
+	<Style id="failed3">
+	</Style>
+	<StyleMap id="failed30">
+		<Pair>
+			<key>normal</key>
+			<styleUrl>#failed106</styleUrl>
+		</Pair>
+		<Pair>
+			<key>highlight</key>
+			<styleUrl>#failed42</styleUrl>
+		</Pair>
+	</StyleMap>
+	<StyleMap id="failed31">
+		<Pair>
+			<key>normal</key>
+			<styleUrl>#failed102</styleUrl>
+		</Pair>
+		<Pair>
+			<key>highlight</key>
+			<styleUrl>#failed64</styleUrl>
+		</Pair>
+	</StyleMap>
+	<Style id="failed32">
+	</Style>
+	<Style id="failed33">
+	</Style>
+	<Style id="failed34">
+	</Style>
+	<Style id="failed35">
+	</Style>
+	<StyleMap id="failed36">
+		<Pair>
+			<key>normal</key>
+			<styleUrl>#failed35</styleUrl>
+		</Pair>
+		<Pair>
+			<key>highlight</key>
+			<styleUrl>#failed67</styleUrl>
+		</Pair>
+	</StyleMap>
+	<Style id="failed37">
+	</Style>
+	<StyleMap id="failed38">
+		<Pair>
+			<key>normal</key>
+			<styleUrl>#failed51</styleUrl>
+		</Pair>
+		<Pair>
+			<key>highlight</key>
+			<styleUrl>#failed47</styleUrl>
+		</Pair>
+	</StyleMap>
+	<StyleMap id="failed39">
+		<Pair>
+			<key>normal</key>
+			<styleUrl>#failed83</styleUrl>
+		</Pair>
+		<Pair>
+			<key>highlight</key>
+			<styleUrl>#failed56</styleUrl>
+		</Pair>
+	</StyleMap>
+	<StyleMap id="failed4">
+		<Pair>
+			<key>normal</key>
+			<styleUrl>#failed105</styleUrl>
+		</Pair>
+		<Pair>
+			<key>highlight</key>
+			<styleUrl>#failed</styleUrl>
+		</Pair>
+	</StyleMap>
+	<Style id="failed40">
+	</Style>
+	<Style id="failed41">
+	</Style>
+	<Style id="failed42">
+	</Style>
+	<StyleMap id="failed43">
+		<Pair>
+			<key>normal</key>
+			<styleUrl>#failed14</styleUrl>
+		</Pair>
+		<Pair>
+			<key>highlight</key>
+			<styleUrl>#failed32</styleUrl>
+		</Pair>
+	</StyleMap>
+	<StyleMap id="failed44">
+		<Pair>
+			<key>normal</key>
+			<styleUrl>#failed103</styleUrl>
+		</Pair>
+		<Pair>
+			<key>highlight</key>
+			<styleUrl>#failed59</styleUrl>
+		</Pair>
+	</StyleMap>
+	<Style id="failed45">
+	</Style>
+	<Style id="failed46">
+	</Style>
+	<Style id="failed47">
+	</Style>
+	<Style id="failed48">
+	</Style>
+	<Style id="failed49">
+	</Style>
+	<Style id="failed5">
+	</Style>
+	<Style id="failed50">
+	</Style>
+	<Style id="failed51">
+	</Style>
+	<StyleMap id="failed52">
+		<Pair>
+			<key>normal</key>
+			<styleUrl>#failed101</styleUrl>
+		</Pair>
+		<Pair>
+			<key>highlight</key>
+			<styleUrl>#failed76</styleUrl>
+		</Pair>
+	</StyleMap>
+	<Style id="failed53">
+	</Style>
+	<Style id="failed54">
+	</Style>
+	<StyleMap id="failed55">
+		<Pair>
+			<key>normal</key>
+			<styleUrl>#failed75</styleUrl>
+		</Pair>
+		<Pair>
+			<key>highlight</key>
+			<styleUrl>#failed23</styleUrl>
+		</Pair>
+	</StyleMap>
+	<Style id="failed56">
+	</Style>
+	<Style id="failed57">
+	</Style>
+	<Style id="failed58">
+	</Style>
+	<Style id="failed59">
+	</Style>
+	<StyleMap id="failed6">
+		<Pair>
+			<key>normal</key>
+			<styleUrl>#failed27</styleUrl>
+		</Pair>
+		<Pair>
+			<key>highlight</key>
+			<styleUrl>#failed2</styleUrl>
+		</Pair>
+	</StyleMap>
+	<StyleMap id="failed60">
+		<Pair>
+			<key>normal</key>
+			<styleUrl>#failed45</styleUrl>
+		</Pair>
+		<Pair>
+			<key>highlight</key>
+			<styleUrl>#failed110</styleUrl>
+		</Pair>
+	</StyleMap>
+	<StyleMap id="failed61">
+		<Pair>
+			<key>normal</key>
+			<styleUrl>#failed0</styleUrl>
+		</Pair>
+		<Pair>
+			<key>highlight</key>
+			<styleUrl>#failed109</styleUrl>
+		</Pair>
+	</StyleMap>
+	<StyleMap id="failed62">
+		<Pair>
+			<key>normal</key>
+			<styleUrl>#failed87</styleUrl>
+		</Pair>
+		<Pair>
+			<key>highlight</key>
+			<styleUrl>#failed63</styleUrl>
+		</Pair>
+	</StyleMap>
+	<Style id="failed63">
+	</Style>
+	<Style id="failed64">
+	</Style>
+	<Style id="failed65">
+	</Style>
+	<StyleMap id="failed66">
+		<Pair>
+			<key>normal</key>
+			<styleUrl>#failed21</styleUrl>
+		</Pair>
+		<Pair>
+			<key>highlight</key>
+			<styleUrl>#failed68</styleUrl>
+		</Pair>
+	</StyleMap>
+	<Style id="failed67">
+	</Style>
+	<Style id="failed68">
+	</Style>
+	<StyleMap id="failed69">
+		<Pair>
+			<key>normal</key>
+			<styleUrl>#failed34</styleUrl>
+		</Pair>
+		<Pair>
+			<key>highlight</key>
+			<styleUrl>#failed93</styleUrl>
+		</Pair>
+	</StyleMap>
+	<StyleMap id="failed7">
+		<Pair>
+			<key>normal</key>
+			<styleUrl>#failed58</styleUrl>
+		</Pair>
+		<Pair>
+			<key>highlight</key>
+			<styleUrl>#failed108</styleUrl>
+		</Pair>
+	</StyleMap>
+	<StyleMap id="failed70">
+		<Pair>
+			<key>normal</key>
+			<styleUrl>#failed15</styleUrl>
+		</Pair>
+		<Pair>
+			<key>highlight</key>
+			<styleUrl>#failed100</styleUrl>
+		</Pair>
+	</StyleMap>
+	<Style id="failed71">
+	</Style>
+	<Style id="failed72">
+	</Style>
+	<StyleMap id="failed73">
+		<Pair>
+			<key>normal</key>
+			<styleUrl>#failed54</styleUrl>
+		</Pair>
+		<Pair>
+			<key>highlight</key>
+			<styleUrl>#failed9</styleUrl>
+		</Pair>
+	</StyleMap>
+	<Style id="failed74">
+	</Style>
+	<Style id="failed75">
+	</Style>
+	<Style id="failed76">
+	</Style>
+	<StyleMap id="failed77">
+		<Pair>
+			<key>normal</key>
+			<styleUrl>#failed111</styleUrl>
+		</Pair>
+		<Pair>
+			<key>highlight</key>
+			<styleUrl>#failed57</styleUrl>
+		</Pair>
+	</StyleMap>
+	<Style id="failed78">
+	</Style>
+	<Style id="failed79">
+	</Style>
+	<Style id="failed8">
+	</Style>
+	<StyleMap id="failed80">
+		<Pair>
+			<key>normal</key>
+			<styleUrl>#failed74</styleUrl>
+		</Pair>
+		<Pair>
+			<key>highlight</key>
+			<styleUrl>#failed79</styleUrl>
+		</Pair>
+	</StyleMap>
+	<Style id="failed81">
+	</Style>
+	<StyleMap id="failed82">
+		<Pair>
+			<key>normal</key>
+			<styleUrl>#failed90</styleUrl>
+		</Pair>
+		<Pair>
+			<key>highlight</key>
+			<styleUrl>#failed3</styleUrl>
+		</Pair>
+	</StyleMap>
+	<Style id="failed83">
+	</Style>
+	<StyleMap id="failed84">
+		<Pair>
+			<key>normal</key>
+			<styleUrl>#failed99</styleUrl>
+		</Pair>
+		<Pair>
+			<key>highlight</key>
+			<styleUrl>#failed88</styleUrl>
+		</Pair>
+	</StyleMap>
+	<Style id="failed85">
+	</Style>
+	<Style id="failed86">
+	</Style>
+	<Style id="failed87">
+	</Style>
+	<Style id="failed88">
+	</Style>
+	<Style id="failed89">
+	</Style>
+	<Style id="failed9">
+	</Style>
+	<Style id="failed90">
+	</Style>
+	<StyleMap id="failed91">
+		<Pair>
+			<key>normal</key>
+			<styleUrl>#failed48</styleUrl>
+		</Pair>
+		<Pair>
+			<key>highlight</key>
+			<styleUrl>#failed16</styleUrl>
+		</Pair>
+	</StyleMap>
+	<StyleMap id="failed92">
+		<Pair>
+			<key>normal</key>
+			<styleUrl>#failed86</styleUrl>
+		</Pair>
+		<Pair>
+			<key>highlight</key>
+			<styleUrl>#failed98</styleUrl>
+		</Pair>
+	</StyleMap>
+	<Style id="failed93">
+	</Style>
+	<Style id="failed94">
+	</Style>
+	<Style id="failed95">
+	</Style>
+	<Style id="failed96">
+	</Style>
+	<StyleMap id="failed97">
+		<Pair>
+			<key>normal</key>
+			<styleUrl>#failed41</styleUrl>
+		</Pair>
+		<Pair>
+			<key>highlight</key>
+			<styleUrl>#failed95</styleUrl>
+		</Pair>
+	</StyleMap>
+	<Style id="failed98">
+	</Style>
+	<Style id="failed99">
+	</Style>
+	<StyleMap id="m_ylw-pushpin0">
+		<Pair>
+			<key>normal</key>
+			<styleUrl>#s_ylw-pushpin0</styleUrl>
+		</Pair>
+		<Pair>
+			<key>highlight</key>
+			<styleUrl>#s_ylw-pushpin_hl0</styleUrl>
+		</Pair>
+	</StyleMap>
+	<StyleMap id="m_ylw-pushpin">
+		<Pair>
+			<key>normal</key>
+			<styleUrl>#s_ylw-pushpin</styleUrl>
+		</Pair>
+		<Pair>
+			<key>highlight</key>
+			<styleUrl>#s_ylw-pushpin_hl</styleUrl>
+		</Pair>
+	</StyleMap>
+	<StyleMap id="msn_ylw-pushpin0">
+		<Pair>
+			<key>normal</key>
+			<styleUrl>#sn_ylw-pushpin</styleUrl>
+		</Pair>
+		<Pair>
+			<key>highlight</key>
+			<styleUrl>#sh_ylw-pushpin</styleUrl>
+		</Pair>
+	</StyleMap>
+	<StyleMap id="msn_ylw-pushpin">
+		<Pair>
+			<key>normal</key>
+			<styleUrl>#sn_ylw-pushpin0</styleUrl>
+		</Pair>
+		<Pair>
+			<key>highlight</key>
+			<styleUrl>#sh_ylw-pushpin0</styleUrl>
+		</Pair>
+	</StyleMap>
+	<Style id="s_ylw-pushpin0">
+		<IconStyle>
+			<scale>1.1</scale>
+			<Icon>
+				<href>http://maps.google.com/mapfiles/kml/pushpin/ylw-pushpin.png</href>
+			</Icon>
+			<hotSpot x="20" y="2" xunits="pixels" yunits="pixels"/>
+		</IconStyle>
+	</Style>
+	<Style id="s_ylw-pushpin">
+		<IconStyle>
+			<scale>1.1</scale>
+			<Icon>
+				<href>http://maps.google.com/mapfiles/kml/pushpin/ylw-pushpin.png</href>
+			</Icon>
+			<hotSpot x="20" y="2" xunits="pixels" yunits="pixels"/>
+		</IconStyle>
+	</Style>
+	<Style id="s_ylw-pushpin_hl0">
+		<IconStyle>
+			<scale>1.3</scale>
+			<Icon>
+				<href>http://maps.google.com/mapfiles/kml/pushpin/ylw-pushpin.png</href>
+			</Icon>
+			<hotSpot x="20" y="2" xunits="pixels" yunits="pixels"/>
+		</IconStyle>
+	</Style>
+	<Style id="s_ylw-pushpin_hl">
+		<IconStyle>
+			<scale>1.3</scale>
+			<Icon>
+				<href>http://maps.google.com/mapfiles/kml/pushpin/ylw-pushpin.png</href>
+			</Icon>
+			<hotSpot x="20" y="2" xunits="pixels" yunits="pixels"/>
+		</IconStyle>
+	</Style>
+	<Style id="sh_ylw-pushpin">
+		<IconStyle>
+			<scale>1.3</scale>
+			<Icon>
+				<href>http://maps.google.com/mapfiles/kml/pushpin/ylw-pushpin.png</href>
+			</Icon>
+			<hotSpot x="20" y="2" xunits="pixels" yunits="pixels"/>
+		</IconStyle>
+		<BalloonStyle>
+		</BalloonStyle>
+	</Style>
+	<Style id="sh_ylw-pushpin0">
+		<IconStyle>
+			<scale>1.3</scale>
+			<Icon>
+				<href>http://maps.google.com/mapfiles/kml/pushpin/ylw-pushpin.png</href>
+			</Icon>
+			<hotSpot x="20" y="2" xunits="pixels" yunits="pixels"/>
+		</IconStyle>
+		<BalloonStyle>
+		</BalloonStyle>
+	</Style>
+	<Style id="sn_ylw-pushpin0">
+		<IconStyle>
+			<scale>1.1</scale>
+			<Icon>
+				<href>http://maps.google.com/mapfiles/kml/pushpin/ylw-pushpin.png</href>
+			</Icon>
+			<hotSpot x="20" y="2" xunits="pixels" yunits="pixels"/>
+		</IconStyle>
+		<BalloonStyle>
+		</BalloonStyle>
+	</Style>
+	<Style id="sn_ylw-pushpin">
+		<IconStyle>
+			<scale>1.1</scale>
+			<Icon>
+				<href>http://maps.google.com/mapfiles/kml/pushpin/ylw-pushpin.png</href>
+			</Icon>
+			<hotSpot x="20" y="2" xunits="pixels" yunits="pixels"/>
+		</IconStyle>
+		<BalloonStyle>
+		</BalloonStyle>
+	</Style>
+	<Folder>
+		<name>unnamed_lakes</name>
+		<open>1</open>
+		<Placemark>
+			<name>unnamed lake c - map b</name>
+			<LookAt>
+				<longitude>-125.477748387775</longitude>
+				<latitude>50.13407308649698</latitude>
+				<altitude>0</altitude>
+				<heading>0.0005272095124829127</heading>
+				<tilt>12.67342581960799</tilt>
+				<range>565.5844046517698</range>
+				<gx:altitudeMode>relativeToSeaFloor</gx:altitudeMode>
+			</LookAt>
+			<styleUrl>#m_ylw-pushpin</styleUrl>
+			<Point>
+				<gx:drawOrder>1</gx:drawOrder>
+				<coordinates>-125.477748387775,50.13407308649698,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>unnamed lake b - map a</name>
+			<Point>
+				<coordinates>-125.6401151523381,50.19251625691544,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>unnamed lake a - map a</name>
+			<LookAt>
+				<longitude>-125.5791518671969</longitude>
+				<latitude>50.21417812092723</latitude>
+				<altitude>0</altitude>
+				<heading>0.001554242683888208</heading>
+				<tilt>0</tilt>
+				<range>2447.31839989352</range>
+				<gx:altitudeMode>relativeToSeaFloor</gx:altitudeMode>
+			</LookAt>
+			<styleUrl>#m_ylw-pushpin</styleUrl>
+			<Point>
+				<gx:drawOrder>1</gx:drawOrder>
+				<coordinates>-125.5824202056726,50.21920405307583,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>unnamed lake d - map b</name>
+			<LookAt>
+				<longitude>-125.4758413748462</longitude>
+				<latitude>50.11951068930968</latitude>
+				<altitude>0</altitude>
+				<heading>1.152877919272851e-09</heading>
+				<tilt>0</tilt>
+				<range>707.2727792230938</range>
+				<gx:altitudeMode>relativeToSeaFloor</gx:altitudeMode>
+			</LookAt>
+			<styleUrl>#m_ylw-pushpin</styleUrl>
+			<Point>
+				<gx:drawOrder>1</gx:drawOrder>
+				<coordinates>-125.4758413748462,50.11951068930967,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>unnamed lake e - map b</name>
+			<LookAt>
+				<longitude>-125.4656624406942</longitude>
+				<latitude>50.10544239141147</latitude>
+				<altitude>0</altitude>
+				<heading>1.159627056306917e-09</heading>
+				<tilt>0</tilt>
+				<range>537.606715049941</range>
+				<gx:altitudeMode>relativeToSeaFloor</gx:altitudeMode>
+			</LookAt>
+			<styleUrl>#m_ylw-pushpin</styleUrl>
+			<Point>
+				<gx:drawOrder>1</gx:drawOrder>
+				<coordinates>-125.4656624406942,50.10544239141147,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>unnamed lake f - map b</name>
+			<LookAt>
+				<longitude>-125.4786191658901</longitude>
+				<latitude>50.08015428571292</latitude>
+				<altitude>0</altitude>
+				<heading>-0.002128786257710832</heading>
+				<tilt>0</tilt>
+				<range>668.5747792722058</range>
+				<gx:altitudeMode>relativeToSeaFloor</gx:altitudeMode>
+			</LookAt>
+			<styleUrl>#m_ylw-pushpin</styleUrl>
+			<Point>
+				<gx:drawOrder>1</gx:drawOrder>
+				<coordinates>-125.4773210780616,50.0807587635889,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>unnamed lake g - map b</name>
+			<LookAt>
+				<longitude>-125.4762799084957</longitude>
+				<latitude>50.07419053874614</latitude>
+				<altitude>0</altitude>
+				<heading>1.377215163175199e-09</heading>
+				<tilt>0</tilt>
+				<range>440.2963038037523</range>
+				<gx:altitudeMode>relativeToSeaFloor</gx:altitudeMode>
+			</LookAt>
+			<styleUrl>#m_ylw-pushpin</styleUrl>
+			<Point>
+				<gx:drawOrder>1</gx:drawOrder>
+				<coordinates>-125.4762799084957,50.07419053874614,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>unnamed lake i - map b (&quot;Elmer Lake&quot; on Google Maps)</name>
+			<LookAt>
+				<longitude>-125.4142967992477</longitude>
+				<latitude>50.0646124086731</latitude>
+				<altitude>0</altitude>
+				<heading>1.702073837785201e-10</heading>
+				<tilt>0</tilt>
+				<range>438.5057120657313</range>
+				<gx:altitudeMode>relativeToSeaFloor</gx:altitudeMode>
+			</LookAt>
+			<styleUrl>#m_ylw-pushpin</styleUrl>
+			<Point>
+				<gx:drawOrder>1</gx:drawOrder>
+				<coordinates>-125.4142967992477,50.06461240867311,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>unnamed lake h - map b</name>
+			<LookAt>
+				<longitude>-125.4118100934495</longitude>
+				<latitude>50.07641537630168</latitude>
+				<altitude>0</altitude>
+				<heading>-1.052054335870458e-09</heading>
+				<tilt>0</tilt>
+				<range>586.2063636325857</range>
+				<gx:altitudeMode>relativeToSeaFloor</gx:altitudeMode>
+			</LookAt>
+			<styleUrl>#m_ylw-pushpin</styleUrl>
+			<Point>
+				<gx:drawOrder>1</gx:drawOrder>
+				<coordinates>-125.4122414907184,50.07624201571294,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>&quot;Anderson&quot; Lake</name>
+			<LookAt>
+				<longitude>-124.6022891675712</longitude>
+				<latitude>48.67793198604261</latitude>
+				<altitude>0</altitude>
+				<heading>-1.67255829034122e-10</heading>
+				<tilt>0</tilt>
+				<range>695.4108442946108</range>
+				<gx:altitudeMode>relativeToSeaFloor</gx:altitudeMode>
+			</LookAt>
+			<styleUrl>#m_ylw-pushpin</styleUrl>
+			<Point>
+				<gx:drawOrder>1</gx:drawOrder>
+				<coordinates>-124.6030097038202,48.67802099873065,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>little peter hope lake</name>
+			<LookAt>
+				<longitude>-120.3227883250156</longitude>
+				<latitude>50.28308190247586</latitude>
+				<altitude>0</altitude>
+				<heading>-0.000114816766886672</heading>
+				<tilt>0</tilt>
+				<range>470.9171747858208</range>
+				<gx:altitudeMode>relativeToSeaFloor</gx:altitudeMode>
+			</LookAt>
+			<styleUrl>#m_ylw-pushpin</styleUrl>
+			<Point>
+				<gx:drawOrder>1</gx:drawOrder>
+				<coordinates>-120.3227883250156,50.28308190247586,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>norman lake</name>
+			<LookAt>
+				<longitude>-120.6908103286956</longitude>
+				<latitude>50.61081107959423</latitude>
+				<altitude>0</altitude>
+				<heading>-0.000688001699995366</heading>
+				<tilt>0</tilt>
+				<range>508.4632724395618</range>
+				<gx:altitudeMode>relativeToSeaFloor</gx:altitudeMode>
+			</LookAt>
+			<styleUrl>#m_ylw-pushpin</styleUrl>
+			<Point>
+				<gx:drawOrder>1</gx:drawOrder>
+				<coordinates>-120.6907431540567,50.61116785102152,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>grassy lake</name>
+			<description>2 lakes in location</description>
+			<LookAt>
+				<longitude>-120.6493689754022</longitude>
+				<latitude>51.55335346987257</latitude>
+				<altitude>0</altitude>
+				<heading>-3.813421451981127e-10</heading>
+				<tilt>0</tilt>
+				<range>335.7314559407469</range>
+				<gx:altitudeMode>relativeToSeaFloor</gx:altitudeMode>
+			</LookAt>
+			<styleUrl>#msn_ylw-pushpin</styleUrl>
+			<Point>
+				<gx:drawOrder>1</gx:drawOrder>
+				<coordinates>-120.6493689754022,51.55335346987257,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>grassy lake 2</name>
+			<description>2 lakes in location</description>
+			<LookAt>
+				<longitude>-120.6451215165922</longitude>
+				<latitude>51.55186886206629</latitude>
+				<altitude>0</altitude>
+				<heading>-2.711758732522012e-06</heading>
+				<tilt>0</tilt>
+				<range>243.8579119452612</range>
+				<gx:altitudeMode>relativeToSeaFloor</gx:altitudeMode>
+			</LookAt>
+			<styleUrl>#msn_ylw-pushpin</styleUrl>
+			<Point>
+				<gx:drawOrder>1</gx:drawOrder>
+				<coordinates>-120.6451215165922,51.55186886206629,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>grizzly lake</name>
+			<description>low confidence</description>
+			<LookAt>
+				<longitude>-120.9217277544051</longitude>
+				<latitude>52.82665674792248</latitude>
+				<altitude>0</altitude>
+				<heading>7.493906807919224e-05</heading>
+				<tilt>0</tilt>
+				<range>536.5465831740242</range>
+				<gx:altitudeMode>relativeToSeaFloor</gx:altitudeMode>
+			</LookAt>
+			<styleUrl>#msn_ylw-pushpin</styleUrl>
+			<Point>
+				<gx:drawOrder>1</gx:drawOrder>
+				<coordinates>-120.9217277544051,52.82665674792248,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>high lake</name>
+			<LookAt>
+				<longitude>-120.7195645585075</longitude>
+				<latitude>51.5537987099524</latitude>
+				<altitude>0</altitude>
+				<heading>-0.0002849216411662671</heading>
+				<tilt>0</tilt>
+				<range>625.0881496513873</range>
+				<gx:altitudeMode>relativeToSeaFloor</gx:altitudeMode>
+			</LookAt>
+			<styleUrl>#m_ylw-pushpin</styleUrl>
+			<Point>
+				<gx:drawOrder>1</gx:drawOrder>
+				<coordinates>-120.7195645585075,51.5537987099524,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>high lake 2</name>
+			<LookAt>
+				<longitude>-120.7759972239482</longitude>
+				<latitude>51.55518155570903</latitude>
+				<altitude>0</altitude>
+				<heading>-0.0006979002168847007</heading>
+				<tilt>0</tilt>
+				<range>615.3971395857961</range>
+				<gx:altitudeMode>relativeToSeaFloor</gx:altitudeMode>
+			</LookAt>
+			<styleUrl>#m_ylw-pushpin</styleUrl>
+			<Point>
+				<gx:drawOrder>1</gx:drawOrder>
+				<coordinates>-120.7759972239482,51.55518155570903,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>high lake 3</name>
+			<LookAt>
+				<longitude>-120.6812613104651</longitude>
+				<latitude>51.55954897591062</latitude>
+				<altitude>0</altitude>
+				<heading>-3.865582548757129e-10</heading>
+				<tilt>0</tilt>
+				<range>919.3480356030173</range>
+				<gx:altitudeMode>relativeToSeaFloor</gx:altitudeMode>
+			</LookAt>
+			<styleUrl>#m_ylw-pushpin</styleUrl>
+			<Point>
+				<gx:drawOrder>1</gx:drawOrder>
+				<coordinates>-120.6812613104651,51.55954897591062,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>unnamed lake</name>
+			<description>UNNAMED LAKE (approx. 500 m south of Natalkuz Lake)</description>
+			<LookAt>
+				<longitude>-125.0925272701403</longitude>
+				<latitude>53.40312365224943</latitude>
+				<altitude>0</altitude>
+				<heading>-0.0006592171426919042</heading>
+				<tilt>0</tilt>
+				<range>924.3090455200883</range>
+				<gx:altitudeMode>relativeToSeaFloor</gx:altitudeMode>
+			</LookAt>
+			<styleUrl>#msn_ylw-pushpin0</styleUrl>
+			<Point>
+				<gx:drawOrder>1</gx:drawOrder>
+				<coordinates>-125.0933004641296,53.40319299378672,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>unnamed lake located 100 m west of butterfly lake</name>
+			<LookAt>
+				<longitude>-123.184248246726</longitude>
+				<latitude>54.07171010527445</latitude>
+				<altitude>0</altitude>
+				<heading>-1.67379870666699e-10</heading>
+				<tilt>0</tilt>
+				<range>364.4450286631174</range>
+				<gx:altitudeMode>relativeToSeaFloor</gx:altitudeMode>
+			</LookAt>
+			<styleUrl>#m_ylw-pushpin</styleUrl>
+			<Point>
+				<gx:drawOrder>1</gx:drawOrder>
+				<coordinates>-123.184248246726,54.07171010527445,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>unnamed lake located approx. 200 m southwest of butterfly lake</name>
+			<description>one or two polygons?</description>
+			<LookAt>
+				<longitude>-123.1820892921915</longitude>
+				<latitude>54.07020100156638</latitude>
+				<altitude>0</altitude>
+				<heading>0.001761995771684109</heading>
+				<tilt>10.41717563007103</tilt>
+				<range>402.0359314976839</range>
+				<gx:altitudeMode>relativeToSeaFloor</gx:altitudeMode>
+			</LookAt>
+			<styleUrl>#m_ylw-pushpin0</styleUrl>
+			<Point>
+				<gx:drawOrder>1</gx:drawOrder>
+				<coordinates>-123.1820892921915,54.07020100156637,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>unnamed lake located approx. 200 m southwest of butterfly lake</name>
+			<description>one or two polygons?</description>
+			<LookAt>
+				<longitude>-123.1799646519481</longitude>
+				<latitude>54.07005458098029</latitude>
+				<altitude>0</altitude>
+				<heading>0.003417597903474011</heading>
+				<tilt>20.19091934717192</tilt>
+				<range>340.1664446942054</range>
+				<gx:altitudeMode>relativeToSeaFloor</gx:altitudeMode>
+			</LookAt>
+			<styleUrl>#m_ylw-pushpin0</styleUrl>
+			<Point>
+				<gx:drawOrder>1</gx:drawOrder>
+				<coordinates>-123.1799646519481,54.07005458098029,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>larry lake</name>
+			<description>see https://beta.sitesandtrailsbc.ca/resource/REC1636 for description of location of larry lake</description>
+			<LookAt>
+				<gx:TimeStamp><when>2023-05-29</when>
+</gx:TimeStamp>
+				<gx:ViewerOptions>
+					<gx:option name="historicalimagery"></gx:option>
+					<gx:option enabled="0" name="sunlight"></gx:option>
+					<gx:option enabled="0" name="streetview"></gx:option>
+				</gx:ViewerOptions>
+				<longitude>-120.7351960898743</longitude>
+				<latitude>49.76045883244379</latitude>
+				<altitude>0</altitude>
+				<heading>0.0005481439838245857</heading>
+				<tilt>15.33830014886576</tilt>
+				<range>924.3454496715125</range>
+				<gx:altitudeMode>relativeToSeaFloor</gx:altitudeMode>
+			</LookAt>
+			<styleUrl>#m_ylw-pushpin0</styleUrl>
+			<Point>
+				<gx:drawOrder>1</gx:drawOrder>
+				<coordinates>-120.7342616140652,49.7606674816584,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>provost dam</name>
+			<styleUrl>#failed60</styleUrl>
+			<Point>
+				<coordinates>-123.9102777777778,48.93277777777777,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>cap sheaf lake</name>
+			<description>https://www.alltrails.com/explore/recording/afternoon-hike-at-placer-mountain-0d770c4?p=-1&amp;sh=li9ufv</description>
+			<LookAt>
+				<gx:TimeStamp><when>2025-07-30</when>
+</gx:TimeStamp>
+				<gx:ViewerOptions>
+					<gx:option name="historicalimagery"></gx:option>
+					<gx:option enabled="0" name="sunlight"></gx:option>
+					<gx:option enabled="0" name="streetview"></gx:option>
+				</gx:ViewerOptions>
+				<longitude>-124.4772953313187</longitude>
+				<latitude>49.70241353488298</latitude>
+				<altitude>0</altitude>
+				<heading>7.188343335000157e-06</heading>
+				<tilt>0</tilt>
+				<range>172.6248971719836</range>
+				<gx:altitudeMode>relativeToSeaFloor</gx:altitudeMode>
+			</LookAt>
+			<styleUrl>#failed69</styleUrl>
+			<Point>
+				<gx:drawOrder>1</gx:drawOrder>
+				<coordinates>-124.4772953313187,49.70241353488298,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>cedar lake</name>
+			<LookAt>
+				<gx:TimeStamp><when>2024-04-30</when>
+</gx:TimeStamp>
+				<gx:ViewerOptions>
+					<gx:option name="historicalimagery"></gx:option>
+					<gx:option enabled="0" name="sunlight"></gx:option>
+					<gx:option enabled="0" name="streetview"></gx:option>
+				</gx:ViewerOptions>
+				<longitude>-121.236061413681</longitude>
+				<latitude>49.27829275794922</latitude>
+				<altitude>0</altitude>
+				<heading>-0.0004179280846937856</heading>
+				<tilt>0</tilt>
+				<range>473.9002852042249</range>
+				<gx:altitudeMode>relativeToSeaFloor</gx:altitudeMode>
+			</LookAt>
+			<styleUrl>#failed39</styleUrl>
+			<Point>
+				<gx:drawOrder>1</gx:drawOrder>
+				<coordinates>-121.236061413681,49.27829275794922,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>mine lake</name>
+			<LookAt>
+				<gx:TimeStamp><when>2024-04-30</when>
+</gx:TimeStamp>
+				<gx:ViewerOptions>
+					<gx:option name="historicalimagery"></gx:option>
+					<gx:option enabled="0" name="sunlight"></gx:option>
+					<gx:option enabled="0" name="streetview"></gx:option>
+				</gx:ViewerOptions>
+				<longitude>-125.1857715414185</longitude>
+				<latitude>50.19649305169792</latitude>
+				<altitude>0</altitude>
+				<heading>-0.002054053728581718</heading>
+				<tilt>0.01285796283315718</tilt>
+				<range>1555.886469298147</range>
+				<gx:altitudeMode>relativeToSeaFloor</gx:altitudeMode>
+			</LookAt>
+			<styleUrl>#failed73</styleUrl>
+			<Point>
+				<gx:drawOrder>1</gx:drawOrder>
+				<coordinates>-125.1829718822311,50.19559363261224,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>cheam lake</name>
+			<description>polygon is in wetlands layer</description>
+			<LookAt>
+				<gx:TimeStamp><when>2024-04-30</when>
+</gx:TimeStamp>
+				<gx:ViewerOptions>
+					<gx:option name="historicalimagery"></gx:option>
+					<gx:option enabled="0" name="sunlight"></gx:option>
+					<gx:option enabled="0" name="streetview"></gx:option>
+				</gx:ViewerOptions>
+				<longitude>-121.7540231166971</longitude>
+				<latitude>49.1929110333453</latitude>
+				<altitude>0</altitude>
+				<heading>3.241669039667838e-09</heading>
+				<tilt>0</tilt>
+				<range>739.152847927772</range>
+				<gx:altitudeMode>relativeToSeaFloor</gx:altitudeMode>
+			</LookAt>
+			<styleUrl>#failed28</styleUrl>
+			<Point>
+				<gx:drawOrder>1</gx:drawOrder>
+				<coordinates>-121.7540231166971,49.1929110333453,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>green timbers lake</name>
+			<description>polygon is in manmade waterbodies layer</description>
+			<LookAt>
+				<gx:TimeStamp><when>2024-04-30</when>
+</gx:TimeStamp>
+				<gx:ViewerOptions>
+					<gx:option name="historicalimagery"></gx:option>
+					<gx:option enabled="0" name="sunlight"></gx:option>
+					<gx:option enabled="0" name="streetview"></gx:option>
+				</gx:ViewerOptions>
+				<longitude>-122.8206881913618</longitude>
+				<latitude>49.17920025358233</latitude>
+				<altitude>0</altitude>
+				<heading>-5.039027690903267e-05</heading>
+				<tilt>15.32100149452792</tilt>
+				<range>441.1654418919903</range>
+				<gx:altitudeMode>relativeToSeaFloor</gx:altitudeMode>
+			</LookAt>
+			<styleUrl>#failed84</styleUrl>
+			<Point>
+				<gx:drawOrder>1</gx:drawOrder>
+				<coordinates>-122.8206881913618,49.17920025358232,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>jerry sulina park pond</name>
+			<description>unnamed in lakes layer</description>
+			<LookAt>
+				<gx:TimeStamp><when>2024-04-30</when>
+</gx:TimeStamp>
+				<gx:ViewerOptions>
+					<gx:option name="historicalimagery"></gx:option>
+					<gx:option enabled="0" name="sunlight"></gx:option>
+					<gx:option enabled="0" name="streetview"></gx:option>
+				</gx:ViewerOptions>
+				<longitude>-122.6375341484117</longitude>
+				<latitude>49.24192978489119</latitude>
+				<altitude>0</altitude>
+				<heading>-8.585430339839113e-06</heading>
+				<tilt>6.696111389115202</tilt>
+				<range>206.1983342640241</range>
+				<gx:altitudeMode>relativeToSeaFloor</gx:altitudeMode>
+			</LookAt>
+			<styleUrl>#failed55</styleUrl>
+			<Point>
+				<gx:drawOrder>1</gx:drawOrder>
+				<coordinates>-122.6375341484117,49.24192978489118,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>maclean ponds</name>
+			<description>unnamed in lakes layer
+
+070111626</description>
+			<LookAt>
+				<gx:TimeStamp><when>2024-04-30</when>
+</gx:TimeStamp>
+				<gx:ViewerOptions>
+					<gx:option name="historicalimagery"></gx:option>
+					<gx:option enabled="0" name="sunlight"></gx:option>
+					<gx:option enabled="0" name="streetview"></gx:option>
+				</gx:ViewerOptions>
+				<longitude>-122.6557121915337</longitude>
+				<latitude>49.03508280445492</latitude>
+				<altitude>0</altitude>
+				<heading>-0.0001197620831622724</heading>
+				<tilt>28.30319868355032</tilt>
+				<range>150.7246738548413</range>
+				<gx:altitudeMode>relativeToSeaFloor</gx:altitudeMode>
+			</LookAt>
+			<styleUrl>#failed66</styleUrl>
+			<Point>
+				<gx:drawOrder>1</gx:drawOrder>
+				<coordinates>-122.6557370371385,49.03515621636721,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>marsh pond</name>
+			<description>no polygon
+
+https://metrovancouver.org/services/regional-parks/park/aldergrove-regional-park</description>
+			<LookAt>
+				<gx:TimeStamp><when>2024-04-30</when>
+</gx:TimeStamp>
+				<gx:ViewerOptions>
+					<gx:option name="historicalimagery"></gx:option>
+					<gx:option enabled="0" name="sunlight"></gx:option>
+					<gx:option enabled="0" name="streetview"></gx:option>
+				</gx:ViewerOptions>
+				<longitude>-122.4532206769918</longitude>
+				<latitude>49.00897121439048</latitude>
+				<altitude>0</altitude>
+				<heading>8.399688526828636e-05</heading>
+				<tilt>0</tilt>
+				<range>187.776895394987</range>
+				<gx:altitudeMode>relativeToSeaFloor</gx:altitudeMode>
+			</LookAt>
+			<styleUrl>#failed52</styleUrl>
+			<Point>
+				<gx:drawOrder>1</gx:drawOrder>
+				<coordinates>-122.4532345486399,49.00878676964613,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>moss pothole lakes</name>
+			<description>refers to this whole group of lakes
+
+https://www.anglersatlas.com/place/101770/-moss-pothole-lakes</description>
+			<LookAt>
+				<gx:TimeStamp><when>2024-04-30</when>
+</gx:TimeStamp>
+				<gx:ViewerOptions>
+					<gx:option name="historicalimagery"></gx:option>
+					<gx:option enabled="0" name="sunlight"></gx:option>
+					<gx:option enabled="0" name="streetview"></gx:option>
+				</gx:ViewerOptions>
+				<longitude>-121.6687712609712</longitude>
+				<latitude>49.33693697618446</latitude>
+				<altitude>0</altitude>
+				<heading>-0.00124578537779811</heading>
+				<tilt>0</tilt>
+				<range>1379.75507548391</range>
+				<gx:altitudeMode>relativeToSeaFloor</gx:altitudeMode>
+			</LookAt>
+			<styleUrl>#failed36</styleUrl>
+			<Point>
+				<gx:drawOrder>1</gx:drawOrder>
+				<coordinates>-121.6613443934412,49.33525482556264,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>deep lake</name>
+			<description>https://nrs.objectstore.gov.bc.ca/kuwyyf/lacdubois_protected_area_map_3e79fdf85a.pdf
+
+700121330</description>
+			<LookAt>
+				<gx:TimeStamp><when>2024-04-30</when>
+</gx:TimeStamp>
+				<gx:ViewerOptions>
+					<gx:option name="historicalimagery"></gx:option>
+					<gx:option enabled="0" name="sunlight"></gx:option>
+					<gx:option enabled="0" name="streetview"></gx:option>
+				</gx:ViewerOptions>
+				<longitude>-120.3463609323913</longitude>
+				<latitude>50.79493753288823</latitude>
+				<altitude>0</altitude>
+				<heading>-0.0005963649264861059</heading>
+				<tilt>0</tilt>
+				<range>366.2631080728849</range>
+				<gx:altitudeMode>relativeToSeaFloor</gx:altitudeMode>
+			</LookAt>
+			<styleUrl>#failed20</styleUrl>
+			<Point>
+				<gx:drawOrder>1</gx:drawOrder>
+				<coordinates>-120.3463609323913,50.79493753288822,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>jackpine lake</name>
+			<description>unnamed in lakes layer 
+
+700013956</description>
+			<LookAt>
+				<gx:TimeStamp><when>2024-08-19</when>
+</gx:TimeStamp>
+				<gx:ViewerOptions>
+					<gx:option name="historicalimagery"></gx:option>
+					<gx:option enabled="0" name="sunlight"></gx:option>
+					<gx:option enabled="0" name="streetview"></gx:option>
+				</gx:ViewerOptions>
+				<longitude>-120.3867933486827</longitude>
+				<latitude>51.425207000787</latitude>
+				<altitude>0</altitude>
+				<heading>2.166657460106577e-10</heading>
+				<tilt>0</tilt>
+				<range>384.6605847381237</range>
+				<gx:altitudeMode>relativeToSeaFloor</gx:altitudeMode>
+			</LookAt>
+			<styleUrl>#failed62</styleUrl>
+			<Point>
+				<gx:drawOrder>1</gx:drawOrder>
+				<coordinates>-120.3867933486827,51.425207000787,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>little dum lake</name>
+			<description>two larger lakes labelled in kml, dum lake is named, group of three lakes https://apps.gov.bc.ca/pub/bcgnws/names/27972.html </description>
+			<LookAt>
+				<gx:TimeStamp><when>2024-08-19</when>
+</gx:TimeStamp>
+				<gx:ViewerOptions>
+					<gx:option name="historicalimagery"></gx:option>
+					<gx:option enabled="0" name="sunlight"></gx:option>
+					<gx:option enabled="0" name="streetview"></gx:option>
+				</gx:ViewerOptions>
+				<longitude>-120.2920483394619</longitude>
+				<latitude>51.44860067448155</latitude>
+				<altitude>0</altitude>
+				<heading>3.698196316981067e-09</heading>
+				<tilt>0</tilt>
+				<range>1722.093655624895</range>
+				<gx:altitudeMode>relativeToSeaFloor</gx:altitudeMode>
+			</LookAt>
+			<styleUrl>#failed31</styleUrl>
+			<Point>
+				<gx:drawOrder>1</gx:drawOrder>
+				<coordinates>-120.2920483394619,51.44860067448155,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>little dum lake 2</name>
+			<LookAt>
+				<gx:TimeStamp><when>2024-08-19</when>
+</gx:TimeStamp>
+				<gx:ViewerOptions>
+					<gx:option name="historicalimagery"></gx:option>
+					<gx:option enabled="0" name="sunlight"></gx:option>
+					<gx:option enabled="0" name="streetview"></gx:option>
+				</gx:ViewerOptions>
+				<longitude>-120.2840432795767</longitude>
+				<latitude>51.44351370732885</latitude>
+				<altitude>0</altitude>
+				<heading>-2.798347425392046e-10</heading>
+				<tilt>0</tilt>
+				<range>288.2923842127146</range>
+				<gx:altitudeMode>relativeToSeaFloor</gx:altitudeMode>
+			</LookAt>
+			<styleUrl>#failed82</styleUrl>
+			<Point>
+				<gx:drawOrder>1</gx:drawOrder>
+				<coordinates>-120.2840432795767,51.44351370732884,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>little lac des roches</name>
+			<LookAt>
+				<gx:TimeStamp><when>2024-08-19</when>
+</gx:TimeStamp>
+				<gx:ViewerOptions>
+					<gx:option name="historicalimagery"></gx:option>
+					<gx:option enabled="0" name="sunlight"></gx:option>
+					<gx:option enabled="0" name="streetview"></gx:option>
+				</gx:ViewerOptions>
+				<longitude>-120.6284622258001</longitude>
+				<latitude>51.50031921757445</latitude>
+				<altitude>0</altitude>
+				<heading>-4.363561995233872e-10</heading>
+				<tilt>0</tilt>
+				<range>570.7663085500549</range>
+				<gx:altitudeMode>relativeToSeaFloor</gx:altitudeMode>
+			</LookAt>
+			<styleUrl>#failed112</styleUrl>
+			<Point>
+				<gx:drawOrder>1</gx:drawOrder>
+				<coordinates>-120.6284622258001,51.50031921757445,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>lorenzo lake</name>
+			<LookAt>
+				<gx:TimeStamp><when>2013-09-26</when>
+</gx:TimeStamp>
+				<gx:ViewerOptions>
+					<gx:option name="historicalimagery"></gx:option>
+					<gx:option enabled="0" name="sunlight"></gx:option>
+					<gx:option enabled="0" name="streetview"></gx:option>
+				</gx:ViewerOptions>
+				<longitude>-120.4350215739199</longitude>
+				<latitude>51.52605490409277</latitude>
+				<altitude>0</altitude>
+				<heading>1.11001994494013e-09</heading>
+				<tilt>0</tilt>
+				<range>758.270167749531</range>
+				<gx:altitudeMode>relativeToSeaFloor</gx:altitudeMode>
+			</LookAt>
+			<styleUrl>#failed107</styleUrl>
+			<Point>
+				<gx:drawOrder>1</gx:drawOrder>
+				<coordinates>-120.4350215739198,51.52605490409277,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>clanwilliam lake</name>
+			<description>unnamed in lakes layer https://geonames.nrcan.gc.ca/search-place-names/unique?id=0c8c86a4849c20c3b0897bfc4f81bc63</description>
+			<LookAt>
+				<gx:TimeStamp><when>2021-04-06</when>
+</gx:TimeStamp>
+				<gx:ViewerOptions>
+					<gx:option name="historicalimagery"></gx:option>
+					<gx:option enabled="0" name="sunlight"></gx:option>
+					<gx:option enabled="0" name="streetview"></gx:option>
+				</gx:ViewerOptions>
+				<longitude>-118.3704935388022</longitude>
+				<latitude>50.96458636481719</latitude>
+				<altitude>0</altitude>
+				<heading>1.373077261534615e-10</heading>
+				<tilt>0</tilt>
+				<range>287.4319594111353</range>
+				<gx:altitudeMode>relativeToSeaFloor</gx:altitudeMode>
+			</LookAt>
+			<styleUrl>#failed97</styleUrl>
+			<Point>
+				<gx:drawOrder>1</gx:drawOrder>
+				<coordinates>-118.3704935388022,50.96458636481719,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>rose lake</name>
+			<description>https://www.chromecatchers.com/explore-rose-lake</description>
+			<LookAt>
+				<gx:TimeStamp><when>2021-04-06</when>
+</gx:TimeStamp>
+				<gx:ViewerOptions>
+					<gx:option name="historicalimagery"></gx:option>
+					<gx:option enabled="0" name="sunlight"></gx:option>
+					<gx:option enabled="0" name="streetview"></gx:option>
+				</gx:ViewerOptions>
+				<longitude>-120.1672288764239</longitude>
+				<latitude>50.48814763982924</latitude>
+				<altitude>0</altitude>
+				<heading>-5.221432970380978e-05</heading>
+				<tilt>0</tilt>
+				<range>260.5352620423486</range>
+				<gx:altitudeMode>relativeToSeaFloor</gx:altitudeMode>
+			</LookAt>
+			<styleUrl>#failed30</styleUrl>
+			<Point>
+				<gx:drawOrder>1</gx:drawOrder>
+				<coordinates>-120.1669581597308,50.48805209997007,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>tulip lake</name>
+			<description>https://www.chromecatchers.com/explore-tulip-lake</description>
+			<LookAt>
+				<gx:TimeStamp><when>2021-04-06</when>
+</gx:TimeStamp>
+				<gx:ViewerOptions>
+					<gx:option name="historicalimagery"></gx:option>
+					<gx:option enabled="0" name="sunlight"></gx:option>
+					<gx:option enabled="0" name="streetview"></gx:option>
+				</gx:ViewerOptions>
+				<longitude>-120.1589107285944</longitude>
+				<latitude>50.48995049619113</latitude>
+				<altitude>0</altitude>
+				<heading>6.346796866860447e-11</heading>
+				<tilt>0</tilt>
+				<range>398.4442182674172</range>
+				<gx:altitudeMode>relativeToSeaFloor</gx:altitudeMode>
+			</LookAt>
+			<styleUrl>#failed10</styleUrl>
+			<Point>
+				<gx:drawOrder>1</gx:drawOrder>
+				<coordinates>-120.1589107285944,50.48995049619112,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>upper kane lake</name>
+			<description>same regulations as lower kane lake</description>
+			<LookAt>
+				<gx:TimeStamp><when>2021-04-06</when>
+</gx:TimeStamp>
+				<gx:ViewerOptions>
+					<gx:option name="historicalimagery"></gx:option>
+					<gx:option enabled="0" name="sunlight"></gx:option>
+					<gx:option enabled="0" name="streetview"></gx:option>
+				</gx:ViewerOptions>
+				<longitude>-120.6880761947298</longitude>
+				<latitude>49.97963777979487</latitude>
+				<altitude>0</altitude>
+				<heading>1.709230085818494e-10</heading>
+				<tilt>0</tilt>
+				<range>246.3969732127966</range>
+				<gx:altitudeMode>relativeToSeaFloor</gx:altitudeMode>
+			</LookAt>
+			<styleUrl>#failed4</styleUrl>
+			<Point>
+				<gx:drawOrder>1</gx:drawOrder>
+				<coordinates>-120.6880761947298,49.97963777979487,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>lower kane lake</name>
+			<description>same regulations as upper kane lake</description>
+			<LookAt>
+				<gx:TimeStamp><when>2021-04-06</when>
+</gx:TimeStamp>
+				<gx:ViewerOptions>
+					<gx:option name="historicalimagery"></gx:option>
+					<gx:option enabled="0" name="sunlight"></gx:option>
+					<gx:option enabled="0" name="streetview"></gx:option>
+				</gx:ViewerOptions>
+				<longitude>-120.6945671343546</longitude>
+				<latitude>49.97817799464153</latitude>
+				<altitude>0</altitude>
+				<heading>0.0001504606357096244</heading>
+				<tilt>0</tilt>
+				<range>207.3157691878481</range>
+				<gx:altitudeMode>relativeToSeaFloor</gx:altitudeMode>
+			</LookAt>
+			<styleUrl>#failed19</styleUrl>
+			<Point>
+				<gx:drawOrder>1</gx:drawOrder>
+				<coordinates>-120.6945671343546,49.97817799464153,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>alta lake</name>
+			<LookAt>
+				<gx:TimeStamp><when>2024-10-14</when>
+</gx:TimeStamp>
+				<gx:ViewerOptions>
+					<gx:option name="historicalimagery"></gx:option>
+					<gx:option enabled="0" name="sunlight"></gx:option>
+					<gx:option enabled="0" name="streetview"></gx:option>
+				</gx:ViewerOptions>
+				<longitude>-115.5016596110716</longitude>
+				<latitude>49.43702934904248</latitude>
+				<altitude>0</altitude>
+				<heading>3.38821309661627e-10</heading>
+				<tilt>0</tilt>
+				<range>169.931639992193</range>
+				<gx:altitudeMode>relativeToSeaFloor</gx:altitudeMode>
+			</LookAt>
+			<styleUrl>#failed25</styleUrl>
+			<Point>
+				<gx:drawOrder>1</gx:drawOrder>
+				<coordinates>-115.5016596110716,49.43702934904249,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>alces lake</name>
+			<description>https://nrs.objectstore.gov.bc.ca/kuwyyf/whiteswan_lake_map_61fa249d8f.pdf</description>
+			<LookAt>
+				<gx:TimeStamp><when>2018-08</when>
+</gx:TimeStamp>
+				<gx:ViewerOptions>
+					<gx:option name="historicalimagery"></gx:option>
+					<gx:option enabled="0" name="sunlight"></gx:option>
+					<gx:option enabled="0" name="streetview"></gx:option>
+				</gx:ViewerOptions>
+				<longitude>-115.5379374099106</longitude>
+				<latitude>50.12121065993433</latitude>
+				<altitude>0</altitude>
+				<heading>-0.0001875834430390566</heading>
+				<tilt>0.01531907550688569</tilt>
+				<range>816.4082472851029</range>
+				<gx:altitudeMode>relativeToSeaFloor</gx:altitudeMode>
+			</LookAt>
+			<styleUrl>#failed12</styleUrl>
+			<Point>
+				<gx:drawOrder>1</gx:drawOrder>
+				<coordinates>-115.5366221745083,50.1201439016163,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>champion lake no. 1</name>
+			<description>labelled in kml individually as &quot;champion lake no. 1&quot; and &quot;champion lake no. 2&quot;, https://nrs.objectstore.gov.bc.ca/kuwyyf/champion_lakes_map_230d86f8ad.pdf</description>
+			<LookAt>
+				<gx:TimeStamp><when>2018-08</when>
+</gx:TimeStamp>
+				<gx:ViewerOptions>
+					<gx:option name="historicalimagery"></gx:option>
+					<gx:option enabled="0" name="sunlight"></gx:option>
+					<gx:option enabled="0" name="streetview"></gx:option>
+				</gx:ViewerOptions>
+				<longitude>-117.6383718698952</longitude>
+				<latitude>49.19180677944212</latitude>
+				<altitude>0</altitude>
+				<heading>8.285949250601939e-10</heading>
+				<tilt>0</tilt>
+				<range>378.612885030479</range>
+				<gx:altitudeMode>relativeToSeaFloor</gx:altitudeMode>
+			</LookAt>
+			<styleUrl>#failed80</styleUrl>
+			<Point>
+				<gx:drawOrder>1</gx:drawOrder>
+				<coordinates>-117.6390541079267,49.19235627527886,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>champion lake no. 2</name>
+			<description>labelled in kml individually as &quot;champion lake no. 1&quot; and &quot;champion lake no. 2&quot;, https://nrs.objectstore.gov.bc.ca/kuwyyf/champion_lakes_map_230d86f8ad.pdf</description>
+			<LookAt>
+				<gx:TimeStamp><when>2018-08</when>
+</gx:TimeStamp>
+				<gx:ViewerOptions>
+					<gx:option name="historicalimagery"></gx:option>
+					<gx:option enabled="0" name="sunlight"></gx:option>
+					<gx:option enabled="0" name="streetview"></gx:option>
+				</gx:ViewerOptions>
+				<longitude>-117.6235919036673</longitude>
+				<latitude>49.18922879615878</latitude>
+				<altitude>0</altitude>
+				<heading>0.003897473918689348</heading>
+				<tilt>0</tilt>
+				<range>978.9507117282927</range>
+				<gx:altitudeMode>relativeToSeaFloor</gx:altitudeMode>
+			</LookAt>
+			<styleUrl>#failed13</styleUrl>
+			<Point>
+				<gx:drawOrder>1</gx:drawOrder>
+				<coordinates>-117.6273517569233,49.19112499318023,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>champion lake no. 3</name>
+			<description>https://nrs.objectstore.gov.bc.ca/kuwyyf/champion_lakes_map_230d86f8ad.pdf</description>
+			<LookAt>
+				<gx:TimeStamp><when>2018-08</when>
+</gx:TimeStamp>
+				<gx:ViewerOptions>
+					<gx:option name="historicalimagery"></gx:option>
+					<gx:option enabled="0" name="sunlight"></gx:option>
+					<gx:option enabled="0" name="streetview"></gx:option>
+				</gx:ViewerOptions>
+				<longitude>-117.613404603517</longitude>
+				<latitude>49.18551952500278</latitude>
+				<altitude>0</altitude>
+				<heading>-2.565912489270692e-10</heading>
+				<tilt>0</tilt>
+				<range>619.7023308339664</range>
+				<gx:altitudeMode>relativeToSeaFloor</gx:altitudeMode>
+			</LookAt>
+			<styleUrl>#failed43</styleUrl>
+			<Point>
+				<gx:drawOrder>1</gx:drawOrder>
+				<coordinates>-117.612895323687,49.18516424691948,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>idlewild lake</name>
+			<LookAt>
+				<gx:TimeStamp><when>2018-08</when>
+</gx:TimeStamp>
+				<gx:ViewerOptions>
+					<gx:option name="historicalimagery"></gx:option>
+					<gx:option enabled="0" name="sunlight"></gx:option>
+					<gx:option enabled="0" name="streetview"></gx:option>
+				</gx:ViewerOptions>
+				<longitude>-115.7276066637424</longitude>
+				<latitude>49.49823967316377</latitude>
+				<altitude>0</altitude>
+				<heading>-1.372568372785581e-10</heading>
+				<tilt>0</tilt>
+				<range>230.0094769899914</range>
+				<gx:altitudeMode>relativeToSeaFloor</gx:altitudeMode>
+			</LookAt>
+			<styleUrl>#failed7</styleUrl>
+			<Point>
+				<gx:drawOrder>1</gx:drawOrder>
+				<coordinates>-115.7274639895258,49.49824561236974,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>mcclain lake</name>
+			<description>at Mclean Lake Recreation Site (different spelling) https://beta.sitesandtrailsbc.ca/resource/REC2483</description>
+			<LookAt>
+				<gx:TimeStamp><when>2018-08</when>
+</gx:TimeStamp>
+				<gx:ViewerOptions>
+					<gx:option name="historicalimagery"></gx:option>
+					<gx:option enabled="0" name="sunlight"></gx:option>
+					<gx:option enabled="0" name="streetview"></gx:option>
+				</gx:ViewerOptions>
+				<longitude>-116.5740883283177</longitude>
+				<latitude>50.95290037532317</latitude>
+				<altitude>0</altitude>
+				<heading>1.066328665280866e-09</heading>
+				<tilt>0</tilt>
+				<range>734.1276746459336</range>
+				<gx:altitudeMode>relativeToSeaFloor</gx:altitudeMode>
+			</LookAt>
+			<styleUrl>#failed44</styleUrl>
+			<Point>
+				<gx:drawOrder>1</gx:drawOrder>
+				<coordinates>-116.5751960642436,50.95277521521685,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>rock isle lake</name>
+			<description>rock isle lake (in 4-25, rock island lake in 3-39)</description>
+			<LookAt>
+				<gx:TimeStamp><when>2018-08</when>
+</gx:TimeStamp>
+				<gx:ViewerOptions>
+					<gx:option name="historicalimagery"></gx:option>
+					<gx:option enabled="0" name="sunlight"></gx:option>
+					<gx:option enabled="0" name="streetview"></gx:option>
+				</gx:ViewerOptions>
+				<longitude>-115.7827105628604</longitude>
+				<latitude>51.06287708723718</latitude>
+				<altitude>0</altitude>
+				<heading>4.380164490671111e-10</heading>
+				<tilt>0</tilt>
+				<range>366.438438644248</range>
+				<gx:altitudeMode>relativeToSeaFloor</gx:altitudeMode>
+			</LookAt>
+			<styleUrl>#failed38</styleUrl>
+			<Point>
+				<gx:drawOrder>1</gx:drawOrder>
+				<coordinates>-115.7833007026585,51.06275030321584,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>sam&apos;s folly lake</name>
+			<LookAt>
+				<gx:TimeStamp><when>2025-09-17</when>
+</gx:TimeStamp>
+				<gx:ViewerOptions>
+					<gx:option name="historicalimagery"></gx:option>
+					<gx:option enabled="0" name="sunlight"></gx:option>
+					<gx:option enabled="0" name="streetview"></gx:option>
+				</gx:ViewerOptions>
+				<longitude>-116.2621222325988</longitude>
+				<latitude>50.66578286744507</latitude>
+				<altitude>0</altitude>
+				<heading>-8.677889003998688e-10</heading>
+				<tilt>0</tilt>
+				<range>465.9078628018815</range>
+				<gx:altitudeMode>relativeToSeaFloor</gx:altitudeMode>
+			</LookAt>
+			<styleUrl>#failed61</styleUrl>
+			<Point>
+				<gx:drawOrder>1</gx:drawOrder>
+				<coordinates>-116.2626689360506,50.66647349734549,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>baby charlotte lake</name>
+			<LookAt>
+				<gx:TimeStamp><when>2025-09-17</when>
+</gx:TimeStamp>
+				<gx:ViewerOptions>
+					<gx:option name="historicalimagery"></gx:option>
+					<gx:option enabled="0" name="sunlight"></gx:option>
+					<gx:option enabled="0" name="streetview"></gx:option>
+				</gx:ViewerOptions>
+				<longitude>-125.5031409279575</longitude>
+				<latitude>52.19990178245531</latitude>
+				<altitude>0</altitude>
+				<heading>-9.31454063458724e-10</heading>
+				<tilt>0</tilt>
+				<range>744.3308055001427</range>
+				<gx:altitudeMode>relativeToSeaFloor</gx:altitudeMode>
+			</LookAt>
+			<styleUrl>#failed77</styleUrl>
+			<Point>
+				<gx:drawOrder>1</gx:drawOrder>
+				<coordinates>-125.5031409279575,52.19990178245531,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>cruise lake</name>
+			<LookAt>
+				<gx:TimeStamp><when>2025-09-17</when>
+</gx:TimeStamp>
+				<gx:ViewerOptions>
+					<gx:option name="historicalimagery"></gx:option>
+					<gx:option enabled="0" name="sunlight"></gx:option>
+					<gx:option enabled="0" name="streetview"></gx:option>
+				</gx:ViewerOptions>
+				<longitude>-125.5374823608104</longitude>
+				<latitude>52.13424048850461</latitude>
+				<altitude>0</altitude>
+				<heading>0.0004786316021628627</heading>
+				<tilt>0</tilt>
+				<range>643.3616429047731</range>
+				<gx:altitudeMode>relativeToSeaFloor</gx:altitudeMode>
+			</LookAt>
+			<styleUrl>#failed18</styleUrl>
+			<Point>
+				<gx:drawOrder>1</gx:drawOrder>
+				<coordinates>-125.5374823608103,52.13424048850462,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>dog lake</name>
+			<description>medium confidence</description>
+			<LookAt>
+				<gx:TimeStamp><when>2025-09-17</when>
+</gx:TimeStamp>
+				<gx:ViewerOptions>
+					<gx:option name="historicalimagery"></gx:option>
+					<gx:option enabled="0" name="sunlight"></gx:option>
+					<gx:option enabled="0" name="streetview"></gx:option>
+				</gx:ViewerOptions>
+				<longitude>-122.0580856128931</longitude>
+				<latitude>51.57568102442551</latitude>
+				<altitude>0</altitude>
+				<heading>-0.001401468679269132</heading>
+				<tilt>0</tilt>
+				<range>768.7652272473222</range>
+				<gx:altitudeMode>relativeToSeaFloor</gx:altitudeMode>
+			</LookAt>
+			<styleUrl>#failed29</styleUrl>
+			<Point>
+				<gx:drawOrder>1</gx:drawOrder>
+				<coordinates>-122.0580856128931,51.5756810244255,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>geese lake</name>
+			<description>medium confidence</description>
+			<LookAt>
+				<gx:TimeStamp><when>2025-09-17</when>
+</gx:TimeStamp>
+				<gx:ViewerOptions>
+					<gx:option name="historicalimagery"></gx:option>
+					<gx:option enabled="0" name="sunlight"></gx:option>
+					<gx:option enabled="0" name="streetview"></gx:option>
+				</gx:ViewerOptions>
+				<longitude>-125.3626245022866</longitude>
+				<latitude>52.96135195470781</latitude>
+				<altitude>0</altitude>
+				<heading>-1.207688418098512e-10</heading>
+				<tilt>0</tilt>
+				<range>320.4584185644989</range>
+				<gx:altitudeMode>relativeToSeaFloor</gx:altitudeMode>
+			</LookAt>
+			<styleUrl>#failed91</styleUrl>
+			<Point>
+				<gx:drawOrder>1</gx:drawOrder>
+				<coordinates>-125.3626245022866,52.96135195470782,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>kestrel lake</name>
+			<LookAt>
+				<gx:TimeStamp><when>2025-09-17</when>
+</gx:TimeStamp>
+				<gx:ViewerOptions>
+					<gx:option name="historicalimagery"></gx:option>
+					<gx:option enabled="0" name="sunlight"></gx:option>
+					<gx:option enabled="0" name="streetview"></gx:option>
+				</gx:ViewerOptions>
+				<longitude>-122.1460140555108</longitude>
+				<latitude>52.43809153256959</latitude>
+				<altitude>0</altitude>
+				<heading>3.783397015788112e-10</heading>
+				<tilt>0</tilt>
+				<range>1274.389382243816</range>
+				<gx:altitudeMode>relativeToSeaFloor</gx:altitudeMode>
+			</LookAt>
+			<styleUrl>#failed70</styleUrl>
+			<Point>
+				<gx:drawOrder>1</gx:drawOrder>
+				<coordinates>-122.1460140555108,52.43809153256959,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>little bishop lake</name>
+			<LookAt>
+				<gx:TimeStamp><when>2023-05-09</when>
+</gx:TimeStamp>
+				<gx:ViewerOptions>
+					<gx:option name="historicalimagery"></gx:option>
+					<gx:option enabled="0" name="sunlight"></gx:option>
+					<gx:option enabled="0" name="streetview"></gx:option>
+				</gx:ViewerOptions>
+				<longitude>-123.4742521691644</longitude>
+				<latitude>52.62142824561647</latitude>
+				<altitude>0</altitude>
+				<heading>-1.146001560051527e-09</heading>
+				<tilt>0</tilt>
+				<range>864.7580222300624</range>
+				<gx:altitudeMode>relativeToSeaFloor</gx:altitudeMode>
+			</LookAt>
+			<styleUrl>#failed92</styleUrl>
+			<Point>
+				<gx:drawOrder>1</gx:drawOrder>
+				<coordinates>-123.4742521691644,52.62142824561648,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>little jones lake</name>
+			<description>medium confidence</description>
+			<LookAt>
+				<gx:TimeStamp><when>2023-05-09</when>
+</gx:TimeStamp>
+				<gx:ViewerOptions>
+					<gx:option name="historicalimagery"></gx:option>
+					<gx:option enabled="0" name="sunlight"></gx:option>
+					<gx:option enabled="0" name="streetview"></gx:option>
+				</gx:ViewerOptions>
+				<longitude>-121.7522619000298</longitude>
+				<latitude>52.06510115119149</latitude>
+				<altitude>0</altitude>
+				<heading>7.287350497262838e-10</heading>
+				<tilt>0</tilt>
+				<range>542.7478856509329</range>
+				<gx:altitudeMode>relativeToSeaFloor</gx:altitudeMode>
+			</LookAt>
+			<styleUrl>#failed6</styleUrl>
+			<Point>
+				<gx:drawOrder>1</gx:drawOrder>
+				<coordinates>-121.7522619000298,52.06510115119149,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>paddy lake</name>
+			<description>Paddy Lake Rec Site is on Squirrel Lake in 5-1 https://www.sitesandtrailsbc.ca/Mobile/Search/search-result.aspx?site=REC5960&amp;type=Site, referred to as Paddy Squirrel Lake https://a100.gov.bc.ca/pub/fidq/searchBathymetricMaps.do https://a100.gov.bc.ca/pub/fidq/downloadBathymetricMap.do?filename=00216001.pdf there is another squirel lake listed in regs in 6-1 but I cannot find that one, there is a paddy lake in lakes layer in 6-26</description>
+			<LookAt>
+				<longitude>-120.7619864326329</longitude>
+				<latitude>51.89435628831764</latitude>
+				<altitude>0</altitude>
+				<heading>-0.0008920923856425985</heading>
+				<tilt>0</tilt>
+				<range>1475.828839642647</range>
+				<gx:altitudeMode>relativeToSeaFloor</gx:altitudeMode>
+			</LookAt>
+			<styleUrl>#msn_ylw-pushpin0</styleUrl>
+			<Point>
+				<gx:drawOrder>1</gx:drawOrder>
+				<coordinates>-120.7615537055738,51.89517045146827,0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<name>meridian lake</name>
+			<description>unnamed in lakes layer</description>
+			<LookAt>
+				<gx:TimeStamp><when>2023-05-09</when>
+</gx:TimeStamp>
+				<gx:ViewerOptions>
+					<gx:option name="historicalimagery"></gx:option>
+					<gx:option enabled="0" name="sunlight"></gx:option>
+					<gx:option enabled="0" name="streetview"></gx:option>
+				</gx:ViewerOptions>
+				<longitude>-120.561607133774</longitude>
+				<latitude>51.59293181145485</latitude>
+				<altitude>0</altitude>
+				<heading>-0.0002051767934155752</heading>
+				<tilt>0</tilt>
+				<range>524.8987073416331</range>
+				<gx:altitudeMode>relativeToSeaFloor</gx:altitudeMode>
+			</LookAt>
+			<styleUrl>#failed104</styleUrl>
+			<Point>
+				<gx:drawOrder>1</gx:drawOrder>
+				<coordinates>-120.561607133774,51.59293181145485,0</coordinates>
+			</Point>
+		</Placemark>
+		<atom:link rel="app" href="https://www.google.com/earth/about/versions/#earth-pro" title="Google Earth Pro 7.3.6.10441"></atom:link>
+	</Folder>
+</Document>
+</kml>
