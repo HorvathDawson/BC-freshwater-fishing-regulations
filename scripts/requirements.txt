@@ -1,0 +1,35 @@
+# Python Requirements for BC Freshwater Fishing Regulations Project
+# Install with: pip install -r requirements.txt
+
+# PDF Processing
+pdfplumber
+
+# Scientific Computing & Data Analysis
+numpy
+pandas
+scikit-learn
+
+# Image Processing
+pillow
+matplotlib
+
+# Geospatial Libraries
+geopandas
+fiona
+shapely
+
+# Graph Analysis
+networkx
+igraph
+
+# Data Structures
+attrs
+
+# Configuration
+pyyaml
+
+# AI/LLM API
+google-genai
+
+# Testing
+pytest
