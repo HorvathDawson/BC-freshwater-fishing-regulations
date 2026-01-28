@@ -56,6 +56,9 @@ class FishingSynopsisParser:
         self.MAX_SYMBOL_DIM = 25.0
         self.MAP_REJECTION_DIM = 35.0
 
+        # Tributaries Text Constant
+        self.INCLUDES_TRIBUTARIES = "[Includes Tributaries]"
+
     def _get_bg_palette(self, img_pil):
         small = img_pil.resize((200, int(200 * img_pil.height / img_pil.width)))
         colors = (
@@ -1063,11 +1066,11 @@ class FishingSynopsisParser:
 
             # Replace tributaries symbols with standardized placeholder text
             trib_pattern = r"[\uf0dc\uf02a]"
-            regs_raw = re.sub(trib_pattern, "[Includes Tributaries]", regs_raw)
+            regs_raw = re.sub(trib_pattern, self.INCLUDES_TRIBUTARIES, regs_raw)
             regs_raw = regs_raw.replace(
-                "Includes tributaries", "[Includes Tributaries]"
+                "Includes tributaries", self.INCLUDES_TRIBUTARIES
             )
-            regs_raw = regs_raw.replace("Incl. Tribs", "[Includes Tributaries]")
+            regs_raw = regs_raw.replace("Incl. Tribs", self.INCLUDES_TRIBUTARIES)
 
             # Fix dates/numbers split across lines with bold markers
             # Step 1: Remove bolded whitespace (spaces/tabs only) and replace with single space
@@ -1168,7 +1171,36 @@ class FishingSynopsisParser:
         # Remove bold markers before processing (they interfere with MU extraction)
         text = text.replace("**", "")
 
-        # Normalize whitespace BEFORE extracting MUs to handle cases like "CREEK\n6-12"
+        # Extract Tributaries Symbols BEFORE normalizing whitespace
+        # (we need to detect newlines to identify start-of-line symbols)
+        # But NOT if they appear within parentheses (those refer to other waterbodies)
+        trib_pattern = r"[\uf0dc\uf02a\*]"
+
+        # First, convert symbols within any parentheses to standard text
+        parens_pattern = r"\(([^)]*)(" + trib_pattern + r")([^)]*)\)"
+        text = re.sub(parens_pattern, r"(\1" + self.INCLUDES_TRIBUTARIES + r"\3)", text)
+
+        # Check if symbol appears at start of line (after newline or at very start)
+        # This indicates it applies to the whole waterbody
+        start_of_line_pattern = r"(?:^|\n)\s*" + trib_pattern
+        start_of_line_trib = re.search(start_of_line_pattern, text)
+        if start_of_line_trib:
+            # Convert to standard text and add to symbols
+            if "Incl. Tribs" not in symbols:
+                symbols.append("Incl. Tribs")
+            text = re.sub(
+                r"(?:^|\n)\s*" + trib_pattern + r"\s*",
+                " " + self.INCLUDES_TRIBUTARIES + " ",
+                text,
+            )
+
+        # Now check if there are any remaining symbols (outside parentheses and not at line start)
+        if re.search(trib_pattern, text):
+            if "Incl. Tribs" not in symbols:
+                symbols.append("Incl. Tribs")
+            text = re.sub(trib_pattern, "", text)
+
+        # Normalize whitespace AFTER extracting tributaries symbols
         text = re.sub(r"\s+", " ", text).strip()
 
         # Extract CW (Classified Waters) - do this BEFORE MU extraction
@@ -1201,18 +1233,6 @@ class FishingSynopsisParser:
             for mu in mu_list:
                 # Use regex with word boundaries to avoid partial matches (e.g., "4-2" in "4-22")
                 text = re.sub(r"\b" + re.escape(mu) + r"\b", "", text)
-
-        # Extract Tributaries Symbols
-        trib_pattern = r"[\uf0dc\uf02a\*]"
-        if (
-            re.search(trib_pattern, text)
-            or "Includes tributaries" in text
-            or "Incl. Tribs" in text
-        ):
-            if "Incl. Tribs" not in symbols:
-                symbols.append("Incl. Tribs")
-            text = re.sub(trib_pattern, "", text)
-            text = text.replace("Includes tributaries", "").replace("Incl. Tribs", "")
 
         # Final cleanup - normalize any remaining multiple spaces
         text = re.sub(r"\s+", " ", text).strip()
@@ -1274,7 +1294,7 @@ class FishingSynopsisParser:
             if "Incl. Tribs" not in symbols:
                 symbols.append("Incl. Tribs")
             text = re.sub(
-                trib_pattern, " [Includes Tributaries] " if is_regs else "", text
+                trib_pattern, " " + self.INCLUDES_TRIBUTARIES + " " if is_regs else "", text
             )
             if not is_regs:
                 text = text.replace("Includes tributaries", "").replace(
@@ -1529,7 +1549,7 @@ def main(argv=None):
     elif args.page:
         # Single page extraction (for testing)
         p = FishingSynopsisParser()
-        PDF_PATH = os.path.join("output", "fishing_synopsis.pdf")
+        PDF_PATH = os.path.join("data", "fishing_synopsis.pdf")
 
         with pdfplumber.open(PDF_PATH) as pdf:
             page_result = p.extract_rows(

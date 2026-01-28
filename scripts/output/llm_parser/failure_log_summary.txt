@@ -1,0 +1,346 @@
+
+================================================================================
+Batch Failures 2026-01-27T14:55:06.673310
+================================================================================
+[24] BUTTLE LAKE'S TRIBUTARIES
+Error: Item 24: rule 0: scope.location_verbatim not found in any rule_text_verbatim element
+ - Item 24: rule 0: scope.location_verbatim not found in any rule_text_verbatim element
+----------------------------------------
+[39] COPPER CREEK
+Error: Item 39: Duplicate scope found: 2 rules share identical scope (type=WHOLE_SYSTEM, location=None, includes_tributaries=True). Rules [1, 2] should be merged into a single rule. All restrictions for the same exact scope must be in one rule.
+ - Item 39: Duplicate scope found: 2 rules share identical scope (type=WHOLE_SYSTEM, location=None, includes_tributaries=True). Rules [1, 2] should be merged into a single rule. All restrictions for the same exact scope must be in one rule.
+----------------------------------------
+
+================================================================================
+Batch Failures 2026-01-27T14:59:40.428107
+================================================================================
+[97] JOHN HART LAKE'S TRIBUTARIES
+Error: Item 7: rule 0: scope.location_verbatim not found in any rule_text_verbatim element
+ - Item 7: rule 0: scope.location_verbatim not found in any rule_text_verbatim element
+----------------------------------------
+[120] MAMIN RIVER
+Error: Item 30: rule 1: rule_text_verbatim[0] not found in parent regs_verbatim
+ - Item 30: rule 1: rule_text_verbatim[0] not found in parent regs_verbatim
+----------------------------------------
+[122] MARBLE ("Link") RIVER (only between Victoria and Alice lakes)
+Error: Item 32: rule 0: scope.location_verbatim not found in any rule_text_verbatim element
+ - Item 32: rule 0: scope.location_verbatim not found in any rule_text_verbatim element
+----------------------------------------
+
+================================================================================
+Batch Failures 2026-01-27T15:02:55.047772
+================================================================================
+[143] NITINAT RIVER
+Error: Item 8: rule 2: scope: landmark_verbatim 'fishing boundary signs approximately 100 m upstream of "Red Rock Pool," approximately 2 km
+(by road) south of the Nitinat River Bridge' not found in location_verbatim
+ - Item 8: rule 2: scope: landmark_verbatim 'fishing boundary signs approximately 100 m upstream of "Red Rock Pool," approximately 2 km
+(by road) south of the Nitinat River Bridge' not found in location_verbatim
+----------------------------------------
+
+================================================================================
+Batch Failures 2026-01-27T15:05:15.407090
+================================================================================
+[220] ALTA LAKE
+Error: Item 40: Duplicate scope found: 2 rules share identical scope (type=WHOLE_SYSTEM, location=None, includes_tributaries=False). Rules [0, 1] should be merged into a single rule. All restrictions for the same exact scope must be in one rule.
+ - Item 40: Duplicate scope found: 2 rules share identical scope (type=WHOLE_SYSTEM, location=None, includes_tributaries=False). Rules [0, 1] should be merged into a single rule. All restrictions for the same exact scope must be in one rule.
+----------------------------------------
+
+================================================================================
+Batch Failures 2026-01-27T15:07:45.509782
+================================================================================
+[233] BRUNETTE RIVER'S TRIBUTARIES
+Error: Item 8: rule 0: scope.location_verbatim not found in any rule_text_verbatim element
+ - Item 8: rule 0: scope.location_verbatim not found in any rule_text_verbatim element
+----------------------------------------
+[235] BURNABY LAKE'S TRIBUTARIES
+Error: Item 10: rule 0: scope.location_verbatim not found in any rule_text_verbatim element
+ - Item 10: rule 0: scope.location_verbatim not found in any rule_text_verbatim element
+----------------------------------------
+[241] CHAPMAN CREEK
+Error: Item 16: rule 1: scope: landmark_verbatim 'falls (falls are located approximately 550 m upstream of the power line crossing)' not found in location_verbatim
+ - Item 16: rule 1: scope: landmark_verbatim 'falls (falls are located approximately 550 m upstream of the power line crossing)' not found in location_verbatim
+----------------------------------------
+[246] CHEHALIS LAKE'S TRIBUTARIES
+Error: Item 21: rule 0: scope.location_verbatim not found in any rule_text_verbatim element
+ - Item 21: rule 0: scope.location_verbatim not found in any rule_text_verbatim element
+----------------------------------------
+[268] "ERROCK" ("Squakum") LAKE
+Error: Item 43: Duplicate scope found: 2 rules share identical scope (type=WHOLE_SYSTEM, location=None, includes_tributaries=False). Rules [0, 1] should be merged into a single rule. All restrictions for the same exact scope must be in one rule.
+ - Item 43: Duplicate scope found: 2 rules share identical scope (type=WHOLE_SYSTEM, location=None, includes_tributaries=False). Rules [0, 1] should be merged into a single rule. All restrictions for the same exact scope must be in one rule.
+----------------------------------------
+
+================================================================================
+Batch Failures 2026-01-27T15:09:46.724590
+================================================================================
+[273] FRASER RIVER (upstream of the CPR Bridge at Mission)
+Error: Item 3: Duplicate scope found: 2 rules share identical scope (type=WHOLE_SYSTEM, location=None, includes_tributaries=False). Rules [0, 5] should be merged into a single rule. All restrictions for the same exact scope must be in one rule.
+ - Item 3: Duplicate scope found: 2 rules share identical scope (type=WHOLE_SYSTEM, location=None, includes_tributaries=False). Rules [0, 5] should be merged into a single rule. All restrictions for the same exact scope must be in one rule.
+----------------------------------------
+[292] INLAND LAKE
+Error: Item 22: Duplicate scope found: 2 rules share identical scope (type=WHOLE_SYSTEM, location=None, includes_tributaries=True). Rules [1, 2] should be merged into a single rule. All restrictions for the same exact scope must be in one rule.
+ - Item 22: Duplicate scope found: 2 rules share identical scope (type=WHOLE_SYSTEM, location=None, includes_tributaries=True). Rules [1, 2] should be merged into a single rule. All restrictions for the same exact scope must be in one rule.
+----------------------------------------
+[314] LONZO ("Marshall") CREEK
+Error: Item 44: Duplicate scope found: 3 rules share identical scope (type=WHOLE_SYSTEM, location=None, includes_tributaries=True). Rules [0, 1, 2] should be merged into a single rule. All restrictions for the same exact scope must be in one rule.
+ - Item 44: Duplicate scope found: 3 rules share identical scope (type=WHOLE_SYSTEM, location=None, includes_tributaries=True). Rules [0, 1, 2] should be merged into a single rule. All restrictions for the same exact scope must be in one rule.
+----------------------------------------
+
+================================================================================
+Batch Failures 2026-01-27T15:16:49.964287
+================================================================================
+[435] COLDWATER RIVER'S TRIBUTARIES
+Error: Item 30: rule 0: scope.location_verbatim not found in any rule_text_verbatim element
+ - Item 30: rule 0: scope.location_verbatim not found in any rule_text_verbatim element
+----------------------------------------
+
+================================================================================
+Batch Failures 2026-01-27T15:19:09.884058
+================================================================================
+[470] HEFFLEY LAKE (parts of )
+Error: Item 20: rule 0: scope.location_verbatim not found in any rule_text_verbatim element
+ - Item 20: rule 0: scope.location_verbatim not found in any rule_text_verbatim element
+----------------------------------------
+
+================================================================================
+Batch Failures 2026-01-27T15:21:29.487203
+================================================================================
+[513] "MORGAN" LAKE
+Error: Item 18: Duplicate scope found: 2 rules share identical scope (type=WHOLE_SYSTEM, location=None, includes_tributaries=False). Rules [0, 1] should be merged into a single rule. All restrictions for the same exact scope must be in one rule.
+ - Item 18: Duplicate scope found: 2 rules share identical scope (type=WHOLE_SYSTEM, location=None, includes_tributaries=False). Rules [0, 1] should be merged into a single rule. All restrictions for the same exact scope must be in one rule.
+----------------------------------------
+
+================================================================================
+Batch Failures 2026-01-27T15:26:17.325396
+================================================================================
+[611] COLUMBIA LAKE'S TRIBUTARIES
+Error: Item 26: rule 0: scope.location_verbatim not found in any rule_text_verbatim element
+ - Item 26: rule 0: scope.location_verbatim not found in any rule_text_verbatim element
+----------------------------------------
+[614] CONNOR LAKE'S TRIBUTARIES
+Error: Item 29: rule 0: scope.location_verbatim not found in any rule_text_verbatim element
+ - Item 29: rule 0: scope.location_verbatim not found in any rule_text_verbatim element
+----------------------------------------
+[624] DUNCAN LAKE'S TRIBUTARIES
+Error: Item 39: rule 0: scope.location_verbatim not found in any rule_text_verbatim element
+ - Item 39: rule 0: scope.location_verbatim not found in any rule_text_verbatim element
+----------------------------------------
+[625] DUNCAN RIVER
+Error: Item 40: rule 0: rule_text_verbatim[0] not found in parent regs_verbatim; Item 40: rule 1: rule_text_verbatim[0] not found in parent regs_verbatim
+ - Item 40: rule 0: rule_text_verbatim[0] not found in parent regs_verbatim; Item 40: rule 1: rule_text_verbatim[0] not found in parent regs_verbatim
+----------------------------------------
+
+================================================================================
+Batch Failures 2026-01-27T15:28:46.170822
+================================================================================
+[637] FLATHEAD RIVER'S TRIBUTARIES
+Error: Item 7: rule 0: scope.location_verbatim not found in any rule_text_verbatim element
+ - Item 7: rule 0: scope.location_verbatim not found in any rule_text_verbatim element
+----------------------------------------
+[638] FORDING RIVER (downstream of Josephine Falls)
+Error: Item 8: rule 0: scope.location_verbatim not found in any rule_text_verbatim element
+ - Item 8: rule 0: scope.location_verbatim not found in any rule_text_verbatim element
+----------------------------------------
+[639] FORDING RIVER (upstream of Josephine Falls)
+Error: Item 9: rule 0: scope.location_verbatim not found in any rule_text_verbatim element
+ - Item 9: rule 0: scope.location_verbatim not found in any rule_text_verbatim element
+----------------------------------------
+[663] KIKOMUN CREEK PARK (all lakes in the park)
+Error: Item 33: rule 0: scope.location_verbatim not found in any rule_text_verbatim element
+ - Item 33: rule 0: scope.location_verbatim not found in any rule_text_verbatim element
+----------------------------------------
+[665] KINBASKET (McNaughton) LAKE'S TRIBUTARIES
+Error: Item 35: rule 0: scope.location_verbatim not found in any rule_text_verbatim element
+ - Item 35: rule 0: scope.location_verbatim not found in any rule_text_verbatim element
+----------------------------------------
+[670] KOOTENAY LAKE - MAIN BODY (for location see map on page 34)
+Error: Item 40: rule 0: scope.location_verbatim not found in any rule_text_verbatim element
+ - Item 40: rule 0: scope.location_verbatim not found in any rule_text_verbatim element
+----------------------------------------
+[673] KOOTENAY LAKE'S TRIBUTARIES
+Error: Item 43: rule 0: scope.location_verbatim not found in any rule_text_verbatim element
+ - Item 43: rule 0: scope.location_verbatim not found in any rule_text_verbatim element
+----------------------------------------
+
+================================================================================
+Batch Failures 2026-01-27T15:31:25.728084
+================================================================================
+[713] MOYIE RIVER
+Error: Item 38: Duplicate scope found: 2 rules share identical scope (type=WHOLE_SYSTEM, location=None, includes_tributaries=True). Rules [0, 2] should be merged into a single rule. All restrictions for the same exact scope must be in one rule.
+ - Item 38: Duplicate scope found: 2 rules share identical scope (type=WHOLE_SYSTEM, location=None, includes_tributaries=True). Rules [0, 2] should be merged into a single rule. All restrictions for the same exact scope must be in one rule.
+----------------------------------------
+
+================================================================================
+Batch Failures 2026-01-27T15:33:40.051414
+================================================================================
+[726] PEND D'OREILLE RIVER'S TRIBUTARIES (except Salmo River)
+Error: Item 6: rule 0: scope.location_verbatim not found in any rule_text_verbatim element
+ - Item 6: rule 0: scope.location_verbatim not found in any rule_text_verbatim element
+----------------------------------------
+[731] PREMIER LAKE'S TRIBUTARIES
+Error: Item 11: rule 0: scope.location_verbatim not found in any rule_text_verbatim element
+ - Item 11: rule 0: scope.location_verbatim not found in any rule_text_verbatim element
+----------------------------------------
+[734] REVELSTOKE LAKE'S TRIBUTARIES
+Error: Item 14: rule 0: scope.location_verbatim not found in any rule_text_verbatim element
+ - Item 14: rule 0: scope.location_verbatim not found in any rule_text_verbatim element
+----------------------------------------
+[742] SALMO RIVER'S TRIBUTARIES
+Error: Item 22: rule 0: scope.location_verbatim not found in any rule_text_verbatim element
+ - Item 22: rule 0: scope.location_verbatim not found in any rule_text_verbatim element
+----------------------------------------
+[747] SEVEN MILE RESERVOIR'S TRIBUTARIES
+Error: Item 27: rule 0: scope.location_verbatim not found in any rule_text_verbatim element
+ - Item 27: rule 0: scope.location_verbatim not found in any rule_text_verbatim element
+----------------------------------------
+[754] SLOCAN LAKE'S TRIBUTARIES
+Error: Item 34: rule 0: scope.location_verbatim not found in any rule_text_verbatim element
+ - Item 34: rule 0: scope.location_verbatim not found in any rule_text_verbatim element
+----------------------------------------
+[755] SLOCAN RIVER
+Error: Item 35: Duplicate scope found: 3 rules share identical scope (type=WHOLE_SYSTEM, location=None, includes_tributaries=True). Rules [0, 1, 2] should be merged into a single rule. All restrictions for the same exact scope must be in one rule.
+ - Item 35: Duplicate scope found: 3 rules share identical scope (type=WHOLE_SYSTEM, location=None, includes_tributaries=True). Rules [0, 1, 2] should be merged into a single rule. All restrictions for the same exact scope must be in one rule.
+----------------------------------------
+
+================================================================================
+Batch Failures 2026-01-27T15:36:06.363991
+================================================================================
+[785] WHITESWAN LAKE'S INLET & OUTLET STREAMS
+Error: Item 20: rule 1: scope.location_verbatim not found in any rule_text_verbatim element
+ - Item 20: rule 1: scope.location_verbatim not found in any rule_text_verbatim element
+----------------------------------------
+[803] ATNARKO/BELLA COOLA RIVERS EXCEPT: Burnt Bridge Creek upstream of Sitkatapa Creek, Hunlen Creek upstream of Hunlen Falls, and Young Creek upstream of Hwy 20 (see separate entries for these three waters)
+Error: Item 38: Duplicate scope found: 2 rules share identical scope (type=WHOLE_SYSTEM, location=None, includes_tributaries=True). Rules [2, 8] should be merged into a single rule. All restrictions for the same exact scope must be in one rule.
+ - Item 38: Duplicate scope found: 2 rules share identical scope (type=WHOLE_SYSTEM, location=None, includes_tributaries=True). Rules [2, 8] should be merged into a single rule. All restrictions for the same exact scope must be in one rule.
+----------------------------------------
+
+================================================================================
+Batch Failures 2026-01-27T15:38:48.078759
+================================================================================
+[849] DEAN RIVER
+Error: Item 39: Duplicate scope found: 2 rules share identical scope (type=WHOLE_SYSTEM, location=None, includes_tributaries=False). Rules [6, 9] should be merged into a single rule. All restrictions for the same exact scope must be in one rule.
+ - Item 39: Duplicate scope found: 2 rules share identical scope (type=WHOLE_SYSTEM, location=None, includes_tributaries=False). Rules [6, 9] should be merged into a single rule. All restrictions for the same exact scope must be in one rule.
+----------------------------------------
+
+================================================================================
+Batch Failures 2026-01-27T15:46:04.548128
+================================================================================
+[945] SIMON LAKE
+Error: Item 0: Duplicate scope found: 2 rules share identical scope (type=WHOLE_SYSTEM, location=None, includes_tributaries=False). Rules [0, 1] should be merged into a single rule. All restrictions for the same exact scope must be in one rule.
+ - Item 0: Duplicate scope found: 2 rules share identical scope (type=WHOLE_SYSTEM, location=None, includes_tributaries=False). Rules [0, 1] should be merged into a single rule. All restrictions for the same exact scope must be in one rule.
+----------------------------------------
+[958] TANYA LAKE'S TRIBUTARIES
+Error: Item 13: rule 0: scope.location_verbatim not found in any rule_text_verbatim element
+ - Item 13: rule 0: scope.location_verbatim not found in any rule_text_verbatim element
+----------------------------------------
+[960] TEEPEE LAKE (adjacent to West Road River)
+Error: Item 15: Duplicate scope found: 2 rules share identical scope (type=WHOLE_SYSTEM, location=None, includes_tributaries=False). Rules [0, 1] should be merged into a single rule. All restrictions for the same exact scope must be in one rule.
+ - Item 15: Duplicate scope found: 2 rules share identical scope (type=WHOLE_SYSTEM, location=None, includes_tributaries=False). Rules [0, 1] should be merged into a single rule. All restrictions for the same exact scope must be in one rule.
+----------------------------------------
+[961] TILGATGO LAKE
+Error: Item 16: Duplicate scope found: 2 rules share identical scope (type=WHOLE_SYSTEM, location=None, includes_tributaries=False). Rules [0, 1] should be merged into a single rule. All restrictions for the same exact scope must be in one rule.
+ - Item 16: Duplicate scope found: 2 rules share identical scope (type=WHOLE_SYSTEM, location=None, includes_tributaries=False). Rules [0, 1] should be merged into a single rule. All restrictions for the same exact scope must be in one rule.
+----------------------------------------
+[967] VALENTINE LAKE
+Error: Item 22: Duplicate scope found: 4 rules share identical scope (type=WHOLE_SYSTEM, location=None, includes_tributaries=False). Rules [0, 1, 2, 3] should be merged into a single rule. All restrictions for the same exact scope must be in one rule.
+ - Item 22: Duplicate scope found: 4 rules share identical scope (type=WHOLE_SYSTEM, location=None, includes_tributaries=False). Rules [0, 1, 2, 3] should be merged into a single rule. All restrictions for the same exact scope must be in one rule.
+----------------------------------------
+[972] WEST KING LAKE
+Error: Item 27: Duplicate scope found: 3 rules share identical scope (type=WHOLE_SYSTEM, location=None, includes_tributaries=False). Rules [0, 1, 2] should be merged into a single rule. All restrictions for the same exact scope must be in one rule.
+ - Item 27: Duplicate scope found: 3 rules share identical scope (type=WHOLE_SYSTEM, location=None, includes_tributaries=False). Rules [0, 1, 2] should be merged into a single rule. All restrictions for the same exact scope must be in one rule.
+----------------------------------------
+[973] WEST ROAD ("Blackwater") RIVER
+Error: Item 28: Duplicate scope found: 3 rules share identical scope (type=WHOLE_SYSTEM, location=None, includes_tributaries=False). Rules [1, 2, 3] should be merged into a single rule. All restrictions for the same exact scope must be in one rule.
+ - Item 28: Duplicate scope found: 3 rules share identical scope (type=WHOLE_SYSTEM, location=None, includes_tributaries=False). Rules [1, 2, 3] should be merged into a single rule. All restrictions for the same exact scope must be in one rule.
+----------------------------------------
+[975] "WHALE" LAKE (Gustafsen Lake area)
+Error: Item 30: Duplicate scope found: 2 rules share identical scope (type=WHOLE_SYSTEM, location=None, includes_tributaries=False). Rules [0, 1] should be merged into a single rule. All restrictions for the same exact scope must be in one rule.
+ - Item 30: Duplicate scope found: 2 rules share identical scope (type=WHOLE_SYSTEM, location=None, includes_tributaries=False). Rules [0, 1] should be merged into a single rule. All restrictions for the same exact scope must be in one rule.
+----------------------------------------
+[981] YOUNG CREEK (upstream of Hwy 20)
+Error: Item 36: Duplicate scope found: 2 rules share identical scope (type=WHOLE_SYSTEM, location=None, includes_tributaries=True). Rules [0, 1] should be merged into a single rule. All restrictions for the same exact scope must be in one rule.
+ - Item 36: Duplicate scope found: 2 rules share identical scope (type=WHOLE_SYSTEM, location=None, includes_tributaries=True). Rules [0, 1] should be merged into a single rule. All restrictions for the same exact scope must be in one rule.
+----------------------------------------
+[985] BABINE RIVER
+Error: Item 40: rule 1: rule_text_verbatim[0] not found in parent regs_verbatim; Item 40: rule 4: rule_text_verbatim[0] not found in parent regs_verbatim
+ - Item 40: rule 1: rule_text_verbatim[0] not found in parent regs_verbatim; Item 40: rule 4: rule_text_verbatim[0] not found in parent regs_verbatim
+----------------------------------------
+[989] BENNETT LAKE
+Error: Item 44: Duplicate scope found: 2 rules share identical scope (type=WHOLE_SYSTEM, location=None, includes_tributaries=False). Rules [0, 1] should be merged into a single rule. All restrictions for the same exact scope must be in one rule.
+ - Item 44: Duplicate scope found: 2 rules share identical scope (type=WHOLE_SYSTEM, location=None, includes_tributaries=False). Rules [0, 1] should be merged into a single rule. All restrictions for the same exact scope must be in one rule.
+----------------------------------------
+
+================================================================================
+Batch Failures 2026-01-27T15:48:17.101115
+================================================================================
+[994] BULKLEY RIVER
+Error: Item 4: rule 1: rule_text_verbatim[0] not found in parent regs_verbatim; Item 4: rule 5: scope: landmark_verbatim 'Moricetown Canyon' not found in location_verbatim; Item 4: Duplicate scope found: 3 rules share identical scope (type=WHOLE_SYSTEM, location=None, includes_tributaries=True). Rules [0, 2, 6] should be merged into a single rule. All restrictions for the same exact scope must be in one rule.
+ - Item 4: rule 1: rule_text_verbatim[0] not found in parent regs_verbatim; Item 4: rule 5: scope: landmark_verbatim 'Moricetown Canyon' not found in location_verbatim; Item 4: Duplicate scope found: 3 rules share identical scope (type=WHOLE_SYSTEM, location=None, includes_tributaries=True). Rules [0, 2, 6] should be merged into a single rule. All restrictions for the same exact scope must be in one rule.
+----------------------------------------
+[1029] KISPIOX RIVER
+Error: Item 39: Duplicate scope found: 2 rules share identical scope (type=WHOLE_SYSTEM, location=None, includes_tributaries=True). Rules [0, 1] should be merged into a single rule. All restrictions for the same exact scope must be in one rule.
+ - Item 39: Duplicate scope found: 2 rules share identical scope (type=WHOLE_SYSTEM, location=None, includes_tributaries=True). Rules [0, 1] should be merged into a single rule. All restrictions for the same exact scope must be in one rule.
+----------------------------------------
+[1032] KITSEGUECLA RIVER
+Error: Item 42: Duplicate scope found: 2 rules share identical scope (type=WHOLE_SYSTEM, location=None, includes_tributaries=False). Rules [0, 1] should be merged into a single rule. All restrictions for the same exact scope must be in one rule.
+ - Item 42: Duplicate scope found: 2 rules share identical scope (type=WHOLE_SYSTEM, location=None, includes_tributaries=False). Rules [0, 1] should be merged into a single rule. All restrictions for the same exact scope must be in one rule.
+----------------------------------------
+[1033] KITSUMKALUM (Kalum) RIVER
+Error: Item 43: rule 1: rule_text_verbatim[0] not found in parent regs_verbatim; Item 43: rule 2: rule_text_verbatim[0] not found in parent regs_verbatim; Item 43: Duplicate scope found: 2 rules share identical scope (type=WHOLE_SYSTEM, location=None, includes_tributaries=True). Rules [2, 3] should be merged into a single rule. All restrictions for the same exact scope must be in one rule.
+ - Item 43: rule 1: rule_text_verbatim[0] not found in parent regs_verbatim; Item 43: rule 2: rule_text_verbatim[0] not found in parent regs_verbatim; Item 43: Duplicate scope found: 2 rules share identical scope (type=WHOLE_SYSTEM, location=None, includes_tributaries=True). Rules [2, 3] should be merged into a single rule. All restrictions for the same exact scope must be in one rule.
+----------------------------------------
+[1034] KITWANGA RIVER
+Error: Item 44: Duplicate scope found: 2 rules share identical scope (type=WHOLE_SYSTEM, location=None, includes_tributaries=True). Rules [0, 1] should be merged into a single rule. All restrictions for the same exact scope must be in one rule.
+ - Item 44: Duplicate scope found: 2 rules share identical scope (type=WHOLE_SYSTEM, location=None, includes_tributaries=True). Rules [0, 1] should be merged into a single rule. All restrictions for the same exact scope must be in one rule.
+----------------------------------------
+
+================================================================================
+Batch Failures 2026-01-27T15:50:37.732500
+================================================================================
+[1056] MORICE RIVER
+Error: Item 21: rule 1: rule_text_verbatim[0] not found in parent regs_verbatim
+ - Item 21: rule 1: rule_text_verbatim[0] not found in parent regs_verbatim
+----------------------------------------
+[1058] MURRAY LAKE
+Error: Item 23: Duplicate scope found: 2 rules share identical scope (type=WHOLE_SYSTEM, location=None, includes_tributaries=False). Rules [0, 1] should be merged into a single rule. All restrictions for the same exact scope must be in one rule.
+ - Item 23: Duplicate scope found: 2 rules share identical scope (type=WHOLE_SYSTEM, location=None, includes_tributaries=False). Rules [0, 1] should be merged into a single rule. All restrictions for the same exact scope must be in one rule.
+----------------------------------------
+
+================================================================================
+Batch Failures 2026-01-27T15:53:16.459675
+================================================================================
+[1081] SKEENA RIVER (mainstem only)
+Error: Item 1: rule 1: rule_text_verbatim[0] not found in parent regs_verbatim; Item 1: rule 3: rule_text_verbatim[0] not found in parent regs_verbatim
+ - Item 1: rule 1: rule_text_verbatim[0] not found in parent regs_verbatim; Item 1: rule 3: rule_text_verbatim[0] not found in parent regs_verbatim
+----------------------------------------
+[1084] STELLAKO RIVER
+Error: Item 4: Duplicate scope found: 2 rules share identical scope (type=WHOLE_SYSTEM, location=None, includes_tributaries=False). Rules [1, 4] should be merged into a single rule. All restrictions for the same exact scope must be in one rule.
+ - Item 4: Duplicate scope found: 2 rules share identical scope (type=WHOLE_SYSTEM, location=None, includes_tributaries=False). Rules [1, 4] should be merged into a single rule. All restrictions for the same exact scope must be in one rule.
+----------------------------------------
+[1103] WEST ROAD ("Blackwater") RIVER'S TRIBUTARIES
+Error: Item 23: Duplicate scope found: 2 rules share identical scope (type=WHOLE_SYSTEM, location=None, includes_tributaries=True). Rules [0, 1] should be merged into a single rule. All restrictions for the same exact scope must be in one rule.
+ - Item 23: Duplicate scope found: 2 rules share identical scope (type=WHOLE_SYSTEM, location=None, includes_tributaries=True). Rules [0, 1] should be merged into a single rule. All restrictions for the same exact scope must be in one rule.
+----------------------------------------
+
+================================================================================
+Batch Failures 2026-01-27T15:59:56.160718
+================================================================================
+[1220] WEST ROAD ("Blackwater") RIVER'S TRIBUTARIES
+Error: Item 5: rule 0: scope.location_verbatim not found in any rule_text_verbatim element
+ - Item 5: rule 0: scope.location_verbatim not found in any rule_text_verbatim element
+----------------------------------------
+[1223] WILLISTON LAKE (in Zone A) (includes waters 500 m east/upstream of the Causeway Road)
+Error: Item 8: Duplicate scope found: 3 rules share identical scope (type=WHOLE_SYSTEM, location=None, includes_tributaries=False). Rules [0, 2, 4] should be merged into a single rule. All restrictions for the same exact scope must be in one rule.
+ - Item 8: Duplicate scope found: 3 rules share identical scope (type=WHOLE_SYSTEM, location=None, includes_tributaries=False). Rules [0, 2, 4] should be merged into a single rule. All restrictions for the same exact scope must be in one rule.
+----------------------------------------
+
+================================================================================
+Batch Failures 2026-01-27T16:04:52.280625
+================================================================================
+[1316] GRANBY RIVER'S TRIBUTARIES
+Error: Item 11: rule 0: scope.location_verbatim not found in any rule_text_verbatim element
+ - Item 11: rule 0: scope.location_verbatim not found in any rule_text_verbatim element
+----------------------------------------
+[1332] KETTLE RIVER'S TRIBUTARIES
+Error: Item 27: rule 0: scope.location_verbatim not found in any rule_text_verbatim element
+ - Item 27: rule 0: scope.location_verbatim not found in any rule_text_verbatim element
+----------------------------------------

@@ -1,27 +1,30 @@
 """
-BC Freshwater Fishing Regulations - Synopsis Pipeline
-
-Shared modules for the fishing regulations processing pipeline.
+Synopsis Pipeline Package
 """
 
 from .models import (
     WaterbodyRow,
-    PageMetadata,
-    PageResult,
     ExtractionResults,
-    ParsedRule,
-    ParsedGeographicGroup,
     ParsedWaterbody,
     SessionState,
+    ScopeObject,
+    RestrictionObject,
+    IdentityObject,
+    RuleGroup,
 )
+
+# NOTE: parse_synopsis is not imported here to avoid circular imports
+# when running as a main module with python -m synopsis_pipeline.parse_synopsis
 
 __all__ = [
     "WaterbodyRow",
-    "PageMetadata",
-    "PageResult",
     "ExtractionResults",
-    "ParsedRule",
-    "ParsedGeographicGroup",
     "ParsedWaterbody",
     "SessionState",
+    "ScopeObject",
+    "RestrictionObject",
+    "IdentityObject",
+    "RuleGroup",
+    "BatchProcessor",
+    "SessionManager",
 ]

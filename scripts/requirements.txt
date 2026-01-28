@@ -27,6 +27,7 @@ attrs
 
 # Configuration
 pyyaml
+python-dotenv
 
 # AI/LLM API
 google-genai

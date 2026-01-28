@@ -1,0 +1,2401 @@
+================================================================================
+PARSING SESSION COMPARISON REPORT
+Enhanced Analysis: Identity, Scopes, Restrictions, Audit Logs, Rule Text
+Generated: 2026-01-27 17:57:53
+================================================================================
+
+SESSION OVERVIEW:
+----------------------------------------
+2026-01-27_132847_session:
+  Total items: 1395
+  Successful: 1366
+  Failed: 29
+  Success rate: 97.9%
+
+2026-01-27_145249_session:
+  Total items: 1395
+  Successful: 1337
+  Failed: 58
+  Success rate: 95.8%
+
+ITEMS PRESENT IN MULTIPLE SESSIONS: 1263
+Total unique items across all sessions: 1332
+
+IDENTITY CHANGE ANALYSIS:
+----------------------------------------
+Waterbody key changes: 62
+Global scope changes: 22
+Exclusion changes: 6
+
+WATERBODY KEY CHANGES:
+--------------------------------------------------
+CLEAR LAKE (Quadra Island) (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Before: CLEAR LAKE
+  After:  CLEAR LAKE (Quadra Island)
+LAKE WESTON ("Weston Lake") (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Before: LAKE WESTON
+  After:  LAKE WESTON ("Weston Lake")
+LITTLE MAIN LAKE (Quadra Island) (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Before: LITTLE MAIN LAKE
+  After:  LITTLE MAIN LAKE (Quadra Island)
+LONG LAKE (Nanaimo) (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Before: LONG LAKE
+  After:  LONG LAKE (Nanaimo)
+"MAXWELL LAKE" (Lake Maxwell) (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Before: MAXWELL LAKE
+  After:  "MAXWELL LAKE" (Lake Maxwell)
+ROSEN LAKE (Read Island) (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Before: ROSEN LAKE
+  After:  ROSEN LAKE (Read Island)
+LIGHTNING LAKE (Manning Park) (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Before: LIGHTNING LAKE
+  After:  LIGHTNING LAKE (Manning Park)
+LITTLE CAMPBELL RIVER (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Before: CAMPBELL RIVER
+  After:  LITTLE CAMPBELL RIVER
+LOST LAKE (near Whistler) (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Before: LOST LAKE
+  After:  LOST LAKE (near Whistler)
+MILL LAKE (Abbotsford) (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Before: MILL LAKE
+  After:  MILL LAKE (Abbotsford)
+RICE LAKE (North Vancouver) (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Before: RICE LAKE
+  After:  RICE LAKE (North Vancouver)
+SUMALLO RIVER (includes "Cedar" Lake, at Sunshine Valley) (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Before: SUMALLO RIVER
+  After:  SUMALLO RIVER (includes "Cedar" Lake, at Sunshine Valley)
+TROUT LAKE (Sasquatch Park) (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Before: TROUT LAKE
+  After:  TROUT LAKE (Sasquatch Park)
+TROUT LAKE (Sechelt) (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Before: TROUT LAKE
+  After:  TROUT LAKE (Sechelt)
+DOWNTON LAKE (Reservoir) (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Before: DOWNTON LAKE
+  After:  DOWNTON LAKE (Reservoir)
+LOST LAKE (near Taweel Lake) (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Before: LOST LAKE
+  After:  LOST LAKE (near Taweel Lake)
+MACHETE LAKE (including that portion known as "Bear"Lake) (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Before: MACHETE LAKE
+  After:  MACHETE LAKE (including that portion known as "Bear"Lake)
+NAHATLATCH LAKE (east and west) (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Before: NAHATLATCH LAKE
+  After:  NAHATLATCH LAKE (east and west)
+TROUT CREEK (Wells Gray Park) (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Before: TROUT CREEK
+  After:  TROUT CREEK (Wells Gray Park)
+COLUMBIA LAKE'S TRIBUTARIES (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Before: COLUMBIA LAKE'S TRIBUTARIES
+  After:  COLUMBIA LAKE
+CONNOR LAKE'S TRIBUTARIES (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Before: CONNOR LAKE'S TRIBUTARIES
+  After:  CONNOR LAKE
+CRESTON VALLEY WILDLIFE MANAGEMENT AREA (CVWMA) WATERS (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Before: CRESTON VALLEY WILDLIFE MANAGEMENT AREA
+  After:  CRESTON VALLEY WILDLIFE MANAGEMENT AREA (CVWMA) WATERS
+DUNCAN LAKE'S TRIBUTARIES (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Before: DUNCAN LAKE'S TRIBUTARIES
+  After:  DUNCAN LAKE
+ELK RIVER'S TRIBUTARIES (see exceptions) (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Before: ELK RIVER'S TRIBUTARIES
+  After:  ELK RIVER
+FLATHEAD RIVER'S TRIBUTARIES (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Before: FLATHEAD RIVER'S TRIBUTARIES
+  After:  FLATHEAD RIVER
+KOOTENAY LAKE'S TRIBUTARIES (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Before: KOOTENAY LAKE'S TRIBUTARIES
+  After:  KOOTENAY LAKE
+LAKE REVELSTOKE'S TRIBUTARIES (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Before: LAKE REVELSTOKE'S TRIBUTARIES
+  After:  LAKE REVELSTOKE
+"LITTLE MITTEN" LAKE (approx. 400 m west of Mitten Lake) (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Before: "LITTLE MITTEN" LAKE
+  After:  "LITTLE MITTEN" LAKE (approx. 400 m west of Mitten Lake)
+LITTLE SLOCAN LAKE'S TRIBUTARIES (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Before: LITTLE SLOCAN LAKE'S TRIBUTARIES
+  After:  LITTLE SLOCAN LAKE
+LOWER ARROW LAKE'S TRIBUTARIES (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Before: LOWER ARROW LAKE'S TRIBUTARIES
+  After:  LOWER ARROW LAKE
+BIG LAKE (approx. 10 km west of 100 Mile House) (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Before: BIG LAKE
+  After:  BIG LAKE (approx. 10 km west of 100 Mile House)
+BIG LAKE (approx. 30 km west of Likely) (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Before: BIG LAKE
+  After:  BIG LAKE (approx. 30 km west of Likely)
+BLUE LAKE (near Alexandria) (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Before: BLUE LAKE
+  After:  BLUE LAKE (near Alexandria)
+BLUE LAKE (Soda Creek area) (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Before: BLUE LAKE
+  After:  BLUE LAKE (Soda Creek area)
+BOAR LAKE (Dog Creek drainage) (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Before: BOAR LAKE
+  After:  BOAR LAKE (Dog Creek drainage)
+CHRISTOPHER LAKE (Canim Lake area) (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Before: CHRISTOPHER LAKE
+  After:  CHRISTOPHER LAKE (Canim Lake area)
+COOK LAKE (Solomon Lake area) (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Before: COOK LAKE
+  After:  COOK LAKE (Solomon Lake area)
+SNEEZIE LAKE (near Timothy Lake) (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Before: SNEEZIE LAKE
+  After:  SNEEZIE LAKE (near Timothy Lake)
+TEEPEE LAKE (adjacent to West Road River) (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Before: TEEPEE LAKE
+  After:  TEEPEE LAKE (adjacent to West Road River)
+WHALE LAKE (Canim Lake area) (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Before: WHALE LAKE
+  After:  WHALE LAKE (Canim Lake area)
+WOLF LAKE (situated approx. 2.3 km northeast of Lorin Lake) (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Before: WOLF LAKE
+  After:  WOLF LAKE (situated approx. 2.3 km northeast of Lorin Lake)
+BEAR RIVER (Sustut Watershed) (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Before: BEAR RIVER
+  After:  BEAR RIVER (Sustut Watershed)
+DUNALTER LAKE (Irrigation Lake) (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Before: DUNALTER LAKE
+  After:  DUNALTER LAKE (Irrigation Lake)
+HAYS CREEK (in Prince Rupert) (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Before: HAYS CREEK
+  After:  HAYS CREEK (in Prince Rupert)
+KSI HLGINX RIVER (formerly Ishkheenickh River) (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Before: KSI HLGINX RIVER
+  After:  KSI HLGINX RIVER (formerly Ishkheenickh River)
+KSI SGASGINIST CREEK (formerly Seaskinnish Creek) (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Before: KSI SGASGINIST CREEK
+  After:  KSI SGASGINIST CREEK (formerly Seaskinnish Creek)
+KSI SII AKS RIVER (formerly Tseax River) (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Before: KSI SII AKS RIVER
+  After:  KSI SII AKS RIVER (formerly Tseax River)
+KSI X'ANMAS RIVER (formerly Kwinamass River) (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Before: KSI X'ANMAS RIVER
+  After:  KSI X'ANMAS RIVER (formerly Kwinamass River)
+SKEENA RIVER/KISPIOX RIVER CONFLUENCE (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Before: SKEENA RIVER/KISPIOX RIVER
+  After:  SKEENA RIVER/KISPIOX RIVER CONFLUENCE
+TATSATUA CREEK (formerly known as Tatsamenie Lake's outlet s... (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Before: TATSATUA CREEK
+  After:  TATSATUA CREEK (formerly known as Tatsamenie Lake's outlet streams)
+BEAR LAKE (Crooked River Provincial Park) (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Before: BEAR LAKE
+  After:  BEAR LAKE (Crooked River Provincial Park)
+HART LAKE (Crooked River Provincial Park) (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Before: HART LAKE
+  After:  HART LAKE (Crooked River Provincial Park)
+HART LAKE (Fort St. James) (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Before: HART LAKE
+  After:  HART LAKE (Fort St. James)
+NALTESBY LAKE (Bobtail Lake) (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Before: NALTESBY LAKE
+  After:  NALTESBY LAKE (Bobtail Lake)
+NATION ARM (Williston Lake) (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Before: NATION ARM
+  After:  NATION ARM (Williston Lake)
+SQUARE LAKE (located in Crooked River Provincial Park) (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Before: SQUARE LAKE
+  After:  SQUARE LAKE (located in Crooked River Provincial Park)
+UNNAMED LAKE ("Kinglet Lake") located 100 m west of Butterfl... (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Before: Kinglet Lake
+  After:  UNNAMED LAKE ("Kinglet Lake")
+UNNAMED LAKE ("Redstart Lake") located approx. 200 m southwe... (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Before: Redstart Lake
+  After:  UNNAMED LAKE ("Redstart Lake")
+BIGHORN RESERVOIR (Lakeview Irrigation District) (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Before: BIGHORN RESERVOIR
+  After:  BIGHORN RESERVOIR (Lakeview Irrigation District)
+BUTLER LAKE (east of Allison Lake) (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Before: BUTLER LAKE
+  After:  BUTLER LAKE (east of Allison Lake)
+FIVE O'CLOCK LAKE (approx. 800 m southeast of Cup Lake) (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Before: FIVE O'CLOCK LAKE
+  After:  FIVE O'CLOCK LAKE (approx. 800 m southeast of Cup Lake)
+LARRY LAKE (unnamed lake located about 400 m west of Thalia ... (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Before: LARRY LAKE
+  After:  LARRY LAKE (unnamed lake located about 400 m west of Thalia Lake)
+
+GLOBAL SCOPE CHANGES (22 items):
+--------------------------------------------------
+MARBLE ("Link") RIVER (only between Victoria and Alice lakes... (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Before: SEGMENT - between Victoria and Alice lakes
+  After:  SEGMENT - only between Victoria and Alice lakes
+OYSTER RIVER (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Before: WHOLE_SYSTEM - None
+  After:  WHOLE_SYSTEM - None
+ROSS LAKE (Boundary between Ross Lake and Skagit River is ma... (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Before: WHOLE_SYSTEM - Boundary between Ross Lake and Skagit River is market by signs
+  After:  WHOLE_SYSTEM - None
+ADAMS RIVER (upstream of Adams Lake) (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Before: WHOLE_SYSTEM - None
+  After:  DIRECTIONAL - upstream of Adams Lake
+KIKOMUN CREEK PARK (all lakes in the park) (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Before: WHOLE_SYSTEM - all lakes in the park
+  After:  WHOLE_SYSTEM - all lakes in the park
+KOOTENAY LAKE, ALL PARTS (Main Body, Upper West Arm and Lowe... (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Before: WHOLE_SYSTEM - None
+  After:  WHOLE_SYSTEM - ALL PARTS (Main Body, Upper West Arm and Lower West Arm)
+KOOTENAY LAKE - MAIN BODY (for location see map on page 34) (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Before: NAMED_PART - MAIN BODY
+  After:  NAMED_PART - MAIN BODY
+KOOTENAY LAKE - UPPER WEST ARM (for location see map on page... (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Before: NAMED_PART - UPPER WEST ARM
+  After:  NAMED_PART - UPPER WEST ARM
+KOOTENAY LAKE - LOWER WEST ARM (for location see map on page... (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Before: NAMED_PART - LOWER WEST ARM
+  After:  NAMED_PART - LOWER WEST ARM
+KOOTENAY RIVER (upstream of Koocanusa Reservoir) (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Before: WHOLE_SYSTEM - upstream of Koocanusa Reservoir
+  After:  DIRECTIONAL - upstream of Koocanusa Reservoir
+LAKE REVELSTOKE'S TRIBUTARIES (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Before: TRIBUTARIES_ONLY - None
+  After:  TRIBUTARIES_ONLY - LAKE REVELSTOKE'S TRIBUTARIES
+LITTLE SLOCAN LAKE'S TRIBUTARIES (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Before: TRIBUTARIES_ONLY - None
+  After:  TRIBUTARIES_ONLY - LITTLE SLOCAN LAKE'S TRIBUTARIES
+LODGEPOLE CREEK (downstream of falls near the km 26 post on ... (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Before: WHOLE_SYSTEM - downstream of falls near the km 26 post on Lodgepole Road
+  After:  DIRECTIONAL - downstream of falls near the km 26 post on Lodgepole Road
+LODGEPOLE CREEK (upstream of falls) (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Before: WHOLE_SYSTEM - upstream of falls
+  After:  DIRECTIONAL - upstream of falls
+LOWER ARROW LAKE'S TRIBUTARIES (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Before: TRIBUTARIES_ONLY - None
+  After:  TRIBUTARIES_ONLY - LOWER ARROW LAKE'S TRIBUTARIES
+MICHEL CREEK (upstream of the easternmost Hwy 3 bridge) (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Before: WHOLE_SYSTEM - upstream of the easternmost Hwy 3 bridge
+  After:  DIRECTIONAL - upstream of the easternmost Hwy 3 bridge
+MICHEL CREEK (downstream of the easternmost Hwy 3 bridge) (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Before: WHOLE_SYSTEM - downstream of the easternmost Hwy 3 bridge
+  After:  DIRECTIONAL - downstream of the easternmost Hwy 3 bridge
+UPPER ARROW LAKE (drawdown area) (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Before: WHOLE_SYSTEM - None
+  After:  NAMED_PART - (drawdown area)
+"SEELEY" CREEK (outlet of Seeley Lake) (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Before: WHOLE_SYSTEM - None
+  After:  WHOLE_SYSTEM - outlet of Seeley Lake
+MORFEE LAKE (south) (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Before: WHOLE_SYSTEM - None
+  After:  NAMED_PART - MORFEE LAKE (south)
+LIARD RIVER WATERSHED (see map on page 63) (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Before: WHOLE_SYSTEM - None
+  After:  WHOLE_SYSTEM - None
+SHANNON LAKE (netted off portion on the south end of the lak... (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Before: NAMED_PART - netted off portion on the south end of the lake
+  After:  WHOLE_SYSTEM - None
+
+EXCLUSION CHANGES (6 items):
+--------------------------------------------------
+STRATHCONA PARK WATERS (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Exclusion count: 3 -> 0
+  Before:
+    1. WHOLE_SYSTEM - Gold
+    2. WHOLE_SYSTEM - Upper Campbell
+    3. WHOLE_SYSTEM - Buttle lakes
+SQUAMISH RIVER'S TRIBUTARIES (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Exclusion count: 5 -> 0
+  Before:
+    1. WHOLE_SYSTEM - Ashlu Creek
+    2. WHOLE_SYSTEM - Cheakamus
+    3. WHOLE_SYSTEM - Elaho
+    4. WHOLE_SYSTEM - Mamquam Rivers
+    5. WHOLE_SYSTEM - Squamish Powerhouse Channel
+COLUMBIA LAKE'S TRIBUTARIES (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Exclusion count: 1 -> 0
+  Before:
+    1. WHOLE_SYSTEM - Dutch Creek
+CRESTON VALLEY WILDLIFE MANAGEMENT AREA (CVWMA) WATERS (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Exclusion count: 1 -> 0
+  Before:
+    1. WHOLE_SYSTEM - Duck Lake
+ELK RIVER'S TRIBUTARIES (see exceptions) (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Exclusion count: 11 -> 6
+  Before:
+    1. WHOLE_SYSTEM - Abruzzi Cr.
+    2. DIRECTIONAL - Alexander Cr.**[Includes Tributaries]** upstream of the easternmost Hwy 3 bridge
+    3. WHOLE_SYSTEM - Bighorn
+(Ram) Cr.
+    4. WHOLE_SYSTEM - Cadorna Cr.
+    5. DIRECTIONAL - Fording R. downstream of Josephine Falls
+    6. BUFFER - Forsyth Cr. from Connor Lk. downstream 3 km
+    7. WHOLE_SYSTEM - Line Cr.**[Includes Tributaries]**
+    8. WHOLE_SYSTEM - Grave
+Creek**[Includes Tributaries]**
+    9. WHOLE_SYSTEM - Michel Cr.**[Includes Tributaries]**
+    10. WHOLE_SYSTEM - Morrissey Cr.**[Includes Tributaries]**
+    11. WHOLE_SYSTEM - Wigwam River
+  After:
+    1. WHOLE_SYSTEM - Abruzzi Cr.
+    2. DIRECTIONAL - Alexander Cr.**[Includes Tributaries]** upstream of the easternmost Hwy 3 bridge
+    3. WHOLE_SYSTEM - Bighorn
+(Ram) Cr.
+    4. WHOLE_SYSTEM - Cadorna Cr.
+    5. DIRECTIONAL - Fording R. downstream of Josephine Falls
+    6. BUFFER - Forsyth Cr. from Connor Lk. downstream 3 km
+MCLEOD RIVER (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Exclusion count: 0 -> 1
+  After:
+    1. WHOLE_SYSTEM - War Lake
+
+RESTRICTION CHANGE ANALYSIS:
+----------------------------------------
+Items with restriction type changes: 100
+Items with date changes: 15
+
+MOST COMMON RESTRICTION TYPE CHANGES:
+--------------------------------------------------
+Added: note: 36 times
+Removed: note: 26 times
+Added: closure: 13 times
+Removed: harvest: 7 times
+Added: licensing: 6 times
+Removed: closure: 6 times
+Added: gear_restriction: 2 times
+Removed: licensing: 1 times
+
+AUDIT LOG CHANGE ANALYSIS:
+----------------------------------------
+Items with MORE audit issues: 13
+Items with FEWER audit issues: 6
+Items with new issues: 16
+
+MOST COMMON AUDIT MESSAGES:
+--------------------------------------------------
+Rule 1: Location 'northeast of line' mapped to VAGUE as 'NORTHEAST' is not in st...: 1 times
+Rule 1: Distributed landmark phrasing ('200 m upstream of and 150 m downstream o...: 1 times
+Rule 1: Complex geometric description involving multiple landmarks and bearings ...: 1 times
+Rule 2: Reference to unnamed lake downstream of Bednorski Lake is provided as ge...: 1 times
+Rule 4: Speed restriction 'on part' location is vague relative to bridge landmar...: 1 times
+Rule 1: Location 'southeast of a line' mapped to VAGUE as 'SOUTHEAST' is not in ...: 1 times
+Rule 1: Direction 'southwest' mapped to VAGUE for complex line boundary.: 1 times
+Rule 1: Symmetric buffer 'from 50 m upstream... to 50 m downstream' mapped to BU...: 1 times
+Typo in source: Missing closing parenthesis for 'none over 50 cm': 1 times
+Rule text typo 'not set lines' preserved verbatim; likely intended 'no set lines...: 1 times
+
+EXAMPLES OF ITEMS WITH MORE AUDIT ISSUES:
+--------------------------------------------------
+GREEN LAKE (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Issue count: 0 -> 1
+  New issues:
+    • Rule 1: Location 'northeast of line' mapped to VAGUE as 'NORTHEAST' is not in standard directional e...
+LYNN CREEK (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Issue count: 0 -> 1
+  New issues:
+    • Rule 1: Distributed landmark phrasing ('200 m upstream of and 150 m downstream of Twin Falls Bridge'...
+"MOSS POTHOLE" LAKES (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Issue count: 0 -> 1
+  New issues:
+    • Rule 1: Complex geometric description involving multiple landmarks and bearings treated as NAMED_PAR...
+"ALTA" LAKE (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Issue count: 0 -> 1
+  New issues:
+    • Rule 2: Reference to unnamed lake downstream of Bednorski Lake is provided as geographic context or ...
+CHILKO RIVER (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Issue count: 0 -> 1
+  New issues:
+    • Rule 4: Speed restriction 'on part' location is vague relative to bridge landmark.
+
+RULE TEXT VERBATIM CHANGE ANALYSIS:
+----------------------------------------
+Total rule text changes: 96
+Single → Multiple (rule splitting): 23
+Multiple → Single (rule merging): 29
+Text modifications: 44
+
+RULE SPLITTING (Single → Multiple) - 23 cases:
+--------------------------------------------------
+FULLER LAKE (2026-01-27_132847_session -> 2026-01-27_145249_session) - Rule 1:
+  Before: 1 text element
+    • Smallmouth bass daily quota = 4; electric motor only - max 7.5 kW; wheelchair accessible fishing pla...
+  After: 2 text elements
+    1. Smallmouth bass daily quota = 4
+    2. electric motor only - max 7.5 kW
+HONNA RIVER (2026-01-27_132847_session -> 2026-01-27_145249_session) - Rule 1:
+  Before: 1 text element
+    • Bait ban Nov 1-Apr 30; cutthroat trout catch and release
+**Class II water Sept 1-Apr 30; Steelhead S...
+  After: 2 text elements
+    1. Bait ban Nov 1-Apr 30; cutthroat trout catch and release
+    2. **Class II water Sept 1-Apr 30; Steelhead Stamp mandatory Dec 1-Apr 30**
+LANGFORD LAKE (2026-01-27_132847_session -> 2026-01-27_145249_session) - Rule 1:
+  Before: 1 text element
+    • Smallmouth bass daily quota = 4
+Electric motor only - max 7.5 kW; fishing platforms are available of...
+  After: 2 text elements
+    1. Smallmouth bass daily quota = 4
+    2. Electric motor only - max 7.5 kW; fishing platforms are available off Leigh Road and the Nixon Trail
+YAKOUN RIVER (2026-01-27_132847_session -> 2026-01-27_145249_session) - Rule 2:
+  Before: 1 text element
+    • Bait ban Nov 1-Apr 30
+Cutthroat trout catch and release
+No powered boats
+**Class II water Sept 1-Apr...
+  After: 4 text elements
+    1. Bait ban Nov 1-Apr 30
+    2. Cutthroat trout catch and release
+    3. No powered boats
+SARDIS PARK POND (2026-01-27_132847_session -> 2026-01-27_145249_session) - Rule 1:
+  Before: 1 text element
+    • Single barbless hook; Youth/Disabled Accompanied Water year round (see page 4)
+  After: 2 text elements
+    1. Single barbless hook
+    2. Youth/Disabled Accompanied Water year round (see page 4)
+
+SCOPE CHANGE ANALYSIS:
+----------------------------------------
+Items compared: 1263
+Items with meaningful scope changes: 74
+Items with minor text changes: 9
+Items unchanged: 1180
+Meaningful change rate: 5.9%
+Minor change rate: 0.7%
+
+MOST COMMON MEANINGFUL SCOPE TYPE CHANGES:
+--------------------------------------------------
+NAMED_PART -> SEGMENT: 38 times
+SEGMENT -> WHOLE_SYSTEM: 36 times
+SEGMENT -> DIRECTIONAL: 28 times
+WHOLE_SYSTEM -> SEGMENT: 25 times
+WHOLE_SYSTEM -> DIRECTIONAL: 24 times
+SEGMENT -> NAMED_PART: 22 times
+DIRECTIONAL -> WHOLE_SYSTEM: 22 times
+SEGMENT -> BUFFER: 19 times
+WHOLE_SYSTEM -> NAMED_PART: 19 times
+DIRECTIONAL -> SEGMENT: 19 times
+
+ALL MEANINGFUL SCOPE CHANGES (74 items):
+--------------------------------------------------
+
+AMOR DE COSMOS CREEK (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Rule count change: 0
+  Before: 2 scopes
+    1. SEGMENT - from upper falls downstream 1 km to (Bear River) logging road bridge 3 km from tidewater
+    2. SEGMENT - from mouth to falls about 4 km upstream
+  After: 2 scopes
+    1. BUFFER - from upper falls downstream 1 km to (Bear River) logging road bridge 3 km from tidewater
+    2. SEGMENT - from mouth to falls about 4 km upstream
+  Key Differences:
+    BEFORE:
+      Rule 1: SEGMENT | Restrictions: ['closure'] → Location: from upper falls downstream 1 km to (Bear River) logging road bridge 3 km from tidewater
+      Rule 2: SEGMENT | Restrictions: ['closure'] → Location: from mouth to falls about 4 km upstream
+    AFTER:
+      Rule 1: BUFFER | Restrictions: ['closure'] → Location: from upper falls downstream 1 km to (Bear River) logging road bridge 3 km from tidewater
+      Rule 2: SEGMENT | Restrictions: ['closure'] → Location: from mouth to falls about 4 km upstream
+    WHAT CHANGED:
+      ⚠ Rule 1 scope type: SEGMENT → BUFFER
+
+"ANDERSON" LAKE (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Rule count change: -1
+  Before: 3 scopes
+    1. WHOLE_SYSTEM - None
+    2. WHOLE_SYSTEM - None
+    3. NAMED_PART - **Unnamed lake in the Walbran Creek Watershed approximately** 7 km west/southwest of Mt.
+Walbran
+  After: 2 scopes
+    1. WHOLE_SYSTEM - None
+    2. NAMED_PART - **Unnamed lake in the Walbran Creek Watershed approximately** 7 km west/southwest of Mt.
+Walbran
+  Key Differences:
+    BEFORE:
+      Rule 1: WHOLE_SYSTEM | Restrictions: ['gear_restriction', 'gear_restriction', 'gear_restriction']
+      Rule 2: WHOLE_SYSTEM | Restrictions: ['harvest']
+      Rule 3: NAMED_PART | Restrictions: ['note'] → Location: **Unnamed lake in the Walbran Creek Watershed approximately** 7 km west/southwest of Mt.
+Walbran
+    AFTER:
+      Rule 1: WHOLE_SYSTEM | Restrictions: ['gear_restriction', 'gear_restriction', 'gear_restriction', 'harvest']
+      Rule 2: NAMED_PART | Restrictions: ['note'] → Location: **Unnamed lake in the Walbran Creek Watershed approximately** 7 km west/southwest of Mt.
+Walbran
+    WHAT CHANGED:
+      ⚠ Complex change: 3 → 2 rules
+        - 1 rules removed
+
+COWICHAN RIVER (see map below) (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Rule count change: 0
+  Before: 8 scopes
+    1. WHOLE_SYSTEM - None
+    2. WHOLE_SYSTEM - None
+    3. SEGMENT - from weir (dam) at Cowichan Lake's outlet to Greendale Trestle
+    4. TRIBUTARIES_ONLY - in tributaries upstream of and including Holt Creek
+    5. DIRECTIONAL - upstream of CNR Trestle (Mile 66)
+    6. DIRECTIONAL - downstream of the CNR Mile 66 Trestle
+    7. SEGMENT - from signs at Greendale Trestle to CNR Bridge (mile 70.2)
+    8. NAMED_PART - on parts
+  After: 8 scopes
+    1. WHOLE_SYSTEM - None
+    2. WHOLE_SYSTEM - None
+    3. SEGMENT - from weir (dam) at Cowichan Lake's outlet to Greendale Trestle
+    4. DIRECTIONAL - upstream of and including Holt Creek
+    5. DIRECTIONAL - upstream of CNR Trestle (Mile 66)
+    6. DIRECTIONAL - downstream of the CNR Mile 66 Trestle
+    7. SEGMENT - from signs at Greendale Trestle to CNR Bridge (mile 70.2)
+    8. NAMED_PART - on parts
+  Key Differences:
+    BEFORE:
+      Rule 1: WHOLE_SYSTEM | Restrictions: ['closure']
+      Rule 2: WHOLE_SYSTEM | Restrictions: ['closure']
+      Rule 3: SEGMENT | Restrictions: ['closure'] → Location: from weir (dam) at Cowichan Lake's outlet to Greendale Trestle
+      Rule 4: TRIBUTARIES_ONLY | Restrictions: ['closure'] → Location: in tributaries upstream of and including Holt Creek
+      Rule 5: DIRECTIONAL | Restrictions: ['gear_restriction'] → Location: upstream of CNR Trestle (Mile 66)
+      Rule 6: DIRECTIONAL | Restrictions: ['closure'] → Location: downstream of the CNR Mile 66 Trestle
+      Rule 7: SEGMENT | Restrictions: ['gear_restriction'] → Location: from signs at Greendale Trestle to CNR Bridge (mile 70.2)
+      Rule 8: NAMED_PART | Restrictions: ['vessel_restriction', 'vessel_restriction'] → Location: on parts
+    AFTER:
+      Rule 1: WHOLE_SYSTEM | Restrictions: ['closure']
+      Rule 2: WHOLE_SYSTEM | Restrictions: ['closure']
+      Rule 3: SEGMENT | Restrictions: ['closure'] → Location: from weir (dam) at Cowichan Lake's outlet to Greendale Trestle
+      Rule 4: DIRECTIONAL | Restrictions: ['closure'] → Location: upstream of and including Holt Creek
+      Rule 5: DIRECTIONAL | Restrictions: ['gear_restriction'] → Location: upstream of CNR Trestle (Mile 66)
+      Rule 6: DIRECTIONAL | Restrictions: ['closure'] → Location: downstream of the CNR Mile 66 Trestle
+      Rule 7: SEGMENT | Restrictions: ['gear_restriction'] → Location: from signs at Greendale Trestle to CNR Bridge (mile 70.2)
+      Rule 8: NAMED_PART | Restrictions: ['vessel_restriction', 'vessel_restriction'] → Location: on parts
+    WHAT CHANGED:
+      ⚠ Rule 4 scope type: TRIBUTARIES_ONLY → DIRECTIONAL
+      ⚠ Rule 4 location text REMOVED: 'in tributaries'
+        Before: 'in tributaries upstream of and including Holt Creek'
+        After:  'upstream of and including Holt Creek'
+
+DIVER LAKE (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Rule count change: 1
+  Before: 1 scopes
+    1. WHOLE_SYSTEM - None
+  After: 2 scopes
+    1. WHOLE_SYSTEM - None
+    2. NAMED_PART - in Diver Lake Park
+  Key Differences:
+    BEFORE:
+      Rule 1: WHOLE_SYSTEM | Restrictions: ['vessel_restriction', 'note']
+    AFTER:
+      Rule 1: WHOLE_SYSTEM | Restrictions: ['vessel_restriction']
+      Rule 2: NAMED_PART | Restrictions: ['note'] → Location: in Diver Lake Park
+    WHAT CHANGED:
+      ✓ One rule was SPLIT into separate rules (same restrictions, DIFFERENT scopes)
+        Original scope: WHOLE_SYSTEM - None
+        New rule 2 scope: NAMED_PART - in Diver Lake Park
+
+ENGLISHMAN RIVER (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Rule count change: 0
+  Before: 3 scopes
+    1. WHOLE_SYSTEM - None
+    2. SEGMENT - from lower falls in Englishman River Park to signs approximately 100 m downstream
+    3. SEGMENT - downstream of the lower falls in Englishman River Falls Provincial Park to the Top Bridge crossing at the end of
+Allsbrook Road
+  After: 3 scopes
+    1. WHOLE_SYSTEM - None
+    2. BUFFER - from lower falls in Englishman River Park to signs approximately 100 m downstream
+    3. SEGMENT - downstream of the lower falls in Englishman River Falls Provincial Park to the Top Bridge crossing at the end of
+Allsbrook Road
+  Key Differences:
+    BEFORE:
+      Rule 1: WHOLE_SYSTEM | Restrictions: ['closure']
+      Rule 2: SEGMENT | Restrictions: ['closure'] → Location: from lower falls in Englishman River Park to signs approximately 100 m downstream
+      Rule 3: SEGMENT | Restrictions: ['closure'] → Location: downstream of the lower falls in Englishman River Falls Provincial Park to the Top Bridge crossing at the end of
+Allsbrook Road
+    AFTER:
+      Rule 1: WHOLE_SYSTEM | Restrictions: ['closure']
+      Rule 2: BUFFER | Restrictions: ['closure'] → Location: from lower falls in Englishman River Park to signs approximately 100 m downstream
+      Rule 3: SEGMENT | Restrictions: ['closure'] → Location: downstream of the lower falls in Englishman River Falls Provincial Park to the Top Bridge crossing at the end of
+Allsbrook Road
+    WHAT CHANGED:
+      ⚠ Rule 2 scope type: SEGMENT → BUFFER
+
+FULLER LAKE (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Rule count change: 1
+  Before: 1 scopes
+    1. WHOLE_SYSTEM - None
+  After: 2 scopes
+    1. WHOLE_SYSTEM - None
+    2. NAMED_PART - in Fuller Lake Park
+  Key Differences:
+    BEFORE:
+      Rule 1: WHOLE_SYSTEM | Restrictions: ['harvest', 'vessel_restriction', 'note']
+    AFTER:
+      Rule 1: WHOLE_SYSTEM | Restrictions: ['harvest', 'vessel_restriction']
+      Rule 2: NAMED_PART | Restrictions: ['note'] → Location: in Fuller Lake Park
+    WHAT CHANGED:
+      ✓ One rule was SPLIT into separate rules (same restrictions, DIFFERENT scopes)
+        Original scope: WHOLE_SYSTEM - None
+        New rule 2 scope: NAMED_PART - in Fuller Lake Park
+
+GLEN LAKE (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Rule count change: 1
+  Before: 1 scopes
+    1. WHOLE_SYSTEM - None
+  After: 2 scopes
+    1. WHOLE_SYSTEM - None
+    2. NAMED_PART - in Glen Lake Park
+  Key Differences:
+    BEFORE:
+      Rule 1: WHOLE_SYSTEM | Restrictions: ['vessel_restriction', 'note']
+    AFTER:
+      Rule 1: WHOLE_SYSTEM | Restrictions: ['vessel_restriction']
+      Rule 2: NAMED_PART | Restrictions: ['note'] → Location: in Glen Lake Park
+    WHAT CHANGED:
+      ✓ One rule was SPLIT into separate rules (same restrictions, DIFFERENT scopes)
+        Original scope: WHOLE_SYSTEM - None
+        New rule 2 scope: NAMED_PART - in Glen Lake Park
+
+GREEN LAKE (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Rule count change: 0
+  Before: 1 scopes
+    1. DIRECTIONAL - northeast of line between boundary signs on opposite shores of the bay at the mouth of Watch Creek
+  After: 1 scopes
+    1. VAGUE - northeast of line between boundary signs on opposite shores of the bay at the mouth of Watch Creek
+  Key Differences:
+    BEFORE:
+      Rule 1: DIRECTIONAL | Restrictions: ['closure'] → Location: northeast of line between boundary signs on opposite shores of the bay at the mouth of Watch Creek
+    AFTER:
+      Rule 1: VAGUE | Restrictions: ['closure'] → Location: northeast of line between boundary signs on opposite shores of the bay at the mouth of Watch Creek
+    AUDIT LOGS:
+      BEFORE: (no audit entries)
+      AFTER:
+        • Rule 1: Location 'northeast of line' mapped to VAGUE as 'NORTHEAST' is not in standard directional enum.
+    WHAT CHANGED:
+      ⚠ Rule 1 scope type: DIRECTIONAL → VAGUE
+
+JOHN HART LAKE'S TRIBUTARIES (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Rule count change: 0
+  Before: 1 scopes
+    1. NAMED_PART - (includes channel downstream of Ladore Dam)
+  After: 1 scopes
+    1. TRIBUTARIES_ONLY - (includes channel downstream of Ladore Dam)
+  Key Differences:
+    BEFORE:
+      Rule 1: NAMED_PART | Restrictions: ['closure'] → Location: (includes channel downstream of Ladore Dam)
+    AFTER:
+      Rule 1: TRIBUTARIES_ONLY | Restrictions: ['closure'] → Location: (includes channel downstream of Ladore Dam)
+    WHAT CHANGED:
+      ⚠ Rule 1 scope type: NAMED_PART → TRIBUTARIES_ONLY
+
+LITTLE QUALICUM RIVER (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Rule count change: 0
+  Before: 5 scopes
+    1. WHOLE_SYSTEM - None
+    2. TRIBUTARIES_ONLY - All tributaries
+    3. SEGMENT - from the falls in Little Qualicum Falls Provincial Park downstream to the hatchery fence
+    4. BUFFER - from the hatchery fence to signs
+approximately 35 m downstream
+    5. WHOLE_SYSTEM - None
+  After: 5 scopes
+    1. WHOLE_SYSTEM - July 15-Aug 31[Includes Tributaries]
+    2. TRIBUTARIES_ONLY - All tributaries
+    3. SEGMENT - from the falls in Little Qualicum Falls Provincial Park downstream to the hatchery fence
+    4. BUFFER - from the hatchery fence to signs
+approximately 35 m downstream
+    5. WHOLE_SYSTEM - None
+  Key Differences:
+    BEFORE:
+      Rule 1: WHOLE_SYSTEM | Restrictions: ['closure']
+      Rule 2: TRIBUTARIES_ONLY | Restrictions: ['closure'] → Location: All tributaries
+      Rule 3: SEGMENT | Restrictions: ['closure'] → Location: from the falls in Little Qualicum Falls Provincial Park downstream to the hatchery fence
+      Rule 4: BUFFER | Restrictions: ['note', 'closure'] → Location: from the hatchery fence to signs
+approximately 35 m downstream
+      Rule 5: WHOLE_SYSTEM | Restrictions: ['gear_restriction']
+    AFTER:
+      Rule 1: WHOLE_SYSTEM | Restrictions: ['closure'] → Location: July 15-Aug 31[Includes Tributaries]
+      Rule 2: TRIBUTARIES_ONLY | Restrictions: ['closure'] → Location: All tributaries
+      Rule 3: SEGMENT | Restrictions: ['closure'] → Location: from the falls in Little Qualicum Falls Provincial Park downstream to the hatchery fence
+      Rule 4: BUFFER | Restrictions: ['closure'] → Location: from the hatchery fence to signs
+approximately 35 m downstream
+      Rule 5: WHOLE_SYSTEM | Restrictions: ['gear_restriction']
+    WHAT CHANGED:
+      ⚠ Rule 1 location CHANGED:
+        Before: 'None'
+        After:  'July 15-Aug 31[Includes Tributaries]'
+      ⚠ Rule 4 restrictions changed:
+        - Removed: ['note']
+
+LONG LAKE (Nanaimo) (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Rule count change: -1
+  Before: 2 scopes
+    1. NAMED_PART - on parts
+    2. WHOLE_SYSTEM - None
+  After: 1 scopes
+    1. NAMED_PART - on parts
+  Key Differences:
+    BEFORE:
+      Rule 1: NAMED_PART | Restrictions: ['vessel_restriction'] → Location: on parts
+      Rule 2: WHOLE_SYSTEM | Restrictions: ['note']
+    AFTER:
+      Rule 1: NAMED_PART | Restrictions: ['vessel_restriction', 'note'] → Location: on parts
+    WHAT CHANGED:
+      ✓ Multiple rules were MERGED into one rule (same restrictions, original scopes were DIFFERENT)
+        Original scopes:
+          Rule 1: NAMED_PART - on parts
+          Rule 2: WHOLE_SYSTEM - None
+        Merged into: NAMED_PART - on parts
+
+MARBLE ("Link") RIVER (only between Victoria and Alice lakes... (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Rule count change: 0
+  Before: 1 scopes
+    1. WHOLE_SYSTEM - None
+  After: 1 scopes
+    1. WHOLE_SYSTEM - Fly fishing only[Includes Tributaries]
+  Key Differences:
+    BEFORE:
+      Rule 1: WHOLE_SYSTEM | Restrictions: ['gear_restriction']
+    AFTER:
+      Rule 1: WHOLE_SYSTEM | Restrictions: ['gear_restriction'] → Location: Fly fishing only[Includes Tributaries]
+    WHAT CHANGED:
+      ⚠ Rule 1 location CHANGED:
+        Before: 'None'
+        After:  'Fly fishing only[Includes Tributaries]'
+
+MISTY LAKE (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Rule count change: 0
+  Before: 1 scopes
+    1. WHOLE_SYSTEM - None
+  After: 1 scopes
+    1. WHOLE_SYSTEM - (located in an Ecological Reserve)
+  Key Differences:
+    BEFORE:
+      Rule 1: WHOLE_SYSTEM | Restrictions: ['closure', 'note']
+    AFTER:
+      Rule 1: WHOLE_SYSTEM | Restrictions: ['closure'] → Location: (located in an Ecological Reserve)
+    WHAT CHANGED:
+      ⚠ Rule 1 restrictions changed:
+        - Removed: ['note']
+      ⚠ Rule 1 location CHANGED:
+        Before: 'None'
+        After:  '(located in an Ecological Reserve)'
+
+NAHMINT RIVER (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Rule count change: 0
+  Before: 2 scopes
+    1. NAMED_PART - (upstream and downstream of the lake)
+    2. DIRECTIONAL - upstream of Nahmint Lake
+  After: 2 scopes
+    1. NAMED_PART - Nahmint River (upstream and downstream of the lake)
+    2. DIRECTIONAL - upstream of Nahmint Lake
+  Key Differences:
+    BEFORE:
+      Rule 1: NAMED_PART | Restrictions: ['closure'] → Location: (upstream and downstream of the lake)
+      Rule 2: DIRECTIONAL | Restrictions: ['gear_restriction'] → Location: upstream of Nahmint Lake
+    AFTER:
+      Rule 1: NAMED_PART | Restrictions: ['closure'] → Location: Nahmint River (upstream and downstream of the lake)
+      Rule 2: DIRECTIONAL | Restrictions: ['gear_restriction'] → Location: upstream of Nahmint Lake
+    WHAT CHANGED:
+      ⚠ Rule 1 location text ADDED: 'Nahmint River'
+        Before: '(upstream and downstream of the lake)'
+        After:  'Nahmint River (upstream and downstream of the lake)'
+
+NITINAT RIVER (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Rule count change: 0
+  Before: 4 scopes
+    1. WHOLE_SYSTEM - None
+    2. DIRECTIONAL - upstream of Parker Creek
+    3. BUFFER - approximately 100 m upstream of and downstream of "Red Rock Pool," approximately 2 km
+(by road) south of the Nitinat River Bridge
+    4. BUFFER - approximately 50 m upstream of and downstream of the Nitinat River Bridge
+  After: 4 scopes
+    1. WHOLE_SYSTEM - None
+    2. DIRECTIONAL - upstream of Parker Creek
+    3. BUFFER - fishing boundary signs approximately 100 m upstream of and downstream of "Red Rock Pool," approximately 2 km
+(by road) south of the Nitinat River Brid...
+    4. BUFFER - boundary signs approximately 50 m upstream of and downstream of the Nitinat River Bridge
+  Key Differences:
+    BEFORE:
+      Rule 1: WHOLE_SYSTEM | Restrictions: ['harvest']
+      Rule 2: DIRECTIONAL | Restrictions: ['closure'] → Location: upstream of Parker Creek
+      Rule 3: BUFFER | Restrictions: ['closure'] → Location: approximately 100 m upstream of and downstream of "Red Rock Pool," approximately 2 km
+(by road) south of the Nitinat River Bridge
+      Rule 4: BUFFER | Restrictions: ['closure'] → Location: approximately 50 m upstream of and downstream of the Nitinat River Bridge
+    AFTER:
+      Rule 1: WHOLE_SYSTEM | Restrictions: ['note']
+      Rule 2: DIRECTIONAL | Restrictions: ['closure'] → Location: upstream of Parker Creek
+      Rule 3: BUFFER | Restrictions: ['closure'] → Location: fishing boundary signs approximately 100 m upstream of and downstream of "Red Rock Pool," approximately 2 km
+(by road) south of the Nitinat River Bridge
+      Rule 4: BUFFER | Restrictions: ['closure'] → Location: boundary signs approximately 50 m upstream of and downstream of the Nitinat River Bridge
+    WHAT CHANGED:
+      ⚠ Rule 1 restrictions changed:
+        + Added: ['note']
+        - Removed: ['harvest']
+      ⚠ Rule 3 location text ADDED: 'fishing boundary signs'
+        Before: 'approximately 100 m upstream of and downstream of "Red Rock Pool," approximately 2 km
+(by road) south of the Nitinat River Bridge'
+        After:  'fishing boundary signs approximately 100 m upstream of and downstream of "Red Rock Pool," approximately 2 km
+(by road) south of the Nitinat River Bridge'
+      ⚠ Rule 4 location text ADDED: 'boundary signs'
+        Before: 'approximately 50 m upstream of and downstream of the Nitinat River Bridge'
+        After:  'boundary signs approximately 50 m upstream of and downstream of the Nitinat River Bridge'
+
+PUNTLEDGE RIVER (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Rule count change: 0
+  Before: 6 scopes
+    1. WHOLE_SYSTEM - None
+    2. SEGMENT - downstream of the BC Hydro diversion dam (approximately 3.5 km downstream of Comox Lake) to the base of Stotan Falls
+(approximately 450 m downstream o...
+    3. BUFFER - between fishing boundary signs approximately 100 m upstream and downstream of the confluence with Morrison Creek
+    4. SEGMENT - from fishing boundary signs located 50 m upstream of the BC Hydro generating station tailrace to signs located 75 m
+downstream of the Puntledge River ...
+    5. TRIBUTARIES_ONLY - tributaries
+    6. DIRECTIONAL - upstream of the BC Hydro diversion dam (approximately 3.5 km downstream of Comox Lake)
+  After: 6 scopes
+    1. WHOLE_SYSTEM - None
+    2. SEGMENT - downstream of the BC Hydro diversion dam (approximately 3.5 km downstream of Comox Lake) to the base of Stotan Falls
+(approximately 450 m downstream o...
+    3. BUFFER - fishing boundary signs approximately 100 m upstream and downstream of the confluence with Morrison Creek
+    4. SEGMENT - from fishing boundary signs located 50 m upstream of the BC Hydro generating station tailrace to signs located 75 m
+downstream of the Puntledge River ...
+    5. TRIBUTARIES_ONLY - tributaries
+    6. DIRECTIONAL - upstream of the BC Hydro diversion dam (approximately 3.5 km downstream of Comox Lake)
+  Key Differences:
+    BEFORE:
+      Rule 1: WHOLE_SYSTEM | Restrictions: ['note']
+      Rule 2: SEGMENT | Restrictions: ['closure'] → Location: downstream of the BC Hydro diversion dam (approximately 3.5 km downstream of Comox Lake) to the base of Stotan Falls
+(approximately 450 m downstream of the Duncan Bay Mainline logging road)
+      Rule 3: BUFFER | Restrictions: ['closure'] → Location: between fishing boundary signs approximately 100 m upstream and downstream of the confluence with Morrison Creek
+      Rule 4: SEGMENT | Restrictions: ['closure'] → Location: from fishing boundary signs located 50 m upstream of the BC Hydro generating station tailrace to signs located 75 m
+downstream of the Puntledge River hatchery fence
+      Rule 5: TRIBUTARIES_ONLY | Restrictions: ['closure'] → Location: tributaries
+      Rule 6: DIRECTIONAL | Restrictions: ['gear_restriction'] → Location: upstream of the BC Hydro diversion dam (approximately 3.5 km downstream of Comox Lake)
+    AFTER:
+      Rule 1: WHOLE_SYSTEM | Restrictions: ['note']
+      Rule 2: SEGMENT | Restrictions: ['closure'] → Location: downstream of the BC Hydro diversion dam (approximately 3.5 km downstream of Comox Lake) to the base of Stotan Falls
+(approximately 450 m downstream of the Duncan Bay Mainline logging road)
+      Rule 3: BUFFER | Restrictions: ['closure'] → Location: fishing boundary signs approximately 100 m upstream and downstream of the confluence with Morrison Creek
+      Rule 4: SEGMENT | Restrictions: ['closure'] → Location: from fishing boundary signs located 50 m upstream of the BC Hydro generating station tailrace to signs located 75 m
+downstream of the Puntledge River hatchery fence
+      Rule 5: TRIBUTARIES_ONLY | Restrictions: ['closure'] → Location: tributaries
+      Rule 6: DIRECTIONAL | Restrictions: ['gear_restriction'] → Location: upstream of the BC Hydro diversion dam (approximately 3.5 km downstream of Comox Lake)
+    WHAT CHANGED:
+      ⚠ Rule 3 location text REMOVED: 'between'
+        Before: 'between fishing boundary signs approximately 100 m upstream and downstream of the confluence with Morrison Creek'
+        After:  'fishing boundary signs approximately 100 m upstream and downstream of the confluence with Morrison Creek'
+
+STAMP RIVER (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Rule count change: 0
+  Before: 5 scopes
+    1. BUFFER - between fishing boundary signs 200 m upstream of and 500 m downstream of Stamp Falls
+    2. SEGMENT - from the confluence with Ash River upstream to the Great Central Lake dam
+    3. DIRECTIONAL - upstream of signs at "Girl Guide Falls" (approximately 250 m upstream of the mouth of Beaver Creek)
+    4. DIRECTIONAL - downstream of signs at "Girl Guide Falls" (approximately 250 m upstream of the mouth of Beaver Creek)
+    5. NAMED_PART - on parts
+  After: 5 scopes
+    1. BUFFER - fishing boundary signs 200 m upstream of and 500 m downstream of Stamp Falls
+    2. SEGMENT - from the confluence with Ash River upstream to the Great Central Lake dam
+    3. DIRECTIONAL - upstream of signs at "Girl Guide Falls" (approximately 250 m upstream of the mouth of Beaver Creek)
+    4. DIRECTIONAL - downstream of signs at "Girl Guide Falls" (approximately 250 m upstream of the mouth of Beaver Creek)
+    5. NAMED_PART - parts
+  Key Differences:
+    BEFORE:
+      Rule 1: BUFFER | Restrictions: ['closure'] → Location: between fishing boundary signs 200 m upstream of and 500 m downstream of Stamp Falls
+      Rule 2: SEGMENT | Restrictions: ['closure'] → Location: from the confluence with Ash River upstream to the Great Central Lake dam
+      Rule 3: DIRECTIONAL | Restrictions: ['gear_restriction'] → Location: upstream of signs at "Girl Guide Falls" (approximately 250 m upstream of the mouth of Beaver Creek)
+      Rule 4: DIRECTIONAL | Restrictions: ['gear_restriction'] → Location: downstream of signs at "Girl Guide Falls" (approximately 250 m upstream of the mouth of Beaver Creek)
+      Rule 5: NAMED_PART | Restrictions: ['vessel_restriction'] → Location: on parts
+    AFTER:
+      Rule 1: BUFFER | Restrictions: ['closure'] → Location: fishing boundary signs 200 m upstream of and 500 m downstream of Stamp Falls
+      Rule 2: SEGMENT | Restrictions: ['closure'] → Location: from the confluence with Ash River upstream to the Great Central Lake dam
+      Rule 3: DIRECTIONAL | Restrictions: ['gear_restriction'] → Location: upstream of signs at "Girl Guide Falls" (approximately 250 m upstream of the mouth of Beaver Creek)
+      Rule 4: DIRECTIONAL | Restrictions: ['gear_restriction'] → Location: downstream of signs at "Girl Guide Falls" (approximately 250 m upstream of the mouth of Beaver Creek)
+      Rule 5: NAMED_PART | Restrictions: ['vessel_restriction'] → Location: parts
+    WHAT CHANGED:
+      ⚠ Rule 1 location text REMOVED: 'between'
+        Before: 'between fishing boundary signs 200 m upstream of and 500 m downstream of Stamp Falls'
+        After:  'fishing boundary signs 200 m upstream of and 500 m downstream of Stamp Falls'
+      ⚠ Rule 5 location text REMOVED: 'on'
+        Before: 'on parts'
+        After:  'parts'
+
+TOQUART RIVER (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Rule count change: 0
+  Before: 2 scopes
+    1. DIRECTIONAL - upstream of the Toquart mainline logging bridge
+    2. DIRECTIONAL - upstream of the boundary sign located near the
+falls approximately 800 m downstream of Toquart Lake (including the Upper Toquart River)
+  After: 2 scopes
+    1. DIRECTIONAL - upstream of the Toquart mainline logging bridge when open
+    2. DIRECTIONAL - upstream of the boundary sign located near the
+falls approximately 800 m downstream of Toquart Lake (including the Upper Toquart River)
+  Key Differences:
+    BEFORE:
+      Rule 1: DIRECTIONAL | Restrictions: ['gear_restriction', 'note'] → Location: upstream of the Toquart mainline logging bridge
+      Rule 2: DIRECTIONAL | Restrictions: ['closure', 'note'] → Location: upstream of the boundary sign located near the
+falls approximately 800 m downstream of Toquart Lake (including the Upper Toquart River)
+    AFTER:
+      Rule 1: DIRECTIONAL | Restrictions: ['gear_restriction'] → Location: upstream of the Toquart mainline logging bridge when open
+      Rule 2: DIRECTIONAL | Restrictions: ['closure', 'note'] → Location: upstream of the boundary sign located near the
+falls approximately 800 m downstream of Toquart Lake (including the Upper Toquart River)
+    WHAT CHANGED:
+      ⚠ Rule 1 restrictions changed:
+        - Removed: ['note']
+      ⚠ Rule 1 location text ADDED: 'when open'
+        Before: 'upstream of the Toquart mainline logging bridge'
+        After:  'upstream of the Toquart mainline logging bridge when open'
+
+WHITE RIVER (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Rule count change: 0
+  Before: 2 scopes
+    1. SEGMENT - between fishing boundary signs at the salmon viewing pool
+    2. DIRECTIONAL - upstream of the Sayward Road Bridge crossing
+  After: 2 scopes
+    1. NAMED_PART - at the salmon viewing pool
+    2. DIRECTIONAL - upstream of the Sayward Road Bridge crossing
+  Key Differences:
+    BEFORE:
+      Rule 1: SEGMENT | Restrictions: ['closure'] → Location: between fishing boundary signs at the salmon viewing pool
+      Rule 2: DIRECTIONAL | Restrictions: ['closure'] → Location: upstream of the Sayward Road Bridge crossing
+    AFTER:
+      Rule 1: NAMED_PART | Restrictions: ['closure'] → Location: at the salmon viewing pool
+      Rule 2: DIRECTIONAL | Restrictions: ['closure'] → Location: upstream of the Sayward Road Bridge crossing
+    WHAT CHANGED:
+      ⚠ Rule 1 scope type: SEGMENT → NAMED_PART
+      ⚠ Rule 1 location text REMOVED: 'between fishing boundary signs'
+        Before: 'between fishing boundary signs at the salmon viewing pool'
+        After:  'at the salmon viewing pool'
+
+HATZIC LAKE AND SLOUGH (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Rule count change: 0
+  Before: 2 scopes
+    1. WHOLE_SYSTEM - None
+    2. NAMED_PART - on parts
+  After: 2 scopes
+    1. NAMED_PART - in Hatzic Lake
+    2. NAMED_PART - parts
+  Key Differences:
+    BEFORE:
+      Rule 1: WHOLE_SYSTEM | Restrictions: ['closure']
+      Rule 2: NAMED_PART | Restrictions: ['vessel_restriction'] → Location: on parts
+    AFTER:
+      Rule 1: NAMED_PART | Restrictions: ['closure'] → Location: in Hatzic Lake
+      Rule 2: NAMED_PART | Restrictions: ['vessel_restriction'] → Location: parts
+    WHAT CHANGED:
+      ⚠ Rule 1 scope type: WHOLE_SYSTEM → NAMED_PART
+      ⚠ Rule 1 location CHANGED:
+        Before: 'None'
+        After:  'in Hatzic Lake'
+      ⚠ Rule 2 location text REMOVED: 'on'
+        Before: 'on parts'
+        After:  'parts'
+
+LYNN CREEK (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Rule count change: 0
+  Before: 2 scopes
+    1. SEGMENT - between fishing boundary signs situated approximately 200 m upstream of and 150 m downstream of Twin Falls Bridge[Includes Tributaries]
+    2. WHOLE_SYSTEM - None
+  After: 2 scopes
+    1. VAGUE - between fishing boundary signs situated approximately 200 m upstream of and 150 m downstream of Twin Falls Bridge
+    2. WHOLE_SYSTEM - None
+  Key Differences:
+    BEFORE:
+      Rule 1: SEGMENT | Restrictions: ['closure'] → Location: between fishing boundary signs situated approximately 200 m upstream of and 150 m downstream of Twin Falls Bridge[Includes Tributaries]
+      Rule 2: WHOLE_SYSTEM | Restrictions: ['gear_restriction']
+    AFTER:
+      Rule 1: VAGUE | Restrictions: ['closure'] → Location: between fishing boundary signs situated approximately 200 m upstream of and 150 m downstream of Twin Falls Bridge
+      Rule 2: WHOLE_SYSTEM | Restrictions: ['gear_restriction']
+    AUDIT LOGS:
+      BEFORE: (no audit entries)
+      AFTER:
+        • Rule 1: Distributed landmark phrasing ('200 m upstream of and 150 m downstream of Twin Falls Bridge') treated as VAGUE t...
+    WHAT CHANGED:
+      ⚠ Rule 1 scope type: SEGMENT → VAGUE
+      ⚠ Rule 1 location text REMOVED: '[Includes Tributaries]'
+        Before: 'between fishing boundary signs situated approximately 200 m upstream of and 150 m downstream of Twin Falls Bridge[Includes Tributaries]'
+        After:  'between fishing boundary signs situated approximately 200 m upstream of and 150 m downstream of Twin Falls Bridge'
+
+PITT RIVER (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Rule count change: 0
+  Before: 4 scopes
+    1. NAMED_PART - within Garibaldi Park
+    2. NAMED_PART - at Grant Narrows
+    3. DIRECTIONAL - upstream of Pitt Lake
+    4. SEGMENT - (CPR Bridge upstream to Pitt Lake)
+  After: 4 scopes
+    1. NAMED_PART - within Garibaldi Park
+    2. NAMED_PART - at Grant Narrows
+    3. DIRECTIONAL - upstream of Pitt Lake
+    4. SEGMENT - CPR Bridge upstream to Pitt Lake
+  Key Differences:
+    BEFORE:
+      Rule 1: NAMED_PART | Restrictions: ['closure'] → Location: within Garibaldi Park
+      Rule 2: NAMED_PART | Restrictions: ['vessel_restriction'] → Location: at Grant Narrows
+      Rule 3: DIRECTIONAL | Restrictions: ['gear_restriction'] → Location: upstream of Pitt Lake
+      Rule 4: SEGMENT | Restrictions: ['closure'] → Location: (CPR Bridge upstream to Pitt Lake)
+    AFTER:
+      Rule 1: NAMED_PART | Restrictions: ['closure'] → Location: within Garibaldi Park
+      Rule 2: NAMED_PART | Restrictions: ['vessel_restriction'] → Location: at Grant Narrows
+      Rule 3: DIRECTIONAL | Restrictions: ['gear_restriction'] → Location: upstream of Pitt Lake
+      Rule 4: SEGMENT | Restrictions: ['closure'] → Location: CPR Bridge upstream to Pitt Lake
+    WHAT CHANGED:
+      ⚠ Rule 4 location text REMOVED: '()'
+        Before: '(CPR Bridge upstream to Pitt Lake)'
+        After:  'CPR Bridge upstream to Pitt Lake'
+
+RUBY LAKE (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Rule count change: 0
+  Before: 2 scopes
+    1. BUFFER - in the outlet bay within 100 m of the head of Ruby Creek
+    2. WHOLE_SYSTEM - None
+  After: 2 scopes
+    1. BUFFER - within 100 m of the head of Ruby Creek
+    2. WHOLE_SYSTEM - None
+  Key Differences:
+    BEFORE:
+      Rule 1: BUFFER | Restrictions: ['closure'] → Location: in the outlet bay within 100 m of the head of Ruby Creek
+      Rule 2: WHOLE_SYSTEM | Restrictions: ['harvest', 'gear_restriction']
+    AFTER:
+      Rule 1: BUFFER | Restrictions: ['closure'] → Location: within 100 m of the head of Ruby Creek
+      Rule 2: WHOLE_SYSTEM | Restrictions: ['harvest', 'gear_restriction']
+    WHAT CHANGED:
+      ⚠ Rule 1 location text REMOVED: 'in the outlet bay'
+        Before: 'in the outlet bay within 100 m of the head of Ruby Creek'
+        After:  'within 100 m of the head of Ruby Creek'
+
+SAKINAW LAKE (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Rule count change: 0
+  Before: 3 scopes
+    1. DIRECTIONAL - easterly of a line drawn from a boundary sign located at the north side of the Sakinaw Lake boat launch southwesterly to a
+boundary sign located at 49...
+    2. NAMED_PART - in "Bear Bay"
+    3. WHOLE_SYSTEM - None
+  After: 3 scopes
+    1. DIRECTIONAL - easterly of a line drawn from a boundary sign located at the north side of the Sakinaw Lake boat launch southwesterly to a
+boundary sign located at 49...
+    2. DIRECTIONAL - in "Bear Bay", easterly of a line drawn from a boundary sign located at 49o 40.05'N and 124o 02.13'W due south to a boundary
+sign on the opposite shor...
+    3. WHOLE_SYSTEM - None
+  Key Differences:
+    BEFORE:
+      Rule 1: DIRECTIONAL | Restrictions: ['closure'] → Location: easterly of a line drawn from a boundary sign located at the north side of the Sakinaw Lake boat launch southwesterly to a
+boundary sign located at 49o 41.50'N and 123o 58.45'W
+      Rule 2: NAMED_PART | Restrictions: ['closure'] → Location: in "Bear Bay"
+      Rule 3: WHOLE_SYSTEM | Restrictions: ['harvest']
+    AFTER:
+      Rule 1: DIRECTIONAL | Restrictions: ['closure'] → Location: easterly of a line drawn from a boundary sign located at the north side of the Sakinaw Lake boat launch southwesterly to a
+boundary sign located at 49o 41.50'N and 123o 58.45'W
+      Rule 2: DIRECTIONAL | Restrictions: ['closure'] → Location: in "Bear Bay", easterly of a line drawn from a boundary sign located at 49o 40.05'N and 124o 02.13'W due south to a boundary
+sign on the opposite shore
+      Rule 3: WHOLE_SYSTEM | Restrictions: ['harvest']
+    WHAT CHANGED:
+      ⚠ Rule 2 scope type: NAMED_PART → DIRECTIONAL
+      ⚠ Rule 2 location text ADDED: ', easterly of a line drawn from a boundary sign located at 49o 40.05'N and 124o 02.13'W due south to a boundary
+sign on the opposite shore'
+        Before: 'in "Bear Bay"'
+        After:  'in "Bear Bay", easterly of a line drawn from a boundary sign located at 49o 40.05'N and 124o 02.13'W due south to a boundary
+sign on the opposite shore'
+
+SQUAMISH RIVER'S TRIBUTARIES (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Rule count change: 0
+  Before: 1 scopes
+    1. WHOLE_SYSTEM - None
+  After: 1 scopes
+    1. TRIBUTARIES_ONLY - tributaries
+  Key Differences:
+    BEFORE:
+      Rule 1: WHOLE_SYSTEM | Restrictions: ['closure']
+    AFTER:
+      Rule 1: TRIBUTARIES_ONLY | Restrictions: ['closure', 'note'] → Location: tributaries
+    WHAT CHANGED:
+      ⚠ Rule 1 restrictions changed:
+        + Added: ['note']
+      ⚠ Rule 1 scope type: WHOLE_SYSTEM → TRIBUTARIES_ONLY
+      ⚠ Rule 1 location CHANGED:
+        Before: 'None'
+        After:  'tributaries'
+
+MAHOOD LAKE (see map on page 28 for area closure) (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Rule count change: -2
+  Before: 4 scopes
+    1. NAMED_PART - within the fishing boundary signs at the western tip of the lake near the mouth of Canim River
+    2. NAMED_PART - within fishing boundary signs at the western tip of the lake
+    3. BUFFER - within 200 m of the Mahood River outlet
+    4. BUFFER - within 200 m of the mouth of the Mahood River outlet
+  After: 2 scopes
+    1. NAMED_PART - at the western tip of the lake
+    2. BUFFER - within 200 m of the mouth of the Mahood River outlet
+  Key Differences:
+    BEFORE:
+      Rule 1: NAMED_PART | Restrictions: ['closure'] → Location: within the fishing boundary signs at the western tip of the lake near the mouth of Canim River
+      Rule 2: NAMED_PART | Restrictions: ['harvest', 'gear_restriction', 'gear_restriction'] → Location: within fishing boundary signs at the western tip of the lake
+      Rule 3: BUFFER | Restrictions: ['closure'] → Location: within 200 m of the Mahood River outlet
+      Rule 4: BUFFER | Restrictions: ['harvest', 'gear_restriction', 'gear_restriction'] → Location: within 200 m of the mouth of the Mahood River outlet
+    AFTER:
+      Rule 1: NAMED_PART | Restrictions: ['closure', 'harvest', 'gear_restriction', 'gear_restriction'] → Location: at the western tip of the lake
+      Rule 2: BUFFER | Restrictions: ['closure', 'harvest', 'gear_restriction', 'gear_restriction'] → Location: within 200 m of the mouth of the Mahood River outlet
+    WHAT CHANGED:
+      ⚠ Complex change: 4 → 2 rules
+        - 2 rules removed
+
+NAHATLATCH RIVER (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Rule count change: -1
+  Before: 4 scopes
+    1. SEGMENT - from Frances Lake downstream approximately 400 m to fishing boundary signs at the logging bridge
+    2. DIRECTIONAL - Downstream of Nahatlatch Lake (including Hannah and Frances lakes; except as noted upstream of )
+    3. DIRECTIONAL - downstream of Nahatlatch Lake
+    4. WHOLE_SYSTEM - None
+  After: 3 scopes
+    1. SEGMENT - from Frances Lake downstream approximately 400 m to fishing boundary signs at the logging bridge
+    2. DIRECTIONAL - downstream of Nahatlatch Lake
+    3. WHOLE_SYSTEM - None
+  Key Differences:
+    BEFORE:
+      Rule 1: SEGMENT | Restrictions: ['closure'] → Location: from Frances Lake downstream approximately 400 m to fishing boundary signs at the logging bridge
+      Rule 2: DIRECTIONAL | Restrictions: ['closure', 'note'] → Location: Downstream of Nahatlatch Lake (including Hannah and Frances lakes; except as noted upstream of )
+      Rule 3: DIRECTIONAL | Restrictions: ['closure'] → Location: downstream of Nahatlatch Lake
+      Rule 4: WHOLE_SYSTEM | Restrictions: ['harvest']
+    AFTER:
+      Rule 1: SEGMENT | Restrictions: ['closure'] → Location: from Frances Lake downstream approximately 400 m to fishing boundary signs at the logging bridge
+      Rule 2: DIRECTIONAL | Restrictions: ['closure', 'note'] → Location: downstream of Nahatlatch Lake
+      Rule 3: WHOLE_SYSTEM | Restrictions: ['harvest']
+    WHAT CHANGED:
+      ⚠ Complex change: 4 → 3 rules
+        - 1 rules removed
+
+SHUSWAP LAKE (see maps on page 28) (includes Little Shuswap ... (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Rule count change: 0
+  Before: 5 scopes
+    1. SEGMENT - in the waters lying west of a line between
+signs at Henstridge Road and Wharf Road to a line between signs on the south and north shores of Little Shu...
+    2. DIRECTIONAL - entire area north of Albas
+    3. SEGMENT - east of a line between fishing boundary signs on Murdock and Semaphore points, to Hwy 1 bridge
+    4. DIRECTIONAL - in Salmon Arm Bay, west of line between Engineer's Point and Sunnybrae Point
+    5. WHOLE_SYSTEM - None
+  After: 5 scopes
+    1. DIRECTIONAL - in the waters lying west of a line between
+signs at Henstridge Road and Wharf Road to a line between signs on the south and north shores of Little Shu...
+    2. DIRECTIONAL - north of Albas
+    3. SEGMENT - east of a line between fishing boundary signs on Murdock and Semaphore points, to Hwy 1 bridge
+    4. DIRECTIONAL - in Salmon Arm Bay, west of line between Engineer's Point and Sunnybrae Point
+    5. WHOLE_SYSTEM - None
+  Key Differences:
+    BEFORE:
+      Rule 1: SEGMENT | Restrictions: ['closure', 'harvest'] → Location: in the waters lying west of a line between
+signs at Henstridge Road and Wharf Road to a line between signs on the south and north shores of Little Shuswap Lake
+      Rule 2: DIRECTIONAL | Restrictions: ['closure'] → Location: entire area north of Albas
+      Rule 3: SEGMENT | Restrictions: ['closure'] → Location: east of a line between fishing boundary signs on Murdock and Semaphore points, to Hwy 1 bridge
+      Rule 4: DIRECTIONAL | Restrictions: ['closure'] → Location: in Salmon Arm Bay, west of line between Engineer's Point and Sunnybrae Point
+      Rule 5: WHOLE_SYSTEM | Restrictions: ['closure', 'harvest', 'harvest', 'gear_restriction', 'licensing']
+    AFTER:
+      Rule 1: DIRECTIONAL | Restrictions: ['closure', 'harvest'] → Location: in the waters lying west of a line between
+signs at Henstridge Road and Wharf Road to a line between signs on the south and north shores of Little Shuswap Lake
+      Rule 2: DIRECTIONAL | Restrictions: ['closure'] → Location: north of Albas
+      Rule 3: SEGMENT | Restrictions: ['closure'] → Location: east of a line between fishing boundary signs on Murdock and Semaphore points, to Hwy 1 bridge
+      Rule 4: DIRECTIONAL | Restrictions: ['closure', 'note'] → Location: in Salmon Arm Bay, west of line between Engineer's Point and Sunnybrae Point
+      Rule 5: WHOLE_SYSTEM | Restrictions: ['closure', 'harvest', 'harvest', 'gear_restriction', 'note', 'licensing']
+    WHAT CHANGED:
+      ⚠ Rule 1 scope type: SEGMENT → DIRECTIONAL
+      ⚠ Rule 2 location text REMOVED: 'entire area'
+        Before: 'entire area north of Albas'
+        After:  'north of Albas'
+      ⚠ Rule 4 restrictions changed:
+        + Added: ['note']
+      ⚠ Rule 5 restrictions changed:
+        + Added: ['note']
+
+ABRUZZI CREEK (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Rule count change: 0
+  Before: 2 scopes
+    1. WHOLE_SYSTEM - None
+    2. WHOLE_SYSTEM - including tributaries
+  After: 2 scopes
+    1. WHOLE_SYSTEM - None
+    2. WHOLE_SYSTEM - None
+  Key Differences:
+    BEFORE:
+      Rule 1: WHOLE_SYSTEM | Restrictions: ['closure', 'harvest', 'gear_restriction']
+      Rule 2: WHOLE_SYSTEM | Restrictions: ['licensing'] → Location: including tributaries
+    AFTER:
+      Rule 1: WHOLE_SYSTEM | Restrictions: ['closure', 'harvest', 'gear_restriction']
+      Rule 2: WHOLE_SYSTEM | Restrictions: ['licensing']
+    WHAT CHANGED:
+      ⚠ Rule 2 location CHANGED:
+        Before: 'including tributaries'
+        After:  'None'
+
+ALEXANDER CREEK (downstream of the easternmost Hwy 3 bridge) (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Rule count change: 1
+  Before: 1 scopes
+    1. WHOLE_SYSTEM - including tributaries
+  After: 2 scopes
+    1. WHOLE_SYSTEM - None
+    2. WHOLE_SYSTEM - None
+  Key Differences:
+    BEFORE:
+      Rule 1: WHOLE_SYSTEM | Restrictions: ['closure', 'harvest', 'gear_restriction', 'licensing'] → Location: including tributaries
+    AFTER:
+      Rule 1: WHOLE_SYSTEM | Restrictions: ['closure', 'harvest', 'gear_restriction']
+      Rule 2: WHOLE_SYSTEM | Restrictions: ['licensing', 'licensing']
+    WHAT CHANGED:
+      ✓ One rule was SPLIT into separate rules (same restrictions, DIFFERENT scopes)
+        Original scope: WHOLE_SYSTEM - including tributaries
+        New rule 1 scope: WHOLE_SYSTEM - None
+        New rule 2 scope: WHOLE_SYSTEM - None
+
+"ALTA" LAKE (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Rule count change: 1
+  Before: 1 scopes
+    1. WHOLE_SYSTEM - None
+  After: 2 scopes
+    1. WHOLE_SYSTEM - None
+    2. BUFFER - 200 m downstream of Bednorski Lake
+  Key Differences:
+    BEFORE:
+      Rule 1: WHOLE_SYSTEM | Restrictions: ['harvest', 'harvest', 'note']
+    AFTER:
+      Rule 1: WHOLE_SYSTEM | Restrictions: ['harvest', 'harvest']
+      Rule 2: BUFFER | Restrictions: ['note'] → Location: 200 m downstream of Bednorski Lake
+    AUDIT LOGS:
+      BEFORE: (no audit entries)
+      AFTER:
+        • Rule 2: Reference to unnamed lake downstream of Bednorski Lake is provided as geographic context or supplementary regula...
+    WHAT CHANGED:
+      ✓ One rule was SPLIT into separate rules (same restrictions, DIFFERENT scopes)
+        Original scope: WHOLE_SYSTEM - None
+        New rule 2 scope: BUFFER - 200 m downstream of Bednorski Lake
+
+CADORNA CREEK (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Rule count change: 0
+  Before: 2 scopes
+    1. WHOLE_SYSTEM - None
+    2. WHOLE_SYSTEM - including tributaries
+  After: 2 scopes
+    1. WHOLE_SYSTEM - None
+    2. WHOLE_SYSTEM - None
+  Key Differences:
+    BEFORE:
+      Rule 1: WHOLE_SYSTEM | Restrictions: ['closure', 'harvest', 'gear_restriction']
+      Rule 2: WHOLE_SYSTEM | Restrictions: ['licensing'] → Location: including tributaries
+    AFTER:
+      Rule 1: WHOLE_SYSTEM | Restrictions: ['closure', 'harvest', 'gear_restriction']
+      Rule 2: WHOLE_SYSTEM | Restrictions: ['licensing', 'licensing']
+    WHAT CHANGED:
+      ⚠ Rule 2 location CHANGED:
+        Before: 'including tributaries'
+        After:  'None'
+
+COLUMBIA RIVER (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Rule count change: 0
+  Before: 11 scopes
+    1. SEGMENT - from Revelstoke Dam downstream to Hwy 1 bridge in Revelstoke
+    2. SEGMENT - from a line between the old Robson Ferry landing and a sign on the south river bank, downstream approximately 950 m to the
+CPR Bridge
+    3. NAMED_PART - Where angling is permitted
+    4. WHOLE_SYSTEM - None
+    5. SEGMENT - from Keenleyside Dam to a line between the old Robson Ferry landing and a sign on the south river bank
+    6. SEGMENT - from Keenleyside Dam to the Washington state border
+    7. NAMED_PART - From Keenleyside Dam downstream to the Washington state border and connected reaches: the Kootenay River (Columbia River
+confluence to Brilliant Dam) ...
+    8. SEGMENT - from Mud Lake to Columbia Lake
+    9. NAMED_PART - wetlands
+    10. SEGMENT - in main channel from Fairmont to Donald
+    11. NAMED_PART - portion of the Columbia River which may be found downstream of the Hwy 1 bridge in Revelstoke
+(depending on reservoir level)
+  After: 11 scopes
+    1. SEGMENT - from Revelstoke Dam downstream to Hwy 1 bridge in Revelstoke
+    2. SEGMENT - from a line between the old Robson Ferry landing and a sign on the south river bank, downstream approximately 950 m to the
+CPR Bridge
+    3. NAMED_PART - Where angling is permitted
+    4. SEGMENT - from Keenleyside Dam to a line between the old Robson Ferry landing and a sign on the south river bank
+    5. SEGMENT - from Keenleyside Dam to the Washington state border
+    6. SEGMENT - Columbia River
+confluence to Brilliant Dam
+    7. SEGMENT - Columbia River confluence to Waneta Dam
+    8. SEGMENT - from Mud Lake to Columbia Lake
+    9. NAMED_PART - wetlands
+    10. SEGMENT - in main channel from Fairmont to Donald
+    11. WHOLE_SYSTEM - None
+  Key Differences:
+    BEFORE:
+      Rule 1: SEGMENT | Restrictions: ['closure'] → Location: from Revelstoke Dam downstream to Hwy 1 bridge in Revelstoke
+      Rule 2: SEGMENT | Restrictions: ['closure'] → Location: from a line between the old Robson Ferry landing and a sign on the south river bank, downstream approximately 950 m to the
+CPR Bridge
+      Rule 3: NAMED_PART | Restrictions: ['note'] → Location: Where angling is permitted
+      Rule 4: WHOLE_SYSTEM | Restrictions: ['harvest', 'harvest']
+      Rule 5: SEGMENT | Restrictions: ['harvest'] → Location: from Keenleyside Dam to a line between the old Robson Ferry landing and a sign on the south river bank
+      Rule 6: SEGMENT | Restrictions: ['harvest'] → Location: from Keenleyside Dam to the Washington state border
+      Rule 7: NAMED_PART | Restrictions: ['harvest', 'harvest'] → Location: From Keenleyside Dam downstream to the Washington state border and connected reaches: the Kootenay River (Columbia River
+confluence to Brilliant Dam) and the Pend d'Oreille River (Columbia River confluence to Waneta Dam)
+      Rule 8: SEGMENT | Restrictions: ['vessel_restriction'] → Location: from Mud Lake to Columbia Lake
+      Rule 9: NAMED_PART | Restrictions: ['vessel_restriction'] → Location: wetlands
+      Rule 10: SEGMENT | Restrictions: ['vessel_restriction', 'vessel_restriction'] → Location: in main channel from Fairmont to Donald
+      Rule 11: NAMED_PART | Restrictions: ['note'] → Location: portion of the Columbia River which may be found downstream of the Hwy 1 bridge in Revelstoke
+(depending on reservoir level)
+    AFTER:
+      Rule 1: SEGMENT | Restrictions: ['closure'] → Location: from Revelstoke Dam downstream to Hwy 1 bridge in Revelstoke
+      Rule 2: SEGMENT | Restrictions: ['closure'] → Location: from a line between the old Robson Ferry landing and a sign on the south river bank, downstream approximately 950 m to the
+CPR Bridge
+      Rule 3: NAMED_PART | Restrictions: ['harvest', 'harvest', 'harvest', 'harvest'] → Location: Where angling is permitted
+      Rule 4: SEGMENT | Restrictions: ['harvest'] → Location: from Keenleyside Dam to a line between the old Robson Ferry landing and a sign on the south river bank
+      Rule 5: SEGMENT | Restrictions: ['harvest'] → Location: from Keenleyside Dam to the Washington state border
+      Rule 6: SEGMENT | Restrictions: ['harvest', 'harvest'] → Location: Columbia River
+confluence to Brilliant Dam
+      Rule 7: SEGMENT | Restrictions: ['harvest', 'harvest'] → Location: Columbia River confluence to Waneta Dam
+      Rule 8: SEGMENT | Restrictions: ['vessel_restriction'] → Location: from Mud Lake to Columbia Lake
+      Rule 9: NAMED_PART | Restrictions: ['vessel_restriction'] → Location: wetlands
+      Rule 10: SEGMENT | Restrictions: ['vessel_restriction', 'vessel_restriction'] → Location: in main channel from Fairmont to Donald
+      Rule 11: WHOLE_SYSTEM | Restrictions: ['note']
+    WHAT CHANGED:
+      ⚠ Rule 3 restrictions changed:
+        + Added: ['harvest']
+        - Removed: ['note']
+      ⚠ Rule 4 scope type: WHOLE_SYSTEM → SEGMENT
+      ⚠ Rule 4 location CHANGED:
+        Before: 'None'
+        After:  'from Keenleyside Dam to a line between the old Robson Ferry landing and a sign on the south river bank'
+      ⚠ Rule 5 location CHANGED:
+        Before: 'from Keenleyside Dam to a line between the old Robson Ferry landing and a sign on the south river bank'
+        After:  'from Keenleyside Dam to the Washington state border'
+      ⚠ Rule 6 location CHANGED:
+        Before: 'from Keenleyside Dam to the Washington state border'
+        After:  'Columbia River
+confluence to Brilliant Dam'
+      ⚠ Rule 7 scope type: NAMED_PART → SEGMENT
+      ⚠ Rule 7 location text REMOVED: 'From Keenleyside Dam downstream to the Washington state border and connected reaches: the Kootenay River (Columbia River
+confluence to Brilliant Dam) and the Pend d'Oreille River ()'
+        Before: 'From Keenleyside Dam downstream to the Washington state border and connected reaches: the Kootenay River (Columbia River
+confluence to Brilliant Dam) and the Pend d'Oreille River (Columbia River confluence to Waneta Dam)'
+        After:  'Columbia River confluence to Waneta Dam'
+      ⚠ Rule 11 scope type: NAMED_PART → WHOLE_SYSTEM
+      ⚠ Rule 11 location CHANGED:
+        Before: 'portion of the Columbia River which may be found downstream of the Hwy 1 bridge in Revelstoke
+(depending on reservoir level)'
+        After:  'None'
+
+CRESTON VALLEY WILDLIFE MANAGEMENT AREA (CVWMA) WATERS (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Rule count change: -1
+  Before: 2 scopes
+    1. NAMED_PART - applies to all waters within the CVWMA, including Six Mile Lake, Leach
+Lake, Kootenay River and Canal
+    2. WHOLE_SYSTEM - None
+  After: 1 scopes
+    1. WHOLE_SYSTEM - None
+  Key Differences:
+    BEFORE:
+      Rule 1: NAMED_PART | Restrictions: ['harvest', 'harvest'] → Location: applies to all waters within the CVWMA, including Six Mile Lake, Leach
+Lake, Kootenay River and Canal
+      Rule 2: WHOLE_SYSTEM | Restrictions: ['licensing']
+    AFTER:
+      Rule 1: WHOLE_SYSTEM | Restrictions: ['harvest', 'harvest', 'note', 'licensing']
+    WHAT CHANGED:
+      ⚠ Rules were merged AND restrictions were modified
+        ⚠ Original scopes were also different
+
+DUNCAN LAKE'S TRIBUTARIES (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Rule count change: 0
+  Before: 1 scopes
+    1. TRIBUTARIES_ONLY - (includes Upper Duncan River and tributaries)
+  After: 1 scopes
+    1. TRIBUTARIES_ONLY - None
+  Key Differences:
+    BEFORE:
+      Rule 1: TRIBUTARIES_ONLY | Restrictions: ['harvest'] → Location: (includes Upper Duncan River and tributaries)
+    AFTER:
+      Rule 1: TRIBUTARIES_ONLY | Restrictions: ['harvest', 'note']
+    WHAT CHANGED:
+      ⚠ Rule 1 restrictions changed:
+        + Added: ['note']
+      ⚠ Rule 1 location CHANGED:
+        Before: '(includes Upper Duncan River and tributaries)'
+        After:  'None'
+
+FINDLAY CREEK (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Rule count change: 1
+  Before: 3 scopes
+    1. SEGMENT - from Doctor Creek Bridge to Lavington Creek Bridge
+    2. NAMED_PART - other parts (including
+tributaries, except Lavington Creek)
+    3. WHOLE_SYSTEM - None
+  After: 4 scopes
+    1. SEGMENT - from Doctor Creek Bridge to Lavington Creek Bridge
+    2. NAMED_PART - other parts (including
+tributaries, except Lavington Creek)
+    3. WHOLE_SYSTEM - None
+    4. WHOLE_SYSTEM - Lavington Creek, a tributary
+  Key Differences:
+    BEFORE:
+      Rule 1: SEGMENT | Restrictions: ['harvest'] → Location: from Doctor Creek Bridge to Lavington Creek Bridge
+      Rule 2: NAMED_PART | Restrictions: ['harvest', 'gear_restriction'] → Location: other parts (including
+tributaries, except Lavington Creek)
+      Rule 3: WHOLE_SYSTEM | Restrictions: ['note']
+    AFTER:
+      Rule 1: SEGMENT | Restrictions: ['harvest'] → Location: from Doctor Creek Bridge to Lavington Creek Bridge
+      Rule 2: NAMED_PART | Restrictions: ['harvest'] → Location: other parts (including
+tributaries, except Lavington Creek)
+      Rule 3: WHOLE_SYSTEM | Restrictions: ['gear_restriction']
+      Rule 4: WHOLE_SYSTEM | Restrictions: ['note'] → Location: Lavington Creek, a tributary
+    WHAT CHANGED:
+      ⚠ Complex change: 3 → 4 rules
+        + 1 rules added
+
+KOOTENAY RIVER (downstream of Idaho border) (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Rule count change: 0
+  Before: 5 scopes
+    1. SEGMENT - from CPR Bridge near Creston downstream 2 km to navigation dolphin
+    2. SEGMENT - from the Idaho border to CPR Bridge near Creston
+    3. SEGMENT - from Corra Linn Dam to the Columbia River
+    4. SEGMENT - from Idaho border near Creston to Kootenay Lake
+    5. SEGMENT - from the Brilliant Dam to the confluence with the Columbia River
+  After: 5 scopes
+    1. BUFFER - from CPR Bridge near Creston downstream 2 km to navigation dolphin
+    2. SEGMENT - from the Idaho border to CPR Bridge near Creston
+    3. SEGMENT - from Corra Linn Dam to the Columbia River
+    4. SEGMENT - from Idaho border near Creston to Kootenay Lake
+    5. SEGMENT - from the Brilliant Dam to the confluence with the Columbia River
+  Key Differences:
+    BEFORE:
+      Rule 1: SEGMENT | Restrictions: ['closure'] → Location: from CPR Bridge near Creston downstream 2 km to navigation dolphin
+      Rule 2: SEGMENT | Restrictions: ['note'] → Location: from the Idaho border to CPR Bridge near Creston
+      Rule 3: SEGMENT | Restrictions: ['note'] → Location: from Corra Linn Dam to the Columbia River
+      Rule 4: SEGMENT | Restrictions: ['harvest'] → Location: from Idaho border near Creston to Kootenay Lake
+      Rule 5: SEGMENT | Restrictions: ['harvest', 'harvest'] → Location: from the Brilliant Dam to the confluence with the Columbia River
+    AFTER:
+      Rule 1: BUFFER | Restrictions: ['closure'] → Location: from CPR Bridge near Creston downstream 2 km to navigation dolphin
+      Rule 2: SEGMENT | Restrictions: ['note', 'note'] → Location: from the Idaho border to CPR Bridge near Creston
+      Rule 3: SEGMENT | Restrictions: ['note', 'note'] → Location: from Corra Linn Dam to the Columbia River
+      Rule 4: SEGMENT | Restrictions: ['harvest'] → Location: from Idaho border near Creston to Kootenay Lake
+      Rule 5: SEGMENT | Restrictions: ['harvest', 'harvest'] → Location: from the Brilliant Dam to the confluence with the Columbia River
+    WHAT CHANGED:
+      ⚠ Rule 1 scope type: SEGMENT → BUFFER
+
+LODGEPOLE CREEK (downstream of falls near the km 26 post on ... (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Rule count change: 0
+  Before: 2 scopes
+    1. WHOLE_SYSTEM - None
+    2. WHOLE_SYSTEM - including tributaries
+  After: 2 scopes
+    1. WHOLE_SYSTEM - None
+    2. WHOLE_SYSTEM - None
+  Key Differences:
+    BEFORE:
+      Rule 1: WHOLE_SYSTEM | Restrictions: ['closure', 'harvest', 'gear_restriction']
+      Rule 2: WHOLE_SYSTEM | Restrictions: ['licensing', 'licensing'] → Location: including tributaries
+    AFTER:
+      Rule 1: WHOLE_SYSTEM | Restrictions: ['closure', 'harvest', 'gear_restriction']
+      Rule 2: WHOLE_SYSTEM | Restrictions: ['licensing', 'note']
+    WHAT CHANGED:
+      ⚠ Rule 2 restrictions changed:
+        + Added: ['note']
+      ⚠ Rule 2 location CHANGED:
+        Before: 'including tributaries'
+        After:  'None'
+
+LODGEPOLE CREEK (upstream of falls) (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Rule count change: 0
+  Before: 2 scopes
+    1. WHOLE_SYSTEM - None
+    2. WHOLE_SYSTEM - including tributaries
+  After: 2 scopes
+    1. WHOLE_SYSTEM - None
+    2. WHOLE_SYSTEM - None
+  Key Differences:
+    BEFORE:
+      Rule 1: WHOLE_SYSTEM | Restrictions: ['closure', 'harvest', 'gear_restriction']
+      Rule 2: WHOLE_SYSTEM | Restrictions: ['licensing', 'licensing'] → Location: including tributaries
+    AFTER:
+      Rule 1: WHOLE_SYSTEM | Restrictions: ['closure', 'harvest', 'gear_restriction']
+      Rule 2: WHOLE_SYSTEM | Restrictions: ['licensing', 'note']
+    WHAT CHANGED:
+      ⚠ Rule 2 restrictions changed:
+        + Added: ['note']
+      ⚠ Rule 2 location CHANGED:
+        Before: 'including tributaries'
+        After:  'None'
+
+MICHEL CREEK (downstream of the easternmost Hwy 3 bridge) (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Rule count change: 0
+  Before: 2 scopes
+    1. WHOLE_SYSTEM - including tributaries
+    2. WHOLE_SYSTEM - None
+  After: 2 scopes
+    1. WHOLE_SYSTEM - None
+    2. WHOLE_SYSTEM - None
+  Key Differences:
+    BEFORE:
+      Rule 1: WHOLE_SYSTEM | Restrictions: ['licensing'] → Location: including tributaries
+      Rule 2: WHOLE_SYSTEM | Restrictions: ['harvest', 'gear_restriction']
+    AFTER:
+      Rule 1: WHOLE_SYSTEM | Restrictions: ['licensing']
+      Rule 2: WHOLE_SYSTEM | Restrictions: ['harvest', 'gear_restriction']
+    WHAT CHANGED:
+      ⚠ Rule 1 location CHANGED:
+        Before: 'including tributaries'
+        After:  'None'
+
+MORRISSEY CREEK (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Rule count change: -1
+  Before: 2 scopes
+    1. WHOLE_SYSTEM - None
+    2. WHOLE_SYSTEM - including all tributaries
+  After: 1 scopes
+    1. WHOLE_SYSTEM - None
+  Key Differences:
+    BEFORE:
+      Rule 1: WHOLE_SYSTEM | Restrictions: ['closure', 'harvest', 'gear_restriction']
+      Rule 2: WHOLE_SYSTEM | Restrictions: ['licensing', 'licensing'] → Location: including all tributaries
+    AFTER:
+      Rule 1: WHOLE_SYSTEM | Restrictions: ['closure', 'harvest', 'gear_restriction', 'licensing', 'note']
+    WHAT CHANGED:
+      ⚠ Rules were merged AND restrictions were modified
+        ⚠ Original scopes were also different
+
+NORTH (Fork) WHITE RIVER (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Rule count change: -1
+  Before: 2 scopes
+    1. WHOLE_SYSTEM - None
+    2. WHOLE_SYSTEM - including tributaries
+  After: 1 scopes
+    1. WHOLE_SYSTEM - including tributaries
+  Key Differences:
+    BEFORE:
+      Rule 1: WHOLE_SYSTEM | Restrictions: ['harvest', 'gear_restriction']
+      Rule 2: WHOLE_SYSTEM | Restrictions: ['licensing'] → Location: including tributaries
+    AFTER:
+      Rule 1: WHOLE_SYSTEM | Restrictions: ['harvest', 'gear_restriction', 'licensing'] → Location: including tributaries
+    WHAT CHANGED:
+      ✓ Multiple rules were MERGED into one rule (same restrictions, original scopes were DIFFERENT)
+        Original scopes:
+          Rule 1: WHOLE_SYSTEM - None
+          Rule 2: WHOLE_SYSTEM - including tributaries
+        Merged into: WHOLE_SYSTEM - including tributaries
+
+ST. MARY RIVER (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Rule count change: -1
+  Before: 4 scopes
+    1. WHOLE_SYSTEM - None
+    2. TRIBUTARIES_ONLY - on all tributaries
+    3. WHOLE_SYSTEM - [Includes Tributaries]
+    4. WHOLE_SYSTEM - including tributaries (except Joseph Creek)
+  After: 3 scopes
+    1. WHOLE_SYSTEM - None
+    2. TRIBUTARIES_ONLY - on all tributaries
+    3. WHOLE_SYSTEM - including tributaries
+  Key Differences:
+    BEFORE:
+      Rule 1: WHOLE_SYSTEM | Restrictions: ['harvest']
+      Rule 2: TRIBUTARIES_ONLY | Restrictions: ['harvest', 'note'] → Location: on all tributaries
+      Rule 3: WHOLE_SYSTEM | Restrictions: ['gear_restriction'] → Location: [Includes Tributaries]
+      Rule 4: WHOLE_SYSTEM | Restrictions: ['licensing'] → Location: including tributaries (except Joseph Creek)
+    AFTER:
+      Rule 1: WHOLE_SYSTEM | Restrictions: ['harvest']
+      Rule 2: TRIBUTARIES_ONLY | Restrictions: ['harvest', 'note'] → Location: on all tributaries
+      Rule 3: WHOLE_SYSTEM | Restrictions: ['gear_restriction', 'licensing', 'note'] → Location: including tributaries
+    WHAT CHANGED:
+      ⚠ Complex change: 4 → 3 rules
+        - 1 rules removed
+
+WHITESWAN LAKE'S INLET & OUTLET STREAMS (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Rule count change: 0
+  Before: 2 scopes
+    1. WHOLE_SYSTEM - None
+    2. DIRECTIONAL - outlet stream downstream of the falls 2.4 km downstream of Whiteswan Lake
+  After: 2 scopes
+    1. WHOLE_SYSTEM - None
+    2. DIRECTIONAL - the outlet stream downstream of the falls 2.4 km downstream of Whiteswan Lake
+  Key Differences:
+    BEFORE:
+      Rule 1: WHOLE_SYSTEM | Restrictions: ['closure']
+      Rule 2: DIRECTIONAL | Restrictions: ['closure', 'harvest'] → Location: outlet stream downstream of the falls 2.4 km downstream of Whiteswan Lake
+    AFTER:
+      Rule 1: WHOLE_SYSTEM | Restrictions: ['closure']
+      Rule 2: DIRECTIONAL | Restrictions: ['closure', 'harvest'] → Location: the outlet stream downstream of the falls 2.4 km downstream of Whiteswan Lake
+    WHAT CHANGED:
+      ⚠ Rule 2 location text ADDED: 'the'
+        Before: 'outlet stream downstream of the falls 2.4 km downstream of Whiteswan Lake'
+        After:  'the outlet stream downstream of the falls 2.4 km downstream of Whiteswan Lake'
+
+CHILCOTIN RIVER (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Rule count change: 1
+  Before: 3 scopes
+    1. DIRECTIONAL - upstream of Chilko River
+    2. DIRECTIONAL - downstream of Chilko River
+    3. WHOLE_SYSTEM - None
+  After: 4 scopes
+    1. DIRECTIONAL - upstream of Chilko River
+    2. DIRECTIONAL - downstream of Chilko River
+    3. WHOLE_SYSTEM - None
+    4. DIRECTIONAL - Downstream of Chilko River
+  Key Differences:
+    BEFORE:
+      Rule 1: DIRECTIONAL | Restrictions: ['closure'] → Location: upstream of Chilko River
+      Rule 2: DIRECTIONAL | Restrictions: ['closure', 'harvest', 'licensing', 'licensing', 'note'] → Location: downstream of Chilko River
+      Rule 3: WHOLE_SYSTEM | Restrictions: ['gear_restriction', 'gear_restriction', 'vessel_restriction']
+    AFTER:
+      Rule 1: DIRECTIONAL | Restrictions: ['closure'] → Location: upstream of Chilko River
+      Rule 2: DIRECTIONAL | Restrictions: ['closure', 'harvest'] → Location: downstream of Chilko River
+      Rule 3: WHOLE_SYSTEM | Restrictions: ['gear_restriction', 'gear_restriction', 'vessel_restriction']
+      Rule 4: DIRECTIONAL | Restrictions: ['licensing', 'licensing'] → Location: Downstream of Chilko River
+    WHAT CHANGED:
+      ⚠ Complex change: 3 → 4 rules
+        + 1 rules added
+
+CHILKO RIVER (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Rule count change: -1
+  Before: 4 scopes
+    1. WHOLE_SYSTEM - None
+    2. DIRECTIONAL - upstream of Brittany Creek
+    3. DIRECTIONAL - upstream of bridge at Henry's Crossing
+    4. NAMED_PART - on part
+  After: 3 scopes
+    1. WHOLE_SYSTEM - None
+    2. DIRECTIONAL - upstream of Brittany Creek
+    3. DIRECTIONAL - upstream of bridge at Henry's Crossing
+  Key Differences:
+    BEFORE:
+      Rule 1: WHOLE_SYSTEM | Restrictions: ['closure', 'harvest', 'gear_restriction']
+      Rule 2: DIRECTIONAL | Restrictions: ['gear_restriction', 'licensing', 'note'] → Location: upstream of Brittany Creek
+      Rule 3: DIRECTIONAL | Restrictions: ['vessel_restriction'] → Location: upstream of bridge at Henry's Crossing
+      Rule 4: NAMED_PART | Restrictions: ['vessel_restriction'] → Location: on part
+    AFTER:
+      Rule 1: WHOLE_SYSTEM | Restrictions: ['closure', 'harvest', 'gear_restriction']
+      Rule 2: DIRECTIONAL | Restrictions: ['gear_restriction', 'licensing', 'note'] → Location: upstream of Brittany Creek
+      Rule 3: DIRECTIONAL | Restrictions: ['vessel_restriction', 'vessel_restriction'] → Location: upstream of bridge at Henry's Crossing
+    AUDIT LOGS:
+      BEFORE: (no audit entries)
+      AFTER:
+        • Rule 4: Speed restriction 'on part' location is vague relative to bridge landmark.
+    WHAT CHANGED:
+      ⚠ Complex change: 4 → 3 rules
+        - 1 rules removed
+
+CHUCKWALLA RIVER (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Rule count change: 1
+  Before: 2 scopes
+    1. WHOLE_SYSTEM - entire river
+    2. SEGMENT - between fishing boundary signs at Ten Mile Pool
+  After: 3 scopes
+    1. WHOLE_SYSTEM - entire river
+    2. NAMED_PART - between fishing boundary signs at Ten Mile Pool
+    3. WHOLE_SYSTEM - None
+  Key Differences:
+    BEFORE:
+      Rule 1: WHOLE_SYSTEM | Restrictions: ['closure', 'licensing', 'licensing'] → Location: entire river
+      Rule 2: SEGMENT | Restrictions: ['closure'] → Location: between fishing boundary signs at Ten Mile Pool
+    AFTER:
+      Rule 1: WHOLE_SYSTEM | Restrictions: ['closure'] → Location: entire river
+      Rule 2: NAMED_PART | Restrictions: ['closure'] → Location: between fishing boundary signs at Ten Mile Pool
+      Rule 3: WHOLE_SYSTEM | Restrictions: ['licensing', 'licensing']
+    WHAT CHANGED:
+      ⚠ Complex change: 2 → 3 rules
+        + 1 rules added
+
+DRAGON LAKE (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Rule count change: 0
+  Before: 2 scopes
+    1. DIRECTIONAL - southeast of a line between fishing boundary signs on opposite shores of the bay at the mouth of Hallis Creek
+    2. WHOLE_SYSTEM - None
+  After: 2 scopes
+    1. VAGUE - southeast of a line between fishing boundary signs on opposite shores of the bay at the mouth of Hallis Creek
+    2. WHOLE_SYSTEM - None
+  Key Differences:
+    BEFORE:
+      Rule 1: DIRECTIONAL | Restrictions: ['closure'] → Location: southeast of a line between fishing boundary signs on opposite shores of the bay at the mouth of Hallis Creek
+      Rule 2: WHOLE_SYSTEM | Restrictions: ['harvest']
+    AFTER:
+      Rule 1: VAGUE | Restrictions: ['closure'] → Location: southeast of a line between fishing boundary signs on opposite shores of the bay at the mouth of Hallis Creek
+      Rule 2: WHOLE_SYSTEM | Restrictions: ['harvest']
+    AUDIT LOGS:
+      BEFORE: (no audit entries)
+      AFTER:
+        • Rule 1: Location 'southeast of a line' mapped to VAGUE as 'SOUTHEAST' is not in standard directional enum.
+    WHAT CHANGED:
+      ⚠ Rule 1 scope type: DIRECTIONAL → VAGUE
+
+MITCHELL RIVER (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Rule count change: 0
+  Before: 3 scopes
+    1. BUFFER - within 100 m radius of the weir at the outlet of Michell Lake
+    2. SEGMENT - from Michell Lake to Cameron Creek
+    3. DIRECTIONAL - downstream of Cameron Creek (including Cameron Cr.)
+  After: 3 scopes
+    1. BUFFER - within 100 m radius of the weir at the outlet of Michell Lake
+    2. SEGMENT - from Michell Lake to Cameron Creek
+    3. DIRECTIONAL - downstream of Cameron Creek (including Cameron Creek)
+  Key Differences:
+    BEFORE:
+      Rule 1: BUFFER | Restrictions: ['closure'] → Location: within 100 m radius of the weir at the outlet of Michell Lake
+      Rule 2: SEGMENT | Restrictions: ['closure'] → Location: from Michell Lake to Cameron Creek
+      Rule 3: DIRECTIONAL | Restrictions: ['closure', 'harvest', 'gear_restriction', 'gear_restriction'] → Location: downstream of Cameron Creek (including Cameron Cr.)
+    AFTER:
+      Rule 1: BUFFER | Restrictions: ['closure'] → Location: within 100 m radius of the weir at the outlet of Michell Lake
+      Rule 2: SEGMENT | Restrictions: ['closure'] → Location: from Michell Lake to Cameron Creek
+      Rule 3: DIRECTIONAL | Restrictions: ['closure', 'harvest', 'gear_restriction', 'gear_restriction'] → Location: downstream of Cameron Creek (including Cameron Creek)
+    WHAT CHANGED:
+      ⚠ Rule 3 location CHANGED:
+        Before: 'downstream of Cameron Creek (including Cameron Cr.)'
+        After:  'downstream of Cameron Creek (including Cameron Creek)'
+
+QUESNEL LAKE (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Rule count change: 0
+  Before: 3 scopes
+    1. VAGUE - southwest of a line between fishing boundary signs on opposite shores of Horsefly Bay
+    2. DIRECTIONAL - north of a line between Watt and Service Creeks
+    3. WHOLE_SYSTEM - None
+  After: 3 scopes
+    1. VAGUE - southwest of a line between fishing boundary signs on opposite shores of Horsefly Bay
+    2. DIRECTIONAL - in North Arm, north of a line between Watt and Service Creeks
+    3. WHOLE_SYSTEM - None
+  Key Differences:
+    BEFORE:
+      Rule 1: VAGUE | Restrictions: ['closure'] → Location: southwest of a line between fishing boundary signs on opposite shores of Horsefly Bay
+      Rule 2: DIRECTIONAL | Restrictions: ['closure'] → Location: north of a line between Watt and Service Creeks
+      Rule 3: WHOLE_SYSTEM | Restrictions: ['harvest', 'harvest', 'harvest', 'gear_restriction', 'gear_restriction']
+    AFTER:
+      Rule 1: VAGUE | Restrictions: ['closure'] → Location: southwest of a line between fishing boundary signs on opposite shores of Horsefly Bay
+      Rule 2: DIRECTIONAL | Restrictions: ['closure'] → Location: in North Arm, north of a line between Watt and Service Creeks
+      Rule 3: WHOLE_SYSTEM | Restrictions: ['harvest', 'harvest', 'harvest', 'gear_restriction', 'gear_restriction']
+    AUDIT LOGS:
+      BEFORE:
+        • Rule 1: Direction 'southwest' not in schema-defined enum - using VAGUE.
+      AFTER:
+        • Rule 1: Direction 'southwest' mapped to VAGUE for complex line boundary.
+    WHAT CHANGED:
+      ⚠ Rule 2 location text ADDED: 'in North Arm,'
+        Before: 'north of a line between Watt and Service Creeks'
+        After:  'in North Arm, north of a line between Watt and Service Creeks'
+
+WEST ROAD ("Blackwater") RIVER (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Rule count change: 0
+  Before: 3 scopes
+    1. NAMED_PART - mainstem (only)
+    2. TRIBUTARIES_ONLY - tributaries
+    3. WHOLE_SYSTEM - None
+  After: 3 scopes
+    1. NAMED_PART - mainstem
+    2. TRIBUTARIES_ONLY - tributaries
+    3. WHOLE_SYSTEM - None
+  Key Differences:
+    BEFORE:
+      Rule 1: NAMED_PART | Restrictions: ['closure', 'licensing', 'licensing'] → Location: mainstem (only)
+      Rule 2: TRIBUTARIES_ONLY | Restrictions: ['closure'] → Location: tributaries
+      Rule 3: WHOLE_SYSTEM | Restrictions: ['harvest', 'gear_restriction', 'gear_restriction', 'vessel_restriction']
+    AFTER:
+      Rule 1: NAMED_PART | Restrictions: ['closure', 'licensing', 'licensing'] → Location: mainstem
+      Rule 2: TRIBUTARIES_ONLY | Restrictions: ['note'] → Location: tributaries
+      Rule 3: WHOLE_SYSTEM | Restrictions: ['harvest', 'gear_restriction', 'gear_restriction', 'vessel_restriction']
+    WHAT CHANGED:
+      ⚠ Rule 1 location text REMOVED: '(only)'
+        Before: 'mainstem (only)'
+        After:  'mainstem'
+      ⚠ Rule 2 restrictions changed:
+        + Added: ['note']
+        - Removed: ['closure']
+
+WILLIAMS LAKE (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Rule count change: 0
+  Before: 1 scopes
+    1. VAGUE - on parts
+  After: 1 scopes
+    1. NAMED_PART - on parts
+  Key Differences:
+    BEFORE:
+      Rule 1: VAGUE | Restrictions: ['vessel_restriction'] → Location: on parts
+    AFTER:
+      Rule 1: NAMED_PART | Restrictions: ['vessel_restriction'] → Location: on parts
+    AUDIT LOGS:
+      BEFORE:
+        • Rule 1: Location 'on parts' has no identifiable reference points - using VAGUE
+      AFTER: (no audit entries)
+    WHAT CHANGED:
+      ⚠ Rule 1 scope type: VAGUE → NAMED_PART
+
+FRANÇOIS LAKE (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Rule count change: 0
+  Before: 1 scopes
+    1. NAMED_PART - area at the outlet of François Lake
+  After: 1 scopes
+    1. NAMED_PART - area at the outlet of François Lake described on map 1
+  Key Differences:
+    BEFORE:
+      Rule 1: NAMED_PART | Restrictions: ['closure', 'harvest', 'harvest', 'gear_restriction', 'gear_restriction', 'gear_restriction'] → Location: area at the outlet of François Lake
+    AFTER:
+      Rule 1: NAMED_PART | Restrictions: ['closure', 'harvest', 'harvest', 'gear_restriction', 'gear_restriction', 'gear_restriction'] → Location: area at the outlet of François Lake described on map 1
+    WHAT CHANGED:
+      ⚠ Rule 1 location text ADDED: 'described on map 1'
+        Before: 'area at the outlet of François Lake'
+        After:  'area at the outlet of François Lake described on map 1'
+
+FULTON RIVER (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Rule count change: 0
+  Before: 2 scopes
+    1. WHOLE_SYSTEM - None
+    2. NAMED_PART - in Fulton River opposite the spawning channels, as signed
+  After: 2 scopes
+    1. WHOLE_SYSTEM - None
+    2. NAMED_PART - Fulton River opposite the spawning channels
+  Key Differences:
+    BEFORE:
+      Rule 1: WHOLE_SYSTEM | Restrictions: ['note', 'gear_restriction']
+      Rule 2: NAMED_PART | Restrictions: ['note'] → Location: in Fulton River opposite the spawning channels, as signed
+    AFTER:
+      Rule 1: WHOLE_SYSTEM | Restrictions: ['note', 'gear_restriction']
+      Rule 2: NAMED_PART | Restrictions: ['note'] → Location: Fulton River opposite the spawning channels
+    WHAT CHANGED:
+      ⚠ Rule 2 location text REMOVED: 'in , as signed'
+        Before: 'in Fulton River opposite the spawning channels, as signed'
+        After:  'Fulton River opposite the spawning channels'
+
+HELENE LAKE (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Rule count change: 0
+  Before: 1 scopes
+    1. VAGUE - northwest of a line between fishing boundary signs on opposite shores of the outlet bay
+  After: 1 scopes
+    1. DIRECTIONAL - northwest of a line between fishing boundary signs on opposite shores of the outlet bay
+  Key Differences:
+    BEFORE:
+      Rule 1: VAGUE | Restrictions: ['closure'] → Location: northwest of a line between fishing boundary signs on opposite shores of the outlet bay
+    AFTER:
+      Rule 1: DIRECTIONAL | Restrictions: ['closure'] → Location: northwest of a line between fishing boundary signs on opposite shores of the outlet bay
+    AUDIT LOGS:
+      BEFORE:
+        • Rule 1: Compass direction 'northwest of' not supported in standard enums - using VAGUE
+      AFTER: (no audit entries)
+    WHAT CHANGED:
+      ⚠ Rule 1 scope type: VAGUE → DIRECTIONAL
+
+NILKITKWA LAKE (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Rule count change: 0
+  Before: 2 scopes
+    1. WHOLE_SYSTEM - None
+    2. SEGMENT - between Babine and Nilkitkwa Lakes
+  After: 2 scopes
+    1. WHOLE_SYSTEM - None
+    2. NAMED_PART - between Babine and Nilkitkwa Lakes known as "Rainbow Alley"
+  Key Differences:
+    BEFORE:
+      Rule 1: WHOLE_SYSTEM | Restrictions: ['gear_restriction', 'gear_restriction', 'note']
+      Rule 2: SEGMENT | Restrictions: ['note'] → Location: between Babine and Nilkitkwa Lakes
+    AFTER:
+      Rule 1: WHOLE_SYSTEM | Restrictions: ['gear_restriction', 'gear_restriction']
+      Rule 2: NAMED_PART | Restrictions: ['note'] → Location: between Babine and Nilkitkwa Lakes known as "Rainbow Alley"
+    WHAT CHANGED:
+      ⚠ Rule 1 restrictions changed:
+        - Removed: ['note']
+      ⚠ Rule 2 scope type: SEGMENT → NAMED_PART
+      ⚠ Rule 2 location text ADDED: 'known as "Rainbow Alley"'
+        Before: 'between Babine and Nilkitkwa Lakes'
+        After:  'between Babine and Nilkitkwa Lakes known as "Rainbow Alley"'
+
+RANCHERIA RIVER'S TRIBUTARIES (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Rule count change: -1
+  Before: 2 scopes
+    1. WHOLE_SYSTEM - None
+    2. WHOLE_SYSTEM - all parts of the
+Rancheria River including tributary streams but not lakes
+  After: 1 scopes
+    1. WHOLE_SYSTEM - None
+  Key Differences:
+    BEFORE:
+      Rule 1: WHOLE_SYSTEM | Restrictions: ['harvest', 'harvest']
+      Rule 2: WHOLE_SYSTEM | Restrictions: ['licensing'] → Location: all parts of the
+Rancheria River including tributary streams but not lakes
+    AFTER:
+      Rule 1: WHOLE_SYSTEM | Restrictions: ['harvest', 'harvest', 'licensing']
+    WHAT CHANGED:
+      ✓ Multiple rules were MERGED into one rule (same restrictions, original scopes were DIFFERENT)
+        Original scopes:
+          Rule 1: WHOLE_SYSTEM - None
+          Rule 2: WHOLE_SYSTEM - all parts of the
+Rancheria River including tributary streams but not lakes
+        Merged into: WHOLE_SYSTEM - None
+
+SKEENA RIVER/KISPIOX RIVER CONFLUENCE (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Rule count change: 0
+  Before: 1 scopes
+    1. BUFFER - within 3 white fishing boundary signs located at the confluence of the Skeena and Kispiox rivers
+  After: 1 scopes
+    1. NAMED_PART - within 3 white fishing boundary signs located at the confluence of the Skeena and Kispiox rivers
+  Key Differences:
+    BEFORE:
+      Rule 1: BUFFER | Restrictions: ['vessel_restriction'] → Location: within 3 white fishing boundary signs located at the confluence of the Skeena and Kispiox rivers
+    AFTER:
+      Rule 1: NAMED_PART | Restrictions: ['vessel_restriction'] → Location: within 3 white fishing boundary signs located at the confluence of the Skeena and Kispiox rivers
+    WHAT CHANGED:
+      ⚠ Rule 1 scope type: BUFFER → NAMED_PART
+
+SKEENA RIVER (mainstem only) (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Rule count change: 0
+  Before: 4 scopes
+    1. SEGMENT - from Exchamsiks River to 1.5 km upstream of Kitsumkalum River
+    2. DIRECTIONAL - 1.5 km upstream of Zymoetz River (known as "Skeena River Section 4")
+    3. SEGMENT - Shegunia
+River confluence to Sedan Creek confluence
+    4. SEGMENT - Chimdemash Creek confluence to 1.5 km upstream of
+Zymoetz River confluence
+  After: 4 scopes
+    1. SEGMENT - from Exchamsiks River to 1.5 km upstream of Kitsumkalum River
+    2. DIRECTIONAL - 1.5 km upstream of Zymoetz River
+    3. SEGMENT - Shegunia
+River confluence to Sedan Creek confluence
+    4. SEGMENT - Chimdemash Creek confluence to 1.5 km upstream of
+Zymoetz River confluence
+  Key Differences:
+    BEFORE:
+      Rule 1: SEGMENT | Restrictions: ['licensing', 'note'] → Location: from Exchamsiks River to 1.5 km upstream of Kitsumkalum River
+      Rule 2: DIRECTIONAL | Restrictions: ['licensing', 'licensing'] → Location: 1.5 km upstream of Zymoetz River (known as "Skeena River Section 4")
+      Rule 3: SEGMENT | Restrictions: ['closure'] → Location: Shegunia
+River confluence to Sedan Creek confluence
+      Rule 4: SEGMENT | Restrictions: ['closure'] → Location: Chimdemash Creek confluence to 1.5 km upstream of
+Zymoetz River confluence
+    AFTER:
+      Rule 1: SEGMENT | Restrictions: ['licensing', 'note'] → Location: from Exchamsiks River to 1.5 km upstream of Kitsumkalum River
+      Rule 2: DIRECTIONAL | Restrictions: ['licensing', 'note'] → Location: 1.5 km upstream of Zymoetz River
+      Rule 3: SEGMENT | Restrictions: ['closure'] → Location: Shegunia
+River confluence to Sedan Creek confluence
+      Rule 4: SEGMENT | Restrictions: ['closure'] → Location: Chimdemash Creek confluence to 1.5 km upstream of
+Zymoetz River confluence
+    WHAT CHANGED:
+      ⚠ Rule 2 restrictions changed:
+        + Added: ['note']
+      ⚠ Rule 2 location text REMOVED: '(known as "Skeena River Section 4")'
+        Before: '1.5 km upstream of Zymoetz River (known as "Skeena River Section 4")'
+        After:  '1.5 km upstream of Zymoetz River'
+
+STELLAKO RIVER (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Rule count change: 1
+  Before: 3 scopes
+    1. WHOLE_SYSTEM - None
+    2. SEGMENT - between fishing boundary signs approximately 250 m and 4 km downstream of the bridge near the François Lake outlet
+    3. SEGMENT - from François Lake to the falls
+  After: 4 scopes
+    1. WHOLE_SYSTEM - None
+    2. WHOLE_SYSTEM - None
+    3. SEGMENT - between fishing boundary signs approximately 250 m and 4 km downstream of the bridge near the François Lake outlet
+    4. SEGMENT - from François Lake to the falls
+  Key Differences:
+    BEFORE:
+      Rule 1: WHOLE_SYSTEM | Restrictions: ['closure', 'licensing', 'note', 'harvest', 'note']
+      Rule 2: SEGMENT | Restrictions: ['gear_restriction'] → Location: between fishing boundary signs approximately 250 m and 4 km downstream of the bridge near the François Lake outlet
+      Rule 3: SEGMENT | Restrictions: ['vessel_restriction'] → Location: from François Lake to the falls
+    AFTER:
+      Rule 1: WHOLE_SYSTEM | Restrictions: ['closure', 'harvest', 'note']
+      Rule 2: WHOLE_SYSTEM | Restrictions: ['licensing', 'note']
+      Rule 3: SEGMENT | Restrictions: ['gear_restriction'] → Location: between fishing boundary signs approximately 250 m and 4 km downstream of the bridge near the François Lake outlet
+      Rule 4: SEGMENT | Restrictions: ['vessel_restriction'] → Location: from François Lake to the falls
+    WHAT CHANGED:
+      ⚠ Complex change: 3 → 4 rules
+        + 1 rules added
+
+SWIFT RIVER (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Rule count change: 0
+  Before: 1 scopes
+    1. WHOLE_SYSTEM - None
+  After: 1 scopes
+    1. WHOLE_SYSTEM - all parts of
+the Swift River including tributary streams but not lakes
+  Key Differences:
+    BEFORE:
+      Rule 1: WHOLE_SYSTEM | Restrictions: ['harvest', 'harvest', 'licensing', 'note']
+    AFTER:
+      Rule 1: WHOLE_SYSTEM | Restrictions: ['harvest', 'harvest', 'licensing'] → Location: all parts of
+the Swift River including tributary streams but not lakes
+    WHAT CHANGED:
+      ⚠ Rule 1 restrictions changed:
+        - Removed: ['note']
+      ⚠ Rule 1 location CHANGED:
+        Before: 'None'
+        After:  'all parts of
+the Swift River including tributary streams but not lakes'
+
+TAGISH LAKE (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Rule count change: 0
+  Before: 1 scopes
+    1. WHOLE_SYSTEM - None
+  After: 1 scopes
+    1. WHOLE_SYSTEM - all parts of Tagish Lake
+  Key Differences:
+    BEFORE:
+      Rule 1: WHOLE_SYSTEM | Restrictions: ['harvest', 'harvest', 'harvest', 'harvest', 'licensing', 'note']
+    AFTER:
+      Rule 1: WHOLE_SYSTEM | Restrictions: ['harvest', 'harvest', 'harvest', 'harvest', 'licensing'] → Location: all parts of Tagish Lake
+    WHAT CHANGED:
+      ⚠ Rule 1 restrictions changed:
+        - Removed: ['note']
+      ⚠ Rule 1 location CHANGED:
+        Before: 'None'
+        After:  'all parts of Tagish Lake'
+
+TAKYSIE LAKE (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Rule count change: 0
+  Before: 1 scopes
+    1. NAMED_PART - northwest of a line between fishing boundary signs on opposite shores immediately north of Takysie Lake Settlement
+  After: 1 scopes
+    1. DIRECTIONAL - northwest of a line between fishing boundary signs on opposite shores immediately north of Takysie Lake Settlement
+  Key Differences:
+    BEFORE:
+      Rule 1: NAMED_PART | Restrictions: ['closure'] → Location: northwest of a line between fishing boundary signs on opposite shores immediately north of Takysie Lake Settlement
+    AFTER:
+      Rule 1: DIRECTIONAL | Restrictions: ['closure'] → Location: northwest of a line between fishing boundary signs on opposite shores immediately north of Takysie Lake Settlement
+    WHAT CHANGED:
+      ⚠ Rule 1 scope type: NAMED_PART → DIRECTIONAL
+
+TESLIN LAKE (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Rule count change: 0
+  Before: 1 scopes
+    1. WHOLE_SYSTEM - None
+  After: 1 scopes
+    1. WHOLE_SYSTEM - all parts of Teslin Lake
+  Key Differences:
+    BEFORE:
+      Rule 1: WHOLE_SYSTEM | Restrictions: ['harvest', 'harvest', 'harvest', 'harvest', 'licensing', 'note']
+    AFTER:
+      Rule 1: WHOLE_SYSTEM | Restrictions: ['harvest', 'harvest', 'harvest', 'harvest', 'licensing'] → Location: all parts of Teslin Lake
+    WHAT CHANGED:
+      ⚠ Rule 1 restrictions changed:
+        - Removed: ['note']
+      ⚠ Rule 1 location CHANGED:
+        Before: 'None'
+        After:  'all parts of Teslin Lake'
+
+ZYMOETZ (Copper) RIVER (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Rule count change: 0
+  Before: 6 scopes
+    1. BUFFER - from McDonell Lake downstream approximately 3 km
+    2. SEGMENT - between fishing boundary signs in Zymoetz Canyon
+    3. DIRECTIONAL - upstream of fishing boundary sign at the transmission line crossing (located downstream of Zymoetz Canyon)
+    4. WHOLE_SYSTEM - None
+    5. DIRECTIONAL - Upstream of Limonite Creek
+    6. DIRECTIONAL - Downstream of Limonite Creek
+  After: 6 scopes
+    1. BUFFER - from McDonell Lake downstream approximately 3 km
+    2. NAMED_PART - in Zymoetz Canyon
+    3. DIRECTIONAL - upstream of fishing boundary sign at the transmission line crossing (located downstream of Zymoetz Canyon)
+    4. WHOLE_SYSTEM - None
+    5. DIRECTIONAL - Upstream of Limonite Creek
+    6. DIRECTIONAL - Downstream of Limonite Creek
+  Key Differences:
+    BEFORE:
+      Rule 1: BUFFER | Restrictions: ['closure'] → Location: from McDonell Lake downstream approximately 3 km
+      Rule 2: SEGMENT | Restrictions: ['closure'] → Location: between fishing boundary signs in Zymoetz Canyon
+      Rule 3: DIRECTIONAL | Restrictions: ['closure'] → Location: upstream of fishing boundary sign at the transmission line crossing (located downstream of Zymoetz Canyon)
+      Rule 4: WHOLE_SYSTEM | Restrictions: ['gear_restriction']
+      Rule 5: DIRECTIONAL | Restrictions: ['licensing', 'licensing', 'licensing'] → Location: Upstream of Limonite Creek
+      Rule 6: DIRECTIONAL | Restrictions: ['licensing', 'licensing', 'licensing'] → Location: Downstream of Limonite Creek
+    AFTER:
+      Rule 1: BUFFER | Restrictions: ['closure'] → Location: from McDonell Lake downstream approximately 3 km
+      Rule 2: NAMED_PART | Restrictions: ['closure'] → Location: in Zymoetz Canyon
+      Rule 3: DIRECTIONAL | Restrictions: ['closure'] → Location: upstream of fishing boundary sign at the transmission line crossing (located downstream of Zymoetz Canyon)
+      Rule 4: WHOLE_SYSTEM | Restrictions: ['gear_restriction']
+      Rule 5: DIRECTIONAL | Restrictions: ['licensing', 'note', 'closure'] → Location: Upstream of Limonite Creek
+      Rule 6: DIRECTIONAL | Restrictions: ['licensing', 'note', 'closure'] → Location: Downstream of Limonite Creek
+    WHAT CHANGED:
+      ⚠ Rule 2 scope type: SEGMENT → NAMED_PART
+      ⚠ Rule 2 location text REMOVED: 'between fishing boundary signs'
+        Before: 'between fishing boundary signs in Zymoetz Canyon'
+        After:  'in Zymoetz Canyon'
+      ⚠ Rule 5 restrictions changed:
+        + Added: ['closure', 'note']
+      ⚠ Rule 6 restrictions changed:
+        + Added: ['closure', 'note']
+
+DAVIS BAY (in Finlay Reach of Williston Lake) (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Rule count change: 1
+  Before: 1 scopes
+    1. BUFFER - within a 500 m radius of the Davis Forest Service Road Bridge
+  After: 2 scopes
+    1. BUFFER - within a 500 m radius of the Davis Forest Service Road Bridge
+    2. WHOLE_SYSTEM - None
+  Key Differences:
+    BEFORE:
+      Rule 1: BUFFER | Restrictions: ['closure'] → Location: within a 500 m radius of the Davis Forest Service Road Bridge
+    AFTER:
+      Rule 1: BUFFER | Restrictions: ['closure'] → Location: within a 500 m radius of the Davis Forest Service Road Bridge
+      Rule 2: WHOLE_SYSTEM | Restrictions: ['note']
+    WHAT CHANGED:
+      ⚠ Rule was split AND restrictions were modified
+        + Added restrictions: ['note']
+        ⚠ Scopes also changed
+          Rule 2: BUFFER → WHOLE_SYSTEM
+            Location: 'within a 500 m radius of the Davis Forest Service Road Bridge' → 'None'
+
+MCLEOD RIVER (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Rule count change: 0
+  Before: 1 scopes
+    1. SEGMENT - from Carp Lake to War Falls (excluding War Lake)
+  After: 1 scopes
+    1. SEGMENT - from Carp Lake to War Falls
+  Key Differences:
+    BEFORE:
+      Rule 1: SEGMENT | Restrictions: ['gear_restriction'] → Location: from Carp Lake to War Falls (excluding War Lake)
+    AFTER:
+      Rule 1: SEGMENT | Restrictions: ['gear_restriction'] → Location: from Carp Lake to War Falls
+    WHAT CHANGED:
+      ⚠ Rule 1 location text REMOVED: '(excluding War Lake)'
+        Before: 'from Carp Lake to War Falls (excluding War Lake)'
+        After:  'from Carp Lake to War Falls'
+
+LIARD RIVER WATERSHED (see map on page 63) (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Rule count change: 0
+  Before: 1 scopes
+    1. WHOLE_SYSTEM - from all lakes and streams
+  After: 1 scopes
+    1. WHOLE_SYSTEM - None
+  Key Differences:
+    BEFORE:
+      Rule 1: WHOLE_SYSTEM | Restrictions: ['harvest', 'harvest'] → Location: from all lakes and streams
+    AFTER:
+      Rule 1: WHOLE_SYSTEM | Restrictions: ['harvest', 'harvest']
+    WHAT CHANGED:
+      ⚠ Rule 1 location CHANGED:
+        Before: 'from all lakes and streams'
+        After:  'None'
+
+PEACE RIVER (From Hwy. 29 bridge to the Site C dam) (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Rule count change: 0
+  Before: 4 scopes
+    1. WHOLE_SYSTEM - None
+    2. WHOLE_SYSTEM - including tributaries
+    3. SEGMENT - from mouth of Halfway River to fishing boundary signs approximately 5 km upstream and 5 km downstream
+    4. SEGMENT - between Peace Canyon Dam and Hwy 29 Bridge
+  After: 4 scopes
+    1. WHOLE_SYSTEM - None
+    2. WHOLE_SYSTEM - None
+    3. BUFFER - from mouth of Halfway River to fishing boundary signs approximately 5 km upstream and 5 km downstream
+    4. SEGMENT - between Peace Canyon Dam and Hwy 29 Bridge
+  Key Differences:
+    BEFORE:
+      Rule 1: WHOLE_SYSTEM | Restrictions: ['harvest', 'harvest']
+      Rule 2: WHOLE_SYSTEM | Restrictions: ['harvest', 'harvest'] → Location: including tributaries
+      Rule 3: SEGMENT | Restrictions: ['closure'] → Location: from mouth of Halfway River to fishing boundary signs approximately 5 km upstream and 5 km downstream
+      Rule 4: SEGMENT | Restrictions: ['closure'] → Location: between Peace Canyon Dam and Hwy 29 Bridge
+    AFTER:
+      Rule 1: WHOLE_SYSTEM | Restrictions: ['harvest', 'harvest']
+      Rule 2: WHOLE_SYSTEM | Restrictions: ['harvest', 'harvest']
+      Rule 3: BUFFER | Restrictions: ['closure'] → Location: from mouth of Halfway River to fishing boundary signs approximately 5 km upstream and 5 km downstream
+      Rule 4: SEGMENT | Restrictions: ['closure'] → Location: between Peace Canyon Dam and Hwy 29 Bridge
+    WHAT CHANGED:
+      ⚠ Rule 2 location CHANGED:
+        Before: 'including tributaries'
+        After:  'None'
+      ⚠ Rule 3 scope type: SEGMENT → BUFFER
+
+KALAMALKA LAKE (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Rule count change: 0
+  Before: 2 scopes
+    1. WHOLE_SYSTEM - None
+    2. NAMED_PART - various locations
+  After: 2 scopes
+    1. WHOLE_SYSTEM - None
+    2. VAGUE - various locations
+  Key Differences:
+    BEFORE:
+      Rule 1: WHOLE_SYSTEM | Restrictions: ['harvest', 'harvest']
+      Rule 2: NAMED_PART | Restrictions: ['vessel_restriction'] → Location: various locations
+    AFTER:
+      Rule 1: WHOLE_SYSTEM | Restrictions: ['harvest', 'harvest']
+      Rule 2: VAGUE | Restrictions: ['vessel_restriction'] → Location: various locations
+    AUDIT LOGS:
+      BEFORE: (no audit entries)
+      AFTER:
+        • Rule 2: Location 'various locations' lacks a specific spatial boundary or reference point in the text.
+    WHAT CHANGED:
+      ⚠ Rule 2 scope type: NAMED_PART → VAGUE
+
+OKANAGAN RIVER OXBOWS (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Rule count change: 0
+  Before: 1 scopes
+    1. WHOLE_SYSTEM - None
+  After: 1 scopes
+    1. SEGMENT - downstream of the McIntyre Dam and upstream of Vaseux Lake
+  Key Differences:
+    BEFORE:
+      Rule 1: WHOLE_SYSTEM | Restrictions: ['note']
+    AFTER:
+      Rule 1: SEGMENT | Restrictions: ['note'] → Location: downstream of the McIntyre Dam and upstream of Vaseux Lake
+    WHAT CHANGED:
+      ⚠ Rule 1 scope type: WHOLE_SYSTEM → SEGMENT
+      ⚠ Rule 1 location CHANGED:
+        Before: 'None'
+        After:  'downstream of the McIntyre Dam and upstream of Vaseux Lake'
+
+OSOYOOS LAKE (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Rule count change: 0
+  Before: 3 scopes
+    1. WHOLE_SYSTEM - None
+    2. NAMED_PART - on parts
+    3. NAMED_PART - in 5 signed swimming areas
+  After: 3 scopes
+    1. WHOLE_SYSTEM - None
+    2. VAGUE - on parts
+    3. NAMED_PART - in 5 signed swimming areas
+  Key Differences:
+    BEFORE:
+      Rule 1: WHOLE_SYSTEM | Restrictions: ['harvest', 'harvest', 'harvest', 'gear_restriction']
+      Rule 2: NAMED_PART | Restrictions: ['vessel_restriction'] → Location: on parts
+      Rule 3: NAMED_PART | Restrictions: ['vessel_restriction'] → Location: in 5 signed swimming areas
+    AFTER:
+      Rule 1: WHOLE_SYSTEM | Restrictions: ['harvest', 'harvest', 'harvest', 'gear_restriction']
+      Rule 2: VAGUE | Restrictions: ['vessel_restriction'] → Location: on parts
+      Rule 3: NAMED_PART | Restrictions: ['vessel_restriction', 'note'] → Location: in 5 signed swimming areas
+    AUDIT LOGS:
+      BEFORE: (no audit entries)
+      AFTER:
+        • Rule 3: Location 'on parts' has no identifiable boundaries - marked as VAGUE.
+    WHAT CHANGED:
+      ⚠ Rule 2 scope type: NAMED_PART → VAGUE
+      ⚠ Rule 3 restrictions changed:
+        + Added: ['note']
+
+SHUSWAP RIVER (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Rule count change: 1
+  Before: 4 scopes
+    1. SEGMENT - from Mara Lake upstream to Mara Bridge
+    2. BUFFER - 50 m upstream and 50 m downstream of Trinity Bridge
+    3. SEGMENT - from Mara Bridge upstream to Sugar Lake
+    4. DIRECTIONAL - Upstream of Sugar Lake
+  After: 5 scopes
+    1. SEGMENT - from Mara Lake upstream to Mara Bridge
+    2. BUFFER - 50 m upstream and 50 m downstream of Trinity Bridge
+    3. WHOLE_SYSTEM - None
+    4. SEGMENT - from Mara Bridge upstream to Sugar Lake
+    5. DIRECTIONAL - Upstream of Sugar Lake
+  Key Differences:
+    BEFORE:
+      Rule 1: SEGMENT | Restrictions: ['closure'] → Location: from Mara Lake upstream to Mara Bridge
+      Rule 2: BUFFER | Restrictions: ['closure'] → Location: 50 m upstream and 50 m downstream of Trinity Bridge
+      Rule 3: SEGMENT | Restrictions: ['harvest', 'note'] → Location: from Mara Bridge upstream to Sugar Lake
+      Rule 4: DIRECTIONAL | Restrictions: ['closure', 'gear_restriction'] → Location: Upstream of Sugar Lake
+    AFTER:
+      Rule 1: SEGMENT | Restrictions: ['closure'] → Location: from Mara Lake upstream to Mara Bridge
+      Rule 2: BUFFER | Restrictions: ['closure'] → Location: 50 m upstream and 50 m downstream of Trinity Bridge
+      Rule 3: WHOLE_SYSTEM | Restrictions: ['harvest']
+      Rule 4: SEGMENT | Restrictions: ['note'] → Location: from Mara Bridge upstream to Sugar Lake
+      Rule 5: DIRECTIONAL | Restrictions: ['closure', 'gear_restriction'] → Location: Upstream of Sugar Lake
+    WHAT CHANGED:
+      ⚠ Complex change: 4 → 5 rules
+        + 1 rules added
+
+WOOD LAKE (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Rule count change: 0
+  Before: 2 scopes
+    1. WHOLE_SYSTEM - None
+    2. NAMED_PART - on parts
+  After: 2 scopes
+    1. WHOLE_SYSTEM - None
+    2. VAGUE - on parts
+  Key Differences:
+    BEFORE:
+      Rule 1: WHOLE_SYSTEM | Restrictions: ['closure', 'closure', 'harvest', 'harvest']
+      Rule 2: NAMED_PART | Restrictions: ['vessel_restriction'] → Location: on parts
+    AFTER:
+      Rule 1: WHOLE_SYSTEM | Restrictions: ['closure', 'closure', 'harvest', 'harvest']
+      Rule 2: VAGUE | Restrictions: ['vessel_restriction'] → Location: on parts
+    AUDIT LOGS:
+      BEFORE: (no audit entries)
+      AFTER:
+        • Rule 4: Location 'on parts' has no identifiable boundaries - marked as VAGUE.
+    WHAT CHANGED:
+      ⚠ Rule 2 scope type: NAMED_PART → VAGUE
+
+ALL MINOR TEXT CHANGES (9 items):
+--------------------------------------------------
+
+GOLD RIVER (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Rule count change: 0
+  Before: 4 scopes
+    1. DIRECTIONAL - upstream of the Muchalat River
+    2. DIRECTIONAL - downstream of the Muchalat River
+    3. SEGMENT - between the cascade falls (located approximately 6.5 km upstream of Muchalat Inlet, UTM 709137E, 5512420N) and fishing
+boundary signs approximately 80...
+    4. WHOLE_SYSTEM - None
+  After: 4 scopes
+    1. DIRECTIONAL - upstream of the Muchalat River[Includes Tributaries]
+    2. DIRECTIONAL - downstream of the Muchalat River[Includes Tributaries]
+    3. SEGMENT - between the cascade falls (located approximately 6.5 km upstream of Muchalat Inlet, UTM 709137E, 5512420N) and fishing
+boundary signs approximately 80...
+    4. WHOLE_SYSTEM - None
+  Minor Text Differences:
+    • Rule 1: 'upstream of the Muchalat River' → 'upstream of the Muchalat River[Includes Tributaries]'
+    • Rule 2: 'downstream of the Muchalat River' → 'downstream of the Muchalat River[Includes Tributaries]'
+
+HARRIS CREEK (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Rule count change: 0
+  Before: 2 scopes
+    1. WHOLE_SYSTEM - None
+    2. DIRECTIONAL - upstream of and including Hemmingsen Creek
+  After: 2 scopes
+    1. WHOLE_SYSTEM - None
+    2. DIRECTIONAL - upstream of and including Hemmingsen Creek[Includes Tributaries]
+  Minor Text Differences:
+    • Rule 2: 'upstream of and including Hemmingsen Creek' → 'upstream of and including Hemmingsen Creek[Includes Tributaries]'
+
+KEOGH RIVER (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Rule count change: 0
+  Before: 2 scopes
+    1. DIRECTIONAL - downstream of lower fish counting fence near tidewater
+    2. WHOLE_SYSTEM - all parts
+  After: 2 scopes
+    1. DIRECTIONAL - downstream of lower fish counting fence near tidewater
+    2. WHOLE_SYSTEM - in all parts[Includes Tributaries]
+  Minor Text Differences:
+    • Rule 2: 'all parts' → 'in all parts[Includes Tributaries]'
+
+NANAIMO RIVER (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Rule count change: 0
+  Before: 6 scopes
+    1. WHOLE_SYSTEM - None
+    2. SEGMENT - from power line crossing at "Bore Hole" upstream to fishing boundary signs at the mouth of Boulder Creek
+    3. SEGMENT - from the Cedar Road Bridge upstream to the Hwy 19 bridge
+    4. DIRECTIONAL - upstream of the Hwy 1 bridge
+    5. DIRECTIONAL - upstream of the westernmost of the two Nanaimo Lakes, known locally as "Second" Lake
+    6. NAMED_PART - on parts
+  After: 6 scopes
+    1. WHOLE_SYSTEM - None
+    2. SEGMENT - from power line crossing at "Bore Hole" upstream to fishing boundary signs at the mouth of Boulder Creek
+    3. SEGMENT - from the Cedar Road Bridge upstream to the Hwy 19 bridge
+    4. DIRECTIONAL - upstream of the Hwy 1 bridge
+    5. DIRECTIONAL - upstream of the westernmost of the two Nanaimo Lakes, known locally as "Second" Lake
+    6. NAMED_PART - parts
+  Minor Text Differences:
+    • Rule 6: 'on parts' → 'parts'
+
+PROSPECT LAKE (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Rule count change: 0
+  Before: 2 scopes
+    1. WHOLE_SYSTEM - None
+    2. NAMED_PART - on parts
+  After: 2 scopes
+    1. WHOLE_SYSTEM - None
+    2. NAMED_PART - parts
+  Minor Text Differences:
+    • Rule 2: 'on parts' → 'parts'
+
+QUENNELL LAKE (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Rule count change: 0
+  Before: 2 scopes
+    1. WHOLE_SYSTEM - None
+    2. NAMED_PART - on parts
+  After: 2 scopes
+    1. WHOLE_SYSTEM - None
+    2. NAMED_PART - parts
+  Minor Text Differences:
+    • Rule 2: 'on parts' → 'parts'
+
+SHAWNIGAN LAKE (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Rule count change: 0
+  Before: 2 scopes
+    1. WHOLE_SYSTEM - None
+    2. NAMED_PART - on parts
+  After: 2 scopes
+    1. WHOLE_SYSTEM - None
+    2. NAMED_PART - parts
+  Minor Text Differences:
+    • Rule 2: 'on parts' → 'parts'
+
+ISKUT RIVER (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Rule count change: 0
+  Before: 2 scopes
+    1. DIRECTIONAL - downstream of Forest Kerr Canyon[Includes Tributaries]
+    2. SEGMENT - between Natadesleen Lake and Kinaskan Lake
+  After: 2 scopes
+    1. DIRECTIONAL - downstream of Forest Kerr Canyon
+    2. SEGMENT - between Natadesleen Lake and Kinaskan Lake
+  Minor Text Differences:
+    • Rule 1: 'downstream of Forest Kerr Canyon[Includes Tributaries]' → 'downstream of Forest Kerr Canyon'
+
+WILLISTON LAKE (in Zone B) (2026-01-27_132847_session -> 2026-01-27_145249_session):
+  Rule count change: 0
+  Before: 2 scopes
+    1. WHOLE_SYSTEM - None
+    2. WHOLE_SYSTEM - [Includes Tributaries]
+  After: 2 scopes
+    1. WHOLE_SYSTEM - None
+    2. WHOLE_SYSTEM - None
+  Minor Text Differences:
+    • Rule 2: '[Includes Tributaries]' → ''
+
+CONSISTENCY ANALYSIS (MULTI-SESSION ITEMS ONLY):
+----------------------------------------
+Always succeed: 1263 items
+Always fail: 0 items
+Inconsistent: 0 items

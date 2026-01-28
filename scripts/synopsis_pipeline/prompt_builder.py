@@ -30,9 +30,9 @@ def build_prompt(waterbody_rows: List) -> str:
     Returns:
         Complete formatted prompt string
     """
-    # Format inputs from WaterbodyRow objects
+    # Format inputs from WaterbodyRow objects with only the three required keys
     batch_inputs = [
-        f'Waterbody Name: "{row.water}" | Regulation Block: "{row.raw_regs}"'
+        {"water": row.water, "raw_regs": row.raw_regs, "symbols": row.symbols}
         for row in waterbody_rows
     ]
 
@@ -49,7 +49,7 @@ def build_prompt(waterbody_rows: List) -> str:
     # Format template with batch data
     prompt = template.format(
         num_items=len(waterbody_rows),
-        batch_inputs=json.dumps(batch_inputs),
+        batch_inputs=json.dumps(batch_inputs, ensure_ascii=False),
         examples=examples,
     )
 

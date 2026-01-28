@@ -1,177 +1,871 @@
-You are a legal data architect. Parse this list of fishing regulation blocks into a JSON array.
+You are a legal data architect specializing in fishing regulations. Parse this list of regulation blocks into a strict JSON array following the NEW REGULATION PARSING ARCHITECTURE.
 
-TASK REQUIREMENTS:
+CRITICAL REQUIREMENTS:
 1. Return EXACTLY {num_items} items in the EXACT SAME ORDER as input (output[0] = input[0], etc.)
 2. Process ALL items completely - do not skip any waterbodies or rules
-3. Map regulations into 'geographic_groups' based on location anchors
-4. For each group: provide 'raw_text' (verbatim) and 'cleaned_text' (fixed word-breaks, single line)
-5. Split each group's text into individual rule objects - one rule per object
-6. Split nested lists (a, b, c) into separate rules referencing the proper location
-7. Classify each rule type: closure, harvest, gear_restriction, restriction, licensing, access, note
-8. Extract date ranges and species into arrays (or null if none found) in exact format from text
-9. Ensure valid JSON output with all schema fields filled
-10. Do not summarize - every word must exist within 'geographic_groups'
+3. Follow the Scope-First Architecture - spatial context drives everything
+4. **VERBATIM REQUIREMENT**: ALL *_verbatim fields must be EXACT CHARACTER-FOR-CHARACTER substrings from source text - NO paraphrasing, summarizing, or rewording allowed
+5. Include a top-level field `regs_verbatim` in each output object that is an exact, character-for-character copy of the input `raw_regs` string for that waterbody. All other verbatim fields must be validated against this `regs_verbatim`.
+6. Each rule group has ONE scope and multiple restrictions under that scope
+7. Group rules with the same scope together
+8. Return valid JSON with all schema fields filled
+9. **AUDIT LOG DISCIPLINE**: Use the `audit_log` field ONLY for genuine ambiguities or source text errors (typos, contradictions, impossible-to-parse locations). DO NOT use it to explain normal parsing decisions. If you can solve the logic, solve it; do not log it. Never mix AI commentary with legal data in restriction fields.
+
+WHEN TO USE AUDIT_LOG:
+- Identity issues: Ambiguous waterbody_key extraction, unclear global_scope boundaries, complex exclusion/inclusion patterns that don't fit the model cleanly
+- Scope issues: VAGUE scope types (REQUIRED), impossible-to-parse locations, contradictory directional language
+- Restriction issues: Conflicting date ranges, contradictory rules in source text, unclear regulation intent
+- Source text errors: Typos, missing information, grammatical errors that affect parsing
+- Data model limitations: Cases where the regulation doesn't fit the scope-first architecture cleanly
+
+WHEN NOT TO USE AUDIT_LOG:
+- Normal parsing decisions: "Parsed as DIRECTIONAL scope", "Extracted waterbody_key from title"
+- Standard cases: Simple upstream/downstream rules, clear date ranges, typical restriction types
+- Resolved ambiguities: If you figured out the correct interpretation, just do it - don't log it
+
+SCOPE-FIRST ARCHITECTURE:
+Legal restrictions are meaningless without precise geometric context. Therefore:
+- Global Scope: Master constraint from the title (e.g., "Christina Lake")
+- Exclusion Scopes: Geographic subtractions from title (e.g., "Except Burnt Bridge Creek upstream...")
+- Rule Scopes: Specific geometric instructions from regulation text (e.g., "North of the bridge")
 
 INPUT TEXT FORMATTING:
-- **Bold text** is wrapped in double asterisks (standard Markdown notation)
-- Bold formatting exists in the original PDF and may provide additional context about the regulation
-- Always preserve bold markers in raw_text fields (waterbody level and geographic group level)
+- **Bold text** is wrapped in double asterisks (standard Markdown)
+- Always preserve bold markers in text_verbatim fields
+- Waterbody names are EXACT character-for-character from source
 
-WHEN TO COPY EXACTLY VS WHEN TO USE INTELLIGENCE:
+INPUT ROW FORMAT:
+- The `batch_inputs` provided below is a JSON array of objects. Each object contains `water`, `raw_regs`, `symbols`.
+- Inspect `symbols` for markers like "Incl. Tribs" to set `global_scope.includes_tributaries` to true.
 
-COPY CHARACTER-FOR-CHARACTER (no modifications):
-- "waterbody_name" → Copy from input "Waterbody Name:" EXACTLY (even typos, weird spacing, capitalization)
-- "raw_text" (waterbody level) → Copy from input "Regulation Block:" EXACTLY
-- "raw_text" (geographic groups) → Must be exact substring from parent waterbody raw_text
-- "verbatim_text" (rules) → Must be exact substring from geographic group's raw_text
+VERBATIM CHAIN OF CUSTODY - CRITICAL RULES:
 
-USE YOUR EXPERTISE (process and extract):
-- "location" → Extract geographic area (e.g., "upstream of dam", "tributaries")
-- "cleaned_text" → Fix word-breaks, remove newlines, correct punctuation for readability
-- "rule" → Extract and normalize the specific rule (e.g., "No Fishing", "Bait ban")
-- "type" → Classify rule type. must be one of: closure, harvest, gear_restriction, restriction, licensing, access, note
-- "species" → Identify fish species mentioned
-- "dates" → Extract date ranges in original format
-- Splitting into geographic_groups and individual rules
+**VERBATIM MEANS EXACT ASCII CHARACTERS - NOT RENDERED MARKDOWN**:
+- "verbatim" means character-for-character copy of RAW TEXT as it appears in the source
+- This is NOT rendered Markdown - it's the exact ASCII characters including formatting markers
+- **text** means six characters: asterisk, asterisk, t, e, x, t, asterisk, asterisk
+- Do NOT interpret, render, or transform the text in any way
+- Think of it like copying from a plain text editor, not a rendered HTML view
+- Every character must match EXACTLY: spaces, newlines (\n), asterisks (**), hyphens, etc.
 
-COMMON COPYING MISTAKES TO AVOID:
-- Input: "CAYCUSE RIVER" → Output: "CAYUSE RIVER" WRONG (changed spelling)
-- Input: "TACHEEDA LAKES" → Output: "TACHEEEDA LAKES" WRONG (added extra E)
-- Input: "CLANWILLIAM LAKE" → Output: "CLAN WILLIAM LAKE" WRONG (added space)
-- Input: "COQUIHALLA RIVER" → Output: "Coquihalla River" WRONG (changed capitalization)
-- Input: "Lake   St. Mary" → Output: "Lake St. Mary" WRONG (fixed spacing)
+1. IDENTITY.NAME_VERBATIM
+   - Copy EXACTLY from "Waterbody Name:" field - character-for-character
+   - Do NOT modify capitalization, spacing, punctuation, or spelling
+   - Even typos must be preserved
 
-SELF-CHECK: Count characters in your waterbody_name vs input - they must be IDENTICAL.
+2. RULE_TEXT_VERBATIM (Rule Level) - ARRAY OF EXACT SUBSTRINGS
+   - **CRITICAL**: This is an ARRAY of strings, not a single string
+   - Each element must be an EXACT substring from the regulation block - copy and paste directly
+   - Preserve ALL formatting: newlines, hyphens, asterisks, bold markers (**text**), punctuation
+   - Do NOT rephrase, summarize, clean up, or remove any characters
+   - **ASCII EXACTNESS**: Every character matters - if source has "**No Fishing**", that's what you extract (12 characters including asterisks)
+   - **NEVER ADD CHARACTERS**: Do NOT add ellipsis (...), connectors, or any characters not in the source
+     * WRONG: "Fly fishing only... (b) from signs" (ellipsis added - not in source)
+     * WRONG: "**No Fishing** in tributaries" + "and upstream of bridge" (splitting adds implicit connection)
+     * RIGHT: Extract complete phrases as they appear, even if long
+   - **INTERLEAVED RULES**: When multiple restrictions apply to the SAME SCOPE but are separated by unrelated text, capture each text block in separate array elements
+     * Example: "No fishing upstream. Bait ban downstream. Fly fishing only upstream."
+     * Result: ONE rule group for Upstream scope with rule_text_verbatim: ["No fishing upstream", "Fly fishing only upstream"]
+   - **COLON-SEPARATED MULTI-SEGMENT RULES**: When a sentence has "[restriction] [dates]: [location A], [location B], [location C]", you have TWO options:
+     * Example: "Trout/char catch and release June 15-Oct 31: from Lower Elk Lake to Forsyth Cr, from Line Creek Bridge to CPR Bridge at Sparwood"
+     * **OPTION 1 (PREFERRED)**: Extract the ENTIRE sentence for EACH segment rule:
+       - For segment "Lower Elk Lake to Forsyth Cr": rule_text_verbatim: ["Trout/char catch and release June 15-Oct 31: from Lower Elk Lake to Forsyth Cr, from Line Creek Bridge to CPR Bridge at Sparwood"]
+       - For segment "Line Creek to CPR Bridge": rule_text_verbatim: ["Trout/char catch and release June 15-Oct 31: from Lower Elk Lake to Forsyth Cr, from Line Creek Bridge to CPR Bridge at Sparwood"]
+       - Same complete text for both rules (just different scopes)
+     * **OPTION 2 (ONLY IF YOU CAN'T USE OPTION 1)**: Extract ONLY the segment location phrase WITHOUT the prefix, and set dates: null
+       - rule_text_verbatim: ["from Line Creek Bridge to CPR Bridge at Sparwood"]
+       - dates: null (because the date isn't in this specific substring)
+     * **CRITICAL**: NEVER create synthetic text like "Trout/char catch and release June 15-Oct 31: from Line Creek Bridge..." when that exact string doesn't exist
+     * **NEVER use ellipsis** (...) to indicate continuation - it's not an exact substring
+   - **ORDER DOESN'T MATTER**: Array elements can appear in any order
+   - **LINE BREAKS**: Pay attention to where sentences actually break in the original text
+   - **BOLD MARKERS**: Use raw string indexing - only include bold markers (**) if they're physically present in your substring
+     * If your selection starts mid-bold (e.g., inside "**Title\nRule**"), extract ONLY the raw characters in that range
+     * DO NOT add opening/closing ** if they're not in your specific substring
+   - VALIDATION WILL FAIL if ANY element is not found character-for-character in regs_verbatim
+   - When in doubt, copy MORE text rather than less to ensure it's a valid substring
 
-VERBATIM_TEXT AND DATES - CRITICAL RULES:
 
-1. BOLD MARKERS IN VERBATIM_TEXT:
-   - If extracting the ENTIRE bolded section → keep bold markers (e.g., "**No Fishing**")
-   - If extracting PART of a bolded section → remove bold markers (e.g., from "**A; B**" extract "A" not "**A**")
-   - Bold markers must be preserved in raw_text fields only
+3. LOCATION_VERBATIM (Scope Level)
+   - **CRITICAL**: Must be EXACT substring from at least one element of rule_text_verbatim (or from name_verbatim for global/exclusions)
+   - Copy the location phrase EXACTLY as it appears in the rule_text_verbatim
+   - **INCLUDE ALL CONTEXT**: Preserve parenthetical clarifications, distance markers, and additional location details
+     * Example: "upstream of signs at 'Girl Guide Falls' (approximately 250 m upstream of the mouth of Beaver Creek)"
+     * DO NOT truncate to just "upstream of signs at 'Girl Guide Falls'"
+     * Parenthetical information provides crucial spatial context
+   - Do NOT paraphrase or reword location descriptions
+   - **WHOLE_SYSTEM CRITICAL**: If type is WHOLE_SYSTEM with no specific location mentioned, use null
+     * DO NOT copy the waterbody name from identity title into location_verbatim
+     * This causes substring validation failures (waterbody name is not in regulation text)
+   - **INHERITED LOCATION FROM WATERBODY NAME**: When the waterbody name contains location info (e.g., "THOMPSON RIVER (upstream of Kamloops Lake)") but the regulation text doesn't mention that location:
+     * For global_scope: Extract location from name_verbatim ("upstream of Kamloops Lake")
+     * For rule scopes: Use WHOLE_SYSTEM with location_verbatim: null (the location is inherited from global_scope, not stated in regulation text)
+     * DO NOT copy location from waterbody name into rule scope location_verbatim - it must come from regulation text (rule_text_verbatim)
+   - Preserve exact formatting, punctuation, and capitalization
+   - **PREPOSITION HANDLING**: Copy location text EXACTLY as it appears, including prepositions:
+     * If source says "on parts", keep "on parts"
+     * If source says "parts", keep "parts"
+     * If source says "within the fishing boundary signs", keep "within the fishing boundary signs"
+     * If source says "fishing boundary signs", keep "fishing boundary signs"
+     * DO NOT add or remove prepositions to normalize - preserve source text character-for-character
+   - VALIDATION WILL FAIL if this is not found character-for-character in at least one rule_text_verbatim element
 
-2. VERBATIM_TEXT MUST BE EXACT SUBSTRING
-   - Copy character-for-character from geographic group's raw_text
-   - Must be findable using exact string matching (preserving punctuation, line breaks)
-   - DO NOT rephrase, add words, skip words, or change punctuation
+4. LANDMARK_VERBATIM (Scope Level)
+   - Must be EXACT substring from location_verbatim (or null for TRIBUTARIES_ONLY type)
+   - Used for database lookups of coordinates
+   - **INCLUDE CLARIFYING CONTEXT**: When extracting landmarks, include parenthetical details that help identify the landmark
+     * Example: From "upstream of signs at 'Girl Guide Falls' (approximately 250 m upstream of the mouth of Beaver Creek)"
+     * landmark_verbatim should be: "signs at 'Girl Guide Falls' (approximately 250 m upstream of the mouth of Beaver Creek)"
+     * NOT just: "signs at 'Girl Guide Falls'"
+     * The parenthetical provides crucial disambiguation for landmark identification
+   - **"BETWEEN X AND Y" CONSTRUCTIONS**: 
+     * If text says "between signs 0.5 km and 3.5 km upstream", do NOT extract "signs 0.5 km upstream" as landmark
+     * Instead, find the actual phrases that appear in the text as written
+     * For SEGMENT type, both landmark_verbatim and landmark_end_verbatim must be exact substrings
+   - If landmark_end_verbatim exists, location_verbatim must contain both landmarks
+   - Copy landmarks EXACTLY as they appear, including all punctuation and formatting
 
-3. DATES ONLY WHERE THEY APPEAR
-   - Only assign dates if they LITERALLY appear in the rule's verbatim_text
-   - Example: verbatim_text "Trout catch and release" (no date) → dates: null
-   - Example: verbatim_text "bait ban, June 15-Oct 31" (has date) → dates: ["June 15-Oct 31"]
+5. DATES (Restriction Level)
+   - Extract the clean date string without bold markers or extra formatting
+   - Example: "**Dec 1-Aug 15**" - output "Dec 1-Aug 15" (clean)
+   - Example: "June 1-30" - output "June 1-30" (already clean)
+   - Do NOT transform format (e.g., "June 1-30" stays "June 1-30", not "06-01 to 06-30")
+   - Only assign dates if they appear in at least one element of rule_text_verbatim (validation will normalize for comparison)
+   - If no date in text, use null
 
-4. UNDERSTAND PUNCTUATION
-   - Semicolon (;) generally separates independent rules with potentially different dates
-   - "and" connecting rules may share date at end
-   - When in doubt: Does the date appear in this verbatim_text? If no → dates: null
+SCOPE OBJECT TYPES:
 
-5. SEPARATE GEOGRAPHIC GROUPS BY LOCATION
-   - When rules apply to DIFFERENT geographic areas → create SEPARATE geographic groups
-   - Each location gets its own group with its own raw_text and cleaned_text
-   - If semicolon separates rules AND each mentions different location → SPLIT into separate groups
-   - If regulation applies to ENTIRE waterbody (general regulation with no specific location) → location: ""
-   - If regulation applies to entire waterbody AND its tributaries → location: "Includes Tributaries"
-   - If regulation specifies or implies a geographic area (e.g., "upstream of dam") → location: "upstream of dam"
+1. WHOLE_SYSTEM: Applies to entire waterbody
+   - Use when no specific sub-location mentioned
+   - Use when text says "all", "entire", or has no location specification
+   - location_verbatim: null (UNLESS specific location text like "entire lake" or "all waters" appears in the regulation text)
+   - direction: null
+   - **DO NOT USE** if location text specifies boundaries, segments, directions, or named parts
+   - **DO NOT USE** if location text contains "between", "from...to", "upstream of", "downstream of", or any spatial indicators
 
-BEFORE OUTPUTTING EACH RULE, VERIFY:
-1. Can I find verbatim_text as exact substring in group's raw_text? (Yes/No)
-2. Do the dates I assigned appear in the verbatim_text I chose? (Yes/No)
-3. Do the dates I assigned make sense given punctuation? (Yes/No)
-4. If dates don't appear in verbatim_text: expand verbatim_text to include date OR set dates: null
+2. DIRECTIONAL: Subset relative to landmark with clear spatial direction FROM that landmark
+   - Examples: "upstream of bridge", "north of powerline", "downstream of dam", "north of a line between Bald and Knob Points", "southeast of a line", "northeast of line"
+   - Requires landmark_verbatim AND spatial direction FROM the landmark
+   - direction: UPSTREAM, DOWNSTREAM, NORTH_OF, SOUTH_OF, EAST_OF, WEST_OF, NORTHEAST_OF, NORTHWEST_OF, SOUTHEAST_OF, SOUTHWEST_OF
+   - Must specify movement/position relative to the landmark
+   - The landmark can be a line/boundary described with "between" (e.g., "line between X and Y")
+   - Do NOT use for regional references like "south end" or "north arm" (use NAMED_PART)
+   - Do NOT use when text specifies TWO waterbody segment endpoints (use SEGMENT instead)
 
-STUDY THESE EXAMPLES:
+3. SEGMENT: Specific stretch between two points
+   - Examples: "from Bridge A to Bridge B", "upstream of Eve River, to Hwy 19 bridge", "between Strathcona Dam and Campbell Lake"
+   - Requires landmark_verbatim AND landmark_end_verbatim
+   - direction: MUST BE "BETWEEN" (never UPSTREAM/DOWNSTREAM for SEGMENT)
+   - Use SEGMENT when text has TWO landmarks/bounds, regardless of directional words
+   - **CRITICAL**: If location text contains "between X and Y", "from X to Y", or any TWO named landmarks/boundaries, this is ALWAYS a SEGMENT, never WHOLE_SYSTEM
+   - **DO NOT** confuse waterbody name with scope location - even if the waterbody is named "X's TRIBUTARIES", the scope can still be a SEGMENT if the regulation text specifies boundaries
 
-Example 1: Semicolon separates rules, date only on second
-  "Kokanee daily quota = 2; single barbless hook, May 1-Dec 31"
-  → Rule 1: verbatim_text: "Kokanee daily quota = 2", dates: null
-  → Rule 2: verbatim_text: "single barbless hook, May 1-Dec 31", dates: ["May 1-Dec 31"]
-  WHY: Date appears only with "single barbless hook"
+4. NAMED_PART: Well-known named subsection or regional reference
+   - Examples: "West Arm", "Main Body", "MAINSTEM ONLY", "south end", "north arm"
+   - Use for geographic regions, named sections, or parts of waterbodies
+   - location_verbatim: the named part reference
+   - direction: null (the name itself provides the spatial context)
 
-Example 2: Semicolon separates rules, date only on second
-  "Trout/char catch and release; bait ban, June 15-Oct 31"
-  → Rule 1: verbatim_text: "Trout/char catch and release", dates: null
-  → Rule 2: verbatim_text: "bait ban, June 15-Oct 31", dates: ["June 15-Oct 31"]
-  WHY: Date appears only with "bait ban"
+5. BUFFER: Area within specified distance of a landmark
+   - **TWO-SIDED BUFFER** (symmetric zone around landmark):
+     * Examples: "within 400 m of the mouth of Cedar Creek", "50 m upstream and downstream of Trinity Bridge", "100 m upstream and 100 m downstream of dam"
+     * Patterns: "within X m of [landmark]", "X m upstream and downstream of [landmark]"
+     * direction: null (indicates two-sided)
+   - **ONE-SIDED BUFFER** (bounded zone in one direction only):
+     * Examples: "from Strathcona Dam downstream 100 m", "downstream 100 m from the dam", "upstream 50 m of the bridge"
+     * Patterns: "downstream X m from [landmark]", "[landmark] downstream X m", "from [landmark] downstream X m"
+     * direction: UPSTREAM or DOWNSTREAM (indicates which side)
+   - Requires landmark_verbatim and distance specification in location_verbatim
+   - **DISTINCTION**: BUFFER is bounded (specific distance), DIRECTIONAL is unbounded (everything in that direction)
+
+6. TRIBUTARIES_ONLY: Applies strictly to tributary network
+   - Explicitly excludes main stem
+   - Used when text says "tributaries only" or similar
+   - location_verbatim: Full phrase from title (e.g., "BUTTLE LAKE'S TRIBUTARIES")
+   - landmark_verbatim: null (type implies the landmark)
+
+7. VAGUE: Location specification is unclear or ambiguous
+   - **ONLY USE AS LAST RESORT** when you genuinely cannot determine the correct scope type
+   - Use when location text is too ambiguous, poorly worded, or incomplete to confidently classify
+   - Also use for complex geometric shapes that don't fit our scope types (polygons, multi-point boundaries)
+   - location_verbatim: Copy the confusing text exactly as it appears
+   - landmark_verbatim: null
+   - direction: null
+   - **REQUIRED**: If type is VAGUE, you MUST add an entry to the top-level `audit_log` array explaining exactly why the location could not be parsed (e.g., "Rule 3: Location 'near the area' has unclear landmark - no identifiable reference point")
+   - Examples of acceptable VAGUE cases:
+     * Unclear landmarks: "near the thing", "around the area"
+     * Incomplete phrases: "within 100 m" (of what?)
+     * Complex polygon boundaries: "area bounded by a line commencing at a fishing boundary sign located at the eastern end of Landstrom Bar (Scale Bar) to a fishing boundary sign on the opposite bank of the river, thence to a fishing boundary sign at the southern end of Croft Island, thence to a fishing boundary sign on the nearest bank of the river in a westerly direction, thence following the bank of the river in a westerly direction to the Point of Commencement" (defines a polygon with multiple boundary points)
+   - **DO NOT USE** just because parsing is difficult - try other types first
+   - **DO NOT USE** for multiple distinct geometries - if location string contains "upstream and downstream of bridge" or similar, create TWO separate rule groups (one UPSTREAM, one DOWNSTREAM) instead of marking as VAGUE
+
+SCOPE TYPE DECISION TREE (Apply in this order):
+
+1. Does location text contain "between X and Y" OR "from X to Y" describing the WATERBODY segment?
+   → YES: Use SEGMENT type (with landmark_verbatim and landmark_end_verbatim)
+   → Example: "Campbell River between Strathcona Dam and Campbell Lake" = SEGMENT
+   → EXCEPTION: If "between" describes a LINE/BOUNDARY used in a directional phrase, use DIRECTIONAL
+   → Example: "north of a line between Bald and Knob Points" = DIRECTIONAL (not SEGMENT)
+   → Look for: "line between", "boundary between" - these describe the landmark, not the segment
+
+2. Does location text specify a BOUNDED distance in one or both directions from a landmark?
+   → Check for: "within X m of", "X m upstream and downstream of", "downstream X m from", "from X downstream Y m"
+   → YES: Use BUFFER type
+   → Two-sided (symmetric): "within X m", "X m upstream and downstream" → direction: null
+   → One-sided (bounded in one direction): "downstream 100 m from", "from X downstream Y m" → direction: UPSTREAM or DOWNSTREAM
+   → DISTINCTION: BUFFER = bounded/finite distance; DIRECTIONAL = unbounded (everything in that direction)
+
+3. Does location text contain directional word + landmark WITHOUT a distance limit (upstream/downstream/north/south/east/west/northeast/northwest/southeast/southwest of X)?
+   → YES: Use DIRECTIONAL type (with landmark_verbatim and direction)
+   → CRITICAL: If text says "downstream 100 m from X", this is BUFFER (bounded), not DIRECTIONAL
+   → DIRECTIONAL means EVERYTHING in that direction (unbounded): "upstream of dam" = all water upstream, "southeast of a line" = all water southeast
+   → Ordinal directions: Use NORTHEAST_OF, NORTHWEST_OF, SOUTHEAST_OF, SOUTHWEST_OF for diagonal/ordinal directions
+   → NOTE: If it mentions TWO waterbody endpoints (not just a line between points), revert to SEGMENT
+   → Example: "upstream of X to Y" = SEGMENT, but "upstream of X" = DIRECTIONAL
+
+4. Does location text reference a named region/part (Main Body, West Arm, north end, south arm)?
+   → YES: Use NAMED_PART type
+   → **CRITICAL EXCEPTION**: If text contains "within X m/km of [landmark]", this is BUFFER, NOT NAMED_PART
+     * "within 200 m of Bush-Sullivan Road Bridge in Bush Arm" = BUFFER (has distance)
+     * "at Bush Arm" = NAMED_PART (no distance specification)
+
+5. Does location text say "tributaries only" or exclude mainstem explicitly?
+   → YES: Use TRIBUTARIES_ONLY type
+
+6. Is there NO specific location mentioned, or does it say "all", "entire", with no boundaries?
+   → YES: Use WHOLE_SYSTEM type
+   → NO: If you see ANY location specification at all, DO NOT use WHOLE_SYSTEM
+   → **CRITICAL**: If the waterbody NAME ends with "'S TRIBUTARIES" but the RULE TEXT specifies a segment/location, the SCOPE is NOT WHOLE_SYSTEM
+     * Example: "(Lower) CAMPBELL LAKE'S TRIBUTARIES" with rule "Campbell River between Strathcona Dam and (Lower) Campbell Lake"
+     * This is SEGMENT (the rule specifies boundaries), NOT WHOLE_SYSTEM (even though waterbody name mentions tributaries)
+   → **NEVER use WHOLE_SYSTEM** if location_verbatim contains: "between", "from...to", "upstream of", "downstream of", "within X m", or any directional/distance language
+
+7. Is the location text genuinely ambiguous, contradictory, or impossible to classify confidently?
+   → YES: Use VAGUE type (LAST RESORT ONLY)
+   → Document the ambiguity in a restriction note
+   → Example: "near the area" (unclear landmark), "within 100 m" (of what?)
+   → **CRITICAL**: If location contains multiple distinct geometries like "upstream and downstream of X", create TWO separate rule groups instead of using VAGUE
+
+**CRITICAL**: The waterbody NAME in the title is INDEPENDENT from the scope LOCATION in the regulation text.
+- Even if waterbody is named "X's TRIBUTARIES", the scope can be SEGMENT, DIRECTIONAL, etc.
+- Always analyze the regulation TEXT to determine scope type, not just the waterbody name.
+
+IDENTITY PARSING - COMPREHENSIVE STRUCTURE:
+
+The identity object has multiple fields that work together to fully capture all information in the waterbody title:
+
+1. **name_verbatim**: Exact character-for-character title (already covered above)
+2. **waterbody_key**: Core waterbody name ONLY (no scope, location, notes, or modifiers in parentheses)
+3. **identity_type**: Waterbody classification (LAKE, RIVER, CREEK, etc.)
+4. **alternate_names**: Array of alternate/former/quoted names found in parentheses
+5. **location_descriptor**: Disambiguating location information (e.g., "near Kimberley", "approx. 10 km west of 100 Mile House")
+6. **notes**: Administrative references (e.g., "permit required see Note on page 34", "see map on page 42")
+7. **global_scope**: Spatial constraint from title (e.g., upstream/downstream, specific segment)
+8. **exclusions**: Geographic exclusions (e.g., "(see exceptions)", "(except X)")
+9. **inclusions**: Geographic inclusions (e.g., "(includes Little Shuswap Lake, Mara Lake)")
+
+**WATERBODY_KEY EXTRACTION**:
+
+**CRITICAL RULES**:
+- waterbody_key is the CORE NAME ONLY - extract the base before ANY parenthetical content
+- Remove ALL parentheses and their contents
+- Remove "'S TRIBUTARIES", "TRIBUTARIES", " WATERSHED", " WATERS" suffixes
+- Preserve descriptive modifiers that are part of the core name: "Little", "Big", "Upper", "Lower", "North", "South", "East", "West"
+- Keep quoted names if they're part of the core (e.g., ""ANDERSON" LAKE"), but remove parenthetical quoted names
+- waterbody_key should be SHORT and CLEAN - just the essential waterbody identifier
+
+**EXAMPLES**:
+- "ELK RIVER (upstream of Elko Dam)" → waterbody_key: "ELK RIVER"
+- "ECHOES LAKE (near Kimberley)" → waterbody_key: "ECHOES LAKE"
+- "KINBASKET (McNaughton) LAKE" → waterbody_key: "KINBASKET LAKE" (note: NOT "KINBASKET (McNaughton) LAKE")
+- "LITTLE MITTEN" LAKE (approx. 400 m west of Mitten Lake)" → waterbody_key: ""LITTLE MITTEN" LAKE"
+- "LARRY LAKE (unnamed lake located about 400 m west of Thalia Lake)" → waterbody_key: "LARRY LAKE"
+- "KSI SII AKS RIVER (formerly Tseax River)" → waterbody_key: "KSI SII AKS RIVER"
+- "SKEENA RIVER/KISPIOX RIVER CONFLUENCE" → waterbody_key: "SKEENA RIVER/KISPIOX RIVER CONFLUENCE"
+- "CRESTON VALLEY WILDLIFE MANAGEMENT AREA (CVWMA) WATERS" → waterbody_key: "CRESTON VALLEY WILDLIFE MANAGEMENT AREA"
+- "KOOTENAY LAKE - MAIN BODY (for location see map on page 34)" → waterbody_key: "KOOTENAY LAKE - MAIN BODY"
+- "NATION ARM (Williston Lake)" → waterbody_key: "NATION ARM"
+- "ELK RIVER'S TRIBUTARIES (see exceptions)" → waterbody_key: "ELK RIVER"
+- "LITTLE CAMPBELL RIVER" → waterbody_key: "LITTLE CAMPBELL RIVER" (preserve "Little")
+- ""GRASSY" LAKE (unnamed lake approx. 1 km southwest of West King Lake)" → waterbody_key: ""GRASSY" LAKE"
+- "EAST (Fork) WHITE RIVER" → waterbody_key: "EAST WHITE RIVER" (note: "(Fork)" goes to alternate_names)
+
+**IDENTITY_TYPE CLASSIFICATION**:
+
+Classify the waterbody type based on the name. Valid types:
+- STREAM: All flowing water bodies including rivers, creeks, streams, watersheds, and their named parts
+  * Examples: "ELK RIVER", "BURNT BRIDGE CREEK", "COQUIHALLA RIVER", "LIARD RIVER WATERSHED", "ATNARKO/BELLA COOLA RIVERS"
+  * Note: "WATERSHED" in the name is just STREAM type - the tributary inclusion is captured by global_scope.includes_tributaries
+- STILL_WATER: All standing/non-flowing water bodies including lakes, reservoirs, ponds, sloughs, bays, arms
+  * Examples: "KOOTENAY LAKE", "KINBASKET LAKE", "NATION ARM", "DAVIS BAY", "LEWIS SLOUGH", "DOWNTON LAKE (Reservoir)"
+- MANAGEMENT_AREA: Wildlife management areas (e.g., "CRESTON VALLEY WILDLIFE MANAGEMENT AREA")
+- PARK: Park waters (e.g., "KIKOMUN CREEK PARK")
+- CONFLUENCE: Specific confluence points where waterbodies meet (e.g., "SKEENA RIVER/KISPIOX RIVER CONFLUENCE")
+- TRIBUTARIES: When title explicitly about tributary systems (e.g., "ELK RIVER'S TRIBUTARIES")
+- MULTIPLE_WATERBODIES: When title covers multiple distinct waterbodies managed together (e.g., "WEAVER LAKE and WEAVER CREEK")
+- WATERS: Generic waters designation when type cannot be determined from name
+
+**COMPONENT_WATERBODIES EXTRACTION**:
+
+For MULTIPLE_WATERBODIES type, extract the individual waterbody names into an array.
+
+**WHAT TO EXTRACT**:
+- Waterbodies separated by "/" or "and"
+- Parse each component as a separate waterbody name
+- Preserve the type suffix for each (RIVER, LAKE, CREEK, etc.)
+
+**EXAMPLES**:
+- "ATNARKO/BELLA COOLA RIVERS" → component_waterbodies: ["ATNARKO RIVER", "BELLA COOLA RIVER"]
+- "WEAVER LAKE and WEAVER CREEK" → component_waterbodies: ["WEAVER LAKE", "WEAVER CREEK"]
+- "SKEENA RIVER/KISPIOX RIVER" (when not CONFLUENCE) → component_waterbodies: ["SKEENA RIVER", "KISPIOX RIVER"]
+- Single waterbody → component_waterbodies: []
+
+**NOTE**: CONFLUENCE type is different - it's a specific geographic point where rivers meet, not a compound system. Use MULTIPLE_WATERBODIES when regulations apply to multiple waterbodies as a combined system.
+
+**ALTERNATE_NAMES EXTRACTION**:
+
+Extract ALL alternate/former/quoted names from parenthetical sections. This is an ARRAY of strings.
+
+**WHAT TO EXTRACT**:
+- Alternate official names: "(McNaughton)", "(Reservoir)", "(Irrigation Lake)"
+- Former names: "(formerly Tseax River)", "(formerly known as Tatsamenie Lake's outlet streams)"
+- Common names/nicknames: "(Sheep)", "(Bear)", "(Fork)", "(China)"
+- Quoted names: "("Cameron")", "("Alces")", "("Vic Mawson")"
+- "Also known as" variants: "(also known as Gravelpit Lake)"
+
+**HOW TO FORMAT**:
+- Each alternate name is a separate array element
+- Remove the parentheses but keep the descriptive prefix if present
+- Keep quotes in quoted names
+
+**EXAMPLES**:
+- "KINBASKET (McNaughton) LAKE" → alternate_names: ["McNaughton"]
+- "KSI SII AKS RIVER (formerly Tseax River)" → alternate_names: ["formerly Tseax River"]
+- "LEWIS ("Cameron") SLOUGH" → alternate_names: [""Cameron""]
+- "NALTESBY LAKE (Bobtail Lake)" → alternate_names: ["Bobtail Lake"]
+- "KWITZIL LAKE (also known as Gravelpit Lake)" → alternate_names: ["also known as Gravelpit Lake"]
+- "EAST (Fork) WHITE RIVER" → alternate_names: ["Fork"]
+- "SOWERBY ("Grundy") LAKE" → alternate_names: [""Grundy""]
+- "GLACIER (Redslide) CREEK (unnamed tributary to Nanika River)" → alternate_names: ["Redslide"] (location goes elsewhere)
+- Title with no alternates → alternate_names: []
+
+**LOCATION_DESCRIPTOR EXTRACTION**:
+
+Extract ONLY the disambiguating location information - phrases that help identify WHICH waterbody this is when multiple share the same name.
+
+**WHAT TO EXTRACT** (into location_descriptor):
+- Geographic proximity: "(near Kimberley)", "(Quadra Island)", "(North Vancouver)"
+- Distance-based location: "(approx. 10 km west of 100 Mile House)", "(situated approx. 2.3 km northeast of Lorin Lake)"
+- Watershed/drainage: "(Dog Creek drainage)", "(Canim Lake area)", "(Sustut Watershed)"
+- Relative position: "(east of Allison Lake)", "(adjacent to West Road River)"
+- Provincial parks: "(Crooked River Provincial Park)", "(Manning Park)"
+- Geographic areas: "(Soda Creek area)", "(Fort St. James)", "(Sechelt)"
+- Unnamed lake descriptions: "(unnamed lake located about 400 m west of Thalia Lake)"
+- Part designations when NOT in core name: "(in Finlay Reach of Williston Lake)" - only if "DAVIS BAY" is the waterbody, not "Finlay Reach"
+
+**WHAT NOT TO EXTRACT** (goes elsewhere):
+- Scope information: "(upstream of X)", "(downstream of X)" → goes to global_scope
+- Inclusions: "(includes X, Y)" → goes to inclusions
+- Exceptions: "(see exceptions)", "(except X)" → goes to exclusions
+- Alternate names: "(McNaughton)", "(formerly X)" → goes to alternate_names
+- Notes/references: "(permit required...)", "(see map...)" → goes to notes
+- Part names that ARE the core identifier: "MAIN BODY", "UPPER WEST ARM" → part of waterbody_key
+
+**EXAMPLES**:
+- "ECHOES LAKE (near Kimberley)" → location_descriptor: "near Kimberley"
+- "BIG LAKE (approx. 10 km west of 100 Mile House)" → location_descriptor: "approx. 10 km west of 100 Mile House"
+- "LARRY LAKE (unnamed lake located about 400 m west of Thalia Lake)" → location_descriptor: "unnamed lake located about 400 m west of Thalia Lake"
+- "BOAR LAKE (Dog Creek drainage)" → location_descriptor: "Dog Creek drainage"
+- "SQUARE LAKE (located in Crooked River Provincial Park)" → location_descriptor: "located in Crooked River Provincial Park"
+- "ELK RIVER (upstream of Elko Dam)" → location_descriptor: null (scope, not location)
+- "NATION ARM (Williston Lake)" → location_descriptor: "Williston Lake"
+- No location info → location_descriptor: null
+
+**NOTES EXTRACTION**:
+
+Extract administrative/reference information that doesn't fit other categories.
+
+**WHAT TO EXTRACT**:
+- Map references: "(for location see map on page 34)", "(see map on page 42)"
+- Permit notices: "(permit required see Note on page 34)"
+- Cross-references: "(see also east White & North White Rivers)"
+- Regulatory notices: "(Angling regulations... currently under review...)"
+- Part descriptions when informational: "(all lakes in the park)"
+
+**EXAMPLES**:
+- "DUCK LAKE (permit required see Note on page 34)" → notes: "permit required see Note on page 34"
+- "KOOTENAY LAKE - MAIN BODY (for location see map on page 34)" → notes: "for location see map on page 34"
+- "WHITE RIVER (see also east White & North White Rivers)" → notes: "see also east White & North White Rivers"
+- "KIKOMUN CREEK PARK (all lakes in the park)" → notes: "all lakes in the park"
+- No notes → notes: null
+
+**EXCLUSIONS EXTRACTION**:
+
+Extract geographic areas that are EXPLICITLY EXCLUDED from the waterbody definition. This is an ARRAY of ScopeObject items.
+
+**THREE SOURCES FOR EXCLUSIONS**:
+
+1. **FROM TITLE** - Direct exceptions in waterbody name:
+   - "ATNARKO/BELLA COOLA RIVERS EXCEPT: Burnt Bridge Creek upstream of Sitkatapa Creek, Hunlen Creek upstream of Hunlen Falls"
+   - "FRASER RIVER (except tributaries in parks)"
+   - Parse each exception as a separate ScopeObject
+
+2. **FROM REGULATION TEXT - "(see exceptions)" pattern**:
+   - **CRITICAL**: Title phrase "(see exceptions)" means look for "EXCEPTIONS - SEE SEPARATE LISTINGS FOR:" in raw_regs text
+   - Parse ALL waterbodies listed after this marker as exclusions
+   - Each listed waterbody becomes a separate exclusion ScopeObject
+   - Extract any scope modifiers (upstream/downstream/between) for each exception
+
+3. **FROM REGULATION TEXT - "Does not include" pattern**:
+   - Regulation text may state "Does not include [waterbody]" or similar phrasing
+   - Extract the waterbody mentioned after "Does not include"
+   - Parse as exclusion ScopeObject with appropriate scope type
+   - Example: "Does not include the Kootenay River upstream from Kootenay Lake to the U.S. border near Creston"
+
+**PARSING "SEE EXCEPTIONS" PATTERN**:
+
+When waterbody name contains "(see exceptions)":
+1. Search raw_regs for "EXCEPTIONS - SEE SEPARATE LISTINGS FOR:"
+2. Extract the comma-separated list of waterbodies that follows
+3. For each waterbody in the list:
+   - Extract waterbody name
+   - Extract any directional/scope modifiers ("upstream of", "downstream of", "between X and Y")
+   - Create a ScopeObject with appropriate type (DIRECTIONAL, SEGMENT, WHOLE_SYSTEM, etc.)
+4. Handle additional nested exceptions (e.g., "EXCEPT Coal Creek downstream of...")
+
+**TRIBUTARY MARKING IN EXCEPTIONS**:
+- Text may mark some exceptions with "**[Includes Tributaries]**" (e.g., "Alexander Cr.**[Includes Tributaries]** upstream of...")
+- Set includes_tributaries: true for those specific exceptions
+- Others default to includes_tributaries: false
+
+**NESTED EXCEPTIONS**:
+- Text may have additional exceptions within the exceptions list (e.g., "EXCEPT Coal Creek downstream of old MF&M Railway Bridge")
+- These are NOT exclusions - they exclude from the exclusion (double negative = inclusion)
+- Handle carefully: if "ALL tributaries (EXCEPT X)" appears, X is actually INCLUDED in the main scope
+
+**EXAMPLES - Title-based exclusions**:
+- "ATNARKO/BELLA COOLA RIVERS EXCEPT: Burnt Bridge Creek upstream of Sitkatapa Creek" →
+  exclusions: [{type: "DIRECTIONAL", waterbody_key: "Burnt Bridge Creek", location_verbatim: "Burnt Bridge Creek upstream of Sitkatapa Creek", ...}]
+- "FRASER RIVER (except Harrison Lake)" →
+  exclusions: [{type: "WHOLE_SYSTEM", waterbody_key: "Harrison Lake", location_verbatim: "Harrison Lake", ...}]
+- No exclusions → exclusions: []
+
+**INCLUSIONS EXTRACTION**:
+
+Extract geographic areas that are EXPLICITLY INCLUDED in the waterbody definition. This is an ARRAY of ScopeObject items.
+
+**WHEN TO USE**:
+- Title contains "(includes X)", "(including X, Y, Z)"
+- Title contains "(Includes the reservoirs behind...)"
+
+Each inclusion becomes a ScopeObject with:
+- type: Usually NAMED_PART or WHOLE_SYSTEM depending on the inclusion
+- waterbody_key: The name of the included waterbody
+- location_verbatim: The exact phrase from name_verbatim describing the inclusion
+- Other fields as appropriate
+
+**EXAMPLES**:
+- "PEND D'OREILLE RIVER (Includes the reservoirs behind Waneta Dam and Seven Mile Dam)" →
+  inclusions: [
+    {type: "NAMED_PART", waterbody_key: "PEND D'OREILLE RIVER", location_verbatim: "the reservoirs behind Waneta Dam and Seven Mile Dam", ...}
+  ]
+- "SUMALLO RIVER (includes "Cedar" Lake, at Sunshine Valley)" →
+  inclusions: [
+    {type: "WHOLE_SYSTEM", waterbody_key: ""Cedar" Lake", location_verbatim: ""Cedar" Lake, at Sunshine Valley", ...}
+  ]
+- "VASEUX LAKE (including two lagoons on the west side of Okanagan River upstream of McIntyre Dam)" →
+  inclusions: [
+    {type: "NAMED_PART", waterbody_key: "VASEUX LAKE", location_verbatim: "two lagoons on the west side of Okanagan River upstream of McIntyre Dam", ...}
+  ]
+- No inclusions → inclusions: []
+
+**VALIDATION**: Verify waterbody_key is derivable from name_verbatim by removing parenthetical sections and suffixes
+
+TRIBUTARY INCLUSION:
+
+**GLOBAL SCOPE** (identity level):
+- Inspect the input `symbols` array for markers like "Incl. Tribs", "Includes Tributaries", or similar
+- If present, set global_scope.includes_tributaries to `true`
+- Check waterbody names that END with "TRIBUTARIES" or "'S TRIBUTARIES" - these also indicate `includes_tributaries: true`
+- **The global scope defines the DEFAULT tributary inclusion for all rule scopes**
+
+**RULE SCOPE** (individual rule level):
+- **DEFAULT**: Each rule's scope INHERITS includes_tributaries from the global scope
+  * If global_scope.includes_tributaries = true → rule scope defaults to true
+  * If global_scope.includes_tributaries = false → rule scope defaults to false
   
-  NOTE: Make sure to use the context of the entire sentence when deciding if date applies a rule or not. Same applies for deciding which location a rule applies to.
+- **ONLY OVERRIDE when regulation text has EXPLICIT tributary mentions**:
+  * "TRIBUTARIES ONLY" → use TRIBUTARIES_ONLY scope type
+  * "on TRIBUTARIES ONLY" → includes_tributaries=true (overrides global false if needed)
+  * "MAINSTEM ONLY" → includes_tributaries=false (overrides global true if needed)
+  * "on mainstem" / "on [River Name] only" → includes_tributaries=false
+  * No explicit mention → USE GLOBAL DEFAULT (do not assume based on restriction type)
 
-Example 3: "and" connects rules, date applies to both
-  "Trout/char catch and release and bait ban, June 15-Aug 31"
-  → Rule 1: verbatim_text: "Trout/char catch and release and bait ban, June 15-Aug 31", dates: ["June 15-Aug 31"]
-  → Rule 2: verbatim_text: "bait ban, June 15-Aug 31", dates: ["June 15-Aug 31"]
-  WHY: To include date in Rule 1, its verbatim_text must include the date
+- **CRITICAL**: Do NOT assume harvest rules include tributaries or vessel rules exclude them
+  * ALL rules inherit from global scope unless text explicitly overrides
+  * Two WHOLE_SYSTEM rules with different includes_tributaries are DIFFERENT scopes and must be separate rule groups
 
-Example 4: Preserve hyphenated line breaks exactly
-  "hatch-\nery cutthroat catch and release, May 1-31"
-  → verbatim_text: "hatch-\nery cutthroat catch and release, May 1-31"
-  WHY: Don't "fix" to "hatchery" - preserve exact formatting
+**Example Scenarios**:
+1. Header has "Incl. Tribs" (global=true), text says "Trout quota = 1" (no location mention)
+   → Rule scope: includes_tributaries=true (inherits from global)
+   
+2. Header has "Incl. Tribs" (global=true), text says "No powered boats on mainstem"
+   → Rule scope: includes_tributaries=false (explicit "mainstem" overrides global)
+   
+3. Header has NO "Incl. Tribs" (global=false), text says "Bait ban on tributaries only"
+   → Rule scope: includes_tributaries=true (explicit "tributaries only" overrides global)
 
-Example 5: Multiple dates in one rule
-  "No Fishing Dec 1-May 31 and July 15-Aug 31"
-  → ONE rule: verbatim_text: "No Fishing Dec 1-May 31 and July 15-Aug 31", dates: ["Dec 1-May 31", "July 15-Aug 31"]
-  WHY: Single closure rule with two time periods, not two separate rules
+RESTRICTION TYPES:
 
-Example 6: Separate locations require separate geographic groups
-  "No vessels in swimming areas, as buoyed and signed; speed restriction (8 km/h) at S. end of lake"
-  → WRONG: ONE group with location: "swimming areas; S. end of lake"
-  → CORRECT: TWO groups:
-     Group 1 - location: "swimming areas, as buoyed and signed", rule: "No vessels"
-     Group 2 - location: "S. end of lake, S. of a line drawn from...", rule: "Speed restriction (8 km/h)"
-  WHY: "swimming areas" and "S. end of lake" are different locations
+- closure: "No Fishing", fishing bans
+- harvest: Catch limits, size limits, catch and release
+- gear_restriction: Bait ban, fly fishing only, single barbless hook
+- vessel_restriction: No powered boats, vessel speed limits
+- licensing: Class II water, permits required
+- note: Advisory information, references to other sections
 
-Example 7: [Includes Tributaries] applies ONLY to the rule it's attached to
-  "No Fishing upstream of signs[Includes Tributaries], Feb 1-May 31; Cutthroat catch and release; Bait ban Nov 1-Apr 30[Includes Tributaries]; Class II water Sept 1-Apr 30; Steelhead Stamp mandatory Dec 1-Apr 30"
-  → THREE geographic groups:
-     Group 1 - location: "upstream of signs [Includes Tributaries]"
-        raw_text: "No Fishing upstream of signs[Includes Tributaries], Feb 1-May 31"
-        Rule: "No Fishing", dates: ["Feb 1-May 31"]
-     Group 2 - location: "" (whole waterbody only, not tributaries)
-        raw_text: "Cutthroat catch and release"
-        Rule: "Cutthroat catch and release", dates: null
-     Group 3 - location: "Includes Tributaries" (only the bait ban applies to tributaries)
-        raw_text: "Bait ban Nov 1-Apr 30[Includes Tributaries]"
-        Rule: verbatim_text: "Bait ban Nov 1-Apr 30[Includes Tributaries]", rule: "Bait ban", dates: ["Nov 1-Apr 30"]
-     Group 4 - location: "" (whole waterbody only, not tributaries)
-        raw_text: "Class II water Sept 1-Apr 30; Steelhead Stamp mandatory Dec 1-Apr 30"
-        Rule 1: verbatim_text: "Class II water Sept 1-Apr 30", rule: "Class II water", dates: ["Sept 1-Apr 30"]
-        Rule 2: verbatim_text: "Steelhead Stamp mandatory Dec 1-Apr 30", rule: "Steelhead Stamp mandatory", dates: ["Dec 1-Apr 30"]
-  WHY: Use sentence context to determine [Includes Tributaries] scope. In this case, the marker appears immediately after specific rules, suggesting it applies only to those rules. Consider punctuation (semicolons, periods), conjunctions (and, or), and semantic relationships to determine whether [Includes Tributaries] extends to subsequent rules or stands alone.
+GROUPING RULES WITH SAME SCOPE:
+
+**CRITICAL**: Minimize the number of rule groups by combining restrictions with identical scopes, EVEN IF the text is not contiguous.
+
+**YOU MUST NEVER CREATE MULTIPLE RULES WITH IDENTICAL SCOPES**. This is a validation error.
+
+When multiple restrictions apply to the same geographic area, create ONE rule group with:
+- rule_text_verbatim: Array containing ALL text segments for that scope (may be non-contiguous)
+- scope: Single scope object (not an array)
+- restrictions: Array of all restrictions that apply to that scope
+
+**INTERLEAVED TEXT HANDLING**:
+When rules for the same scope are separated by other text in the regulation:
+- Do NOT create separate rule groups
+- Capture each text block in separate array elements of rule_text_verbatim
+- Example: "No fishing upstream. Bait ban downstream. Fly fishing only upstream."
+  * ONE rule for Upstream: rule_text_verbatim: ["No fishing upstream", "Fly fishing only upstream"]
+  * ONE rule for Downstream: rule_text_verbatim: ["Bait ban downstream"]
+
+**SCOPE EQUALITY TEST** - Two scopes are the SAME if ALL of these match:
+1. type (both WHOLE_SYSTEM, both DIRECTIONAL, etc.)
+2. location_verbatim (exact same text or both null)
+3. landmark_verbatim (exact same text or both null)
+4. direction (exact same direction or both null)
+5. includes_tributaries (both true or both false)
+
+**VALIDATION WILL FAIL** if you create multiple rules with identical scopes. Always combine them.
+
+**CRITICAL**: A BUFFER scope (bounded distance) is NEVER equal to a DIRECTIONAL scope (unbounded), even if they share the same landmark and direction. Keep them separate.
+- Example: "upstream of dam" (DIRECTIONAL, unbounded) ≠ "upstream 100 m from dam" (BUFFER, bounded)
+
+Example: "Trout catch and release; bait ban; fly fishing only" all for "upstream of dam"
+- ONE rule group with scope="upstream of dam" and 3 restrictions
+
+Example: Two WHOLE_SYSTEM scopes with same tributary status
+- "No fishing Apr 1-May 31" + "Bait ban" + "Single barbless hook"
+- ONE rule group with WHOLE_SYSTEM scope and 3 restrictions
+
+**Only create SEPARATE rule groups when:**
+1. Scopes have different types (WHOLE_SYSTEM vs DIRECTIONAL)
+2. Scopes have different locations ("upstream of dam" vs "downstream of dam")
+3. Scopes have different tributary inclusion (one includes tribs, one doesn't)
+4. Scopes have different landmarks or directions
+
+**ANTI-PATTERN - DO NOT SPLIT UNNECESSARILY**:
+❌ WRONG: Creating 2+ WHOLE_SYSTEM rules for restrictions that apply to the same scope
+   Example: Rule 1 WHOLE_SYSTEM (vessel_restriction), Rule 2 WHOLE_SYSTEM (note)
+   This creates duplicate scope objects needlessly
+✓ RIGHT: ONE WHOLE_SYSTEM rule with BOTH restrictions in the array
+   Example: Rule 1 WHOLE_SYSTEM (vessel_restriction, note)
+
+**CONSISTENCY PRINCIPLE**: If you have multiple restrictions with the EXACT same scope (use 5-point equality test), they MUST be in ONE rule group. Do not create separate rules unless scopes differ.
+
+Example of when to separate: "No fishing upstream of dam; bait ban downstream of dam"
+- TWO rule groups (different locations/directions)
+
+Example of when to separate: WHOLE_SYSTEM rules where one includes tributaries
+- "Trout quota = 1" with global "Incl. Tribs" = WHOLE_SYSTEM with includes_tributaries=true (inherits from global)
+- "No angling from powered boats on mainstem" = WHOLE_SYSTEM with includes_tributaries=false (explicit "mainstem" override)
+- TWO separate rule groups (different tributary inclusion)
+
+**CRITICAL TRIBUTARY LOGIC**:
+The global_scope.includes_tributaries defines the DEFAULT for all rule scopes.
+
+**Rule scope inheritance**:
+- **DEFAULT BEHAVIOR**: Rule scopes INHERIT includes_tributaries from global scope
+  * If global has "Incl. Tribs" symbol → rule defaults to includes_tributaries=true
+  * If global has NO "Incl. Tribs" → rule defaults to includes_tributaries=false
+  
+- **OVERRIDE ONLY with explicit text in regulation**:
+  * "TRIBUTARIES ONLY" → use TRIBUTARIES_ONLY scope type
+  * "on tributaries" / "tributaries only" → includes_tributaries=true (override global false)
+  * "MAINSTEM ONLY" / "on mainstem" / "on [River Name] only" → includes_tributaries=false (override global true)
+  * No explicit mention → **USE GLOBAL DEFAULT** (do not infer from restriction type)
+
+**CRITICAL**: Do NOT make assumptions based on restriction type (harvest vs vessel).
+- All rules inherit from global unless text explicitly says otherwise
+- "Trout quota = 1" with no location + global "Incl. Tribs" = includes_tributaries=true (inherited)
+- "No powered boats" with no location + global "Incl. Tribs" = includes_tributaries=true (inherited, not false!)
+- Only change when text explicitly mentions "mainstem", "tributaries only", etc.
+
+Example: Header "Incl. Tribs" (global=true)
+- "Trout quota = 1" → WHOLE_SYSTEM with includes_tributaries=true (inherits)
+- "No powered boats" → WHOLE_SYSTEM with includes_tributaries=true (inherits, same scope as above - COMBINE!)
+- "Bait ban on mainstem only" → WHOLE_SYSTEM with includes_tributaries=false (explicit override - SEPARATE!)
+
+Example: Header NO "Incl. Tribs" (global=false)
+- "Trout quota = 1" → WHOLE_SYSTEM with includes_tributaries=false (inherits)
+- "Catch and release on tributaries" → scope with includes_tributaries=true (explicit override - SEPARATE!)
+- "Bait ban" (no trib mention) = WHOLE_SYSTEM with includes_tributaries=false
+- TWO separate rule groups
 
 JSON SCHEMA:
-List of objects:
+
 {{
-    "waterbody_name": "EXACT VERBATIM name from 'Waterbody Name:' field - copy exactly, do not modify",
-    "raw_text": "EXACT VERBATIM full regulation block from the 'Regulation Block:' field. Does not include name only the text. - copy exactly, do not modify",
-    "cleaned_text": "The block of text with repaired word-breaks and newlines. Mains full context. Has fixed Punctuation.",
-    "geographic_groups": [
-        {{
-            "location": "Location anchor (if any), blank assumes the whole waterbody. E.g., 'upstream of the dam', 'tributaries', 'from the bridge to the lake [Including Tributaries]'",
-            "raw_text": "The verbatim block of text for the context of this location (including newlines/hyphens)",
-            "cleaned_text": "The block of text with repaired word-breaks, no newlines, and corrected punctuation. Maintains full context.",
-            "rules": [
-                {{
-                    "verbatim_text": "EXACT substring from geographic group's raw_text - must be findable via exact string matching. Include full context needed to understand the rule. DO NOT paraphrase or add words not in the original.",
-                    "rule": "Specific rule extracted, normalized. E.g., 'No Fishing', 'Trout catch and release'. One rule per object. Multiple rules can exist in one block of text.",
-                    "type": "closure|harvest|gear_restriction|restriction|licensing|access|note",
-                    "dates": ["Date ranges found, or null"],
-                    "species": ["Fish types found, or null"]
-                }}
-            ]
-        }}
-    ]
+   "identity": {{
+      "name_verbatim": "EXACT title from source - copy character-for-character",
+      "waterbody_key": "Core waterbody name ONLY - no parenthetical content, no scope indicators (see IDENTITY PARSING section)",
+      "identity_type": "STREAM|STILL_WATER|MANAGEMENT_AREA|PARK|CONFLUENCE|TRIBUTARIES|MULTIPLE_WATERBODIES|WATERS",
+      "component_waterbodies": ["For MULTIPLE_WATERBODIES: individual names like 'ATNARKO RIVER', 'BELLA COOLA RIVER'; empty array for single waterbodies"],
+      "alternate_names": ["Array of alternate/former/quoted names from parentheses", "e.g., 'McNaughton', 'formerly Tseax River'"],
+      "location_descriptor": "Disambiguating location info or null (e.g., 'near Kimberley', 'approx. 10 km west of 100 Mile House')",
+      "notes": "Administrative notes/references or null (e.g., 'permit required see Note on page 34', 'see map on page 42')",
+      "global_scope": {{
+         "type": "WHOLE_SYSTEM|DIRECTIONAL|SEGMENT|NAMED_PART|TRIBUTARIES_ONLY|BUFFER|VAGUE",
+         "waterbody_key": "ALL (default) or specific waterbody name when rule text explicitly restricts to one component",
+         "location_verbatim": "Exact substring from name_verbatim (for scope from title) or null",
+         "landmark_verbatim": "Exact substring or null",
+         "landmark_end_verbatim": "Exact substring or null (for SEGMENT)",
+         "direction": "UPSTREAM|DOWNSTREAM|BETWEEN|NORTH_OF|SOUTH_OF|EAST_OF|WEST_OF|NORTHEAST_OF|NORTHWEST_OF|SOUTHEAST_OF|SOUTHWEST_OF|null",
+         "includes_tributaries": "true|false"
+      }},
+      "exclusions": [
+         {{
+            "type": "...",
+            "waterbody_key": "...",
+            "location_verbatim": "Exact substring from name_verbatim",
+            "landmark_verbatim": "...",
+            "landmark_end_verbatim": "...",
+            "direction": "...",
+            "includes_tributaries": "true|false"
+         }}
+      ],
+      "inclusions": [
+         {{
+            "type": "...",
+            "waterbody_key": "...",
+            "location_verbatim": "Exact substring from name_verbatim describing what's included",
+            "landmark_verbatim": "...",
+            "landmark_end_verbatim": "...",
+            "direction": "...",
+            "includes_tributaries": "true|false"
+         }}
+      ]
+   }},
+   "regs_verbatim": "Exact character-for-character copy of input raw_regs",
+   "audit_log": ["List of strings describing source ambiguities, typos, or parsing issues at ANY level (identity, scope, restriction) - ONLY use for genuine problems, not normal decisions"],
+   "rules": [
+      {{
+         "rule_text_verbatim": ["EXACT substring 1", "EXACT substring 2", ...],
+         "scope": {{
+            "type": "WHOLE_SYSTEM|DIRECTIONAL|SEGMENT|NAMED_PART|TRIBUTARIES_ONLY|BUFFER|VAGUE",
+            "waterbody_key": "...",
+            "location_verbatim": "Exact substring from rule_text_verbatim",
+            "landmark_verbatim": "...",
+            "landmark_end_verbatim": "...",
+            "direction": "...",
+            "includes_tributaries": "true|false"
+         }},
+         "restrictions": [
+            {{
+               "type": "closure|harvest|gear_restriction|vessel_restriction|licensing|note",
+               "details": "Normalized summary (e.g., 'No Fishing', 'Bait ban')",
+               "dates": ["Exact date strings"] or null
+            }}
+         ]
+      }}
+   ]
 }}
+
+PARSING STEPS:
+
+1. Extract identity.name_verbatim - copy EXACTLY from "Waterbody Name:" (character-for-character, no changes)
+2. Parse identity fields using IDENTITY PARSING section:
+   - waterbody_key: Core name only (remove ALL parentheses and suffixes)
+   - identity_type: Classify as STREAM (flowing), STILL_WATER (standing), MANAGEMENT_AREA, PARK, CONFLUENCE, TRIBUTARIES, MULTIPLE_WATERBODIES, or WATERS
+   - component_waterbodies: If MULTIPLE_WATERBODIES type, extract individual waterbody names
+   - alternate_names: Extract alternate/former/quoted names from parentheses
+   - location_descriptor: Extract disambiguating location info (if present)
+   - notes: Extract administrative notes/references (if present)
+3. Check `symbols` array for tributary markers AND waterbody name for tributary indicators, set `global_scope.includes_tributaries` accordingly
+4. Build global_scope from title - analyze parenthetical content for scope information (upstream/downstream/etc.)
+5. Extract exclusions from title (look for "EXCEPT:", "see exceptions", etc.) - if "(see exceptions)", parse exception list from regulation text
+6. Extract inclusions from title (look for "includes", "including", etc.)
+7. Parse regulation block into rule groups:
+   a. Identify distinct geographic scopes using the 5-point equality test
+   b. For each scope, gather all restrictions that apply (even if text is non-contiguous)
+   c. Create rule_text_verbatim array containing all text segments for that scope
+   d. Build scope object with proper type, landmarks, direction
+   e. Build restrictions array with proper types, details, dates
+8. Ensure all rule_text_verbatim array elements are exact substrings of regs_verbatim
+9. Ensure all location_verbatim are exact substrings of at least one rule_text_verbatim element (or name_verbatim/raw_regs for global_scope/exclusions/inclusions - exclusions may come from exception list in raw_regs when title says "see exceptions")
+10. Ensure all landmark_verbatim are exact substrings of location_verbatim
+
+EXAMPLES:
 
 {examples}
 
 INPUT DATA:
 {batch_inputs}
 
-CRITICAL - BEFORE RETURNING YOUR RESPONSE:
-1. Verify your JSON is properly formatted (no trailing commas, all quotes closed, all brackets matched)
-2. Confirm you have EXACTLY {num_items} items in your output array
-3. Check each "waterbody_name" matches the input character-for-character (no missing quotes or characters)
-4. Ensure all required fields are present: waterbody_name, raw_text, cleaned_text, geographic_groups
-5. Verify all verbatim_text fields are exact substrings from their parent raw_text
-6. Double-check date assignments - dates should be null if they don't appear in that specific verbatim_text
+CRITICAL PRE-FLIGHT CHECKS BEFORE RETURNING:
 
-If you detect ANY JSON formatting issues, fix them before responding. Malformed JSON will cause processing failures.
+**SUBSTRING VALIDATION - MOST IMPORTANT**
+Before submitting, verify EVERY verbatim field:
+- EVERY element in rule_text_verbatim array is an exact substring of regs_verbatim (copy/paste check)
+- location_verbatim is an exact substring of at least one rule_text_verbatim element (copy/paste check)
+- landmark_verbatim is an exact substring of location_verbatim (copy/paste check)
+- If ANY verbatim field fails this check, the entire parsing will fail
+
+1. JSON Validity:
+   No trailing commas
+   All quotes properly closed
+   All brackets matched
+   Commas between array elements
+
+2. Count & Order:
+   Output has EXACTLY {num_items} items
+   Each output[i].identity.name_verbatim matches input[i] waterbody name character-for-character
+   Each output[i].regs_verbatim is an EXACT character-for-character copy of input[i].raw_regs
+
+3. Required Fields:
+   Every object has: identity, regs_verbatim, audit_log, rules
+   Every identity has: name_verbatim, waterbody_key, identity_type, component_waterbodies, alternate_names, location_descriptor, notes, global_scope, exclusions, inclusions
+   Every rule has: rule_text_verbatim (ARRAY), scope, restrictions
+   Every scope has: type, waterbody_key, location_verbatim, landmark_verbatim, landmark_end_verbatim, direction, includes_tributaries
+   Every restriction has: type, details, dates
+   audit_log is an array (can be empty [] if no issues, but field must exist)
+
+4. Verbatim Chain:
+   identity.name_verbatim is EXACT match to input waterbody name
+   Each element in rules[].rule_text_verbatim is an exact substring of the top-level regs_verbatim (test with Ctrl+F)
+   Each scope.location_verbatim is an exact substring of at least one rule_text_verbatim element (test with Ctrl+F)
+   Each scope.landmark_verbatim is an exact substring of its location_verbatim (test with Ctrl+F)
+   If landmark_end_verbatim exists, both landmarks must be substrings of location_verbatim
+   SEGMENT type must have direction="BETWEEN" and both landmark_verbatim and landmark_end_verbatim
+   Use SEGMENT when text has two landmarks, regardless of directional words like "upstream"
+   **WHOLE_SYSTEM CRITICAL**: If scope type is WHOLE_SYSTEM and location_verbatim is null, this is correct - do NOT copy waterbody name into location_verbatim
+
+5. Date Validation:
+   All dates are extracted clean (without ** markers) but must exist in normalized rule_text_verbatim
+   Dates are null if not present in rule_text_verbatim
+   Date format is preserved ("June 1-30" not "06-01 to 06-30")
+
+6. Audit Log Validation:
+   audit_log field exists in every output object (array, can be empty [])
+   Use audit_log for ANY level of parsing issues: identity, global_scope, exclusions, rule scopes, restrictions
+   If any scope has type="VAGUE", audit_log MUST contain at least one entry explaining why
+   Use for identity issues: unclear waterbody_key extraction, ambiguous exclusions/inclusions, global_scope uncertainties
+   Do NOT use audit_log for normal parsing commentary - only genuine ambiguities/errors
+   Good examples:
+     "Identity: Waterbody_key ambiguous - title has multiple potential names"
+     "Identity: Exclusion 'upstream of X' - unclear if X is a creek or landmark"
+     "Global_scope: Title indicates 'parts of' but no clear boundaries specified"
+     "Rule 2: Location 'within 100 m' missing landmark - incomplete phrase"
+     "Rule 3: Conflicting dates - text says both 'June 1-30' and 'May 15-June 15'"
+   Bad examples:
+     "Parsed upstream as DIRECTIONAL scope" (this is normal, don't log it)
+     "Extracted waterbody_key by removing 'TRIBUTARIES'" (normal operation)
+
+**COMMON VERBATIM MISTAKES TO AVOID**:
+DON'T paraphrase: "upstream of dam" -> "above the dam"
+DON'T clean up bold in verbatim: "**No Fishing**" should stay "**No Fishing**" in rule_text_verbatim
+DON'T combine non-contiguous text: Use array elements for interleaved rules
+   WRONG: Creating single string "No fishing; bait ban" when they appear in different parts
+   RIGHT: Create array ["No fishing upstream", "Bait ban upstream"] if both apply to same scope but are separated
+DON'T abbreviate: "kilometres" -> "km"
+DON'T break bold formatting: If "**Text1\nText2**" spans lines, keep it intact
+DON'T assume landmarks exist: "between X and Y" doesn't mean "X" and "Y" are separate substrings
+DON'T ignore line breaks: If original has "\n", preserve it exactly
+**BOLD MARKERS - RAW STRING INDEXING**:
+   - Use raw character positions for extraction
+   - If extracting a substring that starts INSIDE a bold section (e.g., "**Title\nRule**"), only include the characters in your range
+   - DO NOT add opening/closing ** markers if they're not physically present in your substring range
+   - Example: From "**Class II water\nNo Fishing**", extracting just "No Fishing" should NOT become "**No Fishing**"
+   - The ** at the start belongs to "Class II water", not "No Fishing"
+   
+**CRITICAL MULTI-LINE BOLD EXAMPLES**:
+   Source: "**Class II water Sept 1-Apr 30; Steelhead Stamp mandatory Dec 1-Apr 30\nNo Fishing** upstream of bridge"
+   WRONG: Extract "**Class II water Sept 1-Apr 30; Steelhead Stamp mandatory Dec 1-Apr 30**" (doesn't exist)
+   WRONG: Extract "**No Fishing**" (doesn't exist - bold opened earlier)
+**ELLIPSIS ABSOLUTELY FORBIDDEN IN ALL VERBATIM FIELDS**:
+   NEVER use "..." (ellipsis) in rule_text_verbatim, location_verbatim, or landmark_verbatim
+   WRONG: "**No Fishing**... upstream of bridge" (ellipsis not in source)
+   WRONG: "Fly fishing only... (b) from signs" (ellipsis not in source)
+   WRONG: "500 m upstream and downstream of ... the Kemess Creek confluence" (ellipsis not in source)
+   RIGHT: Extract complete phrases character-for-character without any modifications
+   
+   **OR CONSTRUCTIONS - CRITICAL HANDLING**:
+   When text has "X or Y" pattern creating multiple scopes, use the COMPLETE sentence for BOTH rules
+   
+   Example 1: "**No Fishing** in tributaries and upstream of Hwy 37 bridge, Mar 16-May 31"
+   - For tributaries rule: rule_text_verbatim: ["**No Fishing** in tributaries and upstream of Hwy 37 bridge, Mar 16-May 31"]
+   - For upstream rule: rule_text_verbatim: ["**No Fishing** in tributaries and upstream of Hwy 37 bridge, Mar 16-May 31"]
+   - Same complete sentence for both
+   
+   Example 2: "in Moricetown Canyon or within 100 m downstream"
+   Source: "No angling from boats from Morice River to CNR Bridge at Barrett, Aug 15-Dec 31, and in Moricetown Canyon or within 100 m downstream,\nall year"
+   
+   CORRECT approach - Two separate scopes with proper verbatim:
+   
+   Rule 1 (NAMED_PART for "in Moricetown Canyon"):
+   - rule_text_verbatim: ["No angling from boats from Morice River to CNR Bridge at Barrett, Aug 15-Dec 31, and in Moricetown Canyon or within 100 m downstream,\nall year"]
+   - location_verbatim: "in Moricetown Canyon"
+   - landmark_verbatim: "Moricetown Canyon" (substring of location_verbatim ✓)
+   
+   Rule 2 (BUFFER for "within 100 m downstream"):
+   - rule_text_verbatim: ["No angling from boats from Morice River to CNR Bridge at Barrett, Aug 15-Dec 31, and in Moricetown Canyon or within 100 m downstream,\nall year"]
+   - location_verbatim: "in Moricetown Canyon or within 100 m downstream" (full OR phrase needed for context)
+   - landmark_verbatim: "Moricetown Canyon" (substring of location_verbatim ✓)
+   - direction: "DOWNSTREAM"
+   
+   WRONG approach - Violates substring rules:
+   ❌ location_verbatim: "within 100 m downstream", landmark_verbatim: "Moricetown Canyon"
+   This FAILS because "Moricetown Canyon" is NOT a substring of "within 100 m downstream"
+   
+   Example 3: "500 m upstream and downstream of the Thorn Creek confluence or the Kemess Creek confluence"
+   - Rule 1: rule_text_verbatim: ["**No Fishing** 500 m upstream and downstream of the Thorn Creek confluence or the Kemess Creek confluence"]
+   - Rule 1: location_verbatim: "500 m upstream and downstream of the Thorn Creek confluence" (exact substring, no ellipsis)
+   - Rule 2: rule_text_verbatim: ["**No Fishing** 500 m upstream and downstream of the Thorn Creek confluence or the Kemess Creek confluence"]
+   - Rule 2: location_verbatim: "500 m upstream and downstream of the Thorn Creek confluence or the Kemess Creek confluence" (full phrase including both)
+   
+   DO NOT create synthetic fragments or use ellipsis to skip parts
+
+** RIGHT: Extract ["**Class II water Sept 1-Apr 30; Steelhead Stamp mandatory Dec 1-Apr 30\nNo Fishing** upstream of bridge"] (complete bold section)
+   OR RIGHT: Extract ["Class II water Sept 1-Apr 30; Steelhead Stamp mandatory Dec 1-Apr 30", "No Fishing upstream of bridge"] (ignore bold, separate logical rules)
+   
+   **KEY INSIGHT**: Bold markers are formatting, not content boundaries. Extract based on LOGICAL rules, not bold boundaries.
+   
+**LANDMARK EXTRACTION FAILURES**: For "between signs X and Y upstream":
+   WRONG: Using "signs X upstream" as landmark when it doesn't exist as substring
+   RIGHT: Look for the actual landmark phrases that exist in the text as written
+   EXAMPLE: "between signs 0.5 km and 3.5 km upstream of canyon"
+   WRONG: landmark_verbatim: "signs 0.5 km upstream of canyon" (doesn't exist in text as substring)
+   RIGHT: landmark_verbatim: "signs 0.5 km", landmark_end_verbatim: "3.5 km" (what actually exists as substrings)
+   OR RIGHT: Use different scope type - NAMED_PART for "between signs 0.5 km and 3.5 km upstream of canyon"
+   
+**DIRECTIONAL SCOPE REQUIREMENTS**:
+   - DIRECTIONAL type MUST have landmark_verbatim (what you're upstream/downstream OF)
+   - "within 100 m downstream" needs a landmark - downstream of WHAT?
+   - If no clear landmark exists, use BUFFER type instead
+
+**WHOLE_SYSTEM LOCATION_VERBATIM**:
+   - For WHOLE_SYSTEM scopes with no specific location in regulation text, use location_verbatim: null
+   - DO NOT copy the waterbody name from identity into location_verbatim
+   - The waterbody name is NOT in the regulation text (regs_verbatim), so it will fail substring validation
+   - Only use location_verbatim if the regulation text explicitly mentions a location (e.g., "entire lake", "all areas")
+
+DO copy exactly: Find the phrase in source text and copy it character-for-character
+DO include line breaks: If original text has "\n", preserve it exactly
+DO check with Ctrl+F: Every verbatim field should be findable in its parent text
+
+If ANY check fails, fix it before returning. Malformed JSON or validation failures will cause processing errors.
+
+Return ONLY the JSON array, nothing else.

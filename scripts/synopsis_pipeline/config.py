@@ -8,6 +8,11 @@ import os
 import yaml
 from pathlib import Path
 from typing import Dict, Any, Optional
+from dotenv import load_dotenv
+
+# Load environment variables from .env file in project root
+project_root = Path(__file__).parent.parent.parent
+load_dotenv(project_root / ".env")
 
 
 def get_config_path(custom_path: Optional[str] = None) -> Path:
@@ -69,8 +74,25 @@ def get_api_keys(config: Dict[str, Any]) -> list:
 
     Returns:
         List of API key dictionaries with 'id' and 'key' fields
+
+    Raises:
+        ValueError: If required API keys are not found in environment variables
     """
-    return [
-        {"id": k["id"], "key": k.get("key", k.get("default", ""))}
-        for k in config.get("api_keys", [])
-    ]
+    api_keys = []
+    missing_keys = []
+
+    for k in config.get("api_keys", []):
+        key_value = k.get("key")
+        if not key_value:
+            missing_keys.append(k.get("env_var", k.get("id")))
+        else:
+            api_keys.append({"id": k["id"], "key": key_value})
+
+    if missing_keys:
+        raise ValueError(
+            f"Missing API keys in environment: {', '.join(missing_keys)}. "
+            f"Please create a .env file in the project root with these variables. "
+            f"See .env.example for template."
+        )
+
+    return api_keys
