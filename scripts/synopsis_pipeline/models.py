@@ -7,6 +7,7 @@ Strictly adheres to the Scope-First JSON architecture and Verbatim Chain of Cust
 
 import os
 import json
+import re
 from typing import List, Optional, Dict, Any
 from datetime import datetime
 from attrs import define, asdict
@@ -39,13 +40,15 @@ def _normalize_text(text: str) -> str:
 def _normalize_date_text(text: str) -> str:
     """Normalize text for date comparison only.
 
-    Removes newlines, extra spaces, bold markers (**text**), and converts to lowercase.
+    Removes newlines, extra spaces, bold markers (**text**), commas, periods, and converts to lowercase.
     Used ONLY for date validation checks.
     """
     if not text:
         return ""
     # Remove bold markers
     normalized = text.replace("**", "")
+    # Remove commas and periods (common around dates)
+    normalized = normalized.replace(",", "").replace(".", "")
     # Remove newlines and normalize whitespace
     normalized = " ".join(normalized.replace("\n", " ").split())
     return normalized.lower()
@@ -155,7 +158,9 @@ class ScopeObject:
     direction: Optional[
         str
     ]  # Enum: UPSTREAM, DOWNSTREAM, BETWEEN, NORTH_OF, SOUTH_OF, EAST_OF, WEST_OF, NORTHEAST_OF, NORTHWEST_OF, SOUTHEAST_OF, SOUTHWEST_OF, etc.
-    includes_tributaries: bool  # True if this scope explicitly includes tributaries
+    includes_tributaries: Optional[
+        bool
+    ]  # Tri-state: true (explicit include), false (explicit exclude), null (silent/inherit from global)
 
     def validate(self, parent_text: str = None) -> List[str]:
         """Validate this scope object against the spec."""
@@ -201,7 +206,7 @@ class ScopeObject:
             if not self.landmark_end_verbatim:
                 errors.append("SEGMENT type requires landmark_end_verbatim")
             if self.direction != "BETWEEN":
-                errors.append("SEGMENT type must have direction='BETWEEN'")
+                errors.append(f"SEGMENT type must have direction='BETWEEN', got '{self.direction}'")
 
         if self.type == "DIRECTIONAL":
             if not self.landmark_verbatim:
@@ -232,7 +237,8 @@ class ScopeObject:
 
                 if not (has_within or has_two_sided or has_one_sided):
                     errors.append(
-                        "BUFFER type should contain 'within', 'upstream and downstream', or directional distance pattern in location_verbatim"
+                        f"BUFFER type should contain 'within', 'upstream and downstream', or directional distance pattern in location_verbatim. "
+                        f"Got: '{self.location_verbatim}'"
                     )
             else:
                 errors.append("BUFFER type requires location_verbatim")
@@ -247,14 +253,18 @@ class ScopeObject:
         # Ensure landmarks are substrings of the location description
         if self.landmark_verbatim and self.location_verbatim:
             if self.landmark_verbatim not in self.location_verbatim:
+                loc_snippet = self.location_verbatim[:150] + "..." if len(self.location_verbatim) > 150 else self.location_verbatim
                 errors.append(
-                    f"landmark_verbatim '{self.landmark_verbatim}' not found in location_verbatim"
+                    f"landmark_verbatim '{self.landmark_verbatim}' not found in location_verbatim. "
+                    f"Location text: '{loc_snippet}'"
                 )
 
         if self.landmark_end_verbatim and self.location_verbatim:
             if self.landmark_end_verbatim not in self.location_verbatim:
+                loc_snippet = self.location_verbatim[:150] + "..." if len(self.location_verbatim) > 150 else self.location_verbatim
                 errors.append(
-                    f"landmark_end_verbatim '{self.landmark_end_verbatim}' not found in location_verbatim"
+                    f"landmark_end_verbatim '{self.landmark_end_verbatim}' not found in location_verbatim. "
+                    f"Location text: '{loc_snippet}'"
                 )
 
         return errors
@@ -341,7 +351,10 @@ class IdentityObject:
 
     name_verbatim: str  # Exact character-for-character title from source
     waterbody_key: str  # Core waterbody name ONLY (e.g., "ELK RIVER", "TROUT LAKE") - no location, scope, or modifiers
-    identity_type: str  # Enum: LAKE, RIVER, CREEK, STREAM, RESERVOIR, WATERSHED, MANAGEMENT_AREA, PARK, CONFLUENCE, ARM, BAY, SLOUGH, POND, TRIBUTARIES
+    identity_type: str  # Enum: STREAM, STILL_WATER, ADMINISTRATIVE_AREA, CONFLUENCE, TRIBUTARIES, MULTIPLE_WATERBODIES
+    component_waterbodies: List[
+        str
+    ]  # List of waterbody keys when identity_type is MULTIPLE_WATERBODIES
     alternate_names: List[
         str
     ]  # Alternate/former/quoted names (e.g., ["McNaughton"], ["formerly Tseax River"])
@@ -370,12 +383,10 @@ class IdentityObject:
         valid_types = {
             "STREAM",  # All flowing water: rivers, creeks, streams
             "STILL_WATER",  # All standing water: lakes, reservoirs, sloughs, ponds, bays, arms
-            "MANAGEMENT_AREA",
-            "PARK",
+            "ADMINISTRATIVE_AREA",  # Management areas, parks, and other jurisdictional boundaries (including "X WATERS" entries)
             "CONFLUENCE",
             "TRIBUTARIES",
             "MULTIPLE_WATERBODIES",
-            "WATERS",
         }
         if self.identity_type not in valid_types:
             errors.append(
@@ -395,7 +406,8 @@ class IdentityObject:
             and not self.component_waterbodies
         ):
             errors.append(
-                "MULTIPLE_WATERBODIES type requires component_waterbodies to be populated"
+                f"MULTIPLE_WATERBODIES type requires component_waterbodies to be populated. "
+                f"Waterbody name: '{self.name_verbatim}'"
             )
 
         # Validate waterbody_key is core name only (no parenthetical content, no scope indicators)
@@ -408,7 +420,8 @@ class IdentityObject:
             # - Location descriptors like "near X"
             if "(" in self.waterbody_key or ")" in self.waterbody_key:
                 errors.append(
-                    f"waterbody_key '{self.waterbody_key}' contains parentheses - these should be parsed into alternate_names, location_descriptor, or scope"
+                    f"waterbody_key '{self.waterbody_key}' contains parentheses - these should be parsed into alternate_names, location_descriptor, or scope. "
+                    f"Name was: '{self.name_verbatim}'"
                 )
 
             # Check for scope indicators in waterbody_key
@@ -428,37 +441,62 @@ class IdentityObject:
                         f"waterbody_key '{self.waterbody_key}' contains scope/location indicator '{indicator}' - should be in global_scope or location_descriptor"
                     )
 
-            # Waterbody_key should be extractable from name_verbatim by removing parenthetical/scope content
-            # Extract the base name before first parenthesis or scope indicator
-            base_name_match = re.match(r"^([^(]+)", self.name_verbatim)
-            if base_name_match:
-                base_name = base_name_match.group(1).strip()
+            # Validate waterbody_key is derivable from name_verbatim
+            # Simple word-based validation: each significant word in key must exist in name
+            # This allows LLM flexibility in quote handling, capitalization, etc.
+            # while catching errors like wrong waterbody names
 
-                # Remove common suffixes from base_name
-                for suffix in [
-                    "'S TRIBUTARIES",
-                    "'s TRIBUTARIES",
-                    " TRIBUTARIES",
-                    "'S TRIBUTARY",
-                    " WATERSHED",
-                    " WATERS",
-                ]:
-                    if base_name.endswith(suffix):
-                        base_name = base_name[: -len(suffix)].strip()
+            # Normalize both for comparison (remove quotes, normalize case)
+            name_normalized = (
+                self.name_verbatim.replace('"', "").replace("'", "").upper()
+            )
+            key_normalized = (
+                self.waterbody_key.replace('"', "").replace("'", "").upper()
+            )
 
-                # waterbody_key should match this cleaned base name
-                if self.waterbody_key != base_name:
-                    # Allow some flexibility for quoted names
-                    if not (self.waterbody_key.strip('"') == base_name.strip('"')):
-                        errors.append(
-                            f"waterbody_key '{self.waterbody_key}' does not match extracted base name '{base_name}' from name_verbatim '{self.name_verbatim}'"
-                        )
+            # Extract significant words (3+ chars) from waterbody_key
+            key_words = re.findall(r"\b[A-Z][A-Z0-9]{2,}\b", key_normalized)
+
+            # Check that each word in the key exists in the name
+            missing_words = []
+            for word in key_words:
+                if word not in name_normalized:
+                    missing_words.append(word)
+
+            if missing_words:
+                errors.append(
+                    f"waterbody_key '{self.waterbody_key}' contains words {missing_words} not found in name_verbatim '{self.name_verbatim}'"
+                )
 
         # Validate alternate_names
         if self.alternate_names and not isinstance(self.alternate_names, list):
             errors.append(
                 f"alternate_names must be a list, got {type(self.alternate_names).__name__}"
             )
+
+        # Validate each alternate name has words present in name_verbatim
+        if self.alternate_names and isinstance(self.alternate_names, list):
+            for alt_name in self.alternate_names:
+                if not alt_name or not alt_name.strip():
+                    errors.append("alternate_names contains empty string")
+                    continue
+
+                # Normalize for comparison
+                alt_normalized = alt_name.replace('"', "").replace("'", "").upper()
+
+                # Extract significant words from alternate name
+                alt_words = re.findall(r"\b[A-Z][A-Z0-9]{2,}\b", alt_normalized)
+
+                # Check that each word exists in name_verbatim
+                alt_missing = []
+                for word in alt_words:
+                    if word not in name_normalized:
+                        alt_missing.append(word)
+
+                if alt_missing:
+                    errors.append(
+                        f"alternate_name '{alt_name}' contains words {alt_missing} not found in name_verbatim '{self.name_verbatim}'"
+                    )
 
         # Validate global_scope
         scope_errors = self.global_scope.validate()
@@ -511,113 +549,123 @@ class IdentityObject:
 
 @define(frozen=True, cache_hash=True)
 class RuleGroup:
-    """A block of regulation text with its scope and restrictions.
+    """An Atomic Regulation Unit (ARU): exactly ONE restriction with its dedicated scope.
 
-    Corresponds to the 'rules' array items in the spec.
+    Each rule object represents a single legal restriction with its spatial/temporal context.
+    The 1:1 relationship between rule and restriction ensures atomic traceability and
+    eliminates multi-index validation complexity.
     """
 
-    rule_text_verbatim: List[
-        str
-    ]  # Array of exact substrings from regulation block (for interleaved rules)
-    scope: ScopeObject  # Single scope defining where rules apply
-    restrictions: List[RestrictionObject]  # Legal restrictions for this scope
+    rule_text_verbatim: str  # Single contiguous substring containing the restriction, dates, and spatial context
+    scope: ScopeObject  # Single scope defining where this specific restriction applies
+    restriction: RestrictionObject  # Single legal restriction (1:1 relationship)
 
     def validate(self, parent_regs_verbatim: str) -> List[str]:
-        """Validate rule group against the authoritative parent text."""
+        """Validate atomic regulation unit against the authoritative parent text."""
         errors = []
 
-        if not self.rule_text_verbatim or not isinstance(self.rule_text_verbatim, list):
-            errors.append("rule_text_verbatim must be a non-empty list")
+        # Validate rule_text_verbatim is a non-empty string
+        if not self.rule_text_verbatim or not isinstance(self.rule_text_verbatim, str):
+            errors.append("rule_text_verbatim must be a non-empty string")
             return errors  # Cannot continue validation
 
-        if len(self.rule_text_verbatim) == 0:
-            errors.append("rule_text_verbatim array is empty")
+        if not self.rule_text_verbatim.strip():
+            errors.append("rule_text_verbatim is empty or whitespace only")
             return errors
 
-        # Check each element is non-empty
-        for idx, text in enumerate(self.rule_text_verbatim):
-            if not text or not text.strip():
-                errors.append(f"rule_text_verbatim[{idx}] is empty")
-
-        # Level 2 Validation: Each element of rule_text_verbatim must be in parent regs_verbatim
+        # Level 2 Validation: rule_text_verbatim must be substring of parent regs_verbatim
         if parent_regs_verbatim:
             parent_normalized = _normalize_text(parent_regs_verbatim)
-            for idx, text in enumerate(self.rule_text_verbatim):
-                if _normalize_text(text) not in parent_normalized:
-                    errors.append(
-                        f"rule_text_verbatim[{idx}] not found in parent regs_verbatim"
-                    )
+            rule_normalized = _normalize_text(self.rule_text_verbatim)
+            if rule_normalized not in parent_normalized:
+                rule_snippet = self.rule_text_verbatim[:100] + "..." if len(self.rule_text_verbatim) > 100 else self.rule_text_verbatim
+                parent_snippet = parent_regs_verbatim[:200] + "..." if len(parent_regs_verbatim) > 200 else parent_regs_verbatim
+                errors.append(
+                    f"rule_text_verbatim not found in parent regs_verbatim. "
+                    f"Rule text: '{rule_snippet}'. "
+                    f"Parent regs: '{parent_snippet}'"
+                )
 
-        # Level 3 Validation: Scope location must be in at least one element of rule_text_verbatim
+        # Level 3 Validation: Scope validation
         scope_errors = self.scope.validate()
         for err in scope_errors:
             errors.append(f"scope: {err}")
 
-        if self.scope.location_verbatim and self.rule_text_verbatim:
-            location_found = False
+        # Scope location must be in rule_text_verbatim (if present)
+        if self.scope.location_verbatim:
             normalized_location = _normalize_text(self.scope.location_verbatim)
-            for text in self.rule_text_verbatim:
-                if normalized_location in _normalize_text(text):
-                    location_found = True
-                    break
-            if not location_found:
+            normalized_rule = _normalize_text(self.rule_text_verbatim)
+            if normalized_location not in normalized_rule:
+                loc_snippet = self.scope.location_verbatim[:100] + "..." if len(self.scope.location_verbatim) > 100 else self.scope.location_verbatim
+                rule_snippet = self.rule_text_verbatim[:150] + "..." if len(self.rule_text_verbatim) > 150 else self.rule_text_verbatim
                 errors.append(
-                    "scope.location_verbatim not found in any rule_text_verbatim element"
+                    f"scope.location_verbatim not found in rule_text_verbatim. "
+                    f"Location: '{loc_snippet}'. "
+                    f"Rule text: '{rule_snippet}'"
                 )
 
-        # Validate restrictions
-        if not self.restrictions:
-            errors.append("No restrictions found")
+        # Validate single restriction
+        if not self.restriction:
+            errors.append("No restriction found (must have exactly one)")
+            return errors
 
-        # Concatenate all rule_text_verbatim for restriction validation
-        combined_text = "\n".join(self.rule_text_verbatim)
+        rest_errors = self.restriction.validate(self.rule_text_verbatim)
+        for err in rest_errors:
+            errors.append(f"restriction: {err}")
 
-        for idx, restriction in enumerate(self.restrictions):
-            rest_errors = restriction.validate(combined_text)
-            for err in rest_errors:
-                errors.append(f"restriction {idx}: {err}")
-
-            # Date Verification Protocol: Dates must be literal substrings in at least one element
-            if restriction.dates and isinstance(restriction.dates, list):
-                for date in restriction.dates:
-                    date_found = False
-                    normalized_date = _normalize_date_text(date)
-                    for text in self.rule_text_verbatim:
-                        if normalized_date in _normalize_date_text(text):
-                            date_found = True
-                            break
-                    if not date_found:
-                        errors.append(
-                            f"restriction {idx}: Date '{date}' not found in any rule_text_verbatim element"
-                        )
+        # Date Verification Protocol: Dates must be literal substrings in rule_text_verbatim
+        if self.restriction.dates and isinstance(self.restriction.dates, list):
+            for date in self.restriction.dates:
+                normalized_date = _normalize_date_text(date)
+                normalized_rule = _normalize_date_text(self.rule_text_verbatim)
+                if normalized_date not in normalized_rule:
+                    # Show what was actually extracted to help debug
+                    rule_snippet = self.rule_text_verbatim[:100] + "..." if len(self.rule_text_verbatim) > 100 else self.rule_text_verbatim
+                    errors.append(
+                        f"restriction: Date '{date}' not found in rule_text_verbatim. "
+                        f"Normalized date: '{normalized_date}'. "
+                        f"Normalized rule_text_verbatim: '{normalized_rule[:150]}...'. "
+                        f"Original rule_text_verbatim: '{rule_snippet}'"
+                    )
 
         return errors
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "RuleGroup":
-        # Handle legacy text_verbatim field by converting to array
+        """Create RuleGroup from dict, handling both atomic and legacy formats."""
+        # Handle rule_text_verbatim (must be string in atomic format)
         rule_text = data.get("rule_text_verbatim")
-        if rule_text is None:
+
+        # Legacy compatibility: convert list to string if needed
+        if isinstance(rule_text, list):
+            # Join array elements with newline for legacy compatibility
+            rule_text = "\n".join(rule_text) if rule_text else ""
+        elif rule_text is None:
             # Fallback for legacy format
-            legacy_text = data.get("text_verbatim", "")
-            rule_text = [legacy_text] if legacy_text else []
-        elif isinstance(rule_text, str):
-            # Convert single string to array
-            rule_text = [rule_text] if rule_text else []
+            rule_text = data.get("text_verbatim", "")
+
+        # Handle restriction (must be single object in atomic format)
+        restriction_data = data.get("restriction")
+        if restriction_data is None:
+            # Legacy compatibility: take first restriction from array
+            restrictions_list = data.get("restrictions", [])
+            if restrictions_list:
+                restriction_data = restrictions_list[0]
+            else:
+                # Create empty restriction to avoid validation errors
+                restriction_data = {"type": "", "details": "", "dates": None}
 
         return cls(
             rule_text_verbatim=rule_text,
             scope=ScopeObject.from_dict(data.get("scope", {})),
-            restrictions=[
-                RestrictionObject.from_dict(r) for r in data.get("restrictions", [])
-            ],
+            restriction=RestrictionObject.from_dict(restriction_data),
         )
 
     def to_dict(self) -> Dict[str, Any]:
         return {
             "rule_text_verbatim": self.rule_text_verbatim,
             "scope": self.scope.to_dict(),
-            "restrictions": [r.to_dict() for r in self.restrictions],
+            "restriction": self.restriction.to_dict(),
         }
 
 
@@ -649,18 +697,29 @@ class ParsedWaterbody:
             and self.identity.name_verbatim.strip() != expected_name.strip()
         ):
             errors.append(
-                f"Name mismatch: expected '{expected_name}', got '{self.identity.name_verbatim}'"
+                f"Name mismatch: expected '{expected_name}', got '{self.identity.name_verbatim}'. "
+                f"First 50 chars of expected: '{expected_name[:50]}', "
+                f"first 50 chars of actual: '{self.identity.name_verbatim[:50]}'"
             )
 
         # Level 0 Validation: regs_verbatim match
         if expected_raw_text is not None:
             if self.regs_verbatim != expected_raw_text:
-                preview = (
-                    expected_raw_text[:50] + "..."
-                    if len(expected_raw_text) > 50
+                expected_preview = (
+                    expected_raw_text[:100] + "..."
+                    if len(expected_raw_text) > 100
                     else expected_raw_text
                 )
-                errors.append(f"regs_verbatim mismatch. Expected start: '{preview}'")
+                actual_preview = (
+                    self.regs_verbatim[:100] + "..."
+                    if len(self.regs_verbatim) > 100
+                    else self.regs_verbatim
+                )
+                errors.append(
+                    f"regs_verbatim mismatch. "
+                    f"Expected: '{expected_preview}'. "
+                    f"Got: '{actual_preview}'"
+                )
 
         # Validate audit_log
         if self.audit_log is None:
@@ -684,35 +743,15 @@ class ParsedWaterbody:
                 if rule.scope.type == "VAGUE" and (
                     not self.audit_log or len(self.audit_log) == 0
                 ):
+                    scope_info = f"location='{rule.scope.location_verbatim}'" if rule.scope.location_verbatim else "no location"
                     errors.append(
-                        f"rule {idx}: VAGUE scope requires at least one audit_log entry explaining why"
+                        f"rule {idx}: VAGUE scope requires at least one audit_log entry explaining why. "
+                        f"Scope info: {scope_info}"
                     )
 
-            # Check for duplicate scopes (rules with identical scope should be merged)
-            scope_to_rules = {}
-            for idx, rule in enumerate(self.rules):
-                # Create a scope key based on type and location
-                scope_key = (
-                    rule.scope.type,
-                    rule.scope.location_verbatim or None,
-                    rule.scope.includes_tributaries,
-                )
-
-                if scope_key not in scope_to_rules:
-                    scope_to_rules[scope_key] = []
-                scope_to_rules[scope_key].append(idx)
-
-            # Report any duplicate scopes
-            for scope_key, rule_indices in scope_to_rules.items():
-                if len(rule_indices) > 1:
-                    scope_type, location, includes_tribs = scope_key
-                    location_str = f"'{location}'" if location else "None"
-                    errors.append(
-                        f"Duplicate scope found: {len(rule_indices)} rules share identical scope "
-                        f"(type={scope_type}, location={location_str}, includes_tributaries={includes_tribs}). "
-                        f"Rules {rule_indices} should be merged into a single rule. "
-                        f"All restrictions for the same exact scope must be in one rule."
-                    )
+            # NOTE: In Atomic Regulation Unit (ARU) architecture, multiple rules
+            # CAN share identical scopes - each rule is one restriction with its own scope.
+            # This is intentional and not an error. We removed the duplicate scope check.
 
         return errors
 
@@ -784,7 +823,11 @@ class ParsedWaterbody:
                 name_implies_tribs = expected_name and (
                     expected_name.lower().endswith("tributaries")
                     or expected_name.lower().endswith("'s tributaries")
+                    or expected_name.lower().endswith("'s tributary streams")
+                    or expected_name.lower().endswith("'s tributary")
+                    or expected_name.lower().endswith(" tributary streams")
                     or "tributary streams" in expected_name.lower()
+                    or "'s inlet & outlet streams" in expected_name.lower()
                 )
 
                 if header_implies_tribs or name_implies_tribs:
@@ -796,7 +839,8 @@ class ParsedWaterbody:
                             else "Waterbody name indicates tributaries"
                         )
                         validation_errors.append(
-                            f"Item {idx}: {reason} but identity.global_scope.includes_tributaries is False"
+                            f"Item {idx}: {reason} but identity.global_scope.includes_tributaries is False. "
+                            f"Name: '{expected_name}', symbols: {symbols}"
                         )
 
                 # 4. Deep Validation

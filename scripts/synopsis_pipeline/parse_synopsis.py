@@ -264,23 +264,25 @@ class SessionManager:
 
         return failed_indices
 
-    def archive(self, session: SessionState, results_file: str, force_incomplete: bool = False):
+    def archive(
+        self, session: SessionState, results_file: str, force_incomplete: bool = False
+    ):
         """
         Archive a session to completed_sessions or partial_sessions folder.
-        
+
         Args:
             session: Session state to archive
             results_file: Path to parsed results file
             force_incomplete: If True, archive to partial_sessions even if not complete
         """
         is_complete = session.completed_at is not None
-        
+
         # Don't archive incomplete sessions unless explicitly requested
         if not is_complete and not force_incomplete:
             return
 
         ts = datetime.now().strftime("%Y-%m-%d_%H%M%S")
-        
+
         # Choose folder based on completion status
         folder_name = "completed_sessions" if is_complete else "partial_sessions"
         folder = os.path.join(os.path.dirname(self.filepath), folder_name, ts)
@@ -299,7 +301,11 @@ class SessionManager:
             "failed": len(session.failed_items),
             "validation_failures": len(session.validation_failures),
             "completion_status": "complete" if is_complete else "partial",
-            "completion_percentage": (len(session.processed_items) / session.total_items * 100) if session.total_items > 0 else 0,
+            "completion_percentage": (
+                (len(session.processed_items) / session.total_items * 100)
+                if session.total_items > 0
+                else 0
+            ),
         }
         with open(os.path.join(folder, "manifest.json"), "w") as f:
             json.dump(manifest, f, indent=2)
@@ -580,8 +586,8 @@ def export_session(session_file: str, output_file: str):
 def main():
     parser = argparse.ArgumentParser(description="Strict Fishing Regs Parser")
     parser.add_argument("--file", help="Input raw JSON")
-    parser.add_argument("--session-file", default="output/llm_parser/session.json")
-    parser.add_argument("--output", default="output/llm_parser/llm_parsed_results.json")
+    parser.add_argument("--session-file", default="output/parse_synopsis/session.json")
+    parser.add_argument("--output", default="output/parse_synopsis/parsed_results.json")
     parser.add_argument(
         "--batch-size", type=int, default=CONFIG["parsing"]["batch_size"]
     )
@@ -589,9 +595,9 @@ def main():
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--export-session", action="store_true")
     parser.add_argument(
-        "--archive-current", 
+        "--archive-current",
         action="store_true",
-        help="Archive the current session state to partial_sessions folder (for incomplete sessions)"
+        help="Archive the current session state to partial_sessions folder (for incomplete sessions)",
     )
 
     args = parser.parse_args()
@@ -599,7 +605,7 @@ def main():
     if args.export_session:
         export_session(args.session_file, args.output)
         return
-    
+
     if args.archive_current:
         # Load current session and archive it
         session = SessionState.load(args.session_file)
@@ -607,7 +613,9 @@ def main():
             mgr = SessionManager(args.session_file)
             mgr.archive(session, args.output, force_incomplete=True)
             print(f"\nCurrent session archived successfully.")
-            print(f"  Items processed: {len(session.processed_items)}/{session.total_items}")
+            print(
+                f"  Items processed: {len(session.processed_items)}/{session.total_items}"
+            )
             print(f"  Failed items: {len(session.failed_items)}")
             print(f"  Validation failures: {len(session.validation_failures)}")
         else:

@@ -1294,7 +1294,9 @@ class FishingSynopsisParser:
             if "Incl. Tribs" not in symbols:
                 symbols.append("Incl. Tribs")
             text = re.sub(
-                trib_pattern, " " + self.INCLUDES_TRIBUTARIES + " " if is_regs else "", text
+                trib_pattern,
+                " " + self.INCLUDES_TRIBUTARIES + " " if is_regs else "",
+                text,
             )
             if not is_regs:
                 text = text.replace("Includes tributaries", "").replace(

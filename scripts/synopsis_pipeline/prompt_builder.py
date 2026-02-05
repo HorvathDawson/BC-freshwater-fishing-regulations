@@ -17,7 +17,35 @@ def get_prompt_template_path():
 
 def get_examples_path():
     """Get the path to the examples file."""
-    return Path(__file__).parent / "prompts" / "examples.txt"
+    return Path(__file__).parent / "prompts" / "examples.json"
+
+
+def format_examples_for_prompt(examples_json: List[dict]) -> str:
+    """
+    Convert examples from JSON format to text format for prompt insertion.
+
+    Args:
+        examples_json: List of example dictionaries with 'input' and 'output' keys
+
+    Returns:
+        Formatted text string ready for prompt insertion
+    """
+    formatted_examples = []
+
+    for i, example in enumerate(examples_json, 1):
+        # Format input section
+        input_json = json.dumps(example["input"], indent=4, ensure_ascii=False)
+
+        # Format output section
+        output_json = json.dumps(example["output"], indent=4, ensure_ascii=False)
+
+        # Build the example text
+        example_text = f"INPUT:\nJSON\n{input_json}\nOUTPUT:\nJSON\n{output_json}"
+
+        formatted_examples.append(example_text)
+
+    # Join examples with separator
+    return "\n\n---\n\n".join(formatted_examples)
 
 
 def build_prompt(waterbody_rows: List) -> str:
@@ -41,16 +69,18 @@ def build_prompt(waterbody_rows: List) -> str:
     with open(template_path, "r", encoding="utf-8") as f:
         template = f.read()
 
-    # Load examples
+    # Load examples from JSON and format them
     examples_path = get_examples_path()
     with open(examples_path, "r", encoding="utf-8") as f:
-        examples = f.read()
+        examples_json = json.load(f)
+
+    examples_text = format_examples_for_prompt(examples_json)
 
     # Format template with batch data
     prompt = template.format(
         num_items=len(waterbody_rows),
         batch_inputs=json.dumps(batch_inputs, ensure_ascii=False),
-        examples=examples,
+        examples=examples_text,
     )
 
     return prompt

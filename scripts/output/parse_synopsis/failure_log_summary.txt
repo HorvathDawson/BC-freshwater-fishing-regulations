@@ -1,0 +1,196 @@
+
+================================================================================
+Batch Failures 2026-01-30T22:27:53.475509
+================================================================================
+[43] COWICHAN RIVER (see map below)
+Error: Item 0: rule 1: rule_text_verbatim not found in parent regs_verbatim. Rule text: '**No Fishing** July 15-Aug 31[Includes Tributaries]'. Parent regs: '**No Fishing July 4-July 14
+No Fishing** July 15-Aug 31[Includes Tributaries], **No Fishing** from weir (dam) at Cowichan Lake's outlet to Greendale Trestle, Nov 15-Apr 15
+**No Fishing** in tributarie...'
+ - Item 0: rule 1: rule_text_verbatim not found in parent regs_verbatim. Rule text: '**No Fishing** July 15-Aug 31[Includes Tributaries]'. Parent regs: '**No Fishing July 4-July 14
+No Fishing** July 15-Aug 31[Includes Tributaries], **No Fishing** from weir (dam) at Cowichan Lake's outlet to Greendale Trestle, Nov 15-Apr 15
+**No Fishing** in tributarie...'
+----------------------------------------
+[120] MAMIN RIVER
+Error: Item 1: rule 2: rule_text_verbatim not found in parent regs_verbatim. Rule text: '**No Fishing** upstream of fishing boundary signs on third bridge approximately 10 km upstream of th...'. Parent regs: '**Class II water Sept 1-Apr 30; Steelhead Stamp mandatory Dec 1-Apr 30
+No Fishing** upstream of fishing boundary signs on third bridge approximately 10 km upstream of the tidal boundary, Feb 1-Apr 30
+...'
+ - Item 1: rule 2: rule_text_verbatim not found in parent regs_verbatim. Rule text: '**No Fishing** upstream of fishing boundary signs on third bridge approximately 10 km upstream of th...'. Parent regs: '**Class II water Sept 1-Apr 30; Steelhead Stamp mandatory Dec 1-Apr 30
+No Fishing** upstream of fishing boundary signs on third bridge approximately 10 km upstream of the tidal boundary, Feb 1-Apr 30
+...'
+----------------------------------------
+[241] CHAPMAN CREEK
+Error: Item 3: rule 1: scope: landmark_verbatim 'the falls (falls are located approximately 550 m upstream of the power line crossing)' not found in location_verbatim. Location text: 'from the falls to 100 m downstream (falls are located approximately 550 m upstream of the power line crossing)'
+ - Item 3: rule 1: scope: landmark_verbatim 'the falls (falls are located approximately 550 m upstream of the power line crossing)' not found in location_verbatim. Location text: 'from the falls to 100 m downstream (falls are located approximately 550 m upstream of the power line crossing)'
+----------------------------------------
+[458] FRASER RIVER
+Error: Item 4: rule 8: rule_text_verbatim not found in parent regs_verbatim. Rule text: 'From the confluence with Thompson River to the CNR Bridge approximately 1 km downstream: bait ban, O...'. Parent regs: 'Exempt from spring closure upstream of Thompson River, except as noted below
+**No Fishing **for trout in Fraser River mainstem: downstream of Hell's Gate Sept 1-Nov 15, from Hell's Gate to the conflue...'; Item 4: rule 9: rule_text_verbatim not found in parent regs_verbatim. Rule text: 'From the confluence with Thompson River to the CNR Bridge approximately 1 km downstream: no
+hooks gr...'. Parent regs: 'Exempt from spring closure upstream of Thompson River, except as noted below
+**No Fishing **for trout in Fraser River mainstem: downstream of Hell's Gate Sept 1-Nov 15, from Hell's Gate to the conflue...'
+ - Item 4: rule 8: rule_text_verbatim not found in parent regs_verbatim. Rule text: 'From the confluence with Thompson River to the CNR Bridge approximately 1 km downstream: bait ban, O...'. Parent regs: 'Exempt from spring closure upstream of Thompson River, except as noted below
+**No Fishing **for trout in Fraser River mainstem: downstream of Hell's Gate Sept 1-Nov 15, from Hell's Gate to the conflue...'; Item 4: rule 9: rule_text_verbatim not found in parent regs_verbatim. Rule text: 'From the confluence with Thompson River to the CNR Bridge approximately 1 km downstream: no
+hooks gr...'. Parent regs: 'Exempt from spring closure upstream of Thompson River, except as noted below
+**No Fishing **for trout in Fraser River mainstem: downstream of Hell's Gate Sept 1-Nov 15, from Hell's Gate to the conflue...'
+----------------------------------------
+[548] SHUSWAP LAKE (see maps on page 28) (includes Little Shuswap Lake, that part of South Thompson River between Shuswap Lake and Little Shuswap Lake, Seymour, Anstey and Salmon arms and Mara Lake unless stated otherwise)
+Error: Item 6: identity: inclusion 0: Invalid scope type 'MULTIPLE_WATERBODIES', must be one of {'TRIBUTARIES_ONLY', 'BUFFER', 'NAMED_PART', 'WHOLE_SYSTEM', 'DIRECTIONAL', 'SEGMENT', 'VAGUE'}; Item 6: rule 0: rule_text_verbatim not found in parent regs_verbatim. Rule text: '**No Fishing** Mar 15-May 14... in the waters lying west of a line between
+signs at Henstridge Road ...'. Parent regs: '**No Fishing** Mar 15-May 14, and **rainbow trout and char catch and release**, May 15-Mar 14, in the waters lying west of a line between
+signs at Henstridge Road and Wharf Road to a line between sign...'; Item 6: rule 4: rule_text_verbatim not found in parent regs_verbatim. Rule text: '**No fishing** in Salmon Arm Bay, west of line between Engineer's Point and Sunnybrae Point... Sept ...'. Parent regs: '**No Fishing** Mar 15-May 14, and **rainbow trout and char catch and release**, May 15-Mar 14, in the waters lying west of a line between
+signs at Henstridge Road and Wharf Road to a line between sign...'
+ - Item 6: identity: inclusion 0: Invalid scope type 'MULTIPLE_WATERBODIES', must be one of {'TRIBUTARIES_ONLY', 'BUFFER', 'NAMED_PART', 'WHOLE_SYSTEM', 'DIRECTIONAL', 'SEGMENT', 'VAGUE'}; Item 6: rule 0: rule_text_verbatim not found in parent regs_verbatim. Rule text: '**No Fishing** Mar 15-May 14... in the waters lying west of a line between
+signs at Henstridge Road ...'. Parent regs: '**No Fishing** Mar 15-May 14, and **rainbow trout and char catch and release**, May 15-Mar 14, in the waters lying west of a line between
+signs at Henstridge Road and Wharf Road to a line between sign...'; Item 6: rule 4: rule_text_verbatim not found in parent regs_verbatim. Rule text: '**No fishing** in Salmon Arm Bay, west of line between Engineer's Point and Sunnybrae Point... Sept ...'. Parent regs: '**No Fishing** Mar 15-May 14, and **rainbow trout and char catch and release**, May 15-Mar 14, in the waters lying west of a line between
+signs at Henstridge Road and Wharf Road to a line between sign...'
+----------------------------------------
+[625] DUNCAN RIVER
+Error: Item 7: rule 5: rule_text_verbatim not found in parent regs_verbatim. Rule text: '**No Fishing downstream of Duncan Dam to the confluence of the Duncan River and the Lardeau River**'. Parent regs: '**Exempt from spring closure, exempt from regional Nov 1-Mar 31 bull trout catch and release, bait ban
+Rainbow trout daily quota = 5 (any size), bull trout daily quota = 2 (any size)
+No Fishing downst...'
+ - Item 7: rule 5: rule_text_verbatim not found in parent regs_verbatim. Rule text: '**No Fishing downstream of Duncan Dam to the confluence of the Duncan River and the Lardeau River**'. Parent regs: '**Exempt from spring closure, exempt from regional Nov 1-Mar 31 bull trout catch and release, bait ban
+Rainbow trout daily quota = 5 (any size), bull trout daily quota = 2 (any size)
+No Fishing downst...'
+----------------------------------------
+[741] SALMO RIVER
+Error: Item 8: rule 2: rule_text_verbatim not found in parent regs_verbatim. Rule text: 'Remainder of mainstem: ... bull trout catch and release year-round'. Parent regs: 'Sheep Creek to South Salmo River: catch and release rainbow and bull trout
+Remainder of mainstem: rainbow trout daily quota = 1 (none under 30 cm), June 15-Oct 31, and bull trout catch and release yea...'
+ - Item 8: rule 2: rule_text_verbatim not found in parent regs_verbatim. Rule text: 'Remainder of mainstem: ... bull trout catch and release year-round'. Parent regs: 'Sheep Creek to South Salmo River: catch and release rainbow and bull trout
+Remainder of mainstem: rainbow trout daily quota = 1 (none under 30 cm), June 15-Oct 31, and bull trout catch and release yea...'
+----------------------------------------
+[773] UPPER ARROW LAKE (drawdown area)
+Error: Item 9: rule 0: rule_text_verbatim not found in parent regs_verbatim. Rule text: '"The drawdown area"... located
+between Hwy 1 bridge in Revelstoke and the power line crossing at Ako...'. Parent regs: '"The drawdown area", that water known as either Upper Arrow Lake or Columbia River (depending on the reservoir's level), located
+between Hwy 1 bridge in Revelstoke and the power line crossing at Akolk...'; Item 9: rule 1: rule_text_verbatim not found in parent regs_verbatim. Rule text: '"The drawdown area"... single barbless hook'. Parent regs: '"The drawdown area", that water known as either Upper Arrow Lake or Columbia River (depending on the reservoir's level), located
+between Hwy 1 bridge in Revelstoke and the power line crossing at Akolk...'; Item 9: rule 1: scope.location_verbatim not found in rule_text_verbatim. Location: 'between Hwy 1 bridge in Revelstoke and the power line crossing at Akolkolex Narrows (approximately 1...'. Rule text: '"The drawdown area"... single barbless hook'
+ - Item 9: rule 0: rule_text_verbatim not found in parent regs_verbatim. Rule text: '"The drawdown area"... located
+between Hwy 1 bridge in Revelstoke and the power line crossing at Ako...'. Parent regs: '"The drawdown area", that water known as either Upper Arrow Lake or Columbia River (depending on the reservoir's level), located
+between Hwy 1 bridge in Revelstoke and the power line crossing at Akolk...'; Item 9: rule 1: rule_text_verbatim not found in parent regs_verbatim. Rule text: '"The drawdown area"... single barbless hook'. Parent regs: '"The drawdown area", that water known as either Upper Arrow Lake or Columbia River (depending on the reservoir's level), located
+between Hwy 1 bridge in Revelstoke and the power line crossing at Akolk...'; Item 9: rule 1: scope.location_verbatim not found in rule_text_verbatim. Location: 'between Hwy 1 bridge in Revelstoke and the power line crossing at Akolkolex Narrows (approximately 1...'. Rule text: '"The drawdown area"... single barbless hook'
+----------------------------------------
+[785] WHITESWAN LAKE'S INLET & OUTLET STREAMS
+Error: Item 10: rule 1: scope.location_verbatim not found in rule_text_verbatim. Location: 'outlet stream downstream of the falls 2.4 km downstream of Whiteswan Lake'. Rule text: '**No Fishing** Aug 1-Mar 31'; Item 10: rule 2: scope.location_verbatim not found in rule_text_verbatim. Location: 'outlet stream downstream of the falls 2.4 km downstream of Whiteswan Lake'. Rule text: 'rainbow
+trout daily quota = 5 (catch and release all other species) when open'
+ - Item 10: rule 1: scope.location_verbatim not found in rule_text_verbatim. Location: 'outlet stream downstream of the falls 2.4 km downstream of Whiteswan Lake'. Rule text: '**No Fishing** Aug 1-Mar 31'; Item 10: rule 2: scope.location_verbatim not found in rule_text_verbatim. Location: 'outlet stream downstream of the falls 2.4 km downstream of Whiteswan Lake'. Rule text: 'rainbow
+trout daily quota = 5 (catch and release all other species) when open'
+----------------------------------------
+[849] DEAN RIVER
+Error: Item 11: rule 4: restriction: Date 'Oct 1-May 31' not found in rule_text_verbatim. Normalized date: 'oct 1-may 31'. Normalized rule_text_verbatim: 'no fishing from fishing boundary signs approximately 100 m downstream of canyon to tidal boundary oct 1 - may 31...'. Original rule_text_verbatim: '**No Fishing** from fishing boundary signs approximately 100 m downstream of canyon to tidal boundar...'; Item 11: rule 8: rule_text_verbatim not found in parent regs_verbatim. Rule text: 'Fly fishing only from...** (b)** Crag Creek to fishing boundary signs approximately 500 m
+upstream o...'. Parent regs: '**No Fishing** upstream of Iltasyuko River[Includes Tributaries], including upstream of Anahim Lake[Includes Tributaries], Apr 1-June 14
+**No Fishing** from Iltasyuko River to Crag Creek[Includes Trib...'; Item 11: rule 11: rule_text_verbatim not found in parent regs_verbatim. Rule text: '**From Crag Creek to signs 500 m upstream of the canyon**... Steelhead Stamp mandatory June 1-Sept 3...'. Parent regs: '**No Fishing** upstream of Iltasyuko River[Includes Tributaries], including upstream of Anahim Lake[Includes Tributaries], Apr 1-June 14
+**No Fishing** from Iltasyuko River to Crag Creek[Includes Trib...'; Item 11: rule 13: rule_text_verbatim not found in parent regs_verbatim. Rule text: 'From signs 100 m downstream of canyon to tidal boundary**[Includes Tributaries]**: Steelhead Stamp m...'. Parent regs: '**No Fishing** upstream of Iltasyuko River[Includes Tributaries], including upstream of Anahim Lake[Includes Tributaries], Apr 1-June 14
+**No Fishing** from Iltasyuko River to Crag Creek[Includes Trib...'
+ - Item 11: rule 4: restriction: Date 'Oct 1-May 31' not found in rule_text_verbatim. Normalized date: 'oct 1-may 31'. Normalized rule_text_verbatim: 'no fishing from fishing boundary signs approximately 100 m downstream of canyon to tidal boundary oct 1 - may 31...'. Original rule_text_verbatim: '**No Fishing** from fishing boundary signs approximately 100 m downstream of canyon to tidal boundar...'; Item 11: rule 8: rule_text_verbatim not found in parent regs_verbatim. Rule text: 'Fly fishing only from...** (b)** Crag Creek to fishing boundary signs approximately 500 m
+upstream o...'. Parent regs: '**No Fishing** upstream of Iltasyuko River[Includes Tributaries], including upstream of Anahim Lake[Includes Tributaries], Apr 1-June 14
+**No Fishing** from Iltasyuko River to Crag Creek[Includes Trib...'; Item 11: rule 11: rule_text_verbatim not found in parent regs_verbatim. Rule text: '**From Crag Creek to signs 500 m upstream of the canyon**... Steelhead Stamp mandatory June 1-Sept 3...'. Parent regs: '**No Fishing** upstream of Iltasyuko River[Includes Tributaries], including upstream of Anahim Lake[Includes Tributaries], Apr 1-June 14
+**No Fishing** from Iltasyuko River to Crag Creek[Includes Trib...'; Item 11: rule 13: rule_text_verbatim not found in parent regs_verbatim. Rule text: 'From signs 100 m downstream of canyon to tidal boundary**[Includes Tributaries]**: Steelhead Stamp m...'. Parent regs: '**No Fishing** upstream of Iltasyuko River[Includes Tributaries], including upstream of Anahim Lake[Includes Tributaries], Apr 1-June 14
+**No Fishing** from Iltasyuko River to Crag Creek[Includes Trib...'
+----------------------------------------
+[985] BABINE RIVER
+Error: Item 12: rule 1: rule_text_verbatim not found in parent regs_verbatim. Rule text: '**No Fishing** between fishing boundary signs approximately 100 m upstream of and 80 m downstream of...'. Parent regs: '**Angling prohibited for non-guided non-resident aliens on Saturdays and Sundays from the juvenile fish counting weir located at
+the outlet of Nilkitkwa Lake to the Nilkitkwa River confluence, Sept 1-...'; Item 12: rule 4: rule_text_verbatim not found in parent regs_verbatim. Rule text: 'Fly fishing only... (b) from signs about 80 m downstream of the adult fish counting fence to Nichyes...'. Parent regs: '**Angling prohibited for non-guided non-resident aliens on Saturdays and Sundays from the juvenile fish counting weir located at
+the outlet of Nilkitkwa Lake to the Nilkitkwa River confluence, Sept 1-...'
+ - Item 12: rule 1: rule_text_verbatim not found in parent regs_verbatim. Rule text: '**No Fishing** between fishing boundary signs approximately 100 m upstream of and 80 m downstream of...'. Parent regs: '**Angling prohibited for non-guided non-resident aliens on Saturdays and Sundays from the juvenile fish counting weir located at
+the outlet of Nilkitkwa Lake to the Nilkitkwa River confluence, Sept 1-...'; Item 12: rule 4: rule_text_verbatim not found in parent regs_verbatim. Rule text: 'Fly fishing only... (b) from signs about 80 m downstream of the adult fish counting fence to Nichyes...'. Parent regs: '**Angling prohibited for non-guided non-resident aliens on Saturdays and Sundays from the juvenile fish counting weir located at
+the outlet of Nilkitkwa Lake to the Nilkitkwa River confluence, Sept 1-...'
+----------------------------------------
+[994] BULKLEY RIVER
+Error: Item 13: rule 1: rule_text_verbatim not found in parent regs_verbatim. Rule text: '**No Fishing** upstream of Morice/Bulkley River confluence'. Parent regs: '**Angling prohibited for non-guided non-resident aliens on Saturdays and Sundays, Sept 1-Oct 31
+See Suskwa River and Telkwa River
+No Fishing** upstream of Morice/Bulkley River confluence
+Bait ban
+No a...'; Item 13: rule 4: rule_text_verbatim not found in parent regs_verbatim. Rule text: 'No angling from boats... in Moricetown Canyon, all year'. Parent regs: '**Angling prohibited for non-guided non-resident aliens on Saturdays and Sundays, Sept 1-Oct 31
+See Suskwa River and Telkwa River
+No Fishing** upstream of Morice/Bulkley River confluence
+Bait ban
+No a...'; Item 13: rule 5: rule_text_verbatim not found in parent regs_verbatim. Rule text: 'No angling from boats... within 100 m downstream, all year'. Parent regs: '**Angling prohibited for non-guided non-resident aliens on Saturdays and Sundays, Sept 1-Oct 31
+See Suskwa River and Telkwa River
+No Fishing** upstream of Morice/Bulkley River confluence
+Bait ban
+No a...'; Item 13: rule 5: scope: landmark_verbatim 'Moricetown Canyon' not found in location_verbatim. Location text: 'within 100 m downstream'
+ - Item 13: rule 1: rule_text_verbatim not found in parent regs_verbatim. Rule text: '**No Fishing** upstream of Morice/Bulkley River confluence'. Parent regs: '**Angling prohibited for non-guided non-resident aliens on Saturdays and Sundays, Sept 1-Oct 31
+See Suskwa River and Telkwa River
+No Fishing** upstream of Morice/Bulkley River confluence
+Bait ban
+No a...'; Item 13: rule 4: rule_text_verbatim not found in parent regs_verbatim. Rule text: 'No angling from boats... in Moricetown Canyon, all year'. Parent regs: '**Angling prohibited for non-guided non-resident aliens on Saturdays and Sundays, Sept 1-Oct 31
+See Suskwa River and Telkwa River
+No Fishing** upstream of Morice/Bulkley River confluence
+Bait ban
+No a...'; Item 13: rule 5: rule_text_verbatim not found in parent regs_verbatim. Rule text: 'No angling from boats... within 100 m downstream, all year'. Parent regs: '**Angling prohibited for non-guided non-resident aliens on Saturdays and Sundays, Sept 1-Oct 31
+See Suskwa River and Telkwa River
+No Fishing** upstream of Morice/Bulkley River confluence
+Bait ban
+No a...'; Item 13: rule 5: scope: landmark_verbatim 'Moricetown Canyon' not found in location_verbatim. Location text: 'within 100 m downstream'
+----------------------------------------
+[1012] FRANÇOIS LAKE
+Error: Item 14: rule 0: scope.location_verbatim not found in rule_text_verbatim. Location: 'area at the outlet of François Lake described on map 1'. Rule text: '**No Fishing** Nov 15-May 31'; Item 14: rule 1: scope.location_verbatim not found in rule_text_verbatim. Location: 'area at the outlet of François Lake described on map 1'. Rule text: 'char daily quota = 2, no more than
+1 over 50 cm'; Item 14: rule 2: scope.location_verbatim not found in rule_text_verbatim. Location: 'area at the outlet of François Lake described on map 1'. Rule text: 'rainbow trout catch and release'; Item 14: rule 3: scope.location_verbatim not found in rule_text_verbatim. Location: 'area at the outlet of François Lake described on map 1'. Rule text: 'bait ban'; Item 14: rule 4: scope.location_verbatim not found in rule_text_verbatim. Location: 'area at the outlet of François Lake described on map 1'. Rule text: 'single barbless hook'; Item 14: rule 5: scope.location_verbatim not found in rule_text_verbatim. Location: 'area at the outlet of François Lake described on map 1'. Rule text: 'no set lining'
+ - Item 14: rule 0: scope.location_verbatim not found in rule_text_verbatim. Location: 'area at the outlet of François Lake described on map 1'. Rule text: '**No Fishing** Nov 15-May 31'; Item 14: rule 1: scope.location_verbatim not found in rule_text_verbatim. Location: 'area at the outlet of François Lake described on map 1'. Rule text: 'char daily quota = 2, no more than
+1 over 50 cm'; Item 14: rule 2: scope.location_verbatim not found in rule_text_verbatim. Location: 'area at the outlet of François Lake described on map 1'. Rule text: 'rainbow trout catch and release'; Item 14: rule 3: scope.location_verbatim not found in rule_text_verbatim. Location: 'area at the outlet of François Lake described on map 1'. Rule text: 'bait ban'; Item 14: rule 4: scope.location_verbatim not found in rule_text_verbatim. Location: 'area at the outlet of François Lake described on map 1'. Rule text: 'single barbless hook'; Item 14: rule 5: scope.location_verbatim not found in rule_text_verbatim. Location: 'area at the outlet of François Lake described on map 1'. Rule text: 'no set lining'
+----------------------------------------
+[1056] MORICE RIVER
+Error: Item 25: rule 1: rule_text_verbatim not found in parent regs_verbatim. Rule text: '**No Fishing** from fishing boundary signs near outlet of Morice Lake (UTM: 602539.02E, 5997165.96N)...'. Parent regs: '**Angling prohibited for non-guided non-resident aliens on Saturdays and Sundays, Sept 1-Oct 31
+No Fishing** from fishing boundary signs near outlet of Morice Lake (UTM: 602539.02E, 5997165.96N) to th...'
+ - Item 25: rule 1: rule_text_verbatim not found in parent regs_verbatim. Rule text: '**No Fishing** from fishing boundary signs near outlet of Morice Lake (UTM: 602539.02E, 5997165.96N)...'. Parent regs: '**Angling prohibited for non-guided non-resident aliens on Saturdays and Sundays, Sept 1-Oct 31
+No Fishing** from fishing boundary signs near outlet of Morice Lake (UTM: 602539.02E, 5997165.96N) to th...'
+----------------------------------------
+[1081] SKEENA RIVER (mainstem only)
+Error: Item 26: rule 2: rule_text_verbatim not found in parent regs_verbatim. Rule text: '**Steelhead Stamp** is mandatory in Skeena River Section 4... July 1-Dec 31'. Parent regs: '**There are two separate Class II waters on the Skeena River** (non-residents and non-resident aliens require separate licences describing
+which section they are fishing): **(a)** from Exchamsiks Rive...'; Item 26: rule 2: scope.location_verbatim not found in rule_text_verbatim. Location: '1.5 km upstream of Zymoetz River'. Rule text: '**Steelhead Stamp** is mandatory in Skeena River Section 4... July 1-Dec 31'; Item 26: rule 3: rule_text_verbatim not found in parent regs_verbatim. Rule text: '**Angling prohibited for non-guided non-resident aliens**... Shegunia
+River confluence to Sedan Cree...'. Parent regs: '**There are two separate Class II waters on the Skeena River** (non-residents and non-resident aliens require separate licences describing
+which section they are fishing): **(a)** from Exchamsiks Rive...'; Item 26: rule 4: rule_text_verbatim not found in parent regs_verbatim. Rule text: '**Angling prohibited for non-guided non-resident aliens**... Chimdemash Creek confluence to 1.5 km u...'. Parent regs: '**There are two separate Class II waters on the Skeena River** (non-residents and non-resident aliens require separate licences describing
+which section they are fishing): **(a)** from Exchamsiks Rive...'
+ - Item 26: rule 2: rule_text_verbatim not found in parent regs_verbatim. Rule text: '**Steelhead Stamp** is mandatory in Skeena River Section 4... July 1-Dec 31'. Parent regs: '**There are two separate Class II waters on the Skeena River** (non-residents and non-resident aliens require separate licences describing
+which section they are fishing): **(a)** from Exchamsiks Rive...'; Item 26: rule 2: scope.location_verbatim not found in rule_text_verbatim. Location: '1.5 km upstream of Zymoetz River'. Rule text: '**Steelhead Stamp** is mandatory in Skeena River Section 4... July 1-Dec 31'; Item 26: rule 3: rule_text_verbatim not found in parent regs_verbatim. Rule text: '**Angling prohibited for non-guided non-resident aliens**... Shegunia
+River confluence to Sedan Cree...'. Parent regs: '**There are two separate Class II waters on the Skeena River** (non-residents and non-resident aliens require separate licences describing
+which section they are fishing): **(a)** from Exchamsiks Rive...'; Item 26: rule 4: rule_text_verbatim not found in parent regs_verbatim. Rule text: '**Angling prohibited for non-guided non-resident aliens**... Chimdemash Creek confluence to 1.5 km u...'. Parent regs: '**There are two separate Class II waters on the Skeena River** (non-residents and non-resident aliens require separate licences describing
+which section they are fishing): **(a)** from Exchamsiks Rive...'
+----------------------------------------
+[1104] ZYMOETZ (Copper) RIVER
+Error: Item 28: rule 5: rule_text_verbatim not found in parent regs_verbatim. Rule text: 'Upstream of Limonite Creek (Zymoetz River A)... Steelhead Stamp mandatory Jul 24 - Dec 31'. Parent regs: 'No Fishing from McDonell Lake downstream approximately 3 km to fishing boundary signs
+No Fishing between fishing boundary signs in Zymoetz Canyon
+No Fishing upstream of fishing boundary sign at the tr...'; Item 28: rule 6: rule_text_verbatim not found in parent regs_verbatim. Rule text: 'Upstream of Limonite Creek (Zymoetz River A)... **Angling prohibited for non-guided non-resident ali...'. Parent regs: 'No Fishing from McDonell Lake downstream approximately 3 km to fishing boundary signs
+No Fishing between fishing boundary signs in Zymoetz Canyon
+No Fishing upstream of fishing boundary sign at the tr...'; Item 28: rule 8: rule_text_verbatim not found in parent regs_verbatim. Rule text: 'Downstream of Limonite Creek (Zymoetz River B)... Steelhead Stamp mandatory Jul 24 - May 31'. Parent regs: 'No Fishing from McDonell Lake downstream approximately 3 km to fishing boundary signs
+No Fishing between fishing boundary signs in Zymoetz Canyon
+No Fishing upstream of fishing boundary sign at the tr...'; Item 28: rule 9: rule_text_verbatim not found in parent regs_verbatim. Rule text: 'Downstream of Limonite Creek (Zymoetz River B)... **Angling prohibited for non-guided non-resident a...'. Parent regs: 'No Fishing from McDonell Lake downstream approximately 3 km to fishing boundary signs
+No Fishing between fishing boundary signs in Zymoetz Canyon
+No Fishing upstream of fishing boundary sign at the tr...'
+ - Item 28: rule 5: rule_text_verbatim not found in parent regs_verbatim. Rule text: 'Upstream of Limonite Creek (Zymoetz River A)... Steelhead Stamp mandatory Jul 24 - Dec 31'. Parent regs: 'No Fishing from McDonell Lake downstream approximately 3 km to fishing boundary signs
+No Fishing between fishing boundary signs in Zymoetz Canyon
+No Fishing upstream of fishing boundary sign at the tr...'; Item 28: rule 6: rule_text_verbatim not found in parent regs_verbatim. Rule text: 'Upstream of Limonite Creek (Zymoetz River A)... **Angling prohibited for non-guided non-resident ali...'. Parent regs: 'No Fishing from McDonell Lake downstream approximately 3 km to fishing boundary signs
+No Fishing between fishing boundary signs in Zymoetz Canyon
+No Fishing upstream of fishing boundary sign at the tr...'; Item 28: rule 8: rule_text_verbatim not found in parent regs_verbatim. Rule text: 'Downstream of Limonite Creek (Zymoetz River B)... Steelhead Stamp mandatory Jul 24 - May 31'. Parent regs: 'No Fishing from McDonell Lake downstream approximately 3 km to fishing boundary signs
+No Fishing between fishing boundary signs in Zymoetz Canyon
+No Fishing upstream of fishing boundary sign at the tr...'; Item 28: rule 9: rule_text_verbatim not found in parent regs_verbatim. Rule text: 'Downstream of Limonite Creek (Zymoetz River B)... **Angling prohibited for non-guided non-resident a...'. Parent regs: 'No Fishing from McDonell Lake downstream approximately 3 km to fishing boundary signs
+No Fishing between fishing boundary signs in Zymoetz Canyon
+No Fishing upstream of fishing boundary sign at the tr...'
+----------------------------------------
+[1173] MCMILLAN CREEK
+Error: Item 29: rule 2: rule_text_verbatim not found in parent regs_verbatim. Rule text: 'Exempt from... bait ban'. Parent regs: 'Youth/Disabled Accompanied Water year round (see page 4)
+Exempt from spring closure and from bait ban'
+ - Item 29: rule 2: rule_text_verbatim not found in parent regs_verbatim. Rule text: 'Exempt from... bait ban'. Parent regs: 'Youth/Disabled Accompanied Water year round (see page 4)
+Exempt from spring closure and from bait ban'
+----------------------------------------
+[1249] DINOSAUR LAKE (Reservoir Downstream of W.A.C. Bennett Dam)
+Error: Item 30: rule 0: rule_text_verbatim not found in parent regs_verbatim. Rule text: '**No Fishing** from W.A.C. Bennett Dam to 100 m south of Gething Creek...[Includes Tributaries]'. Parent regs: '**No Fishing** from W.A.C. Bennett Dam to 100 m south of Gething Creek and between the anti-vortex dyke and Peace Canyon Dam[Includes Tributaries]
+No trout/char under 25 cm (bull trout catch and relea...'; Item 30: rule 1: rule_text_verbatim not found in parent regs_verbatim. Rule text: '**No Fishing**... between the anti-vortex dyke and Peace Canyon Dam[Includes Tributaries]'. Parent regs: '**No Fishing** from W.A.C. Bennett Dam to 100 m south of Gething Creek and between the anti-vortex dyke and Peace Canyon Dam[Includes Tributaries]
+No trout/char under 25 cm (bull trout catch and relea...'
+ - Item 30: rule 0: rule_text_verbatim not found in parent regs_verbatim. Rule text: '**No Fishing** from W.A.C. Bennett Dam to 100 m south of Gething Creek...[Includes Tributaries]'. Parent regs: '**No Fishing** from W.A.C. Bennett Dam to 100 m south of Gething Creek and between the anti-vortex dyke and Peace Canyon Dam[Includes Tributaries]
+No trout/char under 25 cm (bull trout catch and relea...'; Item 30: rule 1: rule_text_verbatim not found in parent regs_verbatim. Rule text: '**No Fishing**... between the anti-vortex dyke and Peace Canyon Dam[Includes Tributaries]'. Parent regs: '**No Fishing** from W.A.C. Bennett Dam to 100 m south of Gething Creek and between the anti-vortex dyke and Peace Canyon Dam[Includes Tributaries]
+No trout/char under 25 cm (bull trout catch and relea...'
+----------------------------------------
+[1351] OKANAGAN RIVER
+Error: Item 31: rule 4: rule_text_verbatim not found in parent regs_verbatim. Rule text: 'Exempt from spring closure... downstream of Drop Structure No. 1 (located
+about 1 km upstream of Oso...'. Parent regs: '**No Fishing** Oct 1-Nov 15; bass daily quota = 8, yellow perch daily quota = 20
+Exempt from spring closure from Okanagan Lake Dam downstream to McIntyre Dam and downstream of Drop Structure No. 1 (lo...'
+ - Item 31: rule 4: rule_text_verbatim not found in parent regs_verbatim. Rule text: 'Exempt from spring closure... downstream of Drop Structure No. 1 (located
+about 1 km upstream of Oso...'. Parent regs: '**No Fishing** Oct 1-Nov 15; bass daily quota = 8, yellow perch daily quota = 20
+Exempt from spring closure from Okanagan Lake Dam downstream to McIntyre Dam and downstream of Drop Structure No. 1 (lo...'
+----------------------------------------
+[1368] SHUSWAP RIVER
+Error: Item 32: rule 5: rule_text_verbatim not found in parent regs_verbatim. Rule text: 'Upstream of Sugar Lake: ... bait ban'. Parent regs: '**No Fishing** from Mara Lake upstream to Mara Bridge
+**No Fishing** 50 m upstream and 50 m downstream of Trinity Bridge, Jun 15-Nov 15
+Rainbow trout/char catch and release; exempt from spring closure...'
+ - Item 32: rule 5: rule_text_verbatim not found in parent regs_verbatim. Rule text: 'Upstream of Sugar Lake: ... bait ban'. Parent regs: '**No Fishing** from Mara Lake upstream to Mara Bridge
+**No Fishing** 50 m upstream and 50 m downstream of Trinity Bridge, Jun 15-Nov 15
+Rainbow trout/char catch and release; exempt from spring closure...'
+----------------------------------------

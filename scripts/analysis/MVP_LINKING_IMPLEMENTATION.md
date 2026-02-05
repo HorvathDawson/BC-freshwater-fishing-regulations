@@ -8,6 +8,59 @@ This document defines the **Minimum Viable Product (MVP)** implementation for li
 
 ---
 
+## Data Model Reference
+
+The linking system works with the parsed regulation data model defined in [models.py](c:\\Users\\DawsonHorvath\\Documents\\Workspace\\BC-freshwater-fishing-regulations\\scripts\\synopsis_pipeline\\models.py):
+
+### Key Classes
+
+- **ParsedWaterbody**: Top-level regulation object
+  - `identity` (IdentityObject): Waterbody identification and spatial scope
+  - `regs_verbatim` (str): Exact regulation text
+  - `audit_log` (List[str]): Parsing issues/notes
+  - `rules` (List[RuleGroup]): Individual regulation rules
+
+- **IdentityObject**: Waterbody identity and global scope
+  - `waterbody_key` (str): Main waterbody name for FWA linking (e.g., "ELK RIVER")
+  - `identity_type` (str): STREAM, STILL_WATER, ADMINISTRATIVE_AREA, etc.
+  - `global_scope` (ScopeObject): Master spatial constraint
+  - `exclusions` (List[ScopeObject]): Geographic exclusions
+  - `inclusions` (List[ScopeObject]): Geographic inclusions
+  - `component_waterbodies` (List[str]): For MULTIPLE_WATERBODIES type
+  - `location_descriptor` (Optional[str]): Disambiguation info
+  - `alternate_names` (List[str]): Former/alternate names
+
+- **ScopeObject**: Spatial scope definition
+  - `type` (str): WHOLE_SYSTEM, DIRECTIONAL, SEGMENT, TRIBUTARIES_ONLY, BUFFER, NAMED_PART, VAGUE
+  - `waterbody_key` (str): "ALL" or specific waterbody component
+  - `includes_tributaries` (Optional[bool]): Tri-state flag (True/False/None)
+  - `location_verbatim` (Optional[str]): Exact location text from regulation
+  - `landmark_verbatim` (Optional[str]): Spatial reference point
+  - `landmark_end_verbatim` (Optional[str]): End point for SEGMENT type
+  - `direction` (Optional[str]): UPSTREAM, DOWNSTREAM, NORTH_OF, etc.
+
+- **RuleGroup**: Atomic Regulation Unit (ARU)
+  - `rule_text_verbatim` (str): Exact rule text
+  - `scope` (ScopeObject): Where this specific rule applies
+  - `restriction` (RestrictionObject): Legal restriction details
+
+### Linking Process Flow
+
+```
+ParsedWaterbody
+    └─> identity.waterbody_key ──┐
+                                  ├─> [MVP LINKING] ─> FWA Feature
+                                  │
+    └─> identity.global_scope ────┤
+        ├─> type                  │
+        └─> includes_tributaries  ├─> [TRIBUTARY ENRICHMENT] ─> FWA Segment IDs
+                                  │
+    └─> identity.exclusions ──────┘
+        (linked but not applied in MVP)
+```
+
+---
+
 ## MVP Philosophy
 
 ### The Four Pillars
@@ -37,9 +90,9 @@ This document defines the **Minimum Viable Product (MVP)** implementation for li
 |   - Single FWA match       | ✅         | Auto-link with 100% confidence                                            |
 |   - Multiple FWA matches   | ❌         | Manual review queue with candidates (CRITICAL)                            |
 |   - No FWA matches         | ❌         | Manual review queue (CRITICAL)                                            |
-| WHOLE_SYSTEM scope         | ✅         | Links to entire waterbody feature                                         |
+| WHOLE_SYSTEM scope         | ✅         | Links to entire waterbody, respects includes_tributaries flag             |
 | TRIBUTARIES_ONLY scope     | ✅         | Links to all upstream tributaries, excludes main stem                     |
-| Includes tributaries flag  | ✅         | Traverses full upstream tributary network                                 |
+| Includes tributaries flag  | ✅         | Controls whether tributaries are included in scope                        |
 
 **Note**: Disambiguation is integral to main waterbody linking. For exclusions/inclusions, disambiguation failures just create warnings (no manual review needed).
 
@@ -224,11 +277,15 @@ This algorithm finds all FWA segments that should receive a regulation based on 
 
 ### Input
 
-- Main waterbody name (from `identity.waterbody_key`)
-- Global scope type (`WHOLE_SYSTEM` or `TRIBUTARIES_ONLY`)
-- Global scope `includes_tributaries` flag (true/false)
-- Exclusions list (from `identity.exclusions[]`)
-- Inclusions list (from `identity.inclusions[]`)
+- **ParsedWaterbody** object containing:
+  - `identity.waterbody_key` (str): Main waterbody name for linking
+  - `identity.global_scope` (ScopeObject): Contains type and includes_tributaries
+    - `global_scope.type` (str): One of WHOLE_SYSTEM, TRIBUTARIES_ONLY, DIRECTIONAL, SEGMENT, etc.
+    - `global_scope.includes_tributaries` (Optional[bool]): Tri-state flag
+    - `global_scope.waterbody_key` (str): "ALL" or specific component
+  - `identity.exclusions` (List[ScopeObject]): Geographic exclusions
+  - `identity.inclusions` (List[ScopeObject]): Geographic inclusions
+  - `rules` (List[RuleGroup]): Individual regulation rules
 
 ### Output
 
@@ -241,18 +298,35 @@ This algorithm finds all FWA segments that should receive a regulation based on 
 
 #### Step 1: Link Main Waterbody
 
-**Input**: `identity.waterbody_key` (e.g., "ELK RIVER")
+**Input**: `parsed_waterbody.identity.waterbody_key` (str) - e.g., "ELK RIVER"
 
 **Process**:
-1. Look up regional name variation
-2. Apply name normalization
-3. Search FWA gazetteer database for exact match
-4. Handle disambiguation:
-   - If single match: use that feature (✅ success)
-   - If multiple matches: flag for manual review (❌ critical failure)
-   - If no match: flag for manual review (❌ critical failure)
+```python
+def link_main_waterbody(parsed_waterbody: ParsedWaterbody) -> Optional[FWAFeature]:
+    waterbody_key = parsed_waterbody.identity.waterbody_key
+    region = parsed_waterbody.identity.location_descriptor  # May help with disambiguation
+    
+    # 1. Look up regional name variation
+    normalized_name = lookup_name_variation(waterbody_key, region)
+    
+    # 2. Apply name normalization
+    normalized_name = normalize_waterbody_name(normalized_name)
+    
+    # 3. Search FWA gazetteer database for exact match
+    matches = fwa_gazetteer.search(normalized_name)
+    
+    # 4. Handle disambiguation
+    if len(matches) == 1:
+        return matches[0]  # ✅ success
+    elif len(matches) > 1:
+        queue_for_manual_review(parsed_waterbody, matches)  # ❌ ambiguous
+        return None
+    else:
+        queue_for_manual_review(parsed_waterbody, [])  # ❌ not found
+        return None
+```
 
-**Output**: Main waterbody FWA feature (or null if failed)
+**Output**: FWA feature object (or None if failed)
 
 **Edge Cases**:
 - Waterbody name not in gazetteer → manual review
@@ -318,60 +392,64 @@ candidate_segments = [
 #### Step 3: Process Exclusions (MVP: Link and Categorize, Don't Apply)
 
 **Input**: 
-- `candidate_segments` from step 2
-- `identity.exclusions[]` from parsed regulation
+- `candidate_segments` (List[str]) from step 2
+- `parsed_waterbody.identity.exclusions` (List[ScopeObject])
 
 **Process**:
 
-For each exclusion in `identity.exclusions[]`:
+For each exclusion in `identity.exclusions`:
 
 **3a. Attempt to Link Exclusion**
 ```python
-exclusion_result = link_waterbody(exclusion.waterbody_key, region)
-
-if len(exclusion_result) == 1:
-    # Single match - ready for Phase 1 activation
-    linked_exclusions_ready.append({
-        "exclusion": exclusion,
-        "fwa_id": exclusion_result[0].fwa_id,
-        "fwa_name": exclusion_result[0].name,
-        "geometry_type": exclusion_result[0].geometry_type,
-        "includes_tributaries": exclusion.includes_tributaries,
-        "status": "ready_to_activate"
-    })
+def process_exclusions_mvp(parsed_waterbody: ParsedWaterbody,
+                          candidate_segments: List[str]) -> Dict[str, Any]:
+    """
+    Link and categorize exclusions but DO NOT apply them (MVP behavior).
     
-elif len(exclusion_result) > 1:
-    # Multiple matches - needs disambiguation
-    ambiguous_exclusions.append({
-        "exclusion": exclusion,
-        "candidates": exclusion_result,
-        "status": "needs_disambiguation"
-    })
+    Returns metadata structure for Phase 1 activation.
+    """
+    ready_to_activate = []
+    needs_review = []
     
-else:
-    # No matches - needs linking
-    unlinked_exclusions.append({
-        "exclusion": exclusion,
-        "status": "needs_linking"
-    })
-```
-
-**3b. Generate Warnings for ALL Exclusions (MVP Behavior)**
-
-Even for exclusions that linked successfully, generate warnings because MVP doesn't apply them yet:
-
-```python
-for exclusion in exclusions:
-    warning = {
-        "type": "unlinked_exclusion",
-        "waterbody": exclusion.waterbody_key,
-        "original_text": exclusion.location_verbatim,
-        "message": f"{exclusion.waterbody_key} is listed as an exception but has not been geographically excluded in this MVP version. This area may be excepted - verify regulations before fishing.",
-        "phase_1_ready": exclusion in linked_exclusions_ready  # Hint for users
-    }
-    # Attach to ALL segments in candidate_segments
+    for exclusion_scope in parsed_waterbody.identity.exclusions:
+        # Extract waterbody name from exclusion scope
+        exclusion_waterbody = exclusion_scope.waterbody_key
+        
+        # Attempt linking (same process as main waterbody)
+        matches = link_waterbody(exclusion_waterbody, 
+                                parsed_waterbody.identity.location_descriptor)
+        
+        if len(matches) == 1:
+            # Single match - ready for Phase 1
+            ready_to_activate.append({
+                "scope_object": exclusion_scope,
+                "fwa_feature": matches[0],
+                "waterbody_key": exclusion_waterbody,
+                "includes_tributaries": exclusion_scope.includes_tributaries,
+                "location_verbatim": exclusion_scope.location_verbatim
+            })
+        else:
+            # Multiple/no matches - needs manual review
+            needs_review.append({
+                "scope_object": exclusion_scope,
+                "waterbody_key": exclusion_waterbody,
+                "candidates": matches,
+                "reason": "ambiguous" if len(matches) > 1 else "not_found"
+            })
+    
+    # Attach warnings to ALL candidate segments (MVP behavior)
     for segment_id in candidate_segments:
-        attach_warning(segment_id, warning)
+        attach_warning(segment_id, {
+            "type": "exclusions_not_applied",
+            "count": len(parsed_waterbody.identity.exclusions),
+            "ready_count": len(ready_to_activate),
+            "message": f"{len(parsed_waterbody.identity.exclusions)} exclusions exist but not yet applied"
+        })
+    
+    return {
+        "ready_to_activate": ready_to_activate,
+        "needs_review": needs_review
+    }
 ```
 
 **Output**:
@@ -398,19 +476,20 @@ exclusions_data = {
 
 **Input**:
 - `final_segments` from step 3
-- `identity.inclusions[]` from parsed regulation
+- `parsed_waterbody.identity.inclusions` (List[ScopeObject])
 
 **Process**:
 
-For each inclusion in `identity.inclusions[]`:
+For each inclusion_scope in `identity.inclusions`:
 
 ```python
 # MVP: Log all inclusions to manual review queue, don't add segments
 manual_review_queue.append({
     "type": "unlinked_inclusion",
-    "regulation_id": regulation.id,
-    "waterbody": inclusion.waterbody_key,
-    "location_verbatim": inclusion.location_verbatim,
+    "regulation_id": parsed_waterbody.identity.name_verbatim,
+    "scope_object": inclusion_scope,
+    "waterbody_key": inclusion_scope.waterbody_key,
+    "location_verbatim": inclusion_scope.location_verbatim,
     "impact": "low - does not reduce coverage, only missing additive feature",
     "priority": "LOW"
 })
@@ -794,6 +873,229 @@ mvp_metrics = {
         "estimated_phase_1_warning_reduction": 200000  # 40% of warnings
     }
 }
+```
+
+---
+
+## Complete End-to-End Example
+
+### Input: Parsed Regulation (ELK RIVER'S TRIBUTARIES)
+
+```python
+from synopsis_pipeline.models import ParsedWaterbody, IdentityObject, ScopeObject, RuleGroup
+
+parsed_waterbody = ParsedWaterbody(
+    identity=IdentityObject(
+        name_verbatim="ELK RIVER'S TRIBUTARIES (see exceptions)",
+        waterbody_key="ELK RIVER",
+        identity_type="TRIBUTARIES",
+        component_waterbodies=[],
+        alternate_names=[],
+        location_descriptor="Region 4",
+        notes="see exceptions",
+        global_scope=ScopeObject(
+            type="TRIBUTARIES_ONLY",
+            waterbody_key="ALL",
+            includes_tributaries=None,  # Not applicable for TRIBUTARIES_ONLY
+            location_verbatim=None,
+            landmark_verbatim=None,
+            landmark_end_verbatim=None,
+            direction=None
+        ),
+        exclusions=[
+            ScopeObject(  # Exclusion 1
+                type="WHOLE_SYSTEM",
+                waterbody_key="MICHEL CREEK",
+                includes_tributaries=True,
+                location_verbatim="Michel Creek",
+                landmark_verbatim=None,
+                landmark_end_verbatim=None,
+                direction=None
+            ),
+            ScopeObject(  # Exclusion 2
+                type="DIRECTIONAL",
+                waterbody_key="ALEXANDER CREEK",
+                includes_tributaries=True,
+                location_verbatim="Alexander Creek upstream of Hwy 3 bridge",
+                landmark_verbatim="Hwy 3 bridge",
+                landmark_end_verbatim=None,
+                direction="UPSTREAM"
+            ),
+            ScopeObject(  # Exclusion 3
+                type="WHOLE_SYSTEM",
+                waterbody_key="ABRUZZI CREEK",
+                includes_tributaries=False,
+                location_verbatim="Abruzzi Creek",
+                landmark_verbatim=None,
+                landmark_end_verbatim=None,
+                direction=None
+            )
+        ],
+        inclusions=[]
+    ),
+    regs_verbatim="Trout/char daily quota = 2...",
+    audit_log=[],
+    rules=[
+        RuleGroup(
+            rule_text_verbatim="Trout/char daily quota = 2",
+            scope=ScopeObject(
+                type="WHOLE_SYSTEM",
+                waterbody_key="ALL",
+                includes_tributaries=None,
+                location_verbatim=None,
+                landmark_verbatim=None,
+                landmark_end_verbatim=None,
+                direction=None
+            ),
+            restriction=RestrictionObject(
+                type="harvest",
+                details="Trout/char daily quota = 2",
+                dates=None
+            )
+        )
+    ]
+)
+```
+
+### MVP Processing Steps
+
+**Step 1: Link Main Waterbody**
+```python
+waterbody_key = parsed_waterbody.identity.waterbody_key  # "ELK RIVER"
+matches = fwa_gazetteer.search("Elk River", region="Region 4")
+# Result: [fwa_elk_river_001] (single match ✅)
+
+linked_fwa_feature = matches[0]
+status = "SUCCESS"
+```
+
+**Step 2: Tributary Enrichment**
+```python
+global_scope = parsed_waterbody.identity.global_scope
+# scope.type = "TRIBUTARIES_ONLY"
+# scope.includes_tributaries = None (N/A for this type)
+
+# Find all upstream tributaries, exclude main stem
+segments = find_all_upstream_tributaries(linked_fwa_feature, exclude_mainstem=True)
+# Result: 5,000 segment IDs
+```
+
+**Step 3: Process Exclusions (Link Only)**
+```python
+exclusion_results = process_exclusions_mvp(parsed_waterbody, segments)
+
+# Exclusion 1: Michel Creek
+fwa_matches_1 = link_waterbody("MICHEL CREEK", "Region 4")
+# → 1 match → ready_to_activate ✅
+# Would exclude: 50 segments (creek + tributaries)
+
+# Exclusion 2: Alexander Creek upstream of Hwy 3 bridge  
+fwa_matches_2 = link_waterbody("ALEXANDER CREEK", "Region 4")
+# → 1 match → ready_to_activate ✅
+# Scope: DIRECTIONAL (not implemented → simplified to WHOLE_SYSTEM)
+# Would exclude: 30 segments (entire creek, not just upstream - Phase 2 needed)
+
+# Exclusion 3: Abruzzi Creek
+fwa_matches_3 = link_waterbody("ABRUZZI CREEK", "Region 4")
+# → 1 match → ready_to_activate ✅
+# Would exclude: 5 segments (main stem only, no tributaries)
+
+exclusion_metadata = {
+    "ready_to_activate": [
+        {
+            "scope_object": parsed_waterbody.identity.exclusions[0],
+            "fwa_feature": fwa_michel_001,
+            "waterbody_key": "MICHEL CREEK",
+            "includes_tributaries": True
+        },
+        {
+            "scope_object": parsed_waterbody.identity.exclusions[1],
+            "fwa_feature": fwa_alexander_001,
+            "waterbody_key": "ALEXANDER CREEK",
+            "includes_tributaries": True,
+            "warning": "DIRECTIONAL scope simplified to WHOLE_SYSTEM"
+        },
+        {
+            "scope_object": parsed_waterbody.identity.exclusions[2],
+            "fwa_feature": fwa_abruzzi_001,
+            "waterbody_key": "ABRUZZI CREEK",
+            "includes_tributaries": False
+        }
+    ],
+    "needs_review": []
+}
+
+# MVP: Exclusions NOT applied
+# Segments remain: 5,000 (no change)
+```
+
+**Step 4: Attach Warnings**
+```python
+# ALL 5,000 segments get this warning:
+for segment_id in segments:
+    attach_warning(segment_id, {
+        "type": "exclusions_not_applied",
+        "count": 3,
+        "ready_count": 3,
+        "message": "3 exclusions exist but not yet applied: Michel Creek, Alexander Creek, Abruzzi Creek. These areas may be excepted from this regulation."
+    })
+```
+
+### MVP Output
+
+```python
+mvp_output = {
+    "parsed_waterbody": parsed_waterbody,
+    "link_status": "SUCCESS",
+    "linked_fwa_feature": fwa_elk_river_001,
+    "segments": list(segments),  # 5,000 segment IDs
+    "exclusions": exclusion_metadata,
+    "inclusions": [],
+    "warnings_per_segment": 1,
+    "total_warnings": 5000,
+    "metadata": {
+        "scope_type": "TRIBUTARIES_ONLY",
+        "scope_simplified": False,
+        "exclusions_total": 3,
+        "exclusions_ready": 3,
+        "exclusions_needs_review": 0,
+        "phase_1_preview": {
+            "segments_would_be_excluded": 85,
+            "warnings_would_be_removed": 5000
+        }
+    }
+}
+```
+
+### What Phase 1 Changes
+
+```python
+# When Phase 1 is enabled:
+final_segments, excluded = apply_phase_1_exclusions(mvp_output)
+
+# Excluded:
+#   - Michel Creek: 50 segments (main stem + tributaries)
+#   - Alexander Creek: 30 segments (ENTIRE creek - DIRECTIONAL scope simplified)
+#   - Abruzzi Creek: 5 segments (main stem only)
+#   - Total: 85 segments
+
+# Final result:
+#   - Segments: 4,915 (instead of 5,000)
+#   - Warnings: 0 (instead of 5,000)
+#   - Accuracy: Improved by 1.7%
+#   - Warning reduction: 100%
+```
+
+### What Phase 2 Changes (DIRECTIONAL Scope)
+
+```python
+# When Phase 2 is enabled:
+# Alexander Creek exclusion becomes more accurate
+
+# Current (MVP & Phase 1): Excludes entire Alexander Creek (30 segments)
+# Phase 2: Excludes only upstream of Hwy 3 bridge (15 segments)
+
+# Improvement: 15 segments restored, more accurate regulation coverage
 ```
 
 ---

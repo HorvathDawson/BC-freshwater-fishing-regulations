@@ -10,7 +10,7 @@ Every FWA segment in BC receives fishing regulations from **multiple sources** t
 
 ## The Hierarchy
 
-### Four Levels (General → Specific)
+### Five Levels (General → Specific)
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -30,27 +30,43 @@ Every FWA segment in BC receives fishing regulations from **multiple sources** t
 └─────────────────────────────────────────────────────────────┘
                             ↓ Overridden by ↓
 ┌─────────────────────────────────────────────────────────────┐
-│ 3. WATERBODY-SPECIFIC REGULATIONS                           │
-│    - Applies to a specific waterbody + tributaries/scope    │
-│    - Example: "THOMPSON RIVER daily trout limit = 2"        │
-│    - Scope: Segments linked via global scope (tributaries,  │
-│      directional, segment, etc.)                            │
+│ 3. INHERITED WATERBODY REGULATIONS                          │
+│    - Inherited from parent waterbody that includes          │
+│      tributaries                                            │
+│    - Example: Thompson River inherits Fraser River rules    │
+│      because Fraser regulation includes tributaries         │
+│    - Scope: Applies when this waterbody is a tributary of   │
+│      another regulated waterbody                            │
 │    - Override: Overrides zonal and provincial               │
 └─────────────────────────────────────────────────────────────┘
                             ↓ Overridden by ↓
 ┌─────────────────────────────────────────────────────────────┐
-│ 4. RULE-LEVEL SCOPED REGULATIONS                            │
-│    - Individual rules within a regulation with specific     │
-│      location scope                                         │
+│ 4. WATERBODY-SPECIFIC REGULATIONS (global scope)            │
+│    - Applies to a specific waterbody's global scope         │
+│    - Example: "THOMPSON RIVER daily trout limit = 2"        │
+│    - Scope: Entire waterbody per global scope (whole        │
+│      system, tributaries only, etc.)                        │
+│    - Override: Overrides inherited, zonal, and provincial   │
+└─────────────────────────────────────────────────────────────┘
+                            ↓ Overridden by ↓
+┌─────────────────────────────────────────────────────────────┐
+│ 5. RULE-LEVEL SCOPED REGULATIONS                            │
+│    - Individual rules within a waterbody regulation with    │
+│      specific location scope                                │
 │    - Example: "Trout limit = 1 downstream of Kamloops Lake" │
-│    - Scope: Subset of waterbody-specific regulation         │
+│    - Scope: Subset of waterbody regulation (directional,    │
+│      segment, etc.)                                         │
 │    - Override: Most specific - overrides all above          │
+│    - Note: Part of same regulation as level 4, just more    │
+│      specific location                                      │
 └─────────────────────────────────────────────────────────────┘
 ```
 
 ### Important Notes
 
-- **Lower levels override higher levels**: Waterbody-specific overrides zonal, zonal overrides provincial
+- **Lower levels override higher levels**: Waterbody-specific overrides inherited waterbody, inherited overrides zonal, zonal overrides provincial
+- **Inheritance through tributary relationships**: A waterbody inherits regulations from any parent waterbody that includes tributaries in its scope
+- **Rule-scoped vs waterbody-scoped**: Both come from the same regulation, rule-scoped just has more specific location within the waterbody
 - **Same level, different rule types**: No conflict - both apply (e.g., trout quota + bait ban)
 - **Same level, different species**: No conflict - both apply (e.g., trout quota + salmon quota)
 - **Same level, same rule type + species**: Error - should not happen, requires manual review
@@ -62,6 +78,8 @@ Every FWA segment in BC receives fishing regulations from **multiple sources** t
 ### Scenario
 
 User queries segment `fwa_thompson_downstream_001` (Thompson River downstream of Kamloops Lake).
+
+Assume Thompson River is a tributary of Fraser River, and Fraser River has a regulation with "includes tributaries".
 
 **Step 1: Collect All Applicable Regulations**
 
@@ -80,8 +98,17 @@ applicable_regulations = {
             {"type": "BAIT_BAN", "species": "ALL"}
         ]
     },
+    "inherited": {
+        "scope": "FRASER RIVER [including tributaries]",
+        "source": "Fraser River regulation",
+        "rules": [
+            {"type": "QUOTA", "species": "Trout", "limit": 4},
+            {"type": "SIZE_LIMIT", "species": "Trout", "min": 30}
+        ]
+    },
     "waterbody": {
         "scope": "THOMPSON RIVER [including tributaries]",
+        "source": "Thompson River regulation",
         "rules": [
             {"type": "QUOTA", "species": "Trout", "limit": 2},
             {"type": "QUOTA", "species": "Salmon", "limit": 1}
@@ -89,6 +116,7 @@ applicable_regulations = {
     },
     "rule_scoped": {
         "scope": "THOMPSON RIVER downstream of Kamloops Lake",
+        "source": "Thompson River regulation (specific rule)",
         "rules": [
             {"type": "QUOTA", "species": "Trout", "limit": 1}
         ]
@@ -100,27 +128,41 @@ applicable_regulations = {
 
 ```python
 final_rules = {
-    "Trout quota": 1,        # rule_scoped (level 4) overrides waterbody (2) overrides zonal (3) overrides provincial (5)
-    "Salmon quota": 1,       # waterbody (only one defined at this level)
-    "Bait ban": True         # zonal (only one defined at this level)
+    "Trout quota": 1,           # rule_scoped (level 5) overrides waterbody (4) overrides inherited (3) overrides zonal (2) overrides provincial (1)
+    "Trout size limit": 30,     # inherited from Fraser (only one defined)
+    "Salmon quota": 1,          # waterbody (only one defined at this level)
+    "Bait ban": True            # zonal (only one defined at this level)
 }
 ```
 
 **Precedence Chain for Trout Quota**:
 - Provincial: 5 (base rule) - **OVERRIDDEN**
 - Zonal: 3 (overrides provincial) - **OVERRIDDEN**
-- Waterbody: 2 (overrides zonal) - **OVERRIDDEN**
-- Rule-scoped: 1 (overrides waterbody) ← **ACTIVE**
+- Inherited (Fraser River): 4 (overrides zonal) - **OVERRIDDEN**
+- Waterbody (Thompson River): 2 (overrides inherited) - **OVERRIDDEN**
+- Rule-scoped (Thompson downstream): 1 (overrides waterbody) ← **ACTIVE**
 
-### Visual Example: Nested Coverage
-
-```
-Thompson River System:
+**Precedence Chain for Trout Size Limit**:
+- Inherited (Fraser R (tributary of Fraser River):
 
 Provincial Scope (entire BC):
 ├── Region 3 Zonal Scope:
+│   ├── FRASER RIVER [including tributaries]:
+│   │   └── Applies to Thompson River as a tributary:
+│   │       → Trout limit = 4 (inherited from Fraser)
+│   │       → Trout min size = 30cm (inherited from Fraser)
+│   │
 │   ├── THOMPSON RIVER waterbody scope [including tributaries]:
-│   │   ├── Upstream segments (waterbody rules only):
+│   │   ├── Upstream segments (waterbody global scope):
+│   │   │   → Trout limit = 2 (from Thompson regulation - overrides Fraser)
+│   │   │   → Trout min size = 30cm (from Fraser - inherited, not overridden)
+│   │   │   → Salmon limit = 1 (from Thompson regulation)
+│   │   │   → Bait ban = True (from zonal regulation)
+│   │   │
+│   │   └── Downstream of Kamloops Lake (rule-scoped within Thompson):
+│   │       → Trout limit = 1 (from Thompson rule scope - MOST SPECIFIC)
+│   │       → Trout min size = 30cm (from Fraser - inherited, not overridden)
+│   │       → Salmon limit = 1 (from Thompson only):
 │   │   │   → Trout limit = 2 (from waterbody regulation)
 │   │   │   → Salmon limit = 1 (from waterbody regulation)
 │   │   │   → Bait ban = True (from zonal regulation)
@@ -140,10 +182,11 @@ Provincial Scope (entire BC):
 
 ---
 
-## Implementation Requirements
-
-### For Each FWA Segment
-
+## ImTributary lookup**: Determine which waterbodies include this segment via tributary relationships
+3. **Collect regulations**: Gather provincial + zonal + inherited (from parent waterbodies) + waterbody-specific + rule-scoped regulations
+4. **Deduplicate by rule type + species**: Group rules that regulate the same thing
+5. **Apply precedence**: Keep most specific rule for each type+species combination
+6
 The query system must:
 
 1. **Spatial lookup**: Determine which zone the segment is in
@@ -158,7 +201,7 @@ The query system must:
 segment_query_result = {
     "segment_id": "fwa_thompson_downstream_001",
     "location": "Thompson River downstream of Kamloops Lake",
-    "zone": "Region 3",
+    "parent_waterbodies": ["Fraser River"],  # Inherits from these
     "final_rules": [
         {
             "type": "QUOTA",
@@ -166,10 +209,20 @@ segment_query_result = {
             "limit": 1,
             "source": "THOMPSON RIVER downstream of Kamloops Lake (rule-scoped)",
             "precedence_chain": [
-                {"source": "Provincial", "limit": 5, "overridden": True},
-                {"source": "Region 3", "limit": 3, "overridden": True},
-                {"source": "THOMPSON RIVER", "limit": 2, "overridden": True},
-                {"source": "THOMPSON RIVER downstream of Kamloops Lake", "limit": 1, "active": True}
+                {"source": "Provincial", "limit": 5, "level": 1, "overridden": True},
+                {"source": "Region 3", "limit": 3, "level": 2, "overridden": True},
+                {"source": "FRASER RIVER [inherited]", "limit": 4, "level": 3, "overridden": True},
+                {"source": "THOMPSON RIVER", "limit": 2, "level": 4, "overridden": True},
+                {"source": "THOMPSON RIVER downstream of Kamloops Lake", "limit": 1, "level": 5, "active": True}
+            ]
+        },
+        {
+            "type": "SIZE_LIMIT",
+            "species": "Trout",
+            "min_size": 30,
+            "source": "FRASER RIVER [inherited]",
+            "precedence_chain": [
+                {"source": "FRASER RIVER [inherited]", "min_size": 30, "level": 3, "active": True}
             ]
         },
         {
@@ -178,7 +231,7 @@ segment_query_result = {
             "limit": 1,
             "source": "THOMPSON RIVER (waterbody-specific)",
             "precedence_chain": [
-                {"source": "THOMPSON RIVER", "limit": 1, "active": True}
+                {"source": "THOMPSON RIVER", "limit": 1, "level": 4, "active": True}
             ]
         },
         {
@@ -186,6 +239,7 @@ segment_query_result = {
             "species": "ALL",
             "source": "Region 3 (zonal)",
             "precedence_chain": [
+                {"source": "Region 3", "level": 2
                 {"source": "Region 3", "active": True}
             ]
         }
@@ -290,7 +344,53 @@ This indicates a data quality issue in the regulation parsing or database.
 - If Region 4 has "Trout limit = 4" and Thompson River has "Trout limit = 2":
   - Region 4 segments: Trout limit = 2 (waterbody overrides zonal)
 
-### Case 3: Rule-Scoped Addition Outside Global Scope
+### Case 3: Exclusions via Precedence Override (Hypothesis - Requires Testing)
+
+**Hypothesis**: Some exclusions might be handled automatically through the precedence hierarchy if certain conditions hold.
+
+**Example**:
+```
+FRASER RIVER [including tributaries] - Trout limit = 4
+EXCEPT: Thompson River (see separate entry)
+
+THOMPSON RIVER [including tributaries] - Trout limit = 2 (separate regulation)
+```
+
+**Potential Approach**:
+- Thompson segments inherit Fraser rules (level 3)
+- Thompson's own regulation (level 4) overrides inherited rules
+- Result: Thompson gets limit = 2, Fraser's limit = 4 doesn't apply
+
+**CRITICAL ASSUMPTION (Needs Validation)**:
+
+This only works if waterbodies with separate entries are **always exceptions** that fully replace inherited rules, never additions that supplement them.
+
+**Counter-example that breaks this approach**:
+```
+FRASER RIVER [including tributaries] - Trout limit = 4, Bait ban
+THOMPSON RIVER [including tributaries] - Salmon limit = 1 (separate entry, NOT an exception)
+```
+
+If Thompson should get:
+- Trout limit = 4 (inherited from Fraser) ✓
+- Salmon limit = 1 (from Thompson) ✓  
+- Bait ban (inherited from Fraser) ✓
+
+Then the precedence override approach fails - Thompson would lose Fraser's rules.
+
+**Required Analysis**:
+1. Extract all regulations with exclusions that reference "see separate entry"
+2. Compare excluded waterbody's rules to parent waterbody's rules
+3. Determine if excluded waterbody:
+   - **Replaces** parent rules (same rule types → exception case, precedence works)
+   - **Supplements** parent rules (different rule types → additive case, precedence fails)
+4. Calculate % of cases where precedence override would work correctly
+
+**If hypothesis fails**: Explicit exclusion processing is required. Precedence approach won't work.
+
+**If hypothesis holds**: Could simplify ~60-80% of exclusions, but still need explicit processing for cases without separate entries.
+
+### Case 4: Rule-Scoped Addition Outside Global Scope
 
 **Example**:
 - Waterbody: Thompson River [including tributaries]
@@ -312,7 +412,7 @@ This indicates a data quality issue in the regulation parsing or database.
 
 **Reasoning**: Rule-scoped addition is independent of global scope.
 
-### Case 4: Rule-Scoped Restriction Within Waterbody
+### Case 5: Rule-Scoped Restriction Within Waterbody
 
 **Example**:
 - Waterbody: Thompson River [including tributaries] → Trout limit = 2
@@ -327,59 +427,88 @@ This indicates a data quality issue in the regulation parsing or database.
 ---
 
 ## Query-Time Algorithm
-
-### When User Queries a Segment
-
-```python
-def get_regulations_for_segment(segment_id):
-    """
-    Return final consolidated regulations for a segment
-    """
-    # 1. Get segment metadata
-    segment = get_segment(segment_id)
-    zone = segment.zone
+waterbody = segment.waterbody
     
-    # 2. Collect all applicable regulations
+    # 2. Find parent waterbodies (for inheritance)
+    parent_waterbodies = find_parent_waterbodies_with_tributary_scope(segment_id)
+    
+    # 3. Collect all applicable regulations
     provincial_regs = get_provincial_regulations()
     zonal_regs = get_zonal_regulations(zone)
-    waterbody_regs = get_waterbody_regulations(segment_id)
+    inherited_regs = []
+    for parent in parent_waterbodies:
+        inherited_regs.extend(get_waterbody_regulations(parent.id))
+    waterbody_regs = get_waterbody_regulations(waterbody.id)
     rule_scoped_regs = get_rule_scoped_regulations(segment_id)
     
-    # 3. Flatten to individual rules
+    # 4. Flatten to individual rules
     all_rules = []
-    all_rules.extend([(r, "provincial") for r in provincial_regs])
-    all_rules.extend([(r, "zonal") for r in zonal_regs])
-    all_rules.extend([(r, "waterbody") for r in waterbody_regs])
-    all_rules.extend([(r, "rule_scoped") for r in rule_scoped_regs])
+    all_rules.extend([(r, "provincial", 1) for r in provincial_regs])
+    all_rules.extend([(r, "zonal", 2) for r in zonal_regs])
+    all_rules.extend([(r, "inherited", 3) for r in inherited_regs])
+    all_rules.extend([(r, "waterbody", 4) for r in waterbody_regs])
+    all_rules.extend([(r, "rule_scoped", 5) for r in rule_scoped_regs])
     
-    # 4. Group by (rule_type, species)
+    # 5. Group by (rule_type, species)
     rule_groups = defaultdict(list)
-    for rule, source_level in all_rules:
+    for rule, source_level, precedence in all_rules:
         key = (rule.type, rule.species)
-        rule_groups[key].append((rule, source_level))
+        rule_groups[key].append((rule, source_level, precedence))
     
-    # 5. Apply precedence for each group
+    # 6. Apply precedence for each group
     final_rules = []
-    precedence_order = {
-        "provincial": 1,
-        "zonal": 2,
-        "waterbody": 3,
-        "rule_scoped": 4
-    }
     
     for key, rules in rule_groups.items():
         if len(rules) == 1:
             # Only one rule - no conflict
             final_rules.append(rules[0][0])
         else:
-            # Multiple rules - apply precedence
+            # Multiple rules - apply precedence (higher number = more specific)
             sorted_rules = sorted(rules, 
-                                key=lambda x: precedence_order[x[1]], 
+                                key=lambda x: x[2],  # Sort by precedence number
                                 reverse=True)
             final_rule = sorted_rules[0][0]  # Highest precedence
             
             # Build precedence chain
             final_rule.precedence_chain = [
+                {
+                    "source": source_level,
+                    "rule": rule,
+                    "level": precedence,
+                    "active": (precedence == sorted_rules[0][2])
+                }
+                for rule, source_level, precedence in sorted(sorted_rules, key=lambda x: x[2])
+            ]
+            
+            final_rules.append(final_rule)
+    
+    return final_rules
+
+def find_parent_waterbodies_with_tributary_scope(segment_id):
+    """
+    Find all waterbodies that include this segment via tributary relationships
+    
+    Example: Thompson River segment → finds Fraser River if Fraser regulation
+             has "includes tributaries" and Thompson is a tributary of Fraser
+    """
+    segment = get_segment(segment_id)
+    waterbody = segment.waterbody
+    parents = []
+    
+    # Walk up the stream network to find parent waterbodies
+    current = waterbody
+    while current.parent_waterbody:
+        parent = current.parent_waterbody
+        
+        # Check if parent has a regulation that includes tributaries
+        parent_regulation = get_waterbody_regulation(parent.id)
+        if parent_regulation and parent_regulation.global_scope.includes_tributaries:
+         inherited": ["wb_fraser_001"],  # Thompson is a tributary of Fraser
+        "   parents.append(parent)
+        
+        current = parent
+    
+    return parente.precedence_chain = [
                 {
                     "source": source_level,
                     "rule": rule,
@@ -412,10 +541,18 @@ segment_index = {
 def get_regulations_for_segment_fast(segment_id):
     regulation_ids = segment_index[segment_id]
     all_rules = []
+    precedence_map = {
+        "provincial": 1,
+        "zonal": 2,
+        "inherited": 3,
+        "waterbody": 4,
+        "rule_scoped": 5
+    }
     
-    for level in ["provincial", "zonal", "waterbody", "rule_scoped"]:
-        for reg_id in regulation_ids[level]:
+    for level in ["provincial", "zonal", "inherited", "waterbody", "rule_scoped"]:
+        for reg_id in regulation_ids.get(level, []):
             regulation = get_regulation(reg_id)
+            all_rules.extend([(r, level, precedence_map[level](reg_id)
             all_rules.extend([(r, level) for r in regulation.rules])
     
     # Apply precedence (same as above)
@@ -614,11 +751,23 @@ Trout: Daily limit = 1 (may not apply to entire river)
 
 **Key Takeaways**:
 
-1. **Four-level hierarchy**: Provincial → Zonal → Waterbody → Rule-scoped
+1. **Five-level hierarchy**: Provincial → Zonal → Inherited → Waterbody-specific → Rule-scoped
 2. **More specific wins**: Lower levels override higher levels
-3. **No conflict for different types/species**: Multiple rules can coexist
-4. **Precedence chain is important**: Show users why a rule applies
-5. **Edge cases exist**: Handle circular references, cross-zone waterbodies, null overrides
+3. **Inheritance through tributaries**: Waterbodies inherit from parent waterbodies that include tributaries
+4. **Exclusions via precedence**: Many exclusions can be handled automatically through the precedence hierarchy rather than explicit segment removal
+5. **No conflict for different types/species**: Multiple rules can coexist
+6. **Precedence chain is important**: Show users why a rule applies
+7. **Edge cases exist**: Handle circular references, cross-zone waterbodies, null overrides
+
+**Critical Implementation Strategy**:
+
+For exclusions, the **precedence override approach is unproven** and requires validation:
+- Hypothesis: Waterbodies with separate entries fully replace (not supplement) parent rules
+- If true: ~60-80% of exclusions could be handled via precedence automatically
+- If false: All exclusions require explicit segment removal processing
+- **Action**: Analyze actual regulation data to validate before implementing
+
+This could dramatically simplify exclusion processing if the hypothesis holds, but needs empirical validation against real regulation text.
 
 For implementation details, see:
 - MVP implementation: [MVP_LINKING_IMPLEMENTATION.md](MVP_LINKING_IMPLEMENTATION.md)

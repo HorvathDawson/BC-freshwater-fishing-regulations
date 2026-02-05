@@ -1,0 +1,2276 @@
+{
+  "_instructions": {
+    "description": "AMBIGUOUS waterbodies - multiple candidates found, need disambiguation",
+    "how_to_fix": [
+      "1. Review candidate_waterbodies to see all matches found",
+      "2. Compare regulation MUs with FWA MUs for each candidate",
+      "3. Use location_descriptor to identify correct waterbody",
+      "4. Choose the correct candidate based on:",
+      "   - MU match (regulation MU should match FWA MU)",
+      "   - Location hints in location_descriptor or regulations_summary",
+      "   - Proximity to other named features",
+      "5. Add DIRECT_MATCH entry with the correct GNIS ID or watershed code",
+      "6. For lakes: use gnis_id from the correct candidate",
+      "7. For streams: use fwa_watershed_code from the correct candidate"
+    ],
+    "example_direct_match_lake": {
+      "RAINBOW LAKE": {
+        "gnis_id": "28692",
+        "note": "Disambiguate: Rainbow Lake in MU 5-12 (not the ones in 8-6, 7-40, etc.)"
+      }
+    },
+    "example_direct_match_stream": {
+      "BEAR RIVER": {
+        "fwa_watershed_code": "910-998407-000000-000000-...",
+        "note": "Disambiguate: Bear River in Region 1 MU 1-10 (not Region 6)"
+      }
+    }
+  },
+  "count": 58,
+  "entries": [
+    {
+      "name_verbatim": "BEAR RIVER",
+      "waterbody_key": "BEAR RIVER",
+      "region": "Region 1",
+      "regulation_management_units": [
+        "1-10"
+      ],
+      "identity_type": "STREAM",
+      "location_descriptor": null,
+      "alternate_names": [],
+      "page": 16,
+      "regulations_summary": "See Amor de Cosmos Creek",
+      "candidate_count": 0,
+      "candidate_waterbodies": [],
+      "suggested_action": "Add to DIRECT_MATCHES with gnis_id (lakes) or fwa_watershed_code (streams) of correct candidate",
+      "existing_variation": null,
+      "existing_direct_match": null,
+      "full_identity": {
+        "name_verbatim": "BEAR RIVER",
+        "waterbody_key": "BEAR RIVER",
+        "identity_type": "STREAM",
+        "component_waterbodies": [],
+        "alternate_names": [],
+        "location_descriptor": null,
+        "notes": null,
+        "global_scope": {
+          "type": "WHOLE_SYSTEM",
+          "waterbody_key": "ALL",
+          "location_verbatim": null,
+          "landmark_verbatim": null,
+          "landmark_end_verbatim": null,
+          "direction": null,
+          "includes_tributaries": false
+        },
+        "exclusions": [],
+        "inclusions": []
+      }
+    },
+    {
+      "name_verbatim": "MCLENNAN CREEK",
+      "waterbody_key": "MCLENNAN CREEK",
+      "region": "Region 2",
+      "regulation_management_units": [
+        "2-8"
+      ],
+      "identity_type": "STREAM",
+      "location_descriptor": null,
+      "alternate_names": [],
+      "page": 26,
+      "regulations_summary": "**No Fishing**",
+      "candidate_count": 0,
+      "candidate_waterbodies": [],
+      "suggested_action": "Add to DIRECT_MATCHES with gnis_id (lakes) or fwa_watershed_code (streams) of correct candidate",
+      "existing_variation": null,
+      "existing_direct_match": null,
+      "full_identity": {
+        "name_verbatim": "MCLENNAN CREEK",
+        "waterbody_key": "MCLENNAN CREEK",
+        "identity_type": "STREAM",
+        "component_waterbodies": [],
+        "alternate_names": [],
+        "location_descriptor": null,
+        "notes": null,
+        "global_scope": {
+          "type": "WHOLE_SYSTEM",
+          "waterbody_key": "ALL",
+          "location_verbatim": null,
+          "landmark_verbatim": null,
+          "landmark_end_verbatim": null,
+          "direction": null,
+          "includes_tributaries": true
+        },
+        "exclusions": [],
+        "inclusions": []
+      }
+    },
+    {
+      "name_verbatim": "NELSON CREEK",
+      "waterbody_key": "NELSON CREEK",
+      "region": "Region 2",
+      "regulation_management_units": [
+        "2-8"
+      ],
+      "identity_type": "STREAM",
+      "location_descriptor": null,
+      "alternate_names": [],
+      "page": 27,
+      "regulations_summary": "**No Fishing**",
+      "candidate_count": 0,
+      "candidate_waterbodies": [],
+      "suggested_action": "Add to DIRECT_MATCHES with gnis_id (lakes) or fwa_watershed_code (streams) of correct candidate",
+      "existing_variation": null,
+      "existing_direct_match": null,
+      "full_identity": {
+        "name_verbatim": "NELSON CREEK",
+        "waterbody_key": "NELSON CREEK",
+        "identity_type": "STREAM",
+        "component_waterbodies": [],
+        "alternate_names": [],
+        "location_descriptor": null,
+        "notes": null,
+        "global_scope": {
+          "type": "WHOLE_SYSTEM",
+          "waterbody_key": "ALL",
+          "location_verbatim": null,
+          "landmark_verbatim": null,
+          "landmark_end_verbatim": null,
+          "direction": null,
+          "includes_tributaries": true
+        },
+        "exclusions": [],
+        "inclusions": []
+      }
+    },
+    {
+      "name_verbatim": "MAKA CREEK",
+      "waterbody_key": "MAKA CREEK",
+      "region": "Region 3",
+      "regulation_management_units": [
+        "3-13"
+      ],
+      "identity_type": "STREAM",
+      "location_descriptor": null,
+      "alternate_names": [],
+      "page": 33,
+      "regulations_summary": "No trout under 25 cm",
+      "candidate_count": 0,
+      "candidate_waterbodies": [],
+      "suggested_action": "Add to DIRECT_MATCHES with gnis_id (lakes) or fwa_watershed_code (streams) of correct candidate",
+      "existing_variation": null,
+      "existing_direct_match": null,
+      "full_identity": {
+        "name_verbatim": "MAKA CREEK",
+        "waterbody_key": "MAKA CREEK",
+        "identity_type": "STREAM",
+        "component_waterbodies": [],
+        "alternate_names": [],
+        "location_descriptor": null,
+        "notes": null,
+        "global_scope": {
+          "type": "WHOLE_SYSTEM",
+          "waterbody_key": "ALL",
+          "location_verbatim": null,
+          "landmark_verbatim": null,
+          "landmark_end_verbatim": null,
+          "direction": null,
+          "includes_tributaries": false
+        },
+        "exclusions": [],
+        "inclusions": []
+      }
+    },
+    {
+      "name_verbatim": "RAINBOW LAKE",
+      "waterbody_key": "RAINBOW LAKE",
+      "region": "Region 3",
+      "regulation_management_units": [
+        "3-12"
+      ],
+      "identity_type": "STILL_WATER",
+      "location_descriptor": null,
+      "alternate_names": [],
+      "page": 33,
+      "regulations_summary": "**No Ice Fishing;** rainbow trout daily quota = 2, bait ban, single barbless hook",
+      "candidate_count": 0,
+      "candidate_waterbodies": [],
+      "suggested_action": "Add to DIRECT_MATCHES with gnis_id (lakes) or fwa_watershed_code (streams) of correct candidate",
+      "existing_variation": null,
+      "existing_direct_match": null,
+      "full_identity": {
+        "name_verbatim": "RAINBOW LAKE",
+        "waterbody_key": "RAINBOW LAKE",
+        "identity_type": "STILL_WATER",
+        "component_waterbodies": [],
+        "alternate_names": [],
+        "location_descriptor": null,
+        "notes": null,
+        "global_scope": {
+          "type": "WHOLE_SYSTEM",
+          "waterbody_key": "ALL",
+          "location_verbatim": null,
+          "landmark_verbatim": null,
+          "landmark_end_verbatim": null,
+          "direction": null,
+          "includes_tributaries": false
+        },
+        "exclusions": [],
+        "inclusions": []
+      }
+    },
+    {
+      "name_verbatim": "BURTON CREEK",
+      "waterbody_key": "BURTON CREEK",
+      "region": "Region 4",
+      "regulation_management_units": [
+        "4-15"
+      ],
+      "identity_type": "STREAM",
+      "location_descriptor": null,
+      "alternate_names": [],
+      "page": 37,
+      "regulations_summary": "**No Fishing** from Woden Creek to Hwy 6 bridge, June 15-Oct 31",
+      "candidate_count": 0,
+      "candidate_waterbodies": [],
+      "suggested_action": "Add to DIRECT_MATCHES with gnis_id (lakes) or fwa_watershed_code (streams) of correct candidate",
+      "existing_variation": null,
+      "existing_direct_match": null,
+      "full_identity": {
+        "name_verbatim": "BURTON CREEK",
+        "waterbody_key": "BURTON CREEK",
+        "identity_type": "STREAM",
+        "component_waterbodies": [],
+        "alternate_names": [],
+        "location_descriptor": null,
+        "notes": null,
+        "global_scope": {
+          "type": "WHOLE_SYSTEM",
+          "waterbody_key": "ALL",
+          "location_verbatim": null,
+          "landmark_verbatim": null,
+          "landmark_end_verbatim": null,
+          "direction": null,
+          "includes_tributaries": false
+        },
+        "exclusions": [],
+        "inclusions": []
+      }
+    },
+    {
+      "name_verbatim": "MACKENZIE CREEK",
+      "waterbody_key": "MACKENZIE CREEK",
+      "region": "Region 4",
+      "regulation_management_units": [
+        "4-21"
+      ],
+      "identity_type": "STREAM",
+      "location_descriptor": null,
+      "alternate_names": [],
+      "page": 40,
+      "regulations_summary": "**No Fishing**",
+      "candidate_count": 0,
+      "candidate_waterbodies": [],
+      "suggested_action": "Add to DIRECT_MATCHES with gnis_id (lakes) or fwa_watershed_code (streams) of correct candidate",
+      "existing_variation": null,
+      "existing_direct_match": null,
+      "full_identity": {
+        "name_verbatim": "MACKENZIE CREEK",
+        "waterbody_key": "MACKENZIE CREEK",
+        "identity_type": "STREAM",
+        "component_waterbodies": [],
+        "alternate_names": [],
+        "location_descriptor": null,
+        "notes": null,
+        "global_scope": {
+          "type": "WHOLE_SYSTEM",
+          "waterbody_key": "ALL",
+          "location_verbatim": null,
+          "landmark_verbatim": null,
+          "landmark_end_verbatim": null,
+          "direction": null,
+          "includes_tributaries": false
+        },
+        "exclusions": [],
+        "inclusions": []
+      }
+    },
+    {
+      "name_verbatim": "\"BLUFF\" LAKE",
+      "waterbody_key": "\"BLUFF\" LAKE",
+      "region": "Region 5",
+      "regulation_management_units": [
+        "5-2"
+      ],
+      "identity_type": "STILL_WATER",
+      "location_descriptor": "unnamed lake approximately 2 km east/northeast of Spout Lake",
+      "alternate_names": [],
+      "page": 49,
+      "regulations_summary": "No powered boats; unnamed lake approximately 2 km east/northeast of Spout Lake",
+      "candidate_count": 0,
+      "candidate_waterbodies": [],
+      "manual_review_note": "BEST GUESS (MEDIUM CONFIDENCE): waterbody_key 329354763",
+      "suggested_action": "Add to DIRECT_MATCHES with waterbody_key: 329354763 (medium confidence match based on location)",
+      "existing_variation": {
+        "target_names": [
+          "bluff lake"
+        ],
+        "note": "Remove quotes",
+        "ignored": false
+      },
+      "existing_direct_match": null,
+      "full_identity": {
+        "name_verbatim": "\"BLUFF\" LAKE",
+        "waterbody_key": "\"BLUFF\" LAKE",
+        "identity_type": "STILL_WATER",
+        "component_waterbodies": [],
+        "alternate_names": [],
+        "location_descriptor": "unnamed lake approximately 2 km east/northeast of Spout Lake",
+        "notes": null,
+        "global_scope": {
+          "type": "WHOLE_SYSTEM",
+          "waterbody_key": "ALL",
+          "location_verbatim": null,
+          "landmark_verbatim": null,
+          "landmark_end_verbatim": null,
+          "direction": null,
+          "includes_tributaries": false
+        },
+        "exclusions": [],
+        "inclusions": []
+      }
+    },
+    {
+      "name_verbatim": "BRIDGE LAKE",
+      "waterbody_key": "BRIDGE LAKE",
+      "region": "Region 5",
+      "regulation_management_units": [
+        "5-2"
+      ],
+      "identity_type": "STILL_WATER",
+      "location_descriptor": null,
+      "alternate_names": [],
+      "page": 49,
+      "regulations_summary": "Lake trout daily quota = 1",
+      "candidate_count": 0,
+      "candidate_waterbodies": [],
+      "manual_review_note": "CORRECT LAKE - MU boundary issue: Regulation has 5-2, FWA has 5-1. GNIS_ID: 33293, WSC: 100-190442-998192-349877-237590-984912-950504-0000...",
+      "suggested_action": "Add to DIRECT_MATCHES with gnis_id: 33293, note: 'FWA has MU 5-1, regulation has MU 5-2 (boundary issue)'",
+      "existing_variation": null,
+      "existing_direct_match": null,
+      "full_identity": {
+        "name_verbatim": "BRIDGE LAKE",
+        "waterbody_key": "BRIDGE LAKE",
+        "identity_type": "STILL_WATER",
+        "component_waterbodies": [],
+        "alternate_names": [],
+        "location_descriptor": null,
+        "notes": null,
+        "global_scope": {
+          "type": "WHOLE_SYSTEM",
+          "waterbody_key": "ALL",
+          "location_verbatim": null,
+          "landmark_verbatim": null,
+          "landmark_end_verbatim": null,
+          "direction": null,
+          "includes_tributaries": false
+        },
+        "exclusions": [],
+        "inclusions": []
+      }
+    },
+    {
+      "name_verbatim": "\"BROWN\" LAKE",
+      "waterbody_key": "\"BROWN\" LAKE",
+      "region": "Region 5",
+      "regulation_management_units": [
+        "5-13"
+      ],
+      "identity_type": "STILL_WATER",
+      "location_descriptor": null,
+      "alternate_names": [],
+      "page": 49,
+      "regulations_summary": "See Bishop Lake",
+      "candidate_count": 0,
+      "candidate_waterbodies": [],
+      "manual_review_note": "IGNORE: Already covered by BISHOP (\"Brown\") LAKE entry. Regulation says 'See Bishop Lake'.",
+      "suggested_action": "Add to NAME_VARIATIONS with ignored=True, note: 'Already covered by BISHOP (\"Brown\") LAKE entry'",
+      "existing_variation": {
+        "target_names": [
+          "brown lake"
+        ],
+        "note": "Remove quotes",
+        "ignored": false
+      },
+      "existing_direct_match": null,
+      "full_identity": {
+        "name_verbatim": "\"BROWN\" LAKE",
+        "waterbody_key": "\"BROWN\" LAKE",
+        "identity_type": "STILL_WATER",
+        "component_waterbodies": [],
+        "alternate_names": [],
+        "location_descriptor": null,
+        "notes": null,
+        "global_scope": {
+          "type": "WHOLE_SYSTEM",
+          "waterbody_key": "ALL",
+          "location_verbatim": null,
+          "landmark_verbatim": null,
+          "landmark_end_verbatim": null,
+          "direction": null,
+          "includes_tributaries": false
+        },
+        "exclusions": [],
+        "inclusions": []
+      }
+    },
+    {
+      "name_verbatim": "FISH LAKE (unnamed lake approx. 2 km northwest of McClinchy Lake)",
+      "waterbody_key": "FISH LAKE",
+      "region": "Region 5",
+      "regulation_management_units": [
+        "5-6"
+      ],
+      "identity_type": "STILL_WATER",
+      "location_descriptor": "unnamed lake approx. 2 km northwest of McClinchy Lake",
+      "alternate_names": [],
+      "page": 51,
+      "regulations_summary": "Trout daily quota = 2; bait ban, single barbless hook",
+      "candidate_count": 0,
+      "candidate_waterbodies": [],
+      "suggested_action": "Add to DIRECT_MATCHES with gnis_id (lakes) or fwa_watershed_code (streams) of correct candidate",
+      "existing_variation": null,
+      "existing_direct_match": null,
+      "full_identity": {
+        "name_verbatim": "FISH LAKE (unnamed lake approx. 2 km northwest of McClinchy Lake)",
+        "waterbody_key": "FISH LAKE",
+        "identity_type": "STILL_WATER",
+        "component_waterbodies": [],
+        "alternate_names": [],
+        "location_descriptor": "unnamed lake approx. 2 km northwest of McClinchy Lake",
+        "notes": null,
+        "global_scope": {
+          "type": "WHOLE_SYSTEM",
+          "waterbody_key": "ALL",
+          "location_verbatim": null,
+          "landmark_verbatim": null,
+          "landmark_end_verbatim": null,
+          "direction": null,
+          "includes_tributaries": false
+        },
+        "exclusions": [],
+        "inclusions": []
+      }
+    },
+    {
+      "name_verbatim": "FROG LAKE",
+      "waterbody_key": "FROG LAKE",
+      "region": "Region 5",
+      "regulation_management_units": [
+        "5-6"
+      ],
+      "identity_type": "STILL_WATER",
+      "location_descriptor": null,
+      "alternate_names": [],
+      "page": 51,
+      "regulations_summary": "**No Ice Fishing;** trout daily quota = 1; bait ban, single barbless hook",
+      "candidate_count": 0,
+      "candidate_waterbodies": [],
+      "suggested_action": "Add to DIRECT_MATCHES with gnis_id (lakes) or fwa_watershed_code (streams) of correct candidate",
+      "existing_variation": null,
+      "existing_direct_match": null,
+      "full_identity": {
+        "name_verbatim": "FROG LAKE",
+        "waterbody_key": "FROG LAKE",
+        "identity_type": "STILL_WATER",
+        "component_waterbodies": [],
+        "alternate_names": [],
+        "location_descriptor": null,
+        "notes": null,
+        "global_scope": {
+          "type": "WHOLE_SYSTEM",
+          "waterbody_key": "ALL",
+          "location_verbatim": null,
+          "landmark_verbatim": null,
+          "landmark_end_verbatim": null,
+          "direction": null,
+          "includes_tributaries": false
+        },
+        "exclusions": [],
+        "inclusions": []
+      }
+    },
+    {
+      "name_verbatim": "HIDDEN LAKE",
+      "waterbody_key": "HIDDEN LAKE",
+      "region": "Region 5",
+      "regulation_management_units": [
+        "5-6"
+      ],
+      "identity_type": "STILL_WATER",
+      "location_descriptor": null,
+      "alternate_names": [],
+      "page": 51,
+      "regulations_summary": "**No Ice Fishing;** trout daily quota = 1; bait ban, single barbless hook",
+      "candidate_count": 0,
+      "candidate_waterbodies": [],
+      "suggested_action": "Add to DIRECT_MATCHES with gnis_id (lakes) or fwa_watershed_code (streams) of correct candidate",
+      "existing_variation": null,
+      "existing_direct_match": null,
+      "full_identity": {
+        "name_verbatim": "HIDDEN LAKE",
+        "waterbody_key": "HIDDEN LAKE",
+        "identity_type": "STILL_WATER",
+        "component_waterbodies": [],
+        "alternate_names": [],
+        "location_descriptor": null,
+        "notes": null,
+        "global_scope": {
+          "type": "WHOLE_SYSTEM",
+          "waterbody_key": "ALL",
+          "location_verbatim": null,
+          "landmark_verbatim": null,
+          "landmark_end_verbatim": null,
+          "direction": null,
+          "includes_tributaries": false
+        },
+        "exclusions": [],
+        "inclusions": []
+      }
+    },
+    {
+      "name_verbatim": "HUSH LAKE",
+      "waterbody_key": "HUSH LAKE",
+      "region": "Region 5",
+      "regulation_management_units": [
+        "5-15"
+      ],
+      "identity_type": "STILL_WATER",
+      "location_descriptor": null,
+      "alternate_names": [],
+      "page": 51,
+      "regulations_summary": "No powered boats",
+      "candidate_count": 0,
+      "candidate_waterbodies": [],
+      "suggested_action": "Add to DIRECT_MATCHES with gnis_id (lakes) or fwa_watershed_code (streams) of correct candidate",
+      "existing_variation": null,
+      "existing_direct_match": null,
+      "full_identity": {
+        "name_verbatim": "HUSH LAKE",
+        "waterbody_key": "HUSH LAKE",
+        "identity_type": "STILL_WATER",
+        "component_waterbodies": [],
+        "alternate_names": [],
+        "location_descriptor": null,
+        "notes": null,
+        "global_scope": {
+          "type": "WHOLE_SYSTEM",
+          "waterbody_key": "ALL",
+          "location_verbatim": null,
+          "landmark_verbatim": null,
+          "landmark_end_verbatim": null,
+          "direction": null,
+          "includes_tributaries": false
+        },
+        "exclusions": [],
+        "inclusions": []
+      }
+    },
+    {
+      "name_verbatim": "JACK OF CLUBS LAKE",
+      "waterbody_key": "JACK OF CLUBS LAKE",
+      "region": "Region 5",
+      "regulation_management_units": [
+        "5-2"
+      ],
+      "identity_type": "STILL_WATER",
+      "location_descriptor": null,
+      "alternate_names": [],
+      "page": 51,
+      "regulations_summary": "**WARNING: lake trout over 45 cm may contain elevated mercury levels. Limit your consumption.**",
+      "candidate_count": 0,
+      "candidate_waterbodies": [],
+      "suggested_action": "Add to DIRECT_MATCHES with gnis_id (lakes) or fwa_watershed_code (streams) of correct candidate",
+      "existing_variation": null,
+      "existing_direct_match": null,
+      "full_identity": {
+        "name_verbatim": "JACK OF CLUBS LAKE",
+        "waterbody_key": "JACK OF CLUBS LAKE",
+        "identity_type": "STILL_WATER",
+        "component_waterbodies": [],
+        "alternate_names": [],
+        "location_descriptor": null,
+        "notes": null,
+        "global_scope": {
+          "type": "WHOLE_SYSTEM",
+          "waterbody_key": "ALL",
+          "location_verbatim": null,
+          "landmark_verbatim": null,
+          "landmark_end_verbatim": null,
+          "direction": null,
+          "includes_tributaries": false
+        },
+        "exclusions": [],
+        "inclusions": []
+      }
+    },
+    {
+      "name_verbatim": "KATHERINE LAKE",
+      "waterbody_key": "KATHERINE LAKE",
+      "region": "Region 5",
+      "regulation_management_units": [
+        "5-15"
+      ],
+      "identity_type": "STILL_WATER",
+      "location_descriptor": null,
+      "alternate_names": [],
+      "page": 51,
+      "regulations_summary": "Trout/char daily quota = 2; bait ban, single barbless hook",
+      "candidate_count": 0,
+      "candidate_waterbodies": [],
+      "suggested_action": "Add to DIRECT_MATCHES with gnis_id (lakes) or fwa_watershed_code (streams) of correct candidate",
+      "existing_variation": null,
+      "existing_direct_match": null,
+      "full_identity": {
+        "name_verbatim": "KATHERINE LAKE",
+        "waterbody_key": "KATHERINE LAKE",
+        "identity_type": "STILL_WATER",
+        "component_waterbodies": [],
+        "alternate_names": [],
+        "location_descriptor": null,
+        "notes": null,
+        "global_scope": {
+          "type": "WHOLE_SYSTEM",
+          "waterbody_key": "ALL",
+          "location_verbatim": null,
+          "landmark_verbatim": null,
+          "landmark_end_verbatim": null,
+          "direction": null,
+          "includes_tributaries": false
+        },
+        "exclusions": [],
+        "inclusions": []
+      }
+    },
+    {
+      "name_verbatim": "NIMPO LAKE",
+      "waterbody_key": "NIMPO LAKE",
+      "region": "Region 5",
+      "regulation_management_units": [
+        "5-12"
+      ],
+      "identity_type": "STILL_WATER",
+      "location_descriptor": null,
+      "alternate_names": [],
+      "page": 52,
+      "regulations_summary": "Trout daily quota = 8",
+      "candidate_count": 0,
+      "candidate_waterbodies": [],
+      "suggested_action": "Add to DIRECT_MATCHES with gnis_id (lakes) or fwa_watershed_code (streams) of correct candidate",
+      "existing_variation": null,
+      "existing_direct_match": null,
+      "full_identity": {
+        "name_verbatim": "NIMPO LAKE",
+        "waterbody_key": "NIMPO LAKE",
+        "identity_type": "STILL_WATER",
+        "component_waterbodies": [],
+        "alternate_names": [],
+        "location_descriptor": null,
+        "notes": null,
+        "global_scope": {
+          "type": "WHOLE_SYSTEM",
+          "waterbody_key": "ALL",
+          "location_verbatim": null,
+          "landmark_verbatim": null,
+          "landmark_end_verbatim": null,
+          "direction": null,
+          "includes_tributaries": false
+        },
+        "exclusions": [],
+        "inclusions": []
+      }
+    },
+    {
+      "name_verbatim": "REDFERN LAKE",
+      "waterbody_key": "REDFERN LAKE",
+      "region": "Region 5",
+      "regulation_management_units": [
+        "5-15"
+      ],
+      "identity_type": "STILL_WATER",
+      "location_descriptor": null,
+      "alternate_names": [],
+      "page": 52,
+      "regulations_summary": "Trout daily quota = 2; bait ban, single barbless hook",
+      "candidate_count": 0,
+      "candidate_waterbodies": [],
+      "suggested_action": "Add to DIRECT_MATCHES with gnis_id (lakes) or fwa_watershed_code (streams) of correct candidate",
+      "existing_variation": null,
+      "existing_direct_match": null,
+      "full_identity": {
+        "name_verbatim": "REDFERN LAKE",
+        "waterbody_key": "REDFERN LAKE",
+        "identity_type": "STILL_WATER",
+        "component_waterbodies": [],
+        "alternate_names": [],
+        "location_descriptor": null,
+        "notes": null,
+        "global_scope": {
+          "type": "WHOLE_SYSTEM",
+          "waterbody_key": "ALL",
+          "location_verbatim": null,
+          "landmark_verbatim": null,
+          "landmark_end_verbatim": null,
+          "direction": null,
+          "includes_tributaries": false
+        },
+        "exclusions": [],
+        "inclusions": []
+      }
+    },
+    {
+      "name_verbatim": "\"SANDY\" LAKE",
+      "waterbody_key": "\"SANDY\" LAKE",
+      "region": "Region 5",
+      "regulation_management_units": [
+        "5-2"
+      ],
+      "identity_type": "STILL_WATER",
+      "location_descriptor": "Unnamed lake approximately 3.2 km south of Le Bourdais Lake",
+      "alternate_names": [],
+      "page": 52,
+      "regulations_summary": "**No Ice Fishing;** trout catch and release; bait ban, single barbless hook\nUnnamed lake approximately 3.2 km south of Le Bourdais Lake",
+      "candidate_count": 0,
+      "candidate_waterbodies": [],
+      "suggested_action": "Add to DIRECT_MATCHES with gnis_id (lakes) or fwa_watershed_code (streams) of correct candidate",
+      "existing_variation": {
+        "target_names": [
+          "sandy lake"
+        ],
+        "note": "Remove quotes",
+        "ignored": false
+      },
+      "existing_direct_match": null,
+      "full_identity": {
+        "name_verbatim": "\"SANDY\" LAKE",
+        "waterbody_key": "\"SANDY\" LAKE",
+        "identity_type": "STILL_WATER",
+        "component_waterbodies": [],
+        "alternate_names": [],
+        "location_descriptor": "Unnamed lake approximately 3.2 km south of Le Bourdais Lake",
+        "notes": null,
+        "global_scope": {
+          "type": "WHOLE_SYSTEM",
+          "waterbody_key": "ALL",
+          "location_verbatim": null,
+          "landmark_verbatim": null,
+          "landmark_end_verbatim": null,
+          "direction": null,
+          "includes_tributaries": false
+        },
+        "exclusions": [],
+        "inclusions": []
+      }
+    },
+    {
+      "name_verbatim": "SECRET LAKE",
+      "waterbody_key": "SECRET LAKE",
+      "region": "Region 5",
+      "regulation_management_units": [
+        "5-6"
+      ],
+      "identity_type": "STILL_WATER",
+      "location_descriptor": null,
+      "alternate_names": [],
+      "page": 52,
+      "regulations_summary": "**No Ice Fishing;** trout daily quota = 1; bait ban, single barbless hook",
+      "candidate_count": 0,
+      "candidate_waterbodies": [],
+      "suggested_action": "Add to DIRECT_MATCHES with gnis_id (lakes) or fwa_watershed_code (streams) of correct candidate",
+      "existing_variation": null,
+      "existing_direct_match": null,
+      "full_identity": {
+        "name_verbatim": "SECRET LAKE",
+        "waterbody_key": "SECRET LAKE",
+        "identity_type": "STILL_WATER",
+        "component_waterbodies": [],
+        "alternate_names": [],
+        "location_descriptor": null,
+        "notes": null,
+        "global_scope": {
+          "type": "WHOLE_SYSTEM",
+          "waterbody_key": "ALL",
+          "location_verbatim": null,
+          "landmark_verbatim": null,
+          "landmark_end_verbatim": null,
+          "direction": null,
+          "includes_tributaries": false
+        },
+        "exclusions": [],
+        "inclusions": []
+      }
+    },
+    {
+      "name_verbatim": "\"SNAG\" LAKE",
+      "waterbody_key": "\"SNAG\" LAKE",
+      "region": "Region 5",
+      "regulation_management_units": [
+        "5-1"
+      ],
+      "identity_type": "STILL_WATER",
+      "location_descriptor": "Unnamed lake approximately 500 m south/southeast of West King Lake",
+      "alternate_names": [],
+      "page": 53,
+      "regulations_summary": "**No Ice Fishing;** trout daily quota = 1; bait ban; single barbless hook; no powered boats\nUnnamed lake approximately 500 m south/southeast of West King Lake",
+      "candidate_count": 0,
+      "candidate_waterbodies": [],
+      "suggested_action": "Add to DIRECT_MATCHES with gnis_id (lakes) or fwa_watershed_code (streams) of correct candidate",
+      "existing_variation": {
+        "target_names": [
+          "snag lake"
+        ],
+        "note": "Remove quotes",
+        "ignored": false
+      },
+      "existing_direct_match": null,
+      "full_identity": {
+        "name_verbatim": "\"SNAG\" LAKE",
+        "waterbody_key": "\"SNAG\" LAKE",
+        "identity_type": "STILL_WATER",
+        "component_waterbodies": [],
+        "alternate_names": [],
+        "location_descriptor": "Unnamed lake approximately 500 m south/southeast of West King Lake",
+        "notes": null,
+        "global_scope": {
+          "type": "WHOLE_SYSTEM",
+          "waterbody_key": "ALL",
+          "location_verbatim": null,
+          "landmark_verbatim": null,
+          "landmark_end_verbatim": null,
+          "direction": null,
+          "includes_tributaries": false
+        },
+        "exclusions": [],
+        "inclusions": []
+      }
+    },
+    {
+      "name_verbatim": "SQUARE LAKE",
+      "waterbody_key": "SQUARE LAKE",
+      "region": "Region 5",
+      "regulation_management_units": [
+        "5-6"
+      ],
+      "identity_type": "STILL_WATER",
+      "location_descriptor": null,
+      "alternate_names": [],
+      "page": 53,
+      "regulations_summary": "Trout daily quota = 2; bait ban, single barbless hook",
+      "candidate_count": 0,
+      "candidate_waterbodies": [],
+      "suggested_action": "Add to DIRECT_MATCHES with gnis_id (lakes) or fwa_watershed_code (streams) of correct candidate",
+      "existing_variation": null,
+      "existing_direct_match": null,
+      "full_identity": {
+        "name_verbatim": "SQUARE LAKE",
+        "waterbody_key": "SQUARE LAKE",
+        "identity_type": "STILL_WATER",
+        "component_waterbodies": [],
+        "alternate_names": [],
+        "location_descriptor": null,
+        "notes": null,
+        "global_scope": {
+          "type": "WHOLE_SYSTEM",
+          "waterbody_key": "ALL",
+          "location_verbatim": null,
+          "landmark_verbatim": null,
+          "landmark_end_verbatim": null,
+          "direction": null,
+          "includes_tributaries": false
+        },
+        "exclusions": [],
+        "inclusions": []
+      }
+    },
+    {
+      "name_verbatim": "SQUIRREL LAKE",
+      "waterbody_key": "SQUIRREL LAKE",
+      "region": "Region 5",
+      "regulation_management_units": [
+        "6-1"
+      ],
+      "identity_type": "STILL_WATER",
+      "location_descriptor": null,
+      "alternate_names": [],
+      "page": 53,
+      "regulations_summary": "Trout daily quota = 2; bait ban, single barbless hook",
+      "candidate_count": 0,
+      "candidate_waterbodies": [],
+      "suggested_action": "Add to DIRECT_MATCHES with gnis_id (lakes) or fwa_watershed_code (streams) of correct candidate",
+      "existing_variation": null,
+      "existing_direct_match": null,
+      "full_identity": {
+        "name_verbatim": "SQUIRREL LAKE",
+        "waterbody_key": "SQUIRREL LAKE",
+        "identity_type": "STILL_WATER",
+        "component_waterbodies": [],
+        "alternate_names": [],
+        "location_descriptor": null,
+        "notes": null,
+        "global_scope": {
+          "type": "WHOLE_SYSTEM",
+          "waterbody_key": "ALL",
+          "location_verbatim": null,
+          "landmark_verbatim": null,
+          "landmark_end_verbatim": null,
+          "direction": null,
+          "includes_tributaries": false
+        },
+        "exclusions": [],
+        "inclusions": []
+      }
+    },
+    {
+      "name_verbatim": "TOMS LAKE",
+      "waterbody_key": "TOMS LAKE",
+      "region": "Region 5",
+      "regulation_management_units": [
+        "6-1"
+      ],
+      "identity_type": "STILL_WATER",
+      "location_descriptor": null,
+      "alternate_names": [],
+      "page": 53,
+      "regulations_summary": "Trout daily quota = 2; bait ban, single barbless hook",
+      "candidate_count": 0,
+      "candidate_waterbodies": [],
+      "suggested_action": "Add to DIRECT_MATCHES with gnis_id (lakes) or fwa_watershed_code (streams) of correct candidate",
+      "existing_variation": null,
+      "existing_direct_match": null,
+      "full_identity": {
+        "name_verbatim": "TOMS LAKE",
+        "waterbody_key": "TOMS LAKE",
+        "identity_type": "STILL_WATER",
+        "component_waterbodies": [],
+        "alternate_names": [],
+        "location_descriptor": null,
+        "notes": null,
+        "global_scope": {
+          "type": "WHOLE_SYSTEM",
+          "waterbody_key": "ALL",
+          "location_verbatim": null,
+          "landmark_verbatim": null,
+          "landmark_end_verbatim": null,
+          "direction": null,
+          "includes_tributaries": false
+        },
+        "exclusions": [],
+        "inclusions": []
+      }
+    },
+    {
+      "name_verbatim": "DUNALTER LAKE (Irrigation Lake)",
+      "waterbody_key": "DUNALTER LAKE",
+      "region": "Region 6",
+      "regulation_management_units": [
+        "6-9"
+      ],
+      "identity_type": "STILL_WATER",
+      "location_descriptor": null,
+      "alternate_names": [
+        "Irrigation Lake"
+      ],
+      "page": 56,
+      "regulations_summary": "Electric motor only - max 7.5 kW",
+      "candidate_count": 0,
+      "candidate_waterbodies": [],
+      "suggested_action": "Add to DIRECT_MATCHES with gnis_id (lakes) or fwa_watershed_code (streams) of correct candidate",
+      "existing_variation": null,
+      "existing_direct_match": null,
+      "full_identity": {
+        "name_verbatim": "DUNALTER LAKE (Irrigation Lake)",
+        "waterbody_key": "DUNALTER LAKE",
+        "identity_type": "STILL_WATER",
+        "component_waterbodies": [],
+        "alternate_names": [
+          "Irrigation Lake"
+        ],
+        "location_descriptor": null,
+        "notes": null,
+        "global_scope": {
+          "type": "WHOLE_SYSTEM",
+          "waterbody_key": "ALL",
+          "location_verbatim": null,
+          "landmark_verbatim": null,
+          "landmark_end_verbatim": null,
+          "direction": null,
+          "includes_tributaries": false
+        },
+        "exclusions": [],
+        "inclusions": []
+      }
+    },
+    {
+      "name_verbatim": "LAKELSE RIVER",
+      "waterbody_key": "LAKELSE RIVER",
+      "region": "Region 6",
+      "regulation_management_units": [
+        "6-10"
+      ],
+      "identity_type": "STREAM",
+      "location_descriptor": null,
+      "alternate_names": [],
+      "page": 58,
+      "regulations_summary": "**Angling prohibited for non-guided non-resident aliens from the outlet of Lakelse Lake to the power line crossing, located 3.5 km\nupstream of the Lakelse River mouth, all year (See map **page 55**)**\nFly fishing only between Lakelse Lake and CNR Bridge, Mar 1-May 31\nBait ban, no powered boats\nNote: The mouth of the river is designated by signs 1.7 km downstream of Lakelse River logging road bridge\n**Class I water all year; Steelhead Stamp mandatory Sept 1-May 31**",
+      "candidate_count": 0,
+      "candidate_waterbodies": [],
+      "suggested_action": "Add to DIRECT_MATCHES with gnis_id (lakes) or fwa_watershed_code (streams) of correct candidate",
+      "existing_variation": null,
+      "existing_direct_match": null,
+      "full_identity": {
+        "name_verbatim": "LAKELSE RIVER",
+        "waterbody_key": "LAKELSE RIVER",
+        "identity_type": "STREAM",
+        "component_waterbodies": [],
+        "alternate_names": [],
+        "location_descriptor": null,
+        "notes": "Note: The mouth of the river is designated by signs 1.7 km downstream of Lakelse River logging road bridge",
+        "global_scope": {
+          "type": "WHOLE_SYSTEM",
+          "waterbody_key": "ALL",
+          "location_verbatim": null,
+          "landmark_verbatim": null,
+          "landmark_end_verbatim": null,
+          "direction": null,
+          "includes_tributaries": true
+        },
+        "exclusions": [],
+        "inclusions": []
+      }
+    },
+    {
+      "name_verbatim": "LOST LAKE",
+      "waterbody_key": "LOST LAKE",
+      "region": "Region 6",
+      "regulation_management_units": [
+        "6-15"
+      ],
+      "identity_type": "STILL_WATER",
+      "location_descriptor": null,
+      "alternate_names": [],
+      "page": 58,
+      "regulations_summary": "**No Fishing**",
+      "candidate_count": 0,
+      "candidate_waterbodies": [],
+      "suggested_action": "Add to DIRECT_MATCHES with gnis_id (lakes) or fwa_watershed_code (streams) of correct candidate",
+      "existing_variation": null,
+      "existing_direct_match": null,
+      "full_identity": {
+        "name_verbatim": "LOST LAKE",
+        "waterbody_key": "LOST LAKE",
+        "identity_type": "STILL_WATER",
+        "component_waterbodies": [],
+        "alternate_names": [],
+        "location_descriptor": null,
+        "notes": null,
+        "global_scope": {
+          "type": "WHOLE_SYSTEM",
+          "waterbody_key": "ALL",
+          "location_verbatim": null,
+          "landmark_verbatim": null,
+          "landmark_end_verbatim": null,
+          "direction": null,
+          "includes_tributaries": false
+        },
+        "exclusions": [],
+        "inclusions": []
+      }
+    },
+    {
+      "name_verbatim": "MCQUEEN CREEK",
+      "waterbody_key": "MCQUEEN CREEK",
+      "region": "Region 6",
+      "regulation_management_units": [
+        "6-30"
+      ],
+      "identity_type": "STREAM",
+      "location_descriptor": null,
+      "alternate_names": [],
+      "page": 58,
+      "regulations_summary": "See Hevenor Creek",
+      "candidate_count": 0,
+      "candidate_waterbodies": [],
+      "suggested_action": "Add to DIRECT_MATCHES with gnis_id (lakes) or fwa_watershed_code (streams) of correct candidate",
+      "existing_variation": null,
+      "existing_direct_match": null,
+      "full_identity": {
+        "name_verbatim": "MCQUEEN CREEK",
+        "waterbody_key": "MCQUEEN CREEK",
+        "identity_type": "STREAM",
+        "component_waterbodies": [],
+        "alternate_names": [],
+        "location_descriptor": null,
+        "notes": null,
+        "global_scope": {
+          "type": "WHOLE_SYSTEM",
+          "waterbody_key": "ALL",
+          "location_verbatim": null,
+          "landmark_verbatim": null,
+          "landmark_end_verbatim": null,
+          "direction": null,
+          "includes_tributaries": true
+        },
+        "exclusions": [],
+        "inclusions": []
+      }
+    },
+    {
+      "name_verbatim": "OWEEGEE LAKE",
+      "waterbody_key": "OWEEGEE LAKE",
+      "region": "Region 6",
+      "regulation_management_units": [
+        "6-16"
+      ],
+      "identity_type": "STILL_WATER",
+      "location_descriptor": null,
+      "alternate_names": [],
+      "page": 59,
+      "regulations_summary": "Rainbow trout over 50 cm catch and release",
+      "candidate_count": 0,
+      "candidate_waterbodies": [],
+      "suggested_action": "Add to DIRECT_MATCHES with gnis_id (lakes) or fwa_watershed_code (streams) of correct candidate",
+      "existing_variation": null,
+      "existing_direct_match": null,
+      "full_identity": {
+        "name_verbatim": "OWEEGEE LAKE",
+        "waterbody_key": "OWEEGEE LAKE",
+        "identity_type": "STILL_WATER",
+        "component_waterbodies": [],
+        "alternate_names": [],
+        "location_descriptor": null,
+        "notes": null,
+        "global_scope": {
+          "type": "WHOLE_SYSTEM",
+          "waterbody_key": "ALL",
+          "location_verbatim": null,
+          "landmark_verbatim": null,
+          "landmark_end_verbatim": null,
+          "direction": null,
+          "includes_tributaries": false
+        },
+        "exclusions": [],
+        "inclusions": []
+      }
+    },
+    {
+      "name_verbatim": "SQUIRREL LAKE",
+      "waterbody_key": "SQUIRREL LAKE",
+      "region": "Region 6",
+      "regulation_management_units": [
+        "6-1"
+      ],
+      "identity_type": "STILL_WATER",
+      "location_descriptor": null,
+      "alternate_names": [],
+      "page": 59,
+      "regulations_summary": "Trout daily quota = 2; bait ban, single barbless hook",
+      "candidate_count": 0,
+      "candidate_waterbodies": [],
+      "suggested_action": "Add to DIRECT_MATCHES with gnis_id (lakes) or fwa_watershed_code (streams) of correct candidate",
+      "existing_variation": null,
+      "existing_direct_match": null,
+      "full_identity": {
+        "name_verbatim": "SQUIRREL LAKE",
+        "waterbody_key": "SQUIRREL LAKE",
+        "identity_type": "STILL_WATER",
+        "component_waterbodies": [],
+        "alternate_names": [],
+        "location_descriptor": null,
+        "notes": null,
+        "global_scope": {
+          "type": "WHOLE_SYSTEM",
+          "waterbody_key": "ALL",
+          "location_verbatim": null,
+          "landmark_verbatim": null,
+          "landmark_end_verbatim": null,
+          "direction": null,
+          "includes_tributaries": false
+        },
+        "exclusions": [],
+        "inclusions": []
+      }
+    },
+    {
+      "name_verbatim": "TOMS LAKE",
+      "waterbody_key": "TOMS LAKE",
+      "region": "Region 6",
+      "regulation_management_units": [
+        "6-1"
+      ],
+      "identity_type": "STILL_WATER",
+      "location_descriptor": null,
+      "alternate_names": [],
+      "page": 60,
+      "regulations_summary": "Trout daily quota = 2; bait ban, single barbless hook",
+      "candidate_count": 0,
+      "candidate_waterbodies": [],
+      "suggested_action": "Add to DIRECT_MATCHES with gnis_id (lakes) or fwa_watershed_code (streams) of correct candidate",
+      "existing_variation": null,
+      "existing_direct_match": null,
+      "full_identity": {
+        "name_verbatim": "TOMS LAKE",
+        "waterbody_key": "TOMS LAKE",
+        "identity_type": "STILL_WATER",
+        "component_waterbodies": [],
+        "alternate_names": [],
+        "location_descriptor": null,
+        "notes": null,
+        "global_scope": {
+          "type": "WHOLE_SYSTEM",
+          "waterbody_key": "ALL",
+          "location_verbatim": null,
+          "landmark_verbatim": null,
+          "landmark_end_verbatim": null,
+          "direction": null,
+          "includes_tributaries": false
+        },
+        "exclusions": [],
+        "inclusions": []
+      }
+    },
+    {
+      "name_verbatim": "WAHLA LAKE",
+      "waterbody_key": "WAHLA LAKE",
+      "region": "Region 6",
+      "regulation_management_units": [
+        "6-2"
+      ],
+      "identity_type": "STILL_WATER",
+      "location_descriptor": null,
+      "alternate_names": [],
+      "page": 60,
+      "regulations_summary": "Rainbow trout daily quota = 1 (none over 50 cm)",
+      "candidate_count": 0,
+      "candidate_waterbodies": [],
+      "suggested_action": "Add to DIRECT_MATCHES with gnis_id (lakes) or fwa_watershed_code (streams) of correct candidate",
+      "existing_variation": null,
+      "existing_direct_match": null,
+      "full_identity": {
+        "name_verbatim": "WAHLA LAKE",
+        "waterbody_key": "WAHLA LAKE",
+        "identity_type": "STILL_WATER",
+        "component_waterbodies": [],
+        "alternate_names": [],
+        "location_descriptor": null,
+        "notes": null,
+        "global_scope": {
+          "type": "WHOLE_SYSTEM",
+          "waterbody_key": "ALL",
+          "location_verbatim": null,
+          "landmark_verbatim": null,
+          "landmark_end_verbatim": null,
+          "direction": null,
+          "includes_tributaries": false
+        },
+        "exclusions": [],
+        "inclusions": []
+      }
+    },
+    {
+      "name_verbatim": "BEAR LAKE (Crooked River Provincial Park)",
+      "waterbody_key": "BEAR LAKE",
+      "region": "Region 7",
+      "regulation_management_units": [
+        "7-16"
+      ],
+      "identity_type": "STILL_WATER",
+      "location_descriptor": "Crooked River Provincial Park",
+      "alternate_names": [],
+      "page": 65,
+      "regulations_summary": "No powered boats",
+      "candidate_count": 0,
+      "candidate_waterbodies": [],
+      "suggested_action": "Add to DIRECT_MATCHES with gnis_id (lakes) or fwa_watershed_code (streams) of correct candidate",
+      "existing_variation": null,
+      "existing_direct_match": null,
+      "full_identity": {
+        "name_verbatim": "BEAR LAKE (Crooked River Provincial Park)",
+        "waterbody_key": "BEAR LAKE",
+        "identity_type": "STILL_WATER",
+        "component_waterbodies": [],
+        "alternate_names": [],
+        "location_descriptor": "Crooked River Provincial Park",
+        "notes": null,
+        "global_scope": {
+          "type": "WHOLE_SYSTEM",
+          "waterbody_key": "ALL",
+          "location_verbatim": null,
+          "landmark_verbatim": null,
+          "landmark_end_verbatim": null,
+          "direction": null,
+          "includes_tributaries": false
+        },
+        "exclusions": [],
+        "inclusions": []
+      }
+    },
+    {
+      "name_verbatim": "BOBTAIL (Naltesby) LAKE",
+      "waterbody_key": "BOBTAIL LAKE",
+      "region": "Region 7",
+      "regulation_management_units": [
+        "7-12"
+      ],
+      "identity_type": "STILL_WATER",
+      "location_descriptor": null,
+      "alternate_names": [
+        "Naltesby"
+      ],
+      "page": 65,
+      "regulations_summary": "Kokanee daily quota = 5",
+      "candidate_count": 0,
+      "candidate_waterbodies": [],
+      "suggested_action": "Add to DIRECT_MATCHES with gnis_id (lakes) or fwa_watershed_code (streams) of correct candidate",
+      "existing_variation": null,
+      "existing_direct_match": null,
+      "full_identity": {
+        "name_verbatim": "BOBTAIL (Naltesby) LAKE",
+        "waterbody_key": "BOBTAIL LAKE",
+        "identity_type": "STILL_WATER",
+        "component_waterbodies": [],
+        "alternate_names": [
+          "Naltesby"
+        ],
+        "location_descriptor": null,
+        "notes": null,
+        "global_scope": {
+          "type": "WHOLE_SYSTEM",
+          "waterbody_key": "ALL",
+          "location_verbatim": null,
+          "landmark_verbatim": null,
+          "landmark_end_verbatim": null,
+          "direction": null,
+          "includes_tributaries": false
+        },
+        "exclusions": [],
+        "inclusions": []
+      }
+    },
+    {
+      "name_verbatim": "CHUBB LAKE",
+      "waterbody_key": "CHUBB LAKE",
+      "region": "Region 7",
+      "regulation_management_units": [
+        "7-10"
+      ],
+      "identity_type": "STILL_WATER",
+      "location_descriptor": null,
+      "alternate_names": [],
+      "page": 65,
+      "regulations_summary": "Engine power restriction - 7.5 kW (10 hp)",
+      "candidate_count": 0,
+      "candidate_waterbodies": [],
+      "suggested_action": "Add to DIRECT_MATCHES with gnis_id (lakes) or fwa_watershed_code (streams) of correct candidate",
+      "existing_variation": null,
+      "existing_direct_match": null,
+      "full_identity": {
+        "name_verbatim": "CHUBB LAKE",
+        "waterbody_key": "CHUBB LAKE",
+        "identity_type": "STILL_WATER",
+        "component_waterbodies": [],
+        "alternate_names": [],
+        "location_descriptor": null,
+        "notes": null,
+        "global_scope": {
+          "type": "WHOLE_SYSTEM",
+          "waterbody_key": "ALL",
+          "location_verbatim": null,
+          "landmark_verbatim": null,
+          "landmark_end_verbatim": null,
+          "direction": null,
+          "includes_tributaries": false
+        },
+        "exclusions": [],
+        "inclusions": []
+      }
+    },
+    {
+      "name_verbatim": "DEM LAKE",
+      "waterbody_key": "DEM LAKE",
+      "region": "Region 7",
+      "regulation_management_units": [
+        "7-25"
+      ],
+      "identity_type": "STILL_WATER",
+      "location_descriptor": null,
+      "alternate_names": [],
+      "page": 65,
+      "regulations_summary": "**No Fishing** Nov 1-Apr 30\nLake trout catch and release; no set lines",
+      "candidate_count": 0,
+      "candidate_waterbodies": [],
+      "suggested_action": "Add to DIRECT_MATCHES with gnis_id (lakes) or fwa_watershed_code (streams) of correct candidate",
+      "existing_variation": null,
+      "existing_direct_match": null,
+      "full_identity": {
+        "name_verbatim": "DEM LAKE",
+        "waterbody_key": "DEM LAKE",
+        "identity_type": "STILL_WATER",
+        "component_waterbodies": [],
+        "alternate_names": [],
+        "location_descriptor": null,
+        "notes": null,
+        "global_scope": {
+          "type": "WHOLE_SYSTEM",
+          "waterbody_key": "ALL",
+          "location_verbatim": null,
+          "landmark_verbatim": null,
+          "landmark_end_verbatim": null,
+          "direction": null,
+          "includes_tributaries": false
+        },
+        "exclusions": [],
+        "inclusions": []
+      }
+    },
+    {
+      "name_verbatim": "EMERALD LAKE",
+      "waterbody_key": "EMERALD LAKE",
+      "region": "Region 7",
+      "regulation_management_units": [
+        "7-15"
+      ],
+      "identity_type": "STILL_WATER",
+      "location_descriptor": null,
+      "alternate_names": [],
+      "page": 65,
+      "regulations_summary": "No powered boats",
+      "candidate_count": 0,
+      "candidate_waterbodies": [],
+      "suggested_action": "Add to DIRECT_MATCHES with gnis_id (lakes) or fwa_watershed_code (streams) of correct candidate",
+      "existing_variation": null,
+      "existing_direct_match": null,
+      "full_identity": {
+        "name_verbatim": "EMERALD LAKE",
+        "waterbody_key": "EMERALD LAKE",
+        "identity_type": "STILL_WATER",
+        "component_waterbodies": [],
+        "alternate_names": [],
+        "location_descriptor": null,
+        "notes": null,
+        "global_scope": {
+          "type": "WHOLE_SYSTEM",
+          "waterbody_key": "ALL",
+          "location_verbatim": null,
+          "landmark_verbatim": null,
+          "landmark_end_verbatim": null,
+          "direction": null,
+          "includes_tributaries": false
+        },
+        "exclusions": [],
+        "inclusions": []
+      }
+    },
+    {
+      "name_verbatim": "ENDAKO RIVER",
+      "waterbody_key": "ENDAKO RIVER",
+      "region": "Region 7",
+      "regulation_management_units": [
+        "7-12"
+      ],
+      "identity_type": "STREAM",
+      "location_descriptor": null,
+      "alternate_names": [],
+      "page": 65,
+      "regulations_summary": "**No Fishing** Nov 15-June 30",
+      "candidate_count": 0,
+      "candidate_waterbodies": [],
+      "suggested_action": "Add to DIRECT_MATCHES with gnis_id (lakes) or fwa_watershed_code (streams) of correct candidate",
+      "existing_variation": null,
+      "existing_direct_match": null,
+      "full_identity": {
+        "name_verbatim": "ENDAKO RIVER",
+        "waterbody_key": "ENDAKO RIVER",
+        "identity_type": "STREAM",
+        "component_waterbodies": [],
+        "alternate_names": [],
+        "location_descriptor": null,
+        "notes": null,
+        "global_scope": {
+          "type": "WHOLE_SYSTEM",
+          "waterbody_key": "ALL",
+          "location_verbatim": null,
+          "landmark_verbatim": null,
+          "landmark_end_verbatim": null,
+          "direction": null,
+          "includes_tributaries": false
+        },
+        "exclusions": [],
+        "inclusions": []
+      }
+    },
+    {
+      "name_verbatim": "HART LAKE (Fort St. James)",
+      "waterbody_key": "HART LAKE",
+      "region": "Region 7",
+      "regulation_management_units": [
+        "7-25"
+      ],
+      "identity_type": "STILL_WATER",
+      "location_descriptor": "Fort St. James",
+      "alternate_names": [],
+      "page": 66,
+      "regulations_summary": "**No Fishing** Nov 1-Apr 30\nRainbow trout catch and release; bait ban, single barbless hook",
+      "candidate_count": 0,
+      "candidate_waterbodies": [],
+      "suggested_action": "Add to DIRECT_MATCHES with gnis_id (lakes) or fwa_watershed_code (streams) of correct candidate",
+      "existing_variation": null,
+      "existing_direct_match": null,
+      "full_identity": {
+        "name_verbatim": "HART LAKE (Fort St. James)",
+        "waterbody_key": "HART LAKE",
+        "identity_type": "STILL_WATER",
+        "component_waterbodies": [],
+        "alternate_names": [],
+        "location_descriptor": "Fort St. James",
+        "notes": null,
+        "global_scope": {
+          "type": "WHOLE_SYSTEM",
+          "waterbody_key": "ALL",
+          "location_verbatim": null,
+          "landmark_verbatim": null,
+          "landmark_end_verbatim": null,
+          "direction": null,
+          "includes_tributaries": false
+        },
+        "exclusions": [],
+        "inclusions": []
+      }
+    },
+    {
+      "name_verbatim": "LA SALLE LAKES",
+      "waterbody_key": "LA SALLE LAKES",
+      "region": "Region 7",
+      "regulation_management_units": [
+        "7-3"
+      ],
+      "identity_type": "STILL_WATER",
+      "location_descriptor": null,
+      "alternate_names": [],
+      "page": 66,
+      "regulations_summary": "No powered boats\nNote: La Salle Lake \"west\" is only stocked",
+      "candidate_count": 0,
+      "candidate_waterbodies": [],
+      "suggested_action": "Add to DIRECT_MATCHES with gnis_id (lakes) or fwa_watershed_code (streams) of correct candidate",
+      "existing_variation": null,
+      "existing_direct_match": null,
+      "full_identity": {
+        "name_verbatim": "LA SALLE LAKES",
+        "waterbody_key": "LA SALLE LAKES",
+        "identity_type": "STILL_WATER",
+        "component_waterbodies": [],
+        "alternate_names": [],
+        "location_descriptor": null,
+        "notes": null,
+        "global_scope": {
+          "type": "WHOLE_SYSTEM",
+          "waterbody_key": "ALL",
+          "location_verbatim": null,
+          "landmark_verbatim": null,
+          "landmark_end_verbatim": null,
+          "direction": null,
+          "includes_tributaries": false
+        },
+        "exclusions": [],
+        "inclusions": []
+      }
+    },
+    {
+      "name_verbatim": "LITTLE LOST LAKE",
+      "waterbody_key": "LITTLE LOST LAKE",
+      "region": "Region 7",
+      "regulation_management_units": [
+        "7-3"
+      ],
+      "identity_type": "STILL_WATER",
+      "location_descriptor": null,
+      "alternate_names": [],
+      "page": 66,
+      "regulations_summary": "**No Fishing** Nov 1-Apr 30\nRainbow trout daily quota = 2; bait ban, single barbless hook",
+      "candidate_count": 0,
+      "candidate_waterbodies": [],
+      "suggested_action": "Add to DIRECT_MATCHES with gnis_id (lakes) or fwa_watershed_code (streams) of correct candidate",
+      "existing_variation": null,
+      "existing_direct_match": null,
+      "full_identity": {
+        "name_verbatim": "LITTLE LOST LAKE",
+        "waterbody_key": "LITTLE LOST LAKE",
+        "identity_type": "STILL_WATER",
+        "component_waterbodies": [],
+        "alternate_names": [],
+        "location_descriptor": null,
+        "notes": null,
+        "global_scope": {
+          "type": "WHOLE_SYSTEM",
+          "waterbody_key": "ALL",
+          "location_verbatim": null,
+          "landmark_verbatim": null,
+          "landmark_end_verbatim": null,
+          "direction": null,
+          "includes_tributaries": false
+        },
+        "exclusions": [],
+        "inclusions": []
+      }
+    },
+    {
+      "name_verbatim": "LYNX LAKE",
+      "waterbody_key": "LYNX LAKE",
+      "region": "Region 7",
+      "regulation_management_units": [
+        "7-15"
+      ],
+      "identity_type": "STILL_WATER",
+      "location_descriptor": null,
+      "alternate_names": [],
+      "page": 66,
+      "regulations_summary": "Electric motor only - max 7.5 kW",
+      "candidate_count": 0,
+      "candidate_waterbodies": [],
+      "suggested_action": "Add to DIRECT_MATCHES with gnis_id (lakes) or fwa_watershed_code (streams) of correct candidate",
+      "existing_variation": null,
+      "existing_direct_match": null,
+      "full_identity": {
+        "name_verbatim": "LYNX LAKE",
+        "waterbody_key": "LYNX LAKE",
+        "identity_type": "STILL_WATER",
+        "component_waterbodies": [],
+        "alternate_names": [],
+        "location_descriptor": null,
+        "notes": null,
+        "global_scope": {
+          "type": "WHOLE_SYSTEM",
+          "waterbody_key": "ALL",
+          "location_verbatim": null,
+          "landmark_verbatim": null,
+          "landmark_end_verbatim": null,
+          "direction": null,
+          "includes_tributaries": false
+        },
+        "exclusions": [],
+        "inclusions": []
+      }
+    },
+    {
+      "name_verbatim": "NATION RIVER",
+      "waterbody_key": "NATION RIVER",
+      "region": "Region 7",
+      "regulation_management_units": [
+        "7-30"
+      ],
+      "identity_type": "STREAM",
+      "location_descriptor": null,
+      "alternate_names": [],
+      "page": 66,
+      "regulations_summary": "See Nation Arm (Williston Lake)",
+      "candidate_count": 0,
+      "candidate_waterbodies": [],
+      "suggested_action": "Add to DIRECT_MATCHES with gnis_id (lakes) or fwa_watershed_code (streams) of correct candidate",
+      "existing_variation": null,
+      "existing_direct_match": null,
+      "full_identity": {
+        "name_verbatim": "NATION RIVER",
+        "waterbody_key": "NATION RIVER",
+        "identity_type": "STREAM",
+        "component_waterbodies": [],
+        "alternate_names": [],
+        "location_descriptor": null,
+        "notes": null,
+        "global_scope": {
+          "type": "WHOLE_SYSTEM",
+          "waterbody_key": "ALL",
+          "location_verbatim": null,
+          "landmark_verbatim": null,
+          "landmark_end_verbatim": null,
+          "direction": null,
+          "includes_tributaries": false
+        },
+        "exclusions": [],
+        "inclusions": []
+      }
+    },
+    {
+      "name_verbatim": "SQUARE LAKE (located in Crooked River Provincial Park)",
+      "waterbody_key": "SQUARE LAKE",
+      "region": "Region 7",
+      "regulation_management_units": [
+        "7-16"
+      ],
+      "identity_type": "STILL_WATER",
+      "location_descriptor": "located in Crooked River Provincial Park",
+      "alternate_names": [],
+      "page": 67,
+      "regulations_summary": "No powered boats",
+      "candidate_count": 0,
+      "candidate_waterbodies": [],
+      "suggested_action": "Add to DIRECT_MATCHES with gnis_id (lakes) or fwa_watershed_code (streams) of correct candidate",
+      "existing_variation": null,
+      "existing_direct_match": null,
+      "full_identity": {
+        "name_verbatim": "SQUARE LAKE (located in Crooked River Provincial Park)",
+        "waterbody_key": "SQUARE LAKE",
+        "identity_type": "STILL_WATER",
+        "component_waterbodies": [],
+        "alternate_names": [],
+        "location_descriptor": "located in Crooked River Provincial Park",
+        "notes": null,
+        "global_scope": {
+          "type": "WHOLE_SYSTEM",
+          "waterbody_key": "ALL",
+          "location_verbatim": null,
+          "landmark_verbatim": null,
+          "landmark_end_verbatim": null,
+          "direction": null,
+          "includes_tributaries": false
+        },
+        "exclusions": [],
+        "inclusions": []
+      }
+    },
+    {
+      "name_verbatim": "STELLAKO RIVER",
+      "waterbody_key": "STELLAKO RIVER",
+      "region": "Region 7",
+      "regulation_management_units": [
+        "7-12"
+      ],
+      "identity_type": "STREAM",
+      "location_descriptor": null,
+      "alternate_names": [],
+      "page": 67,
+      "regulations_summary": "**No Fishing** Nov 15-May 14; **Class II water**[Includes Tributaries]** when open (Steelhead Stamp not required)**\nRainbow trout catch and release\nFly fishing only between fishing boundary signs approximately 250 m and 4 km downstream of the bridge near the Fran\u00e7ois Lake outlet\nNo powered boats from Fran\u00e7ois Lake to the falls\nSee Region 6 tables for restrictions applying to Fran\u00e7ois Lake's outlet area",
+      "candidate_count": 0,
+      "candidate_waterbodies": [],
+      "suggested_action": "Add to DIRECT_MATCHES with gnis_id (lakes) or fwa_watershed_code (streams) of correct candidate",
+      "existing_variation": null,
+      "existing_direct_match": null,
+      "full_identity": {
+        "name_verbatim": "STELLAKO RIVER",
+        "waterbody_key": "STELLAKO RIVER",
+        "identity_type": "STREAM",
+        "component_waterbodies": [],
+        "alternate_names": [],
+        "location_descriptor": null,
+        "notes": null,
+        "global_scope": {
+          "type": "WHOLE_SYSTEM",
+          "waterbody_key": "ALL",
+          "location_verbatim": null,
+          "landmark_verbatim": null,
+          "landmark_end_verbatim": null,
+          "direction": null,
+          "includes_tributaries": false
+        },
+        "exclusions": [],
+        "inclusions": []
+      }
+    },
+    {
+      "name_verbatim": "TSITNIZ LAKE",
+      "waterbody_key": "TSITNIZ LAKE",
+      "region": "Region 7",
+      "regulation_management_units": [
+        "7-9"
+      ],
+      "identity_type": "STILL_WATER",
+      "location_descriptor": null,
+      "alternate_names": [],
+      "page": 67,
+      "regulations_summary": "No powered boats",
+      "candidate_count": 0,
+      "candidate_waterbodies": [],
+      "suggested_action": "Add to DIRECT_MATCHES with gnis_id (lakes) or fwa_watershed_code (streams) of correct candidate",
+      "existing_variation": null,
+      "existing_direct_match": null,
+      "full_identity": {
+        "name_verbatim": "TSITNIZ LAKE",
+        "waterbody_key": "TSITNIZ LAKE",
+        "identity_type": "STILL_WATER",
+        "component_waterbodies": [],
+        "alternate_names": [],
+        "location_descriptor": null,
+        "notes": null,
+        "global_scope": {
+          "type": "WHOLE_SYSTEM",
+          "waterbody_key": "ALL",
+          "location_verbatim": null,
+          "landmark_verbatim": null,
+          "landmark_end_verbatim": null,
+          "direction": null,
+          "includes_tributaries": false
+        },
+        "exclusions": [],
+        "inclusions": []
+      }
+    },
+    {
+      "name_verbatim": "SWAN LAKE",
+      "waterbody_key": "SWAN LAKE",
+      "region": "Region 7",
+      "regulation_management_units": [
+        "7-20"
+      ],
+      "identity_type": "STILL_WATER",
+      "location_descriptor": null,
+      "alternate_names": [],
+      "page": 72,
+      "regulations_summary": "Walleye daily quota = 1 (none under 50 cm)",
+      "candidate_count": 0,
+      "candidate_waterbodies": [],
+      "suggested_action": "Add to DIRECT_MATCHES with gnis_id (lakes) or fwa_watershed_code (streams) of correct candidate",
+      "existing_variation": null,
+      "existing_direct_match": null,
+      "full_identity": {
+        "name_verbatim": "SWAN LAKE",
+        "waterbody_key": "SWAN LAKE",
+        "identity_type": "STILL_WATER",
+        "component_waterbodies": [],
+        "alternate_names": [],
+        "location_descriptor": null,
+        "notes": null,
+        "global_scope": {
+          "type": "WHOLE_SYSTEM",
+          "waterbody_key": "ALL",
+          "location_verbatim": null,
+          "landmark_verbatim": null,
+          "landmark_end_verbatim": null,
+          "direction": null,
+          "includes_tributaries": false
+        },
+        "exclusions": [],
+        "inclusions": []
+      }
+    },
+    {
+      "name_verbatim": "TUPPER RIVER",
+      "waterbody_key": "TUPPER RIVER",
+      "region": "Region 7",
+      "regulation_management_units": [
+        "7-20"
+      ],
+      "identity_type": "STREAM",
+      "location_descriptor": null,
+      "alternate_names": [],
+      "page": 72,
+      "regulations_summary": "**No Fishing** within 100 m downstream of outlet weir at Swan Lake\nWalleye catch and release",
+      "candidate_count": 0,
+      "candidate_waterbodies": [],
+      "suggested_action": "Add to DIRECT_MATCHES with gnis_id (lakes) or fwa_watershed_code (streams) of correct candidate",
+      "existing_variation": null,
+      "existing_direct_match": null,
+      "full_identity": {
+        "name_verbatim": "TUPPER RIVER",
+        "waterbody_key": "TUPPER RIVER",
+        "identity_type": "STREAM",
+        "component_waterbodies": [],
+        "alternate_names": [],
+        "location_descriptor": null,
+        "notes": null,
+        "global_scope": {
+          "type": "WHOLE_SYSTEM",
+          "waterbody_key": "ALL",
+          "location_verbatim": null,
+          "landmark_verbatim": null,
+          "landmark_end_verbatim": null,
+          "direction": null,
+          "includes_tributaries": false
+        },
+        "exclusions": [],
+        "inclusions": []
+      }
+    },
+    {
+      "name_verbatim": "WILLISTON LAKE (in Zone B)",
+      "waterbody_key": "WILLISTON LAKE",
+      "region": "Region 7",
+      "regulation_management_units": [
+        "7-31",
+        "7-36"
+      ],
+      "identity_type": "STILL_WATER",
+      "location_descriptor": "in Zone B",
+      "alternate_names": [],
+      "page": 72,
+      "regulations_summary": "No rainbow trout under 30 cm\n**See mercury warning page 57 in Region 7A**, and definition of \"stream mouth\" on page 80\nArctic grayling catch and release[Includes Tributaries]\nBull trout daily quota =1 (none under 30 cm or over 50 cm), Oct 16-Aug 14\nLake trout daily quota =3 (none under 30 cm, 1 over 50 cm), Nov 1-Sept 14",
+      "candidate_count": 0,
+      "candidate_waterbodies": [],
+      "suggested_action": "Add to DIRECT_MATCHES with gnis_id (lakes) or fwa_watershed_code (streams) of correct candidate",
+      "existing_variation": null,
+      "existing_direct_match": null,
+      "full_identity": {
+        "name_verbatim": "WILLISTON LAKE (in Zone B)",
+        "waterbody_key": "WILLISTON LAKE",
+        "identity_type": "STILL_WATER",
+        "component_waterbodies": [],
+        "alternate_names": [],
+        "location_descriptor": "in Zone B",
+        "notes": null,
+        "global_scope": {
+          "type": "WHOLE_SYSTEM",
+          "waterbody_key": "ALL",
+          "location_verbatim": null,
+          "landmark_verbatim": null,
+          "landmark_end_verbatim": null,
+          "direction": null,
+          "includes_tributaries": false
+        },
+        "exclusions": [],
+        "inclusions": []
+      }
+    },
+    {
+      "name_verbatim": "CLIFFORD (Cliff ) LAKE",
+      "waterbody_key": "CLIFFORD LAKE",
+      "region": "Region 8",
+      "regulation_management_units": [
+        "8-5"
+      ],
+      "identity_type": "STILL_WATER",
+      "location_descriptor": null,
+      "alternate_names": [
+        "Cliff "
+      ],
+      "page": 75,
+      "regulations_summary": "Electric motor only - max 7.5 kW",
+      "candidate_count": 0,
+      "candidate_waterbodies": [],
+      "suggested_action": "Add to DIRECT_MATCHES with gnis_id (lakes) or fwa_watershed_code (streams) of correct candidate",
+      "existing_variation": null,
+      "existing_direct_match": null,
+      "full_identity": {
+        "name_verbatim": "CLIFFORD (Cliff ) LAKE",
+        "waterbody_key": "CLIFFORD LAKE",
+        "identity_type": "STILL_WATER",
+        "component_waterbodies": [],
+        "alternate_names": [
+          "Cliff "
+        ],
+        "location_descriptor": null,
+        "notes": null,
+        "global_scope": {
+          "type": "WHOLE_SYSTEM",
+          "waterbody_key": "ALL",
+          "location_verbatim": null,
+          "landmark_verbatim": null,
+          "landmark_end_verbatim": null,
+          "direction": null,
+          "includes_tributaries": false
+        },
+        "exclusions": [],
+        "inclusions": []
+      }
+    },
+    {
+      "name_verbatim": "ELLISON LAKE",
+      "waterbody_key": "ELLISON LAKE",
+      "region": "Region 8",
+      "regulation_management_units": [
+        "8-8"
+      ],
+      "identity_type": "STILL_WATER",
+      "location_descriptor": null,
+      "alternate_names": [],
+      "page": 75,
+      "regulations_summary": "Yellow perch daily quota = 20",
+      "candidate_count": 0,
+      "candidate_waterbodies": [],
+      "suggested_action": "Add to DIRECT_MATCHES with gnis_id (lakes) or fwa_watershed_code (streams) of correct candidate",
+      "existing_variation": null,
+      "existing_direct_match": null,
+      "full_identity": {
+        "name_verbatim": "ELLISON LAKE",
+        "waterbody_key": "ELLISON LAKE",
+        "identity_type": "STILL_WATER",
+        "component_waterbodies": [],
+        "alternate_names": [],
+        "location_descriptor": null,
+        "notes": null,
+        "global_scope": {
+          "type": "WHOLE_SYSTEM",
+          "waterbody_key": "ALL",
+          "location_verbatim": null,
+          "landmark_verbatim": null,
+          "landmark_end_verbatim": null,
+          "direction": null,
+          "includes_tributaries": false
+        },
+        "exclusions": [],
+        "inclusions": []
+      }
+    },
+    {
+      "name_verbatim": "FRAZER LAKE",
+      "waterbody_key": "FRAZER LAKE",
+      "region": "Region 8",
+      "regulation_management_units": [
+        "8-9"
+      ],
+      "identity_type": "STILL_WATER",
+      "location_descriptor": null,
+      "alternate_names": [],
+      "page": 75,
+      "regulations_summary": "Bass daily quota = 8, yellow perch daily quota = 20",
+      "candidate_count": 0,
+      "candidate_waterbodies": [],
+      "suggested_action": "Add to DIRECT_MATCHES with gnis_id (lakes) or fwa_watershed_code (streams) of correct candidate",
+      "existing_variation": null,
+      "existing_direct_match": null,
+      "full_identity": {
+        "name_verbatim": "FRAZER LAKE",
+        "waterbody_key": "FRAZER LAKE",
+        "identity_type": "STILL_WATER",
+        "component_waterbodies": [],
+        "alternate_names": [],
+        "location_descriptor": null,
+        "notes": null,
+        "global_scope": {
+          "type": "WHOLE_SYSTEM",
+          "waterbody_key": "ALL",
+          "location_verbatim": null,
+          "landmark_verbatim": null,
+          "landmark_end_verbatim": null,
+          "direction": null,
+          "includes_tributaries": false
+        },
+        "exclusions": [],
+        "inclusions": []
+      }
+    },
+    {
+      "name_verbatim": "FRIDAY LAKE",
+      "waterbody_key": "FRIDAY LAKE",
+      "region": "Region 8",
+      "regulation_management_units": [
+        "8-6"
+      ],
+      "identity_type": "STILL_WATER",
+      "location_descriptor": null,
+      "alternate_names": [],
+      "page": 75,
+      "regulations_summary": "Electric motor only - max 7.5 kW",
+      "candidate_count": 0,
+      "candidate_waterbodies": [],
+      "suggested_action": "Add to DIRECT_MATCHES with gnis_id (lakes) or fwa_watershed_code (streams) of correct candidate",
+      "existing_variation": null,
+      "existing_direct_match": null,
+      "full_identity": {
+        "name_verbatim": "FRIDAY LAKE",
+        "waterbody_key": "FRIDAY LAKE",
+        "identity_type": "STILL_WATER",
+        "component_waterbodies": [],
+        "alternate_names": [],
+        "location_descriptor": null,
+        "notes": null,
+        "global_scope": {
+          "type": "WHOLE_SYSTEM",
+          "waterbody_key": "ALL",
+          "location_verbatim": null,
+          "landmark_verbatim": null,
+          "landmark_end_verbatim": null,
+          "direction": null,
+          "includes_tributaries": false
+        },
+        "exclusions": [],
+        "inclusions": []
+      }
+    },
+    {
+      "name_verbatim": "MINNOW LAKE",
+      "waterbody_key": "MINNOW LAKE",
+      "region": "Region 8",
+      "regulation_management_units": [
+        "8-10"
+      ],
+      "identity_type": "STILL_WATER",
+      "location_descriptor": null,
+      "alternate_names": [],
+      "page": 76,
+      "regulations_summary": "Engine power restriction - 7.5 kW (10 hp); this lake is part of McCulloch Reservoir",
+      "candidate_count": 0,
+      "candidate_waterbodies": [],
+      "suggested_action": "Add to DIRECT_MATCHES with gnis_id (lakes) or fwa_watershed_code (streams) of correct candidate",
+      "existing_variation": null,
+      "existing_direct_match": null,
+      "full_identity": {
+        "name_verbatim": "MINNOW LAKE",
+        "waterbody_key": "MINNOW LAKE",
+        "identity_type": "STILL_WATER",
+        "component_waterbodies": [],
+        "alternate_names": [],
+        "location_descriptor": null,
+        "notes": null,
+        "global_scope": {
+          "type": "WHOLE_SYSTEM",
+          "waterbody_key": "ALL",
+          "location_verbatim": null,
+          "landmark_verbatim": null,
+          "landmark_end_verbatim": null,
+          "direction": null,
+          "includes_tributaries": false
+        },
+        "exclusions": [],
+        "inclusions": []
+      }
+    },
+    {
+      "name_verbatim": "SATURDAY LAKE",
+      "waterbody_key": "SATURDAY LAKE",
+      "region": "Region 8",
+      "regulation_management_units": [
+        "8-6"
+      ],
+      "identity_type": "STILL_WATER",
+      "location_descriptor": null,
+      "alternate_names": [],
+      "page": 76,
+      "regulations_summary": "Electric motor only - max 7.5 kW",
+      "candidate_count": 0,
+      "candidate_waterbodies": [],
+      "suggested_action": "Add to DIRECT_MATCHES with gnis_id (lakes) or fwa_watershed_code (streams) of correct candidate",
+      "existing_variation": null,
+      "existing_direct_match": null,
+      "full_identity": {
+        "name_verbatim": "SATURDAY LAKE",
+        "waterbody_key": "SATURDAY LAKE",
+        "identity_type": "STILL_WATER",
+        "component_waterbodies": [],
+        "alternate_names": [],
+        "location_descriptor": null,
+        "notes": null,
+        "global_scope": {
+          "type": "WHOLE_SYSTEM",
+          "waterbody_key": "ALL",
+          "location_verbatim": null,
+          "landmark_verbatim": null,
+          "landmark_end_verbatim": null,
+          "direction": null,
+          "includes_tributaries": false
+        },
+        "exclusions": [],
+        "inclusions": []
+      }
+    },
+    {
+      "name_verbatim": "SAWMILL LAKE",
+      "waterbody_key": "SAWMILL LAKE",
+      "region": "Region 8",
+      "regulation_management_units": [
+        "8-1"
+      ],
+      "identity_type": "STILL_WATER",
+      "location_descriptor": null,
+      "alternate_names": [],
+      "page": 77,
+      "regulations_summary": "See Burnell Lake",
+      "candidate_count": 0,
+      "candidate_waterbodies": [],
+      "suggested_action": "Add to DIRECT_MATCHES with gnis_id (lakes) or fwa_watershed_code (streams) of correct candidate",
+      "existing_variation": null,
+      "existing_direct_match": null,
+      "full_identity": {
+        "name_verbatim": "SAWMILL LAKE",
+        "waterbody_key": "SAWMILL LAKE",
+        "identity_type": "STILL_WATER",
+        "component_waterbodies": [],
+        "alternate_names": [],
+        "location_descriptor": null,
+        "notes": null,
+        "global_scope": {
+          "type": "WHOLE_SYSTEM",
+          "waterbody_key": "ALL",
+          "location_verbatim": null,
+          "landmark_verbatim": null,
+          "landmark_end_verbatim": null,
+          "direction": null,
+          "includes_tributaries": false
+        },
+        "exclusions": [],
+        "inclusions": []
+      }
+    },
+    {
+      "name_verbatim": "SUNDAY LAKE",
+      "waterbody_key": "SUNDAY LAKE",
+      "region": "Region 8",
+      "regulation_management_units": [
+        "8-6"
+      ],
+      "identity_type": "STILL_WATER",
+      "location_descriptor": null,
+      "alternate_names": [],
+      "page": 77,
+      "regulations_summary": "Electric motor only - max 7.5 kW",
+      "candidate_count": 0,
+      "candidate_waterbodies": [],
+      "suggested_action": "Add to DIRECT_MATCHES with gnis_id (lakes) or fwa_watershed_code (streams) of correct candidate",
+      "existing_variation": null,
+      "existing_direct_match": null,
+      "full_identity": {
+        "name_verbatim": "SUNDAY LAKE",
+        "waterbody_key": "SUNDAY LAKE",
+        "identity_type": "STILL_WATER",
+        "component_waterbodies": [],
+        "alternate_names": [],
+        "location_descriptor": null,
+        "notes": null,
+        "global_scope": {
+          "type": "WHOLE_SYSTEM",
+          "waterbody_key": "ALL",
+          "location_verbatim": null,
+          "landmark_verbatim": null,
+          "landmark_end_verbatim": null,
+          "direction": null,
+          "includes_tributaries": false
+        },
+        "exclusions": [],
+        "inclusions": []
+      }
+    },
+    {
+      "name_verbatim": "SWAN LAKE",
+      "waterbody_key": "SWAN LAKE",
+      "region": "Region 8",
+      "regulation_management_units": [
+        "8-26"
+      ],
+      "identity_type": "STILL_WATER",
+      "location_descriptor": null,
+      "alternate_names": [],
+      "page": 77,
+      "regulations_summary": "Yellow perch daily quota = 20",
+      "candidate_count": 0,
+      "candidate_waterbodies": [],
+      "suggested_action": "Add to DIRECT_MATCHES with gnis_id (lakes) or fwa_watershed_code (streams) of correct candidate",
+      "existing_variation": null,
+      "existing_direct_match": null,
+      "full_identity": {
+        "name_verbatim": "SWAN LAKE",
+        "waterbody_key": "SWAN LAKE",
+        "identity_type": "STILL_WATER",
+        "component_waterbodies": [],
+        "alternate_names": [],
+        "location_descriptor": null,
+        "notes": null,
+        "global_scope": {
+          "type": "WHOLE_SYSTEM",
+          "waterbody_key": "ALL",
+          "location_verbatim": null,
+          "landmark_verbatim": null,
+          "landmark_end_verbatim": null,
+          "direction": null,
+          "includes_tributaries": false
+        },
+        "exclusions": [],
+        "inclusions": []
+      }
+    }
+  ]
+}

@@ -6,10 +6,10 @@ This package provides modules for processing BC Freshwater Atlas data:
 - index_builder: Build searchable JSON index for web application
 """
 
-from .graph_builder import FWAPrimalGraph
+from .graph_builder import FWAPrimalGraphIGraph
 from .index_builder import IndexBuilder
 
 __all__ = [
-    "FWAPrimalGraph",
+    "FWAPrimalGraphIGraph",
     "IndexBuilder",
 ]

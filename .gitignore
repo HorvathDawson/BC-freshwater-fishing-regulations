@@ -18,3 +18,8 @@ __pycache__/
 scripts/output/fwa_modules
 scripts/output/synopsis_pipeline
 scripts/output/fishing_synopsis.pdf
+
+# Environment variables with API keys
+.env
+.env.local
+.env.*.local

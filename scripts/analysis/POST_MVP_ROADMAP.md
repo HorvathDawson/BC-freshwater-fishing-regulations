@@ -8,6 +8,16 @@ This document outlines the incremental improvements to the waterbody linking sys
 
 ---
 
+## Data Model Reference
+
+See [MVP_LINKING_IMPLEMENTATION.md](./MVP_LINKING_IMPLEMENTATION.md#data-model-reference) for complete data model documentation. Key classes:
+- **ParsedWaterbody**: Top-level regulation
+- **IdentityObject**: Waterbody identity with `global_scope`, `exclusions`, `inclusions`
+- **ScopeObject**: Spatial scope (type, waterbody_key, includes_tributaries, landmarks)
+- **RuleGroup**: Individual rules with dedicated scope
+
+---
+
 ## Phase 1: Easy Exclusions
 
 ### Goal
@@ -39,18 +49,37 @@ Activate exclusions that have single FWA matches with minimal code changes. This
 #### Data Structure (Already Built in MVP)
 
 ```python
-regulation = {
+# From MVP linking process, attached to each parsed waterbody
+regulation_metadata = {
     "regulation_id": "reg_001",
+    "parsed_waterbody": ParsedWaterbody(...),  # Original parsed regulation
+    "linked_fwa_feature": fwa_feature_obj,     # Main waterbody FWA link
     "exclusions": {
         "ready_to_activate": [  # These are what Phase 1 uses
             {
-                "waterbody": "Michel Creek",
-                "fwa_id": "fwa_michel_001",
-                "includes_tributaries": true,
-                "status": "linked_not_applied"
+                "scope_object": ScopeObject(  # From identity.exclusions[]
+                    type="WHOLE_SYSTEM",
+                    waterbody_key="MICHEL CREEK",
+                    includes_tributaries=True,
+                    location_verbatim="Michel Creek",
+                    landmark_verbatim=None,
+                    landmark_end_verbatim=None,
+                    direction=None
+                ),
+                "fwa_feature": fwa_michel_creek,  # Linked FWA feature
+                "waterbody_key": "MICHEL CREEK",
+                "includes_tributaries": True,
+                "location_verbatim": "Michel Creek"
             }
         ],
-        "needs_review": [...]  # Ignored in Phase 1
+        "needs_review": [  # Ambiguous/unlinked - ignored in Phase 1
+            {
+                "scope_object": ScopeObject(...),
+                "waterbody_key": "AMBIGUOUS CREEK",
+                "candidates": [fwa_match_1, fwa_match_2],
+                "reason": "ambiguous"
+            }
+        ]
     }
 }
 ```
@@ -58,21 +87,31 @@ regulation = {
 #### Activation Algorithm
 
 ```python
-def apply_phase_1_exclusions(regulation, linked_segments):
+def apply_phase_1_exclusions(regulation_metadata: Dict[str, Any],
+                             linked_segments: List[str]) -> Tuple[List[str], Set[str]]:
     """
-    Apply ready-to-activate exclusions to segment list
+    Apply ready-to-activate exclusions to segment list.
+    
+    Args:
+        regulation_metadata: Metadata from MVP linking (contains exclusions)
+        linked_segments: List of FWA segment IDs from Step 2 (tributary enrichment)
+    
+    Returns:
+        (final_segments, segments_to_exclude)
     """
     segments_to_exclude = set()
     
-    for exclusion in regulation.exclusions["ready_to_activate"]:
-        # Get FWA feature (already validated in MVP)
-        fwa_feature = fwa_database.get_by_id(exclusion["fwa_id"])
+    for exclusion_item in regulation_metadata["exclusions"]["ready_to_activate"]:
+        # Get already-linked FWA feature (validated in MVP)
+        fwa_feature = exclusion_item["fwa_feature"]
+        scope_object = exclusion_item["scope_object"]
         
         # Add main feature segments
-        segments_to_exclude.add(fwa_feature.segment_id)
+        main_segments = get_fwa_segments(fwa_feature)
+        segments_to_exclude.update(main_segments)
         
         # Handle tributary cascade
-        if exclusion["includes_tributaries"]:
+        if scope_object.includes_tributaries:
             # Find all upstream tributaries
             upstream_segments = find_all_upstream_tributaries(fwa_feature)
             segments_to_exclude.update(upstream_segments)
@@ -81,18 +120,17 @@ def apply_phase_1_exclusions(regulation, linked_segments):
     final_segments = [s for s in linked_segments if s not in segments_to_exclude]
     
     # Remove warnings for activated exclusions
-    for segment in final_segments:
-        segment.warnings = [
-            w for w in segment.warnings
-            if not (w["type"] == "unlinked_exclusion" and 
-                   w["waterbody"] in [e["waterbody"] for e in regulation.exclusions["ready_to_activate"]])
-        ]
+    for segment_id in final_segments:
+        remove_exclusion_warnings(segment_id, regulation_metadata["exclusions"]["ready_to_activate"])
     
     return final_segments, segments_to_exclude
 
 # Usage
 if PHASE_1_ENABLED:
-    linked_segments, excluded = apply_phase_1_exclusions(regulation, linked_segments)
+    linked_segments, excluded = apply_phase_1_exclusions(
+        regulation_metadata, 
+        linked_segments
+    )
 else:
     # MVP behavior - no exclusions applied
     pass
@@ -293,13 +331,15 @@ Implement accurate scope filtering for directional and bounded segment regulatio
 
 **Solution**:
 ```python
-def snap_landmark_to_stream(landmark_point, waterbody, max_distance=500):
+def snap_landmark_to_stream(landmark_point, waterbody, scope_object: ScopeObject, 
+                           max_distance=500):
     """
-    Find nearest point on waterbody to landmark
+    Find nearest point on waterbody to landmark.
     
     Args:
         landmark_point: (lat, lng) or FWA point feature
-        waterbody: FWA waterbody feature
+        waterbody: FWA waterbody feature  
+        scope_object: ScopeObject containing landmark_verbatim for logging
         max_distance: Maximum snap distance in meters
     
     Returns:
@@ -315,7 +355,7 @@ def snap_landmark_to_stream(landmark_point, waterbody, max_distance=500):
     distance = landmark_point.distance(snapped)
     
     if distance > max_distance:
-        log_warning(f"Landmark {landmark_point} is {distance}m from waterbody - may be incorrect")
+        log_warning(f"Landmark '{scope_object.landmark_verbatim}' is {distance}m from waterbody - may be incorrect")
         return None
     
     return snapped

@@ -268,6 +268,36 @@ class MetadataBuilder:
 
         return {"zones": sorted(list(zones)), "mgmt_units": sorted(list(mgmt_units))}
 
+    def find_zones_for_polygon(self, polygon) -> dict:
+        """
+        Find all zones and management units that intersect with a polygon.
+
+        This is more accurate than centroid-based assignment for large features
+        that may span multiple management units.
+
+        Args:
+            polygon: Shapely Polygon or MultiPolygon geometry
+
+        Returns:
+            dict with 'zones' and 'mgmt_units' lists
+        """
+        # Query spatial index using polygon bounds
+        possible_matches_idx = self.zone_index.query(polygon)
+
+        zones = set()
+        mgmt_units = set()
+
+        # Check actual intersection
+        for idx in possible_matches_idx:
+            zone_geom = self.zones_gdf.iloc[idx].geometry
+            if zone_geom.intersects(polygon):
+                zone_num = self.zones_gdf.iloc[idx]["zone"]
+                mgmt_unit_id = self.zones_gdf.iloc[idx]["WILDLIFE_MGMT_UNIT_ID"]
+                zones.add(zone_num)
+                mgmt_units.add(mgmt_unit_id)
+
+        return {"zones": sorted(list(zones)), "mgmt_units": sorted(list(mgmt_units))}
+
     def extract_stream_metadata(self, num_workers: int = 8):
         """Extract all edge attributes from graph and add zone assignments using parallel processing.
 
@@ -397,11 +427,9 @@ class MetadataBuilder:
                 # Get waterbody key
                 waterbody_key = str(int(row["WATERBODY_KEY"]))
 
-                # Use centroid for zone assignment
-                centroid = row.geometry.centroid
-
-                # Find zones
-                zone_result = self.find_zones_for_point(centroid)
+                # Find zones using polygon intersection (not just centroid)
+                # This ensures large lakes spanning multiple MUs get all their MUs
+                zone_result = self.find_zones_for_polygon(row.geometry)
 
                 # Extract name (different columns for different layers)
                 name = ""
@@ -410,10 +438,36 @@ class MetadataBuilder:
                 elif "GNIS_NAME" in row.index:
                     name = row.get("GNIS_NAME", "")
 
+                # Extract GNIS ID (for deduplication of same lake with different watershed codes)
+                gnis_id = ""
+                if "GNIS_ID_1" in row.index:
+                    gid = row.get("GNIS_ID_1", "")
+                    gnis_id = str(int(gid)) if pd.notna(gid) and gid else ""
+
+                # Extract alternate name and ID (GNIS_NAME_2 / GNIS_ID_2)
+                name_2 = ""
+                if "GNIS_NAME_2" in row.index:
+                    name_2 = row.get("GNIS_NAME_2", "")
+
+                gnis_id_2 = ""
+                if "GNIS_ID_2" in row.index:
+                    gid_2 = row.get("GNIS_ID_2", "")
+                    gnis_id_2 = str(int(gid_2)) if pd.notna(gid_2) and gid_2 else ""
+
+                # Extract watershed code
+                watershed_code = ""
+                if "FWA_WATERSHED_CODE" in row.index:
+                    wsc = row.get("FWA_WATERSHED_CODE", "")
+                    watershed_code = wsc if pd.notna(wsc) else ""
+
                 # Store metadata
                 feature_metadata[waterbody_key] = {
                     "waterbody_key": waterbody_key,
                     "gnis_name": name if pd.notna(name) else "",
+                    "gnis_id": gnis_id,
+                    "gnis_name_2": name_2 if pd.notna(name_2) else "",
+                    "gnis_id_2": gnis_id_2,
+                    "fwa_watershed_code": watershed_code,
                     "feature_type": feature_type,
                     "zones": zone_result["zones"],
                     "mgmt_units": zone_result["mgmt_units"],

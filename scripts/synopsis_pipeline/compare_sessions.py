@@ -1986,8 +1986,13 @@ def format_single_session_output(
         if "exclusion_count" in item and "exclusions" in item:
             lines.append(f"Exclusions: {item['exclusion_count']}")
             for i, excl in enumerate(item["exclusions"], 1):
+                tribs_status = (
+                    "includes tributaries"
+                    if excl.get("includes_tributaries", False)
+                    else "excludes tributaries"
+                )
                 lines.append(
-                    f"  {i}. {excl.get('type')} - {excl.get('location_verbatim', 'None')}"
+                    f"  {i}. {excl.get('type')} - {excl.get('location_verbatim', 'None')} ({tribs_status})"
                 )
 
         if "vague_rule_count" in item and "vague_rules" in item:
@@ -2073,7 +2078,7 @@ EXAMPLES:
     parser.add_argument(
         "--output-dir",
         type=Path,
-        default=Path("../output/llm_parser"),
+        default=Path("../output/parse_synopsis"),
         help="Base directory for resolving relative session file paths. Default: %(default)s",
     )
 
