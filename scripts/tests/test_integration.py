@@ -16,7 +16,6 @@ from shapely.geometry import LineString, Point, Polygon
 import fiona
 
 from fwa_modules.stream_preprocessing_simple import StreamPreprocessor
-from fwa_modules.kml_enrichment import KMLEnricher
 from fwa_modules.network_analysis import NetworkAnalyzer
 from fwa_modules.models import ZoneAssignment
 
@@ -126,30 +125,6 @@ def mock_lakes_gdb(temp_workspace):
     return gdb_path
 
 
-@pytest.fixture
-def mock_kml_points(temp_workspace):
-    """Create mock KML points using real coordinates from unnamed_lakes.kml."""
-
-    # Use real BC coordinates from unnamed_lakes.kml
-    points_data = {
-        "Name": ["unnamed lake c - map b", "unnamed lake b - map a", "Point nowhere"],
-        "geometry": [
-            Point(-125.477748, 50.134073),  # Should match lake 1
-            Point(-125.640115, 50.192516),  # Should match lake 2
-            Point(-110.0, 50.0),  # Far east, won't match
-        ],
-    }
-
-    points_gdf = gpd.GeoDataFrame(points_data, crs="EPSG:4326")
-
-    # Keep in WGS84 like a real KML file would be
-    # Save as GPKG (easier than KML for testing)
-    gpkg_path = temp_workspace / "test_points.gpkg"
-    points_gdf.to_file(str(gpkg_path), driver="GPKG")
-
-    return gpkg_path
-
-
 class TestStreamPreprocessing:
     """Test stream preprocessing phase."""
 
@@ -207,61 +182,6 @@ class TestStreamPreprocessing:
 
         # S3 should be kept (1 level away)
         assert "S3" in result["LINEAR_FEATURE_ID"].values
-
-
-class TestKMLEnrichment:
-    """Test KML point enrichment phase."""
-
-    def test_kml_enrichment(self, temp_workspace, mock_lakes_gdb, mock_kml_points):
-        """Test full KML enrichment."""
-        output_points = temp_workspace / "enriched_points.gpkg"
-        output_log = temp_workspace / "warnings.log"
-
-        enricher = KMLEnricher(
-            mock_kml_points, mock_lakes_gdb, output_points, output_log
-        )
-
-        result = enricher.run()
-
-        assert result == output_points
-        assert output_points.exists()
-        assert output_log.exists()
-
-        # Check stats
-        assert enricher.stats["total_points"] == 3
-        assert enricher.stats["matched_lakes"] == 2
-        assert enricher.stats["unmatched"] == 1
-
-    def test_point_polygon_matching(
-        self, temp_workspace, mock_lakes_gdb, mock_kml_points
-    ):
-        """Test that points match correct polygons."""
-        output_points = temp_workspace / "enriched_points.gpkg"
-        output_log = temp_workspace / "warnings.log"
-
-        enricher = KMLEnricher(
-            mock_kml_points, mock_lakes_gdb, output_points, output_log
-        )
-
-        enricher.run()
-
-        # Load results
-        points = gpd.read_file(str(output_points))
-
-        # First point should match Test Named Lake (ID 1)
-        point1 = points[points["Name"] == "unnamed lake c - map b"]
-        assert len(point1) == 1
-        assert point1.iloc[0]["LAKE_POLY_ID"] == 1
-
-        # Second point should match unnamed lake (ID 2)
-        point2 = points[points["Name"] == "unnamed lake b - map a"]
-        assert len(point2) == 1
-        assert point2.iloc[0]["LAKE_POLY_ID"] == 2
-
-        # Third point should not match
-        point3 = points[points["Name"] == "Point nowhere"]
-        assert len(point3) == 1
-        assert pd.isna(point3.iloc[0]["LAKE_POLY_ID"])
 
 
 class TestZoneAssignment:

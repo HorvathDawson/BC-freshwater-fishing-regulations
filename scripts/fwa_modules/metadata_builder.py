@@ -106,6 +106,7 @@ def _process_stream_chunk(chunk, zones_gdf, zone_index):
             # Graph attributes
             "linear_feature_id": linear_feature_id,
             "gnis_name": data.get("gnis_name", ""),
+            "gnis_id": data.get("gnis_id", ""),  # Added for stream GNIS ID lookups
             "fwa_watershed_code": data.get("fwa_watershed_code", ""),
             "fwa_watershed_code_clean": data.get("fwa_watershed_code_clean", ""),
             "stream_order": data.get("stream_order"),
@@ -424,7 +425,17 @@ class MetadataBuilder:
                     )
                     gc.collect()
 
-                # Get waterbody key
+                # Use WATERBODY_POLY_ID as unique key (polygons can share same WATERBODY_KEY)
+                # Example: Williston Lake has 3 polygons with same WATERBODY_KEY but different WATERBODY_POLY_ID
+                if "WATERBODY_POLY_ID" in row.index and pd.notna(
+                    row["WATERBODY_POLY_ID"]
+                ):
+                    poly_id = str(int(row["WATERBODY_POLY_ID"]))
+                else:
+                    # Fallback to WATERBODY_KEY if WATERBODY_POLY_ID not available
+                    poly_id = str(int(row["WATERBODY_KEY"]))
+
+                # Also store WATERBODY_KEY separately (for grouping polygons by lake)
                 waterbody_key = str(int(row["WATERBODY_KEY"]))
 
                 # Find zones using polygon intersection (not just centroid)
@@ -460,8 +471,9 @@ class MetadataBuilder:
                     wsc = row.get("FWA_WATERSHED_CODE", "")
                     watershed_code = wsc if pd.notna(wsc) else ""
 
-                # Store metadata
-                feature_metadata[waterbody_key] = {
+                # Store metadata using poly_id as key (ensures all polygons are preserved)
+                feature_metadata[poly_id] = {
+                    "waterbody_poly_id": poly_id,
                     "waterbody_key": waterbody_key,
                     "gnis_name": name if pd.notna(name) else "",
                     "gnis_id": gnis_id,

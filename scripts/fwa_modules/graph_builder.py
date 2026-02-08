@@ -33,6 +33,62 @@ from shapely.geometry import LineString, MultiLineString, shape
 warnings.filterwarnings("ignore")
 logger = logging.getLogger(__name__)
 
+# Feature Code Lookup Table
+FEATURE_CODE_DESCRIPTIONS = {
+    "AP09200000": "Dump",
+    "AP90300100": "Mine - Tailing Pond",
+    "EA26700110": "Settling Basin - Sewage",
+    "FA02650000": "Boundary (International)",
+    "GA03950000": "Canal",
+    "GA08800110": "Ditch",
+    "GA24850000": "River/Stream - Definite",
+    "GA24850140": "River/Stream - Indefinite",
+    "GA24850150": "River/Stream - Intermittent",
+    "GB11350110": "Flooded Land - Inundated",
+    "GB15300000": "Lake - Definite",
+    "GB15300130": "Lake - Indefinite",
+    "GB15300140": "Lake - Intermittent",
+    "GB24300000": "Reservoir - Definite",
+    "GB90100000": "Reservoir - Indefinite",
+    "GB90100110": "Reservoir - Intermittent",
+    "GC17100000": "Marsh",
+    "GC30050000": "Swamp",
+    "GE14850000": "Island - Definite",
+    "GG05800000": "Coastline - Definite",
+    "WA11410000": "Flow Connectors - Inferred",
+    "WA17100000": "Frequently Flooded Land",
+    "WA21100111": "Construction Line - Coastline",
+    "WA23111110": "Construction Line - Lakeshore",
+    "WA24111110": "Construction Line - Main Flow",
+    "WA24111111": "Construction Line - Lake Arm",
+    "WA24111120": "Construction Line - Main Connector",
+    "WA24111130": "Construction Line - Secondary Flow",
+    "WA24111140": "Construction Line - Segment Delimiter",
+    "WA24111150": "Construction Line - Secondary",
+    "WA24111160": "Construction Line - River Delimiter",
+    "WA24111170": "Construction Line - Flow Inferred",
+    "WA24111180": "Construction Line - Subsurface Flow",
+    "WA24111190": "Construction Line - Flow Connector",
+    "WA24200110": "Double-Line Blueline - Right Bank",
+    "WA24200120": "Double-Line Blueline - Right",
+    "WA24200130": "Double-Line Blueline - Left Bank",
+    "WA24200140": "Double-Line Blueline - Left",
+    "WA24220110": "Island in River - Right Bank",
+    "WA24220120": "Island in River - Right Bank Shared with Wetland",
+    "WA24220130": "Island in River - Left Bank",
+    "WA24220140": "Island in River - Left Bank Shared with Wetland",
+    "WA25100110": "Watershed Boundary - Major",
+    "WA25100120": "Watershed Boundary - Minor",
+    "WA25100140": "Watershed Boundary - (att) operator modified or added HOL",
+    "GA08450110": "Dam - Beaver",
+    "GA23500110": "Rapids",
+    "GA90002110": "Falls",
+    "GA98450000": "Dam",
+    "HB27550000": "Sinkhole",
+    "GA10450200": "Artificial Waterfall",
+    "GA10450300": "Flattened Waterfall",
+}
+
 
 def get_endpoints_helper(geom):
     """Helper function for extracting endpoints from geometry."""
@@ -67,9 +123,6 @@ def process_layer_worker(args):
     try:
         # Use fiona to stream features from this layer
         with fiona.open(streams_gdb_path, layer=layer) as src:
-            # First pass: collect features and build name propagation mapping
-            features_list = []
-            code_to_name = {}
             for feature in src:
                 props = feature["properties"]
                 geom_data = feature["geometry"]
@@ -80,20 +133,10 @@ def process_layer_worker(args):
                 code = props.get("FWA_WATERSHED_CODE")
                 if code and code.startswith("999-999999"):
                     continue
-                # Build name propagation mapping
-                name = props.get("GNIS_NAME")
-                if code and name:
-                    if code not in code_to_name:
-                        code_to_name[code] = name
-                features_list.append((feature, code, name))
 
-            # Second pass: process features with name propagation
-            for feature, code, name in features_list:
-                props = feature["properties"]
-                geom_data = feature["geometry"]
-                # Apply name propagation
-                if code and (not name) and code in code_to_name:
-                    name = code_to_name[code]
+                # Extract GNIS name and ID as-is (propagation happens after preprocessing)
+                name = props.get("GNIS_NAME")
+                gnis_id = props.get("GNIS_ID")
                 # Parse geometry
                 try:
                     geom = shape(geom_data)
@@ -105,6 +148,7 @@ def process_layer_worker(args):
                 lf_id = props.get("LINEAR_FEATURE_ID")
                 wb = props.get("WATERBODY_KEY")
                 stream_order = props.get("STREAM_ORDER")
+                feature_code = props.get("FEATURE_CODE", "")
                 # Get endpoints
                 u, v, u_coord, v_coord = get_endpoints_helper(geom)
                 if not u:
@@ -124,6 +168,7 @@ def process_layer_worker(args):
                         lake_name_val = lake_lookup[k]
 
                 gnis_name = name if name else ""
+                gnis_id_str = str(int(gnis_id)) if gnis_id else ""
                 # Store edge data
                 edge_data = {
                     "v": v,
@@ -131,16 +176,14 @@ def process_layer_worker(args):
                     "sid": sid,
                     "fwa_watershed_code": s_code,
                     "gnis_name": gnis_name,
+                    "gnis_id": gnis_id_str,
                     "waterbody_key": waterbody_key,
                     "lake_name": lake_name_val,
                     "stream_order": int(stream_order) if stream_order else None,
                     "length": geom.length,
+                    "feature_code": feature_code,
                 }
                 edges_data.append(edge_data)
-            # Clean up
-            del features_list
-            del code_to_name
-            gc.collect()
     except Exception as e:
         # Silently skip problematic layers
         pass
@@ -306,12 +349,15 @@ class FWAPrimalGraphIGraph:
             "fwa_watershed_code": [],
             "fwa_watershed_code_clean": [],
             "gnis_name": [],
+            "gnis_id": [],
             "waterbody_key": [],
             "lake_name": [],
             "stream_order": [],
             "length": [],
-            "stream_tributary_of": [],
-            "lake_tributary_of": [],
+            "feature_code": [],
+            # Tributary fields removed - use graph traversal instead
+            # "stream_tributary_of": [],
+            # "lake_tributary_of": [],
             "weight": [],
             "edge_index": [],
         }
@@ -340,12 +386,15 @@ class FWAPrimalGraphIGraph:
                 clean_code_helper(edge_data["fwa_watershed_code"])
             )
             edge_attrs["gnis_name"].append(edge_data["gnis_name"])
+            edge_attrs["gnis_id"].append(edge_data["gnis_id"])
             edge_attrs["waterbody_key"].append(edge_data["waterbody_key"])
             edge_attrs["lake_name"].append(edge_data["lake_name"])
             edge_attrs["stream_order"].append(edge_data["stream_order"])
             edge_attrs["length"].append(edge_data["length"])
-            edge_attrs["stream_tributary_of"].append("")
-            edge_attrs["lake_tributary_of"].append("")
+            edge_attrs["feature_code"].append(edge_data["feature_code"])
+            # Tributary fields removed - use graph traversal instead
+            # edge_attrs["stream_tributary_of"].append("")
+            # edge_attrs["lake_tributary_of"].append("")
             edge_attrs["weight"].append(1.0 + visual_offset)
             edge_attrs["edge_index"].append(parallel_count)
 
@@ -385,9 +434,22 @@ class FWAPrimalGraphIGraph:
         logger.info("STEP 1.5: PREPROCESSING - REMOVING SPURIOUS EDGES")
         logger.info("=" * 80)
         logger.info("Removing stream_order=1 edges leading to tailwater roots...\n")
+        logger.info(
+            "NOTE: Preserving coastal streams (watershed codes starting with 9)\n"
+        )
 
         total_edges_removed = 0
         iteration = 0
+        # Track statistics about removed edges (first iteration only)
+        removed_stats = {
+            "watershed_prefixes": {},
+            "named_count": 0,
+            "unnamed_count": 0,
+            "lake_edges": 0,
+            "total_length": 0.0,
+            "feature_codes": {},
+            "removed_edges": [],  # Store details of all removed spurious edges
+        }
 
         while True:
             iteration += 1
@@ -399,6 +461,12 @@ class FWAPrimalGraphIGraph:
 
             edges_to_remove = []
             order_counts = {}
+            coastal_preserved = 0
+            coastal_preserved_stats = {
+                "named": 0,
+                "unnamed": 0,
+                "watershed_prefixes": {},
+            }
 
             # Check edges leading to these roots
             for root in roots:
@@ -408,12 +476,100 @@ class FWAPrimalGraphIGraph:
                     order_counts[stream_order] = order_counts.get(stream_order, 0) + 1
                     # If this edge has stream order 1, it's likely spurious
                     if stream_order == 1:
+                        watershed_code = edge["fwa_watershed_code"]
+                        gnis_name = edge["gnis_name"]
+
+                        # Preserve coastal streams (watershed codes starting with 9)
+                        if watershed_code and watershed_code.startswith("9"):
+                            coastal_preserved += 1
+                            # Track coastal preservation stats (first iteration only)
+                            if iteration == 1:
+                                if gnis_name:
+                                    coastal_preserved_stats["named"] += 1
+                                else:
+                                    coastal_preserved_stats["unnamed"] += 1
+                                # Track watershed prefix (first 3 digits)
+                                prefix = (
+                                    watershed_code.split("-")[0]
+                                    if watershed_code
+                                    else "unknown"
+                                )
+                                coastal_preserved_stats["watershed_prefixes"][
+                                    prefix
+                                ] = (
+                                    coastal_preserved_stats["watershed_prefixes"].get(
+                                        prefix, 0
+                                    )
+                                    + 1
+                                )
+                            continue
+
+                        # Preserve named streams (have GNIS name from source data)
+                        if gnis_name:
+                            continue
+
                         edges_to_remove.append(edge.index)
+
+                        # Collect statistics (first iteration only)
+                        if iteration == 1:
+                            # Track watershed code prefix
+                            prefix = (
+                                watershed_code.split("-")[0]
+                                if watershed_code
+                                else "unknown"
+                            )
+                            removed_stats["watershed_prefixes"][prefix] = (
+                                removed_stats["watershed_prefixes"].get(prefix, 0) + 1
+                            )
+
+                            # Track named vs unnamed
+                            if gnis_name:
+                                removed_stats["named_count"] += 1
+                            else:
+                                removed_stats["unnamed_count"] += 1
+
+                            # Store details for all removed spurious edges
+                            removed_stats["removed_edges"].append(
+                                {
+                                    "linear_feature_id": edge["linear_feature_id"],
+                                    "gnis_name": gnis_name if gnis_name else "",
+                                    "watershed_code": edge["fwa_watershed_code"],
+                                    "feature_code": edge["feature_code"],
+                                    "stream_order": edge["stream_order"],
+                                    "length": edge["length"],
+                                }
+                            )
+
+                            # Track lake edges
+                            if edge["lake_name"]:
+                                removed_stats["lake_edges"] += 1
+
+                            # Track total length
+                            removed_stats["total_length"] += edge["length"]
+
+                            # Track feature codes
+                            fc = (
+                                edge["feature_code"]
+                                if edge["feature_code"]
+                                else "unknown"
+                            )
+                            removed_stats["feature_codes"][fc] = (
+                                removed_stats["feature_codes"].get(fc, 0) + 1
+                            )
 
             if iteration == 1:
                 logger.info(
                     f"Stream order distribution of edges to roots: {dict(sorted(order_counts.items()))}"
                 )
+                if coastal_preserved > 0:
+                    logger.info(
+                        f"\nPreserved {coastal_preserved} coastal stream edges (9xx watershed codes):"
+                    )
+                    logger.info(f"  Named: {coastal_preserved_stats['named']}")
+                    logger.info(f"  Unnamed: {coastal_preserved_stats['unnamed']}")
+                    logger.info(
+                        f"  Watershed prefixes: {dict(sorted(coastal_preserved_stats['watershed_prefixes'].items()))}"
+                    )
 
             del order_counts
 
@@ -465,6 +621,99 @@ class FWAPrimalGraphIGraph:
         logger.info(f"  Removed: {total_edges_removed:,} spurious edges")
         logger.info(f"  Removed: {num_isolated:,} isolated nodes")
         logger.info(f"  Result: {self.G.vcount():,} nodes, {self.G.ecount():,} edges")
+        logger.info(f"  Time: {elapsed:.1f}s")
+
+        # Log detailed statistics about removed edges
+        if total_edges_removed > 0:
+            logger.info(f"\n  Removed Edge Statistics:")
+            logger.info(f"    Named streams: {removed_stats['named_count']:,}")
+            logger.info(f"    Unnamed streams: {removed_stats['unnamed_count']:,}")
+            logger.info(f"    Lake edges: {removed_stats['lake_edges']:,}")
+            logger.info(f"    Total length: {removed_stats['total_length']:,.1f}m")
+            logger.info(
+                f"    Watershed code prefixes: {dict(sorted(removed_stats['watershed_prefixes'].items()))}"
+            )
+
+            # Display feature code breakdown with descriptions
+            logger.info(f"\n  Feature Type Breakdown:")
+            for fc, count in sorted(
+                removed_stats["feature_codes"].items(), key=lambda x: x[1], reverse=True
+            ):
+                desc = FEATURE_CODE_DESCRIPTIONS.get(fc, "Unknown")
+                logger.info(f"    {fc}: {count:,} ({desc})")
+
+            # Save all removed spurious edges to file
+            if removed_stats["removed_edges"]:
+                import json
+
+                output_file = os.path.join(
+                    os.path.dirname(__file__),
+                    "..",
+                    "output",
+                    "fwa_modules",
+                    "removed_spurious_edges.json",
+                )
+                with open(output_file, "w") as f:
+                    json.dump(removed_stats["removed_edges"], f, indent=2)
+                logger.info(
+                    f"\n  Saved {len(removed_stats['removed_edges'])} removed spurious edges to: removed_spurious_edges.json"
+                )
+
+        logger.info(f"{'='*80}\n")
+        gc.collect()
+
+    def propagate_names_by_watershed(self):
+        """
+        Propagate GNIS names to all edges with the same watershed code.
+        After spurious edge removal, ensures all segments of the same watershed
+        share the same name if any segment has a name.
+
+        NOTE: This approach of renaming all segments with the same watershed code
+        may cause issues with regulation mapping. When stream segments have the same
+        watershed code but different names, it becomes unclear whether they should be
+        treated as tributaries or the mainstem for regulation purposes.
+
+        A better approach might be to preserve the different names, allowing segments
+        to be recognized as BOTH tributaries AND the mainstem simultaneously. This would
+        provide more flexibility for regulation matching.
+
+        Example: Squamish Powerhouse Channel has segments with the same watershed code
+        as Squamish River but with a distinct name. Renaming them to "Squamish River"
+        loses the ability to match regulations specific to the powerhouse channel.
+        """
+        import time
+
+        start_time = time.time()
+
+        logger.info("=" * 80)
+        logger.info("STEP 1.7: PROPAGATING NAMES BY WATERSHED CODE")
+        logger.info("=" * 80)
+        logger.info("Applying names to all segments with same watershed code...\n")
+
+        # Build mapping of watershed_code -> name
+        code_to_name = {}
+        for edge in self.G.es:
+            watershed_code = edge["fwa_watershed_code"]
+            gnis_name = edge["gnis_name"]
+            if watershed_code and gnis_name:
+                if watershed_code not in code_to_name:
+                    code_to_name[watershed_code] = gnis_name
+
+        logger.info(f"Found {len(code_to_name):,} unique named watersheds")
+
+        # Apply names to edges with same watershed code
+        updated_count = 0
+        for edge in self.G.es:
+            watershed_code = edge["fwa_watershed_code"]
+            if watershed_code and not edge["gnis_name"]:
+                if watershed_code in code_to_name:
+                    edge["gnis_name"] = code_to_name[watershed_code]
+                    updated_count += 1
+
+        elapsed = time.time() - start_time
+        logger.info(f"\n{'='*80}")
+        logger.info("NAME PROPAGATION COMPLETE")
+        logger.info(f"  Updated: {updated_count:,} edges with propagated names")
         logger.info(f"  Time: {elapsed:.1f}s")
         logger.info(f"{'='*80}\n")
         gc.collect()
@@ -918,124 +1167,126 @@ class FWAPrimalGraphIGraph:
         logger.info(f"{'='*80}\n")
         gc.collect()
 
-    def enrich_tributaries(self):
-        """
-        DFS Traversal from Roots to Leaves.
-        """
-        import time
+    # TRIBUTARY ENRICHMENT DISABLED - Use graph traversal to find tributaries dynamically
+    # Keeping this code commented for future reference
+    # def enrich_tributaries(self):
+    #     """
+    #     DFS Traversal from Roots to Leaves.
+    #     """
+    #     import time
 
-        start_time = time.time()
+    #     start_time = time.time()
 
-        logger.info("=" * 80)
-        logger.info("STEP 2: ENRICHING TRIBUTARY RELATIONSHIPS")
-        logger.info("=" * 80)
+    #     logger.info("=" * 80)
+    #     logger.info("STEP 2: ENRICHING TRIBUTARY RELATIONSHIPS")
+    #     logger.info("=" * 80)
 
-        roots = [v.index for v in self.G.vs if v.outdegree() == 0]
-        logger.info(f"Found {len(roots):,} root nodes (tailwaters)")
-        logger.info(f"Starting DFS traversal upstream...\n")
+    #     roots = [v.index for v in self.G.vs if v.outdegree() == 0]
+    #     logger.info(f"Found {len(roots):,} root nodes (tailwaters)")
+    #     logger.info(f"Starting DFS traversal upstream...\n")
 
-        stack = []
-        visited_edges = set()
+    #     stack = []
+    #     visited_edges = set()
 
-        # Process first edges attached to roots
-        for r in roots:
-            for edge in self.G.es.select(_target=r):
-                edge_idx = edge.index
-                if edge_idx in visited_edges:
-                    continue
-                visited_edges.add(edge_idx)
+    #     # Process first edges attached to roots
+    #     for r in roots:
+    #         for edge in self.G.es.select(_target=r):
+    #             edge_idx = edge.index
+    #             if edge_idx in visited_edges:
+    #                 continue
+    #             visited_edges.add(edge_idx)
 
-                v = edge.source
-                name = edge["gnis_name"]
-                lake = edge["lake_name"]
+    #             v = edge.source
+    #             name = edge["gnis_name"]
+    #             lake = edge["lake_name"]
 
-                # Initialize both tributary fields
-                edge["stream_tributary_of"] = "Tailwater"
-                edge["lake_tributary_of"] = lake if lake else ""
+    #             # Initialize both tributary fields
+    #             edge["stream_tributary_of"] = "Tailwater"
+    #             edge["lake_tributary_of"] = lake if lake else ""
 
-                # Track what to inherit upstream (separate for lakes and streams)
-                upstream_lake_tributary = lake if lake else ""
-                upstream_stream_tributary = "Tailwater"
+    #             # Track what to inherit upstream (separate for lakes and streams)
+    #             upstream_lake_tributary = lake if lake else ""
+    #             upstream_stream_tributary = "Tailwater"
 
-                stack.append(
-                    (
-                        v,
-                        upstream_stream_tributary,
-                        upstream_lake_tributary,
-                        edge,
-                    )
-                )
+    #             stack.append(
+    #                 (
+    #                     v,
+    #                     upstream_stream_tributary,
+    #                     upstream_lake_tributary,
+    #                     edge,
+    #                 )
+    #             )
 
-        while stack:
-            (
-                u,
-                inherited_stream_tributary,
-                inherited_lake_tributary,
-                downstream_edge,
-            ) = stack.pop()
+    #     while stack:
+    #         (
+    #             u,
+    #             inherited_stream_tributary,
+    #             inherited_lake_tributary,
+    #             downstream_edge,
+    #         ) = stack.pop()
 
-            for edge in self.G.es.select(_target=u):
-                edge_idx = edge.index
-                if edge_idx in visited_edges:
-                    continue
-                visited_edges.add(edge_idx)
+    #         for edge in self.G.es.select(_target=u):
+    #             edge_idx = edge.index
+    #             if edge_idx in visited_edges:
+    #                 continue
+    #             visited_edges.add(edge_idx)
 
-                v = edge.source
-                current_name = edge["gnis_name"]
-                current_lake = edge["lake_name"]
-                downstream_name = downstream_edge["gnis_name"]
-                downstream_stream_tributary_of = downstream_edge["stream_tributary_of"]
+    #             v = edge.source
+    #             current_name = edge["gnis_name"]
+    #             current_lake = edge["lake_name"]
+    #             downstream_name = downstream_edge["gnis_name"]
+    #             downstream_stream_tributary_of = downstream_edge["stream_tributary_of"]
 
-                # ==== LAKE TRIBUTARY LOGIC (separate field) ====
-                # If current edge is in/through a lake, set that lake as lake_tributary_of
-                if current_lake:
-                    edge["lake_tributary_of"] = current_lake
-                    upstream_lake_tributary = current_lake
-                # Otherwise, inherit lake tributary from downstream (until we hit a new lake)
-                elif inherited_lake_tributary:
-                    edge["lake_tributary_of"] = inherited_lake_tributary
-                    upstream_lake_tributary = inherited_lake_tributary
-                else:
-                    edge["lake_tributary_of"] = ""
-                    upstream_lake_tributary = ""
+    #             # ==== LAKE TRIBUTARY LOGIC (separate field) ====
+    #             # If current edge is in/through a lake, set that lake as lake_tributary_of
+    #             if current_lake:
+    #                 edge["lake_tributary_of"] = current_lake
+    #                 upstream_lake_tributary = current_lake
+    #             # Otherwise, inherit lake tributary from downstream (until we hit a new lake)
+    #             elif inherited_lake_tributary:
+    #                 edge["lake_tributary_of"] = inherited_lake_tributary
+    #                 upstream_lake_tributary = inherited_lake_tributary
+    #             else:
+    #                 edge["lake_tributary_of"] = ""
+    #                 upstream_lake_tributary = ""
 
-                # ==== STREAM TRIBUTARY LOGIC (ignores lakes) ====
-                # If current stream name matches downstream stream name, they're the same stream
-                if current_name and current_name == downstream_name:
-                    edge["stream_tributary_of"] = downstream_stream_tributary_of
-                    upstream_stream_tributary = inherited_stream_tributary
-                # If we have an inherited stream tributary, use it
-                elif inherited_stream_tributary:
-                    edge["stream_tributary_of"] = inherited_stream_tributary
-                    upstream_stream_tributary = inherited_stream_tributary
-                # If downstream is a different named stream, current is tributary of it
-                elif downstream_name and downstream_name != current_name:
-                    edge["stream_tributary_of"] = downstream_name
-                    upstream_stream_tributary = downstream_name
-                else:
-                    edge["stream_tributary_of"] = ""
-                    upstream_stream_tributary = ""
+    #             # ==== STREAM TRIBUTARY LOGIC (ignores lakes) ====
+    #             # If current stream name matches downstream stream name, they're the same stream
+    #             if current_name and current_name == downstream_name:
+    #                 edge["stream_tributary_of"] = downstream_stream_tributary_of
+    #                 upstream_stream_tributary = inherited_stream_tributary
+    #             # If we have an inherited stream tributary, use it
+    #             elif inherited_stream_tributary:
+    #                 edge["stream_tributary_of"] = inherited_stream_tributary
+    #                 upstream_stream_tributary = inherited_stream_tributary
+    #             # If downstream is a different named stream, current is tributary of it
+    #             elif downstream_name and downstream_name != current_name:
+    #                 edge["stream_tributary_of"] = downstream_name
+    #                 upstream_stream_tributary = downstream_name
+    #             else:
+    #                 edge["stream_tributary_of"] = ""
+    #                 upstream_stream_tributary = ""
 
-                # If current edge has a name and it's not the same as what we're inheriting,
-                # update upstream_stream_tributary to the current name
-                if current_name and current_name != upstream_stream_tributary:
-                    upstream_stream_tributary = current_name
+    #             # If current edge has a name and it's not the same as what we're inheriting,
+    #             # update upstream_stream_tributary to the current name
+    #             if current_name and current_name != upstream_stream_tributary:
+    #                 upstream_stream_tributary = current_name
 
-                stack.append(
-                    (
-                        v,
-                        upstream_stream_tributary,
-                        upstream_lake_tributary,
-                        edge,
-                    )
-                )
+    #             stack.append(
+    #                 (
+    #                     v,
+    #                     upstream_stream_tributary,
+    #                     upstream_lake_tributary,
+    #                     edge,
+    #                 )
+    #             )
 
-        elapsed = time.time() - start_time
-        logger.info(f"{'='*80}")
-        logger.info("TRIBUTARY ENRICHMENT COMPLETE")
-        logger.info(f"  Processed: {len(visited_edges):,} edges")
-        logger.info(f"  Time: {elapsed:.1f}s")
-        logger.info(f"{'='*80}\n")
+    #     elapsed = time.time() - start_time
+    #     logger.info(f"{'='*80}")
+    #     logger.info("TRIBUTARY ENRICHMENT COMPLETE")
+    #     logger.info(f"  Processed: {len(visited_edges):,} edges")
+    #     logger.info(f"  Time: {elapsed:.1f}s")
+    #     logger.info(f"{'='*80}\n")
 
     def export(self, filename="fwa_primal.graphml"):
         if self.G.vcount() == 0:
@@ -1076,12 +1327,15 @@ class FWAPrimalGraphIGraph:
                 "fwa_watershed_code": edge["fwa_watershed_code"],
                 "fwa_watershed_code_clean": edge["fwa_watershed_code_clean"],
                 "gnis_name": edge["gnis_name"],
+                "gnis_id": edge["gnis_id"],
                 "waterbody_key": edge["waterbody_key"],
                 "lake_name": edge["lake_name"],
                 "stream_order": edge["stream_order"],
                 "length": edge["length"],
-                "stream_tributary_of": edge["stream_tributary_of"],
-                "lake_tributary_of": edge["lake_tributary_of"],
+                "feature_code": edge["feature_code"],
+                # Tributary fields removed - use graph traversal instead
+                # "stream_tributary_of": edge["stream_tributary_of"],
+                # "lake_tributary_of": edge["lake_tributary_of"],
                 "weight": edge["weight"],
                 "edge_index": edge["edge_index"],
             }
@@ -1195,10 +1449,12 @@ if __name__ == "__main__":
             builder.load_lakes()
             builder.build(limit=args.limit, layers=args.layers)
             builder.preprocess_graph()
+            builder.propagate_names_by_watershed()
             # Optional: Filter unnamed streams by depth
             if args.filter_unnamed:
                 builder.filter_unnamed_depth(threshold=args.threshold)
-            builder.enrich_tributaries()
+            # Tributary enrichment disabled - tributaries will be found via graph traversal
+            # builder.enrich_tributaries()
 
     # Export
     if args.target:

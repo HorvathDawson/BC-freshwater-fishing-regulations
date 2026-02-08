@@ -94,23 +94,18 @@ class MetadataGazetteer:
     }
     """
 
-    def __init__(self, metadata_path: Path, enriched_kml_path: Path = None):
+    def __init__(self, metadata_path: Path):
         """
-        Initialize gazetteer from metadata pickle file and enriched KML points.
+        Initialize gazetteer from metadata pickle file.
 
         Args:
             metadata_path: Path to stream_metadata.pickle file
-            enriched_kml_path: Path to enriched_kml_points.json (optional)
         """
         self.metadata_path = metadata_path
-        self.enriched_kml_path = enriched_kml_path
         self.metadata = None
-        self.enriched_kml_data = None
         self.name_index: Dict[str, List[FWAFeature]] = {}
 
         self._load_metadata()
-        if self.enriched_kml_path:
-            self._load_enriched_kml()
         self._build_index()
 
     def _load_metadata(self):
@@ -126,20 +121,6 @@ class MetadataGazetteer:
         logger.info(f"  Lakes: {len(self.metadata.get('lakes', {})):,}")
         logger.info(f"  Wetlands: {len(self.metadata.get('wetlands', {})):,}")
         logger.info(f"  Manmade: {len(self.metadata.get('manmade', {})):,}")
-
-    def _load_enriched_kml(self):
-        """Load enriched KML points from JSON file."""
-        if not self.enriched_kml_path.exists():
-            logger.warning(f"Enriched KML file not found: {self.enriched_kml_path}")
-            return
-
-        logger.info(f"Loading enriched KML points from: {self.enriched_kml_path}")
-
-        with open(self.enriched_kml_path, "r", encoding="utf-8") as f:
-            self.enriched_kml_data = json.load(f)
-
-        points_count = len(self.enriched_kml_data.get("points", []))
-        logger.info(f"  Loaded {points_count} enriched KML points")
 
     def _build_index(self):
         """Build name-based index from metadata."""
@@ -175,16 +156,15 @@ class MetadataGazetteer:
                 else "point"
             )
 
-            for waterbody_key, feature_data in self.metadata.get(
-                feature_type, {}
-            ).items():
+            for poly_id, feature_data in self.metadata.get(feature_type, {}).items():
                 gnis_name = feature_data.get("gnis_name", "").strip()
                 gnis_name_2 = feature_data.get("gnis_name_2", "").strip()
+                waterbody_key = feature_data.get("waterbody_key", poly_id)
 
                 # Index GNIS_NAME (primary)
                 if gnis_name:
                     feature = FWAFeature(
-                        fwa_id=waterbody_key,
+                        fwa_id=poly_id,  # Use poly_id for unique identification
                         name=gnis_name,
                         geometry_type=geometry_type,
                         region=self._zones_to_region(feature_data.get("zones", [])),
@@ -194,7 +174,7 @@ class MetadataGazetteer:
                         gnis_id_2=feature_data.get("gnis_id_2"),
                         fwa_watershed_code=feature_data.get("fwa_watershed_code"),
                         mgmt_units=feature_data.get("mgmt_units", []),
-                        waterbody_key=waterbody_key,
+                        waterbody_key=waterbody_key,  # Keep for grouping
                         matched_via="gnis_name",
                     )
 
@@ -206,7 +186,7 @@ class MetadataGazetteer:
                 # Index GNIS_NAME_2 (alternate) separately
                 if gnis_name_2:
                     feature_2 = FWAFeature(
-                        fwa_id=waterbody_key,
+                        fwa_id=poly_id,  # Use poly_id for unique identification
                         name=gnis_name_2,  # Use alternate name for display
                         geometry_type=geometry_type,
                         region=self._zones_to_region(feature_data.get("zones", [])),
@@ -216,7 +196,7 @@ class MetadataGazetteer:
                         gnis_id_2=feature_data.get("gnis_id_2"),
                         fwa_watershed_code=feature_data.get("fwa_watershed_code"),
                         mgmt_units=feature_data.get("mgmt_units", []),
-                        waterbody_key=waterbody_key,
+                        waterbody_key=waterbody_key,  # Keep for grouping
                         matched_via="gnis_name_2",  # Track that this matched via alternate name
                     )
 
@@ -226,7 +206,8 @@ class MetadataGazetteer:
                     self.name_index[normalized_2].append(feature_2)
 
         # Index enriched KML points (unnamed lakes, future landmarks)
-        if self.enriched_kml_data:
+        # DISABLED FOR TESTING - Comment out to test linking without KML points
+        if False and self.enriched_kml_data:
             for point_data in self.enriched_kml_data.get("points", []):
                 name = point_data.get("name", "").strip()
 
@@ -338,7 +319,7 @@ class MetadataGazetteer:
             gnis_id=metadata.get("gnis_id"),
             waterbody_key=None,
             fwa_watershed_code=metadata.get("fwa_watershed_code"),
-            mgmt_units=metadata.get("zones", []),
+            mgmt_units=metadata.get("mgmt_units", []),
             region=metadata.get("region"),
         )
 
@@ -399,38 +380,69 @@ class MetadataGazetteer:
 
         return features
 
-    def get_waterbody_by_key(self, waterbody_key: str) -> Optional[FWAFeature]:
+    def get_waterbody_by_key(self, waterbody_key: str) -> List[FWAFeature]:
         """
-        Get FWA feature by exact waterbody_key.
+        Get ALL FWA features with the given waterbody_key.
 
-        Used for DirectMatch lookups.
+        Used for DirectMatch lookups. Returns a list because multiple polygons
+        can share the same waterbody_key (e.g., Williston Lake has 3 polygons).
 
         Args:
             waterbody_key: Waterbody key (used for lakes, wetlands, manmade)
 
         Returns:
+            List of FWAFeature objects (may be empty if not found)
+        """
+        features = []
+
+        # Check lakes, wetlands, manmade
+        for feature_type in ["lakes", "wetlands", "manmade"]:
+            # Iterate through ALL polygons to find those matching this waterbody_key
+            for poly_id, feature_data in self.metadata.get(feature_type, {}).items():
+                # Compare waterbody_key (handle both string and int comparison)
+                feature_wb_key = str(feature_data.get("waterbody_key", ""))
+                if feature_wb_key == str(waterbody_key):
+                    gnis_name = feature_data.get("gnis_name", "").strip()
+                    geometry_type = "polygon"
+
+                    feature = FWAFeature(
+                        fwa_id=poly_id,  # Use poly_id as unique identifier
+                        name=gnis_name or waterbody_key,
+                        geometry_type=geometry_type,
+                        region=self._zones_to_region(feature_data.get("zones", [])),
+                        gnis_name=gnis_name,
+                        gnis_id=feature_data.get("gnis_id"),
+                        fwa_watershed_code=feature_data.get("fwa_watershed_code"),
+                        mgmt_units=feature_data.get("mgmt_units", []),
+                        waterbody_key=waterbody_key,
+                    )
+                    features.append(feature)
+
+        return features
+
+    def get_polygon_by_id(self, poly_id: str) -> Optional[FWAFeature]:
+        """
+        Get a specific polygon by WATERBODY_POLY_ID.
+
+        Most precise polygon lookup - returns exactly one polygon.
+
+        Args:
+            poly_id: WATERBODY_POLY_ID (unique polygon identifier)
+
+        Returns:
             FWAFeature if found, None otherwise
         """
         # Check lakes, wetlands, manmade
-        # Try both string and int versions since keys might be stored as either
         for feature_type in ["lakes", "wetlands", "manmade"]:
-            # Try string key first
-            feature_data = self.metadata.get(feature_type, {}).get(waterbody_key)
-            # If not found, try converting to int
-            if not feature_data:
-                try:
-                    int_key = int(waterbody_key)
-                    feature_data = self.metadata.get(feature_type, {}).get(int_key)
-                except (ValueError, TypeError):
-                    pass
+            feature_data = self.metadata.get(feature_type, {}).get(poly_id)
 
             if feature_data:
                 gnis_name = feature_data.get("gnis_name", "").strip()
-
+                waterbody_key = feature_data.get("waterbody_key", poly_id)
                 geometry_type = "polygon"
 
                 return FWAFeature(
-                    fwa_id=waterbody_key,
+                    fwa_id=poly_id,
                     name=gnis_name or waterbody_key,
                     geometry_type=geometry_type,
                     region=self._zones_to_region(feature_data.get("zones", [])),
@@ -477,7 +489,8 @@ class MetadataGazetteer:
         """
         Search for all features with a specific GNIS ID.
 
-        Used for DirectMatch lookups - returns ALL polygons of a lake with this GNIS ID.
+        Used for DirectMatch lookups - returns ALL segments/polygons with this GNIS ID.
+        Now searches both streams and polygons (lakes, wetlands, manmade).
 
         Args:
             gnis_id: GNIS identifier
@@ -486,6 +499,24 @@ class MetadataGazetteer:
             List of FWAFeature objects with matching GNIS ID
         """
         features = []
+
+        # Search in streams
+        for linear_feature_id, metadata in self.metadata.get("streams", {}).items():
+            if str(metadata.get("gnis_id")) == str(gnis_id):
+                gnis_name = metadata.get("gnis_name", "").strip()
+
+                features.append(
+                    FWAFeature(
+                        fwa_id=linear_feature_id,
+                        name=gnis_name or linear_feature_id,
+                        geometry_type="multilinestring",
+                        region=self._zones_to_region(metadata.get("zones", [])),
+                        gnis_name=gnis_name,
+                        gnis_id=metadata.get("gnis_id"),
+                        fwa_watershed_code=metadata.get("fwa_watershed_code"),
+                        mgmt_units=metadata.get("mgmt_units", []),
+                    )
+                )
 
         # Search in lakes, wetlands, manmade
         for feature_type in ["lakes", "wetlands", "manmade"]:
