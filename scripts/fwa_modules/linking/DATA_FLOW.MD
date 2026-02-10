@@ -1,5 +1,11 @@
 Excellent! This simplifies things a LOT. Let me help you decide on the index structure, then design a clean data flow.
 
+## Debug Mode
+
+Set `FWA_LINKING_DEBUG=1` environment variable to show debug output. Default is WARNING level only.
+
+---
+
 ## Decision: Index Structure (B vs C)
 
 **Recommendation: Option C - Composite Key in Single Index**
@@ -127,30 +133,30 @@ Excellent! This simplifies things a LOT. Let me help you decide on the index str
 └─────────────────────┘               └─────────────────────────┘
                              │
                              ▼ FeatureRegMap: {feature_id: [reg_ids]}
-                             │   Individual features → merged groups
 ┌─────────────────────────────────────────────────────────────────┐
-│  [BUILD TIME - STEP 3]     FeatureMerger                        │
+│  [BUILD TIME - STEP 3]     RegulationMapper.merge_features()    │
 │                                                                  │
 │  Input:  {feature_id: [reg_ids]} for ~500k features             │
-│  Output: Merged groups with combined geometries                 │
+│  Output: Dict[str, MergedGroup] with combined metadata          │
 │                                                                  │
-│  Data Transform: Individual segments → merged geometries        │
-│  Example: 200 adjacent segments with same regs → 1 LineString   │
+│  Data Transform: Individual segments → merged groups            │
+│  Example: 200 adjacent segments with same regs → 1 group        │
 │                                                                  │
 │  Grouping Key: (gnis_id OR watershed_code, regulation_set)      │
+│  - Groups by GNIS ID for lakes (multiple polygons = one lake)   │
+│  - Groups by watershed_code for streams (segments = one stream) │
+│  - Uses frozenset for order-independent regulation matching     │
 │  - Reduces ~500k features to ~50k groups for UI rendering       │
-│  - Preserves original mapping in feature_to_regs.json           │
 └────────────────────────────┬────────────────────────────────────┘
                              │
-                             ▼ MergedGroups: {group_id: {features, regs, geom}}
-                             │   In-memory → persisted JSON files
+                             ▼ MergedGroups: Dict[str, MergedGroup]
 ┌─────────────────────────────────────────────────────────────────┐
-│  [BUILD TIME - STEP 4]     RegulationIndexBuilder               │
+│  [BUILD TIME - STEP 4]     RegulationMapper.build_index()       │
 │                                                                  │
 │  Input:  feature_to_regs dict + merged_groups dict              │
 │  Output: TWO JSON files written to disk                         │
 │                                                                  │
-│  Data Transform: Python objects → JSON files                    │
+│  Data Transform: Python dataclasses → JSON files                │
 │                                                                  │
 │  Files Created:                                                  │
 │  1. feature_to_regs.json - Individual feature lookup (500k keys)│
@@ -172,9 +178,32 @@ Excellent! This simplifies things a LOT. Let me help you decide on the index str
 
 ## Class Definitions
 
+### Return Types (Frozen Dataclasses)
+
+```python
+@dataclass(frozen=True)
+class MergedGroup:
+    group_id: str
+    feature_ids: tuple[str, ...]       // Immutable tuple
+    regulation_ids: tuple[str, ...]    // Immutable, sorted tuple
+    gnis_id: Optional[str] = None
+    gnis_name: Optional[str] = None
+    feature_type: Optional[str] = None
+    watershed_code: Optional[str] = None
+    waterbody_key: Optional[str] = None
+    feature_count: int = 0
+
+@dataclass(frozen=True)
+class PipelineResult:
+    feature_to_regs: Dict[str, List[str]]
+    merged_groups: Dict[str, MergedGroup]
+    stats: Optional[RegulationMappingStats]
+    exported_files: Optional[Dict[str, Path]]
+```
+
 ### 1. WaterbodyLinker
 
-```pseudocode
+```python
 CLASS LinkingResult:
     status              // SUCCESS, AMBIGUOUS, NOT_FOUND, NOT_IN_DATA, IGNORED, ERROR
     matched_feature     // Single FWA feature (or null)
@@ -288,7 +317,7 @@ CLASS WaterbodyLinker:
 
 **NOTE**: These are planned features not yet implemented. Parks/watersheds currently handled via DirectMatch.
 
-```pseudocode
+```python
 FUNCTION get_all_features_in_polygon(polygon, feature_type):
     // Generate feature_ids for a polygon boundary
     // Used to create PolygonMatchConfig entries
@@ -321,7 +350,7 @@ FUNCTION get_all_features_in_watershed(watershed_code, feature_type):
 
 ### 2. ScopeFilter
 
-```pseudocode
+```python
 CLASS ScopeFilter:
     // Applies spatial scope constraints to filter features
     // Handles both global_scope and rule.scope
@@ -376,7 +405,7 @@ CLASS ScopeFilter:
 
 ### 3. TributaryEnricher
 
-```pseudocode
+```python
 CLASS TributaryEnricher:
     // Enriches feature set with tributaries/upstream features
     // Uses caching to avoid duplicate graph traversals
@@ -425,19 +454,19 @@ CLASS TributaryEnricher:
 
 ### 4. RegulationMapper
 
-```pseudocode
+```python
 CLASS RegulationMapper:
-    // Orchestrates the full pipeline: Link → Scope → Enrich → Map
+    // Orchestrates the full pipeline: Link → Scope → Enrich → Map → Merge → Export
     // Creates inverted index: feature_id → regulation_ids
     
     ATTRIBUTES:
         linker              // WaterbodyLinker instance
         scope_filter        // ScopeFilter instance
         tributary_enricher  // TributaryEnricher instance
+        gazetteer           // MetadataGazetteer (for feature metadata lookup)
     
     METHOD apply_scope_and_enrich(base_features, scope, global_scope):
         // Helper: Apply spatial filter + tributary enrichment
-        // Encapsulates two-step process to avoid code duplication
         
         // Step 1: Spatial filtering (DIRECTIONAL/SEGMENT/BUFFER/etc)
         scoped_features = scope_filter.apply_scope(base_features, scope)
@@ -453,20 +482,18 @@ CLASS RegulationMapper:
     
     METHOD process_all_regulations(regulations):
         // Main processing loop - creates feature → regulation index
-        // Always attempts rule-level scopes with safe fallbacks
         
         feature_to_regs = {}
         
         FOR EACH regulation IN regulations:
             // 1. Match waterbody identity to FWA features
-            match_result = linker.match_regulation(regulation)
+            match_result = linker.link_waterbody(regulation)
             
             IF match_result.status != SUCCESS:
                 LOG WARNING "Failed to match: " + regulation.identity.name
                 CONTINUE
             
-            // 2. Apply global spatial scope filter (narrows search space)
-            // Falls back to WHOLE_SYSTEM if landmarks/data missing
+            // 2. Apply global spatial scope filter
             globally_scoped = scope_filter.apply_scope(
                 match_result.matched_features,
                 regulation.identity.global_scope
@@ -474,15 +501,13 @@ CLASS RegulationMapper:
             
             // 3. Process each rule independently
             FOR EACH rule IN regulation.rules:
-                // Apply rule spatial scope (refines global scope)
-                // Falls back to globally_scoped if landmarks/data missing
+                // Apply rule spatial scope
                 rule_scoped = scope_filter.apply_scope(
                     globally_scoped,
                     rule.scope
                 )
                 
-                // Enrich with tributaries based on rule's includes_tributaries flag
-                // (falls back to global scope's flag if rule's is null)
+                // Enrich with tributaries based on includes_tributaries flag
                 rule_features = tributary_enricher.enrich_with_tributaries(
                     rule_scoped,
                     rule.scope,
@@ -491,53 +516,112 @@ CLASS RegulationMapper:
                 
                 // Map this rule to its final feature set
                 FOR EACH feature IN rule_features:
-                    feature_key = feature.type + "_" + feature.id
-                    feature_to_regs[feature_key].ADD(regulation.id + "_rule_" + rule.id)
+                    feature_key = get_feature_id(feature)
+                    feature_to_regs[feature_key].ADD(rule_id)
+        
+        // Sort regulation lists for consistent ordering
+        FOR EACH feature_id IN feature_to_regs:
+            feature_to_regs[feature_id] = SORTED(feature_to_regs[feature_id])
         
         RETURN feature_to_regs
+    
+    METHOD merge_features(feature_to_regs):
+        // Group features with identical regulation sets
+        // Reduces ~500k features → ~50k groups for UI
+        
+        group_map = {}
+        
+        FOR EACH (feature_id, reg_ids) IN feature_to_regs:
+            // Get feature metadata from gazetteer
+            feature = get_feature_metadata(feature_id)
+            
+            // Create order-independent regulation set
+            reg_set = FROZEN_SET(reg_ids)  // frozenset(['a','b']) == frozenset(['b','a'])
+            
+            // Determine grouping key
+            IF feature.gnis_id:
+                grouping_key = "gnis_" + feature.gnis_id
+            ELSE IF feature.watershed_code:
+                grouping_key = "watershed_" + feature.watershed_code
+            ELSE IF feature.waterbody_key:
+                grouping_key = "waterbody_" + feature.waterbody_key
+            ELSE:
+                grouping_key = "feature_" + feature_id
+            
+// OLD DESIGN - NOW DEPRECATED
+// These were separate classes, now integrated into RegulationMapper
 
-
-// PROCESSING FLOW:
-//   Match → Global spatial scope (fallback: WHOLE_SYSTEM if no landmark data)
-//         → For each rule:
-//             → Rule spatial scope (fallback: use global scope if no landmark data)
-//             → Enrich with tributaries (ALWAYS respected - not complex)
-//             → Map rule to features
-//
-// FALLBACK BEHAVIOR:
-//   • Missing landmarks → ScopeFilter returns all input features
-//   • Scope type not implemented yet → WHOLE_SYSTEM
-//   • includes_tributaries always applied (just determines enrichment, no external data needed)
-//
-// "MVP" REALITY:
-//   MVP isn't a separate mode - it's just the system running with incomplete landmark/polygon data.
-//   Many scopes will fall back to WHOLE_SYSTEM, but the architecture is identical.
-```
-
----
-
-### 5. FeatureMerger
-
-```pseudocode
 CLASS FeatureMerger:
+    // NOW: RegulationMapper.merge_features()
     // Merges features with identical (grouping_key + regulation_set)
     // Reduces ~500k individual features to ~50k groups for UI
     
     METHOD merge_features(feature_to_regs):
-        // Group by (gnis_id OR watershed_code, regulation_set)
-        
-        group_map = {}
-        
-        // 1. Build grouping key for each feature
-        FOR EACH (feature_id, reg_ids) IN feature_to_regs:
-            feature = get_feature(feature_id)
-            reg_set = FROZEN_SET(reg_ids)
-            
-            // Determine grouping key (priority order)
-            IF feature.gnis_id exists:
-                group_key = ("gnis_" + feature.gnis_id, reg_set)
-            ELSE IF feature.type == "STREAM":
-                group_key = ("watershed_" + feature.watershed_code, reg_set)
+        // [See RegulationMapper.merge_features() above]
+
+CLASS RegulationIndexBuilder:
+    // NOW: RegulationMapper.build_index()
+    // Creates final query-ready indices for UI
+    // Outputs two JSON files for different use cases
+    
+    METHOD build_index(feature_to_regs, merged_groups):
+        // [See RegulationMapper.build_index() above]
+```
+
+---
+
+## Final Pipeline (UPDATED)
+
+```python
+FUNCTION build_regulation_index(parsed_regulations):
+    // Main pipeline orchestration - SIMPLIFIED
+    
+    // 1. Initialize components
+    gazetteer = MetadataGazetteer("enriched_kml_points.json")
+    linker = WaterbodyLinker(gazetteer)
+    scope_filter = ScopeFilter()
+    tributary_enricher = TributaryEnricher("fwa_bc_primal_full.gpickle")
+    
+    // 2. Create mapper (all-in-one)
+    mapper = RegulationMapper(linker, scope_filter, tributary_enricher)
+    
+    // 3. Run full pipeline (single call!)
+    result = mapper.process_and_export(
+        parsed_regulations,
+        output_dir = "output/regulation_indices"
+    )
+    
+    // 4. Access results
+    feature_to_regs = result.feature_to_regs
+    merged_groups = result.merged_groups
+    stats = result.stats
+    files = result.exported_files  // {"feature_to_regs": Path, "merged_features": Path}
+    
+    LOG "Pipeline complete - indices ready for UI"
+    LOG f"Linked: {stats.linked_regulations}/{stats.total_regulations}"
+    LOG f"Merged: {len(feature_to_regs)} features → {len(merged_groups)} groups"
+```
+
+**Key Changes from Original Design**:
+- ✅ FeatureMerger → `RegulationMapper.merge_features()`
+- ✅ RegulationIndexBuilder → `RegulationMapper.build_index()`  
+- ✅ Added `process_and_export()` - runs entire pipeline in one call
+- ✅ Returns frozen `PipelineResult` dataclass with all outputs
+- ✅ Returns frozen `MergedGroup` dataclasses (not dicts)
+- ✅ Simpler API - one class instead of three
+
+---
+
+## Does this flow make sense?
+
+Key design decisions:
+1. ✅ **Composite key** `{type}_{id}` in single index
+2. ✅ **Manual polygon matches** with explicit feature IDs
+3. ✅ **Merging** by `(gnis_id OR watershed_code/waterbody_key, regulation_set)`
+4. ✅ **Integrated design** - RegulationMapper handles merge + export
+5. ✅ **Frozen dataclasses** - Immutable return types (MergedGroup, PipelineResult)
+6. ✅ **Order-independent grouping** - Uses frozenset for regulation matching
+7. ✅ **Tributaries handled separately** via graph traversal_set)
             ELSE IF feature.type == "LAKE":
                 group_key = ("waterbody_" + feature.waterbody_key, reg_set)
             ELSE:
@@ -577,7 +661,7 @@ STRUCTURE MergedGroup:
 
 ### 6. RegulationIndexBuilder
 
-```pseudocode
+```python
 CLASS RegulationIndexBuilder:
     // Creates final query-ready indices for UI
     // Outputs two JSON files for different use cases
@@ -599,7 +683,7 @@ CLASS RegulationIndexBuilder:
 
 ## Final Pipeline
 
-```pseudocode
+```python
 FUNCTION build_regulation_index(parsed_regulations):
     // Main pipeline orchestration
     
@@ -657,7 +741,7 @@ ScopeFilter needs to handle different combinations of:
 
 ### Landmark Data Model
 
-```pseudocode
+```python
 CLASS Landmark:
     id                  // Unique identifier
     name                // Human-readable name (e.g., "Bridge at km 42")
@@ -695,7 +779,7 @@ CLASS LandmarkIndex:
 
 **For STREAM features:**
 
-```pseudocode
+```python
 METHOD filter_directional(stream_features, scope):
     // scope.landmark_verbatim: "km 42", "the bridge", "Highway 3 crossing"
     // scope.direction: "UPSTREAM" or "DOWNSTREAM"
@@ -729,7 +813,7 @@ METHOD filter_directional(stream_features, scope):
 
 **For LAKE features:**
 
-```pseudocode
+```python
 METHOD filter_directional(lake_features, scope):
     // DIRECTIONAL doesn't make sense for lakes (no flow direction)
     // But might mean "upstream lakes" vs "downstream lakes" in a chain
@@ -748,7 +832,7 @@ METHOD filter_directional(lake_features, scope):
 
 **For STREAM features:**
 
-```pseudocode
+```python
 METHOD filter_segment(stream_features, scope):
     // scope.landmarks: ["km 10", "km 42"]
     // scope.segment_type: "BETWEEN", "FROM_TO"
@@ -782,7 +866,7 @@ METHOD filter_segment(stream_features, scope):
 
 **For LAKE features:**
 
-```pseudocode
+```python
 METHOD filter_segment(lake_features, scope):
     // SEGMENT doesn't apply to lakes (no linear ordering)
     LOG WARNING "SEGMENT scope on LAKE feature - treating as WHOLE_SYSTEM"
@@ -795,7 +879,7 @@ METHOD filter_segment(lake_features, scope):
 
 **For STREAM features:**
 
-```pseudocode
+```python
 METHOD filter_buffer(stream_features, scope):
     // scope.landmark_verbatim: "the campground"
     // scope.distance: 200  (meters)
@@ -825,7 +909,7 @@ METHOD filter_buffer(stream_features, scope):
 
 **For LAKE features:**
 
-```pseudocode
+```python
 METHOD filter_buffer(lake_features, scope):
     // Use spatial buffer around landmark point geometry
     
@@ -851,7 +935,7 @@ METHOD filter_buffer(lake_features, scope):
 
 **For STREAM features:**
 
-```pseudocode
+```python
 METHOD filter_named_part(stream_features, scope):
     // scope.part_name: "the canyon section", "Class IV rapids zone"
     // scope.named_region_id: "WIGWAM_RIVER_CANYON"  (from parsing)
@@ -876,7 +960,7 @@ METHOD filter_named_part(stream_features, scope):
 
 **For LAKE features:**
 
-```pseudocode
+```python
 METHOD filter_named_part(lake_features, scope):
     // scope.part_name: "the north arm", "the shallow bay"
     
@@ -897,7 +981,7 @@ METHOD filter_named_part(lake_features, scope):
 
 ### Landmark Resolution Algorithm
 
-```pseudocode
+```python
 FUNCTION find_landmark(landmark_verbatim, feature_type, waterbody_gnis_id):
     // Multi-stage fuzzy matching
     

@@ -16,6 +16,9 @@ from collections import Counter
 
 from .metadata_gazetteer import MetadataGazetteer, FWAFeature
 from .name_variations import ManualCorrections, NameVariation, DirectMatch, SkipEntry
+from .logger_config import get_logger
+
+logger = get_logger(__name__)
 
 
 class LinkStatus(Enum):
@@ -326,8 +329,8 @@ class WaterbodyLinker:
         if direct_match.gnis_id:
             # Search by GNIS ID - should return all polygons with this GNIS
             found = self.gazetteer.search_by_gnis_id(direct_match.gnis_id)
-            print(
-                f"DEBUG: Direct match by GNIS {direct_match.gnis_id} for '{waterbody_key}' found {len(found)} features"
+            logger.debug(
+                f"Direct match by GNIS {direct_match.gnis_id} for '{waterbody_key}' found {len(found)} features"
             )
             features.extend(found)
 
@@ -335,8 +338,8 @@ class WaterbodyLinker:
             # Search by multiple GNIS IDs - for regulations covering multiple features
             for gnis_id in direct_match.gnis_ids:
                 found = self.gazetteer.search_by_gnis_id(gnis_id)
-                print(
-                    f"DEBUG: Direct match by GNIS {gnis_id} for '{waterbody_key}' found {len(found)} features"
+                logger.debug(
+                    f"Direct match by GNIS {gnis_id} for '{waterbody_key}' found {len(found)} features"
                 )
                 features.extend(found)
 
@@ -450,8 +453,8 @@ class WaterbodyLinker:
         else:
             # Multiple features (e.g., lake with multiple polygons, or stream with many segments)
             # This is SUCCESS - DirectMatch explicitly maps to all these features
-            print(
-                f"DEBUG: Direct match for '{waterbody_key}' returning {len(features)} features as SUCCESS"
+            logger.debug(
+                f"Direct match for '{waterbody_key}' returning {len(features)} features as SUCCESS"
             )
             return LinkingResult(
                 waterbody_key=waterbody_key,
@@ -513,8 +516,8 @@ class WaterbodyLinker:
         # Try searching with region filter first
         matches = self.gazetteer.search(name, region=region)
         if "williston" in name.lower():
-            print(
-                f"DEBUG: Natural search for '{name}' (region={region}) found {len(matches)} initial matches"
+            logger.debug(
+                f"Natural search for '{name}' (region={region}) found {len(matches)} initial matches"
             )
 
         # If no matches and region was specified, try searching all regions
@@ -635,8 +638,8 @@ class WaterbodyLinker:
             if identity_type == "gnis" and len(all_features_in_group) > 1:
                 # Multiple polygons with same GNIS ID without direct match = AMBIGUOUS
                 # Requires manual disambiguation via DIRECT_MATCHES
-                print(
-                    f"DEBUG: Natural search found {len(all_features_in_group)} polygons with GNIS {identity_key[1]} for '{name}'"
+                logger.debug(
+                    f"Natural search found {len(all_features_in_group)} polygons with GNIS {identity_key[1]} for '{name}'"
                 )
                 return LinkingResult(
                     waterbody_key=name,
