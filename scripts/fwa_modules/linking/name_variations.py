@@ -121,7 +121,7 @@ class UnmarkedWaterbody:
                      - Point: [longitude, latitude]
                      - LineString: [[lon1, lat1], [lon2, lat2], ...]
                      - Polygon: [[[lon1, lat1], [lon2, lat2], [lon1, lat1]]] (first ring is exterior)
-        region: Region code (e.g., "Region 2")
+        zones: List of zone numbers this waterbody appears in (e.g., ["2"])
         mgmt_units: List of management unit codes (e.g., ["2-4"])
         note: Explanation of where coordinates came from and why unmarked waterbody was created
         source_url: Optional URL reference for location/documentation
@@ -131,7 +131,7 @@ class UnmarkedWaterbody:
     name: str
     geometry_type: str  # "point", "linestring", or "polygon"
     coordinates: any  # Point: [lon, lat], LineString: [[lon, lat], ...], Polygon: [[[lon, lat], ...]]
-    region: str
+    zones: List[str]
     mgmt_units: List[str]
     note: str
     source_url: Optional[str] = None
@@ -584,8 +584,8 @@ DIRECT_MATCHES: Dict[str, Dict[str, DirectMatch]] = {
             note="Combined entry for Lillooet Lake (GNIS 19926) and Lillooet River (GNIS 10313). Regulation MU 2-9.",
         ),
         "CHILLIWACK / VEDDER RIVERS (does not include Sumas River) (see map on page 24)": DirectMatch(
-            gnis_ids=["8634", "3062"],
-            note="Combined entry for Chilliwack River (GNIS 8634) and Vedder River (GNIS 3062). Regulation MU 2-4.",
+            gnis_ids=["8634", "3062", "29662"],
+            note="Combined entry for Chilliwack River (GNIS 8634) and Vedder River (GNIS 3062) and Vedder Canal (GNIS 29662). Regulation MU 2-4.",
         ),
         'LONZO ("Marshall") CREEK': DirectMatch(
             gnis_id="1860",
@@ -635,6 +635,9 @@ DIRECT_MATCHES: Dict[str, Dict[str, DirectMatch]] = {
                 "189025602",
                 "189025634",
                 "189025628",
+                "189025635",
+                "189025602",
+                "189025634",
             ],
             note="Squamish Powerhouse Channel in Region 2 MU 2-6. Links to 5 specific stream segments representing the channel. Reference: https://a100.gov.bc.ca/pub/acat/documents/r40717/09_CMS_05_powerhouse_1388682280782_8673845708.pdf",
         ),
@@ -698,8 +701,8 @@ DIRECT_MATCHES: Dict[str, Dict[str, DirectMatch]] = {
             note="MU 2-19. GNIS 25954 (Weaver Lake) and GNIS 25951 (Weaver Creek).",
         ),
         "HATZIC LAKE AND SLOUGH": DirectMatch(
-            gnis_ids=["16118", "16120"],
-            note="MU 2-8. GNIS 16118 (Hatzic Lake) and GNIS 16120 (Hatzic Slough).",
+            gnis_ids=["16118", "16120", "37373"],
+            note="MU 2-8. GNIS 16118 (Hatzic Lake), GNIS 16120 (Hatzic Slough) and GNIS 37373 (Lower Hatzic Slough).",
         ),
     },
     "Region 3": {
@@ -1561,7 +1564,7 @@ SKIP_ENTRIES: Dict[str, Dict[str, SkipEntry]] = {
             ignored=True,
         ),
         "LITTLE STAWAMUS CREEK": SkipEntry(
-            note="Known location in MU 2-8 near Squamish but stream does not exist in FWA mapping data. Would require custom stream segment creation. Reference: DFO Stream Summary Catalogue 'Little Stawamus Creek' https://publications.gc.ca/collections/collection_2014/mpo-dfo/Fs97-6-2282-eng.pdf",
+            note="Known location in MU 2-8 near Squamish but stream does not exist in FWA mapping data. Would require custom stream segment creation. Reference: DFO Stream Summary Catalogue 'Little Stawamus Creek' https://publications.gc.ca/collections/collection_2014/mpo-dfo/Fs97-6-2282-eng.pdf and https://squamish.ca/assets/Uploads/928c09348e/Camping-Bylaw-Map.pdf",
             not_found=True,
         ),
     },
@@ -1751,7 +1754,7 @@ UNMARKED_WATERBODIES: Dict[str, UnmarkedWaterbody] = {
         name="MARSH POND",
         geometry_type="point",
         coordinates=[-122.4532345486399, 49.00878676964613],
-        region="Region 2",
+        zones=["2"],
         mgmt_units=["2-4"],
         note="No polygon found in FWA lakes, wetlands, or manmade layers. Coordinates from KML point labeling in Aldergrove Regional Park.",
         source_url="https://metrovancouver.org/services/regional-parks/park/aldergrove-regional-park",
@@ -1761,7 +1764,7 @@ UNMARKED_WATERBODIES: Dict[str, UnmarkedWaterbody] = {
         name="HALL ROAD (Mission) POND",
         geometry_type="point",
         coordinates=[-119.42958, 49.87084],
-        region="Region 8",
+        zones=["8"],
         mgmt_units=["8-10"],
         note="Mission Creek Regional Park Children's Fishing Pond. Regulation name is 'HALL ROAD (Mission) POND'. Location coordinates identify the fishing pond; an adjacent FWA waterbody (329460964) also exists in the area.",
         source_url=None,

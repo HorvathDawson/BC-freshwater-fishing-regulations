@@ -12,10 +12,22 @@ import json
 from pathlib import Path
 from typing import List, Dict, Optional
 from dataclasses import dataclass
+from enum import Enum
 import logging
 
 
 logger = logging.getLogger(__name__)
+
+
+class FeatureType(Enum):
+    """Enum for FWA feature types."""
+
+    STREAM = "stream"
+    LAKE = "lake"
+    WETLAND = "wetland"
+    MANMADE = "manmade"
+    UNMARKED = "unmarked"
+    UNKNOWN = "unknown"
 
 
 @dataclass
@@ -30,7 +42,7 @@ class FWAFeature:
     fwa_id: str
     name: str
     geometry_type: str  # "polygon", "multilinestring", "point"
-    region: str
+    zones: List[str]  # All zones this feature appears in
     gnis_name: Optional[str] = (
         None  # Official geographic names (GNIS_NAME or GNIS_NAME_1)
     )
@@ -73,16 +85,11 @@ class MetadataGazetteer:
         "fwa_watershed_code": "...",
         "waterbody_key": "123",
         "lake_name": "",
-        "stream_tributary_of": "...",  # NOTE: DO NOT USE for tributary logic
-        "zones": ["4"],
-        "mgmt_units": ["4-15", "4-16"],
-        "cross_boundary": False,
+        "zones": ["4"],  # List of zone numbers (may have multiple if cross-boundary)
+        "mgmt_units": ["4-15", "4-16"],  # List of MU IDs (may have multiple if near boundary)
+        "cross_boundary": False,  # True if within 100m of a zone boundary
         ...
     }
-
-    IMPORTANT: The stream_tributary_of and lake_tributary_of fields in the
-    metadata are NOT suitable for our tributary enrichment logic. Use graph
-    traversal from fwa_bc_primal_full.gpickle instead.
 
     Structure of lake/wetland/manmade metadata entry:
     {
@@ -131,22 +138,44 @@ class MetadataGazetteer:
             gnis_name = stream_data.get("gnis_name", "").strip()
 
             if gnis_name:
-                # Create FWAFeature from stream metadata
-                feature = FWAFeature(
-                    fwa_id=linear_id,
-                    name=gnis_name,
-                    geometry_type="multilinestring",
-                    region=self._zones_to_region(stream_data.get("zones", [])),
-                    gnis_name=gnis_name,
-                    fwa_watershed_code=stream_data.get("fwa_watershed_code"),
-                    mgmt_units=stream_data.get("mgmt_units", []),
-                )
+                zones = stream_data.get("zones", [])
+                mgmt_units = stream_data.get("mgmt_units", [])
 
-                # Index by normalized name
-                normalized = self._normalize_for_index(gnis_name)
-                if normalized not in self.name_index:
-                    self.name_index[normalized] = []
-                self.name_index[normalized].append(feature)
+                # For boundary streams (multiple zones), create a separate entry for EACH zone
+                # This ensures boundary streams get regulations from all adjacent regions
+                # Example: Adams River on 4/5 border gets both Region 4 and Region 5 regulations
+                if len(zones) > 1:
+                    for zone in zones:
+                        feature = FWAFeature(
+                            fwa_id=linear_id,
+                            name=gnis_name,
+                            geometry_type="multilinestring",
+                            zones=zones,  # Keep ALL zones (this stream exists in all of them)
+                            gnis_name=gnis_name,
+                            fwa_watershed_code=stream_data.get("fwa_watershed_code"),
+                            mgmt_units=mgmt_units,  # Keep all MUs for filtering
+                        )
+
+                        normalized = self._normalize_for_index(gnis_name)
+                        if normalized not in self.name_index:
+                            self.name_index[normalized] = []
+                        self.name_index[normalized].append(feature)
+                else:
+                    # Single zone stream - create one entry
+                    feature = FWAFeature(
+                        fwa_id=linear_id,
+                        name=gnis_name,
+                        geometry_type="multilinestring",
+                        zones=zones if zones else ["Unknown"],
+                        gnis_name=gnis_name,
+                        fwa_watershed_code=stream_data.get("fwa_watershed_code"),
+                        mgmt_units=mgmt_units,
+                    )
+
+                    normalized = self._normalize_for_index(gnis_name)
+                    if normalized not in self.name_index:
+                        self.name_index[normalized] = []
+                    self.name_index[normalized].append(feature)
 
         # Index lakes, wetlands, manmade by gnis_name and gnis_name_2
         for feature_type in ["lakes", "wetlands", "manmade"]:
@@ -160,21 +189,23 @@ class MetadataGazetteer:
                 gnis_name = feature_data.get("gnis_name", "").strip()
                 gnis_name_2 = feature_data.get("gnis_name_2", "").strip()
                 waterbody_key = feature_data.get("waterbody_key", poly_id)
+                zones = feature_data.get("zones", [])
+                mgmt_units = feature_data.get("mgmt_units", [])
 
                 # Index GNIS_NAME (primary)
                 if gnis_name:
                     feature = FWAFeature(
-                        fwa_id=poly_id,  # Use poly_id for unique identification
+                        fwa_id=poly_id,
                         name=gnis_name,
                         geometry_type=geometry_type,
-                        region=self._zones_to_region(feature_data.get("zones", [])),
+                        zones=zones if zones else ["Unknown"],
                         gnis_name=gnis_name,
                         gnis_id=feature_data.get("gnis_id"),
                         gnis_name_2=gnis_name_2,
                         gnis_id_2=feature_data.get("gnis_id_2"),
                         fwa_watershed_code=feature_data.get("fwa_watershed_code"),
-                        mgmt_units=feature_data.get("mgmt_units", []),
-                        waterbody_key=waterbody_key,  # Keep for grouping
+                        mgmt_units=mgmt_units,  # Keep ALL MUs for filtering
+                        waterbody_key=waterbody_key,
                         matched_via="gnis_name",
                     )
 
@@ -186,18 +217,18 @@ class MetadataGazetteer:
                 # Index GNIS_NAME_2 (alternate) separately
                 if gnis_name_2:
                     feature_2 = FWAFeature(
-                        fwa_id=poly_id,  # Use poly_id for unique identification
-                        name=gnis_name_2,  # Use alternate name for display
+                        fwa_id=poly_id,
+                        name=gnis_name_2,
                         geometry_type=geometry_type,
-                        region=self._zones_to_region(feature_data.get("zones", [])),
-                        gnis_name=gnis_name,  # Keep primary name for reference
+                        zones=zones if zones else ["Unknown"],
+                        gnis_name=gnis_name,
                         gnis_id=feature_data.get("gnis_id"),
                         gnis_name_2=gnis_name_2,
                         gnis_id_2=feature_data.get("gnis_id_2"),
                         fwa_watershed_code=feature_data.get("fwa_watershed_code"),
-                        mgmt_units=feature_data.get("mgmt_units", []),
-                        waterbody_key=waterbody_key,  # Keep for grouping
-                        matched_via="gnis_name_2",  # Track that this matched via alternate name
+                        mgmt_units=mgmt_units,  # Keep ALL MUs for filtering
+                        waterbody_key=waterbody_key,
+                        matched_via="gnis_name_2",
                     )
 
                     normalized_2 = self._normalize_for_index(gnis_name_2)
@@ -231,7 +262,7 @@ class MetadataGazetteer:
                         fwa_id=kml_id,
                         name=name,
                         geometry_type="point",
-                        region=point_data.get("region", "Unknown"),
+                        zones=point_data.get("zones", ["Unknown"]),
                         gnis_name=name,
                         fwa_watershed_code=fwa_watershed_code,
                         mgmt_units=point_data.get("mgmt_units", []),
@@ -245,23 +276,6 @@ class MetadataGazetteer:
 
         logger.info(f"  Indexed {len(self.name_index):,} unique waterbody names")
 
-    def _zones_to_region(self, zones: List[str]) -> str:
-        """
-        Convert zone list to region identifier.
-
-        Args:
-            zones: List of zone numbers (e.g., ["4"])
-
-        Returns:
-            Region identifier (e.g., "Region 4")
-        """
-        if not zones:
-            return "Unknown"
-
-        # Use first zone if multiple (cross-boundary)
-        primary_zone = zones[0]
-        return f"Region {primary_zone}"
-
     def _normalize_for_index(self, name: str) -> str:
         """Normalize name for indexing (title case, stripped)."""
         return name.strip().title()
@@ -272,7 +286,7 @@ class MetadataGazetteer:
 
         Args:
             name: Waterbody name to search for
-            region: Optional region filter (e.g., "Region 4")
+            region: Optional zone number filter (e.g., "4")
 
         Returns:
             List of matching FWAFeature objects
@@ -280,9 +294,9 @@ class MetadataGazetteer:
         normalized = self._normalize_for_index(name)
         matches = self.name_index.get(normalized, [])
 
-        # Filter by region if provided
+        # Filter by zone if provided
         if region:
-            matches = [f for f in matches if f.region == region]
+            matches = [f for f in matches if region in f.zones]
 
         return matches
 
@@ -297,6 +311,30 @@ class MetadataGazetteer:
             Full metadata dict or None if not found
         """
         return self.metadata.get("streams", {}).get(linear_feature_id)
+
+    def get_valid_stream_ids(self) -> set:
+        """
+        Get set of all valid stream IDs that exist in the metadata.
+
+        These are streams that survived graph filtering (name propagation,
+        spurious edge removal, unnamed depth filtering, etc.).
+
+        Returns:
+            Set of linear_feature_id strings for all indexed streams
+        """
+        return set(self.metadata.get("streams", {}).keys())
+
+    def get_valid_stream_ids(self) -> set:
+        """
+        Get set of all valid stream IDs that exist in the metadata.
+
+        These are streams that survived graph filtering (name propagation,
+        spurious edge removal, unnamed depth filtering, etc.).
+
+        Returns:
+            Set of linear_feature_id strings for all indexed streams
+        """
+        return set(self.metadata.get("streams", {}).keys())
 
     def get_stream_by_id(self, linear_feature_id: str) -> Optional["FWAFeature"]:
         """
@@ -316,11 +354,11 @@ class MetadataGazetteer:
             fwa_id=linear_feature_id,
             name=metadata.get("gnis_name") or linear_feature_id,
             geometry_type="multilinestring",
+            zones=metadata.get("zones", []),
             gnis_id=metadata.get("gnis_id"),
             waterbody_key=None,
             fwa_watershed_code=metadata.get("fwa_watershed_code"),
             mgmt_units=metadata.get("mgmt_units", []),
-            region=metadata.get("region"),
         )
 
     def get_polygon_metadata(
@@ -409,7 +447,7 @@ class MetadataGazetteer:
                         fwa_id=poly_id,  # Use poly_id as unique identifier
                         name=gnis_name or waterbody_key,
                         geometry_type=geometry_type,
-                        region=self._zones_to_region(feature_data.get("zones", [])),
+                        zones=feature_data.get("zones", ["Unknown"]),
                         gnis_name=gnis_name,
                         gnis_id=feature_data.get("gnis_id"),
                         fwa_watershed_code=feature_data.get("fwa_watershed_code"),
@@ -445,7 +483,7 @@ class MetadataGazetteer:
                     fwa_id=poly_id,
                     name=gnis_name or waterbody_key,
                     geometry_type=geometry_type,
-                    region=self._zones_to_region(feature_data.get("zones", [])),
+                    zones=feature_data.get("zones", ["Unknown"]),
                     gnis_name=gnis_name,
                     gnis_id=feature_data.get("gnis_id"),
                     fwa_watershed_code=feature_data.get("fwa_watershed_code"),
@@ -476,7 +514,7 @@ class MetadataGazetteer:
                 fwa_id=feature_id,
                 name=gnis_name or feature_id,
                 geometry_type="multilinestring",
-                region=self._zones_to_region(stream_data.get("zones", [])),
+                zones=stream_data.get("zones", ["Unknown"]),
                 gnis_name=gnis_name,
                 fwa_watershed_code=stream_data.get("fwa_watershed_code"),
                 mgmt_units=stream_data.get("mgmt_units", []),
@@ -510,7 +548,7 @@ class MetadataGazetteer:
                         fwa_id=linear_feature_id,
                         name=gnis_name or linear_feature_id,
                         geometry_type="multilinestring",
-                        region=self._zones_to_region(metadata.get("zones", [])),
+                        zones=metadata.get("zones", ["Unknown"]),
                         gnis_name=gnis_name,
                         gnis_id=metadata.get("gnis_id"),
                         fwa_watershed_code=metadata.get("fwa_watershed_code"),
@@ -529,7 +567,7 @@ class MetadataGazetteer:
                             fwa_id=waterbody_key,
                             name=gnis_name or waterbody_key,
                             geometry_type="polygon",
-                            region=self._zones_to_region(metadata.get("zones", [])),
+                            zones=metadata.get("zones", ["Unknown"]),
                             gnis_name=gnis_name,
                             gnis_id=metadata.get("gnis_id"),
                             mgmt_units=metadata.get("mgmt_units", []),
@@ -538,6 +576,85 @@ class MetadataGazetteer:
                     )
 
         return features
+
+    def get_feature_type_from_id(self, feature_id: str) -> FeatureType:
+        """
+        Determine feature type from feature ID.
+
+        Handles various ID formats:
+        - Pure numeric (e.g., "123456") -> STREAM (linear_feature_id)
+        - Composite key with prefix (e.g., "LAKE_123", "WETLAND_456") -> corresponding type
+        - Plain waterbody key that exists in polygon metadata -> corresponding type
+        - Unknown format -> UNKNOWN
+
+        Args:
+            feature_id: Feature identifier (linear_feature_id or composite key)
+
+        Returns:
+            FeatureType enum value
+        """
+        if not feature_id:
+            return FeatureType.UNKNOWN
+
+        feature_id_str = str(feature_id).strip()
+
+        # Check for composite key format (PREFIX_ID)
+        if "_" in feature_id_str:
+            prefix, key = feature_id_str.split("_", 1)
+            prefix_upper = prefix.upper()
+
+            if prefix_upper in ["LAKE", "LAKES"]:
+                return FeatureType.LAKE
+            elif prefix_upper == "WETLAND":
+                return FeatureType.WETLAND
+            elif prefix_upper == "MANMADE":
+                return FeatureType.MANMADE
+            elif prefix_upper == "UNMARKED":
+                return FeatureType.UNMARKED
+            elif prefix_upper == "STREAM":
+                return FeatureType.STREAM
+
+        # Check if it's a pure numeric ID (likely a stream linear_feature_id)
+        if feature_id_str.isdigit():
+            # Verify it exists in stream metadata
+            if feature_id_str in self.metadata.get("streams", {}):
+                return FeatureType.STREAM
+
+        # Try to find in polygon metadata collections
+        for collection_name, feature_type in [
+            ("lakes", FeatureType.LAKE),
+            ("wetlands", FeatureType.WETLAND),
+            ("manmade", FeatureType.MANMADE),
+        ]:
+            if feature_id_str in self.metadata.get(collection_name, {}):
+                return feature_type
+
+        # Default fallback
+        return FeatureType.UNKNOWN
+
+    def get_feature_key_from_id(self, feature_id: str) -> str:
+        """
+        Extract the actual key/ID from a feature_id.
+
+        Handles both composite format ('LAKE_123' -> '123') and plain format ('123' -> '123').
+
+        Args:
+            feature_id: Feature identifier (may have type prefix or not)
+
+        Returns:
+            The extracted key/ID as a string
+        """
+        if not feature_id:
+            return ""
+
+        feature_id_str = str(feature_id).strip()
+
+        # Handle composite format (PREFIX_ID)
+        if "_" in feature_id_str:
+            return feature_id_str.split("_", 1)[1]
+
+        # Already a plain ID
+        return feature_id_str
 
     def search_by_watershed_code(self, fwa_watershed_code: str) -> List[FWAFeature]:
         """
@@ -562,7 +679,7 @@ class MetadataGazetteer:
                         fwa_id=linear_feature_id,
                         name=gnis_name or linear_feature_id,
                         geometry_type="multilinestring",
-                        region=self._zones_to_region(metadata.get("zones", [])),
+                        zones=metadata.get("zones", ["Unknown"]),
                         gnis_name=gnis_name,
                         fwa_watershed_code=metadata.get("fwa_watershed_code"),
                         mgmt_units=metadata.get("mgmt_units", []),

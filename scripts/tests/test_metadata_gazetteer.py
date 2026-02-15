@@ -163,7 +163,7 @@ def test_index_contains_fwa_features(metadata_gazetteer):
     assert elk_river_features[0].name == "Elk River"
     assert elk_river_features[0].fwa_id == "100001"
     assert elk_river_features[0].geometry_type == "multilinestring"
-    assert elk_river_features[0].region == "Region 4"
+    assert "4" in elk_river_features[0].zones
 
 
 # ==========================================
@@ -201,11 +201,11 @@ def test_search_ambiguous_name(metadata_gazetteer):
 
 def test_search_with_region_filter(metadata_gazetteer):
     """Test: Region filter resolves ambiguity."""
-    results = metadata_gazetteer.search("Mill Creek", region="Region 4")
+    results = metadata_gazetteer.search("Mill Creek", region="4")
 
     assert len(results) == 1
     assert results[0].fwa_id == "400001"
-    assert results[0].region == "Region 4"
+    assert "4" in results[0].zones
 
 
 def test_search_case_insensitive(metadata_gazetteer):

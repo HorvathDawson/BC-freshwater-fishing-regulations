@@ -95,7 +95,7 @@ class WaterbodyLinker:
 
         Args:
             waterbody_key: Waterbody name from regulation (primary key)
-            region: Region identifier (e.g., "Region 1")
+            region: Region identifier (e.g., "Region 1" or "1")
             mgmt_units: Management units from regulation
             name_verbatim: Exact verbatim name from regulation text
 
@@ -103,6 +103,14 @@ class WaterbodyLinker:
             LinkingResult with status and matched feature(s)
         """
         lookup_name = name_verbatim if name_verbatim else waterbody_key
+
+        # Extract zone number from region (e.g., "Region 4" -> "4", or "4" -> "4")
+        zone_number = None
+        if region:
+            if region.startswith("Region "):
+                zone_number = region.split()[-1]  # "Region 4" -> "4"
+            else:
+                zone_number = region  # Already a zone number
 
         # STEP 0: Check SkipEntry first (highest priority - don't even try to link)
         if region:
@@ -143,7 +151,7 @@ class WaterbodyLinker:
             if name_var:
                 # Use the corrected name(s) to search
                 result = self._link_with_name_variation(
-                    waterbody_key, name_var, region, mgmt_units
+                    waterbody_key, name_var, zone_number, mgmt_units
                 )
                 result.link_method = "name_variation"
                 self.stats[result.status] += 1
@@ -189,7 +197,7 @@ class WaterbodyLinker:
         # Try each variation in sequence
         result = None
         for variation in search_variations:
-            result = self._natural_search(variation, region, mgmt_units)
+            result = self._natural_search(variation, zone_number, mgmt_units)
             if result.status != LinkStatus.NOT_FOUND:
                 break  # Found a match or ambiguous, stop searching
 
@@ -426,7 +434,8 @@ class WaterbodyLinker:
                         "gnis_id_2": None,
                         "geometry": geometry,
                         "geometry_type": unmarked_waterbody.geometry_type,
-                        "region": unmarked_waterbody.region,
+                        "feature_type": "unmarked",  # Mark as unmarked waterbody type
+                        "zones": unmarked_waterbody.zones,
                         "mgmt_units": unmarked_waterbody.mgmt_units,
                         "waterbody_key": None,
                         "fwa_watershed_code": None,
@@ -466,7 +475,7 @@ class WaterbodyLinker:
         self,
         waterbody_key: str,
         name_var: NameVariation,
-        region: Optional[str],
+        zone_number: Optional[str],
         mgmt_units: Optional[List[str]],
     ) -> LinkingResult:
         """Link using corrected name(s) from NameVariation."""
@@ -475,7 +484,7 @@ class WaterbodyLinker:
             # Search for each target and combine results
             all_features = []
             for target in name_var.target_names:
-                features = self.gazetteer.search(target, region=region)
+                features = self.gazetteer.search(target, region=zone_number)
                 all_features.extend(features)
 
             if len(all_features) == len(name_var.target_names):
@@ -498,7 +507,7 @@ class WaterbodyLinker:
         # Single target name
         target_name = name_var.target_names[0]
         result = self._natural_search(
-            target_name, region, mgmt_units, is_variation=True
+            target_name, zone_number, mgmt_units, is_variation=True
         )
         # Set matched_name if this was a variation
         if result.status == LinkStatus.SUCCESS:

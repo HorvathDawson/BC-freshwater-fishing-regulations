@@ -319,7 +319,7 @@ def test_linking_coverage(export_not_found: str = None, export_ambiguous: str = 
                         "gnis_id": f.gnis_id,
                         "fwa_watershed_code": f.fwa_watershed_code,
                         "feature_type": getattr(f, "geometry_type", "Unknown"),
-                        "region": f.region,
+                        "zones": f.zones,
                         "management_units": f.mgmt_units,
                     }
                 )
@@ -510,8 +510,11 @@ def test_linking_coverage(export_not_found: str = None, export_ambiguous: str = 
                             )
                             or "None"
                         )
+                        zones_str = (
+                            ",".join(f["zones"]) if f.get("zones") else "Unknown"
+                        )
                         print(
-                            f"     - {f['name']} [{cid}] ({f['region']}) | MUs: {f_mus}"
+                            f"     - {f['name']} [{cid}] (Zones: {zones_str}) | MUs: {f_mus}"
                         )
 
     print_sample(LinkStatus.NOT_FOUND, limit=5)

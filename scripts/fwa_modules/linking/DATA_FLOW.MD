@@ -407,37 +407,52 @@ CLASS ScopeFilter:
 
 ```python
 CLASS TributaryEnricher:
-    // Enriches feature set with tributaries/upstream features
-    // Uses caching to avoid duplicate graph traversals
+    // Pure graph traversal utility for finding upstream features
+    // Takes seed edges and exclusions, returns tributary features
     
     ATTRIBUTES:
         graph                // FWA stream network graph
-        enrichment_cache     // Memoization: feature_id → upstream_features
+        metadata_gazetteer   // Metadata lookup
     
-    METHOD enrich_with_tributaries(features, scope, global_scope):
-        // Add upstream features if includes_tributaries flag is true
-        // Fallback logic: scope → global_scope → false
+    METHOD enrich_from_seeds(seed_edge_ids, excluded_watershed_codes, parent_features):
+        // Find all upstream features from given seed edges
+        // Excludes edges with watershed codes in excluded_watershed_codes
         
-        // 1. Determine includes_tributaries flag
-        includes_tribs = scope.includes_tributaries
-        IF includes_tribs is null AND global_scope exists:
-            includes_tribs = global_scope.includes_tributaries
-        IF includes_tribs is null:
-            includes_tribs = false  // Default
+        INPUT:
+            seed_edge_ids: List[int]              // Graph edge IDs to start traversal from
+            excluded_watershed_codes: Set[str]    // Watershed codes to exclude (e.g., mainstem)
+            parent_features: List                 // Parent features for context/logging
         
-        // 2. Early return if no enrichment needed
-        IF NOT includes_tribs:
-            RETURN features
+        OUTPUT:
+            List of FWAFeature dicts (tributaries only, excludes parents)
         
-        // 3. Find all upstream features (with caching)
-        enriched = SET(features)
-        
-        FOR EACH feature IN features:
-            feature_id = feature.composite_id
-            
-            // Check cache first (performance optimization)
-            IF feature_id NOT IN enrichment_cache:
-                upstream = graph.get_upstream_features(feature.id)
+        ALGORITHM:
+            1. Initialize visited set, result list
+            2. For each seed edge:
+                - BFS upstream traversal
+                - Skip edges with excluded watershed codes
+                - Skip already visited edges
+                - Lookup metadata for each edge
+                - Add to results if not already included
+            3. Return unique tributary features
+    
+    HELPER METHODS:
+    
+    METHOD find_stream_seeds(linear_feature_ids):
+        // Find graph edge IDs for stream linear_feature_ids
+        INPUT: List[str] - linear_feature_ids
+        OUTPUT: List[int] - graph edge IDs
+    
+    METHOD find_lake_seeds(waterbody_key):
+        // Find graph edge IDs connected to a lake/polygon
+        INPUT: str - waterbody_key
+        OUTPUT: List[int] - graph edge IDs
+    
+    METHOD get_watershed_codes_from_edges(edge_ids):
+        // Extract watershed codes from graph edges
+        INPUT: List[int] - graph edge IDs
+        OUTPUT: Set[str] - watershed codes
+
                 enrichment_cache[feature_id] = upstream
             
             // Add cached upstream features to result
@@ -467,18 +482,59 @@ CLASS RegulationMapper:
     
     METHOD apply_scope_and_enrich(base_features, scope, global_scope):
         // Helper: Apply spatial filter + tributary enrichment
+    METHOD apply_regulation_scope(base_features, scope, includes_tributaries, global_scope):
+        // Orchestrate spatial filtering + tributary enrichment
+        // Business logic: Determines what features to include based on scope type
         
-        // Step 1: Spatial filtering (DIRECTIONAL/SEGMENT/BUFFER/etc)
+        // TRIBUTARIES_ONLY: Return ONLY tributaries (exclude base features)
+        IF scope.type == "TRIBUTARIES_ONLY":
+            tributaries = _enrich_with_tributaries(base_features)
+            RETURN tributaries
+        
+        // Step 1: Apply spatial filter
         scoped_features = scope_filter.apply_scope(base_features, scope)
         
-        // Step 2: Tributary enrichment (conditional on includes_tributaries)
-        enriched_features = tributary_enricher.enrich_with_tributaries(
-            scoped_features,
-            scope,
-            global_scope  // Fallback for includes_tributaries
-        )
+        // Step 2: Determine if we should enrich with tributaries
+        should_enrich = includes_tributaries
+        IF should_enrich is None:
+            should_enrich = global_scope.includes_tributaries
         
-        RETURN enriched_features
+        // Step 3: Enrich if requested
+        IF should_enrich:
+            tributaries = _enrich_with_tributaries(scoped_features)
+            RETURN scoped_features + tributaries
+        
+        RETURN scoped_features
+    
+    PRIVATE METHOD _enrich_with_tributaries(features):
+        // Orchestrate tributary enrichment based on feature type
+        // Separates stream vs polygon logic
+        
+        // Separate by type
+        stream_features = [f for f in features if f.feature_type == "stream"]
+        polygon_features = [f for f in features if f.feature_type in ["lake", "wetland", "manmade", "unmarked"]]
+        
+        all_tributaries = []
+        
+        // Process streams: exclude mainstem (same watershed code)
+        IF stream_features:
+            linear_ids = [f.linear_feature_id for f in stream_features]
+            seed_edges = tributary_enricher.find_stream_seeds(linear_ids)
+            excluded_codes = tributary_enricher.get_watershed_codes_from_edges(seed_edges)
+            tributaries = tributary_enricher.enrich_from_seeds(
+                seed_edges, excluded_codes, parent_features=stream_features
+            )
+            all_tributaries.extend(tributaries)
+        
+        // Process polygons: include ALL upstream
+        FOR EACH polygon_feature IN polygon_features:
+            seed_edges = tributary_enricher.find_lake_seeds(polygon_feature.waterbody_key)
+            tributaries = tributary_enricher.enrich_from_seeds(
+                seed_edges, excluded_codes={}, parent_features=[polygon_feature]
+            )
+            all_tributaries.extend(tributaries)
+        
+        RETURN all_tributaries
     
     METHOD process_all_regulations(regulations):
         // Main processing loop - creates feature → regulation index
@@ -501,17 +557,12 @@ CLASS RegulationMapper:
             
             // 3. Process each rule independently
             FOR EACH rule IN regulation.rules:
-                // Apply rule spatial scope
-                rule_scoped = scope_filter.apply_scope(
+                // Apply rule scope + tributary enrichment
+                rule_features = apply_regulation_scope(
                     globally_scoped,
-                    rule.scope
-                )
-                
-                // Enrich with tributaries based on includes_tributaries flag
-                rule_features = tributary_enricher.enrich_with_tributaries(
-                    rule_scoped,
                     rule.scope,
-                    global_scope = regulation.identity.global_scope
+                    rule.scope.includes_tributaries,
+                    regulation.identity.global_scope
                 )
                 
                 // Map this rule to its final feature set

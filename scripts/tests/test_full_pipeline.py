@@ -51,7 +51,7 @@ def main():
     print("\nInitializing pipeline components...")
     linker = WaterbodyLinker(gazetteer)
     scope_filter = ScopeFilter()
-    tributary_enricher = TributaryEnricher(graph_path)
+    tributary_enricher = TributaryEnricher(graph_path, metadata_gazetteer=gazetteer)
 
     mapper = RegulationMapper(linker, scope_filter, tributary_enricher)
 

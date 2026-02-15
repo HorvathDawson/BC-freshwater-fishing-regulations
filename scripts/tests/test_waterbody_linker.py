@@ -62,7 +62,7 @@ class TestGazetteer:
         matches = self.name_index.get(normalized, [])
 
         if region:
-            matches = [f for f in matches if f.region == region]
+            matches = [f for f in matches if region in f.zones]
 
         return matches
 
@@ -86,20 +86,20 @@ def sample_fwa_features():
             fwa_id="fwa_elk_001",
             name="Elk River",
             geometry_type="multilinestring",
-            region="Region 4",
+            zones=["4"],
             gnis_name="Elk River",
         ),
         FWAFeature(
             fwa_id="fwa_michel_001",
             name="Michel Creek",
             geometry_type="multilinestring",
-            region="Region 4",
+            zones=["4"],
         ),
         FWAFeature(
             fwa_id="fwa_alouette_001",
             name="Alouette Lake",
             geometry_type="polygon",
-            region="Region 2",
+            zones=["2"],
             gnis_name="Alouette Lake",
         ),
         # Ambiguous waterbodies (same name, different regions)
@@ -107,26 +107,26 @@ def sample_fwa_features():
             fwa_id="fwa_mill_region2",
             name="Mill Creek",
             geometry_type="multilinestring",
-            region="Region 2",
+            zones=["2"],
         ),
         FWAFeature(
             fwa_id="fwa_mill_region4",
             name="Mill Creek",
             geometry_type="multilinestring",
-            region="Region 4",
+            zones=["4"],
         ),
         # Same name, different geometry types
         FWAFeature(
             fwa_id="fwa_adams_lake_polygon",
             name="Adams Lake",
             geometry_type="polygon",
-            region="Region 3",
+            zones=["3"],
         ),
         FWAFeature(
             fwa_id="fwa_adams_lake_point",
             name="Adams Lake",
             geometry_type="point",
-            region="Region 3",
+            zones=["3"],
         ),
     ]
 
@@ -256,7 +256,7 @@ def test_link_multiple_matches_with_region_filter_resolves(linker):
 
     assert result.is_success
     assert result.matched_feature.fwa_id == "fwa_mill_region4"
-    assert result.matched_feature.region == "Region 4"
+    assert "4" in result.matched_feature.zones
 
 
 def test_link_multiple_geometry_types_same_name(linker):
@@ -347,7 +347,7 @@ def test_name_variation_typo_correction(linker):
             fwa_id="fwa_babine_001",
             name="Babine Lake",
             geometry_type="polygon",
-            region="Region 4",
+            zones=["4"],
         )
     )
 
@@ -461,7 +461,7 @@ def test_link_no_region_provided(linker):
     result = linker.link_waterbody("Elk River", region=None)
 
     assert result.is_success
-    assert result.matched_feature.region == "Region 4"
+    assert "4" in result.matched_feature.zones
 
 
 def test_link_special_characters_in_name(linker):
@@ -477,7 +477,7 @@ def test_link_special_characters_in_name(linker):
         fwa_id="fwa_special_001",
         name='"Little Grassy" Lake',
         geometry_type="polygon",
-        region="Region 3",
+        zones=["3"],
     )
     linker.gazetteer.features.append(special_feature)
     linker.gazetteer._build_index()
@@ -545,7 +545,7 @@ def test_end_to_end_elk_river_linking(linker):
     # Should succeed with single match
     assert result.is_success
     assert result.matched_feature.name == "Elk River"
-    assert result.matched_feature.region == "Region 4"
+    assert "4" in result.matched_feature.zones
     assert result.waterbody_key == "ELK RIVER"
 
 

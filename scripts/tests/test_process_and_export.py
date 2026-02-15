@@ -47,7 +47,9 @@ def test_process_and_export_returns_pipeline_result():
     gazetteer = MetadataGazetteer(gazetteer_path)
     linker = WaterbodyLinker(gazetteer, ManualCorrections({}, {}, {}, {}))
     scope_filter = ScopeFilter()
-    tributary_enricher = TributaryEnricher()  # No graph for faster test
+    tributary_enricher = TributaryEnricher(
+        metadata_gazetteer=gazetteer
+    )  # No graph for faster test
 
     mapper = RegulationMapper(linker, scope_filter, tributary_enricher)
 
@@ -83,7 +85,7 @@ def test_process_and_export_with_output_dir():
     gazetteer = MetadataGazetteer(gazetteer_path)
     linker = WaterbodyLinker(gazetteer, ManualCorrections({}, {}, {}, {}))
     scope_filter = ScopeFilter()
-    tributary_enricher = TributaryEnricher()
+    tributary_enricher = TributaryEnricher(metadata_gazetteer=gazetteer)
 
     mapper = RegulationMapper(linker, scope_filter, tributary_enricher)
 
@@ -120,7 +122,7 @@ def test_process_and_export_without_output_dir():
     gazetteer = MetadataGazetteer(gazetteer_path)
     linker = WaterbodyLinker(gazetteer, ManualCorrections({}, {}, {}, {}))
     scope_filter = ScopeFilter()
-    tributary_enricher = TributaryEnricher()
+    tributary_enricher = TributaryEnricher(metadata_gazetteer=gazetteer)
 
     mapper = RegulationMapper(linker, scope_filter, tributary_enricher)
 
@@ -153,7 +155,7 @@ def test_process_and_export_statistics():
     gazetteer = MetadataGazetteer(gazetteer_path)
     linker = WaterbodyLinker(gazetteer, ManualCorrections({}, {}, {}, {}))
     scope_filter = ScopeFilter()
-    tributary_enricher = TributaryEnricher()
+    tributary_enricher = TributaryEnricher(metadata_gazetteer=gazetteer)
 
     mapper = RegulationMapper(linker, scope_filter, tributary_enricher)
 
@@ -194,7 +196,7 @@ def test_process_and_export_data_consistency():
     gazetteer = MetadataGazetteer(gazetteer_path)
     linker = WaterbodyLinker(gazetteer, ManualCorrections({}, {}, {}, {}))
     scope_filter = ScopeFilter()
-    tributary_enricher = TributaryEnricher()
+    tributary_enricher = TributaryEnricher(metadata_gazetteer=gazetteer)
 
     mapper = RegulationMapper(linker, scope_filter, tributary_enricher)
 

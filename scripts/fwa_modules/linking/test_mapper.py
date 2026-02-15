@@ -191,11 +191,13 @@ def main():
     # Initialize tributary enricher with graph (if available)
     if args.graph.exists():
         print(f"Loading graph for tributary enrichment: {args.graph}")
-        tributary_enricher = TributaryEnricher(graph_source=args.graph)
+        tributary_enricher = TributaryEnricher(
+            graph_source=args.graph, metadata_gazetteer=gazetteer
+        )
     else:
         print(f"{YELLOW}WARNING: Graph file not found: {args.graph}{RESET}")
         print(f"Tributary enrichment will be disabled")
-        tributary_enricher = TributaryEnricher()
+        tributary_enricher = TributaryEnricher(metadata_gazetteer=gazetteer)
 
     mapper = RegulationMapper(
         linker=linker,
