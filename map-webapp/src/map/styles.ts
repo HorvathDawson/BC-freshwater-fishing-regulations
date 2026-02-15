@@ -162,5 +162,29 @@ export const createRegulationLayers = (): LayerSpecification[] => {
         }
     });
     
+    // Regions (zone boundaries) - rendered on top for visibility
+    layers.push({
+        id: 'regions',
+        type: 'line',
+        source: 'regulations',
+        'source-layer': 'regions',
+        paint: {
+            'line-color': ['get', 'stroke_color'],
+            'line-width': [
+                'interpolate',
+                ['linear'],
+                ['zoom'],
+                4, 2,
+                8, 2.5,
+                12, 3
+            ],
+            'line-opacity': 0.8
+        },
+        layout: {
+            'line-cap': 'round',
+            'line-join': 'round'
+        }
+    });
+    
     return layers;
 };

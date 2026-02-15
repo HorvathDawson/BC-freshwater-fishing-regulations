@@ -1,0 +1,244 @@
+:root { 
+    --bg: #ffffff; 
+    --text: #1a1a1a; 
+}
+
+.panel-desktop {
+    position: absolute; 
+    top: 0; 
+    right: 0; 
+    bottom: 0; 
+    width: 350px;
+    background: var(--bg); 
+    border-left: 1px solid #000;
+    transform: translateX(100%); 
+    transition: transform 0.2s cubic-bezier(0,0,0,1);
+    z-index: 1000; 
+    display: flex; 
+    flex-direction: column; 
+    box-sizing: border-box;
+}
+
+.panel-desktop.visible { 
+    transform: translateX(0); 
+}
+
+.panel-mobile { 
+    display: none; 
+}
+
+.panel-header { 
+    padding: 24px; 
+    border-bottom: 2px solid #000; 
+    background: #f8f8f8; 
+    cursor: pointer; 
+    touch-action: none; 
+}
+
+.mobile-handle-bar { 
+    display: none; 
+}
+
+.header-row { 
+    display: flex; 
+    justify-content: space-between; 
+    margin-bottom: 12px; 
+    pointer-events: none; 
+}
+
+.header-row button { 
+    pointer-events: auto; 
+}
+
+.type-tag { 
+    font-size: 11px; 
+    font-weight: 800; 
+    background: #000; 
+    color: #fff; 
+    padding: 4px 8px; 
+    text-transform: uppercase; 
+}
+
+.square-btn { 
+    background: none; 
+    border: 1px solid transparent; 
+    cursor: pointer; 
+    padding: 4px; 
+    color: #000; 
+}
+
+.square-btn:hover { 
+    background: #e5e5e5; 
+    border: 1px solid #000; 
+}
+
+.panel-header h1 { 
+    font-size: 20px; 
+    font-weight: 700; 
+    margin: 0 0 16px 0; 
+    line-height: 1.2; 
+    text-transform: uppercase; 
+    pointer-events: none; 
+}
+
+.tag-row { 
+    display: flex; 
+    flex-wrap: wrap; 
+    gap: 8px; 
+    pointer-events: none; 
+}
+
+.tag { 
+    font-size: 10px; 
+    font-weight: 600; 
+    padding: 4px 6px; 
+    border: 1px solid #ccc; 
+    background: #fff; 
+    text-transform: uppercase; 
+}
+
+.tag.highlight { 
+    border-color: #2563eb; 
+    color: #2563eb; 
+    background: #eff6ff; 
+}
+
+.tag.alert { 
+    border-color: #dc2626; 
+    color: #dc2626; 
+    background: #fef2f2; 
+}
+
+.panel-content { 
+    padding: 24px; 
+    overflow-y: auto; 
+    flex: 1; 
+}
+
+.data-section { 
+    margin-bottom: 32px; 
+}
+
+.data-section h3 { 
+    font-size: 11px; 
+    font-weight: 800; 
+    letter-spacing: 0.1em; 
+    margin: 0 0 12px 0; 
+    color: #999; 
+    text-transform: uppercase; 
+}
+
+.data-row { 
+    display: flex; 
+    justify-content: space-between; 
+    padding: 8px 0; 
+    border-bottom: 1px solid #eee; 
+}
+
+.label { 
+    font-size: 12px; 
+    font-weight: 600; 
+    color: #666; 
+    text-transform: uppercase; 
+}
+
+.value { 
+    font-size: 13px; 
+    font-weight: 500; 
+    text-align: right; 
+}
+
+.raw-text-block { 
+    background: #f1f1f1; 
+    padding: 16px; 
+    margin-bottom: 32px; 
+    border: 1px solid #ddd; 
+}
+
+.block-label { 
+    font-size: 9px; 
+    font-weight: 700; 
+    color: #666; 
+    margin-bottom: 8px; 
+}
+
+.raw-text-block p { 
+    margin: 0; 
+    font-size: 12px; 
+    line-height: 1.5; 
+    font-family: monospace; 
+}
+
+.grid-2 { 
+    display: grid; 
+    grid-template-columns: 1fr 1fr; 
+    gap: 12px; 
+}
+
+.mt-2 { 
+    margin-top: 12px; 
+}
+
+.stat-box { 
+    border: 1px solid #e5e5e5; 
+    padding: 8px; 
+    display: flex; 
+    flex-direction: column; 
+    gap: 4px; 
+}
+
+.value.code { 
+    font-family: monospace; 
+}
+
+@media (max-width: 768px) {
+    .panel-desktop { 
+        display: none; 
+    }
+    
+    .panel-mobile {
+        display: flex;
+        flex-direction: column;
+        position: fixed;
+        bottom: 0; 
+        
+        /* FIX: Pin to edges, auto width */
+        left: 0; 
+        right: 0;
+        width: auto;
+        margin: 0;
+        
+        background: #fff;
+        border-top: 2px solid #000;
+        height: 70vh;
+        transform: translateY(100%);
+        transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+        z-index: 2000;
+        box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
+        box-sizing: border-box;
+    }
+    
+    .panel-mobile.visible { 
+        transform: translateY(0); 
+    }
+    
+    .panel-mobile:not(.visible) { 
+        display: none; 
+    }
+    
+    .panel-mobile.partial { 
+        transform: translateY(50%); 
+    }
+    
+    .panel-mobile.collapsed { 
+        transform: translateY(calc(100% - 160px)); 
+    }
+
+    .mobile-handle-bar {
+        display: block; 
+        width: 40px; 
+        height: 4px;
+        background: #ccc; 
+        margin: 0 auto 16px auto;
+    }
+}
