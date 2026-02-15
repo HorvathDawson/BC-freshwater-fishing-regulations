@@ -178,7 +178,9 @@ class RegulationPipeline:
                 include_all_features=False,
                 zones_path=zones_path,
             )
-            exporter.export_pmtiles(pmtiles_merged, merge_geometries=True)
+            exporter.export_pmtiles(
+                pmtiles_merged, merge_geometries=True, zones_path=zones_path
+            )
 
             exported_files["gpkg_merged"] = gpkg_merged
             exported_files["pmtiles_merged"] = pmtiles_merged
@@ -194,7 +196,9 @@ class RegulationPipeline:
                 include_all_features=False,
                 zones_path=zones_path,
             )
-            exporter.export_pmtiles(pmtiles_individual, merge_geometries=False)
+            exporter.export_pmtiles(
+                pmtiles_individual, merge_geometries=False, zones_path=zones_path
+            )
 
             exported_files["gpkg_individual"] = gpkg_individual
             exported_files["pmtiles_individual"] = pmtiles_individual

@@ -279,6 +279,7 @@ class MetadataBuilder:
                         ),
                         "fwa_watershed_code": row.get("FWA_WATERSHED_CODE", ""),
                         "blue_line_key": blue_line_key,
+                        "area_sqm": row.geometry.area,
                         "zones": z_data["zones"],
                         "mgmt_units": z_data["mgmt_units"],
                     }

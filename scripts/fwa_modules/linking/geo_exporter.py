@@ -289,27 +289,27 @@ class RegulationGeoExporter:
             )
 
             for _, row in filtered_gdf.iterrows():
-                wkey = row.get("WATERBODY_KEY", row["WATERBODY_POLY_ID"])
                 poly_id = row["WATERBODY_POLY_ID"]
 
+                # Get ALL attributes from gazetteer metadata
                 meta = self.gazetteer.metadata.get(f"{feature_type}s", {}).get(
                     poly_id, {}
                 )
-                gnis_name = (
-                    meta.get("gnis_name", "")
-                    or row.get("GNIS_NAME_1", "")
-                    or row.get("GNIS_NAME", "")
-                )
+
+                # Only use gazetteer metadata for attributes (no GDB fallback)
+                waterbody_key = meta.get("waterbody_key", poly_id)
+                gnis_name = meta.get("gnis_name", "")
+                area_sqm = meta.get("area_sqm", 0)
 
                 self._polygon_geometries[(feature_type, poly_id)] = {
-                    "geometry": row.geometry,
-                    "waterbody_key": wkey,
+                    "geometry": row.geometry,  # Geometry from GDB
+                    "waterbody_key": waterbody_key,  # From gazetteer
                     "waterbody_poly_id": poly_id,
-                    "gnis_name": gnis_name,
-                    "area_sqm": row.geometry.area,
-                    "zones": meta.get("zones", []),
-                    "mgmt_units": meta.get("mgmt_units", []),
-                    "crs": gdf.crs,
+                    "gnis_name": gnis_name,  # From gazetteer
+                    "area_sqm": area_sqm,  # From gazetteer
+                    "zones": meta.get("zones", []),  # From gazetteer
+                    "mgmt_units": meta.get("mgmt_units", []),  # From gazetteer
+                    "crs": gdf.crs,  # GDB CRS metadata
                 }
 
         logger.info(
@@ -561,7 +561,7 @@ class RegulationGeoExporter:
                 continue
 
             s = blk_stats[blk]
-            s["len"] += meta.get("length_metre", 0) or 0
+            s["len"] += meta.get("length", 0) or 0
             s["max_order"] = max(s["max_order"], meta.get("stream_order", 0) or 0)
             s["max_magnitude"] = max(
                 s["max_magnitude"], meta.get("stream_magnitude", 0) or 0
@@ -636,7 +636,7 @@ class RegulationGeoExporter:
                 return 12
             max_order = meta.get("stream_order", 0) or 0
             magnitude = meta.get("stream_magnitude", 0) or 0
-            total_length_km = (meta.get("length_metre", 0) or 0) / 1000.0
+            total_length_km = (meta.get("length", 0) or 0) / 1000.0
             has_name = bool(meta.get("gnis_name"))
             edge_type = meta.get("edge_type")
             is_side_channel = edge_type is not None and edge_type not in MAIN_FLOW_CODES
@@ -832,6 +832,7 @@ class RegulationGeoExporter:
         output_path: Path,
         merge_geometries: bool = True,
         work_dir: Optional[Path] = None,
+        zones_path: Optional[Path] = None,
     ) -> Path:
         if self._is_file_locked(output_path):
             return None
@@ -858,6 +859,12 @@ class RegulationGeoExporter:
             ),
             ("streams", lambda: self._create_streams_layer(merge_geometries, False)),
         ]
+
+        # Add regions layer if zones_path provided
+        if zones_path and zones_path.exists():
+            layer_configs.append(
+                ("regions", lambda: self._create_regions_layer(zones_path))
+            )
 
         layer_files = []
         for layer_name, create_fn in layer_configs:
@@ -890,6 +897,7 @@ class RegulationGeoExporter:
             # "--coalesce-densest-as-needed",
             # "--no-duplication",
             "--no-clipping",
+            "--detect-shared-borders",
         ]
 
         for lp in layer_files:

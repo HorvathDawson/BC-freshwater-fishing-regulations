@@ -243,7 +243,7 @@ NAME_VARIATIONS: Dict[str, Dict[str, NameVariation]] = {
         ),
         '"BIG QUALICUM" RIVER': NameVariation(
             target_names=["qualicum river"], note="i think this is just qualicum river"
-        ),
+        ),  # TODO: add to ignore because duplicate entry with "QUALICUM RIVER" in same region
         '"MAXWELL LAKE" (Lake Maxwell)': NameVariation(
             target_names=["lake maxwell"], note="it is 'lake maxwell'"
         ),
