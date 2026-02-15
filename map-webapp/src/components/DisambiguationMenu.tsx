@@ -1,27 +1,32 @@
 import React, { useRef, useLayoutEffect, useState } from 'react';
+import { Eye } from 'lucide-react';
 
 interface FeatureOption {
     type: 'stream' | 'lake' | 'wetland' | 'manmade';
     properties: Record<string, any>;
     id: string;
+    _segmentCount?: number;
 }
 
 interface DisambiguationMenuProps {
     options: FeatureOption[];
     position: { x: number; y: number } | null;
+    highlightedOption: FeatureOption | null;
     onSelect: (option: FeatureOption) => void;
+    onHighlight: (option: FeatureOption | null) => void;
     onClose: () => void;
     isCollapsed?: boolean;
     onSetCollapse: (collapsed: boolean) => void;
 }
 
-const DisambiguationMenu = ({ options, position, onSelect, onClose, isCollapsed = false, onSetCollapse }: DisambiguationMenuProps) => {
+const DisambiguationMenu = ({ options, position, highlightedOption, onSelect, onHighlight, onClose, isCollapsed = false, onSetCollapse }: DisambiguationMenuProps) => {
     const menuRef = useRef<HTMLDivElement>(null);
     const [menuStyle, setMenuStyle] = useState<React.CSSProperties>({
         visibility: 'hidden',
         top: 0,
         left: 0
     });
+    const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 
     const getLabel = (opt: FeatureOption) => opt.properties.gnis_name || opt.properties.lake_name || opt.properties.name || 'Unnamed';
 
@@ -41,33 +46,47 @@ const DisambiguationMenu = ({ options, position, onSelect, onClose, isCollapsed 
     };
 
     useLayoutEffect(() => {
-        if (window.innerWidth <= 768) {
+        const handleResize = () => {
+            setIsMobile(window.innerWidth <= 768);
+        };
+        
+        window.addEventListener('resize', handleResize);
+        
+        if (isMobile) {
             setMenuStyle({});
-            return;
+            return () => {
+                window.removeEventListener('resize', handleResize);
+            };
         }
 
-        if (!position || !menuRef.current) return;
+        if (!position || !menuRef.current) {
+            return () => {
+                window.removeEventListener('resize', handleResize);
+            };
+        }
 
         const menu = menuRef.current;
         const rect = menu.getBoundingClientRect();
         const viewportW = window.innerWidth;
         const viewportH = window.innerHeight;
-        const offset = 12;
+        const offset = 16;
 
-        let left = position.x + offset;
-        let top = position.y + offset;
-
-        if (left + rect.width > viewportW) left = position.x - rect.width - offset;
-        if (top + rect.height > viewportH) top = position.y - rect.height - offset;
-
-        if (left < 0) left = offset;
-        if (top < 0) top = offset;
+        // Anchor to right side of viewport to avoid covering map features
+        const left = viewportW - rect.width - offset;
+        
+        // Vertically center on click position, but constrain to viewport
+        let top = position.y - rect.height / 2;
+        top = Math.max(offset, Math.min(top, viewportH - rect.height - offset));
 
         setMenuStyle({
             visibility: 'visible',
             top: `${top}px`,
             left: `${left}px`
         });
+
+        return () => {
+            window.removeEventListener('resize', handleResize);
+        };
 
     }, [position, options]);
 
@@ -91,15 +110,63 @@ const DisambiguationMenu = ({ options, position, onSelect, onClose, isCollapsed 
                     <button onClick={(e) => { e.stopPropagation(); onClose(); }} className="close-x">×</button>
                 </div>
                 <div className="menu-list">
-                    {options.map((option, idx) => (
-                        <button key={idx} className="menu-item" onClick={() => onSelect(option)}>
-                            <div className={`square-icon ${option.type}`} />
-                            <div className="item-info">
-                                <span className="name">{getLabel(option)}</span>
-                                <span className="type">{option.type}</span>
+                    {options.map((option, idx) => {
+                        const isHighlighted = highlightedOption?.id === option.id;
+                        
+                        return (
+                            <div 
+                                key={idx} 
+                                className={`menu-item-wrapper ${isHighlighted ? 'highlighted' : ''}`}
+                                onMouseEnter={() => {
+                                    // Only highlight on hover on desktop
+                                    if (!isMobile) {
+                                        onHighlight(option);
+                                    }
+                                }}
+                                onMouseLeave={() => {
+                                    // Only clear highlight on leave on desktop
+                                    if (!isMobile) {
+                                        onHighlight(null);
+                                    }
+                                }}
+                            >
+                                <button 
+                                    className="menu-item" 
+                                    onClick={() => {
+                                        if (isMobile) {
+                                            // On mobile: first tap highlights, second tap (via button) focuses
+                                            if (!isHighlighted) {
+                                                onHighlight(option);
+                                            }
+                                        } else {
+                                            // On desktop: directly select
+                                            onSelect(option);
+                                        }
+                                    }}
+                                >
+                                    <div className={`square-icon ${option.type}`} />
+                                    <div className="item-info">
+                                        <span className="name">
+                                            {getLabel(option)}
+                                            {option._segmentCount && option._segmentCount > 1 && (
+                                                <span className="segment-badge"> ({option._segmentCount} segments)</span>
+                                            )}
+                                        </span>
+                                        <span className="type">{option.type}</span>
+                                    </div>
+                                </button>
+                                {isMobile && isHighlighted && (
+                                    <button 
+                                        className="focus-button"
+                                        onClick={() => onSelect(option)}
+                                        aria-label="Focus on this feature"
+                                    >
+                                        <Eye size={16} />
+                                    </button>
+                                )}
                             </div>
-                        </button>
-                    ))}
+                        );
+                    })}
                 </div>
             </div>
 
@@ -122,18 +189,60 @@ const DisambiguationMenu = ({ options, position, onSelect, onClose, isCollapsed 
                 }
                 .close-x { border: none; background: none; font-size: 16px; font-weight: bold; cursor: pointer; line-height: 1; }
                 .menu-list { overflow-y: auto; max-height: 300px; background: #fff; }
-                .menu-item {
-                    width: 100%; display: flex; align-items: center; gap: 12px; padding: 12px;
-                    border: none; background: #fff; border-bottom: 1px solid #eee;
-                    text-align: left; cursor: pointer; box-sizing: border-box;
+                
+                .menu-item-wrapper {
+                    position: relative;
+                    display: flex;
+                    align-items: center;
+                    border-bottom: 1px solid #eee;
                 }
-                .menu-item:hover { background: #f9f9f9; }
+                
+                .menu-item-wrapper.highlighted {
+                    background: #fffbeb;
+                }
+                
+                .menu-item {
+                    flex: 1;
+                    display: flex; 
+                    align-items: center; 
+                    gap: 12px; 
+                    padding: 12px;
+                    border: none; 
+                    background: transparent;
+                    text-align: left; 
+                    cursor: pointer; 
+                    box-sizing: border-box;
+                }
+                
+                .menu-item:hover { 
+                    background: rgba(0,0,0,0.03); 
+                }
+                
+                .focus-button {
+                    flex-shrink: 0;
+                    margin-right: 8px;
+                    padding: 8px;
+                    border: 1px solid #3b82f6;
+                    background: #3b82f6;
+                    color: white;
+                    border-radius: 4px;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+                
+                .focus-button:active {
+                    background: #2563eb;
+                    border-color: #2563eb;
+                }
                 .square-icon { width: 12px; height: 12px; border: 1px solid #000; flex-shrink: 0; }
                 .square-icon.stream { background: #3b82f6; }
                 .square-icon.lake { background: #0ea5e9; }
                 .square-icon.wetland { background: #10b981; }
                 .item-info { display: flex; flex-direction: column; }
                 .name { font-size: 13px; font-weight: 600; color: #000; }
+                .segment-badge { font-size: 11px; font-weight: 400; color: #666; margin-left: 4px; }
                 .type { font-size: 10px; text-transform: uppercase; color: #666; }
 
                 /* Mobile Override */

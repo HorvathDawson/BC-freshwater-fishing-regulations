@@ -3,13 +3,16 @@ import React, { useRef } from 'react';
 interface FeatureInfo {
     type: 'stream' | 'lake' | 'wetland' | 'manmade';
     properties: Record<string, any>;
+    _segmentCount?: number;
 }
+
+type CollapseState = 'expanded' | 'partial' | 'collapsed';
 
 interface InfoPanelProps {
     feature: FeatureInfo | null;
     onClose: () => void;
-    isCollapsed?: boolean;
-    onSetCollapse: (collapsed: boolean) => void;
+    collapseState?: CollapseState;
+    onSetCollapseState: (state: CollapseState) => void;
 }
 
 const Icons = {
@@ -21,7 +24,7 @@ const Icons = {
     )
 };
 
-const InfoPanel = ({ feature, onClose, isCollapsed = false, onSetCollapse }: InfoPanelProps) => {
+const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapseState }: InfoPanelProps) => {
     const touchStartY = useRef<number>(0);
 
     const handleTouchStart = (e: React.TouchEvent) => {
@@ -33,8 +36,15 @@ const InfoPanel = ({ feature, onClose, isCollapsed = false, onSetCollapse }: Inf
         const diffY = touchEndY - touchStartY.current;
         const threshold = 50; 
 
-        if (diffY > threshold) onSetCollapse(true);
-        else if (diffY < -threshold) onSetCollapse(false);
+        if (diffY > threshold) {
+            // Swiping down
+            if (collapseState === 'expanded') onSetCollapseState('partial');
+            else if (collapseState === 'partial') onSetCollapseState('collapsed');
+        } else if (diffY < -threshold) {
+            // Swiping up
+            if (collapseState === 'collapsed') onSetCollapseState('partial');
+            else if (collapseState === 'partial') onSetCollapseState('expanded');
+        }
     };
 
     const renderContent = () => {
@@ -47,7 +57,12 @@ const InfoPanel = ({ feature, onClose, isCollapsed = false, onSetCollapse }: Inf
             <>
                 <div 
                     className="panel-header" 
-                    onClick={() => onSetCollapse(!isCollapsed)}
+                    onClick={() => {
+                        // Cycle through states
+                        if (collapseState === 'expanded') onSetCollapseState('partial');
+                        else if (collapseState === 'partial') onSetCollapseState('collapsed');
+                        else onSetCollapseState('expanded');
+                    }}
                     onTouchStart={handleTouchStart}
                     onTouchEnd={handleTouchEnd}
                 >
@@ -60,6 +75,11 @@ const InfoPanel = ({ feature, onClose, isCollapsed = false, onSetCollapse }: Inf
                         </button>
                     </div>
                     <h1>{title}</h1>
+                    {feature._segmentCount && feature._segmentCount > 1 && (
+                        <div style={{ fontSize: '0.85rem', color: '#64748b', marginTop: '0.25rem' }}>
+                            {feature._segmentCount} segments merged
+                        </div>
+                    )}
                     
                     <div className="tag-row">
                         {props.waterbody_key && <span className="tag">ID: {props.waterbody_key}</span>}
@@ -122,7 +142,7 @@ const InfoPanel = ({ feature, onClose, isCollapsed = false, onSetCollapse }: Inf
                 {renderContent()}
             </div>
             
-            <div className={`panel-mobile ${feature ? 'visible' : ''} ${isCollapsed ? 'collapsed' : ''}`}>
+            <div className={`panel-mobile ${feature ? 'visible' : ''} ${collapseState === 'partial' ? 'partial' : ''} ${collapseState === 'collapsed' ? 'collapsed' : ''}`}>
                 {renderContent()}
             </div>
 
@@ -192,6 +212,7 @@ const InfoPanel = ({ feature, onClose, isCollapsed = false, onSetCollapse }: Inf
                     
                     .panel-mobile.visible { transform: translateY(0); }
                     .panel-mobile:not(.visible) { display: none; }
+                    .panel-mobile.partial { transform: translateY(50%); }
                     .panel-mobile.collapsed { transform: translateY(calc(100% - 160px)); }
 
                     .mobile-handle-bar {

@@ -2,7 +2,6 @@ import type { LayerSpecification } from 'maplibre-gl';
 
 // Feature type colors
 const FEATURE_COLORS = {
-    zones: '#E0E0E0',      // Light gray for zone boundaries
     streams: '#4A90E2',    // Blue for streams
     lakes: '#64B5F6',      // Light blue for lakes
     wetlands: '#81C784',   // Green for wetlands
@@ -10,334 +9,158 @@ const FEATURE_COLORS = {
     hover: '#FFD700',      // Gold for hover highlight
 };
 
-// Helper function to create layers for each zone
-export const createZoneLayers = (): LayerSpecification[] => {
-    const zoneLayers: LayerSpecification[] = [];
+// Helper function to create regulation layers from new PMTiles structure
+export const createRegulationLayers = (): LayerSpecification[] => {
+    const layers: LayerSpecification[] = [];
     
-    for (let zone = 1; zone <= 8; zone++) {
-        const zoneStr = zone.toString();
-        
-        // Zone boundaries (lowest layer) - always visible
-        zoneLayers.push({
-            id: `zone-${zone}-boundaries-fill`,
-            type: 'fill',
-            source: 'waterbodies',
-            'source-layer': 'waterbodies',
-            filter: ['==', ['get', 'layer'], `zone_${zone}_boundaries`],
-            minzoom: 0,
-            maxzoom: 24,
-            paint: {
-                'fill-color': FEATURE_COLORS.zones,
-                'fill-opacity': 0.08,  // Reduced opacity for more subtle background
-                'fill-antialias': true
-            }
-        });
-        
-        zoneLayers.push({
-            id: `zone-${zone}-boundaries-line`,
-            type: 'line',
-            source: 'waterbodies',
-            'source-layer': 'waterbodies',
-            filter: ['==', ['get', 'layer'], `zone_${zone}_boundaries`],
-            minzoom: 0,
-            maxzoom: 24,
-            paint: {
-                'line-color': FEATURE_COLORS.zones,
-                'line-width': [
-                    'interpolate',
-                    ['linear'],
-                    ['zoom'],
-                    4, 1.5,
-                    10, 2.5,
-                    14, 4
-                ],
-                'line-opacity': 0.7,
-                'line-dasharray': [4, 3]  // Dotted line pattern for zone boundaries
-            },
-            layout: {
-                'line-cap': 'butt',  // Square caps work better with dashed lines
-                'line-join': 'miter'
-            }
-        });
-        
-        // Wetlands - always visible (rendered first, below lakes and manmade)
-        // Using a diagonal line pattern fill
-        zoneLayers.push({
-            id: `zone-${zone}-wetlands-fill`,
-            type: 'fill',
-            source: 'waterbodies',
-            'source-layer': 'waterbodies',
-            filter: ['==', ['get', 'layer'], `zone_${zone}_wetlands`],
-            minzoom: 0,
-            maxzoom: 24,
-            paint: {
-                'fill-pattern': 'wetland-pattern',
-                'fill-opacity': [
-                    'interpolate',
-                    ['linear'],
-                    ['zoom'],
-                    4, 0.3,
-                    10, 0.4,
-                    14, 0.5
-                ]
-            }
-        });
-        
-        zoneLayers.push({
-            id: `zone-${zone}-wetlands-line`,
-            type: 'line',
-            source: 'waterbodies',
-            'source-layer': 'waterbodies',
-            filter: ['==', ['get', 'layer'], `zone_${zone}_wetlands`],
-            minzoom: 0,
-            maxzoom: 24,
-            paint: {
-                'line-color': FEATURE_COLORS.wetlands,
-                'line-width': [
-                    'interpolate',
-                    ['linear'],
-                    ['zoom'],
-                    4, 0.5,
-                    10, 0.75,
-                    14, 1.25
-                ],
-                'line-opacity': 0.6
-            },
-            layout: {
-                'line-cap': 'round',
-                'line-join': 'round'
-            }
-        });
-        
-        // Lakes - always visible (rendered above wetlands)
-        zoneLayers.push({
-            id: `zone-${zone}-lakes-fill`,
-            type: 'fill',
-            source: 'waterbodies',
-            'source-layer': 'waterbodies',
-            filter: ['==', ['get', 'layer'], `zone_${zone}_lakes`],
-            minzoom: 0,
-            maxzoom: 24,
-            paint: {
-                'fill-color': FEATURE_COLORS.lakes,
-                'fill-opacity': 0.4,
-                'fill-antialias': true
-            }
-        });
-        
-        zoneLayers.push({
-            id: `zone-${zone}-lakes-line`,
-            type: 'line',
-            source: 'waterbodies',
-            'source-layer': 'waterbodies',
-            filter: ['==', ['get', 'layer'], `zone_${zone}_lakes`],
-            minzoom: 0,
-            maxzoom: 24,
-            paint: {
-                'line-color': FEATURE_COLORS.lakes,
-                'line-width': [
-                    'interpolate',
-                    ['linear'],
-                    ['zoom'],
-                    4, 0.8,
-                    10, 1,
-                    14, 1.5
-                ],
-                'line-opacity': 0.8
-            },
-            layout: {
-                'line-cap': 'round',
-                'line-join': 'round'
-            }
-        });
-        
-        // Manmade waterbodies - always visible (rendered above wetlands)
-        zoneLayers.push({
-            id: `zone-${zone}-manmade-fill`,
-            type: 'fill',
-            source: 'waterbodies',
-            'source-layer': 'waterbodies',
-            filter: ['==', ['get', 'layer'], `zone_${zone}_manmade`],
-            minzoom: 0,
-            maxzoom: 24,
-            paint: {
-                'fill-color': FEATURE_COLORS.manmade,
-                'fill-opacity': 0.35,
-                'fill-antialias': true
-            }
-        });
-        
-        zoneLayers.push({
-            id: `zone-${zone}-manmade-line`,
-            type: 'line',
-            source: 'waterbodies',
-            'source-layer': 'waterbodies',
-            filter: ['==', ['get', 'layer'], `zone_${zone}_manmade`],
-            minzoom: 0,
-            maxzoom: 24,
-            paint: {
-                'line-color': FEATURE_COLORS.manmade,
-                'line-width': [
-                    'interpolate',
-                    ['linear'],
-                    ['zoom'],
-                    4, 0.8,
-                    10, 1,
-                    14, 1.5
-                ],
-                'line-opacity': 0.7,
-                'line-dasharray': [3, 2]  // Dashed line for manmade
-            },
-            layout: {
-                'line-cap': 'round',
-                'line-join': 'round'
-            }
-        });
-        
-        // Streams - tippecanoe already filtered by stream_order via minzoom
-        // Line width is proportional to stream_order (higher order = thicker)
-        zoneLayers.push({
-            id: `zone-${zone}-streams`,
-            type: 'line',
-            source: 'waterbodies',
-            'source-layer': 'waterbodies',
-            filter: ['==', ['get', 'layer'], `zone_${zone}_streams`],
-            minzoom: 0,
-            maxzoom: 24,
-            paint: {
-                'line-color': FEATURE_COLORS.streams,
-                'line-width': [
-                    'interpolate',
-                    ['linear'],
-                    ['zoom'],
-                    4, [
-                        'interpolate',
-                        ['linear'],
-                        ['coalesce', ['get', 'stream_order'], 1],
-                        1, 0.6,    // Stream order 1: very thin
-                        3, 0.8,    // Stream order 3: thin
-                        5, 1.0,    // Stream order 5: medium-thin
-                        7, 1.4,    // Stream order 7: medium
-                        9, 1.8     // Stream order 9+: thicker
-                    ],
-                    8, [
-                        'interpolate',
-                        ['linear'],
-                        ['coalesce', ['get', 'stream_order'], 1],
-                        1, 0.8,
-                        3, 1.2,
-                        5, 1.6,
-                        7, 2.2,
-                        9, 2.8
-                    ],
-                    12, [
-                        'interpolate',
-                        ['linear'],
-                        ['coalesce', ['get', 'stream_order'], 1],
-                        1, 1.5,
-                        3, 2.5,
-                        5, 3.5,
-                        7, 5.0,
-                        9, 6.5
-                    ],
-                    16, [
-                        'interpolate',
-                        ['linear'],
-                        ['coalesce', ['get', 'stream_order'], 1],
-                        1, 2.5,
-                        3, 4.0,
-                        5, 6.0,
-                        7, 8.5,
-                        9, 11.0
-                    ],
-                    20, [
-                        'interpolate',
-                        ['linear'],
-                        ['coalesce', ['get', 'stream_order'], 1],
-                        1, 4.0,
-                        3, 7.0,
-                        5, 10.0,
-                        7, 14.0,
-                        9, 18.0
-                    ]
-                ],
-                'line-opacity': 0.8
-            },
-            layout: {
-                'line-cap': 'round',
-                'line-join': 'round'
-            }
-        });
-        
-        // Stream hover/highlight layer (visible at zoom >= 8 when watershed code is hovered)
-        // Much thicker and brighter to make hover obvious
-        zoneLayers.push({
-            id: `zone-${zone}-streams-hover`,
-            type: 'line',
-            source: 'waterbodies',
-            'source-layer': 'waterbodies',
-            filter: ['all',
-                ['==', ['get', 'layer'], `zone_${zone}_streams`],
-                ['==', ['get', 'fwa_watershed_code'], '__none__']  // Will be updated dynamically
+    // Wetlands - rendered first (lowest z-index)
+    layers.push({
+        id: 'wetlands-fill',
+        type: 'fill',
+        source: 'regulations',
+        'source-layer': 'wetlands',
+        paint: {
+            'fill-pattern': 'wetland-pattern',
+            'fill-opacity': [
+                'interpolate',
+                ['linear'],
+                ['zoom'],
+                4, 0.3,
+                10, 0.4,
+                12, 0.5
+            ]
+        }
+    });
+    
+    layers.push({
+        id: 'wetlands-line',
+        type: 'line',
+        source: 'regulations',
+        'source-layer': 'wetlands',
+        paint: {
+            'line-color': FEATURE_COLORS.wetlands,
+            'line-width': [
+                'interpolate',
+                ['linear'],
+                ['zoom'],
+                4, 0.5,
+                10, 0.75,
+                12, 1.25
             ],
-            minzoom: 8,  // Show highlights at zoom 8 and above
-            maxzoom: 24,
-            paint: {
-                'line-color': FEATURE_COLORS.hover,  // Bright gold color for visibility
-                'line-width': [
-                    'interpolate',
-                    ['linear'],
-                    ['zoom'],
-                    10, [
-                        'interpolate',
-                        ['linear'],
-                        ['coalesce', ['get', 'stream_order'], 1],
-                        1, 3.0,    // Much thicker than base
-                        3, 4.5,
-                        5, 6.0,
-                        7, 8.0,
-                        9, 10.0
-                    ],
-                    12, [
-                        'interpolate',
-                        ['linear'],
-                        ['coalesce', ['get', 'stream_order'], 1],
-                        1, 4.0,
-                        3, 6.0,
-                        5, 8.0,
-                        7, 11.0,
-                        9, 14.0
-                    ],
-                    16, [
-                        'interpolate',
-                        ['linear'],
-                        ['coalesce', ['get', 'stream_order'], 1],
-                        1, 6.0,
-                        3, 9.0,
-                        5, 12.0,
-                        7, 16.0,
-                        9, 20.0
-                    ],
-                    20, [
-                        'interpolate',
-                        ['linear'],
-                        ['coalesce', ['get', 'stream_order'], 1],
-                        1, 10.0,
-                        3, 14.0,
-                        5, 18.0,
-                        7, 24.0,
-                        9, 30.0
-                    ]
-                ],
-                'line-opacity': 0.8,
-                'line-blur': 2  // Glowing effect
-            },
-            layout: {
-                'line-cap': 'round',
-                'line-join': 'round'
-            }
-        });
-    }
+            'line-opacity': 0.6
+        },
+        layout: {
+            'line-cap': 'round',
+            'line-join': 'round'
+        }
+    });
     
-    return zoneLayers;
+    // Lakes - rendered above wetlands
+    layers.push({
+        id: 'lakes-fill',
+        type: 'fill',
+        source: 'regulations',
+        'source-layer': 'lakes',
+        paint: {
+            'fill-color': FEATURE_COLORS.lakes,
+            'fill-opacity': 0.4,
+            'fill-antialias': true
+        }
+    });
+    
+    layers.push({
+        id: 'lakes-line',
+        type: 'line',
+        source: 'regulations',
+        'source-layer': 'lakes',
+        paint: {
+            'line-color': FEATURE_COLORS.lakes,
+            'line-width': [
+                'interpolate',
+                ['linear'],
+                ['zoom'],
+                4, 0.8,
+                10, 1,
+                12, 1.5
+            ],
+            'line-opacity': 0.8
+        },
+        layout: {
+            'line-cap': 'round',
+            'line-join': 'round'
+        }
+    });
+    
+    // Manmade waterbodies - rendered above wetlands
+    layers.push({
+        id: 'manmade-fill',
+        type: 'fill',
+        source: 'regulations',
+        'source-layer': 'manmade',
+        paint: {
+            'fill-color': FEATURE_COLORS.manmade,
+            'fill-opacity': 0.35,
+            'fill-antialias': true
+        }
+    });
+    
+    layers.push({
+        id: 'manmade-line',
+        type: 'line',
+        source: 'regulations',
+        'source-layer': 'manmade',
+        paint: {
+            'line-color': FEATURE_COLORS.manmade,
+            'line-width': [
+                'interpolate',
+                ['linear'],
+                ['zoom'],
+                4, 0.8,
+                10, 1,
+                12, 1.5
+            ],
+            'line-opacity': 0.7,
+            'line-dasharray': [3, 2]  // Dashed line for manmade
+        },
+        layout: {
+            'line-cap': 'round',
+            'line-join': 'round'
+        }
+    });
+    
+    // Streams - tippecanoe handles minzoom via importance scoring (with side channel penalty)
+    // Line width is proportional to stream_order (calculated from property)
+    layers.push({
+        id: 'streams',
+        type: 'line',
+        source: 'regulations',
+        'source-layer': 'streams',
+        paint: {
+            'line-color': FEATURE_COLORS.streams,
+            'line-width': [
+                'interpolate',
+                ['linear'],
+                ['zoom'],
+                // At low zoom: 0.5 + (order * 0.1) - minimal stream order impact when zoomed out
+                4, ['+', 0.5, ['*', ['coalesce', ['get', 'stream_order'], 1], 0.1]],
+                // At medium zoom: 0.6 + (order * 0.15) - still small impact
+                8, ['+', 0.6, ['*', ['coalesce', ['get', 'stream_order'], 1], 0.15]],
+                // At zoom 11: ramp up - original formula * 1.5
+                11, ['*', ['+', 0.5, ['*', ['coalesce', ['get', 'stream_order'], 1], 0.5]], 1.5],
+                // At zoom 12: original formula * 2 (like original zoom 8)
+                12, ['*', ['+', 0.5, ['*', ['coalesce', ['get', 'stream_order'], 1], 0.5]], 2],
+                // At zoom 14: original formula * 3 (like original zoom 12)
+                14, ['*', ['+', 0.5, ['*', ['coalesce', ['get', 'stream_order'], 1], 0.5]], 3],
+                // At zoom 16+: even bigger
+                16, ['*', ['+', 0.5, ['*', ['coalesce', ['get', 'stream_order'], 1], 0.5]], 4]
+            ],
+            'line-opacity': 0.8
+        },
+        layout: {
+            'line-cap': 'round',
+            'line-join': 'round'
+        }
+    });
+    
+    return layers;
 };

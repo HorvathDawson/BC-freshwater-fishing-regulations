@@ -69,9 +69,6 @@ const LayerStatsPanel = () => {
             
             setProgress('Loading tile metadata...');
             const metadata = await pmtiles.getMetadata();
-            
-            console.log('PMTiles Header:', header);
-            console.log('PMTiles Metadata:', metadata);
 
             // Initialize counters
             const featureCounts: LayerStats = {};
@@ -171,8 +168,6 @@ const LayerStatsPanel = () => {
             setWatershedSets(watershedCounts); // Store the original Sets
             setProgress('');
             setLoading(false);
-            
-            console.log('Analysis complete:', { featureCounts, watershedCountsConverted });
         } catch (err) {
             console.error('Error analyzing PMTiles:', err);
             setError(err instanceof Error ? err.message : 'Unknown error');
