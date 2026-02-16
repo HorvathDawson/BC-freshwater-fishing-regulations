@@ -57,6 +57,9 @@ class RegulationPipeline:
         self.streams_gdb_path = streams_gdb_path
         self.polygons_gdb_path = polygons_gdb_path
 
+        # Store parsed regulations for later export
+        self.parsed_regulations = None
+
         # Initialize components
         self._init_components()
 
@@ -123,6 +126,9 @@ class RegulationPipeline:
             else parsed_data.get("regulations", [])
         )
 
+        # Store regulations for later export
+        self.parsed_regulations = regulations
+
         # Run pipeline
         result = self.mapper.process_and_export(
             regulations=regulations,
@@ -138,6 +144,8 @@ class RegulationPipeline:
         zones_path: Optional[Path] = None,
         export_merged: bool = True,
         export_individual: bool = True,
+        export_regulations_json: bool = True,
+        frontend_output_dir: Optional[Path] = None,
     ):
         """
         Export regulation geometries to GPKG and PMTiles.
@@ -148,6 +156,8 @@ class RegulationPipeline:
             zones_path: Optional path to zones GPKG
             export_merged: Whether to export merged geometries
             export_individual: Whether to export individual geometries
+            export_regulations_json: Whether to export regulations.json for frontend
+            frontend_output_dir: Optional directory for regulations.json (defaults to output_dir)
 
         Returns:
             Dict of exported file paths
@@ -160,12 +170,23 @@ class RegulationPipeline:
         # Initialize exporter
         exporter = RegulationGeoExporter(
             mapper=self.mapper,
-            pipeline_result=pipeline_result,
             streams_gdb_path=self.streams_gdb_path,
             polygons_gdb_path=self.polygons_gdb_path,
         )
 
         exported_files = {}
+
+        # Export regulations JSON for frontend
+        if export_regulations_json and self.parsed_regulations:
+            regulations_dir = frontend_output_dir or output_dir
+            regulations_json = regulations_dir / "regulations.json"
+            exporter.export_regulations_json(self.parsed_regulations, regulations_json)
+            exported_files["regulations_json"] = regulations_json
+            
+            # Export search index for frontend
+            search_index = regulations_dir / "search_index.json"
+            exporter.export_search_index(search_index)
+            exported_files["search_index"] = search_index
 
         # Export merged geometries
         if export_merged:
@@ -212,6 +233,8 @@ class RegulationPipeline:
         zones_path: Optional[Path] = None,
         export_merged: bool = True,
         export_individual: bool = True,
+        export_regulations_json: bool = True,
+        frontend_output_dir: Optional[Path] = None,
     ):
         """
         Run the complete pipeline: mapping + export.
@@ -222,6 +245,8 @@ class RegulationPipeline:
             zones_path: Optional path to zones GPKG
             export_merged: Whether to export merged geometries
             export_individual: Whether to export individual geometries
+            export_regulations_json: Whether to export regulations.json for frontend
+            frontend_output_dir: Optional directory for regulations.json (defaults to output_dir)
 
         Returns:
             Tuple of (pipeline_result, exported_files)
@@ -238,6 +263,8 @@ class RegulationPipeline:
                 zones_path=zones_path,
                 export_merged=export_merged,
                 export_individual=export_individual,
+                export_regulations_json=export_regulations_json,
+                frontend_output_dir=frontend_output_dir,
             )
 
         return result, exported_files

@@ -66,6 +66,8 @@ class DirectMatch:
     - waterbody_key: For all polygons sharing a WATERBODY_KEY (e.g., all 3 Williston Lake polygons)
     - waterbody_keys: List of WATERBODY_KEYs (matches all polygons for each key)
     - linear_feature_ids: List of specific stream segment IDs (for individual stream segments)
+    - blue_line_key: Blue Line Key - matches ALL stream segments AND polygons with this BLK
+    - blue_line_keys: List of Blue Line Keys (matches all features from each BLK)
 
     Can combine multiple ID types to match both polygons and streams (e.g., slough polygon + tributary streams).
 
@@ -82,6 +84,8 @@ class DirectMatch:
         waterbody_key: WATERBODY_KEY (matches all polygons sharing this key)
         waterbody_keys: List of WATERBODY_KEYs (for multiple waterbody keys)
         linear_feature_ids: List of stream segment IDs (for specific stream segments)
+        blue_line_key: Blue Line Key (matches all stream segments and polygons with this BLK)
+        blue_line_keys: List of Blue Line Keys (matches all features from each BLK)
         note: Explanation of why this mapping exists
         ignored: If True, prevent all matching for this entry (intentional)
         not_found: If True, searched but couldn't locate in FWA data
@@ -97,6 +101,8 @@ class DirectMatch:
     waterbody_key: Optional[str] = None
     waterbody_keys: Optional[List[str]] = None
     linear_feature_ids: Optional[List[str]] = None
+    blue_line_key: Optional[str] = None
+    blue_line_keys: Optional[List[str]] = None
     unmarked_waterbody_id: Optional[str] = None  # Links to custom UnmarkedWaterbody
 
 
@@ -720,14 +726,15 @@ DIRECT_MATCHES: Dict[str, Dict[str, DirectMatch]] = {
             note="FWA has MU 3-29, regulation has MU 3-30 (boundary issue)",
         ),
         "MCARTHUR ISLAND SLOUGH": DirectMatch(
-            waterbody_key="329564232",
-            linear_feature_ids=[
-                "703312800",
-                "703312651",
-                "703313162",
-                "703312745",
-                "703312290",
-            ],
+            # waterbody_key="329564232",
+            # linear_feature_ids=[
+            #     "703312800",
+            #     "703312651",
+            #     "703313162",
+            #     "703312745",
+            #     "703312290",
+            # ],
+            blue_line_key="355994157",
             note="Slough polygon + tributary stream segments",
         ),
         "MAKA CREEK": DirectMatch(

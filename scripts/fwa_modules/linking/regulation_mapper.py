@@ -73,6 +73,9 @@ class PipelineResult:
 
     feature_to_regs: Dict[str, List[str]] = field(default_factory=dict)
     merged_groups: Dict[str, MergedGroup] = field(default_factory=dict)
+    regulation_names: Dict[str, str] = field(
+        default_factory=dict
+    )  # regulation_id -> name_verbatim
     stats: Optional[RegulationMappingStats] = None
     exported_files: Optional[Dict[str, Path]] = None
 
@@ -117,6 +120,16 @@ class RegulationMapper:
         self.stats = RegulationMappingStats()
         # Store gazetteer reference for feature metadata lookup
         self.gazetteer = linker.gazetteer
+
+        # Store processing results directly
+        self.feature_to_regs = {}
+        self.merged_groups = {}
+        self.regulation_names = {}
+        # Track which features were explicitly linked by name (not inherited as tributaries)
+        self.feature_to_linked_regulation = {}  # feature_id -> regulation_id
+        # Track which waterbody_keys correspond to linked polygon waterbodies
+        # Only these should be used for grouping to prevent over-fragmentation
+        self.linked_waterbody_keys = set()  # Set of waterbody_keys from linked polygons
 
     def apply_scope_and_enrich(
         self,
@@ -222,20 +235,38 @@ class RegulationMapper:
                             f"Cannot determine if stream or polygon. Skipping."
                         )
             elif feature_type in ["lake", "wetland", "manmade", "unmarked"]:
-                # Polygon: convert waterbody_key to stream seeds using metadata
-                wb_key = self._get_feature_waterbody_key(feature)
-                if wb_key:
-                    # Get connected stream segments from metadata
-                    connected_streams = self._get_stream_seeds_for_waterbody(wb_key)
-                    if connected_streams:
-                        if feature_type not in polygon_seeds_by_type:
-                            polygon_seeds_by_type[feature_type] = []
-                        polygon_seeds_by_type[feature_type].extend(connected_streams)
-                    else:
-                        logger.debug(
-                            f"{feature_type.capitalize()} {self._get_feature_name(feature)} "
-                            f"has no connected streams (waterbody_key={wb_key})"
-                        )
+                # Polygon: Get waterbody_key from metadata (source of truth)
+                poly_id = self._get_feature_linear_id(feature) or getattr(
+                    feature, "fwa_id", None
+                )
+                if poly_id:
+                    metadata_key = {
+                        "lake": "lakes",
+                        "wetland": "wetlands",
+                        "manmade": "manmade",
+                        "unmarked": "lakes",
+                    }.get(feature_type, feature_type + "s")
+                    raw_metadata = self.gazetteer.metadata.get(metadata_key, {}).get(
+                        poly_id, {}
+                    )
+                    wb_key = raw_metadata.get("waterbody_key")
+                    if wb_key:
+                        # Get connected stream segments from metadata
+                        connected_streams = self._get_stream_seeds_for_waterbody(wb_key)
+                        if connected_streams:
+                            if feature_type not in polygon_seeds_by_type:
+                                polygon_seeds_by_type[feature_type] = []
+                            polygon_seeds_by_type[feature_type].extend(
+                                connected_streams
+                            )
+                        else:
+                            feature_name = raw_metadata.get(
+                                "gnis_name", self._get_feature_name(feature)
+                            )
+                            logger.debug(
+                                f"{feature_type.capitalize()} {feature_name} "
+                                f"has no connected streams (waterbody_key={wb_key})"
+                            )
             else:
                 logger.warning(
                     f"Feature {self._get_feature_name(feature)} has unknown feature_type='{feature_type}'. "
@@ -292,7 +323,25 @@ class RegulationMapper:
         if hasattr(feature, "feature_type"):
             return getattr(feature, "feature_type", None)
         elif isinstance(feature, dict):
-            return feature.get("feature_type")
+            ftype = feature.get("feature_type")
+            if ftype:
+                return ftype
+
+        # Infer from geometry_type if feature_type not available
+        geometry_type = None
+        if hasattr(feature, "geometry_type"):
+            geometry_type = getattr(feature, "geometry_type", None)
+        elif isinstance(feature, dict):
+            geometry_type = feature.get("geometry_type")
+
+        if geometry_type:
+            if geometry_type in ["multilinestring", "linestring"]:
+                return "stream"
+            elif geometry_type == "polygon":
+                return "lake"
+            elif geometry_type == "point":
+                return "point"
+
         return None
 
     def _get_feature_linear_id(self, feature) -> str:
@@ -343,7 +392,7 @@ class RegulationMapper:
 
         # Iterate through metadata to find streams with matching waterbody_key
         # Note: This could be optimized with an index if performance is an issue
-        for linear_id, metadata in self.gazetteer.stream_metadata.items():
+        for linear_id, metadata in self.gazetteer.metadata.get("streams", {}).items():
             if metadata.get("waterbody_key") == str(waterbody_key):
                 connected_streams.append(linear_id)
 
@@ -438,6 +487,11 @@ class RegulationMapper:
         identity = regulation["identity"]
         rules = regulation.get("rules", [])
 
+        # Store regulation name for later use
+        name_verbatim = identity.get("name_verbatim", "")
+        if name_verbatim:
+            self.regulation_names[regulation_id] = name_verbatim
+
         # Extract linking parameters from identity
         waterbody_key = identity.get("waterbody_key", "")
         name_verbatim = identity.get("name_verbatim", "")
@@ -479,14 +533,40 @@ class RegulationMapper:
             self.stats.failed_to_link_regulations += 1
             return False
 
+        # Track which features were explicitly linked by name (not tributaries)
+        # This allows us to distinguish between direct matches and inherited regulations
+        for feature in base_features:
+            feature_id = self._get_feature_id(feature)
+            # Store the regulation ID that was linked by name
+            # If a feature is linked to multiple regulations, keep the first one
+            if feature_id not in self.feature_to_linked_regulation:
+                self.feature_to_linked_regulation[feature_id] = regulation_id
+
+            # Track waterbody_keys from polygon features (lakes, wetlands, manmade)
+            # These are the only waterbody_keys we should use for grouping
+            feature_type = self._get_feature_type(feature)
+            if feature_type in ["lake", "wetland", "manmade"]:
+                waterbody_key = self._get_feature_waterbody_key(feature)
+                if waterbody_key:
+                    self.linked_waterbody_keys.add(str(waterbody_key))
+
         # STEP 2: Apply global spatial scope (applies to all rules in this regulation)
         global_scope = identity.get("global_scope", {})
-        globally_scoped_features = self.scope_filter.apply_scope(
-            base_features, global_scope
+        # Use apply_scope_and_enrich to handle TRIBUTARIES_ONLY properly
+        # Pass empty dict as rule scope since we're only applying global scope here
+        globally_scoped_features = self.apply_scope_and_enrich(
+            base_features,
+            scope=global_scope,
+            global_scope=global_scope,
+            includes_tributaries=global_scope.get("includes_tributaries"),
         )
 
-        # Fallback if scope filtering failed
-        if not globally_scoped_features:
+        # Fallback if scope filtering failed (but NOT for TRIBUTARIES_ONLY)
+        # TRIBUTARIES_ONLY returning empty list means no tributaries exist - don't fall back
+        if (
+            not globally_scoped_features
+            and global_scope.get("type") != "TRIBUTARIES_ONLY"
+        ):
             globally_scoped_features = base_features
 
         # STEP 3: Process each rule in this regulation
@@ -575,7 +655,9 @@ class RegulationMapper:
                 return {
                     "gnis_id": polygon.get("gnis_id"),
                     "gnis_name": polygon.get("gnis_name"),
-                    "waterbody_key": key,
+                    "waterbody_key": polygon.get(
+                        "waterbody_key", key
+                    ),  # Use waterbody_key from metadata, fallback to polygon ID
                     "feature_type": feature_type,
                     "watershed_code": None,
                     "blue_line_key": polygon.get("blue_line_key"),
@@ -657,7 +739,7 @@ class RegulationMapper:
 
         logger = get_logger(__name__)
 
-        feature_to_regs = {}
+        self.feature_to_regs = {}
 
         self.stats.total_regulations = len(regulations)
 
@@ -668,23 +750,33 @@ class RegulationMapper:
             regulation_id = f"reg_{idx:04d}"
 
             # Process this regulation (which may have multiple rules)
-            self.process_regulation(regulation, regulation_id, feature_to_regs)
+            self.process_regulation(regulation, regulation_id, self.feature_to_regs)
 
         # Sort regulation lists for consistent ordering
-        self._sort_feature_regulation_lists(feature_to_regs)
+        self._sort_feature_regulation_lists(self.feature_to_regs)
 
         # Update final stats
-        self.stats.unique_features_with_rules = len(feature_to_regs)
+        self.stats.unique_features_with_rules = len(self.feature_to_regs)
 
-        return feature_to_regs
+        logger.info(
+            f"Found {len(self.linked_waterbody_keys)} linked polygon waterbodies "
+            f"(will be used for grouping)"
+        )
+
+        return self.feature_to_regs
 
     def get_stats(self) -> RegulationMappingStats:
         """Return processing statistics."""
         return self.stats
 
     def reset_stats(self):
-        """Reset statistics counters."""
+        """Reset statistics counters and clear results."""
         self.stats = RegulationMappingStats()
+        self.feature_to_regs = {}
+        self.merged_groups = {}
+        self.regulation_names = {}
+        self.feature_to_linked_regulation = {}
+        self.linked_waterbody_keys = set()
 
     def merge_features(
         self, feature_to_regs: Dict[str, List[str]]
@@ -695,11 +787,13 @@ class RegulationMapper:
         Reduces approximately 500,000 individual features to 50,000 groups for optimized UI rendering.
 
         Grouping strategy:
-        - Group by (feature_type, blue_line_key OR waterbody_key, regulation_set)
+        - Group by (feature_type, blue_line_key, waterbody_key*, regulation_set)
         - Feature type ensures lakes and streams are never mixed in the same group
-        - For lakes: group by feature_type + waterbody_key (multiple polygons = one lake)
-        - For streams: group by feature_type + blue_line_key (multiple segments = one stream)
-        - For features with neither: group individually by feature_id
+        - Waterbody key* only used if it corresponds to a linked polygon waterbody (prevents over-fragmentation)
+        - For streams in linked lakes: group by feature_type + blue_line_key + waterbody_key
+        - For streams outside linked lakes: group by feature_type + blue_line_key
+        - For lakes/polygons: group by feature_type + waterbody_key (always linked)
+        - For features with no keys: group individually by feature_id
 
         Args:
             feature_to_regs: Dict mapping feature_id -> list of rule_ids
@@ -736,14 +830,25 @@ class RegulationMapper:
 
             # Determine grouping key based on feature type
             # Include feature_type to prevent mixing lakes and streams in the same group
+            # Include waterbody_key ONLY if it's a linked polygon waterbody
+            # This prevents over-fragmentation from streams passing through unlinked waterbodies
             feature_type = feature.get("feature_type", "unknown")
-            grouping_key = None
-            if feature.get("blue_line_key"):
-                # Group by Blue Line Key (all features - streams, lakes, wetlands with same blue line)
-                grouping_key = f"{feature_type}_blue_line_{feature['blue_line_key']}"
-            elif feature.get("waterbody_key"):
-                # Group by waterbody key (fallback for polygons without blue_line_key)
-                grouping_key = f"{feature_type}_waterbody_{feature['waterbody_key']}"
+            blk = feature.get("blue_line_key")
+            wbk = feature.get("waterbody_key")
+
+            # Only use waterbody_key if it's a linked polygon waterbody
+            # This prevents grouping streams by waterbodies that don't have regulations
+            use_wbk = wbk and str(wbk) in self.linked_waterbody_keys
+
+            if blk and use_wbk:
+                # Group by both BLK and waterbody (separates streams inside/outside lakes)
+                grouping_key = f"{feature_type}_blue_line_{blk}_waterbody_{wbk}"
+            elif blk:
+                # Group by Blue Line Key only (streams not in a linked waterbody)
+                grouping_key = f"{feature_type}_blue_line_{blk}"
+            elif use_wbk:
+                # Group by waterbody key (polygons without blue_line_key)
+                grouping_key = f"{feature_type}_waterbody_{wbk}"
             else:
                 # No grouping possible - use feature_id directly
                 grouping_key = f"{feature_type}_feature_{feature_id}"
@@ -767,6 +872,13 @@ class RegulationMapper:
                 all_zones.update(feature.get("zones", []))
                 all_mgmt_units.update(feature.get("mgmt_units", []))
 
+            # Only include waterbody_key if it's a linked polygon waterbody
+            # Otherwise set to None (it was ignored during grouping)
+            wbk = first_feature.get("waterbody_key")
+            group_waterbody_key = (
+                wbk if (wbk and str(wbk) in self.linked_waterbody_keys) else None
+            )
+
             group_id = f"group_{idx:06d}"
             merged_groups[group_id] = MergedGroup(
                 group_id=group_id,
@@ -776,7 +888,7 @@ class RegulationMapper:
                 gnis_name=first_feature.get("gnis_name"),
                 feature_type=first_feature.get("feature_type"),
                 watershed_code=first_feature.get("watershed_code"),
-                waterbody_key=first_feature.get("waterbody_key"),
+                waterbody_key=group_waterbody_key,
                 feature_count=len(features_data),
                 zones=tuple(sorted(all_zones)),
                 mgmt_units=tuple(sorted(all_mgmt_units)),
@@ -892,23 +1004,24 @@ class RegulationMapper:
         logger.info(f"Processing {len(regulations)} regulations...")
 
         # Step 1: Create feature -> regulation index
-        feature_to_regs = self.process_all_regulations(regulations)
+        self.process_all_regulations(regulations)
 
         # Step 2: Merge features into groups
-        merged_groups = self.merge_features(feature_to_regs)
+        self.merged_groups = self.merge_features(self.feature_to_regs)
 
         # Step 3: Export to JSON (optional)
         exported_files = None
         if output_dir:
             exported_files = self.build_index(
-                feature_to_regs, merged_groups, output_dir
+                self.feature_to_regs, self.merged_groups, output_dir
             )
 
         logger.info("Processing complete")
 
         return PipelineResult(
-            feature_to_regs=feature_to_regs,
-            merged_groups=merged_groups,
+            feature_to_regs=self.feature_to_regs,
+            merged_groups=self.merged_groups,
+            regulation_names=self.regulation_names,
             stats=self.stats,
             exported_files=exported_files,
         )

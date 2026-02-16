@@ -473,29 +473,40 @@ class FWAPrimalGraphIGraph:
 
     def propagate_names_by_watershed(self):
         """
-        Populate missing GNIS names based on Watershed Code.
+        Populate missing GNIS names based on Watershed Code and Blue Line Key.
 
         Logic:
         1. Index all known names by Watershed Code.
         2. If a WC has NO known names -> Leave unnamed.
-        3. If a WC has EXACTLY ONE unique name -> Bulk assign to all empty segments (Optimization).
-        4. If a WC has MULTIPLE names -> Use BFS to find nearest.
-           *CRITICAL CHANGE*: If BFS fails (island segment or too far), fallback to the
+        3. NEW: If a Blue Line Key has EXACTLY ONE unique name -> Assign to all unnamed segments in that BLK.
+        4. If a WC has EXACTLY ONE unique name -> Bulk assign to all remaining empty segments (Optimization).
+        5. If a WC has MULTIPLE names -> Use BFS to find nearest.
+           If BFS fails (island segment or too far), fallback to the
            dominant name for that WC to ensure no segments remain unnamed if a name exists.
         """
-        logger.info("STEP 3: PROPAGATING GNIS NAMES (Optimized)")
+        logger.info("STEP 3: PROPAGATING GNIS NAMES (Optimized with Blue Line Key)")
 
         # --- 1. Pre-calculate Name Stats per Watershed Code ---
         wc_name_stats = {}
+        blk_name_stats = {}  # NEW: Pre-compute blue line key stats globally
 
         for edge in self.G.es:
             wc = edge["fwa_watershed_code"]
             name = edge["gnis_name"]
+            blk = edge["blue_line_key"]
+
             if wc and name:
                 if wc not in wc_name_stats:
                     wc_name_stats[wc] = Counter()
                 # Count frequency of this name/id pair in this watershed
                 wc_name_stats[wc][(name, edge["gnis_id"])] += 1
+
+                # NEW: Also track by (wc, blk) combination
+                if blk:
+                    key = (wc, blk)
+                    if key not in blk_name_stats:
+                        blk_name_stats[key] = Counter()
+                    blk_name_stats[key][(name, edge["gnis_id"])] += 1
 
         # --- 2. Group Unnamed Edges ---
         unnamed_groups = {}
@@ -508,6 +519,7 @@ class FWAPrimalGraphIGraph:
 
         updated_count = 0
         bulk_assigned = 0
+        blk_assigned = 0
         bfs_assigned = 0
 
         # --- 3. Process Groups ---
@@ -525,38 +537,73 @@ class FWAPrimalGraphIGraph:
             # Determine the "Dominant" name (most frequent) for fallback/bulk usage
             (dominant_name, dominant_id), _ = known_names.most_common(1)[0]
 
-            # CASE B: Single Name Optimization (O(1))
+            # CASE B: Blue Line Key Propagation
+            # Group unnamed edges by blue_line_key
+            blk_groups = {}
+            for idx in edge_indices:
+                blk = self.G.es[idx]["blue_line_key"]
+                if blk:  # Only if blue_line_key exists
+                    if blk not in blk_groups:
+                        blk_groups[blk] = []
+                    blk_groups[blk].append(idx)
+
+            # Process blue line key groups - assign if single unique name
+            remaining_indices = set(edge_indices)
+
+            for blk, blk_edge_indices in blk_groups.items():
+                key = (wc, blk)
+                if key in blk_name_stats and len(blk_name_stats[key]) == 1:
+                    # Single unique name in this blue line key
+                    (blk_name, blk_id), _ = blk_name_stats[key].most_common(1)[0]
+                    for idx in blk_edge_indices:
+                        self.G.es[idx]["gnis_name"] = blk_name
+                        self.G.es[idx]["gnis_id"] = blk_id
+                        blk_assigned += 1
+                        remaining_indices.discard(idx)
+
+            # Convert back to list for iteration
+            remaining_indices = list(remaining_indices)
+
+            # Skip further processing if all edges were assigned by BLK
+            if not remaining_indices:
+                updated_count += len(edge_indices)
+                continue
+
+            # CASE C: Single Name Optimization (O(1))
             # If there is only one name ever associated with this code, just use it.
             if unique_name_count == 1:
-                for idx in edge_indices:
-                    self.G.es[idx]["gnis_name"] = dominant_name
-                    self.G.es[idx]["gnis_id"] = dominant_id
-                    bulk_assigned += 1
+                for idx in remaining_indices:
+                    if not self.G.es[idx]["gnis_name"]:  # Double-check still unnamed
+                        self.G.es[idx]["gnis_name"] = dominant_name
+                        self.G.es[idx]["gnis_id"] = dominant_id
+                        bulk_assigned += 1
 
-            # CASE C: Multiple Names (Ambiguous) -> BFS with Fallback
+            # CASE D: Multiple Names (Ambiguous) -> BFS with Fallback
             else:
-                for idx in edge_indices:
-                    edge = self.G.es[idx]
+                for idx in remaining_indices:
+                    if not self.G.es[idx]["gnis_name"]:  # Double-check still unnamed
+                        edge = self.G.es[idx]
 
-                    # 1. Try BFS to find nearest topological match
-                    found_name, found_id, _ = self._find_nearest_name_bfs(
-                        [edge.source, edge.target], wc
-                    )
+                        # 1. Try BFS to find nearest topological match
+                        found_name, found_id, _ = self._find_nearest_name_bfs(
+                            [edge.source, edge.target], wc
+                        )
 
-                    if found_name:
-                        edge["gnis_name"] = found_name
-                        edge["gnis_id"] = found_id
-                        bfs_assigned += 1
-                    else:
-                        # 2. Fallback: BFS failed (too far or disconnected graph).
-                        # Use dominant name to enforce "No unnamed segments if name exists" rule.
-                        edge["gnis_name"] = dominant_name
-                        edge["gnis_id"] = dominant_id
-                        bfs_assigned += 1
+                        if found_name:
+                            edge["gnis_name"] = found_name
+                            edge["gnis_id"] = found_id
+                            bfs_assigned += 1
+                        else:
+                            # 2. Fallback: BFS failed (too far or disconnected graph).
+                            # Use dominant name to enforce "No unnamed segments if name exists" rule.
+                            edge["gnis_name"] = dominant_name
+                            edge["gnis_id"] = dominant_id
+                            bfs_assigned += 1
 
             updated_count += len(edge_indices)
 
         logger.info(f"Propagation Complete: {updated_count:,} edges updated.")
+        logger.info(f"   - Blue Line Key Assigned: {blk_assigned:,}")
         logger.info(f"   - Bulk Assigned (Single-Name WC): {bulk_assigned:,}")
         logger.info(f"   - BFS/Fallback Assigned (Multi-Name WC): {bfs_assigned:,}")
 

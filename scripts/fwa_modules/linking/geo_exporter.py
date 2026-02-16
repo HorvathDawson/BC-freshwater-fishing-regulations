@@ -1,62 +1,54 @@
 """
 RegulationGeoExporter - Creates geographic exports from regulation mapping results
-
-Takes merged regulation groups and creates:
-1. GeoPackage with merged/individual features + regulation attributes
-2. PMTiles for web visualization
-3. Regulation lookup indices (already done by RegulationMapper)
-
-Geometry loading from source GDBs:
-- Streams: FWA_STREAM_NETWORKS_SP.gdb (by LINEAR_FEATURE_ID)
-- Polygons: FWA_BC.gdb (by WATERBODY_KEY)
-  - FWA_LAKES_POLY
-  - FWA_WETLANDS_POLY
-  - FWA_MANMADE_WATERBODIES_POLY
 """
 
 import logging
 import subprocess
 import json
+import hashlib
+import pickle
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Dict, Optional, Any, List
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import fiona
 import pandas as pd
 import geopandas as gpd
+import numpy as np
 from shapely.geometry import MultiLineString, MultiPolygon
 
-from .regulation_mapper import PipelineResult, RegulationMapper
+from .regulation_mapper import RegulationMapper
 from .metadata_gazetteer import FeatureType
 
 logging.basicConfig(level=logging.DEBUG, format="%(asctime)s - %(message)s")
 logger = logging.getLogger(__name__)
 
-# Scoring weights for stream importance
-# Original values: order=30.0, magnitude=0.0, length_km=1.0, has_name=70.0, side_channel_penalty=-100.0
-# Current: Testing magnitude-only scoring
+# Fallback for tqdm if not installed
+try:
+    from tqdm import tqdm
+except ImportError:
+
+    def tqdm(iterable, **kwargs):
+        return iterable
+
+
 WEIGHTS = {
-    "order": 0.0,  # Stream order importance (disabled for magnitude testing)
-    "magnitude": 1.0,  # Stream magnitude (primary factor for testing)
-    "length_km": 0.0,  # Length contribution (disabled for magnitude testing)
-    "has_name": 0.0,  # Named streams (disabled for magnitude testing)
-    "side_channel_penalty": 0.0,  # Penalty for secondary channels (disabled for magnitude testing)
+    "order": 0.0,
+    "magnitude": 1.0,
+    "length_km": 0.0,
+    "has_name": 0.0,
+    "side_channel_penalty": 0.0,
 }
 
-# Percentile-based zoom assignment for streams
-# Higher percentile = fewer streams (only the most important)
-# Adjust these values to control how many streams appear at each zoom
-# NO streams appear below zoom 6
 PERCENTILES = {
-    5: 100.0,  # Top 1
-    6: 99.99,  # Top 0.01% of streams start at zoom 6
-    7: 99.9,  # Top 0.1% at zoom 7
-    8: 95.0,  # Top 5% at zoom 8
-    10: 0.0,  # All remaining streams at zoom 10
+    5: 100.0,
+    6: 99.99,
+    7: 99.9,
+    8: 95.0,
+    10: 0.0,
 }
 
-# Lake/polygon zoom thresholds (area-based)
 LAKE_ZOOM_THRESHOLDS = {
     4: 100_000_000,
     5: 25_000_000,
@@ -68,7 +60,6 @@ LAKE_ZOOM_THRESHOLDS = {
     11: 0,
 }
 
-# Main flow edge type codes - features NOT in this set are side channels
 MAIN_FLOW_CODES = {1000, 1050, 1200, 1250, 1410, 1450}
 
 
@@ -78,90 +69,197 @@ class RegulationGeoExporter:
     def __init__(
         self,
         mapper: RegulationMapper,
-        pipeline_result: PipelineResult,
         streams_gdb_path: Path,
         polygons_gdb_path: Path,
+        cache_dir: Optional[Path] = None,
     ):
-        self.merged_groups = pipeline_result.merged_groups
-        self.feature_to_regs = pipeline_result.feature_to_regs
-        self.stats = pipeline_result.stats
+        # Access data directly from mapper
+        self.mapper = mapper
+        self.merged_groups = mapper.merged_groups
+        self.feature_to_regs = mapper.feature_to_regs
+        self.stats = mapper.stats
+        self.regulation_names = mapper.regulation_names
+        self.feature_to_linked_regulation = mapper.feature_to_linked_regulation
         self.streams_gdb = streams_gdb_path
         self.polygons_gdb = polygons_gdb_path
         self.gazetteer = mapper.gazetteer
+
+        # Set up cache directory
+        self.cache_dir = cache_dir or Path(".geom_cache")
+        self.cache_dir.mkdir(parents=True, exist_ok=True)
 
         logger.info(
             f"Loaded {len(self.merged_groups)} merged groups, {len(self.feature_to_regs)} individual features"
         )
 
+        # Data and Caches
         self._stream_geometries = None
         self._polygon_geometries = None
+        self._layer_cache = (
+            {}
+        )  # Format: {(layer_type, merge_geometries, include_all): gdf}
 
-        # Cache for merged/individual layers to avoid recalculation
-        self._cached_streams_merged = None
-        self._cached_streams_individual = None
-
+        # Requirements built from mapping
         self._needed_stream_ids = set()
         self._needed_blue_line_keys = set()
         self._needed_polygon_ids = set()
         self._valid_stream_ids = self.gazetteer.get_valid_stream_ids()
 
-        # Pre-calculate percentile-based zoom thresholds from all streams
+        self._build_feature_requirements()
         self._stream_zoom_thresholds = self._calculate_percentile_thresholds()
 
-        # Build feature requirements
+    def _get_regulation_name(self, regulation_ids: List[str]) -> List[str]:
+        """Get all unique regulation names from regulation IDs.
+
+        Args:
+            regulation_ids: List of regulation IDs (e.g., ['reg_0001_rule0', 'reg_0001_rule1', 'reg_0002_rule0'])
+
+        Returns:
+            List of unique regulation names (verbatim), empty list if none found
+        """
+        if not regulation_ids:
+            return []
+
+        # Extract unique base regulation IDs (strip _ruleX suffix)
+        base_reg_ids = set()
+        for reg_id in regulation_ids:
+            base_reg_id = reg_id.rsplit("_rule", 1)[0] if "_rule" in reg_id else reg_id
+            base_reg_ids.add(base_reg_id)
+
+        # Collect all unique names
+        names = []
+        for base_reg_id in sorted(base_reg_ids):
+            if name := self.regulation_names.get(base_reg_id):
+                names.append(name)
+
+        return names
+
+    def _get_regulation_name_for_feature(
+        self, feature_id: str, regulation_ids: List[str]
+    ) -> List[str]:
+        """Get all regulation names only for regulations explicitly linked by name (not tributaries).
+
+        Args:
+            feature_id: The feature ID to check
+            regulation_ids: List of regulation IDs for this feature
+
+        Returns:
+            List of regulation names (verbatim) that were explicitly linked, empty list if none
+        """
+        if not regulation_ids:
+            return []
+
+        # Extract unique base regulation IDs (strip _ruleX suffix)
+        base_reg_ids = set()
+        for reg_id in regulation_ids:
+            base_reg_id = reg_id.rsplit("_rule", 1)[0] if "_rule" in reg_id else reg_id
+            base_reg_ids.add(base_reg_id)
+
+        # Collect names only for explicitly linked regulations
+        names = []
+        linked_reg = self.feature_to_linked_regulation.get(feature_id)
+        for base_reg_id in sorted(base_reg_ids):
+            if linked_reg == base_reg_id:
+                if name := self.regulation_names.get(base_reg_id):
+                    names.append(name)
+
+        return names
+
+    def _get_regulation_name_for_group(
+        self, feature_ids: List[str], regulation_ids: List[str]
+    ) -> List[str]:
+        """Get all regulation names only if ANY feature in group was explicitly linked by name.
+
+        Args:
+            feature_ids: List of feature IDs in the group
+            regulation_ids: List of regulation IDs for this group
+
+        Returns:
+            List of regulation names (verbatim) where any feature was explicitly linked, empty list if none
+        """
+        if not regulation_ids:
+            return []
+
+        # Extract unique base regulation IDs (strip _ruleX suffix)
+        base_reg_ids = set()
+        for reg_id in regulation_ids:
+            base_reg_id = reg_id.rsplit("_rule", 1)[0] if "_rule" in reg_id else reg_id
+            base_reg_ids.add(base_reg_id)
+
+        # Collect names only for regulations where ANY feature was explicitly linked
+        names = []
+        for base_reg_id in sorted(base_reg_ids):
+            for feature_id in feature_ids:
+                if self.feature_to_linked_regulation.get(feature_id) == base_reg_id:
+                    if name := self.regulation_names.get(base_reg_id):
+                        names.append(name)
+                        break  # Found a linked feature for this regulation, move to next reg
+
+        return names
+
+    def _build_feature_requirements(self):
+        """Extracts required feature IDs and keys from merged groups."""
+        polygon_types = {FeatureType.LAKE, FeatureType.WETLAND, FeatureType.MANMADE}
+
         for group in self.merged_groups.values():
             for feature_id in group.feature_ids:
-                # Determine feature type using unified helper
                 feature_type_enum = self.gazetteer.get_feature_type_from_id(feature_id)
+                key = self.gazetteer.get_feature_key_from_id(feature_id)
 
-                if feature_type_enum in [
-                    FeatureType.LAKE,
-                    FeatureType.WETLAND,
-                    FeatureType.MANMADE,
-                ]:
-                    # Polygon feature - extract key
-                    key = self.gazetteer.get_feature_key_from_id(feature_id)
+                if feature_type_enum in polygon_types:
                     self._needed_polygon_ids.add((feature_type_enum.value, key))
                 elif feature_type_enum == FeatureType.STREAM:
-                    # Stream feature (numeric linear_feature_id)
-                    stream_id = self.gazetteer.get_feature_key_from_id(feature_id)
-                    self._needed_stream_ids.add(stream_id)
-                    # Get blue_line_key from metadata
-                    meta = self.gazetteer.get_stream_metadata(stream_id)
+                    self._needed_stream_ids.add(key)
+                    meta = self.gazetteer.get_stream_metadata(key)
                     if meta and meta.get("blue_line_key"):
                         self._needed_blue_line_keys.add(meta["blue_line_key"])
 
-        logger.debug(
-            f"Sample needed polygon IDs: {list(self._needed_polygon_ids)[:10]}"
+        logger.info(
+            f"Need {len(self._needed_stream_ids):,} streams, "
+            f"{len(self._needed_blue_line_keys):,} BLKs, {len(self._needed_polygon_ids):,} polygons"
         )
 
-        logger.info(
-            f"Need to load {len(self._needed_stream_ids):,} stream segments, "
-            f"{len(self._needed_blue_line_keys):,} blue line keys, "
-            f"{len(self._needed_polygon_ids):,} polygons"
-        )
+    # --- CACHING HELPERS ---
+
+    def _get_gdb_mtime(self, gdb_path: Path) -> float:
+        """Gets the most recent modification time of a GDB file/directory."""
+        if gdb_path.is_file():
+            return gdb_path.stat().st_mtime
+        if gdb_path.is_dir():
+            # Check all files inside the .gdb folder and get the newest
+            mtimes = [f.stat().st_mtime for f in gdb_path.rglob("*") if f.is_file()]
+            return max(mtimes) if mtimes else 0.0
+        return 0.0
+
+    def _generate_cache_hash(self, gdb_path: Path, ids_set: set, prefix: str) -> Path:
+        """Generates a unique cache file path based on GDB state and requested IDs."""
+        mtime = self._get_gdb_mtime(gdb_path)
+        # Sort IDs so the hash remains consistent for the exact same set of requirements
+        ids_string = ",".join(sorted(str(i) for i in ids_set))
+        hash_payload = f"{gdb_path}_{mtime}_{ids_string}".encode("utf-8")
+
+        md5_hash = hashlib.md5(hash_payload).hexdigest()
+        return self.cache_dir / f"{prefix}_{md5_hash}.pkl"
 
     def _preload_data(self):
-        """Ensures all geometries are read into memory exactly once, enforcing the Polygon -> Stream order."""
+        """Ensures all geometries are read into memory exactly once."""
         logger.info("--- PRE-LOADING GEOMETRY DATA ---")
         self._load_all_polygon_geometries()
         self._load_all_stream_geometries()
         logger.info("--- DATA PRE-LOAD COMPLETE ---")
 
     def _read_gdb_layer_fast(self, gdb_path: Path, layer_name: str) -> gpd.GeoDataFrame:
-        """Helper to read GDB layers quickly using pyogrio if available, fallback to fiona."""
+        """Reads GDB layers quickly with pyogrio fallback to fiona."""
         try:
             gdf = gpd.read_file(
                 gdb_path, layer=layer_name, engine="pyogrio", use_arrow=True
             )
         except Exception as e:
-            logger.debug(f"Pyogrio failed or not installed, falling back to fiona: {e}")
+            logger.debug(f"Pyogrio failed, falling back to fiona: {e}")
             gdf = gpd.read_file(gdb_path, layer=layer_name)
 
         if not gdf.empty:
-            # Bulletproof attribute uppercasing to protect the geometry column
             geom_col = gdf.active_geometry_name or "geometry"
-
             gdf.columns = [
                 (
                     str(col).upper()
@@ -170,11 +268,12 @@ class RegulationGeoExporter:
                 )
                 for col in gdf.columns
             ]
-
         return gdf
 
-    def _load_layer_geometries(self, layer_name: str) -> Dict[str, dict]:
-        """Load geometries from a single layer using strictly Gazetteer metadata."""
+    # --- GEOMETRY LOADING ---
+
+    def _load_layer_geometries(self, layer_name: str) -> Dict[str, Any]:
+        """Load geometries for a single stream layer."""
         gdf = self._read_gdb_layer_fast(self.streams_gdb, layer_name)
         if gdf.empty or "LINEAR_FEATURE_ID" not in gdf.columns:
             return {}
@@ -185,52 +284,72 @@ class RegulationGeoExporter:
             .str.replace(r"\.0$", "", regex=True)
             .str.strip()
         )
-
-        # Vectorized Filtering: Only load what we need
-        mask_id = gdf["LINEAR_FEATURE_ID"].isin(self._needed_stream_ids)
-        mask_valid = gdf["LINEAR_FEATURE_ID"].isin(self._valid_stream_ids)
-        filtered_gdf = gdf[mask_id & mask_valid]
+        mask = gdf["LINEAR_FEATURE_ID"].isin(self._needed_stream_ids) & gdf[
+            "LINEAR_FEATURE_ID"
+        ].isin(self._valid_stream_ids)
 
         geometries = {}
-        for _, row in filtered_gdf.iterrows():
+        for _, row in gdf[mask].iterrows():
             linear_id = row["LINEAR_FEATURE_ID"]
-            meta = self.gazetteer.get_stream_metadata(linear_id)
-
-            if not meta:
-                logger.warning(
-                    f"Feature {linear_id} skipped: Missing Gazetteer metadata."
-                )
-                continue
-
-            geometries[linear_id] = {
-                "geometry": row.geometry,
-                "linear_feature_id": linear_id,
-                "gnis_name": meta.get("gnis_name", ""),
-                "watershed_code": meta.get("fwa_watershed_code", ""),
-                "stream_order": meta.get("stream_order", 0),
-                "stream_magnitude": meta.get("stream_magnitude", 0),
-                "length": meta.get("length", 0),
-                "blue_line_key": meta.get("blue_line_key"),
-                "edge_type": meta.get("edge_type"),  # For side channel detection
-                "zones": meta.get("zones", []),
-                "mgmt_units": meta.get("mgmt_units", []),
-                "crs": gdf.crs,
-            }
+            geometries[linear_id] = row.geometry
         return geometries
 
+    def _load_all_stream_geometries(self):
+        if self._stream_geometries is not None:
+            return
+
+        # Cache Check
+        cache_file = self._generate_cache_hash(
+            self.streams_gdb,
+            self._needed_stream_ids | self._valid_stream_ids,
+            "streams",
+        )
+
+        if cache_file.exists():
+            logger.info("⚡ FAST RELOAD: Loading stream geometries from cache...")
+            with open(cache_file, "rb") as f:
+                self._stream_geometries = pickle.load(f)
+            return
+
+        logger.info("Loading stream geometries into memory (this may take a while)...")
+        self._stream_geometries = {}
+        layers = fiona.listlayers(str(self.streams_gdb))
+
+        with ThreadPoolExecutor(max_workers=4) as executor:
+            futures = {
+                executor.submit(self._load_layer_geometries, layer): layer
+                for layer in layers
+            }
+            for future in tqdm(
+                as_completed(futures), total=len(layers), desc="Loading Stream Layers"
+            ):
+                try:
+                    self._stream_geometries.update(future.result())
+                except Exception as e:
+                    logger.warning(f"Error loading layer {futures[future]}: {e}")
+
+        # Save Cache
+        logger.info("Saving streams to cache for fast reloading...")
+        with open(cache_file, "wb") as f:
+            pickle.dump(self._stream_geometries, f)
+
     def _load_all_polygon_geometries(self):
-        """Load polygon geometries using vectorized filtering with feedback."""
         if self._polygon_geometries is not None:
             return
 
-        try:
-            from tqdm import tqdm
-        except ImportError:
-            tqdm = lambda x, **kwargs: x
+        # Cache Check
+        cache_file = self._generate_cache_hash(
+            self.polygons_gdb, {str(p) for p in self._needed_polygon_ids}, "polygons"
+        )
+
+        if cache_file.exists():
+            logger.info("⚡ FAST RELOAD: Loading polygon geometries from cache...")
+            with open(cache_file, "rb") as f:
+                self._polygon_geometries = pickle.load(f)
+            return
 
         logger.info("Loading polygon geometries into memory...")
         self._polygon_geometries = {}
-
         layers = {
             "FWA_LAKES_POLY": "lake",
             "FWA_WETLANDS_POLY": "wetland",
@@ -241,445 +360,178 @@ class RegulationGeoExporter:
             layers.items(), desc="Loading Polygon Layers"
         ):
             gdf = self._read_gdb_layer_fast(self.polygons_gdb, layer_name)
-
-            if gdf.empty:
+            if gdf.empty or "WATERBODY_POLY_ID" not in gdf.columns:
                 continue
 
-            # Use WATERBODY_POLY_ID for matching (not WATERBODY_KEY!)
-            if "WATERBODY_POLY_ID" not in gdf.columns:
-                logger.warning(
-                    f"Skipping {layer_name}: WATERBODY_POLY_ID column missing. Found: {list(gdf.columns)}"
-                )
-                continue
-
-            # BULLETPROOF CASTING #1: The GeoDataFrame
-            # Force to numeric (converting garbage to NaN), drop NaNs, cast to strict integer, then string
             gdf["WATERBODY_POLY_ID"] = pd.to_numeric(
                 gdf["WATERBODY_POLY_ID"], errors="coerce"
             )
-            gdf = gdf.dropna(subset=["WATERBODY_POLY_ID"]).copy()
+            gdf = gdf.dropna(subset=["WATERBODY_POLY_ID"])
             gdf["WATERBODY_POLY_ID"] = gdf["WATERBODY_POLY_ID"].astype(int).astype(str)
 
-            # BULLETPROOF CASTING #2: The Needed Keys
-            # Clean our pipeline keys to match the exact same strict integer format
-            needed_keys = set()
-            for ftype, k in self._needed_polygon_ids:
-                # Normalize both to singular for comparison (lakes → lake)
-                if ftype.rstrip("s") == feature_type:
-                    try:
-                        # float() parses "1234.0", int() strips the decimal, str() finalizes it
-                        needed_keys.add(str(int(float(k))))
-                    except (ValueError, TypeError):
-                        needed_keys.add(str(k).strip())
-
-            # DEBUG: Show what we're looking for
-            if needed_keys:
-                logger.debug(
-                    f"{layer_name} - Looking for {len(needed_keys)} keys, sample: {list(needed_keys)[:5]}"
-                )
-                logger.debug(
-                    f"{layer_name} - GDB has {len(gdf)} features, sample WATERBODY_POLY_ID values: {gdf['WATERBODY_POLY_ID'].head(10).tolist()}"
-                )
-
+            needed_keys = self._get_clean_poly_keys(feature_type)
             filtered_gdf = gdf[gdf["WATERBODY_POLY_ID"].isin(needed_keys)]
 
-            # Print feedback to confirm the filter worked
-            logger.info(
-                f"  -> {layer_name}: Found {len(filtered_gdf)} matching polygons out of {len(needed_keys)} needed."
-            )
+            logger.info(f"  -> {layer_name}: Found {len(filtered_gdf)} polygons.")
 
             for _, row in filtered_gdf.iterrows():
                 poly_id = row["WATERBODY_POLY_ID"]
+                feature_id = f"{feature_type.upper()}_{poly_id}"
+                self._polygon_geometries[feature_id] = row.geometry
 
-                # Get ALL attributes from gazetteer metadata
-                meta = self.gazetteer.metadata.get(f"{feature_type}s", {}).get(
-                    poly_id, {}
-                )
+        # Save Cache
+        logger.info("Saving polygons to cache for fast reloading...")
+        with open(cache_file, "wb") as f:
+            pickle.dump(self._polygon_geometries, f)
 
-                # Only use gazetteer metadata for attributes (no GDB fallback)
-                waterbody_key = meta.get("waterbody_key", poly_id)
-                gnis_name = meta.get("gnis_name", "")
-                area_sqm = meta.get("area_sqm", 0)
-
-                self._polygon_geometries[(feature_type, poly_id)] = {
-                    "geometry": row.geometry,  # Geometry from GDB
-                    "waterbody_key": waterbody_key,  # From gazetteer
-                    "waterbody_poly_id": poly_id,
-                    "gnis_name": gnis_name,  # From gazetteer
-                    "area_sqm": area_sqm,  # From gazetteer
-                    "zones": meta.get("zones", []),  # From gazetteer
-                    "mgmt_units": meta.get("mgmt_units", []),  # From gazetteer
-                    "crs": gdf.crs,  # GDB CRS metadata
-                }
-
-        logger.info(
-            f"Loaded {len(self._polygon_geometries):,} total polygon geometries"
-        )
-
-    def _load_all_stream_geometries(self):
-        """Load stream geometries in parallel with feedback."""
-        if self._stream_geometries is not None:
-            return
-
-        try:
-            from tqdm import tqdm
-        except ImportError:
-            tqdm = lambda x, **kwargs: x  # Dummy fallback if tqdm is missing
-
-        logger.info("Loading stream geometries into memory...")
-        self._stream_geometries = {}
-        layers = fiona.listlayers(str(self.streams_gdb))
-
-        # Reduced from 12 to 4. Too many threads causes disk thrashing on a single GDB.
-        with ThreadPoolExecutor(max_workers=4) as executor:
-            future_to_layer = {
-                executor.submit(self._load_layer_geometries, layer): layer
-                for layer in layers
-            }
-
-            # Wrap the future iterator in a tqdm progress bar
-            for future in tqdm(
-                as_completed(future_to_layer),
-                total=len(layers),
-                desc="Loading Stream Layers",
-            ):
+    def _get_clean_poly_keys(self, feature_type: str) -> set:
+        keys = set()
+        for ftype, k in self._needed_polygon_ids:
+            if ftype.rstrip("s") == feature_type:
                 try:
-                    self._stream_geometries.update(future.result())
-                except Exception as e:
-                    logger.warning(
-                        f"Error loading layer {future_to_layer[future]}: {e}"
-                    )
+                    keys.add(str(int(float(k))))
+                except (ValueError, TypeError):
+                    keys.add(str(k).strip())
+        return keys
 
-        logger.info(f"Loaded {len(self._stream_geometries):,} stream geometries")
+    # --- LAYER CREATION ---
 
     def _create_streams_layer(
-        self, merge_geometries: bool, include_all: bool
+        self,
+        merge_geometries: bool,
+        include_all: bool,
+        exclude_lake_streams: bool = False,
     ) -> Optional[gpd.GeoDataFrame]:
         self._load_all_stream_geometries()
 
-        if (
-            merge_geometries
-            and not include_all
-            and self._cached_streams_merged is not None
-        ):
-            return self._cached_streams_merged
-        elif (
-            not merge_geometries
-            and not include_all
-            and self._cached_streams_individual is not None
-        ):
-            return self._cached_streams_individual
+        cache_key = ("streams", merge_geometries, include_all, exclude_lake_streams)
+        if cache_key in self._layer_cache:
+            return self._layer_cache[cache_key]
 
         features = []
-
         if include_all or not merge_geometries:
-            # Individual segments pass through
-            for linear_id, geom_data in self._stream_geometries.items():
+            for linear_id, geom in self._stream_geometries.items():
                 reg_ids = self.feature_to_regs.get(linear_id, [])
                 if not include_all and not reg_ids:
                     continue
 
-                stream_order = geom_data.get("stream_order", 0) or 0
-                stream_magnitude = geom_data.get("stream_magnitude", 0) or 0
-                edge_type = geom_data.get("edge_type")
-                is_side_channel = (
-                    edge_type is not None and edge_type not in MAIN_FLOW_CODES
-                )
-
+                meta = self.gazetteer.get_stream_metadata(linear_id)
+                magnitude = meta.get("stream_magnitude", 0) if meta else 0
                 features.append(
                     {
                         "linear_feature_id": linear_id,
-                        "gnis_name": geom_data.get("gnis_name", ""),
-                        "stream_order": stream_order,
+                        "gnis_name": meta.get("gnis_name", "") if meta else "",
+                        "stream_order": meta.get("stream_order") or 0 if meta else 0,
                         "regulation_ids": ",".join(reg_ids) if reg_ids else None,
+                        "regulation_names": " | ".join(
+                            self._get_regulation_name_for_feature(linear_id, reg_ids)
+                        )
+                        or "",
                         "tippecanoe:minzoom": self._calculate_stream_minzoom(
-                            max_order=stream_order,
-                            magnitude=stream_magnitude,
-                            total_length_km=(geom_data.get("length", 0) or 0) / 1000.0,
-                            has_name=bool(geom_data.get("gnis_name")),
-                            is_side_channel=is_side_channel,
+                            magnitude=magnitude
                         ),
-                        "geometry": geom_data["geometry"],
+                        "geometry": geom,
                     }
                 )
         else:
-            logger.info("Syncing zoom levels across Blue Line Keys...")
-
-            # PASS 1: Aggregate stats globally for every Blue Line Key
-            blk_stats = defaultdict(
-                lambda: {
-                    "len": 0,
-                    "max_order": 0,
-                    "max_magnitude": 0,
-                    "has_name": False,
-                    "is_side_channel": False,
-                }
-            )
-            for gd in self._stream_geometries.values():
-                blk = gd.get("blue_line_key")
-                if not blk:
-                    continue
-                s = blk_stats[blk]
-                s["len"] += gd.get("length", 0) or 0
-                s["max_order"] = max(s["max_order"], gd.get("stream_order", 0) or 0)
-                s["max_magnitude"] = max(
-                    s["max_magnitude"], gd.get("stream_magnitude", 0) or 0
-                )
-                if gd.get("gnis_name"):
-                    s["has_name"] = True
-                edge_type = gd.get("edge_type")
-                if edge_type is not None and edge_type not in MAIN_FLOW_CODES:
-                    s["is_side_channel"] = True
-
-            # PASS 2: Pre-calculate the synchronized zoom for each BLK
-            blk_zooms = {
-                blk: self._calculate_stream_minzoom(
-                    max_order=v["max_order"],
-                    magnitude=v["max_magnitude"],
-                    total_length_km=v["len"] / 1000.0,
-                    has_name=v["has_name"],
-                    is_side_channel=v["is_side_channel"],
-                )
-                for blk, v in blk_stats.items()
-            }
-
-            # PASS 3: Map Merged Groups to these synced zooms
+            blk_zooms = self._get_synchronized_blk_zooms()
             for group in self.merged_groups.values():
                 if group.feature_type not in ("stream", None):
                     continue
 
-                geom_list, all_zones, all_mgmt_units, ws_codes = [], set(), set(), set()
-                max_stream_order = 0
-
-                # Identify the BLK for this group (Mapper now groups by BLK and feature_type)
-                first_id = group.feature_ids[0]
-                blk = self._stream_geometries.get(first_id, {}).get("blue_line_key")
-                feature_minzoom = blk_zooms.get(blk, 12)
-
-                for fid in group.feature_ids:
-                    gd = self._stream_geometries.get(fid)
-                    if not gd:
-                        continue
-
-                    geom = gd["geometry"]
-                    geom_list.extend(
-                        geom.geoms if geom.geom_type == "MultiLineString" else [geom]
-                    )
-                    if gd.get("watershed_code"):
-                        ws_codes.add(gd["watershed_code"])
-                    all_zones.update(gd.get("zones", []))
-                    all_mgmt_units.update(gd.get("mgmt_units", []))
-                    max_stream_order = max(
-                        max_stream_order, gd.get("stream_order", 0) or 0
-                    )
-
-                if not geom_list:
+                # Exclude streams linked to lakes (have waterbody_key) if flag is set
+                if exclude_lake_streams and group.waterbody_key:
                     continue
 
-                features.append(
-                    {
-                        "group_id": group.group_id,
-                        "gnis_name": group.gnis_name or "",
-                        "blue_line_key": blk or "",
-                        "watershed_code": ", ".join(sorted(ws_codes)),
-                        "stream_order": max_stream_order,
-                        "regulation_ids": ",".join(group.regulation_ids),
-                        "regulation_count": len(group.regulation_ids),
-                        "has_regulations": len(group.regulation_ids) > 0,
-                        "zones": ",".join(sorted(all_zones)),
-                        "mgmt_units": ",".join(sorted(all_mgmt_units)),
-                        "tippecanoe:minzoom": feature_minzoom,
-                        "geometry": (
-                            MultiLineString(geom_list)
-                            if len(geom_list) > 1
-                            else geom_list[0]
-                        ),
-                    }
-                )
+                geom_list, all_zones, all_mgmt_units, ws_codes = [], set(), set(), set()
+                max_order = 0
+                blk = None
+
+                for fid in group.feature_ids:
+                    if geom := self._stream_geometries.get(fid):
+                        meta = self.gazetteer.get_stream_metadata(fid)
+                        if not meta:
+                            continue
+                        geom_list.extend(self._extract_geoms(geom))
+                        ws_codes.add(meta.get("fwa_watershed_code", ""))
+                        all_zones.update(meta.get("zones", []))
+                        all_mgmt_units.update(meta.get("mgmt_units", []))
+                        max_order = max(max_order, meta.get("stream_order") or 0)
+                        if blk is None:
+                            blk = meta.get("blue_line_key")
+
+                if geom_list:
+                    features.append(
+                        {
+                            "group_id": group.group_id,
+                            "gnis_name": group.gnis_name or "",
+                            "waterbody_key": group.waterbody_key or "",
+                            "blue_line_key": blk or "",
+                            "watershed_code": ", ".join(sorted(filter(None, ws_codes))),
+                            "stream_order": max_order,
+                            "regulation_ids": ",".join(group.regulation_ids),
+                            "regulation_count": len(group.regulation_ids),
+                            "regulation_names": " | ".join(
+                                self._get_regulation_name_for_group(
+                                    list(group.feature_ids), list(group.regulation_ids)
+                                )
+                            )
+                            or "",
+                            "has_regulations": bool(group.regulation_ids),
+                            "zones": ",".join(sorted(all_zones)),
+                            "mgmt_units": ",".join(sorted(all_mgmt_units)),
+                            "tippecanoe:minzoom": blk_zooms.get(blk, 12),
+                            "geometry": (
+                                MultiLineString(geom_list)
+                                if len(geom_list) > 1
+                                else geom_list[0]
+                            ),
+                        }
+                    )
 
         result = gpd.GeoDataFrame(features, crs="EPSG:3005") if features else None
-
-        if result is not None:
-            if merge_geometries and not include_all:
-                self._cached_streams_merged = result
-            elif not merge_geometries and not include_all:
-                self._cached_streams_individual = result
-
+        self._layer_cache[cache_key] = result
         return result
-
-    def _calculate_score(
-        self,
-        max_order: int = 0,
-        magnitude: int = 0,
-        total_length_km: float = 0.0,
-        has_name: bool = False,
-        is_side_channel: bool = False,
-    ) -> float:
-        """Calculate importance score for a stream segment with tie-breaking."""
-        # Primary score from major factors
-        base_score = (
-            (max_order * WEIGHTS["order"])
-            + (magnitude * WEIGHTS["magnitude"])
-            + (int(has_name) * WEIGHTS["has_name"])
-            + (int(is_side_channel) * WEIGHTS["side_channel_penalty"])
-        )
-
-        # Length as tie-breaker (normalized to 0-1 range, max ~1000km)
-        # This ensures unique scores while keeping length contribution minimal
-        length_tiebreaker = min(total_length_km / 1000.0, 1.0)
-
-        return base_score + length_tiebreaker
-
-    def _calculate_percentile_thresholds(self) -> dict:
-        """Calculate zoom thresholds based on percentiles of merged Blue Line Key groups."""
-        import numpy as np
-
-        logger.info(
-            "Calculating percentile-based zoom thresholds from Blue Line Key groups..."
-        )
-
-        # Aggregate streams by Blue Line Key (same logic as merged export)
-        blk_stats = defaultdict(
-            lambda: {
-                "len": 0,
-                "max_order": 0,
-                "max_magnitude": 0,
-                "has_name": False,
-                "is_side_channel": False,
-            }
-        )
-
-        valid_stream_ids = self.gazetteer.get_valid_stream_ids()
-
-        for linear_id in valid_stream_ids:
-            meta = self.gazetteer.get_stream_metadata(linear_id)
-            if not meta:
-                continue
-
-            blk = meta.get("blue_line_key")
-            if not blk:
-                continue
-
-            s = blk_stats[blk]
-            s["len"] += meta.get("length", 0) or 0
-            s["max_order"] = max(s["max_order"], meta.get("stream_order", 0) or 0)
-            s["max_magnitude"] = max(
-                s["max_magnitude"], meta.get("stream_magnitude", 0) or 0
-            )
-            if meta.get("gnis_name"):
-                s["has_name"] = True
-            edge_type = meta.get("edge_type")
-            if edge_type is not None and edge_type not in MAIN_FLOW_CODES:
-                s["is_side_channel"] = True
-
-        logger.info(
-            f"  Aggregated {len(valid_stream_ids):,} stream segments into {len(blk_stats):,} Blue Line Key groups"
-        )
-
-        # Calculate scores for each Blue Line Key group
-        scores = []
-        for blk, stats in blk_stats.items():
-            score = self._calculate_score(
-                max_order=stats["max_order"],
-                magnitude=stats["max_magnitude"],
-                total_length_km=stats["len"] / 1000.0,
-                has_name=stats["has_name"],
-                is_side_channel=stats["is_side_channel"],
-            )
-            scores.append(score)
-
-        scores = np.array(scores)
-
-        # Show score distribution histogram
-        logger.info(f"\nScore distribution for {len(scores):,} Blue Line Key groups:")
-        logger.info(
-            f"  Min: {scores.min():.2f}, Max: {scores.max():.2f}, Mean: {scores.mean():.2f}, Median: {np.median(scores):.2f}"
-        )
-
-        # Create text-based histogram
-        bins = 20
-        hist, bin_edges = np.histogram(scores, bins=bins)
-        max_count = hist.max()
-        logger.info("\n  Score Histogram:")
-        for i in range(bins):
-            bar_length = int((hist[i] / max_count) * 50)
-            bar = "█" * bar_length
-            logger.info(
-                f"  {bin_edges[i]:7.1f} - {bin_edges[i+1]:7.1f}: {hist[i]:8,} {bar}"
-            )
-
-        # Calculate threshold scores at each percentile
-        logger.info("\n  Percentile Thresholds:")
-        thresholds = []
-        for zoom in sorted(PERCENTILES.keys()):
-            threshold_score = np.percentile(scores, PERCENTILES[zoom])
-            thresholds.append((threshold_score, zoom))
-            logger.info(
-                f"  Zoom {zoom}: Score >= {threshold_score:.2f} (top {100-PERCENTILES[zoom]:.2f}%)"
-            )
-
-        logger.info(f"\nCalculated {len(thresholds)} percentile-based thresholds")
-        return thresholds
-
-    def _calculate_stream_minzoom(
-        self,
-        max_order: int = 0,
-        magnitude: int = 0,
-        total_length_km: float = 0.0,
-        has_name: bool = False,
-        is_side_channel: bool = False,
-        linear_id: str = None,
-    ) -> int:
-        if linear_id is not None:
-            meta = self.gazetteer.get_stream_metadata(linear_id)
-            if not meta:
-                return 12
-            max_order = meta.get("stream_order", 0) or 0
-            magnitude = meta.get("stream_magnitude", 0) or 0
-            total_length_km = (meta.get("length", 0) or 0) / 1000.0
-            has_name = bool(meta.get("gnis_name"))
-            edge_type = meta.get("edge_type")
-            is_side_channel = edge_type is not None and edge_type not in MAIN_FLOW_CODES
-
-        # Ensure all values are numeric (protect against None)
-        max_order = max_order or 0
-        magnitude = magnitude or 0
-        total_length_km = total_length_km or 0.0
-
-        score = self._calculate_score(
-            max_order, magnitude, total_length_km, has_name, is_side_channel
-        )
-
-        # Use percentile-based thresholds calculated from all streams
-        for threshold_score, zoom in self._stream_zoom_thresholds:
-            if score >= threshold_score:
-                return zoom
-        return 12
 
     def _create_polygon_layer(
         self, feature_type: str, merge_geometries: bool, include_all: bool
     ) -> Optional[gpd.GeoDataFrame]:
-        self._load_all_polygon_geometries()  # Guaranteed cached hit
+        self._load_all_polygon_geometries()
         singular_type = feature_type.rstrip("s")
+
+        cache_key = (f"poly_{feature_type}", merge_geometries, include_all)
+        if cache_key in self._layer_cache:
+            return self._layer_cache[cache_key]
+
         features = []
-
         if include_all:
-            for (ftype, key), geom_data in self._polygon_geometries.items():
-                if ftype != singular_type:
+            for feature_id, geom in self._polygon_geometries.items():
+                ftype = self.gazetteer.get_feature_type_from_id(feature_id)
+                if ftype.value != singular_type:
                     continue
-                reg_ids = self.feature_to_regs.get(f"{ftype.upper()}_{key}", [])
 
+                key = self.gazetteer.get_feature_key_from_id(feature_id)
+                # Use numeric key to look up regulations, not prefixed feature_id
+                reg_ids = self.feature_to_regs.get(key, [])
+                meta = (
+                    self.gazetteer.get_polygon_metadata(key, f"{singular_type}s") or {}
+                )
+                area_sqm = meta.get("area_sqm", 0)
+                # Use waterbody_key from metadata (matches streams), fallback to polygon ID
+                waterbody_key = meta.get("waterbody_key", key)
                 features.append(
                     {
-                        "waterbody_key": key,
-                        "gnis_name": geom_data.get("gnis_name", ""),
-                        "area_sqm": geom_data.get("area_sqm", 0),
+                        "waterbody_key": waterbody_key,
+                        "gnis_name": meta.get("gnis_name", ""),
+                        "area_sqm": area_sqm,
                         "regulation_ids": ",".join(reg_ids) if reg_ids else None,
                         "regulation_count": len(reg_ids),
-                        "tippecanoe:minzoom": self._calculate_polygon_minzoom(
-                            geom_data.get("area_sqm", 0)
-                        ),
-                        "geometry": geom_data["geometry"],
+                        "regulation_names": " | ".join(
+                            self._get_regulation_name_for_feature(key, reg_ids)
+                        )
+                        or "",
+                        "tippecanoe:minzoom": self._calculate_polygon_minzoom(area_sqm),
+                        "geometry": geom,
                     }
                 )
         else:
@@ -690,29 +542,43 @@ class RegulationGeoExporter:
                 ):
                     continue
 
-                geometries = [
-                    self._polygon_geometries.get(
-                        (singular_type, self.gazetteer.get_feature_key_from_id(fid))
-                    )
-                    for fid in group.feature_ids
-                ]
-                geometries = [g for g in geometries if g]
-                if not geometries:
+                geom_and_meta = []
+                for fid in group.feature_ids:
+                    # Construct prefixed feature_id for geometry lookup
+                    feature_id = f"{singular_type.upper()}_{fid}"
+                    if geom := self._polygon_geometries.get(feature_id):
+                        key = self.gazetteer.get_feature_key_from_id(feature_id)
+                        meta = (
+                            self.gazetteer.get_polygon_metadata(
+                                key, f"{singular_type}s"
+                            )
+                            or {}
+                        )
+                        geom_and_meta.append((geom, meta, key))
+
+                if not geom_and_meta:
                     continue
 
-                if merge_geometries and len(geometries) > 1:
-                    polygons = []
-                    for g in geometries:
-                        geom = g["geometry"]
-                        polygons.extend(
-                            geom.geoms if geom.geom_type == "MultiPolygon" else [geom]
-                        )
-
+                if merge_geometries and len(geom_and_meta) > 1:
+                    polygons = [
+                        p
+                        for geom, _, _ in geom_and_meta
+                        for p in self._extract_geoms(geom)
+                    ]
+                    max_area = max(
+                        meta.get("area_sqm", 0) for _, meta, _ in geom_and_meta
+                    )
                     features.append(
                         {
                             "group_id": group.group_id,
                             "regulation_ids": ",".join(group.regulation_ids),
                             "regulation_count": len(group.regulation_ids),
+                            "regulation_names": " | ".join(
+                                self._get_regulation_name_for_group(
+                                    list(group.feature_ids), list(group.regulation_ids)
+                                )
+                            )
+                            or "",
                             "gnis_name": group.gnis_name or "",
                             "feature_count": group.feature_count,
                             "zones": ",".join(group.zones) if group.zones else "",
@@ -720,36 +586,51 @@ class RegulationGeoExporter:
                                 ",".join(group.mgmt_units) if group.mgmt_units else ""
                             ),
                             "tippecanoe:minzoom": self._calculate_polygon_minzoom(
-                                max(g.get("area_sqm", 0) for g in geometries)
+                                max_area
                             ),
                             "geometry": MultiPolygon(polygons),
                         }
                     )
                 else:
-                    for g in geometries:
+                    for geom, meta, key in geom_and_meta:
+                        area_sqm = meta.get("area_sqm", 0)
+                        # Use waterbody_key from metadata (matches streams), fallback to polygon ID
+                        waterbody_key = meta.get("waterbody_key", key)
                         features.append(
                             {
-                                "waterbody_key": g["waterbody_key"],
-                                "gnis_name": g.get("gnis_name", ""),
-                                "area_sqm": g.get("area_sqm", 0),
+                                "waterbody_key": waterbody_key,
+                                "gnis_name": meta.get("gnis_name", ""),
+                                "area_sqm": area_sqm,
                                 "regulation_ids": ",".join(group.regulation_ids),
                                 "regulation_count": len(group.regulation_ids),
-                                "tippecanoe:minzoom": self._calculate_polygon_minzoom(
-                                    g.get("area_sqm", 0)
+                                "regulation_names": " | ".join(
+                                    self._get_regulation_name_for_feature(
+                                        key, list(group.regulation_ids)
+                                    )
+                                )
+                                or "",
+                                "zones": ",".join(group.zones) if group.zones else "",
+                                "mgmt_units": (
+                                    ",".join(group.mgmt_units)
+                                    if group.mgmt_units
+                                    else ""
                                 ),
-                                "geometry": g["geometry"],
+                                "tippecanoe:minzoom": self._calculate_polygon_minzoom(
+                                    area_sqm
+                                ),
+                                "geometry": geom,
                             }
                         )
 
-        return gpd.GeoDataFrame(features, crs="EPSG:3005") if features else None
+        result = gpd.GeoDataFrame(features, crs="EPSG:3005") if features else None
+        self._layer_cache[cache_key] = result
+        return result
 
     def _create_regions_layer(self, zones_path: Path) -> Optional[gpd.GeoDataFrame]:
         logger.info("Dissolving zones into regions...")
         zones_gdf = gpd.read_file(zones_path).to_crs("EPSG:3005")
         zones_gdf["zone"] = zones_gdf["WILDLIFE_MGMT_UNIT_ID"].str.split("-").str[0]
         regions_gdf = zones_gdf.dissolve(by="zone", as_index=False)
-
-        # Extract only linestring bounds for outline
         regions_gdf["geometry"] = regions_gdf["geometry"].boundary
 
         zone_colors = {
@@ -762,7 +643,6 @@ class RegulationGeoExporter:
             "7": "#BB8FCE",
             "8": "#85C1E2",
         }
-
         regions_gdf["stroke_color"] = regions_gdf["zone"].map(zone_colors)
         regions_gdf["stroke_width"] = 3.0
         regions_gdf["tippecanoe:minzoom"] = 0
@@ -771,11 +651,125 @@ class RegulationGeoExporter:
             ["zone", "stroke_color", "stroke_width", "tippecanoe:minzoom", "geometry"]
         ]
 
+    # --- MATH & SCORING ---
+
+    def _calculate_score(
+        self,
+        max_order=0,
+        magnitude=0,
+        length_km=0.0,
+        has_name=False,
+        is_side_channel=False,
+    ) -> float:
+        base_score = (
+            (max_order * WEIGHTS["order"])
+            + (magnitude * WEIGHTS["magnitude"])
+            + (int(has_name) * WEIGHTS["has_name"])
+            + (int(is_side_channel) * WEIGHTS["side_channel_penalty"])
+        )
+        return base_score + min(length_km / 1000.0, 1.0)
+
+    def _calculate_percentile_thresholds(self) -> dict:
+        logger.info(
+            "Calculating percentile-based zoom thresholds from Blue Line Key groups..."
+        )
+        blk_stats = defaultdict(
+            lambda: {
+                "len": 0,
+                "max_order": 0,
+                "max_magnitude": 0,
+                "has_name": False,
+                "is_side_channel": False,
+            }
+        )
+
+        for linear_id in self.gazetteer.get_valid_stream_ids():
+            if meta := self.gazetteer.get_stream_metadata(linear_id):
+                if blk := meta.get("blue_line_key"):
+                    s = blk_stats[blk]
+                    s["len"] += meta.get("length", 0) or 0
+                    s["max_order"] = max(s["max_order"], meta.get("stream_order") or 0)
+                    s["max_magnitude"] = max(
+                        s["max_magnitude"], meta.get("stream_magnitude") or 0
+                    )
+                    if meta.get("gnis_name"):
+                        s["has_name"] = True
+                    if (
+                        meta.get("edge_type") not in MAIN_FLOW_CODES
+                        and meta.get("edge_type") is not None
+                    ):
+                        s["is_side_channel"] = True
+
+        scores = np.array(
+            [
+                self._calculate_score(
+                    s["max_order"],
+                    s["max_magnitude"],
+                    s["len"] / 1000.0,
+                    s["has_name"],
+                    s["is_side_channel"],
+                )
+                for s in blk_stats.values()
+            ]
+        )
+
+        thresholds = [
+            (np.percentile(scores, PERCENTILES[z]), z)
+            for z in sorted(PERCENTILES.keys())
+        ]
+        return thresholds
+
+    def _get_synchronized_blk_zooms(self) -> dict:
+        blk_stats = defaultdict(
+            lambda: {
+                "len": 0,
+                "max_order": 0,
+                "max_magnitude": 0,
+                "has_name": False,
+                "is_side_channel": False,
+            }
+        )
+        for linear_id in self._stream_geometries.keys():
+            meta = self.gazetteer.get_stream_metadata(linear_id)
+            if not meta:
+                continue
+            if blk := meta.get("blue_line_key"):
+                s = blk_stats[blk]
+                s["len"] += meta.get("length") or 0
+                s["max_order"] = max(s["max_order"], meta.get("stream_order") or 0)
+                s["max_magnitude"] = max(
+                    s["max_magnitude"], meta.get("stream_magnitude") or 0
+                )
+                if meta.get("gnis_name"):
+                    s["has_name"] = True
+                if (
+                    meta.get("edge_type") not in MAIN_FLOW_CODES
+                    and meta.get("edge_type") is not None
+                ):
+                    s["is_side_channel"] = True
+
+        return {
+            blk: self._calculate_stream_minzoom(magnitude=v["max_magnitude"])
+            for blk, v in blk_stats.items()
+        }
+
+    def _calculate_stream_minzoom(self, magnitude=0) -> int:
+        score = magnitude or 0
+        for threshold, zoom in self._stream_zoom_thresholds:
+            if score >= threshold:
+                return zoom
+        return 12
+
     def _calculate_polygon_minzoom(self, area_sqm: float) -> int:
         for zoom, limit in sorted(LAKE_ZOOM_THRESHOLDS.items()):
             if area_sqm >= limit:
                 return zoom + 1
         return 12
+
+    def _extract_geoms(self, geom) -> list:
+        return geom.geoms if hasattr(geom, "geoms") else [geom]
+
+    # --- EXPORTERS ---
 
     def export_gpkg(
         self,
@@ -791,39 +785,50 @@ class RegulationGeoExporter:
         if output_path.exists():
             output_path.unlink()
 
-        # Enforce exactly one load sequence, starting with Polygons
         self._preload_data()
-
         layer_count = 0
 
-        # Write Polygons first
-        for feat_type in ["lakes", "wetlands", "manmade"]:
-            poly_gdf = self._create_polygon_layer(
-                feat_type, merge_geometries, include_all_features
-            )
-            if poly_gdf is not None:
-                poly_gdf.to_file(output_path, layer=feat_type, driver="GPKG")
-                layer_count += 1
+        layers = [
+            (
+                "lakes",
+                lambda: self._create_polygon_layer(
+                    "lakes", merge_geometries, include_all_features
+                ),
+            ),
+            (
+                "wetlands",
+                lambda: self._create_polygon_layer(
+                    "wetlands", merge_geometries, include_all_features
+                ),
+            ),
+            (
+                "manmade",
+                lambda: self._create_polygon_layer(
+                    "manmade", merge_geometries, include_all_features
+                ),
+            ),
+            (
+                "streams",
+                lambda: self._create_streams_layer(
+                    merge_geometries, include_all_features
+                ),
+            ),
+        ]
 
-        # Write Streams second
-        streams_gdf = self._create_streams_layer(merge_geometries, include_all_features)
-        if streams_gdf is not None:
-            streams_gdf.to_file(output_path, layer="streams", driver="GPKG")
-            layer_count += 1
-
-        # Write Regions
         if zones_path and zones_path.exists():
-            regions_gdf = self._create_regions_layer(zones_path)
-            if regions_gdf is not None:
-                regions_gdf.to_file(output_path, layer="regions", driver="GPKG")
+            layers.append(("regions", lambda: self._create_regions_layer(zones_path)))
+
+        for layer_name, create_fn in layers:
+            if (gdf := create_fn()) is not None:
+                gdf.to_file(output_path, layer=layer_name, driver="GPKG")
                 layer_count += 1
 
-        if layer_count == 0:
+        if not layer_count:
             logger.error("No layers created!")
             return None
 
         logger.info(
-            f"Created {output_path} ({output_path.stat().st_size / (1024 * 1024):.1f} MB)"
+            f"Created GPKG {output_path} ({output_path.stat().st_size / (1024 * 1024):.1f} MB)"
         )
         return output_path
 
@@ -839,11 +844,8 @@ class RegulationGeoExporter:
 
         work_dir = work_dir or output_path.parent / "temp"
         work_dir.mkdir(parents=True, exist_ok=True)
-
-        # Enforce exactly one load sequence, starting with Polygons
         self._preload_data()
 
-        # Reordered configs: Polygons are processed before Streams
         layer_configs = [
             (
                 "lakes",
@@ -857,10 +859,13 @@ class RegulationGeoExporter:
                 "manmade",
                 lambda: self._create_polygon_layer("manmade", merge_geometries, False),
             ),
-            ("streams", lambda: self._create_streams_layer(merge_geometries, False)),
+            (
+                "streams",
+                lambda: self._create_streams_layer(
+                    merge_geometries, False, exclude_lake_streams=True
+                ),
+            ),
         ]
-
-        # Add regions layer if zones_path provided
         if zones_path and zones_path.exists():
             layer_configs.append(
                 ("regions", lambda: self._create_regions_layer(zones_path))
@@ -868,8 +873,7 @@ class RegulationGeoExporter:
 
         layer_files = []
         for layer_name, create_fn in layer_configs:
-            gdf = create_fn()
-            if gdf is not None and not gdf.empty:
+            if (gdf := create_fn()) is not None and not gdf.empty:
                 layer_path = work_dir / f"{layer_name}.geojsonseq"
                 self._write_geojsonseq(gdf, layer_path, layer_name)
                 layer_files.append(layer_path)
@@ -888,23 +892,17 @@ class RegulationGeoExporter:
             "--no-simplification-of-shared-nodes",
             "--no-tiny-polygon-reduction",
             "--simplification=8",
-            # "--low-detail=10",
             "--no-feature-limit",
             "--no-tile-size-limit",
             "--simplification-at-maximum-zoom=1",
             "--read-parallel",
-            # "--extend-zooms-if-still-dropping",
-            # "--coalesce-densest-as-needed",
-            # "--no-duplication",
             "--no-clipping",
             "--detect-shared-borders",
-        ]
-
-        for lp in layer_files:
-            cmd.extend(["-L", f"{lp.stem}:{lp}"])
+        ] + [arg for lp in layer_files for arg in ("-L", f"{lp.stem}:{lp}")]
 
         logger.info(f"Running Tippecanoe: {' '.join(cmd[:10])}...")
         result = subprocess.run(cmd, text=True)
+
         if result.returncode == 0 and output_path.exists():
             logger.info(
                 f"Created PMTiles {output_path} ({output_path.stat().st_size / (1024 * 1024):.1f} MB)"
@@ -917,21 +915,31 @@ class RegulationGeoExporter:
     def _write_geojsonseq(
         self, gdf: gpd.GeoDataFrame, output_path: Path, layer_name: str
     ):
-        gdf_4326 = gdf.to_crs("EPSG:4326")
         with open(output_path, "w") as f:
-            for _, row in gdf_4326.iterrows():
-                feat = {
-                    "type": "Feature",
-                    "properties": {
-                        k: v for k, v in row.drop("geometry").items() if pd.notna(v)
-                    },
-                    "geometry": row["geometry"].__geo_interface__,
-                    "tippecanoe": {
-                        "layer": layer_name,
-                        "minzoom": int(row["tippecanoe:minzoom"]),
-                    },
-                }
-                f.write(json.dumps(feat) + "\n")
+            for _, row in gdf.to_crs("EPSG:4326").iterrows():
+                # Extract properties, keeping regulation_names even if empty
+                properties = {}
+                for k, v in row.drop("geometry").items():
+                    if k == "regulation_names":
+                        # Always include regulation_names, even if None/empty
+                        properties[k] = v if pd.notna(v) else ""
+                    elif pd.notna(v):
+                        properties[k] = v
+
+                f.write(
+                    json.dumps(
+                        {
+                            "type": "Feature",
+                            "properties": properties,
+                            "geometry": row["geometry"].__geo_interface__,
+                            "tippecanoe": {
+                                "layer": layer_name,
+                                "minzoom": int(row["tippecanoe:minzoom"]),
+                            },
+                        }
+                    )
+                    + "\n"
+                )
 
     def _is_file_locked(self, filepath: Path) -> bool:
         if filepath.exists():
@@ -942,3 +950,270 @@ class RegulationGeoExporter:
                 logger.error(f"File {filepath.name} is locked. Skipping export.")
                 return True
         return False
+
+    def export_regulations_json(
+        self,
+        parsed_regulations: List[Dict[str, Any]],
+        output_path: Path,
+    ) -> Path:
+        """
+        Export regulations lookup table for frontend consumption.
+
+        Creates a JSON file mapping rule_id -> regulation details for display in the UI.
+        Designed to be served as a static file from Cloudflare Pages.
+
+        Args:
+            parsed_regulations: List of ParsedWaterbody objects (as dicts)
+            output_path: Path to write regulations.json
+
+        Returns:
+            Path to created JSON file
+        """
+        logger.info(f"Exporting regulations lookup table...")
+
+        regulations_lookup = {}
+        total_rules = 0
+
+        for idx, regulation in enumerate(parsed_regulations):
+            regulation_id = f"reg_{idx:04d}"
+
+            # Extract regulation metadata
+            identity = regulation.get("identity", {})
+            rules = regulation.get("rules", [])
+            region = regulation.get("region")
+            mgmt_units = regulation.get("mu", [])
+
+            # Process each rule
+            for rule_idx, rule in enumerate(rules):
+                rule_id = f"{regulation_id}_rule{rule_idx}"
+                total_rules += 1
+
+                # Extract rule data
+                restriction = rule.get("restriction", {})
+                scope = rule.get("scope", {})
+
+                # Build frontend-ready object
+                regulations_lookup[rule_id] = {
+                    # Identity
+                    "waterbody_name": identity.get("name_verbatim"),
+                    "waterbody_key": identity.get("waterbody_key"),
+                    "region": region,
+                    "management_units": mgmt_units,
+                    # Rule text (verbatim from PDF)
+                    "rule_text": rule.get("rule_text_verbatim"),
+                    # Restriction details
+                    "restriction_type": restriction.get("type"),
+                    "restriction_details": restriction.get("details"),
+                    "dates": restriction.get("dates"),
+                    # Scope (where the rule applies)
+                    "scope_type": scope.get("type"),
+                    "scope_location": scope.get("location_verbatim"),
+                    "includes_tributaries": scope.get("includes_tributaries"),
+                }
+
+        # Write to JSON
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(output_path, "w", encoding="utf-8") as f:
+            json.dump(regulations_lookup, f, indent=2, ensure_ascii=False)
+
+        file_size_mb = output_path.stat().st_size / (1024 * 1024)
+        logger.info(
+            f"Exported {total_rules} rules from {len(parsed_regulations)} regulations "
+            f"to {output_path} ({file_size_mb:.2f} MB)"
+        )
+
+        return output_path
+
+    def export_search_index(
+        self,
+        output_path: Path,
+    ) -> Path:
+        """
+        Export search index for frontend consumption.
+
+        Creates a JSON file with waterbody names, bounding boxes, and metadata
+        for fuzzy search functionality. Much smaller and faster than querying tiles.
+
+        Only includes waterbodies with gnis_name (not unnamed tributaries).
+        Groups by (gnis_name, regulation_ids, feature_type) to prevent duplicates.
+        Returns regulation_names as an array for frontend handling.
+
+        Args:
+            output_path: Path to write search_index.json
+
+        Returns:
+            Path to created JSON file
+        """
+        logger.info("Exporting search index...")
+
+        self._preload_data()
+
+        # First pass: collect all groups with same name+regulations+type
+        search_groups = defaultdict(
+            lambda: {
+                "geometries": [],
+                "zones": set(),
+                "mgmt_units": set(),
+                "segment_count": 0,
+                "waterbody_keys": set(),
+                "group_ids": [],
+                "feature_ids": [],  # Track all feature_ids to check for explicit linking
+            }
+        )
+
+        for group in self.merged_groups.values():
+            # Check if this group has a regulation name (explicitly linked)
+            regulation_names = self._get_regulation_name_for_group(
+                list(group.feature_ids), list(group.regulation_ids)
+            )
+
+            # Only include waterbodies with a GNIS name OR regulation name (skip unnamed tributaries)
+            if not group.gnis_name and not regulation_names:
+                continue
+
+            feature_type = group.feature_type
+            if not feature_type:
+                # Determine type from first feature ID
+                if group.feature_ids:
+                    first_id = next(iter(group.feature_ids))
+                    feature_type_enum = self.gazetteer.get_feature_type_from_id(
+                        first_id
+                    )
+                    feature_type = (
+                        feature_type_enum.value if feature_type_enum else "stream"
+                    )
+                else:
+                    continue
+
+            # Create grouping key: (gnis_name, regulation_ids, feature_type)
+            # This ensures all segments of "Skeena River" with same regulations are one search result
+            reg_ids_tuple = tuple(sorted(group.regulation_ids))
+            search_key = (group.gnis_name, reg_ids_tuple, feature_type)
+
+            search_group = search_groups[search_key]
+
+            # Collect geometries for bbox calculation
+            if feature_type == "stream":
+                for fid in group.feature_ids:
+                    if geom := self._stream_geometries.get(fid):
+                        search_group["geometries"].extend(self._extract_geoms(geom))
+            else:
+                prefix = feature_type.upper() + "_"
+                for fid in group.feature_ids:
+                    feature_id = f"{prefix}{fid}"
+                    if geom := self._polygon_geometries.get(feature_id):
+                        search_group["geometries"].extend(self._extract_geoms(geom))
+
+            # Accumulate metadata
+            search_group["segment_count"] += len(group.feature_ids)
+            search_group["feature_ids"].extend(group.feature_ids)
+            if group.zones:
+                search_group["zones"].update(group.zones)
+            if group.mgmt_units:
+                search_group["mgmt_units"].update(group.mgmt_units)
+            if group.waterbody_key:
+                search_group["waterbody_keys"].add(group.waterbody_key)
+            search_group["group_ids"].append(group.group_id)
+
+        # Second pass: create search items with combined bboxes
+        search_items = []
+        for (
+            gnis_name,
+            reg_ids_tuple,
+            feature_type,
+        ), group_data in search_groups.items():
+            geometries = group_data["geometries"]
+            if not geometries:
+                continue
+
+            # Calculate min_zoom based on feature type
+            min_zoom = 12  # default
+            if feature_type == "stream":
+                # For streams: use maximum magnitude across all feature_ids
+                max_magnitude = 0
+                for fid in group_data["feature_ids"]:
+                    meta = self.gazetteer.get_stream_metadata(fid)
+                    if meta:
+                        max_magnitude = max(
+                            max_magnitude, meta.get("stream_magnitude") or 0
+                        )
+                min_zoom = self._calculate_stream_minzoom(magnitude=max_magnitude)
+            else:
+                # For polygons: calculate total area
+                total_area = sum(geom.area for geom in geometries)
+                min_zoom = self._calculate_polygon_minzoom(total_area)
+
+            # Calculate bounding box from all geometries (in EPSG:3005)
+            min_x, min_y, max_x, max_y = (
+                float("inf"),
+                float("inf"),
+                float("-inf"),
+                float("-inf"),
+            )
+            for geom in geometries:
+                bounds = geom.bounds  # (minx, miny, maxx, maxy)
+                min_x = min(min_x, bounds[0])
+                min_y = min(min_y, bounds[1])
+                max_x = max(max_x, bounds[2])
+                max_y = max(max_y, bounds[3])
+
+            # Transform bbox from EPSG:3005 (BC Albers) to EPSG:4326 (WGS84 lat/lon)
+            from shapely.geometry import box
+
+            bbox_geom = box(min_x, min_y, max_x, max_y)
+            bbox_gdf = gpd.GeoDataFrame([1], geometry=[bbox_geom], crs="EPSG:3005")
+            bbox_gdf_wgs84 = bbox_gdf.to_crs("EPSG:4326")
+            wgs84_bounds = bbox_gdf_wgs84.geometry.iloc[0].bounds
+            bbox = [wgs84_bounds[0], wgs84_bounds[1], wgs84_bounds[2], wgs84_bounds[3]]
+
+            # Build search item
+            reg_ids = list(reg_ids_tuple)
+
+            # Get all regulation names as an array (only for explicitly linked features)
+            regulation_names = self._get_regulation_name_for_group(
+                group_data["feature_ids"], reg_ids
+            )
+
+            search_item = {
+                "id": f"{gnis_name}|{','.join(reg_ids)}|{feature_type}",
+                "gnis_name": gnis_name,
+                "regulation_names": regulation_names,  # Array of regulation names
+                "type": feature_type,
+                "zones": (
+                    ",".join(sorted(group_data["zones"])) if group_data["zones"] else ""
+                ),
+                "mgmt_units": (
+                    ",".join(sorted(group_data["mgmt_units"]))
+                    if group_data["mgmt_units"]
+                    else ""
+                ),
+                "regulation_ids": ",".join(reg_ids),
+                "segment_count": group_data["segment_count"],
+                "bbox": bbox,
+                "min_zoom": min_zoom,
+                "properties": {
+                    "group_id": (
+                        group_data["group_ids"][0] if group_data["group_ids"] else ""
+                    ),
+                    "waterbody_key": (
+                        ",".join(sorted(group_data["waterbody_keys"]))
+                        if group_data["waterbody_keys"]
+                        else ""
+                    ),
+                    "regulation_count": len(reg_ids),
+                },
+            }
+
+            search_items.append(search_item)
+
+        # Write to JSON
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(output_path, "w", encoding="utf-8") as f:
+            json.dump({"waterbodies": search_items}, f, indent=2, ensure_ascii=False)
+
+        file_size_mb = output_path.stat().st_size / (1024 * 1024)
+        logger.info(
+            f"Exported {len(search_items)} waterbodies to {output_path} ({file_size_mb:.2f} MB)"
+        )
+
+        return output_path

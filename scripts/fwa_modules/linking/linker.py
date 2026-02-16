@@ -393,6 +393,17 @@ class WaterbodyLinker:
                 if feature:
                     features.append(feature)
 
+        if direct_match.blue_line_key:
+            # Search by blue line key
+            features.extend(
+                self.gazetteer.search_by_blue_line_key(direct_match.blue_line_key)
+            )
+
+        if direct_match.blue_line_keys:
+            # Search by multiple blue line keys
+            for blk in direct_match.blue_line_keys:
+                features.extend(self.gazetteer.search_by_blue_line_key(blk))
+
         if direct_match.unmarked_waterbody_id:
             # Lookup unmarked waterbody from manual corrections
             unmarked_waterbody = self.manual_corrections.get_unmarked_waterbody(

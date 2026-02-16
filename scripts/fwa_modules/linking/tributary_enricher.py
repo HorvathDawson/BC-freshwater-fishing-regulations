@@ -315,6 +315,7 @@ class TributaryEnricher:
                     name=edge["gnis_name"] or "unnamed",
                     geometry_type="multilinestring",
                     zones=zones,
+                    feature_type="stream",
                     gnis_name=edge["gnis_name"],
                     gnis_id=edge["gnis_id"],
                     fwa_watershed_code=edge["fwa_watershed_code"],
