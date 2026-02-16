@@ -26,4 +26,4 @@ dist-ssr
 
 # large assets
 *.pmtiles
-public/data
+public/data/*

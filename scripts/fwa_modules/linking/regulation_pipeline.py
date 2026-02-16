@@ -182,7 +182,7 @@ class RegulationPipeline:
             regulations_json = regulations_dir / "regulations.json"
             exporter.export_regulations_json(self.parsed_regulations, regulations_json)
             exported_files["regulations_json"] = regulations_json
-            
+
             # Export search index for frontend
             search_index = regulations_dir / "search_index.json"
             exporter.export_search_index(search_index)

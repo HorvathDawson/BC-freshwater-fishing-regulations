@@ -170,9 +170,9 @@ class RegulationMapper:
 
         # Track keys for later grouping
         for feature in base_features:
-            self.feature_to_linked_regulation[
-                self._get_feature_id(feature)
-            ].add(regulation_id)
+            self.feature_to_linked_regulation[self._get_feature_id(feature)].add(
+                regulation_id
+            )
             if self._get_feature_type(feature) in ("lake", "wetland", "manmade"):
                 if wb_key := self._get_prop(feature, ["waterbody_key"]):
                     self.linked_waterbody_keys.add(str(wb_key))
