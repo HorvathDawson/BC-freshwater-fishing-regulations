@@ -246,6 +246,25 @@ const MapComponent = () => {
         return () => map.remove();
     }, [clearSelection]);
 
+    const updateHighlight = useCallback((option: FeatureOption | null) => {
+        const map = mapRef.current;
+        if (!map || !map.isStyleLoaded()) return;
+        const source = map.getSource('highlight-source') as maplibregl.GeoJSONSource;
+        if (!source) return;
+        if (!option) return source.setData({ type: 'FeatureCollection', features: [] });
+
+        const refresh = () => {
+            const srcLayer = option.sourceLayer || (option.type === 'stream' ? 'streams' : 'lakes');
+            const filter = buildFeatureFilter(option);
+            let features: any[] = filter ? map.querySourceFeatures('regulations', { sourceLayer: srcLayer, filter: filter as any }) : [];
+            if (!features.length && option.geometry) features = [{ geometry: option.geometry, properties: option.properties } as any];
+            source.setData({ type: 'FeatureCollection', features: features.map(f => ({ type: 'Feature', geometry: f.geometry || f.toJSON?.().geometry, properties: f.properties })) as any });
+        };
+        
+        refresh();
+        if (map.isMoving()) map.once('idle', refresh);
+    }, []);
+
     useEffect(() => {
         const map = mapRef.current;
         if (!map || !selectedFeature) return;
@@ -263,6 +282,9 @@ const MapComponent = () => {
 
         updateData();
         map.once('idle', updateData);
+        
+        // Fix: Listen for zoom changes to refresh detail levels from vector tiles
+        map.on('zoomend', updateData);
 
         if (mobilePanelState !== 'collapsed') {
             const bounds = new maplibregl.LngLatBounds();
@@ -287,27 +309,20 @@ const MapComponent = () => {
             }
         }
 
-        return () => { map.off('idle', updateData); };
+        return () => { 
+            map.off('idle', updateData); 
+            map.off('zoomend', updateData);
+        };
     }, [selectedFeature, mobilePanelState]);
 
-    const updateHighlight = useCallback((option: FeatureOption | null) => {
+    // Handle highlight detail updates on zoom
+    useEffect(() => {
         const map = mapRef.current;
-        if (!map || !map.isStyleLoaded()) return;
-        const source = map.getSource('highlight-source') as maplibregl.GeoJSONSource;
-        if (!source) return;
-        if (!option) return source.setData({ type: 'FeatureCollection', features: [] });
-
-        const refresh = () => {
-            const srcLayer = option.sourceLayer || (option.type === 'stream' ? 'streams' : 'lakes');
-            const filter = buildFeatureFilter(option);
-            let features: any[] = filter ? map.querySourceFeatures('regulations', { sourceLayer: srcLayer, filter: filter as any }) : [];
-            if (!features.length && option.geometry) features = [{ geometry: option.geometry, properties: option.properties } as any];
-            source.setData({ type: 'FeatureCollection', features: features.map(f => ({ type: 'Feature', geometry: f.geometry || f.toJSON?.().geometry, properties: f.properties })) as any });
-        };
-        
-        refresh();
-        if (map.isMoving()) map.once('idle', refresh);
-    }, []);
+        if (!map || !highlightedOption) return;
+        const refreshHighlight = () => updateHighlight(highlightedOption);
+        map.on('zoomend', refreshHighlight);
+        return () => { map.off('zoomend', refreshHighlight); };
+    }, [highlightedOption, updateHighlight]);
 
     const handleSearchSelect = useCallback((feature: SearchableFeature) => {
         const map = mapRef.current;
