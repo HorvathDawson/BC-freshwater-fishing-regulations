@@ -123,6 +123,7 @@ const MapComponent = () => {
     const [selectedFeature, setSelectedFeature] = useState<FeatureInfo | null>(null);
     const [disambigOptions, setDisambigOptions] = useState<FeatureOption[]>([]);
     const [disambigPosition, setDisambigPosition] = useState<{ x: number; y: number } | null>(null);
+    const [disambigCollapsed, setDisambigCollapsed] = useState(false);
     const [mobilePanelState, setMobilePanelState] = useState<CollapseState>('expanded');
     const [highlightedOption, setHighlightedOption] = useState<FeatureOption | null>(null);
     const [highlightedSearchResult, setHighlightedSearchResult] = useState<SearchableFeature | null>(null);
@@ -381,6 +382,8 @@ const MapComponent = () => {
             {disambigOptions.length > 0 && (
                 <DisambiguationMenu 
                     options={disambigOptions as any} position={disambigPosition} highlightedOption={highlightedOption as any}
+                    isCollapsed={disambigCollapsed}
+                    onSetCollapse={setDisambigCollapsed}
                     onHighlight={(option) => {
                         if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
                         if (option) {

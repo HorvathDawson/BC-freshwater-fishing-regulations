@@ -40,6 +40,13 @@ class TributaryEnricher:
       Returns ONLY tributaries (excludes input features)
     """
 
+    # Edge types to include but stop traversal beyond
+    # When traversing upstream and encountering these edge types:
+    # - Include the edge with this type in results
+    # - Continue upstream through more edges of this type
+    # - Stop when reaching a different edge type (don't include non-matching edges)
+    EXCLUDED_EDGE_TYPES = {"2300"}  # Add more as needed
+
     def __init__(
         self, graph_source: Union[str, Path, Dict, None] = None, metadata_gazetteer=None
     ):
@@ -233,6 +240,17 @@ class TributaryEnricher:
             edge_idx = queue.popleft()
             edge = self.graph.es[edge_idx]
 
+            linear_id = str(edge["linear_feature_id"])
+
+            # Check if CURRENT edge has an excluded type
+            try:
+                current_edge_type = edge["edge_type"]
+            except (KeyError, AttributeError):
+                current_edge_type = ""
+            # Convert to string for comparison to handle both int and str types
+            current_edge_type_str = str(current_edge_type) if current_edge_type else ""
+            current_is_excluded_type = current_edge_type_str in self.EXCLUDED_EDGE_TYPES
+
             # Continue upstream from this edge's source node
             source_node = edge.source
             for upstream_edge in self.graph.es.select(_target=source_node):
@@ -241,25 +259,40 @@ class TributaryEnricher:
                     continue
 
                 visited.add(upstream_idx)
+                upstream_linear_id = str(upstream_edge["linear_feature_id"])
 
-                # Check if this upstream edge should be excluded
+                # Get upstream edge type
+                try:
+                    upstream_edge_type = upstream_edge["edge_type"]
+                except (KeyError, AttributeError):
+                    upstream_edge_type = ""
+                # Convert to string for comparison to handle both int and str types
+                upstream_edge_type_str = (
+                    str(upstream_edge_type) if upstream_edge_type else ""
+                )
+                upstream_is_excluded_type = (
+                    upstream_edge_type_str in self.EXCLUDED_EDGE_TYPES
+                )
+
+                # Check if this upstream edge should be excluded by watershed code
                 upstream_watershed = upstream_edge["fwa_watershed_code"]
                 if (
                     upstream_watershed
                     and upstream_watershed in excluded_watershed_codes
                 ):
-                    # This is part of the excluded watershed (mainstem/side channel)
-                    # Don't include it in tributaries, but DO continue traversing upstream
-                    # to find real tributaries beyond this excluded segment
-                    queue.append(upstream_idx)
+                    # This edge has an excluded watershed code (mainstem/side channel)
+                    # Skip it entirely - don't include in results, don't traverse upstream from it
+                    continue
+
+                # Handle excluded edge types (e.g., 2300)
+                # If we're on an excluded edge type and upstream is NOT excluded, stop
+                if current_is_excluded_type and not upstream_is_excluded_type:
+                    # We're on a 2300 edge and upstream is different (e.g., 1450)
+                    # Don't include this edge, and stop traversal on this path
                     continue
 
                 # This is a tributary - add it to results
                 tributaries.add(upstream_idx)
-
-                # Continue traversing from this tributary
-                queue.append(upstream_idx)
-
         return tributaries
 
     def _edges_to_features(self, edge_indices: Set[int], parent_features: List) -> List:

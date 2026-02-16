@@ -85,7 +85,7 @@ class ScopeFilter:
 
         # All other scope types: Fall back to WHOLE_SYSTEM
         self.fallback_count += 1
-        logger.warning(
+        logger.debug(
             f"Scope type '{scope_type}' not yet implemented - "
             f"falling back to WHOLE_SYSTEM ({len(features)} features)"
         )
@@ -103,7 +103,7 @@ class ScopeFilter:
         2. Filter features by downstream_measure
         3. Handle UPSTREAM vs DOWNSTREAM direction
         """
-        logger.warning("DIRECTIONAL scope not yet implemented - returning all features")
+        logger.debug("DIRECTIONAL scope not yet implemented - returning all features")
         return features
 
     def filter_segment(self, features: List, scope: Dict) -> List:
@@ -117,7 +117,7 @@ class ScopeFilter:
         2. Filter features between landmark positions
         3. Handle BETWEEN direction
         """
-        logger.warning("SEGMENT scope not yet implemented - returning all features")
+        logger.debug("SEGMENT scope not yet implemented - returning all features")
         return features
 
     def filter_buffer(self, features: List, scope: Dict) -> List:
@@ -131,7 +131,7 @@ class ScopeFilter:
         2. Create buffer polygon
         3. Filter features within buffer
         """
-        logger.warning("BUFFER scope not yet implemented - returning all features")
+        logger.debug("BUFFER scope not yet implemented - returning all features")
         return features
 
     def filter_named_part(self, features: List, scope: Dict) -> List:
@@ -145,7 +145,7 @@ class ScopeFilter:
         2. Filter to features in region
         3. Handle spatial polygon definitions
         """
-        logger.warning("NAMED_PART scope not yet implemented - returning all features")
+        logger.debug("NAMED_PART scope not yet implemented - returning all features")
         return features
 
     def filter_vague(self, features: List, scope: Dict) -> List:
@@ -159,7 +159,7 @@ class ScopeFilter:
         2. Apply best-effort spatial filtering
         3. Flag for manual review
         """
-        logger.warning("VAGUE scope not yet implemented - returning all features")
+        logger.debug("VAGUE scope not yet implemented - returning all features")
         return features
 
     def get_stats(self) -> Dict:
