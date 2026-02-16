@@ -34,12 +34,13 @@ interface FeatureInfo {
     sourceLayer?: string;
     idKey?: string;
     _segmentCount?: number;
+    bbox?: [number, number, number, number];
+    minzoom?: number;
 }
 
 interface FeatureOption extends FeatureInfo {
     id: string;
     _groupedSegments?: FeatureOption[];
-    minzoom?: number;
 }
 
 type CollapseState = 'expanded' | 'partial' | 'collapsed';
@@ -181,10 +182,10 @@ const MapComponent = () => {
         map.on('load', () => {
             const pattern = createWetlandPattern();
             if (pattern) map.addImage('wetland-pattern', pattern);
-            map.addSource('highlight-source', { type: 'geojson', data: { type: 'FeatureCollection', features: [] }, tolerance: 0.375 });
+            map.addSource('highlight-source', { type: 'geojson', data: { type: 'FeatureCollection', features: [] }, tolerance: 0.1 });
             map.addLayer({ id: 'highlight-line', type: 'line', source: 'highlight-source', paint: { 'line-color': '#FFD700', 'line-width': ['interpolate', ['linear'], ['zoom'], 4, 2, 8, 4, 12, 5], 'line-opacity': 1 }, layout: { 'line-cap': 'round', 'line-join': 'round' } });
             map.addLayer({ id: 'highlight-fill', type: 'fill', source: 'highlight-source', paint: { 'fill-color': '#FFD700', 'fill-opacity': 0.3 }, filter: ['==', '$type', 'Polygon'] });
-            map.addSource('selection-source', { type: 'geojson', data: { type: 'FeatureCollection', features: [] }, tolerance: 0.375 });
+            map.addSource('selection-source', { type: 'geojson', data: { type: 'FeatureCollection', features: [] }, tolerance: 0.1 });
             map.addLayer({ id: 'selection-line', type: 'line', source: 'selection-source', paint: { 'line-color': '#FF0000', 'line-width': STREAM_LINE_WIDTH, 'line-opacity': 0.9 }, layout: { 'line-cap': 'round', 'line-join': 'round' } });
             map.addLayer({ id: 'selection-fill', type: 'fill', source: 'selection-source', paint: { 'fill-color': '#FF0000', 'fill-opacity': 0.4 }, filter: ['==', '$type', 'Polygon'] });
             map.addSource('cursor-circle', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
@@ -206,7 +207,22 @@ const MapComponent = () => {
             const rawOptions: FeatureOption[] = features.map((f, i) => {
                 const props = f.properties || {};
                 let idKey = props.linear_feature_id ? 'linear_feature_id' : props.group_id ? 'group_id' : (props.waterbody_key ? 'waterbody_key' : 'id');
-                return { type: getFeatureType(f.layer.id), properties: props, id: (f.id || props[idKey] || `f-${i}`).toString(), geometry: f.toJSON().geometry, source: f.layer.source, sourceLayer: f.layer['source-layer'], idKey };
+                
+                const bounds = new maplibregl.LngLatBounds();
+                extendBoundsWithGeometry(bounds, f.toJSON().geometry);
+                const bbox = bounds.toArray().flat() as [number, number, number, number];
+
+                return { 
+                    type: getFeatureType(f.layer.id), 
+                    properties: props, 
+                    id: (f.id || props[idKey] || `f-${i}`).toString(), 
+                    geometry: f.toJSON().geometry, 
+                    source: f.layer.source, 
+                    sourceLayer: f.layer['source-layer'], 
+                    idKey,
+                    bbox,
+                    minzoom: props.min_zoom || 4
+                };
             });
 
             const grouped: FeatureOption[] = [];
@@ -233,41 +249,64 @@ const MapComponent = () => {
     useEffect(() => {
         const map = mapRef.current;
         if (!map || !selectedFeature) return;
-        const source = map.getSource('selection-source') as maplibregl.GeoJSONSource;
-        if (!source) return;
 
-        const filter = buildFeatureFilter(selectedFeature);
-        const srcLayer = selectedFeature.sourceLayer || (selectedFeature.type === 'stream' ? 'streams' : 'lakes');
-        let features: any[] = [];
-        if (filter) features = map.querySourceFeatures('regulations', { sourceLayer: srcLayer, filter: filter as any });
-        if (!features.length && selectedFeature.geometry) features = [{ geometry: selectedFeature.geometry, properties: selectedFeature.properties }];
+        const updateData = () => {
+            const source = map.getSource('selection-source') as maplibregl.GeoJSONSource;
+            if (!source) return;
+            const filter = buildFeatureFilter(selectedFeature);
+            const srcLayer = selectedFeature.sourceLayer || (selectedFeature.type === 'stream' ? 'streams' : 'lakes');
+            let features: any[] = [];
+            if (filter) features = map.querySourceFeatures('regulations', { sourceLayer: srcLayer, filter: filter as any });
+            if (!features.length && selectedFeature.geometry) features = [{ geometry: selectedFeature.geometry, properties: selectedFeature.properties }];
+            source.setData({ type: 'FeatureCollection', features: features.map(f => ({ type: 'Feature', geometry: f.geometry || f.toJSON?.().geometry, properties: f.properties })) as any });
+        };
 
-        source.setData({ type: 'FeatureCollection', features: features.map(f => ({ type: 'Feature', geometry: f.geometry || f.toJSON?.().geometry, properties: f.properties })) as any });
+        updateData();
+        map.once('idle', updateData);
 
         if (mobilePanelState !== 'collapsed') {
             const bounds = new maplibregl.LngLatBounds();
-            features.forEach(f => extendBoundsWithGeometry(bounds, f.geometry || f.toJSON?.().geometry));
+            if (selectedFeature.bbox) {
+                bounds.extend([selectedFeature.bbox[0], selectedFeature.bbox[1]]);
+                bounds.extend([selectedFeature.bbox[2], selectedFeature.bbox[3]]);
+            } else if (selectedFeature.geometry) {
+                extendBoundsWithGeometry(bounds, selectedFeature.geometry);
+            }
+
             if (!bounds.isEmpty()) {
                 const isMobile = window.innerWidth <= 768;
                 const padding = isMobile ? { top: 60, bottom: 250, left: 40, right: 40 } : { top: 80, bottom: 80, left: 80, right: 350 };
-                const fMinZoom = (selectedFeature as FeatureOption).minzoom || selectedFeature.properties?.['tippecanoe:minzoom'] || 4;
-                map.fitBounds(bounds, { padding, maxZoom: 12.5, duration: 800 });
-                setTimeout(() => { if (map.getZoom() < fMinZoom) map.easeTo({ zoom: fMinZoom + 0.2, duration: 400 }); }, 850);
+                const targetMinZoom = selectedFeature.minzoom || 10;
+                
+                // Calculate camera parameters to avoid multi-step correction wobble
+                const camera = map.cameraForBounds(bounds, { padding });
+                if (camera) {
+                    const finalZoom = Math.max(camera.zoom || 0, targetMinZoom);
+                    map.flyTo({ ...camera, zoom: Math.min(finalZoom, 12.5), duration: 800 });
+                }
             }
         }
+
+        return () => { map.off('idle', updateData); };
     }, [selectedFeature, mobilePanelState]);
 
     const updateHighlight = useCallback((option: FeatureOption | null) => {
         const map = mapRef.current;
         if (!map || !map.isStyleLoaded()) return;
         const source = map.getSource('highlight-source') as maplibregl.GeoJSONSource;
-        if (!source || !option) return source?.setData({ type: 'FeatureCollection', features: [] });
-        const srcLayer = option.sourceLayer || (option.type === 'stream' ? 'streams' : 'lakes');
-        let features: any[] = [];
-        const filter = buildFeatureFilter(option);
-        if (filter) features = map.querySourceFeatures('regulations', { sourceLayer: srcLayer, filter: filter as any });
-        if (!features.length && option.geometry) features = [{ geometry: option.geometry, properties: option.properties } as any];
-        source.setData({ type: 'FeatureCollection', features: features.map(f => ({ type: 'Feature', geometry: f.geometry || f.toJSON?.().geometry, properties: f.properties })) as any });
+        if (!source) return;
+        if (!option) return source.setData({ type: 'FeatureCollection', features: [] });
+
+        const refresh = () => {
+            const srcLayer = option.sourceLayer || (option.type === 'stream' ? 'streams' : 'lakes');
+            const filter = buildFeatureFilter(option);
+            let features: any[] = filter ? map.querySourceFeatures('regulations', { sourceLayer: srcLayer, filter: filter as any }) : [];
+            if (!features.length && option.geometry) features = [{ geometry: option.geometry, properties: option.properties } as any];
+            source.setData({ type: 'FeatureCollection', features: features.map(f => ({ type: 'Feature', geometry: f.geometry || f.toJSON?.().geometry, properties: f.properties })) as any });
+        };
+        
+        refresh();
+        if (map.isMoving()) map.once('idle', refresh);
     }, []);
 
     const handleSearchSelect = useCallback((feature: SearchableFeature) => {
@@ -277,13 +316,27 @@ const MapComponent = () => {
         const srcLayer = feature.type === 'stream' ? 'streams' : 'lakes';
         const displayName = (feature.gnis_name && feature.gnis_name.toLowerCase() !== 'unnamed') ? feature.gnis_name : feature.regulation_names?.[0];
 
-        setSelectedFeature({ type: feature.type, properties: { ...feature.properties, gnis_name: displayName, regulation_names: feature.regulation_names }, source: 'regulations', sourceLayer: srcLayer });
+        const targetMinZoom = feature.properties.minzoom || 10;
+        setSelectedFeature({ 
+            type: feature.type, 
+            properties: { ...feature.properties, gnis_name: displayName, regulation_names: feature.regulation_names }, 
+            source: 'regulations', 
+            sourceLayer: srcLayer,
+            bbox: feature.bbox as [number, number, number, number],
+            minzoom: targetMinZoom
+        });
         setMobilePanelState('partial');
 
         if (feature.bbox) {
             const isMobile = window.innerWidth <= 768;
             const padding = isMobile ? { top: 60, bottom: 250, left: 40, right: 40 } : { top: 80, bottom: 80, left: 80, right: 350 };
-            map.fitBounds(new maplibregl.LngLatBounds([feature.bbox[0], feature.bbox[1]], [feature.bbox[2], feature.bbox[3]]), { padding, maxZoom: 12.5, duration: 800 });
+            const bounds = new maplibregl.LngLatBounds([feature.bbox[0], feature.bbox[1]], [feature.bbox[2], feature.bbox[3]]);
+            
+            const camera = map.cameraForBounds(bounds, { padding });
+            if (camera) {
+                const finalZoom = Math.max(camera.zoom || 0, targetMinZoom);
+                map.flyTo({ ...camera, zoom: Math.min(finalZoom, 12.5), duration: 800 });
+            }
         }
 
         let attempts = 0;
@@ -297,7 +350,7 @@ const MapComponent = () => {
                 if (hits.length > 0) found = hits as any[];
             }
             if (found.length > 0 || attempts > 20) {
-                if (found.length > 0) setSelectedFeature({ type: feature.type, properties: found[0].properties || {}, geometry: found[0].geometry, source: 'regulations', sourceLayer: found[0].layer?.['source-layer'] || srcLayer, id: found[0].id });
+                if (found.length > 0) setSelectedFeature(prev => prev ? { ...prev, geometry: found[0].geometry, id: found[0].id } : null);
                 clearInterval(poll);
             }
         }, 200);
@@ -319,7 +372,10 @@ const MapComponent = () => {
                             hoverTimeoutRef.current = setTimeout(() => {
                                 setHighlightedOption(option as any); updateHighlight(option as any);
                                 const map = mapRef.current; if (!map) return;
-                                const bounds = new maplibregl.LngLatBounds(); extendBoundsWithGeometry(bounds, option.geometry);
+                                const bounds = new maplibregl.LngLatBounds(); 
+                                if (option.bbox) bounds.extend([[option.bbox[0], option.bbox[1]], [option.bbox[2], option.bbox[3]]]);
+                                else extendBoundsWithGeometry(bounds, option.geometry);
+                                
                                 if (!bounds.isEmpty()) {
                                     const isMobile = window.innerWidth <= 768;
                                     const padding = isMobile ? { top: 80, bottom: 250, left: 80, right: 80 } : { top: 80, bottom: 80, left: 80, right: 350 };

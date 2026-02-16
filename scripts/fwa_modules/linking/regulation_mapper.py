@@ -30,24 +30,15 @@ logger = get_logger(__name__)
 
 @dataclass
 class RegulationMappingStats:
-    """Statistics from regulation mapping process.
+    """Statistics from regulation mapping process."""
 
-    Note: A regulation (ParsedWaterbody) can have multiple rules (RuleGroup).
-    Each rule is mapped independently to features.
-    """
-
-    total_regulations: int = 0  # Number of ParsedWaterbody objects
-    linked_regulations: int = 0  # Regulations successfully linked to features
-    failed_to_link_regulations: int = 0  # Regulations that couldn't be linked
-    total_rules_processed: int = 0  # Number of RuleGroup objects processed
-    total_rule_to_feature_mappings: int = 0  # Individual rule -> feature mappings
-    unique_features_with_rules: int = 0  # Unique features that have at least one rule
-
-    link_status_counts: Counter = None  # Breakdown of LinkStatus values
-
-    def __post_init__(self):
-        if self.link_status_counts is None:
-            self.link_status_counts = Counter()
+    total_regulations: int = 0
+    linked_regulations: int = 0
+    failed_to_link_regulations: int = 0
+    total_rules_processed: int = 0
+    total_rule_to_feature_mappings: int = 0
+    unique_features_with_rules: int = 0
+    link_status_counts: Counter = field(default_factory=Counter)
 
 
 @dataclass(frozen=True)
@@ -55,16 +46,16 @@ class MergedGroup:
     """Merged group of features with identical regulation sets."""
 
     group_id: str
-    feature_ids: tuple[str, ...]  # Tuple for immutability
-    regulation_ids: tuple[str, ...]  # Tuple for immutability
+    feature_ids: tuple[str, ...]
+    regulation_ids: tuple[str, ...]
     gnis_id: Optional[str] = None
     gnis_name: Optional[str] = None
     feature_type: Optional[str] = None
     watershed_code: Optional[str] = None
     waterbody_key: Optional[str] = None
     feature_count: int = 0
-    zones: tuple[str, ...] = ()  # All zones this group passes through
-    mgmt_units: tuple[str, ...] = ()  # All management units this group passes through
+    zones: tuple[str, ...] = ()
+    mgmt_units: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -73,39 +64,13 @@ class PipelineResult:
 
     feature_to_regs: Dict[str, List[str]] = field(default_factory=dict)
     merged_groups: Dict[str, MergedGroup] = field(default_factory=dict)
-    regulation_names: Dict[str, str] = field(
-        default_factory=dict
-    )  # regulation_id -> name_verbatim
+    regulation_names: Dict[str, str] = field(default_factory=dict)
     stats: Optional[RegulationMappingStats] = None
     exported_files: Optional[Dict[str, Path]] = None
 
 
 class RegulationMapper:
-    """
-    Orchestrates the full regulation mapping pipeline.
-
-    Terminology:
-    - Regulation (ParsedWaterbody): A waterbody entry with identity and multiple rules
-    - Rule (RuleGroup): An atomic regulation unit (one restriction + scope)
-    - One regulation can have multiple rules that apply to different feature sets
-
-    Workflow:
-    1. Link regulation identity to FWA features
-    2. Apply global spatial scope (fallback: WHOLE_SYSTEM if no landmark data)
-    3. For each rule in the regulation:
-       - Apply rule-specific spatial scope (fallback: use global scope if no landmark data)
-       - Enrich with tributaries if includes_tributaries is true
-       - Map this rule to the resulting features
-    4. Return feature -> [rule_ids] index
-
-    Fallback behavior:
-    - Missing landmarks -> ScopeFilter returns all input features
-    - Scope type not implemented -> WHOLE_SYSTEM
-    - includes_tributaries always applied (just determines enrichment)
-
-    "MVP" reality: MVP isn't a separate mode - it's just the system running with
-    incomplete landmark/polygon data. Many scopes will fall back to WHOLE_SYSTEM.
-    """
+    """Orchestrates the full regulation mapping pipeline."""
 
     def __init__(
         self,
@@ -116,20 +81,16 @@ class RegulationMapper:
         self.linker = linker
         self.scope_filter = scope_filter
         self.tributary_enricher = tributary_enricher
-        self.gazetteer = linker.gazetteer  # Get gazetteer from linker
-        self.stats = RegulationMappingStats()
-        # Store gazetteer reference for feature metadata lookup
         self.gazetteer = linker.gazetteer
+        self.stats = RegulationMappingStats()
 
-        # Store processing results directly
         self.feature_to_regs = {}
         self.merged_groups = {}
         self.regulation_names = {}
-        # Track which features were explicitly linked by name (not inherited as tributaries)
-        self.feature_to_linked_regulation = {}  # feature_id -> regulation_id
-        # Track which waterbody_keys correspond to linked polygon waterbodies
-        # Only these should be used for grouping to prevent over-fragmentation
-        self.linked_waterbody_keys = set()  # Set of waterbody_keys from linked polygons
+        self.feature_to_linked_regulation = defaultdict(set)
+        self.linked_waterbody_keys = set()
+
+    # --- Core Pipeline Methods ---
 
     def apply_scope_and_enrich(
         self,
@@ -138,334 +99,31 @@ class RegulationMapper:
         global_scope: Dict,
         includes_tributaries: Optional[bool] = None,
     ) -> List:
-        """
-        Helper: Apply spatial filter + tributary enrichment.
-
-        Args:
-            base_features: Initial feature set (from linking)
-            scope: Spatial scope constraint
-            global_scope: Global scope for fallback
-            includes_tributaries: Whether to enrich with tributaries
-
-        Returns:
-            Filtered and enriched feature list
-        """
-        from .logger_config import get_logger
-
-        logger = get_logger(__name__)
-
+        """Apply spatial filter + tributary enrichment."""
         scope_type = scope.get("type", "WHOLE_SYSTEM")
 
-        # TRIBUTARIES_ONLY: Return ONLY tributaries (exclude base features)
         if scope_type == "TRIBUTARIES_ONLY":
-            # Validation: TRIBUTARIES_ONLY should have includes_tributaries=true
             if not scope.get("includes_tributaries"):
                 logger.warning(
-                    f"TRIBUTARIES_ONLY scope should have includes_tributaries=true. "
-                    f"Proceeding anyway."
+                    "TRIBUTARIES_ONLY scope should have includes_tributaries=true. Proceeding anyway."
                 )
+            return self._enrich_with_tributaries(base_features)
 
-            # Get ONLY tributaries of base features (base excluded)
-            tributaries = self._enrich_with_tributaries(base_features)
-            return tributaries
+        scoped_features = (
+            self.scope_filter.apply_scope(base_features, scope) or base_features
+        )
 
-        # Normal flow: Apply spatial scope (with fallback to WHOLE_SYSTEM)
-        scoped_features = self.scope_filter.apply_scope(base_features, scope)
+        should_enrich = (
+            includes_tributaries
+            if includes_tributaries is not None
+            else global_scope.get("includes_tributaries", False)
+        )
 
-        # If scope filter returned nothing (error case), fall back to base features
-        if not scoped_features:
-            scoped_features = base_features
-
-        # Determine if we should enrich with tributaries
-        # Tri-state logic: True (explicit yes), False (explicit no), None (inherit from global)
-        should_enrich = includes_tributaries
-        if should_enrich is None:
-            # Inherit from global scope
-            should_enrich = global_scope.get("includes_tributaries", False)
-
-        # Enrich with tributaries if requested
         if should_enrich:
-            # Get tributaries (returns ONLY tributaries, excludes scoped_features)
             tributaries = self._enrich_with_tributaries(scoped_features)
-            # Combine base features with tributaries
             return scoped_features + tributaries
 
         return scoped_features
-
-    def _enrich_with_tributaries(self, features: List) -> List:
-        """
-        Enrich features with upstream tributaries.
-
-        Orchestrates tributary enrichment based on feature type:
-        - Streams: Use linear_feature_id as seeds, exclude mainstem
-        - Polygons: Convert waterbody_key to stream seeds, include ALL upstream
-
-        Args:
-            features: List of FWAFeature objects to enrich
-
-        Returns:
-            List of tributary FWAFeature objects (excludes input features)
-        """
-        if not self.tributary_enricher or not self.tributary_enricher.graph:
-            return []
-
-        if not features:
-            return []
-
-        # Separate features by type and collect seeds
-        stream_seeds = []
-        polygon_seeds_by_type = {}  # type -> list of seeds
-        skipped_features = []
-
-        for feature in features:
-            feature_type = self._get_feature_type(feature)
-
-            if feature_type == "stream" or feature_type is None:
-                # Stream: use linear_feature_id directly
-                linear_id = self._get_feature_linear_id(feature)
-                if linear_id:
-                    stream_seeds.append(linear_id)
-                else:
-                    # No linear_id found for this feature
-                    skipped_features.append(self._get_feature_name(feature))
-                    if feature_type is None:
-                        # Warn about unknown type
-                        logger.warning(
-                            f"Feature {self._get_feature_name(feature)} has feature_type=None. "
-                            f"Cannot determine if stream or polygon. Skipping."
-                        )
-            elif feature_type in ["lake", "wetland", "manmade", "unmarked"]:
-                # Polygon: Get waterbody_key from metadata (source of truth)
-                poly_id = self._get_feature_linear_id(feature) or getattr(
-                    feature, "fwa_id", None
-                )
-                if poly_id:
-                    metadata_key = {
-                        "lake": "lakes",
-                        "wetland": "wetlands",
-                        "manmade": "manmade",
-                        "unmarked": "lakes",
-                    }.get(feature_type, feature_type + "s")
-                    raw_metadata = self.gazetteer.metadata.get(metadata_key, {}).get(
-                        poly_id, {}
-                    )
-                    wb_key = raw_metadata.get("waterbody_key")
-                    if wb_key:
-                        # Get connected stream segments from metadata
-                        connected_streams = self._get_stream_seeds_for_waterbody(wb_key)
-                        if connected_streams:
-                            if feature_type not in polygon_seeds_by_type:
-                                polygon_seeds_by_type[feature_type] = []
-                            polygon_seeds_by_type[feature_type].extend(
-                                connected_streams
-                            )
-                        else:
-                            feature_name = raw_metadata.get(
-                                "gnis_name", self._get_feature_name(feature)
-                            )
-                            logger.debug(
-                                f"{feature_type.capitalize()} {feature_name} "
-                                f"has no connected streams (waterbody_key={wb_key})"
-                            )
-            else:
-                logger.warning(
-                    f"Feature {self._get_feature_name(feature)} has unknown feature_type='{feature_type}'. "
-                    f"Skipping tributary enrichment."
-                )
-
-        # Log if features were skipped
-        if skipped_features:
-            logger.warning(
-                f"Skipped {len(skipped_features)} features without linear_id: "
-                f"{skipped_features[:5]}{'...' if len(skipped_features) > 5 else ''}"
-            )
-
-        # Use set to avoid duplicates when merging results
-        all_tributaries_set = set()
-
-        # Process streams: exclude mainstem (same watershed code)
-        if stream_seeds:
-            # Get watershed codes for these streams to exclude them (mainstem)
-            excluded_codes = self._get_watershed_codes_for_streams(stream_seeds)
-            tributaries = self.tributary_enricher.enrich_with_tributaries(
-                stream_seeds,
-                excluded_watershed_codes=excluded_codes,
-                parent_features=features,
-            )
-            # Add to set using fwa_id as key
-            for trib in tributaries:
-                all_tributaries_set.add((self._get_feature_id(trib), trib))
-            logger.debug(
-                f"Stream enrichment: {len(stream_seeds)} seeds -> {len(tributaries)} tributaries "
-                f"(excluded {len(excluded_codes)} watershed codes)"
-            )
-
-        # Process polygons by type: include ALL upstream (no mainstem exclusion)
-        for ftype, seeds in polygon_seeds_by_type.items():
-            # No watershed code exclusions for polygons - pass empty set
-            tributaries = self.tributary_enricher.enrich_with_tributaries(
-                seeds, excluded_watershed_codes=set(), parent_features=features
-            )
-            # Add to set using fwa_id as key
-            for trib in tributaries:
-                all_tributaries_set.add((self._get_feature_id(trib), trib))
-            logger.debug(
-                f"{ftype.capitalize()} enrichment: {len(seeds)} seeds -> {len(tributaries)} tributaries"
-            )
-
-        # Convert back to list (removing duplicate keys)
-        all_tributaries = [trib for _, trib in all_tributaries_set]
-
-        return all_tributaries
-
-    def _get_feature_type(self, feature) -> str:
-        """Get feature_type from feature object or dict."""
-        if hasattr(feature, "feature_type"):
-            return getattr(feature, "feature_type", None)
-        elif isinstance(feature, dict):
-            ftype = feature.get("feature_type")
-            if ftype:
-                return ftype
-
-        # Infer from geometry_type if feature_type not available
-        geometry_type = None
-        if hasattr(feature, "geometry_type"):
-            geometry_type = getattr(feature, "geometry_type", None)
-        elif isinstance(feature, dict):
-            geometry_type = feature.get("geometry_type")
-
-        if geometry_type:
-            if geometry_type in ["multilinestring", "linestring"]:
-                return "stream"
-            elif geometry_type == "polygon":
-                return "lake"
-            elif geometry_type == "point":
-                return "point"
-
-        return None
-
-    def _get_feature_linear_id(self, feature) -> str:
-        """Get linear_feature_id or fwa_id from feature."""
-        if hasattr(feature, "linear_feature_id"):
-            return getattr(feature, "linear_feature_id", None)
-        elif hasattr(feature, "fwa_id"):
-            return getattr(feature, "fwa_id", None)
-        elif isinstance(feature, dict):
-            return feature.get("linear_feature_id") or feature.get("fwa_id")
-        return None
-
-    def _get_feature_waterbody_key(self, feature) -> str:
-        """Get waterbody_key from feature."""
-        if hasattr(feature, "waterbody_key"):
-            return getattr(feature, "waterbody_key", None)
-        elif isinstance(feature, dict):
-            return feature.get("waterbody_key")
-        return None
-
-    def _get_feature_name(self, feature) -> str:
-        """Get name from feature for logging."""
-        if hasattr(feature, "gnis_name"):
-            return getattr(feature, "gnis_name", "unnamed")
-        elif hasattr(feature, "name"):
-            return getattr(feature, "name", "unnamed")
-        elif isinstance(feature, dict):
-            return feature.get("gnis_name") or feature.get("name") or "unnamed"
-        return "unnamed"
-
-    def _get_stream_seeds_for_waterbody(self, waterbody_key: str) -> List[str]:
-        """
-        Get linear_feature_ids of streams connected to a waterbody.
-
-        Uses metadata to find all stream segments with matching waterbody_key.
-
-        Args:
-            waterbody_key: The waterbody_key of the lake/polygon
-
-        Returns:
-            List of linear_feature_ids (stream segments connected to waterbody)
-        """
-        if not self.gazetteer:
-            return []
-
-        # Get all stream metadata entries with this waterbody_key
-        connected_streams = []
-
-        # Iterate through metadata to find streams with matching waterbody_key
-        # Note: This could be optimized with an index if performance is an issue
-        for linear_id, metadata in self.gazetteer.metadata.get("streams", {}).items():
-            if metadata.get("waterbody_key") == str(waterbody_key):
-                connected_streams.append(linear_id)
-
-        return connected_streams
-
-    def _get_watershed_codes_for_streams(
-        self, linear_feature_ids: List[str]
-    ) -> Set[str]:
-        """
-        Get watershed codes for stream linear_feature_ids using metadata.
-
-        Also includes all parent watershed codes to prevent traversing into
-        what appears upstream but is actually downstream in braided areas.
-
-        Example: For watershed code "100-077501-094860-000000-...",
-        also exclude parents:
-        - "100-077501-000000-000000-..."
-        - "100-000000-000000-000000-..."
-
-        Args:
-            linear_feature_ids: List of stream linear_feature_ids
-
-        Returns:
-            Set of watershed codes including parents (excludes None/empty)
-        """
-        if not self.gazetteer:
-            return set()
-
-        watershed_codes = set()
-        for linear_id in linear_feature_ids:
-            metadata = self.gazetteer.get_stream_metadata(str(linear_id))
-            if metadata:
-                watershed_code = metadata.get("fwa_watershed_code")
-                if watershed_code:
-                    watershed_codes.add(watershed_code)
-                    # Add all parent watershed codes
-                    watershed_codes.update(
-                        self._get_parent_watershed_codes(watershed_code)
-                    )
-
-        return watershed_codes
-
-    def _get_parent_watershed_codes(self, watershed_code: str) -> Set[str]:
-        """
-        Generate all parent watershed codes by progressively zeroing sections.
-
-        Example: "100-077501-094860-000000-..." produces:
-        - "100-077501-000000-000000-..."
-        - "100-000000-000000-000000-..."
-
-        Args:
-            watershed_code: FWA watershed code (dash-separated)
-
-        Returns:
-            Set of parent watershed codes (excluding the original)
-        """
-        if not watershed_code:
-            return set()
-
-        parents = set()
-        sections = watershed_code.split("-")
-
-        # Start from the right, find non-zero sections and zero them out
-        for i in range(len(sections) - 1, 0, -1):  # Don't zero out the first section
-            if sections[i] != "000000":
-                # Create parent by zeroing this section
-                parent_sections = sections[:i] + ["000000"] * (len(sections) - i)
-                parent_code = "-".join(parent_sections)
-                parents.add(parent_code)
-                # Update sections for next iteration
-                sections[i] = "000000"
-
-        return parents
 
     def process_regulation(
         self,
@@ -473,87 +131,54 @@ class RegulationMapper:
         regulation_id: str,
         feature_to_regs: Dict[str, List[str]],
     ) -> bool:
-        """
-        Process a single regulation and update feature_to_regs mapping.
-
-        Args:
-            regulation: Parsed regulation object (ParsedWaterbody)
-            regulation_id: Unique identifier for this regulation
-            feature_to_regs: Dict to update with mappings
-
-        Returns:
-            True if successfully processed, False if failed to link
-        """
+        """Process a single regulation and update feature_to_regs mapping."""
         identity = regulation["identity"]
         rules = regulation.get("rules", [])
 
-        # Store regulation name for later use
         name_verbatim = identity.get("name_verbatim", "")
         if name_verbatim:
             self.regulation_names[regulation_id] = name_verbatim
 
-        # Extract linking parameters from identity
-        waterbody_key = identity.get("waterbody_key", "")
-        name_verbatim = identity.get("name_verbatim", "")
-
-        # Extract region and management units from regulation
-        region = regulation.get("region")  # e.g., "REGION 4 - Kootenay"
-        mgmt_units = regulation.get("mu", [])  # e.g., ["4-15", "4-16"]
-
-        # Normalize region to "Region X" format if needed
+        # Normalize region string
+        region = regulation.get("region")
         if region and region.startswith("REGION"):
-            # "REGION 4 - Kootenay" -> "Region 4"
             region_num = "".join(c for c in region.split("-")[0] if c.isdigit())
             region = f"Region {region_num}" if region_num else None
 
-        # STEP 1: Link regulation to FWA features
+        # Link regulation
         link_result = self.linker.link_waterbody(
-            waterbody_key=waterbody_key,
+            waterbody_key=identity.get("waterbody_key", ""),
             region=region,
-            mgmt_units=mgmt_units,
+            mgmt_units=regulation.get("mu", []),
             name_verbatim=name_verbatim,
         )
 
-        # Track linking status
         self.stats.link_status_counts[link_result.status.value] += 1
 
-        # Handle linking failures
         if link_result.status != LinkStatus.SUCCESS:
             self.stats.failed_to_link_regulations += 1
             return False
 
         self.stats.linked_regulations += 1
 
-        # Get matched features (base feature set for this regulation)
-        base_features = link_result.matched_features
-        if not base_features and link_result.matched_feature:
-            base_features = [link_result.matched_feature]
-
+        base_features = link_result.matched_features or (
+            [link_result.matched_feature] if link_result.matched_feature else []
+        )
         if not base_features:
             self.stats.failed_to_link_regulations += 1
             return False
 
-        # Track which features were explicitly linked by name (not tributaries)
-        # This allows us to distinguish between direct matches and inherited regulations
+        # Track keys for later grouping
         for feature in base_features:
-            feature_id = self._get_feature_id(feature)
-            # Store the regulation ID that was linked by name
-            # If a feature is linked to multiple regulations, keep the first one
-            if feature_id not in self.feature_to_linked_regulation:
-                self.feature_to_linked_regulation[feature_id] = regulation_id
+            self.feature_to_linked_regulation[
+                self._get_feature_id(feature)
+            ].add(regulation_id)
+            if self._get_feature_type(feature) in ("lake", "wetland", "manmade"):
+                if wb_key := self._get_prop(feature, ["waterbody_key"]):
+                    self.linked_waterbody_keys.add(str(wb_key))
 
-            # Track waterbody_keys from polygon features (lakes, wetlands, manmade)
-            # These are the only waterbody_keys we should use for grouping
-            feature_type = self._get_feature_type(feature)
-            if feature_type in ["lake", "wetland", "manmade"]:
-                waterbody_key = self._get_feature_waterbody_key(feature)
-                if waterbody_key:
-                    self.linked_waterbody_keys.add(str(waterbody_key))
-
-        # STEP 2: Apply global spatial scope (applies to all rules in this regulation)
+        # Apply global scope
         global_scope = identity.get("global_scope", {})
-        # Use apply_scope_and_enrich to handle TRIBUTARIES_ONLY properly
-        # Pass empty dict as rule scope since we're only applying global scope here
         globally_scoped_features = self.apply_scope_and_enrich(
             base_features,
             scope=global_scope,
@@ -561,324 +186,202 @@ class RegulationMapper:
             includes_tributaries=global_scope.get("includes_tributaries"),
         )
 
-        # Fallback if scope filtering failed (but NOT for TRIBUTARIES_ONLY)
-        # TRIBUTARIES_ONLY returning empty list means no tributaries exist - don't fall back
         if (
             not globally_scoped_features
             and global_scope.get("type") != "TRIBUTARIES_ONLY"
         ):
             globally_scoped_features = base_features
 
-        # STEP 3: Process each rule in this regulation
+        # Process rules
         for rule_idx, rule in enumerate(rules):
             self.stats.total_rules_processed += 1
-
             rule_scope = rule.get("scope", {})
-            includes_tributaries = rule_scope.get("includes_tributaries")
 
-            # Apply rule-specific scope and enrichment
             final_features = self.apply_scope_and_enrich(
                 globally_scoped_features,
                 rule_scope,
                 global_scope,
-                includes_tributaries,
+                rule_scope.get("includes_tributaries"),
             )
 
-            # Create rule ID: regulation_id + rule index
             rule_id = f"{regulation_id}_rule{rule_idx}"
-
-            # Map this rule to all final features
             for feature in final_features:
-                feature_id = self._get_feature_id(feature)
-                if feature_id not in feature_to_regs:
-                    feature_to_regs[feature_id] = []
-                feature_to_regs[feature_id].append(rule_id)
+                feature_to_regs.setdefault(self._get_feature_id(feature), []).append(
+                    rule_id
+                )
                 self.stats.total_rule_to_feature_mappings += 1
 
         return True
 
-    def _sort_feature_regulation_lists(self, feature_to_regs: Dict[str, List[str]]):
-        """Sort regulation lists for each feature for consistent ordering."""
-        for feature_id in feature_to_regs:
-            feature_to_regs[feature_id] = sorted(feature_to_regs[feature_id])
-
-    def _get_feature_metadata(self, feature_id: str) -> Dict[str, Any]:
-        """
-        Get feature metadata from gazetteer for grouping.
-
-        Args:
-            feature_id: Feature identifier (linear_feature_id or composite key)
-
-        Returns:
-            Dict with feature metadata (gnis_id, watershed_code, etc.)
-        """
-        # Determine feature type using unified helper
-        feature_type_enum = self.gazetteer.get_feature_type_from_id(feature_id)
-        feature_type = feature_type_enum.value
-
-        # Handle streams (numeric IDs or STREAM_ prefix)
-        if feature_type_enum == FeatureType.STREAM:
-            # Extract numeric ID if composite format
-            stream_id = feature_id.split("_", 1)[1] if "_" in feature_id else feature_id
-            stream = self.gazetteer.metadata.get("streams", {}).get(stream_id)
-            if stream:
-                return {
-                    "gnis_id": stream.get("gnis_id"),
-                    "gnis_name": stream.get("gnis_name"),
-                    "watershed_code": stream.get("fwa_watershed_code"),
-                    "waterbody_key": stream.get("waterbody_key"),
-                    "blue_line_key": stream.get("blue_line_key"),
-                    "feature_type": feature_type,
-                    "zones": stream.get("zones", []),
-                    "mgmt_units": stream.get("mgmt_units", []),
-                }
-
-        # Handle polygons (lakes, wetlands, manmade)
-        elif feature_type_enum in [
-            FeatureType.LAKE,
-            FeatureType.WETLAND,
-            FeatureType.MANMADE,
-        ]:
-            # Extract key from composite format or use as-is
-            key = feature_id.split("_", 1)[1] if "_" in feature_id else feature_id
-
-            # Get collection name (plural form)
-            collection_map = {
-                FeatureType.LAKE: "lakes",
-                FeatureType.WETLAND: "wetlands",
-                FeatureType.MANMADE: "manmade",
-            }
-            collection_name = collection_map[feature_type_enum]
-
-            polygon = self.gazetteer.metadata.get(collection_name, {}).get(key)
-            if polygon:
-                return {
-                    "gnis_id": polygon.get("gnis_id"),
-                    "gnis_name": polygon.get("gnis_name"),
-                    "waterbody_key": polygon.get(
-                        "waterbody_key", key
-                    ),  # Use waterbody_key from metadata, fallback to polygon ID
-                    "feature_type": feature_type,
-                    "watershed_code": None,
-                    "blue_line_key": polygon.get("blue_line_key"),
-                    "zones": polygon.get("zones", []),
-                    "mgmt_units": polygon.get("mgmt_units", []),
-                }
-
-        # Handle unmarked waterbodies
-        elif feature_type_enum == FeatureType.UNMARKED:
-            return {
-                "gnis_id": None,
-                "gnis_name": None,
-                "waterbody_key": None,
-                "feature_type": feature_type,
-                "watershed_code": None,
-                "blue_line_key": None,
-                "zones": [],
-                "mgmt_units": [],
-            }
-
-        # Fallback: return minimal metadata and LOG the failure
-        logger.warning(
-            f"Metadata lookup failed for feature_id '{feature_id}' - "
-            f"feature type: {feature_type}. "
-            f"This feature has regulations but missing metadata."
-        )
-        return {
-            "gnis_id": None,
-            "gnis_name": None,
-            "watershed_code": None,
-            "waterbody_key": None,
-            "blue_line_key": None,
-            "feature_type": feature_type,
-            "zones": [],
-            "mgmt_units": [],
-        }
-
-    def _get_feature_id(self, feature) -> str:
-        """
-        Extract unique identifier from FWA feature.
-
-        Handles both FWAFeature objects and tributary feature dicts.
-        """
-        # Try dict access first (tributary features from graph)
-        if isinstance(feature, dict):
-            # Tributary features have linear_feature_id
-            if "linear_feature_id" in feature:
-                return str(feature["linear_feature_id"])
-            # Fallback to waterbody_poly_id
-            feature_type = feature.get("feature_type", "UNKNOWN")
-            poly_id = feature.get("waterbody_poly_id", "UNKNOWN")
-            return f"{feature_type}_{poly_id}"
-
-        # FWAFeature objects
-        # Try fwa_id first (primary key)
-        if hasattr(feature, "fwa_id") and feature.fwa_id:
-            return str(feature.fwa_id)
-
-        # Try waterbody_poly_id
-        if hasattr(feature, "waterbody_poly_id"):
-            feature_type = getattr(feature, "feature_type", "UNKNOWN")
-            return f"{feature_type}_{feature.waterbody_poly_id}"
-
-        # Last resort: str representation
-        return str(feature)
-
     def process_all_regulations(self, regulations: List[Dict]) -> Dict[str, List[str]]:
-        """
-        Main processing loop - creates feature to rule index.
-
-        Args:
-            regulations: List of parsed regulation objects (ParsedWaterbody)
-
-        Returns:
-            Dict mapping feature_id to list of rule_ids
-            (Note: rule_ids are formatted as "reg_XXXX_ruleY")
-        """
-        from .logger_config import get_logger
-
-        logger = get_logger(__name__)
-
+        """Main processing loop - creates feature to rule index."""
         self.feature_to_regs = {}
-
         self.stats.total_regulations = len(regulations)
 
         logger.info(f"Processing {len(regulations)} regulations...")
 
         for idx, regulation in enumerate(regulations):
-            # Generate regulation ID (could use actual ID from data)
-            regulation_id = f"reg_{idx:04d}"
+            self.process_regulation(regulation, f"reg_{idx:04d}", self.feature_to_regs)
 
-            # Process this regulation (which may have multiple rules)
-            self.process_regulation(regulation, regulation_id, self.feature_to_regs)
+        for feature_id in self.feature_to_regs:
+            self.feature_to_regs[feature_id].sort()
 
-        # Sort regulation lists for consistent ordering
-        self._sort_feature_regulation_lists(self.feature_to_regs)
-
-        # Update final stats
         self.stats.unique_features_with_rules = len(self.feature_to_regs)
-
         logger.info(
-            f"Found {len(self.linked_waterbody_keys)} linked polygon waterbodies "
-            f"(will be used for grouping)"
+            f"Found {len(self.linked_waterbody_keys)} linked polygon waterbodies (will be used for grouping)"
         )
 
         return self.feature_to_regs
 
-    def get_stats(self) -> RegulationMappingStats:
-        """Return processing statistics."""
-        return self.stats
+    def process_and_export(
+        self, regulations: List[Dict], output_dir: Optional[Path] = None
+    ) -> PipelineResult:
+        """Full pipeline: Link -> Scope -> Enrich -> Map -> Merge -> Export."""
+        logger.info(f"Processing {len(regulations)} regulations...")
+        self.process_all_regulations(regulations)
+        self.merged_groups = self.merge_features(self.feature_to_regs)
 
-    def reset_stats(self):
-        """Reset statistics counters and clear results."""
-        self.stats = RegulationMappingStats()
-        self.feature_to_regs = {}
-        self.merged_groups = {}
-        self.regulation_names = {}
-        self.feature_to_linked_regulation = {}
-        self.linked_waterbody_keys = set()
+        exported_files = (
+            self.build_index(self.feature_to_regs, self.merged_groups, output_dir)
+            if output_dir
+            else None
+        )
+
+        logger.info("Processing complete")
+        return PipelineResult(
+            feature_to_regs=self.feature_to_regs,
+            merged_groups=self.merged_groups,
+            regulation_names=self.regulation_names,
+            stats=self.stats,
+            exported_files=exported_files,
+        )
+
+    # --- Enrichment & Grouping Logic ---
+
+    def _enrich_with_tributaries(self, features: List) -> List:
+        """Enrich features with upstream tributaries."""
+        if (
+            not self.tributary_enricher
+            or not self.tributary_enricher.graph
+            or not features
+        ):
+            return []
+
+        stream_seeds, polygon_seeds_by_type, skipped_features = (
+            [],
+            defaultdict(list),
+            [],
+        )
+
+        for feature in features:
+            feature_type = self._get_feature_type(feature)
+            linear_id = self._get_prop(feature, ["linear_feature_id", "fwa_id"])
+
+            if feature_type in ("stream", None):
+                if linear_id:
+                    stream_seeds.append(linear_id)
+                else:
+                    skipped_features.append(
+                        self._get_prop(feature, ["gnis_name", "name"], "unnamed")
+                    )
+                    if feature_type is None:
+                        logger.warning(
+                            f"Feature {skipped_features[-1]} has feature_type=None. Skipping."
+                        )
+
+            elif feature_type in ("lake", "wetland", "manmade", "unmarked"):
+                if linear_id:
+                    metadata_key = {"unmarked": "lakes"}.get(
+                        feature_type, f"{feature_type}s"
+                    )
+                    raw_metadata = self.gazetteer.metadata.get(metadata_key, {}).get(
+                        linear_id, {}
+                    )
+
+                    if wb_key := raw_metadata.get("waterbody_key"):
+                        if connected_streams := self._get_stream_seeds_for_waterbody(
+                            wb_key
+                        ):
+                            polygon_seeds_by_type[feature_type].extend(
+                                connected_streams
+                            )
+                        else:
+                            name = raw_metadata.get(
+                                "gnis_name",
+                                self._get_prop(feature, ["gnis_name", "name"]),
+                            )
+                            logger.debug(
+                                f"{feature_type.capitalize()} {name} has no connected streams (waterbody_key={wb_key})"
+                            )
+
+        if skipped_features:
+            logger.warning(
+                f"Skipped {len(skipped_features)} features without linear_id: {skipped_features[:5]}..."
+            )
+
+        all_tributaries_dict = {}
+
+        if stream_seeds:
+            excluded_codes = self._get_watershed_codes_for_streams(stream_seeds)
+            for trib in self.tributary_enricher.enrich_with_tributaries(
+                stream_seeds, excluded_codes, features
+            ):
+                all_tributaries_dict[self._get_feature_id(trib)] = trib
+            logger.debug(
+                f"Stream enrichment: {len(stream_seeds)} seeds -> {len(all_tributaries_dict)} tributaries"
+            )
+
+        for ftype, seeds in polygon_seeds_by_type.items():
+            for trib in self.tributary_enricher.enrich_with_tributaries(
+                seeds, set(), features
+            ):
+                all_tributaries_dict[self._get_feature_id(trib)] = trib
+            logger.debug(
+                f"{ftype.capitalize()} enrichment: {len(seeds)} seeds -> processed."
+            )
+
+        return list(all_tributaries_dict.values())
 
     def merge_features(
         self, feature_to_regs: Dict[str, List[str]]
     ) -> Dict[str, MergedGroup]:
-        """
-        Merge features with identical regulation sets into groups.
-
-        Reduces approximately 500,000 individual features to 50,000 groups for optimized UI rendering.
-
-        Grouping strategy:
-        - Group by (feature_type, blue_line_key, waterbody_key*, regulation_set)
-        - Feature type ensures lakes and streams are never mixed in the same group
-        - Waterbody key* only used if it corresponds to a linked polygon waterbody (prevents over-fragmentation)
-        - For streams in linked lakes: group by feature_type + blue_line_key + waterbody_key
-        - For streams outside linked lakes: group by feature_type + blue_line_key
-        - For lakes/polygons: group by feature_type + waterbody_key (always linked)
-        - For features with no keys: group individually by feature_id
-
-        Args:
-            feature_to_regs: Dict mapping feature_id -> list of rule_ids
-
-        Returns:
-            Dict mapping group_id -> MergedGroup
-        """
-        from .logger_config import get_logger
-
-        logger = get_logger(__name__)
-
+        """Merge features with identical regulation sets into groups."""
         logger.info(f"Merging {len(feature_to_regs)} features into groups...")
-
-        # Build groups: (grouping_key, regulation_set) -> [(feature_id, metadata), ...]
         group_map = defaultdict(list)
 
-        # Use tqdm for progress if available
-        try:
-            from tqdm import tqdm
-
-            iterator = tqdm(
-                feature_to_regs.items(), desc="Grouping features", unit="feature"
-            )
-        except ImportError:
-            iterator = feature_to_regs.items()
-
-        for feature_id, reg_ids in iterator:
-            # Create frozen set for regulation set (hashable, order-independent)
-            # frozenset(['a','b','c']) == frozenset(['c','a','b']) is True
+        for feature_id, reg_ids in self._with_progress(
+            feature_to_regs.items(), "Grouping features", "feature"
+        ):
             reg_set = frozenset(reg_ids)
-
-            # Get feature metadata from gazetteer
             feature = self._get_feature_metadata(feature_id)
 
-            # Determine grouping key based on feature type
-            # Include feature_type to prevent mixing lakes and streams in the same group
-            # Include waterbody_key ONLY if it's a linked polygon waterbody
-            # This prevents over-fragmentation from streams passing through unlinked waterbodies
             feature_type = feature.get("feature_type", "unknown")
             blk = feature.get("blue_line_key")
             wbk = feature.get("waterbody_key")
 
-            # Only use waterbody_key if it's a linked polygon waterbody
-            # This prevents grouping streams by waterbodies that don't have regulations
             use_wbk = wbk and str(wbk) in self.linked_waterbody_keys
 
             if blk and use_wbk:
-                # Group by both BLK and waterbody (separates streams inside/outside lakes)
                 grouping_key = f"{feature_type}_blue_line_{blk}_waterbody_{wbk}"
             elif blk:
-                # Group by Blue Line Key only (streams not in a linked waterbody)
                 grouping_key = f"{feature_type}_blue_line_{blk}"
             elif use_wbk:
-                # Group by waterbody key (polygons without blue_line_key)
                 grouping_key = f"{feature_type}_waterbody_{wbk}"
             else:
-                # No grouping possible - use feature_id directly
                 grouping_key = f"{feature_type}_feature_{feature_id}"
 
-            # Combine grouping_key + regulation_set
-            full_key = (grouping_key, reg_set)
-            group_map[full_key].append((feature_id, feature))
+            group_map[(grouping_key, reg_set)].append((feature_id, feature))
 
-        # Convert to output format
         merged_groups = {}
-        for idx, ((grouping_key, reg_set), features_data) in enumerate(
-            group_map.items()
-        ):
-            # Use first feature's metadata for group (all should be same waterbody)
+        for idx, ((_, reg_set), features_data) in enumerate(group_map.items()):
             _, first_feature = features_data[0]
 
-            # Aggregate all zones and mgmt_units from all features in this group
-            all_zones = set()
-            all_mgmt_units = set()
-            for _, feature in features_data:
-                all_zones.update(feature.get("zones", []))
-                all_mgmt_units.update(feature.get("mgmt_units", []))
+            all_zones, all_mgmt_units = set(), set()
+            for _, feat in features_data:
+                all_zones.update(feat.get("zones", []))
+                all_mgmt_units.update(feat.get("mgmt_units", []))
 
-            # Only include waterbody_key if it's a linked polygon waterbody
-            # Otherwise set to None (it was ignored during grouping)
             wbk = first_feature.get("waterbody_key")
-            group_waterbody_key = (
-                wbk if (wbk and str(wbk) in self.linked_waterbody_keys) else None
-            )
-
             group_id = f"group_{idx:06d}"
             merged_groups[group_id] = MergedGroup(
                 group_id=group_id,
@@ -888,7 +391,9 @@ class RegulationMapper:
                 gnis_name=first_feature.get("gnis_name"),
                 feature_type=first_feature.get("feature_type"),
                 watershed_code=first_feature.get("watershed_code"),
-                waterbody_key=group_waterbody_key,
+                waterbody_key=(
+                    wbk if (wbk and str(wbk) in self.linked_waterbody_keys) else None
+                ),
                 feature_count=len(features_data),
                 zones=tuple(sorted(all_zones)),
                 mgmt_units=tuple(sorted(all_mgmt_units)),
@@ -897,7 +402,6 @@ class RegulationMapper:
         logger.info(
             f"Merged {len(feature_to_regs)} features into {len(merged_groups)} groups"
         )
-
         return merged_groups
 
     def build_index(
@@ -906,52 +410,16 @@ class RegulationMapper:
         merged_groups: Dict[str, MergedGroup],
         output_dir: Path,
     ) -> Dict[str, Path]:
-        """
-        Write query-ready indices to disk.
-
-        Creates two JSON files:
-        1. feature_to_regs.json - Individual feature lookup (O(1) queries)
-        2. merged_features.json - Grouped geometries (optimized for UI rendering)
-
-        Args:
-            feature_to_regs: Dict mapping feature_id -> list of rule_ids
-            merged_groups: Dict mapping group_id -> MergedGroup
-            output_dir: Directory to write JSON files
-
-        Returns:
-            Dict with paths to created files
-        """
-        from .logger_config import get_logger
-
-        logger = get_logger(__name__)
-
+        """Write query-ready indices to disk."""
         output_dir = Path(output_dir)
         output_dir.mkdir(parents=True, exist_ok=True)
 
-        # Write feature_to_regs.json
-        logger.info(
-            f"Writing feature_to_regs.json ({len(feature_to_regs)} features)..."
-        )
         feature_index_path = output_dir / "feature_to_regs.json"
         with open(feature_index_path, "w") as f:
             json.dump(feature_to_regs, f, indent=2)
-
         logger.info(
             f"Wrote feature index: {feature_index_path} ({len(feature_to_regs)} features)"
         )
-
-        # Write merged_features.json - convert MergedGroup to dict
-        logger.info(f"Converting {len(merged_groups)} merged groups to JSON...")
-
-        # Use tqdm for progress if available
-        try:
-            from tqdm import tqdm
-
-            iterator = tqdm(
-                merged_groups.items(), desc="Converting groups", unit="group"
-            )
-        except ImportError:
-            iterator = merged_groups.items()
 
         merged_dict = {
             gid: {
@@ -965,10 +433,11 @@ class RegulationMapper:
                 "waterbody_key": group.waterbody_key,
                 "feature_count": group.feature_count,
             }
-            for gid, group in iterator
+            for gid, group in self._with_progress(
+                merged_groups.items(), "Converting groups", "group"
+            )
         }
 
-        logger.info(f"Writing merged_features.json ({len(merged_groups)} groups)...")
         merged_index_path = output_dir / "merged_features.json"
         with open(merged_index_path, "w") as f:
             json.dump(merged_dict, f, indent=2)
@@ -982,46 +451,139 @@ class RegulationMapper:
             "merged_features": merged_index_path,
         }
 
-    def process_and_export(
-        self, regulations: List[Dict], output_dir: Optional[Path] = None
-    ) -> PipelineResult:
-        """
-        Full pipeline: Link -> Scope -> Enrich -> Map -> Merge -> Export.
+    # --- Property & Metadata Utilities ---
 
-        This is the main entry point for complete regulation processing.
+    def _get_prop(self, feature: Any, keys: List[str], default: Any = None) -> Any:
+        """Unified helper to safely extract properties from objects or dictionaries."""
+        for key in keys:
+            if hasattr(feature, key) and getattr(feature, key) is not None:
+                return getattr(feature, key)
+            if isinstance(feature, dict) and feature.get(key) is not None:
+                return feature.get(key)
+        return default
 
-        Args:
-            regulations: List of parsed regulation objects
-            output_dir: Optional directory to write JSON indices (if None, skip export)
+    def _get_feature_type(self, feature) -> Optional[str]:
+        if ftype := self._get_prop(feature, ["feature_type"]):
+            return ftype
+        gtype = self._get_prop(feature, ["geometry_type"])
+        if gtype in ("multilinestring", "linestring"):
+            return "stream"
+        if gtype == "polygon":
+            return "lake"
+        if gtype == "point":
+            return "point"
+        return None
 
-        Returns:
-            PipelineResult with all processing results
-        """
-        from .logger_config import get_logger
+    def _get_feature_id(self, feature) -> str:
+        if lin_id := self._get_prop(feature, ["linear_feature_id", "fwa_id"]):
+            return str(lin_id)
+        if poly_id := self._get_prop(feature, ["waterbody_poly_id"]):
+            return f"{self._get_prop(feature, ['feature_type'], 'UNKNOWN')}_{poly_id}"
+        return str(feature)
 
-        logger = get_logger(__name__)
+    def _get_feature_metadata(self, feature_id: str) -> Dict[str, Any]:
+        """Get feature metadata from gazetteer for grouping."""
+        feature_type_enum = self.gazetteer.get_feature_type_from_id(feature_id)
+        key = feature_id.split("_", 1)[1] if "_" in feature_id else feature_id
 
-        logger.info(f"Processing {len(regulations)} regulations...")
+        meta = {
+            "gnis_id": None,
+            "gnis_name": None,
+            "watershed_code": None,
+            "waterbody_key": None,
+            "blue_line_key": None,
+            "feature_type": feature_type_enum.value,
+            "zones": [],
+            "mgmt_units": [],
+        }
 
-        # Step 1: Create feature -> regulation index
-        self.process_all_regulations(regulations)
+        if feature_type_enum == FeatureType.UNMARKED:
+            return meta
 
-        # Step 2: Merge features into groups
-        self.merged_groups = self.merge_features(self.feature_to_regs)
+        if feature_type_enum == FeatureType.STREAM:
+            data = self.gazetteer.metadata.get("streams", {}).get(key)
+        else:
+            col_map = {
+                FeatureType.LAKE: "lakes",
+                FeatureType.WETLAND: "wetlands",
+                FeatureType.MANMADE: "manmade",
+            }
+            data = self.gazetteer.metadata.get(
+                col_map.get(feature_type_enum, ""), {}
+            ).get(key)
 
-        # Step 3: Export to JSON (optional)
-        exported_files = None
-        if output_dir:
-            exported_files = self.build_index(
-                self.feature_to_regs, self.merged_groups, output_dir
+        if not data:
+            logger.warning(
+                f"Metadata lookup failed for feature_id '{feature_id}' - type: {feature_type_enum.value}."
             )
+            return meta
 
-        logger.info("Processing complete")
-
-        return PipelineResult(
-            feature_to_regs=self.feature_to_regs,
-            merged_groups=self.merged_groups,
-            regulation_names=self.regulation_names,
-            stats=self.stats,
-            exported_files=exported_files,
+        meta.update(
+            {
+                "gnis_id": data.get("gnis_id"),
+                "gnis_name": data.get("gnis_name"),
+                "waterbody_key": data.get(
+                    "waterbody_key",
+                    key if feature_type_enum != FeatureType.STREAM else None,
+                ),
+                "blue_line_key": data.get("blue_line_key"),
+                "zones": data.get("zones", []),
+                "mgmt_units": data.get("mgmt_units", []),
+            }
         )
+
+        if feature_type_enum == FeatureType.STREAM:
+            meta["watershed_code"] = data.get("fwa_watershed_code")
+
+        return meta
+
+    def _get_stream_seeds_for_waterbody(self, waterbody_key: str) -> List[str]:
+        if not self.gazetteer:
+            return []
+        return [
+            lin_id
+            for lin_id, meta in self.gazetteer.metadata.get("streams", {}).items()
+            if meta.get("waterbody_key") == str(waterbody_key)
+        ]
+
+    def _get_watershed_codes_for_streams(
+        self, linear_feature_ids: List[str]
+    ) -> Set[str]:
+        codes = set()
+        for lin_id in linear_feature_ids:
+            if meta := (
+                self.gazetteer.get_stream_metadata(str(lin_id))
+                if self.gazetteer
+                else None
+            ):
+                if ws_code := meta.get("fwa_watershed_code"):
+                    codes.add(ws_code)
+                    codes.update(self._get_parent_watershed_codes(ws_code))
+        return codes
+
+    def _get_parent_watershed_codes(self, watershed_code: str) -> Set[str]:
+        if not watershed_code:
+            return set()
+        parents, sections = set(), watershed_code.split("-")
+        for i in range(len(sections) - 1, 0, -1):
+            if sections[i] != "000000":
+                parent_code = "-".join(sections[:i] + ["000000"] * (len(sections) - i))
+                parents.add(parent_code)
+                sections[i] = "000000"
+        return parents
+
+    def _with_progress(self, iterable, desc: str, unit: str):
+        """Helper to wrap an iterable with tqdm if available."""
+        try:
+            from tqdm import tqdm
+
+            return tqdm(iterable, desc=desc, unit=unit)
+        except ImportError:
+            return iterable
+
+    # Stats utilities
+    def get_stats(self) -> RegulationMappingStats:
+        return self.stats
+
+    def reset_stats(self):
+        self.__init__(self.linker, self.scope_filter, self.tributary_enricher)

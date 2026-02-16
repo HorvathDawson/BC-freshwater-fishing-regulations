@@ -157,9 +157,9 @@ class RegulationGeoExporter:
 
         # Collect names only for explicitly linked regulations
         names = []
-        linked_reg = self.feature_to_linked_regulation.get(feature_id)
+        linked_regs = self.feature_to_linked_regulation.get(feature_id, set())
         for base_reg_id in sorted(base_reg_ids):
-            if linked_reg == base_reg_id:
+            if base_reg_id in linked_regs:
                 if name := self.regulation_names.get(base_reg_id):
                     names.append(name)
 
@@ -190,7 +190,8 @@ class RegulationGeoExporter:
         names = []
         for base_reg_id in sorted(base_reg_ids):
             for feature_id in feature_ids:
-                if self.feature_to_linked_regulation.get(feature_id) == base_reg_id:
+                linked_regs = self.feature_to_linked_regulation.get(feature_id, set())
+                if base_reg_id in linked_regs:
                     if name := self.regulation_names.get(base_reg_id):
                         names.append(name)
                         break  # Found a linked feature for this regulation, move to next reg
