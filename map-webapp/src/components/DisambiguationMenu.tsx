@@ -29,7 +29,11 @@ const DisambiguationMenu = ({ options, position, highlightedOption, onSelect, on
     });
     const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 
-    const getLabel = (opt: FeatureOption) => opt.properties.gnis_name || opt.properties.lake_name || opt.properties.name || 'Unnamed';
+    const getLabel = (opt: FeatureOption) => {
+        const regNames = opt.properties.regulation_names;
+        const regNamesDisplay = Array.isArray(regNames) ? regNames[0] : regNames;
+        return opt.properties.gnis_name || opt.properties.lake_name || opt.properties.name || regNamesDisplay || 'Unnamed';
+    };
 
     const touchStartY = useRef<number>(0);
 
@@ -153,6 +157,9 @@ const DisambiguationMenu = ({ options, position, highlightedOption, onSelect, on
                                                 <span className="segment-badge"> ({option._segmentCount} segments)</span>
                                             )}
                                         </span>
+                                        {option.properties.regulation_name && option.properties.regulation_name.toUpperCase() !== getLabel(option).toUpperCase() && (
+                                            <span className="regulation-subtitle">Listed as: {option.properties.regulation_name}</span>
+                                        )}
                                         <span className="type">{option.type}</span>
                                     </div>
                                 </button>

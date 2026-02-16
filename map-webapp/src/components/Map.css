@@ -18,6 +18,7 @@
     display: flex;
     flex-direction: column;
     gap: 8px;
+    align-items: flex-start;
 }
 
 .map-toggle-btn {
@@ -65,4 +66,19 @@
     margin-right: 8px;
     cursor: pointer;
     accent-color: black;
+}
+
+/* Mobile adjustments */
+@media (max-width: 768px) {
+    .map-menu-wrapper {
+        flex-direction: column;
+        top: 8px;
+        left: 8px;
+        right: 8px;
+    }
+    
+    .map-layer-menu {
+        position: static;
+        min-width: 200px;
+    }
 }

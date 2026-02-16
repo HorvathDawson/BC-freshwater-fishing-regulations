@@ -1,4 +1,7 @@
-import React, { useRef } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
+import { X, Calendar } from 'lucide-react';
+import type { Regulation } from '../services/regulationsService';
+import { regulationsService } from '../services/regulationsService';
 import './InfoPanel.css';
 
 interface FeatureInfo {
@@ -14,19 +17,30 @@ interface InfoPanelProps {
     onClose: () => void;
     collapseState?: CollapseState;
     onSetCollapseState: (state: CollapseState) => void;
-}
-
-const Icons = {
-    Close: () => (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <line x1="18" y1="6" x2="6" y2="18"></line>
-            <line x1="6" y1="6" x2="18" y2="18"></line>
-        </svg>
-    )
 };
 
 const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapseState }: InfoPanelProps) => {
     const touchStartY = useRef<number>(0);
+    const [regulations, setRegulations] = useState<Regulation[]>([]);
+    const [loadingRegs, setLoadingRegs] = useState(false);
+
+    // Fetch regulations when feature changes
+    useEffect(() => {
+        if (!feature?.properties.regulation_ids) {
+            setRegulations([]);
+            return;
+        }
+
+        setLoadingRegs(true);
+        regulationsService
+            .getRegulations(feature.properties.regulation_ids)
+            .then(setRegulations)
+            .catch(err => {
+                console.error('Failed to load regulations:', err);
+                setRegulations([]);
+            })
+            .finally(() => setLoadingRegs(false));
+    }, [feature?.properties.regulation_ids]);
 
     const handleTouchStart = (e: React.TouchEvent) => {
         touchStartY.current = e.touches[0].clientY;
@@ -51,8 +65,15 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
     const renderContent = () => {
         if (!feature) return null;
         const props = feature.properties;
-        const title = props.gnis_name || props.lake_name || props.name || 'Unnamed Waterbody';
+        
+        // Handle both regulation_names (array from search) and regulation_names (string from tiles)
+        const regulationNames = Array.isArray(props.regulation_names) 
+            ? props.regulation_names 
+            : (props.regulation_names ? props.regulation_names.split(' | ').filter(Boolean) : []);
+        
+        const title = props.gnis_name || props.lake_name || props.name || regulationNames[0] || 'Unnamed Waterbody';
         const typeLabel = feature.type.toUpperCase();
+        const hasRegNames = regulationNames.length > 0;
 
         return (
             <>
@@ -72,39 +93,137 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                     <div className="header-row">
                         <span className="type-tag">{typeLabel}</span>
                         <button onClick={(e) => { e.stopPropagation(); onClose(); }} className="square-btn">
-                            <Icons.Close />
+                            <X size={20} />
                         </button>
                     </div>
-                    <h1>{title}</h1>
-                    {feature._segmentCount && feature._segmentCount > 1 && (
-                        <div style={{ fontSize: '0.85rem', color: '#64748b', marginTop: '0.25rem' }}>
-                            {feature._segmentCount} segments merged
-                        </div>
-                    )}
-                    
-                    <div className="tag-row">
-                        {props.waterbody_key && <span className="tag">ID: {props.waterbody_key}</span>}
-                        {props.is_stocked && <span className="tag highlight">STOCKED</span>}
-                        {props.is_classified_water && <span className="tag alert">CLASSIFIED</span>}
+                    <div className="title-group">
+                        <h1 className="title">{title}</h1>
+                        {hasRegNames && (
+                            <div className="regulation-subtitle">
+                                Listed as:
+                                {regulationNames.length === 1 ? (
+                                    <span> {regulationNames[0]}</span>
+                                ) : (
+                                    <ul style={{ margin: '0.25rem 0 0 1rem', padding: 0, listStyle: 'disc' }}>
+                                        {regulationNames.map((name: string, idx: number) => (
+                                            <li key={idx}>{name}</li>
+                                        ))}
+                                    </ul>
+                                )}
+                            </div>
+                        )}
                     </div>
                 </div>
 
                 <div className="panel-content">
+                    {/* REGULATIONS SECTION */}
                     <div className="data-section">
                         <h3>REGULATIONS</h3>
-                        <div className="data-row">
-                            <span className="label">Limit</span>
-                            <span className="value">{props.species_limit || "Regional Standard"}</span>
-                        </div>
-                        <div className="data-row">
-                            <span className="label">Season</span>
-                            <span className="value">{props.season_dates || "Open All Year"}</span>
-                        </div>
-                        <div className="data-row">
-                            <span className="label">Gear</span>
-                            <span className="value">{props.gear_restriction || "No Restrictions"}</span>
-                        </div>
+                        
+                        {loadingRegs && (
+                            <div className="loading-regulations">
+                                Loading regulations...
+                            </div>
+                        )}
+
+                        {!loadingRegs && !props.regulation_ids && (
+                            <div className="no-regulations">
+                                No specific regulations (standard regional rules apply)
+                            </div>
+                        )}
+
+                        {!loadingRegs && props.regulation_ids && regulations.length === 0 && (
+                            <div className="regulation-error">
+                                Failed to load regulation details
+                            </div>
+                        )}
+
+                        {!loadingRegs && (() => {
+                            // Group regulations by waterbody_name
+                            const groupedRegulations = regulations.reduce((groups, reg) => {
+                                const name = reg.waterbody_name || 'Unknown Waterbody';
+                                if (!groups[name]) {
+                                    groups[name] = [];
+                                }
+                                groups[name].push(reg);
+                                return groups;
+                            }, {} as Record<string, Regulation[]>);
+
+                            return Object.entries(groupedRegulations).map(([waterbodyName, regs]) => (
+                                <div key={waterbodyName} className="regulation-group">
+                                    {/* Waterbody Name Header */}
+                                    <div className="regulation-group-header">
+                                        {waterbodyName}
+                                    </div>
+
+                                    {/* Regulations for this waterbody */}
+                                    {regs.map((reg, idx) => (
+                                        <div key={idx} className="regulation-card">
+                                            {/* Restriction Type */}
+                                            {reg.restriction_type && (
+                                                <div className="regulation-type">
+                                                    {reg.restriction_type.replace(/_/g, ' ')}
+                                                </div>
+                                            )}
+
+                                            {/* Restriction Details */}
+                                            {reg.restriction_details && (
+                                                <div className="regulation-details">
+                                                    {reg.restriction_details}
+                                                </div>
+                                            )}
+
+                                            {/* Dates */}
+                                            {Array.isArray(reg.dates) && reg.dates.length > 0 && (
+                                                <div className="regulation-dates">
+                                                    <Calendar size={14} strokeWidth={2} />
+                                                    <span>{reg.dates.join(', ')}</span>
+                                                </div>
+                                            )}
+
+                                            {/* Scope Location */}
+                                            {reg.scope_location && (
+                                                <div className="regulation-scope">
+                                                    Applies to: {reg.scope_location}
+                                                </div>
+                                            )}
+
+                                            {/* Full Rule Text (Expandable) */}
+                                            {reg.rule_text && (
+                                                <details className="regulation-text-toggle">
+                                                    <summary>
+                                                        View Official Text
+                                                    </summary>
+                                                    <div className="regulation-text-content">
+                                                        {reg.rule_text}
+                                                    </div>
+                                                </details>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            ));
+                        })()}
                     </div>
+
+                    {/* LEGACY DATA SECTION (for backwards compatibility) */}
+                    {(props.species_limit || props.season_dates || props.gear_restriction) && (
+                        <div className="data-section">
+                            <h3>LEGACY DATA (PLACEHOLDER)</h3>
+                            <div className="data-row">
+                                <span className="label">Limit</span>
+                                <span className="value">{props.species_limit || "Regional Standard"}</span>
+                            </div>
+                            <div className="data-row">
+                                <span className="label">Season</span>
+                                <span className="value">{props.season_dates || "Open All Year"}</span>
+                            </div>
+                            <div className="data-row">
+                                <span className="label">Gear</span>
+                                <span className="value">{props.gear_restriction || "No Restrictions"}</span>
+                            </div>
+                        </div>
+                    )}
 
                     {props.regulation_text_snippet && (
                         <div className="raw-text-block">
