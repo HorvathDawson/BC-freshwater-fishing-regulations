@@ -129,6 +129,7 @@ class TributaryEnricher:
         linear_feature_ids: List[str],
         excluded_watershed_codes: Set[str] = None,
         parent_features: List = None,
+        excluded_waterbody_keys: Set[str] = None,
     ) -> List:
         """
         Find upstream tributaries for given stream linear_feature_ids.
@@ -145,6 +146,7 @@ class TributaryEnricher:
             excluded_watershed_codes: Set of watershed codes to exclude during traversal.
                                      Defaults to empty set (include all upstream).
             parent_features: Optional parent features for zone inheritance fallback
+            excluded_waterbody_keys: Set of waterbody keys to exclude (if using lake seeds)
 
         Returns:
             List of FWAFeature objects representing tributaries (excludes seed features)
@@ -191,7 +193,9 @@ class TributaryEnricher:
             return self.enrichment_cache[cache_key]
 
         # BFS upstream traversal
-        tributaries = self._traverse_upstream(seed_edges, excluded_codes)
+        tributaries = self._traverse_upstream(
+            seed_edges, excluded_codes, excluded_waterbody_keys=excluded_waterbody_keys
+        )
 
         # Convert to FWAFeature objects
         tributary_features = self._edges_to_features(tributaries, parent_features or [])
@@ -215,6 +219,7 @@ class TributaryEnricher:
         self,
         seed_edges: List[int],
         excluded_watershed_codes: Set[str],
+        excluded_waterbody_keys: Set[str] = None,
     ) -> Set[int]:
         """
         BFS traversal upstream from seed edges.
@@ -223,6 +228,7 @@ class TributaryEnricher:
             seed_edges: Edge indices to start from
             excluded_watershed_codes: Watershed codes to exclude (stop traversal)
                                      Empty set = include everything upstream
+            excluded_waterbody_keys: Set of waterbody keys to exclude (if using lake seeds)
 
         Returns:
             Set of tributary edge indices (excludes seed edges)
@@ -259,7 +265,31 @@ class TributaryEnricher:
                     continue
 
                 visited.add(upstream_idx)
-                upstream_linear_id = str(upstream_edge["linear_feature_id"])
+
+                # Check if this upstream edge should be excluded by waterbody key
+                upstream_wb_key = upstream_edge["waterbody_key"]
+                if upstream_wb_key and upstream_wb_key in excluded_waterbody_keys:
+                    # This edge has an excluded waterbody key (e.g., lake)
+                    # Skip it entirely - don't include in results, don't traverse upstream from it
+                    continue
+
+                # Check if this upstream edge should be excluded by watershed code
+                upstream_watershed = upstream_edge["fwa_watershed_code"]
+                if (
+                    upstream_watershed
+                    and upstream_watershed in excluded_watershed_codes
+                ):
+                    # # This is part of the excluded watershed (mainstem/side channel)
+                    # # Don't include it in tributaries, but DO continue traversing upstream
+                    # # to find real tributaries beyond this excluded segment
+                    # queue.append(upstream_idx)
+
+                    # TODO: figure this out. it will cause issues for lakes where tributaries have a segment in the lake...
+                    # might be able to seed lake blueline key and watershedcode... also lakes we want all items so no excluded?
+
+                    # This edge has an excluded watershed code (mainstem/side channel)
+                    # Skip it entirely - don't include in results, don't traverse upstream from it
+                    continue
 
                 # Get upstream edge type
                 try:
@@ -273,23 +303,6 @@ class TributaryEnricher:
                 upstream_is_excluded_type = (
                     upstream_edge_type_str in self.EXCLUDED_EDGE_TYPES
                 )
-
-                # Check if this upstream edge should be excluded by watershed code
-                upstream_watershed = upstream_edge["fwa_watershed_code"]
-                if (
-                    upstream_watershed
-                    and upstream_watershed in excluded_watershed_codes
-                ):
-                    # This is part of the excluded watershed (mainstem/side channel)
-                    # Don't include it in tributaries, but DO continue traversing upstream
-                    # to find real tributaries beyond this excluded segment
-                    queue.append(upstream_idx)
-
-                    # TODO: figure this out
-                    # # This edge has an excluded watershed code (mainstem/side channel)
-                    # # Skip it entirely - don't include in results, don't traverse upstream from it
-                    # continue
-
                 # Handle excluded edge types (e.g., 2300)
                 # If we're on an excluded edge type and upstream is NOT excluded, stop
                 if current_is_excluded_type and not upstream_is_excluded_type:
