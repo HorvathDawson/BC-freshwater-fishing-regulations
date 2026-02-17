@@ -249,6 +249,19 @@ class LakeStreamDiagnostics:
             print(f"    Waterbody Key: {group.waterbody_key}")
             print(f"    Feature Count: {group.feature_count}")
             print(f"    Regulation Count: {len(group.regulation_ids)}")
+            print(
+                f"    Feature IDs (first 10): {', '.join(list(group.feature_ids)[:10])}"
+            )
+
+            # Check if this group has mixed waterbody keys
+            all_wbks = set()
+            for fid in group.feature_ids:
+                if fid_meta := self.gazetteer.get_stream_metadata(fid):
+                    if fid_wbk := fid_meta.get("waterbody_key"):
+                        all_wbks.add(str(fid_wbk))
+
+            if len(all_wbks) > 1:
+                print(f"    ⚠️  MIXED WATERBODY KEYS IN GROUP: {all_wbks}")
 
             has_waterbody_key = group.waterbody_key is not None
             print(f"\n    Would be excluded from streams layer: {has_waterbody_key}")
@@ -405,7 +418,7 @@ def main():
     # Process regulations
     print(f"Processing {len(regulations)} regulations...")
     mapper.process_all_regulations(regulations)
-    mapper.merge_features(mapper.feature_to_regs)
+    mapper.merged_groups = mapper.merge_features(mapper.feature_to_regs)
 
     print(f"✓ Processing complete")
     print(f"  Features with regulations: {len(mapper.feature_to_regs)}")

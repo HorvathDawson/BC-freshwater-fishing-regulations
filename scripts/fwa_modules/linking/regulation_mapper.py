@@ -372,6 +372,11 @@ class RegulationMapper:
 
             group_map[(grouping_key, reg_set)].append((feature_id, feature))
 
+            if "700740026" in feature_id:
+                logger.warning(
+                    f"Feature {feature_id} with regs {reg_ids} grouped under key {grouping_key}"
+                )
+
         merged_groups = {}
         for idx, ((_, reg_set), features_data) in enumerate(group_map.items()):
             _, first_feature = features_data[0]

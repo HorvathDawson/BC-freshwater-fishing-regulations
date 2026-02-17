@@ -280,9 +280,15 @@ class TributaryEnricher:
                     upstream_watershed
                     and upstream_watershed in excluded_watershed_codes
                 ):
-                    # This edge has an excluded watershed code (mainstem/side channel)
-                    # Skip it entirely - don't include in results, don't traverse upstream from it
-                    continue
+                    # This is part of the excluded watershed (mainstem/side channel)
+                    # Don't include it in tributaries, but DO continue traversing upstream
+                    # to find real tributaries beyond this excluded segment
+                    queue.append(upstream_idx)
+
+                    # TODO: figure this out
+                    # # This edge has an excluded watershed code (mainstem/side channel)
+                    # # Skip it entirely - don't include in results, don't traverse upstream from it
+                    # continue
 
                 # Handle excluded edge types (e.g., 2300)
                 # If we're on an excluded edge type and upstream is NOT excluded, stop
@@ -293,6 +299,10 @@ class TributaryEnricher:
 
                 # This is a tributary - add it to results
                 tributaries.add(upstream_idx)
+
+                # Continue traversing from this tributary
+                queue.append(upstream_idx)
+
         return tributaries
 
     def _edges_to_features(self, edge_indices: Set[int], parent_features: List) -> List:
