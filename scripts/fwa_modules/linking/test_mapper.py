@@ -315,18 +315,6 @@ def main():
         print(
             f"  {group.group_id}: {group.feature_count} features, {len(group.regulation_ids)} regulations"
         )
-        if group.gnis_name:
-            print(f"    Name: {group.gnis_name} (GNIS: {group.gnis_id})")
-        elif group.watershed_code:
-            print(f"    Watershed: {group.watershed_code}")
-
-    # Export statistics
-    if result.exported_files:
-        print_sub_header("Export Statistics")
-        print(f"Output directory:           {output_dir}")
-        for name, path in result.exported_files.items():
-            file_size = path.stat().st_size / 1024  # KB
-            print(f"  {name:20s}: {path.name} ({file_size:.1f} KB)")
 
     # Feature distribution analysis
     if feature_to_regs:
@@ -401,9 +389,6 @@ def main():
         )
     else:
         print(f"\nFeature merging:       No features to merge (0 regulations linked)")
-
-    if result.exported_files:
-        print(f"Exported to:           {output_dir}")
 
     print(f"\n{GREEN}✓ Full regulation mapping pipeline complete{RESET}")
 

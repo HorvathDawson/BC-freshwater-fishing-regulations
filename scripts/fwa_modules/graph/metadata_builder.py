@@ -24,6 +24,21 @@ from collections import defaultdict
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from shapely.geometry import Point
 from shapely.strtree import STRtree
+from enum import Enum
+
+
+# --- Shared Enum ---
+class FeatureType(Enum):
+    """Enum for FWA feature types."""
+
+    STREAM = "streams"
+    LAKE = "lakes"
+    WETLAND = "wetlands"
+    MANMADE = "manmade"
+    UNMARKED = "lakes"
+    POINT = "point"
+    UNKNOWN = "unknown"
+
 
 # --- Configuration ---
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(message)s")
@@ -133,10 +148,10 @@ class MetadataBuilder:
         }
         self.metadata = {
             "zone_metadata": {},
-            "streams": {},
-            "lakes": {},
-            "wetlands": {},
-            "manmade": {},
+            FeatureType.STREAM: {},
+            FeatureType.LAKE: {},
+            FeatureType.WETLAND: {},
+            FeatureType.MANMADE: {},
         }
 
     def load_zones(self):
@@ -224,7 +239,7 @@ class MetadataBuilder:
 
             for future in as_completed(futures):
                 res, cross_count = future.result()
-                self.metadata["streams"].update(res)
+                self.metadata[FeatureType.STREAM].update(res)
                 processed += len(res)
                 if processed % 100000 == 0:  # Log less frequently
                     logger.info(f"  Processed {processed:,} streams...")
@@ -232,13 +247,13 @@ class MetadataBuilder:
     def process_polygons(self):
         """Iterates over lakes, wetlands, and manmade waterbodies."""
         layers = {
-            "lakes": "FWA_LAKES_POLY",
-            "wetlands": "FWA_WETLANDS_POLY",
-            "manmade": "FWA_MANMADE_WATERBODIES_POLY",
+            FeatureType.LAKE: "FWA_LAKES_POLY",
+            FeatureType.WETLAND: "FWA_WETLANDS_POLY",
+            FeatureType.MANMADE: "FWA_MANMADE_WATERBODIES_POLY",
         }
 
-        for category, layer_name in layers.items():
-            logger.info(f"Processing {category} ({layer_name})...")
+        for ftype_enum, layer_name in layers.items():
+            logger.info(f"Processing {ftype_enum.name} ({layer_name})...")
             try:
                 gdf = gpd.read_file(self.paths["lakes"], layer=layer_name)
                 gdf = gdf[gdf["WATERBODY_KEY"].notna()]
@@ -284,8 +299,8 @@ class MetadataBuilder:
                         "mgmt_units": z_data["mgmt_units"],
                     }
 
-                self.metadata[category] = results
-                logger.info(f"  Extracted {len(results):,} {category}.")
+                self.metadata[ftype_enum] = results
+                logger.info(f"  Extracted {len(results):,} {ftype_enum.name}.")
 
             except Exception as e:
                 logger.error(f"Failed to process {layer_name}: {e}")

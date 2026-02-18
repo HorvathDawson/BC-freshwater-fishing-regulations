@@ -36,20 +36,18 @@ class LinkStatus(Enum):
 class LinkingResult:
     """Result of attempting to link a waterbody name to FWA feature(s)."""
 
-    waterbody_key: str
     status: LinkStatus
-    matched_feature: Optional[FWAFeature] = None  # Single match
     matched_features: List[FWAFeature] = (
         None  # Multiple successful matches (e.g., split entries)
     )
     candidate_features: List[FWAFeature] = None  # Ambiguous candidates
-    error_message: Optional[str] = None
     link_method: Optional[str] = (
         None  # "direct_match", "name_variation", "natural_search"
     )
     matched_name: Optional[str] = (
         None  # The actual name that matched (for name variations)
     )
+    error_message: Optional[str] = None
 
     def __post_init__(self):
         if self.matched_features is None:
@@ -80,12 +78,11 @@ class WaterbodyLinker:
         self.manual_corrections = manual_corrections  # Add alias for consistency
         self.stats = Counter()
         # Track which regulation names map to which FWA features
-        # Key: FWA feature ID, Value: list of (region, waterbody_key, name_verbatim) tuples
+        # Key: FWA feature ID, Value: list of (region, name_verbatim) tuples
         self.feature_to_regulations: Dict[str, List[tuple]] = {}
 
     def link_waterbody(
         self,
-        waterbody_key: str,
         region: Optional[str] = None,
         mgmt_units: Optional[List[str]] = None,
         name_verbatim: Optional[str] = None,
@@ -94,7 +91,6 @@ class WaterbodyLinker:
         Link a waterbody name to FWA feature(s).
 
         Args:
-            waterbody_key: Waterbody name from regulation (primary key)
             region: Region identifier (e.g., "Region 1" or "1")
             mgmt_units: Management units from regulation
             name_verbatim: Exact verbatim name from regulation text
@@ -102,7 +98,7 @@ class WaterbodyLinker:
         Returns:
             LinkingResult with status and matched feature(s)
         """
-        lookup_name = name_verbatim if name_verbatim else waterbody_key
+        lookup_name = name_verbatim
 
         # Extract zone number from region (e.g., "Region 4" -> "4", or "4" -> "4")
         zone_number = None
@@ -118,7 +114,6 @@ class WaterbodyLinker:
             if skip_entry:
                 if skip_entry.ignored:
                     result = LinkingResult(
-                        waterbody_key=waterbody_key,
                         status=LinkStatus.IGNORED,
                         error_message=f"Ignored: {skip_entry.note}",
                         link_method="skip_entry",
@@ -127,7 +122,6 @@ class WaterbodyLinker:
                     return result
                 if skip_entry.not_found:
                     result = LinkingResult(
-                        waterbody_key=waterbody_key,
                         status=LinkStatus.NOT_IN_DATA,
                         error_message=f"Not found in FWA data: {skip_entry.note}",
                         link_method="skip_entry",
@@ -139,7 +133,7 @@ class WaterbodyLinker:
         if region:
             direct_match = self.corrections.get_direct_match(region, lookup_name)
             if direct_match:
-                result = self._apply_direct_match(waterbody_key, direct_match)
+                result = self._apply_direct_match(lookup_name, direct_match)
                 if result:
                     result.link_method = "direct_match"
                     self.stats[result.status] += 1
@@ -151,7 +145,7 @@ class WaterbodyLinker:
             if name_var:
                 # Use the corrected name(s) to search
                 result = self._link_with_name_variation(
-                    waterbody_key, name_var, zone_number, mgmt_units
+                    name_var, zone_number, mgmt_units
                 )
                 result.link_method = "name_variation"
                 self.stats[result.status] += 1
@@ -164,7 +158,7 @@ class WaterbodyLinker:
         # 2. Verbatim with outermost brackets removed (e.g., "LAKE (Region 5)" -> "LAKE")
         # 3. Verbatim with brackets and quotes removed
 
-        search_name = name_verbatim if name_verbatim else waterbody_key
+        search_name = name_verbatim
         search_variations = [search_name]  # Always try original first
 
         # Generate bracket-removed variation
@@ -205,23 +199,18 @@ class WaterbodyLinker:
         self.stats[result.status] += 1
         # Track successful matches
         if result.status == LinkStatus.SUCCESS:
-            self._record_match(result, region, waterbody_key, name_verbatim)
+            self._record_match(result, region, name_verbatim)
         return result
 
     def _record_match(
         self,
         result: LinkingResult,
         region: Optional[str],
-        waterbody_key: str,
         name_verbatim: Optional[str],
     ):
         """Record which regulation name mapped to which FWA feature(s)."""
         # Get all matched features
-        features = []
-        if result.matched_feature:
-            features = [result.matched_feature]
-        elif result.matched_features:
-            features = result.matched_features
+        features = result.matched_features or []
 
         # Record mapping for each unique waterbody identity
         # Group streams by name AND watershed code, keep individual polygons separate
@@ -255,8 +244,8 @@ class WaterbodyLinker:
                     "regulations": [],
                 }
 
-            # Store tuple of (region, waterbody_key, name_verbatim)
-            regulation_info = (region, waterbody_key, name_verbatim or waterbody_key)
+            # Store tuple of (region, name_verbatim)
+            regulation_info = (region, name_verbatim)
             if (
                 regulation_info
                 not in self.feature_to_regulations[identity_key]["regulations"]
@@ -326,7 +315,7 @@ class WaterbodyLinker:
 
     def _apply_direct_match(
         self,
-        waterbody_key: str,
+        name_verbatim: str,
         direct_match: DirectMatch,
     ) -> Optional[LinkingResult]:
         """Apply a DirectMatch (pure ID lookup)."""
@@ -338,7 +327,7 @@ class WaterbodyLinker:
             # Search by GNIS ID - should return all polygons with this GNIS
             found = self.gazetteer.search_by_gnis_id(direct_match.gnis_id)
             logger.debug(
-                f"Direct match by GNIS {direct_match.gnis_id} for '{waterbody_key}' found {len(found)} features"
+                f"Direct match by GNIS {direct_match.gnis_id} for '{name_verbatim}' found {len(found)} features"
             )
             features.extend(found)
 
@@ -347,7 +336,7 @@ class WaterbodyLinker:
             for gnis_id in direct_match.gnis_ids:
                 found = self.gazetteer.search_by_gnis_id(gnis_id)
                 logger.debug(
-                    f"Direct match by GNIS {gnis_id} for '{waterbody_key}' found {len(found)} features"
+                    f"Direct match by GNIS {gnis_id} for '{name_verbatim}' found {len(found)} features"
                 )
                 features.extend(found)
 
@@ -460,31 +449,25 @@ class WaterbodyLinker:
 
         if len(features) == 0:
             return LinkingResult(
-                waterbody_key=waterbody_key,
                 status=LinkStatus.NOT_FOUND,
                 error_message=f"DirectMatch ID not found in gazetteer: {direct_match.note}",
-            )
-        elif len(features) == 1:
-            return LinkingResult(
-                waterbody_key=waterbody_key,
-                status=LinkStatus.SUCCESS,
-                matched_feature=features[0],
             )
         else:
             # Multiple features (e.g., lake with multiple polygons, or stream with many segments)
             # This is SUCCESS - DirectMatch explicitly maps to all these features
             logger.debug(
-                f"Direct match for '{waterbody_key}' returning {len(features)} features as SUCCESS"
+                f"Direct match for '{name_verbatim}' returning {len(features)} features as SUCCESS"
             )
+            # update features matched_via for tracking
+            for feature in features:
+                feature.matched_via = f"direct_match ({direct_match.note})"
             return LinkingResult(
-                waterbody_key=waterbody_key,
                 status=LinkStatus.SUCCESS,
                 matched_features=features,
             )
 
     def _link_with_name_variation(
         self,
-        waterbody_key: str,
         name_var: NameVariation,
         zone_number: Optional[str],
         mgmt_units: Optional[List[str]],
@@ -496,12 +479,15 @@ class WaterbodyLinker:
             all_features = []
             for target in name_var.target_names:
                 features = self.gazetteer.search(target, region=zone_number)
+                # update features matched_via for tracking
                 all_features.extend(features)
+
+            for feature in all_features:
+                feature.matched_via = f"name_variation ({name_var.note})"
 
             if len(all_features) == len(name_var.target_names):
                 # Found all expected waterbodies - this is SUCCESS
                 return LinkingResult(
-                    waterbody_key=waterbody_key,
                     status=LinkStatus.SUCCESS,
                     matched_features=all_features,
                     matched_name=", ".join(
@@ -510,7 +496,6 @@ class WaterbodyLinker:
                 )
             else:
                 return LinkingResult(
-                    waterbody_key=waterbody_key,
                     status=LinkStatus.NOT_FOUND,
                     error_message=f"Found {len(all_features)}/{len(name_var.target_names)} expected waterbodies",
                 )
@@ -544,9 +529,6 @@ class WaterbodyLinker:
         # (allows cross-region matches for boundary issues)
         if not matches and region:
             matches = self.gazetteer.search(name, region=None)
-
-        # Filter out KML points - not needed for linking
-        matches = [m for m in matches if m.geometry_type != "point"]
 
         # Deduplicate by waterbody identity
         # - For streams: group by fwa_watershed_code (multiple segments = one stream)
@@ -622,7 +604,6 @@ class WaterbodyLinker:
                     all_candidates.extend(identity_matches)
 
                 return LinkingResult(
-                    waterbody_key=name,
                     status=LinkStatus.AMBIGUOUS,
                     candidate_features=all_candidates,
                     error_message=f"Name matched but MUs don't overlap. Regulation MUs: {mgmt_units}",
@@ -631,7 +612,6 @@ class WaterbodyLinker:
         # Return result based on match count
         if len(unique_matches) == 0:
             return LinkingResult(
-                waterbody_key=name,
                 status=LinkStatus.NOT_FOUND,
                 error_message="No matches found in gazetteer",
             )
@@ -642,11 +622,15 @@ class WaterbodyLinker:
             identity_type = identity_key[0]
             all_features_in_group = identity_groups[identity_key]
 
+            for feature in all_features_in_group:
+                feature.matched_via = (
+                    f"natural_search (variation)" if is_variation else "natural_search"
+                )
+
             # Validate that regulation region matches FWA feature's MU region
             if not self._validate_region_mu_match(region, all_features_in_group):
                 # Region/MU mismatch - mark as AMBIGUOUS
                 return LinkingResult(
-                    waterbody_key=name,
                     status=LinkStatus.AMBIGUOUS,
                     candidate_features=all_features_in_group,
                     error_message=f"Regulation region {region} doesn't match feature MU region",
@@ -662,7 +646,6 @@ class WaterbodyLinker:
                     f"Natural search found {len(all_features_in_group)} polygons with GNIS {identity_key[1]} for '{name}'"
                 )
                 return LinkingResult(
-                    waterbody_key=name,
                     status=LinkStatus.AMBIGUOUS,
                     candidate_features=all_features_in_group,
                     error_message=f"Found {len(all_features_in_group)} polygons with same GNIS ID (needs direct match)",
@@ -670,7 +653,6 @@ class WaterbodyLinker:
             elif identity_type == "stream":
                 # Multiple segments of same stream = SUCCESS with all segments
                 return LinkingResult(
-                    waterbody_key=name,
                     status=LinkStatus.SUCCESS,
                     matched_features=all_features_in_group,
                     matched_name=(name if is_variation else None),
@@ -678,9 +660,8 @@ class WaterbodyLinker:
             else:
                 # Single feature (or single waterbody_key/fwa_id group) = SUCCESS
                 return LinkingResult(
-                    waterbody_key=name,
                     status=LinkStatus.SUCCESS,
-                    matched_feature=unique_matches[0],
+                    matched_features=unique_matches,
                     matched_name=(name if is_variation else None),
                 )
         else:
@@ -693,7 +674,6 @@ class WaterbodyLinker:
             if not self._validate_region_mu_match(region, all_candidates):
                 # Region/MU mismatch - mark as AMBIGUOUS with specific error
                 return LinkingResult(
-                    waterbody_key=name,
                     status=LinkStatus.AMBIGUOUS,
                     candidate_features=all_candidates,
                     error_message=f"Found {len(unique_matches)} candidates, but regulation region {region} doesn't match feature MU region",
@@ -702,7 +682,6 @@ class WaterbodyLinker:
             # Multiple matches - AMBIGUOUS
             # Include ALL matches (not just representatives) for comprehensive MU data
             return LinkingResult(
-                waterbody_key=name,
                 status=LinkStatus.AMBIGUOUS,
                 candidate_features=all_candidates,
                 error_message=f"Found {len(unique_matches)} candidates",

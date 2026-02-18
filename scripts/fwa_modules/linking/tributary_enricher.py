@@ -10,7 +10,7 @@ from pathlib import Path
 import pickle
 from collections import deque
 
-from .metadata_gazetteer import FWAFeature
+from .metadata_gazetteer import FWAFeature, FeatureType
 from .logger_config import get_logger
 
 logger = get_logger(__name__)
@@ -144,7 +144,7 @@ class TributaryEnricher:
         Args:
             linear_feature_ids: List of stream linear_feature_ids to use as seeds
             excluded_watershed_codes: Set of watershed codes to exclude during traversal.
-                                     Defaults to empty set (include all upstream).
+                                      Defaults to empty set (include all upstream).
             parent_features: Optional parent features for zone inheritance fallback
             excluded_waterbody_keys: Set of waterbody keys to exclude (if using lake seeds)
 
@@ -186,16 +186,22 @@ class TributaryEnricher:
             excluded_watershed_codes if excluded_watershed_codes is not None else set()
         )
 
+        excluded_keys = (
+            excluded_waterbody_keys if excluded_waterbody_keys is not None else set()
+        )
+
         # Check cache
-        cache_key = (frozenset(seed_edges), frozenset(excluded_codes))
+        cache_key = (
+            frozenset(seed_edges),
+            frozenset(excluded_codes),
+            frozenset(excluded_keys),
+        )
         if cache_key in self.enrichment_cache:
             self.cache_hits += 1
             return self.enrichment_cache[cache_key]
 
         # BFS upstream traversal
-        tributaries = self._traverse_upstream(
-            seed_edges, excluded_codes, excluded_waterbody_keys=excluded_waterbody_keys
-        )
+        tributaries = self._traverse_upstream(seed_edges, excluded_codes, excluded_keys)
 
         # Convert to FWAFeature objects
         tributary_features = self._edges_to_features(tributaries, parent_features or [])
@@ -210,7 +216,7 @@ class TributaryEnricher:
         logger.info(
             f"Tributary enrichment: {len(linear_feature_ids)} seeds → "
             f"{len(tributary_features)} tributaries "
-            f"[{len(seed_edges)} edges, {len(excluded_codes)} excluded watershed codes]"
+            f"[{len(seed_edges)} edges, {len(excluded_codes)} excluded watershed codes and excluded waterbody keys: {len(excluded_keys)}]"
         )
 
         return tributary_features
@@ -227,7 +233,7 @@ class TributaryEnricher:
         Args:
             seed_edges: Edge indices to start from
             excluded_watershed_codes: Watershed codes to exclude (stop traversal)
-                                     Empty set = include everything upstream
+                                      Empty set = include everything upstream
             excluded_waterbody_keys: Set of waterbody keys to exclude (if using lake seeds)
 
         Returns:
@@ -320,7 +326,7 @@ class TributaryEnricher:
 
     def _edges_to_features(self, edge_indices: Set[int], parent_features: List) -> List:
         """
-        Convert edge indices to FWAFeature objects.
+        Convert edge indices to FWAFeature objects STRICTLY using the MetadataGazetteer.
 
         Args:
             edge_indices: Set of edge indices to convert
@@ -330,56 +336,42 @@ class TributaryEnricher:
             List of FWAFeature objects
         """
         tributary_features = []
+
+        if not self.metadata_gazetteer:
+            logger.error(
+                "MetadataGazetteer is required but missing. Cannot fetch features."
+            )
+            return tributary_features
+
         for edge_idx in edge_indices:
             edge = self.graph.es[edge_idx]
             linear_feature_id = str(edge["linear_feature_id"])
 
-            # Look up zones from metadata (preferred method)
-            zones = None
-            mgmt_units = None
+            # Ask the gazetteer for the canonical feature. Period.
+            feature = self.metadata_gazetteer.get_stream_by_id(linear_feature_id)
 
-            if self.metadata_gazetteer:
-                # Try to get metadata for this stream segment
-                metadata = self.metadata_gazetteer.get_stream_metadata(
-                    linear_feature_id
-                )
-                if metadata:
-                    zones = metadata.get("zones", [])
-                    mgmt_units = metadata.get("mgmt_units", [])
+            if feature:
+                # We successfully pulled the centralized feature
+                # If it's missing zone metadata, try to inherit from the parent feature
+                if not feature.zones or feature.zones == ["Unknown"]:
+                    if parent_features:
+                        parent_zones = _get_attr(parent_features[0], "zones", [])
+                        if parent_zones and parent_zones != ["Unknown"]:
+                            feature.zones = parent_zones
+                            logger.debug(
+                                f"Tributary {linear_feature_id} inheriting zones {parent_zones} from parent"
+                            )
 
-            # Fallback 1: Inherit zones from parent feature if metadata lookup failed
-            if not zones and parent_features:
-                zones = _get_attr(parent_features[0], "zones", [])
-                if zones:
-                    logger.debug(
-                        f"Tributary {linear_feature_id} inheriting zones {zones} from parent "
-                        f"(metadata lookup failed)"
-                    )
+                # Tag how this feature was matched into the set
+                feature.matched_via = "tributary_enrichment"
+                tributary_features.append(feature)
 
-            # Fallback 2: Use "Unknown" as last resort (should rarely happen)
-            if not zones:
-                zones = ["Unknown"]
+            else:
+                # The feature is in the graph but missing from the metadata gazetteer index.
+                # We DO NOT build a fake one here anymore. We trust the gazetteer.
                 logger.warning(
-                    f"Tributary {linear_feature_id} has no zone metadata - using 'Unknown'. "
-                    f"This indicates missing data in stream_metadata.pickle"
+                    f"Tributary {linear_feature_id} found in graph but missing from metadata gazetteer. Skipping."
                 )
-
-            # Create FWAFeature object
-            tributary_features.append(
-                FWAFeature(
-                    fwa_id=linear_feature_id,
-                    name=edge["gnis_name"] or "unnamed",
-                    geometry_type="multilinestring",
-                    zones=zones,
-                    feature_type="stream",
-                    gnis_name=edge["gnis_name"],
-                    gnis_id=edge["gnis_id"],
-                    fwa_watershed_code=edge["fwa_watershed_code"],
-                    waterbody_key=edge["waterbody_key"],
-                    mgmt_units=mgmt_units,
-                    matched_via="tributary_enrichment",
-                )
-            )
 
         return tributary_features
 

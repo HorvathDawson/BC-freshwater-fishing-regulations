@@ -249,9 +249,7 @@ def test_linking_coverage(export_not_found: str = None, export_ambiguous: str = 
             stats.used_skips.add((region, name))
 
         # --- Link ---
-        res = linker.link_waterbody(
-            key, region=region, mgmt_units=mus, name_verbatim=name
-        )
+        res = linker.link_waterbody(region=region, mgmt_units=mus, name_verbatim=name)
 
         # --- Statistics & Validation ---
         if res.status == LinkStatus.SUCCESS:
@@ -270,9 +268,7 @@ def test_linking_coverage(export_not_found: str = None, export_ambiguous: str = 
 
             # Validation: MU Mismatch
             if res.link_method == "direct_match":
-                feats = res.matched_features or (
-                    [res.matched_feature] if res.matched_feature else []
-                )
+                feats = res.matched_features
                 fwa_mus = set().union(*(f.mgmt_units for f in feats if f.mgmt_units))
                 reg_set = set(mus)
 
@@ -301,12 +297,10 @@ def test_linking_coverage(export_not_found: str = None, export_ambiguous: str = 
 
             # Validation: Tributaries
             if ident.get("identity_type") == "TRIBUTARIES":
-                feats = res.matched_features or (
-                    [res.matched_feature] if res.matched_feature else []
-                )
+                feats = res.matched_features
                 if feats and all(f.geometry_type != "multilinestring" for f in feats):
                     stats.trib_non_stream.append(
-                        {"key": key, "region": region, "matched_to": feats[0].name}
+                        {"key": key, "region": region, "matched_to": feats[0].gnis_name}
                     )
 
         # Store Results
@@ -315,7 +309,7 @@ def test_linking_coverage(export_not_found: str = None, export_ambiguous: str = 
             for f in res.candidate_features:
                 cands_list.append(
                     {
-                        "name": f.name,
+                        "name": f.gnis_name,
                         "gnis_id": f.gnis_id,
                         "fwa_watershed_code": f.fwa_watershed_code,
                         "feature_type": getattr(f, "geometry_type", "Unknown"),
@@ -444,7 +438,7 @@ def test_linking_coverage(export_not_found: str = None, export_ambiguous: str = 
             feat = data["feature"]
             print(f"\n  {identity_key}")
             if feat:
-                info = f"{feat.name} ({feat.geometry_type})"
+                info = f"{feat.gnis_name} ({feat.geometry_type})"
                 if feat.gnis_id:
                     info += f" [GNIS {feat.gnis_id}]"
                 print(f"  Feature: {info}")
@@ -452,8 +446,8 @@ def test_linking_coverage(export_not_found: str = None, export_ambiguous: str = 
                     print(f"  FWA MUs: {', '.join(sorted(feat.mgmt_units))}")
 
             print(f"  Mapped by {len(data['regulations'])} regulation(s):")
-            for r, k, n in data["regulations"]:
-                print(f"    • {r:10s} | {n if n else k}")
+            for r, n in data["regulations"]:
+                print(f"    • {r:10s} | {n}")
 
         if len(dupes) > 50:
             print(f"\n  ... and {len(dupes) - 50} more")

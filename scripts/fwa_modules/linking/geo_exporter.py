@@ -54,9 +54,9 @@ LAKE_ZOOM_THRESHOLDS = {
 MAIN_FLOW_CODES = {1000, 1050, 1200, 1250, 1410, 1450}
 
 POLYGON_LAYERS = {
-    "FWA_LAKES_POLY": "lake",
-    "FWA_WETLANDS_POLY": "wetland",
-    "FWA_MANMADE_WATERBODIES_POLY": "manmade",
+    "FWA_LAKES_POLY": FeatureType.LAKE,
+    "FWA_WETLANDS_POLY": FeatureType.WETLAND,
+    "FWA_MANMADE_WATERBODIES_POLY": FeatureType.MANMADE,
 }
 
 
@@ -121,18 +121,30 @@ class RegulationGeoExporter:
             if b in self.regulation_names
         ]
 
+    def _get_group_gnis_name(
+        self, feature_ids: tuple[str, ...], ftype: FeatureType
+    ) -> str:
+        """Safely extract the gnis_name from the first available feature in a group."""
+        for fid in feature_ids:
+            if ftype == FeatureType.STREAM:
+                meta = self.gazetteer.get_stream_metadata(fid)
+            else:
+                meta = self.gazetteer.get_polygon_metadata(fid, ftype)
+            if meta and meta.get("gnis_name"):
+                return meta.get("gnis_name")
+        return ""
+
     def _build_feature_requirements(self):
         poly_types = {FeatureType.LAKE, FeatureType.WETLAND, FeatureType.MANMADE}
         for group in self.merged_groups.values():
             for fid in group.feature_ids:
                 ftype = self.gazetteer.get_feature_type_from_id(fid)
-                key = self.gazetteer.get_feature_key_from_id(fid)
 
                 if ftype in poly_types:
-                    self._needed_polygon_ids.add((ftype.value, key))
+                    self._needed_polygon_ids.add((ftype, fid))
                 elif ftype == FeatureType.STREAM:
-                    self._needed_stream_ids.add(key)
-                    if meta := self.gazetteer.get_stream_metadata(key):
+                    self._needed_stream_ids.add(fid)
+                    if meta := self.gazetteer.get_stream_metadata(fid):
                         if blk := meta.get("blue_line_key"):
                             self._needed_blue_line_keys.add(blk)
 
@@ -177,6 +189,10 @@ class RegulationGeoExporter:
         except Exception:
             gdf = gpd.read_file(gdb_path, layer=layer_name)
 
+        if not isinstance(gdf, gpd.GeoDataFrame):
+            # Return an empty GeoDataFrame so upstream logic safely skips it
+            return gpd.GeoDataFrame()
+
         if not gdf.empty:
             geom_col = gdf.active_geometry_name or "geometry"
             gdf.columns = [
@@ -191,7 +207,11 @@ class RegulationGeoExporter:
 
         def _load():
             geoms = {}
-            layers = fiona.listlayers(str(self.streams_gdb))
+            layers = [
+                lyr
+                for lyr in fiona.listlayers(str(self.streams_gdb))
+                if isinstance(lyr, str) and len(lyr) == 4
+            ]
             with ThreadPoolExecutor(max_workers=4) as executor:
                 futures = {
                     executor.submit(
@@ -236,7 +256,7 @@ class RegulationGeoExporter:
 
         def _load():
             geoms = {}
-            for layer_name, ftype in tqdm(POLYGON_LAYERS.items(), desc="Polygons"):
+            for layer_name, ftype_enum in tqdm(POLYGON_LAYERS.items(), desc="Polygons"):
                 gdf = self._read_gdb_layer_fast(self.polygons_gdb, layer_name)
                 if gdf.empty or "WATERBODY_POLY_ID" not in gdf.columns:
                     continue
@@ -256,18 +276,20 @@ class RegulationGeoExporter:
                         else str(k).strip()
                     )
                     for req_ftype, k in self._needed_polygon_ids
-                    if req_ftype.rstrip("s") == ftype
+                    if req_ftype == ftype_enum
                 }
 
                 for _, row in gdf[
                     gdf["WATERBODY_POLY_ID"].isin(needed_keys)
                 ].iterrows():
-                    geoms[f"{ftype.upper()}_{row['WATERBODY_POLY_ID']}"] = row.geometry
+                    geoms[f"{ftype_enum.value.upper()}_{row['WATERBODY_POLY_ID']}"] = (
+                        row.geometry
+                    )
             return geoms
 
         self._polygon_geometries = self._with_cache(
             self.polygons_gdb,
-            {str(p) for p in self._needed_polygon_ids},
+            {str(p) for _, p in self._needed_polygon_ids},
             "polygons",
             _load,
         )
@@ -406,7 +428,14 @@ class RegulationGeoExporter:
         else:
             blk_zooms = self._get_synchronized_blk_zooms()
             for group in self.merged_groups.values():
-                if group.feature_type not in ("stream", None) or (
+                # Determine feature type of the group based on its first feature
+                first_fid = next(iter(group.feature_ids), None)
+                if not first_fid:
+                    continue
+
+                group_ftype = self.gazetteer.get_feature_type_from_id(first_fid)
+
+                if group_ftype != FeatureType.STREAM or (
                     exclude_lake_streams and group.waterbody_key
                 ):
                     continue
@@ -429,7 +458,9 @@ class RegulationGeoExporter:
                     features.append(
                         {
                             "group_id": group.group_id,
-                            "gnis_name": group.gnis_name or "",
+                            "gnis_name": self._get_group_gnis_name(
+                                group.feature_ids, FeatureType.STREAM
+                            ),
                             "waterbody_key": group.waterbody_key or "",
                             "blue_line_key": blk or "",
                             "watershed_code": ", ".join(sorted(filter(None, ws_codes))),
@@ -458,33 +489,35 @@ class RegulationGeoExporter:
         return result
 
     def _create_polygon_layer(
-        self, ftype: str, merge_geometries: bool, include_all: bool
+        self, ftype_enum: FeatureType, merge_geometries: bool, include_all: bool
     ) -> Optional[gpd.GeoDataFrame]:
         self._load_all_polygon_geometries()
-        cache_key = (f"poly_{ftype}", merge_geometries, include_all)
+        cache_key = (f"poly_{ftype_enum.value}", merge_geometries, include_all)
         if cache_key in self._layer_cache:
             return self._layer_cache[cache_key]
 
         features = []
-        prefix = f"{ftype.upper()}_"
+        prefix = f"{ftype_enum.value.upper()}_"
 
         if include_all:
             for fid, geom in self._polygon_geometries.items():
-                if self.gazetteer.get_feature_type_from_id(fid).value != ftype:
+                # Extract the actual ID by removing the prefix
+                clean_fid = fid.replace(prefix, "")
+                if self.gazetteer.get_feature_type_from_id(clean_fid) != ftype_enum:
                     continue
-                key = self.gazetteer.get_feature_key_from_id(fid)
-                reg_ids = self.feature_to_regs.get(key, [])
-                meta = self.gazetteer.get_polygon_metadata(key, f"{ftype}s") or {}
+
+                reg_ids = self.feature_to_regs.get(clean_fid, [])
+                meta = self.gazetteer.get_polygon_metadata(clean_fid, ftype_enum) or {}
 
                 features.append(
                     {
-                        "waterbody_key": meta.get("waterbody_key", key),
+                        "waterbody_key": meta.get("waterbody_key", clean_fid),
                         "gnis_name": meta.get("gnis_name", ""),
                         "area_sqm": meta.get("area_sqm", 0),
                         "regulation_ids": ",".join(reg_ids) if reg_ids else None,
                         "regulation_count": len(reg_ids),
                         "regulation_names": " | ".join(
-                            self._get_reg_names(reg_ids, [key])
+                            self._get_reg_names(reg_ids, [clean_fid])
                         ),
                         "tippecanoe:minzoom": self._calculate_polygon_minzoom(
                             meta.get("area_sqm", 0)
@@ -494,25 +527,26 @@ class RegulationGeoExporter:
                 )
         else:
             for group in self.merged_groups.values():
-                if group.feature_type != ftype and not any(
-                    f.startswith(prefix) for f in group.feature_ids
+                first_fid = next(iter(group.feature_ids), None)
+                if (
+                    not first_fid
+                    or self.gazetteer.get_feature_type_from_id(first_fid) != ftype_enum
                 ):
                     continue
 
                 geom_meta = [
                     (
                         g,
-                        self.gazetteer.get_polygon_metadata(
-                            self.gazetteer.get_feature_key_from_id(fid), f"{ftype}s"
-                        )
-                        or {},
-                        self.gazetteer.get_feature_key_from_id(fid),
+                        self.gazetteer.get_polygon_metadata(fid, ftype_enum) or {},
+                        fid,
                     )
                     for fid in group.feature_ids
                     if (g := self._polygon_geometries.get(f"{prefix}{fid}"))
                 ]
                 if not geom_meta:
                     continue
+
+                gnis_name = self._get_group_gnis_name(group.feature_ids, ftype_enum)
 
                 if merge_geometries and len(geom_meta) > 1:
                     max_area = max(m.get("area_sqm", 0) for _, m, _ in geom_meta)
@@ -526,7 +560,7 @@ class RegulationGeoExporter:
                                     list(group.regulation_ids), list(group.feature_ids)
                                 )
                             ),
-                            "gnis_name": group.gnis_name or "",
+                            "gnis_name": gnis_name,
                             "feature_count": group.feature_count,
                             "zones": ",".join(group.zones),
                             "mgmt_units": ",".join(group.mgmt_units),
@@ -599,23 +633,32 @@ class RegulationGeoExporter:
         self,
         merge: bool,
         include_all: bool,
-        exc_lake_streams: bool,
-        zones_path: Optional[Path],
+        exclude_lake_streams: bool = False,
+        zones_path: Optional[Path] = None,
     ) -> List[Tuple[str, Callable]]:
         layers = [
-            ("lakes", lambda: self._create_polygon_layer("lake", merge, include_all)),
+            (
+                "lakes",
+                lambda: self._create_polygon_layer(
+                    FeatureType.LAKE, merge, include_all
+                ),
+            ),
             (
                 "wetlands",
-                lambda: self._create_polygon_layer("wetland", merge, include_all),
+                lambda: self._create_polygon_layer(
+                    FeatureType.WETLAND, merge, include_all
+                ),
             ),
             (
                 "manmade",
-                lambda: self._create_polygon_layer("manmade", merge, include_all),
+                lambda: self._create_polygon_layer(
+                    FeatureType.MANMADE, merge, include_all
+                ),
             ),
             (
                 "streams",
                 lambda: self._create_streams_layer(
-                    merge, include_all, exclude_lake_streams=exc_lake_streams
+                    merge, include_all, exclude_lake_streams=exclude_lake_streams
                 ),
             ),
         ]
@@ -653,7 +696,10 @@ class RegulationGeoExporter:
         layer_count = 0
 
         for name, create_fn in self._get_layer_configs(
-            merge_geometries, include_all_features, False, zones_path
+            merge_geometries,
+            include_all_features,
+            exclude_lake_streams=False,
+            zones_path=zones_path,
         ):
             if (gdf := create_fn()) is not None and not gdf.empty:
                 gdf.to_file(output_path, layer=name, driver="GPKG")
@@ -745,7 +791,8 @@ class RegulationGeoExporter:
             ident, rules = reg.get("identity", {}), reg.get("rules", [])
             for r_idx, rule in enumerate(rules):
                 rest, scope = rule.get("restriction", {}), rule.get("scope", {})
-                reg_lookup[f"reg_{idx:04d}_rule{r_idx}"] = {
+                rule_id = self.mapper.rule_id(idx, r_idx)
+                reg_lookup[rule_id] = {
                     "waterbody_name": ident.get("name_verbatim"),
                     "waterbody_key": ident.get("waterbody_key"),
                     "region": reg.get("region"),
@@ -782,24 +829,26 @@ class RegulationGeoExporter:
             reg_names = self._get_reg_names(
                 list(group.regulation_ids), list(group.feature_ids)
             )
-            if not group.gnis_name and not reg_names:
+
+            # Determine feature type of the group based on its first feature
+            first_fid = next(iter(group.feature_ids), None)
+            if not first_fid:
                 continue
 
-            ftype = group.feature_type or (
-                self.gazetteer.get_feature_type_from_id(
-                    next(iter(group.feature_ids))
-                ).value
-                if group.feature_ids
-                else "stream"
-            )
+            ftype = self.gazetteer.get_feature_type_from_id(first_fid)
+            gnis_name = self._get_group_gnis_name(group.feature_ids, ftype)
+
+            if not gnis_name and not reg_names:
+                continue
+
             sg = search_groups[
-                (group.gnis_name, tuple(sorted(group.regulation_ids)), ftype)
+                (gnis_name, tuple(sorted(group.regulation_ids)), ftype.value)
             ]
 
-            prefix = f"{ftype.upper()}_" if ftype != "stream" else ""
+            prefix = f"{ftype.value.upper()}_" if ftype != FeatureType.STREAM else ""
             geoms_dict = (
                 self._stream_geometries
-                if ftype == "stream"
+                if ftype == FeatureType.STREAM
                 else self._polygon_geometries
             )
 
@@ -816,12 +865,12 @@ class RegulationGeoExporter:
             sg["group_ids"].append(group.group_id)
 
         search_items = []
-        for (gnis, reg_ids_tuple, ftype), data in search_groups.items():
+        for (gnis, reg_ids_tuple, ftype_val), data in search_groups.items():
             if not data["geoms"]:
                 continue
             reg_ids = list(reg_ids_tuple)
 
-            if ftype == "stream":
+            if ftype_val == FeatureType.STREAM.value:
                 mag = max(
                     (
                         (m.get("stream_magnitude") or 0)
@@ -853,12 +902,12 @@ class RegulationGeoExporter:
 
             search_items.append(
                 {
-                    "id": f"{gnis}|{','.join(reg_ids)}|{ftype}",
+                    "id": f"{gnis}|{','.join(reg_ids)}|{ftype_val}",
                     "gnis_name": gnis,
                     "regulation_names": self._get_reg_names(
                         reg_ids, data["feature_ids"]
                     ),
-                    "type": ftype,
+                    "type": ftype_val,
                     "zones": ",".join(sorted(data["zones"])),
                     "mgmt_units": ",".join(sorted(data["mgmt_units"])),
                     "regulation_ids": ",".join(reg_ids),
