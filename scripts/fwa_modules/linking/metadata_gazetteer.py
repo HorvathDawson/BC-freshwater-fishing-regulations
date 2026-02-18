@@ -183,12 +183,12 @@ class MetadataGazetteer:
         """Normalize name for indexing (title case, stripped)."""
         return name.strip().title()
 
-    def search(self, name: str, region: Optional[str] = None) -> List[FWAFeature]:
+    def search(self, name: str, zone_number: Optional[str] = None) -> List[FWAFeature]:
         """Search for FWA features by name."""
         normalized = self._normalize_for_index(name)
         matches = self.name_index.get(normalized, [])
-        if region:
-            matches = [f for f in matches if region in f.zones]
+        if zone_number:
+            matches = [f for f in matches if zone_number in f.zones]
         return matches
 
     def get_stream_metadata(self, linear_feature_id: str) -> Optional[Dict]:

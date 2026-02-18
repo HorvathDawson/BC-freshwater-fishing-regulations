@@ -163,8 +163,18 @@ class MetadataBuilder:
 
         # OPTIMIZATION: Pre-calculate buffered geometries
         # This moves the O(N) buffering operation to O(1) (N=zones, not N=streams)
-        logger.info(f"Pre-buffering zones by {ZONE_BOUNDARY_BUFFER_M}m...")
-        gdf["geometry_buffered"] = gdf.geometry.buffer(ZONE_BOUNDARY_BUFFER_M)
+        logger.info(
+            f"Pre-buffering zones by {ZONE_BOUNDARY_BUFFER_M}m and clipping to provincial boundary..."
+        )
+
+        # 1. Get the total outer envelope of all zones (e.g., the province of BC)
+        provincial_boundary = gdf.geometry.union_all()
+
+        # 2. Buffer each zone, then clip it back to the provincial boundary.
+        # This preserves internal overlapping borders but stops the exterior border from expanding.
+        gdf["geometry_buffered"] = gdf.geometry.buffer(
+            ZONE_BOUNDARY_BUFFER_M
+        ).intersection(provincial_boundary)
 
         self.data["zones_gdf"] = gdf
         # Build index on the BUFFERED geometry to ensure wide enough search

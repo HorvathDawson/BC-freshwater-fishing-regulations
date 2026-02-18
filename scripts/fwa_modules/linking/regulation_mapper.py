@@ -89,12 +89,21 @@ class RegulationMapper:
     def process_all_regulations(self, regulations: List[Dict]) -> Dict[str, List[str]]:
         """Main processing loop - creates feature to rule index."""
         self.feature_to_regs = {}
+        self.feature_to_linked_regulation = defaultdict(set)
+        self.linked_waterbody_keys_of_polygon = set()
         self.stats.total_regulations = len(regulations)
 
         logger.info(f"Processing {len(regulations)} regulations...")
 
+        # Cache linked results to avoid re-processing in Pass 2
+        # Format: tuple of (original_index, regulation_dict, regulation_id, base_features)
+        linked_regulations_cache = []
+
+        # ==========================================
+        # PASS 1: Pre-calculate Links and Lookups
+        # ==========================================
         for idx, regulation in enumerate(
-            self._with_progress(regulations, "Processing regulations", "reg")
+            self._with_progress(regulations, "Pre-linking regulations", "reg")
         ):
             regulation_id = self.regulation_id(idx)
             identity = regulation.get("identity", {})
@@ -127,7 +136,7 @@ class RegulationMapper:
             self.stats.linked_regulations += 1
             base_features = link_result.matched_features
 
-            # 2. Track Keys and Polygons for Grouping
+            # 2. Track Keys and Polygons for Grouping (Pre-step)
             for feature in base_features:
                 fid = self._get_feature_id(feature)
                 self.feature_to_linked_regulation[fid].add(regulation_id)
@@ -140,13 +149,29 @@ class RegulationMapper:
                     if wb_key := self._get_prop(feature, ["waterbody_key"]):
                         self.linked_waterbody_keys_of_polygon.add(str(wb_key))
 
+            # Store successful links for Pass 2
+            linked_regulations_cache.append(
+                (idx, regulation, regulation_id, base_features)
+            )
+
+        logger.info(
+            f"Pre-step complete. Found {len(self.linked_waterbody_keys_of_polygon)} linked polygon waterbodies."
+        )
+
+        # ==========================================
+        # PASS 2: Scope, Enrich, and Map Rules
+        # ==========================================
+        for idx, regulation, regulation_id, base_features in self._with_progress(
+            linked_regulations_cache, "Mapping rules to features", "reg"
+        ):
+            identity = regulation.get("identity", {})
+
             # 3. Apply Global Scope
             global_scope = identity.get("global_scope", {})
             globally_scoped_features = self.apply_scope_and_enrich(
                 base_features,
                 scope=global_scope,
                 global_scope=global_scope,
-                includes_tributaries=global_scope.get("includes_tributaries"),
             )
 
             if (
@@ -164,7 +189,6 @@ class RegulationMapper:
                     globally_scoped_features,
                     rule_scope,
                     global_scope,
-                    rule_scope.get("includes_tributaries"),
                 )
 
                 rule_id = self.rule_id(idx, rule_idx)
@@ -179,19 +203,16 @@ class RegulationMapper:
             self.feature_to_regs[feature_id].sort()
 
         self.stats.unique_features_with_rules = len(self.feature_to_regs)
-        logger.info(
-            f"Found {len(self.linked_waterbody_keys_of_polygon)} linked polygon waterbodies."
-        )
         return self.feature_to_regs
 
     def apply_scope_and_enrich(
         self,
-        base_features: List,
+        base_features: List[FWAFeature],
         scope: Dict,
         global_scope: Dict,
-        includes_tributaries: Optional[bool] = None,
-    ) -> List:
+    ) -> List[FWAFeature]:
         """Apply spatial filter + tributary enrichment."""
+
         scope_type = scope.get("type", "WHOLE_SYSTEM")
 
         if scope_type == "TRIBUTARIES_ONLY":
@@ -201,13 +222,12 @@ class RegulationMapper:
                 )
             return self._enrich_with_tributaries(base_features)
 
-        scoped_features = (
-            self.scope_filter.apply_scope(base_features, scope) or base_features
-        )
+        scoped_features = self.scope_filter.apply_scope(base_features, scope)
 
+        # Check if we should enrich with tributaries based on rule scope or global scope
         should_enrich = (
-            includes_tributaries
-            if includes_tributaries is not None
+            scope.get("includes_tributaries", False)
+            if scope.get("includes_tributaries", False) is not None
             else global_scope.get("includes_tributaries", False)
         )
 
@@ -234,7 +254,7 @@ class RegulationMapper:
 
     # --- Enrichment & Grouping ---
 
-    def _enrich_with_tributaries(self, features: List) -> List:
+    def _enrich_with_tributaries(self, features: List[FWAFeature]) -> List[FWAFeature]:
         """Enrich features with upstream tributaries."""
         if (
             not self.tributary_enricher
@@ -286,13 +306,15 @@ class RegulationMapper:
         if stream_seeds:
             excluded_codes = self._get_watershed_codes_for_streams(stream_seeds)
             for trib in self.tributary_enricher.enrich_with_tributaries(
-                stream_seeds, excluded_codes, features
+                stream_seeds,
+                excluded_watershed_codes=excluded_codes,
             ):
                 all_tributaries_dict[self._get_feature_id(trib)] = trib
 
         for ftype, seeds in polygon_seeds_by_type.items():
             for trib in self.tributary_enricher.enrich_with_tributaries(
-                seeds, set(), features
+                seeds,
+                excluded_waterbody_keys=self.linked_waterbody_keys_of_polygon,
             ):
                 all_tributaries_dict[self._get_feature_id(trib)] = trib
 

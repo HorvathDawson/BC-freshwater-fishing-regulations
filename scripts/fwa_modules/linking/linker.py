@@ -75,7 +75,6 @@ class WaterbodyLinker:
     ):
         self.gazetteer = gazetteer
         self.corrections = manual_corrections
-        self.manual_corrections = manual_corrections  # Add alias for consistency
         self.stats = Counter()
         # Track which regulation names map to which FWA features
         # Key: FWA feature ID, Value: list of (region, name_verbatim) tuples
@@ -103,7 +102,7 @@ class WaterbodyLinker:
         # Extract zone number from region (e.g., "Region 4" -> "4", or "4" -> "4")
         zone_number = None
         if region:
-            if region.startswith("Region "):
+            if region.lower().startswith("region "):
                 zone_number = region.split()[-1]  # "Region 4" -> "4"
             else:
                 zone_number = region  # Already a zone number
@@ -395,7 +394,7 @@ class WaterbodyLinker:
 
         if direct_match.unmarked_waterbody_id:
             # Lookup unmarked waterbody from manual corrections
-            unmarked_waterbody = self.manual_corrections.get_unmarked_waterbody(
+            unmarked_waterbody = self.corrections.get_unmarked_waterbody(
                 direct_match.unmarked_waterbody_id
             )
             if unmarked_waterbody:
@@ -473,20 +472,28 @@ class WaterbodyLinker:
         mgmt_units: Optional[List[str]],
     ) -> LinkingResult:
         """Link using corrected name(s) from NameVariation."""
+
         # Handle multi-waterbody case (e.g., "RIVER A AND RIVER B" -> ["river a", "river b"])
         if len(name_var.target_names) > 1:
-            # Search for each target and combine results
             all_features = []
+            successful_targets = 0
+
+            # Use _natural_search for every target name to benefit from dedup/MU filtering
             for target in name_var.target_names:
-                features = self.gazetteer.search(target, region=zone_number)
-                # update features matched_via for tracking
-                all_features.extend(features)
+                res = self._natural_search(
+                    target, zone_number, mgmt_units, is_variation=True
+                )
+                if res.status == LinkStatus.SUCCESS:
+                    successful_targets += 1
+                    all_features.extend(res.matched_features)
 
-            for feature in all_features:
-                feature.matched_via = f"name_variation ({name_var.note})"
+            # We count successful targets instead of raw features so multiple stream segments
+            # won't falsely fail the length validation check.
+            if successful_targets == len(name_var.target_names):
+                # Enforce consistent attribution on matched features
+                for feature in all_features:
+                    feature.matched_via = f"name_variation ({name_var.note})"
 
-            if len(all_features) == len(name_var.target_names):
-                # Found all expected waterbodies - this is SUCCESS
                 return LinkingResult(
                     status=LinkStatus.SUCCESS,
                     matched_features=all_features,
@@ -497,7 +504,7 @@ class WaterbodyLinker:
             else:
                 return LinkingResult(
                     status=LinkStatus.NOT_FOUND,
-                    error_message=f"Found {len(all_features)}/{len(name_var.target_names)} expected waterbodies",
+                    error_message=f"Found {successful_targets}/{len(name_var.target_names)} expected waterbodies",
                 )
 
         # Single target name
@@ -505,30 +512,34 @@ class WaterbodyLinker:
         result = self._natural_search(
             target_name, zone_number, mgmt_units, is_variation=True
         )
-        # Set matched_name if this was a variation
+
+        # Set matched_name and explicitly format matched_via if this was a variation
         if result.status == LinkStatus.SUCCESS:
             result.matched_name = target_name
+            for feature in result.matched_features:
+                feature.matched_via = f"name_variation ({name_var.note})"
+
         return result
 
     def _natural_search(
         self,
         name: str,
-        region: Optional[str],
+        zone_number: Optional[str],
         mgmt_units: Optional[List[str]],
         is_variation: bool = False,
     ) -> LinkingResult:
         """Search gazetteer naturally by name."""
-        # Try searching with region filter first
-        matches = self.gazetteer.search(name, region=region)
+        # Try searching with zone_number filter first
+        matches = self.gazetteer.search(name, zone_number=zone_number)
         if "williston" in name.lower():
             logger.debug(
-                f"Natural search for '{name}' (region={region}) found {len(matches)} initial matches"
+                f"Natural search for '{name}' (zone_number={zone_number}) found {len(matches)} initial matches"
             )
 
-        # If no matches and region was specified, try searching all regions
-        # (allows cross-region matches for boundary issues)
-        if not matches and region:
-            matches = self.gazetteer.search(name, region=None)
+        # If no matches and zone_number was specified, try searching all zone_numbers
+        # (allows cross-zone_number matches for boundary issues)
+        if not matches and zone_number:
+            matches = self.gazetteer.search(name, zone_number=None)
 
         # Deduplicate by waterbody identity
         # - For streams: group by fwa_watershed_code (multiple segments = one stream)
@@ -628,12 +639,12 @@ class WaterbodyLinker:
                 )
 
             # Validate that regulation region matches FWA feature's MU region
-            if not self._validate_region_mu_match(region, all_features_in_group):
+            if not self._validate_region_mu_match(zone_number, all_features_in_group):
                 # Region/MU mismatch - mark as AMBIGUOUS
                 return LinkingResult(
                     status=LinkStatus.AMBIGUOUS,
                     candidate_features=all_features_in_group,
-                    error_message=f"Regulation region {region} doesn't match feature MU region",
+                    error_message=f"Regulation region {zone_number} doesn't match feature MU region",
                 )
 
             # For streams: multiple segments with same watershed code = SUCCESS (it's one stream)
@@ -655,14 +666,14 @@ class WaterbodyLinker:
                 return LinkingResult(
                     status=LinkStatus.SUCCESS,
                     matched_features=all_features_in_group,
-                    matched_name=(name if is_variation else None),
+                    matched_name=name,
                 )
             else:
                 # Single feature (or single waterbody_key/fwa_id group) = SUCCESS
                 return LinkingResult(
                     status=LinkStatus.SUCCESS,
                     matched_features=unique_matches,
-                    matched_name=(name if is_variation else None),
+                    matched_name=name,
                 )
         else:
             # Multiple matches - check region/MU consistency first
@@ -671,12 +682,12 @@ class WaterbodyLinker:
                 all_candidates.extend(identity_matches)
 
             # Validate that regulation region matches FWA feature's MU region
-            if not self._validate_region_mu_match(region, all_candidates):
+            if not self._validate_region_mu_match(zone_number, all_candidates):
                 # Region/MU mismatch - mark as AMBIGUOUS with specific error
                 return LinkingResult(
                     status=LinkStatus.AMBIGUOUS,
                     candidate_features=all_candidates,
-                    error_message=f"Found {len(unique_matches)} candidates, but regulation region {region} doesn't match feature MU region",
+                    error_message=f"Found {len(unique_matches)} candidates, but regulation region {zone_number} doesn't match feature MU region",
                 )
 
             # Multiple matches - AMBIGUOUS

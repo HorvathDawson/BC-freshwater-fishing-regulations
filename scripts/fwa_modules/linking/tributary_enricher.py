@@ -128,7 +128,6 @@ class TributaryEnricher:
         self,
         linear_feature_ids: List[str],
         excluded_watershed_codes: Set[str] = None,
-        parent_features: List = None,
         excluded_waterbody_keys: Set[str] = None,
     ) -> List:
         """
@@ -145,7 +144,6 @@ class TributaryEnricher:
             linear_feature_ids: List of stream linear_feature_ids to use as seeds
             excluded_watershed_codes: Set of watershed codes to exclude during traversal.
                                       Defaults to empty set (include all upstream).
-            parent_features: Optional parent features for zone inheritance fallback
             excluded_waterbody_keys: Set of waterbody keys to exclude (if using lake seeds)
 
         Returns:
@@ -204,7 +202,7 @@ class TributaryEnricher:
         tributaries = self._traverse_upstream(seed_edges, excluded_codes, excluded_keys)
 
         # Convert to FWAFeature objects
-        tributary_features = self._edges_to_features(tributaries, parent_features or [])
+        tributary_features = self._edges_to_features(tributaries)
 
         # Cache results
         self.enrichment_cache[cache_key] = tributary_features
@@ -274,6 +272,19 @@ class TributaryEnricher:
 
                 # Check if this upstream edge should be excluded by waterbody key
                 upstream_wb_key = upstream_edge["waterbody_key"]
+                # if "329093898" == str(upstream_wb_key):
+                #     logger.warning(
+                #         f"Encountered excluded waterbody_key 329093898 during tributary enrichment. This edge will be skipped ({upstream_wb_key in excluded_waterbody_keys}). came from edge with linear_feature_id {linear_id}"
+                #     )
+                #     logger.warning(
+                #         f"\nUpstream edge details: {upstream_edge.attributes()}"
+                #     )
+                #     logger.warning(f"\nSeed edge details: {edge.attributes()}")
+                #     logger.warning(
+                #         f"\nExcluded waterbody keys: {excluded_waterbody_keys}"
+                #     )
+                #     exit(0)
+
                 if upstream_wb_key and upstream_wb_key in excluded_waterbody_keys:
                     # This edge has an excluded waterbody key (e.g., lake)
                     # Skip it entirely - don't include in results, don't traverse upstream from it
@@ -292,6 +303,8 @@ class TributaryEnricher:
 
                     # TODO: figure this out. it will cause issues for lakes where tributaries have a segment in the lake...
                     # might be able to seed lake blueline key and watershedcode... also lakes we want all items so no excluded?
+                    # but this might not be a huge issue in practice since most tributaries will be connected by stream segments,
+                    # which means it doesnt have any items of tributaries as seeds, just the mainstem/side channel segment which will exclude itself but not the tributaries beyond it.
 
                     # This edge has an excluded watershed code (mainstem/side channel)
                     # Skip it entirely - don't include in results, don't traverse upstream from it
@@ -324,13 +337,12 @@ class TributaryEnricher:
 
         return tributaries
 
-    def _edges_to_features(self, edge_indices: Set[int], parent_features: List) -> List:
+    def _edges_to_features(self, edge_indices: Set[int]) -> List:
         """
         Convert edge indices to FWAFeature objects STRICTLY using the MetadataGazetteer.
 
         Args:
             edge_indices: Set of edge indices to convert
-            parent_features: Parent features for zone inheritance fallback
 
         Returns:
             List of FWAFeature objects
@@ -353,14 +365,6 @@ class TributaryEnricher:
             if feature:
                 # We successfully pulled the centralized feature
                 # If it's missing zone metadata, try to inherit from the parent feature
-                if not feature.zones or feature.zones == ["Unknown"]:
-                    if parent_features:
-                        parent_zones = _get_attr(parent_features[0], "zones", [])
-                        if parent_zones and parent_zones != ["Unknown"]:
-                            feature.zones = parent_zones
-                            logger.debug(
-                                f"Tributary {linear_feature_id} inheriting zones {parent_zones} from parent"
-                            )
 
                 # Tag how this feature was matched into the set
                 feature.matched_via = "tributary_enrichment"
