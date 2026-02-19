@@ -68,6 +68,16 @@
     font-family: var(--font-sans);
 }
 
+.type-icon {
+    width: 44px;
+    height: 44px;
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 2px;
+}
+
 .square-btn { 
     background: none; 
     border: 1px solid transparent; 

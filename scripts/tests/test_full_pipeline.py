@@ -60,7 +60,7 @@ def main():
     print("=" * 80)
 
     # Run full pipeline with export
-    result = mapper.process_and_export(parsed_data, output_dir=index_output_dir)
+    result = mapper.run(parsed_data)
 
     # Display results
     stats = result.stats

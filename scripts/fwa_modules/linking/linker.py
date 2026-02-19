@@ -628,8 +628,18 @@ class WaterbodyLinker:
             )
         elif len(unique_matches) == 1:
             # Single unique identity found
-            # Check if this identity has multiple physical features (e.g., multiple polygons)
-            identity_key = list(identity_groups.keys())[0]
+            # Construct the correct identity_key from the SURVIVING unique match
+            # (Do not use list(identity_groups.keys())[0] as it bypasses the MU filter)
+            rep = unique_matches[0]
+            if rep.geometry_type == "multilinestring" and rep.fwa_watershed_code:
+                identity_key = ("stream", rep.fwa_watershed_code)
+            elif rep.gnis_id:
+                identity_key = ("gnis", rep.gnis_id)
+            elif rep.waterbody_key:
+                identity_key = ("waterbody_key", rep.waterbody_key)
+            else:
+                identity_key = ("fwa_id", rep.fwa_id)
+
             identity_type = identity_key[0]
             all_features_in_group = identity_groups[identity_key]
 
@@ -662,6 +672,56 @@ class WaterbodyLinker:
                     error_message=f"Found {len(all_features_in_group)} polygons with same GNIS ID (needs direct match)",
                 )
             elif identity_type == "stream":
+                # Fetch the rest of the stream segments using the watershed code
+                watershed_code = identity_key[1]
+                if watershed_code:
+                    full_stream_segments = self.gazetteer.search_by_watershed_code(
+                        watershed_code
+                    )
+
+                    target_gnis_id = rep.gnis_id
+                    target_name_lower = (rep.gnis_name or "").lower()
+
+                    expanded_features = []
+                    for seg in full_stream_segments:
+                        # Ensure it matches GNIS ID or name to prevent collecting named side channels
+
+                        # if "similkameen" in name.lower():
+                        #     logger.warning(
+                        #         f"Expanding stream segments for '{name}' with watershed code {watershed_code}"
+                        #     )
+                        #     logger.warning(
+                        #         f"items in full stream segmentsa but not in unique matches: {[seg.fwa_id for seg in self.gazetteer.search_by_watershed_code(watershed_code) if seg not in all_features_in_group]}"
+                        #     )
+                        #     logger.warning(
+                        #         f"unique gnis_ids in both sets: {set(seg.gnis_id for seg in full_stream_segments)} vs {set(seg.gnis_id for seg in all_features_in_group)} and gnis names: {set(seg.gnis_name for seg in full_stream_segments)} vs {set(seg.gnis_name for seg in all_features_in_group)}  "
+                        #     )
+                        #     exit(0)
+
+                        if target_gnis_id and seg.gnis_id == target_gnis_id:
+                            expanded_features.append(seg)
+                        elif (
+                            target_name_lower
+                            and (seg.gnis_name or "").lower() == target_name_lower
+                        ):
+                            expanded_features.append(seg)
+                        elif (
+                            not target_gnis_id
+                            and not target_name_lower
+                            and not seg.gnis_name
+                        ):
+                            # Fallback just in case the entire stream is unnamed
+                            expanded_features.append(seg)
+
+                    if expanded_features:
+                        for feature in expanded_features:
+                            feature.matched_via = (
+                                f"natural_search (variation)"
+                                if is_variation
+                                else "natural_search"
+                            )
+                        all_features_in_group = expanded_features
+
                 # Multiple segments of same stream = SUCCESS with all segments
                 return LinkingResult(
                     status=LinkStatus.SUCCESS,

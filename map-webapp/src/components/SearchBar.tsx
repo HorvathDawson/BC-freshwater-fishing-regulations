@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Search, X, Eye } from 'lucide-react';
+import { Icon } from '@iconify/react';
 import Fuse from 'fuse.js';
 import './SearchBar.css';
 
@@ -9,7 +10,7 @@ export interface SearchableFeature {
     lake_name?: string;
     name?: string;
     regulation_names?: string[];  // Array of regulation names
-    type: 'stream' | 'lake' | 'wetland' | 'manmade';
+    type: 'stream' | 'lake' | 'wetland' | 'manmade' | 'streams' | 'lakes' | 'wetlands';
     properties: Record<string, any>;
     geometry?: any;
     _segmentCount?: number;
@@ -25,6 +26,32 @@ interface SearchBarProps {
     onHighlight: (feature: SearchableFeature | null) => void;
     placeholder?: string;
 }
+
+const getIconForType = (type: 'stream' | 'lake' | 'wetland' | 'manmade' | 'streams' | 'lakes' | 'wetlands') => {
+    const iconMap = {
+        stream: 'game-icons:splashy-stream',
+        streams: 'game-icons:splashy-stream',
+        lake: 'game-icons:oasis',
+        lakes: 'game-icons:oasis',
+        wetland: 'game-icons:swamp',
+        wetlands: 'game-icons:swamp',
+        manmade: 'game-icons:dam'
+    };
+    return iconMap[type as keyof typeof iconMap] || iconMap.lake;
+};
+
+const getColorForType = (type: 'stream' | 'lake' | 'wetland' | 'manmade' | 'streams' | 'lakes' | 'wetlands') => {
+    const colorMap = {
+        stream: '#3b82f6',
+        streams: '#3b82f6',
+        lake: '#0ea5e9',
+        lakes: '#0ea5e9',
+        wetland: '#10b981',
+        wetlands: '#10b981',
+        manmade: '#a855f7'
+    };
+    return colorMap[type as keyof typeof colorMap] || colorMap.lake;
+};
 
 const SearchBar: React.FC<SearchBarProps> = ({ features, onSelect, highlightedResult, onHighlight, placeholder = "Search waterbodies..." }) => {
     const [query, setQuery] = useState('');
@@ -244,7 +271,9 @@ const SearchBar: React.FC<SearchBarProps> = ({ features, onSelect, highlightedRe
                                         }
                                     }}
                                 >
-                                    <div className={`square-icon ${feature.type}`} />
+                                    <div className={`icon-container ${feature.type}`} style={{ backgroundColor: getColorForType(feature.type) }}>
+                                        <Icon icon={getIconForType(feature.type)} width={28} height={28} color="white" />
+                                    </div>
                                     <div className="search-result-content">
                                         <div className="search-result-name">
                                             {displayName}

@@ -1,5 +1,6 @@
 import React, { useRef, useLayoutEffect, useState } from 'react';
 import { Eye } from 'lucide-react';
+import { Icon } from '@iconify/react';
 import './DisambiguationMenu.css';
 
 interface FeatureOption {
@@ -19,6 +20,32 @@ interface DisambiguationMenuProps {
     isCollapsed?: boolean;
     onSetCollapse: (collapsed: boolean) => void;
 }
+
+const getIconForType = (type: 'stream' | 'lake' | 'wetland' | 'manmade' | 'streams' | 'lakes' | 'wetlands') => {
+    const iconMap = {
+        stream: 'game-icons:splashy-stream',
+        streams: 'game-icons:splashy-stream',
+        lake: 'game-icons:oasis',
+        lakes: 'game-icons:oasis',
+        wetland: 'game-icons:swamp',
+        wetlands: 'game-icons:swamp',
+        manmade: 'game-icons:dam'
+    };
+    return iconMap[type as keyof typeof iconMap] || iconMap.lake;
+};
+
+const getColorForType = (type: 'stream' | 'lake' | 'wetland' | 'manmade' | 'streams' | 'lakes' | 'wetlands') => {
+    const colorMap = {
+        stream: '#3b82f6',
+        streams: '#3b82f6',
+        lake: '#0ea5e9',
+        lakes: '#0ea5e9',
+        wetland: '#10b981',
+        wetlands: '#10b981',
+        manmade: '#a855f7'
+    };
+    return colorMap[type as keyof typeof colorMap] || colorMap.lake;
+};
 
 const DisambiguationMenu = ({ options, position, highlightedOption, onSelect, onHighlight, onClose, isCollapsed = false, onSetCollapse }: DisambiguationMenuProps) => {
     const menuRef = useRef<HTMLDivElement>(null);
@@ -149,7 +176,9 @@ const DisambiguationMenu = ({ options, position, highlightedOption, onSelect, on
                                         }
                                     }}
                                 >
-                                    <div className={`square-icon ${option.type}`} />
+                                    <div className={`icon-container ${option.type}`} style={{ backgroundColor: getColorForType(option.type) }}>
+                                        <Icon icon={getIconForType(option.type)} width={28} height={28} color="white" />
+                                    </div>
                                     <div className="item-info">
                                         <span className="name">
                                             {getLabel(option)}

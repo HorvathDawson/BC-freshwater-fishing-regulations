@@ -637,7 +637,7 @@ FUNCTION build_regulation_index(parsed_regulations):
     mapper = RegulationMapper(linker, scope_filter, tributary_enricher)
     
     // 3. Run full pipeline (single call!)
-    result = mapper.process_and_export(
+    result = mapper.run(
         parsed_regulations,
         output_dir = "output/regulation_indices"
     )
@@ -656,7 +656,7 @@ FUNCTION build_regulation_index(parsed_regulations):
 **Key Changes from Original Design**:
 - ✅ FeatureMerger → `RegulationMapper.merge_features()`
 - ✅ RegulationIndexBuilder → `RegulationMapper.build_index()`  
-- ✅ Added `process_and_export()` - runs entire pipeline in one call
+- ✅ Added `run()` - runs entire pipeline in one call
 - ✅ Returns frozen `PipelineResult` dataclass with all outputs
 - ✅ Returns frozen `MergedGroup` dataclasses (not dicts)
 - ✅ Simpler API - one class instead of three

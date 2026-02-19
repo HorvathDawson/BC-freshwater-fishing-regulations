@@ -213,7 +213,7 @@ def main():
     output_dir = Path("output/fwa_modules/regulation_index")
 
     print(f"Running full pipeline: Link → Scope → Enrich → Merge → Export")
-    result = mapper.process_and_export(regulations, output_dir=output_dir)
+    result = mapper.run(regulations)
 
     # Get statistics
     mapper_stats = mapper.get_stats()
@@ -234,6 +234,7 @@ def main():
         f"({format_percentage(mapper_stats.linked_regulations, mapper_stats.total_regulations)})"
     )
     print(f"Failed to link:             {mapper_stats.failed_to_link_regulations}")
+    print(f"Bad regulations:            {mapper_stats.bad_regulation}")
 
     print("\nLink Status Breakdown:")
     for status, count in mapper_stats.link_status_counts.most_common():

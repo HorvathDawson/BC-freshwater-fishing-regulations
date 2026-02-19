@@ -1,6 +1,7 @@
-Similkameen River cut off early? - this is because we only match in the zone... need to figure out how to handle this more generally. 
- - this should be fixable by making it so if a stream (same watershed) is represented in a different zone with regulations but not in another zone then it should get the combined regulations from all zones that the stream has regulations in maybe? 
 
+1. JUST NEED TO DECIDE: Do we want the river flowing through a lake that has includes tributaries true to add the regulations to the streams entering the lake too?
+2. Should we make it so that ignored matches can link to another regulation which will then be able to display (and allow search) with all name variations. Similarly name variations should make sure both names are available.
+3. Dinosaur lake WBK: 329657308 is not a visible polygon but the river is removed under it? Theory is if it iis regulated but not in regulations because it is Error or similar.
 
 
 ===============
@@ -9,7 +10,11 @@ Complete
 
 ---
 
+Similkameen River cut off early? - this is because we only match in the zone... need to figure out how to handle this more generally. 
+ - this should be fixable by making it so if a stream (same watershed) is represented in a different zone with regulations but not in another zone then it should get the combined regulations from all zones that the stream has regulations in maybe? 
+- could try to see if direct match works just to verify...
 
+all regs go to all segments of a match now
 
 ---
 

@@ -19,6 +19,17 @@ from .logger_config import get_logger
 logger = get_logger(__name__)
 
 
+# --- Standalone Helper Functions ---
+def generate_regulation_id(regulation_idx: int) -> str:
+    """Generate a consistent regulation ID from its index."""
+    return f"reg_{regulation_idx:05d}"
+
+
+def generate_rule_id(regulation_idx: int, rule_idx: int) -> str:
+    """Generate a consistent rule ID from regulation and rule indices."""
+    return f"{generate_regulation_id(regulation_idx)}_rule{rule_idx}"
+
+
 @dataclass
 class RegulationMappingStats:
     """Statistics from regulation mapping process."""
@@ -26,6 +37,7 @@ class RegulationMappingStats:
     total_regulations: int = 0
     linked_regulations: int = 0
     failed_to_link_regulations: int = 0
+    bad_regulation: int = 0
     total_rules_processed: int = 0
     total_rule_to_feature_mappings: int = 0
     unique_features_with_rules: int = 0
@@ -47,11 +59,13 @@ class MergedGroup:
 
 @dataclass(frozen=True)
 class PipelineResult:
-    """Result from full regulation processing pipeline."""
+    """Result from full regulation processing pipeline. Contains all state needed for export."""
 
     feature_to_regs: Dict[str, List[str]] = field(default_factory=dict)
     merged_groups: Dict[str, MergedGroup] = field(default_factory=dict)
     regulation_names: Dict[str, str] = field(default_factory=dict)
+    feature_to_linked_regulation: Dict[str, Set[str]] = field(default_factory=dict)
+    gazetteer: Optional[MetadataGazetteer] = None
     stats: Optional[RegulationMappingStats] = None
 
 
@@ -80,11 +94,12 @@ class RegulationMapper:
 
     # regulation_id
     def regulation_id(self, regulation_idx: int) -> str:
-        return f"reg_{regulation_idx:05d}"
+        return generate_regulation_id(regulation_idx)
 
     # rule id
     def rule_id(self, regulation_idx: int, rule_idx: int) -> str:
-        return f"{self.regulation_id(regulation_idx)}_rule{rule_idx}"
+        """Generate rule ID using the standalone helper function."""
+        return generate_rule_id(regulation_idx, rule_idx)
 
     def process_all_regulations(self, regulations: List[Dict]) -> Dict[str, List[str]]:
         """Main processing loop - creates feature to rule index."""
@@ -108,6 +123,15 @@ class RegulationMapper:
             regulation_id = self.regulation_id(idx)
             identity = regulation.get("identity", {})
             name_verbatim = identity.get("name_verbatim", "")
+
+            # 0: prelim check for regulation errors before linking.
+            reg_error = regulation.get("error", None)
+            if reg_error:
+                logger.warning(
+                    f"Regulation {name_verbatim} has error flag: {reg_error}"
+                )
+                self.stats.bad_regulation += 1
+                continue
 
             if name_verbatim:
                 self.regulation_names[regulation_id] = name_verbatim
@@ -237,11 +261,10 @@ class RegulationMapper:
 
         return scoped_features
 
-    def process_and_export(
-        self, regulations: List[Dict], output_dir: Optional[Path] = None
-    ) -> PipelineResult:
+    def run(self, regulations: List[Dict]) -> PipelineResult:
         """Full pipeline: Link -> Scope -> Enrich -> Map -> Merge -> Export."""
         self.process_all_regulations(regulations)
+
         self.merged_groups = self.merge_features(self.feature_to_regs)
 
         logger.info("Processing complete")
@@ -249,6 +272,8 @@ class RegulationMapper:
             feature_to_regs=self.feature_to_regs,
             merged_groups=self.merged_groups,
             regulation_names=self.regulation_names,
+            feature_to_linked_regulation=dict(self.feature_to_linked_regulation),
+            gazetteer=self.gazetteer,
             stats=self.stats,
         )
 
@@ -308,6 +333,7 @@ class RegulationMapper:
             for trib in self.tributary_enricher.enrich_with_tributaries(
                 stream_seeds,
                 excluded_watershed_codes=excluded_codes,
+                excluded_waterbody_keys=self.linked_waterbody_keys_of_polygon,  # NOTE: I am not sure if this is right but I dont think we want tributary of lake stream segments since it is not really the river here. it is the lake which might have its own tributary regulations.
             ):
                 all_tributaries_dict[self._get_feature_id(trib)] = trib
 
@@ -330,6 +356,7 @@ class RegulationMapper:
         for feature_id, reg_ids in self._with_progress(
             feature_to_regs.items(), "Grouping features", "feature"
         ):
+
             reg_set = frozenset(reg_ids)
             feature = self.gazetteer.get_feature_by_id(feature_id)
 
@@ -355,7 +382,8 @@ class RegulationMapper:
             group_map[(grouping_key, reg_set)].append((feature_id, feature))
 
         merged_groups = {}
-        for idx, ((_, reg_set), features_data) in enumerate(group_map.items()):
+        grouping_key_counter = defaultdict(int)
+        for (grouping_key, reg_set), features_data in group_map.items():
             _, first_feature = features_data[0]
             all_zones, all_mu = set(), set()
 
@@ -363,10 +391,14 @@ class RegulationMapper:
                 all_zones.update(self._get_prop(feat, ["zones"], []))
                 all_mu.update(self._get_prop(feat, ["mgmt_units"], []))
 
-            group_id = f"group_{idx:06d}"
             wbk = self._get_prop(first_feature, ["waterbody_key"])
-            merged_groups[group_id] = MergedGroup(
-                group_id=group_id,
+
+            # Make grouping_key unique by appending counter
+            unique_key = f"{grouping_key}_{grouping_key_counter[grouping_key]}"
+            grouping_key_counter[grouping_key] += 1
+
+            merged_groups[unique_key] = MergedGroup(
+                group_id=unique_key,
                 feature_ids=tuple(fid for fid, _ in features_data),
                 regulation_ids=tuple(sorted(reg_set)),
                 waterbody_key=(

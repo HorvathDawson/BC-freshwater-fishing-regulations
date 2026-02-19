@@ -19,10 +19,13 @@ from .name_variations import (
     UNMARKED_WATERBODIES,
     ManualCorrections,
 )
-from .regulation_mapper import RegulationMapper
+from .regulation_mapper import RegulationMapper, PipelineResult
 from .scope_filter import ScopeFilter
 from .tributary_enricher import TributaryEnricher
 from .geo_exporter import RegulationGeoExporter
+from .logger_config import get_logger
+
+logger = get_logger(__name__)
 
 
 class RegulationPipeline:
@@ -101,20 +104,15 @@ class RegulationPipeline:
             tributary_enricher=tributary_enricher,
         )
 
-    def process_regulations(
-        self,
-        regulations_path: Path,
-        output_dir: Path,
-    ):
+    def process_regulations(self, regulations_path: Path) -> PipelineResult:
         """
         Run the full regulation mapping pipeline.
 
         Args:
             regulations_path: Path to parsed_results.json
-            output_dir: Directory for output files
 
         Returns:
-            PipelineResult from mapper.process_and_export()
+            PipelineResult from mapper.run()
         """
         # Load regulations
         with open(regulations_path) as f:
@@ -130,16 +128,13 @@ class RegulationPipeline:
         self.parsed_regulations = regulations
 
         # Run pipeline
-        result = self.mapper.process_and_export(
-            regulations=regulations,
-            output_dir=output_dir,
-        )
+        result = self.mapper.run(regulations=regulations)
 
         return result
 
     def export_geometries(
         self,
-        pipeline_result,
+        pipeline_result: PipelineResult,
         output_dir: Path,
         zones_path: Optional[Path] = None,
         export_merged: bool = True,
@@ -167,9 +162,9 @@ class RegulationPipeline:
                 "streams_gdb_path and polygons_gdb_path required for export"
             )
 
-        # Initialize exporter
+        # Initialize exporter strictly with the results from the mapper step
         exporter = RegulationGeoExporter(
-            mapper=self.mapper,
+            pipeline_result=pipeline_result,
             streams_gdb_path=self.streams_gdb_path,
             polygons_gdb_path=self.polygons_gdb_path,
         )
@@ -252,7 +247,7 @@ class RegulationPipeline:
             Tuple of (pipeline_result, exported_files)
         """
         # Process regulations
-        result = self.process_regulations(regulations_path, output_dir)
+        result = self.process_regulations(regulations_path)
 
         # Export geometries (if GDB paths provided)
         exported_files = {}

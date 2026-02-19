@@ -18,7 +18,7 @@ import pandas as pd
 import geopandas as gpd
 from shapely.geometry import MultiLineString, MultiPolygon, box
 
-from .regulation_mapper import RegulationMapper
+from .regulation_mapper import PipelineResult, generate_rule_id
 from .metadata_gazetteer import FeatureType
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(message)s")
@@ -40,7 +40,7 @@ WEIGHTS = {
     "has_name": 0.0,
     "side_channel_penalty": 0.0,
 }
-PERCENTILES = {5: 100.0, 6: 99.99, 7: 99.9, 8: 95.0, 10: 0.0}
+PERCENTILES = {5: 100.0, 6: 99.99, 7: 99.97, 8: 95.0, 10: 0.0}
 LAKE_ZOOM_THRESHOLDS = {
     4: 100_000_000,
     5: 25_000_000,
@@ -65,19 +65,19 @@ class RegulationGeoExporter:
 
     def __init__(
         self,
-        mapper: RegulationMapper,
+        pipeline_result: PipelineResult,
         streams_gdb_path: Path,
         polygons_gdb_path: Path,
         cache_dir: Optional[Path] = None,
     ):
-        self.mapper = mapper
-        self.merged_groups = mapper.merged_groups
-        self.feature_to_regs = mapper.feature_to_regs
-        self.regulation_names = mapper.regulation_names
-        self.feature_to_linked_regulation = mapper.feature_to_linked_regulation
+        self.pipeline_result = pipeline_result
+        self.merged_groups = pipeline_result.merged_groups
+        self.feature_to_regs = pipeline_result.feature_to_regs
+        self.regulation_names = pipeline_result.regulation_names
+        self.feature_to_linked_regulation = pipeline_result.feature_to_linked_regulation
+        self.gazetteer = pipeline_result.gazetteer
         self.streams_gdb = streams_gdb_path
         self.polygons_gdb = polygons_gdb_path
-        self.gazetteer = mapper.gazetteer
 
         self.cache_dir = cache_dir or Path(".geom_cache")
         self.cache_dir.mkdir(parents=True, exist_ok=True)
@@ -86,12 +86,7 @@ class RegulationGeoExporter:
         self._polygon_geometries = None
         self._layer_cache = {}
 
-        self._needed_stream_ids = set()
-        self._needed_blue_line_keys = set()
-        self._needed_polygon_ids = set()
         self._valid_stream_ids = self.gazetteer.get_valid_stream_ids()
-
-        self._build_feature_requirements()
         self._stream_zoom_thresholds = self._calculate_percentile_thresholds()
 
         logger.info(
@@ -133,20 +128,6 @@ class RegulationGeoExporter:
             if meta and meta.get("gnis_name"):
                 return meta.get("gnis_name")
         return ""
-
-    def _build_feature_requirements(self):
-        poly_types = {FeatureType.LAKE, FeatureType.WETLAND, FeatureType.MANMADE}
-        for group in self.merged_groups.values():
-            for fid in group.feature_ids:
-                ftype = self.gazetteer.get_feature_type_from_id(fid)
-
-                if ftype in poly_types:
-                    self._needed_polygon_ids.add((ftype, fid))
-                elif ftype == FeatureType.STREAM:
-                    self._needed_stream_ids.add(fid)
-                    if meta := self.gazetteer.get_stream_metadata(fid):
-                        if blk := meta.get("blue_line_key"):
-                            self._needed_blue_line_keys.add(blk)
 
     # --- CACHING & I/O ---
 
@@ -232,9 +213,10 @@ class RegulationGeoExporter:
                         .str.replace(r"\.0$", "", regex=True)
                         .str.strip()
                     )
-                    mask = gdf["LINEAR_FEATURE_ID"].isin(self._needed_stream_ids) & gdf[
-                        "LINEAR_FEATURE_ID"
-                    ].isin(self._valid_stream_ids)
+
+                    # Clean, simple filter: only keep streams we know are valid
+                    mask = gdf["LINEAR_FEATURE_ID"].isin(self._valid_stream_ids)
+
                     geoms.update(
                         {
                             row["LINEAR_FEATURE_ID"]: row.geometry
@@ -243,9 +225,10 @@ class RegulationGeoExporter:
                     )
             return geoms
 
+        # Hash purely on the valid streams base list
         self._stream_geometries = self._with_cache(
             self.streams_gdb,
-            self._needed_stream_ids | self._valid_stream_ids,
+            self._valid_stream_ids,
             "streams",
             _load,
         )
@@ -253,6 +236,14 @@ class RegulationGeoExporter:
     def _load_all_polygon_geometries(self):
         if self._polygon_geometries is not None:
             return
+
+        # 1. Gather ALL valid polygon IDs across all types to use as our global cache hash
+        valid_poly_ids = set()
+        for ftype_enum in POLYGON_LAYERS.values():
+            if ftype_enum in self.gazetteer.metadata:
+                valid_poly_ids.update(
+                    str(k) for k in self.gazetteer.metadata[ftype_enum].keys()
+                )
 
         def _load():
             geoms = {}
@@ -269,27 +260,26 @@ class RegulationGeoExporter:
                     gdf["WATERBODY_POLY_ID"].astype(int).astype(str)
                 )
 
-                needed_keys = {
-                    (
-                        str(int(float(k)))
-                        if str(k).replace(".", "").isdigit()
-                        else str(k).strip()
-                    )
-                    for req_ftype, k in self._needed_polygon_ids
-                    if req_ftype == ftype_enum
-                }
+                # 2. Get the specific valid IDs for this exact polygon type (Lake, Wetland, etc.)
+                valid_ids_for_type = set()
+                if ftype_enum in self.gazetteer.metadata:
+                    valid_ids_for_type = {
+                        str(k) for k in self.gazetteer.metadata[ftype_enum].keys()
+                    }
 
-                for _, row in gdf[
-                    gdf["WATERBODY_POLY_ID"].isin(needed_keys)
-                ].iterrows():
+                # 3. Filter the geodataframe to only keep polygons that exist in our gazetteer
+                mask = gdf["WATERBODY_POLY_ID"].isin(valid_ids_for_type)
+
+                for _, row in gdf[mask].iterrows():
                     geoms[f"{ftype_enum.value.upper()}_{row['WATERBODY_POLY_ID']}"] = (
                         row.geometry
                     )
             return geoms
 
+        # 4. Hash purely on the global valid polygon base list
         self._polygon_geometries = self._with_cache(
             self.polygons_gdb,
-            {str(p) for _, p in self._needed_polygon_ids},
+            valid_poly_ids,
             "polygons",
             _load,
         )
@@ -443,16 +433,43 @@ class RegulationGeoExporter:
                 geom_list, all_zones, all_mgmt_units, ws_codes = [], set(), set(), set()
                 max_order, blk = 0, None
 
+                # if "707538068" in group.feature_ids:
+                #     logger.warning(
+                #         f"Expected segment with fwa_id 707538068 found in mapped features."
+                #     )
+
+                blks = set()
                 for fid in group.feature_ids:
-                    if (geom := self._stream_geometries.get(fid)) and (
-                        meta := self.gazetteer.get_stream_metadata(fid)
-                    ):
+                    meta = self.gazetteer.get_stream_metadata(fid)
+                    geom = self._stream_geometries.get(fid)
+
+                    # if "707538068" == fid:
+                    #     logger.warning(
+                    #         f"Expected segment with fwa_id 707538068 found in group with group_id {group.group_id}. meta and geom are {'present' if meta else 'missing'} and {'present' if geom else 'missing'}, respectively."
+                    #     )
+                    # Always capture the blue line key from metadata when available
+                    if meta and meta.get("blue_line_key"):
+                        blks.add(meta.get("blue_line_key"))
+
+                    # Only extend geometries and collect other per-segment props when geometry exists
+                    if geom and meta:
                         geom_list.extend(self._extract_geoms(geom))
                         ws_codes.add(meta.get("fwa_watershed_code", ""))
                         all_zones.update(meta.get("zones", []))
                         all_mgmt_units.update(meta.get("mgmt_units", []))
                         max_order = max(max_order, meta.get("stream_order") or 0)
-                        blk = blk or meta.get("blue_line_key")
+
+                if len(blks) > 1 or len(blks) == 0:
+                    logger.warning(
+                        f"Multiple or no blue line keys found in group {group.group_id}: {blks}"
+                    )
+                blk = blks.pop() if blks else None
+
+                # if "707538068" in group.feature_ids:
+                #     logger.warning(
+                #         f"Expected segment with fwa_id 707538068 found in mapped features."
+                #     )
+                #     exit(0)
 
                 if geom_list:
                     features.append(
@@ -609,22 +626,20 @@ class RegulationGeoExporter:
         regions_gdf = zones_gdf.dissolve(by="zone", as_index=False)
         regions_gdf["geometry"] = regions_gdf["geometry"].boundary
 
-        zone_colors = {
-            "1": "#FF6B6B",
-            "2": "#4ECDC4",
-            "3": "#45B7D1",
-            "4": "#FFA07A",
-            "5": "#98D8C8",
-            "6": "#F7DC6F",
-            "7": "#BB8FCE",
-            "8": "#85C1E2",
-        }
-        regions_gdf["stroke_color"] = regions_gdf["zone"].map(zone_colors)
-        regions_gdf["stroke_width"] = 3.0
+        regions_gdf["stroke_color"] = "#555555"
+        regions_gdf["stroke_width"] = 2.5
+        regions_gdf["stroke_dasharray"] = "3,3"
         regions_gdf["tippecanoe:minzoom"] = 0
 
         return regions_gdf[
-            ["zone", "stroke_color", "stroke_width", "tippecanoe:minzoom", "geometry"]
+            [
+                "zone",
+                "stroke_color",
+                "stroke_width",
+                "stroke_dasharray",
+                "tippecanoe:minzoom",
+                "geometry",
+            ]
         ]
 
     # --- SHARED LAYER CONFIG ---
@@ -791,7 +806,7 @@ class RegulationGeoExporter:
             ident, rules = reg.get("identity", {}), reg.get("rules", [])
             for r_idx, rule in enumerate(rules):
                 rest, scope = rule.get("restriction", {}), rule.get("scope", {})
-                rule_id = self.mapper.rule_id(idx, r_idx)
+                rule_id = generate_rule_id(idx, r_idx)
                 reg_lookup[rule_id] = {
                     "waterbody_name": ident.get("name_verbatim"),
                     "waterbody_key": ident.get("waterbody_key"),

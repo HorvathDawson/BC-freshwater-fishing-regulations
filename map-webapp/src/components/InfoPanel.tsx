@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { X, Calendar } from 'lucide-react';
+import { Icon } from '@iconify/react';
 import type { Regulation } from '../services/regulationsService';
 import { regulationsService } from '../services/regulationsService';
 import './InfoPanel.css';
@@ -11,6 +12,32 @@ interface FeatureInfo {
 }
 
 type CollapseState = 'expanded' | 'partial' | 'collapsed';
+
+const getIconForType = (type: 'stream' | 'lake' | 'wetland' | 'manmade' | 'streams' | 'lakes' | 'wetlands') => {
+    const iconMap = {
+        stream: 'game-icons:splashy-stream',
+        streams: 'game-icons:splashy-stream',
+        lake: 'game-icons:oasis',
+        lakes: 'game-icons:oasis',
+        wetland: 'game-icons:swamp',
+        wetlands: 'game-icons:swamp',
+        manmade: 'game-icons:dam'
+    };
+    return iconMap[type as keyof typeof iconMap] || iconMap.lake;
+};
+
+const getColorForType = (type: 'stream' | 'lake' | 'wetland' | 'manmade' | 'streams' | 'lakes' | 'wetlands') => {
+    const colorMap = {
+        stream: '#3b82f6',
+        streams: '#3b82f6',
+        lake: '#0ea5e9',
+        lakes: '#0ea5e9',
+        wetland: '#10b981',
+        wetlands: '#10b981',
+        manmade: '#a855f7'
+    };
+    return colorMap[type as keyof typeof colorMap] || colorMap.lake;
+};
 
 interface InfoPanelProps {
     feature: FeatureInfo | null;
@@ -91,7 +118,12 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                     <div className="mobile-handle-bar" />
                     
                     <div className="header-row">
-                        <span className="type-tag">{typeLabel}</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <div className="type-icon" style={{ backgroundColor: getColorForType(feature.type) }}>
+                                <Icon icon={getIconForType(feature.type)} width={32} height={32} color="white" />
+                            </div>
+                            <span className="type-tag">{typeLabel}</span>
+                        </div>
                         <button onClick={(e) => { e.stopPropagation(); onClose(); }} className="square-btn">
                             <X size={20} />
                         </button>
@@ -139,25 +171,39 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                         )}
 
                         {!loadingRegs && (() => {
-                            // Group regulations by waterbody_name
+                            // Group regulations by waterbody_name + region combination
                             const groupedRegulations = regulations.reduce((groups, reg) => {
-                                const name = reg.waterbody_name || 'Unknown Waterbody';
-                                if (!groups[name]) {
-                                    groups[name] = [];
+                                const waterbodyName = reg.waterbody_name || 'Unknown Waterbody';
+                                const region = reg.region || 'Unknown Region';
+                                
+                                // Create a composite key for waterbody + region combination
+                                const groupKey = `${waterbodyName}|||${region}`;
+                                
+                                if (!groups[groupKey]) {
+                                    groups[groupKey] = {
+                                        waterbodyName,
+                                        region,
+                                        regulations: []
+                                    };
                                 }
-                                groups[name].push(reg);
+                                groups[groupKey].regulations.push(reg);
                                 return groups;
-                            }, {} as Record<string, Regulation[]>);
+                            }, {} as Record<string, { waterbodyName: string; region: string; regulations: Regulation[] }>);
 
-                            return Object.entries(groupedRegulations).map(([waterbodyName, regs]) => (
-                                <div key={waterbodyName} className="regulation-group">
-                                    {/* Waterbody Name Header */}
+                            return Object.values(groupedRegulations).map((group, groupIdx) => (
+                                <div key={groupIdx} className="regulation-group">
+                                    {/* Waterbody Name + Region Header */}
                                     <div className="regulation-group-header">
-                                        {waterbodyName}
+                                        {group.waterbodyName}
+                                        {group.region && (
+                                            <span style={{ fontWeight: 'normal', fontSize: '0.9em', opacity: 0.9 }}>
+                                                {' '}- {group.region}
+                                            </span>
+                                        )}
                                     </div>
 
-                                    {/* Regulations for this waterbody */}
-                                    {regs.map((reg, idx) => (
+                                    {/* Regulations for this waterbody + region combination */}
+                                    {group.regulations.map((reg, idx) => (
                                         <div key={idx} className="regulation-card">
                                             {/* Restriction Type */}
                                             {reg.restriction_type && (
