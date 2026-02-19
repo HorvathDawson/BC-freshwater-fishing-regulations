@@ -193,19 +193,18 @@ class ProjectConfig:
         return self.get_path("output", "fwa", "temp")
 
     @property
-    def fwa_streams_gdb(self) -> Path:
-        """Get path to FWA streams GDB."""
-        return self.get_path("data", "fwa", "streams_gdb")
+    def fwa_data_gpkg(self) -> Path:
+        """Get path to unified FWA GeoPackage for FWADataAccessor."""
+        return self.get_path("data_accessor", "gpkg_path")
+
+    # ========================================================================
+    # Data Fetch
+    # ========================================================================
 
     @property
-    def fwa_lakes_gdb(self) -> Path:
-        """Get path to FWA lakes GDB."""
-        return self.get_path("data", "fwa", "lakes_gdb")
-
-    @property
-    def fwa_wildlife_gpkg(self) -> Path:
-        """Get path to wildlife management units GeoPackage."""
-        return self.get_path("data", "fwa", "wildlife_gpkg")
+    def fetch_output_gpkg_path(self) -> Path:
+        """Get path for data fetch output GeoPackage (legacy, for fetch_data.py)."""
+        return self.get_path("data", "fetch", "output_gpkg")
 
     # ========================================================================
     # Regulation Mapping

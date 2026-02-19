@@ -36,11 +36,16 @@ output:
 # ============================================================================
 data:
   base: "data"
-  fwa:
-    base: "data/ftp.geobc.gov.bc.ca/sections/outgoing/bmgs/FWA_Public"
-    streams_gdb: "data/ftp.geobc.gov.bc.ca/sections/outgoing/bmgs/FWA_Public/FWA_STREAM_NETWORKS_SP/FWA_STREAM_NETWORKS_SP.gdb"
-    lakes_gdb: "data/ftp.geobc.gov.bc.ca/sections/outgoing/bmgs/FWA_Public/FWA_BC/FWA_BC.gdb"
-    wildlife_gpkg: "data/ftp.geobc.gov.bc.ca/sections/outgoing/bmgs/FWA_Public/WAA_WILDLIFE_MGMT_UNITS_SVW.gpkg"
+  
+  # Data Fetch Settings (for downloading BC GIS data)
+  fetch:
+    output_gpkg: "data/bc_fisheries_data.gpkg"
+    temp_dir: "data/temp_bc_data"
+  
+
+# Unified Data Accessor
+data_accessor:
+  gpkg_path: "data/bc_fisheries_data.gpkg"
 
 # ============================================================================
 # Synopsis Pipeline Settings

@@ -10,9 +10,8 @@ import subprocess
 from pathlib import Path
 from typing import Dict, Optional, Any, List, Tuple, Callable
 from collections import defaultdict
-from concurrent.futures import ThreadPoolExecutor, as_completed
 
-import fiona
+from data.data_extractor import FWADataAccessor
 import numpy as np
 import pandas as pd
 import geopandas as gpd
@@ -53,10 +52,11 @@ LAKE_ZOOM_THRESHOLDS = {
 }
 MAIN_FLOW_CODES = {1000, 1050, 1200, 1250, 1410, 1450}
 
+# Mapping of GeoPackage layer names to FeatureType enums
 POLYGON_LAYERS = {
-    "FWA_LAKES_POLY": FeatureType.LAKE,
-    "FWA_WETLANDS_POLY": FeatureType.WETLAND,
-    "FWA_MANMADE_WATERBODIES_POLY": FeatureType.MANMADE,
+    "lakes": FeatureType.LAKE,
+    "wetlands": FeatureType.WETLAND,
+    "manmade_water": FeatureType.MANMADE,
 }
 
 
@@ -66,8 +66,7 @@ class RegulationGeoExporter:
     def __init__(
         self,
         pipeline_result: PipelineResult,
-        streams_gdb_path: Path,
-        polygons_gdb_path: Path,
+        gpkg_path: Path,
         cache_dir: Path,
     ):
         self.pipeline_result = pipeline_result
@@ -76,19 +75,15 @@ class RegulationGeoExporter:
         self.regulation_names = pipeline_result.regulation_names
         self.feature_to_linked_regulation = pipeline_result.feature_to_linked_regulation
         self.gazetteer = pipeline_result.gazetteer
-        self.streams_gdb = streams_gdb_path
-        self.polygons_gdb = polygons_gdb_path
-
+        self.gpkg_path = gpkg_path
+        self.data_accessor = FWADataAccessor(self.gpkg_path)
         self.cache_dir = cache_dir
         self.cache_dir.mkdir(parents=True, exist_ok=True)
-
         self._stream_geometries = None
         self._polygon_geometries = None
         self._layer_cache = {}
-
         self._valid_stream_ids = self.gazetteer.get_valid_stream_ids()
         self._stream_zoom_thresholds = self._calculate_percentile_thresholds()
-
         logger.info(
             f"Loaded {len(self.merged_groups)} merged groups, {len(self.feature_to_regs)} individual features"
         )
@@ -162,72 +157,25 @@ class RegulationGeoExporter:
         self._load_all_polygon_geometries()
         self._load_all_stream_geometries()
 
-    def _read_gdb_layer_fast(self, gdb_path: Path, layer_name: str) -> gpd.GeoDataFrame:
-        try:
-            gdf = gpd.read_file(
-                gdb_path, layer=layer_name, engine="pyogrio", use_arrow=True
-            )
-        except Exception:
-            gdf = gpd.read_file(gdb_path, layer=layer_name)
-
-        if not isinstance(gdf, gpd.GeoDataFrame):
-            # Return an empty GeoDataFrame so upstream logic safely skips it
-            return gpd.GeoDataFrame()
-
-        if not gdf.empty:
-            geom_col = gdf.active_geometry_name or "geometry"
-            gdf.columns = [
-                str(c).upper() if c != geom_col and str(c).lower() != "geometry" else c
-                for c in gdf.columns
-            ]
-        return gdf
-
     def _load_all_stream_geometries(self):
         if self._stream_geometries is not None:
             return
 
         def _load():
             geoms = {}
-            layers = [
-                lyr
-                for lyr in fiona.listlayers(str(self.streams_gdb))
-                if isinstance(lyr, str) and len(lyr) == 4
-            ]
-            with ThreadPoolExecutor(max_workers=4) as executor:
-                futures = {
-                    executor.submit(
-                        self._read_gdb_layer_fast, self.streams_gdb, lyr
-                    ): lyr
-                    for lyr in layers
+            gdf = self.data_accessor.get_layer("streams")
+            # LINEAR_FEATURE_ID is already cleaned by FWADataAccessor
+            mask = gdf["LINEAR_FEATURE_ID"].isin(self._valid_stream_ids)
+            geoms.update(
+                {
+                    row["LINEAR_FEATURE_ID"]: row.geometry
+                    for _, row in gdf[mask].iterrows()
                 }
-                for future in tqdm(
-                    as_completed(futures), total=len(layers), desc="Streams"
-                ):
-                    gdf = future.result()
-                    if gdf.empty or "LINEAR_FEATURE_ID" not in gdf.columns:
-                        continue
-
-                    gdf["LINEAR_FEATURE_ID"] = (
-                        gdf["LINEAR_FEATURE_ID"]
-                        .astype(str)
-                        .str.replace(r"\.0$", "", regex=True)
-                        .str.strip()
-                    )
-
-                    # Clean, simple filter: only keep streams we know are valid
-                    mask = gdf["LINEAR_FEATURE_ID"].isin(self._valid_stream_ids)
-
-                    geoms.update(
-                        {
-                            row["LINEAR_FEATURE_ID"]: row.geometry
-                            for _, row in gdf[mask].iterrows()
-                        }
-                    )
+            )
             return geoms
 
-        # Hash purely on the valid streams base list
         self._stream_geometries = self._with_cache(
-            self.streams_gdb,
+            self.gpkg_path,
             self._valid_stream_ids,
             "streams",
             _load,
@@ -237,7 +185,7 @@ class RegulationGeoExporter:
         if self._polygon_geometries is not None:
             return
 
-        # 1. Gather ALL valid polygon IDs across all types to use as our global cache hash
+        # Gather all valid polygon IDs across all types
         valid_poly_ids = set()
         for ftype_enum in POLYGON_LAYERS.values():
             if ftype_enum in self.gazetteer.metadata:
@@ -248,26 +196,19 @@ class RegulationGeoExporter:
         def _load():
             geoms = {}
             for layer_name, ftype_enum in tqdm(POLYGON_LAYERS.items(), desc="Polygons"):
-                gdf = self._read_gdb_layer_fast(self.polygons_gdb, layer_name)
+                gdf = self.data_accessor.get_layer(layer_name)
                 if gdf.empty or "WATERBODY_POLY_ID" not in gdf.columns:
                     continue
 
-                gdf["WATERBODY_POLY_ID"] = pd.to_numeric(
-                    gdf["WATERBODY_POLY_ID"], errors="coerce"
-                )
-                gdf = gdf.dropna(subset=["WATERBODY_POLY_ID"])
-                gdf["WATERBODY_POLY_ID"] = (
-                    gdf["WATERBODY_POLY_ID"].astype(int).astype(str)
-                )
-
-                # 2. Get the specific valid IDs for this exact polygon type (Lake, Wetland, etc.)
+                # WATERBODY_POLY_ID already cleaned by FWADataAccessor (string, 0->"")
+                # Get the specific valid IDs for this polygon type
                 valid_ids_for_type = set()
                 if ftype_enum in self.gazetteer.metadata:
                     valid_ids_for_type = {
                         str(k) for k in self.gazetteer.metadata[ftype_enum].keys()
                     }
 
-                # 3. Filter the geodataframe to only keep polygons that exist in our gazetteer
+                # Filter to only keep polygons that exist in our gazetteer
                 mask = gdf["WATERBODY_POLY_ID"].isin(valid_ids_for_type)
 
                 for _, row in gdf[mask].iterrows():
@@ -276,9 +217,8 @@ class RegulationGeoExporter:
                     )
             return geoms
 
-        # 4. Hash purely on the global valid polygon base list
         self._polygon_geometries = self._with_cache(
-            self.polygons_gdb,
+            self.gpkg_path,
             valid_poly_ids,
             "polygons",
             _load,
@@ -404,13 +344,13 @@ class RegulationGeoExporter:
                     {
                         "linear_feature_id": linear_id,
                         "gnis_name": meta.get("gnis_name", ""),
-                        "stream_order": meta.get("stream_order") or 0,
+                        "stream_order": meta.get("stream_order", 0),
                         "regulation_ids": ",".join(reg_ids) if reg_ids else None,
                         "regulation_names": " | ".join(
                             self._get_reg_names(reg_ids, [linear_id])
                         ),
                         "tippecanoe:minzoom": self._calculate_stream_minzoom(
-                            meta.get("stream_magnitude") or 0
+                            meta.get("stream_magnitude", 0)
                         ),
                         "geometry": geom,
                     }
@@ -478,8 +418,12 @@ class RegulationGeoExporter:
                             "gnis_name": self._get_group_gnis_name(
                                 group.feature_ids, FeatureType.STREAM
                             ),
-                            "waterbody_key": group.waterbody_key or "",
-                            "blue_line_key": blk or "",
+                            "waterbody_key": (
+                                group.waterbody_key
+                                if group.waterbody_key is not None
+                                else ""
+                            ),
+                            "blue_line_key": blk if blk is not None else "",
                             "watershed_code": ", ".join(sorted(filter(None, ws_codes))),
                             "stream_order": max_order,
                             "regulation_ids": ",".join(group.regulation_ids),
@@ -528,8 +472,8 @@ class RegulationGeoExporter:
 
                 features.append(
                     {
-                        "waterbody_key": meta.get("waterbody_key", clean_fid),
-                        "gnis_name": meta.get("gnis_name", ""),
+                        "waterbody_key": meta.get("waterbody_key", clean_fid) or "",
+                        "gnis_name": meta.get("gnis_name", "") or "",
                         "area_sqm": meta.get("area_sqm", 0),
                         "regulation_ids": ",".join(reg_ids) if reg_ids else None,
                         "regulation_count": len(reg_ids),
@@ -597,8 +541,8 @@ class RegulationGeoExporter:
                     for geom, meta, key in geom_meta:
                         features.append(
                             {
-                                "waterbody_key": meta.get("waterbody_key", key),
-                                "gnis_name": meta.get("gnis_name", ""),
+                                "waterbody_key": meta.get("waterbody_key", key) or "",
+                                "gnis_name": meta.get("gnis_name", "") or "",
                                 "area_sqm": meta.get("area_sqm", 0),
                                 "regulation_ids": ",".join(group.regulation_ids),
                                 "regulation_count": len(group.regulation_ids),

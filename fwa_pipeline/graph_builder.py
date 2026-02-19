@@ -15,7 +15,7 @@ import warnings
 import argparse
 import gc
 import pickle
-import fiona
+from data.data_extractor import FWADataAccessor
 import igraph as ig
 from multiprocessing import Pool
 from collections import deque, Counter
@@ -86,199 +86,114 @@ def format_id_attribute(val):
         return str(val)
 
 
-# --- Worker Function (Parallel) ---
-
-
-def process_layer_worker(args):
-    """
-    Reads a GDB layer. Logic matches original script exactly to ensure consistency.
-    """
-    layer_name, gdb_path = args
-    nodes = []
-    edges = []
-
-    stats = Counter()
-    stats["total_features"] = 0
-
-    try:
-        with fiona.open(gdb_path, layer=layer_name) as src:
-            for feature in src:
-                stats["total_features"] += 1
-
-                props = feature["properties"]
-                geom_data = feature["geometry"]
-
-                if not geom_data:
-                    stats["skipped_no_geom_data"] += 1
-                    continue
-
-                code = props.get("FWA_WATERSHED_CODE")
-                if code and code.startswith("999-999999"):
-                    stats["skipped_invalid_watershed"] += 1
-                    continue
-
-                lf_id = props.get("LINEAR_FEATURE_ID")
-                if not lf_id:
-                    stats["skipped_missing_id"] += 1
-                    continue
-
-                try:
-                    geom = shape(geom_data)
-                    if geom.is_empty:
-                        stats["skipped_empty_geom"] += 1
-                        continue
-                except Exception:
-                    stats["skipped_geom_parse_error"] += 1
-                    continue
-
-                u, v, u_coord, v_coord = get_endpoints(geom)
-                if not u:
-                    stats["skipped_invalid_endpoints"] += 1
-                    continue
-
-                # 4. Attribute Extraction (Strict Match to Original)
-                try:
-                    name = props.get("GNIS_NAME")
-                    gnis_name = name if name else ""
-
-                    gnis_id_raw = props.get("GNIS_ID")
-                    gnis_id = str(int(gnis_id_raw)) if gnis_id_raw else ""
-
-                    wb = props.get("WATERBODY_KEY")
-                    waterbody_key = ""
-                    if wb and int(wb) != 0:
-                        waterbody_key = str(int(wb))
-
-                    sid = str(int(lf_id))
-                    s_code = str(code) if code else ""
-                    stream_order = props.get("STREAM_ORDER")
-                    stream_magnitude = props.get("STREAM_MAGNITUDE")
-                    feature_code = props.get("FEATURE_CODE", "")
-                    blue_line_key_raw = props.get("BLUE_LINE_KEY")
-                    blue_line_key = (
-                        str(int(blue_line_key_raw)) if blue_line_key_raw else ""
-                    )
-                    edge_type = props.get("EDGE_TYPE", "")
-
-                    edge_attr = {
-                        "u": u,
-                        "v": v,
-                        "linear_feature_id": sid,
-                        "fwa_watershed_code": s_code,
-                        "gnis_name": gnis_name,
-                        "gnis_id": gnis_id,
-                        "waterbody_key": waterbody_key,
-                        "stream_order": int(stream_order) if stream_order else None,
-                        "stream_magnitude": (
-                            int(stream_magnitude) if stream_magnitude else None
-                        ),
-                        "feature_code": feature_code,
-                        "blue_line_key": blue_line_key,
-                        "edge_type": edge_type,
-                        "length": geom.length,
-                    }
-
-                    nodes.append((u, u_coord[0], u_coord[1]))
-                    nodes.append((v, v_coord[0], v_coord[1]))
-                    edges.append(edge_attr)
-                    stats["processed_ok"] += 1
-
-                except Exception:
-                    stats["skipped_attribute_error"] += 1
-                    continue
-
-    except Exception as e:
-        logger.error(f"Layer failure {layer_name}: {e}")
-        stats["layer_fatal_error"] += 1
-
-    return nodes, edges, stats, layer_name
-
-
 # --- Main Graph Class ---
 
 
 class FWAPrimalGraphIGraph:
+
+    def _get_or_create_vertex(self, node_id, x, y):
+        """
+        Add a vertex to the graph if it does not exist, or return its index if it does.
+        Updates node_id_to_index and index_to_node_id mappings.
+        """
+        if node_id in self.node_id_to_index:
+            return self.node_id_to_index[node_id]
+        idx = self.G.vcount()
+        self.G.add_vertex(name=node_id, x=x, y=y)
+        self.node_id_to_index[node_id] = idx
+        self.index_to_node_id[idx] = node_id
+        return idx
+
     def __init__(self):
         config = get_config()
-
         self.project_root = config.project_root
-        self.streams_gdb = config.fwa_streams_gdb
+        self.gpkg_path = config.fetch_output_gpkg_path
         self.output_dir = config.fwa_output_dir
         self.output_dir.mkdir(parents=True, exist_ok=True)
-
         self.G = ig.Graph(directed=True)
         self.node_id_to_index = {}
         self.index_to_node_id = {}
         self.edge_counts = {}
-        self.layers_used = []
+        self.streams_layer = "streams"  # The new unified streams layer name
+        self.data_accessor = FWADataAccessor(self.gpkg_path)
 
     def validate_paths(self):
-        if not self.streams_gdb.exists():
-            logger.error(f"Streams GDB not found: {self.streams_gdb}")
+        if not self.gpkg_path.exists():
+            logger.error(f"GeoPackage not found: {self.gpkg_path}")
             return False
         return True
-
-    def _get_or_create_vertex(self, node_id, x, y):
-        if node_id in self.node_id_to_index:
-            return self.node_id_to_index[node_id]
-
-        idx = self.G.vcount()
-        self.G.add_vertex()
-        self.node_id_to_index[node_id] = idx
-        self.index_to_node_id[idx] = node_id
-
-        self.G.vs[idx]["name"] = node_id
-        self.G.vs[idx]["x"] = x
-        self.G.vs[idx]["y"] = y
-        return idx
-
-    def load_from_pickle(self, pickle_path):
-        logger.info(f"Loading from {pickle_path}...")
-        with open(pickle_path, "rb") as f:
-            data = pickle.load(f)
-            self.G = data["graph"]
-            self.node_id_to_index = data["node_id_to_index"]
-            self.index_to_node_id = data["index_to_node_id"]
-        logger.info(f"Loaded: {self.G.vcount():,} Nodes, {self.G.ecount():,} Edges")
 
     def build(self, limit=None, specific_layers=None):
         import time
 
         start = time.time()
         logger.info("STEP 1: BUILDING GRAPH")
-
-        if specific_layers:
-            layers = (
-                specific_layers
-                if isinstance(specific_layers, list)
-                else [specific_layers]
-            )
-        else:
-            layers = fiona.listlayers(str(self.streams_gdb))
-            layers = [l for l in layers if not l.startswith("_") and len(l) <= 4]
-            if limit:
-                layers = layers[:limit]
-
-        self.layers_used = layers
-        logger.info(f"Processing {len(layers)} layers with 14 workers.")
-
-        worker_args = [(l, str(self.streams_gdb)) for l in layers]
-
+        # Only one streams layer now
+        logger.info(f"Processing unified streams layer: '{self.streams_layer}'")
+        gdf = self.data_accessor.get_layer(self.streams_layer)
+        logger.info(
+            f"Loaded streams layer: {len(gdf):,} rows, columns: {list(gdf.columns)}"
+        )
         all_nodes = []
         all_edges = []
         total_stats = Counter()
-
-        with Pool(processes=14) as pool:
-            # We use imap here if we want a progress bar for layers, but map is fine for now
-            results = pool.map(process_layer_worker, worker_args)
-
-            for n, e, stats, layer_name in results:
-                all_nodes.extend(n)
-                all_edges.extend(e)
-                total_stats.update(stats)
-
-            del results
-
+        for idx, row in gdf.iterrows():
+            stats = total_stats
+            stats["total_features"] += 1
+            props = row
+            geom = row.geometry
+            if geom is None or geom.is_empty:
+                stats["skipped_no_geom_data"] += 1
+                continue
+            code = props.get("FWA_WATERSHED_CODE")
+            if code and str(code).startswith("999-999999"):
+                stats["skipped_invalid_watershed"] += 1
+                continue
+            lf_id = props.get("LINEAR_FEATURE_ID")
+            if not lf_id:
+                stats["skipped_missing_id"] += 1
+                continue
+            try:
+                u, v, u_coord, v_coord = get_endpoints(geom)
+                if not u:
+                    stats["skipped_invalid_endpoints"] += 1
+                    continue
+                # FWADataAccessor already cleans ID/code columns to strings
+                # Only GNIS_NAME needs None handling (text field, not cleaned by accessor)
+                gnis_name = props.get("GNIS_NAME") or ""
+                gnis_id = props.get("GNIS_ID")
+                waterbody_key = props.get("WATERBODY_KEY")
+                sid = props.get("LINEAR_FEATURE_ID")
+                s_code = props.get("FWA_WATERSHED_CODE")
+                stream_order = props.get("STREAM_ORDER")
+                stream_magnitude = props.get("STREAM_MAGNITUDE")
+                feature_code = props.get("FEATURE_CODE")
+                blue_line_key = props.get("BLUE_LINE_KEY")
+                edge_type = props.get("EDGE_TYPE")
+                edge_attr = {
+                    "u": u,
+                    "v": v,
+                    "linear_feature_id": sid,
+                    "fwa_watershed_code": s_code,
+                    "gnis_name": gnis_name,
+                    "gnis_id": gnis_id,
+                    "waterbody_key": waterbody_key,
+                    "stream_order": int(stream_order) if stream_order else None,
+                    "stream_magnitude": (
+                        int(stream_magnitude) if stream_magnitude else None
+                    ),
+                    "feature_code": feature_code,
+                    "blue_line_key": blue_line_key,
+                    "edge_type": edge_type,
+                    "length": geom.length,
+                }
+                all_nodes.append((u, u_coord[0], u_coord[1]))
+                all_nodes.append((v, v_coord[0], v_coord[1]))
+                all_edges.append(edge_attr)
+                stats["processed_ok"] += 1
+            except Exception as e:
+                logger.error(f"Attribute error at row {idx}: {e}\nRow data: {props}")
+                raise
         # --- DEBUG SUMMARY TABLE ---
         logger.info("\n" + "=" * 50)
         logger.info(
@@ -294,10 +209,7 @@ class FWAPrimalGraphIGraph:
             f"{'Skipped (Bad Watershed)':<25} | {total_stats['skipped_invalid_watershed']:,}"
         )
         logger.info(
-            f"{'Skipped (Empty Geom)':<25} | {total_stats['skipped_empty_geom']:,}"
-        )
-        logger.info(
-            f"{'Skipped (Geom Error)':<25} | {total_stats['skipped_geom_parse_error']:,}"
+            f"{'Skipped (Empty Geom)':<25} | {total_stats['skipped_no_geom_data']:,}"
         )
         logger.info(
             f"{'Skipped (Bad Endpoints)':<25} | {total_stats['skipped_invalid_endpoints']:,}"
@@ -306,16 +218,12 @@ class FWAPrimalGraphIGraph:
             f"{'Skipped (Attr Error)':<25} | {total_stats['skipped_attribute_error']:,}"
         )
         logger.info("=" * 50 + "\n")
-
         logger.info(f"Merging {len(all_nodes):,} nodes and {len(all_edges):,} edges...")
-
         unique_nodes = {nid: (x, y) for nid, x, y in all_nodes}
         for nid, (x, y) in unique_nodes.items():
             self._get_or_create_vertex(nid, x, y)
-
         del all_nodes, unique_nodes
         gc.collect()
-
         edge_list = []
         attrs = {
             k: []
@@ -336,17 +244,13 @@ class FWAPrimalGraphIGraph:
                 "edge_index",
             ]
         }
-
         for e in all_edges:
             v_idx = self.node_id_to_index[e["v"]]
             u_idx = self.node_id_to_index[e["u"]]
-
             key = (e["v"], e["u"])
             p_count = self.edge_counts.get(key, 0)
             self.edge_counts[key] = p_count + 1
-
             edge_list.append((v_idx, u_idx))
-
             attrs["linear_feature_id"].append(e["linear_feature_id"])
             attrs["waterbody_key"].append(e["waterbody_key"])
             attrs["fwa_watershed_code"].append(e["fwa_watershed_code"])
@@ -363,15 +267,19 @@ class FWAPrimalGraphIGraph:
             attrs["stream_magnitude"].append(e["stream_magnitude"])
             attrs["weight"].append(1.0 + (p_count * 0.02))
             attrs["edge_index"].append(p_count)
-
         self.G.add_edges(edge_list)
         for k, v in attrs.items():
             self.G.es[k] = v
-
         logger.info(
             f"Built Graph: {self.G.vcount():,} nodes, {self.G.ecount():,} edges. Time: {time.time()-start:.1f}s"
         )
         gc.collect()
+
+    def validate_paths(self):
+        if not self.gpkg_path.exists():
+            logger.error(f"GeoPackage not found: {self.gpkg_path}")
+            return False
+        return True
 
     def preprocess_graph(self):
         """Removes spurious Order 1 edges flowing into root nodes."""
@@ -388,11 +296,15 @@ class FWAPrimalGraphIGraph:
             to_remove = []
             for root in roots:
                 for edge in self.G.es.select(_target=root):
-                    if edge["stream_order"] == 1:
-                        if edge["fwa_watershed_code"].startswith("9"):
-                            continue
-                        if edge["gnis_name"]:
-                            continue
+                    # Robust check for spurious edges: Order 1, not named, not special watershed
+                    stream_order = edge["stream_order"]
+                    watershed_code = edge["fwa_watershed_code"] or ""
+                    gnis_name = edge["gnis_name"] or ""
+                    # Check conditions directly (stream_order is int or None, others are strings)
+                    is_unnamed = not gnis_name or gnis_name.strip() == ""
+                    is_order1 = stream_order == 1
+                    is_special_wshed = watershed_code.startswith("9")
+                    if is_order1 and not is_special_wshed and is_unnamed:
                         to_remove.append(edge.index)
 
             if not to_remove:
@@ -752,9 +664,20 @@ class FWAPrimalGraphIGraph:
             f"Filtered {len(to_remove):,} edges based on depth. (Time: {time.time()-start_time:.1f}s)"
         )
 
-    def export(self, filename="fwa_bc_primal_full.graphml"):
+    def export(self, filename="fwa_bc_primal_full.gpickle"):
         logger.info(f"STEP 5: EXPORTING")
 
+        # Determine format from filename extension
+        is_pickle_format = filename.endswith(".gpickle")
+        is_graphml_format = filename.endswith(".graphml")
+
+        if not (is_pickle_format or is_graphml_format):
+            logger.warning(
+                f"Unknown file extension for {filename}, defaulting to pickle"
+            )
+            is_pickle_format = True
+
+        # Always save pickle (it's the canonical format)
         pickle_filename = filename.rsplit(".", 1)[0] + ".gpickle"
         pickle_path = self.output_dir / pickle_filename
 
@@ -779,13 +702,15 @@ class FWAPrimalGraphIGraph:
             )
         logger.info(f"  ✓ Saved Pickle: {pickle_path}")
 
-        for attr in self.G.es.attributes():
-            self.G.es[attr] = [x if x is not None else "" for x in self.G.es[attr]]
+        # Only save GraphML if explicitly requested
+        if is_graphml_format:
+            for attr in self.G.es.attributes():
+                self.G.es[attr] = [x if x is not None else "" for x in self.G.es[attr]]
 
-        graphml_path = self.output_dir / filename
-        graphml_path.parent.mkdir(parents=True, exist_ok=True)
-        self.G.write_graphml(str(graphml_path))
-        logger.info(f"  ✓ Saved GraphML: {graphml_path}")
+            graphml_path = self.output_dir / filename
+            graphml_path.parent.mkdir(parents=True, exist_ok=True)
+            self.G.write_graphml(str(graphml_path))
+            logger.info(f"  ✓ Saved GraphML: {graphml_path}")
 
 
 # --- Execution Entry Point ---
@@ -801,6 +726,11 @@ if __name__ == "__main__":
     parser.add_argument(
         "-t", "--threshold", type=int, default=2, help="Depth threshold"
     )
+    parser.add_argument(
+        "--graphml",
+        action="store_true",
+        help="Export GraphML format (default: pickle only)",
+    )
     args = parser.parse_args()
 
     print("=" * 80)
@@ -815,8 +745,10 @@ if __name__ == "__main__":
         print()
         builder.load_from_pickle(args.pickle)
     else:
+
         print("\n📝 Input:")
-        print(f"  Streams GDB: {builder.streams_gdb}")
+        print(f"  GeoPackage: {builder.gpkg_path}")
+        print(f"  Streams layer: {builder.streams_layer}")
         if args.layers:
             print(f"  Layers: {', '.join(args.layers)}")
         elif args.limit:
@@ -825,14 +757,25 @@ if __name__ == "__main__":
             print(f"  Layers: All (auto-detected)")
 
         print("\n💾 Output:")
-        filename = "fwa_bc_primal_full.graphml"
-        if args.layers:
-            suffix = "_".join(sorted(args.layers))
-            filename = f"fwa_primal_{suffix}.graphml"
-        print(f"  GraphML: {builder.output_dir / filename}")
-        print(
-            f"  Pickle: {builder.output_dir / filename.replace('.graphml', '.gpickle')}"
-        )
+        # Set filename before output section
+        if args.graphml:
+            filename = "fwa_bc_primal_full.graphml"
+            if args.layers:
+                suffix = "_".join(sorted(args.layers))
+                filename = f"fwa_primal_{suffix}.graphml"
+        else:
+            filename = "fwa_bc_primal_full.gpickle"
+            if args.layers:
+                suffix = "_".join(sorted(args.layers))
+                filename = f"fwa_primal_{suffix}.gpickle"
+
+        if args.graphml:
+            print(f"  GraphML: {builder.output_dir / filename}")
+            print(
+                f"  Pickle: {builder.output_dir / filename.replace('.graphml', '.gpickle')}"
+            )
+        else:
+            print(f"  Pickle: {builder.output_dir / filename}")
 
         print("\n⚙️  Processing Options:")
         if args.filter_unnamed:
@@ -849,9 +792,4 @@ if __name__ == "__main__":
             if args.filter_unnamed:
                 builder.filter_unnamed_depth(threshold=args.threshold)
 
-    filename = "fwa_bc_primal_full.graphml"
-    if args.layers:
-        suffix = "_".join(sorted(args.layers))
-        filename = f"fwa_primal_{suffix}.graphml"
-
-    builder.export(filename)
+            builder.export(filename)

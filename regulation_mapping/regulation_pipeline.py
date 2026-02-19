@@ -26,6 +26,7 @@ from .regulation_mapper import RegulationMapper, PipelineResult
 from .scope_filter import ScopeFilter
 from .tributary_enricher import TributaryEnricher
 from .geo_exporter import RegulationGeoExporter
+from data.data_extractor import FWADataAccessor
 from .logger_config import get_logger
 from project_config import get_config
 
@@ -47,8 +48,7 @@ class RegulationPipeline:
         self,
         metadata_path: Path,
         graph_path: Optional[Path] = None,
-        streams_gdb_path: Optional[Path] = None,
-        polygons_gdb_path: Optional[Path] = None,
+        gpkg_path: Optional[Path] = None,
     ):
         """
         Initialize pipeline with required data sources.
@@ -56,13 +56,11 @@ class RegulationPipeline:
         Args:
             metadata_path: Path to stream_metadata.pickle
             graph_path: Path to graph pickle (optional, for tributary enrichment)
-            streams_gdb_path: Path to FWA_STREAM_NETWORKS_SP.gdb (optional, for export)
-            polygons_gdb_path: Path to FWA_BC.gdb (optional, for export)
+            gpkg_path: Path to FWA GeoPackage (optional, for export)
         """
         self.metadata_path = metadata_path
         self.graph_path = graph_path
-        self.streams_gdb_path = streams_gdb_path
-        self.polygons_gdb_path = polygons_gdb_path
+        self.gpkg_path = gpkg_path
 
         # Store parsed regulations for later export
         self.parsed_regulations = None
@@ -136,7 +134,7 @@ class RegulationPipeline:
 
         return result
 
-    def export_geometries(
+    def export_geography(
         self,
         pipeline_result: PipelineResult,
         output_dir: Path,
@@ -144,7 +142,6 @@ class RegulationPipeline:
         export_merged: bool = True,
         export_individual: bool = True,
         export_regulations_json: bool = True,
-        frontend_output_dir: Optional[Path] = None,
     ):
         """
         Export regulation geometries to GPKG and PMTiles.
@@ -156,73 +153,68 @@ class RegulationPipeline:
             export_merged: Whether to export merged geometries
             export_individual: Whether to export individual geometries
             export_regulations_json: Whether to export regulations.json for frontend
-            frontend_output_dir: Optional directory for regulations.json (defaults to output_dir)
 
         Returns:
             Dict of exported file paths
         """
-        if not self.streams_gdb_path or not self.polygons_gdb_path:
-            raise ValueError(
-                "streams_gdb_path and polygons_gdb_path required for export"
-            )
+        if not self.gpkg_path:
+            raise ValueError("gpkg_path required for export")
+
+        # Compute cache directory from output_dir
+        cache_dir = output_dir / ".geom_cache"
+        cache_dir.mkdir(parents=True, exist_ok=True)
 
         # Initialize exporter strictly with the results from the mapper step
         exporter = RegulationGeoExporter(
             pipeline_result=pipeline_result,
-            streams_gdb_path=self.streams_gdb_path,
-            polygons_gdb_path=self.polygons_gdb_path,
-            cache_dir=self.config.regulation_mapping_cache_dir,
+            gpkg_path=self.gpkg_path,
+            cache_dir=cache_dir,
         )
 
         exported_files = {}
 
+        # Export merged geometries
+        if export_merged:
+            merged_gpkg = output_dir / "regulations_merged.gpkg"
+            merged_pmtiles = output_dir / "regulations_merged.pmtiles"
+
+            logger.info("Exporting merged geometries...")
+            if gpkg_path := exporter.export_gpkg(
+                merged_gpkg, merge_geometries=True, zones_path=zones_path
+            ):
+                exported_files["merged_gpkg"] = gpkg_path
+
+            if pmtiles_path := exporter.export_pmtiles(
+                merged_pmtiles, merge_geometries=True, zones_path=zones_path
+            ):
+                exported_files["merged_pmtiles"] = pmtiles_path
+
+        # Export individual geometries
+        if export_individual:
+            individual_gpkg = output_dir / "regulations_individual.gpkg"
+            individual_pmtiles = output_dir / "regulations_individual.pmtiles"
+
+            logger.info("Exporting individual geometries...")
+            if gpkg_path := exporter.export_gpkg(
+                individual_gpkg, merge_geometries=False, zones_path=zones_path
+            ):
+                exported_files["individual_gpkg"] = gpkg_path
+
+            if pmtiles_path := exporter.export_pmtiles(
+                individual_pmtiles, merge_geometries=False, zones_path=zones_path
+            ):
+                exported_files["individual_pmtiles"] = pmtiles_path
+
         # Export regulations JSON for frontend
         if export_regulations_json and self.parsed_regulations:
-            regulations_dir = frontend_output_dir or output_dir
-            regulations_json = regulations_dir / "regulations.json"
+            regulations_json = output_dir / "regulations.json"
             exporter.export_regulations_json(self.parsed_regulations, regulations_json)
             exported_files["regulations_json"] = regulations_json
 
             # Export search index for frontend
-            search_index = regulations_dir / "search_index.json"
+            search_index = output_dir / "search_index.json"
             exporter.export_search_index(search_index)
             exported_files["search_index"] = search_index
-
-        # Export merged geometries
-        if export_merged:
-            gpkg_merged = output_dir / "regulations_merged.gpkg"
-            pmtiles_merged = output_dir / "regulations_merged.pmtiles"
-
-            exporter.export_pmtiles(
-                pmtiles_merged, merge_geometries=True, zones_path=zones_path
-            )
-            exporter.export_gpkg(
-                gpkg_merged,
-                merge_geometries=True,
-                include_all_features=False,
-                zones_path=zones_path,
-            )
-
-            exported_files["gpkg_merged"] = gpkg_merged
-            exported_files["pmtiles_merged"] = pmtiles_merged
-
-        # Export individual geometries
-        if export_individual:
-            gpkg_individual = output_dir / "regulations_individual.gpkg"
-            pmtiles_individual = output_dir / "regulations_individual.pmtiles"
-
-            exporter.export_pmtiles(
-                pmtiles_individual, merge_geometries=False, zones_path=zones_path
-            )
-            exporter.export_gpkg(
-                gpkg_individual,
-                merge_geometries=False,
-                include_all_features=False,
-                zones_path=zones_path,
-            )
-
-            exported_files["gpkg_individual"] = gpkg_individual
-            exported_files["pmtiles_individual"] = pmtiles_individual
 
         return exported_files
 
@@ -256,15 +248,14 @@ class RegulationPipeline:
 
         # Export geometries (if GDB paths provided)
         exported_files = {}
-        if self.streams_gdb_path and self.polygons_gdb_path:
-            exported_files = self.export_geometries(
+        if self.gpkg_path:
+            exported_files = self.export_geography(
                 pipeline_result=result,
                 output_dir=output_dir,
                 zones_path=zones_path,
                 export_merged=export_merged,
                 export_individual=export_individual,
                 export_regulations_json=export_regulations_json,
-                frontend_output_dir=frontend_output_dir,
             )
 
         return result, exported_files
@@ -490,24 +481,17 @@ Examples:
     )
 
     parser.add_argument(
-        "--streams-gdb",
+        "--gpkg-path",
         type=Path,
-        default=config.fwa_streams_gdb,
-        help=f"Path to streams GDB (default: {config.fwa_streams_gdb})",
-    )
-
-    parser.add_argument(
-        "--polygons-gdb",
-        type=Path,
-        default=config.fwa_lakes_gdb,
-        help=f"Path to polygons GDB (default: {config.fwa_lakes_gdb})",
+        default=config.fetch_output_gpkg_path,
+        help=f"Path to FWA GeoPackage (default: {config.fetch_output_gpkg_path})",
     )
 
     parser.add_argument(
         "--zones",
         type=Path,
-        default=config.fwa_wildlife_gpkg,
-        help=f"Path to wildlife zones GPKG (default: {config.fwa_wildlife_gpkg})",
+        required=False,
+        help="Path to wildlife zones GPKG (optional, only needed for zone-based features)",
     )
 
     parser.add_argument(
@@ -554,6 +538,10 @@ Examples:
         print("   Run: python -m synopsis_pipeline.parse_synopsis")
         return 1
 
+    if not args.gpkg_path.exists():
+        print(f"❌ GeoPackage not found: {args.gpkg_path}")
+        return 1
+
     # Determine export flags
     if args.map_only:
         export_merged = False
@@ -582,12 +570,12 @@ Examples:
     )
     if not args.map_only:
         print(
-            f"  Streams GDB: {args.streams_gdb if args.streams_gdb.exists() else 'Not found'}"
+            f"  GeoPackage: {args.gpkg_path if args.gpkg_path.exists() else 'Not found'}"
         )
-        print(
-            f"  Polygons GDB: {args.polygons_gdb if args.polygons_gdb.exists() else 'Not found'}"
-        )
-        print(f"  Zones: {args.zones if args.zones.exists() else 'Not found'}")
+        if args.zones:
+            print(f"  Zones: {args.zones if args.zones.exists() else 'Not found'}")
+        else:
+            print(f"  Zones: Not specified (optional)")
 
     print("\n📁 Output:")
     print(f"  Directory: {args.output_dir}")
@@ -604,7 +592,7 @@ Examples:
     print(f"  Tributary enrichment: {'Enabled' if args.graph.exists() else 'Disabled'}")
     if not args.map_only:
         print(
-            f"  Geometry export: {'Enabled' if (args.streams_gdb.exists() and args.polygons_gdb.exists()) else 'Disabled'}"
+            f"  Geometry export: {'Enabled' if args.gpkg_path.exists() else 'Disabled'}"
         )
     print()
 
@@ -616,8 +604,7 @@ Examples:
     pipeline = RegulationPipeline(
         metadata_path=args.metadata,
         graph_path=args.graph if args.graph.exists() else None,
-        streams_gdb_path=args.streams_gdb if args.streams_gdb.exists() else None,
-        polygons_gdb_path=args.polygons_gdb if args.polygons_gdb.exists() else None,
+        gpkg_path=args.gpkg_path,
     )
 
     print(f"  ✓ Loaded {len(pipeline.gazetteer.name_index):,} unique waterbody names")
@@ -630,7 +617,7 @@ Examples:
     result, exported_files = pipeline.run_full_pipeline(
         regulations_path=args.regulations,
         output_dir=args.output_dir,
-        zones_path=args.zones if args.zones.exists() else None,
+        zones_path=args.zones if args.zones and args.zones.exists() else None,
         export_merged=export_merged,
         export_individual=export_individual,
         export_regulations_json=True,

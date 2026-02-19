@@ -18,6 +18,7 @@ import pickle
 import argparse
 import gc
 import geopandas as gpd
+from data.data_extractor import FWADataAccessor
 import pandas as pd
 from pathlib import Path
 from collections import defaultdict
@@ -134,11 +135,10 @@ def process_stream_chunk(chunk_data):
 
 
 class MetadataBuilder:
-    def __init__(self, graph_path, zones_path, lakes_gdb, output_path):
+    def __init__(self, graph_path, gpkg_path, output_path):
         self.paths = {
             "graph": Path(graph_path),
-            "zones": Path(zones_path),
-            "lakes": Path(lakes_gdb),
+            "gpkg": Path(gpkg_path),
             "output": Path(output_path),
         }
         self.data = {
@@ -154,46 +154,36 @@ class MetadataBuilder:
             FeatureType.WETLAND: {},
             FeatureType.MANMADE: {},
         }
+        self.data_accessor = FWADataAccessor(self.paths["gpkg"])
 
     def load_zones(self):
-        logger.info(f"Loading zones from {self.paths['zones']}...")
-        gdf = gpd.read_file(self.paths["zones"])
+        logger.info("Loading wildlife management units layer using FWADataAccessor...")
+        gdf = self.data_accessor.get_layer("wmu")
 
-        # Parse Zone ID
+        # ...existing code...
         gdf["zone"] = gdf["WILDLIFE_MGMT_UNIT_ID"].str.split("-").str[0]
 
-        # OPTIMIZATION: Pre-calculate buffered geometries
-        # This moves the O(N) buffering operation to O(1) (N=zones, not N=streams)
         logger.info(
             f"Pre-buffering zones by {ZONE_BOUNDARY_BUFFER_M}m and clipping to provincial boundary..."
         )
-
-        # 1. Get the total outer envelope of all zones (e.g., the province of BC)
         provincial_boundary = gdf.geometry.union_all()
-
-        # 2. Buffer each zone, then clip it back to the provincial boundary.
-        # This preserves internal overlapping borders but stops the exterior border from expanding.
         gdf["geometry_buffered"] = gdf.geometry.buffer(
             ZONE_BOUNDARY_BUFFER_M
         ).intersection(provincial_boundary)
 
         self.data["zones_gdf"] = gdf
-        # Build index on the BUFFERED geometry to ensure wide enough search
         self.data["zone_index"] = STRtree(gdf["geometry_buffered"])
 
-        # Build Zone Metadata Summary
         logger.info("Building zone definitions...")
         for _, row in gdf.iterrows():
             zid = row["zone"]
             mu = row["WILDLIFE_MGMT_UNIT_ID"]
-
             if zid not in self.metadata["zone_metadata"]:
                 self.metadata["zone_metadata"][zid] = {
                     "zone_number": zid,
                     "mgmt_units": [],
                     "mgmt_unit_details": {},
                 }
-
             entry = self.metadata["zone_metadata"][zid]
             entry["mgmt_units"].append(mu)
             entry["mgmt_unit_details"][mu] = {
@@ -201,7 +191,6 @@ class MetadataBuilder:
                 "region_name": row.get("REGION_RESPONSIBLE_NAME", ""),
                 "bounds": list(row.geometry.bounds),
             }
-
         for z in self.metadata["zone_metadata"].values():
             z["mgmt_units"].sort()
 
@@ -213,8 +202,8 @@ class MetadataBuilder:
             self.data["node_coords"] = dump["node_coords"]
         logger.info(f"Loaded {len(self.data['edge_attrs']):,} edges.")
 
-    def extract_streams(self, workers=8):
-        logger.info(f"Processing streams with {workers} workers...")
+    def extract_streams(self):
+        logger.info("Processing streams...")
 
         edge_list = []
         for key, attrs in self.data["edge_attrs"].items():
@@ -227,92 +216,66 @@ class MetadataBuilder:
             except KeyError:
                 continue
 
-        chunk_size = max(5000, len(edge_list) // (workers * 2))
-        chunks = [
-            edge_list[i : i + chunk_size] for i in range(0, len(edge_list), chunk_size)
-        ]
-
+        # No chunking or parallel processing needed
         processed = 0
-
-        with ProcessPoolExecutor(max_workers=workers) as executor:
-            # Pass buffered zones and index to workers
-            futures = [
-                executor.submit(
-                    process_stream_chunk,
-                    (
-                        self.data["zones_gdf"],
-                        self.data["zone_index"],
-                        chunk,
-                    ),
-                )
-                for chunk in chunks
-            ]
-
-            for future in as_completed(futures):
-                res, cross_count = future.result()
-                self.metadata[FeatureType.STREAM].update(res)
-                processed += len(res)
-                if processed % 100000 == 0:  # Log less frequently
-                    logger.info(f"  Processed {processed:,} streams...")
+        res, cross_count = process_stream_chunk(
+            (self.data["zones_gdf"], self.data["zone_index"], edge_list)
+        )
+        self.metadata[FeatureType.STREAM].update(res)
+        processed += len(res)
+        logger.info(f"  Processed {processed:,} streams...")
 
     def process_polygons(self):
-        """Iterates over lakes, wetlands, and manmade waterbodies."""
-        layers = {
-            FeatureType.LAKE: "FWA_LAKES_POLY",
-            FeatureType.WETLAND: "FWA_WETLANDS_POLY",
-            FeatureType.MANMADE: "FWA_MANMADE_WATERBODIES_POLY",
+        """Iterates over lakes, wetlands, and manmade waterbodies using available layer names from FWADataAccessor."""
+        # Map FeatureType to actual layer names in the GeoPackage
+        layer_map = {
+            FeatureType.LAKE: "lakes",
+            FeatureType.WETLAND: "wetlands",
+            FeatureType.MANMADE: "manmade_water",
         }
-
-        for ftype_enum, layer_name in layers.items():
+        available_layers = self.data_accessor.list_layers()
+        for ftype_enum, layer_name in layer_map.items():
             logger.info(f"Processing {ftype_enum.name} ({layer_name})...")
+            if layer_name not in available_layers:
+                logger.error(
+                    f"Layer '{layer_name}' not found. Available: {available_layers}"
+                )
+                continue
             try:
-                gdf = gpd.read_file(self.paths["lakes"], layer=layer_name)
-                gdf = gdf[gdf["WATERBODY_KEY"].notna()]
-
+                gdf = self.data_accessor.get_layer(layer_name)
                 results = {}
                 for idx, row in gdf.iterrows():
-                    pid = str(int(row.get("WATERBODY_POLY_ID", row["WATERBODY_KEY"])))
-
-                    # OPTIMIZATION: Use the pre-buffered zones for fast intersection
-                    # Pass the UNBUFFERED lake geometry. The zones are already buffered.
+                    # WATERBODY_POLY_ID already cleaned by FWADataAccessor (0/None → "")
+                    pid = (
+                        row.get("WATERBODY_POLY_ID", row.get("WATERBODY_KEY", "")) or ""
+                    )
+                    if not pid:  # Skip if no valid ID
+                        continue
                     z_data = find_zones_spatial(
                         row.geometry,
                         self.data["zones_gdf"],
-                        self.data[
-                            "zone_index"
-                        ],  # This index is built on buffered zones
+                        self.data["zone_index"],
                     )
-
-                    name = row.get("GNIS_NAME_1", row.get("GNIS_NAME", ""))
-                    gid = row.get("GNIS_ID_1", row.get("GNIS_ID", ""))
-                    name_2 = row.get("GNIS_NAME_2", "")
-                    gid_2 = row.get("GNIS_ID_2", "")
-                    blue_line_key_raw = row.get("BLUE_LINE_KEY")
-                    blue_line_key = (
-                        str(int(blue_line_key_raw))
-                        if pd.notna(blue_line_key_raw) and blue_line_key_raw
-                        else ""
-                    )
-
+                    name = row.get("GNIS_NAME_1", row.get("GNIS_NAME", "")) or ""
+                    gid = row.get("GNIS_ID_1", row.get("GNIS_ID", "")) or ""
+                    name_2 = row.get("GNIS_NAME_2", "") or ""
+                    gid_2 = row.get("GNIS_ID_2", "") or ""
+                    blue_line_key = row.get("BLUE_LINE_KEY", "") or ""
                     results[pid] = {
                         "waterbody_poly_id": pid,
-                        "waterbody_key": str(int(row["WATERBODY_KEY"])),
-                        "gnis_name": name if pd.notna(name) else "",
-                        "gnis_id": str(int(gid)) if pd.notna(gid) and gid else "",
-                        "gnis_name_2": name_2 if pd.notna(name_2) else "",
-                        "gnis_id_2": (
-                            str(int(gid_2)) if pd.notna(gid_2) and gid_2 else ""
-                        ),
+                        "waterbody_key": row.get("WATERBODY_KEY", ""),
+                        "gnis_name": name,
+                        "gnis_id": gid,
+                        "gnis_name_2": name_2,
+                        "gnis_id_2": gid_2,
                         "fwa_watershed_code": row.get("FWA_WATERSHED_CODE", ""),
                         "blue_line_key": blue_line_key,
                         "area_sqm": row.geometry.area,
                         "zones": z_data["zones"],
                         "mgmt_units": z_data["mgmt_units"],
                     }
-
                 self.metadata[ftype_enum] = results
                 logger.info(f"  Extracted {len(results):,} {ftype_enum.name}.")
-
             except Exception as e:
                 logger.error(f"Failed to process {layer_name}: {e}")
 
@@ -326,90 +289,64 @@ class MetadataBuilder:
 
 def main():
     config = get_config()
-
-    # Define defaults from config
-    default_graph = config.fwa_graph_path
-    default_zones = config.fwa_wildlife_gpkg
-    default_lakes = config.fwa_lakes_gdb
-    default_output = config.fwa_metadata_path
+    # Use FWADataAccessor for default paths
+    data_accessor = FWADataAccessor(config.fetch_output_gpkg_path)
+    default_graph = getattr(config, "fwa_graph_path", None) or getattr(
+        data_accessor, "graph_path", None
+    )
+    default_gpkg = getattr(data_accessor, "gpkg_path", None) or getattr(
+        config, "fetch_output_gpkg_path", None
+    )
+    default_output = (
+        getattr(config, "fwa_metadata_output_path", None) or "output/fwa/metadata.pkl"
+    )
 
     parser = argparse.ArgumentParser(
         description="Extract FWA metadata and assign zones."
     )
-
     parser.add_argument(
         "--graph-path",
         type=Path,
         default=default_graph,
         help=f"Path to graph pickle (default: {default_graph})",
     )
-
     parser.add_argument(
-        "--zones-path",
+        "--gpkg-path",
         type=Path,
-        default=default_zones,
-        help=f"Path to wildlife management units GeoPackage (default: {default_zones})",
+        default=default_gpkg,
+        help=f"Path to FWA GeoPackage (default: {default_gpkg})",
     )
-
-    parser.add_argument(
-        "--lakes-gdb-path",
-        type=Path,
-        default=default_lakes,
-        help=f"Path to FWA lakes GDB (default: {default_lakes})",
-    )
-
     parser.add_argument(
         "--output-path",
         type=Path,
         default=default_output,
         help=f"Path to output pickle file (default: {default_output})",
     )
-
-    parser.add_argument(
-        "--workers", type=int, default=8, help="Number of parallel workers (Default: 8)"
-    )
-
     args = parser.parse_args()
 
-    # Print configuration
     print("=" * 80)
     print("BC FRESHWATER FISHING REGULATIONS - FWA METADATA BUILDER")
     print("=" * 80)
-
     print("\n📁 Input:")
     print(f"  Graph pickle: {args.graph_path}")
-    print(f"  Wildlife zones: {args.zones_path}")
-    print(f"  Lakes GDB: {args.lakes_gdb_path}")
-
+    print(f"  GeoPackage (zones + polygons): {args.gpkg_path}")
     print("\n📁 Output:")
     print(f"  Metadata pickle: {args.output_path}")
-
     print("\n⚙️  Configuration:")
-    print(f"  Parallel workers: {args.workers}")
     print()
 
-    # Validation
-    if not args.graph_path.exists():
+    if not args.graph_path or not args.graph_path.exists():
         logger.error(f"Graph file not found: {args.graph_path}")
         logger.error("Please run graph_builder.py first.")
         sys.exit(1)
-
-    if not args.zones_path.exists():
-        logger.error(f"Zones file not found: {args.zones_path}")
+    if not args.gpkg_path or not args.gpkg_path.exists():
+        logger.error(f"GeoPackage not found: {args.gpkg_path}")
         sys.exit(1)
 
-    if not args.lakes_gdb_path.exists():
-        logger.error(f"Lakes GDB not found: {args.lakes_gdb_path}")
-        sys.exit(1)
-
-    # Run
-    builder = MetadataBuilder(
-        args.graph_path, args.zones_path, args.lakes_gdb_path, args.output_path
-    )
-
+    builder = MetadataBuilder(args.graph_path, args.gpkg_path, args.output_path)
     builder.load_zones()
     builder.load_graph()
-    builder.extract_streams(workers=args.workers)
+    builder.extract_streams()
     builder.process_polygons()
     builder.save()
 
