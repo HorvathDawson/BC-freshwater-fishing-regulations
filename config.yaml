@@ -1,0 +1,89 @@
+# BC Freshwater Fishing Regulations - Central Configuration
+
+# ============================================================================
+# Output Directory Structure
+# ============================================================================
+output:
+  base: "output"
+  
+  # Synopsis Pipeline Outputs
+  synopsis:
+    base: "output/synopsis"
+    extract: "output/synopsis/extract_synopsis"
+    parse: "output/synopsis/parse_synopsis"
+    pdf: "data/fishing_synopsis.pdf"
+  
+  # FWA Pipeline Outputs
+  fwa:
+    base: "output/fwa"
+    graph: "output/fwa/fwa_bc_primal_full.gpickle"
+    metadata: "output/fwa/stream_metadata.pickle"
+    temp: "output/fwa/temp"
+  
+  # Regulation Mapping Pipeline Outputs
+  regulation_mapping:
+    base: "output/regulation_mapping"
+    regulations_merged_gpkg: "output/fwa/regulations_merged.gpkg"
+    regulations_merged_pmtiles: "output/fwa/regulations_merged.pmtiles"
+    regulations_individual_gpkg: "output/fwa/regulations_individual.gpkg"
+    regulations_individual_pmtiles: "output/fwa/regulations_individual.pmtiles"
+    regulations_json: "output/fwa/regulations.json"
+    search_index: "output/fwa/search_index.json"
+    cache_dir: "output/regulation_mapping/.geom_cache"
+
+# ============================================================================
+# Input Data Directories
+# ============================================================================
+data:
+  base: "data"
+  fwa:
+    base: "data/ftp.geobc.gov.bc.ca/sections/outgoing/bmgs/FWA_Public"
+    streams_gdb: "data/ftp.geobc.gov.bc.ca/sections/outgoing/bmgs/FWA_Public/FWA_STREAM_NETWORKS_SP/FWA_STREAM_NETWORKS_SP.gdb"
+    lakes_gdb: "data/ftp.geobc.gov.bc.ca/sections/outgoing/bmgs/FWA_Public/FWA_BC/FWA_BC.gdb"
+    wildlife_gpkg: "data/ftp.geobc.gov.bc.ca/sections/outgoing/bmgs/FWA_Public/WAA_WILDLIFE_MGMT_UNITS_SVW.gpkg"
+
+# ============================================================================
+# Synopsis Pipeline Settings
+# ============================================================================
+synopsis_pipeline:
+  llm:
+    batch_size: 45
+    max_retries: 3
+    model: "gemini-3-flash-preview"
+    # Alternative models:
+    # - gemini-2.5-flash-lite
+    # - gemini-2.5-flash
+    # - gemini-2.0-flash
+    # - gemma-3-27b-it
+    # - gemini-2.5-pro
+  
+  api_keys:
+    # API keys are loaded from environment variables
+    - id: "horvath.dawson"
+      env_var: "GOOGLE_API_KEY"
+    - id: "darcy.turin"
+      env_var: "GOOGLE_API_KEY_2"
+    - id: "datswrite"
+      env_var: "GOOGLE_API_KEY_3"
+    - id: "helpfulhints116"
+      env_var: "GOOGLE_API_KEY_4"
+    - id: "ridgedvids"
+      env_var: "GOOGLE_API_KEY_5"
+    - id: "rylee1"
+      env_var: "GOOGLE_API_KEY_6"
+    - id: "rylee2"
+      env_var: "GOOGLE_API_KEY_7"
+
+# ============================================================================
+# FWA Pipeline Settings
+# ============================================================================
+fwa_pipeline:
+  # Add FWA-specific settings here as needed
+  enable_caching: true
+
+# ============================================================================
+# Regulation Mapping Settings
+# ============================================================================
+regulation_mapping:
+  # Mapping-specific settings
+  enable_caching: true

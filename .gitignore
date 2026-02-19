@@ -23,4 +23,4 @@ scripts/output/fishing_synopsis.pdf
 .env
 .env.local
 .env.*.local
-.geom_cache
+output
