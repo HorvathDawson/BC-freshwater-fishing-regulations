@@ -27,8 +27,19 @@ class FWADataAccessor:
         self.layer_info = pyogrio.list_layers(self.gpkg_path)
         self.layer_names = [info[0] for info in self.layer_info]
 
-    def list_layers(self) -> list:
-        """Returns a list of all available layers."""
+    def list_layers(self, with_details: bool = False) -> list | dict:
+        """
+        Returns available layers.
+        
+        Args:
+            with_details: If True, returns dict with layer names as keys and 
+                         geometry types as values. If False, returns list of layer names.
+        
+        Returns:
+            List of layer names or dict of {layer_name: geometry_type}
+        """
+        if with_details:
+            return {name: geom_type for name, geom_type in self.layer_info}
         return self.layer_names
 
     def get_layer(

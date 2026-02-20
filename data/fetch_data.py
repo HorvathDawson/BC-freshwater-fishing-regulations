@@ -171,6 +171,10 @@ def main():
             "source": "WHSE_ADMIN_BOUNDARIES.CLAB_NATIONAL_PARKS",
             "sort_field": "NATIONAL_PARK_ID",
         },
+        "historic_sites": {
+            "type": "WFS",
+            "source": "WHSE_HUMAN_CULTURAL_ECONOMIC.HIST_HISTORIC_ENVIRONMNT_PA_SV",
+        },  # will use 4533329 as id
         # --- FTP Geodatabase Layers (FWA Polygons) ---
         "lakes": {"type": "FWA_GDB", "ftp": FTP_FWA_BC, "layer": "FWA_LAKES_POLY"},
         "wetlands": {
