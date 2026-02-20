@@ -31,15 +31,81 @@ from project_config import get_config
 
 # --- Shared Enum ---
 class FeatureType(Enum):
-    """Enum for FWA feature types."""
+    """Enum for FWA feature types (including admin boundary layers)."""
 
+    # FWA hydrological features
     STREAM = "streams"
     LAKE = "lakes"
     WETLAND = "wetlands"
     MANMADE = "manmade"
     UNMARKED = "lakes"
     POINT = "point"
+
+    # Administrative boundary layers
+    PARK_NATIONAL = "parks_nat"
+    PARK_BC = "parks_bc"
+    WMA = "wma"
+    WATERSHED = "watersheds"
+    HISTORIC_SITE = "historic_sites"
+
     UNKNOWN = "unknown"
+
+
+# Admin feature types (subset used for iteration)
+ADMIN_FEATURE_TYPES = frozenset(
+    {
+        FeatureType.PARK_NATIONAL,
+        FeatureType.PARK_BC,
+        FeatureType.WMA,
+        FeatureType.WATERSHED,
+        FeatureType.HISTORIC_SITE,
+    }
+)
+
+
+# --- Admin Layer Configuration ---
+# Field mappings for each administrative layer in the GPKG.
+# Shared by the metadata builder (extraction) and the gazetteer (lookup).
+#
+# Keys:
+#   id_field    – primary key column in the GPKG layer
+#   name_field  – human-readable name column
+#   code_field  – (optional) column that categorises features within the layer
+#   code_map    – (optional) {code_value: human_label} for demultiplexing sub-types
+ADMIN_LAYER_CONFIG: dict = {
+    "parks_nat": {
+        "feature_type": FeatureType.PARK_NATIONAL,
+        "id_field": "NATIONAL_PARK_ID",
+        "name_field": "ENGLISH_NAME",
+    },
+    "parks_bc": {
+        "feature_type": FeatureType.PARK_BC,
+        "id_field": "ADMIN_AREA_SID",
+        "name_field": "PROTECTED_LANDS_NAME",
+        "code_field": "PROTECTED_LANDS_CODE",
+        "code_map": {
+            "OI": "ECOLOGICAL_RESERVE",
+            "PA": "PROTECTED_AREA",
+            "PP": "PROVINCIAL_PARK",
+            "RC": "RECREATION_AREA",
+        },
+    },
+    "wma": {
+        "feature_type": FeatureType.WMA,
+        "id_field": "ADMIN_AREA_SID",
+        "name_field": "WILDLIFE_MANAGEMENT_AREA_NAME",
+    },
+    "watersheds": {
+        "feature_type": FeatureType.WATERSHED,
+        "id_field": "NAMED_WATERSHED_ID",
+        "name_field": "GNIS_NAME",
+    },
+    "historic_sites": {
+        "feature_type": FeatureType.HISTORIC_SITE,
+        "id_field": "SITE_ID",
+        "name_field": "COMMON_SITE_NAME",
+    },
+}
 
 
 # --- Configuration ---
@@ -154,13 +220,20 @@ class MetadataBuilder:
             FeatureType.WETLAND: {},
             FeatureType.MANMADE: {},
         }
+        # Admin feature types start empty; populated by process_admin_layers()
+        for ftype in ADMIN_FEATURE_TYPES:
+            self.metadata[ftype] = {}
         self.data_accessor = FWADataAccessor(self.paths["gpkg"])
 
     def load_zones(self):
         logger.info("Loading wildlife management units layer using FWADataAccessor...")
         gdf = self.data_accessor.get_layer("wmu")
 
-        # ...existing code...
+        # Reproject to BC Albers (EPSG:3005) to match FWA feature layers and graph coordinates
+        if gdf.crs and gdf.crs.to_epsg() != 3005:
+            logger.info(f"  Reprojecting WMU zones from {gdf.crs} to EPSG:3005...")
+            gdf = gdf.to_crs(epsg=3005)
+
         gdf["zone"] = gdf["WILDLIFE_MGMT_UNIT_ID"].str.split("-").str[0]
 
         logger.info(
@@ -279,6 +352,68 @@ class MetadataBuilder:
             except Exception as e:
                 logger.error(f"Failed to process {layer_name}: {e}")
 
+    def process_admin_layers(self):
+        """
+        Extract metadata from administrative boundary layers.
+
+        Reads each admin layer from the GPKG, performs zone assignment
+        (same as lakes/wetlands), and stores structured metadata under
+        the corresponding FeatureType key.
+
+        Each admin feature record follows the same dict pattern as FWA
+        polygons so the gazetteer can build FWAFeature objects uniformly.
+        """
+        available_layers = self.data_accessor.list_layers()
+
+        for layer_key, cfg in ADMIN_LAYER_CONFIG.items():
+            ftype = cfg["feature_type"]
+            id_field = cfg["id_field"]
+            name_field = cfg["name_field"]
+            code_field = cfg.get("code_field")
+
+            logger.info(f"Processing admin layer {ftype.name} ({layer_key})...")
+
+            if layer_key not in available_layers:
+                logger.warning(f"  Admin layer '{layer_key}' not in GPKG, skipping")
+                continue
+
+            try:
+                gdf = self.data_accessor.get_layer(layer_key)
+                results = {}
+
+                for _, row in gdf.iterrows():
+                    fid = row.get(id_field, "")
+                    if pd.isnull(fid) or fid == "" or fid == 0:
+                        continue
+                    # FWADataAccessor already normalized IDs to strings
+                    fid = str(fid)
+
+                    name = row.get(name_field, "") or ""
+                    code = str(row.get(code_field, "")) if code_field else None
+
+                    # Zone assignment via spatial lookup (same as polygons)
+                    z_data = find_zones_spatial(
+                        row.geometry,
+                        self.data["zones_gdf"],
+                        self.data["zone_index"],
+                    )
+
+                    results[fid] = {
+                        "admin_id": fid,
+                        "gnis_name": name,
+                        "admin_code": code,
+                        "admin_layer": layer_key,
+                        "area_sqm": row.geometry.area if row.geometry else 0,
+                        "zones": z_data["zones"],
+                        "mgmt_units": z_data["mgmt_units"],
+                    }
+
+                self.metadata[ftype] = results
+                logger.info(f"  Extracted {len(results):,} {ftype.name} features.")
+
+            except Exception as e:
+                logger.error(f"Failed to process admin layer '{layer_key}': {e}")
+
     def save(self):
         self.paths["output"].parent.mkdir(parents=True, exist_ok=True)
         logger.info(f"Saving to {self.paths['output']}...")
@@ -298,7 +433,8 @@ def main():
         config, "fetch_output_gpkg_path", None
     )
     default_output = (
-        getattr(config, "fwa_metadata_output_path", None) or "output/fwa/metadata.pkl"
+        getattr(config, "fwa_metadata_output_path", None)
+        or "output/fwa/fwa_metadata.pickle"
     )
 
     parser = argparse.ArgumentParser(
@@ -348,6 +484,7 @@ def main():
     builder.load_graph()
     builder.extract_streams()
     builder.process_polygons()
+    builder.process_admin_layers()
     builder.save()
 
 

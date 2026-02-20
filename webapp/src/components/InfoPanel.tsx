@@ -205,6 +205,25 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                                     {/* Regulations for this waterbody + region combination */}
                                     {group.regulations.map((reg, idx) => (
                                         <div key={idx} className="regulation-card">
+                                            {/* Source Badge for Provincial Regulations */}
+                                            {reg.source === 'provincial' && (
+                                                <div className="regulation-source-badge" style={{
+                                                    display: 'inline-block',
+                                                    padding: '2px 8px',
+                                                    marginBottom: '6px',
+                                                    fontSize: '0.75em',
+                                                    fontWeight: 600,
+                                                    textTransform: 'uppercase',
+                                                    letterSpacing: '0.05em',
+                                                    backgroundColor: 'rgba(220, 53, 69, 0.15)',
+                                                    color: '#dc3545',
+                                                    borderRadius: '4px',
+                                                    border: '1px solid rgba(220, 53, 69, 0.3)',
+                                                }}>
+                                                    Provincial Regulation
+                                                </div>
+                                            )}
+
                                             {/* Restriction Type */}
                                             {reg.restriction_type && (
                                                 <div className="regulation-type">

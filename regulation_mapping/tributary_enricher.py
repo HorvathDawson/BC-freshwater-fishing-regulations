@@ -10,7 +10,7 @@ from pathlib import Path
 import pickle
 from collections import deque
 
-from .metadata_gazetteer import FWAFeature, FeatureType
+from fwa_pipeline.metadata_gazetteer import FWAFeature, FeatureType
 from .logger_config import get_logger
 
 logger = get_logger(__name__)

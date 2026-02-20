@@ -2,6 +2,7 @@
 RegulationMapper - Orchestrates the full pipeline: Link -> Scope -> Enrich -> Map
 
 Creates inverted index: feature_id -> regulation_ids
+Handles all regulation sources: synopsis, admin area matches, and provincial base regulations.
 """
 
 from typing import Dict, List, Optional, Set, Any
@@ -13,7 +14,11 @@ import json
 from .linker import WaterbodyLinker, LinkStatus
 from .scope_filter import ScopeFilter
 from .tributary_enricher import TributaryEnricher
-from .metadata_gazetteer import FWAFeature, MetadataGazetteer, FeatureType
+from .provincial_base_regulations import (
+    PROVINCIAL_BASE_REGULATIONS,
+    ProvincialRegulation,
+)
+from fwa_pipeline.metadata_gazetteer import FWAFeature, MetadataGazetteer, FeatureType
 from .logger_config import get_logger
 
 logger = get_logger(__name__)
@@ -67,6 +72,10 @@ class PipelineResult:
     feature_to_linked_regulation: Dict[str, Set[str]] = field(default_factory=dict)
     gazetteer: Optional[MetadataGazetteer] = None
     stats: Optional[RegulationMappingStats] = None
+    # Provincial regulation support: maps feature_id → list of provincial regulation_ids
+    provincial_feature_map: Dict[str, List[str]] = field(default_factory=dict)
+    # Admin area feature mapping: maps admin regulation name → list of matched FWA feature_ids
+    admin_feature_map: Dict[str, List[str]] = field(default_factory=dict)
 
 
 class RegulationMapper:
@@ -77,11 +86,13 @@ class RegulationMapper:
         linker: WaterbodyLinker,
         scope_filter: ScopeFilter,
         tributary_enricher: TributaryEnricher,
+        gpkg_path: Optional[Path] = None,
     ):
         self.linker = linker
         self.scope_filter = scope_filter
         self.tributary_enricher = tributary_enricher
         self.gazetteer = linker.gazetteer
+        self.gpkg_path = gpkg_path
         self.stats = RegulationMappingStats()
 
         self.feature_to_regs = {}
@@ -89,6 +100,8 @@ class RegulationMapper:
         self.regulation_names = {}
         self.feature_to_linked_regulation = defaultdict(set)
         self.linked_waterbody_keys_of_polygon = set()
+        # Admin matches: regulation_idx → (regulation_id, regulation_dict, AdminDirectMatch)
+        self.admin_match_cache = {}
 
     # --- Core Pipeline ---
 
@@ -149,6 +162,19 @@ class RegulationMapper:
             )
 
             self.stats.link_status_counts[link_result.status.value] += 1
+
+            # Handle admin direct matches separately (spatial resolution deferred to pipeline)
+            if (
+                link_result.link_method == "admin_direct_match"
+                and link_result.admin_match
+            ):
+                self.stats.linked_regulations += 1
+                self.admin_match_cache[idx] = (
+                    regulation_id,
+                    regulation,
+                    link_result.admin_match,
+                )
+                continue
 
             if (
                 link_result.status != LinkStatus.SUCCESS
@@ -262,12 +288,29 @@ class RegulationMapper:
         return scoped_features
 
     def run(self, regulations: List[Dict]) -> PipelineResult:
-        """Full pipeline: Link -> Scope -> Enrich -> Map -> Merge -> Export."""
+        """Full pipeline: Link -> Scope -> Enrich -> Map (all sources) -> Merge.
+
+        Processes all regulation sources before merging so that merged groups
+        contain the complete set of regulation IDs per feature:
+          1. Synopsis regulations (parsed from PDF)
+          2. Admin area matches (deferred spatial intersection from synopsis linking)
+          3. Provincial base regulations (blanket rules for admin boundaries)
+          4. Merge features into groups (with ALL regulation sources present)
+        """
+        # Phase 1: Synopsis regulations
         self.process_all_regulations(regulations)
 
+        # Phase 2: Admin area matches (deferred from linking)
+        admin_feature_map = self._resolve_admin_matches()
+
+        # Phase 3: Provincial base regulations
+        provincial_feature_map = self._process_provincial_regulations()
+
+        # Phase 4: Merge with ALL regulation sources present
         self.merged_groups = self.merge_features(self.feature_to_regs)
 
         logger.info("Processing complete")
+
         return PipelineResult(
             feature_to_regs=self.feature_to_regs,
             merged_groups=self.merged_groups,
@@ -275,7 +318,180 @@ class RegulationMapper:
             feature_to_linked_regulation=dict(self.feature_to_linked_regulation),
             gazetteer=self.gazetteer,
             stats=self.stats,
+            provincial_feature_map=provincial_feature_map,
+            admin_feature_map=admin_feature_map,
         )
+
+    # --- Admin & Provincial Resolution ---
+
+    def _resolve_admin_matches(self) -> Dict[str, List[str]]:
+        """
+        Resolve admin direct matches into actual FWA feature lists via spatial intersection.
+
+        Admin matches are deferred during synopsis linking because spatial intersection
+        requires the GPKG. This method performs the spatial intersection and adds the
+        resulting rule→feature mappings to feature_to_regs.
+        """
+        admin_feature_map: Dict[str, List[str]] = {}
+
+        if not self.admin_match_cache:
+            return admin_feature_map
+
+        if not self.gpkg_path or not self.gpkg_path.exists():
+            logger.warning("GPKG not available - skipping admin match resolution")
+            return admin_feature_map
+
+        logger.info(f"Resolving {len(self.admin_match_cache)} admin area match(es)...")
+
+        for idx, (
+            regulation_id,
+            regulation,
+            admin_match,
+        ) in self.admin_match_cache.items():
+            # Find admin features from pickle metadata
+            admin_features = self.gazetteer.search_admin_layer(
+                layer_key=admin_match.admin_layer,
+                feature_ids=admin_match.feature_ids,
+                feature_names=admin_match.feature_names,
+                code_filter=admin_match.code_filter,
+            )
+            if not admin_features:
+                logger.error(
+                    f"  Skipping '{regulation.get('identity', {}).get('name_verbatim', '')}' "
+                    f"- admin feature lookup failed (layer: {admin_match.admin_layer})"
+                )
+                continue
+
+            # Spatial intersection with FWA features
+            matched_features = self.gazetteer.find_features_in_admin_area(
+                admin_features=admin_features,
+                layer_key=admin_match.admin_layer,
+                include_streams=admin_match.include_streams,
+                include_lakes=admin_match.include_lakes,
+                include_wetlands=admin_match.include_wetlands,
+                include_manmade=admin_match.include_manmade,
+                gpkg_path=self.gpkg_path,
+            )
+
+            if not matched_features:
+                logger.warning(
+                    f"  No FWA features found in admin area for "
+                    f"'{regulation.get('identity', {}).get('name_verbatim', '')}'"
+                )
+                continue
+
+            name_verbatim = regulation.get("identity", {}).get("name_verbatim", "")
+            feature_ids = [f.fwa_id for f in matched_features]
+            admin_feature_map[name_verbatim] = feature_ids
+
+            # Map rules to features (same as normal synopsis regulations)
+            for rule_idx, rule in enumerate(regulation.get("rules", [])):
+                rule_id = generate_rule_id(idx, rule_idx)
+                for fid in feature_ids:
+                    self.feature_to_regs.setdefault(fid, []).append(rule_id)
+                    self.feature_to_linked_regulation[fid].add(regulation_id)
+
+            logger.info(
+                f"  Admin match '{name_verbatim}': {len(matched_features)} FWA features"
+            )
+
+        return admin_feature_map
+
+    def _process_provincial_regulations(self) -> Dict[str, List[str]]:
+        """
+        Process provincial base regulations (blanket rules for admin areas).
+
+        Provincial regulations apply to all FWA features within admin boundaries
+        (e.g., "All National Parks are closed to fishing"). These use their own
+        regulation ID namespace (prov_*) and are added to feature_to_regs so
+        they participate in merged group formation.
+        """
+        provincial_feature_map: Dict[str, List[str]] = {}
+
+        active_regulations = [
+            r for r in PROVINCIAL_BASE_REGULATIONS if not getattr(r, "_disabled", False)
+        ]
+        if not active_regulations:
+            logger.info("No active provincial base regulations to process")
+            return provincial_feature_map
+
+        if not self.gpkg_path or not self.gpkg_path.exists():
+            logger.warning("GPKG not available - skipping provincial regulations")
+            return provincial_feature_map
+
+        logger.info(
+            f"Processing {len(active_regulations)} provincial base regulation(s)..."
+        )
+
+        for prov_reg in active_regulations:
+            if not prov_reg.admin_layer:
+                logger.debug(f"  Skipping '{prov_reg.regulation_id}' (no admin_layer)")
+                continue
+
+            # Find admin features from pickle metadata
+            admin_features = self.gazetteer.search_admin_layer(
+                layer_key=prov_reg.admin_layer,
+                feature_ids=prov_reg.feature_ids,
+                feature_names=prov_reg.feature_names,
+                code_filter=prov_reg.code_filter,
+            )
+
+            if not admin_features:
+                logger.error(
+                    f"  Skipping '{prov_reg.regulation_id}' "
+                    f"- admin feature lookup failed (layer: {prov_reg.admin_layer})"
+                )
+                continue
+
+            # Determine include flags from provincial regulation
+            include_streams = (
+                "stream" in prov_reg.feature_types
+                if prov_reg.feature_types
+                else prov_reg.include_streams
+            )
+            include_lakes = (
+                "lake" in prov_reg.feature_types
+                if prov_reg.feature_types
+                else prov_reg.include_lakes
+            )
+            include_wetlands = (
+                "wetland" in prov_reg.feature_types
+                if prov_reg.feature_types
+                else prov_reg.include_wetlands
+            )
+            include_manmade = (
+                "manmade" in prov_reg.feature_types
+                if prov_reg.feature_types
+                else prov_reg.include_manmade
+            )
+
+            # Spatial intersection with FWA features
+            matched_features = self.gazetteer.find_features_in_admin_area(
+                admin_features=admin_features,
+                layer_key=prov_reg.admin_layer,
+                include_streams=include_streams,
+                include_lakes=include_lakes,
+                include_wetlands=include_wetlands,
+                include_manmade=include_manmade,
+                gpkg_path=self.gpkg_path,
+            )
+
+            feature_ids = [f.fwa_id for f in matched_features]
+            provincial_feature_map[prov_reg.regulation_id] = feature_ids
+
+            # Add provincial regulation to regulation_names for display in exports
+            self.regulation_names[prov_reg.regulation_id] = prov_reg.rule_text
+
+            # Add to feature_to_regs and feature_to_linked_regulation
+            for fid in feature_ids:
+                self.feature_to_regs.setdefault(fid, []).append(prov_reg.regulation_id)
+                self.feature_to_linked_regulation[fid].add(prov_reg.regulation_id)
+
+            logger.info(
+                f"  Provincial '{prov_reg.regulation_id}': {len(feature_ids)} FWA features"
+            )
+
+        return provincial_feature_map
 
     # --- Enrichment & Grouping ---
 

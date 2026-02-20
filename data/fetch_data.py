@@ -55,6 +55,12 @@ def fetch_wfs_paginated(
 
     if all_chunks:
         final_gdf = pd.concat(all_chunks, ignore_index=True)
+
+        # Reproject to BC Albers (EPSG:3005) for consistency with FWA layers
+        if final_gdf.crs and final_gdf.crs.to_epsg() != 3005:
+            print(f"  -> Reprojecting from {final_gdf.crs} to EPSG:3005...")
+            final_gdf = final_gdf.to_crs(epsg=3005)
+
         final_gdf.to_file(gpkg_path, layer=short_name, driver="GPKG", engine="pyogrio")
         print(f"  -> Saved {len(final_gdf)} features to {short_name}")
 
@@ -104,6 +110,12 @@ def extract_gdb_layer(short_name, ftp_url, gdb_layer, gpkg_path, temp_dir):
 
     try:
         gdf = gpd.read_file(gdb_path, layer=gdb_layer, engine="pyogrio", use_arrow=True)
+
+        # Reproject to BC Albers (EPSG:3005) for consistency
+        if gdf.crs and gdf.crs.to_epsg() != 3005:
+            print(f"  -> Reprojecting from {gdf.crs} to EPSG:3005...")
+            gdf = gdf.to_crs(epsg=3005)
+
         gdf.to_file(gpkg_path, layer=short_name, driver="GPKG", engine="pyogrio")
         print(f"  -> Saved {len(gdf)} features to {short_name}")
     except Exception as e:
@@ -123,6 +135,10 @@ def combine_streams(short_name, ftp_url, gpkg_path, temp_dir):
             gdf = gpd.read_file(gdb_path, layer=lyr, engine="pyogrio", use_arrow=True)
             if gdf.empty:
                 continue
+
+            # Reproject to BC Albers (EPSG:3005) for consistency
+            if gdf.crs and gdf.crs.to_epsg() != 3005:
+                gdf = gdf.to_crs(epsg=3005)
 
             # mode="w" (overwrite) for the first chunk, mode="a" (append) for the rest
             write_mode = "w" if is_first else "a"
@@ -209,6 +225,12 @@ Examples:
   
   # Download specific layers only
   python -m data.fetch_data --layers lakes streams
+  
+  # Reload a specific layer
+  python -m data.fetch_data --reload-layer lakes
+  
+  # Reload all WFS layers (admin boundaries)
+  python -m data.fetch_data --reload-wfs
         """,
     )
 
@@ -233,6 +255,19 @@ Examples:
         help="Only download specific layers (e.g., lakes streams)",
     )
 
+    parser.add_argument(
+        "--reload-layer",
+        type=str,
+        nargs="+",
+        help="Reload specific layer(s) by name (e.g., lakes streams). Alias for --layers.",
+    )
+
+    parser.add_argument(
+        "--reload-wfs",
+        action="store_true",
+        help="Reload all WFS layers (admin boundaries: wma, wmu, parks_bc, parks_nat, historic_sites)",
+    )
+
     args = parser.parse_args()
 
     # Create temp directory (clean slate for each run)
@@ -246,8 +281,19 @@ Examples:
 
     # Filter datasets if specific layers requested
     datasets_to_fetch = DATASETS
-    if args.layers:
-        datasets_to_fetch = {k: v for k, v in DATASETS.items() if k in args.layers}
+    selected_layers = args.layers or args.reload_layer
+
+    # Handle --reload-wfs flag (select all WFS layers)
+    if args.reload_wfs:
+        wfs_layers = [k for k, v in DATASETS.items() if v["type"] == "WFS"]
+        if selected_layers:
+            # Merge with other selected layers
+            selected_layers = list(set(selected_layers + wfs_layers))
+        else:
+            selected_layers = wfs_layers
+
+    if selected_layers:
+        datasets_to_fetch = {k: v for k, v in DATASETS.items() if k in selected_layers}
         if not datasets_to_fetch:
             print(
                 f"❌ Error: No matching layers found. Available layers: {', '.join(DATASETS.keys())}"
@@ -266,7 +312,7 @@ Examples:
     print("\n⚙️  Configuration:")
     print(f"  Total datasets: {len(DATASETS)}")
     print(f"  Fetching: {len(datasets_to_fetch)} layer(s)")
-    if args.layers:
+    if selected_layers:
         print(f"  Selected layers: {', '.join(datasets_to_fetch.keys())}")
 
     print("\n📥 Datasets:")

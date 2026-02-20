@@ -14,8 +14,14 @@ from typing import Optional, List, Dict
 from enum import Enum
 from collections import Counter
 
-from .metadata_gazetteer import MetadataGazetteer, FWAFeature
-from .name_variations import ManualCorrections, NameVariation, DirectMatch, SkipEntry
+from fwa_pipeline.metadata_gazetteer import MetadataGazetteer, FWAFeature
+from .linking_corrections import (
+    ManualCorrections,
+    NameVariation,
+    DirectMatch,
+    AdminDirectMatch,
+    SkipEntry,
+)
 from .logger_config import get_logger
 
 logger = get_logger(__name__)
@@ -42,12 +48,15 @@ class LinkingResult:
     )
     candidate_features: List[FWAFeature] = None  # Ambiguous candidates
     link_method: Optional[str] = (
-        None  # "direct_match", "name_variation", "natural_search"
+        None  # "direct_match", "name_variation", "natural_search", "admin_direct_match"
     )
     matched_name: Optional[str] = (
         None  # The actual name that matched (for name variations)
     )
     error_message: Optional[str] = None
+    admin_match: Optional[AdminDirectMatch] = (
+        None  # Set when link_method == "admin_direct_match"
+    )
 
     def __post_init__(self):
         if self.matched_features is None:
@@ -137,6 +146,35 @@ class WaterbodyLinker:
                     result.link_method = "direct_match"
                     self.stats[result.status] += 1
                     return result
+
+        # STEP 1b: Check AdminDirectMatch (admin boundary polygon matching)
+        if region:
+            admin_match = self.corrections.get_admin_direct_match(region, lookup_name)
+            if admin_match:
+                # Validate that the admin match has search criteria
+                if (
+                    admin_match.feature_ids is None
+                    and admin_match.feature_names is None
+                ):
+                    result = LinkingResult(
+                        status=LinkStatus.ERROR,
+                        matched_features=[],
+                        link_method="admin_direct_match",
+                        error_message=f"AdminDirectMatch configured but feature_ids=None (need to fill in admin IDs)",
+                    )
+                    result.admin_match = admin_match
+                    self.stats[result.status] += 1
+                    return result
+
+                result = LinkingResult(
+                    status=LinkStatus.SUCCESS,
+                    matched_features=[],
+                    link_method="admin_direct_match",
+                    error_message=None,
+                )
+                result.admin_match = admin_match
+                self.stats[result.status] += 1
+                return result
 
         # STEP 2: Check NameVariation (manual name corrections)
         if region:
@@ -764,33 +802,31 @@ class WaterbodyLinker:
         identity_type: str,
     ) -> LinkingResult:
         """
-        Apply polygon-based matching for administrative areas.
+        Match a waterbody by administrative area polygon intersection.
 
-        NOT YET IMPLEMENTED - Future feature for handling:
-        - Provincial parks (e.g., "KIKOMUN CREEK PARK")
-        - Watersheds (e.g., "MISSION CREEK WATERSHED")
-        - Conservation areas
-
-        Would work by:
-        1. Load polygon boundary for the park/watershed
-        2. Spatial query to find all waterbodies within boundary
-        3. Apply optional inclusion/exclusion lists
-        4. Return all matching features
+        Note: Admin area matching is now handled by AdminDirectMatch entries
+        in linking_corrections.py, processed via the 'admin_direct_match' path
+        in link_waterbody(). This method is retained for backward compatibility
+        but should not normally be called directly.
 
         Args:
-            name_verbatim: Exact verbatim name from regulation text (e.g., "KIKOMUN CREEK PARK")
+            name_verbatim: Exact verbatim name from regulation text
             identity_type: "ADMINISTRATIVE_AREA" or similar
 
         Returns:
-            LinkingResult with matched features
-
-        Raises:
-            NotImplementedError: This feature is not yet implemented
+            LinkingResult indicating admin match should be used
         """
-        raise NotImplementedError(
-            f"Polygon matching for administrative areas not yet implemented. "
-            f"Attempted to match: {name_verbatim} (type: {identity_type}). "
-            f"Current workaround: Add explicit feature lists to DirectMatch in name_variations.py"
+        logger.warning(
+            f"apply_polygon_match called directly for '{name_verbatim}'. "
+            f"Consider adding an AdminDirectMatch entry in linking_corrections.py instead."
+        )
+        return LinkingResult(
+            status=LinkStatus.NOT_FOUND,
+            error_message=(
+                f"Admin polygon matching for '{name_verbatim}' requires an "
+                f"AdminDirectMatch entry in linking_corrections.py"
+            ),
+            link_method="polygon_match",
         )
 
     def get_stats(self) -> Dict[str, int]:
@@ -800,3 +836,583 @@ class WaterbodyLinker:
     def reset_stats(self):
         """Reset statistics counter."""
         self.stats.clear()
+
+
+# ============================================================================
+# CLI Coverage Test  (python -m regulation_mapping.linker)
+# ============================================================================
+
+
+def _run_coverage_test():
+    """
+    Run waterbody linking coverage test.
+
+    Loads parsed regulations, links each against the FWA gazetteer, and
+    prints a full diagnostic report (status breakdown, region table, unused
+    configs, samples, etc.).
+
+    Optional flags:
+        --export-not-found  PATH   Export NOT_FOUND entries to JSON
+        --export-ambiguous  PATH   Export AMBIGUOUS entries to JSON
+    """
+    import argparse
+    import json
+    import shutil
+    from pathlib import Path
+    from collections import defaultdict, Counter as _Counter
+
+    from .linking_corrections import (
+        NAME_VARIATIONS,
+        DIRECT_MATCHES,
+        SKIP_ENTRIES,
+        UNMARKED_WATERBODIES,
+        ADMIN_DIRECT_MATCHES,
+        ManualCorrections,
+    )
+    from project_config import get_config
+
+    # --- Terminal formatting helpers ---
+
+    RED = "\033[91m"
+    YELLOW = "\033[93m"
+    GREEN = "\033[92m"
+    BLUE = "\033[94m"
+    RESET = "\033[0m"
+
+    def tw(default=80):
+        try:
+            return shutil.get_terminal_size((default, 20)).columns
+        except Exception:
+            return default
+
+    def divider(char="="):
+        print(char * tw())
+
+    def header(text):
+        print()
+        divider("=")
+        print(text)
+        divider("=")
+        print()
+
+    def sub_header(text):
+        print(f"\n{text}")
+        print("-" * tw())
+
+    def extract_region(region_str):
+        if not region_str or not region_str.startswith("REGION"):
+            return None
+        num = "".join(c for c in region_str.split("-")[0] if c.isdigit())
+        return f"Region {num}" if num else None
+
+    # --- Export helpers ---
+
+    def _instructions_block(mode):
+        if mode == "NOT_FOUND":
+            return {
+                "description": "NOT_FOUND waterbodies - need to add name variations",
+                "how_to_fix": [
+                    "1. Check spelling/formatting/renaming -> Add to NAME_VARIATIONS",
+                    "2. Not in gazetteer? -> Add to DIRECT_MATCHES",
+                    "3. Check 'search_terms_used' and 'location_descriptor'",
+                    "4. Use management_units to narrow down",
+                ],
+                "example_name_variation": {
+                    "TOQUART LAKE": {
+                        "target_names": ["toquaht lake"],
+                        "note": "Spelling",
+                    }
+                },
+                "example_direct_match": {
+                    "LONG LAKE (Nanaimo)": {"gnis_id": "17501", "note": "Disambiguate"}
+                },
+            }
+        return {
+            "description": "AMBIGUOUS waterbodies - multiple candidates found",
+            "how_to_fix": [
+                "1. Review candidates",
+                "2. Compare MUs",
+                "3. Add DIRECT_MATCH with specific ID",
+            ],
+            "example_direct_match": {
+                "RAINBOW LAKE": {"gnis_id": "28692", "note": "Disambiguate MU"}
+            },
+        }
+
+    def _export_data(items, path, lookup, mode):
+        entries = []
+        for item in items:
+            reg, name = item["region"], item["name_verbatim"]
+            full = lookup.get((reg, name), {})
+            ex_var = NAME_VARIATIONS.get(reg, {}).get(name)
+            ex_match = DIRECT_MATCHES.get(reg, {}).get(name)
+
+            entry = {
+                "name_verbatim": name,
+                "waterbody_key": item["waterbody_key"],
+                "region": reg,
+                "management_units": (
+                    item["mu"]
+                    if mode == "NOT_FOUND"
+                    else item.get("regulation_management_units")
+                ),
+                "identity_type": item.get("identity_type"),
+                "location_descriptor": item.get("location_descriptor"),
+                "alternate_names": item.get("alternate_names", []),
+                "page": full.get("page"),
+                "regulations_summary": full.get("regs_verbatim"),
+                "full_identity": full.get("identity"),
+                "existing_variation": (
+                    {"target_names": ex_var.target_names, "note": ex_var.note}
+                    if ex_var
+                    else None
+                ),
+                "existing_direct_match": (
+                    {"gnis_id": ex_match.gnis_id, "note": ex_match.note}
+                    if ex_match
+                    else None
+                ),
+            }
+
+            if mode == "NOT_FOUND":
+                entry["search_terms_used"] = item.get(
+                    "search_terms", [item["waterbody_key"].lower()]
+                )
+                entry["suggested_action"] = "Add to NAME_VARIATIONS or DIRECT_MATCHES"
+            else:
+                entry["candidate_count"] = len(item.get("candidates", []))
+                entry["candidate_waterbodies"] = item.get("candidate_details", [])
+                entry["suggested_action"] = "Add to DIRECT_MATCHES with correct ID"
+
+            entries.append(entry)
+
+        out = {
+            "_instructions": _instructions_block(mode),
+            "count": len(entries),
+            "entries": entries,
+        }
+        with open(path, "w") as f:
+            json.dump(out, f, indent=2)
+        print(f"\nExported {len(entries)} {mode} entries to {path}")
+
+    def _process_ambiguous_candidates(candidates, reg_mus):
+        processed = []
+        for c in candidates:
+            fwa_mus = c.get("management_units", [])
+            match = any(mu in fwa_mus for mu in reg_mus)
+            processed.append(
+                {
+                    "fwa_name": c.get("name"),
+                    "gnis_id": c.get("gnis_id"),
+                    "fwa_watershed_code": c.get("fwa_watershed_code"),
+                    "feature_type": c.get("feature_type"),
+                    "region": c.get("region"),
+                    "fwa_mus": fwa_mus,
+                    "mu_match": match,
+                }
+            )
+        return processed
+
+    # --- Stats holder ---
+
+    class _Stats:
+        def __init__(self):
+            self.results = defaultdict(list)
+            self.by_region = defaultdict(_Counter)
+            self.success_methods = _Counter()
+            self.failed_parse = []
+            self.trib_non_stream = []
+            self.mu_mismatches = []
+            self.used_vars = set()
+            self.used_direct = set()
+            self.used_skips = set()
+            self.reg_names_seen = set()
+
+    # --- Main entry ---
+
+    parser = argparse.ArgumentParser(description="Waterbody Linking Coverage Test")
+    parser.add_argument("--export-not-found", help="Export NOT_FOUND entries to JSON")
+    parser.add_argument("--export-ambiguous", help="Export AMBIGUOUS entries to JSON")
+    args = parser.parse_args()
+
+    config = get_config()
+    header("WATERBODY LINKING COVERAGE TEST")
+
+    # Load data
+    print("Loading parsed regulations...")
+    with open(config.synopsis_parsed_results_path) as f:
+        parsed_data = json.load(f)
+    print(f"Loaded {len(parsed_data)} waterbodies")
+
+    print("Loading FWA metadata...")
+    gazetteer = MetadataGazetteer(config.fwa_metadata_path)
+
+    from fwa_pipeline.metadata_builder import FeatureType as _FT
+
+    print(
+        f"Loaded {len(gazetteer.metadata.get(_FT.STREAM, {})):,} streams, "
+        f"{len(gazetteer.metadata.get(_FT.LAKE, {})):,} lakes"
+    )
+
+    print("Initializing linker...")
+    linker = WaterbodyLinker(
+        gazetteer,
+        ManualCorrections(
+            NAME_VARIATIONS,
+            DIRECT_MATCHES,
+            SKIP_ENTRIES,
+            UNMARKED_WATERBODIES,
+            ADMIN_DIRECT_MATCHES,
+        ),
+    )
+    print(f"Loaded configuration across {len(NAME_VARIATIONS)} regions")
+
+    header("TESTING LINKING")
+    stats = _Stats()
+    parsed_lookup = {}
+
+    for i, wb in enumerate(parsed_data):
+        ident = wb["identity"]
+        key, name = ident["waterbody_key"], ident["name_verbatim"]
+        region = extract_region(wb.get("region", ""))
+        mus = wb.get("mu", [])
+
+        if key == "FAILED":
+            stats.failed_parse.append(wb)
+            continue
+        if not region:
+            continue
+
+        parsed_lookup[(region, name)] = wb
+        if name:
+            stats.reg_names_seen.add((region, name))
+        stats.reg_names_seen.add((region, key))
+
+        if region in SKIP_ENTRIES and name in SKIP_ENTRIES[region]:
+            stats.used_skips.add((region, name))
+
+        # Link
+        res = linker.link_waterbody(region=region, mgmt_units=mus, name_verbatim=name)
+
+        # Statistics & validation
+        if res.status == LinkStatus.SUCCESS:
+            stats.success_methods[res.link_method] += 1
+
+            if res.link_method == "name_variation":
+                if name in NAME_VARIATIONS.get(region, {}):
+                    stats.used_vars.add((region, name))
+                elif key in NAME_VARIATIONS.get(region, {}):
+                    stats.used_vars.add((region, key))
+            elif res.link_method == "direct_match":
+                matched = name if name in DIRECT_MATCHES.get(region, {}) else key
+                if matched:
+                    stats.used_direct.add((region, matched))
+
+            # MU mismatch check for direct matches
+            if res.link_method == "direct_match":
+                feats = res.matched_features
+                fwa_mus = set().union(*(f.mgmt_units for f in feats if f.mgmt_units))
+                reg_set = set(mus)
+                mismatch = False
+                if reg_set and fwa_mus and not reg_set.issubset(fwa_mus):
+                    mismatch = True
+                elif reg_set and not fwa_mus:
+                    mismatch = True
+                if mismatch:
+                    reg_num = region.split()[-1]
+                    is_cross = bool(fwa_mus) and not any(
+                        m.startswith(f"{reg_num}-") for m in fwa_mus
+                    )
+                    stats.mu_mismatches.append(
+                        {
+                            "name_verbatim": name,
+                            "region": region,
+                            "reg_mus": sorted(reg_set),
+                            "fwa_mus": sorted(fwa_mus),
+                            "is_cross": is_cross,
+                            "page": wb.get("page"),
+                        }
+                    )
+
+            # Tributaries matched to non-stream
+            if ident.get("identity_type") == "TRIBUTARIES":
+                feats = res.matched_features
+                if feats and all(f.geometry_type != "multilinestring" for f in feats):
+                    stats.trib_non_stream.append(
+                        {"key": key, "region": region, "matched_to": feats[0].gnis_name}
+                    )
+
+        # Candidate details
+        cands_list = []
+        if res.candidate_features:
+            for f in res.candidate_features:
+                cands_list.append(
+                    {
+                        "name": f.gnis_name,
+                        "gnis_id": f.gnis_id,
+                        "fwa_watershed_code": f.fwa_watershed_code,
+                        "feature_type": getattr(f, "geometry_type", "Unknown"),
+                        "zones": f.zones,
+                        "management_units": f.mgmt_units,
+                    }
+                )
+
+        item_data = {
+            "waterbody_key": key,
+            "name_verbatim": name,
+            "location_descriptor": ident.get("location_descriptor"),
+            "alternate_names": ident.get("alternate_names", []),
+            "identity_type": ident.get("identity_type"),
+            "region": region,
+            "mu": mus,
+            "result": res,
+            "regulation_management_units": mus,
+            "candidates": cands_list,
+            "candidate_details": (
+                _process_ambiguous_candidates(cands_list, mus)
+                if res.status == LinkStatus.AMBIGUOUS
+                else []
+            ),
+            "error_message": res.error_message,
+        }
+        stats.results[res.status].append(item_data)
+        stats.by_region[region][res.status] += 1
+
+        if (i + 1) % 100 == 0:
+            print(f"Processed {i+1}/{len(parsed_data)}...", end="\r")
+
+    print(f"Processed {len(parsed_data)}/{len(parsed_data)} waterbodies    ")
+
+    # --- REPORTING ---
+
+    header("SUMMARY STATISTICS")
+    if stats.failed_parse:
+        print(f"  FAILED PARSE ENTRIES: {len(stats.failed_parse)} (excluded)")
+
+    total = len(parsed_data) - len(stats.failed_parse)
+
+    for st in LinkStatus:
+        count = len(stats.results[st])
+        pct = (count / total * 100) if total else 0
+        color = (
+            GREEN
+            if st == LinkStatus.SUCCESS
+            else (RED if st == LinkStatus.NOT_FOUND else RESET)
+        )
+        print(f"{color}{st.value.upper():<20} : {count:5d} ({pct:5.1f}%){RESET}")
+
+    print("\n   --- Success Breakdown ---")
+    method_map = {
+        "direct_match": "Direct Match (Config)",
+        "name_variation": "Name Variation (Config)",
+        "natural_search": "Natural Search (Fuzzy)",
+        "exact_match": "Exact Name Match",
+    }
+    for method, label in method_map.items():
+        count = stats.success_methods[method]
+        if count > 0:
+            print(f"   {label:<25} : {count:5d}")
+
+    if stats.trib_non_stream:
+        print(
+            f"\n   {YELLOW}  Tributaries -> Non-Stream : {len(stats.trib_non_stream):5d} (Check these){RESET}"
+        )
+
+    not_in_data = len(stats.results[LinkStatus.NOT_IN_DATA])
+    ignored = len(stats.results[LinkStatus.IGNORED])
+    if not_in_data + ignored > 0:
+        print("\n   --- Excluded/Known Missing ---")
+        if not_in_data:
+            print(f"   Not In FWA Data           : {not_in_data:5d}")
+        if ignored:
+            print(f"   Manually Ignored          : {ignored:5d}")
+
+    # Region breakdown
+    header("RESULTS BY REGION")
+    width = tw()
+    col_w = max(10, int((width - 20) / 4))
+
+    hdr_row = f"{'Region':<15} | {'SUCCESS':<{col_w}} | {'AMBIG':<{col_w}} | {'NOT_FOUND':<{col_w}}"
+    print(hdr_row)
+    print("-" * len(hdr_row))
+    for reg in sorted(stats.by_region.keys()):
+        s = stats.by_region[reg]
+        print(
+            f"{reg:<15} | {s[LinkStatus.SUCCESS]:<{col_w}} | "
+            f"{s[LinkStatus.AMBIGUOUS]:<{col_w}} | {s[LinkStatus.NOT_FOUND]:<{col_w}}"
+        )
+
+    # Direct match MU validation
+    header("DIRECT MATCH MU VALIDATION")
+    if stats.mu_mismatches:
+        print(f"Found {len(stats.mu_mismatches)} mismatches:")
+        for m in stats.mu_mismatches:
+            tag = (
+                f" {RED}[CROSS-REGION]{RESET}"
+                if m["is_cross"]
+                else f" {YELLOW}[MU MISMATCH]{RESET}"
+            )
+            print(f"\n{tag} {m['name_verbatim']}")
+            print(f"   Regulation Region: {m['region']}")
+            print(f"   Regulation MUs:    {', '.join(m['reg_mus']) or '(none)'}")
+            print(f"   FWA MUs:           {', '.join(m['fwa_mus']) or '(none)'}")
+            if m.get("page"):
+                print(f"   Page:              {m['page']}")
+    else:
+        print("All direct matches verified.")
+
+    # Duplicate mappings
+    header("DUPLICATE REGULATION MAPPINGS")
+    dupes = linker.get_duplicate_mappings()
+    if dupes:
+        print(
+            f"Found {len(dupes)} FWA waterbodies with multiple regulation names mapped to them:"
+        )
+        sorted_dupes = sorted(
+            dupes.items(), key=lambda x: len(x[1]["regulations"]), reverse=True
+        )
+        for identity_key, data in sorted_dupes[:50]:
+            feat = data["feature"]
+            print(f"\n  {identity_key}")
+            if feat:
+                info = f"{feat.gnis_name} ({feat.geometry_type})"
+                if feat.gnis_id:
+                    info += f" [GNIS {feat.gnis_id}]"
+                print(f"  Feature: {info}")
+                if feat.mgmt_units:
+                    print(f"  FWA MUs: {', '.join(sorted(feat.mgmt_units))}")
+            print(f"  Mapped by {len(data['regulations'])} regulation(s):")
+            for r, n in data["regulations"]:
+                print(f"    * {r:10s} | {n}")
+        if len(dupes) > 50:
+            print(f"\n  ... and {len(dupes) - 50} more")
+    else:
+        print("No duplicate mappings found.")
+
+    # Samples
+    def _print_sample(status, limit=5):
+        items = stats.results[status]
+        if not items:
+            return
+        header(
+            f"{status.value.upper()} SAMPLES (Showing {min(limit, len(items))} of {len(items)})"
+        )
+        by_type = defaultdict(list)
+        for it in items:
+            by_type[it.get("identity_type", "UNKNOWN")].append(it)
+        for itype, type_items in sorted(by_type.items()):
+            sub_header(itype)
+            for item in type_items[:limit]:
+                mus_str = ",".join(item["mu"]) or "-"
+                print(f" * {item['name_verbatim']} ({item['region']}) | MUs: {mus_str}")
+                if item.get("location_descriptor"):
+                    print(f"   Loc: {item['location_descriptor']}")
+                if item.get("error_message") and status == LinkStatus.ERROR:
+                    print(f"   Error: {item['error_message']}")
+                if status == LinkStatus.AMBIGUOUS:
+                    cand_features = item["candidates"]
+                    unique_candidates = defaultdict(list)
+                    for c in cand_features:
+                        cid = c["fwa_watershed_code"] or c["gnis_id"]
+                        unique_candidates[cid].append(c)
+                    print(f"   Candidates ({len(unique_candidates)}):")
+                    for cid, feats in list(unique_candidates.items())[:5]:
+                        ft = feats[0]
+                        f_mus = (
+                            ", ".join(
+                                sorted(
+                                    set().union(
+                                        *(
+                                            x["management_units"]
+                                            for x in feats
+                                            if x["management_units"]
+                                        )
+                                    )
+                                )
+                            )
+                            or "None"
+                        )
+                        zones_str = (
+                            ",".join(ft["zones"]) if ft.get("zones") else "Unknown"
+                        )
+                        print(
+                            f"     - {ft['name']} [{cid}] (Zones: {zones_str}) | MUs: {f_mus}"
+                        )
+
+    _print_sample(LinkStatus.NOT_FOUND, limit=5)
+    _print_sample(LinkStatus.AMBIGUOUS, limit=5)
+    _print_sample(LinkStatus.ERROR, limit=5)
+
+    # Unused configs
+    header("UNUSED CONFIGURATION")
+
+    unused_vars = []
+    for r, v in NAME_VARIATIONS.items():
+        for k in v:
+            if not SKIP_ENTRIES.get(r, {}).get(k) and (r, k) not in stats.used_vars:
+                unused_vars.append(f"{r} | {k}")
+
+    unused_direct = []
+    for r, m in DIRECT_MATCHES.items():
+        for k in m:
+            if (r, k) in stats.reg_names_seen and (r, k) not in stats.used_direct:
+                unused_direct.append(f"{r} | {k}")
+
+    if unused_vars:
+        print(f"  {len(unused_vars)} Unused Name Variations (first 10):")
+        for u in unused_vars[:10]:
+            print(f"   - {u}")
+    else:
+        print("Name variations clean.")
+
+    if unused_direct:
+        print(f"\n  {len(unused_direct)} Unused Direct Matches (first 10):")
+        for u in unused_direct[:10]:
+            print(f"   - {u}")
+    else:
+        print("\nDirect matches clean.")
+
+    # Final tally
+    header("FINAL TALLY")
+    print(f"Total Processed:    {total}")
+    print(f"{GREEN}Linked (Total):     {len(stats.results[LinkStatus.SUCCESS])}{RESET}")
+    print(f"  - Natural Search: {stats.success_methods['natural_search']}")
+    print(f"  - Direct Match:   {stats.success_methods['direct_match']}")
+    print(f"  - Name Variation: {stats.success_methods['name_variation']}")
+    print(f"  - Exact Match:    {stats.success_methods['exact_match']}")
+    print(f"  - Admin Match:    {stats.success_methods.get('admin_direct_match', 0)}")
+    print(f"{RED}Not Found:          {len(stats.results[LinkStatus.NOT_FOUND])}{RESET}")
+    print(
+        f"{YELLOW}Ambiguous:          {len(stats.results[LinkStatus.AMBIGUOUS])}{RESET}"
+    )
+    print(
+        f"{BLUE}Not In Data:        {len(stats.results[LinkStatus.NOT_IN_DATA])}{RESET}"
+    )
+    print(f"{RED}Error:              {len(stats.results[LinkStatus.ERROR])}{RESET}")
+    print(f"Ignored:            {len(stats.results[LinkStatus.IGNORED])}")
+    print()
+
+    # Exports
+    if args.export_not_found:
+        _export_data(
+            stats.results[LinkStatus.NOT_FOUND],
+            Path(args.export_not_found),
+            parsed_lookup,
+            "NOT_FOUND",
+        )
+    if args.export_ambiguous:
+        _export_data(
+            stats.results[LinkStatus.AMBIGUOUS],
+            Path(args.export_ambiguous),
+            parsed_lookup,
+            "AMBIGUOUS",
+        )
+
+
+if __name__ == "__main__":
+    import warnings
+
+    warnings.filterwarnings(
+        "ignore", message=".*found in sys.modules.*", category=RuntimeWarning
+    )
+    _run_coverage_test()

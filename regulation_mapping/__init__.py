@@ -13,11 +13,13 @@ from .linker import (
     LinkingResult,
     LinkStatus,
 )
-from .metadata_gazetteer import MetadataGazetteer, FWAFeature
-from .name_variations import (
+from fwa_pipeline.metadata_gazetteer import MetadataGazetteer, FWAFeature
+from .linking_corrections import (
     NameVariation,
     NAME_VARIATIONS,
     DirectMatch,
+    AdminDirectMatch,
+    ADMIN_DIRECT_MATCHES,
     ManualCorrections,
 )
 from .regulation_mapper import (
@@ -39,6 +41,8 @@ __all__ = [
     "NameVariation",
     "NAME_VARIATIONS",
     "DirectMatch",
+    "AdminDirectMatch",
+    "ADMIN_DIRECT_MATCHES",
     "ManualCorrections",
     "RegulationMapper",
     "RegulationMappingStats",

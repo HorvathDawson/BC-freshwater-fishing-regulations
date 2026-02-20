@@ -30,11 +30,11 @@ class FWADataAccessor:
     def list_layers(self, with_details: bool = False) -> list | dict:
         """
         Returns available layers.
-        
+
         Args:
-            with_details: If True, returns dict with layer names as keys and 
+            with_details: If True, returns dict with layer names as keys and
                          geometry types as values. If False, returns list of layer names.
-        
+
         Returns:
             List of layer names or dict of {layer_name: geometry_type}
         """
@@ -42,11 +42,74 @@ class FWADataAccessor:
             return {name: geom_type for name, geom_type in self.layer_info}
         return self.layer_names
 
+    # ── Column normalization rules ──────────────────────────────────────
+    # Applied uniformly by _normalize_columns() so EVERY access path
+    # (get_layer, get_attributes, get_features_by_attribute) returns
+    # consistent Python types that match pickle metadata keys.
+
+    NUMERIC_ID_COLUMNS = [
+        "GNIS_ID",
+        "GNIS_ID_1",
+        "GNIS_ID_2",
+        "WATERBODY_KEY",
+        "WATERBODY_POLY_ID",
+        "LINEAR_FEATURE_ID",
+        "BLUE_LINE_KEY",
+        # Admin layer ID fields
+        "NATIONAL_PARK_ID",
+        "ADMIN_AREA_SID",
+        "NAMED_WATERSHED_ID",
+    ]
+
+    STRING_COLUMNS = [
+        "FWA_WATERSHED_CODE",
+        "FEATURE_CODE",
+        "EDGE_TYPE",
+        # Admin layer fields
+        "SITE_ID",  # UUID for historic sites
+        "PROTECTED_LANDS_CODE",  # Classification code for parks_bc
+    ]
+
+    INT_COLUMNS = ["STREAM_ORDER", "STREAM_MAGNITUDE"]
+
+    def _normalize_columns(
+        self, df: pd.DataFrame | gpd.GeoDataFrame
+    ) -> pd.DataFrame | gpd.GeoDataFrame:
+        """
+        Apply consistent type normalization to all known columns present in *df*.
+
+        - Numeric ID columns → str  (float64 169001887.0 → "169001887", 0/null → "")
+        - String columns     → str  (null → "")
+        - Integer columns    → int | None
+        """
+        for col in self.NUMERIC_ID_COLUMNS:
+            if col in df.columns:
+                df[col] = df[col].apply(
+                    lambda x: (
+                        "" if pd.isnull(x) or x == 0 or x == "" else str(int(float(x)))
+                    )
+                )
+
+        for col in self.STRING_COLUMNS:
+            if col in df.columns:
+                df[col] = df[col].apply(lambda x: "" if pd.isnull(x) else str(x))
+
+        for col in self.INT_COLUMNS:
+            if col in df.columns:
+                df[col] = df[col].apply(
+                    lambda x: None if pd.isnull(x) or x == "" else int(float(x))
+                )
+        return df
+
+    # ── Public access methods ─────────────────────────────────────────
+
     def get_layer(
         self, layer_name: str, columns: list = None, bbox: tuple = None
     ) -> gpd.GeoDataFrame:
         """
         Loads a full layer or a spatial subset, with a progress bar.
+        All columns are normalized to consistent Python types.
+
         :param columns: List of specific columns to load (saves memory).
         :param bbox: Tuple of (minx, miny, maxx, maxy) to filter spatially.
         """
@@ -59,43 +122,8 @@ class FWADataAccessor:
             columns=columns,
             bbox=bbox,
         )
-        # Clean and convert relevant columns to appropriate types
-        # Numeric ID columns: convert to string, treat 0 as empty (no value)
-        numeric_id_columns = [
-            "GNIS_ID",
-            "GNIS_ID_1",
-            "GNIS_ID_2",
-            "WATERBODY_KEY",
-            "WATERBODY_POLY_ID",
-            "LINEAR_FEATURE_ID",
-            "BLUE_LINE_KEY",
-        ]
-        # String code columns: just convert to string, preserve values
-        string_columns = [
-            "FWA_WATERSHED_CODE",
-            "FEATURE_CODE",
-            "EDGE_TYPE",
-        ]
-        # Integer columns: keep as int, null stays as None
-        int_columns = ["STREAM_ORDER", "STREAM_MAGNITUDE"]
+        gdf = self._normalize_columns(gdf)
 
-        for col in numeric_id_columns:
-            if col in gdf.columns:
-                gdf[col] = gdf[col].apply(
-                    lambda x: (
-                        "" if pd.isnull(x) or x == 0 or x == "" else str(int(float(x)))
-                    )
-                )
-
-        for col in string_columns:
-            if col in gdf.columns:
-                gdf[col] = gdf[col].apply(lambda x: "" if pd.isnull(x) else str(x))
-
-        for col in int_columns:
-            if col in gdf.columns:
-                gdf[col] = gdf[col].apply(
-                    lambda x: None if pd.isnull(x) or x == "" else int(float(x))
-                )
         # Show progress bar as we iterate through the rows (forces load)
         _ = [
             row
@@ -111,17 +139,18 @@ class FWADataAccessor:
     def get_attributes(self, layer_name: str, columns: list = None) -> pd.DataFrame:
         """
         Loads ONLY the tabular data (ignores shapes).
-        Extremely fast for attribute analysis or cross-referencing IDs.
+        All columns are normalized to consistent Python types.
         """
         self._check_layer(layer_name)
-        return gpd.read_file(
+        df = gpd.read_file(
             self.gpkg_path,
             layer=layer_name,
             engine="pyogrio",
             use_arrow=True,
             columns=columns,
-            ignore_geometry=True,  # This returns a standard, lightweight Pandas DataFrame
+            ignore_geometry=True,
         )
+        return self._normalize_columns(df)
 
     def get_features_by_attribute(
         self,
@@ -131,8 +160,8 @@ class FWADataAccessor:
         ignore_geom: bool = False,
     ) -> gpd.GeoDataFrame | pd.DataFrame:
         """
-        The magic method. Pushes a SQL 'WHERE' clause directly to the GeoPackage.
-        Finds specific features instantly without loading the whole layer.
+        Pushes a SQL 'WHERE' clause directly to the GeoPackage for fast lookup.
+        All columns are normalized to consistent Python types.
 
         :param column: The attribute column (e.g., 'GNIS_NAME' or 'LINEAR_FEATURE_ID')
         :param values: A single value or a list of values to search for.
@@ -141,7 +170,6 @@ class FWADataAccessor:
 
         # Format the SQL WHERE clause
         if isinstance(values, (list, tuple, set)):
-            # Handle lists: format as SQL IN ('A', 'B') or IN (1, 2)
             if len(values) == 0:
                 return gpd.GeoDataFrame() if not ignore_geom else pd.DataFrame()
 
@@ -149,13 +177,12 @@ class FWADataAccessor:
             val_str = ", ".join(f"'{v}'" if is_str else str(v) for v in values)
             where_clause = f"{column} IN ({val_str})"
         else:
-            # Handle single values
             is_str = isinstance(values, str)
             where_clause = (
                 f"{column} = '{values}'" if is_str else f"{column} = {values}"
             )
 
-        return gpd.read_file(
+        result = gpd.read_file(
             self.gpkg_path,
             layer=layer_name,
             engine="pyogrio",
@@ -163,6 +190,7 @@ class FWADataAccessor:
             where=where_clause,
             ignore_geometry=ignore_geom,
         )
+        return self._normalize_columns(result)
 
     def get_geometry_dict(
         self, layer_name: str, id_column: str, target_ids: list = None
@@ -185,6 +213,29 @@ class FWADataAccessor:
 
         # Convert to dictionary mapping
         return pd.Series(gdf[geom_col].values, index=gdf[id_column]).to_dict()
+
+    def get_features_by_code(
+        self,
+        layer_name: str,
+        code_column: str,
+        code_values: list | str,
+        columns: list = None,
+    ) -> gpd.GeoDataFrame:
+        """
+        Filter a layer by a classification code column.
+
+        Useful for demultiplexing combined layers like parks_bc where
+        PROTECTED_LANDS_CODE distinguishes Provincial Parks (PP),
+        Ecological Reserves (OI), Protected Areas (PA), etc.
+
+        :param layer_name: GPKG layer to query.
+        :param code_column: Column containing the classification code.
+        :param code_values: Single code or list of codes to include.
+        :param columns: Optional list of columns to return.
+        """
+        if isinstance(code_values, str):
+            code_values = [code_values]
+        return self.get_features_by_attribute(layer_name, code_column, code_values)
 
     def _check_layer(self, layer_name: str):
         if layer_name not in self.layer_names:

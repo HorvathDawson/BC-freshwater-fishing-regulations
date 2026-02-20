@@ -16,11 +16,12 @@ from typing import Dict, List, Any
 
 from .linker import WaterbodyLinker, LinkStatus
 from .metadata_gazetteer import MetadataGazetteer
-from .name_variations import (
+from .linking_corrections import (
     NAME_VARIATIONS,
     DIRECT_MATCHES,
     SKIP_ENTRIES,
     UNMARKED_WATERBODIES,
+    ADMIN_DIRECT_MATCHES,
     ManualCorrections,
 )
 from project_config import get_config
@@ -224,7 +225,11 @@ def test_linking_coverage(export_not_found: str = None, export_ambiguous: str = 
     linker = WaterbodyLinker(
         gazetteer,
         ManualCorrections(
-            NAME_VARIATIONS, DIRECT_MATCHES, SKIP_ENTRIES, UNMARKED_WATERBODIES
+            NAME_VARIATIONS,
+            DIRECT_MATCHES,
+            SKIP_ENTRIES,
+            UNMARKED_WATERBODIES,
+            ADMIN_DIRECT_MATCHES,
         ),
     )
     print(f"Loaded configuration across {len(NAME_VARIATIONS)} regions")

@@ -18,7 +18,7 @@ import geopandas as gpd
 from shapely.geometry import MultiLineString, MultiPolygon, box
 
 from .regulation_mapper import PipelineResult, generate_rule_id
-from .metadata_gazetteer import FeatureType
+from fwa_pipeline.metadata_gazetteer import FeatureType
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(message)s")
 logger = logging.getLogger(__name__)
@@ -564,8 +564,12 @@ class RegulationGeoExporter:
         self._layer_cache[cache_key] = result
         return result
 
-    def _create_regions_layer(self, zones_path: Path) -> Optional[gpd.GeoDataFrame]:
-        zones_gdf = gpd.read_file(zones_path).to_crs("EPSG:3005")
+    def _create_regions_layer(self) -> Optional[gpd.GeoDataFrame]:
+        """Build region boundary layer from the 'wmu' layer in the main GPKG."""
+        if "wmu" not in self.data_accessor.list_layers():
+            logger.warning("'wmu' layer not found in GPKG — skipping regions")
+            return None
+        zones_gdf = self.data_accessor.get_layer("wmu").to_crs("EPSG:3005")
         zones_gdf["zone"] = zones_gdf["WILDLIFE_MGMT_UNIT_ID"].str.split("-").str[0]
         regions_gdf = zones_gdf.dissolve(by="zone", as_index=False)
         regions_gdf["geometry"] = regions_gdf["geometry"].boundary
@@ -593,7 +597,7 @@ class RegulationGeoExporter:
         merge: bool,
         include_all: bool,
         exclude_lake_streams: bool = False,
-        zones_path: Optional[Path] = None,
+        include_regions: bool = True,
     ) -> List[Tuple[str, Callable]]:
         layers = [
             (
@@ -621,8 +625,8 @@ class RegulationGeoExporter:
                 ),
             ),
         ]
-        if zones_path and zones_path.exists():
-            layers.append(("regions", lambda: self._create_regions_layer(zones_path)))
+        if include_regions:
+            layers.append(("regions", lambda: self._create_regions_layer()))
         return layers
 
     def _is_file_locked(self, filepath: Path) -> bool:
@@ -643,7 +647,6 @@ class RegulationGeoExporter:
         output_path: Path,
         merge_geometries: bool = True,
         include_all_features: bool = False,
-        zones_path: Optional[Path] = None,
     ) -> Path:
         if self._is_file_locked(output_path):
             return None
@@ -658,7 +661,6 @@ class RegulationGeoExporter:
             merge_geometries,
             include_all_features,
             exclude_lake_streams=False,
-            zones_path=zones_path,
         ):
             if (gdf := create_fn()) is not None and not gdf.empty:
                 gdf.to_file(output_path, layer=name, driver="GPKG")
@@ -676,7 +678,6 @@ class RegulationGeoExporter:
         output_path: Path,
         merge_geometries: bool = True,
         work_dir: Optional[Path] = None,
-        zones_path: Optional[Path] = None,
     ) -> Path:
         if self._is_file_locked(output_path):
             return None
@@ -685,9 +686,7 @@ class RegulationGeoExporter:
         self._preload_data()
 
         layer_files = []
-        for name, create_fn in self._get_layer_configs(
-            merge_geometries, False, True, zones_path
-        ):
+        for name, create_fn in self._get_layer_configs(merge_geometries, False, True):
             if (gdf := create_fn()) is not None and not gdf.empty:
                 layer_path = work_dir / f"{name}.geojsonseq"
                 with open(layer_path, "w") as f:
@@ -763,7 +762,44 @@ class RegulationGeoExporter:
                     "scope_type": scope.get("type"),
                     "scope_location": scope.get("location_verbatim"),
                     "includes_tributaries": scope.get("includes_tributaries"),
+                    "source": "synopsis",
                 }
+
+        # Add provincial base regulations
+        provincial_map = self.pipeline_result.provincial_feature_map or {}
+        if provincial_map:
+            from .provincial_base_regulations import PROVINCIAL_BASE_REGULATIONS
+
+            for prov_reg in PROVINCIAL_BASE_REGULATIONS:
+                if prov_reg.regulation_id in provincial_map:
+                    reg_lookup[prov_reg.regulation_id] = {
+                        "waterbody_name": prov_reg.regulation_id.replace(
+                            "_", " "
+                        ).title(),
+                        "waterbody_key": None,
+                        "region": None,
+                        "management_units": [],
+                        "rule_text": prov_reg.rule_text,
+                        "restriction_type": (
+                            prov_reg.restriction.get("type")
+                            if prov_reg.restriction
+                            else None
+                        ),
+                        "restriction_details": (
+                            prov_reg.restriction.get("details")
+                            if prov_reg.restriction
+                            else None
+                        ),
+                        "dates": (
+                            prov_reg.restriction.get("dates")
+                            if prov_reg.restriction
+                            else None
+                        ),
+                        "scope_type": prov_reg.scope_type,
+                        "scope_location": prov_reg.admin_layer,
+                        "includes_tributaries": None,
+                        "source": "provincial",
+                    }
 
         output_path.parent.mkdir(parents=True, exist_ok=True)
         with open(output_path, "w", encoding="utf-8") as f:

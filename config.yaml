@@ -17,7 +17,7 @@ output:
   fwa:
     base: "output/fwa"
     graph: "output/fwa/fwa_bc_primal_full.gpickle"
-    metadata: "output/fwa/stream_metadata.pickle"
+    metadata: "output/fwa/fwa_metadata.pickle"
     temp: "output/fwa/temp"
   
   # Regulation Mapping Pipeline Outputs

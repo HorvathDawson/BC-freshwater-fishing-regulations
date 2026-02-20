@@ -14,12 +14,13 @@ from collections import Counter
 import json
 
 from .linker import WaterbodyLinker
-from .metadata_gazetteer import MetadataGazetteer
-from .name_variations import (
+from fwa_pipeline.metadata_gazetteer import MetadataGazetteer
+from .linking_corrections import (
     NAME_VARIATIONS,
     DIRECT_MATCHES,
     SKIP_ENTRIES,
     UNMARKED_WATERBODIES,
+    ADMIN_DIRECT_MATCHES,
     ManualCorrections,
 )
 from .regulation_mapper import RegulationMapper, PipelineResult
@@ -54,7 +55,7 @@ class RegulationPipeline:
         Initialize pipeline with required data sources.
 
         Args:
-            metadata_path: Path to stream_metadata.pickle
+            metadata_path: Path to fwa_metadata.pickle
             graph_path: Path to graph pickle (optional, for tributary enrichment)
             gpkg_path: Path to FWA GeoPackage (optional, for export)
         """
@@ -73,12 +74,17 @@ class RegulationPipeline:
         # Load gazetteer
         self.gazetteer = MetadataGazetteer(self.metadata_path)
 
+        # Set GPKG path for spatial intersection (admin metadata comes from pickle)
+        if self.gpkg_path and self.gpkg_path.exists():
+            self.gazetteer.set_gpkg_path(self.gpkg_path)
+
         # Initialize manual corrections
         manual_corrections = ManualCorrections(
             name_variations=NAME_VARIATIONS,
             direct_matches=DIRECT_MATCHES,
             skip_entries=SKIP_ENTRIES,
             unmarked_waterbodies=UNMARKED_WATERBODIES,
+            admin_direct_matches=ADMIN_DIRECT_MATCHES,
         )
 
         # Initialize linker
@@ -99,16 +105,21 @@ class RegulationPipeline:
         else:
             tributary_enricher = TributaryEnricher(metadata_gazetteer=self.gazetteer)
 
-        # Initialize regulation mapper
+        # Initialize regulation mapper (orchestrates all regulation sources)
         self.mapper = RegulationMapper(
             linker=linker,
             scope_filter=scope_filter,
             tributary_enricher=tributary_enricher,
+            gpkg_path=self.gpkg_path,
         )
 
     def process_regulations(self, regulations_path: Path) -> PipelineResult:
         """
         Run the full regulation mapping pipeline.
+
+        Loads parsed regulations and delegates all orchestration to the mapper,
+        which handles synopsis, admin area, and provincial regulation sources
+        before merging features into groups.
 
         Args:
             regulations_path: Path to parsed_results.json
@@ -129,16 +140,13 @@ class RegulationPipeline:
         # Store regulations for later export
         self.parsed_regulations = regulations
 
-        # Run pipeline
-        result = self.mapper.run(regulations=regulations)
-
-        return result
+        # Mapper orchestrates all regulation sources and merging
+        return self.mapper.run(regulations=regulations)
 
     def export_geography(
         self,
         pipeline_result: PipelineResult,
         output_dir: Path,
-        zones_path: Optional[Path] = None,
         export_merged: bool = True,
         export_individual: bool = True,
         export_regulations_json: bool = True,
@@ -149,7 +157,6 @@ class RegulationPipeline:
         Args:
             pipeline_result: Result from process_regulations()
             output_dir: Directory for output files
-            zones_path: Optional path to zones GPKG
             export_merged: Whether to export merged geometries
             export_individual: Whether to export individual geometries
             export_regulations_json: Whether to export regulations.json for frontend
@@ -179,13 +186,11 @@ class RegulationPipeline:
             merged_pmtiles = output_dir / "regulations_merged.pmtiles"
 
             logger.info("Exporting merged geometries...")
-            if gpkg_path := exporter.export_gpkg(
-                merged_gpkg, merge_geometries=True, zones_path=zones_path
-            ):
+            if gpkg_path := exporter.export_gpkg(merged_gpkg, merge_geometries=True):
                 exported_files["merged_gpkg"] = gpkg_path
 
             if pmtiles_path := exporter.export_pmtiles(
-                merged_pmtiles, merge_geometries=True, zones_path=zones_path
+                merged_pmtiles, merge_geometries=True
             ):
                 exported_files["merged_pmtiles"] = pmtiles_path
 
@@ -196,12 +201,12 @@ class RegulationPipeline:
 
             logger.info("Exporting individual geometries...")
             if gpkg_path := exporter.export_gpkg(
-                individual_gpkg, merge_geometries=False, zones_path=zones_path
+                individual_gpkg, merge_geometries=False
             ):
                 exported_files["individual_gpkg"] = gpkg_path
 
             if pmtiles_path := exporter.export_pmtiles(
-                individual_pmtiles, merge_geometries=False, zones_path=zones_path
+                individual_pmtiles, merge_geometries=False
             ):
                 exported_files["individual_pmtiles"] = pmtiles_path
 
@@ -222,7 +227,6 @@ class RegulationPipeline:
         self,
         regulations_path: Path,
         output_dir: Path,
-        zones_path: Optional[Path] = None,
         export_merged: bool = True,
         export_individual: bool = True,
         export_regulations_json: bool = True,
@@ -234,7 +238,6 @@ class RegulationPipeline:
         Args:
             regulations_path: Path to parsed_results.json
             output_dir: Directory for output files
-            zones_path: Optional path to zones GPKG
             export_merged: Whether to export merged geometries
             export_individual: Whether to export individual geometries
             export_regulations_json: Whether to export regulations.json for frontend
@@ -252,7 +255,6 @@ class RegulationPipeline:
             exported_files = self.export_geography(
                 pipeline_result=result,
                 output_dir=output_dir,
-                zones_path=zones_path,
                 export_merged=export_merged,
                 export_individual=export_individual,
                 export_regulations_json=export_regulations_json,
@@ -413,7 +415,7 @@ def _print_mapping_statistics(
                 feature_name = "unknown"
                 try:
                     # Look up feature in gazetteer to get name
-                    from .metadata_gazetteer import FeatureType
+                    from fwa_pipeline.metadata_gazetteer import FeatureType
 
                     for ftype in [
                         FeatureType.STREAM,
@@ -485,13 +487,6 @@ Examples:
         type=Path,
         default=config.fetch_output_gpkg_path,
         help=f"Path to FWA GeoPackage (default: {config.fetch_output_gpkg_path})",
-    )
-
-    parser.add_argument(
-        "--zones",
-        type=Path,
-        required=False,
-        help="Path to wildlife zones GPKG (optional, only needed for zone-based features)",
     )
 
     parser.add_argument(
@@ -572,11 +567,6 @@ Examples:
         print(
             f"  GeoPackage: {args.gpkg_path if args.gpkg_path.exists() else 'Not found'}"
         )
-        if args.zones:
-            print(f"  Zones: {args.zones if args.zones.exists() else 'Not found'}")
-        else:
-            print(f"  Zones: Not specified (optional)")
-
     print("\n📁 Output:")
     print(f"  Directory: {args.output_dir}")
     if args.map_only:
@@ -617,7 +607,6 @@ Examples:
     result, exported_files = pipeline.run_full_pipeline(
         regulations_path=args.regulations,
         output_dir=args.output_dir,
-        zones_path=args.zones if args.zones and args.zones.exists() else None,
         export_merged=export_merged,
         export_individual=export_individual,
         export_regulations_json=True,

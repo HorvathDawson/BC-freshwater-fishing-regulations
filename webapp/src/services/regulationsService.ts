@@ -15,6 +15,7 @@ export interface Regulation {
   scope_type: string;
   scope_location: string | null;
   includes_tributaries: boolean | null;
+  source?: 'synopsis' | 'provincial';
 }
 
 type RegulationsLookup = Record<string, Regulation>;

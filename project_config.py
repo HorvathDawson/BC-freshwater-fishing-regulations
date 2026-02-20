@@ -206,6 +206,11 @@ class ProjectConfig:
         """Get path for data fetch output GeoPackage (legacy, for fetch_data.py)."""
         return self.get_path("data", "fetch", "output_gpkg")
 
+    @property
+    def fetch_temp_dir(self) -> Path:
+        """Get temporary directory for data fetch operations."""
+        return self.get_path("data", "fetch", "temp_dir")
+
     # ========================================================================
     # Regulation Mapping
     # ========================================================================

@@ -130,8 +130,11 @@ class AdminDirectMatch:
     Attributes:
         admin_layer: Which admin boundary layer to query
         note: Explanation of the match
-        feature_ids: Specific feature IDs within the admin layer (e.g., OBJECTID)
+        feature_ids: Specific feature IDs within the admin layer
         feature_names: Name(s) to search for in the admin layer (case-insensitive partial match)
+        code_filter: Classification codes to pre-filter the layer by (e.g., ["PP"]
+                     for provincial parks in parks_bc). Only effective when the
+                     layer defines a code_field in ADMIN_LAYER_CONFIG.
         include_streams: Include stream features in spatial intersection
         include_lakes: Include lake features in spatial intersection
         include_wetlands: Include wetland features in spatial intersection
@@ -142,6 +145,7 @@ class AdminDirectMatch:
     note: str
     feature_ids: Optional[List[int]] = None
     feature_names: Optional[List[str]] = None
+    code_filter: Optional[List[str]] = None
     include_streams: bool = True
     include_lakes: bool = True
     include_wetlands: bool = False
@@ -1833,7 +1837,7 @@ ADMIN_DIRECT_MATCHES: Dict[str, Dict[str, AdminDirectMatch]] = {
     "Region 1": {
         "STRATHCONA PARK WATERS": AdminDirectMatch(
             admin_layer="parks_bc",
-            feature_ids=None,  # TODO: Fill with ADMIN_AREA_SID from TA_PARK_ECORES_PA_SVW
+            feature_ids=["1125", "1127"],
             note=(
                 "Synopsis lists 'STRATHCONA PARK WATERS' in Region 1. "
                 "Applies to all streams and lakes within Strathcona Provincial Park. "
@@ -1841,14 +1845,14 @@ ADMIN_DIRECT_MATCHES: Dict[str, Dict[str, AdminDirectMatch]] = {
             ),
             include_streams=True,
             include_lakes=True,
-            include_wetlands=False,
-            include_manmade=False,
+            include_wetlands=True,
+            include_manmade=True,
         ),
     },
     "Region 4": {
         "CRESTON VALLEY WILDLIFE MANAGEMENT AREA (CVWMA) WATERS": AdminDirectMatch(
             admin_layer="wma",
-            feature_ids=None,  # TODO: Fill with ADMIN_AREA_SID from WLS_WILDLIFE_MGMT_AREA_SVW
+            feature_ids=["5364"],
             note=(
                 "Synopsis lists 'CRESTON VALLEY WILDLIFE MANAGEMENT AREA (CVWMA) WATERS' in Region 4 MU 4-6. "
                 "Applies to all streams and lakes within Creston Valley Wildlife Management Area. "
@@ -1857,11 +1861,11 @@ ADMIN_DIRECT_MATCHES: Dict[str, Dict[str, AdminDirectMatch]] = {
             include_streams=True,
             include_lakes=True,
             include_wetlands=True,
-            include_manmade=False,
+            include_manmade=True,
         ),
         "KIKOMUN CREEK PARK (all lakes in the park)": AdminDirectMatch(
             admin_layer="parks_bc",
-            feature_ids=None,  # TODO: Fill with ADMIN_AREA_SID from TA_PARK_ECORES_PA_SVW
+            feature_ids=["793"],
             note=(
                 "Synopsis lists 'KIKOMUN CREEK PARK (all lakes in the park)' in Region 4 MU 4-22. "
                 "Regulations apply specifically to lakes within Kikomun Creek Provincial Park. "
@@ -1876,7 +1880,7 @@ ADMIN_DIRECT_MATCHES: Dict[str, Dict[str, AdminDirectMatch]] = {
     "Region 5": {
         "BOWRON LAKE Park waters other than Bowron Lake": AdminDirectMatch(
             admin_layer="parks_bc",
-            feature_ids=None,  # TODO: Fill with ADMIN_AREA_SID from TA_PARK_ECORES_PA_SVW
+            feature_ids=["519"],
             note=(
                 "Synopsis lists 'BOWRON LAKE Park waters other than Bowron Lake' in Region 5 MU 5-16. "
                 "Applies to all streams and lakes within Bowron Lake Provincial Park, excluding Bowron Lake itself. "
@@ -1884,14 +1888,14 @@ ADMIN_DIRECT_MATCHES: Dict[str, Dict[str, AdminDirectMatch]] = {
             ),
             include_streams=True,
             include_lakes=True,
-            include_wetlands=False,
-            include_manmade=False,
+            include_wetlands=True,
+            include_manmade=True,
         ),
     },
     "Region 6": {
         "CHILKOOT TRAIL NATIONAL HISTORIC PARK WATERS": AdminDirectMatch(
             admin_layer="historic_sites",
-            feature_ids=None,  # TODO: Fill with SITE_ID from HIST_HERITAGE_WRECK_SVW
+            feature_ids=["4af28ce2-bda0-47bf-8e64-664b1be54922"],
             note=(
                 "Synopsis lists 'CHILKOOT TRAIL NATIONAL HISTORIC PARK WATERS' in Region 6 MU 6-28. "
                 "Applies to all streams and lakes within the Chilkoot Trail National Historic Site. "
@@ -1899,14 +1903,14 @@ ADMIN_DIRECT_MATCHES: Dict[str, Dict[str, AdminDirectMatch]] = {
             ),
             include_streams=True,
             include_lakes=True,
-            include_wetlands=False,
-            include_manmade=False,
+            include_wetlands=True,
+            include_manmade=True,
         ),
     },
     "Region 7": {
         "LIARD RIVER WATERSHED (see map on page 63)": AdminDirectMatch(
             admin_layer="watersheds",
-            feature_ids=[5],  # Named Watershed ID 5 (Object ID 6422089)
+            feature_ids=["5"],  # Named Watershed ID 5 (Object ID 6422089)
             note=(
                 "Regulation specifies 'LIARD RIVER WATERSHED (see map on page 63)' in MU 7-53. "
                 "FWA NAMED WATERSHED: Named Watershed ID 5, Object ID 6422089. "
@@ -1914,8 +1918,8 @@ ADMIN_DIRECT_MATCHES: Dict[str, Dict[str, AdminDirectMatch]] = {
             ),
             include_streams=True,
             include_lakes=True,
-            include_wetlands=False,
-            include_manmade=False,
+            include_wetlands=True,
+            include_manmade=True,
         ),
     },
 }
