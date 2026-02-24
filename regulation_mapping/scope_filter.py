@@ -75,14 +75,6 @@ class ScopeFilter:
             logger.debug(f"WHOLE_SYSTEM scope - returning all {len(features)} features")
             return features
 
-        # TRIBUTARIES_ONLY: This is handled by RegulationMapper, not ScopeFilter
-        # Return features unchanged (RegulationMapper will get tributaries)
-        if scope_type == "TRIBUTARIES_ONLY":
-            logger.debug(
-                f"TRIBUTARIES_ONLY scope - passing {len(features)} features to RegulationMapper"
-            )
-            return features
-
         # All other scope types: Fall back to WHOLE_SYSTEM
         self.fallback_count += 1
         logger.debug(

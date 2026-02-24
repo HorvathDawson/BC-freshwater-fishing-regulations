@@ -18,7 +18,9 @@ import geopandas as gpd
 from shapely.geometry import MultiLineString, MultiPolygon, box
 
 from .regulation_mapper import PipelineResult, generate_rule_id
+from .provincial_base_regulations import PROVINCIAL_BASE_REGULATIONS
 from fwa_pipeline.metadata_gazetteer import FeatureType
+from fwa_pipeline.metadata_builder import ADMIN_LAYER_CONFIG
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(message)s")
 logger = logging.getLogger(__name__)
@@ -75,6 +77,7 @@ class RegulationGeoExporter:
         self.regulation_names = pipeline_result.regulation_names
         self.feature_to_linked_regulation = pipeline_result.feature_to_linked_regulation
         self.gazetteer = pipeline_result.gazetteer
+        self.admin_area_reg_map = pipeline_result.admin_area_reg_map
         self.gpkg_path = gpkg_path
         self.data_accessor = FWADataAccessor(self.gpkg_path)
         self.cache_dir = cache_dir
@@ -399,11 +402,22 @@ class RegulationGeoExporter:
                         all_mgmt_units.update(meta.get("mgmt_units", []))
                         max_order = max(max_order, meta.get("stream_order") or 0)
 
-                if len(blks) > 1 or len(blks) == 0:
-                    logger.warning(
-                        f"Multiple or no blue line keys found in group {group.group_id}: {blks}"
+                if len(blks) == 0:
+                    logger.warning(f"No blue line key found in group {group.group_id}")
+                    blk = None
+                elif len(blks) == 1:
+                    blk = blks.pop()
+                else:
+                    # Multiple BLKs are expected for cross-stream merged groups
+                    # (e.g. unnamed streams sharing the same regulation set inside
+                    # an admin area). Geometry is still collected per-segment above;
+                    # we leave the tile field empty so the frontend does not bind
+                    # this group to any single stream.
+                    logger.debug(
+                        f"Group {group.group_id} spans {len(blks)} blue line keys "
+                        f"(cross-stream merge) — blue_line_key field left empty"
                     )
-                blk = blks.pop() if blks else None
+                    blk = None
 
                 # if "707538068" in group.feature_ids:
                 #     logger.warning(
@@ -564,6 +578,80 @@ class RegulationGeoExporter:
         self._layer_cache[cache_key] = result
         return result
 
+    def _create_admin_layer(self, layer_key: str) -> Optional[gpd.GeoDataFrame]:
+        """
+        Create a layer for an admin boundary type (matched features only).
+
+        Loads the GPKG admin layer, filters to features that have at least one
+        regulation match in admin_area_reg_map, and attaches regulation_ids +
+        key attributes for frontend rendering.
+
+        Args:
+            layer_key: Admin layer key (e.g., 'parks_bc', 'parks_nat', 'wma', etc.)
+
+        Returns:
+            GeoDataFrame with matched admin polygons, or None.
+        """
+        cfg = ADMIN_LAYER_CONFIG.get(layer_key)
+        if not cfg:
+            return None
+
+        matched_ids_map = self.admin_area_reg_map.get(layer_key, {})
+        if not matched_ids_map:
+            logger.debug(f"  No matched admin features for '{layer_key}', skipping")
+            return None
+
+        if layer_key not in self.data_accessor.list_layers():
+            logger.warning(f"  Admin layer '{layer_key}' not in GPKG, skipping")
+            return None
+
+        id_field = cfg["id_field"]
+        name_field = cfg.get("name_field")
+        code_field = cfg.get("code_field")
+        code_map = cfg.get("code_map", {})
+
+        # Load admin layer and filter to only features with regulation matches
+        gdf = self.data_accessor.get_layer(layer_key).to_crs("EPSG:3005")
+        matched_ids = set(matched_ids_map.keys())
+        gdf = gdf[gdf[id_field].isin(matched_ids)].copy()
+        if gdf.empty:
+            logger.debug(f"  No geometry matches for '{layer_key}' after ID filter")
+            return None
+
+        # Attach regulation IDs
+        gdf["regulation_ids"] = gdf[id_field].apply(
+            lambda fid: ",".join(sorted(matched_ids_map.get(fid, set())))
+        )
+
+        # Readable name
+        if name_field and name_field in gdf.columns:
+            gdf["name"] = gdf[name_field]
+        else:
+            gdf["name"] = ""
+
+        # Admin feature ID (normalized string)
+        gdf["admin_id"] = gdf[id_field]
+
+        # Build output column list
+        out_cols = ["admin_id", "name", "regulation_ids"]
+
+        # admin_type — use code_map for layers that have classification codes
+        # (e.g. parks_bc → PROVINCIAL_PARK / ECOLOGICAL_RESERVE / …),
+        # otherwise default to the layer_key so every admin feature carries
+        # a type the frontend can key off for colouring.
+        if code_field and code_field in gdf.columns:
+            gdf["admin_type"] = gdf[code_field].map(code_map).fillna(gdf[code_field])
+        else:
+            gdf["admin_type"] = layer_key
+        out_cols.append("admin_type")
+
+        # Tippecanoe zoom
+        gdf["tippecanoe:minzoom"] = 0
+        out_cols.extend(["tippecanoe:minzoom", "geometry"])
+
+        logger.info(f"  Admin layer '{layer_key}': {len(gdf)} features")
+        return gdf[out_cols]
+
     def _create_regions_layer(self) -> Optional[gpd.GeoDataFrame]:
         """Build region boundary layer from the 'wmu' layer in the main GPKG."""
         if "wmu" not in self.data_accessor.list_layers():
@@ -627,6 +715,16 @@ class RegulationGeoExporter:
         ]
         if include_regions:
             layers.append(("regions", lambda: self._create_regions_layer()))
+
+        # Admin boundary layers — always include all configured admin layers
+        for layer_key in ADMIN_LAYER_CONFIG:
+            layers.append(
+                (
+                    f"admin_{layer_key}",
+                    lambda lk=layer_key: self._create_admin_layer(lk),
+                )
+            )
+
         return layers
 
     def _is_file_locked(self, filepath: Path) -> bool:
@@ -768,8 +866,6 @@ class RegulationGeoExporter:
         # Add provincial base regulations
         provincial_map = self.pipeline_result.provincial_feature_map or {}
         if provincial_map:
-            from .provincial_base_regulations import PROVINCIAL_BASE_REGULATIONS
-
             for prov_reg in PROVINCIAL_BASE_REGULATIONS:
                 if prov_reg.regulation_id in provincial_map:
                     reg_lookup[prov_reg.regulation_id] = {

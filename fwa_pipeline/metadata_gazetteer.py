@@ -595,9 +595,9 @@ class MetadataGazetteer:
         """
         Find all FWA features that spatially intersect with admin boundary polygon(s).
 
-        Loads admin polygon geometry from GPKG, then intersects with FWA layers
-        using spatial join (R-tree index) for fast intersection. FWA layers are
-        cached across calls so the expensive GPKG read + sindex build only
+        Uses sindex.query (STRtree R-tree + exact GEOS intersects predicate) for
+        a single C-level pass per FWA layer — no Python geometry loops.  FWA layers
+        are cached across calls so the expensive GPKG read + sindex build only
         happens once per layer.
 
         Args:
@@ -640,6 +640,35 @@ class MetadataGazetteer:
                 ("manmade_water", FeatureType.MANMADE, "WATERBODY_POLY_ID")
             )
 
+        # Pre-compute admin union once.
+        admin_union = admin_gdf.geometry.union_all()
+
+        # Vertex counts for diagnostics
+        def _vcount(g):
+            try:
+                if hasattr(g, "exterior"):
+                    return len(g.exterior.coords)
+                return (
+                    sum(len(p.exterior.coords) for p in g.geoms)
+                    if hasattr(g, "geoms")
+                    else 0
+                )
+            except Exception:
+                return -1
+
+        logger.info(f"  Admin polygon: {_vcount(admin_union)} vertices")
+
+        import numpy as np
+        import shapely
+
+        PROGRESS_THRESHOLD = 50_000
+        CHUNK_SIZE = 50_000
+
+        try:
+            from tqdm import tqdm as _tqdm
+        except ImportError:
+            _tqdm = None
+
         for layer_name, ftype, id_field in fwa_layer_map:
             try:
                 fwa_gdf = self._get_cached_fwa_layer(
@@ -648,18 +677,48 @@ class MetadataGazetteer:
                 if fwa_gdf is None or fwa_gdf.empty:
                     continue
 
-                # Use spatial join with the admin polygons (leverages R-tree sindex)
-                # Keep only the FWA id column to minimize memory during join
-                admin_geom = admin_gdf[["geometry"]].copy()
-                matched = gpd.sjoin(
-                    fwa_gdf[[id_field, "geometry"]],
-                    admin_geom,
-                    how="inner",
-                    predicate="intersects",
+                # Phase 1: bbox-only R-tree query (instant, no GEOS predicate).
+                bbox_ilocs = fwa_gdf.sindex.query(admin_union, predicate=None)
+                if len(bbox_ilocs) == 0:
+                    logger.info(f"  {layer_name}: 0 features in admin bbox")
+                    continue
+
+                logger.info(
+                    f"  {layer_name}: {len(bbox_ilocs):,} bbox candidates "
+                    f"(from {len(fwa_gdf):,} total)"
                 )
 
-                # Deduplicate (a feature can intersect multiple admin polygons)
-                matched_ids = matched[id_field].unique()
+                # Phase 2: vectorized GEOS intersects — runs entirely in C.
+                # Chunked into CHUNK_SIZE batches so tqdm can report between calls.
+                candidate_geoms = fwa_gdf.geometry.values[bbox_ilocs]
+                candidate_ids = fwa_gdf[id_field].values[bbox_ilocs]
+                n = len(candidate_geoms)
+
+                mask_parts = []
+                use_progress = _tqdm is not None and n >= PROGRESS_THRESHOLD
+                pbar = (
+                    _tqdm(total=n, desc=f"    Intersecting {layer_name}", unit="feat")
+                    if use_progress
+                    else None
+                )
+
+                for start in range(0, n, CHUNK_SIZE):
+                    end = min(start + CHUNK_SIZE, n)
+                    mask_parts.append(
+                        shapely.intersects(candidate_geoms[start:end], admin_union)
+                    )
+                    if pbar:
+                        pbar.update(end - start)
+
+                if pbar:
+                    pbar.close()
+
+                mask = np.concatenate(mask_parts)
+                matched_ids = np.unique(candidate_ids[mask])
+
+                if len(matched_ids) == 0:
+                    logger.info(f"  {layer_name}: 0 features intersect admin area")
+                    continue
 
                 # Bulk resolve to FWAFeature objects from pickle metadata
                 for fwa_id in matched_ids:

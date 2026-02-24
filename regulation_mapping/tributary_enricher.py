@@ -92,6 +92,11 @@ class TributaryEnricher:
         self.linear_feature_id_to_edge_idx = {}
         self.waterbody_key_to_edge_indices = {}
 
+        # Reverse adjacency: target_node → [edge_idx, ...] for O(1) upstream BFS lookup.
+        # Without this, _traverse_upstream calls es.select(_target=node) which is O(E)
+        # per BFS step — catastrophic on large tributary fans.
+        self.reverse_adj: Dict[int, List[int]] = {}
+
         if self.graph:
             logger.info("Building lookup indices...")
             for edge in self.graph.es:
@@ -105,14 +110,24 @@ class TributaryEnricher:
                         self.waterbody_key_to_edge_indices[wb_key] = []
                     self.waterbody_key_to_edge_indices[wb_key].append(edge.index)
 
+                # Reverse adjacency: map each edge's target node → edge index
+                target = edge.target
+                if target not in self.reverse_adj:
+                    self.reverse_adj[target] = []
+                self.reverse_adj[target].append(edge.index)
+
             logger.info(
                 f"  Indexed {len(self.linear_feature_id_to_edge_idx):,} linear features"
             )
             logger.info(
                 f"  Indexed {len(self.waterbody_key_to_edge_indices):,} waterbody keys"
             )
+            logger.info(
+                f"  Indexed {len(self.reverse_adj):,} nodes in reverse adjacency"
+            )
 
-        # Cache: frozenset of base feature IDs → list of tributary features
+        # High-level cache: full call → list of tributary FWAFeature objects
+        # Keyed by (frozenset(seed_edges), frozenset(excluded_codes), frozenset(excluded_keys))
         self.enrichment_cache = {}
 
         # Statistics
@@ -250,44 +265,29 @@ class TributaryEnricher:
             edge_idx = queue.popleft()
             edge = self.graph.es[edge_idx]
 
-            linear_id = str(edge["linear_feature_id"])
-
             # Check if CURRENT edge has an excluded type
             try:
                 current_edge_type = edge["edge_type"]
             except (KeyError, AttributeError):
                 current_edge_type = ""
-            # Convert to string for comparison to handle both int and str types
             current_edge_type_str = str(current_edge_type) if current_edge_type else ""
             current_is_excluded_type = current_edge_type_str in self.EXCLUDED_EDGE_TYPES
 
-            # Continue upstream from this edge's source node
+            # Continue upstream from this edge's source node using pre-built
+            # reverse adjacency index — O(degree) instead of O(E) per step.
             source_node = edge.source
-            for upstream_edge in self.graph.es.select(_target=source_node):
-                upstream_idx = upstream_edge.index
+            for upstream_idx in self.reverse_adj.get(source_node, []):
                 if upstream_idx in visited:
                     continue
 
+                upstream_edge = self.graph.es[upstream_idx]
                 visited.add(upstream_idx)
 
                 # Check if this upstream edge should be excluded by waterbody key
                 upstream_wb_key = upstream_edge["waterbody_key"]
-                # if "329093898" == str(upstream_wb_key):
-                #     logger.warning(
-                #         f"Encountered excluded waterbody_key 329093898 during tributary enrichment. This edge will be skipped ({upstream_wb_key in excluded_waterbody_keys}). came from edge with linear_feature_id {linear_id}"
-                #     )
-                #     logger.warning(
-                #         f"\nUpstream edge details: {upstream_edge.attributes()}"
-                #     )
-                #     logger.warning(f"\nSeed edge details: {edge.attributes()}")
-                #     logger.warning(
-                #         f"\nExcluded waterbody keys: {excluded_waterbody_keys}"
-                #     )
-                #     exit(0)
-
-                if upstream_wb_key and upstream_wb_key in excluded_waterbody_keys:
-                    # This edge has an excluded waterbody key (e.g., lake)
-                    # Skip it entirely - don't include in results, don't traverse upstream from it
+                if upstream_wb_key and upstream_wb_key in (
+                    excluded_waterbody_keys or set()
+                ):
                     continue
 
                 # Check if this upstream edge should be excluded by watershed code
@@ -296,18 +296,6 @@ class TributaryEnricher:
                     upstream_watershed
                     and upstream_watershed in excluded_watershed_codes
                 ):
-                    # # This is part of the excluded watershed (mainstem/side channel)
-                    # # Don't include it in tributaries, but DO continue traversing upstream
-                    # # to find real tributaries beyond this excluded segment
-                    # queue.append(upstream_idx)
-
-                    # TODO: figure this out. it will cause issues for lakes where tributaries have a segment in the lake...
-                    # might be able to seed lake blueline key and watershedcode... also lakes we want all items so no excluded?
-                    # but this might not be a huge issue in practice since most tributaries will be connected by stream segments,
-                    # which means it doesnt have any items of tributaries as seeds, just the mainstem/side channel segment which will exclude itself but not the tributaries beyond it.
-
-                    # This edge has an excluded watershed code (mainstem/side channel)
-                    # Skip it entirely - don't include in results, don't traverse upstream from it
                     continue
 
                 # Get upstream edge type
@@ -315,7 +303,6 @@ class TributaryEnricher:
                     upstream_edge_type = upstream_edge["edge_type"]
                 except (KeyError, AttributeError):
                     upstream_edge_type = ""
-                # Convert to string for comparison to handle both int and str types
                 upstream_edge_type_str = (
                     str(upstream_edge_type) if upstream_edge_type else ""
                 )
@@ -325,8 +312,6 @@ class TributaryEnricher:
                 # Handle excluded edge types (e.g., 2300)
                 # If we're on an excluded edge type and upstream is NOT excluded, stop
                 if current_is_excluded_type and not upstream_is_excluded_type:
-                    # We're on a 2300 edge and upstream is different (e.g., 1450)
-                    # Don't include this edge, and stop traversal on this path
                     continue
 
                 # This is a tributary - add it to results

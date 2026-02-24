@@ -30,7 +30,8 @@ logger = get_logger(__name__)
 class LinkStatus(Enum):
     """Status of a linking attempt."""
 
-    SUCCESS = "success"  # Single feature matched
+    SUCCESS = "success"  # Feature(s) matched
+    ADMIN_MATCH = "admin_match"  # Admin boundary match (features resolved via spatial intersection in mapper)
     AMBIGUOUS = "ambiguous"  # Multiple features found (ambiguous)
     NOT_FOUND = "not_found"  # No features found
     NOT_IN_DATA = "not_in_data"  # Searched but doesn't exist in FWA data
@@ -167,7 +168,7 @@ class WaterbodyLinker:
                     return result
 
                 result = LinkingResult(
-                    status=LinkStatus.SUCCESS,
+                    status=LinkStatus.ADMIN_MATCH,
                     matched_features=[],
                     link_method="admin_direct_match",
                     error_message=None,
@@ -1095,7 +1096,7 @@ def _run_coverage_test():
         res = linker.link_waterbody(region=region, mgmt_units=mus, name_verbatim=name)
 
         # Statistics & validation
-        if res.status == LinkStatus.SUCCESS:
+        if res.status in (LinkStatus.SUCCESS, LinkStatus.ADMIN_MATCH):
             stats.success_methods[res.link_method] += 1
 
             if res.link_method == "name_variation":
@@ -1375,7 +1376,10 @@ def _run_coverage_test():
     # Final tally
     header("FINAL TALLY")
     print(f"Total Processed:    {total}")
-    print(f"{GREEN}Linked (Total):     {len(stats.results[LinkStatus.SUCCESS])}{RESET}")
+    linked_total = len(stats.results[LinkStatus.SUCCESS]) + len(
+        stats.results[LinkStatus.ADMIN_MATCH]
+    )
+    print(f"{GREEN}Linked (Total):     {linked_total}{RESET}")
     print(f"  - Natural Search: {stats.success_methods['natural_search']}")
     print(f"  - Direct Match:   {stats.success_methods['direct_match']}")
     print(f"  - Name Variation: {stats.success_methods['name_variation']}")

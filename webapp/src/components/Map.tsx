@@ -3,7 +3,8 @@ import maplibregl from 'maplibre-gl';
 import { Protocol } from 'pmtiles';
 import { layers, LIGHT } from '@protomaps/basemaps'; 
 import 'maplibre-gl/dist/maplibre-gl.css';
-import { createRegulationLayers } from '../map/styles';
+import { createRegulationLayers, HIGHLIGHT_COLORS, SELECTION_COLOR, matchByFeatureType } from '../map/styles';
+import { regulationsService } from '../services/regulationsService';
 import InfoPanel from './InfoPanel';
 import DisambiguationMenu from './DisambiguationMenu';
 import SearchBar from './SearchBar';
@@ -15,7 +16,14 @@ const protocol = new Protocol();
 maplibregl.addProtocol('pmtiles', protocol.tile);
 
 const INTERACTABLE_LAYERS = ['streams', 'lakes-fill', 'wetlands-fill', 'manmade-fill'];
-const MAP_LAYERS = ['streams', 'lakes', 'wetlands', 'manmade', 'regions'] as const;
+const ADMIN_FILL_LAYERS = [
+    'admin_parks_nat-fill', 'admin_parks_bc-fill', 'admin_wma-fill',
+    'admin_watersheds-fill', 'admin_historic_sites-fill',
+];
+const MAP_LAYERS = [
+    'admin_parks_nat', 'admin_parks_bc', 'admin_wma', 'admin_watersheds', 'admin_historic_sites',
+    'streams', 'lakes', 'wetlands', 'manmade', 'regions',
+] as const;
 
 // --- STYLE EXPRESSIONS ---
 const STREAM_LINE_WIDTH = ['interpolate', ['linear'], ['zoom'], 4, ['+', 1.5, ['*', ['coalesce', ['get', 'stream_order'], 1], 0.1]], 8, ['+', 2, ['*', ['coalesce', ['get', 'stream_order'], 1], 0.15]], 11, ['*', ['+', 1.5, ['*', ['coalesce', ['get', 'stream_order'], 1], 0.5]], 1.5], 12, ['*', ['+', 1.5, ['*', ['coalesce', ['get', 'stream_order'], 1], 0.5]], 2], 14, ['*', ['+', 1.5, ['*', ['coalesce', ['get', 'stream_order'], 1], 0.5]], 3], 16, ['*', ['+', 1.5, ['*', ['coalesce', ['get', 'stream_order'], 1], 0.5]], 4]];
@@ -23,6 +31,8 @@ const STREAM_LINE_WIDTH = ['interpolate', ['linear'], ['zoom'], 4, ['+', 1.5, ['
 // --- TYPES ---
 interface LayerVisibility {
     streams: boolean; lakes: boolean; wetlands: boolean; manmade: boolean; regions: boolean;
+    admin_parks_nat: boolean; admin_parks_bc: boolean; admin_wma: boolean;
+    admin_watersheds: boolean; admin_historic_sites: boolean;
 }
 
 interface FeatureInfo {
@@ -79,15 +89,68 @@ const createCirclePolygon = (lngLat: { lng: number; lat: number }, zoom: number)
 };
 
 const createWetlandPattern = () => {
+    const size = 16;
     const canvas = document.createElement('canvas');
-    canvas.width = 16; canvas.height = 16;
+    canvas.width = size; canvas.height = size;
     const ctx = canvas.getContext('2d');
     if (!ctx) return null;
-    ctx.strokeStyle = '#000000'; ctx.lineWidth = 1;
-    for (let i = -16; i < 32; i += 4) {
-        ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i + 16, 16); ctx.stroke();
+    // Light green background so wetlands read as green over any base tile
+    ctx.fillStyle = 'rgba(129, 199, 132, 0.45)';
+    ctx.fillRect(0, 0, size, size);
+    // Darker green diagonal stripes for texture
+    ctx.strokeStyle = 'rgba(56, 142, 60, 0.7)';
+    ctx.lineWidth = 1.2;
+    for (let i = -size; i < size * 2; i += 4) {
+        ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i + size, size); ctx.stroke();
     }
-    return ctx.getImageData(0, 0, 16, 16);
+    return ctx.getImageData(0, 0, size, size);
+};
+
+/** Parse a #rrggbb hex string → [r, g, b]. */
+const parseHex = (hex: string): [number, number, number] => {
+    const h = hex.replace('#', '');
+    return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
+};
+
+/**
+ * Single-direction 45° diagonal hatch (used for National Parks).
+ * Subtle but visible — indicates a restricted / no-fishing zone.
+ */
+const createDiagonalHatchPattern = (hexColor: string): ImageData | null => {
+    const size = 24, spacing = 12;
+    const canvas = document.createElement('canvas');
+    canvas.width = size; canvas.height = size;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return null;
+    const [r, g, b] = parseHex(hexColor);
+    ctx.strokeStyle = `rgba(${r},${g},${b},0.5)`;
+    ctx.lineWidth = 1.2;
+    for (let i = -size; i < size * 2; i += spacing) {
+        ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i + size, size); ctx.stroke();
+    }
+    return ctx.getImageData(0, 0, size, size);
+};
+
+/**
+ * Cross-hatch pattern (used for Ecological Reserves — doubly restricted).
+ * Two diagonal directions create a diamond mesh.
+ */
+const createCrossHatchPattern = (hexColor: string): ImageData | null => {
+    const size = 20, spacing = 10;
+    const canvas = document.createElement('canvas');
+    canvas.width = size; canvas.height = size;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return null;
+    const [r, g, b] = parseHex(hexColor);
+    ctx.strokeStyle = `rgba(${r},${g},${b},0.5)`;
+    ctx.lineWidth = 1;
+    for (let i = -size; i < size * 2; i += spacing) {
+        ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i + size, size); ctx.stroke();
+    }
+    for (let i = -size; i < size * 2; i += spacing) {
+        ctx.beginPath(); ctx.moveTo(i + size, 0); ctx.lineTo(i, size); ctx.stroke();
+    }
+    return ctx.getImageData(0, 0, size, size);
 };
 
 const getFeatureType = (layerId: string): 'stream' | 'lake' | 'wetland' | 'manmade' => {
@@ -138,7 +201,8 @@ const updateMapSource = (map: maplibregl.Map, sourceId: string, feature: Feature
         features: features.map(f => ({ 
             type: 'Feature', 
             geometry: f.geometry || f.toJSON?.().geometry, 
-            properties: f.properties 
+            // Embed _feature_type so highlight/selection layers can match per-type colors
+            properties: { ...f.properties, _feature_type: feature.type } 
         })) as any 
     });
 };
@@ -149,6 +213,8 @@ const MapComponent = () => {
     const isDisambigOpenRef = useRef<boolean>(false);
     const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const searchPollRef = useRef<NodeJS.Timeout | null>(null);
+    const selectedFeatureRef = useRef<FeatureInfo | null>(null);
+    const mobilePanelStateRef = useRef<CollapseState>('expanded');
     
     const [selectedFeature, setSelectedFeature] = useState<FeatureInfo | null>(null);
     const [disambigOptions, setDisambigOptions] = useState<FeatureOption[]>([]);
@@ -160,7 +226,14 @@ const MapComponent = () => {
     const [searchableFeatures, setSearchableFeatures] = useState<SearchableFeature[]>([]);
     const [layerVisibility, setLayerVisibility] = useState<LayerVisibility>({
         streams: true, lakes: true, wetlands: true, manmade: true, regions: true,
+        admin_parks_nat: true, admin_parks_bc: true, admin_wma: true,
+        admin_watersheds: true, admin_historic_sites: true,
     });
+
+    // Mirror state → refs so map event-handler closures always see the latest values.
+    // (State setters are stable; refs are mutable — this is the canonical React pattern.)
+    useEffect(() => { selectedFeatureRef.current = selectedFeature; }, [selectedFeature]);
+    useEffect(() => { mobilePanelStateRef.current = mobilePanelState; }, [mobilePanelState]);
 
     const clearSelection = useCallback(() => {
         setSelectedFeature(null);
@@ -169,7 +242,7 @@ const MapComponent = () => {
         setDisambigOptions([]);
         setDisambigPosition(null);
         isDisambigOpenRef.current = false;
-        setMobilePanelState('expanded'); 
+        setMobilePanelState('expanded');
 
         if (searchPollRef.current) {
             clearInterval(searchPollRef.current);
@@ -188,10 +261,11 @@ const MapComponent = () => {
         fetch('/data/search_index.json').then(res => res.json()).then(data => {
             const grouped: Record<string, SearchableFeature> = {};
             (data.waterbodies || []).forEach((item: any) => {
-                const displayName = (item.gnis_name && item.gnis_name.toLowerCase() !== 'unnamed') ? item.gnis_name : (item.regulation_names?.[0] || 'Unnamed Waterbody');
+                const synopsisNames = regulationsService.filterOutProvincialNames(item.regulation_names || []);
+                const displayName = (item.gnis_name && item.gnis_name.toLowerCase() !== 'unnamed') ? item.gnis_name : (synopsisNames[0] || 'Unnamed Waterbody');
                 const feature: SearchableFeature = {
                     id: item.id, gnis_name: displayName, name: displayName, type: item.type,
-                    regulation_names: item.regulation_names || [],
+                    regulation_names: synopsisNames,
                     properties: { ...item.properties, zones: item.zones || '', mgmt_units: item.mgmt_units, regulation_ids: item.regulation_ids, minzoom: item.min_zoom || 4 },
                     bbox: isValidBbox(item.bbox) ? item.bbox : undefined
                 };
@@ -221,14 +295,41 @@ const MapComponent = () => {
         map.on('load', () => {
             const pattern = createWetlandPattern();
             if (pattern) map.addImage('wetland-pattern', pattern);
-            
+
+            // Hatch patterns for no-fishing zones (National Parks + Ecological Reserves)
+            const hatchDiag = createDiagonalHatchPattern('#E69F00');
+            if (hatchDiag) map.addImage('hatch-diagonal', hatchDiag);
+            const hatchCross = createCrossHatchPattern('#E69F00');
+            if (hatchCross) map.addImage('hatch-cross', hatchCross);
+
+            // Hatch overlays — appended after all static layers so they sit
+            // above admin fills/lines but below the dynamic highlight layers.
+            map.addLayer({
+                id: 'admin_parks_nat-hatch',
+                type: 'fill',
+                source: 'regulations',
+                'source-layer': 'admin_parks_nat',
+                paint: { 'fill-pattern': 'hatch-diagonal', 'fill-opacity': 0.75 },
+            } as any);
+
+            map.addLayer({
+                id: 'admin_parks_bc-eco-hatch',
+                type: 'fill',
+                source: 'regulations',
+                'source-layer': 'admin_parks_bc',
+                filter: ['==', ['get', 'admin_type'], 'ECOLOGICAL_RESERVE'],
+                paint: { 'fill-pattern': 'hatch-cross', 'fill-opacity': 0.75 },
+            } as any);
+
             map.addSource('highlight-source', { type: 'geojson', data: { type: 'FeatureCollection', features: [] }, tolerance: 0.1 });
-            map.addLayer({ id: 'highlight-line', type: 'line', source: 'highlight-source', paint: { 'line-color': '#FFD700', 'line-width': ['interpolate', ['linear'], ['zoom'], 4, 2, 8, 4, 12, 5], 'line-opacity': 1 }, layout: { 'line-cap': 'round', 'line-join': 'round' } });
-            map.addLayer({ id: 'highlight-fill', type: 'fill', source: 'highlight-source', paint: { 'fill-color': '#FFD700', 'fill-opacity': 0.3 }, filter: ['==', '$type', 'Polygon'] });
+            // Hover / disambiguation highlight — per-type saturated color, wider line
+            map.addLayer({ id: 'highlight-line', type: 'line', source: 'highlight-source', paint: { 'line-color': matchByFeatureType(HIGHLIGHT_COLORS, SELECTION_COLOR) as any, 'line-width': ['interpolate', ['linear'], ['zoom'], 4, 3, 8, 6, 12, 8], 'line-opacity': 1.0 }, layout: { 'line-cap': 'round', 'line-join': 'round' } });
+            map.addLayer({ id: 'highlight-fill', type: 'fill', source: 'highlight-source', paint: { 'fill-color': matchByFeatureType(HIGHLIGHT_COLORS, SELECTION_COLOR) as any, 'fill-opacity': 0.4 }, filter: ['==', '$type', 'Polygon'] });
             
             map.addSource('selection-source', { type: 'geojson', data: { type: 'FeatureCollection', features: [] }, tolerance: 0.1 });
-            map.addLayer({ id: 'selection-line', type: 'line', source: 'selection-source', paint: { 'line-color': '#FF0000', 'line-width': STREAM_LINE_WIDTH, 'line-opacity': 0.9 }, layout: { 'line-cap': 'round', 'line-join': 'round' } });
-            map.addLayer({ id: 'selection-fill', type: 'fill', source: 'selection-source', paint: { 'fill-color': '#FF0000', 'fill-opacity': 0.4 }, filter: ['==', '$type', 'Polygon'] });
+            // Active selection — uniform deep blue (same weight signal regardless of type)
+            map.addLayer({ id: 'selection-line', type: 'line', source: 'selection-source', paint: { 'line-color': SELECTION_COLOR, 'line-width': STREAM_LINE_WIDTH, 'line-opacity': 1.0 }, layout: { 'line-cap': 'round', 'line-join': 'round' } });
+            map.addLayer({ id: 'selection-fill', type: 'fill', source: 'selection-source', paint: { 'fill-color': SELECTION_COLOR, 'fill-opacity': 0.35 }, filter: ['==', '$type', 'Polygon'] });
             
             map.addSource('cursor-circle', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
             map.addLayer({ id: 'cursor-circle-fill', type: 'fill', source: 'cursor-circle', paint: { 'fill-color': '#3b82f6', 'fill-opacity': 0.1 } });
@@ -239,10 +340,18 @@ const MapComponent = () => {
         // NEW FIX: Listen for user-initiated pans and close the menu on desktop
         // -------------------------------------------------------------
         map.on('movestart', (e) => {
-            // originalEvent ensures the move was triggered by a user (drag, wheel, keyboard), 
+            // originalEvent ensures the move was triggered by a user (drag, wheel, keyboard),
             // not a programmatic map.flyTo() or map.fitBounds()
-            if (e.originalEvent && window.innerWidth > 768 && isDisambigOpenRef.current) {
-                clearSelection();
+            if (!e.originalEvent) return;
+            const isMobile = window.innerWidth <= 768;
+            // Disambig menu
+            if (isDisambigOpenRef.current) {
+                if (!isMobile) clearSelection();
+                else setDisambigCollapsed(true);
+            }
+            // Info panel: partially collapse on mobile when user pans away
+            if (isMobile && selectedFeatureRef.current && mobilePanelStateRef.current === 'expanded') {
+                setMobilePanelState('partial');
             }
         });
 
@@ -257,7 +366,27 @@ const MapComponent = () => {
         map.on('click', (e) => {
             const features = map.queryRenderedFeatures([[e.point.x - 15, e.point.y - 15], [e.point.x + 15, e.point.y + 15]], { layers: INTERACTABLE_LAYERS });
             if (!features.length) return clearSelection();
-            
+
+            // Query admin boundary layers at click point to resolve zone names
+            const adminHits = map.queryRenderedFeatures(
+                [[e.point.x - 1, e.point.y - 1], [e.point.x + 1, e.point.y + 1]],
+                { layers: ADMIN_FILL_LAYERS }
+            );
+            // Build regId → admin zone names mapping
+            const adminZonesByRegId: Record<string, string[]> = {};
+            for (const af of adminHits) {
+                const aProps = af.properties || {};
+                const regIds = (aProps.regulation_ids || '').split(',').filter(Boolean);
+                const zoneName = aProps.name || '';
+                if (!zoneName) continue;
+                for (const rid of regIds) {
+                    if (!adminZonesByRegId[rid]) adminZonesByRegId[rid] = [];
+                    if (!adminZonesByRegId[rid].includes(zoneName)) {
+                        adminZonesByRegId[rid].push(zoneName);
+                    }
+                }
+            }
+
             const rawOptions: FeatureOption[] = features.map((f, i) => {
                 const props = f.properties || {};
                 let idKey = props.linear_feature_id ? 'linear_feature_id' : props.group_id ? 'group_id' : (props.waterbody_key ? 'waterbody_key' : 'id');
@@ -268,7 +397,7 @@ const MapComponent = () => {
 
                 return { 
                     type: getFeatureType(f.layer.id), 
-                    properties: props, 
+                    properties: { ...props, _adminZones: adminZonesByRegId }, 
                     id: (f.id || props[idKey] || `f-${i}`).toString(), 
                     geometry: f.toJSON().geometry, 
                     source: f.layer.source, 
@@ -333,7 +462,7 @@ const MapComponent = () => {
         map.on('zoomend', refreshSelection);
         map.on('idle', refreshSelection);
 
-        if (mobilePanelState !== 'collapsed') {
+        if (mobilePanelState === 'expanded') {
             const bounds = new maplibregl.LngLatBounds();
             if (selectedFeature.bbox) {
                 bounds.extend([selectedFeature.bbox[0], selectedFeature.bbox[1]]);
@@ -369,12 +498,13 @@ const MapComponent = () => {
         // Handle both singular and plural type names from search data
         const srcLayer = (feature.type === 'stream' || feature.type === 'streams') ? 'streams' : 'lakes';
         const normalizedType = (feature.type === 'streams' ? 'stream' : feature.type === 'lakes' ? 'lake' : feature.type) as 'stream' | 'lake' | 'wetland' | 'manmade';
-        const displayName = (feature.gnis_name && feature.gnis_name.toLowerCase() !== 'unnamed') ? feature.gnis_name : feature.regulation_names?.[0];
+        const synopsisNames = regulationsService.filterOutProvincialNames(feature.regulation_names || []);
+        const displayName = (feature.gnis_name && feature.gnis_name.toLowerCase() !== 'unnamed') ? feature.gnis_name : synopsisNames[0];
         const targetMinZoom = feature.properties.minzoom || 10;
         
         setSelectedFeature({ 
             type: normalizedType, 
-            properties: { ...feature.properties, gnis_name: displayName, regulation_names: feature.regulation_names }, 
+            properties: { ...feature.properties, gnis_name: displayName, regulation_names: synopsisNames }, 
             source: 'regulations', 
             sourceLayer: srcLayer,
             bbox: feature.bbox as [number, number, number, number],
@@ -443,21 +573,23 @@ const MapComponent = () => {
                             hoverTimeoutRef.current = setTimeout(() => {
                                 setHighlightedOption(option as any);
                                 const map = mapRef.current; if (!map) return;
-                                const bounds = new maplibregl.LngLatBounds(); 
+                                const bounds = new maplibregl.LngLatBounds();
                                 if (option.bbox) bounds.extend([[option.bbox[0], option.bbox[1]], [option.bbox[2], option.bbox[3]]]);
                                 else extendBoundsWithGeometry(bounds, option.geometry);
-                                
                                 if (!bounds.isEmpty()) {
                                     const isMobile = window.innerWidth <= 768;
-                                    const padding = isMobile ? { top: 80, bottom: 250, left: 80, right: 80 } : { top: 80, bottom: 80, left: 80, right: 350 };
+                                    // On mobile leave bottom padding for the bottom sheet
+                                    const padding = isMobile
+                                        ? { top: 60, bottom: 280, left: 40, right: 40 }
+                                        : { top: 80, bottom: 80, left: 80, right: 350 };
                                     map.fitBounds(bounds, { padding, maxZoom: 12.5, duration: 400 });
                                 }
                             }, 50);
-                        } else { 
-                            setHighlightedOption(null); 
+                        } else {
+                            setHighlightedOption(null);
                         }
                     }}
-                    onSelect={f => { clearSelection(); setSelectedFeature(f as any); setMobilePanelState('partial'); }} onClose={clearSelection} 
+                    onSelect={f => { clearSelection(); setSelectedFeature(f as any); setMobilePanelState('partial'); }} onClose={clearSelection}
                 />
             )}
         </div>

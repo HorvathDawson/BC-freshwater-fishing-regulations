@@ -1918,7 +1918,7 @@ ADMIN_DIRECT_MATCHES: Dict[str, Dict[str, AdminDirectMatch]] = {
             ),
             include_streams=True,
             include_lakes=True,
-            include_wetlands=True,
+            include_wetlands=False,
             include_manmade=True,
         ),
     },

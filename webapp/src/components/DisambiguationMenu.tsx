@@ -1,6 +1,7 @@
 import React, { useRef, useLayoutEffect, useState } from 'react';
 import { Eye } from 'lucide-react';
 import { Icon } from '@iconify/react';
+import { regulationsService } from '../services/regulationsService';
 import './DisambiguationMenu.css';
 
 interface FeatureOption {
@@ -58,8 +59,9 @@ const DisambiguationMenu = ({ options, position, highlightedOption, onSelect, on
 
     const getLabel = (opt: FeatureOption) => {
         const regNames = opt.properties.regulation_names;
-        const regNamesDisplay = Array.isArray(regNames) ? regNames[0] : regNames;
-        return opt.properties.gnis_name || opt.properties.lake_name || opt.properties.name || regNamesDisplay || 'Unnamed';
+        const regNamesArr = Array.isArray(regNames) ? regNames : (regNames ? regNames.split(' | ').filter(Boolean) : []);
+        const synopsisNames = regulationsService.filterOutProvincialNames(regNamesArr);
+        return opt.properties.gnis_name || opt.properties.lake_name || opt.properties.name || synopsisNames[0] || 'Unnamed';
     };
 
     const touchStartY = useRef<number>(0);
@@ -149,29 +151,17 @@ const DisambiguationMenu = ({ options, position, highlightedOption, onSelect, on
                             <div 
                                 key={idx} 
                                 className={`menu-item-wrapper ${isHighlighted ? 'highlighted' : ''}`}
-                                onMouseEnter={() => {
-                                    // Only highlight on hover on desktop
-                                    if (!isMobile) {
-                                        onHighlight(option);
-                                    }
-                                }}
-                                onMouseLeave={() => {
-                                    // Only clear highlight on leave on desktop
-                                    if (!isMobile) {
-                                        onHighlight(null);
-                                    }
-                                }}
+                                onMouseEnter={() => { if (!isMobile) onHighlight(option); }}
+                                onMouseLeave={() => { if (!isMobile) onHighlight(null); }}
                             >
                                 <button 
                                     className="menu-item" 
                                     onClick={() => {
                                         if (isMobile) {
-                                            // On mobile: first tap highlights, second tap (via button) focuses
-                                            if (!isHighlighted) {
-                                                onHighlight(option);
-                                            }
+                                            // First tap highlights, second tap (or focus button) selects
+                                            if (!isHighlighted) onHighlight(option);
+                                            else onSelect(option);
                                         } else {
-                                            // On desktop: directly select
                                             onSelect(option);
                                         }
                                     }}
@@ -186,16 +176,21 @@ const DisambiguationMenu = ({ options, position, highlightedOption, onSelect, on
                                                 <span className="segment-badge"> ({option._segmentCount} segments)</span>
                                             )}
                                         </span>
-                                        {option.properties.regulation_name && option.properties.regulation_name.toUpperCase() !== getLabel(option).toUpperCase() && (
-                                            <span className="regulation-subtitle">Listed as: {option.properties.regulation_name}</span>
-                                        )}
+                                        {(() => {
+                                            const rawName = option.properties.regulation_name || '';
+                                            const names = rawName ? rawName.split(' | ').filter(Boolean) : [];
+                                            const filtered = regulationsService.filterOutProvincialNames(names).join(' | ');
+                                            return filtered && filtered.toUpperCase() !== getLabel(option).toUpperCase() ? (
+                                                <span className="regulation-subtitle">Listed as: {filtered}</span>
+                                            ) : null;
+                                        })()}
                                         <span className="type">{option.type}</span>
                                     </div>
                                 </button>
                                 {isMobile && isHighlighted && (
-                                    <button 
+                                    <button
                                         className="focus-button"
-                                        onClick={() => onSelect(option)}
+                                        onPointerDown={(e) => { e.stopPropagation(); onSelect(option); }}
                                         aria-label="Focus on this feature"
                                     >
                                         <Eye size={16} />

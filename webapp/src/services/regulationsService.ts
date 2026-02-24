@@ -4,6 +4,7 @@
  */
 
 export interface Regulation {
+  regulation_id: string;
   waterbody_name: string;
   waterbody_key: string | null;
   region: string | null;
@@ -23,6 +24,7 @@ type RegulationsLookup = Record<string, Regulation>;
 class RegulationsService {
   private regulations: RegulationsLookup | null = null;
   private loadPromise: Promise<RegulationsLookup> | null = null;
+  private provincialRuleTexts: Set<string> = new Set();
 
   async loadRegulations(): Promise<RegulationsLookup> {
     if (this.regulations) return this.regulations;
@@ -39,6 +41,14 @@ class RegulationsService {
       .then(data => {
         this.regulations = data;
         this.loadPromise = null;
+
+        // Build set of provincial rule texts for filtering display names
+        this.provincialRuleTexts = new Set(
+          Object.values(data as RegulationsLookup)
+            .filter(reg => reg.source === 'provincial' && reg.rule_text)
+            .map(reg => reg.rule_text)
+        );
+
         console.log("✅ Regulations JSON Loaded. Total keys:", Object.keys(data).length);
         return data;
       })
@@ -78,9 +88,9 @@ class RegulationsService {
         .map(id => {
           const match = regulations[id];
           if (!match) console.warn(`⚠️ No match found in JSON for ID: "${id}"`);
-          return match;
+          return match ? { ...match, regulation_id: id } : null;
         })
-        .filter(Boolean);
+        .filter(Boolean) as Regulation[];
 
       return results;
     } catch (error) {
@@ -94,6 +104,15 @@ class RegulationsService {
     if (!regulationId) return null;
     const regs = await this.loadRegulations();
     return regs[regulationId] || null;
+  }
+
+  /**
+   * Filter out provincial regulation names (rule_text) from a list of regulation names.
+   * Provincial names are long rule texts that shouldn't appear in "Listed as" or as waterbody name fallbacks.
+   */
+  filterOutProvincialNames(names: string[]): string[] {
+    if (this.provincialRuleTexts.size === 0) return names;
+    return names.filter(name => !this.provincialRuleTexts.has(name));
   }
 
   preload(): void {

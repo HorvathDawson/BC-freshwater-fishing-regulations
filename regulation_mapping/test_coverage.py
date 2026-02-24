@@ -262,7 +262,7 @@ def test_linking_coverage(export_not_found: str = None, export_ambiguous: str = 
         res = linker.link_waterbody(region=region, mgmt_units=mus, name_verbatim=name)
 
         # --- Statistics & Validation ---
-        if res.status == LinkStatus.SUCCESS:
+        if res.status in (LinkStatus.SUCCESS, LinkStatus.ADMIN_MATCH):
             stats.success_methods[res.link_method] += 1
 
             # Track Usage
@@ -557,11 +557,15 @@ def test_linking_coverage(export_not_found: str = None, export_ambiguous: str = 
     print_header("FINAL TALLY")
 
     print(f"Total Processed:    {total}")
-    print(f"{GREEN}Linked (Total):     {len(stats.results[LinkStatus.SUCCESS])}{RESET}")
+    linked_total = len(stats.results[LinkStatus.SUCCESS]) + len(
+        stats.results[LinkStatus.ADMIN_MATCH]
+    )
+    print(f"{GREEN}Linked (Total):     {linked_total}{RESET}")
     print(f"  - Natural Search: {stats.success_methods['natural_search']}")
     print(f"  - Direct Match:   {stats.success_methods['direct_match']}")
     print(f"  - Name Variation: {stats.success_methods['name_variation']}")
     print(f"  - Exact Match:    {stats.success_methods['exact_match']}")
+    print(f"  - Admin Match:    {stats.success_methods.get('admin_direct_match', 0)}")
     print(f"{RED}Not Found:          {len(stats.results[LinkStatus.NOT_FOUND])}{RESET}")
     print(
         f"{YELLOW}Ambiguous:          {len(stats.results[LinkStatus.AMBIGUOUS])}{RESET}"

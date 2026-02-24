@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Search, X, Eye } from 'lucide-react';
 import { Icon } from '@iconify/react';
 import Fuse from 'fuse.js';
+import { regulationsService } from '../services/regulationsService';
 import './SearchBar.css';
 
 export interface SearchableFeature {
@@ -195,7 +196,8 @@ const SearchBar: React.FC<SearchBarProps> = ({ features, onSelect, highlightedRe
     };
 
     const getDisplayName = (feature: SearchableFeature): string => {
-        return feature.gnis_name || feature.lake_name || feature.name || feature.regulation_names?.[0] || 'Unnamed';
+        const synopsisNames = regulationsService.filterOutProvincialNames(feature.regulation_names || []);
+        return feature.gnis_name || feature.lake_name || feature.name || synopsisNames[0] || 'Unnamed';
     };
 
     const clearSearch = () => {
@@ -240,7 +242,8 @@ const SearchBar: React.FC<SearchBarProps> = ({ features, onSelect, highlightedRe
                 >
                     {results.map((feature, idx) => {
                         const displayName = getDisplayName(feature);
-                        const hasRegNames = feature.regulation_names && feature.regulation_names.length > 0;
+                        const synopsisNames = regulationsService.filterOutProvincialNames(feature.regulation_names || []);
+                        const hasRegNames = synopsisNames.length > 0;
                         const zones = feature.properties?.zones;
                         const isHighlighted = highlightedResult?.id === feature.id;
 
@@ -283,7 +286,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ features, onSelect, highlightedRe
                                         </div>
                                         {hasRegNames && (
                                             <div className="search-result-subtitle">
-                                                Listed as: {feature.regulation_names!.join(' | ')}
+                                                Listed as: {synopsisNames.join(' | ')}
                                             </div>
                                         )}
                                         <div className="search-result-meta">

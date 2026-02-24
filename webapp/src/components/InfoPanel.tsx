@@ -5,6 +5,15 @@ import type { Regulation } from '../services/regulationsService';
 import { regulationsService } from '../services/regulationsService';
 import './InfoPanel.css';
 
+/** Human-readable labels for admin scope_location keys */
+const SCOPE_LOCATION_LABELS: Record<string, string> = {
+    parks_bc: 'BC Parks / Ecological Reserves',
+    parks_nat: 'National Parks',
+    wma: 'Wildlife Management Areas',
+    watersheds: 'Watersheds',
+    historic_sites: 'Historic Sites',
+};
+
 interface FeatureInfo {
     type: 'stream' | 'lake' | 'wetland' | 'manmade';
     properties: Record<string, any>;
@@ -94,9 +103,11 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
         const props = feature.properties;
         
         // Handle both regulation_names (array from search) and regulation_names (string from tiles)
-        const regulationNames = Array.isArray(props.regulation_names) 
+        const rawRegulationNames = Array.isArray(props.regulation_names) 
             ? props.regulation_names 
             : (props.regulation_names ? props.regulation_names.split(' | ').filter(Boolean) : []);
+        // Filter out provincial regulation names (long rule texts) - only show synopsis names
+        const regulationNames = regulationsService.filterOutProvincialNames(rawRegulationNames);
         
         const title = props.gnis_name || props.lake_name || props.name || regulationNames[0] || 'Unnamed Waterbody';
         const typeLabel = feature.type.toUpperCase();
@@ -171,11 +182,27 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                         )}
 
                         {!loadingRegs && (() => {
+                            // Admin zone map passed from Map click handler
+                            // Maps regulation_id → list of admin zone names at click point
+                            const adminZones: Record<string, string[]> = props._adminZones || {};
+
                             // Group regulations by waterbody_name + region combination
                             const groupedRegulations = regulations.reduce((groups, reg) => {
                                 const waterbodyName = reg.waterbody_name || 'Unknown Waterbody';
-                                const region = reg.region || 'Unknown Region';
-                                
+                                let region = reg.region || 'Unknown Region';
+
+                                // For provincial / admin-boundary regulations, resolve the
+                                // admin zone name from the map click context instead of
+                                // showing "Unknown Region".
+                                if (reg.source === 'provincial' && reg.scope_location) {
+                                    const zoneNames = adminZones[reg.regulation_id];
+                                    if (zoneNames && zoneNames.length > 0) {
+                                        region = zoneNames.join(', ');
+                                    } else {
+                                        region = SCOPE_LOCATION_LABELS[reg.scope_location] || reg.scope_location;
+                                    }
+                                }
+
                                 // Create a composite key for waterbody + region combination
                                 const groupKey = `${waterbodyName}|||${region}`;
                                 
@@ -215,10 +242,10 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                                                     fontWeight: 600,
                                                     textTransform: 'uppercase',
                                                     letterSpacing: '0.05em',
-                                                    backgroundColor: 'rgba(220, 53, 69, 0.15)',
-                                                    color: '#dc3545',
+                                                    backgroundColor: 'rgba(230, 159, 0, 0.15)',
+                                                    color: '#B07A00',
                                                     borderRadius: '4px',
-                                                    border: '1px solid rgba(220, 53, 69, 0.3)',
+                                                    border: '1px solid rgba(230, 159, 0, 0.45)',
                                                 }}>
                                                     Provincial Regulation
                                                 </div>
@@ -249,7 +276,7 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                                             {/* Scope Location */}
                                             {reg.scope_location && (
                                                 <div className="regulation-scope">
-                                                    Applies to: {reg.scope_location}
+                                                    Applies to: {SCOPE_LOCATION_LABELS[reg.scope_location] || reg.scope_location}
                                                 </div>
                                             )}
 
