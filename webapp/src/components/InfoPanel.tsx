@@ -326,16 +326,41 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                     
                     <div className="data-section">
                         <h3>DETAILS</h3>
-                        <div className="grid-2">
-                            <div className="stat-box">
-                                <span className="label">ZONE</span>
-                                <span className="value">{props.zones || "-"}</span>
-                            </div>
-                            <div className="stat-box">
-                                <span className="label">MGMT UNIT</span>
-                                <span className="value">{props.mgmt_units || "-"}</span>
-                            </div>
-                        </div>
+                        {(() => {
+                            const zoneList = props.zones ? props.zones.split(',') : [];
+                            const nameList = props.region_name ? props.region_name.split(',') : [];
+                            // Pair zone IDs with names — both sorted independently,
+                            // so positional pairing works only when lengths match.
+                            const regionTags = zoneList.map((z: string, i: number) => ({
+                                id: z.trim(),
+                                name: nameList[i]?.trim() || null,
+                            }));
+                            const muList = props.mgmt_units ? props.mgmt_units.split(',').map((s: string) => s.trim()) : [];
+                            return (
+                                <>
+                                    <div className="region-tags">
+                                        <span className="label">REGIONS</span>
+                                        <div className="tags-row">
+                                            {regionTags.length > 0 ? regionTags.map((r: {id: string; name: string | null}) => (
+                                                <span key={r.id} className="region-tag">
+                                                    {r.id}{r.name ? ` — ${r.name}` : ''}
+                                                </span>
+                                            )) : <span className="value">—</span>}
+                                        </div>
+                                    </div>
+                                    {muList.length > 0 && (
+                                        <details className="mu-details">
+                                            <summary>MGMT UNITS ({muList.length})</summary>
+                                            <div className="mu-tags-row">
+                                                {muList.map((mu: string) => (
+                                                    <span key={mu} className="mu-tag">{mu}</span>
+                                                ))}
+                                            </div>
+                                        </details>
+                                    )}
+                                </>
+                            );
+                        })()}
                         {props.fwa_watershed_code && (
                             <div className="stat-box mt-2">
                                 <span className="label">WATERSHED CODE</span>

@@ -37,7 +37,11 @@ class FWAFeature:
 
     fwa_id: str
     geometry_type: str  # "polygon", "multilinestring", "point"
-    zones: List[str]  # All zones this feature appears in
+    # --- Zone / Region fields ---
+    # ``zones`` and ``region_names`` are positionally paired: index *i* in
+    # ``region_names`` is the human-readable name for index *i* in ``zones``.
+    # Both lists are sorted by zone ID.
+    zones: List[str]  # REGION_RESPONSIBLE_ID values (e.g. ["4", "7A"])
     feature_type: Optional[FeatureType] = None
     gnis_name: Optional[str] = None
     gnis_id: Optional[str] = None
@@ -50,6 +54,9 @@ class FWAFeature:
     matched_via: Optional[str] = None
     admin_code: Optional[str] = (
         None  # Classification code for admin features (e.g., "PP", "OI")
+    )
+    region_names: Optional[List[str]] = (
+        None  # Paired with zones — e.g. ["Thompson", "Omineca"] for zones ["4", "7A"]
     )
 
     def __eq__(self, other):
@@ -140,6 +147,7 @@ class MetadataGazetteer:
                 mgmt_units=feature_data.get("mgmt_units", []),
                 admin_code=feature_data.get("admin_code"),
                 matched_via=matched_via or f"admin_{feature_type.value}",
+                region_names=feature_data.get("region_names", []),
             )
 
         # Determine geometry type
@@ -185,6 +193,7 @@ class MetadataGazetteer:
             mgmt_units=feature_data.get("mgmt_units", []),
             waterbody_key=str(waterbody_key) if waterbody_key is not None else None,
             matched_via=matched_via,
+            region_names=feature_data.get("region_names", []),
         )
 
     def _build_index(self):

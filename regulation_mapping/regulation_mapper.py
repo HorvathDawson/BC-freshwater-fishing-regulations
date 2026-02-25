@@ -10,6 +10,7 @@ from collections import defaultdict, Counter
 from dataclasses import dataclass, field
 from pathlib import Path
 import json
+import re
 
 from .linker import WaterbodyLinker, LinkStatus
 from .scope_filter import ScopeFilter
@@ -51,15 +52,21 @@ class RegulationMappingStats:
 
 @dataclass(frozen=True)
 class MergedGroup:
-    """Merged group of features with identical regulation sets."""
+    """Merged group of features with identical regulation sets.
+
+    ``zones`` and ``region_names`` are positionally paired — index *i* in
+    ``region_names`` is the name for index *i* in ``zones``.  Both are
+    sorted by zone ID.
+    """
 
     group_id: str
     feature_ids: tuple[str, ...]
     regulation_ids: tuple[str, ...]
     waterbody_key: Optional[str] = None
     feature_count: int = 0
-    zones: tuple[str, ...] = ()
+    zones: tuple[str, ...] = ()  # REGION_RESPONSIBLE_ID values
     mgmt_units: tuple[str, ...] = ()
+    region_names: tuple[str, ...] = ()  # Paired with zones
 
 
 @dataclass(frozen=True)
@@ -76,6 +83,9 @@ class PipelineResult:
     provincial_feature_map: Dict[str, List[str]] = field(default_factory=dict)
     # Admin area feature mapping: maps admin regulation name → list of matched FWA feature_ids
     admin_feature_map: Dict[str, List[str]] = field(default_factory=dict)
+    # Synopsis regulation IDs that were admin area matches (e.g. "Liard River Watershed")
+    # Excluded from waterbody-specific display names in search/tile exports
+    admin_regulation_ids: set = field(default_factory=set)
     # Admin area → regulation IDs: layer_key → {admin_feature_id: {regulation_ids}}
     # Used by exporter to create admin boundary layers with matched regulation info
     admin_area_reg_map: Dict[str, Dict[str, set]] = field(default_factory=dict)
@@ -103,6 +113,10 @@ class RegulationMapper:
         self.regulation_names = {}
         self.feature_to_linked_regulation = defaultdict(set)
         self.linked_waterbody_keys_of_polygon = set()
+        # Regulation IDs that came from admin area matches (synopsis entries like
+        # "Liard River Watershed") — these apply to many features within the area
+        # and should not appear as waterbody-specific names in search results.
+        self.admin_regulation_ids: set = set()
         # Admin area feature mapping: regulation name → list of matched FWA feature_ids
         self.admin_feature_map: Dict[str, List[str]] = {}
         # Tracks which admin polygons matched which regulation IDs
@@ -132,6 +146,7 @@ class RegulationMapper:
         self.feature_to_linked_regulation = defaultdict(set)
         self.linked_waterbody_keys_of_polygon = set()
         self.admin_feature_map = {}
+        self.admin_regulation_ids = set()
         self.stats.total_regulations = len(regulations)
 
         logger.info(f"Processing {len(regulations)} regulations...")
@@ -165,8 +180,13 @@ class RegulationMapper:
             # 1. Normalize Region and Link
             region = regulation.get("region")
             if region and region.startswith("REGION"):
-                region_num = "".join(c for c in region.split("-")[0] if c.isdigit())
-                region = f"Region {region_num}" if region_num else None
+                # Extract region number+letter from e.g. "REGION 7A - Omineca" → "7A"
+                _m = re.match(r"REGION\s+(\d+[A-Za-z]?)\s*[-–]", region)
+                if _m:
+                    region = f"Region {_m.group(1).upper()}"
+                else:
+                    region_num = "".join(c for c in region.split("-")[0] if c.isdigit())
+                    region = f"Region {region_num}" if region_num else None
 
             link_result = self.linker.link_waterbody(
                 region=region,
@@ -184,6 +204,7 @@ class RegulationMapper:
             ):
                 is_admin_match = True
                 self.stats.linked_regulations += 1
+                self.admin_regulation_ids.add(regulation_id)
                 admin_match = link_result.admin_match
 
                 if not self.gpkg_path or not self.gpkg_path.exists():
@@ -259,6 +280,18 @@ class RegulationMapper:
                         self.linked_waterbody_keys_of_polygon.add(str(wb_key))
 
             # Store successful links for Pass 2
+            # Inject additional_info from linking corrections as a synthetic "Note" rule
+            if link_result.additional_info:
+                regulation.setdefault("rules", []).append(
+                    {
+                        "rule_text_verbatim": link_result.additional_info,
+                        "restriction": {
+                            "type": "Note",
+                            "details": link_result.additional_info,
+                        },
+                        "scope": {},
+                    }
+                )
             linked_regulations_cache.append(
                 (idx, regulation, regulation_id, base_features, is_admin_match)
             )
@@ -416,6 +449,7 @@ class RegulationMapper:
             stats=self.stats,
             provincial_feature_map=provincial_feature_map,
             admin_feature_map=self.admin_feature_map,
+            admin_regulation_ids=self.admin_regulation_ids,
             admin_area_reg_map=dict(self.admin_area_reg_map),
         )
 
@@ -659,16 +693,25 @@ class RegulationMapper:
         merged_groups = {}
         grouping_key_counter: Dict[str, int] = defaultdict(int)
         for (grouping_key, reg_set), features_data in group_map.items():
-            all_zones: set = set()
             all_mu: set = set()
             all_wbks: set = set()
+            zone_to_name: dict = {}  # zone_id → region_name (maintains pairing)
 
             for _, feat in features_data:
-                all_zones.update(self._get_prop(feat, ["zones"], []))
+                feat_zones = self._get_prop(feat, ["zones"], [])
+                feat_names = self._get_prop(feat, ["region_names"], [])
+                for z, n in zip(feat_zones, feat_names):
+                    zone_to_name[z] = n
+                # Also pick up any zones without paired names
+                for z in feat_zones:
+                    if z not in zone_to_name:
+                        zone_to_name[z] = ""
                 all_mu.update(self._get_prop(feat, ["mgmt_units"], []))
                 wbk = self._get_prop(feat, ["waterbody_key"])
                 if wbk and str(wbk) in self.linked_waterbody_keys_of_polygon:
                     all_wbks.add(str(wbk))
+
+            sorted_zones = sorted(zone_to_name.keys())
 
             # Only carry a waterbody_key when the whole group shares exactly one.
             group_wbk = next(iter(all_wbks)) if len(all_wbks) == 1 else None
@@ -682,8 +725,9 @@ class RegulationMapper:
                 regulation_ids=tuple(sorted(reg_set)),
                 waterbody_key=group_wbk,
                 feature_count=len(features_data),
-                zones=tuple(sorted(all_zones)),
+                zones=tuple(sorted_zones),
                 mgmt_units=tuple(sorted(all_mu)),
+                region_names=tuple(zone_to_name[z] for z in sorted_zones),
             )
 
         logger.info(

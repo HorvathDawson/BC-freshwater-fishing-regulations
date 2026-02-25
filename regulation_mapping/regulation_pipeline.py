@@ -180,6 +180,17 @@ class RegulationPipeline:
 
         exported_files = {}
 
+        # Export regulations JSON + search index first (fast, and needed by frontend
+        # even if the heavier geometry exports fail)
+        if export_regulations_json and self.parsed_regulations:
+            regulations_json = output_dir / "regulations.json"
+            exporter.export_regulations_json(self.parsed_regulations, regulations_json)
+            exported_files["regulations_json"] = regulations_json
+
+            search_index = output_dir / "search_index.json"
+            exporter.export_search_index(search_index)
+            exported_files["search_index"] = search_index
+
         # Export merged geometries
         if export_merged:
             merged_gpkg = output_dir / "regulations_merged.gpkg"
@@ -209,17 +220,6 @@ class RegulationPipeline:
                 individual_pmtiles, merge_geometries=False
             ):
                 exported_files["individual_pmtiles"] = pmtiles_path
-
-        # Export regulations JSON for frontend
-        if export_regulations_json and self.parsed_regulations:
-            regulations_json = output_dir / "regulations.json"
-            exporter.export_regulations_json(self.parsed_regulations, regulations_json)
-            exported_files["regulations_json"] = regulations_json
-
-            # Export search index for frontend
-            search_index = output_dir / "search_index.json"
-            exporter.export_search_index(search_index)
-            exported_files["search_index"] = search_index
 
         return exported_files
 

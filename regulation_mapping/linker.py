@@ -58,6 +58,9 @@ class LinkingResult:
     admin_match: Optional[AdminDirectMatch] = (
         None  # Set when link_method == "admin_direct_match"
     )
+    additional_info: Optional[str] = (
+        None  # Extra note text from linking corrections, injected as a "Note" rule
+    )
 
     def __post_init__(self):
         if self.matched_features is None:
@@ -145,6 +148,7 @@ class WaterbodyLinker:
                 result = self._apply_direct_match(lookup_name, direct_match)
                 if result:
                     result.link_method = "direct_match"
+                    result.additional_info = direct_match.additional_info
                     self.stats[result.status] += 1
                     return result
 
@@ -172,6 +176,7 @@ class WaterbodyLinker:
                     matched_features=[],
                     link_method="admin_direct_match",
                     error_message=None,
+                    additional_info=admin_match.additional_info,
                 )
                 result.admin_match = admin_match
                 self.stats[result.status] += 1
@@ -322,11 +327,15 @@ class WaterbodyLinker:
         if not region or not features:
             return True  # Can't validate without region or features
 
-        # Extract region number from regulation (e.g., "Region 5" -> "5")
+        # Extract region number from regulation (e.g., "Region 5" -> "5", "Region 7A" -> "7A")
         try:
             reg_region_num = region.split()[-1]  # Get last part after space
         except (IndexError, AttributeError):
             return True  # Can't parse region, skip validation
+
+        # For MU comparison, use only the numeric portion of the region
+        # (e.g., "7A" -> "7") since MU IDs always use the numeric prefix ("7-55")
+        reg_region_num_digits = "".join(c for c in reg_region_num if c.isdigit())
 
         # Check all features' MUs
         for feature in features:
@@ -334,12 +343,12 @@ class WaterbodyLinker:
                 continue  # No MU data, skip this feature
 
             # Check if ANY of this feature's MUs match the regulation region
-            # MU format: "6-1", "5-2", etc. (first part is region number)
+            # MU format: "6-1", "5-2", "7-58", etc. (first part is region number)
             feature_has_matching_mu = False
             for mu in feature.mgmt_units:
                 try:
                     mu_region_num = mu.split("-")[0]  # Get first part before hyphen
-                    if mu_region_num == reg_region_num:
+                    if mu_region_num == reg_region_num_digits:
                         feature_has_matching_mu = True
                         break
                 except (IndexError, AttributeError):

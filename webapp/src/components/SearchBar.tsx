@@ -245,7 +245,19 @@ const SearchBar: React.FC<SearchBarProps> = ({ features, onSelect, highlightedRe
                         const synopsisNames = regulationsService.filterOutProvincialNames(feature.regulation_names || []);
                         const hasRegNames = synopsisNames.length > 0;
                         const zones = feature.properties?.zones;
+                        const regionName = feature.properties?.region_name;
                         const isHighlighted = highlightedResult?.id === feature.id;
+
+                        // Build compact region display: "7A – Omineca" or "7A – Omineca +2"
+                        let regionDisplay: string | null = null;
+                        if (zones) {
+                            const zList = zones.split(',');
+                            const nList = regionName ? regionName.split(',') : [];
+                            const first = zList[0]?.trim();
+                            const firstName = nList[0]?.trim();
+                            regionDisplay = first + (firstName ? ` – ${firstName}` : '');
+                            if (zList.length > 1) regionDisplay += ` +${zList.length - 1}`;
+                        }
 
                         return (
                             <div
@@ -291,10 +303,10 @@ const SearchBar: React.FC<SearchBarProps> = ({ features, onSelect, highlightedRe
                                         )}
                                         <div className="search-result-meta">
                                             <span className="search-result-type">{feature.type}</span>
-                                            {zones && (
+                                            {regionDisplay && (
                                                 <>
                                                     <span className="search-result-separator">•</span>
-                                                    <span className="search-result-zone">Zone {zones}</span>
+                                                    <span className="search-result-zone">{regionDisplay}</span>
                                                 </>
                                             )}
                                         </div>

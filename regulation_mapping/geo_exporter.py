@@ -78,6 +78,7 @@ class RegulationGeoExporter:
         self.feature_to_linked_regulation = pipeline_result.feature_to_linked_regulation
         self.gazetteer = pipeline_result.gazetteer
         self.admin_area_reg_map = pipeline_result.admin_area_reg_map
+        self.admin_regulation_ids = pipeline_result.admin_regulation_ids
         self.gpkg_path = gpkg_path
         self.data_accessor = FWADataAccessor(self.gpkg_path)
         self.cache_dir = cache_dir
@@ -96,10 +97,20 @@ class RegulationGeoExporter:
     def _get_reg_names(
         self, reg_ids: List[str], feature_ids: Optional[List[str]] = None
     ) -> List[str]:
+        """Return human-readable regulation names for the given IDs.
+
+        Provincial/admin regulations (prefixed ``prov_``) and admin-area
+        synopsis matches (e.g. "Liard River Watershed") are excluded because
+        they apply broadly to many features and are not waterbody-specific names.
+        """
         if not reg_ids:
             return []
 
         base_ids = {r.rsplit("_rule", 1)[0] for r in reg_ids}
+        # Exclude provincial/admin regulations — they aren't waterbody names
+        base_ids = {b for b in base_ids if not b.startswith("prov_")}
+        # Exclude admin-area synopsis matches (e.g. watershed / WMA / park rules)
+        base_ids -= self.admin_regulation_ids
         if feature_ids is not None:
             linked_regs = {
                 r
@@ -348,6 +359,9 @@ class RegulationGeoExporter:
                         "linear_feature_id": linear_id,
                         "gnis_name": meta.get("gnis_name", ""),
                         "stream_order": meta.get("stream_order", 0),
+                        "zones": ",".join(meta.get("zones", [])),
+                        "mgmt_units": ",".join(meta.get("mgmt_units", [])),
+                        "region_name": ",".join(meta.get("region_names", [])),
                         "regulation_ids": ",".join(reg_ids) if reg_ids else None,
                         "regulation_names": " | ".join(
                             self._get_reg_names(reg_ids, [linear_id])
@@ -373,7 +387,7 @@ class RegulationGeoExporter:
                 ):
                     continue
 
-                geom_list, all_zones, all_mgmt_units, ws_codes = [], set(), set(), set()
+                geom_list, all_mgmt_units, ws_codes = [], set(), set()
                 max_order, blk = 0, None
 
                 # if "707538068" in group.feature_ids:
@@ -382,6 +396,7 @@ class RegulationGeoExporter:
                 #     )
 
                 blks = set()
+                zone_to_name = {}  # zone_id → region_name (maintains pairing)
                 for fid in group.feature_ids:
                     meta = self.gazetteer.get_stream_metadata(fid)
                     geom = self._stream_geometries.get(fid)
@@ -398,7 +413,10 @@ class RegulationGeoExporter:
                     if geom and meta:
                         geom_list.extend(self._extract_geoms(geom))
                         ws_codes.add(meta.get("fwa_watershed_code", ""))
-                        all_zones.update(meta.get("zones", []))
+                        for z, n in zip(
+                            meta.get("zones", []), meta.get("region_names", [])
+                        ):
+                            zone_to_name[z] = n
                         all_mgmt_units.update(meta.get("mgmt_units", []))
                         max_order = max(max_order, meta.get("stream_order") or 0)
 
@@ -448,8 +466,11 @@ class RegulationGeoExporter:
                                 )
                             ),
                             "has_regulations": bool(group.regulation_ids),
-                            "zones": ",".join(sorted(all_zones)),
+                            "zones": ",".join(sorted(zone_to_name.keys())),
                             "mgmt_units": ",".join(sorted(all_mgmt_units)),
+                            "region_name": ",".join(
+                                zone_to_name[z] for z in sorted(zone_to_name.keys())
+                            ),
                             "tippecanoe:minzoom": blk_zooms.get(blk, 12),
                             "geometry": (
                                 MultiLineString(geom_list)
@@ -489,6 +510,9 @@ class RegulationGeoExporter:
                         "waterbody_key": meta.get("waterbody_key", clean_fid) or "",
                         "gnis_name": meta.get("gnis_name", "") or "",
                         "area_sqm": meta.get("area_sqm", 0),
+                        "zones": ",".join(meta.get("zones", [])),
+                        "mgmt_units": ",".join(meta.get("mgmt_units", [])),
+                        "region_name": ",".join(meta.get("region_names", [])),
                         "regulation_ids": ",".join(reg_ids) if reg_ids else None,
                         "regulation_count": len(reg_ids),
                         "regulation_names": " | ".join(
@@ -539,6 +563,7 @@ class RegulationGeoExporter:
                             "feature_count": group.feature_count,
                             "zones": ",".join(group.zones),
                             "mgmt_units": ",".join(group.mgmt_units),
+                            "region_name": ",".join(group.region_names),
                             "tippecanoe:minzoom": self._calculate_polygon_minzoom(
                                 max_area
                             ),
@@ -567,6 +592,7 @@ class RegulationGeoExporter:
                                 ),
                                 "zones": ",".join(group.zones),
                                 "mgmt_units": ",".join(group.mgmt_units),
+                                "region_name": ",".join(group.region_names),
                                 "tippecanoe:minzoom": self._calculate_polygon_minzoom(
                                     meta.get("area_sqm", 0)
                                 ),
@@ -658,8 +684,9 @@ class RegulationGeoExporter:
             logger.warning("'wmu' layer not found in GPKG — skipping regions")
             return None
         zones_gdf = self.data_accessor.get_layer("wmu").to_crs("EPSG:3005")
-        zones_gdf["zone"] = zones_gdf["WILDLIFE_MGMT_UNIT_ID"].str.split("-").str[0]
-        regions_gdf = zones_gdf.dissolve(by="zone", as_index=False)
+        zones_gdf["zone"] = zones_gdf["REGION_RESPONSIBLE_ID"]
+        zones_gdf["region_name"] = zones_gdf["REGION_RESPONSIBLE_NAME"]
+        regions_gdf = zones_gdf.dissolve(by="zone", as_index=False, aggfunc="first")
         regions_gdf["geometry"] = regions_gdf["geometry"].boundary
 
         regions_gdf["stroke_color"] = "#555555"
@@ -670,6 +697,7 @@ class RegulationGeoExporter:
         return regions_gdf[
             [
                 "zone",
+                "region_name",
                 "stroke_color",
                 "stroke_width",
                 "stroke_dasharray",
@@ -907,7 +935,7 @@ class RegulationGeoExporter:
         search_groups = defaultdict(
             lambda: {
                 "geoms": [],
-                "zones": set(),
+                "zone_to_name": {},
                 "mgmt_units": set(),
                 "segment_count": 0,
                 "wb_keys": set(),
@@ -949,7 +977,8 @@ class RegulationGeoExporter:
 
             sg["segment_count"] += len(group.feature_ids)
             sg["feature_ids"].extend(group.feature_ids)
-            sg["zones"].update(group.zones or [])
+            for z, n in zip(group.zones or [], group.region_names or []):
+                sg["zone_to_name"][z] = n
             sg["mgmt_units"].update(group.mgmt_units or [])
             if group.waterbody_key:
                 sg["wb_keys"].add(group.waterbody_key)
@@ -999,8 +1028,12 @@ class RegulationGeoExporter:
                         reg_ids, data["feature_ids"]
                     ),
                     "type": ftype_val,
-                    "zones": ",".join(sorted(data["zones"])),
+                    "zones": ",".join(sorted(data["zone_to_name"].keys())),
                     "mgmt_units": ",".join(sorted(data["mgmt_units"])),
+                    "region_name": ",".join(
+                        data["zone_to_name"][z]
+                        for z in sorted(data["zone_to_name"].keys())
+                    ),
                     "regulation_ids": ",".join(reg_ids),
                     "segment_count": data["segment_count"],
                     "bbox": list(wgs84_bounds),

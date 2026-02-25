@@ -126,11 +126,18 @@ def find_zones_spatial(geometry, zones_gdf, zone_index):
         geometry: Shapely Point or Polygon (Stream endpoint or Lake)
         zones_gdf: GeoDataFrame containing 'geometry_buffered' column
         zone_index: STRtree index built on 'geometry_buffered'
+
+    Returns:
+        dict with keys:
+            zones:        sorted list of REGION_RESPONSIBLE_ID values (e.g. ["7A", "7B"])
+            mgmt_units:   sorted list of WILDLIFE_MGMT_UNIT_ID values (e.g. ["7-55"])
+            region_names: list of REGION_RESPONSIBLE_NAME values, **positionally paired
+                          with zones** (e.g. ["Omineca", "Peace"] when zones=["7A","7B"])
     """
     # 1. Broad Search (Spatial Index against buffered zones)
     candidate_indices = zone_index.query(geometry)
 
-    zones = set()
+    zone_to_name = {}  # zone_id → region_name (maintains pairing)
     mgmt_units = set()
 
     # 2. Precise Check
@@ -141,15 +148,26 @@ def find_zones_spatial(geometry, zones_gdf, zone_index):
         # Check intersection against the PRE-BUFFERED zone
         # This is equivalent to buffering the point but much faster
         if buffered_geom.intersects(geometry):
-            zones.add(zone_row["zone"])
+            zone_id = zone_row["zone"]
+            zone_to_name[zone_id] = zone_row.get("REGION_RESPONSIBLE_NAME", "") or ""
             mgmt_units.add(zone_row["WILDLIFE_MGMT_UNIT_ID"])
 
-    return {"zones": sorted(list(zones)), "mgmt_units": sorted(list(mgmt_units))}
+    sorted_zones = sorted(zone_to_name.keys())
+    return {
+        "zones": sorted_zones,
+        "mgmt_units": sorted(list(mgmt_units)),
+        "region_names": [zone_to_name[z] for z in sorted_zones],
+    }
 
 
 def process_stream_chunk(chunk_data):
     """
     Worker function: Processes a batch of graph edges.
+
+    Each metadata record includes ``zones``, ``mgmt_units``, and ``region_names``
+    collected from both stream endpoints.  ``region_names`` is positionally paired
+    with ``zones`` — index *i* in ``region_names`` is the name for index *i* in
+    ``zones``.
     """
     zones_gdf, zone_index, edges = chunk_data
     results = {}
@@ -164,8 +182,14 @@ def process_stream_chunk(chunk_data):
         u_z = find_zones_spatial(u_pt, zones_gdf, zone_index)
         v_z = find_zones_spatial(v_pt, zones_gdf, zone_index)
 
-        # Union the results
-        all_zones = sorted(set(u_z["zones"] + v_z["zones"]))
+        # Merge zone→name mappings from both endpoints (maintains pairing)
+        zone_to_name = {}
+        for z, n in zip(u_z["zones"], u_z["region_names"]):
+            zone_to_name[z] = n
+        for z, n in zip(v_z["zones"], v_z["region_names"]):
+            zone_to_name[z] = n
+        all_zones = sorted(zone_to_name.keys())
+        all_region_names = [zone_to_name[z] for z in all_zones]
         all_mus = sorted(set(u_z["mgmt_units"] + v_z["mgmt_units"]))
 
         is_cross_boundary = len(all_zones) > 1
@@ -188,6 +212,7 @@ def process_stream_chunk(chunk_data):
             "edge_type": attrs.get("edge_type", ""),
             "zones": all_zones,
             "mgmt_units": all_mus,
+            "region_names": all_region_names,
             "cross_boundary": is_cross_boundary,
             "unnamed_depth_distance_corrected": attrs.get(
                 "unnamed_depth_distance_corrected"
@@ -234,7 +259,7 @@ class MetadataBuilder:
             logger.info(f"  Reprojecting WMU zones from {gdf.crs} to EPSG:3005...")
             gdf = gdf.to_crs(epsg=3005)
 
-        gdf["zone"] = gdf["WILDLIFE_MGMT_UNIT_ID"].str.split("-").str[0]
+        gdf["zone"] = gdf["REGION_RESPONSIBLE_ID"]
 
         logger.info(
             f"Pre-buffering zones by {ZONE_BOUNDARY_BUFFER_M}m and clipping to provincial boundary..."
@@ -251,17 +276,22 @@ class MetadataBuilder:
         for _, row in gdf.iterrows():
             zid = row["zone"]
             mu = row["WILDLIFE_MGMT_UNIT_ID"]
+            region_name = row.get("REGION_RESPONSIBLE_NAME", "")
             if zid not in self.metadata["zone_metadata"]:
                 self.metadata["zone_metadata"][zid] = {
                     "zone_number": zid,
+                    "region_name": region_name,  # e.g. "Omineca", "Peace"
                     "mgmt_units": [],
                     "mgmt_unit_details": {},
                 }
             entry = self.metadata["zone_metadata"][zid]
+            # Ensure region_name is set (all MUs in a zone share the same name)
+            if not entry.get("region_name") and region_name:
+                entry["region_name"] = region_name
             entry["mgmt_units"].append(mu)
             entry["mgmt_unit_details"][mu] = {
                 "full_id": mu,
-                "region_name": row.get("REGION_RESPONSIBLE_NAME", ""),
+                "region_name": region_name,
                 "bounds": list(row.geometry.bounds),
             }
         for z in self.metadata["zone_metadata"].values():
@@ -346,6 +376,7 @@ class MetadataBuilder:
                         "area_sqm": row.geometry.area,
                         "zones": z_data["zones"],
                         "mgmt_units": z_data["mgmt_units"],
+                        "region_names": z_data["region_names"],
                     }
                 self.metadata[ftype_enum] = results
                 logger.info(f"  Extracted {len(results):,} {ftype_enum.name}.")
@@ -406,6 +437,7 @@ class MetadataBuilder:
                         "area_sqm": row.geometry.area if row.geometry else 0,
                         "zones": z_data["zones"],
                         "mgmt_units": z_data["mgmt_units"],
+                        "region_names": z_data["region_names"],
                     }
 
                 self.metadata[ftype] = results

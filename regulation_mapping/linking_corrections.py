@@ -89,6 +89,9 @@ class DirectMatch:
         note: Explanation of why this mapping exists
         ignored: If True, prevent all matching for this entry (intentional)
         not_found: If True, searched but couldn't locate in FWA data
+        additional_info: Extra text injected as a "Note" rule on the regulation.
+            Use for permit requirements, special access info, or other context
+            that should appear alongside the synopsis-parsed rules.
     """
 
     note: str
@@ -104,6 +107,7 @@ class DirectMatch:
     blue_line_key: Optional[str] = None
     blue_line_keys: Optional[List[str]] = None
     unmarked_waterbody_id: Optional[str] = None  # Links to custom UnmarkedWaterbody
+    additional_info: Optional[str] = None
 
 
 @dataclass
@@ -139,6 +143,9 @@ class AdminDirectMatch:
         include_lakes: Include lake features in spatial intersection
         include_wetlands: Include wetland features in spatial intersection
         include_manmade: Include manmade waterbody features in spatial intersection
+        additional_info: Extra text injected as a "Note" rule on the regulation.
+            Use for permit requirements, special access info, or other context
+            that should appear alongside the synopsis-parsed rules.
     """
 
     admin_layer: str
@@ -150,6 +157,7 @@ class AdminDirectMatch:
     include_lakes: bool = True
     include_wetlands: bool = False
     include_manmade: bool = False
+    additional_info: Optional[str] = None
 
 
 @dataclass
@@ -240,33 +248,56 @@ class ManualCorrections:
         self.unmarked_waterbodies = unmarked_waterbodies
         self.admin_direct_matches = admin_direct_matches or {}
 
+    @staticmethod
+    def _resolve_region_dict(lookup_dict: dict, region: str) -> Optional[dict]:
+        """Resolve region key with fallback to base region.
+
+        E.g., if region is 'Region 7A' and the dict has no 'Region 7A' key,
+        falls back to 'Region 7'.  This allows existing corrections keyed by
+        parent region to work for sub-region lookups (7A/7B).
+        """
+        if region in lookup_dict:
+            return lookup_dict[region]
+        # Fallback: strip trailing letter from region number
+        # "Region 7A" -> "Region 7", "Region 4" -> "Region 4" (no-op)
+        import re
+
+        base = re.sub(r"(\d+)[A-Za-z]+$", r"\1", region)
+        if base != region and base in lookup_dict:
+            return lookup_dict[base]
+        return None
+
     def get_skip_entry(self, region: str, name_verbatim: str) -> Optional[SkipEntry]:
         """Get skip entry for a regulation name in a region."""
-        if region not in self.skip_entries:
+        entries = self._resolve_region_dict(self.skip_entries, region)
+        if entries is None:
             return None
-        return self.skip_entries[region].get(name_verbatim)
+        return entries.get(name_verbatim)
 
     def get_direct_match(
         self, region: str, name_verbatim: str
     ) -> Optional[DirectMatch]:
         """Get direct match for a regulation name in a region."""
-        if region not in self.direct_matches:
+        entries = self._resolve_region_dict(self.direct_matches, region)
+        if entries is None:
             return None
-        return self.direct_matches[region].get(name_verbatim)
+        return entries.get(name_verbatim)
 
     def get_admin_direct_match(
         self, region: str, name_verbatim: str
     ) -> Optional[AdminDirectMatch]:
         """Get admin direct match for a regulation name in a region."""
-        if region not in self.admin_direct_matches:
+        entries = self._resolve_region_dict(self.admin_direct_matches, region)
+        if entries is None:
             return None
-        return self.admin_direct_matches[region].get(name_verbatim)
+        return entries.get(name_verbatim)
 
     def get_name_variation(self, region: str, name: str) -> Optional[NameVariation]:
         """Get name variation for a regulation name in a region."""
-        if region not in self.name_variations:
+        entries = self._resolve_region_dict(self.name_variations, region)
+        if entries is None:
             return None
-        return self.name_variations[region].get(name)
+        return entries.get(name)
 
     def get_unmarked_waterbody(
         self, unmarked_waterbody_id: str
@@ -1857,6 +1888,12 @@ ADMIN_DIRECT_MATCHES: Dict[str, Dict[str, AdminDirectMatch]] = {
                 "Synopsis lists 'CRESTON VALLEY WILDLIFE MANAGEMENT AREA (CVWMA) WATERS' in Region 4 MU 4-6. "
                 "Applies to all streams and lakes within Creston Valley Wildlife Management Area. "
                 "Layer: WLS_WILDLIFE_MGMT_AREA_SVW, ID field: ADMIN_AREA_SID."
+            ),
+            additional_info=(
+                "A permit is required for fishing on all waters within the Creston Valley "
+                "Wildlife Management Area, including Six Mile, Leach, Kootenay River and "
+                "Canal and Duck Lake. For details on acquiring a permit visit "
+                "www.crestonwildlife.ca or call 250-402-6900."
             ),
             include_streams=True,
             include_lakes=True,

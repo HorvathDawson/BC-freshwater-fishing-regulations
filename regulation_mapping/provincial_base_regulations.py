@@ -1,30 +1,80 @@
 """
 Provincial Base Regulations
+============================
 
 Defines province-wide fishing regulations that apply universally to BC waters.
-These are NOT parsed from the synopsis PDF - they are core BC fishing regulations
+These are NOT parsed from the synopsis PDF — they are core BC fishing regulations
 that apply to ALL features within administrative boundaries or of specific types.
+
+Overview
+--------
+Provincial regulations supplement the synopsis-derived, waterbody-specific
+regulations. They capture blanket rules like "fishing prohibited in all
+National Parks" that cannot be extracted from the synopsis tables.
 
 Two regulation scopes (auto-detected from fields):
 
-1. admin_layer is set → Applies to all FWA features within ALL polygons of that layer
+1. ``admin_layer`` is set → Applies to all FWA features within ALL polygons
+   of that layer (or a subset selected by ``code_filter`` / ``feature_ids``
+   / ``feature_names``).
    - Example: "Fishing prohibited in all National Parks"
    - Example: "Fishing prohibited in all Ecological Reserves"
 
-2. feature_types is set → Applies to all FWA features of specific types
-   - Example: "All streams - single barbless hook required"
-   - NOT IMPLEMENTED YET - placeholder for future use
+2. ``feature_types`` is set → Applies to all FWA features of specific types
+   (e.g. all streams, all lakes).
+   - Example: "All streams — single barbless hook required"
+   - NOT IMPLEMENTED YET — placeholder for future use.
 
-Each ProvincialRegulation generates a unique regulation_id (prefixed "prov_")
-and is processed separately from synopsis regulations. Both sources contribute
-regulation_ids to FWA features at export time.
+Regulation IDs & the ``prov_`` Prefix
+--------------------------------------
+Every ``ProvincialRegulation.regulation_id`` **must** start with ``prov_``.
+This prefix is used downstream to distinguish provincial rules from
+synopsis-derived rules:
 
-Admin Layer Types (matching fetch_data.py layer names):
-    - "parks_nat"       → National Parks (CLAB_NATIONAL_PARKS)
-    - "parks_bc"        → Provincial Parks & Ecological Reserves (TA_PARK_ECORES_PA_SVW)
-    - "wma"             → Wildlife Management Areas (TA_WILDLIFE_MGMT_AREAS_SVW)
-    - "watersheds"      → Named Watersheds (FWA_NAMED_WATERSHEDS_POLY)
-    - "historic_sites"  → Historic Sites (HIST_HISTORIC_ENVIRONMNT_PA_SV)
+* **RegulationMapper** (``regulation_mapper.py``) processes provincial
+  regulations via ``_process_provincial_regulations()`` and assigns the
+  resulting ``regulation_id`` values to intersecting FWA features.
+* **GeoExporter** (``geo_exporter.py``) uses the ``prov_`` prefix in
+  ``_get_reg_names()`` to **exclude** provincial regulations from the
+  human-readable regulation names that appear in the search index and
+  map tiles — these broad rules are not waterbody-specific names.
+* The ``restriction`` dict for each regulation is exported alongside
+  synopsis-derived rules in the final ``regulations.json`` output.
+
+Admin Layer Types
+-----------------
+Layer keys correspond to the layers fetched by ``fetch_data.py`` and stored
+in the GeoPackage. Each key maps to a BC Data Catalogue layer:
+
+    - ``"parks_nat"``       → National Parks (CLAB_NATIONAL_PARKS)
+    - ``"parks_bc"``        → Provincial Parks & Ecological Reserves
+                              (TA_PARK_ECORES_PA_SVW)
+    - ``"wma"``             → Wildlife Management Areas
+                              (TA_WILDLIFE_MGMT_AREAS_SVW)
+    - ``"watersheds"``      → Named Watersheds (FWA_NAMED_WATERSHEDS_POLY)
+    - ``"historic_sites"``  → Historic Sites
+                              (HIST_HISTORIC_ENVIRONMNT_PA_SV)
+
+Code Filtering
+--------------
+When ``code_filter`` is set, only admin polygons whose classification code
+matches one of the given values are used for intersection. The relevant
+code field for each layer is defined in ``ADMIN_LAYER_CONFIG`` (from
+``metadata_gazetteer.py``). For example, the ``"parks_bc"`` layer uses
+``PROTECTED_LANDS_CODE``: filter value ``"OI"`` selects Ecological Reserves.
+
+Adding New Regulations
+----------------------
+1. Create a new ``ProvincialRegulation`` entry in
+   ``PROVINCIAL_BASE_REGULATIONS``.
+2. Use the ``prov_`` prefix for ``regulation_id``.
+3. Set ``admin_layer`` (for boundary-scoped) **or** ``feature_types``
+   (for type-scoped, once implemented).
+4. Populate ``restriction`` with at least ``type`` and ``details`` keys.
+5. Run the CLI test: ``python -m regulation_mapping.provincial_base_regulations``
+   to verify layer intersection counts.
+6. Re-run the regulation pipeline to propagate the new regulation to all
+   affected FWA features.
 """
 
 from dataclasses import dataclass, field
@@ -94,6 +144,13 @@ class ProvincialRegulation:
 
 # ============================================================================
 # Provincial Base Regulations
+#
+# Active entries are processed by RegulationMapper._process_provincial_regulations().
+# Commented-out entries are future placeholders — uncomment and implement the
+# feature_types scope path in RegulationMapper before enabling them.
+#
+# Each entry's ``restriction`` dict is included verbatim in the exported
+# regulations.json under the regulation_id key.
 # ============================================================================
 
 PROVINCIAL_BASE_REGULATIONS: List[ProvincialRegulation] = [
@@ -353,7 +410,14 @@ PROVINCIAL_BASE_REGULATIONS: List[ProvincialRegulation] = [
 
 
 # ============================================================================
-# CLI Provincial Regulation Test  (python -m regulation_mapping.provincial_base_regulations)
+# CLI Provincial Regulation Test
+#
+# Run with:  python -m regulation_mapping.provincial_base_regulations
+#
+# Loads the FWA metadata and admin layers, then spatially intersects each
+# active regulation against FWA features. Prints a summary table showing
+# how many admin polygons matched and how many FWA features fall within them.
+# Useful for verifying layer data and code_filter values.
 # ============================================================================
 
 

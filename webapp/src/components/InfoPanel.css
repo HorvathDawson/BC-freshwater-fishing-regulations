@@ -240,6 +240,81 @@
     font-family: var(--font-mono); 
 }
 
+/* --- Region & MU tags --- */
+.region-tags {
+    margin-bottom: 16px;
+}
+
+.region-tags > .label {
+    display: block;
+    margin-bottom: 8px;
+}
+
+.tags-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.region-tag {
+    font-size: 10px;
+    font-weight: 600;
+    padding: 4px 6px;
+    border: 1px solid var(--border-light);
+    background: var(--bg);
+    text-transform: uppercase;
+    font-family: var(--font-sans);
+    color: var(--text);
+    white-space: nowrap;
+}
+
+.mu-details {
+    margin-bottom: 12px;
+}
+
+.mu-details summary {
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    font-family: var(--font-sans);
+    padding: 0;
+    list-style: none;
+}
+
+.mu-details summary:hover {
+    color: var(--text);
+}
+
+.mu-details summary::before {
+    content: '▸ ';
+    font-size: 10px;
+}
+
+.mu-details[open] summary::before {
+    content: '▾ ';
+    font-size: 10px;
+}
+
+.mu-tags-row {
+    margin-top: 8px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.mu-tag {
+    font-size: 10px;
+    font-weight: 500;
+    padding: 3px 5px;
+    border: 1px solid var(--border-light);
+    background: var(--bg-subtle);
+    color: var(--text-secondary);
+    font-family: var(--font-mono);
+    white-space: nowrap;
+}
+
 .regulation-card {
     border: 1px solid var(--border);
     padding: 16px;
