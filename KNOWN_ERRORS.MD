@@ -10,6 +10,9 @@
 
 7. need to make the naming better for admin zone unnamed streams. we shouldnt add regulation name if it was an admin match. because then everything has the name. or at least dont show in search? 
 
+8. need to add tidal region into the map. (will remove other regulations and say refer to tidal regulations)
+
+9. 
 
 
 

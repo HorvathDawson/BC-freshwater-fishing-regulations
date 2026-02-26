@@ -356,7 +356,8 @@ class MetadataGazetteer:
     def get_feature_by_id(self, feature_id: str) -> Optional[FWAFeature]:
         """
         Fetch a single unique feature by its record identifier.
-        Supports linear_feature_id (streams) or waterbody_poly_id (polygons).
+        Supports linear_feature_id (streams), waterbody_poly_id (polygons),
+        or ungazetted waterbody IDs.
         """
         # 1. Try stream segment
         stream = self.get_stream_by_id(feature_id)
@@ -364,7 +365,12 @@ class MetadataGazetteer:
             return stream
 
         # 2. Try specific polygon record
-        return self.get_polygon_by_id(feature_id)
+        poly = self.get_polygon_by_id(feature_id)
+        if poly:
+            return poly
+
+        # 3. Try ungazetted waterbody
+        return self.get_ungazetted_by_id(feature_id)
 
     def get_feature_by_type_and_id(
         self, ftype: FeatureType, feature_id: str
@@ -372,6 +378,8 @@ class MetadataGazetteer:
         """Fetch a feature knowing its type and ID."""
         if ftype == FeatureType.STREAM:
             return self.get_stream_by_id(feature_id)
+        if ftype == FeatureType.UNGAZETTED:
+            return self.get_ungazetted_by_id(feature_id)
         # Admin feature types
         if ftype in ADMIN_FEATURE_TYPES:
             return self.get_admin_feature_by_id(ftype, feature_id)
@@ -386,6 +394,7 @@ class MetadataGazetteer:
             FeatureType.LAKE,
             FeatureType.WETLAND,
             FeatureType.MANMADE,
+            FeatureType.UNGAZETTED,
         ]:
             if feature_id in self.metadata.get(ftype, {}):
                 return ftype
@@ -394,6 +403,53 @@ class MetadataGazetteer:
             if feature_id in self.metadata.get(ftype, {}):
                 return ftype
         return FeatureType.UNKNOWN
+
+    # ── Ungazetted Waterbody Support ──────────────────────────────────────
+
+    def get_ungazetted_by_id(self, feature_id: str) -> Optional[FWAFeature]:
+        """Get an ungazetted waterbody by its ID from injected metadata."""
+        feature_data = self.metadata.get(FeatureType.UNGAZETTED, {}).get(feature_id)
+        if feature_data:
+            return self._build_feature(feature_id, feature_data, FeatureType.UNGAZETTED)
+        return None
+
+    def inject_ungazetted_waterbody(
+        self,
+        ungazetted_id: str,
+        name: str,
+        zones: list,
+        mgmt_units: list,
+        geometry_type: str,
+        note: str = "",
+    ) -> None:
+        """Inject an ungazetted waterbody into the metadata and name index.
+
+        Call at pipeline startup (after gazetteer is loaded, before linking)
+        so that ungazetted features participate in merging and export just
+        like regular FWA features.
+        """
+        if FeatureType.UNGAZETTED not in self.metadata:
+            self.metadata[FeatureType.UNGAZETTED] = {}
+
+        self.metadata[FeatureType.UNGAZETTED][ungazetted_id] = {
+            "gnis_name": name,
+            "gnis_id": None,
+            "gnis_name_2": None,
+            "gnis_id_2": None,
+            "zones": zones,
+            "mgmt_units": mgmt_units,
+            "geometry_type": geometry_type,
+            "waterbody_key": None,
+            "fwa_watershed_code": None,
+            "blue_line_key": None,
+        }
+
+        # Add to name index for natural search
+        normalized = self._normalize_for_index(name)
+        if normalized:
+            self.name_index.setdefault(normalized, []).append(
+                (FeatureType.UNGAZETTED, ungazetted_id)
+            )
 
     # ── Admin Boundary Feature Support ────────────────────────────────────
 

@@ -1,5 +1,97 @@
 # Proposal: Sub-Polygon Lake Subdivisions & Admin Boundary Intersections
 
+> ## Corrections & Updates (Post-Review)
+>
+> The proposal below was written before GPKG verification. Several IDs, design
+> decisions, and code references have since been corrected. Read this section
+> first — it supersedes any conflicting details in the body.
+>
+> ### 1. Corrected IDs (GPKG-verified)
+>
+> | Lake | WATERBODY_POLY_ID | WATERBODY_KEY | GNIS_ID | Zones |
+> |------|-------------------|---------------|---------|-------|
+> | **Kootenay Lake** | `705016424` (single polygon) | `328974235` | `14091` | `['4']` |
+> | **Williston Lake** | `166104863`, `163048831`, `48079019` (3 polygons) | `328961697` | `28522` | `['7A','7B']` / `['7A']` / `['7A']` |
+>
+> The body of this proposal uses wrong IDs everywhere (POLY `706389`, WBK
+> `331076875` / `329393419`, GNIS `18851` / `21990`). **Replace all
+> occurrences** with the verified values above.
+>
+> **Updated sub-polygon ID scheme:**
+> ```
+> Kootenay Lake (single polygon):
+>   705016424_sub_main_body
+>   705016424_sub_upper_west_arm
+>   705016424_sub_lower_west_arm
+>
+> Williston Lake (multi-polygon, use WBK prefix):
+>   wbk_328961697_sub_zone_a
+>   wbk_328961697_sub_zone_b
+>   wbk_328961697_sub_nation_arm
+>   wbk_328961697_sub_davis_bay
+> ```
+>
+> ### 2. Parent Polygon Handling — Keep Parents, Fan Out
+>
+> **The proposal's "parent suppression" approach (Issue 7, Phase 5) is
+> replaced.** Do **NOT** remove parent polygons from metadata. Instead:
+>
+> - Keep parent polygons in `metadata[FeatureType.LAKE]` so that tributary
+>   enrichment continues to work (tributaries look up parent via
+>   `waterbody_key`).
+> - When a DirectMatch uses `sub_polygon_ids`, the linker resolves to
+>   sub-polygon features — this is the only regulation assignment path.
+> - The "ALL PARTS" DirectMatch fans out to all sub-polygons via
+>   `sub_polygon_ids` (multi-element list).
+> - The exporter skips parent polygons that have sub-polygons (don't export
+>   their geometry) by checking `"_sub_" in fwa_id` on siblings.
+> - Parent polygons **remain searchable** in the gazetteer for tributary
+>   lookups but **do not receive regulations directly** (no synopsis entry
+>   links to the parent poly ID after conversion from `SKIP_ENTRIES`).
+>
+> This is less invasive than removing parents from metadata and avoids
+> breaking the tributary enricher's `_get_stream_seeds_for_waterbody()`
+> reverse index (which needs the real `waterbody_key` on the parent).
+>
+> ### 3. `mgmt_units_override` — Removed
+>
+> The `SubPolygon.mgmt_units_override` field (Issue 13) is **not needed**.
+> MU is informational; inheriting the parent's MUs is acceptable. Remove
+> from the dataclass.
+>
+> ### 4. Geometry Key Prefix — `LAKES_` not `LAKE_`
+>
+> The proposal's exporter section references `LAKE_{sub_id}` as the
+> geometry cache key. The actual prefix is `{ftype_enum.value.upper()}_`
+> which for `FeatureType.LAKE` (value `"lakes"`) produces **`LAKES_`**.
+> All references to `LAKE_` in the exporter context should be `LAKES_`.
+>
+> ### 5. CRS Note — `UngazettedWaterbody` Now Also EPSG:3005
+>
+> Issue 14 ("CRS Difference Between UnmarkedWaterbody and SubPolygon") is
+> **now moot**. The `UnmarkedWaterbody` class has been renamed to
+> `UngazettedWaterbody` and its coordinates converted from WGS84 to
+> EPSG:3005. Both `SubPolygon` and `UngazettedWaterbody` now use EPSG:3005.
+>
+> ### 6. Renames (Already Implemented)
+>
+> | Old Name | New Name |
+> |----------|----------|
+> | `FeatureType.UNMARKED` | `FeatureType.UNGAZETTED` (value `"ungazetted"`) |
+> | `UnmarkedWaterbody` | `UngazettedWaterbody` |
+> | `unmarked_waterbody_id` (field) | `ungazetted_waterbody_id` |
+> | `UNMARKED_WATERBODIES` (dict) | `UNGAZETTED_WATERBODIES` |
+> | `UNMARKED_` ID prefix | `UNGAZ_` |
+>
+> ### 7. `export_regulations_json` — Now Uses `regulation_details`
+>
+> The exporter's `export_regulations_json()` method no longer rebuilds
+> regulation entries from raw parsed data and inline imports. Instead,
+> the mapper populates `PipelineResult.regulation_details` (keyed by
+> `rule_id`) during processing from all sources. The exporter writes
+> this dict directly. Adding a new regulation source only requires
+> populating `regulation_details` in the mapper — no exporter changes.
+
 ## Two Distinct Problems
 
 There are two separate "polygon splitting" needs that share some infrastructure but are fundamentally different:
@@ -68,13 +160,13 @@ For Williston Lake (it has 3 FWA polygons with WBK `329393419` — use `waterbod
 ```
 Parent: Williston Lake, WBK = "329393419"
 
-wbk_329393419_sub_zone_a         → Williston Lake - Zone A  (lake ∩ Region 7A boundary)
-wbk_329393419_sub_nation_arm     → Nation Arm               (carved from Zone B via manual crop)
-wbk_329393419_sub_davis_bay      → Davis Bay (Finlay Reach)  (carved from Zone B via manual crop)
-wbk_329393419_sub_zone_b         → Williston Lake - Zone B  (lake ∩ Region 7B boundary, minus Nation Arm & Davis Bay)
+wbk_329393419_sub_zone_a         → Williston Lake - Zone A  (lake ∩ Region 7A boundary, minus Nation Arm & Davis Bay)
+wbk_329393419_sub_nation_arm     → Nation Arm               (carved from Zone A via manual crop)
+wbk_329393419_sub_davis_bay      → Davis Bay (Finlay Reach)  (carved from Zone A via manual crop)
+wbk_329393419_sub_zone_b         → Williston Lake - Zone B  (lake ∩ Region 7B boundary)
 ```
 
-Note: Zone B is a **remainder** — its geometry is computed as `(lake ∩ zone_7B) - union(nation_arm, davis_bay)`. This ensures the sub-polygons fully tile the parent with no overlaps.
+**VERIFIED from parsed synopsis data:** Nation Arm (MU 7-30) and Davis Bay (MU 7-37) appear in the Region 7A synopsis tables, confirming they are geographically within Zone A. Zone A is therefore the **remainder** — its geometry is computed as `(lake ∩ zone_7A) - union(nation_arm, davis_bay)`. Zone B is simple: `lake ∩ zone_7B`. This ensures the sub-polygons fully tile the parent with no overlaps.
 
 **Rule:** Use `{poly_id}_sub_{slug}` when the lake is a single polygon. Use `wbk_{waterbody_key}_sub_{slug}` when the lake has multiple FWA polygons sharing one `waterbody_key`.
 
@@ -104,7 +196,7 @@ class SubPolygon:
     - crop_to_zone: Zone ID string (e.g. "7A") — uses the WMU zone boundary polygon
       from the GPKG as the cropping shape (automated, no hand-drawing needed)
 
-    For remainder sub-polygons (e.g. "Zone B minus Nation Arm and Davis Bay"),
+    For remainder sub-polygons (e.g. "Zone A minus Nation Arm and Davis Bay"),
     set exclude_sub_polygon_ids to subtract other sub-polygons from this one's
     computed geometry. Exclusions are applied after the primary crop.
 
@@ -162,38 +254,38 @@ SUB_POLYGONS: Dict[str, SubPolygon] = {
     ),
 
     # ── Williston Lake (multi-polygon WBK, zone boundary + manual crops) ─
-    # Zone A = lake ∩ Region 7A boundary (automated crop)
-    "wbk_329393419_sub_zone_a": SubPolygon(
-        sub_polygon_id="wbk_329393419_sub_zone_a",
-        name="Williston Lake - Zone A",
-        parent_waterbody_key="329393419",
-        crop_to_zone="7A",
-        note="Portion of Williston Lake within Region 7A. Zone boundary from WMU layer.",
-    ),
-    # Nation Arm = manual crop shape within Zone B portion
+    # Nation Arm = manual crop shape within Zone A portion (MU 7-30)
     "wbk_329393419_sub_nation_arm": SubPolygon(
         sub_polygon_id="wbk_329393419_sub_nation_arm",
         name="Williston Lake - Nation Arm",
         parent_waterbody_key="329393419",
         coordinates=[[[...]]],  # EPSG:3005 — rough crop around Nation Arm
-        note="Nation Arm of Williston Lake. Nation River (GNIS 16593) flows into this arm.",
+        note="Nation Arm of Williston Lake (MU 7-30), within Zone A. Nation River (GNIS 16593) flows into this arm.",
     ),
-    # Davis Bay = manual crop shape within Zone B portion
+    # Davis Bay = manual crop shape within Zone A portion (MU 7-37)
     "wbk_329393419_sub_davis_bay": SubPolygon(
         sub_polygon_id="wbk_329393419_sub_davis_bay",
         name="Williston Lake - Davis Bay",
         parent_waterbody_key="329393419",
         coordinates=[[[...]]],  # EPSG:3005 — rough crop around Davis Bay in Finlay Reach
-        note="Davis Bay in Finlay Reach of Williston Lake.",
+        note="Davis Bay in Finlay Reach of Williston Lake (MU 7-37), within Zone A.",
     ),
-    # Zone B remainder = (lake ∩ Region 7B) minus Nation Arm and Davis Bay
+    # Zone A remainder = (lake ∩ Region 7A) minus Nation Arm and Davis Bay
+    "wbk_329393419_sub_zone_a": SubPolygon(
+        sub_polygon_id="wbk_329393419_sub_zone_a",
+        name="Williston Lake - Zone A",
+        parent_waterbody_key="329393419",
+        crop_to_zone="7A",
+        exclude_sub_polygon_ids=["wbk_329393419_sub_nation_arm", "wbk_329393419_sub_davis_bay"],
+        note="Remainder of Williston Lake in Region 7A, excluding Nation Arm and Davis Bay. MUs 7-30, 7-37, 7-38.",
+    ),
+    # Zone B = lake ∩ Region 7B boundary (simple, no exclusions)
     "wbk_329393419_sub_zone_b": SubPolygon(
         sub_polygon_id="wbk_329393419_sub_zone_b",
         name="Williston Lake - Zone B",
         parent_waterbody_key="329393419",
         crop_to_zone="7B",
-        exclude_sub_polygon_ids=["wbk_329393419_sub_nation_arm", "wbk_329393419_sub_davis_bay"],
-        note="Remainder of Williston Lake in Region 7B, excluding Nation Arm and Davis Bay.",
+        note="Portion of Williston Lake within Region 7B. MUs 7-31, 7-36.",
     ),
 }
 ```
@@ -244,42 +336,52 @@ This requires **processing order**: non-remainder sub-polygons must be computed 
 
 #### Full Williston Lake example
 
+> **VERIFIED from parsed synopsis data (parsed_results.json):**
+> - `WILLISTON LAKE (in Zone A)` → Region 7A, MUs 7-30, 7-37, 7-38
+> - `NATION ARM (Williston Lake)` → Region 7A, MU 7-30
+> - `DAVIS BAY (in Finlay Reach of Williston Lake)` → Region 7A, MU 7-37
+> - `WILLISTON LAKE (in Zone B)` → Region 7B, MUs 7-31, 7-36
+>
+> **Nation Arm and Davis Bay are in Zone A (Region 7A), not Zone B.**
+> Zone A is the remainder (minus Nation Arm and Davis Bay).
+> Zone B is the simple case — just `lake ∩ Region 7B`.
+
 **Sub-polygon definitions:**
 
 ```python
 SUB_POLYGONS = {
-    # Zone A = lake ∩ Region 7A boundary (automated crop, no coordinates needed)
-    "wbk_329393419_sub_zone_a": SubPolygon(
-        sub_polygon_id="wbk_329393419_sub_zone_a",
-        name="Williston Lake - Zone A",
-        parent_waterbody_key="329393419",
-        crop_to_zone="7A",
-        note="Portion of Williston Lake within Region 7A. Zone boundary from WMU layer.",
-    ),
-    # Nation Arm = manual crop shape (roughly encloses Nation Arm area)
+    # Nation Arm = manual crop shape within Zone A (MU 7-30)
     "wbk_329393419_sub_nation_arm": SubPolygon(
         sub_polygon_id="wbk_329393419_sub_nation_arm",
         name="Williston Lake - Nation Arm",
         parent_waterbody_key="329393419",
         coordinates=[[[...]]],  # EPSG:3005 — rough crop around Nation Arm
-        note="Nation Arm of Williston Lake.",
+        note="Nation Arm of Williston Lake (MU 7-30), within Zone A.",
     ),
-    # Davis Bay = manual crop shape (roughly encloses Davis Bay in Finlay Reach)
+    # Davis Bay = manual crop shape within Zone A (MU 7-37)
     "wbk_329393419_sub_davis_bay": SubPolygon(
         sub_polygon_id="wbk_329393419_sub_davis_bay",
         name="Williston Lake - Davis Bay",
         parent_waterbody_key="329393419",
-        coordinates=[[[...]]],  # EPSG:3005 — rough crop around Davis Bay
-        note="Davis Bay in Finlay Reach of Williston Lake.",
+        coordinates=[[[...]]],  # EPSG:3005 — rough crop around Davis Bay in Finlay Reach
+        note="Davis Bay in Finlay Reach of Williston Lake (MU 7-37), within Zone A.",
     ),
-    # Zone B remainder = (lake ∩ Region 7B) minus Nation Arm and Davis Bay
+    # Zone A remainder = (lake ∩ Region 7A) minus Nation Arm and Davis Bay
+    "wbk_329393419_sub_zone_a": SubPolygon(
+        sub_polygon_id="wbk_329393419_sub_zone_a",
+        name="Williston Lake - Zone A",
+        parent_waterbody_key="329393419",
+        crop_to_zone="7A",
+        exclude_sub_polygon_ids=["wbk_329393419_sub_nation_arm", "wbk_329393419_sub_davis_bay"],
+        note="Remainder of Williston Lake in Region 7A, excluding Nation Arm and Davis Bay. MUs 7-30, 7-37, 7-38.",
+    ),
+    # Zone B = lake ∩ Region 7B boundary (simple, no exclusions)
     "wbk_329393419_sub_zone_b": SubPolygon(
         sub_polygon_id="wbk_329393419_sub_zone_b",
         name="Williston Lake - Zone B",
         parent_waterbody_key="329393419",
         crop_to_zone="7B",
-        exclude_sub_polygon_ids=["wbk_329393419_sub_nation_arm", "wbk_329393419_sub_davis_bay"],
-        note="Remainder of Williston Lake in Region 7B, excluding Nation Arm and Davis Bay.",
+        note="Portion of Williston Lake within Region 7B. MUs 7-31, 7-36.",
     ),
 }
 ```
@@ -288,13 +390,13 @@ SUB_POLYGONS = {
 
 ```
 Step 1: Load 3 FWA polygons for WBK 329393419, union into parent_lake
-Step 2: Load WMU layer, dissolve Region 7A polygons → zone_7a_boundary
-Step 3: zone_a_geom = parent_lake.intersection(zone_7a_boundary)
-Step 4: nation_arm_geom = parent_lake.intersection(Polygon(nation_arm_coordinates))
-Step 5: davis_bay_geom = parent_lake.intersection(Polygon(davis_bay_coordinates))
-Step 6: Load WMU layer, dissolve Region 7B polygons → zone_7b_boundary
-Step 7: zone_b_base = parent_lake.intersection(zone_7b_boundary)
-Step 8: zone_b_geom = zone_b_base.difference(union(nation_arm_geom, davis_bay_geom))
+Step 2: nation_arm_geom = parent_lake.intersection(Polygon(nation_arm_coordinates))
+Step 3: davis_bay_geom = parent_lake.intersection(Polygon(davis_bay_coordinates))
+Step 4: Load WMU layer, dissolve Region 7A polygons → zone_7a_boundary
+Step 5: zone_a_base = parent_lake.intersection(zone_7a_boundary)
+Step 6: zone_a_geom = zone_a_base.difference(union(nation_arm_geom, davis_bay_geom))
+Step 7: Load WMU layer, dissolve Region 7B polygons → zone_7b_boundary
+Step 8: zone_b_geom = parent_lake.intersection(zone_7b_boundary)
 ```
 
 Result: 4 non-overlapping sub-polygons that fully tile Williston Lake.
@@ -304,33 +406,33 @@ Result: 4 non-overlapping sub-polygons that fully tile Williston Lake.
 ```python
 DIRECT_MATCHES = {
     "Region 7A": {
-        # Zone A entry — single sub-polygon
+        # Zone A entry — fans out to ALL 3 sub-regions within Zone A.
+        # Zone A regulations must also apply to Nation Arm and Davis Bay,
+        # because those areas are geographically inside Zone A.
         "WILLISTON LAKE (in Zone A) (includes waters 500 m east/upstream of the Causeway Road)": DirectMatch(
-            sub_polygon_ids=["wbk_329393419_sub_zone_a"],
-            note="Williston Lake Zone A — portion within Region 7A.",
-        ),
-    },
-    "Region 7B": {
-        # Zone B entry — fans out to ALL 3 sub-regions within Zone B.
-        # Zone B regulations must also apply to Nation Arm and Davis Bay,
-        # because those areas are geographically inside Zone B.
-        "WILLISTON LAKE (in Zone B)": DirectMatch(
             sub_polygon_ids=[
-                "wbk_329393419_sub_zone_b",
+                "wbk_329393419_sub_zone_a",
                 "wbk_329393419_sub_nation_arm",
                 "wbk_329393419_sub_davis_bay",
             ],
-            note="Zone B regulations apply to all areas within Zone B, including Nation Arm and Davis Bay.",
+            note="Zone A regulations apply to all areas within Zone A, including Nation Arm and Davis Bay.",
         ),
-        # Nation Arm — only its own specific regulations (stacked on top of Zone B)
+        # Nation Arm — only its own specific regulations (stacked on top of Zone A)
         "NATION ARM (Williston Lake)": DirectMatch(
             sub_polygon_ids=["wbk_329393419_sub_nation_arm"],
-            note="Nation Arm-specific regulations (in addition to Zone B regs).",
+            note="Nation Arm-specific regulations (in addition to Zone A regs).",
         ),
-        # Davis Bay — only its own specific regulations (stacked on top of Zone B)
+        # Davis Bay — only its own specific regulations (stacked on top of Zone A)
         "DAVIS BAY (in Finlay Reach of Williston Lake)": DirectMatch(
             sub_polygon_ids=["wbk_329393419_sub_davis_bay"],
-            note="Davis Bay-specific regulations (in addition to Zone B regs).",
+            note="Davis Bay-specific regulations (in addition to Zone A regs).",
+        ),
+    },
+    "Region 7B": {
+        # Zone B entry — single sub-polygon, no nested sub-regions
+        "WILLISTON LAKE (in Zone B)": DirectMatch(
+            sub_polygon_ids=["wbk_329393419_sub_zone_b"],
+            note="Williston Lake Zone B — portion within Region 7B.",
         ),
     },
 }
@@ -340,12 +442,12 @@ DIRECT_MATCHES = {
 
 | Sub-polygon | Receives regulations from | Result |
 |---|---|---|
-| **Zone A** | "WILLISTON LAKE (in Zone A)" | Zone A regs only |
-| **Zone B (remainder)** | "WILLISTON LAKE (in Zone B)" | Zone B regs only |
-| **Nation Arm** | "WILLISTON LAKE (in Zone B)" + "NATION ARM (Williston Lake)" | Zone B regs + Nation Arm-specific regs |
-| **Davis Bay** | "WILLISTON LAKE (in Zone B)" + "DAVIS BAY (in Finlay Reach...)" | Zone B regs + Davis Bay-specific regs |
+| **Zone A (remainder)** | "WILLISTON LAKE (in Zone A)" | Zone A regs only |
+| **Nation Arm** | "WILLISTON LAKE (in Zone A)" + "NATION ARM (Williston Lake)" | Zone A regs + Nation Arm-specific regs |
+| **Davis Bay** | "WILLISTON LAKE (in Zone A)" + "DAVIS BAY (in Finlay Reach...)" | Zone A regs + Davis Bay-specific regs |
+| **Zone B** | "WILLISTON LAKE (in Zone B)" | Zone B regs only |
 
-**Key insight:** Geometry carving (via `exclude_sub_polygon_ids`) is for **display** — non-overlapping polygons on the map. Regulation fan-out (via `sub_polygon_ids` in DirectMatch) is for **rule assignment** — a zone's regs flow to all contained areas. The mapper accumulates all rules per feature ID naturally, so stacking requires no special handling.
+**Key insight:** Geometry carving (via `exclude_sub_polygon_ids`) is for **display** — non-overlapping polygons on the map. Regulation fan-out (via `sub_polygon_ids` in DirectMatch) is for **rule assignment** — Zone A's regs flow to all contained areas including Nation Arm and Davis Bay. The mapper accumulates all rules per feature ID naturally, so stacking requires no special handling.
 
 ---
 
@@ -465,8 +567,8 @@ class SubPolygonProcessor:
                 "gnis_id": parent_meta.get("gnis_id"),
                 "zones": parent_meta.get("zones", []),
                 "region_names": parent_meta.get("region_names", []),
-                "mgmt_units": parent_meta.get("mgmt_units", []),
-                "waterbody_key": parent_meta.get("waterbody_key"),
+                "mgmt_units": sub.mgmt_units_override or parent_meta.get("mgmt_units", []),
+                "waterbody_key": sub_id,  # Use sub_polygon_id — NOT parent's waterbody_key (Issue 12)
                 "area_sqm": computed_geoms[sub_id].area,
             }
         
@@ -522,16 +624,28 @@ def inject_sub_polygons(self, results: "SubPolygonResults"):
         self._sub_polygon_geometries = {}
     self._sub_polygon_geometries.update(results.computed_geoms)
     
-    # Remove parent polygon entries
+    # Remove parent polygon entries from metadata and name_index
     for parent_id in results.parent_ids_to_remove:
-        self.metadata[FeatureType.LAKE].pop(parent_id, None)
+        # Remove from metadata
+        parent_meta = self.metadata[FeatureType.LAKE].pop(parent_id, None)
+        # Clean up stale name_index entries pointing to removed parent
+        if parent_meta:
+            parent_name = parent_meta.get("gnis_name", "")
+            normalized = self._normalize_for_index(parent_name)
+            if normalized in self.name_index:
+                self.name_index[normalized] = [
+                    f for f in self.name_index[normalized]
+                    if getattr(f, "fwa_id", None) != parent_id
+                ]
+                if not self.name_index[normalized]:
+                    del self.name_index[normalized]
 ```
 
 Key properties after injection:
 - `get_feature_by_id("706389_sub_main_body")` → returns the sub-polygon FWAFeature
 - `get_feature_type_from_id("706389_sub_main_body")` → returns `FeatureType.LAKE`
 - `get_polygon_metadata("706389_sub_main_body", FeatureType.LAKE)` → returns metadata dict with `area_sqm`, `gnis_name`, etc.
-- Parent polygon IDs are removed from metadata → no duplicate output
+- Parent polygon IDs are removed from metadata **and** name_index → no duplicate output, no stale linker references
 
 ### 3. Linker (linker.py)
 
@@ -545,7 +659,7 @@ if direct_match.sub_polygon_ids:
             features.append(feature)
 ```
 
-This is much simpler than the `unmarked_waterbody_id` path because the sub-polygon is a real `FWAFeature` in the gazetteer — no ad-hoc object creation needed. A single-target entry like `"KOOTENAY LAKE - MAIN BODY"` uses `sub_polygon_ids=["706389_sub_main_body"]` (one-element list). A fan-out entry like `"WILLISTON LAKE (in Zone B)"` uses `sub_polygon_ids=["zone_b", "nation_arm", "davis_bay"]` (multi-element list). Both resolve through the same code path.
+This is much simpler than the `unmarked_waterbody_id` path because the sub-polygon is a real `FWAFeature` in the gazetteer — no ad-hoc object creation needed. A single-target entry like `"KOOTENAY LAKE - MAIN BODY"` uses `sub_polygon_ids=["706389_sub_main_body"]` (one-element list). A fan-out entry like `"WILLISTON LAKE (in Zone A)"` uses `sub_polygon_ids=["zone_a", "nation_arm", "davis_bay"]` (multi-element list). Both resolve through the same code path.
 
 ### 3b. Regulation Fan-Out via `sub_polygon_ids`
 
@@ -569,18 +683,18 @@ The existing `DirectMatch` for `"KOOTENAY LAKE, ALL PARTS"` uses `gnis_ids=["140
 
 #### Scenario 2: Zone-level regulations with nested sub-regions
 
-This is the critical case for Williston Lake. Nation Arm and Davis Bay are carved out of Zone B's **geometry** (non-overlapping polygons for clean map display), but they are still **inside Zone B for regulation purposes**. Zone B's regulations must apply to all three areas: the Zone B remainder, Nation Arm, and Davis Bay.
+This is the critical case for Williston Lake. Nation Arm and Davis Bay are carved out of Zone A's **geometry** (non-overlapping polygons for clean map display), but they are still **inside Zone A for regulation purposes**. Zone A's regulations must apply to all three areas: the Zone A remainder, Nation Arm, and Davis Bay.
 
-The fix: the Zone B `DirectMatch` uses `sub_polygon_ids` with all three targets:
+The fix: the Zone A `DirectMatch` uses `sub_polygon_ids` with all three targets:
 
 ```python
-"WILLISTON LAKE (in Zone B)": DirectMatch(
+"WILLISTON LAKE (in Zone A) (includes waters 500 m east/upstream of the Causeway Road)": DirectMatch(
     sub_polygon_ids=[
-        "wbk_329393419_sub_zone_b",       # Zone B remainder
-        "wbk_329393419_sub_nation_arm",    # Also gets Zone B regs
-        "wbk_329393419_sub_davis_bay",     # Also gets Zone B regs
+        "wbk_329393419_sub_zone_a",       # Zone A remainder
+        "wbk_329393419_sub_nation_arm",    # Also gets Zone A regs
+        "wbk_329393419_sub_davis_bay",     # Also gets Zone A regs
     ],
-    note="Zone B regulations apply to all areas within Zone B.",
+    note="Zone A regulations apply to all areas within Zone A.",
 ),
 ```
 
@@ -595,7 +709,7 @@ Meanwhile, Nation Arm and Davis Bay's own synopsis entries use a single-element 
 ),
 ```
 
-**Result:** Nation Arm receives Zone B regs + Nation Arm-specific regs. Davis Bay receives Zone B regs + Davis Bay-specific regs. Zone B remainder receives only Zone B regs. All three have non-overlapping geometry. This is the correct behavior — geometry carving is for display, regulation fan-out is for rule assignment.
+**Result:** Nation Arm receives Zone A regs + Nation Arm-specific regs. Davis Bay receives Zone A regs + Davis Bay-specific regs. Zone A remainder receives only Zone A regs. All three have non-overlapping geometry. This is the correct behavior — geometry carving is for display, regulation fan-out is for rule assignment.
 
 #### Scenario 3: Tributary entries
 
@@ -668,10 +782,10 @@ Strategy:
 - Sub-polygons **completely tile** the parent lake area (their union equals the parent polygon). There is no leftover "parent" geometry.
 - The sub-region-specific synopsis entries (`"KOOTENAY LAKE - MAIN BODY"`, etc.) link to their respective sub-polygon via `sub_polygon_ids=["706389_sub_main_body"]` (single-element list).
 - Whole-lake entries (`"KOOTENAY LAKE, ALL PARTS"`) link to all sub-polygons via `sub_polygon_ids` (multi-element list).
-- **Zone-level entries** (`"WILLISTON LAKE (in Zone B)"`) link to the zone remainder **plus all nested sub-regions** via `sub_polygon_ids` (multi-element list). This ensures zone regulations propagate to carved-out sub-regions like Nation Arm and Davis Bay.
+- **Zone-level entries** (`"WILLISTON LAKE (in Zone A)"`) link to the zone remainder **plus all nested sub-regions** via `sub_polygon_ids` (multi-element list). This ensures zone regulations propagate to carved-out sub-regions like Nation Arm and Davis Bay.
 - Sub-region-specific entries (`"NATION ARM"`, `"DAVIS BAY"`) link only to their own geometry via `sub_polygon_ids=["single_id"]`. Their specific regulations stack on top of the inherited zone regulations.
 - Tributary entries (`"KOOTENAY LAKE'S TRIBUTARIES"`) keep their existing `gnis_ids` match — tributaries are stream features, unaffected by parent polygon removal.
-- **Regulation stacking example (Nation Arm):** receives Zone B regs (from Zone B fan-out) + Nation Arm-specific regs (from its own DirectMatch). The mapper sees both sets of rules assigned to the same `fwa_id` and merges them into one regulation set. No special handling needed — this is how the mapper already works when multiple synopsis entries map to the same feature.
+- **Regulation stacking example (Nation Arm):** receives Zone A regs (from Zone A fan-out) + Nation Arm-specific regs (from its own DirectMatch). The mapper sees both sets of rules assigned to the same `fwa_id` and merges them into one regulation set. No special handling needed — this is how the mapper already works when multiple synopsis entries map to the same feature.
 
 This ensures the map shows a clean partition of the lake into sub-regions with no overlapping parent polygon underneath. Geometry carving is purely for display — regulation inheritance is handled by fan-out in DirectMatch entries.
 
@@ -738,8 +852,8 @@ Admin partial overlaps are a lower priority than synopsis sub-regions. The synop
 5. Update `"KOOTENAY LAKE, ALL PARTS"` DirectMatch to use `sub_polygon_ids` list
 
 ### Phase 3: Williston Lake (Zone Boundary + Manual Crops)
-1. Populate Zone A entry with `crop_to_zone="7A"` (no coordinates needed)
-2. Populate Zone B entry with `crop_to_zone="7B"` + `exclude_sub_polygon_ids` for Nation Arm & Davis Bay
+1. Populate Zone A entry with `crop_to_zone="7A"` + `exclude_sub_polygon_ids` for Nation Arm & Davis Bay
+2. Populate Zone B entry with `crop_to_zone="7B"` (simple crop, no exclusions needed)
 3. In QGIS: draw crop shapes for Nation Arm and Davis Bay — export as EPSG:3005 coordinates
 4. Populate `SUB_POLYGONS` entries for Williston (4 entries total)
 5. Convert 4 Williston `SKIP_ENTRIES` → `DIRECT_MATCHES` with `sub_polygon_ids`
@@ -837,19 +951,20 @@ The original proposal didn't address the initialization chain for sub-polygon pr
 
 Without explicit suppression, the parent polygon would appear as a fourth overlapping polygon in output alongside its sub-polygons.
 
-**Resolution:** `inject_sub_polygons()` Phase 5 removes parent polygon entries from `self.metadata[FeatureType.LAKE]`. For multi-polygon parents (Williston), all polygons sharing the waterbody_key are removed. Sub-polygon entries (containing `"_sub_"` in their ID) are preserved.
+**Resolution:** `inject_sub_polygons()` removes parent polygon entries from both `self.metadata[FeatureType.LAKE]` **and** `self.name_index`. For multi-polygon parents (Williston), all polygons sharing the waterbody_key are removed. Sub-polygon entries (containing `"_sub_"` in their ID) are preserved. The `name_index` cleanup ensures the linker cannot find stale parent FWAFeature references via name search after parent suppression.
 
 ### Issue 8: Merge Group Compatibility
 
-**Status: Compatible, no changes needed**
+**Status: Compatible, WITH waterbody_key override (see Issue 12)**
 
 The `merge_features()` method in `regulation_mapper.py` calls `get_feature_by_id(feature_id)` and groups by `(feature_type, grouping_key, reg_set)`. For sub-polygons:
 - `get_feature_by_id()` works (metadata injected)
 - `feature_type` = LAKE (correct)
 - No `blue_line_key` → grouping falls to `waterbody_key` or `feature_id`
-- Sub-polygons sharing a `waterbody_key` with different `reg_set` → separate groups (correct)
-- Sub-polygons with same `reg_set` and same `waterbody_key` merge together (correct for whole-lake regs)
-- **Regulation stacking** (e.g. Nation Arm receiving Zone B regs + its own regs): both regulation sets are assigned to the same `fwa_id`. The mapper accumulates all rules per feature, so stacking works naturally. If the combined rule set differs from Zone B’s alone, Nation Arm ends up in a different merge group (correct).
+- Sub-polygons with different `reg_set` → separate groups (correct)
+- **Regulation stacking** (e.g. Nation Arm receiving Zone A regs + its own regs): both regulation sets are assigned to the same `fwa_id`. The mapper accumulates all rules per feature, so stacking works naturally. If the combined rule set differs from Zone A's alone, Nation Arm ends up in a different merge group (correct).
+
+**Important caveat:** If sub-polygons inherit the parent's `waterbody_key`, they would share the same grouping key. Two sub-polygons with identical reg_sets would be merged into one group — losing their separate identity. See Issue 12 for the solution.
 
 ### Issue 9: Search Index Compatibility
 
@@ -865,13 +980,65 @@ The existing `unmarked_waterbody_id` path in `_apply_direct_match()` creates a d
 
 ### Issue 11: Zone-Level Regulation Inheritance for Nested Sub-Regions (RESOLVED)
 
-**Problem:** Nation Arm and Davis Bay are carved out of Zone B’s **geometry** (non-overlapping polygons for map display). But they are geographically inside Zone B and must receive Zone B’s regulations in addition to their own sub-region-specific regulations. Without explicit handling, carving them out of Zone B’s geometry would cause them to lose Zone B’s regs entirely.
+**Problem:** Nation Arm and Davis Bay are carved out of Zone A’s **geometry** (non-overlapping polygons for map display). But they are geographically inside Zone A and must receive Zone A’s regulations in addition to their own sub-region-specific regulations. Without explicit handling, carving them out of Zone A’s geometry would cause them to lose Zone A’s regs entirely.
 
-**Resolution:** The Zone B `DirectMatch` entry uses `sub_polygon_ids` to fan out to all three sub-polygons within Zone B: `zone_b`, `nation_arm`, and `davis_bay`. When the linker processes the "WILLISTON LAKE (in Zone B)" synopsis entry, it assigns Zone B's regulations to all three features. Meanwhile, "NATION ARM" and "DAVIS BAY" entries use single-element `sub_polygon_ids` lists to add their specific regulations on top.
+**Resolution:** The Zone A `DirectMatch` entry uses `sub_polygon_ids` to fan out to all three sub-polygons within Zone A: `zone_a`, `nation_arm`, and `davis_bay`. When the linker processes the “WILLISTON LAKE (in Zone A)” synopsis entry, it assigns Zone A’s regulations to all three features. Meanwhile, “NATION ARM” and “DAVIS BAY” entries use single-element `sub_polygon_ids` lists to add their specific regulations on top.
 
 The key distinction: **geometry carving** (via `exclude_sub_polygon_ids`) is for display — non-overlapping polygons on the map. **Regulation fan-out** (via `sub_polygon_ids` in DirectMatch) is for rule assignment — a zone’s regs flow to all contained areas regardless of geometry carving.
 
-This pattern requires no mapper changes. The mapper already accumulates multiple regulation assignments per feature ID. When Nation Arm receives both Zone B rules and Nation Arm-specific rules, they’re all collected under the same `fwa_id` and determine its final regulation set.
+This pattern requires no mapper changes. The mapper already accumulates multiple regulation assignments per feature ID. When Nation Arm receives both Zone A rules and Nation Arm-specific rules, they’re all collected under the same `fwa_id` and determine its final regulation set.
+
+### Issue 12: Sub-Polygon `waterbody_key` Must Be Unique (NEW — CRITICAL)
+
+**Status: Requires change to metadata injection**
+
+**Problem:** The original proposal inherits the parent’s `waterbody_key` for sub-polygons. In `merge_features()`, features group by `(feature_type, grouping_key, reg_set)` where `grouping_key` uses `waterbody_key` when it’s in `linked_waterbody_keys_of_polygon`. If all three Kootenay Lake sub-polygons share `waterbody_key=331076875`, any two with identical reg_sets would be merged into one group — losing their separate map identity. Additionally, sharing the parent’s `waterbody_key` would affect `TributaryEnricher` via the `_get_stream_seeds_for_waterbody()` reverse index.
+
+**Resolution:** Each sub-polygon must use **its own `sub_polygon_id` as its `waterbody_key`**. This ensures:
+1. Each sub-polygon forms its own merge group (no cross-sub-polygon merging)
+2. No interference with tributary enrichment (no real streams share a sub-polygon waterbody_key)
+3. Sub-polygons are always independent features in the output
+
+Update the metadata injection code:
+```python
+computed_metadata[sub_id] = {
+    "gnis_name": sub.name,
+    "gnis_id": parent_meta.get("gnis_id"),
+    "zones": parent_meta.get("zones", []),
+    "region_names": parent_meta.get("region_names", []),
+    "mgmt_units": parent_meta.get("mgmt_units", []),
+    "waterbody_key": sub_id,  # Use sub_polygon_id — NOT parent’s waterbody_key
+    "area_sqm": computed_geoms[sub_id].area,
+}
+```
+
+### Issue 13: Kootenay Lake Sub-Region MU Assignment (NEW — data verification)
+
+**Status: Verified from parsed synopsis data**
+
+The parsed synopsis data shows different MU assignments per Kootenay Lake sub-region:
+- `KOOTENAY LAKE - MAIN BODY` → MU 4-19
+- `KOOTENAY LAKE - UPPER WEST ARM` → MU 4-7
+- `KOOTENAY LAKE - LOWER WEST ARM` → MU 4-7
+
+The `SubPolygonProcessor` inherits MU data from the parent polygon. If the parent polygon spans both MUs 4-7 and 4-19, each sub-polygon would inherit both, which is correct for zone assignment but imprecise for MU display. Consider allowing `SubPolygon` to optionally override `mgmt_units` for more precise attribution:
+
+```python
+@dataclass
+class SubPolygon:
+    # ... existing fields ...
+    mgmt_units_override: Optional[List[str]] = None  # Override parent MU assignment
+```
+
+**Impact:** Low — MU is informational. Sub-polygons will still function correctly without this override.
+
+### Issue 14: CRS Difference Between UnmarkedWaterbody and SubPolygon (NEW — documentation)
+
+**Status: By design, needs clear documentation**
+
+`UnmarkedWaterbody.coordinates` use **WGS84** (GeoJSON convention: `[longitude, latitude]`). `SubPolygon.coordinates` use **EPSG:3005** (BC Albers). Both dataclasses live in `linking_corrections.py`.
+
+This is intentional — unmarked waterbodies are small features where WGS84 works fine, while sub-polygon crop shapes need to align precisely with EPSG:3005 parent geometries. Add a clear module-level comment documenting this CRS difference.
 
 ### Non-Issues (Confirmed Compatible)
 

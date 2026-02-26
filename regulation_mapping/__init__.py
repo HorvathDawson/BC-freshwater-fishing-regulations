@@ -17,7 +17,9 @@ from fwa_pipeline.metadata_gazetteer import MetadataGazetteer, FWAFeature
 from .linking_corrections import (
     DirectMatch,
     AdminDirectMatch,
+    NameVariationLink,
     ADMIN_DIRECT_MATCHES,
+    NAME_VARIATION_LINKS,
     ManualCorrections,
 )
 from .regulation_mapper import (

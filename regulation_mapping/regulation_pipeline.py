@@ -18,8 +18,9 @@ from fwa_pipeline.metadata_gazetteer import MetadataGazetteer
 from .linking_corrections import (
     DIRECT_MATCHES,
     SKIP_ENTRIES,
-    UNMARKED_WATERBODIES,
+    UNGAZETTED_WATERBODIES,
     ADMIN_DIRECT_MATCHES,
+    NAME_VARIATION_LINKS,
     ManualCorrections,
 )
 from .regulation_mapper import RegulationMapper, PipelineResult
@@ -77,12 +78,25 @@ class RegulationPipeline:
         if self.gpkg_path and self.gpkg_path.exists():
             self.gazetteer.set_gpkg_path(self.gpkg_path)
 
+        # Inject ungazetted waterbodies into gazetteer metadata so they
+        # participate in merging, export, and name search like FWA features.
+        for uw in UNGAZETTED_WATERBODIES.values():
+            self.gazetteer.inject_ungazetted_waterbody(
+                ungazetted_id=uw.ungazetted_id,
+                name=uw.name,
+                zones=uw.zones,
+                mgmt_units=uw.mgmt_units,
+                geometry_type=uw.geometry_type,
+                note=uw.note,
+            )
+
         # Initialize manual corrections
         manual_corrections = ManualCorrections(
             direct_matches=DIRECT_MATCHES,
             skip_entries=SKIP_ENTRIES,
-            unmarked_waterbodies=UNMARKED_WATERBODIES,
+            ungazetted_waterbodies=UNGAZETTED_WATERBODIES,
             admin_direct_matches=ADMIN_DIRECT_MATCHES,
+            name_variation_links=NAME_VARIATION_LINKS,
         )
 
         # Initialize linker

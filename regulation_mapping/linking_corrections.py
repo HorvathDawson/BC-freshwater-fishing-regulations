@@ -1,5 +1,5 @@
 """
-Direct matches, skip entries and admin matches for waterbody linking.
+Direct matches, skip entries, name variation links and admin matches for waterbody linking.
 
 This module contains manual corrections for the regulation linking pipeline:
 
@@ -12,9 +12,14 @@ This module contains manual corrections for the regulation linking pipeline:
 
 2. SKIP_ENTRIES: Waterbodies that should not be linked
    - Not found: Searched extensively but couldn't locate in FWA data
-   - Ignored: Intentionally skipped (duplicates, cross-listings, redirects)
+   - Ignored: Intentionally skipped (cross-listings, reservoirs on parent rivers)
 
-3. ADMIN_DIRECT_MATCHES: Administrative boundary feature mappings
+3. NAME_VARIATION_LINKS: Alternate names for already-linked waterbodies
+   - Skips linking (prevents duplicate geometry mapping)
+   - Passes the alternate name downstream as a searchable alias
+   - Used when the same waterbody appears twice in the synopsis under different names
+
+4. ADMIN_DIRECT_MATCHES: Administrative boundary feature mappings
 
 Format:
 - Use \"ALL REGIONS\" for wildcard patterns that apply everywhere
@@ -76,7 +81,7 @@ class DirectMatch:
         waterbody_keys: List of WATERBODY_KEYs (matches all polygons for each key)
         linear_feature_ids: List of stream segment IDs (for specific stream segments)
         blue_line_keys: List of Blue Line Keys (matches all features from each BLK)
-        unmarked_waterbody_id: Links to a custom UnmarkedWaterbody entry
+        ungazetted_waterbody_id: Links to a custom UngazettedWaterbody entry
         sub_polygon_ids: List of SubPolygon IDs (links to synthetic sub-polygon features)
         additional_info: Extra text injected as a "Note" rule on the regulation.
             Use for permit requirements, special access info, or other context
@@ -90,7 +95,7 @@ class DirectMatch:
     waterbody_keys: Optional[List[str]] = None
     linear_feature_ids: Optional[List[str]] = None
     blue_line_keys: Optional[List[str]] = None
-    unmarked_waterbody_id: Optional[str] = None  # Links to custom UnmarkedWaterbody
+    ungazetted_waterbody_id: Optional[str] = None  # Links to custom UngazettedWaterbody
     sub_polygon_ids: Optional[List[str]] = None  # Links to SubPolygon features
     additional_info: Optional[str] = None
 
@@ -146,40 +151,72 @@ class AdminDirectMatch:
 
 
 @dataclass
-class UnmarkedWaterbody:
+class UngazettedWaterbody:
     """
-    Represents a custom waterbody not in the FWA database.
+    Represents a custom waterbody not in the FWA gazetteer.
 
-    Used for waterbodies that appear in regulations but don't exist in FWA.
-    These are added to the gazetteer as searchable features with custom geometry.
+    Used for waterbodies that appear in regulations but have no corresponding
+    polygon or line feature in the Freshwater Atlas.  These are injected into
+    the gazetteer at pipeline startup so they participate in linking, merging,
+    and geographic export like any other FWA feature.
 
     Geometry Types:
-    - point: Single coordinate [longitude, latitude]
-    - linestring: List of coordinates [[lon1, lat1], [lon2, lat2], ...]
-    - polygon: List of coordinate rings [[[lon1, lat1], [lon2, lat2], [lon1, lat1]]]
+    - point: Single coordinate [easting, northing]
+    - linestring: List of coordinates [[e1, n1], [e2, n2], ...]
+    - polygon: List of coordinate rings [[[e1, n1], [e2, n2], [e1, n1]]]
+
+    All coordinates are in **EPSG:3005** (BC Albers).
 
     Attributes:
-        unmarked_waterbody_id: Unique identifier (e.g., "UNMARKED_MARSH_POND_R2")
+        ungazetted_id: Unique identifier (e.g., "UNGAZ_MARSH_POND_R2")
         name: Display name of the waterbody
         geometry_type: Type of geometry - "point", "linestring", or "polygon"
-        coordinates: Coordinates in GeoJSON format (WGS84):
-                     - Point: [longitude, latitude]
-                     - LineString: [[lon1, lat1], [lon2, lat2], ...]
-                     - Polygon: [[[lon1, lat1], [lon2, lat2], [lon1, lat1]]] (first ring is exterior)
+        coordinates: Coordinates in EPSG:3005 (BC Albers):
+                     - Point: [easting, northing]
+                     - LineString: [[e1, n1], [e2, n2], ...]
+                     - Polygon: [[[e1, n1], [e2, n2], [e1, n1]]] (first ring is exterior)
         zones: List of zone numbers this waterbody appears in (e.g., ["2"])
         mgmt_units: List of management unit codes (e.g., ["2-4"])
-        note: Explanation of where coordinates came from and why unmarked waterbody was created
+        note: Explanation of where coordinates came from and why this entry was created
         source_url: Optional URL reference for location/documentation
     """
 
-    unmarked_waterbody_id: str
+    ungazetted_id: str
     name: str
     geometry_type: str  # "point", "linestring", or "polygon"
-    coordinates: any  # Point: [lon, lat], LineString: [[lon, lat], ...], Polygon: [[[lon, lat], ...]]
+    coordinates: any  # EPSG:3005 — Point: [e, n], LineString: [[e, n], ...], Polygon: [[[e, n], ...]]
     zones: List[str]
     mgmt_units: List[str]
     note: str
     source_url: Optional[str] = None
+
+
+@dataclass
+class NameVariationLink:
+    """
+    Maps an alternate regulation name to its primary regulation entry.
+
+    Used when the same waterbody appears in the synopsis under two different
+    names (e.g., "CAMERON SLOUGH" and 'LEWIS ("Cameron") SLOUGH').  The
+    primary entry links to FWA features normally; this entry:
+    - Skips linking (prevents duplicate geometry mapping)
+    - Passes the alternate name downstream so the search index includes it
+      as a searchable name variant for the same waterbody
+
+    Common scenarios:
+    - Historical / Indigenous name → current official name
+    - Quoted alternate name → full parenthetical name
+    - "See X" redirect entries
+
+    Attributes:
+        primary_name: The exact name_verbatim of the primary regulation
+                      entry that this is an alternate for (must match a
+                      key in DIRECT_MATCHES or a naturally-linked entry).
+        note: Explanation of the name relationship.
+    """
+
+    primary_name: str
+    note: str
 
 
 @dataclass
@@ -194,11 +231,12 @@ class SkipEntry:
        - Name exists in different region only
 
     2. Ignored: Intentionally skipped linking
-       - Duplicate entries (already covered elsewhere)
        - Cross-listed entries between regions
-       - Alternative names for same waterbody
        - Reservoirs using parent river regulations
-       - Historical names redirecting to current names
+       - Entries requiring custom polygon subdivision
+
+    NOTE: Alternate / historical names for the same waterbody should use
+    NameVariationLink instead — this preserves the alias for search.
 
     Attributes:
         note: Explanation of why entry is skipped
@@ -214,7 +252,7 @@ class SkipEntry:
 class ManualCorrections:
     """
     Manages direct feature matches, admin direct matches,
-    skip entries, and unmarked waterbodies.
+    skip entries, and ungazetted waterbodies.
 
     Provides lookup methods to check for corrections by region and name.
     """
@@ -223,13 +261,15 @@ class ManualCorrections:
         self,
         direct_matches: Dict[str, Dict[str, DirectMatch]],
         skip_entries: Dict[str, Dict[str, SkipEntry]],
-        unmarked_waterbodies: Dict[str, UnmarkedWaterbody],
+        ungazetted_waterbodies: Dict[str, UngazettedWaterbody],
         admin_direct_matches: Optional[Dict[str, Dict[str, AdminDirectMatch]]] = None,
+        name_variation_links: Optional[Dict[str, Dict[str, NameVariationLink]]] = None,
     ):
         self.direct_matches = direct_matches
         self.skip_entries = skip_entries
-        self.unmarked_waterbodies = unmarked_waterbodies
+        self.ungazetted_waterbodies = ungazetted_waterbodies
         self.admin_direct_matches = admin_direct_matches or {}
+        self.name_variation_links = name_variation_links or {}
 
     @staticmethod
     def _resolve_region_dict(lookup_dict: dict, region: str) -> Optional[dict]:
@@ -265,11 +305,11 @@ class ManualCorrections:
             return None
         return entries.get(name_verbatim)
 
-    def get_unmarked_waterbody(
-        self, unmarked_waterbody_id: str
-    ) -> Optional[UnmarkedWaterbody]:
-        """Get unmarked waterbody by ID."""
-        return self.unmarked_waterbodies.get(unmarked_waterbody_id)
+    def get_ungazetted_waterbody(
+        self, ungazetted_id: str
+    ) -> Optional[UngazettedWaterbody]:
+        """Get ungazetted waterbody by ID."""
+        return self.ungazetted_waterbodies.get(ungazetted_id)
 
     def has_skip_entry(self, region: str, name_verbatim: str) -> bool:
         """Check if a skip entry exists."""
@@ -282,6 +322,19 @@ class ManualCorrections:
     def has_admin_direct_match(self, region: str, name_verbatim: str) -> bool:
         """Check if an admin direct match exists."""
         return self.get_admin_direct_match(region, name_verbatim) is not None
+
+    def get_name_variation_link(
+        self, region: str, name_verbatim: str
+    ) -> Optional[NameVariationLink]:
+        """Get name variation link for a regulation name in a region."""
+        entries = self._resolve_region_dict(self.name_variation_links, region)
+        if entries is None:
+            return None
+        return entries.get(name_verbatim)
+
+    def has_name_variation_link(self, region: str, name_verbatim: str) -> bool:
+        """Check if a name variation link exists."""
+        return self.get_name_variation_link(region, name_verbatim) is not None
 
 
 # NOTE: NAME_VARIATIONS has been removed. All name variations have been converted
@@ -619,8 +672,8 @@ DIRECT_MATCHES: Dict[str, Dict[str, DirectMatch]] = {
             note="Unnamed in FWA lakes layer. ID 070111626. Location found from map.",
         ),
         "MARSH POND": DirectMatch(
-            unmarked_waterbody_id="UNMARKED_MARSH_POND_R2",
-            note="No polygon in FWA. Using custom unmarked waterbody with coordinates from KML point in Aldergrove Regional Park.",
+            ungazetted_waterbody_id="UNGAZ_MARSH_POND_R2",
+            note="No polygon in FWA. Using custom ungazetted waterbody with coordinates from KML point in Aldergrove Regional Park.",
         ),
         '"MOSS POTHOLE" LAKES': DirectMatch(
             waterbody_keys=[
@@ -1505,8 +1558,8 @@ DIRECT_MATCHES: Dict[str, Dict[str, DirectMatch]] = {
         ),
         "HALL ROAD (Mission) POND": DirectMatch(
             waterbody_keys=["329460964"],
-            unmarked_waterbody_id="UNMARKED_HALL_ROAD_POND_R8",
-            note="Region 8 MU 8-10. Links to both Mission Creek Regional Park Children's Fishing Pond unmarked waterbody (49.87084°N, 119.42958°W) AND adjacent FWA waterbody 329460964. Both locations provided to ensure comprehensive coverage of the fishing area.",
+            ungazetted_waterbody_id="UNGAZ_HALL_ROAD_POND_R8",
+            note="Region 8 MU 8-10. Links to both Mission Creek Regional Park Children's Fishing Pond ungazetted waterbody (49.87084°N, 119.42958°W) AND adjacent FWA waterbody 329460964. Both locations provided to ensure comprehensive coverage of the fishing area.",
         ),
         "HEADWATER LAKE #1": DirectMatch(
             waterbody_keys=["329459136"],
@@ -1687,23 +1740,10 @@ DIRECT_MATCHES: Dict[str, Dict[str, DirectMatch]] = {
 
 
 # Skip entries - waterbodies that should not be linked
+# For alternate/historical names, use NAME_VARIATION_LINKS instead.
 # Format: {"Region X": {"WATERBODY NAME": SkipEntry(note="...", not_found=True|ignored=True)}}
 SKIP_ENTRIES: Dict[str, Dict[str, SkipEntry]] = {
-    "Region 1": {
-        '"LINK" RIVER': SkipEntry(
-            note="Listed as 'Marble (Link) River' in gazzetteer",
-            ignored=True,
-        ),
-        "BEAR RIVER": SkipEntry(
-            note="Regulation says 'See Amor de Cosmos Creek'. Bear River is historical/alternate name for Amor de Cosmos Creek; regulations covered under that entry. Evidence: https://www.facebook.com/aboriginal.journeys/videos/819108737814861/ and https://www.flickr.com/photos/23057174@N02/16259837080",
-            ignored=True,
-        ),
-    },
     "Region 2": {
-        "LITTLE CAMPBELL RIVER": SkipEntry(
-            note="Alternate name for Campbell River in MU 2-4. Regulations already covered under Campbell River entry.",
-            ignored=True,
-        ),
         "LITTLE STAWAMUS CREEK": SkipEntry(
             note="Known location in MU 2-8 near Squamish but stream does not exist in FWA mapping data. Would require custom stream segment creation. Reference: DFO Stream Summary Catalogue 'Little Stawamus Creek' https://publications.gc.ca/collections/collection_2014/mpo-dfo/Fs97-6-2282-eng.pdf and https://squamish.ca/assets/Uploads/928c09348e/Camping-Bylaw-Map.pdf",
             not_found=True,
@@ -1716,10 +1756,6 @@ SKIP_ENTRIES: Dict[str, Dict[str, SkipEntry]] = {
         ),
         "ARROW LAKES' TRIBUTARIES": SkipEntry(
             note="Likely covered by Upper/Lower tributaries",
-            ignored=True,
-        ),
-        "CAMERON SLOUGH": SkipEntry(
-            note='Already covered by LEWIS ("Cameron") SLOUGH entry in Region 4. Same waterbody, regulation MU 4-21.',
             ignored=True,
         ),
         "SEVEN MILE RESERVOIR": SkipEntry(
@@ -1750,20 +1786,8 @@ SKIP_ENTRIES: Dict[str, Dict[str, SkipEntry]] = {
             note="Covered by Pend d'Oreille River tributary regulations",
             ignored=True,
         ),
-        "MCNAUGHTON LAKE": SkipEntry(
-            note="Regulation says 'See Kinbasket Lake' - covered by Kinbasket Lake regulations",
-            ignored=True,
-        ),
     },
     "Region 5": {
-        '"BLACKWATER" RIVER': SkipEntry(
-            note='Already covered by WEST ROAD ("Blackwater") RIVER entry in Region 6. Same waterbody, regulation MU 5-13.',
-            ignored=True,
-        ),
-        '"BROWN" LAKE': SkipEntry(
-            note='Already covered by BISHOP ("Brown") LAKE entry',
-            ignored=True,
-        ),
         "TOMS LAKE": SkipEntry(
             note="Cross-listed entry - already covered in Region 6 (MU 6-1)",
             ignored=True,
@@ -1814,40 +1838,12 @@ SKIP_ENTRIES: Dict[str, Dict[str, SkipEntry]] = {
         ),
     },
     "Region 6": {
-        "COPPER RIVER": SkipEntry(
-            note="Already covered by ZYMOETZ (Copper) RIVER entry. Same waterbody, regulation MU 6-9.",
-            ignored=True,
-        ),
-        "ISHKHEENICKH RIVER": SkipEntry(
-            note="Regulation says 'See Ksi Hlginx River'. River has been renamed to KSI HLGINX (GNIS 4069). Regulation MU 6-14.",
-            ignored=True,
-        ),
-        "KWINAMASS RIVER": SkipEntry(
-            note="Regulation says 'See Ksi X'anmas River'. River has been renamed to KSI X'ANMAS (GNIS 3815). Regulation MU 6-14.",
-            ignored=True,
-        ),
-        "MCQUEEN CREEK": SkipEntry(
-            note='Already covered by HEVENOR ("McQueen") CREEK entry',
-            ignored=True,
-        ),
-        "SEASKINNISH CREEK": SkipEntry(
-            note="Regulation says 'See Ksi Sgasginist Creek'. Creek has been renamed to KSI SGASGINIST CREEK. Regulation MU 6-15.",
-            ignored=True,
-        ),
         "SQUIRREL LAKE": SkipEntry(
             note="Searched but only found in Region 5 (MU 5-1, GNIS 38786, waterbody_key 329642030). Should be close to border with Region 5 MUs 5-10, 5-12, or 5-13 (neighboring MU 6-1). Lake likely exists near regional boundary but not found in FWA data for Region 6. May need duplicate feature or MU boundary correction. Reference: BC Freshwater Fishing Regulations Synopsis 2024-2026, Region 6, MU 6-1.",
             not_found=True,
         ),
-        "TSEAX RIVER": SkipEntry(
-            note="River has been renamed to KSI SII AKS RIVER. Regulation MU 6-14. Regulations apply to KSI SII AKS RIVER (formerly Tseax River).",
-            ignored=True,
-        ),
     },
     "Region 7A": {
-        "BLACKWATER RIVER": SkipEntry(
-            note="Regulation says 'See West Road River'. Already covered by WEST ROAD ('Blackwater') RIVER entry. Regulation MU 7-10.",
-            ignored=True,
-        ),
         "ENDAKO RIVER": SkipEntry(
             note="Cross-listed entry - already covered in Region 6 (MUs 6-4, 6-5)",
             ignored=True,
@@ -1867,19 +1863,105 @@ SKIP_ENTRIES: Dict[str, Dict[str, SkipEntry]] = {
         ),
     },
     "Region 7B": {
-        '"CHINAMAN" LAKE': SkipEntry(
-            note="Same waterbody as CHUNAMUN LAKE (waterbody_key 328995585, WBID: 00552UPCE). Regulations refer to CHUNAMUN LAKE. Both names appear in BC Lakes Database surveys (Report ID 4631: 'A Reconnaissance Survey of Chinaman Lake' from 1984, and Report ID 52574: 'Chunamun Lake Gillnet Survey' from 1989).",
-            ignored=True,
-        ),
         "WILLISTON LAKE (in Zone B)": SkipEntry(
             note="Williston Lake Zone B requires custom polygon subdivision based on regulation description. MU 7-58. Williston Lake GNIS 21990, waterbody_key 329393419. Zone B is the remainder of Williston Lake excluding Zone A (500m east/upstream of Causeway Road). Different regulations apply to Zone B vs Zone A. Requires custom geometry creation by subdividing lake polygon based on Causeway Road location. Reference: BC Freshwater Fishing Regulations Synopsis 2024-2026, Region 7, MU 7-58.",
             not_found=True,
         ),
     },
+}
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# NAME_VARIATION_LINKS - Alternate names for already-linked waterbodies
+# ──────────────────────────────────────────────────────────────────────────────
+# When the same waterbody appears twice in the synopsis under different names,
+# only the primary entry should link to FWA features.  The alternate name is
+# recorded here so it skips linking but gets passed downstream as a searchable
+# alias (name_variant) in the search index and regulation display names.
+#
+# primary_name must exactly match the name_verbatim of the primary regulation
+# entry (which may itself be a DirectMatch or naturally-linked entry).
+#
+# Format: {"Region X": {"ALTERNATE NAME": NameVariationLink(primary_name="PRIMARY NAME", note="...")}}
+NAME_VARIATION_LINKS: Dict[str, Dict[str, NameVariationLink]] = {
+    "Region 1": {
+        '"LINK" RIVER': NameVariationLink(
+            primary_name='MARBLE ("Link") RIVER',
+            note="Listed as 'Marble (Link) River' in gazetteer. 'Link River' is an alternate name.",
+        ),
+        "BEAR RIVER": NameVariationLink(
+            primary_name="AMOR DE COSMOS CREEK",
+            note="Regulation says 'See Amor de Cosmos Creek'. Bear River is historical/alternate name for Amor de Cosmos Creek. Evidence: https://www.facebook.com/aboriginal.journeys/videos/819108737814861/",
+        ),
+    },
+    "Region 2": {
+        "LITTLE CAMPBELL RIVER": NameVariationLink(
+            primary_name="CAMPBELL RIVER",
+            note="Alternate name for Campbell River in MU 2-4. Regulations already covered under Campbell River entry.",
+        ),
+    },
+    "Region 4": {
+        "CAMERON SLOUGH": NameVariationLink(
+            primary_name='LEWIS ("Cameron") SLOUGH',
+            note='Alternate name for LEWIS ("Cameron") SLOUGH. Same waterbody in regulation MU 4-21.',
+        ),
+        "MCNAUGHTON LAKE": NameVariationLink(
+            primary_name="KINBASKET LAKE",
+            note="Regulation says 'See Kinbasket Lake'. McNaughton Lake is an alternate name for part of Kinbasket Lake.",
+        ),
+    },
+    "Region 5": {
+        '"BLACKWATER" RIVER': NameVariationLink(
+            primary_name='WEST ROAD ("Blackwater") RIVER',
+            note='Alternate name for WEST ROAD ("Blackwater") RIVER. Same waterbody, regulation MU 5-13. Primary entry is in Region 6.',
+        ),
+        '"BROWN" LAKE': NameVariationLink(
+            primary_name='BISHOP ("Brown") LAKE',
+            note='Alternate name for BISHOP ("Brown") LAKE. Same waterbody.',
+        ),
+    },
+    "Region 6": {
+        "COPPER RIVER": NameVariationLink(
+            primary_name="ZYMOETZ (Copper) RIVER",
+            note="Alternate name for ZYMOETZ (Copper) RIVER. Same waterbody, regulation MU 6-9.",
+        ),
+        "ISHKHEENICKH RIVER": NameVariationLink(
+            primary_name="KSI HLGINX RIVER",
+            note="Regulation says 'See Ksi Hlginx River'. River has been renamed to KSI HLGINX (GNIS 4069). Regulation MU 6-14.",
+        ),
+        "KWINAMASS RIVER": NameVariationLink(
+            primary_name="KSI X'ANMAS RIVER",
+            note="Regulation says 'See Ksi X'anmas River'. River has been renamed to KSI X'ANMAS (GNIS 3815). Regulation MU 6-14.",
+        ),
+        "MCQUEEN CREEK": NameVariationLink(
+            primary_name='HEVENOR ("McQueen") CREEK',
+            note='Alternate name for HEVENOR ("McQueen") CREEK. Same waterbody.',
+        ),
+        "SEASKINNISH CREEK": NameVariationLink(
+            primary_name="KSI SGASGINIST CREEK",
+            note="Regulation says 'See Ksi Sgasginist Creek'. Creek has been renamed to KSI SGASGINIST CREEK. Regulation MU 6-15.",
+        ),
+        "TSEAX RIVER": NameVariationLink(
+            primary_name="KSI SII AKS RIVER",
+            note="River has been renamed to KSI SII AKS RIVER. Regulation MU 6-14.",
+        ),
+    },
+    "Region 7A": {
+        "BLACKWATER RIVER": NameVariationLink(
+            primary_name='WEST ROAD ("Blackwater") RIVER',
+            note="Regulation says 'See West Road River'. Alternate name for WEST ROAD ('Blackwater') RIVER. Regulation MU 7-10.",
+        ),
+    },
+    "Region 7B": {
+        '"CHINAMAN" LAKE': NameVariationLink(
+            primary_name="CHUNAMUN LAKE",
+            note="Same waterbody as CHUNAMUN LAKE (waterbody_key 328995585, WBID: 00552UPCE). Both names appear in BC Lakes Database surveys.",
+        ),
+    },
     "Region 8": {
-        "SAWMILL LAKE": SkipEntry(
-            note="Alternative name for Burnell Lake - already covered by that entry",
-            ignored=True,
+        "SAWMILL LAKE": NameVariationLink(
+            primary_name="BURNELL LAKE",
+            note="Alternative name for Burnell Lake. Same waterbody.",
         ),
     },
 }
@@ -2006,28 +2088,30 @@ ADMIN_DIRECT_MATCHES: Dict[str, Dict[str, AdminDirectMatch]] = {
 }
 
 
-# Unmarked Waterbodies - custom waterbodies not in FWA database
-# These are added to the gazetteer as searchable features with point geometry
-# Format: {"UNMARKED_ID": UnmarkedWaterbody(...)}
-UNMARKED_WATERBODIES: Dict[str, UnmarkedWaterbody] = {
-    "UNMARKED_MARSH_POND_R2": UnmarkedWaterbody(
-        unmarked_waterbody_id="UNMARKED_MARSH_POND_R2",
+# Ungazetted Waterbodies — custom waterbodies not in the FWA gazetteer
+# Injected into the gazetteer at pipeline startup so they participate in
+# linking, merging, and geographic export like any other FWA feature.
+# All coordinates are in EPSG:3005 (BC Albers).
+# Format: {"UNGAZ_ID": UngazettedWaterbody(...)}
+UNGAZETTED_WATERBODIES: Dict[str, UngazettedWaterbody] = {
+    "UNGAZ_MARSH_POND_R2": UngazettedWaterbody(
+        ungazetted_id="UNGAZ_MARSH_POND_R2",
         name="MARSH POND",
         geometry_type="point",
-        coordinates=[-122.4532345486399, 49.00878676964613],
+        coordinates=[1259700.296, 450116.823],
         zones=["2"],
         mgmt_units=["2-4"],
-        note="No polygon found in FWA lakes, wetlands, or manmade layers. Coordinates from KML point labeling in Aldergrove Regional Park.",
+        note="No polygon found in FWA lakes, wetlands, or manmade layers. Coordinates from KML point labeling in Aldergrove Regional Park, converted to EPSG:3005.",
         source_url="https://metrovancouver.org/services/regional-parks/park/aldergrove-regional-park",
     ),
-    "UNMARKED_HALL_ROAD_POND_R8": UnmarkedWaterbody(
-        unmarked_waterbody_id="UNMARKED_HALL_ROAD_POND_R8",
+    "UNGAZ_HALL_ROAD_POND_R8": UngazettedWaterbody(
+        ungazetted_id="UNGAZ_HALL_ROAD_POND_R8",
         name="HALL ROAD (Mission) POND",
         geometry_type="point",
-        coordinates=[-119.42958, 49.87084],
+        coordinates=[1471726.918, 561326.078],
         zones=["8"],
         mgmt_units=["8-10"],
-        note="Mission Creek Regional Park Children's Fishing Pond. Regulation name is 'HALL ROAD (Mission) POND'. Location coordinates identify the fishing pond; an adjacent FWA waterbody (329460964) also exists in the area.",
+        note="Mission Creek Regional Park Children's Fishing Pond. Regulation name is 'HALL ROAD (Mission) POND'. Location coordinates identify the fishing pond; an adjacent FWA waterbody (329460964) also exists in the area. Converted to EPSG:3005.",
         source_url=None,
     ),
 }

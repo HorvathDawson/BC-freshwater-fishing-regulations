@@ -17,8 +17,7 @@ import pandas as pd
 import geopandas as gpd
 from shapely.geometry import MultiLineString, MultiPolygon, box
 
-from .regulation_mapper import PipelineResult, generate_rule_id
-from .provincial_base_regulations import PROVINCIAL_BASE_REGULATIONS
+from .regulation_mapper import PipelineResult
 from fwa_pipeline.metadata_gazetteer import FeatureType
 from fwa_pipeline.metadata_builder import ADMIN_LAYER_CONFIG
 
@@ -79,6 +78,7 @@ class RegulationGeoExporter:
         self.gazetteer = pipeline_result.gazetteer
         self.admin_area_reg_map = pipeline_result.admin_area_reg_map
         self.admin_regulation_ids = pipeline_result.admin_regulation_ids
+        self.name_variation_aliases = pipeline_result.name_variation_aliases
         self.gpkg_path = gpkg_path
         self.data_accessor = FWADataAccessor(self.gpkg_path)
         self.cache_dir = cache_dir
@@ -107,8 +107,12 @@ class RegulationGeoExporter:
             return []
 
         base_ids = {r.rsplit("_rule", 1)[0] for r in reg_ids}
-        # Exclude provincial/admin regulations — they aren't waterbody names
-        base_ids = {b for b in base_ids if not b.startswith("prov_")}
+        # Exclude provincial/zone/admin regulations — they aren't waterbody names
+        base_ids = {
+            b
+            for b in base_ids
+            if not b.startswith("prov_") and not b.startswith("zone_")
+        }
         # Exclude admin-area synopsis matches (e.g. watershed / WMA / park rules)
         base_ids -= self.admin_regulation_ids
         if feature_ids is not None:
@@ -182,6 +186,25 @@ class RegulationGeoExporter:
     def _preload_data(self):
         self._load_all_polygon_geometries()
         self._load_all_stream_geometries()
+        self._inject_ungazetted_geometries()
+
+    def _inject_ungazetted_geometries(self):
+        """Inject ungazetted waterbody geometries into the polygon geometry cache.
+
+        This allows the search index builder and other code that looks up
+        geometries via ``{ftype.value.upper()}_{id}`` to find ungazetted
+        features without special-casing.
+        """
+        from .linking_corrections import UNGAZETTED_WATERBODIES
+        from shapely.geometry import Point
+
+        if self._polygon_geometries is None:
+            self._polygon_geometries = {}
+
+        for uid, uw in UNGAZETTED_WATERBODIES.items():
+            if uw.geometry_type == "point":
+                key = f"{FeatureType.UNGAZETTED.value.upper()}_{uid}"
+                self._polygon_geometries[key] = Point(uw.coordinates)
 
     def _load_all_stream_geometries(self):
         if self._stream_geometries is not None:
@@ -616,6 +639,58 @@ class RegulationGeoExporter:
         self._layer_cache[cache_key] = result
         return result
 
+    def _create_ungazetted_layer(
+        self, merge_geometries: bool
+    ) -> Optional[gpd.GeoDataFrame]:
+        """Create a point layer for ungazetted waterbodies that have regulations.
+
+        Ungazetted waterbodies are injected into the gazetteer at pipeline
+        startup.  Their geometry (EPSG:3005 points) is stored in the
+        UNGAZETTED_WATERBODIES dict from linking_corrections.  Features are
+        rendered at ``tippecanoe:minzoom`` 10 so they only appear when the
+        user is fairly zoomed in.
+        """
+        from .linking_corrections import UNGAZETTED_WATERBODIES
+        from shapely.geometry import Point
+
+        ungaz_meta = self.gazetteer.metadata.get(FeatureType.UNGAZETTED, {})
+        if not ungaz_meta:
+            return None
+
+        features = []
+        for uid, meta in ungaz_meta.items():
+            reg_ids = self.feature_to_regs.get(uid, [])
+            if not reg_ids:
+                continue
+
+            # Build geometry from UNGAZETTED_WATERBODIES coordinates
+            uw = UNGAZETTED_WATERBODIES.get(uid)
+            if not uw:
+                continue
+            if uw.geometry_type == "point":
+                geom = Point(uw.coordinates)
+            else:
+                # Future: support linestring/polygon ungazetted geometries
+                continue
+
+            features.append(
+                {
+                    "ungazetted_id": uid,
+                    "gnis_name": meta.get("gnis_name", "") or "",
+                    "regulation_ids": ",".join(reg_ids),
+                    "regulation_count": len(reg_ids),
+                    "regulation_names": " | ".join(self._get_reg_names(reg_ids, [uid])),
+                    "zones": ",".join(meta.get("zones", [])),
+                    "mgmt_units": ",".join(meta.get("mgmt_units", [])),
+                    "tippecanoe:minzoom": 10,
+                    "geometry": geom,
+                }
+            )
+
+        if not features:
+            return None
+        return gpd.GeoDataFrame(features, crs="EPSG:3005")
+
     def _create_admin_layer(self, layer_key: str) -> Optional[gpd.GeoDataFrame]:
         """
         Create a layer for an admin boundary type (matched features only).
@@ -756,6 +831,9 @@ class RegulationGeoExporter:
         if include_regions:
             layers.append(("regions", lambda: self._create_regions_layer()))
 
+        # Ungazetted waterbody points (zoom 10+)
+        layers.append(("ungazetted", lambda: self._create_ungazetted_layer(merge)))
+
         # Admin boundary layers — always include all configured admin layers
         for layer_key in ADMIN_LAYER_CONFIG:
             layers.append(
@@ -882,60 +960,14 @@ class RegulationGeoExporter:
     def export_regulations_json(
         self, parsed_regulations: List[Dict[str, Any]], output_path: Path
     ) -> Path:
-        reg_lookup = {}
-        for idx, reg in enumerate(parsed_regulations):
-            ident, rules = reg.get("identity", {}), reg.get("rules", [])
-            for r_idx, rule in enumerate(rules):
-                rest, scope = rule.get("restriction", {}), rule.get("scope", {})
-                rule_id = generate_rule_id(idx, r_idx)
-                reg_lookup[rule_id] = {
-                    "waterbody_name": ident.get("name_verbatim"),
-                    "waterbody_key": ident.get("waterbody_key"),
-                    "region": reg.get("region"),
-                    "management_units": reg.get("mu", []),
-                    "rule_text": rule.get("rule_text_verbatim"),
-                    "restriction_type": rest.get("type"),
-                    "restriction_details": rest.get("details"),
-                    "dates": rest.get("dates"),
-                    "scope_type": scope.get("type"),
-                    "scope_location": scope.get("location_verbatim"),
-                    "includes_tributaries": scope.get("includes_tributaries"),
-                    "source": "synopsis",
-                }
+        """Write regulations.json using centralized regulation_details.
 
-        # Add provincial base regulations
-        provincial_map = self.pipeline_result.provincial_feature_map or {}
-        if provincial_map:
-            for prov_reg in PROVINCIAL_BASE_REGULATIONS:
-                if prov_reg.regulation_id in provincial_map:
-                    reg_lookup[prov_reg.regulation_id] = {
-                        "waterbody_name": prov_reg.regulation_id.replace(
-                            "_", " "
-                        ).title(),
-                        "waterbody_key": None,
-                        "region": None,
-                        "management_units": [],
-                        "rule_text": prov_reg.rule_text,
-                        "restriction_type": (
-                            prov_reg.restriction.get("type")
-                            if prov_reg.restriction
-                            else None
-                        ),
-                        "restriction_details": (
-                            prov_reg.restriction.get("details")
-                            if prov_reg.restriction
-                            else None
-                        ),
-                        "dates": (
-                            prov_reg.restriction.get("dates")
-                            if prov_reg.restriction
-                            else None
-                        ),
-                        "scope_type": prov_reg.scope_type,
-                        "scope_location": prov_reg.admin_layer,
-                        "includes_tributaries": None,
-                        "source": "provincial",
-                    }
+        The mapper populates ``regulation_details`` during processing from all
+        sources (synopsis, provincial, zone) so the exporter never needs to
+        import source-specific modules.  Adding a new regulation source only
+        requires populating ``regulation_details`` in the mapper.
+        """
+        reg_lookup = dict(self.pipeline_result.regulation_details)
 
         output_path.parent.mkdir(parents=True, exist_ok=True)
         with open(output_path, "w", encoding="utf-8") as f:
@@ -1016,6 +1048,9 @@ class RegulationGeoExporter:
                     default=0,
                 )
                 min_zoom = self._calculate_stream_minzoom(mag)
+            elif ftype_val == FeatureType.UNGAZETTED.value:
+                # Ungazetted points only visible when zoomed in
+                min_zoom = 10
             else:
                 min_zoom = self._calculate_polygon_minzoom(
                     sum(g.area for g in data["geoms"])
@@ -1039,7 +1074,7 @@ class RegulationGeoExporter:
             reg_names = self._get_reg_names(reg_ids, data["feature_ids"])
 
             # Build name_variants: deduplicated set of all names for this waterbody
-            # Includes gnis_name, gnis_name_2, and all regulation names
+            # Includes gnis_name, gnis_name_2, all regulation names, and name variation aliases
             name_set = set()
             if gnis:
                 name_set.add(gnis)
@@ -1048,6 +1083,9 @@ class RegulationGeoExporter:
                 name_set.add(gnis2)
             for rn in reg_names:
                 name_set.add(rn)
+                # Inject name variation aliases for this regulation name
+                for alias in self.name_variation_aliases.get(rn, []):
+                    name_set.add(alias)
             name_variants = sorted(name_set)
 
             search_items.append(

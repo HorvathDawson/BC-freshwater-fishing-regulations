@@ -89,6 +89,15 @@ class PipelineResult:
     # Admin area → regulation IDs: layer_key → {admin_feature_id: {regulation_ids}}
     # Used by exporter to create admin boundary layers with matched regulation info
     admin_area_reg_map: Dict[str, Dict[str, set]] = field(default_factory=dict)
+    # Centralized regulation metadata for export — populated by the mapper from
+    # all sources (synopsis, provincial, zone).  Keyed by rule_id.
+    # The exporter writes this directly to regulations.json without needing
+    # to import source-specific modules.
+    regulation_details: Dict[str, Dict[str, Any]] = field(default_factory=dict)
+    # Name variation aliases: maps primary regulation name_verbatim → list of alternate names.
+    # Populated from NameVariationLink entries.  The exporter injects these into
+    # the search index name_variants for discoverability.
+    name_variation_aliases: Dict[str, List[str]] = field(default_factory=dict)
 
 
 class RegulationMapper:
@@ -124,6 +133,10 @@ class RegulationMapper:
         self.admin_area_reg_map: Dict[str, Dict[str, set]] = defaultdict(
             lambda: defaultdict(set)
         )
+        # Centralized regulation metadata for export (rule_id → entry dict)
+        self.regulation_details: Dict[str, Dict[str, Any]] = {}
+        # Name variation aliases: primary_name_verbatim → [alternate names]
+        self.name_variation_aliases: Dict[str, List[str]] = defaultdict(list)
 
         # Reverse index: waterbody_key → [linear_feature_ids] for O(1) lookup
         # Replaces O(5M) linear scan in _get_stream_seeds_for_waterbody
@@ -255,6 +268,17 @@ class RegulationMapper:
                         admin_feat.fwa_id
                     ].add(regulation_id)
 
+            elif link_result.status == LinkStatus.NAME_VARIATION:
+                # Alternate name for an already-linked waterbody — don't link features,
+                # but record the alias so the search index can include it.
+                primary_name = link_result.matched_name
+                if primary_name:
+                    self.name_variation_aliases[primary_name].append(name_verbatim)
+                    logger.debug(
+                        f"Name variation '{name_verbatim}' → primary '{primary_name}'"
+                    )
+                continue
+
             elif (
                 link_result.status != LinkStatus.SUCCESS
                 or not link_result.matched_features
@@ -367,6 +391,24 @@ class RegulationMapper:
                     ).append(rule_id)
                     self.stats.total_rule_to_feature_mappings += 1
 
+                # Store regulation details for export (synopsis source)
+                rest = rule.get("restriction", {})
+                scope_d = rule.get("scope", {})
+                self.regulation_details[rule_id] = {
+                    "waterbody_name": identity.get("name_verbatim"),
+                    "waterbody_key": identity.get("waterbody_key"),
+                    "region": regulation.get("region"),
+                    "management_units": regulation.get("mu", []),
+                    "rule_text": rule.get("rule_text_verbatim"),
+                    "restriction_type": rest.get("type"),
+                    "restriction_details": rest.get("details"),
+                    "dates": rest.get("dates"),
+                    "scope_type": scope_d.get("type"),
+                    "scope_location": scope_d.get("location_verbatim"),
+                    "includes_tributaries": scope_d.get("includes_tributaries"),
+                    "source": "synopsis",
+                }
+
         # Sort indices
         for feature_id in self.feature_to_regs:
             self.feature_to_regs[feature_id].sort()
@@ -451,6 +493,8 @@ class RegulationMapper:
             admin_feature_map=self.admin_feature_map,
             admin_regulation_ids=self.admin_regulation_ids,
             admin_area_reg_map=dict(self.admin_area_reg_map),
+            regulation_details=self.regulation_details,
+            name_variation_aliases=dict(self.name_variation_aliases),
         )
 
     # --- Admin & Provincial Resolution ---
@@ -550,6 +594,30 @@ class RegulationMapper:
 
             # Add provincial regulation to regulation_names for display in exports
             self.regulation_names[prov_reg.regulation_id] = prov_reg.rule_text
+
+            # Store regulation details for export (provincial source)
+            self.regulation_details[prov_reg.regulation_id] = {
+                "waterbody_name": prov_reg.regulation_id.replace("_", " ").title(),
+                "waterbody_key": None,
+                "region": None,
+                "management_units": [],
+                "rule_text": prov_reg.rule_text,
+                "restriction_type": (
+                    prov_reg.restriction.get("type") if prov_reg.restriction else None
+                ),
+                "restriction_details": (
+                    prov_reg.restriction.get("details")
+                    if prov_reg.restriction
+                    else None
+                ),
+                "dates": (
+                    prov_reg.restriction.get("dates") if prov_reg.restriction else None
+                ),
+                "scope_type": prov_reg.scope_type,
+                "scope_location": prov_reg.admin_layer,
+                "includes_tributaries": None,
+                "source": "provincial",
+            }
 
             # Add to feature_to_regs and feature_to_linked_regulation
             for fid in feature_ids:

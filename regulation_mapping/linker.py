@@ -13,11 +13,12 @@ from typing import Optional, List, Dict
 from enum import Enum
 from collections import Counter
 
-from fwa_pipeline.metadata_gazetteer import MetadataGazetteer, FWAFeature
+from fwa_pipeline.metadata_gazetteer import MetadataGazetteer, FWAFeature, FeatureType
 from .linking_corrections import (
     ManualCorrections,
     DirectMatch,
     AdminDirectMatch,
+    NameVariationLink,
     SkipEntry,
 )
 from .logger_config import get_logger
@@ -30,6 +31,7 @@ class LinkStatus(Enum):
 
     SUCCESS = "success"  # Feature(s) matched
     ADMIN_MATCH = "admin_match"  # Admin boundary match (features resolved via spatial intersection in mapper)
+    NAME_VARIATION = "name_variation"  # Alternate name for an already-linked waterbody (skip link, pass alias downstream)
     AMBIGUOUS = "ambiguous"  # Multiple features found (ambiguous)
     NOT_FOUND = "not_found"  # No features found
     NOT_IN_DATA = "not_in_data"  # Searched but doesn't exist in FWA data
@@ -47,7 +49,7 @@ class LinkingResult:
     )
     candidate_features: List[FWAFeature] = None  # Ambiguous candidates
     link_method: Optional[str] = (
-        None  # "direct_match", "natural_search", "admin_direct_match"
+        None  # "direct_match", "natural_search", "admin_direct_match", "name_variation_link"
     )
     matched_name: Optional[str] = (
         None  # The actual name that matched (for name variations)
@@ -55,6 +57,9 @@ class LinkingResult:
     error_message: Optional[str] = None
     admin_match: Optional[AdminDirectMatch] = (
         None  # Set when link_method == "admin_direct_match"
+    )
+    name_variation_link: Optional[NameVariationLink] = (
+        None  # Set when link_method == "name_variation_link"
     )
     additional_info: Optional[str] = (
         None  # Extra note text from linking corrections, injected as a "Note" rule
@@ -137,6 +142,20 @@ class WaterbodyLinker:
                     )
                     self.stats[result.status] += 1
                     return result
+
+        # STEP 0b: Check NameVariationLink (alternate name for already-linked waterbody)
+        if region:
+            nv_link = self.corrections.get_name_variation_link(region, lookup_name)
+            if nv_link:
+                result = LinkingResult(
+                    status=LinkStatus.NAME_VARIATION,
+                    matched_name=nv_link.primary_name,
+                    error_message=f"Name variation: {nv_link.note}",
+                    link_method="name_variation_link",
+                    name_variation_link=nv_link,
+                )
+                self.stats[result.status] += 1
+                return result
 
         # STEP 1: Check DirectMatch (manual ID mapping)
         if region:
@@ -394,56 +413,56 @@ class WaterbodyLinker:
                 if feature:
                     features.append(feature)
 
-        if direct_match.unmarked_waterbody_id:
-            # Lookup unmarked waterbody from manual corrections
-            unmarked_waterbody = self.corrections.get_unmarked_waterbody(
-                direct_match.unmarked_waterbody_id
+        if direct_match.ungazetted_waterbody_id:
+            # Lookup ungazetted waterbody from manual corrections
+            ungazetted_wb = self.corrections.get_ungazetted_waterbody(
+                direct_match.ungazetted_waterbody_id
             )
-            if unmarked_waterbody:
-                # Convert unmarked waterbody to a feature-like object
+            if ungazetted_wb:
+                # Convert ungazetted waterbody to a feature-like object
                 # Create appropriate Shapely geometry based on type
                 from shapely.geometry import Point, LineString, Polygon
 
-                if unmarked_waterbody.geometry_type == "point":
-                    geometry = Point(unmarked_waterbody.coordinates)
-                elif unmarked_waterbody.geometry_type == "linestring":
-                    geometry = LineString(unmarked_waterbody.coordinates)
-                elif unmarked_waterbody.geometry_type == "polygon":
+                if ungazetted_wb.geometry_type == "point":
+                    geometry = Point(ungazetted_wb.coordinates)
+                elif ungazetted_wb.geometry_type == "linestring":
+                    geometry = LineString(ungazetted_wb.coordinates)
+                elif ungazetted_wb.geometry_type == "polygon":
                     # coordinates is a list of rings, first is exterior
                     geometry = Polygon(
-                        unmarked_waterbody.coordinates[0],
+                        ungazetted_wb.coordinates[0],
                         (
-                            unmarked_waterbody.coordinates[1:]
-                            if len(unmarked_waterbody.coordinates) > 1
+                            ungazetted_wb.coordinates[1:]
+                            if len(ungazetted_wb.coordinates) > 1
                             else None
                         ),
                     )
                 else:
                     raise ValueError(
-                        f"Unsupported unmarked waterbody geometry type: {unmarked_waterbody.geometry_type}"
+                        f"Unsupported ungazetted waterbody geometry type: {ungazetted_wb.geometry_type}"
                     )
 
                 feature = type(
                     "obj",
                     (object,),
                     {
-                        "fwa_id": unmarked_waterbody.unmarked_waterbody_id,
-                        "name": unmarked_waterbody.name,
-                        "gnis_name": unmarked_waterbody.name,
+                        "fwa_id": ungazetted_wb.ungazetted_id,
+                        "name": ungazetted_wb.name,
+                        "gnis_name": ungazetted_wb.name,
                         "gnis_id": None,
                         "gnis_name_2": None,
                         "gnis_id_2": None,
                         "geometry": geometry,
-                        "geometry_type": unmarked_waterbody.geometry_type,
-                        "feature_type": "unmarked",  # Mark as unmarked waterbody type
-                        "zones": unmarked_waterbody.zones,
-                        "mgmt_units": unmarked_waterbody.mgmt_units,
+                        "geometry_type": ungazetted_wb.geometry_type,
+                        "feature_type": FeatureType.UNGAZETTED,
+                        "zones": ungazetted_wb.zones,
+                        "mgmt_units": ungazetted_wb.mgmt_units,
                         "waterbody_key": None,
                         "fwa_watershed_code": None,
                         "matched_via": None,
-                        "is_unmarked_waterbody": True,
-                        "unmarked_waterbody_note": unmarked_waterbody.note,
-                        "unmarked_waterbody_source_url": unmarked_waterbody.source_url,
+                        "is_ungazetted_waterbody": True,
+                        "ungazetted_note": ungazetted_wb.note,
+                        "ungazetted_source_url": ungazetted_wb.source_url,
                     },
                 )()
                 features.append(feature)
@@ -782,8 +801,9 @@ def _run_coverage_test():
     from .linking_corrections import (
         DIRECT_MATCHES,
         SKIP_ENTRIES,
-        UNMARKED_WATERBODIES,
+        UNGAZETTED_WATERBODIES,
         ADMIN_DIRECT_MATCHES,
+        NAME_VARIATION_LINKS,
         ManualCorrections,
     )
     from project_config import get_config
@@ -977,8 +997,9 @@ def _run_coverage_test():
         ManualCorrections(
             DIRECT_MATCHES,
             SKIP_ENTRIES,
-            UNMARKED_WATERBODIES,
+            UNGAZETTED_WATERBODIES,
             ADMIN_DIRECT_MATCHES,
+            NAME_VARIATION_LINKS,
         ),
     )
     print(f"Loaded configuration")
@@ -1005,6 +1026,8 @@ def _run_coverage_test():
         stats.reg_names_seen.add((region, key))
 
         if region in SKIP_ENTRIES and name in SKIP_ENTRIES[region]:
+            stats.used_skips.add((region, name))
+        if region in NAME_VARIATION_LINKS and name in NAME_VARIATION_LINKS[region]:
             stats.used_skips.add((region, name))
 
         # Link
@@ -1119,7 +1142,6 @@ def _run_coverage_test():
     method_map = {
         "direct_match": "Direct Match (Config)",
         "natural_search": "Natural Search (Fuzzy)",
-        "exact_match": "Exact Name Match",
     }
     for method, label in method_map.items():
         count = stats.success_methods[method]
@@ -1133,12 +1155,15 @@ def _run_coverage_test():
 
     not_in_data = len(stats.results[LinkStatus.NOT_IN_DATA])
     ignored = len(stats.results[LinkStatus.IGNORED])
-    if not_in_data + ignored > 0:
+    name_variations = len(stats.results[LinkStatus.NAME_VARIATION])
+    if not_in_data + ignored + name_variations > 0:
         print("\n   --- Excluded/Known Missing ---")
         if not_in_data:
             print(f"   Not In FWA Data           : {not_in_data:5d}")
         if ignored:
             print(f"   Manually Ignored          : {ignored:5d}")
+        if name_variations:
+            print(f"   Name Variation (alias)    : {name_variations:5d}")
 
     # Region breakdown
     header("RESULTS BY REGION")
@@ -1281,7 +1306,6 @@ def _run_coverage_test():
     print(f"{GREEN}Linked (Total):     {linked_total}{RESET}")
     print(f"  - Natural Search: {stats.success_methods['natural_search']}")
     print(f"  - Direct Match:   {stats.success_methods['direct_match']}")
-    print(f"  - Exact Match:    {stats.success_methods['exact_match']}")
     print(f"  - Admin Match:    {stats.success_methods.get('admin_direct_match', 0)}")
     print(f"{RED}Not Found:          {len(stats.results[LinkStatus.NOT_FOUND])}{RESET}")
     print(
@@ -1292,6 +1316,7 @@ def _run_coverage_test():
     )
     print(f"{RED}Error:              {len(stats.results[LinkStatus.ERROR])}{RESET}")
     print(f"Ignored:            {len(stats.results[LinkStatus.IGNORED])}")
+    print(f"Name Variations:    {len(stats.results[LinkStatus.NAME_VARIATION])}")
     print()
 
     # Exports

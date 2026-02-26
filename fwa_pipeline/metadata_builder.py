@@ -38,7 +38,7 @@ class FeatureType(Enum):
     LAKE = "lakes"
     WETLAND = "wetlands"
     MANMADE = "manmade"
-    UNMARKED = "lakes"
+    UNGAZETTED = "ungazetted"
     POINT = "point"
 
     # Administrative boundary layers
