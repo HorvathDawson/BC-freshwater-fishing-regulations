@@ -55,7 +55,9 @@ class FWAFeature:
     admin_code: Optional[str] = (
         None  # Classification code for admin features (e.g., "PP", "OI")
     )
-    region_names: Optional[List[str]] = None  # Paired with zones (e.g. ["Thompson", "Omineca"])
+    region_names: Optional[List[str]] = (
+        None  # Paired with zones (e.g. ["Thompson", "Omineca"])
+    )
 
     def __eq__(self, other):
         if not isinstance(other, FWAFeature):
@@ -93,7 +95,9 @@ class MetadataGazetteer:
         self.metadata_path = metadata_path
         self.metadata: Dict[Any, Any] = {}
         self.name_index: Dict[str, List[FWAFeature]] = {}
-        self._reprojected_admin_cache: Dict[str, Any] = {}  # Cache for reprojected admin layers
+        self._reprojected_admin_cache: Dict[str, Any] = (
+            {}
+        )  # Cache for reprojected admin layers
         self._fwa_layer_cache: Dict[str, Any] = {}  # Cache for FWA layers with sindex
         self.data_accessor: Optional[FWADataAccessor] = None  # Set via set_gpkg_path()
 
@@ -400,7 +404,9 @@ class MetadataGazetteer:
         Call this once after construction if spatial operations are needed.
         Admin metadata is already in the pickle; only geometry reads need the GPKG.
         """
-        self.gpkg_path = gpkg_path        self.data_accessor = FWADataAccessor(gpkg_path)        logger.info(f"GPKG path set for spatial operations: {gpkg_path.name}")
+        self.gpkg_path = gpkg_path
+        self.data_accessor = FWADataAccessor(gpkg_path)
+        logger.info(f"GPKG path set for spatial operations: {gpkg_path.name}")
 
     def search_admin_layer(
         self,
@@ -562,7 +568,7 @@ class MetadataGazetteer:
 
             # IDs are already normalized to strings by FWADataAccessor
             matched = gdf[gdf[id_field].isin(admin_ids)]
-            
+
             if matched.empty:
                 # Debug output to show what IDs are available
                 available_ids = gdf[id_field].unique()[:20].tolist()
@@ -640,9 +646,13 @@ class MetadataGazetteer:
         # Vertex counts for diagnostics
         def _vcount(g):
             try:
-                if hasattr(g, 'exterior'):
+                if hasattr(g, "exterior"):
                     return len(g.exterior.coords)
-                return sum(len(p.exterior.coords) for p in g.geoms) if hasattr(g, 'geoms') else 0
+                return (
+                    sum(len(p.exterior.coords) for p in g.geoms)
+                    if hasattr(g, "geoms")
+                    else 0
+                )
             except Exception:
                 return -1
 
@@ -661,7 +671,9 @@ class MetadataGazetteer:
 
         for layer_name, ftype, id_field in fwa_layer_map:
             try:
-                fwa_gdf = self._get_cached_fwa_layer(layer_name, gpkg, id_column=id_field)
+                fwa_gdf = self._get_cached_fwa_layer(
+                    layer_name, gpkg, id_column=id_field
+                )
                 if fwa_gdf is None or fwa_gdf.empty:
                     continue
 
@@ -686,7 +698,8 @@ class MetadataGazetteer:
                 use_progress = _tqdm is not None and n >= PROGRESS_THRESHOLD
                 pbar = (
                     _tqdm(total=n, desc=f"    Intersecting {layer_name}", unit="feat")
-                    if use_progress else None
+                    if use_progress
+                    else None
                 )
 
                 for start in range(0, n, CHUNK_SIZE):

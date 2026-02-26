@@ -266,6 +266,7 @@ const MapComponent = () => {
                 const feature: SearchableFeature = {
                     id: item.id, gnis_name: displayName, name: displayName, type: item.type,
                     regulation_names: synopsisNames,
+                    name_variants: item.name_variants || [],
                     properties: { ...item.properties, zones: item.zones || '', mgmt_units: item.mgmt_units, region_name: item.region_name || '', regulation_ids: item.regulation_ids, minzoom: item.min_zoom || 4 },
                     bbox: isValidBbox(item.bbox) ? item.bbox : undefined
                 };

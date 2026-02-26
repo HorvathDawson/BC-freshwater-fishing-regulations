@@ -244,6 +244,48 @@ This requires **processing order**: non-remainder sub-polygons must be computed 
 
 #### Full Williston Lake example
 
+**Sub-polygon definitions:**
+
+```python
+SUB_POLYGONS = {
+    # Zone A = lake ∩ Region 7A boundary (automated crop, no coordinates needed)
+    "wbk_329393419_sub_zone_a": SubPolygon(
+        sub_polygon_id="wbk_329393419_sub_zone_a",
+        name="Williston Lake - Zone A",
+        parent_waterbody_key="329393419",
+        crop_to_zone="7A",
+        note="Portion of Williston Lake within Region 7A. Zone boundary from WMU layer.",
+    ),
+    # Nation Arm = manual crop shape (roughly encloses Nation Arm area)
+    "wbk_329393419_sub_nation_arm": SubPolygon(
+        sub_polygon_id="wbk_329393419_sub_nation_arm",
+        name="Williston Lake - Nation Arm",
+        parent_waterbody_key="329393419",
+        coordinates=[[[...]]],  # EPSG:3005 — rough crop around Nation Arm
+        note="Nation Arm of Williston Lake.",
+    ),
+    # Davis Bay = manual crop shape (roughly encloses Davis Bay in Finlay Reach)
+    "wbk_329393419_sub_davis_bay": SubPolygon(
+        sub_polygon_id="wbk_329393419_sub_davis_bay",
+        name="Williston Lake - Davis Bay",
+        parent_waterbody_key="329393419",
+        coordinates=[[[...]]],  # EPSG:3005 — rough crop around Davis Bay
+        note="Davis Bay in Finlay Reach of Williston Lake.",
+    ),
+    # Zone B remainder = (lake ∩ Region 7B) minus Nation Arm and Davis Bay
+    "wbk_329393419_sub_zone_b": SubPolygon(
+        sub_polygon_id="wbk_329393419_sub_zone_b",
+        name="Williston Lake - Zone B",
+        parent_waterbody_key="329393419",
+        crop_to_zone="7B",
+        exclude_sub_polygon_ids=["wbk_329393419_sub_nation_arm", "wbk_329393419_sub_davis_bay"],
+        note="Remainder of Williston Lake in Region 7B, excluding Nation Arm and Davis Bay.",
+    ),
+}
+```
+
+**Geometry computation steps:**
+
 ```
 Step 1: Load 3 FWA polygons for WBK 329393419, union into parent_lake
 Step 2: Load WMU layer, dissolve Region 7A polygons → zone_7a_boundary
@@ -257,54 +299,21 @@ Step 8: zone_b_geom = zone_b_base.difference(union(nation_arm_geom, davis_bay_ge
 
 Result: 4 non-overlapping sub-polygons that fully tile Williston Lake.
 
----
-
-## Linking: `DirectMatch` with `sub_polygon_id`
-
-Add a new optional field to `DirectMatch`:
-
-```python
-@dataclass
-class DirectMatch:
-    # ... existing fields ...
-    sub_polygon_id: Optional[str] = None  # Links to SubPolygon entry
-```
-
-Then convert the Kootenay Lake skip entries to direct matches:
+**DirectMatch entries (regulation → sub-polygon mapping):**
 
 ```python
 DIRECT_MATCHES = {
-    "Region 4": {
-        "KOOTENAY LAKE - MAIN BODY (for location see map on page 34)": DirectMatch(
-            sub_polygon_id="706389_sub_main_body",
-            note="Main body of Kootenay Lake, synopsis page 34.",
-        ),
-        "KOOTENAY LAKE - UPPER WEST ARM (for location see map on page 34)": DirectMatch(
-            sub_polygon_id="706389_sub_upper_west_arm",
-            note="Upper West Arm of Kootenay Lake, synopsis page 34.",
-        ),
-        "KOOTENAY LAKE - LOWER WEST ARM (for location see map on page 34)": DirectMatch(
-            sub_polygon_id="706389_sub_lower_west_arm",
-            note="Lower West Arm of Kootenay Lake, synopsis page 34.",
-        ),
-    },
-}
-```
-
-The linker resolves `sub_polygon_id` by looking up the pre-computed `FWAFeature` from the gazetteer (injected at init time — see Pipeline Integration below). Unlike the `unmarked_waterbody_id` path which creates ad-hoc objects, sub-polygons are real `FWAFeature` instances already in the gazetteer metadata dict.
-
-For Williston Lake, convert the skip entries to direct matches:
-
-```python
-    "Region 7B": {
+    "Region 7A": {
+        # Zone A entry — single sub-polygon
         "WILLISTON LAKE (in Zone A) (includes waters 500 m east/upstream of the Causeway Road)": DirectMatch(
-            sub_polygon_id="wbk_329393419_sub_zone_a",
+            sub_polygon_ids=["wbk_329393419_sub_zone_a"],
             note="Williston Lake Zone A — portion within Region 7A.",
         ),
-        # Zone B uses sub_polygon_ids (PLURAL) — fans out to ALL sub-regions within Zone B.
-        # This is critical: Zone B regulations must also apply to Nation Arm and Davis Bay,
-        # because those areas are geographically inside Zone B. They have additional specific
-        # regulations on top of the zone-level ones.
+    },
+    "Region 7B": {
+        # Zone B entry — fans out to ALL 3 sub-regions within Zone B.
+        # Zone B regulations must also apply to Nation Arm and Davis Bay,
+        # because those areas are geographically inside Zone B.
         "WILLISTON LAKE (in Zone B)": DirectMatch(
             sub_polygon_ids=[
                 "wbk_329393419_sub_zone_b",
@@ -313,16 +322,70 @@ For Williston Lake, convert the skip entries to direct matches:
             ],
             note="Zone B regulations apply to all areas within Zone B, including Nation Arm and Davis Bay.",
         ),
+        # Nation Arm — only its own specific regulations (stacked on top of Zone B)
         "NATION ARM (Williston Lake)": DirectMatch(
-            sub_polygon_id="wbk_329393419_sub_nation_arm",
+            sub_polygon_ids=["wbk_329393419_sub_nation_arm"],
             note="Nation Arm-specific regulations (in addition to Zone B regs).",
         ),
+        # Davis Bay — only its own specific regulations (stacked on top of Zone B)
         "DAVIS BAY (in Finlay Reach of Williston Lake)": DirectMatch(
-            sub_polygon_id="wbk_329393419_sub_davis_bay",
+            sub_polygon_ids=["wbk_329393419_sub_davis_bay"],
             note="Davis Bay-specific regulations (in addition to Zone B regs).",
         ),
     },
+}
 ```
+
+**Regulation stacking result:**
+
+| Sub-polygon | Receives regulations from | Result |
+|---|---|---|
+| **Zone A** | "WILLISTON LAKE (in Zone A)" | Zone A regs only |
+| **Zone B (remainder)** | "WILLISTON LAKE (in Zone B)" | Zone B regs only |
+| **Nation Arm** | "WILLISTON LAKE (in Zone B)" + "NATION ARM (Williston Lake)" | Zone B regs + Nation Arm-specific regs |
+| **Davis Bay** | "WILLISTON LAKE (in Zone B)" + "DAVIS BAY (in Finlay Reach...)" | Zone B regs + Davis Bay-specific regs |
+
+**Key insight:** Geometry carving (via `exclude_sub_polygon_ids`) is for **display** — non-overlapping polygons on the map. Regulation fan-out (via `sub_polygon_ids` in DirectMatch) is for **rule assignment** — a zone's regs flow to all contained areas. The mapper accumulates all rules per feature ID naturally, so stacking requires no special handling.
+
+---
+
+## Linking: `DirectMatch` with `sub_polygon_ids`
+
+Add a new list field to `DirectMatch`:
+
+```python
+@dataclass
+class DirectMatch:
+    # ... existing fields (all plural lists) ...
+    sub_polygon_ids: Optional[List[str]] = None  # Links to SubPolygon features
+```
+
+All DirectMatch ID fields now use **plural-only lists** (a single-element list for one target). This applies to all fields: `gnis_ids`, `fwa_watershed_codes`, `waterbody_poly_ids`, `waterbody_keys`, `blue_line_keys`, `linear_feature_ids`, and `sub_polygon_ids`.
+
+Then convert the Kootenay Lake skip entries to direct matches:
+
+```python
+DIRECT_MATCHES = {
+    "Region 4": {
+        "KOOTENAY LAKE - MAIN BODY (for location see map on page 34)": DirectMatch(
+            sub_polygon_ids=["706389_sub_main_body"],
+            note="Main body of Kootenay Lake, synopsis page 34.",
+        ),
+        "KOOTENAY LAKE - UPPER WEST ARM (for location see map on page 34)": DirectMatch(
+            sub_polygon_ids=["706389_sub_upper_west_arm"],
+            note="Upper West Arm of Kootenay Lake, synopsis page 34.",
+        ),
+        "KOOTENAY LAKE - LOWER WEST ARM (for location see map on page 34)": DirectMatch(
+            sub_polygon_ids=["706389_sub_lower_west_arm"],
+            note="Lower West Arm of Kootenay Lake, synopsis page 34.",
+        ),
+    },
+}
+```
+
+The linker resolves `sub_polygon_ids` by looking up each pre-computed `FWAFeature` from the gazetteer (injected at init time — see Pipeline Integration below). Unlike the `unmarked_waterbody_id` path which creates ad-hoc objects, sub-polygons are real `FWAFeature` instances already in the gazetteer metadata dict.
+
+For Williston Lake, convert the skip entries to direct matches (see Full Williston Lake example above for the complete region 7A/7B DirectMatch entries).
 
 ---
 
@@ -330,122 +393,138 @@ For Williston Lake, convert the skip entries to direct matches:
 
 The sub-polygon system touches 5 pipeline components. The design goal is to inject sub-polygons into the existing data structures so that downstream code (mapper, exporter, search) operates on them without any special-casing.
 
-### 1. Gazetteer Metadata Injection (metadata_gazetteer.py)
+### 1. SubPolygonProcessor (new module: `regulation_mapping/sub_polygon_processor.py`)
 
-Add an `inject_sub_polygons()` method to `MetadataGazetteer`. This must inject sub-polygon entries into **both** the `metadata[FeatureType.LAKE]` dict **and** the `name_index`. This is critical — without it, `get_feature_by_id()`, `get_feature_type_from_id()`, and `get_polygon_metadata()` all return `None` for sub-polygon IDs, causing silent drops in the mapper and exporter.
+Extract all geometry computation into a standalone `SubPolygonProcessor` class. This keeps the gazetteer focused on metadata — it receives pre-computed geometries instead of owning the Shapely logic. The processor runs once at pipeline init and hands results to the gazetteer for injection.
 
 ```python
-def inject_sub_polygons(self, sub_polygons: Dict[str, "SubPolygon"]):
-    """Inject sub-polygon entries into metadata and name index.
+class SubPolygonProcessor:
+    """Computes sub-polygon geometries from SubPolygon definitions.
     
-    Computes final geometry for each sub-polygon (crop + remainder),
-    stores metadata in self.metadata[FeatureType.LAKE], and adds
-    to self.name_index for name search.
-    
-    Also removes parent polygon entries from metadata to prevent
-    the parent from appearing alongside its children in output.
+    Responsibilities:
+    - Load parent lake geometries from GPKG (EPSG:3005)
+    - Load zone boundary polygons from WMU layer (for crop_to_zone)
+    - Compute cropped geometries (Phase 1: non-remainder, Phase 2: remainder)
+    - Build metadata dicts inheriting parent attributes
+    - Return computed results for gazetteer injection
     """
-    # Group by parent to load each parent lake once
-    parents_to_process = set()
-    for sub in sub_polygons.values():
-        if sub.parent_waterbody_poly_id:
-            parents_to_process.add(("poly", sub.parent_waterbody_poly_id))
-        elif sub.parent_waterbody_key:
-            parents_to_process.add(("wbk", sub.parent_waterbody_key))
     
-    # Load parent geometries from GPKG (EPSG:3005)
-    parent_geoms = {}  # parent_key → unioned Shapely geometry
-    parent_metadata = {}  # parent_key → metadata dict from pickle
-    # ... load from self.data_accessor ...
+    def __init__(self, data_accessor, parent_metadata_lookup):
+        self.data_accessor = data_accessor
+        self.parent_metadata_lookup = parent_metadata_lookup  # callable: parent_key → metadata dict
     
-    # Load zone boundary polygons from WMU layer (for crop_to_zone)
-    zone_boundaries = {}  # zone_id → dissolved Shapely polygon
-    if any(s.crop_to_zone for s in sub_polygons.values()):
+    def process(self, sub_polygons: Dict[str, "SubPolygon"]) -> "SubPolygonResults":
+        """Compute all sub-polygon geometries and metadata.
+        
+        Returns SubPolygonResults with:
+          - computed_geoms: Dict[str, Shapely geometry]  (sub_id → geom)
+          - computed_metadata: Dict[str, dict]  (sub_id → metadata dict)
+          - parent_ids_to_remove: Set[str]  (parent polygon IDs to suppress)
+        """
+        parent_geoms = self._load_parent_geometries(sub_polygons)
+        zone_boundaries = self._load_zone_boundaries(sub_polygons)
+        
+        # Phase 1: Compute non-remainder sub-polygons first
+        computed_geoms = {}
+        for sub_id, sub in sub_polygons.items():
+            if sub.exclude_sub_polygon_ids:
+                continue  # Phase 2
+            parent_key = sub.parent_waterbody_poly_id or sub.parent_waterbody_key
+            parent_geom = parent_geoms[parent_key]
+            
+            if sub.crop_to_zone:
+                crop_shape = zone_boundaries[sub.crop_to_zone]
+            else:
+                crop_shape = Polygon(sub.coordinates[0], sub.coordinates[1:] if len(sub.coordinates) > 1 else None)
+            
+            computed_geoms[sub_id] = parent_geom.intersection(crop_shape)
+        
+        # Phase 2: Compute remainder sub-polygons (subtract excluded siblings)
+        for sub_id, sub in sub_polygons.items():
+            if not sub.exclude_sub_polygon_ids:
+                continue
+            parent_key = sub.parent_waterbody_poly_id or sub.parent_waterbody_key
+            parent_geom = parent_geoms[parent_key]
+            
+            if sub.crop_to_zone:
+                base_geom = parent_geom.intersection(zone_boundaries[sub.crop_to_zone])
+            else:
+                base_geom = parent_geom.intersection(
+                    Polygon(sub.coordinates[0], sub.coordinates[1:] if len(sub.coordinates) > 1 else None)
+                )
+            exclusion_geoms = [computed_geoms[exc_id] for exc_id in sub.exclude_sub_polygon_ids]
+            base_geom = base_geom.difference(unary_union(exclusion_geoms))
+            computed_geoms[sub_id] = base_geom
+        
+        # Build metadata for each sub-polygon (inherit from parent)
+        computed_metadata = {}
+        for sub_id, sub in sub_polygons.items():
+            parent_meta = self.parent_metadata_lookup(sub.parent_waterbody_poly_id or sub.parent_waterbody_key)
+            computed_metadata[sub_id] = {
+                "gnis_name": sub.name,
+                "gnis_id": parent_meta.get("gnis_id"),
+                "zones": parent_meta.get("zones", []),
+                "region_names": parent_meta.get("region_names", []),
+                "mgmt_units": parent_meta.get("mgmt_units", []),
+                "waterbody_key": parent_meta.get("waterbody_key"),
+                "area_sqm": computed_geoms[sub_id].area,
+            }
+        
+        # Collect parent IDs to remove from metadata
+        parent_ids_to_remove = self._collect_parent_ids(sub_polygons)
+        
+        return SubPolygonResults(computed_geoms, computed_metadata, parent_ids_to_remove)
+    
+    def _load_parent_geometries(self, sub_polygons):
+        """Load parent lake geometries from GPKG (EPSG:3005)."""
+        # ... group by parent, load once per parent, union multi-polygon parents ...
+    
+    def _load_zone_boundaries(self, sub_polygons):
+        """Load zone boundaries from WMU layer (for crop_to_zone)."""
+        zone_boundaries = {}
+        zone_ids = set(s.crop_to_zone for s in sub_polygons.values() if s.crop_to_zone)
+        if not zone_ids:
+            return zone_boundaries
         wmu_gdf = self.data_accessor.get_layer("wmu")
         if wmu_gdf.crs and wmu_gdf.crs.to_epsg() != 3005:
             wmu_gdf = wmu_gdf.to_crs(epsg=3005)
-        for zone_id in set(s.crop_to_zone for s in sub_polygons.values() if s.crop_to_zone):
+        for zone_id in zone_ids:
             zone_rows = wmu_gdf[wmu_gdf["REGION_RESPONSIBLE_ID"] == zone_id]
             zone_boundaries[zone_id] = zone_rows.geometry.union_all()
+        return zone_boundaries
     
-    # Phase 1: Compute non-remainder sub-polygons first
-    computed_geoms = {}  # sub_polygon_id → Shapely geometry
-    for sub_id, sub in sub_polygons.items():
-        if sub.exclude_sub_polygon_ids:
-            continue  # Process in Phase 2
-        parent_key = sub.parent_waterbody_poly_id or sub.parent_waterbody_key
-        parent_geom = parent_geoms[parent_key]
-        
-        if sub.crop_to_zone:
-            crop_shape = zone_boundaries[sub.crop_to_zone]
-        else:
-            crop_shape = Polygon(sub.coordinates[0], sub.coordinates[1:] if len(sub.coordinates) > 1 else None)
-        
-        computed_geoms[sub_id] = parent_geom.intersection(crop_shape)
+    def _collect_parent_ids(self, sub_polygons):
+        """Collect parent polygon IDs that should be removed from metadata."""
+        # ... same logic as previous Phase 5 ...
+```
+
+### 2. Gazetteer Metadata Injection (metadata_gazetteer.py)
+
+Add a thin `inject_sub_polygons()` method that receives **pre-computed** results from the processor. The gazetteer only handles metadata dict / name index injection — no Shapely, no GPKG loads.
+
+```python
+def inject_sub_polygons(self, results: "SubPolygonResults"):
+    """Inject pre-computed sub-polygon entries into metadata and name index.
     
-    # Phase 2: Compute remainder sub-polygons
-    for sub_id, sub in sub_polygons.items():
-        if not sub.exclude_sub_polygon_ids:
-            continue
-        parent_key = sub.parent_waterbody_poly_id or sub.parent_waterbody_key
-        parent_geom = parent_geoms[parent_key]
-        
-        if sub.crop_to_zone:
-            base_geom = parent_geom.intersection(zone_boundaries[sub.crop_to_zone])
-        else:
-            base_geom = parent_geom.intersection(
-                Polygon(sub.coordinates[0], sub.coordinates[1:] if len(sub.coordinates) > 1 else None)
-            )
-        
-        # Subtract excluded siblings
-        exclusion_geoms = [computed_geoms[exc_id] for exc_id in sub.exclude_sub_polygon_ids]
-        from shapely.ops import unary_union
-        base_geom = base_geom.difference(unary_union(exclusion_geoms))
-        computed_geoms[sub_id] = base_geom
-    
-    # Phase 3: Inject into metadata + name index + geometry store
-    for sub_id, sub in sub_polygons.items():
-        # Look up parent metadata to inherit zones, mgmt_units, etc.
-        parent_meta = parent_metadata[sub.parent_waterbody_poly_id or sub.parent_waterbody_key]
-        
-        sub_meta = {
-            "gnis_name": sub.name,
-            "gnis_id": parent_meta.get("gnis_id"),
-            "zones": parent_meta.get("zones", []),
-            "region_names": parent_meta.get("region_names", []),
-            "mgmt_units": parent_meta.get("mgmt_units", []),
-            "waterbody_key": parent_meta.get("waterbody_key"),
-            "area_sqm": computed_geoms[sub_id].area,  # Computed from actual geometry
-        }
-        
-        # Inject into metadata dict (makes get_feature_by_id etc. work)
+    Args:
+        results: Output from SubPolygonProcessor.process() containing
+                 computed geometries, metadata dicts, and parent IDs to remove.
+    """
+    # Inject metadata + name index
+    for sub_id, sub_meta in results.computed_metadata.items():
         self.metadata[FeatureType.LAKE][sub_id] = sub_meta
-        
-        # Inject into name index (makes name search work)
         feature = self._build_feature(sub_id, sub_meta, FeatureType.LAKE)
-        normalized = self._normalize_for_index(sub.name)
+        normalized = self._normalize_for_index(sub_meta["gnis_name"])
         self.name_index.setdefault(normalized, []).append(feature)
     
-    # Phase 4: Store computed geometries for exporter access
-    # Stored on gazetteer so exporter can retrieve them
+    # Store geometries for exporter access
     if not hasattr(self, '_sub_polygon_geometries'):
         self._sub_polygon_geometries = {}
-    self._sub_polygon_geometries.update(computed_geoms)
+    self._sub_polygon_geometries.update(results.computed_geoms)
     
-    # Phase 5: Remove parent polygon entries from metadata
-    # This prevents the parent from appearing in output alongside sub-polygons
-    for sub in sub_polygons.values():
-        if sub.parent_waterbody_poly_id:
-            self.metadata[FeatureType.LAKE].pop(sub.parent_waterbody_poly_id, None)
-        elif sub.parent_waterbody_key:
-            # Remove all polygons sharing this waterbody_key
-            ids_to_remove = [
-                pid for pid, pdata in self.metadata[FeatureType.LAKE].items()
-                if str(pdata.get("waterbody_key")) == str(sub.parent_waterbody_key)
-                and "_sub_" not in pid  # Don't remove sub-polygons we just added
-            ]
-            for pid in ids_to_remove:
-                self.metadata[FeatureType.LAKE].pop(pid, None)
+    # Remove parent polygon entries
+    for parent_id in results.parent_ids_to_remove:
+        self.metadata[FeatureType.LAKE].pop(parent_id, None)
 ```
 
 Key properties after injection:
@@ -454,26 +533,27 @@ Key properties after injection:
 - `get_polygon_metadata("706389_sub_main_body", FeatureType.LAKE)` → returns metadata dict with `area_sqm`, `gnis_name`, etc.
 - Parent polygon IDs are removed from metadata → no duplicate output
 
-### 2. Linker (linker.py)
+### 3. Linker (linker.py)
 
-Add a `sub_polygon_id` path in `_apply_direct_match`, parallel to the existing `unmarked_waterbody_id` path. Since sub-polygons are already injected into the gazetteer metadata, the linker just looks them up:
+Add a `sub_polygon_ids` path in `_apply_direct_match`, parallel to the existing `unmarked_waterbody_id` path. Since sub-polygons are already injected into the gazetteer metadata, the linker just looks them up:
 
 ```python
-if direct_match.sub_polygon_id:
-    feature = self.gazetteer.get_polygon_by_id(direct_match.sub_polygon_id)
-    if feature:
-        features.append(feature)
+if direct_match.sub_polygon_ids:
+    for sp_id in direct_match.sub_polygon_ids:
+        feature = self.gazetteer.get_polygon_by_id(sp_id)
+        if feature:
+            features.append(feature)
 ```
 
-This is much simpler than the `unmarked_waterbody_id` path because the sub-polygon is a real `FWAFeature` in the gazetteer — no ad-hoc object creation needed.
+This is much simpler than the `unmarked_waterbody_id` path because the sub-polygon is a real `FWAFeature` in the gazetteer — no ad-hoc object creation needed. A single-target entry like `"KOOTENAY LAKE - MAIN BODY"` uses `sub_polygon_ids=["706389_sub_main_body"]` (one-element list). A fan-out entry like `"WILLISTON LAKE (in Zone B)"` uses `sub_polygon_ids=["zone_b", "nation_arm", "davis_bay"]` (multi-element list). Both resolve through the same code path.
 
-### 2b. Regulation Fan-Out via `sub_polygon_ids` (Plural)
+### 3b. Regulation Fan-Out via `sub_polygon_ids`
 
-`sub_polygon_ids` (plural, a list) is the mechanism for assigning one regulation entry to **multiple** sub-polygons. It's used in three distinct scenarios:
+`sub_polygon_ids` is a list field on `DirectMatch`. When a single synopsis entry should assign regulations to **multiple** sub-polygons, all target IDs go in this one list. Three scenarios:
 
 #### Scenario 1: Whole-lake regulations
 
-The existing `DirectMatch` for `"KOOTENAY LAKE, ALL PARTS"` uses `gnis_id="14091"` to match the parent lake. Once the parent is removed from metadata (Phase 5 above), this match returns nothing.
+The existing `DirectMatch` for `"KOOTENAY LAKE, ALL PARTS"` uses `gnis_ids=["14091"]` to match the parent lake. Once the parent is removed from metadata (parent suppression above), this match returns nothing.
 
 **Solution:** Update to use `sub_polygon_ids` listing all sub-polygons:
 ```python
@@ -491,7 +571,7 @@ The existing `DirectMatch` for `"KOOTENAY LAKE, ALL PARTS"` uses `gnis_id="14091
 
 This is the critical case for Williston Lake. Nation Arm and Davis Bay are carved out of Zone B's **geometry** (non-overlapping polygons for clean map display), but they are still **inside Zone B for regulation purposes**. Zone B's regulations must apply to all three areas: the Zone B remainder, Nation Arm, and Davis Bay.
 
-The fix: the Zone B `DirectMatch` uses `sub_polygon_ids` (plural) to fan out:
+The fix: the Zone B `DirectMatch` uses `sub_polygon_ids` with all three targets:
 
 ```python
 "WILLISTON LAKE (in Zone B)": DirectMatch(
@@ -504,14 +584,14 @@ The fix: the Zone B `DirectMatch` uses `sub_polygon_ids` (plural) to fan out:
 ),
 ```
 
-Meanwhile, Nation Arm and Davis Bay's own synopsis entries use singular `sub_polygon_id` — their specific regulations only apply to their specific geometry:
+Meanwhile, Nation Arm and Davis Bay's own synopsis entries use a single-element list — their specific regulations only apply to their specific geometry:
 
 ```python
 "NATION ARM (Williston Lake)": DirectMatch(
-    sub_polygon_id="wbk_329393419_sub_nation_arm",  # Singular — only Nation Arm
+    sub_polygon_ids=["wbk_329393419_sub_nation_arm"],  # Single target
 ),
 "DAVIS BAY (in Finlay Reach of Williston Lake)": DirectMatch(
-    sub_polygon_id="wbk_329393419_sub_davis_bay",   # Singular — only Davis Bay
+    sub_polygon_ids=["wbk_329393419_sub_davis_bay"],   # Single target
 ),
 ```
 
@@ -519,11 +599,11 @@ Meanwhile, Nation Arm and Davis Bay's own synopsis entries use singular `sub_pol
 
 #### Scenario 3: Tributary entries
 
-Same pattern for Williston Lake's `"KOOTENAY LAKE'S TRIBUTARIES"` — keep the existing `gnis_id` match (tributaries are streams, not affected by polygon suppression).
+Tributary entries keep their existing `gnis_ids` match (tributaries are streams, not affected by polygon suppression).
 
 #### Linker implementation
 
-Add `sub_polygon_ids: Optional[List[str]]` to `DirectMatch`. When set, the linker resolves each sub-polygon ID and returns all of them as matched features:
+All sub-polygon linking uses the same `sub_polygon_ids` list field. The linker resolves each ID and returns all as matched features:
 
 ```python
 if direct_match.sub_polygon_ids:
@@ -533,13 +613,13 @@ if direct_match.sub_polygon_ids:
             features.append(feature)
 ```
 
-Note: `sub_polygon_id` (singular) and `sub_polygon_ids` (plural) are mutually exclusive on a single `DirectMatch`. Singular returns one feature; plural returns many.
+No singular/plural distinction — a single-target entry is just a one-element list.
 
-### 3. Mapper (regulation_mapper.py)
+### 4. Mapper (regulation_mapper.py)
 
 No changes. The mapper receives `FWAFeature` objects from the linker and processes them identically whether they're real FWA features or sub-polygons. Rule assignment, scope filtering, and merge grouping all work on `fwa_id`. Since sub-polygon IDs are in `metadata[FeatureType.LAKE]`, `get_feature_by_id()` resolves them in `merge_features()` without issue.
 
-### 4. Exporter (geo_exporter.py)
+### 5. Exporter (geo_exporter.py)
 
 Sub-polygon geometries need to be available in `_polygon_geometries`. Inject them **after** the cache load (not inside the `_load()` closure) so they're always present regardless of caching:
 
@@ -559,31 +639,38 @@ def _load_all_polygon_geometries(self):
 
 Sub-polygons then appear in the polygon export layers (GPKG, GeoJSONSeq, PMTiles) alongside regular lake polygons. The search index picks them up via the normal merge group flow because `get_feature_type_from_id()` returns `FeatureType.LAKE` for sub-polygon IDs.
 
-### 5. Pipeline Init (regulation_pipeline.py)
+### 6. Pipeline Init (regulation_pipeline.py)
 
-Update `ManualCorrections.__init__()` to accept `sub_polygons` and add `get_sub_polygon()`. Update `RegulationPipeline._init_components()` to:
+Update `RegulationPipeline._init_components()` to run the sub-polygon processor and inject results:
 
 ```python
 # After gazetteer is loaded and GPKG path is set:
 from .linking_corrections import SUB_POLYGONS
+from .sub_polygon_processor import SubPolygonProcessor
+
 if SUB_POLYGONS:
-    self.gazetteer.inject_sub_polygons(SUB_POLYGONS)
+    processor = SubPolygonProcessor(
+        data_accessor=self.gazetteer.data_accessor,
+        parent_metadata_lookup=lambda key: self.gazetteer.metadata[FeatureType.LAKE].get(key, {}),
+    )
+    results = processor.process(SUB_POLYGONS)
+    self.gazetteer.inject_sub_polygons(results)
 ```
 
 This must happen **after** `set_gpkg_path()` (so the data accessor is available for geometry loads) and **before** the linker is created (so the linker's gazetteer has sub-polygon entries).
 
-### 6. Parent Lake Handling
+### 7. Parent Lake Handling
 
 When a lake is subdivided, the **sub-polygons fully replace the parent polygon**. The parent lake polygon is removed from regulation assignment entirely — it no longer appears as a feature in the output.
 
 Strategy:
-- `inject_sub_polygons()` removes the parent from `metadata[FeatureType.LAKE]` (Phase 5 above). This means `get_feature_by_id()` no longer returns the parent, `get_feature_type_from_id()` returns UNKNOWN, and the exporter never loads its geometry.
+- `inject_sub_polygons()` removes the parent from `metadata[FeatureType.LAKE]` (via `parent_ids_to_remove` from the processor). This means `get_feature_by_id()` no longer returns the parent, `get_feature_type_from_id()` returns UNKNOWN, and the exporter never loads its geometry.
 - Sub-polygons **completely tile** the parent lake area (their union equals the parent polygon). There is no leftover "parent" geometry.
-- The sub-region-specific synopsis entries (`"KOOTENAY LAKE - MAIN BODY"`, etc.) link to their respective sub-polygon via `sub_polygon_id` (singular).
-- Whole-lake entries (`"KOOTENAY LAKE, ALL PARTS"`) link to all sub-polygons via `sub_polygon_ids` (plural).
-- **Zone-level entries** (`"WILLISTON LAKE (in Zone B)"`) link to the zone remainder **plus all nested sub-regions** via `sub_polygon_ids` (plural). This ensures zone regulations propagate to carved-out sub-regions like Nation Arm and Davis Bay.
-- Sub-region-specific entries (`"NATION ARM"`, `"DAVIS BAY"`) link only to their own geometry via `sub_polygon_id` (singular). Their specific regulations stack on top of the inherited zone regulations.
-- Tributary entries (`"KOOTENAY LAKE'S TRIBUTARIES"`) keep their existing `gnis_id` match — tributaries are stream features, unaffected by parent polygon removal.
+- The sub-region-specific synopsis entries (`"KOOTENAY LAKE - MAIN BODY"`, etc.) link to their respective sub-polygon via `sub_polygon_ids=["706389_sub_main_body"]` (single-element list).
+- Whole-lake entries (`"KOOTENAY LAKE, ALL PARTS"`) link to all sub-polygons via `sub_polygon_ids` (multi-element list).
+- **Zone-level entries** (`"WILLISTON LAKE (in Zone B)"`) link to the zone remainder **plus all nested sub-regions** via `sub_polygon_ids` (multi-element list). This ensures zone regulations propagate to carved-out sub-regions like Nation Arm and Davis Bay.
+- Sub-region-specific entries (`"NATION ARM"`, `"DAVIS BAY"`) link only to their own geometry via `sub_polygon_ids=["single_id"]`. Their specific regulations stack on top of the inherited zone regulations.
+- Tributary entries (`"KOOTENAY LAKE'S TRIBUTARIES"`) keep their existing `gnis_ids` match — tributaries are stream features, unaffected by parent polygon removal.
 - **Regulation stacking example (Nation Arm):** receives Zone B regs (from Zone B fan-out) + Nation Arm-specific regs (from its own DirectMatch). The mapper sees both sets of rules assigned to the same `fwa_id` and merges them into one regulation set. No special handling needed — this is how the mapper already works when multiple synopsis entries map to the same feature.
 
 This ensures the map shows a clean partition of the lake into sub-regions with no overlapping parent polygon underneath. Geometry carving is purely for display — regulation inheritance is handled by fan-out in DirectMatch entries.
@@ -636,18 +723,18 @@ Admin partial overlaps are a lower priority than synopsis sub-regions. The synop
 ### Phase 1: SubPolygon Infrastructure
 1. Add `SubPolygon` dataclass to `linking_corrections.py`
 2. Add `SUB_POLYGONS` dict (empty initially)
-3. Add `sub_polygon_id` and `sub_polygon_ids` fields to `DirectMatch`
-4. Add `sub_polygons` param to `ManualCorrections.__init__()` + `get_sub_polygon()` method
-5. Add `inject_sub_polygons()` method to `MetadataGazetteer` (metadata + name index + geometry + parent removal)
-6. Add sub-polygon resolution paths in `linker._apply_direct_match()` (both singular and list)
+3. Add `sub_polygon_ids` field to `DirectMatch` (plural-only list, already done)
+4. Create `regulation_mapping/sub_polygon_processor.py` with `SubPolygonProcessor` class
+5. Add thin `inject_sub_polygons(results)` method to `MetadataGazetteer`
+6. Add `sub_polygon_ids` resolution path in `linker._apply_direct_match()` (already done)
 7. Add sub-polygon geometry injection in exporter `_load_all_polygon_geometries()` (after cache load)
-8. Add `inject_sub_polygons()` call in `RegulationPipeline._init_components()` (after `set_gpkg_path`, before linker)
+8. Add `SubPolygonProcessor` + `inject_sub_polygons()` call in `RegulationPipeline._init_components()` (after `set_gpkg_path`, before linker)
 
 ### Phase 2: Kootenay Lake (Manual Crop Shapes)
 1. In QGIS: load Kootenay Lake polygon from GPKG (set project CRS to EPSG:3005)
 2. Draw 3 simple crop shapes from synopsis page 34 — export as EPSG:3005 coordinates
 3. Populate `SUB_POLYGONS` entries for Kootenay Lake (3 entries with `coordinates`)
-4. Convert 3 Kootenay Lake `SKIP_ENTRIES` → `DIRECT_MATCHES` with `sub_polygon_id`
+4. Convert 3 Kootenay Lake `SKIP_ENTRIES` → `DIRECT_MATCHES` with `sub_polygon_ids`
 5. Update `"KOOTENAY LAKE, ALL PARTS"` DirectMatch to use `sub_polygon_ids` list
 
 ### Phase 3: Williston Lake (Zone Boundary + Manual Crops)
@@ -655,7 +742,7 @@ Admin partial overlaps are a lower priority than synopsis sub-regions. The synop
 2. Populate Zone B entry with `crop_to_zone="7B"` + `exclude_sub_polygon_ids` for Nation Arm & Davis Bay
 3. In QGIS: draw crop shapes for Nation Arm and Davis Bay — export as EPSG:3005 coordinates
 4. Populate `SUB_POLYGONS` entries for Williston (4 entries total)
-5. Convert 4 Williston `SKIP_ENTRIES` → `DIRECT_MATCHES` with `sub_polygon_id`
+5. Convert 4 Williston `SKIP_ENTRIES` → `DIRECT_MATCHES` with `sub_polygon_ids`
 
 ### Phase 4: Validation
 1. Run pipeline and verify sub-polygons appear in outputs
@@ -684,14 +771,14 @@ Admin partial overlaps are a lower priority than synopsis sub-regions. The synop
 | **ID format** | `{poly_id}_sub_{slug}` | `{poly_id}_sub_admin_{layer}_{id}` |
 | **Priority** | High (currently skipped entirely) | Lower (currently over-assigns, not missing) |
 | **Geometry source** | `coordinates` (EPSG:3005) or `crop_to_zone` (WMU boundary) | `lake.intersection(admin_geom)` |
-| **Pipeline changes** | Gazetteer + linker + exporter + pipeline init | Mapper + exporter |
-| **Data model** | `SubPolygon` dataclass + `DirectMatch.sub_polygon_id/sub_polygon_ids` | Same `SubPolygon` infra, auto-generated |
+| **Pipeline changes** | SubPolygonProcessor + gazetteer + linker + exporter + pipeline init | Mapper + exporter |
+| **Data model** | `SubPolygon` dataclass + `DirectMatch.sub_polygon_ids` | Same `SubPolygon` infra, auto-generated |
 
 ### What stays unchanged
 - `FWAFeature` dataclass — untouched (sub-polygons are regular FWAFeature instances)
 - Merge grouping — works on `fwa_id` + `reg_set` as always
 - Scope filtering — operates on feature lists, sub-polygons are just features
-- Tributary enrichment — not applicable to polygons, tributary DirectMatches keep working via `gnis_id`
+- Tributary enrichment — not applicable to polygons, tributary DirectMatches keep working via `gnis_ids`
 - Frontend — sub-polygons render as normal polygon features
 - Metadata pickle — no rebuild needed (sub-polygons injected at pipeline init, not metadata build time)
 
@@ -705,7 +792,7 @@ Detailed review of each pipeline component and how the proposal interacts with i
 
 **Status: Needs verification before implementation**
 
-The proposal table lists Kootenay Lake as `GNIS 18851`. But the existing working `DirectMatch` for `"KOOTENAY LAKE, ALL PARTS"` in `linking_corrections.py` line 948 uses `gnis_id="14091"`. The skip entries at lines 1695-1704 reference `GNIS 18851` and `waterbody_key 331076875`. Both IDs may be valid (GNIS ID vs GNIS ID 2), but the actual `WATERBODY_POLY_ID` value in the GPKG must be verified before hardcoding it into sub-polygon IDs like `"706389_sub_main_body"`. Run a quick GPKG query to confirm:
+The proposal table lists Kootenay Lake as `GNIS 18851`. But the existing working `DirectMatch` for `"KOOTENAY LAKE, ALL PARTS"` in `linking_corrections.py` line 948 uses `gnis_ids=["14091"]`. The skip entries at lines 1695-1704 reference `GNIS 18851` and `waterbody_key 331076875`. Both IDs may be valid (GNIS ID vs GNIS ID 2), but the actual `WATERBODY_POLY_ID` value in the GPKG must be verified before hardcoding it into sub-polygon IDs like `"706389_sub_main_body"`. Run a quick GPKG query to confirm:
 ```python
 data_accessor.get_attributes("lakes", columns=["WATERBODY_POLY_ID", "GNIS_ID_1", "GNIS_ID_2", "WATERBODY_KEY"])
 # Filter for waterbody_key 331076875
@@ -736,15 +823,15 @@ The original proposal stored coordinates as GeoJSON `[[[lon, lat]]]` (WGS84) but
 
 ### Issue 5: Whole-Lake Fan-Out (RESOLVED)
 
-The existing `DirectMatch` for `"KOOTENAY LAKE, ALL PARTS"` uses `gnis_id="14091"` which returns the parent polygon. Once the parent is removed from metadata, this match returns nothing.
+The existing `DirectMatch` for `"KOOTENAY LAKE, ALL PARTS"` uses `gnis_ids=["14091"]` which returns the parent polygon. Once the parent is removed from metadata, this match returns nothing.
 
-**Resolution:** The revised proposal adds `sub_polygon_ids: Optional[List[str]]` to `DirectMatch`. The `"ALL PARTS"` entry is converted to list all sub-polygon IDs. The linker resolves each and returns them all.
+**Resolution:** The revised proposal uses the `sub_polygon_ids` list field on `DirectMatch`. The `"ALL PARTS"` entry is converted to list all sub-polygon IDs. The linker resolves each and returns them all.
 
-### Issue 6: ManualCorrections Constructor + Pipeline Init (RESOLVED)
+### Issue 6: Pipeline Init (RESOLVED)
 
-The original proposal didn't address passing `SUB_POLYGONS` through the initialization chain.
+The original proposal didn't address the initialization chain for sub-polygon processing.
 
-**Resolution:** The revised proposal specifies: add `sub_polygons` param to `ManualCorrections.__init__()`, call `inject_sub_polygons()` in `RegulationPipeline._init_components()` after `set_gpkg_path()` and before linker creation.
+**Resolution:** The revised proposal separates geometry computation into `SubPolygonProcessor` (new module), which runs at pipeline init after `set_gpkg_path()` and before linker creation. The processor returns pre-computed results, which the gazetteer's thin `inject_sub_polygons(results)` method writes into metadata + name index.
 
 ### Issue 7: Parent Lake Suppression (RESOLVED)
 
@@ -774,13 +861,13 @@ The `merge_features()` method in `regulation_mapper.py` calls `get_feature_by_id
 
 **Status: Cleaner than existing pattern**
 
-The existing `unmarked_waterbody_id` path in `_apply_direct_match()` creates a dynamic `type("obj", (object,), {...})()` — not an `FWAFeature` instance. Sub-polygons avoid this anti-pattern entirely: they're real `FWAFeature` entries in the gazetteer. The linker just calls `get_polygon_by_id(sub_polygon_id)` — two lines of code.
+The existing `unmarked_waterbody_id` path in `_apply_direct_match()` creates a dynamic `type("obj", (object,), {...})()` — not an `FWAFeature` instance. Sub-polygons avoid this anti-pattern entirely: they're real `FWAFeature` entries in the gazetteer. The linker iterates `sub_polygon_ids` and calls `get_polygon_by_id(sp_id)` for each — a simple loop.
 
 ### Issue 11: Zone-Level Regulation Inheritance for Nested Sub-Regions (RESOLVED)
 
 **Problem:** Nation Arm and Davis Bay are carved out of Zone B’s **geometry** (non-overlapping polygons for map display). But they are geographically inside Zone B and must receive Zone B’s regulations in addition to their own sub-region-specific regulations. Without explicit handling, carving them out of Zone B’s geometry would cause them to lose Zone B’s regs entirely.
 
-**Resolution:** The Zone B `DirectMatch` entry uses `sub_polygon_ids` (plural) to fan out to all three sub-polygons within Zone B: `zone_b`, `nation_arm`, and `davis_bay`. When the linker processes the "WILLISTON LAKE (in Zone B)" synopsis entry, it assigns Zone B’s regulations to all three features. Meanwhile, "NATION ARM" and "DAVIS BAY" entries use singular `sub_polygon_id` to add their specific regulations on top.
+**Resolution:** The Zone B `DirectMatch` entry uses `sub_polygon_ids` to fan out to all three sub-polygons within Zone B: `zone_b`, `nation_arm`, and `davis_bay`. When the linker processes the "WILLISTON LAKE (in Zone B)" synopsis entry, it assigns Zone B's regulations to all three features. Meanwhile, "NATION ARM" and "DAVIS BAY" entries use single-element `sub_polygon_ids` lists to add their specific regulations on top.
 
 The key distinction: **geometry carving** (via `exclude_sub_polygon_ids`) is for display — non-overlapping polygons on the map. **Regulation fan-out** (via `sub_polygon_ids` in DirectMatch) is for rule assignment — a zone’s regs flow to all contained areas regardless of geometry carving.
 
@@ -791,7 +878,7 @@ This pattern requires no mapper changes. The mapper already accumulates multiple
 | Component | Why it works |
 |-----------|-------------|
 | **ScopeFilter** | Passthrough (MVP) — returns all features. Sub-polygons are features. |
-| **TributaryEnricher** | Not applicable to polygon features. Tributary `DirectMatch` entries continue using `gnis_id` for stream lookup. |
+| **TributaryEnricher** | Not applicable to polygon features. Tributary `DirectMatch` entries continue using `gnis_ids` for stream lookup. |
 | **Frontend** | Sub-polygons render as normal polygon features in PMTiles. No frontend changes. |
 | **Metadata pickle** | No rebuild needed. Sub-polygon metadata is injected at pipeline init, not at pickle build time. |
 | **ID collision** | Sub-polygon IDs contain `_sub_` which never appears in real FWA numeric IDs. |

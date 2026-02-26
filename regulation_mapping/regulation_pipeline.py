@@ -16,7 +16,6 @@ import json
 from .linker import WaterbodyLinker
 from fwa_pipeline.metadata_gazetteer import MetadataGazetteer
 from .linking_corrections import (
-    NAME_VARIATIONS,
     DIRECT_MATCHES,
     SKIP_ENTRIES,
     UNMARKED_WATERBODIES,
@@ -80,7 +79,6 @@ class RegulationPipeline:
 
         # Initialize manual corrections
         manual_corrections = ManualCorrections(
-            name_variations=NAME_VARIATIONS,
             direct_matches=DIRECT_MATCHES,
             skip_entries=SKIP_ENTRIES,
             unmarked_waterbodies=UNMARKED_WATERBODIES,

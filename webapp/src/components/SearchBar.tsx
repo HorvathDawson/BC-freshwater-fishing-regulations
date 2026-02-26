@@ -11,6 +11,7 @@ export interface SearchableFeature {
     lake_name?: string;
     name?: string;
     regulation_names?: string[];  // Array of regulation names
+    name_variants?: string[];  // All searchable names: gnis_name + gnis_name_2 + regulation names
     type: 'stream' | 'lake' | 'wetland' | 'manmade' | 'streams' | 'lakes' | 'wetlands';
     properties: Record<string, any>;
     geometry?: any;
@@ -74,7 +75,8 @@ const SearchBar: React.FC<SearchBarProps> = ({ features, onSelect, highlightedRe
                 { name: 'gnis_name', weight: 2 },
                 { name: 'lake_name', weight: 2 },
                 { name: 'name', weight: 2 },
-                { name: 'regulation_names', weight: 2 }  // Search across all regulation names in array
+                { name: 'regulation_names', weight: 2 },  // Search across all regulation names in array
+                { name: 'name_variants', weight: 2 }  // All names: gnis_name + gnis_name_2 + regulation names
             ],
             threshold: 0.3, // Even stricter for exact word matches
             distance: 50, // Strongly prefer matches at the beginning

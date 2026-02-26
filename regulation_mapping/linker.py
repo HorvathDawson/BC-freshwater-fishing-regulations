@@ -3,8 +3,7 @@ Waterbody Linker - Business logic for linking regulation names to FWA features.
 
 Handles the linking workflow:
 1. Check DirectMatch (highest priority)
-2. Check NameVariation
-3. Natural gazetteer search
+2. Natural gazetteer search
 
 Tracks statistics and provides clean interface for test coverage script.
 """
@@ -17,7 +16,6 @@ from collections import Counter
 from fwa_pipeline.metadata_gazetteer import MetadataGazetteer, FWAFeature
 from .linking_corrections import (
     ManualCorrections,
-    NameVariation,
     DirectMatch,
     AdminDirectMatch,
     SkipEntry,
@@ -49,7 +47,7 @@ class LinkingResult:
     )
     candidate_features: List[FWAFeature] = None  # Ambiguous candidates
     link_method: Optional[str] = (
-        None  # "direct_match", "name_variation", "natural_search", "admin_direct_match"
+        None  # "direct_match", "natural_search", "admin_direct_match"
     )
     matched_name: Optional[str] = (
         None  # The actual name that matched (for name variations)
@@ -75,8 +73,7 @@ class WaterbodyLinker:
 
     Workflow:
     1. Check DirectMatch (manual ID mappings)
-    2. Check NameVariation (name corrections)
-    3. Natural gazetteer search
+    2. Natural gazetteer search
 
     Tracks statistics for reporting.
     """
@@ -182,19 +179,7 @@ class WaterbodyLinker:
                 self.stats[result.status] += 1
                 return result
 
-        # STEP 2: Check NameVariation (manual name corrections)
-        if region:
-            name_var = self.corrections.get_name_variation(region, lookup_name)
-            if name_var:
-                # Use the corrected name(s) to search
-                result = self._link_with_name_variation(
-                    name_var, zone_number, mgmt_units
-                )
-                result.link_method = "name_variation"
-                self.stats[result.status] += 1
-                return result
-
-        # STEP 3: Natural gazetteer search (no manual corrections)
+        # STEP 2: Natural gazetteer search (no manual corrections)
         # Use verbatim name only (not the parsed waterbody_key)
         # Try 3 variations in order:
         # 1. Verbatim name as-is
@@ -370,16 +355,7 @@ class WaterbodyLinker:
         # Can combine multiple ID types for mixed matches (e.g., polygon + streams)
         features = []
 
-        if direct_match.gnis_id:
-            # Search by GNIS ID - should return all polygons with this GNIS
-            found = self.gazetteer.search_by_gnis_id(direct_match.gnis_id)
-            logger.debug(
-                f"Direct match by GNIS {direct_match.gnis_id} for '{name_verbatim}' found {len(found)} features"
-            )
-            features.extend(found)
-
         if direct_match.gnis_ids:
-            # Search by multiple GNIS IDs - for regulations covering multiple features
             for gnis_id in direct_match.gnis_ids:
                 found = self.gazetteer.search_by_gnis_id(gnis_id)
                 logger.debug(
@@ -387,58 +363,36 @@ class WaterbodyLinker:
                 )
                 features.extend(found)
 
-        if direct_match.fwa_watershed_code:
-            # Search by watershed code - should return all stream segments
-            features.extend(
-                self.gazetteer.search_by_watershed_code(direct_match.fwa_watershed_code)
-            )
-
         if direct_match.fwa_watershed_codes:
-            # Search by multiple watershed codes - for ambiguous creek candidates
             for watershed_code in direct_match.fwa_watershed_codes:
                 features.extend(self.gazetteer.search_by_watershed_code(watershed_code))
 
-        if direct_match.waterbody_poly_id:
-            # Lookup specific polygon by WATERBODY_POLY_ID (most precise)
-            feature = self.gazetteer.get_polygon_by_id(direct_match.waterbody_poly_id)
-            if feature:
-                features.append(feature)
-
         if direct_match.waterbody_poly_ids:
-            # Lookup multiple specific polygons by WATERBODY_POLY_ID
             for poly_id in direct_match.waterbody_poly_ids:
                 feature = self.gazetteer.get_polygon_by_id(poly_id)
                 if feature:
                     features.append(feature)
 
-        if direct_match.waterbody_key:
-            # Lookup all polygons with this waterbody_key (may be multiple)
-            found = self.gazetteer.get_waterbody_by_key(direct_match.waterbody_key)
-            features.extend(found)
-
         if direct_match.waterbody_keys:
-            # Lookup multiple waterbody_keys
             for key in direct_match.waterbody_keys:
                 found = self.gazetteer.get_waterbody_by_key(key)
                 features.extend(found)
 
         if direct_match.linear_feature_ids:
-            # Lookup specific stream segments
             for lfid in direct_match.linear_feature_ids:
                 feature = self.gazetteer.get_stream_by_id(lfid)
                 if feature:
                     features.append(feature)
 
-        if direct_match.blue_line_key:
-            # Search by blue line key
-            features.extend(
-                self.gazetteer.search_by_blue_line_key(direct_match.blue_line_key)
-            )
-
         if direct_match.blue_line_keys:
-            # Search by multiple blue line keys
             for blk in direct_match.blue_line_keys:
                 features.extend(self.gazetteer.search_by_blue_line_key(blk))
+
+        if direct_match.sub_polygon_ids:
+            for sp_id in direct_match.sub_polygon_ids:
+                feature = self.gazetteer.get_polygon_by_id(sp_id)
+                if feature:
+                    features.append(feature)
 
         if direct_match.unmarked_waterbody_id:
             # Lookup unmarked waterbody from manual corrections
@@ -513,62 +467,6 @@ class WaterbodyLinker:
                 matched_features=features,
             )
 
-    def _link_with_name_variation(
-        self,
-        name_var: NameVariation,
-        zone_number: Optional[str],
-        mgmt_units: Optional[List[str]],
-    ) -> LinkingResult:
-        """Link using corrected name(s) from NameVariation."""
-
-        # Handle multi-waterbody case (e.g., "RIVER A AND RIVER B" -> ["river a", "river b"])
-        if len(name_var.target_names) > 1:
-            all_features = []
-            successful_targets = 0
-
-            # Use _natural_search for every target name to benefit from dedup/MU filtering
-            for target in name_var.target_names:
-                res = self._natural_search(
-                    target, zone_number, mgmt_units, is_variation=True
-                )
-                if res.status == LinkStatus.SUCCESS:
-                    successful_targets += 1
-                    all_features.extend(res.matched_features)
-
-            # We count successful targets instead of raw features so multiple stream segments
-            # won't falsely fail the length validation check.
-            if successful_targets == len(name_var.target_names):
-                # Enforce consistent attribution on matched features
-                for feature in all_features:
-                    feature.matched_via = f"name_variation ({name_var.note})"
-
-                return LinkingResult(
-                    status=LinkStatus.SUCCESS,
-                    matched_features=all_features,
-                    matched_name=", ".join(
-                        name_var.target_names
-                    ),  # Track which names were used
-                )
-            else:
-                return LinkingResult(
-                    status=LinkStatus.NOT_FOUND,
-                    error_message=f"Found {successful_targets}/{len(name_var.target_names)} expected waterbodies",
-                )
-
-        # Single target name
-        target_name = name_var.target_names[0]
-        result = self._natural_search(
-            target_name, zone_number, mgmt_units, is_variation=True
-        )
-
-        # Set matched_name and explicitly format matched_via if this was a variation
-        if result.status == LinkStatus.SUCCESS:
-            result.matched_name = target_name
-            for feature in result.matched_features:
-                feature.matched_via = f"name_variation ({name_var.note})"
-
-        return result
-
     def _natural_search(
         self,
         name: str,
@@ -585,10 +483,20 @@ class WaterbodyLinker:
             )
 
         # If no matches and zone_number was specified, try searching all zone_numbers
-        # (allows cross-zone_number matches for boundary issues)
+        # (allows cross-zone_number matches for boundary features)
+        cross_zone_fallback = False
         if not matches and zone_number:
             matches = self.gazetteer.search(name, zone_number=None)
-
+            if matches:
+                cross_zone_fallback = True
+                cross_zones = set()
+                for m in matches:
+                    cross_zones.update(m.zones or [])
+                logger.warning(
+                    f"Zone mismatch: '{name}' not found in zone {zone_number} "
+                    f"but found in zone(s) {sorted(cross_zones)}. "
+                    f"Regulation region may be wrong or feature zone assignment needs review."
+                )
         # Deduplicate by waterbody identity
         # - For streams: group by fwa_watershed_code (multiple segments = one stream)
         # - For lakes: group by gnis_id (multiple polygons = one lake)
@@ -872,7 +780,6 @@ def _run_coverage_test():
     from collections import defaultdict, Counter as _Counter
 
     from .linking_corrections import (
-        NAME_VARIATIONS,
         DIRECT_MATCHES,
         SKIP_ENTRIES,
         UNMARKED_WATERBODIES,
@@ -912,29 +819,36 @@ def _run_coverage_test():
     def extract_region(region_str):
         if not region_str or not region_str.startswith("REGION"):
             return None
-        num = "".join(c for c in region_str.split("-")[0] if c.isdigit())
-        return f"Region {num}" if num else None
+        # Preserve letter suffix: "REGION 7A - Omineca" -> "Region 7A"
+        import re as _re
+
+        m = _re.match(r"REGION\s+(\d+[A-Za-z]?)\s*[-–]", region_str)
+        if m:
+            return f"Region {m.group(1).upper()}"
+        # Fallback: extract digits+letters before first hyphen
+        token = region_str.split("-")[0].strip()  # "REGION 7A "
+        parts = token.split()  # ["REGION", "7A"]
+        if len(parts) >= 2:
+            return f"Region {parts[-1].upper()}"
+        return None
 
     # --- Export helpers ---
 
     def _instructions_block(mode):
         if mode == "NOT_FOUND":
             return {
-                "description": "NOT_FOUND waterbodies - need to add name variations",
+                "description": "NOT_FOUND waterbodies - need manual corrections",
                 "how_to_fix": [
-                    "1. Check spelling/formatting/renaming -> Add to NAME_VARIATIONS",
-                    "2. Not in gazetteer? -> Add to DIRECT_MATCHES",
+                    "1. Check spelling/formatting/renaming -> Add to DIRECT_MATCHES with GNIS ID",
+                    "2. Not in gazetteer? -> Add to DIRECT_MATCHES with waterbody_key",
                     "3. Check 'search_terms_used' and 'location_descriptor'",
                     "4. Use management_units to narrow down",
                 ],
-                "example_name_variation": {
-                    "TOQUART LAKE": {
-                        "target_names": ["toquaht lake"],
-                        "note": "Spelling",
-                    }
-                },
                 "example_direct_match": {
-                    "LONG LAKE (Nanaimo)": {"gnis_id": "17501", "note": "Disambiguate"}
+                    "LONG LAKE (Nanaimo)": {
+                        "gnis_ids": ["17501"],
+                        "note": "Disambiguate",
+                    }
                 },
             }
         return {
@@ -954,7 +868,6 @@ def _run_coverage_test():
         for item in items:
             reg, name = item["region"], item["name_verbatim"]
             full = lookup.get((reg, name), {})
-            ex_var = NAME_VARIATIONS.get(reg, {}).get(name)
             ex_match = DIRECT_MATCHES.get(reg, {}).get(name)
 
             entry = {
@@ -972,13 +885,8 @@ def _run_coverage_test():
                 "page": full.get("page"),
                 "regulations_summary": full.get("regs_verbatim"),
                 "full_identity": full.get("identity"),
-                "existing_variation": (
-                    {"target_names": ex_var.target_names, "note": ex_var.note}
-                    if ex_var
-                    else None
-                ),
                 "existing_direct_match": (
-                    {"gnis_id": ex_match.gnis_id, "note": ex_match.note}
+                    {"gnis_ids": ex_match.gnis_ids, "note": ex_match.note}
                     if ex_match
                     else None
                 ),
@@ -988,7 +896,7 @@ def _run_coverage_test():
                 entry["search_terms_used"] = item.get(
                     "search_terms", [item["waterbody_key"].lower()]
                 )
-                entry["suggested_action"] = "Add to NAME_VARIATIONS or DIRECT_MATCHES"
+                entry["suggested_action"] = "Add to DIRECT_MATCHES with GNIS ID"
             else:
                 entry["candidate_count"] = len(item.get("candidates", []))
                 entry["candidate_waterbodies"] = item.get("candidate_details", [])
@@ -1033,7 +941,6 @@ def _run_coverage_test():
             self.failed_parse = []
             self.trib_non_stream = []
             self.mu_mismatches = []
-            self.used_vars = set()
             self.used_direct = set()
             self.used_skips = set()
             self.reg_names_seen = set()
@@ -1068,14 +975,13 @@ def _run_coverage_test():
     linker = WaterbodyLinker(
         gazetteer,
         ManualCorrections(
-            NAME_VARIATIONS,
             DIRECT_MATCHES,
             SKIP_ENTRIES,
             UNMARKED_WATERBODIES,
             ADMIN_DIRECT_MATCHES,
         ),
     )
-    print(f"Loaded configuration across {len(NAME_VARIATIONS)} regions")
+    print(f"Loaded configuration")
 
     header("TESTING LINKING")
     stats = _Stats()
@@ -1108,12 +1014,7 @@ def _run_coverage_test():
         if res.status in (LinkStatus.SUCCESS, LinkStatus.ADMIN_MATCH):
             stats.success_methods[res.link_method] += 1
 
-            if res.link_method == "name_variation":
-                if name in NAME_VARIATIONS.get(region, {}):
-                    stats.used_vars.add((region, name))
-                elif key in NAME_VARIATIONS.get(region, {}):
-                    stats.used_vars.add((region, key))
-            elif res.link_method == "direct_match":
+            if res.link_method == "direct_match":
                 matched = name if name in DIRECT_MATCHES.get(region, {}) else key
                 if matched:
                     stats.used_direct.add((region, matched))
@@ -1129,9 +1030,12 @@ def _run_coverage_test():
                 elif reg_set and not fwa_mus:
                     mismatch = True
                 if mismatch:
-                    reg_num = region.split()[-1]
+                    # Strip letter suffix for MU prefix comparison
+                    # "Region 7A" -> "7A" -> "7" (MUs are "7-10" not "7A-10")
+                    reg_num_raw = region.split()[-1]
+                    reg_num_digits = "".join(c for c in reg_num_raw if c.isdigit())
                     is_cross = bool(fwa_mus) and not any(
-                        m.startswith(f"{reg_num}-") for m in fwa_mus
+                        m.startswith(f"{reg_num_digits}-") for m in fwa_mus
                     )
                     stats.mu_mismatches.append(
                         {
@@ -1214,7 +1118,6 @@ def _run_coverage_test():
     print("\n   --- Success Breakdown ---")
     method_map = {
         "direct_match": "Direct Match (Config)",
-        "name_variation": "Name Variation (Config)",
         "natural_search": "Natural Search (Fuzzy)",
         "exact_match": "Exact Name Match",
     }
@@ -1356,24 +1259,11 @@ def _run_coverage_test():
     # Unused configs
     header("UNUSED CONFIGURATION")
 
-    unused_vars = []
-    for r, v in NAME_VARIATIONS.items():
-        for k in v:
-            if not SKIP_ENTRIES.get(r, {}).get(k) and (r, k) not in stats.used_vars:
-                unused_vars.append(f"{r} | {k}")
-
     unused_direct = []
     for r, m in DIRECT_MATCHES.items():
         for k in m:
             if (r, k) in stats.reg_names_seen and (r, k) not in stats.used_direct:
                 unused_direct.append(f"{r} | {k}")
-
-    if unused_vars:
-        print(f"  {len(unused_vars)} Unused Name Variations (first 10):")
-        for u in unused_vars[:10]:
-            print(f"   - {u}")
-    else:
-        print("Name variations clean.")
 
     if unused_direct:
         print(f"\n  {len(unused_direct)} Unused Direct Matches (first 10):")
@@ -1391,7 +1281,6 @@ def _run_coverage_test():
     print(f"{GREEN}Linked (Total):     {linked_total}{RESET}")
     print(f"  - Natural Search: {stats.success_methods['natural_search']}")
     print(f"  - Direct Match:   {stats.success_methods['direct_match']}")
-    print(f"  - Name Variation: {stats.success_methods['name_variation']}")
     print(f"  - Exact Match:    {stats.success_methods['exact_match']}")
     print(f"  - Admin Match:    {stats.success_methods.get('admin_direct_match', 0)}")
     print(f"{RED}Not Found:          {len(stats.results[LinkStatus.NOT_FOUND])}{RESET}")

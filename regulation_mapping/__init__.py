@@ -15,8 +15,6 @@ from .linker import (
 )
 from fwa_pipeline.metadata_gazetteer import MetadataGazetteer, FWAFeature
 from .linking_corrections import (
-    NameVariation,
-    NAME_VARIATIONS,
     DirectMatch,
     AdminDirectMatch,
     ADMIN_DIRECT_MATCHES,
@@ -38,8 +36,6 @@ __all__ = [
     "LinkingResult",
     "LinkStatus",
     "MetadataGazetteer",
-    "NameVariation",
-    "NAME_VARIATIONS",
     "DirectMatch",
     "AdminDirectMatch",
     "ADMIN_DIRECT_MATCHES",

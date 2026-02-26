@@ -138,6 +138,18 @@ class RegulationGeoExporter:
                 return meta.get("gnis_name")
         return ""
 
+    def _get_group_gnis_name_2(
+        self, feature_ids: tuple[str, ...], ftype: FeatureType
+    ) -> str:
+        """Safely extract the gnis_name_2 (secondary GNIS name) from polygon features."""
+        if ftype == FeatureType.STREAM:
+            return ""
+        for fid in feature_ids:
+            meta = self.gazetteer.get_polygon_metadata(fid, ftype)
+            if meta and meta.get("gnis_name_2"):
+                return meta.get("gnis_name_2")
+        return ""
+
     # --- CACHING & I/O ---
 
     def _get_gdb_mtime(self, gdb_path: Path) -> float:
@@ -941,6 +953,7 @@ class RegulationGeoExporter:
                 "wb_keys": set(),
                 "group_ids": [],
                 "feature_ids": [],
+                "gnis_name_2": "",
             }
         )
 
@@ -956,6 +969,7 @@ class RegulationGeoExporter:
 
             ftype = self.gazetteer.get_feature_type_from_id(first_fid)
             gnis_name = self._get_group_gnis_name(group.feature_ids, ftype)
+            gnis_name_2 = self._get_group_gnis_name_2(group.feature_ids, ftype)
 
             if not gnis_name and not reg_names:
                 continue
@@ -963,6 +977,8 @@ class RegulationGeoExporter:
             sg = search_groups[
                 (gnis_name, tuple(sorted(group.regulation_ids)), ftype.value)
             ]
+            if gnis_name_2 and not sg["gnis_name_2"]:
+                sg["gnis_name_2"] = gnis_name_2
 
             prefix = f"{ftype.value.upper()}_" if ftype != FeatureType.STREAM else ""
             geoms_dict = (
@@ -1020,13 +1036,27 @@ class RegulationGeoExporter:
                 .bounds
             )
 
+            reg_names = self._get_reg_names(reg_ids, data["feature_ids"])
+
+            # Build name_variants: deduplicated set of all names for this waterbody
+            # Includes gnis_name, gnis_name_2, and all regulation names
+            name_set = set()
+            if gnis:
+                name_set.add(gnis)
+            gnis2 = data.get("gnis_name_2", "")
+            if gnis2:
+                name_set.add(gnis2)
+            for rn in reg_names:
+                name_set.add(rn)
+            name_variants = sorted(name_set)
+
             search_items.append(
                 {
                     "id": f"{gnis}|{','.join(reg_ids)}|{ftype_val}",
                     "gnis_name": gnis,
-                    "regulation_names": self._get_reg_names(
-                        reg_ids, data["feature_ids"]
-                    ),
+                    "gnis_name_2": gnis2,
+                    "regulation_names": reg_names,
+                    "name_variants": name_variants,
                     "type": ftype_val,
                     "zones": ",".join(sorted(data["zone_to_name"].keys())),
                     "mgmt_units": ",".join(sorted(data["mgmt_units"])),
