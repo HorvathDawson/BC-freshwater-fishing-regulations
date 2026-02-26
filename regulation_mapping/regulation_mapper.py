@@ -242,10 +242,7 @@ class RegulationMapper:
                 base_features = self.gazetteer.find_features_in_admin_area(
                     admin_features=admin_features,
                     layer_key=admin_match.admin_layer,
-                    include_streams=admin_match.include_streams,
-                    include_lakes=admin_match.include_lakes,
-                    include_wetlands=admin_match.include_wetlands,
-                    include_manmade=admin_match.include_manmade,
+                    feature_types=admin_match.feature_types,
                     gpkg_path=self.gpkg_path,
                 )
                 if not base_features:
@@ -545,36 +542,11 @@ class RegulationMapper:
                 )
                 continue
 
-            # Determine include flags from provincial regulation
-            include_streams = (
-                "stream" in prov_reg.feature_types
-                if prov_reg.feature_types
-                else prov_reg.include_streams
-            )
-            include_lakes = (
-                "lake" in prov_reg.feature_types
-                if prov_reg.feature_types
-                else prov_reg.include_lakes
-            )
-            include_wetlands = (
-                "wetland" in prov_reg.feature_types
-                if prov_reg.feature_types
-                else prov_reg.include_wetlands
-            )
-            include_manmade = (
-                "manmade" in prov_reg.feature_types
-                if prov_reg.feature_types
-                else prov_reg.include_manmade
-            )
-
             # Spatial intersection with FWA features
             matched_features = self.gazetteer.find_features_in_admin_area(
                 admin_features=admin_features,
                 layer_key=prov_reg.admin_layer,
-                include_streams=include_streams,
-                include_lakes=include_lakes,
-                include_wetlands=include_wetlands,
-                include_manmade=include_manmade,
+                feature_types=prov_reg.feature_types,
                 gpkg_path=self.gpkg_path,
             )
 

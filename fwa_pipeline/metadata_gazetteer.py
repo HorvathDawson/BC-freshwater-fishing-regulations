@@ -651,10 +651,7 @@ class MetadataGazetteer:
         self,
         admin_features: List[FWAFeature],
         layer_key: str,
-        include_streams: bool = True,
-        include_lakes: bool = True,
-        include_wetlands: bool = False,
-        include_manmade: bool = False,
+        feature_types: Optional[List[FeatureType]] = None,
         gpkg_path: Optional[Path] = None,
     ) -> List[FWAFeature]:
         """
@@ -668,10 +665,8 @@ class MetadataGazetteer:
         Args:
             admin_features: Admin FWAFeature list from search_admin_layer().
             layer_key: Admin layer key (for geometry lookup in GPKG).
-            include_streams: Include stream features.
-            include_lakes: Include lake polygon features.
-            include_wetlands: Include wetland polygon features.
-            include_manmade: Include manmade waterbody features.
+            feature_types: Which FWA feature types to include. If None, includes
+                           all types (STREAM, LAKE, WETLAND, MANMADE).
             gpkg_path: Path to GPKG for reading layers.
 
         Returns:
@@ -692,18 +687,22 @@ class MetadataGazetteer:
 
         features: List[FWAFeature] = []
 
-        # Map of include flags to (layer_name, FeatureType, id_field)
-        fwa_layer_map = []
-        if include_streams:
-            fwa_layer_map.append(("streams", FeatureType.STREAM, "LINEAR_FEATURE_ID"))
-        if include_lakes:
-            fwa_layer_map.append(("lakes", FeatureType.LAKE, "WATERBODY_POLY_ID"))
-        if include_wetlands:
-            fwa_layer_map.append(("wetlands", FeatureType.WETLAND, "WATERBODY_POLY_ID"))
-        if include_manmade:
-            fwa_layer_map.append(
-                ("manmade_water", FeatureType.MANMADE, "WATERBODY_POLY_ID")
-            )
+        # Map FeatureType to (layer_name, id_field) for GPKG lookup
+        _FWA_LAYER_INFO = {
+            FeatureType.STREAM: ("streams", "LINEAR_FEATURE_ID"),
+            FeatureType.LAKE: ("lakes", "WATERBODY_POLY_ID"),
+            FeatureType.WETLAND: ("wetlands", "WATERBODY_POLY_ID"),
+            FeatureType.MANMADE: ("manmade_water", "WATERBODY_POLY_ID"),
+        }
+        types_to_include = (
+            feature_types if feature_types else list(_FWA_LAYER_INFO.keys())
+        )
+        fwa_layer_map = [
+            (layer, ftype, id_field)
+            for ftype in types_to_include
+            if ftype in _FWA_LAYER_INFO
+            for layer, id_field in [_FWA_LAYER_INFO[ftype]]
+        ]
 
         # Pre-compute admin union once.
         admin_union = admin_gdf.geometry.union_all()

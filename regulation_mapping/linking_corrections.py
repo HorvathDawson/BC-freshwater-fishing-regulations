@@ -29,6 +29,8 @@ Format:
 from dataclasses import dataclass
 from typing import Dict, List, Optional
 
+from fwa_pipeline.metadata_builder import FeatureType
+
 
 @dataclass
 class NameVariation:
@@ -129,10 +131,9 @@ class AdminDirectMatch:
         code_filter: Classification codes to pre-filter the layer by (e.g., ["PP"]
                      for provincial parks in parks_bc). Only effective when the
                      layer defines a code_field in ADMIN_LAYER_CONFIG.
-        include_streams: Include stream features in spatial intersection
-        include_lakes: Include lake features in spatial intersection
-        include_wetlands: Include wetland features in spatial intersection
-        include_manmade: Include manmade waterbody features in spatial intersection
+        feature_types: Which FWA feature types to include in the spatial
+                       intersection. Uses FeatureType enum values. If None,
+                       includes all types (STREAM, LAKE, WETLAND, MANMADE).
         additional_info: Extra text injected as a "Note" rule on the regulation.
             Use for permit requirements, special access info, or other context
             that should appear alongside the synopsis-parsed rules.
@@ -143,10 +144,7 @@ class AdminDirectMatch:
     feature_ids: Optional[List[int]] = None
     feature_names: Optional[List[str]] = None
     code_filter: Optional[List[str]] = None
-    include_streams: bool = True
-    include_lakes: bool = True
-    include_wetlands: bool = False
-    include_manmade: bool = False
+    feature_types: Optional[List[FeatureType]] = None  # None = all types
     additional_info: Optional[str] = None
 
 
@@ -2000,10 +1998,6 @@ ADMIN_DIRECT_MATCHES: Dict[str, Dict[str, AdminDirectMatch]] = {
                 "Applies to all streams and lakes within Strathcona Provincial Park. "
                 "Layer: TA_PARK_ECORES_PA_SVW, ID field: ADMIN_AREA_SID."
             ),
-            include_streams=True,
-            include_lakes=True,
-            include_wetlands=True,
-            include_manmade=True,
         ),
     },
     "Region 4": {
@@ -2021,10 +2015,6 @@ ADMIN_DIRECT_MATCHES: Dict[str, Dict[str, AdminDirectMatch]] = {
                 "Canal and Duck Lake. For details on acquiring a permit visit "
                 "www.crestonwildlife.ca or call 250-402-6900."
             ),
-            include_streams=True,
-            include_lakes=True,
-            include_wetlands=True,
-            include_manmade=True,
         ),
         "KIKOMUN CREEK PARK (all lakes in the park)": AdminDirectMatch(
             admin_layer="parks_bc",
@@ -2034,10 +2024,7 @@ ADMIN_DIRECT_MATCHES: Dict[str, Dict[str, AdminDirectMatch]] = {
                 "Regulations apply specifically to lakes within Kikomun Creek Provincial Park. "
                 "Layer: TA_PARK_ECORES_PA_SVW, ID field: ADMIN_AREA_SID."
             ),
-            include_streams=False,
-            include_lakes=True,
-            include_wetlands=False,
-            include_manmade=False,
+            feature_types=[FeatureType.LAKE],
         ),
     },
     "Region 5": {
@@ -2049,10 +2036,6 @@ ADMIN_DIRECT_MATCHES: Dict[str, Dict[str, AdminDirectMatch]] = {
                 "Applies to all streams and lakes within Bowron Lake Provincial Park, excluding Bowron Lake itself. "
                 "Layer: TA_PARK_ECORES_PA_SVW, ID field: ADMIN_AREA_SID."
             ),
-            include_streams=True,
-            include_lakes=True,
-            include_wetlands=True,
-            include_manmade=True,
         ),
     },
     "Region 6": {
@@ -2064,10 +2047,6 @@ ADMIN_DIRECT_MATCHES: Dict[str, Dict[str, AdminDirectMatch]] = {
                 "Applies to all streams and lakes within the Chilkoot Trail National Historic Site. "
                 "Layer: HIST_HERITAGE_WRECK_SVW, ID field: SITE_ID."
             ),
-            include_streams=True,
-            include_lakes=True,
-            include_wetlands=True,
-            include_manmade=True,
         ),
     },
     "Region 7B": {
@@ -2079,10 +2058,7 @@ ADMIN_DIRECT_MATCHES: Dict[str, Dict[str, AdminDirectMatch]] = {
                 "FWA NAMED WATERSHED: Named Watershed ID 5, Object ID 6422089. "
                 "Layer: FWA_NAMED_WATERSHEDS_POLY, ID field: NAMED_WATERSHED_ID."
             ),
-            include_streams=True,
-            include_lakes=True,
-            include_wetlands=False,
-            include_manmade=True,
+            feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         ),
     },
 }

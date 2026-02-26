@@ -39,6 +39,8 @@ Zone regulations are **manually defined** as static data (same pattern as `provi
 from dataclasses import dataclass, field
 from typing import Dict, List, Any, Optional
 
+from fwa_pipeline.metadata_builder import FeatureType
+
 
 @dataclass
 class ZoneRegulation:
@@ -71,9 +73,9 @@ class ZoneRegulation:
         notes: Source references (synopsis page numbers, edition, etc.).
 
         feature_types: Which FWA feature types this regulation applies to.
-                       Values: "stream", "lake", "wetland", "manmade".
-                       If empty/None, applies to ALL feature types.
-                       Ignored in direct-match mode.
+                       Uses FeatureType enum values (e.g., FeatureType.STREAM,
+                       FeatureType.LAKE). If empty/None, applies to ALL feature
+                       types. Ignored in direct-match mode.
         mu_ids: Optional list of specific MU codes (e.g., ["6-1", "6-2"]).
                 If set, only features whose mgmt_units overlap this list
                 are affected. This handles MU-specific zone defaults.
@@ -98,7 +100,7 @@ class ZoneRegulation:
     notes: str
 
     # Scope (zone-wide mode)
-    feature_types: Optional[List[str]] = None  # None = all types
+    feature_types: Optional[List[FeatureType]] = None  # None = all types
     mu_ids: Optional[List[str]] = None          # None = all MUs in zone
 
     # Direct-match fields (any populated → targets specific waterbodies)
@@ -147,7 +149,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
             "Unless otherwise noted in the tables, all streams in Region 1 "
             "are closed to fishing November 1 to June 30."
         ),
-        feature_types=["stream"],
+        feature_types=[FeatureType.STREAM],
         restriction={
             "type": "Closed",
             "species": ["all"],
@@ -166,7 +168,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
             "Daily quota for trout (all species combined): 2 in streams, "
             "4 in lakes, unless noted in the tables."
         ),
-        feature_types=["stream", "lake"],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
         restriction={
             "type": "Quota",
             "species": ["trout"],
@@ -328,7 +330,7 @@ def _process_zone_regulations(self) -> Dict[str, List[str]]:
             "dates": zone_reg.restriction.get("dates"),
             "source": "zone",
             "zone_ids": zone_reg.zone_ids,
-            "feature_types": zone_reg.feature_types,
+            "feature_types": [ft.value for ft in zone_reg.feature_types] if zone_reg.feature_types else None,
             "is_direct_match": zone_reg.has_direct_target(),
         }
 
@@ -464,7 +466,7 @@ def _build_zone_feature_index(self) -> Dict[str, Dict[FeatureType, Dict[str, dic
     _process_zone_regulations can query efficiently.
     """
     # FeatureType is already imported at module level via:
-    #   from fwa_pipeline.metadata_gazetteer import FeatureType
+    #   from fwa_pipeline.metadata_builder import FeatureType
 
     index: Dict[str, Dict[FeatureType, Dict[str, dict]]] = {}
     fwa_types = [
@@ -490,32 +492,23 @@ def _build_zone_feature_index(self) -> Dict[str, Dict[FeatureType, Dict[str, dic
 #### Feature Type Resolution Helper
 
 ```python
+_ALL_FWA_TYPES = [
+    FeatureType.STREAM, FeatureType.LAKE, FeatureType.WETLAND,
+    FeatureType.MANMADE, FeatureType.UNGAZETTED,
+]
+
 def _resolve_feature_types(
-    self, feature_type_strings: Optional[List[str]]
+    self, feature_types: Optional[List[FeatureType]]
 ) -> List[FeatureType]:
-    """Convert feature type strings to FeatureType enums.
+    """Return the feature types to include, defaulting to all types.
 
     Args:
-        feature_type_strings: ["stream", "lake", ...] or None for all types.
+        feature_types: Explicit list of FeatureType enums, or None for all.
 
     Returns:
         List of FeatureType enum values.
     """
-    # FeatureType is already imported at module level via:
-    #   from fwa_pipeline.metadata_gazetteer import FeatureType
-
-    type_map = {
-        "stream": FeatureType.STREAM,
-        "lake": FeatureType.LAKE,
-        "wetland": FeatureType.WETLAND,
-        "manmade": FeatureType.MANMADE,
-        "ungazetted": FeatureType.UNGAZETTED,
-    }
-
-    if not feature_type_strings:
-        return list(type_map.values())
-
-    return [type_map[t] for t in feature_type_strings if t in type_map]
+    return feature_types if feature_types else self._ALL_FWA_TYPES
 ```
 
 ### Pipeline Integration
@@ -621,7 +614,7 @@ All existing pipeline components are compatible without modification:
 - `matched_ids` uses a **set** to prevent duplicate `feature_to_regs` entries
 - `FeatureType.UNGAZETTED` is included in the zone index so ungazetted waterbodies receive zone defaults
 - `_disabled` convention matches provincial pattern (`getattr(r, "_disabled", False)`)
-- Feature type mapping uses singular strings (`"stream"`, `"lake"`) consistent with `ProvincialRegulation.feature_types`
+- All three regulation types (`AdminDirectMatch`, `ProvincialRegulation`, `ZoneRegulation`) use `feature_types: Optional[List[FeatureType]]` with `None` = all types — consistent interface across the pipeline
 
 ---
 
@@ -665,7 +658,7 @@ Five new methods + two small edits:
 | `_resolve_zone_wide()` | ~20 | Low — nested loop over zone index, optional MU filter, waterbody key backfill. |
 | `_resolve_zone_direct_match()` | ~45 | Low — sequential ID field lookups via existing gazetteer methods. Identical pattern to `linker.py:_apply_direct_match()` but reads from `ZoneRegulation` fields instead of `DirectMatch`. |
 | `_build_zone_feature_index()` | ~15 | Trivial — single pass over `gazetteer.metadata`, builds `{zone_id: {FeatureType: {fid: meta}}}`. |
-| `_resolve_feature_types()` | ~10 | Trivial — dict mapping `"stream"` → `FeatureType.STREAM` etc. |
+| `_resolve_feature_types()` | ~5 | Trivial — returns input or default `_ALL_FWA_TYPES` list. |
 | `run()` — add Phase 2.5 call | ~2 | Trivial — one line: `zone_feature_map = self._process_zone_regulations()`, one line: pass to `PipelineResult`. |
 | `PipelineResult` — add field | ~2 | Trivial — `zone_feature_map: Dict[str, List[str]] = field(default_factory=dict)` |
 
@@ -755,16 +748,17 @@ def _run_zone_test():
     for zr in ZONE_BASE_REGULATIONS:
         # Count matching features
         count = 0
-        type_map = {"stream": FeatureType.STREAM, "lake": FeatureType.LAKE,
-                     "wetland": FeatureType.WETLAND, "manmade": FeatureType.MANMADE}
-        target_types = [type_map[t] for t in (zr.feature_types or type_map.keys())]
+        all_types = [FeatureType.STREAM, FeatureType.LAKE,
+                     FeatureType.WETLAND, FeatureType.MANMADE]
+        target_types = zr.feature_types or all_types
 
         for zone_id in zr.zone_ids:
             for ft in target_types:
                 count += len(index.get(zone_id, {}).get(ft, {}))
 
+        type_names = [ft.value for ft in target_types] if zr.feature_types else "ALL"
         print(f"  {zr.regulation_id}: zones={zr.zone_ids}, "
-              f"types={zr.feature_types or 'ALL'}, features={count:,}")
+              f"types={type_names}, features={count:,}")
 
 if __name__ == "__main__":
     _run_zone_test()
@@ -775,7 +769,7 @@ if __name__ == "__main__":
 ### Q1: Should Zone Regulations Apply to Wetlands?
 
 The synopsis preamble focuses on streams and lakes. Wetlands are typically not mentioned in zone defaults. Options:
-- **A) Exclude wetlands by default** — set `feature_types=["stream", "lake"]` on most zone regs
+- **A) Exclude wetlands by default** — set `feature_types=[FeatureType.STREAM, FeatureType.LAKE]` on most zone regs
 - **B) Include wetlands unless explicitly excluded** — some closures logically extend to wetlands
 - **Recommendation:** Exclude wetlands by default. Add wetlands only when the synopsis text explicitly mentions "all waters" (which includes wetlands).
 

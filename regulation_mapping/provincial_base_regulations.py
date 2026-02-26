@@ -81,6 +81,7 @@ from dataclasses import dataclass, field
 from typing import Dict, List, Any, Optional
 
 from fwa_pipeline.metadata_gazetteer import ADMIN_LAYER_CONFIG
+from fwa_pipeline.metadata_builder import FeatureType
 
 
 @dataclass
@@ -104,12 +105,9 @@ class ProvincialRegulation:
         code_filter: Classification codes to pre-filter the layer by (e.g.,
                      ["OI"] for ecological reserves in parks_bc). Only effective
                      when the layer defines a code_field in ADMIN_LAYER_CONFIG.
-        include_streams: Include stream features in spatial intersection
-        include_lakes: Include lake features in spatial intersection
-        include_wetlands: Include wetland features in spatial intersection
-        include_manmade: Include manmade waterbody features in spatial intersection
-
-        feature_types: List of FWA feature types for type-based scope (future)
+        feature_types: Which FWA feature types this regulation applies to.
+                       Uses FeatureType enum values. If None, includes all
+                       types (STREAM, LAKE, WETLAND, MANMADE).
     """
 
     regulation_id: str
@@ -123,14 +121,8 @@ class ProvincialRegulation:
     feature_names: Optional[List[str]] = None
     code_filter: Optional[List[str]] = None
 
-    # Feature type inclusion for admin boundary spatial intersection
-    include_streams: bool = True
-    include_lakes: bool = True
-    include_wetlands: bool = True
-    include_manmade: bool = True
-
-    # Feature type scope (future - all streams, all lakes, etc.)
-    feature_types: Optional[List[str]] = None
+    # Feature type scope — controls both admin intersection and type-based scope
+    feature_types: Optional[List[FeatureType]] = None  # None = all types
 
     @property
     def scope_type(self) -> str:
@@ -170,10 +162,6 @@ PROVINCIAL_BASE_REGULATIONS: List[ProvincialRegulation] = [
             "to fishing."
         ),
         admin_layer="parks_nat",
-        include_streams=True,
-        include_lakes=True,
-        include_wetlands=True,
-        include_manmade=True,
         restriction={
             "type": "Closed",
             "species": ["all"],
@@ -196,10 +184,6 @@ PROVINCIAL_BASE_REGULATIONS: List[ProvincialRegulation] = [
         rule_text="Fishing is prohibited in Ecological Reserves in B.C.",
         admin_layer="parks_bc",
         code_filter=["OI"],  # PROTECTED_LANDS_CODE 'OI' = Ecological Reserve
-        include_streams=True,
-        include_lakes=True,
-        include_wetlands=True,
-        include_manmade=True,
         restriction={
             "type": "Closed",
             "species": ["all"],
@@ -225,7 +209,7 @@ PROVINCIAL_BASE_REGULATIONS: List[ProvincialRegulation] = [
     #         "Note: the use of barbed hooks in lakes is permitted, unless noted "
     #         "in the Regional Water-Specific Tables."
     #     ),
-    #     feature_types=["stream"],
+    #     feature_types=[FeatureType.STREAM],
     #     restriction={
     #         "type": "Gear Restriction",
     #         "details": "Barbless hooks only; single-point hooks only.",
@@ -240,7 +224,7 @@ PROVINCIAL_BASE_REGULATIONS: List[ProvincialRegulation] = [
     #         "Your basic fishing licence entitles you to angle with one fishing line "
     #         "to which only one hook, one artificial lure OR one artificial fly is attached."
     #     ),
-    #     feature_types=["stream", "lake", "wetland", "manmade"],
+    #     feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.WETLAND, FeatureType.MANMADE],
     #     restriction={
     #         "type": "Gear Restriction",
     #         "details": "One fishing line; one hook, lure, or fly.",
@@ -513,8 +497,7 @@ def _run_provincial_test():
         print(f"  Admin layer:  {prov_reg.admin_layer}")
         print(f"  Code filter:  {prov_reg.code_filter}")
         print(
-            f"  Include:      streams={prov_reg.include_streams}, lakes={prov_reg.include_lakes}, "
-            f"wetlands={prov_reg.include_wetlands}, manmade={prov_reg.include_manmade}"
+            f"  Feature types: {[ft.value for ft in prov_reg.feature_types] if prov_reg.feature_types else 'ALL'}"
         )
 
         if not prov_reg.admin_layer:
@@ -552,10 +535,7 @@ def _run_provincial_test():
         matched_features = gazetteer.find_features_in_admin_area(
             admin_features=admin_features,
             layer_key=prov_reg.admin_layer,
-            include_streams=prov_reg.include_streams,
-            include_lakes=prov_reg.include_lakes,
-            include_wetlands=prov_reg.include_wetlands,
-            include_manmade=prov_reg.include_manmade,
+            feature_types=prov_reg.feature_types,
             gpkg_path=gpkg_path,
         )
 
