@@ -12,7 +12,7 @@
 
 8. need to add tidal region into the map. (will remove other regulations and say refer to tidal regulations)
 
-9. 
+9. we will want to add in the stocked lake info probably here https://www.gofishbc.com/wp-json/wpgmza/v1/features can query it. then we can link to lake fwa and add info for stoked info. 
 
 
 

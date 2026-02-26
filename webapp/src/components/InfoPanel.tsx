@@ -111,7 +111,36 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
         
         const title = props.gnis_name || props.lake_name || props.name || regulationNames[0] || 'Unnamed Waterbody';
         const typeLabel = feature.type.toUpperCase();
-        const hasRegNames = regulationNames.length > 0;
+
+        // Build deduplicated aliases from name_variants (search path) or fall back to regulation_names (tile click)
+        const nameVariants: string[] = Array.isArray(props.name_variants) ? props.name_variants : [];
+        let aliases: string[];
+        if (nameVariants.length > 0) {
+            // Deduplicate case-insensitively, excluding the display name
+            const seen = new Set<string>();
+            seen.add(title.toLowerCase());
+            aliases = [];
+            for (const name of nameVariants) {
+                const lower = name.toLowerCase();
+                if (!seen.has(lower)) {
+                    seen.add(lower);
+                    aliases.push(name);
+                }
+            }
+        } else {
+            // Tile click fallback: show regulation names that differ from the title
+            const seen = new Set<string>();
+            seen.add(title.toLowerCase());
+            aliases = [];
+            for (const name of regulationNames) {
+                const lower = name.toLowerCase();
+                if (!seen.has(lower)) {
+                    seen.add(lower);
+                    aliases.push(name);
+                }
+            }
+        }
+        const hasAliases = aliases.length > 0;
 
         return (
             <>
@@ -141,14 +170,14 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                     </div>
                     <div className="title-group">
                         <h1 className="title">{title}</h1>
-                        {hasRegNames && (
+                        {hasAliases && (
                             <div className="regulation-subtitle">
-                                Listed as:
-                                {regulationNames.length === 1 ? (
-                                    <span> {regulationNames[0]}</span>
+                                Also known as:
+                                {aliases.length === 1 ? (
+                                    <span> {aliases[0]}</span>
                                 ) : (
                                     <ul style={{ margin: '0.25rem 0 0 1rem', padding: 0, listStyle: 'disc' }}>
-                                        {regulationNames.map((name: string, idx: number) => (
+                                        {aliases.map((name: string, idx: number) => (
                                             <li key={idx}>{name}</li>
                                         ))}
                                     </ul>

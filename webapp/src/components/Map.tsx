@@ -505,7 +505,7 @@ const MapComponent = () => {
         
         setSelectedFeature({ 
             type: normalizedType, 
-            properties: { ...feature.properties, gnis_name: displayName, regulation_names: synopsisNames }, 
+            properties: { ...feature.properties, gnis_name: displayName, regulation_names: synopsisNames, name_variants: feature.name_variants || [] }, 
             source: 'regulations', 
             sourceLayer: srcLayer,
             bbox: feature.bbox as [number, number, number, number],

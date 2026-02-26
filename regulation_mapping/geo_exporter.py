@@ -758,8 +758,11 @@ class RegulationGeoExporter:
             gdf["admin_type"] = layer_key
         out_cols.append("admin_type")
 
-        # Tippecanoe zoom
-        gdf["tippecanoe:minzoom"] = 0
+        # Tippecanoe zoom — scale by polygon area so small admin areas
+        # only appear when the user is zoomed in (same thresholds as lakes).
+        gdf["tippecanoe:minzoom"] = gdf.geometry.area.apply(
+            self._calculate_polygon_minzoom
+        )
         out_cols.extend(["tippecanoe:minzoom", "geometry"])
 
         logger.info(f"  Admin layer '{layer_key}': {len(gdf)} features")

@@ -55,6 +55,25 @@ const getColorForType = (type: 'stream' | 'lake' | 'wetland' | 'manmade' | 'stre
     return colorMap[type as keyof typeof colorMap] || colorMap.lake;
 };
 
+/**
+ * Given an array of name_variants and the primary display name, return
+ * the subset of variants that represent genuinely different names
+ * (case-insensitive dedup, excluding the display name itself).
+ */
+const getUniqueAliases = (nameVariants: string[], displayName: string): string[] => {
+    const seen = new Set<string>();
+    const result: string[] = [];
+    seen.add(displayName.toLowerCase());
+    for (const name of nameVariants) {
+        const lower = name.toLowerCase();
+        if (!seen.has(lower)) {
+            seen.add(lower);
+            result.push(name);
+        }
+    }
+    return result;
+};
+
 const SearchBar: React.FC<SearchBarProps> = ({ features, onSelect, highlightedResult, onHighlight, placeholder = "Search waterbodies..." }) => {
     const [query, setQuery] = useState('');
     const [results, setResults] = useState<SearchableFeature[]>([]);
@@ -111,14 +130,16 @@ const SearchBar: React.FC<SearchBarProps> = ({ features, onSelect, highlightedRe
                 aItem.gnis_name, 
                 aItem.lake_name, 
                 aItem.name, 
-                ...(aItem.regulation_names || [])
+                ...(aItem.regulation_names || []),
+                ...(aItem.name_variants || [])
             ].some(name => name?.toLowerCase().startsWith(queryLower));
             
             const bStartsWith = [
                 bItem.gnis_name, 
                 bItem.lake_name, 
                 bItem.name, 
-                ...(bItem.regulation_names || [])
+                ...(bItem.regulation_names || []),
+                ...(bItem.name_variants || [])
             ].some(name => name?.toLowerCase().startsWith(queryLower));
             
             // Prioritize exact prefix matches
@@ -244,8 +265,8 @@ const SearchBar: React.FC<SearchBarProps> = ({ features, onSelect, highlightedRe
                 >
                     {results.map((feature, idx) => {
                         const displayName = getDisplayName(feature);
-                        const synopsisNames = regulationsService.filterOutProvincialNames(feature.regulation_names || []);
-                        const hasRegNames = synopsisNames.length > 0;
+                        const aliases = getUniqueAliases(feature.name_variants || [], displayName);
+                        const hasAliases = aliases.length > 0;
                         const zones = feature.properties?.zones;
                         const regionName = feature.properties?.region_name;
                         const isHighlighted = highlightedResult?.id === feature.id;
@@ -298,9 +319,9 @@ const SearchBar: React.FC<SearchBarProps> = ({ features, onSelect, highlightedRe
                                                 <span className="segment-badge"> ({feature._segmentCount} segments)</span>
                                             )}
                                         </div>
-                                        {hasRegNames && (
+                                        {hasAliases && (
                                             <div className="search-result-subtitle">
-                                                Listed as: {synopsisNames.join(' | ')}
+                                                Also known as: {aliases.join(' | ')}
                                             </div>
                                         )}
                                         <div className="search-result-meta">
