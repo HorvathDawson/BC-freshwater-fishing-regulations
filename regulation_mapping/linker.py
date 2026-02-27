@@ -329,7 +329,8 @@ class WaterbodyLinker:
         try:
             reg_region_num = region.split()[-1]  # Get last part after space
         except (IndexError, AttributeError):
-            return True  # Can't parse region, skip validation
+            logger.warning(f"Could not parse region string: {region!r}")
+            return False  # Can't parse region, fail validation
 
         # For MU comparison, use only the numeric portion of the region
         # (e.g., "7A" -> "7") since MU IDs always use the numeric prefix ("7-55")
@@ -350,7 +351,10 @@ class WaterbodyLinker:
                         feature_has_matching_mu = True
                         break
                 except (IndexError, AttributeError):
-                    continue  # Can't parse MU, skip
+                    logger.warning(
+                        f"Could not parse MU string: {mu!r} for feature {feature}"
+                    )
+                    continue
 
             # If this feature has no MUs matching the regulation region, validation fails
             if not feature_has_matching_mu:
@@ -618,19 +622,6 @@ class WaterbodyLinker:
 
                     expanded_features = []
                     for seg in full_stream_segments:
-                        # Ensure it matches GNIS ID or name to prevent collecting named side channels
-
-                        # if "similkameen" in name.lower():
-                        #     logger.warning(
-                        #         f"Expanding stream segments for '{name}' with watershed code {watershed_code}"
-                        #     )
-                        #     logger.warning(
-                        #         f"items in full stream segmentsa but not in unique matches: {[seg.fwa_id for seg in self.gazetteer.search_by_watershed_code(watershed_code) if seg not in all_features_in_group]}"
-                        #     )
-                        #     logger.warning(
-                        #         f"unique gnis_ids in both sets: {set(seg.gnis_id for seg in full_stream_segments)} vs {set(seg.gnis_id for seg in all_features_in_group)} and gnis names: {set(seg.gnis_name for seg in full_stream_segments)} vs {set(seg.gnis_name for seg in all_features_in_group)}  "
-                        #     )
-                        #     exit(0)
 
                         if target_gnis_id and seg.gnis_id == target_gnis_id:
                             expanded_features.append(seg)
@@ -696,10 +687,6 @@ class WaterbodyLinker:
         """Get linking statistics."""
         return dict(self.stats)
 
-    def reset_stats(self):
-        """Reset statistics counter."""
-        self.stats.clear()
-
 
 # ============================================================================
 # CLI Coverage Test  (python -m regulation_mapping.linker)
@@ -732,7 +719,17 @@ def _run_coverage_test():
         ManualCorrections,
     )
     from project_config import get_config
-    from .cli_helpers import RED, YELLOW, GREEN, BLUE, RESET, header, sub_header, divider, tw
+    from .cli_helpers import (
+        RED,
+        YELLOW,
+        GREEN,
+        BLUE,
+        RESET,
+        header,
+        sub_header,
+        divider,
+        tw,
+    )
     from .regulation_mapper import parse_region as extract_region
 
     # --- Export helpers ---

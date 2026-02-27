@@ -9,6 +9,7 @@ OPTIMIZATION NOTE:
 - Zone boundaries are buffered ONCE at startup.
 - Point-in-Polygon checks are performed against these buffered zones.
 - This avoids buffering 9+ million stream endpoints individually.
+- Both buffered (500m) and unbuffered (exact) zone assignments are stored.
 """
 
 import sys
@@ -22,6 +23,7 @@ from shapely.geometry import Point
 from shapely.strtree import STRtree
 from enum import Enum
 from project_config import get_config
+from tqdm import tqdm
 
 
 # --- Shared Enum ---
@@ -113,14 +115,17 @@ ZONE_BOUNDARY_BUFFER_M = 500.0
 # --- Helper Functions (Static for Multiprocessing) ---
 
 
-def find_zones_spatial(geometry, zones_gdf, zone_index):
+def find_zones_spatial(geometry, zones_gdf, zone_index, geom_col="geometry_buffered"):
     """
-    Finds zones intersecting the geometry using pre-buffered zones.
+    Finds zones intersecting the geometry.
 
     Args:
         geometry: Shapely Point or Polygon (Stream endpoint or Lake)
-        zones_gdf: GeoDataFrame containing 'geometry_buffered' column
-        zone_index: STRtree index built on 'geometry_buffered'
+        zones_gdf: GeoDataFrame containing zone geometry columns
+        zone_index: STRtree index built on the geometry column specified by *geom_col*
+        geom_col: Column to use for intersection checks.
+                  ``"geometry_buffered"`` (default) uses pre-buffered zones;
+                  ``"geometry"`` uses the original unbuffered boundaries.
 
     Returns:
         dict with keys:
@@ -129,7 +134,7 @@ def find_zones_spatial(geometry, zones_gdf, zone_index):
             region_names: list of REGION_RESPONSIBLE_NAME values, **positionally paired
                           with zones** (e.g. ["Omineca", "Peace"] when zones=["7A","7B"])
     """
-    # 1. Broad Search (Spatial Index against buffered zones)
+    # 1. Broad Search (Spatial Index)
     candidate_indices = zone_index.query(geometry)
 
     zone_to_name = {}  # zone_id → region_name (maintains pairing)
@@ -138,11 +143,9 @@ def find_zones_spatial(geometry, zones_gdf, zone_index):
     # 2. Precise Check
     for idx in candidate_indices:
         zone_row = zones_gdf.iloc[idx]
-        buffered_geom = zone_row["geometry_buffered"]
+        check_geom = zone_row[geom_col]
 
-        # Check intersection against the PRE-BUFFERED zone
-        # This is equivalent to buffering the point but much faster
-        if buffered_geom.intersects(geometry):
+        if check_geom.intersects(geometry):
             zone_id = zone_row["zone"]
             zone_to_name[zone_id] = zone_row.get("REGION_RESPONSIBLE_NAME", "") or ""
             mgmt_units.add(zone_row["WILDLIFE_MGMT_UNIT_ID"])
@@ -155,66 +158,20 @@ def find_zones_spatial(geometry, zones_gdf, zone_index):
     }
 
 
-def process_stream_chunk(chunk_data):
-    """
-    Worker function: Processes a batch of graph edges.
-
-    Each metadata record includes ``zones``, ``mgmt_units``, and ``region_names``
-    collected from both stream endpoints.  ``region_names`` is positionally paired
-    with ``zones`` — index *i* in ``region_names`` is the name for index *i* in
-    ``zones``.
-    """
-    zones_gdf, zone_index, edges = chunk_data
-    results = {}
-    border_crossings = 0
-
-    for key, u_x, u_y, v_x, v_y, attrs in edges:
-        # Create endpoint geometries (No buffering needed here anymore!)
-        u_pt = Point(u_x, u_y)
-        v_pt = Point(v_x, v_y)
-
-        # Spatial lookup for both ends
-        u_z = find_zones_spatial(u_pt, zones_gdf, zone_index)
-        v_z = find_zones_spatial(v_pt, zones_gdf, zone_index)
-
-        # Merge zone→name mappings from both endpoints (maintains pairing)
-        zone_to_name = {}
-        for z, n in zip(u_z["zones"], u_z["region_names"]):
+def _merge_zone_lookups(*lookups):
+    """Merge multiple zone lookup dicts into one combined result."""
+    zone_to_name = {}
+    mgmt_units = set()
+    for lookup in lookups:
+        for z, n in zip(lookup["zones"], lookup["region_names"]):
             zone_to_name[z] = n
-        for z, n in zip(v_z["zones"], v_z["region_names"]):
-            zone_to_name[z] = n
-        all_zones = sorted(zone_to_name.keys())
-        all_region_names = [zone_to_name[z] for z in all_zones]
-        all_mus = sorted(set(u_z["mgmt_units"] + v_z["mgmt_units"]))
-
-        is_cross_boundary = len(all_zones) > 1
-        if is_cross_boundary:
-            border_crossings += 1
-
-        # Build Metadata Record
-        results[str(key)] = {
-            "linear_feature_id": str(key),
-            "gnis_name": attrs.get("gnis_name", ""),
-            "gnis_id": attrs.get("gnis_id", ""),
-            "fwa_watershed_code": attrs.get("fwa_watershed_code", ""),
-            "fwa_watershed_code_clean": attrs.get("fwa_watershed_code_clean", ""),
-            "stream_order": attrs.get("stream_order"),
-            "stream_magnitude": attrs.get("stream_magnitude"),
-            "length": attrs.get("length", 0),
-            "waterbody_key": attrs.get("waterbody_key", ""),
-            "feature_code": attrs.get("feature_code", ""),
-            "blue_line_key": attrs.get("blue_line_key", ""),
-            "edge_type": attrs.get("edge_type", ""),
-            "zones": all_zones,
-            "mgmt_units": all_mus,
-            "region_names": all_region_names,
-            "cross_boundary": is_cross_boundary,
-            "unnamed_depth_distance_corrected": attrs.get(
-                "unnamed_depth_distance_corrected"
-            ),
-        }
-
-    return results, border_crossings
+        mgmt_units.update(lookup["mgmt_units"])
+    sorted_zones = sorted(zone_to_name.keys())
+    return {
+        "zones": sorted_zones,
+        "mgmt_units": sorted(mgmt_units),
+        "region_names": [zone_to_name[z] for z in sorted_zones],
+    }
 
 
 # --- Main Class ---
@@ -266,6 +223,8 @@ class MetadataBuilder:
 
         self.data["zones_gdf"] = gdf
         self.data["zone_index"] = STRtree(gdf["geometry_buffered"])
+        # Unbuffered index for exact zone boundary matching
+        self.data["zone_index_unbuffered"] = STRtree(gdf["geometry"])
 
         logger.info("Building zone definitions...")
         for _, row in gdf.iterrows():
@@ -304,6 +263,7 @@ class MetadataBuilder:
         logger.info("Processing streams...")
 
         edge_list = []
+        skipped_edges = 0
         for key, attrs in self.data["edge_attrs"].items():
             try:
                 u_id = attrs["source"]
@@ -311,17 +271,72 @@ class MetadataBuilder:
                 u_xy = self.data["node_coords"][u_id]
                 v_xy = self.data["node_coords"][v_id]
                 edge_list.append((key, u_xy[0], u_xy[1], v_xy[0], v_xy[1], attrs))
-            except KeyError:
-                continue
+            except KeyError as e:
+                skipped_edges += 1
+                if skipped_edges <= 5:
+                    logger.warning(f"Skipping edge {key}: missing key {e}")
+        if skipped_edges > 0:
+            logger.warning(
+                f"Skipped {skipped_edges} edges with missing node coordinates"
+            )
 
-        # No chunking or parallel processing needed
-        processed = 0
-        res, cross_count = process_stream_chunk(
-            (self.data["zones_gdf"], self.data["zone_index"], edge_list)
+        zones_gdf = self.data["zones_gdf"]
+        zone_index = self.data["zone_index"]
+        zone_index_ub = self.data["zone_index_unbuffered"]
+
+        results = {}
+        border_crossings = 0
+
+        for key, u_x, u_y, v_x, v_y, attrs in tqdm(
+            edge_list, desc="Streams", unit="edge"
+        ):
+            u_pt = Point(u_x, u_y)
+            v_pt = Point(v_x, v_y)
+
+            # Buffered spatial lookup for both ends
+            u_z = find_zones_spatial(u_pt, zones_gdf, zone_index, "geometry_buffered")
+            v_z = find_zones_spatial(v_pt, zones_gdf, zone_index, "geometry_buffered")
+            merged = _merge_zone_lookups(u_z, v_z)
+
+            is_cross_boundary = len(merged["zones"]) > 1
+            if is_cross_boundary:
+                border_crossings += 1
+
+            # Unbuffered spatial lookup for both ends
+            u_z_ub = find_zones_spatial(u_pt, zones_gdf, zone_index_ub, "geometry")
+            v_z_ub = find_zones_spatial(v_pt, zones_gdf, zone_index_ub, "geometry")
+            merged_ub = _merge_zone_lookups(u_z_ub, v_z_ub)
+
+            results[str(key)] = {
+                "linear_feature_id": str(key),
+                "gnis_name": attrs.get("gnis_name", ""),
+                "gnis_id": attrs.get("gnis_id", ""),
+                "fwa_watershed_code": attrs.get("fwa_watershed_code", ""),
+                "fwa_watershed_code_clean": attrs.get("fwa_watershed_code_clean", ""),
+                "stream_order": attrs.get("stream_order"),
+                "stream_magnitude": attrs.get("stream_magnitude"),
+                "length": attrs.get("length", 0),
+                "waterbody_key": attrs.get("waterbody_key", ""),
+                "feature_code": attrs.get("feature_code", ""),
+                "blue_line_key": attrs.get("blue_line_key", ""),
+                "edge_type": attrs.get("edge_type", ""),
+                "zones": merged["zones"],
+                "mgmt_units": merged["mgmt_units"],
+                "region_names": merged["region_names"],
+                "cross_boundary": is_cross_boundary,
+                "unnamed_depth_distance_corrected": attrs.get(
+                    "unnamed_depth_distance_corrected"
+                ),
+                "zones_unbuffered": merged_ub["zones"],
+                "mgmt_units_unbuffered": merged_ub["mgmt_units"],
+                "region_names_unbuffered": merged_ub["region_names"],
+            }
+
+        self.metadata[FeatureType.STREAM].update(results)
+        logger.info(
+            f"  Processed {len(results):,} streams "
+            f"({border_crossings:,} cross-boundary)"
         )
-        self.metadata[FeatureType.STREAM].update(res)
-        processed += len(res)
-        logger.info(f"  Processed {processed:,} streams...")
 
     def process_polygons(self):
         """Iterates over lakes, wetlands, and manmade waterbodies using available layer names from FWADataAccessor."""
@@ -342,7 +357,12 @@ class MetadataBuilder:
             try:
                 gdf = self.data_accessor.get_layer(layer_name)
                 results = {}
-                for idx, row in gdf.iterrows():
+                for idx, row in tqdm(
+                    gdf.iterrows(),
+                    total=len(gdf),
+                    desc=f"{ftype_enum.name}",
+                    unit="feat",
+                ):
                     # WATERBODY_POLY_ID already cleaned by FWADataAccessor (0/None → "")
                     pid = (
                         row.get("WATERBODY_POLY_ID", row.get("WATERBODY_KEY", "")) or ""
@@ -353,6 +373,13 @@ class MetadataBuilder:
                         row.geometry,
                         self.data["zones_gdf"],
                         self.data["zone_index"],
+                        "geometry_buffered",
+                    )
+                    z_data_ub = find_zones_spatial(
+                        row.geometry,
+                        self.data["zones_gdf"],
+                        self.data["zone_index_unbuffered"],
+                        "geometry",
                     )
                     name = row.get("GNIS_NAME_1", row.get("GNIS_NAME", "")) or ""
                     gid = row.get("GNIS_ID_1", row.get("GNIS_ID", "")) or ""
@@ -372,6 +399,9 @@ class MetadataBuilder:
                         "zones": z_data["zones"],
                         "mgmt_units": z_data["mgmt_units"],
                         "region_names": z_data["region_names"],
+                        "zones_unbuffered": z_data_ub["zones"],
+                        "mgmt_units_unbuffered": z_data_ub["mgmt_units"],
+                        "region_names_unbuffered": z_data_ub["region_names"],
                     }
                 self.metadata[ftype_enum] = results
                 logger.info(f"  Extracted {len(results):,} {ftype_enum.name}.")
@@ -407,7 +437,12 @@ class MetadataBuilder:
                 gdf = self.data_accessor.get_layer(layer_key)
                 results = {}
 
-                for _, row in gdf.iterrows():
+                for _, row in tqdm(
+                    gdf.iterrows(),
+                    total=len(gdf),
+                    desc=f"Admin {layer_key}",
+                    unit="feat",
+                ):
                     fid = row.get(id_field, "")
                     if pd.isnull(fid) or fid == "" or fid == 0:
                         continue
@@ -422,6 +457,13 @@ class MetadataBuilder:
                         row.geometry,
                         self.data["zones_gdf"],
                         self.data["zone_index"],
+                        "geometry_buffered",
+                    )
+                    z_data_ub = find_zones_spatial(
+                        row.geometry,
+                        self.data["zones_gdf"],
+                        self.data["zone_index_unbuffered"],
+                        "geometry",
                     )
 
                     results[fid] = {
@@ -433,6 +475,9 @@ class MetadataBuilder:
                         "zones": z_data["zones"],
                         "mgmt_units": z_data["mgmt_units"],
                         "region_names": z_data["region_names"],
+                        "zones_unbuffered": z_data_ub["zones"],
+                        "mgmt_units_unbuffered": z_data_ub["mgmt_units"],
+                        "region_names_unbuffered": z_data_ub["region_names"],
                     }
 
                 self.metadata[ftype] = results

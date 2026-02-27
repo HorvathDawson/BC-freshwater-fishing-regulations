@@ -165,8 +165,3 @@ class ScopeFilter:
             "scope_types_seen": sorted(list(self.scope_types_seen)),
             "fallback_count": self.fallback_count,
         }
-
-    def reset_stats(self):
-        """Reset statistics counters."""
-        self.scope_types_seen = set()
-        self.fallback_count = 0

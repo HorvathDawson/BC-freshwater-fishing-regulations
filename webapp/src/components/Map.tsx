@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import maplibregl from 'maplibre-gl';
 import { Protocol } from 'pmtiles';
-import { layers, LIGHT } from '@protomaps/basemaps'; 
+import { layers, LIGHT } from '@protomaps/basemaps';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import { createRegulationLayers, HIGHLIGHT_COLORS, SELECTION_COLOR, matchByFeatureType } from '../map/styles';
+import { createRegulationLayers, createAdminLabelLayers, createEarlyRoadLayers, HIGHLIGHT_COLORS, SELECTION_COLOR, matchByFeatureType } from '../map/styles';
 import { regulationsService } from '../services/regulationsService';
 import InfoPanel from './InfoPanel';
 import DisambiguationMenu from './DisambiguationMenu';
@@ -288,9 +288,19 @@ const MapComponent = () => {
                     protomaps: { type: 'vector', url: 'pmtiles:///data/bc.pmtiles', attribution: 'Protomaps', maxzoom: 15 },
                     regulations: { type: 'vector', url: 'pmtiles:///data/regulations_merged.pmtiles', attribution: 'FWA BC', minzoom: 4, maxzoom: 12 }
                 },
-                layers: [...layers('protomaps', LIGHT), ...createRegulationLayers()]
+                // Base map (no labels) → regulation overlays → labels on top
+                // The `layers()` call without `lang` returns geometry-only layers;
+                // `labelsOnly + lang` returns road / place / water name labels
+                // so they render above the regulation fills and remain readable.
+                layers: [
+                    ...layers('protomaps', LIGHT),
+                    ...createEarlyRoadLayers(),
+                    ...createRegulationLayers(),
+                    ...layers('protomaps', LIGHT, { labelsOnly: true, lang: 'en' }),
+                    ...createAdminLabelLayers(),
+                ]
             },
-            center: [-123.0, 49.25], zoom: 8, maxZoom: 12.5, minZoom: 4, hash: true, attributionControl: { compact: true }
+            center: [-123.0, 49.25], zoom: 8, maxZoom: 15, minZoom: 4, hash: true, attributionControl: { compact: true }
         });
 
         map.on('load', () => {
@@ -583,7 +593,7 @@ const MapComponent = () => {
                                     const padding = isMobile
                                         ? { top: 60, bottom: 280, left: 40, right: 40 }
                                         : { top: 80, bottom: 80, left: 80, right: 350 };
-                                    map.fitBounds(bounds, { padding, maxZoom: 12.5, duration: 400 });
+                                    map.fitBounds(bounds, { padding, maxZoom: 15, duration: 400 });
                                 }
                             }, 50);
                         } else {

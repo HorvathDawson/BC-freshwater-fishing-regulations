@@ -50,8 +50,9 @@ def fetch_wfs_paginated(
                 break
             start_index += max_features
         except Exception as e:
-            print(f"  Error at index {start_index}: {e}")
-            break
+            raise RuntimeError(
+                f"WFS fetch failed for '{type_name}' at index {start_index}: {e}"
+            ) from e
 
     if all_chunks:
         final_gdf = pd.concat(all_chunks, ignore_index=True)
@@ -152,7 +153,7 @@ def combine_streams(short_name, ftp_url, gpkg_path, temp_dir):
             is_first = False
 
         except Exception as e:
-            pass  # Skip empty/invalid blocks safely
+            print(f"  Warning: Failed to process block for '{short_name}': {e}")
 
 
 # ==========================================

@@ -14,7 +14,15 @@ from data.data_extractor import FWADataAccessor
 import numpy as np
 import pandas as pd
 import geopandas as gpd
-from shapely.geometry import MultiLineString, MultiPolygon, box
+from shapely.geometry import (
+    LineString,
+    MultiLineString,
+    MultiPolygon,
+    GeometryCollection,
+    box,
+)
+from shapely.geometry.base import BaseGeometry
+from shapely.prepared import prep as shapely_prep
 
 from .regulation_mapper import PipelineResult
 from fwa_pipeline.metadata_gazetteer import FeatureType
@@ -40,14 +48,14 @@ WEIGHTS = {
     "has_name": 0.0,
     "side_channel_penalty": 0.0,
 }
-PERCENTILES = {5: 100.0, 6: 99.99, 7: 99.97, 8: 95.0, 10: 0.0}
+PERCENTILES = {5: 100.0, 6: 99.99, 7: 99.97, 8: 99.0, 9: 95.0, 10: 0.0}
 LAKE_ZOOM_THRESHOLDS = {
     4: 100_000_000,
     5: 25_000_000,
     6: 1_000_000,
-    # 7: 1_000_000,
-    8: 250_000,
-    9: 50_000,
+    7: 1_000_000,
+    8: 1_000_000,
+    9: 250_000,
     10: 10_000,
     11: 0,
 }
@@ -80,17 +88,45 @@ class RegulationGeoExporter:
         self.admin_regulation_ids = pipeline_result.admin_regulation_ids
         self.name_variation_aliases = pipeline_result.name_variation_aliases
         self.gpkg_path = gpkg_path
-        self.data_accessor = FWADataAccessor(self.gpkg_path)
+        # Reuse gazetteer's data accessor if available to avoid creating
+        # a duplicate FWADataAccessor (each one lists GPKG layers on init).
+        self.data_accessor = (
+            self.gazetteer.data_accessor
+            if self.gazetteer and self.gazetteer.data_accessor is not None
+            else FWADataAccessor(self.gpkg_path)
+        )
         self.cache_dir = cache_dir
         self.cache_dir.mkdir(parents=True, exist_ok=True)
         self._stream_geometries = None
         self._polygon_geometries = None
         self._layer_cache = {}
+        self._admin_gdf_cache: dict = {}  # layer_key → reprojected GeoDataFrame
         self._valid_stream_ids = self.gazetteer.get_valid_stream_ids()
+        self._lake_manmade_wbkeys: Optional[set] = None  # lazy; built on first use
         self._stream_zoom_thresholds = self._calculate_percentile_thresholds()
         logger.info(
             f"Loaded {len(self.merged_groups)} merged groups, {len(self.feature_to_regs)} individual features"
         )
+
+    # --- WATERBODY-KEY HELPERS ---
+
+    def _get_lake_manmade_wbkeys(self) -> set:
+        """Return the set of waterbody_keys that belong to lakes or manmade waterbodies.
+
+        Streams overlapping these polygon types are excluded when
+        ``exclude_lake_streams`` is True (the polygon layer already
+        renders the waterbody).  Wetland waterbody_keys are deliberately
+        excluded so that streams running through wetlands are kept.
+        """
+        if self._lake_manmade_wbkeys is None:
+            keys: set = set()
+            for ftype in (FeatureType.LAKE, FeatureType.MANMADE):
+                for fid, meta in self.gazetteer.metadata.get(ftype, {}).items():
+                    wbk = meta.get("waterbody_key") or fid
+                    keys.add(str(wbk))
+            self._lake_manmade_wbkeys = keys
+            logger.info(f"Built lake/manmade waterbody-key set: {len(keys):,} keys")
+        return self._lake_manmade_wbkeys
 
     # --- LOOKUPS & METADATA ---
 
@@ -111,9 +147,7 @@ class RegulationGeoExporter:
                 expanded.add(rid)
             else:
                 # Look for _ruleN variants
-                rule_keys = [
-                    k for k in reg_details if k.startswith(f"{rid}_rule")
-                ]
+                rule_keys = [k for k in reg_details if k.startswith(f"{rid}_rule")]
                 if rule_keys:
                     expanded.update(rule_keys)
                 else:
@@ -396,6 +430,259 @@ class RegulationGeoExporter:
     def _extract_geoms(self, geom) -> list:
         return geom.geoms if hasattr(geom, "geoms") else [geom]
 
+    # --- ADMIN BOUNDARY CLIPPING ---
+
+    def _get_all_admin_reg_ids(self) -> set:
+        """Collect all regulation IDs sourced from admin polygon spatial matching.
+
+        Gathers every regulation ID stored in ``admin_area_reg_map`` across all
+        admin layer types (parks, WMAs, watersheds, etc.), then expands synopsis
+        base IDs to their ``_ruleN`` variants so the result can be directly
+        compared against ``MergedGroup.regulation_ids``.
+        """
+        raw_ids: set = set()
+        for features_map in self.admin_area_reg_map.values():
+            for reg_ids in features_map.values():
+                raw_ids.update(reg_ids)
+        if not raw_ids:
+            return set()
+        return self._expand_admin_reg_ids(raw_ids)
+
+    def _get_admin_gdf(self, layer_key: str) -> Optional[gpd.GeoDataFrame]:
+        """Load an admin layer GeoDataFrame, reusing caches when possible.
+
+        Checks (in order):
+        1. Gazetteer's ``_reprojected_admin_cache`` (populated during mapper phase)
+        2. Our own ``_admin_gdf_cache`` (populated on first exporter load)
+        3. Fresh GPKG read (cached for subsequent calls)
+
+        Returns ``None`` if the layer is not available.
+        """
+        cache_key = f"{self.gpkg_path}_{layer_key}"
+
+        # 1. Gazetteer may already have the reprojected layer cached
+        cached = self.gazetteer._reprojected_admin_cache.get(cache_key)
+        if cached is not None:
+            return cached
+
+        # 2. Our own exporter-level cache
+        if cache_key in self._admin_gdf_cache:
+            return self._admin_gdf_cache[cache_key]
+
+        # 3. Load from GPKG
+        if layer_key not in self.data_accessor.list_layers():
+            logger.warning(f"Admin layer '{layer_key}' not in GPKG")
+            return None
+        gdf = self.data_accessor.get_layer(layer_key).to_crs("EPSG:3005")
+        self._admin_gdf_cache[cache_key] = gdf
+        return gdf
+
+    def _build_admin_clip_union(self) -> Optional[BaseGeometry]:
+        """Build a single union polygon of all admin areas that carry regulations.
+
+        Loads each admin layer from the GPKG (or cache), filters to the features
+        present in ``admin_area_reg_map``, and unions all geometries into one
+        shape suitable for clipping stream segments.
+
+        Returns ``None`` if no admin polygons are available.
+        """
+        all_geoms = []
+        for layer_key, features_map in self.admin_area_reg_map.items():
+            if not features_map:
+                continue
+            cfg = ADMIN_LAYER_CONFIG.get(layer_key)
+            if not cfg:
+                continue
+            gdf = self._get_admin_gdf(layer_key)
+            if gdf is None:
+                continue
+            id_field = cfg["id_field"]
+            matched_ids = set(features_map.keys())
+            matched = gdf[gdf[id_field].isin(matched_ids)]
+            if matched.empty:
+                continue
+            all_geoms.extend(matched.geometry.tolist())
+
+        if not all_geoms:
+            return None
+
+        from shapely.ops import unary_union
+
+        union = unary_union(all_geoms)
+        logger.info(
+            f"Admin clip union built from {len(all_geoms)} polygon(s) "
+            f"across {len(self.admin_area_reg_map)} layer(s)"
+        )
+        return union
+
+    @staticmethod
+    def _extract_line_components(geom: BaseGeometry) -> list:
+        """Extract LineString/MultiLineString parts from a geometry result.
+
+        ``intersection()`` and ``difference()`` can return GeometryCollections
+        containing points or other degenerate artefacts.  This keeps only
+        linear components.
+        """
+        if geom is None or geom.is_empty:
+            return []
+        if isinstance(geom, LineString):
+            return [geom] if geom.length > 0 else []
+        if isinstance(geom, MultiLineString):
+            return [g for g in geom.geoms if g.length > 0]
+        if isinstance(geom, GeometryCollection):
+            parts = []
+            for g in geom.geoms:
+                if isinstance(g, (LineString, MultiLineString)) and g.length > 0:
+                    if isinstance(g, MultiLineString):
+                        parts.extend(p for p in g.geoms if p.length > 0)
+                    else:
+                        parts.append(g)
+            return parts
+        return []
+
+    def _emit_group_feature(
+        self,
+        group,
+        base_props: dict,
+        suffix: str = "",
+        reg_ids: tuple = None,
+        geometry=None,
+    ) -> dict:
+        """Build a single feature dict for export.
+
+        Args:
+            group: The ``MergedGroup``.
+            base_props: Shared metadata dict.
+            suffix: Appended to group_id (e.g. ``'_admin_in'``).
+            reg_ids: Override regulation IDs (defaults to ``group.regulation_ids``).
+            geometry: The shapely geometry to use.
+        """
+        rids = reg_ids if reg_ids is not None else group.regulation_ids
+        return {
+            **base_props,
+            "group_id": f"{group.group_id}{suffix}" if suffix else group.group_id,
+            "regulation_ids": ",".join(rids),
+            "regulation_count": len(rids),
+            "regulation_names": " | ".join(
+                self._get_reg_names(list(rids), list(group.feature_ids))
+            ),
+            "has_regulations": bool(rids),
+            "geometry": geometry,
+        }
+
+    def _clip_group_at_admin_boundary(
+        self,
+        group,
+        geom_list: list,
+        admin_clip_union: BaseGeometry,
+        admin_prep,
+        admin_reg_ids: set,
+        base_props: dict,
+    ) -> Tuple[List[dict], str]:
+        """Split a merged group's geometry at admin polygon boundaries.
+
+        Uses a prepared geometry for fast ``contains`` / ``intersects`` checks
+        so that groups fully inside or fully outside the admin polygon skip
+        the expensive ``intersection()`` / ``difference()`` operations.
+
+        Returns:
+            ``(features, disposition)`` where *disposition* is one of
+            ``'inside'``, ``'outside'``, ``'clipped'``, or ``'fallback'``.
+        """
+        MIN_LENGTH_M = 1.0  # discard slivers shorter than 1 metre
+
+        merged_line = MultiLineString(geom_list) if len(geom_list) > 1 else geom_list[0]
+
+        # --- Fast-path: entirely inside admin polygon ---
+        if admin_prep.contains(merged_line):
+            return [
+                self._emit_group_feature(
+                    group,
+                    base_props,
+                    "_admin_in",
+                    reg_ids=group.regulation_ids,
+                    geometry=merged_line,
+                )
+            ], "inside"
+
+        # --- Fast-path: entirely outside admin polygon ---
+        if not admin_prep.intersects(merged_line):
+            non_admin_regs = tuple(
+                r for r in group.regulation_ids if r not in admin_reg_ids
+            )
+            return [
+                self._emit_group_feature(
+                    group,
+                    base_props,
+                    "_admin_out",
+                    reg_ids=non_admin_regs,
+                    geometry=merged_line,
+                )
+            ], "outside"
+
+        # --- Slow path: boundary crossing — actual clip ---
+        inside_parts = self._extract_line_components(
+            merged_line.intersection(admin_clip_union)
+        )
+        outside_parts = self._extract_line_components(
+            merged_line.difference(admin_clip_union)
+        )
+
+        results: List[dict] = []
+
+        # Inside piece: full regulation set
+        inside_parts = [g for g in inside_parts if g.length >= MIN_LENGTH_M]
+        if inside_parts:
+            inside_geom = (
+                MultiLineString(inside_parts)
+                if len(inside_parts) > 1
+                else inside_parts[0]
+            )
+            results.append(
+                self._emit_group_feature(
+                    group,
+                    base_props,
+                    "_admin_in",
+                    reg_ids=group.regulation_ids,
+                    geometry=inside_geom,
+                )
+            )
+
+        # Outside piece: admin regs removed
+        outside_parts = [g for g in outside_parts if g.length >= MIN_LENGTH_M]
+        non_admin_regs = tuple(
+            r for r in group.regulation_ids if r not in admin_reg_ids
+        )
+        if outside_parts:
+            outside_geom = (
+                MultiLineString(outside_parts)
+                if len(outside_parts) > 1
+                else outside_parts[0]
+            )
+            results.append(
+                self._emit_group_feature(
+                    group,
+                    base_props,
+                    "_admin_out",
+                    reg_ids=non_admin_regs,
+                    geometry=outside_geom,
+                )
+            )
+
+        # Fallback: if clipping produced nothing usable, emit original
+        if not results:
+            results.append(
+                self._emit_group_feature(
+                    group,
+                    base_props,
+                    reg_ids=group.regulation_ids,
+                    geometry=merged_line,
+                )
+            )
+            return results, "fallback"
+
+        return results, "clipped"
+
     # --- LAYER CREATION ---
 
     def _create_streams_layer(
@@ -436,6 +723,15 @@ class RegulationGeoExporter:
                 )
         else:
             blk_zooms = self._get_synchronized_blk_zooms()
+
+            # Pre-compute admin clipping data (once for all groups)
+            admin_reg_ids = self._get_all_admin_reg_ids()
+            admin_clip_union = self._build_admin_clip_union() if admin_reg_ids else None
+            admin_prep = (
+                shapely_prep(admin_clip_union) if admin_clip_union is not None else None
+            )
+            clip_stats = {"inside": 0, "outside": 0, "clipped": 0, "fallback": 0}
+
             for group in self.merged_groups.values():
                 # Determine feature type of the group based on its first feature
                 first_fid = next(iter(group.feature_ids), None)
@@ -445,17 +741,14 @@ class RegulationGeoExporter:
                 group_ftype = self.gazetteer.get_feature_type_from_id(first_fid)
 
                 if group_ftype != FeatureType.STREAM or (
-                    exclude_lake_streams and group.waterbody_key
+                    exclude_lake_streams
+                    and group.waterbody_key
+                    and group.waterbody_key in self._get_lake_manmade_wbkeys()
                 ):
                     continue
 
                 geom_list, all_mgmt_units, ws_codes = [], set(), set()
                 max_order, blk = 0, None
-
-                # if "707538068" in group.feature_ids:
-                #     logger.warning(
-                #         f"Expected segment with fwa_id 707538068 found in mapped features."
-                #     )
 
                 blks = set()
                 zone_to_name = {}  # zone_id → region_name (maintains pairing)
@@ -463,10 +756,6 @@ class RegulationGeoExporter:
                     meta = self.gazetteer.get_stream_metadata(fid)
                     geom = self._stream_geometries.get(fid)
 
-                    # if "707538068" == fid:
-                    #     logger.warning(
-                    #         f"Expected segment with fwa_id 707538068 found in group with group_id {group.group_id}. meta and geom are {'present' if meta else 'missing'} and {'present' if geom else 'missing'}, respectively."
-                    #     )
                     # Always capture the blue line key from metadata when available
                     if meta and meta.get("blue_line_key"):
                         blks.add(meta.get("blue_line_key"))
@@ -488,59 +777,75 @@ class RegulationGeoExporter:
                 elif len(blks) == 1:
                     blk = blks.pop()
                 else:
-                    # Multiple BLKs are expected for cross-stream merged groups
-                    # (e.g. unnamed streams sharing the same regulation set inside
-                    # an admin area). Geometry is still collected per-segment above;
-                    # we leave the tile field empty so the frontend does not bind
-                    # this group to any single stream.
                     logger.debug(
                         f"Group {group.group_id} spans {len(blks)} blue line keys "
                         f"(cross-stream merge) — blue_line_key field left empty"
                     )
                     blk = None
 
-                # if "707538068" in group.feature_ids:
-                #     logger.warning(
-                #         f"Expected segment with fwa_id 707538068 found in mapped features."
-                #     )
-                #     exit(0)
+                if not geom_list:
+                    continue
 
-                if geom_list:
-                    features.append(
-                        {
-                            "group_id": group.group_id,
-                            "gnis_name": self._get_group_gnis_name(
-                                group.feature_ids, FeatureType.STREAM
-                            ),
-                            "waterbody_key": (
-                                group.waterbody_key
-                                if group.waterbody_key is not None
-                                else ""
-                            ),
-                            "blue_line_key": blk if blk is not None else "",
-                            "watershed_code": ", ".join(sorted(filter(None, ws_codes))),
-                            "stream_order": max_order,
-                            "regulation_ids": ",".join(group.regulation_ids),
-                            "regulation_count": len(group.regulation_ids),
-                            "regulation_names": " | ".join(
-                                self._get_reg_names(
-                                    list(group.regulation_ids), list(group.feature_ids)
-                                )
-                            ),
-                            "has_regulations": bool(group.regulation_ids),
-                            "zones": ",".join(sorted(zone_to_name.keys())),
-                            "mgmt_units": ",".join(sorted(all_mgmt_units)),
-                            "region_name": ",".join(
-                                zone_to_name[z] for z in sorted(zone_to_name.keys())
-                            ),
-                            "tippecanoe:minzoom": blk_zooms.get(blk, 12),
-                            "geometry": (
-                                MultiLineString(geom_list)
-                                if len(geom_list) > 1
-                                else geom_list[0]
-                            ),
-                        }
+                # Base metadata shared by all pieces (clipped or not)
+                base_props = {
+                    "gnis_name": self._get_group_gnis_name(
+                        group.feature_ids, FeatureType.STREAM
+                    ),
+                    "waterbody_key": (
+                        group.waterbody_key if group.waterbody_key is not None else ""
+                    ),
+                    "blue_line_key": blk if blk is not None else "",
+                    "watershed_code": ", ".join(sorted(filter(None, ws_codes))),
+                    "stream_order": max_order,
+                    "zones": ",".join(sorted(zone_to_name.keys())),
+                    "mgmt_units": ",".join(sorted(all_mgmt_units)),
+                    "region_name": ",".join(
+                        zone_to_name[z] for z in sorted(zone_to_name.keys())
+                    ),
+                    "tippecanoe:minzoom": blk_zooms.get(blk, 12),
+                }
+
+                # Check if this group needs admin boundary clipping
+                group_admin_regs = (
+                    admin_reg_ids & set(group.regulation_ids)
+                    if admin_clip_union is not None
+                    else set()
+                )
+
+                if group_admin_regs:
+                    clip_results, disposition = self._clip_group_at_admin_boundary(
+                        group,
+                        geom_list,
+                        admin_clip_union,
+                        admin_prep,
+                        admin_reg_ids,
+                        base_props,
                     )
+                    features.extend(clip_results)
+                    clip_stats[disposition] += 1
+                else:
+                    # No admin regs — emit normally
+                    merged_geom = (
+                        MultiLineString(geom_list)
+                        if len(geom_list) > 1
+                        else geom_list[0]
+                    )
+                    features.append(
+                        self._emit_group_feature(
+                            group,
+                            base_props,
+                            geometry=merged_geom,
+                        )
+                    )
+
+            if any(clip_stats.values()):
+                logger.info(
+                    f"Admin boundary clipping: "
+                    f"{clip_stats['inside']} fully inside, "
+                    f"{clip_stats['clipped']} split at boundary, "
+                    f"{clip_stats['outside']} fully outside, "
+                    f"{clip_stats['fallback']} fallback"
+                )
 
         result = gpd.GeoDataFrame(features, crs="EPSG:3005") if features else None
         self._layer_cache[cache_key] = result
@@ -741,17 +1046,16 @@ class RegulationGeoExporter:
             logger.debug(f"  No matched admin features for '{layer_key}', skipping")
             return None
 
-        if layer_key not in self.data_accessor.list_layers():
-            logger.warning(f"  Admin layer '{layer_key}' not in GPKG, skipping")
-            return None
-
         id_field = cfg["id_field"]
         name_field = cfg.get("name_field")
         code_field = cfg.get("code_field")
         code_map = cfg.get("code_map", {})
 
-        # Load admin layer and filter to only features with regulation matches
-        gdf = self.data_accessor.get_layer(layer_key).to_crs("EPSG:3005")
+        # Load admin layer (uses gazetteer/exporter cache) and filter
+        gdf = self._get_admin_gdf(layer_key)
+        if gdf is None:
+            logger.warning(f"  Admin layer '{layer_key}' not available, skipping")
+            return None
         matched_ids = set(matched_ids_map.keys())
         gdf = gdf[gdf[id_field].isin(matched_ids)].copy()
         if gdf.empty:

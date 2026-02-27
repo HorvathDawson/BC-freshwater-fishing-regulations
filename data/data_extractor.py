@@ -136,22 +136,6 @@ class FWADataAccessor:
         ]
         return gdf
 
-    def get_attributes(self, layer_name: str, columns: list = None) -> pd.DataFrame:
-        """
-        Loads ONLY the tabular data (ignores shapes).
-        All columns are normalized to consistent Python types.
-        """
-        self._check_layer(layer_name)
-        df = gpd.read_file(
-            self.gpkg_path,
-            layer=layer_name,
-            engine="pyogrio",
-            use_arrow=True,
-            columns=columns,
-            ignore_geometry=True,
-        )
-        return self._normalize_columns(df)
-
     def get_features_by_attribute(
         self,
         layer_name: str,
@@ -191,51 +175,6 @@ class FWADataAccessor:
             ignore_geometry=ignore_geom,
         )
         return self._normalize_columns(result)
-
-    def get_geometry_dict(
-        self, layer_name: str, id_column: str, target_ids: list = None
-    ) -> dict:
-        """
-        Returns a dictionary mapping ID -> Geometry.
-        Highly useful for network/graph logic (like mapping valid streams).
-        """
-        # If target IDs are provided, only load those via SQL. Otherwise, load all.
-        if target_ids:
-            gdf = self.get_features_by_attribute(layer_name, id_column, target_ids)
-        else:
-            gdf = self.get_layer(layer_name, columns=[id_column])
-
-        if gdf.empty:
-            return {}
-
-        # Ensure the active geometry column is used
-        geom_col = gdf.active_geometry_name
-
-        # Convert to dictionary mapping
-        return pd.Series(gdf[geom_col].values, index=gdf[id_column]).to_dict()
-
-    def get_features_by_code(
-        self,
-        layer_name: str,
-        code_column: str,
-        code_values: list | str,
-        columns: list = None,
-    ) -> gpd.GeoDataFrame:
-        """
-        Filter a layer by a classification code column.
-
-        Useful for demultiplexing combined layers like parks_bc where
-        PROTECTED_LANDS_CODE distinguishes Provincial Parks (PP),
-        Ecological Reserves (OI), Protected Areas (PA), etc.
-
-        :param layer_name: GPKG layer to query.
-        :param code_column: Column containing the classification code.
-        :param code_values: Single code or list of codes to include.
-        :param columns: Optional list of columns to return.
-        """
-        if isinstance(code_values, str):
-            code_values = [code_values]
-        return self.get_features_by_attribute(layer_name, code_column, code_values)
 
     def _check_layer(self, layer_name: str):
         if layer_name not in self.layer_names:

@@ -374,3 +374,296 @@ export const createRegulationLayers = (): LayerSpecification[] => {
     // FWA first, admin overlays on top
     return [...fwaLayers, ...adminLayers];
 };
+
+/**
+ * Early-zoom layers for forest service roads, paths, and other minor roads.
+ * The built-in protomaps `roads_other` layer only renders kind=other/path
+ * starting at ~z14.  These supplemental layers make them visible from z11
+ * so users can see FSRs while still at regulation-relevant zoom levels.
+ * Labels appear from z12.
+ */
+export const createEarlyRoadLayers = (): LayerSpecification[] => [
+    // ── Road lines (z11 – z14, then protomaps takes over) ────────────
+    {
+        id: 'roads_other_early',
+        type: 'line',
+        source: 'protomaps',
+        'source-layer': 'roads',
+        minzoom: 11,
+        maxzoom: 15,           // protomaps roads_other handles z14+
+        filter: [
+            'all',
+            ['!has', 'is_tunnel'],
+            ['!has', 'is_bridge'],
+            ['in', 'kind', 'other', 'path'],
+            ['!=', 'kind_detail', 'pier'],
+        ],
+        paint: {
+            'line-color': '#b0a899',
+            'line-dasharray': [3, 1.5],
+            'line-width': [
+                'interpolate', ['exponential', 1.6], ['zoom'],
+                11, 0.4,
+                12, 0.8,
+                14, 1.5,
+            ],
+            'line-opacity': [
+                'interpolate', ['linear'], ['zoom'],
+                11, 0.5,
+                13, 0.7,
+            ],
+        },
+    },
+    // ── Road labels (z12+) ───────────────────────────────────────────
+    {
+        id: 'roads_other_early_label',
+        type: 'symbol',
+        source: 'protomaps',
+        'source-layer': 'roads',
+        minzoom: 12,
+        maxzoom: 15,           // protomaps roads_labels_minor handles z15+
+        filter: ['in', 'kind', 'other', 'path'],
+        layout: {
+            'symbol-placement': 'line',
+            'text-field': ['get', 'name'],
+            'text-font': ['Noto Sans Regular'],
+            'text-size': ['interpolate', ['linear'], ['zoom'], 12, 9, 14, 11],
+            'text-max-angle': 30,
+            'symbol-spacing': 250,
+            'text-anchor': 'center',
+            'text-allow-overlap': false,
+            'text-padding': 6,
+        },
+        paint: {
+            'text-color': '#6b6356',
+            'text-halo-color': '#FFFFFF',
+            'text-halo-width': 1.2,
+            'text-opacity': [
+                'interpolate', ['linear'], ['zoom'],
+                12, 0.7,
+                14, 1.0,
+            ],
+        },
+    },
+];
+
+/**
+ * Admin boundary label layers — rendered above basemap labels so parks,
+ * eco reserves, WMAs, etc. are always legible.
+ *
+ * Layer-level minzoom is set to the regulation source floor (4) so that
+ * **tippecanoe's per-feature `tippecanoe:minzoom`** (area-based) controls
+ * when each individual label first appears.  Large polygons get low
+ * minzooms and show labels early; small ones are excluded from low-zoom
+ * tiles entirely, so their labels only appear when zoomed in.
+ *
+ * Text size still scales by zoom level for readability.
+ */
+export const createAdminLabelLayers = (): LayerSpecification[] => {
+    const labelLayers: LayerSpecification[] = [];
+
+    // ── National Parks (high-priority — bold + uppercase) ────────────
+    labelLayers.push({
+        id: 'admin_parks_nat-label',
+        type: 'symbol',
+        source: 'regulations',
+        'source-layer': 'admin_parks_nat',
+        minzoom: 4,
+        layout: {
+            'symbol-placement': 'point',
+            'text-field': ['get', 'name'],
+            'text-font': ['Noto Sans Bold'],
+            'text-size': ['interpolate', ['linear'], ['zoom'], 4, 9, 7, 12, 10, 15, 12, 16],
+            'text-max-width': 8,
+            'text-transform': 'uppercase',
+            'text-letter-spacing': 0.05,
+            'text-anchor': 'center',
+            'text-allow-overlap': false,
+            'text-ignore-placement': false,
+            'text-padding': 4,
+        },
+        paint: {
+            'text-color': '#B37700',
+            'text-halo-color': '#FFFFFF',
+            'text-halo-width': 1.5,
+            'text-opacity': ['interpolate', ['linear'], ['zoom'], 4, 0.75, 7, 1],
+        },
+    });
+
+    // ── BC Parks: Ecological Reserves (no-fishing — bold + uppercase) ──
+    labelLayers.push({
+        id: 'admin_parks_bc-eco-label',
+        type: 'symbol',
+        source: 'regulations',
+        'source-layer': 'admin_parks_bc',
+        filter: ['==', ['get', 'admin_type'], 'ECOLOGICAL_RESERVE'],
+        minzoom: 4,
+        layout: {
+            'symbol-placement': 'point',
+            'text-field': ['get', 'name'],
+            'text-font': ['Noto Sans Bold'],
+            'text-size': ['interpolate', ['linear'], ['zoom'], 4, 8, 7, 10, 10, 13, 12, 14],
+            'text-max-width': 8,
+            'text-transform': 'uppercase',
+            'text-letter-spacing': 0.05,
+            'text-anchor': 'center',
+            'text-allow-overlap': false,
+            'text-padding': 4,
+        },
+        paint: {
+            'text-color': '#B37700',
+            'text-halo-color': '#FFFFFF',
+            'text-halo-width': 1.5,
+        },
+    });
+
+    // ── BC Parks: Provincial Parks ───────────────────────────────────
+    labelLayers.push({
+        id: 'admin_parks_bc-prov-label',
+        type: 'symbol',
+        source: 'regulations',
+        'source-layer': 'admin_parks_bc',
+        filter: ['==', ['get', 'admin_type'], 'PROVINCIAL_PARK'],
+        minzoom: 4,
+        layout: {
+            'symbol-placement': 'point',
+            'text-field': ['get', 'name'],
+            'text-font': ['Noto Sans Medium'],
+            'text-size': ['interpolate', ['linear'], ['zoom'], 4, 8, 7, 10, 10, 12, 12, 14],
+            'text-max-width': 8,
+            'text-letter-spacing': 0.03,
+            'text-anchor': 'center',
+            'text-allow-overlap': false,
+            'text-padding': 4,
+        },
+        paint: {
+            'text-color': '#007A5E',
+            'text-halo-color': '#FFFFFF',
+            'text-halo-width': 1.5,
+        },
+    });
+
+    // ── BC Parks: Protected Areas ────────────────────────────────────
+    labelLayers.push({
+        id: 'admin_parks_bc-prot-label',
+        type: 'symbol',
+        source: 'regulations',
+        'source-layer': 'admin_parks_bc',
+        filter: ['==', ['get', 'admin_type'], 'PROTECTED_AREA'],
+        minzoom: 4,
+        layout: {
+            'symbol-placement': 'point',
+            'text-field': ['get', 'name'],
+            'text-font': ['Noto Sans Medium'],
+            'text-size': ['interpolate', ['linear'], ['zoom'], 4, 8, 7, 10, 10, 12, 12, 13],
+            'text-max-width': 8,
+            'text-anchor': 'center',
+            'text-allow-overlap': false,
+            'text-padding': 4,
+        },
+        paint: {
+            'text-color': '#005A8C',
+            'text-halo-color': '#FFFFFF',
+            'text-halo-width': 1.5,
+        },
+    });
+
+    // ── BC Parks: Recreation Areas ───────────────────────────────────
+    labelLayers.push({
+        id: 'admin_parks_bc-rec-label',
+        type: 'symbol',
+        source: 'regulations',
+        'source-layer': 'admin_parks_bc',
+        filter: ['==', ['get', 'admin_type'], 'RECREATION_AREA'],
+        minzoom: 4,
+        layout: {
+            'symbol-placement': 'point',
+            'text-field': ['get', 'name'],
+            'text-font': ['Noto Sans Regular'],
+            'text-size': ['interpolate', ['linear'], ['zoom'], 4, 8, 7, 10, 10, 12, 12, 13],
+            'text-max-width': 8,
+            'text-anchor': 'center',
+            'text-allow-overlap': false,
+            'text-padding': 4,
+        },
+        paint: {
+            'text-color': '#6B5200',
+            'text-halo-color': '#FFFFFF',
+            'text-halo-width': 1.5,
+        },
+    });
+
+    // ── Wildlife Management Areas ────────────────────────────────────
+    labelLayers.push({
+        id: 'admin_wma-label',
+        type: 'symbol',
+        source: 'regulations',
+        'source-layer': 'admin_wma',
+        minzoom: 4,
+        layout: {
+            'symbol-placement': 'point',
+            'text-field': ['get', 'name'],
+            'text-font': ['Noto Sans Italic'],
+            'text-size': ['interpolate', ['linear'], ['zoom'], 4, 8, 7, 10, 10, 12, 12, 13],
+            'text-max-width': 8,
+            'text-anchor': 'center',
+            'text-allow-overlap': false,
+            'text-padding': 4,
+        },
+        paint: {
+            'text-color': '#5E1D6B',
+            'text-halo-color': '#FFFFFF',
+            'text-halo-width': 1.5,
+        },
+    });
+
+    // ── Watersheds ───────────────────────────────────────────────────
+    labelLayers.push({
+        id: 'admin_watersheds-label',
+        type: 'symbol',
+        source: 'regulations',
+        'source-layer': 'admin_watersheds',
+        minzoom: 4,
+        layout: {
+            'symbol-placement': 'point',
+            'text-field': ['get', 'name'],
+            'text-font': ['Noto Sans Italic'],
+            'text-size': ['interpolate', ['linear'], ['zoom'], 4, 8, 7, 10, 10, 12, 12, 13],
+            'text-max-width': 8,
+            'text-anchor': 'center',
+            'text-allow-overlap': false,
+            'text-padding': 4,
+        },
+        paint: {
+            'text-color': '#004D57',
+            'text-halo-color': '#FFFFFF',
+            'text-halo-width': 1.5,
+        },
+    });
+
+    // ── Historic Sites ───────────────────────────────────────────────
+    labelLayers.push({
+        id: 'admin_historic_sites-label',
+        type: 'symbol',
+        source: 'regulations',
+        'source-layer': 'admin_historic_sites',
+        minzoom: 4,
+        layout: {
+            'symbol-placement': 'point',
+            'text-field': ['get', 'name'],
+            'text-font': ['Noto Sans Italic'],
+            'text-size': ['interpolate', ['linear'], ['zoom'], 4, 8, 7, 10, 10, 11, 12, 12],
+            'text-max-width': 8,
+            'text-anchor': 'center',
+            'text-allow-overlap': false,
+            'text-padding': 4,
+        },
+        paint: {
+            'text-color': '#5D4037',
+            'text-halo-color': '#FFFFFF',
+            'text-halo-width': 1.5,
+        },
+    });
+
+    return labelLayers;
+};

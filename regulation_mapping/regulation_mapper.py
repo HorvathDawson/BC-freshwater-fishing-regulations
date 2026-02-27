@@ -34,6 +34,7 @@ FeatureIndex = Dict[str, Dict[FeatureType, Dict[str, dict]]]
 # General-purpose feature-set helpers
 # ---------------------------------------------------------------------------
 
+
 def collect_features_from_index(
     index: FeatureIndex,
     keys: List[str],
@@ -73,8 +74,11 @@ def include_features_from_index(
 
 # Default feature types covering every FWA waterbody category.
 ALL_FWA_TYPES: List[FeatureType] = [
-    FeatureType.STREAM, FeatureType.LAKE, FeatureType.WETLAND,
-    FeatureType.MANMADE, FeatureType.UNGAZETTED,
+    FeatureType.STREAM,
+    FeatureType.LAKE,
+    FeatureType.WETLAND,
+    FeatureType.MANMADE,
+    FeatureType.UNGAZETTED,
 ]
 
 # Zone ID → human-readable region name (used for display in exports/UI).
@@ -97,6 +101,7 @@ ZONE_REGION_NAMES: Dict[str, str] = {
 # These are the **single source of truth** for resolving features from
 # admin targets, zone indexes, and direct-match ID fields.  Both the
 # RegulationMapper and the CLI test scripts use them.
+
 
 def lookup_admin_targets(
     gazetteer: MetadataGazetteer,
@@ -140,9 +145,7 @@ def lookup_admin_targets(
             code_filter=[code_filter] if code_filter else None,
         )
         if not admin_features:
-            logger.error(
-                f"Admin lookup returned no features (layer: {layer_key})"
-            )
+            logger.error(f"Admin lookup returned no features (layer: {layer_key})")
             continue
 
         matched = gazetteer.find_features_in_admin_area(
@@ -160,33 +163,67 @@ def lookup_admin_targets(
 def build_feature_index(
     gazetteer: MetadataGazetteer,
     feature_types: Optional[List[FeatureType]] = None,
+    use_zone_buffer: bool = False,
 ) -> Tuple[FeatureIndex, FeatureIndex]:
     """Build zone and MU feature indexes in a single pass over gazetteer metadata.
 
     Args:
         gazetteer: Loaded FWA metadata gazetteer.
         feature_types: Feature types to index (defaults to ALL_FWA_TYPES).
+        use_zone_buffer: If True, use the buffered zone assignments (``zones``
+            and ``mgmt_units``). If False (default), use the unbuffered
+            assignments (``zones_unbuffered`` / ``mgmt_units_unbuffered``).
 
     Returns:
         ``(zone_index, mu_index)`` — both keyed as
         ``{id → FeatureType → {feature_id: metadata_dict}}``.
+
+    Raises:
+        KeyError: If the expected zone metadata keys are missing from a
+            feature record (e.g. metadata pickle was built before unbuffered
+            fields were added).
     """
-    ftypes = feature_types or ALL_FWA_TYPES
+    ftypes = feature_types if feature_types is not None else ALL_FWA_TYPES
     zone_index: Dict[str, Dict[FeatureType, Dict[str, dict]]] = {}
     mu_index: Dict[str, Dict[FeatureType, Dict[str, dict]]] = {}
 
+    # Choose zone/MU metadata keys based on buffer preference
+    if use_zone_buffer:
+        zones_key = "zones"
+        mu_key = "mgmt_units"
+    else:
+        zones_key = "zones_unbuffered"
+        mu_key = "mgmt_units_unbuffered"
+
+    _missing_checked = False
     for ftype in ftypes:
         type_metadata = gazetteer.metadata.get(ftype, {})
         for fid, meta in type_metadata.items():
-            for zone_id in meta.get("zones", []):
+            # Validate that expected keys exist on the first record we see
+            if not _missing_checked:
+                if zones_key not in meta:
+                    raise KeyError(
+                        f"Metadata field '{zones_key}' not found on feature "
+                        f"'{fid}' ({ftype.value}). Re-run "
+                        f"'python -m fwa_pipeline.metadata_builder' to "
+                        f"regenerate the metadata pickle with unbuffered "
+                        f"zone fields."
+                    )
+                _missing_checked = True
+
+            zone_ids = meta[zones_key]
+            mu_ids = meta[mu_key]
+            for zone_id in zone_ids:
                 zone_index.setdefault(zone_id, {}).setdefault(ftype, {})[fid] = meta
-            for mu_id in meta.get("mgmt_units", []):
+            for mu_id in mu_ids:
                 mu_index.setdefault(mu_id, {}).setdefault(ftype, {})[fid] = meta
 
     return zone_index, mu_index
 
 
-def resolve_direct_match_features(gazetteer: MetadataGazetteer, reg) -> List[FWAFeature]:
+def resolve_direct_match_features(
+    gazetteer: MetadataGazetteer, reg
+) -> List[FWAFeature]:
     """Resolve FWA features from a regulation's direct-match ID fields.
 
     Supports: ``gnis_ids``, ``waterbody_poly_ids``, ``fwa_watershed_codes``,
@@ -268,17 +305,13 @@ def resolve_zone_wide_ids(
     *reg* must expose: ``zone_ids``, ``feature_types``, ``mu_ids``,
     ``exclude_mu_ids``, ``include_mu_ids``.
     """
-    ftypes = all_feature_types or ALL_FWA_TYPES
+    ftypes = all_feature_types if all_feature_types is not None else ALL_FWA_TYPES
     target_ftypes = reg.feature_types if reg.feature_types else ftypes
 
     # 1. Collect features from target zones
     if reg.mu_ids:
-        zone_fids = collect_features_from_index(
-            zone_index, reg.zone_ids, target_ftypes
-        )
-        mu_fids = collect_features_from_index(
-            mu_index, reg.mu_ids, target_ftypes
-        )
+        zone_fids = collect_features_from_index(zone_index, reg.zone_ids, target_ftypes)
+        mu_fids = collect_features_from_index(mu_index, reg.mu_ids, target_ftypes)
         matched_ids = zone_fids & mu_fids
     else:
         matched_ids = collect_features_from_index(
@@ -301,6 +334,7 @@ def resolve_zone_wide_ids(
 
 
 # --- Standalone Helper Functions ---
+
 
 def parse_region(raw: str) -> Optional[str]:
     """Normalise a raw region string to ``"Region 7A"`` form.
@@ -419,12 +453,14 @@ class RegulationMapper:
         scope_filter: ScopeFilter,
         tributary_enricher: TributaryEnricher,
         gpkg_path: Optional[Path] = None,
+        use_zone_buffer: bool = False,
     ):
         self.linker = linker
         self.scope_filter = scope_filter
         self.tributary_enricher = tributary_enricher
         self.gazetteer = linker.gazetteer
         self.gpkg_path = gpkg_path
+        self.use_zone_buffer = use_zone_buffer
         self.stats = RegulationMappingStats()
 
         self.feature_to_regs = {}
@@ -539,9 +575,8 @@ class RegulationMapper:
                     )
                     continue
 
-                self.admin_feature_map[name_verbatim] = [
-                    f.fwa_id for f in matched
-                ]
+                self.admin_feature_map[name_verbatim] = [f.fwa_id for f in matched]
+                base_features = matched
 
                 logger.info(
                     f"  Admin match '{name_verbatim}': {len(matched)} FWA features"
@@ -549,9 +584,9 @@ class RegulationMapper:
 
                 # Track admin polygon → regulation IDs for admin boundary export
                 for layer_key, admin_feat in admin_entries:
-                    self.admin_area_reg_map[layer_key][
-                        admin_feat.fwa_id
-                    ].add(regulation_id)
+                    self.admin_area_reg_map[layer_key][admin_feat.fwa_id].add(
+                        regulation_id
+                    )
 
             elif link_result.status == LinkStatus.NAME_VARIATION:
                 # Alternate name for an already-linked waterbody — don't link features,
@@ -816,9 +851,7 @@ class RegulationMapper:
         """
         provincial_feature_map: Dict[str, List[str]] = {}
 
-        active_regulations = [
-            r for r in PROVINCIAL_BASE_REGULATIONS if not r._disabled
-        ]
+        active_regulations = [r for r in PROVINCIAL_BASE_REGULATIONS if not r._disabled]
         if not active_regulations:
             logger.info("No active provincial base regulations to process")
             return provincial_feature_map
@@ -905,9 +938,7 @@ class RegulationMapper:
             self.gazetteer, self.gpkg_path, admin_targets, feature_types
         )
 
-    def _resolve_provincial_admin(
-        self, prov_reg: ProvincialRegulation
-    ) -> List[str]:
+    def _resolve_provincial_admin(self, prov_reg: ProvincialRegulation) -> List[str]:
         """
         Resolve features for a provincial regulation via admin boundary intersection.
         Returns list of feature IDs, or empty list on failure.
@@ -935,7 +966,11 @@ class RegulationMapper:
 
         Iterates all FWA features of the specified types and collects their IDs.
         """
-        target_types = prov_reg.feature_types or self._ALL_FWA_TYPES
+        target_types = (
+            prov_reg.feature_types
+            if prov_reg.feature_types is not None
+            else self._ALL_FWA_TYPES
+        )
         matched_ids: List[str] = []
 
         for ftype in target_types:
@@ -963,9 +998,7 @@ class RegulationMapper:
 
         zone_feature_map: Dict[str, List[str]] = {}
 
-        active_regs = [
-            r for r in ZONE_BASE_REGULATIONS if not r._disabled
-        ]
+        active_regs = [r for r in ZONE_BASE_REGULATIONS if not r._disabled]
         if not active_regs:
             logger.info("No active zone base regulations to process")
             return zone_feature_map
@@ -981,9 +1014,9 @@ class RegulationMapper:
             elif zone_reg.has_direct_target():
                 matched_ids = list(self._resolve_zone_direct_match(zone_reg))
             else:
-                matched_ids = list(self._resolve_zone_wide(
-                    zone_reg, zone_index, mu_index
-                ))
+                matched_ids = list(
+                    self._resolve_zone_wide(zone_reg, zone_index, mu_index)
+                )
 
             if not matched_ids:
                 logger.warning(
@@ -999,15 +1032,11 @@ class RegulationMapper:
             # Store regulation details for export
             # Build a concise display name from the regulation_id
             display_name = (
-                zone_reg.regulation_id
-                .replace("zone_", "")
-                .replace("_", " ")
-                .title()
+                zone_reg.regulation_id.replace("zone_", "").replace("_", " ").title()
             )
             # Build region string from zone_ids
             region_str = ", ".join(
-                ZONE_REGION_NAMES.get(z, f"Region {z}")
-                for z in zone_reg.zone_ids
+                ZONE_REGION_NAMES.get(z, f"Region {z}") for z in zone_reg.zone_ids
             )
             self.regulation_details[zone_reg.regulation_id] = {
                 "waterbody_name": display_name,
@@ -1015,7 +1044,8 @@ class RegulationMapper:
                 "rule_text": zone_reg.rule_text,
                 "restriction_type": zone_reg.restriction.get("type", ""),
                 "restriction_details": zone_reg.restriction.get("details", ""),
-                "dates": zone_reg.restriction.get("dates"),
+                "dates": zone_reg.dates,
+                "scope_location": zone_reg.scope_location,
                 "source": "zone",
                 "zone_ids": zone_reg.zone_ids,
                 "feature_types": (
@@ -1028,9 +1058,7 @@ class RegulationMapper:
 
             # Add to feature_to_regs and feature_to_linked_regulation
             for fid in matched_ids:
-                self.feature_to_regs.setdefault(fid, []).append(
-                    zone_reg.regulation_id
-                )
+                self.feature_to_regs.setdefault(fid, []).append(zone_reg.regulation_id)
                 self.feature_to_linked_regulation[fid].add(zone_reg.regulation_id)
 
             mode = "direct-match" if zone_reg.has_direct_target() else "zone-wide"
@@ -1045,7 +1073,9 @@ class RegulationMapper:
         self,
     ) -> Tuple[FeatureIndex, FeatureIndex]:
         """Delegate to ``build_feature_index`` and log summary."""
-        zone_index, mu_index = build_feature_index(self.gazetteer)
+        zone_index, mu_index = build_feature_index(
+            self.gazetteer, use_zone_buffer=self.use_zone_buffer
+        )
         total = sum(
             len(features)
             for zones in zone_index.values()
@@ -1291,7 +1321,9 @@ class RegulationMapper:
             try:
                 return FeatureType(ftype)
             except ValueError:
-                pass
+                logger.warning(
+                    f"Unknown feature type value: {ftype!r}, returning UNKNOWN"
+                )
         return FeatureType.UNKNOWN
 
     def _get_feature_id(self, feature: Any) -> str:
@@ -1361,11 +1393,3 @@ class RegulationMapper:
 
     def get_stats(self) -> RegulationMappingStats:
         return self.stats
-
-    def reset_stats(self):
-        self.stats = RegulationMappingStats()
-        self.feature_to_regs = {}
-        self.merged_groups = {}
-        self.regulation_names = {}
-        self.admin_feature_map = {}
-        self._wb_key_to_stream_ids = None

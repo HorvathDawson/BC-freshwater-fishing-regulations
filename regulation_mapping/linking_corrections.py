@@ -283,18 +283,6 @@ class ManualCorrections:
         """Get ungazetted waterbody by ID."""
         return self.ungazetted_waterbodies.get(ungazetted_id)
 
-    def has_skip_entry(self, region: str, name_verbatim: str) -> bool:
-        """Check if a skip entry exists."""
-        return self.get_skip_entry(region, name_verbatim) is not None
-
-    def has_direct_match(self, region: str, name_verbatim: str) -> bool:
-        """Check if a direct match exists."""
-        return self.get_direct_match(region, name_verbatim) is not None
-
-    def has_admin_direct_match(self, region: str, name_verbatim: str) -> bool:
-        """Check if an admin direct match exists."""
-        return self.get_admin_direct_match(region, name_verbatim) is not None
-
     def get_name_variation_link(
         self, region: str, name_verbatim: str
     ) -> Optional[NameVariationLink]:
@@ -303,10 +291,6 @@ class ManualCorrections:
         if entries is None:
             return None
         return entries.get(name_verbatim)
-
-    def has_name_variation_link(self, region: str, name_verbatim: str) -> bool:
-        """Check if a name variation link exists."""
-        return self.get_name_variation_link(region, name_verbatim) is not None
 
 
 # NOTE: NAME_VARIATIONS has been removed. All name variations have been converted
@@ -1981,13 +1965,8 @@ ADMIN_DIRECT_MATCHES: Dict[str, Dict[str, AdminDirectMatch]] = {
             note=(
                 "Synopsis lists 'CRESTON VALLEY WILDLIFE MANAGEMENT AREA (CVWMA) WATERS' in Region 4 MU 4-6. "
                 "Applies to all streams and lakes within Creston Valley Wildlife Management Area. "
-                "Layer: WLS_WILDLIFE_MGMT_AREA_SVW, ID field: ADMIN_AREA_SID."
-            ),
-            additional_info=(
-                "A permit is required for fishing on all waters within the Creston Valley "
-                "Wildlife Management Area, including Six Mile, Leach, Kootenay River and "
-                "Canal and Duck Lake. For details on acquiring a permit visit "
-                "www.crestonwildlife.ca or call 250-402-6900."
+                "Layer: WLS_WILDLIFE_MGMT_AREA_SVW, ID field: ADMIN_AREA_SID. "
+                "Permit requirement is now a zone regulation (zone_r4_creston_valley_wma_permit)."
             ),
         ),
         "KIKOMUN CREEK PARK (all lakes in the park)": AdminDirectMatch(

@@ -284,20 +284,6 @@ class MetadataGazetteer:
                 return result
         return None
 
-    def get_zone_metadata(self, zone_number: str) -> Optional[Dict]:
-        """Get metadata for a specific zone."""
-        return self.metadata.get("zone_metadata", {}).get(zone_number)
-
-    def get_features_in_zone(
-        self, zone_number: str, feature_type: FeatureType = FeatureType.STREAM
-    ) -> List[Dict]:
-        """Get all features in a specific zone."""
-        features = []
-        for metadata in self.metadata.get(feature_type, {}).values():
-            if zone_number in metadata.get("zones", []):
-                features.append(metadata)
-        return features
-
     def get_waterbody_by_key(self, waterbody_key: str) -> List[FWAFeature]:
         """Get ALL FWA features with the given waterbody_key."""
         features = []
@@ -436,6 +422,10 @@ class MetadataGazetteer:
             "gnis_id_2": None,
             "zones": zones,
             "mgmt_units": mgmt_units,
+            "zones_unbuffered": zones,
+            "mgmt_units_unbuffered": mgmt_units,
+            "region_names": [],
+            "region_names_unbuffered": [],
             "geometry_type": geometry_type,
             "waterbody_key": None,
             "fwa_watershed_code": None,
@@ -642,8 +632,8 @@ class MetadataGazetteer:
                 return None
             return matched
         except Exception as e:
-            logger.warning(f"Failed to read geometry from '{layer_key}': {e}")
-            return None
+            logger.error(f"Failed to read geometry from '{layer_key}': {e}")
+            raise
 
     def find_features_in_admin_area(
         self,
@@ -715,7 +705,8 @@ class MetadataGazetteer:
                     if hasattr(g, "geoms")
                     else 0
                 )
-            except Exception:
+            except Exception as e:
+                logger.warning(f"Failed to count vertices: {e}")
                 return -1
 
         logger.info(f"  Admin polygon: {_vcount(admin_union)} vertices")
@@ -797,7 +788,8 @@ class MetadataGazetteer:
                 )
 
             except Exception as e:
-                logger.warning(f"  Spatial intersection failed for '{layer_name}': {e}")
+                logger.error(f"  Spatial intersection failed for '{layer_name}': {e}")
+                raise
 
         logger.info(f"  Total FWA features in admin area: {len(features)}")
         return features
@@ -871,6 +863,5 @@ class MetadataGazetteer:
             logger.info(f"  Cached '{layer_name}': {len(gdf)} features with sindex")
             return gdf
         except Exception as e:
-            logger.warning(f"  Failed to load FWA layer '{layer_name}': {e}")
-            self._fwa_layer_cache[cache_key] = None
-            return None
+            logger.error(f"  Failed to load FWA layer '{layer_name}': {e}")
+            raise

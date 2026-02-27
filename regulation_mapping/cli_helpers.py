@@ -42,10 +42,3 @@ def sub_header(text: str) -> None:
     """Print a sub-section header with a dash underline."""
     print(f"\n{text}")
     print("-" * tw())
-
-
-def format_percentage(value: float, total: float) -> str:
-    """Format a value/total as a percentage string."""
-    if total == 0:
-        return "0.0%"
-    return f"{value / total * 100:.1f}%"

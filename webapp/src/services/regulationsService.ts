@@ -12,7 +12,7 @@ export interface Regulation {
   rule_text: string;
   restriction_type: string;
   restriction_details: string;
-  dates: string[] | string | { period?: string; type?: string } | null;
+  dates: string[] | string | { period?: string; type?: string } | null;  // Legacy zone format had {period, type}; new format is string[]
   scope_type: string;
   scope_location: string | null;
   includes_tributaries: boolean | null;

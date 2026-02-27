@@ -96,7 +96,7 @@ class ProvincialRegulation:
     Attributes:
         regulation_id: Unique identifier (e.g., "prov_nat_parks_closed")
         rule_text: Human-readable regulation text
-        restriction: Regulation details dict (type, species, details, etc.)
+        restriction: Regulation details dict with ``type`` and ``details``\n                     keys, matching the synopsis format.
         notes: Additional context or source references
 
         admin_targets: List of AdminTarget(layer, feature_id) pairs for admin
@@ -160,7 +160,6 @@ PROVINCIAL_BASE_REGULATIONS: List[ProvincialRegulation] = [
         admin_targets=[AdminTarget("parks_nat")],
         restriction={
             "type": "Closed",
-            "species": ["all"],
             "details": (
                 "Fishing prohibited unless opened under National Parks Fishing Regulations. "
                 "National Park Fishing Permit required where open."
@@ -181,7 +180,6 @@ PROVINCIAL_BASE_REGULATIONS: List[ProvincialRegulation] = [
         admin_targets=[AdminTarget("parks_bc", code_filter="OI")],
         restriction={
             "type": "Closed",
-            "species": ["all"],
             "details": "Fishing prohibited in all Ecological Reserves.",
         },
         notes=(
@@ -453,9 +451,7 @@ def _run_provincial_test():
         print(f"  {lk} ({ftype.name}): {len(layer_data)} features{extra}")
 
     # Process each regulation
-    active_regs = [
-        r for r in PROVINCIAL_BASE_REGULATIONS if not r._disabled
-    ]
+    active_regs = [r for r in PROVINCIAL_BASE_REGULATIONS if not r._disabled]
     print(f"\n{len(active_regs)} active provincial regulation(s) to test")
 
     total_features = 0
@@ -470,7 +466,9 @@ def _run_provincial_test():
         )
 
         if not prov_reg.admin_targets:
-            print(f"  {YELLOW}Skipped (no admin_targets — feature_types-only scope){RESET}")
+            print(
+                f"  {YELLOW}Skipped (no admin_targets — feature_types-only scope){RESET}"
+            )
             results.append((prov_reg.regulation_id, "SKIPPED", 0, 0))
             continue
 
@@ -478,7 +476,10 @@ def _run_provincial_test():
         from .regulation_mapper import lookup_admin_targets
 
         all_matched_features, admin_entries = lookup_admin_targets(
-            gazetteer, gpkg_path, prov_reg.admin_targets, prov_reg.feature_types,
+            gazetteer,
+            gpkg_path,
+            prov_reg.admin_targets,
+            prov_reg.feature_types,
         )
         all_admin_features = [af for _, af in admin_entries]
 

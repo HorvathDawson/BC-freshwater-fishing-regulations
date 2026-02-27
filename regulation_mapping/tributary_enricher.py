@@ -385,12 +385,3 @@ class TributaryEnricher:
             "total_stream_seeds": self.total_stream_seeds,
             "total_lake_seeds": self.total_lake_seeds,
         }
-
-    def reset_stats(self):
-        """Reset statistics counters."""
-        self.enrichment_requests = 0
-        self.cache_hits = 0
-        self.total_tributaries_found = 0
-        self.total_base_features = 0
-        self.total_stream_seeds = 0
-        self.total_lake_seeds = 0

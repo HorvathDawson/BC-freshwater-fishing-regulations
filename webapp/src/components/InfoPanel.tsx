@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { X, Calendar } from 'lucide-react';
+import { X, Calendar, MapPin } from 'lucide-react';
 import { Icon } from '@iconify/react';
 import type { Regulation } from '../services/regulationsService';
 import { regulationsService } from '../services/regulationsService';
@@ -53,6 +53,24 @@ interface InfoPanelProps {
     onClose: () => void;
     collapseState?: CollapseState;
     onSetCollapseState: (state: CollapseState) => void;
+};
+
+/** Map restriction_type to CSS class for colored pills */
+const getRestrictionClass = (type: string): string => {
+    const normalized = type.toLowerCase().replace(/[_ ]/g, '-');
+    const classMap: Record<string, string> = {
+        'closed': 'reg-closed',
+        'closure': 'reg-closure',
+        'catch-and-release': 'reg-catch-and-release',
+        'quota': 'reg-quota',
+        'annual-quota': 'reg-quota',
+        'possession-quota': 'reg-quota',
+        'gear-restriction': 'reg-gear-restriction',
+        'bait-restriction': 'reg-bait-restriction',
+        'notice': 'reg-notice',
+        'note': 'reg-note',
+    };
+    return classMap[normalized] || '';
 };
 
 const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapseState }: InfoPanelProps) => {
@@ -217,9 +235,13 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
 
                             // --- helpers for dates rendering ---
                             const formatDates = (dates: Regulation['dates']): string | null => {
-                                if (Array.isArray(dates) && dates.length > 0) return dates.join(', ');
-                                if (typeof dates === 'string' && dates) return dates;
-                                if (dates && typeof dates === 'object' && 'period' in dates && dates.period) return dates.period;
+                                if (!dates || dates === 'null') return null;
+                                if (Array.isArray(dates)) {
+                                    const valid = dates.filter(d => d && d !== 'null');
+                                    return valid.length > 0 ? valid.join(', ') : null;
+                                }
+                                if (typeof dates === 'string' && dates.trim()) return dates;
+                                if (typeof dates === 'object' && 'period' in dates && dates.period) return dates.period;
                                 return null;
                             };
 
@@ -258,11 +280,39 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                                 return groups;
                             }, {} as Record<string, { label: string; source: string; regulations: Regulation[] }>);
 
-                            // Sort groups: synopsis first, then zone, then provincial
-                            const sourceOrder: Record<string, number> = { synopsis: 0, zone: 1, provincial: 2 };
-                            const sortedGroups = Object.values(groupedRegulations).sort(
-                                (a, b) => (sourceOrder[a.source] ?? 9) - (sourceOrder[b.source] ?? 9)
-                            );
+                            // Sort groups: provincial with a "closed" reg floats to the
+                            // top so users immediately see closures (e.g. Ecological
+                            // Reserves).  Otherwise: synopsis → zone → provincial.
+                            const hasClosedReg = (g: { regulations: Regulation[] }) =>
+                                g.regulations.some(r => {
+                                    const t = (r.restriction_type || '').toLowerCase();
+                                    return t === 'closed' || t === 'closure';
+                                });
+                            const sourceOrder: Record<string, number> = { synopsis: 1, zone: 2, provincial: 3 };
+                            const sortedGroups = Object.values(groupedRegulations).sort((a, b) => {
+                                const aOrder = (a.source === 'provincial' && hasClosedReg(a)) ? 0 : (sourceOrder[a.source] ?? 9);
+                                const bOrder = (b.source === 'provincial' && hasClosedReg(b)) ? 0 : (sourceOrder[b.source] ?? 9);
+                                return aOrder - bOrder;
+                            });
+
+                            // Consistent sort within each group by restriction_type
+                            const typeOrder: Record<string, number> = {
+                                'closed': 0, 'closure': 1,
+                                'catch and release': 2, 'catch_and_release': 2,
+                                'bait restriction': 3, 'bait_restriction': 3,
+                                'gear restriction': 4, 'gear_restriction': 4,
+                                'quota': 5, 'annual quota': 6, 'annual_quota': 6,
+                                'possession quota': 7, 'possession_quota': 7,
+                                'harvest': 8, 'vessel_restriction': 9, 'vessel restriction': 9,
+                                'notice': 10, 'note': 11,
+                            };
+                            for (const g of sortedGroups) {
+                                g.regulations.sort((a, b) => {
+                                    const aKey = (a.restriction_type || '').toLowerCase();
+                                    const bKey = (b.restriction_type || '').toLowerCase();
+                                    return (typeOrder[aKey] ?? 99) - (typeOrder[bKey] ?? 99);
+                                });
+                            }
 
                             return sortedGroups.map((group, groupIdx) => (
                                 <div key={groupIdx} className="regulation-group">
@@ -276,11 +326,16 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                                     {/* Compact regulation rows */}
                                     {group.regulations.map((reg, idx) => {
                                         const dateStr = formatDates(reg.dates);
+                                        // Feature type labels for zone/provincial regs
+                                        const ftLabels = reg.feature_types && reg.feature_types.length > 0
+                                            ? reg.feature_types.map(ft => ft.replace(/s$/, '').replace(/^manmade$/, 'reservoir'))
+                                            : null;
+                                        const hasMeta = !!(dateStr || reg.scope_location || ftLabels);
                                         return (
                                             <div key={idx} className="regulation-row">
                                                 <div className="reg-row-main">
                                                     {reg.restriction_type && (
-                                                        <span className="reg-type-tag">
+                                                        <span className={`reg-type-pill ${getRestrictionClass(reg.restriction_type)}`}>
                                                             {reg.restriction_type.replace(/_/g, ' ')}
                                                         </span>
                                                     )}
@@ -288,13 +343,19 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                                                         <span className="reg-detail-text">{reg.restriction_details}</span>
                                                     )}
                                                 </div>
-                                                {(dateStr || reg.scope_location) && (
+                                                {hasMeta && (
                                                     <div className="reg-row-meta">
                                                         {dateStr && (
                                                             <span className="reg-date"><Calendar size={11} strokeWidth={2} /> {dateStr}</span>
                                                         )}
                                                         {reg.scope_location && reg.source === 'provincial' && (
                                                             <span className="reg-scope-tag">{SCOPE_LOCATION_LABELS[reg.scope_location] || reg.scope_location}</span>
+                                                        )}
+                                                        {reg.scope_location && reg.source !== 'provincial' && (
+                                                            <span className="reg-location-text"><MapPin size={10} strokeWidth={2} /> {reg.scope_location}</span>
+                                                        )}
+                                                        {ftLabels && (
+                                                            <span className="reg-applies-to">{ftLabels.join(' · ')}</span>
                                                         )}
                                                     </div>
                                                 )}

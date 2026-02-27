@@ -7,7 +7,6 @@ and orchestrates the full pipeline flow.
 """
 
 import argparse
-import shutil
 from pathlib import Path
 from typing import Optional
 from collections import Counter
@@ -27,7 +26,6 @@ from .regulation_mapper import RegulationMapper, PipelineResult
 from .scope_filter import ScopeFilter
 from .tributary_enricher import TributaryEnricher
 from .geo_exporter import RegulationGeoExporter
-from data.data_extractor import FWADataAccessor
 from .logger_config import get_logger
 from project_config import get_config
 
@@ -50,6 +48,7 @@ class RegulationPipeline:
         metadata_path: Path,
         graph_path: Optional[Path] = None,
         gpkg_path: Optional[Path] = None,
+        use_zone_buffer: bool = False,
     ):
         """
         Initialize pipeline with required data sources.
@@ -58,10 +57,14 @@ class RegulationPipeline:
             metadata_path: Path to fwa_metadata.pickle
             graph_path: Path to graph pickle (optional, for tributary enrichment)
             gpkg_path: Path to FWA GeoPackage (optional, for export)
+            use_zone_buffer: If True, zone regulations use the 500m-buffered
+                zone boundaries. If False (default), use the exact zone
+                boundaries for zone regulation feature matching.
         """
         self.metadata_path = metadata_path
         self.graph_path = graph_path
         self.gpkg_path = gpkg_path
+        self.use_zone_buffer = use_zone_buffer
 
         # Store parsed regulations for later export
         self.parsed_regulations = None
@@ -123,6 +126,7 @@ class RegulationPipeline:
             scope_filter=scope_filter,
             tributary_enricher=tributary_enricher,
             gpkg_path=self.gpkg_path,
+            use_zone_buffer=self.use_zone_buffer,
         )
 
     def process_regulations(
@@ -275,6 +279,16 @@ class RegulationPipeline:
             regulations_path,
             include_zone_regulations=include_zone_regulations,
         )
+
+        # Free FWA layer cache (large GeoDataFrames used only for admin
+        # spatial intersection during mapping).  The exporter loads its own
+        # geometry copies, so keeping these around doubles peak memory.
+        if self.gazetteer._fwa_layer_cache:
+            logger.info(
+                f"Clearing {len(self.gazetteer._fwa_layer_cache)} cached FWA "
+                f"layer(s) from gazetteer to free memory before export phase"
+            )
+            self.gazetteer._fwa_layer_cache.clear()
 
         # Export geometries (if GDB paths provided)
         exported_files = {}
@@ -451,8 +465,10 @@ def _print_mapping_statistics(
                                 feature_info = features[feature_id]
                                 feature_name = feature_info.get("gnis_name", "unnamed")
                                 break
-                except:
-                    pass
+                except Exception as e:
+                    logger.debug(
+                        f"Could not resolve feature name for {feature_id}: {e}"
+                    )
 
                 print(
                     f"    {feature_id:30s}: {len(rule_ids):5d} rules - {feature_name}"
@@ -548,6 +564,15 @@ Examples:
         help="Include zone-level default regulations (can touch millions of features)",
     )
 
+    parser.add_argument(
+        "--use-zone-buffer",
+        action="store_true",
+        help=(
+            "Use 500m-buffered zone boundaries for zone regulation matching. "
+            "By default, exact (unbuffered) zone boundaries are used."
+        ),
+    )
+
     args = parser.parse_args()
 
     # Verify required inputs exist
@@ -608,6 +633,9 @@ Examples:
     print("\n⚙️  Configuration:")
     print(f"  Verbose output: {'Yes' if args.verbose else 'No'}")
     print(f"  Tributary enrichment: {'Enabled' if args.graph.exists() else 'Disabled'}")
+    print(
+        f"  Zone boundary buffer: {'Yes (500m)' if args.use_zone_buffer else 'No (exact boundaries)'}"
+    )
     if not args.map_only:
         print(
             f"  Geometry export: {'Enabled' if args.gpkg_path.exists() else 'Disabled'}"
@@ -623,6 +651,7 @@ Examples:
         metadata_path=args.metadata,
         graph_path=args.graph if args.graph.exists() else None,
         gpkg_path=args.gpkg_path,
+        use_zone_buffer=args.use_zone_buffer,
     )
 
     print(f"  ✓ Loaded {len(pipeline.gazetteer.name_index):,} unique waterbody names")
