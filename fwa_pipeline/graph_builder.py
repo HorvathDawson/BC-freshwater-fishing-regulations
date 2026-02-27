@@ -9,7 +9,6 @@ Builds a primal graph representation of BC Freshwater Atlas (FWA) stream network
 - Features Optimized Name Propagation (Bulk Assign + Fallback).
 """
 import os
-import sys
 import logging
 import warnings
 import argparse
@@ -17,10 +16,8 @@ import gc
 import pickle
 from data.data_extractor import FWADataAccessor
 import igraph as ig
-from multiprocessing import Pool
 from collections import deque, Counter
-from pathlib import Path
-from shapely.geometry import shape, LineString, MultiLineString
+from shapely.geometry import LineString, MultiLineString
 from project_config import get_config
 
 # Try importing tqdm for progress bars, fallback if not available
@@ -75,15 +72,6 @@ def clean_watershed_code(code):
     if not code:
         return ""
     return "-".join([p for p in code.split("-") if p != "000000"])
-
-
-def format_id_attribute(val):
-    if val is None or val == "" or val == 0:
-        return ""
-    try:
-        return str(int(float(val)))
-    except (ValueError, TypeError):
-        return str(val)
 
 
 # --- Main Graph Class ---
@@ -274,12 +262,6 @@ class FWAPrimalGraphIGraph:
             f"Built Graph: {self.G.vcount():,} nodes, {self.G.ecount():,} edges. Time: {time.time()-start:.1f}s"
         )
         gc.collect()
-
-    def validate_paths(self):
-        if not self.gpkg_path.exists():
-            logger.error(f"GeoPackage not found: {self.gpkg_path}")
-            return False
-        return True
 
     def preprocess_graph(self):
         """Removes spurious Order 1 edges flowing into root nodes."""

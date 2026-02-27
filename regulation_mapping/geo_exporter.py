@@ -3,7 +3,6 @@ RegulationGeoExporter - Creates geographic exports from regulation mapping resul
 """
 
 import json
-import logging
 import hashlib
 import pickle
 import subprocess
@@ -21,8 +20,9 @@ from .regulation_mapper import PipelineResult
 from fwa_pipeline.metadata_gazetteer import FeatureType
 from fwa_pipeline.metadata_builder import ADMIN_LAYER_CONFIG
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(message)s")
-logger = logging.getLogger(__name__)
+from .logger_config import get_logger
+
+logger = get_logger(__name__)
 
 try:
     from tqdm import tqdm
@@ -93,6 +93,33 @@ class RegulationGeoExporter:
         )
 
     # --- LOOKUPS & METADATA ---
+
+    def _expand_admin_reg_ids(self, base_ids: set) -> set:
+        """Expand base synopsis regulation IDs to their ``_ruleN`` variants.
+
+        The ``admin_area_reg_map`` stores base regulation IDs (e.g.
+        ``reg_00618``) for synopsis-sourced regulations, but the
+        ``regulations.json`` keys use per-rule suffixes
+        (``reg_00618_rule0``, ``reg_00618_rule1``, …).  Provincial and
+        zone IDs are already exact keys and pass through unchanged.
+        """
+        reg_details = self.pipeline_result.regulation_details
+        expanded = set()
+        for rid in base_ids:
+            if rid in reg_details:
+                # Exact key exists (provincial / zone) — keep as-is
+                expanded.add(rid)
+            else:
+                # Look for _ruleN variants
+                rule_keys = [
+                    k for k in reg_details if k.startswith(f"{rid}_rule")
+                ]
+                if rule_keys:
+                    expanded.update(rule_keys)
+                else:
+                    # Fallback: keep original even if unmatched
+                    expanded.add(rid)
+        return expanded
 
     def _get_reg_names(
         self, reg_ids: List[str], feature_ids: Optional[List[str]] = None
@@ -731,9 +758,11 @@ class RegulationGeoExporter:
             logger.debug(f"  No geometry matches for '{layer_key}' after ID filter")
             return None
 
-        # Attach regulation IDs
+        # Attach regulation IDs — expand base synopsis IDs to _ruleN variants
         gdf["regulation_ids"] = gdf[id_field].apply(
-            lambda fid: ",".join(sorted(matched_ids_map.get(fid, set())))
+            lambda fid: ",".join(
+                sorted(self._expand_admin_reg_ids(matched_ids_map.get(fid, set())))
+            )
         )
 
         # Readable name

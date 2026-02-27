@@ -12,11 +12,14 @@ export interface Regulation {
   rule_text: string;
   restriction_type: string;
   restriction_details: string;
-  dates: string[] | string | null;
+  dates: string[] | string | { period?: string; type?: string } | null;
   scope_type: string;
   scope_location: string | null;
   includes_tributaries: boolean | null;
-  source?: 'synopsis' | 'provincial';
+  source?: 'synopsis' | 'provincial' | 'zone';
+  zone_ids?: string[];
+  feature_types?: string[] | null;
+  is_direct_match?: boolean;
 }
 
 type RegulationsLookup = Record<string, Regulation>;
@@ -42,10 +45,10 @@ class RegulationsService {
         this.regulations = data;
         this.loadPromise = null;
 
-        // Build set of provincial rule texts for filtering display names
+        // Build set of provincial/zone rule texts for filtering display names
         this.provincialRuleTexts = new Set(
           Object.values(data as RegulationsLookup)
-            .filter(reg => reg.source === 'provincial' && reg.rule_text)
+            .filter(reg => (reg.source === 'provincial' || reg.source === 'zone') && reg.rule_text)
             .map(reg => reg.rule_text)
         );
 

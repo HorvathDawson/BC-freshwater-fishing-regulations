@@ -14,9 +14,9 @@ National Parks" that cannot be extracted from the synopsis tables.
 
 Two regulation scopes (auto-detected from fields):
 
-1. ``admin_layer`` is set → Applies to all FWA features within ALL polygons
-   of that layer (or a subset selected by ``code_filter`` / ``feature_ids``
-   / ``feature_names``).
+1. ``admin_targets`` is set → Applies to all FWA features within the
+   specified admin polygons. Each target is an ``AdminTarget(layer,
+   feature_id, code_filter)`` pair, enabling multi-layer matching.
    - Example: "Fishing prohibited in all National Parks"
    - Example: "Fishing prohibited in all Ecological Reserves"
 
@@ -57,9 +57,9 @@ in the GeoPackage. Each key maps to a BC Data Catalogue layer:
 
 Code Filtering
 --------------
-When ``code_filter`` is set, only admin polygons whose classification code
-matches one of the given values are used for intersection. The relevant
-code field for each layer is defined in ``ADMIN_LAYER_CONFIG`` (from
+When an ``AdminTarget`` has ``code_filter`` set, only admin polygons whose
+classification code matches are used for intersection. The relevant code
+field for each layer is defined in ``ADMIN_LAYER_CONFIG`` (from
 ``metadata_gazetteer.py``). For example, the ``"parks_bc"`` layer uses
 ``PROTECTED_LANDS_CODE``: filter value ``"OI"`` selects Ecological Reserves.
 
@@ -68,7 +68,7 @@ Adding New Regulations
 1. Create a new ``ProvincialRegulation`` entry in
    ``PROVINCIAL_BASE_REGULATIONS``.
 2. Use the ``prov_`` prefix for ``regulation_id``.
-3. Set ``admin_layer`` (for boundary-scoped) **or** ``feature_types``
+3. Set ``admin_targets`` (for boundary-scoped) **or** ``feature_types``
    (for type-scoped, once implemented).
 4. Populate ``restriction`` with at least ``type`` and ``details`` keys.
 5. Run the CLI test: ``python -m regulation_mapping.provincial_base_regulations``
@@ -77,11 +77,11 @@ Adding New Regulations
    affected FWA features.
 """
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Dict, List, Any, Optional
 
-from fwa_pipeline.metadata_gazetteer import ADMIN_LAYER_CONFIG
 from fwa_pipeline.metadata_builder import FeatureType
+from .admin_target import AdminTarget
 
 
 @dataclass
@@ -90,8 +90,8 @@ class ProvincialRegulation:
     A provincial base regulation that applies universally.
 
     Scope type is auto-detected:
-    - If admin_layer is set → applies to all FWA features inside admin polygons
-    - If feature_types is set → applies to all FWA features of those types (future)
+    - If admin_targets is set → applies to all FWA features inside admin polygons
+    - If feature_types is set → applies to all FWA features of those types
 
     Attributes:
         regulation_id: Unique identifier (e.g., "prov_nat_parks_closed")
@@ -99,12 +99,8 @@ class ProvincialRegulation:
         restriction: Regulation details dict (type, species, details, etc.)
         notes: Additional context or source references
 
-        admin_layer: Layer name for admin boundary scope
-        feature_ids: Specific feature IDs to match within the admin layer
-        feature_names: Name(s) to search for in the admin layer
-        code_filter: Classification codes to pre-filter the layer by (e.g.,
-                     ["OI"] for ecological reserves in parks_bc). Only effective
-                     when the layer defines a code_field in ADMIN_LAYER_CONFIG.
+        admin_targets: List of AdminTarget(layer, feature_id) pairs for admin
+            boundary scope. Supports multi-layer matching.
         feature_types: Which FWA feature types this regulation applies to.
                        Uses FeatureType enum values. If None, includes all
                        types (STREAM, LAKE, WETLAND, MANMADE).
@@ -115,19 +111,19 @@ class ProvincialRegulation:
     restriction: Dict[str, Any]
     notes: str
 
-    # Admin boundary scope
-    admin_layer: Optional[str] = None
-    feature_ids: Optional[List[int]] = None
-    feature_names: Optional[List[str]] = None
-    code_filter: Optional[List[str]] = None
+    # Admin boundary scope — list of (layer, feature_id) pairs
+    admin_targets: Optional[List[AdminTarget]] = None
 
     # Feature type scope — controls both admin intersection and type-based scope
     feature_types: Optional[List[FeatureType]] = None  # None = all types
 
+    # Set True to skip this regulation during processing
+    _disabled: bool = False
+
     @property
     def scope_type(self) -> str:
         """Infer scope type from which fields are set."""
-        if self.admin_layer:
+        if self.admin_targets:
             return "admin_boundary_all"
         elif self.feature_types:
             return "feature_type_all"
@@ -161,7 +157,7 @@ PROVINCIAL_BASE_REGULATIONS: List[ProvincialRegulation] = [
             "National Park Reserve and Gulf Islands National Park Reserve are closed "
             "to fishing."
         ),
-        admin_layer="parks_nat",
+        admin_targets=[AdminTarget("parks_nat")],
         restriction={
             "type": "Closed",
             "species": ["all"],
@@ -182,8 +178,7 @@ PROVINCIAL_BASE_REGULATIONS: List[ProvincialRegulation] = [
     ProvincialRegulation(
         regulation_id="prov_eco_reserves_closed",
         rule_text="Fishing is prohibited in Ecological Reserves in B.C.",
-        admin_layer="parks_bc",
-        code_filter=["OI"],  # PROTECTED_LANDS_CODE 'OI' = Ecological Reserve
+        admin_targets=[AdminTarget("parks_bc", code_filter="OI")],
         restriction={
             "type": "Closed",
             "species": ["all"],
@@ -239,7 +234,7 @@ PROVINCIAL_BASE_REGULATIONS: List[ProvincialRegulation] = [
     #         "It is unlawful to snag (foul hook) fish. "
     #         "Any fish willfully or accidentally snagged must be released immediately."
     #     ),
-    #     feature_types=["stream", "lake", "wetland", "manmade"],
+    #     feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.WETLAND, FeatureType.MANMADE],
     #     restriction={
     #         "type": "Method Restriction",
     #         "details": "Snagging (foul hooking) prohibited. Release immediately if snagged.",
@@ -254,7 +249,7 @@ PROVINCIAL_BASE_REGULATIONS: List[ProvincialRegulation] = [
     #         "It is illegal to fish for, or catch and retain any protected species. "
     #         "If you accidentally catch one, you must release it right away where you captured it."
     #     ),
-    #     feature_types=["stream", "lake", "wetland", "manmade"],
+    #     feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.WETLAND, FeatureType.MANMADE],
     #     restriction={
     #         "type": "Protected Species",
     #         "species": [
@@ -278,7 +273,7 @@ PROVINCIAL_BASE_REGULATIONS: List[ProvincialRegulation] = [
     #         "Chumming - attempting to attract fish by depositing any substance "
     #         "in the water - is prohibited."
     #     ),
-    #     feature_types=["stream", "lake", "wetland", "manmade"],
+    #     feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.WETLAND, FeatureType.MANMADE],
     #     restriction={
     #         "type": "Method Restriction",
     #         "details": "Chumming prohibited.",
@@ -293,7 +288,7 @@ PROVINCIAL_BASE_REGULATIONS: List[ProvincialRegulation] = [
     #         "The use of fin fish (dead or alive) or parts of fin fish other than roe "
     #         "is prohibited throughout the province, with limited exceptions."
     #     ),
-    #     feature_types=["stream", "lake", "wetland", "manmade"],
+    #     feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.WETLAND, FeatureType.MANMADE],
     #     restriction={
     #         "type": "Bait Restriction",
     #         "details": (
@@ -312,7 +307,7 @@ PROVINCIAL_BASE_REGULATIONS: List[ProvincialRegulation] = [
     #         "No person shall use as bait or possess for that purpose any freshwater "
     #         "invertebrate at a lake."
     #     ),
-    #     feature_types=["lake"],
+    #     feature_types=[FeatureType.LAKE],
     #     restriction={
     #         "type": "Bait Restriction",
     #         "details": "Freshwater invertebrate bait prohibited in lakes.",
@@ -328,7 +323,7 @@ PROVINCIAL_BASE_REGULATIONS: List[ProvincialRegulation] = [
     #         "canal, obstacle or leap. No fishing within a 100 m radius of any government "
     #         "facility operated for counting, passing or rearing fish."
     #     ),
-    #     feature_types=["stream"],
+    #     feature_types=[FeatureType.STREAM],
     #     restriction={
     #         "type": "Closed",
     #         "details": (
@@ -345,7 +340,7 @@ PROVINCIAL_BASE_REGULATIONS: List[ProvincialRegulation] = [
     #     rule_text=(
     #         "No spear fishing of any kind is permitted in Region 1, 2, and 4."
     #     ),
-    #     feature_types=["stream", "lake", "wetland", "manmade"],
+    #     feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.WETLAND, FeatureType.MANMADE],
     #     restriction={
     #         "type": "Method Restriction",
     #         "details": "Spear fishing prohibited (Regions 1, 2, 4 only).",
@@ -363,7 +358,7 @@ PROVINCIAL_BASE_REGULATIONS: List[ProvincialRegulation] = [
     #         "The annual province-wide quota for hatchery steelhead is 10. "
     #         "All wild steelhead must be released."
     #     ),
-    #     feature_types=["stream"],
+    #     feature_types=[FeatureType.STREAM],
     #     restriction={
     #         "type": "Quota",
     #         "species": ["steelhead"],
@@ -380,7 +375,7 @@ PROVINCIAL_BASE_REGULATIONS: List[ProvincialRegulation] = [
     #         "or move any live fish or live aquatic invertebrates around the province, "
     #         "or transplant them into any waters of B.C."
     #     ),
-    #     feature_types=["stream", "lake", "wetland", "manmade"],
+    #     feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.WETLAND, FeatureType.MANMADE],
     #     restriction={
     #         "type": "Possession Restriction",
     #         "details": (
@@ -409,38 +404,14 @@ def _run_provincial_test():
     """
     Test provincial base regulations against the GPKG admin layers.
 
-    For each active regulation, loads the admin layer, applies code_filter if
-    set, then spatially intersects with FWA features and reports counts.
+    For each active regulation, resolves admin targets via spatial intersection
+    with FWA features and reports counts.
     """
-    import shutil
     from pathlib import Path
 
     from fwa_pipeline.metadata_gazetteer import MetadataGazetteer, ADMIN_LAYER_CONFIG
     from project_config import get_config
-
-    # --- Terminal formatting helpers ---
-
-    RED = "\033[91m"
-    YELLOW = "\033[93m"
-    GREEN = "\033[92m"
-    CYAN = "\033[96m"
-    RESET = "\033[0m"
-
-    def tw(default=80):
-        try:
-            return shutil.get_terminal_size((default, 20)).columns
-        except Exception:
-            return default
-
-    def divider(char="="):
-        print(char * tw())
-
-    def header(text):
-        print()
-        divider("=")
-        print(text)
-        divider("=")
-        print()
+    from .cli_helpers import RED, YELLOW, GREEN, CYAN, RESET, header
 
     config = get_config()
     gpkg_path = config.fwa_data_gpkg
@@ -462,7 +433,6 @@ def _run_provincial_test():
     gazetteer.set_gpkg_path(gpkg_path)
 
     from fwa_pipeline.metadata_builder import (
-        ADMIN_FEATURE_TYPES as _AFT,
         ADMIN_LAYER_CONFIG as _ALC,
     )
 
@@ -484,7 +454,7 @@ def _run_provincial_test():
 
     # Process each regulation
     active_regs = [
-        r for r in PROVINCIAL_BASE_REGULATIONS if not getattr(r, "_disabled", False)
+        r for r in PROVINCIAL_BASE_REGULATIONS if not r._disabled
     ]
     print(f"\n{len(active_regs)} active provincial regulation(s) to test")
 
@@ -494,32 +464,30 @@ def _run_provincial_test():
     for prov_reg in active_regs:
         header(f"REGULATION: {prov_reg.regulation_id}")
         print(f"  Rule:         {prov_reg.rule_text[:100]}...")
-        print(f"  Admin layer:  {prov_reg.admin_layer}")
-        print(f"  Code filter:  {prov_reg.code_filter}")
+        print(f"  Admin targets: {prov_reg.admin_targets}")
         print(
             f"  Feature types: {[ft.value for ft in prov_reg.feature_types] if prov_reg.feature_types else 'ALL'}"
         )
 
-        if not prov_reg.admin_layer:
-            print(f"  {YELLOW}Skipped (no admin_layer set){RESET}")
+        if not prov_reg.admin_targets:
+            print(f"  {YELLOW}Skipped (no admin_targets — feature_types-only scope){RESET}")
             results.append((prov_reg.regulation_id, "SKIPPED", 0, 0))
             continue
 
-        # Search admin layer (returns List[FWAFeature] from pickle)
-        admin_features = gazetteer.search_admin_layer(
-            layer_key=prov_reg.admin_layer,
-            feature_ids=prov_reg.feature_ids,
-            feature_names=prov_reg.feature_names,
-            code_filter=prov_reg.code_filter,
-        )
+        # Use the shared resolution function (same code path as the mapper)
+        from .regulation_mapper import lookup_admin_targets
 
-        if not admin_features:
-            print(f"  {RED}No admin features found in metadata!{RESET}")
+        all_matched_features, admin_entries = lookup_admin_targets(
+            gazetteer, gpkg_path, prov_reg.admin_targets, prov_reg.feature_types,
+        )
+        all_admin_features = [af for _, af in admin_entries]
+
+        if not all_admin_features:
             results.append((prov_reg.regulation_id, "NO_FEATURES", 0, 0))
             continue
 
-        n_polys = len(admin_features)
-        names = [f.gnis_name for f in admin_features if f.gnis_name]
+        n_polys = len(all_admin_features)
+        names = [f.gnis_name for f in all_admin_features if f.gnis_name]
         if names:
             if len(names) <= 10:
                 for nm in names:
@@ -530,28 +498,19 @@ def _run_provincial_test():
                 print(f"    ... and {len(names) - 5} more")
         print(f"\n  {CYAN}Admin features matched: {n_polys}{RESET}")
 
-        # Spatial intersection with FWA features
-        print(f"  Running spatial intersection...")
-        matched_features = gazetteer.find_features_in_admin_area(
-            admin_features=admin_features,
-            layer_key=prov_reg.admin_layer,
-            feature_types=prov_reg.feature_types,
-            gpkg_path=gpkg_path,
-        )
-
-        n_features = len(matched_features)
+        n_features = len(all_matched_features)
         total_features += n_features
 
         # Breakdown by feature type
         from collections import Counter
 
-        type_counts = Counter(f.geometry_type for f in matched_features)
+        type_counts = Counter(f.geometry_type for f in all_matched_features)
         print(f"\n  {GREEN}FWA features matched: {n_features}{RESET}")
         for ftype, count in sorted(type_counts.items()):
             print(f"    {ftype}: {count}")
 
         # Sample feature names
-        named = [f for f in matched_features if f.gnis_name]
+        named = [f for f in all_matched_features if f.gnis_name]
         if named:
             print(f"\n  Sample named features ({min(10, len(named))} of {len(named)}):")
             for f in named[:10]:

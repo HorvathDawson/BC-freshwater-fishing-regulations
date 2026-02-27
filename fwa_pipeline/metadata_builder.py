@@ -11,18 +11,13 @@ OPTIMIZATION NOTE:
 - This avoids buffering 9+ million stream endpoints individually.
 """
 
-import os
 import sys
 import logging
 import pickle
 import argparse
-import gc
-import geopandas as gpd
 from data.data_extractor import FWADataAccessor
 import pandas as pd
 from pathlib import Path
-from collections import defaultdict
-from concurrent.futures import ProcessPoolExecutor, as_completed
 from shapely.geometry import Point
 from shapely.strtree import STRtree
 from enum import Enum

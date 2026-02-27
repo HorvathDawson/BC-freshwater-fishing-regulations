@@ -16,15 +16,6 @@ from .logger_config import get_logger
 logger = get_logger(__name__)
 
 
-def _get_attr(obj, attr_name, default=None):
-    """Get attribute from FWAFeature object or dict."""
-    if hasattr(obj, attr_name):
-        return getattr(obj, attr_name, default)
-    elif isinstance(obj, dict):
-        return obj.get(attr_name, default)
-    return default
-
-
 class TributaryEnricher:
     """
     Pure graph traversal utility for finding upstream tributaries.

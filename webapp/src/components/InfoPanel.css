@@ -316,9 +316,9 @@
 }
 
 .regulation-card {
-    border: 1px solid var(--border);
-    padding: 16px;
-    margin-bottom: 16px;
+    border: 1px solid var(--border-light);
+    padding: 8px 10px;
+    margin-bottom: 4px;
     background: var(--bg);
 }
 
@@ -327,7 +327,7 @@
 }
 
 .regulation-group {
-    margin-bottom: 24px;
+    margin-bottom: 12px;
 }
 
 .regulation-group:last-child {
@@ -335,86 +335,144 @@
 }
 
 .regulation-group-header {
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 700;
     color: var(--text);
-    padding: 8px 12px;
+    padding: 6px 10px;
     background: var(--bg-subtle);
     border-left: 3px solid var(--border);
-    margin-bottom: 12px;
+    margin-bottom: 4px;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
-    font-family: var(--font-sans);
-}
-
-.regulation-type {
-    font-size: 11px;
-    font-weight: 800;
-    letter-spacing: 0.1em;
-    margin: 0 0 8px 0;
-    color: var(--text);
-    text-transform: uppercase;
-    font-family: var(--font-sans);
-}
-
-.regulation-details {
-    font-size: 14px;
-    font-weight: 600;
-    margin: 0 0 8px 0;
-    line-height: 1.4;
-    color: var(--text);
-    font-family: var(--font-sans);
-}
-
-.regulation-dates {
-    font-size: 12px;
-    font-weight: 500;
-    color: var(--text-secondary);
-    margin: 0 0 8px 0;
+    letter-spacing: 0.04em;
     font-family: var(--font-sans);
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
 }
 
-.regulation-scope {
+.regulation-group-header.zone-header {
+    border-left-color: #0d9488;
+}
+
+.regulation-group-header.provincial-header {
+    border-left-color: #B07A00;
+}
+
+.header-badge {
+    display: inline-block;
+    padding: 1px 6px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-radius: 3px;
+    flex-shrink: 0;
+}
+
+.header-badge.zone-badge {
+    background: rgba(13, 148, 136, 0.12);
+    color: #0d9488;
+    border: 1px solid rgba(13, 148, 136, 0.4);
+}
+
+.header-badge.provincial-badge {
+    background: rgba(230, 159, 0, 0.12);
+    color: #B07A00;
+    border: 1px solid rgba(230, 159, 0, 0.4);
+}
+
+/* --- Compact regulation rows --- */
+.regulation-row {
+    border: 1px solid var(--border-light);
+    padding: 6px 10px;
+    margin-bottom: 2px;
+    background: var(--bg);
+}
+
+.regulation-row:last-child {
+    margin-bottom: 0;
+}
+
+.reg-row-main {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.reg-type-tag {
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    font-family: var(--font-sans);
+}
+
+.reg-detail-text {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.3;
+    font-family: var(--font-sans);
+}
+
+.reg-row-meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 2px;
+    flex-wrap: wrap;
+}
+
+.reg-date {
     font-size: 11px;
     font-weight: 500;
     color: var(--text-muted);
-    font-style: italic;
-    margin: 8px 0 0 0;
-    text-transform: uppercase;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
     font-family: var(--font-sans);
 }
 
-.regulation-text-toggle {
-    margin-top: 12px;
+.reg-scope-tag {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-family: var(--font-sans);
+}
+
+.reg-text-expand {
+    margin-top: 4px;
     border-top: 1px solid var(--border-light);
-    padding-top: 12px;
+    padding-top: 4px;
 }
 
-.regulation-text-toggle summary {
+.reg-text-expand summary {
     cursor: pointer;
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 700;
-    color: var(--text-secondary);
+    color: var(--text-muted);
     text-transform: uppercase;
-    letter-spacing: 0.05em;
-    padding: 4px 0;
+    letter-spacing: 0.04em;
+    padding: 2px 0;
     font-family: var(--font-sans);
 }
 
-.regulation-text-toggle summary:hover {
+.reg-text-expand summary:hover {
     color: var(--text);
 }
 
-.regulation-text-content {
-    margin-top: 8px;
-    padding: 12px;
+.reg-text-body {
+    margin-top: 4px;
+    padding: 8px;
     background: var(--bg-subtle);
     border: 1px solid var(--border-light);
-    font-size: 12px;
-    line-height: 1.5;
+    font-size: 11px;
+    line-height: 1.4;
     color: var(--text);
     white-space: pre-wrap;
     font-family: var(--font-sans);

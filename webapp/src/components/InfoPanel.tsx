@@ -215,113 +215,98 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                             // Maps regulation_id → list of admin zone names at click point
                             const adminZones: Record<string, string[]> = props._adminZones || {};
 
-                            // Group regulations by waterbody_name + region combination
-                            const groupedRegulations = regulations.reduce((groups, reg) => {
-                                const waterbodyName = reg.waterbody_name || 'Unknown Waterbody';
-                                let region = reg.region || 'Unknown Region';
+                            // --- helpers for dates rendering ---
+                            const formatDates = (dates: Regulation['dates']): string | null => {
+                                if (Array.isArray(dates) && dates.length > 0) return dates.join(', ');
+                                if (typeof dates === 'string' && dates) return dates;
+                                if (dates && typeof dates === 'object' && 'period' in dates && dates.period) return dates.period;
+                                return null;
+                            };
 
-                                // For provincial / admin-boundary regulations, resolve the
-                                // admin zone name from the map click context instead of
-                                // showing "Unknown Region".
-                                if (reg.source === 'provincial' && reg.scope_location) {
-                                    const zoneNames = adminZones[reg.regulation_id];
-                                    if (zoneNames && zoneNames.length > 0) {
-                                        region = zoneNames.join(', ');
+                            // Group regulations by source category + region
+                            const groupedRegulations = regulations.reduce((groups, reg) => {
+                                let groupLabel: string;
+
+                                if (reg.source === 'zone') {
+                                    // Zone regulations: use the region field set by the backend
+                                    groupLabel = reg.region || 'Zone Regulations';
+                                } else if (reg.source === 'provincial') {
+                                    // Provincial / admin-boundary regulations
+                                    if (reg.scope_location) {
+                                        const zoneNames = adminZones[reg.regulation_id];
+                                        if (zoneNames && zoneNames.length > 0) {
+                                            groupLabel = zoneNames.join(', ');
+                                        } else {
+                                            groupLabel = SCOPE_LOCATION_LABELS[reg.scope_location] || reg.scope_location;
+                                        }
                                     } else {
-                                        region = SCOPE_LOCATION_LABELS[reg.scope_location] || reg.scope_location;
+                                        groupLabel = 'Provincial Regulations';
                                     }
+                                } else {
+                                    // Synopsis regulations: group by waterbody_name
+                                    groupLabel = reg.waterbody_name || 'Regulations';
                                 }
 
-                                // Create a composite key for waterbody + region combination
-                                const groupKey = `${waterbodyName}|||${region}`;
-                                
-                                if (!groups[groupKey]) {
-                                    groups[groupKey] = {
-                                        waterbodyName,
-                                        region,
+                                if (!groups[groupLabel]) {
+                                    groups[groupLabel] = {
+                                        label: groupLabel,
+                                        source: reg.source || 'synopsis',
                                         regulations: []
                                     };
                                 }
-                                groups[groupKey].regulations.push(reg);
+                                groups[groupLabel].regulations.push(reg);
                                 return groups;
-                            }, {} as Record<string, { waterbodyName: string; region: string; regulations: Regulation[] }>);
+                            }, {} as Record<string, { label: string; source: string; regulations: Regulation[] }>);
 
-                            return Object.values(groupedRegulations).map((group, groupIdx) => (
+                            // Sort groups: synopsis first, then zone, then provincial
+                            const sourceOrder: Record<string, number> = { synopsis: 0, zone: 1, provincial: 2 };
+                            const sortedGroups = Object.values(groupedRegulations).sort(
+                                (a, b) => (sourceOrder[a.source] ?? 9) - (sourceOrder[b.source] ?? 9)
+                            );
+
+                            return sortedGroups.map((group, groupIdx) => (
                                 <div key={groupIdx} className="regulation-group">
-                                    {/* Waterbody Name + Region Header */}
-                                    <div className="regulation-group-header">
-                                        {group.waterbodyName}
-                                        {group.region && (
-                                            <span style={{ fontWeight: 'normal', fontSize: '0.9em', opacity: 0.9 }}>
-                                                {' '}- {group.region}
-                                            </span>
-                                        )}
+                                    {/* Group Header */}
+                                    <div className={`regulation-group-header ${group.source === 'zone' ? 'zone-header' : ''} ${group.source === 'provincial' ? 'provincial-header' : ''}`}>
+                                        {group.source === 'zone' && <span className="header-badge zone-badge">Zone</span>}
+                                        {group.source === 'provincial' && <span className="header-badge provincial-badge">Provincial</span>}
+                                        {group.label}
                                     </div>
 
-                                    {/* Regulations for this waterbody + region combination */}
-                                    {group.regulations.map((reg, idx) => (
-                                        <div key={idx} className="regulation-card">
-                                            {/* Source Badge for Provincial Regulations */}
-                                            {reg.source === 'provincial' && (
-                                                <div className="regulation-source-badge" style={{
-                                                    display: 'inline-block',
-                                                    padding: '2px 8px',
-                                                    marginBottom: '6px',
-                                                    fontSize: '0.75em',
-                                                    fontWeight: 600,
-                                                    textTransform: 'uppercase',
-                                                    letterSpacing: '0.05em',
-                                                    backgroundColor: 'rgba(230, 159, 0, 0.15)',
-                                                    color: '#B07A00',
-                                                    borderRadius: '4px',
-                                                    border: '1px solid rgba(230, 159, 0, 0.45)',
-                                                }}>
-                                                    Provincial Regulation
+                                    {/* Compact regulation rows */}
+                                    {group.regulations.map((reg, idx) => {
+                                        const dateStr = formatDates(reg.dates);
+                                        return (
+                                            <div key={idx} className="regulation-row">
+                                                <div className="reg-row-main">
+                                                    {reg.restriction_type && (
+                                                        <span className="reg-type-tag">
+                                                            {reg.restriction_type.replace(/_/g, ' ')}
+                                                        </span>
+                                                    )}
+                                                    {reg.restriction_details && (
+                                                        <span className="reg-detail-text">{reg.restriction_details}</span>
+                                                    )}
                                                 </div>
-                                            )}
-
-                                            {/* Restriction Type */}
-                                            {reg.restriction_type && (
-                                                <div className="regulation-type">
-                                                    {reg.restriction_type.replace(/_/g, ' ')}
-                                                </div>
-                                            )}
-
-                                            {/* Restriction Details */}
-                                            {reg.restriction_details && (
-                                                <div className="regulation-details">
-                                                    {reg.restriction_details}
-                                                </div>
-                                            )}
-
-                                            {/* Dates */}
-                                            {Array.isArray(reg.dates) && reg.dates.length > 0 && (
-                                                <div className="regulation-dates">
-                                                    <Calendar size={14} strokeWidth={2} />
-                                                    <span>{reg.dates.join(', ')}</span>
-                                                </div>
-                                            )}
-
-                                            {/* Scope Location */}
-                                            {reg.scope_location && (
-                                                <div className="regulation-scope">
-                                                    Applies to: {SCOPE_LOCATION_LABELS[reg.scope_location] || reg.scope_location}
-                                                </div>
-                                            )}
-
-                                            {/* Full Rule Text (Expandable) */}
-                                            {reg.rule_text && (
-                                                <details className="regulation-text-toggle">
-                                                    <summary>
-                                                        View Official Text
-                                                    </summary>
-                                                    <div className="regulation-text-content">
-                                                        {reg.rule_text}
+                                                {(dateStr || reg.scope_location) && (
+                                                    <div className="reg-row-meta">
+                                                        {dateStr && (
+                                                            <span className="reg-date"><Calendar size={11} strokeWidth={2} /> {dateStr}</span>
+                                                        )}
+                                                        {reg.scope_location && reg.source === 'provincial' && (
+                                                            <span className="reg-scope-tag">{SCOPE_LOCATION_LABELS[reg.scope_location] || reg.scope_location}</span>
+                                                        )}
                                                     </div>
-                                                </details>
-                                            )}
-                                        </div>
-                                    ))}
+                                                )}
+                                                {reg.rule_text && (
+                                                    <details className="reg-text-expand">
+                                                        <summary>Official text</summary>
+                                                        <div className="reg-text-body">{reg.rule_text}</div>
+                                                    </details>
+                                                )}
+                                            </div>
+                                        );
+                                    })}
                                 </div>
                             ));
                         })()}

@@ -30,26 +30,7 @@ from dataclasses import dataclass
 from typing import Dict, List, Optional
 
 from fwa_pipeline.metadata_builder import FeatureType
-
-
-@dataclass
-class NameVariation:
-    """
-    Maps a regulation name to alternative gazetteer name(s).
-
-    Simple name correction for fuzzy matching:
-    - Spelling variations ("TOQUART" → "toquaht")
-    - Name order ("MAXWELL LAKE" → "lake maxwell")
-    - Plural/singular ("LAKES" → "lake")
-    - 1:many splits ("RIVER1 AND RIVER2" → ["river1", "river2"])
-
-    Attributes:
-        target_names: FWA gazetteer name(s) to search for
-        note: Explanation of the variation
-    """
-
-    target_names: List[str]
-    note: str
+from .admin_target import AdminTarget
 
 
 @dataclass
@@ -112,9 +93,8 @@ class AdminDirectMatch:
     The matched polygon(s) are spatially intersected with FWA features
     to assign regulations to all streams/lakes/etc. within the boundary.
 
-    Matching strategies (checked in order):
-    1. feature_ids: Exact feature ID lookup in the admin layer
-    2. feature_names: Case-insensitive partial name search
+    Each admin polygon is identified by an ``AdminTarget(layer, feature_id)``
+    pair, enabling multi-layer matching within a single regulation.
 
     Admin Layer Types (matching fetch_data.py / GPKG layer names):
         - "parks_bc"        → Provincial Parks & Ecological Reserves
@@ -124,13 +104,10 @@ class AdminDirectMatch:
         - "historic_sites"  → Historic Sites
 
     Attributes:
-        admin_layer: Which admin boundary layer to query
+        admin_targets: List of AdminTarget(layer, feature_id) pairs.
+            Each pair identifies a specific polygon within an admin layer.
+            Supports multi-layer matching (e.g., parks + watersheds).
         note: Explanation of the match
-        feature_ids: Specific feature IDs within the admin layer
-        feature_names: Name(s) to search for in the admin layer (case-insensitive partial match)
-        code_filter: Classification codes to pre-filter the layer by (e.g., ["PP"]
-                     for provincial parks in parks_bc). Only effective when the
-                     layer defines a code_field in ADMIN_LAYER_CONFIG.
         feature_types: Which FWA feature types to include in the spatial
                        intersection. Uses FeatureType enum values. If None,
                        includes all types (STREAM, LAKE, WETLAND, MANMADE).
@@ -139,11 +116,8 @@ class AdminDirectMatch:
             that should appear alongside the synopsis-parsed rules.
     """
 
-    admin_layer: str
+    admin_targets: List[AdminTarget]
     note: str
-    feature_ids: Optional[List[int]] = None
-    feature_names: Optional[List[str]] = None
-    code_filter: Optional[List[str]] = None
     feature_types: Optional[List[FeatureType]] = None  # None = all types
     additional_info: Optional[str] = None
 
@@ -1986,13 +1960,14 @@ NAME_VARIATION_LINKS: Dict[str, Dict[str, NameVariationLink]] = {
 #   historic_sites → SITE_ID
 #
 # Format: {"Region X": {"REGULATION NAME": AdminDirectMatch(...)}}
-# IMPORTANT: Must use feature_ids with exact IDs from the admin layer.
-#            Name-based matching (feature_names) is not allowed.
+# Each entry uses AdminTarget(layer, feature_id) pairs.
 ADMIN_DIRECT_MATCHES: Dict[str, Dict[str, AdminDirectMatch]] = {
     "Region 1": {
         "STRATHCONA PARK WATERS": AdminDirectMatch(
-            admin_layer="parks_bc",
-            feature_ids=["1125", "1127"],
+            admin_targets=[
+                AdminTarget("parks_bc", "1125"),
+                AdminTarget("parks_bc", "1127"),
+            ],
             note=(
                 "Synopsis lists 'STRATHCONA PARK WATERS' in Region 1. "
                 "Applies to all streams and lakes within Strathcona Provincial Park. "
@@ -2002,8 +1977,7 @@ ADMIN_DIRECT_MATCHES: Dict[str, Dict[str, AdminDirectMatch]] = {
     },
     "Region 4": {
         "CRESTON VALLEY WILDLIFE MANAGEMENT AREA (CVWMA) WATERS": AdminDirectMatch(
-            admin_layer="wma",
-            feature_ids=["5364"],
+            admin_targets=[AdminTarget("wma", "5364")],
             note=(
                 "Synopsis lists 'CRESTON VALLEY WILDLIFE MANAGEMENT AREA (CVWMA) WATERS' in Region 4 MU 4-6. "
                 "Applies to all streams and lakes within Creston Valley Wildlife Management Area. "
@@ -2017,8 +1991,7 @@ ADMIN_DIRECT_MATCHES: Dict[str, Dict[str, AdminDirectMatch]] = {
             ),
         ),
         "KIKOMUN CREEK PARK (all lakes in the park)": AdminDirectMatch(
-            admin_layer="parks_bc",
-            feature_ids=["793"],
+            admin_targets=[AdminTarget("parks_bc", "793")],
             note=(
                 "Synopsis lists 'KIKOMUN CREEK PARK (all lakes in the park)' in Region 4 MU 4-22. "
                 "Regulations apply specifically to lakes within Kikomun Creek Provincial Park. "
@@ -2029,8 +2002,7 @@ ADMIN_DIRECT_MATCHES: Dict[str, Dict[str, AdminDirectMatch]] = {
     },
     "Region 5": {
         "BOWRON LAKE Park waters other than Bowron Lake": AdminDirectMatch(
-            admin_layer="parks_bc",
-            feature_ids=["519"],
+            admin_targets=[AdminTarget("parks_bc", "519")],
             note=(
                 "Synopsis lists 'BOWRON LAKE Park waters other than Bowron Lake' in Region 5 MU 5-16. "
                 "Applies to all streams and lakes within Bowron Lake Provincial Park, excluding Bowron Lake itself. "
@@ -2040,8 +2012,9 @@ ADMIN_DIRECT_MATCHES: Dict[str, Dict[str, AdminDirectMatch]] = {
     },
     "Region 6": {
         "CHILKOOT TRAIL NATIONAL HISTORIC PARK WATERS": AdminDirectMatch(
-            admin_layer="historic_sites",
-            feature_ids=["4af28ce2-bda0-47bf-8e64-664b1be54922"],
+            admin_targets=[
+                AdminTarget("historic_sites", "4af28ce2-bda0-47bf-8e64-664b1be54922")
+            ],
             note=(
                 "Synopsis lists 'CHILKOOT TRAIL NATIONAL HISTORIC PARK WATERS' in Region 6 MU 6-28. "
                 "Applies to all streams and lakes within the Chilkoot Trail National Historic Site. "
@@ -2051,12 +2024,11 @@ ADMIN_DIRECT_MATCHES: Dict[str, Dict[str, AdminDirectMatch]] = {
     },
     "Region 7B": {
         "LIARD RIVER WATERSHED (see map on page 63)": AdminDirectMatch(
-            admin_layer="watersheds",
-            feature_ids=["5"],  # Named Watershed ID 5 (Object ID 6422089)
+            admin_targets=[AdminTarget("watersheds", "5")],
             note=(
                 "Regulation specifies 'LIARD RIVER WATERSHED (see map on page 63)' in MU 7-53. "
                 "FWA NAMED WATERSHED: Named Watershed ID 5, Object ID 6422089. "
-                "Layer: FWA_NAMED_WATERSHEDS_POLY, ID field: NAMED_WATERSHED_ID."
+                "Layer: FWA_NAMED_WORKSHEDS_POLY, ID field: NAMED_WATERSHED_ID."
             ),
             feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         ),

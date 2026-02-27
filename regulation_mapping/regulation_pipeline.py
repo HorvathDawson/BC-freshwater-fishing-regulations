@@ -125,7 +125,11 @@ class RegulationPipeline:
             gpkg_path=self.gpkg_path,
         )
 
-    def process_regulations(self, regulations_path: Path) -> PipelineResult:
+    def process_regulations(
+        self,
+        regulations_path: Path,
+        include_zone_regulations: bool = False,
+    ) -> PipelineResult:
         """
         Run the full regulation mapping pipeline.
 
@@ -135,6 +139,8 @@ class RegulationPipeline:
 
         Args:
             regulations_path: Path to parsed_results.json
+            include_zone_regulations: If True, process zone-level default
+                regulations. Defaults to False to keep test runs fast.
 
         Returns:
             PipelineResult from mapper.run()
@@ -153,7 +159,10 @@ class RegulationPipeline:
         self.parsed_regulations = regulations
 
         # Mapper orchestrates all regulation sources and merging
-        return self.mapper.run(regulations=regulations)
+        return self.mapper.run(
+            regulations=regulations,
+            include_zone_regulations=include_zone_regulations,
+        )
 
     def export_geography(
         self,
@@ -243,6 +252,7 @@ class RegulationPipeline:
         export_individual: bool = True,
         export_regulations_json: bool = True,
         frontend_output_dir: Optional[Path] = None,
+        include_zone_regulations: bool = False,
     ):
         """
         Run the complete pipeline: mapping + export.
@@ -254,12 +264,17 @@ class RegulationPipeline:
             export_individual: Whether to export individual geometries
             export_regulations_json: Whether to export regulations.json for frontend
             frontend_output_dir: Optional directory for regulations.json (defaults to output_dir)
+            include_zone_regulations: If True, process zone-level default
+                regulations. Defaults to False to keep test runs fast.
 
         Returns:
             Tuple of (pipeline_result, exported_files)
         """
         # Process regulations
-        result = self.process_regulations(regulations_path)
+        result = self.process_regulations(
+            regulations_path,
+            include_zone_regulations=include_zone_regulations,
+        )
 
         # Export geometries (if GDB paths provided)
         exported_files = {}
@@ -277,12 +292,7 @@ class RegulationPipeline:
 
 # --- Statistics Display Helpers ---
 
-# ANSI Colors
-RED = "\033[91m"
-YELLOW = "\033[93m"
-GREEN = "\033[92m"
-BLUE = "\033[94m"
-RESET = "\033[0m"
+from .cli_helpers import RED, YELLOW, GREEN, BLUE, RESET
 
 
 def _format_percentage(count, total):
@@ -532,6 +542,12 @@ Examples:
         help="Show detailed statistics and analysis",
     )
 
+    parser.add_argument(
+        "--include-zones",
+        action="store_true",
+        help="Include zone-level default regulations (can touch millions of features)",
+    )
+
     args = parser.parse_args()
 
     # Verify required inputs exist
@@ -622,6 +638,7 @@ Examples:
         export_merged=export_merged,
         export_individual=export_individual,
         export_regulations_json=True,
+        include_zone_regulations=args.include_zones,
     )
 
     # Print results

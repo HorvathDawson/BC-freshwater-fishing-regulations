@@ -12,6 +12,7 @@ from dataclasses import dataclass
 from typing import Optional, List, Dict
 from enum import Enum
 from collections import Counter
+import re
 
 from fwa_pipeline.metadata_gazetteer import MetadataGazetteer, FWAFeature, FeatureType
 from .linking_corrections import (
@@ -172,16 +173,13 @@ class WaterbodyLinker:
         if region:
             admin_match = self.corrections.get_admin_direct_match(region, lookup_name)
             if admin_match:
-                # Validate that the admin match has search criteria
-                if (
-                    admin_match.feature_ids is None
-                    and admin_match.feature_names is None
-                ):
+                # Validate that the admin match has target polygons
+                if not admin_match.admin_targets:
                     result = LinkingResult(
                         status=LinkStatus.ERROR,
                         matched_features=[],
                         link_method="admin_direct_match",
-                        error_message=f"AdminDirectMatch configured but feature_ids=None (need to fill in admin IDs)",
+                        error_message=f"AdminDirectMatch configured but admin_targets is empty (need to fill in admin targets)",
                     )
                     result.admin_match = admin_match
                     self.stats[result.status] += 1
@@ -215,8 +213,6 @@ class WaterbodyLinker:
             # e.g., "LEWIS (\"Cameron\") SLOUGH" -> "LEWIS  SLOUGH"
             bracket_removed = search_name
             # Remove all (...) patterns
-            import re
-
             bracket_removed = re.sub(r"\s*\([^)]*\)\s*", " ", bracket_removed).strip()
             # Normalize multiple spaces to single space
             bracket_removed = re.sub(r"\s+", " ", bracket_removed)
@@ -226,8 +222,6 @@ class WaterbodyLinker:
         # Generate brackets + quotes removed variation
         if "(" in search_name or '"' in search_name or "'" in search_name:
             # Remove brackets, then quotes
-            import re
-
             cleaned = re.sub(r"\s*\([^)]*\)\s*", " ", search_name).strip()
             cleaned = cleaned.replace('"', "").replace("'", "")
             # Normalize multiple spaces
@@ -369,58 +363,24 @@ class WaterbodyLinker:
         name_verbatim: str,
         direct_match: DirectMatch,
     ) -> Optional[LinkingResult]:
-        """Apply a DirectMatch (pure ID lookup)."""
-        # Lookup features by the specified ID type(s)
-        # Can combine multiple ID types for mixed matches (e.g., polygon + streams)
-        features = []
+        """Apply a DirectMatch (pure ID lookup).
 
-        if direct_match.gnis_ids:
-            for gnis_id in direct_match.gnis_ids:
-                found = self.gazetteer.search_by_gnis_id(gnis_id)
-                logger.debug(
-                    f"Direct match by GNIS {gnis_id} for '{name_verbatim}' found {len(found)} features"
-                )
-                features.extend(found)
+        Uses :func:`resolve_direct_match_features` for the standard gazetteer
+        ID fields, then adds linker-specific ungazetted-corrections handling.
+        """
+        from .regulation_mapper import resolve_direct_match_features
 
-        if direct_match.fwa_watershed_codes:
-            for watershed_code in direct_match.fwa_watershed_codes:
-                features.extend(self.gazetteer.search_by_watershed_code(watershed_code))
+        # Standard gazetteer lookup (shared with zone/mapper pipeline)
+        features = resolve_direct_match_features(self.gazetteer, direct_match)
 
-        if direct_match.waterbody_poly_ids:
-            for poly_id in direct_match.waterbody_poly_ids:
-                feature = self.gazetteer.get_polygon_by_id(poly_id)
-                if feature:
-                    features.append(feature)
-
-        if direct_match.waterbody_keys:
-            for key in direct_match.waterbody_keys:
-                found = self.gazetteer.get_waterbody_by_key(key)
-                features.extend(found)
-
-        if direct_match.linear_feature_ids:
-            for lfid in direct_match.linear_feature_ids:
-                feature = self.gazetteer.get_stream_by_id(lfid)
-                if feature:
-                    features.append(feature)
-
-        if direct_match.blue_line_keys:
-            for blk in direct_match.blue_line_keys:
-                features.extend(self.gazetteer.search_by_blue_line_key(blk))
-
-        if direct_match.sub_polygon_ids:
-            for sp_id in direct_match.sub_polygon_ids:
-                feature = self.gazetteer.get_polygon_by_id(sp_id)
-                if feature:
-                    features.append(feature)
-
+        # Linker-specific: ungazetted waterbody from manual corrections
+        # This path uses corrections data (geometry coords) rather than the
+        # gazetteer's injected ungazetted features, so it must remain here.
         if direct_match.ungazetted_waterbody_id:
-            # Lookup ungazetted waterbody from manual corrections
             ungazetted_wb = self.corrections.get_ungazetted_waterbody(
                 direct_match.ungazetted_waterbody_id
             )
             if ungazetted_wb:
-                # Convert ungazetted waterbody to a feature-like object
-                # Create appropriate Shapely geometry based on type
                 from shapely.geometry import Point, LineString, Polygon
 
                 if ungazetted_wb.geometry_type == "point":
@@ -428,7 +388,6 @@ class WaterbodyLinker:
                 elif ungazetted_wb.geometry_type == "linestring":
                     geometry = LineString(ungazetted_wb.coordinates)
                 elif ungazetted_wb.geometry_type == "polygon":
-                    # coordinates is a list of rings, first is exterior
                     geometry = Polygon(
                         ungazetted_wb.coordinates[0],
                         (
@@ -733,39 +692,6 @@ class WaterbodyLinker:
                 error_message=f"Found {len(unique_matches)} candidates",
             )
 
-    def apply_polygon_match(
-        self,
-        name_verbatim: str,
-        identity_type: str,
-    ) -> LinkingResult:
-        """
-        Match a waterbody by administrative area polygon intersection.
-
-        Note: Admin area matching is now handled by AdminDirectMatch entries
-        in linking_corrections.py, processed via the 'admin_direct_match' path
-        in link_waterbody(). This method is retained for backward compatibility
-        but should not normally be called directly.
-
-        Args:
-            name_verbatim: Exact verbatim name from regulation text
-            identity_type: "ADMINISTRATIVE_AREA" or similar
-
-        Returns:
-            LinkingResult indicating admin match should be used
-        """
-        logger.warning(
-            f"apply_polygon_match called directly for '{name_verbatim}'. "
-            f"Consider adding an AdminDirectMatch entry in linking_corrections.py instead."
-        )
-        return LinkingResult(
-            status=LinkStatus.NOT_FOUND,
-            error_message=(
-                f"Admin polygon matching for '{name_verbatim}' requires an "
-                f"AdminDirectMatch entry in linking_corrections.py"
-            ),
-            link_method="polygon_match",
-        )
-
     def get_stats(self) -> Dict[str, int]:
         """Get linking statistics."""
         return dict(self.stats)
@@ -794,7 +720,6 @@ def _run_coverage_test():
     """
     import argparse
     import json
-    import shutil
     from pathlib import Path
     from collections import defaultdict, Counter as _Counter
 
@@ -807,50 +732,8 @@ def _run_coverage_test():
         ManualCorrections,
     )
     from project_config import get_config
-
-    # --- Terminal formatting helpers ---
-
-    RED = "\033[91m"
-    YELLOW = "\033[93m"
-    GREEN = "\033[92m"
-    BLUE = "\033[94m"
-    RESET = "\033[0m"
-
-    def tw(default=80):
-        try:
-            return shutil.get_terminal_size((default, 20)).columns
-        except Exception:
-            return default
-
-    def divider(char="="):
-        print(char * tw())
-
-    def header(text):
-        print()
-        divider("=")
-        print(text)
-        divider("=")
-        print()
-
-    def sub_header(text):
-        print(f"\n{text}")
-        print("-" * tw())
-
-    def extract_region(region_str):
-        if not region_str or not region_str.startswith("REGION"):
-            return None
-        # Preserve letter suffix: "REGION 7A - Omineca" -> "Region 7A"
-        import re as _re
-
-        m = _re.match(r"REGION\s+(\d+[A-Za-z]?)\s*[-–]", region_str)
-        if m:
-            return f"Region {m.group(1).upper()}"
-        # Fallback: extract digits+letters before first hyphen
-        token = region_str.split("-")[0].strip()  # "REGION 7A "
-        parts = token.split()  # ["REGION", "7A"]
-        if len(parts) >= 2:
-            return f"Region {parts[-1].upper()}"
-        return None
+    from .cli_helpers import RED, YELLOW, GREEN, BLUE, RESET, header, sub_header, divider, tw
+    from .regulation_mapper import parse_region as extract_region
 
     # --- Export helpers ---
 

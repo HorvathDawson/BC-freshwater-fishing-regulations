@@ -9,11 +9,9 @@ Supports admin boundary layers (parks, WMAs, watersheds) via pickle metadata + G
 """
 
 import pickle
-import json
 from pathlib import Path
-from typing import List, Dict, Optional, Any, Set, Tuple
+from typing import List, Dict, Optional, Any, Set
 from dataclasses import dataclass
-from enum import Enum
 import logging
 
 from .metadata_builder import (
