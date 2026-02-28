@@ -340,7 +340,7 @@ const MapComponent = () => {
                 source: 'regulations',
                 'source-layer': 'admin_parks_bc',
                 filter: ['==', ['get', 'admin_type'], 'ECOLOGICAL_RESERVE'],
-                paint: { 'fill-pattern': 'hatch-cross', 'fill-opacity': 0.75 },
+                paint: { 'fill-pattern': 'hatch-cross', 'fill-opacity': 0.4 },
             } as any);
 
             map.addSource('highlight-source', { type: 'geojson', data: { type: 'FeatureCollection', features: [] }, tolerance: 0.1 });

@@ -351,11 +351,11 @@
 }
 
 .regulation-group-header.zone-header {
-    border-left-color: #0d9488;
+    border-left-color: var(--border);
 }
 
 .regulation-group-header.provincial-header {
-    border-left-color: #B07A00;
+    border-left-color: var(--border);
 }
 
 .header-badge {
@@ -370,15 +370,15 @@
 }
 
 .header-badge.zone-badge {
-    background: rgba(13, 148, 136, 0.12);
-    color: #0d9488;
-    border: 1px solid rgba(13, 148, 136, 0.4);
+    background: var(--border);
+    color: var(--bg);
+    border: none;
 }
 
 .header-badge.provincial-badge {
-    background: rgba(230, 159, 0, 0.12);
-    color: #B07A00;
-    border: 1px solid rgba(230, 159, 0, 0.4);
+    background: var(--border);
+    color: var(--bg);
+    border: none;
 }
 
 /* --- Compact regulation rows --- */
@@ -806,6 +806,34 @@
 
     .reg-detail {
         font-size: 13px;
+    }
+
+    .reg-type-pill {
+        font-size: 11px;
+    }
+
+    .reg-detail-text {
+        font-size: 15px;
+    }
+
+    .reg-date {
+        font-size: 13px;
+    }
+
+    .reg-scope-tag {
+        font-size: 12px;
+    }
+
+    .reg-location-text {
+        font-size: 13px;
+    }
+
+    .reg-applies-to {
+        font-size: 12px;
+    }
+
+    .reg-source-img-btn {
+        font-size: 12px;
     }
 
     .reg-text-expand summary {

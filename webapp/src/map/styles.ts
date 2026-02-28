@@ -296,7 +296,12 @@ export const createRegulationLayers = (): LayerSpecification[] => {
                 'RECREATION_AREA',    ADMIN_COLORS.RECREATION_AREA,
                 ADMIN_COLORS.admin_parks_bc_default,
             ],
-            'fill-opacity': 0.12,
+            'fill-opacity': [
+                'match',
+                ['get', 'admin_type'],
+                'ECOLOGICAL_RESERVE', 0.06,
+                0.12,
+            ],
         },
     });
     adminLayers.push({
@@ -452,69 +457,70 @@ export const createEarlyRoadLayers = (): LayerSpecification[] => [
  * Admin boundary label layers — rendered above basemap labels so parks,
  * eco reserves, WMAs, etc. are always legible.
  *
- * Layer-level minzoom is set to the regulation source floor (4) so that
- * **tippecanoe's per-feature `tippecanoe:minzoom`** (area-based) controls
- * when each individual label first appears.  Large polygons get low
- * minzooms and show labels early; small ones are excluded from low-zoom
- * tiles entirely, so their labels only appear when zoomed in.
- *
- * Text size still scales by zoom level for readability.
+ * Labels use short type prefixes (NP, ER, PP, WMA, etc.) to keep the map
+ * clean, with the full name appended at higher zoom levels.
+ * Labels appear 1-2 zoom levels after the polygon fill becomes visible.
+ * Font matches the default basemap (Noto Sans Regular), no halo/outline.
  */
 export const createAdminLabelLayers = (): LayerSpecification[] => {
     const labelLayers: LayerSpecification[] = [];
 
-    // ── National Parks (high-priority — bold + uppercase) ────────────
+    // ── National Parks ───────────────────────────────────────────────
     labelLayers.push({
         id: 'admin_parks_nat-label',
         type: 'symbol',
         source: 'regulations',
         'source-layer': 'admin_parks_nat',
-        minzoom: 4,
+        minzoom: 6,
         layout: {
             'symbol-placement': 'point',
-            'text-field': ['get', 'name'],
-            'text-font': ['Noto Sans Bold'],
-            'text-size': ['interpolate', ['linear'], ['zoom'], 4, 9, 7, 12, 10, 15, 12, 16],
+            'text-field': [
+                'step', ['zoom'],
+                ['concat', 'NP ', ['get', 'name']],
+                10, ['get', 'name'],
+            ],
+            'text-font': ['Noto Sans Regular'],
+            'text-size': ['interpolate', ['linear'], ['zoom'], 6, 10, 10, 13, 12, 14],
             'text-max-width': 8,
-            'text-transform': 'uppercase',
-            'text-letter-spacing': 0.05,
             'text-anchor': 'center',
             'text-allow-overlap': false,
             'text-ignore-placement': false,
-            'text-padding': 4,
+            'text-padding': ['interpolate', ['linear'], ['zoom'], 6, 50, 10, 12, 14, 4],
         },
         paint: {
             'text-color': '#B37700',
-            'text-halo-color': '#FFFFFF',
-            'text-halo-width': 1.5,
-            'text-opacity': ['interpolate', ['linear'], ['zoom'], 4, 0.75, 7, 1],
+            'text-halo-color': '#ffffff',
+            'text-halo-width': 0.8,
         },
     });
 
-    // ── BC Parks: Ecological Reserves (no-fishing — bold + uppercase) ──
+    // ── BC Parks: Ecological Reserves ────────────────────────────────
     labelLayers.push({
         id: 'admin_parks_bc-eco-label',
         type: 'symbol',
         source: 'regulations',
         'source-layer': 'admin_parks_bc',
         filter: ['==', ['get', 'admin_type'], 'ECOLOGICAL_RESERVE'],
-        minzoom: 4,
+        minzoom: 7,
         layout: {
             'symbol-placement': 'point',
-            'text-field': ['get', 'name'],
-            'text-font': ['Noto Sans Bold'],
-            'text-size': ['interpolate', ['linear'], ['zoom'], 4, 8, 7, 10, 10, 13, 12, 14],
+            'text-field': [
+                'step', ['zoom'],
+                'ER',
+                9, ['concat', 'ER ', ['get', 'name']],
+                11, ['get', 'name'],
+            ],
+            'text-font': ['Noto Sans Regular'],
+            'text-size': ['interpolate', ['linear'], ['zoom'], 7, 9, 10, 11, 12, 13],
             'text-max-width': 8,
-            'text-transform': 'uppercase',
-            'text-letter-spacing': 0.05,
             'text-anchor': 'center',
             'text-allow-overlap': false,
-            'text-padding': 4,
+            'text-padding': ['interpolate', ['linear'], ['zoom'], 7, 50, 10, 12, 14, 4],
         },
         paint: {
             'text-color': '#B37700',
-            'text-halo-color': '#FFFFFF',
-            'text-halo-width': 1.5,
+            'text-halo-color': '#ffffff',
+            'text-halo-width': 0.8,
         },
     });
 
@@ -525,22 +531,25 @@ export const createAdminLabelLayers = (): LayerSpecification[] => {
         source: 'regulations',
         'source-layer': 'admin_parks_bc',
         filter: ['==', ['get', 'admin_type'], 'PROVINCIAL_PARK'],
-        minzoom: 4,
+        minzoom: 6,
         layout: {
             'symbol-placement': 'point',
-            'text-field': ['get', 'name'],
-            'text-font': ['Noto Sans Medium'],
-            'text-size': ['interpolate', ['linear'], ['zoom'], 4, 8, 7, 10, 10, 12, 12, 14],
+            'text-field': [
+                'step', ['zoom'],
+                ['concat', 'PP ', ['get', 'name']],
+                10, ['get', 'name'],
+            ],
+            'text-font': ['Noto Sans Regular'],
+            'text-size': ['interpolate', ['linear'], ['zoom'], 6, 9, 10, 12, 12, 13],
             'text-max-width': 8,
-            'text-letter-spacing': 0.03,
             'text-anchor': 'center',
             'text-allow-overlap': false,
-            'text-padding': 4,
+            'text-padding': ['interpolate', ['linear'], ['zoom'], 6, 50, 10, 12, 14, 4],
         },
         paint: {
             'text-color': '#007A5E',
-            'text-halo-color': '#FFFFFF',
-            'text-halo-width': 1.5,
+            'text-halo-color': '#ffffff',
+            'text-halo-width': 0.8,
         },
     });
 
@@ -551,21 +560,25 @@ export const createAdminLabelLayers = (): LayerSpecification[] => {
         source: 'regulations',
         'source-layer': 'admin_parks_bc',
         filter: ['==', ['get', 'admin_type'], 'PROTECTED_AREA'],
-        minzoom: 4,
+        minzoom: 6,
         layout: {
             'symbol-placement': 'point',
-            'text-field': ['get', 'name'],
-            'text-font': ['Noto Sans Medium'],
-            'text-size': ['interpolate', ['linear'], ['zoom'], 4, 8, 7, 10, 10, 12, 12, 13],
+            'text-field': [
+                'step', ['zoom'],
+                ['concat', 'PA ', ['get', 'name']],
+                10, ['get', 'name'],
+            ],
+            'text-font': ['Noto Sans Regular'],
+            'text-size': ['interpolate', ['linear'], ['zoom'], 6, 9, 10, 12, 12, 13],
             'text-max-width': 8,
             'text-anchor': 'center',
             'text-allow-overlap': false,
-            'text-padding': 4,
+            'text-padding': ['interpolate', ['linear'], ['zoom'], 6, 50, 10, 12, 14, 4],
         },
         paint: {
             'text-color': '#005A8C',
-            'text-halo-color': '#FFFFFF',
-            'text-halo-width': 1.5,
+            'text-halo-color': '#ffffff',
+            'text-halo-width': 0.8,
         },
     });
 
@@ -576,21 +589,25 @@ export const createAdminLabelLayers = (): LayerSpecification[] => {
         source: 'regulations',
         'source-layer': 'admin_parks_bc',
         filter: ['==', ['get', 'admin_type'], 'RECREATION_AREA'],
-        minzoom: 4,
+        minzoom: 7,
         layout: {
             'symbol-placement': 'point',
-            'text-field': ['get', 'name'],
+            'text-field': [
+                'step', ['zoom'],
+                ['concat', 'RA ', ['get', 'name']],
+                10, ['get', 'name'],
+            ],
             'text-font': ['Noto Sans Regular'],
-            'text-size': ['interpolate', ['linear'], ['zoom'], 4, 8, 7, 10, 10, 12, 12, 13],
+            'text-size': ['interpolate', ['linear'], ['zoom'], 7, 9, 10, 11, 12, 13],
             'text-max-width': 8,
             'text-anchor': 'center',
             'text-allow-overlap': false,
-            'text-padding': 4,
+            'text-padding': ['interpolate', ['linear'], ['zoom'], 7, 50, 10, 12, 14, 4],
         },
         paint: {
             'text-color': '#6B5200',
-            'text-halo-color': '#FFFFFF',
-            'text-halo-width': 1.5,
+            'text-halo-color': '#ffffff',
+            'text-halo-width': 0.8,
         },
     });
 
@@ -600,21 +617,25 @@ export const createAdminLabelLayers = (): LayerSpecification[] => {
         type: 'symbol',
         source: 'regulations',
         'source-layer': 'admin_wma',
-        minzoom: 4,
+        minzoom: 7,
         layout: {
             'symbol-placement': 'point',
-            'text-field': ['get', 'name'],
-            'text-font': ['Noto Sans Italic'],
-            'text-size': ['interpolate', ['linear'], ['zoom'], 4, 8, 7, 10, 10, 12, 12, 13],
+            'text-field': [
+                'step', ['zoom'],
+                ['concat', 'WMA ', ['get', 'name']],
+                10, ['get', 'name'],
+            ],
+            'text-font': ['Noto Sans Regular'],
+            'text-size': ['interpolate', ['linear'], ['zoom'], 7, 9, 10, 12, 12, 13],
             'text-max-width': 8,
             'text-anchor': 'center',
             'text-allow-overlap': false,
-            'text-padding': 4,
+            'text-padding': ['interpolate', ['linear'], ['zoom'], 7, 50, 10, 12, 14, 4],
         },
         paint: {
             'text-color': '#5E1D6B',
-            'text-halo-color': '#FFFFFF',
-            'text-halo-width': 1.5,
+            'text-halo-color': '#ffffff',
+            'text-halo-width': 0.8,
         },
     });
 
@@ -624,21 +645,21 @@ export const createAdminLabelLayers = (): LayerSpecification[] => {
         type: 'symbol',
         source: 'regulations',
         'source-layer': 'admin_watersheds',
-        minzoom: 4,
+        minzoom: 6,
         layout: {
             'symbol-placement': 'point',
             'text-field': ['get', 'name'],
-            'text-font': ['Noto Sans Italic'],
-            'text-size': ['interpolate', ['linear'], ['zoom'], 4, 8, 7, 10, 10, 12, 12, 13],
+            'text-font': ['Noto Sans Regular'],
+            'text-size': ['interpolate', ['linear'], ['zoom'], 6, 9, 10, 12, 12, 13],
             'text-max-width': 8,
             'text-anchor': 'center',
             'text-allow-overlap': false,
-            'text-padding': 4,
+            'text-padding': ['interpolate', ['linear'], ['zoom'], 6, 50, 10, 12, 14, 4],
         },
         paint: {
             'text-color': '#004D57',
-            'text-halo-color': '#FFFFFF',
-            'text-halo-width': 1.5,
+            'text-halo-color': '#ffffff',
+            'text-halo-width': 0.8,
         },
     });
 
@@ -648,21 +669,21 @@ export const createAdminLabelLayers = (): LayerSpecification[] => {
         type: 'symbol',
         source: 'regulations',
         'source-layer': 'admin_historic_sites',
-        minzoom: 4,
+        minzoom: 7,
         layout: {
             'symbol-placement': 'point',
             'text-field': ['get', 'name'],
-            'text-font': ['Noto Sans Italic'],
-            'text-size': ['interpolate', ['linear'], ['zoom'], 4, 8, 7, 10, 10, 11, 12, 12],
+            'text-font': ['Noto Sans Regular'],
+            'text-size': ['interpolate', ['linear'], ['zoom'], 7, 9, 10, 11, 12, 12],
             'text-max-width': 8,
             'text-anchor': 'center',
             'text-allow-overlap': false,
-            'text-padding': 4,
+            'text-padding': ['interpolate', ['linear'], ['zoom'], 7, 50, 10, 12, 14, 4],
         },
         paint: {
             'text-color': '#5D4037',
-            'text-halo-color': '#FFFFFF',
-            'text-halo-width': 1.5,
+            'text-halo-color': '#ffffff',
+            'text-halo-width': 0.8,
         },
     });
 

@@ -360,6 +360,7 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                                                         )}
                                                     </div>
                                                 )}
+                                                {(reg.rule_text || reg.source_image) && (
                                                 <div className="reg-row-actions">
                                                     {reg.rule_text && (
                                                         <details className="reg-text-expand">
@@ -378,6 +379,7 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                                                         </button>
                                                     )}
                                                 </div>
+                                                )}
                                             </div>
                                         );
                                     })}

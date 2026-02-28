@@ -1,11 +1,11 @@
 .disambig-menu {
     position: absolute; 
-    background: #fff; 
-    border: 1px solid #000;
+    background: var(--bg, #fff); 
+    border: 1px solid var(--border, #000);
     box-shadow: 4px 4px 0 rgba(0,0,0,1); 
     min-width: 260px; 
     z-index: 2001; 
-    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    font-family: var(--font-sans, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', sans-serif);
     box-sizing: border-box;
 }
 
@@ -14,9 +14,9 @@
 }
 
 .menu-header {
-    background: #f0f0f0; 
+    background: var(--bg-subtle, #f0f0f0); 
     padding: 8px 12px; 
-    border-bottom: 1px solid #000;
+    border-bottom: 1px solid var(--border, #000);
     display: flex; 
     justify-content: space-between; 
     align-items: center;
@@ -39,14 +39,14 @@
 .menu-list { 
     overflow-y: auto; 
     max-height: 300px; 
-    background: #fff; 
+    background: var(--bg, #fff); 
 }
 
 .menu-item-wrapper {
     position: relative;
     display: flex;
     align-items: center;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid var(--border-light, #eee);
 }
 
 .menu-item-wrapper.highlighted {
@@ -92,7 +92,7 @@
 .icon-container { 
     width: 38px; 
     height: 38px; 
-    border: 1px solid #000; 
+    border: 1px solid var(--border, #000); 
     flex-shrink: 0; 
     display: flex;
     align-items: center;
@@ -103,7 +103,7 @@
 .square-icon { 
     width: 12px; 
     height: 12px; 
-    border: 1px solid #000; 
+    border: 1px solid var(--border, #000); 
     flex-shrink: 0; 
 }
 
@@ -119,6 +119,10 @@
     background: #10b981; 
 }
 
+.square-icon.manmade { 
+    background: #a855f7; 
+}
+
 .item-info { 
     display: flex; 
     flex-direction: column; 
@@ -127,20 +131,20 @@
 .name { 
     font-size: 13px; 
     font-weight: 600; 
-    color: #000; 
+    color: var(--text, #000); 
 }
 
 .segment-badge { 
     font-size: 11px; 
     font-weight: 400; 
-    color: #666; 
+    color: var(--text-secondary, #666); 
     margin-left: 4px; 
 }
 
 .item-info .regulation-subtitle {
     font-size: 10px;
     font-weight: 500;
-    color: #666;
+    color: var(--text-secondary, #666);
     text-transform: uppercase;
     margin-top: 2px;
     letter-spacing: 0.03em;
@@ -149,7 +153,7 @@
 .type { 
     font-size: 10px; 
     text-transform: uppercase; 
-    color: #666; 
+    color: var(--text-secondary, #666); 
 }
 
 /* Mobile Override */
@@ -169,7 +173,7 @@
         visibility: visible !important;
         
         border: none !important; 
-        border-top: 2px solid #000 !important;
+        border-top: 2px solid var(--border, #000) !important;
         box-shadow: 0 -4px 15px rgba(0,0,0,0.15) !important;
         min-width: 0 !important;
         box-sizing: border-box !important;
@@ -188,7 +192,7 @@
         display: block; 
         width: 30px; 
         height: 3px; 
-        background: #bbb;
+        background: var(--border-light, #bbb);
         border-radius: 2px; 
         position: absolute; 
         top: 4px; 
