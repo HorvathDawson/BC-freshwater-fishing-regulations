@@ -20,6 +20,9 @@ const TILE_BASE = import.meta.env.VITE_TILE_BASE_URL
     ? `pmtiles://${import.meta.env.VITE_TILE_BASE_URL}`
     : 'pmtiles:///data';
 
+// Data base URL: local in dev, R2 in production (for large JSON files)
+const DATA_BASE = import.meta.env.VITE_TILE_BASE_URL || '/data';
+
 const INTERACTABLE_LAYERS = ['streams', 'lakes-fill', 'wetlands-fill', 'manmade-fill'];
 const ADMIN_FILL_LAYERS = [
     'admin_parks_nat-fill', 'admin_parks_bc-fill', 'admin_wma-fill',
@@ -265,7 +268,7 @@ const MapComponent = () => {
     }, []);
 
     useEffect(() => {
-        fetch('/data/search_index.json').then(res => res.json()).then(data => {
+        fetch(`${DATA_BASE}/search_index.json`).then(res => res.json()).then(data => {
             const grouped: Record<string, SearchableFeature> = {};
             (data.waterbodies || []).forEach((item: any) => {
                 const synopsisNames = regulationsService.filterOutProvincialNames(item.regulation_names || []);

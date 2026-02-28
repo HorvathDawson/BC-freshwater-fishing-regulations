@@ -30,12 +30,14 @@ class RegulationsService {
   private loadPromise: Promise<RegulationsLookup> | null = null;
   private provincialRuleTexts: Set<string> = new Set();
 
+  private static readonly DATA_BASE = import.meta.env.VITE_TILE_BASE_URL || '/data';
+
   async loadRegulations(): Promise<RegulationsLookup> {
     if (this.regulations) return this.regulations;
     if (this.loadPromise) return this.loadPromise;
 
-    // IMPORTANT: Ensure this path matches exactly where your file is in /public
-    this.loadPromise = fetch('/data/regulations.json')
+    // In production fetches from R2, in dev from local /data/
+    this.loadPromise = fetch(`${RegulationsService.DATA_BASE}/regulations.json`)
       .then(response => {
         if (!response.ok) {
           throw new Error(`HTTP Error: ${response.status} ${response.statusText}`);

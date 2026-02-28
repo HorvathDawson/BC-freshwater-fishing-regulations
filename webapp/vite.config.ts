@@ -22,7 +22,7 @@ function copyPublicWithoutPmtiles() {
           const destPath = resolve(dest, entry)
           if (statSync(srcPath).isDirectory()) {
             copyDir(srcPath, destPath)
-          } else if (!entry.endsWith('.pmtiles')) {
+          } else if (!entry.endsWith('.pmtiles') && entry !== 'search_index.json') {
             copyFileSync(srcPath, destPath)
           }
         }
