@@ -214,4 +214,17 @@
     .menu-item { 
         padding: 16px; 
     }
+
+    .name {
+        font-size: 16px;
+    }
+
+    .type,
+    .item-info .regulation-subtitle {
+        font-size: 12px;
+    }
+
+    .menu-header {
+        font-size: 12px;
+    }
 }

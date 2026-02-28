@@ -228,6 +228,10 @@
         max-width: 100%;
     }
 
+    .search-input {
+        font-size: 16px;
+    }
+
     .search-results {
         max-height: 60vh;
     }
@@ -237,6 +241,16 @@
     }
 
     .search-result-name {
-        font-size: 14px;
+        font-size: 16px;
+    }
+
+    .search-result-subtitle {
+        font-size: 12px;
+    }
+
+    .search-result-type,
+    .search-result-zone,
+    .search-result-separator {
+        font-size: 12px;
     }
 }

@@ -24,9 +24,10 @@ dist-ssr
 *.sw?
 
 
-# large assets
+# large assets (served from R2)
 *.pmtiles
 public/data/*
+!public/data/row_images/
 
 # wrangler
 .wrangler/

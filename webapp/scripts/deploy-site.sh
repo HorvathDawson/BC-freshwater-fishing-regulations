@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ────────────────────────────────────────────────────────────────────────
-#  deploy-site.sh — Build and deploy the webapp to Cloudflare Pages
+#  deploy-site.sh — Build and deploy the webapp to Cloudflare Workers
 #
 #  Usage:
 #    ./scripts/deploy-site.sh              # Build + deploy (production)
@@ -15,7 +15,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 WEBAPP_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
-PROJECT_NAME="bc-fishing-regulations"
+REPO_ROOT="$(cd "$WEBAPP_DIR/.." && pwd)"
 
 # ── Colours ───────────────────────────────────────────────────────────
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'; CYAN='\033[0;36m'; NC='\033[0m'
@@ -34,19 +34,6 @@ do_build() {
     info "Building webapp (production)..."
     npm run build
     ok "Build complete → dist/"
-
-    # Verify no oversized files
-    local max_size=$((25 * 1024 * 1024))  # 25 MiB Pages limit
-    while IFS= read -r -d '' file; do
-        local size
-        size=$(stat -c%s "$file" 2>/dev/null || stat -f%z "$file" 2>/dev/null)
-        if [ "$size" -gt "$max_size" ]; then
-            err "File too large for Pages (>25 MiB): $file ($(du -h "$file" | cut -f1))"
-            err "Upload it to R2 instead: ./scripts/deploy-data.sh --file $file"
-            exit 1
-        fi
-    done < <(find dist/ -type f -print0)
-    ok "All files under 25 MiB Pages limit."
 }
 
 # ── Deploy ────────────────────────────────────────────────────────────
@@ -56,14 +43,14 @@ do_deploy() {
         exit 1
     fi
 
-    info "Deploying to Cloudflare Pages ($PROJECT_NAME)..."
-    npx wrangler pages deploy dist \
-        --project-name="$PROJECT_NAME" \
-        --commit-dirty=true
+    info "Deploying to Cloudflare Workers (static assets)..."
+    cd "$REPO_ROOT"
+    npx wrangler deploy
+    cd "$WEBAPP_DIR"
     ok "Deployment complete!"
     echo ""
     echo "  Production:  https://canifishthis.ca"
-    echo "  Pages URL:   https://$PROJECT_NAME.pages.dev"
+    echo "  Workers URL: https://bc-fishing-regulations.horvath-dawson.workers.dev"
 }
 
 # ── Main ──────────────────────────────────────────────────────────────

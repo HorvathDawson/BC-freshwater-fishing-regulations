@@ -767,4 +767,52 @@
         background: var(--border-light); 
         margin: 0 auto 16px auto;
     }
+
+    .panel-header h1 {
+        font-size: 22px;
+    }
+
+    .regulation-subtitle {
+        font-size: 13px;
+    }
+
+    .type-tag {
+        font-size: 12px;
+    }
+
+    .tag {
+        font-size: 12px;
+    }
+
+    .data-section h3 {
+        font-size: 13px;
+    }
+
+    .label {
+        font-size: 14px;
+    }
+
+    .value {
+        font-size: 15px;
+    }
+
+    .regulation-group-header {
+        font-size: 14px;
+    }
+
+    .reg-species {
+        font-size: 14px;
+    }
+
+    .reg-detail {
+        font-size: 13px;
+    }
+
+    .reg-text-expand summary {
+        font-size: 12px;
+    }
+
+    .reg-text-body {
+        font-size: 13px;
+    }
 }

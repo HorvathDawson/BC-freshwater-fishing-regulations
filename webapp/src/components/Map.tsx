@@ -293,7 +293,8 @@ const MapComponent = () => {
             container: mapContainerRef.current,
             style: {
                 version: 8,
-                glyphs: 'https://protomaps.github.io/basemaps-assets/fonts/{fontstack}/{range}.pbf',
+                glyphs: 'https://cdn.protomaps.com/fonts/pbf/{fontstack}/{range}.pbf',
+                sprite: 'https://protomaps.github.io/basemaps-assets/sprites/v4/light',
                 sources: {
                     protomaps: { type: 'vector', url: `${TILE_BASE}/bc.pmtiles`, attribution: 'Protomaps', maxzoom: 15 },
                     regulations: { type: 'vector', url: `${TILE_BASE}/regulations_merged.pmtiles`, attribution: 'FWA BC', minzoom: 4, maxzoom: 12 }
