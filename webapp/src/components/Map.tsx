@@ -15,15 +15,21 @@ import './Map.css';
 const protocol = new Protocol();
 maplibregl.addProtocol('pmtiles', protocol.tile);
 
+// Tile base URL: empty in dev (local /data/), R2 public URL in production
+const TILE_BASE = import.meta.env.VITE_TILE_BASE_URL
+    ? `pmtiles://${import.meta.env.VITE_TILE_BASE_URL}`
+    : 'pmtiles:///data';
+
 const INTERACTABLE_LAYERS = ['streams', 'lakes-fill', 'wetlands-fill', 'manmade-fill'];
 const ADMIN_FILL_LAYERS = [
     'admin_parks_nat-fill', 'admin_parks_bc-fill', 'admin_wma-fill',
     'admin_watersheds-fill', 'admin_historic_sites-fill',
 ];
-const MAP_LAYERS = [
+const _MAP_LAYERS = [
     'admin_parks_nat', 'admin_parks_bc', 'admin_wma', 'admin_watersheds', 'admin_historic_sites',
     'streams', 'lakes', 'wetlands', 'manmade', 'regions',
 ] as const;
+void _MAP_LAYERS;
 
 // --- STYLE EXPRESSIONS ---
 const STREAM_LINE_WIDTH = ['interpolate', ['linear'], ['zoom'], 4, ['+', 1.5, ['*', ['coalesce', ['get', 'stream_order'], 1], 0.1]], 8, ['+', 2, ['*', ['coalesce', ['get', 'stream_order'], 1], 0.15]], 11, ['*', ['+', 1.5, ['*', ['coalesce', ['get', 'stream_order'], 1], 0.5]], 1.5], 12, ['*', ['+', 1.5, ['*', ['coalesce', ['get', 'stream_order'], 1], 0.5]], 2], 14, ['*', ['+', 1.5, ['*', ['coalesce', ['get', 'stream_order'], 1], 0.5]], 3], 16, ['*', ['+', 1.5, ['*', ['coalesce', ['get', 'stream_order'], 1], 0.5]], 4]];
@@ -85,7 +91,7 @@ const createCirclePolygon = (lngLat: { lng: number; lat: number }, zoom: number)
         coords.push([lngLat.lng + dx, lngLat.lat + dy]);
     }
     coords.push(coords[0]);
-    return { type: 'Polygon', coordinates: [coords] };
+    return { type: 'Polygon' as const, coordinates: [coords] };
 };
 
 const createWetlandPattern = () => {
@@ -211,8 +217,8 @@ const MapComponent = () => {
     const mapContainerRef = useRef<HTMLDivElement>(null);
     const mapRef = useRef<maplibregl.Map | null>(null);
     const isDisambigOpenRef = useRef<boolean>(false);
-    const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-    const searchPollRef = useRef<NodeJS.Timeout | null>(null);
+    const hoverTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const searchPollRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const selectedFeatureRef = useRef<FeatureInfo | null>(null);
     const mobilePanelStateRef = useRef<CollapseState>('expanded');
     
@@ -224,11 +230,12 @@ const MapComponent = () => {
     const [highlightedOption, setHighlightedOption] = useState<FeatureOption | null>(null);
     const [highlightedSearchResult, setHighlightedSearchResult] = useState<SearchableFeature | null>(null);
     const [searchableFeatures, setSearchableFeatures] = useState<SearchableFeature[]>([]);
-    const [layerVisibility, setLayerVisibility] = useState<LayerVisibility>({
+    const [_layerVisibility, _setLayerVisibility] = useState<LayerVisibility>({
         streams: true, lakes: true, wetlands: true, manmade: true, regions: true,
         admin_parks_nat: true, admin_parks_bc: true, admin_wma: true,
         admin_watersheds: true, admin_historic_sites: true,
     });
+    void _layerVisibility; void _setLayerVisibility;
 
     // Mirror state → refs so map event-handler closures always see the latest values.
     // (State setters are stable; refs are mutable — this is the canonical React pattern.)
@@ -285,8 +292,8 @@ const MapComponent = () => {
                 version: 8,
                 glyphs: 'https://protomaps.github.io/basemaps-assets/fonts/{fontstack}/{range}.pbf',
                 sources: {
-                    protomaps: { type: 'vector', url: 'pmtiles:///data/bc.pmtiles', attribution: 'Protomaps', maxzoom: 15 },
-                    regulations: { type: 'vector', url: 'pmtiles:///data/regulations_merged.pmtiles', attribution: 'FWA BC', minzoom: 4, maxzoom: 12 }
+                    protomaps: { type: 'vector', url: `${TILE_BASE}/bc.pmtiles`, attribution: 'Protomaps', maxzoom: 15 },
+                    regulations: { type: 'vector', url: `${TILE_BASE}/regulations_merged.pmtiles`, attribution: 'FWA BC', minzoom: 4, maxzoom: 12 }
                 },
                 // Base map (no labels) → regulation overlays → labels on top
                 // The `layers()` call without `lang` returns geometry-only layers;
@@ -339,7 +346,7 @@ const MapComponent = () => {
             
             map.addSource('selection-source', { type: 'geojson', data: { type: 'FeatureCollection', features: [] }, tolerance: 0.1 });
             // Active selection — uniform deep blue (same weight signal regardless of type)
-            map.addLayer({ id: 'selection-line', type: 'line', source: 'selection-source', paint: { 'line-color': SELECTION_COLOR, 'line-width': STREAM_LINE_WIDTH, 'line-opacity': 1.0 }, layout: { 'line-cap': 'round', 'line-join': 'round' } });
+            map.addLayer({ id: 'selection-line', type: 'line', source: 'selection-source', paint: { 'line-color': SELECTION_COLOR, 'line-width': STREAM_LINE_WIDTH as any, 'line-opacity': 1.0 }, layout: { 'line-cap': 'round', 'line-join': 'round' } });
             map.addLayer({ id: 'selection-fill', type: 'fill', source: 'selection-source', paint: { 'fill-color': SELECTION_COLOR, 'fill-opacity': 0.35 }, filter: ['==', '$type', 'Polygon'] });
             
             map.addSource('cursor-circle', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
@@ -412,7 +419,7 @@ const MapComponent = () => {
                     id: (f.id || props[idKey] || `f-${i}`).toString(), 
                     geometry: f.toJSON().geometry, 
                     source: f.layer.source, 
-                    sourceLayer: f.layer['source-layer'], 
+                    sourceLayer: (f.layer as any)['source-layer'], 
                     idKey,
                     bbox,
                     minzoom: props.min_zoom || 4
@@ -585,8 +592,8 @@ const MapComponent = () => {
                                 setHighlightedOption(option as any);
                                 const map = mapRef.current; if (!map) return;
                                 const bounds = new maplibregl.LngLatBounds();
-                                if (option.bbox) bounds.extend([[option.bbox[0], option.bbox[1]], [option.bbox[2], option.bbox[3]]]);
-                                else extendBoundsWithGeometry(bounds, option.geometry);
+                                if ((option as any).bbox) bounds.extend([[(option as any).bbox[0], (option as any).bbox[1]], [(option as any).bbox[2], (option as any).bbox[3]]]);
+                                else extendBoundsWithGeometry(bounds, (option as any).geometry);
                                 if (!bounds.isEmpty()) {
                                     const isMobile = window.innerWidth <= 768;
                                     // On mobile leave bottom padding for the bottom sheet

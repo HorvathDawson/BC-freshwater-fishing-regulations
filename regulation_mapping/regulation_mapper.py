@@ -727,6 +727,7 @@ class RegulationMapper:
                     "scope_location": scope_d.get("location_verbatim"),
                     "includes_tributaries": scope_d.get("includes_tributaries"),
                     "source": "synopsis",
+                    "source_image": regulation.get("image"),
                 }
 
         # Sort indices

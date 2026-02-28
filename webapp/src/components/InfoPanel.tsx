@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { X, Calendar, MapPin } from 'lucide-react';
+import { X, Calendar, MapPin, FileImage } from 'lucide-react';
 import { Icon } from '@iconify/react';
 import type { Regulation } from '../services/regulationsService';
 import { regulationsService } from '../services/regulationsService';
@@ -77,6 +77,7 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
     const touchStartY = useRef<number>(0);
     const [regulations, setRegulations] = useState<Regulation[]>([]);
     const [loadingRegs, setLoadingRegs] = useState(false);
+    const [sourceImage, setSourceImage] = useState<{ src: string; name: string } | null>(null);
 
     // Fetch regulations when feature changes
     useEffect(() => {
@@ -359,12 +360,24 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                                                         )}
                                                     </div>
                                                 )}
-                                                {reg.rule_text && (
-                                                    <details className="reg-text-expand">
-                                                        <summary>Official text</summary>
-                                                        <div className="reg-text-body">{reg.rule_text}</div>
-                                                    </details>
-                                                )}
+                                                <div className="reg-row-actions">
+                                                    {reg.rule_text && (
+                                                        <details className="reg-text-expand">
+                                                            <summary>Official text</summary>
+                                                            <div className="reg-text-body">{reg.rule_text}</div>
+                                                        </details>
+                                                    )}
+                                                    {reg.source_image && (
+                                                        <button
+                                                            className="reg-source-img-btn"
+                                                            title="View source image from synopsis"
+                                                            onClick={() => setSourceImage({ src: `/data/row_images/${reg.source_image}`, name: reg.waterbody_name || 'Source' })}
+                                                        >
+                                                            <FileImage size={12} strokeWidth={2} />
+                                                            <span>Source</span>
+                                                        </button>
+                                                    )}
+                                                </div>
                                             </div>
                                         );
                                     })}
@@ -457,6 +470,27 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
             <div className={`panel-mobile ${feature ? 'visible' : ''} ${collapseState === 'partial' ? 'partial' : ''} ${collapseState === 'collapsed' ? 'collapsed' : ''}`}>
                 {renderContent()}
             </div>
+
+            {/* Source image modal */}
+            {sourceImage && (
+                <div className="source-image-overlay" onClick={() => setSourceImage(null)}>
+                    <div className="source-image-modal" onClick={e => e.stopPropagation()}>
+                        <div className="source-image-header">
+                            <span className="source-image-title">{sourceImage.name}</span>
+                            <button className="source-image-close" onClick={() => setSourceImage(null)}>
+                                <X size={18} />
+                            </button>
+                        </div>
+                        <div className="source-image-body">
+                            <img
+                                src={sourceImage.src}
+                                alt={`Synopsis source for ${sourceImage.name}`}
+                                className="source-image-img"
+                            />
+                        </div>
+                    </div>
+                </div>
+            )}
         </>
     );
 };

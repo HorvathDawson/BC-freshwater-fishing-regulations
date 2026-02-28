@@ -27,3 +27,6 @@ dist-ssr
 # large assets
 *.pmtiles
 public/data/*
+
+# wrangler
+.wrangler/

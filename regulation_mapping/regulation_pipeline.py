@@ -7,6 +7,7 @@ and orchestrates the full pipeline flow.
 """
 
 import argparse
+import shutil
 from pathlib import Path
 from typing import Optional
 from collections import Counter
@@ -68,6 +69,8 @@ class RegulationPipeline:
 
         # Store parsed regulations for later export
         self.parsed_regulations = None
+        # Directory containing row images (set during process_regulations)
+        self._row_images_dir: Optional[Path] = None
 
         # Initialize components
         self._init_components()
@@ -162,6 +165,12 @@ class RegulationPipeline:
         # Store regulations for later export
         self.parsed_regulations = regulations
 
+        # Discover row_images directory relative to the parsed_results.json
+        row_images_candidate = regulations_path.parent.parent / "extract_synopsis" / "row_images"
+        if row_images_candidate.is_dir():
+            self._row_images_dir = row_images_candidate
+            logger.info(f"Found row images directory: {self._row_images_dir}")
+
         # Mapper orchestrates all regulation sources and merging
         return self.mapper.run(
             regulations=regulations,
@@ -215,6 +224,18 @@ class RegulationPipeline:
             search_index = output_dir / "search_index.json"
             exporter.export_search_index(search_index)
             exported_files["search_index"] = search_index
+
+            # Copy row images next to regulations.json for web serving
+            if self._row_images_dir and self._row_images_dir.is_dir():
+                dest_images_dir = output_dir / "row_images"
+                if dest_images_dir.exists():
+                    shutil.rmtree(dest_images_dir)
+                shutil.copytree(self._row_images_dir, dest_images_dir)
+                logger.info(
+                    f"Copied row images to {dest_images_dir} "
+                    f"({sum(1 for _ in dest_images_dir.glob('*.png'))} images)"
+                )
+                exported_files["row_images"] = dest_images_dir
 
         # Export merged geometries
         if export_merged:

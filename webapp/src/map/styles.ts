@@ -62,13 +62,14 @@ const ADMIN_COLORS: Record<string, string> = {
 };
 
 // All admin source-layer names that could appear in the PMTiles
-const ADMIN_LAYERS = [
+const _ADMIN_LAYERS = [
     'admin_parks_nat',
     'admin_parks_bc',
     'admin_wma',
     'admin_watersheds',
     'admin_historic_sites',
 ] as const;
+void _ADMIN_LAYERS;
 
 // Helper function to create regulation layers from new PMTiles structure
 export const createRegulationLayers = (): LayerSpecification[] => {

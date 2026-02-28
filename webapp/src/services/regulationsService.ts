@@ -17,6 +17,7 @@ export interface Regulation {
   scope_location: string | null;
   includes_tributaries: boolean | null;
   source?: 'synopsis' | 'provincial' | 'zone';
+  source_image?: string | null;
   zone_ids?: string[];
   feature_types?: string[] | null;
   is_direct_match?: boolean;
