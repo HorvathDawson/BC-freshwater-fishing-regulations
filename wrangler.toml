@@ -1,0 +1,10 @@
+# Cloudflare Workers — static asset deployment for the webapp
+# This config is used by the dashboard CI/CD pipeline.
+# Build command: cd webapp && npm install && npm run build
+# Deploy command: npx wrangler deploy
+
+name = "bc-fishing-regulations"
+compatibility_date = "2024-09-25"
+
+[assets]
+directory = "./webapp/dist"
