@@ -49,7 +49,6 @@ class RegulationPipeline:
         metadata_path: Path,
         graph_path: Optional[Path] = None,
         gpkg_path: Optional[Path] = None,
-        use_zone_buffer: bool = False,
     ):
         """
         Initialize pipeline with required data sources.
@@ -58,14 +57,10 @@ class RegulationPipeline:
             metadata_path: Path to fwa_metadata.pickle
             graph_path: Path to graph pickle (optional, for tributary enrichment)
             gpkg_path: Path to FWA GeoPackage (optional, for export)
-            use_zone_buffer: If True, zone regulations use the 500m-buffered
-                zone boundaries. If False (default), use the exact zone
-                boundaries for zone regulation feature matching.
         """
         self.metadata_path = metadata_path
         self.graph_path = graph_path
         self.gpkg_path = gpkg_path
-        self.use_zone_buffer = use_zone_buffer
 
         # Store parsed regulations for later export
         self.parsed_regulations = None
@@ -129,7 +124,6 @@ class RegulationPipeline:
             scope_filter=scope_filter,
             tributary_enricher=tributary_enricher,
             gpkg_path=self.gpkg_path,
-            use_zone_buffer=self.use_zone_buffer,
         )
 
     def process_regulations(
@@ -166,7 +160,9 @@ class RegulationPipeline:
         self.parsed_regulations = regulations
 
         # Discover row_images directory relative to the parsed_results.json
-        row_images_candidate = regulations_path.parent.parent / "extract_synopsis" / "row_images"
+        row_images_candidate = (
+            regulations_path.parent.parent / "extract_synopsis" / "row_images"
+        )
         if row_images_candidate.is_dir():
             self._row_images_dir = row_images_candidate
             logger.info(f"Found row images directory: {self._row_images_dir}")
@@ -217,15 +213,11 @@ class RegulationPipeline:
         # Export regulations JSON + search index first (fast, and needed by frontend
         # even if the heavier geometry exports fail)
         if export_regulations_json and self.parsed_regulations:
-            regulations_json = output_dir / "regulations.json"
-            exporter.export_regulations_json(self.parsed_regulations, regulations_json)
-            exported_files["regulations_json"] = regulations_json
+            waterbody_data = output_dir / "waterbody_data.json"
+            exporter.export_waterbody_data(waterbody_data)
+            exported_files["waterbody_data"] = waterbody_data
 
-            search_index = output_dir / "search_index.json"
-            exporter.export_search_index(search_index)
-            exported_files["search_index"] = search_index
-
-            # Copy row images next to regulations.json for web serving
+            # Copy row images next to waterbody_data.json for web serving
             if self._row_images_dir and self._row_images_dir.is_dir():
                 dest_images_dir = output_dir / "row_images"
                 if dest_images_dir.exists():
@@ -251,21 +243,15 @@ class RegulationPipeline:
             ):
                 exported_files["merged_pmtiles"] = pmtiles_path
 
-        # Export individual geometries
+        # Export individual geometries (GPKG only - PMTiles not needed)
         if export_individual:
             individual_gpkg = output_dir / "regulations_individual.gpkg"
-            individual_pmtiles = output_dir / "regulations_individual.pmtiles"
 
             logger.info("Exporting individual geometries...")
             if gpkg_path := exporter.export_gpkg(
                 individual_gpkg, merge_geometries=False
             ):
                 exported_files["individual_gpkg"] = gpkg_path
-
-            if pmtiles_path := exporter.export_pmtiles(
-                individual_pmtiles, merge_geometries=False
-            ):
-                exported_files["individual_pmtiles"] = pmtiles_path
 
         return exported_files
 
@@ -585,15 +571,6 @@ Examples:
         help="Include zone-level default regulations (can touch millions of features)",
     )
 
-    parser.add_argument(
-        "--use-zone-buffer",
-        action="store_true",
-        help=(
-            "Use 500m-buffered zone boundaries for zone regulation matching. "
-            "By default, exact (unbuffered) zone boundaries are used."
-        ),
-    )
-
     args = parser.parse_args()
 
     # Verify required inputs exist
@@ -654,9 +631,7 @@ Examples:
     print("\n⚙️  Configuration:")
     print(f"  Verbose output: {'Yes' if args.verbose else 'No'}")
     print(f"  Tributary enrichment: {'Enabled' if args.graph.exists() else 'Disabled'}")
-    print(
-        f"  Zone boundary buffer: {'Yes (500m)' if args.use_zone_buffer else 'No (exact boundaries)'}"
-    )
+    print(f"  Zone boundary buffer: Yes (500m, always enabled)")
     if not args.map_only:
         print(
             f"  Geometry export: {'Enabled' if args.gpkg_path.exists() else 'Disabled'}"
@@ -672,7 +647,6 @@ Examples:
         metadata_path=args.metadata,
         graph_path=args.graph if args.graph.exists() else None,
         gpkg_path=args.gpkg_path,
-        use_zone_buffer=args.use_zone_buffer,
     )
 
     print(f"  ✓ Loaded {len(pipeline.gazetteer.name_index):,} unique waterbody names")

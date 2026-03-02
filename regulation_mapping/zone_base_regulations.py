@@ -613,9 +613,14 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         },
         notes="Source: Region 2 preamble, 2025-2027 Synopsis.",
     ),
+    # TODO: NEEDS DIRECT-MATCH IDS — currently zone-wide on all R2 streams
+    #   but should only target Fraser River, Lower Pitt River (CPR Bridge to
+    #   Pitt Lake), Lower Harrison River (Fraser R to Harrison Lake).
+    #   Need: blue_line_keys for each river segment.
     ZoneRegulation(
         regulation_id="zone_r2_dead_finfish_bait_sturgeon",
         zone_ids=["2"],
+        _disabled=True,
         rule_text=(
             "Dead fin fish as bait only permitted in Region 2 when sport "
             "fishing for sturgeon in the Fraser River, Lower Pitt River "
@@ -629,6 +634,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
             "details": ("Dead fin fish bait permitted only for sturgeon fishing."),
         },
         notes="Source: Region 2 preamble, 2025-2027 Synopsis.",
+        # blue_line_keys=[],  # TODO: Fraser River BLK, Lower Pitt River BLK, Lower Harrison River BLK
     ),
     ZoneRegulation(
         regulation_id="zone_r2_steelhead_surcharge",
@@ -769,6 +775,9 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         },
         notes="Source: Region 2 preamble, 2025-2027 Synopsis.",
     ),
+    # TODO: EXCEPTION NOT ENCODED — Mill Lake has a different bass quota
+    #   but is not excluded from this zone-wide rule. Need gnis_ids for
+    #   Mill Lake to either exclude it or create a separate override reg.
     ZoneRegulation(
         regulation_id="zone_r2_bass_quota",
         zone_ids=["2"],
@@ -779,6 +788,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
             "details": "Daily quota: 20 bass. Mill Lake exception — see water-specific tables.",
         },
         notes="Source: Region 2 preamble, 2025-2027 Synopsis.",
+        # gnis_ids=[],  # TODO: Mill Lake GNIS ID to exclude or create override
     ),
     ZoneRegulation(
         regulation_id="zone_r2_crappie_quota",
@@ -835,9 +845,16 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         },
         notes="Source: Region 2 preamble, 2025-2027 Synopsis.",
     ),
+    # TODO: NEEDS DIRECT-MATCH IDS [HIGH PRIORITY] — closure currently applies
+    #   to ALL R2 streams but should only target 3 specific side channels:
+    #   - Jesperson's Side Channel
+    #   - Herrling Island Side Channel
+    #   - Seabird Island north Side Channel
+    #   Need: blue_line_keys or linear_feature_ids for each side channel.
     ZoneRegulation(
         regulation_id="zone_r2_fraser_sturgeon_seasonal_closure",
         zone_ids=["2"],
+        _disabled=True,
         rule_text=(
             "Fraser River: closed to all fishing in the Fraser areas of "
             "Jesperson's Side Channel, Herrling Island Side Channel, and "
@@ -857,6 +874,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
             "Source: Region 2 preamble (under White Sturgeon), 2025-2027 Synopsis. "
             "See page 26 for map of closed area."
         ),
+        # blue_line_keys=[],  # TODO: Jesperson's Side Channel BLK, Herrling Island Side Channel BLK, Seabird Island north Side Channel BLK
     ),
     # ========================================================================
     # REGION 2 — Possession, Annual Quotas & Salmon Notice
@@ -904,9 +922,13 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
     # ========================================================================
     # REGION 2 — Night Fishing Prohibition
     # ========================================================================
+    # TODO: NEEDS DIRECT-MATCH IDS — currently zone-wide on all R2 streams
+    #   but only applies to portions of Fraser, Harrison, and Pitt Rivers.
+    #   Need: blue_line_keys for affected river portions.
     ZoneRegulation(
         regulation_id="zone_r2_night_fishing_prohibition",
         zone_ids=["2"],
+        _disabled=True,
         rule_text=(
             "From one hour after sunset to one hour before sunrise, fishing "
             "is prohibited on portions of the Fraser, Harrison, and Pitt Rivers. "
@@ -922,6 +944,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
             ),
         },
         notes="Source: Region 2 preamble, 2025-2027 Synopsis.",
+        # blue_line_keys=[],  # TODO: Fraser River BLK(s), Harrison River BLK(s), Pitt River BLK(s)
     ),
     # ========================================================================
     # REGION 3 — Thompson-Nicola — General Regulations
@@ -1155,9 +1178,13 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         },
         notes="Source: Region 3 preamble, 2025-2027 Synopsis.",
     ),
+    # TODO: NEEDS DIRECT-MATCH IDS [HIGH PRIORITY] — Shuswap Lake annual
+    #   rainbow quota currently applied to ALL R3 lakes. Need:
+    #   gnis_ids or waterbody_keys for Shuswap Lake.
     ZoneRegulation(
         regulation_id="zone_r3_shuswap_annual_rainbow",
         zone_ids=["3"],
+        _disabled=True,
         rule_text=(
             "Annual catch quota for Shuswap Lake: rainbow trout — "
             "5 over 50 cm per licence year."
@@ -1173,9 +1200,13 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
             "TODO: Convert to direct-match with Shuswap Lake GNIS/waterbody_key."
         ),
     ),
+    # TODO: NEEDS DIRECT-MATCH IDS [HIGH PRIORITY] — Shuswap Lake annual
+    #   char quota currently applied to ALL R3 lakes. Need:
+    #   gnis_ids or waterbody_keys for Shuswap Lake.
     ZoneRegulation(
         regulation_id="zone_r3_shuswap_annual_char",
         zone_ids=["3"],
+        _disabled=True,
         rule_text=(
             "Annual catch quota for Shuswap Lake: char — lake trout and "
             "bull trout (Dolly Varden) — 5 over 60 cm per licence year."
@@ -1668,9 +1699,13 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         },
         notes="Source: Region 4 preamble, 2025-2027 Synopsis.",
     ),
+    # TODO: NEEDS DIRECT-MATCH IDS [HIGH PRIORITY] — Kootenay Lake annual
+    #   rainbow quota currently applied to ALL R4 lakes. Need:
+    #   gnis_ids or waterbody_keys for Kootenay Lake.
     ZoneRegulation(
         regulation_id="zone_r4_kootenay_lake_rainbow_annual",
         zone_ids=["4"],
+        _disabled=True,
         rule_text=(
             "Annual catch quota for Kootenay Lake: rainbow trout — "
             "20 over 50 cm per licence year."
@@ -1703,6 +1738,9 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         },
         notes="Source: Region 4 preamble, 2025-2027 Synopsis. Province-wide rule.",
     ),
+    # TODO: EXCEPTION NOT ENCODED — Koocanusa Reservoir is excluded from
+    #   the lake trout reporting request but is not carved out. Need:
+    #   gnis_ids or waterbody_keys for Koocanusa Reservoir to exclude.
     ZoneRegulation(
         regulation_id="zone_r4_report_lake_trout",
         zone_ids=["4"],
@@ -1736,6 +1774,9 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         },
         notes="Source: Region 4 preamble, 2025-2027 Synopsis.",
     ),
+    # TODO: VERIFY SPATIAL COVERAGE — admin_targets polygon for Creston
+    #   Valley WMA should intersect all named waterbodies: Six Mile, Leach,
+    #   Kootenay River and Canal, Duck Lake. Verify with spatial query.
     ZoneRegulation(
         regulation_id="zone_r4_creston_valley_wma_permit",
         zone_ids=["4"],
@@ -1774,9 +1815,13 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         },
         notes="Source: Region 4 preamble, 2025-2027 Synopsis.",
     ),
+    # TODO: NEEDS DIRECT-MATCH IDS — Kootenay Lake recovery notice
+    #   currently applied to ALL R4 waterbodies. Need:
+    #   gnis_ids or waterbody_keys for Kootenay Lake.
     ZoneRegulation(
         regulation_id="zone_r4_kootenay_lake_recovery_notice",
         zone_ids=["4"],
+        _disabled=True,
         rule_text=(
             "Note: Kootenay Lake fish populations are in a state of recovery. "
             "All conservation measures and fishing regulations should be "
@@ -1813,6 +1858,9 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
     # ========================================================================
     # REGION 5 — Cariboo: General Regulations
     # ========================================================================
+    # TODO: EXCEPTION NOT ENCODED — Fraser River mainstem and listed streams
+    #   are exempt from this closure but are not carved out. Need:
+    #   blue_line_keys for Fraser River mainstem to exclude.
     ZoneRegulation(
         regulation_id="zone_r5_spring_stream_closure",
         zone_ids=["5"],
@@ -2267,6 +2315,9 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
     # ========================================================================
     # REGION 6 — Skeena: General Regulations
     # ========================================================================
+    # TODO: EXCEPTION NOT ENCODED — Skeena, Nass, Iskut, Stikine, Taku
+    #   River mainstems are exempt from this closure but are not carved out.
+    #   Need: blue_line_keys for each mainstem to exclude.
     ZoneRegulation(
         regulation_id="zone_r6_steelhead_stream_closure",
         zone_ids=["6"],
@@ -3356,6 +3407,9 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         },
         notes="Source: Region 7B preamble, 2025-2027 Synopsis.",
     ),
+    # TODO: EXCEPTION NOT ENCODED — Peace River is exempt from the
+    #   "none from streams" kokanee rule but is not carved out. Need:
+    #   blue_line_keys for Peace River to exclude.
     ZoneRegulation(
         regulation_id="zone_r7b_kokanee_quota",
         zone_ids=["7B"],
@@ -3367,6 +3421,9 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         },
         notes="Source: Region 7B preamble, 2025-2027 Synopsis.",
     ),
+    # TODO: EXCEPTION NOT ENCODED — Peace River is exempt from this
+    #   kokanee stream closure but is not carved out. Need:
+    #   blue_line_keys for Peace River to exclude.
     ZoneRegulation(
         regulation_id="zone_r7b_kokanee_closed_streams",
         zone_ids=["7B"],
@@ -4011,7 +4068,7 @@ def _run_zone_test():
         ALL_FWA_TYPES,
     )
 
-    zone_index, mu_index = build_feature_index(gazetteer)
+    zone_index, mu_index, _, _ = build_feature_index(gazetteer)
 
     total_indexed = sum(
         len(features) for zones in zone_index.values() for features in zones.values()

@@ -3,7 +3,27 @@ import { Search, X, Eye } from 'lucide-react';
 import { Icon } from '@iconify/react';
 import Fuse from 'fuse.js';
 import { regulationsService } from '../services/regulationsService';
+import { 
+    getIconForType, 
+    getColorForType, 
+    getUniqueAliases,
+    getFeatureDisplayName,
+    isMobileViewport 
+} from '../utils/featureUtils';
 import './SearchBar.css';
+
+import type { NameVariant } from '../utils/featureUtils';
+
+export interface RegulationSegment {
+    frontend_group_id: string;
+    group_id: string;
+    group_ids?: string[];  // All group_ids for this regulation set (when consolidated)
+    regulation_ids: string;
+    regulation_names: string[];
+    name_variants: NameVariant[];  // Names with tributary flag
+    length_km: number;
+    bbox?: [number, number, number, number];  // Per-segment bbox for fly-to
+}
 
 export interface SearchableFeature {
     id: string;
@@ -11,14 +31,13 @@ export interface SearchableFeature {
     lake_name?: string;
     name?: string;
     regulation_names?: string[];  // Array of regulation names
-    name_variants?: string[];  // All searchable names: gnis_name + gnis_name_2 + regulation names
+    name_variants?: NameVariant[];  // All searchable names with tributary flag
     type: 'stream' | 'lake' | 'wetland' | 'manmade' | 'streams' | 'lakes' | 'wetlands';
     properties: Record<string, any>;
     geometry?: any;
-    _segmentCount?: number;
-    _groupedSegments?: any[];
     bbox?: [number, number, number, number];  // [minx, miny, maxx, maxy] for zooming
     min_zoom?: number;  // Minimum zoom level where feature is visible
+    regulation_segments?: RegulationSegment[];  // Different regulation sections of same physical stream
 }
 
 interface SearchBarProps {
@@ -29,57 +48,12 @@ interface SearchBarProps {
     placeholder?: string;
 }
 
-const getIconForType = (type: 'stream' | 'lake' | 'wetland' | 'manmade' | 'streams' | 'lakes' | 'wetlands') => {
-    const iconMap = {
-        stream: 'game-icons:splashy-stream',
-        streams: 'game-icons:splashy-stream',
-        lake: 'game-icons:oasis',
-        lakes: 'game-icons:oasis',
-        wetland: 'game-icons:swamp',
-        wetlands: 'game-icons:swamp',
-        manmade: 'game-icons:dam'
-    };
-    return iconMap[type as keyof typeof iconMap] || iconMap.lake;
-};
-
-const getColorForType = (type: 'stream' | 'lake' | 'wetland' | 'manmade' | 'streams' | 'lakes' | 'wetlands') => {
-    const colorMap = {
-        stream: '#3b82f6',
-        streams: '#3b82f6',
-        lake: '#0ea5e9',
-        lakes: '#0ea5e9',
-        wetland: '#10b981',
-        wetlands: '#10b981',
-        manmade: '#a855f7'
-    };
-    return colorMap[type as keyof typeof colorMap] || colorMap.lake;
-};
-
-/**
- * Given an array of name_variants and the primary display name, return
- * the subset of variants that represent genuinely different names
- * (case-insensitive dedup, excluding the display name itself).
- */
-const getUniqueAliases = (nameVariants: string[], displayName: string): string[] => {
-    const seen = new Set<string>();
-    const result: string[] = [];
-    seen.add(displayName.toLowerCase());
-    for (const name of nameVariants) {
-        const lower = name.toLowerCase();
-        if (!seen.has(lower)) {
-            seen.add(lower);
-            result.push(name);
-        }
-    }
-    return result;
-};
-
 const SearchBar: React.FC<SearchBarProps> = ({ features, onSelect, highlightedResult, onHighlight, placeholder = "Search waterbodies..." }) => {
     const [query, setQuery] = useState('');
     const [results, setResults] = useState<SearchableFeature[]>([]);
     const [isOpen, setIsOpen] = useState(false);
     const [selectedIndex, setSelectedIndex] = useState(-1);
-    const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+    const [isMobile, setIsMobile] = useState(isMobileViewport());
     const searchRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
 
@@ -95,7 +69,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ features, onSelect, highlightedRe
                 { name: 'lake_name', weight: 2 },
                 { name: 'name', weight: 2 },
                 { name: 'regulation_names', weight: 2 },  // Search across all regulation names in array
-                { name: 'name_variants', weight: 2 }  // All names: gnis_name + gnis_name_2 + regulation names
+                { name: 'name_variants.name', weight: 2 }  // Search in name field of name_variants objects
             ],
             threshold: 0.3, // Even stricter for exact word matches
             distance: 50, // Strongly prefer matches at the beginning
@@ -131,7 +105,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ features, onSelect, highlightedRe
                 aItem.lake_name, 
                 aItem.name, 
                 ...(aItem.regulation_names || []),
-                ...(aItem.name_variants || [])
+                ...(aItem.name_variants || []).map(nv => typeof nv === 'string' ? nv : nv.name)
             ].some(name => name?.toLowerCase().startsWith(queryLower));
             
             const bStartsWith = [
@@ -139,7 +113,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ features, onSelect, highlightedRe
                 bItem.lake_name, 
                 bItem.name, 
                 ...(bItem.regulation_names || []),
-                ...(bItem.name_variants || [])
+                ...(bItem.name_variants || []).map(nv => typeof nv === 'string' ? nv : nv.name)
             ].some(name => name?.toLowerCase().startsWith(queryLower));
             
             // Prioritize exact prefix matches
@@ -158,9 +132,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ features, onSelect, highlightedRe
 
     // Handle mobile detection
     useEffect(() => {
-        const handleResize = () => {
-            setIsMobile(window.innerWidth <= 768);
-        };
+        const handleResize = () => setIsMobile(isMobileViewport());
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
     }, []);
@@ -218,10 +190,8 @@ const SearchBar: React.FC<SearchBarProps> = ({ features, onSelect, highlightedRe
         inputRef.current?.blur();
     };
 
-    const getDisplayName = (feature: SearchableFeature): string => {
-        const synopsisNames = regulationsService.filterOutProvincialNames(feature.regulation_names || []);
-        return feature.gnis_name || feature.lake_name || feature.name || synopsisNames[0] || 'Unnamed';
-    };
+    const getDisplayName = (feature: SearchableFeature): string => 
+        getFeatureDisplayName(feature, regulationsService.filterOutProvincialNames);
 
     const clearSearch = () => {
         setQuery('');
@@ -271,15 +241,24 @@ const SearchBar: React.FC<SearchBarProps> = ({ features, onSelect, highlightedRe
                         const regionName = feature.properties?.region_name;
                         const isHighlighted = highlightedResult?.id === feature.id;
 
-                        // Build compact region display: "7A – Omineca" or "7A – Omineca +2"
+                        // Build compact region display: "7A – Omineca, 7B – Prince George" or "7A, 7B +1"
                         let regionDisplay: string | null = null;
                         if (zones) {
-                            const zList = zones.split(',');
-                            const nList = regionName ? regionName.split(',') : [];
-                            const first = zList[0]?.trim();
-                            const firstName = nList[0]?.trim();
-                            regionDisplay = first + (firstName ? ` – ${firstName}` : '');
-                            if (zList.length > 1) regionDisplay += ` +${zList.length - 1}`;
+                            const zList = zones.split(',').map((z: string) => z.trim());
+                            const nList = regionName ? regionName.split(',').map((n: string) => n.trim()) : [];
+                            
+                            if (zList.length === 1) {
+                                // Single region: show "7A – Omineca"
+                                regionDisplay = zList[0] + (nList[0] ? ` – ${nList[0]}` : '');
+                            } else if (zList.length === 2) {
+                                // Two regions: show "7A – Omineca, 7B – Prince George"
+                                const first = zList[0] + (nList[0] ? ` – ${nList[0]}` : '');
+                                const second = zList[1] + (nList[1] ? ` – ${nList[1]}` : '');
+                                regionDisplay = `${first}, ${second}`;
+                            } else {
+                                // 3+ regions: show "7A, 7B +N"
+                                regionDisplay = `${zList[0]}, ${zList[1]} +${zList.length - 2}`;
+                            }
                         }
 
                         return (
@@ -315,13 +294,12 @@ const SearchBar: React.FC<SearchBarProps> = ({ features, onSelect, highlightedRe
                                     <div className="search-result-content">
                                         <div className="search-result-name">
                                             {displayName}
-                                            {feature._segmentCount && feature._segmentCount > 1 && (
-                                                <span className="segment-badge"> ({feature._segmentCount} segments)</span>
-                                            )}
                                         </div>
                                         {hasAliases && (
                                             <div className="search-result-subtitle">
-                                                Also known as: {aliases.join(' | ')}
+                                                Also known as: {aliases.map(a => 
+                                                    a.from_tributary ? `Tributary: ${a.name}` : a.name
+                                                ).join(' | ')}
                                             </div>
                                         )}
                                         <div className="search-result-meta">

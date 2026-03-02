@@ -163,20 +163,29 @@ def lookup_admin_targets(
 def build_feature_index(
     gazetteer: MetadataGazetteer,
     feature_types: Optional[List[FeatureType]] = None,
-    use_zone_buffer: bool = False,
-) -> Tuple[FeatureIndex, FeatureIndex]:
+) -> Tuple[FeatureIndex, FeatureIndex, FeatureIndex, FeatureIndex]:
     """Build zone and MU feature indexes in a single pass over gazetteer metadata.
+
+    Two sets of indexes are built:
+
+    * **Unbuffered** (``zones_unbuffered`` / ``mgmt_units_unbuffered``) — exact
+      zone/MU boundaries.  Used to determine which streams are *actually*
+      inside a zone.
+    * **Buffered** (``zones`` / ``mgmt_units``) — 500m‐buffered boundaries.
+      Used to capture additional segments of streams that straddle a boundary.
+
+    The two-pass strategy in ``_resolve_zone_wide`` resolves the unbuffered
+    set first, then extends it with the buffered set **only for streams whose
+    ``blue_line_key`` already appears in the unbuffered set**.  This prevents
+    entirely new streams from being pulled in.
 
     Args:
         gazetteer: Loaded FWA metadata gazetteer.
         feature_types: Feature types to index (defaults to ALL_FWA_TYPES).
-        use_zone_buffer: If True, use the buffered zone assignments (``zones``
-            and ``mgmt_units``). If False (default), use the unbuffered
-            assignments (``zones_unbuffered`` / ``mgmt_units_unbuffered``).
 
     Returns:
-        ``(zone_index, mu_index)`` — both keyed as
-        ``{id → FeatureType → {feature_id: metadata_dict}}``.
+        ``(zone_index, mu_index, zone_index_buffered, mu_index_buffered)``
+        — all keyed as ``{id → FeatureType → {feature_id: metadata_dict}}``.
 
     Raises:
         KeyError: If the expected zone metadata keys are missing from a
@@ -186,39 +195,41 @@ def build_feature_index(
     ftypes = feature_types if feature_types is not None else ALL_FWA_TYPES
     zone_index: Dict[str, Dict[FeatureType, Dict[str, dict]]] = {}
     mu_index: Dict[str, Dict[FeatureType, Dict[str, dict]]] = {}
-
-    # Choose zone/MU metadata keys based on buffer preference
-    if use_zone_buffer:
-        zones_key = "zones"
-        mu_key = "mgmt_units"
-    else:
-        zones_key = "zones_unbuffered"
-        mu_key = "mgmt_units_unbuffered"
+    zone_index_buffered: Dict[str, Dict[FeatureType, Dict[str, dict]]] = {}
+    mu_index_buffered: Dict[str, Dict[FeatureType, Dict[str, dict]]] = {}
 
     _missing_checked = False
     for ftype in ftypes:
         type_metadata = gazetteer.metadata.get(ftype, {})
         for fid, meta in type_metadata.items():
-            # Validate that expected keys exist on the first record we see
             if not _missing_checked:
-                if zones_key not in meta:
+                if "zones_unbuffered" not in meta:
                     raise KeyError(
-                        f"Metadata field '{zones_key}' not found on feature "
-                        f"'{fid}' ({ftype.value}). Re-run "
+                        f"Metadata field 'zones_unbuffered' not found on "
+                        f"feature '{fid}' ({ftype.value}). Re-run "
                         f"'python -m fwa_pipeline.metadata_builder' to "
                         f"regenerate the metadata pickle with unbuffered "
                         f"zone fields."
                     )
                 _missing_checked = True
 
-            zone_ids = meta[zones_key]
-            mu_ids = meta[mu_key]
-            for zone_id in zone_ids:
+            # Unbuffered indexes (exact zone/MU boundaries)
+            for zone_id in meta.get("zones_unbuffered", []):
                 zone_index.setdefault(zone_id, {}).setdefault(ftype, {})[fid] = meta
-            for mu_id in mu_ids:
+            for mu_id in meta.get("mgmt_units_unbuffered", []):
                 mu_index.setdefault(mu_id, {}).setdefault(ftype, {})[fid] = meta
 
-    return zone_index, mu_index
+            # Buffered indexes (500m-buffered zone/MU boundaries)
+            for zone_id in meta.get("zones", []):
+                zone_index_buffered.setdefault(zone_id, {}).setdefault(ftype, {})[
+                    fid
+                ] = meta
+            for mu_id in meta.get("mgmt_units", []):
+                mu_index_buffered.setdefault(mu_id, {}).setdefault(ftype, {})[
+                    fid
+                ] = meta
+
+    return zone_index, mu_index, zone_index_buffered, mu_index_buffered
 
 
 def resolve_direct_match_features(
@@ -395,16 +406,43 @@ class MergedGroup:
     ``zones`` and ``region_names`` are positionally paired — index *i* in
     ``region_names`` is the name for index *i* in ``zones``.  Both are
     sorted by zone ID.
+
+    ``gnis_name`` is the primary FWA GNIS name (canonical display name).
+    ``name_variants`` contains all searchable names: gnis_name, gnis_name_2,
+    regulation name_verbatim values, and NameVariationLink aliases.
+    Each entry is a dict with 'name' and 'from_tributary' keys.
     """
 
     group_id: str
     feature_ids: tuple[str, ...]
     regulation_ids: tuple[str, ...]
+    feature_type: str = ""  # FeatureType.value (e.g., "stream", "lake")
+    gnis_name: str = ""
+    name_variants: tuple[dict, ...] = ()  # All searchable names with tributary flag
     waterbody_key: Optional[str] = None
+    blue_line_key: Optional[str] = None  # For streams: physical channel ID
+    fwa_watershed_code: Optional[str] = None  # For streams: unique stream identifier
     feature_count: int = 0
     zones: tuple[str, ...] = ()  # REGION_RESPONSIBLE_ID values
     mgmt_units: tuple[str, ...] = ()
     region_names: tuple[str, ...] = ()  # Paired with zones
+
+    def search_grouping_key(self) -> tuple:
+        """Return a key for grouping in search index.
+
+        Groups by physical stream identity only (not by regulation set).
+        This allows one search entry per physical waterbody, with multiple
+        regulation "segments" stored within it.
+
+        Always returns a 4-tuple for consistent unpacking:
+        ``(key1, key2, gnis_name, feature_type)``
+        """
+        blk = self.blue_line_key or ""
+        wbk = self.waterbody_key or ""
+        # If no physical identifiers, use group_id as key1 to keep entries separate
+        if not blk and not wbk:
+            return (self.group_id, "", self.gnis_name, self.feature_type)
+        return (blk, wbk, self.gnis_name, self.feature_type)
 
 
 @dataclass(frozen=True)
@@ -434,10 +472,6 @@ class PipelineResult:
     # The exporter writes this directly to regulations.json without needing
     # to import source-specific modules.
     regulation_details: Dict[str, Dict[str, Any]] = field(default_factory=dict)
-    # Name variation aliases: maps primary regulation name_verbatim → list of alternate names.
-    # Populated from NameVariationLink entries.  The exporter injects these into
-    # the search index name_variants for discoverability.
-    name_variation_aliases: Dict[str, List[str]] = field(default_factory=dict)
 
 
 class RegulationMapper:
@@ -453,14 +487,12 @@ class RegulationMapper:
         scope_filter: ScopeFilter,
         tributary_enricher: TributaryEnricher,
         gpkg_path: Optional[Path] = None,
-        use_zone_buffer: bool = False,
     ):
         self.linker = linker
         self.scope_filter = scope_filter
         self.tributary_enricher = tributary_enricher
         self.gazetteer = linker.gazetteer
         self.gpkg_path = gpkg_path
-        self.use_zone_buffer = use_zone_buffer
         self.stats = RegulationMappingStats()
 
         self.feature_to_regs = {}
@@ -481,8 +513,14 @@ class RegulationMapper:
         )
         # Centralized regulation metadata for export (rule_id → entry dict)
         self.regulation_details: Dict[str, Dict[str, Any]] = {}
-        # Name variation aliases: primary_name_verbatim → [alternate names]
-        self.name_variation_aliases: Dict[str, List[str]] = defaultdict(list)
+        # Pending name variation aliases collected during linking: primary_name.upper() → [(alias_name, zone_id)]
+        # Resolved to feature_to_aliases after linking completes.
+        self._pending_name_variation_aliases: Dict[str, List[tuple]] = defaultdict(list)
+        # Resolved feature_id → {alias_names} — built by _resolve_name_variation_aliases
+        self.feature_to_aliases: Dict[str, Set[str]] = defaultdict(set)
+        # Feature IDs that came from tributary enrichment (matched_via="tributary_enrichment")
+        # Used to tag name_variants as from_tributary in search index
+        self.tributary_feature_ids: Set[str] = set()
 
         # Reverse index: waterbody_key → [linear_feature_ids] for O(1) lookup
         # Replaces O(5M) linear scan in _get_stream_seeds_for_waterbody
@@ -589,13 +627,17 @@ class RegulationMapper:
                     )
 
             elif link_result.status == LinkStatus.NAME_VARIATION:
-                # Alternate name for an already-linked waterbody — don't link features,
-                # but record the alias so the search index can include it.
+                # Alternate name for an already-linked waterbody — don’t link features,
+                # but record the alias (with zone) for later resolution to feature_ids.
                 primary_name = link_result.matched_name
                 if primary_name:
-                    self.name_variation_aliases[primary_name].append(name_verbatim)
+                    # Extract zone number from region string (e.g. "Region 2" → "2")
+                    zone_id = region.replace("Region ", "") if region else ""
+                    self._pending_name_variation_aliases[primary_name.upper()].append(
+                        (name_verbatim, zone_id)
+                    )
                     logger.debug(
-                        f"Name variation '{name_verbatim}' → primary '{primary_name}'"
+                        f"Name variation '{name_verbatim}' → primary '{primary_name}' (zone {zone_id})"
                     )
                 continue
 
@@ -706,10 +748,12 @@ class RegulationMapper:
 
                 rule_id = self.rule_id(idx, rule_idx)
                 for feature in final_features:
-                    self.feature_to_regs.setdefault(
-                        self._get_feature_id(feature), []
-                    ).append(rule_id)
+                    feature_id = self._get_feature_id(feature)
+                    self.feature_to_regs.setdefault(feature_id, []).append(rule_id)
                     self.stats.total_rule_to_feature_mappings += 1
+                    # Track features from tributary enrichment
+                    if getattr(feature, "matched_via", None) == "tributary_enrichment":
+                        self.tributary_feature_ids.add(feature_id)
 
                 # Store regulation details for export (synopsis source)
                 rest = rule.get("restriction", {})
@@ -733,6 +777,9 @@ class RegulationMapper:
         # Sort indices
         for feature_id in self.feature_to_regs:
             self.feature_to_regs[feature_id].sort()
+
+        # Resolve name variation aliases to specific feature_ids
+        self._resolve_name_variation_aliases()
 
         self.stats.unique_features_with_rules = len(self.feature_to_regs)
         return self.feature_to_regs
@@ -783,6 +830,145 @@ class RegulationMapper:
 
         return scoped_features
 
+    def _build_name_variants_for_group(
+        self,
+        features_data: list,
+        regulation_ids: tuple,
+    ) -> tuple:
+        """Build name variants for a single merged group.
+
+        Collects names from:
+        1. All gnis_name and gnis_name_2 values from features
+        2. Waterbody-specific regulation names (excluding admin/provincial/zone)
+        3. Name variation aliases resolved to specific feature_ids
+
+        Returns tuple of dicts with 'name' and 'from_tributary' keys.
+        Names from tributary-enriched features are tagged as from_tributary=True.
+        """
+        # Track names with their tributary status: name -> from_tributary
+        # Use dict to dedupe, keeping non-tributary status if both exist
+        name_to_tributary: dict = {}
+
+        def add_name(name: str, is_tributary: bool):
+            if not name:
+                return
+            # If name already exists as non-tributary, keep it as non-tributary
+            if name in name_to_tributary:
+                if not is_tributary:
+                    name_to_tributary[name] = False
+            else:
+                name_to_tributary[name] = is_tributary
+
+        # 1. GNIS names from features (tagged by tributary status)
+        for fid, feat in features_data:
+            is_trib = fid in self.tributary_feature_ids
+            gn = self._get_prop(feat, ["gnis_name"])
+            if gn:
+                add_name(gn, is_trib)
+            gn2 = self._get_prop(feat, ["gnis_name_2"])
+            if gn2:
+                add_name(gn2, is_trib)
+
+        # 2. Regulation names (waterbody-specific only) - not from tributaries
+        base_ids = {r.rsplit("_rule", 1)[0] for r in regulation_ids}
+        base_ids = {
+            b
+            for b in base_ids
+            if not b.startswith("prov_") and not b.startswith("zone_")
+        }
+        base_ids -= self.admin_regulation_ids
+
+        for bid in base_ids:
+            reg_name = self.regulation_names.get(bid, "")
+            if reg_name:
+                add_name(reg_name, False)
+
+        # 3. Name variation aliases — resolved to specific feature_ids
+        for fid, _ in features_data:
+            is_trib = fid in self.tributary_feature_ids
+            for alias in self.feature_to_aliases.get(fid, set()):
+                add_name(alias, is_trib)
+
+        # Build sorted list of dicts
+        result = tuple(
+            {"name": name, "from_tributary": is_trib}
+            for name, is_trib in sorted(name_to_tributary.items())
+        )
+        return result
+
+    def _resolve_name_variation_aliases(self) -> None:
+        """Resolve pending name variation aliases to specific feature_ids.
+
+        Called at the end of process_all_regulations after all linking is complete.
+        Builds feature_to_aliases by:
+        1. Finding regulation_ids whose name matches each pending alias's primary_name
+        2. Finding feature_ids linked to those regulation_ids
+        3. Assigning the alias names to those feature_ids
+
+        This ensures aliases only apply to the actual features that were linked
+        by the primary regulation, not to any waterbody with a matching name.
+        """
+        if not self._pending_name_variation_aliases:
+            return
+
+        # Build reverse index: regulation_name.upper() → [regulation_ids]
+        reg_name_to_ids: Dict[str, List[str]] = defaultdict(list)
+        for reg_id, reg_name in self.regulation_names.items():
+            if reg_name:
+                reg_name_to_ids[reg_name.upper()].append(reg_id)
+
+        # Build reverse index: regulation_id → {feature_ids}
+        # (feature_to_linked_regulation is feature_id → {regulation_ids})
+        reg_id_to_features: Dict[str, Set[str]] = defaultdict(set)
+        for fid, reg_ids in self.feature_to_linked_regulation.items():
+            for reg_id in reg_ids:
+                reg_id_to_features[reg_id].add(fid)
+
+        resolved_count = 0
+        for primary_name_upper, aliases in self._pending_name_variation_aliases.items():
+            # Find regulation_ids matching this primary_name
+            matching_reg_ids = reg_name_to_ids.get(primary_name_upper, [])
+            if not matching_reg_ids:
+                logger.warning(
+                    f"Name variation alias for '{primary_name_upper}' found no matching "
+                    f"regulation — aliases {[a[0] for a in aliases]} will be orphaned"
+                )
+                continue
+
+            # Find feature_ids linked to those regulation_ids
+            target_feature_ids: Set[str] = set()
+            for reg_id in matching_reg_ids:
+                target_feature_ids.update(reg_id_to_features.get(reg_id, set()))
+
+            if not target_feature_ids:
+                logger.warning(
+                    f"Name variation alias for '{primary_name_upper}' matched regulations "
+                    f"{matching_reg_ids} but found no linked features"
+                )
+                continue
+
+            # Assign alias names to those feature_ids (respecting zone restrictions)
+            for alias_name, alias_zone in aliases:
+                if alias_zone:
+                    # Zone-restricted: only assign to features in that zone
+                    for fid in target_feature_ids:
+                        feat = self.gazetteer.get_feature_by_id(fid)
+                        if feat:
+                            feat_zones = self._get_prop(feat, ["zones"], [])
+                            if alias_zone in feat_zones:
+                                self.feature_to_aliases[fid].add(alias_name)
+                                resolved_count += 1
+                else:
+                    # No zone restriction: assign to all target features
+                    for fid in target_feature_ids:
+                        self.feature_to_aliases[fid].add(alias_name)
+                        resolved_count += 1
+
+        logger.info(
+            f"Resolved {len(self._pending_name_variation_aliases)} name variation aliases "
+            f"to {len(self.feature_to_aliases)} features ({resolved_count} assignments)"
+        )
+
     def run(
         self,
         regulations: List[Dict],
@@ -817,6 +1003,7 @@ class RegulationMapper:
             logger.info("Zone regulations skipped (include_zone_regulations=False)")
 
         # Phase 3: Merge with ALL regulation sources present
+        # (name_variants are built inline during merge_features)
         self.merged_groups = self.merge_features(self.feature_to_regs)
 
         logger.info("Processing complete")
@@ -834,7 +1021,6 @@ class RegulationMapper:
             admin_regulation_ids=self.admin_regulation_ids,
             admin_area_reg_map=dict(self.admin_area_reg_map),
             regulation_details=self.regulation_details,
-            name_variation_aliases=dict(self.name_variation_aliases),
         )
 
     # --- Admin & Provincial Resolution ---
@@ -1006,8 +1192,12 @@ class RegulationMapper:
 
         logger.info(f"Processing {len(active_regs)} zone base regulation(s)...")
 
-        # Build zone + MU feature indexes once, shared across zone-wide regs
-        zone_index, mu_index = self._build_zone_feature_index()
+        # Build zone + MU feature indexes (unbuffered + 500m-buffered).
+        # The two-pass buffer strategy extends streams already partially inside
+        # a zone/MU boundary without pulling in entirely new streams.
+        zone_index, mu_index, zone_index_buf, mu_index_buf = (
+            self._build_zone_feature_index()
+        )
 
         for zone_reg in active_regs:
             if zone_reg.admin_targets:
@@ -1016,7 +1206,13 @@ class RegulationMapper:
                 matched_ids = list(self._resolve_zone_direct_match(zone_reg))
             else:
                 matched_ids = list(
-                    self._resolve_zone_wide(zone_reg, zone_index, mu_index)
+                    self._resolve_zone_wide(
+                        zone_reg,
+                        zone_index,
+                        mu_index,
+                        zone_index_buf,
+                        mu_index_buf,
+                    )
                 )
 
             if not matched_ids:
@@ -1072,10 +1268,10 @@ class RegulationMapper:
 
     def _build_zone_feature_index(
         self,
-    ) -> Tuple[FeatureIndex, FeatureIndex]:
+    ) -> Tuple[FeatureIndex, FeatureIndex, FeatureIndex, FeatureIndex]:
         """Delegate to ``build_feature_index`` and log summary."""
-        zone_index, mu_index = build_feature_index(
-            self.gazetteer, use_zone_buffer=self.use_zone_buffer
+        zone_index, mu_index, zone_index_buf, mu_index_buf = build_feature_index(
+            self.gazetteer
         )
         total = sum(
             len(features)
@@ -1084,20 +1280,81 @@ class RegulationMapper:
         )
         logger.info(
             f"  Zone feature index: {len(zone_index)} zones, "
-            f"{len(mu_index)} MUs, {total:,} entries"
+            f"{len(mu_index)} MUs, {total:,} entries "
+            f"(buffered: {len(zone_index_buf)} zones, "
+            f"{len(mu_index_buf)} MUs)"
         )
-        return zone_index, mu_index
+        return zone_index, mu_index, zone_index_buf, mu_index_buf
 
     def _resolve_zone_wide(
         self,
         zone_reg,
         zone_index: FeatureIndex,
         mu_index: FeatureIndex,
+        zone_index_buf: FeatureIndex,
+        mu_index_buf: FeatureIndex,
     ) -> set:
-        """Delegate to ``resolve_zone_wide_ids`` and backfill waterbody keys."""
-        matched_ids = resolve_zone_wide_ids(zone_reg, zone_index, mu_index)
-        self._backfill_waterbody_keys(matched_ids)
-        return matched_ids
+        """Resolve zone-wide regulation with two-pass boundary buffer.
+
+        1. Resolve with **unbuffered** indexes → base set (truly inside).
+        2. Resolve with **buffered** indexes → wider candidate set.
+        3. From the wider set, keep only stream features whose
+           ``blue_line_key`` already appears in the base set.  This extends
+           boundary-straddling streams without pulling in new ones.
+        """
+        base_ids = resolve_zone_wide_ids(zone_reg, zone_index, mu_index)
+        buffered_ids = resolve_zone_wide_ids(zone_reg, zone_index_buf, mu_index_buf)
+        extended = self._extend_boundary_streams(
+            base_ids, buffered_ids, zone_reg.regulation_id
+        )
+        self._backfill_waterbody_keys(extended)
+        return extended
+
+    def _extend_boundary_streams(
+        self,
+        base_ids: set,
+        buffered_ids: set,
+        regulation_id: str,
+    ) -> set:
+        """Extend a base feature set with buffered features for boundary streams.
+
+        Only stream features whose ``blue_line_key`` is already represented
+        in *base_ids* can be added from *buffered_ids*.  This prevents
+        entirely new streams (fully outside the boundary) from being included
+        just because they fall within the 500m buffer distance.
+
+        Non-stream features pass through from the base set unchanged.
+        """
+        if base_ids == buffered_ids:
+            return base_ids
+
+        stream_meta = self.gazetteer.metadata.get(FeatureType.STREAM, {})
+
+        # Collect blue_line_keys already present in the base (unbuffered) set
+        base_blks: set = set()
+        for fid in base_ids:
+            if meta := stream_meta.get(fid):
+                if blk := meta.get("blue_line_key"):
+                    base_blks.add(str(blk))
+
+        # From the buffered-only extras, keep streams whose BLK is in base
+        extended_ids: set = set(base_ids)
+        newly_added = 0
+        for fid in buffered_ids - base_ids:
+            if meta := stream_meta.get(fid):
+                if blk := meta.get("blue_line_key"):
+                    if str(blk) in base_blks:
+                        extended_ids.add(fid)
+                        newly_added += 1
+
+        if newly_added:
+            logger.info(
+                f"    Buffer extended '{regulation_id}' by "
+                f"{newly_added} boundary segments "
+                f"(base: {len(base_ids):,}, total: {len(extended_ids):,})"
+            )
+
+        return extended_ids
 
     def _backfill_waterbody_keys(self, fids: set) -> None:
         """Add waterbody_key values to linked_waterbody_keys_of_polygon for polygon features."""
@@ -1213,13 +1470,18 @@ class RegulationMapper:
     ) -> Dict[str, MergedGroup]:
         """Merge features with identical regulation sets into groups.
 
-        Grouping key is (feature_type, gnis_id, reg_set):
-        - Named features (gnis_id present) group by GNIS — all segments/polygons
-          of the same named waterbody with the same regulations become one group.
-        - Unnamed features (no gnis_id) with a linked waterbody_key group by that key.
-        - Remaining unnamed features pool together per (type, reg_set), so e.g. all
-          unnamed streams inside an eco reserve that share the same regulation set
-          become a single group rather than hundreds of individual entries.
+        Features are grouped by (grouping_key, regulation_set) where grouping_key
+        is built from physical identifiers:
+
+        - Streams with both blue_line_key and waterbody_key (lake/reservoir overlap):
+          ``{ftype}_blue_line_{blk}_waterbody_{wbk}``
+        - Named streams (has gnis_id): ``{ftype}_blue_line_{blk}_gnis_{gnis_id}``
+        - Unnamed streams: ``{ftype}_blue_line_{blk}`` (all segments share same blk)
+        - Polygon features with waterbody_key: ``{ftype}_waterbody_{wbk}``
+        - Features without physical IDs: ``{ftype}_feature_{feature_id}`` (no merging)
+
+        This ensures features with identical regulations AND physical identity
+        merge into one group, while different streams/lakes remain separate.
         """
         logger.info(f"Merging {len(feature_to_regs)} features into groups...")
         group_map = defaultdict(list)
@@ -1231,6 +1493,7 @@ class RegulationMapper:
             feature = self.gazetteer.get_feature_by_id(feature_id)
 
             if not feature:
+                logger.debug(f"Feature {feature_id} not found in gazetteer — skipping")
                 continue
 
             feature_type_val = self._get_feature_type(feature).value
@@ -1283,14 +1546,54 @@ class RegulationMapper:
             # Only carry a waterbody_key when the whole group shares exactly one.
             group_wbk = next(iter(all_wbks)) if len(all_wbks) == 1 else None
 
+            # Extract gnis_name, gnis_name_2, and blue_line_key from features.
+            # Only carry each when the whole group shares exactly one value.
+            gnis_names: set = set()
+            gnis_names_2: set = set()
+            blks: set = set()
+            watershed_codes: set = set()
+            for _, feat in features_data:
+                gn = self._get_prop(feat, ["gnis_name"])
+                if gn:
+                    gnis_names.add(gn)
+                gn2 = self._get_prop(feat, ["gnis_name_2"])
+                if gn2:
+                    gnis_names_2.add(gn2)
+                blk = self._get_prop(feat, ["blue_line_key"])
+                if blk:
+                    blks.add(str(blk))
+                wsc = self._get_prop(feat, ["fwa_watershed_code"])
+                if wsc:
+                    watershed_codes.add(str(wsc))
+
+            group_gnis_name = next(iter(gnis_names)) if len(gnis_names) == 1 else ""
+            group_blk: Optional[str] = next(iter(blks)) if len(blks) == 1 else None
+            # Use most common watershed code if multiple exist (for shared segments)
+            group_wsc: Optional[str] = (
+                next(iter(watershed_codes)) if watershed_codes else None
+            )
+
             unique_key = f"{grouping_key}_{grouping_key_counter[grouping_key]}"
             grouping_key_counter[grouping_key] += 1
+
+            # Build name_variants including gnis names, regulation names, and aliases
+            # Aliases are resolved to specific feature_ids (not by name matching)
+            reg_ids_tuple = tuple(sorted(reg_set))
+            name_variants = self._build_name_variants_for_group(
+                features_data=features_data,
+                regulation_ids=reg_ids_tuple,
+            )
 
             merged_groups[unique_key] = MergedGroup(
                 group_id=unique_key,
                 feature_ids=tuple(fid for fid, _ in features_data),
-                regulation_ids=tuple(sorted(reg_set)),
+                regulation_ids=reg_ids_tuple,
+                feature_type=self._get_feature_type(features_data[0][1]).value,
+                gnis_name=group_gnis_name,
+                name_variants=name_variants,
                 waterbody_key=group_wbk,
+                blue_line_key=group_blk,
+                fwa_watershed_code=group_wsc,
                 feature_count=len(features_data),
                 zones=tuple(sorted_zones),
                 mgmt_units=tuple(sorted(all_mu)),

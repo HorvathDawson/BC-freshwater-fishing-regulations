@@ -1,7 +1,11 @@
 /**
  * Regulations Service
- * * Loads and caches regulation data from the static JSON file.
+ * 
+ * Provides regulation lookup by ID. Data is loaded from the unified
+ * waterbody_data.json via waterbodyDataService.
  */
+
+import { waterbodyDataService } from './waterbodyDataService';
 
 export interface Regulation {
   regulation_id: string;
@@ -30,20 +34,12 @@ class RegulationsService {
   private loadPromise: Promise<RegulationsLookup> | null = null;
   private provincialRuleTexts: Set<string> = new Set();
 
-  private static readonly DATA_BASE = import.meta.env.VITE_TILE_BASE_URL || '/data';
-
   async loadRegulations(): Promise<RegulationsLookup> {
     if (this.regulations) return this.regulations;
     if (this.loadPromise) return this.loadPromise;
 
-    // In production fetches from R2, in dev from local /data/
-    this.loadPromise = fetch(`${RegulationsService.DATA_BASE}/regulations.json`)
-      .then(response => {
-        if (!response.ok) {
-          throw new Error(`HTTP Error: ${response.status} ${response.statusText}`);
-        }
-        return response.json();
-      })
+    // Load from unified waterbody_data.json via shared service
+    this.loadPromise = waterbodyDataService.getRegulations()
       .then(data => {
         this.regulations = data;
         this.loadPromise = null;
@@ -55,12 +51,12 @@ class RegulationsService {
             .map(reg => reg.rule_text)
         );
 
-        console.log("✅ Regulations JSON Loaded. Total keys:", Object.keys(data).length);
+        console.log("✅ Regulations loaded. Total keys:", Object.keys(data).length);
         return data;
       })
       .catch(error => {
         this.loadPromise = null;
-        console.error('❌ Failed to load regulations.json:', error);
+        console.error('❌ Failed to load regulations:', error);
         throw error;
       });
 
@@ -115,14 +111,39 @@ class RegulationsService {
   /**
    * Filter out provincial regulation names (rule_text) from a list of regulation names.
    * Provincial names are long rule texts that shouldn't appear in "Listed as" or as waterbody name fallbacks.
+   * Arrow function to preserve `this` binding when passed as a callback.
    */
-  filterOutProvincialNames(names: string[]): string[] {
+  filterOutProvincialNames = (names: string[]): string[] => {
     if (this.provincialRuleTexts.size === 0) return names;
     return names.filter(name => !this.provincialRuleTexts.has(name));
-  }
+  };
 
   preload(): void {
     this.loadRegulations().catch(() => {});
+  }
+
+  /**
+   * Get waterbody names for a set of regulation IDs.
+   * Used to filter name_variants to only show names relevant to specific regulations.
+   */
+  getWaterbodyNamesForIds(regulationIds: string | string[] | null | undefined): Set<string> {
+    const names = new Set<string>();
+    if (!this.regulations || !regulationIds) return names;
+
+    let ids: string[] = [];
+    if (Array.isArray(regulationIds)) {
+      ids = regulationIds;
+    } else {
+      ids = String(regulationIds).replace(/[\[\]"\s]/g, '').split(',').filter(Boolean);
+    }
+
+    for (const id of ids) {
+      const reg = this.regulations[id];
+      if (reg?.waterbody_name) {
+        names.add(reg.waterbody_name);
+      }
+    }
+    return names;
   }
 }
 

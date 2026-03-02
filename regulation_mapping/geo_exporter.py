@@ -19,6 +19,7 @@ from shapely.geometry import (
     MultiLineString,
     MultiPolygon,
     GeometryCollection,
+    Polygon,
     box,
 )
 from shapely.geometry.base import BaseGeometry
@@ -54,9 +55,9 @@ LAKE_ZOOM_THRESHOLDS = {
     5: 25_000_000,
     6: 1_000_000,
     7: 1_000_000,
-    8: 1_000_000,
-    9: 250_000,
-    10: 10_000,
+    8: 10_000,
+    9: 10_000,
+    10: 5_000,
     11: 0,
 }
 MAIN_FLOW_CODES = {1000, 1050, 1200, 1250, 1410, 1450}
@@ -86,7 +87,6 @@ class RegulationGeoExporter:
         self.gazetteer = pipeline_result.gazetteer
         self.admin_area_reg_map = pipeline_result.admin_area_reg_map
         self.admin_regulation_ids = pipeline_result.admin_regulation_ids
-        self.name_variation_aliases = pipeline_result.name_variation_aliases
         self.gpkg_path = gpkg_path
         # Reuse gazetteer's data accessor if available to avoid creating
         # a duplicate FWADataAccessor (each one lists GPKG layers on init).
@@ -151,8 +151,10 @@ class RegulationGeoExporter:
                 if rule_keys:
                     expanded.update(rule_keys)
                 else:
-                    # Fallback: keep original even if unmatched
-                    expanded.add(rid)
+                    logger.error(
+                        f"_expand_admin_reg_ids: regulation '{rid}' not found in "
+                        f"regulation_details and has no _ruleN variants — skipping"
+                    )
         return expanded
 
     def _get_reg_names(
@@ -189,31 +191,6 @@ class RegulationGeoExporter:
             for b in sorted(base_ids)
             if b in self.regulation_names
         ]
-
-    def _get_group_gnis_name(
-        self, feature_ids: tuple[str, ...], ftype: FeatureType
-    ) -> str:
-        """Safely extract the gnis_name from the first available feature in a group."""
-        for fid in feature_ids:
-            if ftype == FeatureType.STREAM:
-                meta = self.gazetteer.get_stream_metadata(fid)
-            else:
-                meta = self.gazetteer.get_polygon_metadata(fid, ftype)
-            if meta and meta.get("gnis_name"):
-                return meta.get("gnis_name")
-        return ""
-
-    def _get_group_gnis_name_2(
-        self, feature_ids: tuple[str, ...], ftype: FeatureType
-    ) -> str:
-        """Safely extract the gnis_name_2 (secondary GNIS name) from polygon features."""
-        if ftype == FeatureType.STREAM:
-            return ""
-        for fid in feature_ids:
-            meta = self.gazetteer.get_polygon_metadata(fid, ftype)
-            if meta and meta.get("gnis_name_2"):
-                return meta.get("gnis_name_2")
-        return ""
 
     # --- CACHING & I/O ---
 
@@ -540,6 +517,21 @@ class RegulationGeoExporter:
             return parts
         return []
 
+    def _compute_frontend_group_id(
+        self,
+        watershed_code: str,
+        gnis_name: str,
+        regulation_ids: tuple,
+    ) -> str:
+        """Compute a unique frontend group ID for highlighting.
+
+        Groups by: watershed_code + gnis_name + sorted regulation_ids.
+        This ensures all tiles belonging to the same physical stream segment
+        with the same regulations will highlight together.
+        """
+        key = f"{watershed_code or ''}|{gnis_name or ''}|{','.join(sorted(regulation_ids))}"
+        return hashlib.md5(key.encode()).hexdigest()[:12]
+
     def _emit_group_feature(
         self,
         group,
@@ -558,9 +550,15 @@ class RegulationGeoExporter:
             geometry: The shapely geometry to use.
         """
         rids = reg_ids if reg_ids is not None else group.regulation_ids
+        # Compute frontend_group_id for consistent highlighting
+        watershed_code = base_props.get("watershed_code", "").split(",")[0].strip()
+        frontend_group_id = self._compute_frontend_group_id(
+            watershed_code, group.gnis_name, rids
+        )
         return {
             **base_props,
             "group_id": f"{group.group_id}{suffix}" if suffix else group.group_id,
+            "frontend_group_id": frontend_group_id,
             "regulation_ids": ",".join(rids),
             "regulation_count": len(rids),
             "regulation_names": " | ".join(
@@ -669,8 +667,12 @@ class RegulationGeoExporter:
                 )
             )
 
-        # Fallback: if clipping produced nothing usable, emit original
+        # Clipping produced nothing usable — emit original with a warning.
         if not results:
+            logger.warning(
+                f"Admin clip for group {group.group_id} produced no inside/outside "
+                f"pieces — emitting unclipped geometry"
+            )
             results.append(
                 self._emit_group_feature(
                     group,
@@ -684,6 +686,84 @@ class RegulationGeoExporter:
         return results, "clipped"
 
     # --- LAYER CREATION ---
+
+    def _merge_same_regulation_features(self, features: list) -> list:
+        """Merge export features that share the same physical waterbody and regulation_ids.
+
+        After admin boundary clipping, an ``_admin_out`` piece may have the
+        same effective regulation set as a non-clipped group of the same
+        waterbody.  This post-processing step re-merges those pieces so the
+        map tiles and search index don't show redundant entries.
+
+        Groups by ``(blue_line_key, waterbody_key, regulation_ids)`` — this
+        ensures unnamed streams on different physical channels don't incorrectly
+        merge together (they have different blue_line_keys).
+        """
+        if not features:
+            return features
+
+        from collections import defaultdict
+
+        groups = defaultdict(list)
+        for feat in features:
+            # Use physical waterbody identifiers, not gnis_name.
+            # blue_line_key identifies the physical stream channel.
+            # waterbody_key identifies lakes/wetlands the stream flows through.
+            key = (
+                feat.get("blue_line_key", ""),
+                feat.get("waterbody_key", ""),
+                feat.get("regulation_ids", ""),
+            )
+            groups[key].append(feat)
+
+        merged = []
+        merge_count = 0
+        for (blk, wbk, reg_ids), group_features in groups.items():
+            if len(group_features) == 1:
+                merged.append(group_features[0])
+                continue
+
+            # Merge geometries from all features in this group
+            all_geoms = []
+            for feat in group_features:
+                geom = feat.get("geometry")
+                if geom is not None:
+                    all_geoms.extend(self._extract_geoms(geom))
+
+            if not all_geoms:
+                merged.append(group_features[0])
+                continue
+
+            # Use first feature as template, merge geometry
+            template = dict(group_features[0])
+            template["geometry"] = (
+                MultiLineString(all_geoms) if len(all_geoms) > 1 else all_geoms[0]
+            )
+
+            # Merge group_id — pick the one without admin suffix, or the first
+            group_ids = [f.get("group_id", "") for f in group_features]
+            base_ids = [
+                g for g in group_ids if not g.endswith(("_admin_in", "_admin_out"))
+            ]
+            template["group_id"] = base_ids[0] if base_ids else group_ids[0]
+
+            # Merge mgmt_units from all features
+            all_mu = set()
+            for feat in group_features:
+                for mu in feat.get("mgmt_units", "").split(","):
+                    if mu:
+                        all_mu.add(mu)
+            template["mgmt_units"] = ",".join(sorted(all_mu))
+
+            merged.append(template)
+            merge_count += 1
+
+        if merge_count:
+            logger.info(
+                f"Post-merge: combined {merge_count} groups with identical "
+                f"regulation sets ({len(features)} → {len(merged)} features)"
+            )
+        return merged
 
     def _create_streams_layer(
         self,
@@ -788,9 +868,7 @@ class RegulationGeoExporter:
 
                 # Base metadata shared by all pieces (clipped or not)
                 base_props = {
-                    "gnis_name": self._get_group_gnis_name(
-                        group.feature_ids, FeatureType.STREAM
-                    ),
+                    "gnis_name": group.gnis_name,
                     "waterbody_key": (
                         group.waterbody_key if group.waterbody_key is not None else ""
                     ),
@@ -846,6 +924,11 @@ class RegulationGeoExporter:
                     f"{clip_stats['outside']} fully outside, "
                     f"{clip_stats['fallback']} fallback"
                 )
+
+            # Post-processing: merge features that have the same regulation_ids
+            # and gnis_name but were split across admin boundaries or grouping
+            # artifacts (e.g. _admin_out piece has same regs as non-clipped group).
+            features = self._merge_same_regulation_features(features)
 
         result = gpd.GeoDataFrame(features, crs="EPSG:3005") if features else None
         self._layer_cache[cache_key] = result
@@ -912,7 +995,7 @@ class RegulationGeoExporter:
                 if not geom_meta:
                     continue
 
-                gnis_name = self._get_group_gnis_name(group.feature_ids, ftype_enum)
+                gnis_name = group.gnis_name
 
                 if merge_geometries and len(geom_meta) > 1:
                     max_area = max(m.get("area_sqm", 0) for _, m, _ in geom_meta)
@@ -1129,6 +1212,51 @@ class RegulationGeoExporter:
             ]
         ]
 
+    def _create_bc_mask_layer(self) -> Optional[gpd.GeoDataFrame]:
+        """Create a polygon that covers area outside BC zones for grey masking.
+
+        Returns a single polygon that is a large bounding box with the union of
+        all BC zone polygons cut out as a hole.
+        """
+        if "wmu" not in self.data_accessor.list_layers():
+            logger.warning("'wmu' layer not found in GPKG — skipping bc_mask")
+            return None
+
+        zones_gdf = self.data_accessor.get_layer("wmu").to_crs("EPSG:3005")
+
+        # Union all zone polygons to get BC boundary
+        bc_union = zones_gdf.geometry.union_all()
+        if bc_union.is_empty:
+            logger.warning("BC zone union is empty — skipping bc_mask")
+            return None
+
+        # Get bounds and create outer rectangle with margin
+        minx, miny, maxx, maxy = bc_union.bounds
+        margin = 100_000  # 100km margin in EPSG:3005 meters
+        outer_box = box(minx - margin, miny - margin, maxx + margin, maxy + margin)
+
+        # Create mask polygon (outer box with BC cut out)
+        # difference() creates a polygon with holes where BC is
+        mask_polygon = outer_box.difference(bc_union)
+
+        # Simplify to reduce tile size (tolerance in meters for EPSG:3005)
+        mask_polygon = mask_polygon.simplify(500, preserve_topology=True)
+
+        mask_gdf = gpd.GeoDataFrame(
+            {
+                "fill_color": ["#374151"],  # Tailwind gray-700
+                "fill_opacity": [0.65],
+                "tippecanoe:minzoom": [0],
+                "geometry": [mask_polygon],
+            },
+            crs="EPSG:3005",
+        )
+
+        logger.info(
+            f"  BC mask layer: 1 feature covering area outside {len(zones_gdf)} zones"
+        )
+        return mask_gdf
+
     # --- SHARED LAYER CONFIG ---
 
     def _get_layer_configs(
@@ -1166,6 +1294,7 @@ class RegulationGeoExporter:
         ]
         if include_regions:
             layers.append(("regions", lambda: self._create_regions_layer()))
+            layers.append(("bc_mask", lambda: self._create_bc_mask_layer()))
 
         # Ungazetted waterbody points (zoom 10+)
         layers.append(("ungazetted", lambda: self._create_ungazetted_layer(merge)))
@@ -1293,35 +1422,25 @@ class RegulationGeoExporter:
         logger.error(f"Tippecanoe failed: {result.returncode}")
         return None
 
-    def export_regulations_json(
-        self, parsed_regulations: List[Dict[str, Any]], output_path: Path
-    ) -> Path:
-        """Write regulations.json using centralized regulation_details.
+    def _build_regulations_lookup(self) -> Dict[str, Any]:
+        """Build regulations lookup dictionary from pipeline regulation_details."""
+        return dict(self.pipeline_result.regulation_details)
 
-        The mapper populates ``regulation_details`` during processing from all
-        sources (synopsis, provincial, zone) so the exporter never needs to
-        import source-specific modules.  Adding a new regulation source only
-        requires populating ``regulation_details`` in the mapper.
-        """
-        reg_lookup = dict(self.pipeline_result.regulation_details)
-
-        output_path.parent.mkdir(parents=True, exist_ok=True)
-        with open(output_path, "w", encoding="utf-8") as f:
-            json.dump(reg_lookup, f, indent=2, ensure_ascii=False)
-        return output_path
-
-    def export_search_index(self, output_path: Path) -> Path:
+    def _build_waterbodies_list(self) -> List[Dict[str, Any]]:
         self._preload_data()
-        search_groups = defaultdict(
+
+        # First pass: group by physical stream identity (watershed_code + gnis_name + type)
+        # Each physical stream becomes ONE search entry with multiple regulation_segments
+        physical_groups = defaultdict(
             lambda: {
                 "geoms": [],
                 "zone_to_name": {},
                 "mgmt_units": set(),
-                "segment_count": 0,
                 "wb_keys": set(),
-                "group_ids": [],
-                "feature_ids": [],
-                "gnis_name_2": "",
+                "watershed_codes": set(),
+                "name_variants": {},  # name -> from_tributary (False wins if both exist)
+                # Track each regulation segment separately
+                "segments": [],  # List of {group_id, regulation_ids, feature_ids, length_m}
             }
         )
 
@@ -1330,23 +1449,39 @@ class RegulationGeoExporter:
                 list(group.regulation_ids), list(group.feature_ids)
             )
 
-            # Determine feature type of the group based on its first feature
-            first_fid = next(iter(group.feature_ids), None)
-            if not first_fid:
+            # Skip empty groups
+            if not group.feature_ids:
                 continue
 
-            ftype = self.gazetteer.get_feature_type_from_id(first_fid)
-            gnis_name = self._get_group_gnis_name(group.feature_ids, ftype)
-            gnis_name_2 = self._get_group_gnis_name_2(group.feature_ids, ftype)
+            ftype_val = group.feature_type
+            ftype = FeatureType(ftype_val) if ftype_val else FeatureType.UNKNOWN
+            gnis_name = group.gnis_name
 
             if not gnis_name and not reg_names:
                 continue
 
-            sg = search_groups[
-                (gnis_name, tuple(sorted(group.regulation_ids)), ftype.value)
-            ]
-            if gnis_name_2 and not sg["gnis_name_2"]:
-                sg["gnis_name_2"] = gnis_name_2
+            # Group by physical identity (watershed_code + name + type)
+            # waterbody_key is NOT included - same stream may have multiple waterbody_keys
+            wsc = group.fwa_watershed_code or ""
+            physical_key = (wsc, gnis_name, ftype_val)
+
+            sg = physical_groups[physical_key]
+            if group.waterbody_key:
+                sg["wb_keys"].add(group.waterbody_key)
+            # Merge name_variants dicts: name -> from_tributary (False wins if both exist)
+            for nv in group.name_variants:
+                name = nv["name"]
+                is_trib = nv["from_tributary"]
+                if name in sg["name_variants"]:
+                    if not is_trib:
+                        sg["name_variants"][name] = False
+                else:
+                    sg["name_variants"][name] = is_trib
+            if group.fwa_watershed_code:
+                sg["watershed_codes"].add(group.fwa_watershed_code)
+            for z, n in zip(group.zones or [], group.region_names or []):
+                sg["zone_to_name"][z] = n
+            sg["mgmt_units"].update(group.mgmt_units or [])
 
             prefix = f"{ftype.value.upper()}_" if ftype != FeatureType.STREAM else ""
             geoms_dict = (
@@ -1355,42 +1490,86 @@ class RegulationGeoExporter:
                 else self._polygon_geometries
             )
 
+            segment_geoms = []  # Track geoms for this segment's bbox
             for fid in group.feature_ids:
                 if geom := geoms_dict.get(f"{prefix}{fid}" if prefix else fid):
-                    sg["geoms"].extend(self._extract_geoms(geom))
+                    extracted = self._extract_geoms(geom)
+                    sg["geoms"].extend(extracted)
+                    segment_geoms.extend(extracted)
 
-            sg["segment_count"] += len(group.feature_ids)
-            sg["feature_ids"].extend(group.feature_ids)
-            for z, n in zip(group.zones or [], group.region_names or []):
-                sg["zone_to_name"][z] = n
-            sg["mgmt_units"].update(group.mgmt_units or [])
-            if group.waterbody_key:
-                sg["wb_keys"].add(group.waterbody_key)
-            sg["group_ids"].append(group.group_id)
+            # Calculate length for this segment
+            if ftype_val == FeatureType.STREAM.value:
+                segment_length_m = sum(
+                    (m.get("length") or 0)
+                    for fid in group.feature_ids
+                    if (m := self.gazetteer.get_stream_metadata(fid))
+                )
+            else:
+                segment_length_m = (
+                    sum(g.area for g in sg["geoms"]) if sg["geoms"] else 0
+                )
+
+            # Add this regulation segment
+            sg["segments"].append(
+                {
+                    "group_id": group.group_id,
+                    "regulation_ids": list(group.regulation_ids),
+                    "feature_ids": list(group.feature_ids),
+                    "length_m": segment_length_m,
+                    "name_variants": list(
+                        group.name_variants
+                    ),  # Per-segment name variants
+                    "gnis_name": gnis_name,
+                    "geoms": segment_geoms,  # Track geoms for segment-level bbox
+                }
+            )
 
         search_items = []
-        for (gnis, reg_ids_tuple, ftype_val), data in search_groups.items():
+        for (wsc, gnis, ftype_val), data in physical_groups.items():
             if not data["geoms"]:
                 continue
-            reg_ids = list(reg_ids_tuple)
+
+            # Sort segments by length (longest first) for disambiguation
+            segments = sorted(
+                data["segments"], key=lambda s: s["length_m"], reverse=True
+            )
+
+            # Union of all regulation_ids across segments
+            all_reg_ids = set()
+            all_group_ids = []
+            total_feature_count = 0
+            for seg in segments:
+                all_reg_ids.update(seg["regulation_ids"])
+                all_group_ids.append(seg["group_id"])
+                total_feature_count += len(seg["feature_ids"])
+            reg_ids = sorted(all_reg_ids)
 
             if ftype_val == FeatureType.STREAM.value:
+                # Collect all feature_ids from segments
+                all_feature_ids = [
+                    fid for seg in segments for fid in seg["feature_ids"]
+                ]
                 mag = max(
                     (
                         (m.get("stream_magnitude") or 0)
-                        for fid in data["feature_ids"]
+                        for fid in all_feature_ids
                         if (m := self.gazetteer.get_stream_metadata(fid))
                     ),
                     default=0,
                 )
                 min_zoom = self._calculate_stream_minzoom(mag)
             elif ftype_val == FeatureType.UNGAZETTED.value:
-                # Ungazetted points only visible when zoomed in
                 min_zoom = 10
+                all_feature_ids = [
+                    fid for seg in segments for fid in seg["feature_ids"]
+                ]
             else:
                 min_zoom = self._calculate_polygon_minzoom(
                     sum(g.area for g in data["geoms"])
                 )
+                all_feature_ids = [
+                    fid for seg in segments for fid in seg["feature_ids"]
+                ]
 
             # Optimized Bound calculation using numpy
             bounds = np.array([g.bounds for g in data["geoms"]])
@@ -1407,28 +1586,119 @@ class RegulationGeoExporter:
                 .bounds
             )
 
-            reg_names = self._get_reg_names(reg_ids, data["feature_ids"])
+            reg_names = self._get_reg_names(reg_ids, all_feature_ids)
+            # Convert name_variants dict to sorted list of dicts
+            name_variants = [
+                {"name": name, "from_tributary": is_trib}
+                for name, is_trib in sorted(data["name_variants"].items())
+            ]
 
-            # Build name_variants: deduplicated set of all names for this waterbody
-            # Includes gnis_name, gnis_name_2, all regulation names, and name variation aliases
-            name_set = set()
-            if gnis:
-                name_set.add(gnis)
-            gnis2 = data.get("gnis_name_2", "")
-            if gnis2:
-                name_set.add(gnis2)
-            for rn in reg_names:
-                name_set.add(rn)
-                # Inject name variation aliases for this regulation name
-                for alias in self.name_variation_aliases.get(rn, []):
-                    name_set.add(alias)
-            name_variants = sorted(name_set)
+            # Total length from all segments
+            total_length_m = sum(seg["length_m"] for seg in segments)
+            if ftype_val == FeatureType.STREAM.value:
+                length_km = round(total_length_m / 1000.0, 2)
+            elif ftype_val == FeatureType.UNGAZETTED.value:
+                length_km = 0.0
+            else:
+                length_km = round(total_length_m / 1_000_000.0, 2)
+
+            # Use watershed code as stream identity key
+            stream_key = next(iter(data["watershed_codes"]), "") or wsc
+
+            # Consolidate segments by regulation set (same regs = same frontend group)
+            # Key: tuple of sorted regulation_ids
+            consolidated = {}
+            for seg in segments:
+                seg_reg_ids = tuple(sorted(seg["regulation_ids"]))
+                if seg_reg_ids in consolidated:
+                    # Merge into existing
+                    existing = consolidated[seg_reg_ids]
+                    existing["length_m"] += seg["length_m"]
+                    existing["feature_ids"].extend(seg["feature_ids"])
+                    existing["geoms"].extend(seg.get("geoms", []))  # Merge geoms
+                    # Merge name_variants dicts: name -> from_tributary (False wins)
+                    for nv in seg["name_variants"]:
+                        name = nv["name"]
+                        is_trib = nv["from_tributary"]
+                        if name in existing["name_variants"]:
+                            if not is_trib:
+                                existing["name_variants"][name] = False
+                        else:
+                            existing["name_variants"][name] = is_trib
+                    existing["group_ids"].append(seg["group_id"])
+                else:
+                    # Convert list of dicts to name -> from_tributary dict
+                    nv_dict = {
+                        nv["name"]: nv["from_tributary"] for nv in seg["name_variants"]
+                    }
+                    consolidated[seg_reg_ids] = {
+                        "regulation_ids": seg_reg_ids,
+                        "length_m": seg["length_m"],
+                        "feature_ids": list(seg["feature_ids"]),
+                        "geoms": list(seg.get("geoms", [])),  # Track geoms for bbox
+                        "name_variants": nv_dict,
+                        "gnis_name": seg["gnis_name"],
+                        "group_ids": [seg["group_id"]],
+                    }
+
+            # Sort consolidated segments by length (longest first)
+            sorted_consolidated = sorted(
+                consolidated.values(), key=lambda s: s["length_m"], reverse=True
+            )
+
+            # Build regulation segments for frontend disambiguation
+            reg_segments = []
+            for seg in sorted_consolidated:
+                seg_reg_ids = sorted(seg["regulation_ids"])
+                seg_reg_names = self._get_reg_names(seg_reg_ids, seg["feature_ids"])
+                # Compute frontend_group_id for this segment
+                frontend_group_id = self._compute_frontend_group_id(
+                    stream_key, seg["gnis_name"], tuple(seg_reg_ids)
+                )
+
+                # Compute segment-specific bbox from its geometries
+                seg_geoms = seg.get("geoms", [])
+                if seg_geoms:
+                    seg_bounds = np.array([g.bounds for g in seg_geoms])
+                    seg_bbox_3005 = (
+                        seg_bounds[:, 0].min(),
+                        seg_bounds[:, 1].min(),
+                        seg_bounds[:, 2].max(),
+                        seg_bounds[:, 3].max(),
+                    )
+                    seg_bbox_wgs84 = list(
+                        gpd.GeoSeries([box(*seg_bbox_3005)], crs="EPSG:3005")
+                        .to_crs("EPSG:4326")
+                        .iloc[0]
+                        .bounds
+                    )
+                else:
+                    seg_bbox_wgs84 = None
+
+                reg_segments.append(
+                    {
+                        "frontend_group_id": frontend_group_id,
+                        "group_id": seg["group_ids"][0],  # Primary group_id
+                        "group_ids": seg["group_ids"],  # All group_ids for this reg set
+                        "regulation_ids": ",".join(seg_reg_ids),
+                        "regulation_names": seg_reg_names,
+                        "name_variants": [
+                            {"name": name, "from_tributary": is_trib}
+                            for name, is_trib in sorted(seg["name_variants"].items())
+                        ],
+                        "length_km": (
+                            round(seg["length_m"] / 1000.0, 2)
+                            if ftype_val == FeatureType.STREAM.value
+                            else round(seg["length_m"] / 1_000_000.0, 2)
+                        ),
+                        "bbox": seg_bbox_wgs84,  # Per-segment bbox for fly-to
+                    }
+                )
 
             search_items.append(
                 {
-                    "id": f"{gnis}|{','.join(reg_ids)}|{ftype_val}",
+                    "id": f"{gnis}|{stream_key}|{ftype_val}",
                     "gnis_name": gnis,
-                    "gnis_name_2": gnis2,
                     "regulation_names": reg_names,
                     "name_variants": name_variants,
                     "type": ftype_val,
@@ -1439,18 +1709,44 @@ class RegulationGeoExporter:
                         for z in sorted(data["zone_to_name"].keys())
                     ),
                     "regulation_ids": ",".join(reg_ids),
-                    "segment_count": data["segment_count"],
+                    "segment_count": total_feature_count,
+                    "length_km": length_km,
                     "bbox": list(wgs84_bounds),
                     "min_zoom": min_zoom,
                     "properties": {
-                        "group_id": data["group_ids"][0] if data["group_ids"] else "",
+                        "group_id": all_group_ids[0] if all_group_ids else "",
+                        "group_ids": all_group_ids,
                         "waterbody_key": ",".join(sorted(data["wb_keys"])),
+                        "fwa_watershed_code": stream_key,
                         "regulation_count": len(reg_ids),
                     },
+                    # Array of regulation segments for disambiguation
+                    "regulation_segments": reg_segments,
                 }
             )
 
+        return search_items
+
+    def export_waterbody_data(self, output_path: Path) -> Path:
+        """Export unified waterbody_data.json with waterbodies and regulations.
+
+        This is the single source of truth for the frontend, containing:
+        - waterbodies: Search/map data with regulation segments
+        - regulations: Full regulation details keyed by regulation_id
+        """
+        waterbodies = self._build_waterbodies_list()
+        regulations = self._build_regulations_lookup()
+
         output_path.parent.mkdir(parents=True, exist_ok=True)
         with open(output_path, "w", encoding="utf-8") as f:
-            json.dump({"waterbodies": search_items}, f, indent=2, ensure_ascii=False)
+            json.dump(
+                {"waterbodies": waterbodies, "regulations": regulations},
+                f,
+                indent=2,
+                ensure_ascii=False,
+            )
+        logger.info(
+            f"Exported waterbody_data.json ({len(waterbodies)} waterbodies, "
+            f"{len(regulations)} regulations)"
+        )
         return output_path

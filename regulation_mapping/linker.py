@@ -92,9 +92,6 @@ class WaterbodyLinker:
         self.gazetteer = gazetteer
         self.corrections = manual_corrections
         self.stats = Counter()
-        # Track which regulation names map to which FWA features
-        # Key: FWA feature ID, Value: list of (region, name_verbatim) tuples
-        self.feature_to_regulations: Dict[str, List[tuple]] = {}
 
     def link_waterbody(
         self,
@@ -148,6 +145,9 @@ class WaterbodyLinker:
         if region:
             nv_link = self.corrections.get_name_variation_link(region, lookup_name)
             if nv_link:
+                logger.debug(
+                    f"Name variation '{name_verbatim}' → primary '{nv_link.primary_name}'"
+                )
                 result = LinkingResult(
                     status=LinkStatus.NAME_VARIATION,
                     matched_name=nv_link.primary_name,
@@ -238,76 +238,7 @@ class WaterbodyLinker:
 
         result.link_method = "natural_search"
         self.stats[result.status] += 1
-        # Track successful matches
-        if result.status == LinkStatus.SUCCESS:
-            self._record_match(result, region, name_verbatim)
         return result
-
-    def _record_match(
-        self,
-        result: LinkingResult,
-        region: Optional[str],
-        name_verbatim: Optional[str],
-    ):
-        """Record which regulation name mapped to which FWA feature(s)."""
-        # Get all matched features
-        features = result.matched_features or []
-
-        # Record mapping for each unique waterbody identity
-        # Group streams by name AND watershed code, keep individual polygons separate
-        seen_identities = set()
-        for feature in features:
-            # Use same identity logic as natural search deduplication, but don't group polygons by GNIS
-            if (
-                feature.geometry_type == "multilinestring"
-                and feature.fwa_watershed_code
-            ):
-                # Stream: group by name AND watershed code (prevents grouping different waterbodies with same WSC)
-                waterbody_name = (
-                    (feature.gnis_name or "unnamed").lower().replace(" ", "_")
-                )
-                identity_key = f"stream_{feature.fwa_watershed_code}_{waterbody_name}"
-            elif feature.waterbody_key:
-                # Polygon: use waterbody_key (keeps each polygon separate)
-                identity_key = f"waterbody_{feature.waterbody_key}"
-            else:
-                # Fallback: use fwa_id
-                identity_key = f"fwa_{feature.fwa_id}"
-
-            # Only record once per identity
-            if identity_key in seen_identities:
-                continue
-            seen_identities.add(identity_key)
-
-            if identity_key not in self.feature_to_regulations:
-                self.feature_to_regulations[identity_key] = {
-                    "feature": feature,  # Store a representative feature for display
-                    "regulations": [],
-                }
-
-            # Store tuple of (region, name_verbatim)
-            regulation_info = (region, name_verbatim)
-            if (
-                regulation_info
-                not in self.feature_to_regulations[identity_key]["regulations"]
-            ):
-                self.feature_to_regulations[identity_key]["regulations"].append(
-                    regulation_info
-                )
-
-    def get_duplicate_mappings(self) -> Dict[str, Dict]:
-        """
-        Get FWA features that have multiple regulation names mapped to them.
-
-        Returns:
-            Dict mapping identity key to dict with 'feature' and 'regulations' list
-            Only includes features with 2+ regulation mappings.
-        """
-        return {
-            identity_key: data
-            for identity_key, data in self.feature_to_regulations.items()
-            if len(data["regulations"]) > 1
-        }
 
     def _validate_region_mu_match(
         self, region: Optional[str], features: List[FWAFeature]
@@ -1079,9 +1010,32 @@ def _run_coverage_test():
     else:
         print("All direct matches verified.")
 
-    # Duplicate mappings
+    # Duplicate mappings — reconstructed from stats.results[SUCCESS]
     header("DUPLICATE REGULATION MAPPINGS")
-    dupes = linker.get_duplicate_mappings()
+    # Build feature_to_regulations locally (same identity logic that was removed from linker)
+    _feat_to_regs: Dict[str, Dict] = {}
+    for item_data in stats.results[LinkStatus.SUCCESS]:
+        res = item_data["result"]
+        region = item_data["region"]
+        name = item_data["name_verbatim"]
+        for feature in res.matched_features or []:
+            if (
+                feature.geometry_type == "multilinestring"
+                and feature.fwa_watershed_code
+            ):
+                wname = (feature.gnis_name or "unnamed").lower().replace(" ", "_")
+                ik = f"stream_{feature.fwa_watershed_code}_{wname}"
+            elif feature.waterbody_key:
+                ik = f"waterbody_{feature.waterbody_key}"
+            else:
+                ik = f"fwa_{feature.fwa_id}"
+            entry = _feat_to_regs.setdefault(
+                ik, {"feature": feature, "regulations": []}
+            )
+            reg_info = (region, name)
+            if reg_info not in entry["regulations"]:
+                entry["regulations"].append(reg_info)
+    dupes = {k: v for k, v in _feat_to_regs.items() if len(v["regulations"]) > 1}
     if dupes:
         print(
             f"Found {len(dupes)} FWA waterbodies with multiple regulation names mapped to them:"

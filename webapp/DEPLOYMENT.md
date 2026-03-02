@@ -38,8 +38,7 @@
 |---|---|---|
 | `bc.pmtiles` | ~2.4 GB | Protomaps basemap tiles |
 | `regulations_merged.pmtiles` | ~1.6 GB | Regulation vector tiles |
-| `regulations.json` | ~1.7 MB | Regulation text/rules lookup |
-| `search_index.json` | ~35 MB | Waterbody search index |
+| `waterbody_data.json` | ~37 MB | Unified waterbody and regulation data |
 
 ---
 
@@ -133,8 +132,7 @@ All scripts in `webapp/scripts/`. Run from `webapp/`.
 
 ```bash
 cp output/regulation_mapping/regulations_merged.pmtiles webapp/public/data/
-cp output/regulation_mapping/regulations.json webapp/public/data/
-cp output/regulation_mapping/search_index.json webapp/public/data/
+cp output/regulation_mapping/waterbody_data.json webapp/public/data/
 cd webapp && ./scripts/deploy-data.sh
 ```
 
@@ -231,8 +229,7 @@ webapp/
 ├── public/data/                     # Local data (gitignored large files)
 │   ├── bc.pmtiles                   # → R2
 │   ├── regulations_merged.pmtiles   # → R2
-│   ├── regulations.json             # → R2
-│   ├── search_index.json            # → R2
+│   ├── waterbody_data.json          # → R2 (unified waterbodies + regulations)
 │   └── row_images/                  # → deployed with site (small)
 └── dist/                            # Build output (gitignored)
 ```
@@ -243,7 +240,7 @@ webapp/
 
 **CORS errors** — R2 worker not deployed or broken:
 ```bash
-curl -I https://bc-fishing-r2.horvath-dawson.workers.dev/regulations.json
+curl -I https://bc-fishing-r2.horvath-dawson.workers.dev/waterbody_data.json
 # Should show: access-control-allow-origin: *
 cd webapp && ./scripts/deploy-worker.sh
 ```
