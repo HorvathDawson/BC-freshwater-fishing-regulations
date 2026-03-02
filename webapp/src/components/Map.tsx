@@ -638,9 +638,9 @@ const MapComponent = () => {
                 extendBoundsWithGeometry(bounds, f.toJSON().geometry);
                 const tileBbox = bounds.toArray().flat() as [number, number, number, number];
                 
-                // Use segment data when available, fall back to tile props
-                const featureBbox = (searchEntry?.bbox || tileBbox) as [number, number, number, number];
-                const featureMinzoom = searchEntry?.properties?.minzoom || props.min_zoom || 4;
+                // Use segment bbox (most precise), then search entry bbox, then tile bbox
+                const featureBbox = (segment?.bbox || searchEntry?.bbox || tileBbox) as [number, number, number, number];
+                const featureMinzoom = segment?.min_zoom || searchEntry?.properties?.minzoom || props.min_zoom || 4;
                 const displayName = searchEntry?.gnis_name || props.gnis_name || props.lake_name || '';
                 
                 options.push({
@@ -958,7 +958,7 @@ const MapComponent = () => {
                         setSelectedFeature(f as any); 
                         setMobilePanelState('partial'); 
                         
-                        // Fly to the selected feature's bbox
+                        // Fly to the selected feature's bbox with minimum zoom enforcement
                         const map = mapRef.current;
                         if (!map) return;
                         
@@ -971,7 +971,12 @@ const MapComponent = () => {
                                 [f.bbox[0], f.bbox[1]], 
                                 [f.bbox[2], f.bbox[3]]
                             );
-                            map.fitBounds(bounds, { padding, maxZoom: 15, duration: 400 });
+                            const targetMinZoom = f.minzoom || 10;
+                            const camera = map.cameraForBounds(bounds, { padding });
+                            if (camera) {
+                                const finalZoom = Math.max(camera.zoom || 0, targetMinZoom);
+                                map.flyTo({ ...camera, zoom: Math.min(finalZoom, 12.5), duration: 800 });
+                            }
                         }
                     }} onClose={clearSelection}
                 />
