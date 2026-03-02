@@ -4068,7 +4068,7 @@ def _run_zone_test():
         ALL_FWA_TYPES,
     )
 
-    zone_index, mu_index = build_feature_index(gazetteer)
+    zone_index, mu_index, _, _ = build_feature_index(gazetteer)
 
     total_indexed = sum(
         len(features) for zones in zone_index.values() for features in zones.values()

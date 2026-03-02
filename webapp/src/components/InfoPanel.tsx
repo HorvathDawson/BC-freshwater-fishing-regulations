@@ -1,8 +1,17 @@
-import React, { useRef, useEffect, useState } from 'react';
-import { X, Calendar, MapPin, FileImage } from 'lucide-react';
+import React, { useRef, useEffect, useState, useMemo } from 'react';
+import { X, Calendar, MapPin, FileImage, RotateCcw, Share2, Check } from 'lucide-react';
 import { Icon } from '@iconify/react';
 import type { Regulation } from '../services/regulationsService';
 import { regulationsService } from '../services/regulationsService';
+import { 
+    getIconForType, 
+    getColorForType, 
+    calculateSwipeState, 
+    type CollapseState,
+    type FeatureInfo,
+    type NameVariant
+} from '../utils/featureUtils';
+import { getShareableUrl, copyToClipboard } from '../utils/urlState';
 import './InfoPanel.css';
 
 /** Human-readable labels for admin scope_location keys */
@@ -12,40 +21,6 @@ const SCOPE_LOCATION_LABELS: Record<string, string> = {
     wma: 'Wildlife Management Areas',
     watersheds: 'Watersheds',
     historic_sites: 'Historic Sites',
-};
-
-interface FeatureInfo {
-    type: 'stream' | 'lake' | 'wetland' | 'manmade';
-    properties: Record<string, any>;
-    _segmentCount?: number;
-}
-
-type CollapseState = 'expanded' | 'partial' | 'collapsed';
-
-const getIconForType = (type: 'stream' | 'lake' | 'wetland' | 'manmade' | 'streams' | 'lakes' | 'wetlands') => {
-    const iconMap = {
-        stream: 'game-icons:splashy-stream',
-        streams: 'game-icons:splashy-stream',
-        lake: 'game-icons:oasis',
-        lakes: 'game-icons:oasis',
-        wetland: 'game-icons:swamp',
-        wetlands: 'game-icons:swamp',
-        manmade: 'game-icons:dam'
-    };
-    return iconMap[type as keyof typeof iconMap] || iconMap.lake;
-};
-
-const getColorForType = (type: 'stream' | 'lake' | 'wetland' | 'manmade' | 'streams' | 'lakes' | 'wetlands') => {
-    const colorMap = {
-        stream: '#3b82f6',
-        streams: '#3b82f6',
-        lake: '#0ea5e9',
-        lakes: '#0ea5e9',
-        wetland: '#10b981',
-        wetlands: '#10b981',
-        manmade: '#a855f7'
-    };
-    return colorMap[type as keyof typeof colorMap] || colorMap.lake;
 };
 
 interface InfoPanelProps {
@@ -60,33 +35,102 @@ const getRestrictionClass = (type: string): string => {
     const normalized = type.toLowerCase().replace(/[_ ]/g, '-');
     const classMap: Record<string, string> = {
         'closed': 'reg-closed',
-        'closure': 'reg-closure',
+        'closure': 'reg-closed',
         'catch-and-release': 'reg-catch-and-release',
         'quota': 'reg-quota',
         'annual-quota': 'reg-quota',
         'possession-quota': 'reg-quota',
-        'gear-restriction': 'reg-gear-restriction',
-        'bait-restriction': 'reg-bait-restriction',
+        'harvest': 'reg-quota',
+        'gear-restriction': 'reg-gear',
+        'bait-restriction': 'reg-gear',
+        'vessel-restriction': 'reg-gear',
         'notice': 'reg-notice',
-        'note': 'reg-note',
+        'note': 'reg-notice',
     };
     return classMap[normalized] || '';
 };
 
+/** Filter categories - groups similar restriction types */
+const FILTER_CATEGORIES: Record<string, { label: string; types: string[] }> = {
+    closures: { label: 'Closures', types: ['closed', 'closure'] },
+    quotas: { label: 'Quotas', types: ['quota', 'annual quota', 'possession quota', 'harvest'] },
+    gear: { label: 'Gear', types: ['gear restriction', 'bait restriction', 'vessel restriction'] },
+    catchRelease: { label: 'Catch & Release', types: ['catch and release'] },
+    notices: { label: 'Notices', types: ['notice', 'note'] },
+};
+
+/** Get category key for a restriction type */
+const getFilterCategory = (type: string): string | null => {
+    const normalized = type.toLowerCase().replace(/_/g, ' ');
+    for (const [key, { types }] of Object.entries(FILTER_CATEGORIES)) {
+        if (types.includes(normalized)) return key;
+    }
+    return null;
+};
+
 const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapseState }: InfoPanelProps) => {
     const touchStartY = useRef<number>(0);
+    const touchStartTime = useRef<number>(0);
     const [regulations, setRegulations] = useState<Regulation[]>([]);
     const [loadingRegs, setLoadingRegs] = useState(false);
     const [sourceImage, setSourceImage] = useState<{ src: string; name: string } | null>(null);
+    const [activeFilter, setActiveFilter] = useState<string>('');
+    const [copied, setCopied] = useState(false);
+
+    // Handle share button click
+    const handleShare = async (e: React.MouseEvent) => {
+        e.stopPropagation();
+        // Use frontend_group_id preferring, fallback to group_id, then waterbody_key
+        const props = feature?.properties;
+        const featureId = props?.frontend_group_id || props?.group_id ||
+                          (props?.waterbody_key ? String(props.waterbody_key) : '');
+        if (!featureId) {
+            console.warn('Cannot share: feature missing all IDs');
+            return;
+        }
+        const url = getShareableUrl(featureId);
+        const success = await copyToClipboard(url);
+        if (success) {
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+        }
+    };
+
+    // Extract available filter categories from current regulations
+    const availableCategories = useMemo(() => {
+        const categories = new Set<string>();
+        for (const reg of regulations) {
+            if (reg.restriction_type) {
+                const cat = getFilterCategory(reg.restriction_type);
+                if (cat) categories.add(cat);
+            }
+        }
+        return Array.from(categories);
+    }, [regulations]);
+
+    // Filter regulations based on active filter category
+    const filteredRegulations = useMemo(() => {
+        if (!activeFilter) return regulations;
+        const category = FILTER_CATEGORIES[activeFilter];
+        if (!category) return regulations;
+        return regulations.filter(reg => {
+            const t = (reg.restriction_type || '').toLowerCase().replace(/_/g, ' ');
+            return category.types.includes(t);
+        });
+    }, [regulations, activeFilter]);
+
+    const resetFilters = () => setActiveFilter('');
 
     // Fetch regulations when feature changes
     useEffect(() => {
         if (!feature?.properties.regulation_ids) {
             setRegulations([]);
+            setActiveFilter(''); // Reset filters
             return;
         }
 
         setLoadingRegs(true);
+        setActiveFilter(''); // Reset filters on new feature
         regulationsService
             .getRegulations(feature.properties.regulation_ids)
             .then(setRegulations)
@@ -99,21 +143,19 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
 
     const handleTouchStart = (e: React.TouchEvent) => {
         touchStartY.current = e.touches[0].clientY;
+        touchStartTime.current = Date.now();
     };
 
     const handleTouchEnd = (e: React.TouchEvent) => {
-        const touchEndY = e.changedTouches[0].clientY;
-        const diffY = touchEndY - touchStartY.current;
-        const threshold = 50; 
-
-        if (diffY > threshold) {
-            // Swiping down
-            if (collapseState === 'expanded') onSetCollapseState('partial');
-            else if (collapseState === 'partial') onSetCollapseState('collapsed');
-        } else if (diffY < -threshold) {
-            // Swiping up
-            if (collapseState === 'collapsed') onSetCollapseState('partial');
-            else if (collapseState === 'partial') onSetCollapseState('expanded');
+        const result = calculateSwipeState(
+            touchStartY.current,
+            e.changedTouches[0].clientY,
+            touchStartTime.current,
+            Date.now(),
+            collapseState
+        );
+        if (result.handled) {
+            onSetCollapseState(result.newState);
         }
     };
 
@@ -121,42 +163,29 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
         if (!feature) return null;
         const props = feature.properties;
         
-        // Handle both regulation_names (array from search) and regulation_names (string from tiles)
-        const rawRegulationNames = Array.isArray(props.regulation_names) 
-            ? props.regulation_names 
+        // regulation_names & name_variants are always arrays (enriched at
+        // selection time from the search index for both click & search paths).
+        const rawRegulationNames: string[] = Array.isArray(props.regulation_names)
+            ? props.regulation_names
             : (props.regulation_names ? props.regulation_names.split(' | ').filter(Boolean) : []);
-        // Filter out provincial regulation names (long rule texts) - only show synopsis names
         const regulationNames = regulationsService.filterOutProvincialNames(rawRegulationNames);
-        
+
         const title = props.gnis_name || props.lake_name || props.name || regulationNames[0] || 'Unnamed Waterbody';
         const typeLabel = feature.type.toUpperCase();
 
-        // Build deduplicated aliases from name_variants (search path) or fall back to regulation_names (tile click)
-        const nameVariants: string[] = Array.isArray(props.name_variants) ? props.name_variants : [];
-        let aliases: string[];
-        if (nameVariants.length > 0) {
-            // Deduplicate case-insensitively, excluding the display name
-            const seen = new Set<string>();
-            seen.add(title.toLowerCase());
-            aliases = [];
-            for (const name of nameVariants) {
-                const lower = name.toLowerCase();
-                if (!seen.has(lower)) {
-                    seen.add(lower);
-                    aliases.push(name);
-                }
-            }
-        } else {
-            // Tile click fallback: show regulation names that differ from the title
-            const seen = new Set<string>();
-            seen.add(title.toLowerCase());
-            aliases = [];
-            for (const name of regulationNames) {
-                const lower = name.toLowerCase();
-                if (!seen.has(lower)) {
-                    seen.add(lower);
-                    aliases.push(name);
-                }
+        // Build deduplicated aliases from name_variants
+        const nameVariantsRaw: (NameVariant | string)[] = Array.isArray(props.name_variants) ? props.name_variants : [];
+        const seen = new Set<string>();
+        seen.add(title.toLowerCase());
+        const aliases: NameVariant[] = [];
+        for (const nv of nameVariantsRaw) {
+            // Handle both old string format and new NameVariant format
+            const name = typeof nv === 'string' ? nv : nv.name;
+            const fromTributary = typeof nv === 'string' ? false : nv.from_tributary;
+            const lower = name.toLowerCase();
+            if (!seen.has(lower)) {
+                seen.add(lower);
+                aliases.push({ name, from_tributary: fromTributary });
             }
         }
         const hasAliases = aliases.length > 0;
@@ -183,9 +212,18 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                             </div>
                             <span className="type-tag">{typeLabel}</span>
                         </div>
-                        <button onClick={(e) => { e.stopPropagation(); onClose(); }} className="square-btn">
-                            <X size={20} />
-                        </button>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            <button 
+                                onClick={handleShare} 
+                                className="square-btn" 
+                                title={copied ? "Link copied!" : "Copy link to share"}
+                            >
+                                {copied ? <Check size={20} /> : <Share2 size={20} />}
+                            </button>
+                            <button onClick={(e) => { e.stopPropagation(); onClose(); }} className="square-btn">
+                                <X size={20} />
+                            </button>
+                        </div>
                     </div>
                     <div className="title-group">
                         <h1 className="title">{title}</h1>
@@ -193,11 +231,11 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                             <div className="regulation-subtitle">
                                 Also known as:
                                 {aliases.length === 1 ? (
-                                    <span> {aliases[0]}</span>
+                                    <span> {aliases[0].from_tributary ? `Tributary: ${aliases[0].name}` : aliases[0].name}</span>
                                 ) : (
                                     <ul style={{ margin: '0.25rem 0 0 1rem', padding: 0, listStyle: 'disc' }}>
-                                        {aliases.map((name: string, idx: number) => (
-                                            <li key={idx}>{name}</li>
+                                        {aliases.map((alias: NameVariant, idx: number) => (
+                                            <li key={idx}>{alias.from_tributary ? `Tributary: ${alias.name}` : alias.name}</li>
                                         ))}
                                     </ul>
                                 )}
@@ -209,7 +247,36 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                 <div className="panel-content">
                     {/* REGULATIONS SECTION */}
                     <div className="data-section">
-                        <h3>REGULATIONS</h3>
+                        <div className="section-header-row">
+                            <h3>REGULATIONS</h3>
+                            
+                            {/* Compact filter dropdown */}
+                            {!loadingRegs && availableCategories.length > 1 && (
+                                <div className="reg-filter-compact">
+                                    <select 
+                                        className="reg-filter-select"
+                                        value={activeFilter}
+                                        onChange={(e) => setActiveFilter(e.target.value)}
+                                    >
+                                        <option value="">All</option>
+                                        {availableCategories.map(cat => (
+                                            <option key={cat} value={cat}>
+                                                {FILTER_CATEGORIES[cat]?.label || cat}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    {activeFilter && (
+                                        <button 
+                                            className="reg-filter-reset-icon" 
+                                            onClick={resetFilters} 
+                                            title="Clear filter"
+                                        >
+                                            <RotateCcw size={12} />
+                                        </button>
+                                    )}
+                                </div>
+                            )}
+                        </div>
                         
                         {loadingRegs && (
                             <div className="loading-regulations">
@@ -230,6 +297,15 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                         )}
 
                         {!loadingRegs && (() => {
+                            // Show message if filters hide all results
+                            if (activeFilter && filteredRegulations.length === 0) {
+                                return (
+                                    <div className="no-regulations">
+                                        No regulations match selected filter
+                                    </div>
+                                );
+                            }
+
                             // Admin zone map passed from Map click handler
                             // Maps regulation_id → list of admin zone names at click point
                             const adminZones: Record<string, string[]> = props._adminZones || {};
@@ -247,7 +323,7 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                             };
 
                             // Group regulations by source category + region
-                            const groupedRegulations = regulations.reduce((groups, reg) => {
+                            const groupedRegulations = filteredRegulations.reduce((groups, reg) => {
                                 let groupLabel: string;
 
                                 if (reg.source === 'zone') {

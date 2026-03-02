@@ -34,8 +34,9 @@ if ! command -v rclone &>/dev/null; then
     exit 1
 fi
 
-if ! rclone lsd r2: --s3-no-check-bucket &>/dev/null 2>&1; then
-    err "rclone 'r2' remote is not configured. See DEPLOYMENT.md for setup."
+# Check by listing the specific bucket (lsd fails if token lacks ListBuckets permission)
+if ! rclone ls "$R2_BUCKET" --max-depth 0 &>/dev/null 2>&1; then
+    err "Cannot access R2 bucket. Check rclone 'r2' config. See DEPLOYMENT.md for setup."
     exit 1
 fi
 

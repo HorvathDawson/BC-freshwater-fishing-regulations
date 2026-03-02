@@ -61,23 +61,24 @@ const ADMIN_COLORS: Record<string, string> = {
     admin_historic_sites: '#795548',   // Warm brown — heritage sites
 };
 
-// All admin source-layer names that could appear in the PMTiles
-const _ADMIN_LAYERS = [
-    'admin_parks_nat',
-    'admin_parks_bc',
-    'admin_wma',
-    'admin_watersheds',
-    'admin_historic_sites',
-] as const;
-void _ADMIN_LAYERS;
-
 // Helper function to create regulation layers from new PMTiles structure
 export const createRegulationLayers = (): LayerSpecification[] => {
     // FWA features first (bottom), admin overlays on top so borders/fills
     // are always visible above waterbody fills and lines.
     const fwaLayers: LayerSpecification[] = [];
     const adminLayers: LayerSpecification[] = [];
-
+    // ── BC MASK (grey area outside zone polygons) ─────────────────────────
+    // Renders first (bottom) so all BC content appears above it
+    fwaLayers.push({
+        id: 'bc-mask',
+        type: 'fill',
+        source: 'regulations',
+        'source-layer': 'bc_mask',
+        paint: {
+            'fill-color': '#374151', // Tailwind gray-700
+            'fill-opacity': 0.65
+        }
+    });
     // ── FWA FEATURE LAYERS (bottom of stack) ─────────────────────────
 
     // Wetlands — lowest of the FWA features
@@ -135,21 +136,45 @@ export const createRegulationLayers = (): LayerSpecification[] => {
         }
     });
     
+    // Lake outline width based on area_sqm (sqrt scale, clamped)
+    // Small lakes (~10,000 sqm / 1ha) get thin outlines, large lakes (~100M sqm) get thicker
+    // sqrt(10000) = 100, sqrt(100M) = 10000
+    // We normalize and clamp to get line widths that mesh well with streams
+    // MapLibre doesn't have clamp, so we use max(min(val, max), min)
+    const lakeLineWidth = [
+        'interpolate',
+        ['linear'],
+        ['zoom'],
+        4, [
+            'max',
+            ['min', ['+', 0.5, ['*', 0.00005, ['sqrt', ['coalesce', ['get', 'area_sqm'], 10000]]]], 1.5],
+            0.5
+        ],
+        8, [
+            'max',
+            ['min', ['+', 0.6, ['*', 0.00008, ['sqrt', ['coalesce', ['get', 'area_sqm'], 10000]]]], 2],
+            0.6
+        ],
+        12, [
+            'max',
+            ['min', ['+', 0.8, ['*', 0.0002, ['sqrt', ['coalesce', ['get', 'area_sqm'], 10000]]]], 3],
+            0.8
+        ],
+        16, [
+            'max',
+            ['min', ['+', 1, ['*', 0.0003, ['sqrt', ['coalesce', ['get', 'area_sqm'], 10000]]]], 4],
+            1
+        ]
+    ];
+
     fwaLayers.push({
         id: 'lakes-line',
         type: 'line',
         source: 'regulations',
         'source-layer': 'lakes',
         paint: {
-            'line-color': FEATURE_COLORS.lakes,
-            'line-width': [
-                'interpolate',
-                ['linear'],
-                ['zoom'],
-                4, 0.8,
-                10, 1,
-                12, 1.5
-            ],
+            'line-color': FEATURE_COLORS.streams,  // Dark blue outline (same as streams)
+            'line-width': lakeLineWidth as any,
             'line-opacity': 0.8
         },
         layout: {

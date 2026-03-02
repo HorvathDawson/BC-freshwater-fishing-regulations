@@ -81,7 +81,13 @@ The following items were investigated and confirmed **not dead**:
 
 9. we will want to add in the stocked lake info probably here https://www.gofishbc.com/wp-json/wpgmza/v1/features can query it. then we can link to lake fwa and add info for stoked info. 
 
+10. Unnamed Waterbody in liumchen eco reserve split weird. the split on boundary did not work clean here why? 
 
+11. fix missing knap malcom and rubble creek admin boundaries, etc...
+
+12. reparse synopsis 
+
+13. bear river is in region 1 and 2 but should only be in 2 because it is fully in 2 not straddling border...
 
 
 ===============

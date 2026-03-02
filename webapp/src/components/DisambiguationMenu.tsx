@@ -2,14 +2,14 @@ import React, { useRef, useLayoutEffect, useState } from 'react';
 import { Eye } from 'lucide-react';
 import { Icon } from '@iconify/react';
 import { regulationsService } from '../services/regulationsService';
+import { 
+    getIconForType, 
+    getColorForType, 
+    getFeatureDisplayName,
+    isMobileViewport,
+    type FeatureOption 
+} from '../utils/featureUtils';
 import './DisambiguationMenu.css';
-
-interface FeatureOption {
-    type: 'stream' | 'lake' | 'wetland' | 'manmade';
-    properties: Record<string, any>;
-    id: string;
-    _segmentCount?: number;
-}
 
 interface DisambiguationMenuProps {
     options: FeatureOption[];
@@ -22,32 +22,6 @@ interface DisambiguationMenuProps {
     onSetCollapse: (collapsed: boolean) => void;
 }
 
-const getIconForType = (type: 'stream' | 'lake' | 'wetland' | 'manmade' | 'streams' | 'lakes' | 'wetlands') => {
-    const iconMap = {
-        stream: 'game-icons:splashy-stream',
-        streams: 'game-icons:splashy-stream',
-        lake: 'game-icons:oasis',
-        lakes: 'game-icons:oasis',
-        wetland: 'game-icons:swamp',
-        wetlands: 'game-icons:swamp',
-        manmade: 'game-icons:dam'
-    };
-    return iconMap[type as keyof typeof iconMap] || iconMap.lake;
-};
-
-const getColorForType = (type: 'stream' | 'lake' | 'wetland' | 'manmade' | 'streams' | 'lakes' | 'wetlands') => {
-    const colorMap = {
-        stream: '#3b82f6',
-        streams: '#3b82f6',
-        lake: '#0ea5e9',
-        lakes: '#0ea5e9',
-        wetland: '#10b981',
-        wetlands: '#10b981',
-        manmade: '#a855f7'
-    };
-    return colorMap[type as keyof typeof colorMap] || colorMap.lake;
-};
-
 const DisambiguationMenu = ({ options, position, highlightedOption, onSelect, onHighlight, onClose, isCollapsed = false, onSetCollapse }: DisambiguationMenuProps) => {
     const menuRef = useRef<HTMLDivElement>(null);
     const [menuStyle, setMenuStyle] = useState<React.CSSProperties>({
@@ -55,14 +29,10 @@ const DisambiguationMenu = ({ options, position, highlightedOption, onSelect, on
         top: 0,
         left: 0
     });
-    const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+    const [isMobile, setIsMobile] = useState(isMobileViewport());
 
-    const getLabel = (opt: FeatureOption) => {
-        const regNames = opt.properties.regulation_names;
-        const regNamesArr = Array.isArray(regNames) ? regNames : (regNames ? regNames.split(' | ').filter(Boolean) : []);
-        const synopsisNames = regulationsService.filterOutProvincialNames(regNamesArr);
-        return opt.properties.gnis_name || opt.properties.lake_name || opt.properties.name || synopsisNames[0] || 'Unnamed';
-    };
+    const getLabel = (opt: FeatureOption) => 
+        getFeatureDisplayName(opt.properties, regulationsService.filterOutProvincialNames);
 
     const touchStartY = useRef<number>(0);
 
@@ -80,23 +50,17 @@ const DisambiguationMenu = ({ options, position, highlightedOption, onSelect, on
     };
 
     useLayoutEffect(() => {
-        const handleResize = () => {
-            setIsMobile(window.innerWidth <= 768);
-        };
+        const handleResize = () => setIsMobile(isMobileViewport());
         
         window.addEventListener('resize', handleResize);
         
         if (isMobile) {
             setMenuStyle({});
-            return () => {
-                window.removeEventListener('resize', handleResize);
-            };
+            return () => window.removeEventListener('resize', handleResize);
         }
 
         if (!position || !menuRef.current) {
-            return () => {
-                window.removeEventListener('resize', handleResize);
-            };
+            return () => window.removeEventListener('resize', handleResize);
         }
 
         const menu = menuRef.current;

@@ -4,7 +4,7 @@ import { resolve } from 'path'
 import { readdirSync, statSync, mkdirSync, copyFileSync, existsSync } from 'fs'
 
 /** Files served from R2 — skip copying to dist/ */
-const R2_ONLY_FILES = new Set(['search_index.json', 'regulations.json'])
+const R2_ONLY_FILES = new Set(['waterbody_data.json'])
 const R2_ONLY_EXTENSIONS = ['.pmtiles']
 
 /**

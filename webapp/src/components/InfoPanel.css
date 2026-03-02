@@ -381,6 +381,73 @@
     border: none;
 }
 
+/* Section header with inline filter */
+.section-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    gap: 12px;
+}
+
+.section-header-row h3 {
+    margin: 0;
+}
+
+/* Compact filter dropdown */
+.reg-filter-compact {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.reg-filter-select {
+    font-size: 11px;
+    font-weight: 500;
+    padding: 4px 8px;
+    border: 1px solid var(--border-light);
+    border-radius: 4px;
+    background: var(--bg);
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-family: var(--font-sans);
+    min-width: 90px;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 6px center;
+    padding-right: 22px;
+}
+
+.reg-filter-select:hover {
+    border-color: var(--text-secondary);
+}
+
+.reg-filter-select:focus {
+    outline: none;
+    border-color: var(--text);
+}
+
+.reg-filter-reset-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: var(--border-light);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.reg-filter-reset-icon:hover {
+    background: var(--text-muted);
+    color: var(--bg);
+}
+
 /* --- Compact regulation rows --- */
 .regulation-row {
     border: 1px solid var(--border-light);
@@ -419,11 +486,6 @@
     color: #dc2626;
 }
 
-.reg-type-pill.reg-closure {
-    background: rgba(220, 38, 38, 0.12);
-    color: #dc2626;
-}
-
 .reg-type-pill.reg-catch-and-release {
     background: rgba(16, 185, 129, 0.12);
     color: #059669;
@@ -434,14 +496,12 @@
     color: #2563eb;
 }
 
-.reg-type-pill.reg-gear-restriction,
-.reg-type-pill.reg-bait-restriction {
+.reg-type-pill.reg-gear {
     background: rgba(168, 85, 247, 0.12);
     color: #7c3aed;
 }
 
-.reg-type-pill.reg-notice,
-.reg-type-pill.reg-note {
+.reg-type-pill.reg-notice {
     background: rgba(245, 158, 11, 0.1);
     color: #b45309;
 }
@@ -472,6 +532,12 @@
     font-family: var(--font-sans);
 }
 
+.reg-date svg {
+    flex-shrink: 0;
+    width: 11px;
+    height: 11px;
+}
+
 .reg-scope-tag {
     font-size: 10px;
     font-weight: 600;
@@ -490,6 +556,12 @@
     display: inline-flex;
     align-items: center;
     gap: 3px;
+}
+
+.reg-location-text svg {
+    flex-shrink: 0;
+    width: 10px;
+    height: 10px;
 }
 
 .reg-applies-to {
