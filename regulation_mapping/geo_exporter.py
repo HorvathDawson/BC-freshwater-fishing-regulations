@@ -1230,10 +1230,10 @@ class RegulationGeoExporter:
             logger.warning("BC zone union is empty — skipping bc_mask")
             return None
 
-        # Get bounds and create outer rectangle with margin
-        minx, miny, maxx, maxy = bc_union.bounds
-        margin = 100_000  # 100km margin in EPSG:3005 meters
-        outer_box = box(minx - margin, miny - margin, maxx + margin, maxy + margin)
+        # Create outer rectangle large enough to cover entire map viewport
+        # Use very large fixed bounds (roughly North America extent in EPSG:3005)
+        # This ensures the mask always covers visible area when zoomed out
+        outer_box = box(-3_000_000, -1_000_000, 4_000_000, 3_500_000)
 
         # Create mask polygon (outer box with BC cut out)
         # difference() creates a polygon with holes where BC is
