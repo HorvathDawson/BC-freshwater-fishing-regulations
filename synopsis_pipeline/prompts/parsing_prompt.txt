@@ -283,7 +283,7 @@ SCOPE OBJECT TYPES:
    - direction: MUST BE "BETWEEN" (never UPSTREAM/DOWNSTREAM for SEGMENT)
    - Use SEGMENT when text has TWO landmarks/bounds, regardless of directional words
    - **CRITICAL**: If location text contains "between X and Y", "from X to Y", or any TWO named landmarks/boundaries, this is ALWAYS a SEGMENT, never WHOLE_SYSTEM
-   - **DO NOT** confuse waterbody name with scope location - even if the waterbody is named "X's TRIBUTARIES", the scope can still be a SEGMENT if the regulation text specifies boundaries
+   - **DO NOT** confuse waterbody name with rule scope location - even if the waterbody is named "X's TRIBUTARIES", a RULE's scope can still be SEGMENT if the regulation text specifies boundaries (the identity's global_scope however must still be TRIBUTARIES_ONLY)
 
 4. NAMED_PART: Well-known named subsection or regional reference
    - Examples: "West Arm", "Main Body", "MAINSTEM ONLY", "south end", "north arm"
@@ -373,10 +373,11 @@ SCOPE TYPE DECISION TREE (Apply in this order):
 6. Is there NO specific location mentioned, or does it say "all", "entire", with no boundaries?
    → YES: Use WHOLE_SYSTEM type
    → NO: If you see ANY location specification at all, DO NOT use WHOLE_SYSTEM
-   → **CRITICAL**: If the waterbody NAME ends with "'S TRIBUTARIES" but the RULE TEXT specifies a segment/location, the SCOPE is NOT WHOLE_SYSTEM
-     * Example: "(Lower) CAMPBELL LAKE'S TRIBUTARIES" with rule "Campbell River between Strathcona Dam and (Lower) Campbell Lake"
-     * This is SEGMENT (the rule specifies boundaries), NOT WHOLE_SYSTEM (even though waterbody name mentions tributaries)
-   → **NEVER use WHOLE_SYSTEM** if location_verbatim contains: "between", "from...to", "upstream of", "downstream of", "within X m", or any directional/distance language
+   → **CRITICAL**: If the waterbody NAME ends with "'S TRIBUTARIES" but the RULE TEXT specifies a segment/location, the RULE SCOPE is SEGMENT — but the IDENTITY global_scope must still be TRIBUTARIES_ONLY.
+     * Example: "(Lower) CAMPBELL LAKE'S TRIBUTARIES" → identity.global_scope: TRIBUTARIES_ONLY
+     * A rule within it with "Campbell River between Strathcona Dam and (Lower) Campbell Lake" → rule.scope: SEGMENT
+   → **NEVER use WHOLE_SYSTEM for rule scope** if location_verbatim contains: "between", "from...to", "upstream of", "downstream of", "within X m", or any directional/distance language
+   → **NEVER use WHOLE_SYSTEM for global_scope** when the waterbody name contains "tributaries"
 
 7. Is the location text genuinely ambiguous, contradictory, or impossible to classify confidently?
    → YES: Use VAGUE type (LAST RESORT ONLY)
@@ -384,9 +385,14 @@ SCOPE TYPE DECISION TREE (Apply in this order):
    → Example: "near the area" (unclear landmark), "within 100 m" (of what?)
    → **CRITICAL**: If location contains multiple distinct geometries like "upstream and downstream of X", create TWO separate rule groups instead of using VAGUE
 
-**CRITICAL**: The waterbody NAME in the title is INDEPENDENT from the scope LOCATION in the regulation text.
-- Even if waterbody is named "X's TRIBUTARIES", the scope can be SEGMENT, DIRECTIONAL, etc.
-- Always analyze the regulation TEXT to determine scope type, not just the waterbody name.
+**CRITICAL**: Distinguish between IDENTITY-LEVEL global_scope and RULE-LEVEL scope:
+- **global_scope** (on the identity object) describes what KIND of system this entry is about.
+  * If name_verbatim contains "tributaries" or identity_type is TRIBUTARIES → global_scope.type MUST be TRIBUTARIES_ONLY.
+  * WHOLE_SYSTEM as global_scope for a tributaries entry is ALWAYS WRONG — it would include the parent waterbody.
+- **rule scope** (on each rule) describes the spatial constraint for THAT SPECIFIC RULE.
+  * Even within a TRIBUTARIES entry, individual rules can have SEGMENT, DIRECTIONAL, etc. scopes.
+  * Example: "CAMPBELL LAKE'S TRIBUTARIES" entry → global_scope: TRIBUTARIES_ONLY; a rule "Campbell River between Strathcona Dam and Campbell Lake" → rule.scope: SEGMENT.
+- Always analyze the regulation TEXT to determine rule scope type, not just the waterbody name.
 
 IDENTITY PARSING - COMPREHENSIVE STRUCTURE:
 
@@ -450,6 +456,10 @@ Classify the waterbody type based on the name. Valid types:
   * **Rule of thumb**: If the title names a WATERBODY that happens to be in a park, use STREAM or STILL_WATER. If the title names the AREA/PARK/REGION itself, use ADMINISTRATIVE_AREA.
 - CONFLUENCE: Specific confluence points where waterbodies meet (e.g., "SKEENA RIVER/KISPIOX RIVER CONFLUENCE")
 - TRIBUTARIES: When title explicitly about tributary systems (e.g., "ELK RIVER'S TRIBUTARIES")
+  * **CRITICAL**: identity_type TRIBUTARIES MUST have global_scope.type = "TRIBUTARIES_ONLY". The global_scope describes the identity, not an individual rule.
+  * **CRITICAL**: If name_verbatim contains the word "tributaries" (e.g., "UPPER ARROW LAKE'S TRIBUTARIES"), global_scope.type MUST be "TRIBUTARIES_ONLY" — never WHOLE_SYSTEM.
+  * WHOLE_SYSTEM would incorrectly include the parent waterbody itself; TRIBUTARIES_ONLY correctly restricts scope to only the tributary network.
+  * Individual rules within this entry can still have their own SEGMENT, DIRECTIONAL, etc. scopes to further restrict which tributaries apply.
 - MULTIPLE_WATERBODIES: When title covers multiple distinct NAMED waterbodies managed together (e.g., "WEAVER LAKE and WEAVER CREEK")
   * **CRITICAL**: Only use MULTIPLE_WATERBODIES when you can populate component_waterbodies with ACTUAL NAMES.
   * If waterbodies are "unnamed" (e.g., "UNNAMED LAKES"), you CANNOT populate component_waterbodies → use STILL_WATER instead.

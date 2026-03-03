@@ -513,6 +513,28 @@ class IdentityObject:
                     f"Waterbody: '{self.waterbody_key}'"
                 )
 
+        # Validate TRIBUTARIES identity_type requires TRIBUTARIES_ONLY scope
+        if self.identity_type == "TRIBUTARIES":
+            if self.global_scope.type != "TRIBUTARIES_ONLY":
+                errors.append(
+                    f"identity_type 'TRIBUTARIES' requires global_scope.type='TRIBUTARIES_ONLY', "
+                    f"got '{self.global_scope.type}'. The scope must target tributaries only, "
+                    f"not the whole system or a directional segment of the parent waterbody. "
+                    f"Waterbody: '{self.name_verbatim}'"
+                )
+
+        # Validate name_verbatim containing "tributaries" requires TRIBUTARIES_ONLY scope
+        if (
+            self.name_verbatim
+            and "tributaries" in self.name_verbatim.lower()
+            and self.global_scope.type != "TRIBUTARIES_ONLY"
+        ):
+            errors.append(
+                f"name_verbatim '{self.name_verbatim}' contains 'tributaries' but global_scope.type "
+                f"is '{self.global_scope.type}' — must be 'TRIBUTARIES_ONLY'. "
+                f"When the waterbody name explicitly refers to tributaries, the scope must reflect that."
+            )
+
         # Validate global_scope
         scope_errors = self.global_scope.validate()
         for err in scope_errors:
