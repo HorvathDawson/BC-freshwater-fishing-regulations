@@ -88,7 +88,7 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
             console.warn('Cannot share: feature missing all IDs');
             return;
         }
-        const url = getShareableUrl(featureId);
+        const url = getShareableUrl(String(featureId));
         const success = await copyToClipboard(url);
         if (success) {
             setCopied(true);
@@ -132,7 +132,7 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
         setLoadingRegs(true);
         setActiveFilter(''); // Reset filters on new feature
         regulationsService
-            .getRegulations(feature.properties.regulation_ids)
+            .getRegulations(feature.properties.regulation_ids as string)
             .then(setRegulations)
             .catch(err => {
                 console.error('Failed to load regulations:', err);
@@ -167,7 +167,7 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
         // selection time from the search index for both click & search paths).
         const rawRegulationNames: string[] = Array.isArray(props.regulation_names)
             ? props.regulation_names
-            : (props.regulation_names ? props.regulation_names.split(' | ').filter(Boolean) : []);
+            : (props.regulation_names ? (props.regulation_names as string).split(' | ').filter(Boolean) : []);
         const regulationNames = regulationsService.filterOutProvincialNames(rawRegulationNames);
 
         const title = props.gnis_name || props.lake_name || props.name || regulationNames[0] || 'Unnamed Waterbody';
@@ -176,7 +176,7 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
         // Build deduplicated aliases from name_variants
         const nameVariantsRaw: (NameVariant | string)[] = Array.isArray(props.name_variants) ? props.name_variants : [];
         const seen = new Set<string>();
-        seen.add(title.toLowerCase());
+        seen.add((title as string).toLowerCase());
         const aliases: NameVariant[] = [];
         for (const nv of nameVariantsRaw) {
             // Handle both old string format and new NameVariant format
@@ -308,7 +308,7 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
 
                             // Admin zone map passed from Map click handler
                             // Maps regulation_id → list of admin zone names at click point
-                            const adminZones: Record<string, string[]> = props._adminZones || {};
+                            const adminZones = (props._adminZones || {}) as Record<string, string[]>;
 
                             // --- helpers for dates rendering ---
                             const formatDates = (dates: Regulation['dates']): string | null => {
@@ -493,15 +493,15 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                     <div className="data-section">
                         <h3>DETAILS</h3>
                         {(() => {
-                            const zoneList = props.zones ? props.zones.split(',') : [];
-                            const nameList = props.region_name ? props.region_name.split(',') : [];
+                            const zoneList = props.zones ? (props.zones as string).split(',') : [];
+                            const nameList = props.region_name ? (props.region_name as string).split(',') : [];
                             // Pair zone IDs with names — both sorted independently,
                             // so positional pairing works only when lengths match.
                             const regionTags = zoneList.map((z: string, i: number) => ({
                                 id: z.trim(),
                                 name: nameList[i]?.trim() || null,
                             }));
-                            const muList = props.mgmt_units ? props.mgmt_units.split(',').map((s: string) => s.trim()) : [];
+                            const muList = props.mgmt_units ? (props.mgmt_units as string).split(',').map((s: string) => s.trim()) : [];
                             return (
                                 <>
                                     <div className="region-tags">

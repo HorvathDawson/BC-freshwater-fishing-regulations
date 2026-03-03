@@ -253,8 +253,8 @@ const SearchBar: React.FC<SearchBarProps> = ({ features, onSelect, highlightedRe
                         // Build compact region display: "7A – Omineca, 7B – Prince George" or "7A, 7B +1"
                         let regionDisplay: string | null = null;
                         if (zones) {
-                            const zList = zones.split(',').map((z: string) => z.trim());
-                            const nList = regionName ? regionName.split(',').map((n: string) => n.trim()) : [];
+                            const zList = zones ? String(zones).split(',').map((z: string) => z.trim()) : [];
+                            const nList = regionName ? String(regionName).split(',').map((n: string) => n.trim()) : [];
                             
                             if (zList.length === 1) {
                                 // Single region: show "7A – Omineca"

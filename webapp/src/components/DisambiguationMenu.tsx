@@ -146,7 +146,7 @@ const DisambiguationMenu = ({ options, position, highlightedOption, onSelect, on
                                         </span>
                                         {(() => {
                                             const rawName = option.properties.regulation_name || '';
-                                            const names = rawName ? rawName.split(' | ').filter(Boolean) : [];
+                                            const names = rawName ? String(rawName).split(' | ').filter(Boolean) : [];
                                             const filtered = regulationsService.filterOutProvincialNames(names).join(' | ');
                                             return filtered && filtered.toUpperCase() !== getLabel(option).toUpperCase() ? (
                                                 <span className="regulation-subtitle">Listed as: {filtered}</span>

@@ -67,10 +67,10 @@ const extendBoundsWithGeometry = (bounds: maplibregl.LngLatBounds, geometry: Fea
     if (!geometry || !geometry.coordinates) return;
     const processCoords = (coords: number[] | number[][] | number[][][] | number[][][][]) => {
         if (Array.isArray(coords) && typeof coords[0] === 'number') bounds.extend(coords as [number, number]);
-        else if (Array.isArray(coords)) coords.forEach(processCoords);
+        else if (Array.isArray(coords)) (coords as any[]).forEach(processCoords);
     };
-    if (geometry.type === 'Point') bounds.extend(geometry.coordinates);
-    else if (geometry.type === 'LineString') geometry.coordinates.forEach((coord: number[] | number[][]) => bounds.extend(coord as [number, number]));
+    if (geometry.type === 'Point') bounds.extend(geometry.coordinates as any);
+    else if (geometry.type === 'LineString') (geometry.coordinates as any[]).forEach((coord: number[] | number[][]) => bounds.extend(coord as [number, number]));
     else processCoords(geometry.coordinates);
 };
 
@@ -193,7 +193,7 @@ const updateMapSource = (map: maplibregl.Map, sourceId: string, feature: Feature
     const filter = buildFeatureFilter(feature);
     const srcLayer = feature.sourceLayer || (feature.type === 'stream' ? 'streams' : 'lakes');
     
-    let features: maplibregl.MapGeoJSONFeature[] = [];
+    let features: any[] = [];
     if (filter) features = map.querySourceFeatures('regulations', { sourceLayer: srcLayer, filter: filter as maplibregl.FilterSpecification });
     
     if (!features.length && feature.geometry) {
@@ -223,7 +223,7 @@ const MapComponent = () => {
     // Lookup map: frontend_group_id → { feature, segment }
     // Populated once search_index.json loads; used by the click handler
     // to enrich tile features with search-level data (name_variants, etc.)
-    const searchLookupRef = useRef<Map<string, { feature: SearchableFeature; segment: RegulationSegment }>>(new Map());
+    const searchLookupRef = useRef<Map<string, { feature: SearchableFeature; segment: RegulationSegment | null }>>(new Map());
     
     const [selectedFeature, setSelectedFeature] = useState<FeatureInfo | null>(null);
     const [disambigOptions, setDisambigOptions] = useState<FeatureOption[]>([]);
@@ -329,10 +329,10 @@ const MapComponent = () => {
                     }
                     // Also check properties for various ID types
                     if (feat.properties?.frontend_group_id) {
-                        lookup.set(feat.properties.frontend_group_id, { feature: feat, segment: null });
+                        lookup.set(String(feat.properties.frontend_group_id), { feature: feat, segment: null });
                     }
                     if (feat.properties?.group_id) {
-                        lookup.set(feat.properties.group_id, { feature: feat, segment: null });
+                        lookup.set(String(feat.properties.group_id), { feature: feat, segment: null });
                     }
                     if (feat.properties?.waterbody_key) {
                         lookup.set(String(feat.properties.waterbody_key), { feature: feat, segment: null });
@@ -372,7 +372,7 @@ const MapComponent = () => {
         const normalizedType = (feature.type === 'streams' ? 'stream' : feature.type === 'lakes' ? 'lake' : feature.type) as 'stream' | 'lake' | 'wetland' | 'manmade';
         const synopsisNames = regulationsService.filterOutProvincialNames(feature.regulation_names || []);
         const displayName = feature.gnis_name || synopsisNames[0] || 'Unnamed Waterbody';
-        const targetMinZoom = feature.properties?.minzoom || 10;
+        const targetMinZoom = Number(feature.properties?.minzoom ?? 10);
         const featureBbox = (segment?.bbox || feature.bbox) as [number, number, number, number];
         
         // Resolve IDs - don't use feature.id as it may be a search-index composite
@@ -388,8 +388,8 @@ const MapComponent = () => {
             properties: {
                 ...feature.properties,
                 gnis_name: displayName,
-                regulation_names: segment?.regulation_names || synopsisNames,
-                name_variants: segment?.name_variants || feature.name_variants || [],
+                regulation_names: (segment?.regulation_names || synopsisNames) as any,
+                name_variants: (segment?.name_variants || feature.name_variants || []) as any,
                 regulation_ids: segment?.regulation_ids || feature.properties?.regulation_ids,
                 // Only include IDs that actually exist
                 ...(resolvedFrontendGroupId && { frontend_group_id: resolvedFrontendGroupId }),
@@ -425,21 +425,21 @@ const MapComponent = () => {
             attempts++;
             
             // Try frontend_group_id filter first
-            let found: maplibregl.MapGeoJSONFeature[] = [];
+            let found: any[] = [];
             if (resolvedFrontendGroupId) {
-                const filter = buildFeatureFilter({ properties: { frontend_group_id: resolvedFrontendGroupId } } as FeatureInfo);
+                const filter = buildFeatureFilter({ properties: { frontend_group_id: resolvedFrontendGroupId } } as unknown as FeatureInfo);
                 found = map.querySourceFeatures('regulations', { sourceLayer: srcLayer, filter: filter as maplibregl.FilterSpecification });
             }
             
             // Fall back to group_id filter
             if (!found.length && resolvedGroupId) {
-                const filter = buildFeatureFilter({ properties: { group_id: resolvedGroupId } } as FeatureInfo);
+                const filter = buildFeatureFilter({ properties: { group_id: resolvedGroupId } } as unknown as FeatureInfo);
                 found = map.querySourceFeatures('regulations', { sourceLayer: srcLayer, filter: filter as maplibregl.FilterSpecification });
             }
             
             // Fall back to waterbody_key for lakes
             if (!found.length && resolvedWaterbodyKey) {
-                const filter = buildFeatureFilter({ properties: { waterbody_key: resolvedWaterbodyKey } } as FeatureInfo);
+                const filter = buildFeatureFilter({ properties: { waterbody_key: resolvedWaterbodyKey } } as unknown as FeatureInfo);
                 found = map.querySourceFeatures('regulations', { sourceLayer: srcLayer, filter: filter as maplibregl.FilterSpecification });
             }
             
@@ -454,7 +454,7 @@ const MapComponent = () => {
                     
                     setSelectedFeature(prev => prev ? {
                         ...prev,
-                        geometry: bestTile.geometry || bestTile.toJSON?.().geometry,
+                        geometry: (bestTile.geometry || bestTile.toJSON?.().geometry) as FeatureGeometry,
                     } : null);
                 }
             }
@@ -473,7 +473,7 @@ const MapComponent = () => {
         if (selectedFeature && !featureId) {
             console.warn('Selected feature missing all IDs:', props);
         }
-        updateUrlState({ featureId: featureId || '' });
+        updateUrlState({ featureId: String(featureId || '') });
     }, [selectedFeature]);
 
     useEffect(() => {
@@ -642,7 +642,7 @@ const MapComponent = () => {
                 
                 // Use segment bbox (most precise), then search entry bbox, then tile bbox
                 const featureBbox = (segment?.bbox || searchEntry?.bbox || tileBbox) as [number, number, number, number];
-                const featureMinzoom = segment?.min_zoom || searchEntry?.properties?.minzoom || props.min_zoom || 4;
+                const featureMinzoom = Number(searchEntry?.min_zoom || searchEntry?.properties?.minzoom || props.min_zoom || 4);
                 const displayName = searchEntry?.gnis_name || props.gnis_name || props.lake_name || '';
                 
                 options.push({
@@ -660,10 +660,10 @@ const MapComponent = () => {
                         ...(resolvedGroupId && { group_id: resolvedGroupId }),
                         waterbody_key: resolvedWaterbodyKey || props.waterbody_key,
                         gnis_name: displayName,
-                        _adminZones: adminZonesByRegId,
+                        _adminZones: adminZonesByRegId as any,
                         // Use segment-specific name_variants if available
-                        name_variants: segment?.name_variants || searchEntry?.name_variants || [],
-                        regulation_names: segment?.regulation_names || searchEntry?.regulation_names || [],
+                        name_variants: (segment?.name_variants || searchEntry?.name_variants || []) as any,
+                        regulation_names: (segment?.regulation_names || searchEntry?.regulation_names || []) as any,
                     },
                 });
             }
@@ -754,7 +754,7 @@ const MapComponent = () => {
         const normalizedType = (feature.type === 'streams' ? 'stream' : feature.type === 'lakes' ? 'lake' : feature.type) as 'stream' | 'lake' | 'wetland' | 'manmade';
         const synopsisNames = regulationsService.filterOutProvincialNames(feature.regulation_names || []);
         const displayName = (feature.gnis_name && feature.gnis_name.toLowerCase() !== 'unnamed') ? feature.gnis_name : synopsisNames[0];
-        const targetMinZoom = feature.properties.minzoom || 10;
+        const targetMinZoom = Number(feature.properties.minzoom ?? 10);
         const watershedCode = feature.properties.fwa_watershed_code || '';
         
         // Check if this stream has multiple regulation segments
@@ -795,8 +795,11 @@ const MapComponent = () => {
                     }
                 }
                 
-                // Check if we found at least one feature or timed out
-                if (tileFeatureMap.size > 0 || attempts > 25) {
+                // Wait until tiles for ALL expected segments are loaded, or time out.
+                // Firing on the first tile found (size > 0) was too eager — segments
+                // whose tiles hadn't rendered yet ended up with no geometry and couldn't
+                // be highlighted or zoomed to correctly.
+                if (tileFeatureMap.size >= segmentFrontendIds.size || attempts > 25) {
                     if (searchPollRef.current) clearInterval(searchPollRef.current);
                     
                     // Build options from ALL segments, augmenting with tile geometry when available
@@ -836,8 +839,8 @@ const MapComponent = () => {
                                 gnis_name: displayName,
                                 frontend_group_id: seg.frontend_group_id,
                                 regulation_ids: seg.regulation_ids,
-                                regulation_names: segRegNames,
-                                name_variants: seg.name_variants || feature.name_variants || [],
+                                regulation_names: segRegNames as any,
+                                name_variants: (seg.name_variants || feature.name_variants || []) as any,
                                 fwa_watershed_code: watershedCode,
                                 length_km: seg.length_km,
                             },
@@ -864,8 +867,8 @@ const MapComponent = () => {
                 properties: { 
                     ...feature.properties, 
                     gnis_name: displayName, 
-                    regulation_names: synopsisNames, 
-                    name_variants: segNameVariants,
+                    regulation_names: synopsisNames as any,
+                    name_variants: segNameVariants as any,
                     regulation_ids: segRegIds,
                     frontend_group_id: frontendGroupId,
                     fwa_watershed_code: watershedCode,
@@ -881,8 +884,8 @@ const MapComponent = () => {
             let attempts = 0;
             searchPollRef.current = setInterval(() => {
                 attempts++;
-                const filter = buildFeatureFilter({ properties: { frontend_group_id: frontendGroupId } } as FeatureInfo);
-                let found: maplibregl.MapGeoJSONFeature[] = map.querySourceFeatures('regulations', { sourceLayer: srcLayer, filter: filter as maplibregl.FilterSpecification });
+                const filter = buildFeatureFilter({ properties: { frontend_group_id: frontendGroupId } } as unknown as FeatureInfo);
+                let found: any[] = map.querySourceFeatures('regulations', { sourceLayer: srcLayer, filter: filter as maplibregl.FilterSpecification });
                 
                 if (found.length === 0 && feature.bbox) {
                     const pt = map.project([(feature.bbox[0]+feature.bbox[2])/2, (feature.bbox[1]+feature.bbox[3])/2]);
@@ -900,7 +903,7 @@ const MapComponent = () => {
                         
                         setSelectedFeature(prev => prev ? { 
                             ...prev, 
-                            geometry: bestTile.geometry || bestTile.toJSON?.().geometry, 
+                            geometry: (bestTile.geometry || bestTile.toJSON?.().geometry) as FeatureGeometry, 
                             id: bestTile.id,
                         } : null);
                     }
