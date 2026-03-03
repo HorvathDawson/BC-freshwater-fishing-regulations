@@ -76,7 +76,7 @@ export const createRegulationLayers = (): LayerSpecification[] => {
         'source-layer': 'bc_mask',
         paint: {
             'fill-color': '#374151', // Tailwind gray-700
-            'fill-opacity': 0.65
+            'fill-opacity': 0.4
         }
     });
     // ── FWA FEATURE LAYERS (bottom of stack) ─────────────────────────

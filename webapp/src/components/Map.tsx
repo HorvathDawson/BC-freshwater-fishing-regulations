@@ -34,8 +34,8 @@ const TILE_BASE = import.meta.env.VITE_TILE_BASE_URL
 // BC bounding box with margin for map constraints
 // Interior: approx -139.05 to -114.03 (lng), 48.30 to 60.00 (lat)
 const BC_BOUNDS: [[number, number], [number, number]] = [
-    [-141.5, 47.5], // SW with margin
-    [-112.5, 61.0], // NE with margin
+    [-148.0, 45.0], // SW with margin
+    [-108.0, 63.5], // NE with margin
 ];
 
 const INTERACTABLE_LAYERS = ['streams', 'lakes-fill', 'wetlands-fill', 'manmade-fill'];
