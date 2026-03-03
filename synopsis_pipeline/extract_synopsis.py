@@ -1,13 +1,14 @@
 import pdfplumber
 import os
 import argparse
+import logging
 import re
 import textwrap
 import shutil
 import json
 import sys
 import numpy as np
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, Tuple
 from operator import itemgetter
 from collections import namedtuple
 from sklearn.cluster import DBSCAN
@@ -18,6 +19,11 @@ import matplotlib.patches as patches
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from pathlib import Path
 
+try:
+    import requests
+except ImportError:
+    requests = None  # type: ignore[assignment]
+
 # Import shared data models
 from .models import (
     WaterbodyRow,
@@ -27,13 +33,29 @@ from .models import (
 )
 from project_config import get_config
 
+logger = logging.getLogger(__name__)
+
 Sequence = namedtuple(
     "Sequence", ["bbox", "y_mid", "avg_render_idx", "text", "char_indices"]
 )
 
 
+def _normalize_unicode(text: str) -> str:
+    """Replace common Unicode characters with their ASCII equivalents.
+
+    Standardises non-breaking spaces, dashes, and curly quotes so that
+    downstream processing only needs to handle plain ASCII punctuation.
+    """
+    text = text.replace("\xa0", " ")       # Non-breaking space → regular space
+    text = text.replace("\u2013", "-")     # En-dash → hyphen
+    text = text.replace("\u2014", "-")     # Em-dash → hyphen
+    text = text.replace("\u2018", "'").replace("\u2019", "'")   # Curly single quotes
+    text = text.replace("\u201c", '"').replace("\u201d", '"')   # Curly double quotes
+    return text
+
+
 class FishingSynopsisParser:
-    def __init__(self, output_dir="output", debug_dir="debug", audit_dir="debug"):
+    def __init__(self, output_dir: str = "output", debug_dir: str = "debug", audit_dir: str = "debug") -> None:
         # Use extract_synopsis subfolder for all output
         self.base_output_dir = os.path.join(output_dir, "extract_synopsis")
         self.output_dir = self.base_output_dir
@@ -1055,17 +1077,7 @@ class FishingSynopsisParser:
             all_syms = list(set(v_sym_raw + w_sym))
 
             # Normalize unicode characters to preserve context while standardizing format
-            regs_raw = regs_raw.replace(
-                "\xa0", " "
-            )  # Non-breaking space → regular space
-            regs_raw = regs_raw.replace("\u2013", "-")  # En-dash → hyphen
-            regs_raw = regs_raw.replace("\u2014", "-")  # Em-dash → hyphen
-            regs_raw = regs_raw.replace("\u2018", "'").replace(
-                "\u2019", "'"
-            )  # Curly single quotes → straight
-            regs_raw = regs_raw.replace("\u201c", '"').replace(
-                "\u201d", '"'
-            )  # Curly double quotes → straight
+            regs_raw = _normalize_unicode(regs_raw)
 
             # Replace tributaries symbols with standardized placeholder text
             trib_pattern = r"[\uf0dc\uf02a]"
@@ -1161,15 +1173,7 @@ class FishingSynopsisParser:
             return "", symbols, mu_list
 
         # Normalize unicode characters first
-        text = text.replace("\xa0", " ")  # Non-breaking space → regular space
-        text = text.replace("\u2013", "-")  # En-dash → hyphen
-        text = text.replace("\u2014", "-")  # Em-dash → hyphen
-        text = text.replace("\u2018", "'").replace(
-            "\u2019", "'"
-        )  # Curly single quotes → straight
-        text = text.replace("\u201c", '"').replace(
-            "\u201d", '"'
-        )  # Curly double quotes → straight
+        text = _normalize_unicode(text)
 
         # Remove bold markers before processing (they interfere with MU extraction)
         text = text.replace("**", "")
@@ -1418,7 +1422,7 @@ class SynopsisExtractor:
         # Ensure output directory exists
         os.makedirs(self.output_dir, exist_ok=True)
 
-    def download_pdf(self, url=None, filename=None):
+    def download_pdf(self, url: Optional[str] = None, filename: Optional[str] = None) -> None:
         """Download the PDF if it doesn't already exist."""
         if url is None:
             url = self.SYNOPSIS_URL
@@ -1429,22 +1433,19 @@ class SynopsisExtractor:
             print(f"PDF already exists at {filename}")
             return
 
+        if requests is None:
+            raise ImportError("The 'requests' package is required to download PDFs. Install with: pip install requests")
+
         print(f"Downloading PDF from {url}...")
-        try:
-            import requests
+        headers = {"User-Agent": "Mozilla/5.0"}
+        response = requests.get(url, stream=True, headers=headers)
+        response.raise_for_status()
+        with open(filename, "wb") as f:
+            for chunk in response.iter_content(chunk_size=8192):
+                f.write(chunk)
+        print(f"Download complete: {filename}")
 
-            headers = {"User-Agent": "Mozilla/5.0"}
-            response = requests.get(url, stream=True, headers=headers)
-            response.raise_for_status()
-            with open(filename, "wb") as f:
-                for chunk in response.iter_content(chunk_size=8192):
-                    f.write(chunk)
-            print(f"Download complete: {filename}")
-        except Exception as e:
-            print(f"Error downloading PDF: {e}")
-            exit()
-
-    def extract_all_pages(self, save_debug=False):
+    def extract_all_pages(self, save_debug: bool = False) -> ExtractionResults:
         """
         Extract raw rows from all pages in the PDF.
         Returns a list of page results with metadata and raw row data.
@@ -1499,7 +1500,7 @@ class SynopsisExtractor:
                     if completed_count % 20 == 0:
                         print(f"Progress: {completed_count}/{total_pages}")
                 except Exception as exc:
-                    print(f"  Error on page {page_num}: {exc}")
+                    logger.warning("Error on page %d: %s", page_num, exc)
                     completed_count += 1
 
         # Sort pages by page number to maintain order
@@ -1508,7 +1509,7 @@ class SynopsisExtractor:
         print(f"\nComplete: {len(all_pages)} pages with regulation tables")
         return ExtractionResults(pages=all_pages)
 
-    def save_to_json(self, data, filename: str = "synopsis_raw_data.json") -> str:
+    def save_to_json(self, data: ExtractionResults, filename: str = "synopsis_raw_data.json") -> str:
         """Save the extracted data to a JSON file."""
         output_path = os.path.join(self.output_dir, filename)
 
@@ -1521,7 +1522,7 @@ class SynopsisExtractor:
         return output_path
 
 
-def main(argv=None):
+def main(argv: Optional[List[str]] = None) -> None:
     # Load config for default paths
     config = get_config()
     default_pdf = str(config.synopsis_pdf_path)
@@ -1577,8 +1578,6 @@ def main(argv=None):
             args.pdf_path
         ) != os.path.abspath(extractor.pdf_path):
             os.makedirs(extractor.base_output_dir, exist_ok=True)
-            import shutil
-
             shutil.copy2(args.pdf_path, extractor.pdf_path)
             print(f"Copied PDF to {extractor.pdf_path}")
 

@@ -7,7 +7,7 @@ import hashlib
 import pickle
 import subprocess
 from pathlib import Path
-from typing import Dict, Optional, Any, List, Tuple, Callable
+from typing import Dict, Optional, Any, List, Tuple, Callable, Iterable
 from collections import defaultdict
 
 from data.data_extractor import FWADataAccessor
@@ -19,13 +19,13 @@ from shapely.geometry import (
     MultiLineString,
     MultiPolygon,
     GeometryCollection,
-    Polygon,
+    Point,
     box,
 )
 from shapely.geometry.base import BaseGeometry
-from shapely.prepared import prep as shapely_prep
+from shapely.prepared import prep as shapely_prep, PreparedGeometry
 
-from .regulation_mapper import PipelineResult
+from .regulation_mapper import PipelineResult, MergedGroup
 from fwa_pipeline.metadata_gazetteer import FeatureType
 from fwa_pipeline.metadata_builder import ADMIN_LAYER_CONFIG
 
@@ -36,8 +36,9 @@ logger = get_logger(__name__)
 try:
     from tqdm import tqdm
 except ImportError:
+    logger.debug("tqdm not available; progress bars disabled")
 
-    def tqdm(iterable, **kwargs):
+    def tqdm(iterable: Iterable, **kwargs: Any) -> Iterable:
         return iterable
 
 
@@ -78,7 +79,7 @@ class RegulationGeoExporter:
         pipeline_result: PipelineResult,
         gpkg_path: Path,
         cache_dir: Path,
-    ):
+    ) -> None:
         self.pipeline_result = pipeline_result
         self.merged_groups = pipeline_result.merged_groups
         self.feature_to_regs = pipeline_result.feature_to_regs
@@ -110,6 +111,51 @@ class RegulationGeoExporter:
 
     # --- WATERBODY-KEY HELPERS ---
 
+    @staticmethod
+    def _merge_lines(geom_list: List[LineString]) -> BaseGeometry:
+        """Merge a list of line geometries into a single geometry.
+
+        Returns a ``MultiLineString`` when *geom_list* contains more than
+        one element; otherwise returns the single ``LineString`` directly.
+        """
+        return MultiLineString(geom_list) if len(geom_list) > 1 else geom_list[0]
+
+    @staticmethod
+    def _merge_name_variants(
+        target: Dict[str, bool], variants: List[Dict[str, Any]]
+    ) -> None:
+        """Merge name variant dicts into *target* (name → from_tributary).
+
+        ``False`` (direct name match) always wins over ``True`` (tributary).
+        """
+        for nv in variants:
+            name = nv["name"]
+            is_trib = nv["from_tributary"]
+            if name in target:
+                if not is_trib:
+                    target[name] = False
+            else:
+                target[name] = is_trib
+
+    @staticmethod
+    def _geoms_to_wgs84_bbox(
+        geoms: List[BaseGeometry],
+    ) -> Tuple[float, float, float, float]:
+        """Compute a WGS 84 bounding box from EPSG:3005 geometries."""
+        bounds = np.array([g.bounds for g in geoms])
+        bbox_3005 = box(
+            bounds[:, 0].min(),
+            bounds[:, 1].min(),
+            bounds[:, 2].max(),
+            bounds[:, 3].max(),
+        )
+        return (
+            gpd.GeoSeries([bbox_3005], crs="EPSG:3005")
+            .to_crs("EPSG:4326")
+            .iloc[0]
+            .bounds
+        )
+
     def _get_lake_manmade_wbkeys(self) -> set:
         """Return the set of waterbody_keys that belong to lakes or manmade waterbodies.
 
@@ -125,7 +171,7 @@ class RegulationGeoExporter:
                     wbk = meta.get("waterbody_key") or fid
                     keys.add(str(wbk))
             self._lake_manmade_wbkeys = keys
-            logger.info(f"Built lake/manmade waterbody-key set: {len(keys):,} keys")
+            logger.debug(f"Built lake/manmade waterbody-key set: {len(keys):,} keys")
         return self._lake_manmade_wbkeys
 
     # --- LOOKUPS & METADATA ---
@@ -204,7 +250,9 @@ class RegulationGeoExporter:
             )
         return 0.0
 
-    def _with_cache(self, gdb_path: Path, ids_set: set, prefix: str, load_fn: Callable):
+    def _with_cache(
+        self, gdb_path: Path, ids_set: set, prefix: str, load_fn: Callable
+    ) -> Any:
         mtime = self._get_gdb_mtime(gdb_path)
         ids_str = ",".join(sorted(map(str, ids_set)))
         cache_hash = hashlib.md5(
@@ -221,12 +269,12 @@ class RegulationGeoExporter:
         cache_file.write_bytes(pickle.dumps(data))
         return data
 
-    def _preload_data(self):
+    def _preload_data(self) -> None:
         self._load_all_polygon_geometries()
         self._load_all_stream_geometries()
         self._inject_ungazetted_geometries()
 
-    def _inject_ungazetted_geometries(self):
+    def _inject_ungazetted_geometries(self) -> None:
         """Inject ungazetted waterbody geometries into the polygon geometry cache.
 
         This allows the search index builder and other code that looks up
@@ -234,7 +282,6 @@ class RegulationGeoExporter:
         features without special-casing.
         """
         from .linking_corrections import UNGAZETTED_WATERBODIES
-        from shapely.geometry import Point
 
         if self._polygon_geometries is None:
             self._polygon_geometries = {}
@@ -244,7 +291,7 @@ class RegulationGeoExporter:
                 key = f"{FeatureType.UNGAZETTED.value.upper()}_{uid}"
                 self._polygon_geometries[key] = Point(uw.coordinates)
 
-    def _load_all_stream_geometries(self):
+    def _load_all_stream_geometries(self) -> None:
         if self._stream_geometries is not None:
             return
 
@@ -268,7 +315,7 @@ class RegulationGeoExporter:
             _load,
         )
 
-    def _load_all_polygon_geometries(self):
+    def _load_all_polygon_geometries(self) -> None:
         if self._polygon_geometries is not None:
             return
 
@@ -313,7 +360,7 @@ class RegulationGeoExporter:
 
     # --- MATH & SCORING ---
 
-    def _compute_blk_stats(self, keys_iterable) -> dict:
+    def _compute_blk_stats(self, keys_iterable: Iterable[str]) -> dict:
         stats = defaultdict(
             lambda: {
                 "len": 0,
@@ -343,11 +390,11 @@ class RegulationGeoExporter:
 
     def _calculate_score(
         self,
-        max_order=0,
-        magnitude=0,
-        length_km=0.0,
-        has_name=False,
-        is_side_channel=False,
+        max_order: int = 0,
+        magnitude: int = 0,
+        length_km: float = 0.0,
+        has_name: bool = False,
+        is_side_channel: bool = False,
     ) -> float:
         base = (
             (max_order * WEIGHTS["order"])
@@ -384,7 +431,7 @@ class RegulationGeoExporter:
             ).items()
         }
 
-    def _calculate_stream_minzoom(self, magnitude=0) -> int:
+    def _calculate_stream_minzoom(self, magnitude: int = 0) -> int:
         return next(
             (
                 zoom
@@ -404,7 +451,7 @@ class RegulationGeoExporter:
             12,
         )
 
-    def _extract_geoms(self, geom) -> list:
+    def _extract_geoms(self, geom: BaseGeometry) -> List[BaseGeometry]:
         return geom.geoms if hasattr(geom, "geoms") else [geom]
 
     # --- ADMIN BOUNDARY CLIPPING ---
@@ -486,7 +533,7 @@ class RegulationGeoExporter:
         from shapely.ops import unary_union
 
         union = unary_union(all_geoms)
-        logger.info(
+        logger.debug(
             f"Admin clip union built from {len(all_geoms)} polygon(s) "
             f"across {len(self.admin_area_reg_map)} layer(s)"
         )
@@ -534,11 +581,11 @@ class RegulationGeoExporter:
 
     def _emit_group_feature(
         self,
-        group,
+        group: MergedGroup,
         base_props: dict,
         suffix: str = "",
-        reg_ids: tuple = None,
-        geometry=None,
+        reg_ids: Optional[tuple] = None,
+        geometry: Optional[BaseGeometry] = None,
     ) -> dict:
         """Build a single feature dict for export.
 
@@ -570,10 +617,10 @@ class RegulationGeoExporter:
 
     def _clip_group_at_admin_boundary(
         self,
-        group,
+        group: MergedGroup,
         geom_list: list,
         admin_clip_union: BaseGeometry,
-        admin_prep,
+        admin_prep: PreparedGeometry,
         admin_reg_ids: set,
         base_props: dict,
     ) -> Tuple[List[dict], str]:
@@ -589,7 +636,10 @@ class RegulationGeoExporter:
         """
         MIN_LENGTH_M = 1.0  # discard slivers shorter than 1 metre
 
-        merged_line = MultiLineString(geom_list) if len(geom_list) > 1 else geom_list[0]
+        merged_line = self._merge_lines(geom_list)
+        non_admin_regs = tuple(
+            r for r in group.regulation_ids if r not in admin_reg_ids
+        )
 
         # --- Fast-path: entirely inside admin polygon ---
         if admin_prep.contains(merged_line):
@@ -605,9 +655,6 @@ class RegulationGeoExporter:
 
         # --- Fast-path: entirely outside admin polygon ---
         if not admin_prep.intersects(merged_line):
-            non_admin_regs = tuple(
-                r for r in group.regulation_ids if r not in admin_reg_ids
-            )
             return [
                 self._emit_group_feature(
                     group,
@@ -631,11 +678,7 @@ class RegulationGeoExporter:
         # Inside piece: full regulation set
         inside_parts = [g for g in inside_parts if g.length >= MIN_LENGTH_M]
         if inside_parts:
-            inside_geom = (
-                MultiLineString(inside_parts)
-                if len(inside_parts) > 1
-                else inside_parts[0]
-            )
+            inside_geom = self._merge_lines(inside_parts)
             results.append(
                 self._emit_group_feature(
                     group,
@@ -648,15 +691,8 @@ class RegulationGeoExporter:
 
         # Outside piece: admin regs removed
         outside_parts = [g for g in outside_parts if g.length >= MIN_LENGTH_M]
-        non_admin_regs = tuple(
-            r for r in group.regulation_ids if r not in admin_reg_ids
-        )
         if outside_parts:
-            outside_geom = (
-                MultiLineString(outside_parts)
-                if len(outside_parts) > 1
-                else outside_parts[0]
-            )
+            outside_geom = self._merge_lines(outside_parts)
             results.append(
                 self._emit_group_feature(
                     group,
@@ -702,8 +738,6 @@ class RegulationGeoExporter:
         if not features:
             return features
 
-        from collections import defaultdict
-
         groups = defaultdict(list)
         for feat in features:
             # Use physical waterbody identifiers, not gnis_name.
@@ -736,9 +770,7 @@ class RegulationGeoExporter:
 
             # Use first feature as template, merge geometry
             template = dict(group_features[0])
-            template["geometry"] = (
-                MultiLineString(all_geoms) if len(all_geoms) > 1 else all_geoms[0]
-            )
+            template["geometry"] = self._merge_lines(all_geoms)
 
             # Merge group_id — pick the one without admin suffix, or the first
             group_ids = [f.get("group_id", "") for f in group_features]
@@ -903,11 +935,7 @@ class RegulationGeoExporter:
                     clip_stats[disposition] += 1
                 else:
                     # No admin regs — emit normally
-                    merged_geom = (
-                        MultiLineString(geom_list)
-                        if len(geom_list) > 1
-                        else geom_list[0]
-                    )
+                    merged_geom = self._merge_lines(geom_list)
                     features.append(
                         self._emit_group_feature(
                             group,
@@ -917,7 +945,7 @@ class RegulationGeoExporter:
                     )
 
             if any(clip_stats.values()):
-                logger.info(
+                logger.debug(
                     f"Admin boundary clipping: "
                     f"{clip_stats['inside']} fully inside, "
                     f"{clip_stats['clipped']} split at boundary, "
@@ -1066,7 +1094,6 @@ class RegulationGeoExporter:
         user is fairly zoomed in.
         """
         from .linking_corrections import UNGAZETTED_WATERBODIES
-        from shapely.geometry import Point
 
         ungaz_meta = self.gazetteer.metadata.get(FeatureType.UNGAZETTED, {})
         if not ungaz_meta:
@@ -1215,8 +1242,8 @@ class RegulationGeoExporter:
     def _create_bc_mask_layer(self) -> Optional[gpd.GeoDataFrame]:
         """Create a polygon that covers area outside BC zones for grey masking.
 
-        Returns a single polygon that is a large bounding box with the union of
-        all BC zone polygons cut out as a hole.
+        Returns a single polygon that is a square around the BC zones
+        with the BC zone polygons cut out as a hole.
         """
         if "wmu" not in self.data_accessor.list_layers():
             logger.warning("'wmu' layer not found in GPKG — skipping bc_mask")
@@ -1230,17 +1257,29 @@ class RegulationGeoExporter:
             logger.warning("BC zone union is empty — skipping bc_mask")
             return None
 
-        # Create outer rectangle large enough to cover entire map viewport
-        # Use very large fixed bounds (roughly North America extent in EPSG:3005)
-        # This ensures the mask always covers visible area when zoomed out
-        outer_box = box(-3_000_000, -1_000_000, 4_000_000, 3_500_000)
+        # Create a square centered on BC that extends 1000km beyond the bounds
+        minx, miny, maxx, maxy = bc_union.bounds
+        center_x = (minx + maxx) / 2
+        center_y = (miny + maxy) / 2
+
+        # Use the larger dimension + 1000km padding on each side
+        width = maxx - minx
+        height = maxy - miny
+        half_size = max(width, height) / 2 + 1_000_000  # meters
+
+        outer_box = box(
+            center_x - half_size,
+            center_y - half_size,
+            center_x + half_size,
+            center_y + half_size,
+        )
 
         # Create mask polygon (outer box with BC cut out)
-        # difference() creates a polygon with holes where BC is
         mask_polygon = outer_box.difference(bc_union)
 
         # Simplify to reduce tile size (tolerance in meters for EPSG:3005)
-        mask_polygon = mask_polygon.simplify(500, preserve_topology=True)
+        # 100m keeps coastline detail while reducing vertex count
+        mask_polygon = mask_polygon.simplify(100, preserve_topology=True)
 
         mask_gdf = gpd.GeoDataFrame(
             {
@@ -1252,7 +1291,7 @@ class RegulationGeoExporter:
             crs="EPSG:3005",
         )
 
-        logger.info(
+        logger.debug(
             f"  BC mask layer: 1 feature covering area outside {len(zones_gdf)} zones"
         )
         return mask_gdf
@@ -1328,7 +1367,7 @@ class RegulationGeoExporter:
         output_path: Path,
         merge_geometries: bool = True,
         include_all_features: bool = False,
-    ) -> Path:
+    ) -> Optional[Path]:
         if self._is_file_locked(output_path):
             return None
         output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -1359,7 +1398,7 @@ class RegulationGeoExporter:
         output_path: Path,
         merge_geometries: bool = True,
         work_dir: Optional[Path] = None,
-    ) -> Path:
+    ) -> Optional[Path]:
         if self._is_file_locked(output_path):
             return None
         work_dir = work_dir or output_path.parent / "temp"
@@ -1411,15 +1450,14 @@ class RegulationGeoExporter:
             "--detect-shared-borders",
         ] + [arg for lp in layer_files for arg in ("-L", f"{lp.stem}:{lp}")]
 
-        if (
-            result := subprocess.run(cmd, text=True)
-        ).returncode == 0 and output_path.exists():
+        result = subprocess.run(cmd, text=True)
+        if result.returncode == 0 and output_path.exists():
             logger.info(
                 f"Created PMTiles {output_path} ({output_path.stat().st_size / 1048576:.1f} MB)"
             )
             return output_path
 
-        logger.error(f"Tippecanoe failed: {result.returncode}")
+        logger.error(f"Tippecanoe failed (rc={result.returncode})")
         return None
 
     def _build_regulations_lookup(self) -> Dict[str, Any]:
@@ -1469,14 +1507,7 @@ class RegulationGeoExporter:
             if group.waterbody_key:
                 sg["wb_keys"].add(group.waterbody_key)
             # Merge name_variants dicts: name -> from_tributary (False wins if both exist)
-            for nv in group.name_variants:
-                name = nv["name"]
-                is_trib = nv["from_tributary"]
-                if name in sg["name_variants"]:
-                    if not is_trib:
-                        sg["name_variants"][name] = False
-                else:
-                    sg["name_variants"][name] = is_trib
+            self._merge_name_variants(sg["name_variants"], group.name_variants)
             if group.fwa_watershed_code:
                 sg["watershed_codes"].add(group.fwa_watershed_code)
             for z, n in zip(group.zones or [], group.region_names or []):
@@ -1572,19 +1603,7 @@ class RegulationGeoExporter:
                 ]
 
             # Optimized Bound calculation using numpy
-            bounds = np.array([g.bounds for g in data["geoms"]])
-            min_x, min_y, max_x, max_y = (
-                bounds[:, 0].min(),
-                bounds[:, 1].min(),
-                bounds[:, 2].max(),
-                bounds[:, 3].max(),
-            )
-            wgs84_bounds = (
-                gpd.GeoSeries([box(min_x, min_y, max_x, max_y)], crs="EPSG:3005")
-                .to_crs("EPSG:4326")
-                .iloc[0]
-                .bounds
-            )
+            wgs84_bounds = self._geoms_to_wgs84_bbox(data["geoms"])
 
             reg_names = self._get_reg_names(reg_ids, all_feature_ids)
             # Convert name_variants dict to sorted list of dicts
@@ -1617,14 +1636,9 @@ class RegulationGeoExporter:
                     existing["feature_ids"].extend(seg["feature_ids"])
                     existing["geoms"].extend(seg.get("geoms", []))  # Merge geoms
                     # Merge name_variants dicts: name -> from_tributary (False wins)
-                    for nv in seg["name_variants"]:
-                        name = nv["name"]
-                        is_trib = nv["from_tributary"]
-                        if name in existing["name_variants"]:
-                            if not is_trib:
-                                existing["name_variants"][name] = False
-                        else:
-                            existing["name_variants"][name] = is_trib
+                    self._merge_name_variants(
+                        existing["name_variants"], seg["name_variants"]
+                    )
                     existing["group_ids"].append(seg["group_id"])
                 else:
                     # Convert list of dicts to name -> from_tributary dict
@@ -1659,19 +1673,7 @@ class RegulationGeoExporter:
                 # Compute segment-specific bbox from its geometries
                 seg_geoms = seg.get("geoms", [])
                 if seg_geoms:
-                    seg_bounds = np.array([g.bounds for g in seg_geoms])
-                    seg_bbox_3005 = (
-                        seg_bounds[:, 0].min(),
-                        seg_bounds[:, 1].min(),
-                        seg_bounds[:, 2].max(),
-                        seg_bounds[:, 3].max(),
-                    )
-                    seg_bbox_wgs84 = list(
-                        gpd.GeoSeries([box(*seg_bbox_3005)], crs="EPSG:3005")
-                        .to_crs("EPSG:4326")
-                        .iloc[0]
-                        .bounds
-                    )
+                    seg_bbox_wgs84 = list(self._geoms_to_wgs84_bbox(seg_geoms))
                 else:
                     seg_bbox_wgs84 = None
 
@@ -1746,7 +1748,8 @@ class RegulationGeoExporter:
                 ensure_ascii=False,
             )
         logger.info(
-            f"Exported waterbody_data.json ({len(waterbodies)} waterbodies, "
-            f"{len(regulations)} regulations)"
+            f"Created {output_path} "
+            f"({output_path.stat().st_size / 1048576:.1f} MB, "
+            f"{len(waterbodies)} waterbodies, {len(regulations)} regulations)"
         )
         return output_path

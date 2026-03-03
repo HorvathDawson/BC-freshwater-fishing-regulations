@@ -9,13 +9,15 @@ import os
 from pathlib import Path
 from typing import List
 
+from synopsis_pipeline.models import WaterbodyRow
 
-def get_prompt_template_path():
+
+def get_prompt_template_path() -> Path:
     """Get the path to the prompt template file."""
     return Path(__file__).parent / "prompts" / "parsing_prompt.txt"
 
 
-def get_examples_path():
+def get_examples_path() -> Path:
     """Get the path to the examples file."""
     return Path(__file__).parent / "prompts" / "examples.json"
 
@@ -48,7 +50,7 @@ def format_examples_for_prompt(examples_json: List[dict]) -> str:
     return "\n\n---\n\n".join(formatted_examples)
 
 
-def build_prompt(waterbody_rows: List) -> str:
+def build_prompt(waterbody_rows: List[WaterbodyRow]) -> str:
     """
     Build the complete prompt for LLM parsing.
 

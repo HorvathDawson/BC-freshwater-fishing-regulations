@@ -69,12 +69,39 @@ Usage:
 """
 
 import json
+import logging
 import os
 from pathlib import Path
-from typing import Dict, List, Any, Set, Tuple
+from typing import Dict, List, Any, Optional, Set, Tuple
 from collections import defaultdict, Counter
 import argparse
 from datetime import datetime
+
+logger = logging.getLogger(__name__)
+
+
+def _extract_results_data(data: Any) -> Optional[List[Dict[str, Any]]]:
+    """Extract the results list from a session data blob.
+
+    Handles three common session-file layouts:
+    - A plain list of result dicts.
+    - A dict with a ``"results"`` key.
+    - A dict whose values look like result items (contain ``"rules"``
+      or ``"identity"`` keys).
+
+    Returns ``None`` when no valid results list can be determined.
+    """
+    if isinstance(data, list):
+        return data
+    if isinstance(data, dict) and "results" in data:
+        return data["results"]
+    if isinstance(data, dict) and len(data) > 0:
+        first_value = next(iter(data.values()))
+        if isinstance(first_value, dict) and (
+            "rules" in first_value or "identity" in first_value
+        ):
+            return list(data.values())
+    return None
 
 
 def load_session_results(session_files: List[Path]) -> Dict[str, Dict]:
@@ -141,7 +168,8 @@ def load_session_results(session_files: List[Path]) -> Dict[str, Dict]:
                             f"Loaded session: {session_name} (type: {type(data).__name__})"
                         )
         except Exception as e:
-            print(f"Error loading {session_file}: {e}")
+            logger.warning("Error loading %s: %s", session_file, e)
+            raise
 
     return sessions
 
@@ -151,21 +179,7 @@ def extract_session_metadata(sessions: Dict[str, Dict]) -> Dict[str, Dict]:
     metadata = {}
 
     for session_name, data in sessions.items():
-        # Handle different session file structures
-        results_data = None
-        if isinstance(data, list):
-            # Already a results array
-            results_data = data
-        elif isinstance(data, dict) and "results" in data:
-            # Session file with results section
-            results_data = data["results"]
-        elif isinstance(data, dict) and len(data) > 0:
-            # Other dict format - check if values look like result items
-            first_value = next(iter(data.values()))
-            if isinstance(first_value, dict) and (
-                "rules" in first_value or "identity" in first_value
-            ):
-                results_data = list(data.values())
+        results_data = _extract_results_data(data)
 
         if results_data and isinstance(results_data, list) and len(results_data) > 0:
             # It's a results array
@@ -203,21 +217,7 @@ def compare_item_success(sessions: Dict[str, Dict]) -> Dict[str, Dict]:
     item_comparison = defaultdict(dict)
 
     for session_name, data in sessions.items():
-        # Handle different session file structures
-        results_data = None
-        if isinstance(data, list):
-            # Already a results array
-            results_data = data
-        elif isinstance(data, dict) and "results" in data:
-            # Session file with results section
-            results_data = data["results"]
-        elif isinstance(data, dict) and len(data) > 0:
-            # Other dict format - check if values look like result items
-            first_value = next(iter(data.values()))
-            if isinstance(first_value, dict) and (
-                "rules" in first_value or "identity" in first_value
-            ):
-                results_data = list(data.values())
+        results_data = _extract_results_data(data)
 
         if results_data and isinstance(results_data, list):
             for i, item in enumerate(results_data):
@@ -275,21 +275,7 @@ def compare_rule_structures(sessions: Dict[str, Dict], waterbody: str) -> Dict:
     comparisons = {}
 
     for session_name, data in sessions.items():
-        # Handle different session file structures
-        results_data = None
-        if isinstance(data, list):
-            # Already a results array
-            results_data = data
-        elif isinstance(data, dict) and "results" in data:
-            # Session file with results section
-            results_data = data["results"]
-        elif isinstance(data, dict) and len(data) > 0:
-            # Other dict format - check if values look like result items
-            first_value = next(iter(data.values()))
-            if isinstance(first_value, dict) and (
-                "rules" in first_value or "identity" in first_value
-            ):
-                results_data = list(data.values())
+        results_data = _extract_results_data(data)
 
         if results_data and isinstance(results_data, list):
             for item in results_data:
@@ -1655,18 +1641,7 @@ def get_items_with_audits(session_data: Dict) -> List[Dict]:
     """Extract all items that have non-empty audit_log entries."""
     items_with_audits = []
 
-    # Handle different session file structures
-    results_data = None
-    if isinstance(session_data, list):
-        results_data = session_data
-    elif isinstance(session_data, dict) and "results" in session_data:
-        results_data = session_data["results"]
-    elif isinstance(session_data, dict) and len(session_data) > 0:
-        first_value = next(iter(session_data.values()))
-        if isinstance(first_value, dict) and (
-            "rules" in first_value or "identity" in first_value
-        ):
-            results_data = list(session_data.values())
+    results_data = _extract_results_data(session_data)
 
     if results_data and isinstance(results_data, list):
         for i, item in enumerate(results_data):
@@ -1694,17 +1669,7 @@ def get_failed_items(session_data: Dict) -> List[Dict]:
     """Extract all items that have no rules (parsing failed)."""
     failed_items = []
 
-    results_data = None
-    if isinstance(session_data, list):
-        results_data = session_data
-    elif isinstance(session_data, dict) and "results" in session_data:
-        results_data = session_data["results"]
-    elif isinstance(session_data, dict) and len(session_data) > 0:
-        first_value = next(iter(session_data.values()))
-        if isinstance(first_value, dict) and (
-            "rules" in first_value or "identity" in first_value
-        ):
-            results_data = list(session_data.values())
+    results_data = _extract_results_data(session_data)
 
     if results_data and isinstance(results_data, list):
         for i, item in enumerate(results_data):
@@ -1741,17 +1706,7 @@ def get_complex_items(session_data: Dict, min_rules: int = 5) -> List[Dict]:
     """Extract items with many rules (complex regulations)."""
     complex_items = []
 
-    results_data = None
-    if isinstance(session_data, list):
-        results_data = session_data
-    elif isinstance(session_data, dict) and "results" in session_data:
-        results_data = session_data["results"]
-    elif isinstance(session_data, dict) and len(session_data) > 0:
-        first_value = next(iter(session_data.values()))
-        if isinstance(first_value, dict) and (
-            "rules" in first_value or "identity" in first_value
-        ):
-            results_data = list(session_data.values())
+    results_data = _extract_results_data(session_data)
 
     if results_data and isinstance(results_data, list):
         for i, item in enumerate(results_data):
@@ -1790,17 +1745,7 @@ def get_items_with_exclusions(session_data: Dict) -> List[Dict]:
     """Extract items that have exclusions in their identity."""
     items_with_exclusions = []
 
-    results_data = None
-    if isinstance(session_data, list):
-        results_data = session_data
-    elif isinstance(session_data, dict) and "results" in session_data:
-        results_data = session_data["results"]
-    elif isinstance(session_data, dict) and len(session_data) > 0:
-        first_value = next(iter(session_data.values()))
-        if isinstance(first_value, dict) and (
-            "rules" in first_value or "identity" in first_value
-        ):
-            results_data = list(session_data.values())
+    results_data = _extract_results_data(session_data)
 
     if results_data and isinstance(results_data, list):
         for i, item in enumerate(results_data):
@@ -1828,17 +1773,7 @@ def get_items_with_vague_scopes(session_data: Dict) -> List[Dict]:
     """Extract items that have VAGUE scope types (potentially problematic)."""
     items_with_vague = []
 
-    results_data = None
-    if isinstance(session_data, list):
-        results_data = session_data
-    elif isinstance(session_data, dict) and "results" in session_data:
-        results_data = session_data["results"]
-    elif isinstance(session_data, dict) and len(session_data) > 0:
-        first_value = next(iter(session_data.values()))
-        if isinstance(first_value, dict) and (
-            "rules" in first_value or "identity" in first_value
-        ):
-            results_data = list(session_data.values())
+    results_data = _extract_results_data(session_data)
 
     if results_data and isinstance(results_data, list):
         for i, item in enumerate(results_data):
@@ -1885,17 +1820,7 @@ def get_items_with_brackets_in_title(session_data: Dict) -> List[Dict]:
     """
     items_with_brackets = []
 
-    results_data = None
-    if isinstance(session_data, list):
-        results_data = session_data
-    elif isinstance(session_data, dict) and "results" in session_data:
-        results_data = session_data["results"]
-    elif isinstance(session_data, dict) and len(session_data) > 0:
-        first_value = next(iter(session_data.values()))
-        if isinstance(first_value, dict) and (
-            "rules" in first_value or "identity" in first_value
-        ):
-            results_data = list(session_data.values())
+    results_data = _extract_results_data(session_data)
 
     if results_data and isinstance(results_data, list):
         for i, item in enumerate(results_data):

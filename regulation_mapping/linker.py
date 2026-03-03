@@ -9,7 +9,7 @@ Tracks statistics and provides clean interface for test coverage script.
 """
 
 from dataclasses import dataclass
-from typing import Optional, List, Dict
+from typing import Optional, List, Dict, Tuple
 from enum import Enum
 from collections import Counter
 import re
@@ -92,6 +92,28 @@ class WaterbodyLinker:
         self.gazetteer = gazetteer
         self.corrections = manual_corrections
         self.stats = Counter()
+
+    @staticmethod
+    def _feature_identity(feature: FWAFeature) -> Tuple[str, str]:
+        """Derive the unique identity key for a feature.
+
+        Streams are identified by watershed code, lakes/wetlands by GNIS ID,
+        other polygons by waterbody_key, and all others by fwa_id.
+
+        Args:
+            feature: The FWA feature to identify.
+
+        Returns:
+            A (type_label, id_value) tuple uniquely identifying the waterbody.
+        """
+        if feature.geometry_type == "multilinestring" and feature.fwa_watershed_code:
+            return ("stream", feature.fwa_watershed_code)
+        elif feature.gnis_id:
+            return ("gnis", feature.gnis_id)
+        elif feature.waterbody_key:
+            return ("waterbody_key", feature.waterbody_key)
+        else:
+            return ("fwa_id", feature.fwa_id)
 
     def link_waterbody(
         self,
@@ -421,20 +443,7 @@ class WaterbodyLinker:
         identity_groups = {}  # Track all matches per identity
 
         for match in matches:
-            # Determine unique identity for this waterbody
-            if match.geometry_type == "multilinestring" and match.fwa_watershed_code:
-                # Stream: use watershed code
-                identity = ("stream", match.fwa_watershed_code)
-            elif match.gnis_id:
-                # Lake/wetland/manmade with GNIS: use GNIS ID
-                # This groups all polygons of the same lake (multiple polygons with same GNIS = 1 lake)
-                identity = ("gnis", match.gnis_id)
-            elif match.waterbody_key:
-                # Polygon with waterbody_key but no GNIS: group by waterbody_key
-                identity = ("waterbody_key", match.waterbody_key)
-            else:
-                # No GNIS/waterbody_key: use fwa_id
-                identity = ("fwa_id", match.fwa_id)
+            identity = self._feature_identity(match)
 
             # Store all matches for this identity (for comprehensive MU data in candidates)
             if identity not in identity_groups:
@@ -452,18 +461,7 @@ class WaterbodyLinker:
             # (important for streams where first segment might be in different MU than others)
             mu_filtered = []
             for representative in unique_matches:
-                # Get identity for this representative (must match deduplication logic)
-                if (
-                    representative.geometry_type == "multilinestring"
-                    and representative.fwa_watershed_code
-                ):
-                    identity = ("stream", representative.fwa_watershed_code)
-                elif representative.gnis_id:
-                    identity = ("gnis", representative.gnis_id)
-                elif representative.waterbody_key:
-                    identity = ("waterbody_key", representative.waterbody_key)
-                else:
-                    identity = ("fwa_id", representative.fwa_id)
+                identity = self._feature_identity(representative)
 
                 # Check if ANY feature in this identity group has overlapping MUs
                 group_matches = identity_groups.get(identity, [])
@@ -500,14 +498,7 @@ class WaterbodyLinker:
             # Construct the correct identity_key from the SURVIVING unique match
             # (Do not use list(identity_groups.keys())[0] as it bypasses the MU filter)
             rep = unique_matches[0]
-            if rep.geometry_type == "multilinestring" and rep.fwa_watershed_code:
-                identity_key = ("stream", rep.fwa_watershed_code)
-            elif rep.gnis_id:
-                identity_key = ("gnis", rep.gnis_id)
-            elif rep.waterbody_key:
-                identity_key = ("waterbody_key", rep.waterbody_key)
-            else:
-                identity_key = ("fwa_id", rep.fwa_id)
+            identity_key = self._feature_identity(rep)
 
             identity_type = identity_key[0]
             all_features_in_group = identity_groups[identity_key]
@@ -624,7 +615,7 @@ class WaterbodyLinker:
 # ============================================================================
 
 
-def _run_coverage_test():
+def _run_coverage_test() -> None:
     """
     Run waterbody linking coverage test.
 
@@ -665,7 +656,7 @@ def _run_coverage_test():
 
     # --- Export helpers ---
 
-    def _instructions_block(mode):
+    def _instructions_block(mode: str) -> Dict[str, object]:
         if mode == "NOT_FOUND":
             return {
                 "description": "NOT_FOUND waterbodies - need manual corrections",
@@ -694,7 +685,7 @@ def _run_coverage_test():
             },
         }
 
-    def _export_data(items, path, lookup, mode):
+    def _export_data(items: List[Dict], path: str, lookup: Dict, mode: str) -> None:
         entries = []
         for item in items:
             reg, name = item["region"], item["name_verbatim"]
@@ -744,7 +735,7 @@ def _run_coverage_test():
             json.dump(out, f, indent=2)
         print(f"\nExported {len(entries)} {mode} entries to {path}")
 
-    def _process_ambiguous_candidates(candidates, reg_mus):
+    def _process_ambiguous_candidates(candidates: List[Dict], reg_mus: List[str]) -> List[Dict]:
         processed = []
         for c in candidates:
             fwa_mus = c.get("management_units", [])
@@ -1062,7 +1053,7 @@ def _run_coverage_test():
         print("No duplicate mappings found.")
 
     # Samples
-    def _print_sample(status, limit=5):
+    def _print_sample(status: LinkStatus, limit: int = 5) -> None:
         items = stats.results[status]
         if not items:
             return

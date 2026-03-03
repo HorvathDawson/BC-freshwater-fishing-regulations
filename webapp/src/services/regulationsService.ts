@@ -119,7 +119,9 @@ class RegulationsService {
   };
 
   preload(): void {
-    this.loadRegulations().catch(() => {});
+    this.loadRegulations().catch((err) => {
+      console.warn('Regulations preload failed:', err);
+    });
   }
 
   /**

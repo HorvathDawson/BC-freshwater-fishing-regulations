@@ -12,8 +12,9 @@ Future implementation will add:
 - VAGUE: ambiguous spatial references
 """
 
-from typing import List, Dict, Optional
+from typing import Any, Dict, List, Optional
 
+from fwa_pipeline.metadata_gazetteer import FWAFeature
 from .logger_config import get_logger
 
 logger = get_logger(__name__)
@@ -34,7 +35,7 @@ class ScopeFilter:
     while landmark/polygon data is being collected.
     """
 
-    def __init__(self, graph=None, landmarks=None):
+    def __init__(self, graph: Optional[Any] = None, landmarks: Optional[Dict[str, Any]] = None) -> None:
         """
         Initialize ScopeFilter.
 
@@ -49,7 +50,7 @@ class ScopeFilter:
         self.scope_types_seen = set()
         self.fallback_count = 0
 
-    def apply_scope(self, features: List, scope: Dict) -> List:
+    def apply_scope(self, features: List[FWAFeature], scope: Dict[str, Any]) -> List[FWAFeature]:
         """
         Main entry point - filters features by spatial constraint.
 
@@ -84,7 +85,7 @@ class ScopeFilter:
 
         return features
 
-    def filter_directional(self, features: List, scope: Dict) -> List:
+    def filter_directional(self, features: List[FWAFeature], scope: Dict[str, Any]) -> List[FWAFeature]:
         """
         Filter by upstream/downstream of landmark.
 
@@ -98,7 +99,7 @@ class ScopeFilter:
         logger.debug("DIRECTIONAL scope not yet implemented - returning all features")
         return features
 
-    def filter_segment(self, features: List, scope: Dict) -> List:
+    def filter_segment(self, features: List[FWAFeature], scope: Dict[str, Any]) -> List[FWAFeature]:
         """
         Filter to segment between two landmarks.
 
@@ -112,7 +113,7 @@ class ScopeFilter:
         logger.debug("SEGMENT scope not yet implemented - returning all features")
         return features
 
-    def filter_buffer(self, features: List, scope: Dict) -> List:
+    def filter_buffer(self, features: List[FWAFeature], scope: Dict[str, Any]) -> List[FWAFeature]:
         """
         Filter by distance buffer around landmark.
 
@@ -126,7 +127,7 @@ class ScopeFilter:
         logger.debug("BUFFER scope not yet implemented - returning all features")
         return features
 
-    def filter_named_part(self, features: List, scope: Dict) -> List:
+    def filter_named_part(self, features: List[FWAFeature], scope: Dict[str, Any]) -> List[FWAFeature]:
         """
         Filter to specific named regions/zones.
 
@@ -140,7 +141,7 @@ class ScopeFilter:
         logger.debug("NAMED_PART scope not yet implemented - returning all features")
         return features
 
-    def filter_vague(self, features: List, scope: Dict) -> List:
+    def filter_vague(self, features: List[FWAFeature], scope: Dict[str, Any]) -> List[FWAFeature]:
         """
         Handle ambiguous spatial references.
 
@@ -154,7 +155,7 @@ class ScopeFilter:
         logger.debug("VAGUE scope not yet implemented - returning all features")
         return features
 
-    def get_stats(self) -> Dict:
+    def get_stats(self) -> Dict[str, Any]:
         """
         Return statistics about scope filtering.
 

@@ -6,10 +6,12 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 import { createRegulationLayers, createAdminLabelLayers, createEarlyRoadLayers, HIGHLIGHT_COLORS, SELECTION_COLOR, matchByFeatureType } from '../map/styles';
 import { regulationsService } from '../services/regulationsService';
 import { waterbodyDataService } from '../services/waterbodyDataService';
+import type { WaterbodyItem } from '../services/waterbodyDataService';
 import { 
     isMobileViewport,
     type FeatureInfo, 
     type FeatureOption, 
+    type FeatureGeometry,
     type CollapseState 
 } from '../utils/featureUtils';
 import { parseUrlState, updateUrlState, clearUrlState } from '../utils/urlState';
@@ -53,22 +55,22 @@ interface LayerVisibility {
 }
 
 // --- UTILITY ---
-const isValidBbox = (bbox: any): boolean => {
+const isValidBbox = (bbox: unknown): bbox is [number, number, number, number] => {
     if (!bbox || !Array.isArray(bbox) || bbox.length !== 4) return false;
-    const [minx, miny, maxx, maxy] = bbox;
+    const [minx, miny, maxx, maxy] = bbox as number[];
     return minx >= -180 && minx <= 180 && maxx >= -180 && maxx <= 180 &&
            miny >= -90 && miny <= 90 && maxy >= -90 && maxy <= 90 &&
            minx < maxx && miny < maxy;
 };
 
-const extendBoundsWithGeometry = (bounds: maplibregl.LngLatBounds, geometry: any) => {
+const extendBoundsWithGeometry = (bounds: maplibregl.LngLatBounds, geometry: FeatureGeometry | null | undefined) => {
     if (!geometry || !geometry.coordinates) return;
-    const processCoords = (coords: any) => {
+    const processCoords = (coords: number[] | number[][] | number[][][] | number[][][][]) => {
         if (Array.isArray(coords) && typeof coords[0] === 'number') bounds.extend(coords as [number, number]);
         else if (Array.isArray(coords)) coords.forEach(processCoords);
     };
     if (geometry.type === 'Point') bounds.extend(geometry.coordinates);
-    else if (geometry.type === 'LineString') geometry.coordinates.forEach((coord: any) => bounds.extend(coord));
+    else if (geometry.type === 'LineString') geometry.coordinates.forEach((coord: number[] | number[][]) => bounds.extend(coord as [number, number]));
     else processCoords(geometry.coordinates);
 };
 
@@ -157,7 +159,7 @@ const getFeatureType = (layerId: string): 'stream' | 'lake' | 'wetland' | 'manma
     return 'manmade';
 };
 
-const buildFeatureFilter = (feature: any): any[] | null => {
+const buildFeatureFilter = (feature: FeatureInfo | FeatureOption): unknown[] | null => {
     const props = feature.properties || {};
     
     // Primary: Use frontend_group_id for consistent highlighting
@@ -191,8 +193,8 @@ const updateMapSource = (map: maplibregl.Map, sourceId: string, feature: Feature
     const filter = buildFeatureFilter(feature);
     const srcLayer = feature.sourceLayer || (feature.type === 'stream' ? 'streams' : 'lakes');
     
-    let features: any[] = [];
-    if (filter) features = map.querySourceFeatures('regulations', { sourceLayer: srcLayer, filter: filter as any });
+    let features: maplibregl.MapGeoJSONFeature[] = [];
+    if (filter) features = map.querySourceFeatures('regulations', { sourceLayer: srcLayer, filter: filter as maplibregl.FilterSpecification });
     
     if (!features.length && feature.geometry) {
         features = [{ geometry: feature.geometry, properties: feature.properties }];
@@ -273,7 +275,7 @@ const MapComponent = () => {
     useEffect(() => {
         waterbodyDataService.getWaterbodies().then(waterbodies => {
             // Use backend search index directly - it's already grouped by physical stream
-            const features: SearchableFeature[] = (waterbodies || []).map((item: any) => {
+            const features: SearchableFeature[] = (waterbodies || []).map((item: WaterbodyItem) => {
                 const synopsisNames = regulationsService.filterOutProvincialNames(item.regulation_names || []);
                 const displayName = (item.gnis_name && item.gnis_name.toLowerCase() !== 'unnamed') 
                     ? item.gnis_name 
@@ -306,7 +308,7 @@ const MapComponent = () => {
             
             // Build lookup indexed by frontend_group_id/group_id/waterbody_key for tile-click enrichment
             // Streams have regulation_segments, lakes may have IDs at the top level
-            const lookup = new Map<string, { feature: SearchableFeature; segment: any }>();
+            const lookup = new Map<string, { feature: SearchableFeature; segment: RegulationSegment | null }>();
             for (const feat of features) {
                 const segments = feat.regulation_segments || [];
                 
@@ -423,22 +425,22 @@ const MapComponent = () => {
             attempts++;
             
             // Try frontend_group_id filter first
-            let found: any[] = [];
+            let found: maplibregl.MapGeoJSONFeature[] = [];
             if (resolvedFrontendGroupId) {
-                const filter = buildFeatureFilter({ properties: { frontend_group_id: resolvedFrontendGroupId } });
-                found = map.querySourceFeatures('regulations', { sourceLayer: srcLayer, filter: filter as any });
+                const filter = buildFeatureFilter({ properties: { frontend_group_id: resolvedFrontendGroupId } } as FeatureInfo);
+                found = map.querySourceFeatures('regulations', { sourceLayer: srcLayer, filter: filter as maplibregl.FilterSpecification });
             }
             
             // Fall back to group_id filter
             if (!found.length && resolvedGroupId) {
-                const filter = buildFeatureFilter({ properties: { group_id: resolvedGroupId } });
-                found = map.querySourceFeatures('regulations', { sourceLayer: srcLayer, filter: filter as any });
+                const filter = buildFeatureFilter({ properties: { group_id: resolvedGroupId } } as FeatureInfo);
+                found = map.querySourceFeatures('regulations', { sourceLayer: srcLayer, filter: filter as maplibregl.FilterSpecification });
             }
             
             // Fall back to waterbody_key for lakes
             if (!found.length && resolvedWaterbodyKey) {
-                const filter = buildFeatureFilter({ properties: { waterbody_key: resolvedWaterbodyKey } });
-                found = map.querySourceFeatures('regulations', { sourceLayer: srcLayer, filter: filter as any });
+                const filter = buildFeatureFilter({ properties: { waterbody_key: resolvedWaterbodyKey } } as FeatureInfo);
+                found = map.querySourceFeatures('regulations', { sourceLayer: srcLayer, filter: filter as maplibregl.FilterSpecification });
             }
             
             if (found.length > 0 || attempts > 25) {
@@ -808,7 +810,7 @@ const MapComponent = () => {
                         const tileFeature = tileFeatureMap.get(seg.frontend_group_id);
                         
                         let optionBbox: [number, number, number, number];
-                        let optionGeom: any = undefined;
+                        let optionGeom: FeatureGeometry | undefined = undefined;
                         
                         if (tileFeature) {
                             // Use tile geometry if available
@@ -879,13 +881,13 @@ const MapComponent = () => {
             let attempts = 0;
             searchPollRef.current = setInterval(() => {
                 attempts++;
-                const filter = buildFeatureFilter({ properties: { frontend_group_id: frontendGroupId } });
-                let found = map.querySourceFeatures('regulations', { sourceLayer: srcLayer, filter: filter as any });
+                const filter = buildFeatureFilter({ properties: { frontend_group_id: frontendGroupId } } as FeatureInfo);
+                let found: maplibregl.MapGeoJSONFeature[] = map.querySourceFeatures('regulations', { sourceLayer: srcLayer, filter: filter as maplibregl.FilterSpecification });
                 
                 if (found.length === 0 && feature.bbox) {
                     const pt = map.project([(feature.bbox[0]+feature.bbox[2])/2, (feature.bbox[1]+feature.bbox[3])/2]);
                     const hits = map.queryRenderedFeatures(pt, { layers: INTERACTABLE_LAYERS });
-                    if (hits.length > 0) found = hits as any[];
+                    if (hits.length > 0) found = hits;
                 }
                 
                 if (found.length > 0 || attempts > 20) {
@@ -918,7 +920,7 @@ const MapComponent = () => {
                     highlightedResult={highlightedSearchResult} 
                     onHighlight={f => { 
                         setHighlightedSearchResult(f); 
-                        setHighlightedOption(f as any); 
+                        setHighlightedOption(f as FeatureOption | null); 
                     }} 
                     placeholder="Search waterbodies..." 
                 />
@@ -928,18 +930,18 @@ const MapComponent = () => {
             <Disclaimer isOpen={disclaimerOpen} onClose={() => setDisclaimerOpen(false)} />
             {disambigOptions.length > 0 && (
                 <DisambiguationMenu 
-                    options={disambigOptions as any} position={disambigPosition} highlightedOption={highlightedOption as any}
+                    options={disambigOptions} position={disambigPosition} highlightedOption={highlightedOption}
                     isCollapsed={disambigCollapsed}
                     onSetCollapse={setDisambigCollapsed}
                     onHighlight={(option) => {
                         if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
                         if (option) {
                             hoverTimeoutRef.current = setTimeout(() => {
-                                setHighlightedOption(option as any);
+                                setHighlightedOption(option);
                                 const map = mapRef.current; if (!map) return;
                                 const bounds = new maplibregl.LngLatBounds();
-                                if ((option as any).bbox) bounds.extend([[(option as any).bbox[0], (option as any).bbox[1]], [(option as any).bbox[2], (option as any).bbox[3]]]);
-                                else extendBoundsWithGeometry(bounds, (option as any).geometry);
+                                if (option.bbox) bounds.extend([[option.bbox[0], option.bbox[1]], [option.bbox[2], option.bbox[3]]]);
+                                else extendBoundsWithGeometry(bounds, option.geometry);
                                 if (!bounds.isEmpty()) {
                                     const isMobile = isMobileViewport();
                                     // On mobile leave bottom padding for the bottom sheet
@@ -955,7 +957,7 @@ const MapComponent = () => {
                     }}
                     onSelect={f => { 
                         clearSelection(); 
-                        setSelectedFeature(f as any); 
+                        setSelectedFeature(f); 
                         setMobilePanelState('partial'); 
                         
                         // Fly to the selected feature's bbox with minimum zoom enforcement

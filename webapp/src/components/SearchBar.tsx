@@ -12,7 +12,7 @@ import {
 } from '../utils/featureUtils';
 import './SearchBar.css';
 
-import type { NameVariant } from '../utils/featureUtils';
+import type { NameVariant, FeatureGeometry } from '../utils/featureUtils';
 
 export interface RegulationSegment {
     frontend_group_id: string;
@@ -33,8 +33,8 @@ export interface SearchableFeature {
     regulation_names?: string[];  // Array of regulation names
     name_variants?: NameVariant[];  // All searchable names with tributary flag
     type: 'stream' | 'lake' | 'wetland' | 'manmade' | 'streams' | 'lakes' | 'wetlands';
-    properties: Record<string, any>;
-    geometry?: any;
+    properties: Record<string, string | number | boolean | null | undefined>;
+    geometry?: FeatureGeometry;
     bbox?: [number, number, number, number];  // [minx, miny, maxx, maxy] for zooming
     min_zoom?: number;  // Minimum zoom level where feature is visible
     regulation_segments?: RegulationSegment[];  // Different regulation sections of same physical stream
@@ -204,7 +204,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ features, onSelect, highlightedRe
     return (
         <div className="search-bar-container" ref={searchRef}>
             <div className="search-input-wrapper">
-                <Search size={16} className="search-icon" />
+                <Search size={16} className="search-icon" aria-hidden="true" />
                 <input
                     ref={inputRef}
                     type="text"
@@ -216,6 +216,12 @@ const SearchBar: React.FC<SearchBarProps> = ({ features, onSelect, highlightedRe
                     }}
                     placeholder={placeholder}
                     className="search-input"
+                    role="combobox"
+                    aria-expanded={isOpen && results.length > 0}
+                    aria-controls="search-results-listbox"
+                    aria-activedescendant={selectedIndex >= 0 ? `search-option-${selectedIndex}` : undefined}
+                    aria-autocomplete="list"
+                    aria-label="Search waterbodies"
                 />
                 {query && (
                     <button onClick={clearSearch} className="search-clear-btn" aria-label="Clear search">
@@ -227,6 +233,9 @@ const SearchBar: React.FC<SearchBarProps> = ({ features, onSelect, highlightedRe
             {isOpen && results.length > 0 && (
                 <div 
                     className="search-results"
+                    id="search-results-listbox"
+                    role="listbox"
+                    aria-label="Search results"
                     onMouseLeave={() => {
                         if (!isMobile) {
                             onHighlight(null);
@@ -264,7 +273,10 @@ const SearchBar: React.FC<SearchBarProps> = ({ features, onSelect, highlightedRe
                         return (
                             <div
                                 key={feature.id}
+                                id={`search-option-${idx}`}
                                 className={`search-result-wrapper ${isHighlighted ? 'highlighted' : ''}`}
+                                role="option"
+                                aria-selected={idx === selectedIndex}
                                 onMouseEnter={() => {
                                     // Only highlight on hover on desktop
                                     if (!isMobile) {

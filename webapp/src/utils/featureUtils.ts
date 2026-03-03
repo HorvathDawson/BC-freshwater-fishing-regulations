@@ -9,11 +9,17 @@
 export type FeatureType = 'stream' | 'lake' | 'wetland' | 'manmade' | 'streams' | 'lakes' | 'wetlands';
 export type CollapseState = 'expanded' | 'partial' | 'collapsed';
 
+/** Simplified GeoJSON geometry for feature display purposes */
+export interface FeatureGeometry {
+    type: string;
+    coordinates: number[] | number[][] | number[][][] | number[][][][];
+}
+
 /** Core feature info for displaying a selected waterbody */
 export interface FeatureInfo {
     type: 'stream' | 'lake' | 'wetland' | 'manmade';
-    properties: Record<string, any>;
-    geometry?: any;
+    properties: Record<string, string | number | boolean | null | undefined>;
+    geometry?: FeatureGeometry;
     id?: string | number;
     source?: string;
     sourceLayer?: string;

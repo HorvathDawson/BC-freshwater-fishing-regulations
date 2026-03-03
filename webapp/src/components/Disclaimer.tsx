@@ -20,12 +20,12 @@ const Disclaimer: React.FC<DisclaimerProps> = ({ isOpen, onClose }) => {
     if (!isOpen) return null;
 
     return (
-        <div className="disclaimer-overlay" onClick={onClose}>
-            <div className="disclaimer-modal" onClick={e => e.stopPropagation()}>
+        <div className="disclaimer-overlay" onClick={onClose} role="presentation">
+            <div className="disclaimer-modal" onClick={e => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="disclaimer-title">
                 <button className="disclaimer-close" onClick={onClose} aria-label="Close disclaimer">
                     <X size={20} />
                 </button>
-                <h2>Disclaimer</h2>
+                <h2 id="disclaimer-title">Disclaimer</h2>
                 <div className="disclaimer-content">
                     <p>
                         This map is provided for <strong>informational purposes only</strong> and should 

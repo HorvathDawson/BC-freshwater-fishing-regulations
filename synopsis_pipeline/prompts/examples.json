@@ -11,7 +11,7 @@
       "identity": {
         "name_verbatim": "ATNARKO/BELLA COOLA RIVERS EXCEPT: Burnt Bridge Creek upstream of Sitkatapa Creek, Hunlen Creek upstream of Hunlen Falls, and Young Creek upstream of Hwy 20 (see separate entries for these three waters)",
         "waterbody_key": "ATNARKO/BELLA COOLA RIVERS",
-        "identity_type": "STREAM",
+        "identity_type": "MULTIPLE_WATERBODIES",
         "component_waterbodies": ["ATNARKO RIVER", "BELLA COOLA RIVER"],
         "alternate_names": [],
         "location_descriptor": null,
@@ -462,6 +462,244 @@
             "type": "vessel_restriction",
             "details": "Speed restriction (8 km/h)",
             "dates": null
+          }
+        }
+      ]
+    }
+  },
+  {
+    "_comment": "This example demonstrates multi-line bold marker handling. Source has **Class II water...\nNo Fishing** where bold spans two lines. The LLM should extract rule_text_verbatim based on logical content, not bold boundaries. Validation strips ** before comparing, so bold marker placement is flexible. Also demonstrates splitting semicolon-separated restrictions on the same line into separate ARU rules.",
+    "input": {
+      "water": "MAMIN RIVER",
+      "raw_regs": "**Class II water Sept 1-Apr 30; Steelhead Stamp mandatory Dec 1-Apr 30\nNo Fishing** upstream of fishing boundary signs on third bridge approximately 10 km upstream of the tidal boundary, Feb 1-Apr 30\nBait ban Nov 1-Apr 30",
+      "symbols": ["Incl. Tribs", "Classified"]
+    },
+    "output": {
+      "regs_verbatim": "**Class II water Sept 1-Apr 30; Steelhead Stamp mandatory Dec 1-Apr 30\nNo Fishing** upstream of fishing boundary signs on third bridge approximately 10 km upstream of the tidal boundary, Feb 1-Apr 30\nBait ban Nov 1-Apr 30",
+      "audit_log": [],
+      "identity": {
+        "name_verbatim": "MAMIN RIVER",
+        "waterbody_key": "MAMIN RIVER",
+        "identity_type": "STREAM",
+        "component_waterbodies": [],
+        "alternate_names": [],
+        "location_descriptor": null,
+        "notes": null,
+        "global_scope": {
+          "type": "WHOLE_SYSTEM",
+          "waterbody_key": "ALL",
+          "location_verbatim": null,
+          "landmark_verbatim": null,
+          "landmark_end_verbatim": null,
+          "direction": null,
+          "includes_tributaries": true
+        },
+        "exclusions": [],
+        "inclusions": []
+      },
+      "rules": [
+        {
+          "rule_text_verbatim": "**Class II water Sept 1-Apr 30; Steelhead Stamp mandatory Dec 1-Apr 30",
+          "scope": {
+            "type": "WHOLE_SYSTEM",
+            "waterbody_key": "ALL",
+            "location_verbatim": null,
+            "landmark_verbatim": null,
+            "landmark_end_verbatim": null,
+            "direction": null,
+            "includes_tributaries": null
+          },
+          "restriction": {
+            "type": "licensing",
+            "details": "Class II water",
+            "dates": ["Sept 1-Apr 30"]
+          }
+        },
+        {
+          "rule_text_verbatim": "Steelhead Stamp mandatory Dec 1-Apr 30",
+          "scope": {
+            "type": "WHOLE_SYSTEM",
+            "waterbody_key": "ALL",
+            "location_verbatim": null,
+            "landmark_verbatim": null,
+            "landmark_end_verbatim": null,
+            "direction": null,
+            "includes_tributaries": null
+          },
+          "restriction": {
+            "type": "licensing",
+            "details": "Steelhead Stamp mandatory",
+            "dates": ["Dec 1-Apr 30"]
+          }
+        },
+        {
+          "rule_text_verbatim": "**No Fishing** upstream of fishing boundary signs on third bridge approximately 10 km upstream of the tidal boundary, Feb 1-Apr 30",
+          "scope": {
+            "type": "DIRECTIONAL",
+            "waterbody_key": "ALL",
+            "location_verbatim": "upstream of fishing boundary signs on third bridge approximately 10 km upstream of the tidal boundary",
+            "landmark_verbatim": "fishing boundary signs on third bridge approximately 10 km upstream of the tidal boundary",
+            "landmark_end_verbatim": null,
+            "direction": "UPSTREAM",
+            "includes_tributaries": null
+          },
+          "restriction": {
+            "type": "closure",
+            "details": "No Fishing",
+            "dates": ["Feb 1-Apr 30"]
+          }
+        },
+        {
+          "rule_text_verbatim": "Bait ban Nov 1-Apr 30",
+          "scope": {
+            "type": "WHOLE_SYSTEM",
+            "waterbody_key": "ALL",
+            "location_verbatim": null,
+            "landmark_verbatim": null,
+            "landmark_end_verbatim": null,
+            "direction": null,
+            "includes_tributaries": null
+          },
+          "restriction": {
+            "type": "gear_restriction",
+            "details": "Bait ban",
+            "dates": ["Nov 1-Apr 30"]
+          }
+        }
+      ]
+    }
+  },
+  {
+    "_comment": "This example demonstrates compound sentence handling where multiple restrictions share a location, separated by semicolons. The entire compound sentence is used as rule_text_verbatim for EACH rule. Also demonstrates ADMINISTRATIVE_AREA identity_type with includes_tributaries=false.",
+    "input": {
+      "water": "STRATHCONA PARK WATERS",
+      "raw_regs": "Rainbow trout daily quota = 1 (none under 30 cm)\nBait ban, single barbless hook\nFrom the confluence with Thompson River to the CNR Bridge approximately 1 km downstream: **No Fishing**, Oct 1-May 31; bait ban and no\nhooks greater than 15 mm from point to shank, Oct 1-Dec 31",
+      "symbols": []
+    },
+    "output": {
+      "regs_verbatim": "Rainbow trout daily quota = 1 (none under 30 cm)\nBait ban, single barbless hook\nFrom the confluence with Thompson River to the CNR Bridge approximately 1 km downstream: **No Fishing**, Oct 1-May 31; bait ban and no\nhooks greater than 15 mm from point to shank, Oct 1-Dec 31",
+      "audit_log": [],
+      "identity": {
+        "name_verbatim": "STRATHCONA PARK WATERS",
+        "waterbody_key": "STRATHCONA PARK",
+        "identity_type": "ADMINISTRATIVE_AREA",
+        "component_waterbodies": [],
+        "alternate_names": [],
+        "location_descriptor": null,
+        "notes": null,
+        "global_scope": {
+          "type": "WHOLE_SYSTEM",
+          "waterbody_key": "ALL",
+          "location_verbatim": null,
+          "landmark_verbatim": null,
+          "landmark_end_verbatim": null,
+          "direction": null,
+          "includes_tributaries": false
+        },
+        "exclusions": [],
+        "inclusions": []
+      },
+      "rules": [
+        {
+          "rule_text_verbatim": "Rainbow trout daily quota = 1 (none under 30 cm)",
+          "scope": {
+            "type": "WHOLE_SYSTEM",
+            "waterbody_key": "ALL",
+            "location_verbatim": null,
+            "landmark_verbatim": null,
+            "landmark_end_verbatim": null,
+            "direction": null,
+            "includes_tributaries": null
+          },
+          "restriction": {
+            "type": "harvest",
+            "details": "Rainbow trout daily quota = 1 (none under 30 cm)",
+            "dates": null
+          }
+        },
+        {
+          "rule_text_verbatim": "Bait ban, single barbless hook",
+          "scope": {
+            "type": "WHOLE_SYSTEM",
+            "waterbody_key": "ALL",
+            "location_verbatim": null,
+            "landmark_verbatim": null,
+            "landmark_end_verbatim": null,
+            "direction": null,
+            "includes_tributaries": null
+          },
+          "restriction": {
+            "type": "gear_restriction",
+            "details": "Bait ban",
+            "dates": null
+          }
+        },
+        {
+          "rule_text_verbatim": "single barbless hook",
+          "scope": {
+            "type": "WHOLE_SYSTEM",
+            "waterbody_key": "ALL",
+            "location_verbatim": null,
+            "landmark_verbatim": null,
+            "landmark_end_verbatim": null,
+            "direction": null,
+            "includes_tributaries": null
+          },
+          "restriction": {
+            "type": "gear_restriction",
+            "details": "Single barbless hook",
+            "dates": null
+          }
+        },
+        {
+          "rule_text_verbatim": "From the confluence with Thompson River to the CNR Bridge approximately 1 km downstream: **No Fishing**, Oct 1-May 31; bait ban and no\nhooks greater than 15 mm from point to shank, Oct 1-Dec 31",
+          "scope": {
+            "type": "SEGMENT",
+            "waterbody_key": "ALL",
+            "location_verbatim": "From the confluence with Thompson River to the CNR Bridge approximately 1 km downstream",
+            "landmark_verbatim": "the confluence with Thompson River",
+            "landmark_end_verbatim": "the CNR Bridge approximately 1 km downstream",
+            "direction": "BETWEEN",
+            "includes_tributaries": null
+          },
+          "restriction": {
+            "type": "closure",
+            "details": "No Fishing",
+            "dates": ["Oct 1-May 31"]
+          }
+        },
+        {
+          "rule_text_verbatim": "From the confluence with Thompson River to the CNR Bridge approximately 1 km downstream: **No Fishing**, Oct 1-May 31; bait ban and no\nhooks greater than 15 mm from point to shank, Oct 1-Dec 31",
+          "scope": {
+            "type": "SEGMENT",
+            "waterbody_key": "ALL",
+            "location_verbatim": "From the confluence with Thompson River to the CNR Bridge approximately 1 km downstream",
+            "landmark_verbatim": "the confluence with Thompson River",
+            "landmark_end_verbatim": "the CNR Bridge approximately 1 km downstream",
+            "direction": "BETWEEN",
+            "includes_tributaries": null
+          },
+          "restriction": {
+            "type": "gear_restriction",
+            "details": "Bait ban",
+            "dates": ["Oct 1-Dec 31"]
+          }
+        },
+        {
+          "rule_text_verbatim": "From the confluence with Thompson River to the CNR Bridge approximately 1 km downstream: **No Fishing**, Oct 1-May 31; bait ban and no\nhooks greater than 15 mm from point to shank, Oct 1-Dec 31",
+          "scope": {
+            "type": "SEGMENT",
+            "waterbody_key": "ALL",
+            "location_verbatim": "From the confluence with Thompson River to the CNR Bridge approximately 1 km downstream",
+            "landmark_verbatim": "the confluence with Thompson River",
+            "landmark_end_verbatim": "the CNR Bridge approximately 1 km downstream",
+            "direction": "BETWEEN",
+            "includes_tributaries": null
+          },
+          "restriction": {
+            "type": "gear_restriction",
+            "details": "No hooks greater than 15 mm from point to shank",
+            "dates": ["Oct 1-Dec 31"]
           }
         }
       ]

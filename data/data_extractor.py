@@ -2,6 +2,7 @@ import geopandas as gpd
 import pandas as pd
 import pyogrio
 from pathlib import Path
+from typing import Dict, List, Optional, Tuple, Union
 
 try:
     from tqdm import tqdm
@@ -17,7 +18,7 @@ class FWADataAccessor:
     Uses 'pyogrio' and 'arrow' for fast spatial and attribute queries.
     """
 
-    def __init__(self, gpkg_path: str | Path):
+    def __init__(self, gpkg_path: Union[str, Path]) -> None:
         self.gpkg_path = Path(gpkg_path)
         if not self.gpkg_path.exists():
             raise FileNotFoundError(f"GeoPackage not found at: {self.gpkg_path}")
@@ -27,7 +28,7 @@ class FWADataAccessor:
         self.layer_info = pyogrio.list_layers(self.gpkg_path)
         self.layer_names = [info[0] for info in self.layer_info]
 
-    def list_layers(self, with_details: bool = False) -> list | dict:
+    def list_layers(self, with_details: bool = False) -> Union[List[str], Dict[str, str]]:
         """
         Returns available layers.
 
@@ -73,8 +74,8 @@ class FWADataAccessor:
     INT_COLUMNS = ["STREAM_ORDER", "STREAM_MAGNITUDE"]
 
     def _normalize_columns(
-        self, df: pd.DataFrame | gpd.GeoDataFrame
-    ) -> pd.DataFrame | gpd.GeoDataFrame:
+        self, df: Union[pd.DataFrame, gpd.GeoDataFrame]
+    ) -> Union[pd.DataFrame, gpd.GeoDataFrame]:
         """
         Apply consistent type normalization to all known columns present in *df*.
 
@@ -104,7 +105,7 @@ class FWADataAccessor:
     # ── Public access methods ─────────────────────────────────────────
 
     def get_layer(
-        self, layer_name: str, columns: list = None, bbox: tuple = None
+        self, layer_name: str, columns: Optional[List[str]] = None, bbox: Optional[Tuple[float, float, float, float]] = None
     ) -> gpd.GeoDataFrame:
         """
         Loads a full layer or a spatial subset, with a progress bar.
@@ -140,9 +141,9 @@ class FWADataAccessor:
         self,
         layer_name: str,
         column: str,
-        values: list | str | int,
+        values: Union[List[str], str, int],
         ignore_geom: bool = False,
-    ) -> gpd.GeoDataFrame | pd.DataFrame:
+    ) -> Union[gpd.GeoDataFrame, pd.DataFrame]:
         """
         Pushes a SQL 'WHERE' clause directly to the GeoPackage for fast lookup.
         All columns are normalized to consistent Python types.
@@ -176,7 +177,7 @@ class FWADataAccessor:
         )
         return self._normalize_columns(result)
 
-    def _check_layer(self, layer_name: str):
+    def _check_layer(self, layer_name: str) -> None:
         if layer_name not in self.layer_names:
             raise ValueError(
                 f"Layer '{layer_name}' not found. Available: {self.layer_names}"

@@ -11,7 +11,7 @@ from synopsis_pipeline.extract_synopsis import FishingSynopsisParser
 
 # --- CONFIGURATION ---
 SCRIPT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-PDF_PATH = os.path.join(SCRIPT_DIR, "..", "data", "fishing_synopsis.pdf")
+PDF_PATH = os.path.join(SCRIPT_DIR, "data", "fishing_synopsis.pdf")
 
 
 # --- HELPER ---

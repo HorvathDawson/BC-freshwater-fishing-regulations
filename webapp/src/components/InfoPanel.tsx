@@ -220,7 +220,7 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                             >
                                 {copied ? <Check size={20} /> : <Share2 size={20} />}
                             </button>
-                            <button onClick={(e) => { e.stopPropagation(); onClose(); }} className="square-btn">
+                            <button onClick={(e) => { e.stopPropagation(); onClose(); }} className="square-btn" aria-label="Close panel">
                                 <X size={20} />
                             </button>
                         </div>
@@ -541,21 +541,21 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
 
     return (
         <>
-            <div className={`panel-desktop ${feature ? 'visible' : ''}`}>
+            <aside className={`panel-desktop ${feature ? 'visible' : ''}`} aria-label="Feature details">
                 {renderContent()}
-            </div>
+            </aside>
             
-            <div className={`panel-mobile ${feature ? 'visible' : ''} ${collapseState === 'partial' ? 'partial' : ''} ${collapseState === 'collapsed' ? 'collapsed' : ''}`}>
+            <aside className={`panel-mobile ${feature ? 'visible' : ''} ${collapseState === 'partial' ? 'partial' : ''} ${collapseState === 'collapsed' ? 'collapsed' : ''}`} aria-label="Feature details">
                 {renderContent()}
-            </div>
+            </aside>
 
             {/* Source image modal */}
             {sourceImage && (
-                <div className="source-image-overlay" onClick={() => setSourceImage(null)}>
-                    <div className="source-image-modal" onClick={e => e.stopPropagation()}>
+                <div className="source-image-overlay" onClick={() => setSourceImage(null)} role="presentation">
+                    <div className="source-image-modal" onClick={e => e.stopPropagation()} role="dialog" aria-modal="true" aria-label={`Synopsis source image for ${sourceImage.name}`}>
                         <div className="source-image-header">
                             <span className="source-image-title">{sourceImage.name}</span>
-                            <button className="source-image-close" onClick={() => setSourceImage(null)}>
+                            <button className="source-image-close" onClick={() => setSourceImage(null)} aria-label="Close source image">
                                 <X size={18} />
                             </button>
                         </div>

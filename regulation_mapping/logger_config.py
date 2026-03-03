@@ -41,7 +41,7 @@ def get_logger(name: str) -> logging.Logger:
     if DEBUG_MODE:
         logger.setLevel(logging.DEBUG)
     else:
-        logger.setLevel(logging.WARNING)
+        logger.setLevel(logging.INFO)
 
     # Add handler if not already present
     if not logger.handlers:
@@ -60,23 +60,22 @@ def get_logger(name: str) -> logging.Logger:
     return logger
 
 
-def enable_debug():
+def _set_all_loggers_level(level: int) -> None:
+    """Set the logging level for all configured linking loggers."""
+    for name in _configured_loggers:
+        logger = logging.getLogger(name)
+        logger.setLevel(level)
+
+
+def enable_debug() -> None:
     """Enable debug mode for all linking loggers."""
     global DEBUG_MODE
     DEBUG_MODE = True
-
-    # Update all existing loggers
-    for name in _configured_loggers:
-        logger = logging.getLogger(name)
-        logger.setLevel(logging.DEBUG)
+    _set_all_loggers_level(logging.DEBUG)
 
 
-def disable_debug():
+def disable_debug() -> None:
     """Disable debug mode for all linking loggers."""
     global DEBUG_MODE
     DEBUG_MODE = False
-
-    # Update all existing loggers
-    for name in _configured_loggers:
-        logger = logging.getLogger(name)
-        logger.setLevel(logging.WARNING)
+    _set_all_loggers_level(logging.WARNING)

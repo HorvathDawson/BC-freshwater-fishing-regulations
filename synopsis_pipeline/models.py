@@ -8,12 +8,12 @@ Strictly adheres to the Scope-First JSON architecture and Verbatim Chain of Cust
 import os
 import json
 import re
-from typing import List, Optional, Dict, Any
+from typing import Any, Dict, Iterator, List, Optional
 from datetime import datetime
 from attrs import define, asdict
 
 
-def _input_field(row, key, default=None):
+def _input_field(row: Any, key: str, default: Any = None) -> Any:
     """Get a field from an input row which may be an object or a dict.
 
     Returns `default` when the field is missing.
@@ -26,32 +26,34 @@ def _input_field(row, key, default=None):
     return getattr(row, key, default)
 
 
-def _normalize_text(text: str) -> str:
-    """Normalize text for flexible substring comparison.
+def _normalize_base(text: str, extra_strip: str = "") -> str:
+    """Shared base normalizer for validation text comparison.
 
-    Removes newlines, extra spaces, and converts to lowercase.
+    Removes bold markers (**), newlines, extra whitespace, and converts to
+    lowercase.  Optionally strips additional characters listed in
+    *extra_strip* (e.g. commas and periods for date comparison).
+
     Used ONLY for validation checks, not for data mutation.
+    Bold markers are stripped because source text frequently has multi-line
+    bold spans (e.g., **text1\ntext2**) that make exact ** placement
+    unreliable.
     """
     if not text:
         return ""
-    return " ".join(text.replace("\n", " ").split()).lower()
+    normalized = text.replace("**", "")
+    for ch in extra_strip:
+        normalized = normalized.replace(ch, "")
+    return " ".join(normalized.replace("\n", " ").split()).lower()
+
+
+def _normalize_text(text: str) -> str:
+    """Normalize text for flexible substring comparison."""
+    return _normalize_base(text)
 
 
 def _normalize_date_text(text: str) -> str:
-    """Normalize text for date comparison only.
-
-    Removes newlines, extra spaces, bold markers (**text**), commas, periods, and converts to lowercase.
-    Used ONLY for date validation checks.
-    """
-    if not text:
-        return ""
-    # Remove bold markers
-    normalized = text.replace("**", "")
-    # Remove commas and periods (common around dates)
-    normalized = normalized.replace(",", "").replace(".", "")
-    # Remove newlines and normalize whitespace
-    normalized = " ".join(normalized.replace("\n", " ").split())
-    return normalized.lower()
+    """Normalize text for date comparison only (also strips commas and periods)."""
+    return _normalize_base(text, extra_strip=",.")
 
 
 # ==========================================
@@ -131,10 +133,10 @@ class ExtractionResults:
     def __len__(self) -> int:
         return len(self.pages)
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[PageResult]:
         return iter(self.pages)
 
-    def __getitem__(self, index):
+    def __getitem__(self, index: int) -> PageResult:
         return self.pages[index]
 
 
@@ -162,7 +164,7 @@ class ScopeObject:
         bool
     ]  # Tri-state: true (explicit include), false (explicit exclude), null (silent/inherit from global)
 
-    def validate(self, parent_text: str = None) -> List[str]:
+    def validate(self, parent_text: Optional[str] = None) -> List[str]:
         """Validate this scope object against the spec."""
         errors = []
 
@@ -206,7 +208,9 @@ class ScopeObject:
             if not self.landmark_end_verbatim:
                 errors.append("SEGMENT type requires landmark_end_verbatim")
             if self.direction != "BETWEEN":
-                errors.append(f"SEGMENT type must have direction='BETWEEN', got '{self.direction}'")
+                errors.append(
+                    f"SEGMENT type must have direction='BETWEEN', got '{self.direction}'"
+                )
 
         if self.type == "DIRECTIONAL":
             if not self.landmark_verbatim:
@@ -226,8 +230,6 @@ class ScopeObject:
                     or "downstream and upstream" in loc_lower
                 )
                 # Check for distance units: look for patterns like "100 m", "50 km", "400 meters"
-                import re
-
                 has_distance = bool(
                     re.search(r"\d+\s*(m\b|km\b|meter|kilomet)", loc_lower)
                 )
@@ -253,7 +255,11 @@ class ScopeObject:
         # Ensure landmarks are substrings of the location description
         if self.landmark_verbatim and self.location_verbatim:
             if self.landmark_verbatim not in self.location_verbatim:
-                loc_snippet = self.location_verbatim[:150] + "..." if len(self.location_verbatim) > 150 else self.location_verbatim
+                loc_snippet = (
+                    self.location_verbatim[:150] + "..."
+                    if len(self.location_verbatim) > 150
+                    else self.location_verbatim
+                )
                 errors.append(
                     f"landmark_verbatim '{self.landmark_verbatim}' not found in location_verbatim. "
                     f"Location text: '{loc_snippet}'"
@@ -261,7 +267,11 @@ class ScopeObject:
 
         if self.landmark_end_verbatim and self.location_verbatim:
             if self.landmark_end_verbatim not in self.location_verbatim:
-                loc_snippet = self.location_verbatim[:150] + "..." if len(self.location_verbatim) > 150 else self.location_verbatim
+                loc_snippet = (
+                    self.location_verbatim[:150] + "..."
+                    if len(self.location_verbatim) > 150
+                    else self.location_verbatim
+                )
                 errors.append(
                     f"landmark_end_verbatim '{self.landmark_end_verbatim}' not found in location_verbatim. "
                     f"Location text: '{loc_snippet}'"
@@ -293,7 +303,7 @@ class RestrictionObject:
     details: str  # Normalized summary of the restriction
     dates: Optional[List[str]]  # Exact date strings from source text or null
 
-    def validate(self, parent_text: str = None) -> List[str]:
+    def validate(self, parent_text: Optional[str] = None) -> List[str]:
         """Validate this restriction against the spec."""
         errors = []
 
@@ -412,8 +422,6 @@ class IdentityObject:
 
         # Validate waterbody_key is core name only (no parenthetical content, no scope indicators)
         if self.waterbody_key and self.name_verbatim:
-            import re
-
             # Waterbody_key should NOT contain:
             # - Parentheses (those go in alternate_names, location_descriptor, or scope)
             # - Scope indicators like "upstream of", "downstream of"
@@ -458,10 +466,7 @@ class IdentityObject:
             key_words = re.findall(r"\b[A-Z][A-Z0-9]{2,}\b", key_normalized)
 
             # Check that each word in the key exists in the name
-            missing_words = []
-            for word in key_words:
-                if word not in name_normalized:
-                    missing_words.append(word)
+            missing_words = [word for word in key_words if word not in name_normalized]
 
             if missing_words:
                 errors.append(
@@ -488,15 +493,25 @@ class IdentityObject:
                 alt_words = re.findall(r"\b[A-Z][A-Z0-9]{2,}\b", alt_normalized)
 
                 # Check that each word exists in name_verbatim
-                alt_missing = []
-                for word in alt_words:
-                    if word not in name_normalized:
-                        alt_missing.append(word)
+                alt_missing = [
+                    word for word in alt_words if word not in name_normalized
+                ]
 
                 if alt_missing:
                     errors.append(
                         f"alternate_name '{alt_name}' contains words {alt_missing} not found in name_verbatim '{self.name_verbatim}'"
                     )
+
+        # Validate ADMINISTRATIVE_AREA tributary logic
+        if self.identity_type == "ADMINISTRATIVE_AREA":
+            if (
+                self.global_scope.includes_tributaries is not None
+                and self.global_scope.includes_tributaries
+            ):
+                errors.append(
+                    f"ADMINISTRATIVE_AREA type must have global_scope.includes_tributaries=false (spatial containment replaces tributary logic). "
+                    f"Waterbody: '{self.waterbody_key}'"
+                )
 
         # Validate global_scope
         scope_errors = self.global_scope.validate()
@@ -578,8 +593,16 @@ class RuleGroup:
             parent_normalized = _normalize_text(parent_regs_verbatim)
             rule_normalized = _normalize_text(self.rule_text_verbatim)
             if rule_normalized not in parent_normalized:
-                rule_snippet = self.rule_text_verbatim[:100] + "..." if len(self.rule_text_verbatim) > 100 else self.rule_text_verbatim
-                parent_snippet = parent_regs_verbatim[:200] + "..." if len(parent_regs_verbatim) > 200 else parent_regs_verbatim
+                rule_snippet = (
+                    self.rule_text_verbatim[:100] + "..."
+                    if len(self.rule_text_verbatim) > 100
+                    else self.rule_text_verbatim
+                )
+                parent_snippet = (
+                    parent_regs_verbatim[:200] + "..."
+                    if len(parent_regs_verbatim) > 200
+                    else parent_regs_verbatim
+                )
                 errors.append(
                     f"rule_text_verbatim not found in parent regs_verbatim. "
                     f"Rule text: '{rule_snippet}'. "
@@ -596,8 +619,16 @@ class RuleGroup:
             normalized_location = _normalize_text(self.scope.location_verbatim)
             normalized_rule = _normalize_text(self.rule_text_verbatim)
             if normalized_location not in normalized_rule:
-                loc_snippet = self.scope.location_verbatim[:100] + "..." if len(self.scope.location_verbatim) > 100 else self.scope.location_verbatim
-                rule_snippet = self.rule_text_verbatim[:150] + "..." if len(self.rule_text_verbatim) > 150 else self.rule_text_verbatim
+                loc_snippet = (
+                    self.scope.location_verbatim[:100] + "..."
+                    if len(self.scope.location_verbatim) > 100
+                    else self.scope.location_verbatim
+                )
+                rule_snippet = (
+                    self.rule_text_verbatim[:150] + "..."
+                    if len(self.rule_text_verbatim) > 150
+                    else self.rule_text_verbatim
+                )
                 errors.append(
                     f"scope.location_verbatim not found in rule_text_verbatim. "
                     f"Location: '{loc_snippet}'. "
@@ -620,7 +651,11 @@ class RuleGroup:
                 normalized_rule = _normalize_date_text(self.rule_text_verbatim)
                 if normalized_date not in normalized_rule:
                     # Show what was actually extracted to help debug
-                    rule_snippet = self.rule_text_verbatim[:100] + "..." if len(self.rule_text_verbatim) > 100 else self.rule_text_verbatim
+                    rule_snippet = (
+                        self.rule_text_verbatim[:100] + "..."
+                        if len(self.rule_text_verbatim) > 100
+                        else self.rule_text_verbatim
+                    )
                     errors.append(
                         f"restriction: Date '{date}' not found in rule_text_verbatim. "
                         f"Normalized date: '{normalized_date}'. "
@@ -734,7 +769,6 @@ class ParsedWaterbody:
             errors.append("No rules found")
         else:
             for idx, rule in enumerate(self.rules):
-                # Rules are validated against the authoritative regs_verbatim
                 rule_errors = rule.validate(self.regs_verbatim)
                 for err in rule_errors:
                     errors.append(f"rule {idx}: {err}")
@@ -743,7 +777,11 @@ class ParsedWaterbody:
                 if rule.scope.type == "VAGUE" and (
                     not self.audit_log or len(self.audit_log) == 0
                 ):
-                    scope_info = f"location='{rule.scope.location_verbatim}'" if rule.scope.location_verbatim else "no location"
+                    scope_info = (
+                        f"location='{rule.scope.location_verbatim}'"
+                        if rule.scope.location_verbatim
+                        else "no location"
+                    )
                     errors.append(
                         f"rule {idx}: VAGUE scope requires at least one audit_log entry explaining why. "
                         f"Scope info: {scope_info}"
@@ -774,7 +812,7 @@ class ParsedWaterbody:
 
     @classmethod
     def validate_batch(
-        cls, parsed_batch: List[Dict[str, Any]], input_rows: List
+        cls, parsed_batch: List[Dict[str, Any]], input_rows: List[Any]
     ) -> List[str]:
         """Validate a batch of parsed results matches input order and content.
 
@@ -935,7 +973,7 @@ class SessionState:
             completed_at=data.get("completed_at"),
         )
 
-    def save(self, filepath: str):
+    def save(self, filepath: str) -> None:
         os.makedirs(os.path.dirname(filepath), exist_ok=True)
         self.last_updated = datetime.now().isoformat()
         with open(filepath, "w", encoding="utf-8") as f:

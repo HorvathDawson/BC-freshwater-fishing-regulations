@@ -27,7 +27,7 @@ Format:
 """
 
 from dataclasses import dataclass
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 from fwa_pipeline.metadata_builder import FeatureType
 from .admin_target import AdminTarget
@@ -156,7 +156,7 @@ class UngazettedWaterbody:
     ungazetted_id: str
     name: str
     geometry_type: str  # "point", "linestring", or "polygon"
-    coordinates: any  # EPSG:3005 — Point: [e, n], LineString: [[e, n], ...], Polygon: [[[e, n], ...]]
+    coordinates: Any  # EPSG:3005 — Point: [e, n], LineString: [[e, n], ...], Polygon: [[[e, n], ...]]
     zones: List[str]
     mgmt_units: List[str]
     note: str
@@ -998,13 +998,13 @@ DIRECT_MATCHES: Dict[str, Dict[str, DirectMatch]] = {
             gnis_ids=["30277", "18652"],
             note="GNIS names: Upper Little Slocan Lake (30277) and Lower Little Slocan Lake (18652). Tributary entry - links to both parent waterbodies.",
         ),
-        "PEND D'OREILLE RIVER'S TRIBUTARIES (except Salmo River)": DirectMatch(
+        "PEND D'OREILLE RIVER'S TRIBUTARIES (except Salmo River[Includes Tributaries])": DirectMatch(
             gnis_ids=["4927"],
             note="GNIS name: Pend-D'Oreille River. Tributary entry - links to parent waterbody (hyphenated form).",
         ),
     },
     "Region 5": {
-        "ATNARKO/BELLA COOLA RIVERS EXCEPT: Burnt Bridge Creek upstream of Sitkatapa Creek, Hunlen Creek upstream of Hunlen Falls, and Young Creek upstream of Hwy 20 (see separate entries for these three waters)": DirectMatch(
+        "ATNARKO/BELLA COOLA RIVERS [Includes Tributaries] EXCEPT: Burnt Bridge Creek upstream of Sitkatapa Creek, Hunlen Creek upstream of Hunlen Falls, and Young Creek upstream of Hwy 20 (see separate entries for these three waters)": DirectMatch(
             gnis_ids=["11611", "17209"],
             note="Links to both Bella Coola River (GNIS 11611) and Atnarko River (GNIS 17209). Bella Coola River flows from the coast (ocean) upstream to confluence of Atnarko and Talchako Rivers. Regulation MUs 5-6, 5-8, 5-11. IMPORTANT - Exceptions handling: Three tributary streams have separate regulation entries with different rules: (1) Burnt Bridge Creek upstream of Sitkatapa Creek, (2) Hunlen Creek upstream of Hunlen Falls, and (3) Young Creek upstream of Hwy 20. These exceptions will be handled as separate waterbody entries in the regulations with their own specific restrictions. When matching, the main Atnarko/Bella Coola rivers entry will link to the entire river systems, and the exception entries will link to specific upstream portions of the tributaries. Users querying these locations will see both the main river regulations AND the specific exception regulations if they apply.",
         ),

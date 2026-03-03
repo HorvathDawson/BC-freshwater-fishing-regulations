@@ -14,6 +14,7 @@ import warnings
 import argparse
 import gc
 import pickle
+from typing import Dict, List, Optional, Set, Tuple, Union
 from data.data_extractor import FWADataAccessor
 import igraph as ig
 from collections import deque, Counter
@@ -51,7 +52,9 @@ logger = logging.getLogger(__name__)
 # --- Helper Functions ---
 
 
-def get_endpoints(geom):
+def get_endpoints(
+    geom: Union[LineString, MultiLineString],
+) -> Tuple[Optional[str], Optional[str], Optional[Tuple[float, float]], Optional[Tuple[float, float]]]:
     """Extracts start (u) and end (v) points from Shapely geometry."""
     if isinstance(geom, LineString):
         coords = geom.coords
@@ -68,7 +71,7 @@ def get_endpoints(geom):
     return u_id, v_id, (x1, y1), (x2, y2)
 
 
-def clean_watershed_code(code):
+def clean_watershed_code(code: Optional[str]) -> str:
     if not code:
         return ""
     return "-".join([p for p in code.split("-") if p != "000000"])
@@ -79,7 +82,7 @@ def clean_watershed_code(code):
 
 class FWAPrimalGraphIGraph:
 
-    def _get_or_create_vertex(self, node_id, x, y):
+    def _get_or_create_vertex(self, node_id: str, x: float, y: float) -> int:
         """
         Add a vertex to the graph if it does not exist, or return its index if it does.
         Updates node_id_to_index and index_to_node_id mappings.
@@ -92,7 +95,7 @@ class FWAPrimalGraphIGraph:
         self.index_to_node_id[idx] = node_id
         return idx
 
-    def __init__(self):
+    def __init__(self) -> None:
         config = get_config()
         self.project_root = config.project_root
         self.gpkg_path = config.fetch_output_gpkg_path
@@ -105,13 +108,13 @@ class FWAPrimalGraphIGraph:
         self.streams_layer = "streams"  # The new unified streams layer name
         self.data_accessor = FWADataAccessor(self.gpkg_path)
 
-    def validate_paths(self):
+    def validate_paths(self) -> bool:
         if not self.gpkg_path.exists():
             logger.error(f"GeoPackage not found: {self.gpkg_path}")
             return False
         return True
 
-    def build(self, limit=None, specific_layers=None):
+    def build(self, limit: Optional[int] = None, specific_layers: Optional[List[str]] = None) -> None:
         import time
 
         start = time.time()
@@ -263,7 +266,7 @@ class FWAPrimalGraphIGraph:
         )
         gc.collect()
 
-    def preprocess_graph(self):
+    def preprocess_graph(self) -> None:
         """Removes spurious Order 1 edges flowing into root nodes."""
         logger.info("STEP 2: CLEANING SPURIOUS EDGES")
         iteration = 0
@@ -304,7 +307,9 @@ class FWAPrimalGraphIGraph:
 
         logger.info(f"Cleanup Complete. Removed {total_removed} edges.")
 
-    def _find_nearest_name_bfs(self, start_nodes, watershed_code, max_hops=15):
+    def _find_nearest_name_bfs(
+        self, start_nodes: List[int], watershed_code: str, max_hops: int = 15
+    ) -> Optional[Tuple[str, str, int]]:
         queue = deque([(n, 0) for n in start_nodes])
         visited = set(start_nodes)
         candidates = []
@@ -360,7 +365,7 @@ class FWAPrimalGraphIGraph:
 
         return candidates[0][1], candidates[0][2], is_ambiguous
 
-    def propagate_names_by_watershed(self):
+    def propagate_names_by_watershed(self) -> None:
         """
         Populate missing GNIS names based on Watershed Code and Blue Line Key.
 
@@ -496,7 +501,7 @@ class FWAPrimalGraphIGraph:
         logger.info(f"   - Bulk Assigned (Single-Name WC): {bulk_assigned:,}")
         logger.info(f"   - BFS/Fallback Assigned (Multi-Name WC): {bfs_assigned:,}")
 
-    def filter_unnamed_depth(self, threshold=2):
+    def filter_unnamed_depth(self, threshold: int = 2) -> None:
         import time
 
         logger.info(f"STEP 4: FILTERING DEEP UNNAMED STREAMS (Threshold={threshold})")
@@ -646,7 +651,7 @@ class FWAPrimalGraphIGraph:
             f"Filtered {len(to_remove):,} edges based on depth. (Time: {time.time()-start_time:.1f}s)"
         )
 
-    def export(self, filename="fwa_bc_primal_full.gpickle"):
+    def export(self, filename: str = "fwa_bc_primal_full.gpickle") -> None:
         logger.info(f"STEP 5: EXPORTING")
 
         # Determine format from filename extension

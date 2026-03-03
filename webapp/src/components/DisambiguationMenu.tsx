@@ -96,6 +96,8 @@ const DisambiguationMenu = ({ options, position, highlightedOption, onSelect, on
                 ref={menuRef}
                 className={`disambig-menu ${isCollapsed ? 'collapsed' : ''}`}
                 style={menuStyle}
+                role="region"
+                aria-label="Feature disambiguation menu"
             >
                 <div 
                     className="menu-header" 
@@ -105,9 +107,9 @@ const DisambiguationMenu = ({ options, position, highlightedOption, onSelect, on
                 >
                     <div className="mobile-handle" />
                     <span>MULTIPLE FEATURES ({options.length})</span>
-                    <button onClick={(e) => { e.stopPropagation(); onClose(); }} className="close-x">×</button>
+                    <button onClick={(e) => { e.stopPropagation(); onClose(); }} className="close-x" aria-label="Close feature menu">×</button>
                 </div>
-                <div className="menu-list">
+                <div className="menu-list" role="listbox" aria-label="Overlapping features">
                     {options.map((option, idx) => {
                         const isHighlighted = highlightedOption?.id === option.id;
                         
@@ -115,6 +117,8 @@ const DisambiguationMenu = ({ options, position, highlightedOption, onSelect, on
                             <div 
                                 key={idx} 
                                 className={`menu-item-wrapper ${isHighlighted ? 'highlighted' : ''}`}
+                                role="option"
+                                aria-selected={isHighlighted}
                                 onMouseEnter={() => { if (!isMobile) onHighlight(option); }}
                                 onMouseLeave={() => { if (!isMobile) onHighlight(null); }}
                             >

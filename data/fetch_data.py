@@ -1,5 +1,6 @@
 import os
 import argparse
+import logging
 import urllib.request
 import urllib.parse
 import zipfile
@@ -8,9 +9,12 @@ import fiona
 import geopandas as gpd
 import pandas as pd
 from pathlib import Path
+from typing import List, Optional
 from tqdm import tqdm
 
 from project_config import get_config
+
+logger = logging.getLogger(__name__)
 
 
 # ==========================================
@@ -19,8 +23,8 @@ from project_config import get_config
 
 
 def fetch_wfs_paginated(
-    short_name, type_name, gpkg_path, temp_dir, sort_field="OBJECTID"
-):
+    short_name: str, type_name: str, gpkg_path: Path, temp_dir: Path, sort_field: str = "OBJECTID"
+) -> None:
     """Downloads WFS data in 10,000 feature chunks."""
     print(f"\n[WFS] Fetching: {short_name} ({type_name})")
     start_index = 0
@@ -66,7 +70,7 @@ def fetch_wfs_paginated(
         print(f"  -> Saved {len(final_gdf)} features to {short_name}")
 
 
-def ensure_ftp_extracted(ftp_url, temp_dir):
+def ensure_ftp_extracted(ftp_url: str, temp_dir: Path) -> Path:
     """Downloads and extracts a zip from an FTP URL, returning the .gdb path."""
     zip_path = temp_dir / os.path.basename(ftp_url)
     gdb_name = zip_path.name.replace(".zip", ".gdb")
@@ -104,7 +108,7 @@ def ensure_ftp_extracted(ftp_url, temp_dir):
     return gdb_path
 
 
-def extract_gdb_layer(short_name, ftp_url, gdb_layer, gpkg_path, temp_dir):
+def extract_gdb_layer(short_name: str, ftp_url: str, gdb_layer: str, gpkg_path: Path, temp_dir: Path) -> None:
     """Extracts a specific layer from a local GDB and saves it to the GPKG."""
     print(f"\n[GDB] Extracting: {short_name} from {gdb_layer}")
     gdb_path = ensure_ftp_extracted(ftp_url, temp_dir)
@@ -120,10 +124,11 @@ def extract_gdb_layer(short_name, ftp_url, gdb_layer, gpkg_path, temp_dir):
         gdf.to_file(gpkg_path, layer=short_name, driver="GPKG", engine="pyogrio")
         print(f"  -> Saved {len(gdf)} features to {short_name}")
     except Exception as e:
-        print(f"  -> Error processing {short_name}: {e}")
+        logger.warning("Error processing %s: %s", short_name, e)
+        raise
 
 
-def combine_streams(short_name, ftp_url, gpkg_path, temp_dir):
+def combine_streams(short_name: str, ftp_url: str, gpkg_path: Path, temp_dir: Path) -> None:
     """Iterates through all watershed blocks in the GDB and combines them into one GPKG layer."""
     print(f"\n[STREAMS] Building master network: {short_name}")
     gdb_path = ensure_ftp_extracted(ftp_url, temp_dir)
@@ -153,7 +158,8 @@ def combine_streams(short_name, ftp_url, gpkg_path, temp_dir):
             is_first = False
 
         except Exception as e:
-            print(f"  Warning: Failed to process block for '{short_name}': {e}")
+            logger.warning("Failed to process block for '%s': %s", short_name, e)
+            raise
 
 
 # ==========================================
@@ -161,7 +167,7 @@ def combine_streams(short_name, ftp_url, gpkg_path, temp_dir):
 # ==========================================
 
 
-def main():
+def main() -> int:
     """CLI entry point for BC GIS data fetching."""
     # Load config for default paths
     config = get_config()

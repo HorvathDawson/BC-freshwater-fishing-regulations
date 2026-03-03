@@ -160,7 +160,7 @@
 .search-result-type {
     font-size: 10px;
     text-transform: uppercase;
-    color: var(--text-muted, #999);
+    color: var(--text-muted, #767676);
     font-weight: 600;
     letter-spacing: 0.05em;
 }

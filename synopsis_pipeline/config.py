@@ -7,7 +7,7 @@ Loads settings from config.yaml and allows environment variable overrides.
 import os
 import yaml
 from pathlib import Path
-from typing import Dict, Any, Optional
+from typing import Dict, Any, List, Optional
 from dotenv import load_dotenv
 
 # Load environment variables from .env file in project root
@@ -77,7 +77,7 @@ def load_config(config_path: Optional[str] = None) -> Dict[str, Any]:
     return config
 
 
-def get_api_keys(config: Dict[str, Any]) -> list:
+def get_api_keys(config: Dict[str, Any]) -> List[Dict[str, str]]:
     """
     Extract API keys from config.
 

@@ -6,6 +6,7 @@ import signal
 import shutil
 import sys
 from datetime import datetime
+from types import FrameType
 from typing import List, Dict, Any, Optional, Tuple
 
 from google import genai
@@ -22,18 +23,26 @@ from .prompt_builder import build_prompt
 from project_config import get_config, get_api_keys, load_config
 
 # --- GLOBALS & CONFIG ---
-try:
-    CONFIG = load_config()
-    API_KEYS = get_api_keys()
-except FileNotFoundError:
-    print("Error: config.yaml not found.")
-    sys.exit(1)
+# Deferred to avoid crashing at import time when config.yaml is absent.
+# Call _ensure_config() before using CONFIG or API_KEYS.
+CONFIG: Optional[Dict[str, Any]] = None
+API_KEYS: Optional[List[Dict[str, str]]] = None
+
+
+def _ensure_config() -> Tuple[Dict[str, Any], List[Dict[str, str]]]:
+    """Load and cache config/API keys on first use. Raises if config is missing."""
+    global CONFIG, API_KEYS
+    if CONFIG is None:
+        CONFIG = load_config()
+    if API_KEYS is None:
+        API_KEYS = get_api_keys()
+    return CONFIG, API_KEYS
 
 # Global flag for graceful shutdown
 interruption_requested = False
 
 
-def signal_handler(sig, frame):
+def signal_handler(sig: int, frame: Optional[FrameType]) -> None:
     """
     Catches Ctrl+C.
     First press: Sets flag to stop AFTER current batch.
@@ -97,14 +106,14 @@ class APIKeyManager:
             if self.current_idx == start:
                 return False
 
-    def record_success(self):
+    def record_success(self) -> None:
         self.stats[self.current_id]["fails"] = 0
 
-    def record_failure(self):
+    def record_failure(self) -> bool:
         self.stats[self.current_id]["fails"] += 1
         return self.rotate()
 
-    def record_rate_limit(self):
+    def record_rate_limit(self) -> bool:
         self.stats[self.current_id]["rate_limits"] += 1
         print(f"  ⚠  Rate limit on '{self.current_id}'")
         return self.rotate()
@@ -446,6 +455,7 @@ class BatchProcessor:
         return True
 
     def _call_api(self, prompt):
+        _ensure_config()
         retries = 0
         max_retries = CONFIG["synopsis_pipeline"]["llm"]["max_retries"]
         error_log = []  # Track all errors encountered
@@ -510,7 +520,7 @@ class BatchProcessor:
         self.logger.log_batch_errors(indices, item_errors, rows, [])
         self.session.save(self.session_file)
 
-    def _mark_failed(self, idx, msg):
+    def _mark_failed(self, idx: int, msg: str) -> None:
         self.session.retry_counts[idx] = self.session.retry_counts.get(idx, 0) + 1
         record = {
             "index": idx,
@@ -534,7 +544,7 @@ class BatchProcessor:
 # --- CLI FUNCTIONS ---
 
 
-def export_session(session_file: str, output_file: str):
+def export_session(session_file: str, output_file: str) -> None:
     """Exports session to flat list JSON, preserving exact order."""
     session = SessionState.load(session_file)
     if not session:
@@ -583,7 +593,10 @@ def export_session(session_file: str, output_file: str):
     print(f"✓ Exported {len(final_results)} items to {output_file}")
 
 
-def main():
+def main() -> int:
+    # Ensure config is loaded (raises FileNotFoundError if config.yaml is missing)
+    _ensure_config()
+
     # Get default paths from config
     config = get_config()
     default_session = str(config.synopsis_session_path)

@@ -10,6 +10,7 @@ CRITICAL REQUIREMENTS:
 7. If multiple restrictions apply to the same location, create multiple rules (one per restriction) - duplicate scopes are intentional and correct
 8. Return valid JSON with all schema fields filled
 9. **AUDIT LOG DISCIPLINE**: Use the `audit_log` field ONLY for genuine ambiguities or source text errors (typos, contradictions, impossible-to-parse locations). DO NOT use it to explain normal parsing decisions. If you can solve the logic, solve it; do not log it. Never mix AI commentary with legal data in restriction fields.
+10. **ELLIPSIS ABSOLUTELY FORBIDDEN**: NEVER use `...` (three dots / ellipsis) in ANY verbatim field. This is the single most common cause of validation failures. If the text is long, copy it in FULL — do NOT abbreviate it with `...`. There are zero exceptions to this rule.
 
 WHEN TO USE AUDIT_LOG:
 - Identity issues: Ambiguous waterbody_key extraction, unclear global_scope boundaries, complex exclusion/inclusion patterns that don't fit the model cleanly
@@ -31,7 +32,7 @@ Legal restrictions are meaningless without precise geometric context. Therefore:
 
 INPUT TEXT FORMATTING:
 - **Bold text** is wrapped in double asterisks (standard Markdown)
-- Always preserve bold markers in text_verbatim fields
+- Bold markers (**) are flexible in verbatim fields - validation strips them before comparing
 - Waterbody names are EXACT character-for-character from source
 
 INPUT ROW FORMAT:
@@ -40,19 +41,27 @@ INPUT ROW FORMAT:
 
 VERBATIM CHAIN OF CUSTODY - CRITICAL RULES:
 
-**VERBATIM MEANS EXACT RAW ASCII/UTF-8 BYTES - NOT SEMANTIC EQUIVALENTS**:
+**BOLD MARKER HANDLING - VALIDATION STRIPS ** BEFORE COMPARING**:
+- Validation normalizes text by removing all ** markers before checking substrings
+- This means you don't need to match bold marker positions exactly
+- Focus on getting the TEXT CONTENT right - bold markers (**) are tolerated but not strictly validated
+- Example: Source has "**Class II water Sept 1-Apr 30\nNo Fishing** upstream of bridge"
+  * You can extract: "**No Fishing** upstream of bridge" (natural bold wrapping) ✓
+  * Even though source has "No Fishing**" (closing bold from prior line), validation accepts this
+  * After stripping **: "No Fishing upstream of bridge" matches in both source and extraction
+- **KEY INSIGHT**: Bold markers are FORMATTING, not content boundaries. Extract based on LOGICAL rules, not bold boundaries.
+
+**VERBATIM MEANS EXACT RAW TEXT CONTENT - BOLD MARKERS ARE FLEXIBLE**:
 - "verbatim" means LITERAL character-for-character copy of RAW TEXT as it appears in the source
+- **BOLD MARKERS EXCEPTION**: ** markers are stripped during validation, so their exact placement is flexible
 - **DO NOT INTERPRET OR RENDER**: This is NOT rendered Markdown, NOT semantic meaning, NOT "what it looks like"
-- **ASCII/CHARACTER-LEVEL EXACTNESS**:
-  * "**text**" is EIGHT characters: [asterisk][asterisk][t][e][x][t][asterisk][asterisk]
-  * NOT four characters: [t][e][x][t] (this would be interpreting the Markdown)
+- **TEXT CONTENT EXACTNESS** (excluding ** markers):
   * "No Fishing" is 10 characters: [N][o][ ][F][i][s][h][i][n][g]
-  * "**No Fishing**" is 16 characters: [*][*][N][o][ ][F][i][s][h][i][n][g][*][*]
-- **NO SEMANTIC EQUIVALENCE**: "**text**" ≠ "text" (different character sequences)
-- **NO MARKDOWN INTERPRETATION**: Do not convert formatting to "what it means" - copy the raw markers
-- Think of it like opening the file in a hex editor or plain text editor (Notepad, not Word)
-- Think of it like using SELECT substring in SQL - exact byte positions, exact character matches
-- Every character must match EXACTLY: spaces, tabs, newlines (\n), asterisks (**), hyphens, quotes, etc.
+  * You may write "**No Fishing**" even if source has "No Fishing**" - validation strips ** before comparing
+  * But "no fishing" ≠ "No Fishing" (case still matters for non-** characters)
+- **NO SEMANTIC EQUIVALENCE**: "upstream of dam" ≠ "above the dam" (different text content)
+- **NO MARKDOWN INTERPRETATION**: Do not convert formatting to "what it means" - but bold marker placement is flexible
+- Every NON-** character must match EXACTLY: spaces, tabs, newlines (\n), hyphens, quotes, etc.
 - If source has "\n" (line break), your verbatim must have "\n" at the exact same position
 
 1. IDENTITY.NAME_VERBATIM
@@ -66,7 +75,9 @@ VERBATIM CHAIN OF CUSTODY - CRITICAL RULES:
    - **RAW ASCII/BYTE-LEVEL MATCH**: Not "looks similar" or "means the same" - EXACT byte-for-byte match
    - **NEVER INVENT TEXT**: Do not create, paraphrase, combine, or synthesize text that doesn't exist in the source
    - **COPY-PASTE MENTALITY**: Imagine using Ctrl+C to copy text directly from the source - that's what this field should contain
-   - **MARKDOWN MARKERS INCLUDED**: If source has "**No Fishing**", extract all 16 characters including asterisks, NOT just "No Fishing"
+   - **MARKDOWN MARKERS FLEXIBLE**: Validation strips ** before comparing, so you can wrap bold naturally
+   - Source has "**Class II\nNo Fishing**" (bold spans two lines) → you can extract "**No Fishing** upstream..." for the closure rule
+   - Focus on the TEXT CONTENT being a valid substring (after ** removal)
    - Must be a contiguous substring from the regulation block that contains:
      * The restriction (e.g., "Bait ban")
      * **The dates (e.g., "Sept 1-Dec 31") if present - CRITICAL: If dates exist in restriction.dates, they MUST appear in rule_text_verbatim**
@@ -76,7 +87,7 @@ VERBATIM CHAIN OF CUSTODY - CRITICAL RULES:
      * WRONG: rule_text_verbatim: "Trout/char daily quota = 1 (none under 30 cm) and bait ban" with dates: ["June 15-Aug 31"] ❌
      * RIGHT: rule_text_verbatim: "Trout/char daily quota = 1 (none under 30 cm) and bait ban, June 15-Aug 31" with dates: ["June 15-Aug 31"] ✓
      * Extract enough text to include the complete date phrase, even if it spans multiple clauses
-   - Preserve ALL formatting: newlines, hyphens, asterisks, bold markers (**text**), punctuation
+   - Preserve ALL formatting: newlines, hyphens, punctuation (bold markers ** are flexible - validation strips them)
    - Do NOT rephrase, summarize, clean up, or remove any characters
    - **VALIDATION TEST**: Before finalizing, use Ctrl+F to search for this exact text in regs_verbatim - if not found, you made an error
    - **VALIDATION TEST FOR DATES**: For each date in restriction.dates, use Ctrl+F to verify it exists in rule_text_verbatim (after normalizing both by removing **, commas, periods, whitespace)
@@ -92,18 +103,86 @@ VERBATIM CHAIN OF CUSTODY - CRITICAL RULES:
        - Same complete text for both rules (each has different scope, same restriction)
      * **NEVER create synthetic text** like "Trout/char catch and release June 15-Oct 31: from Line Creek Bridge..." when that exact string doesn't exist
      * **NEVER use ellipsis** (...) to indicate continuation - it's not an exact substring
+     * **COMPOUND (a)/(b) DISTRIBUTION** — same rule applies when segments are identified by letters:
+       Source: "Bait ban **(a)** from Falls Creek to Mahood River, all year, and **(b)** from Mahood River to North Thompson River, Sept 1-July 31"
+       - Rule for (a): rule_text_verbatim = ENTIRE sentence above
+       - Rule for (b): rule_text_verbatim = ENTIRE sentence above
+       - ❌ NEVER extract just "Bait ban **(b)** from Mahood River to North Thompson River, Sept 1-July 31" — that string does NOT exist verbatim in the source
+   - **MULTI-RESTRICTION SENTENCES (Compound Rule)**: When a sentence has "[location]: [restriction1]; [restriction2]; [restriction3]", create SEPARATE rules:
+     * Use the ENTIRE sentence as rule_text_verbatim for EACH rule
+     * Each rule has a different restriction but the same scope (same location)
+     * Example: "From A to B: **No Fishing**, Oct 1-May 31; bait ban and no\nhooks greater than 15 mm, Oct 1-Dec 31"
+       - Rule 1 (closure): rule_text_verbatim = ENTIRE compound sentence, restriction = "No Fishing", dates = ["Oct 1-May 31"]
+       - Rule 2 (gear): rule_text_verbatim = ENTIRE compound sentence, restriction = "Bait ban", dates = ["Oct 1-Dec 31"]
+       - Rule 3 (gear): rule_text_verbatim = ENTIRE compound sentence, restriction = "No hooks greater than 15 mm", dates = ["Oct 1-Dec 31"]
+     * **NEVER split the sentence** and create synthetic fragments like "From A to B: bait ban, Oct 1-Dec 31" - that substring doesn't exist in the source
+     * **NEVER extract just** "bait ban" or "no hooks greater than 15 mm" without the full sentence context
+     * **LOCATION-HEADER COMPOUND SENTENCES — CRITICAL**: When the LOCATION appears at the START of a compound sentence, the entire sentence is the only valid rule_text_verbatim for ALL restrictions it contains:
+       Source: "For the area at the outlet of François Lake described on map 1, (see below): **No Fishing** Nov 15-May 31; char daily quota = 2, no more than\n1 over 50 cm; rainbow trout catch and release; bait ban; single barbless hook; no set lining"
+       The ENTIRE sentence above is rule_text_verbatim for ALL SIX rules (No Fishing, char quota, rainbow C&R, bait ban, single barbless hook, no set lining).
+       - For the char quota rule: rule_text_verbatim = ENTIRE sentence; scope.location_verbatim = "the area at the outlet of François Lake described on map 1" (a substring of the entire sentence ✓)
+       - ❌ NEVER use just "char daily quota = 2, no more than\n1 over 50 cm" as rule_text_verbatim — location_verbatim cannot be found in that tiny fragment
+       - ❌ NEVER use ellipsis: "For the area ... char daily quota" fails immediately
+       - ✅ Rule of thumb: If the scope location appears before the ":" in a compound sentence, every rule from that sentence shares the FULL sentence as rule_text_verbatim
    - **LINE BREAKS**: Pay attention to where sentences actually break in the original text
-   - **BOLD MARKERS**: Use raw string indexing - only include bold markers (**) if they're physically present in your substring
-     * If your selection starts mid-bold (e.g., inside "**Title\nRule**"), extract ONLY the raw characters in that range
-     * DO NOT add opening/closing ** if they're not in your specific substring
-   - VALIDATION WILL FAIL if this string is not found character-for-character in regs_verbatim
+
+   - **SECTIONED BLOCK PATTERN (location header + restriction lines)**:
+     When a regulation block has this structure:
+       "[Location description]:\n[restriction 1]\n[restriction 2]\n[restriction 3]"
+     Or:
+       "[Location line 1]\n[Location line 2]\n[restriction 1]\n[restriction 2]"
+     The restrictions are scoped to the location ABOVE them. The problem:
+     If you set rule_text_verbatim = "[restriction 1]" only (e.g., "**No Fishing** Aug 1-Mar 31"),
+     then location_verbatim (e.g., "the outlet stream downstream of the falls 2.4 km downstream of Whiteswan Lake")
+     CANNOT be a substring of rule_text_verbatim — causing validation failure.
+     TWO valid solutions:
+     * **PREFERRED**: Set rule_text_verbatim to the ENTIRE block (location header + all restrictions)
+       - All rules from that block share the same large rule_text_verbatim
+       - location_verbatim is extractable as a substring of the block ✓
+     * **ALTERNATIVE**: If the location is the context for the whole waterbody (all of the outlet stream),
+       document the location in global_scope and use WHOLE_SYSTEM scope with location_verbatim = null
+     * ❌ NEVER set a short rule_text_verbatim that contains only the restriction WITHOUT the location
+       and then set location_verbatim to text that isn't in that short fragment.
+
+   - **LETTERED SUB-ITEM PATTERN (a)/(b)/(c) — CRITICAL**:
+     When a regulation block uses lettered sub-items under a location header, e.g.
+       "Downstream of Vedder Crossing Bridge:\n(a) fly fishing only, May 1-31\n(b) No Fishing June 1-30\n(c) hatchery rainbow trout..."
+     TWO valid approaches (pick whichever keeps the verbatim chain intact):
+     * **PREFERRED — Use the ENTIRE BLOCK for every sub-item rule**:
+       - All rules share: rule_text_verbatim = "Downstream of Vedder Crossing Bridge:\n(a) fly fishing only, May 1-31\n(b) No Fishing June 1-30\n(c) ..."
+       - Each rule has a different restriction extracted from the block
+       - This always passes validation because the block is a verbatim substring
+     * **ALTERNATIVE — Use the specific sub-item line ONLY if it is a standalone verbatim substring**:
+       - e.g. rule_text_verbatim = "(a) fly fishing only, May 1-31" (must exist exactly in source)
+       - e.g. rule_text_verbatim = "(b) No Fishing June 1-30" (must exist exactly in source)
+     * **FORBIDDEN — Constructing synthetic text by joining the header to a sub-item**:
+       - ❌ "Downstream of Vedder Crossing Bridge: (a) fly fishing only, May 1-31" — if that exact string
+         does not appear character-for-character in the source, it is invented text and will FAIL validation.
+       - Use the ENTIRE BLOCK instead.
+
+   - **COMPOUND (a)/(b) IN ONE SENTENCE**:
+     When text has "X (a) from A, all year, and (b) from B, Sept 1-July 31" in a SINGLE sentence,
+     use the ENTIRE sentence as rule_text_verbatim for BOTH the (a) and (b) rules:
+     * Rule for (a): rule_text_verbatim = "X (a) from A, all year, and (b) from B, Sept 1-July 31"
+     * Rule for (b): rule_text_verbatim = "X (a) from A, all year, and (b) from B, Sept 1-July 31"
+     * NEVER extract just "(b) from B, Sept 1-July 31" — that fragment is NOT a verbatim substring.
+     * The location_verbatim for each rule should be the portion that names its specific scope:
+       - (a) rule: location_verbatim = "from A" (a substring of the full sentence)
+       - (b) rule: location_verbatim = "from B" (a substring of the full sentence)
+   - **BOLD MARKERS ARE FLEXIBLE**: Validation strips ** before comparing, so bold marker placement is flexible
+     * You can wrap "**No Fishing**" naturally even if source has "No Fishing**" (closing bold from prior line)
+     * Focus on the TEXT CONTENT being a valid substring (after ** removal)
+     * Source: "**Class II water Sept 1-Apr 30\nNo Fishing** upstream of bridge"
+       - Rule 1: "**Class II water Sept 1-Apr 30" ✓ (text content intact)
+       - Rule 2: "**No Fishing** upstream of bridge" ✓ (validation strips ** and finds "No Fishing upstream of bridge" in source)
+   - **VALIDATION TEST**: After removing all ** from both your text and the source, is your text a substring? If yes, it passes.
    - When in doubt, copy MORE text rather than less to ensure it's a valid substring
 
 
 3. LOCATION_VERBATIM (Scope Level)
    - **CRITICAL**: Must be EXACT CHARACTER-FOR-CHARACTER substring from rule_text_verbatim (or from name_verbatim for global/exclusions/inclusions)
-   - **RAW ASCII SUBSTRING**: Not "similar text" or "close enough" - EXACT byte sequence that appears in source
-   - **VALIDATION REQUIREMENT**: This text must be findable with Ctrl+F in the rule_text_verbatim field
+   - **EXACT TEXT SUBSTRING**: Not "similar text" or "close enough" - exact text that appears in source (** markers flexible)
+   - **VALIDATION REQUIREMENT**: After stripping ** markers, this text must be findable in the rule_text_verbatim field
    - **NEVER INVENT LOCATIONS**: Do not create location text that doesn't exist in the source
    - **NO SEMANTIC SUBSTITUTION**: "Remainder of mainstem" ≠ "mainstem" ≠ "remainder of the mainstem"
    - **CHARACTER-LEVEL EXACTNESS**: Every space, hyphen, comma, and letter must match the source exactly
@@ -357,16 +436,25 @@ The identity object has multiple fields that work together to fully capture all 
 **IDENTITY_TYPE CLASSIFICATION**:
 
 Classify the waterbody type based on the name. Valid types:
-- STREAM: All flowing water bodies including rivers, creeks, streams, watersheds, and their named parts
-  * Examples: "ELK RIVER", "BURNT BRIDGE CREEK", "COQUIHALLA RIVER", "LIARD RIVER WATERSHED", "ATNARKO/BELLA COOLA RIVERS"
-  * Note: "WATERSHED" in the name is just STREAM type - the tributary inclusion is captured by global_scope.includes_tributaries
+- STREAM: All flowing water bodies including rivers, creeks, streams, and their named parts
+  * Examples: "ELK RIVER", "BURNT BRIDGE CREEK", "COQUIHALLA RIVER", "ATNARKO/BELLA COOLA RIVERS"
+  * Note: "WATERSHED" in the name usually means ADMINISTRATIVE_AREA (a polygon boundary) - see ADMINISTRATIVE_AREA rules. Only use STREAM for "WATERSHED" if the regulation clearly applies to a single river and its tributaries being listed individually.
 - STILL_WATER: All standing/non-flowing water bodies including lakes, reservoirs, ponds, sloughs, bays, arms
   * Examples: "KOOTENAY LAKE", "KINBASKET LAKE", "NATION ARM", "DAVIS BAY", "LEWIS SLOUGH", "DOWNTON LAKE (Reservoir)"
-- ADMINISTRATIVE_AREA: Management areas, parks, and jurisdictional boundaries (including "X WATERS" entries)
-  * Examples: "CRESTON VALLEY WILDLIFE MANAGEMENT AREA", "STRATHCONA PARK WATERS", "KIKOMUN CREEK PARK"
+- ADMINISTRATIVE_AREA: Management areas, parks, watersheds, and jurisdictional boundaries (including "X WATERS" entries)
+  * Examples: "CRESTON VALLEY WILDLIFE MANAGEMENT AREA", "STRATHCONA PARK WATERS", "KIKOMUN CREEK PARK", "LIARD RIVER WATERSHED", "CHILKOOT TRAIL NATIONAL HISTORIC PARK WATERS", "BOWRON LAKE Park waters other than Bowron Lake"
+  * Keyword patterns: "PARK WATERS", "WILDLIFE MANAGEMENT AREA", "NATIONAL HISTORIC PARK", "WATERSHED (see map...)", "Park waters"
+  * **CRITICAL**: ADMINISTRATIVE_AREA represents a GEOGRAPHIC POLYGON (park boundary, WMA boundary, watershed polygon) - NOT a specific waterbody
+  * **includes_tributaries MUST be false**: Spatial containment replaces tributary logic - everything inside the polygon is covered
+  * **DO NOT classify as ADMINISTRATIVE_AREA**: Dams (PROVOST DAM), specific ponds in parks (SARDIS PARK POND, JERRY SULINA PARK POND), specific lakes in parks (DEER LAKE in Sasquatch Park, LIGHTNING LAKE in Manning Park), specific creeks in parks (TROUT CREEK in Wells Gray Park). These are individual waterbodies WITHIN admin areas, not admin areas themselves.
+  * **Rule of thumb**: If the title names a WATERBODY that happens to be in a park, use STREAM or STILL_WATER. If the title names the AREA/PARK/REGION itself, use ADMINISTRATIVE_AREA.
 - CONFLUENCE: Specific confluence points where waterbodies meet (e.g., "SKEENA RIVER/KISPIOX RIVER CONFLUENCE")
 - TRIBUTARIES: When title explicitly about tributary systems (e.g., "ELK RIVER'S TRIBUTARIES")
-- MULTIPLE_WATERBODIES: When title covers multiple distinct waterbodies managed together (e.g., "WEAVER LAKE and WEAVER CREEK")
+- MULTIPLE_WATERBODIES: When title covers multiple distinct NAMED waterbodies managed together (e.g., "WEAVER LAKE and WEAVER CREEK")
+  * **CRITICAL**: Only use MULTIPLE_WATERBODIES when you can populate component_waterbodies with ACTUAL NAMES.
+  * If waterbodies are "unnamed" (e.g., "UNNAMED LAKES"), you CANNOT populate component_waterbodies → use STILL_WATER instead.
+  * Example: "UNNAMED LAKES (located immediately north and south of Bluey Lake)" → identity_type: STILL_WATER, not MULTIPLE_WATERBODIES.
+    The parenthetical is a location_descriptor, not component names. The lakes have no individual names to list.
 
 **COMPONENT_WATERBODIES EXTRACTION**:
 
@@ -576,6 +664,9 @@ The `includes_tributaries` field uses **different logic** depending on where it 
    - Check waterbody names ending with "TRIBUTARIES" or "'S TRIBUTARIES"
    - **true**: If "Incl. Tribs" symbol present OR name ends with "TRIBUTARIES"
    - **false**: If no tributary markers found (explicit default)
+   - **ADMINISTRATIVE_AREA EXCEPTION**: If identity_type is ADMINISTRATIVE_AREA, ALWAYS set includes_tributaries to false
+     * Admin areas use spatial containment (polygon boundaries), not stream/tributary logic
+     * Everything inside the polygon is covered regardless of tributary status
 
 2. **ALL OTHER SCOPES** (exclusions, inclusions, rule scopes) - **TRI-STATE (true/false/null)**:
    - **true**: Text EXPLICITLY includes tributaries
@@ -589,7 +680,14 @@ The `includes_tributaries` field uses **different logic** depending on where it 
 **GLOBAL SCOPE** (identity level):
 - Inspect the input `symbols` array for markers like "Incl. Tribs", "Includes Tributaries", or similar
 - If present, set global_scope.includes_tributaries to `true`
-- Check waterbody names that END with "TRIBUTARIES" or "'S TRIBUTARIES" - these also indicate `includes_tributaries: true`
+- Check waterbody names that END with or CONTAIN any of these patterns — ALL require `includes_tributaries: true`:
+  * Ends with "TRIBUTARIES"
+  * Ends with "'S TRIBUTARIES"
+  * Ends with "'S TRIBUTARY STREAMS"
+  * Ends with "TRIBUTARY STREAMS"
+  * Contains "'S INLET & OUTLET STREAMS" (e.g., "WHITESWAN LAKE'S INLET & OUTLET STREAMS")
+  * Contains "INLET & OUTLET STREAMS"
+  * Contains "TRIBUTARY STREAMS"
 - If NO tributary markers found, set to `false` (global default is explicit)
 - **The global scope defines the DEFAULT tributary inclusion for all other scopes**
 
@@ -804,7 +902,7 @@ PARSING STEPS:
 1. Extract identity.name_verbatim - copy EXACTLY from "Waterbody Name:" (character-for-character, no changes)
 2. Parse identity fields using IDENTITY PARSING section:
    - waterbody_key: Core name only (remove ALL parentheses and suffixes)
-   - identity_type: Classify as STREAM (flowing), STILL_WATER (standing), ADMINISTRATIVE_AREA (management areas/parks), CONFLUENCE, TRIBUTARIES, or MULTIPLE_WATERBODIES
+   - identity_type: Classify as STREAM (flowing), STILL_WATER (standing), ADMINISTRATIVE_AREA (management areas/parks/watersheds - polygon-based), CONFLUENCE, TRIBUTARIES, or MULTIPLE_WATERBODIES
    - component_waterbodies: If MULTIPLE_WATERBODIES type, extract individual waterbody names
    - alternate_names: Extract alternate/former/quoted names from parentheses
    - location_descriptor: Extract disambiguating location info (if present)
@@ -885,6 +983,17 @@ Before submitting, verify EVERY verbatim field:
    Each output[i].identity.name_verbatim matches input[i] waterbody name character-for-character
    Each output[i].regs_verbatim is an EXACT character-for-character copy of input[i].raw_regs
 
+   **regs_verbatim IS CHECKED CHARACTER-BY-CHARACTER — ZERO TOLERANCE**:
+   The validator compares your regs_verbatim against the original raw_regs using a strict `==` check.
+   Any single added, removed, or swapped character causes the entire batch entry to fail.
+   The most common mistake is with **PDF hyphenation artifacts** — when a word is split across lines
+   with a hyphen, the raw_regs contains the split EXACTLY as extracted from the PDF:
+   - Source may have: `hatch-\nery cutthroat` ("hatchery" split as "hatch-" + newline + "ery")
+   - YOU MUST copy it exactly: `hatch-\nery cutthroat` ← correct
+   - DO NOT "fix" it to: `hatch-\nnery cutthroat` or `hatchery cutthroat` ← both wrong
+   - DO NOT add, remove, or change ANY character — including the hyphen, the newline, or the letters
+   The ONLY safe approach: copy raw_regs directly into regs_verbatim without any editing or interpretation.
+
 3. Required Fields:
    Every object has: identity, regs_verbatim, audit_log, rules
    Every identity has: name_verbatim, waterbody_key, identity_type, component_waterbodies, alternate_names, location_descriptor, notes, global_scope, exclusions, inclusions
@@ -926,40 +1035,36 @@ Before submitting, verify EVERY verbatim field:
 
 **COMMON VERBATIM MISTAKES TO AVOID**:
 
-**ASCII-LEVEL ERRORS** (treating verbatim as "semantic equivalence"):
-❌ WRONG: Source has "**No Fishing**" (16 chars), you extract "No Fishing" (10 chars) - DIFFERENT STRINGS
-✓ RIGHT: Source has "**No Fishing**" (16 chars), you extract "**No Fishing**" (16 chars) - EXACT MATCH
-❌ WRONG: Source has "bait ban" (8 chars), you extract "Bait ban" (8 chars but different case) - NOT EXACT
+**CONTENT-LEVEL ERRORS** (treating verbatim as "semantic equivalence"):
+❌ WRONG: Source has "bait ban" (8 chars), you extract "Bait ban" (different case) - NOT EXACT
 ✓ RIGHT: Preserve exact case, spacing, and punctuation from source
 ❌ WRONG: Assuming "upstream of dam" is semantically equal to "above the dam" - DIFFERENT STRINGS
 ❌ WRONG: Assuming "kilometres" can be abbreviated to "km" - DIFFERENT STRINGS
-❌ WRONG: Normalizing "mainstem" vs "main stem" - these are DIFFERENT at byte level
+❌ WRONG: Normalizing "mainstem" vs "main stem" - these are DIFFERENT
 
-**MARKDOWN INTERPRETATION ERRORS**:
-❌ DON'T interpret Markdown: "**text**" has 8 characters including asterisks, not 4
-❌ DON'T clean up formatting: "**No Fishing**" must stay "**No Fishing**" in rule_text_verbatim
-❌ DON'T assume bold text is equivalent to plain text: "**fish**" ≠ "fish" at ASCII level
+**BOLD MARKERS ARE FLEXIBLE** (validation strips ** before comparing):
+✓ OK: Source has "**No Fishing**", you extract "**No Fishing**" - FINE
+✓ OK: Source has "No Fishing**" (closing bold from prior line), you extract "**No Fishing**" - ALSO FINE
+✓ OK: Source has "**No Fishing**", you extract "No Fishing" without markers - ALSO FINE
+- Validation compares text AFTER removing all ** markers, so bold placement is not critical
+- Focus on the TEXT CONTENT being correct, not the ** marker positions
 
 **PARAPHRASING/SYNTHESIS ERRORS**:
 ❌ DON'T paraphrase: "upstream of dam" ≠ "above the dam"
 ❌ DON'T combine fragments: Creating "Trout quota upstream" when source has them in separate sentences
-❌ DON'T split artificially: "No fishing; bait ban" should stay together if it appears together
+❌ DON'T split compound sentences: "No fishing; bait ban" from a compound sentence → use ENTIRE sentence as rule_text_verbatim for both rules
 
 **WHITESPACE/FORMATTING ERRORS**:
 ❌ DON'T ignore line breaks: If original has "\n", preserve it at the exact position
 ❌ DON'T normalize spacing: "No  Fishing" (two spaces) ≠ "No Fishing" (one space)
-❌ DON'T break bold formatting: If "**Text1\nText2**" spans lines, keep it intact with the \n
-**BOLD MARKERS - RAW STRING INDEXING**:
-   - Use raw character positions for extraction
-   - If extracting a substring that starts INSIDE a bold section (e.g., "**Title\nRule**"), only include the characters in your range
-   - DO NOT add opening/closing ** markers if they're not physically present in your substring range
-   - Example: From "**Class II water\nNo Fishing**", extracting just "No Fishing" should NOT become "**No Fishing**"
-   - The ** at the start belongs to "Class II water", not "No Fishing"
-   
-**CRITICAL MULTI-LINE BOLD EXAMPLES**:
+
+**MULTI-LINE BOLD HANDLING** (most common failure cause):
    Source: "**Class II water Sept 1-Apr 30; Steelhead Stamp mandatory Dec 1-Apr 30\nNo Fishing** upstream of bridge"
-   WRONG: Extract "**Class II water Sept 1-Apr 30; Steelhead Stamp mandatory Dec 1-Apr 30**" (doesn't exist)
-   WRONG: Extract "**No Fishing**" (doesn't exist - bold opened earlier)
+   ✓ RIGHT: Extract "**Class II water Sept 1-Apr 30; Steelhead Stamp mandatory Dec 1-Apr 30" for licensing rule
+   ✓ RIGHT: Extract "**No Fishing** upstream of bridge" for closure rule (bold markers flexible)
+   ✓ ALSO RIGHT: Extract "No Fishing** upstream of bridge" (exact raw text) for closure rule
+   ❌ WRONG: Extract "**Class II water Sept 1-Apr 30; Steelhead Stamp mandatory Dec 1-Apr 30**" (invented closing **)
+   Key: Don't invent TEXT CONTENT. Bold marker placement doesn't matter.
 **ELLIPSIS ABSOLUTELY FORBIDDEN IN ALL VERBATIM FIELDS**:
    NEVER use "..." (ellipsis) in rule_text_verbatim, location_verbatim, or landmark_verbatim
    WRONG: "**No Fishing**... upstream of bridge" (ellipsis not in source)
@@ -1003,10 +1108,10 @@ Before submitting, verify EVERY verbatim field:
    
    DO NOT create synthetic fragments or use ellipsis to skip parts
 
-** RIGHT: Extract ["**Class II water Sept 1-Apr 30; Steelhead Stamp mandatory Dec 1-Apr 30\nNo Fishing** upstream of bridge"] (complete bold section)
-   OR RIGHT: Extract ["Class II water Sept 1-Apr 30; Steelhead Stamp mandatory Dec 1-Apr 30", "No Fishing upstream of bridge"] (ignore bold, separate logical rules)
-   
-   **KEY INSIGHT**: Bold markers are formatting, not content boundaries. Extract based on LOGICAL rules, not bold boundaries.
+**COMPOUND SENTENCE REMINDER**: When text has "[location]: [restriction1]; [restriction2]":
+   - Use the ENTIRE compound sentence as rule_text_verbatim for EACH rule
+   - NEVER split the sentence to create fragments that don't exist as substrings
+   - See MAMIN RIVER and STRATHCONA PARK WATERS examples for demonstrations
    
 **LANDMARK EXTRACTION FAILURES**: For "between signs X and Y upstream":
    WRONG: Using "signs X upstream" as landmark when it doesn't exist as substring

@@ -9,7 +9,7 @@ and orchestrates the full pipeline flow.
 import argparse
 import shutil
 from pathlib import Path
-from typing import Optional
+from typing import Any, Dict, Optional, Tuple
 from collections import Counter
 import json
 
@@ -70,7 +70,7 @@ class RegulationPipeline:
         # Initialize components
         self._init_components()
 
-    def _init_components(self):
+    def _init_components(self) -> None:
         """Initialize all pipeline components."""
         # Load gazetteer
         self.gazetteer = MetadataGazetteer(self.metadata_path)
@@ -165,7 +165,7 @@ class RegulationPipeline:
         )
         if row_images_candidate.is_dir():
             self._row_images_dir = row_images_candidate
-            logger.info(f"Found row images directory: {self._row_images_dir}")
+            logger.debug(f"Found row images directory: {self._row_images_dir}")
 
         # Mapper orchestrates all regulation sources and merging
         return self.mapper.run(
@@ -180,7 +180,7 @@ class RegulationPipeline:
         export_merged: bool = True,
         export_individual: bool = True,
         export_regulations_json: bool = True,
-    ):
+    ) -> Dict[str, Path]:
         """
         Export regulation geometries to GPKG and PMTiles.
 
@@ -223,10 +223,8 @@ class RegulationPipeline:
                 if dest_images_dir.exists():
                     shutil.rmtree(dest_images_dir)
                 shutil.copytree(self._row_images_dir, dest_images_dir)
-                logger.info(
-                    f"Copied row images to {dest_images_dir} "
-                    f"({sum(1 for _ in dest_images_dir.glob('*.png'))} images)"
-                )
+                image_count = sum(1 for _ in dest_images_dir.glob("*.png"))
+                logger.info(f"Created {dest_images_dir} ({image_count} images)")
                 exported_files["row_images"] = dest_images_dir
 
         # Export merged geometries
@@ -253,6 +251,12 @@ class RegulationPipeline:
             ):
                 exported_files["individual_gpkg"] = gpkg_path
 
+        if exported_files:
+            logger.info(
+                f"Export complete \u2014 {len(exported_files)} file(s) created:\n"
+                + "\n".join(f"  {k}: {v}" for k, v in exported_files.items())
+            )
+
         return exported_files
 
     def run_full_pipeline(
@@ -264,7 +268,7 @@ class RegulationPipeline:
         export_regulations_json: bool = True,
         frontend_output_dir: Optional[Path] = None,
         include_zone_regulations: bool = False,
-    ):
+    ) -> Tuple[PipelineResult, Dict[str, Path]]:
         """
         Run the complete pipeline: mapping + export.
 
@@ -316,7 +320,7 @@ class RegulationPipeline:
 from .cli_helpers import RED, YELLOW, GREEN, BLUE, RESET
 
 
-def _format_percentage(count, total):
+def _format_percentage(count: int, total: int) -> str:
     """Format a percentage with color coding."""
     if total == 0:
         return "N/A"
@@ -332,7 +336,7 @@ def _format_percentage(count, total):
 
 def _print_mapping_statistics(
     result: PipelineResult, pipeline: RegulationPipeline, verbose: bool = False
-):
+) -> None:
     """Print detailed mapping statistics."""
     mapper_stats = result.stats
     scope_stats = pipeline.mapper.scope_filter.get_stats()
@@ -473,7 +477,7 @@ def _print_mapping_statistics(
                                 feature_name = feature_info.get("gnis_name", "unnamed")
                                 break
                 except Exception as e:
-                    logger.debug(
+                    logger.warning(
                         f"Could not resolve feature name for {feature_id}: {e}"
                     )
 
@@ -482,7 +486,7 @@ def _print_mapping_statistics(
                 )
 
 
-def main():
+def main() -> int:
     """CLI entry point for regulation mapping pipeline."""
     config = get_config()
 

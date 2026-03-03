@@ -5,12 +5,12 @@ Traverses FWA stream network graph to find upstream tributaries.
 Uses caching to avoid duplicate graph traversals.
 """
 
-from typing import List, Dict, Set, Union, Optional
+from typing import Any, Dict, List, Optional, Set, Union
 from pathlib import Path
 import pickle
 from collections import deque
 
-from fwa_pipeline.metadata_gazetteer import FWAFeature, FeatureType
+from fwa_pipeline.metadata_gazetteer import FWAFeature, MetadataGazetteer, FeatureType
 from .logger_config import get_logger
 
 logger = get_logger(__name__)
@@ -38,9 +38,23 @@ class TributaryEnricher:
     # - Stop when reaching a different edge type (don't include non-matching edges)
     EXCLUDED_EDGE_TYPES = {"2300"}  # Add more as needed
 
+    @staticmethod
+    def _get_edge_type(edge: Any) -> str:
+        """Safely extract edge_type from a graph edge, logging on unexpected errors."""
+        try:
+            val = edge["edge_type"]
+        except (KeyError, AttributeError) as exc:
+            logger.debug(
+                f"Edge {getattr(edge, 'index', '?')} missing 'edge_type': {exc}"
+            )
+            return ""
+        return str(val) if val else ""
+
     def __init__(
-        self, graph_source: Union[str, Path, Dict, None] = None, metadata_gazetteer=None
-    ):
+        self,
+        graph_source: Union[str, Path, Dict[str, Any], None] = None,
+        metadata_gazetteer: Optional[MetadataGazetteer] = None,
+    ) -> None:
         """
         Initialize TributaryEnricher.
 
@@ -89,7 +103,7 @@ class TributaryEnricher:
         self.reverse_adj: Dict[int, List[int]] = {}
 
         if self.graph:
-            logger.info("Building lookup indices...")
+            logger.debug("Building lookup indices...")
             for edge in self.graph.es:
                 linear_id = edge["linear_feature_id"]
                 if linear_id:
@@ -107,13 +121,13 @@ class TributaryEnricher:
                     self.reverse_adj[target] = []
                 self.reverse_adj[target].append(edge.index)
 
-            logger.info(
+            logger.debug(
                 f"  Indexed {len(self.linear_feature_id_to_edge_idx):,} linear features"
             )
-            logger.info(
+            logger.debug(
                 f"  Indexed {len(self.waterbody_key_to_edge_indices):,} waterbody keys"
             )
-            logger.info(
+            logger.debug(
                 f"  Indexed {len(self.reverse_adj):,} nodes in reverse adjacency"
             )
 
@@ -133,9 +147,9 @@ class TributaryEnricher:
     def enrich_with_tributaries(
         self,
         linear_feature_ids: List[str],
-        excluded_watershed_codes: Set[str] = None,
-        excluded_waterbody_keys: Set[str] = None,
-    ) -> List:
+        excluded_watershed_codes: Optional[Set[str]] = None,
+        excluded_waterbody_keys: Optional[Set[str]] = None,
+    ) -> List[FWAFeature]:
         """
         Find upstream tributaries for given stream linear_feature_ids.
 
@@ -217,7 +231,7 @@ class TributaryEnricher:
         self.total_tributaries_found += len(tributary_features)
         self.total_base_features += len(linear_feature_ids)
 
-        logger.info(
+        logger.debug(
             f"Tributary enrichment: {len(linear_feature_ids)} seeds → "
             f"{len(tributary_features)} tributaries "
             f"[{len(seed_edges)} edges, {len(excluded_codes)} excluded watershed codes and excluded waterbody keys: {len(excluded_keys)}]"
@@ -257,11 +271,7 @@ class TributaryEnricher:
             edge = self.graph.es[edge_idx]
 
             # Check if CURRENT edge has an excluded type
-            try:
-                current_edge_type = edge["edge_type"]
-            except (KeyError, AttributeError):
-                current_edge_type = ""
-            current_edge_type_str = str(current_edge_type) if current_edge_type else ""
+            current_edge_type_str = self._get_edge_type(edge)
             current_is_excluded_type = current_edge_type_str in self.EXCLUDED_EDGE_TYPES
 
             # Continue upstream from this edge's source node using pre-built
@@ -290,13 +300,7 @@ class TributaryEnricher:
                     continue
 
                 # Get upstream edge type
-                try:
-                    upstream_edge_type = upstream_edge["edge_type"]
-                except (KeyError, AttributeError):
-                    upstream_edge_type = ""
-                upstream_edge_type_str = (
-                    str(upstream_edge_type) if upstream_edge_type else ""
-                )
+                upstream_edge_type_str = self._get_edge_type(upstream_edge)
                 upstream_is_excluded_type = (
                     upstream_edge_type_str in self.EXCLUDED_EDGE_TYPES
                 )
@@ -313,7 +317,7 @@ class TributaryEnricher:
 
         return tributaries
 
-    def _edges_to_features(self, edge_indices: Set[int]) -> List:
+    def _edges_to_features(self, edge_indices: Set[int]) -> List[FWAFeature]:
         """
         Convert edge indices to FWAFeature objects STRICTLY using the MetadataGazetteer.
 
@@ -355,7 +359,7 @@ class TributaryEnricher:
 
         return tributary_features
 
-    def clear_cache(self):
+    def clear_cache(self) -> None:
         """
         Clear enrichment cache.
 
@@ -364,7 +368,7 @@ class TributaryEnricher:
         self.enrichment_cache.clear()
         logger.debug("Cleared tributary enrichment cache")
 
-    def get_stats(self) -> Dict:
+    def get_stats(self) -> Dict[str, Any]:
         """
         Return statistics about tributary enrichment.
 

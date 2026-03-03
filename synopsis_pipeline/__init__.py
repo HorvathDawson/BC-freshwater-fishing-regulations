@@ -25,6 +25,4 @@ __all__ = [
     "RestrictionObject",
     "IdentityObject",
     "RuleGroup",
-    "BatchProcessor",
-    "SessionManager",
 ]

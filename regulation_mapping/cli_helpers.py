@@ -6,6 +6,8 @@ formatting so that every CLI test uses the same presentation code.
 """
 
 import shutil
+import warnings
+
 
 # --- ANSI colour codes ---
 RED = "\033[91m"
@@ -20,7 +22,8 @@ def tw(default: int = 80) -> int:
     """Return the current terminal width (columns)."""
     try:
         return shutil.get_terminal_size((default, 20)).columns
-    except Exception:
+    except Exception as e:
+        warnings.warn(f"Failed to detect terminal width, using default={default}: {e}")
         return default
 
 

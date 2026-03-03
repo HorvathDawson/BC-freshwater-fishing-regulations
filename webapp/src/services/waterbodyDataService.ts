@@ -9,9 +9,38 @@
  */
 
 import type { Regulation } from './regulationsService';
+import type { NameVariant } from '../utils/featureUtils';
+
+/** Shape of a single waterbody entry from waterbody_data.json */
+export interface WaterbodyItem {
+  id: string;
+  gnis_name?: string;
+  type: string;
+  zones?: string;
+  mgmt_units?: string;
+  region_name?: string;
+  regulation_ids?: string;
+  regulation_names?: string[];
+  name_variants?: NameVariant[];
+  bbox?: [number, number, number, number];
+  min_zoom?: number;
+  length_km?: number;
+  segment_count?: number;
+  properties?: Record<string, string | number | boolean | null>;
+  regulation_segments?: {
+    frontend_group_id?: string;
+    group_id?: string;
+    group_ids?: string[];
+    regulation_ids?: string;
+    regulation_names?: string[];
+    name_variants?: NameVariant[];
+    length_km?: number;
+    bbox?: [number, number, number, number] | null;
+  }[];
+}
 
 export interface WaterbodyData {
-  waterbodies: any[];
+  waterbodies: WaterbodyItem[];
   regulations: Record<string, Regulation>;
 }
 
@@ -50,7 +79,7 @@ class WaterbodyDataService {
     return this.loadPromise;
   }
 
-  async getWaterbodies(): Promise<any[]> {
+  async getWaterbodies(): Promise<WaterbodyItem[]> {
     const data = await this.load();
     return data.waterbodies || [];
   }
@@ -61,7 +90,9 @@ class WaterbodyDataService {
   }
 
   preload(): void {
-    this.load().catch(() => {});
+    this.load().catch((err) => {
+      console.warn('Waterbody data preload failed:', err);
+    });
   }
 }
 

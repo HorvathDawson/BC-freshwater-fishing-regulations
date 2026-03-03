@@ -20,6 +20,7 @@ from .provincial_base_regulations import (
     ProvincialRegulation,
 )
 from .admin_target import AdminTarget
+from .zone_base_regulations import ZoneRegulation
 from fwa_pipeline.metadata_gazetteer import FWAFeature, MetadataGazetteer, FeatureType
 from .logger_config import get_logger
 
@@ -233,7 +234,7 @@ def build_feature_index(
 
 
 def resolve_direct_match_features(
-    gazetteer: MetadataGazetteer, reg
+    gazetteer: MetadataGazetteer, reg: Any
 ) -> List[FWAFeature]:
     """Resolve FWA features from a regulation's direct-match ID fields.
 
@@ -290,7 +291,7 @@ def resolve_direct_match_features(
     return features
 
 
-def resolve_direct_match_ids(gazetteer: MetadataGazetteer, reg) -> set:
+def resolve_direct_match_ids(gazetteer: MetadataGazetteer, reg: Any) -> set:
     """Resolve FWA feature IDs from a regulation's direct-match ID fields.
 
     Thin wrapper around ``resolve_direct_match_features`` that returns
@@ -300,7 +301,7 @@ def resolve_direct_match_ids(gazetteer: MetadataGazetteer, reg) -> set:
 
 
 def resolve_zone_wide_ids(
-    reg,
+    reg: Any,
     zone_index: FeatureIndex,
     mu_index: FeatureIndex,
     all_feature_types: Optional[List[FeatureType]] = None,
@@ -616,7 +617,7 @@ class RegulationMapper:
                 self.admin_feature_map[name_verbatim] = [f.fwa_id for f in matched]
                 base_features = matched
 
-                logger.info(
+                logger.debug(
                     f"  Admin match '{name_verbatim}': {len(matched)} FWA features"
                 )
 
@@ -1101,7 +1102,7 @@ class RegulationMapper:
                 self.feature_to_regs.setdefault(fid, []).append(prov_reg.regulation_id)
                 self.feature_to_linked_regulation[fid].add(prov_reg.regulation_id)
 
-            logger.info(
+            logger.debug(
                 f"  Provincial '{prov_reg.regulation_id}': {len(feature_ids)} FWA features"
             )
 
@@ -1130,20 +1131,7 @@ class RegulationMapper:
         Resolve features for a provincial regulation via admin boundary intersection.
         Returns list of feature IDs, or empty list on failure.
         """
-        matched, admin_entries = self._lookup_admin_targets(
-            prov_reg.admin_targets, prov_reg.feature_types, prov_reg.regulation_id
-        )
-
-        feature_ids = [f.fwa_id for f in matched]
-        self._backfill_waterbody_keys(set(feature_ids))
-
-        # Track admin polygon → regulation IDs for admin boundary export
-        for layer_key, admin_feat in admin_entries:
-            self.admin_area_reg_map[layer_key][admin_feat.fwa_id].add(
-                prov_reg.regulation_id
-            )
-
-        return feature_ids
+        return self._resolve_admin_reg(prov_reg)
 
     def _resolve_provincial_feature_types(
         self, prov_reg: ProvincialRegulation
@@ -1288,7 +1276,7 @@ class RegulationMapper:
 
     def _resolve_zone_wide(
         self,
-        zone_reg,
+        zone_reg: ZoneRegulation,
         zone_index: FeatureIndex,
         mu_index: FeatureIndex,
         zone_index_buf: FeatureIndex,
@@ -1366,27 +1354,32 @@ class RegulationMapper:
                         self.linked_waterbody_keys_of_polygon.add(str(wb_key))
                     break
 
-    def _resolve_zone_admin(self, zone_reg) -> List[str]:
+    def _resolve_zone_admin(self, zone_reg: ZoneRegulation) -> List[str]:
         """
         Resolve features for a zone regulation via admin boundary intersection.
         Returns list of feature IDs, or empty list on failure.
         """
+        return self._resolve_admin_reg(zone_reg)
+
+    def _resolve_admin_reg(self, reg: Any) -> List[str]:
+        """Resolve features for any regulation via admin boundary intersection.
+
+        Shared implementation for provincial and zone admin target resolution.
+        ``reg`` must expose ``admin_targets``, ``feature_types``, and ``regulation_id``.
+        """
         matched, admin_entries = self._lookup_admin_targets(
-            zone_reg.admin_targets, zone_reg.feature_types, zone_reg.regulation_id
+            reg.admin_targets, reg.feature_types, reg.regulation_id
         )
 
         feature_ids = [f.fwa_id for f in matched]
         self._backfill_waterbody_keys(set(feature_ids))
 
-        # Track admin polygon → regulation IDs for boundary export
         for layer_key, admin_feat in admin_entries:
-            self.admin_area_reg_map[layer_key][admin_feat.fwa_id].add(
-                zone_reg.regulation_id
-            )
+            self.admin_area_reg_map[layer_key][admin_feat.fwa_id].add(reg.regulation_id)
 
         return feature_ids
 
-    def _resolve_zone_direct_match(self, zone_reg) -> set:
+    def _resolve_zone_direct_match(self, zone_reg: ZoneRegulation) -> set:
         """Delegate to ``resolve_direct_match_ids`` and backfill waterbody keys."""
         matched_ids = resolve_direct_match_ids(self.gazetteer, zone_reg)
         self._backfill_waterbody_keys(matched_ids)
@@ -1443,7 +1436,12 @@ class RegulationMapper:
                                 polygon_seeds_by_type[feature_type].extend(
                                     connected_streams
                                 )
-                    except ValueError:
+                    except ValueError as exc:
+                        logger.warning(
+                            "ValueError resolving tributaries for feature %s: %s",
+                            linear_id,
+                            exc,
+                        )
                         continue
 
         all_tributaries_dict = {}
@@ -1687,12 +1685,13 @@ class RegulationMapper:
                 sections[i] = "000000"
         return parents
 
-    def _with_progress(self, iterable, desc: str, unit: str):
+    def _with_progress(self, iterable: Any, desc: str, unit: str) -> Any:
         try:
             from tqdm import tqdm
 
             return tqdm(iterable, desc=desc, unit=unit)
         except ImportError:
+            logger.debug("tqdm not available, progress bars disabled")
             return iterable
 
     def get_stats(self) -> RegulationMappingStats:
