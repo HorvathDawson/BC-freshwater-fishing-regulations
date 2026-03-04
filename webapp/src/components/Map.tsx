@@ -413,7 +413,7 @@ const MapComponent = () => {
             const feat = selectedFeatureRef.current;
             if (!map || !feat) return;
 
-            const targetMin = (feat.minzoom || 10) + 0.5;
+            const targetMin = (feat.minzoom || 10) + 0.25;
             if (feat.bbox) {
                 const bounds = new maplibregl.LngLatBounds([feat.bbox[0], feat.bbox[1]], [feat.bbox[2], feat.bbox[3]]);
                 const { padding } = getMobilePaddingForBounds(bounds);
@@ -577,7 +577,7 @@ const MapComponent = () => {
             const { padding, panelState } = isMobile
                 ? getMobilePaddingForBounds(bounds)
                 : { padding: { top: 80, bottom: 80, left: 80, right: 350 }, panelState: 'expanded' as CollapseState };
-            flyToBbox(map, featureBbox, padding, (featureInfo.minzoom || 10) + 0.5);
+            flyToBbox(map, featureBbox, padding, (featureInfo.minzoom || 10) + 0.25);
             if (isMobile) setMobilePanelState(panelState);
         }
         
@@ -854,7 +854,7 @@ const MapComponent = () => {
                     const { padding, panelState } = isMobile
                         ? getMobilePaddingForBounds(bounds)
                         : { padding: { top: 80, bottom: 80, left: 80, right: 350 }, panelState: 'expanded' as CollapseState };
-                    flyToBbox(map, selected.bbox, padding, (selected.minzoom || 10) + 0.5);
+                    flyToBbox(map, selected.bbox, padding, (selected.minzoom || 10) + 0.25);
                     if (isMobile) setMobilePanelState(panelState);
                 } else if (isMobile) {
                     setMobilePanelState('partial');
@@ -933,7 +933,7 @@ const MapComponent = () => {
             const { padding, panelState } = isMobile
                 ? getMobilePaddingForBounds(bounds)
                 : { padding: { top: 80, bottom: 80, left: 80, right: 350 }, panelState: 'expanded' as CollapseState };
-            flyToBbox(map, feature.bbox, padding, targetMinZoom + 0.5);
+            flyToBbox(map, feature.bbox, padding, targetMinZoom + 0.25);
             // Store target panel state; applied after disambig check below
             if (isMobile) setMobilePanelState(panelState);
         }
@@ -1021,16 +1021,23 @@ const MapComponent = () => {
                             hoverTimeoutRef.current = setTimeout(() => {
                                 setHighlightedOption(option);
                                 const map = mapRef.current; if (!map) return;
-                                const bounds = new maplibregl.LngLatBounds();
-                                if (option.bbox) bounds.extend([[option.bbox[0], option.bbox[1]], [option.bbox[2], option.bbox[3]]]);
-                                else extendBoundsWithGeometry(bounds, option.geometry);
-                                if (!bounds.isEmpty()) {
-                                    const isMobile = isMobileViewport();
-                                    const padding = isMobile
-                                        ? { top: 60, bottom: getMobileBottomPadding(), left: 40, right: 40 }
-                                        : { top: 80, bottom: 80, left: 80, right: 350 };
-                                    const minZoom = (option.minzoom || 10) + 0.5;
-                                    map.fitBounds(bounds, { padding, maxZoom: 15, minZoom, duration: 400 });
+                                const isMobile = isMobileViewport();
+                                const padding = isMobile
+                                    ? { top: 60, bottom: getMobileBottomPadding(), left: 40, right: 40 }
+                                    : { top: 80, bottom: 80, left: 80, right: 350 };
+                                if (option.bbox) {
+                                    flyToBbox(map, option.bbox, padding, (option.minzoom || 10) + 0.25, 400);
+                                } else if (option.geometry) {
+                                    const bounds = new maplibregl.LngLatBounds();
+                                    extendBoundsWithGeometry(bounds, option.geometry);
+                                    if (!bounds.isEmpty()) {
+                                        const camera = map.cameraForBounds(bounds, { padding });
+                                        if (camera) {
+                                            const minZoom = (option.minzoom || 10) + 0.25;
+                                            const finalZoom = Math.max(camera.zoom || 0, minZoom);
+                                            map.flyTo({ ...camera, zoom: Math.min(finalZoom, 15), duration: 400 });
+                                        }
+                                    }
                                 }
                             }, 50);
                         } else {
@@ -1051,7 +1058,7 @@ const MapComponent = () => {
                             const padding = isMobile 
                                 ? { top: 60, bottom: getMobileBottomPadding(), left: 40, right: 40 }
                                 : { top: 80, bottom: 80, left: 80, right: 350 };
-                            flyToBbox(map, f.bbox, padding, (f.minzoom || 10) + 0.5);
+                            flyToBbox(map, f.bbox, padding, (f.minzoom || 10) + 0.25);
                         }
                     }} onClose={clearSelection}
                 />
