@@ -167,7 +167,7 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
         
         // Build deduplicated aliases from name_variants
         const nameVariantsRaw: (NameVariant | string)[] = Array.isArray(props.name_variants) ? props.name_variants : [];
-        const title = getFeatureDisplayName(props, regulationsService.filterOutProvincialNames);
+        const title = getFeatureDisplayName(props);
         const typeLabel = feature.type.toUpperCase();
         const seen = new Set<string>();
         seen.add((title as string).toLowerCase());
@@ -189,10 +189,8 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                 <div 
                     className="panel-header" 
                     onClick={() => {
-                        // Cycle through states
-                        if (collapseState === 'expanded') onSetCollapseState('partial');
-                        else if (collapseState === 'partial') onSetCollapseState('collapsed');
-                        else onSetCollapseState('expanded');
+                        // Toggle between expanded and partial
+                        onSetCollapseState(collapseState === 'expanded' ? 'partial' : 'expanded');
                     }}
                     onTouchStart={handleTouchStart}
                     onTouchEnd={handleTouchEnd}
@@ -318,11 +316,18 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
 
                             // Group regulations by source category + region
                             const groupedRegulations = filteredRegulations.reduce((groups, reg) => {
+                                let groupKey: string;
                                 let groupLabel: string;
+                                let groupSubtitle: string = '';
 
                                 if (reg.source === 'zone') {
-                                    // Zone regulations: use the region field set by the backend
-                                    groupLabel = reg.region || 'Zone Regulations';
+                                    // Zone regulations: reg.region already includes "REGION X - Name".
+                                    // Include zone_ids in key so different zones stay separate.
+                                    const zoneKey = reg.zone_ids?.length ? reg.zone_ids.sort().join(',') : '';
+                                    const regionName = reg.region || 'Zone Regulations';
+                                    groupKey = `zone|${zoneKey}|${regionName}`;
+                                    groupLabel = regionName;
+                                    groupSubtitle = '';
                                 } else if (reg.source === 'provincial') {
                                     // Provincial / admin-boundary regulations
                                     if (reg.scope_location) {
@@ -335,21 +340,29 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                                     } else {
                                         groupLabel = 'Provincial Regulations';
                                     }
+                                    groupKey = `prov|${groupLabel}`;
+                                    groupSubtitle = '';
                                 } else {
-                                    // Synopsis regulations: group by waterbody_name
-                                    groupLabel = reg.waterbody_name || 'Regulations';
+                                    // Synopsis regulations: group by waterbody_name + region
+                                    // so same name from different regions stays separate.
+                                    const wbName = reg.waterbody_name || 'Regulations';
+                                    const regionName = reg.region || '';
+                                    groupKey = `syn|${regionName}|${wbName}`;
+                                    groupLabel = wbName;
+                                    groupSubtitle = regionName;
                                 }
 
-                                if (!groups[groupLabel]) {
-                                    groups[groupLabel] = {
+                                if (!groups[groupKey]) {
+                                    groups[groupKey] = {
                                         label: groupLabel,
+                                        subtitle: groupSubtitle,
                                         source: reg.source || 'synopsis',
                                         regulations: []
                                     };
                                 }
-                                groups[groupLabel].regulations.push(reg);
+                                groups[groupKey].regulations.push(reg);
                                 return groups;
-                            }, {} as Record<string, { label: string; source: string; regulations: Regulation[] }>);
+                            }, {} as Record<string, { label: string; subtitle: string; source: string; regulations: Regulation[] }>);
 
                             // Sort groups: provincial with a "closed" reg floats to the
                             // top so users immediately see closures (e.g. Ecological
@@ -392,6 +405,7 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                                         {group.source === 'zone' && <span className="header-badge zone-badge">Zone</span>}
                                         {group.source === 'provincial' && <span className="header-badge provincial-badge">Provincial</span>}
                                         {group.label}
+                                        {group.subtitle && <div className="regulation-group-subtitle">{group.subtitle}</div>}
                                     </div>
 
                                     {/* Compact regulation rows */}
@@ -539,7 +553,7 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                 {renderContent()}
             </aside>
             
-            <aside className={`panel-mobile ${feature ? 'visible' : ''} ${collapseState === 'partial' ? 'partial' : ''} ${collapseState === 'collapsed' ? 'collapsed' : ''}`} aria-label="Feature details">
+            <aside className={`panel-mobile ${feature ? 'visible' : ''} ${collapseState === 'partial' ? 'partial' : ''}`} aria-label="Feature details">
                 {renderContent()}
             </aside>
 

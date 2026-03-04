@@ -106,7 +106,7 @@ ADMIN_LAYER_CONFIG: dict = {
     },
     "osm_admin_boundaries": {
         "feature_type": FeatureType.OSM_ADMIN,
-        "id_field": "place_id",
+        "id_field": "osm_id",
         "name_field": "name",
         "code_field": "type",
         "code_map": {

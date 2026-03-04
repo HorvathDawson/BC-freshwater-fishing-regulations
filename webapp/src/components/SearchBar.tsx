@@ -2,7 +2,6 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Search, X, Eye } from 'lucide-react';
 import { Icon } from '@iconify/react';
 import Fuse from 'fuse.js';
-import { regulationsService } from '../services/regulationsService';
 import { 
     getIconForType, 
     getColorForType, 
@@ -19,7 +18,7 @@ export interface RegulationSegment {
     group_id: string;
     group_ids?: string[];  // All group_ids for this regulation set (when consolidated)
     regulation_ids: string;
-    regulation_names: string[];
+    display_name?: string;
     name_variants: NameVariant[];  // Names with tributary flag
     length_km: number;
     bbox?: [number, number, number, number];  // Per-segment bbox for fly-to
@@ -28,11 +27,11 @@ export interface RegulationSegment {
 export interface SearchableFeature {
     id: string;
     gnis_name?: string;
+    display_name?: string;
     lake_name?: string;
     name?: string;
-    regulation_names?: string[];  // Array of regulation names
     name_variants?: NameVariant[];  // All searchable names with tributary flag
-    type: 'stream' | 'lake' | 'wetland' | 'manmade' | 'streams' | 'lakes' | 'wetlands';
+    type: 'stream' | 'lake' | 'wetland' | 'manmade' | 'ungazetted' | 'streams' | 'lakes' | 'wetlands';
     properties: Record<string, string | number | boolean | null | undefined>;
     geometry?: FeatureGeometry;
     bbox?: [number, number, number, number];  // [minx, miny, maxx, maxy] for zooming
@@ -65,10 +64,10 @@ const SearchBar: React.FC<SearchBarProps> = ({ features, onSelect, highlightedRe
 
         fuse.current = new Fuse(features, {
             keys: [
+                { name: 'display_name', weight: 3 },
                 { name: 'gnis_name', weight: 2 },
                 { name: 'lake_name', weight: 2 },
                 { name: 'name', weight: 2 },
-                { name: 'regulation_names', weight: 2 },  // Search across all regulation names in array
                 { name: 'name_variants.name', weight: 2 }  // Search in name field of name_variants objects
             ],
             threshold: 0.3, // Even stricter for exact word matches
@@ -101,18 +100,18 @@ const SearchBar: React.FC<SearchBarProps> = ({ features, onSelect, highlightedRe
             
             // Check if any name field starts with the query
             const aStartsWith = [
+                aItem.display_name,
                 aItem.gnis_name, 
                 aItem.lake_name, 
                 aItem.name, 
-                ...(aItem.regulation_names || []),
                 ...(aItem.name_variants || []).map(nv => typeof nv === 'string' ? nv : nv.name)
             ].some(name => name?.toLowerCase().startsWith(queryLower));
             
             const bStartsWith = [
+                bItem.display_name,
                 bItem.gnis_name, 
                 bItem.lake_name, 
                 bItem.name, 
-                ...(bItem.regulation_names || []),
                 ...(bItem.name_variants || []).map(nv => typeof nv === 'string' ? nv : nv.name)
             ].some(name => name?.toLowerCase().startsWith(queryLower));
             
@@ -191,7 +190,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ features, onSelect, highlightedRe
     };
 
     const getDisplayName = (feature: SearchableFeature): string => 
-        getFeatureDisplayName(feature, regulationsService.filterOutProvincialNames);
+        getFeatureDisplayName(feature);
 
     const clearSearch = () => {
         setQuery('');

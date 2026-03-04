@@ -82,6 +82,18 @@ LAKE_ZOOM_THRESHOLDS = {
     10: 5_000,
     11: 0,
 }
+# Admin areas disappear ~1 zoom level sooner than lakes for the same size,
+# so they don't clutter the map at medium zoom levels.
+ADMIN_ZOOM_THRESHOLDS = {
+    4: 500_000_000,
+    5: 50_000_000,
+    6: 5_000_000,
+    7: 1_000_000,
+    8: 100_000,
+    9: 10_000,
+    10: 5_000,
+    11: 0,
+}
 MAIN_FLOW_CODES = {1000, 1050, 1200, 1250, 1410, 1450}
 
 # Mapping of GeoPackage layer names to FeatureType enums
@@ -477,6 +489,17 @@ class RegulationGeoExporter:
             12,
         )
 
+    def _calculate_admin_minzoom(self, area_sqm: float) -> int:
+        """Like polygon minzoom but ~1 zoom level more aggressive for admin areas."""
+        return next(
+            (
+                zoom + 1
+                for zoom, limit in sorted(ADMIN_ZOOM_THRESHOLDS.items())
+                if area_sqm >= limit
+            ),
+            12,
+        )
+
     def _extract_geoms(self, geom: BaseGeometry) -> List[BaseGeometry]:
         return geom.geoms if hasattr(geom, "geoms") else [geom]
 
@@ -605,6 +628,22 @@ class RegulationGeoExporter:
         key = f"{watershed_code or ''}|{gnis_name or ''}|{','.join(sorted(regulation_ids))}"
         return hashlib.md5(key.encode()).hexdigest()[:12]
 
+    @staticmethod
+    def _compute_display_name(gnis_name: str, name_variants: tuple) -> str:
+        """Compute label display name using the same resolution as the frontend.
+
+        Resolution order:
+          1. ``gnis_name`` if non-empty
+          2. First non-tributary entry from ``name_variants``
+          3. Empty string (no label)
+        """
+        if gnis_name:
+            return gnis_name
+        for nv in name_variants:
+            if not nv.get("from_tributary") and nv.get("name"):
+                return nv["name"]
+        return ""
+
     def _emit_group_feature(
         self,
         group: MergedGroup,
@@ -632,11 +671,11 @@ class RegulationGeoExporter:
             **base_props,
             "group_id": f"{group.group_id}{suffix}" if suffix else group.group_id,
             "frontend_group_id": frontend_group_id,
+            "display_name": self._compute_display_name(
+                group.gnis_name, group.name_variants
+            ),
             "regulation_ids": ",".join(rids),
             "regulation_count": len(rids),
-            "regulation_names": " | ".join(
-                self._get_reg_names(list(rids), list(group.feature_ids))
-            ),
             "has_regulations": bool(rids),
             "geometry": geometry,
         }
@@ -850,9 +889,6 @@ class RegulationGeoExporter:
                         "mgmt_units": ",".join(meta.get("mgmt_units", [])),
                         "region_name": ",".join(meta.get("region_names", [])),
                         "regulation_ids": ",".join(reg_ids) if reg_ids else None,
-                        "regulation_names": " | ".join(
-                            self._get_reg_names(reg_ids, [linear_id])
-                        ),
                         "tippecanoe:minzoom": self._calculate_stream_minzoom(
                             meta.get("stream_magnitude", 0)
                         ),
@@ -1019,9 +1055,6 @@ class RegulationGeoExporter:
                         "region_name": ",".join(meta.get("region_names", [])),
                         "regulation_ids": ",".join(reg_ids) if reg_ids else None,
                         "regulation_count": len(reg_ids),
-                        "regulation_names": " | ".join(
-                            self._get_reg_names(reg_ids, [clean_fid])
-                        ),
                         "tippecanoe:minzoom": self._calculate_polygon_minzoom(
                             meta.get("area_sqm", 0)
                         ),
@@ -1064,12 +1097,10 @@ class RegulationGeoExporter:
                             "waterbody_key": wbk,
                             "regulation_ids": ",".join(group.regulation_ids),
                             "regulation_count": len(group.regulation_ids),
-                            "regulation_names": " | ".join(
-                                self._get_reg_names(
-                                    list(group.regulation_ids), list(group.feature_ids)
-                                )
-                            ),
                             "gnis_name": gnis_name,
+                            "display_name": self._compute_display_name(
+                                gnis_name, group.name_variants
+                            ),
                             "area_sqm": max_area,
                             "feature_count": group.feature_count,
                             "zones": ",".join(group.zones),
@@ -1098,14 +1129,13 @@ class RegulationGeoExporter:
                                 "waterbody_key": wbk,
                                 "frontend_group_id": frontend_gid,
                                 "gnis_name": meta.get("gnis_name", "") or "",
+                                "display_name": self._compute_display_name(
+                                    meta.get("gnis_name", "") or "",
+                                    group.name_variants,
+                                ),
                                 "area_sqm": meta.get("area_sqm", 0),
                                 "regulation_ids": ",".join(group.regulation_ids),
                                 "regulation_count": len(group.regulation_ids),
-                                "regulation_names": " | ".join(
-                                    self._get_reg_names(
-                                        list(group.regulation_ids), [key]
-                                    )
-                                ),
                                 "zones": ",".join(group.zones),
                                 "mgmt_units": ",".join(group.mgmt_units),
                                 "region_name": ",".join(group.region_names),
@@ -1125,25 +1155,26 @@ class RegulationGeoExporter:
     ) -> Optional[gpd.GeoDataFrame]:
         """Create a point layer for ungazetted waterbodies that have regulations.
 
-        Ungazetted waterbodies are injected into the gazetteer at pipeline
-        startup.  Their geometry (EPSG:3005 points) is stored in the
-        UNGAZETTED_WATERBODIES dict from linking_corrections.  Features are
-        rendered at ``tippecanoe:minzoom`` 10 so they only appear when the
-        user is fairly zoomed in.
+        Iterates merged groups (like ``_create_polygon_layer``) so that
+        ``frontend_group_id`` and ``group_id`` are included in the tile
+        properties, enabling the same click-to-highlight and search-lookup
+        flow used by all other FWA layers.
+
+        Geometry comes from the ``UNGAZETTED_WATERBODIES`` dict in
+        ``linking_corrections`` (EPSG:3005 points).  Features are rendered
+        at ``tippecanoe:minzoom`` 10.
         """
         from .linking_corrections import UNGAZETTED_WATERBODIES
 
-        ungaz_meta = self.gazetteer.metadata.get(FeatureType.UNGAZETTED, {})
-        if not ungaz_meta:
-            return None
-
         features = []
-        for uid, meta in ungaz_meta.items():
-            reg_ids = self.feature_to_regs.get(uid, [])
-            if not reg_ids:
+        for group in self.merged_groups.values():
+            if group.feature_type != FeatureType.UNGAZETTED.value:
+                continue
+            if not group.feature_ids:
                 continue
 
-            # Build geometry from UNGAZETTED_WATERBODIES coordinates
+            # Use first feature_id to look up geometry
+            uid = group.feature_ids[0]
             uw = UNGAZETTED_WATERBODIES.get(uid)
             if not uw:
                 continue
@@ -1153,15 +1184,29 @@ class RegulationGeoExporter:
                 # Future: support linestring/polygon ungazetted geometries
                 continue
 
+            gnis_name = group.gnis_name
+            reg_ids = sorted(group.regulation_ids)
+
+            # Compute frontend_group_id the same way _build_waterbodies_list does:
+            # For ungazetted, waterbody_key is None so grouping_id = group.group_id
+            stream_key = group.waterbody_key or group.group_id
+            frontend_gid = self._compute_frontend_group_id(
+                stream_key, gnis_name, tuple(reg_ids)
+            )
+
             features.append(
                 {
                     "ungazetted_id": uid,
-                    "gnis_name": meta.get("gnis_name", "") or "",
+                    "group_id": group.group_id,
+                    "frontend_group_id": frontend_gid,
+                    "gnis_name": gnis_name,
+                    "display_name": self._compute_display_name(
+                        gnis_name, group.name_variants
+                    ),
                     "regulation_ids": ",".join(reg_ids),
                     "regulation_count": len(reg_ids),
-                    "regulation_names": " | ".join(self._get_reg_names(reg_ids, [uid])),
-                    "zones": ",".join(meta.get("zones", [])),
-                    "mgmt_units": ",".join(meta.get("mgmt_units", [])),
+                    "zones": ",".join(group.zones),
+                    "mgmt_units": ",".join(group.mgmt_units),
                     "tippecanoe:minzoom": 10,
                     "geometry": geom,
                 }
@@ -1240,9 +1285,10 @@ class RegulationGeoExporter:
         out_cols.append("admin_type")
 
         # Tippecanoe zoom — scale by polygon area so small admin areas
-        # only appear when the user is zoomed in (same thresholds as lakes).
+        # only appear when the user is zoomed in (slightly more aggressive
+        # than lakes so admin overlays don't clutter medium-zoom views).
         gdf["tippecanoe:minzoom"] = gdf.geometry.area.apply(
-            self._calculate_polygon_minzoom
+            self._calculate_admin_minzoom
         )
         out_cols.extend(["tippecanoe:minzoom", "geometry"])
 
@@ -1305,6 +1351,29 @@ class RegulationGeoExporter:
                 "region_name",
                 "stroke_color",
                 "stroke_width",
+                "tippecanoe:minzoom",
+                "geometry",
+            ]
+        ]
+
+    def _create_management_units_fill_layer(self) -> Optional[gpd.GeoDataFrame]:
+        """Build a lightweight polygon fill layer for management-unit centroid labels.
+
+        Keeps the original polygon geometry (not converted to boundary lines)
+        so the frontend can use ``symbol-placement: 'point'`` to place labels
+        at the centroid of each unit.
+        """
+        if "wmu" not in self.data_accessor.list_layers():
+            logger.warning("'wmu' layer not found in GPKG — skipping management_units_fill")
+            return None
+
+        mu_gdf = self.data_accessor.get_layer("wmu").to_crs("EPSG:3005")
+        mu_gdf["mu_code"] = mu_gdf["WILDLIFE_MGMT_UNIT_ID"]
+        mu_gdf["tippecanoe:minzoom"] = 4
+
+        return mu_gdf[
+            [
+                "mu_code",
                 "tippecanoe:minzoom",
                 "geometry",
             ]
@@ -1405,6 +1474,7 @@ class RegulationGeoExporter:
         if include_regions:
             layers.append(("regions", lambda: self._create_regions_layer()))
             layers.append(("management_units", lambda: self._create_management_units_layer()))
+            layers.append(("management_units_fill", lambda: self._create_management_units_fill_layer()))
             layers.append(("bc_mask", lambda: self._create_bc_mask_layer()))
 
         # Ungazetted waterbody points (zoom 10+)
@@ -1484,9 +1554,9 @@ class RegulationGeoExporter:
                 with open(layer_path, "w") as f:
                     for _, row in gdf.to_crs("EPSG:4326").iterrows():
                         props = {
-                            k: ("" if pd.isna(v) and k == "regulation_names" else v)
+                            k: v
                             for k, v in row.drop("geometry").items()
-                            if pd.notna(v) or k == "regulation_names"
+                            if pd.notna(v)
                         }
                         record = {
                             "type": "Feature",
@@ -1688,7 +1758,6 @@ class RegulationGeoExporter:
             # Optimized Bound calculation using numpy
             wgs84_bounds = self._geoms_to_wgs84_bbox(data["geoms"])
 
-            reg_names = self._get_reg_names(reg_ids, all_feature_ids)
             # Convert name_variants dict to sorted list of dicts
             name_variants = [
                 {"name": name, "from_tributary": is_trib}
@@ -1751,7 +1820,6 @@ class RegulationGeoExporter:
             reg_segments = []
             for seg in sorted_consolidated:
                 seg_reg_ids = sorted(seg["regulation_ids"])
-                seg_reg_names = self._get_reg_names(seg_reg_ids, seg["feature_ids"])
                 # Compute frontend_group_id for this segment
                 frontend_group_id = self._compute_frontend_group_id(
                     stream_key, seg["gnis_name"], tuple(seg_reg_ids)
@@ -1764,17 +1832,20 @@ class RegulationGeoExporter:
                 else:
                     seg_bbox_wgs84 = None
 
+                seg_name_variants = [
+                    {"name": name, "from_tributary": is_trib}
+                    for name, is_trib in sorted(seg["name_variants"].items())
+                ]
                 reg_segments.append(
                     {
                         "frontend_group_id": frontend_group_id,
                         "group_id": seg["group_ids"][0],  # Primary group_id
                         "group_ids": seg["group_ids"],  # All group_ids for this reg set
                         "regulation_ids": ",".join(seg_reg_ids),
-                        "regulation_names": seg_reg_names,
-                        "name_variants": [
-                            {"name": name, "from_tributary": is_trib}
-                            for name, is_trib in sorted(seg["name_variants"].items())
-                        ],
+                        "display_name": self._compute_display_name(
+                            seg["gnis_name"], tuple(seg_name_variants)
+                        ),
+                        "name_variants": seg_name_variants,
                         "length_km": (
                             round(seg["length_m"] / 1000.0, 2)
                             if ftype_val == FeatureType.STREAM.value
@@ -1784,11 +1855,20 @@ class RegulationGeoExporter:
                     }
                 )
 
+            # Collect all frontend_group_ids from segments for top-level lookup
+            all_frontend_group_ids = [
+                seg["frontend_group_id"] for seg in reg_segments
+                if seg.get("frontend_group_id")
+            ]
+
             search_items.append(
                 {
                     "id": f"{gnis}|{stream_key}|{ftype_val}",
                     "gnis_name": gnis,
-                    "regulation_names": reg_names,
+                    "frontend_group_ids": all_frontend_group_ids,
+                    "display_name": self._compute_display_name(
+                        gnis, tuple(name_variants)
+                    ),
                     "name_variants": name_variants,
                     "type": ftype_val,
                     "zones": ",".join(sorted(data["zone_to_name"].keys())),
@@ -1799,7 +1879,7 @@ class RegulationGeoExporter:
                     ),
                     "regulation_ids": ",".join(reg_ids),
                     "segment_count": total_feature_count,
-                    "length_km": length_km,
+                    "total_length_km": length_km,
                     "bbox": list(wgs84_bounds),
                     "min_zoom": min_zoom,
                     "properties": {

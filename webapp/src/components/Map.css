@@ -8,6 +8,14 @@
 .map-canvas {
     width: 100%;
     height: 100%;
+    transition: width 0.2s cubic-bezier(0,0,0,1);
+}
+
+/* Shrink map viewport when desktop info panel is open */
+@media (min-width: 769px) {
+    .map-container.panel-open .map-canvas {
+        width: calc(100% - 350px);
+    }
 }
 
 .map-menu-wrapper {

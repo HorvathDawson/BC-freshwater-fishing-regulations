@@ -347,7 +347,18 @@
     font-family: var(--font-sans);
     display: flex;
     align-items: center;
-    gap: 8px;
+    flex-wrap: wrap;
+    gap: 4px 8px;
+}
+
+.regulation-group-subtitle {
+    width: 100%;
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    text-transform: none;
+    letter-spacing: 0.01em;
+    line-height: 1.3;
 }
 
 .regulation-group-header.zone-header {
@@ -723,9 +734,7 @@
         transform: translateY(50%); 
     }
     
-    .panel-mobile.collapsed { 
-        transform: translateY(calc(100% - 160px)); 
-    }
+
 
     .mobile-handle-bar {
         display: block; 

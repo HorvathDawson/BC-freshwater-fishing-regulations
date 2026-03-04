@@ -6,8 +6,8 @@
 // TYPES
 // ─────────────────────────────────────────────────────────────────────────────
 
-export type FeatureType = 'stream' | 'lake' | 'wetland' | 'manmade' | 'streams' | 'lakes' | 'wetlands';
-export type CollapseState = 'expanded' | 'partial' | 'collapsed';
+export type FeatureType = 'stream' | 'lake' | 'wetland' | 'manmade' | 'ungazetted' | 'streams' | 'lakes' | 'wetlands';
+export type CollapseState = 'expanded' | 'partial';
 
 /** Simplified GeoJSON geometry for feature display purposes */
 export interface FeatureGeometry {
@@ -17,7 +17,7 @@ export interface FeatureGeometry {
 
 /** Core feature info for displaying a selected waterbody */
 export interface FeatureInfo {
-    type: 'stream' | 'lake' | 'wetland' | 'manmade';
+    type: 'stream' | 'lake' | 'wetland' | 'manmade' | 'ungazetted';
     properties: Record<string, string | number | boolean | null | undefined>;
     geometry?: FeatureGeometry;
     id?: string | number;
@@ -55,7 +55,8 @@ export const getIconForType = (type: FeatureType): string => {
         lakes: 'game-icons:oasis',
         wetland: 'game-icons:swamp',
         wetlands: 'game-icons:swamp',
-        manmade: 'game-icons:dam'
+        manmade: 'game-icons:dam',
+        ungazetted: 'game-icons:fishing-lure'
     };
     return iconMap[type] || iconMap.lake;
 };
@@ -69,7 +70,8 @@ export const getColorForType = (type: FeatureType): string => {
         lakes: '#0ea5e9',
         wetland: '#10b981',
         wetlands: '#10b981',
-        manmade: '#a855f7'
+        manmade: '#a855f7',
+        ungazetted: '#f59e0b'
     };
     return colorMap[type] || colorMap.lake;
 };
@@ -79,28 +81,22 @@ export const getColorForType = (type: FeatureType): string => {
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * Get display name for a feature, using gnis_name, lake_name, name, 
- * or first regulation name as fallback.
+ * Get display name for a feature.
+ *
+ * Resolution order:
+ *   1. display_name  (pre-computed in backend)
+ *   2. gnis_name     (official BC geographic name)
+ *   3. lake_name / name  (legacy fallback)
+ *   4. First non-tributary name_variant
+ *   5. "Unnamed"
  */
 export const getFeatureDisplayName = (
     props: Record<string, any>,
-    filterProvincialNames?: (names: string[]) => string[]
 ): string => {
+    if (props.display_name) return props.display_name;
     if (props.gnis_name) return props.gnis_name;
     if (props.lake_name) return props.lake_name;
     if (props.name) return props.name;
-    
-    // Try regulation names
-    const regNames = props.regulation_names;
-    if (regNames) {
-        const regNamesArr = Array.isArray(regNames) 
-            ? regNames 
-            : regNames.split(' | ').filter(Boolean);
-        const filtered = filterProvincialNames 
-            ? filterProvincialNames(regNamesArr)
-            : regNamesArr;
-        if (filtered.length > 0) return filtered[0];
-    }
 
     // Before falling back to "Unnamed", check name_variants for a direct
     // (non-tributary, non-admin) name that can serve as display name.
@@ -184,17 +180,13 @@ export interface SwipeResult {
 export const calculateSwipeState = (
     startY: number,
     endY: number,
-    startTime: number,
-    endTime: number,
+    _startTime: number,
+    _endTime: number,
     currentState: CollapseState
 ): SwipeResult => {
     const diffY = endY - startY;
-    const timeDiff = endTime - startTime;
-    const velocity = Math.abs(diffY) / timeDiff; // px/ms
 
-    // Fast swipe (velocity > 0.5 px/ms) allows jumping states
-    const isFastSwipe = velocity > 0.5;
-    // Medium swipe threshold
+    // Swipe threshold
     const threshold = 50;
 
     // Not enough movement
@@ -206,24 +198,12 @@ export const calculateSwipeState = (
     const isSwipeUp = diffY < 0;
 
     if (isSwipeDown && Math.abs(diffY) >= threshold) {
-        // Swiping down (collapse)
-        if (isFastSwipe && currentState === 'expanded') {
-            // Fast swipe from expanded goes directly to collapsed
-            return { newState: 'collapsed', handled: true };
-        }
-        // Normal step-down
+        // Swiping down → partial
         if (currentState === 'expanded') return { newState: 'partial', handled: true };
-        if (currentState === 'partial') return { newState: 'collapsed', handled: true };
     }
 
     if (isSwipeUp && Math.abs(diffY) >= threshold) {
-        // Swiping up (expand)
-        if (isFastSwipe && currentState === 'collapsed') {
-            // Fast swipe from collapsed goes directly to expanded
-            return { newState: 'expanded', handled: true };
-        }
-        // Normal step-up
-        if (currentState === 'collapsed') return { newState: 'partial', handled: true };
+        // Swiping up → expanded
         if (currentState === 'partial') return { newState: 'expanded', handled: true };
     }
 

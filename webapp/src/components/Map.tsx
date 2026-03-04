@@ -4,12 +4,10 @@ import { Protocol } from 'pmtiles';
 import { layers, LIGHT } from '@protomaps/basemaps';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { createRegulationLayers, createAdminLabelLayers, createEarlyRoadLayers, HIGHLIGHT_COLORS, SELECTION_COLOR, matchByFeatureType } from '../map/styles';
-import { regulationsService } from '../services/regulationsService';
 import { waterbodyDataService } from '../services/waterbodyDataService';
 import type { WaterbodyItem } from '../services/waterbodyDataService';
 import { 
     isMobileViewport,
-    firstDirectVariantName,
     type FeatureInfo, 
     type FeatureOption, 
     type FeatureGeometry,
@@ -39,7 +37,7 @@ const BC_BOUNDS: [[number, number], [number, number]] = [
     [-108.0, 63.5], // NE with margin
 ];
 
-const INTERACTABLE_LAYERS = ['streams', 'lakes-fill', 'wetlands-fill', 'manmade-fill'];
+const INTERACTABLE_LAYERS = ['streams', 'lakes-fill', 'wetlands-fill', 'manmade-fill', 'ungazetted-circle'];
 const ADMIN_FILL_LAYERS = [
     'admin_parks_nat-fill', 'admin_parks_bc-fill', 'admin_wma-fill',
     'admin_watersheds-fill', 'admin_historic_sites-fill', 'admin_osm_admin_boundaries-fill',
@@ -50,7 +48,7 @@ const STREAM_LINE_WIDTH = ['interpolate', ['linear'], ['zoom'], 4, ['+', 1.5, ['
 
 // --- TYPES ---
 interface LayerVisibility {
-    streams: boolean; lakes: boolean; wetlands: boolean; manmade: boolean; regions: boolean;
+    streams: boolean; lakes: boolean; wetlands: boolean; manmade: boolean; ungazetted: boolean; regions: boolean;
     management_units: boolean;
     admin_parks_nat: boolean; admin_parks_bc: boolean; admin_wma: boolean;
     admin_watersheds: boolean; admin_historic_sites: boolean; admin_osm_admin_boundaries: boolean;
@@ -62,7 +60,39 @@ const isValidBbox = (bbox: unknown): bbox is [number, number, number, number] =>
     const [minx, miny, maxx, maxy] = bbox as number[];
     return minx >= -180 && minx <= 180 && maxx >= -180 && maxx <= 180 &&
            miny >= -90 && miny <= 90 && maxy >= -90 && maxy <= 90 &&
-           minx < maxx && miny < maxy;
+           minx <= maxx && miny <= maxy;
+};
+
+/** True when bbox has zero area (point feature or degenerate sliver). */
+const isPointBbox = (bbox: [number, number, number, number]): boolean =>
+    bbox[0] === bbox[2] && bbox[1] === bbox[3];
+
+/**
+ * Fly to a bounding box, handling point features (zero-size bounds)
+ * by centering on the point at minzoom instead of using cameraForBounds.
+ */
+const flyToBbox = (
+    map: maplibregl.Map,
+    bbox: [number, number, number, number],
+    padding: maplibregl.PaddingOptions,
+    minzoom: number,
+    duration = 800,
+) => {
+    if (isPointBbox(bbox)) {
+        map.flyTo({
+            center: [bbox[0], bbox[1]],
+            zoom: Math.min(minzoom, 15),
+            padding,
+            duration,
+        });
+    } else {
+        const bounds = new maplibregl.LngLatBounds([bbox[0], bbox[1]], [bbox[2], bbox[3]]);
+        const camera = map.cameraForBounds(bounds, { padding });
+        if (camera) {
+            const finalZoom = Math.max(camera.zoom || 0, minzoom);
+            map.flyTo({ ...camera, zoom: Math.min(finalZoom, 15), duration });
+        }
+    }
 };
 
 const extendBoundsWithGeometry = (bounds: maplibregl.LngLatBounds, geometry: FeatureGeometry | null | undefined) => {
@@ -154,11 +184,92 @@ const createCrossHatchPattern = (hexColor: string): ImageData | null => {
     return ctx.getImageData(0, 0, size, size);
 };
 
-const getFeatureType = (layerId: string): 'stream' | 'lake' | 'wetland' | 'manmade' => {
+const getFeatureType = (layerId: string): 'stream' | 'lake' | 'wetland' | 'manmade' | 'ungazetted' => {
     if (layerId.includes('streams')) return 'stream';
     if (layerId.includes('lakes')) return 'lake';
     if (layerId.includes('wetlands')) return 'wetland';
+    if (layerId.includes('ungazetted')) return 'ungazetted';
     return 'manmade';
+};
+
+/** Normalize plural backend types to singular frontend types */
+const normalizeType = (type: string): 'stream' | 'lake' | 'wetland' | 'manmade' | 'ungazetted' => {
+    if (type === 'streams' || type === 'stream') return 'stream';
+    if (type === 'lakes' || type === 'lake') return 'lake';
+    if (type === 'wetlands' || type === 'wetland') return 'wetland';
+    if (type === 'ungazetted') return 'ungazetted';
+    return 'manmade';
+};
+
+/** Resolve tile source-layer from normalized feature type */
+const resolveSourceLayer = (type: string): string => {
+    if (type === 'stream' || type === 'streams') return 'streams';
+    if (type === 'ungazetted') return 'ungazetted';
+    return 'lakes';
+};
+
+/**
+ * Build a FeatureOption from JSON data exclusively.
+ *
+ * This is the **single** way menu/panel data should be constructed.
+ * Tiles only provide:
+ *   - geometry (for map highlighting)
+ *   - _adminZones (computed at click-time from admin boundary tiles)
+ *
+ * Everything else (names, regulation_ids, zones, etc.) comes from the
+ * SearchableFeature + RegulationSegment looked up via frontend_group_id.
+ */
+const buildFeatureFromJSON = (
+    feature: SearchableFeature,
+    segment: RegulationSegment | null,
+    opts: {
+        geometry?: FeatureGeometry;
+        source?: string;
+        sourceLayer?: string;
+        /** Click-time extras (e.g. _adminZones) — never overwrites JSON fields */
+        extras?: Record<string, any>;
+    } = {},
+): FeatureOption => {
+    const type = normalizeType(feature.type);
+    const srcLayer = opts.sourceLayer || resolveSourceLayer(type);
+    const segBbox = segment?.bbox as [number, number, number, number] | undefined;
+
+    return {
+        type,
+        id: segment?.frontend_group_id || segment?.group_id || feature.id,
+        geometry: opts.geometry,
+        source: opts.source || 'regulations',
+        sourceLayer: srcLayer,
+        bbox: segBbox || feature.bbox as [number, number, number, number],
+        minzoom: Number(feature.min_zoom || feature.properties?.minzoom || 4),
+        properties: {
+            // ── Names (segment-specific where available) ──
+            display_name: segment?.display_name || feature.display_name || '',
+            gnis_name: feature.gnis_name || '',
+            name_variants: (segment?.name_variants || feature.name_variants || []) as any,
+
+            // ── IDs ──
+            frontend_group_id: segment?.frontend_group_id || '',
+            group_id: segment?.group_id || feature.properties?.group_id || '',
+            waterbody_key: feature.properties?.waterbody_key || '',
+
+            // ── Regulation data ──
+            regulation_ids: segment?.regulation_ids || feature.properties?.regulation_ids || '',
+            regulation_count: feature.properties?.regulation_count || 0,
+
+            // ── Geography ──
+            zones: feature.properties?.zones || '',
+            region_name: feature.properties?.region_name || '',
+            mgmt_units: feature.properties?.mgmt_units || '',
+            fwa_watershed_code: feature.properties?.fwa_watershed_code || '',
+            minzoom: feature.min_zoom || feature.properties?.minzoom || 4,
+            total_length_km: feature.properties?.total_length_km || 0,
+            length_km: segment?.length_km || 0,
+
+            // ── Click-time extras (admin zones, etc.) ──
+            ...(opts.extras || {}),
+        },
+    };
 };
 
 const buildFeatureFilter = (feature: FeatureInfo | FeatureOption): unknown[] | null => {
@@ -193,7 +304,7 @@ const updateMapSource = (map: maplibregl.Map, sourceId: string, feature: Feature
     }
 
     const filter = buildFeatureFilter(feature);
-    const srcLayer = feature.sourceLayer || (feature.type === 'stream' ? 'streams' : 'lakes');
+    const srcLayer = feature.sourceLayer || (feature.type === 'stream' ? 'streams' : feature.type === 'ungazetted' ? 'ungazetted' : 'lakes');
     
     let features: any[] = [];
     if (filter) features = map.querySourceFeatures('regulations', { sourceLayer: srcLayer, filter: filter as maplibregl.FilterSpecification });
@@ -213,6 +324,39 @@ const updateMapSource = (map: maplibregl.Map, sourceId: string, feature: Feature
     });
 };
 
+/** Bottom padding for the partial (35 vh) mobile panel. */
+const getMobileBottomPadding = () => Math.round(window.innerHeight * 0.35) + 20;
+
+/** Bottom padding for the fully expanded (70 vh) mobile panel. */
+const getMobileExpandedPadding = () => Math.round(window.innerHeight * 0.7) + 20;
+
+/**
+ * Returns true when a bbox has enough vertical extent that it won't frame
+ * well in the ~30 vh visible above the fully-expanded mobile panel.
+ * Only truly wide/flat features (width >> height) use expanded padding.
+ * Threshold: height / width > 0.6  (i.e. anything roughly square or taller).
+ */
+const isTallBbox = (bounds: maplibregl.LngLatBounds): boolean => {
+    const latSpan = bounds.getNorth() - bounds.getSouth();
+    const lngSpan = bounds.getEast() - bounds.getWest();
+    const centerLat = (bounds.getNorth() + bounds.getSouth()) / 2;
+    const realWidth = lngSpan * Math.cos((centerLat * Math.PI) / 180);
+    return realWidth > 0 ? latSpan / realWidth > 0.6 : true;
+};
+
+/**
+ * Pick mobile padding and target panel state based on bbox shape.
+ * Squarish → full expanded padding, panel stays expanded.
+ * Tall/narrow → partial padding, panel should be set to partial.
+ */
+const getMobilePaddingForBounds = (bounds: maplibregl.LngLatBounds) => {
+    const tall = isTallBbox(bounds);
+    return {
+        padding: { top: 60, bottom: tall ? getMobileBottomPadding() : getMobileExpandedPadding(), left: 40, right: 40 },
+        panelState: (tall ? 'partial' : 'expanded') as CollapseState,
+    };
+};
+
 const MapComponent = () => {
     const mapContainerRef = useRef<HTMLDivElement>(null);
     const mapRef = useRef<maplibregl.Map | null>(null);
@@ -221,6 +365,7 @@ const MapComponent = () => {
     const searchPollRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const selectedFeatureRef = useRef<FeatureInfo | null>(null);
     const mobilePanelStateRef = useRef<CollapseState>('expanded');
+    const prevMobilePanelStateRef = useRef<CollapseState>('expanded');
     const urlRestoredRef = useRef<boolean>(false);
     // Lookup map: frontend_group_id → { feature, segment }
     // Populated once search_index.json loads; used by the click handler
@@ -238,7 +383,7 @@ const MapComponent = () => {
     const [mapReady, setMapReady] = useState(false);
     const [disclaimerOpen, setDisclaimerOpen] = useState(false);
     const [_layerVisibility, _setLayerVisibility] = useState<LayerVisibility>({
-        streams: true, lakes: true, wetlands: true, manmade: true, regions: true,
+        streams: true, lakes: true, wetlands: true, manmade: true, ungazetted: true, regions: true,
         management_units: true,
         admin_parks_nat: true, admin_parks_bc: true, admin_wma: true,
         admin_watersheds: true, admin_historic_sites: true, admin_osm_admin_boundaries: true,
@@ -249,6 +394,57 @@ const MapComponent = () => {
     // (State setters are stable; refs are mutable — this is the canonical React pattern.)
     useEffect(() => { selectedFeatureRef.current = selectedFeature; }, [selectedFeature]);
     useEffect(() => { mobilePanelStateRef.current = mobilePanelState; }, [mobilePanelState]);
+
+    // When the mobile panel is re-expanded from partial while a
+    // feature is selected, fly back to that feature so it's visible again.
+    // Aspect-ratio picks padding: tall features use partial-size padding so
+    // they frame well; squarish features use full expanded padding.
+    // Panel state is never changed — the user chose to expand.
+    useEffect(() => {
+        const prev = prevMobilePanelStateRef.current;
+        prevMobilePanelStateRef.current = mobilePanelState;
+
+        if (
+            mobilePanelState === 'expanded' &&
+            prev !== 'expanded' &&
+            isMobileViewport()
+        ) {
+            const map = mapRef.current;
+            const feat = selectedFeatureRef.current;
+            if (!map || !feat) return;
+
+            const targetMin = (feat.minzoom || 10) + 0.5;
+            if (feat.bbox) {
+                const bounds = new maplibregl.LngLatBounds([feat.bbox[0], feat.bbox[1]], [feat.bbox[2], feat.bbox[3]]);
+                const { padding } = getMobilePaddingForBounds(bounds);
+                flyToBbox(map, feat.bbox, padding, targetMin, 600);
+            } else if (feat.geometry) {
+                const bounds = new maplibregl.LngLatBounds();
+                extendBoundsWithGeometry(bounds, feat.geometry);
+                if (!bounds.isEmpty()) {
+                    const { padding } = getMobilePaddingForBounds(bounds);
+                    const camera = map.cameraForBounds(bounds, { padding });
+                    if (camera) {
+                        const finalZoom = Math.max(camera.zoom || 0, targetMin);
+                        map.flyTo({ ...camera, zoom: Math.min(finalZoom, 15), duration: 600 });
+                    }
+                }
+            }
+        }
+    }, [mobilePanelState]);
+
+    // On desktop, shrink the map viewport when the info panel opens so it
+    // doesn't overlap.  The CSS transition on .map-canvas is 200ms, so we
+    // resize the MapLibre canvas after that transition completes.
+    useEffect(() => {
+        const container = mapContainerRef.current;
+        if (!container) return;
+        const panelOpen = selectedFeature !== null;
+        container.closest('.map-container')?.classList.toggle('panel-open', panelOpen);
+        // Resize after the CSS width transition (200ms) finishes
+        const timer = setTimeout(() => { mapRef.current?.resize(); }, 220);
+        return () => clearTimeout(timer);
+    }, [selectedFeature]);
 
     const clearSelection = useCallback(() => {
         setSelectedFeature(null);
@@ -279,20 +475,18 @@ const MapComponent = () => {
         waterbodyDataService.getWaterbodies().then(waterbodies => {
             // Use backend search index directly - it's already grouped by physical stream
             const features: SearchableFeature[] = (waterbodies || []).map((item: WaterbodyItem) => {
-                const synopsisNames = regulationsService.filterOutProvincialNames(item.regulation_names || []);
-                const displayName = (item.gnis_name && item.gnis_name.toLowerCase() !== 'unnamed') 
-                    ? item.gnis_name 
-                    : (synopsisNames[0] || firstDirectVariantName(item.name_variants) || 'Unnamed Waterbody');
+                const displayName = item.display_name || item.gnis_name || 'Unnamed Waterbody';
                 const normalizedType = item.type === 'streams' ? 'stream' : item.type === 'lakes' ? 'lake' : item.type;
                 
                 return {
                     id: item.id,
-                    gnis_name: displayName,
+                    display_name: displayName,
+                    gnis_name: item.gnis_name,
                     name: displayName,
                     type: normalizedType,
-                    regulation_names: synopsisNames,
                     name_variants: item.name_variants || [],
                     regulation_segments: item.regulation_segments || [],
+                    _frontend_group_ids: item.frontend_group_ids || [],
                     properties: {
                         ...item.properties,
                         zones: item.zones || '',
@@ -301,7 +495,7 @@ const MapComponent = () => {
                         regulation_ids: item.regulation_ids,
                         fwa_watershed_code: item.properties?.fwa_watershed_code || '',
                         minzoom: item.min_zoom || 4,
-                        length_km: item.length_km || 0,
+                        total_length_km: item.total_length_km || 0,
                     },
                     bbox: isValidBbox(item.bbox) ? item.bbox : undefined,
                 } as SearchableFeature;
@@ -309,37 +503,36 @@ const MapComponent = () => {
             
             setSearchableFeatures(features);
             
-            // Build lookup indexed by frontend_group_id/group_id/waterbody_key for tile-click enrichment
-            // Streams have regulation_segments, lakes may have IDs at the top level
+            // Build lookup indexed by frontend_group_id → {feature, segment}
+            // Uses top-level frontend_group_ids + per-segment frontend_group_id for segment resolution
             const lookup = new Map<string, { feature: SearchableFeature; segment: RegulationSegment | null }>();
             for (const feat of features) {
                 const segments = feat.regulation_segments || [];
                 
-                if (segments.length > 0) {
-                    // Streams: index each segment
-                    for (const seg of segments) {
-                        if (seg.frontend_group_id) {
-                            lookup.set(seg.frontend_group_id, { feature: feat, segment: seg });
-                        }
-                        if (seg.group_id) {
-                            lookup.set(seg.group_id, { feature: feat, segment: seg });
-                        }
+                // Index each segment by its frontend_group_id + group_id
+                for (const seg of segments) {
+                    if (seg.frontend_group_id) {
+                        lookup.set(seg.frontend_group_id, { feature: feat, segment: seg });
                     }
-                } else {
-                    // Lakes/other: index by feature ID directly
-                    if (feat.id) {
-                        lookup.set(feat.id, { feature: feat, segment: null });
+                    if (seg.group_id) {
+                        lookup.set(seg.group_id, { feature: feat, segment: seg });
                     }
-                    // Also check properties for various ID types
-                    if (feat.properties?.frontend_group_id) {
-                        lookup.set(String(feat.properties.frontend_group_id), { feature: feat, segment: null });
+                }
+
+                // Also index top-level frontend_group_ids (for quick waterbody-level lookups)
+                const topIds: string[] = (feat as any)._frontend_group_ids || [];
+                for (const fgid of topIds) {
+                    if (!lookup.has(fgid)) {
+                        // Only set if not already indexed by a segment (segment takes precedence)
+                        lookup.set(fgid, { feature: feat, segment: segments[0] || null });
                     }
-                    if (feat.properties?.group_id) {
-                        lookup.set(String(feat.properties.group_id), { feature: feat, segment: null });
-                    }
-                    if (feat.properties?.waterbody_key) {
-                        lookup.set(String(feat.properties.waterbody_key), { feature: feat, segment: null });
-                    }
+                }
+
+                // Fallback: index by feature ID, group_id, waterbody_key for lakes without segments
+                if (segments.length === 0) {
+                    if (feat.id) lookup.set(feat.id, { feature: feat, segment: null });
+                    if (feat.properties?.group_id) lookup.set(String(feat.properties.group_id), { feature: feat, segment: null });
+                    if (feat.properties?.waterbody_key) lookup.set(String(feat.properties.waterbody_key), { feature: feat, segment: null });
                 }
             }
             searchLookupRef.current = lookup;
@@ -371,84 +564,51 @@ const MapComponent = () => {
         }
         
         const { feature, segment } = lookupResult;
-        const srcLayer = (feature.type === 'stream' || feature.type === 'streams') ? 'streams' : 'lakes';
-        const normalizedType = (feature.type === 'streams' ? 'stream' : feature.type === 'lakes' ? 'lake' : feature.type) as 'stream' | 'lake' | 'wetland' | 'manmade';
-        const synopsisNames = regulationsService.filterOutProvincialNames(feature.regulation_names || []);
-        const targetMinZoom = Number(feature.properties?.minzoom ?? 10);
-        const featureBbox = (segment?.bbox || feature.bbox) as [number, number, number, number];
         
-        // Raw gnis_name for InfoPanel resolution (may be empty)
-        const rawGnisName = (feature.properties?.gnis_name as string) || '';
-
-        // Resolve IDs - don't use feature.id as it may be a search-index composite
-        // For streams: use segment IDs
-        // For lakes: use waterbody_key from properties
-        const resolvedFrontendGroupId = segment?.frontend_group_id || feature.properties?.frontend_group_id || '';
-        const resolvedGroupId = segment?.group_id || feature.properties?.group_id || '';
-        const resolvedWaterbodyKey = feature.properties?.waterbody_key || '';
+        // Build feature info from JSON via the unified builder
+        const featureInfo = buildFeatureFromJSON(feature, segment);
+        const featureBbox = featureInfo.bbox;
         
-        // Build feature info from URL state
-        const featureInfo: FeatureInfo = {
-            type: normalizedType,
-            properties: {
-                ...feature.properties,
-                gnis_name: rawGnisName,
-                regulation_names: (segment?.regulation_names || synopsisNames) as any,
-                name_variants: (segment?.name_variants || feature.name_variants || []) as any,
-                regulation_ids: segment?.regulation_ids || feature.properties?.regulation_ids,
-                // Only include IDs that actually exist
-                ...(resolvedFrontendGroupId && { frontend_group_id: resolvedFrontendGroupId }),
-                ...(resolvedGroupId && { group_id: resolvedGroupId }),
-                waterbody_key: resolvedWaterbodyKey || feature.properties?.waterbody_key,
-                fwa_watershed_code: feature.properties?.fwa_watershed_code || '',
-            },
-            source: 'regulations',
-            sourceLayer: srcLayer,
-            bbox: featureBbox,
-            minzoom: targetMinZoom,
-        };
-        
-        // Fly to the feature's bbox — panel will be expanded, so account
-        // for 70vh panel covering the bottom on mobile.
+        // Fly to the feature's bbox — panel starts in 'partial' mode on
+        // mobile so that long features still frame nicely (~65 vh visible).
         if (featureBbox) {
             const isMobile = isMobileViewport();
-            const panelPx = isMobile ? Math.round(window.innerHeight * 0.7) : 0;
-            const padding = isMobile
-                ? { top: 60, bottom: panelPx + 20, left: 40, right: 40 }
-                : { top: 80, bottom: 80, left: 80, right: 350 };
             const bounds = new maplibregl.LngLatBounds([featureBbox[0], featureBbox[1]], [featureBbox[2], featureBbox[3]]);
-            const camera = map.cameraForBounds(bounds, { padding });
-            if (camera) {
-                const finalZoom = Math.max(camera.zoom || 0, targetMinZoom);
-                map.flyTo({ ...camera, zoom: Math.min(finalZoom, 15), duration: 800 });
-            }
+            const { padding, panelState } = isMobile
+                ? getMobilePaddingForBounds(bounds)
+                : { padding: { top: 80, bottom: 80, left: 80, right: 350 }, panelState: 'expanded' as CollapseState };
+            flyToBbox(map, featureBbox, padding, (featureInfo.minzoom || 10) + 0.5);
+            if (isMobile) setMobilePanelState(panelState);
         }
         
         setSelectedFeature(featureInfo);
-        setMobilePanelState('expanded');
         
         // Poll for tile geometry to enable highlighting
-        // Try frontend_group_id, group_id, and waterbody_key since tiles may only have one
+        const srcLayer = featureInfo.sourceLayer || resolveSourceLayer(featureInfo.type);
         let attempts = 0;
         const pollInterval = setInterval(() => {
             attempts++;
             
             // Try frontend_group_id filter first
             let found: any[] = [];
-            if (resolvedFrontendGroupId) {
-                const filter = buildFeatureFilter({ properties: { frontend_group_id: resolvedFrontendGroupId } } as unknown as FeatureInfo);
+            const fgid = featureInfo.properties.frontend_group_id;
+            const gid = featureInfo.properties.group_id;
+            const wbKey = featureInfo.properties.waterbody_key;
+            
+            if (fgid) {
+                const filter = buildFeatureFilter({ properties: { frontend_group_id: fgid } } as unknown as FeatureInfo);
                 found = map.querySourceFeatures('regulations', { sourceLayer: srcLayer, filter: filter as maplibregl.FilterSpecification });
             }
             
             // Fall back to group_id filter
-            if (!found.length && resolvedGroupId) {
-                const filter = buildFeatureFilter({ properties: { group_id: resolvedGroupId } } as unknown as FeatureInfo);
+            if (!found.length && gid) {
+                const filter = buildFeatureFilter({ properties: { group_id: gid } } as unknown as FeatureInfo);
                 found = map.querySourceFeatures('regulations', { sourceLayer: srcLayer, filter: filter as maplibregl.FilterSpecification });
             }
             
             // Fall back to waterbody_key for lakes
-            if (!found.length && resolvedWaterbodyKey) {
-                const filter = buildFeatureFilter({ properties: { waterbody_key: resolvedWaterbodyKey } } as unknown as FeatureInfo);
+            if (!found.length && wbKey) {
+                const filter = buildFeatureFilter({ properties: { waterbody_key: wbKey } } as unknown as FeatureInfo);
                 found = map.querySourceFeatures('regulations', { sourceLayer: srcLayer, filter: filter as maplibregl.FilterSpecification });
             }
             
@@ -502,11 +662,13 @@ const MapComponent = () => {
                 // The `layers()` call without `lang` returns geometry-only layers;
                 // `labelsOnly + lang` returns road / place / water name labels
                 // so they render above the regulation fills and remain readable.
+                // We filter out OSM water labels since we display our own.
                 layers: [
                     ...layers('protomaps', LIGHT),
                     ...createEarlyRoadLayers(),
                     ...createRegulationLayers(),
-                    ...layers('protomaps', LIGHT, { labelsOnly: true, lang: 'en' }),
+                    ...layers('protomaps', LIGHT, { labelsOnly: true, lang: 'en' })
+                        .filter(l => !['water_waterway_label', 'water_label_ocean', 'water_label_lakes'].includes(l.id)),
                     ...createAdminLabelLayers(),
                 ]
             },
@@ -522,7 +684,10 @@ const MapComponent = () => {
 
         map.on('load', () => {
             const pattern = createWetlandPattern();
-            if (pattern) map.addImage('wetland-pattern', pattern);
+            if (pattern) {
+                map.addImage('wetland-pattern', pattern);
+                map.setPaintProperty('wetlands-fill', 'fill-pattern', 'wetland-pattern');
+            }
 
             // Hatch patterns for no-fishing zones (National Parks + Ecological Reserves)
             const hatchDiag = createDiagonalHatchPattern('#E69F00');
@@ -553,11 +718,13 @@ const MapComponent = () => {
             // Hover / disambiguation highlight — per-type saturated color, wider line
             map.addLayer({ id: 'highlight-line', type: 'line', source: 'highlight-source', paint: { 'line-color': matchByFeatureType(HIGHLIGHT_COLORS, SELECTION_COLOR) as any, 'line-width': ['interpolate', ['linear'], ['zoom'], 4, 3, 8, 6, 12, 8], 'line-opacity': 1.0 }, layout: { 'line-cap': 'round', 'line-join': 'round' } });
             map.addLayer({ id: 'highlight-fill', type: 'fill', source: 'highlight-source', paint: { 'fill-color': matchByFeatureType(HIGHLIGHT_COLORS, SELECTION_COLOR) as any, 'fill-opacity': 0.4 }, filter: ['==', '$type', 'Polygon'] });
+            map.addLayer({ id: 'highlight-circle', type: 'circle', source: 'highlight-source', paint: { 'circle-color': matchByFeatureType(HIGHLIGHT_COLORS, SELECTION_COLOR) as any, 'circle-radius': ['interpolate', ['linear'], ['zoom'], 10, 8, 13, 12, 16, 16], 'circle-stroke-color': '#FFFFFF', 'circle-stroke-width': 2, 'circle-opacity': 0.9 }, filter: ['==', '$type', 'Point'] });
             
             map.addSource('selection-source', { type: 'geojson', data: { type: 'FeatureCollection', features: [] }, tolerance: 0.1 });
             // Active selection — uniform deep blue (same weight signal regardless of type)
             map.addLayer({ id: 'selection-line', type: 'line', source: 'selection-source', paint: { 'line-color': SELECTION_COLOR, 'line-width': STREAM_LINE_WIDTH as any, 'line-opacity': 1.0 }, layout: { 'line-cap': 'round', 'line-join': 'round' } });
             map.addLayer({ id: 'selection-fill', type: 'fill', source: 'selection-source', paint: { 'fill-color': SELECTION_COLOR, 'fill-opacity': 0.35 }, filter: ['==', '$type', 'Polygon'] });
+            map.addLayer({ id: 'selection-circle', type: 'circle', source: 'selection-source', paint: { 'circle-color': SELECTION_COLOR, 'circle-radius': ['interpolate', ['linear'], ['zoom'], 10, 8, 13, 12, 16, 16], 'circle-stroke-color': '#FFFFFF', 'circle-stroke-width': 2.5, 'circle-opacity': 1.0 }, filter: ['==', '$type', 'Point'] });
             
             map.addSource('cursor-circle', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
             map.addLayer({ id: 'cursor-circle-fill', type: 'fill', source: 'cursor-circle', paint: { 'fill-color': '#3b82f6', 'fill-opacity': 0.1 } });
@@ -614,80 +781,85 @@ const MapComponent = () => {
                 }
             }
 
-            // Deduplicate by frontend_group_id - each unique frontend_group_id is one selectable option
-            const seenFrontendGroupIds = new Set<string>();
+            // Deduplicate by frontend_group_id — each unique ID is one selectable option.
+            // Properties come exclusively from the JSON lookup; tiles only provide geometry.
+            const seenIds = new Set<string>();
             const options: FeatureOption[] = [];
             
             for (const f of features) {
-                const props = f.properties || {};
-                const frontendGroupId = props.frontend_group_id || '';
-                const groupId = props.group_id || '';
-                const waterbodyKey = props.waterbody_key || '';
-                const dedupeKey = frontendGroupId || groupId || waterbodyKey || `${props.linear_feature_id || ''}`;
+                const tileProps = f.properties || {};
+                const frontendGroupId = tileProps.frontend_group_id || '';
+                const groupId = tileProps.group_id || '';
+                const waterbodyKey = tileProps.waterbody_key || '';
+                const dedupeKey = frontendGroupId || groupId || waterbodyKey || `${tileProps.linear_feature_id || ''}`;
                 
-                // Skip duplicates (but allow features without any ID on first pass)
                 if (!dedupeKey) continue;
-                if (seenFrontendGroupIds.has(dedupeKey)) continue;
-                seenFrontendGroupIds.add(dedupeKey);
+                if (seenIds.has(dedupeKey)) continue;
+                seenIds.add(dedupeKey);
                 
-                // Look up segment data from search index (try multiple ID types)
+                // JSON lookup — the single source of truth for all menu data
                 const lookupResult = searchLookupRef.current.get(frontendGroupId) || 
                                     searchLookupRef.current.get(groupId) ||
                                     searchLookupRef.current.get(waterbodyKey);
-                const segment = lookupResult?.segment;
-                const searchEntry = lookupResult?.feature;
                 
-                // Use segment's frontend_group_id if available, or tile's own IDs
-                // Don't use search entry ID - it's a composite key that won't match tiles
-                const resolvedFrontendGroupId = segment?.frontend_group_id || frontendGroupId;
-                const resolvedGroupId = segment?.group_id || groupId;
-                // Keep waterbody_key separate for lakes
-                const resolvedWaterbodyKey = waterbodyKey || props.waterbody_key || '';
-                
-                const bounds = new maplibregl.LngLatBounds();
-                extendBoundsWithGeometry(bounds, f.toJSON().geometry);
-                const tileBbox = bounds.toArray().flat() as [number, number, number, number];
-                
-                // Use segment bbox (most precise), then search entry bbox, then tile bbox
-                const featureBbox = (segment?.bbox || searchEntry?.bbox || tileBbox) as [number, number, number, number];
-                const featureMinzoom = Number(searchEntry?.min_zoom || searchEntry?.properties?.minzoom || props.min_zoom || 4);
-                
-                // Resolve regulation_names: prefer search-index data, fall back to tile's pipe-separated string
-                const resolvedRegNames = segment?.regulation_names || searchEntry?.regulation_names
-                    || (props.regulation_names ? String(props.regulation_names).split(' | ').filter(Boolean) : []);
-                // Resolve name_variants: search index only (tiles don't carry them)
-                const resolvedNameVariants = segment?.name_variants || searchEntry?.name_variants || [];
-                
-                // Pass raw gnis_name — let getFeatureDisplayName resolve from
-                // regulation_names / name_variants in InfoPanel & DisambiguationMenu
-                const rawGnis = props.gnis_name || props.lake_name || '';
-                
-                options.push({
-                    type: getFeatureType(f.layer.id),
-                    id: resolvedFrontendGroupId || resolvedGroupId || resolvedWaterbodyKey,
-                    geometry: f.toJSON().geometry,
-                    source: f.layer.source,
-                    sourceLayer: (f.layer as any)['source-layer'],
-                    bbox: featureBbox,
-                    minzoom: featureMinzoom,
-                    properties: {
-                        ...props,
-                        // Only set these if they have values (don't overwrite with empty strings)
-                        ...(resolvedFrontendGroupId && { frontend_group_id: resolvedFrontendGroupId }),
-                        ...(resolvedGroupId && { group_id: resolvedGroupId }),
-                        waterbody_key: resolvedWaterbodyKey || props.waterbody_key,
-                        gnis_name: rawGnis,
-                        _adminZones: adminZonesByRegId as any,
-                        // Use segment-specific name_variants if available
-                        name_variants: resolvedNameVariants as any,
-                        regulation_names: resolvedRegNames as any,
-                    },
-                });
+                if (lookupResult) {
+                    // ✅ JSON-first: build entirely from JSON, only take geometry from tile
+                    const option = buildFeatureFromJSON(lookupResult.feature, lookupResult.segment, {
+                        geometry: f.toJSON().geometry,
+                        source: f.layer.source,
+                        sourceLayer: (f.layer as any)['source-layer'],
+                        extras: { _adminZones: adminZonesByRegId as any },
+                    });
+                    options.push(option);
+                } else {
+                    // Fallback: tile not in JSON (should be rare — possibly stale tile data).
+                    // Build a minimal option from tile props so the feature is still clickable.
+                    const bounds = new maplibregl.LngLatBounds();
+                    extendBoundsWithGeometry(bounds, f.toJSON().geometry);
+                    const tileBbox = bounds.toArray().flat() as [number, number, number, number];
+                    options.push({
+                        type: getFeatureType(f.layer.id),
+                        id: dedupeKey,
+                        geometry: f.toJSON().geometry,
+                        source: f.layer.source,
+                        sourceLayer: (f.layer as any)['source-layer'],
+                        bbox: tileBbox,
+                        minzoom: Number(tileProps.min_zoom || 4),
+                        properties: {
+                            display_name: tileProps.display_name || '',
+                            gnis_name: tileProps.gnis_name || '',
+                            frontend_group_id: frontendGroupId,
+                            group_id: groupId,
+                            waterbody_key: waterbodyKey,
+                            regulation_ids: tileProps.regulation_ids || '',
+                            _adminZones: adminZonesByRegId as any,
+                        },
+                    });
+                }
             }
 
             clearSelection();
-            if (options.length === 1) setSelectedFeature(options[0]);
-            else if (options.length > 1) { 
+            if (options.length === 1) {
+                const selected = options[0];
+                setSelectedFeature(selected);
+
+                // Fly to feature; on mobile use aspect-ratio-aware padding.
+                const isMobile = isMobileViewport();
+
+                if (selected.bbox) {
+                    const bounds = new maplibregl.LngLatBounds(
+                        [selected.bbox[0], selected.bbox[1]],
+                        [selected.bbox[2], selected.bbox[3]]
+                    );
+                    const { padding, panelState } = isMobile
+                        ? getMobilePaddingForBounds(bounds)
+                        : { padding: { top: 80, bottom: 80, left: 80, right: 350 }, panelState: 'expanded' as CollapseState };
+                    flyToBbox(map, selected.bbox, padding, (selected.minzoom || 10) + 0.5);
+                    if (isMobile) setMobilePanelState(panelState);
+                } else if (isMobile) {
+                    setMobilePanelState('partial');
+                }
+            } else if (options.length > 1) { 
                 setDisambigOptions(options); 
                 setDisambigPosition({ x: e.point.x, y: e.point.y }); 
                 isDisambigOpenRef.current = true; 
@@ -736,105 +908,41 @@ const MapComponent = () => {
         // Also refresh when new tiles load (ensures highlight appears after fly-to)
         map.on('sourcedata', refreshSelection);
 
-        if (mobilePanelState === 'expanded') {
-            const bounds = new maplibregl.LngLatBounds();
-            if (selectedFeature.bbox) {
-                bounds.extend([selectedFeature.bbox[0], selectedFeature.bbox[1]]);
-                bounds.extend([selectedFeature.bbox[2], selectedFeature.bbox[3]]);
-            } else if (selectedFeature.geometry) {
-                extendBoundsWithGeometry(bounds, selectedFeature.geometry);
-            }
-
-            if (!bounds.isEmpty()) {
-                const isMobile = isMobileViewport();
-                // On mobile the expanded panel covers 70vh from the bottom,
-                // so use that as bottom padding to center the feature in the
-                // remaining visible map area at the top.
-                const panelPx = isMobile ? Math.round(window.innerHeight * 0.7) : 0;
-                const padding = isMobile
-                    ? { top: 60, bottom: panelPx + 20, left: 40, right: 40 }
-                    : { top: 80, bottom: 80, left: 80, right: 350 };
-                const targetMinZoom = selectedFeature.minzoom || 10;
-                
-                const camera = map.cameraForBounds(bounds, { padding });
-                if (camera) {
-                    const finalZoom = Math.max(camera.zoom || 0, targetMinZoom);
-                    map.flyTo({ ...camera, zoom: Math.min(finalZoom, 15), duration: 800 });
-                }
-            }
-        }
-
         return () => { 
             map.off('zoomend', refreshSelection);
             map.off('idle', refreshSelection);
             map.off('sourcedata', refreshSelection);
         };
-    }, [selectedFeature, mobilePanelState]);
+    }, [selectedFeature]);
 
     const handleSearchSelect = useCallback((feature: SearchableFeature) => {
         const map = mapRef.current;
         if (!map) return;
         
         clearSelection();
-        const srcLayer = (feature.type === 'stream' || feature.type === 'streams') ? 'streams' : 'lakes';
-        const normalizedType = (feature.type === 'streams' ? 'stream' : feature.type === 'lakes' ? 'lake' : feature.type) as 'stream' | 'lake' | 'wetland' | 'manmade';
-        const synopsisNames = regulationsService.filterOutProvincialNames(feature.regulation_names || []);
-        const targetMinZoom = Number(feature.properties.minzoom ?? 10);
-        const watershedCode = feature.properties.fwa_watershed_code || '';
-        // Raw gnis_name for segment-level resolution in InfoPanel (may be empty)
-        const rawGnisName = (feature.properties?.gnis_name as string) || '';
+        const targetMinZoom = Number(feature.min_zoom || feature.properties?.minzoom || 10);
         
-        // Check if this stream has multiple regulation segments
+        // Check if this waterbody has multiple regulation segments
         const segments = feature.regulation_segments || [];
         const hasMultipleSegments = segments.length > 1;
 
-        // Fly to the feature first — account for expanded panel on mobile
+        // Fly to the feature first — use aspect-ratio-aware padding on mobile
         if (feature.bbox) {
             const isMobile = isMobileViewport();
-            const panelPx = isMobile ? Math.round(window.innerHeight * 0.7) : 0;
-            const padding = isMobile
-                ? { top: 60, bottom: panelPx + 20, left: 40, right: 40 }
-                : { top: 80, bottom: 80, left: 80, right: 350 };
             const bounds = new maplibregl.LngLatBounds([feature.bbox[0], feature.bbox[1]], [feature.bbox[2], feature.bbox[3]]);
-            
-            const camera = map.cameraForBounds(bounds, { padding });
-            if (camera) {
-                const finalZoom = Math.max(camera.zoom || 0, targetMinZoom);
-                map.flyTo({ ...camera, zoom: Math.min(finalZoom, 15), duration: 800 });
-            }
+            const { padding, panelState } = isMobile
+                ? getMobilePaddingForBounds(bounds)
+                : { padding: { top: 80, bottom: 80, left: 80, right: 350 }, panelState: 'expanded' as CollapseState };
+            flyToBbox(map, feature.bbox, padding, targetMinZoom + 0.5);
+            // Store target panel state; applied after disambig check below
+            if (isMobile) setMobilePanelState(panelState);
         }
 
         if (hasMultipleSegments) {
-            // Build disambiguation options immediately from search data — no tile polling needed.
-            // Segment bbox / metadata from the JSON is sufficient; tile geometry will be
-            // picked up later when the user actually selects a segment.
-            const options: FeatureOption[] = [];
-
-            for (const seg of segments) {
-                const segRegNames = regulationsService.filterOutProvincialNames(seg.regulation_names || []);
-                const frontendGroupId = seg.frontend_group_id || seg.group_id;
-                const optionBbox = (seg.bbox || feature.bbox) as [number, number, number, number];
-
-                options.push({
-                    type: normalizedType,
-                    id: frontendGroupId,
-                    geometry: undefined,
-                    source: 'regulations',
-                    sourceLayer: srcLayer,
-                    bbox: optionBbox,
-                    minzoom: targetMinZoom,
-                    properties: {
-                        ...feature.properties,
-                        gnis_name: rawGnisName,
-                        frontend_group_id: seg.frontend_group_id,
-                        regulation_ids: seg.regulation_ids,
-                        regulation_names: segRegNames as any,
-                        name_variants: (seg.name_variants || feature.name_variants || []) as any,
-                        fwa_watershed_code: watershedCode,
-                        length_km: seg.length_km,
-                    },
-                });
-            }
+            // Build disambiguation options from JSON via the unified builder
+            const options: FeatureOption[] = segments.map(seg =>
+                buildFeatureFromJSON(feature, seg)
+            );
 
             // Show disambiguation menu immediately
             const screenCenter = { x: window.innerWidth / 2, y: window.innerHeight / 3 };
@@ -843,31 +951,16 @@ const MapComponent = () => {
             isDisambigOpenRef.current = true;
             setMobilePanelState('partial');
         } else {
-            // Single segment or no segments - select directly
-            const seg = segments[0];
-            const segRegIds = seg?.regulation_ids || feature.properties.regulation_ids;
-            const frontendGroupId = seg?.frontend_group_id || '';
-            const segNameVariants = seg?.name_variants || feature.name_variants || [];
+            // Single segment or no segments — select directly via the unified builder
+            const seg = segments[0] || null;
+            const selected = buildFeatureFromJSON(feature, seg);
             
-            setSelectedFeature({ 
-                type: normalizedType, 
-                properties: { 
-                    ...feature.properties, 
-                    gnis_name: rawGnisName, 
-                    regulation_names: (seg?.regulation_names || synopsisNames) as any,
-                    name_variants: segNameVariants as any,
-                    regulation_ids: segRegIds,
-                    frontend_group_id: frontendGroupId,
-                    fwa_watershed_code: watershedCode,
-                }, 
-                source: 'regulations', 
-                sourceLayer: srcLayer,
-                bbox: feature.bbox as [number, number, number, number],
-                minzoom: targetMinZoom
-            });
-            setMobilePanelState('partial');
+            setSelectedFeature(selected);
+            // Panel state was already set by the aspect-ratio logic above
 
             // Poll until tiles load to get geometry for highlighting
+            const srcLayer = selected.sourceLayer || resolveSourceLayer(selected.type);
+            const frontendGroupId = selected.properties.frontend_group_id || '';
             let attempts = 0;
             searchPollRef.current = setInterval(() => {
                 attempts++;
@@ -933,11 +1026,11 @@ const MapComponent = () => {
                                 else extendBoundsWithGeometry(bounds, option.geometry);
                                 if (!bounds.isEmpty()) {
                                     const isMobile = isMobileViewport();
-                                    // On mobile leave bottom padding for the bottom sheet
                                     const padding = isMobile
-                                        ? { top: 60, bottom: 280, left: 40, right: 40 }
+                                        ? { top: 60, bottom: getMobileBottomPadding(), left: 40, right: 40 }
                                         : { top: 80, bottom: 80, left: 80, right: 350 };
-                                    map.fitBounds(bounds, { padding, maxZoom: 15, duration: 400 });
+                                    const minZoom = (option.minzoom || 10) + 0.5;
+                                    map.fitBounds(bounds, { padding, maxZoom: 15, minZoom, duration: 400 });
                                 }
                             }, 50);
                         } else {
@@ -956,18 +1049,9 @@ const MapComponent = () => {
                         if (f.bbox) {
                             const isMobile = isMobileViewport();
                             const padding = isMobile 
-                                ? { top: 60, bottom: 280, left: 40, right: 40 }
+                                ? { top: 60, bottom: getMobileBottomPadding(), left: 40, right: 40 }
                                 : { top: 80, bottom: 80, left: 80, right: 350 };
-                            const bounds = new maplibregl.LngLatBounds(
-                                [f.bbox[0], f.bbox[1]], 
-                                [f.bbox[2], f.bbox[3]]
-                            );
-                            const targetMinZoom = f.minzoom || 10;
-                            const camera = map.cameraForBounds(bounds, { padding });
-                            if (camera) {
-                                const finalZoom = Math.max(camera.zoom || 0, targetMinZoom);
-                                map.flyTo({ ...camera, zoom: Math.min(finalZoom, 15), duration: 800 });
-                            }
+                            flyToBbox(map, f.bbox, padding, (f.minzoom || 10) + 0.5);
                         }
                     }} onClose={clearSelection}
                 />

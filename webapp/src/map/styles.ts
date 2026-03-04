@@ -6,6 +6,7 @@ const FEATURE_COLORS = {
     lakes: '#64B5F6',      // Light blue for lakes
     wetlands: '#81C784',   // Green for wetlands
     manmade: '#9575CD',    // Purple for manmade waterbodies
+    ungazetted: '#F5A623', // Amber for ungazetted waterbodies
 };
 
 /**
@@ -21,6 +22,7 @@ export const HIGHLIGHT_COLORS: Record<string, string> = {
     wetland:  '#43A047',  // Medium green — closer in hue to base #81C784
     wetlands: '#43A047',
     manmade:  '#6A1B9A',  // Deep purple       (manmade base: #9575CD)
+    ungazetted: '#C17900', // Dark amber       (ungazetted base: #F5A623)
 };
 
 /** Uniform color for the active-selection state (same for all types). */
@@ -36,10 +38,11 @@ export const matchByFeatureType = (
     defaultColor: string,
 ): ExpressionSpecification => [
     'match', ['get', '_feature_type'],
-    'stream',   colorMap.stream   ?? defaultColor,
-    'lake',     colorMap.lake     ?? defaultColor,
-    'wetland',  colorMap.wetland  ?? defaultColor,
-    'manmade',  colorMap.manmade  ?? defaultColor,
+    'stream',      colorMap.stream      ?? defaultColor,
+    'lake',        colorMap.lake        ?? defaultColor,
+    'wetland',     colorMap.wetland     ?? defaultColor,
+    'manmade',     colorMap.manmade     ?? defaultColor,
+    'ungazetted',  colorMap.ungazetted  ?? defaultColor,
     defaultColor,
 ];
 
@@ -90,7 +93,8 @@ export const createRegulationLayers = (): LayerSpecification[] => {
         source: 'regulations',
         'source-layer': 'wetlands',
         paint: {
-            'fill-pattern': 'wetland-pattern',
+            // fill-pattern is set dynamically on map 'load' after the image is registered
+            'fill-color': '#81C784',
             'fill-opacity': [
                 'interpolate',
                 ['linear'],
@@ -254,7 +258,57 @@ export const createRegulationLayers = (): LayerSpecification[] => {
             'line-join': 'round'
         }
     });
-    
+
+    // Ungazetted waterbodies — point markers (zoom 10+)
+    fwaLayers.push({
+        id: 'ungazetted-circle',
+        type: 'circle',
+        source: 'regulations',
+        'source-layer': 'ungazetted',
+        minzoom: 10,
+        paint: {
+            'circle-color': FEATURE_COLORS.ungazetted,
+            'circle-radius': [
+                'interpolate', ['linear'], ['zoom'],
+                10, 5,
+                13, 8,
+                16, 12
+            ],
+            'circle-stroke-color': '#FFFFFF',
+            'circle-stroke-width': 1.5,
+            'circle-opacity': 0.85
+        }
+    });
+
+    // Ungazetted waterbody labels — name shown beside circle
+    fwaLayers.push({
+        id: 'ungazetted-label',
+        type: 'symbol',
+        source: 'regulations',
+        'source-layer': 'ungazetted',
+        minzoom: 11,
+        filter: ['!=', ['get', 'display_name'], ''],
+        layout: {
+            'symbol-placement': 'point',
+            'text-field': ['get', 'display_name'],
+            'text-font': ['Noto Sans Regular'],
+            'text-size': ['interpolate', ['linear'], ['zoom'], 11, 10, 14, 13],
+            'text-anchor': 'left',
+            'text-offset': [1.2, 0],
+            'text-max-width': 8,
+            'text-allow-overlap': false,
+            'text-padding': 4,
+        },
+        paint: {
+            'text-color': '#8B6914',
+            'text-halo-color': '#ffffff',
+            'text-halo-width': 1,
+        },
+    });
+
+    // ── WATERBODY NAME LABELS ────────────────────────────────────────
+    // (Moved below region/MU boundary lines so text is not obscured.)
+
     // Regions (zone boundaries)
     fwaLayers.push({
         id: 'regions',
@@ -279,24 +333,24 @@ export const createRegulationLayers = (): LayerSpecification[] => {
         }
     });
 
-    // Management Units (individual WMU boundaries — faint dotted)
+    // Management Units (individual WMU boundaries — dotted)
     fwaLayers.push({
         id: 'management_units',
         type: 'line',
         source: 'regulations',
         'source-layer': 'management_units',
         paint: {
-            'line-color': '#888888',
+            'line-color': '#6b6b6b',
             'line-width': [
                 'interpolate',
                 ['linear'],
                 ['zoom'],
-                4, 0.4,
-                8, 0.6,
-                12, 1.0
+                4, 0.6,
+                8, 1.0,
+                12, 1.6
             ],
-            'line-opacity': 0.25,
-            'line-dasharray': [2, 4]
+            'line-opacity': 0.45,
+            'line-dasharray': [2, 3]
         },
         layout: {
             'line-cap': 'round',
@@ -304,30 +358,172 @@ export const createRegulationLayers = (): LayerSpecification[] => {
         }
     });
 
-    // Management Unit labels (MU code) — faint, non-intrusive, centred on feature
+    // Management Unit labels — zoomed out: large centred text inside polygon fill
+    fwaLayers.push({
+        id: 'management_units-label-low',
+        type: 'symbol',
+        source: 'regulations',
+        'source-layer': 'management_units_fill',
+        minzoom: 4,
+        maxzoom: 7,
+        layout: {
+            'symbol-placement': 'point',
+            'text-field': ['get', 'mu_code'],
+            'text-font': ['Noto Sans Bold'],
+            'text-size': ['interpolate', ['linear'], ['zoom'], 4, 10, 5, 12, 6, 14, 7, 15],
+            'text-anchor': 'center',
+            'text-justify': 'center',
+            'text-allow-overlap': false,
+            'text-ignore-placement': false,
+            'text-padding': 2,
+            'text-max-width': 6,
+        },
+        paint: {
+            'text-color': '#333333',
+            'text-opacity': ['interpolate', ['linear'], ['zoom'], 4, 0.5, 6, 0.8],
+            'text-halo-color': '#ffffff',
+            'text-halo-width': 2,
+        },
+    });
+
+    // Management Unit labels — zoomed in: repeated along boundary lines
     fwaLayers.push({
         id: 'management_units-label',
         type: 'symbol',
         source: 'regulations',
         'source-layer': 'management_units',
-        minzoom: 8,
+        minzoom: 7,
         layout: {
-            'symbol-placement': 'point',
+            'symbol-placement': 'line',
             'text-field': ['get', 'mu_code'],
-            'text-font': ['Noto Sans Regular'],
-            'text-size': ['interpolate', ['linear'], ['zoom'], 8, 8, 10, 9, 13, 11],
-            'text-anchor': 'center',
-            'text-justify': 'center',
+            'text-font': ['Noto Sans Bold'],
+            'text-size': ['interpolate', ['linear'], ['zoom'], 7, 9, 9, 11, 12, 13],
             'text-allow-overlap': false,
             'text-ignore-placement': false,
-            'text-padding': ['interpolate', ['linear'], ['zoom'], 8, 60, 12, 20],
-            'text-max-width': 6,
+            'symbol-spacing': ['interpolate', ['linear'], ['zoom'], 7, 200, 10, 300, 13, 400],
+            'text-max-angle': 30,
+            'text-offset': [0, -0.6],
         },
         paint: {
-            'text-color': '#999999',
-            'text-opacity': ['interpolate', ['linear'], ['zoom'], 8, 0.25, 11, 0.4],
+            'text-color': '#444444',
+            'text-opacity': ['interpolate', ['linear'], ['zoom'], 7, 0.5, 9, 0.7, 12, 0.85],
             'text-halo-color': '#ffffff',
-            'text-halo-width': 0.5,
+            'text-halo-width': 1.6,
+        },
+    });
+
+    // ── WATERBODY NAME LABELS (above boundary lines for readability) ─
+    // Replace OSM water labels with our own using display_name.
+    // Skip unnamed waterbodies (display_name == '').
+
+    // Stream labels — follow line geometry like OSM river labels
+    fwaLayers.push({
+        id: 'streams-label',
+        type: 'symbol',
+        source: 'regulations',
+        'source-layer': 'streams',
+        minzoom: 11,
+        filter: ['!=', ['get', 'display_name'], ''],
+        layout: {
+            'symbol-placement': 'line',
+            'text-field': ['get', 'display_name'],
+            'text-font': ['Noto Sans Italic'],
+            'text-size': ['interpolate', ['linear'], ['zoom'], 11, 11, 14, 14],
+            'text-letter-spacing': 0.12,
+            'text-max-angle': 25,
+            'symbol-spacing': 300,
+            'text-allow-overlap': false,
+            'text-padding': 6,
+        },
+        paint: {
+            'text-color': '#0D47A1',
+            'text-halo-color': '#FFFFFF',
+            'text-halo-width': 2,
+            'text-halo-blur': 0.5,
+        },
+    });
+
+    // Lake labels — large lakes visible earlier, small lakes appear when zoomed in
+    // area_sqm thresholds: >5 km² @ z8, >1 km² @ z9, >0.1 km² @ z10, all @ z11
+    fwaLayers.push({
+        id: 'lakes-label',
+        type: 'symbol',
+        source: 'regulations',
+        'source-layer': 'lakes',
+        minzoom: 8,
+        filter: ['all',
+            ['!=', ['get', 'display_name'], ''],
+            ['any',
+                ['all', ['>=', ['zoom'], 11]],
+                ['all', ['>=', ['zoom'], 10], ['>=', ['get', 'area_sqm'], 100000]],
+                ['all', ['>=', ['zoom'], 9],  ['>=', ['get', 'area_sqm'], 1000000]],
+                ['all', ['>=', ['zoom'], 8],  ['>=', ['get', 'area_sqm'], 5000000]],
+            ],
+        ],
+        layout: {
+            'symbol-placement': 'point',
+            'text-field': ['get', 'display_name'],
+            'text-font': ['Noto Sans Italic'],
+            'text-size': ['interpolate', ['linear'], ['zoom'], 8, 10, 14, 14],
+            'text-letter-spacing': 0.1,
+            'text-max-width': 9,
+            'text-allow-overlap': false,
+            'text-padding': 3,
+        },
+        paint: {
+            'text-color': '#1565C0',
+            'text-halo-color': '#FFFFFF',
+            'text-halo-width': 1.2,
+        },
+    });
+
+    // Wetland labels
+    fwaLayers.push({
+        id: 'wetlands-label',
+        type: 'symbol',
+        source: 'regulations',
+        'source-layer': 'wetlands',
+        minzoom: 11,
+        filter: ['!=', ['get', 'display_name'], ''],
+        layout: {
+            'symbol-placement': 'point',
+            'text-field': ['get', 'display_name'],
+            'text-font': ['Noto Sans Italic'],
+            'text-size': ['interpolate', ['linear'], ['zoom'], 11, 10, 14, 12],
+            'text-letter-spacing': 0.1,
+            'text-max-width': 8,
+            'text-allow-overlap': false,
+            'text-padding': 4,
+        },
+        paint: {
+            'text-color': '#2E7D32',
+            'text-halo-color': '#FFFFFF',
+            'text-halo-width': 1.2,
+        },
+    });
+
+    // Manmade waterbody labels
+    fwaLayers.push({
+        id: 'manmade-label',
+        type: 'symbol',
+        source: 'regulations',
+        'source-layer': 'manmade',
+        minzoom: 10,
+        filter: ['!=', ['get', 'display_name'], ''],
+        layout: {
+            'symbol-placement': 'point',
+            'text-field': ['get', 'display_name'],
+            'text-font': ['Noto Sans Italic'],
+            'text-size': ['interpolate', ['linear'], ['zoom'], 10, 10, 14, 13],
+            'text-letter-spacing': 0.1,
+            'text-max-width': 9,
+            'text-allow-overlap': false,
+            'text-padding': 4,
+        },
+        paint: {
+            'text-color': '#6A1B9A',
+            'text-halo-color': '#FFFFFF',
+            'text-halo-width': 1.2,
         },
     });
 

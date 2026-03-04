@@ -32,7 +32,6 @@ type RegulationsLookup = Record<string, Regulation>;
 class RegulationsService {
   private regulations: RegulationsLookup | null = null;
   private loadPromise: Promise<RegulationsLookup> | null = null;
-  private provincialRuleTexts: Set<string> = new Set();
 
   async loadRegulations(): Promise<RegulationsLookup> {
     if (this.regulations) return this.regulations;
@@ -43,13 +42,6 @@ class RegulationsService {
       .then(data => {
         this.regulations = data;
         this.loadPromise = null;
-
-        // Build set of provincial/zone rule texts for filtering display names
-        this.provincialRuleTexts = new Set(
-          Object.values(data as RegulationsLookup)
-            .filter(reg => (reg.source === 'provincial' || reg.source === 'zone') && reg.rule_text)
-            .map(reg => reg.rule_text)
-        );
 
         console.log("✅ Regulations loaded. Total keys:", Object.keys(data).length);
         return data;
@@ -107,16 +99,6 @@ class RegulationsService {
     const regs = await this.loadRegulations();
     return regs[regulationId] || null;
   }
-
-  /**
-   * Filter out provincial regulation names (rule_text) from a list of regulation names.
-   * Provincial names are long rule texts that shouldn't appear in "Listed as" or as waterbody name fallbacks.
-   * Arrow function to preserve `this` binding when passed as a callback.
-   */
-  filterOutProvincialNames = (names: string[]): string[] => {
-    if (this.provincialRuleTexts.size === 0) return names;
-    return names.filter(name => !this.provincialRuleTexts.has(name));
-  };
 
   preload(): void {
     this.loadRegulations().catch((err) => {

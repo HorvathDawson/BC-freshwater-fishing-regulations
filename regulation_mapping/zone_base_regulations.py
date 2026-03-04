@@ -1434,7 +1434,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
             "details": "All lakes closed in UBC Malcolm Knapp Research Forest.",
         },
         notes="Source: Region 2 preamble, 2025-2027 Synopsis.",
-        admin_targets=[AdminTarget("osm_admin_boundaries", "349856972")],
+        admin_targets=[AdminTarget("osm_admin_boundaries", "1166294466")],
     ),
     #
     # ZoneRegulation(

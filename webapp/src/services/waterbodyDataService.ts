@@ -15,16 +15,17 @@ import type { NameVariant } from '../utils/featureUtils';
 export interface WaterbodyItem {
   id: string;
   gnis_name?: string;
+  display_name?: string;
+  frontend_group_ids?: string[];
   type: string;
   zones?: string;
   mgmt_units?: string;
   region_name?: string;
   regulation_ids?: string;
-  regulation_names?: string[];
   name_variants?: NameVariant[];
   bbox?: [number, number, number, number];
   min_zoom?: number;
-  length_km?: number;
+  total_length_km?: number;
   segment_count?: number;
   properties?: Record<string, string | number | boolean | null>;
   regulation_segments?: {
@@ -32,7 +33,7 @@ export interface WaterbodyItem {
     group_id?: string;
     group_ids?: string[];
     regulation_ids?: string;
-    regulation_names?: string[];
+    display_name?: string;
     name_variants?: NameVariant[];
     length_km?: number;
     bbox?: [number, number, number, number] | null;

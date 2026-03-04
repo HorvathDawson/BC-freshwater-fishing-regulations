@@ -85,9 +85,11 @@ The following items were investigated and confirmed **not dead**:
 
 11. fix missing knap malcom and rubble creek admin boundaries, etc...
 
-12. reparse synopsis 
+12. nicomen slough lakes are part of nicomen slough. sloughs include lakes...
 
 13. bear river is in region 1 and 2 but should only be in 2 because it is fully in 2 not straddling border...
+
+
 
 
 ===============
