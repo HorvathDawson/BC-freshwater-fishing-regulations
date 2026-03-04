@@ -18,11 +18,9 @@ interface DisambiguationMenuProps {
     onSelect: (option: FeatureOption) => void;
     onHighlight: (option: FeatureOption | null) => void;
     onClose: () => void;
-    isCollapsed?: boolean;
-    onSetCollapse: (collapsed: boolean) => void;
 }
 
-const DisambiguationMenu = ({ options, position, highlightedOption, onSelect, onHighlight, onClose, isCollapsed = false, onSetCollapse }: DisambiguationMenuProps) => {
+const DisambiguationMenu = ({ options, position, highlightedOption, onSelect, onHighlight, onClose }: DisambiguationMenuProps) => {
     const menuRef = useRef<HTMLDivElement>(null);
     const [menuStyle, setMenuStyle] = useState<React.CSSProperties>({
         visibility: 'hidden',
@@ -33,21 +31,6 @@ const DisambiguationMenu = ({ options, position, highlightedOption, onSelect, on
 
     const getLabel = (opt: FeatureOption) => 
         getFeatureDisplayName(opt.properties, regulationsService.filterOutProvincialNames);
-
-    const touchStartY = useRef<number>(0);
-
-    const handleTouchStart = (e: React.TouchEvent) => {
-        touchStartY.current = e.touches[0].clientY;
-    };
-
-    const handleTouchEnd = (e: React.TouchEvent) => {
-        const touchEndY = e.changedTouches[0].clientY;
-        const diffY = touchEndY - touchStartY.current;
-        const threshold = 50; 
-
-        if (diffY > threshold) onSetCollapse(true); 
-        else if (diffY < -threshold) onSetCollapse(false);
-    };
 
     useLayoutEffect(() => {
         const handleResize = () => setIsMobile(isMobileViewport());
@@ -94,18 +77,12 @@ const DisambiguationMenu = ({ options, position, highlightedOption, onSelect, on
         <>
             <div 
                 ref={menuRef}
-                className={`disambig-menu ${isCollapsed ? 'collapsed' : ''}`}
+                className="disambig-menu"
                 style={menuStyle}
                 role="region"
                 aria-label="Feature disambiguation menu"
             >
-                <div 
-                    className="menu-header" 
-                    onClick={() => onSetCollapse(!isCollapsed)}
-                    onTouchStart={handleTouchStart}
-                    onTouchEnd={handleTouchEnd}
-                >
-                    <div className="mobile-handle" />
+                <div className="menu-header">
                     <span>MULTIPLE FEATURES ({options.length})</span>
                     <button onClick={(e) => { e.stopPropagation(); onClose(); }} className="close-x" aria-label="Close feature menu">×</button>
                 </div>
@@ -155,11 +132,12 @@ const DisambiguationMenu = ({ options, position, highlightedOption, onSelect, on
                                         <span className="type">{option.type}</span>
                                     </div>
                                 </button>
-                                {isMobile && isHighlighted && (
+                                {isMobile && (
                                     <button
-                                        className="focus-button"
+                                        className={`focus-button ${isHighlighted ? '' : 'hidden'}`}
                                         onPointerDown={(e) => { e.stopPropagation(); onSelect(option); }}
                                         aria-label="Focus on this feature"
+                                        tabIndex={isHighlighted ? 0 : -1}
                                     >
                                         <Eye size={16} />
                                     </button>

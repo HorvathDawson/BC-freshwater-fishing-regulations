@@ -23,8 +23,6 @@
     font-size: 10px; 
     font-weight: 800; 
     letter-spacing: 0.1em; 
-    cursor: pointer; 
-    touch-action: none;
 }
 
 .close-x { 
@@ -47,10 +45,20 @@
     display: flex;
     align-items: center;
     border-bottom: 1px solid var(--border-light, #eee);
+    /* Reserve consistent right padding for the focus button on mobile */
+    min-height: 62px;
 }
 
 .menu-item-wrapper.highlighted {
     background: #fffbeb;
+}
+
+.menu-item-wrapper:active {
+    background: rgba(0, 0, 0, 0.06);
+}
+
+.menu-item-wrapper.highlighted:active {
+    background: #fff3c4;
 }
 
 .menu-item {
@@ -64,10 +72,15 @@
     text-align: left; 
     cursor: pointer; 
     box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
 }
 
-.menu-item:hover { 
+.menu-item-wrapper:hover { 
     background: rgba(0,0,0,0.03); 
+}
+
+.menu-item-wrapper.highlighted:hover {
+    background: #fffbeb;
 }
 
 .focus-button {
@@ -82,11 +95,17 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .focus-button:active {
     background: #2563eb;
     border-color: #2563eb;
+}
+
+.focus-button.hidden {
+    visibility: hidden;
+    pointer-events: none;
 }
 
 .icon-container { 
@@ -178,26 +197,9 @@
         min-width: 0 !important;
         box-sizing: border-box !important;
         
-        transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
         display: flex; 
         flex-direction: column;
         max-height: 50vh;
-    }
-    
-    .disambig-menu.collapsed { 
-        transform: translateY(calc(100% - 45px)) !important; 
-    }
-    
-    .mobile-handle {
-        display: block; 
-        width: 30px; 
-        height: 3px; 
-        background: var(--border-light, #bbb);
-        border-radius: 2px; 
-        position: absolute; 
-        top: 4px; 
-        left: 50%; 
-        transform: translateX(-50%);
     }
     
     .menu-header { 

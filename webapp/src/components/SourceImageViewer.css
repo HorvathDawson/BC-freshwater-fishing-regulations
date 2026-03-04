@@ -1,0 +1,141 @@
+/* ──────────────────────────────────────────────────────────
+   SourceImageViewer — full-screen pinch-zoom image modal
+   ────────────────────────────────────────────────────────── */
+
+.siv-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    background: rgba(0, 0, 0, 0.88);
+    display: flex;
+    flex-direction: column;
+    animation: sivFadeIn 0.15s ease;
+}
+
+@keyframes sivFadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+/* ── Header bar ─────────────────────────────────────────── */
+.siv-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(8px);
+    flex-shrink: 0;
+    z-index: 1;
+    gap: 8px;
+}
+
+.siv-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+}
+
+.siv-controls {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+}
+
+.siv-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.12);
+    color: #fff;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.siv-btn:hover {
+    background: rgba(255, 255, 255, 0.24);
+}
+
+.siv-btn:active {
+    background: rgba(255, 255, 255, 0.32);
+}
+
+.siv-close {
+    margin-left: 4px;
+    background: rgba(255, 80, 80, 0.25);
+}
+
+.siv-close:hover {
+    background: rgba(255, 80, 80, 0.45);
+}
+
+.siv-zoom-pct {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.7);
+    min-width: 36px;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+    user-select: none;
+}
+
+/* ── Viewport (image area) ──────────────────────────────── */
+.siv-viewport {
+    flex: 1;
+    overflow: hidden;
+    /* CRITICAL: prevent browser from hijacking touch for native zoom/scroll */
+    touch-action: none;
+    cursor: grab;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+.siv-viewport:active {
+    cursor: grabbing;
+}
+
+.siv-img {
+    /* No max-width / max-height — transform handles sizing */
+    will-change: transform;
+    transition: opacity 0.2s ease;
+    pointer-events: none; /* let viewport handle all pointer events */
+    image-rendering: auto;
+}
+
+.siv-loading {
+    position: absolute;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 14px;
+}
+
+/* ── Mobile adjustments ─────────────────────────────────── */
+@media (max-width: 768px) {
+    .siv-header {
+        padding: 6px 10px;
+    }
+
+    .siv-title {
+        font-size: 12px;
+    }
+
+    .siv-btn {
+        width: 36px;
+        height: 36px;
+    }
+
+    .siv-zoom-pct {
+        display: none; /* save space on mobile */
+    }
+}

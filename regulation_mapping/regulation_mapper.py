@@ -519,9 +519,14 @@ class RegulationMapper:
         self._pending_name_variation_aliases: Dict[str, List[tuple]] = defaultdict(list)
         # Resolved feature_id → {alias_names} — built by _resolve_name_variation_aliases
         self.feature_to_aliases: Dict[str, Set[str]] = defaultdict(set)
-        # Feature IDs that came from tributary enrichment (matched_via="tributary_enrichment")
-        # Used to tag name_variants as from_tributary in search index
-        self.tributary_feature_ids: Set[str] = set()
+        # Per-feature tracking of which rule_ids were assigned via tributary
+        # enrichment.  Maps feature_id → {rule_ids assigned as tributary}.
+        # Used to decide which regulation names are "inherited" in name_variants.
+        self.tributary_assignments: Dict[str, Set[str]] = defaultdict(set)
+        # GNIS names of the directly-matched (non-tributary) features per
+        # base regulation.  Used so that tributary groups show
+        # "Tributary of <parent GNIS>" rather than the synopsis reg name.
+        self.regulation_parent_gnis: Dict[str, Set[str]] = defaultdict(set)
 
         # Reverse index: waterbody_key → [linear_feature_ids] for O(1) lookup
         # Replaces O(5M) linear scan in _get_stream_seeds_for_waterbody
@@ -701,6 +706,13 @@ class RegulationMapper:
         ):
             identity = regulation.get("identity", {})
 
+            # Collect GNIS names from base (directly-matched) features
+            # so tributary groups can show "Tributary of <parent GNIS>".
+            for bf in base_features:
+                gn = self._get_prop(bf, ["gnis_name"])
+                if gn:
+                    self.regulation_parent_gnis[regulation_id].add(gn)
+
             # 3. Apply Global Scope
             global_scope = identity.get("global_scope", {})
 
@@ -752,9 +764,9 @@ class RegulationMapper:
                     feature_id = self._get_feature_id(feature)
                     self.feature_to_regs.setdefault(feature_id, []).append(rule_id)
                     self.stats.total_rule_to_feature_mappings += 1
-                    # Track features from tributary enrichment
+                    # Track which (feature, rule) pairs came from tributary enrichment
                     if getattr(feature, "matched_via", None) == "tributary_enrichment":
-                        self.tributary_feature_ids.add(feature_id)
+                        self.tributary_assignments[feature_id].add(rule_id)
 
                 # Store regulation details for export (synopsis source)
                 rest = rule.get("restriction", {})
@@ -831,6 +843,29 @@ class RegulationMapper:
 
         return scoped_features
 
+    @staticmethod
+    def _title_case_name(name: str) -> str:
+        """Title-case a waterbody name: first letter of each word uppercase, rest lower.
+
+        Handles apostrophes (Pete's → Pete's not Pete'S), quoted strings,
+        and parenthetical content correctly.
+        """
+        if not name:
+            return name
+        # Split into word-like tokens preserving whitespace & punctuation
+        # via regex: each "word" is letters/digits/apostrophes bounded by
+        # whitespace, hyphens, parentheses, quotes, commas …
+        def _title_word(m: re.Match) -> str:
+            word = m.group(0)
+            # Lowercase everything then uppercase first alpha char
+            lower = word.lower()
+            for i, ch in enumerate(lower):
+                if ch.isalpha():
+                    return lower[:i] + ch.upper() + lower[i + 1:]
+            return lower  # no alpha chars (e.g. pure digits)
+
+        return re.sub(r"[A-Za-z0-9']+", _title_word, name)
+
     def _build_name_variants_for_group(
         self,
         features_data: list,
@@ -845,14 +880,24 @@ class RegulationMapper:
 
         Returns tuple of dicts with 'name' and 'from_tributary' keys.
         Names from tributary-enriched features are tagged as from_tributary=True.
+        All names are title-cased for consistent display.
         """
         # Track names with their tributary status: name -> from_tributary
-        # Use dict to dedupe, keeping non-tributary status if both exist
+        # from_tributary means "this name was INHERITED from a downstream
+        # waterbody" — specifically, a regulation name whose rules were ALL
+        # assigned to the group's features via tributary enrichment.
+        # GNIS names and NameVariationLink aliases are never from_tributary;
+        # only regulation names inherited from a parent stream get the flag.
         name_to_tributary: dict = {}
+
+        # Collect group feature IDs and their tributary rule sets
+        group_fids = {fid for fid, _ in features_data}
 
         def add_name(name: str, is_tributary: bool):
             if not name:
                 return
+            # Normalize to title case so "ALICE LAKE" and "Alice Lake" merge
+            name = self._title_case_name(name)
             # If name already exists as non-tributary, keep it as non-tributary
             if name in name_to_tributary:
                 if not is_tributary:
@@ -860,17 +905,45 @@ class RegulationMapper:
             else:
                 name_to_tributary[name] = is_tributary
 
-        # 1. GNIS names from features (tagged by tributary status)
+        def _is_reg_inherited(base_regulation_id: str) -> bool:
+            """Check if a regulation is entirely inherited via tributary.
+
+            Returns True only when EVERY (feature, rule) mapping for
+            this base regulation within the group came from tributary
+            enrichment — meaning no feature was directly matched.
+            """
+            rule_ids = [
+                r for r in regulation_ids
+                if r.rsplit("_rule", 1)[0] == base_regulation_id
+            ]
+            if not rule_ids:
+                return False
+            has_any_mapping = False
+            for fid in group_fids:
+                fid_rules = set(self.feature_to_regs.get(fid, []))
+                trib_rules = self.tributary_assignments.get(fid, set())
+                for rid in rule_ids:
+                    if rid in fid_rules:
+                        has_any_mapping = True
+                        if rid not in trib_rules:
+                            return False  # Direct match found
+            return has_any_mapping  # True only if all mappings were tributary
+
+        # 1. GNIS names from features — always the feature's own identity,
+        #    never marked as from_tributary.
         for fid, feat in features_data:
-            is_trib = fid in self.tributary_feature_ids
             gn = self._get_prop(feat, ["gnis_name"])
             if gn:
-                add_name(gn, is_trib)
+                add_name(gn, False)
             gn2 = self._get_prop(feat, ["gnis_name_2"])
             if gn2:
-                add_name(gn2, is_trib)
+                add_name(gn2, False)
 
-        # 2. Regulation names (waterbody-specific only) - not from tributaries
+        # 2. Regulation names (waterbody-specific only).
+        #    For inherited regulations (from tributary enrichment),
+        #    use the parent stream's GNIS name with from_tributary=True
+        #    so the UI shows "Tributary of <clean GNIS name>".
+        #    For direct regulations, add the regulation name normally.
         base_ids = {r.rsplit("_rule", 1)[0] for r in regulation_ids}
         base_ids = {
             b
@@ -880,15 +953,29 @@ class RegulationMapper:
         base_ids -= self.admin_regulation_ids
 
         for bid in base_ids:
-            reg_name = self.regulation_names.get(bid, "")
-            if reg_name:
-                add_name(reg_name, False)
+            inherited = _is_reg_inherited(bid)
+            if inherited:
+                # Inherited from downstream — add parent GNIS name(s) only.
+                # The verbose regulation name (e.g. "ADAM RIVER (except Eve
+                # River)") is redundant when we have the clean GNIS.
+                parent_names = self.regulation_parent_gnis.get(bid, set())
+                if parent_names:
+                    for pname in parent_names:
+                        add_name(pname, True)
+                else:
+                    # No parent GNIS recorded — fall back to regulation name
+                    reg_name = self.regulation_names.get(bid, "")
+                    if reg_name:
+                        add_name(reg_name, True)
+            else:
+                reg_name = self.regulation_names.get(bid, "")
+                if reg_name:
+                    add_name(reg_name, False)
 
-        # 3. Name variation aliases — resolved to specific feature_ids
+        # 3. Name variation aliases — never from_tributary.
         for fid, _ in features_data:
-            is_trib = fid in self.tributary_feature_ids
             for alias in self.feature_to_aliases.get(fid, set()):
-                add_name(alias, is_trib)
+                add_name(alias, False)
 
         # Build sorted list of dicts
         result = tuple(

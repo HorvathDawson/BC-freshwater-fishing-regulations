@@ -14,7 +14,7 @@
     position: absolute;
     top: 12px;
     left: 12px;
-    z-index: 1;
+    z-index: 5;
     display: flex;
     flex-direction: column;
     gap: 8px;
@@ -80,5 +80,10 @@
     .map-layer-menu {
         position: static;
         min-width: 200px;
+    }
+
+    /* Push compass/nav control below search bar on mobile */
+    .map-container .maplibregl-ctrl-top-right {
+        top: 56px;
     }
 }

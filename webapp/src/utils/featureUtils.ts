@@ -101,7 +101,20 @@ export const getFeatureDisplayName = (
             : regNamesArr;
         if (filtered.length > 0) return filtered[0];
     }
-    
+
+    // Before falling back to "Unnamed", check name_variants for a direct
+    // (non-tributary, non-admin) name that can serve as display name.
+    const nameVariants: (NameVariant | string)[] = Array.isArray(props.name_variants)
+        ? props.name_variants
+        : [];
+    for (const nv of nameVariants) {
+        const variantName = typeof nv === 'string' ? nv : nv.name;
+        const fromTributary = typeof nv === 'string' ? false : nv.from_tributary;
+        if (!fromTributary && variantName) {
+            return variantName;
+        }
+    }
+
     return 'Unnamed';
 };
 
@@ -112,6 +125,22 @@ export interface NameVariant {
     name: string;
     from_tributary: boolean;
 }
+
+/**
+ * Return the first direct (non-tributary) name from a name_variants array,
+ * or `null` if none exists.  Useful as a fallback before showing "Unnamed".
+ */
+export const firstDirectVariantName = (
+    nameVariants: (NameVariant | string)[] | undefined | null
+): string | null => {
+    if (!nameVariants || !Array.isArray(nameVariants)) return null;
+    for (const nv of nameVariants) {
+        const name = typeof nv === 'string' ? nv : nv.name;
+        const fromTributary = typeof nv === 'string' ? false : nv.from_tributary;
+        if (!fromTributary && name) return name;
+    }
+    return null;
+};
 
 /**
  * Get unique aliases from name_variants that aren't the display name.

@@ -44,6 +44,7 @@ class FeatureType(Enum):
     WMA = "wma"
     WATERSHED = "watersheds"
     HISTORIC_SITE = "historic_sites"
+    OSM_ADMIN = "osm_admin_boundaries"
 
     UNKNOWN = "unknown"
 
@@ -56,6 +57,7 @@ ADMIN_FEATURE_TYPES = frozenset(
         FeatureType.WMA,
         FeatureType.WATERSHED,
         FeatureType.HISTORIC_SITE,
+        FeatureType.OSM_ADMIN,
     }
 )
 
@@ -101,6 +103,20 @@ ADMIN_LAYER_CONFIG: dict = {
         "feature_type": FeatureType.HISTORIC_SITE,
         "id_field": "SITE_ID",
         "name_field": "COMMON_SITE_NAME",
+    },
+    "osm_admin_boundaries": {
+        "feature_type": FeatureType.OSM_ADMIN,
+        "id_field": "place_id",
+        "name_field": "name",
+        "code_field": "type",
+        "code_map": {
+            "protected_area": "PROTECTED_AREA",
+            "national_park": "NATIONAL_PARK",
+            "nature_reserve": "NATURE_RESERVE",
+            "forest": "FOREST",
+            "military": "MILITARY",
+            "aboriginal_lands": "ABORIGINAL_LANDS",
+        },
     },
 }
 

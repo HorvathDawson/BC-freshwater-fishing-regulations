@@ -6,12 +6,14 @@ import { regulationsService } from '../services/regulationsService';
 import { 
     getIconForType, 
     getColorForType, 
+    getFeatureDisplayName,
     calculateSwipeState, 
     type CollapseState,
     type FeatureInfo,
     type NameVariant
 } from '../utils/featureUtils';
 import { getShareableUrl, copyToClipboard } from '../utils/urlState';
+import SourceImageViewer from './SourceImageViewer';
 import './InfoPanel.css';
 
 /** Human-readable labels for admin scope_location keys */
@@ -163,18 +165,10 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
         if (!feature) return null;
         const props = feature.properties;
         
-        // regulation_names & name_variants are always arrays (enriched at
-        // selection time from the search index for both click & search paths).
-        const rawRegulationNames: string[] = Array.isArray(props.regulation_names)
-            ? props.regulation_names
-            : (props.regulation_names ? (props.regulation_names as string).split(' | ').filter(Boolean) : []);
-        const regulationNames = regulationsService.filterOutProvincialNames(rawRegulationNames);
-
-        const title = props.gnis_name || props.lake_name || props.name || regulationNames[0] || 'Unnamed Waterbody';
-        const typeLabel = feature.type.toUpperCase();
-
         // Build deduplicated aliases from name_variants
         const nameVariantsRaw: (NameVariant | string)[] = Array.isArray(props.name_variants) ? props.name_variants : [];
+        const title = getFeatureDisplayName(props, regulationsService.filterOutProvincialNames);
+        const typeLabel = feature.type.toUpperCase();
         const seen = new Set<string>();
         seen.add((title as string).toLowerCase());
         const aliases: NameVariant[] = [];
@@ -231,11 +225,11 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                             <div className="regulation-subtitle">
                                 Also known as:
                                 {aliases.length === 1 ? (
-                                    <span> {aliases[0].from_tributary ? `Tributary: ${aliases[0].name}` : aliases[0].name}</span>
+                                    <span> {aliases[0].from_tributary ? `Tributary of ${aliases[0].name}` : aliases[0].name}</span>
                                 ) : (
                                     <ul style={{ margin: '0.25rem 0 0 1rem', padding: 0, listStyle: 'disc' }}>
                                         {aliases.map((alias: NameVariant, idx: number) => (
-                                            <li key={idx}>{alias.from_tributary ? `Tributary: ${alias.name}` : alias.name}</li>
+                                            <li key={idx}>{alias.from_tributary ? `Tributary of ${alias.name}` : alias.name}</li>
                                         ))}
                                     </ul>
                                 )}
@@ -549,25 +543,13 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                 {renderContent()}
             </aside>
 
-            {/* Source image modal */}
+            {/* Source image viewer */}
             {sourceImage && (
-                <div className="source-image-overlay" onClick={() => setSourceImage(null)} role="presentation">
-                    <div className="source-image-modal" onClick={e => e.stopPropagation()} role="dialog" aria-modal="true" aria-label={`Synopsis source image for ${sourceImage.name}`}>
-                        <div className="source-image-header">
-                            <span className="source-image-title">{sourceImage.name}</span>
-                            <button className="source-image-close" onClick={() => setSourceImage(null)} aria-label="Close source image">
-                                <X size={18} />
-                            </button>
-                        </div>
-                        <div className="source-image-body">
-                            <img
-                                src={sourceImage.src}
-                                alt={`Synopsis source for ${sourceImage.name}`}
-                                className="source-image-img"
-                            />
-                        </div>
-                    </div>
-                </div>
+                <SourceImageViewer
+                    src={sourceImage.src}
+                    name={sourceImage.name}
+                    onClose={() => setSourceImage(null)}
+                />
             )}
         </>
     );

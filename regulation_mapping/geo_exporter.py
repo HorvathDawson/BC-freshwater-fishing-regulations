@@ -29,6 +29,27 @@ from .regulation_mapper import PipelineResult, MergedGroup
 from fwa_pipeline.metadata_gazetteer import FeatureType
 from fwa_pipeline.metadata_builder import ADMIN_LAYER_CONFIG
 
+
+def _round_coords(geom_dict: dict, precision: int = 7) -> dict:
+    """Round all coordinates in a __geo_interface__ geometry dict.
+
+    Reduces GeoJSON coordinate precision from float64 (14-15 digits) to
+    *precision* decimal places.  7 digits ≈ 1.1 cm at the equator — more
+    than sufficient for map display.  This typically halves the byte size
+    of coordinate-heavy features.
+    """
+
+    def _round(coords):
+        """Recursively round nested coordinate tuples/lists."""
+        if isinstance(coords, (float, int)):
+            return round(coords, precision)
+        return [_round(c) for c in coords]
+
+    return {
+        **geom_dict,
+        "coordinates": _round(geom_dict["coordinates"]),
+    }
+
 from .logger_config import get_logger
 
 logger = get_logger(__name__)
@@ -255,8 +276,13 @@ class RegulationGeoExporter:
     ) -> Any:
         mtime = self._get_gdb_mtime(gdb_path)
         ids_str = ",".join(sorted(map(str, ids_set)))
+        # Always resolve to absolute path so the hash is stable regardless of
+        # whether a relative or absolute path was passed in.  A mismatch here
+        # was the root cause of the PMTiles size bloat: the cache built on
+        # Feb 20 used an absolute path; later runs were passed a relative path,
+        # producing a different hash → cache miss on every run.
         cache_hash = hashlib.md5(
-            f"{gdb_path}_{mtime}_{ids_str}".encode("utf-8")
+            f"{gdb_path.resolve()}_{mtime}_{ids_str}".encode("utf-8")
         ).hexdigest()
         cache_file = self.cache_dir / f"{prefix}_{cache_hash}.pkl"
 
@@ -1027,9 +1053,15 @@ class RegulationGeoExporter:
 
                 if merge_geometries and len(geom_meta) > 1:
                     max_area = max(m.get("area_sqm", 0) for _, m, _ in geom_meta)
+                    wbk = group.waterbody_key if group.waterbody_key is not None else ""
+                    frontend_gid = self._compute_frontend_group_id(
+                        wbk or group.group_id, gnis_name, group.regulation_ids
+                    )
                     features.append(
                         {
                             "group_id": group.group_id,
+                            "frontend_group_id": frontend_gid,
+                            "waterbody_key": wbk,
                             "regulation_ids": ",".join(group.regulation_ids),
                             "regulation_count": len(group.regulation_ids),
                             "regulation_names": " | ".join(
@@ -1038,6 +1070,7 @@ class RegulationGeoExporter:
                                 )
                             ),
                             "gnis_name": gnis_name,
+                            "area_sqm": max_area,
                             "feature_count": group.feature_count,
                             "zones": ",".join(group.zones),
                             "mgmt_units": ",".join(group.mgmt_units),
@@ -1056,9 +1089,14 @@ class RegulationGeoExporter:
                     )
                 else:
                     for geom, meta, key in geom_meta:
+                        wbk = meta.get("waterbody_key", key) or ""
+                        frontend_gid = self._compute_frontend_group_id(
+                            wbk or group.group_id, group.gnis_name, group.regulation_ids
+                        )
                         features.append(
                             {
-                                "waterbody_key": meta.get("waterbody_key", key) or "",
+                                "waterbody_key": wbk,
+                                "frontend_group_id": frontend_gid,
                                 "gnis_name": meta.get("gnis_name", "") or "",
                                 "area_sqm": meta.get("area_sqm", 0),
                                 "regulation_ids": ",".join(group.regulation_ids),
@@ -1239,6 +1277,39 @@ class RegulationGeoExporter:
             ]
         ]
 
+    def _create_management_units_layer(self) -> Optional[gpd.GeoDataFrame]:
+        """Build management-unit boundary layer from the 'wmu' layer.
+
+        Each WMU polygon is kept individually (not dissolved) so the
+        management-unit code (``WILDLIFE_MGMT_UNIT_ID``, e.g. '1-15') can
+        be displayed on the frontend.
+        """
+        if "wmu" not in self.data_accessor.list_layers():
+            logger.warning("'wmu' layer not found in GPKG — skipping management_units")
+            return None
+
+        mu_gdf = self.data_accessor.get_layer("wmu").to_crs("EPSG:3005")
+        mu_gdf["mu_code"] = mu_gdf["WILDLIFE_MGMT_UNIT_ID"]
+        mu_gdf["region_name"] = mu_gdf["REGION_RESPONSIBLE_NAME"]
+        mu_gdf["zone"] = mu_gdf["REGION_RESPONSIBLE_ID"]
+        mu_gdf["geometry"] = mu_gdf["geometry"].boundary
+
+        mu_gdf["stroke_color"] = "#888888"
+        mu_gdf["stroke_width"] = 1.0
+        mu_gdf["tippecanoe:minzoom"] = 4
+
+        return mu_gdf[
+            [
+                "mu_code",
+                "zone",
+                "region_name",
+                "stroke_color",
+                "stroke_width",
+                "tippecanoe:minzoom",
+                "geometry",
+            ]
+        ]
+
     def _create_bc_mask_layer(self) -> Optional[gpd.GeoDataFrame]:
         """Create a polygon that covers area outside BC zones for grey masking.
 
@@ -1333,6 +1404,7 @@ class RegulationGeoExporter:
         ]
         if include_regions:
             layers.append(("regions", lambda: self._create_regions_layer()))
+            layers.append(("management_units", lambda: self._create_management_units_layer()))
             layers.append(("bc_mask", lambda: self._create_bc_mask_layer()))
 
         # Ungazetted waterbody points (zoom 10+)
@@ -1419,7 +1491,9 @@ class RegulationGeoExporter:
                         record = {
                             "type": "Feature",
                             "properties": props,
-                            "geometry": row["geometry"].__geo_interface__,
+                            "geometry": _round_coords(
+                                row["geometry"].__geo_interface__
+                            ),
                             "tippecanoe": {
                                 "layer": name,
                                 "minzoom": int(row["tippecanoe:minzoom"]),
@@ -1440,8 +1514,7 @@ class RegulationGeoExporter:
             "--minimum-zoom=4",
             "--maximum-zoom=12",
             "--no-simplification-of-shared-nodes",
-            "--no-tiny-polygon-reduction",
-            "--simplification=8",
+            "--simplification=10",
             "--no-feature-limit",
             "--no-tile-size-limit",
             "--simplification-at-maximum-zoom=1",
@@ -1498,10 +1571,20 @@ class RegulationGeoExporter:
             if not gnis_name and not reg_names:
                 continue
 
-            # Group by physical identity (watershed_code + name + type)
-            # waterbody_key is NOT included - same stream may have multiple waterbody_keys
+            # Determine grouping identity per feature type
             wsc = group.fwa_watershed_code or ""
-            physical_key = (wsc, gnis_name, ftype_val)
+            if ftype_val != FeatureType.STREAM.value:
+                # Lakes/manmade/wetlands: group by waterbody_key (unique per physical waterbody)
+                grouping_id = group.waterbody_key or ""
+            else:
+                # Streams: group by watershed code (standard stream identity)
+                grouping_id = wsc
+
+            # 999-* is a catch-all/dummy code — never merge disparate features on it
+            if not grouping_id or grouping_id.startswith("999-"):
+                grouping_id = group.group_id  # Keep as separate entry
+
+            physical_key = (grouping_id, gnis_name, ftype_val)
 
             sg = physical_groups[physical_key]
             if group.waterbody_key:
@@ -1556,7 +1639,7 @@ class RegulationGeoExporter:
             )
 
         search_items = []
-        for (wsc, gnis, ftype_val), data in physical_groups.items():
+        for (grouping_id, gnis, ftype_val), data in physical_groups.items():
             if not data["geoms"]:
                 continue
 
@@ -1621,8 +1704,12 @@ class RegulationGeoExporter:
             else:
                 length_km = round(total_length_m / 1_000_000.0, 2)
 
-            # Use watershed code as stream identity key
-            stream_key = next(iter(data["watershed_codes"]), "") or wsc
+            # Identity key: watershed_code for streams, waterbody_key/group_id for lakes
+            if ftype_val == FeatureType.STREAM.value:
+                stream_key = next(iter(data["watershed_codes"]), "") or grouping_id
+            else:
+                # For lakes, prefer the waterbody_key we grouped on
+                stream_key = next(iter(sorted(data["wb_keys"])), "") or grouping_id
 
             # Consolidate segments by regulation set (same regs = same frontend group)
             # Key: tuple of sorted regulation_ids

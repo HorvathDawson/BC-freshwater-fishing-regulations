@@ -310,7 +310,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ features, onSelect, highlightedRe
                                         {hasAliases && (
                                             <div className="search-result-subtitle">
                                                 Also known as: {aliases.map(a => 
-                                                    a.from_tributary ? `Tributary: ${a.name}` : a.name
+                                                    a.from_tributary ? `Tributary of ${a.name}` : a.name
                                                 ).join(' | ')}
                                             </div>
                                         )}
@@ -325,11 +325,12 @@ const SearchBar: React.FC<SearchBarProps> = ({ features, onSelect, highlightedRe
                                         </div>
                                     </div>
                                 </button>
-                                {isMobile && isHighlighted && (
+                                {isMobile && (
                                     <button
-                                        className="focus-button"
+                                        className={`focus-button ${isHighlighted ? '' : 'hidden'}`}
                                         onClick={() => handleSelect(feature)}
                                         aria-label="Focus on this feature"
+                                        tabIndex={isHighlighted ? 0 : -1}
                                     >
                                         <Eye size={16} />
                                     </button>

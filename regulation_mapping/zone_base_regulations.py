@@ -1418,28 +1418,24 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
     # ),
     #
     # ========================================================================
-    # REGION 2 — Admin-match regulations (commented out — need polygon data)
+    # REGION 2 — Admin-match regulations
     # ========================================================================
-    #
-    # TODO: These areas are not yet in the data layers. When polygon data
-    # becomes available, uncomment and set the admin_targets accordingly.
-    #
-    # ZoneRegulation(
-    #     regulation_id="zone_r2_knapp_forest_closure",
-    #     zone_ids=["2"],
-    #     rule_text=(
-    #         "No fishing in any lake in the UBC Malcolm Knapp Research "
-    #         "Forest near Maple Ridge."
-    #     ),
-    #     feature_types=[FeatureType.LAKE],
-    #     restriction={
-    #         "type": "Closed",
-    #         "species": ["all"],
-    #         "details": "All lakes closed in UBC Malcolm Knapp Research Forest.",
-    #     },
-    #     notes="Source: Region 2 preamble, 2025-2027 Synopsis.",
-    #     admin_targets=[],  # TODO: polygon data not yet available
-    # ),
+    ZoneRegulation(
+        regulation_id="zone_r2_knapp_forest_closure",
+        zone_ids=["2"],
+        rule_text=(
+            "No fishing in any lake in the UBC Malcolm Knapp Research "
+            "Forest near Maple Ridge."
+        ),
+        feature_types=[FeatureType.LAKE],
+        restriction={
+            "type": "Closed",
+            "species": ["all"],
+            "details": "All lakes closed in UBC Malcolm Knapp Research Forest.",
+        },
+        notes="Source: Region 2 preamble, 2025-2027 Synopsis.",
+        admin_targets=[AdminTarget("osm_admin_boundaries", "349856972")],
+    ),
     #
     # ZoneRegulation(
     #     regulation_id="zone_r2_rubble_creek_advisory",
@@ -1774,9 +1770,6 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         },
         notes="Source: Region 4 preamble, 2025-2027 Synopsis.",
     ),
-    # TODO: VERIFY SPATIAL COVERAGE — admin_targets polygon for Creston
-    #   Valley WMA should intersect all named waterbodies: Six Mile, Leach,
-    #   Kootenay River and Canal, Duck Lake. Verify with spatial query.
     ZoneRegulation(
         regulation_id="zone_r4_creston_valley_wma_permit",
         zone_ids=["4"],

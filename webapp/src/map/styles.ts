@@ -59,6 +59,8 @@ const ADMIN_COLORS: Record<string, string> = {
     admin_wma: '#7B2D8B',             // Purple — wildlife mgmt areas
     admin_watersheds: '#006D77',       // Deep teal — watersheds
     admin_historic_sites: '#795548',   // Warm brown — heritage sites
+    // ── OSM Admin boundaries ────────────────────────────────────────
+    osm_admin: '#0072B2',              // Wong blue — colorblind-safe
 };
 
 // Helper function to create regulation layers from new PMTiles structure
@@ -277,6 +279,58 @@ export const createRegulationLayers = (): LayerSpecification[] => {
         }
     });
 
+    // Management Units (individual WMU boundaries — faint dotted)
+    fwaLayers.push({
+        id: 'management_units',
+        type: 'line',
+        source: 'regulations',
+        'source-layer': 'management_units',
+        paint: {
+            'line-color': '#888888',
+            'line-width': [
+                'interpolate',
+                ['linear'],
+                ['zoom'],
+                4, 0.4,
+                8, 0.6,
+                12, 1.0
+            ],
+            'line-opacity': 0.25,
+            'line-dasharray': [2, 4]
+        },
+        layout: {
+            'line-cap': 'round',
+            'line-join': 'round'
+        }
+    });
+
+    // Management Unit labels (MU code) — faint, non-intrusive, centred on feature
+    fwaLayers.push({
+        id: 'management_units-label',
+        type: 'symbol',
+        source: 'regulations',
+        'source-layer': 'management_units',
+        minzoom: 8,
+        layout: {
+            'symbol-placement': 'point',
+            'text-field': ['get', 'mu_code'],
+            'text-font': ['Noto Sans Regular'],
+            'text-size': ['interpolate', ['linear'], ['zoom'], 8, 8, 10, 9, 13, 11],
+            'text-anchor': 'center',
+            'text-justify': 'center',
+            'text-allow-overlap': false,
+            'text-ignore-placement': false,
+            'text-padding': ['interpolate', ['linear'], ['zoom'], 8, 60, 12, 20],
+            'text-max-width': 6,
+        },
+        paint: {
+            'text-color': '#999999',
+            'text-opacity': ['interpolate', ['linear'], ['zoom'], 8, 0.25, 11, 0.4],
+            'text-halo-color': '#ffffff',
+            'text-halo-width': 0.5,
+        },
+    });
+
     // ── ADMIN BOUNDARY LAYERS (rendered above FWA — fills + borders on top) ──────
     // Hatch pattern overlays for no-fishing zones are added dynamically in
     // Map.tsx on 'load' (after pattern images are registered) and appended
@@ -400,6 +454,30 @@ export const createRegulationLayers = (): LayerSpecification[] => {
         source: 'regulations',
         'source-layer': 'admin_historic_sites',
         paint: { 'line-color': ADMIN_COLORS.admin_historic_sites, 'line-width': 1.5, 'line-opacity': 0.5 },
+    });
+
+    // OSM Admin Boundaries (research forests, protected areas, etc.)
+    // Colour keyed by admin_type from code_map (same pattern as parks_bc).
+    adminLayers.push({
+        id: 'admin_osm_admin_boundaries-fill',
+        type: 'fill',
+        source: 'regulations',
+        'source-layer': 'admin_osm_admin_boundaries',
+        paint: {
+            'fill-color': ADMIN_COLORS.osm_admin,
+            'fill-opacity': 0.1,
+        },
+    });
+    adminLayers.push({
+        id: 'admin_osm_admin_boundaries-line',
+        type: 'line',
+        source: 'regulations',
+        'source-layer': 'admin_osm_admin_boundaries',
+        paint: {
+            'line-color': ADMIN_COLORS.osm_admin,
+            'line-width': 2,
+            'line-opacity': 0.6,
+        },
     });
 
     // FWA first, admin overlays on top
@@ -707,6 +785,30 @@ export const createAdminLabelLayers = (): LayerSpecification[] => {
         },
         paint: {
             'text-color': '#5D4037',
+            'text-halo-color': '#ffffff',
+            'text-halo-width': 0.8,
+        },
+    });
+
+    // ── OSM Admin Boundaries (research forests, etc.) ────────────────
+    labelLayers.push({
+        id: 'admin_osm_admin_boundaries-label',
+        type: 'symbol',
+        source: 'regulations',
+        'source-layer': 'admin_osm_admin_boundaries',
+        minzoom: 8,
+        layout: {
+            'symbol-placement': 'point',
+            'text-field': ['get', 'name'],
+            'text-font': ['Noto Sans Regular'],
+            'text-size': ['interpolate', ['linear'], ['zoom'], 8, 9, 10, 11, 12, 13],
+            'text-max-width': 8,
+            'text-anchor': 'center',
+            'text-allow-overlap': false,
+            'text-padding': ['interpolate', ['linear'], ['zoom'], 8, 50, 10, 12, 14, 4],
+        },
+        paint: {
+            'text-color': '#005A8C',
             'text-halo-color': '#ffffff',
             'text-halo-width': 0.8,
         },

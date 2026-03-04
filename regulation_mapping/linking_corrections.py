@@ -1842,7 +1842,7 @@ SKIP_ENTRIES: Dict[str, Dict[str, SkipEntry]] = {
 NAME_VARIATION_LINKS: Dict[str, Dict[str, NameVariationLink]] = {
     "Region 1": {
         '"LINK" RIVER': NameVariationLink(
-            primary_name='MARBLE ("Link") RIVER',
+            primary_name='MARBLE ("Link") RIVER (only between Victoria and Alice lakes)',
             note="Listed as 'Marble (Link) River' in gazetteer. 'Link River' is an alternate name.",
         ),
         "BEAR RIVER": NameVariationLink(
@@ -1862,7 +1862,7 @@ NAME_VARIATION_LINKS: Dict[str, Dict[str, NameVariationLink]] = {
             note='Alternate name for LEWIS ("Cameron") SLOUGH. Same waterbody in regulation MU 4-21.',
         ),
         "MCNAUGHTON LAKE": NameVariationLink(
-            primary_name="KINBASKET LAKE",
+            primary_name="KINBASKET (McNaughton) LAKE",
             note="Regulation says 'See Kinbasket Lake'. McNaughton Lake is an alternate name for part of Kinbasket Lake.",
         ),
     },
@@ -1882,11 +1882,11 @@ NAME_VARIATION_LINKS: Dict[str, Dict[str, NameVariationLink]] = {
             note="Alternate name for ZYMOETZ (Copper) RIVER. Same waterbody, regulation MU 6-9.",
         ),
         "ISHKHEENICKH RIVER": NameVariationLink(
-            primary_name="KSI HLGINX RIVER",
+            primary_name="KSI HLGINX RIVER (formerly Ishkheenickh River)",
             note="Regulation says 'See Ksi Hlginx River'. River has been renamed to KSI HLGINX (GNIS 4069). Regulation MU 6-14.",
         ),
         "KWINAMASS RIVER": NameVariationLink(
-            primary_name="KSI X'ANMAS RIVER",
+            primary_name="KSI X'ANMAS RIVER (formerly Kwinamass River)",
             note="Regulation says 'See Ksi X'anmas River'. River has been renamed to KSI X'ANMAS (GNIS 3815). Regulation MU 6-14.",
         ),
         "MCQUEEN CREEK": NameVariationLink(
@@ -1894,11 +1894,11 @@ NAME_VARIATION_LINKS: Dict[str, Dict[str, NameVariationLink]] = {
             note='Alternate name for HEVENOR ("McQueen") CREEK. Same waterbody.',
         ),
         "SEASKINNISH CREEK": NameVariationLink(
-            primary_name="KSI SGASGINIST CREEK",
+            primary_name="KSI SGASGINIST CREEK (formerly Seaskinnish Creek)",
             note="Regulation says 'See Ksi Sgasginist Creek'. Creek has been renamed to KSI SGASGINIST CREEK. Regulation MU 6-15.",
         ),
         "TSEAX RIVER": NameVariationLink(
-            primary_name="KSI SII AKS RIVER",
+            primary_name="KSI SII AKS RIVER (formerly Tseax River)",
             note="River has been renamed to KSI SII AKS RIVER. Regulation MU 6-14.",
         ),
     },
@@ -1916,7 +1916,7 @@ NAME_VARIATION_LINKS: Dict[str, Dict[str, NameVariationLink]] = {
     },
     "Region 8": {
         "SAWMILL LAKE": NameVariationLink(
-            primary_name="BURNELL LAKE",
+            primary_name="BURNELL (Sawmill) LAKE",
             note="Alternative name for Burnell Lake. Same waterbody.",
         ),
     },
