@@ -327,33 +327,14 @@ const setGroupFilter = (map: maplibregl.Map, layerIds: string[], feature: Featur
 /** Bottom padding for the partial (35 vh) mobile panel. */
 const getMobileBottomPadding = () => Math.round(window.innerHeight * 0.35) + 20;
 
-/** Bottom padding for the fully expanded (70 vh) mobile panel. */
-const getMobileExpandedPadding = () => Math.round(window.innerHeight * 0.7) + 20;
-
-/**
- * Returns true when a bbox has enough vertical extent that it won't frame
- * well in the ~30 vh visible above the fully-expanded mobile panel.
- * Only truly wide/flat features (width >> height) use expanded padding.
- * Threshold: height / width > 0.6  (i.e. anything roughly square or taller).
- */
-const isTallBbox = (bounds: maplibregl.LngLatBounds): boolean => {
-    const latSpan = bounds.getNorth() - bounds.getSouth();
-    const lngSpan = bounds.getEast() - bounds.getWest();
-    const centerLat = (bounds.getNorth() + bounds.getSouth()) / 2;
-    const realWidth = lngSpan * Math.cos((centerLat * Math.PI) / 180);
-    return realWidth > 0 ? latSpan / realWidth > 0.6 : true;
-};
-
 /**
  * Pick mobile padding and target panel state based on bbox shape.
- * Squarish → full expanded padding, panel stays expanded.
- * Tall/narrow → partial padding, panel should be set to partial.
+ * Always opens in partial mode so the map stays visible above the panel.
  */
-const getMobilePaddingForBounds = (bounds: maplibregl.LngLatBounds) => {
-    const tall = isTallBbox(bounds);
+const getMobilePaddingForBounds = (_bounds: maplibregl.LngLatBounds) => {
     return {
-        padding: { top: 60, bottom: tall ? getMobileBottomPadding() : getMobileExpandedPadding(), left: 40, right: 40 },
-        panelState: (tall ? 'partial' : 'expanded') as CollapseState,
+        padding: { top: 60, bottom: getMobileBottomPadding(), left: 40, right: 40 },
+        panelState: 'partial' as CollapseState,
     };
 };
 
@@ -1079,7 +1060,7 @@ const MapComponent = () => {
                             isDisambigOpenRef.current = false;
                         }
                         if (selectedFeature && isMobileViewport()) {
-                            setMobilePanelState('collapsed');
+                            setMobilePanelState('partial');
                         }
                     }}
                     placeholder="Search waterbodies..." 
