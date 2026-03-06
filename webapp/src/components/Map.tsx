@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import maplibregl from 'maplibre-gl';
 import { Protocol } from 'pmtiles';
 import { layers, LIGHT } from '@protomaps/basemaps';
+import { Layers, Map as MapIcon } from 'lucide-react';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { createRegulationLayers, createAdminLabelLayers, createEarlyRoadLayers, HIGHLIGHT_COLORS, SELECTION_COLOR } from '../map/styles';
 import { waterbodyDataService } from '../services/waterbodyDataService';
@@ -36,6 +37,9 @@ const BC_BOUNDS: [[number, number], [number, number]] = [
     [-148.0, 45.0], // SW with margin
     [-108.0, 63.5], // NE with margin
 ];
+
+// ESRI World Imagery satellite raster tile URL (free, no API key)
+const ESRI_SATELLITE_URL = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
 
 const INTERACTABLE_LAYERS = ['streams', 'lakes-fill', 'wetlands-fill', 'manmade-fill', 'ungazetted-circle'];
 const ADMIN_FILL_LAYERS = [
@@ -367,6 +371,7 @@ const MapComponent = () => {
     const [searchableFeatures, setSearchableFeatures] = useState<SearchableFeature[]>([]);
     const [mapReady, setMapReady] = useState(false);
     const [disclaimerOpen, setDisclaimerOpen] = useState(false);
+    const [isSatellite, setIsSatellite] = useState(false);
     const [_layerVisibility, _setLayerVisibility] = useState<LayerVisibility>({
         streams: true, lakes: true, wetlands: true, manmade: true, ungazetted: true, regions: true,
         management_units: true,
@@ -430,6 +435,30 @@ const MapComponent = () => {
         const timer = setTimeout(() => { mapRef.current?.resize(); }, 220);
         return () => clearTimeout(timer);
     }, [selectedFeature]);
+
+    const toggleSatellite = useCallback(() => {
+        const map = mapRef.current;
+        if (!map) return;
+        const next = !isSatellite;
+        setIsSatellite(next);
+
+        // Show/hide satellite raster
+        map.setLayoutProperty('satellite-tiles', 'visibility', next ? 'visible' : 'none');
+
+        // Toggle protomaps base geometry layers (hide when satellite is on).
+        // Label layers stay visible on top of satellite for readability.
+        const style = map.getStyle();
+        if (style?.layers) {
+            for (const layer of style.layers) {
+                if ((layer as any).source !== 'protomaps') continue;
+                // Labels have layout.text-field or layout.symbol-placement — keep them
+                const layout = (layer as any).layout;
+                const isLabel = layout?.['text-field'] || layout?.['symbol-placement'];
+                if (isLabel) continue;
+                map.setLayoutProperty(layer.id, 'visibility', next ? 'none' : 'visible');
+            }
+        }
+    }, [isSatellite]);
 
     const clearSelection = useCallback(() => {
         setSelectedFeature(null);
@@ -661,7 +690,8 @@ const MapComponent = () => {
                 sprite: 'https://protomaps.github.io/basemaps-assets/sprites/v4/light',
                 sources: {
                     protomaps: { type: 'vector', url: `${TILE_BASE}/bc.pmtiles`, attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> · <a href="https://protomaps.com">Protomaps</a>', maxzoom: 15 },
-                    regulations: { type: 'vector', url: `${TILE_BASE}/regulations_merged.pmtiles`, attribution: '<a href="https://www2.gov.bc.ca/gov/content/data/open-data/open-government-licence-bc">OGL-BC</a>', minzoom: 4, maxzoom: 12 }
+                    regulations: { type: 'vector', url: `${TILE_BASE}/regulations_merged.pmtiles`, attribution: '<a href="https://www2.gov.bc.ca/gov/content/data/open-data/open-government-licence-bc">OGL-BC</a>', minzoom: 4, maxzoom: 12 },
+                    satellite: { type: 'raster', tiles: [ESRI_SATELLITE_URL], tileSize: 256, attribution: 'Powered by <a href="https://www.esri.com">Esri</a>', maxzoom: 18 }
                 },
                 // Base map (no labels) → regulation overlays → labels on top
                 // The `layers()` call without `lang` returns geometry-only layers;
@@ -669,6 +699,8 @@ const MapComponent = () => {
                 // so they render above the regulation fills and remain readable.
                 // We filter out OSM water labels since we display our own.
                 layers: [
+                    // Satellite raster sits at the very bottom, hidden by default
+                    { id: 'satellite-tiles', type: 'raster', source: 'satellite', layout: { visibility: 'none' } },
                     ...layers('protomaps', LIGHT),
                     ...createEarlyRoadLayers(),
                     ...createRegulationLayers(),
@@ -1043,6 +1075,14 @@ const MapComponent = () => {
     return (
         <div className="map-container">
             <div ref={mapContainerRef} className="map-canvas" />
+            <button
+                className="satellite-toggle"
+                onClick={toggleSatellite}
+                title={isSatellite ? 'Switch to map view' : 'Switch to satellite view'}
+                aria-label={isSatellite ? 'Switch to map view' : 'Switch to satellite view'}
+            >
+                {isSatellite ? <MapIcon size={18} /> : <Layers size={18} />}
+            </button>
             <div className="map-menu-wrapper">
                 <SearchBar 
                     features={searchableFeatures} 
