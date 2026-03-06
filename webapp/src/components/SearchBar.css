@@ -257,7 +257,11 @@
     }
 
     .search-results {
-        max-height: 60vh;
+        /* Use dvh so the dropdown shrinks when the virtual keyboard is open.
+           56px ≈ wrapper top (8px) + input height (40px) + gap (8px).
+           Falls back to vh for browsers without dvh support. */
+        max-height: calc(100vh - 64px);
+        max-height: calc(100dvh - 64px);
     }
 
     .search-result-item {
