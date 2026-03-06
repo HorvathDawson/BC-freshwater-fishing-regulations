@@ -1071,6 +1071,17 @@ const MapComponent = () => {
                         setHighlightedSearchResult(f); 
                         setHighlightedOption(f as FeatureOption | null); 
                     }} 
+                    onSearchActive={() => {
+                        // Dismiss disambig menu and collapse InfoPanel when user starts searching
+                        if (disambigOptions.length > 0) {
+                            setDisambigOptions([]);
+                            setDisambigPosition(null);
+                            isDisambigOpenRef.current = false;
+                        }
+                        if (selectedFeature && isMobileViewport()) {
+                            setMobilePanelState('collapsed');
+                        }
+                    }}
                     placeholder="Search waterbodies..." 
                 />
             </div>

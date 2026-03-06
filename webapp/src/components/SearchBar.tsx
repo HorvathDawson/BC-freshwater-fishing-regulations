@@ -44,10 +44,11 @@ interface SearchBarProps {
     onSelect: (feature: SearchableFeature) => void;
     highlightedResult: SearchableFeature | null;
     onHighlight: (feature: SearchableFeature | null) => void;
+    onSearchActive?: () => void;
     placeholder?: string;
 }
 
-const SearchBar: React.FC<SearchBarProps> = ({ features, onSelect, highlightedResult, onHighlight, placeholder = "Search waterbodies..." }) => {
+const SearchBar: React.FC<SearchBarProps> = ({ features, onSelect, highlightedResult, onHighlight, onSearchActive, placeholder = "Search waterbodies..." }) => {
     const [query, setQuery] = useState('');
     const [results, setResults] = useState<SearchableFeature[]>([]);
     const [isOpen, setIsOpen] = useState(false);
@@ -208,10 +209,11 @@ const SearchBar: React.FC<SearchBarProps> = ({ features, onSelect, highlightedRe
                     ref={inputRef}
                     type="text"
                     value={query}
-                    onChange={(e) => setQuery(e.target.value)}
+                    onChange={(e) => { setQuery(e.target.value); onSearchActive?.(); }}
                     onKeyDown={handleKeyDown}
                     onFocus={() => {
                         if (results.length > 0) setIsOpen(true);
+                        onSearchActive?.();
                     }}
                     placeholder={placeholder}
                     className="search-input"
