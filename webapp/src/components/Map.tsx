@@ -538,7 +538,7 @@ const MapComponent = () => {
         // Toggle protomaps base geometry layers (hide when satellite is on).
         // Label layers stay visible on top of satellite for readability,
         // with colours swapped to white-on-dark for satellite imagery.
-        const LABEL_PAINT_KEYS = ['text-color', 'text-halo-color', 'text-halo-width', 'text-halo-blur'] as const;
+        const LABEL_PAINT_KEYS = ['text-color', 'text-halo-color', 'text-halo-width', 'text-halo-blur', 'icon-opacity'] as const;
         const style = map.getStyle();
         if (style?.layers) {
             for (const layer of style.layers) {
@@ -553,8 +553,11 @@ const MapComponent = () => {
                 const layout = (layer as any).layout;
                 const isLabel = layout?.['text-field'] || layout?.['symbol-placement'];
 
-                // Non-label protomaps layers: hide in satellite
-                if (src === 'protomaps' && !isLabel) {
+                // Non-label protomaps layers (and shield/icon layers): hide in satellite.
+                // Shield layers (icon-image) are hidden entirely — road names are
+                // already shown by the separate roads_labels_major text layer.
+                const hasIcon = layout?.['icon-image'];
+                if (src === 'protomaps' && (!isLabel || hasIcon)) {
                     map.setLayoutProperty(layer.id, 'visibility', next ? 'none' : 'visible');
                     continue;
                 }
@@ -575,6 +578,10 @@ const MapComponent = () => {
                         map.setPaintProperty(layer.id, 'text-halo-color', 'rgba(0,0,0,0.75)');
                         map.setPaintProperty(layer.id, 'text-halo-width', 1.5);
                         map.setPaintProperty(layer.id, 'text-halo-blur', 0.5);
+                        // Hide highway shield icons so their dark background doesn't show
+                        if (layout?.['icon-image']) {
+                            map.setPaintProperty(layer.id, 'icon-opacity', 0);
+                        }
                     } else if (baseLabelPaintsRef.current[layer.id]) {
                         // Restore original label paint
                         const orig = baseLabelPaintsRef.current[layer.id];
@@ -913,7 +920,8 @@ const MapComponent = () => {
                     ...createAdminLabelLayers(),
                 ]
             },
-            center: [-123.0, 49.25], zoom: 8, maxZoom: 15, minZoom: 4, hash: true, attributionControl: { compact: isMobileViewport() }
+            center: [-123.0, 49.25], zoom: 8, maxZoom: 15, minZoom: 4, hash: true, attributionControl: { compact: false }
+            // OLD: compact on mobile only — attributionControl: { compact: isMobileViewport() }
         });
 
         // Add compass navigation control

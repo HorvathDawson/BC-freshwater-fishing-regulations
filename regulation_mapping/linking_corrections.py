@@ -2123,6 +2123,7 @@ FEATURE_NAME_VARIATIONS: Dict[str, List[FeatureNameVariation]] = {
                 "355992200",
                 "355992187",
                 "355992198",
+                "355992202",
             ],
             note="Unnamed side channel of Fraser River near Herring Island, Region 2.",
         ),

@@ -87,10 +87,50 @@
 }
 
 .overlay-opacity-popup input[type="range"] {
-    width: 90px;
-    height: 4px;
+    width: 180px;
+    height: 8px;
     cursor: pointer;
     accent-color: #7C3AED;
+    -webkit-appearance: none;
+    appearance: none;
+    background: transparent;
+    padding: 10px 0;      /* fat-finger touch area */
+    margin: -10px 0;
+}
+
+/* Track */
+.overlay-opacity-popup input[type="range"]::-webkit-slider-runnable-track {
+    height: 8px;
+    border-radius: 4px;
+    background: #ddd;
+}
+.overlay-opacity-popup input[type="range"]::-moz-range-track {
+    height: 8px;
+    border-radius: 4px;
+    background: #ddd;
+    border: none;
+}
+
+/* Thumb */
+.overlay-opacity-popup input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #7C3AED;
+    border: 2px solid #fff;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    margin-top: -8px;     /* center on track */
+    cursor: pointer;
+}
+.overlay-opacity-popup input[type="range"]::-moz-range-thumb {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #7C3AED;
+    border: 2px solid #fff;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    cursor: pointer;
 }
 
 .map-toggle-btn {
@@ -157,6 +197,16 @@
     /* Push compass/nav control below search bar on mobile */
     .map-container .maplibregl-ctrl-top-right {
         top: 56px;
+    }
+
+    /* Lift bottom-left controls above Android nav bar */
+    .map-container .maplibregl-ctrl-bottom-left {
+        bottom: calc(0px + env(safe-area-inset-bottom, 0px));
+    }
+
+    /* Lift attribution above Android nav bar */
+    .map-container .maplibregl-ctrl-bottom-right {
+        bottom: calc(0px + env(safe-area-inset-bottom, 0px));
     }
 
     /* On mobile, popup opens to the left of the button instead of right */

@@ -115,7 +115,7 @@
 /* Mobile adjustments */
 @media (max-width: 768px) {
     .disclaimer-link {
-        bottom: 6px;
+        bottom: calc(6px + env(safe-area-inset-bottom, 0px));
         left: 6px;
         font-size: 10px;
         padding: 3px 6px;
