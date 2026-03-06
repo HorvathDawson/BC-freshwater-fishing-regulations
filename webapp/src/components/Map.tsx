@@ -1053,14 +1053,14 @@ const MapComponent = () => {
                         setHighlightedOption(f as FeatureOption | null); 
                     }} 
                     onSearchActive={() => {
-                        // Dismiss disambig menu and collapse InfoPanel when user starts searching
+                        // Fully close InfoPanel and disambig when user starts searching
                         if (disambigOptions.length > 0) {
                             setDisambigOptions([]);
                             setDisambigPosition(null);
                             isDisambigOpenRef.current = false;
                         }
                         if (selectedFeature && isMobileViewport()) {
-                            setMobilePanelState('partial');
+                            clearSelection();
                         }
                     }}
                     placeholder="Search waterbodies..." 

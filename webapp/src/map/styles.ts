@@ -15,14 +15,14 @@ const FEATURE_COLORS = {
  * highlight feels native to the feature type rather than generic.
  */
 export const HIGHLIGHT_COLORS: Record<string, string> = {
-    stream:   '#1A5296',  // Deep vivid blue  (streams base: #4A90E2)
-    streams:  '#1A5296',
-    lake:     '#0277BD',  // Dark lake blue   (lakes base:   #64B5F6)
-    lakes:    '#0277BD',
-    wetland:  '#43A047',  // Medium green — closer in hue to base #81C784
-    wetlands: '#43A047',
-    manmade:  '#6A1B9A',  // Deep purple       (manmade base: #9575CD)
-    ungazetted: '#C17900', // Dark amber       (ungazetted base: #F5A623)
+    stream:   '#7C3AED',  // Vibrant purple — high contrast against blue water
+    streams:  '#7C3AED',
+    lake:     '#7C3AED',
+    lakes:    '#7C3AED',
+    wetland:  '#7C3AED',
+    wetlands: '#7C3AED',
+    manmade:  '#7C3AED',
+    ungazetted: '#7C3AED',
 };
 
 /** Uniform color for the active-selection state (same for all types). */
