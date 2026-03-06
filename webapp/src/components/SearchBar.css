@@ -166,11 +166,13 @@
 }
 
 .search-result-subtitle {
-    font-size: 10px;
+    font-size: 9px;
     font-weight: 500;
     color: var(--text-secondary, #666);
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
+    text-transform: none;
+    letter-spacing: normal;
+    line-height: 1.2;
+    opacity: 0.85;
 }
 
 .search-result-meta {
@@ -267,7 +269,7 @@
     }
 
     .search-result-subtitle {
-        font-size: 12px;
+        font-size: 10px;
     }
 
     .search-result-type,

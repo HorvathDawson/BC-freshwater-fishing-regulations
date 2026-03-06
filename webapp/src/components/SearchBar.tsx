@@ -306,13 +306,25 @@ const SearchBar: React.FC<SearchBarProps> = ({ features, onSelect, highlightedRe
                                         <div className="search-result-name">
                                             {displayName}
                                         </div>
-                                        {hasAliases && (
-                                            <div className="search-result-subtitle">
-                                                Also known as: {aliases.map(a => 
-                                                    a.from_tributary ? `Tributary of ${a.name}` : a.name
-                                                ).join(' | ')}
-                                            </div>
-                                        )}
+                                        {hasAliases && (() => {
+                                            const tributaryAliases = aliases.filter(a => a.from_tributary);
+                                            const regularAliases = aliases.filter(a => !a.from_tributary);
+                                            const formatList = (items: string[]): string => {
+                                                if (items.length === 1) return items[0];
+                                                if (items.length === 2) return `${items[0]} and ${items[1]}`;
+                                                return `${items.slice(0, -1).join(', ')}, and ${items[items.length - 1]}`;
+                                            };
+                                            const parts: string[] = [];
+                                            if (tributaryAliases.length > 0) {
+                                                parts.push(`Tributary of ${formatList(tributaryAliases.map(a => a.name))}`);
+                                            }
+                                            regularAliases.forEach(a => parts.push(a.name));
+                                            return (
+                                                <div className="search-result-subtitle">
+                                                    Also known as: {parts.join(' · ')}
+                                                </div>
+                                            );
+                                        })()}
                                         <div className="search-result-meta">
                                             <span className="search-result-type">{feature.type}</span>
                                             {regionDisplay && (
