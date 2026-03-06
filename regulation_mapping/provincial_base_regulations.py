@@ -473,7 +473,7 @@ def _run_provincial_test():
             continue
 
         # Use the shared resolution function (same code path as the mapper)
-        from .regulation_mapper import lookup_admin_targets
+        from .regulation_resolvers import lookup_admin_targets
 
         all_matched_features, admin_entries = lookup_admin_targets(
             gazetteer,

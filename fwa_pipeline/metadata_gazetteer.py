@@ -56,6 +56,9 @@ class FWAFeature:
     region_names: Optional[List[str]] = (
         None  # Paired with zones — e.g. ["Thompson", "Omineca"] for zones ["4", "7A"]
     )
+    inherited_gnis_names: Optional[List[Dict[str, str]]] = (
+        None  # [{gnis_name, gnis_id}] resolved from graph context for unnamed streams
+    )
 
     def __eq__(self, other):
         if not isinstance(other, FWAFeature):
@@ -177,6 +180,9 @@ class MetadataGazetteer:
         gnis_id_2 = feature_data.get("gnis_id_2")
         final_gnis_id = gnis_id if gnis_id else gnis_id_2
 
+        # Inherited GNIS names for unnamed streams (from graph builder annotation)
+        inherited = feature_data.get("inherited_gnis_names")
+
         return FWAFeature(
             fwa_id=str(fwa_id),
             geometry_type=geometry_type,
@@ -192,6 +198,7 @@ class MetadataGazetteer:
             waterbody_key=str(waterbody_key) if waterbody_key is not None else None,
             matched_via=matched_via,
             region_names=feature_data.get("region_names", []),
+            inherited_gnis_names=inherited if isinstance(inherited, list) else None,
         )
 
     def _build_index(self):
@@ -207,6 +214,21 @@ class MetadataGazetteer:
                 )
                 normalized = self._normalize_for_index(gnis_name)
                 self.name_index.setdefault(normalized, []).append(feature)
+            else:
+                # Unnamed stream — index by inherited names so natural
+                # search can find it by the parent stream's name.
+                inherited = stream_data.get("inherited_gnis_names")
+                if isinstance(inherited, list):
+                    feature = self._build_feature(
+                        linear_id, stream_data, FeatureType.STREAM
+                    )
+                    seen_names: set = set()
+                    for entry in inherited:
+                        iname = entry.get("gnis_name", "")
+                        if iname and iname not in seen_names:
+                            seen_names.add(iname)
+                            normalized = self._normalize_for_index(iname)
+                            self.name_index.setdefault(normalized, []).append(feature)
 
         # Index lakes, wetlands, manmade by gnis_name and gnis_name_2
         for ftype_enum in [FeatureType.LAKE, FeatureType.WETLAND, FeatureType.MANMADE]:
@@ -314,6 +336,41 @@ class MetadataGazetteer:
                 if str(meta.get("gnis_id")) == str(gnis_id):
                     features.append(self.get_polygon_by_id(fid))
         return [f for f in features if f is not None]
+
+    def search_unnamed_by_inherited_gnis_id(self, gnis_id: str) -> List[FWAFeature]:
+        """Find unnamed streams that inherit a specific GNIS ID.
+
+        Returns stream features that have **no** ``gnis_name`` of their own
+        but list *gnis_id* in their ``inherited_gnis_names`` metadata.  This
+        captures side-channels, unnamed tributaries, etc. that physically
+        belong to a named waterbody but lack their own gazetted name.
+
+        .. note::
+            TODO: In the future we only want to include inherited matches
+            that fall within the regulation's target zone.  The Fraser River
+            is the main motivator — its DirectMatch resolves across zones
+            3/5/7A and side channels should only attach to the zone they
+            physically sit in.  However, naively adding a zone filter here
+            would break cross-boundary streams that legitimately carry a
+            single regulation across zones (e.g. Similkameen River).  This
+            needs careful design so it remains a future task.
+        """
+        gnis_id_str = str(gnis_id)
+        features: List[FWAFeature] = []
+        for lid, meta in self.metadata.get(FeatureType.STREAM, {}).items():
+            # Must be unnamed (no gnis_name of its own)
+            if meta.get("gnis_name"):
+                continue
+            inherited = meta.get("inherited_gnis_names")
+            if not isinstance(inherited, list):
+                continue
+            for entry in inherited:
+                if str(entry.get("gnis_id", "")) == gnis_id_str:
+                    feat = self.get_stream_by_id(lid)
+                    if feat:
+                        features.append(feat)
+                    break
+        return features
 
     def search_by_watershed_code(self, fwa_watershed_code: str) -> List[FWAFeature]:
         """Search for all stream segments with a specific FWA watershed code."""

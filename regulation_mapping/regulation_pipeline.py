@@ -21,12 +21,16 @@ from .linking_corrections import (
     UNGAZETTED_WATERBODIES,
     ADMIN_DIRECT_MATCHES,
     NAME_VARIATION_LINKS,
+    FEATURE_NAME_VARIATIONS,
     ManualCorrections,
 )
-from .regulation_mapper import RegulationMapper, PipelineResult
+from .regulation_mapper import RegulationMapper
+from .regulation_types import PipelineResult
 from .scope_filter import ScopeFilter
 from .tributary_enricher import TributaryEnricher
-from .geo_exporter import RegulationGeoExporter
+from .canonical_store import CanonicalDataStore
+from .geo_exporter import GeoArtifactGenerator
+from .search_exporter import SearchIndexBuilder
 from .logger_config import get_logger
 from project_config import get_config
 
@@ -98,6 +102,7 @@ class RegulationPipeline:
             ungazetted_waterbodies=UNGAZETTED_WATERBODIES,
             admin_direct_matches=ADMIN_DIRECT_MATCHES,
             name_variation_links=NAME_VARIATION_LINKS,
+            feature_name_variations=FEATURE_NAME_VARIATIONS,
         )
 
         # Initialize linker
@@ -177,8 +182,6 @@ class RegulationPipeline:
         self,
         pipeline_result: PipelineResult,
         output_dir: Path,
-        export_merged: bool = True,
-        export_individual: bool = True,
         export_regulations_json: bool = True,
     ) -> Dict[str, Path]:
         """
@@ -187,8 +190,6 @@ class RegulationPipeline:
         Args:
             pipeline_result: Result from process_regulations()
             output_dir: Directory for output files
-            export_merged: Whether to export merged geometries
-            export_individual: Whether to export individual geometries
             export_regulations_json: Whether to export regulations.json for frontend
 
         Returns:
@@ -201,20 +202,22 @@ class RegulationPipeline:
         cache_dir = output_dir / ".geom_cache"
         cache_dir.mkdir(parents=True, exist_ok=True)
 
-        # Initialize exporter strictly with the results from the mapper step
-        exporter = RegulationGeoExporter(
+        # Initialise the canonical data store — single source of truth
+        store = CanonicalDataStore(
             pipeline_result=pipeline_result,
             gpkg_path=self.gpkg_path,
             cache_dir=cache_dir,
         )
+        store.preload()
 
         exported_files = {}
 
-        # Export regulations JSON + search index first (fast, and needed by frontend
-        # even if the heavier geometry exports fail)
+        # Export search index first (fast, needed by frontend even if
+        # the heavier geometry exports fail)
         if export_regulations_json and self.parsed_regulations:
             waterbody_data = output_dir / "waterbody_data.json"
-            exporter.export_waterbody_data(waterbody_data)
+            search_builder = SearchIndexBuilder(store)
+            search_builder.export_waterbody_data(waterbody_data)
             exported_files["waterbody_data"] = waterbody_data
 
             # Copy row images next to waterbody_data.json for web serving
@@ -227,29 +230,19 @@ class RegulationPipeline:
                 logger.info(f"Created {dest_images_dir} ({image_count} images)")
                 exported_files["row_images"] = dest_images_dir
 
-        # Export merged geometries
-        if export_merged:
-            merged_gpkg = output_dir / "regulations_merged.gpkg"
-            merged_pmtiles = output_dir / "regulations_merged.pmtiles"
+        # Export geometries (GPKG = fat, PMTiles = lean)
+        merged_gpkg = output_dir / "regulations_merged.gpkg"
+        merged_pmtiles = output_dir / "regulations_merged.pmtiles"
 
-            logger.info("Exporting merged geometries...")
-            if gpkg_path := exporter.export_gpkg(merged_gpkg, merge_geometries=True):
-                exported_files["merged_gpkg"] = gpkg_path
+        logger.info("Exporting geometries...")
+        generator = GeoArtifactGenerator(store)
+        if gpkg_path := generator.export_gpkg(merged_gpkg):
+            exported_files["merged_gpkg"] = gpkg_path
 
-            if pmtiles_path := exporter.export_pmtiles(
-                merged_pmtiles, merge_geometries=True
-            ):
-                exported_files["merged_pmtiles"] = pmtiles_path
-
-        # Export individual geometries (GPKG only - PMTiles not needed)
-        if export_individual:
-            individual_gpkg = output_dir / "regulations_individual.gpkg"
-
-            logger.info("Exporting individual geometries...")
-            if gpkg_path := exporter.export_gpkg(
-                individual_gpkg, merge_geometries=False
-            ):
-                exported_files["individual_gpkg"] = gpkg_path
+        if pmtiles_path := generator.export_pmtiles(
+            merged_pmtiles, work_dir=output_dir / "temp"
+        ):
+            exported_files["merged_pmtiles"] = pmtiles_path
 
         if exported_files:
             logger.info(
@@ -263,8 +256,6 @@ class RegulationPipeline:
         self,
         regulations_path: Path,
         output_dir: Path,
-        export_merged: bool = True,
-        export_individual: bool = True,
         export_regulations_json: bool = True,
         frontend_output_dir: Optional[Path] = None,
         include_zone_regulations: bool = False,
@@ -275,8 +266,6 @@ class RegulationPipeline:
         Args:
             regulations_path: Path to parsed_results.json
             output_dir: Directory for output files
-            export_merged: Whether to export merged geometries
-            export_individual: Whether to export individual geometries
             export_regulations_json: Whether to export regulations.json for frontend
             frontend_output_dir: Optional directory for regulations.json (defaults to output_dir)
             include_zone_regulations: If True, process zone-level default
@@ -307,8 +296,6 @@ class RegulationPipeline:
             exported_files = self.export_geography(
                 pipeline_result=result,
                 output_dir=output_dir,
-                export_merged=export_merged,
-                export_individual=export_individual,
                 export_regulations_json=export_regulations_json,
             )
 
@@ -552,18 +539,6 @@ Examples:
     )
 
     parser.add_argument(
-        "--merged-only",
-        action="store_true",
-        help="Only export merged geometries",
-    )
-
-    parser.add_argument(
-        "--individual-only",
-        action="store_true",
-        help="Only export individual geometries",
-    )
-
-    parser.add_argument(
         "--verbose",
         action="store_true",
         help="Show detailed statistics and analysis",
@@ -592,21 +567,6 @@ Examples:
         print(f"❌ GeoPackage not found: {args.gpkg_path}")
         return 1
 
-    # Determine export flags
-    if args.map_only:
-        export_merged = False
-        export_individual = False
-    elif args.merged_only:
-        export_merged = True
-        export_individual = False
-    elif args.individual_only:
-        export_merged = False
-        export_individual = True
-    else:
-        # Default: export both
-        export_merged = True
-        export_individual = True
-
     # Print configuration
     print("=" * 80)
     print("BC FRESHWATER FISHING REGULATIONS - REGULATION MAPPING PIPELINE")
@@ -627,8 +587,7 @@ Examples:
     if args.map_only:
         print(f"  Mode: Mapping only (no geometry export)")
     else:
-        print(f"  Merged geometries: {'Yes' if export_merged else 'No'}")
-        print(f"  Individual geometries: {'Yes' if export_individual else 'No'}")
+        print(f"  Geometries: GPKG + PMTiles")
         print(f"  Regulations JSON: Yes")
         print(f"  Search index: Yes")
 
@@ -663,9 +622,7 @@ Examples:
     result, exported_files = pipeline.run_full_pipeline(
         regulations_path=args.regulations,
         output_dir=args.output_dir,
-        export_merged=export_merged,
-        export_individual=export_individual,
-        export_regulations_json=True,
+        export_regulations_json=not args.map_only,
         include_zone_regulations=args.include_zones,
     )
 

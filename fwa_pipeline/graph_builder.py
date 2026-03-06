@@ -54,7 +54,12 @@ logger = logging.getLogger(__name__)
 
 def get_endpoints(
     geom: Union[LineString, MultiLineString],
-) -> Tuple[Optional[str], Optional[str], Optional[Tuple[float, float]], Optional[Tuple[float, float]]]:
+) -> Tuple[
+    Optional[str],
+    Optional[str],
+    Optional[Tuple[float, float]],
+    Optional[Tuple[float, float]],
+]:
     """Extracts start (u) and end (v) points from Shapely geometry."""
     if isinstance(geom, LineString):
         coords = geom.coords
@@ -114,7 +119,9 @@ class FWAPrimalGraphIGraph:
             return False
         return True
 
-    def build(self, limit: Optional[int] = None, specific_layers: Optional[List[str]] = None) -> None:
+    def build(
+        self, limit: Optional[int] = None, specific_layers: Optional[List[str]] = None
+    ) -> None:
         import time
 
         start = time.time()
@@ -307,199 +314,227 @@ class FWAPrimalGraphIGraph:
 
         logger.info(f"Cleanup Complete. Removed {total_removed} edges.")
 
-    def _find_nearest_name_bfs(
-        self, start_nodes: List[int], watershed_code: str, max_hops: int = 15
-    ) -> Optional[Tuple[str, str, int]]:
-        queue = deque([(n, 0) for n in start_nodes])
-        visited = set(start_nodes)
-        candidates = []
-
-        while queue and len(candidates) < 5:
-            node, dist = queue.popleft()
-            if dist > max_hops:
-                continue
-
-            try:
-                incident = self.G.incident(node)
-            except ValueError:
-                continue
-
-            for edge in self.G.es[incident]:
-                if edge["fwa_watershed_code"] != watershed_code:
-                    continue
-
-                if edge["gnis_name"]:
-                    candidates.append(
-                        (dist, edge["gnis_name"], edge["gnis_id"], edge["stream_order"])
-                    )
-                    continue
-
-                neighbors = set(self.G.neighbors(node))
-                for n in neighbors:
-                    if n not in visited:
-                        visited.add(n)
-                        queue.append((n, dist + 1))
-
-        if not candidates:
-            return None, None, False
-
-        # Warn on bad data
-        if any(c[3] is None for c in candidates):
-            seg_str = ", ".join(
-                [f"'{c[1]}' (Order: {c[3]}, Dist: {c[0]})" for c in candidates]
-            )
-            logger.warning(
-                f"Watershed {watershed_code} candidates containing None values: {seg_str}"
-            )
-
-        # Sorts by:
-        # 1. Distance (Ascending: 0, 1, 2...) -> Closest first
-        # 2. Stream Order (Ascending: 1, 2, 3...) -> Lowest order first (e.g. Order 1 wins over Order 5)
-        candidates.sort(
-            key=lambda x: (x[0], x[3] if x[3] is not None else float("inf"))
-        )
-
-        min_dist = candidates[0][0]
-        top_matches = [c for c in candidates if c[0] == min_dist]
-        is_ambiguous = len(set(c[1] for c in top_matches)) > 1
-
-        return candidates[0][1], candidates[0][2], is_ambiguous
-
     def propagate_names_by_watershed(self) -> None:
         """
-        Populate missing GNIS names based on Watershed Code and Blue Line Key.
+        Populate missing GNIS names using Blue Line Key backfill only.
 
         Logic:
-        1. Index all known names by Watershed Code.
-        2. If a WC has NO known names -> Leave unnamed.
-        3. NEW: If a Blue Line Key has EXACTLY ONE unique name -> Assign to all unnamed segments in that BLK.
-        4. If a WC has EXACTLY ONE unique name -> Bulk assign to all remaining empty segments (Optimization).
-        5. If a WC has MULTIPLE names -> Use BFS to find nearest.
-           If BFS fails (island segment or too far), fallback to the
-           dominant name for that WC to ensure no segments remain unnamed if a name exists.
-        """
-        logger.info("STEP 3: PROPAGATING GNIS NAMES (Optimized with Blue Line Key)")
+        1. Index all known (name, gnis_id) pairs by (watershed_code, blue_line_key).
+        2. For each unnamed edge whose (wc, blk) has EXACTLY ONE unique name,
+           assign that name. Otherwise leave unnamed.
 
-        # --- 1. Pre-calculate Name Stats per Watershed Code ---
-        wc_name_stats = {}
-        blk_name_stats = {}  # NEW: Pre-compute blue line key stats globally
+        No traversal / BFS / dominant-name fallback — unnamed edges that
+        cannot be resolved by BLK stay unnamed. Downstream consumers
+        (linking, FeatureNameVariation) handle naming for those.
+        """
+        logger.info("STEP 3: PROPAGATING GNIS NAMES (Blue Line Key only)")
+
+        # --- 1. Pre-calculate Name Stats per (WC, BLK) ---
+        blk_name_stats = {}  # (wc, blk) -> Counter of (name, gnis_id)
 
         for edge in self.G.es:
             wc = edge["fwa_watershed_code"]
             name = edge["gnis_name"]
             blk = edge["blue_line_key"]
 
-            if wc and name:
-                if wc not in wc_name_stats:
-                    wc_name_stats[wc] = Counter()
-                # Count frequency of this name/id pair in this watershed
-                wc_name_stats[wc][(name, edge["gnis_id"])] += 1
+            if wc and name and blk:
+                key = (wc, blk)
+                if key not in blk_name_stats:
+                    blk_name_stats[key] = Counter()
+                blk_name_stats[key][(name, edge["gnis_id"])] += 1
 
-                # NEW: Also track by (wc, blk) combination
-                if blk:
-                    key = (wc, blk)
-                    if key not in blk_name_stats:
-                        blk_name_stats[key] = Counter()
-                    blk_name_stats[key][(name, edge["gnis_id"])] += 1
-
-        # --- 2. Group Unnamed Edges ---
-        unnamed_groups = {}
+        # --- 2. Group Unnamed Edges by (WC, BLK) ---
+        unnamed_by_blk = {}  # (wc, blk) -> [edge_index, ...]
         for edge in self.G.es:
             if edge["fwa_watershed_code"] and not edge["gnis_name"]:
-                wc = edge["fwa_watershed_code"]
-                if wc not in unnamed_groups:
-                    unnamed_groups[wc] = []
-                unnamed_groups[wc].append(edge.index)
+                blk = edge["blue_line_key"]
+                if blk:
+                    key = (edge["fwa_watershed_code"], blk)
+                    if key not in unnamed_by_blk:
+                        unnamed_by_blk[key] = []
+                    unnamed_by_blk[key].append(edge.index)
 
-        updated_count = 0
-        bulk_assigned = 0
         blk_assigned = 0
-        bfs_assigned = 0
 
-        # --- 3. Process Groups ---
-        for wc, edge_indices in tqdm(
-            unnamed_groups.items(), desc="   Processing Watersheds", unit="wshed"
+        # --- 3. Assign where BLK has exactly one unique name ---
+        for (wc, blk), edge_indices in tqdm(
+            unnamed_by_blk.items(), desc="   BLK Backfill", unit="blk"
         ):
-            # CASE A: Totally Unnamed Watershed
-            # If this watershed code doesn't exist in our named stats, we can't do anything.
-            if wc not in wc_name_stats:
-                continue
+            key = (wc, blk)
+            if key in blk_name_stats and len(blk_name_stats[key]) == 1:
+                (blk_name, blk_id), _ = blk_name_stats[key].most_common(1)[0]
+                for idx in edge_indices:
+                    self.G.es[idx]["gnis_name"] = blk_name
+                    self.G.es[idx]["gnis_id"] = blk_id
+                    blk_assigned += 1
 
-            known_names = wc_name_stats[wc]
-            unique_name_count = len(known_names)
+        logger.info(f"BLK Backfill Complete: {blk_assigned:,} edges assigned.")
 
-            # Determine the "Dominant" name (most frequent) for fallback/bulk usage
-            (dominant_name, dominant_id), _ = known_names.most_common(1)[0]
+    def annotate_unnamed_context(self) -> None:
+        """Annotate unnamed edges with watershed-code name context.
 
-            # CASE B: Blue Line Key Propagation
-            # Group unnamed edges by blue_line_key
-            blk_groups = {}
-            for idx in edge_indices:
-                blk = self.G.es[idx]["blue_line_key"]
-                if blk:  # Only if blue_line_key exists
-                    if blk not in blk_groups:
-                        blk_groups[blk] = []
-                    blk_groups[blk].append(idx)
+        For each edge that is STILL unnamed after BLK backfill and whose
+        watershed code has at least one named edge, stores:
 
-            # Process blue line key groups - assign if single unique name
-            remaining_indices = set(edge_indices)
+        - ``wc_gnis_names``  – list of {gnis_name, gnis_id} dicts for every
+          unique name in the same watershed code.
+        - ``inherited_gnis_names`` – resolved name(s) for the unnamed edge:
+            - ``None`` if the edge already has a name or has no WC peers.
+            - The single WC name when only one exists.
+            - The closest upstream named edge(s) (same-WC only) when
+              multiple WC names exist.
 
-            for blk, blk_edge_indices in blk_groups.items():
-                key = (wc, blk)
-                if key in blk_name_stats and len(blk_name_stats[key]) == 1:
-                    # Single unique name in this blue line key
-                    (blk_name, blk_id), _ = blk_name_stats[key].most_common(1)[0]
-                    for idx in blk_edge_indices:
-                        self.G.es[idx]["gnis_name"] = blk_name
-                        self.G.es[idx]["gnis_id"] = blk_id
-                        blk_assigned += 1
-                        remaining_indices.discard(idx)
+        Upstream BFS rules:
+          - Only traverses edges whose ``fwa_watershed_code`` matches the
+            starting edge.  A different WC is simply not entered (no
+            wasted computation).
+          - Stops *at* a named edge (records it) but does NOT walk past
+            it — further upstream of a named edge is irrelevant.
+          - Once the first named edge is found at distance *d*, the BFS
+            **continues draining every remaining branch at distance d**
+            so that all equally-close named edges are collected, even if
+            they carry a different gnis_name.
+          - Results are deduplicated by (gnis_name, gnis_id).
+        """
+        import time
 
-            # Convert back to list for iteration
-            remaining_indices = list(remaining_indices)
+        logger.info("STEP 3b: ANNOTATING UNNAMED EDGE CONTEXT")
+        start = time.time()
 
-            # Skip further processing if all edges were assigned by BLK
-            if not remaining_indices:
-                updated_count += len(edge_indices)
-                continue
+        # --- 1. Index all (gnis_name, gnis_id) by watershed code ---
+        wc_names: Dict[str, Set[Tuple[str, str]]] = {}  # wc -> {(name, id), ...}
+        for edge in self.G.es:
+            wc = edge["fwa_watershed_code"]
+            name = edge["gnis_name"]
+            if wc and name:
+                if wc not in wc_names:
+                    wc_names[wc] = set()
+                wc_names[wc].add((name, edge["gnis_id"] or ""))
 
-            # CASE C: Single Name Optimization (O(1))
-            # If there is only one name ever associated with this code, just use it.
-            if unique_name_count == 1:
-                for idx in remaining_indices:
-                    if not self.G.es[idx]["gnis_name"]:  # Double-check still unnamed
-                        self.G.es[idx]["gnis_name"] = dominant_name
-                        self.G.es[idx]["gnis_id"] = dominant_id
-                        bulk_assigned += 1
+        # --- 2. Collect unnamed edges that have at least one named WC peer ---
+        unnamed_edges = []
+        for edge in self.G.es:
+            if not edge["gnis_name"] and edge["fwa_watershed_code"]:
+                wc = edge["fwa_watershed_code"]
+                if wc in wc_names:
+                    unnamed_edges.append(edge.index)
 
-            # CASE D: Multiple Names (Ambiguous) -> BFS with Fallback
+        if not unnamed_edges:
+            logger.info("  No unnamed edges with named WC peers — nothing to annotate.")
+            return
+
+        # --- 3. Build reverse adjacency (target node → [edge_idx]) for upstream walk ---
+        reverse_adj: Dict[int, List[int]] = {}
+        for edge in self.G.es:
+            tgt = edge.target
+            if tgt not in reverse_adj:
+                reverse_adj[tgt] = []
+            reverse_adj[tgt].append(edge.index)
+
+        # --- 4. Upstream BFS helper ---
+        def _bfs_upstream_named(start_node: int, wc: str) -> List[dict]:
+            """Walk upstream along same-WC edges until the closest named
+            edge(s) are found.
+
+            Guarantees:
+              - Different-WC branches are never entered.
+              - Named edges are recorded but not traversed past.
+              - ALL branches at the found distance are fully drained so
+                no equally-close named edge is missed.
+
+            Returns:
+                List of {gnis_name, gnis_id} for every equally-close
+                named edge, deduplicated.  Empty list if none reachable.
+            """
+            visited_nodes: Set[int] = {start_node}
+            queue: deque = deque([(start_node, 0)])
+            found_dist: Optional[int] = None
+            results: List[dict] = []
+
+            while queue:
+                node, dist = queue.popleft()
+
+                # Already found result(s) at a closer distance — skip
+                if found_dist is not None and dist > found_dist:
+                    continue
+
+                for eidx in reverse_adj.get(node, []):
+                    e = self.G.es[eidx]
+
+                    # Different WC — don't enter this branch at all
+                    if e["fwa_watershed_code"] != wc:
+                        continue
+
+                    if e["gnis_name"]:
+                        # Named edge at dist+1 — record it
+                        if found_dist is None:
+                            found_dist = dist + 1
+                        if dist + 1 == found_dist:
+                            results.append(
+                                {
+                                    "gnis_name": e["gnis_name"],
+                                    "gnis_id": e["gnis_id"] or "",
+                                }
+                            )
+                        # Do NOT enqueue e.source — we stop at named edges
+                        continue
+
+                    # Unnamed same-WC edge — keep walking upstream
+                    next_node = e.source
+                    if next_node not in visited_nodes:
+                        visited_nodes.add(next_node)
+                        queue.append((next_node, dist + 1))
+
+            # Deduplicate (parallel edges between same nodes)
+            seen: Set[Tuple[str, str]] = set()
+            deduped: List[dict] = []
+            for r in results:
+                key = (r["gnis_name"], r["gnis_id"])
+                if key not in seen:
+                    seen.add(key)
+                    deduped.append(r)
+            return deduped
+
+        # --- 5. Annotate each unnamed edge ---
+        num_edges = self.G.ecount()
+        self.G.es["wc_gnis_names"] = [None] * num_edges
+        self.G.es["inherited_gnis_names"] = [None] * num_edges
+
+        annotated = 0
+        inherited_single = 0
+        inherited_bfs = 0
+
+        for idx in tqdm(unnamed_edges, desc="   Annotating unnamed", unit="edge"):
+            edge = self.G.es[idx]
+            wc = edge["fwa_watershed_code"]
+            names_in_wc = sorted(wc_names[wc])
+
+            # Always store full WC name list
+            edge["wc_gnis_names"] = [
+                {"gnis_name": n, "gnis_id": gid} for n, gid in names_in_wc
+            ]
+
+            if len(names_in_wc) == 1:
+                # Only one name in the entire WC — inherit directly
+                n, gid = names_in_wc[0]
+                edge["inherited_gnis_names"] = [{"gnis_name": n, "gnis_id": gid}]
+                inherited_single += 1
             else:
-                for idx in remaining_indices:
-                    if not self.G.es[idx]["gnis_name"]:  # Double-check still unnamed
-                        edge = self.G.es[idx]
+                # Multiple WC names — BFS upstream to find the closest
+                result = _bfs_upstream_named(edge.source, wc)
+                if result:
+                    edge["inherited_gnis_names"] = result
+                    inherited_bfs += 1
+                # If BFS finds nothing (dead end), inherited_gnis_names stays None
 
-                        # 1. Try BFS to find nearest topological match
-                        found_name, found_id, _ = self._find_nearest_name_bfs(
-                            [edge.source, edge.target], wc
-                        )
+            annotated += 1
 
-                        if found_name:
-                            edge["gnis_name"] = found_name
-                            edge["gnis_id"] = found_id
-                            bfs_assigned += 1
-                        else:
-                            # 2. Fallback: BFS failed (too far or disconnected graph).
-                            # Use dominant name to enforce "No unnamed segments if name exists" rule.
-                            edge["gnis_name"] = dominant_name
-                            edge["gnis_id"] = dominant_id
-                            bfs_assigned += 1
-
-            updated_count += len(edge_indices)
-
-        logger.info(f"Propagation Complete: {updated_count:,} edges updated.")
-        logger.info(f"   - Blue Line Key Assigned: {blk_assigned:,}")
-        logger.info(f"   - Bulk Assigned (Single-Name WC): {bulk_assigned:,}")
-        logger.info(f"   - BFS/Fallback Assigned (Multi-Name WC): {bfs_assigned:,}")
+        elapsed = time.time() - start
+        logger.info(
+            f"  Annotated {annotated:,} unnamed edges. "
+            f"Inherited: {inherited_single:,} (single WC name), "
+            f"{inherited_bfs:,} (upstream BFS). Time: {elapsed:.1f}s"
+        )
 
     def filter_unnamed_depth(self, threshold: int = 2) -> None:
         import time
@@ -775,6 +810,7 @@ if __name__ == "__main__":
             builder.build(limit=args.limit, specific_layers=args.layers)
             builder.preprocess_graph()
             builder.propagate_names_by_watershed()
+            builder.annotate_unnamed_context()
 
             if args.filter_unnamed:
                 builder.filter_unnamed_depth(threshold=args.threshold)

@@ -142,6 +142,12 @@ class FailureLogger:
         self.summary_path = log_path.replace(".json", "_summary.txt")
         os.makedirs(os.path.dirname(log_path), exist_ok=True)
 
+    def clear(self) -> None:
+        """Remove stale failure logs so they only reflect the current run."""
+        for path in (self.log_path, self.summary_path):
+            if os.path.exists(path):
+                os.remove(path)
+
     def log_batch_errors(
         self,
         batch_indices: List[int],
@@ -743,6 +749,9 @@ def main() -> int:
     api_manager = APIKeyManager(API_KEYS)
     processor = BatchProcessor(session, args.session_file, api_manager)
 
+    # Clear stale failure logs so they only contain failures from this run
+    processor.logger.clear()
+
     pending_indices = [
         i for i in range(session.total_items) if i not in session.processed_items
     ]
@@ -770,9 +779,12 @@ def main() -> int:
     if len(session.processed_items) == session.total_items:
         session.completed_at = datetime.now().isoformat()
         session.save(args.session_file)
-        mgr.archive(session, args.output)
 
+    # Export first so parsed_results.json is up-to-date before archiving
     export_session(args.session_file, args.output)
+
+    if session.completed_at:
+        mgr.archive(session, args.output)
 
     # Summary
     print(f"\n{'='*60}")

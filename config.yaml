@@ -25,8 +25,6 @@ output:
     base: "output/regulation_mapping"
     regulations_merged_gpkg: "output/fwa/regulations_merged.gpkg"
     regulations_merged_pmtiles: "output/fwa/regulations_merged.pmtiles"
-    regulations_individual_gpkg: "output/fwa/regulations_individual.gpkg"
-    regulations_individual_pmtiles: "output/fwa/regulations_individual.pmtiles"
     regulations_json: "output/fwa/regulations.json"
     search_index: "output/fwa/search_index.json"
     cache_dir: "output/regulation_mapping/.geom_cache"

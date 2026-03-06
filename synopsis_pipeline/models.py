@@ -523,18 +523,6 @@ class IdentityObject:
                     f"Waterbody: '{self.name_verbatim}'"
                 )
 
-        # Validate name_verbatim containing "tributaries" requires TRIBUTARIES_ONLY scope
-        if (
-            self.name_verbatim
-            and "tributaries" in self.name_verbatim.lower()
-            and self.global_scope.type != "TRIBUTARIES_ONLY"
-        ):
-            errors.append(
-                f"name_verbatim '{self.name_verbatim}' contains 'tributaries' but global_scope.type "
-                f"is '{self.global_scope.type}' — must be 'TRIBUTARIES_ONLY'. "
-                f"When the waterbody name explicitly refers to tributaries, the scope must reflect that."
-            )
-
         # Validate global_scope
         scope_errors = self.global_scope.validate()
         for err in scope_errors:

@@ -24,6 +24,7 @@ igraph
 
 # Data Structures
 attrs
+orjson
 
 # Configuration
 pyyaml

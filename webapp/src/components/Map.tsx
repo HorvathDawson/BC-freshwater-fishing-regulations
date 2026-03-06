@@ -3,7 +3,7 @@ import maplibregl from 'maplibre-gl';
 import { Protocol } from 'pmtiles';
 import { layers, LIGHT } from '@protomaps/basemaps';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import { createRegulationLayers, createAdminLabelLayers, createEarlyRoadLayers, HIGHLIGHT_COLORS, SELECTION_COLOR, matchByFeatureType } from '../map/styles';
+import { createRegulationLayers, createAdminLabelLayers, createEarlyRoadLayers, HIGHLIGHT_COLORS, SELECTION_COLOR } from '../map/styles';
 import { waterbodyDataService } from '../services/waterbodyDataService';
 import type { WaterbodyItem } from '../services/waterbodyDataService';
 import { 
@@ -42,6 +42,23 @@ const ADMIN_FILL_LAYERS = [
     'admin_parks_nat-fill', 'admin_parks_bc-fill', 'admin_wma-fill',
     'admin_watersheds-fill', 'admin_historic_sites-fill', 'admin_osm_admin_boundaries-fill',
 ];
+
+// Filter-based highlight / selection layer IDs.
+// These render directly from the 'regulations' PMTiles source — no geometry
+// copying. MapLibre handles tile clipping and buffer overlap natively, so
+// fills and strokes render without seam or double-opacity artifacts.
+const HL_LAYER_IDS = [
+    'hl-streams', 'hl-lakes-fill', 'hl-lakes-line',
+    'hl-wetlands-fill', 'hl-wetlands-line', 'hl-manmade-fill', 'hl-manmade-line',
+    'hl-ungazetted',
+];
+const SL_LAYER_IDS = [
+    'sl-streams', 'sl-lakes-fill', 'sl-lakes-line',
+    'sl-wetlands-fill', 'sl-wetlands-line', 'sl-manmade-fill', 'sl-manmade-line',
+    'sl-ungazetted',
+];
+/** Matches nothing — used to hide highlight/selection layers when inactive. */
+const FILTER_NONE: maplibregl.FilterSpecification = ['==', ['get', 'frontend_group_id'], ''];
 
 // --- STYLE EXPRESSIONS ---
 const STREAM_LINE_WIDTH = ['interpolate', ['linear'], ['zoom'], 4, ['+', 1.5, ['*', ['coalesce', ['get', 'stream_order'], 1], 0.1]], 8, ['+', 2, ['*', ['coalesce', ['get', 'stream_order'], 1], 0.15]], 11, ['*', ['+', 1.5, ['*', ['coalesce', ['get', 'stream_order'], 1], 0.5]], 1.5], 12, ['*', ['+', 1.5, ['*', ['coalesce', ['get', 'stream_order'], 1], 0.5]], 2], 14, ['*', ['+', 1.5, ['*', ['coalesce', ['get', 'stream_order'], 1], 0.5]], 3], 16, ['*', ['+', 1.5, ['*', ['coalesce', ['get', 'stream_order'], 1], 0.5]], 4]];
@@ -184,14 +201,6 @@ const createCrossHatchPattern = (hexColor: string): ImageData | null => {
     return ctx.getImageData(0, 0, size, size);
 };
 
-const getFeatureType = (layerId: string): 'stream' | 'lake' | 'wetland' | 'manmade' | 'ungazetted' => {
-    if (layerId.includes('streams')) return 'stream';
-    if (layerId.includes('lakes')) return 'lake';
-    if (layerId.includes('wetlands')) return 'wetland';
-    if (layerId.includes('ungazetted')) return 'ungazetted';
-    return 'manmade';
-};
-
 /** Normalize plural backend types to singular frontend types */
 const normalizeType = (type: string): 'stream' | 'lake' | 'wetland' | 'manmade' | 'ungazetted' => {
     if (type === 'streams' || type === 'stream') return 'stream';
@@ -226,6 +235,8 @@ const buildFeatureFromJSON = (
         geometry?: FeatureGeometry;
         source?: string;
         sourceLayer?: string;
+        /** Override frontend_group_id (e.g. from tile props when segment is null) */
+        frontendGroupId?: string;
         /** Click-time extras (e.g. _adminZones) — never overwrites JSON fields */
         extras?: Record<string, any>;
     } = {},
@@ -233,10 +244,11 @@ const buildFeatureFromJSON = (
     const type = normalizeType(feature.type);
     const srcLayer = opts.sourceLayer || resolveSourceLayer(type);
     const segBbox = segment?.bbox as [number, number, number, number] | undefined;
+    const fgid = opts.frontendGroupId || segment?.frontend_group_id || '';
 
     return {
         type,
-        id: segment?.frontend_group_id || segment?.group_id || feature.id,
+        id: fgid || segment?.group_id || feature.id,
         geometry: opts.geometry,
         source: opts.source || 'regulations',
         sourceLayer: srcLayer,
@@ -249,7 +261,7 @@ const buildFeatureFromJSON = (
             name_variants: (segment?.name_variants || feature.name_variants || []) as any,
 
             // ── IDs ──
-            frontend_group_id: segment?.frontend_group_id || '',
+            frontend_group_id: fgid,
             group_id: segment?.group_id || feature.properties?.group_id || '',
             waterbody_key: feature.properties?.waterbody_key || '',
 
@@ -294,34 +306,22 @@ const buildFeatureFilter = (feature: FeatureInfo | FeatureOption): unknown[] | n
     return null;
 };
 
-const updateMapSource = (map: maplibregl.Map, sourceId: string, feature: FeatureInfo | FeatureOption | null) => {
-    const source = map.getSource(sourceId) as maplibregl.GeoJSONSource;
-    if (!source) return;
-    
-    if (!feature) {
-        source.setData({ type: 'FeatureCollection', features: [] });
-        return;
+/**
+ * Set the filter on a group of highlight or selection layers.
+ *
+ * When `feature` is non-null the matching filter (by frontend_group_id,
+ * group_id, etc.) is applied to every layer in the group. When null,
+ * FILTER_NONE hides everything.  Because the layers render directly from
+ * the PMTiles vector source, MapLibre handles tile clipping and buffer
+ * overlap natively — no geometry copying, no dedup, no seam artifacts.
+ */
+const setGroupFilter = (map: maplibregl.Map, layerIds: string[], feature: FeatureInfo | FeatureOption | null) => {
+    const filter: maplibregl.FilterSpecification = feature
+        ? (buildFeatureFilter(feature) as maplibregl.FilterSpecification) || FILTER_NONE
+        : FILTER_NONE;
+    for (const id of layerIds) {
+        if (map.getLayer(id)) map.setFilter(id, filter);
     }
-
-    const filter = buildFeatureFilter(feature);
-    const srcLayer = feature.sourceLayer || (feature.type === 'stream' ? 'streams' : feature.type === 'ungazetted' ? 'ungazetted' : 'lakes');
-    
-    let features: any[] = [];
-    if (filter) features = map.querySourceFeatures('regulations', { sourceLayer: srcLayer, filter: filter as maplibregl.FilterSpecification });
-    
-    if (!features.length && feature.geometry) {
-        features = [{ geometry: feature.geometry, properties: feature.properties }];
-    }
-    
-    source.setData({ 
-        type: 'FeatureCollection', 
-        features: features.map(f => ({ 
-            type: 'Feature', 
-            geometry: f.geometry || f.toJSON?.().geometry, 
-            // Embed _feature_type so highlight/selection layers can match per-type colors
-            properties: { ...f.properties, _feature_type: feature.type } 
-        })) as any 
-    });
 };
 
 /** Bottom padding for the partial (35 vh) mobile panel. */
@@ -371,6 +371,10 @@ const MapComponent = () => {
     // Populated once search_index.json loads; used by the click handler
     // to enrich tile features with search-level data (name_variants, etc.)
     const searchLookupRef = useRef<Map<string, { feature: SearchableFeature; segment: RegulationSegment | null }>>(new Map());
+    // Deduped regulation-id strings, indexed by reg_set_index.
+    const regSetsRef = useRef<string[]>([]);
+    // frontend_group_id → reg_set_index for unnamed zone-only features.
+    const compactRef = useRef<Record<string, number>>({});
     
     const [selectedFeature, setSelectedFeature] = useState<FeatureInfo | null>(null);
     const [disambigOptions, setDisambigOptions] = useState<FeatureOption[]>([]);
@@ -465,18 +469,30 @@ const MapComponent = () => {
 
         const map = mapRef.current;
         if (!map) return;
-        ['cursor-circle', 'highlight-source', 'selection-source'].forEach(id => {
-            const src = map.getSource(id) as maplibregl.GeoJSONSource;
-            if (src) src.setData({ type: 'FeatureCollection', features: [] });
-        });
+        // Clear cursor circle GeoJSON
+        const cursorSrc = map.getSource('cursor-circle') as maplibregl.GeoJSONSource;
+        if (cursorSrc) cursorSrc.setData({ type: 'FeatureCollection', features: [] });
+        // Reset highlight & selection layer filters to hide them
+        setGroupFilter(map, HL_LAYER_IDS, null);
+        setGroupFilter(map, SL_LAYER_IDS, null);
     }, []);
 
     useEffect(() => {
-        waterbodyDataService.getWaterbodies().then(waterbodies => {
+        Promise.all([
+            waterbodyDataService.getWaterbodies(),
+            waterbodyDataService.getRegSets(),
+            waterbodyDataService.getCompact(),
+        ]).then(([waterbodies, regSets, compact]) => {
+            // Stash reg_sets / compact for click-time resolution of unnamed features
+            regSetsRef.current = regSets || [];
+            compactRef.current = compact || {};
+
             // Use backend search index directly - it's already grouped by physical stream
+            // Only named features are in the waterbodies array (unnamed are in compact dict)
             const features: SearchableFeature[] = (waterbodies || []).map((item: WaterbodyItem) => {
-                const displayName = item.display_name || item.gnis_name || 'Unnamed Waterbody';
                 const normalizedType = item.type === 'streams' ? 'stream' : item.type === 'lakes' ? 'lake' : item.type;
+                const typeLabel = normalizedType === 'stream' ? 'Stream' : normalizedType === 'lake' ? 'Lake' : normalizedType === 'wetland' ? 'Wetland' : 'Waterbody';
+                const displayName = item.display_name || item.gnis_name || `Unnamed ${typeLabel}`;
                 
                 return {
                     id: item.id,
@@ -639,6 +655,14 @@ const MapComponent = () => {
         const props = selectedFeature?.properties;
         const featureId = props?.frontend_group_id || props?.group_id || 
                           (props?.waterbody_key ? String(props.waterbody_key) : '');
+        
+        // Don't persist unnamed zone-only features in URL — they can't be restored
+        // (no JSON entry, no bbox for fly-to).
+        const hasName = !!(props?.display_name || props?.gnis_name);
+        if (selectedFeature && !hasName) {
+            return;
+        }
+        
         if (selectedFeature && !featureId) {
             console.warn('Selected feature missing all IDs:', props);
         }
@@ -714,17 +738,59 @@ const MapComponent = () => {
                 paint: { 'fill-pattern': 'hatch-cross', 'fill-opacity': 0.4 },
             } as any);
 
-            map.addSource('highlight-source', { type: 'geojson', data: { type: 'FeatureCollection', features: [] }, tolerance: 0.1 });
-            // Hover / disambiguation highlight — per-type saturated color, wider line
-            map.addLayer({ id: 'highlight-line', type: 'line', source: 'highlight-source', paint: { 'line-color': matchByFeatureType(HIGHLIGHT_COLORS, SELECTION_COLOR) as any, 'line-width': ['interpolate', ['linear'], ['zoom'], 4, 3, 8, 6, 12, 8], 'line-opacity': 1.0 }, layout: { 'line-cap': 'round', 'line-join': 'round' } });
-            map.addLayer({ id: 'highlight-fill', type: 'fill', source: 'highlight-source', paint: { 'fill-color': matchByFeatureType(HIGHLIGHT_COLORS, SELECTION_COLOR) as any, 'fill-opacity': 0.4 }, filter: ['==', '$type', 'Polygon'] });
-            map.addLayer({ id: 'highlight-circle', type: 'circle', source: 'highlight-source', paint: { 'circle-color': matchByFeatureType(HIGHLIGHT_COLORS, SELECTION_COLOR) as any, 'circle-radius': ['interpolate', ['linear'], ['zoom'], 10, 8, 13, 12, 16, 16], 'circle-stroke-color': '#FFFFFF', 'circle-stroke-width': 2, 'circle-opacity': 0.9 }, filter: ['==', '$type', 'Point'] });
-            
-            map.addSource('selection-source', { type: 'geojson', data: { type: 'FeatureCollection', features: [] }, tolerance: 0.1 });
-            // Active selection — uniform deep blue (same weight signal regardless of type)
-            map.addLayer({ id: 'selection-line', type: 'line', source: 'selection-source', paint: { 'line-color': SELECTION_COLOR, 'line-width': STREAM_LINE_WIDTH as any, 'line-opacity': 1.0 }, layout: { 'line-cap': 'round', 'line-join': 'round' } });
-            map.addLayer({ id: 'selection-fill', type: 'fill', source: 'selection-source', paint: { 'fill-color': SELECTION_COLOR, 'fill-opacity': 0.35 }, filter: ['==', '$type', 'Polygon'] });
-            map.addLayer({ id: 'selection-circle', type: 'circle', source: 'selection-source', paint: { 'circle-color': SELECTION_COLOR, 'circle-radius': ['interpolate', ['linear'], ['zoom'], 10, 8, 13, 12, 16, 16], 'circle-stroke-color': '#FFFFFF', 'circle-stroke-width': 2.5, 'circle-opacity': 1.0 }, filter: ['==', '$type', 'Point'] });
+            // ── HIGHLIGHT LAYERS (hover / disambiguation) ─────────────
+            // Filter-based: render directly from the PMTiles vector source.
+            // All start hidden (FILTER_NONE). On hover/disambig, setGroupFilter
+            // switches the match expression so only the target feature renders.
+            const hlLineWidth = ['interpolate', ['linear'], ['zoom'], 4, 3, 8, 6, 12, 8] as any;
+            const hlLineLayout = { 'line-cap': 'round' as const, 'line-join': 'round' as const };
+            const hlCirclePaint = (color: string) => ({
+                'circle-color': color, 'circle-radius': ['interpolate', ['linear'], ['zoom'], 10, 8, 13, 12, 16, 16] as any,
+                'circle-stroke-color': '#FFFFFF', 'circle-stroke-width': 2, 'circle-opacity': 0.9,
+            });
+
+            // Streams
+            map.addLayer({ id: 'hl-streams', type: 'line', source: 'regulations', 'source-layer': 'streams', filter: FILTER_NONE,
+                paint: { 'line-color': HIGHLIGHT_COLORS.stream, 'line-width': hlLineWidth, 'line-opacity': 1.0 }, layout: hlLineLayout });
+            // Lakes
+            map.addLayer({ id: 'hl-lakes-fill', type: 'fill', source: 'regulations', 'source-layer': 'lakes', filter: FILTER_NONE,
+                paint: { 'fill-color': HIGHLIGHT_COLORS.lake, 'fill-opacity': 0.4 } });
+            map.addLayer({ id: 'hl-lakes-line', type: 'line', source: 'regulations', 'source-layer': 'lakes', filter: FILTER_NONE,
+                paint: { 'line-color': HIGHLIGHT_COLORS.lake, 'line-width': hlLineWidth, 'line-opacity': 1.0 }, layout: hlLineLayout });
+            // Wetlands
+            map.addLayer({ id: 'hl-wetlands-fill', type: 'fill', source: 'regulations', 'source-layer': 'wetlands', filter: FILTER_NONE,
+                paint: { 'fill-color': HIGHLIGHT_COLORS.wetland, 'fill-opacity': 0.4 } });
+            map.addLayer({ id: 'hl-wetlands-line', type: 'line', source: 'regulations', 'source-layer': 'wetlands', filter: FILTER_NONE,
+                paint: { 'line-color': HIGHLIGHT_COLORS.wetland, 'line-width': hlLineWidth, 'line-opacity': 1.0 }, layout: hlLineLayout });
+            // Manmade
+            map.addLayer({ id: 'hl-manmade-fill', type: 'fill', source: 'regulations', 'source-layer': 'manmade', filter: FILTER_NONE,
+                paint: { 'fill-color': HIGHLIGHT_COLORS.manmade, 'fill-opacity': 0.4 } });
+            map.addLayer({ id: 'hl-manmade-line', type: 'line', source: 'regulations', 'source-layer': 'manmade', filter: FILTER_NONE,
+                paint: { 'line-color': HIGHLIGHT_COLORS.manmade, 'line-width': hlLineWidth, 'line-opacity': 1.0 }, layout: hlLineLayout });
+            // Ungazetted
+            map.addLayer({ id: 'hl-ungazetted', type: 'circle', source: 'regulations', 'source-layer': 'ungazetted', filter: FILTER_NONE,
+                paint: hlCirclePaint(HIGHLIGHT_COLORS.ungazetted) as any });
+
+            // ── SELECTION LAYERS (active selection — uniform deep blue) ───
+            const slPolyLineWidth = ['interpolate', ['linear'], ['zoom'], 4, 2, 8, 3, 12, 4] as any;
+
+            map.addLayer({ id: 'sl-streams', type: 'line', source: 'regulations', 'source-layer': 'streams', filter: FILTER_NONE,
+                paint: { 'line-color': SELECTION_COLOR, 'line-width': STREAM_LINE_WIDTH as any, 'line-opacity': 1.0 }, layout: hlLineLayout });
+            map.addLayer({ id: 'sl-lakes-fill', type: 'fill', source: 'regulations', 'source-layer': 'lakes', filter: FILTER_NONE,
+                paint: { 'fill-color': SELECTION_COLOR, 'fill-opacity': 0.35 } });
+            map.addLayer({ id: 'sl-lakes-line', type: 'line', source: 'regulations', 'source-layer': 'lakes', filter: FILTER_NONE,
+                paint: { 'line-color': SELECTION_COLOR, 'line-width': slPolyLineWidth, 'line-opacity': 1.0 }, layout: hlLineLayout });
+            map.addLayer({ id: 'sl-wetlands-fill', type: 'fill', source: 'regulations', 'source-layer': 'wetlands', filter: FILTER_NONE,
+                paint: { 'fill-color': SELECTION_COLOR, 'fill-opacity': 0.35 } });
+            map.addLayer({ id: 'sl-wetlands-line', type: 'line', source: 'regulations', 'source-layer': 'wetlands', filter: FILTER_NONE,
+                paint: { 'line-color': SELECTION_COLOR, 'line-width': slPolyLineWidth, 'line-opacity': 1.0 }, layout: hlLineLayout });
+            map.addLayer({ id: 'sl-manmade-fill', type: 'fill', source: 'regulations', 'source-layer': 'manmade', filter: FILTER_NONE,
+                paint: { 'fill-color': SELECTION_COLOR, 'fill-opacity': 0.35 } });
+            map.addLayer({ id: 'sl-manmade-line', type: 'line', source: 'regulations', 'source-layer': 'manmade', filter: FILTER_NONE,
+                paint: { 'line-color': SELECTION_COLOR, 'line-width': slPolyLineWidth, 'line-opacity': 1.0 }, layout: hlLineLayout });
+            map.addLayer({ id: 'sl-ungazetted', type: 'circle', source: 'regulations', 'source-layer': 'ungazetted', filter: FILTER_NONE,
+                paint: { 'circle-color': SELECTION_COLOR, 'circle-radius': ['interpolate', ['linear'], ['zoom'], 10, 8, 13, 12, 16, 16] as any,
+                    'circle-stroke-color': '#FFFFFF', 'circle-stroke-width': 2.5, 'circle-opacity': 1.0 } as any });
             
             map.addSource('cursor-circle', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
             map.addLayer({ id: 'cursor-circle-fill', type: 'fill', source: 'cursor-circle', paint: { 'fill-color': '#3b82f6', 'fill-opacity': 0.1 } });
@@ -808,33 +874,63 @@ const MapComponent = () => {
                         geometry: f.toJSON().geometry,
                         source: f.layer.source,
                         sourceLayer: (f.layer as any)['source-layer'],
+                        frontendGroupId: frontendGroupId,
                         extras: { _adminZones: adminZonesByRegId as any },
                     });
                     options.push(option);
                 } else {
-                    // Fallback: tile not in JSON (should be rare — possibly stale tile data).
-                    // Build a minimal option from tile props so the feature is still clickable.
-                    const bounds = new maplibregl.LngLatBounds();
-                    extendBoundsWithGeometry(bounds, f.toJSON().geometry);
-                    const tileBbox = bounds.toArray().flat() as [number, number, number, number];
-                    options.push({
-                        type: getFeatureType(f.layer.id),
-                        id: dedupeKey,
-                        geometry: f.toJSON().geometry,
-                        source: f.layer.source,
-                        sourceLayer: (f.layer as any)['source-layer'],
-                        bbox: tileBbox,
-                        minzoom: Number(tileProps.min_zoom || 4),
+                    // Unnamed / zone-only feature — not in named lookup.
+                    // Resolve regulation data from the compact dict (fgid → ri → reg_sets).
+                    const ri = compactRef.current[frontendGroupId] ??
+                               compactRef.current[groupId] ??
+                               compactRef.current[waterbodyKey];
+                    const regIds = ri !== undefined ? (regSetsRef.current[ri] || '') : '';
+
+                    if (!regIds) {
+                        // No compact entry and no named entry — data integrity issue
+                        console.warn(
+                            `[Map] Tile feature not in JSON lookup or compact dict. ` +
+                            `frontend_group_id="${frontendGroupId}", layer="${f.layer.id}".`
+                        );
+                        continue;
+                    }
+
+                    // Build a synthetic SearchableFeature from tile properties + compact regs
+                    const srcLayer = (f.layer as any)['source-layer'] || '';
+                    const typeLabel = srcLayer === 'streams' ? 'Stream' : srcLayer === 'lakes' ? 'Lake' : srcLayer === 'wetlands' ? 'Wetland' : 'Waterbody';
+                    const tileDisplayName = String(tileProps.display_name || '');
+                    const syntheticFeature: SearchableFeature = {
+                        id: frontendGroupId || groupId || waterbodyKey,
+                        display_name: tileDisplayName || `Unnamed ${typeLabel}`,
+                        gnis_name: '',
+                        name: tileDisplayName || `Unnamed ${typeLabel}`,
+                        type: srcLayer,
+                        name_variants: [],
+                        regulation_segments: [],
+                        _frontend_group_ids: frontendGroupId ? [frontendGroupId] : [],
                         properties: {
-                            display_name: tileProps.display_name || '',
-                            gnis_name: tileProps.gnis_name || '',
                             frontend_group_id: frontendGroupId,
                             group_id: groupId,
                             waterbody_key: waterbodyKey,
-                            regulation_ids: tileProps.regulation_ids || '',
-                            _adminZones: adminZonesByRegId as any,
+                            regulation_ids: regIds,
+                            regulation_count: regIds.split(',').filter(Boolean).length,
+                            zones: '',
+                            mgmt_units: '',
+                            region_name: '',
+                            fwa_watershed_code: '',
+                            minzoom: 10,
+                            total_length_km: 0,
                         },
+                    } as SearchableFeature;
+
+                    const option = buildFeatureFromJSON(syntheticFeature, null, {
+                        geometry: f.toJSON().geometry,
+                        source: f.layer.source,
+                        sourceLayer: srcLayer,
+                        frontendGroupId: frontendGroupId,
+                        extras: { _adminZones: adminZonesByRegId as any },
                     });
+                    options.push(option);
                 }
             }
 
@@ -870,49 +966,19 @@ const MapComponent = () => {
         return () => map.remove();
     }, [clearSelection]);
 
-    // Handle highlighted state changes & detail refreshing securely
+    // Handle highlighted state changes — filter-based, no event listeners needed.
+    // MapLibre re-evaluates filters automatically as tiles load/zoom changes.
     useEffect(() => {
         const map = mapRef.current;
         if (!map) return;
-
-        const refreshHighlight = () => updateMapSource(map, 'highlight-source', highlightedOption);
-        
-        refreshHighlight();
-        
-        if (highlightedOption) {
-            map.on('zoomend', refreshHighlight);
-            map.on('idle', refreshHighlight);
-            // Also refresh when new tiles arrive (e.g. after search fly-to)
-            map.on('sourcedata', refreshHighlight);
-            return () => {
-                map.off('zoomend', refreshHighlight);
-                map.off('idle', refreshHighlight);
-                map.off('sourcedata', refreshHighlight);
-            };
-        }
+        setGroupFilter(map, HL_LAYER_IDS, highlightedOption);
     }, [highlightedOption]);
 
-    // Handle selected state changes & detail refreshing securely
+    // Handle selected state changes — filter-based, no event listeners needed.
     useEffect(() => {
         const map = mapRef.current;
-        if (!map || !selectedFeature) {
-            if (map) updateMapSource(map, 'selection-source', null);
-            return;
-        }
-
-        const refreshSelection = () => updateMapSource(map, 'selection-source', selectedFeature);
-        
-        refreshSelection();
-        map.on('zoomend', refreshSelection);
-        map.on('idle', refreshSelection);
-        // Also refresh when new tiles load (ensures highlight appears after fly-to)
-        map.on('sourcedata', refreshSelection);
-
-        return () => { 
-            map.off('zoomend', refreshSelection);
-            map.off('idle', refreshSelection);
-            map.off('sourcedata', refreshSelection);
-        };
+        if (!map) return;
+        setGroupFilter(map, SL_LAYER_IDS, selectedFeature);
     }, [selectedFeature]);
 
     const handleSearchSelect = useCallback((feature: SearchableFeature) => {

@@ -343,6 +343,8 @@ class MetadataBuilder:
                 "unnamed_depth_distance_corrected": attrs.get(
                     "unnamed_depth_distance_corrected"
                 ),
+                "wc_gnis_names": attrs.get("wc_gnis_names"),
+                "inherited_gnis_names": attrs.get("inherited_gnis_names"),
                 "zones_unbuffered": merged_ub["zones"],
                 "mgmt_units_unbuffered": merged_ub["mgmt_units"],
                 "region_names_unbuffered": merged_ub["region_names"],
@@ -423,6 +425,94 @@ class MetadataBuilder:
                 logger.info(f"  Extracted {len(results):,} {ftype_enum.name}.")
             except Exception as e:
                 logger.error(f"Failed to process {layer_name}: {e}")
+
+    def unify_polygon_zones_by_gnis(self):
+        """Unify zone/MU assignments across polygons sharing the same GNIS ID.
+
+        Large waterbodies in FWA are often split into multiple polygons
+        (WATERBODY_POLY_IDs) that share a single GNIS ID.  When those
+        polygons straddle a zone boundary, each piece gets different zone
+        assignments, which causes them to receive different regulation
+        sets downstream — splitting one lake into multiple map features
+        with different regs.
+
+        This post-processing step groups polygons by ``gnis_id`` and
+        computes the **union** of all zone-related fields (buffered and
+        unbuffered) across the group.  The unified values are written
+        back to every polygon in the group so that:
+
+        1. ``build_feature_index()`` indexes all pieces into the same zones.
+        2. All pieces receive the same combined regulation set.
+        3. ``merge_features()`` groups them into one ``MergedGroup``.
+        4. ``unary_union`` in geo_exporter dissolves them into one shape.
+
+        Uses ``_merge_zone_lookups`` — the same canonical zone-merging
+        function used for stream endpoint merging — so there is exactly
+        one code path for combining zone data.
+        """
+        POLYGON_TYPES = (FeatureType.LAKE, FeatureType.WETLAND, FeatureType.MANMADE)
+        total_unified = 0
+
+        for ftype in POLYGON_TYPES:
+            entries = self.metadata.get(ftype, {})
+            if not entries:
+                continue
+
+            # Group polygon entries by gnis_id
+            gnis_groups: dict[str, list[str]] = {}  # gnis_id → [poly_ids]
+            for pid, meta in entries.items():
+                gid = meta.get("gnis_id", "")
+                if gid:  # Skip polygons without a GNIS ID
+                    gnis_groups.setdefault(gid, []).append(pid)
+
+            # For each GNIS group with multiple polygons, unify zones
+            for gid, poly_ids in gnis_groups.items():
+                if len(poly_ids) < 2:
+                    continue
+
+                # Build unified zone lookups using _merge_zone_lookups
+                # (same function used for stream endpoint zone merging)
+                buffered_lookups = [
+                    {
+                        "zones": entries[pid]["zones"],
+                        "mgmt_units": entries[pid]["mgmt_units"],
+                        "region_names": entries[pid]["region_names"],
+                    }
+                    for pid in poly_ids
+                ]
+                unbuffered_lookups = [
+                    {
+                        "zones": entries[pid]["zones_unbuffered"],
+                        "mgmt_units": entries[pid]["mgmt_units_unbuffered"],
+                        "region_names": entries[pid]["region_names_unbuffered"],
+                    }
+                    for pid in poly_ids
+                ]
+
+                unified_buffered = _merge_zone_lookups(*buffered_lookups)
+                unified_unbuffered = _merge_zone_lookups(*unbuffered_lookups)
+
+                # Write back to every polygon in the group
+                for pid in poly_ids:
+                    entries[pid]["zones"] = unified_buffered["zones"]
+                    entries[pid]["mgmt_units"] = unified_buffered["mgmt_units"]
+                    entries[pid]["region_names"] = unified_buffered["region_names"]
+                    entries[pid]["zones_unbuffered"] = unified_unbuffered["zones"]
+                    entries[pid]["mgmt_units_unbuffered"] = unified_unbuffered[
+                        "mgmt_units"
+                    ]
+                    entries[pid]["region_names_unbuffered"] = unified_unbuffered[
+                        "region_names"
+                    ]
+
+                total_unified += len(poly_ids)
+
+            unified_groups = sum(1 for ids in gnis_groups.values() if len(ids) > 1)
+            if unified_groups:
+                logger.info(
+                    f"  {ftype.name}: unified zones across {unified_groups} "
+                    f"multi-polygon GNIS groups ({total_unified} polygons)"
+                )
 
     def process_admin_layers(self):
         """
@@ -572,6 +662,7 @@ def main():
     builder.load_graph()
     builder.extract_streams()
     builder.process_polygons()
+    builder.unify_polygon_zones_by_gnis()
     builder.process_admin_layers()
     builder.save()
 

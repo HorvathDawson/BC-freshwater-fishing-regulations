@@ -28,7 +28,9 @@ class FWADataAccessor:
         self.layer_info = pyogrio.list_layers(self.gpkg_path)
         self.layer_names = [info[0] for info in self.layer_info]
 
-    def list_layers(self, with_details: bool = False) -> Union[List[str], Dict[str, str]]:
+    def list_layers(
+        self, with_details: bool = False
+    ) -> Union[List[str], Dict[str, str]]:
         """
         Returns available layers.
 
@@ -60,6 +62,7 @@ class FWADataAccessor:
         "NATIONAL_PARK_ID",
         "ADMIN_AREA_SID",
         "NAMED_WATERSHED_ID",
+        "osm_id",
     ]
 
     STRING_COLUMNS = [
@@ -105,7 +108,10 @@ class FWADataAccessor:
     # ── Public access methods ─────────────────────────────────────────
 
     def get_layer(
-        self, layer_name: str, columns: Optional[List[str]] = None, bbox: Optional[Tuple[float, float, float, float]] = None
+        self,
+        layer_name: str,
+        columns: Optional[List[str]] = None,
+        bbox: Optional[Tuple[float, float, float, float]] = None,
     ) -> gpd.GeoDataFrame:
         """
         Loads a full layer or a spatial subset, with a progress bar.

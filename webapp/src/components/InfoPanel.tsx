@@ -219,20 +219,38 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                     </div>
                     <div className="title-group">
                         <h1 className="title">{title}</h1>
-                        {hasAliases && (
-                            <div className="regulation-subtitle">
-                                Also known as:
-                                {aliases.length === 1 ? (
-                                    <span> {aliases[0].from_tributary ? `Tributary of ${aliases[0].name}` : aliases[0].name}</span>
-                                ) : (
-                                    <ul style={{ margin: '0.25rem 0 0 1rem', padding: 0, listStyle: 'disc' }}>
-                                        {aliases.map((alias: NameVariant, idx: number) => (
-                                            <li key={idx}>{alias.from_tributary ? `Tributary of ${alias.name}` : alias.name}</li>
-                                        ))}
-                                    </ul>
-                                )}
-                            </div>
-                        )}
+                        {hasAliases && (() => {
+                            const tributaryAliases = aliases.filter(a => a.from_tributary);
+                            const regularAliases = aliases.filter(a => !a.from_tributary);
+
+                            // Format a list with Oxford comma: "A", "A and B", "A, B, and C"
+                            const formatList = (items: string[]): string => {
+                                if (items.length === 1) return items[0];
+                                if (items.length === 2) return `${items[0]} and ${items[1]}`;
+                                return `${items.slice(0, -1).join(', ')}, and ${items[items.length - 1]}`;
+                            };
+
+                            const parts: string[] = [];
+                            if (tributaryAliases.length > 0) {
+                                parts.push(`Tributary of ${formatList(tributaryAliases.map(a => a.name))}`);
+                            }
+                            regularAliases.forEach(a => parts.push(a.name));
+
+                            return (
+                                <div className="regulation-subtitle alias-list">
+                                    Also known as:{' '}
+                                    {parts.length === 1 ? (
+                                        <span>{parts[0]}</span>
+                                    ) : (
+                                        <ul>
+                                            {parts.map((part, idx) => (
+                                                <li key={idx}>{part}</li>
+                                            ))}
+                                        </ul>
+                                    )}
+                                </div>
+                            );
+                        })()}
                     </div>
                 </div>
 

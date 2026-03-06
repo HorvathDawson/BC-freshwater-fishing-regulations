@@ -1,0 +1,16 @@
+# Force LF line endings for shell scripts (prevents \r issues in WSL/Linux)
+*.sh text eol=lf
+*.bash text eol=lf
+
+# Other common text files — use platform default
+*.py text
+*.ts text
+*.tsx text
+*.js text
+*.json text
+*.md text
+*.yaml text
+*.yml text
+*.toml text
+*.css text
+*.html text

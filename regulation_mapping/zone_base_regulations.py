@@ -4053,7 +4053,7 @@ def _run_zone_test():
 
     # Build zone + MU feature index (same function the mapper uses)
     print(f"\n  Building zone feature index...")
-    from .regulation_mapper import (
+    from .regulation_resolvers import (
         build_feature_index,
         resolve_direct_match_ids,
         resolve_zone_wide_ids,

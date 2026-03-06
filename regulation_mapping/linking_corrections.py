@@ -19,7 +19,12 @@ This module contains manual corrections for the regulation linking pipeline:
    - Passes the alternate name downstream as a searchable alias
    - Used when the same waterbody appears twice in the synopsis under different names
 
-4. ADMIN_DIRECT_MATCHES: Administrative boundary feature mappings
+4. FEATURE_NAME_VARIATIONS: Display names assigned to features by BLK/WBK
+   - Assigns a name to unnamed features (e.g., side channels of a river)
+   - Causes the feature to group SEPARATELY from the mainstem on the front end
+   - The assigned name becomes a searchable name_variant and display_name
+
+5. ADMIN_DIRECT_MATCHES: Administrative boundary feature mappings
 
 Format:
 - Use \"ALL REGIONS\" for wildcard patterns that apply everywhere
@@ -192,6 +197,52 @@ class NameVariationLink:
 
 
 @dataclass
+class FeatureNameVariation:
+    """
+    Assigns a **display_name_override** to FWA feature(s) identified by
+    blue_line_keys and/or waterbody_keys.
+
+    Used for unnamed features like side channels of a river that share
+    regulations with the mainstem but need their own display name and
+    separate search grouping on the front end.  Adding a
+    FeatureNameVariation causes:
+
+    - ``MergedGroup.display_name_override`` to be set on matching groups
+    - ``MergedGroup.display_name`` to return this override (highest priority)
+    - The search grouping stage (``_build_waterbodies_list``) to place
+      the feature in its own physical group — separated from features
+      that share the same watershed code but lack this override
+    - A distinct ``frontend_group_id`` so clicking the side channel on the
+      map highlights only the side channel, not the mainstem
+
+    Feature merging (``merge_features``) is unaffected — BLKs already
+    differ between mainstem and side channel, so they naturally form
+    separate ``MergedGroup`` objects.
+
+    At least one of ``blue_line_keys`` or ``waterbody_keys`` must be provided.
+    Use lists to target multiple BLKs/WBKs with the same assigned name
+    (e.g., a side channel that spans multiple stream segments).
+
+    Attributes:
+        name: Display name override to assign (e.g., "Adams River Side Channel")
+        note: Explanation of why this name variation exists
+        blue_line_keys: List of Blue Line Keys identifying stream features
+        waterbody_keys: List of Waterbody Keys identifying polygon features
+    """
+
+    name: str
+    note: str
+    blue_line_keys: Optional[List[str]] = None
+    waterbody_keys: Optional[List[str]] = None
+
+    def __post_init__(self):
+        if not self.blue_line_keys and not self.waterbody_keys:
+            raise ValueError(
+                "FeatureNameVariation requires at least one of blue_line_keys or waterbody_keys"
+            )
+
+
+@dataclass
 class SkipEntry:
     """
     Marks a regulation waterbody name that should not be linked.
@@ -236,12 +287,14 @@ class ManualCorrections:
         ungazetted_waterbodies: Dict[str, UngazettedWaterbody],
         admin_direct_matches: Optional[Dict[str, Dict[str, AdminDirectMatch]]] = None,
         name_variation_links: Optional[Dict[str, Dict[str, NameVariationLink]]] = None,
+        feature_name_variations: Optional[Dict[str, List[FeatureNameVariation]]] = None,
     ):
         self.direct_matches = direct_matches
         self.skip_entries = skip_entries
         self.ungazetted_waterbodies = ungazetted_waterbodies
         self.admin_direct_matches = admin_direct_matches or {}
         self.name_variation_links = name_variation_links or {}
+        self.feature_name_variations = feature_name_variations or {}
 
     @staticmethod
     def _resolve_region_dict(lookup_dict: dict, region: str) -> Optional[dict]:
@@ -291,6 +344,13 @@ class ManualCorrections:
         if entries is None:
             return None
         return entries.get(name_verbatim)
+
+    def get_all_feature_name_variations(self) -> List[FeatureNameVariation]:
+        """Return all FeatureNameVariation entries across all regions."""
+        all_entries: List[FeatureNameVariation] = []
+        for entries in self.feature_name_variations.values():
+            all_entries.extend(entries)
+        return all_entries
 
 
 # NOTE: NAME_VARIATIONS has been removed. All name variations have been converted
@@ -384,6 +444,12 @@ DIRECT_MATCHES: Dict[str, Dict[str, DirectMatch]] = {
         "HONNA RIVER": DirectMatch(
             fwa_watershed_codes=[
                 "940-098825-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+            ],
+            note="Haida Gwaii - MUs 6-12, 6-13 now managed as Region 1 per regulations notice",
+        ),
+        "MAMIN RIVER": DirectMatch(
+            fwa_watershed_codes=[
+                "940-885049-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
             ],
             note="Haida Gwaii - MUs 6-12, 6-13 now managed as Region 1 per regulations notice",
         ),
@@ -654,6 +720,19 @@ DIRECT_MATCHES: Dict[str, Dict[str, DirectMatch]] = {
             gnis_ids=["16118", "16120", "37373"],
             note="MU 2-8. GNIS 16118 (Hatzic Lake), GNIS 16120 (Hatzic Slough) and GNIS 37373 (Lower Hatzic Slough).",
         ),
+        "NICOMEN SLOUGH": DirectMatch(
+            gnis_ids=["21105"],
+            waterbody_poly_ids=[
+                "700091672",
+                "700091686",
+                "700091381",
+                "700091224",
+                "700012846",
+                "700000668",
+                "700091322",
+            ],
+            note="Nicomen Slough (GNIS 21105) in Region 2. Includes 7 specific waterbody polygons plus the GNIS stream match.",
+        ),
         # --- Converted from NameVariation ---
         '"ERROCK" ("Squakum") LAKE': DirectMatch(
             gnis_ids=["1757"],
@@ -686,6 +765,24 @@ DIRECT_MATCHES: Dict[str, Dict[str, DirectMatch]] = {
         '"MARSHALL" CREEK': DirectMatch(
             gnis_ids=["1860"],
             note="GNIS name: Marshall Creek. Remove quotes.",
+        ),
+        "FRASER RIVER (Upstream Of The Cpr Bridge At Mission)": DirectMatch(
+            gnis_ids=[
+                "39325",  # Fraser River
+                "10494",  # Annacis Channel
+                "11566",  # Bedford Channel
+                "17805",  # Cannery Channel
+                "17368",  # Enterprise Channel
+                "14905",  # Morey Channel
+                "22631",  # Parsons Channel
+                "21224",  # Sapperton Channel
+                "14010",  # Gilmour Slough
+                "11481",  # Greyell Slough
+                "13499",  # Maria Slough
+                "25152",  # Tilbury Slough
+                "8341",  # Williamson Slough
+            ],
+            note="Fraser River (GNIS 39325) upstream of the CPR Bridge at Mission, plus all named channels and sloughs without their own regulation entries. Region 2. Nicomen Slough and Strawberry Slough excluded — they have separate regulation entries.",
         ),
     },
     "Region 3": {
@@ -787,6 +884,10 @@ DIRECT_MATCHES: Dict[str, Dict[str, DirectMatch]] = {
             gnis_ids=["5719"],
             note="GNIS name: Kwotlenemo (Fountain) Lake. Parenthetical included in GNIS.",
         ),
+        "FRASER RIVER": DirectMatch(
+            gnis_ids=["39325"],
+            note="Fraser River in Region 3. Channels and sloughs are in Zone 2 only.",
+        ),
     },
     "Region 4": {
         '"ALTA" LAKE': DirectMatch(
@@ -842,6 +943,21 @@ DIRECT_MATCHES: Dict[str, Dict[str, DirectMatch]] = {
         "KOOTENAY LAKE, ALL PARTS (Main Body, Upper West Arm and Lower West Arm)": DirectMatch(
             gnis_ids=["14091"],
             note="Kootenay Lake - Main Body, Upper West Arm and Lower West Arm. GNIS 14091 - Kootenay Lake. Regulation MU 4-19.",
+        ),
+        # TODO: Kootenay Lake subdivisions — these currently link to the full lake polygon.
+        # Need to create custom polygon subdivisions based on the regulation map on page 34
+        # to separate Main Body, Upper West Arm, and Lower West Arm.
+        "KOOTENAY LAKE - MAIN BODY (for location see map on page 34)": DirectMatch(
+            gnis_ids=["14091"],
+            note="TODO: Currently links to full Kootenay Lake (GNIS 14091). Needs custom polygon subdivision to isolate Main Body (excluding West Arm zones). MU 4-4. See regulation map page 34.",
+        ),
+        "KOOTENAY LAKE - UPPER WEST ARM (for location see map on page 34)": DirectMatch(
+            gnis_ids=["14091"],
+            note="TODO: Currently links to full Kootenay Lake (GNIS 14091). Needs custom polygon subdivision to isolate Upper West Arm. MU 4-4. See regulation map page 34.",
+        ),
+        "KOOTENAY LAKE - LOWER WEST ARM (for location see map on page 34)": DirectMatch(
+            gnis_ids=["14091"],
+            note="TODO: Currently links to full Kootenay Lake (GNIS 14091). Needs custom polygon subdivision to isolate Lower West Arm. MU 4-4. See regulation map page 34.",
         ),
         "KOOTENAY LAKE'S TRIBUTARIES": DirectMatch(
             gnis_ids=["14091"],
@@ -1001,6 +1117,25 @@ DIRECT_MATCHES: Dict[str, Dict[str, DirectMatch]] = {
         "PEND D'OREILLE RIVER'S TRIBUTARIES (except Salmo River[Includes Tributaries])": DirectMatch(
             gnis_ids=["4927"],
             note="GNIS name: Pend-D'Oreille River. Tributary entry - links to parent waterbody (hyphenated form).",
+        ),
+        # Kootenay River and all named branches/channels on the same watershed
+        "KOOTENAY RIVER (downstream of Idaho border)": DirectMatch(
+            gnis_ids=[
+                "14097",  # Kootenay River
+                "39068",  # East Branch Kootenay River
+                "2123",  # Old Kootenay River Channel
+            ],
+            note="Kootenay River and all named branches/channels sharing the same watershed code in Zone 4.",
+        ),
+        # Columbia River and all named channels on the same watershed
+        "COLUMBIA RIVER": DirectMatch(
+            gnis_ids=[
+                "37414",  # Columbia River
+                "17696",  # Back Channel
+                "7958",  # Baldy Channel
+                "8203",  # Hotsprings Channel
+            ],
+            note="Columbia River and all named channels sharing the same watershed code in Zone 4.",
         ),
     },
     "Region 5": {
@@ -1187,6 +1322,10 @@ DIRECT_MATCHES: Dict[str, Dict[str, DirectMatch]] = {
             gnis_ids=["35686"],
             note="GNIS name: Whale Lake. Parenthetical area qualifier in regulation name.",
         ),
+        "FRASER RIVER": DirectMatch(
+            gnis_ids=["39325"],
+            note="Fraser River in Region 5. Channels and sloughs are in Zone 2 only.",
+        ),
     },
     "Region 6": {
         "UNNAMED LAKE (approx. 500 m south of Natalkuz Lake)": DirectMatch(
@@ -1310,6 +1449,14 @@ DIRECT_MATCHES: Dict[str, Dict[str, DirectMatch]] = {
         "MCDONNEL LAKE": DirectMatch(
             gnis_ids=["22882", "30846"],
             note="GNIS name: McDonell Lake. Two lakes with same name in zone 6 (GNIS 22882 and 30846). Spelling correction.",
+        ),
+        "SKEENA RIVER/KISPIOX RIVER CONFLUENCE": DirectMatch(
+            ungazetted_waterbody_id="UNGAZ_SKEENA_KISPIOX_CONFLUENCE_R6",
+            note=(
+                "Confluence of Skeena River and Kispiox River in Region 6 MU 6-8. "
+                "No FWA polygon or stream feature at the exact confluence point. "
+                "Coordinates from BC Albers projection."
+            ),
         ),
     },
     # Region 7 split into 7A and 7B — all entries placed in 7A initially.
@@ -1466,6 +1613,10 @@ DIRECT_MATCHES: Dict[str, Dict[str, DirectMatch]] = {
             gnis_ids=["16498"],
             note="GNIS name: Naltesby Lake. Alternate name in gazetteer.",
         ),
+        "FRASER RIVER": DirectMatch(
+            gnis_ids=["39325"],
+            note="Fraser River in Region 7A. Channels and sloughs are in Zone 2 only.",
+        ),
     },
     "Region 7B": {
         "TUPPER RIVER": DirectMatch(
@@ -1561,19 +1712,21 @@ DIRECT_MATCHES: Dict[str, Dict[str, DirectMatch]] = {
             gnis_ids=["18775"],
             note="Tributaries of Granby River - links to parent waterbody (GNIS 18775 - Granby River). Regulation MU 8-15.",
         ),
+        # TODO: Get the BLK for these unresolved fwa_watershed_codes and the linear_feature_id
+        # so they can be added back with proper identifiers.
         "OKANAGAN RIVER OXBOWS": DirectMatch(
             fwa_watershed_codes=[
                 "300-432687-461418-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
-                "300-432687-461418-400917-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
+                # "300-432687-461418-400917-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",  # unresolved — need BLK
                 "300-432687-463105-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
-                "300-432687-463105-427876-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
+                # "300-432687-463105-427876-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",  # unresolved — need BLK
                 "300-432687-459615-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
                 "300-432687-466472-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
-                "300-432687-461418-565942-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
-                "300-432687-466472-328926-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
+                # "300-432687-461418-565942-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",  # unresolved — need BLK
+                # "300-432687-466472-328926-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",  # unresolved — need BLK
                 "300-432687-469486-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
                 "300-432687-476281-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
-                "300-432687-476281-770576-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
+                # "300-432687-476281-770576-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",  # unresolved — need BLK
                 "300-432687-476812-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
                 "300-432687-478730-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
                 "300-432687-480401-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
@@ -1638,7 +1791,7 @@ DIRECT_MATCHES: Dict[str, Dict[str, DirectMatch]] = {
                 "329462306",
                 "329462043",
             ],
-            linear_feature_ids=["707367498"],
+            # linear_feature_ids=["707367498"],  # unresolved — need BLK
             note="Okanagan River Oxbows in MU 8-1. Multiple oxbow waterbodies and stream segments along the Okanagan River. Includes 32 watershed codes, 40 waterbody keys, and 1 linear feature ID.",
         ),
         "TREPANIER RIVER": DirectMatch(
@@ -1652,6 +1805,21 @@ DIRECT_MATCHES: Dict[str, Dict[str, DirectMatch]] = {
         "WEST KETTLE RIVER'S tributaries": DirectMatch(
             gnis_ids=["6358"],
             note="Tributaries of West Kettle River - links to parent waterbody (GNIS 6358 - West Kettle River). Regulation MU 8-12.",
+        ),
+        '"BLUEY LAKE POTHOLES"': DirectMatch(
+            waterbody_poly_ids=[
+                "700171140",
+                "705026999",
+                "705026685",
+                "705028515",
+                "705028606",
+                "705026434",
+                "705026561",
+                "705026580",
+                "705027285",
+                "705026103",
+            ],
+            note="Bluey Lake Potholes in Region 8 MU 8-6. 10 specific waterbody polygons.",
         ),
         "UNNAMED LAKES (located immediately north and south of Bluey Lake)": DirectMatch(
             waterbody_keys=[
@@ -1725,18 +1893,6 @@ SKIP_ENTRIES: Dict[str, Dict[str, SkipEntry]] = {
         "WANETA RESERVOIR": SkipEntry(
             note="Dammed portion of Pend d'Oreille River - uses same regulations as Pend d'Oreille River. This may change in future. Polygons are in unnamed manmade lakes.",
             ignored=True,
-        ),
-        "KOOTENAY LAKE - MAIN BODY (for location see map on page 34)": SkipEntry(
-            note="Main body of Kootenay Lake (excluding West Arm zones) requires custom polygon subdivision based on regulation map on page 34. MU 4-4. Kootenay Lake GNIS 18851, waterbody_key 331076875. Different regulations apply to Main Body vs Upper/Lower West Arms. Requires custom geometry creation by subdividing lake polygon. Reference: BC Freshwater Fishing Regulations Synopsis 2024-2026, Region 4, page 34.",
-            not_found=True,
-        ),
-        "KOOTENAY LAKE - UPPER WEST ARM (for location see map on page 34)": SkipEntry(
-            note="Upper West Arm of Kootenay Lake requires custom polygon subdivision based on regulation map on page 34. MU 4-4. Kootenay Lake GNIS 18851, waterbody_key 331076875. Different regulations apply to Upper West Arm vs Main Body and Lower West Arm. Requires custom geometry creation by subdividing lake polygon. Reference: BC Freshwater Fishing Regulations Synopsis 2024-2026, Region 4, page 34.",
-            not_found=True,
-        ),
-        "KOOTENAY LAKE - LOWER WEST ARM (for location see map on page 34)": SkipEntry(
-            note="Lower West Arm of Kootenay Lake requires custom polygon subdivision based on regulation map on page 34. MU 4-4. Kootenay Lake GNIS 18851, waterbody_key 331076875. Different regulations apply to Lower West Arm vs Main Body and Upper West Arm. Requires custom geometry creation by subdividing lake polygon. Reference: BC Freshwater Fishing Regulations Synopsis 2024-2026, Region 4, page 34.",
-            not_found=True,
         ),
         "WANETA RESERVOIR'S TRIBUTARIES": SkipEntry(
             note="Covered by Pend d'Oreille River tributary regulations",
@@ -1923,6 +2079,63 @@ NAME_VARIATION_LINKS: Dict[str, Dict[str, NameVariationLink]] = {
 }
 
 # ──────────────────────────────────────────────────────────────────────────────
+# FEATURE_NAME_VARIATIONS - Display names assigned to features by BLK/WBK
+# ──────────────────────────────────────────────────────────────────────────────
+# Assigns a display name to a specific FWA feature identified by blue_line_key
+# or waterbody_key.  Used for unnamed features like side channels of a river
+# that share regulations with the mainstem but need their own display name.
+#
+# Adding a FeatureNameVariation causes:
+#   - The feature to display with the assigned name
+#   - The feature to group SEPARATELY from other features on the same BLK/WBK
+#     that lack this name variation (e.g., side channel vs mainstem)
+#   - A distinct frontend_group_id so clicking the feature highlights only it
+#
+# Format: {"Region X": [FeatureNameVariation(name="...", blue_line_keys=["..."], note="...")]}
+# At least one of blue_line_keys or waterbody_keys must be provided per entry.
+FEATURE_NAME_VARIATIONS: Dict[str, List[FeatureNameVariation]] = {
+    "Region 3": [
+        FeatureNameVariation(
+            name="McArthur Island Slough",
+            blue_line_keys=["355994157"],
+            note="Unnamed slough near McArthur Island in Region 3 MU 3-12.",
+        ),
+    ],
+    "Region 2": [
+        FeatureNameVariation(
+            name="Jeperson Side Channel",
+            blue_line_keys=[
+                "355994571",
+                "355994568",
+                "355994563",
+                "355994564",
+                "355994562",
+                "355994572",
+            ],
+            note="Unnamed side channel of Fraser River near Mission, Region 2.",
+        ),
+        FeatureNameVariation(
+            name="Herring Island Side Channel",
+            blue_line_keys=[
+                "355992188",
+                "355992191",
+                "355992201",
+                "355992200",
+                "355992187",
+                "355992198",
+                "356364114",
+            ],
+            note="Unnamed side channel of Fraser River near Herring Island, Region 2.",
+        ),
+        FeatureNameVariation(
+            name="Seabird Island Side Channel",
+            blue_line_keys=["355991780", "355991778", "355991779", "355991777"],
+            note="Unnamed side channel of Fraser River near Seabird Island, Region 2.",
+        ),
+    ],
+}
+
+# ──────────────────────────────────────────────────────────────────────────────
 # ADMIN_DIRECT_MATCHES - Synopsis regulations targeting administrative areas
 # ──────────────────────────────────────────────────────────────────────────────
 # These map synopsis regulation names to admin boundary polygons (parks, WMAs,
@@ -2039,6 +2252,19 @@ UNGAZETTED_WATERBODIES: Dict[str, UngazettedWaterbody] = {
         zones=["8"],
         mgmt_units=["8-10"],
         note="Mission Creek Regional Park Children's Fishing Pond. Regulation name is 'HALL ROAD (Mission) POND'. Location coordinates identify the fishing pond; an adjacent FWA waterbody (329460964) also exists in the area. Converted to EPSG:3005.",
+        source_url=None,
+    ),
+    "UNGAZ_SKEENA_KISPIOX_CONFLUENCE_R6": UngazettedWaterbody(
+        ungazetted_id="UNGAZ_SKEENA_KISPIOX_CONFLUENCE_R6",
+        name="SKEENA RIVER/KISPIOX RIVER CONFLUENCE",
+        geometry_type="point",
+        coordinates=[892981.484, 1150750.525],
+        zones=["6"],
+        mgmt_units=["6-8"],
+        note=(
+            "Confluence of Skeena River and Kispiox River. "
+            "Coordinates: X=892981.48371, Y=1150750.52467 in EPSG:3005 (BC Albers)."
+        ),
         source_url=None,
     ),
 }

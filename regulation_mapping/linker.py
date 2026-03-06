@@ -27,6 +27,15 @@ from .logger_config import get_logger
 logger = get_logger(__name__)
 
 
+class DirectMatchError(Exception):
+    """Raised when a DirectMatch configuration fails to resolve all its IDs.
+
+    This is a *configuration error* — every ID listed in a DirectMatch must
+    resolve to at least one feature in the gazetteer.  Partial matches are
+    never acceptable because they silently drop regulation coverage.
+    """
+
+
 class LinkStatus(Enum):
     """Status of a linking attempt."""
 
@@ -315,17 +324,89 @@ class WaterbodyLinker:
 
         return True  # All features have at least one MU matching regulation region
 
+    def _validate_direct_match_resolution(
+        self,
+        name_verbatim: str,
+        direct_match: DirectMatch,
+    ) -> None:
+        """Validate that every ID in a DirectMatch resolves to ≥1 feature.
+
+        Raises :class:`DirectMatchError` if **any** configured ID fails to
+        resolve.  This prevents silent data loss from misconfigured entries
+        in ``linking_corrections.DIRECT_MATCHES``.
+        """
+        missing: List[str] = []
+
+        if direct_match.gnis_ids:
+            for gnis_id in direct_match.gnis_ids:
+                if not self.gazetteer.search_by_gnis_id(str(gnis_id)):
+                    missing.append(f"gnis_id={gnis_id}")
+
+        if direct_match.fwa_watershed_codes:
+            for wsc in direct_match.fwa_watershed_codes:
+                if not self.gazetteer.search_by_watershed_code(wsc):
+                    missing.append(f"fwa_watershed_code={wsc}")
+
+        if direct_match.waterbody_poly_ids:
+            for poly_id in direct_match.waterbody_poly_ids:
+                if not self.gazetteer.get_polygon_by_id(str(poly_id)):
+                    missing.append(f"waterbody_poly_id={poly_id}")
+
+        if direct_match.waterbody_keys:
+            for wbk in direct_match.waterbody_keys:
+                if not self.gazetteer.get_waterbody_by_key(str(wbk)):
+                    missing.append(f"waterbody_key={wbk}")
+
+        if direct_match.linear_feature_ids:
+            for lf_id in direct_match.linear_feature_ids:
+                if not self.gazetteer.get_stream_by_id(str(lf_id)):
+                    missing.append(f"linear_feature_id={lf_id}")
+
+        if direct_match.blue_line_keys:
+            for blk in direct_match.blue_line_keys:
+                if not self.gazetteer.search_by_blue_line_key(blk):
+                    missing.append(f"blue_line_key={blk}")
+
+        if direct_match.sub_polygon_ids:
+            for sp_id in direct_match.sub_polygon_ids:
+                if not self.gazetteer.get_polygon_by_id(sp_id):
+                    missing.append(f"sub_polygon_id={sp_id}")
+
+        if direct_match.ungazetted_waterbody_id:
+            if not self.corrections.get_ungazetted_waterbody(
+                direct_match.ungazetted_waterbody_id
+            ):
+                missing.append(
+                    f"ungazetted_waterbody_id={direct_match.ungazetted_waterbody_id}"
+                )
+
+        if missing:
+            raise DirectMatchError(
+                f"DirectMatch for '{name_verbatim}' has {len(missing)} unresolved ID(s): "
+                f"{', '.join(missing)}. "
+                f"Fix the DirectMatch in linking_corrections.py or update the gazetteer data. "
+                f"(note: {direct_match.note})"
+            )
+
     def _apply_direct_match(
         self,
         name_verbatim: str,
         direct_match: DirectMatch,
-    ) -> Optional[LinkingResult]:
+    ) -> LinkingResult:
         """Apply a DirectMatch (pure ID lookup).
 
         Uses :func:`resolve_direct_match_features` for the standard gazetteer
         ID fields, then adds linker-specific ungazetted-corrections handling.
+
+        Raises:
+            DirectMatchError: If any configured ID fails to resolve.  A
+                DirectMatch is an explicit configuration — every ID must
+                exist in the gazetteer.  Partial matches are never acceptable.
         """
-        from .regulation_mapper import resolve_direct_match_features
+        from .regulation_resolvers import resolve_direct_match_features
+
+        # Validate every configured ID resolves — raises on any miss
+        self._validate_direct_match_resolution(name_verbatim, direct_match)
 
         # Standard gazetteer lookup (shared with zone/mapper pipeline)
         features = resolve_direct_match_features(self.gazetteer, direct_match)
@@ -333,74 +414,71 @@ class WaterbodyLinker:
         # Linker-specific: ungazetted waterbody from manual corrections
         # This path uses corrections data (geometry coords) rather than the
         # gazetteer's injected ungazetted features, so it must remain here.
+        # Validation above already confirmed the ID exists in corrections.
         if direct_match.ungazetted_waterbody_id:
             ungazetted_wb = self.corrections.get_ungazetted_waterbody(
                 direct_match.ungazetted_waterbody_id
             )
-            if ungazetted_wb:
-                from shapely.geometry import Point, LineString, Polygon
+            from shapely.geometry import Point, LineString, Polygon
 
-                if ungazetted_wb.geometry_type == "point":
-                    geometry = Point(ungazetted_wb.coordinates)
-                elif ungazetted_wb.geometry_type == "linestring":
-                    geometry = LineString(ungazetted_wb.coordinates)
-                elif ungazetted_wb.geometry_type == "polygon":
-                    geometry = Polygon(
-                        ungazetted_wb.coordinates[0],
-                        (
-                            ungazetted_wb.coordinates[1:]
-                            if len(ungazetted_wb.coordinates) > 1
-                            else None
-                        ),
-                    )
-                else:
-                    raise ValueError(
-                        f"Unsupported ungazetted waterbody geometry type: {ungazetted_wb.geometry_type}"
-                    )
+            if ungazetted_wb.geometry_type == "point":
+                geometry = Point(ungazetted_wb.coordinates)
+            elif ungazetted_wb.geometry_type == "linestring":
+                geometry = LineString(ungazetted_wb.coordinates)
+            elif ungazetted_wb.geometry_type == "polygon":
+                geometry = Polygon(
+                    ungazetted_wb.coordinates[0],
+                    (
+                        ungazetted_wb.coordinates[1:]
+                        if len(ungazetted_wb.coordinates) > 1
+                        else None
+                    ),
+                )
+            else:
+                raise ValueError(
+                    f"Unsupported ungazetted waterbody geometry type: {ungazetted_wb.geometry_type}"
+                )
 
-                feature = type(
-                    "obj",
-                    (object,),
-                    {
-                        "fwa_id": ungazetted_wb.ungazetted_id,
-                        "name": ungazetted_wb.name,
-                        "gnis_name": ungazetted_wb.name,
-                        "gnis_id": None,
-                        "gnis_name_2": None,
-                        "gnis_id_2": None,
-                        "geometry": geometry,
-                        "geometry_type": ungazetted_wb.geometry_type,
-                        "feature_type": FeatureType.UNGAZETTED,
-                        "zones": ungazetted_wb.zones,
-                        "mgmt_units": ungazetted_wb.mgmt_units,
-                        "waterbody_key": None,
-                        "fwa_watershed_code": None,
-                        "matched_via": None,
-                        "is_ungazetted_waterbody": True,
-                        "ungazetted_note": ungazetted_wb.note,
-                        "ungazetted_source_url": ungazetted_wb.source_url,
-                    },
-                )()
-                features.append(feature)
+            feature = type(
+                "obj",
+                (object,),
+                {
+                    "fwa_id": ungazetted_wb.ungazetted_id,
+                    "name": ungazetted_wb.name,
+                    "gnis_name": ungazetted_wb.name,
+                    "gnis_id": None,
+                    "gnis_name_2": None,
+                    "gnis_id_2": None,
+                    "geometry": geometry,
+                    "geometry_type": ungazetted_wb.geometry_type,
+                    "feature_type": FeatureType.UNGAZETTED,
+                    "zones": ungazetted_wb.zones,
+                    "mgmt_units": ungazetted_wb.mgmt_units,
+                    "waterbody_key": None,
+                    "fwa_watershed_code": None,
+                    "matched_via": None,
+                    "is_ungazetted_waterbody": True,
+                    "ungazetted_note": ungazetted_wb.note,
+                    "ungazetted_source_url": ungazetted_wb.source_url,
+                },
+            )()
+            features.append(feature)
 
-        if len(features) == 0:
-            return LinkingResult(
-                status=LinkStatus.NOT_FOUND,
-                error_message=f"DirectMatch ID not found in gazetteer: {direct_match.note}",
-            )
-        else:
-            # Multiple features (e.g., lake with multiple polygons, or stream with many segments)
-            # This is SUCCESS - DirectMatch explicitly maps to all these features
-            logger.debug(
-                f"Direct match for '{name_verbatim}' returning {len(features)} features as SUCCESS"
-            )
-            # update features matched_via for tracking
-            for feature in features:
-                feature.matched_via = f"direct_match ({direct_match.note})"
-            return LinkingResult(
-                status=LinkStatus.SUCCESS,
-                matched_features=features,
-            )
+        # Validation passed — features must not be empty
+        assert features, (
+            f"DirectMatch for '{name_verbatim}' passed validation but produced "
+            f"0 features. This is an internal error."
+        )
+
+        logger.debug(
+            f"Direct match for '{name_verbatim}' returning {len(features)} features as SUCCESS"
+        )
+        for feature in features:
+            feature.matched_via = f"direct_match ({direct_match.note})"
+        return LinkingResult(
+            status=LinkStatus.SUCCESS,
+            matched_features=features,
+        )
 
     def _natural_search(
         self,
@@ -552,6 +630,16 @@ class WaterbodyLinker:
                             and (seg.gnis_name or "").lower() == target_name_lower
                         ):
                             expanded_features.append(seg)
+                        elif not seg.gnis_name and seg.inherited_gnis_names:
+                            # Unnamed segment — check inherited names from graph context
+                            for inh in seg.inherited_gnis_names:
+                                inh_id = inh.get("gnis_id", "")
+                                inh_name = (inh.get("gnis_name") or "").lower()
+                                if (target_gnis_id and inh_id == target_gnis_id) or (
+                                    target_name_lower and inh_name == target_name_lower
+                                ):
+                                    expanded_features.append(seg)
+                                    break
                         elif (
                             not target_gnis_id
                             and not target_name_lower
@@ -652,7 +740,7 @@ def _run_coverage_test() -> None:
         divider,
         tw,
     )
-    from .regulation_mapper import parse_region as extract_region
+    from .regulation_resolvers import parse_region as extract_region
 
     # --- Export helpers ---
 
@@ -735,7 +823,9 @@ def _run_coverage_test() -> None:
             json.dump(out, f, indent=2)
         print(f"\nExported {len(entries)} {mode} entries to {path}")
 
-    def _process_ambiguous_candidates(candidates: List[Dict], reg_mus: List[str]) -> List[Dict]:
+    def _process_ambiguous_candidates(
+        candidates: List[Dict], reg_mus: List[str]
+    ) -> List[Dict]:
         processed = []
         for c in candidates:
             fwa_mus = c.get("management_units", [])
@@ -833,7 +923,16 @@ def _run_coverage_test() -> None:
             stats.used_skips.add((region, name))
 
         # Link
-        res = linker.link_waterbody(region=region, mgmt_units=mus, name_verbatim=name)
+        try:
+            res = linker.link_waterbody(
+                region=region, mgmt_units=mus, name_verbatim=name
+            )
+        except DirectMatchError as exc:
+            print(f"{RED}  ERROR: {exc}{RESET}")
+            stats.results["DIRECT_MATCH_ERROR"].append(
+                {"region": region, "name_verbatim": name, "error": str(exc)}
+            )
+            continue
 
         # Statistics & validation
         if res.status in (LinkStatus.SUCCESS, LinkStatus.ADMIN_MATCH):
@@ -1052,6 +1151,87 @@ def _run_coverage_test() -> None:
     else:
         print("No duplicate mappings found.")
 
+    # Multi-name watersheds — linked streams whose watershed code also
+    # carries segments with a different GNIS name.  These are worth
+    # reviewing because the linker matched one name but the same
+    # watershed physically contains features under other names.
+    header("MULTI-NAME WATERSHEDS (linked streams)")
+
+    # 1. Build wc → {(gnis_name, gnis_id)} and per-name zone sets from raw stream metadata
+    _stream_meta = gazetteer.metadata.get(_FT.STREAM, {})
+    _wc_names: Dict[str, set] = {}
+    # Track zones each (name, gnis_id) appears in across all watershed codes
+    _name_zones: Dict[tuple, set] = {}  # (gnis_name, gnis_id) → {zone_ids}
+    for _sm in _stream_meta.values():
+        wc = _sm.get("fwa_watershed_code")
+        gname = _sm.get("gnis_name")
+        if wc and gname:
+            gid = _sm.get("gnis_id", "")
+            _wc_names.setdefault(wc, set()).add((gname, gid))
+            zones = _sm.get("zones") or []
+            _name_zones.setdefault((gname, gid), set()).update(zones)
+
+    # Keep only watershed codes with ≥2 distinct names
+    _multi_wc = {wc: names for wc, names in _wc_names.items() if len(names) > 1}
+
+    # 2. Walk linked stream features, collect those hitting multi-name WCs
+    _multi_name_hits: Dict[str, Dict] = {}  # wc → {reg_name, matched_gnis, all_names}
+    for item_data in stats.results[LinkStatus.SUCCESS]:
+        res = item_data["result"]
+        reg_name = item_data["name_verbatim"]
+        region = item_data["region"]
+        for feat in res.matched_features or []:
+            if feat.geometry_type != "multilinestring":
+                continue
+            wc = feat.fwa_watershed_code
+            if wc and wc in _multi_wc:
+                if wc not in _multi_name_hits:
+                    _multi_name_hits[wc] = {
+                        "regulations": [],
+                        "matched_gnis": feat.gnis_name,
+                        "all_names": _multi_wc[wc],
+                    }
+                entry = (region, reg_name, feat.gnis_name)
+                if entry not in _multi_name_hits[wc]["regulations"]:
+                    _multi_name_hits[wc]["regulations"].append(entry)
+
+    if _multi_name_hits:
+        # Sort by number of distinct names descending
+        sorted_hits = sorted(
+            _multi_name_hits.items(),
+            key=lambda x: len(x[1]["all_names"]),
+            reverse=True,
+        )
+        print(
+            f"Found {len(sorted_hits)} linked watershed codes with multiple GNIS names:\n"
+        )
+        for wc, data in sorted_hits[:50]:
+            names_list = sorted(data["all_names"])
+            name_strs = []
+            for n, gid in names_list:
+                zones = sorted(_name_zones.get((n, gid), set()))
+                zone_str = (
+                    f", Zone{'s' if len(zones) > 1 else ''} {'/'.join(zones)}"
+                    if zones
+                    else ""
+                )
+                if gid:
+                    name_strs.append(f"{n} [GNIS {gid}{zone_str}]")
+                else:
+                    name_strs.append(
+                        f"{n}{f' [{zone_str.lstrip(', ')}]' if zone_str else ''}"
+                    )
+            print(f"  WC: {wc}")
+            print(f"  Names on watershed ({len(names_list)}): {', '.join(name_strs)}")
+            for reg, rname, matched in data["regulations"]:
+                tag = f" (matched: {matched})" if matched else ""
+                print(f"    * {reg:10s} | {rname}{tag}")
+            print()
+        if len(sorted_hits) > 50:
+            print(f"  ... and {len(sorted_hits) - 50} more")
+    else:
+        print("No linked streams with multi-name watershed codes found.")
+
     # Samples
     def _print_sample(status: LinkStatus, limit: int = 5) -> None:
         items = stats.results[status]
@@ -1140,6 +1320,9 @@ def _run_coverage_test() -> None:
         f"{BLUE}Not In Data:        {len(stats.results[LinkStatus.NOT_IN_DATA])}{RESET}"
     )
     print(f"{RED}Error:              {len(stats.results[LinkStatus.ERROR])}{RESET}")
+    dm_errors = len(stats.results["DIRECT_MATCH_ERROR"])
+    if dm_errors:
+        print(f"{RED}DirectMatch Errors: {dm_errors}{RESET}")
     print(f"Ignored:            {len(stats.results[LinkStatus.IGNORED])}")
     print(f"Name Variations:    {len(stats.results[LinkStatus.NAME_VARIATION])}")
     print()

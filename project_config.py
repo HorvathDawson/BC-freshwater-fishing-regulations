@@ -238,20 +238,6 @@ class ProjectConfig:
         )
 
     @property
-    def regulations_individual_gpkg_path(self) -> Path:
-        """Get path to individual regulations GeoPackage."""
-        return self.get_path(
-            "output", "regulation_mapping", "regulations_individual_gpkg"
-        )
-
-    @property
-    def regulations_individual_pmtiles_path(self) -> Path:
-        """Get path to individual regulations PMTiles file."""
-        return self.get_path(
-            "output", "regulation_mapping", "regulations_individual_pmtiles"
-        )
-
-    @property
     def regulations_json_path(self) -> Path:
         """Get path to regulations JSON file."""
         return self.get_path("output", "regulation_mapping", "regulations_json")
