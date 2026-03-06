@@ -2,7 +2,6 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import maplibregl from 'maplibre-gl';
 import { Protocol } from 'pmtiles';
 import { layers, LIGHT } from '@protomaps/basemaps';
-import { Layers, Map as MapIcon } from 'lucide-react';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { createRegulationLayers, createAdminLabelLayers, createEarlyRoadLayers, HIGHLIGHT_COLORS, SELECTION_COLOR } from '../map/styles';
 import { waterbodyDataService } from '../services/waterbodyDataService';
@@ -40,6 +39,48 @@ const BC_BOUNDS: [[number, number], [number, number]] = [
 
 // ESRI World Imagery satellite raster tile URL (free, no API key)
 const ESRI_SATELLITE_URL = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
+
+// Lucide SVG icon strings for the satellite toggle button (rendered imperatively via IControl)
+const LAYERS_SVG = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/><path d="m22.54 12.43-1.42-.65-8.29 3.78a2 2 0 0 1-1.66 0l-8.29-3.78-1.42.65a1 1 0 0 0 0 1.84l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.85Z"/><path d="m22.54 16.43-1.42-.65-8.29 3.78a2 2 0 0 1-1.66 0l-8.29-3.78-1.42.65a1 1 0 0 0 0 1.84l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.85Z"/></svg>';
+const MAP_SVG = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z"/><path d="M15 5.764v15"/><path d="M9 3.236v15"/></svg>';
+// Lucide "sun" icon for disclosure of overlay opacity slider
+const OPACITY_SVG = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>';
+
+// Map layer type → paint property names that control opacity.
+// Used to capture and multiply base opacities when the overlay slider is active.
+const OPACITY_PAINT_PROPS: Record<string, string[]> = {
+    fill: ['fill-opacity'], line: ['line-opacity'], circle: ['circle-opacity'],
+};
+
+/**
+ * Multiply an opacity value (or zoom-based expression) by a scalar.
+ * MapLibre forbids wrapping zoom expressions with ['*', factor, expr] —
+ * zoom inputs must be top-level inside 'step' or 'interpolate'.
+ * So we walk the stop outputs and scale each numeric value directly.
+ */
+function scaleOpacity(base: unknown, factor: number): unknown {
+    if (typeof base === 'number') return base * factor;
+    if (!Array.isArray(base) || base.length < 4) return base;
+    const head = base[0];
+    if (head === 'interpolate') {
+        // ['interpolate', method, ['zoom'], z1, v1, z2, v2, ...]
+        const result = [...base];
+        for (let i = 4; i < result.length; i += 2) {
+            if (typeof result[i] === 'number') result[i] = result[i] * factor;
+        }
+        return result;
+    }
+    if (head === 'step') {
+        // ['step', ['zoom'], defaultValue, z1, v1, z2, v2, ...]
+        const result = [...base];
+        if (typeof result[2] === 'number') result[2] = result[2] * factor;
+        for (let i = 4; i < result.length; i += 2) {
+            if (typeof result[i] === 'number') result[i] = result[i] * factor;
+        }
+        return result;
+    }
+    return base;
+}
 
 const INTERACTABLE_LAYERS = ['streams', 'lakes-fill', 'wetlands-fill', 'manmade-fill', 'ungazetted-circle'];
 const ADMIN_FILL_LAYERS = [
@@ -345,6 +386,18 @@ const getMobilePaddingForBounds = (_bounds: maplibregl.LngLatBounds) => {
 const MapComponent = () => {
     const mapContainerRef = useRef<HTMLDivElement>(null);
     const mapRef = useRef<maplibregl.Map | null>(null);
+    const satBtnRef = useRef<HTMLButtonElement | null>(null);
+    const toggleSatelliteRef = useRef<() => void>(() => {});
+    const opacityCtrlRef = useRef<HTMLElement | null>(null);
+    const toggleSliderRef = useRef<() => void>(() => {});
+    const handleOverlayOpacityRef = useRef<(val: string) => void>(() => {});
+    // Cache of each regulation layer's original paint opacity values,
+    // captured on first satellite toggle so the slider can multiply them.
+    const baseOpacitiesRef = useRef<Record<string, [string, any][]>>({});
+    // Remember the user's last satellite-mode opacity so it persists across toggles.
+    const lastSatelliteOpacityRef = useRef(0.4);
+    // Cache original label paint props so we can swap to satellite-friendly colours and restore.
+    const baseLabelPaintsRef = useRef<Record<string, Record<string, any>>>({});
     const isDisambigOpenRef = useRef<boolean>(false);
     const hoverTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const searchPollRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -372,6 +425,8 @@ const MapComponent = () => {
     const [mapReady, setMapReady] = useState(false);
     const [disclaimerOpen, setDisclaimerOpen] = useState(false);
     const [isSatellite, setIsSatellite] = useState(false);
+    const [overlayOpacity, setOverlayOpacity] = useState(1);
+    const [sliderOpen, setSliderOpen] = useState(false);
     const [_layerVisibility, _setLayerVisibility] = useState<LayerVisibility>({
         streams: true, lakes: true, wetlands: true, manmade: true, ungazetted: true, regions: true,
         management_units: true,
@@ -440,25 +495,174 @@ const MapComponent = () => {
         const map = mapRef.current;
         if (!map) return;
         const next = !isSatellite;
+        if (next) {
+            // Entering satellite — restore last satellite opacity (default 40%)
+            const satOpacity = lastSatelliteOpacityRef.current;
+            setOverlayOpacity(satOpacity);
+            // Capture base opacities on first activation
+            if (Object.keys(baseOpacitiesRef.current).length === 0) {
+                const style = map.getStyle();
+                for (const layer of (style?.layers || [])) {
+                    if ((layer as any).source !== 'regulations') continue;
+                    const props = OPACITY_PAINT_PROPS[layer.type];
+                    if (!props) continue;
+                    baseOpacitiesRef.current[layer.id] = props.map(p =>
+                        [p, map.getPaintProperty(layer.id, p) ?? 1]
+                    );
+                }
+            }
+            // Immediately apply scaled opacity so there's no full-opacity flash
+            for (const [id, entries] of Object.entries(baseOpacitiesRef.current)) {
+                for (const [prop, base] of entries) {
+                    map.setPaintProperty(id, prop, scaleOpacity(base, satOpacity) as any);
+                }
+            }
+        } else {
+            // Leaving satellite — remember current opacity, force 100%
+            lastSatelliteOpacityRef.current = overlayOpacity;
+            setOverlayOpacity(1);
+            // Immediately restore original paint opacities on the map
+            // so there's no frame where satellite-level opacity persists.
+            for (const [id, entries] of Object.entries(baseOpacitiesRef.current)) {
+                for (const [prop, base] of entries) {
+                    map.setPaintProperty(id, prop, base);
+                }
+            }
+        }
         setIsSatellite(next);
+        setSliderOpen(next); // auto-expand slider when satellite turns on
 
         // Show/hide satellite raster
         map.setLayoutProperty('satellite-tiles', 'visibility', next ? 'visible' : 'none');
 
         // Toggle protomaps base geometry layers (hide when satellite is on).
-        // Label layers stay visible on top of satellite for readability.
+        // Label layers stay visible on top of satellite for readability,
+        // with colours swapped to white-on-dark for satellite imagery.
+        const LABEL_PAINT_KEYS = ['text-color', 'text-halo-color', 'text-halo-width', 'text-halo-blur'] as const;
         const style = map.getStyle();
         if (style?.layers) {
             for (const layer of style.layers) {
-                if ((layer as any).source !== 'protomaps') continue;
-                // Labels have layout.text-field or layout.symbol-placement — keep them
+                // The protomaps `background` layer has type "background" with no
+                // source, so it won't match the source check below — handle it
+                // explicitly to avoid it covering the satellite raster.
+                if (layer.type === 'background') {
+                    map.setLayoutProperty(layer.id, 'visibility', next ? 'none' : 'visible');
+                    continue;
+                }
+                const src = (layer as any).source;
                 const layout = (layer as any).layout;
                 const isLabel = layout?.['text-field'] || layout?.['symbol-placement'];
-                if (isLabel) continue;
-                map.setLayoutProperty(layer.id, 'visibility', next ? 'none' : 'visible');
+
+                // Non-label protomaps layers: hide in satellite
+                if (src === 'protomaps' && !isLabel) {
+                    map.setLayoutProperty(layer.id, 'visibility', next ? 'none' : 'visible');
+                    continue;
+                }
+
+                // Label layers (protomaps + regulations): swap colours for satellite
+                if (isLabel) {
+                    if (next) {
+                        // Cache originals on first encounter
+                        if (!baseLabelPaintsRef.current[layer.id]) {
+                            const cached: Record<string, any> = {};
+                            for (const k of LABEL_PAINT_KEYS) {
+                                cached[k] = map.getPaintProperty(layer.id, k);
+                            }
+                            baseLabelPaintsRef.current[layer.id] = cached;
+                        }
+                        // Satellite style: white text, dark halo (Google Maps style)
+                        map.setPaintProperty(layer.id, 'text-color', '#ffffff');
+                        map.setPaintProperty(layer.id, 'text-halo-color', 'rgba(0,0,0,0.75)');
+                        map.setPaintProperty(layer.id, 'text-halo-width', 1.5);
+                        map.setPaintProperty(layer.id, 'text-halo-blur', 0.5);
+                    } else if (baseLabelPaintsRef.current[layer.id]) {
+                        // Restore original label paint
+                        const orig = baseLabelPaintsRef.current[layer.id];
+                        for (const k of LABEL_PAINT_KEYS) {
+                            if (orig[k] !== undefined) {
+                                map.setPaintProperty(layer.id, k, orig[k]);
+                            }
+                        }
+                    }
+                }
             }
         }
+    }, [isSatellite, overlayOpacity]);
+
+    // Keep the imperative satellite button ref in sync with React state
+    useEffect(() => { toggleSatelliteRef.current = toggleSatellite; }, [toggleSatellite]);
+    useEffect(() => {
+        const btn = satBtnRef.current;
+        if (!btn) return;
+        btn.innerHTML = isSatellite ? MAP_SVG : LAYERS_SVG;
+        btn.title = isSatellite ? 'Switch to map view' : 'Switch to satellite view';
+        btn.setAttribute('aria-label', btn.title);
     }, [isSatellite]);
+
+    // Apply overlay opacity multiplier to all regulation-sourced layers.
+    // Captures each layer's paint opacity on first satellite activation,
+    // then multiplies by the slider value.  Restores originals on deactivation.
+    useEffect(() => {
+        const map = mapRef.current;
+        if (!map || !map.isStyleLoaded()) return;
+
+        if (isSatellite) {
+            // Capture base opacities on first activation
+            if (Object.keys(baseOpacitiesRef.current).length === 0) {
+                const style = map.getStyle();
+                for (const layer of (style?.layers || [])) {
+                    if ((layer as any).source !== 'regulations') continue;
+                    const props = OPACITY_PAINT_PROPS[layer.type];
+                    if (!props) continue;
+                    baseOpacitiesRef.current[layer.id] = props.map(p =>
+                        [p, map.getPaintProperty(layer.id, p) ?? 1]
+                    );
+                }
+            }
+            // Apply multiplied opacity
+            for (const [id, entries] of Object.entries(baseOpacitiesRef.current)) {
+                for (const [prop, base] of entries) {
+                    map.setPaintProperty(id, prop, scaleOpacity(base, overlayOpacity) as any);
+                }
+            }
+        } else {
+            // Restore original opacities
+            for (const [id, entries] of Object.entries(baseOpacitiesRef.current)) {
+                for (const [prop, base] of entries) {
+                    map.setPaintProperty(id, prop, base);
+                }
+            }
+        }
+    }, [isSatellite, overlayOpacity]);
+
+    // Wire imperative refs for opacity IControl
+    useEffect(() => {
+        toggleSliderRef.current = () => setSliderOpen(o => !o);
+    }, []);
+    useEffect(() => {
+        handleOverlayOpacityRef.current = (val: string) => {
+            const v = parseFloat(val);
+            setOverlayOpacity(v);
+            lastSatelliteOpacityRef.current = v;
+        };
+    }, []);
+
+    // Sync opacity IControl visibility and slider state with React state
+    useEffect(() => {
+        const wrapper = opacityCtrlRef.current;
+        if (!wrapper) return;
+        wrapper.style.display = isSatellite ? '' : 'none';
+    }, [isSatellite]);
+    useEffect(() => {
+        const wrapper = opacityCtrlRef.current;
+        if (!wrapper) return;
+        const popup = wrapper.querySelector('.overlay-opacity-popup') as HTMLElement | null;
+        if (popup) popup.style.display = sliderOpen ? '' : 'none';
+        const input = wrapper.querySelector('input') as HTMLInputElement | null;
+        if (input) input.value = String(overlayOpacity);
+        const pct = wrapper.querySelector('.overlay-pct');
+        if (pct) pct.textContent = `${Math.round(overlayOpacity * 100)}%`;
+    }, [sliderOpen, overlayOpacity]);
 
     const clearSelection = useCallback(() => {
         setSelectedFeature(null);
@@ -709,7 +913,7 @@ const MapComponent = () => {
                     ...createAdminLabelLayers(),
                 ]
             },
-            center: [-123.0, 49.25], zoom: 8, maxZoom: 15, minZoom: 4, hash: true, attributionControl: { compact: true }
+            center: [-123.0, 49.25], zoom: 8, maxZoom: 15, minZoom: 4, hash: true, attributionControl: { compact: isMobileViewport() }
         });
 
         // Add compass navigation control
@@ -718,6 +922,62 @@ const MapComponent = () => {
             new maplibregl.NavigationControl({ showCompass: true, showZoom: true, visualizePitch: true }),
             compassPosition
         );
+
+        // Add satellite toggle as a native MapLibre control
+        // Desktop: bottom-left (stacked above compass).
+        // Mobile: top-right (next to compass).
+        const satPosition = isMobileViewport() ? 'top-right' : 'bottom-left';
+        const satControl: maplibregl.IControl = {
+            onAdd() {
+                const container = document.createElement('div');
+                container.className = 'maplibregl-ctrl maplibregl-ctrl-group';
+                const btn = document.createElement('button');
+                btn.className = 'satellite-toggle';
+                btn.title = 'Switch to satellite view';
+                btn.setAttribute('aria-label', 'Switch to satellite view');
+                btn.innerHTML = LAYERS_SVG;
+                btn.addEventListener('click', () => toggleSatelliteRef.current());
+                container.appendChild(btn);
+                satBtnRef.current = btn;
+                return container;
+            },
+            onRemove() { satBtnRef.current = null; }
+        };
+        map.addControl(satControl, satPosition);
+
+        // Add overlay opacity toggle as a small IControl button (same position as satellite).
+        // Shows a sun icon; on click, toggles a compact slider popup.
+        const opacityControl: maplibregl.IControl = {
+            onAdd() {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'maplibregl-ctrl maplibregl-ctrl-group overlay-opacity-ctrl';
+                wrapper.style.display = 'none'; // hidden until satellite activates
+                const btn = document.createElement('button');
+                btn.className = 'satellite-toggle overlay-opacity-btn';
+                btn.title = 'Overlay opacity';
+                btn.setAttribute('aria-label', 'Overlay opacity');
+                btn.innerHTML = OPACITY_SVG;
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    toggleSliderRef.current();
+                });
+                const popup = document.createElement('div');
+                popup.className = 'overlay-opacity-popup';
+                popup.style.display = 'none';
+                popup.innerHTML = '<label class="overlay-opacity-label"><span class="overlay-pct"></span></label>'
+                    + '<input type="range" min="0" max="1" step="0.05" value="1" />';
+                const input = popup.querySelector('input')!;
+                input.addEventListener('input', (ev) => {
+                    handleOverlayOpacityRef.current((ev as any).target.value);
+                });
+                wrapper.appendChild(btn);
+                wrapper.appendChild(popup);
+                opacityCtrlRef.current = wrapper;
+                return wrapper;
+            },
+            onRemove() { opacityCtrlRef.current = null; }
+        };
+        map.addControl(opacityControl, satPosition);
 
         map.on('load', () => {
             const pattern = createWetlandPattern();
@@ -806,8 +1066,8 @@ const MapComponent = () => {
                     'circle-stroke-color': '#FFFFFF', 'circle-stroke-width': 2.5, 'circle-opacity': 1.0 } as any });
             
             map.addSource('cursor-circle', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
-            map.addLayer({ id: 'cursor-circle-fill', type: 'fill', source: 'cursor-circle', paint: { 'fill-color': '#3b82f6', 'fill-opacity': 0.1 } });
-            map.addLayer({ id: 'cursor-circle-line', type: 'line', source: 'cursor-circle', paint: { 'line-color': '#3b82f6', 'line-width': 1.5, 'line-opacity': 0.6 } });
+            map.addLayer({ id: 'cursor-circle-fill', type: 'fill', source: 'cursor-circle', paint: { 'fill-color': '#7C3AED', 'fill-opacity': 0.1 } });
+            map.addLayer({ id: 'cursor-circle-line', type: 'line', source: 'cursor-circle', paint: { 'line-color': '#7C3AED', 'line-width': 1.5, 'line-opacity': 0.6 } });
             
             // Signal that map is ready for URL restoration
             setMapReady(true);
@@ -1075,14 +1335,6 @@ const MapComponent = () => {
     return (
         <div className="map-container">
             <div ref={mapContainerRef} className="map-canvas" />
-            <button
-                className="satellite-toggle"
-                onClick={toggleSatellite}
-                title={isSatellite ? 'Switch to map view' : 'Switch to satellite view'}
-                aria-label={isSatellite ? 'Switch to map view' : 'Switch to satellite view'}
-            >
-                {isSatellite ? <MapIcon size={18} /> : <Layers size={18} />}
-            </button>
             <div className="map-menu-wrapper">
                 <SearchBar 
                     features={searchableFeatures} 

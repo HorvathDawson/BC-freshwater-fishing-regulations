@@ -30,15 +30,10 @@
 }
 
 .satellite-toggle {
-    position: absolute;
-    bottom: 12px;
-    right: 12px;
-    z-index: 5;
-    width: 32px;
-    height: 32px;
+    width: 29px;
+    height: 29px;
     background: var(--bg, white);
-    border: 1px solid var(--border, black);
-    box-shadow: 2px 2px 0 rgba(0, 0, 0, 1);
+    border: none;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -50,6 +45,52 @@
 
 .satellite-toggle:hover {
     background: var(--bg-subtle, #f0f0f0);
+}
+
+/* ── Overlay opacity (small IControl icon + popup slider) ──────────── */
+.overlay-opacity-ctrl {
+    position: relative;
+}
+
+.overlay-opacity-btn {
+    width: 29px;
+    height: 29px;
+}
+
+.overlay-opacity-popup {
+    position: absolute;
+    left: calc(100% + 6px);
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 4px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+    padding: 6px 10px;
+    white-space: nowrap;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #333;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 120px;
+}
+
+.overlay-opacity-label {
+    display: flex;
+    align-items: center;
+    font-size: 10px;
+    opacity: 0.7;
+    min-width: 28px;
+    text-align: right;
+}
+
+.overlay-opacity-popup input[type="range"] {
+    width: 90px;
+    height: 4px;
+    cursor: pointer;
+    accent-color: #7C3AED;
 }
 
 .map-toggle-btn {
@@ -116,5 +157,12 @@
     /* Push compass/nav control below search bar on mobile */
     .map-container .maplibregl-ctrl-top-right {
         top: 56px;
+    }
+
+    /* On mobile, popup opens to the left of the button instead of right */
+    .overlay-opacity-popup {
+        left: auto;
+        right: calc(100% + 6px);
+        bottom: 0;
     }
 }

@@ -35,7 +35,14 @@ warn()  { echo -e "${YELLOW}[WARN]${NC}  $*"; }
 err()   { echo -e "${RED}[ERROR]${NC} $*" >&2; }
 
 # ── Pre-flight ────────────────────────────────────────────────────────
-if ! command -v pmtiles &>/dev/null; then
+PMTILES=""
+if command -v pmtiles &>/dev/null; then
+    PMTILES="pmtiles"
+elif [ -x "/mnt/c/Users/DawsonHorvath/Documents/Workspace/pmtiles/pmtiles.exe" ]; then
+    PMTILES="/mnt/c/Users/DawsonHorvath/Documents/Workspace/pmtiles/pmtiles.exe"
+fi
+
+if [ -z "$PMTILES" ]; then
     err "pmtiles CLI not found."
     echo ""
     echo "  Install options:"
@@ -70,6 +77,7 @@ echo "║   Protomaps Basemap Extract — British Columbia   ║"
 echo "╚══════════════════════════════════════════════════╝"
 echo ""
 info "Source:   $SOURCE_URL"
+info "pmtiles:  $PMTILES"
 info "Bbox:     $BBOX"
 info "Maxzoom:  $MAXZOOM"
 info "Output:   $OUTPUT"
@@ -82,8 +90,14 @@ if [ -f "$OUTPUT" ]; then
     mv "$OUTPUT" "$BACKUP"
 fi
 
+# If using a Windows .exe under WSL, convert the output path for Windows
+PMTILES_OUTPUT="$OUTPUT"
+if [[ "$PMTILES" == *.exe ]]; then
+    PMTILES_OUTPUT="$(wslpath -w "$OUTPUT")"
+fi
+
 info "Extracting tiles (this may take several minutes)..."
-if ! pmtiles extract "$SOURCE_URL" "$OUTPUT" --bbox="$BBOX" --maxzoom="$MAXZOOM"; then
+if ! "$PMTILES" extract "$SOURCE_URL" "$PMTILES_OUTPUT" --bbox="$BBOX" --maxzoom="$MAXZOOM"; then
     err "Extraction failed."
     # Restore backup if it exists
     if [ -f "${OUTPUT}.bak" ]; then

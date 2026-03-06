@@ -494,6 +494,9 @@ Examples:
 
   # Export individual geometries only
   python -m regulation_mapping.regulation_pipeline --individual-only
+
+  # Run with zones and auto-upload to R2
+  python -m regulation_mapping.regulation_pipeline --include-zones --upload
         """,
     )
 
@@ -548,6 +551,12 @@ Examples:
         "--include-zones",
         action="store_true",
         help="Include zone-level default regulations (can touch millions of features)",
+    )
+
+    parser.add_argument(
+        "--upload",
+        action="store_true",
+        help="After pipeline completes, copy output to webapp/public/data/ and upload to R2 via rclone",
     )
 
     args = parser.parse_args()
@@ -643,11 +652,59 @@ Examples:
     print("\n" + GREEN + "✅ PIPELINE COMPLETE" + RESET)
     print("=" * 80)
 
-    if not args.map_only:
+    # ── Upload to R2 ──────────────────────────────────────────────────
+    if args.upload:
+        import subprocess
+
+        webapp_data_dir = Path(__file__).resolve().parent.parent / "webapp" / "public" / "data"
+        webapp_data_dir.mkdir(parents=True, exist_ok=True)
+
+        r2_bucket = "r2:bc-fishing-regulations"
+        rclone_flags = ["--s3-no-check-bucket", "--progress"]
+        upload_exts = {".pmtiles", ".json"}
+
+        # Collect files to upload (pmtiles + json from output dir)
+        files_to_upload = [
+            f for f in args.output_dir.iterdir()
+            if f.is_file() and f.suffix in upload_exts
+        ]
+
+        if not files_to_upload:
+            print("\n⚠️  No .pmtiles or .json files found in output — nothing to upload.")
+        else:
+            # Copy to webapp/public/data/
+            print("\n📤 Copying output to webapp/public/data/ ...")
+            for f in files_to_upload:
+                dest = webapp_data_dir / f.name
+                shutil.copy2(f, dest)
+                print(f"  ✓ {f.name} → {dest.relative_to(Path(__file__).resolve().parent.parent)}")
+
+            # Upload to R2 via rclone
+            if shutil.which("rclone") is None:
+                print("\n⚠️  rclone not found — skipping R2 upload.")
+                print("   Install it: https://rclone.org/install/")
+            else:
+                print("\n📤 Uploading to R2 ...")
+                for f in files_to_upload:
+                    src = webapp_data_dir / f.name
+                    size_mb = src.stat().st_size / (1024 * 1024)
+                    print(f"  Uploading {f.name} ({size_mb:.1f} MB) ...")
+                    result_proc = subprocess.run(
+                        ["rclone", "copy", str(src), r2_bucket] + rclone_flags,
+                        capture_output=False,
+                    )
+                    if result_proc.returncode != 0:
+                        print(f"  ❌ Failed to upload {f.name}")
+                    else:
+                        print(f"  ✓ {f.name} uploaded.")
+
+                print("\n" + GREEN + "✅ R2 UPLOAD COMPLETE" + RESET)
+    elif not args.map_only:
         print("\n💡 Next Steps:")
-        print("  1. Copy output files to map-webapp/public/data/")
+        print("  1. Copy output files to webapp/public/data/")
         print("  2. Open GPKG in QGIS to inspect attributes")
         print("  3. Test search functionality with search_index.json")
+        print("  💡 Or re-run with --upload to automate steps 1 & deploy to R2")
     else:
         print("\n💡 Tip: Run without --map-only to export geometries (GPKG/PMTiles)")
 

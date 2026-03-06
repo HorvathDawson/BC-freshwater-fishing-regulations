@@ -1,8 +1,8 @@
-/* Disclaimer link - positioned in bottom-left corner of map, offset to avoid compass on desktop */
+/* Disclaimer link - positioned in bottom-left corner of map, beside compass */
 .disclaimer-link {
     position: absolute;
     bottom: 8px;
-    left: 44px; /* Offset to avoid compass/nav control on desktop */
+    left: 44px;
     z-index: 1;
     background: rgba(255, 255, 255, 0.85);
     border: none;

@@ -26,7 +26,7 @@ export const HIGHLIGHT_COLORS: Record<string, string> = {
 };
 
 /** Uniform color for the active-selection state (same for all types). */
-export const SELECTION_COLOR = '#0072B2'; // Wong deep blue
+export const SELECTION_COLOR = '#7C3AED'; // Vibrant purple — matches highlight
 
 /**
  * Returns a MapLibre `match` expression that picks a color from `colorMap`
