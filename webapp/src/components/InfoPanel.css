@@ -91,6 +91,30 @@
     border: 1px solid var(--border); 
 }
 
+.copy-toast {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 4px;
+    background: #1e293b;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 4px 10px;
+    border-radius: 6px;
+    white-space: nowrap;
+    pointer-events: none;
+    animation: toast-fade 2s ease forwards;
+    z-index: 10;
+}
+
+@keyframes toast-fade {
+    0%   { opacity: 0; transform: translateY(-4px); }
+    10%  { opacity: 1; transform: translateY(0); }
+    80%  { opacity: 1; }
+    100% { opacity: 0; }
+}
+
 .title-group {
     pointer-events: none;
 }

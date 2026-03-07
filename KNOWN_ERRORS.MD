@@ -75,8 +75,6 @@ The following items were investigated and confirmed **not dead**:
  
 5. when a admin area intersects a lake or other polygon we should only put the regulations added into the intersected portion of the polygon. this means splitting the polygon? could also split streams if we desire.
 
-7. need to make the naming better for admin zone unnamed streams. we shouldnt add regulation name if it was an admin match. because then everything has the name. or at least dont show in search? 
-
 8. need to add tidal region into the map. (will remove other regulations and say refer to tidal regulations)
 
 9. we will want to add in the stocked lake info probably here https://www.gofishbc.com/wp-json/wpgmza/v1/features can query it. then we can link to lake fwa and add info for stoked info. 
@@ -84,8 +82,6 @@ The following items were investigated and confirmed **not dead**:
 10. Unnamed Waterbody in liumchen eco reserve split weird. the split on boundary did not work clean here why? 
 
 11. fix missing knap malcom and rubble creek admin boundaries, etc...
-
-12. nicomen slough lakes are part of nicomen slough. sloughs include lakes...
 
 13. bear river is in region 1 and 2 but should only be in 2 because it is fully in 2 not straddling border...
 
@@ -95,6 +91,18 @@ The following items were investigated and confirmed **not dead**:
 ===============
 Complete
 ===============
+
+---
+
+need to make the naming better for admin zone unnamed streams. we shouldnt add regulation name if it was an admin match. because then everything has the name. or at least dont show in search? 
+- this i think naturally got fixed.
+
+
+---
+
+nicomen slough lakes are part of nicomen slough. sloughs include lakes...
+- used a direct match on them all + gnis id
+
 
 ---
 

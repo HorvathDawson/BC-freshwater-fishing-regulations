@@ -802,8 +802,13 @@ const MapComponent = () => {
         
         const { feature, segment } = lookupResult;
         
-        // Build feature info from JSON via the unified builder
-        const featureInfo = buildFeatureFromJSON(feature, segment);
+        // Build feature info from JSON via the unified builder.
+        // Pass the URL's featureId as frontendGroupId so the selection
+        // filter matches tiles even when the segment's own fgid differs
+        // (e.g. top-level fgid resolved to first segment).
+        const featureInfo = buildFeatureFromJSON(feature, segment, {
+            frontendGroupId: urlState.featureId,
+        });
         const featureBbox = featureInfo.bbox;
         
         // Fly to the feature's bbox — panel starts in 'partial' mode on
@@ -920,8 +925,11 @@ const MapComponent = () => {
                     ...createAdminLabelLayers(),
                 ]
             },
-            center: [-123.0, 49.25], zoom: 8, maxZoom: 15, minZoom: 4, hash: true, attributionControl: { compact: false }
-            // OLD: compact on mobile only — attributionControl: { compact: isMobileViewport() }
+            center: [-123.0, 49.25], zoom: 8, maxZoom: 15, minZoom: 4, hash: true,
+            // Smooth zoom: allow fractional levels and ease between them
+            scrollZoom: { around: 'center' },
+            fadeDuration: 100,
+            attributionControl: { compact: false }
         });
 
         // Add compass navigation control

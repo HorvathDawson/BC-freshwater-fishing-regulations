@@ -38,8 +38,8 @@ err()   { echo -e "${RED}[ERROR]${NC} $*" >&2; }
 PMTILES=""
 if command -v pmtiles &>/dev/null; then
     PMTILES="pmtiles"
-elif [ -x "/mnt/c/Users/DawsonHorvath/Documents/Workspace/pmtiles/pmtiles.exe" ]; then
-    PMTILES="/mnt/c/Users/DawsonHorvath/Documents/Workspace/pmtiles/pmtiles.exe"
+elif [ -x "$WEBAPP_DIR/scripts/pmtiles/pmtiles.exe" ]; then
+    PMTILES="$WEBAPP_DIR/scripts/pmtiles/pmtiles.exe"
 fi
 
 if [ -z "$PMTILES" ]; then

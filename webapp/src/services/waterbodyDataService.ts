@@ -169,12 +169,27 @@ class WaterbodyDataService {
         ? await idbGet<WaterbodyData>(WaterbodyDataService.DATA_KEY).catch(() => undefined)
         : undefined;
 
-      const headers: Record<string, string> = {};
-      if (cachedEtag && cachedData) {
-        headers['If-None-Match'] = cachedEtag;
-      }
+      let response: Response;
 
-      const response = await fetch(url, { headers });
+      if (cachedEtag && cachedData) {
+        // Returning visitor: conditional request with ETag
+        response = await fetch(url, { headers: { 'If-None-Match': cachedEtag } });
+      } else {
+        // First visit: use the early-fetched response if the Vite-injected
+        // inline script started the request before the JS bundle loaded.
+        const earlyFetch = (window as any).__earlyFetch as Promise<Response | null> | undefined;
+        if (earlyFetch) {
+          delete (window as any).__earlyFetch;  // consume once
+          const earlyResp = await earlyFetch;
+          if (earlyResp) {
+            response = earlyResp;
+          } else {
+            response = await fetch(url);
+          }
+        } else {
+          response = await fetch(url);
+        }
+      }
 
       // 304 Not Modified → use cached data
       if (response.status === 304 && cachedData) {

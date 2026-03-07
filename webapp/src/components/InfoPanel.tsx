@@ -204,7 +204,7 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                             </div>
                             <span className="type-tag">{typeLabel}</span>
                         </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', position: 'relative' }}>
                             <button 
                                 onClick={handleShare} 
                                 className="square-btn" 
@@ -212,6 +212,7 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                             >
                                 {copied ? <Check size={20} /> : <Share2 size={20} />}
                             </button>
+                            {copied && <span className="copy-toast">Link copied!</span>}
                             <button onClick={(e) => { e.stopPropagation(); onClose(); }} className="square-btn" aria-label="Close panel">
                                 <X size={20} />
                             </button>

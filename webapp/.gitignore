@@ -23,6 +23,8 @@ dist-ssr
 *.sln
 *.sw?
 
+*.exe
+
 
 # large assets (served from R2)
 *.pmtiles

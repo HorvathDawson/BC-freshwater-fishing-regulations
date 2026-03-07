@@ -656,7 +656,9 @@ Examples:
     if args.upload:
         import subprocess
 
-        webapp_data_dir = Path(__file__).resolve().parent.parent / "webapp" / "public" / "data"
+        webapp_data_dir = (
+            Path(__file__).resolve().parent.parent / "webapp" / "public" / "data"
+        )
         webapp_data_dir.mkdir(parents=True, exist_ok=True)
 
         r2_bucket = "r2:bc-fishing-regulations"
@@ -665,19 +667,24 @@ Examples:
 
         # Collect files to upload (pmtiles + json from output dir)
         files_to_upload = [
-            f for f in args.output_dir.iterdir()
+            f
+            for f in args.output_dir.iterdir()
             if f.is_file() and f.suffix in upload_exts
         ]
 
         if not files_to_upload:
-            print("\n⚠️  No .pmtiles or .json files found in output — nothing to upload.")
+            print(
+                "\n⚠️  No .pmtiles or .json files found in output — nothing to upload."
+            )
         else:
             # Copy to webapp/public/data/
             print("\n📤 Copying output to webapp/public/data/ ...")
             for f in files_to_upload:
                 dest = webapp_data_dir / f.name
                 shutil.copy2(f, dest)
-                print(f"  ✓ {f.name} → {dest.relative_to(Path(__file__).resolve().parent.parent)}")
+                print(
+                    f"  ✓ {f.name} → {dest.relative_to(Path(__file__).resolve().parent.parent)}"
+                )
 
             # Upload to R2 via rclone
             if shutil.which("rclone") is None:

@@ -477,7 +477,7 @@ class GeoArtifactGenerator:
             "--hilbert",
             "--minimum-zoom=4",
             "--maximum-zoom=12",
-            "--simplification=10",
+            "--simplification=8",
             "--simplification-at-maximum-zoom=1",
             "--read-parallel",
             "--detect-shared-borders",

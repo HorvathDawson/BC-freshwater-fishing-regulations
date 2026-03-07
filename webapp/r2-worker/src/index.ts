@@ -123,6 +123,17 @@ export default {
         headers.set('Content-Range', `bytes ${offset}-${offset + length - 1}/${object.size}`);
         return new Response(object.body, { status: 206, headers });
       }
+
+      // Compress JSON responses with gzip when the client supports it.
+      // waterbody_data.json is ~12 MB uncompressed; gzip cuts it to ~2-3 MB.
+      const acceptEncoding = request.headers.get('Accept-Encoding') || '';
+      if (key.endsWith('.json') && acceptEncoding.includes('gzip')) {
+        const compressed = object.body.pipeThrough(new CompressionStream('gzip'));
+        headers.set('Content-Encoding', 'gzip');
+        headers.delete('Content-Length');  // length changes after compression
+        return new Response(compressed, { status: 200, headers });
+      }
+
       return new Response(object.body, { status: 200, headers });
     }
 
