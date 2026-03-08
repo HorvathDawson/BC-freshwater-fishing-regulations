@@ -376,26 +376,57 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                                         label: groupLabel,
                                         subtitle: groupSubtitle,
                                         source: reg.source || 'synopsis',
+                                        isTributary: false,
                                         regulations: []
                                     };
                                 }
                                 groups[groupKey].regulations.push(reg);
                                 return groups;
-                            }, {} as Record<string, { label: string; subtitle: string; source: string; regulations: Regulation[] }>);
+                            }, {} as Record<string, { label: string; subtitle: string; source: string; isTributary: boolean; regulations: Regulation[] }>);
 
                             // Sort groups: provincial with a "closed" reg floats to the
                             // top so users immediately see closures (e.g. Ecological
                             // Reserves).  Otherwise: synopsis → zone → provincial.
+                            // Within synopsis, direct-match groups appear before tributary groups.
                             const hasClosedReg = (g: { regulations: Regulation[] }) =>
                                 g.regulations.some(r => {
                                     const t = (r.restriction_type || '').toLowerCase();
                                     return t === 'closed' || t === 'closure';
                                 });
+
+                            // Build set of this feature's own names (non-tributary)
+                            const ownNames = new Set<string>();
+                            ownNames.add((title as string).toLowerCase());
+                            for (const nv of nameVariantsRaw) {
+                                const name = typeof nv === 'string' ? nv : nv.name;
+                                const isTrib = typeof nv === 'string' ? false : nv.from_tributary;
+                                if (!isTrib) {
+                                    ownNames.add(name.toLowerCase());
+                                }
+                            }
+
+                            // A synopsis group is tributary-inherited if its label
+                            // (waterbody_name from the regulation) doesn't match any
+                            // of the feature's own names.
+                            const isTributaryGroup = (g: { label: string; source: string }) => {
+                                if (g.source !== 'synopsis') return false;
+                                return !ownNames.has(g.label.toLowerCase());
+                            };
+
+                            // Tag synopsis groups that are tributary-inherited
+                            for (const g of Object.values(groupedRegulations)) {
+                                g.isTributary = isTributaryGroup(g);
+                            }
+
                             const sourceOrder: Record<string, number> = { synopsis: 1, zone: 2, provincial: 3 };
                             const sortedGroups = Object.values(groupedRegulations).sort((a, b) => {
                                 const aOrder = (a.source === 'provincial' && hasClosedReg(a)) ? 0 : (sourceOrder[a.source] ?? 9);
                                 const bOrder = (b.source === 'provincial' && hasClosedReg(b)) ? 0 : (sourceOrder[b.source] ?? 9);
-                                return aOrder - bOrder;
+                                if (aOrder !== bOrder) return aOrder - bOrder;
+                                // Within same source tier, push tributary synopsis groups after direct ones
+                                const aTrib = isTributaryGroup(a) ? 1 : 0;
+                                const bTrib = isTributaryGroup(b) ? 1 : 0;
+                                return aTrib - bTrib;
                             });
 
                             // Consistent sort within each group by restriction_type
@@ -420,9 +451,10 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                             return sortedGroups.map((group, groupIdx) => (
                                 <div key={groupIdx} className="regulation-group">
                                     {/* Group Header */}
-                                    <div className={`regulation-group-header ${group.source === 'zone' ? 'zone-header' : ''} ${group.source === 'provincial' ? 'provincial-header' : ''}`}>
+                                    <div className={`regulation-group-header ${group.source === 'zone' ? 'zone-header' : ''} ${group.source === 'provincial' ? 'provincial-header' : ''} ${group.isTributary ? 'tributary-header' : ''}`}>
                                         {group.source === 'zone' && <span className="header-badge zone-badge">Zone</span>}
                                         {group.source === 'provincial' && <span className="header-badge provincial-badge">Provincial</span>}
+                                        {group.isTributary && <span className="header-badge tributary-badge">Tributary of</span>}
                                         {group.label}
                                         {group.subtitle && <div className="regulation-group-subtitle">{group.subtitle}</div>}
                                     </div>

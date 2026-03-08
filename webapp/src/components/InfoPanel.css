@@ -434,6 +434,17 @@
     border: none;
 }
 
+.header-badge.tributary-badge {
+    background: transparent;
+    color: var(--text-muted, #888);
+    border: 1px solid var(--border, #ccc);
+}
+
+.regulation-group-header.tributary-header {
+    opacity: 0.8;
+    border-left-color: var(--border, #ccc);
+}
+
 /* Section header with inline filter */
 .section-header-row {
     display: flex;

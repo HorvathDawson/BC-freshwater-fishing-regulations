@@ -19,6 +19,7 @@ body {
 #root {
   width: 100%;
   height: 100vh;
+  height: 100dvh;
 }
 
 /* Prevent Safari iOS auto-zoom on form input focus (requires >= 16px) */
