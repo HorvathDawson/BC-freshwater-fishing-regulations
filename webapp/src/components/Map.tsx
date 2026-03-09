@@ -945,9 +945,6 @@ const MapComponent = () => {
                 ]
             },
             center: [-123.0, 49.25], zoom: 8, maxZoom: 15, minZoom: 4, hash: true,
-            // Pre-fetch tiles beyond the viewport edge so panning feels seamless.
-            // 256px (2× default 128) balances smoothness vs request count.
-            buffer: 256,
             // Cancel in-flight tile requests for intermediate zoom levels during
             // zoom animations — those tiles are immediately obsolete and waste bandwidth.
             cancelPendingTileRequestsWhileZooming: true,
