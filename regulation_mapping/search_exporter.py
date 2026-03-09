@@ -5,7 +5,8 @@ Reads canonical features from ``CanonicalDataStore`` and produces:
   - ``waterbodies``: full searchable entries (short keys for Fuse.js)
   - ``reg_sets``: deduplicated regulation-ID strings
   - ``compact``: ``{frontend_group_id: reg_set_index}`` for unnamed features
-  - ``regulations``: full regulation detail dicts
+  - ``identity_meta``: per-identity data (synopsis only, deduplicated)
+  - ``regulations``: slimmed regulation rule dicts
 
 Uses ``orjson`` for fast serialisation.
 
@@ -23,6 +24,7 @@ from fwa_pipeline.metadata_gazetteer import FeatureType
 
 from .canonical_store import CanonicalDataStore
 from .geometry_utils import extract_geoms, geoms_to_wgs84_bbox
+from .regulation_resolvers import parse_base_regulation_id
 from .logger_config import get_logger
 
 logger = get_logger(__name__)
@@ -148,17 +150,13 @@ class SearchIndexBuilder:
                 sg["watershed_codes"].add(feat["fwa_watershed_code"])
 
             zones = feat["zones"].split(",") if feat["zones"] else []
-            region_names = (
-                feat["region_name"].split(",") if feat["region_name"] else []
-            )
+            region_names = feat["region_name"].split(",") if feat["region_name"] else []
             for z, n in zip(zones, region_names):
                 if z:
                     sg["zone_to_name"][z] = n
             sg["mgmt_units"].update(
                 mu
-                for mu in (
-                    feat["mgmt_units"].split(",") if feat["mgmt_units"] else []
-                )
+                for mu in (feat["mgmt_units"].split(",") if feat["mgmt_units"] else [])
                 if mu
             )
 
@@ -270,9 +268,7 @@ class SearchIndexBuilder:
             if ftype_val == FeatureType.STREAM.value:
                 stream_key = next(iter(data["watershed_codes"]), "") or grouping_id
             else:
-                stream_key = (
-                    next(iter(sorted(data["wb_keys"])), "") or grouping_id
-                )
+                stream_key = next(iter(sorted(data["wb_keys"])), "") or grouping_id
 
             reg_segments: list = []
             for seg in sorted_segments:
@@ -285,9 +281,7 @@ class SearchIndexBuilder:
                 )
                 frontend_group_id = next(iter(seg["frontend_group_ids"]))
                 seg_bbox_wgs84 = (
-                    list(geoms_to_wgs84_bbox(seg["geoms"]))
-                    if seg["geoms"]
-                    else None
+                    list(geoms_to_wgs84_bbox(seg["geoms"])) if seg["geoms"] else None
                 )
                 seg_name_variants = [
                     {"name": name, "ft": is_trib}
@@ -357,6 +351,122 @@ class SearchIndexBuilder:
     # Public API
     # ------------------------------------------------------------------
 
+    # ------------------------------------------------------------------
+    # Identity extraction — synopsis only
+    # ------------------------------------------------------------------
+
+    # Fields that belong on the identity (deduplicated per synopsis entry).
+    _IDENTITY_FIELDS = frozenset(
+        {
+            "waterbody_name",
+            "region",
+            "management_units",
+            "source_image",
+            "exclusions",
+        }
+    )
+
+    # Fields stripped entirely — unused by the frontend.
+    _DEAD_FIELDS = frozenset(
+        {
+            "lookup_name",
+            "is_direct_match",
+            "includes_tributaries",
+        }
+    )
+
+    @staticmethod
+    def _build_identity_meta(
+        regulations: Dict[str, Dict[str, Any]],
+    ) -> Tuple[Dict[str, Dict[str, Any]], Dict[str, Dict[str, Any]]]:
+        """Extract per-identity metadata from flat regulation dicts.
+
+        Synopsis regulations share identity-level fields (waterbody_name,
+        region, management_units, source_image, exclusions) across their
+        ``_ruleN`` siblings.  This method extracts those into a separate
+        ``identity_meta`` dict keyed by base regulation ID.
+
+        Zone and provincial regulations are left flat — they are singletons
+        with no deduplication benefit.
+
+        Returns ``(identity_meta, slimmed_regulations)``.
+
+        Identity meta short-key mapping::
+
+            wn=waterbody_name  rg=region  mu=management_units
+            img=source_image   ex=exclusions
+        """
+        identity_meta: Dict[str, Dict[str, Any]] = {}
+        slimmed: Dict[str, Dict[str, Any]] = {}
+
+        for reg_id, detail in regulations.items():
+            source = detail.get("source")
+
+            if source != "synopsis":
+                # Zone / provincial: strip dead fields only, keep everything else flat.
+                slim = {
+                    k: v
+                    for k, v in detail.items()
+                    if k not in SearchIndexBuilder._DEAD_FIELDS
+                }
+                slimmed[reg_id] = slim
+                continue
+
+            # --- Synopsis regulation ---
+            base_id = parse_base_regulation_id(reg_id)
+
+            # Build / update identity_meta entry (merge across sibling rules).
+            if base_id not in identity_meta:
+                entry: Dict[str, Any] = {"wn": detail.get("waterbody_name")}
+                rg = detail.get("region")
+                if rg:
+                    entry["rg"] = rg
+                mu = detail.get("management_units")
+                if mu:
+                    entry["mu"] = mu
+                img = detail.get("source_image")
+                if img:
+                    entry["img"] = img
+                ex = detail.get("exclusions")
+                if ex:
+                    entry["ex"] = ex
+                identity_meta[base_id] = entry
+            else:
+                # Merge: pick up data from sibling rules if the first was missing it.
+                existing = identity_meta[base_id]
+                if "rg" not in existing:
+                    rg = detail.get("region")
+                    if rg:
+                        existing["rg"] = rg
+                if "mu" not in existing:
+                    mu = detail.get("management_units")
+                    if mu:
+                        existing["mu"] = mu
+                if "ex" not in existing:
+                    ex = detail.get("exclusions")
+                    if ex:
+                        existing["ex"] = ex
+                if "img" not in existing:
+                    img = detail.get("source_image")
+                    if img:
+                        existing["img"] = img
+
+            # Slim the regulation: keep only rule-specific fields + iid + source.
+            slim = {
+                k: v
+                for k, v in detail.items()
+                if k not in SearchIndexBuilder._IDENTITY_FIELDS
+                and k not in SearchIndexBuilder._DEAD_FIELDS
+            }
+            if not base_id:
+                raise ValueError(
+                    f"parse_base_regulation_id returned empty for {reg_id!r}"
+                )
+            slim["iid"] = base_id
+            slimmed[reg_id] = slim
+
+        return identity_meta, slimmed
+
     def export_waterbody_data(self, output_path: Path) -> Path:
         """Export unified ``waterbody_data.json``.
 
@@ -365,7 +475,8 @@ class SearchIndexBuilder:
         - ``reg_sets``: Deduplicated regulation-ID strings (list)
         - ``compact``: ``{frontend_group_id: reg_set_index}``
         - ``waterbodies``: Full search entries (short keys)
-        - ``regulations``: Full regulation detail dicts
+        - ``identity_meta``: Per-identity synopsis data (short keys)
+        - ``regulations``: Slimmed regulation rule dicts
 
         Short key mapping (backend → frontend):
             gn=gnis_name  dn=display_name  fgids=frontend_group_ids
@@ -374,20 +485,28 @@ class SearchIndexBuilder:
             mz=min_zoom  rs=regulation_segments  fgid=frontend_group_id
             gid=group_id  lkm=length_km  wk=waterbody_key
             fwc=fwa_watershed_code  rc=regulation_count
+
+        Identity meta short keys:
+            wn=waterbody_name  rg=region  mu=management_units
+            img=source_image   ex=exclusions
         """
         build_result = self._build_waterbodies_list()
         waterbodies = build_result["waterbodies"]
         reg_sets = build_result["reg_sets"]
         compact = build_result["compact"]
-        regulations = dict(self.store.pipeline_result.regulation_details)
+        raw_regulations = dict(self.store.pipeline_result.regulation_details)
+
+        identity_meta, regulations = self._build_identity_meta(raw_regulations)
 
         output_path.parent.mkdir(parents=True, exist_ok=True)
-        payload = {
+        payload: Dict[str, Any] = {
             "reg_sets": reg_sets,
             "compact": compact,
             "waterbodies": waterbodies,
             "regulations": regulations,
         }
+        if identity_meta:
+            payload["identity_meta"] = identity_meta
         output_path.write_bytes(orjson.dumps(payload))
 
         logger.info(
@@ -396,6 +515,7 @@ class SearchIndexBuilder:
             f"{len(waterbodies)} waterbodies, "
             f"{len(reg_sets)} reg_sets, "
             f"{len(compact)} compact, "
-            f"{len(regulations)} regulations)"
+            f"{len(regulations)} regulations, "
+            f"{len(identity_meta)} identity_meta)"
         )
         return output_path

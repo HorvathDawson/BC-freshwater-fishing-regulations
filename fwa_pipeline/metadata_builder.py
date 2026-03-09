@@ -46,6 +46,9 @@ class FeatureType(Enum):
     HISTORIC_SITE = "historic_sites"
     OSM_ADMIN = "osm_admin_boundaries"
 
+    # Display-only boundary layers (not regulation-carrying admin areas)
+    TIDAL_BOUNDARY = "tidal_boundary"
+
     UNKNOWN = "unknown"
 
 

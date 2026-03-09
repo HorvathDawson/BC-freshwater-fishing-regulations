@@ -3,28 +3,91 @@
  * 
  * Provides regulation lookup by ID. Data is loaded from the unified
  * waterbody_data.json via waterbodyDataService.
+ *
+ * Type hierarchy:
+ *   WireRegulation  – raw JSON shape (synopsis regs lack identity fields)
+ *   Regulation      – hydrated shape used by all consumers
+ *   IdentityMeta    – per-synopsis-entry metadata (short keys from JSON)
  */
 
 import { waterbodyDataService } from './waterbodyDataService';
 
+// ── Shared sub-types ─────────────────────────────────────────────────
+
+export interface ExclusionEntry {
+  type: string;
+  lookup_name: string;
+  location_verbatim?: string | null;
+  landmark_verbatim?: string | null;
+  direction?: string | null;
+  includes_tributaries?: boolean | null;
+}
+
+// ── Wire format (pre-hydration) ──────────────────────────────────────
+
+/** Raw regulation as stored in waterbody_data.json before hydration.
+ *  Synopsis regs carry `iid` but lack identity fields (waterbody_name,
+ *  region, management_units, source_image, exclusions).
+ *  Zone/provincial regs carry those fields directly. */
+export interface WireRegulation {
+  rule_text: string;
+  restriction_type: string;
+  restriction_details: string;
+  dates: string[] | string | { period?: string; type?: string } | null;
+  scope_type: string;
+  scope_location: string | null;
+  source?: 'synopsis' | 'provincial' | 'zone';
+  zone_ids?: string[];
+  feature_types?: string[] | null;
+  /** Synopsis only: back-reference to identity_meta entry. */
+  iid?: string;
+  // Zone/provincial carry these directly; absent on synopsis wire regs.
+  waterbody_name?: string;
+  region?: string | null;
+  management_units?: string[];
+  source_image?: string | null;
+  exclusions?: ExclusionEntry[] | null;
+}
+
+// ── Identity metadata (short keys from JSON) ─────────────────────────
+
+/** Per-synopsis-entry metadata shared across sibling _ruleN regulations. */
+export interface IdentityMeta {
+  /** waterbody_name */
+  wn: string;
+  /** region */
+  rg?: string;
+  /** management_units */
+  mu?: string[];
+  /** source_image */
+  img?: string;
+  /** exclusions */
+  ex?: ExclusionEntry[];
+}
+
+// ── Hydrated regulation (post-hydration) ─────────────────────────────
+
+/** Fully hydrated regulation used throughout the app.
+ *  After hydration, identity fields are guaranteed to be present
+ *  regardless of source type. */
 export interface Regulation {
   regulation_id: string;
   waterbody_name: string;
-  waterbody_key: string | null;
   region: string | null;
   management_units: string[];
   rule_text: string;
   restriction_type: string;
   restriction_details: string;
-  dates: string[] | string | { period?: string; type?: string } | null;  // Legacy zone format had {period, type}; new format is string[]
+  dates: string[] | string | { period?: string; type?: string } | null;
   scope_type: string;
   scope_location: string | null;
-  includes_tributaries: boolean | null;
   source?: 'synopsis' | 'provincial' | 'zone';
-  source_image?: string | null;
   zone_ids?: string[];
   feature_types?: string[] | null;
-  is_direct_match?: boolean;
+  /** Back-reference to identity_meta entry (synopsis regs only). */
+  iid?: string;
+  source_image?: string | null;
+  exclusions?: ExclusionEntry[] | null;
 }
 
 type RegulationsLookup = Record<string, Regulation>;
@@ -104,30 +167,6 @@ class RegulationsService {
     this.loadRegulations().catch((err) => {
       console.warn('Regulations preload failed:', err);
     });
-  }
-
-  /**
-   * Get waterbody names for a set of regulation IDs.
-   * Used to filter name_variants to only show names relevant to specific regulations.
-   */
-  getWaterbodyNamesForIds(regulationIds: string | string[] | null | undefined): Set<string> {
-    const names = new Set<string>();
-    if (!this.regulations || !regulationIds) return names;
-
-    let ids: string[] = [];
-    if (Array.isArray(regulationIds)) {
-      ids = regulationIds;
-    } else {
-      ids = String(regulationIds).replace(/[\[\]"\s]/g, '').split(',').filter(Boolean);
-    }
-
-    for (const id of ids) {
-      const reg = this.regulations[id];
-      if (reg?.waterbody_name) {
-        names.add(reg.waterbody_name);
-      }
-    }
-    return names;
   }
 }
 

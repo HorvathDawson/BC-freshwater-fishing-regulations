@@ -12,145 +12,150 @@ from pathlib import Path
 # Add parent directory to path to import synopsis_pipeline
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from synopsis_pipeline.models import ParsedWaterbody, IdentityObject
+from synopsis_pipeline.models import ParsedWaterbody, IdentityObject, _normalize_text
 import re
 
 
-def test_waterbody_key_validation():
-    """Test that waterbody_key validation allows flexibility while catching errors."""
-    
-    # Test cases: (name_verbatim, waterbody_key, should_pass)
+def test_lookup_name_validation():
+    """Test that lookup_name validation allows flexibility while catching errors."""
+
+    # Test cases: (name_verbatim, lookup_name, should_pass)
     test_cases = [
         # Both with and without quotes should work
         ('"ANDERSON" LAKE', '"ANDERSON" LAKE', True),
-        ('"ANDERSON" LAKE', 'ANDERSON LAKE', True),
-        
+        ('"ANDERSON" LAKE', "ANDERSON LAKE", True),
         # Nested quotes - both versions valid
         ('"ERROCK" ("Squakum") LAKE', '"ERROCK" LAKE', True),
-        ('"ERROCK" ("Squakum") LAKE', 'ERROCK LAKE', True),
-        
+        ('"ERROCK" ("Squakum") LAKE', "ERROCK LAKE", True),
         # UNNAMED with location
-        ('UNNAMED LAKE ("Kinglet Lake") located 100 m west of Butterfly Lake', 'UNNAMED LAKE', True),
-        
+        (
+            'UNNAMED LAKE ("Kinglet Lake") located 100 m west of Butterfly Lake',
+            "UNNAMED LAKE",
+            True,
+        ),
         # Tributaries
-        ("WEST KETTLE RIVER'S tributaries", 'WEST KETTLE RIVER', True),
-        
+        ("WEST KETTLE RIVER'S tributaries", "WEST KETTLE RIVER", True),
         # Parenthetical removal
-        ('ARROW PARK (Mosquito) CREEK', 'ARROW PARK CREEK', True),
-        ('MARBLE ("Link") RIVER (only between Hwy 19 and Alice Lake)', 'MARBLE RIVER', True),
-        
+        ("ARROW PARK (Mosquito) CREEK", "ARROW PARK CREEK", True),
+        (
+            'MARBLE ("Link") RIVER (only between Hwy 19 and Alice Lake)',
+            "MARBLE RIVER",
+            True,
+        ),
         # Should fail - wrong waterbody name
         ('"ANDERSON" LAKE', '"JONES" LAKE', False),
-        ('MARBLE RIVER', 'ARROW CREEK', False),
-        ('FRASER RIVER', 'THOMPSON RIVER', False),
+        ("MARBLE RIVER", "ARROW CREEK", False),
+        ("FRASER RIVER", "THOMPSON RIVER", False),
     ]
-    
-    print("\nTesting waterbody_key validation:")
+
+    print("\nTesting lookup_name validation:")
     print("=" * 80)
-    
+
     test_errors = []
-    for name_verbatim, waterbody_key, should_pass in test_cases:
+    for name_verbatim, lookup_name, should_pass in test_cases:
         # Create minimal waterbody for testing
         waterbody_dict = {
             "identity": {
                 "name_verbatim": name_verbatim,
-                "waterbody_key": waterbody_key,
+                "lookup_name": lookup_name,
                 "identity_type": "STILL_WATER",
                 "component_waterbodies": [],
                 "alternate_names": [],
                 "global_scope": {
                     "scope_type": "WHOLE_SYSTEM",
                     "includes_tributaries": False,
-                }
+                },
             },
             "regs_verbatim": "Test regulation",
-            "rules": []
+            "rules": [],
         }
-        
+
         wb = ParsedWaterbody.from_dict(waterbody_dict)
         validation_errors = wb.identity.validate()
-        
-        # Check only for waterbody_key related errors
-        key_errors = [e for e in validation_errors if 'waterbody_key' in e]
+
+        # Check only for lookup_name related errors
+        key_errors = [e for e in validation_errors if "lookup_name" in e]
         validation_passed = len(key_errors) == 0
-        
+
         expected = "PASS" if should_pass else "FAIL"
-        correct = (validation_passed == should_pass)
+        correct = validation_passed == should_pass
         status = "OK" if correct else "WRONG"
-        
-        print(f"{status} {expected}: '{name_verbatim[:45]}' -> '{waterbody_key}'")
-        
+
+        print(f"{status} {expected}: '{name_verbatim[:45]}' -> '{lookup_name}'")
+
         if not correct:
-            test_errors.append(f"'{name_verbatim}' -> '{waterbody_key}' (expected {expected})")
+            test_errors.append(
+                f"'{name_verbatim}' -> '{lookup_name}' (expected {expected})"
+            )
             if validation_errors:
                 print(f"   Validation errors: {validation_errors}")
-    
+
     if test_errors:
-        print(f"\n{len(test_errors)} waterbody_key validation test(s) failed")
+        print(f"\n{len(test_errors)} lookup_name validation test(s) failed")
         raise AssertionError(f"{len(test_errors)} tests failed")
     else:
-        print(f"\nAll {len(test_cases)} waterbody_key validation tests passed!")
+        print(f"\nAll {len(test_cases)} lookup_name validation tests passed!")
 
 
 def test_alternate_names_validation():
     """Test that alternate_names validation checks words are in name_verbatim."""
-    
+
     # Test cases: (name_verbatim, alternate_names, should_pass)
     test_cases = [
         # Valid alternate names - words found in name_verbatim
-        ('"ERROCK" ("Squakum") LAKE', ['Squakum'], True),
-        ('MARBLE ("Link") RIVER', ['Link'], True),
-        ('ARROW PARK (Mosquito) CREEK', ['Mosquito'], True),
-        ('MOOSE LAKE (formerly Alces Lake)', ['Alces'], True),
-        
+        ('"ERROCK" ("Squakum") LAKE', ["Squakum"], True),
+        ('MARBLE ("Link") RIVER', ["Link"], True),
+        ("ARROW PARK (Mosquito) CREEK", ["Mosquito"], True),
+        ("MOOSE LAKE (formerly Alces Lake)", ["Alces"], True),
         # Multiple alternates
-        ('"BIG QUALICUM" RIVER', ['Big Qualicum', 'Qualicum'], True),
-        
+        ('"BIG QUALICUM" RIVER', ["Big Qualicum", "Qualicum"], True),
         # Should fail - alternate names not in name_verbatim
-        ('ANDERSON LAKE', ['Jones'], False),
-        ('FRASER RIVER', ['Thompson'], False),
-        ('MARBLE RIVER', ['Arrow'], False),
+        ("ANDERSON LAKE", ["Jones"], False),
+        ("FRASER RIVER", ["Thompson"], False),
+        ("MARBLE RIVER", ["Arrow"], False),
     ]
-    
+
     print("\nTesting alternate_names validation:")
     print("=" * 80)
-    
+
     test_errors = []
     for name_verbatim, alternate_names, should_pass in test_cases:
         waterbody_dict = {
             "identity": {
                 "name_verbatim": name_verbatim,
-                "waterbody_key": name_verbatim.split('(')[0].strip(),
+                "lookup_name": name_verbatim.split("(")[0].strip(),
                 "identity_type": "STILL_WATER",
                 "component_waterbodies": [],
                 "alternate_names": alternate_names,
                 "global_scope": {
                     "scope_type": "WHOLE_SYSTEM",
                     "includes_tributaries": False,
-                }
+                },
             },
             "regs_verbatim": "Test regulation",
-            "rules": []
+            "rules": [],
         }
-        
+
         wb = ParsedWaterbody.from_dict(waterbody_dict)
         validation_errors = wb.identity.validate()
-        
+
         # Check if validation passed (no errors related to alternate_names)
-        alternate_errors = [e for e in validation_errors if 'alternate_name' in e]
+        alternate_errors = [e for e in validation_errors if "alternate_name" in e]
         validation_passed = len(alternate_errors) == 0
-        
+
         expected = "PASS" if should_pass else "FAIL"
-        correct = (validation_passed == should_pass)
+        correct = validation_passed == should_pass
         status = "OK" if correct else "WRONG"
-        
+
         print(f"{status} {expected}: '{name_verbatim[:40]}' + {alternate_names}")
-        
+
         if not correct:
-            test_errors.append(f"'{name_verbatim}' + {alternate_names} (expected {expected})")
+            test_errors.append(
+                f"'{name_verbatim}' + {alternate_names} (expected {expected})"
+            )
             if alternate_errors:
                 print(f"   Errors: {alternate_errors}")
-    
+
     if test_errors:
         print(f"\n{len(test_errors)} alternate_names validation test(s) failed")
         raise AssertionError(f"{len(test_errors)} tests failed")
@@ -216,7 +221,12 @@ def test_verbatim_chain_of_custody():
             rule_text = rule.get("rule_text_verbatim", "")
 
             # rule_text_verbatim must be substring of regs_verbatim
-            if rule_text not in output["regs_verbatim"]:
+            # Use _normalize_text (strips ** bold markers, collapses whitespace)
+            # because source text has multi-line bold spans that make exact
+            # ** placement unreliable.
+            if _normalize_text(rule_text) not in _normalize_text(
+                output["regs_verbatim"]
+            ):
                 errors.append(
                     f"Example {i}, Rule {j}: rule_text_verbatim not found in regs_verbatim\n"
                     f"  Looking for: {rule_text[:100]}..."
@@ -225,7 +235,9 @@ def test_verbatim_chain_of_custody():
             # location_verbatim must be substring of rule_text_verbatim (if not null)
             scope = rule.get("scope", {})
             location = scope.get("location_verbatim")
-            if location is not None and location not in rule_text:
+            if location is not None and _normalize_text(
+                location
+            ) not in _normalize_text(rule_text):
                 errors.append(
                     f"Example {i}, Rule {j}: location_verbatim not found in rule_text_verbatim\n"
                     f"  Location: {location}\n"
@@ -237,7 +249,7 @@ def test_verbatim_chain_of_custody():
             if (
                 landmark is not None
                 and location is not None
-                and landmark not in location
+                and _normalize_text(landmark) not in _normalize_text(location)
             ):
                 errors.append(
                     f"Example {i}, Rule {j}: landmark_verbatim not found in location_verbatim\n"
@@ -293,8 +305,8 @@ if __name__ == "__main__":
     print("=" * 80)
     print()
 
-    print("1. Testing waterbody_key validation...")
-    test_waterbody_key_validation()
+    print("1. Testing lookup_name validation...")
+    test_lookup_name_validation()
     print()
 
     print("2. Testing alternate_names validation...")

@@ -26,6 +26,7 @@ from typing import Any, Callable, Dict, List, Optional, Tuple
 import geopandas as gpd
 import pandas as pd
 from shapely.geometry import box
+from shapely.ops import unary_union
 
 from fwa_pipeline.metadata_builder import ADMIN_LAYER_CONFIG
 from fwa_pipeline.metadata_gazetteer import FeatureType
@@ -325,6 +326,29 @@ class GeoArtifactGenerator:
         )
         return mask_gdf
 
+    def _create_tidal_boundary_layer(self) -> Optional[gpd.GeoDataFrame]:
+        """Create the tidal boundary display polygon.
+
+        A low-opacity grey polygon indicating the tidal area.
+        Clicking it in the frontend shows a DFO tidal regulations link.
+        """
+        gdf = self.store.get_tidal_boundary_gdf()
+        if gdf is None:
+            return None
+        tidal_gdf = gpd.GeoDataFrame(
+            {
+                "name": ["Tidal Waters"],
+                "info_url": [
+                    "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/licence-permis/index-eng.html"
+                ],
+                "tippecanoe:minzoom": [0],
+                "geometry": [unary_union(gdf.geometry.tolist())],
+            },
+            crs="EPSG:3005",
+        )
+        logger.info(f"  Tidal boundary layer: {len(gdf)} polygon(s)")
+        return tidal_gdf
+
     # ------------------------------------------------------------------
     # Layer config
     # ------------------------------------------------------------------
@@ -360,6 +384,9 @@ class GeoArtifactGenerator:
             )
 
         layers.append(("ungazetted", lambda: self._create_ungazetted_layer()))
+
+        # Tidal boundary display polygon (low-opacity grey)
+        layers.append(("tidal_boundary", lambda: self._create_tidal_boundary_layer()))
 
         for layer_key in ADMIN_LAYER_CONFIG:
             layers.append(

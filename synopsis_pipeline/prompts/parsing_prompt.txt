@@ -13,14 +13,14 @@ CRITICAL REQUIREMENTS:
 10. **ELLIPSIS ABSOLUTELY FORBIDDEN**: NEVER use `...` (three dots / ellipsis) in ANY verbatim field. This is the single most common cause of validation failures. If the text is long, copy it in FULL — do NOT abbreviate it with `...`. There are zero exceptions to this rule.
 
 WHEN TO USE AUDIT_LOG:
-- Identity issues: Ambiguous waterbody_key extraction, unclear global_scope boundaries, complex exclusion/inclusion patterns that don't fit the model cleanly
+- Identity issues: Ambiguous lookup_name extraction, unclear global_scope boundaries, complex exclusion/inclusion patterns that don't fit the model cleanly
 - Scope issues: VAGUE scope types (REQUIRED), impossible-to-parse locations, contradictory directional language
 - Restriction issues: Conflicting date ranges, contradictory rules in source text, unclear regulation intent
 - Source text errors: Typos, missing information, grammatical errors that affect parsing
 - Data model limitations: Cases where the regulation doesn't fit the scope-first architecture cleanly
 
 WHEN NOT TO USE AUDIT_LOG:
-- Normal parsing decisions: "Parsed as DIRECTIONAL scope", "Extracted waterbody_key from title"
+- Normal parsing decisions: "Parsed as DIRECTIONAL scope", "Extracted lookup_name from title"
 - Standard cases: Simple upstream/downstream rules, clear date ranges, typical restriction types
 - Resolved ambiguities: If you figured out the correct interpretation, just do it - don't log it
 
@@ -251,13 +251,13 @@ VERBATIM CHAIN OF CUSTODY - CRITICAL RULES:
 
 SCOPE OBJECT TYPES:
 
-**CRITICAL - WATERBODY_KEY IN RULE SCOPES**:
-- **scope.waterbody_key**: Use the SPECIFIC component waterbody name if the rule_text_verbatim mentions it explicitly
-  * Example: "No powered boats on Atnarko River, from Goat Creek..." → waterbody_key: "ATNARKO RIVER"
-  * Example: "on Bella Coola R. MAINSTEM ONLY, trout/char..." → waterbody_key: "BELLA COOLA RIVER"
-- **scope.waterbody_key: "ALL"**: Use only when rule text refers to the system generally or doesn't specify a component
-  * Example: "**No Fishing** upstream of Tweedsmuir..." (no specific river mentioned) → waterbody_key: "ALL"
-  * Example: "Bait ban downstream..." (applies to both rivers) → waterbody_key: "ALL"
+**CRITICAL - LOOKUP_NAME IN RULE SCOPES**:
+- **scope.lookup_name**: Use the SPECIFIC component waterbody name if the rule_text_verbatim mentions it explicitly
+  * Example: "No powered boats on Atnarko River, from Goat Creek..." → lookup_name: "ATNARKO RIVER"
+  * Example: "on Bella Coola R. MAINSTEM ONLY, trout/char..." → lookup_name: "BELLA COOLA RIVER"
+- **scope.lookup_name: "ALL"**: Use only when rule text refers to the system generally or doesn't specify a component
+  * Example: "**No Fishing** upstream of Tweedsmuir..." (no specific river mentioned) → lookup_name: "ALL"
+  * Example: "Bait ban downstream..." (applies to both rivers) → lookup_name: "ALL"
 - **Rule of thumb**: If you can extract a specific waterbody name from rule_text_verbatim, use it. Otherwise use "ALL".
 
 1. WHOLE_SYSTEM: Applies to entire waterbody
@@ -399,7 +399,7 @@ IDENTITY PARSING - COMPREHENSIVE STRUCTURE:
 The identity object has multiple fields that work together to fully capture all information in the waterbody title:
 
 1. **name_verbatim**: Exact character-for-character title (already covered above)
-2. **waterbody_key**: Core waterbody name ONLY (no scope, location, notes, or modifiers in parentheses)
+2. **lookup_name**: Core waterbody name ONLY (no scope, location, notes, or modifiers in parentheses)
 3. **identity_type**: Waterbody classification (STREAM, STILL_WATER, ADMINISTRATIVE_AREA, CONFLUENCE, TRIBUTARIES, MULTIPLE_WATERBODIES)
 4. **alternate_names**: Array of alternate/former/quoted names found in parentheses
 5. **location_descriptor**: Disambiguating location information (e.g., "near Kimberley", "approx. 10 km west of 100 Mile House")
@@ -408,10 +408,10 @@ The identity object has multiple fields that work together to fully capture all 
 8. **exclusions**: Geographic exclusions (e.g., "(see exceptions)", "(except X)")
 9. **inclusions**: Geographic inclusions (e.g., "(includes Little Shuswap Lake, Mara Lake)")
 
-**WATERBODY_KEY EXTRACTION**:
+**LOOKUP_NAME EXTRACTION**:
 
 **CRITICAL RULES**:
-- waterbody_key is the CORE NAME ONLY - extract by removing parenthetical content but keeping ALL text before AND after parentheses
+- lookup_name is the CORE NAME ONLY - extract by removing parenthetical content but keeping ALL text before AND after parentheses
 - **STEP 1**: Remove ALL parentheses and their contents (e.g., "ARROW PARK (Mosquito) CREEK" → "ARROW PARK CREEK")
 - **STEP 2**: Then remove "'S TRIBUTARIES", "TRIBUTARIES", " WATERSHED", " WATERS" suffixes if present
 - **CRITICAL**: Do NOT stop at the text before parentheses - include the TYPE suffix (CREEK, LAKE, RIVER) that comes AFTER the parentheses
@@ -421,23 +421,23 @@ The identity object has multiple fields that work together to fully capture all 
   * RIGHT: "BIG FISH (Dunbar) LAKE" → "BIG FISH LAKE" ✓
 - Preserve descriptive modifiers that are part of the core name: "Little", "Big", "Upper", "Lower", "North", "South", "East", "West"
 - Keep quoted names if they're part of the core (e.g., ""ANDERSON" LAKE"), but remove parenthetical quoted names
-- waterbody_key should be CLEAN - just the essential waterbody identifier without alternate names or location info
+- lookup_name should be CLEAN - just the essential waterbody identifier without alternate names or location info
 
 **EXAMPLES**:
-- "ELK RIVER (upstream of Elko Dam)" → waterbody_key: "ELK RIVER"
-- "ECHOES LAKE (near Kimberley)" → waterbody_key: "ECHOES LAKE"
-- "KINBASKET (McNaughton) LAKE" → waterbody_key: "KINBASKET LAKE" (note: NOT "KINBASKET (McNaughton) LAKE")
-- "LITTLE MITTEN" LAKE (approx. 400 m west of Mitten Lake)" → waterbody_key: ""LITTLE MITTEN" LAKE"
-- "LARRY LAKE (unnamed lake located about 400 m west of Thalia Lake)" → waterbody_key: "LARRY LAKE"
-- "KSI SII AKS RIVER (formerly Tseax River)" → waterbody_key: "KSI SII AKS RIVER"
-- "SKEENA RIVER/KISPIOX RIVER CONFLUENCE" → waterbody_key: "SKEENA RIVER/KISPIOX RIVER CONFLUENCE"
-- "CRESTON VALLEY WILDLIFE MANAGEMENT AREA (CVWMA) WATERS" → waterbody_key: "CRESTON VALLEY WILDLIFE MANAGEMENT AREA"
-- "KOOTENAY LAKE - MAIN BODY (for location see map on page 34)" → waterbody_key: "KOOTENAY LAKE - MAIN BODY"
-- "NATION ARM (Williston Lake)" → waterbody_key: "NATION ARM"
-- "ELK RIVER'S TRIBUTARIES (see exceptions)" → waterbody_key: "ELK RIVER"
-- "LITTLE CAMPBELL RIVER" → waterbody_key: "LITTLE CAMPBELL RIVER" (preserve "Little")
-- ""GRASSY" LAKE (unnamed lake approx. 1 km southwest of West King Lake)" → waterbody_key: ""GRASSY" LAKE"
-- "EAST (Fork) WHITE RIVER" → waterbody_key: "EAST WHITE RIVER" (note: "(Fork)" goes to alternate_names)
+- "ELK RIVER (upstream of Elko Dam)" → lookup_name: "ELK RIVER"
+- "ECHOES LAKE (near Kimberley)" → lookup_name: "ECHOES LAKE"
+- "KINBASKET (McNaughton) LAKE" → lookup_name: "KINBASKET LAKE" (note: NOT "KINBASKET (McNaughton) LAKE")
+- "LITTLE MITTEN" LAKE (approx. 400 m west of Mitten Lake)" → lookup_name: ""LITTLE MITTEN" LAKE"
+- "LARRY LAKE (unnamed lake located about 400 m west of Thalia Lake)" → lookup_name: "LARRY LAKE"
+- "KSI SII AKS RIVER (formerly Tseax River)" → lookup_name: "KSI SII AKS RIVER"
+- "SKEENA RIVER/KISPIOX RIVER CONFLUENCE" → lookup_name: "SKEENA RIVER/KISPIOX RIVER CONFLUENCE"
+- "CRESTON VALLEY WILDLIFE MANAGEMENT AREA (CVWMA) WATERS" → lookup_name: "CRESTON VALLEY WILDLIFE MANAGEMENT AREA"
+- "KOOTENAY LAKE - MAIN BODY (for location see map on page 34)" → lookup_name: "KOOTENAY LAKE - MAIN BODY"
+- "NATION ARM (Williston Lake)" → lookup_name: "NATION ARM"
+- "ELK RIVER'S TRIBUTARIES (see exceptions)" → lookup_name: "ELK RIVER"
+- "LITTLE CAMPBELL RIVER" → lookup_name: "LITTLE CAMPBELL RIVER" (preserve "Little")
+- ""GRASSY" LAKE (unnamed lake approx. 1 km southwest of West King Lake)" → lookup_name: ""GRASSY" LAKE"
+- "EAST (Fork) WHITE RIVER" → lookup_name: "EAST WHITE RIVER" (note: "(Fork)" goes to alternate_names)
 
 **IDENTITY_TYPE CLASSIFICATION**:
 
@@ -530,7 +530,7 @@ Extract ONLY the disambiguating location information - phrases that help identif
 - Exceptions: "(see exceptions)", "(except X)" → goes to exclusions
 - Alternate names: "(McNaughton)", "(formerly X)" → goes to alternate_names
 - Notes/references: "(permit required...)", "(see map...)" → goes to notes
-- Part names that ARE the core identifier: "MAIN BODY", "UPPER WEST ARM" → part of waterbody_key
+- Part names that ARE the core identifier: "MAIN BODY", "UPPER WEST ARM" → part of lookup_name
 
 **EXAMPLES**:
 - "ECHOES LAKE (near Kimberley)" → location_descriptor: "near Kimberley"
@@ -625,9 +625,9 @@ Use the same tri-state logic as rule scopes:
 
 **EXAMPLES - Title-based exclusions**:
 - "ATNARKO/BELLA COOLA RIVERS EXCEPT: Burnt Bridge Creek upstream of Sitkatapa Creek" →
-  exclusions: [{{type: "DIRECTIONAL", waterbody_key: "Burnt Bridge Creek", location_verbatim: "Burnt Bridge Creek upstream of Sitkatapa Creek", ...}}]
+  exclusions: [{{type: "DIRECTIONAL", lookup_name: "Burnt Bridge Creek", location_verbatim: "Burnt Bridge Creek upstream of Sitkatapa Creek", ...}}]
 - "FRASER RIVER (except Harrison Lake)" →
-  exclusions: [{{type: "WHOLE_SYSTEM", waterbody_key: "Harrison Lake", location_verbatim: "Harrison Lake", ...}}]
+  exclusions: [{{type: "WHOLE_SYSTEM", lookup_name: "Harrison Lake", location_verbatim: "Harrison Lake", ...}}]
 - No exclusions → exclusions: []
 
 **INCLUSIONS EXTRACTION**:
@@ -640,7 +640,7 @@ Extract geographic areas that are EXPLICITLY INCLUDED in the waterbody definitio
 
 Each inclusion becomes a ScopeObject with:
 - type: Usually NAMED_PART or WHOLE_SYSTEM depending on the inclusion
-- waterbody_key: The name of the included waterbody
+- lookup_name: The name of the included waterbody
 - location_verbatim: The exact phrase from name_verbatim describing the inclusion
 - includes_tributaries: Use TRI-STATE logic (true/false/null) based on whether inclusion text mentions tributaries
 - Other fields as appropriate
@@ -648,19 +648,19 @@ Each inclusion becomes a ScopeObject with:
 **EXAMPLES**:
 - "PEND D'OREILLE RIVER (Includes the reservoirs behind Waneta Dam and Seven Mile Dam)" →
   inclusions: [
-    {{type: "NAMED_PART", waterbody_key: "PEND D'OREILLE RIVER", location_verbatim: "the reservoirs behind Waneta Dam and Seven Mile Dam", ...}}
+    {{type: "NAMED_PART", lookup_name: "PEND D'OREILLE RIVER", location_verbatim: "the reservoirs behind Waneta Dam and Seven Mile Dam", ...}}
   ]
 - "SUMALLO RIVER (includes "Cedar" Lake, at Sunshine Valley)" →
   inclusions: [
-    {{type: "WHOLE_SYSTEM", waterbody_key: ""Cedar" Lake", location_verbatim: ""Cedar" Lake, at Sunshine Valley", ...}}
+    {{type: "WHOLE_SYSTEM", lookup_name: ""Cedar" Lake", location_verbatim: ""Cedar" Lake, at Sunshine Valley", ...}}
   ]
 - "VASEUX LAKE (including two lagoons on the west side of Okanagan River upstream of McIntyre Dam)" →
   inclusions: [
-    {{type: "NAMED_PART", waterbody_key: "VASEUX LAKE", location_verbatim: "two lagoons on the west side of Okanagan River upstream of McIntyre Dam", ...}}
+    {{type: "NAMED_PART", lookup_name: "VASEUX LAKE", location_verbatim: "two lagoons on the west side of Okanagan River upstream of McIntyre Dam", ...}}
   ]
 - No inclusions → inclusions: []
 
-**VALIDATION**: Verify waterbody_key is derivable from name_verbatim by removing parenthetical sections and suffixes
+**VALIDATION**: Verify lookup_name is derivable from name_verbatim by removing parenthetical sections and suffixes
 
 TRIBUTARY INCLUSION LOGIC:
 
@@ -846,7 +846,7 @@ JSON SCHEMA:
 {{
    "identity": {{
       "name_verbatim": "EXACT title from source - copy character-for-character",
-      "waterbody_key": "Core waterbody name ONLY - no parenthetical content, no scope indicators (see IDENTITY PARSING section)",
+      "lookup_name": "Core waterbody name ONLY - no parenthetical content, no scope indicators (see IDENTITY PARSING section)",
       "identity_type": "STREAM|STILL_WATER|ADMINISTRATIVE_AREA|CONFLUENCE|TRIBUTARIES|MULTIPLE_WATERBODIES",
       "component_waterbodies": ["For MULTIPLE_WATERBODIES: individual names like 'ATNARKO RIVER', 'BELLA COOLA RIVER'; empty array for single waterbodies"],
       "alternate_names": ["Array of alternate/former/quoted names from parentheses", "e.g., 'McNaughton', 'formerly Tseax River'"],
@@ -854,7 +854,7 @@ JSON SCHEMA:
       "notes": "Administrative notes/references or null (e.g., 'permit required see Note on page 34', 'see map on page 42')",
       "global_scope": {{
          "type": "WHOLE_SYSTEM|DIRECTIONAL|SEGMENT|NAMED_PART|TRIBUTARIES_ONLY|BUFFER|VAGUE",
-         "waterbody_key": "ALL (default) or specific waterbody name when rule text explicitly restricts to one component",
+         "lookup_name": "ALL (default) or specific waterbody name when rule text explicitly restricts to one component",
          "location_verbatim": "Exact substring from name_verbatim (for scope from title) or null",
          "landmark_verbatim": "Exact substring or null",
          "landmark_end_verbatim": "Exact substring or null (for SEGMENT)",
@@ -864,7 +864,7 @@ JSON SCHEMA:
       "exclusions": [
          {{
             "type": "...",
-            "waterbody_key": "...",
+            "lookup_name": "...",
             "location_verbatim": "Exact substring from name_verbatim",
             "landmark_verbatim": "...",
             "landmark_end_verbatim": "...",
@@ -875,7 +875,7 @@ JSON SCHEMA:
       "inclusions": [
          {{
             "type": "...",
-            "waterbody_key": "...",
+            "lookup_name": "...",
             "location_verbatim": "Exact substring from name_verbatim describing what's included",
             "landmark_verbatim": "...",
             "landmark_end_verbatim": "...",
@@ -891,7 +891,7 @@ JSON SCHEMA:
          "rule_text_verbatim": "SINGLE exact contiguous substring containing the restriction, dates, and spatial context",
          "scope": {{
             "type": "WHOLE_SYSTEM|DIRECTIONAL|SEGMENT|NAMED_PART|TRIBUTARIES_ONLY|BUFFER|VAGUE",
-            "waterbody_key": "...",
+            "lookup_name": "...",
             "location_verbatim": "Exact substring from rule_text_verbatim",
             "landmark_verbatim": "...",
             "landmark_end_verbatim": "...",
@@ -911,7 +911,7 @@ PARSING STEPS:
 
 1. Extract identity.name_verbatim - copy EXACTLY from "Waterbody Name:" (character-for-character, no changes)
 2. Parse identity fields using IDENTITY PARSING section:
-   - waterbody_key: Core name only (remove ALL parentheses and suffixes)
+   - lookup_name: Core name only (remove ALL parentheses and suffixes)
    - identity_type: Classify as STREAM (flowing), STILL_WATER (standing), ADMINISTRATIVE_AREA (management areas/parks/watersheds - polygon-based), CONFLUENCE, TRIBUTARIES, or MULTIPLE_WATERBODIES
    - component_waterbodies: If MULTIPLE_WATERBODIES type, extract individual waterbody names
    - alternate_names: Extract alternate/former/quoted names from parentheses
@@ -927,7 +927,7 @@ PARSING STEPS:
    c. Create a separate rule for EACH restriction (even if multiple restrictions share the same scope)
    d. Build rule_text_verbatim as a single contiguous string containing the restriction, dates, and scope
    e. Build scope object with proper type, landmarks, direction
-   f. **CRITICAL - Set scope.waterbody_key**:
+   f. **CRITICAL - Set scope.lookup_name**:
       - If rule_text_verbatim mentions a specific component waterbody by name (e.g., "on Atnarko River", "Bella Coola R. MAINSTEM"), extract that name and use it
       - Otherwise, use "ALL" to indicate it applies to the entire system
    g. Set scope.includes_tributaries using TRI-STATE logic:
@@ -957,8 +957,8 @@ Before submitting, verify EVERY verbatim field:
 - If ANY verbatim field fails this check, the entire parsing will fail
 
 **COMMON FAILURE MODE CHECKS**:
-1. **Parenthetical Names**: For "NAME (Alt) TYPE", waterbody_key should be "NAME TYPE", NOT just "NAME"
-   - Example: "ARROW PARK (Mosquito) CREEK" → waterbody_key: "ARROW PARK CREEK" ✓ NOT "ARROW PARK" ❌
+1. **Parenthetical Names**: For "NAME (Alt) TYPE", lookup_name should be "NAME TYPE", NOT just "NAME"
+   - Example: "ARROW PARK (Mosquito) CREEK" → lookup_name: "ARROW PARK CREEK" ✓ NOT "ARROW PARK" ❌
    - Verify you kept the TYPE suffix (CREEK, LAKE, RIVER) that comes after parentheses
 
 2. **Rule Text Hallucinations**: Use Ctrl+F to verify each rule_text_verbatim EXISTS in regs_verbatim
@@ -1006,9 +1006,9 @@ Before submitting, verify EVERY verbatim field:
 
 3. Required Fields:
    Every object has: identity, regs_verbatim, audit_log, rules
-   Every identity has: name_verbatim, waterbody_key, identity_type, component_waterbodies, alternate_names, location_descriptor, notes, global_scope, exclusions, inclusions
+   Every identity has: name_verbatim, lookup_name, identity_type, component_waterbodies, alternate_names, location_descriptor, notes, global_scope, exclusions, inclusions
    Every rule has: rule_text_verbatim (STRING), scope, restriction (SINGULAR)
-   Every scope has: type, waterbody_key, location_verbatim, landmark_verbatim, landmark_end_verbatim, direction, includes_tributaries
+   Every scope has: type, lookup_name, location_verbatim, landmark_verbatim, landmark_end_verbatim, direction, includes_tributaries
    Every restriction has: type, details, dates
    audit_log is an array (can be empty [] if no issues, but field must exist)
 
@@ -1031,7 +1031,7 @@ Before submitting, verify EVERY verbatim field:
    audit_log field exists in every output object (array, can be empty [])
    Use audit_log for ANY level of parsing issues: identity, global_scope, exclusions, rule scopes, restrictions
    If any scope has type="VAGUE", audit_log MUST contain at least one entry explaining why
-   Use for identity issues: unclear waterbody_key extraction, ambiguous exclusions/inclusions, global_scope uncertainties
+   Use for identity issues: unclear lookup_name extraction, ambiguous exclusions/inclusions, global_scope uncertainties
    Do NOT use audit_log for normal parsing commentary - only genuine ambiguities/errors
    Good examples:
      "Identity: Waterbody_key ambiguous - title has multiple potential names"
@@ -1041,7 +1041,7 @@ Before submitting, verify EVERY verbatim field:
      "Rule 3: Conflicting dates - text says both 'June 1-30' and 'May 15-June 15'"
    Bad examples:
      "Parsed upstream as DIRECTIONAL scope" (this is normal, don't log it)
-     "Extracted waterbody_key by removing 'TRIBUTARIES'" (normal operation)
+     "Extracted lookup_name by removing 'TRIBUTARIES'" (normal operation)
 
 **COMMON VERBATIM MISTAKES TO AVOID**:
 

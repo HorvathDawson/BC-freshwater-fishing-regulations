@@ -63,7 +63,7 @@ const ADMIN_COLORS: Record<string, string> = {
     admin_watersheds: '#006D77',       // Deep teal — watersheds
     admin_historic_sites: '#795548',   // Warm brown — heritage sites
     // ── OSM Admin boundaries ────────────────────────────────────────
-    osm_admin: '#0072B2',              // Wong blue — colorblind-safe
+    osm_admin: '#D55E00',              // Wong vermillion — distinct from all other admin colors
 };
 
 // Helper function to create regulation layers from new PMTiles structure
@@ -524,6 +524,50 @@ export const createRegulationLayers = (): LayerSpecification[] => {
             'text-color': '#6A1B9A',
             'text-halo-color': '#FFFFFF',
             'text-halo-width': 1.2,
+        },
+    });
+
+    // ── TIDAL BOUNDARY (low-opacity grey overlay — DFO jurisdiction) ────
+    adminLayers.push({
+        id: 'tidal_boundary-fill',
+        type: 'fill',
+        source: 'regulations',
+        'source-layer': 'tidal_boundary',
+        paint: {
+            'fill-color': '#6B7280',  // Tailwind gray-500
+            'fill-opacity': 0.15,
+        },
+    });
+    adminLayers.push({
+        id: 'tidal_boundary-line',
+        type: 'line',
+        source: 'regulations',
+        'source-layer': 'tidal_boundary',
+        paint: {
+            'line-color': '#6B7280',
+            'line-width': 2,
+            'line-opacity': 0.5,
+            'line-dasharray': [4, 3],
+        },
+    });
+    adminLayers.push({
+        id: 'tidal_boundary-label',
+        type: 'symbol',
+        source: 'regulations',
+        'source-layer': 'tidal_boundary',
+        minzoom: 8,
+        layout: {
+            'symbol-placement': 'point',
+            'text-field': 'Tidal Waters',
+            'text-font': ['Noto Sans Bold'],
+            'text-size': ['interpolate', ['linear'], ['zoom'], 8, 10, 12, 14],
+            'text-allow-overlap': false,
+            'text-padding': 6,
+        },
+        paint: {
+            'text-color': '#4B5563',
+            'text-halo-color': '#FFFFFF',
+            'text-halo-width': 1.5,
         },
     });
 

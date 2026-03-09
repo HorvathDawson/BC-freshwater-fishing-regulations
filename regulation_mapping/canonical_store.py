@@ -114,6 +114,9 @@ POLYGON_LAYERS = {
     "manmade_water": FeatureType.MANMADE,
 }
 
+# GPKG layer name for the tidal boundary polygon
+TIDAL_BOUNDARY_LAYER = "tidal_boundary"
+
 
 # ---------------------------------------------------------------------------
 # CanonicalDataStore
@@ -217,6 +220,19 @@ class CanonicalDataStore:
         blk_zooms = self._get_synchronized_blk_zooms()
         clip_stats = {"inside": 0, "outside": 0, "clipped": 0, "fallback": 0}
 
+        # Pre-compute tidal clipping data (done once, before the feature loop)
+        tidal_clip_union = self._build_tidal_clip_union()
+        tidal_prep = (
+            shapely_prep(tidal_clip_union) if tidal_clip_union is not None else None
+        )
+        # Pre-segment the tidal polygon into a grid of small local tiles so
+        # that difference() in _clip_streams_at_tidal_boundary runs against a
+        # tiny local sub-polygon (same accuracy, orders-of-magnitude faster).
+        tidal_tiles: List[BaseGeometry] = []
+        tidal_tile_tree: Any = None
+        if tidal_clip_union is not None:
+            tidal_tiles, tidal_tile_tree = self._build_tidal_tiles(tidal_clip_union)
+
         # Accumulate features for post-merge; yield ungazetted directly
         stream_features: List[dict] = []
         polygon_features: List[dict] = []
@@ -251,10 +267,28 @@ class CanonicalDataStore:
 
         # Post-merge polygons with identical waterbody_key (zone splits → unified)
         merged_polygons = self._merge_same_waterbody_polygons(polygon_features)
-        yield from merged_polygons
 
         # Post-merge streams with identical BLK+WBK+regulation_ids
         merged_streams = self._merge_same_regulation_features(stream_features)
+
+        # ── Tidal boundary clipping (runs last) ─────────────────────
+        # Streams: clip at tidal boundary, keep only the freshwater side.
+        # Wetlands: remove entirely if inside the tidal polygon.
+        # Lakes: unchanged.
+        if tidal_clip_union is not None:
+            logger.info(
+                f"Tidal clipping: {len(merged_streams):,} streams, "
+                f"{len(merged_polygons):,} polygons..."
+            )
+            merged_streams = self._clip_streams_at_tidal_boundary(
+                merged_streams, tidal_clip_union, tidal_prep,
+                tidal_tiles, tidal_tile_tree,
+            )
+            merged_polygons = self._remove_tidal_wetlands(
+                merged_polygons, tidal_clip_union
+            )
+
+        yield from merged_polygons
         yield from merged_streams
 
         if any(clip_stats.values()):
@@ -612,6 +646,228 @@ class CanonicalDataStore:
             f"across {len(self.admin_area_reg_map)} layer(s)"
         )
         return union
+
+    def _build_tidal_clip_union(self) -> Optional[BaseGeometry]:
+        """Load tidal boundary polygon(s) from GPKG and return their union.
+
+        Returns ``None`` when the layer is absent (data not yet available),
+        allowing the pipeline to run unchanged until a tidal polygon is added.
+        """
+        if TIDAL_BOUNDARY_LAYER not in self.data_accessor.list_layers():
+            logger.debug(
+                f"'{TIDAL_BOUNDARY_LAYER}' layer not in GPKG — tidal clipping disabled"
+            )
+            return None
+        gdf = self.data_accessor.get_layer(TIDAL_BOUNDARY_LAYER).to_crs("EPSG:3005")
+        if gdf.empty:
+            return None
+        union = unary_union(gdf.geometry.tolist())
+        logger.info(
+            f"Tidal clip union built from {len(gdf)} polygon(s)"
+        )
+        return union
+
+    def get_tidal_boundary_gdf(self) -> Optional[gpd.GeoDataFrame]:
+        """Return the raw tidal boundary GeoDataFrame (for the display layer)."""
+        if TIDAL_BOUNDARY_LAYER not in self.data_accessor.list_layers():
+            return None
+        gdf = self.data_accessor.get_layer(TIDAL_BOUNDARY_LAYER).to_crs("EPSG:3005")
+        return gdf if not gdf.empty else None
+
+    @staticmethod
+    def _build_tidal_tiles(
+        tidal_union: BaseGeometry,
+        target_cells: int = 2000,
+    ) -> Tuple[List[BaseGeometry], Any]:
+        """Segment the tidal polygon into a grid of small local tiles.
+
+        The full tidal polygon covers all of coastal BC (113K vertices, 3300+
+        holes). Running ``difference()`` against it for every crossing stream is
+        expensive even with GEOS internals. This method slices it into a grid of
+        small local sub-polygons (typically <2K vertices each) computed once at
+        pipeline startup. Each crossing stream then only clips against the 1-4
+        tiles that touch it, giving the same cut-point accuracy at a fraction of
+        the cost.
+
+        The grid cell size is derived automatically from ``target_cells`` and the
+        polygon's bounding box so the tiles stay roughly square.
+
+        Args:
+            tidal_union: Full-resolution tidal polygon (any complexity).
+            target_cells: Approximate grid size. More cells → smaller,
+                faster-to-clip tiles; fewer → faster setup. 2000 gives
+                ~25 km cells over the BC coast bbox.
+
+        Returns:
+            (tiles, STRtree-over-tiles)
+        """
+        import shapely as _shapely
+        from shapely.strtree import STRtree
+        from shapely.geometry import box
+
+        minx, miny, maxx, maxy = tidal_union.bounds
+        cell_size = (((maxx - minx) * (maxy - miny)) / target_cells) ** 0.5
+
+        xs = np.arange(minx, maxx, cell_size)
+        ys = np.arange(miny, maxy, cell_size)
+
+        # Build all grid cells, then drop those whose bbox doesn't even touch
+        # the tidal polygon bbox (saves intersection work on empty sea/land).
+        all_cells = [
+            box(x, y, min(x + cell_size, maxx), min(y + cell_size, maxy))
+            for x in xs for y in ys
+        ]
+        cell_tree = STRtree(all_cells)
+        candidate_idxs = cell_tree.query(tidal_union)  # bbox-level pre-filter
+        candidate_cells = np.array(
+            [all_cells[i] for i in candidate_idxs], dtype=object
+        )
+
+        if len(candidate_cells) == 0:
+            return [], STRtree([])
+
+        # Batch-intersect in C via Shapely 2.x vectorised API:
+        # tidal_union is broadcast against the array of cells in one C call.
+        tile_geoms = _shapely.intersection(tidal_union, candidate_cells)
+        valid_tiles = [
+            g for g in tile_geoms if g is not None and not g.is_empty
+        ]
+
+        logger.info(
+            f"Tidal polygon tiled into {len(valid_tiles)} segments "
+            f"(grid cell ≈ {cell_size / 1000:.0f} km, "
+            f"{len(all_cells)} total cells checked)"
+        )
+        return valid_tiles, STRtree(valid_tiles)
+
+    # ------------------------------------------------------------------
+    # Tidal boundary clipping
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def _clip_streams_at_tidal_boundary(
+        stream_features: List[dict],
+        tidal_union: BaseGeometry,
+        tidal_prep: PreparedGeometry,
+        tidal_tiles: List[BaseGeometry] = (),
+        tile_tree: Any = None,
+    ) -> List[dict]:
+        """Clip stream features at the tidal boundary, keeping only freshwater portions.
+
+        - Streams fully inside tidal: removed.
+        - Streams crossing the boundary: split; only outside portion kept.
+        - Streams fully outside: kept unchanged.
+
+        Uses two spatial indexes:
+        1. STRtree over all streams (predicate='intersects') to find tidal candidates
+           in pure C — the vast majority of inland streams are eliminated here.
+        2. STRtree over pre-tiled tidal sub-polygons so that difference() for each
+           crossing stream runs against 1-4 small local tiles (~1-5 km²) rather than
+           the full 113K-vertex coastline polygon. Accuracy is unchanged.
+        """
+        from shapely.strtree import STRtree
+
+        use_tiles = bool(tidal_tiles)
+
+        # Filter out null/empty geometries upfront
+        indexed_feats = [f for f in stream_features if f.get("geometry") and not f["geometry"].is_empty]
+        indexed_geoms = [f["geometry"] for f in indexed_feats]
+
+        if not indexed_feats:
+            return []
+
+        # STRtree.query with predicate='intersects' runs the full geometry
+        # intersection test in C — only returns streams that actually intersect
+        # the tidal polygon (not just bbox overlap).
+        tree = STRtree(indexed_geoms)
+        intersecting_idxs = set(tree.query(tidal_union, predicate="intersects"))
+
+        result: List[dict] = []
+        removed = 0
+        clipped = 0
+
+        for i, (feat, geom) in enumerate(zip(indexed_feats, indexed_geoms)):
+            if i not in intersecting_idxs:
+                # Confirmed non-intersecting in C — keep as-is
+                result.append(feat)
+                continue
+
+            # Intersects tidal: check if fully inside or crossing
+            if tidal_prep.contains(geom):
+                removed += 1
+                continue
+
+            # Boundary crossing: keep only the freshwater (outside) portion.
+            # For the difference() step, build a small local tidal polygon by
+            # unioning only the pre-tiled segments that touch this stream. Each
+            # tile covers ~25 km², so a typical crossing stream hits 1-4 tiles
+            # with a few hundred vertices instead of the full 113K-vertex polygon.
+            if use_tiles:
+                tile_idxs = tile_tree.query(geom, predicate="intersects")
+                local_tidal = (
+                    unary_union([tidal_tiles[ti] for ti in tile_idxs])
+                    if len(tile_idxs)
+                    else tidal_union  # safety fallback
+                )
+            else:
+                local_tidal = tidal_union
+
+            outside = geom.difference(local_tidal)
+            outside_parts = extract_line_components(outside)
+            # extract_line_components already drops zero-length degenerate artefacts
+            # (points, empty rings) that difference() can emit at tangent touches.
+            # We do NOT apply an additional length threshold here — legitimate
+            # freshwater remnants right at the river mouth can be very short.
+
+            if outside_parts:
+                clipped += 1
+                merged = merge_lines(outside_parts)
+                result.append({**feat, "geometry": merged, "length_m": merged.length})
+            else:
+                removed += 1
+
+        logger.info(
+            f"Tidal stream clipping: {len(intersecting_idxs):,} intersected "
+            f"(of {len(indexed_feats):,} total), {clipped} split at boundary, "
+            f"{removed} removed (fully tidal), {len(result):,} retained"
+        )
+        return result
+
+    @staticmethod
+    def _remove_tidal_wetlands(
+        polygon_features: List[dict],
+        tidal_union: BaseGeometry,
+    ) -> List[dict]:
+        """Remove wetland features that are inside the tidal boundary.
+
+        Lakes and manmade waterbodies are kept unchanged.
+        Wetlands are removed if they intersect the tidal polygon.
+        Uses STRtree with predicate='intersects' for full C-speed filtering.
+        """
+        from shapely.strtree import STRtree
+
+        # Non-wetlands pass through immediately — no geometry check needed
+        non_wetlands = [f for f in polygon_features if f.get("feature_type") != FeatureType.WETLAND.value]
+        wetlands = [
+            f for f in polygon_features
+            if f.get("feature_type") == FeatureType.WETLAND.value
+            and f.get("geometry") and not f["geometry"].is_empty
+        ]
+
+        if not wetlands:
+            return non_wetlands
+
+        wetland_geoms = [f["geometry"] for f in wetlands]
+        tree = STRtree(wetland_geoms)
+        # Full intersection test in C — returns only wetlands that actually intersect
+        remove_idxs = set(tree.query(tidal_union, predicate="intersects"))
+
+        kept_wetlands = [f for i, f in enumerate(wetlands) if i not in remove_idxs]
+        removed = len(remove_idxs)
+
+        if removed:
+            logger.info(f"Tidal wetland removal: {removed} wetlands removed")
+        return non_wetlands + kept_wetlands
 
     # ------------------------------------------------------------------
     # Canonical feature building (private)

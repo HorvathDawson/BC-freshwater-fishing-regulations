@@ -26,6 +26,10 @@ from .logger_config import get_logger
 
 logger = get_logger(__name__)
 
+# Pre-compiled regex patterns for search name cleanup
+_RE_BRACKETS = re.compile(r"\s*\([^)]*\)\s*")
+_RE_MULTI_SPACE = re.compile(r"\s+")
+
 
 class DirectMatchError(Exception):
     """Raised when a DirectMatch configuration fails to resolve all its IDs.
@@ -228,7 +232,7 @@ class WaterbodyLinker:
                 return result
 
         # STEP 2: Natural gazetteer search (no manual corrections)
-        # Use verbatim name only (not the parsed waterbody_key)
+        # Use verbatim name only (not the parsed lookup_name)
         # Try 3 variations in order:
         # 1. Verbatim name as-is
         # 2. Verbatim with outermost brackets removed (e.g., "LAKE (Region 5)" -> "LAKE")
@@ -239,24 +243,16 @@ class WaterbodyLinker:
 
         # Generate bracket-removed variation
         if "(" in search_name and ")" in search_name:
-            # Find outermost matching brackets and remove them + contents
-            # e.g., "LAKE (Region 5)" -> "LAKE "
-            # e.g., "LEWIS (\"Cameron\") SLOUGH" -> "LEWIS  SLOUGH"
-            bracket_removed = search_name
-            # Remove all (...) patterns
-            bracket_removed = re.sub(r"\s*\([^)]*\)\s*", " ", bracket_removed).strip()
-            # Normalize multiple spaces to single space
-            bracket_removed = re.sub(r"\s+", " ", bracket_removed)
+            bracket_removed = _RE_BRACKETS.sub(" ", search_name).strip()
+            bracket_removed = _RE_MULTI_SPACE.sub(" ", bracket_removed)
             if bracket_removed != search_name:
                 search_variations.append(bracket_removed)
 
         # Generate brackets + quotes removed variation
         if "(" in search_name or '"' in search_name or "'" in search_name:
-            # Remove brackets, then quotes
-            cleaned = re.sub(r"\s*\([^)]*\)\s*", " ", search_name).strip()
+            cleaned = _RE_BRACKETS.sub(" ", search_name).strip()
             cleaned = cleaned.replace('"', "").replace("'", "")
-            # Normalize multiple spaces
-            cleaned = re.sub(r"\s+", " ", cleaned)
+            cleaned = _RE_MULTI_SPACE.sub(" ", cleaned)
             if cleaned not in search_variations:
                 search_variations.append(cleaned)
 
@@ -782,7 +778,7 @@ def _run_coverage_test() -> None:
 
             entry = {
                 "name_verbatim": name,
-                "waterbody_key": item["waterbody_key"],
+                "lookup_name": item["lookup_name"],
                 "region": reg,
                 "management_units": (
                     item["mu"]
@@ -804,7 +800,7 @@ def _run_coverage_test() -> None:
 
             if mode == "NOT_FOUND":
                 entry["search_terms_used"] = item.get(
-                    "search_terms", [item["waterbody_key"].lower()]
+                    "search_terms", [item["lookup_name"].lower()]
                 )
                 entry["suggested_action"] = "Add to DIRECT_MATCHES with GNIS ID"
             else:
@@ -902,7 +898,10 @@ def _run_coverage_test() -> None:
 
     for i, wb in enumerate(parsed_data):
         ident = wb["identity"]
-        key, name = ident["waterbody_key"], ident["name_verbatim"]
+        key, name = (
+            ident.get("lookup_name") or ident.get("waterbody_key", ""),
+            ident["name_verbatim"],
+        )
         region = extract_region(wb.get("region", ""))
         mus = wb.get("mu", [])
 
@@ -996,7 +995,7 @@ def _run_coverage_test() -> None:
                 )
 
         item_data = {
-            "waterbody_key": key,
+            "lookup_name": key,
             "name_verbatim": name,
             "location_descriptor": ident.get("location_descriptor"),
             "alternate_names": ident.get("alternate_names", []),

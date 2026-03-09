@@ -445,6 +445,64 @@
     border-left-color: var(--border, #ccc);
 }
 
+/* Exclusions (exceptions) dropdown */
+.exclusions-section {
+    margin: 0 0 4px 0;
+    padding: 0 8px;
+}
+
+.exclusions-toggle {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: none;
+    border: none;
+    padding: 4px 0;
+    font-size: 11px;
+    color: var(--text-secondary, #b0b0b0);
+    cursor: pointer;
+    font-family: inherit;
+}
+
+.exclusions-toggle:hover {
+    color: var(--text-primary, #ddd);
+}
+
+.exclusions-list {
+    list-style: none;
+    margin: 0 0 4px 0;
+    padding: 4px 0 4px 16px;
+}
+
+.exclusion-item {
+    font-size: 11px;
+    color: var(--text-secondary, #aaa);
+    padding: 1px 0;
+    line-height: 1.4;
+}
+
+.exclusion-name {
+    color: var(--text, #f0f0f0);
+    font-weight: 500;
+}
+
+.exclusion-meta {
+    color: var(--text-secondary, #b0b0b0);
+    font-size: 10px;
+}
+
+.exclusion-detail {
+    font-size: 10px;
+    color: var(--text-muted, #999);
+    font-style: italic;
+}
+
+.exclusion-trib-tag {
+    font-size: 10px;
+    color: var(--text-muted, #999);
+    font-style: italic;
+}
+
 /* Section header with inline filter */
 .section-header-row {
     display: flex;

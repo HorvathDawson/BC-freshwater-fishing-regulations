@@ -94,6 +94,9 @@ class FakeLinkerGazetteer:
     def get_ungazetted_by_id(self, ungaz_id: str) -> Optional[FWAFeature]:
         return self.features_by_ungazetted_id.get(ungaz_id)
 
+    def search_unnamed_by_inherited_gnis_id(self, gnis_id: str) -> List[FWAFeature]:
+        return []
+
     # Convenience to bulk-register features
     def add_feature(self, feature: FWAFeature) -> None:
         """Register a feature in all relevant lookup indices."""

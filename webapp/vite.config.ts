@@ -84,7 +84,6 @@ export default defineConfig({
       allow: ['..']
     },
     headers: {
-      'Cache-Control': 'no-cache',
       'Accept-Ranges': 'bytes'
     }
   },

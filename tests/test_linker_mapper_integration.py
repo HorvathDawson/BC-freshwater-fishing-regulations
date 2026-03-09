@@ -139,6 +139,9 @@ class IntegrationGazetteer:
     def get_ungazetted_by_id(self, feature_id: str) -> Optional[FWAFeature]:
         return self._by_ungazetted.get(feature_id)
 
+    def search_unnamed_by_inherited_gnis_id(self, gnis_id: str) -> List[FWAFeature]:
+        return []
+
     # --- Mapper-compatible methods ---
 
     def get_feature_by_id(self, feature_id: str) -> Optional[FWAFeature]:

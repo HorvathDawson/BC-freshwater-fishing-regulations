@@ -2,10 +2,16 @@
 Tests for waterbody name cleaning functionality.
 """
 
+import pytest
+
+pytest.skip(
+    "synopsis_pipeline.waterbody_cleaner was removed; these tests are stale",
+    allow_module_level=True,
+)
+
 import sys
 import os
 
-# Add parent directory to path for imports
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from synopsis_pipeline.waterbody_cleaner import (

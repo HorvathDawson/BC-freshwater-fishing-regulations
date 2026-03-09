@@ -5,7 +5,7 @@ Compare multiple completed parsing sessions to analyze differences and consisten
 Updated to work with the current data model including:
 - rule_text_verbatim (list of strings) - supports interleaved rule text
 - landmark_end_verbatim (for SEGMENT scopes)
-- waterbody_key in scopes
+- lookup_name in scopes
 - identity.global_scope and identity.exclusions
 - audit_log tracking
 - dates field in restrictions
@@ -311,9 +311,8 @@ def compare_rule_structures(sessions: Dict[str, Dict], waterbody: str) -> Dict:
                                 "includes_tributaries": rule.get("scope", {}).get(
                                     "includes_tributaries"
                                 ),
-                                "waterbody_key": rule.get("scope", {}).get(
-                                    "waterbody_key"
-                                ),
+                                "lookup_name": rule.get("scope", {}).get("lookup_name")
+                                or rule.get("scope", {}).get("waterbody_key"),
                             }
                             for rule in rules
                         ],
@@ -382,9 +381,9 @@ def scopes_are_meaningfully_different(scopes1, scopes2):
 
 
 def analyze_identity_changes(item_comparison: Dict[str, Dict]) -> Dict:
-    """Analyze how identity fields (global_scope, waterbody_key, exclusions) have changed."""
+    """Analyze how identity fields (global_scope, lookup_name, exclusions) have changed."""
     identity_changes = {
-        "waterbody_key_changes": [],
+        "lookup_name_changes": [],
         "global_scope_changes": [],
         "exclusion_changes": [],
         "summary": {},
@@ -405,11 +404,11 @@ def analyze_identity_changes(item_comparison: Dict[str, Dict]) -> Dict:
                 identity1 = item1.get("identity", {})
                 identity2 = item2.get("identity", {})
 
-                # Check waterbody_key changes
-                key1 = identity1.get("waterbody_key")
-                key2 = identity2.get("waterbody_key")
+                # Check lookup_name changes
+                key1 = identity1.get("lookup_name") or identity1.get("waterbody_key")
+                key2 = identity2.get("lookup_name") or identity2.get("waterbody_key")
                 if key1 != key2:
-                    identity_changes["waterbody_key_changes"].append(
+                    identity_changes["lookup_name_changes"].append(
                         {
                             "waterbody": waterbody,
                             "session_pair": f"{session1} -> {session2}",
@@ -448,7 +447,7 @@ def analyze_identity_changes(item_comparison: Dict[str, Dict]) -> Dict:
 
     identity_changes["summary"] = {
         "total_items_compared": len(multi_session_items),
-        "waterbody_key_changes": len(identity_changes["waterbody_key_changes"]),
+        "lookup_name_changes": len(identity_changes["lookup_name_changes"]),
         "global_scope_changes": len(identity_changes["global_scope_changes"]),
         "exclusion_changes": len(identity_changes["exclusion_changes"]),
     }
@@ -814,14 +813,14 @@ def generate_report(sessions: Dict[str, Dict], output_file: Path = None) -> str:
     # Identity change analysis
     identity_changes = analyze_identity_changes(item_comparison)
     if (
-        identity_changes["summary"]["waterbody_key_changes"] > 0
+        identity_changes["summary"]["lookup_name_changes"] > 0
         or identity_changes["summary"]["global_scope_changes"] > 0
         or identity_changes["summary"]["exclusion_changes"] > 0
     ):
         report_lines.append("IDENTITY CHANGE ANALYSIS:")
         report_lines.append("-" * 40)
         report_lines.append(
-            f"Waterbody key changes: {identity_changes['summary']['waterbody_key_changes']}"
+            f"Lookup name changes: {identity_changes['summary']['lookup_name_changes']}"
         )
         report_lines.append(
             f"Global scope changes: {identity_changes['summary']['global_scope_changes']}"
@@ -831,10 +830,10 @@ def generate_report(sessions: Dict[str, Dict], output_file: Path = None) -> str:
         )
         report_lines.append("")
 
-        if identity_changes["waterbody_key_changes"]:
-            report_lines.append("WATERBODY KEY CHANGES:")
+        if identity_changes["lookup_name_changes"]:
+            report_lines.append("LOOKUP NAME CHANGES:")
             report_lines.append("-" * 50)
-            for change in identity_changes["waterbody_key_changes"]:
+            for change in identity_changes["lookup_name_changes"]:
                 wb_display = (
                     change["waterbody"][:60] + "..."
                     if len(change["waterbody"]) > 60
@@ -1528,7 +1527,7 @@ def generate_summary_report(sessions: Dict[str, Dict]) -> str:
     report_lines.append("CHANGES DETECTED:")
     report_lines.append(f"  Identity changes:")
     report_lines.append(
-        f"    - Waterbody key: {identity_changes['summary']['waterbody_key_changes']}"
+        f"    - Lookup name: {identity_changes['summary']['lookup_name_changes']}"
     )
     report_lines.append(
         f"    - Global scope: {identity_changes['summary']['global_scope_changes']}"
@@ -1603,8 +1602,10 @@ def detailed_item_comparison(sessions: Dict[str, Dict], waterbody_name: str) -> 
             for i, scope in enumerate(details["scope_details"]):
                 report_lines.append(f"  Rule {i+1}:")
                 report_lines.append(f"    Type: {scope['type']}")
-                if scope.get("waterbody_key"):
-                    report_lines.append(f"    Waterbody Key: {scope['waterbody_key']}")
+                if scope.get("lookup_name") or scope.get("waterbody_key"):
+                    report_lines.append(
+                        f"    Lookup Name: {scope.get('lookup_name') or scope.get('waterbody_key')}"
+                    )
                 if scope["location_verbatim"]:
                     location = (
                         scope["location_verbatim"][:100] + "..."
@@ -1848,9 +1849,8 @@ def get_items_with_brackets_in_title(session_data: Dict) -> List[Dict]:
                         "waterbody": waterbody,
                         "bracket_count": len(bracket_contents),
                         "bracket_contents": bracket_contents,
-                        "waterbody_key": item.get("identity", {}).get(
-                            "waterbody_key", ""
-                        ),
+                        "lookup_name": item.get("identity", {}).get("lookup_name")
+                        or item.get("identity", {}).get("waterbody_key", ""),
                         "has_exclusions": len(
                             item.get("identity", {}).get("exclusions", [])
                         )
@@ -1935,7 +1935,7 @@ def format_single_session_output(
             lines.append(f"Bracket contents ({item['bracket_count']}):")
             for i, content in enumerate(item["bracket_contents"], 1):
                 lines.append(f"  {i}. ({content})")
-            lines.append(f"Waterbody key: {item.get('waterbody_key', 'Unknown')}")
+            lines.append(f"Lookup name: {item.get('lookup_name', 'Unknown')}")
             lines.append(
                 f"Has exclusions: {item.get('has_exclusions', False)} (count: {item.get('exclusion_count', 0)})"
             )

@@ -38,6 +38,7 @@ def _ensure_config() -> Tuple[Dict[str, Any], List[Dict[str, str]]]:
         API_KEYS = get_api_keys()
     return CONFIG, API_KEYS
 
+
 # Global flag for graceful shutdown
 interruption_requested = False
 
@@ -571,7 +572,7 @@ def export_session(session_file: str, output_file: str) -> None:
             out = {
                 "identity": {
                     "name_verbatim": input_row.water,
-                    "waterbody_key": "FAILED",
+                    "lookup_name": "FAILED",
                 },
                 "regs_verbatim": input_row.raw_regs,
                 "rules": [],

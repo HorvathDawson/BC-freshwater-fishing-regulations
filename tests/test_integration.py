@@ -7,6 +7,12 @@ Run with: python -m pytest tests/test_integration.py -v -s
 """
 
 import pytest
+
+pytest.skip(
+    "fwa_modules package was removed; these integration tests are stale",
+    allow_module_level=True,
+)
+
 import tempfile
 import shutil
 from pathlib import Path

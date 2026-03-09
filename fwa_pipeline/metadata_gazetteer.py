@@ -96,6 +96,12 @@ class MetadataGazetteer:
         self.metadata_path = metadata_path
         self.metadata: Dict[Any, Any] = {}
         self.name_index: Dict[str, List[FWAFeature]] = {}
+        # Reverse indexes: field value → [(feature_id, FeatureType), ...]
+        self.gnis_id_index: Dict[str, List[tuple]] = {}
+        self.watershed_code_index: Dict[str, List[str]] = {}
+        self.blue_line_key_index: Dict[str, List[tuple]] = {}
+        self.waterbody_key_index: Dict[str, List[tuple]] = {}
+        self.inherited_gnis_id_index: Dict[str, List[str]] = {}
         self._reprojected_admin_cache: Dict[str, Any] = (
             {}
         )  # Cache for reprojected admin layers
@@ -165,6 +171,30 @@ class MetadataGazetteer:
         zones = feature_data.get("zones")
         if not zones:
             zones = ["Unknown"]
+
+        # Single-zone features: collapse to unbuffered zones so the 500m
+        # buffer margin never leaks a neighbouring zone into display or
+        # alias assignment.  Multi-zone (boundary-straddling) features
+        # keep their buffered zones for clean boundary splitting.
+        zones_unbuffered = feature_data.get("zones_unbuffered")
+        if zones_unbuffered and len(zones_unbuffered) == 1:
+            target_zone = zones_unbuffered[0]
+            if target_zone not in zones:
+                # Shouldn't happen, but guard against data inconsistency
+                pass
+            else:
+                # Pair the single unbuffered zone with its region name
+                buffered_names = feature_data.get("region_names", [])
+                name_map = dict(zip(zones, buffered_names))
+                zones = list(zones_unbuffered)
+                feature_data = {
+                    **feature_data,
+                    "region_names": [name_map.get(target_zone, "")],
+                }
+                # Also narrow mgmt_units to unbuffered
+                mu_ub = feature_data.get("mgmt_units_unbuffered")
+                if mu_ub is not None:
+                    feature_data = {**feature_data, "mgmt_units": list(mu_ub)}
 
         # Safely parse GNIS names
         gnis_name = feature_data.get("gnis_name")
@@ -257,6 +287,61 @@ class MetadataGazetteer:
 
         logger.info(f"  Indexed {len(self.name_index):,} unique feature names")
 
+        # Build reverse indexes for O(1) ID-based lookups
+        self._build_reverse_indexes()
+
+    def _build_reverse_indexes(self):
+        """Build reverse indexes from raw metadata for fast ID lookups."""
+        for lid, meta in self.metadata.get(FeatureType.STREAM, {}).items():
+            gnis_id = meta.get("gnis_id")
+            if gnis_id:
+                self.gnis_id_index.setdefault(str(gnis_id), []).append(
+                    (lid, FeatureType.STREAM)
+                )
+            wsc = meta.get("fwa_watershed_code")
+            if wsc:
+                self.watershed_code_index.setdefault(str(wsc), []).append(lid)
+            blk = meta.get("blue_line_key")
+            if blk:
+                self.blue_line_key_index.setdefault(str(blk), []).append(
+                    (lid, FeatureType.STREAM)
+                )
+            # Unnamed streams: index by inherited gnis_ids
+            if not meta.get("gnis_name"):
+                inherited = meta.get("inherited_gnis_names")
+                if isinstance(inherited, list):
+                    for entry in inherited:
+                        igid = entry.get("gnis_id", "")
+                        if igid:
+                            self.inherited_gnis_id_index.setdefault(
+                                str(igid), []
+                            ).append(lid)
+
+        for ftype in [FeatureType.LAKE, FeatureType.WETLAND, FeatureType.MANMADE]:
+            for fid, meta in self.metadata.get(ftype, {}).items():
+                gnis_id = meta.get("gnis_id")
+                if gnis_id:
+                    self.gnis_id_index.setdefault(str(gnis_id), []).append(
+                        (fid, ftype)
+                    )
+                blk = meta.get("blue_line_key")
+                if blk:
+                    self.blue_line_key_index.setdefault(str(blk), []).append(
+                        (fid, ftype)
+                    )
+                wbk = meta.get("waterbody_key")
+                if wbk:
+                    self.waterbody_key_index.setdefault(str(wbk), []).append(
+                        (fid, ftype)
+                    )
+
+        logger.info(
+            f"  Reverse indexes: gnis_id={len(self.gnis_id_index):,}, "
+            f"blk={len(self.blue_line_key_index):,}, "
+            f"wbk={len(self.waterbody_key_index):,}, "
+            f"wsc={len(self.watershed_code_index):,}"
+        )
+
     def _normalize_for_index(self, name: str) -> str:
         """Normalize name for indexing (title case, stripped)."""
         return name.strip().title()
@@ -309,12 +394,10 @@ class MetadataGazetteer:
     def get_waterbody_by_key(self, waterbody_key: str) -> List[FWAFeature]:
         """Get ALL FWA features with the given waterbody_key."""
         features = []
-        for ftype_enum in [FeatureType.LAKE, FeatureType.WETLAND, FeatureType.MANMADE]:
-            for poly_id, feature_data in self.metadata.get(ftype_enum, {}).items():
-                if str(feature_data.get("waterbody_key", "")) == str(waterbody_key):
-                    features.append(
-                        self._build_feature(poly_id, feature_data, ftype_enum)
-                    )
+        for fid, ftype in self.waterbody_key_index.get(str(waterbody_key), []):
+            meta = self.metadata.get(ftype, {}).get(fid)
+            if meta:
+                features.append(self._build_feature(fid, meta, ftype))
         return features
 
     def get_polygon_by_id(self, poly_id: str) -> Optional[FWAFeature]:
@@ -328,14 +411,11 @@ class MetadataGazetteer:
     def search_by_gnis_id(self, gnis_id: str) -> List[FWAFeature]:
         """Search for all features with a specific GNIS ID."""
         features = []
-        for lid, meta in self.metadata.get(FeatureType.STREAM, {}).items():
-            if str(meta.get("gnis_id")) == str(gnis_id):
-                features.append(self.get_stream_by_id(lid))
-        for ftype in [FeatureType.LAKE, FeatureType.WETLAND, FeatureType.MANMADE]:
-            for fid, meta in self.metadata.get(ftype, {}).items():
-                if str(meta.get("gnis_id")) == str(gnis_id):
-                    features.append(self.get_polygon_by_id(fid))
-        return [f for f in features if f is not None]
+        for fid, ftype in self.gnis_id_index.get(str(gnis_id), []):
+            feat = self.get_feature_by_type_and_id(ftype, fid)
+            if feat:
+                features.append(feat)
+        return features
 
     def search_unnamed_by_inherited_gnis_id(self, gnis_id: str) -> List[FWAFeature]:
         """Find unnamed streams that inherit a specific GNIS ID.
@@ -355,42 +435,30 @@ class MetadataGazetteer:
             single regulation across zones (e.g. Similkameen River).  This
             needs careful design so it remains a future task.
         """
-        gnis_id_str = str(gnis_id)
         features: List[FWAFeature] = []
-        for lid, meta in self.metadata.get(FeatureType.STREAM, {}).items():
-            # Must be unnamed (no gnis_name of its own)
-            if meta.get("gnis_name"):
-                continue
-            inherited = meta.get("inherited_gnis_names")
-            if not isinstance(inherited, list):
-                continue
-            for entry in inherited:
-                if str(entry.get("gnis_id", "")) == gnis_id_str:
-                    feat = self.get_stream_by_id(lid)
-                    if feat:
-                        features.append(feat)
-                    break
+        for lid in self.inherited_gnis_id_index.get(str(gnis_id), []):
+            feat = self.get_stream_by_id(lid)
+            if feat:
+                features.append(feat)
         return features
 
     def search_by_watershed_code(self, fwa_watershed_code: str) -> List[FWAFeature]:
         """Search for all stream segments with a specific FWA watershed code."""
         features = []
-        for linear_id, metadata in self.metadata.get(FeatureType.STREAM, {}).items():
-            if metadata.get("fwa_watershed_code") == fwa_watershed_code:
-                features.append(self.get_stream_by_id(linear_id))
+        for lid in self.watershed_code_index.get(str(fwa_watershed_code), []):
+            feat = self.get_stream_by_id(lid)
+            if feat:
+                features.append(feat)
         return features
 
     def search_by_blue_line_key(self, blue_line_key: str) -> List[FWAFeature]:
         """Search for all features (streams AND polygons) with a specific Blue Line Key."""
         features = []
-        for lid, meta in self.metadata.get(FeatureType.STREAM, {}).items():
-            if str(meta.get("blue_line_key")) == str(blue_line_key):
-                features.append(self.get_stream_by_id(lid))
-        for ftype in [FeatureType.LAKE, FeatureType.WETLAND, FeatureType.MANMADE]:
-            for fid, meta in self.metadata.get(ftype, {}).items():
-                if str(meta.get("blue_line_key")) == str(blue_line_key):
-                    features.append(self.get_polygon_by_id(fid))
-        return [f for f in features if f is not None]
+        for fid, ftype in self.blue_line_key_index.get(str(blue_line_key), []):
+            feat = self.get_feature_by_type_and_id(ftype, fid)
+            if feat:
+                features.append(feat)
+        return features
 
     # --- New Helper Accessors ---
 
@@ -824,7 +892,44 @@ class MetadataGazetteer:
                     pbar.close()
 
                 mask = np.concatenate(mask_parts)
-                matched_ids = np.unique(candidate_ids[mask])
+
+                # --- Overlap filter for polygon layers ---
+                # Polygon features (lakes, wetlands, manmade) with < 1%
+                # overlap are boundary artifacts — exclude them.  Stream
+                # features are linear (area = 0) so skip the filter.
+                _OVERLAP_THRESHOLD_PCT = 1.0
+                is_polygon_layer = ftype != FeatureType.STREAM
+
+                if is_polygon_layer:
+                    intersecting_geoms = candidate_geoms[mask]
+                    intersecting_ids = candidate_ids[mask]
+                    if len(intersecting_geoms) > 0:
+                        # Vectorised: compute intersection + area in C
+                        ixn_geoms = shapely.intersection(
+                            intersecting_geoms, admin_union
+                        )
+                        ixn_areas = shapely.area(ixn_geoms)
+                        feat_areas = shapely.area(intersecting_geoms)
+                        # Avoid division by zero for degenerate polygons
+                        with np.errstate(divide="ignore", invalid="ignore"):
+                            pct = np.where(
+                                feat_areas > 0,
+                                (ixn_areas / feat_areas) * 100.0,
+                                0.0,
+                            )
+                        overlap_mask = pct >= _OVERLAP_THRESHOLD_PCT
+                        n_excluded = int(np.sum(~overlap_mask))
+                        if n_excluded:
+                            logger.info(
+                                f"  {layer_name}: excluded {n_excluded} "
+                                f"boundary-artifact polygon(s) "
+                                f"(< {_OVERLAP_THRESHOLD_PCT}% overlap)"
+                            )
+                        matched_ids = np.unique(intersecting_ids[overlap_mask])
+                    else:
+                        matched_ids = np.array([], dtype=candidate_ids.dtype)
+                else:
+                    matched_ids = np.unique(candidate_ids[mask])
 
                 if len(matched_ids) == 0:
                     logger.info(f"  {layer_name}: 0 features intersect admin area")

@@ -500,10 +500,12 @@ class RegulationMapper:
                 # Store regulation details for export (synopsis source)
                 rest = rule.get("restriction", {})
                 scope_d = rule.get("scope", {})
+                raw_exclusions = identity.get("exclusions", [])
                 result.regulation_details[rule_id] = self._build_regulation_detail(
                     source="synopsis",
                     waterbody_name=identity.get("name_verbatim"),
-                    waterbody_key=identity.get("waterbody_key"),
+                    lookup_name=identity.get("lookup_name")
+                    or identity.get("waterbody_key"),
                     region=entry.regulation.get("region"),
                     management_units=entry.regulation.get("mu", []),
                     rule_text=rule.get("rule_text_verbatim"),
@@ -514,6 +516,7 @@ class RegulationMapper:
                     scope_location=scope_d.get("location_verbatim"),
                     includes_tributaries=scope_d.get("includes_tributaries"),
                     source_image=entry.regulation.get("image"),
+                    exclusions=raw_exclusions if raw_exclusions else None,
                 )
 
         return result
@@ -669,25 +672,21 @@ class RegulationMapper:
             matched_fids: Set[str] = set()
 
             if fnv.blue_line_keys:
-                # Find stream features matching any of the BLKs
-                blk_set = {str(b) for b in fnv.blue_line_keys}
-                stream_meta = self.gazetteer.metadata.get(FeatureType.STREAM, {})
-                for fid, meta in stream_meta.items():
-                    if str(meta.get("blue_line_key", "")) in blk_set:
-                        matched_fids.add(fid)
+                # Use reverse index for O(1) lookup per BLK
+                for blk in fnv.blue_line_keys:
+                    for fid, ftype in self.gazetteer.blue_line_key_index.get(
+                        str(blk), []
+                    ):
+                        if ftype == FeatureType.STREAM:
+                            matched_fids.add(fid)
 
             if fnv.waterbody_keys:
-                # Find polygon features matching any of the WBKs
-                wbk_set = {str(w) for w in fnv.waterbody_keys}
-                for ftype in (
-                    FeatureType.LAKE,
-                    FeatureType.WETLAND,
-                    FeatureType.MANMADE,
-                ):
-                    type_meta = self.gazetteer.metadata.get(ftype, {})
-                    for fid, meta in type_meta.items():
-                        if str(meta.get("waterbody_key", "")) in wbk_set:
-                            matched_fids.add(fid)
+                # Use reverse index for O(1) lookup per WBK
+                for wbk in fnv.waterbody_keys:
+                    for fid, ftype in self.gazetteer.waterbody_key_index.get(
+                        str(wbk), []
+                    ):
+                        matched_fids.add(fid)
 
             # Only assign to features already in the regulation index
             active_fids = matched_fids & set(self.feature_to_regs.keys())
@@ -949,7 +948,7 @@ class RegulationMapper:
         *,
         source: str,
         waterbody_name: str = "",
-        waterbody_key: Optional[str] = None,
+        lookup_name: Optional[str] = None,
         region: Optional[str] = None,
         management_units: Optional[List[str]] = None,
         rule_text: str = "",
@@ -963,6 +962,7 @@ class RegulationMapper:
         zone_ids: Optional[List[str]] = None,
         feature_types: Optional[List[str]] = None,
         is_direct_match: Optional[bool] = None,
+        exclusions: Optional[List[Dict[str, Any]]] = None,
     ) -> Dict[str, Any]:
         """Build a regulation detail entry with a consistent schema.
 
@@ -972,7 +972,7 @@ class RegulationMapper:
         """
         return {
             "waterbody_name": waterbody_name or None,
-            "waterbody_key": waterbody_key,
+            "lookup_name": lookup_name,
             "region": region,
             "management_units": management_units or [],
             "rule_text": rule_text or None,
@@ -987,6 +987,7 @@ class RegulationMapper:
             "zone_ids": zone_ids,
             "feature_types": feature_types,
             "is_direct_match": is_direct_match,
+            "exclusions": exclusions or None,
         }
 
     def _lookup_admin_targets(

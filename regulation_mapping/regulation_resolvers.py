@@ -267,14 +267,32 @@ def build_feature_index(
                 mu_index.setdefault(mu_id, {}).setdefault(ftype, {})[fid] = meta
 
             # Buffered indexes (500m-buffered zone/MU boundaries)
-            for zone_id in meta.get("zones", []):
-                zone_index_buffered.setdefault(zone_id, {}).setdefault(ftype, {})[
-                    fid
-                ] = meta
-            for mu_id in meta.get("mgmt_units", []):
-                mu_index_buffered.setdefault(mu_id, {}).setdefault(ftype, {})[
-                    fid
-                ] = meta
+            # Only apply buffer hysteresis to features that genuinely
+            # straddle multiple zones (2+ unbuffered).  Single-zone
+            # features should never appear under a neighbouring zone
+            # just because they fall within the 500m buffer margin.
+            zones_ub = meta.get("zones_unbuffered", [])
+            if len(zones_ub) > 1:
+                for zone_id in meta.get("zones", []):
+                    zone_index_buffered.setdefault(zone_id, {}).setdefault(ftype, {})[
+                        fid
+                    ] = meta
+                for mu_id in meta.get("mgmt_units", []):
+                    mu_index_buffered.setdefault(mu_id, {}).setdefault(ftype, {})[
+                        fid
+                    ] = meta
+            else:
+                # Single-zone: mirror unbuffered into the buffered index
+                # so the two-pass resolution still finds them for their
+                # actual zone, but never for a neighbouring one.
+                for zone_id in zones_ub:
+                    zone_index_buffered.setdefault(zone_id, {}).setdefault(ftype, {})[
+                        fid
+                    ] = meta
+                for mu_id in meta.get("mgmt_units_unbuffered", []):
+                    mu_index_buffered.setdefault(mu_id, {}).setdefault(ftype, {})[
+                        fid
+                    ] = meta
 
     return zone_index, mu_index, zone_index_buffered, mu_index_buffered
 

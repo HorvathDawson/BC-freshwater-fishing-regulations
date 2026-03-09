@@ -153,7 +153,7 @@ class ScopeObject:
     """
 
     type: str  # Enum: WHOLE_SYSTEM, DIRECTIONAL, SEGMENT, NAMED_PART, TRIBUTARIES_ONLY, BUFFER, VAGUE
-    waterbody_key: str  # "ALL" or specific waterbody name
+    lookup_name: str  # "ALL" or specific waterbody name
     location_verbatim: Optional[str]  # Exact substring describing location
     landmark_verbatim: Optional[str]  # Anchor point for spatial reference
     landmark_end_verbatim: Optional[str]  # End point for SEGMENT type
@@ -283,7 +283,7 @@ class ScopeObject:
     def from_dict(cls, data: Dict[str, Any]) -> "ScopeObject":
         return cls(
             type=data.get("type", ""),
-            waterbody_key=data.get("waterbody_key", "ALL"),
+            lookup_name=data.get("lookup_name") or data.get("waterbody_key", "ALL"),
             location_verbatim=data.get("location_verbatim"),
             landmark_verbatim=data.get("landmark_verbatim"),
             landmark_end_verbatim=data.get("landmark_end_verbatim"),
@@ -360,7 +360,7 @@ class IdentityObject:
     """Root identity information for a waterbody regulation entry."""
 
     name_verbatim: str  # Exact character-for-character title from source
-    waterbody_key: str  # Core waterbody name ONLY (e.g., "ELK RIVER", "TROUT LAKE") - no location, scope, or modifiers
+    lookup_name: str  # Core waterbody name ONLY (e.g., "ELK RIVER", "TROUT LAKE") - no location, scope, or modifiers
     identity_type: str  # Enum: STREAM, STILL_WATER, ADMINISTRATIVE_AREA, CONFLUENCE, TRIBUTARIES, MULTIPLE_WATERBODIES
     component_waterbodies: List[
         str
@@ -386,8 +386,8 @@ class IdentityObject:
         if not self.name_verbatim or not self.name_verbatim.strip():
             errors.append("name_verbatim is empty")
 
-        if not self.waterbody_key or not self.waterbody_key.strip():
-            errors.append("waterbody_key is empty")
+        if not self.lookup_name or not self.lookup_name.strip():
+            errors.append("lookup_name is empty")
 
         # Validate identity_type
         valid_types = {
@@ -420,19 +420,19 @@ class IdentityObject:
                 f"Waterbody name: '{self.name_verbatim}'"
             )
 
-        # Validate waterbody_key is core name only (no parenthetical content, no scope indicators)
-        if self.waterbody_key and self.name_verbatim:
-            # Waterbody_key should NOT contain:
+        # Validate lookup_name is core name only (no parenthetical content, no scope indicators)
+        if self.lookup_name and self.name_verbatim:
+            # lookup_name should NOT contain:
             # - Parentheses (those go in alternate_names, location_descriptor, or scope)
             # - Scope indicators like "upstream of", "downstream of"
             # - Location descriptors like "near X"
-            if "(" in self.waterbody_key or ")" in self.waterbody_key:
+            if "(" in self.lookup_name or ")" in self.lookup_name:
                 errors.append(
-                    f"waterbody_key '{self.waterbody_key}' contains parentheses - these should be parsed into alternate_names, location_descriptor, or scope. "
+                    f"lookup_name '{self.lookup_name}' contains parentheses - these should be parsed into alternate_names, location_descriptor, or scope. "
                     f"Name was: '{self.name_verbatim}'"
                 )
 
-            # Check for scope indicators in waterbody_key
+            # Check for scope indicators in lookup_name
             scope_indicators = [
                 "upstream of",
                 "downstream of",
@@ -444,12 +444,12 @@ class IdentityObject:
                 "approx",
             ]
             for indicator in scope_indicators:
-                if indicator.lower() in self.waterbody_key.lower():
+                if indicator.lower() in self.lookup_name.lower():
                     errors.append(
-                        f"waterbody_key '{self.waterbody_key}' contains scope/location indicator '{indicator}' - should be in global_scope or location_descriptor"
+                        f"lookup_name '{self.lookup_name}' contains scope/location indicator '{indicator}' - should be in global_scope or location_descriptor"
                     )
 
-            # Validate waterbody_key is derivable from name_verbatim
+            # Validate lookup_name is derivable from name_verbatim
             # Simple word-based validation: each significant word in key must exist in name
             # This allows LLM flexibility in quote handling, capitalization, etc.
             # while catching errors like wrong waterbody names
@@ -458,11 +458,9 @@ class IdentityObject:
             name_normalized = (
                 self.name_verbatim.replace('"', "").replace("'", "").upper()
             )
-            key_normalized = (
-                self.waterbody_key.replace('"', "").replace("'", "").upper()
-            )
+            key_normalized = self.lookup_name.replace('"', "").replace("'", "").upper()
 
-            # Extract significant words (3+ chars) from waterbody_key
+            # Extract significant words (3+ chars) from lookup_name
             key_words = re.findall(r"\b[A-Z][A-Z0-9]{2,}\b", key_normalized)
 
             # Check that each word in the key exists in the name
@@ -470,7 +468,7 @@ class IdentityObject:
 
             if missing_words:
                 errors.append(
-                    f"waterbody_key '{self.waterbody_key}' contains words {missing_words} not found in name_verbatim '{self.name_verbatim}'"
+                    f"lookup_name '{self.lookup_name}' contains words {missing_words} not found in name_verbatim '{self.name_verbatim}'"
                 )
 
         # Validate alternate_names
@@ -510,7 +508,7 @@ class IdentityObject:
             ):
                 errors.append(
                     f"ADMINISTRATIVE_AREA type must have global_scope.includes_tributaries=false (spatial containment replaces tributary logic). "
-                    f"Waterbody: '{self.waterbody_key}'"
+                    f"Waterbody: '{self.lookup_name}'"
                 )
 
         # Validate TRIBUTARIES identity_type requires TRIBUTARIES_ONLY scope
@@ -546,7 +544,7 @@ class IdentityObject:
     def from_dict(cls, data: Dict[str, Any]) -> "IdentityObject":
         return cls(
             name_verbatim=data.get("name_verbatim", ""),
-            waterbody_key=data.get("waterbody_key", ""),
+            lookup_name=data.get("lookup_name") or data.get("waterbody_key", ""),
             identity_type=data.get("identity_type", ""),
             component_waterbodies=data.get("component_waterbodies", []),
             alternate_names=data.get("alternate_names", []),
@@ -560,7 +558,7 @@ class IdentityObject:
     def to_dict(self) -> Dict[str, Any]:
         return {
             "name_verbatim": self.name_verbatim,
-            "waterbody_key": self.waterbody_key,
+            "lookup_name": self.lookup_name,
             "identity_type": self.identity_type,
             "component_waterbodies": self.component_waterbodies,
             "alternate_names": self.alternate_names,

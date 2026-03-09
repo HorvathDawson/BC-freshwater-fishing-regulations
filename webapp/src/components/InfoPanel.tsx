@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState, useMemo } from 'react';
-import { X, Calendar, MapPin, FileImage, RotateCcw, Share2, Check } from 'lucide-react';
+import { X, Calendar, MapPin, FileImage, RotateCcw, Share2, Check, ChevronDown, ChevronRight } from 'lucide-react';
 import { Icon } from '@iconify/react';
 import type { Regulation } from '../services/regulationsService';
 import { regulationsService } from '../services/regulationsService';
@@ -78,6 +78,7 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
     const [sourceImage, setSourceImage] = useState<{ src: string; name: string } | null>(null);
     const [activeFilter, setActiveFilter] = useState<string>('');
     const [copied, setCopied] = useState(false);
+    const [expandedExclusions, setExpandedExclusions] = useState<Set<number>>(new Set());
 
     // Handle share button click
     const handleShare = async (e: React.MouseEvent) => {
@@ -164,7 +165,56 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
     const renderContent = () => {
         if (!feature) return null;
         const props = feature.properties;
-        
+
+        // Tidal boundary: simple informational panel
+        if (props._tidal) {
+            return (
+                <>
+                    <div
+                        className="panel-header"
+                        onClick={() => onSetCollapseState(collapseState === 'expanded' ? 'partial' : 'expanded')}
+                        onTouchStart={handleTouchStart}
+                        onTouchEnd={handleTouchEnd}
+                    >
+                        <div className="mobile-handle-bar" />
+                        <div className="header-row">
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <div className="type-icon" style={{ backgroundColor: '#6B7280' }}>
+                                    <Icon icon="mdi:waves" width={32} height={32} color="white" />
+                                </div>
+                                <span className="type-tag">TIDAL WATERS</span>
+                            </div>
+                            <button onClick={(e) => { e.stopPropagation(); onClose(); }} className="square-btn" aria-label="Close panel">
+                                <X size={20} />
+                            </button>
+                        </div>
+                        <div className="title-group">
+                            <h1 className="title">Tidal Waters</h1>
+                        </div>
+                    </div>
+                    <div className="panel-content">
+                        <div className="data-section">
+                            <p style={{ margin: '0 0 12px', lineHeight: 1.5 }}>
+                                This area falls within tidal waters. Freshwater fishing regulations do not apply here.
+                                Please refer to DFO tidal water regulations.
+                            </p>
+                            {props._tidal_url && (
+                                <a
+                                    href={props._tidal_url as string}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="reg-source-img-btn"
+                                    style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '14px' }}
+                                >
+                                    DFO Tidal Regulations &rarr;
+                                </a>
+                            )}
+                        </div>
+                    </div>
+                </>
+            );
+        }
+
         // Build deduplicated aliases from name_variants
         const nameVariantsRaw: (NameVariant | string)[] = Array.isArray(props.name_variants) ? props.name_variants : [];
         const title = getFeatureDisplayName(props);
@@ -362,11 +412,18 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                                     groupKey = `prov|${groupLabel}`;
                                     groupSubtitle = '';
                                 } else {
-                                    // Synopsis regulations: group by waterbody_name + region
-                                    // so same name from different regions stays separate.
+                                    // Synopsis regulations: group by iid (identity ID) when
+                                    // available — this ensures entries that share a name+region
+                                    // but differ in management_units stay separate (e.g. CRAWFORD CREEK).
+                                    // Falls back to name+region for any edge case without iid.
                                     const wbName = reg.waterbody_name || 'Regulations';
                                     const regionName = reg.region || '';
-                                    groupKey = `syn|${regionName}|${wbName}`;
+                                    if (reg.iid) {
+                                        groupKey = `syn|${reg.iid}`;
+                                    } else {
+                                        console.warn(`Synopsis regulation "${reg.regulation_id}" has no iid — falling back to name+region grouping`);
+                                        groupKey = `syn|${regionName}|${wbName}`;
+                                    }
                                     groupLabel = wbName;
                                     groupSubtitle = regionName;
                                 }
@@ -377,12 +434,17 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                                         subtitle: groupSubtitle,
                                         source: reg.source || 'synopsis',
                                         isTributary: false,
+                                        exclusions: null,
                                         regulations: []
                                     };
                                 }
+                                // Capture exclusions once per group (identity-level data, same for all rules)
+                                if (!groups[groupKey].exclusions && reg.exclusions && reg.exclusions.length > 0) {
+                                    groups[groupKey].exclusions = reg.exclusions;
+                                }
                                 groups[groupKey].regulations.push(reg);
                                 return groups;
-                            }, {} as Record<string, { label: string; subtitle: string; source: string; isTributary: boolean; regulations: Regulation[] }>);
+                            }, {} as Record<string, { label: string; subtitle: string; source: string; isTributary: boolean; exclusions: Regulation['exclusions']; regulations: Regulation[] }>);
 
                             // Sort groups: provincial with a "closed" reg floats to the
                             // top so users immediately see closures (e.g. Ecological
@@ -457,6 +519,52 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                                         {group.isTributary && <span className="header-badge tributary-badge">Tributary of</span>}
                                         {group.label}
                                         {group.subtitle && <div className="regulation-group-subtitle">{group.subtitle}</div>}
+
+                                        {/* Exclusions toggle inside identity header */}
+                                        {group.exclusions && group.exclusions.length > 0 && (
+                                            <div className="exclusions-section">
+                                                <button
+                                                    className="exclusions-toggle"
+                                                    onClick={() => setExpandedExclusions(prev => {
+                                                        const next = new Set(prev);
+                                                        if (next.has(groupIdx)) next.delete(groupIdx);
+                                                        else next.add(groupIdx);
+                                                        return next;
+                                                    })}
+                                                    aria-expanded={expandedExclusions.has(groupIdx)}
+                                                    aria-label={`${expandedExclusions.has(groupIdx) ? 'Hide' : 'Show'} exceptions`}
+                                                >
+                                                    {expandedExclusions.has(groupIdx)
+                                                        ? <ChevronDown size={12} strokeWidth={2} />
+                                                        : <ChevronRight size={12} strokeWidth={2} />
+                                                    }
+                                                    Exceptions ({group.exclusions.length})
+                                                </button>
+                                                {expandedExclusions.has(groupIdx) && (
+                                                    <ul className="exclusions-list">
+                                                        {group.exclusions.map((exc, excIdx) => {
+                                                            const detail = exc.direction
+                                                                ? exc.direction.toLowerCase().replace(/_/g, ' ') + (exc.landmark_verbatim ? ` of ${exc.landmark_verbatim}` : '')
+                                                                : null;
+                                                            const tribs = exc.includes_tributaries;
+                                                            return (
+                                                                <li key={excIdx} className="exclusion-item">
+                                                                    <span className="exclusion-name">{exc.lookup_name}</span>
+                                                                    {(detail || tribs) && (
+                                                                        <span className="exclusion-meta">
+                                                                            {' — '}
+                                                                            {detail}
+                                                                            {detail && tribs && ' · '}
+                                                                            {tribs && <span className="exclusion-trib-tag">incl. tribs</span>}
+                                                                        </span>
+                                                                    )}
+                                                                </li>
+                                                            );
+                                                        })}
+                                                    </ul>
+                                                )}
+                                            </div>
+                                        )}
                                     </div>
 
                                     {/* Compact regulation rows */}

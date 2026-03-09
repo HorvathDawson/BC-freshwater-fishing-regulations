@@ -16,7 +16,7 @@
  * regulations at click-time via compact[fgid] → reg_sets[ri].
  */
 
-import type { Regulation } from './regulationsService';
+import type { Regulation, WireRegulation, IdentityMeta } from './regulationsService';
 import type { NameVariant } from '../utils/featureUtils';
 
 /** Shape of a single waterbody entry after decoding (long keys). */
@@ -106,7 +106,7 @@ function decodeWaterbody(raw: Record<string, any>, regSets: string[]): Waterbody
 // ── IndexedDB helpers (no dependencies) ──────────────────────────────
 const IDB_NAME = 'waterbody_cache';
 const IDB_STORE = 'kv';
-const IDB_VERSION = 3;  // bumped: etag-based caching replaces mtime
+const IDB_VERSION = 4;  // bumped: identity_meta deduplication
 
 function openCacheDB(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
@@ -216,7 +216,44 @@ class WaterbodyDataService {
       const waterbodies: WaterbodyItem[] = (raw.waterbodies || []).map(
         (w: Record<string, any>) => decodeWaterbody(w, regSets)
       );
-      const regulations: Record<string, Regulation> = raw.regulations || {};
+      const wireRegulations: Record<string, WireRegulation> = raw.regulations || {};
+
+      // ── Hydrate identity_meta onto synopsis regulations ────────────
+      // Synopsis regs arrive without waterbody_name / region / management_units /
+      // source_image / exclusions — those live in identity_meta keyed by base-ID.
+      // Zone/provincial regs carry their fields directly and have no iid.
+      const identityMeta: Record<string, IdentityMeta> | undefined = raw.identity_meta;
+      const regulations: Record<string, Regulation> = {};
+
+      for (const [regId, wire] of Object.entries(wireRegulations)) {
+        if (wire.iid) {
+          // Synopsis regulation: hydrate from identity_meta.
+          if (!identityMeta || !(wire.iid in identityMeta)) {
+            throw new Error(
+              `Orphaned iid "${wire.iid}" on regulation "${regId}" — identity_meta is missing or incomplete.`
+            );
+          }
+          const meta = identityMeta[wire.iid];
+          regulations[regId] = {
+            ...wire,
+            regulation_id: regId,
+            waterbody_name: meta.wn ?? '',
+            region: meta.rg ?? null,
+            management_units: meta.mu ?? [],
+            source_image: meta.img ?? null,
+            exclusions: meta.ex ?? null,
+          } as Regulation;
+        } else {
+          // Zone/provincial: fields already present on the wire regulation.
+          regulations[regId] = {
+            ...wire,
+            regulation_id: regId,
+            waterbody_name: wire.waterbody_name ?? '',
+            region: wire.region ?? null,
+            management_units: wire.management_units ?? [],
+          } as Regulation;
+        }
+      }
 
       const data: WaterbodyData = { waterbodies, regulations, reg_sets: regSets, compact };
       this.data = data;

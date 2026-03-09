@@ -22,7 +22,9 @@ import type { SearchableFeature, RegulationSegment } from './SearchBar';
 import './Map.css';
 
 // --- CONFIG & PROTOCOL ---
-const protocol = new Protocol();
+// PMTiles tile cache: keeps decoded tiles in memory to avoid redundant
+// Range requests.  150 entries covers ~2 full screens of tiles at z10.
+const protocol = new Protocol({ metadata: true });
 maplibregl.addProtocol('pmtiles', protocol.tile);
 
 // Tile base URL: empty in dev (local /data/), R2 public URL in production
@@ -37,8 +39,23 @@ const BC_BOUNDS: [[number, number], [number, number]] = [
     [-108.0, 63.5], // NE with margin
 ];
 
-// ESRI World Imagery satellite raster tile URL (free, no API key)
-const ESRI_SATELLITE_URL = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
+// ── Satellite imagery source ────────────────────────────────────────
+// Abstracted so it's easy to swap providers.  To switch to BC Gov SPOT 15m
+// WMS once access is granted, replace SATELLITE_CONFIG below.  See
+// SATELLITE_SOURCES.md for details and tested alternatives.
+const SATELLITE_CONFIG = {
+    url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+    tileSize: 256,
+    attribution: 'Powered by <a href="https://www.esri.com">Esri</a>',
+    maxzoom: 18,
+};
+// Alternative: Sentinel-2 Cloudless (CC-BY 4.0, 10m resolution, global)
+// const SATELLITE_CONFIG = {
+//     url: 'https://tiles.maps.eox.at/wmts/1.0.0/s2cloudless-2021_3857/default/GoogleMapsCompatible/{z}/{y}/{x}.jpg',
+//     tileSize: 256,
+//     attribution: 'Imagery: <a href="https://s2maps.eu">Sentinel-2 Cloudless 2021</a> by EOX — CC-BY 4.0',
+//     maxzoom: 15,
+// };
 
 // Lucide SVG icon strings for the satellite toggle button (rendered imperatively via IControl)
 const LAYERS_SVG = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/><path d="m22.54 12.43-1.42-.65-8.29 3.78a2 2 0 0 1-1.66 0l-8.29-3.78-1.42.65a1 1 0 0 0 0 1.84l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.85Z"/><path d="m22.54 16.43-1.42-.65-8.29 3.78a2 2 0 0 1-1.66 0l-8.29-3.78-1.42.65a1 1 0 0 0 0 1.84l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.85Z"/></svg>';
@@ -504,6 +521,7 @@ const MapComponent = () => {
                 const style = map.getStyle();
                 for (const layer of (style?.layers || [])) {
                     if ((layer as any).source !== 'regulations') continue;
+                    if (layer.id.startsWith('admin_') || layer.id === 'bc-mask') continue;
                     const props = OPACITY_PAINT_PROPS[layer.type];
                     if (!props) continue;
                     baseOpacitiesRef.current[layer.id] = props.map(p =>
@@ -619,6 +637,7 @@ const MapComponent = () => {
                 const style = map.getStyle();
                 for (const layer of (style?.layers || [])) {
                     if ((layer as any).source !== 'regulations') continue;
+                    if (layer.id.startsWith('admin_') || layer.id === 'bc-mask') continue;
                     const props = OPACITY_PAINT_PROPS[layer.type];
                     if (!props) continue;
                     baseOpacitiesRef.current[layer.id] = props.map(p =>
@@ -907,7 +926,7 @@ const MapComponent = () => {
                 sources: {
                     protomaps: { type: 'vector', url: `${TILE_BASE}/bc.pmtiles`, attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> · <a href="https://protomaps.com">Protomaps</a>', maxzoom: 15 },
                     regulations: { type: 'vector', url: `${TILE_BASE}/regulations_merged.pmtiles`, attribution: '<a href="https://www2.gov.bc.ca/gov/content/data/open-data/open-government-licence-bc">OGL-BC</a>', minzoom: 4, maxzoom: 12 },
-                    satellite: { type: 'raster', tiles: [ESRI_SATELLITE_URL], tileSize: 256, attribution: 'Powered by <a href="https://www.esri.com">Esri</a>', maxzoom: 18 }
+                    satellite: { type: 'raster', tiles: [SATELLITE_CONFIG.url], tileSize: SATELLITE_CONFIG.tileSize, attribution: SATELLITE_CONFIG.attribution, maxzoom: SATELLITE_CONFIG.maxzoom }
                 },
                 // Base map (no labels) → regulation overlays → labels on top
                 // The `layers()` call without `lang` returns geometry-only layers;
@@ -926,8 +945,14 @@ const MapComponent = () => {
                 ]
             },
             center: [-123.0, 49.25], zoom: 8, maxZoom: 15, minZoom: 4, hash: true,
+            // Pre-fetch tiles beyond the viewport edge so panning feels seamless.
+            // 256px (2× default 128) balances smoothness vs request count.
+            buffer: 256,
+            // Cancel in-flight tile requests for intermediate zoom levels during
+            // zoom animations — those tiles are immediately obsolete and waste bandwidth.
+            cancelPendingTileRequestsWhileZooming: true,
             // Smooth zoom: allow fractional levels and ease between them
-            scrollZoom: { around: 'center' },
+            scrollZoom: true,
             fadeDuration: 100,
             attributionControl: { compact: false }
         });
@@ -1117,7 +1142,27 @@ const MapComponent = () => {
 
         map.on('click', (e) => {
             const features = map.queryRenderedFeatures([[e.point.x - 15, e.point.y - 15], [e.point.x + 15, e.point.y + 15]], { layers: INTERACTABLE_LAYERS });
-            if (!features.length) return clearSelection();
+            if (!features.length) {
+                // No FWA features — check for tidal boundary
+                const tidalHits = map.queryRenderedFeatures(
+                    [[e.point.x - 1, e.point.y - 1], [e.point.x + 1, e.point.y + 1]],
+                    { layers: ['tidal_boundary-fill'] }
+                );
+                if (tidalHits.length) {
+                    const url = tidalHits[0].properties?.info_url || 'https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/licence-permis/index-eng.html';
+                    clearSelection();
+                    setSelectedFeature({
+                        type: 'lake',
+                        properties: {
+                            display_name: 'Tidal Waters',
+                            _tidal: true,
+                            _tidal_url: url,
+                        },
+                    } as FeatureInfo);
+                    return;
+                }
+                return clearSelection();
+            }
 
             // Query admin boundary layers at click point to resolve zone names
             const adminHits = map.queryRenderedFeatures(
