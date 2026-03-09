@@ -134,6 +134,27 @@ def combine_streams(short_name, ftp_url, gpkg_path, temp_dir):
         is_first = False
 
 
+def fetch_r2_gpkg_layer(short_name, r2_url, source_layer, gpkg_path):
+    """Download a specific layer from an R2-hosted GPKG and write it into the local GPKG.
+
+    Downloads the remote GPKG to a temp file, reads the named layer, reprojects
+    to EPSG:3005, and writes it as ``short_name`` in the output GPKG.
+    """
+    import tempfile
+    print(f"\n[R2] Fetching layer '{source_layer}' from {r2_url}")
+    with tempfile.NamedTemporaryFile(suffix=".gpkg", delete=False) as tmp:
+        tmp_path = Path(tmp.name)
+    try:
+        urllib.request.urlretrieve(r2_url, tmp_path)
+        gdf = gpd.read_file(tmp_path, layer=source_layer, engine="pyogrio")
+        if gdf.crs and gdf.crs.to_epsg() != 3005:
+            gdf = gdf.to_crs(epsg=3005)
+        gdf.to_file(gpkg_path, layer=short_name, driver="GPKG", engine="pyogrio")
+        print(f"  ✅ '{short_name}' written ({len(gdf)} row(s))")
+    finally:
+        tmp_path.unlink(missing_ok=True)
+
+
 # ==========================================
 # 2. MAIN EXECUTION
 # ==========================================
@@ -164,6 +185,11 @@ def main():
         "lakes": {"type": "FWA_GDB", "ftp": FTP_FWA, "layer": "FWA_LAKES_POLY"},
         "wetlands": {"type": "FWA_GDB", "ftp": FTP_FWA, "layer": "FWA_WETLANDS_POLY"},
         "streams": {"type": "FWA_STREAMS", "ftp": FTP_STR},
+        "tidal_boundary": {
+            "type": "R2_GPKG",
+            "url": "https://bc-fishing-r2.horvath-dawson.workers.dev/DFO_TIDAL_BOUNDARY.gpkg",
+            "layer": "tidal_boundary",
+        },
     }
 
     parser = argparse.ArgumentParser(description="BC Fresh Water Data Fetcher")
@@ -203,6 +229,8 @@ def main():
                 extract_gdb_layer(name, cfg["ftp"], cfg["layer"], gpkg_out, temp_dir)
             elif cfg["type"] == "FWA_STREAMS":
                 combine_streams(name, cfg["ftp"], gpkg_out, temp_dir)
+            elif cfg["type"] == "R2_GPKG":
+                fetch_r2_gpkg_layer(name, cfg["url"], cfg["layer"], gpkg_out)
         except Exception as e:
             print(f"❌ Error on {name}: {e}")
 
