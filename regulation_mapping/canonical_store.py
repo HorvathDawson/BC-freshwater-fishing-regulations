@@ -650,6 +650,11 @@ class CanonicalDataStore:
     def _build_tidal_clip_union(self) -> Optional[BaseGeometry]:
         """Load tidal boundary polygon(s) from GPKG and return their union.
 
+        A 1.5 m outward buffer is applied so streams within 1.5 m of the
+        tidal boundary are treated as tidal rather than freshwater. This
+        absorbs sub-vertex-precision gaps where a stream technically ends just
+        outside the polygon due to coordinate rounding.
+
         Returns ``None`` when the layer is absent (data not yet available),
         allowing the pipeline to run unchanged until a tidal polygon is added.
         """
@@ -662,8 +667,9 @@ class CanonicalDataStore:
         if gdf.empty:
             return None
         union = unary_union(gdf.geometry.tolist())
+        union = union.buffer(1.5)
         logger.info(
-            f"Tidal clip union built from {len(gdf)} polygon(s)"
+            f"Tidal clip union built from {len(gdf)} polygon(s) (+1.5 m tolerance buffer)"
         )
         return union
 
