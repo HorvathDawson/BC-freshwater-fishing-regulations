@@ -1136,7 +1136,7 @@ const MapComponent = () => {
                         .filter(l => !['water_waterway_label', 'water_label_ocean', 'water_label_lakes'].includes(l.id))
                         .map(l => {
                             const withinBC: any = ['within', bcBoundary];
-                            if (!l.filter) return { ...l, filter: withinBC };
+                            if (!('filter' in l) || !l.filter) return { ...l, filter: withinBC };
                             return { ...l, filter: ['all', legacyFilterToExpression(l.filter), withinBC] as any };
                         }),
                     ...createAdminLabelLayers(),

@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState, useMemo, useCallback } from 'react';
+import React, { useRef, useEffect, useState, useMemo } from 'react';
 import { X, Calendar, MapPin, FileImage, RotateCcw, Share2, Check, ChevronDown, ChevronRight, ZoomIn } from 'lucide-react';
 import { Icon } from '@iconify/react';
 import type { Regulation } from '../services/regulationsService';
@@ -528,8 +528,8 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
 
                             // Group regulations by source category + region
                             const groupedRegulations = filteredRegulations.reduce((groups, reg) => {
-                                let groupKey: string;
-                                let groupLabel: string;
+                                let groupKey: string = '';
+                                let groupLabel: string = '';
                                 let groupSubtitle: string = '';
 
                                 if (reg.source === 'zone') {
@@ -554,10 +554,11 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                                         const newNames = (zoneNames && zoneNames.length > 0) ? zoneNames : [];
                                         if (groups[groupKey]) {
                                             // Append new territory names to existing label
-                                            const existing = new Set(groups[groupKey]._territoryNames || []);
+                                            const group = groups[groupKey];
+                                            const existing = new Set(group._territoryNames || []);
                                             for (const n of newNames) existing.add(n);
-                                            groups[groupKey]._territoryNames = [...existing];
-                                            groups[groupKey].label = groups[groupKey]._territoryNames.join(', ') || 'Indigenous Territory';
+                                            group._territoryNames = [...existing];
+                                            group.label = group._territoryNames.join(', ') || 'Indigenous Territory';
                                             // Don't duplicate the regulation row — text is identical
                                             return groups;
                                         }
