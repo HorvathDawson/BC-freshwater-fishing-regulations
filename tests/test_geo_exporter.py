@@ -161,22 +161,47 @@ class TestLayerFiltering:
         assert gdf1 is gdf2
 
     def test_exclude_lake_streams(self):
-        """Streams with waterbody_key in lake/manmade set should be excluded."""
+        """Streams with is_under_lake=True should be excluded when requested."""
         feats = [
-            _make_stream_feature(waterbody_key="WBK_LAKE_1"),
+            _make_stream_feature(
+                waterbody_key="WBK_LAKE_1",
+                is_under_lake=True,
+            ),
             _make_stream_feature(
                 group_id="g2",
                 waterbody_key=None,
                 display_name="Other Creek",
+                is_under_lake=False,
             ),
         ]
         store = _make_fake_store(feats)
-        store.get_lake_manmade_wbkeys.return_value = {"WBK_LAKE_1"}
         gen = GeoArtifactGenerator(store)
         gdf = gen._create_streams_layer(exclude_lake_streams=True)
         assert gdf is not None
         assert len(gdf) == 1
         assert gdf.iloc[0]["group_id"] == "g2"
+
+    def test_under_lake_streams_layer(self):
+        """Only streams with is_under_lake=True appear in the under-lake layer."""
+        feats = [
+            _make_stream_feature(
+                group_id="g_lake",
+                waterbody_key="WBK_LAKE_1",
+                is_under_lake=True,
+            ),
+            _make_stream_feature(
+                group_id="g_open",
+                waterbody_key=None,
+                display_name="Open Creek",
+                is_under_lake=False,
+            ),
+        ]
+        store = _make_fake_store(feats)
+        gen = GeoArtifactGenerator(store)
+        gdf = gen._create_under_lake_streams_layer()
+        assert gdf is not None
+        assert len(gdf) == 1
+        assert gdf.iloc[0]["group_id"] == "g_lake"
 
 
 # ===================================================================

@@ -118,7 +118,8 @@ _ADMIN_ZOOM_LOOKUP: List[Tuple[float, int]] = [
     (limit, zoom + 1) for zoom, limit in sorted(ADMIN_ZOOM_THRESHOLDS.items())
 ]
 _ADMIN_ZOOM_LOOKUP_AGGRESSIVE: List[Tuple[float, int]] = [
-    (limit, zoom + 1) for zoom, limit in sorted(ADMIN_ZOOM_THRESHOLDS_AGGRESSIVE.items())
+    (limit, zoom + 1)
+    for zoom, limit in sorted(ADMIN_ZOOM_THRESHOLDS_AGGRESSIVE.items())
 ]
 
 MAIN_FLOW_CODES = {1000, 1050, 1200, 1250, 1410, 1450}
@@ -308,6 +309,27 @@ class CanonicalDataStore:
             )
 
         yield from merged_polygons
+
+        # Stamp each stream feature with is_under_lake so downstream
+        # consumers (geo_exporter, search_exporter) use a single flag
+        # instead of duplicating lake-key filtering logic.
+        lake_wbkeys = self.get_lake_manmade_wbkeys()
+        for feat in merged_streams:
+            fids = [fid for fid in feat["feature_ids"].split(",") if fid]
+            # A feature is under a lake when every constituent edge has a
+            # waterbody_key that belongs to a lake or manmade polygon.
+            # Edges with no waterbody_key (open air / river polygon) mean
+            # the feature is NOT fully under a lake.
+            feat["is_under_lake"] = bool(fids) and all(
+                str(
+                    (self.gazetteer.get_stream_metadata(fid) or {}).get(
+                        "waterbody_key", ""
+                    )
+                    or ""
+                )
+                in lake_wbkeys
+                for fid in fids
+            )
         yield from merged_streams
 
         if any(clip_stats.values()):
@@ -1346,6 +1368,15 @@ class CanonicalDataStore:
             template = dict(group_features[0])
             template["geometry"] = merge_lines(all_geoms)
             template["length_m"] = template["geometry"].length
+
+            # Combine feature_ids from all merged features so that
+            # downstream is_under_lake checks see every constituent edge.
+            all_fids: list = []
+            for feat in group_features:
+                for fid in feat.get("feature_ids", "").split(","):
+                    if fid and fid not in all_fids:
+                        all_fids.append(fid)
+            template["feature_ids"] = ",".join(all_fids)
 
             group_ids = [f["group_id"] for f in group_features]
             base_ids = [

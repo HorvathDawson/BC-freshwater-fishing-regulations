@@ -141,7 +141,10 @@ ZONE_BOUNDARY_BUFFER_M = 500.0
 # Buffer: Admin boundary polygons (parks, eco reserves, aboriginal lands)
 # are expanded by this amount before spatial intersection so streams
 # running along (but not quite touching) the boundary are still matched.
-ADMIN_BOUNDARY_BUFFER_M = 25.0
+# Hysteresis in lookup_admin_targets() prevents distant streams from
+# being pulled in — buffer-only features must share a blue_line_key
+# with a feature that intersects the exact (unbuffered) boundary.
+ADMIN_BOUNDARY_BUFFER_M = 500.0
 
 # --- Helper Functions (Static for Multiprocessing) ---
 

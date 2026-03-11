@@ -153,18 +153,11 @@ class GeoArtifactGenerator:
         self,
         exclude_lake_streams: bool = False,
     ) -> Optional[gpd.GeoDataFrame]:
-        lake_wbkeys = (
-            self.store.get_lake_manmade_wbkeys() if exclude_lake_streams else set()
-        )
         return self._get_cached_layer(
             ("streams", exclude_lake_streams),
             lambda f: (
                 f["feature_type"] == FeatureType.STREAM.value
-                and not (
-                    exclude_lake_streams
-                    and f["waterbody_key"]
-                    and f["waterbody_key"] in lake_wbkeys
-                )
+                and not (exclude_lake_streams and f.get("is_under_lake"))
             ),
         )
 
@@ -183,13 +176,11 @@ class GeoArtifactGenerator:
         so the frontend can optionally render them as dotted connecting
         lines with names.
         """
-        lake_wbkeys = self.store.get_lake_manmade_wbkeys()
         return self._get_cached_layer(
             "under_lake_streams",
             lambda f: (
                 f["feature_type"] == FeatureType.STREAM.value
-                and bool(f.get("waterbody_key"))
-                and str(f["waterbody_key"]) in lake_wbkeys
+                and f.get("is_under_lake", False)
             ),
         )
 
@@ -462,7 +453,9 @@ class GeoArtifactGenerator:
                 ]
             )
 
-        layers.append(("under_lake_streams", lambda: self._create_under_lake_streams_layer()))
+        layers.append(
+            ("under_lake_streams", lambda: self._create_under_lake_streams_layer())
+        )
         layers.append(("ungazetted", lambda: self._create_ungazetted_layer()))
 
         # Tidal boundary display polygon (low-opacity grey)

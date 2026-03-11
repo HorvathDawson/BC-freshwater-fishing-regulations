@@ -80,7 +80,7 @@ Adding New Regulations
 from dataclasses import dataclass
 from typing import Dict, List, Any, Optional
 
-from fwa_pipeline.metadata_builder import FeatureType
+from fwa_pipeline.metadata_builder import ADMIN_BOUNDARY_BUFFER_M, FeatureType
 from .admin_target import AdminTarget
 
 
@@ -515,6 +515,7 @@ def _run_provincial_test():
             gpkg_path,
             prov_reg.admin_targets,
             prov_reg.feature_types,
+            buffer_m=ADMIN_BOUNDARY_BUFFER_M,
         )
         all_admin_features = [af for _, af in admin_entries]
 

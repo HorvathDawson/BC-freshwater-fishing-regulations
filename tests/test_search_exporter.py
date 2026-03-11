@@ -304,6 +304,164 @@ class TestBuildWaterbodiesList:
 
 
 # ===================================================================
+# Under-lake stream filtering
+# ===================================================================
+
+
+class TestUnderLakeStreamFiltering:
+    """Canonical features stamped with ``is_under_lake=True`` by the
+    canonical store should be excluded from the search data.  Features
+    without the flag (or False) must be kept."""
+
+    def test_open_air_and_lake_features_same_reg_set(self):
+        """Open-air features sharing a regulation set with an under-lake
+        feature should survive — only truly under-lake features are
+        excluded at the canonical level, and the remaining open-air
+        features form a valid segment."""
+        shared_regs = "zone_r3_base,reg_001_rule0"
+        f_open_a = _make_canonical_feature(
+            group_id="g1",
+            frontend_group_id="fgid_open_a",
+            display_name="Smith Creek",
+            waterbody_key=None,
+            fwa_watershed_code="200-000000",
+            regulation_ids=shared_regs,
+            feature_ids="f1",
+            geometry=make_line(x_start=1_000_000, y_start=500_000, length=3000),
+            length_m=3000,
+            is_under_lake=False,
+        )
+        f_lake = _make_canonical_feature(
+            group_id="g2",
+            frontend_group_id="fgid_lake",
+            display_name="Smith Creek",
+            waterbody_key="LAKE_KEY_100",
+            fwa_watershed_code="200-000000",
+            regulation_ids=shared_regs,
+            feature_ids="f2",
+            geometry=make_line(x_start=1_003_000, y_start=500_000, length=1000),
+            length_m=1000,
+            is_under_lake=True,
+        )
+        f_open_b = _make_canonical_feature(
+            group_id="g3",
+            frontend_group_id="fgid_open_b",
+            display_name="Smith Creek",
+            waterbody_key=None,
+            fwa_watershed_code="200-000000",
+            regulation_ids=shared_regs,
+            feature_ids="f3",
+            geometry=make_line(x_start=1_004_000, y_start=500_000, length=2000),
+            length_m=2000,
+            is_under_lake=False,
+        )
+
+        store = _make_fake_store([f_open_a, f_lake, f_open_b])
+        builder = SearchIndexBuilder(store)
+        result = builder._build_waterbodies_list()
+
+        # Open-air features must survive even though the lake one is filtered
+        assert len(result["waterbodies"]) == 1
+        entry = result["waterbodies"][0]
+        assert len(entry["rs"]) == 1
+        assert entry["dn"] == "Smith Creek"
+
+    def test_purely_under_lake_segment_is_filtered(self):
+        """Features marked ``is_under_lake=True`` should be excluded from
+        the search data; remaining features in the group stay."""
+        shared_regs = "zone_r3_base"
+        f_lake_a = _make_canonical_feature(
+            group_id="g1",
+            frontend_group_id="fgid_lake_a",
+            display_name="Smith Creek",
+            waterbody_key="LAKE_KEY_100",
+            fwa_watershed_code="200-000000",
+            regulation_ids=shared_regs,
+            feature_ids="f1",
+            geometry=make_line(x_start=1_000_000, y_start=500_000, length=1000),
+            length_m=1000,
+            is_under_lake=True,
+        )
+        f_lake_b = _make_canonical_feature(
+            group_id="g2",
+            frontend_group_id="fgid_lake_b",
+            display_name="Smith Creek",
+            waterbody_key="LAKE_KEY_100",
+            fwa_watershed_code="200-000000",
+            regulation_ids=shared_regs,
+            feature_ids="f2",
+            geometry=make_line(x_start=1_001_000, y_start=500_000, length=1000),
+            length_m=1000,
+            is_under_lake=True,
+        )
+        # Second segment (different regs) is in open air → should survive
+        f_open = _make_canonical_feature(
+            group_id="g3",
+            frontend_group_id="fgid_open",
+            display_name="Smith Creek",
+            waterbody_key=None,
+            fwa_watershed_code="200-000000",
+            regulation_ids="reg_002_rule0",
+            feature_ids="f3",
+            geometry=make_line(x_start=1_002_000, y_start=500_000, length=5000),
+            length_m=5000,
+            is_under_lake=False,
+        )
+
+        store = _make_fake_store([f_lake_a, f_lake_b, f_open])
+        builder = SearchIndexBuilder(store)
+        result = builder._build_waterbodies_list()
+
+        assert len(result["waterbodies"]) == 1
+        entry = result["waterbodies"][0]
+        # Only the open-air segment should survive
+        assert len(entry["rs"]) == 1
+
+    def test_river_waterbody_key_not_filtered(self):
+        """Streams under a river polygon (has waterbody_key but not
+        marked under-lake) must NOT be filtered."""
+        f_river = _make_canonical_feature(
+            group_id="g1",
+            frontend_group_id="fgid_river",
+            display_name="Nechako River",
+            waterbody_key="RIVER_KEY_500",
+            fwa_watershed_code="300-000000",
+            regulation_ids="zone_r5_base",
+            feature_ids="f1",
+            geometry=make_line(x_start=1_000_000, y_start=500_000, length=8000),
+            length_m=8000,
+            is_under_lake=False,
+        )
+        store = _make_fake_store([f_river])
+        builder = SearchIndexBuilder(store)
+        result = builder._build_waterbodies_list()
+
+        assert len(result["waterbodies"]) == 1
+        assert result["waterbodies"][0]["dn"] == "Nechako River"
+
+    def test_all_features_under_lake_skips_entry(self):
+        """When ALL canonical features for a stream are under-lake,
+        the entire entry should be skipped."""
+        f = _make_canonical_feature(
+            group_id="g1",
+            frontend_group_id="fgid_lake",
+            display_name="Submerged Creek",
+            waterbody_key="LAKE_KEY_100",
+            fwa_watershed_code="400-000000",
+            regulation_ids="zone_r3_base",
+            feature_ids="f1",
+            geometry=make_line(x_start=1_000_000, y_start=500_000, length=2000),
+            length_m=2000,
+            is_under_lake=True,
+        )
+        store = _make_fake_store([f])
+        builder = SearchIndexBuilder(store)
+        result = builder._build_waterbodies_list()
+
+        assert len(result["waterbodies"]) == 0
+
+
+# ===================================================================
 # export_waterbody_data
 # ===================================================================
 

@@ -1112,7 +1112,10 @@ class RegulationMapper:
                 f"(regulation '{regulation_id}') but not found at {self.gpkg_path}"
             )
         return lookup_admin_targets(
-            self.gazetteer, self.gpkg_path, admin_targets, feature_types,
+            self.gazetteer,
+            self.gpkg_path,
+            admin_targets,
+            feature_types,
             buffer_m=ADMIN_BOUNDARY_BUFFER_M,
         )
 

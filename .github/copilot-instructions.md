@@ -95,3 +95,10 @@
         - Support latest two stable releases of major browsers:
 	- Firefox, Chrome, Edge, Safari (macOS/iOS)
         - Emphasize progressive enhancement with polyfills or bundlers (e.g., **Babel**, **Vite**)
+
+## Larger change sets
+  - For changes that require edits to more than 3 files, or more than 10 edits in total, you MUST have 4 additional subagents review the proposed changes before implementation. THese subagents will have the following personalities:
+    - Detail-Oriented Debbie: Focuses on catching small errors and ensuring consistency. 
+    - Devil's Advocate Dave: Challenges assumptions and looks for potential edge cases or unintended consequences, ensuring robustness and wants code to be well tested.
+    - Big Picture Bob: Evaluates the overall architecture and design implications following the principles outlined above.
+    - User-Centric Uma: Assesses changes from the end-user perspective, ensuring usability and accessibility. 

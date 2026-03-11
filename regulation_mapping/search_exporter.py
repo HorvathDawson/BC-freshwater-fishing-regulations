@@ -129,6 +129,11 @@ class SearchIndexBuilder:
             if not feat["regulation_ids"]:
                 continue
 
+            # Under-lake streams are excluded from the search index — they
+            # are invisible in PMTiles (the polygon layer renders the lake).
+            if feat.get("is_under_lake"):
+                continue
+
             if ftype == FeatureType.STREAM.value:
                 wsc = feat["fwa_watershed_code"] or ""
                 grouping_id = (
@@ -200,8 +205,6 @@ class SearchIndexBuilder:
                     self._merge_name_variants(seg["name_variants"], seg_nvs)
                     seg["group_ids"].append(f["group_id"])
                     seg["frontend_group_ids"].add(f["frontend_group_id"])
-                    if f.get("waterbody_key"):
-                        seg["waterbody_keys"].add(str(f["waterbody_key"]))
                 else:
                     seg_geom = f["geometry"]
                     seg_geoms = extract_geoms(seg_geom) if seg_geom else []
@@ -221,29 +224,10 @@ class SearchIndexBuilder:
                         "group_ids": [f["group_id"]],
                         "frontend_group_ids": {f["frontend_group_id"]},
                         "waterbody_group": f.get("waterbody_group") or "",
-                        "waterbody_keys": (
-                            {str(f["waterbody_key"])} if f.get("waterbody_key") else set()
-                        ),
                     }
 
-            # For streams, exclude segments that are entirely under a lake
-            # (their geometry is excluded from PMTiles so clicking them zooms
-            # to empty space).  The under-lake streams are available in a
-            # separate tile layer for optional dotted-line rendering.
-            if ftype_val == FeatureType.STREAM.value:
-                lake_wbkeys = self.store.get_lake_manmade_wbkeys()
-                visible_segments = [
-                    seg for seg in consolidated.values()
-                    if not (
-                        seg["waterbody_keys"]
-                        and seg["waterbody_keys"] <= lake_wbkeys
-                    )
-                ]
-            else:
-                visible_segments = list(consolidated.values())
-
             sorted_segments = sorted(
-                visible_segments, key=lambda s: s["length_m"], reverse=True
+                consolidated.values(), key=lambda s: s["length_m"], reverse=True
             )
 
             all_reg_ids: set = set()
@@ -330,7 +314,7 @@ class SearchIndexBuilder:
                 seg["fgid"] for seg in reg_segments if seg.get("fgid")
             ]
 
-            # Skip streams where all segments were under lakes (nothing to show)
+            # Skip entries with no segments (e.g. only under-lake features)
             if not reg_segments:
                 skipped_unnamed += 1
                 continue

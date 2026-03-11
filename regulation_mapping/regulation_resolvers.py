@@ -162,13 +162,19 @@ def lookup_admin_targets(
     Groups targets by ``(layer, code_filter)`` for efficient batching, then
     calls ``search_admin_layer`` + ``find_features_in_admin_area`` per group.
 
+    When ``buffer_m > 0``, hysteresis is applied: the exact (unbuffered)
+    intersection is computed first, then the buffered intersection.  Features
+    captured *only* by the buffer are kept only if their ``blue_line_key``
+    appears in the exact set — this ensures extensions of boundary-straddling
+    streams are included while distant unrelated streams are not.
+
     Args:
         gazetteer: Loaded FWA metadata gazetteer.
         gpkg_path: Path to the GPKG file (must exist).
         admin_targets: List of AdminTarget specifying polygons to intersect.
         feature_types: Restrict intersection to these types (None = all).
         buffer_m: Optional buffer (metres) to expand admin polygons before
-            intersection.  0 = exact intersection.
+            intersection.  0 = exact intersection only.
 
     Returns:
         (matched_features, admin_entries) where admin_entries is
@@ -198,13 +204,54 @@ def lookup_admin_targets(
             logger.error(f"Admin lookup returned no features (layer: {layer_key})")
             continue
 
-        matched = gazetteer.find_features_in_admin_area(
-            admin_features=admin_features,
-            layer_key=layer_key,
-            feature_types=feature_types,
-            gpkg_path=gpkg_path,
-            buffer_m=buffer_m,
-        )
+        if buffer_m > 0:
+            # --- Hysteresis: two-pass intersection ---
+            # Pass 1: exact boundary
+            exact = gazetteer.find_features_in_admin_area(
+                admin_features=admin_features,
+                layer_key=layer_key,
+                feature_types=feature_types,
+                gpkg_path=gpkg_path,
+                buffer_m=0,
+            )
+            exact_ids = {f.fwa_id for f in exact}
+            # Collect blue_line_keys of features inside the exact boundary
+            exact_blks: Set[str] = {f.blue_line_key for f in exact if f.blue_line_key}
+
+            # Pass 2: buffered boundary
+            buffered = gazetteer.find_features_in_admin_area(
+                admin_features=admin_features,
+                layer_key=layer_key,
+                feature_types=feature_types,
+                gpkg_path=gpkg_path,
+                buffer_m=buffer_m,
+            )
+
+            # Hysteresis gate: buffer-only features kept only if
+            # they share a blue_line_key with an exact-match feature.
+            matched: List[FWAFeature] = []
+            n_hysteresis = 0
+            for f in buffered:
+                if f.fwa_id in exact_ids:
+                    matched.append(f)
+                elif f.blue_line_key and f.blue_line_key in exact_blks:
+                    matched.append(f)
+                    n_hysteresis += 1
+                # else: buffer-only, no shared BLK → discard
+            if n_hysteresis:
+                logger.info(
+                    f"  Admin hysteresis: {n_hysteresis} buffer-only features "
+                    f"kept via shared blue_line_key ({layer_key})"
+                )
+        else:
+            matched = gazetteer.find_features_in_admin_area(
+                admin_features=admin_features,
+                layer_key=layer_key,
+                feature_types=feature_types,
+                gpkg_path=gpkg_path,
+                buffer_m=0,
+            )
+
         all_matched.extend(matched)
         admin_entries.extend((layer_key, af) for af in admin_features)
 

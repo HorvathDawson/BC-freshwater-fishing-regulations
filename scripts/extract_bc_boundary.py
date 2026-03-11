@@ -8,7 +8,13 @@ import json
 from pathlib import Path
 
 GPKG_PATH = Path(__file__).resolve().parent.parent / "data" / "bc_fisheries_data.gpkg"
-OUTPUT_PATH = Path(__file__).resolve().parent.parent / "webapp" / "public" / "data" / "bc_boundary.geojson"
+OUTPUT_PATH = (
+    Path(__file__).resolve().parent.parent
+    / "webapp"
+    / "public"
+    / "data"
+    / "bc_boundary.geojson"
+)
 
 
 def main() -> None:
@@ -24,14 +30,18 @@ def main() -> None:
     print(f"  Simplified: {bc_union.geom_type} → {bc_simple.geom_type}")
 
     # Reproject to WGS84 (MapLibre requires EPSG:4326)
-    gdf_out = gpd.GeoDataFrame(geometry=[bc_simple], crs="EPSG:3005").to_crs("EPSG:4326")
+    gdf_out = gpd.GeoDataFrame(geometry=[bc_simple], crs="EPSG:3005").to_crs(
+        "EPSG:4326"
+    )
     geom = gdf_out.geometry.iloc[0]
 
     # Build a minimal GeoJSON Feature (MapLibre `within` needs a GeoJSON geometry)
     feature = {
         "type": "Feature",
         "properties": {},
-        "geometry": json.loads(gpd.GeoSeries([geom]).to_json())["features"][0]["geometry"],
+        "geometry": json.loads(gpd.GeoSeries([geom]).to_json())["features"][0][
+            "geometry"
+        ],
     }
 
     OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)

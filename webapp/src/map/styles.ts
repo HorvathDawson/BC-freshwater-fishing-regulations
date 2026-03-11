@@ -545,6 +545,7 @@ export const createRegulationLayers = (): LayerSpecification[] => {
         type: 'line',
         source: 'regulations',
         'source-layer': 'admin_parks_nat',
+        minzoom: 9,
         paint: {
             'line-color': ADMIN_COLORS.admin_parks_nat,
             'line-width': 3.0,
@@ -581,6 +582,7 @@ export const createRegulationLayers = (): LayerSpecification[] => {
         type: 'line',
         source: 'regulations',
         'source-layer': 'admin_parks_bc',
+        filter: ['!=', ['get', 'admin_type'], 'ECOLOGICAL_RESERVE'],
         paint: {
             'line-color': [
                 'match',
@@ -591,12 +593,20 @@ export const createRegulationLayers = (): LayerSpecification[] => {
                 'RECREATION_AREA',    ADMIN_COLORS.RECREATION_AREA,
                 ADMIN_COLORS.admin_parks_bc_default,
             ],
-            'line-width': [
-                'match',
-                ['get', 'admin_type'],
-                'ECOLOGICAL_RESERVE', 2.5,
-                1.5,
-            ],
+            'line-width': 1.5,
+            'line-opacity': 0.75,
+        },
+    });
+    adminLayers.push({
+        id: 'admin_parks_bc-eco-line',
+        type: 'line',
+        source: 'regulations',
+        'source-layer': 'admin_parks_bc',
+        filter: ['==', ['get', 'admin_type'], 'ECOLOGICAL_RESERVE'],
+        minzoom: 9,
+        paint: {
+            'line-color': ADMIN_COLORS.ECOLOGICAL_RESERVE,
+            'line-width': 2.5,
             'line-opacity': 0.75,
         },
     });
@@ -704,6 +714,7 @@ export const createRegulationLayers = (): LayerSpecification[] => {
         type: 'line',
         source: 'regulations',
         'source-layer': 'admin_aboriginal_lands',
+        minzoom: 9,
         paint: {
             'line-color': ADMIN_COLORS.aboriginal_lands,
             'line-width': 2.5,
@@ -835,16 +846,16 @@ export const createAdminLabelLayers = (): LayerSpecification[] => {
         source: 'regulations',
         'source-layer': 'admin_parks_bc',
         filter: ['==', ['get', 'admin_type'], 'ECOLOGICAL_RESERVE'],
-        minzoom: 6,
+        minzoom: 9,
         layout: {
             'symbol-placement': 'point',
             'text-field': ['get', 'name'],
             'text-font': ['Noto Sans Regular'],
-            'text-size': ['interpolate', ['linear'], ['zoom'], 7, 9, 10, 11, 12, 13],
+            'text-size': ['interpolate', ['linear'], ['zoom'], 9, 9, 11, 11, 13, 13],
             'text-max-width': 8,
             'text-anchor': 'center',
             'text-allow-overlap': false,
-            'text-padding': ['interpolate', ['linear'], ['zoom'], 7, 50, 10, 12, 14, 4],
+            'text-padding': ['interpolate', ['linear'], ['zoom'], 9, 50, 11, 12, 14, 4],
         },
         paint: {
             'text-color': '#7F1D1D',
@@ -1042,16 +1053,16 @@ export const createAdminLabelLayers = (): LayerSpecification[] => {
         type: 'symbol',
         source: 'regulations',
         'source-layer': 'admin_aboriginal_lands',
-        minzoom: 6,
+        minzoom: 9,
         layout: {
             'symbol-placement': 'point',
             'text-field': ['get', 'name'],
             'text-font': ['Noto Sans Regular'],
-            'text-size': ['interpolate', ['linear'], ['zoom'], 7, 9, 10, 11, 12, 13],
+            'text-size': ['interpolate', ['linear'], ['zoom'], 9, 9, 11, 11, 13, 13],
             'text-max-width': 8,
             'text-anchor': 'center',
             'text-allow-overlap': false,
-            'text-padding': ['interpolate', ['linear'], ['zoom'], 7, 50, 10, 12, 14, 4],
+            'text-padding': ['interpolate', ['linear'], ['zoom'], 9, 50, 11, 12, 14, 4],
         },
         paint: {
             'text-color': '#6B4F00',
