@@ -380,3 +380,236 @@ class TestAdminBoundaryHysteresis:
         )
         matched_ids = {f.fwa_id for f in matched}
         assert "inside_1" in matched_ids
+
+
+# ===================================================================
+# Tests — per-instance hysteresis (desired behaviour)
+# ===================================================================
+
+# ADMIN_POLYGON is a 1km square (x: 1M→1.001M, y: 500K→501K).
+#
+# Scenario: boundary cuts a stream in half. The FWA segment inside the
+# polygon and the adjacent segment just outside share the same BLK.
+# A completely unrelated stream also runs within the 500m buffer.
+#
+# Desired behaviour for lookup_admin_targets with buffer + BLK gate:
+#   1. Segments inside the exact polygon                → ALWAYS kept
+#   2. Buffer-only segments sharing BLK with #1         → KEPT (boundary-cut fix)
+#   3. Buffer-only segments with unrelated BLK          → DISCARDED
+#   4. Segments beyond the buffer, even with shared BLK → DISCARDED
+
+# Stream A (BLK_A): one segment inside, one just outside (200m) — boundary cut
+SEG_INSIDE_A = LineString([(1_000_300, 500_300), (1_000_700, 500_700)])
+SEG_OUTSIDE_A = LineString([(1_001_200, 500_200), (1_001_200, 500_800)])
+
+# Stream B (BLK_B): unrelated stream, 300m outside — within buffer but different BLK
+SEG_UNRELATED_B = LineString([(1_001_300, 500_100), (1_001_300, 500_900)])
+
+# Stream A (BLK_A): segment far outside (700m) — beyond 500m buffer
+SEG_FAR_A = LineString([(1_001_700, 500_200), (1_001_700, 500_800)])
+
+
+class TestPerInstanceHysteresisDesired:
+    """Tests the desired behaviour: per-instance admin resolution should
+    apply hysteresis (exact + buffer + BLK gate) so that:
+    - boundary-cut segments (same BLK, within buffer) are captured
+    - unrelated nearby streams (different BLK, within buffer) are excluded
+    """
+
+    @pytest.fixture()
+    def mock_gazetteer(self):
+        import geopandas as gpd
+
+        gaz = MagicMock(spec=MetadataGazetteer)
+        gaz.gpkg_path = Path("/fake/path.gpkg")
+
+        admin_gdf = gpd.GeoDataFrame(
+            {"osm_id": ["aboriginal_1"]},
+            geometry=[ADMIN_POLYGON],
+            crs="EPSG:3005",
+        )
+        gaz.get_admin_geometry.return_value = admin_gdf
+
+        streams_gdf = gpd.GeoDataFrame(
+            {
+                "LINEAR_FEATURE_ID": [
+                    "inside_a",
+                    "outside_a",
+                    "unrelated_b",
+                    "far_a",
+                ]
+            },
+            geometry=[SEG_INSIDE_A, SEG_OUTSIDE_A, SEG_UNRELATED_B, SEG_FAR_A],
+            crs="EPSG:3005",
+        )
+        streams_gdf = streams_gdf.set_index("LINEAR_FEATURE_ID", drop=False)
+        gaz._get_cached_fwa_layer.return_value = streams_gdf
+
+        def _resolve(ftype, fwa_id):
+            blk_map = {
+                "inside_a": "BLK_A",
+                "outside_a": "BLK_A",  # same stream, boundary-cut
+                "unrelated_b": "BLK_B",  # different stream entirely
+                "far_a": "BLK_A",  # same stream but way outside
+            }
+            return _make_fwa_feature_with_blk(fwa_id, blk_map[fwa_id])
+
+        gaz.get_feature_by_type_and_id.side_effect = _resolve
+
+        gaz.search_admin_layer.return_value = [_make_admin_feature("aboriginal_1")]
+        gaz.find_features_in_admin_area = (
+            lambda **kw: MetadataGazetteer.find_features_in_admin_area(gaz, **kw)
+        )
+
+        return gaz
+
+    def test_boundary_cut_segment_kept(self, mock_gazetteer):
+        """A segment just outside the polygon but sharing a BLK with an
+        inside segment should be kept — this is the boundary-cut case."""
+        from regulation_mapping.regulation_resolvers import lookup_admin_targets
+        from regulation_mapping.admin_target import AdminTarget
+
+        targets = [AdminTarget(layer="aboriginal_lands", feature_id="aboriginal_1")]
+        matched, _ = lookup_admin_targets(
+            mock_gazetteer,
+            Path("/fake/path.gpkg"),
+            targets,
+            [FeatureType.STREAM],
+            buffer_m=500,
+        )
+        matched_ids = {f.fwa_id for f in matched}
+
+        assert "inside_a" in matched_ids, "Inside segment always kept"
+        assert "outside_a" in matched_ids, (
+            "Boundary-cut segment (200m outside, same BLK_A) must be kept"
+        )
+
+    def test_unrelated_stream_discarded(self, mock_gazetteer):
+        """An unrelated stream within the buffer but with a different BLK
+        should NOT be captured — it doesn't belong to this admin area."""
+        from regulation_mapping.regulation_resolvers import lookup_admin_targets
+        from regulation_mapping.admin_target import AdminTarget
+
+        targets = [AdminTarget(layer="aboriginal_lands", feature_id="aboriginal_1")]
+        matched, _ = lookup_admin_targets(
+            mock_gazetteer,
+            Path("/fake/path.gpkg"),
+            targets,
+            [FeatureType.STREAM],
+            buffer_m=500,
+        )
+        matched_ids = {f.fwa_id for f in matched}
+
+        assert "unrelated_b" not in matched_ids, (
+            "Stream B (BLK_B) is within 500m buffer but has no segment inside "
+            "the polygon — it should NOT be pulled in."
+        )
+
+    def test_far_segment_beyond_buffer_discarded(self, mock_gazetteer):
+        """A segment sharing the same BLK but beyond the buffer radius
+        should not be captured — the buffer has a hard limit."""
+        from regulation_mapping.regulation_resolvers import lookup_admin_targets
+        from regulation_mapping.admin_target import AdminTarget
+
+        targets = [AdminTarget(layer="aboriginal_lands", feature_id="aboriginal_1")]
+        matched, _ = lookup_admin_targets(
+            mock_gazetteer,
+            Path("/fake/path.gpkg"),
+            targets,
+            [FeatureType.STREAM],
+            buffer_m=500,
+        )
+        matched_ids = {f.fwa_id for f in matched}
+
+        assert "far_a" not in matched_ids, (
+            "far_a shares BLK_A but is 700m away — beyond the 500m buffer"
+        )
+
+
+class TestPerInstancePathUsesHysteresis:
+    """The per-instance code path (_process_provincial_per_instance) currently
+    calls find_features_in_admin_area directly with buffer_m=500, bypassing
+    the BLK hysteresis gate in lookup_admin_targets.
+
+    This means an unrelated stream (different BLK) within 500m of the admin
+    polygon gets incorrectly pulled in. These tests FAIL until the per-instance
+    path is fixed to use hysteresis.
+    """
+
+    @pytest.fixture()
+    def mock_gazetteer(self):
+        import geopandas as gpd
+
+        gaz = MagicMock(spec=MetadataGazetteer)
+        gaz.gpkg_path = Path("/fake/path.gpkg")
+
+        admin_gdf = gpd.GeoDataFrame(
+            {"osm_id": ["aboriginal_1"]},
+            geometry=[ADMIN_POLYGON],
+            crs="EPSG:3005",
+        )
+        gaz.get_admin_geometry.return_value = admin_gdf
+
+        streams_gdf = gpd.GeoDataFrame(
+            {
+                "LINEAR_FEATURE_ID": [
+                    "inside_a",
+                    "outside_a",
+                    "unrelated_b",
+                    "far_a",
+                ]
+            },
+            geometry=[SEG_INSIDE_A, SEG_OUTSIDE_A, SEG_UNRELATED_B, SEG_FAR_A],
+            crs="EPSG:3005",
+        )
+        streams_gdf = streams_gdf.set_index("LINEAR_FEATURE_ID", drop=False)
+        gaz._get_cached_fwa_layer.return_value = streams_gdf
+
+        def _resolve(ftype, fwa_id):
+            blk_map = {
+                "inside_a": "BLK_A",
+                "outside_a": "BLK_A",
+                "unrelated_b": "BLK_B",
+                "far_a": "BLK_A",
+            }
+            return _make_fwa_feature_with_blk(fwa_id, blk_map[fwa_id])
+
+        gaz.get_feature_by_type_and_id.side_effect = _resolve
+
+        gaz.search_admin_layer.return_value = [_make_admin_feature("aboriginal_1")]
+        # Wire find_features_in_admin_area to the real implementation
+        gaz.find_features_in_admin_area = (
+            lambda **kw: MetadataGazetteer.find_features_in_admin_area(gaz, **kw)
+        )
+
+        return gaz
+
+    def test_per_instance_excludes_unrelated_stream(self, mock_gazetteer):
+        """The per-instance path now calls lookup_admin_targets which applies
+        hysteresis — an unrelated stream (BLK_B) within the 500m buffer
+        but with no segment inside the polygon should NOT be captured."""
+        from regulation_mapping.regulation_resolvers import lookup_admin_targets
+        from regulation_mapping.admin_target import AdminTarget
+        from fwa_pipeline.metadata_builder import ADMIN_BOUNDARY_BUFFER_M
+
+        # This mirrors what _process_provincial_per_instance now does:
+        # calls lookup_admin_targets per admin polygon
+        targets = [AdminTarget(layer="aboriginal_lands", feature_id="aboriginal_1")]
+        matched, _ = lookup_admin_targets(
+            mock_gazetteer,
+            Path("/fake/path.gpkg"),
+            targets,
+            [FeatureType.STREAM],
+            buffer_m=ADMIN_BOUNDARY_BUFFER_M,
+        )
+        matched_ids = {f.fwa_id for f in matched}
+
+        # Boundary-cut segment (same BLK, within buffer) kept
+        assert "inside_a" in matched_ids
+        assert "outside_a" in matched_ids
+
+        # Unrelated stream (different BLK) excluded by hysteresis
+        assert "unrelated_b" not in matched_ids, (
+            "Per-instance path should exclude unrelated stream BLK_B (300m away) "
+            "via hysteresis BLK gate filtering."
+        )

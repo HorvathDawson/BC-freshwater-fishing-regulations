@@ -938,11 +938,16 @@ class RegulationMapper:
             )
 
             for admin_feat in admin_features:
-                matched = self.gazetteer.find_features_in_admin_area(
-                    admin_features=[admin_feat],
-                    layer_key=layer_key,
-                    feature_types=prov_reg.feature_types,
-                    gpkg_path=self.gpkg_path,
+                single_target = AdminTarget(
+                    layer=layer_key,
+                    feature_id=admin_feat.fwa_id,
+                    code_filter=admin_target.code_filter,
+                )
+                matched, _ = lookup_admin_targets(
+                    self.gazetteer,
+                    self.gpkg_path,
+                    [single_target],
+                    prov_reg.feature_types,
                     buffer_m=ADMIN_BOUNDARY_BUFFER_M,
                 )
                 if not matched:

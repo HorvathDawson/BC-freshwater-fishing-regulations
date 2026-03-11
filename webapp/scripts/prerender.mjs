@@ -29,23 +29,34 @@ const TEMPLATE_PATH = resolve(ROOT, 'dist', 'index.html');
 const OUT_DIR = resolve(ROOT, 'dist', 'waterbody');
 const SITEMAP_PATH = resolve(ROOT, 'dist', 'sitemap.xml');
 const SITE_URL = 'https://canifishthis.ca';
+const R2_DATA_URL = 'https://bc-fishing-r2.horvath-dawson.workers.dev/waterbody_data.json';
 
-// --- Guards: fail loudly, never silently skip ---
-if (!existsSync(JSON_PATH)) {
-    console.error(`\nERROR [prerender]: ${JSON_PATH} not found.`);
-    console.error('Ensure waterbody_data.json is present in public/data/ before building.');
-    console.error('In CI/CD: download the file from R2 before running npm run build.\n');
-    process.exit(1);
+// --- Load waterbody JSON: local file first, then R2 ---
+async function loadWaterbodyData() {
+    if (existsSync(JSON_PATH)) {
+        console.log('[prerender] Loading waterbody_data.json from local file.');
+        return JSON.parse(readFileSync(JSON_PATH, 'utf8'));
+    }
+    console.log('[prerender] Local file not found, fetching from R2...');
+    const res = await fetch(R2_DATA_URL);
+    if (!res.ok) {
+        throw new Error(`Failed to fetch waterbody_data.json from R2: ${res.status} ${res.statusText}`);
+    }
+    return res.json();
 }
+
+// --- Main (async for R2 fetch support) ---
+const json = await loadWaterbodyData();
+const waterbodies = json.waterbodies ?? [];
+
+// --- Guards ---
 if (!existsSync(TEMPLATE_PATH)) {
     console.error(`\nERROR [prerender]: ${TEMPLATE_PATH} not found. Run vite build first.\n`);
     process.exit(1);
 }
 
-// --- Load inputs ---
+// --- Load template ---
 const template = readFileSync(TEMPLATE_PATH, 'utf8');
-const json = JSON.parse(readFileSync(JSON_PATH, 'utf8'));
-const waterbodies = json.waterbodies ?? [];
 
 // Short-key field names mirror waterbodyDataService.ts decodeWaterbody().
 // Both short and long keys are handled to be forward-compatible.
