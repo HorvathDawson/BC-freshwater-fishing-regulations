@@ -24,6 +24,20 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const ROOT = resolve(__dirname, '..');
 
+// --- Load .env.production (no dotenv dependency) ---
+const envPath = resolve(ROOT, '.env.production');
+if (existsSync(envPath)) {
+    for (const line of readFileSync(envPath, 'utf8').split('\n')) {
+        const trimmed = line.trim();
+        if (!trimmed || trimmed.startsWith('#')) continue;
+        const idx = trimmed.indexOf('=');
+        if (idx === -1) continue;
+        const key = trimmed.slice(0, idx).trim();
+        const val = trimmed.slice(idx + 1).trim();
+        if (!(key in process.env)) process.env[key] = val;
+    }
+}
+
 const JSON_PATH = resolve(ROOT, 'public', 'data', 'waterbody_data.json');
 const TEMPLATE_PATH = resolve(ROOT, 'dist', 'index.html');
 const OUT_DIR = resolve(ROOT, 'dist', 'waterbody');
@@ -131,7 +145,8 @@ function patchTemplate(tmpl, { title, description, canonicalUrl }) {
 
 // Cloudflare Pages free tier: 20,000 files per deployment.
 // Reserve headroom for Vite's base output (JS, CSS, HTML, fonts, images).
-const MAX_PAGES = 19_500;
+// Override via PRERENDER_MAX_PAGES in .env.production.
+const MAX_PAGES = parseInt(process.env.PRERENDER_MAX_PAGES, 10) || 19_000;
 
 // --- Build wbg → primary raw entry map (deduplicate: one HTML page per wbg) ---
 // Multiple named waterbody entries can share the same wbg (e.g., different regulation
