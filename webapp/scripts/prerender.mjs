@@ -129,6 +129,10 @@ function patchTemplate(tmpl, { title, description, canonicalUrl }) {
     return html;
 }
 
+// Cloudflare Pages free tier: 20,000 files per deployment.
+// Reserve headroom for Vite's base output (JS, CSS, HTML, fonts, images).
+const MAX_PAGES = 19_500;
+
 // --- Build wbg → primary raw entry map (deduplicate: one HTML page per wbg) ---
 // Multiple named waterbody entries can share the same wbg (e.g., different regulation
 // segments of the same river). We use the first-seen entry per wbg as the page source.
@@ -140,13 +144,26 @@ for (const raw of waterbodies) {
     wbgEntries.set(wbg, raw);
 }
 
+// --- Prioritise pages: regulated waterbodies first, then named ---
+let entries = [...wbgEntries.entries()].filter(
+    ([, raw]) => (raw.dn ?? raw.display_name ?? raw.gn ?? raw.gnis_name ?? '') !== '',
+);
+entries.sort((a, b) => {
+    const aRegs = (a[1].rs ?? []).length;
+    const bRegs = (b[1].rs ?? []).length;
+    return bRegs - aRegs; // more regulations → higher priority
+});
+if (entries.length > MAX_PAGES) {
+    console.log(`[prerender] Capping from ${entries.length} to ${MAX_PAGES} pages (Cloudflare 20k file limit).`);
+    entries = entries.slice(0, MAX_PAGES);
+}
+
 // --- Write per-waterbody HTML files ---
 let written = 0;
 const sitemapUrls = [];
 
-for (const [wbg, raw] of wbgEntries) {
+for (const [wbg, raw] of entries) {
     const displayName = raw.dn ?? raw.display_name ?? raw.gn ?? raw.gnis_name ?? '';
-    if (!displayName) continue; // skip unnamed entries (shouldn't be in waterbodies[])
 
     const type = raw.type ?? '';
     const typeLabel = TYPE_LABEL[type] ?? 'Waterbody';
