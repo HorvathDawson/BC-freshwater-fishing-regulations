@@ -671,6 +671,25 @@ class RuleGroup:
                         f"Original rule_text_verbatim: '{rule_snippet}'"
                     )
 
+        # Restriction-details-in-rule-text check:
+        # The core restriction keyword (e.g. "Fly fishing only", "Bait ban")
+        # must appear in rule_text_verbatim.  This catches compound (a)/(b)
+        # splits where the parser creates a fragment missing the restriction.
+        if self.restriction.details and self.restriction.type != "note":
+            # Extract the primary restriction keyword: text before any
+            # parenthetical or semicolon-separated secondary info.
+            core = self.restriction.details.split("(")[0].split(";")[0].strip()
+            if core and len(core) > 3:
+                core_norm = _normalize_text(core)
+                rule_norm = _normalize_text(self.rule_text_verbatim)
+                if core_norm not in rule_norm:
+                    errors.append(
+                        f"restriction.details core '{core}' not found in "
+                        f"rule_text_verbatim. This usually means a compound "
+                        f"sentence was incorrectly split — use the ENTIRE "
+                        f"sentence as rule_text_verbatim for all sub-items."
+                    )
+
         return errors
 
     @classmethod
@@ -798,6 +817,32 @@ class ParsedWaterbody:
             # NOTE: In Atomic Regulation Unit (ARU) architecture, multiple rules
             # CAN share identical scopes - each rule is one restriction with its own scope.
             # This is intentional and not an error. We removed the duplicate scope check.
+
+            # Keyword coverage check: known restriction patterns in regs_verbatim
+            # must be covered by at least one rule's rule_text_verbatim.
+            _RESTRICTION_KEYWORDS = [
+                "no fishing",
+                "class i water",
+                "class ii water",
+                "steelhead stamp mandatory",
+                "bait ban",
+                "fly fishing only",
+                "catch and release",
+                "no powered boats",
+                "single barbless hook",
+                "daily quota",
+            ]
+            regs_norm = _normalize_text(self.regs_verbatim)
+            all_rules_norm = " \n ".join(
+                _normalize_text(r.rule_text_verbatim) for r in self.rules
+            )
+            for kw in _RESTRICTION_KEYWORDS:
+                if kw in regs_norm and kw not in all_rules_norm:
+                    errors.append(
+                        f"Regulation keyword '{kw}' found in regs_verbatim "
+                        f"but not covered by any rule's rule_text_verbatim. "
+                        f"A restriction may have been missed during parsing."
+                    )
 
         return errors
 

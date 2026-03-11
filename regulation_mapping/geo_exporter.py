@@ -34,6 +34,7 @@ from fwa_pipeline.metadata_gazetteer import FeatureType
 from .canonical_store import (
     CanonicalDataStore,
     _ADMIN_ZOOM_LOOKUP,
+    _ADMIN_ZOOM_LOOKUP_AGGRESSIVE,
 )
 from .geometry_utils import round_coords
 from .logger_config import get_logger
@@ -60,6 +61,7 @@ _PMTILES_COLUMNS: Dict[str, set] = {
     "streams": {
         "group_id",
         "frontend_group_id",
+        "waterbody_group",
         "display_name",
         "waterbody_key",
         "blue_line_key",
@@ -69,6 +71,7 @@ _PMTILES_COLUMNS: Dict[str, set] = {
     "lakes": {
         "group_id",
         "frontend_group_id",
+        "waterbody_group",
         "display_name",
         "waterbody_key",
         "area_sqm",
@@ -77,6 +80,7 @@ _PMTILES_COLUMNS: Dict[str, set] = {
     "wetlands": {
         "group_id",
         "frontend_group_id",
+        "waterbody_group",
         "display_name",
         "waterbody_key",
         "area_sqm",
@@ -85,15 +89,26 @@ _PMTILES_COLUMNS: Dict[str, set] = {
     "manmade": {
         "group_id",
         "frontend_group_id",
+        "waterbody_group",
         "display_name",
         "waterbody_key",
         "area_sqm",
+        "tippecanoe:minzoom",
+    },
+    "under_lake_streams": {
+        "group_id",
+        "frontend_group_id",
+        "waterbody_group",
+        "display_name",
+        "waterbody_key",
+        "blue_line_key",
         "tippecanoe:minzoom",
     },
     "ungazetted": {
         "ungazetted_id",
         "group_id",
         "frontend_group_id",
+        "waterbody_group",
         "display_name",
         "tippecanoe:minzoom",
     },
@@ -161,6 +176,23 @@ class GeoArtifactGenerator:
             lambda f: f["feature_type"] == ftype_enum.value,
         )
 
+    def _create_under_lake_streams_layer(self) -> Optional[gpd.GeoDataFrame]:
+        """Streams whose waterbody_key is inside a lake/manmade polygon.
+
+        These are excluded from the main streams layer but preserved here
+        so the frontend can optionally render them as dotted connecting
+        lines with names.
+        """
+        lake_wbkeys = self.store.get_lake_manmade_wbkeys()
+        return self._get_cached_layer(
+            "under_lake_streams",
+            lambda f: (
+                f["feature_type"] == FeatureType.STREAM.value
+                and bool(f.get("waterbody_key"))
+                and str(f["waterbody_key"]) in lake_wbkeys
+            ),
+        )
+
     def _create_ungazetted_layer(self) -> Optional[gpd.GeoDataFrame]:
         return self._get_cached_layer(
             "ungazetted",
@@ -217,13 +249,47 @@ class GeoArtifactGenerator:
             gdf["admin_type"] = layer_key
         out_cols.append("admin_type")
 
+        # Eco reserves and aboriginal lands use aggressive area filtering
+        # to reduce visual clutter from many small polygons.
+        _AGGRESSIVE_LAYERS = {"parks_bc", "aboriginal_lands"}
+        zoom_lookup = (
+            _ADMIN_ZOOM_LOOKUP_AGGRESSIVE
+            if layer_key in _AGGRESSIVE_LAYERS
+            else _ADMIN_ZOOM_LOOKUP
+        )
+
         gdf["tippecanoe:minzoom"] = gdf.geometry.area.apply(
-            lambda a: CanonicalDataStore._calculate_minzoom(a, _ADMIN_ZOOM_LOOKUP)
+            lambda a: CanonicalDataStore._calculate_minzoom(a, zoom_lookup)
         )
         out_cols.extend(["tippecanoe:minzoom", "geometry"])
 
         logger.info(f"  Admin layer '{layer_key}': {len(gdf)} features")
         return gdf[out_cols]
+
+    def _create_dissolved_admin_fill_layer(
+        self, layer_key: str
+    ) -> Optional[gpd.GeoDataFrame]:
+        """Create a dissolved (unioned) version of an admin layer for fill rendering.
+
+        Overlapping polygons (e.g. aboriginal lands) stack visually when
+        rendered with semi-transparent fills.  This layer unions all polygons
+        into a single geometry so the fill is painted once, while the original
+        per-feature layer is kept for click queries, borders, and labels.
+        """
+        base_gdf = self._create_admin_layer(layer_key)
+        if base_gdf is None or base_gdf.empty:
+            return None
+
+        dissolved = gpd.GeoDataFrame(
+            geometry=[base_gdf.geometry.unary_union],
+            crs=base_gdf.crs,
+        )
+        dissolved["tippecanoe:minzoom"] = int(base_gdf["tippecanoe:minzoom"].min())
+        logger.info(
+            f"  Dissolved fill layer for '{layer_key}': "
+            f"{len(base_gdf)} polygons → 1 union"
+        )
+        return dissolved
 
     def _create_regions_layer(self) -> Optional[gpd.GeoDataFrame]:
         """Build region boundary layer from the 'wmu' GPKG layer."""
@@ -250,6 +316,17 @@ class GeoArtifactGenerator:
                 "geometry",
             ]
         ]
+
+    def _create_regions_fill_layer(self) -> Optional[gpd.GeoDataFrame]:
+        """Build dissolved region fill polygons for centroid labels at low zoom."""
+        if "wmu" not in self.store.data_accessor.list_layers():
+            return None
+        zones_gdf = self.store.data_accessor.get_layer("wmu").to_crs("EPSG:3005")
+        zones_gdf["zone"] = zones_gdf["REGION_RESPONSIBLE_ID"]
+        zones_gdf["region_name"] = zones_gdf["REGION_RESPONSIBLE_NAME"]
+        regions_gdf = zones_gdf.dissolve(by="zone", as_index=False, aggfunc="first")
+        regions_gdf["tippecanoe:minzoom"] = 0
+        return regions_gdf[["zone", "region_name", "tippecanoe:minzoom", "geometry"]]
 
     def _create_management_units_layer(self) -> Optional[gpd.GeoDataFrame]:
         """Build management-unit boundary layer."""
@@ -285,8 +362,9 @@ class GeoArtifactGenerator:
             return None
         mu_gdf = self.store.data_accessor.get_layer("wmu").to_crs("EPSG:3005")
         mu_gdf["mu_code"] = mu_gdf["WILDLIFE_MGMT_UNIT_ID"]
+        mu_gdf["zone"] = mu_gdf["REGION_RESPONSIBLE_ID"]
         mu_gdf["tippecanoe:minzoom"] = 4
-        return mu_gdf[["mu_code", "tippecanoe:minzoom", "geometry"]]
+        return mu_gdf[["mu_code", "zone", "tippecanoe:minzoom", "geometry"]]
 
     def _create_bc_mask_layer(self) -> Optional[gpd.GeoDataFrame]:
         """Create an outside-BC grey mask polygon."""
@@ -374,6 +452,7 @@ class GeoArtifactGenerator:
             layers.extend(
                 [
                     ("regions", lambda: self._create_regions_layer()),
+                    ("regions_fill", lambda: self._create_regions_fill_layer()),
                     ("management_units", lambda: self._create_management_units_layer()),
                     (
                         "management_units_fill",
@@ -383,6 +462,7 @@ class GeoArtifactGenerator:
                 ]
             )
 
+        layers.append(("under_lake_streams", lambda: self._create_under_lake_streams_layer()))
         layers.append(("ungazetted", lambda: self._create_ungazetted_layer()))
 
         # Tidal boundary display polygon (low-opacity grey)
@@ -395,6 +475,15 @@ class GeoArtifactGenerator:
                     lambda lk=layer_key: self._create_admin_layer(lk),
                 )
             )
+
+        # Dissolved fill layer for aboriginal lands — prevents opacity stacking
+        # when many overlapping territory polygons render semi-transparently.
+        layers.append(
+            (
+                "admin_aboriginal_lands_fill",
+                lambda: self._create_dissolved_admin_fill_layer("aboriginal_lands"),
+            )
+        )
         return layers
 
     # ------------------------------------------------------------------

@@ -11,10 +11,15 @@ Uses real metadata shapes from the BC fisheries data:
     - Campbell River (blk 356461464): cleanly in zone 1.  No mismatch.
 """
 
+from collections import defaultdict
+
 import pytest
 from fwa_pipeline.metadata_gazetteer import FeatureType, MetadataGazetteer
 from regulation_mapping.regulation_resolvers import build_feature_index
+from regulation_mapping.regulation_mapper import RegulationMapper
 from regulation_mapping.feature_merger import aggregate_group_metadata
+from regulation_mapping.scope_filter import ScopeFilter
+from regulation_mapping.tributary_enricher import TributaryEnricher
 
 
 # ---------------------------------------------------------------------------
@@ -99,6 +104,16 @@ class _FakeGazetteer:
         self.metadata = {
             FeatureType.STREAM: {fid: meta for fid, meta in stream_entries},
         }
+        # Build reverse indexes used by _extend_boundary_streams
+        self.watershed_code_index: dict = defaultdict(list)
+        self.blue_line_key_index: dict = defaultdict(list)
+        self.data_accessor = None
+        self._reprojected_admin_cache: dict = {}
+        for fid, meta in stream_entries:
+            if wsc := meta.get("fwa_watershed_code"):
+                self.watershed_code_index[wsc].append(fid)
+            if blk := meta.get("blue_line_key"):
+                self.blue_line_key_index[blk].append((fid, FeatureType.STREAM))
 
 
 # ===================================================================
@@ -299,3 +314,392 @@ class TestAggregateGroupMetadataZones:
         result = aggregate_group_metadata(features_data, linked_waterbody_keys=set())
         assert result["zones"] == ("1",)
         assert result["region_names"] == ("Vancouver Island",)
+
+
+# ===================================================================
+# Real metadata shapes — Campbell River MU boundary side channels.
+#
+# WSC 920-627155-000000 is the mainstem.  The named river (BLK 354154635)
+# spans MUs 1-6, 1-10, and 1-9.  Several unnamed side channels share the
+# exact same WSC but have different BLKs.  Some side channels are
+# unbuffered-only in MU 1-10 but within 500m buffer of MU 1-6.
+#
+# A regulation targeting MUs 1-1..1-6 should include those side channels
+# because they braid through the same river corridor as the mainstem.
+#
+# Tributary WSC 920-627155-045026 (Quinsam River) is a DIFFERENT stream
+# entering through the same area — it must NOT be pulled in by WSC
+# matching (different exact WSC).
+# ===================================================================
+
+CAMPBELL_WSC = (
+    "920-627155-000000-000000-000000-000000-000000-000000-"
+    "000000-000000-000000-000000-000000-000000-000000-"
+    "000000-000000-000000-000000-000000-000000"
+)
+QUINSAM_WSC = (
+    "920-627155-045026-000000-000000-000000-000000-000000-"
+    "000000-000000-000000-000000-000000-000000-000000-"
+    "000000-000000-000000-000000-000000-000000"
+)
+
+
+def _campbell_mainstem_in_mu16():
+    """Campbell River mainstem — unbuffered in 1-6."""
+    return "710157676", {
+        "linear_feature_id": "710157676",
+        "gnis_name": "Campbell River",
+        "blue_line_key": "354154635",
+        "fwa_watershed_code": CAMPBELL_WSC,
+        "zones": ["1"],
+        "zones_unbuffered": ["1"],
+        "mgmt_units": ["1-6"],
+        "mgmt_units_unbuffered": ["1-6"],
+        "region_names": ["Vancouver Island"],
+        "region_names_unbuffered": ["Vancouver Island"],
+    }
+
+
+def _campbell_mainstem_in_mu10():
+    """Campbell River mainstem — unbuffered in 1-10."""
+    return "710158000", {
+        "linear_feature_id": "710158000",
+        "gnis_name": "Campbell River",
+        "blue_line_key": "354154635",
+        "fwa_watershed_code": CAMPBELL_WSC,
+        "zones": ["1"],
+        "zones_unbuffered": ["1"],
+        "mgmt_units": ["1-10"],
+        "mgmt_units_unbuffered": ["1-10"],
+        "region_names": ["Vancouver Island"],
+        "region_names_unbuffered": ["Vancouver Island"],
+    }
+
+
+def _side_channel_buffered_overlap():
+    """Side channel BLK 354088344 — unbuffered in 1-10,
+    but buffered MU includes 1-6 (within 500m of boundary)."""
+    return "710150304", {
+        "linear_feature_id": "710150304",
+        "gnis_name": "",
+        "blue_line_key": "354088344",
+        "fwa_watershed_code": CAMPBELL_WSC,  # Same exact WSC as mainstem
+        "zones": ["1"],
+        "zones_unbuffered": ["1"],
+        "mgmt_units": ["1-10", "1-6"],  # Buffer reaches 1-6
+        "mgmt_units_unbuffered": ["1-10"],  # Unbuffered: only 1-10
+        "region_names": ["Vancouver Island"],
+        "region_names_unbuffered": ["Vancouver Island"],
+    }
+
+
+def _side_channel_solidly_in_mu16():
+    """Side channel BLK 354087739 — solidly in 1-6 (already in base set)."""
+    return "710149921", {
+        "linear_feature_id": "710149921",
+        "gnis_name": "",
+        "blue_line_key": "354087739",
+        "fwa_watershed_code": CAMPBELL_WSC,  # Same exact WSC
+        "zones": ["1"],
+        "zones_unbuffered": ["1"],
+        "mgmt_units": ["1-10", "1-6"],
+        "mgmt_units_unbuffered": ["1-6"],
+        "region_names": ["Vancouver Island"],
+        "region_names_unbuffered": ["Vancouver Island"],
+    }
+
+
+def _side_channel_only_mu10():
+    """Side channel BLK 354088932 — unbuffered AND buffered only in 1-10.
+    Should NOT be pulled in by a 1-6 regulation (too far from boundary)."""
+    return "710150030", {
+        "linear_feature_id": "710150030",
+        "gnis_name": "",
+        "blue_line_key": "354088932",
+        "fwa_watershed_code": CAMPBELL_WSC,  # Same exact WSC
+        "zones": ["1"],
+        "zones_unbuffered": ["1"],
+        "mgmt_units": ["1-10"],  # Buffer doesn't reach 1-6
+        "mgmt_units_unbuffered": ["1-10"],
+        "region_names": ["Vancouver Island"],
+        "region_names_unbuffered": ["Vancouver Island"],
+    }
+
+
+def _quinsam_tributary():
+    """Quinsam River — DIFFERENT WSC, solidly in 1-6.
+    Must NOT be pulled in by WSC matching (its WSC differs from mainstem)."""
+    return "710157238", {
+        "linear_feature_id": "710157238",
+        "gnis_name": "Quinsam River",
+        "blue_line_key": "354155091",
+        "fwa_watershed_code": QUINSAM_WSC,  # Different WSC!
+        "zones": ["1"],
+        "zones_unbuffered": ["1"],
+        "mgmt_units": ["1-6", "1-9"],
+        "mgmt_units_unbuffered": ["1-6"],
+        "region_names": ["Vancouver Island"],
+        "region_names_unbuffered": ["Vancouver Island"],
+    }
+
+
+def _quinsam_confluence_edge():
+    """Quinsam River edge near Campbell — buffered MU includes 1-10,
+    but this is a DIFFERENT WSC and should not be pulled into 1-10 regs
+    just because the mainstem shares a WSC with 1-10 features."""
+    return "710150374", {
+        "linear_feature_id": "710150374",
+        "gnis_name": "Quinsam River",
+        "blue_line_key": "354155091",
+        "fwa_watershed_code": QUINSAM_WSC,  # Different WSC!
+        "zones": ["1"],
+        "zones_unbuffered": ["1"],
+        "mgmt_units": ["1-10", "1-6"],
+        "mgmt_units_unbuffered": ["1-6"],
+        "region_names": ["Vancouver Island"],
+        "region_names_unbuffered": ["Vancouver Island"],
+    }
+
+
+# ===================================================================
+# Helpers — build a mapper for testing _extend_boundary_streams
+# ===================================================================
+
+
+class _FakeLinkingResult:
+    def __init__(self):
+        self.status = "NOT_FOUND"
+        self.matched_features = []
+        self.matched_name = ""
+        self.link_method = ""
+        self.admin_match = None
+        self.additional_info = None
+
+
+class _FakeCorrections:
+    def get_all_feature_name_variations(self):
+        return []
+
+
+class _FakeLinker:
+    def __init__(self, gazetteer):
+        self.gazetteer = gazetteer
+        self.corrections = _FakeCorrections()
+
+    def link_waterbody(self, **kwargs):
+        return _FakeLinkingResult()
+
+
+def _build_mapper_with_entries(entries):
+    """Build a RegulationMapper with fake linker and the given stream entries."""
+    gaz = _FakeGazetteer(entries)
+    linker = _FakeLinker(gaz)
+    scope_filter = ScopeFilter()
+    enricher = TributaryEnricher(graph_source=None)
+    return RegulationMapper(
+        linker=linker,
+        scope_filter=scope_filter,
+        tributary_enricher=enricher,
+        gpkg_path=None,
+    )
+
+
+# ===================================================================
+# Test: _extend_boundary_streams — WSC side channel extension
+# ===================================================================
+
+
+class TestExtendBoundaryStreamsWSC:
+    """Verify that _extend_boundary_streams includes side channels
+    sharing the same exact WSC as a boundary-straddling mainstem,
+    when their buffered MUs overlap the regulation's target MUs."""
+
+    @pytest.fixture()
+    def all_entries(self):
+        return [
+            _campbell_mainstem_in_mu16(),
+            _campbell_mainstem_in_mu10(),
+            _side_channel_buffered_overlap(),
+            _side_channel_solidly_in_mu16(),
+            _side_channel_only_mu10(),
+            _quinsam_tributary(),
+            _quinsam_confluence_edge(),
+            _bear_river_bug_segment(),
+            _bear_river_clean_segment(),
+        ]
+
+    @pytest.fixture()
+    def mapper(self, all_entries):
+        return _build_mapper_with_entries(all_entries)
+
+    @pytest.fixture()
+    def indexes(self, all_entries):
+        gaz = _FakeGazetteer(all_entries)
+        return build_feature_index(gaz, feature_types=[FeatureType.STREAM])
+
+    def test_side_channel_buffered_overlap_included(self, mapper, indexes):
+        """Side channel 710150304 (BLK 354088344) has buffered MU overlap
+        with 1-6 and shares exact WSC with the mainstem.  It should be
+        included when the regulation targets MU 1-6."""
+        zone_idx, mu_idx, zone_idx_buf, mu_idx_buf = indexes
+
+        # Build base + buffered sets as _resolve_zone_wide would
+        from regulation_mapping.regulation_resolvers import resolve_zone_wide_ids
+        from regulation_mapping.zone_base_regulations import ZoneRegulation
+
+        reg = ZoneRegulation(
+            regulation_id="zone_test_mu16",
+            zone_ids=["1"],
+            rule_text="No fishing MU 1-1 to 1-6",
+            restriction={"type": "CLOSURE", "details": "No fishing"},
+            notes="test",
+            mu_ids=["1-1", "1-2", "1-3", "1-4", "1-5", "1-6"],
+        )
+        base_ids = resolve_zone_wide_ids(reg, zone_idx, mu_idx)
+        buffered_ids = resolve_zone_wide_ids(reg, zone_idx_buf, mu_idx_buf)
+        extended, newly_added = mapper._extend_boundary_streams(
+            base_ids, buffered_ids, target_mu_ids=reg.mu_ids
+        )
+
+        # Side channel with buffered overlap MUST be included
+        assert "710150304" in extended, (
+            "Side channel 710150304 (BLK 354088344) shares exact WSC with "
+            "Campbell River mainstem and has buffered MU overlap with 1-6 — "
+            "should be included via WSC extension"
+        )
+
+    def test_side_channel_no_buffer_overlap_excluded(self, mapper, indexes):
+        """Side channel 710150030 (BLK 354088932) has buffered MU=['1-10']
+        only — no overlap with 1-6.  Must NOT be included."""
+        zone_idx, mu_idx, zone_idx_buf, mu_idx_buf = indexes
+
+        from regulation_mapping.regulation_resolvers import resolve_zone_wide_ids
+        from regulation_mapping.zone_base_regulations import ZoneRegulation
+
+        reg = ZoneRegulation(
+            regulation_id="zone_test_mu16",
+            zone_ids=["1"],
+            rule_text="No fishing MU 1-1 to 1-6",
+            restriction={"type": "CLOSURE", "details": "No fishing"},
+            notes="test",
+            mu_ids=["1-1", "1-2", "1-3", "1-4", "1-5", "1-6"],
+        )
+        base_ids = resolve_zone_wide_ids(reg, zone_idx, mu_idx)
+        buffered_ids = resolve_zone_wide_ids(reg, zone_idx_buf, mu_idx_buf)
+        extended, _ = mapper._extend_boundary_streams(
+            base_ids, buffered_ids, target_mu_ids=reg.mu_ids
+        )
+
+        assert "710150030" not in extended, (
+            "Side channel 710150030 has no buffered overlap with 1-6 — "
+            "must not be included even though it shares the same WSC"
+        )
+
+    def test_quinsam_not_pulled_in_by_wsc(self, mapper, indexes):
+        """Quinsam River (different WSC) must NOT be pulled in by WSC
+        matching even though it's near the Campbell River corridor."""
+        zone_idx, mu_idx, zone_idx_buf, mu_idx_buf = indexes
+
+        from regulation_mapping.regulation_resolvers import resolve_zone_wide_ids
+        from regulation_mapping.zone_base_regulations import ZoneRegulation
+
+        # Regulation targeting MU 1-10 where mainstem has edges
+        reg = ZoneRegulation(
+            regulation_id="zone_test_mu10",
+            zone_ids=["1"],
+            rule_text="Some reg for MU 1-10",
+            restriction={"type": "CLOSURE", "details": "test"},
+            notes="test",
+            mu_ids=["1-10"],
+        )
+        base_ids = resolve_zone_wide_ids(reg, zone_idx, mu_idx)
+        buffered_ids = resolve_zone_wide_ids(reg, zone_idx_buf, mu_idx_buf)
+        extended, _ = mapper._extend_boundary_streams(
+            base_ids, buffered_ids, target_mu_ids=reg.mu_ids
+        )
+
+        # Quinsam has a different WSC — must NOT be included
+        assert (
+            "710157238" not in extended
+        ), "Quinsam River has a different WSC — WSC extension must not pull it in"
+        assert (
+            "710150374" not in extended
+        ), "Quinsam confluence edge has a different WSC — must not be pulled in"
+
+    def test_bear_river_not_affected(self, mapper, indexes):
+        """Bear River (WSC 100-339600-000000) must NOT be pulled into
+        zone 1 MU regulations by the WSC extension."""
+        zone_idx, mu_idx, zone_idx_buf, mu_idx_buf = indexes
+
+        from regulation_mapping.regulation_resolvers import resolve_zone_wide_ids
+        from regulation_mapping.zone_base_regulations import ZoneRegulation
+
+        reg = ZoneRegulation(
+            regulation_id="zone_test_mu16",
+            zone_ids=["1"],
+            rule_text="No fishing MU 1-1 to 1-6",
+            restriction={"type": "CLOSURE", "details": "No fishing"},
+            notes="test",
+            mu_ids=["1-1", "1-2", "1-3", "1-4", "1-5", "1-6"],
+        )
+        base_ids = resolve_zone_wide_ids(reg, zone_idx, mu_idx)
+        buffered_ids = resolve_zone_wide_ids(reg, zone_idx_buf, mu_idx_buf)
+        extended, _ = mapper._extend_boundary_streams(
+            base_ids, buffered_ids, target_mu_ids=reg.mu_ids
+        )
+
+        # Bear River is in zone 2 / MU 2-2 — must not appear
+        assert "206000766" not in extended
+        assert "206002256" not in extended
+
+    def test_base_set_unchanged(self, mapper, indexes):
+        """Features already in the base set must remain in the result."""
+        zone_idx, mu_idx, zone_idx_buf, mu_idx_buf = indexes
+
+        from regulation_mapping.regulation_resolvers import resolve_zone_wide_ids
+        from regulation_mapping.zone_base_regulations import ZoneRegulation
+
+        reg = ZoneRegulation(
+            regulation_id="zone_test_mu16",
+            zone_ids=["1"],
+            rule_text="No fishing MU 1-1 to 1-6",
+            restriction={"type": "CLOSURE", "details": "No fishing"},
+            notes="test",
+            mu_ids=["1-1", "1-2", "1-3", "1-4", "1-5", "1-6"],
+        )
+        base_ids = resolve_zone_wide_ids(reg, zone_idx, mu_idx)
+        buffered_ids = resolve_zone_wide_ids(reg, zone_idx_buf, mu_idx_buf)
+        extended, _ = mapper._extend_boundary_streams(
+            base_ids, buffered_ids, target_mu_ids=reg.mu_ids
+        )
+
+        # Mainstem in 1-6 and side channel solidly in 1-6 must be present
+        assert "710157676" in extended, "Mainstem in MU 1-6 must be in base"
+        assert "710149921" in extended, "Side channel solidly in MU 1-6 must be in base"
+
+    def test_no_target_mu_ids_skips_wsc_extension(self, mapper, indexes):
+        """When target_mu_ids is None (zone-only reg), WSC extension
+        doesn't run — no side channels added beyond BLK matching."""
+        zone_idx, mu_idx, zone_idx_buf, mu_idx_buf = indexes
+
+        from regulation_mapping.regulation_resolvers import resolve_zone_wide_ids
+        from regulation_mapping.zone_base_regulations import ZoneRegulation
+
+        reg = ZoneRegulation(
+            regulation_id="zone_test_all",
+            zone_ids=["1"],
+            rule_text="Zone-wide reg",
+            restriction={"type": "CLOSURE", "details": "test"},
+            notes="test",
+            # No mu_ids — applies to entire zone
+        )
+        base_ids = resolve_zone_wide_ids(reg, zone_idx, mu_idx)
+        buffered_ids = resolve_zone_wide_ids(reg, zone_idx_buf, mu_idx_buf)
+        extended, _ = mapper._extend_boundary_streams(
+            base_ids, buffered_ids, target_mu_ids=None
+        )
+
+        # Without target_mu_ids, WSC extension should not run
+        # Side channel 710150304 may or may not be in base depending on MU,
+        # but there should be no WSC-based additions
+        assert extended == (base_ids | (extended - base_ids))

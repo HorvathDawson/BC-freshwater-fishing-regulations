@@ -212,7 +212,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         regulation_id="zone_r1_trout_char_daily_quota",
         zone_ids=["1"],
         rule_text="Trout: 4 (all species combined).",
-        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Quota",
             "details": "Daily quota: 4 trout (all species combined).",
@@ -223,7 +223,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         regulation_id="zone_r1_trout_char_over_50cm_limit",
         zone_ids=["1"],
         rule_text="Trout: not more than 1 over 50 cm (2 hatchery steelhead over 50 cm allowed).",
-        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Quota",
             "details": (
@@ -248,7 +248,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         regulation_id="zone_r1_steelhead_release",
         zone_ids=["1"],
         rule_text="Release all wild steelhead.",
-        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Catch and Release",
             "details": "Release all wild steelhead.",
@@ -259,7 +259,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         regulation_id="zone_r1_char_release",
         zone_ids=["1"],
         rule_text="Release all char (includes Dolly Varden).",
-        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Catch and Release",
             "details": "Release all char including Dolly Varden.",
@@ -270,7 +270,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         regulation_id="zone_r1_bass_unlimited",
         zone_ids=["1"],
         rule_text="Bass: unlimited.",
-        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Quota",
             "details": "Unlimited daily quota for bass.",
@@ -281,7 +281,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         regulation_id="zone_r1_crayfish_quota",
         zone_ids=["1"],
         rule_text="Crayfish: 25.",
-        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Quota",
             "details": "Daily quota: 25 crayfish.",
@@ -292,7 +292,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         regulation_id="zone_r1_kokanee_quota",
         zone_ids=["1"],
         rule_text="Kokanee: 5 (none from streams).",
-        feature_types=[FeatureType.LAKE],
+        feature_types=[FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Quota",
             "details": "Daily quota: 5 kokanee.",
@@ -314,7 +314,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         regulation_id="zone_r1_sturgeon_catch_release",
         zone_ids=["1"],
         rule_text="White Sturgeon: catch and release only.",
-        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Catch and Release",
             "details": "Catch and release only for white sturgeon.",
@@ -325,7 +325,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         regulation_id="zone_r1_yellow_perch_unlimited",
         zone_ids=["1"],
         rule_text="Yellow perch: unlimited.",
-        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Quota",
             "details": "Unlimited daily quota for yellow perch.",
@@ -425,7 +425,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         zone_ids=["6"],
         mu_ids=["6-12", "6-13"],
         rule_text="Haida Gwaii trout/char: 5 (all species combined).",
-        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Quota",
             "details": "Daily quota: 5 trout/char (all species combined).",
@@ -437,7 +437,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         zone_ids=["6"],
         mu_ids=["6-12", "6-13"],
         rule_text="Haida Gwaii trout/char: not more than 1 over 50 cm.",
-        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Quota",
             "details": "Max 1 trout/char over 50 cm in daily quota.",
@@ -449,7 +449,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         zone_ids=["6"],
         mu_ids=["6-12", "6-13"],
         rule_text="Haida Gwaii trout/char: not more than 3 Dolly Varden.",
-        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Quota",
             "details": "Max 3 Dolly Varden in daily quota.",
@@ -485,7 +485,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         zone_ids=["6"],
         mu_ids=["6-12", "6-13"],
         rule_text="Haida Gwaii: release all wild steelhead.",
-        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Catch and Release",
             "details": "Release all wild steelhead.",
@@ -497,7 +497,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         zone_ids=["6"],
         mu_ids=["6-12", "6-13"],
         rule_text="Haida Gwaii kokanee: 10 (none from streams).",
-        feature_types=[FeatureType.LAKE],
+        feature_types=[FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Quota",
             "details": "Daily quota: 10 kokanee.",
@@ -584,7 +584,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
             "and women of child bearing age, are recommended to limit "
             "consumption of Smallmouth Bass."
         ),
-        feature_types=[FeatureType.LAKE],
+        feature_types=[FeatureType.LAKE, FeatureType.MANMADE],
         scope_location="Vancouver Island & Gulf Islands lakes",
         restriction={
             "type": "Advisory",
@@ -693,7 +693,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         regulation_id="zone_r2_trout_char_daily_quota",
         zone_ids=["2"],
         rule_text="Trout/char: 4 (all species combined).",
-        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Quota",
             "details": "Daily quota: 4 trout/char (all species combined).",
@@ -704,7 +704,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         regulation_id="zone_r2_trout_char_over_50cm_limit",
         zone_ids=["2"],
         rule_text="Trout/char: not more than 1 over 50 cm (2 hatchery steelhead over 50 cm allowed).",
-        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Quota",
             "details": (
@@ -729,7 +729,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         regulation_id="zone_r2_char_limit",
         zone_ids=["2"],
         rule_text="Max 1 char (bull trout, Dolly Varden, or lake trout). None under 60 cm.",
-        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Quota",
             "details": "Max 1 char (bull trout, Dolly Varden, lake trout). None under 60 cm.",
@@ -757,7 +757,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         regulation_id="zone_r2_steelhead_release",
         zone_ids=["2"],
         rule_text="Release all wild steelhead.",
-        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Catch and Release",
             "details": "Release all wild steelhead.",
@@ -768,7 +768,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         regulation_id="zone_r2_trout_lake_size_notice",
         zone_ids=["2"],
         rule_text="No general minimum size for trout in lakes.",
-        feature_types=[FeatureType.LAKE],
+        feature_types=[FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Notice",
             "details": "No general minimum size for trout in lakes.",
@@ -782,7 +782,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         regulation_id="zone_r2_bass_quota",
         zone_ids=["2"],
         rule_text="Bass: 20 (excluding Mill Lake — see page 24 for quota).",
-        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Quota",
             "details": "Daily quota: 20 bass. Mill Lake exception — see water-specific tables.",
@@ -794,7 +794,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         regulation_id="zone_r2_crappie_quota",
         zone_ids=["2"],
         rule_text="Crappie: 20.",
-        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Quota",
             "details": "Daily quota: 20 crappie.",
@@ -805,7 +805,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         regulation_id="zone_r2_crayfish_quota",
         zone_ids=["2"],
         rule_text="Crayfish: 25.",
-        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Quota",
             "details": "Daily quota: 25 crayfish.",
@@ -816,7 +816,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         regulation_id="zone_r2_kokanee_quota",
         zone_ids=["2"],
         rule_text="Kokanee: 5 (none from streams).",
-        feature_types=[FeatureType.LAKE],
+        feature_types=[FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Quota",
             "details": "Daily quota: 5 kokanee. None from streams.",
@@ -827,7 +827,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         regulation_id="zone_r2_whitefish_quota",
         zone_ids=["2"],
         rule_text="Whitefish: 15 (all species combined).",
-        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Quota",
             "details": "Daily quota: 15 whitefish (all species combined).",
@@ -838,7 +838,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         regulation_id="zone_r2_sturgeon_catch_release",
         zone_ids=["2"],
         rule_text="White Sturgeon: catch and release only.",
-        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Catch and Release",
             "details": "Catch and release only for white sturgeon.",
@@ -1002,7 +1002,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         regulation_id="zone_r3_trout_char_daily_quota",
         zone_ids=["3"],
         rule_text="Trout/char: 5 (all species combined).",
-        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Quota",
             "details": "Daily quota: 5 trout/char (all species combined).",
@@ -1013,7 +1013,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         regulation_id="zone_r3_trout_char_over_50cm_limit",
         zone_ids=["3"],
         rule_text="Trout/char: not more than 1 over 50 cm.",
-        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Quota",
             "details": "Max 1 trout/char over 50 cm in daily quota.",
@@ -1035,7 +1035,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         regulation_id="zone_r3_char_limit",
         zone_ids=["3"],
         rule_text="Max 1 bull trout (Dolly Varden) or lake trout. None under 60 cm.",
-        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Quota",
             "details": "Max 1 bull trout (Dolly Varden) or lake trout. None under 60 cm.",
@@ -1046,7 +1046,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         regulation_id="zone_r3_steelhead_release",
         zone_ids=["3"],
         rule_text="Release ALL steelhead.",
-        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Catch and Release",
             "details": "Release ALL steelhead.",
@@ -1069,7 +1069,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         regulation_id="zone_r3_lake_trout_seasonal_release",
         zone_ids=["3"],
         rule_text="Release lake trout Oct 15–Jan 31.",
-        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         dates=["Oct 15 – Jan 31"],
         restriction={
             "type": "Catch and Release",
@@ -1081,7 +1081,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         regulation_id="zone_r3_bass_closed",
         zone_ids=["3"],
         rule_text="Bass: 0 quota, closed to fishing.",
-        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Closed",
             "details": "Bass: closed to fishing (0 quota).",
@@ -1092,7 +1092,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         regulation_id="zone_r3_burbot_quota",
         zone_ids=["3"],
         rule_text="Burbot: 2.",
-        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Quota",
             "details": "Daily quota: 2 burbot.",
@@ -1103,7 +1103,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         regulation_id="zone_r3_crayfish_quota",
         zone_ids=["3"],
         rule_text="Crayfish: 25.",
-        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Quota",
             "details": "Daily quota: 25 crayfish.",
@@ -1114,7 +1114,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         regulation_id="zone_r3_kokanee_quota",
         zone_ids=["3"],
         rule_text="Kokanee: 5 (none from streams).",
-        feature_types=[FeatureType.LAKE],
+        feature_types=[FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Quota",
             "details": "Daily quota: 5 kokanee.",
@@ -1136,7 +1136,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         regulation_id="zone_r3_whitefish_quota",
         zone_ids=["3"],
         rule_text="Whitefish: 15 (all species combined).",
-        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Quota",
             "details": "Daily quota: 15 whitefish (all species combined).",
@@ -1147,7 +1147,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         regulation_id="zone_r3_sturgeon_catch_release",
         zone_ids=["3"],
         rule_text="White Sturgeon: catch and release only.",
-        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Catch and Release",
             "details": "Catch and release only for white sturgeon.",
@@ -1158,7 +1158,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         regulation_id="zone_r3_yellow_perch_closed",
         zone_ids=["3"],
         rule_text="Yellow Perch: 0 quota, closed to fishing.",
-        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Closed",
             "details": "Yellow perch: closed to fishing (0 quota).",
@@ -1189,7 +1189,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
             "Annual catch quota for Shuswap Lake: rainbow trout — "
             "5 over 50 cm per licence year."
         ),
-        feature_types=[FeatureType.LAKE],
+        feature_types=[FeatureType.LAKE, FeatureType.MANMADE],
         scope_location="Shuswap Lake",
         restriction={
             "type": "Annual Quota",
@@ -1211,7 +1211,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
             "Annual catch quota for Shuswap Lake: char — lake trout and "
             "bull trout (Dolly Varden) — 5 over 60 cm per licence year."
         ),
-        feature_types=[FeatureType.LAKE],
+        feature_types=[FeatureType.LAKE, FeatureType.MANMADE],
         scope_location="Shuswap Lake",
         restriction={
             "type": "Annual Quota",
@@ -1281,7 +1281,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
             "Region. This measure is part of B.C.'s management approach to "
             "illegal fish introductions."
         ),
-        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Notice",
             "details": (
@@ -1389,7 +1389,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
     #     regulation_id="zone_r3_frances_hannah_closure",
     #     zone_ids=["3"],
     #     rule_text="Frances and Hannah lakes: closed Jan 1-May 31.",
-    #     feature_types=[FeatureType.LAKE],
+    #     feature_types=[FeatureType.LAKE, FeatureType.MANMADE],
     #     restriction={
     #         "type": "Closed",
     #         "species": ["steelhead"],
@@ -1427,7 +1427,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
             "No fishing in any lake in the UBC Malcolm Knapp Research "
             "Forest near Maple Ridge."
         ),
-        feature_types=[FeatureType.LAKE],
+        feature_types=[FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Closed",
             "species": ["all"],
@@ -1526,7 +1526,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
             "Trout and Char: 5 (all species combined), including not more "
             "than 1 over 50 cm any species."
         ),
-        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Quota",
             "details": "Daily quota: 5 trout/char (all species combined).",
@@ -1551,7 +1551,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
             "Trout and Char: not more than 1 rainbow or cutthroat over "
             "50 cm of any species."
         ),
-        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Quota",
             "details": ("Max 1 rainbow or cutthroat trout over 50 cm in daily quota."),
@@ -1562,7 +1562,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         regulation_id="zone_r4_bull_trout_limit",
         zone_ids=["4"],
         rule_text="Trout and Char: not more than 1 bull trout (Dolly Varden) of any size.",
-        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Quota",
             "details": "Max 1 bull trout (Dolly Varden) of any size in daily quota.",
@@ -1573,7 +1573,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         regulation_id="zone_r4_bass_closed",
         zone_ids=["4"],
         rule_text="Bass: 0 quota, closed to fishing.",
-        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Closed",
             "details": "Bass: closed to fishing (0 quota).",
@@ -1584,7 +1584,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         regulation_id="zone_r4_burbot_quota",
         zone_ids=["4"],
         rule_text="Burbot: 2.",
-        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Quota",
             "details": "Daily quota: 2 burbot.",
@@ -1595,7 +1595,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         regulation_id="zone_r4_crayfish_quota",
         zone_ids=["4"],
         rule_text="Crayfish: 25.",
-        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Quota",
             "details": "Daily quota: 25 crayfish.",
@@ -1606,7 +1606,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         regulation_id="zone_r4_kokanee_quota",
         zone_ids=["4"],
         rule_text="Kokanee: 15, of which not more than 5 may be over 30 cm.",
-        feature_types=[FeatureType.LAKE],
+        feature_types=[FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Quota",
             "details": "Daily quota: 15 kokanee (max 5 over 30 cm).",
@@ -1628,7 +1628,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         regulation_id="zone_r4_northern_pike_closed",
         zone_ids=["4"],
         rule_text="Northern Pike: 0 quota, closed to fishing.",
-        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Closed",
             "details": "Northern pike: closed to fishing (0 quota).",
@@ -1639,7 +1639,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         regulation_id="zone_r4_walleye_closed",
         zone_ids=["4"],
         rule_text="Walleye: 0 quota, closed to fishing.",
-        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Closed",
             "details": "Walleye: closed to fishing (0 quota).",
@@ -1650,7 +1650,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         regulation_id="zone_r4_sturgeon_closed",
         zone_ids=["4"],
         rule_text="White Sturgeon: no fishing (no exceptions).",
-        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Closed",
             "details": (
@@ -1664,7 +1664,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         regulation_id="zone_r4_whitefish_quota",
         zone_ids=["4"],
         rule_text="Whitefish: 15 (all species combined).",
-        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Quota",
             "details": "Daily quota: 15 whitefish (all species combined).",
@@ -1675,7 +1675,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         regulation_id="zone_r4_yellow_perch_closed",
         zone_ids=["4"],
         rule_text="Yellow Perch: 0 quota, closed to fishing.",
-        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Closed",
             "details": "Yellow perch: closed to fishing (0 quota).",
@@ -1706,7 +1706,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
             "Annual catch quota for Kootenay Lake: rainbow trout — "
             "20 over 50 cm per licence year."
         ),
-        feature_types=[FeatureType.LAKE],
+        feature_types=[FeatureType.LAKE, FeatureType.MANMADE],
         scope_location="Kootenay Lake",
         restriction={
             "type": "Annual Quota",
@@ -1797,7 +1797,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
             "or walleye in the Kootenay Region. This measure is part of "
             "B.C.'s management approach to illegal fish introductions."
         ),
-        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Notice",
             "details": (
@@ -1889,7 +1889,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         regulation_id="zone_r5_no_minimum_size_lakes",
         zone_ids=["5"],
         rule_text="There is no minimum size limit in lakes (see tables for exceptions).",
-        feature_types=[FeatureType.LAKE],
+        feature_types=[FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Notice",
             "details": "No minimum size limit in lakes (see tables for exceptions).",
@@ -1940,7 +1940,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
             "Trout and Char: 5 (all species combined), including not more "
             "than 1 over 50 cm."
         ),
-        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Quota",
             "details": "Daily quota: 5 trout/char (all species combined).",
@@ -1951,7 +1951,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         regulation_id="zone_r5_trout_char_over_50cm_limit",
         zone_ids=["5"],
         rule_text="Trout and Char: not more than 1 over 50 cm.",
-        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Quota",
             "details": "Max 1 trout/char over 50 cm in daily quota.",
@@ -1973,7 +1973,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         regulation_id="zone_r5_bull_trout_limit",
         zone_ids=["5"],
         rule_text="Trout and Char: not more than 1 Dolly Varden/bull trout.",
-        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Quota",
             "details": "Max 1 bull trout (Dolly Varden) of any size in daily quota.",
@@ -1984,7 +1984,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         regulation_id="zone_r5_lake_trout_limit",
         zone_ids=["5"],
         rule_text="Trout and Char: not more than 2 lake trout.",
-        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Quota",
             "details": "Max 2 lake trout in daily quota.",
@@ -2006,7 +2006,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         regulation_id="zone_r5_lake_trout_seasonal_release",
         zone_ids=["5"],
         rule_text="Release lake trout Oct 1–Nov 30.",
-        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         dates=["Oct 1 – Nov 30"],
         restriction={
             "type": "Catch and Release",
@@ -2030,7 +2030,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         regulation_id="zone_r5_bass_closed",
         zone_ids=["5"],
         rule_text="Bass: 0 quota, closed to all fishing.",
-        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Closed",
             "details": "Bass: closed to fishing (0 quota).",
@@ -2041,7 +2041,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         regulation_id="zone_r5_burbot_quota",
         zone_ids=["5"],
         rule_text="Burbot: 5.",
-        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Quota",
             "details": "Daily quota: 5 burbot.",
@@ -2052,7 +2052,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         regulation_id="zone_r5_kokanee_quota",
         zone_ids=["5"],
         rule_text="Kokanee: 5 (none from streams).",
-        feature_types=[FeatureType.LAKE],
+        feature_types=[FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Quota",
             "details": "Daily quota: 5 kokanee.",
@@ -2074,7 +2074,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         regulation_id="zone_r5_whitefish_quota",
         zone_ids=["5"],
         rule_text="Whitefish: 15 (all species combined).",
-        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Quota",
             "details": "Daily quota: 15 whitefish (all species combined).",
@@ -2118,7 +2118,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
             "measure is part of B.C.'s management approach to illegal fish "
             "introductions."
         ),
-        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Notice",
             "details": (
@@ -2136,7 +2136,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
             "before spring breakup is an offence under the Environmental "
             "Management Act."
         ),
-        feature_types=[FeatureType.LAKE],
+        feature_types=[FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Notice",
             "details": (
@@ -2159,7 +2159,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
     #         "White Sturgeon: closed to all fishing in the Fraser River "
     #         "Watershed upstream of Williams Lake River."
     #     ),
-    #     feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+    #     feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
     #     restriction={
     #         "type": "Closed",
     #         "details": (
@@ -2179,7 +2179,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
     #         "White Sturgeon: catch and release in the Fraser River "
     #         "Watershed downstream of and including Williams Lake River."
     #     ),
-    #     feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+    #     feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
     #     restriction={
     #         "type": "Catch and Release",
     #         "details": (
@@ -2259,7 +2259,8 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
     #         ),
     #     },
     #     notes="Source: Region 5 preamble (Dean River), 2025-2027 Synopsis.",
-    #     # TODO: needs blue_line_keys for Dean River classified sections
+    #     # TODO: needs blue_line_keys for Dean River classified sections.
+    # we should just match entire river
     # ),
     #
     # --- Thin ice warning (specific lakes) ---
@@ -2272,7 +2273,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
     #         "open water may exist on Dewar, Higgins, Irish, Simon and "
     #         "Skulow Lakes."
     #     ),
-    #     feature_types=[FeatureType.LAKE],
+    #     feature_types=[FeatureType.LAKE, FeatureType.MANMADE],
     #     restriction={
     #         "type": "Advisory",
     #         "details": (
@@ -2304,6 +2305,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
     #     },
     #     notes="Source: Region 5 preamble (Steelhead Management), 2025-2027 Synopsis.",
     #     # TODO: needs fwa_watershed_codes for Chilcotin River Watershed
+    #       Chilcotin River Watershed is in the watersheds layer with NAMED_WATERSHED_ID = 2425. it can be matched like liard river watershed
     # ),
     # ========================================================================
     # REGION 6 — Skeena: General Regulations
@@ -2351,7 +2353,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
             "marked with angler's name, address and phone. Any game fish "
             "caught other than burbot must be released."
         ),
-        feature_types=[FeatureType.LAKE],
+        feature_types=[FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Gear Restriction",
             "details": (
@@ -2372,7 +2374,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
             "Trout and Char: 5 (all species combined), including not more "
             "than 1 over 50 cm (quota includes hatchery steelhead)."
         ),
-        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Quota",
             "details": (
@@ -2386,7 +2388,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         regulation_id="zone_r6_trout_char_over_50cm_limit",
         zone_ids=["6"],
         rule_text="Trout and Char: not more than 1 over 50 cm.",
-        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Quota",
             "details": "Max 1 trout/char over 50 cm in daily quota.",
@@ -2400,7 +2402,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
             "Trout and Char: not more than 3 Dolly Varden/bull trout "
             "and/or lake trout combined."
         ),
-        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Quota",
             "details": (
@@ -2471,7 +2473,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         regulation_id="zone_r6_arctic_grayling_quota",
         zone_ids=["6"],
         rule_text="Arctic Grayling: 3.",
-        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Quota",
             "details": "Daily quota: 3 Arctic grayling.",
@@ -2482,7 +2484,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         regulation_id="zone_r6_burbot_quota",
         zone_ids=["6"],
         rule_text="Burbot: 5.",
-        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Quota",
             "details": "Daily quota: 5 burbot.",
@@ -2493,7 +2495,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         regulation_id="zone_r6_inconnu_quota",
         zone_ids=["6"],
         rule_text="Inconnu: 1.",
-        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Quota",
             "details": "Daily quota: 1 inconnu.",
@@ -2504,7 +2506,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         regulation_id="zone_r6_kokanee_quota",
         zone_ids=["6"],
         rule_text="Kokanee: 10 (none from streams).",
-        feature_types=[FeatureType.LAKE],
+        feature_types=[FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Quota",
             "details": "Daily quota: 10 kokanee.",
@@ -2526,7 +2528,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         regulation_id="zone_r6_northern_pike_quota",
         zone_ids=["6"],
         rule_text="Northern Pike: 5.",
-        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Quota",
             "details": "Daily quota: 5 northern pike.",
@@ -2537,7 +2539,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         regulation_id="zone_r6_whitefish_quota",
         zone_ids=["6"],
         rule_text="Whitefish: 15 (all species combined).",
-        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Quota",
             "details": "Daily quota: 15 whitefish (all species combined).",
@@ -2548,7 +2550,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         regulation_id="zone_r6_sturgeon_closed",
         zone_ids=["6"],
         rule_text="White Sturgeon: closed to all fishing.",
-        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Closed",
             "details": "White sturgeon: closed to all fishing.",
@@ -2826,7 +2828,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
     #         "Release lake trout from Fraser and Skeena Watersheds, "
     #         "Sept 15–Nov 30."
     #     ),
-    #     feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+    #     feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
     #     dates=["Sept 15 – Nov 30"],
     #     restriction={
     #         "type": "Catch and Release",
@@ -2891,7 +2893,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
             "marked with angler's name, address and phone. Any game fish "
             "caught other than burbot must be released."
         ),
-        feature_types=[FeatureType.LAKE],
+        feature_types=[FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Gear Restriction",
             "details": (
@@ -2912,7 +2914,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
             "Trout and Char: 5 (all species combined), including not more "
             "than 1 over 50 cm."
         ),
-        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Quota",
             "details": "Daily quota: 5 trout/char (all species combined).",
@@ -2923,7 +2925,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         regulation_id="zone_r7a_trout_char_over_50cm_limit",
         zone_ids=["7A"],
         rule_text="Trout and Char: not more than 1 over 50 cm.",
-        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Quota",
             "details": "Max 1 trout/char over 50 cm in daily quota.",
@@ -2945,7 +2947,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         regulation_id="zone_r7a_lake_trout_limit",
         zone_ids=["7A"],
         rule_text="Trout and Char: not more than 3 lake trout.",
-        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Quota",
             "details": "Max 3 lake trout in daily quota.",
@@ -2960,7 +2962,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
             "May only be retained Oct 16–Aug 14, from lakes only, "
             "30–50 cm in length."
         ),
-        feature_types=[FeatureType.LAKE],
+        feature_types=[FeatureType.LAKE, FeatureType.MANMADE],
         dates=["Oct 16 – Aug 14"],
         restriction={
             "type": "Quota",
@@ -2986,7 +2988,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         regulation_id="zone_r7a_bull_trout_lake_seasonal_release",
         zone_ids=["7A"],
         rule_text="Release bull trout (Dolly Varden) from lakes Aug 15–Oct 15.",
-        feature_types=[FeatureType.LAKE],
+        feature_types=[FeatureType.LAKE, FeatureType.MANMADE],
         dates=["Aug 15 – Oct 15"],
         restriction={
             "type": "Catch and Release",
@@ -2998,7 +3000,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         regulation_id="zone_r7a_lake_trout_seasonal_release",
         zone_ids=["7A"],
         rule_text="Release lake trout of any size Sept 15–Oct 31.",
-        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         dates=["Sept 15 – Oct 31"],
         restriction={
             "type": "Catch and Release",
@@ -3010,7 +3012,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         regulation_id="zone_r7a_lake_trout_under_30cm_release",
         zone_ids=["7A"],
         rule_text="Release lake trout under 30 cm, all year.",
-        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Catch and Release",
             "details": "Lake trout under 30 cm must be released, all year.",
@@ -3021,7 +3023,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         regulation_id="zone_r7a_arctic_grayling_release",
         zone_ids=["7A"],
         rule_text="Arctic Grayling: catch and release only.",
-        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Catch and Release",
             "details": "Catch and release only for Arctic grayling.",
@@ -3032,7 +3034,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         regulation_id="zone_r7a_burbot_quota",
         zone_ids=["7A"],
         rule_text="Burbot: 5.",
-        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Quota",
             "details": "Daily quota: 5 burbot.",
@@ -3043,7 +3045,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         regulation_id="zone_r7a_kokanee_quota",
         zone_ids=["7A"],
         rule_text="Kokanee: 10 (none from streams).",
-        feature_types=[FeatureType.LAKE],
+        feature_types=[FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Quota",
             "details": "Daily quota: 10 kokanee.",
@@ -3065,7 +3067,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         regulation_id="zone_r7a_sturgeon_closed",
         zone_ids=["7A"],
         rule_text="White Sturgeon: closed to all fishing.",
-        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Closed",
             "details": (
@@ -3079,7 +3081,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         regulation_id="zone_r7a_whitefish_quota",
         zone_ids=["7A"],
         rule_text="Whitefish: 15 (all species combined).",
-        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Quota",
             "details": "Daily quota: 15 whitefish (all species combined).",
@@ -3103,7 +3105,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         regulation_id="zone_r7a_lake_trout_possession",
         zone_ids=["7A"],
         rule_text="Lake trout: possession quota = 1 daily quota.",
-        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Possession Quota",
             "details": "Lake trout possession limit equals 1 daily quota.",
@@ -3114,7 +3116,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         regulation_id="zone_r7a_bull_trout_possession",
         zone_ids=["7A"],
         rule_text="Bull trout (Dolly Varden): possession quota = 1 daily quota.",
-        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Possession Quota",
             "details": "Bull trout (Dolly Varden) possession limit equals 1 daily quota.",
@@ -3163,7 +3165,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
             "endangered. Report all sightings or incidental captures to "
             "250-614-7400. See nechakowhitesturgeon.org."
         ),
-        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Notice",
             "details": (
@@ -3182,7 +3184,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
             "before spring breakup is an offence under the Environmental "
             "Management Act."
         ),
-        feature_types=[FeatureType.LAKE],
+        feature_types=[FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Notice",
             "details": (
@@ -3246,7 +3248,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
             "spring breakup is an offence under the Environmental "
             "Management Act."
         ),
-        feature_types=[FeatureType.LAKE],
+        feature_types=[FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Notice",
             "details": (
@@ -3266,7 +3268,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
             "Trout and Char: 5 (all species combined), including not more "
             "than 1 over 50 cm."
         ),
-        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Quota",
             "details": "Daily quota: 5 trout/char (all species combined).",
@@ -3277,7 +3279,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         regulation_id="zone_r7b_trout_char_over_50cm_limit",
         zone_ids=["7B"],
         rule_text="Trout and Char: not more than 1 over 50 cm.",
-        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Quota",
             "details": "Max 1 trout/char over 50 cm in daily quota.",
@@ -3299,7 +3301,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         regulation_id="zone_r7b_lake_trout_limit",
         zone_ids=["7B"],
         rule_text="Trout and Char: not more than 2 lake trout.",
-        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Quota",
             "details": "Max 2 lake trout in daily quota.",
@@ -3310,7 +3312,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         regulation_id="zone_r7b_lake_trout_under_30cm_release",
         zone_ids=["7B"],
         rule_text="Release lake trout under 30 cm, all year.",
-        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Catch and Release",
             "details": "Lake trout under 30 cm must be released, all year.",
@@ -3321,7 +3323,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         regulation_id="zone_r7b_lake_trout_seasonal_release",
         zone_ids=["7B"],
         rule_text="Release lake trout of any size Sept 15–Oct 31.",
-        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         dates=["Sept 15 – Oct 31"],
         restriction={
             "type": "Catch and Release",
@@ -3345,7 +3347,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         regulation_id="zone_r7b_arctic_grayling_quota",
         zone_ids=["7B"],
         rule_text=("Arctic Grayling: 2 (none under 30 cm and only 1 over 45 cm)."),
-        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Quota",
             "details": (
@@ -3359,7 +3361,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         regulation_id="zone_r7b_arctic_grayling_seasonal_release",
         zone_ids=["7B"],
         rule_text="Release Arctic grayling of any size May 1–Jun 15.",
-        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         dates=["May 1 – Jun 15"],
         restriction={
             "type": "Catch and Release",
@@ -3371,7 +3373,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         regulation_id="zone_r7b_burbot_quota",
         zone_ids=["7B"],
         rule_text="Burbot: 5.",
-        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Quota",
             "details": "Daily quota: 5 burbot.",
@@ -3382,7 +3384,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         regulation_id="zone_r7b_goldeye_quota",
         zone_ids=["7B"],
         rule_text="Goldeye: 10.",
-        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Quota",
             "details": "Daily quota: 10 goldeye.",
@@ -3393,7 +3395,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         regulation_id="zone_r7b_inconnu_quota",
         zone_ids=["7B"],
         rule_text="Inconnu: 1.",
-        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Quota",
             "details": "Daily quota: 1 inconnu.",
@@ -3407,7 +3409,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         regulation_id="zone_r7b_kokanee_quota",
         zone_ids=["7B"],
         rule_text="Kokanee: 10 (none from streams, except Peace River).",
-        feature_types=[FeatureType.LAKE],
+        feature_types=[FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Quota",
             "details": "Daily quota: 10 kokanee (none from streams, except Peace River).",
@@ -3432,7 +3434,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         regulation_id="zone_r7b_northern_pike_quota",
         zone_ids=["7B"],
         rule_text="Northern Pike: 3 (only 1 over 90 cm).",
-        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Quota",
             "details": "Daily quota: 3 northern pike (max 1 over 90 cm).",
@@ -3443,7 +3445,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         regulation_id="zone_r7b_walleye_quota",
         zone_ids=["7B"],
         rule_text="Walleye: 3 (only 1 over 70 cm).",
-        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Quota",
             "details": "Daily quota: 3 walleye (max 1 over 70 cm).",
@@ -3466,7 +3468,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         regulation_id="zone_r7b_whitefish_quota",
         zone_ids=["7B"],
         rule_text="Whitefish: 15 (all species combined).",
-        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Quota",
             "details": "Daily quota: 15 whitefish (all species combined).",
@@ -3477,7 +3479,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         regulation_id="zone_r7b_yellow_perch_quota",
         zone_ids=["7B"],
         rule_text="Yellow Perch: 5.",
-        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Quota",
             "details": "Daily quota: 5 yellow perch.",
@@ -3501,7 +3503,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         regulation_id="zone_r7b_arctic_grayling_possession",
         zone_ids=["7B"],
         rule_text="Arctic grayling: possession quota = 1 daily quota.",
-        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Possession Quota",
             "details": "Arctic grayling possession limit equals 1 daily quota.",
@@ -3512,7 +3514,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         regulation_id="zone_r7b_bull_trout_possession",
         zone_ids=["7B"],
         rule_text="Bull trout: possession quota = 1 daily quota.",
-        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Possession Quota",
             "details": "Bull trout possession limit equals 1 daily quota.",
@@ -3523,7 +3525,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         regulation_id="zone_r7b_lake_trout_possession",
         zone_ids=["7B"],
         rule_text="Lake trout: possession quota = 1 daily quota.",
-        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Possession Quota",
             "details": "Lake trout possession limit equals 1 daily quota.",
@@ -3578,7 +3580,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
     #         "retained Oct 16–Aug 14, from Liard River watershed (or "
     #         "other specified waters) only, 30–50 cm in length."
     #     ),
-    #     feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+    #     feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
     #     dates=["Oct 16 – Aug 14"],
     #     restriction={
     #         "type": "Quota",
@@ -3599,7 +3601,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
     #     rule_text=(
     #         "Release bull trout from Liard River watershed Aug 15–Oct 15."
     #     ),
-    #     feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+    #     feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
     #     dates=["Aug 15 – Oct 15"],
     #     restriction={
     #         "type": "Catch and Release",
@@ -3619,7 +3621,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
     #         "Release bull trout from Peace River watershed, all year "
     #         "(see tables for exceptions)."
     #     ),
-    #     feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+    #     feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
     #     restriction={
     #         "type": "Catch and Release",
     #         "details": (
@@ -3640,7 +3642,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
     #         "Release all Arctic grayling from Williston Lake and its "
     #         "tributaries."
     #     ),
-    #     feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+    #     feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
     #     restriction={
     #         "type": "Catch and Release",
     #         "details": (
@@ -3685,7 +3687,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
     #         "WARNING: Due to aeration projects, dangerous thin ice and "
     #         "open water may exist on Inga and Sundance Lakes."
     #     ),
-    #     feature_types=[FeatureType.LAKE],
+    #     feature_types=[FeatureType.LAKE, FeatureType.MANMADE],
     #     restriction={
     #         "type": "Advisory",
     #         "details": (
@@ -3735,7 +3737,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
             "Trout and Char: 5 (all species combined), including not more "
             "than 1 over 50 cm."
         ),
-        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Quota",
             "details": "Daily quota: 5 trout/char (all species combined).",
@@ -3746,7 +3748,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         regulation_id="zone_r8_trout_char_over_50cm_limit",
         zone_ids=["8"],
         rule_text="Trout and Char: not more than 1 over 50 cm.",
-        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Quota",
             "details": "Max 1 trout/char over 50 cm in daily quota.",
@@ -3792,7 +3794,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         regulation_id="zone_r8_bass_closed",
         zone_ids=["8"],
         rule_text="Bass: 0 quota, closed to fishing (see tables for exceptions).",
-        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Closed",
             "details": "Bass: closed to fishing (0 quota). See tables for exceptions.",
@@ -3803,7 +3805,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         regulation_id="zone_r8_burbot_quota",
         zone_ids=["8"],
         rule_text="Burbot: 2.",
-        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Quota",
             "details": "Daily quota: 2 burbot.",
@@ -3814,7 +3816,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         regulation_id="zone_r8_crappie_quota",
         zone_ids=["8"],
         rule_text="Crappie: 20.",
-        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Quota",
             "details": "Daily quota: 20 crappie.",
@@ -3825,7 +3827,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         regulation_id="zone_r8_crayfish_quota",
         zone_ids=["8"],
         rule_text="Crayfish: 25.",
-        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Quota",
             "details": "Daily quota: 25 crayfish.",
@@ -3836,7 +3838,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         regulation_id="zone_r8_kokanee_quota",
         zone_ids=["8"],
         rule_text="Kokanee: 5 (none from streams).",
-        feature_types=[FeatureType.LAKE],
+        feature_types=[FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Quota",
             "details": "Daily quota: 5 kokanee.",
@@ -3858,7 +3860,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         regulation_id="zone_r8_walleye_quota",
         zone_ids=["8"],
         rule_text="Walleye: 8.",
-        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Quota",
             "details": "Daily quota: 8 walleye.",
@@ -3869,7 +3871,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         regulation_id="zone_r8_whitefish_quota",
         zone_ids=["8"],
         rule_text="Whitefish: 15 (all species combined).",
-        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Quota",
             "details": "Daily quota: 15 whitefish (all species combined).",
@@ -3880,7 +3882,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
         regulation_id="zone_r8_yellow_perch_closed",
         zone_ids=["8"],
         rule_text="Yellow Perch: 0 quota, closed to fishing (see tables for exceptions).",
-        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Closed",
             "details": "Yellow perch: closed to fishing (0 quota). See tables for exceptions.",
@@ -3924,7 +3926,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
             "Crayfish trapping: use traps with minimally-sized circular "
             "openings to reduce chance of capturing Western Painted Turtles."
         ),
-        feature_types=[FeatureType.STREAM, FeatureType.LAKE],
+        feature_types=[FeatureType.STREAM, FeatureType.LAKE, FeatureType.MANMADE],
         restriction={
             "type": "Notice",
             "details": (
@@ -3966,7 +3968,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
     #         "introduction of largemouth bass. Garnet Valley Reservoir "
     #         "will be used as a research lake."
     #     ),
-    #     feature_types=[FeatureType.LAKE],
+    #     feature_types=[FeatureType.LAKE, FeatureType.MANMADE],
     #     restriction={
     #         "type": "Closed",
     #         "details": (
@@ -3988,7 +3990,7 @@ ZONE_BASE_REGULATIONS: List[ZoneRegulation] = [
     #         "underway. Report tagged fish to Okanagan Fish & Wildlife "
     #         "office in Penticton at 250-490-8200."
     #     ),
-    #     feature_types=[FeatureType.LAKE],
+    #     feature_types=[FeatureType.LAKE, FeatureType.MANMADE],
     #     restriction={
     #         "type": "Notice",
     #         "details": (

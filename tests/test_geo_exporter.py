@@ -38,6 +38,9 @@ def _make_fake_store(canonical_features: list | None = None) -> MagicMock:
     store.admin_area_reg_map = {}
     store.data_accessor = MagicMock()
     store.data_accessor.list_layers.return_value = []
+    # Tidal boundary must explicitly return None when not configured,
+    # otherwise MagicMock auto-creates a truthy return value.
+    store.get_tidal_boundary_gdf.return_value = None
     return store
 
 

@@ -1,5 +1,5 @@
-import React, { useRef, useEffect, useState, useMemo } from 'react';
-import { X, Calendar, MapPin, FileImage, RotateCcw, Share2, Check, ChevronDown, ChevronRight } from 'lucide-react';
+import React, { useRef, useEffect, useState, useMemo, useCallback } from 'react';
+import { X, Calendar, MapPin, FileImage, RotateCcw, Share2, Check, ChevronDown, ChevronRight, ZoomIn } from 'lucide-react';
 import { Icon } from '@iconify/react';
 import type { Regulation } from '../services/regulationsService';
 import { regulationsService } from '../services/regulationsService';
@@ -12,8 +12,10 @@ import {
     type FeatureInfo,
     type NameVariant
 } from '../utils/featureUtils';
-import { getShareableUrl, copyToClipboard } from '../utils/urlState';
+import { getShareableUrl, getCanonicalUrl, copyToClipboard, setActiveSectionParam } from '../utils/urlState';
+import { sectionLabel } from '../utils/sectionLabel';
 import SourceImageViewer from './SourceImageViewer';
+import type { SearchableFeature } from './SearchBar';
 import './InfoPanel.css';
 
 /** Human-readable labels for admin scope_location keys */
@@ -30,6 +32,14 @@ interface InfoPanelProps {
     onClose: () => void;
     collapseState?: CollapseState;
     onSetCollapseState: (state: CollapseState) => void;
+    /** All named search entries sharing the same physical waterbody as the selected feature.
+     *  Sourced from the wbgIndex in Map.tsx — references into the same objects, no copies. */
+    siblingFeatures?: SearchableFeature[];
+    /** Switch to a sibling section WITHOUT flying to it. Used by tab bar clicks. */
+    onSwitchSection?: (feature: SearchableFeature) => void;
+    /** Fly to a section bbox at a minimum zoom. Used by the "Zoom to section" button.
+     *  minZoom ensures the tile layer is visible at the destination zoom level. */
+    onFlyToSection?: (bbox: [number, number, number, number], minZoom: number) => void;
 };
 
 /** Map restriction_type to CSS class for colored pills */
@@ -48,6 +58,7 @@ const getRestrictionClass = (type: string): string => {
         'vessel-restriction': 'reg-gear',
         'notice': 'reg-notice',
         'note': 'reg-notice',
+        'advisory---indigenous-territory': 'reg-advisory-indigenous',
     };
     return classMap[normalized] || '';
 };
@@ -58,7 +69,7 @@ const FILTER_CATEGORIES: Record<string, { label: string; types: string[] }> = {
     quotas: { label: 'Quotas', types: ['quota', 'annual quota', 'possession quota', 'harvest'] },
     gear: { label: 'Gear', types: ['gear restriction', 'bait restriction', 'vessel restriction'] },
     catchRelease: { label: 'Catch & Release', types: ['catch and release'] },
-    notices: { label: 'Notices', types: ['notice', 'note'] },
+    notices: { label: 'Notices', types: ['notice', 'note', 'advisory - indigenous territory'] },
 };
 
 /** Get category key for a restriction type */
@@ -70,9 +81,12 @@ const getFilterCategory = (type: string): string | null => {
     return null;
 };
 
-const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapseState }: InfoPanelProps) => {
+const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapseState, siblingFeatures = [], onSwitchSection, onFlyToSection }: InfoPanelProps) => {
     const touchStartY = useRef<number>(0);
     const touchStartTime = useRef<number>(0);
+    // Set to true by tab clicks BEFORE calling onSwitchSection so the feature-change
+    // effect below knows to skip overwriting activeFgid (the tab click already set it).
+    const tabSwitchRef = useRef(false);
     const [regulations, setRegulations] = useState<Regulation[]>([]);
     const [loadingRegs, setLoadingRegs] = useState(false);
     const [sourceImage, setSourceImage] = useState<{ src: string; name: string } | null>(null);
@@ -80,18 +94,60 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
     const [copied, setCopied] = useState(false);
     const [expandedExclusions, setExpandedExclusions] = useState<Set<number>>(new Set());
 
+    // Which section tab is active — local display state, not selection state.
+    // Updated by: (a) external map-click on any segment of the same river,
+    // (b) tab click, (c) arrow-key nav. Tab clicks set tabSwitchRef so the
+    // feature-change effect below doesn't override the already-correct local state.
+    const [activeFgid, setActiveFgid] = useState<string | undefined>(undefined);
+    useEffect(() => {
+        // If this feature change was caused by a tab click (tabSwitchRef = true),
+        // the onClick handler already set activeFgid to the correct value — skip.
+        // If it came from an external map click (same or different river), sync
+        // activeFgid to whatever segment the map selected.
+        if (tabSwitchRef.current) {
+            tabSwitchRef.current = false;
+            return;
+        }
+        setActiveFgid(feature?.properties.frontend_group_id as string | undefined);
+    // Depends on the full feature object so map-clicks on different segments of
+    // the SAME river (same wbg) still update the active tab correctly.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [feature]);
+
+    // Sort sibling sections: southernmost first (bbox[1] asc), null-bbox last, then by fgid.
+    // This order determines the A/B/C label assignment — must match the map badge layer.
+    const sortedSiblings = useMemo(() => {
+        if (siblingFeatures.length <= 1) return siblingFeatures;
+        return [...siblingFeatures].sort((a, b) => {
+            const ab = (a.regulation_segments?.[0]?.bbox ?? a.bbox) as [number, number, number, number] | undefined;
+            const bb = (b.regulation_segments?.[0]?.bbox ?? b.bbox) as [number, number, number, number] | undefined;
+            const aLat = Array.isArray(ab) && ab.length === 4 ? ab[1] : null;
+            const bLat = Array.isArray(bb) && bb.length === 4 ? bb[1] : null;
+            if (aLat !== null && bLat !== null) return aLat - bLat;
+            if (aLat !== null) return -1;
+            if (bLat !== null) return 1;
+            const aFgid = a.regulation_segments?.[0]?.frontend_group_id ?? (a as any).id ?? '';
+            const bFgid = b.regulation_segments?.[0]?.frontend_group_id ?? (b as any).id ?? '';
+            return String(aFgid).localeCompare(String(bFgid));
+        });
+    }, [siblingFeatures]);
+
     // Handle share button click
     const handleShare = async (e: React.MouseEvent) => {
         e.stopPropagation();
-        // Use frontend_group_id preferring, fallback to group_id, then waterbody_key
         const props = feature?.properties;
+        // Named waterbodies use the stable canonical /waterbody/<wbg>/ URL.
+        // Unnamed/legacy features fall back to ?f=<featureId>.
+        // typeof guard required: properties record can hold number|null|boolean.
+        const wbg = typeof props?.waterbody_group === 'string' ? props.waterbody_group : undefined;
         const featureId = props?.frontend_group_id || props?.group_id ||
                           (props?.waterbody_key ? String(props.waterbody_key) : '');
-        if (!featureId) {
-            console.warn('Cannot share: feature missing all IDs');
+        // Validate before generating URL — never generate then discard.
+        if (!wbg && !featureId) {
+            console.warn('Cannot share: feature missing waterbody_group and all IDs');
             return;
         }
-        const url = getShareableUrl(String(featureId));
+        const url = wbg ? getCanonicalUrl(wbg, activeFgid) : getShareableUrl(String(featureId), activeFgid);
         const success = await copyToClipboard(url);
         if (success) {
             setCopied(true);
@@ -305,7 +361,94 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                     </div>
                 </div>
 
-                <div className="panel-content">
+                {/* Section tab bar — only rendered for multi-section waterbodies.
+                    Sticky between the header and the scrolling content area.
+                    Single-section waterbodies render without any additional chrome. */}
+                {sortedSiblings.length > 1 && (() => {
+                    const waterbodyName = typeof title === 'string' ? title : String(title);
+                    return (
+                        <div className="section-tab-bar-wrapper">
+                            <div
+                                className="section-tab-bar"
+                                role="tablist"
+                                aria-label={`Regulation sections for ${waterbodyName}`}
+                            >
+                            <span className="section-tab-bar__label" aria-hidden="true">
+                                Sections
+                            </span>
+                            {sortedSiblings.map((sf, index) => {
+                                const sfFgid = sf.regulation_segments?.[0]?.frontend_group_id ?? sf.id ?? '';
+                                const isActive = activeFgid === sfFgid;
+                                const label = sectionLabel(index);
+                                return (
+                                    <button
+                                        key={sfFgid}
+                                        role="tab"
+                                        aria-selected={isActive}
+                                        aria-controls="section-panel"
+                                        id={`section-tab-${sfFgid}`}
+                                        title={`Section ${label}`}
+                                        aria-label={`Section ${label} of ${sortedSiblings.length}`}
+                                        className={`section-tab${isActive ? ' active' : ''}`}
+                                        onClick={() => {
+                                            tabSwitchRef.current = true;
+                                            setActiveFgid(sfFgid);
+                                            setActiveSectionParam(sfFgid);
+                                            onSwitchSection?.(sf);
+                                        }}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+                                                e.preventDefault();
+                                                const dir = e.key === 'ArrowRight' ? 1 : -1;
+                                                const nextIdx = (index + dir + sortedSiblings.length) % sortedSiblings.length;
+                                                const next = sortedSiblings[nextIdx];
+                                                const nextFgid = next.regulation_segments?.[0]?.frontend_group_id ?? next.id ?? '';
+                                                tabSwitchRef.current = true;
+                                                setActiveFgid(nextFgid);
+                                                setActiveSectionParam(nextFgid);
+                                                onSwitchSection?.(next);
+                                                document.getElementById(`section-tab-${CSS.escape(nextFgid)}`)?.focus();
+                                            }
+                                        }}
+                                    >
+                                        {label}
+                                    </button>
+                                );
+                            })}
+                            </div>
+                        </div>
+                    );
+                })()}
+
+<div
+                    className="panel-content"
+                    role={sortedSiblings.length > 1 ? 'tabpanel' : undefined}
+                    id={sortedSiblings.length > 1 ? 'section-panel' : undefined}
+                    aria-labelledby={sortedSiblings.length > 1 ? `section-tab-${activeFgid}` : undefined}
+                    tabIndex={sortedSiblings.length > 1 ? 0 : undefined}
+                >
+                    {/* Zoom to section button — shown when feature has a valid bbox
+                        and there is more than one section (single-section panels have
+                        no concept of "zoom to this section" in isolation). */}
+                    {sortedSiblings.length > 1 && Array.isArray(feature.bbox) && feature.bbox.length === 4 && (() => {
+                        const bbox = feature.bbox as [number, number, number, number];
+                        // Use the segment's own minzoom so the tile layer is guaranteed visible.
+                        // Fall back to the parent feature minzoom, then 10 as a safe default.
+                        const minZoom = (feature.minzoom as number | undefined) ?? 10;
+                        const activeLabel = sectionLabel(sortedSiblings.findIndex(sf =>
+                            (sf.regulation_segments?.[0]?.frontend_group_id ?? sf.id) === activeFgid
+                        ));
+                        return (
+                            <button
+                                className="zoom-to-section-btn"
+                                onClick={() => onFlyToSection?.(bbox, minZoom)}
+                                aria-label={`Zoom to Section ${activeLabel}`}
+                            >
+                                <ZoomIn size={13} strokeWidth={2} />
+                                <span>Zoom to Section {activeLabel}</span>
+                            </button>
+                        );
+                    })()}
                     {/* REGULATIONS SECTION */}
                     <div className="data-section">
                         <div className="section-header-row">
@@ -399,7 +542,27 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                                     groupSubtitle = '';
                                 } else if (reg.source === 'provincial') {
                                     // Provincial / admin-boundary regulations
-                                    if (reg.scope_location) {
+                                    const isIndigenousAdvisory = (reg.restriction_type || '').toLowerCase().includes('indigenous territory');
+
+                                    if (isIndigenousAdvisory) {
+                                        // Combine all indigenous territory advisories into one group.
+                                        // Each per-instance reg has a different regulation_id but
+                                        // identical restriction text — collect territory names from
+                                        // the admin zone lookup and list them all under one header.
+                                        groupKey = 'prov|indigenous_territory_advisory';
+                                        const zoneNames = adminZones[reg.regulation_id];
+                                        const newNames = (zoneNames && zoneNames.length > 0) ? zoneNames : [];
+                                        if (groups[groupKey]) {
+                                            // Append new territory names to existing label
+                                            const existing = new Set(groups[groupKey]._territoryNames || []);
+                                            for (const n of newNames) existing.add(n);
+                                            groups[groupKey]._territoryNames = [...existing];
+                                            groups[groupKey].label = groups[groupKey]._territoryNames.join(', ') || 'Indigenous Territory';
+                                            // Don't duplicate the regulation row — text is identical
+                                            return groups;
+                                        }
+                                        groupLabel = newNames.join(', ') || 'Indigenous Territory';
+                                    } else if (reg.scope_location) {
                                         const zoneNames = adminZones[reg.regulation_id];
                                         if (zoneNames && zoneNames.length > 0) {
                                             groupLabel = zoneNames.join(', ');
@@ -409,7 +572,9 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                                     } else {
                                         groupLabel = 'Provincial Regulations';
                                     }
-                                    groupKey = `prov|${groupLabel}`;
+                                    if (!isIndigenousAdvisory) {
+                                        groupKey = `prov|${groupLabel}`;
+                                    }
                                     groupSubtitle = '';
                                 } else {
                                     // Synopsis regulations: group by iid (identity ID) when
@@ -435,8 +600,14 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                                         source: reg.source || 'synopsis',
                                         isTributary: false,
                                         exclusions: null,
-                                        regulations: []
+                                        regulations: [],
+                                        _territoryNames: [],
                                     };
+                                    // Seed territory names for indigenous advisory groups
+                                    if (reg.source === 'provincial' && (reg.restriction_type || '').toLowerCase().includes('indigenous territory')) {
+                                        const zoneNames = adminZones[reg.regulation_id];
+                                        groups[groupKey]._territoryNames = zoneNames && zoneNames.length > 0 ? [...zoneNames] : [];
+                                    }
                                 }
                                 // Capture exclusions once per group (identity-level data, same for all rules)
                                 if (!groups[groupKey].exclusions && reg.exclusions && reg.exclusions.length > 0) {
@@ -444,16 +615,18 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                                 }
                                 groups[groupKey].regulations.push(reg);
                                 return groups;
-                            }, {} as Record<string, { label: string; subtitle: string; source: string; isTributary: boolean; exclusions: Regulation['exclusions']; regulations: Regulation[] }>);
+                            }, {} as Record<string, { label: string; subtitle: string; source: string; isTributary: boolean; exclusions: Regulation['exclusions']; regulations: Regulation[]; _territoryNames?: string[] }>);
 
-                            // Sort groups: provincial with a "closed" reg floats to the
-                            // top so users immediately see closures (e.g. Ecological
-                            // Reserves).  Otherwise: synopsis → zone → provincial.
+                            // Sort groups: provincial with a "closed" reg or indigenous
+                            // territory advisory floats to the top so users immediately
+                            // see closures (e.g. Ecological Reserves) and indigenous
+                            // land notices.  Otherwise: synopsis → zone → provincial.
                             // Within synopsis, direct-match groups appear before tributary groups.
-                            const hasClosedReg = (g: { regulations: Regulation[] }) =>
+                            const hasHighPriorityProvReg = (g: { regulations: Regulation[] }) =>
                                 g.regulations.some(r => {
                                     const t = (r.restriction_type || '').toLowerCase();
-                                    return t === 'closed' || t === 'closure';
+                                    return t === 'closed' || t === 'closure'
+                                        || t.includes('indigenous territory');
                                 });
 
                             // Build set of this feature's own names (non-tributary)
@@ -482,8 +655,8 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
 
                             const sourceOrder: Record<string, number> = { synopsis: 1, zone: 2, provincial: 3 };
                             const sortedGroups = Object.values(groupedRegulations).sort((a, b) => {
-                                const aOrder = (a.source === 'provincial' && hasClosedReg(a)) ? 0 : (sourceOrder[a.source] ?? 9);
-                                const bOrder = (b.source === 'provincial' && hasClosedReg(b)) ? 0 : (sourceOrder[b.source] ?? 9);
+                                const aOrder = (a.source === 'provincial' && hasHighPriorityProvReg(a)) ? 0 : (sourceOrder[a.source] ?? 9);
+                                const bOrder = (b.source === 'provincial' && hasHighPriorityProvReg(b)) ? 0 : (sourceOrder[b.source] ?? 9);
                                 if (aOrder !== bOrder) return aOrder - bOrder;
                                 // Within same source tier, push tributary synopsis groups after direct ones
                                 const aTrib = isTributaryGroup(a) ? 1 : 0;

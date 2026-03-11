@@ -4,6 +4,7 @@ import { Protocol } from 'pmtiles';
 import { layers, LIGHT } from '@protomaps/basemaps';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { createRegulationLayers, createAdminLabelLayers, createEarlyRoadLayers, HIGHLIGHT_COLORS, SELECTION_COLOR } from '../map/styles';
+import bcBoundary from '../map/bcBoundary.json';
 import { waterbodyDataService } from '../services/waterbodyDataService';
 import type { WaterbodyItem } from '../services/waterbodyDataService';
 import { 
@@ -13,7 +14,7 @@ import {
     type FeatureGeometry,
     type CollapseState 
 } from '../utils/featureUtils';
-import { parseUrlState, updateUrlState, clearUrlState } from '../utils/urlState';
+import { parseUrlState, navigateToWaterbody, navigateToFeature, clearUrlState, collapseWbg } from '../utils/urlState';
 import InfoPanel from './InfoPanel';
 import DisambiguationMenu from './DisambiguationMenu';
 import SearchBar from './SearchBar';
@@ -99,10 +100,44 @@ function scaleOpacity(base: unknown, factor: number): unknown {
     return base;
 }
 
+/**
+ * Convert a legacy Mapbox GL filter to expression syntax so it can be
+ * combined with expression-only operators like `within`.
+ * Legacy:    ["==", "kind", "locality"]
+ * Expression: ["==", ["get", "kind"], "locality"]
+ */
+function legacyFilterToExpression(f: any): any {
+    if (!Array.isArray(f) || f.length === 0) return f;
+    const [op, ...args] = f;
+    // If second element is already an array, assume expression syntax
+    if (args.length > 0 && Array.isArray(args[0])) return f;
+    switch (op) {
+        case '==': case '!=': case '>': case '>=': case '<': case '<=':
+            return [op, ['get', args[0]], args[1]];
+        case 'in':
+            return ['in', ['get', args[0]], ['literal', args.slice(1)]];
+        case '!in':
+            return ['!', ['in', ['get', args[0]], ['literal', args.slice(1)]]];
+        case 'has':
+            return ['has', args[0]];
+        case '!has':
+            return ['!', ['has', args[0]]];
+        case 'all':
+            return ['all', ...args.map(legacyFilterToExpression)];
+        case 'any':
+            return ['any', ...args.map(legacyFilterToExpression)];
+        case 'none':
+            return ['!', ['any', ...args.map(legacyFilterToExpression)]];
+        default:
+            return f;
+    }
+}
+
 const INTERACTABLE_LAYERS = ['streams', 'lakes-fill', 'wetlands-fill', 'manmade-fill', 'ungazetted-circle'];
 const ADMIN_FILL_LAYERS = [
     'admin_parks_nat-fill', 'admin_parks_bc-fill', 'admin_wma-fill',
     'admin_watersheds-fill', 'admin_historic_sites-fill', 'admin_osm_admin_boundaries-fill',
+    'admin_aboriginal_lands-query',
 ];
 
 // Filter-based highlight / selection layer IDs.
@@ -131,6 +166,7 @@ interface LayerVisibility {
     management_units: boolean;
     admin_parks_nat: boolean; admin_parks_bc: boolean; admin_wma: boolean;
     admin_watersheds: boolean; admin_historic_sites: boolean; admin_osm_admin_boundaries: boolean;
+    admin_aboriginal_lands: boolean;
 }
 
 // --- UTILITY ---
@@ -224,17 +260,17 @@ const parseHex = (hex: string): [number, number, number] => {
 
 /**
  * Single-direction 45° diagonal hatch (used for National Parks).
- * Subtle but visible — indicates a restricted / no-fishing zone.
+ * Crimson lines signal a restricted / no-fishing zone.
  */
 const createDiagonalHatchPattern = (hexColor: string): ImageData | null => {
-    const size = 24, spacing = 12;
+    const size = 20, spacing = 10;
     const canvas = document.createElement('canvas');
     canvas.width = size; canvas.height = size;
     const ctx = canvas.getContext('2d');
     if (!ctx) return null;
     const [r, g, b] = parseHex(hexColor);
-    ctx.strokeStyle = `rgba(${r},${g},${b},0.5)`;
-    ctx.lineWidth = 1.2;
+    ctx.strokeStyle = `rgba(${r},${g},${b},0.55)`;
+    ctx.lineWidth = 1.5;
     for (let i = -size; i < size * 2; i += spacing) {
         ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i + size, size); ctx.stroke();
     }
@@ -246,19 +282,38 @@ const createDiagonalHatchPattern = (hexColor: string): ImageData | null => {
  * Two diagonal directions create a diamond mesh.
  */
 const createCrossHatchPattern = (hexColor: string): ImageData | null => {
-    const size = 20, spacing = 10;
+    const size = 22, spacing = 11;
     const canvas = document.createElement('canvas');
     canvas.width = size; canvas.height = size;
     const ctx = canvas.getContext('2d');
     if (!ctx) return null;
     const [r, g, b] = parseHex(hexColor);
-    ctx.strokeStyle = `rgba(${r},${g},${b},0.5)`;
+    ctx.strokeStyle = `rgba(${r},${g},${b},0.45)`;
     ctx.lineWidth = 1;
     for (let i = -size; i < size * 2; i += spacing) {
         ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i + size, size); ctx.stroke();
     }
     for (let i = -size; i < size * 2; i += spacing) {
         ctx.beginPath(); ctx.moveTo(i + size, 0); ctx.lineTo(i, size); ctx.stroke();
+    }
+    return ctx.getImageData(0, 0, size, size);
+};
+
+/**
+ * Horizontal line pattern (used for OSM Admin / research forests — partial restriction).
+ * Wide-spaced horizontal bars signal "caution" rather than "prohibited."
+ */
+const createHorizontalLinePattern = (hexColor: string): ImageData | null => {
+    const size = 18, spacing = 14;
+    const canvas = document.createElement('canvas');
+    canvas.width = size; canvas.height = size;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return null;
+    const [r, g, b] = parseHex(hexColor);
+    ctx.strokeStyle = `rgba(${r},${g},${b},0.40)`;
+    ctx.lineWidth = 1.0;
+    for (let y = spacing / 2; y < size; y += spacing) {
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(size, y); ctx.stroke();
     }
     return ctx.getImageData(0, 0, size, size);
 };
@@ -290,7 +345,7 @@ const resolveSourceLayer = (type: string): string => {
  * Everything else (names, regulation_ids, zones, etc.) comes from the
  * SearchableFeature + RegulationSegment looked up via frontend_group_id.
  */
-const buildFeatureFromJSON = (
+export const buildFeatureFromJSON = (
     feature: SearchableFeature,
     segment: RegulationSegment | null,
     opts: {
@@ -326,6 +381,10 @@ const buildFeatureFromJSON = (
             frontend_group_id: fgid,
             group_id: segment?.group_id || feature.properties?.group_id || '',
             waterbody_key: feature.properties?.waterbody_key || '',
+            // Always use feature-level waterbody_group because wbgIndexRef is keyed on that value.
+            // Segments share the same physical waterbody identity as their parent feature.
+            // Using segment.waterbody_group instead would break the sibling lookup after tab switch.
+            waterbody_group: (feature.properties?.waterbody_group as string) || segment?.waterbody_group || '',
 
             // ── Regulation data ──
             regulation_ids: segment?.regulation_ids || feature.properties?.regulation_ids || '',
@@ -426,12 +485,17 @@ const MapComponent = () => {
     // Populated once search_index.json loads; used by the click handler
     // to enrich tile features with search-level data (name_variants, etc.)
     const searchLookupRef = useRef<Map<string, { feature: SearchableFeature; segment: RegulationSegment | null }>>(new Map());
+    // Reverse index: waterbody_group → all SearchableFeature entries on that physical waterbody.
+    // Built once at data-load time. Values are references into the same feature objects — no copies.
+    const wbgIndexRef = useRef<Map<string, SearchableFeature[]>>(new Map());
     // Deduped regulation-id strings, indexed by reg_set_index.
     const regSetsRef = useRef<string[]>([]);
     // frontend_group_id → reg_set_index for unnamed zone-only features.
     const compactRef = useRef<Record<string, number>>({});
     
     const [selectedFeature, setSelectedFeature] = useState<FeatureInfo | null>(null);
+    // Derived from wbgIndexRef whenever selectedFeature changes — never set manually.
+    const [siblingFeatures, setSiblingFeatures] = useState<SearchableFeature[]>([]);
     const [disambigOptions, setDisambigOptions] = useState<FeatureOption[]>([]);
     const [disambigPosition, setDisambigPosition] = useState<{ x: number; y: number } | null>(null);
 
@@ -440,6 +504,9 @@ const MapComponent = () => {
     const [highlightedSearchResult, setHighlightedSearchResult] = useState<SearchableFeature | null>(null);
     const [searchableFeatures, setSearchableFeatures] = useState<SearchableFeature[]>([]);
     const [mapReady, setMapReady] = useState(false);
+    // Fetched once from data_version.json (no-store). null = not yet resolved.
+    // Used as ?v= query param on PMTiles URLs to bust browser cache on deploys.
+    const [dataVersion, setDataVersion] = useState<string | null>(null);
     const [disclaimerOpen, setDisclaimerOpen] = useState(false);
     const [isSatellite, setIsSatellite] = useState(false);
     const [overlayOpacity, setOverlayOpacity] = useState(1);
@@ -449,8 +516,21 @@ const MapComponent = () => {
         management_units: true,
         admin_parks_nat: true, admin_parks_bc: true, admin_wma: true,
         admin_watersheds: true, admin_historic_sites: true, admin_osm_admin_boundaries: true,
+        admin_aboriginal_lands: true,
     });
     void _layerVisibility; void _setLayerVisibility;
+
+    // Fetch data version once on mount — resolves quickly (~50 bytes, no-store).
+    // Sets dataVersion so the map init useEffect can use versioned PMTiles URLs.
+    // In dev mode skip the fetch: files are always current and ?v= would
+    // interfere with the pmtiles protocol's in-memory tile cache.
+    useEffect(() => {
+        if (import.meta.env.DEV) {
+            setDataVersion('');
+        } else {
+            waterbodyDataService.getDataVersion().then(setDataVersion).catch(() => setDataVersion(''));
+        }
+    }, []);
 
     // Mirror state → refs so map event-handler closures always see the latest values.
     // (State setters are stable; refs are mutable — this is the canonical React pattern.)
@@ -792,6 +872,23 @@ const MapComponent = () => {
                 }
             }
             searchLookupRef.current = lookup;
+
+            // Build waterbody_group → SearchableFeature[] reverse index.
+            // Key: fwa_watershed_code (streams) or waterbody_key (polygons).
+            // Values are references to the same objects already in `features` — no copies.
+            const wbgIndex = new Map<string, SearchableFeature[]>();
+            for (const feat of features) {
+                const rawWbg = feat.properties?.waterbody_group as string | undefined;
+                if (!rawWbg) continue;
+                const wbg = collapseWbg(rawWbg);
+                const bucket = wbgIndex.get(wbg);
+                if (bucket) {
+                    bucket.push(feat);
+                } else {
+                    wbgIndex.set(wbg, [feat]);
+                }
+            }
+            wbgIndexRef.current = wbgIndex;
         }).catch(console.error);
     }, []);
 
@@ -809,24 +906,86 @@ const MapComponent = () => {
         urlRestoredRef.current = true;
         
         const urlState = parseUrlState();
-        if (!urlState.featureId) {
+
+        // Resolve the lookup result from either the canonical wbg path or a legacy fgid param.
+        let lookupResult: { feature: SearchableFeature; segment: RegulationSegment | null } | undefined;
+        let resolvedFgid: string | undefined;
+
+        if (urlState.waterbodyGroup) {
+            // Canonical /waterbody/<wbg>/ path — resolve the target section.
+            const bucket = wbgIndexRef.current.get(urlState.waterbodyGroup);
+            if (!bucket || bucket.length === 0) {
+                console.warn('URL waterbody group not found in index:', urlState.waterbodyGroup);
+                return;
+            }
+            // If ?s=<fgid> is present, restore the user's last-viewed section.
+            // Find the sibling whose regulation_segments contain the matching fgid.
+            let feat = bucket[0];
+            if (urlState.activeFgid) {
+                const match = bucket.find(sf =>
+                    (sf.regulation_segments || []).some(s => s.frontend_group_id === urlState.activeFgid) ||
+                    (sf._frontend_group_ids || []).includes(urlState.activeFgid!)
+                );
+                if (match) feat = match;
+            }
+            // If ?s=<fgid> points to a specific segment, restore that segment.
+            // Otherwise fall back to the first segment (default tab).
+            const seg = (urlState.activeFgid
+                ? feat.regulation_segments?.find(s => s.frontend_group_id === urlState.activeFgid)
+                : undefined) ?? feat.regulation_segments?.[0] ?? null;
+            // Prefer the segment's own fgid; fall back to the feature-level fgid
+            // for waterbodies that have no regulation segments (edge case).
+            resolvedFgid = seg?.frontend_group_id || (feat as any)._frontend_group_ids?.[0];
+            lookupResult = { feature: feat, segment: seg };
+        } else if (urlState.featureId) {
+            // Legacy ?f=<fgid> link — resolve via fgid lookup.
+            lookupResult = searchLookupRef.current.get(urlState.featureId);
+            resolvedFgid = urlState.featureId;
+            if (!lookupResult) {
+                // Unnamed / compact-only feature — not in the named search index.
+                // Build a synthetic feature from the compact dict so the URL still restores.
+                const ri = compactRef.current[urlState.featureId];
+                if (ri === undefined) {
+                    console.warn('URL feature not found in search index or compact dict:', urlState.featureId);
+                    return;
+                }
+                const regIds = regSetsRef.current[ri] || '';
+                const syntheticFeature: SearchableFeature = {
+                    id: urlState.featureId,
+                    display_name: 'Unnamed Stream',
+                    gnis_name: '',
+                    name: 'Unnamed Stream',
+                    type: 'stream',
+                    name_variants: [],
+                    regulation_segments: [],
+                    _frontend_group_ids: [urlState.featureId],
+                    properties: {
+                        frontend_group_id: urlState.featureId,
+                        group_id: '',
+                        waterbody_key: '',
+                        regulation_ids: regIds,
+                        regulation_count: regIds.split(',').filter(Boolean).length,
+                        zones: '',
+                        mgmt_units: '',
+                        region_name: '',
+                        fwa_watershed_code: '',
+                        minzoom: 10,
+                        total_length_km: 0,
+                    },
+                } as SearchableFeature;
+                lookupResult = { feature: syntheticFeature, segment: null };
+            }
+        } else {
             return;
         }
-        
-        const lookupResult = searchLookupRef.current.get(urlState.featureId);
-        if (!lookupResult) {
-            console.warn('URL feature not found in search index:', urlState.featureId);
-            return;
-        }
-        
+
         const { feature, segment } = lookupResult;
-        
+
         // Build feature info from JSON via the unified builder.
-        // Pass the URL's featureId as frontendGroupId so the selection
-        // filter matches tiles even when the segment's own fgid differs
-        // (e.g. top-level fgid resolved to first segment).
+        // Pass resolved fgid as frontendGroupId so the selection filter
+        // matches tiles even when the segment's own fgid differs.
         const featureInfo = buildFeatureFromJSON(feature, segment, {
-            frontendGroupId: urlState.featureId,
+            frontendGroupId: resolvedFgid,
         });
         const featureBbox = featureInfo.bbox;
         
@@ -891,31 +1050,65 @@ const MapComponent = () => {
         }, 200);
     }, [searchableFeatures, mapReady]);
 
-    // Update URL when feature is selected
+    // Update URL when a feature is selected or deselected.
+    // Named features write the canonical /waterbody/<wbg>/ path.
+    // Deselection resets to the root path.
     useEffect(() => {
         // Skip URL update during initial restoration
         if (!urlRestoredRef.current) return;
-        
-        // Use frontend_group_id preferring, fallback to group_id, then waterbody_key
+
         const props = selectedFeature?.properties;
-        const featureId = props?.frontend_group_id || props?.group_id || 
-                          (props?.waterbody_key ? String(props.waterbody_key) : '');
-        
-        // Don't persist unnamed zone-only features in URL — they can't be restored
-        // (no JSON entry, no bbox for fly-to).
-        const hasName = !!(props?.display_name || props?.gnis_name);
-        if (selectedFeature && !hasName) {
+
+        if (!selectedFeature) {
+            clearUrlState();
             return;
         }
-        
-        if (selectedFeature && !featureId) {
-            console.warn('Selected feature missing all IDs:', props);
+
+        // Tidal waters are ocean/coastal features — excluded from freshwater canonical URLs.
+        if (props?._tidal) return;
+
+        // Named features with a waterbody_group get the canonical /waterbody/<wbg>/ path.
+        // Everything else (unnamed streams, compact-only features) gets ?f=<fgid>.
+        const wbg = typeof props?.waterbody_group === 'string' ? props.waterbody_group : undefined;
+        if (wbg) {
+            navigateToWaterbody(wbg);
+        } else {
+            const fgid = typeof props?.frontend_group_id === 'string' ? props.frontend_group_id : undefined;
+            if (fgid) {
+                navigateToFeature(fgid);
+            }
         }
-        updateUrlState({ featureId: String(featureId || '') });
+    }, [selectedFeature]);
+
+    // Update document.title and meta description when a feature is selected.
+    // Helps search engines index named features via JS-rendered title changes.
+    useEffect(() => {
+        const BASE_TITLE = 'Can I Fish This? - BC Freshwater Fishing Regulations';
+        const BASE_DESC = 'Interactive map of BC freshwater fishing regulations - search streams, lakes, and find fishing rules';
+        const props = selectedFeature?.properties;
+        const name = props?.display_name || props?.gnis_name;
+        const metaDesc = document.querySelector<HTMLMetaElement>('meta[name="description"]');
+
+        if (name && !props?._tidal) {
+            const typeLabel = selectedFeature?.type === 'stream' ? 'Stream'
+                : selectedFeature?.type === 'lake' ? 'Lake'
+                : selectedFeature?.type === 'wetland' ? 'Wetland'
+                : 'Waterbody';
+            document.title = `${name} Fishing Regulations | BC Freshwater`;
+            if (metaDesc) metaDesc.content = `BC freshwater fishing regulations for ${name} (${typeLabel}). View catch limits, closures, gear restrictions, and seasons.`;
+        } else {
+            document.title = BASE_TITLE;
+            if (metaDesc) metaDesc.content = BASE_DESC;
+        }
     }, [selectedFeature]);
 
     useEffect(() => {
+        // Wait for the data version to resolve before initializing the map.
+        // This ensures PMTiles URLs include the correct ?v= cache-buster.
+        if (dataVersion === null) return;
+        if (mapRef.current) return; // already initialized
         if (!mapContainerRef.current) return;
+        const vParam = dataVersion ? `?v=${encodeURIComponent(dataVersion)}` : '';
         const map = new maplibregl.Map({
             container: mapContainerRef.current,
             maxBounds: BC_BOUNDS,
@@ -924,8 +1117,8 @@ const MapComponent = () => {
                 glyphs: 'https://cdn.protomaps.com/fonts/pbf/{fontstack}/{range}.pbf',
                 sprite: 'https://protomaps.github.io/basemaps-assets/sprites/v4/light',
                 sources: {
-                    protomaps: { type: 'vector', url: `${TILE_BASE}/bc.pmtiles`, attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> · <a href="https://protomaps.com">Protomaps</a>', maxzoom: 15 },
-                    regulations: { type: 'vector', url: `${TILE_BASE}/regulations_merged.pmtiles`, attribution: '<a href="https://www2.gov.bc.ca/gov/content/data/open-data/open-government-licence-bc">OGL-BC</a>', minzoom: 4, maxzoom: 12 },
+                    protomaps: { type: 'vector', url: `${TILE_BASE}/bc.pmtiles${vParam}`, attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> · <a href="https://protomaps.com">Protomaps</a>', maxzoom: 15 },
+                    regulations: { type: 'vector', url: `${TILE_BASE}/regulations_merged.pmtiles${vParam}`, attribution: '<a href="https://www2.gov.bc.ca/gov/content/data/open-data/open-government-licence-bc">OGL-BC</a>', minzoom: 4, maxzoom: 12 },
                     satellite: { type: 'raster', tiles: [SATELLITE_CONFIG.url], tileSize: SATELLITE_CONFIG.tileSize, attribution: SATELLITE_CONFIG.attribution, maxzoom: SATELLITE_CONFIG.maxzoom }
                 },
                 // Base map (no labels) → regulation overlays → labels on top
@@ -940,11 +1133,16 @@ const MapComponent = () => {
                     ...createEarlyRoadLayers(),
                     ...createRegulationLayers(),
                     ...layers('protomaps', LIGHT, { labelsOnly: true, lang: 'en' })
-                        .filter(l => !['water_waterway_label', 'water_label_ocean', 'water_label_lakes'].includes(l.id)),
+                        .filter(l => !['water_waterway_label', 'water_label_ocean', 'water_label_lakes'].includes(l.id))
+                        .map(l => {
+                            const withinBC: any = ['within', bcBoundary];
+                            if (!l.filter) return { ...l, filter: withinBC };
+                            return { ...l, filter: ['all', legacyFilterToExpression(l.filter), withinBC] as any };
+                        }),
                     ...createAdminLabelLayers(),
                 ]
             },
-            center: [-123.0, 49.25], zoom: 8, maxZoom: 15, minZoom: 4, hash: true,
+            center: [-123.0, 49.25], zoom: 8, maxZoom: 18, minZoom: 4, hash: true,
             // Cancel in-flight tile requests for intermediate zoom levels during
             // zoom animations — those tiles are immediately obsolete and waste bandwidth.
             cancelPendingTileRequestsWhileZooming: true,
@@ -1025,10 +1223,13 @@ const MapComponent = () => {
             }
 
             // Hatch patterns for no-fishing zones (National Parks + Ecological Reserves)
-            const hatchDiag = createDiagonalHatchPattern('#E69F00');
+            const hatchDiag = createDiagonalHatchPattern('#C22E2E');
             if (hatchDiag) map.addImage('hatch-diagonal', hatchDiag);
-            const hatchCross = createCrossHatchPattern('#E69F00');
+            const hatchCross = createCrossHatchPattern('#C22E2E');
             if (hatchCross) map.addImage('hatch-cross', hatchCross);
+            // Horizontal lines for partial restriction zones (research forests, etc.)
+            const hatchHoriz = createHorizontalLinePattern('#CC7A00');
+            if (hatchHoriz) map.addImage('hatch-horizontal', hatchHoriz);
 
             // Hatch overlays — appended after all static layers so they sit
             // above admin fills/lines but below the dynamic highlight layers.
@@ -1037,7 +1238,7 @@ const MapComponent = () => {
                 type: 'fill',
                 source: 'regulations',
                 'source-layer': 'admin_parks_nat',
-                paint: { 'fill-pattern': 'hatch-diagonal', 'fill-opacity': 0.75 },
+                paint: { 'fill-pattern': 'hatch-diagonal', 'fill-opacity': 0.60 },
             } as any);
 
             map.addLayer({
@@ -1046,7 +1247,15 @@ const MapComponent = () => {
                 source: 'regulations',
                 'source-layer': 'admin_parks_bc',
                 filter: ['==', ['get', 'admin_type'], 'ECOLOGICAL_RESERVE'],
-                paint: { 'fill-pattern': 'hatch-cross', 'fill-opacity': 0.4 },
+                paint: { 'fill-pattern': 'hatch-cross', 'fill-opacity': 0.50 },
+            } as any);
+
+            map.addLayer({
+                id: 'admin_osm_admin_boundaries-hatch',
+                type: 'fill',
+                source: 'regulations',
+                'source-layer': 'admin_osm_admin_boundaries',
+                paint: { 'fill-pattern': 'hatch-horizontal', 'fill-opacity': 0.45 },
             } as any);
 
             // ── HIGHLIGHT LAYERS (hover / disambiguation) ─────────────
@@ -1266,6 +1475,18 @@ const MapComponent = () => {
             }
 
             clearSelection();
+
+            // Named multi-segment waterbodies: if every option shares the same non-empty
+            // waterbody_group, all tile hits are sections of the same physical waterbody.
+            // Collapse to the topmost hit — InfoPanel tab bar handles section switching.
+            // DisambiguationMenu is reserved for genuinely ambiguous (distinct waterbody) clicks.
+            if (options.length > 1) {
+                const firstWbg = options[0].properties.waterbody_group as string | undefined;
+                if (firstWbg && options.every(o => o.properties.waterbody_group === firstWbg)) {
+                    options.splice(1);
+                }
+            }
+
             if (options.length === 1) {
                 const selected = options[0];
                 setSelectedFeature(selected);
@@ -1295,7 +1516,7 @@ const MapComponent = () => {
 
         mapRef.current = map;
         return () => map.remove();
-    }, [clearSelection]);
+    }, [clearSelection, dataVersion]);
 
     // Handle highlighted state changes — filter-based, no event listeners needed.
     // MapLibre re-evaluates filters automatically as tiles load/zoom changes.
@@ -1312,6 +1533,35 @@ const MapComponent = () => {
         setGroupFilter(map, SL_LAYER_IDS, selectedFeature);
     }, [selectedFeature]);
 
+    // Derive sibling section tabs whenever the selection changes.
+    // The data has ONE SearchableFeature per physical waterbody, with ALL regulation_segments
+    // on that one object. We synthesize one SearchableFeature per segment so InfoPanel can
+    // render them as tabs. Each synthetic sibling is a shallow clone of the parent with only
+    // the one segment it represents — the InfoPanel API stays unchanged.
+    // (wbgIndexRef is still used for URL restoration but NOT for sibling derivation.)
+    useEffect(() => {
+        if (!selectedFeature) {
+            setSiblingFeatures([]);
+            return;
+        }
+
+        // Resolve the parent WaterbodyItem (SearchableFeature with ALL segments)
+        // via the search lookup, keyed by the selected segment's fgid.
+        const fgid = selectedFeature.properties.frontend_group_id as string | undefined;
+        const lookup = fgid ? searchLookupRef.current.get(fgid) : undefined;
+        const parentFeature = lookup?.feature;
+        const segments = parentFeature?.regulation_segments ?? [];
+
+        if (segments.length <= 1) {
+            // Single-segment waterbody — pass parent through as-is. No tab bar rendered.
+            setSiblingFeatures(parentFeature ? [parentFeature] : []);
+            return;
+        }
+
+        // Multi-segment: one synthetic sibling per segment so InfoPanel renders the tab bar.
+        setSiblingFeatures(segments.map(seg => ({ ...parentFeature, regulation_segments: [seg] } as SearchableFeature)));
+    }, [selectedFeature]);
+
     const handleSearchSelect = useCallback((feature: SearchableFeature) => {
         const map = mapRef.current;
         if (!map) return;
@@ -1322,6 +1572,12 @@ const MapComponent = () => {
         // Check if this waterbody has multiple regulation segments
         const segments = feature.regulation_segments || [];
         const hasMultipleSegments = segments.length > 1;
+
+        // Named waterbodies (with a wbg) use InfoPanel tabs for section switching.
+        // DisambiguationMenu is only shown for the map-click path (wbg-less features),
+        // not for the search path \u2014 see D4 in FUTURE_INFOPANEL.md.
+        const rawWbg = feature.properties?.waterbody_group;
+        const hasWbg = typeof rawWbg === 'string' && rawWbg.length > 0;
 
         // Fly to the feature first — use aspect-ratio-aware padding on mobile
         if (feature.bbox) {
@@ -1335,8 +1591,9 @@ const MapComponent = () => {
             if (isMobile) setMobilePanelState(panelState);
         }
 
-        if (hasMultipleSegments) {
-            // Build disambiguation options from JSON via the unified builder
+        if (hasMultipleSegments && !hasWbg) {
+            // Build disambiguation options from JSON via the unified builder.
+            // Only shown for features without a wbg — named waterbodies use tab bar instead.
             const options: FeatureOption[] = segments.map(seg =>
                 buildFeatureFromJSON(feature, seg)
             );
@@ -1390,6 +1647,34 @@ const MapComponent = () => {
         }
     }, [clearSelection]);
 
+    /**
+     * Switch to a different section of the SAME physical waterbody without flying.
+     * Called by InfoPanel tab clicks. Updates the map highlight but leaves the
+     * viewport unchanged — the "Zoom to section" button is the explicit fly action.
+     */
+    const handleSwitchSection = useCallback((sf: SearchableFeature) => {
+        const seg = sf.regulation_segments?.[0] || null;
+        setSelectedFeature(buildFeatureFromJSON(sf, seg));
+    }, []);
+
+    /**
+     * Fly to a specific section bbox. Called by the InfoPanel "Zoom to section" button.
+     * Does not change selectedFeature or close the panel.
+     */
+    const handleFlyToSection = useCallback((bbox: [number, number, number, number], minZoom: number) => {
+        const map = mapRef.current;
+        if (!map) return;
+        const isMobile = isMobileViewport();
+        // Desktop: panel is 350 px wide on the right — offset bounding-box fit
+        // to centre the result in the visible area left of the panel.
+        const padding = isMobile
+            ? { top: 60, bottom: getMobileBottomPadding(), left: 40, right: 40 }
+            : { top: 80, bottom: 80, left: 80, right: 350 };
+        // +0.25 matches the convention used everywhere else in Map.tsx to ensure
+        // the tile layer is rendered at the destination zoom level.
+        flyToBbox(map, bbox, padding, minZoom + 0.25);
+    }, []);
+
     return (
         <div className="map-container">
             <div ref={mapContainerRef} className="map-canvas" />
@@ -1416,7 +1701,7 @@ const MapComponent = () => {
                     placeholder="Search waterbodies..." 
                 />
             </div>
-            <InfoPanel feature={selectedFeature} onClose={clearSelection} collapseState={mobilePanelState} onSetCollapseState={setMobilePanelState} />
+            <InfoPanel feature={selectedFeature} onClose={clearSelection} collapseState={mobilePanelState} onSetCollapseState={setMobilePanelState} siblingFeatures={siblingFeatures} onSwitchSection={handleSwitchSection} onFlyToSection={handleFlyToSection} />
             <DisclaimerLink onClick={() => setDisclaimerOpen(true)} />
             <Disclaimer isOpen={disclaimerOpen} onClose={() => setDisclaimerOpen(false)} />
             {disambigOptions.length > 0 && (

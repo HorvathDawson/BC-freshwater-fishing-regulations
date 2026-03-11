@@ -54,11 +54,19 @@ def _make_canonical_feature(
     feature_ids: str = "f1",
     tippecanoe_minzoom: int = 8,
     geometry=None,
+    waterbody_group: str | None = None,
     **kwargs,
 ) -> dict:
     """Build a minimal canonical feature dict."""
     if geometry is None:
         geometry = make_line(x_start=1000000, y_start=500000, length=5000)
+    # waterbody_group mirrors canonical_store logic: watershed code for streams,
+    # waterbody_key for polygons. Callers can override explicitly.
+    if waterbody_group is None:
+        if feature_type == FeatureType.STREAM.value:
+            waterbody_group = fwa_watershed_code or ""
+        else:
+            waterbody_group = str(waterbody_key or "")
     feat = {
         "feature_type": feature_type,
         "group_id": group_id,
@@ -81,6 +89,7 @@ def _make_canonical_feature(
         "feature_count": 1,
         "tippecanoe:minzoom": tippecanoe_minzoom,
         "geometry": geometry,
+        "waterbody_group": waterbody_group,
     }
     feat.update(kwargs)
     return feat
@@ -784,3 +793,198 @@ class TestBuildIdentityMeta:
         assert slim["zone_ids"] == ["5"]
         assert slim["feature_types"] == ["stream"]
         assert slim["source"] == "synopsis"
+
+
+# ===================================================================
+# waterbody_group — grouping key for cross-segment lookup
+# ===================================================================
+
+
+class TestWaterbodyGroup:
+    """Tests for the waterbody_group / wbg field throughout the export pipeline.
+
+    Invariants:
+    - Every segment of the same physical stream shares the same wbg
+      (= fwa_watershed_code).
+    - Every segment entry in ``rs[]`` carries ``wbg``.
+    - The top-level ``props.wbg`` is consistent with the segment wbg values.
+    - Given a frontend_group_id you can reach the wbg; given a wbg you can
+      enumerate all frontend_group_ids that share that physical waterbody.
+    - Polygon features use waterbody_key as wbg, not watershed code.
+    """
+
+    def test_stream_segment_wbg_equals_watershed_code(self):
+        """rs[].wbg must equal the fwa_watershed_code for stream features."""
+        f = _make_canonical_feature(
+            display_name="Adams River",
+            fwa_watershed_code="100-123456",
+            regulation_ids="reg_001_rule0",
+        )
+        store = _make_fake_store([f])
+        builder = SearchIndexBuilder(store)
+
+        result = builder._build_waterbodies_list()
+
+        entry = result["waterbodies"][0]
+        assert entry["rs"][0]["wbg"] == "100-123456"
+
+    def test_all_segments_of_same_stream_share_wbg(self):
+        """When a stream has two regulation segments they must both carry the
+        same wbg — the physical-stream grouping key is immutable."""
+        wsc = "200-567890"
+        # Two features on the same physical stream, different regulation sets
+        f1 = _make_canonical_feature(
+            group_id="g1",
+            frontend_group_id="fgid_upstream",
+            display_name="Test River",
+            fwa_watershed_code=wsc,
+            regulation_ids="reg_001_rule0",
+            length_m=10_000.0,
+        )
+        f2 = _make_canonical_feature(
+            group_id="g2",
+            frontend_group_id="fgid_downstream",
+            display_name="Test River",
+            fwa_watershed_code=wsc,
+            regulation_ids="zone_3",
+            length_m=5_000.0,
+        )
+        store = _make_fake_store([f1, f2])
+        builder = SearchIndexBuilder(store)
+
+        result = builder._build_waterbodies_list()
+
+        # Both features share the same display_name+watershed_code → one entry
+        assert len(result["waterbodies"]) == 1
+        entry = result["waterbodies"][0]
+        assert len(entry["rs"]) == 2
+        wbg_values = {seg["wbg"] for seg in entry["rs"]}
+        assert wbg_values == {wsc}, f"Expected {{'{wsc}'}}, got {wbg_values}"
+
+    def test_props_wbg_consistent_with_segments(self):
+        """top-level props.wbg must equal the wbg carried by the segments."""
+        wsc = "300-000001"
+        f = _make_canonical_feature(
+            display_name="Clearwater",
+            fwa_watershed_code=wsc,
+            regulation_ids="reg_002_rule0",
+        )
+        store = _make_fake_store([f])
+        builder = SearchIndexBuilder(store)
+
+        result = builder._build_waterbodies_list()
+
+        entry = result["waterbodies"][0]
+        seg_wbg = entry["rs"][0]["wbg"]
+        assert entry["props"]["wbg"] == seg_wbg == wsc
+
+    def test_fgid_to_wbg_lookup(self):
+        """Given a frontend_group_id, the matching wbg must be derivable from
+        the entry's rs[] list — the canonical forward lookup path used by the
+        frontend wbgIndex builder."""
+        wsc = "400-111222"
+        fgid = "fgid_test_xyz"
+        f = _make_canonical_feature(
+            frontend_group_id=fgid,
+            display_name="Silver Creek",
+            fwa_watershed_code=wsc,
+            regulation_ids="reg_010_rule0",
+        )
+        store = _make_fake_store([f])
+        builder = SearchIndexBuilder(store)
+
+        result = builder._build_waterbodies_list()
+
+        # Build the same forward index the frontend builds:
+        # frontend_group_id → wbg
+        fgid_to_wbg: dict[str, str] = {}
+        for entry in result["waterbodies"]:
+            for seg in entry.get("rs", []):
+                if seg.get("fgid"):
+                    fgid_to_wbg[seg["fgid"]] = seg.get("wbg", "")
+
+        assert fgid in fgid_to_wbg
+        assert fgid_to_wbg[fgid] == wsc
+
+    def test_wbg_to_fgids_reverse_lookup(self):
+        """Given a wbg, all frontend_group_ids sharing that physical waterbody
+        should be reachable — this is the reverse index the frontend builds."""
+        wsc = "500-999888"
+        f1 = _make_canonical_feature(
+            group_id="g1",
+            frontend_group_id="fgid_seg_a",
+            display_name="Long River",
+            fwa_watershed_code=wsc,
+            regulation_ids="reg_001_rule0",
+            length_m=8_000.0,
+        )
+        f2 = _make_canonical_feature(
+            group_id="g2",
+            frontend_group_id="fgid_seg_b",
+            display_name="Long River",
+            fwa_watershed_code=wsc,
+            regulation_ids="zone_5",
+            length_m=3_000.0,
+        )
+        store = _make_fake_store([f1, f2])
+        builder = SearchIndexBuilder(store)
+
+        result = builder._build_waterbodies_list()
+
+        # Build the reverse index wbg → {fgids}
+        wbg_to_fgids: dict[str, set[str]] = {}
+        for entry in result["waterbodies"]:
+            for seg in entry.get("rs", []):
+                wbg = seg.get("wbg", "")
+                if wbg and seg.get("fgid"):
+                    wbg_to_fgids.setdefault(wbg, set()).add(seg["fgid"])
+
+        assert wsc in wbg_to_fgids
+        assert wbg_to_fgids[wsc] == {"fgid_seg_a", "fgid_seg_b"}
+
+    def test_polygon_wbg_uses_waterbody_key(self):
+        """Lake/polygon features must use waterbody_key as wbg, not any
+        watershed code."""
+        wbk = "7654321"
+        f = _make_canonical_feature(
+            feature_type=FeatureType.LAKE.value,
+            display_name="Mirror Lake",
+            waterbody_key=wbk,
+            fwa_watershed_code=None,
+            blue_line_key=None,
+            regulation_ids="reg_050_rule0",
+            length_m=1_000_000.0,  # area in m²
+            waterbody_group=wbk,
+        )
+        store = _make_fake_store([f])
+        builder = SearchIndexBuilder(store)
+
+        result = builder._build_waterbodies_list()
+
+        entry = result["waterbodies"][0]
+        assert entry["rs"][0]["wbg"] == wbk
+        assert entry["props"]["wbg"] == wbk
+
+    def test_different_streams_have_different_wbg(self):
+        """Two unrelated streams must not share a wbg value."""
+        f1 = _make_canonical_feature(
+            group_id="g1",
+            frontend_group_id="fgid_stream_a",
+            display_name="Alpha Creek",
+            fwa_watershed_code="100-000001",
+            regulation_ids="reg_001_rule0",
+        )
+        f2 = _make_canonical_feature(
+            group_id="g2",
+            frontend_group_id="fgid_stream_b",
+            display_name="Beta Creek",
+            fwa_watershed_code="100-000002",
+            regulation_ids="reg_002_rule0",
+        )
+        store = _make_fake_store([f1, f2])
+        builder = SearchIndexBuilder(store)
+
+        result = builder._build_waterbodies_list()
+
+        wbgs = [e["props"]["wbg"] for e in result["waterbodies"]]
+        assert len(set(wbgs)) == 2, "Each distinct stream must have a unique wbg"

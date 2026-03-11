@@ -6,21 +6,99 @@
  
 5. when a admin area intersects a lake or other polygon we should only put the regulations added into the intersected portion of the polygon. this means splitting the polygon? could also split streams if we desire.
 
-8. need to add tidal region into the map. (will remove other regulations and say refer to tidal regulations)
-
 9. we will want to add in the stocked lake info probably here https://www.gofishbc.com/wp-json/wpgmza/v1/features can query it. then we can link to lake fwa and add info for stoked info. 
 
 
 11. fix missing knap malcom and rubble creek admin boundaries, etc...
 
-13. bear river is in region 1 and 2 but should only be in 2 because it is fully in 2 not straddling border...
+14. tidal issues
+-campbell river - in regs
+-englishman river
+-naniamo river - in regs
+-little qualicum river
+-East Newcastle Creek
+-Salmon river
+-adam river
+-somass
+-gordon river
+-San Juan River
+-Rainy River
+-clowhom lake??
+-jordan river
+-koprino river
 
+15. 
 
 
 
 ===============
 Complete
 ===============
+
+----
+
+Tsitika River has multiple eco reserves different name that get grouped together because same reg code
+- done each eco reserve is its own thing.
+
+---
+
+bear river is in region 1 and 2 but should only be in 2 because it is fully in 2 not straddling border...
+- handled with tests
+
+
+----
+
+DEAN RIVER PARSING
+    "regs_verbatim": "**No Fishing** upstream of Iltasyuko River[Includes Tributaries], including upstream of Anahim Lake[Includes Tributaries], Apr 1-June 14\n**No Fishing** from Iltasyuko River to Crag Creek[Includes Tributaries]\n**No Fishing** from Crag Creek to fishing boundary signs approximately 500 m upstream of canyon[Includes Tributaries], Oct 1-May 31\n**No Fishing** from fishing boundary signs approximately 500 m upstream of canyon to signs 100 m downstream of canyon\n**No Fishing** from fishing boundary signs approximately 100 m downstream of canyon to tidal boundary, Oct 1 - May 31\nTrout/char daily quota = 1 (none under 35 cm)\nBait ban all parts[Includes Tributaries]\nFly fishing only from** (a)** Anahim Lake to Iltasyuko River, June 15- Mar 31, and** (b)** Crag Creek to fishing boundary signs approximately 500 m\nupstream of canyon, July 15-Sept 30\nNo powered boats between signs 0.5 km and 3.5 km upstream of canyon, Aug 1-Aug 31\n**From Crag Creek to signs 500 m upstream of the canyon**[Includes Tributaries]**: Class I water June 1-Sept 30 and Steelhead Stamp mandatory June 1-Sept 30; see map below (Non-residents see notice on **page 42**)\nFrom signs 100 m downstream of canyon to tidal boundary**[Includes Tributaries]**: Class I water June 1-Sept 30 and Steelhead Stamp mandatory June 1-Sept 30: see map below\nFrom Anahim Lake to Iltasyuko River**[Includes Tributaries]**: Class II water June 16-Oct 31 (see map below); Steelhead Stamp not required**\nNOTE: \"canyon\" means lower canyon 3-5 km from river's mouth",
+
+lost classified water note in reg too. this is very bads we need parser to check no rule was missed? also split the one list. not checking if the rule is in the rule verbatim...
+{
+        "rule_text_verbatim": "Fly fishing only from** (a)** Anahim Lake to Iltasyuko River, June 15- Mar 31",
+        "scope": {
+          "type": "SEGMENT",
+          "lookup_name": "ALL",
+          "location_verbatim": "Anahim Lake to Iltasyuko River",
+          "landmark_verbatim": "Anahim Lake",
+          "landmark_end_verbatim": "Iltasyuko River",
+          "direction": "BETWEEN",
+          "includes_tributaries": null
+        },
+        "restriction": {
+          "type": "gear_restriction",
+          "details": "Fly fishing only",
+          "dates": [
+            "June 15- Mar 31"
+          ]
+        }
+      },
+      {
+        "rule_text_verbatim": "Crag Creek to fishing boundary signs approximately 500 m\nupstream of canyon, July 15-Sept 30",
+        "scope": {
+          "type": "SEGMENT",
+          "lookup_name": "ALL",
+          "location_verbatim": "Crag Creek to fishing boundary signs approximately 500 m\nupstream of canyon",
+          "landmark_verbatim": "Crag Creek",
+          "landmark_end_verbatim": "fishing boundary signs approximately 500 m\nupstream of canyon",
+          "direction": "BETWEEN",
+          "includes_tributaries": null
+        },
+        "restriction": {
+          "type": "gear_restriction",
+          "details": "Fly fishing only",
+          "dates": [
+            "July 15-Sept 30"
+          ]
+        }
+      },
+
+----
+
+piggott creek is not a tributary of oyster creek above a odd point where it should be?   
+
+---
+
+need to add tidal region into the map. (will remove other regulations and say refer to tidal regulations)
+
 
 ---
 

@@ -548,6 +548,39 @@ class WaterbodyLinker:
                     mu_filtered.append(representative)
 
             if mu_filtered:
+                # Hysteresis: include excluded identity groups that share GNIS
+                # with a passing group AND have buffered MU overlap.
+                # This handles side channels that are unbuffered-only in an
+                # adjacent MU but sit within the 500m buffer of the regulation's
+                # target MUs (e.g. Campbell River side channel in MU 1-10 with
+                # buffered overlap into MU 1-6).
+                passing_gnis_ids: set = set()
+                for rep in mu_filtered:
+                    ident = self._feature_identity(rep)
+                    for f in identity_groups.get(ident, []):
+                        if f.gnis_id:
+                            passing_gnis_ids.add(f.gnis_id)
+
+                mu_set = set(mgmt_units)
+                for representative in unique_matches:
+                    if representative in mu_filtered:
+                        continue
+                    identity = self._feature_identity(representative)
+                    group_matches = identity_groups.get(identity, [])
+                    shares_gnis = any(
+                        f.gnis_id and f.gnis_id in passing_gnis_ids
+                        for f in group_matches
+                    )
+                    if not shares_gnis:
+                        continue
+                    has_buffered_overlap = any(
+                        f.mgmt_units_buffered
+                        and mu_set.intersection(f.mgmt_units_buffered)
+                        for f in group_matches
+                    )
+                    if has_buffered_overlap:
+                        mu_filtered.append(representative)
+
                 unique_matches = mu_filtered
             elif unique_matches:
                 # Name matched but wrong MU area - include all matches for comprehensive data
@@ -669,8 +702,9 @@ class WaterbodyLinker:
         else:
             # Multiple matches - check region/MU consistency first
             all_candidates = []
-            for identity_matches in identity_groups.values():
-                all_candidates.extend(identity_matches)
+            for rep in unique_matches:
+                ident = self._feature_identity(rep)
+                all_candidates.extend(identity_groups.get(ident, [rep]))
 
             # Validate that regulation region matches FWA feature's MU region
             if not self._validate_region_mu_match(zone_number, all_candidates):

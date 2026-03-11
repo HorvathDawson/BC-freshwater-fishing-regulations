@@ -48,6 +48,7 @@ class FWAFeature:
     fwa_watershed_code: Optional[str] = None
     blue_line_key: Optional[str] = None
     mgmt_units: Optional[List[str]] = None
+    mgmt_units_buffered: Optional[List[str]] = None
     waterbody_key: Optional[str] = None
     matched_via: Optional[str] = None
     admin_code: Optional[str] = (
@@ -152,6 +153,7 @@ class MetadataGazetteer:
                 feature_type=feature_type,
                 gnis_name=gnis_name,
                 mgmt_units=feature_data.get("mgmt_units", []),
+                mgmt_units_buffered=feature_data.get("mgmt_units", []),
                 admin_code=feature_data.get("admin_code"),
                 matched_via=matched_via or f"admin_{feature_type.value}",
                 region_names=feature_data.get("region_names", []),
@@ -171,6 +173,13 @@ class MetadataGazetteer:
         zones = feature_data.get("zones")
         if not zones:
             zones = ["Unknown"]
+
+        # Preserve the original (buffered) MU list before the single-zone
+        # collapse below may narrow mgmt_units to unbuffered values.
+        # The linker uses this for hysteresis: side channels that are
+        # unbuffered-only in an adjacent MU but buffered-overlap with the
+        # regulation's target MUs can still be included.
+        mgmt_units_buffered = list(feature_data.get("mgmt_units", []))
 
         # Single-zone features: collapse to unbuffered zones so the 500m
         # buffer margin never leaks a neighbouring zone into display or
@@ -225,6 +234,7 @@ class MetadataGazetteer:
             fwa_watershed_code=feature_data.get("fwa_watershed_code"),
             blue_line_key=feature_data.get("blue_line_key"),
             mgmt_units=feature_data.get("mgmt_units", []),
+            mgmt_units_buffered=mgmt_units_buffered or None,
             waterbody_key=str(waterbody_key) if waterbody_key is not None else None,
             matched_via=matched_via,
             region_names=feature_data.get("region_names", []),
@@ -321,9 +331,7 @@ class MetadataGazetteer:
             for fid, meta in self.metadata.get(ftype, {}).items():
                 gnis_id = meta.get("gnis_id")
                 if gnis_id:
-                    self.gnis_id_index.setdefault(str(gnis_id), []).append(
-                        (fid, ftype)
-                    )
+                    self.gnis_id_index.setdefault(str(gnis_id), []).append((fid, ftype))
                 blk = meta.get("blue_line_key")
                 if blk:
                     self.blue_line_key_index.setdefault(str(blk), []).append(
@@ -766,6 +774,7 @@ class MetadataGazetteer:
         layer_key: str,
         feature_types: Optional[List[FeatureType]] = None,
         gpkg_path: Optional[Path] = None,
+        buffer_m: float = 0,
     ) -> List[FWAFeature]:
         """
         Find all FWA features that spatially intersect with admin boundary polygon(s).
@@ -781,6 +790,9 @@ class MetadataGazetteer:
             feature_types: Which FWA feature types to include. If None, includes
                            all types (STREAM, LAKE, WETLAND, MANMADE).
             gpkg_path: Path to GPKG for reading layers.
+            buffer_m: Optional buffer (in metres, EPSG:3005) to expand admin
+                polygons before intersection.  Catches streams running along
+                but not quite touching the boundary.  0 = exact intersection.
 
         Returns:
             List of FWAFeature objects that intersect the admin boundary.
@@ -817,8 +829,10 @@ class MetadataGazetteer:
             for layer, id_field in [_FWA_LAYER_INFO[ftype]]
         ]
 
-        # Pre-compute admin union once.
+        # Pre-compute admin union once, optionally buffered.
         admin_union = admin_gdf.geometry.union_all()
+        if buffer_m > 0:
+            admin_union = admin_union.buffer(buffer_m)
 
         # Vertex counts for diagnostics
         def _vcount(g):

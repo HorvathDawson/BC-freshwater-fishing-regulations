@@ -71,13 +71,28 @@ upload_all() {
     upload_json
 }
 
+# ── Write & upload data_version.json ─────────────────────────────────
+# Called automatically before any upload so end-users always get a fresh
+# version string on their next page load, which cache-busts the PMTiles URLs.
+write_version() {
+    local version
+    version="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+    local version_file="$DATA_DIR/data_version.json"
+    echo "{\"v\":\"$version\"}" > "$version_file"
+    info "Wrote $version_file (version: $version)"
+}
+
 # ── Main ──────────────────────────────────────────────────────────────
 case "${1:-}" in
     --tiles)
+        write_version
         upload_tiles
+        upload_file "$DATA_DIR/data_version.json"
         ;;
     --json)
+        write_version
         upload_json
+        upload_file "$DATA_DIR/data_version.json"
         ;;
     --file)
         if [ -z "${2:-}" ]; then
@@ -96,12 +111,14 @@ case "${1:-}" in
         echo "  (no args)     Upload all data files (pmtiles + json)"
         echo "  --tiles       Upload only .pmtiles files"
         echo "  --json        Upload only .json data files"
-        echo "  --file <f>    Upload a single file"
+        echo "  --file <f>    Upload a single file (no version bump)"
         echo "  --help        Show this help"
         exit 0
         ;;
     *)
+        write_version
         upload_all
+        upload_file "$DATA_DIR/data_version.json"
         ;;
 esac
 

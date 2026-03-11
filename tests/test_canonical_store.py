@@ -314,6 +314,77 @@ class TestEmitGroupFeature:
         feat = store._emit_group_feature(group, base_props, geometry=None)
         assert feat["length_m"] == 0.0
 
+    # ── waterbody_group ────────────────────────────────────────────────
+
+    def test_waterbody_group_stream_uses_watershed_code(self):
+        """Stream features: waterbody_group must equal fwa_watershed_code."""
+        group = make_merged_group(
+            feature_type=FeatureType.STREAM.value,
+            fwa_watershed_code="100-123456",
+        )
+        store = _make_store()
+        base_props = store._build_group_base_props(group)
+
+        feat = store._emit_group_feature(group, base_props, geometry=make_line())
+
+        assert feat["waterbody_group"] == "100-123456"
+
+    def test_waterbody_group_lake_uses_waterbody_key(self):
+        """Polygon features: waterbody_group must equal waterbody_key."""
+        group = make_merged_group(
+            feature_type=FeatureType.LAKE.value,
+            waterbody_key="7765432",
+            fwa_watershed_code=None,
+        )
+        store = _make_store()
+        base_props = store._build_group_base_props(group)
+
+        feat = store._emit_group_feature(group, base_props, geometry=make_polygon())
+
+        assert feat["waterbody_group"] == "7765432"
+
+    def test_two_stream_groups_same_watershed_share_waterbody_group(self):
+        """Two stream groups on the same physical stream (same watershed code)
+        produce the same waterbody_group value — this is the grouping invariant
+        that powers the cross-segment lookup in the frontend."""
+        wsc = "200-567890"
+        group_a = make_merged_group(
+            group_id="g_upstream",
+            regulation_ids=("reg_001_rule0",),
+            fwa_watershed_code=wsc,
+        )
+        group_b = make_merged_group(
+            group_id="g_downstream",
+            regulation_ids=("zone_3",),
+            fwa_watershed_code=wsc,
+        )
+        store = _make_store()
+        bp_a = store._build_group_base_props(group_a)
+        bp_b = store._build_group_base_props(group_b)
+
+        feat_a = store._emit_group_feature(group_a, bp_a, geometry=make_line(x_start=0))
+        feat_b = store._emit_group_feature(
+            group_b, bp_b, geometry=make_line(x_start=5000)
+        )
+
+        assert feat_a["waterbody_group"] == feat_b["waterbody_group"] == wsc
+
+    def test_waterbody_group_empty_when_no_key(self):
+        """When neither fwa_watershed_code nor waterbody_key is set the field
+        is an empty string rather than None or a group_id."""
+        group = make_merged_group(
+            feature_type=FeatureType.STREAM.value,
+            fwa_watershed_code=None,
+        )
+        store = _make_store()
+        base_props = store._build_group_base_props(group)
+        # Force the code path where both keys are absent
+        base_props["fwa_watershed_code"] = None
+
+        feat = store._emit_group_feature(group, base_props, geometry=make_line())
+
+        assert feat["waterbody_group"] == ""
+
 
 class TestMergeSameRegulationFeatures:
     """Tests for _merge_same_regulation_features."""

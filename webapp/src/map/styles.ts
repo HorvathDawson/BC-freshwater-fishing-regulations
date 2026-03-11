@@ -46,31 +46,37 @@ export const matchByFeatureType = (
     defaultColor,
 ];
 
-// Admin area fill colors — color-blind safe palette (Wong 2011)
-// Orange (#E69F00) is used exclusively for NO FISHING zones so the signal
-// is unambiguous even for deuteranopia / protanopia viewers.
+// Admin area fill colors — colorblind-safe palette
+// Crimson (#C22E2E) = NO FISHING — universal "prohibited" (NP + Eco Reserves)
+// Amber (#CC7A00) = PARTIAL RESTRICTION — "caution" (research forests, etc.)
+// Green (#009E73) = OPEN — fishing allowed (provincial parks)
 const ADMIN_COLORS: Record<string, string> = {
-    // ── NO FISHING zones (orange = universal danger signal) ──────────
-    admin_parks_nat: '#E69F00',        // Wong orange — national parks
-    ECOLOGICAL_RESERVE: '#E69F00',     // Wong orange — eco reserves
+    // ── NO FISHING zones (crimson = prohibited) ─────────────────────
+    admin_parks_nat: '#C22E2E',        // Crimson — national parks (federal closure)
+    ECOLOGICAL_RESERVE: '#C22E2E',     // Crimson — eco reserves (provincial closure)
     // ── BC Parks sub-types ───────────────────────────────────────────
     PROVINCIAL_PARK: '#009E73',        // Wong bluish-green — still open
     PROTECTED_AREA: '#0072B2',         // Wong blue
-    RECREATION_AREA: '#8B6914',        // Dark amber-gold (distinct from orange)
+    RECREATION_AREA: '#8B6914',        // Dark amber-gold (distinct from no-fishing)
     admin_parks_bc_default: '#009E73', // Fallback: same as provincial park
     // ── Other admin types ────────────────────────────────────────────
     admin_wma: '#7B2D8B',             // Purple — wildlife mgmt areas
     admin_watersheds: '#006D77',       // Deep teal — watersheds
     admin_historic_sites: '#795548',   // Warm brown — heritage sites
-    // ── OSM Admin boundaries ────────────────────────────────────────
-    osm_admin: '#D55E00',              // Wong vermillion — distinct from all other admin colors
+    // ── OSM Admin boundaries (partial restriction) ──────────────────
+    osm_admin: '#CC7A00',              // Deep amber — partial restriction (caution)
+    // ── Indigenous / Aboriginal lands ────────────────────────────────
+    aboriginal_lands: '#8B6508',       // Dark goldenrod — OSM-style tan/ochre
 };
 
 // Helper function to create regulation layers from new PMTiles structure
 export const createRegulationLayers = (): LayerSpecification[] => {
-    // FWA features first (bottom), admin overlays on top so borders/fills
-    // are always visible above waterbody fills and lines.
+    // Render order (bottom → top):
+    //   1. fwaLayers   — waterbody fills, lines, geometry
+    //   2. adminLayers — admin polygon fills, borders, query layers
+    //   3. fwaLabels   — waterbody name labels (above admin polygons)
     const fwaLayers: LayerSpecification[] = [];
+    const fwaLabels: LayerSpecification[] = [];
     const adminLayers: LayerSpecification[] = [];
     // ── BC MASK (grey area outside zone polygons) ─────────────────────────
     // Renders first (bottom) so all BC content appears above it
@@ -322,8 +328,9 @@ export const createRegulationLayers = (): LayerSpecification[] => {
                 ['linear'],
                 ['zoom'],
                 4, 2,
-                8, 2.5,
-                12, 3
+                7, 3,
+                9, 4,
+                12, 4.5
             ],
             'line-opacity': 0.8
         },
@@ -358,66 +365,12 @@ export const createRegulationLayers = (): LayerSpecification[] => {
         }
     });
 
-    // Management Unit labels — zoomed out: large centred text inside polygon fill
-    fwaLayers.push({
-        id: 'management_units-label-low',
-        type: 'symbol',
-        source: 'regulations',
-        'source-layer': 'management_units_fill',
-        minzoom: 4,
-        maxzoom: 7,
-        layout: {
-            'symbol-placement': 'point',
-            'text-field': ['get', 'mu_code'],
-            'text-font': ['Noto Sans Bold'],
-            'text-size': ['interpolate', ['linear'], ['zoom'], 4, 10, 5, 12, 6, 14, 7, 15],
-            'text-anchor': 'center',
-            'text-justify': 'center',
-            'text-allow-overlap': false,
-            'text-ignore-placement': false,
-            'text-padding': 2,
-            'text-max-width': 6,
-        },
-        paint: {
-            'text-color': '#333333',
-            'text-opacity': ['interpolate', ['linear'], ['zoom'], 4, 0.5, 6, 0.8],
-            'text-halo-color': '#ffffff',
-            'text-halo-width': 2,
-        },
-    });
-
-    // Management Unit labels — zoomed in: repeated along boundary lines
-    fwaLayers.push({
-        id: 'management_units-label',
-        type: 'symbol',
-        source: 'regulations',
-        'source-layer': 'management_units',
-        minzoom: 7,
-        layout: {
-            'symbol-placement': 'line',
-            'text-field': ['get', 'mu_code'],
-            'text-font': ['Noto Sans Bold'],
-            'text-size': ['interpolate', ['linear'], ['zoom'], 7, 9, 9, 11, 12, 13],
-            'text-allow-overlap': false,
-            'text-ignore-placement': false,
-            'symbol-spacing': ['interpolate', ['linear'], ['zoom'], 7, 200, 10, 300, 13, 400],
-            'text-max-angle': 30,
-            'text-offset': [0, -0.6],
-        },
-        paint: {
-            'text-color': '#444444',
-            'text-opacity': ['interpolate', ['linear'], ['zoom'], 7, 0.5, 9, 0.7, 12, 0.85],
-            'text-halo-color': '#ffffff',
-            'text-halo-width': 1.6,
-        },
-    });
-
     // ── WATERBODY NAME LABELS (above boundary lines for readability) ─
     // Replace OSM water labels with our own using display_name.
     // Skip unnamed waterbodies (display_name == '').
 
     // Stream labels — follow line geometry like OSM river labels
-    fwaLayers.push({
+    fwaLabels.push({
         id: 'streams-label',
         type: 'symbol',
         source: 'regulations',
@@ -445,7 +398,7 @@ export const createRegulationLayers = (): LayerSpecification[] => {
 
     // Lake labels — large lakes visible earlier, small lakes appear when zoomed in
     // area_sqm thresholds: >5 km² @ z8, >1 km² @ z9, >0.1 km² @ z10, all @ z11
-    fwaLayers.push({
+    fwaLabels.push({
         id: 'lakes-label',
         type: 'symbol',
         source: 'regulations',
@@ -478,7 +431,7 @@ export const createRegulationLayers = (): LayerSpecification[] => {
     });
 
     // Wetland labels
-    fwaLayers.push({
+    fwaLabels.push({
         id: 'wetlands-label',
         type: 'symbol',
         source: 'regulations',
@@ -503,7 +456,7 @@ export const createRegulationLayers = (): LayerSpecification[] => {
     });
 
     // Manmade waterbody labels
-    fwaLayers.push({
+    fwaLabels.push({
         id: 'manmade-label',
         type: 'symbol',
         source: 'regulations',
@@ -576,7 +529,7 @@ export const createRegulationLayers = (): LayerSpecification[] => {
     // Map.tsx on 'load' (after pattern images are registered) and appended
     // above these layers.
 
-    // National parks — orange base tint + bold border
+    // National parks — crimson tint + thick solid border (NO FISHING)
     adminLayers.push({
         id: 'admin_parks_nat-fill',
         type: 'fill',
@@ -584,7 +537,7 @@ export const createRegulationLayers = (): LayerSpecification[] => {
         'source-layer': 'admin_parks_nat',
         paint: {
             'fill-color': ADMIN_COLORS.admin_parks_nat,
-            'fill-opacity': 0.12,
+            'fill-opacity': 0.10,
         },
     });
     adminLayers.push({
@@ -594,12 +547,12 @@ export const createRegulationLayers = (): LayerSpecification[] => {
         'source-layer': 'admin_parks_nat',
         paint: {
             'line-color': ADMIN_COLORS.admin_parks_nat,
-            'line-width': 2.5,
-            'line-opacity': 0.75,
+            'line-width': 3.0,
+            'line-opacity': 0.80,
         },
     });
 
-    // BC Parks — colour keyed by admin_type; eco reserves share the orange no-fishing signal.
+    // BC Parks — colour keyed by admin_type; eco reserves share crimson no-fishing signal.
     adminLayers.push({
         id: 'admin_parks_bc-fill',
         type: 'fill',
@@ -618,7 +571,7 @@ export const createRegulationLayers = (): LayerSpecification[] => {
             'fill-opacity': [
                 'match',
                 ['get', 'admin_type'],
-                'ECOLOGICAL_RESERVE', 0.06,
+                'ECOLOGICAL_RESERVE', 0.10,
                 0.12,
             ],
         },
@@ -644,7 +597,7 @@ export const createRegulationLayers = (): LayerSpecification[] => {
                 'ECOLOGICAL_RESERVE', 2.5,
                 1.5,
             ],
-            'line-opacity': 0.65,
+            'line-opacity': 0.75,
         },
     });
 
@@ -696,8 +649,8 @@ export const createRegulationLayers = (): LayerSpecification[] => {
         paint: { 'line-color': ADMIN_COLORS.admin_historic_sites, 'line-width': 1.5, 'line-opacity': 0.5 },
     });
 
-    // OSM Admin Boundaries (research forests, protected areas, etc.)
-    // Colour keyed by admin_type from code_map (same pattern as parks_bc).
+    // OSM Admin Boundaries (research forests — partial restriction: no lake fishing)
+    // Amber fill + dashed border signals "caution" rather than "prohibited"
     adminLayers.push({
         id: 'admin_osm_admin_boundaries-fill',
         type: 'fill',
@@ -705,7 +658,7 @@ export const createRegulationLayers = (): LayerSpecification[] => {
         'source-layer': 'admin_osm_admin_boundaries',
         paint: {
             'fill-color': ADMIN_COLORS.osm_admin,
-            'fill-opacity': 0.1,
+            'fill-opacity': 0.08,
         },
     });
     adminLayers.push({
@@ -715,13 +668,51 @@ export const createRegulationLayers = (): LayerSpecification[] => {
         'source-layer': 'admin_osm_admin_boundaries',
         paint: {
             'line-color': ADMIN_COLORS.osm_admin,
-            'line-width': 2,
-            'line-opacity': 0.6,
+            'line-width': 1.8,
+            'line-opacity': 0.70,
+            'line-dasharray': [8, 4],
         },
     });
 
-    // FWA first, admin overlays on top
-    return [...fwaLayers, ...adminLayers];
+    // Aboriginal / Indigenous Lands — OSM-style tan fill + dashed brown border
+    // Individual polygons overlap heavily; the fill uses a dissolved (unioned)
+    // source-layer so fill-opacity paints once rather than stacking.
+    // A nearly-invisible query layer on the individual features is kept so
+    // queryRenderedFeatures can resolve per-territory names at click-time.
+    adminLayers.push({
+        id: 'admin_aboriginal_lands-query',
+        type: 'fill',
+        source: 'regulations',
+        'source-layer': 'admin_aboriginal_lands',
+        paint: {
+            'fill-color': ADMIN_COLORS.aboriginal_lands,
+            'fill-opacity': 0.001,   // invisible, but queryable for click detection
+        },
+    });
+    adminLayers.push({
+        id: 'admin_aboriginal_lands-fill',
+        type: 'fill',
+        source: 'regulations',
+        'source-layer': 'admin_aboriginal_lands_fill',
+        paint: {
+            'fill-color': ADMIN_COLORS.aboriginal_lands,
+            'fill-opacity': 0.12,
+        },
+    });
+    adminLayers.push({
+        id: 'admin_aboriginal_lands-line',
+        type: 'line',
+        source: 'regulations',
+        'source-layer': 'admin_aboriginal_lands',
+        paint: {
+            'line-color': ADMIN_COLORS.aboriginal_lands,
+            'line-width': 2.5,
+            'line-opacity': 0.35,
+        },
+    });
+
+    // FWA geometry → admin polygons → FWA labels on top
+    return [...fwaLayers, ...adminLayers, ...fwaLabels];
 };
 
 /**
@@ -831,9 +822,9 @@ export const createAdminLabelLayers = (): LayerSpecification[] => {
             'text-padding': ['interpolate', ['linear'], ['zoom'], 6, 50, 10, 12, 14, 4],
         },
         paint: {
-            'text-color': '#B37700',
+            'text-color': '#7F1D1D',
             'text-halo-color': '#ffffff',
-            'text-halo-width': 0.8,
+            'text-halo-width': 1.2,
         },
     });
 
@@ -844,15 +835,10 @@ export const createAdminLabelLayers = (): LayerSpecification[] => {
         source: 'regulations',
         'source-layer': 'admin_parks_bc',
         filter: ['==', ['get', 'admin_type'], 'ECOLOGICAL_RESERVE'],
-        minzoom: 7,
+        minzoom: 6,
         layout: {
             'symbol-placement': 'point',
-            'text-field': [
-                'step', ['zoom'],
-                'ER',
-                9, ['concat', 'ER ', ['get', 'name']],
-                11, ['get', 'name'],
-            ],
+            'text-field': ['get', 'name'],
             'text-font': ['Noto Sans Regular'],
             'text-size': ['interpolate', ['linear'], ['zoom'], 7, 9, 10, 11, 12, 13],
             'text-max-width': 8,
@@ -861,9 +847,9 @@ export const createAdminLabelLayers = (): LayerSpecification[] => {
             'text-padding': ['interpolate', ['linear'], ['zoom'], 7, 50, 10, 12, 14, 4],
         },
         paint: {
-            'text-color': '#B37700',
+            'text-color': '#7F1D1D',
             'text-halo-color': '#ffffff',
-            'text-halo-width': 0.8,
+            'text-halo-width': 1.0,
         },
     });
 
@@ -874,14 +860,10 @@ export const createAdminLabelLayers = (): LayerSpecification[] => {
         source: 'regulations',
         'source-layer': 'admin_parks_bc',
         filter: ['==', ['get', 'admin_type'], 'PROVINCIAL_PARK'],
-        minzoom: 6,
+        minzoom: 8,
         layout: {
             'symbol-placement': 'point',
-            'text-field': [
-                'step', ['zoom'],
-                ['concat', 'PP ', ['get', 'name']],
-                10, ['get', 'name'],
-            ],
+            'text-field': ['get', 'name'],
             'text-font': ['Noto Sans Regular'],
             'text-size': ['interpolate', ['linear'], ['zoom'], 6, 9, 10, 12, 12, 13],
             'text-max-width': 8,
@@ -1048,9 +1030,116 @@ export const createAdminLabelLayers = (): LayerSpecification[] => {
             'text-padding': ['interpolate', ['linear'], ['zoom'], 8, 50, 10, 12, 14, 4],
         },
         paint: {
-            'text-color': '#005A8C',
+            'text-color': '#7A4A00',
+            'text-halo-color': '#ffffff',
+            'text-halo-width': 1.0,
+        },
+    });
+
+    // ── Aboriginal / Indigenous Lands ────────────────────────────────
+    labelLayers.push({
+        id: 'admin_aboriginal_lands-label',
+        type: 'symbol',
+        source: 'regulations',
+        'source-layer': 'admin_aboriginal_lands',
+        minzoom: 6,
+        layout: {
+            'symbol-placement': 'point',
+            'text-field': ['get', 'name'],
+            'text-font': ['Noto Sans Regular'],
+            'text-size': ['interpolate', ['linear'], ['zoom'], 7, 9, 10, 11, 12, 13],
+            'text-max-width': 8,
+            'text-anchor': 'center',
+            'text-allow-overlap': false,
+            'text-padding': ['interpolate', ['linear'], ['zoom'], 7, 50, 10, 12, 14, 4],
+        },
+        paint: {
+            'text-color': '#6B4F00',
             'text-halo-color': '#ffffff',
             'text-halo-width': 0.8,
+        },
+    });
+
+    // ── Region / Management Unit labels (topmost — above all other labels) ──
+    // Region number labels — zoomed way out: large centred region number (1–8)
+    labelLayers.push({
+        id: 'regions-label',
+        type: 'symbol',
+        source: 'regulations',
+        'source-layer': 'regions_fill',
+        minzoom: 4,
+        maxzoom: 7,
+        layout: {
+            'symbol-placement': 'point',
+            'text-field': ['get', 'zone'],
+            'text-font': ['Noto Sans Bold'],
+            'text-size': ['interpolate', ['linear'], ['zoom'], 4, 14, 6, 18],
+            'text-anchor': 'center',
+            'text-justify': 'center',
+            'text-allow-overlap': false,
+            'text-ignore-placement': false,
+            'text-padding': 4,
+            'text-max-width': 6,
+        },
+        paint: {
+            'text-color': '#333333',
+            'text-opacity': ['interpolate', ['linear'], ['zoom'], 4, 0.6, 6, 0.9],
+            'text-halo-color': '#ffffff',
+            'text-halo-width': 2.5,
+        },
+    });
+
+    // Management Unit labels — mid zoom: centred inside polygon fill
+    labelLayers.push({
+        id: 'management_units-label-low',
+        type: 'symbol',
+        source: 'regulations',
+        'source-layer': 'management_units_fill',
+        minzoom: 7,
+        maxzoom: 8,
+        layout: {
+            'symbol-placement': 'point',
+            'text-field': ['get', 'mu_code'],
+            'text-font': ['Noto Sans Bold'],
+            'text-size': ['interpolate', ['linear'], ['zoom'], 7, 12, 8, 14],
+            'text-anchor': 'center',
+            'text-justify': 'center',
+            'text-allow-overlap': true,
+            'text-ignore-placement': false,
+            'text-padding': 2,
+            'text-max-width': 6,
+        },
+        paint: {
+            'text-color': '#333333',
+            'text-opacity': ['interpolate', ['linear'], ['zoom'], 7, 0.6, 8, 0.8],
+            'text-halo-color': '#ffffff',
+            'text-halo-width': 2,
+        },
+    });
+
+    // Management Unit labels — zoomed in: repeated along boundary lines
+    labelLayers.push({
+        id: 'management_units-label',
+        type: 'symbol',
+        source: 'regulations',
+        'source-layer': 'management_units',
+        minzoom: 8,
+        layout: {
+            'symbol-placement': 'line',
+            'text-field': ['get', 'mu_code'],
+            'text-font': ['Noto Sans Bold'],
+            'text-size': ['interpolate', ['linear'], ['zoom'], 8, 9, 9, 11, 12, 13],
+            'text-allow-overlap': true,
+            'text-ignore-placement': false,
+            'symbol-spacing': ['interpolate', ['linear'], ['zoom'], 8, 200, 10, 300, 13, 400],
+            'text-max-angle': 30,
+            'text-offset': [0, -0.6],
+        },
+        paint: {
+            'text-color': '#444444',
+            'text-opacity': ['interpolate', ['linear'], ['zoom'], 8, 0.5, 9, 0.7, 12, 0.85],
+            'text-halo-color': '#ffffff',
+            'text-halo-width': 1.6,
         },
     });
 

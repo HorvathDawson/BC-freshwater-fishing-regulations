@@ -23,6 +23,7 @@ const CACHE_PMTILES = 'public, max-age=604800, stale-while-revalidate=86400'; //
 const CACHE_JSON    = 'public, max-age=300, stale-while-revalidate=60';       // 5min + 1min swr
 
 function getCacheControl(key: string): string {
+  if (key === 'data_version.json') return 'no-store';  // always fresh — tiny file, busts PMTiles cache
   if (key.endsWith('.pmtiles')) return CACHE_PMTILES;
   if (key.endsWith('.json'))    return CACHE_JSON;
   return 'public, max-age=3600';  // 1h default

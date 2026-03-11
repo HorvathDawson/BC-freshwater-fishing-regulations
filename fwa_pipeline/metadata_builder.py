@@ -45,6 +45,7 @@ class FeatureType(Enum):
     WATERSHED = "watersheds"
     HISTORIC_SITE = "historic_sites"
     OSM_ADMIN = "osm_admin_boundaries"
+    ABORIGINAL_LANDS = "aboriginal_lands"
 
     # Display-only boundary layers (not regulation-carrying admin areas)
     TIDAL_BOUNDARY = "tidal_boundary"
@@ -61,6 +62,7 @@ ADMIN_FEATURE_TYPES = frozenset(
         FeatureType.WATERSHED,
         FeatureType.HISTORIC_SITE,
         FeatureType.OSM_ADMIN,
+        FeatureType.ABORIGINAL_LANDS,
     }
 )
 
@@ -121,6 +123,11 @@ ADMIN_LAYER_CONFIG: dict = {
             "aboriginal_lands": "ABORIGINAL_LANDS",
         },
     },
+    "aboriginal_lands": {
+        "feature_type": FeatureType.ABORIGINAL_LANDS,
+        "id_field": "osm_id",
+        "name_field": "name",
+    },
 }
 
 
@@ -130,6 +137,11 @@ logger = logging.getLogger(__name__)
 
 # Buffer: Features within 500m of a border get assigned to BOTH zones
 ZONE_BOUNDARY_BUFFER_M = 500.0
+
+# Buffer: Admin boundary polygons (parks, eco reserves, aboriginal lands)
+# are expanded by this amount before spatial intersection so streams
+# running along (but not quite touching) the boundary are still matched.
+ADMIN_BOUNDARY_BUFFER_M = 25.0
 
 # --- Helper Functions (Static for Multiprocessing) ---
 

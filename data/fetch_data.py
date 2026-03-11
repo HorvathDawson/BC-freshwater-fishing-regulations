@@ -1,4 +1,5 @@
 import os
+import json
 import argparse
 import logging
 import urllib.request
@@ -10,6 +11,8 @@ import geopandas as gpd
 import pandas as pd
 import osmnx as ox
 from pathlib import Path
+from shapely.geometry import Polygon, LineString
+from shapely.ops import polygonize, linemerge
 from tqdm import tqdm
 
 from project_config import get_config
@@ -95,6 +98,177 @@ def fetch_osm_roi_boundaries(short_name, queries, gpkg_path):
             logger.warning("OSM fetch failed for '%s': %s", query, e)
 
 
+def fetch_overpass_aboriginal_lands(short_name: str, gpkg_path: Path) -> None:
+    """Fetch all boundary=aboriginal_lands polygons in BC from the Overpass API.
+
+    Queries for relations tagged ``boundary=aboriginal_lands`` within the
+    bounding box of British Columbia.  Each polygon is saved with its OSM
+    tags (name, name:en, indigenous name, url, wikidata, wikipedia).
+    """
+    print(f"\n[OVERPASS] Fetching aboriginal lands for BC...")
+
+    # BC bounding box (lat/lon): south, west, north, east
+    bbox = "48.2,-139.1,60.0,-114.0"
+
+    query = f"""
+[out:json][timeout:120];
+(
+  relation["boundary"="aboriginal_lands"]({bbox});
+  way["boundary"="aboriginal_lands"]({bbox});
+);
+out body;
+>;
+out skel qt;
+"""
+
+    overpass_url = "https://overpass-api.de/api/interpreter"
+    encoded = urllib.parse.urlencode({"data": query})
+    req = urllib.request.Request(
+        overpass_url,
+        data=encoded.encode("utf-8"),
+        headers={"User-Agent": "BC-FishRegs-DataFetch/1.0"},
+    )
+    print("  -> Querying Overpass API (this may take a minute)...")
+    try:
+        with urllib.request.urlopen(req, timeout=180) as resp:
+            raw = json.loads(resp.read().decode("utf-8"))
+    except Exception as e:
+        raise RuntimeError(f"Overpass fetch failed for aboriginal lands: {e}") from e
+
+    elements = raw.get("elements", [])
+    nodes = {e["id"]: e for e in elements if e["type"] == "node"}
+    ways = {e["id"]: e for e in elements if e["type"] == "way"}
+    relations = [e for e in elements if e["type"] == "relation"]
+    standalone_ways = [
+        e
+        for e in elements
+        if e["type"] == "way"
+        and e.get("tags", {}).get("boundary") == "aboriginal_lands"
+    ]
+
+    def _way_coords(way_element):
+        """Return list of (lon, lat) for a way's node refs."""
+        return [
+            (nodes[nid]["lon"], nodes[nid]["lat"])
+            for nid in way_element.get("nodes", [])
+            if nid in nodes
+        ]
+
+    def _build_polygon_from_relation(rel):
+        """Assemble a polygon from a relation's outer/inner way members."""
+        outers, inners = [], []
+        for member in rel.get("members", []):
+            if member["type"] != "way" or member["ref"] not in ways:
+                continue
+            coords = _way_coords(ways[member["ref"]])
+            if len(coords) < 2:
+                continue
+            role = member.get("role", "outer")
+            if role == "inner":
+                inners.append(coords)
+            else:
+                outers.append(coords)
+
+        if not outers:
+            return None
+
+        # Merge outer way segments into closed rings
+        outer_lines = [LineString(c) for c in outers if len(c) >= 2]
+        if not outer_lines:
+            return None
+        merged = linemerge(outer_lines)
+        outer_polys = list(polygonize(merged))
+
+        inner_polys = []
+        if inners:
+            inner_lines = [LineString(c) for c in inners if len(c) >= 2]
+            if inner_lines:
+                inner_merged = linemerge(inner_lines)
+                inner_polys = list(polygonize(inner_merged))
+
+        if not outer_polys:
+            return None
+
+        # Subtract inner rings from outer polygons
+        result = outer_polys[0]
+        for op in outer_polys[1:]:
+            result = result.union(op)
+        for ip in inner_polys:
+            result = result.difference(ip)
+
+        return result if not result.is_empty else None
+
+    def _build_polygon_from_way(way_el):
+        """Build a polygon from a standalone closed way."""
+        coords = _way_coords(way_el)
+        if len(coords) >= 4:
+            return Polygon(coords)
+        return None
+
+    def _tags_to_record(osm_id, tags, geom):
+        """Build a GeoDataFrame-ready dict from OSM tags."""
+        return {
+            "osm_id": str(osm_id),
+            "name": tags.get("name", ""),
+            "name_en": tags.get("name:en", tags.get("name", "")),
+            # Best-effort indigenous name: first name:* tag that isn't en/fr.
+            # OSM tag order is non-deterministic so this is approximate.
+            "name_indigenous": next(
+                (
+                    v
+                    for k, v in tags.items()
+                    if k.startswith("name:") and k != "name:en" and k != "name:fr"
+                ),
+                "",
+            ),
+            "boundary": tags.get("boundary", ""),
+            "type": "aboriginal_lands",
+            "url": tags.get("url", tags.get("website", "")),
+            "wikidata": tags.get("wikidata", ""),
+            "wikipedia": tags.get("wikipedia", ""),
+            "geometry": geom,
+        }
+
+    records = []
+    # Process relations
+    for rel in relations:
+        tags = rel.get("tags", {})
+        geom = _build_polygon_from_relation(rel)
+        if geom is None:
+            continue
+        records.append(_tags_to_record(rel["id"], tags, geom))
+
+    # Process standalone ways (not part of a relation)
+    relation_way_ids = set()
+    for rel in relations:
+        for m in rel.get("members", []):
+            if m["type"] == "way":
+                relation_way_ids.add(m["ref"])
+    for way_el in standalone_ways:
+        if way_el["id"] in relation_way_ids:
+            continue
+        tags = way_el.get("tags", {})
+        geom = _build_polygon_from_way(way_el)
+        if geom is None:
+            continue
+        records.append(_tags_to_record(way_el["id"], tags, geom))
+
+    if not records:
+        print("  ⚠️  No aboriginal lands polygons found.")
+        return
+
+    gdf = gpd.GeoDataFrame(records, crs="EPSG:4326")
+    gdf = gdf.to_crs(epsg=3005)
+
+    # Clean any list-type columns
+    for col in gdf.columns:
+        if col != "geometry" and gdf[col].apply(lambda x: isinstance(x, list)).any():
+            gdf[col] = gdf[col].apply(str)
+
+    gdf.to_file(gpkg_path, layer=short_name, driver="GPKG", engine="pyogrio")
+    print(f"  ✅ '{short_name}' written ({len(gdf)} aboriginal lands polygons)")
+
+
 def ensure_ftp_extracted(ftp_url, temp_dir):
     zip_path = temp_dir / os.path.basename(ftp_url)
     gdb_path = temp_dir / zip_path.name.replace(".zip", ".gdb")
@@ -141,6 +315,7 @@ def fetch_r2_gpkg_layer(short_name, r2_url, source_layer, gpkg_path):
     to EPSG:3005, and writes it as ``short_name`` in the output GPKG.
     """
     import tempfile
+
     print(f"\n[R2] Fetching layer '{source_layer}' from {r2_url}")
     with tempfile.NamedTemporaryFile(suffix=".gpkg", delete=False) as tmp:
         tmp_path = Path(tmp.name)
@@ -175,6 +350,10 @@ def main():
             "queries": [
                 "Malcolm Knapp Research Forest",
             ],
+        },
+        # Aboriginal / Indigenous lands from OpenStreetMap (Overpass API)
+        "aboriginal_lands": {
+            "type": "OVERPASS_ABORIGINAL",
         },
         "wma": {"type": "WFS", "source": "WHSE_TANTALIS.TA_WILDLIFE_MGMT_AREAS_SVW"},
         "wmu": {
@@ -231,6 +410,8 @@ def main():
                 combine_streams(name, cfg["ftp"], gpkg_out, temp_dir)
             elif cfg["type"] == "R2_GPKG":
                 fetch_r2_gpkg_layer(name, cfg["url"], cfg["layer"], gpkg_out)
+            elif cfg["type"] == "OVERPASS_ABORIGINAL":
+                fetch_overpass_aboriginal_lands(name, gpkg_out)
         except Exception as e:
             print(f"❌ Error on {name}: {e}")
 

@@ -947,6 +947,24 @@ EXAMPLES:
 INPUT DATA:
 {batch_inputs}
 
+COMPLETENESS VERIFICATION — DO NOT SKIP:
+
+After generating all rules, walk through regs_verbatim LINE BY LINE and verify every distinct restriction is captured by at least one rule. The validator will flag any of the following keywords found in regs_verbatim but NOT covered by any rule's rule_text_verbatim:
+  "no fishing", "class i water", "class ii water", "steelhead stamp mandatory",
+  "bait ban", "fly fishing only", "catch and release", "no powered boats",
+  "single barbless hook", "daily quota"
+
+**COMMONLY MISSED RESTRICTIONS**:
+1. **Classified Water Designations** — Lines like "Class I water June 1-Sept 30 and Steelhead Stamp mandatory June 1-Sept 30" are licensing restrictions. Each classified water block (there may be several with different scopes) must produce at least one rule with restriction.type = "licensing".
+2. **Steelhead Stamp requirements** — Often bundled with classified water designations. "Steelhead Stamp mandatory" must appear in a rule's rule_text_verbatim.
+3. **Compound (a)/(b) sentences** — "Fly fishing only from (a) A to B, dates, and (b) C to D, dates" is ONE sentence. Both rules MUST use the ENTIRE sentence as rule_text_verbatim. The validator checks that restriction.details core text (e.g. "Fly fishing only") appears inside rule_text_verbatim — a split fragment like "(b) C to D, dates" will FAIL because it does not contain "Fly fishing only".
+
+**PROCEDURE**:
+1. Scan regs_verbatim for each keyword above
+2. For each keyword found, confirm at least one rule's rule_text_verbatim contains it
+3. If any keyword is missing from all rules, you dropped a restriction — go back and add the missing rule(s)
+4. For each rule, confirm restriction.details core text appears in rule_text_verbatim
+
 CRITICAL PRE-FLIGHT CHECKS BEFORE RETURNING:
 
 **SUBSTRING VALIDATION - MOST IMPORTANT**

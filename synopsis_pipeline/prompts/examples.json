@@ -704,5 +704,281 @@
         }
       ]
     }
+  },
+  {
+    "input": {
+      "water": "DEAN RIVER",
+      "raw_regs": "**No Fishing** upstream of Iltasyuko River[Includes Tributaries], including upstream of Anahim Lake[Includes Tributaries], Apr 1-June 14\n**No Fishing** from Iltasyuko River to Crag Creek[Includes Tributaries]\n**No Fishing** from Crag Creek to fishing boundary signs approximately 500 m upstream of canyon[Includes Tributaries], Oct 1-May 31\n**No Fishing** from fishing boundary signs approximately 500 m upstream of canyon to signs 100 m downstream of canyon\n**No Fishing** from fishing boundary signs approximately 100 m downstream of canyon to tidal boundary, Oct 1 - May 31\nTrout/char daily quota = 1 (none under 35 cm)\nBait ban all parts[Includes Tributaries]\nFly fishing only from** (a)** Anahim Lake to Iltasyuko River, June 15- Mar 31, and** (b)** Crag Creek to fishing boundary signs approximately 500 m\nupstream of canyon, July 15-Sept 30\nNo powered boats between signs 0.5 km and 3.5 km upstream of canyon, Aug 1-Aug 31\n**From Crag Creek to signs 500 m upstream of the canyon**[Includes Tributaries]**: Class I water June 1-Sept 30 and Steelhead Stamp mandatory June 1-Sept 30; see map below (Non-residents see notice on **page 42**)\nFrom signs 100 m downstream of canyon to tidal boundary**[Includes Tributaries]**: Class I water June 1-Sept 30 and Steelhead Stamp mandatory June 1-Sept 30: see map below\nFrom Anahim Lake to Iltasyuko River**[Includes Tributaries]**: Class II water June 16-Oct 31 (see map below); Steelhead Stamp not required**\nNOTE: \"canyon\" means lower canyon 3-5 km from river's mouth",
+      "symbols": ["Classified"]
+    },
+    "output": {
+      "regs_verbatim": "**No Fishing** upstream of Iltasyuko River[Includes Tributaries], including upstream of Anahim Lake[Includes Tributaries], Apr 1-June 14\n**No Fishing** from Iltasyuko River to Crag Creek[Includes Tributaries]\n**No Fishing** from Crag Creek to fishing boundary signs approximately 500 m upstream of canyon[Includes Tributaries], Oct 1-May 31\n**No Fishing** from fishing boundary signs approximately 500 m upstream of canyon to signs 100 m downstream of canyon\n**No Fishing** from fishing boundary signs approximately 100 m downstream of canyon to tidal boundary, Oct 1 - May 31\nTrout/char daily quota = 1 (none under 35 cm)\nBait ban all parts[Includes Tributaries]\nFly fishing only from** (a)** Anahim Lake to Iltasyuko River, June 15- Mar 31, and** (b)** Crag Creek to fishing boundary signs approximately 500 m\nupstream of canyon, July 15-Sept 30\nNo powered boats between signs 0.5 km and 3.5 km upstream of canyon, Aug 1-Aug 31\n**From Crag Creek to signs 500 m upstream of the canyon**[Includes Tributaries]**: Class I water June 1-Sept 30 and Steelhead Stamp mandatory June 1-Sept 30; see map below (Non-residents see notice on **page 42**)\nFrom signs 100 m downstream of canyon to tidal boundary**[Includes Tributaries]**: Class I water June 1-Sept 30 and Steelhead Stamp mandatory June 1-Sept 30: see map below\nFrom Anahim Lake to Iltasyuko River**[Includes Tributaries]**: Class II water June 16-Oct 31 (see map below); Steelhead Stamp not required**\nNOTE: \"canyon\" means lower canyon 3-5 km from river's mouth",
+      "audit_log": [],
+      "identity": {
+        "name_verbatim": "DEAN RIVER",
+        "lookup_name": "DEAN RIVER",
+        "identity_type": "STREAM",
+        "component_waterbodies": [],
+        "alternate_names": [],
+        "location_descriptor": null,
+        "notes": "NOTE: \"canyon\" means lower canyon 3-5 km from river's mouth",
+        "global_scope": {
+          "type": "WHOLE_SYSTEM",
+          "lookup_name": "ALL",
+          "location_verbatim": null,
+          "landmark_verbatim": null,
+          "landmark_end_verbatim": null,
+          "direction": null,
+          "includes_tributaries": false
+        },
+        "exclusions": [],
+        "inclusions": []
+      },
+      "rules": [
+        {
+          "rule_text_verbatim": "**No Fishing** upstream of Iltasyuko River[Includes Tributaries], including upstream of Anahim Lake[Includes Tributaries], Apr 1-June 14",
+          "scope": {
+            "type": "DIRECTIONAL",
+            "lookup_name": "ALL",
+            "location_verbatim": "upstream of Iltasyuko River",
+            "landmark_verbatim": "Iltasyuko River",
+            "landmark_end_verbatim": null,
+            "direction": "UPSTREAM",
+            "includes_tributaries": true
+          },
+          "restriction": {
+            "type": "closure",
+            "details": "No Fishing",
+            "dates": ["Apr 1-June 14"]
+          }
+        },
+        {
+          "rule_text_verbatim": "**No Fishing** from Iltasyuko River to Crag Creek[Includes Tributaries]",
+          "scope": {
+            "type": "SEGMENT",
+            "lookup_name": "ALL",
+            "location_verbatim": "from Iltasyuko River to Crag Creek",
+            "landmark_verbatim": "Iltasyuko River",
+            "landmark_end_verbatim": "Crag Creek",
+            "direction": "BETWEEN",
+            "includes_tributaries": true
+          },
+          "restriction": {
+            "type": "closure",
+            "details": "No Fishing",
+            "dates": null
+          }
+        },
+        {
+          "rule_text_verbatim": "**No Fishing** from Crag Creek to fishing boundary signs approximately 500 m upstream of canyon[Includes Tributaries], Oct 1-May 31",
+          "scope": {
+            "type": "SEGMENT",
+            "lookup_name": "ALL",
+            "location_verbatim": "from Crag Creek to fishing boundary signs approximately 500 m upstream of canyon",
+            "landmark_verbatim": "Crag Creek",
+            "landmark_end_verbatim": "fishing boundary signs approximately 500 m upstream of canyon",
+            "direction": "BETWEEN",
+            "includes_tributaries": true
+          },
+          "restriction": {
+            "type": "closure",
+            "details": "No Fishing",
+            "dates": ["Oct 1-May 31"]
+          }
+        },
+        {
+          "rule_text_verbatim": "**No Fishing** from fishing boundary signs approximately 500 m upstream of canyon to signs 100 m downstream of canyon",
+          "scope": {
+            "type": "SEGMENT",
+            "lookup_name": "ALL",
+            "location_verbatim": "from fishing boundary signs approximately 500 m upstream of canyon to signs 100 m downstream of canyon",
+            "landmark_verbatim": "fishing boundary signs approximately 500 m upstream of canyon",
+            "landmark_end_verbatim": "signs 100 m downstream of canyon",
+            "direction": "BETWEEN",
+            "includes_tributaries": null
+          },
+          "restriction": {
+            "type": "closure",
+            "details": "No Fishing",
+            "dates": null
+          }
+        },
+        {
+          "rule_text_verbatim": "**No Fishing** from fishing boundary signs approximately 100 m downstream of canyon to tidal boundary, Oct 1 - May 31",
+          "scope": {
+            "type": "SEGMENT",
+            "lookup_name": "ALL",
+            "location_verbatim": "from fishing boundary signs approximately 100 m downstream of canyon to tidal boundary",
+            "landmark_verbatim": "fishing boundary signs approximately 100 m downstream of canyon",
+            "landmark_end_verbatim": "tidal boundary",
+            "direction": "BETWEEN",
+            "includes_tributaries": null
+          },
+          "restriction": {
+            "type": "closure",
+            "details": "No Fishing",
+            "dates": ["Oct 1 - May 31"]
+          }
+        },
+        {
+          "rule_text_verbatim": "Trout/char daily quota = 1 (none under 35 cm)",
+          "scope": {
+            "type": "WHOLE_SYSTEM",
+            "lookup_name": "ALL",
+            "location_verbatim": null,
+            "landmark_verbatim": null,
+            "landmark_end_verbatim": null,
+            "direction": null,
+            "includes_tributaries": null
+          },
+          "restriction": {
+            "type": "harvest",
+            "details": "Trout/char daily quota = 1 (none under 35 cm)",
+            "dates": null
+          }
+        },
+        {
+          "rule_text_verbatim": "Bait ban all parts[Includes Tributaries]",
+          "scope": {
+            "type": "WHOLE_SYSTEM",
+            "lookup_name": "ALL",
+            "location_verbatim": "all parts",
+            "landmark_verbatim": null,
+            "landmark_end_verbatim": null,
+            "direction": null,
+            "includes_tributaries": true
+          },
+          "restriction": {
+            "type": "gear_restriction",
+            "details": "Bait ban",
+            "dates": null
+          }
+        },
+        {
+          "_comment": "COMPOUND (a)/(b) — ENTIRE sentence used for BOTH rules. NEVER split into fragments.",
+          "rule_text_verbatim": "Fly fishing only from** (a)** Anahim Lake to Iltasyuko River, June 15- Mar 31, and** (b)** Crag Creek to fishing boundary signs approximately 500 m\nupstream of canyon, July 15-Sept 30",
+          "scope": {
+            "type": "SEGMENT",
+            "lookup_name": "ALL",
+            "location_verbatim": "Anahim Lake to Iltasyuko River",
+            "landmark_verbatim": "Anahim Lake",
+            "landmark_end_verbatim": "Iltasyuko River",
+            "direction": "BETWEEN",
+            "includes_tributaries": null
+          },
+          "restriction": {
+            "type": "gear_restriction",
+            "details": "Fly fishing only",
+            "dates": ["June 15- Mar 31"]
+          }
+        },
+        {
+          "_comment": "COMPOUND (a)/(b) — same ENTIRE sentence, different scope for segment (b).",
+          "rule_text_verbatim": "Fly fishing only from** (a)** Anahim Lake to Iltasyuko River, June 15- Mar 31, and** (b)** Crag Creek to fishing boundary signs approximately 500 m\nupstream of canyon, July 15-Sept 30",
+          "scope": {
+            "type": "SEGMENT",
+            "lookup_name": "ALL",
+            "location_verbatim": "Crag Creek to fishing boundary signs approximately 500 m\nupstream of canyon",
+            "landmark_verbatim": "Crag Creek",
+            "landmark_end_verbatim": "fishing boundary signs approximately 500 m\nupstream of canyon",
+            "direction": "BETWEEN",
+            "includes_tributaries": null
+          },
+          "restriction": {
+            "type": "gear_restriction",
+            "details": "Fly fishing only",
+            "dates": ["July 15-Sept 30"]
+          }
+        },
+        {
+          "rule_text_verbatim": "No powered boats between signs 0.5 km and 3.5 km upstream of canyon, Aug 1-Aug 31",
+          "scope": {
+            "type": "SEGMENT",
+            "lookup_name": "ALL",
+            "location_verbatim": "between signs 0.5 km and 3.5 km upstream of canyon",
+            "landmark_verbatim": "signs 0.5 km",
+            "landmark_end_verbatim": "3.5 km upstream of canyon",
+            "direction": "BETWEEN",
+            "includes_tributaries": null
+          },
+          "restriction": {
+            "type": "vessel_restriction",
+            "details": "No powered boats",
+            "dates": ["Aug 1-Aug 31"]
+          }
+        },
+        {
+          "_comment": "Classified water — Class I designation (Crag Creek to canyon). Licensing restriction.",
+          "rule_text_verbatim": "**From Crag Creek to signs 500 m upstream of the canyon**[Includes Tributaries]**: Class I water June 1-Sept 30 and Steelhead Stamp mandatory June 1-Sept 30; see map below (Non-residents see notice on **page 42**)",
+          "scope": {
+            "type": "SEGMENT",
+            "lookup_name": "ALL",
+            "location_verbatim": "From Crag Creek to signs 500 m upstream of the canyon",
+            "landmark_verbatim": "Crag Creek",
+            "landmark_end_verbatim": "signs 500 m upstream of the canyon",
+            "direction": "BETWEEN",
+            "includes_tributaries": true
+          },
+          "restriction": {
+            "type": "licensing",
+            "details": "Class I water; Steelhead Stamp mandatory (Non-residents see notice on page 42)",
+            "dates": ["June 1-Sept 30"]
+          }
+        },
+        {
+          "_comment": "Classified water — Class I designation (signs downstream of canyon to tidal boundary).",
+          "rule_text_verbatim": "From signs 100 m downstream of canyon to tidal boundary**[Includes Tributaries]**: Class I water June 1-Sept 30 and Steelhead Stamp mandatory June 1-Sept 30: see map below",
+          "scope": {
+            "type": "SEGMENT",
+            "lookup_name": "ALL",
+            "location_verbatim": "From signs 100 m downstream of canyon to tidal boundary",
+            "landmark_verbatim": "signs 100 m downstream of canyon",
+            "landmark_end_verbatim": "tidal boundary",
+            "direction": "BETWEEN",
+            "includes_tributaries": true
+          },
+          "restriction": {
+            "type": "licensing",
+            "details": "Class I water; Steelhead Stamp mandatory",
+            "dates": ["June 1-Sept 30"]
+          }
+        },
+        {
+          "_comment": "Classified water — Class II designation (Anahim Lake to Iltasyuko River). Steelhead Stamp NOT required.",
+          "rule_text_verbatim": "From Anahim Lake to Iltasyuko River**[Includes Tributaries]**: Class II water June 16-Oct 31 (see map below); Steelhead Stamp not required**",
+          "scope": {
+            "type": "SEGMENT",
+            "lookup_name": "ALL",
+            "location_verbatim": "From Anahim Lake to Iltasyuko River",
+            "landmark_verbatim": "Anahim Lake",
+            "landmark_end_verbatim": "Iltasyuko River",
+            "direction": "BETWEEN",
+            "includes_tributaries": true
+          },
+          "restriction": {
+            "type": "licensing",
+            "details": "Class II water (see map below); Steelhead Stamp not required",
+            "dates": ["June 16-Oct 31"]
+          }
+        },
+        {
+          "rule_text_verbatim": "NOTE: \"canyon\" means lower canyon 3-5 km from river's mouth",
+          "scope": {
+            "type": "WHOLE_SYSTEM",
+            "lookup_name": "ALL",
+            "location_verbatim": null,
+            "landmark_verbatim": null,
+            "landmark_end_verbatim": null,
+            "direction": null,
+            "includes_tributaries": null
+          },
+          "restriction": {
+            "type": "note",
+            "details": "\"canyon\" means lower canyon 3-5 km from river's mouth",
+            "dates": null
+          }
+        }
+      ]
+    }
   }
 ]

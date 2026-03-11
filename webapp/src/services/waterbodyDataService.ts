@@ -43,6 +43,7 @@ export interface WaterbodyItem {
     name_variants?: NameVariant[];
     length_km?: number;
     bbox?: [number, number, number, number] | null;
+    waterbody_group?: string;
   }[];
 }
 
@@ -77,6 +78,7 @@ function decodeWaterbody(raw: Record<string, any>, regSets: string[]): Waterbody
     name_variants: decodeVariants(s.nv ?? s.name_variants),
     length_km: s.lkm ?? s.length_km ?? 0,
     bbox: s.bbox ?? null,
+    waterbody_group: s.wbg ?? s.waterbody_group ?? '',
   }));
 
   return {
@@ -98,6 +100,7 @@ function decodeWaterbody(raw: Record<string, any>, regSets: string[]): Waterbody
       waterbody_key: raw.props?.wk ?? raw.properties?.waterbody_key ?? '',
       fwa_watershed_code: raw.props?.fwc ?? raw.properties?.fwa_watershed_code ?? '',
       regulation_count: raw.props?.rc ?? raw.properties?.regulation_count ?? 0,
+      waterbody_group: raw.props?.wbg ?? raw.properties?.waterbody_group ?? '',
     },
     regulation_segments: segments,
   };
@@ -142,10 +145,12 @@ async function idbSet(key: string, value: unknown): Promise<void> {
 class WaterbodyDataService {
   private data: WaterbodyData | null = null;
   private loadPromise: Promise<WaterbodyData> | null = null;
+  private dataVersionPromise: Promise<string> | null = null;
 
   private static readonly DATA_BASE = import.meta.env.VITE_TILE_BASE_URL || '/data';
   private static readonly ETAG_KEY = 'waterbody_etag';
   private static readonly DATA_KEY = 'waterbody_data';
+  private static readonly VERSION_KEY = 'data_version';
 
   async load(): Promise<WaterbodyData> {
     if (this.data) return this.data;
@@ -310,6 +315,42 @@ class WaterbodyDataService {
     this.load().catch((err) => {
       console.warn('Waterbody data preload failed:', err);
     });
+  }
+
+  /**
+   * Fetch the deployed data version string, used to cache-bust PMTiles URLs.
+   *
+   * On every call:
+   *  - Fetches `data_version.json` with `cache: 'no-store'` (always fresh, ~50 bytes).
+   *  - If the version changed vs localStorage, updates localStorage and returns the new version.
+   *  - If unchanged (or fetch fails), returns the stored version (or '' as fallback).
+   *
+   * Result is memoized within the session so only one network round-trip occurs
+   * regardless of how many callers await it.
+   */
+  getDataVersion(): Promise<string> {
+    if (this.dataVersionPromise) return this.dataVersionPromise;
+    this.dataVersionPromise = this._fetchDataVersion();
+    return this.dataVersionPromise;
+  }
+
+  private async _fetchDataVersion(): Promise<string> {
+    const url = `${WaterbodyDataService.DATA_BASE}/data_version.json`;
+    try {
+      const resp = await fetch(url, { cache: 'no-store' });
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      const json = await resp.json() as { v?: string };
+      const version = String(json.v ?? '');
+      if (version) {
+        localStorage.setItem(WaterbodyDataService.VERSION_KEY, version);
+      }
+      return version;
+    } catch {
+      // Network error or file missing (e.g. local dev without the file).
+      // Fall back to whatever was stored last — PMTiles URL uses '?' param only
+      // if version is non-empty, so '' means no cache-busting (backward-compatible).
+      return localStorage.getItem(WaterbodyDataService.VERSION_KEY) ?? '';
+    }
   }
 }
 

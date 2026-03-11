@@ -16,6 +16,7 @@ from regulation_mapping.canonical_store import CanonicalDataStore
 # Shared fixture: a simple rectangular tidal polygon
 # ---------------------------------------------------------------------------
 
+
 @pytest.fixture
 def tidal_polygon():
     """A 100×100 square tidal polygon centred at the origin."""
@@ -31,9 +32,15 @@ def tidal_prep(tidal_polygon):
 # Helper: build a minimal feature dict the static methods expect
 # ---------------------------------------------------------------------------
 
+
 def _stream(coords, **extra):
     geom = LineString(coords)
-    return {"geometry": geom, "feature_type": "streams", "length_m": geom.length, **extra}
+    return {
+        "geometry": geom,
+        "feature_type": "streams",
+        "length_m": geom.length,
+        **extra,
+    }
 
 
 def _polygon_feat(coords, feature_type, **extra):
@@ -44,6 +51,7 @@ def _polygon_feat(coords, feature_type, **extra):
 # ===========================================================================
 # Stream clipping tests
 # ===========================================================================
+
 
 class TestClipStreamsAtTidalBoundary:
 
@@ -147,6 +155,7 @@ class TestClipStreamsAtTidalBoundary:
 # Wetland removal tests
 # ===========================================================================
 
+
 class TestRemoveTidalWetlands:
 
     def test_wetland_inside_removed(self, tidal_polygon):
@@ -155,9 +164,7 @@ class TestRemoveTidalWetlands:
             [(0, 0), (10, 0), (10, 10), (0, 10), (0, 0)],
             feature_type="wetlands",
         )
-        result = CanonicalDataStore._remove_tidal_wetlands(
-            [feat], tidal_polygon
-        )
+        result = CanonicalDataStore._remove_tidal_wetlands([feat], tidal_polygon)
         assert len(result) == 0
 
     def test_wetland_outside_kept(self, tidal_polygon):
@@ -166,9 +173,7 @@ class TestRemoveTidalWetlands:
             [(100, 100), (110, 100), (110, 110), (100, 110), (100, 100)],
             feature_type="wetlands",
         )
-        result = CanonicalDataStore._remove_tidal_wetlands(
-            [feat], tidal_polygon
-        )
+        result = CanonicalDataStore._remove_tidal_wetlands([feat], tidal_polygon)
         assert len(result) == 1
 
     def test_wetland_partially_overlapping_removed(self, tidal_polygon):
@@ -177,9 +182,7 @@ class TestRemoveTidalWetlands:
             [(40, 40), (60, 40), (60, 60), (40, 60), (40, 40)],
             feature_type="wetlands",
         )
-        result = CanonicalDataStore._remove_tidal_wetlands(
-            [feat], tidal_polygon
-        )
+        result = CanonicalDataStore._remove_tidal_wetlands([feat], tidal_polygon)
         assert len(result) == 0
 
     def test_lake_inside_kept(self, tidal_polygon):
@@ -188,9 +191,7 @@ class TestRemoveTidalWetlands:
             [(0, 0), (10, 0), (10, 10), (0, 10), (0, 0)],
             feature_type="lakes",
         )
-        result = CanonicalDataStore._remove_tidal_wetlands(
-            [feat], tidal_polygon
-        )
+        result = CanonicalDataStore._remove_tidal_wetlands([feat], tidal_polygon)
         assert len(result) == 1
 
     def test_manmade_inside_kept(self, tidal_polygon):
@@ -199,9 +200,7 @@ class TestRemoveTidalWetlands:
             [(0, 0), (10, 0), (10, 10), (0, 10), (0, 0)],
             feature_type="manmade",
         )
-        result = CanonicalDataStore._remove_tidal_wetlands(
-            [feat], tidal_polygon
-        )
+        result = CanonicalDataStore._remove_tidal_wetlands([feat], tidal_polygon)
         assert len(result) == 1
 
     def test_mixed_batch(self, tidal_polygon):
@@ -230,14 +229,10 @@ class TestRemoveTidalWetlands:
     def test_empty_geometry_wetland_skipped(self, tidal_polygon):
         """Wetland with None geometry is silently skipped."""
         feat = {"geometry": None, "feature_type": "wetlands"}
-        result = CanonicalDataStore._remove_tidal_wetlands(
-            [feat], tidal_polygon
-        )
+        result = CanonicalDataStore._remove_tidal_wetlands([feat], tidal_polygon)
         assert len(result) == 0
 
     def test_empty_input_returns_empty(self, tidal_polygon):
         """No crash on empty input."""
-        result = CanonicalDataStore._remove_tidal_wetlands(
-            [], tidal_polygon
-        )
+        result = CanonicalDataStore._remove_tidal_wetlands([], tidal_polygon)
         assert result == []

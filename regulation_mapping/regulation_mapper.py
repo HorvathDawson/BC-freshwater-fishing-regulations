@@ -22,6 +22,7 @@ from .provincial_base_regulations import (
 from .admin_target import AdminTarget
 from .zone_base_regulations import ZoneRegulation
 from fwa_pipeline.metadata_gazetteer import FWAFeature, MetadataGazetteer, FeatureType
+from fwa_pipeline.metadata_builder import ADMIN_BOUNDARY_BUFFER_M
 from .regulation_types import (
     FeatureIndex,
     DirectMatchTarget,
@@ -793,6 +794,14 @@ class RegulationMapper:
         )
 
         for prov_reg in active_regulations:
+            if prov_reg.admin_targets and prov_reg.per_instance_ids:
+                # Per-instance path: each admin polygon gets its own regulation ID
+                # so streams through multiple distinct reserves keep separate
+                # frontend_group_ids (e.g. Tsitika River in two eco reserves).
+                instance_map = self._process_provincial_per_instance(prov_reg)
+                provincial_feature_map.update(instance_map)
+                continue
+
             if prov_reg.admin_targets:
                 # Admin boundary scope — unified resolution path
                 admin_result = self._resolve_admin_rule_set(
@@ -861,6 +870,104 @@ class RegulationMapper:
             )
 
         return provincial_feature_map
+
+    def _process_provincial_per_instance(
+        self, prov_reg: "ProvincialRegulation"
+    ) -> Dict[str, List[str]]:
+        """Process a provincial admin regulation with per-polygon regulation IDs.
+
+        Instead of sharing one ``regulation_id`` across all matched admin
+        polygons, generates ``"<base_id>:<layer>:<admin_fid>"`` for each
+        individual admin polygon.  This ensures that streams passing through
+        multiple distinct reserves (e.g. two adjacent ecological reserves)
+        end up in separate ``MergedGroup`` instances with distinct
+        ``frontend_group_id`` values, so the map can highlight each
+        independently.
+
+        Returns mapping of ``instance_regulation_id → [feature_ids]``.
+        """
+        base_id = prov_reg.regulation_id
+        instance_map: Dict[str, List[str]] = {}
+
+        if not self.gpkg_path or not self.gpkg_path.exists():
+            raise FileNotFoundError(
+                f"GPKG required for '{base_id}' (per-instance) "
+                f"but not found at {self.gpkg_path}"
+            )
+
+        # Build regulation detail template once—same content for all instances.
+        detail = self._build_regulation_detail(
+            source="provincial",
+            waterbody_name=base_id.replace("_", " ").title(),
+            rule_text=prov_reg.rule_text,
+            restriction_type=(
+                prov_reg.restriction.get("type") if prov_reg.restriction else None
+            ),
+            restriction_details=(
+                prov_reg.restriction.get("details") if prov_reg.restriction else None
+            ),
+            dates=(prov_reg.restriction.get("dates") if prov_reg.restriction else None),
+            scope_type=prov_reg.scope_type,
+            scope_location=(
+                ", ".join(sorted({t.layer for t in prov_reg.admin_targets}))
+                if prov_reg.admin_targets
+                else None
+            ),
+        )
+
+        for admin_target in prov_reg.admin_targets:
+            layer_key = admin_target.layer
+            admin_features = self.gazetteer.search_admin_layer(
+                layer_key=layer_key,
+                feature_ids=(
+                    [admin_target.feature_id] if admin_target.feature_id else None
+                ),
+                code_filter=(
+                    [admin_target.code_filter] if admin_target.code_filter else None
+                ),
+            )
+            if not admin_features:
+                logger.warning(
+                    f"  '{base_id}': no admin features in layer '{layer_key}'"
+                )
+                continue
+
+            logger.info(
+                f"  '{base_id}': processing {len(admin_features)} admin polygon(s) "
+                f"individually for per-instance IDs"
+            )
+
+            for admin_feat in admin_features:
+                matched = self.gazetteer.find_features_in_admin_area(
+                    admin_features=[admin_feat],
+                    layer_key=layer_key,
+                    feature_types=prov_reg.feature_types,
+                    gpkg_path=self.gpkg_path,
+                    buffer_m=ADMIN_BOUNDARY_BUFFER_M,
+                )
+                if not matched:
+                    continue
+
+                feature_ids = [f.fwa_id for f in matched]
+                instance_id = f"{base_id}:{layer_key}:{admin_feat.fwa_id}"
+
+                self.regulation_names[instance_id] = prov_reg.rule_text
+                self.regulation_details[instance_id] = detail
+                self.admin_area_reg_map[layer_key][admin_feat.fwa_id].add(instance_id)
+
+                self._backfill_waterbody_keys(set(feature_ids))
+                self._register_features(feature_ids, instance_id)
+
+                instance_map[instance_id] = feature_ids
+
+        total_instances = len(instance_map)
+        total_assignments = sum(len(v) for v in instance_map.values())
+        logger.info(
+            f"  Provincial '{base_id}' (per-instance): "
+            f"{total_instances} reserve(s) matched, "
+            f"{total_assignments} total feature assignments"
+        )
+        return instance_map
 
     def _register_features(self, feature_ids, regulation_id: str) -> None:
         """Register feature IDs against a regulation in both indexes.
@@ -1005,7 +1112,8 @@ class RegulationMapper:
                 f"(regulation '{regulation_id}') but not found at {self.gpkg_path}"
             )
         return lookup_admin_targets(
-            self.gazetteer, self.gpkg_path, admin_targets, feature_types
+            self.gazetteer, self.gpkg_path, admin_targets, feature_types,
+            buffer_m=ADMIN_BOUNDARY_BUFFER_M,
         )
 
     def _resolve_provincial_feature_types(
@@ -1215,7 +1323,9 @@ class RegulationMapper:
         """
         base_ids = resolve_zone_wide_ids(zone_reg, zone_index, mu_index)
         buffered_ids = resolve_zone_wide_ids(zone_reg, zone_index_buf, mu_index_buf)
-        extended, newly_added = self._extend_boundary_streams(base_ids, buffered_ids)
+        extended, newly_added = self._extend_boundary_streams(
+            base_ids, buffered_ids, target_mu_ids=zone_reg.mu_ids
+        )
         if newly_added:
             logger.info(
                 f"    Buffer extended scope "
@@ -1230,23 +1340,33 @@ class RegulationMapper:
         self,
         base_ids: set,
         buffered_ids: set,
+        target_mu_ids: Optional[List[str]] = None,
     ) -> Tuple[set, int]:
         """Extend a base feature set with buffered features for boundary streams.
 
-        Only stream features whose ``blue_line_key`` is already represented
-        in *base_ids* can be added from *buffered_ids*.  This prevents
-        entirely new streams (fully outside the boundary) from being included
-        just because they fall within the 500m buffer distance.
+        Two extension passes:
+
+        1. **BLK pass** — from *buffered_ids*, keep stream features whose
+           ``blue_line_key`` is already represented in *base_ids*.  This
+           extends boundary-straddling streams without pulling in new ones.
+
+        2. **WSC pass** (only when *target_mu_ids* is set) — for side
+           channels sharing the exact ``fwa_watershed_code`` of a feature
+           already in the extended set, include them if their raw
+           (buffered) ``mgmt_units`` overlap with *target_mu_ids*.  This
+           captures braided side channels near an MU boundary that have
+           different BLKs from the mainstem but belong to the same river
+           corridor.  Only features within the 500m buffer distance of
+           the target MU boundary are included.
 
         Non-stream features pass through from the base set unchanged.
 
         Returns:
             Tuple of (extended feature ID set, count of newly added segments).
         """
-        if base_ids == buffered_ids:
-            return base_ids, 0
-
         stream_meta = self.gazetteer.metadata.get(FeatureType.STREAM, {})
+
+        # --- Pass 1: BLK extension (existing behaviour) ---
 
         # Collect blue_line_keys already present in the base (unbuffered) set
         base_blks: set = set()
@@ -1263,6 +1383,33 @@ class RegulationMapper:
                 if blk := meta.get("blue_line_key"):
                     if str(blk) in base_blks:
                         extended_ids.add(fid)
+                        newly_added += 1
+
+        # --- Pass 2: WSC side-channel extension ---
+        # Include side channels (different BLK, same exact WSC) whose
+        # buffered MU overlaps the regulation's target MUs.  This handles
+        # braiding near MU boundaries where side channels are just outside
+        # the unbuffered boundary but within the 500m buffer.
+        if target_mu_ids and hasattr(self.gazetteer, "watershed_code_index"):
+            target_mu_set = set(target_mu_ids)
+
+            # Collect exact WSCs from the already-extended set
+            extended_wscs: set = set()
+            for fid in extended_ids:
+                if meta := stream_meta.get(fid):
+                    if wsc := meta.get("fwa_watershed_code"):
+                        extended_wscs.add(wsc)
+
+            # For each WSC, find candidate features via the reverse index
+            for wsc in extended_wscs:
+                for candidate_fid in self.gazetteer.watershed_code_index.get(wsc, []):
+                    if candidate_fid in extended_ids:
+                        continue
+                    candidate_meta = stream_meta.get(candidate_fid, {})
+                    # Check raw (buffered) MU overlap with regulation targets
+                    buffered_mus = set(candidate_meta.get("mgmt_units", []))
+                    if buffered_mus & target_mu_set:
+                        extended_ids.add(candidate_fid)
                         newly_added += 1
 
         return extended_ids, newly_added
@@ -1282,6 +1429,20 @@ class RegulationMapper:
         matched_ids = resolve_direct_match_ids(self.gazetteer, zone_reg)
         self._backfill_waterbody_keys(matched_ids)
         return matched_ids
+
+    def _get_lake_only_excluded_wb_keys(self) -> Set[str]:
+        """Return the subset of linked polygon wb_keys that belong to lakes.
+
+        Used by lake-seeded tributary enrichment so that "tributaries of X Lake"
+        stops at the next regulated lake upstream, but wetlands and manmade
+        features are transparent to traversal.
+        """
+        lake_meta = self.gazetteer.metadata.get(FeatureType.LAKE, {})
+        all_lake_wb_keys: Set[str] = set()
+        for meta in lake_meta.values():
+            if wb_key := meta.get("waterbody_key"):
+                all_lake_wb_keys.add(str(wb_key))
+        return self.linked_waterbody_keys_of_polygon & all_lake_wb_keys
 
     # --- Enrichment & Grouping ---
 
@@ -1341,19 +1502,27 @@ class RegulationMapper:
         all_tributaries_dict = {}
         if stream_seeds:
             excluded_codes = self._get_watershed_codes_for_streams(stream_seeds)
+            # Stream-seeded: traverse through all waterbodies (lakes, wetlands,
+            # manmade) freely.  The stream is the regulatory entity — waterbodies
+            # the stream passes through should not block reachability.
             for trib in self.tributary_enricher.enrich_with_tributaries(
                 stream_seeds,
                 excluded_watershed_codes=excluded_codes,
-                excluded_waterbody_keys=self.linked_waterbody_keys_of_polygon,  # NOTE: I am not sure if this is right but I dont think we want tributary of lake stream segments since it is not really the river here. it is the lake which might have its own tributary regulations.
             ):
                 all_tributaries_dict[trib.fwa_id] = trib
 
-        for ftype, seeds in polygon_seeds_by_type.items():
-            for trib in self.tributary_enricher.enrich_with_tributaries(
-                seeds,
-                excluded_waterbody_keys=self.linked_waterbody_keys_of_polygon,
-            ):
-                all_tributaries_dict[trib.fwa_id] = trib
+        if polygon_seeds_by_type:
+            # Lake/polygon-seeded: stop traversal at the next regulated lake.
+            # This prevents "tributaries of X Lake" from climbing past another
+            # regulated lake upstream.  Only LAKE wb_keys act as barriers;
+            # wetlands and manmade features are pass-through.
+            lake_only_excluded = self._get_lake_only_excluded_wb_keys()
+            for ftype, seeds in polygon_seeds_by_type.items():
+                for trib in self.tributary_enricher.enrich_with_tributaries(
+                    seeds,
+                    excluded_waterbody_keys=lake_only_excluded or None,
+                ):
+                    all_tributaries_dict[trib.fwa_id] = trib
 
         return list(all_tributaries_dict.values())
 

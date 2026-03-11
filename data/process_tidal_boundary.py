@@ -58,13 +58,14 @@ STEP4_LAYER = "step4_smoothed"
 OUT_LAYER = "tidal_boundary"
 
 # Processing parameters
-HOLE_MAX_HA = 5          # fill holes smaller than this (hectares)
-MARGIN_M = 5             # outward buffer baked into the stored polygon (metres)
-SIMPLIFY_M = 5           # simplification tolerance (metres) — applied after buffer
+HOLE_MAX_HA = 5  # fill holes smaller than this (hectares)
+MARGIN_M = 15  # outward buffer baked into the stored polygon (metres)
+SIMPLIFY_M = 5  # simplification tolerance (metres) — applied after buffer
 BC_MASK_BUFFER_M = 120_000  # how far offshore to extend the BC land boundary (metres)
 
 
 # ── Geometry helpers ───────────────────────────────────────────────────────────
+
 
 def _fix_geom(geom):
     """Return a valid version of *geom* (make_valid → unary_union if needed)."""
@@ -78,6 +79,7 @@ def _fix_geom(geom):
 
 def _fill_holes(geom, max_area_m2: float):
     """Remove interior rings (holes) whose area is < *max_area_m2*."""
+
     def _fill_poly(poly: Polygon) -> Polygon:
         kept = [ring for ring in poly.interiors if Polygon(ring).area >= max_area_m2]
         return Polygon(poly.exterior, kept)
@@ -95,6 +97,7 @@ def _save_layer(gdf: gpd.GeoDataFrame, path: Path, layer: str):
 
 
 # ── BC coastal mask ────────────────────────────────────────────────────────────
+
 
 def fetch_bc_mask() -> gpd.GeoDataFrame | None:
     """Fetch BC province boundary from BC DataCatalogue WFS, buffered offshore.
@@ -120,7 +123,9 @@ def fetch_bc_mask() -> gpd.GeoDataFrame | None:
             return None
         mask_geom = gdf.geometry.iloc[0].buffer(BC_MASK_BUFFER_M)
         result = gpd.GeoDataFrame(geometry=[mask_geom], crs="EPSG:3005")
-        logger.info(f"  BC coastal mask ready (land + {BC_MASK_BUFFER_M/1000:.0f} km offshore)")
+        logger.info(
+            f"  BC coastal mask ready (land + {BC_MASK_BUFFER_M/1000:.0f} km offshore)"
+        )
         return result
     except Exception as exc:
         logger.warning(f"BC boundary fetch failed ({exc}) — skipping mask step")
@@ -128,6 +133,7 @@ def fetch_bc_mask() -> gpd.GeoDataFrame | None:
 
 
 # ── Main processing ────────────────────────────────────────────────────────────
+
 
 def process(use_bc_mask: bool = True) -> gpd.GeoDataFrame:
     """Run all processing steps, save intermediate layers, return final GDF."""
@@ -149,13 +155,19 @@ def process(use_bc_mask: bool = True) -> gpd.GeoDataFrame:
     step1_gdf = step1_gdf.set_geometry("geometry")
 
     before = sum(
-        len(list(getattr(g, "interiors", []))) if isinstance(g, Polygon)
-        else sum(len(list(p.interiors)) for p in g.geoms)
+        (
+            len(list(getattr(g, "interiors", [])))
+            if isinstance(g, Polygon)
+            else sum(len(list(p.interiors)) for p in g.geoms)
+        )
         for g in raw.geometry
     )
     after = sum(
-        len(list(getattr(g, "interiors", []))) if isinstance(g, Polygon)
-        else sum(len(list(p.interiors)) for p in g.geoms)
+        (
+            len(list(getattr(g, "interiors", [])))
+            if isinstance(g, Polygon)
+            else sum(len(list(p.interiors)) for p in g.geoms)
+        )
         for g in step1_gdf.geometry
     )
     logger.info(f"  Holes: {before} → {after} (filled {before - after})")
@@ -191,6 +203,7 @@ def process(use_bc_mask: bool = True) -> gpd.GeoDataFrame:
     step4_gdf = gpd.GeoDataFrame(geometry=[smoothed], crs="EPSG:3005")
 
     import shapely as _shapely
+
     n_verts = int(_shapely.get_coordinates(smoothed).shape[0])
     logger.info(f"  Final polygon: {n_verts:,} vertices")
     _save_layer(step4_gdf, DFO_GPKG, STEP4_LAYER)
@@ -214,8 +227,14 @@ def upload_to_r2():
     size_mb = DFO_GPKG.stat().st_size / 1_048_576
     logger.info(f"  File size: {size_mb:.0f} MB")
     result = subprocess.run(
-        ["rclone", "copy", str(DFO_GPKG), f"{R2_BUCKET}/",
-         "--s3-no-check-bucket", "--progress"],
+        [
+            "rclone",
+            "copy",
+            str(DFO_GPKG),
+            f"{R2_BUCKET}/",
+            "--s3-no-check-bucket",
+            "--progress",
+        ],
         capture_output=False,
     )
     if result.returncode != 0:
@@ -226,20 +245,24 @@ def upload_to_r2():
 
 # ── Entry point ────────────────────────────────────────────────────────────────
 
+
 def main():
     parser = argparse.ArgumentParser(
         description="Process DFO tidal boundary and upload to R2"
     )
     parser.add_argument(
-        "--skip-upload", action="store_true",
+        "--skip-upload",
+        action="store_true",
         help="Skip rclone upload to R2",
     )
     parser.add_argument(
-        "--skip-copy", action="store_true",
+        "--skip-copy",
+        action="store_true",
         help="Skip copying tidal_boundary into bc_fisheries_data.gpkg",
     )
     parser.add_argument(
-        "--no-bc-mask", action="store_true",
+        "--no-bc-mask",
+        action="store_true",
         help="Skip BC coastal boundary clip step",
     )
     args = parser.parse_args()

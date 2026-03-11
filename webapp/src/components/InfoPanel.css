@@ -22,7 +22,8 @@
     transition: transform 0.2s cubic-bezier(0,0,0,1);
     z-index: 1000; 
     display: flex; 
-    flex-direction: column; 
+    flex-direction: column;
+    overflow: hidden;
     box-sizing: border-box;
     font-family: var(--font-sans);
 }
@@ -628,6 +629,11 @@
     color: #b45309;
 }
 
+.reg-type-pill.reg-advisory-indigenous {
+    background: rgba(139, 101, 8, 0.14);
+    color: #6B4F00;
+}
+
 .reg-detail-text {
     font-size: 13px;
     font-weight: 600;
@@ -934,4 +940,120 @@
     .reg-text-body {
         font-size: 13px;
     }
+}
+
+/* ── Section Tab Bar ─────────────────────────────────────────────────────── */
+
+/*
+ * Sticky segmented tab bar for multi-section waterbodies.
+ * Sits between the panel header and the scrolling panel-content area.
+ * Hidden entirely for single-section waterbodies (rendered conditionally in JSX).
+ * Tap targets are 44 × 44 px per WCAG 2.1 SC 2.5.5.
+ */
+
+/* Wrapper: simple container for the tab bar. */
+.section-tab-bar-wrapper {
+    flex-shrink: 0;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border-light);
+}
+
+/* Tab bar — uses flex-wrap so all tabs are always visible, no scrolling needed. */
+.section-tab-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 12px;
+}
+
+
+/* Non-interactive "Sections" prefix label */
+.section-tab-bar__label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    font-family: var(--font-sans);
+    white-space: nowrap;
+    margin-right: 2px;
+    flex-shrink: 0;
+    user-select: none;
+}
+
+.section-tab {
+    flex: 0 0 auto;
+    width: 38px;
+    height: 38px;
+    padding: 0;
+    background: none;
+    border: 1.5px solid var(--border-light);
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: var(--text-secondary);
+    font-family: var(--font-sans);
+    transition: color 0.12s, background 0.12s, border-color 0.12s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* Extend click target to meet 44 px WCAG minimum */
+    position: relative;
+}
+
+.section-tab::before {
+    content: '';
+    position: absolute;
+    inset: -3px;
+}
+
+.section-tab:hover {
+    color: var(--text);
+    border-color: var(--border);
+    background: var(--bg-subtle);
+}
+
+.section-tab.active {
+    color: var(--bg);
+    background: var(--text);
+    border-color: var(--text);
+}
+
+.section-tab:focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: 2px;
+}
+
+/* Zoom to section button — lives at top of panel-content for the active tab */
+.zoom-to-section-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    margin-bottom: 16px;
+    padding: 5px 10px;
+    font-size: 11px;
+    font-weight: 600;
+    font-family: var(--font-sans);
+    color: var(--text-secondary);
+    background: var(--bg-subtle);
+    border: 1px solid var(--border-light);
+    border-radius: 3px;
+    cursor: pointer;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    transition: background 0.1s, color 0.1s, border-color 0.1s;
+}
+
+.zoom-to-section-btn:hover {
+    color: var(--text);
+    background: var(--border-light);
+    border-color: var(--border);
+}
+
+.zoom-to-section-btn:focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: 2px;
 }

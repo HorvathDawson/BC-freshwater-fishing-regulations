@@ -155,6 +155,7 @@ def lookup_admin_targets(
     gpkg_path: Path,
     admin_targets: List[AdminTarget],
     feature_types: Optional[List[FeatureType]],
+    buffer_m: float = 0,
 ) -> Tuple[List[FWAFeature], List[Tuple[str, FWAFeature]]]:
     """Resolve FWA features that spatially intersect admin polygon targets.
 
@@ -166,6 +167,8 @@ def lookup_admin_targets(
         gpkg_path: Path to the GPKG file (must exist).
         admin_targets: List of AdminTarget specifying polygons to intersect.
         feature_types: Restrict intersection to these types (None = all).
+        buffer_m: Optional buffer (metres) to expand admin polygons before
+            intersection.  0 = exact intersection.
 
     Returns:
         (matched_features, admin_entries) where admin_entries is
@@ -200,6 +203,7 @@ def lookup_admin_targets(
             layer_key=layer_key,
             feature_types=feature_types,
             gpkg_path=gpkg_path,
+            buffer_m=buffer_m,
         )
         all_matched.extend(matched)
         admin_entries.extend((layer_key, af) for af in admin_features)

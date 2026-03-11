@@ -22,6 +22,7 @@ export interface RegulationSegment {
     name_variants: NameVariant[];  // Names with tributary flag
     length_km: number;
     bbox?: [number, number, number, number];  // Per-segment bbox for fly-to
+    waterbody_group?: string;  // BLK for streams, waterbody_key for polygons — groups all segments of the same physical waterbody
 }
 
 export interface SearchableFeature {
@@ -37,6 +38,8 @@ export interface SearchableFeature {
     bbox?: [number, number, number, number];  // [minx, miny, maxx, maxy] for zooming
     min_zoom?: number;  // Minimum zoom level where feature is visible
     regulation_segments?: RegulationSegment[];  // Different regulation sections of same physical stream
+    /** All fgids for this waterbody entry — set at data-load time, used for URL restoration fallback. */
+    _frontend_group_ids?: string[];
 }
 
 interface SearchBarProps {

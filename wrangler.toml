@@ -10,3 +10,8 @@ preview_urls = false
 
 [assets]
 directory = "./webapp/dist"
+# Serve dist/index.html for any path that doesn't match a static file.
+# This enables SPA routing — /waterbody/<wbg>/ paths not yet prerendered
+# (e.g. old slugs from before a pipeline rerun) fall back to the SPA
+# which resolves them client-side or shows a graceful empty state.
+not_found_handling = "single-page-application"

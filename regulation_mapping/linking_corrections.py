@@ -645,16 +645,17 @@ DIRECT_MATCHES: Dict[str, Dict[str, DirectMatch]] = {
             note="Tributaries of Squamish River - links to parent waterbody (GNIS 25671 - Squamish River). Regulation MU 2-6.",
         ),
         "SQUAMISH POWERHOUSE CHANNEL": DirectMatch(
-            linear_feature_ids=[
-                "189026121",
-                "189025898",
-                "189025602",
-                "189025634",
-                "189025628",
-                "189025635",
-                "189025602",
-                "189025634",
-            ],
+            # linear_feature_ids=[
+            #     "189026121",
+            #     "189025898",
+            #     "189025602",
+            #     "189025634",
+            #     "189025628",
+            #     "189025635",
+            #     "189025602",
+            #     "189025634",
+            # ],
+            blue_line_keys=["360219234", "360553991"],
             note="Squamish Powerhouse Channel in Region 2 MU 2-6. Links to 5 specific stream segments representing the channel. Reference: https://a100.gov.bc.ca/pub/acat/documents/r40717/09_CMS_05_powerhouse_1388682280782_8673845708.pdf",
         ),
         'WAHLEACH ("Jones") LAKE\'S TRIBUTARIES': DirectMatch(
@@ -1617,6 +1618,24 @@ DIRECT_MATCHES: Dict[str, Dict[str, DirectMatch]] = {
             gnis_ids=["39325"],
             note="Fraser River in Region 7A. Channels and sloughs are in Zone 2 only.",
         ),
+        # --- Williston Lake sub-areas (Zone A) ---
+        # All Zone A entries link to full Williston Lake (GNIS 28522) so the lake
+        # shows these regulations. Davis Bay and Nation Arm also have ungazetted
+        # point features for precise map display.
+        "WILLISTON LAKE (in Zone A) (includes waters 500 m east/upstream of the Causeway Road)": DirectMatch(
+            gnis_ids=["28522"],
+            note="Williston Lake Zone A. GNIS 28522 (Williston Lake/Reservoir). Zone A includes waters 500m east/upstream of the Causeway Road. TODO: Needs custom polygon subdivision to separate Zone A from Zone B. Currently links to full lake. MU 7-58.",
+        ),
+        "NATION ARM (Williston Lake)": DirectMatch(
+            gnis_ids=["28522"],
+            ungazetted_waterbody_id="UNGAZ_NATION_ARM_WILLISTON_R7",
+            note="Nation Arm of Williston Lake. Links to full Williston Lake (GNIS 28522) plus ungazetted point at arm location. Nation River (GNIS 16593) flows into this arm. MU 7-58. TODO: Needs custom polygon subdivision.",
+        ),
+        "DAVIS BAY (in Finlay Reach of Williston Lake)": DirectMatch(
+            gnis_ids=["28522"],
+            ungazetted_waterbody_id="UNGAZ_DAVIS_BAY_WILLISTON_R7",
+            note="Davis Bay in Finlay Reach of Williston Lake. Links to full Williston Lake (GNIS 28522) plus ungazetted point at bay location. Finlay Reach is the northern arm where Finlay River (GNIS 12355) enters. MU 7-58. TODO: Needs custom polygon subdivision.",
+        ),
     },
     "Region 7B": {
         "TUPPER RIVER": DirectMatch(
@@ -1648,6 +1667,11 @@ DIRECT_MATCHES: Dict[str, Dict[str, DirectMatch]] = {
         "SWAN LAKE": DirectMatch(
             gnis_ids=["20911"],
             note="Disambiguate from GNIS 20912; FWA has MU 7-33, regulation has MU 7-20 (boundary issue - lake is about 800m from boundary with MU 7-20)",
+        ),
+        # --- Williston Lake sub-areas (Zone B) ---
+        "WILLISTON LAKE (in Zone B)": DirectMatch(
+            gnis_ids=["28522"],
+            note="Williston Lake Zone B. GNIS 28522 (Williston Lake/Reservoir). Zone B is the remainder of Williston Lake excluding Zone A (500m east/upstream of Causeway Road). TODO: Needs custom polygon subdivision. MU 7-58.",
         ),
     },
     "Region 8": {
@@ -1960,25 +1984,6 @@ SKIP_ENTRIES: Dict[str, Dict[str, SkipEntry]] = {
             note="Cross-listed entry - already covered in Region 6 (MUs 6-4, 6-5)",
             ignored=True,
         ),
-        # LIARD RIVER WATERSHED - moved to ADMIN_DIRECT_MATCHES (watershed polygon matching)
-        "NATION ARM (Williston Lake)": SkipEntry(
-            note="Nation Arm of Williston Lake requires custom polygon subdivision. MU 7-58. Williston Lake GNIS 21990, waterbody_key 329393419. Nation River (GNIS 16593) flows into this arm. Requires custom geometry creation by subdividing Williston Lake polygon to define the Nation Arm portion. Reference: BC Freshwater Fishing Regulations Synopsis 2024-2026, Region 7, MU 7-58.",
-            not_found=True,
-        ),
-        "WILLISTON LAKE (in Zone A) (includes waters 500 m east/upstream of the Causeway Road)": SkipEntry(
-            note="Williston Lake Zone A requires custom polygon subdivision based on regulation description. MU 7-58. Williston Lake GNIS 21990, waterbody_key 329393419. Zone A includes waters 500m east/upstream of the Causeway Road. Different regulations apply to Zone A vs Zone B. Requires custom geometry creation by subdividing lake polygon based on Causeway Road location. Reference: BC Freshwater Fishing Regulations Synopsis 2024-2026, Region 7, MU 7-58.",
-            not_found=True,
-        ),
-        "DAVIS BAY (in Finlay Reach of Williston Lake)": SkipEntry(
-            note="Davis Bay in Finlay Reach of Williston Lake requires custom polygon subdivision. MU 7-58. Williston Lake GNIS 21990, waterbody_key 329393419. Finlay Reach is the northern arm where Finlay River (GNIS 12355) enters Williston Lake. Davis Bay is a specific bay within this reach. Requires custom geometry creation by identifying and subdividing the bay portion. Reference: BC Freshwater Fishing Regulations Synopsis 2024-2026, Region 7, MU 7-58.",
-            not_found=True,
-        ),
-    },
-    "Region 7B": {
-        "WILLISTON LAKE (in Zone B)": SkipEntry(
-            note="Williston Lake Zone B requires custom polygon subdivision based on regulation description. MU 7-58. Williston Lake GNIS 21990, waterbody_key 329393419. Zone B is the remainder of Williston Lake excluding Zone A (500m east/upstream of Causeway Road). Different regulations apply to Zone B vs Zone A. Requires custom geometry creation by subdividing lake polygon based on Causeway Road location. Reference: BC Freshwater Fishing Regulations Synopsis 2024-2026, Region 7, MU 7-58.",
-            not_found=True,
-        ),
     },
 }
 
@@ -2132,6 +2137,11 @@ FEATURE_NAME_VARIATIONS: Dict[str, List[FeatureNameVariation]] = {
             blue_line_keys=["355991780", "355991778", "355991779", "355991777"],
             note="Unnamed side channel of Fraser River near Seabird Island, Region 2.",
         ),
+        FeatureNameVariation(
+            name="Squamish Powerhouse Channel",
+            blue_line_keys=["360219234", "360553991"],
+            note="Squamish Powerhouse Channel in Region 2 MU 2-6. Links to 5 specific stream segments representing the channel. Reference: https://a100.gov.bc.ca/pub/acat/documents/r40717/09_CMS_05_powerhouse_1388682280782_8673845708.pdf",
+        ),
     ],
 }
 
@@ -2264,6 +2274,34 @@ UNGAZETTED_WATERBODIES: Dict[str, UngazettedWaterbody] = {
         note=(
             "Confluence of Skeena River and Kispiox River. "
             "Coordinates: X=892981.48371, Y=1150750.52467 in EPSG:3005 (BC Albers)."
+        ),
+        source_url=None,
+    ),
+    "UNGAZ_DAVIS_BAY_WILLISTON_R7": UngazettedWaterbody(
+        ungazetted_id="UNGAZ_DAVIS_BAY_WILLISTON_R7",
+        name="DAVIS BAY (in Finlay Reach of Williston Lake)",
+        geometry_type="point",
+        coordinates=[1093699.474, 1285077.779],
+        zones=["7"],
+        mgmt_units=["7-58"],
+        note=(
+            "Davis Bay in Finlay Reach of Williston Lake. "
+            "Converted from WGS84 (56.54858°N, 124.47333°W) to EPSG:3005. "
+            "Finlay Reach is the northern arm where Finlay River (GNIS 12355) enters Williston Lake."
+        ),
+        source_url=None,
+    ),
+    "UNGAZ_NATION_ARM_WILLISTON_R7": UngazettedWaterbody(
+        ungazetted_id="UNGAZ_NATION_ARM_WILLISTON_R7",
+        name="NATION ARM (Williston Lake)",
+        geometry_type="point",
+        coordinates=[1161207.442, 1171300.292],
+        zones=["7"],
+        mgmt_units=["7-58"],
+        note=(
+            "Nation Arm of Williston Lake. "
+            "Converted from WGS84 (55.51205°N, 123.44116°W) to EPSG:3005. "
+            "Nation River (GNIS 16593) flows into this arm."
         ),
         source_url=None,
     ),

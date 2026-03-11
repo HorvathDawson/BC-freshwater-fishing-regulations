@@ -97,12 +97,28 @@ ADMIN_ZOOM_THRESHOLDS = {
     11: 0,
 }
 
+# Eco reserves and aboriginal lands: ~3-5x more aggressive area filtering.
+# Small polygons only appear at higher zoom to reduce visual clutter.
+ADMIN_ZOOM_THRESHOLDS_AGGRESSIVE = {
+    4: 1_500_000_000,
+    5: 200_000_000,
+    6: 20_000_000,
+    7: 5_000_000,
+    8: 500_000,
+    9: 50_000,
+    10: 10_000,
+    11: 0,
+}
+
 # Pre-computed zoom lookups: list of (min_value, zoom_level) tuples.
 _LAKE_ZOOM_LOOKUP: List[Tuple[float, int]] = [
     (limit, zoom + 1) for zoom, limit in sorted(LAKE_ZOOM_THRESHOLDS.items())
 ]
 _ADMIN_ZOOM_LOOKUP: List[Tuple[float, int]] = [
     (limit, zoom + 1) for zoom, limit in sorted(ADMIN_ZOOM_THRESHOLDS.items())
+]
+_ADMIN_ZOOM_LOOKUP_AGGRESSIVE: List[Tuple[float, int]] = [
+    (limit, zoom + 1) for zoom, limit in sorted(ADMIN_ZOOM_THRESHOLDS_AGGRESSIVE.items())
 ]
 
 MAIN_FLOW_CODES = {1000, 1050, 1200, 1250, 1410, 1450}
@@ -281,8 +297,11 @@ class CanonicalDataStore:
                 f"{len(merged_polygons):,} polygons..."
             )
             merged_streams = self._clip_streams_at_tidal_boundary(
-                merged_streams, tidal_clip_union, tidal_prep,
-                tidal_tiles, tidal_tile_tree,
+                merged_streams,
+                tidal_clip_union,
+                tidal_prep,
+                tidal_tiles,
+                tidal_tile_tree,
             )
             merged_polygons = self._remove_tidal_wetlands(
                 merged_polygons, tidal_clip_union
@@ -668,9 +687,7 @@ class CanonicalDataStore:
         if gdf.empty:
             return None
         union = unary_union(gdf.geometry.tolist())
-        logger.info(
-            f"Tidal clip union built from {len(gdf)} polygon(s)"
-        )
+        logger.info(f"Tidal clip union built from {len(gdf)} polygon(s)")
         return union
 
     def get_tidal_boundary_gdf(self) -> Optional[gpd.GeoDataFrame]:
@@ -721,13 +738,12 @@ class CanonicalDataStore:
         # the tidal polygon bbox (saves intersection work on empty sea/land).
         all_cells = [
             box(x, y, min(x + cell_size, maxx), min(y + cell_size, maxy))
-            for x in xs for y in ys
+            for x in xs
+            for y in ys
         ]
         cell_tree = STRtree(all_cells)
         candidate_idxs = cell_tree.query(tidal_union)  # bbox-level pre-filter
-        candidate_cells = np.array(
-            [all_cells[i] for i in candidate_idxs], dtype=object
-        )
+        candidate_cells = np.array([all_cells[i] for i in candidate_idxs], dtype=object)
 
         if len(candidate_cells) == 0:
             return [], STRtree([])
@@ -735,9 +751,7 @@ class CanonicalDataStore:
         # Batch-intersect in C via Shapely 2.x vectorised API:
         # tidal_union is broadcast against the array of cells in one C call.
         tile_geoms = _shapely.intersection(tidal_union, candidate_cells)
-        valid_tiles = [
-            g for g in tile_geoms if g is not None and not g.is_empty
-        ]
+        valid_tiles = [g for g in tile_geoms if g is not None and not g.is_empty]
 
         logger.info(
             f"Tidal polygon tiled into {len(valid_tiles)} segments "
@@ -776,7 +790,11 @@ class CanonicalDataStore:
         use_tiles = bool(tidal_tiles)
 
         # Filter out null/empty geometries upfront
-        indexed_feats = [f for f in stream_features if f.get("geometry") and not f["geometry"].is_empty]
+        indexed_feats = [
+            f
+            for f in stream_features
+            if f.get("geometry") and not f["geometry"].is_empty
+        ]
         indexed_geoms = [f["geometry"] for f in indexed_feats]
 
         if not indexed_feats:
@@ -853,11 +871,17 @@ class CanonicalDataStore:
         from shapely.strtree import STRtree
 
         # Non-wetlands pass through immediately — no geometry check needed
-        non_wetlands = [f for f in polygon_features if f.get("feature_type") != FeatureType.WETLAND.value]
+        non_wetlands = [
+            f
+            for f in polygon_features
+            if f.get("feature_type") != FeatureType.WETLAND.value
+        ]
         wetlands = [
-            f for f in polygon_features
+            f
+            for f in polygon_features
             if f.get("feature_type") == FeatureType.WETLAND.value
-            and f.get("geometry") and not f["geometry"].is_empty
+            and f.get("geometry")
+            and not f["geometry"].is_empty
         ]
 
         if not wetlands:
@@ -923,6 +947,13 @@ class CanonicalDataStore:
             **base_props,
             "group_id": f"{group.group_id}{suffix}" if suffix else group.group_id,
             "frontend_group_id": frontend_group_id,
+            "waterbody_group": (
+                # For streams: fwa_watershed_code groups all segments of the same physical channel.
+                # For polygons: waterbody_key groups all features sharing the same waterbody.
+                base_props.get("fwa_watershed_code") or ""
+                if ftype == FeatureType.STREAM.value
+                else str(base_props.get("waterbody_key") or "")
+            ),
             "regulation_ids": ",".join(sorted(rids)),
             "regulation_count": len(rids),
             "length_m": length_m,

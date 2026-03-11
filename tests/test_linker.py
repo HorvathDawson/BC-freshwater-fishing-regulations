@@ -157,6 +157,7 @@ def _stream(
     blue_line_key: str | None = None,
     zones: list | None = None,
     mgmt_units: list | None = None,
+    mgmt_units_buffered: list | None = None,
 ) -> FWAFeature:
     return FWAFeature(
         fwa_id=fwa_id,
@@ -168,6 +169,7 @@ def _stream(
         fwa_watershed_code=fwa_watershed_code,
         blue_line_key=blue_line_key or "BLK_200",
         mgmt_units=mgmt_units or ["3-15"],
+        mgmt_units_buffered=mgmt_units_buffered,
     )
 
 
@@ -1292,3 +1294,153 @@ class TestLinkingResult:
             matched_features=[feat],
         )
         assert len(r.matched_features) == 1
+
+
+# ===================================================================
+# Test: MU boundary hysteresis for side channels
+# ===================================================================
+
+
+class TestMUBoundaryHysteresis:
+    """Side channels straddling an MU boundary should inherit the named
+    regulation from their parent river via buffered MU overlap.
+
+    Scenario (Campbell River pattern):
+    - Regulation targets "Campbell River" in MUs 1-1 through 1-6.
+    - Main river segments are in MU 1-6 (unbuffered) → matched.
+    - A side channel is in MU 1-10 (unbuffered) but within the 500m
+      buffer of MU 1-6 → mgmt_units_buffered includes "1-6".
+    - The side channel shares the same GNIS name as the main river.
+    - Expected: side channel IS included (hysteresis).
+    - An unrelated stream in MU 1-10 (same buffer zone) is NOT included.
+    """
+
+    @pytest.fixture()
+    def campbell_river_gazetteer(self) -> FakeLinkerGazetteer:
+        """Gazetteer with Campbell River main segments + side channel + unrelated stream."""
+        gaz = FakeLinkerGazetteer()
+
+        # Main Campbell River segments — genuinely in MU 1-6
+        gaz.add_feature(
+            _stream(
+                fwa_id="main_seg_1",
+                gnis_name="Campbell River",
+                gnis_id="GNIS_CR",
+                fwa_watershed_code="100-123456",
+                blue_line_key="BLK_CR",
+                zones=["1"],
+                mgmt_units=["1-6"],
+            )
+        )
+        gaz.add_feature(
+            _stream(
+                fwa_id="main_seg_2",
+                gnis_name="Campbell River",
+                gnis_id="GNIS_CR",
+                fwa_watershed_code="100-123456",
+                blue_line_key="BLK_CR",
+                zones=["1"],
+                mgmt_units=["1-6"],
+            )
+        )
+
+        # Side channel — same watershed code as main river (side channels
+        # always share fwa_watershed_code with their parent).
+        # Unbuffered: entirely in MU 1-10.
+        # Buffered: also in MU 1-6 (within 500m of boundary).
+        # The FWAFeature factory has already collapsed mgmt_units to
+        # unbuffered for single-zone features, so mgmt_units=["1-10"].
+        # The buffered data is stored in mgmt_units_buffered.
+        side_channel = _stream(
+            fwa_id="side_channel_1",
+            gnis_name="Campbell River",
+            gnis_id="GNIS_CR",
+            fwa_watershed_code="100-123456",
+            blue_line_key="BLK_SC",
+            zones=["1"],
+            mgmt_units=["1-10"],
+            mgmt_units_buffered=["1-10", "1-6"],
+        )
+        gaz.add_feature(side_channel)
+
+        # Unrelated stream — also in MU 1-10 buffer of MU 1-6, but
+        # NOT part of the Campbell River system (different GNIS).
+        unrelated = _stream(
+            fwa_id="unrelated_stream",
+            gnis_name="Random Creek",
+            gnis_id="GNIS_RC",
+            fwa_watershed_code="200-000000",
+            blue_line_key="BLK_RC",
+            zones=["1"],
+            mgmt_units=["1-10"],
+            mgmt_units_buffered=["1-10", "1-6"],
+        )
+        gaz.add_feature(unrelated)
+
+        return gaz
+
+    def test_side_channel_included_via_hysteresis(self, campbell_river_gazetteer):
+        """Side channel sharing GNIS with main river should be included
+        when its buffered MUs overlap with the regulation's target MUs."""
+        linker = _make_linker(gazetteer=campbell_river_gazetteer)
+
+        result = linker.link_waterbody(
+            region="Region 1",
+            mgmt_units=["1-1", "1-2", "1-3", "1-4", "1-5", "1-6"],
+            name_verbatim="CAMPBELL RIVER",
+        )
+
+        assert result.status == LinkStatus.SUCCESS
+        matched_ids = {f.fwa_id for f in result.matched_features}
+        # Main river segments must be matched
+        assert "main_seg_1" in matched_ids
+        assert "main_seg_2" in matched_ids
+        # Side channel must be included via hysteresis
+        assert "side_channel_1" in matched_ids
+
+    def test_unrelated_stream_excluded_despite_buffer_overlap(
+        self, campbell_river_gazetteer
+    ):
+        """Unrelated stream in the same buffer zone but with a different
+        GNIS name should NOT be pulled into the Campbell River regulation."""
+        linker = _make_linker(gazetteer=campbell_river_gazetteer)
+
+        result = linker.link_waterbody(
+            region="Region 1",
+            mgmt_units=["1-1", "1-2", "1-3", "1-4", "1-5", "1-6"],
+            name_verbatim="CAMPBELL RIVER",
+        )
+
+        matched_ids = {f.fwa_id for f in result.matched_features}
+        # Random Creek is not part of Campbell River — must be excluded
+        assert "unrelated_stream" not in matched_ids
+
+    def test_side_channel_excluded_when_no_main_river_in_target_mus(self):
+        """If no other part of the river is in the regulation's MUs,
+        the buffer hysteresis should NOT activate — the side channel
+        stays excluded."""
+        gaz = FakeLinkerGazetteer()
+
+        # Only the side channel exists — no main river in target MUs
+        side_channel = _stream(
+            fwa_id="orphan_side_channel",
+            gnis_name="Lonely River",
+            gnis_id="GNIS_LR",
+            fwa_watershed_code="300-000000",
+            blue_line_key="BLK_LR",
+            zones=["1"],
+            mgmt_units=["1-10"],
+            mgmt_units_buffered=["1-10", "1-6"],
+        )
+        gaz.add_feature(side_channel)
+
+        linker = _make_linker(gazetteer=gaz)
+        result = linker.link_waterbody(
+            region="Region 1",
+            mgmt_units=["1-6"],
+            name_verbatim="LONELY RIVER",
+        )
+
+        # Should NOT match — no direct-hit identity group exists to anchor the hysteresis
+        matched_ids = {f.fwa_id for f in (result.matched_features or [])}
+        assert "orphan_side_channel" not in matched_ids

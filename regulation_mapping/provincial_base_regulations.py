@@ -117,6 +117,11 @@ class ProvincialRegulation:
     # Feature type scope — controls both admin intersection and type-based scope
     feature_types: Optional[List[FeatureType]] = None  # None = all types
 
+    # When True, each admin polygon gets its own unique regulation ID
+    # ("base_id:layer:admin_fid") so streams passing through multiple distinct
+    # admin areas of the same type keep separate frontend_group_ids.
+    per_instance_ids: bool = False
+
     # Set True to skip this regulation during processing
     _disabled: bool = False
 
@@ -170,6 +175,7 @@ PROVINCIAL_BASE_REGULATIONS: List[ProvincialRegulation] = [
             "Mount Revelstoke, Pacific Rim, Gwaii Haanas, Gulf Islands. "
             "Source: Provincial Regulations, 2025-2027 Synopsis, pages 9-10."
         ),
+        per_instance_ids=True,
     ),
     # ========================================
     # ECOLOGICAL RESERVES - Fishing Prohibited
@@ -187,6 +193,35 @@ PROVINCIAL_BASE_REGULATIONS: List[ProvincialRegulation] = [
             "Uses parks_bc layer filtered by PROTECTED_LANDS_CODE='OI'. "
             "Source: Provincial Regulations, 2025-2027 Synopsis, page 9."
         ),
+        per_instance_ids=True,
+    ),
+    # ========================================
+    # INDIGENOUS / ABORIGINAL LANDS - Advisory
+    # ========================================
+    ProvincialRegulation(
+        regulation_id="prov_aboriginal_lands_advisory",
+        rule_text=(
+            "This waterway passes through Indigenous territory. "
+            "Some areas may be subject to Indigenous governance or restricted access. "
+            "Please confirm that fishing is permitted in this area and respect any "
+            "local protocols or access requirements."
+        ),
+        admin_targets=[AdminTarget("aboriginal_lands")],
+        restriction={
+            "type": "Advisory - Indigenous Territory",
+            "details": (
+                "This waterway passes through Indigenous territory. Some areas may "
+                "be subject to Indigenous governance or restricted access. Please "
+                "confirm that fishing is permitted in this area and respect any "
+                "local protocols or access requirements."
+            ),
+        },
+        notes=(
+            "Applies to all FWA features intersecting aboriginal_lands polygons "
+            "sourced from OpenStreetMap (boundary=aboriginal_lands). Each "
+            "Indigenous territory gets its own per-instance regulation ID."
+        ),
+        per_instance_ids=True,
     ),
     #
     # ========================================
