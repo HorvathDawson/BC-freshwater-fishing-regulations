@@ -210,17 +210,6 @@ const flyToBbox = (
     }
 };
 
-const extendBoundsWithGeometry = (bounds: maplibregl.LngLatBounds, geometry: FeatureGeometry | null | undefined) => {
-    if (!geometry || !geometry.coordinates) return;
-    const processCoords = (coords: number[] | number[][] | number[][][] | number[][][][]) => {
-        if (Array.isArray(coords) && typeof coords[0] === 'number') bounds.extend(coords as [number, number]);
-        else if (Array.isArray(coords)) (coords as any[]).forEach(processCoords);
-    };
-    if (geometry.type === 'Point') bounds.extend(geometry.coordinates as any);
-    else if (geometry.type === 'LineString') (geometry.coordinates as any[]).forEach((coord: number[] | number[][]) => bounds.extend(coord as [number, number]));
-    else processCoords(geometry.coordinates);
-};
-
 const createCirclePolygon = (lngLat: { lng: number; lat: number }, zoom: number) => {
     const radiusInMeters = 15 * (40075016.686 * Math.abs(Math.cos(lngLat.lat * Math.PI / 180)) / (256 * Math.pow(2, zoom)));
     const steps = 64; const coords: number[][] = [];
