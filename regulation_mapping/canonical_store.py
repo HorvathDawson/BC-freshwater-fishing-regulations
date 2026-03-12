@@ -775,24 +775,44 @@ class CanonicalDataStore:
                 f"Stripped per-instance aboriginal reg IDs from {stripped} feature(s)"
             )
 
-        # ── Phase 2: attach single advisory to intersecting features ──
-        attached = 0
+        # ── Phase 2: attach single advisory at group level ────────────
+        # Group features by their current frontend_group_id.  If ANY
+        # feature in a group intersects aboriginal lands, attach the
+        # advisory to ALL features in that group so they keep identical
+        # regulation_ids (and thus the same frontend_group_id).
+        from collections import defaultdict
+
+        groups: dict[str, list[dict]] = defaultdict(list)
         for feat in features:
-            geom = feat.get("geometry")
-            if geom is None or geom.is_empty:
-                continue
-            if not ab_prep.intersects(geom):
+            groups[feat["frontend_group_id"]].append(feat)
+
+        attached = 0
+        for fgid, group_feats in groups.items():
+            # Already has the advisory?
+            sample_ids = group_feats[0]["regulation_ids"].split(",")
+            if reg_id in sample_ids:
                 continue
 
-            existing_ids = feat["regulation_ids"].split(",")
-            if reg_id in existing_ids:
+            # Check if any feature in this group intersects aboriginal lands
+            intersects = False
+            for feat in group_feats:
+                geom = feat.get("geometry")
+                if geom is not None and not geom.is_empty and ab_prep.intersects(geom):
+                    intersects = True
+                    break
+            if not intersects:
                 continue
 
-            new_ids = sorted(existing_ids + [reg_id])
-            feat["regulation_ids"] = ",".join(new_ids)
-            feat["regulation_count"] = len(new_ids)
-            feat["frontend_group_id"] = self._recompute_frontend_group_id(feat, new_ids)
-            attached += 1
+            # Apply to ALL features in the group
+            new_ids = sorted(sample_ids + [reg_id])
+            new_ids_str = ",".join(new_ids)
+            new_count = len(new_ids)
+            new_fgid = self._recompute_frontend_group_id(group_feats[0], new_ids)
+            for feat in group_feats:
+                feat["regulation_ids"] = new_ids_str
+                feat["regulation_count"] = new_count
+                feat["frontend_group_id"] = new_fgid
+            attached += len(group_feats)
 
         if attached:
             logger.info(
