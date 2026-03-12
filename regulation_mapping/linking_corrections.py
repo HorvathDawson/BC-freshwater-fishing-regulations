@@ -2120,7 +2120,7 @@ FEATURE_NAME_VARIATIONS: Dict[str, List[FeatureNameVariation]] = {
             note="Unnamed side channel of Fraser River near Mission, Region 2.",
         ),
         FeatureNameVariation(
-            name="Herring Island Side Channel",
+            name="Herrling Island Side Channel",
             blue_line_keys=[
                 "355992188",
                 "355992191",

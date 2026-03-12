@@ -87,6 +87,28 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
     // Set to true by tab clicks BEFORE calling onSwitchSection so the feature-change
     // effect below knows to skip overwriting activeFgid (the tab click already set it).
     const tabSwitchRef = useRef(false);
+
+    // --- Section tab bar overflow detection (edge fade indicators) ---
+    const tabBarRef = useRef<HTMLDivElement>(null);
+    const [tabBarOverflow, setTabBarOverflow] = useState<'none' | 'left' | 'right' | 'both'>('none');
+
+    const updateTabBarOverflow = () => {
+        const el = tabBarRef.current;
+        if (!el) { setTabBarOverflow('none'); return; }
+        const canLeft = el.scrollLeft > 1;
+        const canRight = el.scrollLeft < el.scrollWidth - el.clientWidth - 1;
+        setTabBarOverflow(canLeft && canRight ? 'both' : canLeft ? 'left' : canRight ? 'right' : 'none');
+    };
+
+    useEffect(() => {
+        const el = tabBarRef.current;
+        if (!el) return;
+        updateTabBarOverflow();
+        el.addEventListener('scroll', updateTabBarOverflow, { passive: true });
+        const ro = new ResizeObserver(updateTabBarOverflow);
+        ro.observe(el);
+        return () => { el.removeEventListener('scroll', updateTabBarOverflow); ro.disconnect(); };
+    });
     const [regulations, setRegulations] = useState<Regulation[]>([]);
     const [loadingRegs, setLoadingRegs] = useState(false);
     const [sourceImage, setSourceImage] = useState<{ src: string; name: string } | null>(null);
@@ -367,9 +389,10 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                 {sortedSiblings.length > 1 && (() => {
                     const waterbodyName = typeof title === 'string' ? title : String(title);
                     return (
-                        <div className="section-tab-bar-wrapper">
+                        <div className={`section-tab-bar-wrapper${tabBarOverflow !== 'none' ? ` overflow-${tabBarOverflow}` : ''}`}>
                             <div
                                 className="section-tab-bar"
+                                ref={tabBarRef}
                                 role="tablist"
                                 aria-label={`Regulation sections for ${waterbodyName}`}
                             >

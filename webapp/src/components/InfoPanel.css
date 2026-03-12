@@ -956,15 +956,50 @@
     flex-shrink: 0;
     background: var(--bg);
     border-bottom: 1px solid var(--border-light);
+    position: relative;
 }
 
-/* Tab bar — uses flex-wrap so all tabs are always visible, no scrolling needed. */
+/* Edge fade masks — indicate more tabs are available off-screen */
+.section-tab-bar-wrapper::before,
+.section-tab-bar-wrapper::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 28px;
+    pointer-events: none;
+    z-index: 1;
+    opacity: 0;
+    transition: opacity 0.15s;
+}
+.section-tab-bar-wrapper::before {
+    left: 0;
+    background: linear-gradient(to right, var(--bg), transparent);
+}
+.section-tab-bar-wrapper::after {
+    right: 0;
+    background: linear-gradient(to left, var(--bg), transparent);
+}
+.section-tab-bar-wrapper.overflow-right::after,
+.section-tab-bar-wrapper.overflow-both::after {
+    opacity: 1;
+}
+.section-tab-bar-wrapper.overflow-left::before,
+.section-tab-bar-wrapper.overflow-both::before {
+    opacity: 1;
+}
+
+/* Tab bar — horizontal scroll so tabs stay compact and don't wrap onto new lines. */
 .section-tab-bar {
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     align-items: center;
     gap: 6px;
     padding: 10px 12px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
 }
 
 

@@ -662,9 +662,7 @@ class CanonicalDataStore:
         # carries a single regulation instance.
         if layer_key == "aboriginal_lands":
             cfg = ADMIN_LAYER_CONFIG.get(layer_key, {})
-            gdf = merge_overlapping_polygons(
-                gdf, cfg["id_field"], cfg["name_field"]
-            )
+            gdf = merge_overlapping_polygons(gdf, cfg["id_field"], cfg["name_field"])
 
         self._admin_gdf_cache[cache_key] = gdf
         return gdf
