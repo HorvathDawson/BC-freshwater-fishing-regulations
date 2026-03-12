@@ -194,7 +194,31 @@ export const createRegulationLayers = (): LayerSpecification[] => {
             'line-join': 'round'
         }
     });
-    
+
+    // Under-lake streams — subtle dashed construction lines visible through lake fills
+    fwaLayers.push({
+        id: 'under-lake-streams',
+        type: 'line',
+        source: 'regulations',
+        'source-layer': 'under_lake_streams',
+        minzoom: 10,
+        paint: {
+            'line-color': '#3A7BD5',
+            'line-width': [
+                'interpolate', ['linear'], ['zoom'],
+                10, 0.5,
+                13, 1,
+                16, 1.5,
+            ],
+            'line-opacity': 0.35,
+            'line-dasharray': [4, 3],
+        },
+        layout: {
+            'line-cap': 'butt',
+            'line-join': 'round',
+        },
+    });
+
     // Manmade waterbodies
     fwaLayers.push({
         id: 'manmade-fill',
@@ -346,6 +370,7 @@ export const createRegulationLayers = (): LayerSpecification[] => {
         type: 'line',
         source: 'regulations',
         'source-layer': 'management_units',
+        minzoom: 9,
         paint: {
             'line-color': '#6b6b6b',
             'line-width': [
@@ -393,6 +418,34 @@ export const createRegulationLayers = (): LayerSpecification[] => {
             'text-halo-color': '#FFFFFF',
             'text-halo-width': 2,
             'text-halo-blur': 0.5,
+        },
+    });
+
+    // Under-lake stream labels — subtle names following the dashed lines
+    fwaLabels.push({
+        id: 'under-lake-streams-label',
+        type: 'symbol',
+        source: 'regulations',
+        'source-layer': 'under_lake_streams',
+        minzoom: 12,
+        filter: ['!=', ['get', 'display_name'], ''],
+        layout: {
+            'symbol-placement': 'line',
+            'text-field': ['get', 'display_name'],
+            'text-font': ['Noto Sans Italic'],
+            'text-size': ['interpolate', ['linear'], ['zoom'], 12, 9, 14, 11],
+            'text-letter-spacing': 0.1,
+            'text-max-angle': 25,
+            'symbol-spacing': 400,
+            'text-allow-overlap': false,
+            'text-padding': 8,
+        },
+        paint: {
+            'text-color': '#5C85B2',
+            'text-halo-color': '#FFFFFF',
+            'text-halo-width': 1.5,
+            'text-halo-blur': 0.5,
+            'text-opacity': 0.7,
         },
     });
 
@@ -624,6 +677,7 @@ export const createRegulationLayers = (): LayerSpecification[] => {
         type: 'line',
         source: 'regulations',
         'source-layer': 'admin_wma',
+        minzoom: 9,
         paint: { 'line-color': ADMIN_COLORS.admin_wma, 'line-width': 1.5, 'line-opacity': 0.5 },
     });
 
@@ -640,6 +694,7 @@ export const createRegulationLayers = (): LayerSpecification[] => {
         type: 'line',
         source: 'regulations',
         'source-layer': 'admin_watersheds',
+        minzoom: 9,
         paint: { 'line-color': ADMIN_COLORS.admin_watersheds, 'line-width': 1.5, 'line-opacity': 0.45 },
     });
 
@@ -676,6 +731,7 @@ export const createRegulationLayers = (): LayerSpecification[] => {
         type: 'line',
         source: 'regulations',
         'source-layer': 'admin_osm_admin_boundaries',
+        minzoom: 9,
         paint: {
             'line-color': ADMIN_COLORS.osm_admin,
             'line-width': 1.8,

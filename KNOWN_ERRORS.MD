@@ -27,7 +27,8 @@
 -jordan river
 -koprino river
 
-15. 
+15. lake revelstoke has streams go into it?
+- FWA data issue: the upper portion of the reservoir has a different waterbody_key (328998980) than the lake polygon (329484653). The upper section is likely classified as a river polygon in FWA rather than part of the lake, so those stream edges don't carry the lake's waterbody_key. The `is_under_lake` check fails because the edge waterbody_keys don't match any lake wbkey, leaving the streams visible in the main streams layer instead of being moved to under_lake_streams. 
 
 
 
