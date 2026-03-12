@@ -503,6 +503,7 @@ const MapComponent = () => {
     const [highlightedOption, setHighlightedOption] = useState<FeatureOption | null>(null);
     const [highlightedSearchResult, setHighlightedSearchResult] = useState<SearchableFeature | null>(null);
     const [searchableFeatures, setSearchableFeatures] = useState<SearchableFeature[]>([]);
+    const [dataLoaded, setDataLoaded] = useState(false);
     const [mapReady, setMapReady] = useState(false);
     // Fetched once from data_version.json (no-store). null = not yet resolved.
     // Used as ?v= query param on PMTiles URLs to bust browser cache on deploys.
@@ -889,6 +890,7 @@ const MapComponent = () => {
                 }
             }
             wbgIndexRef.current = wbgIndex;
+            setDataLoaded(true);
         }).catch(console.error);
     }, []);
 
@@ -1676,6 +1678,12 @@ const MapComponent = () => {
     return (
         <div className="map-container">
             <div ref={mapContainerRef} className="map-canvas" />
+            {!dataLoaded && (
+                <div className="loading-overlay" role="status" aria-live="polite">
+                    <div className="loading-spinner" aria-hidden="true" />
+                    <p className="loading-text">Loading waterbody data…</p>
+                </div>
+            )}
             <div className="map-menu-wrapper">
                 <SearchBar 
                     features={searchableFeatures} 
