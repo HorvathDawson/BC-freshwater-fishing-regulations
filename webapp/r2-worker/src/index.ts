@@ -41,14 +41,14 @@ function getContentType(key: string): string | null {
 }
 
 /**
- * Build a Response from an R2 object (full GET or Range).
+ * Build an UNCOMPRESSED Response from an R2 object (full GET or Range).
  * Attaches CORS, Cache-Control, ETag, Content-Type.
+ * Compression is applied separately after caching — see `maybeCompress`.
  */
 function buildR2Response(
   object: R2ObjectBody | R2Object,
   key: string,
   rangeHeader: string | null,
-  acceptEncoding: string,
 ): Response {
   const headers = new Headers(CORS_HEADERS);
   object.writeHttpMetadata(headers);
@@ -69,16 +69,32 @@ function buildR2Response(
     return new Response(object.body, { status: 206, headers });
   }
 
-  // Compress JSON responses with gzip when the client supports it.
-  // waterbody_data.json is ~12 MB uncompressed; gzip cuts it to ~2-3 MB.
-  if (key.endsWith('.json') && acceptEncoding.includes('gzip')) {
-    const compressed = object.body.pipeThrough(new CompressionStream('gzip'));
-    headers.set('Content-Encoding', 'gzip');
-    headers.delete('Content-Length');  // length changes after compression
-    return new Response(compressed, { status: 200, headers });
-  }
-
   return new Response(object.body, { status: 200, headers });
+}
+
+/**
+ * Wrap a Response with gzip compression if the client supports it
+ * and the file is a compressible JSON file.
+ * Range (206) responses are never compressed.
+ */
+function maybeCompress(
+  response: Response,
+  key: string,
+  acceptEncoding: string,
+): Response {
+  if (
+    response.status !== 200 ||
+    !response.body ||
+    !key.endsWith('.json') ||
+    !acceptEncoding.includes('gzip')
+  ) {
+    return response;
+  }
+  const compressed = response.body.pipeThrough(new CompressionStream('gzip'));
+  const headers = new Headers(response.headers);
+  headers.set('Content-Encoding', 'gzip');
+  headers.delete('Content-Length');
+  return new Response(compressed, { status: 200, headers });
 }
 
 export default {
@@ -126,12 +142,14 @@ export default {
     if (cache) {
       const cached = await cache.match(cacheKey);
       if (cached) {
-        // Edge cache hit — add CORS headers (cache strips them on some plans)
+        // Edge cache hit — add CORS headers (cache may strip them)
         const resp = new Response(cached.body, cached);
         for (const [k, v] of Object.entries(CORS_HEADERS)) {
           resp.headers.set(k, v);
         }
-        return resp;
+        // Compress on the fly — cached response is always uncompressed
+        const acceptEncoding = request.headers.get('Accept-Encoding') || '';
+        return maybeCompress(resp, key, acceptEncoding);
       }
     }
 
@@ -191,25 +209,20 @@ export default {
       return new Response('Not Found', { status: 404, headers: CORS_HEADERS });
     }
 
-    const response = buildR2Response(object, key, rangeHeader, acceptEncoding);
+    const response = buildR2Response(object, key, rangeHeader);
 
-    // ── Store in edge cache (async, non-blocking) ───────────────────
-    // Clone the response before caching because the body is a
-    // ReadableStream that can only be consumed once.  The cache.put()
-    // runs in the background via waitUntil so it doesn't slow down the
-    // response to the client.
+    // ── Store UNCOMPRESSED response in edge cache ───────────────────
+    // Cache the clean R2 response so that compression doesn't interfere
+    // with cache storage.  Gzip is applied on the way out to the client.
     if (cache) {
-      // Only cache 200/206 responses with a body
       const status = response.status;
       if (status === 200 || status === 206) {
         const cloned = response.clone();
-        // waitUntil is not available in module syntax — fire and forget.
-        // CF guarantees the cache.put() I/O completes even after the
-        // response is returned.
         cache.put(cacheKey, cloned).catch(() => {});
       }
     }
 
-    return response;
+    // Compress JSON for the client (after caching the uncompressed version)
+    return maybeCompress(response, key, acceptEncoding);
   },
 };
