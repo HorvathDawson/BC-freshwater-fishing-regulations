@@ -201,25 +201,27 @@ PROVINCIAL_BASE_REGULATIONS: List[ProvincialRegulation] = [
     ProvincialRegulation(
         regulation_id="prov_aboriginal_lands_advisory",
         rule_text=(
-            "This waterway passes through Indigenous territory. "
-            "Some areas may be subject to Indigenous governance or restricted access. "
-            "Please confirm that fishing is permitted in this area and respect any "
-            "local protocols or access requirements."
+            "Portions of this waterway pass through or near Indigenous territory. "
+            "Aboriginal lands boundaries are shown on the map for reference. "
+            "Please be aware of and respect Indigenous governance, access "
+            "requirements, and local protocols when fishing in these areas."
         ),
         admin_targets=[AdminTarget("aboriginal_lands")],
         restriction={
             "type": "Advisory - Indigenous Territory",
             "details": (
-                "This waterway passes through Indigenous territory. Some areas may "
-                "be subject to Indigenous governance or restricted access. Please "
-                "confirm that fishing is permitted in this area and respect any "
-                "local protocols or access requirements."
+                "Portions of this waterway pass through or near Indigenous "
+                "territory. Aboriginal lands boundaries are shown on the map "
+                "for reference. Please be aware of and respect Indigenous "
+                "governance, access requirements, and local protocols when "
+                "fishing in these areas."
             ),
         },
         notes=(
-            "Applies to all FWA features intersecting aboriginal_lands polygons "
-            "sourced from OpenStreetMap (boundary=aboriginal_lands). Each "
-            "Indigenous territory gets its own per-instance regulation ID."
+            "Attached as a single shared advisory to merged stream sections "
+            "that intersect aboriginal_lands polygons sourced from "
+            "OpenStreetMap (boundary=aboriginal_lands). Does not cause "
+            "stream splitting — territories are visible on the map layer."
         ),
         per_instance_ids=True,
     ),

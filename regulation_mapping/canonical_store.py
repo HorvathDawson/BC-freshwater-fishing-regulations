@@ -309,7 +309,16 @@ class CanonicalDataStore:
                 merged_polygons, tidal_clip_union
             )
 
+        # ── Aboriginal lands advisory (non-splitting) ───────────────
+        # Instead of clipping at aboriginal lands boundaries, attach a
+        # single advisory regulation to any merged feature whose geometry
+        # intersects aboriginal lands.  Applies to both polygons and
+        # streams — avoids unwieldy section splits while still informing
+        # anglers.
+        merged_polygons = self._attach_aboriginal_advisory(merged_polygons)
         yield from merged_polygons
+
+        merged_streams = self._attach_aboriginal_advisory(merged_streams)
 
         # Stamp each stream feature with is_under_lake so downstream
         # consumers (geo_exporter, search_exporter) use a single flag
@@ -633,9 +642,15 @@ class CanonicalDataStore:
     # ------------------------------------------------------------------
 
     def _get_all_admin_reg_ids(self) -> set:
-        """Collect all regulation IDs sourced from admin polygon spatial matching."""
+        """Collect all regulation IDs sourced from admin polygon spatial matching.
+
+        Aboriginal lands are excluded because their advisory is attached
+        post-merge (no geometry splitting for advisory-only layers).
+        """
         raw_ids: set = set()
-        for features_map in self.admin_area_reg_map.values():
+        for layer_key, features_map in self.admin_area_reg_map.items():
+            if layer_key == "aboriginal_lands":
+                continue
             for reg_ids in features_map.values():
                 raw_ids.update(reg_ids)
         if not raw_ids:
@@ -668,9 +683,15 @@ class CanonicalDataStore:
         return gdf
 
     def _build_admin_clip_union(self) -> Optional[BaseGeometry]:
-        """Build a single union polygon of all admin areas that carry regulations."""
+        """Build a single union polygon of all admin areas that carry regulations.
+
+        Aboriginal lands are excluded — their advisory is attached post-merge
+        so they never cause geometry splitting.
+        """
         all_geoms: list = []
         for layer_key, features_map in self.admin_area_reg_map.items():
+            if layer_key == "aboriginal_lands":
+                continue
             if not features_map:
                 continue
             cfg = ADMIN_LAYER_CONFIG.get(layer_key)
@@ -695,6 +716,102 @@ class CanonicalDataStore:
             f"across {len(self.admin_area_reg_map)} layer(s)"
         )
         return union
+
+    # ------------------------------------------------------------------
+    # Aboriginal lands advisory (post-merge, non-splitting)
+    # ------------------------------------------------------------------
+
+    _ABORIGINAL_ADVISORY_REG_ID = "prov_aboriginal_lands_advisory"
+
+    def _attach_aboriginal_advisory(self, features: List[dict]) -> List[dict]:
+        """Append the aboriginal lands advisory to features that intersect.
+
+        Unlike parks and eco reserves which cause geometry splits, aboriginal
+        lands only add an informational notice to whichever merged features
+        already exist.  This avoids creating extra sections while still
+        informing anglers that the waterway passes through Indigenous
+        territory.  Works for both streams and polygons.
+        """
+        ab_map = self.admin_area_reg_map.get("aboriginal_lands")
+        if not ab_map:
+            return features
+
+        # Build a single union of all aboriginal lands polygons
+        gdf = self._get_admin_gdf("aboriginal_lands")
+        if gdf is None or gdf.empty:
+            return features
+
+        cfg = ADMIN_LAYER_CONFIG.get("aboriginal_lands", {})
+        id_field = cfg.get("id_field", "osm_id")
+        matched_ids = set(ab_map.keys())
+        matched = gdf[gdf[id_field].isin(matched_ids)]
+        if matched.empty:
+            return features
+
+        ab_union = unary_union(matched.geometry.tolist())
+        ab_prep = shapely_prep(ab_union)
+
+        reg_id = self._ABORIGINAL_ADVISORY_REG_ID
+        per_instance_prefix = f"{reg_id}:"
+
+        # ── Phase 1: strip per-instance aboriginal reg IDs ──────────
+        # regulation_mapper already stamped IDs like
+        #   prov_aboriginal_lands_advisory:aboriginal_lands:12288701
+        # onto every group that intersected a territory.  Since we now
+        # add a single shared advisory instead, remove those per-instance
+        # IDs to avoid duplicate / confusing entries.
+        stripped = 0
+        for feat in features:
+            old_ids = feat["regulation_ids"].split(",")
+            new_ids = [r for r in old_ids if not r.startswith(per_instance_prefix)]
+            if len(new_ids) < len(old_ids):
+                stripped += 1
+                feat["regulation_ids"] = ",".join(sorted(new_ids))
+                feat["regulation_count"] = len(new_ids)
+                feat["frontend_group_id"] = self._recompute_frontend_group_id(feat, new_ids)
+
+        if stripped:
+            logger.info(
+                f"Stripped per-instance aboriginal reg IDs from {stripped} feature(s)"
+            )
+
+        # ── Phase 2: attach single advisory to intersecting features ──
+        attached = 0
+        for feat in features:
+            geom = feat.get("geometry")
+            if geom is None or geom.is_empty:
+                continue
+            if not ab_prep.intersects(geom):
+                continue
+
+            existing_ids = feat["regulation_ids"].split(",")
+            if reg_id in existing_ids:
+                continue
+
+            new_ids = sorted(existing_ids + [reg_id])
+            feat["regulation_ids"] = ",".join(new_ids)
+            feat["regulation_count"] = len(new_ids)
+            feat["frontend_group_id"] = self._recompute_frontend_group_id(feat, new_ids)
+            attached += 1
+
+        if attached:
+            logger.info(
+                f"Aboriginal lands advisory attached to {attached} feature(s)"
+            )
+        return features
+
+    def _recompute_frontend_group_id(self, feat: dict, reg_ids: List[str]) -> str:
+        """Recompute frontend_group_id after regulation_ids change."""
+        ftype = feat.get("feature_type", "")
+        if ftype == FeatureType.STREAM.value:
+            gk = (feat.get("fwa_watershed_code") or "").split(",")[0].strip()
+        else:
+            gk = str(feat.get("waterbody_key") or "")
+        if not gk:
+            gk = feat.get("group_id", "")
+        return self._compute_frontend_group_id(
+            gk, feat.get("display_name", ""), tuple(reg_ids)
+        )
 
     def _build_tidal_clip_union(self) -> Optional[BaseGeometry]:
         """Load tidal boundary polygon(s) from GPKG and return their union.

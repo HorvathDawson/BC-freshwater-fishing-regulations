@@ -631,16 +631,16 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                                 return groups;
                             }, {} as Record<string, { label: string; subtitle: string; source: string; isTributary: boolean; exclusions: Regulation['exclusions']; regulations: Regulation[] }>);
 
-                            // Sort groups: provincial with a "closed" reg or indigenous
-                            // territory advisory floats to the top so users immediately
-                            // see closures (e.g. Ecological Reserves) and indigenous
-                            // land notices.  Otherwise: synopsis → zone → provincial.
+                            // Sort groups: provincial with a "closed" reg floats to
+                            // the top so users immediately see closures (e.g.
+                            // Ecological Reserves).  Indigenous advisory stays at the
+                            // provincial tier (below synopsis).
+                            // Otherwise: synopsis → zone → provincial.
                             // Within synopsis, direct-match groups appear before tributary groups.
                             const hasHighPriorityProvReg = (g: { regulations: Regulation[] }) =>
                                 g.regulations.some(r => {
                                     const t = (r.restriction_type || '').toLowerCase();
-                                    return t === 'closed' || t === 'closure'
-                                        || t.includes('indigenous territory');
+                                    return t === 'closed' || t === 'closure';
                                 });
 
                             // Build set of this feature's own names (non-tributary)
@@ -667,10 +667,18 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                                 g.isTributary = isTributaryGroup(g);
                             }
 
-                            const sourceOrder: Record<string, number> = { synopsis: 1, zone: 2, provincial: 3 };
+                            const isIndigenousAdvisoryGroup = (g: { regulations: Regulation[] }) =>
+                                g.regulations.some(r =>
+                                    (r.restriction_type || '').toLowerCase().includes('indigenous territory'));
+
+                            const sourceOrder: Record<string, number> = { synopsis: 1, zone: 3, provincial: 4 };
                             const sortedGroups = Object.values(groupedRegulations).sort((a, b) => {
-                                const aOrder = (a.source === 'provincial' && hasHighPriorityProvReg(a)) ? 0 : (sourceOrder[a.source] ?? 9);
-                                const bOrder = (b.source === 'provincial' && hasHighPriorityProvReg(b)) ? 0 : (sourceOrder[b.source] ?? 9);
+                                const aIsHighProv = a.source === 'provincial' && hasHighPriorityProvReg(a);
+                                const bIsHighProv = b.source === 'provincial' && hasHighPriorityProvReg(b);
+                                const aIsIndigenous = a.source === 'provincial' && isIndigenousAdvisoryGroup(a);
+                                const bIsIndigenous = b.source === 'provincial' && isIndigenousAdvisoryGroup(b);
+                                const aOrder = aIsHighProv ? 0 : aIsIndigenous ? 2 : (sourceOrder[a.source] ?? 9);
+                                const bOrder = bIsHighProv ? 0 : bIsIndigenous ? 2 : (sourceOrder[b.source] ?? 9);
                                 if (aOrder !== bOrder) return aOrder - bOrder;
                                 // Within same source tier, push tributary synopsis groups after direct ones
                                 const aTrib = isTributaryGroup(a) ? 1 : 0;
