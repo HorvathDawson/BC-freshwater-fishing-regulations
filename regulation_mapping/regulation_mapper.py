@@ -43,6 +43,7 @@ from .regulation_resolvers import (
     exclude_features_from_index,
     include_features_from_index,
     lookup_admin_targets,
+    extend_boundary_hysteresis,
     build_feature_index,
     resolve_direct_match_features,
     resolve_direct_match_ids,
@@ -1326,13 +1327,14 @@ class RegulationMapper:
         1. Resolve with **unbuffered** indexes → base set (truly inside).
         2. Resolve with **buffered** indexes → wider candidate set.
         3. From the wider set, keep only stream features whose
-           ``blue_line_key`` already appears in the base set.  This extends
-           boundary-straddling streams without pulling in new ones.
+           ``fwa_watershed_code`` matches the base set.  This extends
+           boundary-straddling streams (and their side channels) without
+           pulling in unrelated ones.
         """
         base_ids = resolve_zone_wide_ids(zone_reg, zone_index, mu_index)
         buffered_ids = resolve_zone_wide_ids(zone_reg, zone_index_buf, mu_index_buf)
         extended, newly_added = self._extend_boundary_streams(
-            base_ids, buffered_ids, target_mu_ids=zone_reg.mu_ids
+            base_ids, buffered_ids,
         )
         if newly_added:
             logger.info(
@@ -1348,79 +1350,19 @@ class RegulationMapper:
         self,
         base_ids: set,
         buffered_ids: set,
-        target_mu_ids: Optional[List[str]] = None,
     ) -> Tuple[set, int]:
         """Extend a base feature set with buffered features for boundary streams.
 
-        Two extension passes:
-
-        1. **BLK pass** — from *buffered_ids*, keep stream features whose
-           ``blue_line_key`` is already represented in *base_ids*.  This
-           extends boundary-straddling streams without pulling in new ones.
-
-        2. **WSC pass** (only when *target_mu_ids* is set) — for side
-           channels sharing the exact ``fwa_watershed_code`` of a feature
-           already in the extended set, include them if their raw
-           (buffered) ``mgmt_units`` overlap with *target_mu_ids*.  This
-           captures braided side channels near an MU boundary that have
-           different BLKs from the mainstem but belong to the same river
-           corridor.  Only features within the 500m buffer distance of
-           the target MU boundary are included.
-
-        Non-stream features pass through from the base set unchanged.
+        Delegates to ``extend_boundary_hysteresis`` which keeps buffered
+        features whose ``fwa_watershed_code`` matches any WSC in the base
+        set.  This captures both mainstem continuation and braided side
+        channels (different BLK, same WSC) in a single pass.
 
         Returns:
             Tuple of (extended feature ID set, count of newly added segments).
         """
         stream_meta = self.gazetteer.metadata.get(FeatureType.STREAM, {})
-
-        # --- Pass 1: BLK extension (existing behaviour) ---
-
-        # Collect blue_line_keys already present in the base (unbuffered) set
-        base_blks: set = set()
-        for fid in base_ids:
-            if meta := stream_meta.get(fid):
-                if blk := meta.get("blue_line_key"):
-                    base_blks.add(str(blk))
-
-        # From the buffered-only extras, keep streams whose BLK is in base
-        extended_ids: set = set(base_ids)
-        newly_added = 0
-        for fid in buffered_ids - base_ids:
-            if meta := stream_meta.get(fid):
-                if blk := meta.get("blue_line_key"):
-                    if str(blk) in base_blks:
-                        extended_ids.add(fid)
-                        newly_added += 1
-
-        # --- Pass 2: WSC side-channel extension ---
-        # Include side channels (different BLK, same exact WSC) whose
-        # buffered MU overlaps the regulation's target MUs.  This handles
-        # braiding near MU boundaries where side channels are just outside
-        # the unbuffered boundary but within the 500m buffer.
-        if target_mu_ids and hasattr(self.gazetteer, "watershed_code_index"):
-            target_mu_set = set(target_mu_ids)
-
-            # Collect exact WSCs from the already-extended set
-            extended_wscs: set = set()
-            for fid in extended_ids:
-                if meta := stream_meta.get(fid):
-                    if wsc := meta.get("fwa_watershed_code"):
-                        extended_wscs.add(wsc)
-
-            # For each WSC, find candidate features via the reverse index
-            for wsc in extended_wscs:
-                for candidate_fid in self.gazetteer.watershed_code_index.get(wsc, []):
-                    if candidate_fid in extended_ids:
-                        continue
-                    candidate_meta = stream_meta.get(candidate_fid, {})
-                    # Check raw (buffered) MU overlap with regulation targets
-                    buffered_mus = set(candidate_meta.get("mgmt_units", []))
-                    if buffered_mus & target_mu_set:
-                        extended_ids.add(candidate_fid)
-                        newly_added += 1
-
-        return extended_ids, newly_added
+        return extend_boundary_hysteresis(base_ids, buffered_ids, stream_meta)
 
     def _backfill_waterbody_keys(self, fids: set) -> None:
         """Add waterbody_key values to linked_waterbody_keys_of_polygon for polygon features."""

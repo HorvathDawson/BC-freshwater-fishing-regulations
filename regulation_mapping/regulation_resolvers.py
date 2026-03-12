@@ -150,6 +150,52 @@ def include_features_from_index(
 # RegulationMapper and the CLI test scripts use them.
 
 
+def extend_boundary_hysteresis(
+    base_fids: Set[str],
+    buffered_fids: Set[str],
+    stream_meta: Dict[str, dict],
+) -> Tuple[Set[str], int]:
+    """Extend a base feature set with boundary-straddling streams.
+
+    Used by both zone-wide resolution and admin-polygon resolution.
+
+    From *buffered_fids*, keep stream features whose
+    ``fwa_watershed_code`` matches any WSC already present in
+    *base_fids*.  This captures both the mainstem continuation
+    across a boundary **and** braided side channels (different BLK,
+    same WSC) in a single pass — since all segments sharing a BLK
+    also share a WSC, WSC matching is a strict superset of BLK matching.
+
+    Non-stream features in *base_fids* pass through unchanged.
+
+    Args:
+        base_fids: Feature IDs from the unbuffered / exact resolution.
+        buffered_fids: Feature IDs from the buffered resolution (superset
+            of *base_fids*).
+        stream_meta: ``gazetteer.metadata[FeatureType.STREAM]`` dict.
+
+    Returns:
+        ``(extended_fids, count_of_newly_added)``.
+    """
+    # Collect exact WSCs from the base (unbuffered) set.
+    base_wscs: Set[str] = set()
+    for fid in base_fids:
+        if meta := stream_meta.get(fid):
+            if wsc := meta.get("fwa_watershed_code"):
+                base_wscs.add(wsc)
+
+    extended: Set[str] = set(base_fids)
+    added = 0
+    for fid in buffered_fids - base_fids:
+        if meta := stream_meta.get(fid):
+            if wsc := meta.get("fwa_watershed_code"):
+                if wsc in base_wscs:
+                    extended.add(fid)
+                    added += 1
+
+    return extended, added
+
+
 def lookup_admin_targets(
     gazetteer: MetadataGazetteer,
     gpkg_path: Path,
@@ -205,7 +251,7 @@ def lookup_admin_targets(
             continue
 
         if buffer_m > 0:
-            # --- Hysteresis: two-pass intersection ---
+            # --- Hysteresis: two-pass intersection via shared helper ---
             # Pass 1: exact boundary
             exact = gazetteer.find_features_in_admin_area(
                 admin_features=admin_features,
@@ -215,8 +261,6 @@ def lookup_admin_targets(
                 buffer_m=0,
             )
             exact_ids = {f.fwa_id for f in exact}
-            # Collect blue_line_keys of features inside the exact boundary
-            exact_blks: Set[str] = {f.blue_line_key for f in exact if f.blue_line_key}
 
             # Pass 2: buffered boundary
             buffered = gazetteer.find_features_in_admin_area(
@@ -226,23 +270,21 @@ def lookup_admin_targets(
                 gpkg_path=gpkg_path,
                 buffer_m=buffer_m,
             )
+            buffered_ids = {f.fwa_id for f in buffered}
 
-            # Hysteresis gate: buffer-only features kept only if
-            # they share a blue_line_key with an exact-match feature.
-            matched: List[FWAFeature] = []
-            n_hysteresis = 0
-            for f in buffered:
-                if f.fwa_id in exact_ids:
-                    matched.append(f)
-                elif f.blue_line_key and f.blue_line_key in exact_blks:
-                    matched.append(f)
-                    n_hysteresis += 1
-                # else: buffer-only, no shared BLK → discard
+            # Use the shared WSC hysteresis function
+            stream_meta = gazetteer.metadata.get(FeatureType.STREAM, {})
+            extended_ids, n_hysteresis = extend_boundary_hysteresis(
+                exact_ids, buffered_ids, stream_meta,
+            )
             if n_hysteresis:
                 logger.info(
                     f"  Admin hysteresis: {n_hysteresis} buffer-only features "
-                    f"kept via shared blue_line_key ({layer_key})"
+                    f"kept via WSC extension ({layer_key})"
                 )
+
+            # Filter buffered FWAFeature list to the extended ID set
+            matched = [f for f in buffered if f.fwa_id in extended_ids]
         else:
             matched = gazetteer.find_features_in_admin_area(
                 admin_features=admin_features,
@@ -318,32 +360,19 @@ def build_feature_index(
                 mu_index.setdefault(mu_id, {}).setdefault(ftype, {})[fid] = meta
 
             # Buffered indexes (500m-buffered zone/MU boundaries)
-            # Only apply buffer hysteresis to features that genuinely
-            # straddle multiple zones (2+ unbuffered).  Single-zone
-            # features should never appear under a neighbouring zone
-            # just because they fall within the 500m buffer margin.
-            zones_ub = meta.get("zones_unbuffered", [])
-            if len(zones_ub) > 1:
-                for zone_id in meta.get("zones", []):
-                    zone_index_buffered.setdefault(zone_id, {}).setdefault(ftype, {})[
-                        fid
-                    ] = meta
-                for mu_id in meta.get("mgmt_units", []):
-                    mu_index_buffered.setdefault(mu_id, {}).setdefault(ftype, {})[
-                        fid
-                    ] = meta
-            else:
-                # Single-zone: mirror unbuffered into the buffered index
-                # so the two-pass resolution still finds them for their
-                # actual zone, but never for a neighbouring one.
-                for zone_id in zones_ub:
-                    zone_index_buffered.setdefault(zone_id, {}).setdefault(ftype, {})[
-                        fid
-                    ] = meta
-                for mu_id in meta.get("mgmt_units_unbuffered", []):
-                    mu_index_buffered.setdefault(mu_id, {}).setdefault(ftype, {})[
-                        fid
-                    ] = meta
+            # Use the full buffered zones/MUs so boundary-straddling
+            # features appear in the neighboring zone's candidate set.
+            # Protection against false zone assignment happens at the
+            # extension level (_extend_boundary_streams) via WSC matching,
+            # not at the index level.
+            for zone_id in meta.get("zones", []):
+                zone_index_buffered.setdefault(zone_id, {}).setdefault(ftype, {})[
+                    fid
+                ] = meta
+            for mu_id in meta.get("mgmt_units", []):
+                mu_index_buffered.setdefault(mu_id, {}).setdefault(ftype, {})[
+                    fid
+                ] = meta
 
     return zone_index, mu_index, zone_index_buffered, mu_index_buffered
 
