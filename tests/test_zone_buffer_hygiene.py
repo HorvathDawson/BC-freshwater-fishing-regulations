@@ -671,7 +671,8 @@ class TestExtendBoundaryStreamsWSC:
         base_ids = resolve_zone_wide_ids(reg, zone_idx, mu_idx)
         buffered_ids = resolve_zone_wide_ids(reg, zone_idx_buf, mu_idx_buf)
         extended, newly_added = mapper._extend_boundary_streams(
-            base_ids, buffered_ids,
+            base_ids,
+            buffered_ids,
         )
 
         # Side channel with buffered overlap MUST be included
@@ -700,7 +701,8 @@ class TestExtendBoundaryStreamsWSC:
         base_ids = resolve_zone_wide_ids(reg, zone_idx, mu_idx)
         buffered_ids = resolve_zone_wide_ids(reg, zone_idx_buf, mu_idx_buf)
         extended, _ = mapper._extend_boundary_streams(
-            base_ids, buffered_ids,
+            base_ids,
+            buffered_ids,
         )
 
         assert "710150030" not in extended, (
@@ -728,7 +730,8 @@ class TestExtendBoundaryStreamsWSC:
         base_ids = resolve_zone_wide_ids(reg, zone_idx, mu_idx)
         buffered_ids = resolve_zone_wide_ids(reg, zone_idx_buf, mu_idx_buf)
         extended, _ = mapper._extend_boundary_streams(
-            base_ids, buffered_ids,
+            base_ids,
+            buffered_ids,
         )
 
         # Quinsam has a different WSC — must NOT be included
@@ -758,7 +761,8 @@ class TestExtendBoundaryStreamsWSC:
         base_ids = resolve_zone_wide_ids(reg, zone_idx, mu_idx)
         buffered_ids = resolve_zone_wide_ids(reg, zone_idx_buf, mu_idx_buf)
         extended, _ = mapper._extend_boundary_streams(
-            base_ids, buffered_ids,
+            base_ids,
+            buffered_ids,
         )
 
         # Bear River is in zone 2 / MU 2-2 — must not appear
@@ -783,7 +787,8 @@ class TestExtendBoundaryStreamsWSC:
         base_ids = resolve_zone_wide_ids(reg, zone_idx, mu_idx)
         buffered_ids = resolve_zone_wide_ids(reg, zone_idx_buf, mu_idx_buf)
         extended, _ = mapper._extend_boundary_streams(
-            base_ids, buffered_ids,
+            base_ids,
+            buffered_ids,
         )
 
         # Mainstem in 1-6 and side channel solidly in 1-6 must be present
@@ -810,7 +815,8 @@ class TestExtendBoundaryStreamsWSC:
         base_ids = resolve_zone_wide_ids(reg, zone_idx, mu_idx)
         buffered_ids = resolve_zone_wide_ids(reg, zone_idx_buf, mu_idx_buf)
         extended, _ = mapper._extend_boundary_streams(
-            base_ids, buffered_ids,
+            base_ids,
+            buffered_ids,
         )
 
         # All base features must survive
@@ -880,18 +886,18 @@ class TestZoneBoundaryStraddleIndex:
         Must appear in MU 3-1's buffered index."""
         _, _, _, mu_idx_buf = indexes
         mu31_streams = mu_idx_buf.get("3-1", {}).get(FeatureType.STREAM, {})
-        assert "900000002" in mu31_streams, (
-            "Mainstem near boundary should appear in MU 3-1's buffered index"
-        )
+        assert (
+            "900000002" in mu31_streams
+        ), "Mainstem near boundary should appear in MU 3-1's buffered index"
 
     def test_side_channel_in_neighbor_buffered_mu(self, indexes):
         """Side channel 900000004: mgmt_units=["3-1","4-1"], ub=["4-1"].
         Must appear in MU 3-1's buffered index."""
         _, _, _, mu_idx_buf = indexes
         mu31_streams = mu_idx_buf.get("3-1", {}).get(FeatureType.STREAM, {})
-        assert "900000004" in mu31_streams, (
-            "Side channel near boundary should appear in MU 3-1's buffered index"
-        )
+        assert (
+            "900000004" in mu31_streams
+        ), "Side channel near boundary should appear in MU 3-1's buffered index"
 
     def test_fully_zone3_not_in_zone4(self, indexes):
         """900000001 (zones=["3"], ub=["3"]) must NOT leak into zone 4."""
@@ -948,7 +954,8 @@ class TestZoneBoundaryStraddleResolution:
         base_ids = resolve_zone_wide_ids(reg, zone_idx, mu_idx)
         buffered_ids = resolve_zone_wide_ids(reg, zone_idx_buf, mu_idx_buf)
         extended, _ = mapper._extend_boundary_streams(
-            base_ids, buffered_ids,
+            base_ids,
+            buffered_ids,
         )
         return base_ids, buffered_ids, extended
 
@@ -1022,12 +1029,12 @@ class TestZoneBoundaryStraddleResolution:
         )
         _, _, extended = self._resolve(reg, mapper, indexes)
 
-        assert "900000003" not in extended, (
-            "Fully zone 4 mainstem must NOT be in zone 3 result"
-        )
-        assert "900000005" not in extended, (
-            "Fully zone 4 side channel must NOT be in zone 3 result"
-        )
+        assert (
+            "900000003" not in extended
+        ), "Fully zone 4 mainstem must NOT be in zone 3 result"
+        assert (
+            "900000005" not in extended
+        ), "Fully zone 4 side channel must NOT be in zone 3 result"
 
     def test_bear_river_not_in_zone1(self, mapper, indexes):
         """Bear River must NOT appear in zone 1 results — protected by
@@ -1098,13 +1105,14 @@ class TestWSCZoneBoundaryExtension:
         }
 
         extended, _ = mapper._extend_boundary_streams(
-            base_ids, buffered_ids,
+            base_ids,
+            buffered_ids,
         )
 
         # WSC extension picks up 900000002 (same WSC as base)
-        assert "900000002" in extended, (
-            "Mainstem boundary segment (same WSC) should be picked up"
-        )
+        assert (
+            "900000002" in extended
+        ), "Mainstem boundary segment (same WSC) should be picked up"
         # WSC extension MUST also pick up 900000004 (different BLK, same WSC)
         assert "900000004" in extended, (
             "Side channel (different BLK, same WSC as mainstem) must be "
@@ -1120,13 +1128,14 @@ class TestWSCZoneBoundaryExtension:
         buffered_ids = {"900000001", "900000002"}
 
         extended, _ = mapper._extend_boundary_streams(
-            base_ids, buffered_ids,
+            base_ids,
+            buffered_ids,
         )
 
         # Only same-WSC features are added
-        assert "900000003" not in extended, (
-            "Fully zone 4 segment must not be pulled in (not in buffered set)"
-        )
+        assert (
+            "900000003" not in extended
+        ), "Fully zone 4 segment must not be pulled in (not in buffered set)"
         assert "900000005" not in extended
 
 
@@ -1170,16 +1179,16 @@ class TestAdminBoundaryHysteresis:
         buffered_fids = {"900000001", "900000002", "900000004"}
 
         extended, added = extend_boundary_hysteresis(
-            base_fids, buffered_fids, stream_meta,
+            base_fids,
+            buffered_fids,
+            stream_meta,
         )
 
         assert "900000001" in extended, "Base feature must survive"
-        assert "900000002" in extended, (
-            "Boundary mainstem (same WSC) should be added"
-        )
-        assert "900000004" in extended, (
-            "Side channel (different BLK, same WSC) should be added"
-        )
+        assert "900000002" in extended, "Boundary mainstem (same WSC) should be added"
+        assert (
+            "900000004" in extended
+        ), "Side channel (different BLK, same WSC) should be added"
         assert added == 2
 
     def test_admin_hysteresis_excludes_different_wsc(self, stream_meta):
@@ -1198,13 +1207,13 @@ class TestAdminBoundaryHysteresis:
         buffered_fids = {"900000001", "900000002", "UNRELATED_001"}
 
         extended, added = extend_boundary_hysteresis(
-            base_fids, buffered_fids, stream_meta,
+            base_fids,
+            buffered_fids,
+            stream_meta,
         )
 
         assert "900000002" in extended, "Same WSC should be included"
-        assert "UNRELATED_001" not in extended, (
-            "Different WSC must NOT be included"
-        )
+        assert "UNRELATED_001" not in extended, "Different WSC must NOT be included"
         assert added == 1
 
     def test_admin_hysteresis_non_stream_passthrough(self, stream_meta):
@@ -1216,13 +1225,15 @@ class TestAdminBoundaryHysteresis:
         buffered_fids = {"900000001", "900000002", "LAKE_001", "LAKE_002"}
 
         extended, added = extend_boundary_hysteresis(
-            base_fids, buffered_fids, stream_meta,
+            base_fids,
+            buffered_fids,
+            stream_meta,
         )
 
         assert "LAKE_001" in extended, "Base lake must survive"
-        assert "LAKE_002" not in extended, (
-            "Buffered-only lake must NOT be added (no WSC match possible)"
-        )
+        assert (
+            "LAKE_002" not in extended
+        ), "Buffered-only lake must NOT be added (no WSC match possible)"
         assert "900000002" in extended
 
     def test_admin_empty_base_returns_empty(self, stream_meta):
@@ -1230,7 +1241,9 @@ class TestAdminBoundaryHysteresis:
         from regulation_mapping.regulation_resolvers import extend_boundary_hysteresis
 
         extended, added = extend_boundary_hysteresis(
-            set(), {"900000001", "900000002"}, stream_meta,
+            set(),
+            {"900000001", "900000002"},
+            stream_meta,
         )
 
         assert len(extended) == 0
@@ -1293,22 +1306,23 @@ class TestSegmentsLeaveStraddleZone:
         base_ids = resolve_zone_wide_ids(reg, zone_idx, mu_idx)
         buffered_ids = resolve_zone_wide_ids(reg, zone_idx_buf, mu_idx_buf)
         extended, _ = mapper._extend_boundary_streams(
-            base_ids, buffered_ids,
+            base_ids,
+            buffered_ids,
         )
 
         # Segments fully in zone 4 (no buffer bleed to zone 3)
-        assert "900000003" not in extended, (
-            "Mainstem fully in zone 4 must NOT be in zone 3 result"
-        )
-        assert "900000005" not in extended, (
-            "Side channel fully in zone 4 must NOT be in zone 3 result"
-        )
+        assert (
+            "900000003" not in extended
+        ), "Mainstem fully in zone 4 must NOT be in zone 3 result"
+        assert (
+            "900000005" not in extended
+        ), "Side channel fully in zone 4 must NOT be in zone 3 result"
 
         # Segments that ARE included
         assert "900000001" in extended, "Fully zone 3 must be included"
-        assert "900000002" in extended, (
-            "Near-boundary mainstem (buffer touches zone 3) must be included"
-        )
+        assert (
+            "900000002" in extended
+        ), "Near-boundary mainstem (buffer touches zone 3) must be included"
         assert "900000004" in extended, (
             "Near-boundary side channel (buffer touches zone 3, same WSC) "
             "must be included"
@@ -1330,12 +1344,13 @@ class TestSegmentsLeaveStraddleZone:
         base_ids = resolve_zone_wide_ids(reg, zone_idx, mu_idx)
         buffered_ids = resolve_zone_wide_ids(reg, zone_idx_buf, mu_idx_buf)
         extended, _ = mapper._extend_boundary_streams(
-            base_ids, buffered_ids,
+            base_ids,
+            buffered_ids,
         )
 
-        assert "900000001" not in extended, (
-            "Fully zone 3 segment must NOT be in zone 4 result"
-        )
+        assert (
+            "900000001" not in extended
+        ), "Fully zone 3 segment must NOT be in zone 4 result"
 
         # All zone 4 segments present
         assert "900000002" in extended  # near boundary
@@ -1352,13 +1367,17 @@ class TestSegmentsLeaveStraddleZone:
         zone_idx, mu_idx, zone_idx_buf, mu_idx_buf = indexes
 
         zone3_reg = ZoneRegulation(
-            regulation_id="z3", zone_ids=["3"],
-            rule_text="zone3", restriction={"type": "CLOSURE", "details": ""},
+            regulation_id="z3",
+            zone_ids=["3"],
+            rule_text="zone3",
+            restriction={"type": "CLOSURE", "details": ""},
             notes="",
         )
         zone4_reg = ZoneRegulation(
-            regulation_id="z4", zone_ids=["4"],
-            rule_text="zone4", restriction={"type": "CLOSURE", "details": ""},
+            regulation_id="z4",
+            zone_ids=["4"],
+            rule_text="zone4",
+            restriction={"type": "CLOSURE", "details": ""},
             notes="",
         )
 

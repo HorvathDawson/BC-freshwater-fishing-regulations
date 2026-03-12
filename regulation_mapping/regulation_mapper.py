@@ -1334,7 +1334,8 @@ class RegulationMapper:
         base_ids = resolve_zone_wide_ids(zone_reg, zone_index, mu_index)
         buffered_ids = resolve_zone_wide_ids(zone_reg, zone_index_buf, mu_index_buf)
         extended, newly_added = self._extend_boundary_streams(
-            base_ids, buffered_ids,
+            base_ids,
+            buffered_ids,
         )
         if newly_added:
             logger.info(

@@ -754,6 +754,17 @@ class CanonicalDataStore:
         reg_id = self._ABORIGINAL_ADVISORY_REG_ID
         per_instance_prefix = f"{reg_id}:"
 
+        # Ensure regulation_details has an entry for the bare advisory ID.
+        # The mapper only stored details under per-instance keys (e.g.
+        # "prov_aboriginal_lands_advisory:aboriginal_lands:12288701").
+        # Copy from any per-instance entry so the frontend can resolve it.
+        reg_details = self.pipeline_result.regulation_details
+        if reg_id not in reg_details:
+            for key, detail in reg_details.items():
+                if key.startswith(per_instance_prefix):
+                    reg_details[reg_id] = dict(detail)
+                    break
+
         # ── Phase 1: strip per-instance aboriginal reg IDs ──────────
         # regulation_mapper already stamped IDs like
         #   prov_aboriginal_lands_advisory:aboriginal_lands:12288701
@@ -768,7 +779,9 @@ class CanonicalDataStore:
                 stripped += 1
                 feat["regulation_ids"] = ",".join(sorted(new_ids))
                 feat["regulation_count"] = len(new_ids)
-                feat["frontend_group_id"] = self._recompute_frontend_group_id(feat, new_ids)
+                feat["frontend_group_id"] = self._recompute_frontend_group_id(
+                    feat, new_ids
+                )
 
         if stripped:
             logger.info(
@@ -815,9 +828,7 @@ class CanonicalDataStore:
             attached += len(group_feats)
 
         if attached:
-            logger.info(
-                f"Aboriginal lands advisory attached to {attached} feature(s)"
-            )
+            logger.info(f"Aboriginal lands advisory attached to {attached} feature(s)")
         return features
 
     def _recompute_frontend_group_id(self, feat: dict, reg_ids: List[str]) -> str:

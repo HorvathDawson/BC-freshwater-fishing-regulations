@@ -29,10 +29,56 @@ function getCacheControl(key: string): string {
   return 'public, max-age=3600';  // 1h default
 }
 
+/** True for files that must always hit R2 (no edge caching). */
+function isNoCacheFile(key: string): boolean {
+  return key === 'data_version.json';
+}
+
 function getContentType(key: string): string | null {
   if (key.endsWith('.pmtiles')) return 'application/octet-stream';
   if (key.endsWith('.json'))    return 'application/json; charset=utf-8';
   return null;
+}
+
+/**
+ * Build a Response from an R2 object (full GET or Range).
+ * Attaches CORS, Cache-Control, ETag, Content-Type.
+ */
+function buildR2Response(
+  object: R2ObjectBody | R2Object,
+  key: string,
+  rangeHeader: string | null,
+  acceptEncoding: string,
+): Response {
+  const headers = new Headers(CORS_HEADERS);
+  object.writeHttpMetadata(headers);
+  headers.set('ETag', object.httpEtag);
+  headers.set('Cache-Control', getCacheControl(key));
+
+  const ct = getContentType(key);
+  if (ct) headers.set('Content-Type', ct);
+
+  if (!('body' in object) || !object.body) {
+    return new Response(null, { status: 200, headers });
+  }
+
+  if (rangeHeader) {
+    const offset = (object as any).range?.offset ?? 0;
+    const length = (object as any).range?.length ?? object.size;
+    headers.set('Content-Range', `bytes ${offset}-${offset + length - 1}/${object.size}`);
+    return new Response(object.body, { status: 206, headers });
+  }
+
+  // Compress JSON responses with gzip when the client supports it.
+  // waterbody_data.json is ~12 MB uncompressed; gzip cuts it to ~2-3 MB.
+  if (key.endsWith('.json') && acceptEncoding.includes('gzip')) {
+    const compressed = object.body.pipeThrough(new CompressionStream('gzip'));
+    headers.set('Content-Encoding', 'gzip');
+    headers.delete('Content-Length');  // length changes after compression
+    return new Response(compressed, { status: 200, headers });
+  }
+
+  return new Response(object.body, { status: 200, headers });
 }
 
 export default {
@@ -52,12 +98,47 @@ export default {
       return new Response('Not Found', { status: 404, headers: CORS_HEADERS });
     }
 
-    // ── ETag conditional: return 304 if client has current version ───
-    // For HEAD requests AND for full GET requests (non-Range), check
-    // If-None-Match first with a cheap head() call to avoid reading
-    // the object body unnecessarily.
-    const ifNoneMatch = request.headers.get('If-None-Match');
+    // ── Cloudflare edge cache ───────────────────────────────────────
+    // For cacheable files (everything except data_version.json), check
+    // the Cloudflare Cache API first.  This sits at the same edge POP
+    // as the worker and avoids an R2 read on cache hits.  The cached
+    // response's Cache-Control header controls edge TTL automatically.
+    //
+    // Use the *full* request URL (including Range header via cache key)
+    // so each Range slice is cached independently — critical for PMTiles
+    // whose JS library issues many small Range requests per tile load.
+    const useEdgeCache = !isNoCacheFile(key);
+    const cache = useEdgeCache ? caches.default : null;
+
+    // Build a cache key that distinguishes Range requests.
+    // Range requests for the same URL but different byte ranges must
+    // map to different cache entries.
+    let cacheKey = request;
     const rangeHeader = request.headers.get('Range');
+    if (useEdgeCache && rangeHeader) {
+      // Append range as a query param so the cache treats each slice
+      // as a separate entry (CF cache keys on URL, not Vary: Range).
+      const rkUrl = new URL(request.url);
+      rkUrl.searchParams.set('_r', rangeHeader);
+      cacheKey = new Request(rkUrl.toString(), { method: 'GET' });
+    }
+
+    if (cache) {
+      const cached = await cache.match(cacheKey);
+      if (cached) {
+        // Edge cache hit — add CORS headers (cache strips them on some plans)
+        const resp = new Response(cached.body, cached);
+        for (const [k, v] of Object.entries(CORS_HEADERS)) {
+          resp.headers.set(k, v);
+        }
+        return resp;
+      }
+    }
+
+    // ── ETag conditional: return 304 if client has current version ───
+    // For non-Range requests, check If-None-Match with a cheap head()
+    // call to avoid reading the object body unnecessarily.
+    const ifNoneMatch = request.headers.get('If-None-Match');
 
     if (ifNoneMatch && !rangeHeader) {
       const meta = await env.BUCKET.head(key);
@@ -89,6 +170,7 @@ export default {
 
     // ── GET: full body or Range ─────────────────────────────────────
     let object: R2ObjectBody | R2Object | null;
+    const acceptEncoding = request.headers.get('Accept-Encoding') || '';
 
     if (rangeHeader) {
       const match = rangeHeader.match(/bytes=(\d+)-(\d*)/);
@@ -109,36 +191,25 @@ export default {
       return new Response('Not Found', { status: 404, headers: CORS_HEADERS });
     }
 
-    const headers = new Headers(CORS_HEADERS);
-    object.writeHttpMetadata(headers);
-    headers.set('ETag', object.httpEtag);
-    headers.set('Cache-Control', getCacheControl(key));
+    const response = buildR2Response(object, key, rangeHeader, acceptEncoding);
 
-    const ct = getContentType(key);
-    if (ct) headers.set('Content-Type', ct);
-
-    if ('body' in object && object.body) {
-      if (rangeHeader) {
-        const offset = (object as any).range?.offset ?? 0;
-        const length = (object as any).range?.length ?? object.size;
-        headers.set('Content-Range', `bytes ${offset}-${offset + length - 1}/${object.size}`);
-        return new Response(object.body, { status: 206, headers });
+    // ── Store in edge cache (async, non-blocking) ───────────────────
+    // Clone the response before caching because the body is a
+    // ReadableStream that can only be consumed once.  The cache.put()
+    // runs in the background via waitUntil so it doesn't slow down the
+    // response to the client.
+    if (cache) {
+      // Only cache 200/206 responses with a body
+      const status = response.status;
+      if (status === 200 || status === 206) {
+        const cloned = response.clone();
+        // waitUntil is not available in module syntax — fire and forget.
+        // CF guarantees the cache.put() I/O completes even after the
+        // response is returned.
+        cache.put(cacheKey, cloned).catch(() => {});
       }
-
-      // Compress JSON responses with gzip when the client supports it.
-      // waterbody_data.json is ~12 MB uncompressed; gzip cuts it to ~2-3 MB.
-      const acceptEncoding = request.headers.get('Accept-Encoding') || '';
-      if (key.endsWith('.json') && acceptEncoding.includes('gzip')) {
-        const compressed = object.body.pipeThrough(new CompressionStream('gzip'));
-        headers.set('Content-Encoding', 'gzip');
-        headers.delete('Content-Length');  // length changes after compression
-        return new Response(compressed, { status: 200, headers });
-      }
-
-      return new Response(object.body, { status: 200, headers });
     }
 
-    // No body (shouldn't happen for GET, but be safe)
-    return new Response(null, { status: 200, headers });
+    return response;
   },
 };

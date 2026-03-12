@@ -275,7 +275,9 @@ def lookup_admin_targets(
             # Use the shared WSC hysteresis function
             stream_meta = gazetteer.metadata.get(FeatureType.STREAM, {})
             extended_ids, n_hysteresis = extend_boundary_hysteresis(
-                exact_ids, buffered_ids, stream_meta,
+                exact_ids,
+                buffered_ids,
+                stream_meta,
             )
             if n_hysteresis:
                 logger.info(
