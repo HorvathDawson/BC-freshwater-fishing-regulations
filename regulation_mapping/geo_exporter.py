@@ -257,31 +257,6 @@ class GeoArtifactGenerator:
         logger.info(f"  Admin layer '{layer_key}': {len(gdf)} features")
         return gdf[out_cols]
 
-    def _create_dissolved_admin_fill_layer(
-        self, layer_key: str
-    ) -> Optional[gpd.GeoDataFrame]:
-        """Create a dissolved (unioned) version of an admin layer for fill rendering.
-
-        Overlapping polygons (e.g. aboriginal lands) stack visually when
-        rendered with semi-transparent fills.  This layer unions all polygons
-        into a single geometry so the fill is painted once, while the original
-        per-feature layer is kept for click queries, borders, and labels.
-        """
-        base_gdf = self._create_admin_layer(layer_key)
-        if base_gdf is None or base_gdf.empty:
-            return None
-
-        dissolved = gpd.GeoDataFrame(
-            geometry=[base_gdf.geometry.unary_union],
-            crs=base_gdf.crs,
-        )
-        dissolved["tippecanoe:minzoom"] = int(base_gdf["tippecanoe:minzoom"].min())
-        logger.info(
-            f"  Dissolved fill layer for '{layer_key}': "
-            f"{len(base_gdf)} polygons → 1 union"
-        )
-        return dissolved
-
     def _create_regions_layer(self) -> Optional[gpd.GeoDataFrame]:
         """Build region boundary layer from the 'wmu' GPKG layer."""
         if "wmu" not in self.store.data_accessor.list_layers():
@@ -469,14 +444,6 @@ class GeoArtifactGenerator:
                 )
             )
 
-        # Dissolved fill layer for aboriginal lands — prevents opacity stacking
-        # when many overlapping territory polygons render semi-transparently.
-        layers.append(
-            (
-                "admin_aboriginal_lands_fill",
-                lambda: self._create_dissolved_admin_fill_layer("aboriginal_lands"),
-            )
-        )
         return layers
 
     # ------------------------------------------------------------------

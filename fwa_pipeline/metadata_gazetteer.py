@@ -23,6 +23,11 @@ from data.data_extractor import FWADataAccessor
 
 logger = logging.getLogger(__name__)
 
+# Polygon features whose area falls below this percentage of overlap with an
+# admin boundary are considered boundary artifacts and excluded.  Stream
+# features (linear, area ≈ 0) skip this filter entirely.
+OVERLAP_THRESHOLD_PCT = 4.0
+
 
 @dataclass
 class FWAFeature:
@@ -908,10 +913,9 @@ class MetadataGazetteer:
                 mask = np.concatenate(mask_parts)
 
                 # --- Overlap filter for polygon layers ---
-                # Polygon features (lakes, wetlands, manmade) with < 1%
+                # Polygon features (lakes, wetlands, manmade) with < threshold
                 # overlap are boundary artifacts — exclude them.  Stream
                 # features are linear (area = 0) so skip the filter.
-                _OVERLAP_THRESHOLD_PCT = 1.0
                 is_polygon_layer = ftype != FeatureType.STREAM
 
                 if is_polygon_layer:
@@ -931,13 +935,13 @@ class MetadataGazetteer:
                                 (ixn_areas / feat_areas) * 100.0,
                                 0.0,
                             )
-                        overlap_mask = pct >= _OVERLAP_THRESHOLD_PCT
+                        overlap_mask = pct >= OVERLAP_THRESHOLD_PCT
                         n_excluded = int(np.sum(~overlap_mask))
                         if n_excluded:
                             logger.info(
                                 f"  {layer_name}: excluded {n_excluded} "
                                 f"boundary-artifact polygon(s) "
-                                f"(< {_OVERLAP_THRESHOLD_PCT}% overlap)"
+                                f"(< {OVERLAP_THRESHOLD_PCT}% overlap)"
                             )
                         matched_ids = np.unique(intersecting_ids[overlap_mask])
                     else:

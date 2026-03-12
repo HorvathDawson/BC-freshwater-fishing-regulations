@@ -1491,19 +1491,17 @@ const MapComponent = () => {
                 const selected = options[0];
                 setSelectedFeature(selected);
 
-                // Fly to feature; on mobile use aspect-ratio-aware padding.
+                // On mobile, set panel state based on feature size.
+                // No flyTo — user stays at current location; InfoPanel has "Zoom to" button.
                 const isMobile = isMobileViewport();
 
-                if (selected.bbox) {
+                if (isMobile && selected.bbox) {
                     const bounds = new maplibregl.LngLatBounds(
                         [selected.bbox[0], selected.bbox[1]],
                         [selected.bbox[2], selected.bbox[3]]
                     );
-                    const { padding, panelState } = isMobile
-                        ? getMobilePaddingForBounds(bounds)
-                        : { padding: { top: 80, bottom: 80, left: 80, right: 350 }, panelState: 'expanded' as CollapseState };
-                    flyToBbox(map, selected.bbox, padding, (selected.minzoom || 10) + 0.25);
-                    if (isMobile) setMobilePanelState(panelState);
+                    const { panelState } = getMobilePaddingForBounds(bounds);
+                    setMobilePanelState(panelState);
                 } else if (isMobile) {
                     setMobilePanelState('partial');
                 }
@@ -1713,25 +1711,6 @@ const MapComponent = () => {
                         if (option) {
                             hoverTimeoutRef.current = setTimeout(() => {
                                 setHighlightedOption(option);
-                                const map = mapRef.current; if (!map) return;
-                                const isMobile = isMobileViewport();
-                                const padding = isMobile
-                                    ? { top: 60, bottom: getMobileBottomPadding(), left: 40, right: 40 }
-                                    : { top: 80, bottom: 80, left: 80, right: 350 };
-                                if (option.bbox) {
-                                    flyToBbox(map, option.bbox, padding, (option.minzoom || 10) + 0.25, 400);
-                                } else if (option.geometry) {
-                                    const bounds = new maplibregl.LngLatBounds();
-                                    extendBoundsWithGeometry(bounds, option.geometry);
-                                    if (!bounds.isEmpty()) {
-                                        const camera = map.cameraForBounds(bounds, { padding });
-                                        if (camera) {
-                                            const minZoom = (option.minzoom || 10) + 0.25;
-                                            const finalZoom = Math.max(camera.zoom || 0, minZoom);
-                                            map.flyTo({ ...camera, zoom: Math.min(finalZoom, 15), duration: 400 });
-                                        }
-                                    }
-                                }
                             }, 50);
                         } else {
                             setHighlightedOption(null);
@@ -1741,18 +1720,6 @@ const MapComponent = () => {
                         clearSelection(); 
                         setSelectedFeature(f); 
                         setMobilePanelState('partial'); 
-                        
-                        // Fly to the selected feature's bbox with minimum zoom enforcement
-                        const map = mapRef.current;
-                        if (!map) return;
-                        
-                        if (f.bbox) {
-                            const isMobile = isMobileViewport();
-                            const padding = isMobile 
-                                ? { top: 60, bottom: getMobileBottomPadding(), left: 40, right: 40 }
-                                : { top: 80, bottom: 80, left: 80, right: 350 };
-                            flyToBbox(map, f.bbox, padding, (f.minzoom || 10) + 0.25);
-                        }
                     }} onClose={clearSelection}
                 />
             )}

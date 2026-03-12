@@ -703,7 +703,7 @@ export const createRegulationLayers = (): LayerSpecification[] => {
         id: 'admin_aboriginal_lands-fill',
         type: 'fill',
         source: 'regulations',
-        'source-layer': 'admin_aboriginal_lands_fill',
+        'source-layer': 'admin_aboriginal_lands',
         paint: {
             'fill-color': ADMIN_COLORS.aboriginal_lands,
             'fill-opacity': 0.12,

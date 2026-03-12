@@ -480,9 +480,9 @@ class TestPerInstanceHysteresisDesired:
         matched_ids = {f.fwa_id for f in matched}
 
         assert "inside_a" in matched_ids, "Inside segment always kept"
-        assert "outside_a" in matched_ids, (
-            "Boundary-cut segment (200m outside, same BLK_A) must be kept"
-        )
+        assert (
+            "outside_a" in matched_ids
+        ), "Boundary-cut segment (200m outside, same BLK_A) must be kept"
 
     def test_unrelated_stream_discarded(self, mock_gazetteer):
         """An unrelated stream within the buffer but with a different BLK
@@ -521,9 +521,9 @@ class TestPerInstanceHysteresisDesired:
         )
         matched_ids = {f.fwa_id for f in matched}
 
-        assert "far_a" not in matched_ids, (
-            "far_a shares BLK_A but is 700m away — beyond the 500m buffer"
-        )
+        assert (
+            "far_a" not in matched_ids
+        ), "far_a shares BLK_A but is 700m away — beyond the 500m buffer"
 
 
 class TestPerInstancePathUsesHysteresis:

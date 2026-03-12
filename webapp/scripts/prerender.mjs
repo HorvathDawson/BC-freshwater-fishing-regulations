@@ -146,7 +146,8 @@ function patchTemplate(tmpl, { title, description, canonicalUrl }) {
 // Cloudflare Pages free tier: 20,000 files per deployment.
 // Reserve headroom for Vite's base output (JS, CSS, HTML, fonts, images).
 // Override via PRERENDER_MAX_PAGES in .env.production.
-const MAX_PAGES = parseInt(process.env.PRERENDER_MAX_PAGES, 10) || 19_000;
+// Set to 0 or remove to render all pages (no cap).
+const MAX_PAGES = parseInt(process.env.PRERENDER_MAX_PAGES, 10) || 0;
 
 // --- Build wbg → primary raw entry map (deduplicate: one HTML page per wbg) ---
 // Multiple named waterbody entries can share the same wbg (e.g., different regulation
@@ -168,8 +169,8 @@ entries.sort((a, b) => {
     const bRegs = (b[1].rs ?? []).length;
     return bRegs - aRegs; // more regulations → higher priority
 });
-if (entries.length > MAX_PAGES) {
-    console.log(`[prerender] Capping from ${entries.length} to ${MAX_PAGES} pages (Cloudflare 20k file limit).`);
+if (MAX_PAGES > 0 && entries.length > MAX_PAGES) {
+    console.log(`[prerender] Capping from ${entries.length} to ${MAX_PAGES} pages (PRERENDER_MAX_PAGES).`);
     entries = entries.slice(0, MAX_PAGES);
 }
 
@@ -220,6 +221,6 @@ const sitemap = [
 ].join('\n');
 
 writeFileSync(SITEMAP_PATH, sitemap, 'utf8');
-
+a
 console.log(`[prerender] ${written} waterbody pages → dist/waterbody/`);
 console.log(`[prerender] sitemap.xml → ${sitemapUrls.length + 1} URLs`);

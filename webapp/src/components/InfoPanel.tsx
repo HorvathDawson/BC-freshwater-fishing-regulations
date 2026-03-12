@@ -427,25 +427,25 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                     aria-labelledby={sortedSiblings.length > 1 ? `section-tab-${activeFgid}` : undefined}
                     tabIndex={sortedSiblings.length > 1 ? 0 : undefined}
                 >
-                    {/* Zoom to section button — shown when feature has a valid bbox
-                        and there is more than one section (single-section panels have
-                        no concept of "zoom to this section" in isolation). */}
-                    {sortedSiblings.length > 1 && Array.isArray(feature.bbox) && feature.bbox.length === 4 && (() => {
+                    {/* Zoom button — always shown when feature has a valid bbox.
+                        Multi-section: "Zoom to Section X", single-section: "Zoom to Feature". */}
+                    {Array.isArray(feature.bbox) && feature.bbox.length === 4 && (() => {
                         const bbox = feature.bbox as [number, number, number, number];
-                        // Use the segment's own minzoom so the tile layer is guaranteed visible.
-                        // Fall back to the parent feature minzoom, then 10 as a safe default.
                         const minZoom = (feature.minzoom as number | undefined) ?? 10;
-                        const activeLabel = sectionLabel(sortedSiblings.findIndex(sf =>
-                            (sf.regulation_segments?.[0]?.frontend_group_id ?? sf.id) === activeFgid
-                        ));
+                        const isMultiSection = sortedSiblings.length > 1;
+                        const activeLabel = isMultiSection
+                            ? `Section ${sectionLabel(sortedSiblings.findIndex(sf =>
+                                (sf.regulation_segments?.[0]?.frontend_group_id ?? sf.id) === activeFgid
+                            ))}`
+                            : 'Feature';
                         return (
                             <button
                                 className="zoom-to-section-btn"
                                 onClick={() => onFlyToSection?.(bbox, minZoom)}
-                                aria-label={`Zoom to Section ${activeLabel}`}
+                                aria-label={`Zoom to ${activeLabel}`}
                             >
                                 <ZoomIn size={13} strokeWidth={2} />
-                                <span>Zoom to Section {activeLabel}</span>
+                                <span>Zoom to {activeLabel}</span>
                             </button>
                         );
                     })()}
@@ -545,24 +545,20 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                                     const isIndigenousAdvisory = (reg.restriction_type || '').toLowerCase().includes('indigenous territory');
 
                                     if (isIndigenousAdvisory) {
-                                        // Combine all indigenous territory advisories into one group.
-                                        // Each per-instance reg has a different regulation_id but
-                                        // identical restriction text — collect territory names from
-                                        // the admin zone lookup and list them all under one header.
+                                        // After pipeline polygon merging, overlapping territories
+                                        // share a single regulation instance.  Group all indigenous
+                                        // advisories under one key; the label comes from adminZones.
                                         groupKey = 'prov|indigenous_territory_advisory';
                                         const zoneNames = adminZones[reg.regulation_id];
-                                        const newNames = (zoneNames && zoneNames.length > 0) ? zoneNames : [];
+                                        const name = (zoneNames && zoneNames.length > 0) ? zoneNames.join(', ') : 'Indigenous Territory';
                                         if (groups[groupKey]) {
-                                            // Append new territory names to existing label
-                                            const group = groups[groupKey];
-                                            const existing = new Set(group._territoryNames || []);
-                                            for (const n of newNames) existing.add(n);
-                                            group._territoryNames = [...existing];
-                                            group.label = group._territoryNames.join(', ') || 'Indigenous Territory';
-                                            // Don't duplicate the regulation row — text is identical
+                                            // Append any additional territory name (rare: non-overlapping territories)
+                                            if (name !== 'Indigenous Territory' && !groups[groupKey].label.includes(name)) {
+                                                groups[groupKey].label += `, ${name}`;
+                                            }
                                             return groups;
                                         }
-                                        groupLabel = newNames.join(', ') || 'Indigenous Territory';
+                                        groupLabel = name;
                                     } else if (reg.scope_location) {
                                         const zoneNames = adminZones[reg.regulation_id];
                                         if (zoneNames && zoneNames.length > 0) {
@@ -602,13 +598,7 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                                         isTributary: false,
                                         exclusions: null,
                                         regulations: [],
-                                        _territoryNames: [],
                                     };
-                                    // Seed territory names for indigenous advisory groups
-                                    if (reg.source === 'provincial' && (reg.restriction_type || '').toLowerCase().includes('indigenous territory')) {
-                                        const zoneNames = adminZones[reg.regulation_id];
-                                        groups[groupKey]._territoryNames = zoneNames && zoneNames.length > 0 ? [...zoneNames] : [];
-                                    }
                                 }
                                 // Capture exclusions once per group (identity-level data, same for all rules)
                                 if (!groups[groupKey].exclusions && reg.exclusions && reg.exclusions.length > 0) {
@@ -616,7 +606,7 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                                 }
                                 groups[groupKey].regulations.push(reg);
                                 return groups;
-                            }, {} as Record<string, { label: string; subtitle: string; source: string; isTributary: boolean; exclusions: Regulation['exclusions']; regulations: Regulation[]; _territoryNames?: string[] }>);
+                            }, {} as Record<string, { label: string; subtitle: string; source: string; isTributary: boolean; exclusions: Regulation['exclusions']; regulations: Regulation[] }>);
 
                             // Sort groups: provincial with a "closed" reg or indigenous
                             // territory advisory floats to the top so users immediately

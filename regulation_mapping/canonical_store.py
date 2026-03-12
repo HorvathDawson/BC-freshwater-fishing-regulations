@@ -41,6 +41,7 @@ from .geometry_utils import (
     extract_geoms,
     extract_line_components,
     merge_lines,
+    merge_overlapping_polygons,
 )
 from .logger_config import get_logger
 from .regulation_types import MergedGroup, PipelineResult
@@ -656,6 +657,15 @@ class CanonicalDataStore:
             logger.warning(f"Admin layer '{layer_key}' not in GPKG")
             return None
         gdf = self.data_accessor.get_layer(layer_key).to_crs("EPSG:3005")
+
+        # Merge overlapping aboriginal_lands polygons so each parcel
+        # carries a single regulation instance.
+        if layer_key == "aboriginal_lands":
+            cfg = ADMIN_LAYER_CONFIG.get(layer_key, {})
+            gdf = merge_overlapping_polygons(
+                gdf, cfg["id_field"], cfg["name_field"]
+            )
+
         self._admin_gdf_cache[cache_key] = gdf
         return gdf
 

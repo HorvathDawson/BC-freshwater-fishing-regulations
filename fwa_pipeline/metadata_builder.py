@@ -559,6 +559,13 @@ class MetadataBuilder:
 
             try:
                 gdf = self.data_accessor.get_layer(layer_key)
+
+                # Merge overlapping aboriginal_lands polygons into single
+                # features so each parcel gets one regulation instance.
+                if layer_key == "aboriginal_lands":
+                    from regulation_mapping.geometry_utils import merge_overlapping_polygons
+                    gdf = merge_overlapping_polygons(gdf, id_field, name_field)
+
                 results = {}
 
                 for _, row in tqdm(
