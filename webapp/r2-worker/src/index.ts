@@ -35,7 +35,7 @@ function isNoCacheFile(key: string): boolean {
 }
 
 // Increment when edge-cache storage format changes to invalidate stale entries.
-const EDGE_CACHE_VER = '2';
+const EDGE_CACHE_VER = '3';
 
 function getContentType(key: string): string | null {
   if (key.endsWith('.pmtiles')) return 'application/octet-stream';
@@ -44,9 +44,10 @@ function getContentType(key: string): string | null {
 }
 
 /**
- * Build an UNCOMPRESSED Response from an R2 object (full GET or Range).
+ * Build an uncompressed Response from an R2 object (full GET or Range).
  * Attaches CORS, Cache-Control, ETag, Content-Type.
- * Compression is applied separately after caching — see `maybeCompress`.
+ * Cloudflare's edge automatically compresses eligible responses (gzip/br)
+ * based on Content-Type and Accept-Encoding — no manual compression needed.
  */
 function buildR2Response(
   object: R2ObjectBody | R2Object,
@@ -73,32 +74,6 @@ function buildR2Response(
   }
 
   return new Response(object.body, { status: 200, headers });
-}
-
-/**
- * Wrap a Response with gzip compression if the client supports it
- * and the file is a compressible JSON file.
- * Range (206) responses are never compressed.
- */
-function maybeCompress(
-  response: Response,
-  key: string,
-  acceptEncoding: string,
-): Response {
-  if (
-    response.status !== 200 ||
-    !response.body ||
-    !key.endsWith('.json') ||
-    !acceptEncoding.includes('gzip') ||
-    response.headers.get('Content-Encoding')
-  ) {
-    return response;
-  }
-  const compressed = response.body.pipeThrough(new CompressionStream('gzip'));
-  const headers = new Headers(response.headers);
-  headers.set('Content-Encoding', 'gzip');
-  headers.delete('Content-Length');
-  return new Response(compressed, { status: 200, headers });
 }
 
 export default {
@@ -151,9 +126,7 @@ export default {
         for (const [k, v] of Object.entries(CORS_HEADERS)) {
           resp.headers.set(k, v);
         }
-        // Compress on the fly — cached response is always uncompressed
-        const acceptEncoding = request.headers.get('Accept-Encoding') || '';
-        return maybeCompress(resp, key, acceptEncoding);
+        return resp;
       }
     }
 
@@ -192,7 +165,6 @@ export default {
 
     // ── GET: full body or Range ─────────────────────────────────────
     let object: R2ObjectBody | R2Object | null;
-    const acceptEncoding = request.headers.get('Accept-Encoding') || '';
 
     if (rangeHeader) {
       const match = rangeHeader.match(/bytes=(\d+)-(\d*)/);
@@ -215,9 +187,9 @@ export default {
 
     const response = buildR2Response(object, key, rangeHeader);
 
-    // ── Store UNCOMPRESSED response in edge cache ───────────────────
-    // Cache the clean R2 response so that compression doesn't interfere
-    // with cache storage.  Gzip is applied on the way out to the client.
+    // ── Store response in edge cache ────────────────────────────────
+    // Cloudflare's edge handles gzip/br compression automatically based
+    // on Content-Type and Accept-Encoding — no manual compression needed.
     if (cache) {
       const status = response.status;
       if (status === 200 || status === 206) {
@@ -226,7 +198,6 @@ export default {
       }
     }
 
-    // Compress JSON for the client (after caching the uncompressed version)
-    return maybeCompress(response, key, acceptEncoding);
+    return response;
   },
 };
