@@ -34,6 +34,9 @@ function isNoCacheFile(key: string): boolean {
   return key === 'data_version.json';
 }
 
+// Increment when edge-cache storage format changes to invalidate stale entries.
+const EDGE_CACHE_VER = '2';
+
 function getContentType(key: string): string | null {
   if (key.endsWith('.pmtiles')) return 'application/octet-stream';
   if (key.endsWith('.json'))    return 'application/json; charset=utf-8';
@@ -86,7 +89,8 @@ function maybeCompress(
     response.status !== 200 ||
     !response.body ||
     !key.endsWith('.json') ||
-    !acceptEncoding.includes('gzip')
+    !acceptEncoding.includes('gzip') ||
+    response.headers.get('Content-Encoding')
   ) {
     return response;
   }
@@ -126,16 +130,16 @@ export default {
     const useEdgeCache = !isNoCacheFile(key);
     const cache = useEdgeCache ? caches.default : null;
 
-    // Build a cache key that distinguishes Range requests.
-    // Range requests for the same URL but different byte ranges must
-    // map to different cache entries.
-    let cacheKey = request;
+    // Build a cache key that distinguishes Range requests and includes
+    // a version param to invalidate stale entries when caching logic changes.
+    let cacheKey: Request | undefined;
     const rangeHeader = request.headers.get('Range');
-    if (useEdgeCache && rangeHeader) {
-      // Append range as a query param so the cache treats each slice
-      // as a separate entry (CF cache keys on URL, not Vary: Range).
+    if (useEdgeCache) {
       const rkUrl = new URL(request.url);
-      rkUrl.searchParams.set('_r', rangeHeader);
+      rkUrl.searchParams.set('_cv', EDGE_CACHE_VER);
+      if (rangeHeader) {
+        rkUrl.searchParams.set('_r', rangeHeader);
+      }
       cacheKey = new Request(rkUrl.toString(), { method: 'GET' });
     }
 

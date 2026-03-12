@@ -52,7 +52,9 @@ async function loadWaterbodyData() {
         return JSON.parse(readFileSync(JSON_PATH, 'utf8'));
     }
     console.log('[prerender] Local file not found, fetching from R2...');
-    const res = await fetch(R2_DATA_URL);
+    const res = await fetch(R2_DATA_URL, {
+        headers: { 'Accept-Encoding': 'identity' },
+    });
     if (!res.ok) {
         throw new Error(`Failed to fetch waterbody_data.json from R2: ${res.status} ${res.statusText}`);
     }
