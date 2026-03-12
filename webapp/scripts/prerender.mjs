@@ -221,6 +221,5 @@ const sitemap = [
 ].join('\n');
 
 writeFileSync(SITEMAP_PATH, sitemap, 'utf8');
-a
 console.log(`[prerender] ${written} waterbody pages → dist/waterbody/`);
 console.log(`[prerender] sitemap.xml → ${sitemapUrls.length + 1} URLs`);
