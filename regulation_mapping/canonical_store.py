@@ -73,7 +73,7 @@ WEIGHTS = {
     "side_channel_penalty": 0.0,
 }
 
-PERCENTILES = {5: 100.0, 6: 99.99, 7: 99.97, 8: 99.0, 9: 95.0, 10: 0.0}
+PERCENTILES = {5: 100.0, 6: 99.99, 7: 99.97, 8: 99.0, 10: 95.0, 11: 0.0}
 
 LAKE_ZOOM_THRESHOLDS = {
     4: 100_000_000,

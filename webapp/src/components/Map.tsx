@@ -538,42 +538,10 @@ const MapComponent = () => {
     useEffect(() => { selectedFeatureRef.current = selectedFeature; }, [selectedFeature]);
     useEffect(() => { mobilePanelStateRef.current = mobilePanelState; }, [mobilePanelState]);
 
-    // When the mobile panel is re-expanded from partial while a
-    // feature is selected, fly back to that feature so it's visible again.
-    // Aspect-ratio picks padding: tall features use partial-size padding so
-    // they frame well; squarish features use full expanded padding.
-    // Panel state is never changed — the user chose to expand.
+    // Track mobile panel state transitions (no auto-zoom — user can use
+    // the "Zoom to Feature" button in InfoPanel to fly to the feature).
     useEffect(() => {
-        const prev = prevMobilePanelStateRef.current;
         prevMobilePanelStateRef.current = mobilePanelState;
-
-        if (
-            mobilePanelState === 'expanded' &&
-            prev !== 'expanded' &&
-            isMobileViewport()
-        ) {
-            const map = mapRef.current;
-            const feat = selectedFeatureRef.current;
-            if (!map || !feat) return;
-
-            const targetMin = (feat.minzoom || 10) + 0.25;
-            if (feat.bbox) {
-                const bounds = new maplibregl.LngLatBounds([feat.bbox[0], feat.bbox[1]], [feat.bbox[2], feat.bbox[3]]);
-                const { padding } = getMobilePaddingForBounds(bounds);
-                flyToBbox(map, feat.bbox, padding, targetMin, 600);
-            } else if (feat.geometry) {
-                const bounds = new maplibregl.LngLatBounds();
-                extendBoundsWithGeometry(bounds, feat.geometry);
-                if (!bounds.isEmpty()) {
-                    const { padding } = getMobilePaddingForBounds(bounds);
-                    const camera = map.cameraForBounds(bounds, { padding });
-                    if (camera) {
-                        const finalZoom = Math.max(camera.zoom || 0, targetMin);
-                        map.flyTo({ ...camera, zoom: Math.min(finalZoom, 15), duration: 600 });
-                    }
-                }
-            }
-        }
     }, [mobilePanelState]);
 
     // On desktop, shrink the map viewport when the info panel opens so it

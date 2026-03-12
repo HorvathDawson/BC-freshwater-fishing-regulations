@@ -370,18 +370,24 @@ export const createRegulationLayers = (): LayerSpecification[] => {
         type: 'line',
         source: 'regulations',
         'source-layer': 'management_units',
-        minzoom: 9,
+        minzoom: 7,
         paint: {
-            'line-color': '#6b6b6b',
+            'line-color': '#555555',
             'line-width': [
                 'interpolate',
                 ['linear'],
                 ['zoom'],
-                4, 0.6,
-                8, 1.0,
-                12, 1.6
+                7, 1.2,
+                9, 1.5,
+                12, 1.8
             ],
-            'line-opacity': 0.45,
+            'line-opacity': [
+                'interpolate', ['linear'], ['zoom'],
+                7, 0.55,
+                8, 0.6,
+                9, 0.6,
+                11, 0.65,
+            ],
             'line-dasharray': [2, 3]
         },
         layout: {
@@ -1195,12 +1201,13 @@ export const createAdminLabelLayers = (): LayerSpecification[] => {
             'symbol-placement': 'line',
             'text-field': ['get', 'mu_code'],
             'text-font': ['Noto Sans Bold'],
-            'text-size': ['interpolate', ['linear'], ['zoom'], 8, 9, 9, 11, 12, 13],
-            'text-allow-overlap': true,
+            'text-size': ['interpolate', ['linear'], ['zoom'], 8, 11, 9, 13, 12, 15],
+            'text-allow-overlap': false,
             'text-ignore-placement': false,
-            'symbol-spacing': ['interpolate', ['linear'], ['zoom'], 8, 200, 10, 300, 13, 400],
-            'text-max-angle': 30,
+            'symbol-spacing': ['interpolate', ['linear'], ['zoom'], 8, 150, 10, 200, 13, 200],
+            'text-max-angle': 15,
             'text-offset': [0, -0.6],
+            'symbol-avoid-edges': true,
         },
         paint: {
             'text-color': '#444444',
