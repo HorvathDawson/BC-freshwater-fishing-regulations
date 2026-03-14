@@ -20,7 +20,7 @@ output:
     metadata: "output/fwa/fwa_metadata.pickle"
     temp: "output/fwa/temp"
   
-  # Regulation Mapping Pipeline Outputs
+  # Regulation Mapping Pipeline Outputs (v1)
   regulation_mapping:
     base: "output/regulation_mapping"
     regulations_merged_gpkg: "output/fwa/regulations_merged.gpkg"
@@ -28,6 +28,17 @@ output:
     regulations_json: "output/fwa/regulations.json"
     search_index: "output/fwa/search_index.json"
     cache_dir: "output/regulation_mapping/.geom_cache"
+
+  # Regulation Mapping V2 Pipeline Outputs
+  regulation_mapping_v2:
+    base: "output/regulation_mapping_v2"
+    atlas: "output/regulation_mapping_v2/atlas.pkl"
+    pmtiles: "output/regulation_mapping_v2/freshwater_atlas.pmtiles"
+    match_table: "output/regulation_mapping_v2/match_table.json"
+    in_season: "output/regulation_mapping_v2/in_season_changes.json"
+    extraction: "output/regulation_mapping_v2/extraction"
+    parsing: "output/regulation_mapping_v2/parsing"
+    regulation_index: "output/regulation_mapping_v2/regulation_index.json"
 
 # ============================================================================
 # Input Data Directories

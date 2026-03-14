@@ -133,7 +133,7 @@ function legacyFilterToExpression(f: any): any {
     }
 }
 
-const INTERACTABLE_LAYERS = ['streams', 'lakes-fill', 'wetlands-fill', 'manmade-fill', 'ungazetted-circle'];
+const INTERACTABLE_LAYERS = ['streams', 'lakes-fill', 'wetlands-fill', 'manmade-fill'];
 const ADMIN_FILL_LAYERS = [
     'admin_parks_nat-fill', 'admin_parks_bc-fill', 'admin_wma-fill',
     'admin_watersheds-fill', 'admin_historic_sites-fill', 'admin_osm_admin_boundaries-fill',
@@ -155,7 +155,7 @@ const SL_LAYER_IDS = [
     'sl-ungazetted',
 ];
 /** Matches nothing — used to hide highlight/selection layers when inactive. */
-const FILTER_NONE: maplibregl.FilterSpecification = ['==', ['get', 'frontend_group_id'], ''];
+const FILTER_NONE: maplibregl.FilterSpecification = ['literal', false] as any;
 
 // --- STYLE EXPRESSIONS ---
 const STREAM_LINE_WIDTH = ['interpolate', ['linear'], ['zoom'], 4, ['+', 1.5, ['*', ['coalesce', ['get', 'stream_order'], 1], 0.1]], 8, ['+', 2, ['*', ['coalesce', ['get', 'stream_order'], 1], 0.15]], 11, ['*', ['+', 1.5, ['*', ['coalesce', ['get', 'stream_order'], 1], 0.5]], 1.5], 12, ['*', ['+', 1.5, ['*', ['coalesce', ['get', 'stream_order'], 1], 0.5]], 2], 14, ['*', ['+', 1.5, ['*', ['coalesce', ['get', 'stream_order'], 1], 0.5]], 3], 16, ['*', ['+', 1.5, ['*', ['coalesce', ['get', 'stream_order'], 1], 0.5]], 4]];
@@ -492,7 +492,7 @@ const MapComponent = () => {
     const [highlightedOption, setHighlightedOption] = useState<FeatureOption | null>(null);
     const [highlightedSearchResult, setHighlightedSearchResult] = useState<SearchableFeature | null>(null);
     const [searchableFeatures, setSearchableFeatures] = useState<SearchableFeature[]>([]);
-    const [dataLoaded, setDataLoaded] = useState(false);
+    const [dataLoaded, setDataLoaded] = useState(true); // No data service — always loaded
     const [mapReady, setMapReady] = useState(false);
     // Fetched once from data_version.json (no-store). null = not yet resolved.
     // Used as ?v= query param on PMTiles URLs to bust browser cache on deploys.
@@ -755,259 +755,19 @@ const MapComponent = () => {
         setGroupFilter(map, SL_LAYER_IDS, null);
     }, []);
 
+    // Data service loading — disabled while transitioning to FreshWaterAtlas PMTiles.
+    // Components remain wired up; re-enable this block to restore search/panel data.
     useEffect(() => {
-        Promise.all([
-            waterbodyDataService.getWaterbodies(),
-            waterbodyDataService.getRegSets(),
-            waterbodyDataService.getCompact(),
-        ]).then(([waterbodies, regSets, compact]) => {
-            // Stash reg_sets / compact for click-time resolution of unnamed features
-            regSetsRef.current = regSets || [];
-            compactRef.current = compact || {};
-
-            // Use backend search index directly - it's already grouped by physical stream
-            // Only named features are in the waterbodies array (unnamed are in compact dict)
-            const features: SearchableFeature[] = (waterbodies || []).map((item: WaterbodyItem) => {
-                const normalizedType = item.type === 'streams' ? 'stream' : item.type === 'lakes' ? 'lake' : item.type;
-                const typeLabel = normalizedType === 'stream' ? 'Stream' : normalizedType === 'lake' ? 'Lake' : normalizedType === 'wetland' ? 'Wetland' : 'Waterbody';
-                const displayName = item.display_name || item.gnis_name || `Unnamed ${typeLabel}`;
-                
-                return {
-                    id: item.id,
-                    display_name: displayName,
-                    gnis_name: item.gnis_name,
-                    name: displayName,
-                    type: normalizedType,
-                    name_variants: item.name_variants || [],
-                    regulation_segments: item.regulation_segments || [],
-                    _frontend_group_ids: item.frontend_group_ids || [],
-                    properties: {
-                        ...item.properties,
-                        zones: item.zones || '',
-                        mgmt_units: item.mgmt_units,
-                        region_name: item.region_name || '',
-                        regulation_ids: item.regulation_ids,
-                        fwa_watershed_code: item.properties?.fwa_watershed_code || '',
-                        minzoom: item.min_zoom || 4,
-                        total_length_km: item.total_length_km || 0,
-                    },
-                    bbox: isValidBbox(item.bbox) ? item.bbox : undefined,
-                } as SearchableFeature;
-            });
-            
-            setSearchableFeatures(features);
-            
-            // Build lookup indexed by frontend_group_id → {feature, segment}
-            // Uses top-level frontend_group_ids + per-segment frontend_group_id for segment resolution
-            const lookup = new Map<string, { feature: SearchableFeature; segment: RegulationSegment | null }>();
-            for (const feat of features) {
-                const segments = feat.regulation_segments || [];
-                
-                // Index each segment by its frontend_group_id + group_id
-                for (const seg of segments) {
-                    if (seg.frontend_group_id) {
-                        lookup.set(seg.frontend_group_id, { feature: feat, segment: seg });
-                    }
-                    if (seg.group_id) {
-                        lookup.set(seg.group_id, { feature: feat, segment: seg });
-                    }
-                }
-
-                // Also index top-level frontend_group_ids (for quick waterbody-level lookups)
-                const topIds: string[] = (feat as any)._frontend_group_ids || [];
-                for (const fgid of topIds) {
-                    if (!lookup.has(fgid)) {
-                        // Only set if not already indexed by a segment (segment takes precedence)
-                        lookup.set(fgid, { feature: feat, segment: segments[0] || null });
-                    }
-                }
-
-                // Fallback: index by feature ID, group_id, waterbody_key for lakes without segments
-                if (segments.length === 0) {
-                    if (feat.id) lookup.set(feat.id, { feature: feat, segment: null });
-                    if (feat.properties?.group_id) lookup.set(String(feat.properties.group_id), { feature: feat, segment: null });
-                    if (feat.properties?.waterbody_key) lookup.set(String(feat.properties.waterbody_key), { feature: feat, segment: null });
-                }
-            }
-            searchLookupRef.current = lookup;
-
-            // Build waterbody_group → SearchableFeature[] reverse index.
-            // Key: fwa_watershed_code (streams) or waterbody_key (polygons).
-            // Values are references to the same objects already in `features` — no copies.
-            const wbgIndex = new Map<string, SearchableFeature[]>();
-            for (const feat of features) {
-                const rawWbg = feat.properties?.waterbody_group as string | undefined;
-                if (!rawWbg) continue;
-                const wbg = collapseWbg(rawWbg);
-                const bucket = wbgIndex.get(wbg);
-                if (bucket) {
-                    bucket.push(feat);
-                } else {
-                    wbgIndex.set(wbg, [feat]);
-                }
-            }
-            wbgIndexRef.current = wbgIndex;
-            setDataLoaded(true);
-        }).catch(console.error);
+        // TODO: Re-enable when regulation data is available via reaches.json
+        // For now, components receive empty data and remain inert.
+        setDataLoaded(true);
     }, []);
 
-    // Restore feature selection from URL on initial load
+    // URL restoration — disabled while transitioning to FreshWaterAtlas PMTiles.
+    // TODO: Re-enable when regulation data is available via reaches.json
     useEffect(() => {
-        if (urlRestoredRef.current) return;
-        
-        // Wait for both data and map to be ready
-        if (searchLookupRef.current.size === 0) return;
-        if (!mapReady) return;
-        const map = mapRef.current;
-        if (!map) return;
-        
-        // Mark as restored regardless of whether we find a feature
         urlRestoredRef.current = true;
-        
-        const urlState = parseUrlState();
-
-        // Resolve the lookup result from either the canonical wbg path or a legacy fgid param.
-        let lookupResult: { feature: SearchableFeature; segment: RegulationSegment | null } | undefined;
-        let resolvedFgid: string | undefined;
-
-        if (urlState.waterbodyGroup) {
-            // Canonical /waterbody/<wbg>/ path — resolve the target section.
-            const bucket = wbgIndexRef.current.get(urlState.waterbodyGroup);
-            if (!bucket || bucket.length === 0) {
-                console.warn('URL waterbody group not found in index:', urlState.waterbodyGroup);
-                return;
-            }
-            // If ?s=<fgid> is present, restore the user's last-viewed section.
-            // Find the sibling whose regulation_segments contain the matching fgid.
-            let feat = bucket[0];
-            if (urlState.activeFgid) {
-                const match = bucket.find(sf =>
-                    (sf.regulation_segments || []).some(s => s.frontend_group_id === urlState.activeFgid) ||
-                    (sf._frontend_group_ids || []).includes(urlState.activeFgid!)
-                );
-                if (match) feat = match;
-            }
-            // If ?s=<fgid> points to a specific segment, restore that segment.
-            // Otherwise fall back to the first segment (default tab).
-            const seg = (urlState.activeFgid
-                ? feat.regulation_segments?.find(s => s.frontend_group_id === urlState.activeFgid)
-                : undefined) ?? feat.regulation_segments?.[0] ?? null;
-            // Prefer the segment's own fgid; fall back to the feature-level fgid
-            // for waterbodies that have no regulation segments (edge case).
-            resolvedFgid = seg?.frontend_group_id || (feat as any)._frontend_group_ids?.[0];
-            lookupResult = { feature: feat, segment: seg };
-        } else if (urlState.featureId) {
-            // Legacy ?f=<fgid> link — resolve via fgid lookup.
-            lookupResult = searchLookupRef.current.get(urlState.featureId);
-            resolvedFgid = urlState.featureId;
-            if (!lookupResult) {
-                // Unnamed / compact-only feature — not in the named search index.
-                // Build a synthetic feature from the compact dict so the URL still restores.
-                const ri = compactRef.current[urlState.featureId];
-                if (ri === undefined) {
-                    console.warn('URL feature not found in search index or compact dict:', urlState.featureId);
-                    return;
-                }
-                const regIds = regSetsRef.current[ri] || '';
-                const syntheticFeature: SearchableFeature = {
-                    id: urlState.featureId,
-                    display_name: 'Unnamed Stream',
-                    gnis_name: '',
-                    name: 'Unnamed Stream',
-                    type: 'stream',
-                    name_variants: [],
-                    regulation_segments: [],
-                    _frontend_group_ids: [urlState.featureId],
-                    properties: {
-                        frontend_group_id: urlState.featureId,
-                        group_id: '',
-                        waterbody_key: '',
-                        regulation_ids: regIds,
-                        regulation_count: regIds.split(',').filter(Boolean).length,
-                        zones: '',
-                        mgmt_units: '',
-                        region_name: '',
-                        fwa_watershed_code: '',
-                        minzoom: 10,
-                        total_length_km: 0,
-                    },
-                } as SearchableFeature;
-                lookupResult = { feature: syntheticFeature, segment: null };
-            }
-        } else {
-            return;
-        }
-
-        const { feature, segment } = lookupResult;
-
-        // Build feature info from JSON via the unified builder.
-        // Pass resolved fgid as frontendGroupId so the selection filter
-        // matches tiles even when the segment's own fgid differs.
-        const featureInfo = buildFeatureFromJSON(feature, segment, {
-            frontendGroupId: resolvedFgid,
-        });
-        const featureBbox = featureInfo.bbox;
-        
-        // Fly to the feature's bbox — panel starts in 'partial' mode on
-        // mobile so that long features still frame nicely (~65 vh visible).
-        if (featureBbox) {
-            const isMobile = isMobileViewport();
-            const bounds = new maplibregl.LngLatBounds([featureBbox[0], featureBbox[1]], [featureBbox[2], featureBbox[3]]);
-            const { padding, panelState } = isMobile
-                ? getMobilePaddingForBounds(bounds)
-                : { padding: { top: 80, bottom: 80, left: 80, right: 350 }, panelState: 'expanded' as CollapseState };
-            flyToBbox(map, featureBbox, padding, (featureInfo.minzoom || 10) + 0.25);
-            if (isMobile) setMobilePanelState(panelState);
-        }
-        
-        setSelectedFeature(featureInfo);
-        
-        // Poll for tile geometry to enable highlighting
-        const srcLayer = featureInfo.sourceLayer || resolveSourceLayer(featureInfo.type);
-        let attempts = 0;
-        const pollInterval = setInterval(() => {
-            attempts++;
-            
-            // Try frontend_group_id filter first
-            let found: any[] = [];
-            const fgid = featureInfo.properties.frontend_group_id;
-            const gid = featureInfo.properties.group_id;
-            const wbKey = featureInfo.properties.waterbody_key;
-            
-            if (fgid) {
-                const filter = buildFeatureFilter({ properties: { frontend_group_id: fgid } } as unknown as FeatureInfo);
-                found = map.querySourceFeatures('regulations', { sourceLayer: srcLayer, filter: filter as maplibregl.FilterSpecification });
-            }
-            
-            // Fall back to group_id filter
-            if (!found.length && gid) {
-                const filter = buildFeatureFilter({ properties: { group_id: gid } } as unknown as FeatureInfo);
-                found = map.querySourceFeatures('regulations', { sourceLayer: srcLayer, filter: filter as maplibregl.FilterSpecification });
-            }
-            
-            // Fall back to waterbody_key for lakes
-            if (!found.length && wbKey) {
-                const filter = buildFeatureFilter({ properties: { waterbody_key: wbKey } } as unknown as FeatureInfo);
-                found = map.querySourceFeatures('regulations', { sourceLayer: srcLayer, filter: filter as maplibregl.FilterSpecification });
-            }
-            
-            if (found.length > 0 || attempts > 25) {
-                clearInterval(pollInterval);
-                if (found.length > 0) {
-                    const bestTile = found.reduce((best, tile) => {
-                        const bestOrder = best.properties?.stream_order || 0;
-                        const tileOrder = tile.properties?.stream_order || 0;
-                        return tileOrder > bestOrder ? tile : best;
-                    }, found[0]);
-                    
-                    setSelectedFeature(prev => prev ? {
-                        ...prev,
-                        geometry: (bestTile.geometry || bestTile.toJSON?.().geometry) as FeatureGeometry,
-                    } : null);
-                }
-            }
-        }, 200);
-    }, [searchableFeatures, mapReady]);
+    }, [mapReady]);
 
     // Update URL when a feature is selected or deselected.
     // Named features write the canonical /waterbody/<wbg>/ path.
@@ -1077,7 +837,7 @@ const MapComponent = () => {
                 sprite: 'https://protomaps.github.io/basemaps-assets/sprites/v4/light',
                 sources: {
                     protomaps: { type: 'vector', url: `${TILE_BASE}/bc.pmtiles${vParam}`, attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> · <a href="https://protomaps.com">Protomaps</a>', maxzoom: 15 },
-                    regulations: { type: 'vector', url: `${TILE_BASE}/regulations_merged.pmtiles${vParam}`, attribution: '<a href="https://www2.gov.bc.ca/gov/content/data/open-data/open-government-licence-bc">OGL-BC</a>', minzoom: 4, maxzoom: 12 },
+                    regulations: { type: 'vector', url: `${TILE_BASE}/freshwater_atlas.pmtiles${vParam}`, attribution: '<a href="https://www2.gov.bc.ca/gov/content/data/open-data/open-government-licence-bc">OGL-BC</a>', minzoom: 4, maxzoom: 12 },
                     satellite: { type: 'raster', tiles: [SATELLITE_CONFIG.url], tileSize: SATELLITE_CONFIG.tileSize, attribution: SATELLITE_CONFIG.attribution, maxzoom: SATELLITE_CONFIG.maxzoom }
                 },
                 // Base map (no labels) → regulation overlays → labels on top
@@ -1196,16 +956,15 @@ const MapComponent = () => {
                 id: 'admin_parks_nat-hatch',
                 type: 'fill',
                 source: 'regulations',
-                'source-layer': 'admin_parks_nat',
+                'source-layer': 'parks_nat',
                 paint: { 'fill-pattern': 'hatch-diagonal', 'fill-opacity': 0.60 },
             } as any);
 
             map.addLayer({
-                id: 'admin_parks_bc-eco-hatch',
+                id: 'eco_reserves-hatch',
                 type: 'fill',
                 source: 'regulations',
-                'source-layer': 'admin_parks_bc',
-                filter: ['==', ['get', 'admin_type'], 'ECOLOGICAL_RESERVE'],
+                'source-layer': 'eco_reserves',
                 paint: { 'fill-pattern': 'hatch-cross', 'fill-opacity': 0.50 },
             } as any);
 
@@ -1306,169 +1065,16 @@ const MapComponent = () => {
         });
 
         map.on('click', (e) => {
-            const features = map.queryRenderedFeatures([[e.point.x - 15, e.point.y - 15], [e.point.x + 15, e.point.y + 15]], { layers: INTERACTABLE_LAYERS });
-            if (!features.length) {
-                // No FWA features — check for tidal boundary
-                const tidalHits = map.queryRenderedFeatures(
-                    [[e.point.x - 1, e.point.y - 1], [e.point.x + 1, e.point.y + 1]],
-                    { layers: ['tidal_boundary-fill'] }
-                );
-                if (tidalHits.length) {
-                    const url = tidalHits[0].properties?.info_url || 'https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/licence-permis/index-eng.html';
-                    clearSelection();
-                    setSelectedFeature({
-                        type: 'lake',
-                        properties: {
-                            display_name: 'Tidal Waters',
-                            _tidal: true,
-                            _tidal_url: url,
-                        },
-                    } as FeatureInfo);
-                    return;
-                }
-                return clearSelection();
-            }
-
-            // Query admin boundary layers at click point to resolve zone names
-            const adminHits = map.queryRenderedFeatures(
-                [[e.point.x - 1, e.point.y - 1], [e.point.x + 1, e.point.y + 1]],
-                { layers: ADMIN_FILL_LAYERS }
+            // Click handler — neutered while transitioning to FreshWaterAtlas PMTiles.
+            // InfoPanel and DisambiguationMenu remain wired up but won't receive data.
+            // TODO: Re-enable feature selection when regulation data is available.
+            const features = map.queryRenderedFeatures(
+                [[e.point.x - 15, e.point.y - 15], [e.point.x + 15, e.point.y + 15]],
+                { layers: INTERACTABLE_LAYERS }
             );
-            const adminZonesByRegId: Record<string, string[]> = {};
-            for (const af of adminHits) {
-                const aProps = af.properties || {};
-                const regIds = (aProps.regulation_ids || '').split(',').filter(Boolean);
-                const zoneName = aProps.name || '';
-                if (!zoneName) continue;
-                for (const rid of regIds) {
-                    if (!adminZonesByRegId[rid]) adminZonesByRegId[rid] = [];
-                    if (!adminZonesByRegId[rid].includes(zoneName)) adminZonesByRegId[rid].push(zoneName);
-                }
-            }
-
-            // Deduplicate by frontend_group_id — each unique ID is one selectable option.
-            // Properties come exclusively from the JSON lookup; tiles only provide geometry.
-            const seenIds = new Set<string>();
-            const options: FeatureOption[] = [];
-            
-            for (const f of features) {
-                const tileProps = f.properties || {};
-                const frontendGroupId = tileProps.frontend_group_id || '';
-                const groupId = tileProps.group_id || '';
-                const waterbodyKey = tileProps.waterbody_key || '';
-                const dedupeKey = frontendGroupId || groupId || waterbodyKey || `${tileProps.linear_feature_id || ''}`;
-                
-                if (!dedupeKey) continue;
-                if (seenIds.has(dedupeKey)) continue;
-                seenIds.add(dedupeKey);
-                
-                // JSON lookup — the single source of truth for all menu data
-                const lookupResult = searchLookupRef.current.get(frontendGroupId) || 
-                                    searchLookupRef.current.get(groupId) ||
-                                    searchLookupRef.current.get(waterbodyKey);
-                
-                if (lookupResult) {
-                    // ✅ JSON-first: build entirely from JSON, only take geometry from tile
-                    const option = buildFeatureFromJSON(lookupResult.feature, lookupResult.segment, {
-                        geometry: f.toJSON().geometry,
-                        source: f.layer.source,
-                        sourceLayer: (f.layer as any)['source-layer'],
-                        frontendGroupId: frontendGroupId,
-                        extras: { _adminZones: adminZonesByRegId as any },
-                    });
-                    options.push(option);
-                } else {
-                    // Unnamed / zone-only feature — not in named lookup.
-                    // Resolve regulation data from the compact dict (fgid → ri → reg_sets).
-                    const ri = compactRef.current[frontendGroupId] ??
-                               compactRef.current[groupId] ??
-                               compactRef.current[waterbodyKey];
-                    const regIds = ri !== undefined ? (regSetsRef.current[ri] || '') : '';
-
-                    if (!regIds) {
-                        // No compact entry and no named entry — data integrity issue
-                        console.warn(
-                            `[Map] Tile feature not in JSON lookup or compact dict. ` +
-                            `frontend_group_id="${frontendGroupId}", layer="${f.layer.id}".`
-                        );
-                        continue;
-                    }
-
-                    // Build a synthetic SearchableFeature from tile properties + compact regs
-                    const srcLayer = (f.layer as any)['source-layer'] || '';
-                    const typeLabel = srcLayer === 'streams' ? 'Stream' : srcLayer === 'lakes' ? 'Lake' : srcLayer === 'wetlands' ? 'Wetland' : 'Waterbody';
-                    const tileDisplayName = String(tileProps.display_name || '');
-                    const syntheticFeature: SearchableFeature = {
-                        id: frontendGroupId || groupId || waterbodyKey,
-                        display_name: tileDisplayName || `Unnamed ${typeLabel}`,
-                        gnis_name: '',
-                        name: tileDisplayName || `Unnamed ${typeLabel}`,
-                        type: srcLayer,
-                        name_variants: [],
-                        regulation_segments: [],
-                        _frontend_group_ids: frontendGroupId ? [frontendGroupId] : [],
-                        properties: {
-                            frontend_group_id: frontendGroupId,
-                            group_id: groupId,
-                            waterbody_key: waterbodyKey,
-                            regulation_ids: regIds,
-                            regulation_count: regIds.split(',').filter(Boolean).length,
-                            zones: '',
-                            mgmt_units: '',
-                            region_name: '',
-                            fwa_watershed_code: '',
-                            minzoom: 10,
-                            total_length_km: 0,
-                        },
-                    } as SearchableFeature;
-
-                    const option = buildFeatureFromJSON(syntheticFeature, null, {
-                        geometry: f.toJSON().geometry,
-                        source: f.layer.source,
-                        sourceLayer: srcLayer,
-                        frontendGroupId: frontendGroupId,
-                        extras: { _adminZones: adminZonesByRegId as any },
-                    });
-                    options.push(option);
-                }
-            }
-
-            clearSelection();
-
-            // Named multi-segment waterbodies: if every option shares the same non-empty
-            // waterbody_group, all tile hits are sections of the same physical waterbody.
-            // Collapse to the topmost hit — InfoPanel tab bar handles section switching.
-            // DisambiguationMenu is reserved for genuinely ambiguous (distinct waterbody) clicks.
-            if (options.length > 1) {
-                const firstWbg = options[0].properties.waterbody_group as string | undefined;
-                if (firstWbg && options.every(o => o.properties.waterbody_group === firstWbg)) {
-                    options.splice(1);
-                }
-            }
-
-            if (options.length === 1) {
-                const selected = options[0];
-                setSelectedFeature(selected);
-
-                // On mobile, set panel state based on feature size.
-                // No flyTo — user stays at current location; InfoPanel has "Zoom to" button.
-                const isMobile = isMobileViewport();
-
-                if (isMobile && selected.bbox) {
-                    const bounds = new maplibregl.LngLatBounds(
-                        [selected.bbox[0], selected.bbox[1]],
-                        [selected.bbox[2], selected.bbox[3]]
-                    );
-                    const { panelState } = getMobilePaddingForBounds(bounds);
-                    setMobilePanelState(panelState);
-                } else if (isMobile) {
-                    setMobilePanelState('partial');
-                }
-            } else if (options.length > 1) { 
-                setDisambigOptions(options); 
-                setDisambigPosition({ x: e.point.x, y: e.point.y }); 
-                isDisambigOpenRef.current = true; 
-            }
+            if (!features.length) return;
+            // Log tile properties for debugging during development
+            console.debug('[Map] clicked feature:', features[0].properties);
         });
 
         mapRef.current = map;

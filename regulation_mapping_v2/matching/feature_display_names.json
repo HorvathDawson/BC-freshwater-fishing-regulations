@@ -1,0 +1,52 @@
+[
+  {
+    "display_name": "McArthur Island Slough",
+    "note": "Unnamed slough near McArthur Island in Region 3 MU 3-12.",
+    "blue_line_keys": [
+      "355994157"
+    ]
+  },
+  {
+    "display_name": "Jeperson Side Channel",
+    "note": "Unnamed side channel of Fraser River near Mission, Region 2.",
+    "blue_line_keys": [
+      "355994571",
+      "355994568",
+      "355994563",
+      "355994564",
+      "355994562",
+      "355994572"
+    ]
+  },
+  {
+    "display_name": "Herrling Island Side Channel",
+    "note": "Unnamed side channel of Fraser River near Herrling Island, Region 2.",
+    "blue_line_keys": [
+      "355992188",
+      "355992191",
+      "355992201",
+      "355992200",
+      "355992187",
+      "355992198",
+      "355992202"
+    ]
+  },
+  {
+    "display_name": "Seabird Island North Side Channel",
+    "note": "Unnamed side channel of Fraser River near Seabird Island, Region 2.",
+    "blue_line_keys": [
+      "355991780",
+      "355991778",
+      "355991779",
+      "355991777"
+    ]
+  },
+  {
+    "display_name": "Squamish Powerhouse Channel",
+    "note": "Squamish Powerhouse Channel in Region 2 MU 2-6. Links to 5 specific stream segments representing the channel. Reference: https://a100.gov.bc.ca/pub/acat/documents/r40717/09_CMS_05_powerhouse_1388682280782_8673845708.pdf",
+    "blue_line_keys": [
+      "360219234",
+      "360553991"
+    ]
+  }
+]

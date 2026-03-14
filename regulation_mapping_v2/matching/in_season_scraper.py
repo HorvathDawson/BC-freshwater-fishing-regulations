@@ -11,8 +11,8 @@ Output is a JSON file with one entry per section, each containing its rows.
 
 CLI
 ---
-    python -m regulation_mapping_v2.in_season_scraper
-    python -m regulation_mapping_v2.in_season_scraper --out path/to/output.json
+    python -m regulation_mapping_v2.matching.in_season_scraper
+    python -m regulation_mapping_v2.matching.in_season_scraper --out path/to/output.json
 """
 
 from __future__ import annotations
@@ -22,6 +22,7 @@ import json
 import logging
 import re
 import sys
+import yaml
 from collections import defaultdict
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
@@ -267,8 +268,11 @@ def reconcile_with_synopsis(
 
         for row in section_data.rows:
             matches, method = _match_water(
-                row.water, section_data.section,
-                region_names, provincial_names, all_names,
+                row.water,
+                section_data.section,
+                region_names,
+                provincial_names,
+                all_names,
             )
             row.synopsis_matches = list(dict.fromkeys(matches))
             row.match_method = method
@@ -350,8 +354,8 @@ def main() -> None:
     )
     parser.add_argument(
         "--out",
-        default="output/regulation_mapping_v2/in_season_changes.json",
-        help="Output JSON path",
+        default=None,
+        help="Output JSON path (default: from config.yaml)",
     )
     parser.add_argument(
         "--url",
@@ -360,15 +364,23 @@ def main() -> None:
     )
     parser.add_argument(
         "--match-table",
-        default="output/regulation_mapping_v2/match_table.json",
+        default=None,
+        help="Path to match_table.json (default: from config.yaml)",
         help="Path to match_table.json for reconciliation",
     )
-    parser.add_argument(
-        "--quiet", action="store_true", help="Suppress summary output"
-    )
+    parser.add_argument("--quiet", action="store_true", help="Suppress summary output")
     args = parser.parse_args()
 
     logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
+
+    # Resolve defaults from config.yaml
+    with open(Path(__file__).resolve().parents[2] / "config.yaml") as f:
+        cfg = yaml.safe_load(f)
+    v2_cfg = cfg["output"]["regulation_mapping_v2"]
+    out_path = Path(args.out) if args.out else Path(v2_cfg["in_season"])
+    match_table_path = (
+        Path(args.match_table) if args.match_table else Path(v2_cfg["match_table"])
+    )
 
     print(f"Fetching: {args.url}")
     result = scrape_in_season_changes(args.url)
@@ -377,16 +389,16 @@ def main() -> None:
         _print_summary(result)
 
     # Reconcile against match table if available
-    match_table_path = Path(args.match_table)
     if match_table_path.exists():
         print(f"Reconciling against: {match_table_path}")
         reconcile_with_synopsis(result, match_table_path)
         if not args.quiet:
             _print_reconciliation(result)
     else:
-        logger.warning(f"Match table not found at {match_table_path} — skipping reconciliation.")
+        logger.warning(
+            f"Match table not found at {match_table_path} — skipping reconciliation."
+        )
 
-    out_path = Path(args.out)
     save_result(result, out_path)
 
 

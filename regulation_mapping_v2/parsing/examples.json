@@ -1,0 +1,233 @@
+[
+  {
+    "input": {
+      "water": "ALICE LAKE",
+      "raw_regs": "[Includes Tributaries] No powered boats",
+      "symbols": ["Stocked", "Incl. Tribs"]
+    },
+    "output": {
+      "regs_verbatim": "[Includes Tributaries] No powered boats",
+      "includes_tributaries": true,
+      "tributary_only": false,
+      "entry_location_text": "",
+      "rules": [
+        {
+          "rule_text": "No powered boats",
+          "restriction_type": "vessel_restriction",
+          "details": "No powered boats",
+          "location_text": "",
+          "dates": []
+        }
+      ],
+      "audit_log": []
+    }
+  },
+  {
+    "input": {
+      "water": "COQUIHALLA RIVER",
+      "raw_regs": "Bait ban, single barbless hook.\nDec 1 - Mar 31: No fishing upstream of the Carolin Mine Road bridge.\nDaily quota of 2 trout.",
+      "symbols": []
+    },
+    "output": {
+      "regs_verbatim": "Bait ban, single barbless hook.\nDec 1 - Mar 31: No fishing upstream of the Carolin Mine Road bridge.\nDaily quota of 2 trout.",
+      "includes_tributaries": false,
+      "tributary_only": false,
+      "entry_location_text": "",
+      "rules": [
+        {
+          "rule_text": "Bait ban, single barbless hook.",
+          "restriction_type": "gear_restriction",
+          "details": "Bait ban",
+          "location_text": "",
+          "dates": []
+        },
+        {
+          "rule_text": "Bait ban, single barbless hook.",
+          "restriction_type": "gear_restriction",
+          "details": "Single barbless hook",
+          "location_text": "",
+          "dates": []
+        },
+        {
+          "rule_text": "Dec 1 - Mar 31: No fishing upstream of the Carolin Mine Road bridge.",
+          "restriction_type": "closure",
+          "details": "No fishing Dec 1 - Mar 31",
+          "location_text": "upstream of the Carolin Mine Road bridge",
+          "dates": ["Dec 1 - Mar 31"]
+        },
+        {
+          "rule_text": "Daily quota of 2 trout.",
+          "restriction_type": "harvest",
+          "details": "Daily quota of 2 trout",
+          "location_text": "",
+          "dates": []
+        }
+      ],
+      "audit_log": []
+    }
+  },
+  {
+    "input": {
+      "water": "ADAMS RIVER (downstream of Adams Lake)",
+      "raw_regs": "**Class II water.**\nAug 15 - Dec 31: no fishing.\nJan 1 - Jun 15: catch and release for all species.",
+      "symbols": ["Classified"]
+    },
+    "output": {
+      "regs_verbatim": "**Class II water.**\nAug 15 - Dec 31: no fishing.\nJan 1 - Jun 15: catch and release for all species.",
+      "includes_tributaries": false,
+      "tributary_only": false,
+      "entry_location_text": "downstream of Adams Lake",
+      "rules": [
+        {
+          "rule_text": "**Class II water.**",
+          "restriction_type": "licensing",
+          "details": "Class II water",
+          "location_text": "",
+          "dates": []
+        },
+        {
+          "rule_text": "Aug 15 - Dec 31: no fishing.",
+          "restriction_type": "closure",
+          "details": "No fishing Aug 15 - Dec 31",
+          "location_text": "",
+          "dates": ["Aug 15 - Dec 31"]
+        },
+        {
+          "rule_text": "Jan 1 - Jun 15: catch and release for all species.",
+          "restriction_type": "harvest",
+          "details": "Catch and release for all species Jan 1 - Jun 15",
+          "location_text": "",
+          "dates": ["Jan 1 - Jun 15"]
+        }
+      ],
+      "audit_log": []
+    }
+  },
+  {
+    "input": {
+      "water": "KOOTENAY RIVER'S TRIBUTARIES",
+      "raw_regs": "[Includes Tributaries] Daily quota of 2 trout (of which only 1 may be a bull trout). Release all bull trout Dec 1 - May 31.",
+      "symbols": ["Incl. Tribs"]
+    },
+    "output": {
+      "regs_verbatim": "[Includes Tributaries] Daily quota of 2 trout (of which only 1 may be a bull trout). Release all bull trout Dec 1 - May 31.",
+      "includes_tributaries": true,
+      "tributary_only": true,
+      "entry_location_text": "",
+      "rules": [
+        {
+          "rule_text": "Daily quota of 2 trout (of which only 1 may be a bull trout).",
+          "restriction_type": "harvest",
+          "details": "Daily quota of 2 trout (max 1 bull trout)",
+          "location_text": "",
+          "dates": []
+        },
+        {
+          "rule_text": "Release all bull trout Dec 1 - May 31.",
+          "restriction_type": "harvest",
+          "details": "Release all bull trout Dec 1 - May 31",
+          "location_text": "",
+          "dates": ["Dec 1 - May 31"]
+        }
+      ],
+      "audit_log": []
+    }
+  },
+  {
+    "input": {
+      "water": "ELK RIVER",
+      "raw_regs": "**Fly fishing only.** Single barbless hook.\nJun 15 - Oct 31: daily quota of 1 trout over 50 cm.",
+      "symbols": []
+    },
+    "output": {
+      "regs_verbatim": "**Fly fishing only.** Single barbless hook.\nJun 15 - Oct 31: daily quota of 1 trout over 50 cm.",
+      "includes_tributaries": false,
+      "tributary_only": false,
+      "entry_location_text": "",
+      "rules": [
+        {
+          "rule_text": "**Fly fishing only.** Single barbless hook.",
+          "restriction_type": "gear_restriction",
+          "details": "Fly fishing only",
+          "location_text": "",
+          "dates": []
+        },
+        {
+          "rule_text": "**Fly fishing only.** Single barbless hook.",
+          "restriction_type": "gear_restriction",
+          "details": "Single barbless hook",
+          "location_text": "",
+          "dates": []
+        },
+        {
+          "rule_text": "Jun 15 - Oct 31: daily quota of 1 trout over 50 cm.",
+          "restriction_type": "harvest",
+          "details": "Daily quota of 1 trout over 50 cm",
+          "location_text": "",
+          "dates": ["Jun 15 - Oct 31"]
+        }
+      ],
+      "audit_log": []
+    }
+  },
+  {
+    "input": {
+      "water": "SHUSWAP LAKE",
+      "raw_regs": "[Includes Tributaries] Daily quota of 5 trout.\nSee Note 42 on page 64 for kokanee restrictions.",
+      "symbols": ["Incl. Tribs"]
+    },
+    "output": {
+      "regs_verbatim": "[Includes Tributaries] Daily quota of 5 trout.\nSee Note 42 on page 64 for kokanee restrictions.",
+      "includes_tributaries": true,
+      "tributary_only": false,
+      "entry_location_text": "",
+      "rules": [
+        {
+          "rule_text": "Daily quota of 5 trout.",
+          "restriction_type": "harvest",
+          "details": "Daily quota of 5 trout",
+          "location_text": "",
+          "dates": []
+        },
+        {
+          "rule_text": "See Note 42 on page 64 for kokanee restrictions.",
+          "restriction_type": "note",
+          "details": "See Note 42 for kokanee restrictions",
+          "location_text": "",
+          "dates": []
+        }
+      ],
+      "audit_log": []
+    }
+  },
+  {
+    "input": {
+      "water": "COLUMBIA RIVER (upstream of Revelstoke Dam)",
+      "raw_regs": "Mainstem only. Bait ban.\nJan 1 - Jun 30: catch and release for all species.",
+      "symbols": []
+    },
+    "output": {
+      "regs_verbatim": "Mainstem only. Bait ban.\nJan 1 - Jun 30: catch and release for all species.",
+      "includes_tributaries": false,
+      "tributary_only": false,
+      "entry_location_text": "upstream of Revelstoke Dam",
+      "rules": [
+        {
+          "rule_text": "Bait ban.",
+          "restriction_type": "gear_restriction",
+          "details": "Bait ban",
+          "location_text": "",
+          "dates": []
+        },
+        {
+          "rule_text": "Jan 1 - Jun 30: catch and release for all species.",
+          "restriction_type": "harvest",
+          "details": "Catch and release for all species Jan 1 - Jun 30",
+          "location_text": "",
+          "dates": ["Jan 1 - Jun 30"]
+        }
+      ],
+      "audit_log": []
+    }
+  }
+]

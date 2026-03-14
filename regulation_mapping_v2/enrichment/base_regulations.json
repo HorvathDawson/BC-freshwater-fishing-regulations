@@ -1,0 +1,3976 @@
+[
+  {
+    "reg_id": "PROV_NAT_PARKS_CLOSED",
+    "source": "provincial",
+    "zone_ids": [],
+    "rule_text": "Freshwater fishing is prohibited in National Parks unless opened under the National Parks Fishing Regulations. Where open, anglers require a National Park Fishing Permit to fish in park waters.",
+    "restriction": {
+      "type": "Closed",
+      "details": "Fishing prohibited unless opened under National Parks Regulations. National Park Fishing Permit required where open."
+    },
+    "admin_targets": [
+      {
+        "layer": "parks_nat"
+      }
+    ],
+    "buffer_m": 500.0,
+    "notes": "Applies to all 7 National Parks in BC. Source: Provincial Regulations, 2025-2027 Synopsis, pages 9-10."
+  },
+  {
+    "reg_id": "PROV_ECO_RESERVES_CLOSED",
+    "source": "provincial",
+    "zone_ids": [],
+    "rule_text": "Fishing is prohibited in Ecological Reserves in B.C.",
+    "restriction": {
+      "type": "Closed",
+      "details": "Fishing prohibited in all Ecological Reserves."
+    },
+    "admin_targets": [
+      {
+        "layer": "eco_reserves"
+      }
+    ],
+    "buffer_m": 500.0,
+    "notes": "Applies to all Ecological Reserves province-wide. Source: Provincial Regulations, 2025-2027 Synopsis, page 9."
+  },
+  {
+    "reg_id": "zone_r1_trout_char_daily_quota",
+    "source": "zone",
+    "zone_ids": [
+      "1"
+    ],
+    "rule_text": "Trout: 4 (all species combined).",
+    "restriction": {
+      "type": "Quota",
+      "details": "Daily quota: 4 trout (all species combined)."
+    },
+    "notes": "Source: Region 1 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream",
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r1_trout_char_over_50cm_limit",
+    "source": "zone",
+    "zone_ids": [
+      "1"
+    ],
+    "rule_text": "Trout: not more than 1 over 50 cm (2 hatchery steelhead over 50 cm allowed).",
+    "restriction": {
+      "type": "Quota",
+      "details": "Max 1 trout over 50 cm in daily quota (2 hatchery steelhead over 50 cm allowed)."
+    },
+    "notes": "Source: Region 1 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream",
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r1_trout_stream_limit",
+    "source": "zone",
+    "zone_ids": [
+      "1"
+    ],
+    "rule_text": "Trout from streams: max 2 (must be hatchery origin).",
+    "restriction": {
+      "type": "Quota",
+      "details": "Max 2 trout from streams. Must be hatchery origin."
+    },
+    "notes": "Source: Region 1 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream"
+    ]
+  },
+  {
+    "reg_id": "zone_r1_steelhead_release",
+    "source": "zone",
+    "zone_ids": [
+      "1"
+    ],
+    "rule_text": "Release all wild steelhead.",
+    "restriction": {
+      "type": "Catch and Release",
+      "details": "Release all wild steelhead."
+    },
+    "notes": "Source: Region 1 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream",
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r1_char_release",
+    "source": "zone",
+    "zone_ids": [
+      "1"
+    ],
+    "rule_text": "Release all char (includes Dolly Varden).",
+    "restriction": {
+      "type": "Catch and Release",
+      "details": "Release all char including Dolly Varden."
+    },
+    "notes": "Source: Region 1 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream",
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r1_bass_unlimited",
+    "source": "zone",
+    "zone_ids": [
+      "1"
+    ],
+    "rule_text": "Bass: unlimited.",
+    "restriction": {
+      "type": "Quota",
+      "details": "Unlimited daily quota for bass."
+    },
+    "notes": "Source: Region 1 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream",
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r1_crayfish_quota",
+    "source": "zone",
+    "zone_ids": [
+      "1"
+    ],
+    "rule_text": "Crayfish: 25.",
+    "restriction": {
+      "type": "Quota",
+      "details": "Daily quota: 25 crayfish."
+    },
+    "notes": "Source: Region 1 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream",
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r1_kokanee_quota",
+    "source": "zone",
+    "zone_ids": [
+      "1"
+    ],
+    "rule_text": "Kokanee: 5 (none from streams).",
+    "restriction": {
+      "type": "Quota",
+      "details": "Daily quota: 5 kokanee."
+    },
+    "notes": "Source: Region 1 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r1_kokanee_closed_streams",
+    "source": "zone",
+    "zone_ids": [
+      "1"
+    ],
+    "rule_text": "Kokanee: none from streams.",
+    "restriction": {
+      "type": "Closed",
+      "details": "No kokanee may be kept from streams."
+    },
+    "notes": "Source: Region 1 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream"
+    ]
+  },
+  {
+    "reg_id": "zone_r1_sturgeon_catch_release",
+    "source": "zone",
+    "zone_ids": [
+      "1"
+    ],
+    "rule_text": "White Sturgeon: catch and release only.",
+    "restriction": {
+      "type": "Catch and Release",
+      "details": "Catch and release only for white sturgeon."
+    },
+    "notes": "Source: Region 1 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream",
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r1_yellow_perch_unlimited",
+    "source": "zone",
+    "zone_ids": [
+      "1"
+    ],
+    "rule_text": "Yellow perch: unlimited.",
+    "restriction": {
+      "type": "Quota",
+      "details": "Unlimited daily quota for yellow perch."
+    },
+    "notes": "Source: Region 1 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream",
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r1_wild_trout_release_streams",
+    "source": "zone",
+    "zone_ids": [
+      "1"
+    ],
+    "rule_text": "Release of all wild origin trout in streams required. Only hatchery origin trout (identified by healed adipose fin scar) may be harvested from streams. Does not apply to lakes.",
+    "restriction": {
+      "type": "Catch and Release",
+      "details": "All wild trout must be released in streams. Only hatchery trout (adipose fin clipped) may be kept."
+    },
+    "notes": "Source: Region 1 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream"
+    ]
+  },
+  {
+    "reg_id": "zone_r1_summer_stream_closure",
+    "source": "zone",
+    "zone_ids": [
+      "1"
+    ],
+    "rule_text": "No fishing in any stream in Management Units 1-1 to 1-6 from July 15 to August 31.",
+    "restriction": {
+      "type": "Closed",
+      "details": "Summer stream closure Jul 15–Aug 31. MUs 1-1 to 1-6."
+    },
+    "notes": "Source: Region 1 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream"
+    ],
+    "mu_ids": [
+      "1-1",
+      "1-2",
+      "1-3",
+      "1-4",
+      "1-5",
+      "1-6"
+    ],
+    "dates": [
+      "Jul 15 – Aug 31"
+    ]
+  },
+  {
+    "reg_id": "zone_r1_single_barbless_hook_streams",
+    "source": "zone",
+    "zone_ids": [
+      "1"
+    ],
+    "rule_text": "Single barbless hook must be used in all streams of Region 1 and Haida Gwaii (MUs 6-12, 6-13), all year.",
+    "restriction": {
+      "type": "Gear Restriction",
+      "details": "Single barbless hook required in all streams, all year."
+    },
+    "notes": "Source: Region 1 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream"
+    ],
+    "include_mu_ids": [
+      "6-12",
+      "6-13"
+    ]
+  },
+  {
+    "reg_id": "zone_r1_bait_ban_streams",
+    "source": "zone",
+    "zone_ids": [
+      "1"
+    ],
+    "rule_text": "Bait ban applies to all streams of Region 1, all year, with some exceptions noted in the tables.",
+    "restriction": {
+      "type": "Bait Restriction",
+      "details": "Bait banned in all streams, all year. See tables for exceptions."
+    },
+    "notes": "Source: Region 1 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream"
+    ]
+  },
+  {
+    "reg_id": "zone_hg_bait_ban_streams",
+    "source": "zone",
+    "zone_ids": [
+      "6"
+    ],
+    "rule_text": "Bait ban applies to all streams in Management Units 6-12 and 6-13 (Haida Gwaii), November 1 to April 30.",
+    "restriction": {
+      "type": "Bait Restriction",
+      "details": "Bait banned in streams Nov 1–Apr 30."
+    },
+    "notes": "Source: Region 1 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream"
+    ],
+    "mu_ids": [
+      "6-12",
+      "6-13"
+    ],
+    "dates": [
+      "Nov 1 – Apr 30"
+    ]
+  },
+  {
+    "reg_id": "zone_hg_trout_char_daily_quota",
+    "source": "zone",
+    "zone_ids": [
+      "6"
+    ],
+    "rule_text": "Haida Gwaii trout/char: 5 (all species combined).",
+    "restriction": {
+      "type": "Quota",
+      "details": "Daily quota: 5 trout/char (all species combined)."
+    },
+    "notes": "Source: Region 1 preamble (Haida Gwaii), 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream",
+      "lake",
+      "manmade"
+    ],
+    "mu_ids": [
+      "6-12",
+      "6-13"
+    ]
+  },
+  {
+    "reg_id": "zone_hg_trout_char_over_50cm_limit",
+    "source": "zone",
+    "zone_ids": [
+      "6"
+    ],
+    "rule_text": "Haida Gwaii trout/char: not more than 1 over 50 cm.",
+    "restriction": {
+      "type": "Quota",
+      "details": "Max 1 trout/char over 50 cm in daily quota."
+    },
+    "notes": "Source: Region 1 preamble (Haida Gwaii), 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream",
+      "lake",
+      "manmade"
+    ],
+    "mu_ids": [
+      "6-12",
+      "6-13"
+    ]
+  },
+  {
+    "reg_id": "zone_hg_dolly_varden_limit",
+    "source": "zone",
+    "zone_ids": [
+      "6"
+    ],
+    "rule_text": "Haida Gwaii trout/char: not more than 3 Dolly Varden.",
+    "restriction": {
+      "type": "Quota",
+      "details": "Max 3 Dolly Varden in daily quota."
+    },
+    "notes": "Source: Region 1 preamble (Haida Gwaii), 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream",
+      "lake",
+      "manmade"
+    ],
+    "mu_ids": [
+      "6-12",
+      "6-13"
+    ]
+  },
+  {
+    "reg_id": "zone_hg_trout_char_stream_limit",
+    "source": "zone",
+    "zone_ids": [
+      "6"
+    ],
+    "rule_text": "Haida Gwaii trout/char from streams: max 2.",
+    "restriction": {
+      "type": "Quota",
+      "details": "Max 2 trout/char from streams."
+    },
+    "notes": "Source: Region 1 preamble (Haida Gwaii), 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream"
+    ],
+    "mu_ids": [
+      "6-12",
+      "6-13"
+    ]
+  },
+  {
+    "reg_id": "zone_hg_trout_char_stream_release",
+    "source": "zone",
+    "zone_ids": [
+      "6"
+    ],
+    "rule_text": "Haida Gwaii: release trout/char under 30 cm from streams.",
+    "restriction": {
+      "type": "Catch and Release",
+      "details": "Release trout/char under 30 cm from streams."
+    },
+    "notes": "Source: Region 1 preamble (Haida Gwaii), 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream"
+    ],
+    "mu_ids": [
+      "6-12",
+      "6-13"
+    ]
+  },
+  {
+    "reg_id": "zone_hg_steelhead_release",
+    "source": "zone",
+    "zone_ids": [
+      "6"
+    ],
+    "rule_text": "Haida Gwaii: release all wild steelhead.",
+    "restriction": {
+      "type": "Catch and Release",
+      "details": "Release all wild steelhead."
+    },
+    "notes": "Source: Region 1 preamble (Haida Gwaii), 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream",
+      "lake",
+      "manmade"
+    ],
+    "mu_ids": [
+      "6-12",
+      "6-13"
+    ]
+  },
+  {
+    "reg_id": "zone_hg_kokanee_quota",
+    "source": "zone",
+    "zone_ids": [
+      "6"
+    ],
+    "rule_text": "Haida Gwaii kokanee: 10 (none from streams).",
+    "restriction": {
+      "type": "Quota",
+      "details": "Daily quota: 10 kokanee."
+    },
+    "notes": "Source: Region 1 preamble (Haida Gwaii), 2025-2027 Synopsis.",
+    "feature_types": [
+      "lake",
+      "manmade"
+    ],
+    "mu_ids": [
+      "6-12",
+      "6-13"
+    ]
+  },
+  {
+    "reg_id": "zone_hg_kokanee_closed_streams",
+    "source": "zone",
+    "zone_ids": [
+      "6"
+    ],
+    "rule_text": "Haida Gwaii kokanee: none from streams.",
+    "restriction": {
+      "type": "Closed",
+      "details": "No kokanee may be kept from streams."
+    },
+    "notes": "Source: Region 1 preamble (Haida Gwaii), 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream"
+    ],
+    "mu_ids": [
+      "6-12",
+      "6-13"
+    ]
+  },
+  {
+    "reg_id": "zone_r1_possession_quota",
+    "source": "zone",
+    "zone_ids": [
+      "1"
+    ],
+    "rule_text": "Possession quotas = 2 daily quotas.",
+    "restriction": {
+      "type": "Possession Quota",
+      "details": "Possession limit equals 2 times the daily quota."
+    },
+    "notes": "Source: Region 1 preamble, 2025-2027 Synopsis.",
+    "include_mu_ids": [
+      "6-12",
+      "6-13"
+    ]
+  },
+  {
+    "reg_id": "zone_r1_steelhead_annual_quota",
+    "source": "zone",
+    "zone_ids": [
+      "1"
+    ],
+    "rule_text": "Annual catch quota for all B.C.: 10 steelhead per licence year (only hatchery steelhead may be retained).",
+    "restriction": {
+      "type": "Annual Quota",
+      "details": "Annual quota: 10 hatchery steelhead province-wide. All wild steelhead must be released."
+    },
+    "notes": "Source: Region 1 preamble, 2025-2027 Synopsis. Province-wide rule.",
+    "feature_types": [
+      "stream"
+    ],
+    "include_mu_ids": [
+      "6-12",
+      "6-13"
+    ]
+  },
+  {
+    "reg_id": "zone_r1_salmon_notice",
+    "source": "zone",
+    "zone_ids": [
+      "1"
+    ],
+    "rule_text": "Non-tidal salmon fishing regulations are not included in this Synopsis. See DFO regulations at https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/salmon-saumon-eng.html. When fresh waters are closed to fishing or have gear restrictions in this Synopsis, those regulations apply to salmon as well.",
+    "restriction": {
+      "type": "Notice",
+      "details": "Salmon regulations managed by DFO. Stream closures and gear restrictions in this Synopsis also apply to salmon."
+    },
+    "notes": "Source: Region 1 preamble, 2025-2027 Synopsis. Province-wide notice.",
+    "include_mu_ids": [
+      "6-12",
+      "6-13"
+    ]
+  },
+  {
+    "reg_id": "zone_r1_mercury_advisory_bass",
+    "source": "zone",
+    "zone_ids": [
+      "1"
+    ],
+    "rule_text": "Mercury advisory: Mercury levels in larger Smallmouth Bass in lakes on Vancouver Island and the Gulf Islands may be above national guidelines. The general public, especially children and women of child bearing age, are recommended to limit consumption of Smallmouth Bass.",
+    "restriction": {
+      "type": "Advisory",
+      "details": "Mercury advisory for Smallmouth Bass in lakes. Levels increase with fish size. Limit consumption, especially children and women of child bearing age."
+    },
+    "notes": "Source: Region 1 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "lake",
+      "manmade"
+    ],
+    "scope_location": "Vancouver Island & Gulf Islands lakes"
+  },
+  {
+    "reg_id": "zone_r2_single_barbless_hook_streams",
+    "source": "zone",
+    "zone_ids": [
+      "2"
+    ],
+    "rule_text": "Single barbless hook must be used in all streams of Region 2, all year.",
+    "restriction": {
+      "type": "Gear Restriction",
+      "details": "Single barbless hook required in all streams, all year."
+    },
+    "notes": "Source: Region 2 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream"
+    ]
+  },
+  {
+    "reg_id": "zone_r2_dead_finfish_bait_sturgeon",
+    "source": "zone",
+    "zone_ids": [
+      "2"
+    ],
+    "rule_text": "Dead fin fish as bait only permitted in Region 2 when sport fishing for sturgeon in the Fraser River, Lower Pitt River (CPR Bridge upstream to Pitt Lake), Lower Harrison River (Fraser River upstream to Harrison Lake).",
+    "restriction": {
+      "type": "Bait Exception",
+      "details": "Dead fin fish bait permitted only for sturgeon fishing."
+    },
+    "notes": "Source: Region 2 preamble, 2025-2027 Synopsis. TODO: Needs direct-match IDs to enable.",
+    "feature_types": [
+      "stream"
+    ],
+    "scope_location": "Fraser River, Lower Pitt River, Lower Harrison River",
+    "disabled": true
+  },
+  {
+    "reg_id": "zone_r2_steelhead_surcharge",
+    "source": "zone",
+    "zone_ids": [
+      "2"
+    ],
+    "rule_text": "Steelhead fishing in the Lower Mainland Region: Your basic licence must be validated with a Conservation Surcharge Stamp if you fish for steelhead anywhere in B.C.",
+    "restriction": {
+      "type": "Licence Requirement",
+      "details": "Conservation Surcharge Stamp required for steelhead fishing."
+    },
+    "notes": "Source: Region 2 preamble, 2025-2027 Synopsis. Province-wide requirement.",
+    "feature_types": [
+      "stream"
+    ]
+  },
+  {
+    "reg_id": "zone_r2_steelhead_stop_fishing",
+    "source": "zone",
+    "zone_ids": [
+      "2"
+    ],
+    "rule_text": "When you have caught and retained your daily quota of hatchery steelhead from any water, you must stop fishing that water for the remainder of that day.",
+    "restriction": {
+      "type": "Quota Enforcement",
+      "details": "Must stop fishing a water for the day once daily hatchery steelhead quota is reached."
+    },
+    "notes": "Source: Region 2 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream"
+    ]
+  },
+  {
+    "reg_id": "zone_r2_protected_species",
+    "source": "zone",
+    "zone_ids": [
+      "2"
+    ],
+    "rule_text": "Protected species in Region 2: Nooksack dace, Salish sucker, Green sturgeon, Cultus Lake sculpin. It is illegal to fish for or catch and retain protected species.",
+    "restriction": {
+      "type": "Protected Species",
+      "details": "Illegal to fish for or retain: Nooksack dace, Salish sucker, Green sturgeon, Cultus Lake sculpin."
+    },
+    "notes": "Source: Region 2 preamble, 2025-2027 Synopsis."
+  },
+  {
+    "reg_id": "zone_r2_trout_char_daily_quota",
+    "source": "zone",
+    "zone_ids": [
+      "2"
+    ],
+    "rule_text": "Trout/char: 4 (all species combined).",
+    "restriction": {
+      "type": "Quota",
+      "details": "Daily quota: 4 trout/char (all species combined)."
+    },
+    "notes": "Source: Region 2 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream",
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r2_trout_char_over_50cm_limit",
+    "source": "zone",
+    "zone_ids": [
+      "2"
+    ],
+    "rule_text": "Trout/char: not more than 1 over 50 cm (2 hatchery steelhead over 50 cm allowed).",
+    "restriction": {
+      "type": "Quota",
+      "details": "Max 1 trout/char over 50 cm in daily quota (2 hatchery steelhead over 50 cm allowed)."
+    },
+    "notes": "Source: Region 2 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream",
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r2_trout_char_stream_limit",
+    "source": "zone",
+    "zone_ids": [
+      "2"
+    ],
+    "rule_text": "Trout/char from streams: max 2 (must be hatchery origin).",
+    "restriction": {
+      "type": "Quota",
+      "details": "Max 2 trout/char from streams. Must be hatchery origin."
+    },
+    "notes": "Source: Region 2 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream"
+    ]
+  },
+  {
+    "reg_id": "zone_r2_char_limit",
+    "source": "zone",
+    "zone_ids": [
+      "2"
+    ],
+    "rule_text": "Max 1 char (bull trout, Dolly Varden, or lake trout). None under 60 cm.",
+    "restriction": {
+      "type": "Quota",
+      "details": "Max 1 char (bull trout, Dolly Varden, lake trout). None under 60 cm."
+    },
+    "notes": "Source: Region 2 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream",
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r2_wild_trout_char_stream_release",
+    "source": "zone",
+    "zone_ids": [
+      "2"
+    ],
+    "rule_text": "Release all wild trout/char from streams. Release hatchery trout/char under 30 cm from streams.",
+    "restriction": {
+      "type": "Catch and Release",
+      "details": "Release all wild trout/char from streams. Release hatchery trout/char under 30 cm from streams."
+    },
+    "notes": "Source: Region 2 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream"
+    ]
+  },
+  {
+    "reg_id": "zone_r2_steelhead_release",
+    "source": "zone",
+    "zone_ids": [
+      "2"
+    ],
+    "rule_text": "Release all wild steelhead.",
+    "restriction": {
+      "type": "Catch and Release",
+      "details": "Release all wild steelhead."
+    },
+    "notes": "Source: Region 2 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream",
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r2_trout_lake_size_notice",
+    "source": "zone",
+    "zone_ids": [
+      "2"
+    ],
+    "rule_text": "No general minimum size for trout in lakes.",
+    "restriction": {
+      "type": "Notice",
+      "details": "No general minimum size for trout in lakes."
+    },
+    "notes": "Source: Region 2 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r2_bass_quota",
+    "source": "zone",
+    "zone_ids": [
+      "2"
+    ],
+    "rule_text": "Bass: 20 (excluding Mill Lake — see page 24 for quota).",
+    "restriction": {
+      "type": "Quota",
+      "details": "Daily quota: 20 bass. Mill Lake exception — see water-specific tables."
+    },
+    "notes": "Source: Region 2 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream",
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r2_crappie_quota",
+    "source": "zone",
+    "zone_ids": [
+      "2"
+    ],
+    "rule_text": "Crappie: 20.",
+    "restriction": {
+      "type": "Quota",
+      "details": "Daily quota: 20 crappie."
+    },
+    "notes": "Source: Region 2 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream",
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r2_crayfish_quota",
+    "source": "zone",
+    "zone_ids": [
+      "2"
+    ],
+    "rule_text": "Crayfish: 25.",
+    "restriction": {
+      "type": "Quota",
+      "details": "Daily quota: 25 crayfish."
+    },
+    "notes": "Source: Region 2 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream",
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r2_kokanee_quota",
+    "source": "zone",
+    "zone_ids": [
+      "2"
+    ],
+    "rule_text": "Kokanee: 5 (none from streams).",
+    "restriction": {
+      "type": "Quota",
+      "details": "Daily quota: 5 kokanee. None from streams."
+    },
+    "notes": "Source: Region 2 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r2_whitefish_quota",
+    "source": "zone",
+    "zone_ids": [
+      "2"
+    ],
+    "rule_text": "Whitefish: 15 (all species combined).",
+    "restriction": {
+      "type": "Quota",
+      "details": "Daily quota: 15 whitefish (all species combined)."
+    },
+    "notes": "Source: Region 2 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream",
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r2_sturgeon_catch_release",
+    "source": "zone",
+    "zone_ids": [
+      "2"
+    ],
+    "rule_text": "White Sturgeon: catch and release only.",
+    "restriction": {
+      "type": "Catch and Release",
+      "details": "Catch and release only for white sturgeon."
+    },
+    "notes": "Source: Region 2 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream",
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r2_fraser_sturgeon_seasonal_closure",
+    "source": "zone",
+    "zone_ids": [
+      "2"
+    ],
+    "rule_text": "Fraser River: closed to all fishing in the Fraser areas of Jesperson's Side Channel, Herrling Island Side Channel, and Seabird Island north Side Channel, May 15 – July 31.",
+    "restriction": {
+      "type": "Closed",
+      "details": "Jesperson's Side Channel, Herrling Island Side Channel, and Seabird Island north Side Channel closed to all fishing."
+    },
+    "notes": "Source: Region 2 preamble (under White Sturgeon), 2025-2027 Synopsis. See page 26 for map of closed area. TODO: Needs direct-match IDs to enable.",
+    "feature_types": [
+      "stream"
+    ],
+    "dates": [
+      "May 15 – Jul 31"
+    ],
+    "scope_location": "Fraser River side channels",
+    "disabled": true
+  },
+  {
+    "reg_id": "zone_r2_possession_quota",
+    "source": "zone",
+    "zone_ids": [
+      "2"
+    ],
+    "rule_text": "Possession quotas = 2 daily quotas.",
+    "restriction": {
+      "type": "Possession Quota",
+      "details": "Possession limit equals 2 times the daily quota."
+    },
+    "notes": "Source: Region 2 preamble, 2025-2027 Synopsis."
+  },
+  {
+    "reg_id": "zone_r2_steelhead_annual_quota",
+    "source": "zone",
+    "zone_ids": [
+      "2"
+    ],
+    "rule_text": "Annual catch quota for all B.C.: 10 steelhead per licence year (only hatchery steelhead may be retained).",
+    "restriction": {
+      "type": "Annual Quota",
+      "details": "Annual quota: 10 hatchery steelhead province-wide. All wild steelhead must be released."
+    },
+    "notes": "Source: Region 2 preamble, 2025-2027 Synopsis. Province-wide rule.",
+    "feature_types": [
+      "stream"
+    ]
+  },
+  {
+    "reg_id": "zone_r2_salmon_notice",
+    "source": "zone",
+    "zone_ids": [
+      "2"
+    ],
+    "rule_text": "Daily and annual quotas for salmon: refer to the notice on page 77 for salmon regulations.",
+    "restriction": {
+      "type": "Notice",
+      "details": "Salmon regulations managed by DFO. See page 77 for details."
+    },
+    "notes": "Source: Region 2 preamble, 2025-2027 Synopsis."
+  },
+  {
+    "reg_id": "zone_r2_night_fishing_prohibition",
+    "source": "zone",
+    "zone_ids": [
+      "2"
+    ],
+    "rule_text": "From one hour after sunset to one hour before sunrise, fishing is prohibited on portions of the Fraser, Harrison, and Pitt Rivers. See water-specific tables for details.",
+    "restriction": {
+      "type": "Time Restriction",
+      "details": "Night fishing prohibited (1 hr after sunset to 1 hr before sunrise). See water-specific tables for details."
+    },
+    "notes": "Source: Region 2 preamble, 2025-2027 Synopsis. TODO: Needs direct-match IDs to enable.",
+    "feature_types": [
+      "stream"
+    ],
+    "scope_location": "Fraser, Harrison, and Pitt Rivers",
+    "disabled": true
+  },
+  {
+    "reg_id": "zone_r3_spring_stream_closure",
+    "source": "zone",
+    "zone_ids": [
+      "3"
+    ],
+    "rule_text": "No fishing in any stream in Region 3 from Jan 1 to June 30 (see tables for exceptions).",
+    "restriction": {
+      "type": "Closed",
+      "details": "Spring stream closure Jan 1–Jun 30. See tables for exceptions."
+    },
+    "notes": "Source: Region 3 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream"
+    ],
+    "dates": [
+      "Jan 1 – Jun 30"
+    ]
+  },
+  {
+    "reg_id": "zone_r3_single_barbless_hook_streams",
+    "source": "zone",
+    "zone_ids": [
+      "3"
+    ],
+    "rule_text": "Single barbless hook must be used in all streams of Region 3, all year.",
+    "restriction": {
+      "type": "Gear Restriction",
+      "details": "Single barbless hook required in all streams, all year."
+    },
+    "notes": "Source: Region 3 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream"
+    ]
+  },
+  {
+    "reg_id": "zone_r3_steelhead_surcharge",
+    "source": "zone",
+    "zone_ids": [
+      "3"
+    ],
+    "rule_text": "Your basic licence must be validated with a Steelhead Conservation Surcharge Stamp if you fish for steelhead anywhere in B.C. A Steelhead Stamp is mandatory when fishing most Classified Waters regardless of species.",
+    "restriction": {
+      "type": "Notice",
+      "details": "Steelhead Conservation Surcharge Stamp required to fish for steelhead. Mandatory on most Classified Waters."
+    },
+    "notes": "Source: Region 3 preamble, 2025-2027 Synopsis. Province-wide requirement."
+  },
+  {
+    "reg_id": "zone_r3_trout_char_daily_quota",
+    "source": "zone",
+    "zone_ids": [
+      "3"
+    ],
+    "rule_text": "Trout/char: 5 (all species combined).",
+    "restriction": {
+      "type": "Quota",
+      "details": "Daily quota: 5 trout/char (all species combined)."
+    },
+    "notes": "Source: Region 3 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream",
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r3_trout_char_over_50cm_limit",
+    "source": "zone",
+    "zone_ids": [
+      "3"
+    ],
+    "rule_text": "Trout/char: not more than 1 over 50 cm.",
+    "restriction": {
+      "type": "Quota",
+      "details": "Max 1 trout/char over 50 cm in daily quota."
+    },
+    "notes": "Source: Region 3 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream",
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r3_trout_char_stream_limit",
+    "source": "zone",
+    "zone_ids": [
+      "3"
+    ],
+    "rule_text": "Trout/char from streams: max 4.",
+    "restriction": {
+      "type": "Quota",
+      "details": "Max 4 trout/char from streams."
+    },
+    "notes": "Source: Region 3 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream"
+    ]
+  },
+  {
+    "reg_id": "zone_r3_char_limit",
+    "source": "zone",
+    "zone_ids": [
+      "3"
+    ],
+    "rule_text": "Max 1 bull trout (Dolly Varden) or lake trout. None under 60 cm.",
+    "restriction": {
+      "type": "Quota",
+      "details": "Max 1 bull trout (Dolly Varden) or lake trout. None under 60 cm."
+    },
+    "notes": "Source: Region 3 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream",
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r3_steelhead_release",
+    "source": "zone",
+    "zone_ids": [
+      "3"
+    ],
+    "rule_text": "Release ALL steelhead.",
+    "restriction": {
+      "type": "Catch and Release",
+      "details": "Release ALL steelhead."
+    },
+    "notes": "Source: Region 3 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream",
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r3_bull_trout_seasonal_release",
+    "source": "zone",
+    "zone_ids": [
+      "3"
+    ],
+    "rule_text": "Release bull trout (Dolly Varden) from streams Aug 1–Oct 31.",
+    "restriction": {
+      "type": "Catch and Release",
+      "details": "Release bull trout (Dolly Varden) from streams Aug 1–Oct 31."
+    },
+    "notes": "Source: Region 3 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream"
+    ],
+    "dates": [
+      "Aug 1 – Oct 31"
+    ]
+  },
+  {
+    "reg_id": "zone_r3_lake_trout_seasonal_release",
+    "source": "zone",
+    "zone_ids": [
+      "3"
+    ],
+    "rule_text": "Release lake trout Oct 15–Jan 31.",
+    "restriction": {
+      "type": "Catch and Release",
+      "details": "Release lake trout Oct 15–Jan 31."
+    },
+    "notes": "Source: Region 3 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream",
+      "lake",
+      "manmade"
+    ],
+    "dates": [
+      "Oct 15 – Jan 31"
+    ]
+  },
+  {
+    "reg_id": "zone_r3_bass_closed",
+    "source": "zone",
+    "zone_ids": [
+      "3"
+    ],
+    "rule_text": "Bass: 0 quota, closed to fishing.",
+    "restriction": {
+      "type": "Closed",
+      "details": "Bass: closed to fishing (0 quota)."
+    },
+    "notes": "Source: Region 3 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream",
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r3_burbot_quota",
+    "source": "zone",
+    "zone_ids": [
+      "3"
+    ],
+    "rule_text": "Burbot: 2.",
+    "restriction": {
+      "type": "Quota",
+      "details": "Daily quota: 2 burbot."
+    },
+    "notes": "Source: Region 3 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream",
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r3_crayfish_quota",
+    "source": "zone",
+    "zone_ids": [
+      "3"
+    ],
+    "rule_text": "Crayfish: 25.",
+    "restriction": {
+      "type": "Quota",
+      "details": "Daily quota: 25 crayfish."
+    },
+    "notes": "Source: Region 3 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream",
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r3_kokanee_quota",
+    "source": "zone",
+    "zone_ids": [
+      "3"
+    ],
+    "rule_text": "Kokanee: 5 (none from streams).",
+    "restriction": {
+      "type": "Quota",
+      "details": "Daily quota: 5 kokanee."
+    },
+    "notes": "Source: Region 3 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r3_kokanee_closed_streams",
+    "source": "zone",
+    "zone_ids": [
+      "3"
+    ],
+    "rule_text": "Kokanee: none from streams.",
+    "restriction": {
+      "type": "Closed",
+      "details": "No kokanee may be kept from streams."
+    },
+    "notes": "Source: Region 3 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream"
+    ]
+  },
+  {
+    "reg_id": "zone_r3_whitefish_quota",
+    "source": "zone",
+    "zone_ids": [
+      "3"
+    ],
+    "rule_text": "Whitefish: 15 (all species combined).",
+    "restriction": {
+      "type": "Quota",
+      "details": "Daily quota: 15 whitefish (all species combined)."
+    },
+    "notes": "Source: Region 3 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream",
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r3_sturgeon_catch_release",
+    "source": "zone",
+    "zone_ids": [
+      "3"
+    ],
+    "rule_text": "White Sturgeon: catch and release only.",
+    "restriction": {
+      "type": "Catch and Release",
+      "details": "Catch and release only for white sturgeon."
+    },
+    "notes": "Source: Region 3 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream",
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r3_yellow_perch_closed",
+    "source": "zone",
+    "zone_ids": [
+      "3"
+    ],
+    "rule_text": "Yellow Perch: 0 quota, closed to fishing.",
+    "restriction": {
+      "type": "Closed",
+      "details": "Yellow perch: closed to fishing (0 quota)."
+    },
+    "notes": "Source: Region 3 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream",
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r3_possession_quota",
+    "source": "zone",
+    "zone_ids": [
+      "3"
+    ],
+    "rule_text": "Possession quotas = 2 daily quotas (see tables for exceptions).",
+    "restriction": {
+      "type": "Possession Quota",
+      "details": "Possession limit equals 2 times the daily quota."
+    },
+    "notes": "Source: Region 3 preamble, 2025-2027 Synopsis."
+  },
+  {
+    "reg_id": "zone_r3_shuswap_annual_rainbow",
+    "source": "zone",
+    "zone_ids": [
+      "3"
+    ],
+    "rule_text": "Annual catch quota for Shuswap Lake: rainbow trout — 5 over 50 cm per licence year.",
+    "restriction": {
+      "type": "Annual Quota",
+      "details": "Annual quota: 5 rainbow trout over 50 cm."
+    },
+    "notes": "Source: Region 3 preamble, 2025-2027 Synopsis. TODO: Convert to direct-match with Shuswap Lake GNIS/waterbody_key.",
+    "feature_types": [
+      "lake",
+      "manmade"
+    ],
+    "scope_location": "Shuswap Lake",
+    "disabled": true
+  },
+  {
+    "reg_id": "zone_r3_shuswap_annual_char",
+    "source": "zone",
+    "zone_ids": [
+      "3"
+    ],
+    "rule_text": "Annual catch quota for Shuswap Lake: char — lake trout and bull trout (Dolly Varden) — 5 over 60 cm per licence year.",
+    "restriction": {
+      "type": "Annual Quota",
+      "details": "Annual quota: 5 char (lake trout/bull trout) over 60 cm."
+    },
+    "notes": "Source: Region 3 preamble, 2025-2027 Synopsis. TODO: Convert to direct-match with Shuswap Lake GNIS/waterbody_key.",
+    "feature_types": [
+      "lake",
+      "manmade"
+    ],
+    "scope_location": "Shuswap Lake",
+    "disabled": true
+  },
+  {
+    "reg_id": "zone_r3_steelhead_annual_quota",
+    "source": "zone",
+    "zone_ids": [
+      "3"
+    ],
+    "rule_text": "Annual catch quota for all B.C.: 10 steelhead per licence year (only hatchery steelhead may be retained).",
+    "restriction": {
+      "type": "Annual Quota",
+      "details": "Annual quota: 10 hatchery steelhead province-wide. All wild steelhead must be released."
+    },
+    "notes": "Source: Region 3 preamble, 2025-2027 Synopsis. Province-wide rule.",
+    "feature_types": [
+      "stream"
+    ]
+  },
+  {
+    "reg_id": "zone_r3_salmon_notice",
+    "source": "zone",
+    "zone_ids": [
+      "3"
+    ],
+    "rule_text": "Non-tidal salmon fishing regulations are not included in this Synopsis. See DFO regulations. When fresh waters are closed to fishing or have gear restrictions in this Synopsis, those regulations apply to salmon as well.",
+    "restriction": {
+      "type": "Notice",
+      "details": "Salmon regulations managed by DFO. Stream closures and gear restrictions in this Synopsis also apply to salmon."
+    },
+    "notes": "Source: Region 3 preamble, 2025-2027 Synopsis. Province-wide notice."
+  },
+  {
+    "reg_id": "zone_r3_report_tagged_fish",
+    "source": "zone",
+    "zone_ids": [
+      "3"
+    ],
+    "rule_text": "Please report tagged fish to the Fish and Wildlife Regional Office in Kamloops at 1-800-388-1606. Include tag number and colour, fish length and weight, and location of capture.",
+    "restriction": {
+      "type": "Notice",
+      "details": "Report tagged fish to Kamloops regional office: 1-800-388-1606."
+    },
+    "notes": "Source: Region 3 preamble, 2025-2027 Synopsis."
+  },
+  {
+    "reg_id": "zone_r3_bass_perch_illegal_notice",
+    "source": "zone",
+    "zone_ids": [
+      "3"
+    ],
+    "rule_text": "It is illegal to fish for bass or perch in the Thompson-Nicola Region. This measure is part of B.C.'s management approach to illegal fish introductions.",
+    "restriction": {
+      "type": "Notice",
+      "details": "Illegal to fish for bass or perch in Thompson-Nicola. Part of B.C.'s illegal fish introduction management."
+    },
+    "notes": "Source: Region 3 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream",
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r2_knapp_forest_closure",
+    "source": "zone",
+    "zone_ids": [
+      "2"
+    ],
+    "rule_text": "No fishing in any lake in the UBC Malcolm Knapp Research Forest near Maple Ridge.",
+    "restriction": {
+      "type": "Closed",
+      "species": [
+        "all"
+      ],
+      "details": "All lakes closed in UBC Malcolm Knapp Research Forest."
+    },
+    "notes": "Source: Region 2 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "lake",
+      "manmade"
+    ],
+    "admin_targets": [
+      {
+        "layer": "osm_admin_boundaries",
+        "feature_id": "1166294466"
+      }
+    ]
+  },
+  {
+    "reg_id": "zone_r4_spring_stream_closure",
+    "source": "zone",
+    "zone_ids": [
+      "4"
+    ],
+    "rule_text": "Unless otherwise noted in the tables that follow, streams in Region 4 are closed to fishing Apr 1–Jun 14.",
+    "restriction": {
+      "type": "Closed",
+      "details": "Streams closed Apr 1–Jun 14 unless noted in tables."
+    },
+    "notes": "Source: Region 4 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream"
+    ],
+    "dates": [
+      "Apr 1 – Jun 14"
+    ]
+  },
+  {
+    "reg_id": "zone_r4_trout_char_stream_release",
+    "source": "zone",
+    "zone_ids": [
+      "4"
+    ],
+    "rule_text": "Nov 1–Mar 31 all trout and char caught in streams must be released immediately (unless otherwise noted).",
+    "restriction": {
+      "type": "Catch and Release",
+      "details": "All trout and char caught in streams must be released Nov 1–Mar 31."
+    },
+    "notes": "Source: Region 4 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream"
+    ],
+    "dates": [
+      "Nov 1 – Mar 31"
+    ]
+  },
+  {
+    "reg_id": "zone_r4_single_barbless_hook_streams",
+    "source": "zone",
+    "zone_ids": [
+      "4"
+    ],
+    "rule_text": "Only single barbless hooks may be used in all streams.",
+    "restriction": {
+      "type": "Gear Restriction",
+      "details": "Single barbless hooks only in all streams."
+    },
+    "notes": "Source: Region 4 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream"
+    ]
+  },
+  {
+    "reg_id": "zone_r4_classified_waters_notice",
+    "source": "zone",
+    "zone_ids": [
+      "4"
+    ],
+    "rule_text": "Classified Waters require a Classified Waters licence in addition to a basic angling licence. See waterbody tables.",
+    "restriction": {
+      "type": "Licence Requirement",
+      "details": "Classified Waters require a Classified Waters licence in addition to a basic angling licence."
+    },
+    "notes": "Source: Region 4 preamble, 2025-2027 Synopsis."
+  },
+  {
+    "reg_id": "zone_r4_trout_char_daily_quota",
+    "source": "zone",
+    "zone_ids": [
+      "4"
+    ],
+    "rule_text": "Trout and Char: 5 (all species combined), including not more than 1 over 50 cm any species.",
+    "restriction": {
+      "type": "Quota",
+      "details": "Daily quota: 5 trout/char (all species combined)."
+    },
+    "notes": "Source: Region 4 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream",
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r4_trout_char_stream_limit",
+    "source": "zone",
+    "zone_ids": [
+      "4"
+    ],
+    "rule_text": "Trout and Char: not more than 2 from streams.",
+    "restriction": {
+      "type": "Quota",
+      "details": "Max 2 trout/char may be kept from streams."
+    },
+    "notes": "Source: Region 4 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream"
+    ]
+  },
+  {
+    "reg_id": "zone_r4_rainbow_cutthroat_size_limit",
+    "source": "zone",
+    "zone_ids": [
+      "4"
+    ],
+    "rule_text": "Trout and Char: not more than 1 rainbow or cutthroat over 50 cm of any species.",
+    "restriction": {
+      "type": "Quota",
+      "details": "Max 1 rainbow or cutthroat trout over 50 cm in daily quota."
+    },
+    "notes": "Source: Region 4 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream",
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r4_bull_trout_limit",
+    "source": "zone",
+    "zone_ids": [
+      "4"
+    ],
+    "rule_text": "Trout and Char: not more than 1 bull trout (Dolly Varden) of any size.",
+    "restriction": {
+      "type": "Quota",
+      "details": "Max 1 bull trout (Dolly Varden) of any size in daily quota."
+    },
+    "notes": "Source: Region 4 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream",
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r4_bass_closed",
+    "source": "zone",
+    "zone_ids": [
+      "4"
+    ],
+    "rule_text": "Bass: 0 quota, closed to fishing.",
+    "restriction": {
+      "type": "Closed",
+      "details": "Bass: closed to fishing (0 quota)."
+    },
+    "notes": "Source: Region 4 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream",
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r4_burbot_quota",
+    "source": "zone",
+    "zone_ids": [
+      "4"
+    ],
+    "rule_text": "Burbot: 2.",
+    "restriction": {
+      "type": "Quota",
+      "details": "Daily quota: 2 burbot."
+    },
+    "notes": "Source: Region 4 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream",
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r4_crayfish_quota",
+    "source": "zone",
+    "zone_ids": [
+      "4"
+    ],
+    "rule_text": "Crayfish: 25.",
+    "restriction": {
+      "type": "Quota",
+      "details": "Daily quota: 25 crayfish."
+    },
+    "notes": "Source: Region 4 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream",
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r4_kokanee_quota",
+    "source": "zone",
+    "zone_ids": [
+      "4"
+    ],
+    "rule_text": "Kokanee: 15, of which not more than 5 may be over 30 cm.",
+    "restriction": {
+      "type": "Quota",
+      "details": "Daily quota: 15 kokanee (max 5 over 30 cm)."
+    },
+    "notes": "Source: Region 4 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r4_kokanee_closed_streams",
+    "source": "zone",
+    "zone_ids": [
+      "4"
+    ],
+    "rule_text": "Kokanee: none from streams.",
+    "restriction": {
+      "type": "Closed",
+      "details": "No kokanee may be kept from streams."
+    },
+    "notes": "Source: Region 4 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream"
+    ]
+  },
+  {
+    "reg_id": "zone_r4_northern_pike_closed",
+    "source": "zone",
+    "zone_ids": [
+      "4"
+    ],
+    "rule_text": "Northern Pike: 0 quota, closed to fishing.",
+    "restriction": {
+      "type": "Closed",
+      "details": "Northern pike: closed to fishing (0 quota)."
+    },
+    "notes": "Source: Region 4 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream",
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r4_walleye_closed",
+    "source": "zone",
+    "zone_ids": [
+      "4"
+    ],
+    "rule_text": "Walleye: 0 quota, closed to fishing.",
+    "restriction": {
+      "type": "Closed",
+      "details": "Walleye: closed to fishing (0 quota)."
+    },
+    "notes": "Source: Region 4 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream",
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r4_sturgeon_closed",
+    "source": "zone",
+    "zone_ids": [
+      "4"
+    ],
+    "rule_text": "White Sturgeon: no fishing (no exceptions).",
+    "restriction": {
+      "type": "Closed",
+      "details": "White sturgeon: no fishing permitted (no exceptions). Endangered under SARA."
+    },
+    "notes": "Source: Region 4 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream",
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r4_whitefish_quota",
+    "source": "zone",
+    "zone_ids": [
+      "4"
+    ],
+    "rule_text": "Whitefish: 15 (all species combined).",
+    "restriction": {
+      "type": "Quota",
+      "details": "Daily quota: 15 whitefish (all species combined)."
+    },
+    "notes": "Source: Region 4 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream",
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r4_yellow_perch_closed",
+    "source": "zone",
+    "zone_ids": [
+      "4"
+    ],
+    "rule_text": "Yellow Perch: 0 quota, closed to fishing.",
+    "restriction": {
+      "type": "Closed",
+      "details": "Yellow perch: closed to fishing (0 quota)."
+    },
+    "notes": "Source: Region 4 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream",
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r4_possession_quota",
+    "source": "zone",
+    "zone_ids": [
+      "4"
+    ],
+    "rule_text": "Possession quotas = 2 daily quotas (see tables for exceptions).",
+    "restriction": {
+      "type": "Possession Quota",
+      "details": "Possession limit equals 2 times the daily quota."
+    },
+    "notes": "Source: Region 4 preamble, 2025-2027 Synopsis."
+  },
+  {
+    "reg_id": "zone_r4_kootenay_lake_rainbow_annual",
+    "source": "zone",
+    "zone_ids": [
+      "4"
+    ],
+    "rule_text": "Annual catch quota for Kootenay Lake: rainbow trout — 20 over 50 cm per licence year.",
+    "restriction": {
+      "type": "Annual Quota",
+      "details": "Annual quota: 20 rainbow trout over 50 cm."
+    },
+    "notes": "Source: Region 4 preamble, 2025-2027 Synopsis. TODO: Convert to direct-match with Kootenay Lake GNIS/waterbody_key.",
+    "feature_types": [
+      "lake",
+      "manmade"
+    ],
+    "scope_location": "Kootenay Lake",
+    "disabled": true
+  },
+  {
+    "reg_id": "zone_r4_steelhead_annual_quota",
+    "source": "zone",
+    "zone_ids": [
+      "4"
+    ],
+    "rule_text": "Annual catch quota for all B.C.: 10 steelhead per licence year (only hatchery steelhead may be retained).",
+    "restriction": {
+      "type": "Annual Quota",
+      "details": "Annual quota: 10 hatchery steelhead province-wide. All wild steelhead must be released."
+    },
+    "notes": "Source: Region 4 preamble, 2025-2027 Synopsis. Province-wide rule.",
+    "feature_types": [
+      "stream"
+    ]
+  },
+  {
+    "reg_id": "zone_r4_report_lake_trout",
+    "source": "zone",
+    "zone_ids": [
+      "4"
+    ],
+    "rule_text": "Please report all lake trout caught from Region 4 waters (except Koocanusa Reservoir) to the Kootenay regional office at (250) 489-8540.",
+    "restriction": {
+      "type": "Notice",
+      "details": "Report all lake trout caught in Region 4 (except Koocanusa Reservoir) to (250) 489-8540."
+    },
+    "notes": "Source: Region 4 preamble, 2025-2027 Synopsis."
+  },
+  {
+    "reg_id": "zone_r4_fish_consumption_notice",
+    "source": "zone",
+    "zone_ids": [
+      "4"
+    ],
+    "rule_text": "Fish Consumption Notice: for Region 4 waters, see the Interior Region fish consumption tables.",
+    "restriction": {
+      "type": "Advisory",
+      "details": "Fish consumption advisory: see Interior Region fish consumption tables for Region 4 waters."
+    },
+    "notes": "Source: Region 4 preamble, 2025-2027 Synopsis."
+  },
+  {
+    "reg_id": "zone_r4_creston_valley_wma_permit",
+    "source": "zone",
+    "zone_ids": [
+      "4"
+    ],
+    "rule_text": "A permit is required for fishing on all waters within the Creston Valley Wildlife Management Area, including Six Mile, Leach, Kootenay River and Canal and Duck Lake.",
+    "restriction": {
+      "type": "Licence Requirement",
+      "details": "A permit is required for fishing in the Creston Valley Wildlife Management Area. Visit www.crestonwildlife.ca or call 250-402-6900."
+    },
+    "notes": "Source: Region 4 preamble, 2025-2027 Synopsis.",
+    "admin_targets": [
+      {
+        "layer": "wma",
+        "feature_id": "5364"
+      }
+    ]
+  },
+  {
+    "reg_id": "zone_r4_bass_perch_pike_walleye_illegal_notice",
+    "source": "zone",
+    "zone_ids": [
+      "4"
+    ],
+    "rule_text": "It is illegal to fish for bass, yellow perch, northern pike or walleye in the Kootenay Region. This measure is part of B.C.'s management approach to illegal fish introductions.",
+    "restriction": {
+      "type": "Notice",
+      "details": "Illegal to fish for bass, yellow perch, northern pike, or walleye in Kootenay. Part of B.C.'s illegal fish introduction management."
+    },
+    "notes": "Source: Region 4 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream",
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r4_kootenay_lake_recovery_notice",
+    "source": "zone",
+    "zone_ids": [
+      "4"
+    ],
+    "rule_text": "Note: Kootenay Lake fish populations are in a state of recovery. All conservation measures and fishing regulations should be carefully followed.",
+    "restriction": {
+      "type": "Notice",
+      "details": "Kootenay Lake fish populations are in a state of recovery. Follow all conservation measures carefully."
+    },
+    "notes": "Source: Region 4 preamble, 2025-2027 Synopsis. TODO: Needs direct-match IDs to enable.",
+    "scope_location": "Kootenay Lake",
+    "disabled": true
+  },
+  {
+    "reg_id": "zone_r4_salmon_notice",
+    "source": "zone",
+    "zone_ids": [
+      "4"
+    ],
+    "rule_text": "Non-tidal salmon fishing regulations are not included in this Synopsis. See DFO regulations. When fresh waters are closed to fishing or have gear restrictions in this Synopsis, those regulations apply to salmon as well.",
+    "restriction": {
+      "type": "Notice",
+      "details": "Salmon regulations managed by DFO. Stream closures and gear restrictions in this Synopsis also apply to salmon."
+    },
+    "notes": "Source: Region 4 preamble, 2025-2027 Synopsis. Province-wide notice."
+  },
+  {
+    "reg_id": "zone_r5_spring_stream_closure",
+    "source": "zone",
+    "zone_ids": [
+      "5"
+    ],
+    "rule_text": "No fishing in any stream in Fraser River Watershed of Region 5 (including the Thompson River Watershed) from Apr 1–Jun 30, EXCEPT the mainstem of the Fraser River and other streams listed in the tables.",
+    "restriction": {
+      "type": "Closed",
+      "details": "Streams closed Apr 1–Jun 30 (Fraser River Watershed of Region 5) unless noted in tables."
+    },
+    "notes": "Source: Region 5 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream"
+    ],
+    "dates": [
+      "Apr 1 – Jun 30"
+    ]
+  },
+  {
+    "reg_id": "zone_r5_single_barbless_hook_streams",
+    "source": "zone",
+    "zone_ids": [
+      "5"
+    ],
+    "rule_text": "Only single barbless hooks may be used in all streams, all year.",
+    "restriction": {
+      "type": "Gear Restriction",
+      "details": "Single barbless hooks only in all streams, all year."
+    },
+    "notes": "Source: Region 5 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream"
+    ]
+  },
+  {
+    "reg_id": "zone_r5_no_minimum_size_lakes",
+    "source": "zone",
+    "zone_ids": [
+      "5"
+    ],
+    "rule_text": "There is no minimum size limit in lakes (see tables for exceptions).",
+    "restriction": {
+      "type": "Notice",
+      "details": "No minimum size limit in lakes (see tables for exceptions)."
+    },
+    "notes": "Source: Region 5 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r5_classified_waters_notice",
+    "source": "zone",
+    "zone_ids": [
+      "5"
+    ],
+    "rule_text": "Classified Waters require a Classified Waters licence in addition to a basic angling licence. See waterbody tables.",
+    "restriction": {
+      "type": "Licence Requirement",
+      "details": "Classified Waters require a Classified Waters licence in addition to a basic angling licence."
+    },
+    "notes": "Source: Region 5 preamble, 2025-2027 Synopsis."
+  },
+  {
+    "reg_id": "zone_r5_steelhead_stamp_notice",
+    "source": "zone",
+    "zone_ids": [
+      "5"
+    ],
+    "rule_text": "Your basic licence must be validated with a Steelhead Conservation Surcharge Stamp if you fish for steelhead anywhere in B.C.",
+    "restriction": {
+      "type": "Licence Requirement",
+      "details": "Steelhead Conservation Surcharge Stamp required to fish for steelhead. Steelhead Stamp mandatory for most Classified Waters."
+    },
+    "notes": "Source: Region 5 preamble, 2025-2027 Synopsis. Province-wide rule."
+  },
+  {
+    "reg_id": "zone_r5_trout_char_daily_quota",
+    "source": "zone",
+    "zone_ids": [
+      "5"
+    ],
+    "rule_text": "Trout and Char: 5 (all species combined), including not more than 1 over 50 cm.",
+    "restriction": {
+      "type": "Quota",
+      "details": "Daily quota: 5 trout/char (all species combined)."
+    },
+    "notes": "Source: Region 5 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream",
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r5_trout_char_over_50cm_limit",
+    "source": "zone",
+    "zone_ids": [
+      "5"
+    ],
+    "rule_text": "Trout and Char: not more than 1 over 50 cm.",
+    "restriction": {
+      "type": "Quota",
+      "details": "Max 1 trout/char over 50 cm in daily quota."
+    },
+    "notes": "Source: Region 5 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream",
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r5_trout_char_stream_limit",
+    "source": "zone",
+    "zone_ids": [
+      "5"
+    ],
+    "rule_text": "Trout and Char: not more than 2 from streams.",
+    "restriction": {
+      "type": "Quota",
+      "details": "Max 2 trout/char may be kept from streams."
+    },
+    "notes": "Source: Region 5 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream"
+    ]
+  },
+  {
+    "reg_id": "zone_r5_bull_trout_limit",
+    "source": "zone",
+    "zone_ids": [
+      "5"
+    ],
+    "rule_text": "Trout and Char: not more than 1 Dolly Varden/bull trout.",
+    "restriction": {
+      "type": "Quota",
+      "details": "Max 1 bull trout (Dolly Varden) of any size in daily quota."
+    },
+    "notes": "Source: Region 5 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream",
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r5_lake_trout_limit",
+    "source": "zone",
+    "zone_ids": [
+      "5"
+    ],
+    "rule_text": "Trout and Char: not more than 2 lake trout.",
+    "restriction": {
+      "type": "Quota",
+      "details": "Max 2 lake trout in daily quota."
+    },
+    "notes": "Source: Region 5 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream",
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r5_steelhead_release",
+    "source": "zone",
+    "zone_ids": [
+      "5"
+    ],
+    "rule_text": "All steelhead must be released.",
+    "restriction": {
+      "type": "Catch and Release",
+      "details": "All steelhead must be released."
+    },
+    "notes": "Source: Region 5 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream"
+    ]
+  },
+  {
+    "reg_id": "zone_r5_lake_trout_seasonal_release",
+    "source": "zone",
+    "zone_ids": [
+      "5"
+    ],
+    "rule_text": "Release lake trout Oct 1–Nov 30.",
+    "restriction": {
+      "type": "Catch and Release",
+      "details": "Release lake trout Oct 1–Nov 30."
+    },
+    "notes": "Source: Region 5 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream",
+      "lake",
+      "manmade"
+    ],
+    "dates": [
+      "Oct 1 – Nov 30"
+    ]
+  },
+  {
+    "reg_id": "zone_r5_bull_trout_stream_release",
+    "source": "zone",
+    "zone_ids": [
+      "5"
+    ],
+    "rule_text": "Release bull trout (Dolly Varden) from streams Aug 1–Oct 31.",
+    "restriction": {
+      "type": "Catch and Release",
+      "details": "Release bull trout (Dolly Varden) from streams Aug 1–Oct 31."
+    },
+    "notes": "Source: Region 5 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream"
+    ],
+    "dates": [
+      "Aug 1 – Oct 31"
+    ]
+  },
+  {
+    "reg_id": "zone_r5_bass_closed",
+    "source": "zone",
+    "zone_ids": [
+      "5"
+    ],
+    "rule_text": "Bass: 0 quota, closed to all fishing.",
+    "restriction": {
+      "type": "Closed",
+      "details": "Bass: closed to fishing (0 quota)."
+    },
+    "notes": "Source: Region 5 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream",
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r5_burbot_quota",
+    "source": "zone",
+    "zone_ids": [
+      "5"
+    ],
+    "rule_text": "Burbot: 5.",
+    "restriction": {
+      "type": "Quota",
+      "details": "Daily quota: 5 burbot."
+    },
+    "notes": "Source: Region 5 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream",
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r5_kokanee_quota",
+    "source": "zone",
+    "zone_ids": [
+      "5"
+    ],
+    "rule_text": "Kokanee: 5 (none from streams).",
+    "restriction": {
+      "type": "Quota",
+      "details": "Daily quota: 5 kokanee."
+    },
+    "notes": "Source: Region 5 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r5_kokanee_closed_streams",
+    "source": "zone",
+    "zone_ids": [
+      "5"
+    ],
+    "rule_text": "Kokanee: none from streams.",
+    "restriction": {
+      "type": "Closed",
+      "details": "No kokanee may be kept from streams."
+    },
+    "notes": "Source: Region 5 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream"
+    ]
+  },
+  {
+    "reg_id": "zone_r5_whitefish_quota",
+    "source": "zone",
+    "zone_ids": [
+      "5"
+    ],
+    "rule_text": "Whitefish: 15 (all species combined).",
+    "restriction": {
+      "type": "Quota",
+      "details": "Daily quota: 15 whitefish (all species combined)."
+    },
+    "notes": "Source: Region 5 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream",
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r5_possession_quota",
+    "source": "zone",
+    "zone_ids": [
+      "5"
+    ],
+    "rule_text": "Possession quotas = 2 daily quotas (see tables for exceptions).",
+    "restriction": {
+      "type": "Possession Quota",
+      "details": "Possession limit equals 2 times the daily quota."
+    },
+    "notes": "Source: Region 5 preamble, 2025-2027 Synopsis."
+  },
+  {
+    "reg_id": "zone_r5_salmon_notice",
+    "source": "zone",
+    "zone_ids": [
+      "5"
+    ],
+    "rule_text": "Non-tidal salmon fishing regulations are not included in this Synopsis. See DFO regulations.",
+    "restriction": {
+      "type": "Notice",
+      "details": "Salmon regulations managed by DFO. Stream closures and gear restrictions in this Synopsis also apply to salmon."
+    },
+    "notes": "Source: Region 5 preamble, 2025-2027 Synopsis. Province-wide notice."
+  },
+  {
+    "reg_id": "zone_r5_bass_illegal_notice",
+    "source": "zone",
+    "zone_ids": [
+      "5"
+    ],
+    "rule_text": "It is illegal to fish for bass in the Cariboo Region. This measure is part of B.C.'s management approach to illegal fish introductions.",
+    "restriction": {
+      "type": "Notice",
+      "details": "Illegal to fish for bass in Cariboo. Part of B.C.'s illegal fish introduction management."
+    },
+    "notes": "Source: Region 5 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream",
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r5_ice_fishing_huts_notice",
+    "source": "zone",
+    "zone_ids": [
+      "5"
+    ],
+    "rule_text": "Ice Fishing Huts: Failure to remove ice fishing huts from lakes before spring breakup is an offence under the Environmental Management Act.",
+    "restriction": {
+      "type": "Notice",
+      "details": "Ice fishing huts must be removed before spring breakup (Environmental Management Act)."
+    },
+    "notes": "Source: Region 5 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r6_steelhead_stream_closure",
+    "source": "zone",
+    "zone_ids": [
+      "6"
+    ],
+    "rule_text": "No fishing in all rivers and streams for steelhead, May 15–Jun 15. Exemptions include mainstem portions of the Skeena, Nass, Iskut, Stikine, and Taku Rivers not currently closed under existing winter/spring closure.",
+    "restriction": {
+      "type": "Closed",
+      "details": "Streams closed to steelhead fishing May 15–Jun 15. Exemptions: Skeena, Nass, Iskut, Stikine, Taku mainstems."
+    },
+    "notes": "Source: Region 6 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream"
+    ],
+    "dates": [
+      "May 15 – Jun 15"
+    ]
+  },
+  {
+    "reg_id": "zone_r6_single_barbless_hook_streams",
+    "source": "zone",
+    "zone_ids": [
+      "6"
+    ],
+    "rule_text": "Only single barbless hooks may be used in all streams, all year.",
+    "restriction": {
+      "type": "Gear Restriction",
+      "details": "Single barbless hooks only in all streams, all year."
+    },
+    "notes": "Source: Region 6 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream"
+    ]
+  },
+  {
+    "reg_id": "zone_r6_set_lining_lakes",
+    "source": "zone",
+    "zone_ids": [
+      "6"
+    ],
+    "rule_text": "Set lining is only permitted in the lakes of Region 6. Set lines restricted to one line with a single hook (gap ≥3 cm), marked with angler's name, address and phone. Any game fish caught other than burbot must be released.",
+    "restriction": {
+      "type": "Gear Restriction",
+      "details": "Set lines permitted in lakes only. One line, single hook (≥3 cm gap), labelled with name/address/phone. Only burbot may be retained; all other game fish must be released."
+    },
+    "notes": "Source: Region 6 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r6_trout_char_daily_quota",
+    "source": "zone",
+    "zone_ids": [
+      "6"
+    ],
+    "rule_text": "Trout and Char: 5 (all species combined), including not more than 1 over 50 cm (quota includes hatchery steelhead).",
+    "restriction": {
+      "type": "Quota",
+      "details": "Daily quota: 5 trout/char (all species combined, includes hatchery steelhead)."
+    },
+    "notes": "Source: Region 6 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream",
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r6_trout_char_over_50cm_limit",
+    "source": "zone",
+    "zone_ids": [
+      "6"
+    ],
+    "rule_text": "Trout and Char: not more than 1 over 50 cm.",
+    "restriction": {
+      "type": "Quota",
+      "details": "Max 1 trout/char over 50 cm in daily quota."
+    },
+    "notes": "Source: Region 6 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream",
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r6_bull_lake_trout_limit",
+    "source": "zone",
+    "zone_ids": [
+      "6"
+    ],
+    "rule_text": "Trout and Char: not more than 3 Dolly Varden/bull trout and/or lake trout combined.",
+    "restriction": {
+      "type": "Quota",
+      "details": "Max 3 bull trout (Dolly Varden) and/or lake trout combined in daily quota."
+    },
+    "notes": "Source: Region 6 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream",
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r6_trout_stream_limit",
+    "source": "zone",
+    "zone_ids": [
+      "6"
+    ],
+    "rule_text": "Trout: not more than 1 from streams, Jul 1–Oct 31.",
+    "restriction": {
+      "type": "Quota",
+      "details": "Max 1 trout may be kept from streams Jul 1–Oct 31."
+    },
+    "notes": "Source: Region 6 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream"
+    ],
+    "dates": [
+      "Jul 1 – Oct 31"
+    ]
+  },
+  {
+    "reg_id": "zone_r6_bull_trout_stream_release",
+    "source": "zone",
+    "zone_ids": [
+      "6"
+    ],
+    "rule_text": "Release all Dolly Varden/bull trout from streams, all year.",
+    "restriction": {
+      "type": "Catch and Release",
+      "details": "All bull trout (Dolly Varden) must be released from streams."
+    },
+    "notes": "Source: Region 6 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream"
+    ]
+  },
+  {
+    "reg_id": "zone_r6_trout_under_30cm_stream_release",
+    "source": "zone",
+    "zone_ids": [
+      "6"
+    ],
+    "rule_text": "Release trout under 30 cm from any stream.",
+    "restriction": {
+      "type": "Catch and Release",
+      "details": "Trout under 30 cm must be released from streams."
+    },
+    "notes": "Source: Region 6 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream"
+    ]
+  },
+  {
+    "reg_id": "zone_r6_trout_stream_seasonal_release",
+    "source": "zone",
+    "zone_ids": [
+      "6"
+    ],
+    "rule_text": "Release trout of any size from streams Nov 1–Jun 30.",
+    "restriction": {
+      "type": "Catch and Release",
+      "details": "All trout must be released from streams Nov 1–Jun 30."
+    },
+    "notes": "Source: Region 6 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream"
+    ],
+    "dates": [
+      "Nov 1 – Jun 30"
+    ]
+  },
+  {
+    "reg_id": "zone_r6_steelhead_release",
+    "source": "zone",
+    "zone_ids": [
+      "6"
+    ],
+    "rule_text": "All wild steelhead must be released.",
+    "restriction": {
+      "type": "Catch and Release",
+      "details": "All wild steelhead must be released."
+    },
+    "notes": "Source: Region 6 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream"
+    ]
+  },
+  {
+    "reg_id": "zone_r6_arctic_grayling_quota",
+    "source": "zone",
+    "zone_ids": [
+      "6"
+    ],
+    "rule_text": "Arctic Grayling: 3.",
+    "restriction": {
+      "type": "Quota",
+      "details": "Daily quota: 3 Arctic grayling."
+    },
+    "notes": "Source: Region 6 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream",
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r6_burbot_quota",
+    "source": "zone",
+    "zone_ids": [
+      "6"
+    ],
+    "rule_text": "Burbot: 5.",
+    "restriction": {
+      "type": "Quota",
+      "details": "Daily quota: 5 burbot."
+    },
+    "notes": "Source: Region 6 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream",
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r6_inconnu_quota",
+    "source": "zone",
+    "zone_ids": [
+      "6"
+    ],
+    "rule_text": "Inconnu: 1.",
+    "restriction": {
+      "type": "Quota",
+      "details": "Daily quota: 1 inconnu."
+    },
+    "notes": "Source: Region 6 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream",
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r6_kokanee_quota",
+    "source": "zone",
+    "zone_ids": [
+      "6"
+    ],
+    "rule_text": "Kokanee: 10 (none from streams).",
+    "restriction": {
+      "type": "Quota",
+      "details": "Daily quota: 10 kokanee."
+    },
+    "notes": "Source: Region 6 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r6_kokanee_closed_streams",
+    "source": "zone",
+    "zone_ids": [
+      "6"
+    ],
+    "rule_text": "Kokanee: none from streams.",
+    "restriction": {
+      "type": "Closed",
+      "details": "No kokanee may be kept from streams."
+    },
+    "notes": "Source: Region 6 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream"
+    ]
+  },
+  {
+    "reg_id": "zone_r6_northern_pike_quota",
+    "source": "zone",
+    "zone_ids": [
+      "6"
+    ],
+    "rule_text": "Northern Pike: 5.",
+    "restriction": {
+      "type": "Quota",
+      "details": "Daily quota: 5 northern pike."
+    },
+    "notes": "Source: Region 6 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream",
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r6_whitefish_quota",
+    "source": "zone",
+    "zone_ids": [
+      "6"
+    ],
+    "rule_text": "Whitefish: 15 (all species combined).",
+    "restriction": {
+      "type": "Quota",
+      "details": "Daily quota: 15 whitefish (all species combined)."
+    },
+    "notes": "Source: Region 6 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream",
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r6_sturgeon_closed",
+    "source": "zone",
+    "zone_ids": [
+      "6"
+    ],
+    "rule_text": "White Sturgeon: closed to all fishing.",
+    "restriction": {
+      "type": "Closed",
+      "details": "White sturgeon: closed to all fishing."
+    },
+    "notes": "Source: Region 6 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream",
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r6_possession_quota",
+    "source": "zone",
+    "zone_ids": [
+      "6"
+    ],
+    "rule_text": "Possession quotas = 2 daily quotas (see tables for exceptions).",
+    "restriction": {
+      "type": "Possession Quota",
+      "details": "Possession limit equals 2 times the daily quota."
+    },
+    "notes": "Source: Region 6 preamble, 2025-2027 Synopsis."
+  },
+  {
+    "reg_id": "zone_r6_steelhead_annual_quota",
+    "source": "zone",
+    "zone_ids": [
+      "6"
+    ],
+    "rule_text": "Annual catch quota for all B.C.: 10 hatchery steelhead per licence year.",
+    "restriction": {
+      "type": "Annual Quota",
+      "details": "Annual quota: 10 hatchery steelhead province-wide. All wild steelhead must be released."
+    },
+    "notes": "Source: Region 6 preamble, 2025-2027 Synopsis. Province-wide rule.",
+    "feature_types": [
+      "stream"
+    ]
+  },
+  {
+    "reg_id": "zone_r6_steelhead_stamp_notice",
+    "source": "zone",
+    "zone_ids": [
+      "6"
+    ],
+    "rule_text": "Your basic licence must be validated with a Steelhead Conservation Surcharge Stamp if you fish for steelhead anywhere in B.C.",
+    "restriction": {
+      "type": "Licence Requirement",
+      "details": "Steelhead Conservation Surcharge Stamp required to fish for steelhead. Steelhead Stamp mandatory for most Classified Waters."
+    },
+    "notes": "Source: Region 6 preamble, 2025-2027 Synopsis. Province-wide rule."
+  },
+  {
+    "reg_id": "zone_r6_steelhead_daily_stop",
+    "source": "zone",
+    "zone_ids": [
+      "6"
+    ],
+    "rule_text": "When you have caught and retained your daily quota of hatchery steelhead from any water, you must stop fishing that water for the remainder of that day.",
+    "restriction": {
+      "type": "Quota Enforcement",
+      "details": "Stop fishing the water for the day once daily quota of hatchery steelhead is retained."
+    },
+    "notes": "Source: Region 6 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream"
+    ]
+  },
+  {
+    "reg_id": "zone_r6_salmon_notice",
+    "source": "zone",
+    "zone_ids": [
+      "6"
+    ],
+    "rule_text": "Non-tidal salmon fishing regulations are not included in this Synopsis. See DFO regulations.",
+    "restriction": {
+      "type": "Notice",
+      "details": "Salmon regulations managed by DFO. Stream closures and gear restrictions in this Synopsis also apply to salmon."
+    },
+    "notes": "Source: Region 6 preamble, 2025-2027 Synopsis. Province-wide notice."
+  },
+  {
+    "reg_id": "zone_r6_skeena_quality_waters",
+    "source": "zone",
+    "zone_ids": [
+      "6"
+    ],
+    "rule_text": "Skeena Quality Waters Strategy: for more information visit http://www.env.gov.bc.ca/skeena/qws/",
+    "restriction": {
+      "type": "Notice",
+      "details": "Skeena Quality Waters Strategy in effect. See gov.bc.ca/skeena/qws for details."
+    },
+    "notes": "Source: Region 6 preamble, 2025-2027 Synopsis."
+  },
+  {
+    "reg_id": "zone_r6_tagging_program_notice",
+    "source": "zone",
+    "zone_ids": [
+      "6"
+    ],
+    "rule_text": "HIGH REWARD ($100) TAGGING PROGRAMS: The Skeena Fisheries team has multiple ongoing $100 reward tagging programs. Report captures by call or text to 250-643-7290, or return tags in person to 3726 Alfred Ave, Smithers.",
+    "restriction": {
+      "type": "Notice",
+      "details": "$100 reward tagging programs in Skeena Region. Report: call/text 250-643-7290 or visit 3726 Alfred Ave, Smithers."
+    },
+    "notes": "Source: Region 6 preamble, 2025-2027 Synopsis."
+  },
+  {
+    "reg_id": "zone_r6_first_nations_notice",
+    "source": "zone",
+    "zone_ids": [
+      "6"
+    ],
+    "rule_text": "Notice to Anglers: Accurate and up-to-date information regarding First Nations notices can be found under Angler Alerts at www.gov.bc.ca/FishingRegulations.",
+    "restriction": {
+      "type": "Notice",
+      "details": "First Nations notices available under Angler Alerts at gov.bc.ca/FishingRegulations."
+    },
+    "notes": "Source: Region 6 preamble, 2025-2027 Synopsis."
+  },
+  {
+    "reg_id": "zone_r7a_spring_stream_closure",
+    "source": "zone",
+    "zone_ids": [
+      "7A"
+    ],
+    "rule_text": "No fishing in any stream of Zone A, Apr 1–Jun 30. See tables for exceptions.",
+    "restriction": {
+      "type": "Closed",
+      "details": "Streams closed Apr 1–Jun 30 unless noted in tables."
+    },
+    "notes": "Source: Region 7A preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream"
+    ],
+    "dates": [
+      "Apr 1 – Jun 30"
+    ]
+  },
+  {
+    "reg_id": "zone_r7a_single_barbless_hook_streams",
+    "source": "zone",
+    "zone_ids": [
+      "7A"
+    ],
+    "rule_text": "Only single barbless hooks may be used in all streams, all year.",
+    "restriction": {
+      "type": "Gear Restriction",
+      "details": "Single barbless hooks only in all streams, all year."
+    },
+    "notes": "Source: Region 7A preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream"
+    ]
+  },
+  {
+    "reg_id": "zone_r7a_bait_ban_streams",
+    "source": "zone",
+    "zone_ids": [
+      "7A"
+    ],
+    "rule_text": "Bait ban applies to all streams of Zone A, all year. See tables for exceptions.",
+    "restriction": {
+      "type": "Bait Restriction",
+      "details": "Bait banned in all streams, all year."
+    },
+    "notes": "Source: Region 7A preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream"
+    ]
+  },
+  {
+    "reg_id": "zone_r7a_set_lining_lakes",
+    "source": "zone",
+    "zone_ids": [
+      "7A"
+    ],
+    "rule_text": "Set lining is only permitted in the lakes of Zone A. Set lines restricted to one line with a single hook (gap ≥3 cm), marked with angler's name, address and phone. Any game fish caught other than burbot must be released.",
+    "restriction": {
+      "type": "Gear Restriction",
+      "details": "Set lines permitted in lakes only. One line, single hook (≥3 cm gap), labelled with name/address/phone. Only burbot may be retained; all other game fish must be released."
+    },
+    "notes": "Source: Region 7A preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r7a_trout_char_daily_quota",
+    "source": "zone",
+    "zone_ids": [
+      "7A"
+    ],
+    "rule_text": "Trout and Char: 5 (all species combined), including not more than 1 over 50 cm.",
+    "restriction": {
+      "type": "Quota",
+      "details": "Daily quota: 5 trout/char (all species combined)."
+    },
+    "notes": "Source: Region 7A preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream",
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r7a_trout_char_over_50cm_limit",
+    "source": "zone",
+    "zone_ids": [
+      "7A"
+    ],
+    "rule_text": "Trout and Char: not more than 1 over 50 cm.",
+    "restriction": {
+      "type": "Quota",
+      "details": "Max 1 trout/char over 50 cm in daily quota."
+    },
+    "notes": "Source: Region 7A preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream",
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r7a_trout_char_stream_limit",
+    "source": "zone",
+    "zone_ids": [
+      "7A"
+    ],
+    "rule_text": "Trout and Char: not more than 2 from streams.",
+    "restriction": {
+      "type": "Quota",
+      "details": "Max 2 trout/char may be kept from streams."
+    },
+    "notes": "Source: Region 7A preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream"
+    ]
+  },
+  {
+    "reg_id": "zone_r7a_lake_trout_limit",
+    "source": "zone",
+    "zone_ids": [
+      "7A"
+    ],
+    "rule_text": "Trout and Char: not more than 3 lake trout.",
+    "restriction": {
+      "type": "Quota",
+      "details": "Max 3 lake trout in daily quota."
+    },
+    "notes": "Source: Region 7A preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream",
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r7a_bull_trout_limit",
+    "source": "zone",
+    "zone_ids": [
+      "7A"
+    ],
+    "rule_text": "Trout and Char: not more than 1 bull trout (Dolly Varden). May only be retained Oct 16–Aug 14, from lakes only, 30–50 cm in length.",
+    "restriction": {
+      "type": "Quota",
+      "details": "Max 1 bull trout (Dolly Varden). Retention Oct 16–Aug 14 only, from lakes only, 30–50 cm in length."
+    },
+    "notes": "Source: Region 7A preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "lake",
+      "manmade"
+    ],
+    "dates": [
+      "Oct 16 – Aug 14"
+    ]
+  },
+  {
+    "reg_id": "zone_r7a_bull_trout_stream_release",
+    "source": "zone",
+    "zone_ids": [
+      "7A"
+    ],
+    "rule_text": "Release bull trout (Dolly Varden) from streams, all year.",
+    "restriction": {
+      "type": "Catch and Release",
+      "details": "All bull trout (Dolly Varden) must be released from streams."
+    },
+    "notes": "Source: Region 7A preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream"
+    ]
+  },
+  {
+    "reg_id": "zone_r7a_bull_trout_lake_seasonal_release",
+    "source": "zone",
+    "zone_ids": [
+      "7A"
+    ],
+    "rule_text": "Release bull trout (Dolly Varden) from lakes Aug 15–Oct 15.",
+    "restriction": {
+      "type": "Catch and Release",
+      "details": "Release bull trout (Dolly Varden) from lakes Aug 15–Oct 15."
+    },
+    "notes": "Source: Region 7A preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "lake",
+      "manmade"
+    ],
+    "dates": [
+      "Aug 15 – Oct 15"
+    ]
+  },
+  {
+    "reg_id": "zone_r7a_lake_trout_seasonal_release",
+    "source": "zone",
+    "zone_ids": [
+      "7A"
+    ],
+    "rule_text": "Release lake trout of any size Sept 15–Oct 31.",
+    "restriction": {
+      "type": "Catch and Release",
+      "details": "Release lake trout of any size Sept 15–Oct 31."
+    },
+    "notes": "Source: Region 7A preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream",
+      "lake",
+      "manmade"
+    ],
+    "dates": [
+      "Sept 15 – Oct 31"
+    ]
+  },
+  {
+    "reg_id": "zone_r7a_lake_trout_under_30cm_release",
+    "source": "zone",
+    "zone_ids": [
+      "7A"
+    ],
+    "rule_text": "Release lake trout under 30 cm, all year.",
+    "restriction": {
+      "type": "Catch and Release",
+      "details": "Lake trout under 30 cm must be released, all year."
+    },
+    "notes": "Source: Region 7A preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream",
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r7a_arctic_grayling_release",
+    "source": "zone",
+    "zone_ids": [
+      "7A"
+    ],
+    "rule_text": "Arctic Grayling: catch and release only.",
+    "restriction": {
+      "type": "Catch and Release",
+      "details": "Catch and release only for Arctic grayling."
+    },
+    "notes": "Source: Region 7A preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream",
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r7a_burbot_quota",
+    "source": "zone",
+    "zone_ids": [
+      "7A"
+    ],
+    "rule_text": "Burbot: 5.",
+    "restriction": {
+      "type": "Quota",
+      "details": "Daily quota: 5 burbot."
+    },
+    "notes": "Source: Region 7A preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream",
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r7a_kokanee_quota",
+    "source": "zone",
+    "zone_ids": [
+      "7A"
+    ],
+    "rule_text": "Kokanee: 10 (none from streams).",
+    "restriction": {
+      "type": "Quota",
+      "details": "Daily quota: 10 kokanee."
+    },
+    "notes": "Source: Region 7A preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r7a_kokanee_closed_streams",
+    "source": "zone",
+    "zone_ids": [
+      "7A"
+    ],
+    "rule_text": "Kokanee: none from streams.",
+    "restriction": {
+      "type": "Closed",
+      "details": "No kokanee may be kept from streams."
+    },
+    "notes": "Source: Region 7A preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream"
+    ]
+  },
+  {
+    "reg_id": "zone_r7a_sturgeon_closed",
+    "source": "zone",
+    "zone_ids": [
+      "7A"
+    ],
+    "rule_text": "White Sturgeon: closed to all fishing.",
+    "restriction": {
+      "type": "Closed",
+      "details": "White sturgeon: closed to all fishing. Endangered under SARA (Upper Fraser/Nechako populations)."
+    },
+    "notes": "Source: Region 7A preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream",
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r7a_whitefish_quota",
+    "source": "zone",
+    "zone_ids": [
+      "7A"
+    ],
+    "rule_text": "Whitefish: 15 (all species combined).",
+    "restriction": {
+      "type": "Quota",
+      "details": "Daily quota: 15 whitefish (all species combined)."
+    },
+    "notes": "Source: Region 7A preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream",
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r7a_possession_quota",
+    "source": "zone",
+    "zone_ids": [
+      "7A"
+    ],
+    "rule_text": "Possession quotas = 2 daily quotas (see tables for exceptions).",
+    "restriction": {
+      "type": "Possession Quota",
+      "details": "Possession limit equals 2 times the daily quota."
+    },
+    "notes": "Source: Region 7A preamble, 2025-2027 Synopsis."
+  },
+  {
+    "reg_id": "zone_r7a_lake_trout_possession",
+    "source": "zone",
+    "zone_ids": [
+      "7A"
+    ],
+    "rule_text": "Lake trout: possession quota = 1 daily quota.",
+    "restriction": {
+      "type": "Possession Quota",
+      "details": "Lake trout possession limit equals 1 daily quota."
+    },
+    "notes": "Source: Region 7A preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream",
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r7a_bull_trout_possession",
+    "source": "zone",
+    "zone_ids": [
+      "7A"
+    ],
+    "rule_text": "Bull trout (Dolly Varden): possession quota = 1 daily quota.",
+    "restriction": {
+      "type": "Possession Quota",
+      "details": "Bull trout (Dolly Varden) possession limit equals 1 daily quota."
+    },
+    "notes": "Source: Region 7A preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream",
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r7a_salmon_notice",
+    "source": "zone",
+    "zone_ids": [
+      "7A"
+    ],
+    "rule_text": "Non-tidal salmon fishing regulations are not included in this Synopsis. See DFO regulations.",
+    "restriction": {
+      "type": "Notice",
+      "details": "Salmon regulations managed by DFO. Stream closures and gear restrictions in this Synopsis also apply to salmon."
+    },
+    "notes": "Source: Region 7A preamble, 2025-2027 Synopsis. Province-wide notice."
+  },
+  {
+    "reg_id": "zone_r7a_tagging_program_notice",
+    "source": "zone",
+    "zone_ids": [
+      "7A"
+    ],
+    "rule_text": "The Ministry and partners are conducting tagging studies on various species throughout the Omineca region. Some tags offer cash rewards. Report tag number, colour, date, time and location to Prince George office: (250) 614-7400.",
+    "restriction": {
+      "type": "Notice",
+      "details": "Tagging programs in Omineca Region — some offer cash rewards. Report captures to (250) 614-7400."
+    },
+    "notes": "Source: Region 7A preamble, 2025-2027 Synopsis."
+  },
+  {
+    "reg_id": "zone_r7a_sturgeon_report_notice",
+    "source": "zone",
+    "zone_ids": [
+      "7A"
+    ],
+    "rule_text": "White Sturgeon in Nechako and Upper Fraser are SARA-listed endangered. Report all sightings or incidental captures to 250-614-7400. See nechakowhitesturgeon.org.",
+    "restriction": {
+      "type": "Notice",
+      "details": "White sturgeon (Upper Fraser/Nechako) are SARA endangered. Report sightings to 250-614-7400. Info: nechakowhitesturgeon.org."
+    },
+    "notes": "Source: Region 7A preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream",
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r7a_ice_fishing_huts_notice",
+    "source": "zone",
+    "zone_ids": [
+      "7A"
+    ],
+    "rule_text": "Ice Fishing Huts: Failure to remove ice fishing huts from lakes before spring breakup is an offence under the Environmental Management Act.",
+    "restriction": {
+      "type": "Notice",
+      "details": "Ice fishing huts must be removed before spring breakup (Environmental Management Act)."
+    },
+    "notes": "Source: Region 7A preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r7b_single_barbless_hook_streams",
+    "source": "zone",
+    "zone_ids": [
+      "7B"
+    ],
+    "rule_text": "Only single barbless hooks may be used in all streams, all year.",
+    "restriction": {
+      "type": "Gear Restriction",
+      "details": "Single barbless hooks only in all streams, all year."
+    },
+    "notes": "Source: Region 7B preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream"
+    ]
+  },
+  {
+    "reg_id": "zone_r7b_bait_ban_streams",
+    "source": "zone",
+    "zone_ids": [
+      "7B"
+    ],
+    "rule_text": "Bait ban applies to all streams of Zone B, all year.",
+    "restriction": {
+      "type": "Bait Restriction",
+      "details": "Bait banned in all streams, all year."
+    },
+    "notes": "Source: Region 7B preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream"
+    ]
+  },
+  {
+    "reg_id": "zone_r7b_finfish_bait_ban",
+    "source": "zone",
+    "zone_ids": [
+      "7B"
+    ],
+    "rule_text": "Fin fish may not be used as bait in any waters of Zone B.",
+    "restriction": {
+      "type": "Bait Restriction",
+      "details": "Fin fish may not be used as bait in any waters."
+    },
+    "notes": "Source: Region 7B preamble, 2025-2027 Synopsis."
+  },
+  {
+    "reg_id": "zone_r7b_set_lining_prohibited",
+    "source": "zone",
+    "zone_ids": [
+      "7B"
+    ],
+    "rule_text": "Set lining is not permitted in Zone B.",
+    "restriction": {
+      "type": "Gear Restriction",
+      "details": "Set lining is not permitted."
+    },
+    "notes": "Source: Region 7B preamble, 2025-2027 Synopsis."
+  },
+  {
+    "reg_id": "zone_r7b_ice_fishing_huts_notice",
+    "source": "zone",
+    "zone_ids": [
+      "7B"
+    ],
+    "rule_text": "Ice fishing huts should have the owner's contact information displayed when left unoccupied. Failure to remove before spring breakup is an offence under the Environmental Management Act.",
+    "restriction": {
+      "type": "Notice",
+      "details": "Ice fishing huts must display owner info and be removed before spring breakup (Environmental Management Act)."
+    },
+    "notes": "Source: Region 7B preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r7b_trout_char_daily_quota",
+    "source": "zone",
+    "zone_ids": [
+      "7B"
+    ],
+    "rule_text": "Trout and Char: 5 (all species combined), including not more than 1 over 50 cm.",
+    "restriction": {
+      "type": "Quota",
+      "details": "Daily quota: 5 trout/char (all species combined)."
+    },
+    "notes": "Source: Region 7B preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream",
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r7b_trout_char_over_50cm_limit",
+    "source": "zone",
+    "zone_ids": [
+      "7B"
+    ],
+    "rule_text": "Trout and Char: not more than 1 over 50 cm.",
+    "restriction": {
+      "type": "Quota",
+      "details": "Max 1 trout/char over 50 cm in daily quota."
+    },
+    "notes": "Source: Region 7B preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream",
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r7b_trout_char_stream_limit",
+    "source": "zone",
+    "zone_ids": [
+      "7B"
+    ],
+    "rule_text": "Trout and Char: not more than 2 from streams.",
+    "restriction": {
+      "type": "Quota",
+      "details": "Max 2 trout/char may be kept from streams."
+    },
+    "notes": "Source: Region 7B preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream"
+    ]
+  },
+  {
+    "reg_id": "zone_r7b_lake_trout_limit",
+    "source": "zone",
+    "zone_ids": [
+      "7B"
+    ],
+    "rule_text": "Trout and Char: not more than 2 lake trout.",
+    "restriction": {
+      "type": "Quota",
+      "details": "Max 2 lake trout in daily quota."
+    },
+    "notes": "Source: Region 7B preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream",
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r7b_lake_trout_under_30cm_release",
+    "source": "zone",
+    "zone_ids": [
+      "7B"
+    ],
+    "rule_text": "Release lake trout under 30 cm, all year.",
+    "restriction": {
+      "type": "Catch and Release",
+      "details": "Lake trout under 30 cm must be released, all year."
+    },
+    "notes": "Source: Region 7B preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream",
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r7b_lake_trout_seasonal_release",
+    "source": "zone",
+    "zone_ids": [
+      "7B"
+    ],
+    "rule_text": "Release lake trout of any size Sept 15–Oct 31.",
+    "restriction": {
+      "type": "Catch and Release",
+      "details": "Release lake trout of any size Sept 15–Oct 31."
+    },
+    "notes": "Source: Region 7B preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream",
+      "lake",
+      "manmade"
+    ],
+    "dates": [
+      "Sept 15 – Oct 31"
+    ]
+  },
+  {
+    "reg_id": "zone_r7b_rainbow_stream_seasonal_release",
+    "source": "zone",
+    "zone_ids": [
+      "7B"
+    ],
+    "rule_text": "Release rainbow trout of any size from streams May 1–Jun 15.",
+    "restriction": {
+      "type": "Catch and Release",
+      "details": "Release rainbow trout from streams May 1–Jun 15."
+    },
+    "notes": "Source: Region 7B preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream"
+    ],
+    "dates": [
+      "May 1 – Jun 15"
+    ]
+  },
+  {
+    "reg_id": "zone_r7b_arctic_grayling_quota",
+    "source": "zone",
+    "zone_ids": [
+      "7B"
+    ],
+    "rule_text": "Arctic Grayling: 2 (none under 30 cm and only 1 over 45 cm).",
+    "restriction": {
+      "type": "Quota",
+      "details": "Daily quota: 2 Arctic grayling (none under 30 cm, max 1 over 45 cm)."
+    },
+    "notes": "Source: Region 7B preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream",
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r7b_arctic_grayling_seasonal_release",
+    "source": "zone",
+    "zone_ids": [
+      "7B"
+    ],
+    "rule_text": "Release Arctic grayling of any size May 1–Jun 15.",
+    "restriction": {
+      "type": "Catch and Release",
+      "details": "Release Arctic grayling May 1–Jun 15."
+    },
+    "notes": "Source: Region 7B preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream",
+      "lake",
+      "manmade"
+    ],
+    "dates": [
+      "May 1 – Jun 15"
+    ]
+  },
+  {
+    "reg_id": "zone_r7b_burbot_quota",
+    "source": "zone",
+    "zone_ids": [
+      "7B"
+    ],
+    "rule_text": "Burbot: 5.",
+    "restriction": {
+      "type": "Quota",
+      "details": "Daily quota: 5 burbot."
+    },
+    "notes": "Source: Region 7B preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream",
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r7b_goldeye_quota",
+    "source": "zone",
+    "zone_ids": [
+      "7B"
+    ],
+    "rule_text": "Goldeye: 10.",
+    "restriction": {
+      "type": "Quota",
+      "details": "Daily quota: 10 goldeye."
+    },
+    "notes": "Source: Region 7B preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream",
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r7b_inconnu_quota",
+    "source": "zone",
+    "zone_ids": [
+      "7B"
+    ],
+    "rule_text": "Inconnu: 1.",
+    "restriction": {
+      "type": "Quota",
+      "details": "Daily quota: 1 inconnu."
+    },
+    "notes": "Source: Region 7B preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream",
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r7b_kokanee_quota",
+    "source": "zone",
+    "zone_ids": [
+      "7B"
+    ],
+    "rule_text": "Kokanee: 10 (none from streams, except Peace River).",
+    "restriction": {
+      "type": "Quota",
+      "details": "Daily quota: 10 kokanee (none from streams, except Peace River)."
+    },
+    "notes": "Source: Region 7B preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r7b_kokanee_closed_streams",
+    "source": "zone",
+    "zone_ids": [
+      "7B"
+    ],
+    "rule_text": "Kokanee: none from streams (except Peace River).",
+    "restriction": {
+      "type": "Closed",
+      "details": "No kokanee may be kept from streams (except Peace River)."
+    },
+    "notes": "Source: Region 7B preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream"
+    ]
+  },
+  {
+    "reg_id": "zone_r7b_northern_pike_quota",
+    "source": "zone",
+    "zone_ids": [
+      "7B"
+    ],
+    "rule_text": "Northern Pike: 3 (only 1 over 90 cm).",
+    "restriction": {
+      "type": "Quota",
+      "details": "Daily quota: 3 northern pike (max 1 over 90 cm)."
+    },
+    "notes": "Source: Region 7B preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream",
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r7b_walleye_quota",
+    "source": "zone",
+    "zone_ids": [
+      "7B"
+    ],
+    "rule_text": "Walleye: 3 (only 1 over 70 cm).",
+    "restriction": {
+      "type": "Quota",
+      "details": "Daily quota: 3 walleye (max 1 over 70 cm)."
+    },
+    "notes": "Source: Region 7B preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream",
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r7b_walleye_stream_seasonal_release",
+    "source": "zone",
+    "zone_ids": [
+      "7B"
+    ],
+    "rule_text": "Release all walleye from streams Apr 1–May 15.",
+    "restriction": {
+      "type": "Catch and Release",
+      "details": "Release all walleye from streams Apr 1–May 15."
+    },
+    "notes": "Source: Region 7B preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream"
+    ],
+    "dates": [
+      "Apr 1 – May 15"
+    ]
+  },
+  {
+    "reg_id": "zone_r7b_whitefish_quota",
+    "source": "zone",
+    "zone_ids": [
+      "7B"
+    ],
+    "rule_text": "Whitefish: 15 (all species combined).",
+    "restriction": {
+      "type": "Quota",
+      "details": "Daily quota: 15 whitefish (all species combined)."
+    },
+    "notes": "Source: Region 7B preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream",
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r7b_yellow_perch_quota",
+    "source": "zone",
+    "zone_ids": [
+      "7B"
+    ],
+    "rule_text": "Yellow Perch: 5.",
+    "restriction": {
+      "type": "Quota",
+      "details": "Daily quota: 5 yellow perch."
+    },
+    "notes": "Source: Region 7B preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream",
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r7b_possession_quota",
+    "source": "zone",
+    "zone_ids": [
+      "7B"
+    ],
+    "rule_text": "Possession quotas = 2 daily quotas (see tables for exceptions).",
+    "restriction": {
+      "type": "Possession Quota",
+      "details": "Possession limit equals 2 times the daily quota."
+    },
+    "notes": "Source: Region 7B preamble, 2025-2027 Synopsis."
+  },
+  {
+    "reg_id": "zone_r7b_arctic_grayling_possession",
+    "source": "zone",
+    "zone_ids": [
+      "7B"
+    ],
+    "rule_text": "Arctic grayling: possession quota = 1 daily quota.",
+    "restriction": {
+      "type": "Possession Quota",
+      "details": "Arctic grayling possession limit equals 1 daily quota."
+    },
+    "notes": "Source: Region 7B preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream",
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r7b_bull_trout_possession",
+    "source": "zone",
+    "zone_ids": [
+      "7B"
+    ],
+    "rule_text": "Bull trout: possession quota = 1 daily quota.",
+    "restriction": {
+      "type": "Possession Quota",
+      "details": "Bull trout possession limit equals 1 daily quota."
+    },
+    "notes": "Source: Region 7B preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream",
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r7b_lake_trout_possession",
+    "source": "zone",
+    "zone_ids": [
+      "7B"
+    ],
+    "rule_text": "Lake trout: possession quota = 1 daily quota.",
+    "restriction": {
+      "type": "Possession Quota",
+      "details": "Lake trout possession limit equals 1 daily quota."
+    },
+    "notes": "Source: Region 7B preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream",
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r7b_bull_trout_dolly_varden_notice",
+    "source": "zone",
+    "zone_ids": [
+      "7B"
+    ],
+    "rule_text": "NOTE: Bull trout and Dolly Varden are two distinct species. Only bull trout are found in the Peace Region.",
+    "restriction": {
+      "type": "Notice",
+      "details": "Only bull trout (not Dolly Varden) are found in the Peace Region."
+    },
+    "notes": "Source: Region 7B preamble, 2025-2027 Synopsis."
+  },
+  {
+    "reg_id": "zone_r7b_site_c_tagging_notice",
+    "source": "zone",
+    "zone_ids": [
+      "7B"
+    ],
+    "rule_text": "BC Hydro is tracking fish movement throughout the Site C Reservoir, Peace River and tributaries using telemetry. Return tags by emailing tagreturns@golder.com or calling (250) 785-9281. For other areas call (250) 787-3415.",
+    "restriction": {
+      "type": "Notice",
+      "details": "BC Hydro fish tagging study — return tags: tagreturns@golder.com or (250) 785-9281. Other areas: (250) 787-3415."
+    },
+    "notes": "Source: Region 7B preamble, 2025-2027 Synopsis."
+  },
+  {
+    "reg_id": "zone_r8_spring_stream_closure",
+    "source": "zone",
+    "zone_ids": [
+      "8"
+    ],
+    "rule_text": "No fishing in any stream in Region 8 from Apr 1–Jun 30. See tables for exceptions.",
+    "restriction": {
+      "type": "Closed",
+      "details": "Streams closed Apr 1–Jun 30 unless noted in tables."
+    },
+    "notes": "Source: Region 8 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream"
+    ],
+    "dates": [
+      "Apr 1 – Jun 30"
+    ]
+  },
+  {
+    "reg_id": "zone_r8_single_barbless_hook_streams",
+    "source": "zone",
+    "zone_ids": [
+      "8"
+    ],
+    "rule_text": "Only single barbless hooks may be used in all streams, all year.",
+    "restriction": {
+      "type": "Gear Restriction",
+      "details": "Single barbless hooks only in all streams, all year."
+    },
+    "notes": "Source: Region 8 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream"
+    ]
+  },
+  {
+    "reg_id": "zone_r8_trout_char_daily_quota",
+    "source": "zone",
+    "zone_ids": [
+      "8"
+    ],
+    "rule_text": "Trout and Char: 5 (all species combined), including not more than 1 over 50 cm.",
+    "restriction": {
+      "type": "Quota",
+      "details": "Daily quota: 5 trout/char (all species combined)."
+    },
+    "notes": "Source: Region 8 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream",
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r8_trout_char_over_50cm_limit",
+    "source": "zone",
+    "zone_ids": [
+      "8"
+    ],
+    "rule_text": "Trout and Char: not more than 1 over 50 cm.",
+    "restriction": {
+      "type": "Quota",
+      "details": "Max 1 trout/char over 50 cm in daily quota."
+    },
+    "notes": "Source: Region 8 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream",
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r8_trout_char_stream_limit",
+    "source": "zone",
+    "zone_ids": [
+      "8"
+    ],
+    "rule_text": "Trout and Char: not more than 4 from streams (only 2 over 30 cm).",
+    "restriction": {
+      "type": "Quota",
+      "details": "Max 4 trout/char from streams (only 2 over 30 cm)."
+    },
+    "notes": "Source: Region 8 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream"
+    ]
+  },
+  {
+    "reg_id": "zone_r8_brook_trout_stream_bonus",
+    "source": "zone",
+    "zone_ids": [
+      "8"
+    ],
+    "rule_text": "You may retain 20 brook trout from streams.",
+    "restriction": {
+      "type": "Quota",
+      "details": "May retain 20 brook trout from streams (in addition to daily quota)."
+    },
+    "notes": "Source: Region 8 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream"
+    ]
+  },
+  {
+    "reg_id": "zone_r8_bull_trout_stream_release",
+    "source": "zone",
+    "zone_ids": [
+      "8"
+    ],
+    "rule_text": "Release bull trout (Dolly Varden) from streams.",
+    "restriction": {
+      "type": "Catch and Release",
+      "details": "All bull trout (Dolly Varden) must be released from streams."
+    },
+    "notes": "Source: Region 8 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream"
+    ]
+  },
+  {
+    "reg_id": "zone_r8_bass_closed",
+    "source": "zone",
+    "zone_ids": [
+      "8"
+    ],
+    "rule_text": "Bass: 0 quota, closed to fishing (see tables for exceptions).",
+    "restriction": {
+      "type": "Closed",
+      "details": "Bass: closed to fishing (0 quota). See tables for exceptions."
+    },
+    "notes": "Source: Region 8 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream",
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r8_burbot_quota",
+    "source": "zone",
+    "zone_ids": [
+      "8"
+    ],
+    "rule_text": "Burbot: 2.",
+    "restriction": {
+      "type": "Quota",
+      "details": "Daily quota: 2 burbot."
+    },
+    "notes": "Source: Region 8 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream",
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r8_crappie_quota",
+    "source": "zone",
+    "zone_ids": [
+      "8"
+    ],
+    "rule_text": "Crappie: 20.",
+    "restriction": {
+      "type": "Quota",
+      "details": "Daily quota: 20 crappie."
+    },
+    "notes": "Source: Region 8 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream",
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r8_crayfish_quota",
+    "source": "zone",
+    "zone_ids": [
+      "8"
+    ],
+    "rule_text": "Crayfish: 25.",
+    "restriction": {
+      "type": "Quota",
+      "details": "Daily quota: 25 crayfish."
+    },
+    "notes": "Source: Region 8 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream",
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r8_kokanee_quota",
+    "source": "zone",
+    "zone_ids": [
+      "8"
+    ],
+    "rule_text": "Kokanee: 5 (none from streams).",
+    "restriction": {
+      "type": "Quota",
+      "details": "Daily quota: 5 kokanee."
+    },
+    "notes": "Source: Region 8 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r8_kokanee_closed_streams",
+    "source": "zone",
+    "zone_ids": [
+      "8"
+    ],
+    "rule_text": "Kokanee: none from streams.",
+    "restriction": {
+      "type": "Closed",
+      "details": "No kokanee may be kept from streams."
+    },
+    "notes": "Source: Region 8 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream"
+    ]
+  },
+  {
+    "reg_id": "zone_r8_walleye_quota",
+    "source": "zone",
+    "zone_ids": [
+      "8"
+    ],
+    "rule_text": "Walleye: 8.",
+    "restriction": {
+      "type": "Quota",
+      "details": "Daily quota: 8 walleye."
+    },
+    "notes": "Source: Region 8 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream",
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r8_whitefish_quota",
+    "source": "zone",
+    "zone_ids": [
+      "8"
+    ],
+    "rule_text": "Whitefish: 15 (all species combined).",
+    "restriction": {
+      "type": "Quota",
+      "details": "Daily quota: 15 whitefish (all species combined)."
+    },
+    "notes": "Source: Region 8 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream",
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r8_yellow_perch_closed",
+    "source": "zone",
+    "zone_ids": [
+      "8"
+    ],
+    "rule_text": "Yellow Perch: 0 quota, closed to fishing (see tables for exceptions).",
+    "restriction": {
+      "type": "Closed",
+      "details": "Yellow perch: closed to fishing (0 quota). See tables for exceptions."
+    },
+    "notes": "Source: Region 8 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream",
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r8_possession_quota",
+    "source": "zone",
+    "zone_ids": [
+      "8"
+    ],
+    "rule_text": "Possession quotas = 2 daily quotas (see tables for exceptions).",
+    "restriction": {
+      "type": "Possession Quota",
+      "details": "Possession limit equals 2 times the daily quota."
+    },
+    "notes": "Source: Region 8 preamble, 2025-2027 Synopsis."
+  },
+  {
+    "reg_id": "zone_r8_salmon_notice",
+    "source": "zone",
+    "zone_ids": [
+      "8"
+    ],
+    "rule_text": "Non-tidal salmon fishing regulations are not included in this Synopsis. See DFO regulations (including Osoyoos Lake sockeye fishery enquiries).",
+    "restriction": {
+      "type": "Notice",
+      "details": "Salmon regulations managed by DFO. Includes Osoyoos Lake sockeye fishery enquiries."
+    },
+    "notes": "Source: Region 8 preamble, 2025-2027 Synopsis. Province-wide notice."
+  },
+  {
+    "reg_id": "zone_r8_crayfish_turtle_notice",
+    "source": "zone",
+    "zone_ids": [
+      "8"
+    ],
+    "rule_text": "Crayfish trapping: use traps with minimally-sized circular openings to reduce chance of capturing Western Painted Turtles.",
+    "restriction": {
+      "type": "Notice",
+      "details": "Use crayfish traps with minimal circular openings to protect Western Painted Turtles."
+    },
+    "notes": "Source: Region 8 preamble, 2025-2027 Synopsis.",
+    "feature_types": [
+      "stream",
+      "lake",
+      "manmade"
+    ]
+  },
+  {
+    "reg_id": "zone_r8_syilx_nation_notice",
+    "source": "zone",
+    "zone_ids": [
+      "8"
+    ],
+    "rule_text": "The Okanagan is the traditional territory of the Syilx people. The Province collaborates with ONA on key initiatives to restore and manage fish stocks.",
+    "restriction": {
+      "type": "Notice",
+      "details": "Okanagan is Syilx traditional territory. Province collaborates with Okanagan Nation Alliance on fish stock restoration."
+    },
+    "notes": "Source: Region 8 preamble, 2025-2027 Synopsis."
+  }
+]

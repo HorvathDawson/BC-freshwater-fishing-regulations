@@ -4,7 +4,7 @@ BaseEntryBuilder — natural gazetteer search over synopsis rows.
 Reads synopsis_raw_data.json and builds one BaseEntry per synopsis row using
 pure name-based gazetteer search.  No overrides, no manual corrections.
 
-The output JSON is the transparent name+region+mus → fwa_refs table — the
+The output JSON is the transparent name+region+mus → gnis_ids table — the
 document you diff year-over-year to see exactly what changed in the PDF.
 
 To apply corrections at runtime, layer OverrideEntry objects on top via
@@ -12,8 +12,8 @@ MatchTable(bases, overrides).
 
 CLI
 ---
-    python -m regulation_mapping_v2.base_entry_builder
-    python -m regulation_mapping_v2.base_entry_builder \\
+    python -m regulation_mapping_v2.matching.base_entry_builder
+    python -m regulation_mapping_v2.matching.base_entry_builder \\
         --raw path/to/raw.json --out path/to/out.json
 """
 
@@ -21,11 +21,11 @@ from __future__ import annotations
 
 import argparse
 import json
-import re
 import sys
 from pathlib import Path
 import logging
 import pickle
+import yaml
 from enum import Enum
 from typing import Dict, List, Optional, Tuple, Union
 from typing_extensions import TypedDict
@@ -101,10 +101,6 @@ class SynopsisRow(TypedDict, total=False):
     mu: List[str]
     raw_regs: str
 
-# Pre-compiled for name-cleaning
-_RE_BRACKETS = re.compile(r"\s*\([^)]*\)\s*")
-_RE_SPACES = re.compile(r"\s+")
-
 
 # ---------------------------------------------------------------------------
 # Natural search (no manual corrections — that is what overrides are for)
@@ -132,14 +128,13 @@ def _ref_identity(ref: FeatureRecord) -> tuple:
 
 
 def _name_variations(name: str) -> List[str]:
-    """Return name as-is, then with parenthetical content stripped."""
-    variations = [name]
-    if "(" in name:
-        stripped = _RE_BRACKETS.sub(" ", name).strip()
-        stripped = _RE_SPACES.sub(" ", stripped)
-        if stripped != name:
-            variations.append(stripped)
-    return variations
+    """Return name as-is — no parenthetical stripping.
+
+    Parenthetical qualifiers are preserved in the base table.
+    Name→feature resolution for entries with parens is handled
+    by OverrideEntry records in overrides.json.
+    """
+    return [name]
 
 
 def _zone_from_region(region: Optional[str]) -> Optional[str]:
@@ -224,6 +219,23 @@ def _natural_search(
             refs.append(ref)
 
     return refs, "natural_search"
+
+
+def _extract_gnis_ids(refs: List[FeatureRecord]) -> List[str]:
+    """Extract unique GNIS IDs from feature records (streams + polygons).
+
+    Checks both gnis_id (primary) and gnis_id_2 (secondary name on polygons)
+    to avoid silent data loss for features matched via their secondary name.
+    """
+    ids: List[str] = []
+    seen: set = set()
+    for ref in refs:
+        for key in ("gnis_id", "gnis_id_2"):
+            gid = ref.get(key, "")
+            if gid and gid not in seen:
+                seen.add(gid)
+                ids.append(gid)
+    return ids
 
 
 # ---------------------------------------------------------------------------
@@ -421,48 +433,23 @@ class BaseEntryBuilder:
 
         criteria = MatchCriteria(name_verbatim=name, region=region, mus=mus)
         zone = _zone_from_region(region)
-        fwa_refs, method = _natural_search(self._name_index, name, zone, mus)
-        return BaseEntry(criteria=criteria, fwa_refs=fwa_refs, link_method=method)
+        refs, method = _natural_search(self._name_index, name, zone, mus)
+        gnis_ids = _extract_gnis_ids(refs)
+        return BaseEntry(criteria=criteria, gnis_ids=gnis_ids, link_method=method)
 
     def build_table(self, raw_rows: List[SynopsisRow]) -> List[BaseEntry]:
         """Process all synopsis rows; return one BaseEntry per row.
 
-        When a synopsis name contains parenthetical qualifiers (e.g.
-        "COWICHAN RIVER (SEE MAP BELOW)"), a second BaseEntry is emitted
-        with the unqualified base name ("COWICHAN RIVER") sharing the same
-        fwa_refs.  This lets in-season changes that reference just
-        "Cowichan River" match without special-casing.  Because they are
-        separate entries, overrides on the qualified name do not affect
-        the base-name entry.
-
-        Duplicate base names within the same region are skipped — the first
-        qualified entry wins.
+        Each entry represents exactly one synopsis row with the verbatim
+        name from the PDF.  No synthetic base-name entries are created —
+        parenthetical qualifier resolution is handled by OverrideEntry
+        records in overrides.json (with name_variants for the stripped
+        form so lookups by base name still resolve).
         """
         entries: List[BaseEntry] = []
-        # Track (region, base_name) so we only emit one base-name entry
-        seen_bases: set = set()
         for row in raw_rows:
             entry = self.link_row(row)
             entries.append(entry)
-
-            name = row["water"]
-            if "(" in name:
-                base = _RE_BRACKETS.sub(" ", name).strip()
-                base = _RE_SPACES.sub(" ", base)
-                if base and base != name:
-                    key = (entry.criteria.region, base.upper())
-                    if key not in seen_bases:
-                        seen_bases.add(key)
-                        base_criteria = MatchCriteria(
-                            name_verbatim=base,
-                            region=entry.criteria.region,
-                            mus=entry.criteria.mus,
-                        )
-                        entries.append(BaseEntry(
-                            criteria=base_criteria,
-                            fwa_refs=entry.fwa_refs,
-                            link_method=f"{entry.link_method}_base_name",
-                        ))
         return entries
 
 
@@ -481,8 +468,14 @@ def load_synopsis_rows(path: Path) -> List[SynopsisRow]:
     return rows
 
 
-def load_overrides(path: Path) -> List[OverrideEntry]:
-    """Load a JSON list of OverrideEntry dicts."""
+def load_overrides(path: Optional[Path] = None) -> List[OverrideEntry]:
+    """Load a JSON list of OverrideEntry dicts.
+
+    Defaults to the canonical overrides.json shipped next to match_table.py.
+    """
+    from .match_table import OVERRIDES_PATH
+
+    path = path or OVERRIDES_PATH
     with open(path, encoding="utf-8") as f:
         data = json.load(f)
     return [OverrideEntry.from_dict(d) for d in data]
@@ -504,7 +497,7 @@ def save_table(entries: List[BaseEntry], path: Path) -> None:
 def _print_summary(entries: List[BaseEntry], rows: List[SynopsisRow]) -> None:
     """Print a structured match summary to stdout."""
     total = len(entries)
-    matched = sum(1 for e in entries if e.fwa_refs)
+    matched = sum(1 for e in entries if e.gnis_ids)
     not_found = total - matched
     pct = 100 * matched / total if total else 0.0
 
@@ -516,7 +509,7 @@ def _print_summary(entries: List[BaseEntry], rows: List[SynopsisRow]) -> None:
     # Collect unmatched names with their region for top-N display
     unmatched: Counter = Counter()
     for e in entries:
-        if not e.fwa_refs:
+        if not e.gnis_ids:
             label = e.criteria.name_verbatim
             if e.criteria.region:
                 label = f"{label}  ({e.criteria.region})"
@@ -556,10 +549,13 @@ def main() -> None:
     raw_path = Path(args.raw) if args.raw else config.synopsis_raw_data_path
     graph_path = Path(args.graph) if args.graph else config.fwa_graph_path
     gpkg_path = Path(args.gpkg) if args.gpkg else config.fwa_data_gpkg
+
+    with open(config.project_root / "config.yaml") as f:
+        cfg = yaml.safe_load(f)
     out_path = (
         Path(args.out)
         if args.out
-        else Path("output/regulation_mapping_v2/match_table.json")
+        else config.project_root / cfg["output"]["regulation_mapping_v2"]["match_table"]
     )
 
     print(f"Loading synopsis rows from: {raw_path}")

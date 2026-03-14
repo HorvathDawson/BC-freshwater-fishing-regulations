@@ -148,8 +148,8 @@ export const createRegulationLayers = (): LayerSpecification[] => {
         }
     });
     
-    // Lake outline width based on area_sqm (sqrt scale, clamped)
-    // Small lakes (~10,000 sqm / 1ha) get thin outlines, large lakes (~100M sqm) get thicker
+    // Lake outline width based on area (sqrt scale, clamped)
+    // Small lakes (~10,000 m²) get thin outlines, large lakes (~100M m²) get thicker
     // sqrt(10000) = 100, sqrt(100M) = 10000
     // We normalize and clamp to get line widths that mesh well with streams
     // MapLibre doesn't have clamp, so we use max(min(val, max), min)
@@ -159,22 +159,22 @@ export const createRegulationLayers = (): LayerSpecification[] => {
         ['zoom'],
         4, [
             'max',
-            ['min', ['+', 0.5, ['*', 0.00005, ['sqrt', ['coalesce', ['get', 'area_sqm'], 10000]]]], 1.5],
+            ['min', ['+', 0.5, ['*', 0.00005, ['sqrt', ['coalesce', ['get', 'area'], 10000]]]], 1.5],
             0.5
         ],
         8, [
             'max',
-            ['min', ['+', 0.6, ['*', 0.00008, ['sqrt', ['coalesce', ['get', 'area_sqm'], 10000]]]], 2],
+            ['min', ['+', 0.6, ['*', 0.00008, ['sqrt', ['coalesce', ['get', 'area'], 10000]]]], 2],
             0.6
         ],
         12, [
             'max',
-            ['min', ['+', 0.8, ['*', 0.0002, ['sqrt', ['coalesce', ['get', 'area_sqm'], 10000]]]], 3],
+            ['min', ['+', 0.8, ['*', 0.0002, ['sqrt', ['coalesce', ['get', 'area'], 10000]]]], 3],
             0.8
         ],
         16, [
             'max',
-            ['min', ['+', 1, ['*', 0.0003, ['sqrt', ['coalesce', ['get', 'area_sqm'], 10000]]]], 4],
+            ['min', ['+', 1, ['*', 0.0003, ['sqrt', ['coalesce', ['get', 'area'], 10000]]]], 4],
             1
         ]
     ];
@@ -456,7 +456,7 @@ export const createRegulationLayers = (): LayerSpecification[] => {
     });
 
     // Lake labels — large lakes visible earlier, small lakes appear when zoomed in
-    // area_sqm thresholds: >5 km² @ z8, >1 km² @ z9, >0.1 km² @ z10, all @ z11
+    // area thresholds (m²): >5 km² @ z8, >1 km² @ z9, >0.1 km² @ z10, all @ z11
     fwaLabels.push({
         id: 'lakes-label',
         type: 'symbol',
@@ -467,9 +467,9 @@ export const createRegulationLayers = (): LayerSpecification[] => {
             ['!=', ['get', 'display_name'], ''],
             ['any',
                 ['all', ['>=', ['zoom'], 11]],
-                ['all', ['>=', ['zoom'], 10], ['>=', ['get', 'area_sqm'], 100000]],
-                ['all', ['>=', ['zoom'], 9],  ['>=', ['get', 'area_sqm'], 1000000]],
-                ['all', ['>=', ['zoom'], 8],  ['>=', ['get', 'area_sqm'], 5000000]],
+                ['all', ['>=', ['zoom'], 10], ['>=', ['get', 'area'], 100000]],
+                ['all', ['>=', ['zoom'], 9],  ['>=', ['get', 'area'], 1000000]],
+                ['all', ['>=', ['zoom'], 8],  ['>=', ['get', 'area'], 5000000]],
             ],
         ],
         layout: {
@@ -593,7 +593,7 @@ export const createRegulationLayers = (): LayerSpecification[] => {
         id: 'admin_parks_nat-fill',
         type: 'fill',
         source: 'regulations',
-        'source-layer': 'admin_parks_nat',
+        'source-layer': 'parks_nat',
         paint: {
             'fill-color': ADMIN_COLORS.admin_parks_nat,
             'fill-opacity': 0.10,
@@ -603,12 +603,36 @@ export const createRegulationLayers = (): LayerSpecification[] => {
         id: 'admin_parks_nat-line',
         type: 'line',
         source: 'regulations',
-        'source-layer': 'admin_parks_nat',
+        'source-layer': 'parks_nat',
         minzoom: 9,
         paint: {
             'line-color': ADMIN_COLORS.admin_parks_nat,
             'line-width': 3.0,
             'line-opacity': 0.80,
+        },
+    });
+
+    // Ecological reserves — crimson tint + border (NO FISHING)
+    adminLayers.push({
+        id: 'eco_reserves-fill',
+        type: 'fill',
+        source: 'regulations',
+        'source-layer': 'eco_reserves',
+        paint: {
+            'fill-color': ADMIN_COLORS.ECOLOGICAL_RESERVE,
+            'fill-opacity': 0.10,
+        },
+    });
+    adminLayers.push({
+        id: 'eco_reserves-line',
+        type: 'line',
+        source: 'regulations',
+        'source-layer': 'eco_reserves',
+        minzoom: 9,
+        paint: {
+            'line-color': ADMIN_COLORS.ECOLOGICAL_RESERVE,
+            'line-width': 2.5,
+            'line-opacity': 0.75,
         },
     });
 
@@ -877,14 +901,14 @@ export const createAdminLabelLayers = (): LayerSpecification[] => {
         id: 'admin_parks_nat-label',
         type: 'symbol',
         source: 'regulations',
-        'source-layer': 'admin_parks_nat',
+        'source-layer': 'parks_nat',
         minzoom: 6,
         layout: {
             'symbol-placement': 'point',
             'text-field': [
                 'step', ['zoom'],
-                ['concat', 'NP ', ['get', 'name']],
-                10, ['get', 'name'],
+                ['concat', 'NP ', ['get', 'display_name']],
+                10, ['get', 'display_name'],
             ],
             'text-font': ['Noto Sans Regular'],
             'text-size': ['interpolate', ['linear'], ['zoom'], 6, 10, 10, 13, 12, 14],
@@ -901,17 +925,16 @@ export const createAdminLabelLayers = (): LayerSpecification[] => {
         },
     });
 
-    // ── BC Parks: Ecological Reserves ────────────────────────────────
+    // ── Ecological Reserves (new tiles: eco_reserves layer) ──────────
     labelLayers.push({
-        id: 'admin_parks_bc-eco-label',
+        id: 'eco_reserves-label',
         type: 'symbol',
         source: 'regulations',
-        'source-layer': 'admin_parks_bc',
-        filter: ['==', ['get', 'admin_type'], 'ECOLOGICAL_RESERVE'],
+        'source-layer': 'eco_reserves',
         minzoom: 9,
         layout: {
             'symbol-placement': 'point',
-            'text-field': ['get', 'name'],
+            'text-field': ['get', 'display_name'],
             'text-font': ['Noto Sans Regular'],
             'text-size': ['interpolate', ['linear'], ['zoom'], 9, 9, 11, 11, 13, 13],
             'text-max-width': 8,
