@@ -121,21 +121,20 @@ def build_metadata_from_graph(graph_path) -> AtlasMetadata:
 
     logger.info("  Metadata: %d stream GNIS groups", len(streams))
 
-    # Polygon metadata: we build a gnis_id → waterbody_key reverse map
-    # by scanning the graph for edges with waterbody_key (these are
-    # under-lake streams that tell us which gnis_id a lake belongs to).
-    # Also build wbk → [fid] for lake outlet seeds.
+    # Polygon metadata: build wbk → [fid] for lake outlet seeds.
+    # NOTE: gnis_to_wbk is NOT built here — under-lake stream edges carry
+    # both a stream's gnis_id and a lake's waterbody_key, which would
+    # falsely link tributary gnis_ids to the lake.  The correct mapping is
+    # built later by enrich_metadata_with_polygons() from atlas polygon
+    # records (where gnis_id belongs to the lake itself).
     gnis_to_wbk: Dict[str, Set[str]] = defaultdict(set)
     wbk_to_fids: Dict[str, List[str]] = defaultdict(list)
 
     for edge in graph.es:
         wbk = str(edge["waterbody_key"] or "")
-        gnis_id = str(edge["gnis_id"] or "")
         fid = str(edge["linear_feature_id"])
         if wbk:
             wbk_to_fids[wbk].append(fid)
-            if gnis_id:
-                gnis_to_wbk[gnis_id].add(wbk)
 
     logger.info("  Metadata: %d waterbody_key groups", len(wbk_to_fids))
 
@@ -148,6 +147,30 @@ def build_metadata_from_graph(graph_path) -> AtlasMetadata:
         "_gnis_to_wbk": gnis_to_wbk,  # type: ignore[typeddict-unknown-key]
         "_wbk_to_fids": wbk_to_fids,  # type: ignore[typeddict-unknown-key]
     }
+
+
+def enrich_metadata_with_polygons(
+    metadata: AtlasMetadata, atlas: FreshWaterAtlas
+) -> None:
+    """Add gnis_id → waterbody_key mappings from atlas polygon records.
+
+    build_metadata_from_graph() can only link gnis_ids to waterbody_keys
+    when an under-lake stream edge carries both values.  Many lakes have
+    no such edge, so their gnis_id→wbk mapping is missing.
+
+    This function fills the gap by scanning atlas.lakes / wetlands / manmade
+    and adding every PolygonRecord.gnis_id → waterbody_key pair.
+    """
+    gnis_to_wbk: Dict[str, Set[str]] = metadata.get("_gnis_to_wbk", {})  # type: ignore[typeddict-item]
+    added = 0
+    for collection in (atlas.lakes, atlas.wetlands, atlas.manmade):
+        for wbk, rec in collection.items():
+            if rec.gnis_id:
+                before = len(gnis_to_wbk.get(rec.gnis_id, set()))
+                gnis_to_wbk.setdefault(rec.gnis_id, set()).add(wbk)
+                if len(gnis_to_wbk[rec.gnis_id]) > before:
+                    added += 1
+    logger.info("  Polygon gnis_id enrichment: %d new gnis→wbk links", added)
 
 
 # ---------------------------------------------------------------------------
@@ -270,12 +293,15 @@ def _resolve_by_admin_targets(
     stream_fid_index: List[str],
     poly_tree: STRtree,
     poly_wbk_index: List[str],
+    bc_boundary: Optional[Any] = None,
     buffer_m: float = 500.0,
 ) -> Tuple[Set[str], Set[str]]:
     """Resolve admin polygon targets → fids + wbks via STRtree queries.
 
     Uses pre-built spatial indices on stream and waterbody geometries.
     Each admin polygon is buffered and queried against the trees.
+    The buffer is clipped to the BC provincial boundary (WMU union)
+    so it never extends outside the province.
     """
     stream_fids: Set[str] = set()
     waterbody_keys: Set[str] = set()
@@ -298,6 +324,11 @@ def _resolve_by_admin_targets(
             if not polygon.is_valid:
                 polygon = polygon.buffer(0)
             buffered = polygon.buffer(buffer_m)
+            # Clip to BC provincial boundary so buffer doesn't leak outside
+            if bc_boundary is not None:
+                buffered = buffered.intersection(bc_boundary)
+                if buffered.is_empty:
+                    continue
 
             # Query streams
             hits = stream_tree.query(buffered, predicate="intersects")
@@ -324,6 +355,10 @@ def _get_admin_polygons(atlas: FreshWaterAtlas, layer: str, feature_id: Optional
         records = atlas.historic_sites
     elif layer == "watersheds":
         records = atlas.watersheds
+    elif layer == "osm_admin_boundaries":
+        records = atlas.osm_admin
+    elif layer == "aboriginal_lands":
+        records = atlas.aboriginal_lands
     else:
         logger.warning("Unknown admin layer: %s", layer)
         return []
@@ -387,6 +422,16 @@ def resolve_features(
         logger.info("  Built polygon STRtree: %d geometries", len(poly_geoms))
         del poly_geoms
 
+    # Build BC provincial boundary for admin buffer clipping
+    bc_boundary: Optional[Any] = None
+    if has_admin and atlas.wmu:
+        from shapely.ops import unary_union as _union
+
+        bc_boundary = _union([r.geometry for r in atlas.wmu.values()])
+        if not bc_boundary.is_valid:
+            bc_boundary = bc_boundary.buffer(0)
+        logger.info("  Built BC boundary for admin buffer clipping")
+
     for rec in tqdm(records, desc="  Phase 2: resolving", leave=False):
         entry = rec.match_entry
         all_stream_fids: Set[str] = set()
@@ -436,27 +481,38 @@ def resolve_features(
                     stream_fid_index,
                     poly_tree,
                     poly_wbk_index,
+                    bc_boundary=bc_boundary,
                 )
                 all_stream_fids |= fids
                 all_wbks |= wbks
 
         # Determine tributary status from parsed output
         includes_tribs = False
+        trib_only = False
         if rec.parsed:
             includes_tribs = rec.parsed.get("includes_tributaries", False)
+            trib_only = rec.parsed.get("tributary_only", False)
 
         # Register direct assignments
-        for fid in all_stream_fids:
-            assignments.assign_fid(fid, rec.reg_id, phase=2)
-        for wbk in all_wbks:
-            assignments.assign_wbk(wbk, rec.reg_id, phase=2)
+        # When tributary_only is True, the regulation applies only to
+        # tributaries (Phase 3 BFS), not to the named waterbody itself.
+        if not trib_only:
+            for fid in all_stream_fids:
+                assignments.assign_fid(fid, rec.reg_id, phase=2)
+            for wbk in all_wbks:
+                assignments.assign_wbk(wbk, rec.reg_id, phase=2)
 
         resolved.append(
             ResolvedRegulation(
                 record=rec,
-                matched_stream_fids=frozenset(all_stream_fids),
-                matched_waterbody_keys=frozenset(all_wbks),
+                matched_stream_fids=(
+                    frozenset(all_stream_fids) if not trib_only else frozenset()
+                ),
+                matched_waterbody_keys=(
+                    frozenset(all_wbks) if not trib_only else frozenset()
+                ),
                 includes_tributaries=includes_tribs,
+                tributary_only=trib_only,
                 tributary_stream_seeds=tuple(all_stream_seeds),
                 lake_outlet_fids=tuple(
                     (wbk, tuple(fids)) for wbk, fids in all_lake_seeds.items()

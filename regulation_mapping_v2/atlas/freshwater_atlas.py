@@ -38,6 +38,7 @@ from shapely.prepared import prep
 from tqdm import tqdm
 
 from data.data_extractor import FWADataAccessor
+from regulation_mapping.geometry_utils import merge_overlapping_polygons
 
 from .models import AdminRecord, PolygonRecord, StreamRecord
 
@@ -103,7 +104,7 @@ ADMIN_ZOOM_THRESHOLDS_AGGRESSIVE: List[Tuple[float, int]] = sorted(
 MAIN_FLOW_CODES = {1000, 1050, 1200, 1250, 1410, 1450}
 
 # Atlas pickle version — bump when the schema changes.
-_ATLAS_VERSION = 4
+_ATLAS_VERSION = 7
 
 
 # ---------------------------------------------------------------------------
@@ -142,6 +143,8 @@ class FreshWaterAtlas:
         self.historic_sites: Dict[str, AdminRecord] = {}
         self.watersheds: Dict[str, AdminRecord] = {}
         self.wmu: Dict[str, AdminRecord] = {}
+        self.osm_admin: Dict[str, AdminRecord] = {}
+        self.aboriginal_lands: Dict[str, AdminRecord] = {}
         self.tidal_boundary: Optional[BaseGeometry] = None
 
         self._build()
@@ -168,6 +171,8 @@ class FreshWaterAtlas:
             "historic_sites": self.historic_sites,
             "watersheds": self.watersheds,
             "wmu": self.wmu,
+            "osm_admin": self.osm_admin,
+            "aboriginal_lands": self.aboriginal_lands,
             "tidal_boundary": self.tidal_boundary,
         }
         with open(path, "wb") as f:
@@ -184,6 +189,8 @@ class FreshWaterAtlas:
             + len(self.historic_sites)
             + len(self.watersheds)
             + len(self.wmu)
+            + len(self.osm_admin)
+            + len(self.aboriginal_lands)
         )
         logger.info(f"Atlas saved → {path}  ({total:,} features)")
 
@@ -217,6 +224,8 @@ class FreshWaterAtlas:
         obj.historic_sites = payload.get("historic_sites", {})
         obj.watersheds = payload.get("watersheds", {})
         obj.wmu = payload.get("wmu", {})
+        obj.osm_admin = payload.get("osm_admin", {})
+        obj.aboriginal_lands = payload.get("aboriginal_lands", {})
         obj.tidal_boundary = payload["tidal_boundary"]
 
         total = (
@@ -231,6 +240,8 @@ class FreshWaterAtlas:
             + len(obj.historic_sites)
             + len(obj.watersheds)
             + len(obj.wmu)
+            + len(obj.osm_admin)
+            + len(obj.aboriginal_lands)
         )
         logger.info(f"Atlas loaded ← {path}  ({total:,} features)")
         return obj
@@ -264,6 +275,8 @@ class FreshWaterAtlas:
             + len(self.historic_sites)
             + len(self.watersheds)
             + len(self.wmu)
+            + len(self.osm_admin)
+            + len(self.aboriginal_lands)
         )
         logger.info(f"Atlas built: {total:,} total features")
 
@@ -319,9 +332,11 @@ class FreshWaterAtlas:
                         f"Row in '{gpkg_layer}' has no WATERBODY_KEY: "
                         f"{dict(row.drop('geometry', errors='ignore'))}"
                     )
-                grp = groups.setdefault(wbk, {"name": "", "geoms": []})
+                grp = groups.setdefault(wbk, {"name": "", "gnis_id": "", "geoms": []})
                 if not grp["name"]:
                     grp["name"] = row.get("GNIS_NAME_1") or row.get("GNIS_NAME_2") or ""
+                if not grp["gnis_id"]:
+                    grp["gnis_id"] = str(row.get("GNIS_ID_1") or "")
                 grp["geoms"].append(row.geometry)
 
             for wbk, grp in groups.items():
@@ -333,6 +348,7 @@ class FreshWaterAtlas:
                     geometry=geom,
                     display_name=grp["name"],
                     area=area,
+                    gnis_id=grp["gnis_id"],
                     minzoom=minzoom,
                 )
 
@@ -375,13 +391,23 @@ class FreshWaterAtlas:
                 "Run data fetch first: python -m data.fetch_data --layers parks_nat"
             )
 
-        # Provincial parks & eco reserves (all parks_bc entries)
+        # Provincial parks & eco reserves — classified by PROTECTED_LANDS_CODE.
+        # OI = Ecological Reserve, PP = Provincial Park,
+        # PA = Protected Area, RC = Recreation Area.
+        # All go into self.eco_reserves (single tile layer) but with distinct
+        # admin_type so styles can colour them differently.
+        _PARKS_BC_CODE_MAP = {
+            "OI": "ECOLOGICAL_RESERVE",
+            "PA": "PROTECTED_AREA",
+            "PP": "PROVINCIAL_PARK",
+            "RC": "RECREATION_AREA",
+        }
         if "parks_bc" in available:
             gdf = accessor.get_layer("parks_bc")
             for _, row in tqdm(
                 gdf.iterrows(),
                 total=len(gdf),
-                desc="  eco_reserves",
+                desc="  parks_bc",
                 leave=False,
             ):
                 aid = str(row.get("ADMIN_AREA_SID") or "")
@@ -390,18 +416,26 @@ class FreshWaterAtlas:
                         f"Row in 'parks_bc' has no ADMIN_AREA_SID: "
                         f"{dict(row.drop('geometry', errors='ignore'))}"
                     )
+                code = str(row.get("PROTECTED_LANDS_CODE") or "")
+                admin_type = _PARKS_BC_CODE_MAP.get(code, "PROVINCIAL_PARK")
                 geom = row.geometry
                 area = geom.area
                 self.eco_reserves[aid] = AdminRecord(
                     admin_id=aid,
                     geometry=geom,
                     display_name=row.get("PROTECTED_LANDS_NAME") or "",
-                    admin_type="eco_reserve",
+                    admin_type=admin_type,
                     area=area,
                     minzoom=_area_minzoom(area, ADMIN_ZOOM_THRESHOLDS_AGGRESSIVE),
                 )
+            eco_count = sum(
+                1
+                for r in self.eco_reserves.values()
+                if r.admin_type == "ECOLOGICAL_RESERVE"
+            )
             logger.info(
-                f"Loaded {len(self.eco_reserves):,} parks_bc (eco reserves + provincial parks)"
+                f"Loaded {len(self.eco_reserves):,} parks_bc "
+                f"({eco_count} eco reserves, {len(self.eco_reserves) - eco_count} other parks)"
             )
         else:
             raise FileNotFoundError(
@@ -504,6 +538,72 @@ class FreshWaterAtlas:
         else:
             logger.warning("'wmu' layer not found in GPKG — skipping")
 
+        # OSM admin boundaries (research forests, protected areas, etc.)
+        if "osm_admin_boundaries" in available:
+            gdf = accessor.get_layer("osm_admin_boundaries")
+            for _, row in tqdm(
+                gdf.iterrows(),
+                total=len(gdf),
+                desc="  osm_admin",
+                leave=False,
+            ):
+                aid = str(row.get("osm_id") or "")
+                if not aid:
+                    continue
+                geom = row.geometry
+                area = geom.area
+                self.osm_admin[aid] = AdminRecord(
+                    admin_id=aid,
+                    geometry=geom,
+                    display_name=row.get("name") or "",
+                    admin_type="osm_admin",
+                    area=area,
+                    minzoom=_area_minzoom(area, ADMIN_ZOOM_THRESHOLDS),
+                )
+            logger.info(f"Loaded {len(self.osm_admin):,} OSM admin boundaries")
+        else:
+            logger.warning("'osm_admin_boundaries' layer not found in GPKG — skipping")
+
+        # Aboriginal lands (Indigenous territories from OSM)
+        if "aboriginal_lands" in available:
+            gdf = accessor.get_layer("aboriginal_lands")
+            gdf = merge_overlapping_polygons(gdf, "osm_id", "name")
+
+            # Clip to BC boundary (WMU union) to remove portions outside BC
+            bc_boundary = None
+            if self.wmu:
+                bc_boundary = unary_union([r.geometry for r in self.wmu.values()])
+                if not bc_boundary.is_valid:
+                    bc_boundary = bc_boundary.buffer(0)
+                logger.info("  Clipping aboriginal lands to BC boundary")
+
+            for _, row in tqdm(
+                gdf.iterrows(),
+                total=len(gdf),
+                desc="  aboriginal_lands",
+                leave=False,
+            ):
+                aid = str(row.get("osm_id") or "")
+                if not aid:
+                    continue
+                geom = row.geometry
+                if bc_boundary is not None:
+                    geom = geom.intersection(bc_boundary)
+                    if geom.is_empty:
+                        continue
+                area = geom.area
+                self.aboriginal_lands[aid] = AdminRecord(
+                    admin_id=aid,
+                    geometry=geom,
+                    display_name=row.get("name") or "",
+                    admin_type="aboriginal_lands",
+                    area=area,
+                    minzoom=_area_minzoom(area, ADMIN_ZOOM_THRESHOLDS),
+                )
+            logger.info(f"Loaded {len(self.aboriginal_lands):,} aboriginal lands")
+        else:
+            logger.warning("'aboriginal_lands' layer not found in GPKG — skipping")
+
     # ------------------------------------------------------------------
     # Step 4: Collect lake + manmade waterbody keys
     # ------------------------------------------------------------------
@@ -579,6 +679,11 @@ class FreshWaterAtlas:
 
             wbk = str(attrs.get("waterbody_key") or "")
             display_name = attrs.get("gnis_name") or ""
+            # Inherit name from graph's upstream BFS when gnis_name is empty
+            if not display_name:
+                inherited = attrs.get("inherited_gnis_names")
+                if inherited and len(inherited) == 1:
+                    display_name = inherited[0].get("gnis_name", "")
             blk = str(attrs.get("blue_line_key") or "")
             stream_order = attrs.get("stream_order")
             stream_magnitude = attrs.get("stream_magnitude")

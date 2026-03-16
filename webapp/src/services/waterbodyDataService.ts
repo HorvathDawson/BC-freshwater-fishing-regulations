@@ -1,115 +1,252 @@
 /**
- * Waterbody Data Service
+ * Waterbody Data Service — V2 regulation_index.json loader
  *
- * Loads the unified waterbody_data.json and provides access to both:
- * - waterbodies: Search/map data with regulation segments
- * - regulations: Full regulation details keyed by regulation_id
- * - reg_sets + compact: Compact regulation lookup tables
+ * Loads the unified regulation_index.json (v2 format) and provides:
+ * - regulations: expanded per-rule Regulation objects
+ * - reaches: reach_id → reach metadata
+ * - segmentIndex: fid → reach_id (inverted from reach_segments)
+ * - polyIndex: waterbody_key → reach_id (from poly_reaches)
+ * - searchIndex: SearchableFeature[] for Fuse.js
+ * - reg_sets: dedup'd regulation ID strings
  *
- * The JSON uses short keys for compactness.  This service decodes them
- * into the canonical long-key interfaces that the rest of the frontend
- * expects (WaterbodyItem, RegulationSegment) so consumers never see
- * the compressed format.
- *
- * Unnamed zone-only features are stored as compact entries
- * (frontend_group_id → reg_set_index).  The frontend resolves their
- * regulations at click-time via compact[fgid] → reg_sets[ri].
+ * V2 regulation_index.json sections:
+ *   regulations    — reg_id → {raw_regs, source, parsed?, restriction?, ...}
+ *   reg_sets       — ["reg1,reg2,...", ...]  dedup'd comma-joined strings
+ *   reaches        — reach_id → {dn, nv[], ft, ri, wsc, mz, rg[], bbox, lkm}
+ *   reach_segments — reach_id → [fid, ...] (streams only)
+ *   poly_reaches   — waterbody_key → reach_id
+ *   search_index   — [{dn, nv[], reaches[], ft, rg[], mz, bbox, wbg, z, mu, tlkm}]
  */
 
-import type { Regulation, WireRegulation, IdentityMeta } from './regulationsService';
 import type { NameVariant } from '../utils/featureUtils';
 
-/** Shape of a single waterbody entry after decoding (long keys). */
-export interface WaterbodyItem {
-  id: string;
-  gnis_name?: string;
-  display_name?: string;
-  frontend_group_ids?: string[];
-  type: string;
-  zones?: string;
-  mgmt_units?: string;
-  region_name?: string;
-  regulation_ids?: string;
-  name_variants?: NameVariant[];
-  bbox?: [number, number, number, number];
-  min_zoom?: number;
-  total_length_km?: number;
-  properties?: Record<string, string | number | boolean | null>;
-  regulation_segments?: {
-    frontend_group_id?: string;
-    group_id?: string;
-    regulation_ids?: string;
-    display_name?: string;
-    name_variants?: NameVariant[];
-    length_km?: number;
-    bbox?: [number, number, number, number] | null;
-    waterbody_group?: string;
-  }[];
-}
+// ── V2 Raw JSON shapes ───────────────────────────────────────────────
 
-/** Decoded data ready for consumption by Map.tsx and other components. */
-export interface WaterbodyData {
-  waterbodies: WaterbodyItem[];
-  regulations: Record<string, Regulation>;
-  /** Deduplicated regulation-ID strings (shared across waterbodies). */
-  reg_sets: string[];
-  /** frontend_group_id → reg_sets index for unnamed zone-only features. */
-  compact: Record<string, number>;
-}
-
-// ── Short-key → long-key decoding ────────────────────────────────────
-
-/** Expand a compact (short-key) waterbody entry from the JSON wire format
- *  into the canonical WaterbodyItem shape used by the rest of the app.  */
-function decodeWaterbody(raw: Record<string, any>, regSets: string[]): WaterbodyItem {
-  const decodeVariants = (nvs: any[] | undefined): NameVariant[] =>
-    (nvs || []).map((v: any) => ({ name: v.name, from_tributary: v.ft ?? v.from_tributary ?? false }));
-
-  const regIds = regSets[raw.ri] ?? '';
-  const zones = (raw.z as string[] | undefined) ?? [];
-  const mus = (raw.mu as string[] | undefined) ?? [];
-  const rns = (raw.rn as string[] | undefined) ?? [];
-
-  const segments = ((raw.rs ?? []) as any[]).map((s: any) => ({
-    frontend_group_id: s.fgid ?? s.frontend_group_id ?? '',
-    group_id: s.gid ?? s.group_id ?? '',
-    regulation_ids: regSets[s.ri] ?? s.regulation_ids ?? '',
-    display_name: s.dn ?? s.display_name ?? '',
-    name_variants: decodeVariants(s.nv ?? s.name_variants),
-    length_km: s.lkm ?? s.length_km ?? 0,
-    bbox: s.bbox ?? null,
-    waterbody_group: s.wbg ?? s.waterbody_group ?? '',
-  }));
-
-  return {
-    id: raw.id,
-    gnis_name: raw.gn ?? raw.gnis_name ?? '',
-    display_name: raw.dn ?? raw.display_name ?? '',
-    frontend_group_ids: raw.fgids ?? raw.frontend_group_ids ?? [],
-    type: raw.type,
-    zones: zones.join(','),
-    mgmt_units: mus.join(','),
-    region_name: rns.join(','),
-    regulation_ids: regIds,
-    name_variants: decodeVariants(raw.nv ?? raw.name_variants),
-    bbox: raw.bbox,
-    min_zoom: raw.mz ?? raw.min_zoom,
-    total_length_km: raw.tlkm ?? raw.total_length_km ?? 0,
-    properties: {
-      group_id: raw.props?.gid ?? raw.properties?.group_id ?? '',
-      waterbody_key: raw.props?.wk ?? raw.properties?.waterbody_key ?? '',
-      fwa_watershed_code: raw.props?.fwc ?? raw.properties?.fwa_watershed_code ?? '',
-      regulation_count: raw.props?.rc ?? raw.properties?.regulation_count ?? 0,
-      waterbody_group: raw.props?.wbg ?? raw.properties?.waterbody_group ?? '',
-    },
-    regulation_segments: segments,
+/** Raw synopsis regulation from regulation_index.json */
+interface V2SynopsisReg {
+  water: string;
+  region: string;
+  mu: string[];
+  raw_regs: string;
+  symbols: string[];
+  source: 'synopsis';
+  page: number;
+  image: string;
+  parsed?: {
+    regs_verbatim: string;
+    includes_tributaries: boolean;
+    tributary_only?: boolean;
+    entry_location_text?: string;
+    rules: {
+      rule_text: string;
+      restriction_type: string;
+      details: string;
+      location_text?: string;
+      dates?: string[];
+    }[];
   };
 }
 
-// ── IndexedDB helpers (no dependencies) ──────────────────────────────
+/** Raw base regulation (zone/provincial) from regulation_index.json */
+interface V2BaseReg {
+  raw_regs: string;
+  source: 'zone' | 'provincial';
+  restriction?: { type: string; details: string };
+  zone_ids?: string[];
+  dates?: string[];
+  scope_location?: string;
+  notes?: string;
+  zone?: string;
+}
+
+type V2Regulation = V2SynopsisReg | V2BaseReg;
+
+/** V2 reach (from reaches section) */
+export interface Reach {
+  dn: string;       // display_name
+  nv: string[];     // name_variants
+  ft: string;       // feature_type
+  ri: number;       // reg_set_index
+  wsc: string;      // fwa_watershed_code or waterbody_key
+  mz: number;       // minzoom
+  rg: string[];     // regions
+  bbox: [number, number, number, number] | null;
+  lkm: number;      // length_km
+}
+
+/** V2 search index entry */
+export interface V2SearchEntry {
+  dn: string;
+  nv: string[];
+  reaches: string[];
+  ft: string;
+  rg: string[];
+  mz: number;
+  bbox: [number, number, number, number] | null;
+  wbg: string;
+  z: string[];
+  mu: string[];
+  tlkm: number;
+}
+
+// ── Output types (consumed by Map.tsx, InfoPanel, SearchBar) ─────────
+
+/** Flat regulation shape matching what InfoPanel expects */
+export interface Regulation {
+  regulation_id: string;
+  waterbody_name: string;
+  region: string | null;
+  management_units: string[];
+  rule_text: string;
+  restriction_type: string;
+  restriction_details: string;
+  dates: string[] | string | null;
+  scope_type: string;
+  scope_location: string | null;
+  source: 'synopsis' | 'provincial' | 'zone';
+  zone_ids?: string[];
+  feature_types?: string[] | null;
+  iid?: string;
+  source_image?: string | null;
+  exclusions?: null;
+}
+
+// ── Admin visibility config (from admin_visibility.json) ─────────────
+
+/** Per-layer visibility config from enrichment pipeline */
+export interface AdminLayerVisibility {
+  display: 'all' | 'regulated_only';
+  regulated_ids?: string[];
+}
+
+/** Full admin visibility map: tile_layer_name → config */
+export type AdminVisibility = Record<string, AdminLayerVisibility>;
+
+/** Loaded + decoded V2 data */
+export interface RegulationData {
+  /** Expanded per-rule regulations keyed by synthetic rule ID */
+  regulations: Record<string, Regulation>;
+  /** Deduplicated regulation-ID strings (expanded with rule suffixes) */
+  reg_sets: string[];
+  /** Reach metadata keyed by reach_id */
+  reaches: Record<string, Reach>;
+  /** fid → reach_id (inverted from reach_segments) */
+  segmentIndex: Map<string, string>;
+  /** waterbody_key → reach_id */
+  polyIndex: Record<string, string>;
+  /** reach_id → [fid, ...] (for highlighting) */
+  reachSegments: Record<string, string[]>;
+  /** Fuse.js-compatible search entries */
+  searchIndex: V2SearchEntry[];
+  /** Original reg_set strings (before rule expansion) */
+  rawRegSets: string[];
+  /** Admin layer visibility config (which layers show all vs. regulated only) */
+  adminVisibility: AdminVisibility;
+}
+
+// ── Regulation expansion ─────────────────────────────────────────────
+
+/**
+ * Expand V2 regulations into flat per-rule Regulation objects.
+ *
+ * Synopsis regs with parsed.rules[] are expanded: one Regulation per rule,
+ * keyed as `{reg_id}_rule{N}`.  Synopsis regs without parsing keep raw_regs
+ * as a single Regulation.
+ *
+ * Base regs (zone/provincial) map directly to one Regulation each.
+ *
+ * Also rewrites reg_sets to reference the expanded rule IDs.
+ */
+function expandRegulations(
+  rawRegs: Record<string, V2Regulation>,
+  rawRegSets: string[],
+): { regulations: Record<string, Regulation>; regSets: string[] } {
+  const regulations: Record<string, Regulation> = {};
+  const expansionMap: Record<string, string[]> = {};
+
+  for (const [regId, raw] of Object.entries(rawRegs)) {
+    if (raw.source === 'synopsis') {
+      const syn = raw as V2SynopsisReg;
+      if (syn.parsed?.rules?.length) {
+        const ruleIds: string[] = [];
+        for (let i = 0; i < syn.parsed.rules.length; i++) {
+          const rule = syn.parsed.rules[i];
+          const ruleId = `${regId}_rule${i}`;
+          ruleIds.push(ruleId);
+          regulations[ruleId] = {
+            regulation_id: ruleId,
+            waterbody_name: syn.water || '',
+            region: syn.region || null,
+            management_units: syn.mu || [],
+            rule_text: rule.rule_text,
+            restriction_type: rule.restriction_type,
+            restriction_details: rule.details || '',
+            dates: rule.dates?.length ? rule.dates : null,
+            scope_type: rule.location_text ? 'location' : 'waterbody',
+            scope_location: rule.location_text || null,
+            source: 'synopsis',
+            iid: regId,
+            source_image: syn.image || null,
+            exclusions: null,
+          };
+        }
+        expansionMap[regId] = ruleIds;
+      } else {
+        // Unparsed synopsis — show raw_regs as single entry
+        regulations[regId] = {
+          regulation_id: regId,
+          waterbody_name: syn.water || '',
+          region: syn.region || null,
+          management_units: syn.mu || [],
+          rule_text: syn.raw_regs || '',
+          restriction_type: 'notice',
+          restriction_details: syn.raw_regs || '',
+          dates: null,
+          scope_type: 'waterbody',
+          scope_location: null,
+          source: 'synopsis',
+          iid: regId,
+          source_image: syn.image || null,
+          exclusions: null,
+        };
+        expansionMap[regId] = [regId];
+      }
+    } else {
+      const base = raw as V2BaseReg;
+      regulations[regId] = {
+        regulation_id: regId,
+        waterbody_name: '',
+        region: null,
+        management_units: [],
+        rule_text: base.raw_regs || '',
+        restriction_type: base.restriction?.type?.toLowerCase() || 'notice',
+        restriction_details: base.restriction?.details || '',
+        dates: base.dates?.length ? base.dates : null,
+        scope_type: base.scope_location ? 'location' : 'waterbody',
+        scope_location: base.scope_location || null,
+        source: base.source,
+        zone_ids: base.zone_ids,
+        exclusions: null,
+      };
+      expansionMap[regId] = [regId];
+    }
+  }
+
+  // Rewrite reg_sets to reference expanded rule IDs
+  const regSets = rawRegSets.map(rsStr => {
+    const origIds = rsStr.split(',').filter(Boolean);
+    const expanded = origIds.flatMap(id => expansionMap[id] || [id]);
+    return expanded.join(',');
+  });
+
+  return { regulations, regSets };
+}
+
+
+// ── IndexedDB helpers ────────────────────────────────────────────────
 const IDB_NAME = 'waterbody_cache';
 const IDB_STORE = 'kv';
-const IDB_VERSION = 4;  // bumped: identity_meta deduplication
+const IDB_VERSION = 5;  // bumped for v2 format
 
 function openCacheDB(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
@@ -145,72 +282,75 @@ async function idbSet(key: string, value: unknown): Promise<void> {
   });
 }
 
+
 // ── Service ──────────────────────────────────────────────────────────
 
 class WaterbodyDataService {
-  private data: WaterbodyData | null = null;
-  private loadPromise: Promise<WaterbodyData> | null = null;
+  private data: RegulationData | null = null;
+  private loadPromise: Promise<RegulationData> | null = null;
   private dataVersionPromise: Promise<string> | null = null;
 
   private static readonly DATA_BASE = import.meta.env.VITE_TILE_BASE_URL || '/data';
-  private static readonly ETAG_KEY = 'waterbody_etag';
-  private static readonly DATA_KEY = 'waterbody_data';
+  private static readonly ETAG_KEY = 'regindex_etag';
+  private static readonly DATA_KEY = 'regindex_data';
   private static readonly VERSION_KEY = 'data_version';
 
-  async load(): Promise<WaterbodyData> {
+  async load(): Promise<RegulationData> {
     if (this.data) return this.data;
     if (this.loadPromise) return this.loadPromise;
-
     this.loadPromise = this._load();
     return this.loadPromise;
   }
 
-  private async _load(): Promise<WaterbodyData> {
-    const url = `${WaterbodyDataService.DATA_BASE}/waterbody_data.json`;
+  private async _load(): Promise<RegulationData> {
+    const url = `${WaterbodyDataService.DATA_BASE}/regulation_index.json`;
 
     try {
-      // ── Single conditional GET using ETag ──────────────────────────
-      // If we have a cached ETag, send If-None-Match.  The R2 worker
-      // returns 304 (no body) when the file hasn't changed — saving the
-      // full download.  This replaces the old HEAD + GET two-step and
-      // eliminates the custom X-Data-Mtime header entirely.
       const cachedEtag = await idbGet<string>(WaterbodyDataService.ETAG_KEY).catch(() => undefined);
       const cachedData = cachedEtag
-        ? await idbGet<WaterbodyData>(WaterbodyDataService.DATA_KEY).catch(() => undefined)
+        ? await idbGet<RegulationData>(WaterbodyDataService.DATA_KEY).catch(() => undefined)
         : undefined;
 
       let response: Response;
 
       if (cachedEtag && cachedData) {
-        // Returning visitor: conditional request with ETag
         response = await fetch(url, { headers: { 'If-None-Match': cachedEtag } });
       } else {
-        // First visit: use the early-fetched response if the Vite-injected
-        // inline script started the request before the JS bundle loaded.
         const earlyFetch = (window as any).__earlyFetch as Promise<Response | null> | undefined;
         if (earlyFetch) {
-          delete (window as any).__earlyFetch;  // consume once
+          delete (window as any).__earlyFetch;
           const earlyResp = await earlyFetch;
-          if (earlyResp) {
-            response = earlyResp;
-          } else {
-            response = await fetch(url);
-          }
+          response = earlyResp || await fetch(url);
         } else {
           response = await fetch(url);
         }
       }
 
-      // 304 Not Modified → use cached data
+      // Always fetch admin visibility config — it's small and not cached
+      // by etag, so fetch it fresh on every load to stay in sync.
+      const adminVisUrl = `${WaterbodyDataService.DATA_BASE}/admin_visibility.json`;
+      const adminVis: AdminVisibility = await fetch(adminVisUrl)
+        .then(r => {
+          if (!r.ok) {
+            console.warn(`⚠️ admin_visibility.json returned ${r.status} — admin layers unfiltered`);
+            return {};
+          }
+          return r.json();
+        })
+        .catch(() => {
+          console.warn('⚠️ Failed to fetch admin_visibility.json — admin layers unfiltered');
+          return {};
+        });
+
       if (response.status === 304 && cachedData) {
+        // Rebuild Map from cached plain object
+        cachedData.segmentIndex = new Map(Object.entries(
+          (cachedData as any)._segmentIndexObj || {}
+        ));
+        cachedData.adminVisibility = adminVis;
         this.data = cachedData;
         this.loadPromise = null;
-        console.log(
-          `✅ Waterbody data loaded from cache (304): ${cachedData.waterbodies?.length || 0} waterbodies, ` +
-          `${Object.keys(cachedData.regulations || {}).length} regulations, ` +
-          `${cachedData.reg_sets?.length || 0} reg_sets, ` +
-          `${Object.keys(cachedData.compact || {}).length} compact`
-        );
+        console.log(`✅ Regulation index loaded from cache (304)`);
         return cachedData;
       }
 
@@ -219,120 +359,129 @@ class WaterbodyDataService {
       }
 
       const raw = await response.json();
-
-      // Decode compact format: expand short keys + dereference reg_set indices
-      const regSets: string[] = raw.reg_sets || [];
-      const compact: Record<string, number> = raw.compact || {};
-      const waterbodies: WaterbodyItem[] = (raw.waterbodies || []).map(
-        (w: Record<string, any>) => decodeWaterbody(w, regSets)
-      );
-      const wireRegulations: Record<string, WireRegulation> = raw.regulations || {};
-
-      // ── Hydrate identity_meta onto synopsis regulations ────────────
-      // Synopsis regs arrive without waterbody_name / region / management_units /
-      // source_image / exclusions — those live in identity_meta keyed by base-ID.
-      // Zone/provincial regs carry their fields directly and have no iid.
-      const identityMeta: Record<string, IdentityMeta> | undefined = raw.identity_meta;
-      const regulations: Record<string, Regulation> = {};
-
-      for (const [regId, wire] of Object.entries(wireRegulations)) {
-        if (wire.iid) {
-          // Synopsis regulation: hydrate from identity_meta.
-          if (!identityMeta || !(wire.iid in identityMeta)) {
-            throw new Error(
-              `Orphaned iid "${wire.iid}" on regulation "${regId}" — identity_meta is missing or incomplete.`
-            );
-          }
-          const meta = identityMeta[wire.iid];
-          regulations[regId] = {
-            ...wire,
-            regulation_id: regId,
-            waterbody_name: meta.wn ?? '',
-            region: meta.rg ?? null,
-            management_units: meta.mu ?? [],
-            source_image: meta.img ?? null,
-            exclusions: meta.ex ?? null,
-          } as Regulation;
-        } else {
-          // Zone/provincial: fields already present on the wire regulation.
-          regulations[regId] = {
-            ...wire,
-            regulation_id: regId,
-            waterbody_name: wire.waterbody_name ?? '',
-            region: wire.region ?? null,
-            management_units: wire.management_units ?? [],
-          } as Regulation;
-        }
-      }
-
-      const data: WaterbodyData = { waterbodies, regulations, reg_sets: regSets, compact };
+      const data = this._decode(raw, adminVis);
       this.data = data;
       this.loadPromise = null;
 
-      // Persist decoded data + ETag to IndexedDB for next visit
       const etag = response.headers.get('ETag') || '';
       if (etag) {
         try {
+          const toCache = {
+            ...data,
+            segmentIndex: undefined,
+            _segmentIndexObj: Object.fromEntries(data.segmentIndex),
+          };
           await idbSet(WaterbodyDataService.ETAG_KEY, etag);
-          await idbSet(WaterbodyDataService.DATA_KEY, data);
+          await idbSet(WaterbodyDataService.DATA_KEY, toCache);
         } catch {
           console.warn('IndexedDB write failed, cache disabled for this session');
         }
       }
 
       console.log(
-        `✅ Waterbody data loaded: ${data.waterbodies?.length || 0} waterbodies, ` +
-        `${Object.keys(data.regulations || {}).length} regulations, ` +
-        `${data.reg_sets?.length || 0} reg_sets, ` +
-        `${Object.keys(data.compact || {}).length} compact`
+        `✅ Regulation index loaded: ${Object.keys(data.regulations).length} regulations, ` +
+        `${Object.keys(data.reaches).length} reaches, ` +
+        `${data.segmentIndex.size} segment mappings, ` +
+        `${data.searchIndex.length} search entries`
       );
       return data;
+
     } catch (error) {
       this.loadPromise = null;
-      console.error('❌ Failed to load waterbody_data.json:', error);
+      console.error('❌ Failed to load regulation_index.json:', error);
       throw error;
     }
   }
 
-  async getWaterbodies(): Promise<WaterbodyItem[]> {
-    const data = await this.load();
-    return data.waterbodies || [];
+  private _decode(raw: any, adminVisibility: AdminVisibility = {}): RegulationData {
+    const rawRegSets: string[] = raw.reg_sets || [];
+    const rawRegs: Record<string, V2Regulation> = raw.regulations || {};
+    const reachesRaw: Record<string, Reach> = raw.reaches || {};
+    const reachSegments: Record<string, string[]> = raw.reach_segments || {};
+    const polyReaches: Record<string, string> = raw.poly_reaches || {};
+    const searchEntries: V2SearchEntry[] = raw.search_index || [];
+
+    const { regulations, regSets } = expandRegulations(rawRegs, rawRegSets);
+
+    // Build inverted segment index: fid → reach_id
+    const segmentIndex = new Map<string, string>();
+    for (const [reachId, fids] of Object.entries(reachSegments)) {
+      for (const fid of fids) {
+        segmentIndex.set(fid, reachId);
+      }
+    }
+
+    return {
+      regulations,
+      reg_sets: regSets,
+      reaches: reachesRaw,
+      segmentIndex,
+      polyIndex: polyReaches,
+      reachSegments,
+      searchIndex: searchEntries,
+      rawRegSets,
+      adminVisibility,
+    };
   }
 
   async getRegulations(): Promise<Record<string, Regulation>> {
     const data = await this.load();
-    return data.regulations || {};
+    return data.regulations;
   }
 
-  /** Deduplicated regulation-ID strings, indexed by integer. */
   async getRegSets(): Promise<string[]> {
     const data = await this.load();
-    return data.reg_sets || [];
+    return data.reg_sets;
   }
 
-  /** frontend_group_id → reg_sets index for unnamed zone-only features. */
-  async getCompact(): Promise<Record<string, number>> {
+  async getReach(reachId: string): Promise<Reach | undefined> {
     const data = await this.load();
-    return data.compact || {};
+    return data.reaches[reachId];
+  }
+
+  async getReaches(): Promise<Record<string, Reach>> {
+    const data = await this.load();
+    return data.reaches;
+  }
+
+  /** Resolve a stream fid to its reach_id */
+  async resolveStreamFid(fid: string): Promise<string | undefined> {
+    const data = await this.load();
+    return data.segmentIndex.get(fid);
+  }
+
+  /** Resolve a polygon waterbody_key to its reach_id */
+  async resolvePolyWbk(wbk: string): Promise<string | undefined> {
+    const data = await this.load();
+    return data.polyIndex[wbk];
+  }
+
+  /** Get fid list for a stream reach (for highlighting) */
+  async getReachFids(reachId: string): Promise<string[]> {
+    const data = await this.load();
+    return data.reachSegments[reachId] || [];
+  }
+
+  async getSearchIndex(): Promise<V2SearchEntry[]> {
+    const data = await this.load();
+    return data.searchIndex;
+  }
+
+  /** Get expanded regulation IDs for a reach */
+  async getReachRegulationIds(reachId: string): Promise<string[]> {
+    const data = await this.load();
+    const reach = data.reaches[reachId];
+    if (!reach) return [];
+    const regSetStr = data.reg_sets[reach.ri] || '';
+    return regSetStr.split(',').filter(Boolean);
   }
 
   preload(): void {
     this.load().catch((err) => {
-      console.warn('Waterbody data preload failed:', err);
+      console.warn('Regulation index preload failed:', err);
     });
   }
 
-  /**
-   * Fetch the deployed data version string, used to cache-bust PMTiles URLs.
-   *
-   * On every call:
-   *  - Fetches `data_version.json` with `cache: 'no-store'` (always fresh, ~50 bytes).
-   *  - If the version changed vs localStorage, updates localStorage and returns the new version.
-   *  - If unchanged (or fetch fails), returns the stored version (or '' as fallback).
-   *
-   * Result is memoized within the session so only one network round-trip occurs
-   * regardless of how many callers await it.
-   */
   getDataVersion(): Promise<string> {
     if (this.dataVersionPromise) return this.dataVersionPromise;
     this.dataVersionPromise = this._fetchDataVersion();
@@ -351,9 +500,6 @@ class WaterbodyDataService {
       }
       return version;
     } catch {
-      // Network error or file missing (e.g. local dev without the file).
-      // Fall back to whatever was stored last — PMTiles URL uses '?' param only
-      // if version is non-empty, so '' means no cache-busting (backward-compatible).
       return localStorage.getItem(WaterbodyDataService.VERSION_KEY) ?? '';
     }
   }

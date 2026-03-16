@@ -213,18 +213,28 @@ class TileExporter:
             "type": "polygon",
         },
         "wma": {
-            "visible": False,
+            "visible": True,
             "label": "Wildlife Management Areas",
             "type": "polygon",
         },
         "historic_sites": {
-            "visible": False,
+            "visible": True,
             "label": "Historic Sites",
             "type": "polygon",
         },
         "watersheds": {
-            "visible": False,
+            "visible": True,
             "label": "Named Watersheds",
+            "type": "polygon",
+        },
+        "osm_admin": {
+            "visible": True,
+            "label": "Restricted Areas",
+            "type": "polygon",
+        },
+        "aboriginal_lands": {
+            "visible": True,
+            "label": "Indigenous Lands",
             "type": "polygon",
         },
         "bc_mask": {
@@ -290,6 +300,16 @@ class TileExporter:
                 lambda p: self._write_admin(p, self.atlas.watersheds, "watersheds"),
             ),
             (
+                "osm_admin",
+                lambda p: self._write_admin(p, self.atlas.osm_admin, "osm_admin"),
+            ),
+            (
+                "aboriginal_lands",
+                lambda p: self._write_admin(
+                    p, self.atlas.aboriginal_lands, "aboriginal_lands"
+                ),
+            ),
+            (
                 "wmu",
                 lambda p: self._write_admin(p, self.atlas.wmu, "wmu"),
             ),
@@ -350,7 +370,10 @@ class TileExporter:
         return count
 
     def _write_admin(
-        self, path: Path, records: Dict[str, AdminRecord], layer_name: str
+        self,
+        path: Path,
+        records: Dict[str, AdminRecord],
+        layer_name: str,
     ) -> int:
         """Write admin boundary records as GeoJSONSeq."""
         count = 0
@@ -361,6 +384,7 @@ class TileExporter:
                     "type": "Feature",
                     "properties": {
                         "admin_id": rec.admin_id,
+                        "name": rec.display_name,
                         "display_name": rec.display_name,
                         "admin_type": rec.admin_type,
                         "area": rec.area,
@@ -470,7 +494,9 @@ class TileExporter:
         zone_polys: dict[str, list] = defaultdict(list)
         zone_names: dict[str, str] = {}
         for rec in self.atlas.wmu.values():
-            zone_id = rec.admin_id.split("-")[0] if "-" in rec.admin_id else rec.admin_id
+            zone_id = (
+                rec.admin_id.split("-")[0] if "-" in rec.admin_id else rec.admin_id
+            )
             zone_polys[zone_id].append(rec.geometry)
             if zone_id not in zone_names:
                 zone_names[zone_id] = rec.display_name

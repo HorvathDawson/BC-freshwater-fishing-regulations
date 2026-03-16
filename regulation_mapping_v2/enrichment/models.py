@@ -109,6 +109,7 @@ class ResolvedRegulation:
 
     # Tributary enrichment config
     includes_tributaries: bool = False
+    tributary_only: bool = False
 
     # Seeds for Phase 3 BFS
     tributary_stream_seeds: tuple = field(default_factory=tuple)  # fids
@@ -254,6 +255,10 @@ class BaseRegulationDef:
     waterbody_keys: Optional[tuple] = None
     linear_feature_ids: Optional[tuple] = None
 
+    # Reach-level regs don't split reaches — if any fid in a reach has
+    # the reg, the whole reach gets it.
+    reach_level: bool = False
+
     # Disabled regs are loaded but skipped at runtime
     disabled: bool = False
 
@@ -307,4 +312,5 @@ class BaseRegulationDef:
                 tuple(d["linear_feature_ids"]) if d.get("linear_feature_ids") else None
             ),
             disabled=d.get("disabled", False),
+            reach_level=d.get("reach_level", False),
         )

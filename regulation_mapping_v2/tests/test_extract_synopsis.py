@@ -5,6 +5,8 @@ import sys
 
 from project_config import get_config
 
+pytestmark = pytest.mark.slow
+
 # Import the main class from v2 extraction package
 from regulation_mapping_v2.extraction.extract_synopsis import FishingSynopsisParser
 

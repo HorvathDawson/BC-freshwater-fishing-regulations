@@ -179,6 +179,19 @@ class ParsedEntry(BaseModel):
 
     model_config = ConfigDict(frozen=True)
 
+    @model_validator(mode="before")
+    @classmethod
+    def _fix_tributary_only_implies_includes(cls, data: Any) -> Any:
+        """tributary_only=true is impossible without includes_tributaries=true."""
+        if (
+            isinstance(data, dict)
+            and data.get("tributary_only")
+            and not data.get("includes_tributaries")
+        ):
+            data = dict(data)
+            data["includes_tributaries"] = True
+        return data
+
     regs_verbatim: str = Field(
         ...,
         description=(

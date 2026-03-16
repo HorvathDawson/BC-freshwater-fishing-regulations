@@ -57,7 +57,7 @@ const ADMIN_COLORS: Record<string, string> = {
     // ── BC Parks sub-types ───────────────────────────────────────────
     PROVINCIAL_PARK: '#009E73',        // Wong bluish-green — still open
     PROTECTED_AREA: '#0072B2',         // Wong blue
-    RECREATION_AREA: '#8B6914',        // Dark amber-gold (distinct from no-fishing)
+    RECREATION_AREA: '#6B8E6B',        // Muted sage-green — no regs (subtle like provincial parks)
     admin_parks_bc_default: '#009E73', // Fallback: same as provincial park
     // ── Other admin types ────────────────────────────────────────────
     admin_wma: '#7B2D8B',             // Purple — wildlife mgmt areas
@@ -289,52 +289,8 @@ export const createRegulationLayers = (): LayerSpecification[] => {
         }
     });
 
-    // Ungazetted waterbodies — point markers (zoom 10+)
-    fwaLayers.push({
-        id: 'ungazetted-circle',
-        type: 'circle',
-        source: 'regulations',
-        'source-layer': 'ungazetted',
-        minzoom: 10,
-        paint: {
-            'circle-color': FEATURE_COLORS.ungazetted,
-            'circle-radius': [
-                'interpolate', ['linear'], ['zoom'],
-                10, 5,
-                13, 8,
-                16, 12
-            ],
-            'circle-stroke-color': '#FFFFFF',
-            'circle-stroke-width': 1.5,
-            'circle-opacity': 0.85
-        }
-    });
-
-    // Ungazetted waterbody labels — name shown beside circle
-    fwaLayers.push({
-        id: 'ungazetted-label',
-        type: 'symbol',
-        source: 'regulations',
-        'source-layer': 'ungazetted',
-        minzoom: 11,
-        filter: ['!=', ['get', 'display_name'], ''],
-        layout: {
-            'symbol-placement': 'point',
-            'text-field': ['get', 'display_name'],
-            'text-font': ['Noto Sans Regular'],
-            'text-size': ['interpolate', ['linear'], ['zoom'], 11, 10, 14, 13],
-            'text-anchor': 'left',
-            'text-offset': [1.2, 0],
-            'text-max-width': 8,
-            'text-allow-overlap': false,
-            'text-padding': 4,
-        },
-        paint: {
-            'text-color': '#8B6914',
-            'text-halo-color': '#ffffff',
-            'text-halo-width': 1,
-        },
-    });
+    // Ungazetted waterbodies — NOT YET IN TILES (no data source available).
+    // Re-add circle + label layers when ungazetted data is included in tile_exporter.
 
     // ── WATERBODY NAME LABELS ────────────────────────────────────────
     // (Moved below region/MU boundary lines so text is not obscured.)
@@ -369,7 +325,7 @@ export const createRegulationLayers = (): LayerSpecification[] => {
         id: 'management_units',
         type: 'line',
         source: 'regulations',
-        'source-layer': 'management_units',
+        'source-layer': 'wmu_boundary',
         minzoom: 7,
         paint: {
             'line-color': '#555555',
@@ -618,6 +574,7 @@ export const createRegulationLayers = (): LayerSpecification[] => {
         type: 'fill',
         source: 'regulations',
         'source-layer': 'eco_reserves',
+        filter: ['==', ['get', 'admin_type'], 'ECOLOGICAL_RESERVE'],
         paint: {
             'fill-color': ADMIN_COLORS.ECOLOGICAL_RESERVE,
             'fill-opacity': 0.10,
@@ -628,6 +585,7 @@ export const createRegulationLayers = (): LayerSpecification[] => {
         type: 'line',
         source: 'regulations',
         'source-layer': 'eco_reserves',
+        filter: ['==', ['get', 'admin_type'], 'ECOLOGICAL_RESERVE'],
         minzoom: 9,
         paint: {
             'line-color': ADMIN_COLORS.ECOLOGICAL_RESERVE,
@@ -637,11 +595,12 @@ export const createRegulationLayers = (): LayerSpecification[] => {
     });
 
     // BC Parks — colour keyed by admin_type; eco reserves share crimson no-fishing signal.
+    // Tile layer is 'eco_reserves' (parks_bc data loaded into eco_reserves in atlas).
     adminLayers.push({
         id: 'admin_parks_bc-fill',
         type: 'fill',
         source: 'regulations',
-        'source-layer': 'admin_parks_bc',
+        'source-layer': 'eco_reserves',
         paint: {
             'fill-color': [
                 'match',
@@ -664,8 +623,8 @@ export const createRegulationLayers = (): LayerSpecification[] => {
         id: 'admin_parks_bc-line',
         type: 'line',
         source: 'regulations',
-        'source-layer': 'admin_parks_bc',
-        filter: ['!=', ['get', 'admin_type'], 'ECOLOGICAL_RESERVE'],
+        'source-layer': 'eco_reserves',
+        filter: ['!', ['in', ['get', 'admin_type'], ['literal', ['ECOLOGICAL_RESERVE', 'PROVINCIAL_PARK', 'RECREATION_AREA', 'PROTECTED_AREA']]]],
         paint: {
             'line-color': [
                 'match',
@@ -684,7 +643,7 @@ export const createRegulationLayers = (): LayerSpecification[] => {
         id: 'admin_parks_bc-eco-line',
         type: 'line',
         source: 'regulations',
-        'source-layer': 'admin_parks_bc',
+        'source-layer': 'eco_reserves',
         filter: ['==', ['get', 'admin_type'], 'ECOLOGICAL_RESERVE'],
         minzoom: 9,
         paint: {
@@ -694,117 +653,100 @@ export const createRegulationLayers = (): LayerSpecification[] => {
         },
     });
 
-    // Wildlife Management Areas
+    // Wildlife Management Areas (tiles filtered to regulated features only)
     adminLayers.push({
         id: 'admin_wma-fill',
         type: 'fill',
         source: 'regulations',
-        'source-layer': 'admin_wma',
+        'source-layer': 'wma',
+        layout: { visibility: 'none' },
         paint: { 'fill-color': ADMIN_COLORS.admin_wma, 'fill-opacity': 0.12 },
     });
     adminLayers.push({
         id: 'admin_wma-line',
         type: 'line',
         source: 'regulations',
-        'source-layer': 'admin_wma',
+        'source-layer': 'wma',
         minzoom: 9,
+        layout: { visibility: 'none' },
         paint: { 'line-color': ADMIN_COLORS.admin_wma, 'line-width': 1.5, 'line-opacity': 0.5 },
     });
 
-    // Watersheds
+    // Watersheds (tiles filtered to regulated features only)
     adminLayers.push({
         id: 'admin_watersheds-fill',
         type: 'fill',
         source: 'regulations',
-        'source-layer': 'admin_watersheds',
+        'source-layer': 'watersheds',
+        layout: { visibility: 'none' },
         paint: { 'fill-color': ADMIN_COLORS.admin_watersheds, 'fill-opacity': 0.1 },
     });
     adminLayers.push({
         id: 'admin_watersheds-line',
         type: 'line',
         source: 'regulations',
-        'source-layer': 'admin_watersheds',
+        'source-layer': 'watersheds',
         minzoom: 9,
+        layout: { visibility: 'none' },
         paint: { 'line-color': ADMIN_COLORS.admin_watersheds, 'line-width': 1.5, 'line-opacity': 0.45 },
     });
 
-    // Historic Sites
+    // Historic Sites (tiles filtered to regulated features only)
     adminLayers.push({
         id: 'admin_historic_sites-fill',
         type: 'fill',
         source: 'regulations',
-        'source-layer': 'admin_historic_sites',
+        'source-layer': 'historic_sites',
+        layout: { visibility: 'none' },
         paint: { 'fill-color': ADMIN_COLORS.admin_historic_sites, 'fill-opacity': 0.15 },
     });
     adminLayers.push({
         id: 'admin_historic_sites-line',
         type: 'line',
         source: 'regulations',
-        'source-layer': 'admin_historic_sites',
+        'source-layer': 'historic_sites',
+        layout: { visibility: 'none' },
         paint: { 'line-color': ADMIN_COLORS.admin_historic_sites, 'line-width': 1.5, 'line-opacity': 0.5 },
     });
 
-    // OSM Admin Boundaries (research forests — partial restriction: no lake fishing)
-    // Amber fill + dashed border signals "caution" rather than "prohibited"
+    // OSM Admin Boundaries (research forests, protected areas, etc.)
     adminLayers.push({
-        id: 'admin_osm_admin_boundaries-fill',
+        id: 'admin_osm_admin-fill',
         type: 'fill',
         source: 'regulations',
-        'source-layer': 'admin_osm_admin_boundaries',
-        paint: {
-            'fill-color': ADMIN_COLORS.osm_admin,
-            'fill-opacity': 0.08,
-        },
+        'source-layer': 'osm_admin',
+        layout: { visibility: 'none' },
+        paint: { 'fill-color': ADMIN_COLORS.osm_admin, 'fill-opacity': 0.12 },
     });
     adminLayers.push({
-        id: 'admin_osm_admin_boundaries-line',
+        id: 'admin_osm_admin-line',
         type: 'line',
         source: 'regulations',
-        'source-layer': 'admin_osm_admin_boundaries',
-        minzoom: 9,
-        paint: {
-            'line-color': ADMIN_COLORS.osm_admin,
-            'line-width': 1.8,
-            'line-opacity': 0.70,
-            'line-dasharray': [8, 4],
-        },
+        'source-layer': 'osm_admin',
+        layout: { visibility: 'none' },
+        paint: { 'line-color': ADMIN_COLORS.osm_admin, 'line-width': 1.5, 'line-opacity': 0.5 },
     });
 
-    // Aboriginal / Indigenous Lands — OSM-style tan fill + dashed brown border
-    // Individual polygons overlap heavily; the fill uses a dissolved (unioned)
-    // source-layer so fill-opacity paints once rather than stacking.
-    // A nearly-invisible query layer on the individual features is kept so
-    // queryRenderedFeatures can resolve per-territory names at click-time.
-    adminLayers.push({
-        id: 'admin_aboriginal_lands-query',
-        type: 'fill',
-        source: 'regulations',
-        'source-layer': 'admin_aboriginal_lands',
-        paint: {
-            'fill-color': ADMIN_COLORS.aboriginal_lands,
-            'fill-opacity': 0.001,   // invisible, but queryable for click detection
-        },
-    });
+    // Aboriginal / Indigenous Lands
     adminLayers.push({
         id: 'admin_aboriginal_lands-fill',
         type: 'fill',
         source: 'regulations',
-        'source-layer': 'admin_aboriginal_lands',
-        paint: {
-            'fill-color': ADMIN_COLORS.aboriginal_lands,
-            'fill-opacity': 0.12,
-        },
+        'source-layer': 'aboriginal_lands',
+        layout: { visibility: 'none' },
+        paint: { 'fill-color': ADMIN_COLORS.aboriginal_lands, 'fill-opacity': 0.10 },
     });
     adminLayers.push({
         id: 'admin_aboriginal_lands-line',
         type: 'line',
         source: 'regulations',
-        'source-layer': 'admin_aboriginal_lands',
+        'source-layer': 'aboriginal_lands',
         minzoom: 9,
+        layout: { visibility: 'none' },
         paint: {
             'line-color': ADMIN_COLORS.aboriginal_lands,
-            'line-width': 2.5,
-            'line-opacity': 0.35,
+            'line-width': ['interpolate', ['linear'], ['zoom'], 9, 2, 14, 4],
+            'line-opacity': ['interpolate', ['linear'], ['zoom'], 9, 0.15, 14, 0.30],
         },
     });
 
@@ -954,7 +896,7 @@ export const createAdminLabelLayers = (): LayerSpecification[] => {
         id: 'admin_parks_bc-prov-label',
         type: 'symbol',
         source: 'regulations',
-        'source-layer': 'admin_parks_bc',
+        'source-layer': 'eco_reserves',
         filter: ['==', ['get', 'admin_type'], 'PROVINCIAL_PARK'],
         minzoom: 8,
         layout: {
@@ -979,7 +921,7 @@ export const createAdminLabelLayers = (): LayerSpecification[] => {
         id: 'admin_parks_bc-prot-label',
         type: 'symbol',
         source: 'regulations',
-        'source-layer': 'admin_parks_bc',
+        'source-layer': 'eco_reserves',
         filter: ['==', ['get', 'admin_type'], 'PROTECTED_AREA'],
         minzoom: 6,
         layout: {
@@ -1008,7 +950,7 @@ export const createAdminLabelLayers = (): LayerSpecification[] => {
         id: 'admin_parks_bc-rec-label',
         type: 'symbol',
         source: 'regulations',
-        'source-layer': 'admin_parks_bc',
+        'source-layer': 'eco_reserves',
         filter: ['==', ['get', 'admin_type'], 'RECREATION_AREA'],
         minzoom: 7,
         layout: {
@@ -1037,7 +979,7 @@ export const createAdminLabelLayers = (): LayerSpecification[] => {
         id: 'admin_wma-label',
         type: 'symbol',
         source: 'regulations',
-        'source-layer': 'admin_wma',
+        'source-layer': 'wma',
         minzoom: 7,
         layout: {
             'symbol-placement': 'point',
@@ -1060,14 +1002,40 @@ export const createAdminLabelLayers = (): LayerSpecification[] => {
         },
     });
 
+    // ── OSM Admin (research forests, protected areas) ────────────────
+    labelLayers.push({
+        id: 'admin_osm_admin-label',
+        type: 'symbol',
+        source: 'regulations',
+        'source-layer': 'osm_admin',
+        minzoom: 7,
+        layout: {
+            visibility: 'none',
+            'symbol-placement': 'point',
+            'text-field': ['get', 'name'],
+            'text-font': ['Noto Sans Regular'],
+            'text-size': ['interpolate', ['linear'], ['zoom'], 7, 9, 10, 12, 12, 13],
+            'text-max-width': 8,
+            'text-anchor': 'center',
+            'text-allow-overlap': false,
+            'text-padding': ['interpolate', ['linear'], ['zoom'], 7, 50, 10, 12, 14, 4],
+        },
+        paint: {
+            'text-color': '#CC7A00',
+            'text-halo-color': '#ffffff',
+            'text-halo-width': 0.8,
+        },
+    });
+
     // ── Watersheds ───────────────────────────────────────────────────
     labelLayers.push({
         id: 'admin_watersheds-label',
         type: 'symbol',
         source: 'regulations',
-        'source-layer': 'admin_watersheds',
+        'source-layer': 'watersheds',
         minzoom: 6,
         layout: {
+            visibility: 'none',
             'symbol-placement': 'point',
             'text-field': ['get', 'name'],
             'text-font': ['Noto Sans Regular'],
@@ -1089,9 +1057,10 @@ export const createAdminLabelLayers = (): LayerSpecification[] => {
         id: 'admin_historic_sites-label',
         type: 'symbol',
         source: 'regulations',
-        'source-layer': 'admin_historic_sites',
+        'source-layer': 'historic_sites',
         minzoom: 7,
         layout: {
+            visibility: 'none',
             'symbol-placement': 'point',
             'text-field': ['get', 'name'],
             'text-font': ['Noto Sans Regular'],
@@ -1108,49 +1077,26 @@ export const createAdminLabelLayers = (): LayerSpecification[] => {
         },
     });
 
-    // ── OSM Admin Boundaries (research forests, etc.) ────────────────
-    labelLayers.push({
-        id: 'admin_osm_admin_boundaries-label',
-        type: 'symbol',
-        source: 'regulations',
-        'source-layer': 'admin_osm_admin_boundaries',
-        minzoom: 8,
-        layout: {
-            'symbol-placement': 'point',
-            'text-field': ['get', 'name'],
-            'text-font': ['Noto Sans Regular'],
-            'text-size': ['interpolate', ['linear'], ['zoom'], 8, 9, 10, 11, 12, 13],
-            'text-max-width': 8,
-            'text-anchor': 'center',
-            'text-allow-overlap': false,
-            'text-padding': ['interpolate', ['linear'], ['zoom'], 8, 50, 10, 12, 14, 4],
-        },
-        paint: {
-            'text-color': '#7A4A00',
-            'text-halo-color': '#ffffff',
-            'text-halo-width': 1.0,
-        },
-    });
-
-    // ── Aboriginal / Indigenous Lands ────────────────────────────────
+    // ── Aboriginal / Indigenous Lands label ──────────────────────────
     labelLayers.push({
         id: 'admin_aboriginal_lands-label',
         type: 'symbol',
         source: 'regulations',
-        'source-layer': 'admin_aboriginal_lands',
-        minzoom: 9,
+        'source-layer': 'aboriginal_lands',
+        minzoom: 7,
         layout: {
+            visibility: 'none',
             'symbol-placement': 'point',
             'text-field': ['get', 'name'],
             'text-font': ['Noto Sans Regular'],
-            'text-size': ['interpolate', ['linear'], ['zoom'], 9, 9, 11, 11, 13, 13],
+            'text-size': ['interpolate', ['linear'], ['zoom'], 7, 9, 10, 12, 12, 13],
             'text-max-width': 8,
             'text-anchor': 'center',
             'text-allow-overlap': false,
-            'text-padding': ['interpolate', ['linear'], ['zoom'], 9, 50, 11, 12, 14, 4],
+            'text-padding': ['interpolate', ['linear'], ['zoom'], 7, 50, 10, 12, 14, 4],
         },
         paint: {
-            'text-color': '#6B4F00',
+            'text-color': '#8B6508',
             'text-halo-color': '#ffffff',
             'text-halo-width': 0.8,
         },
@@ -1190,12 +1136,12 @@ export const createAdminLabelLayers = (): LayerSpecification[] => {
         id: 'management_units-label-low',
         type: 'symbol',
         source: 'regulations',
-        'source-layer': 'management_units_fill',
+        'source-layer': 'wmu',
         minzoom: 7,
         maxzoom: 8,
         layout: {
             'symbol-placement': 'point',
-            'text-field': ['get', 'mu_code'],
+            'text-field': ['get', 'admin_id'],
             'text-font': ['Noto Sans Bold'],
             'text-size': ['interpolate', ['linear'], ['zoom'], 7, 12, 8, 14],
             'text-anchor': 'center',
@@ -1218,11 +1164,11 @@ export const createAdminLabelLayers = (): LayerSpecification[] => {
         id: 'management_units-label',
         type: 'symbol',
         source: 'regulations',
-        'source-layer': 'management_units',
+        'source-layer': 'wmu_boundary',
         minzoom: 8,
         layout: {
             'symbol-placement': 'line',
-            'text-field': ['get', 'mu_code'],
+            'text-field': ['get', 'admin_id'],
             'text-font': ['Noto Sans Bold'],
             'text-size': ['interpolate', ['linear'], ['zoom'], 8, 11, 9, 13, 12, 15],
             'text-allow-overlap': false,

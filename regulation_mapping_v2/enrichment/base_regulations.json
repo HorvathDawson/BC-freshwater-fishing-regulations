@@ -27,7 +27,8 @@
     },
     "admin_targets": [
       {
-        "layer": "eco_reserves"
+        "layer": "eco_reserves",
+        "type_filter": "ECOLOGICAL_RESERVE"
       }
     ],
     "buffer_m": 500.0,
@@ -3972,5 +3973,21 @@
       "details": "Okanagan is Syilx traditional territory. Province collaborates with Okanagan Nation Alliance on fish stock restoration."
     },
     "notes": "Source: Region 8 preamble, 2025-2027 Synopsis."
+  },
+  {
+    "reg_id": "PROV_ABORIGINAL_LANDS_ADVISORY",
+    "source": "provincial",
+    "rule_text": "This area overlaps with Indigenous traditional territory. Anglers should be aware that additional rules or access restrictions may apply. Please respect Indigenous rights, cultural practices, and any posted signage.",
+    "restriction": {
+      "type": "Advisory",
+      "details": "This area overlaps Indigenous traditional territory. Additional rules or access restrictions may apply."
+    },
+    "notes": "Advisory — no closure. Always-visible layer for awareness.",
+    "reach_level": true,
+    "admin_targets": [
+      {
+        "layer": "aboriginal_lands"
+      }
+    ]
   }
 ]

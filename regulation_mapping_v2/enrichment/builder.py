@@ -32,26 +32,45 @@ _LAYER_NAME_MAP = {
     "wma": "wma",
     "historic_sites": "historic_sites",
     "watersheds": "watersheds",
+    "osm_admin_boundaries": "osm_admin",
+    "aboriginal_lands": "aboriginal_lands",
 }
+
+# Layers that show ALL features regardless of regulation status.
+# Layers NOT listed here default to "regulated_only" — only features
+# with an explicit admin_target reference are shown on the map.
+_SHOW_ALL_LAYERS = {"eco_reserves", "parks_nat", "aboriginal_lands"}
 
 
 def _collect_admin_visibility(
     records: list,
     base_regs_path: Path,
-) -> Dict[str, List[str]]:
-    """Collect admin_ids that should be visible, grouped by tile layer name.
+) -> Dict[str, Dict[str, Any]]:
+    """Collect admin visibility config, grouped by tile layer name.
 
     Sources:
         - OverrideEntry.admin_targets from synopsis records
         - BaseRegulationDef.admin_targets from base_regulations.json
 
-    Returns {tile_layer_name: [admin_id, ...]} with sorted, deduplicated ids.
+    Returns::
+
+        {
+          "eco_reserves":    {"display": "all"},
+          "wma":             {"display": "regulated_only", "regulated_ids": ["5364"]},
+          ...
+        }
+
+    Layers in ``_SHOW_ALL_LAYERS`` get ``display: "all"`` — the frontend
+    shows every feature in the tile layer.  Other layers get
+    ``display: "regulated_only"`` with the explicit list of admin IDs that
+    have regulations, so the frontend can filter the tile features.
     """
     from regulation_mapping_v2.matching.match_table import OverrideEntry
 
     from .models import BaseRegulationDef
 
     layer_ids: Dict[str, Set[str]] = defaultdict(set)
+    seen_layers: Set[str] = set()
 
     # 1. Synopsis overrides
     for rec in records:
@@ -59,6 +78,7 @@ def _collect_admin_visibility(
         if isinstance(entry, OverrideEntry) and entry.admin_targets:
             for target in entry.admin_targets:
                 layer = _LAYER_NAME_MAP.get(target["layer"], target["layer"])
+                seen_layers.add(layer)
                 fid = target.get("feature_id")
                 if fid:
                     layer_ids[layer].add(fid)
@@ -73,11 +93,20 @@ def _collect_admin_visibility(
         if reg.admin_targets:
             for target in reg.admin_targets:
                 layer = _LAYER_NAME_MAP.get(target["layer"], target["layer"])
+                seen_layers.add(layer)
                 fid = target.get("feature_id")
                 if fid:
                     layer_ids[layer].add(fid)
 
-    return {layer: sorted(ids) for layer, ids in layer_ids.items() if ids}
+    result: Dict[str, Dict[str, Any]] = {}
+    for layer in sorted(seen_layers | _SHOW_ALL_LAYERS):
+        if layer in _SHOW_ALL_LAYERS:
+            result[layer] = {"display": "all"}
+        else:
+            ids = sorted(layer_ids.get(layer, set()))
+            if ids:
+                result[layer] = {"display": "regulated_only", "regulated_ids": ids}
+    return result
 
 
 def build(config_path: Path = Path("config.yaml"), dry_run: bool = False) -> Path:
@@ -143,6 +172,7 @@ def build(config_path: Path = Path("config.yaml"), dry_run: bool = False) -> Pat
 
     t0 = time.perf_counter()
     metadata = feature_resolver.build_metadata_from_graph(graph_path)
+    feature_resolver.enrich_metadata_with_polygons(metadata, atlas)
     logger.info("Metadata built in %.1fs", time.perf_counter() - t0)
 
     # ── Phase 2: Feature Resolution ─────────────────────────────────
@@ -158,14 +188,20 @@ def build(config_path: Path = Path("config.yaml"), dry_run: bool = False) -> Pat
 
     # ── Phase 4: Base Regulation Assignment ──────────────────────────
     t0 = time.perf_counter()
-    base_regs = base_reg_assigner.assign_base_regulations(
+    base_regs, reach_level_reg_ids = base_reg_assigner.assign_base_regulations(
         atlas, metadata, assignments, gpkg_path=gpkg_path
     )
     logger.info("Phase 4 done in %.1fs", time.perf_counter() - t0)
 
     # ── Phase 5: Reach Build + Output ────────────────────────────────
     t0 = time.perf_counter()
-    index = reach_builder.build_regulation_index(atlas, assignments, base_regs, records)
+    index = reach_builder.build_regulation_index(
+        atlas,
+        assignments,
+        base_regs,
+        records,
+        reach_level_reg_ids=reach_level_reg_ids,
+    )
     logger.info("Phase 5 done in %.1fs", time.perf_counter() - t0)
 
     # ── Write output (atomic) ────────────────────────────────────────

@@ -24,6 +24,7 @@ from typing import Any, Dict, List, Optional, Set, Tuple
 import geopandas as gpd
 from tqdm import tqdm
 
+from data.data_extractor import FWADataAccessor
 from regulation_mapping_v2.atlas.freshwater_atlas import FreshWaterAtlas
 
 from .models import AtlasMetadata, BaseRegulationDef, FeatureAssignment
@@ -57,8 +58,14 @@ def _load_base_regulations(path: Path) -> List[BaseRegulationDef]:
 
 
 def _load_wmu_polygons(gpkg_path: Path) -> gpd.GeoDataFrame:
-    """Load WMU (Wildlife Management Units) polygons from GPKG."""
-    gdf = gpd.read_file(gpkg_path, layer="wmu")
+    """Load WMU (Wildlife Management Units) polygons from GPKG.
+
+    Uses FWADataAccessor for consistent column normalization
+    (numeric IDs → str, etc.), then reprojects to EPSG:3005
+    for meter-based spatial operations.
+    """
+    accessor = FWADataAccessor(gpkg_path)
+    gdf = accessor.get_layer("wmu")
     if gdf.crs and gdf.crs.to_epsg() != 3005:
         gdf = gdf.to_crs(epsg=3005)
     return gdf
@@ -331,6 +338,8 @@ _ADMIN_LAYER_MAP = {
     "wma": "wma",
     "historic_sites": "historic_sites",
     "watersheds": "watersheds",
+    "osm_admin_boundaries": "osm_admin",
+    "aboriginal_lands": "aboriginal_lands",
 }
 
 
@@ -378,6 +387,14 @@ def _assign_admin_targeted(
             if feature_id and feature_id in records
             else list(records.values())
         )
+
+        # Filter by admin_type if type_filter is specified.
+        # Used e.g. to target only ECOLOGICAL_RESERVE within the eco_reserves
+        # dict (which also contains PROVINCIAL_PARK, PROTECTED_AREA, etc.).
+        type_filter = target.get("type_filter")
+        if type_filter:
+            admin_list = [r for r in admin_list if r.admin_type == type_filter]
+
         if not admin_list:
             logger.warning(
                 "No admin polygons for layer=%s id=%s (reg %s)",
@@ -485,7 +502,7 @@ def assign_base_regulations(
     assignments: FeatureAssignment,
     gpkg_path: Optional[Path] = None,
     base_regs_path: Optional[Path] = None,
-) -> Dict[str, Dict[str, Any]]:
+) -> Tuple[Dict[str, Dict[str, Any]], Set[str]]:
     """Apply zone/provincial base regs to all atlas features.
 
     Mutates ``assignments`` in-place (phase=4).
@@ -506,7 +523,7 @@ def assign_base_regulations(
 
     Returns
     -------
-    Dict mapping reg_id → regulation info dict, for the regulation_index.
+    Tuple of (regulations dict, reach_level_reg_ids set).
     """
     path = base_regs_path or DEFAULT_BASE_REGS_PATH
     base_regs = _load_base_regulations(path)
@@ -585,6 +602,7 @@ def assign_base_regulations(
     )
 
     regulations: Dict[str, Dict[str, Any]] = {}
+    reach_level_reg_ids: Set[str] = set()
 
     for reg in tqdm(base_regs, desc="  Phase 4: base regs", leave=False):
         # Route to the correct assignment strategy
@@ -622,6 +640,8 @@ def assign_base_regulations(
             reg_info["notes"] = reg.notes
 
         regulations[reg.reg_id] = reg_info
+        if reg.reach_level:
+            reach_level_reg_ids.add(reg.reg_id)
 
     logger.info("Phase 4 complete: %s", assignments.summary())
-    return regulations
+    return regulations, reach_level_reg_ids

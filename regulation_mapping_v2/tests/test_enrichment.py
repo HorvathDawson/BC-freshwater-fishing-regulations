@@ -678,7 +678,7 @@ class TestBaseRegulationsJson:
         zone = [d for d in data if d["source"] == "zone"]
         disabled = [d for d in data if d.get("disabled")]
 
-        assert len(provincial) == 2
+        assert len(provincial) == 3
         assert len(zone) >= 220  # 229 zone regs from v1
         assert len(disabled) == 7  # 7 disabled regs from v1
 

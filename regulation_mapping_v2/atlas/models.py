@@ -36,6 +36,7 @@ class PolygonRecord:
     geometry: BaseGeometry
     display_name: str  # GNIS_NAME_1
     area: float  # m²
+    gnis_id: str = ""  # GNIS_ID_1 — needed for synopsis lake matching
     minzoom: int = 11
 
 
