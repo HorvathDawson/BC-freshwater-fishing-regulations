@@ -6,7 +6,7 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 import { createRegulationLayers, createAdminLabelLayers, createEarlyRoadLayers, HIGHLIGHT_COLORS, SELECTION_COLOR } from '../map/styles';
 import bcBoundary from '../map/bcBoundary.json';
 import { waterbodyDataService } from '../services/waterbodyDataService';
-import type { Reach, SearchEntry, RegulationData, AdminVisibility, ResolveResult } from '../services/waterbodyDataService';
+import type { Reach, RegulationData, ResolveResult } from '../services/waterbodyDataService';
 import { 
     isMobileViewport,
     type FeatureInfo, 
@@ -14,7 +14,7 @@ import {
     type FeatureGeometry,
     type CollapseState 
 } from '../utils/featureUtils';
-import { parseUrlState, navigateToWaterbody, navigateToFeature, clearUrlState, collapseWbg } from '../utils/urlState';
+import { parseUrlState, navigateToWaterbody, navigateToFeature, clearUrlState } from '../utils/urlState';
 import InfoPanel from './InfoPanel';
 import DisambiguationMenu from './DisambiguationMenu';
 import SearchBar from './SearchBar';

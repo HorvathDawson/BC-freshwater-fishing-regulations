@@ -121,7 +121,7 @@ export interface Regulation {
   rule_text: string;
   restriction_type: string;
   restriction_details: string;
-  dates: string[] | string | null;
+  dates: string[] | string | { period: string } | null;
   scope_type: string;
   scope_location: string | null;
   source: 'synopsis' | 'provincial' | 'zone';
@@ -129,7 +129,7 @@ export interface Regulation {
   feature_types?: string[] | null;
   iid?: string;
   source_image?: string | null;
-  exclusions?: null;
+  exclusions?: { lookup_name: string; direction?: string; landmark_verbatim?: string; includes_tributaries?: boolean }[] | null;
   /** How this regulation reached the current reach.
    *  Stamped by regulationsService when resolving for a specific reach. */
   provenance?: RegulationProvenance;

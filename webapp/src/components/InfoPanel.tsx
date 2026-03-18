@@ -285,9 +285,9 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                                 This area falls within tidal waters. Freshwater fishing regulations do not apply here.
                                 Please refer to DFO tidal water regulations.
                             </p>
-                            {props._tidal_url && (
+                            {Boolean(props._tidal_url) && (
                                 <a
-                                    href={props._tidal_url as string}
+                                    href={String(props._tidal_url)}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="reg-source-img-btn"
@@ -526,7 +526,7 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                             </div>
                         )}
 
-                        {!loadingRegs && props.regulation_ids && regulations.length === 0 && (
+                        {!loadingRegs && Boolean(props.regulation_ids) && regulations.length === 0 && (
                             <div className="regulation-error">
                                 Failed to load regulation details
                             </div>
@@ -863,10 +863,10 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                                 </>
                             );
                         })()}
-                        {props.fwa_watershed_code && (
+                        {Boolean(props.fwa_watershed_code) && (
                             <div className="stat-box mt-2">
                                 <span className="label">WATERSHED CODE</span>
-                                <span className="value code">{props.fwa_watershed_code}</span>
+                                <span className="value code">{String(props.fwa_watershed_code)}</span>
                             </div>
                         )}
                     </div>
