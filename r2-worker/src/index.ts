@@ -222,10 +222,15 @@ async function handleResolve(request: Request, env: Env): Promise<Response> {
 
   if (fids.length > 0) {
     const fidGroups = await groupByPrefix(fids);
-    for (const [prefix, groupFids] of fidGroups) {
-      const shard = await fetchShard<Record<string, string>>(
-        env.BUCKET, `shards/${version}/fids/${prefix}.json`, request.url,
-      );
+    const fidShards = await Promise.all(
+      [...fidGroups.entries()].map(async ([prefix, groupFids]) => ({
+        groupFids,
+        shard: await fetchShard<Record<string, string>>(
+          env.BUCKET, `shards/${version}/fids/${prefix}.json`, request.url,
+        ),
+      })),
+    );
+    for (const { groupFids, shard } of fidShards) {
       if (!shard) continue;
       for (const fid of groupFids) {
         const reachId = shard[fid];
@@ -242,10 +247,15 @@ async function handleResolve(request: Request, env: Env): Promise<Response> {
 
   if (wbks.length > 0) {
     const wbkGroups = await groupByPrefix(wbks);
-    for (const [prefix, groupWbks] of wbkGroups) {
-      const shard = await fetchShard<Record<string, string>>(
-        env.BUCKET, `shards/${version}/polys/${prefix}.json`, request.url,
-      );
+    const wbkShards = await Promise.all(
+      [...wbkGroups.entries()].map(async ([prefix, groupWbks]) => ({
+        groupWbks,
+        shard: await fetchShard<Record<string, string>>(
+          env.BUCKET, `shards/${version}/polys/${prefix}.json`, request.url,
+        ),
+      })),
+    );
+    for (const { groupWbks, shard } of wbkShards) {
       if (!shard) continue;
       for (const wbk of groupWbks) {
         const reachId = shard[wbk];
@@ -275,10 +285,15 @@ async function handleResolve(request: Request, env: Env): Promise<Response> {
 
   if (reachIdsToFetch.size > 0) {
     const reachGroups = await groupByPrefix([...reachIdsToFetch.keys()]);
-    for (const [prefix, groupReachIds] of reachGroups) {
-      const shard = await fetchShard<Record<string, ReachData>>(
-        env.BUCKET, `shards/${version}/reaches/${prefix}.json`, request.url,
-      );
+    const reachShards = await Promise.all(
+      [...reachGroups.entries()].map(async ([prefix, groupReachIds]) => ({
+        groupReachIds,
+        shard: await fetchShard<Record<string, ReachData>>(
+          env.BUCKET, `shards/${version}/reaches/${prefix}.json`, request.url,
+        ),
+      })),
+    );
+    for (const { groupReachIds, shard } of reachShards) {
       if (!shard) continue;
       for (const reachId of groupReachIds) {
         const data = shard[reachId];
