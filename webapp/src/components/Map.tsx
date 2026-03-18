@@ -1354,6 +1354,8 @@ const MapComponent = () => {
             // Increment click generation to detect stale results
             const thisClick = ++clickGenRef.current;
             setClickLoadingPos({ x: e.point.x, y: e.point.y });
+            // Hide the map-layer cursor circle so it doesn't drift under the spinner
+            (map.getSource('cursor-circle') as maplibregl.GeoJSONSource)?.setData({ type: 'FeatureCollection', features: [] });
 
             let resolved: ResolveResult[];
             try {
