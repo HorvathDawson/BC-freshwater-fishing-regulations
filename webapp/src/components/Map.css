@@ -252,3 +252,17 @@
         bottom: 0;
     }
 }
+
+/* ── Click loading spinner (shown during resolve) ────────────────── */
+.click-loading-spinner {
+    position: absolute;
+    width: 30px;
+    height: 30px;
+    transform: translate(-50%, -50%);
+    border: 3px solid rgba(124, 58, 237, 0.2);
+    border-top-color: #7C3AED;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+    pointer-events: none;
+    z-index: 800;
+}

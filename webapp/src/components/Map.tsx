@@ -536,6 +536,7 @@ const MapComponent = () => {
     const [siblingFeatures, setSiblingFeatures] = useState<SearchableFeature[]>([]);
     const [disambigOptions, setDisambigOptions] = useState<FeatureOption[]>([]);
     const [disambigPosition, setDisambigPosition] = useState<{ x: number; y: number } | null>(null);
+    const [clickLoadingPos, setClickLoadingPos] = useState<{ x: number; y: number } | null>(null);
 
     const [mobilePanelState, setMobilePanelState] = useState<CollapseState>('expanded');
     const [highlightedOption, setHighlightedOption] = useState<FeatureOption | null>(null);
@@ -1352,14 +1353,18 @@ const MapComponent = () => {
 
             // Increment click generation to detect stale results
             const thisClick = ++clickGenRef.current;
+            setClickLoadingPos({ x: e.point.x, y: e.point.y });
 
             let resolved: ResolveResult[];
             try {
                 resolved = await waterbodyDataService.resolve(fids, wbks);
             } catch (err) {
                 console.error('[Map] resolve failed:', err);
+                setClickLoadingPos(null);
                 return;
             }
+
+            setClickLoadingPos(null);
 
             // Discard stale click (user clicked elsewhere while resolving)
             if (clickGenRef.current !== thisClick) return;
@@ -1647,6 +1652,13 @@ const MapComponent = () => {
                         setSelectedFeature(f); 
                         setMobilePanelState('partial'); 
                     }} onClose={clearSelection}
+                />
+            )}
+            {clickLoadingPos && (
+                <div
+                    className="click-loading-spinner"
+                    style={{ left: clickLoadingPos.x, top: clickLoadingPos.y }}
+                    aria-label="Loading feature data"
                 />
             )}
         </div>
