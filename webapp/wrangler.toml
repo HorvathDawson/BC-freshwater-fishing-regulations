@@ -1,6 +1,6 @@
 # Cloudflare Workers — static asset deployment (SPA)
-# Build command: cd webapp && npm install && npm run build
-# Deploy command: npx wrangler deploy
+# Build command: npm install && npx vite build --mode staging
+# Deploy command: npx wrangler deploy --env staging
 #
 # This worker serves the webapp as a single-page application.
 # The R2 data worker lives at r2-worker/ (separate deployment).
@@ -11,11 +11,7 @@ workers_dev = false
 preview_urls = false
 
 [assets]
-directory = "./webapp/dist"
-# Serve dist/index.html for any path that doesn't match a static file.
-# This enables SPA routing — /waterbody/<wbg>/ paths not yet prerendered
-# (e.g. old slugs from before a pipeline rerun) fall back to the SPA
-# which resolves them client-side or shows a graceful empty state.
+directory = "./dist"
 not_found_handling = "single-page-application"
 
 # ── Staging ──────────────────────────────────────────────────────────
@@ -24,7 +20,7 @@ not_found_handling = "single-page-application"
 name = "bc-fishing-regulations-staging"
 
 [env.staging.assets]
-directory = "./webapp/dist"
+directory = "./dist"
 not_found_handling = "single-page-application"
 
 # ── Production ───────────────────────────────────────────────────────
@@ -33,5 +29,5 @@ not_found_handling = "single-page-application"
 name = "bc-fishing-regulations"
 
 [env.production.assets]
-directory = "./webapp/dist"
+directory = "./dist"
 not_found_handling = "single-page-application"
