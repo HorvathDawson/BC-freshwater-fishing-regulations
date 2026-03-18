@@ -78,7 +78,8 @@ if [[ "${1:-}" == "--upload" ]]; then
   echo "── Uploading to R2 ($R2_BUCKET) ──"
   npx wrangler r2 object put "$R2_BUCKET/in_season.json" \
     --file "$DEPLOY_DIR/in_season.json" \
-    --content-type "application/json"
+    --content-type "application/json" \
+    --remote
   echo "✅ Uploaded to R2"
 
 elif [[ "${1:-}" == "--seed" ]]; then
