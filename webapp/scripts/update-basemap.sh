@@ -118,7 +118,7 @@ ok "Extraction complete: $OUTPUT ($SIZE)"
 if [ "$UPLOAD" = true ]; then
     echo ""
     info "Uploading to R2..."
-    bash "$SCRIPT_DIR/deploy-data.sh" --file "$OUTPUT"
+    bash "$PROJECT_DIR/scripts/seed-r2.sh" --file "$OUTPUT"
 fi
 
 echo ""

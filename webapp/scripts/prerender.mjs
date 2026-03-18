@@ -24,9 +24,16 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const ROOT = resolve(__dirname, '..');
 
-// --- Load .env.production (no dotenv dependency) ---
-const envPath = resolve(ROOT, '.env.production');
-if (existsSync(envPath)) {
+// --- Load environment file (no dotenv dependency) ---
+// Vite sets --mode; map it to the right .env file.
+const mode = process.env.VITE_MODE || process.argv.find(a => a.startsWith('--mode='))?.split('=')[1] || 'production';
+const envCandidates = [
+    resolve(ROOT, `.env.${mode}`),
+    resolve(ROOT, '.env.production'),
+];
+const envPath = envCandidates.find(p => existsSync(p));
+if (envPath) {
+    console.log(`[prerender] Loading env from ${envPath}`);
     for (const line of readFileSync(envPath, 'utf8').split('\n')) {
         const trimmed = line.trim();
         if (!trimmed || trimmed.startsWith('#')) continue;
