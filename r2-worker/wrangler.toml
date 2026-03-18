@@ -13,3 +13,30 @@ SHARD_VERSION = "v8"
 [observability.logs]
 enabled = false
 invocation_logs = true
+
+# ── Staging ──────────────────────────────────────────────────────────
+# Deploy via Cloudflare git integration: branch=staging, --env staging
+
+[env.staging]
+name = "bc-fishing-r2-staging"
+
+[[env.staging.r2_buckets]]
+binding = "BUCKET"
+bucket_name = "bc-fishing-regulations-staging"
+
+[env.staging.vars]
+SHARD_VERSION = "v8"
+
+# ── Production ───────────────────────────────────────────────────────
+# Deploy via Cloudflare git integration: branch=main, --env production
+# Mirrors staging exactly — same config, different bucket.
+
+[env.production]
+name = "bc-fishing-r2"
+
+[[env.production.r2_buckets]]
+binding = "BUCKET"
+bucket_name = "bc-fishing-regulations"
+
+[env.production.vars]
+SHARD_VERSION = "v8"

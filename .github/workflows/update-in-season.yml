@@ -27,5 +27,6 @@ jobs:
       - name: Scrape, resolve, and upload
         run: bash scripts/update-in-season.sh --upload
         env:
+          DEPLOY_ENV: ${{ github.ref_name == 'main' && 'production' || 'staging' }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}

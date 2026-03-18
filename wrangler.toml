@@ -17,3 +17,21 @@ directory = "./webapp/dist"
 # (e.g. old slugs from before a pipeline rerun) fall back to the SPA
 # which resolves them client-side or shows a graceful empty state.
 not_found_handling = "single-page-application"
+
+# ── Staging ──────────────────────────────────────────────────────────
+
+[env.staging]
+name = "bc-fishing-regulations-staging"
+
+[env.staging.assets]
+directory = "./webapp/dist"
+not_found_handling = "single-page-application"
+
+# ── Production ───────────────────────────────────────────────────────
+
+[env.production]
+name = "bc-fishing-regulations"
+
+[env.production.assets]
+directory = "./webapp/dist"
+not_found_handling = "single-page-application"

@@ -2,15 +2,17 @@
 
 ## Architecture
 
-Three pieces to deploy:
+| Component | Staging | Production |
+|-----------|---------|------------|
+| **R2 Worker** | `bc-fishing-r2-staging` | `bc-fishing-r2` |
+| **R2 Bucket** | `bc-fishing-regulations-staging` | `bc-fishing-regulations` |
+| **Branch** | `staging` | `main` |
+| **In-Season Cron** | GHA on `staging` → staging bucket | GHA on `main` → prod bucket |
+| **Worker Deploy** | Cloudflare git integration → `staging` branch | Cloudflare git integration → `main` branch |
 
-| Component | Host | Config |
-|-----------|------|--------|
-| **R2 Worker** | Cloudflare Workers | `r2-worker/wrangler.toml` |
-| **R2 Data** | Cloudflare R2 bucket | `output/pipeline/deploy/` |
-| **Frontend** | Cloudflare Pages (or static host) | `webapp/` |
+Both environments use identical code — the only difference is the R2 bucket binding in `r2-worker/wrangler.toml` (`[env.staging]` vs `[env.production]`).
 
-## One-Time Staging Setup
+## One-Time Setup
 
 ### 1. Create staging R2 bucket
 
@@ -18,46 +20,33 @@ Three pieces to deploy:
 wrangler r2 bucket create bc-fishing-regulations-staging
 ```
 
-### 2. Add staging environment to `r2-worker/wrangler.toml`
+### 2. Deploy staging worker
 
-```toml
-[env.staging]
-name = "bc-fishing-r2-staging"
+The `[env.staging]` section is already in `r2-worker/wrangler.toml`.
 
-[[env.staging.r2_buckets]]
-binding = "BUCKET"
-bucket_name = "bc-fishing-regulations-staging"
+In Cloudflare dashboard → Workers & Pages → Create → Connect to Git:
+- Repository: this repo
+- Production branch: `staging`
+- Build command: `cd r2-worker && npm install`
+- Deploy command: `wrangler deploy --env staging`
 
-[env.staging.vars]
-SHARD_VERSION = "v8"
-```
+This gives you `https://bc-fishing-r2-staging.<account>.workers.dev`.
+Every push to `staging` auto-deploys the worker.
 
-### 3. Deploy staging worker
-
-```sh
-cd r2-worker
-npm install
-wrangler deploy --env staging
-```
-
-This gives you a URL like `https://bc-fishing-r2-staging.<account>.workers.dev`.
-
-### 4. Seed staging R2
+### 3. Seed staging R2 with pipeline data
 
 ```sh
-node scripts/seed.mjs --env staging
+./scripts/seed-r2.sh    # defaults to DEPLOY_ENV=staging
 ```
 
-> Note: `seed.mjs` needs a `--env` flag added to target the staging bucket.
-> Alternatively, upload directly:
-> ```sh
-> cd output/pipeline/deploy
-> for f in $(find . -type f); do
->   wrangler r2 object put "bc-fishing-regulations-staging/${f#./}" --file "$f"
-> done
-> ```
+### 4. Add GitHub secrets
 
-### 5. Build & preview frontend against staging worker
+| Secret | Purpose |
+|--------|---------|
+| `CLOUDFLARE_ACCOUNT_ID` | Wrangler auth for R2 uploads |
+| `CLOUDFLARE_API_TOKEN` | Wrangler auth (needs R2 write + Workers read) |
+
+### 5. Preview frontend against staging
 
 ```sh
 cd webapp
@@ -65,37 +54,56 @@ VITE_TILE_BASE_URL=https://bc-fishing-r2-staging.<account>.workers.dev npm run b
 npx vite preview
 ```
 
-The frontend reads `VITE_TILE_BASE_URL` to set both data and API origins. In dev mode, Vite proxies `/data/*` → worker, but in production builds this env var points directly at the worker URL.
+## Daily In-Season Updates
 
-## Release to Production
+The `update-in-season.yml` workflow runs daily at 6 AM PST on whichever branch it's configured for. It:
+
+1. Fetches `tier0.json` + `match_table.json` from the environment's R2 worker
+2. Scrapes BC gov in-season changes page
+3. Resolves water names → reach IDs (Python pipeline)
+4. Uploads `in_season.json` to the environment's R2 bucket
+
+Branch determines environment automatically:
+- `staging` branch → `DEPLOY_ENV=staging` → staging bucket
+- `main` branch → `DEPLOY_ENV=production` → prod bucket
+
+### Local testing (same code path):
+
+```sh
+./scripts/update-in-season.sh              # scrape + resolve only
+./scripts/update-in-season.sh --seed        # + refresh local R2
+DEPLOY_ENV=staging ./scripts/update-in-season.sh --upload  # upload to staging R2
+```
+
+## Promoting Staging → Production
 
 Once staging is verified:
 
 ```sh
-# 1. Deploy worker
-cd r2-worker
-wrangler deploy
+# 1. Merge staging → main
+git checkout main
+git merge staging
+git push origin main
 
-# 2. Upload data to prod R2
-cd output/pipeline/deploy
-wrangler r2 object put bc-fishing-regulations/<key> --file <file>
-# or use deploy-data.sh / seed.mjs against prod
+# 2. Cloudflare auto-deploys production worker via git integration
 
-# 3. Deploy frontend
-cd webapp
-npm run build
-# push to Pages (git push main, or wrangler pages deploy dist/)
+# 3. Seed production R2 (if pipeline data changed)
+DEPLOY_ENV=production ./scripts/seed-r2.sh
+
+# 4. Frontend auto-deploys via Pages on main push
 ```
 
 ## Rollback
 
 - **Worker**: `wrangler rollback` reverts to previous worker version
-- **Data**: Old shards remain in R2 (keyed by shard_version). Revert `SHARD_VERSION` in wrangler.toml and redeploy worker.
+- **Data**: Old shards remain in R2 (keyed by `SHARD_VERSION`). Revert the var in wrangler.toml and redeploy.
 - **Frontend**: Revert git commit on main, Pages auto-redeploys.
+- **In-season**: Re-run workflow manually, or upload a known-good `in_season.json`.
 
-## Key Env Vars
+## Key Config
 
 | Var | Where | Purpose |
 |-----|-------|---------|
 | `VITE_TILE_BASE_URL` | Frontend build | Points at worker URL (empty = same origin) |
-| `SHARD_VERSION` | Worker `wrangler.toml` | Which shard prefix to read (`v8`) |
+| `SHARD_VERSION` | `r2-worker/wrangler.toml` | Which shard prefix to read (`v8`) |
+| `DEPLOY_ENV` | `update-in-season.sh` / GHA | `staging` or `production` — controls bucket + origin |

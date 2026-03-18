@@ -6,7 +6,11 @@
 # Usage:
 #   ./scripts/update-in-season.sh              # scrape + resolve (local)
 #   ./scripts/update-in-season.sh --seed        # also re-seed local R2
-#   ./scripts/update-in-season.sh --upload      # fetch data from R2, resolve, upload (CI)
+#   ./scripts/update-in-season.sh --upload      # resolve + upload to R2 (CI)
+#
+# Environment:
+#   DEPLOY_ENV   staging | production (default: staging)
+#                Controls which R2 bucket + worker origin to use.
 
 set -euo pipefail
 
@@ -15,7 +19,26 @@ ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 DEPLOY_DIR="$ROOT/output/pipeline/deploy"
 MATCHING_DIR="$ROOT/output/pipeline/matching"
 
-R2_ORIGIN="${R2_ORIGIN:-https://bc-fishing-r2.horvath-dawson.workers.dev}"
+# ── Environment config ──────────────────────────────────────────────
+
+DEPLOY_ENV="${DEPLOY_ENV:-staging}"
+
+case "$DEPLOY_ENV" in
+  staging)
+    R2_BUCKET="bc-fishing-regulations-staging"
+    R2_ORIGIN="${R2_ORIGIN:-https://bc-fishing-r2-staging.horvath-dawson.workers.dev}"
+    ;;
+  production)
+    R2_BUCKET="bc-fishing-regulations"
+    R2_ORIGIN="${R2_ORIGIN:-https://bc-fishing-r2.horvath-dawson.workers.dev}"
+    ;;
+  *)
+    echo "ERROR: Unknown DEPLOY_ENV=$DEPLOY_ENV (use staging or production)" >&2
+    exit 1
+    ;;
+esac
+
+echo "Environment: $DEPLOY_ENV (bucket: $R2_BUCKET)"
 
 mkdir -p "$DEPLOY_DIR" "$MATCHING_DIR"
 
@@ -52,8 +75,8 @@ echo "✅ in_season.json → $DEPLOY_DIR/in_season.json"
 # ── Step 3: Upload / seed (optional) ────────────────────────────────
 
 if [[ "${1:-}" == "--upload" ]]; then
-  echo "── Uploading to R2 ──"
-  npx wrangler r2 object put "bc-fishing-regulations/in_season.json" \
+  echo "── Uploading to R2 ($R2_BUCKET) ──"
+  npx wrangler r2 object put "$R2_BUCKET/in_season.json" \
     --file "$DEPLOY_DIR/in_season.json" \
     --content-type "application/json"
   echo "✅ Uploaded to R2"

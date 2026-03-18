@@ -130,11 +130,7 @@ def _resolve_water_entry(
 
     # Follow variant_of: if the entry is a skipped variant, resolve to
     # the target entry's canonical name instead.
-    if (
-        isinstance(entry, OverrideEntry)
-        and entry.skip
-        and entry.variant_of is not None
-    ):
+    if isinstance(entry, OverrideEntry) and entry.skip and entry.variant_of is not None:
         target = table.lookup(
             entry.variant_of.name_verbatim,
             entry.variant_of.region,
