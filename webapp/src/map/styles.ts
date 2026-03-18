@@ -1,4 +1,4 @@
-import type { LayerSpecification, ExpressionSpecification } from 'maplibre-gl';
+import type { LayerSpecification } from 'maplibre-gl';
 
 // Feature base colors
 const FEATURE_COLORS = {

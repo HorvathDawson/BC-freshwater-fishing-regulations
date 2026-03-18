@@ -18,7 +18,7 @@ export interface FeatureGeometry {
 /** Core feature info for displaying a selected waterbody */
 export interface FeatureInfo {
     type: 'stream' | 'lake' | 'wetland' | 'manmade' | 'ungazetted';
-    properties: Record<string, string | number | boolean | null | undefined>;
+    properties: Record<string, unknown>;
     geometry?: FeatureGeometry;
     id?: string | number;
     source?: string;

@@ -138,10 +138,6 @@ function legacyFilterToExpression(f: any): any {
 }
 
 const INTERACTABLE_LAYERS = ['streams', 'lakes-fill', 'wetlands-fill', 'manmade-fill'];
-const ADMIN_FILL_LAYERS = [
-    'admin_parks_nat-fill', 'admin_parks_bc-fill', 'admin_wma-fill',
-    'admin_watersheds-fill', 'admin_historic_sites-fill',
-];
 
 // Filter-based highlight / selection layer IDs.
 // These render directly from the 'regulations' PMTiles source — no geometry
@@ -366,7 +362,7 @@ const buildFeatureFromReach = (
             _reachId: reachId,
             _fidList: reachSegments[reachId],
         },
-    } as FeatureOption;
+    };
 };
 
 /**
@@ -1238,10 +1234,6 @@ const MapComponent = () => {
             // switches the match expression so only the target feature renders.
             const hlLineWidth = ['interpolate', ['linear'], ['zoom'], 4, 3, 8, 6, 12, 8] as any;
             const hlLineLayout = { 'line-cap': 'round' as const, 'line-join': 'round' as const };
-            const hlCirclePaint = (color: string) => ({
-                'circle-color': color, 'circle-radius': ['interpolate', ['linear'], ['zoom'], 10, 8, 13, 12, 16, 16] as any,
-                'circle-stroke-color': '#FFFFFF', 'circle-stroke-width': 2, 'circle-opacity': 0.9,
-            });
 
             // Streams
             map.addLayer({ id: 'hl-streams', type: 'line', source: 'regulations', 'source-layer': 'streams', filter: FILTER_NONE,
