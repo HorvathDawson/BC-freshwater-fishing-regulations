@@ -984,7 +984,7 @@ const MapComponent = () => {
                     const isMobile = isMobileViewport();
                     const padding = isMobile
                         ? { top: 60, bottom: getMobileBottomPadding(), left: 40, right: 40 }
-                        : { top: 80, bottom: 80, left: 80, right: 350 };
+                        : { top: 80, bottom: 80, left: 80, right: 80 };
                     flyToBbox(map, selected.bbox, padding, selected.minzoom ? selected.minzoom + 0.25 : 10);
                 }
             }
@@ -1498,7 +1498,7 @@ const MapComponent = () => {
             const bounds = new maplibregl.LngLatBounds([feature.bbox[0], feature.bbox[1]], [feature.bbox[2], feature.bbox[3]]);
             const { padding, panelState } = isMobile
                 ? getMobilePaddingForBounds(bounds)
-                : { padding: { top: 80, bottom: 80, left: 80, right: 350 }, panelState: 'expanded' as CollapseState };
+                : { padding: { top: 80, bottom: 80, left: 80, right: 80 }, panelState: 'expanded' as CollapseState };
             flyToBbox(map, feature.bbox, padding, targetMinZoom + 0.25);
             if (isMobile) setMobilePanelState(panelState);
         }
