@@ -30,6 +30,8 @@
 15. lake revelstoke has streams go into it?
 - FWA data issue: the upper portion of the reservoir has a different waterbody_key (328998980) than the lake polygon (329484653). The upper section is likely classified as a river polygon in FWA rather than part of the lake, so those stream edges don't carry the lake's waterbody_key. The `is_under_lake` check fails because the edge waterbody_keys don't match any lake wbkey, leaving the streams visible in the main streams layer instead of being moved to under_lake_streams. 
 
+16. Eco reserves should be grouped into the sections for the streams? not sure.
+
 
 
 ===============
@@ -52,7 +54,7 @@ bear river is in region 1 and 2 but should only be in 2 because it is fully in 2
 DEAN RIVER PARSING
     "regs_verbatim": "**No Fishing** upstream of Iltasyuko River[Includes Tributaries], including upstream of Anahim Lake[Includes Tributaries], Apr 1-June 14\n**No Fishing** from Iltasyuko River to Crag Creek[Includes Tributaries]\n**No Fishing** from Crag Creek to fishing boundary signs approximately 500 m upstream of canyon[Includes Tributaries], Oct 1-May 31\n**No Fishing** from fishing boundary signs approximately 500 m upstream of canyon to signs 100 m downstream of canyon\n**No Fishing** from fishing boundary signs approximately 100 m downstream of canyon to tidal boundary, Oct 1 - May 31\nTrout/char daily quota = 1 (none under 35 cm)\nBait ban all parts[Includes Tributaries]\nFly fishing only from** (a)** Anahim Lake to Iltasyuko River, June 15- Mar 31, and** (b)** Crag Creek to fishing boundary signs approximately 500 m\nupstream of canyon, July 15-Sept 30\nNo powered boats between signs 0.5 km and 3.5 km upstream of canyon, Aug 1-Aug 31\n**From Crag Creek to signs 500 m upstream of the canyon**[Includes Tributaries]**: Class I water June 1-Sept 30 and Steelhead Stamp mandatory June 1-Sept 30; see map below (Non-residents see notice on **page 42**)\nFrom signs 100 m downstream of canyon to tidal boundary**[Includes Tributaries]**: Class I water June 1-Sept 30 and Steelhead Stamp mandatory June 1-Sept 30: see map below\nFrom Anahim Lake to Iltasyuko River**[Includes Tributaries]**: Class II water June 16-Oct 31 (see map below); Steelhead Stamp not required**\nNOTE: \"canyon\" means lower canyon 3-5 km from river's mouth",
 
-lost classified water note in reg too. this is very bads we need parser to check no rule was missed? also split the one list. not checking if the rule is in the rule verbatim...
+lost classified water note in reg too. this is very bad we need parser to check no rule was missed? also split the one list. not checking if the rule is in the rule verbatim...
 {
         "rule_text_verbatim": "Fly fishing only from** (a)** Anahim Lake to Iltasyuko River, June 15- Mar 31",
         "scope": {

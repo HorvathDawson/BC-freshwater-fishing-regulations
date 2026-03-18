@@ -28,24 +28,6 @@ export const HIGHLIGHT_COLORS: Record<string, string> = {
 /** Uniform color for the active-selection state (same for all types). */
 export const SELECTION_COLOR = '#7C3AED'; // Vibrant purple — matches highlight
 
-/**
- * Returns a MapLibre `match` expression that picks a color from `colorMap`
- * based on the `_feature_type` property injected at highlight-write time,
- * falling back to `defaultColor` for unknown types.
- */
-export const matchByFeatureType = (
-    colorMap: Record<string, string>,
-    defaultColor: string,
-): ExpressionSpecification => [
-    'match', ['get', '_feature_type'],
-    'stream',      colorMap.stream      ?? defaultColor,
-    'lake',        colorMap.lake        ?? defaultColor,
-    'wetland',     colorMap.wetland     ?? defaultColor,
-    'manmade',     colorMap.manmade     ?? defaultColor,
-    'ungazetted',  colorMap.ungazetted  ?? defaultColor,
-    defaultColor,
-];
-
 // Admin area fill colors — colorblind-safe palette
 // Crimson (#C22E2E) = NO FISHING — universal "prohibited" (NP + Eco Reserves)
 // Amber (#CC7A00) = PARTIAL RESTRICTION — "caution" (research forests, etc.)

@@ -53,8 +53,8 @@ class ProjectConfig:
 
     def _load_api_keys(self):
         """Load API keys from environment variables."""
-        synopsis_config = self._config.get("synopsis_pipeline", {})
-        api_keys_config = synopsis_config.get("api_keys", [])
+        llm_config = self._config.get("llm", {})
+        api_keys_config = llm_config.get("api_keys", [])
 
         for key_config in api_keys_config:
             env_var = key_config.get("env_var")
@@ -102,38 +102,28 @@ class ProjectConfig:
         return str(self.get_path(*keys, default=default))
 
     # ========================================================================
-    # Synopsis Pipeline
+    # Pipeline — Extraction & Parsing
     # ========================================================================
 
     @property
-    def synopsis_extract_dir(self) -> Path:
-        """Get synopsis extraction output directory."""
-        return self.get_path("output", "synopsis", "extract")
+    def extraction_dir(self) -> Path:
+        """Get extraction output directory."""
+        return self.get_path("output", "pipeline", "extraction")
 
     @property
-    def synopsis_parse_dir(self) -> Path:
-        """Get synopsis parse output directory."""
-        return self.get_path("output", "synopsis", "parse")
+    def parsing_dir(self) -> Path:
+        """Get parsing output directory."""
+        return self.get_path("output", "pipeline", "parsing")
 
     @property
     def synopsis_pdf_path(self) -> Path:
         """Get path to fishing synopsis PDF."""
-        return self.get_path("output", "synopsis", "pdf")
+        return self.project_root / "data" / "fishing_synopsis.pdf"
 
     @property
     def synopsis_raw_data_path(self) -> Path:
         """Get path to extracted raw data JSON."""
-        return self.synopsis_extract_dir / "synopsis_raw_data.json"
-
-    @property
-    def synopsis_parsed_results_path(self) -> Path:
-        """Get path to parsed results JSON."""
-        return self.synopsis_parse_dir / "parsed_results.json"
-
-    @property
-    def synopsis_session_path(self) -> Path:
-        """Get path to parsing session state JSON."""
-        return self.synopsis_parse_dir / "session.json"
+        return self.extraction_dir / "synopsis_raw_data.json"
 
     def get_api_keys(self) -> List[Dict[str, str]]:
         """
@@ -148,8 +138,8 @@ class ProjectConfig:
         api_keys = []
         missing_keys = []
 
-        synopsis_config = self._config.get("synopsis_pipeline", {})
-        for k in synopsis_config.get("api_keys", []):
+        llm_config = self._config.get("llm", {})
+        for k in llm_config.get("api_keys", []):
             key_value = k.get("key")
             if not key_value:
                 missing_keys.append(k.get("env_var", k.get("id")))
@@ -166,31 +156,31 @@ class ProjectConfig:
 
     def get_llm_config(self) -> Dict[str, Any]:
         """Get LLM parsing configuration."""
-        return self._config.get("synopsis_pipeline", {}).get("llm", {})
+        return self._config.get("llm", {})
 
     # ========================================================================
-    # FWA Pipeline
+    # Graph Builder
     # ========================================================================
 
     @property
     def fwa_output_dir(self) -> Path:
-        """Get FWA output directory."""
-        return self.get_path("output", "fwa", "base")
+        """Get graph builder output directory."""
+        return self.get_path("output", "pipeline", "graph", "base")
 
     @property
     def fwa_graph_path(self) -> Path:
         """Get path to FWA graph pickle file."""
-        return self.get_path("output", "fwa", "graph")
+        return self.get_path("output", "pipeline", "graph", "graph")
 
     @property
     def fwa_metadata_path(self) -> Path:
         """Get path to FWA metadata pickle file."""
-        return self.get_path("output", "fwa", "metadata")
+        return self.get_path("output", "pipeline", "graph", "metadata")
 
     @property
     def fwa_temp_dir(self) -> Path:
-        """Get FWA temporary files directory."""
-        return self.get_path("output", "fwa", "temp")
+        """Get graph builder temporary files directory."""
+        return self.get_path("output", "pipeline", "graph", "temp")
 
     @property
     def fwa_data_gpkg(self) -> Path:
@@ -211,41 +201,7 @@ class ProjectConfig:
         """Get temporary directory for data fetch operations."""
         return self.get_path("data", "fetch", "temp_dir")
 
-    # ========================================================================
-    # Regulation Mapping
-    # ========================================================================
 
-    @property
-    def regulation_mapping_output_dir(self) -> Path:
-        """Get regulation mapping output directory."""
-        return self.get_path("output", "regulation_mapping", "base")
-
-    @property
-    def regulation_mapping_cache_dir(self) -> Path:
-        """Get regulation mapping geometry cache directory."""
-        return self.get_path("output", "regulation_mapping", "cache_dir")
-
-    @property
-    def regulations_merged_gpkg_path(self) -> Path:
-        """Get path to merged regulations GeoPackage."""
-        return self.get_path("output", "regulation_mapping", "regulations_merged_gpkg")
-
-    @property
-    def regulations_merged_pmtiles_path(self) -> Path:
-        """Get path to merged regulations PMTiles file."""
-        return self.get_path(
-            "output", "regulation_mapping", "regulations_merged_pmtiles"
-        )
-
-    @property
-    def regulations_json_path(self) -> Path:
-        """Get path to regulations JSON file."""
-        return self.get_path("output", "regulation_mapping", "regulations_json")
-
-    @property
-    def search_index_path(self) -> Path:
-        """Get path to search index JSON file."""
-        return self.get_path("output", "regulation_mapping", "search_index")
 
 
 # Global singleton instance

@@ -10,10 +10,10 @@
  */
 
 import { waterbodyDataService } from './waterbodyDataService';
-import type { Regulation } from './waterbodyDataService';
+import type { Regulation, RegulationProvenance } from './waterbodyDataService';
 
 // Re-export the Regulation type for consumers
-export type { Regulation };
+export type { Regulation, RegulationProvenance };
 
 // Legacy types kept for backward compatibility with InfoPanel
 export interface ExclusionEntry {
@@ -88,6 +88,38 @@ class RegulationsService {
     if (!regulationId) return null;
     const regs = await this.loadRegulations();
     return regs[regulationId] || null;
+  }
+
+  /**
+   * Look up regulations for a specific reach and stamp provenance.
+   *
+   * Provenance is derived from two existing data sources:
+   *   - `regulation.source` → 'zone' | 'provincial' (base regs)
+   *   - `tributaryRegIds`   → synopsis regs whose iid is in this set get 'tributary'
+   *   - everything else     → 'direct'
+   */
+  async getRegulationsForReach(
+    regulationIds: string | string[] | null | undefined,
+    tributaryRegIds: string[] = [],
+  ): Promise<Regulation[]> {
+    const regs = await this.getRegulations(regulationIds);
+    if (!regs.length) return regs;
+
+    const tribSet = new Set(tributaryRegIds);
+
+    return regs.map(reg => {
+      let provenance: RegulationProvenance;
+      if (reg.source === 'zone') {
+        provenance = 'zone';
+      } else if (reg.source === 'provincial') {
+        provenance = 'provincial';
+      } else if (tribSet.size > 0 && tribSet.has(reg.iid || reg.regulation_id)) {
+        provenance = 'tributary';
+      } else {
+        provenance = 'direct';
+      }
+      return { ...reg, provenance };
+    });
   }
 
   preload(): void {

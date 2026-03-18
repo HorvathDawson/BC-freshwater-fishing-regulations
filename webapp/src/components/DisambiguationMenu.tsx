@@ -7,7 +7,8 @@ import {
     getFeatureDisplayName,
     getUniqueAliases,
     isMobileViewport,
-    type FeatureOption 
+    type FeatureOption,
+    type NameVariant,
 } from '../utils/featureUtils';
 import './DisambiguationMenu.css';
 
@@ -30,7 +31,7 @@ const DisambiguationMenu = ({ options, position, highlightedOption, onSelect, on
     const [isMobile, setIsMobile] = useState(isMobileViewport());
 
     const getLabel = (opt: FeatureOption) => 
-        getFeatureDisplayName(opt.properties);
+        getFeatureDisplayName(opt.properties, opt.type);
 
     useLayoutEffect(() => {
         const handleResize = () => setIsMobile(isMobileViewport());
@@ -77,8 +78,8 @@ const DisambiguationMenu = ({ options, position, highlightedOption, onSelect, on
     const TYPE_ORDER: Record<string, number> = { lake: 0, manmade: 0, ungazetted: 1, wetland: 2, stream: 3 };
     const UNNAMED_TYPE_ORDER: Record<string, number> = { lake: 0, manmade: 0, stream: 1, wetland: 2, ungazetted: 1 };
     const sorted = [...options].sort((a, b) => {
-        const aName = getFeatureDisplayName(a.properties) || '';
-        const bName = getFeatureDisplayName(b.properties) || '';
+        const aName = getFeatureDisplayName(a.properties, a.type) || '';
+        const bName = getFeatureDisplayName(b.properties, b.type) || '';
         const aUnnamed = /^unnamed/i.test(aName) || aName === '';
         const bUnnamed = /^unnamed/i.test(bName) || bName === '';
         // Named features always before unnamed
@@ -109,7 +110,7 @@ const DisambiguationMenu = ({ options, position, highlightedOption, onSelect, on
                         const isHighlighted = highlightedOption?.id === option.id;
                         const label = getLabel(option);
                         const aliases = getUniqueAliases(
-                            Array.isArray(option.properties?.name_variants) ? option.properties.name_variants as any : [],
+                            (option.properties?.name_variants ?? []) as NameVariant[],
                             label
                         );
                         const hasAliases = aliases.length > 0;
@@ -145,13 +146,30 @@ const DisambiguationMenu = ({ options, position, highlightedOption, onSelect, on
                                                 <span className="segment-badge"> ({option._segmentCount} segments)</span>
                                             )}
                                         </span>
-                                        {hasAliases && (
-                                            <span className="type" style={{ fontSize: '0.75rem', opacity: 0.8 }}>
-                                                Also known as: {aliases.map(a => 
-                                                    a.from_tributary ? `Tributary of ${a.name}` : a.name
-                                                ).join(' | ')}
-                                            </span>
-                                        )}
+                                        {hasAliases && (() => {
+                                            const tributaryAliases = aliases.filter(a => a.source === 'tributary');
+                                            const adminAliases = aliases.filter(a => a.source === 'admin');
+                                            const regularAliases = aliases.filter(a => a.source === 'direct');
+                                            const parts: string[] = [];
+                                            if (tributaryAliases.length > 0) {
+                                                parts.push(`Tributary of ${tributaryAliases.map(a => a.name).join(', ')}`);
+                                            }
+                                            regularAliases.forEach(a => parts.push(a.name));
+                                            return (
+                                                <>
+                                                    {parts.length > 0 && (
+                                                        <span className="type" style={{ fontSize: '0.75rem', opacity: 0.8 }}>
+                                                            Also known as: {parts.join(' | ')}
+                                                        </span>
+                                                    )}
+                                                    {adminAliases.length > 0 && (
+                                                        <span className="type" style={{ fontSize: '0.75rem', opacity: 0.7, fontStyle: 'italic' }}>
+                                                            In {adminAliases.map(a => a.name).join(', ')}
+                                                        </span>
+                                                    )}
+                                                </>
+                                            );
+                                        })()}
                                         <span className="type">{option.type}</span>
                                     </div>
                                 </button>

@@ -1,0 +1,31 @@
+name: Update In-Season Changes
+
+on:
+  schedule:
+    - cron: '0 14 * * *'  # 6 AM PST / 7 AM PDT daily
+  workflow_dispatch: {}    # manual trigger
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: |
+          pip install requests beautifulsoup4 pyyaml
+          npm install -g wrangler
+
+      - name: Scrape, resolve, and upload
+        run: bash scripts/update-in-season.sh --upload
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}

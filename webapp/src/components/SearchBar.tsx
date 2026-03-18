@@ -7,6 +7,7 @@ import {
     getColorForType, 
     getUniqueAliases,
     getFeatureDisplayName,
+    formatList,
     isMobileViewport 
 } from '../utils/featureUtils';
 import './SearchBar.css';
@@ -23,15 +24,13 @@ export interface RegulationSegment {
     length_km: number;
     bbox?: [number, number, number, number];  // Per-segment bbox for fly-to
     waterbody_group?: string;  // BLK for streams, waterbody_key for polygons — groups all segments of the same physical waterbody
+    tributary_reg_ids?: string[];  // Reg IDs assigned via tributary BFS (Phase 3)
 }
 
 export interface SearchableFeature {
     id: string;
-    gnis_name?: string;
     display_name?: string;
-    lake_name?: string;
-    name?: string;
-    name_variants?: NameVariant[];  // All searchable names with tributary flag
+    name_variants?: NameVariant[];
     type: 'stream' | 'lake' | 'wetland' | 'manmade' | 'ungazetted' | 'streams' | 'lakes' | 'wetlands';
     properties: Record<string, string | number | boolean | null | undefined>;
     geometry?: FeatureGeometry;
@@ -66,13 +65,16 @@ const SearchBar: React.FC<SearchBarProps> = ({ features, onSelect, highlightedRe
     useEffect(() => {
         if (features.length === 0) return;
 
-        fuse.current = new Fuse(features, {
+        // Strip admin variants so they are not searchable
+        const searchableFeatures = features.map(f => ({
+            ...f,
+            name_variants: (f.name_variants || []).filter(nv => nv.source !== 'admin'),
+        }));
+
+        fuse.current = new Fuse(searchableFeatures, {
             keys: [
                 { name: 'display_name', weight: 3 },
-                { name: 'gnis_name', weight: 2 },
-                { name: 'lake_name', weight: 2 },
-                { name: 'name', weight: 2 },
-                { name: 'name_variants.name', weight: 2 }  // Search in name field of name_variants objects
+                { name: 'name_variants.name', weight: 2 }
             ],
             threshold: 0.3, // Even stricter for exact word matches
             distance: 50, // Strongly prefer matches at the beginning
@@ -105,18 +107,12 @@ const SearchBar: React.FC<SearchBarProps> = ({ features, onSelect, highlightedRe
             // Check if any name field starts with the query
             const aStartsWith = [
                 aItem.display_name,
-                aItem.gnis_name, 
-                aItem.lake_name, 
-                aItem.name, 
-                ...(aItem.name_variants || []).map(nv => typeof nv === 'string' ? nv : nv.name)
+                ...(aItem.name_variants || []).map(nv => nv.name)
             ].some(name => name?.toLowerCase().startsWith(queryLower));
             
             const bStartsWith = [
                 bItem.display_name,
-                bItem.gnis_name, 
-                bItem.lake_name, 
-                bItem.name, 
-                ...(bItem.name_variants || []).map(nv => typeof nv === 'string' ? nv : nv.name)
+                ...(bItem.name_variants || []).map(nv => nv.name)
             ].some(name => name?.toLowerCase().startsWith(queryLower));
             
             // Prioritize exact prefix matches
@@ -194,7 +190,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ features, onSelect, highlightedRe
     };
 
     const getDisplayName = (feature: SearchableFeature): string => 
-        getFeatureDisplayName(feature);
+        getFeatureDisplayName(feature, feature.type);
 
     const clearSearch = () => {
         setQuery('');
@@ -312,23 +308,18 @@ const SearchBar: React.FC<SearchBarProps> = ({ features, onSelect, highlightedRe
                                             {displayName}
                                         </div>
                                         {hasAliases && (() => {
-                                            const tributaryAliases = aliases.filter(a => a.from_tributary);
-                                            const regularAliases = aliases.filter(a => !a.from_tributary);
-                                            const formatList = (items: string[]): string => {
-                                                if (items.length === 1) return items[0];
-                                                if (items.length === 2) return `${items[0]} and ${items[1]}`;
-                                                return `${items.slice(0, -1).join(', ')}, and ${items[items.length - 1]}`;
-                                            };
+                                            const tributaryAliases = aliases.filter(a => a.source === 'tributary');
+                                            const regularAliases = aliases.filter(a => a.source === 'direct');
                                             const parts: string[] = [];
                                             if (tributaryAliases.length > 0) {
                                                 parts.push(`Tributary of ${formatList(tributaryAliases.map(a => a.name))}`);
                                             }
                                             regularAliases.forEach(a => parts.push(a.name));
-                                            return (
+                                            return parts.length > 0 ? (
                                                 <div className="search-result-subtitle">
                                                     Also known as: {parts.join(' · ')}
                                                 </div>
-                                            );
+                                            ) : null;
                                         })()}
                                         <div className="search-result-meta">
                                             <span className="search-result-type">{feature.type}</span>

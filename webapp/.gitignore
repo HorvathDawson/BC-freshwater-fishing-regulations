@@ -26,10 +26,8 @@ dist-ssr
 *.exe
 
 
-# large assets (served from R2)
+# large assets (served from R2 in prod, from output/ in dev)
 *.pmtiles
-public/data/*
-!public/data/row_images/
 
 # wrangler
 .wrangler/

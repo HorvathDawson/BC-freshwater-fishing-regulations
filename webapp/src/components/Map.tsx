@@ -6,7 +6,7 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 import { createRegulationLayers, createAdminLabelLayers, createEarlyRoadLayers, HIGHLIGHT_COLORS, SELECTION_COLOR } from '../map/styles';
 import bcBoundary from '../map/bcBoundary.json';
 import { waterbodyDataService } from '../services/waterbodyDataService';
-import type { Reach, V2SearchEntry, RegulationData, AdminVisibility } from '../services/waterbodyDataService';
+import type { Reach, SearchEntry, RegulationData, AdminVisibility, ResolveResult } from '../services/waterbodyDataService';
 import { 
     isMobileViewport,
     type FeatureInfo, 
@@ -25,8 +25,12 @@ import './Map.css';
 // --- CONFIG & PROTOCOL ---
 // PMTiles tile cache: keeps decoded tiles in memory to avoid redundant
 // Range requests.  150 entries covers ~2 full screens of tiles at z10.
-const protocol = new Protocol({ metadata: true });
-maplibregl.addProtocol('pmtiles', protocol.tile);
+// Stashed on globalThis so the cache survives Vite HMR module re-evaluation.
+const protocol: Protocol = (globalThis as any).__pmtilesProtocol ??= new Protocol({ metadata: true });
+if (!(globalThis as any).__pmtilesProtocolAdded) {
+    maplibregl.addProtocol('pmtiles', protocol.tile);
+    (globalThis as any).__pmtilesProtocolAdded = true;
+}
 
 // Tile base URL: empty in dev (local /data/), R2 public URL in production
 const TILE_BASE = import.meta.env.VITE_TILE_BASE_URL
@@ -157,14 +161,6 @@ const FILTER_NONE: maplibregl.FilterSpecification = ['literal', false] as any;
 // --- STYLE EXPRESSIONS ---
 const STREAM_LINE_WIDTH = ['interpolate', ['linear'], ['zoom'], 4, ['+', 1.5, ['*', ['coalesce', ['get', 'stream_order'], 1], 0.1]], 8, ['+', 2, ['*', ['coalesce', ['get', 'stream_order'], 1], 0.15]], 11, ['*', ['+', 1.5, ['*', ['coalesce', ['get', 'stream_order'], 1], 0.5]], 1.5], 12, ['*', ['+', 1.5, ['*', ['coalesce', ['get', 'stream_order'], 1], 0.5]], 2], 14, ['*', ['+', 1.5, ['*', ['coalesce', ['get', 'stream_order'], 1], 0.5]], 3], 16, ['*', ['+', 1.5, ['*', ['coalesce', ['get', 'stream_order'], 1], 0.5]], 4]];
 
-// --- TYPES ---
-interface LayerVisibility {
-    streams: boolean; lakes: boolean; wetlands: boolean; manmade: boolean; regions: boolean;
-    management_units: boolean;
-    admin_parks_nat: boolean; admin_parks_bc: boolean; admin_wma: boolean;
-    admin_watersheds: boolean; admin_historic_sites: boolean;
-}
-
 // --- UTILITY ---
 const isValidBbox = (bbox: unknown): bbox is [number, number, number, number] => {
     if (!bbox || !Array.isArray(bbox) || bbox.length !== 4) return false;
@@ -181,6 +177,11 @@ const isPointBbox = (bbox: [number, number, number, number]): boolean =>
 /**
  * Fly to a bounding box, handling point features (zero-size bounds)
  * by centering on the point at minzoom instead of using cameraForBounds.
+ *
+ * When the feature's minzoom forces a zoom higher than what would fit
+ * the full bbox in the viewport, we center on the bbox midpoint instead
+ * of using cameraForBounds' center (which was computed for a different
+ * zoom level).  The bbox may overflow the viewport — that's intentional.
  */
 const flyToBbox = (
     map: maplibregl.Map,
@@ -189,9 +190,11 @@ const flyToBbox = (
     minzoom: number,
     duration = 800,
 ) => {
+    const bboxCenter: [number, number] = [(bbox[0] + bbox[2]) / 2, (bbox[1] + bbox[3]) / 2];
+
     if (isPointBbox(bbox)) {
         map.flyTo({
-            center: [bbox[0], bbox[1]],
+            center: bboxCenter,
             zoom: Math.min(minzoom, 15),
             padding,
             duration,
@@ -200,8 +203,14 @@ const flyToBbox = (
         const bounds = new maplibregl.LngLatBounds([bbox[0], bbox[1]], [bbox[2], bbox[3]]);
         const camera = map.cameraForBounds(bounds, { padding });
         if (camera) {
-            const finalZoom = Math.max(camera.zoom || 0, minzoom);
-            map.flyTo({ ...camera, zoom: Math.min(finalZoom, 15), duration });
+            const fitsZoom = camera.zoom || 0;
+            // If minzoom forces a tighter (more zoomed in) view than what
+            // would fit the bbox, center on the bbox midpoint so the feature
+            // is visually centered even though edges overflow.
+            const useMinzoom = fitsZoom < minzoom;
+            const finalZoom = Math.min(useMinzoom ? minzoom : fitsZoom, 15);
+            const center = useMinzoom ? bboxCenter : camera.center;
+            map.flyTo({ center, zoom: finalZoom, padding: useMinzoom ? padding : undefined, duration });
         }
     }
 };
@@ -319,6 +328,47 @@ const resolveSourceLayer = (type: string): string => {
     return 'lakes';
 };
 
+/** Build a FeatureOption directly from a Reach when the reach is not in the search index. */
+const buildFeatureFromReach = (
+    reach: Reach,
+    reachId: string,
+    regSets: string[],
+    reachSegments: Record<string, string[]>,
+    opts?: {
+        geometry?: FeatureGeometry;
+        source?: string;
+        sourceLayer?: string;
+        waterbodyKey?: string;
+    },
+): FeatureOption => {
+    const regIds = regSets[reach.reg_set_index] || '';
+    const type = normalizeType(reach.feature_type);
+    return {
+        type,
+        id: reachId,
+        geometry: opts?.geometry,
+        source: opts?.source,
+        sourceLayer: opts?.sourceLayer,
+        bbox: reach.bbox || undefined,
+        minzoom: reach.min_zoom,
+        properties: {
+            display_name: reach.display_name || '',
+            frontend_group_id: reachId,
+            group_id: reachId,
+            waterbody_key: opts?.waterbodyKey || '',
+            waterbody_group: '',
+            regulation_ids: regIds,
+            regulation_count: regIds ? regIds.split(',').length : 0,
+            zones: '',
+            region_name: (reach.regions || []).join(', '),
+            name_variants: reach.name_variants || [],
+            tributary_reg_ids: reach.tributary_reg_ids || [],
+            _reachId: reachId,
+            _fidList: reachSegments[reachId],
+        },
+    } as FeatureOption;
+};
+
 /**
  * Build a FeatureOption from V2 JSON data exclusively.
  *
@@ -331,11 +381,10 @@ const resolveSourceLayer = (type: string): string => {
  * SearchableFeature + RegulationSegment looked up via reach_id.
  *
  * V2: frontend_group_id carries the reach_id. Tiles don't have fgid —
- * the segmentIndex (fid→reach_id) and polyIndex (wbk→reach_id) resolve
- * tile clicks to the JSON world. _fidList stores the fid list for
- * stream highlight filters.
+ * the /api/resolve endpoint maps tile fids/wbks to reach_ids.
+ * _fidList stores the fid list for stream highlight filters.
  */
-export const buildFeatureFromJSON = (
+const buildFeatureFromJSON = (
     feature: SearchableFeature,
     segment: RegulationSegment | null,
     opts: {
@@ -366,8 +415,7 @@ export const buildFeatureFromJSON = (
         properties: {
             // ── Names (segment-specific where available) ──
             display_name: segment?.display_name || feature.display_name || '',
-            gnis_name: feature.gnis_name || '',
-            name_variants: (segment?.name_variants || feature.name_variants || []) as any,
+            name_variants: segment?.name_variants || feature.name_variants || [],
 
             // ── IDs (V2: frontend_group_id = reach_id) ──
             frontend_group_id: reachId,
@@ -378,6 +426,7 @@ export const buildFeatureFromJSON = (
             // ── Regulation data ──
             regulation_ids: segment?.regulation_ids || feature.properties?.regulation_ids || '',
             regulation_count: feature.properties?.regulation_count || 0,
+            tributary_reg_ids: segment?.tributary_reg_ids || feature.properties?.tributary_reg_ids || [],
 
             // ── Geography ──
             zones: feature.properties?.zones || '',
@@ -475,14 +524,16 @@ const MapComponent = () => {
     const prevMobilePanelStateRef = useRef<CollapseState>('expanded');
     const urlRestoredRef = useRef<boolean>(false);
     // Lookup map: reach_id → { feature, segment }
-    // Populated once regulation_index.json loads; used by the click handler
+    // Populated once tier0.json loads; used by the click handler
     // to enrich tile features with search-level data (name_variants, etc.)
     const searchLookupRef = useRef<Map<string, { feature: SearchableFeature; segment: RegulationSegment | null }>>(new Map());
     // Reverse index: waterbody_group → all SearchableFeature entries on that physical waterbody.
     // Built once at data-load time. Values are references into the same feature objects — no copies.
     const wbgIndexRef = useRef<Map<string, SearchableFeature[]>>(new Map());
-    // V2 loaded regulation data — holds segmentIndex, polyIndex, reaches, reachSegments.
+    // Loaded tier0 regulation data — holds reaches, reachSegments, regulations, reg_sets.
     const regDataRef = useRef<RegulationData | null>(null);
+    // Monotonic counter for click handler — discards stale async resolve results.
+    const clickGenRef = useRef(0);
     
     const [selectedFeature, setSelectedFeature] = useState<FeatureInfo | null>(null);
     // Derived from wbgIndexRef whenever selectedFeature changes — never set manually.
@@ -504,13 +555,6 @@ const MapComponent = () => {
     const [isSatellite, setIsSatellite] = useState(false);
     const [overlayOpacity, setOverlayOpacity] = useState(1);
     const [sliderOpen, setSliderOpen] = useState(false);
-    const [_layerVisibility, _setLayerVisibility] = useState<LayerVisibility>({
-        streams: true, lakes: true, wetlands: true, manmade: true, regions: true,
-        management_units: true,
-        admin_parks_nat: true, admin_parks_bc: true, admin_wma: true,
-        admin_watersheds: true, admin_historic_sites: true,
-    });
-    void _layerVisibility; void _setLayerVisibility;
 
     // Fetch data version once on mount — resolves quickly (~50 bytes, no-store).
     // Sets dataVersion so the map init useEffect can use versioned PMTiles URLs.
@@ -538,13 +582,27 @@ const MapComponent = () => {
     // On desktop, shrink the map viewport when the info panel opens so it
     // doesn't overlap.  The CSS transition on .map-canvas is 200ms, so we
     // resize the MapLibre canvas after that transition completes.
+    // After resize, pan so the selected feature stays centered in the
+    // now-smaller (or restored) visible area.
     useEffect(() => {
         const container = mapContainerRef.current;
         if (!container) return;
         const panelOpen = selectedFeature !== null;
         container.closest('.map-container')?.classList.toggle('panel-open', panelOpen);
         // Resize after the CSS width transition (200ms) finishes
-        const timer = setTimeout(() => { mapRef.current?.resize(); }, 220);
+        const timer = setTimeout(() => {
+            const map = mapRef.current;
+            if (!map) return;
+            map.resize();
+            // Re-center on feature bbox after the canvas resizes (desktop only)
+            if (panelOpen && selectedFeature?.bbox && !isMobileViewport()) {
+                const bbox = selectedFeature.bbox;
+                if (isValidBbox(bbox)) {
+                    const center: [number, number] = [(bbox[0] + bbox[2]) / 2, (bbox[1] + bbox[3]) / 2];
+                    map.easeTo({ center, duration: 200 });
+                }
+            }
+        }, 220);
         return () => clearTimeout(timer);
     }, [selectedFeature]);
 
@@ -757,7 +815,7 @@ const MapComponent = () => {
         setGroupFilter(map, SL_LAYER_IDS, null);
     }, []);
 
-    // V2 data loading — loads regulation_index.json, builds SearchableFeature[],
+    // V2 data loading — loads tier0.json, builds SearchableFeature[],
     // populates searchLookupRef (reach_id → {feature, segment}), wbgIndexRef,
     // and regDataRef for click/highlight resolution.
     useEffect(() => {
@@ -773,43 +831,43 @@ const MapComponent = () => {
                 const features: SearchableFeature[] = [];
 
                 for (const entry of data.searchIndex) {
-                    // Build RegulationSegment[] from the entry's reaches
-                    const segments: RegulationSegment[] = entry.reaches.map(rid => {
-                        const reach = data.reaches[rid];
-                        if (!reach) return null;
-                        const regIds = data.reg_sets[reach.ri] || '';
+                    // Build RegulationSegment[] from tier0's enriched segments
+                    const segments: RegulationSegment[] = (entry.segments || []).map(seg => {
+                        const regIds = data.reg_sets[seg.reg_set_index] || '';
                         return {
-                            frontend_group_id: rid,
-                            group_id: rid,
-                            group_ids: data.reachSegments[rid] || undefined,
+                            frontend_group_id: seg.rid,
+                            group_id: seg.rid,
+                            group_ids: data.reachSegments[seg.rid] || undefined,
                             regulation_ids: regIds,
-                            display_name: reach.dn,
-                            name_variants: (reach.nv || []).map(n => ({ name: n, from_tributary: false })),
-                            length_km: reach.lkm || 0,
-                            bbox: reach.bbox || undefined,
-                            waterbody_group: entry.wbg,
+                            display_name: seg.display_name,
+                            name_variants: seg.name_variants || [],
+                            length_km: seg.length_km || 0,
+                            bbox: seg.bbox || undefined,
+                            waterbody_group: seg.waterbody_group || entry.waterbody_group,
+                            tributary_reg_ids: seg.tributary_reg_ids || [],
                         } as RegulationSegment;
-                    }).filter(Boolean) as RegulationSegment[];
+                    });
 
-                    const type = normalizeType(entry.ft);
+                    const type = normalizeType(entry.feature_type);
+                    const reachIds = (entry.segments || []).map(s => s.rid);
                     const sf: SearchableFeature = {
-                        id: entry.wbg || entry.dn,
-                        display_name: entry.dn,
-                        name_variants: (entry.nv || []).map(n => ({ name: n, from_tributary: false })),
+                        id: entry.waterbody_group || entry.display_name,
+                        display_name: entry.display_name,
+                        name_variants: entry.name_variants || [],
                         type,
                         properties: {
-                            waterbody_group: entry.wbg,
-                            zones: (entry.z || []).join(', '),
-                            region_name: (entry.rg || []).join(', '),
-                            mgmt_units: (entry.mu || []).join(', '),
-                            total_length_km: entry.tlkm || 0,
-                            minzoom: entry.mz,
+                            waterbody_group: entry.waterbody_group,
+                            zones: (entry.zones || []).join(', '),
+                            region_name: (entry.regions || []).join(', '),
+                            mgmt_units: (entry.management_units || []).join(', '),
+                            total_length_km: entry.total_length_km || 0,
+                            minzoom: entry.min_zoom,
                             regulation_count: segments.reduce((n, s) => n + (s.regulation_ids ? s.regulation_ids.split(',').length : 0), 0),
                         },
                         bbox: entry.bbox || undefined,
-                        min_zoom: entry.mz,
+                        min_zoom: entry.min_zoom,
                         regulation_segments: segments,
-                        _frontend_group_ids: entry.reaches,
+                        _frontend_group_ids: reachIds,
                     };
 
                     features.push(sf);
@@ -820,10 +878,10 @@ const MapComponent = () => {
                     }
 
                     // Populate wbg index
-                    if (entry.wbg) {
-                        const arr = wbgMap.get(entry.wbg);
+                    if (entry.waterbody_group) {
+                        const arr = wbgMap.get(entry.waterbody_group);
                         if (arr) arr.push(sf);
-                        else wbgMap.set(entry.wbg, [sf]);
+                        else wbgMap.set(entry.waterbody_group, [sf]);
                     }
                 }
 
@@ -902,8 +960,19 @@ const MapComponent = () => {
 
         if (url.waterbodyGroup) {
             // Canonical path: /waterbody/<wbg>/
-            const entries = wbgIndexRef.current.get(url.waterbodyGroup);
-            targetFeature = entries?.[0];
+            // When a specific section is targeted (?s=), resolve via searchLookupRef
+            // first — side channels may share the same wbg as the main river.
+            if (url.activeFgid) {
+                const lookup = searchLookupRef.current.get(url.activeFgid);
+                if (lookup) {
+                    targetFeature = lookup.feature;
+                    targetReachId = url.activeFgid;
+                }
+            }
+            if (!targetFeature) {
+                const entries = wbgIndexRef.current.get(url.waterbodyGroup);
+                targetFeature = entries?.[0];
+            }
         } else if (url.featureId) {
             // Legacy ?f= param — try as a reach_id first
             const lookup = searchLookupRef.current.get(url.featureId);
@@ -911,38 +980,56 @@ const MapComponent = () => {
             targetReachId = url.featureId;
         }
 
-        if (!targetFeature) return;
-
-        // If ?s=<reach_id> is present, select that specific section
-        if (url.activeFgid) {
-            targetReachId = url.activeFgid;
-        }
-
-        // Default to first segment if no specific reach targeted
-        const segments = targetFeature.regulation_segments || [];
-        let seg: RegulationSegment | null = segments[0] || null;
-        if (targetReachId) {
-            const match = segments.find(s => s.frontend_group_id === targetReachId);
-            if (match) seg = match;
-        }
-
-        const reachId = seg?.frontend_group_id || '';
-        const fidList = reachId ? regData.reachSegments[reachId] : undefined;
-        const selected = buildFeatureFromJSON(targetFeature, seg, { fidList });
-
-        // Fly to feature bbox
-        if (selected.bbox && isValidBbox(selected.bbox)) {
-            const map = mapRef.current;
-            if (map) {
-                const isMobile = isMobileViewport();
-                const padding = isMobile
-                    ? { top: 60, bottom: getMobileBottomPadding(), left: 40, right: 40 }
-                    : { top: 80, bottom: 80, left: 80, right: 350 };
-                flyToBbox(map, selected.bbox, padding, selected.minzoom ? selected.minzoom + 0.25 : 10);
+        // Helper: select feature, fly to bbox, set state
+        const selectAndFly = (selected: FeatureOption) => {
+            if (selected.bbox && isValidBbox(selected.bbox)) {
+                const map = mapRef.current;
+                if (map) {
+                    const isMobile = isMobileViewport();
+                    const padding = isMobile
+                        ? { top: 60, bottom: getMobileBottomPadding(), left: 40, right: 40 }
+                        : { top: 80, bottom: 80, left: 80, right: 350 };
+                    flyToBbox(map, selected.bbox, padding, selected.minzoom ? selected.minzoom + 0.25 : 10);
+                }
             }
+            setSelectedFeature(selected);
+        };
+
+        if (targetFeature) {
+            // If ?s=<reach_id> is present, select that specific section
+            if (url.activeFgid) {
+                targetReachId = url.activeFgid;
+            }
+
+            // Default to first segment if no specific reach targeted
+            const segments = targetFeature.regulation_segments || [];
+            let seg: RegulationSegment | null = segments[0] || null;
+            if (targetReachId) {
+                const match = segments.find(s => s.frontend_group_id === targetReachId);
+                if (match) seg = match;
+            }
+
+            const reachId = seg?.frontend_group_id || '';
+            const fidList = reachId ? regData.reachSegments[reachId] : undefined;
+            const selected = buildFeatureFromJSON(targetFeature, seg, { fidList });
+            selectAndFly(selected);
+            return;
         }
 
-        setSelectedFeature(selected);
+        // Fallback: reach not in search index (unnamed feature).
+        // Resolve via API to get reach metadata and fid list.
+        if (targetReachId) {
+            (async () => {
+                const result = await waterbodyDataService.resolveByReachId(targetReachId!);
+                if (!result) return;
+
+                const reach = regData.reaches[targetReachId!];
+                if (!reach) return;
+
+                const selected = buildFeatureFromReach(reach, targetReachId!, regData.reg_sets, regData.reachSegments);
+                selectAndFly(selected);
+            })();
+        }
     }, [mapReady, dataLoaded]);
 
     // Update URL when a feature is selected or deselected.
@@ -981,7 +1068,7 @@ const MapComponent = () => {
         const BASE_TITLE = 'Can I Fish This? - BC Freshwater Fishing Regulations';
         const BASE_DESC = 'Interactive map of BC freshwater fishing regulations - search streams, lakes, and find fishing rules';
         const props = selectedFeature?.properties;
-        const name = props?.display_name || props?.gnis_name;
+        const name = props?.display_name;
         const metaDesc = document.querySelector<HTMLMetaElement>('meta[name="description"]');
 
         if (name && !props?._tidal) {
@@ -1227,8 +1314,8 @@ const MapComponent = () => {
             (map.getSource('cursor-circle') as maplibregl.GeoJSONSource)?.setData({ type: 'FeatureCollection', features: [{ type: 'Feature', geometry: createCirclePolygon(e.lngLat, map.getZoom()), properties: {} }] });
         });
 
-        map.on('click', (e) => {
-            // V2 click handler: resolve tile fid/wbk → reach_id via segmentIndex/polyIndex.
+        map.on('click', async (e) => {
+            // V2 click handler: resolve tile fid/wbk → reach via /api/resolve.
             const features = map.queryRenderedFeatures(
                 [[e.point.x - 15, e.point.y - 15], [e.point.x + 15, e.point.y + 15]],
                 { layers: INTERACTABLE_LAYERS }
@@ -1243,31 +1330,66 @@ const MapComponent = () => {
             const regData = regDataRef.current;
             if (!regData) return; // data not loaded yet
 
-            // Collect unique reach_ids from clicked features
-            const seen = new Set<string>();
-            const candidates: { reachId: string; feature: maplibregl.MapGeoJSONFeature }[] = [];
+            // Collect fids (streams) and wbks (polygons) from clicked tile features
+            const inputs: Array<{ fid?: string; wbk?: string; tile: maplibregl.MapGeoJSONFeature }> = [];
+            const fids: string[] = [];
+            const wbks: string[] = [];
+
             for (const feat of features) {
                 const props = feat.properties;
                 const srcLayer = feat.sourceLayer;
-                let reachId: string | undefined;
-
                 if (srcLayer === 'streams') {
                     const fid = String(props.fid ?? '');
-                    reachId = fid ? regData.segmentIndex.get(fid) : undefined;
+                    if (fid) {
+                        inputs.push({ fid, tile: feat });
+                        if (!fids.includes(fid)) fids.push(fid);
+                    }
                 } else {
-                    // Polygon layers: lakes, wetlands, manmade
                     const wbk = String(props.waterbody_key ?? '');
-                    reachId = wbk ? regData.polyIndex[wbk] : undefined;
-                }
-
-                if (reachId && !seen.has(reachId)) {
-                    seen.add(reachId);
-                    candidates.push({ reachId, feature: feat });
+                    if (wbk) {
+                        inputs.push({ wbk, tile: feat });
+                        if (!wbks.includes(wbk)) wbks.push(wbk);
+                    }
                 }
             }
 
+            if (!fids.length && !wbks.length) {
+                console.debug('[Map] clicked feature has no fid/wbk:', features[0].properties);
+                return;
+            }
+
+            // Increment click generation to detect stale results
+            const thisClick = ++clickGenRef.current;
+
+            let resolved: ResolveResult[];
+            try {
+                resolved = await waterbodyDataService.resolve(fids, wbks);
+            } catch (err) {
+                console.error('[Map] resolve failed:', err);
+                return;
+            }
+
+            // Discard stale click (user clicked elsewhere while resolving)
+            if (clickGenRef.current !== thisClick) return;
+
+            // Map resolved results back to tile features via matched_fids/matched_wbks
+            const seen = new Set<string>();
+            const candidates: { reachId: string; feature: maplibregl.MapGeoJSONFeature }[] = [];
+
+            for (const r of resolved) {
+                if (seen.has(r.reach_id)) continue;
+                seen.add(r.reach_id);
+
+                // Find the tile feature that triggered this result
+                const tf = inputs.find(inp =>
+                    (inp.fid && (r.matched_fids || r.fids).includes(inp.fid)) ||
+                    (inp.wbk && (r.matched_wbks || []).includes(inp.wbk))
+                );
+                if (tf) candidates.push({ reachId: r.reach_id, feature: tf.tile });
+            }
+
             if (candidates.length === 0) {
-                console.debug('[Map] clicked feature has no reach mapping:', features[0].properties);
+                console.debug('[Map] resolve returned no matching reaches for:', fids, wbks);
                 return;
             }
 
@@ -1286,34 +1408,16 @@ const MapComponent = () => {
                     });
                 }
 
-                // Reach not in search index (unnamed zone-only feature)
+                // Reach not in search index (unnamed zone-only feature).
+                // resolve() already populated regData.reaches[reachId].
                 const reach = regData.reaches[reachId];
                 if (!reach) return null;
-                const regIds = regData.reg_sets[reach.ri] || '';
-                const type = normalizeType(reach.ft);
-                return {
-                    type,
-                    id: reachId,
+                return buildFeatureFromReach(reach, reachId, regData.reg_sets, regData.reachSegments, {
                     geometry: (tileFeature.geometry || (tileFeature as any).toJSON?.().geometry) as FeatureGeometry,
                     source: tileFeature.source,
                     sourceLayer: tileFeature.sourceLayer,
-                    bbox: reach.bbox || undefined,
-                    minzoom: reach.mz,
-                    properties: {
-                        display_name: reach.dn || 'Unnamed',
-                        frontend_group_id: reachId,
-                        group_id: reachId,
-                        waterbody_key: tileFeature.properties.waterbody_key || '',
-                        waterbody_group: '',
-                        regulation_ids: regIds,
-                        regulation_count: regIds ? regIds.split(',').length : 0,
-                        zones: '',
-                        region_name: (reach.rg || []).join(', '),
-                        name_variants: (reach.nv || []).map((n: string) => ({ name: n, from_tributary: false })),
-                        _reachId: reachId,
-                        _fidList: regData.reachSegments[reachId],
-                    },
-                } as FeatureOption;
+                    waterbodyKey: tileFeature.properties.waterbody_key || '',
+                });
             }).filter(Boolean) as FeatureOption[];
 
             if (options.length === 0) return;
@@ -1488,13 +1592,12 @@ const MapComponent = () => {
         const map = mapRef.current;
         if (!map) return;
         const isMobile = isMobileViewport();
-        // Desktop: panel is 350 px wide on the right — offset bounding-box fit
-        // to centre the result in the visible area left of the panel.
+        // Desktop: panel is already open and CSS has already shrunk the canvas
+        // by 350px, so no extra right padding is needed — the reduced canvas
+        // IS the visible area.  Mobile: account for the bottom panel.
         const padding = isMobile
             ? { top: 60, bottom: getMobileBottomPadding(), left: 40, right: 40 }
-            : { top: 80, bottom: 80, left: 80, right: 350 };
-        // +0.25 matches the convention used everywhere else in Map.tsx to ensure
-        // the tile layer is rendered at the destination zoom level.
+            : { top: 80, bottom: 80, left: 80, right: 80 };
         flyToBbox(map, bbox, padding, minZoom + 0.25);
     }, []);
 

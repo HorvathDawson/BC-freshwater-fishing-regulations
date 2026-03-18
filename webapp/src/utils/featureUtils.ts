@@ -80,70 +80,74 @@ export const getColorForType = (type: FeatureType): string => {
 // DISPLAY NAMES
 // ─────────────────────────────────────────────────────────────────────────────
 
+/** Human-readable fallback label for features with no name. */
+export const getUnnamedLabel = (featureType?: string): string => {
+    switch (featureType) {
+        case 'stream':
+        case 'streams':
+            return 'Unnamed Stream';
+        case 'lake':
+        case 'lakes':
+            return 'Unnamed Lake';
+        case 'wetland':
+        case 'wetlands':
+            return 'Unnamed Wetland';
+        case 'manmade':
+            return 'Unnamed Reservoir';
+        case 'ungazetted':
+            return 'Unnamed Waterbody';
+        default:
+            return 'Unnamed';
+    }
+};
+
 /**
  * Get display name for a feature.
  *
  * Resolution order:
  *   1. display_name  (pre-computed in backend)
- *   2. gnis_name     (official BC geographic name)
- *   3. lake_name / name  (legacy fallback)
- *   4. First non-tributary name_variant
- *   5. "Unnamed"
+ *   2. First direct name_variant (source === "direct")
+ *   3. "Unnamed Stream" / "Unnamed Lake" / etc. (type-aware)
  */
 export const getFeatureDisplayName = (
     props: Record<string, any>,
+    featureType?: string,
 ): string => {
     if (props.display_name) return props.display_name;
-    if (props.gnis_name) return props.gnis_name;
-    if (props.lake_name) return props.lake_name;
-    if (props.name) return props.name;
-
-    // Before falling back to "Unnamed", check name_variants for a direct
-    // (non-tributary, non-admin) name that can serve as display name.
-    const nameVariants: (NameVariant | string)[] = Array.isArray(props.name_variants)
-        ? props.name_variants
-        : [];
-    for (const nv of nameVariants) {
-        const variantName = typeof nv === 'string' ? nv : nv.name;
-        const fromTributary = typeof nv === 'string' ? false : nv.from_tributary;
-        if (!fromTributary && variantName) {
-            return variantName;
-        }
-    }
-
-    return 'Unnamed';
+    return firstDirectVariantName(props.name_variants) ?? getUnnamedLabel(featureType);
 };
 
 /**
- * Name variant with tributary source flag.
+ * Name variant with source provenance.
+ *   - "direct"    — regulation directly matched to this feature
+ *   - "tributary"  — inherited via tributary BFS
+ *   - "admin"      — inherited via admin polygon (park/reserve)
  */
 export interface NameVariant {
     name: string;
-    from_tributary: boolean;
+    source: 'direct' | 'tributary' | 'admin';
 }
 
 /**
- * Return the first direct (non-tributary) name from a name_variants array,
+ * Return the first direct name from a name_variants array,
  * or `null` if none exists.  Useful as a fallback before showing "Unnamed".
  */
 export const firstDirectVariantName = (
-    nameVariants: (NameVariant | string)[] | undefined | null
+    nameVariants: NameVariant[] | undefined | null
 ): string | null => {
     if (!nameVariants || !Array.isArray(nameVariants)) return null;
     for (const nv of nameVariants) {
-        const name = typeof nv === 'string' ? nv : nv.name;
-        const fromTributary = typeof nv === 'string' ? false : nv.from_tributary;
-        if (!fromTributary && name) return name;
+        if (nv.source === 'direct' && nv.name) return nv.name;
     }
     return null;
 };
 
 /**
  * Get unique aliases from name_variants that aren't the display name.
- * Returns array of {name, from_tributary} for rendering with optional prefix.
+ * Returns array of NameVariant for rendering with source-based prefix.
  */
 export const getUniqueAliases = (
-    nameVariants: NameVariant[] | string[],
+    nameVariants: NameVariant[],
     displayName: string
 ): NameVariant[] => {
     const seen = new Set<string>();
@@ -151,17 +155,24 @@ export const getUniqueAliases = (
     seen.add(displayName.toLowerCase());
     
     for (const nv of nameVariants) {
-        // Handle both old string[] format and new NameVariant[] format
-        const name = typeof nv === 'string' ? nv : nv.name;
-        const fromTributary = typeof nv === 'string' ? false : nv.from_tributary;
-        
-        const lower = name.toLowerCase();
+        const lower = nv.name.toLowerCase();
         if (!seen.has(lower)) {
             seen.add(lower);
-            result.push({ name, from_tributary: fromTributary });
+            result.push(nv);
         }
     }
     return result;
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// TEXT FORMATTING
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** Format a list with Oxford comma: "A", "A and B", "A, B, and C" */
+export const formatList = (items: string[]): string => {
+    if (items.length === 1) return items[0];
+    if (items.length === 2) return `${items[0]} and ${items[1]}`;
+    return `${items.slice(0, -1).join(', ')}, and ${items[items.length - 1]}`;
 };
 
 // ─────────────────────────────────────────────────────────────────────────────

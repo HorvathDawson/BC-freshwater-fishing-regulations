@@ -14,7 +14,6 @@
 // URL parameter names (legacy compat only — new URLs use path routing)
 const PARAMS = {
     FEATURE: 'f',      // frontend_group_id (legacy — read-only for compat)
-    SEARCH: 'q',       // search query text
 } as const;
 
 // Canonical path prefix for named waterbody pages
@@ -25,7 +24,6 @@ export interface UrlState {
     featureId?: string;
     /** Canonical: wbg slug from /waterbody/<wbg>/ path. */
     waterbodyGroup?: string;
-    searchQuery?: string;
     /** Active section fgid from ?s=<fgid> param — written on tab switch, read on page load. */
     activeFgid?: string;
 }
@@ -56,7 +54,6 @@ export const parseUrlState = (): UrlState => {
     }
     return {
         featureId: params.get(PARAMS.FEATURE) || undefined,
-        searchQuery: params.get(PARAMS.SEARCH) || undefined,
         activeFgid,
     };
 };
@@ -79,43 +76,6 @@ export const setActiveSectionParam = (fgid: string | undefined): void => {
         '',
         `${window.location.pathname}${search ? `?${search}` : ''}${window.location.hash}`,
     );
-};
-
-/**
- * Update URL query parameters without triggering navigation.
- * Always operates from root path (/) to avoid contaminating wbg paths.
- * Preserves the existing hash (map position).
- *
- * @deprecated No longer called by production code. Named waterbodies use
- * navigateToWaterbody(); deselection uses clearUrlState(). This function is
- * retained only for legacy compatibility — do not call it from a /waterbody/*
- * path as it will reset the URL to /.
- */
-export const updateUrlState = (state: Partial<UrlState>): void => {
-    const params = new URLSearchParams(window.location.search);
-    
-    if (state.featureId !== undefined) {
-        if (state.featureId) {
-            params.set(PARAMS.FEATURE, state.featureId);
-        } else {
-            params.delete(PARAMS.FEATURE);
-        }
-    }
-    
-    if (state.searchQuery !== undefined) {
-        if (state.searchQuery) {
-            params.set(PARAMS.SEARCH, state.searchQuery);
-        } else {
-            params.delete(PARAMS.SEARCH);
-        }
-    }
-    
-    const search = params.toString();
-    const newUrl = search
-        ? `/?${search}${window.location.hash}`
-        : `/${window.location.hash}`;
-    
-    window.history.replaceState(null, '', newUrl);
 };
 
 /**

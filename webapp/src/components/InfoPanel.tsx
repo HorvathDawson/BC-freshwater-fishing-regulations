@@ -7,7 +7,8 @@ import {
     getIconForType, 
     getColorForType, 
     getFeatureDisplayName,
-    calculateSwipeState, 
+    calculateSwipeState,
+    formatList,
     type CollapseState,
     type FeatureInfo,
     type NameVariant
@@ -210,10 +211,18 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
             return;
         }
 
+        const props = feature.properties;
+        const tributaryRegIds: string[] = Array.isArray(props.tributary_reg_ids)
+            ? (props.tributary_reg_ids as string[])
+            : [];
+
         setLoadingRegs(true);
         setActiveFilter(''); // Reset filters on new feature
         regulationsService
-            .getRegulations(feature.properties.regulation_ids as string)
+            .getRegulationsForReach(
+                props.regulation_ids as string,
+                tributaryRegIds,
+            )
             .then(setRegulations)
             .catch(err => {
                 console.error('Failed to load regulations:', err);
@@ -294,20 +303,17 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
         }
 
         // Build deduplicated aliases from name_variants
-        const nameVariantsRaw: (NameVariant | string)[] = Array.isArray(props.name_variants) ? props.name_variants : [];
-        const title = getFeatureDisplayName(props);
+        const nameVariantsRaw: NameVariant[] = Array.isArray(props.name_variants) ? props.name_variants : [];
+        const title = getFeatureDisplayName(props, feature.type);
         const typeLabel = feature.type.toUpperCase();
         const seen = new Set<string>();
         seen.add((title as string).toLowerCase());
         const aliases: NameVariant[] = [];
         for (const nv of nameVariantsRaw) {
-            // Handle both old string format and new NameVariant format
-            const name = typeof nv === 'string' ? nv : nv.name;
-            const fromTributary = typeof nv === 'string' ? false : nv.from_tributary;
-            const lower = name.toLowerCase();
+            const lower = nv.name.toLowerCase();
             if (!seen.has(lower)) {
                 seen.add(lower);
-                aliases.push({ name, from_tributary: fromTributary });
+                aliases.push(nv);
             }
         }
         const hasAliases = aliases.length > 0;
@@ -349,15 +355,9 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                     <div className="title-group">
                         <h1 className="title">{title}</h1>
                         {hasAliases && (() => {
-                            const tributaryAliases = aliases.filter(a => a.from_tributary);
-                            const regularAliases = aliases.filter(a => !a.from_tributary);
-
-                            // Format a list with Oxford comma: "A", "A and B", "A, B, and C"
-                            const formatList = (items: string[]): string => {
-                                if (items.length === 1) return items[0];
-                                if (items.length === 2) return `${items[0]} and ${items[1]}`;
-                                return `${items.slice(0, -1).join(', ')}, and ${items[items.length - 1]}`;
-                            };
+                            const tributaryAliases = aliases.filter(a => a.source === 'tributary');
+                            const adminAliases = aliases.filter(a => a.source === 'admin');
+                            const regularAliases = aliases.filter(a => a.source === 'direct');
 
                             const parts: string[] = [];
                             if (tributaryAliases.length > 0) {
@@ -366,18 +366,27 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                             regularAliases.forEach(a => parts.push(a.name));
 
                             return (
-                                <div className="regulation-subtitle alias-list">
-                                    Also known as:{' '}
-                                    {parts.length === 1 ? (
-                                        <span>{parts[0]}</span>
-                                    ) : (
-                                        <ul>
-                                            {parts.map((part, idx) => (
-                                                <li key={idx}>{part}</li>
-                                            ))}
-                                        </ul>
+                                <>
+                                    {parts.length > 0 && (
+                                        <div className="regulation-subtitle alias-list">
+                                            Also known as:{' '}
+                                            {parts.length === 1 ? (
+                                                <span>{parts[0]}</span>
+                                            ) : (
+                                                <ul>
+                                                    {parts.map((part, idx) => (
+                                                        <li key={idx}>{part}</li>
+                                                    ))}
+                                                </ul>
+                                            )}
+                                        </div>
                                     )}
-                                </div>
+                                    {adminAliases.length > 0 && (
+                                        <div className="regulation-subtitle admin-context">
+                                            In {formatList(adminAliases.map(a => a.name))}
+                                        </div>
+                                    )}
+                                </>
                             );
                         })()}
                     </div>
@@ -556,12 +565,19 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                                 let groupSubtitle: string = '';
 
                                 if (reg.source === 'zone') {
-                                    // Zone regulations: reg.region already includes "REGION X - Name".
-                                    // Include zone_ids in key so different zones stay separate.
+                                    // Zone regulations: derive label from region + zone_ids.
                                     const zoneKey = reg.zone_ids?.length ? reg.zone_ids.sort().join(',') : '';
-                                    const regionName = reg.region || 'Zone Regulations';
-                                    groupKey = `zone|${zoneKey}|${regionName}`;
-                                    groupLabel = regionName;
+                                    const regionName = reg.region || '';
+                                    const zoneLabel = zoneKey ? `Zone ${zoneKey}` : '';
+                                    const label = regionName && zoneLabel
+                                        ? `${regionName} — ${zoneLabel} Regulations`
+                                        : regionName
+                                        ? `${regionName} Zone Regulations`
+                                        : zoneLabel
+                                        ? `${zoneLabel} Regulations`
+                                        : 'Zone Regulations';
+                                    groupKey = `zone|${zoneKey}|${label}`;
+                                    groupLabel = label;
                                     groupSubtitle = '';
                                 } else if (reg.source === 'provincial') {
                                     // Provincial / admin-boundary regulations
@@ -643,28 +659,12 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                                     return t === 'closed' || t === 'closure';
                                 });
 
-                            // Build set of this feature's own names (non-tributary)
-                            const ownNames = new Set<string>();
-                            ownNames.add((title as string).toLowerCase());
-                            for (const nv of nameVariantsRaw) {
-                                const name = typeof nv === 'string' ? nv : nv.name;
-                                const isTrib = typeof nv === 'string' ? false : nv.from_tributary;
-                                if (!isTrib) {
-                                    ownNames.add(name.toLowerCase());
-                                }
-                            }
-
-                            // A synopsis group is tributary-inherited if its label
-                            // (waterbody_name from the regulation) doesn't match any
-                            // of the feature's own names.
-                            const isTributaryGroup = (g: { label: string; source: string }) => {
-                                if (g.source !== 'synopsis') return false;
-                                return !ownNames.has(g.label.toLowerCase());
-                            };
-
-                            // Tag synopsis groups that are tributary-inherited
+                            // Tag synopsis groups as tributary using provenance
+                            // stamped by the data service — no frontend inference.
                             for (const g of Object.values(groupedRegulations)) {
-                                g.isTributary = isTributaryGroup(g);
+                                if (g.source === 'synopsis') {
+                                    g.isTributary = g.regulations.every(r => r.provenance === 'tributary');
+                                }
                             }
 
                             const isIndigenousAdvisoryGroup = (g: { regulations: Regulation[] }) =>
@@ -681,8 +681,8 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                                 const bOrder = bIsHighProv ? 0 : bIsIndigenous ? 2 : (sourceOrder[b.source] ?? 9);
                                 if (aOrder !== bOrder) return aOrder - bOrder;
                                 // Within same source tier, push tributary synopsis groups after direct ones
-                                const aTrib = isTributaryGroup(a) ? 1 : 0;
-                                const bTrib = isTributaryGroup(b) ? 1 : 0;
+                                const aTrib = a.isTributary ? 1 : 0;
+                                const bTrib = b.isTributary ? 1 : 0;
                                 return aTrib - bTrib;
                             });
 
@@ -825,32 +825,6 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                             ));
                         })()}
                     </div>
-
-                    {/* LEGACY DATA SECTION (for backwards compatibility) */}
-                    {(props.species_limit || props.season_dates || props.gear_restriction) && (
-                        <div className="data-section">
-                            <h3>LEGACY DATA (PLACEHOLDER)</h3>
-                            <div className="data-row">
-                                <span className="label">Limit</span>
-                                <span className="value">{props.species_limit || "Regional Standard"}</span>
-                            </div>
-                            <div className="data-row">
-                                <span className="label">Season</span>
-                                <span className="value">{props.season_dates || "Open All Year"}</span>
-                            </div>
-                            <div className="data-row">
-                                <span className="label">Gear</span>
-                                <span className="value">{props.gear_restriction || "No Restrictions"}</span>
-                            </div>
-                        </div>
-                    )}
-
-                    {props.regulation_text_snippet && (
-                        <div className="raw-text-block">
-                            <div className="block-label">OFFICIAL TEXT</div>
-                            <p>"{props.regulation_text_snippet}"</p>
-                        </div>
-                    )}
                     
                     <div className="data-section">
                         <h3>DETAILS</h3>

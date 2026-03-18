@@ -5,40 +5,25 @@
 # ============================================================================
 output:
   base: "output"
-  
-  # Synopsis Pipeline Outputs
-  synopsis:
-    base: "output/synopsis"
-    extract: "output/synopsis/extract_synopsis"
-    parse: "output/synopsis/parse_synopsis"
-    pdf: "data/fishing_synopsis.pdf"
-  
-  # FWA Pipeline Outputs
-  fwa:
-    base: "output/fwa"
-    graph: "output/fwa/fwa_bc_primal_full.gpickle"
-    metadata: "output/fwa/fwa_metadata.pickle"
-    temp: "output/fwa/temp"
-  
-  # Regulation Mapping Pipeline Outputs (v1)
-  regulation_mapping:
-    base: "output/regulation_mapping"
-    regulations_merged_gpkg: "output/fwa/regulations_merged.gpkg"
-    regulations_merged_pmtiles: "output/fwa/regulations_merged.pmtiles"
-    regulations_json: "output/fwa/regulations.json"
-    search_index: "output/fwa/search_index.json"
-    cache_dir: "output/regulation_mapping/.geom_cache"
 
-  # Regulation Mapping V2 Pipeline Outputs
-  regulation_mapping_v2:
-    base: "output/regulation_mapping_v2"
-    atlas: "output/regulation_mapping_v2/atlas.pkl"
-    pmtiles: "output/regulation_mapping_v2/freshwater_atlas.pmtiles"
-    match_table: "output/regulation_mapping_v2/match_table.json"
-    in_season: "output/regulation_mapping_v2/in_season_changes.json"
-    extraction: "output/regulation_mapping_v2/extraction"
-    parsing: "output/regulation_mapping_v2/parsing"
-    regulation_index: "output/regulation_mapping_v2/regulation_index.json"
+  # Pipeline Outputs
+  pipeline:
+    base: "output/pipeline"
+
+    # Graph Builder Outputs
+    graph:
+      base: "output/pipeline/graph"
+      graph: "output/pipeline/graph/fwa_bc_primal_full.gpickle"
+      metadata: "output/pipeline/graph/fwa_metadata.pickle"
+      temp: "output/pipeline/graph/temp"
+    atlas: "output/pipeline/atlas/atlas.pkl"
+    pmtiles: "output/pipeline/deploy/freshwater_atlas.pmtiles"
+    match_table: "output/pipeline/matching/match_table.json"
+    in_season: "output/pipeline/matching/in_season_changes.json"
+    extraction: "output/pipeline/extraction"
+    parsing: "output/pipeline/parsing"
+    deploy: "output/pipeline/deploy"
+    shard_version: 8
 
 # ============================================================================
 # Input Data Directories
@@ -57,20 +42,13 @@ data_accessor:
   gpkg_path: "data/bc_fisheries_data.gpkg"
 
 # ============================================================================
-# Synopsis Pipeline Settings
+# LLM Parsing Settings
 # ============================================================================
-synopsis_pipeline:
-  llm:
-    batch_size: 45
-    max_retries: 3
-    model: "gemini-3-flash-preview"
-    # Alternative models:
-    # - gemini-2.5-flash-lite
-    # - gemini-2.5-flash
-    # - gemini-2.0-flash
-    # - gemma-3-27b-it
-    # - gemini-2.5-pro
-  
+llm:
+  batch_size: 45
+  max_retries: 3
+  model: "gemini-3-flash-preview"
+
   api_keys:
     # API keys are loaded from environment variables
     - id: "horvath.dawson"
@@ -89,15 +67,7 @@ synopsis_pipeline:
       env_var: "GOOGLE_API_KEY_7"
 
 # ============================================================================
-# FWA Pipeline Settings
+# Graph Builder Settings
 # ============================================================================
-fwa_pipeline:
-  # Add FWA-specific settings here as needed
-  enable_caching: true
-
-# ============================================================================
-# Regulation Mapping Settings
-# ============================================================================
-regulation_mapping:
-  # Mapping-specific settings
+graph_builder:
   enable_caching: true

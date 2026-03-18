@@ -20,7 +20,8 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 WEBAPP_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
-OUTPUT="$WEBAPP_DIR/public/data/bc.pmtiles"
+PROJECT_DIR="$(cd "$WEBAPP_DIR/.." && pwd)"
+OUTPUT="$PROJECT_DIR/output/pipeline/deploy/bc.pmtiles"
 
 # ── Bounding box — must match BC_BOUNDS in Map.tsx ────────────────────
 # SW: -148.0, 45.0  |  NE: -108.0, 63.5
