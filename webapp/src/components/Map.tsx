@@ -206,7 +206,7 @@ const flyToBbox = (
             const useMinzoom = fitsZoom < minzoom;
             const finalZoom = Math.min(useMinzoom ? minzoom : fitsZoom, 15);
             const center = useMinzoom ? bboxCenter : camera.center;
-            map.flyTo({ center, zoom: finalZoom, padding: useMinzoom ? padding : undefined, duration });
+            map.flyTo({ center, zoom: finalZoom, padding, duration });
         }
     }
 };
