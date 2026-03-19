@@ -189,7 +189,7 @@ DEPLOY_ENV=staging ./scripts/update-in-season.sh --upload  # upload to staging
 
 | File | Purpose |
 |------|---------|
-| `wrangler.toml` | Webapp worker config (SPA serving) |
+| `webapp/wrangler.toml` | Webapp worker config (SPA serving) |
 | `r2-worker/wrangler.toml` | R2 data worker config (API + CORS) |
 | `webapp/.env.staging` | Staging R2 worker URL |
 | `webapp/.env.production` | Production R2 worker URL + prerender cap |
