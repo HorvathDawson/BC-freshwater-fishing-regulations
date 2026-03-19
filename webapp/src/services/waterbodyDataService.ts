@@ -129,6 +129,7 @@ export interface Regulation {
   feature_types?: string[] | null;
   iid?: string;
   source_image?: string | null;
+  source_page?: number | null;
   exclusions?: { lookup_name: string; direction?: string; landmark_verbatim?: string; includes_tributaries?: boolean }[] | null;
   /** How this regulation reached the current reach.
    *  Stamped by regulationsService when resolving for a specific reach. */
@@ -225,6 +226,7 @@ function expandRegulations(
             source: 'synopsis',
             iid: regId,
             source_image: syn.image || null,
+            source_page: syn.page ?? null,
             exclusions: null,
           };
         }
@@ -245,6 +247,7 @@ function expandRegulations(
           source: 'synopsis',
           iid: regId,
           source_image: syn.image || null,
+          source_page: syn.page ?? null,
           exclusions: null,
         };
         expansionMap[regId] = [regId];

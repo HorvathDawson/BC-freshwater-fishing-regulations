@@ -8,7 +8,7 @@ import {
     getColorForType, 
     getFeatureDisplayName,
     calculateSwipeState,
-    formatList,
+    buildAliasLines,
     type CollapseState,
     type FeatureInfo,
     type NameVariant
@@ -377,35 +377,17 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                         </div>
                     </div>
                     {hasAliases && (() => {
-                            const tributaryAliases = aliases.filter(a => a.source === 'tributary');
-                            const adminAliases = aliases.filter(a => a.source === 'admin');
-                            const regularAliases = aliases.filter(a => a.source === 'direct');
-
-                            const parts: string[] = [];
-                            if (tributaryAliases.length > 0) {
-                                parts.push(`Tributary of ${formatList(tributaryAliases.map(a => a.name))}`);
-                            }
-                            regularAliases.forEach(a => parts.push(a.name));
-
+                            const { alsoKnownAs, inContext } = buildAliasLines(aliases);
                             return (
                                 <>
-                                    {parts.length > 0 && (
+                                    {alsoKnownAs && (
                                         <div className="regulation-subtitle alias-list">
-                                            Also known as:{' '}
-                                            {parts.length === 1 ? (
-                                                <span>{parts[0]}</span>
-                                            ) : (
-                                                <ul>
-                                                    {parts.map((part, idx) => (
-                                                        <li key={idx}>{part}</li>
-                                                    ))}
-                                                </ul>
-                                            )}
+                                            {alsoKnownAs}
                                         </div>
                                     )}
-                                    {adminAliases.length > 0 && (
+                                    {inContext && (
                                         <div className="regulation-subtitle admin-context">
-                                            In {formatList(adminAliases.map(a => a.name))}
+                                            {inContext}
                                         </div>
                                     )}
                                 </>
@@ -856,29 +838,36 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                                                         )}
                                                     </div>
                                                 )}
-                                                {(reg.rule_text || reg.source_image) && (
-                                                <div className="reg-row-actions">
-                                                    {reg.rule_text && (
-                                                        <details className="reg-text-expand">
-                                                            <summary>Official text</summary>
-                                                            <div className="reg-text-body">{reg.rule_text}</div>
-                                                        </details>
-                                                    )}
-                                                    {reg.source_image && (
-                                                        <button
-                                                            className="reg-source-img-btn"
-                                                            title="View source image from synopsis"
-                                                            onClick={() => setSourceImage({ src: `${import.meta.env.VITE_TILE_BASE_URL || '/data'}/row_images/${reg.source_image}`, name: reg.waterbody_name || 'Source' })}
-                                                        >
-                                                            <FileImage size={12} strokeWidth={2} />
-                                                            <span>Source</span>
-                                                        </button>
-                                                    )}
-                                                </div>
-                                                )}
                                             </div>
                                         );
                                     })}
+                                    {(() => {
+                                        const src = group.regulations.find(r => r.source === 'synopsis' && (r.source_image || r.source_page || r.rule_text));
+                                        if (!src) return null;
+                                        return (
+                                            <details className="reg-source-details">
+                                                <summary><FileImage size={10} strokeWidth={2} /> Source{src.source_page ? ` · p.${src.source_page}` : ''}</summary>
+                                                <div className="reg-source-content">
+                                                    {src.source_image && (
+                                                        <button
+                                                            className="reg-source-img-btn"
+                                                            title="View source image from synopsis"
+                                                            onClick={() => setSourceImage({ src: `${import.meta.env.VITE_TILE_BASE_URL || '/data'}/row_images/${src.source_image}`, name: src.waterbody_name || 'Source' })}
+                                                        >
+                                                            <FileImage size={12} strokeWidth={2} />
+                                                            <span>View source image</span>
+                                                        </button>
+                                                    )}
+                                                    {src.rule_text && (
+                                                        <>
+                                                            <span className="reg-source-label">Official text</span>
+                                                            <div className="reg-text-body">{src.rule_text}</div>
+                                                        </>
+                                                    )}
+                                                </div>
+                                            </details>
+                                        );
+                                    })()}
                                 </div>
                             ));
                         })()}

@@ -805,28 +805,47 @@
     opacity: 0.7;
 }
 
-/* --- Row actions (official text + source image) --- */
-.reg-row-actions {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-top: 4px;
-    border-top: 1px solid var(--border-light);
-    padding-top: 4px;
+/* --- Source dropdown (unified official text + source image) --- */
+.reg-source-details {
+    margin-top: 6px;
+    padding: 3px 6px;
+    border: 1px solid var(--border-light);
+    border-radius: 3px;
+    background: var(--bg-subtle);
 }
 
-.reg-row-actions .reg-text-expand {
-    flex: 1;
-    margin-top: 0;
-    border-top: none;
-    padding-top: 0;
+.reg-source-details summary {
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 9px;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 1px 0;
+    font-family: var(--font-sans);
+}
+
+.reg-source-details summary:hover {
+    color: var(--text);
+}
+
+.reg-source-content {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: 4px;
+    padding-top: 4px;
+    border-top: 1px solid var(--border-light);
 }
 
 .reg-source-img-btn {
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    padding: 2px 8px;
+    padding: 4px 10px;
     border: 1px solid var(--border-light);
     border-radius: 4px;
     background: var(--bg-subtle);
@@ -838,7 +857,7 @@
     letter-spacing: 0.04em;
     cursor: pointer;
     white-space: nowrap;
-    flex-shrink: 0;
+    align-self: flex-start;
     transition: all 0.15s ease;
 }
 
@@ -848,31 +867,19 @@
     color: #2563eb;
 }
 
-/* --- Source image modal (now handled by SourceImageViewer component) --- */
-
-.reg-text-expand {
-    margin-top: 4px;
-    border-top: 1px solid var(--border-light);
-    padding-top: 4px;
-}
-
-.reg-text-expand summary {
-    cursor: pointer;
+.reg-source-label {
     font-size: 10px;
     font-weight: 700;
     color: var(--text-muted);
     text-transform: uppercase;
     letter-spacing: 0.04em;
-    padding: 2px 0;
     font-family: var(--font-sans);
 }
 
-.reg-text-expand summary:hover {
-    color: var(--text);
-}
+/* --- Source image modal (now handled by SourceImageViewer component) --- */
 
 .reg-text-body {
-    margin-top: 4px;
+    margin-top: 2px;
     padding: 8px;
     background: var(--bg-subtle);
     border: 1px solid var(--border-light);
@@ -1052,7 +1059,7 @@
         font-size: 12px;
     }
 
-    .reg-text-expand summary {
+    .reg-source-details summary {
         font-size: 12px;
     }
 

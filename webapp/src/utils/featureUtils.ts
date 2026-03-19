@@ -175,6 +175,28 @@ export const formatList = (items: string[]): string => {
     return `${items.slice(0, -1).join(', ')}, and ${items[items.length - 1]}`;
 };
 
+/**
+ * Build formatted alias lines from a NameVariant array.
+ * Returns { alsoKnownAs: string | null, inContext: string | null }
+ * so both InfoPanel and DisambiguationMenu render identical text.
+ */
+export const buildAliasLines = (aliases: NameVariant[]): { alsoKnownAs: string | null; inContext: string | null } => {
+    const tributaryAliases = aliases.filter(a => a.source === 'tributary');
+    const adminAliases = aliases.filter(a => a.source === 'admin');
+    const regularAliases = aliases.filter(a => a.source === 'direct');
+
+    const parts: string[] = [];
+    if (tributaryAliases.length > 0) {
+        parts.push(`Tributary of ${formatList(tributaryAliases.map(a => a.name))}`);
+    }
+    regularAliases.forEach(a => parts.push(a.name));
+
+    return {
+        alsoKnownAs: parts.length > 0 ? `Also known as: ${parts.join(' · ')}` : null,
+        inContext: adminAliases.length > 0 ? `In ${formatList(adminAliases.map(a => a.name))}` : null,
+    };
+};
+
 // ─────────────────────────────────────────────────────────────────────────────
 // SWIPE HANDLING
 // ─────────────────────────────────────────────────────────────────────────────

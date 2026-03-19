@@ -6,6 +6,7 @@ import {
     getColorForType, 
     getFeatureDisplayName,
     getUniqueAliases,
+    buildAliasLines,
     isMobileViewport,
     type FeatureOption,
     type NameVariant,
@@ -147,24 +148,17 @@ const DisambiguationMenu = ({ options, position, highlightedOption, onSelect, on
                                             )}
                                         </span>
                                         {hasAliases && (() => {
-                                            const tributaryAliases = aliases.filter(a => a.source === 'tributary');
-                                            const adminAliases = aliases.filter(a => a.source === 'admin');
-                                            const regularAliases = aliases.filter(a => a.source === 'direct');
-                                            const parts: string[] = [];
-                                            if (tributaryAliases.length > 0) {
-                                                parts.push(`Tributary of ${tributaryAliases.map(a => a.name).join(', ')}`);
-                                            }
-                                            regularAliases.forEach(a => parts.push(a.name));
+                                            const { alsoKnownAs, inContext } = buildAliasLines(aliases);
                                             return (
                                                 <>
-                                                    {parts.length > 0 && (
+                                                    {alsoKnownAs && (
                                                         <span className="type" style={{ fontSize: '0.75rem', opacity: 0.8 }}>
-                                                            Also known as: {parts.join(' | ')}
+                                                            {alsoKnownAs}
                                                         </span>
                                                     )}
-                                                    {adminAliases.length > 0 && (
+                                                    {inContext && (
                                                         <span className="type" style={{ fontSize: '0.75rem', opacity: 0.7, fontStyle: 'italic' }}>
-                                                            In {adminAliases.map(a => a.name).join(', ')}
+                                                            {inContext}
                                                         </span>
                                                     )}
                                                 </>
