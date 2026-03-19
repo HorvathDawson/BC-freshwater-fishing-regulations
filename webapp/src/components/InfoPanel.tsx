@@ -866,7 +866,7 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                                                         <button
                                                             className="reg-source-img-btn"
                                                             title="View source image from synopsis"
-                                                            onClick={() => setSourceImage({ src: `/data/row_images/${reg.source_image}`, name: reg.waterbody_name || 'Source' })}
+                                                            onClick={() => setSourceImage({ src: `${import.meta.env.VITE_TILE_BASE_URL || '/data'}/row_images/${reg.source_image}`, name: reg.waterbody_name || 'Source' })}
                                                         >
                                                             <FileImage size={12} strokeWidth={2} />
                                                             <span>Source</span>

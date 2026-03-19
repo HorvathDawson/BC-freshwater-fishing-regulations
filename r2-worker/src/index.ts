@@ -41,6 +41,7 @@ const EDGE_CACHE_VER = '3';
 function getContentType(key: string): string | null {
   if (key.endsWith('.pmtiles')) return 'application/octet-stream';
   if (key.endsWith('.json'))    return 'application/json; charset=utf-8';
+  if (key.endsWith('.png'))     return 'image/png';
   return null;
 }
 
