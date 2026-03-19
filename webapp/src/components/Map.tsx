@@ -1432,13 +1432,12 @@ const MapComponent = () => {
             cursorLngLatRef.current = e.lngLat;
             const features = map.queryRenderedFeatures([[e.point.x - 10, e.point.y - 10], [e.point.x + 10, e.point.y + 10]], { layers: INTERACTABLE_LAYERS });
             map.getCanvas().style.cursor = features.length > 0 ? 'pointer' : '';
-            if (isDisambigOpenRef.current) return;
             (map.getSource('cursor-circle') as maplibregl.GeoJSONSource)?.setData({ type: 'FeatureCollection', features: [{ type: 'Feature', geometry: createCirclePolygon(e.lngLat, map.getZoom()), properties: {} }] });
         });
 
         // Re-draw cursor circle on zoom so it resizes without requiring mouse movement
         map.on('zoom', () => {
-            if (!cursorLngLatRef.current || isDisambigOpenRef.current) return;
+            if (!cursorLngLatRef.current) return;
             const src = map.getSource('cursor-circle') as maplibregl.GeoJSONSource;
             src?.setData({ type: 'FeatureCollection', features: [{ type: 'Feature', geometry: createCirclePolygon(cursorLngLatRef.current, map.getZoom()), properties: {} }] });
         });
@@ -1449,7 +1448,11 @@ const MapComponent = () => {
                 [[e.point.x - 15, e.point.y - 15], [e.point.x + 15, e.point.y + 15]],
                 { layers: INTERACTABLE_LAYERS }
             );
-            if (!features.length) return;
+            if (!features.length) {
+                // Click on blank map area — close both the info panel and disambig menu.
+                clearSelection();
+                return;
+            }
 
             // Close disambig if open
             if (isDisambigOpenRef.current) {
@@ -1495,6 +1498,8 @@ const MapComponent = () => {
 
             let resolved: ResolveResult[];
             try {
+                // In dev, add a delay so the click spinner is visible for testing.
+                if (import.meta.env.DEV) await new Promise(r => setTimeout(r, 1500));
                 resolved = await waterbodyDataService.resolve(fids, wbks);
             } catch (err) {
                 console.error('[Map] resolve failed:', err);
@@ -1838,7 +1843,6 @@ const MapComponent = () => {
             {clickLoadingPos && (
                 <div
                     className="click-loading-spinner"
-                    style={{ left: clickLoadingPos.x, top: clickLoadingPos.y }}
                     aria-label="Loading feature data"
                 />
             )}

@@ -535,11 +535,7 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                             )}
                         </div>
                         
-                        {loadingRegs && (
-                            <div className="loading-regulations">
-                                Loading regulations...
-                            </div>
-                        )}
+
 
                         {!loadingRegs && !sectionRegIds && (
                             <div className="no-regulations">
@@ -944,6 +940,13 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
             <aside className={`panel-mobile ${feature ? 'visible' : ''} ${collapseState === 'partial' ? 'partial' : ''}`} aria-label="Feature details">
                 {renderContent()}
             </aside>
+
+            {/* Regulations loading overlay — fixed centered spinner */}
+            {loadingRegs && (
+                <div className="regs-loading-overlay" role="status" aria-label="Loading regulations">
+                    <div className="regs-loading-spinner" aria-hidden="true" />
+                </div>
+            )}
 
             {/* Source image viewer */}
             {sourceImage && (

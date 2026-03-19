@@ -18,8 +18,10 @@
     width: 350px;
     background: var(--bg); 
     border-left: 1px solid var(--border);
-    transform: translateX(100%); 
-    transition: transform 0.2s cubic-bezier(0,0,0,1);
+    transform: translateX(100%);
+    opacity: 0;
+    transition: transform 0.28s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+                opacity   0.28s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     z-index: 1000; 
     display: flex; 
     flex-direction: column;
@@ -29,7 +31,8 @@
 }
 
 .panel-desktop.visible { 
-    transform: translateX(0); 
+    transform: translateX(0);
+    opacity: 1;
 }
 
 .panel-mobile { 
@@ -887,13 +890,27 @@
     font-family: var(--font-sans);
 }
 
-.loading-regulations {
-    padding: 16px;
-    color: var(--text-secondary);
-    font-size: 12px;
-    font-style: italic;
-    text-align: center;
-    font-family: var(--font-sans);
+.regs-loading-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+}
+
+.regs-loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid #d1d5db;
+    border-top-color: #2563eb;
+    border-radius: 50%;
+    animation: regs-spin 0.7s linear infinite;
+}
+
+@keyframes regs-spin {
+    to { transform: rotate(360deg); }
 }
 
 .regulation-error {
@@ -929,7 +946,8 @@
         border-top: 2px solid var(--border);
         height: 70vh;
         transform: translateY(100%);
-        transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+        transition: transform 0.32s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+                    opacity   0.32s cubic-bezier(0.25, 0.46, 0.45, 0.94);
         z-index: 2000;
         box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
         box-sizing: border-box;
