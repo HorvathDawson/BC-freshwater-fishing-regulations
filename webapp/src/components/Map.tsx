@@ -547,6 +547,10 @@ const MapComponent = () => {
     const [disambigOptions, setDisambigOptions] = useState<FeatureOption[]>([]);
     const [disambigPosition, setDisambigPosition] = useState<{ x: number; y: number } | null>(null);
     const [clickLoadingPos, setClickLoadingPos] = useState<{ x: number; y: number } | null>(null);
+    // Delayed spinner — avoid flash on fast resolves.
+    // Only show spinner after SPINNER_DELAY ms; once visible, keep for at least SPINNER_MIN ms.
+    const spinnerTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const spinnerShownAtRef = useRef<number>(0);
 
     const [mobilePanelState, setMobilePanelState] = useState<CollapseState>('expanded');
     const [highlightedOption, setHighlightedOption] = useState<FeatureOption | null>(null);
@@ -562,6 +566,45 @@ const MapComponent = () => {
     const [isSatellite, setIsSatellite] = useState(false);
     const [overlayOpacity, setOverlayOpacity] = useState(1);
     const [sliderOpen, setSliderOpen] = useState(false);
+
+    // Spinner delay constants (ms)
+    const SPINNER_DELAY = 150;  // wait before showing
+    const SPINNER_MIN   = 300;  // once visible, keep at least this long
+
+    /** Schedule spinner at position after SPINNER_DELAY ms. */
+    const showSpinnerDelayed = useCallback((pos: { x: number; y: number }) => {
+        // Cancel any pending hide/show
+        if (spinnerTimerRef.current) clearTimeout(spinnerTimerRef.current);
+        spinnerTimerRef.current = setTimeout(() => {
+            spinnerShownAtRef.current = Date.now();
+            setClickLoadingPos(pos);
+        }, SPINNER_DELAY);
+    }, []);
+
+    /** Hide spinner — immediately if not yet visible, or after SPINNER_MIN if showing. */
+    const hideSpinner = useCallback(() => {
+        // Cancel pending show
+        if (spinnerTimerRef.current) {
+            clearTimeout(spinnerTimerRef.current);
+            spinnerTimerRef.current = null;
+        }
+        if (!spinnerShownAtRef.current) {
+            // Never became visible — hide immediately
+            setClickLoadingPos(null);
+            return;
+        }
+        const elapsed = Date.now() - spinnerShownAtRef.current;
+        const remaining = SPINNER_MIN - elapsed;
+        spinnerShownAtRef.current = 0;
+        if (remaining <= 0) {
+            setClickLoadingPos(null);
+        } else {
+            spinnerTimerRef.current = setTimeout(() => {
+                setClickLoadingPos(null);
+                spinnerTimerRef.current = null;
+            }, remaining);
+        }
+    }, []);
 
     // Fetch data version once on mount — resolves quickly (~50 bytes, no-store).
     // Sets dataVersion so the map init useEffect can use versioned PMTiles URLs.
@@ -1363,7 +1406,7 @@ const MapComponent = () => {
 
             // Increment click generation to detect stale results
             const thisClick = ++clickGenRef.current;
-            setClickLoadingPos({ x: e.point.x, y: e.point.y });
+            showSpinnerDelayed({ x: e.point.x, y: e.point.y });
             // Hide the map-layer cursor circle so it doesn't drift under the spinner
             (map.getSource('cursor-circle') as maplibregl.GeoJSONSource)?.setData({ type: 'FeatureCollection', features: [] });
 
@@ -1372,11 +1415,11 @@ const MapComponent = () => {
                 resolved = await waterbodyDataService.resolve(fids, wbks);
             } catch (err) {
                 console.error('[Map] resolve failed:', err);
-                setClickLoadingPos(null);
+                hideSpinner();
                 return;
             }
 
-            setClickLoadingPos(null);
+            hideSpinner();
 
             // Discard stale click (user clicked elsewhere while resolving)
             if (clickGenRef.current !== thisClick) return;
