@@ -566,12 +566,12 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                                     </div>
                                     {changes.map((c, i) => (
                                         <div key={i} className="in-season-card">
-                                            <div className="in-season-change">{c.change}</div>
                                             {c.effective_date && (
                                                 <div className="in-season-date">
                                                     <Calendar size={11} strokeWidth={2} /> {c.effective_date}
                                                 </div>
                                             )}
+                                            <div className="in-season-change">{c.change}</div>
                                         </div>
                                     ))}
                                     {meta?.sourceUrl && (
