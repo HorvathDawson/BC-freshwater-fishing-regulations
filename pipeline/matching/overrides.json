@@ -11,7 +11,9 @@
     "variant_of": {
       "name_verbatim": "HEBER RIVER",
       "region": "REGION 1 - Vancouver Island",
-      "mus": ["1-9"]
+      "mus": [
+        "1-9"
+      ]
     }
   },
   {
@@ -22,7 +24,10 @@
       "mus": []
     },
     "note": "In-season combined entry: Chilliwack Lake (GNIS 13745) + Pitt River (GNIS 7551)",
-    "gnis_ids": ["13745", "7551"]
+    "gnis_ids": [
+      "13745",
+      "7551"
+    ]
   },
   {
     "type": "override",
@@ -336,6 +341,9 @@
     "note": "Tributaries of Buttle Lake - links to parent waterbody (GNIS 16747)",
     "gnis_ids": [
       "16747"
+    ],
+    "name_variants": [
+      "Buttle Lake"
     ]
   },
   {
@@ -352,7 +360,7 @@
       "17768"
     ],
     "name_variants": [
-      "CAMPBELL LAKE'S TRIBUTARIES"
+      "Campbell Lake"
     ]
   },
   {
@@ -367,6 +375,9 @@
     "note": "Tributaries of John Hart Lake - links to parent waterbody (GNIS 18905)",
     "gnis_ids": [
       "18905"
+    ],
+    "name_variants": [
+      "John Hart Lake"
     ]
   },
   {
@@ -875,6 +886,9 @@
     "note": "Tributaries of Brunette River - links to parent waterbody (GNIS 10070 - Brunette River). Regulation MU 2-8.",
     "gnis_ids": [
       "10070"
+    ],
+    "name_variants": [
+      "Brunette River"
     ]
   },
   {
@@ -889,6 +903,9 @@
     "note": "Tributaries of Chehalis Lake - links to parent waterbody (GNIS 13012 - Chehalis Lake). Regulation MU 2-19.",
     "gnis_ids": [
       "13012"
+    ],
+    "name_variants": [
+      "Chehalis Lake"
     ]
   },
   {
@@ -903,6 +920,9 @@
     "note": "Tributaries of Squamish River - links to parent waterbody (GNIS 25671 - Squamish River). Regulation MU 2-6.",
     "gnis_ids": [
       "25671"
+    ],
+    "name_variants": [
+      "Squamish River"
     ]
   },
   {
@@ -934,7 +954,7 @@
       "22474"
     ],
     "name_variants": [
-      "WAHLEACH LAKE'S TRIBUTARIES"
+      "Wahleach Lake"
     ]
   },
   {
@@ -949,6 +969,9 @@
     "note": "Tributaries of Burnaby Lake - links to parent waterbody (GNIS 10633)",
     "gnis_ids": [
       "10633"
+    ],
+    "name_variants": [
+      "Burnaby Lake"
     ]
   },
   {
@@ -1060,7 +1083,10 @@
     },
     "note": "No polygon in FWA. Using custom ungazetted waterbody with coordinates from KML point in Aldergrove Regional Park.",
     "ungazetted_waterbody_id": "UNGAZ_MARSH_POND_R2",
-    "ungazetted_location": [-122.45323, 49.00879]
+    "ungazetted_location": [
+      -122.45323,
+      49.00879
+    ]
   },
   {
     "type": "override",
@@ -1263,7 +1289,9 @@
     "criteria": {
       "name_verbatim": "FRASER RIVER (upstream of the CPR Bridge at Mission)",
       "region": "REGION 2 - Lower Mainland",
-      "mus": ["2-4"]
+      "mus": [
+        "2-4"
+      ]
     },
     "note": "Fraser River (GNIS 39325) upstream of the CPR Bridge at Mission, plus all named channels and sloughs without their own regulation entries. Region 2. Nicomen Slough and Strawberry Slough excluded — they have separate regulation entries.",
     "gnis_ids": [
@@ -1281,7 +1309,9 @@
       "25152",
       "8341"
     ],
-    "name_variants": ["FRASER RIVER"]
+    "name_variants": [
+      "FRASER RIVER"
+    ]
   },
   {
     "type": "override",
@@ -1295,6 +1325,9 @@
     "note": "Tributaries of Coldwater River - links to parent waterbody (GNIS 18066 - Coldwater River). Regulation MU 3-13.",
     "gnis_ids": [
       "18066"
+    ],
+    "name_variants": [
+      "Coldwater River"
     ]
   },
   {
@@ -1717,6 +1750,9 @@
     "note": "Tributaries of Connor Lakes - links to parent waterbody (3 polygons with GNIS 19304)",
     "gnis_ids": [
       "19304"
+    ],
+    "name_variants": [
+      "Connor Lake"
     ]
   },
   {
@@ -1731,6 +1767,9 @@
     "note": "Tributaries of Columbia Lake - links to parent waterbody (GNIS 18123 - Columbia Lake). Regulation MU 4-25.",
     "gnis_ids": [
       "18123"
+    ],
+    "name_variants": [
+      "Columbia Lake"
     ]
   },
   {
@@ -1745,6 +1784,9 @@
     "note": "Tributaries of Duncan Lake - links to parent waterbody (GNIS 8109 - Duncan Lake). Regulation MU 4-27.",
     "gnis_ids": [
       "8109"
+    ],
+    "name_variants": [
+      "Duncan Lake"
     ]
   },
   {
@@ -1762,7 +1804,7 @@
       "16880"
     ],
     "name_variants": [
-      "ELK RIVER'S TRIBUTARIES"
+      "Elk River"
     ]
   },
   {
@@ -1777,6 +1819,9 @@
     "note": "Tributaries of Flathead River - links to parent waterbody (GNIS 19843 - Flathead River). Regulation MU 4-1.",
     "gnis_ids": [
       "19843"
+    ],
+    "name_variants": [
+      "Flathead River"
     ]
   },
   {
@@ -1860,6 +1905,9 @@
     "note": "Tributaries of Kootenay Lake - links to parent waterbody (GNIS 14091 - Kootenay Lake). Regulation MUs 4-7, 4-19.",
     "gnis_ids": [
       "14091"
+    ],
+    "name_variants": [
+      "Kootenay Lake"
     ]
   },
   {
@@ -1894,7 +1942,7 @@
       "3133"
     ],
     "name_variants": [
-      "KINBASKET LAKE'S TRIBUTARIES"
+      "Kinbasket Lake"
     ]
   },
   {
@@ -1909,6 +1957,9 @@
     "note": "Tributaries of Lower Arrow Lake - links to parent waterbody (GNIS 18644 - Lower Arrow Lake). Regulation MU 4-14.",
     "gnis_ids": [
       "18644"
+    ],
+    "name_variants": [
+      "Lower Arrow Lake"
     ]
   },
   {
@@ -1923,6 +1974,9 @@
     "note": "Tributaries of Upper Arrow Lake - links to parent waterbody (GNIS 8405 - Upper Arrow Lake).",
     "gnis_ids": [
       "8405"
+    ],
+    "name_variants": [
+      "Upper Arrow Lake"
     ]
   },
   {
@@ -1952,6 +2006,9 @@
     "note": "Tributaries of Revelstoke Lake - links to parent waterbody (GNIS 39145 - Revelstoke Lake). Regulation MU 4-38.",
     "gnis_ids": [
       "39145"
+    ],
+    "name_variants": [
+      "Revelstoke Lake"
     ]
   },
   {
@@ -1966,6 +2023,9 @@
     "note": "Tributaries of Premier Lake - links to parent waterbody (GNIS 25274 - Premier Lake). Regulation MU 4-21.",
     "gnis_ids": [
       "25274"
+    ],
+    "name_variants": [
+      "Premier Lake"
     ]
   },
   {
@@ -1980,6 +2040,9 @@
     "note": "Tributaries of Slocan Lake - links to parent waterbody (GNIS 27954 - Slocan Lake). Regulation MU 4-17.",
     "gnis_ids": [
       "27954"
+    ],
+    "name_variants": [
+      "Slocan Lake"
     ]
   },
   {
@@ -1994,6 +2057,9 @@
     "note": "Tributaries of Trout Lake - links to parent waterbody (GNIS 28481 - Trout Lake). Regulation MU 4-30.",
     "gnis_ids": [
       "28481"
+    ],
+    "name_variants": [
+      "Trout Lake"
     ]
   },
   {
@@ -2053,6 +2119,9 @@
     "note": "Tributaries of Salmo River - links to parent waterbody (GNIS 20528 - Salmo River). Regulation MU 4-8.",
     "gnis_ids": [
       "20528"
+    ],
+    "name_variants": [
+      "Salmo River"
     ]
   },
   {
@@ -2402,6 +2471,9 @@
     "note": "GNIS name: Revelstoke Lake. Tributary entry - links to parent waterbody.",
     "gnis_ids": [
       "39145"
+    ],
+    "name_variants": [
+      "Lake Revelstoke"
     ]
   },
   {
@@ -2417,6 +2489,9 @@
     "gnis_ids": [
       "30277",
       "18652"
+    ],
+    "name_variants": [
+      "Little Slocan Lake"
     ]
   },
   {
@@ -2433,7 +2508,7 @@
       "4927"
     ],
     "name_variants": [
-      "PEND D'OREILLE RIVER'S TRIBUTARIES"
+      "Pend D'Oreille River"
     ]
   },
   {
@@ -2494,7 +2569,7 @@
       "17209"
     ],
     "name_variants": [
-      "ATNARKO/BELLA COOLA RIVERS [Includes Tributaries] EXCEPT: Burnt Bridge Creek upstream of Sitkatapa Creek, Hunlen Creek upstream of Hunlen Falls, and Young Creek upstream of Hwy 20"
+      "Atnarko/Bella Coola Rivers"
     ]
   },
   {
@@ -2610,6 +2685,9 @@
     "note": "Tributaries of Chilko Lake - links to parent waterbody (GNIS 33890 - Tŝilhqox Biny / Chilko Lake). FWA has MU 5-4, regulation has MU 5-4.",
     "gnis_ids": [
       "33890"
+    ],
+    "name_variants": [
+      "Chilko Lake"
     ]
   },
   {
@@ -2624,6 +2702,9 @@
     "note": "Tributaries of Tanya Lakes - links to parent waterbody (GNIS 23919 - Tanya Lakes). FWA has MU 5-10, regulation has MU 5-10.",
     "gnis_ids": [
       "23919"
+    ],
+    "name_variants": [
+      "Tanya Lake"
     ]
   },
   {
@@ -3325,6 +3406,9 @@
     "note": "Tributaries of Little Rancheria River - links to parent waterbody. FWA has MU 6-24, regulation has MU 6-25 (boundary issue).",
     "fwa_watershed_codes": [
       "200-692231-770914-177748-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+    ],
+    "name_variants": [
+      "Rancheria River"
     ]
   },
   {
@@ -3419,7 +3503,7 @@
       "100-500560-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
     ],
     "name_variants": [
-      "WEST ROAD RIVER'S TRIBUTARIES"
+      "West Road River"
     ]
   },
   {
@@ -3552,7 +3636,10 @@
     },
     "note": "Confluence of Skeena River and Kispiox River in Region 6 MU 6-8. No FWA polygon or stream feature at the exact confluence point. Coordinates from BC Albers projection.",
     "ungazetted_waterbody_id": "UNGAZ_SKEENA_KISPIOX_CONFLUENCE_R6",
-    "ungazetted_location": [-127.69132, 55.3426]
+    "ungazetted_location": [
+      -127.69132,
+      55.3426
+    ]
   },
   {
     "type": "override",
@@ -3787,7 +3874,7 @@
       "100-500560-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
     ],
     "name_variants": [
-      "WEST ROAD RIVER'S TRIBUTARIES"
+      "West Road River"
     ]
   },
   {
@@ -4119,7 +4206,10 @@
       "28522"
     ],
     "ungazetted_waterbody_id": "UNGAZ_NATION_ARM_WILLISTON_R7",
-    "ungazetted_location": [-123.44116, 55.51205],
+    "ungazetted_location": [
+      -123.44116,
+      55.51205
+    ],
     "name_variants": [
       "NATION ARM"
     ]
@@ -4138,7 +4228,10 @@
       "28522"
     ],
     "ungazetted_waterbody_id": "UNGAZ_DAVIS_BAY_WILLISTON_R7",
-    "ungazetted_location": [-124.47333, 56.54858],
+    "ungazetted_location": [
+      -124.47333,
+      56.54858
+    ],
     "name_variants": [
       "DAVIS BAY"
     ]
@@ -4321,7 +4414,10 @@
       "329460964"
     ],
     "ungazetted_waterbody_id": "UNGAZ_HALL_ROAD_POND_R8",
-    "ungazetted_location": [-119.42958, 49.87084],
+    "ungazetted_location": [
+      -119.42958,
+      49.87084
+    ],
     "name_variants": [
       "HALL ROAD POND"
     ]
@@ -4487,6 +4583,9 @@
     "note": "Tributaries of Granby River - links to parent waterbody (GNIS 18775 - Granby River). Regulation MU 8-15.",
     "gnis_ids": [
       "18775"
+    ],
+    "name_variants": [
+      "Granby River"
     ]
   },
   {
@@ -4597,6 +4696,9 @@
     "note": "Tributaries of Kettle River - links to parent waterbody (GNIS 11984 - Kettle River). Regulation MU 8-14.",
     "gnis_ids": [
       "11984"
+    ],
+    "name_variants": [
+      "Kettle River"
     ]
   },
   {
@@ -4611,6 +4713,9 @@
     "note": "Tributaries of West Kettle River - links to parent waterbody (GNIS 6358 - West Kettle River). Regulation MU 8-12.",
     "gnis_ids": [
       "6358"
+    ],
+    "name_variants": [
+      "West Kettle River"
     ]
   },
   {
@@ -4728,7 +4833,10 @@
     },
     "note": "Likely covered by Upper/Lower tributaries",
     "skip": true,
-    "skip_reason": "ignored"
+    "skip_reason": "ignored",
+    "name_variants": [
+      "Arrow Lakes"
+    ]
   },
   {
     "type": "override",
@@ -4754,7 +4862,10 @@
     },
     "note": "Covered by Pend d'Oreille River tributary regulations",
     "skip": true,
-    "skip_reason": "ignored"
+    "skip_reason": "ignored",
+    "name_variants": [
+      "Seven Mile Reservoir"
+    ]
   },
   {
     "type": "override",
@@ -4780,7 +4891,10 @@
     },
     "note": "Covered by Pend d'Oreille River tributary regulations",
     "skip": true,
-    "skip_reason": "ignored"
+    "skip_reason": "ignored",
+    "name_variants": [
+      "Waneta Reservoir"
+    ]
   },
   {
     "type": "override",
@@ -4983,6 +5097,9 @@
         "layer": "parks_bc",
         "feature_id": "1127"
       }
+    ],
+    "name_variants": [
+      "Strathcona Park"
     ]
   },
   {
@@ -5043,6 +5160,9 @@
         "layer": "parks_bc",
         "feature_id": "519"
       }
+    ],
+    "name_variants": [
+      "Bowron Lake Park"
     ]
   },
   {
@@ -5060,6 +5180,9 @@
         "layer": "historic_sites",
         "feature_id": "4af28ce2-bda0-47bf-8e64-664b1be54922"
       }
+    ],
+    "name_variants": [
+      "Chilkoot Trail National Historic Park"
     ]
   },
   {
@@ -5661,7 +5784,6 @@
       "EMILY LAKE"
     ]
   },
-
   {
     "type": "override",
     "criteria": {
