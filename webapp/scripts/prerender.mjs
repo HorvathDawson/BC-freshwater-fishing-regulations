@@ -189,28 +189,53 @@ let written = 0;
 const sitemapUrls = [];
 
 for (const [wbg, raw] of entries) {
-    const displayName = raw.display_name ?? '';
+    const segments = raw.segments ?? [];
+
+    // Primary name: use the most common segment display_name so the page title
+    // reflects the name that covers the most regulation sections.
+    const segNameCounts = new Map();
+    for (const seg of segments) {
+        const n = seg.display_name || '';
+        if (n) segNameCounts.set(n, (segNameCounts.get(n) || 0) + 1);
+    }
+    // Pick the most common reach name; break ties by preferring non-"unnamed"
+    const displayName = segNameCounts.size > 0
+        ? [...segNameCounts.entries()].sort((a, b) => {
+            if (b[1] !== a[1]) return b[1] - a[1]; // most frequent first
+            const aUnnamed = /unnamed/i.test(a[0]) ? 1 : 0;
+            const bUnnamed = /unnamed/i.test(b[0]) ? 1 : 0;
+            return aUnnamed - bUnnamed; // named wins ties
+        })[0][0]
+        : (raw.display_name ?? '');
 
     const type = raw.feature_type ?? '';
     const typeLabel = TYPE_LABEL[type] ?? 'Waterbody';
 
     // Name variants (alternate spellings) — include only direct variants in meta description for SEO.
+    // Also include any segment display_names that differ from the primary.
     const nameVariants = (raw.name_variants ?? [])
         .filter(v => v && v.source === 'direct')
         .map(v => v.name)
         .filter(v => v && v !== displayName);
+    // Add any less-common segment display_names as additional name variants
+    for (const [segName] of segNameCounts) {
+        if (segName !== displayName && !nameVariants.includes(segName)) {
+            nameVariants.push(segName);
+        }
+    }
     const akaText = nameVariants.length > 0
         ? ` Also known as: ${nameVariants.join(', ')}.`
         : '';
 
     // Regulation summary for meta description (keep under 160 chars total)
-    const segments = raw.segments ?? [];
     const regCount = segments.length;
     const regText = regCount > 1
         ? `${regCount} regulation zones.`
         : regCount === 1 ? 'Has fishing regulations.' : '';
 
-    const title = `${displayName} Fishing Regulations | BC Freshwater`;
+    const title = nameVariants.length > 0
+        ? `${displayName} (${nameVariants.join(', ')}) Fishing Regulations | BC Freshwater`
+        : `${displayName} Fishing Regulations | BC Freshwater`;
     const description = `BC freshwater fishing regulations for ${displayName} (${typeLabel}).${akaText} ${regText} View catch limits, closures, gear restrictions, and seasons.`
         .replace(/\s+/g, ' ')
         .trim()

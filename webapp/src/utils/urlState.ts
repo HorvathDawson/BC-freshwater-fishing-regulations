@@ -88,38 +88,52 @@ export const collapseWbg = (wbg: string): string => wbg.replace(/(-000000)+$/, '
 
 /**
  * Navigate to the canonical URL for a named waterbody group.
- * Writes /waterbody/<wbg>/ as the path, preserving the map position hash
- * and the active section param (?s=<fgid>) if already present.
- * Automatically collapses trailing FWA padding from the slug.
+ * Writes /waterbody/<wbg>/ as the path, preserving the map position hash.
+ * Always includes ?s=<fgid> when a sectionFgid is provided.
+ * Uses pushState so browser back/forward navigates between features.
  */
-export const navigateToWaterbody = (wbg: string): void => {
-    const existing = new URLSearchParams(window.location.search);
-    const section = existing.get(SECTION_PARAM);
+export const navigateToWaterbody = (wbg: string, sectionFgid?: string): void => {
+    const section = sectionFgid || new URLSearchParams(window.location.search).get(SECTION_PARAM);
     const search = section ? `?${SECTION_PARAM}=${encodeURIComponent(section)}` : '';
     const newUrl = `${WBG_PATH_PREFIX}${encodeURIComponent(collapseWbg(wbg))}/${search}${window.location.hash}`;
-    window.history.replaceState(null, '', newUrl);
+    // pushState for new navigations so back button works
+    if (window.location.pathname + window.location.search === newUrl.split('#')[0]) {
+        window.history.replaceState(null, '', newUrl);
+    } else {
+        window.history.pushState(null, '', newUrl);
+    }
 };
 
 /**
  * Navigate to the legacy ?f=<fgid> URL for unnamed/compact features.
  * Preserves the map position hash and active section param.
- * Used when an unnamed stream is selected so the address bar is shareable.
+ * Uses pushState so browser back/forward navigates between features.
  */
-export const navigateToFeature = (fgid: string): void => {
-    const existing = new URLSearchParams(window.location.search);
-    const section = existing.get(SECTION_PARAM);
+export const navigateToFeature = (fgid: string, sectionFgid?: string): void => {
+    const section = sectionFgid || new URLSearchParams(window.location.search).get(SECTION_PARAM);
     const params = new URLSearchParams();
     params.set(PARAMS.FEATURE, fgid);
     if (section) params.set(SECTION_PARAM, section);
-    window.history.replaceState(null, '', `/?${params.toString()}${window.location.hash}`);
+    const newUrl = `/?${params.toString()}${window.location.hash}`;
+    if (window.location.pathname + window.location.search === newUrl.split('#')[0]) {
+        window.history.replaceState(null, '', newUrl);
+    } else {
+        window.history.pushState(null, '', newUrl);
+    }
 };
 
 /**
  * Clear all URL state and return to the root path (/), preserving map position hash.
  * Always navigates to / — safe to call from any path including /waterbody/<wbg>/.
+ * Uses pushState so back button returns to the previously selected feature.
  */
 export const clearUrlState = (): void => {
-    window.history.replaceState(null, '', `/${window.location.hash}`);
+    const newUrl = `/${window.location.hash}`;
+    if (window.location.pathname === '/' && !window.location.search) {
+        window.history.replaceState(null, '', newUrl);
+    } else {
+        window.history.pushState(null, '', newUrl);
+    }
 };
 
 /**

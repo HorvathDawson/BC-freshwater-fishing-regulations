@@ -529,6 +529,7 @@ const MapComponent = () => {
     const mobilePanelStateRef = useRef<CollapseState>('expanded');
     const prevMobilePanelStateRef = useRef<CollapseState>('expanded');
     const urlRestoredRef = useRef<boolean>(false);
+    const popstateInProgressRef = useRef<boolean>(false);
     // Lookup map: reach_id → { feature, segment }
     // Populated once tier0.json loads; used by the click handler
     // to enrich tile features with search-level data (name_variants, etc.)
@@ -1034,16 +1035,7 @@ const MapComponent = () => {
 
         // Helper: select feature, fly to bbox, set state
         const selectAndFly = (selected: FeatureOption) => {
-            if (selected.bbox && isValidBbox(selected.bbox)) {
-                const map = mapRef.current;
-                if (map) {
-                    const isMobile = isMobileViewport();
-                    const padding = isMobile
-                        ? { top: 60, bottom: getMobileBottomPadding(), left: 40, right: 40 }
-                        : { top: 80, bottom: 80, left: 80, right: 80 };
-                    flyToBbox(map, selected.bbox, padding, selected.minzoom ? selected.minzoom + 0.25 : 10);
-                }
-            }
+            flyToFeature(selected);
             setSelectedFeature(selected);
         };
 
@@ -1084,12 +1076,64 @@ const MapComponent = () => {
         }
     }, [mapReady, dataLoaded]);
 
+    // Handle browser back/forward navigation.
+    // Re-parse URL state and restore the corresponding feature or clear selection.
+    useEffect(() => {
+        const handlePopState = () => {
+            const regData = regDataRef.current;
+            if (!regData) return;
+
+            popstateInProgressRef.current = true;
+
+            const url = parseUrlState();
+            let targetFeature: SearchableFeature | undefined;
+            let targetReachId: string | undefined;
+
+            if (url.waterbodyGroup) {
+                const lookup = wbgLookupRef.current.get(url.waterbodyGroup);
+                targetFeature = lookup?.feature;
+                targetReachId = url.activeFgid;
+            } else if (url.featureId) {
+                const lookup = searchLookupRef.current.get(url.featureId);
+                targetFeature = lookup?.feature;
+                targetReachId = url.activeFgid || url.featureId;
+            }
+
+            if (targetFeature) {
+                const segments = targetFeature.regulation_segments || [];
+                let seg = segments[0] || null;
+                if (targetReachId) {
+                    const match = segments.find(s => s.frontend_group_id === targetReachId);
+                    if (match) seg = match;
+                }
+                const reachId = seg?.frontend_group_id || '';
+                const fidList = reachId ? regData.reachSegments[reachId] : undefined;
+                const selected = buildFeatureFromJSON(targetFeature, seg, { fidList });
+                setSelectedFeature(selected);
+            } else if (!url.waterbodyGroup && !url.featureId) {
+                // Back to root — clear selection without pushing another history entry
+                setSelectedFeature(null);
+                setDisambigOptions([]);
+                setDisambigPosition(null);
+                isDisambigOpenRef.current = false;
+            }
+        };
+
+        window.addEventListener('popstate', handlePopState);
+        return () => window.removeEventListener('popstate', handlePopState);
+    }, []);
+
     // Update URL when a feature is selected or deselected.
     // Named features write the canonical /waterbody/<wbg>/ path.
     // Deselection resets to the root path.
     useEffect(() => {
         // Skip URL update during initial restoration
         if (!urlRestoredRef.current) return;
+        // Don't push new history entries during popstate handling
+        if (popstateInProgressRef.current) {
+            popstateInProgressRef.current = false;
+            return;
+        }
 
         const props = selectedFeature?.properties;
 
@@ -1101,15 +1145,17 @@ const MapComponent = () => {
         // Tidal waters are ocean/coastal features — excluded from freshwater canonical URLs.
         if (props?._tidal) return;
 
+        // Always include the current section fgid in the URL
+        const sectionFgid = typeof props?.frontend_group_id === 'string' ? props.frontend_group_id : undefined;
+
         // Named features with a waterbody_group get the canonical /waterbody/<wbg>/ path.
         // Everything else (unnamed streams, compact-only features) gets ?f=<fgid>.
         const wbg = typeof props?.waterbody_group === 'string' ? props.waterbody_group : undefined;
         if (wbg) {
-            navigateToWaterbody(wbg);
+            navigateToWaterbody(wbg, sectionFgid);
         } else {
-            const fgid = typeof props?.frontend_group_id === 'string' ? props.frontend_group_id : undefined;
-            if (fgid) {
-                navigateToFeature(fgid);
+            if (sectionFgid) {
+                navigateToFeature(sectionFgid, sectionFgid);
             }
         }
     }, [selectedFeature]);
@@ -1545,12 +1591,27 @@ const MapComponent = () => {
         setSiblingFeatures(segments.map(seg => ({ ...parentFeature, regulation_segments: [seg] } as SearchableFeature)));
     }, [selectedFeature]);
 
+    /** Fly to a built FeatureOption's bbox — shared by search, URL restore, etc. */
+    const flyToFeature = useCallback((selected: FeatureOption) => {
+        const map = mapRef.current;
+        if (!map || !selected.bbox || !isValidBbox(selected.bbox)) return;
+        const isMobile = isMobileViewport();
+        const bounds = new maplibregl.LngLatBounds(
+            [selected.bbox[0], selected.bbox[1]],
+            [selected.bbox[2], selected.bbox[3]],
+        );
+        const { padding, panelState } = isMobile
+            ? getMobilePaddingForBounds(bounds)
+            : { padding: { top: 80, bottom: 80, left: 80, right: 80 }, panelState: 'expanded' as CollapseState };
+        flyToBbox(map, selected.bbox, padding, selected.minzoom ? selected.minzoom + 0.25 : 10);
+        if (isMobile) setMobilePanelState(panelState);
+    }, []);
+
     const handleSearchSelect = useCallback((feature: SearchableFeature) => {
         const map = mapRef.current;
         if (!map) return;
         
         clearSelection();
-        const targetMinZoom = Number(feature.min_zoom || feature.properties?.minzoom || 10);
         
         // Check if this waterbody has multiple regulation segments (reaches)
         const segments = feature.regulation_segments || [];
@@ -1562,25 +1623,24 @@ const MapComponent = () => {
         const rawWbg = feature.properties?.waterbody_group;
         const hasWbg = typeof rawWbg === 'string' && rawWbg.length > 0;
 
-        // Fly to the feature first — use aspect-ratio-aware padding on mobile
-        if (feature.bbox) {
-            const isMobile = isMobileViewport();
-            const bounds = new maplibregl.LngLatBounds([feature.bbox[0], feature.bbox[1]], [feature.bbox[2], feature.bbox[3]]);
-            const { padding, panelState } = isMobile
-                ? getMobilePaddingForBounds(bounds)
-                : { padding: { top: 80, bottom: 80, left: 80, right: 80 }, panelState: 'expanded' as CollapseState };
-            flyToBbox(map, feature.bbox, padding, targetMinZoom + 0.25);
-            if (isMobile) setMobilePanelState(panelState);
-        }
-
         const regData = regDataRef.current;
+
+        // Build the selected feature first so fly-to uses the same bbox
+        // as the "Zoom to section" button.
+        const seg = segments[0] || null;
+        const reachId = seg?.frontend_group_id || '';
+        const fidList = reachId && regData ? regData.reachSegments[reachId] : undefined;
+        const selected = buildFeatureFromJSON(feature, seg, { fidList });
+
+        // Fly to the built feature's bbox (segment-level for multi-segment)
+        flyToFeature(selected);
 
         if (hasMultipleSegments && !hasWbg) {
             // Build disambiguation options from JSON via the unified builder.
-            const options: FeatureOption[] = segments.map(seg => {
-                const reachId = seg.frontend_group_id;
-                const fidList = regData?.reachSegments[reachId];
-                return buildFeatureFromJSON(feature, seg, { fidList });
+            const options: FeatureOption[] = segments.map(s => {
+                const rid = s.frontend_group_id;
+                const fids = regData?.reachSegments[rid];
+                return buildFeatureFromJSON(feature, s, { fidList: fids });
             });
 
             const screenCenter = { x: window.innerWidth / 2, y: window.innerHeight / 3 };
@@ -1589,12 +1649,6 @@ const MapComponent = () => {
             isDisambigOpenRef.current = true;
             setMobilePanelState('partial');
         } else {
-            // Single segment or named waterbody — select directly
-            const seg = segments[0] || null;
-            const reachId = seg?.frontend_group_id || '';
-            const fidList = reachId && regData ? regData.reachSegments[reachId] : undefined;
-            const selected = buildFeatureFromJSON(feature, seg, { fidList });
-            
             setSelectedFeature(selected);
 
             // Poll until tiles load to get geometry for highlighting
@@ -1654,12 +1708,10 @@ const MapComponent = () => {
         const map = mapRef.current;
         if (!map) return;
         const isMobile = isMobileViewport();
-        // Desktop: panel is already open and CSS has already shrunk the canvas
-        // by 350px, so no extra right padding is needed — the reduced canvas
-        // IS the visible area.  Mobile: account for the bottom panel.
-        const padding = isMobile
-            ? { top: 60, bottom: getMobileBottomPadding(), left: 40, right: 40 }
-            : { top: 80, bottom: 80, left: 80, right: 80 };
+        const bounds = new maplibregl.LngLatBounds([bbox[0], bbox[1]], [bbox[2], bbox[3]]);
+        const { padding } = isMobile
+            ? getMobilePaddingForBounds(bounds)
+            : { padding: { top: 80, bottom: 80, left: 80, right: 80 } };
         flyToBbox(map, bbox, padding, minZoom + 0.25);
     }, []);
 

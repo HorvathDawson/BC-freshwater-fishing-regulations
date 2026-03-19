@@ -484,8 +484,8 @@ export const createRegulationLayers = (): LayerSpecification[] => {
         source: 'regulations',
         'source-layer': 'tidal_boundary',
         paint: {
-            'fill-color': '#6B7280',  // Tailwind gray-500
-            'fill-opacity': 0.15,
+            'fill-color': '#94A3B8',  // Tailwind slate-400
+            'fill-opacity': ['interpolate', ['linear'], ['zoom'], 6, 0.06, 10, 0.12],
         },
     });
     adminLayers.push({
@@ -493,10 +493,11 @@ export const createRegulationLayers = (): LayerSpecification[] => {
         type: 'line',
         source: 'regulations',
         'source-layer': 'tidal_boundary',
+        minzoom: 9,
         paint: {
             'line-color': '#6B7280',
             'line-width': 2,
-            'line-opacity': 0.5,
+            'line-opacity': ['interpolate', ['linear'], ['zoom'], 9, 0, 10, 0.5],
             'line-dasharray': [4, 3],
         },
     });

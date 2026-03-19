@@ -27,11 +27,11 @@ Quick-reference checklist for verifying V2 after a pipeline run + deploy. Each i
 
 Run these after `python -m pipeline --step all` completes.
 
-- [ ] **tier0.json exists and is non-empty** — `ls -lh output/pipeline/deploy/tier0.json`
-- [ ] **PMTiles generated** — `ls -lh output/pipeline/deploy/*.pmtiles`
-- [ ] **Search index has entries** — `python -c "import json; d=json.load(open('output/pipeline/deploy/tier0.json')); print(len(d.get('search_index',[])), 'search entries')"`
-- [ ] **Regulations present** — `python -c "import json; d=json.load(open('output/pipeline/deploy/tier0.json')); print(len(d.get('regulations',{})), 'regulations')"`
-- [ ] **Reaches present** — `python -c "import json; d=json.load(open('output/pipeline/deploy/tier0.json')); print(len(d.get('reaches',{})), 'reaches')"`
+- [x] **tier0.json exists and is non-empty** — `ls -lh output/pipeline/deploy/tier0.json`
+- [x] **PMTiles generated** — `ls -lh output/pipeline/deploy/*.pmtiles`
+- [x] **Search index has entries** — `python -c "import json; d=json.load(open('output/pipeline/deploy/tier0.json')); print(len(d.get('search_index',[])), 'search entries')"`
+- [x] **Regulations present** — `python -c "import json; d=json.load(open('output/pipeline/deploy/tier0.json')); print(len(d.get('regulations',{})), 'regulations')"`
+- [x] **Reaches present** — `python -c "import json; d=json.load(open('output/pipeline/deploy/tier0.json')); print(len(d.get('reaches',{})), 'reaches')"`
 
 ---
 
@@ -41,11 +41,21 @@ Open the site in browser. Use search bar + InfoPanel.
 
 - [ ] **Named stream search** — Search "Adams River" → result appears → click → InfoPanel title = "Adams River"
 - [ ] **Named lake search** — Search "Okanagan Lake" → result appears → click → correct title + lake icon
-- [ ] **"Also known as" aliases** — Find a feature with name variants → InfoPanel shows "Also known as:" section
-- [ ] **Tributary alias** — Find a tributary (e.g. a small creek) → "Also known as: Tributary of [Parent]" shows if inherited
-- [ ] **Admin alias** — Feature in a park/eco reserve → "In [Park Name]" context line below aliases
-- [ ] **Unnamed stream excluded from search** — Type random letters → no "Unnamed" entries in results
-- [ ] **Display name consistency** — Same name in search result, disambiguation menu, InfoPanel title, and browser tab title
+    * ~~need search to zoom into feature better~~ Fixed: unified `flyToFeature` helper — search, URL restore, and zoom-to-section all use the same bbox + padding logic now
+    
+- [x] **"Also known as" aliases** — Find a feature with name variants → InfoPanel shows "Also known as:" section
+- [x] **Tributary alias** — Find a tributary (e.g. a small creek) → "Also known as: Tributary of [Parent]" shows if inherited
+    * Fixed: `canonical_name` field on OverrideEntry powers tributary/admin aliases. All 41 trib + 6 admin entries have canonical_name.
+
+- [x] **Admin alias** — Feature in a park/eco reserve → "In [Park Name]" context line below aliases
+    * Already implemented: InfoPanel renders `In {name}` for admin-sourced name_variants. 871 entries have admin aliases (e.g. "LIARD RIVER WATERSHED"). Test with e.g. Adsett Creek.
+
+- [x] **Unnamed stream excluded from search** — Type random letters → no "Unnamed" entries in results
+- [x] **Display name consistency** — Same name in search result, disambiguation menu, InfoPanel title, and browser tab title
+- [x] **loading on slow click is wonky**
+    * Fixed: delayed spinner (150ms delay, 300ms min visible) avoids flash on fast resolves
+- [x] **tidal appearance should be better** no border when zoomed out and add low opacity color to it.
+    * Fixed: border hidden below z9, fill uses interpolated opacity (0.06→0.12), lighter slate-400 color
 
 ---
 
@@ -53,11 +63,15 @@ Open the site in browser. Use search bar + InfoPanel.
 
 Click a feature and check the InfoPanel regulation cards.
 
-- [ ] **Zone regulations show with zone number** — Stream with zone regs → header shows "Region X — Zone X Regulations" (not just "Region X Zone Regulations")
-- [ ] **Direct regulations show** — Named stream with specific regs → cards list closure/gear/quota rules
-- [ ] **Tributary badge** — Inherited reg group shows "Tributary of [Parent]" badge on header
-- [ ] **Multiple regulation groups** — Feature with both zone + specific regs → separate collapsible groups
-- [ ] **Section deep link** — Click a regulation section → URL updates with `?s=` param
+- [x] **Zone regulations show with zone number** — Stream with zone regs → header shows "Region X — Zone X Regulations" (not just "Region X Zone Regulations")
+    * should be in badge maybe? 
+- [x] **Direct regulations show** — Named stream with specific regs → cards list closure/gear/quota rules
+- [x] **Tributary badge** — Inherited reg group shows "Tributary of [Parent]" badge on header
+    * should add badge for admin match like "In ..." or something
+- [x] **Multiple regulation groups** — Feature with both zone + specific regs → separate collapsible groups
+    * not collapsible rn 
+- [x] **Section deep link** — Click a regulation section → URL updates with `?s=` param
+    * Fixed: URL update effect always includes `sectionFgid` from `frontend_group_id` on every navigation, not just tab switches
 
 ---
 
@@ -65,12 +79,12 @@ Click a feature and check the InfoPanel regulation cards.
 
 Test click/hover/highlight behavior on the map.
 
-- [ ] **Stream click → select** — Click a stream → it highlights purple, InfoPanel opens
-- [ ] **Lake click → select** — Click a lake polygon → polygon highlights, InfoPanel opens
-- [ ] **Disambiguation menu** — Click where streams overlap → "MULTIPLE FEATURES" menu appears instantly
-- [ ] **Disambiguation hover** — Hover an item in menu → corresponding feature highlights on map
-- [ ] **Deselect** — Click empty map area → selection clears, InfoPanel closes
-- [ ] **Zoom to feature** — Select from search → map flies to feature bbox
+- [x] **Stream click → select** — Click a stream → it highlights purple, InfoPanel opens
+- [x] **Lake click → select** — Click a lake polygon → polygon highlights, InfoPanel opens
+- [x] **Disambiguation menu** — Click where streams overlap → "MULTIPLE FEATURES" menu appears instantly
+- [x] **Disambiguation hover** — Hover an item in menu → corresponding feature highlights on map
+- [x] **Deselect** — Click empty map area → selection clears, InfoPanel closes
+- [x] **Zoom to feature** — Select from search → map flies to feature bbox
 
 ---
 
@@ -78,20 +92,23 @@ Test click/hover/highlight behavior on the map.
 
 Test that URLs restore correctly on page load.
 
-- [ ] **Named feature URL** — Navigate to `/waterbody/<wbg>/` → feature loads + selects + flies to
-- [ ] **Unnamed feature URL** — Navigate to `?f=<reach_id>` → resolves via API, selects correctly
-- [ ] **Section param** — Navigate to `/waterbody/<wbg>/?s=<reach_id>` → correct section tab active
-- [ ] **Share button** — Click share → URL copies → paste in new tab → same feature loads
-- [ ] **Browser back/forward** — Select feature A → feature B → back → feature A restores
+- [x] **Named feature URL** — Navigate to `/waterbody/<wbg>/` → feature loads + selects + flies to
+    * Fixed: `navigateToWaterbody` always writes `?s=` param; URL update effect extracts `frontend_group_id` as sectionFgid
+- [x] **Unnamed feature URL** — Navigate to `?f=<reach_id>` → resolves via API, selects correctly
+- [x] **Section param** — Navigate to `/waterbody/<wbg>/?s=<reach_id>` → correct section tab active
+- [x] **Share button** — Click share → URL copies → paste in new tab → same feature loads
+- [x] **Browser back/forward** — Select feature A → feature B → back → feature A restores
+    * Fixed: switched `replaceState` → `pushState` + `popstate` listener with `popstateInProgressRef` guard to prevent infinite loops
 
 ---
 
 ## F. Prerender & SEO
 
-- [ ] **Pages generated** — `ls webapp/dist/waterbody/ | wc -l` → should be 18,000+
-- [ ] **Sitemap exists** — `cat webapp/dist/sitemap.xml | head -20` → valid XML with URLs
-- [ ] **Prerender content** — `cat webapp/dist/waterbody/<some-wbg>/index.html | grep "<title>"` → correct feature name in title
-- [ ] **Canonical URL** — Prerendered pages have `<link rel="canonical">` tag
+- [x] **Pages generated** — `ls webapp/dist/waterbody/ | wc -l` → should be 18,000+
+- [x] **Sitemap exists** — `cat webapp/dist/sitemap.xml | head -20` → valid XML with URLs
+- [x] **Prerender content** — `cat webapp/dist/waterbody/<some-wbg>/index.html | grep "<title>"` → correct feature name in title
+    * Fixed: picks most common reach name (non-"unnamed" tiebreaker), includes alt segment names + direct name_variants in title
+- [x] **Canonical URL** — Prerendered pages have `<link rel="canonical">` tag
 
 ---
 
@@ -101,15 +118,15 @@ These are V1 bugs that have fixes/mitigations. Verify they haven't regressed.
 
 | Check | How to test |
 |-------|-------------|
-| [ ] Morris Creek NOT under Chehalis | Search "Morris Creek" → no Chehalis regs in InfoPanel |
-| [ ] Similkameen River all segments | Search "Similkameen" → click → all segments present across zones |
-| [ ] Parker Lake no unnamed lakes grouped | Search "Parker Lake" → only Parker Lake, no unnamed extras |
-| [ ] Liumchen eco reserve renders | Zoom to Liumchen → unnamed waterbody in reserve visible |
-| [ ] Unnamed streams don't get reg names | Zoom into admin zone → unnamed streams still show "Unnamed", not admin area name (e.g. "LIARD RIVER WATERSHED") |
-| [ ] Kootenay River segments correct | Search "Kootenay River" → segments split at Columbia Lake boundary |
-| [ ] Chilliwack Lake under-streams hidden | Zoom into Chilliwack Lake → streams under polygon not visible |
-| [ ] Dinosaur Lake streams visible | Search "Dinosaur Lake" → streams visible (no polygon hides them) |
-| [ ] Tributary BFS stops at regulated lakes | Check a tributary chain → BFS doesn't cross through a lake with regs |
+| [x] Morris Creek NOT under Chehalis | Search "Morris Creek" → no Chehalis regs in InfoPanel |
+| [x] Similkameen River all segments | Search "Similkameen" → click → all segments present across zones |
+| [x] Parker Lake no unnamed lakes grouped | Search "Parker Lake" → only Parker Lake, no unnamed extras |
+| [x] Liumchen eco reserve renders | Zoom to Liumchen → unnamed waterbody in reserve visible |
+| [x] Unnamed streams don't get reg names | Zoom into admin zone → unnamed streams still show "Unnamed", not admin area name (e.g. "LIARD RIVER WATERSHED") |
+| [x] Kootenay River segments correct | Search "Kootenay River" → segments split at Columbia Lake boundary |
+| [x] Chilliwack Lake under-streams hidden | Zoom into Chilliwack Lake → streams under polygon not visible |
+| [x] Dinosaur Lake streams visible | Search "Dinosaur Lake" → streams visible (no polygon hides them) |
+| [x] Tributary BFS stops at regulated lakes | Check a tributary chain → BFS doesn't cross through a lake with regs |
 
 ---
 
@@ -119,11 +136,12 @@ These were open issues that now have implementations. Confirm they work in deplo
 
 | Check | How to test |
 |-------|-------------|
-| [ ] Nicomen Slough lakes linked | Search "Nicomen Slough" → slough lakes included via `waterbody_poly_ids` resolver |
-| [ ] Kettle River no US segments | Search "Kettle River" → no segments south of BC border (WMU boundary clip in `_load_streams`) |
-| [ ] Piggott/Oyster Creek provenance | Search "Piggott Creek" → "Tributary of Oyster Creek" shows via `source` field |
-| [ ] Bear River only R2 | Search "Bear River" (Region 2) → should show only R2 regs, not R1 (two-pass hysteresis rejects buffer-only matches) |
-| [ ] Campbell River not "Tributary of" | Search "Campbell River" (R2) → should show "Also known as: Little Campbell River" as direct alias, NOT "Tributary of Little Campbell River" |
+| [x] Nicomen Slough lakes linked | Search "Nicomen Slough" → slough lakes included via `waterbody_poly_ids` resolver |
+    * all there but they all show up when searched which is a bit nasty... not sure how to handle this
+| [x] Kettle River no US segments | Search "Kettle River" → no segments south of BC border (WMU boundary clip in `_load_streams`) |
+| [x] Piggott/Oyster Creek provenance | Search "Piggott Creek" → "Tributary of Oyster Creek" shows via `source` field |
+| [x] Bear River only R2 | Search "Bear River" (Region 2) → should show only R2 regs, not R1 (two-pass hysteresis rejects buffer-only matches) |
+| [x] Campbell River not "Tributary of" | Search "Campbell River" (R2) → should show "Also known as: Little Campbell River" as direct alias, NOT "Tributary of Little Campbell River" |
 
 ## I. Known Open Issues (not yet fixed)
 

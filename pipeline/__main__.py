@@ -8,12 +8,11 @@ Steps:
     all     — atlas → tiles → enrich (default)
 
 Usage:
-    python -m pipeline                  # run all
-    python -m pipeline --step atlas     # atlas only
-    python -m pipeline --step tiles     # tiles only
-    python -m pipeline --step enrich    # enrich only
-    python -m pipeline --step all       # full pipeline
-    python -m pipeline --dry-run        # enrich dry-run
+    python -m pipeline                        # run all
+    python -m pipeline --step atlas           # atlas only
+    python -m pipeline --step tiles enrich    # tiles then enrich
+    python -m pipeline --step all             # full pipeline
+    python -m pipeline --dry-run              # enrich dry-run
 """
 
 from __future__ import annotations
@@ -97,9 +96,10 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="V2 pipeline runner")
     parser.add_argument(
         "--step",
+        nargs="*",
         choices=["atlas", "tiles", "enrich", "all"],
-        default="all",
-        help="Pipeline step to run (default: all)",
+        default=["all"],
+        help="Pipeline step(s) to run — executed in canonical order (default: all)",
     )
     parser.add_argument(
         "--config",
@@ -117,14 +117,16 @@ def main() -> None:
     cfg = yaml.safe_load(config_path.read_text())
 
     atlas_path = None
+    steps = set(args.step)
+    run_all = "all" in steps
 
-    if args.step in ("atlas", "all"):
+    if run_all or "atlas" in steps:
         atlas_path = _step_atlas(cfg)
 
-    if args.step in ("tiles", "all"):
+    if run_all or "tiles" in steps:
         _step_tiles(cfg, atlas_path)
 
-    if args.step in ("enrich", "all"):
+    if run_all or "enrich" in steps:
         _step_enrich(cfg, config_path, dry_run=args.dry_run)
 
     log.info("Done.")
