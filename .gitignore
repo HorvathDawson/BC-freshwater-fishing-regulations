@@ -20,6 +20,7 @@ cache/
 .env.local
 .env.*.local
 output
+# */node_modules/*
 
 # Wrangler local state (Miniflare R2, seed stamps)
 .wrangler/
