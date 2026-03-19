@@ -366,7 +366,7 @@ def main():
         "streams": {"type": "FWA_STREAMS", "ftp": FTP_STR},
         "tidal_boundary": {
             "type": "R2_GPKG",
-            "url": "https://bc-fishing-r2.horvath-dawson.workers.dev/DFO_TIDAL_BOUNDARY.gpkg",
+            "url": "https://data.canifishthis.ca/DFO_TIDAL_BOUNDARY.gpkg",
             "layer": "tidal_boundary",
         },
     }

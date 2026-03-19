@@ -7,7 +7,6 @@ export default defineWorkersConfig({
         wrangler: { configPath: './wrangler.toml' },
         miniflare: {
           r2Buckets: ['BUCKET'],
-          bindings: { SHARD_VERSION: 'v8' },
         },
         isolatedStorage: false,
       },

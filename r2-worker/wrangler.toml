@@ -6,8 +6,10 @@ compatibility_date = "2024-09-25"
 binding = "BUCKET"
 bucket_name = "bc-fishing-regulations"
 
+# Worker-side source of truth for shard version.
+# Keep in sync with config.yaml → output.pipeline.shard_version
 [vars]
-SHARD_VERSION = "v8"
+SHARD_VERSION = "v1"
 
 [observability]
 [observability.logs]
@@ -26,8 +28,13 @@ preview_urls = false
 binding = "BUCKET"
 bucket_name = "bc-fishing-regulations-staging"
 
+# Keep in sync with [vars].SHARD_VERSION above
 [env.staging.vars]
-SHARD_VERSION = "v8"
+SHARD_VERSION = "v1"
+
+[[env.staging.routes]]
+pattern = "data-staging.canifishthis.ca"
+custom_domain = true
 
 # ── Production ───────────────────────────────────────────────────────
 # Deploy via Cloudflare git integration: branch=main, --env production
@@ -42,5 +49,10 @@ preview_urls = false
 binding = "BUCKET"
 bucket_name = "bc-fishing-regulations"
 
+# Keep in sync with [vars].SHARD_VERSION above
 [env.production.vars]
-SHARD_VERSION = "v8"
+SHARD_VERSION = "v1"
+
+[[env.production.routes]]
+pattern = "data.canifishthis.ca"
+custom_domain = true

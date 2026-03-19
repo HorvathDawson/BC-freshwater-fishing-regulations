@@ -23,7 +23,7 @@ output:
     extraction: "output/pipeline/extraction"
     parsing: "output/pipeline/parsing"
     deploy: "output/pipeline/deploy"
-    shard_version: 8
+    shard_version: 1
 
 # ============================================================================
 # Input Data Directories

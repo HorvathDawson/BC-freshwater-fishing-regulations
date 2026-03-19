@@ -145,7 +145,7 @@ def build(config_path: Path = Path("config.yaml"), dry_run: bool = False) -> Pat
     graph_path = project_root / cfg["output"]["pipeline"]["graph"]["graph"]
     gpkg_path = project_root / cfg["data_accessor"]["gpkg_path"]
     deploy_dir = project_root / cfg["output"]["pipeline"]["deploy"]
-    shard_version = cfg["output"]["pipeline"].get("shard_version", 8)
+    shard_version = cfg["output"]["pipeline"].get("shard_version", 1)
 
     # ── Phase 1: Load & Merge ────────────────────────────────────────
     t0 = time.perf_counter()

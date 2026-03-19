@@ -26,8 +26,8 @@ Two Cloudflare Workers per environment, one R2 bucket per environment:
 | **R2 Bucket** | `bc-fishing-regulations-staging` | `bc-fishing-regulations` |
 | **R2 Worker** | `bc-fishing-r2-staging` | `bc-fishing-r2` |
 | **Webapp Worker** | `bc-fishing-regulations-staging` | `bc-fishing-regulations` |
-| **R2 Worker URL** | `bc-fishing-r2-staging.horvath-dawson.workers.dev` | `bc-fishing-r2.horvath-dawson.workers.dev` |
-| **Frontend URL** | `bc-fishing-regulations-staging.horvath-dawson.workers.dev` | `canifishthis.ca` |
+| **R2 Data URL** | `data-staging.canifishthis.ca` | `data.canifishthis.ca` |
+| **Frontend URL** | `staging.canifishthis.ca` | `canifishthis.ca` |
 
 Workers auto-deploy via Cloudflare git integration when you push to the corresponding branch.
 
@@ -85,7 +85,7 @@ This builds with `.env.staging` (Vite `--mode staging`), pointing `VITE_TILE_BAS
 
 ### 5. Verify staging
 
-Visit `https://bc-fishing-regulations-staging.horvath-dawson.workers.dev` and test.
+Visit `https://staging.canifishthis.ca` and test.
 
 ---
 
@@ -95,8 +95,7 @@ Production is **different from staging** in these ways:
 
 1. **Custom domain** — `canifishthis.ca` routes to the production webapp worker
 2. **Prerender/SEO** — production build generates 19,000+ prerendered HTML pages + sitemap.xml
-3. **workers_dev disabled** — production workers are only accessible via custom routes, not `*.workers.dev`
-4. **Different R2 bucket** — `bc-fishing-regulations` (no `-staging` suffix)
+3. **Different R2 bucket** — `bc-fishing-regulations` (no `-staging` suffix)
 
 ### 1. Merge staging → main
 
@@ -108,13 +107,20 @@ git push origin main
 
 Cloudflare auto-deploys both production workers on push to `main`.
 
-### 2. Upload data to production R2
+### 2. Promote data: staging R2 → production R2
 
+Instead of re-uploading from local, copy directly from the staging bucket:
+
+```bash
+./scripts/promote-r2.sh              # copy staging → production (additive)
+./scripts/promote-r2.sh --dry-run    # preview what would change
+./scripts/promote-r2.sh --clean      # sync with delete (removes stale prod files)
+```
+
+Or upload from local if you prefer:
 ```bash
 DEPLOY_ENV=production ./scripts/seed-r2.sh
 ```
-
-Same script, different bucket. Only needed if pipeline data changed.
 
 ### 3. Verify production
 
@@ -188,13 +194,33 @@ DEPLOY_ENV=staging ./scripts/update-in-season.sh --upload  # upload to staging
 | `webapp/.env.staging` | Staging R2 worker URL |
 | `webapp/.env.production` | Production R2 worker URL + prerender cap |
 | `scripts/seed-r2.sh` | Upload deploy/ to R2 via rclone |
+| `scripts/promote-r2.sh` | Copy staging R2 → production R2 |
 | `scripts/seed.mjs` | Seed local Miniflare R2 for dev |
 | `scripts/dev.mjs` | Start local dev environment |
 | `STAGING.md` | Detailed staging setup (one-time steps) |
 
 ## SHARD_VERSION
 
-Both environments use `SHARD_VERSION = "v8"` in `r2-worker/wrangler.toml`. This prefixes all shard keys in R2. To deploy a new data format:
+Both environments use `SHARD_VERSION = "v1"` in `r2-worker/wrangler.toml`. This prefixes all shard keys in R2. To deploy a new data format:
 1. Bump the version in `[env.staging.vars]` / `[env.production.vars]`
 2. Re-run pipeline + re-seed R2
 3. Old shards remain in the bucket (safe rollback point)
+
+## Cleaning Up R2 Buckets
+
+Old shard versions and stale files accumulate in R2. To clean:
+
+```bash
+# List what's in a bucket:
+rclone ls r2:bc-fishing-regulations-staging | head -20
+
+# Remove old shard version (e.g. v7 after upgrading to v8):
+rclone delete r2:bc-fishing-regulations-staging --include "shards/v7/**"
+
+# Nuclear: wipe entire bucket and re-seed:
+rclone delete r2:bc-fishing-regulations-staging
+./scripts/seed-r2.sh
+
+# Sync staging → production exactly (removes prod files not in staging):
+./scripts/promote-r2.sh --clean
+```

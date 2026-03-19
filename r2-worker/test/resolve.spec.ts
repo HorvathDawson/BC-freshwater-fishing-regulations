@@ -31,7 +31,7 @@ const SAMPLE_FID_2 = '707232';
 const SAMPLE_REACH_ID = 'a1b2c3d4e5f6';
 const SAMPLE_REACH_ID_2 = 'f9e8d7c6b5a4';
 const SAMPLE_WBK = '351';
-const VERSION = 'v8';
+const VERSION = env.SHARD_VERSION;
 
 type ReachFixture = {
   display_name: string;

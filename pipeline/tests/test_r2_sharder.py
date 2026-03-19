@@ -243,10 +243,10 @@ class TestBuildTier0:
         }
 
         tier0 = build_tier0(
-            regulations, reg_sets, search_index, reaches, reach_segments, "v8"
+            regulations, reg_sets, search_index, reaches, reach_segments, "v1"
         )
 
-        assert tier0["_shard_version"] == "v8"
+        assert tier0["_shard_version"] == "v1"
         assert tier0["regulations"] == regulations
         assert tier0["reg_sets"] == reg_sets
         assert len(tier0["search_index"]) == 1

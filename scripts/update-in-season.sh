@@ -26,11 +26,11 @@ DEPLOY_ENV="${DEPLOY_ENV:-staging}"
 case "$DEPLOY_ENV" in
   staging)
     R2_BUCKET="bc-fishing-regulations-staging"
-    R2_ORIGIN="${R2_ORIGIN:-https://bc-fishing-r2-staging.horvath-dawson.workers.dev}"
+    R2_ORIGIN="${R2_ORIGIN:-https://data-staging.canifishthis.ca}"
     ;;
   production)
     R2_BUCKET="bc-fishing-regulations"
-    R2_ORIGIN="${R2_ORIGIN:-https://bc-fishing-r2.horvath-dawson.workers.dev}"
+    R2_ORIGIN="${R2_ORIGIN:-https://data.canifishthis.ca}"
     ;;
   *)
     echo "ERROR: Unknown DEPLOY_ENV=$DEPLOY_ENV (use staging or production)" >&2

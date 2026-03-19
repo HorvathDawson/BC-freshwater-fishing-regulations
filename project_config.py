@@ -201,7 +201,10 @@ class ProjectConfig:
         """Get temporary directory for data fetch operations."""
         return self.get_path("data", "fetch", "temp_dir")
 
-
+    @property
+    def shard_version(self) -> int:
+        """Get the shard version from config.yaml (source of truth for pipeline)."""
+        return self._config["output"]["pipeline"]["shard_version"]
 
 
 # Global singleton instance

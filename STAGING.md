@@ -30,7 +30,7 @@ In Cloudflare dashboard → Workers & Pages → Create → Connect to Git:
 - Build command: `cd r2-worker && npm install`
 - Deploy command: `wrangler deploy --env staging`
 
-This gives you `https://bc-fishing-r2-staging.<account>.workers.dev`.
+This gives you `https://data-staging.canifishthis.ca` (custom domain) or `https://bc-fishing-r2-staging.<account>.workers.dev` (fallback).
 Every push to `staging` auto-deploys the worker.
 
 ### 3. Seed staging R2 with pipeline data
@@ -50,7 +50,7 @@ Every push to `staging` auto-deploys the worker.
 
 ```sh
 cd webapp
-VITE_TILE_BASE_URL=https://bc-fishing-r2-staging.<account>.workers.dev npm run build
+VITE_TILE_BASE_URL=https://data-staging.canifishthis.ca npm run build
 npx vite preview
 ```
 
@@ -105,5 +105,5 @@ DEPLOY_ENV=production ./scripts/seed-r2.sh
 | Var | Where | Purpose |
 |-----|-------|---------|
 | `VITE_TILE_BASE_URL` | Frontend build | Points at worker URL (empty = same origin) |
-| `SHARD_VERSION` | `r2-worker/wrangler.toml` | Which shard prefix to read (`v8`) |
+| `SHARD_VERSION` | `r2-worker/wrangler.toml` | Which shard prefix to read (`v1`) |
 | `DEPLOY_ENV` | `update-in-season.sh` / GHA | `staging` or `production` — controls bucket + origin |

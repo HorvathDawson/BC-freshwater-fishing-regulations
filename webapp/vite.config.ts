@@ -12,7 +12,7 @@ function injectPreloadHints() {
       const r2Base = process.env.VITE_TILE_BASE_URL
       if (!r2Base) return []   // dev — no transforms
 
-      // Extract the origin (e.g. https://bc-fishing-r2.horvath-dawson.workers.dev)
+      // Extract the origin (e.g. https://data.canifishthis.ca)
       let origin: string
       try { origin = new URL(r2Base).origin } catch { origin = r2Base }
 
