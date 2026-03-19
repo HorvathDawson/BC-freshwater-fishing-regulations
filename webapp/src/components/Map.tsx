@@ -540,6 +540,8 @@ const MapComponent = () => {
     const regDataRef = useRef<RegulationData | null>(null);
     // Monotonic counter for click handler — discards stale async resolve results.
     const clickGenRef = useRef(0);
+    // Last known cursor position (lngLat) for re-drawing cursor circle on zoom
+    const cursorLngLatRef = useRef<{ lng: number; lat: number } | null>(null);
     
     const [selectedFeature, setSelectedFeature] = useState<FeatureInfo | null>(null);
     // Derived from wbgIndexRef whenever selectedFeature changes — never set manually.
@@ -1354,10 +1356,18 @@ const MapComponent = () => {
 
         map.on('mousemove', (e) => {
             if (!map.isStyleLoaded()) return;
+            cursorLngLatRef.current = e.lngLat;
             const features = map.queryRenderedFeatures([[e.point.x - 10, e.point.y - 10], [e.point.x + 10, e.point.y + 10]], { layers: INTERACTABLE_LAYERS });
             map.getCanvas().style.cursor = features.length > 0 ? 'pointer' : '';
             if (isDisambigOpenRef.current) return;
             (map.getSource('cursor-circle') as maplibregl.GeoJSONSource)?.setData({ type: 'FeatureCollection', features: [{ type: 'Feature', geometry: createCirclePolygon(e.lngLat, map.getZoom()), properties: {} }] });
+        });
+
+        // Re-draw cursor circle on zoom so it resizes without requiring mouse movement
+        map.on('zoom', () => {
+            if (!cursorLngLatRef.current || isDisambigOpenRef.current) return;
+            const src = map.getSource('cursor-circle') as maplibregl.GeoJSONSource;
+            src?.setData({ type: 'FeatureCollection', features: [{ type: 'Feature', geometry: createCirclePolygon(cursorLngLatRef.current, map.getZoom()), properties: {} }] });
         });
 
         map.on('click', async (e) => {
