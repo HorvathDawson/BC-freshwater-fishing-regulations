@@ -411,7 +411,7 @@ def _build_ungazetted_reaches(
         # Build name variants from the override (title-cased for display)
         nv: List[Dict[str, str]] = []
         for name in entry.name_variants:
-            tc = _title_case(name.replace('"', '').strip())
+            tc = _title_case(name.replace('"', "").strip())
             if tc != rec.water:
                 nv.append({"name": tc, "source": "direct"})
 
@@ -682,7 +682,7 @@ def build_regulation_index(
             if hasattr(me, "canonical_name") and me.canonical_name:
                 names.add(me.canonical_name)
             for nv in me.name_variants:
-                tc = _title_case(nv.replace('"', '').strip())
+                tc = _title_case(nv.replace('"', "").strip())
                 # Skip variants that are just the water name itself
                 if tc and tc != water_tc:
                     names.add(tc)
