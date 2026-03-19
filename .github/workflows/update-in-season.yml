@@ -119,6 +119,7 @@ jobs:
               TOTAL=$(jq '.stats.total' "$REPORT")
               MATCHED=$(jq '.stats.matched' "$REPORT")
               UNMATCHED=$(jq '.stats.unmatched' "$REPORT")
+              NO_REACHES=$(jq '[.changes[] | select(.match_status == "matched_no_reaches")] | length' "$REPORT")
               SCRAPED_AT=$(jq -r '.scraped_at // "unknown"' "$REPORT")
               SOURCE=$(jq -r '.source_url // "unknown"' "$REPORT")
               CHANGES=$(jq '.changes | length' "$REPORT")
@@ -130,8 +131,16 @@ jobs:
               echo "| Total changes | $TOTAL |"
               echo "| Resolved entries | $CHANGES |"
               echo "| Matched | ✅ $MATCHED |"
+              echo "| Matched (no reaches) | $( [ "$NO_REACHES" -gt 0 ] && echo "⚠️" || echo "✅" ) $NO_REACHES |"
               echo "| Unmatched | $( [ "$UNMATCHED" -gt 0 ] && echo "⚠️" || echo "✅" ) $UNMATCHED |"
               echo ""
+
+              if [ "$NO_REACHES" -gt 0 ]; then
+                echo "### Matched but no reaches"
+                echo ""
+                jq -r '.changes[] | select(.match_status == "matched_no_reaches") | "- \`\(.water)\` (\(.region))"' "$REPORT" 2>/dev/null
+                echo ""
+              fi
 
               if [ "$UNMATCHED" -gt 0 ]; then
                 echo "### Unmatched waters"
@@ -142,10 +151,10 @@ jobs:
                 echo ""
               fi
 
-              echo "### Sample changes"
+              echo "### All changes"
               echo ""
-              jq -r '.changes[:5][] | "- **\(.water)** (\(.region)): \(.change)"' "$REPORT" 2>/dev/null || echo "_No changes parsed._"
-              REMAINING=$((CHANGES - 5))
-              [ "$REMAINING" -gt 0 ] && echo "- _...and $REMAINING more_"
+              echo "| Water | Region | Reaches | Status |"
+              echo "|-------|--------|---------|--------|"
+              jq -r '.changes[] | "| \(.water) | \(.region) | \(.reach_ids | length) | \(.match_status) |"' "$REPORT" 2>/dev/null || echo "_No changes parsed._"
             fi
           } >> "$GITHUB_STEP_SUMMARY"
