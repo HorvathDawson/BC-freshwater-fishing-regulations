@@ -38,10 +38,13 @@ Usage
 
 from __future__ import annotations
 
-from typing import List, Optional
+import logging
+from typing import Dict, List, Optional, Set, Tuple
 
 from shapely.geometry.base import BaseGeometry
 from shapely.prepared import PreparedGeometry, prep
+
+logger = logging.getLogger(__name__)
 
 
 def stream_polygon_mask(
@@ -118,3 +121,110 @@ def stream_polygon_mask(
 
     # Pass 2 — stream is known to enter.  Include anything within the buffer.
     return [p_buf.intersects(seg) for seg in stream_geometries]
+
+
+# ---------------------------------------------------------------------------
+# Vectorized multi-polygon matching (STRtree)
+# ---------------------------------------------------------------------------
+
+
+def match_features_to_polygons(
+    polygons: List[BaseGeometry],
+    buffer_m: float = 500.0,
+    buffered: Optional[List[BaseGeometry]] = None,
+    stream_fids: Optional[List[str]] = None,
+    stream_geoms: Optional[List[BaseGeometry]] = None,
+    fid_to_wsc: Optional[Dict[str, str]] = None,
+    waterbody_keys: Optional[List[str]] = None,
+    waterbody_geoms: Optional[List[BaseGeometry]] = None,
+) -> List[Tuple[Set[str], Set[str]]]:
+    """Match streams and waterbodies to polygons using STRtree + two-pass hysteresis.
+
+    This is the single canonical implementation of the two-pass rule
+    applied across one or more target polygons.  All spatial membership
+    queries in the pipeline should funnel through here.
+
+    Parameters
+    ----------
+    polygons :
+        Exact (unbuffered) polygon geometries.  Must be in a projected
+        CRS with metre units (EPSG:3005 for BC) so *buffer_m* is meaningful.
+    buffer_m :
+        Buffer distance in CRS units (metres for EPSG:3005).  Controls
+        how much leniency is granted to streams straddling polygon edges.
+        Ignored when *buffered* is provided.
+    buffered :
+        Optional pre-computed buffered polygons — same order as *polygons*.
+        Pass this to avoid recomputing buffers when calling repeatedly
+        with the same polygons.  When ``None``, computed automatically
+        from *polygons* and *buffer_m*.
+    stream_fids :
+        Optional FID for every stream segment.
+    stream_geoms :
+        Optional geometry for every stream segment — same order as *stream_fids*.
+    fid_to_wsc :
+        Optional map of each fid to its FWA watershed code (WSC group key).
+        Segments sharing a WSC are treated as one logical stream for
+        the two-pass hysteresis gate.
+    waterbody_keys :
+        Optional list of waterbody keys.
+    waterbody_geoms :
+        Optional list of waterbody geometries — same order as *waterbody_keys*.
+
+    Returns
+    -------
+    List of ``(matched_stream_fids, matched_waterbody_keys)`` tuples,
+    one per polygon in the same order as *polygons*.
+    """
+    import numpy as np
+    from shapely import STRtree
+
+    n = len(polygons)
+    if buffered is None:
+        buffered = [p.buffer(buffer_m) for p in polygons]
+    tree_exact = STRtree(polygons)
+    tree_buffered = STRtree(buffered)
+
+    result_fids: List[Set[str]] = [set() for _ in range(n)]
+    result_wbks: List[Set[str]] = [set() for _ in range(n)]
+
+    # ── Streams: two-pass hysteresis per WSC group ──
+    if stream_fids and stream_geoms and fid_to_wsc:
+        geom_arr = np.array(stream_geoms, dtype=object)
+
+        # Pass 1 — exact: which (WSC, polygon_index) pairs genuinely enter?
+        exact_s_idx, exact_p_idx = tree_exact.query(geom_arr, predicate="intersects")
+        wsc_poly_enters: Set[Tuple[str, int]] = set()
+        for si, pi in zip(exact_s_idx.tolist(), exact_p_idx.tolist()):
+            wsc_poly_enters.add((fid_to_wsc[stream_fids[si]], pi))
+        logger.debug(
+            "  Pass 1 (exact): %d stream–poly pairs, %d WSC–poly entries",
+            len(exact_s_idx),
+            len(wsc_poly_enters),
+        )
+
+        # Pass 2 — buffered: include segments only for entered WSC–poly pairs
+        buf_s_idx, buf_p_idx = tree_buffered.query(geom_arr, predicate="intersects")
+        included = 0
+        excluded = 0
+        for si, pi in zip(buf_s_idx.tolist(), buf_p_idx.tolist()):
+            fid = stream_fids[si]
+            if (fid_to_wsc[fid], pi) in wsc_poly_enters:
+                result_fids[pi].add(fid)
+                included += 1
+            else:
+                excluded += 1
+        logger.debug(
+            "  Pass 2 (buffered): %d included, %d excluded by hysteresis",
+            included,
+            excluded,
+        )
+
+    # ── Polygon waterbodies: single vectorized buffered query ──
+    if waterbody_keys and waterbody_geoms:
+        poly_arr = np.array(waterbody_geoms, dtype=object)
+        w_idx, p_idx = tree_buffered.query(poly_arr, predicate="intersects")
+        for wi, pi in zip(w_idx.tolist(), p_idx.tolist()):
+            result_wbks[pi].add(waterbody_keys[wi])
+
+    return [(result_fids[i], result_wbks[i]) for i in range(n)]

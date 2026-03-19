@@ -123,6 +123,7 @@ class AtlasStub:
         self.osm_admin: Dict[str, AdminRecord] = {}
         self.aboriginal_lands: Dict[str, AdminRecord] = {}
         self.poly_id_to_wbk: Dict[str, str] = {}
+        self.zone_polygons: Dict[str, Any] = {}
 
 
 def _build_metadata(

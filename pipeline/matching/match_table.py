@@ -164,6 +164,14 @@ class OverrideEntry(_EntryBase):
     Custom geometry:
         ungazetted_waterbody_id — references a custom waterbody not in FWA.
 
+    Spatial restriction:
+        only_within_zones   — optional list of zone strings matching
+                              REGION_RESPONSIBLE_ID values from WMU data
+                              (e.g. ["2"], ["7A"]).  When populated, Phase 2
+                              prunes resolved features to only those
+                              intersecting the specified zone polygons
+                              (dissolved from WMU).  Empty = no pruning.
+
     skip = True  → intentionally skipped (name variant / cross-listing).
     additional_info  → injected as a 'Note' rule on the front end.
     """
@@ -181,6 +189,7 @@ class OverrideEntry(_EntryBase):
     admin_targets: List[Dict[str, str]] = field(default_factory=list)
     admin_feature_types: Optional[List[str]] = None
     canonical_name: str = ""
+    only_within_zones: List[str] = field(default_factory=list)
     skip: bool = False
     skip_reason: Optional[str] = None
     variant_of: Optional[MatchCriteria] = None
@@ -271,6 +280,8 @@ class OverrideEntry(_EntryBase):
                 "region": self.variant_of.region,
                 "mus": self.variant_of.mus,
             }
+        if self.only_within_zones:
+            d["only_within_zones"] = self.only_within_zones
         if self.additional_info is not None:
             d["additional_info"] = self.additional_info
         return d
@@ -309,6 +320,7 @@ class OverrideEntry(_EntryBase):
             admin_feature_types=data.get("admin_feature_types"),
             name_variants=data.get("name_variants", []),
             canonical_name=data.get("canonical_name", ""),
+            only_within_zones=data.get("only_within_zones", []),
             skip=data.get("skip", False),
             skip_reason=data.get("skip_reason"),
             variant_of=(

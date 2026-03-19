@@ -147,6 +147,7 @@ class FreshWaterAtlas:
         self.aboriginal_lands: Dict[str, AdminRecord] = {}
         self.tidal_boundary: Optional[BaseGeometry] = None
         self.poly_id_to_wbk: Dict[str, str] = {}
+        self.zone_polygons: Dict[str, BaseGeometry] = {}
 
         self._build()
 
@@ -176,6 +177,7 @@ class FreshWaterAtlas:
             "aboriginal_lands": self.aboriginal_lands,
             "tidal_boundary": self.tidal_boundary,
             "poly_id_to_wbk": self.poly_id_to_wbk,
+            "zone_polygons": self.zone_polygons,
         }
         with open(path, "wb") as f:
             pickle.dump(payload, f, protocol=pickle.HIGHEST_PROTOCOL)
@@ -230,6 +232,7 @@ class FreshWaterAtlas:
         obj.aboriginal_lands = payload.get("aboriginal_lands", {})
         obj.tidal_boundary = payload["tidal_boundary"]
         obj.poly_id_to_wbk = payload.get("poly_id_to_wbk", {})
+        obj.zone_polygons = payload.get("zone_polygons", {})
 
         total = (
             len(obj.streams)
@@ -544,6 +547,24 @@ class FreshWaterAtlas:
                     minzoom=_area_minzoom(area, ADMIN_ZOOM_THRESHOLDS),
                 )
             logger.info(f"Loaded {len(self.wmu):,} wildlife management units")
+
+            # Dissolve WMU polygons by REGION_RESPONSIBLE_ID → zone polygons
+            zone_geoms: Dict[str, list] = defaultdict(list)
+            for _, row in gdf.iterrows():
+                zone_id = str(row.get("REGION_RESPONSIBLE_ID") or "")
+                if zone_id:
+                    geom = row.geometry
+                    if not geom.is_valid:
+                        geom = geom.buffer(0)
+                    zone_geoms[zone_id].append(geom)
+            for zone_str, geoms in zone_geoms.items():
+                poly = unary_union(geoms)
+                if not poly.is_valid:
+                    poly = poly.buffer(0)
+                self.zone_polygons[zone_str] = poly
+            logger.info(
+                f"Built {len(self.zone_polygons)} zone polygons (by REGION_RESPONSIBLE_ID)"
+            )
         else:
             logger.warning("'wmu' layer not found in GPKG — skipping")
 

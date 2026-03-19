@@ -1322,6 +1322,7 @@
       "25152",
       "8341"
     ],
+    "only_within_zones": ["2"],
     "name_variants": [
       "FRASER RIVER"
     ]
@@ -1653,7 +1654,8 @@
     "note": "Fraser River in Region 3. Channels and sloughs are in Zone 2 only.",
     "gnis_ids": [
       "39325"
-    ]
+    ],
+    "only_within_zones": ["3"]
   },
   {
     "type": "override",
@@ -3269,7 +3271,8 @@
     "note": "Fraser River in Region 5. Channels and sloughs are in Zone 2 only.",
     "gnis_ids": [
       "39325"
-    ]
+    ],
+    "only_within_zones": ["5"]
   },
   {
     "type": "override",
@@ -4219,7 +4222,8 @@
     "note": "Fraser River in Region 7A. Channels and sloughs are in Zone 2 only.",
     "gnis_ids": [
       "39325"
-    ]
+    ],
+    "only_within_zones": ["7A"]
   },
   {
     "type": "override",

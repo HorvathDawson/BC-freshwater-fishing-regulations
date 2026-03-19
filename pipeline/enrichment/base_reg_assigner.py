@@ -92,21 +92,14 @@ def _precompute_mu_features(
 ) -> Dict[str, Tuple[Set[str], Set[str]]]:
     """Pre-compute {mu_id: (stream_fids, waterbody_keys)} for every MU.
 
-    Uses **two-pass hysteresis** for streams: a stream (WSC group) must
-    have at least one segment intersecting the *exact* MU polygon before
-    buffer leniency is applied to include additional segments from the
-    same group.  This prevents border-grazing false positives (e.g. Bear
-    River being falsely captured by R1 when it only enters R2).
-
-    Polygon waterbodies use simple buffered intersection (no WSC groups).
+    Delegates to polygon_filter.match_features_to_polygons for the
+    vectorized STRtree two-pass hysteresis.
     """
-    import numpy as np
-    from shapely import STRtree
+    from pipeline.enrichment.polygon_filter import match_features_to_polygons
 
-    # ── Build MU lookup + exact and buffered polygons ──
+    # ── Build MU polygon lists ──
     mu_ids_list: List[str] = []
-    mu_exact: List[Any] = []
-    mu_buffered: List[Any] = []
+    mu_polys: List[Any] = []
 
     for _, row in wmu_gdf.iterrows():
         mu_id = str(row.get("WILDLIFE_MGMT_UNIT_ID") or "")
@@ -116,16 +109,9 @@ def _precompute_mu_features(
         if not polygon.is_valid:
             polygon = polygon.buffer(0)
         mu_ids_list.append(mu_id)
-        mu_exact.append(polygon)
-        mu_buffered.append(polygon.buffer(buffer_m))
+        mu_polys.append(polygon)
 
-    tree_exact = STRtree(mu_exact)
-    tree_buffered = STRtree(mu_buffered)
-
-    mu_fids: Dict[str, Set[str]] = {mid: set() for mid in mu_ids_list}
-    mu_wbks: Dict[str, Set[str]] = {mid: set() for mid in mu_ids_list}
-
-    # ── Streams: two-pass hysteresis per WSC group ──
+    # ── Flatten WSC groups into parallel fid/geom/wsc lists ──
     all_fids: List[str] = []
     all_geoms: List[Any] = []
     fid_to_wsc: Dict[str, str] = {}
@@ -140,37 +126,8 @@ def _precompute_mu_features(
         len(all_geoms),
         len(mu_ids_list),
     )
-    geom_arr = np.array(all_geoms, dtype=object)
 
-    # Pass 1 — exact intersection: which (WSC, MU) pairs genuinely enter?
-    exact_s_idx, exact_m_idx = tree_exact.query(geom_arr, predicate="intersects")
-    wsc_mu_enters: Set[Tuple[str, int]] = set()
-    for si, mi in zip(exact_s_idx.tolist(), exact_m_idx.tolist()):
-        wsc_mu_enters.add((fid_to_wsc[all_fids[si]], mi))
-    logger.info(
-        "  Pass 1 (exact): %d stream–MU pairs, %d WSC–MU entries",
-        len(exact_s_idx),
-        len(wsc_mu_enters),
-    )
-
-    # Pass 2 — buffered: include segments only for entered WSC–MU pairs
-    buf_s_idx, buf_m_idx = tree_buffered.query(geom_arr, predicate="intersects")
-    included = 0
-    excluded = 0
-    for si, mi in zip(buf_s_idx.tolist(), buf_m_idx.tolist()):
-        fid = all_fids[si]
-        if (fid_to_wsc[fid], mi) in wsc_mu_enters:
-            mu_fids[mu_ids_list[mi]].add(fid)
-            included += 1
-        else:
-            excluded += 1
-    logger.info(
-        "  Pass 2 (buffered): %d included, %d excluded by hysteresis",
-        included,
-        excluded,
-    )
-
-    # ── Polygon waterbodies: single vectorized query ──
+    # ── Collect waterbody geometries ──
     poly_wbks: List[str] = []
     poly_geoms: List[Any] = []
     for collection in (atlas.lakes, atlas.wetlands, atlas.manmade):
@@ -178,19 +135,17 @@ def _precompute_mu_features(
             poly_wbks.append(wbk)
             poly_geoms.append(poly_rec.geometry)
 
-    if poly_geoms:
-        logger.info(
-            "  Vectorized MU-polygon query: %d polygons × %d MUs …",
-            len(poly_geoms),
-            len(mu_ids_list),
-        )
-        poly_arr = np.array(poly_geoms, dtype=object)
-        p_idx, mu_p_idx = tree_buffered.query(poly_arr, predicate="intersects")
-        logger.info("  → %d polygon–MU pairs", len(p_idx))
-        for pi, mi in zip(p_idx.tolist(), mu_p_idx.tolist()):
-            mu_wbks[mu_ids_list[mi]].add(poly_wbks[pi])
+    results = match_features_to_polygons(
+        polygons=mu_polys,
+        buffer_m=buffer_m,
+        stream_fids=all_fids,
+        stream_geoms=all_geoms,
+        fid_to_wsc=fid_to_wsc,
+        waterbody_keys=poly_wbks if poly_geoms else None,
+        waterbody_geoms=poly_geoms if poly_geoms else None,
+    )
 
-    return {mid: (mu_fids[mid], mu_wbks[mid]) for mid in mu_ids_list}
+    return {mid: results[i] for i, mid in enumerate(mu_ids_list)}
 
 
 # ---------------------------------------------------------------------------

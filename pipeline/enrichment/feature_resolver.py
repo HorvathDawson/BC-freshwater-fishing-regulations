@@ -14,7 +14,6 @@ import logging
 from collections import defaultdict
 from typing import Any, Dict, List, Optional, Set, Tuple
 
-from shapely import STRtree
 from tqdm import tqdm
 
 from pipeline.atlas.freshwater_atlas import FreshWaterAtlas
@@ -324,22 +323,27 @@ def _resolve_by_linear_feature_ids(
 def _resolve_by_admin_targets(
     admin_targets: List[Dict[str, str]],
     atlas: FreshWaterAtlas,
-    stream_tree: STRtree,
     stream_fid_index: List[str],
-    poly_tree: STRtree,
+    stream_geom_index: List[Any],
+    fid_to_wsc: Dict[str, str],
     poly_wbk_index: List[str],
+    poly_geom_index: List[Any],
     bc_boundary: Optional[Any] = None,
     buffer_m: float = 500.0,
 ) -> Tuple[Set[str], Set[str]]:
-    """Resolve admin polygon targets → fids + wbks via STRtree queries.
+    """Resolve admin polygon targets → fids + wbks via two-pass hysteresis.
 
-    Uses pre-built spatial indices on stream and waterbody geometries.
-    Each admin polygon is buffered and queried against the trees.
+    Uses match_features_to_polygons for the same two-pass rule as
+    MU matching and zone pruning — streams that just graze the buffer
+    but never enter the exact polygon are excluded.
     The buffer is clipped to the BC provincial boundary (WMU union)
     so it never extends outside the province.
     """
-    stream_fids: Set[str] = set()
-    waterbody_keys: Set[str] = set()
+    from pipeline.enrichment.polygon_filter import match_features_to_polygons
+
+    # Collect all admin polygons and compute their clipped buffers
+    admin_polys: List[Any] = []
+    admin_buffered: List[Any] = []
 
     for target in admin_targets:
         layer = target["layer"]
@@ -358,22 +362,35 @@ def _resolve_by_admin_targets(
             polygon = admin_rec.geometry
             if not polygon.is_valid:
                 polygon = polygon.buffer(0)
-            buffered = polygon.buffer(buffer_m)
+            buf = polygon.buffer(buffer_m)
             # Clip to BC provincial boundary so buffer doesn't leak outside
             if bc_boundary is not None:
-                buffered = buffered.intersection(bc_boundary)
-                if buffered.is_empty:
+                buf = buf.intersection(bc_boundary)
+                if buf.is_empty:
                     continue
+            admin_polys.append(polygon)
+            admin_buffered.append(buf)
 
-            # Query streams
-            hits = stream_tree.query(buffered, predicate="intersects")
-            for idx in hits:
-                stream_fids.add(stream_fid_index[idx])
+    if not admin_polys:
+        return set(), set()
 
-            # Query waterbody polygons
-            hits = poly_tree.query(buffered, predicate="intersects")
-            for idx in hits:
-                waterbody_keys.add(poly_wbk_index[idx])
+    results = match_features_to_polygons(
+        polygons=admin_polys,
+        buffer_m=buffer_m,
+        buffered=admin_buffered,
+        stream_fids=stream_fid_index if stream_fid_index else None,
+        stream_geoms=stream_geom_index if stream_geom_index else None,
+        fid_to_wsc=fid_to_wsc if fid_to_wsc else None,
+        waterbody_keys=poly_wbk_index if poly_wbk_index else None,
+        waterbody_geoms=poly_geom_index if poly_geom_index else None,
+    )
+
+    # Union results across all admin polygons
+    stream_fids: Set[str] = set()
+    waterbody_keys: Set[str] = set()
+    for matched_fids, matched_wbks in results:
+        stream_fids |= matched_fids
+        waterbody_keys |= matched_wbks
 
     return stream_fids, waterbody_keys
 
@@ -404,6 +421,73 @@ def _get_admin_polygons(atlas: FreshWaterAtlas, layer: str, feature_id: Optional
 
 
 # ---------------------------------------------------------------------------
+# Zone pruning for only_within_zones
+# ---------------------------------------------------------------------------
+
+
+def _prune_features_by_zones(
+    fids: Set[str],
+    wbks: Set[str],
+    only_within_zones: List[str],
+    zone_polygons: Dict[str, Any],
+    atlas: FreshWaterAtlas,
+    buffer_m: float = 500.0,
+) -> Tuple[Set[str], Set[str]]:
+    """Filter stream fids and waterbody keys to those within target zones.
+
+    Delegates to polygon_filter.match_features_to_polygons for the
+    vectorized STRtree two-pass hysteresis — the same code path used
+    by base_reg_assigner for MU matching.
+    """
+    from pipeline.enrichment.polygon_filter import match_features_to_polygons
+    from shapely.ops import unary_union
+
+    target_polys = [zone_polygons[z] for z in only_within_zones if z in zone_polygons]
+    if not target_polys:
+        logger.warning(
+            "only_within_zones %s: none matched WMU zones %s — no pruning applied",
+            only_within_zones,
+            sorted(zone_polygons.keys()),
+        )
+        return fids, wbks
+
+    target_exact = unary_union(target_polys)
+
+    # Build parallel fid/geom/wsc lists for candidate streams
+    stream_fids_list: List[str] = []
+    stream_geoms_list: List[Any] = []
+    fid_to_wsc: Dict[str, str] = {}
+    for fid in fids:
+        rec = atlas.streams.get(fid)
+        if rec:
+            stream_fids_list.append(fid)
+            stream_geoms_list.append(rec.geometry)
+            fid_to_wsc[fid] = rec.fwa_watershed_code or fid
+
+    # Build parallel wbk/geom lists for candidate waterbodies
+    wbk_list: List[str] = []
+    wbk_geoms: List[Any] = []
+    for wbk in wbks:
+        for collection in (atlas.lakes, atlas.wetlands, atlas.manmade):
+            rec = collection.get(wbk)
+            if rec:
+                wbk_list.append(wbk)
+                wbk_geoms.append(rec.geometry)
+                break
+
+    (matched_fids, matched_wbks) = match_features_to_polygons(
+        polygons=[target_exact],
+        buffer_m=buffer_m,
+        stream_fids=stream_fids_list if stream_fids_list else None,
+        stream_geoms=stream_geoms_list if stream_geoms_list else None,
+        fid_to_wsc=fid_to_wsc if fid_to_wsc else None,
+        waterbody_keys=wbk_list if wbk_list else None,
+        waterbody_geoms=wbk_geoms if wbk_geoms else None,
+    )[0]
+    return matched_fids, matched_wbks
+
+
+# ---------------------------------------------------------------------------
 # Public API
 # ---------------------------------------------------------------------------
 
@@ -423,38 +507,40 @@ def resolve_features(
     assignments = FeatureAssignment()
     resolved: List[ResolvedRegulation] = []
 
-    # Build spatial indices once for admin-target lookups
+    # Build parallel feature arrays once for admin-target lookups.
+    # match_features_to_polygons builds its own STRtrees internally.
     has_admin = any(
         isinstance(r.match_entry, OverrideEntry) and r.match_entry.admin_targets
         for r in records
     )
-    stream_tree: Optional[STRtree] = None
     stream_fid_index: List[str] = []
-    poly_tree: Optional[STRtree] = None
+    stream_geom_index: List[Any] = []
+    admin_fid_to_wsc: Dict[str, str] = {}
     poly_wbk_index: List[str] = []
+    poly_geom_index: List[Any] = []
 
     if has_admin:
         # Streams + under-lake streams
-        stream_geoms: List[Any] = []
         for fid, rec_s in atlas.streams.items():
             stream_fid_index.append(fid)
-            stream_geoms.append(rec_s.geometry)
+            stream_geom_index.append(rec_s.geometry)
+            admin_fid_to_wsc[fid] = rec_s.fwa_watershed_code or fid
         for fid, rec_s in atlas.under_lake_streams.items():
             stream_fid_index.append(fid)
-            stream_geoms.append(rec_s.geometry)
-        stream_tree = STRtree(stream_geoms)
-        logger.info("  Built stream STRtree: %d geometries", len(stream_geoms))
-        del stream_geoms
+            stream_geom_index.append(rec_s.geometry)
+            admin_fid_to_wsc[fid] = rec_s.fwa_watershed_code or fid
+        logger.info(
+            "  Built stream arrays for admin: %d geometries", len(stream_fid_index)
+        )
 
         # Waterbody polygons
-        poly_geoms: List[Any] = []
         for collection in (atlas.lakes, atlas.wetlands, atlas.manmade):
             for wbk, poly_rec in collection.items():
                 poly_wbk_index.append(wbk)
-                poly_geoms.append(poly_rec.geometry)
-        poly_tree = STRtree(poly_geoms)
-        logger.info("  Built polygon STRtree: %d geometries", len(poly_geoms))
-        del poly_geoms
+                poly_geom_index.append(poly_rec.geometry)
+        logger.info(
+            "  Built polygon arrays for admin: %d geometries", len(poly_wbk_index)
+        )
 
     # Build BC provincial boundary for admin buffer clipping
     bc_boundary: Optional[Any] = None
@@ -465,6 +551,9 @@ def resolve_features(
         if not bc_boundary.is_valid:
             bc_boundary = bc_boundary.buffer(0)
         logger.info("  Built BC boundary for admin buffer clipping")
+
+    # Zone polygons from atlas (built during atlas construction from WMU REGION_RESPONSIBLE_ID)
+    zone_polygons: Optional[Dict[str, Any]] = atlas.zone_polygons or None
 
     for rec in tqdm(records, desc="  Phase 2: resolving", leave=False):
         entry = rec.match_entry
@@ -520,16 +609,48 @@ def resolve_features(
                 fids, wbks = _resolve_by_admin_targets(
                     entry.admin_targets,
                     atlas,
-                    stream_tree,
                     stream_fid_index,
-                    poly_tree,
+                    stream_geom_index,
+                    admin_fid_to_wsc,
                     poly_wbk_index,
+                    poly_geom_index,
                     bc_boundary=bc_boundary,
                 )
                 all_stream_fids |= fids
                 all_wbks |= wbks
                 admin_fids = fids
                 admin_wbks = wbks
+
+        # Zone pruning: restrict features to only_within_zones if specified
+        if (
+            isinstance(entry, OverrideEntry)
+            and entry.only_within_zones
+            and zone_polygons
+        ):
+            before_fids = len(all_stream_fids)
+            before_wbks = len(all_wbks)
+            all_stream_fids, all_wbks = _prune_features_by_zones(
+                all_stream_fids,
+                all_wbks,
+                entry.only_within_zones,
+                zone_polygons,
+                atlas,
+            )
+            # Re-filter seeds and lake seeds to match pruned sets
+            all_stream_seeds = [f for f in all_stream_seeds if f in all_stream_fids]
+            all_lake_seeds = {
+                wbk: fids for wbk, fids in all_lake_seeds.items() if wbk in all_wbks
+            }
+            pruned_fids = before_fids - len(all_stream_fids)
+            pruned_wbks = before_wbks - len(all_wbks)
+            if pruned_fids or pruned_wbks:
+                logger.info(
+                    "  %s: only_within_zones=%s pruned %d fids, %d wbks",
+                    rec.reg_id,
+                    entry.only_within_zones,
+                    pruned_fids,
+                    pruned_wbks,
+                )
 
         # Determine tributary status from parsed output, with symbol cross-check
         includes_tribs = False
