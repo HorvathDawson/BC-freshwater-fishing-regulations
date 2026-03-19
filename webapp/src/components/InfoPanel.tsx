@@ -172,7 +172,7 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
     const sectionTribRegIds: string[] = activeSection?.tributary_reg_ids
         ?? (Array.isArray(feature?.properties.tributary_reg_ids) ? feature!.properties.tributary_reg_ids as string[] : []);
     const sectionBbox = (activeSection?.bbox ?? feature?.bbox) as [number, number, number, number] | undefined;
-    const sectionMinZoom = (activeSection ? 10 : (feature?.minzoom as number | undefined)) ?? 10;
+    const sectionMinZoom = (activeSection?.min_zoom ?? feature?.minzoom as number | undefined) ?? 4;
 
     // In-season data for the active section (looked up by reach ID).
     const sectionInSeason = useMemo(() => {

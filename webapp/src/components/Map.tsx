@@ -1039,10 +1039,17 @@ const MapComponent = () => {
             targetReachId = url.featureId;
         }
 
-        // Helper: select feature, fly to bbox, set state
-        const selectAndFly = (selected: FeatureOption) => {
-            if (selected.bbox && isValidBbox(selected.bbox)) {
-                flyToBox(selected.bbox, selected.minzoom ?? 10);
+        // Helper: select feature, fly to bbox, set state.
+        // Uses the parent feature's full bbox + lowest segment min_zoom so
+        // long streams fit in the viewport instead of over-zooming.
+        const selectAndFly = (selected: FeatureOption, parent?: SearchableFeature) => {
+            const flyBbox = (parent?.bbox ?? selected.bbox) as [number, number, number, number] | undefined;
+            const segments = parent?.regulation_segments || [];
+            const minZoom = segments.length > 0
+                ? Math.min(...segments.map(s => s.min_zoom ?? 4))
+                : (selected.minzoom ?? 10);
+            if (flyBbox && isValidBbox(flyBbox)) {
+                flyToBox(flyBbox, minZoom);
             }
             setSelectedFeature(selected);
         };
@@ -1064,7 +1071,7 @@ const MapComponent = () => {
             const reachId = seg?.frontend_group_id || '';
             const fidList = reachId ? regData.reachSegments[reachId] : undefined;
             const selected = buildFeatureFromJSON(targetFeature, seg, { fidList });
-            selectAndFly(selected);
+            selectAndFly(selected, targetFeature);
             return;
         }
 
@@ -1692,9 +1699,17 @@ const MapComponent = () => {
         const fidList = reachId && regData ? regData.reachSegments[reachId] : undefined;
         const selected = buildFeatureFromJSON(feature, seg, { fidList });
 
-        // Fly to the segment bbox — same flyToBox call as the InfoPanel "Zoom to" button
-        if (selected.bbox && isValidBbox(selected.bbox)) {
-            flyToBox(selected.bbox, selected.minzoom ?? 10);
+        // Fly to the entire feature bbox (not just one segment) so long
+        // streams fit in the viewport.  Use the lowest min_zoom across all
+        // segments — only clamp if EVERY segment would be invisible at the
+        // bbox-fitting zoom.
+        const flyBbox = feature.bbox as [number, number, number, number] | undefined
+            ?? selected.bbox;
+        const featureMinZoom = segments.length > 0
+            ? Math.min(...segments.map(s => s.min_zoom ?? 4))
+            : (feature.min_zoom ?? 4);
+        if (flyBbox && isValidBbox(flyBbox)) {
+            flyToBox(flyBbox, featureMinZoom);
         }
 
         if (hasMultipleSegments && !hasWbg) {
