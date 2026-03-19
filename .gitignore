@@ -11,6 +11,7 @@ __pycache__/
 *.gpkg
 *.pmtiles
 *.geojsonseq
+# *.pdf
 scripts/output/fwa_modules
 scripts/output/synopsis_pipeline
 scripts/output/fishing_synopsis.pdf
@@ -19,9 +20,9 @@ cache/
 .env
 .env.local
 .env.*.local
-output
-# */node_modules/*
+output/
+**/node_modules/
 
 # Wrangler local state (Miniflare R2, seed stamps)
-.wrangler/
+**/.wrangler/
 .seed-stamp
