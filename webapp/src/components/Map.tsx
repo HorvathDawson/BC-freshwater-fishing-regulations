@@ -400,6 +400,10 @@ const buildFeatureFromJSON = (
     const segBbox = segment?.bbox as [number, number, number, number] | undefined;
     const reachId = opts.frontendGroupId || segment?.frontend_group_id || '';
 
+    // Look up in-season changes for this reach (synchronous — data loaded at startup)
+    const inSeasonChanges = reachId ? waterbodyDataService.getInSeasonChanges(reachId) : [];
+    const inSeasonMeta = inSeasonChanges.length > 0 ? waterbodyDataService.getInSeasonMeta() : undefined;
+
     return {
         type,
         id: reachId || feature.id,
@@ -438,6 +442,12 @@ const buildFeatureFromJSON = (
             // correct filter expression without external lookups.
             _reachId: reachId,
             _fidList: opts.fidList || segment?.group_ids || undefined,
+
+            // ── In-season changes (if any) ──
+            ...(inSeasonChanges.length > 0 ? {
+                _inSeasonChanges: inSeasonChanges,
+                _inSeasonMeta: inSeasonMeta,
+            } : {}),
 
             // ── Click-time extras (admin zones, etc.) ──
             ...(opts.extras || {}),

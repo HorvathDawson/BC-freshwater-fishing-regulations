@@ -532,6 +532,45 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                             </div>
                         )}
 
+                        {/* In-season notices (scraped from BC Gov) */}
+                        {(() => {
+                            const changes = (props._inSeasonChanges || []) as { water: string; region: string; change: string; effective_date: string }[];
+                            const meta = props._inSeasonMeta as { scrapedAt: string; sourceUrl: string } | undefined;
+                            if (!changes.length) return null;
+                            return (
+                                <div className="in-season-section" role="region" aria-label="Current fishing notices">
+                                    <div className="in-season-header">
+                                        <span className="in-season-badge">In-Season Notice</span>
+                                        {meta?.scrapedAt && (
+                                            <span className="in-season-updated">
+                                                Updated {new Date(meta.scrapedAt).toLocaleDateString()}
+                                            </span>
+                                        )}
+                                    </div>
+                                    {changes.map((c, i) => (
+                                        <div key={i} className="in-season-card">
+                                            <div className="in-season-change">{c.change}</div>
+                                            {c.effective_date && (
+                                                <div className="in-season-date">
+                                                    <Calendar size={11} strokeWidth={2} /> {c.effective_date}
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))}
+                                    {meta?.sourceUrl && (
+                                        <a
+                                            className="in-season-source-link"
+                                            href={meta.sourceUrl}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                        >
+                                            View official notice on BC.gov
+                                        </a>
+                                    )}
+                                </div>
+                            );
+                        })()}
+
                         {!loadingRegs && (() => {
                             // Show message if filters hide all results
                             if (activeFilter && filteredRegulations.length === 0) {

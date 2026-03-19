@@ -369,6 +369,102 @@
     margin-bottom: 0;
 }
 
+/* ── In-season notices ──────────────────────────────────────────────── */
+
+.in-season-section {
+    margin-bottom: 14px;
+    border: 1px solid #d97706;
+    border-left: 3px solid #d97706;
+    border-radius: 4px;
+    background: #fffbeb;
+    padding: 8px 10px;
+}
+
+.in-season-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+}
+
+.in-season-badge {
+    display: inline-block;
+    padding: 2px 7px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-radius: 3px;
+    background: #d97706;
+    color: #fff;
+    flex-shrink: 0;
+}
+
+.in-season-updated {
+    font-size: 10px;
+    color: #92400e;
+    opacity: 0.7;
+}
+
+.in-season-card {
+    margin-bottom: 6px;
+    padding: 4px 0;
+}
+
+.in-season-card:last-of-type {
+    margin-bottom: 0;
+}
+
+.in-season-change {
+    font-size: 12px;
+    line-height: 1.4;
+    color: #78350f;
+}
+
+.in-season-date {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    color: #92400e;
+    margin-top: 3px;
+}
+
+.in-season-source-link {
+    display: inline-block;
+    font-size: 10px;
+    color: #b45309;
+    text-decoration: underline;
+    margin-top: 6px;
+}
+
+.in-season-source-link:hover {
+    color: #92400e;
+}
+
+/* Dark theme overrides */
+@media (prefers-color-scheme: dark) {
+    .in-season-section {
+        background: #451a03;
+        border-color: #b45309;
+    }
+    .in-season-change {
+        color: #fde68a;
+    }
+    .in-season-date {
+        color: #fbbf24;
+    }
+    .in-season-updated {
+        color: #fbbf24;
+    }
+    .in-season-source-link {
+        color: #fbbf24;
+    }
+    .in-season-source-link:hover {
+        color: #fde68a;
+    }
+}
+
 .regulation-group {
     margin-bottom: 12px;
 }

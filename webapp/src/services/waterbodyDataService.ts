@@ -146,6 +146,18 @@ export interface AdminLayerVisibility {
 /** Full admin visibility map: tile_layer_name → config */
 export type AdminVisibility = Record<string, AdminLayerVisibility>;
 
+// ── In-season changes (from in_season.json) ──────────────────────────
+
+/** A single scraped in-season regulation change resolved to reach IDs */
+export interface InSeasonChange {
+  water: string;
+  region: string;
+  change: string;
+  effective_date: string;
+  reach_ids: string[];
+  match_status: string;
+}
+
 /** Loaded + decoded tier0 data */
 export interface RegulationData {
   /** Expanded per-rule regulations keyed by synthetic rule ID */
@@ -162,6 +174,12 @@ export interface RegulationData {
   rawRegSets: string[];
   /** Admin layer visibility config (which layers show all vs. regulated only) */
   adminVisibility: AdminVisibility;
+  /** reach_id → in-season changes affecting that reach */
+  inSeasonIndex: Map<string, InSeasonChange[]>;
+  /** ISO timestamp of when in-season data was last scraped */
+  inSeasonScrapedAt: string;
+  /** Source URL for the in-season changes page */
+  inSeasonSourceUrl: string;
 }
 
 // ── Regulation expansion ─────────────────────────────────────────────
@@ -262,6 +280,39 @@ function expandRegulations(
   return { regulations, regSets };
 }
 
+
+// ── In-season index builder ──────────────────────────────────────────
+
+/** Build reach_id → InSeasonChange[] index from raw in_season.json data. */
+function buildInSeasonIndex(
+  raw: { scraped_at?: string; source_url?: string; changes?: any[] },
+): { index: Map<string, InSeasonChange[]>; scrapedAt: string; sourceUrl: string } {
+  const index = new Map<string, InSeasonChange[]>();
+  const scrapedAt = raw.scraped_at || '';
+  const sourceUrl = raw.source_url || '';
+
+  for (const c of (raw.changes || [])) {
+    if (c.match_status !== 'matched' || !c.reach_ids?.length) continue;
+    const change: InSeasonChange = {
+      water: c.water || '',
+      region: c.region || '',
+      change: c.change || '',
+      effective_date: c.effective_date || '',
+      reach_ids: c.reach_ids,
+      match_status: c.match_status,
+    };
+    for (const rid of change.reach_ids) {
+      const existing = index.get(rid);
+      if (existing) {
+        existing.push(change);
+      } else {
+        index.set(rid, [change]);
+      }
+    }
+  }
+
+  return { index, scrapedAt, sourceUrl };
+}
 
 // ── IndexedDB helpers ────────────────────────────────────────────────
 const IDB_NAME = 'waterbody_cache';
@@ -384,8 +435,28 @@ class WaterbodyDataService {
           return {};
         });
 
+      // Fetch in-season changes (fresh every load, like admin_visibility).
+      // Gracefully degrades to empty if file doesn't exist or fetch fails.
+      const inSeasonUrl = `${WaterbodyDataService.DATA_BASE}/in_season.json`;
+      const inSeasonRaw: { scraped_at?: string; source_url?: string; changes?: any[] } = await fetch(inSeasonUrl)
+        .then(r => {
+          if (!r.ok) {
+            console.warn(`⚠️ in_season.json returned ${r.status} — in-season notices unavailable`);
+            return { changes: [] };
+          }
+          return r.json();
+        })
+        .catch(() => {
+          console.warn('⚠️ Failed to fetch in_season.json — in-season notices unavailable');
+          return { changes: [] };
+        });
+
       if (response.status === 304 && cachedData) {
         cachedData.adminVisibility = adminVis;
+        const { index, scrapedAt, sourceUrl } = buildInSeasonIndex(inSeasonRaw);
+        cachedData.inSeasonIndex = index;
+        cachedData.inSeasonScrapedAt = scrapedAt;
+        cachedData.inSeasonSourceUrl = sourceUrl;
         this.data = cachedData;
         this.loadPromise = null;
         console.log(`✅ tier0 loaded from cache (304)`);
@@ -397,7 +468,7 @@ class WaterbodyDataService {
       }
 
       const raw = await response.json();
-      const data = this._decode(raw, adminVis);
+      const data = this._decode(raw, adminVis, inSeasonRaw);
       this.data = data;
       this.loadPromise = null;
 
@@ -425,7 +496,11 @@ class WaterbodyDataService {
     }
   }
 
-  private _decode(raw: any, adminVisibility: AdminVisibility = {}): RegulationData {
+  private _decode(
+    raw: any,
+    adminVisibility: AdminVisibility = {},
+    inSeasonRaw: { scraped_at?: string; source_url?: string; changes?: any[] } = {},
+  ): RegulationData {
     const rawRegSets: string[] = raw.reg_sets || [];
     const rawRegs: Record<string, RawRegulation> = raw.regulations || {};
     const searchEntries: SearchEntry[] = raw.search_index || [];
@@ -456,6 +531,9 @@ class WaterbodyDataService {
       }
     }
 
+    const { index: inSeasonIndex, scrapedAt: inSeasonScrapedAt, sourceUrl: inSeasonSourceUrl } =
+      buildInSeasonIndex(inSeasonRaw);
+
     return {
       regulations,
       reg_sets: regSets,
@@ -464,6 +542,9 @@ class WaterbodyDataService {
       searchIndex: searchEntries,
       rawRegSets,
       adminVisibility,
+      inSeasonIndex,
+      inSeasonScrapedAt,
+      inSeasonSourceUrl,
     };
   }
 
@@ -594,6 +675,19 @@ class WaterbodyDataService {
   async getRegulations(): Promise<Record<string, Regulation>> {
     const data = await this.load();
     return data.regulations;
+  }
+
+  /** Get in-season changes for a specific reach (synchronous — data must be loaded). */
+  getInSeasonChanges(reachId: string): InSeasonChange[] {
+    return this.data?.inSeasonIndex.get(reachId) || [];
+  }
+
+  /** Get in-season metadata (synchronous — data must be loaded). */
+  getInSeasonMeta(): { scrapedAt: string; sourceUrl: string } {
+    return {
+      scrapedAt: this.data?.inSeasonScrapedAt || '',
+      sourceUrl: this.data?.inSeasonSourceUrl || '',
+    };
   }
 
   getDataVersion(): Promise<string> {
