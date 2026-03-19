@@ -1090,9 +1090,17 @@ const MapComponent = () => {
             let targetReachId: string | undefined;
 
             if (url.waterbodyGroup) {
-                const lookup = wbgLookupRef.current.get(url.waterbodyGroup);
-                targetFeature = lookup?.feature;
-                targetReachId = url.activeFgid;
+                if (url.activeFgid) {
+                    const lookup = searchLookupRef.current.get(url.activeFgid);
+                    if (lookup) {
+                        targetFeature = lookup.feature;
+                        targetReachId = url.activeFgid;
+                    }
+                }
+                if (!targetFeature) {
+                    const entries = wbgIndexRef.current.get(url.waterbodyGroup);
+                    targetFeature = entries?.[0];
+                }
             } else if (url.featureId) {
                 const lookup = searchLookupRef.current.get(url.featureId);
                 targetFeature = lookup?.feature;
