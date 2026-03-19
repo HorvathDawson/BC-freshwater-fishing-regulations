@@ -26,3 +26,4 @@ output/
 # Wrangler local state (Miniflare R2, seed stamps)
 **/.wrangler/
 .seed-stamp
+**/.seed-stamp
