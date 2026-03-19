@@ -243,6 +243,49 @@ def build(config_path: Path = Path("config.yaml"), dry_run: bool = False) -> Pat
         shutil.copytree(extraction_images, dest_images)
         logger.info("Row images → %s", dest_images)
 
+    # ── In-season changes: scrape + resolve ──────────────────────────
+    # Produces in_season.json as an initial seed in the deploy folder.
+    # Non-fatal: if the scrape fails (network, page changes), warn and
+    # continue — the daily GHA cron will keep it updated anyway.
+    t0 = time.perf_counter()
+    try:
+        from pipeline.matching.in_season_scraper import scrape_in_season_changes
+        from pipeline.matching.in_season_resolver import (
+            resolve_to_reaches,
+            _load_match_table,
+        )
+
+        scraped = scrape_in_season_changes()
+        total_changes = sum(len(s.rows) for s in scraped.sections)
+        logger.info("Scraped %d in-season changes", total_changes)
+
+        table = _load_match_table(mt_dest, overrides_path)
+
+        tier0_path = deploy_dir / "tier0.json"
+        with open(tier0_path, encoding="utf-8") as f:
+            tier0_data = json.load(f)
+
+        result = resolve_to_reaches(scraped, table, tier0_data)
+        in_season_path = deploy_dir / "in_season.json"
+        with open(in_season_path, "w", encoding="utf-8") as f:
+            json.dump(result, f, indent=2, ensure_ascii=False)
+
+        matched = result["stats"]["matched"]
+        unmatched = result["stats"]["unmatched"]
+        logger.info(
+            "In-season changes → %s (%d matched, %d unmatched, %.1fs)",
+            in_season_path,
+            matched,
+            unmatched,
+            time.perf_counter() - t0,
+        )
+    except Exception:
+        logger.warning(
+            "In-season scrape/resolve failed — skipping (%.1fs)",
+            time.perf_counter() - t0,
+            exc_info=True,
+        )
+
     total = time.perf_counter() - t_start
     logger.info(
         "Pipeline complete in %.1fs — deploy dir: %s",
