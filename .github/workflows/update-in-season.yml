@@ -102,3 +102,50 @@ jobs:
           if [ -n "$EXISTING" ]; then
             gh issue close "$EXISTING" --comment "All in-season regulations matched. Closing."
           fi
+
+      - name: Write run summary
+        if: always()
+        run: |
+          REPORT="output/pipeline/deploy/in_season.json"
+          {
+            echo "## In-Season Update Summary"
+            echo ""
+            echo "**Branch:** \`${{ github.ref_name }}\` · **Env:** \`${{ github.ref_name == 'main' && 'production' || 'staging' }}\` · **Date:** $(date -u +%Y-%m-%d\ %H:%M\ UTC)"
+            echo ""
+
+            if [ ! -f "$REPORT" ]; then
+              echo "⚠️ No \`in_season.json\` produced — scrape or resolve may have failed."
+            else
+              TOTAL=$(jq '.stats.total' "$REPORT")
+              MATCHED=$(jq '.stats.matched' "$REPORT")
+              UNMATCHED=$(jq '.stats.unmatched' "$REPORT")
+              SCRAPED_AT=$(jq -r '.scraped_at // "unknown"' "$REPORT")
+              SOURCE=$(jq -r '.source_url // "unknown"' "$REPORT")
+              CHANGES=$(jq '.changes | length' "$REPORT")
+
+              echo "| Metric | Value |"
+              echo "|--------|-------|"
+              echo "| Source | $SOURCE |"
+              echo "| Scraped at | $SCRAPED_AT |"
+              echo "| Total changes | $TOTAL |"
+              echo "| Resolved entries | $CHANGES |"
+              echo "| Matched | ✅ $MATCHED |"
+              echo "| Unmatched | $( [ "$UNMATCHED" -gt 0 ] && echo "⚠️" || echo "✅" ) $UNMATCHED |"
+              echo ""
+
+              if [ "$UNMATCHED" -gt 0 ]; then
+                echo "### Unmatched waters"
+                echo ""
+                jq -r '.unmatched[]' "$REPORT" 2>/dev/null | while IFS= read -r name; do
+                  [ -n "$name" ] && echo "- \`$name\`"
+                done
+                echo ""
+              fi
+
+              echo "### Sample changes"
+              echo ""
+              jq -r '.changes[:5][] | "- **\(.water)** (\(.region)): \(.change)"' "$REPORT" 2>/dev/null || echo "_No changes parsed._"
+              REMAINING=$((CHANGES - 5))
+              [ "$REMAINING" -gt 0 ] && echo "- _...and $REMAINING more_"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
