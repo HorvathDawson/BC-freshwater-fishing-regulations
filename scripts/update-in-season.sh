@@ -43,16 +43,27 @@ echo "Environment: $DEPLOY_ENV (bucket: $R2_BUCKET)"
 mkdir -p "$DEPLOY_DIR" "$MATCHING_DIR"
 
 # ── Step 0: Fetch data files from R2 if not present locally ─────────
-# In CI there's no pipeline output — pull tier0 + match_table from prod R2.
+# In CI there's no pipeline output — pull tier0 + match_table from R2.
+# Use wrangler (direct R2 API) when available to avoid Cloudflare bot
+# protection blocking GHA runner IPs on the public worker URL.
+
+_fetch_r2_file() {
+  local r2_key="$1" dest="$2"
+  if command -v wrangler &>/dev/null && [[ -n "${CLOUDFLARE_ACCOUNT_ID:-}" ]]; then
+    npx wrangler r2 object get "$R2_BUCKET/$r2_key" --file "$dest" --remote
+  else
+    curl -sfSL "$R2_ORIGIN/$r2_key" -o "$dest"
+  fi
+}
 
 if [[ ! -f "$DEPLOY_DIR/tier0.json" ]]; then
   echo "── Fetching tier0.json from R2 ──"
-  curl -sfSL "$R2_ORIGIN/tier0.json" -o "$DEPLOY_DIR/tier0.json"
+  _fetch_r2_file "tier0.json" "$DEPLOY_DIR/tier0.json"
 fi
 
 if [[ ! -f "$DEPLOY_DIR/match_table.json" ]]; then
   echo "── Fetching match_table.json from R2 ──"
-  curl -sfSL "$R2_ORIGIN/match_table.json" -o "$DEPLOY_DIR/match_table.json"
+  _fetch_r2_file "match_table.json" "$DEPLOY_DIR/match_table.json"
 fi
 
 # ── Step 1: Scrape ──────────────────────────────────────────────────
