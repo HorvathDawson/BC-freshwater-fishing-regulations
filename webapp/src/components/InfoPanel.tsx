@@ -17,6 +17,7 @@ import { getShareableUrl, getCanonicalUrl, copyToClipboard, setActiveSectionPara
 import { sectionLabel } from '../utils/sectionLabel';
 import SourceImageViewer from './SourceImageViewer';
 import type { SearchableFeature } from './SearchBar';
+import { waterbodyDataService } from '../services/waterbodyDataService';
 import './InfoPanel.css';
 
 /** Human-readable labels for admin scope_location keys */
@@ -36,8 +37,8 @@ interface InfoPanelProps {
     /** All named search entries sharing the same physical waterbody as the selected feature.
      *  Sourced from the wbgIndex in Map.tsx — references into the same objects, no copies. */
     siblingFeatures?: SearchableFeature[];
-    /** Switch to a sibling section WITHOUT flying to it. Used by tab bar clicks. */
-    onSwitchSection?: (feature: SearchableFeature) => void;
+    /** Update map selection highlight to a different section (no fly). Used by tab clicks. */
+    onHighlightSection?: (feature: SearchableFeature) => void;
     /** Fly to a section bbox at a minimum zoom. Used by the "Zoom to section" button.
      *  minZoom ensures the tile layer is visible at the destination zoom level. */
     onFlyToSection?: (bbox: [number, number, number, number], minZoom: number) => void;
@@ -82,11 +83,11 @@ const getFilterCategory = (type: string): string | null => {
     return null;
 };
 
-const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapseState, siblingFeatures = [], onSwitchSection, onFlyToSection }: InfoPanelProps) => {
+const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapseState, siblingFeatures = [], onHighlightSection, onFlyToSection }: InfoPanelProps) => {
     const touchStartY = useRef<number>(0);
     const touchStartTime = useRef<number>(0);
-    // Set to true by tab clicks BEFORE calling onSwitchSection so the feature-change
-    // effect below knows to skip overwriting activeFgid (the tab click already set it).
+    // Set to true by tab clicks so the feature-change effect below
+    // knows to skip overwriting activeFgid (the tab click already set it).
     const tabSwitchRef = useRef(false);
 
     // --- Section tab bar overflow detection (edge fade indicators) ---
@@ -155,6 +156,34 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
         });
     }, [siblingFeatures]);
 
+    // Derive the currently active section's segment data from activeFgid.
+    // Used for regulation fetching, zoom button, and in-season notices so that
+    // tab switches are purely local — they don't change Map's selectedFeature.
+    const activeSection = useMemo(() => {
+        if (sortedSiblings.length <= 1) return null; // single-section — use feature prop directly
+        const sibling = sortedSiblings.find(sf =>
+            (sf.regulation_segments?.[0]?.frontend_group_id ?? sf.id) === activeFgid
+        );
+        return sibling?.regulation_segments?.[0] ?? null;
+    }, [sortedSiblings, activeFgid]);
+
+    // Section-specific regulation IDs: prefer active sibling's segment, fall back to feature prop.
+    const sectionRegIds = activeSection?.regulation_ids ?? feature?.properties.regulation_ids as string | undefined;
+    const sectionTribRegIds: string[] = activeSection?.tributary_reg_ids
+        ?? (Array.isArray(feature?.properties.tributary_reg_ids) ? feature!.properties.tributary_reg_ids as string[] : []);
+    const sectionBbox = (activeSection?.bbox ?? feature?.bbox) as [number, number, number, number] | undefined;
+    const sectionMinZoom = (activeSection ? 10 : (feature?.minzoom as number | undefined)) ?? 10;
+
+    // In-season data for the active section (looked up by reach ID).
+    const sectionInSeason = useMemo(() => {
+        const reachId = activeSection?.frontend_group_id
+            || (feature?.properties.frontend_group_id as string | undefined);
+        if (!reachId) return { changes: [] as { water: string; region: string; change: string; effective_date: string }[], meta: undefined as { scrapedAt: string; sourceUrl: string } | undefined };
+        const changes = waterbodyDataService.getInSeasonChanges(reachId);
+        const meta = changes.length > 0 ? waterbodyDataService.getInSeasonMeta() : undefined;
+        return { changes, meta };
+    }, [activeSection, feature?.properties.frontend_group_id]);
+
     // Handle share button click
     const handleShare = async (e: React.MouseEvent) => {
         e.stopPropagation();
@@ -203,33 +232,25 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
 
     const resetFilters = () => setActiveFilter('');
 
-    // Fetch regulations when feature changes
+    // Fetch regulations when active section changes (tab switch or new feature).
     useEffect(() => {
-        if (!feature?.properties.regulation_ids) {
+        if (!sectionRegIds) {
             setRegulations([]);
-            setActiveFilter(''); // Reset filters
+            setActiveFilter('');
             return;
         }
 
-        const props = feature.properties;
-        const tributaryRegIds: string[] = Array.isArray(props.tributary_reg_ids)
-            ? (props.tributary_reg_ids as string[])
-            : [];
-
         setLoadingRegs(true);
-        setActiveFilter(''); // Reset filters on new feature
+        setActiveFilter('');
         regulationsService
-            .getRegulationsForReach(
-                props.regulation_ids as string,
-                tributaryRegIds,
-            )
+            .getRegulationsForReach(sectionRegIds, sectionTribRegIds)
             .then(setRegulations)
             .catch(err => {
                 console.error('Failed to load regulations:', err);
                 setRegulations([]);
             })
             .finally(() => setLoadingRegs(false));
-    }, [feature?.properties.regulation_ids]);
+    }, [sectionRegIds]);
 
     const handleTouchStart = (e: React.TouchEvent) => {
         touchStartY.current = e.touches[0].clientY;
@@ -426,7 +447,7 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                                             tabSwitchRef.current = true;
                                             setActiveFgid(sfFgid);
                                             setActiveSectionParam(sfFgid);
-                                            onSwitchSection?.(sf);
+                                            onHighlightSection?.(sf);
                                         }}
                                         onKeyDown={(e) => {
                                             if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
@@ -438,7 +459,7 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                                                 tabSwitchRef.current = true;
                                                 setActiveFgid(nextFgid);
                                                 setActiveSectionParam(nextFgid);
-                                                onSwitchSection?.(next);
+                                                onHighlightSection?.(next);
                                                 document.getElementById(`section-tab-${CSS.escape(nextFgid)}`)?.focus();
                                             }
                                         }}
@@ -461,9 +482,9 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                 >
                     {/* Zoom button — always shown when feature has a valid bbox.
                         Multi-section: "Zoom to Section X", single-section: "Zoom to Feature". */}
-                    {Array.isArray(feature.bbox) && feature.bbox.length === 4 && (() => {
-                        const bbox = feature.bbox as [number, number, number, number];
-                        const minZoom = (feature.minzoom as number | undefined) ?? 10;
+                    {sectionBbox && (() => {
+                        const bbox = sectionBbox;
+                        const minZoom = sectionMinZoom;
                         const isMultiSection = sortedSiblings.length > 1;
                         const activeLabel = isMultiSection
                             ? `Section ${sectionLabel(sortedSiblings.findIndex(sf =>
@@ -520,13 +541,13 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                             </div>
                         )}
 
-                        {!loadingRegs && !props.regulation_ids && (
+                        {!loadingRegs && !sectionRegIds && (
                             <div className="no-regulations">
                                 No specific regulations (standard regional rules apply)
                             </div>
                         )}
 
-                        {!loadingRegs && Boolean(props.regulation_ids) && regulations.length === 0 && (
+                        {!loadingRegs && Boolean(sectionRegIds) && regulations.length === 0 && (
                             <div className="regulation-error">
                                 Failed to load regulation details
                             </div>
@@ -534,8 +555,8 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
 
                         {/* In-season notices (scraped from BC Gov) */}
                         {(() => {
-                            const changes = (props._inSeasonChanges || []) as { water: string; region: string; change: string; effective_date: string }[];
-                            const meta = props._inSeasonMeta as { scrapedAt: string; sourceUrl: string } | undefined;
+                            const changes = sectionInSeason.changes;
+                            const meta = sectionInSeason.meta;
                             if (!changes.length) return null;
                             return (
                                 <div className="in-season-section" role="region" aria-label="Current fishing notices">

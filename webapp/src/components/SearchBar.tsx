@@ -23,6 +23,7 @@ export interface RegulationSegment {
     name_variants: NameVariant[];  // Names with tributary flag
     length_km: number;
     bbox?: [number, number, number, number];  // Per-segment bbox for fly-to
+    min_zoom?: number;  // Minimum zoom where this segment is visible in tiles
     waterbody_group?: string;  // BLK for streams, waterbody_key for polygons — groups all segments of the same physical waterbody
     tributary_reg_ids?: string[];  // Reg IDs assigned via tributary BFS (Phase 3)
 }
@@ -272,7 +273,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ features, onSelect, highlightedRe
 
                         return (
                             <div
-                                key={feature.id}
+                                key={`${feature.id}-${idx}`}
                                 id={`search-option-${idx}`}
                                 className={`search-result-wrapper ${isHighlighted ? 'highlighted' : ''}`}
                                 role="option"

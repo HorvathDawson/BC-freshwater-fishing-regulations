@@ -411,7 +411,7 @@ const buildFeatureFromJSON = (
         source: opts.source || 'regulations',
         sourceLayer: srcLayer,
         bbox: segBbox || feature.bbox as [number, number, number, number],
-        minzoom: Number(feature.min_zoom || feature.properties?.minzoom || 4),
+        minzoom: Number(segment?.min_zoom || feature.min_zoom || feature.properties?.minzoom || 4),
         properties: {
             // ── Names (segment-specific where available) ──
             display_name: segment?.display_name || feature.display_name || '',
@@ -647,8 +647,10 @@ const MapComponent = () => {
             const map = mapRef.current;
             if (!map) return;
             map.resize();
-            // Re-center on feature bbox after the canvas resizes (desktop only)
-            if (panelOpen && selectedFeature?.bbox && !isMobileViewport()) {
+            // Re-center on feature bbox after the canvas resizes (desktop only).
+            // Skip re-center if the map is mid-flight (search/URL restore fly-to)
+            // — the flyTo animation already targets the correct position.
+            if (panelOpen && selectedFeature?.bbox && !isMobileViewport() && !map.isMoving()) {
                 const bbox = selectedFeature.bbox;
                 if (isValidBbox(bbox)) {
                     const center: [number, number] = [(bbox[0] + bbox[2]) / 2, (bbox[1] + bbox[3]) / 2];
@@ -863,6 +865,9 @@ const MapComponent = () => {
         // Clear cursor circle GeoJSON
         const cursorSrc = map.getSource('cursor-circle') as maplibregl.GeoJSONSource;
         if (cursorSrc) cursorSrc.setData({ type: 'FeatureCollection', features: [] });
+        // Clear ungazetted point marker
+        const ugSrc = map.getSource('ungazetted-marker') as maplibregl.GeoJSONSource;
+        if (ugSrc) ugSrc.setData({ type: 'FeatureCollection', features: [] });
         // Reset highlight & selection layer filters to hide them
         setGroupFilter(map, HL_LAYER_IDS, null);
         setGroupFilter(map, SL_LAYER_IDS, null);
@@ -896,6 +901,7 @@ const MapComponent = () => {
                             name_variants: seg.name_variants || [],
                             length_km: seg.length_km || 0,
                             bbox: seg.bbox || undefined,
+                            min_zoom: seg.min_zoom,
                             waterbody_group: seg.waterbody_group || entry.waterbody_group,
                             tributary_reg_ids: seg.tributary_reg_ids || [],
                         } as RegulationSegment;
@@ -1035,7 +1041,9 @@ const MapComponent = () => {
 
         // Helper: select feature, fly to bbox, set state
         const selectAndFly = (selected: FeatureOption) => {
-            flyToFeature(selected);
+            if (selected.bbox && isValidBbox(selected.bbox)) {
+                flyToBox(selected.bbox, selected.minzoom ?? 10);
+            }
             setSelectedFeature(selected);
         };
 
@@ -1385,6 +1393,17 @@ const MapComponent = () => {
             map.addSource('cursor-circle', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
             map.addLayer({ id: 'cursor-circle-fill', type: 'fill', source: 'cursor-circle', paint: { 'fill-color': '#7C3AED', 'fill-opacity': 0.1 } });
             map.addLayer({ id: 'cursor-circle-line', type: 'line', source: 'cursor-circle', paint: { 'line-color': '#7C3AED', 'line-width': 1.5, 'line-opacity': 0.6 } });
+
+            // ── UNGAZETTED POINT MARKER (GeoJSON — no tile source) ────
+            map.addSource('ungazetted-marker', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+            map.addLayer({ id: 'ungazetted-marker-ring', type: 'circle', source: 'ungazetted-marker',
+                paint: { 'circle-radius': 18, 'circle-color': 'transparent', 'circle-stroke-color': SELECTION_COLOR, 'circle-stroke-width': 2.5, 'circle-stroke-opacity': 0.7 } });
+            map.addLayer({ id: 'ungazetted-marker-dot', type: 'circle', source: 'ungazetted-marker',
+                paint: { 'circle-radius': 7, 'circle-color': SELECTION_COLOR, 'circle-opacity': 0.85 } });
+            map.addLayer({ id: 'ungazetted-marker-label', type: 'symbol', source: 'ungazetted-marker',
+                layout: { 'text-field': ['get', 'display_name'], 'text-font': ['Noto Sans Regular'], 'text-size': 13,
+                    'text-offset': [0, 2.2], 'text-anchor': 'top', 'text-max-width': 12 },
+                paint: { 'text-color': '#1a1a2e', 'text-halo-color': '#ffffff', 'text-halo-width': 1.5 } });
             
             // Signal that map is ready for URL restoration
             setMapReady(true);
@@ -1569,6 +1588,20 @@ const MapComponent = () => {
         const map = mapRef.current;
         if (!map) return;
         setGroupFilter(map, SL_LAYER_IDS, selectedFeature);
+
+        // Sync ungazetted point marker with selection state
+        const ugSrc = map.getSource('ungazetted-marker') as maplibregl.GeoJSONSource | undefined;
+        if (ugSrc) {
+            if (selectedFeature?.type === 'ungazetted' && selectedFeature.bbox && isValidBbox(selectedFeature.bbox)) {
+                const [lng, lat] = [(selectedFeature.bbox[0] + selectedFeature.bbox[2]) / 2, (selectedFeature.bbox[1] + selectedFeature.bbox[3]) / 2];
+                ugSrc.setData({ type: 'FeatureCollection', features: [
+                    { type: 'Feature', geometry: { type: 'Point', coordinates: [lng, lat] },
+                      properties: { display_name: selectedFeature.properties.display_name || '' } }
+                ] });
+            } else {
+                ugSrc.setData({ type: 'FeatureCollection', features: [] });
+            }
+        }
     }, [selectedFeature]);
 
     // Derive sibling section tabs whenever the selection changes.
@@ -1599,27 +1632,41 @@ const MapComponent = () => {
         setSiblingFeatures(segments.map(seg => ({ ...parentFeature, regulation_segments: [seg] } as SearchableFeature)));
     }, [selectedFeature]);
 
-    /** Fly to a built FeatureOption's bbox — shared by search, URL restore, etc. */
-    const flyToFeature = useCallback((selected: FeatureOption) => {
+    /** Fly to a bbox with correct zoom — single function used by search, URL restore, and zoom button. */
+    const flyToBox = useCallback((bbox: [number, number, number, number], minZoom: number) => {
         const map = mapRef.current;
-        if (!map || !selected.bbox || !isValidBbox(selected.bbox)) return;
+        if (!map) return;
         const isMobile = isMobileViewport();
-        const bounds = new maplibregl.LngLatBounds(
-            [selected.bbox[0], selected.bbox[1]],
-            [selected.bbox[2], selected.bbox[3]],
-        );
-        const { padding, panelState } = isMobile
-            ? getMobilePaddingForBounds(bounds)
-            : { padding: { top: 80, bottom: 80, left: 80, right: 80 }, panelState: 'expanded' as CollapseState };
-        flyToBbox(map, selected.bbox, padding, selected.minzoom ? selected.minzoom + 0.25 : 10);
+        const bounds = new maplibregl.LngLatBounds([bbox[0], bbox[1]], [bbox[2], bbox[3]]);
+        let padding: maplibregl.PaddingOptions;
+        let panelState: CollapseState = 'expanded';
+        if (isMobile) {
+            ({ padding, panelState } = getMobilePaddingForBounds(bounds));
+        } else {
+            padding = { top: 80, bottom: 80, left: 80, right: 80 };
+        }
+        flyToBbox(map, bbox, padding, minZoom + 0.25);
         if (isMobile) setMobilePanelState(panelState);
     }, []);
 
     const handleSearchSelect = useCallback((feature: SearchableFeature) => {
         const map = mapRef.current;
         if (!map) return;
-        
-        clearSelection();
+
+        // Clean up old state WITHOUT nulling selectedFeature (avoids panel
+        // close/open cycle which causes canvas resize during the fly animation).
+        setHighlightedOption(null);
+        setHighlightedSearchResult(null);
+        setDisambigOptions([]);
+        setDisambigPosition(null);
+        isDisambigOpenRef.current = false;
+        if (searchPollRef.current) {
+            clearInterval(searchPollRef.current);
+            searchPollRef.current = null;
+        }
+        const cursorSrc = map.getSource('cursor-circle') as maplibregl.GeoJSONSource;
+        if (cursorSrc) cursorSrc.setData({ type: 'FeatureCollection', features: [] });
+        setGroupFilter(map, HL_LAYER_IDS, null);
         
         // Check if this waterbody has multiple regulation segments (reaches)
         const segments = feature.regulation_segments || [];
@@ -1640,8 +1687,10 @@ const MapComponent = () => {
         const fidList = reachId && regData ? regData.reachSegments[reachId] : undefined;
         const selected = buildFeatureFromJSON(feature, seg, { fidList });
 
-        // Fly to the built feature's bbox (segment-level for multi-segment)
-        flyToFeature(selected);
+        // Fly to the segment bbox — same flyToBox call as the InfoPanel "Zoom to" button
+        if (selected.bbox && isValidBbox(selected.bbox)) {
+            flyToBox(selected.bbox, selected.minzoom ?? 10);
+        }
 
         if (hasMultipleSegments && !hasWbg) {
             // Build disambiguation options from JSON via the unified builder.
@@ -1659,6 +1708,17 @@ const MapComponent = () => {
         } else {
             setSelectedFeature(selected);
 
+            // Ungazetted features have no tile geometry — show GeoJSON marker instead of polling
+            if (selected.type === 'ungazetted') {
+                if (selected.bbox && isValidBbox(selected.bbox)) {
+                    const [lng, lat] = [(selected.bbox[0] + selected.bbox[2]) / 2, (selected.bbox[1] + selected.bbox[3]) / 2];
+                    const ugSrc = map.getSource('ungazetted-marker') as maplibregl.GeoJSONSource;
+                    if (ugSrc) ugSrc.setData({ type: 'FeatureCollection', features: [
+                        { type: 'Feature', geometry: { type: 'Point', coordinates: [lng, lat] },
+                          properties: { display_name: selected.properties.display_name || '' } }
+                    ] });
+                }
+            } else {
             // Poll until tiles load to get geometry for highlighting
             const srcLayer = selected.sourceLayer || resolveSourceLayer(selected.type);
             const filter = buildFeatureFilter(selected);
@@ -1692,20 +1752,23 @@ const MapComponent = () => {
                     if (searchPollRef.current) clearInterval(searchPollRef.current);
                 }
             }, 200);
+            }
         }
     }, [clearSelection]);
 
     /**
-     * Switch to a different section of the SAME physical waterbody without flying.
-     * Called by InfoPanel tab clicks. Updates the map highlight but leaves the
-     * viewport unchanged — the "Zoom to section" button is the explicit fly action.
+     * Update map selection highlight to a different section WITHOUT flying or
+     * changing selectedFeature.  Called by InfoPanel tab clicks.
      */
-    const handleSwitchSection = useCallback((sf: SearchableFeature) => {
+    const handleHighlightSection = useCallback((sf: SearchableFeature) => {
+        const map = mapRef.current;
+        if (!map) return;
         const seg = sf.regulation_segments?.[0] || null;
         const reachId = seg?.frontend_group_id || '';
         const regData = regDataRef.current;
         const fidList = reachId && regData ? regData.reachSegments[reachId] : undefined;
-        setSelectedFeature(buildFeatureFromJSON(sf, seg, { fidList }));
+        const built = buildFeatureFromJSON(sf, seg, { fidList });
+        setGroupFilter(map, SL_LAYER_IDS, built);
     }, []);
 
     /**
@@ -1713,15 +1776,8 @@ const MapComponent = () => {
      * Does not change selectedFeature or close the panel.
      */
     const handleFlyToSection = useCallback((bbox: [number, number, number, number], minZoom: number) => {
-        const map = mapRef.current;
-        if (!map) return;
-        const isMobile = isMobileViewport();
-        const bounds = new maplibregl.LngLatBounds([bbox[0], bbox[1]], [bbox[2], bbox[3]]);
-        const { padding } = isMobile
-            ? getMobilePaddingForBounds(bounds)
-            : { padding: { top: 80, bottom: 80, left: 80, right: 80 } };
-        flyToBbox(map, bbox, padding, minZoom + 0.25);
-    }, []);
+        flyToBox(bbox, minZoom);
+    }, [flyToBox]);
 
     return (
         <div className="map-container">
@@ -1755,7 +1811,7 @@ const MapComponent = () => {
                     placeholder="Search waterbodies..." 
                 />
             </div>
-            <InfoPanel feature={selectedFeature} onClose={clearSelection} collapseState={mobilePanelState} onSetCollapseState={setMobilePanelState} siblingFeatures={siblingFeatures} onSwitchSection={handleSwitchSection} onFlyToSection={handleFlyToSection} />
+            <InfoPanel feature={selectedFeature} onClose={clearSelection} collapseState={mobilePanelState} onSetCollapseState={setMobilePanelState} siblingFeatures={siblingFeatures} onHighlightSection={handleHighlightSection} onFlyToSection={handleFlyToSection} />
             <DisclaimerLink onClick={() => setDisclaimerOpen(true)} />
             <Disclaimer isOpen={disclaimerOpen} onClose={() => setDisclaimerOpen(false)} />
             {disambigOptions.length > 0 && (
