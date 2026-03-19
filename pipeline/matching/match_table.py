@@ -180,6 +180,7 @@ class OverrideEntry(_EntryBase):
     # Admin polygon targets: [{"layer": "parks_bc", "feature_id": "1125"}, ...]
     admin_targets: List[Dict[str, str]] = field(default_factory=list)
     admin_feature_types: Optional[List[str]] = None
+    canonical_name: str = ""
     skip: bool = False
     skip_reason: Optional[str] = None
     variant_of: Optional[MatchCriteria] = None
@@ -258,6 +259,8 @@ class OverrideEntry(_EntryBase):
             d["admin_feature_types"] = self.admin_feature_types
         if self.name_variants:
             d["name_variants"] = self.name_variants
+        if self.canonical_name:
+            d["canonical_name"] = self.canonical_name
         if self.skip:
             d["skip"] = self.skip
         if self.skip_reason is not None:
@@ -305,6 +308,7 @@ class OverrideEntry(_EntryBase):
             admin_targets=data.get("admin_targets", []),
             admin_feature_types=data.get("admin_feature_types"),
             name_variants=data.get("name_variants", []),
+            canonical_name=data.get("canonical_name", ""),
             skip=data.get("skip", False),
             skip_reason=data.get("skip_reason"),
             variant_of=(

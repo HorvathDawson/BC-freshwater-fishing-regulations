@@ -33,6 +33,21 @@ from .models import FeatureAssignment, RegulationRecord
 
 logger = logging.getLogger(__name__)
 
+# ---------------------------------------------------------------------------
+# Title-casing helper
+# ---------------------------------------------------------------------------
+
+import re as _re
+
+_MC_RE = _re.compile(r"\bMc([a-z])")
+
+
+def _title_case(s: str) -> str:
+    """Title-case with Mc/O' prefix handling (McNaughton, O'Clock)."""
+    tc = s.title()
+    tc = _MC_RE.sub(lambda m: f"Mc{m.group(1).upper()}", tc)
+    return tc
+
 
 # ---------------------------------------------------------------------------
 # Reach ID generation
@@ -393,11 +408,12 @@ def _build_ungazetted_reaches(
             reaches[uid]["reg_set_str"] = ",".join(sorted(existing_regs))
             continue
 
-        # Build name variants from the override
+        # Build name variants from the override (title-cased for display)
         nv: List[Dict[str, str]] = []
         for name in entry.name_variants:
-            if name != rec.water:
-                nv.append({"name": name, "source": "direct"})
+            tc = _title_case(name.replace('"', '').strip())
+            if tc != rec.water:
+                nv.append({"name": tc, "source": "direct"})
 
         reaches[uid] = {
             "wsc": uid,  # Use ungazetted ID as the grouping key
@@ -650,11 +666,30 @@ def build_regulation_index(
         len(base_regulations),
     )
 
-    # 1b. Build reg_id → name_variants lookup
+    # 1b. Build reg_id → display names for reach name_variants.
+    # Combines canonical_name (powers "Tributary of X" / "In X") with
+    # actual name_variants (alternative names like "Jones Lake").
+    # All names are title-cased for display; matching uses ALL-CAPS originals.
+    # Variants that just duplicate the regulation's own water name (stripped
+    # parentheticals) are excluded — they exist only for match-table lookup.
     reg_id_variants: Dict[str, Set[str]] = {}
     for rec in records:
-        if rec.match_entry and rec.match_entry.name_variants:
-            reg_id_variants[rec.reg_id] = set(rec.match_entry.name_variants)
+        me = rec.match_entry
+        names: Set[str] = set()
+        # The water name itself (title-cased) — used to filter out redundant variants
+        water_tc = _title_case(rec.water) if rec.water else ""
+        if me:
+            if hasattr(me, "canonical_name") and me.canonical_name:
+                names.add(me.canonical_name)
+            for nv in me.name_variants:
+                tc = _title_case(nv.replace('"', '').strip())
+                # Skip variants that are just the water name itself
+                if tc and tc != water_tc:
+                    names.add(tc)
+        if not names and water_tc:
+            names.add(water_tc)
+        if names:
+            reg_id_variants[rec.reg_id] = names
 
     # 1c. Build reg_id → water name lookup (for display name fallback)
     reg_water_lookup: Dict[str, str] = {}

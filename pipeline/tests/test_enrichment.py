@@ -1985,7 +1985,8 @@ class TestBuildUngazettedReaches:
         r = reaches["UNGAZ_MARSH_POND_R2"]
         variant_names = [nv["name"] for nv in r["name_variants"]]
         # display_name == water == "MARSH POND", so only the other variant appears
-        assert "Marsh Pond (local)" in variant_names
+        # title-cased and quotes stripped for display
+        assert "Marsh Pond (Local)" in variant_names
 
     def test_non_ungazetted_records_ignored(self):
         """Records without ungazetted_waterbody_id produce no reaches."""

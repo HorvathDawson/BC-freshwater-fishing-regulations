@@ -215,6 +215,9 @@
     "note": "Lake in MU 1-3. FWA has MU 1-6, regulation has MU 1-3 (boundary issue). Piscivorous rainbow trout and kokanee population. BC Lakes Database: survey_id 1129, WBID 00105SANJ, watershed code 930-063200-41400. ACAT 9030. Location found from map.",
     "gnis_ids": [
       "1657"
+    ],
+    "name_variants": [
+      "ANDERSON LAKE"
     ]
   },
   {
@@ -342,9 +345,7 @@
     "gnis_ids": [
       "16747"
     ],
-    "name_variants": [
-      "Buttle Lake"
-    ]
+    "canonical_name": "Buttle Lake"
   },
   {
     "type": "override",
@@ -359,9 +360,7 @@
     "gnis_ids": [
       "17768"
     ],
-    "name_variants": [
-      "Campbell Lake"
-    ]
+    "canonical_name": "Campbell Lake"
   },
   {
     "type": "override",
@@ -376,9 +375,7 @@
     "gnis_ids": [
       "18905"
     ],
-    "name_variants": [
-      "John Hart Lake"
-    ]
+    "canonical_name": "John Hart Lake"
   },
   {
     "type": "override",
@@ -392,6 +389,9 @@
     "note": "Unnamed lake at the head of San Juan River. BC Lakes Database survey_id 1155: 'A RECONNAISSANCE SURVEY OF PETE'S POND'. Regulation MU 1-3.",
     "waterbody_keys": [
       "329504349"
+    ],
+    "name_variants": [
+      "PETE'S POND UNNAMED LAKE AT THE HEAD OF SAN JUAN RIVER"
     ]
   },
   {
@@ -408,7 +408,7 @@
       "329500453"
     ],
     "name_variants": [
-      "UNNAMED LAKE \"A\" - MAP A"
+      "UNNAMED LAKE A - MAP A"
     ]
   },
   {
@@ -425,7 +425,7 @@
       "329500505"
     ],
     "name_variants": [
-      "UNNAMED LAKE \"B\" - MAP A"
+      "UNNAMED LAKE B - MAP A"
     ]
   },
   {
@@ -442,7 +442,7 @@
       "329500435"
     ],
     "name_variants": [
-      "UNNAMED LAKE \"C\" - MAP B"
+      "UNNAMED LAKE C - MAP B"
     ]
   },
   {
@@ -459,7 +459,7 @@
       "329500416"
     ],
     "name_variants": [
-      "UNNAMED LAKE \"D\" - MAP B"
+      "UNNAMED LAKE D - MAP B"
     ]
   },
   {
@@ -476,7 +476,7 @@
       "329500498"
     ],
     "name_variants": [
-      "UNNAMED LAKE \"E\" - MAP B"
+      "UNNAMED LAKE E - MAP B"
     ]
   },
   {
@@ -493,7 +493,7 @@
       "329500447"
     ],
     "name_variants": [
-      "UNNAMED LAKE \"F\" - MAP B"
+      "UNNAMED LAKE F - MAP B"
     ]
   },
   {
@@ -510,7 +510,7 @@
       "329500561"
     ],
     "name_variants": [
-      "UNNAMED LAKE \"G\" - MAP B"
+      "UNNAMED LAKE G - MAP B"
     ]
   },
   {
@@ -527,7 +527,7 @@
       "328988117"
     ],
     "name_variants": [
-      "UNNAMED LAKE \"H\" - MAP B"
+      "UNNAMED LAKE H - MAP B"
     ]
   },
   {
@@ -544,7 +544,7 @@
       "329500475"
     ],
     "name_variants": [
-      "UNNAMED LAKE \"I\" - MAP B"
+      "UNNAMED LAKE I - MAP B"
     ]
   },
   {
@@ -629,6 +629,9 @@
     "note": "GNIS name: Qualicum River. Duplicate entry with 'QUALICUM RIVER' in same region.",
     "gnis_ids": [
       "27804"
+    ],
+    "name_variants": [
+      "BIG QUALICUM RIVER"
     ]
   },
   {
@@ -645,7 +648,7 @@
       "15120"
     ],
     "name_variants": [
-      "\"MAXWELL LAKE\""
+      "MAXWELL LAKE"
     ]
   },
   {
@@ -662,7 +665,7 @@
       "15506"
     ],
     "name_variants": [
-      "\"STOWELL LAKE\""
+      "STOWELL LAKE"
     ]
   },
   {
@@ -677,6 +680,9 @@
     "note": "GNIS name: Lake Weston. Name order differs in gazetteer.",
     "gnis_ids": [
       "26096"
+    ],
+    "name_variants": [
+      "WESTON LAKE"
     ]
   },
   {
@@ -800,7 +806,8 @@
       "1860"
     ],
     "name_variants": [
-      "LONZO CREEK"
+      "LONZO CREEK",
+      "MARSHALL CREEK"
     ]
   },
   {
@@ -887,9 +894,7 @@
     "gnis_ids": [
       "10070"
     ],
-    "name_variants": [
-      "Brunette River"
-    ]
+    "canonical_name": "Brunette River"
   },
   {
     "type": "override",
@@ -904,9 +909,7 @@
     "gnis_ids": [
       "13012"
     ],
-    "name_variants": [
-      "Chehalis Lake"
-    ]
+    "canonical_name": "Chehalis Lake"
   },
   {
     "type": "override",
@@ -921,9 +924,7 @@
     "gnis_ids": [
       "25671"
     ],
-    "name_variants": [
-      "Squamish River"
-    ]
+    "canonical_name": "Squamish River"
   },
   {
     "type": "override",
@@ -953,8 +954,9 @@
     "gnis_ids": [
       "22474"
     ],
+    "canonical_name": "Wahleach Lake",
     "name_variants": [
-      "Wahleach Lake"
+      "JONES LAKE"
     ]
   },
   {
@@ -970,9 +972,7 @@
     "gnis_ids": [
       "10633"
     ],
-    "name_variants": [
-      "Burnaby Lake"
-    ]
+    "canonical_name": "Burnaby Lake"
   },
   {
     "type": "override",
@@ -1109,6 +1109,9 @@
       "329178222",
       "329178406",
       "329178011"
+    ],
+    "name_variants": [
+      "MOSS POTHOLE LAKES"
     ]
   },
   {
@@ -1179,7 +1182,7 @@
       "1757"
     ],
     "name_variants": [
-      "\"ERROCK\" LAKE"
+      "ERROCK LAKE"
     ]
   },
   {
@@ -1222,6 +1225,9 @@
     "note": "GNIS name: Wahleach Lake. Labelled as Wahleach Lake in GIS (https://www.bchydro.com/community/recreation_areas/jones_lake.html).",
     "gnis_ids": [
       "22474"
+    ],
+    "name_variants": [
+      "JONES LAKE"
     ]
   },
   {
@@ -1236,6 +1242,9 @@
     "note": "GNIS name: Lily Lake. Known locally as Lily Lake.",
     "gnis_ids": [
       "2159"
+    ],
+    "name_variants": [
+      "PAQ LAKE"
     ]
   },
   {
@@ -1267,7 +1276,8 @@
       "12114"
     ],
     "name_variants": [
-      "BEAR CREEK"
+      "BEAR CREEK",
+      "MAHOOD CREEK"
     ]
   },
   {
@@ -1282,6 +1292,9 @@
     "note": "GNIS name: Marshall Creek. Remove quotes.",
     "gnis_ids": [
       "1860"
+    ],
+    "name_variants": [
+      "MARSHALL CREEK"
     ]
   },
   {
@@ -1326,9 +1339,7 @@
     "gnis_ids": [
       "18066"
     ],
-    "name_variants": [
-      "Coldwater River"
-    ]
+    "canonical_name": "Coldwater River"
   },
   {
     "type": "override",
@@ -1446,7 +1457,7 @@
       "329563878"
     ],
     "name_variants": [
-      "\"NORMAN\" LAKE"
+      "NORMAN LAKE"
     ]
   },
   {
@@ -1522,7 +1533,7 @@
       "329316229"
     ],
     "name_variants": [
-      "\"LITTLE PETER HOPE\" LAKE"
+      "LITTLE PETER HOPE LAKE"
     ]
   },
   {
@@ -1607,6 +1618,9 @@
     "note": "GNIS name: Morgan Lake. Remove quotes.",
     "gnis_ids": [
       "14911"
+    ],
+    "name_variants": [
+      "MORGAN LAKE"
     ]
   },
   {
@@ -1623,7 +1637,8 @@
       "5719"
     ],
     "name_variants": [
-      "KWOTLENEMO LAKE"
+      "KWOTLENEMO LAKE",
+      "FOUNTAIN LAKE"
     ]
   },
   {
@@ -1652,6 +1667,9 @@
     "note": "Unnamed lake in MU 4-3. Location found from map. Low confidence - Alta Lake GNIS 7915 is in Region 2 MUs 2-11, 2-9.",
     "waterbody_keys": [
       "328965040"
+    ],
+    "name_variants": [
+      "ALTA LAKE"
     ]
   },
   {
@@ -1666,6 +1684,9 @@
     "note": "Lake in MU 4-24. BC Lakes Database: WBID 00374KOTR, ACAT 280743. Gazetted name: MOOSE LAKE. Location found from map.",
     "waterbody_keys": [
       "329247797"
+    ],
+    "name_variants": [
+      "ALCES LAKE"
     ]
   },
   {
@@ -1751,9 +1772,7 @@
     "gnis_ids": [
       "19304"
     ],
-    "name_variants": [
-      "Connor Lake"
-    ]
+    "canonical_name": "Connor Lake"
   },
   {
     "type": "override",
@@ -1768,9 +1787,7 @@
     "gnis_ids": [
       "18123"
     ],
-    "name_variants": [
-      "Columbia Lake"
-    ]
+    "canonical_name": "Columbia Lake"
   },
   {
     "type": "override",
@@ -1785,9 +1802,7 @@
     "gnis_ids": [
       "8109"
     ],
-    "name_variants": [
-      "Duncan Lake"
-    ]
+    "canonical_name": "Duncan Lake"
   },
   {
     "type": "override",
@@ -1803,9 +1818,7 @@
     "gnis_ids": [
       "16880"
     ],
-    "name_variants": [
-      "Elk River"
-    ]
+    "canonical_name": "Elk River"
   },
   {
     "type": "override",
@@ -1820,9 +1833,7 @@
     "gnis_ids": [
       "19843"
     ],
-    "name_variants": [
-      "Flathead River"
-    ]
+    "canonical_name": "Flathead River"
   },
   {
     "type": "override",
@@ -1906,9 +1917,7 @@
     "gnis_ids": [
       "14091"
     ],
-    "name_variants": [
-      "Kootenay Lake"
-    ]
+    "canonical_name": "Kootenay Lake"
   },
   {
     "type": "override",
@@ -1941,9 +1950,7 @@
     "gnis_ids": [
       "3133"
     ],
-    "name_variants": [
-      "Kinbasket Lake"
-    ]
+    "canonical_name": "Kinbasket Lake"
   },
   {
     "type": "override",
@@ -1958,9 +1965,7 @@
     "gnis_ids": [
       "18644"
     ],
-    "name_variants": [
-      "Lower Arrow Lake"
-    ]
+    "canonical_name": "Lower Arrow Lake"
   },
   {
     "type": "override",
@@ -1975,9 +1980,7 @@
     "gnis_ids": [
       "8405"
     ],
-    "name_variants": [
-      "Upper Arrow Lake"
-    ]
+    "canonical_name": "Upper Arrow Lake"
   },
   {
     "type": "override",
@@ -2007,9 +2010,7 @@
     "gnis_ids": [
       "39145"
     ],
-    "name_variants": [
-      "Revelstoke Lake"
-    ]
+    "canonical_name": "Revelstoke Lake"
   },
   {
     "type": "override",
@@ -2024,9 +2025,7 @@
     "gnis_ids": [
       "25274"
     ],
-    "name_variants": [
-      "Premier Lake"
-    ]
+    "canonical_name": "Premier Lake"
   },
   {
     "type": "override",
@@ -2041,9 +2040,7 @@
     "gnis_ids": [
       "27954"
     ],
-    "name_variants": [
-      "Slocan Lake"
-    ]
+    "canonical_name": "Slocan Lake"
   },
   {
     "type": "override",
@@ -2058,9 +2055,7 @@
     "gnis_ids": [
       "28481"
     ],
-    "name_variants": [
-      "Trout Lake"
-    ]
+    "canonical_name": "Trout Lake"
   },
   {
     "type": "override",
@@ -2105,6 +2100,9 @@
     "note": "Lake in MU 4-34, approximately 750 m south of Mitten Lake. BC Lakes Database: WBID 00799KHOR, ACAT 22239. Spelling variations: McClain/McLain/McLean. Location found from map.",
     "waterbody_keys": [
       "329220417"
+    ],
+    "name_variants": [
+      "MCCLAIN LAKE"
     ]
   },
   {
@@ -2120,9 +2118,7 @@
     "gnis_ids": [
       "20528"
     ],
-    "name_variants": [
-      "Salmo River"
-    ]
+    "canonical_name": "Salmo River"
   },
   {
     "type": "override",
@@ -2138,7 +2134,8 @@
       "6159"
     ],
     "name_variants": [
-      "SLEWISKIN CREEK"
+      "SLEWISKIN CREEK",
+      "MACDONALD CREEK"
     ]
   },
   {
@@ -2216,6 +2213,9 @@
     "note": "Near Elkford; found on AllTrails: https://www.alltrails.com/poi/canada/british-columbia/elkford/lost-lake; Using specific waterbody_key (GNIS 18009 is a different Lost Lake)",
     "waterbody_keys": [
       "329123527"
+    ],
+    "name_variants": [
+      "LOST LAKE"
     ]
   },
   {
@@ -2245,6 +2245,9 @@
     "note": "Unnamed lake approximately 1.5 km west/northwest of the west end of Tie Lake in MU 4-22. Medium confidence.",
     "waterbody_keys": [
       "329069329"
+    ],
+    "name_variants": [
+      "SPRING LAKE"
     ]
   },
   {
@@ -2261,7 +2264,7 @@
       "329220422"
     ],
     "name_variants": [
-      "\"LITTLE MITTEN\" LAKE"
+      "LITTLE MITTEN LAKE"
     ]
   },
   {
@@ -2319,9 +2322,6 @@
     "note": "Wigwam River in MU 4-2. Regulation specifies specific reach: 'downstream of the access road adjacent to km 42 on the Bighorn (Ram) Forest Service Road'. Links to entire river (GNIS 2311 - Wigwam River) as specific reach boundaries not in FWA data. NOTE: Divide is approximately at Linear Feature ID 706869683 for future reference.",
     "gnis_ids": [
       "27703"
-    ],
-    "name_variants": [
-      "WIGWAM RIVER Forest Service Road)"
     ]
   },
   {
@@ -2367,7 +2367,8 @@
       "14970"
     ],
     "name_variants": [
-      "ARROW PARK CREEK"
+      "ARROW PARK CREEK",
+      "MOSQUITO CREEK"
     ]
   },
   {
@@ -2472,9 +2473,7 @@
     "gnis_ids": [
       "39145"
     ],
-    "name_variants": [
-      "Lake Revelstoke"
-    ]
+    "canonical_name": "Lake Revelstoke"
   },
   {
     "type": "override",
@@ -2490,9 +2489,7 @@
       "30277",
       "18652"
     ],
-    "name_variants": [
-      "Little Slocan Lake"
-    ]
+    "canonical_name": "Little Slocan Lake"
   },
   {
     "type": "override",
@@ -2507,9 +2504,7 @@
     "gnis_ids": [
       "4927"
     ],
-    "name_variants": [
-      "Pend D'Oreille River"
-    ]
+    "canonical_name": "Pend D'Oreille River"
   },
   {
     "type": "override",
@@ -2568,9 +2563,7 @@
       "11611",
       "17209"
     ],
-    "name_variants": [
-      "Atnarko/Bella Coola Rivers"
-    ]
+    "canonical_name": "Atnarko/Bella Coola Rivers"
   },
   {
     "type": "override",
@@ -2598,6 +2591,9 @@
     "note": "Unnamed lake in MU 5-6, approximately 500 m south of Stewart Lake. BC Lakes Database: WBID 01304ATNA, ACAT 32593. Location found from map.",
     "waterbody_keys": [
       "329021826"
+    ],
+    "name_variants": [
+      "CRUISE LAKE"
     ]
   },
   {
@@ -2614,7 +2610,7 @@
       "329126819"
     ],
     "name_variants": [
-      "\"GEESE\" LAKE"
+      "GEESE LAKE"
     ]
   },
   {
@@ -2629,6 +2625,9 @@
     "note": "Lake in MU 5-2. BC Lakes Database: WBID 00238TWAC. Gazetted name: KESTREL LAKE. Location found from map.",
     "waterbody_keys": [
       "329586239"
+    ],
+    "name_variants": [
+      "KESTREL LAKE"
     ]
   },
   {
@@ -2686,9 +2685,7 @@
     "gnis_ids": [
       "33890"
     ],
-    "name_variants": [
-      "Chilko Lake"
-    ]
+    "canonical_name": "Chilko Lake"
   },
   {
     "type": "override",
@@ -2703,9 +2700,7 @@
     "gnis_ids": [
       "23919"
     ],
-    "name_variants": [
-      "Tanya Lake"
-    ]
+    "canonical_name": "Tanya Lake"
   },
   {
     "type": "override",
@@ -2851,6 +2846,9 @@
     "note": "Unnamed lake approximately 3.2 km south of Le Bourdais Lake in MU 5-2. Confirmed via FDIS fish observation (Waterbody ID 48340, Project: Inventory, Rudy, Maud Creek, Sandy Lake; 2019). Reference: http://a100.gov.bc.ca/pub/acat/public/viewReport.do?reportId=58961. Note: There is a different Sandy Lake (GNIS 21196) in MU 5-16 which is NOT this one.",
     "waterbody_keys": [
       "329481525"
+    ],
+    "name_variants": [
+      "SANDY LAKE"
     ]
   },
   {
@@ -2865,6 +2863,9 @@
     "note": "Unnamed lake approximately 25 km NE of Lac La Hache in Region 5; found via BC Lakes Database (survey_id 20677: 'A Reconnaissance Survey of Bluff Lake'). FWA has no GNIS ID.",
     "waterbody_keys": [
       "329354763"
+    ],
+    "name_variants": [
+      "BLUFF LAKE"
     ]
   },
   {
@@ -2893,6 +2894,9 @@
     "note": "Unnamed lake in Taseko River drainage approximately 4 km north of Cone Hill in MU 5-4; found via BC Lakes Database (survey_id 5210: 'Lake Survey: Slim Lake 00811TASR', associated with Taseko Mines Limited Fish Lake Project). FWA has no GNIS ID.",
     "waterbody_keys": [
       "329554444"
+    ],
+    "name_variants": [
+      "SLIM LAKE"
     ]
   },
   {
@@ -2909,7 +2913,7 @@
       "329116791"
     ],
     "name_variants": [
-      "\"WHALE\" LAKE"
+      "WHALE LAKE"
     ]
   },
   {
@@ -2924,6 +2928,9 @@
     "note": "Unnamed lake approximately 1.6 km downstream of Joan Lake in MU 5-2; found via ACAT report (https://a100.gov.bc.ca/pub/acat/public/viewReport.do?reportId=23024). FWA has no GNIS ID.",
     "waterbody_keys": [
       "329480817"
+    ],
+    "name_variants": [
+      "RYE LAKE"
     ]
   },
   {
@@ -2938,6 +2945,9 @@
     "note": "Unnamed lake adjacent to Dog Creek Road, approximately 9 km west of Gustafsen Lake and 19 km north of Meadow Lake Road in MU 5-2; found via BC Lakes Database ('A Reconnaissance Survey of Pigeon #1 (alias) Lake, WBID: 00525DOGC'). FWA has no GNIS ID.",
     "waterbody_keys": [
       "329116844"
+    ],
+    "name_variants": [
+      "PIGEON LAKE #1"
     ]
   },
   {
@@ -2952,6 +2962,9 @@
     "note": "Unnamed lake approximately 100 m east of Sneezie Lake in MU 5-2; found via BC Lakes Database ('A Reconnaissance Survey of Unnamed Lake 5964', WSC 100-385000-98600-98900-5160-5530, located approx. 19.5 km east of Lac La Hache). FWA has no GNIS ID.",
     "waterbody_keys": [
       "329495189"
+    ],
+    "name_variants": [
+      "SINKHOLE LAKE"
     ]
   },
   {
@@ -2997,7 +3010,8 @@
       "10522"
     ],
     "name_variants": [
-      "SUNSHINE LAKE"
+      "SUNSHINE LAKE",
+      "ANT LAKE"
     ]
   },
   {
@@ -3027,6 +3041,9 @@
     "note": "Unnamed lake approximately 60 km ESE of 100 Mile House (West King Area) in MU 5-1; found via BC Lakes Database (survey_id 20655: 'A Reconnaissance Survey of Snag Lake'). FWA has no GNIS ID.",
     "waterbody_keys": [
       "329060886"
+    ],
+    "name_variants": [
+      "SNAG LAKE"
     ]
   },
   {
@@ -3055,6 +3072,9 @@
     "note": "Unnamed lake in MU 5-2, approximately 6 km south/southwest of the confluence of Dog and Pigeon Creeks. BC Lakes Database: WBID 00289DOGC. ACAT 6700. Other Dog Lakes exist in Region 4 (GNIS 24393, MU 4-25) and Region 6 (GNIS 24396, MU 6-16). Location found from map. Medium confidence.",
     "waterbody_keys": [
       "329116771"
+    ],
+    "name_variants": [
+      "DOG LAKE"
     ]
   },
   {
@@ -3071,7 +3091,7 @@
       "329074474"
     ],
     "name_variants": [
-      "\"GRIZZLY\" LAKE"
+      "GRIZZLY LAKE"
     ]
   },
   {
@@ -3102,7 +3122,7 @@
       "329061097"
     ],
     "name_variants": [
-      "\"GRASSY\" LAKE"
+      "GRASSY LAKE"
     ]
   },
   {
@@ -3119,7 +3139,7 @@
       "329060853"
     ],
     "name_variants": [
-      "\"HIGH\" LAKE"
+      "HIGH LAKE"
     ]
   },
   {
@@ -3136,7 +3156,7 @@
       "329430970"
     ],
     "name_variants": [
-      "\"LITTLE BISHOP\" LAKE"
+      "LITTLE BISHOP LAKE"
     ]
   },
   {
@@ -3151,6 +3171,9 @@
     "note": "Unnamed lake in MU 5-2, approximately 13 km east/southeast of 150 Mile House on the north side of Jones Creek. Confirmed via stocked lakes map. Location found from map.",
     "waterbody_keys": [
       "328987837"
+    ],
+    "name_variants": [
+      "LITTLE JONES LAKE"
     ]
   },
   {
@@ -3182,7 +3205,7 @@
       "100-500560-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
     ],
     "name_variants": [
-      "\"BLACKWATER\" RIVER",
+      "BLACKWATER RIVER",
       "WEST ROAD RIVER"
     ]
   },
@@ -3212,6 +3235,9 @@
     "note": "GNIS name: Agnus Lake. Remove quotes.",
     "gnis_ids": [
       "44057"
+    ],
+    "name_variants": [
+      "AGNUS LAKE"
     ]
   },
   {
@@ -3277,7 +3303,8 @@
     ],
     "name_variants": [
       "GLACIER CREEK"
-    ]
+    ],
+    "canonical_name": "Glacier Creek"
   },
   {
     "type": "override",
@@ -3407,9 +3434,7 @@
     "fwa_watershed_codes": [
       "200-692231-770914-177748-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
     ],
-    "name_variants": [
-      "Rancheria River"
-    ]
+    "canonical_name": "Rancheria River"
   },
   {
     "type": "override",
@@ -3430,6 +3455,9 @@
       "244068592",
       "244068446",
       "244068441"
+    ],
+    "name_variants": [
+      "DIANA CREEK"
     ]
   },
   {
@@ -3444,6 +3472,9 @@
     "note": "East Gribbell Creek in MU 6-3, on Ursula Channel. Ungazetted stream. Waterbody ID 00000KHTZ. Cutthroat Trout observed 1994-01-01. Source: FISS Database survey_id 77237 '01-JAN-94 Fisheries Assessment of East Gribbell Creek on Ursula Channel'.",
     "fwa_watershed_codes": [
       "915-679587-924307-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+    ],
+    "name_variants": [
+      "EAST GRIBBELL CREEK"
     ]
   },
   {
@@ -3458,6 +3489,9 @@
     "note": "Oldfield Creek in MU 6-14, tributary of Hays Creek. Oldfield Creek Fish Hatchery located here.",
     "fwa_watershed_codes": [
       "915-755598-329884-406409-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+    ],
+    "name_variants": [
+      "OLDFIELD CREEK"
     ]
   },
   {
@@ -3474,7 +3508,7 @@
       "400-426207-245962-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
     ],
     "name_variants": [
-      "\"SEELEY\" CREEK"
+      "SEELEY CREEK"
     ]
   },
   {
@@ -3487,6 +3521,9 @@
     "note": "West Road River (Blackwater River). Regulation MU 6-1.",
     "fwa_watershed_codes": [
       "100-500560-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+    ],
+    "name_variants": [
+      "BLACKWATER RIVER"
     ]
   },
   {
@@ -3502,8 +3539,9 @@
     "fwa_watershed_codes": [
       "100-500560-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
     ],
+    "canonical_name": "West Road River",
     "name_variants": [
-      "West Road River"
+      "BLACKWATER RIVER"
     ]
   },
   {
@@ -3768,6 +3806,9 @@
     "note": "Unnamed lake in Region 7 MU 7-25; found via BC Lakes Database (Report ID 3676: 'FORT ST. JAMES LAKE INVENTORY 1996 RECONNAISSANCE SURVEY OF UNNAMED LAKE 73 K113 (Little Tomas)', WBID: 01199STUL).",
     "waterbody_keys": [
       "329537273"
+    ],
+    "name_variants": [
+      "LITTLE TOMAS LAKE"
     ]
   },
   {
@@ -3784,7 +3825,7 @@
       "329654564"
     ],
     "name_variants": [
-      "\"LOWER BEAVERPOND\" LAKE"
+      "LOWER BEAVERPOND LAKE"
     ]
   },
   {
@@ -3873,8 +3914,9 @@
     "fwa_watershed_codes": [
       "100-500560-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
     ],
+    "canonical_name": "West Road River",
     "name_variants": [
-      "West Road River"
+      "BLACKWATER RIVER"
     ]
   },
   {
@@ -3903,6 +3945,9 @@
     "note": "Unnamed lake in Region 7 MU 7-28 (located approximately 7.5 km south/southeast of Mt. Milligan); found via BC Lakes Database (Report ID 4121: 'Mount Milligan Lake 2004 Fish Stocking Assessment 01479NATR', WBID: 01479NATR).",
     "waterbody_keys": [
       "329424582"
+    ],
+    "name_variants": [
+      "MT. MILLIGAN LAKE"
     ]
   },
   {
@@ -4006,7 +4051,8 @@
       "329343551"
     ],
     "name_variants": [
-      "UNNAMED LAKE located 100 m west of Butterfly Lake"
+      "KINGLET LAKE",
+      "KINGLET LAKE LAKE"
     ]
   },
   {
@@ -4024,7 +4070,8 @@
       "329343806"
     ],
     "name_variants": [
-      "UNNAMED LAKE located approx. 200 m southwest of Butterfly Lake"
+      "REDSTART LAKE",
+      "REDSTART LAKE LAKE"
     ]
   },
   {
@@ -4156,7 +4203,8 @@
       "16498"
     ],
     "name_variants": [
-      "BOBTAIL LAKE"
+      "BOBTAIL LAKE",
+      "NALTESBY LAKE"
     ]
   },
   {
@@ -4264,7 +4312,7 @@
       "328995585"
     ],
     "name_variants": [
-      "\"CHINAMAN\" LAKE"
+      "CHINAMAN LAKE"
     ]
   },
   {
@@ -4584,9 +4632,7 @@
     "gnis_ids": [
       "18775"
     ],
-    "name_variants": [
-      "Granby River"
-    ]
+    "canonical_name": "Granby River"
   },
   {
     "type": "override",
@@ -4697,9 +4743,7 @@
     "gnis_ids": [
       "11984"
     ],
-    "name_variants": [
-      "Kettle River"
-    ]
+    "canonical_name": "Kettle River"
   },
   {
     "type": "override",
@@ -4714,9 +4758,7 @@
     "gnis_ids": [
       "6358"
     ],
-    "name_variants": [
-      "West Kettle River"
-    ]
+    "canonical_name": "West Kettle River"
   },
   {
     "type": "override",
@@ -4739,6 +4781,9 @@
       "705026580",
       "705027285",
       "705026103"
+    ],
+    "name_variants": [
+      "BLUEY LAKE POTHOLES"
     ]
   },
   {
@@ -4834,9 +4879,7 @@
     "note": "Likely covered by Upper/Lower tributaries",
     "skip": true,
     "skip_reason": "ignored",
-    "name_variants": [
-      "Arrow Lakes"
-    ]
+    "canonical_name": "Arrow Lakes"
   },
   {
     "type": "override",
@@ -4863,9 +4906,7 @@
     "note": "Covered by Pend d'Oreille River tributary regulations",
     "skip": true,
     "skip_reason": "ignored",
-    "name_variants": [
-      "Seven Mile Reservoir"
-    ]
+    "canonical_name": "Seven Mile Reservoir"
   },
   {
     "type": "override",
@@ -4892,9 +4933,7 @@
     "note": "Covered by Pend d'Oreille River tributary regulations",
     "skip": true,
     "skip_reason": "ignored",
-    "name_variants": [
-      "Waneta Reservoir"
-    ]
+    "canonical_name": "Waneta Reservoir"
   },
   {
     "type": "override",
@@ -5098,9 +5137,7 @@
         "feature_id": "1127"
       }
     ],
-    "name_variants": [
-      "Strathcona Park"
-    ]
+    "canonical_name": "Strathcona Park"
   },
   {
     "type": "override",
@@ -5120,7 +5157,8 @@
     ],
     "name_variants": [
       "CRESTON VALLEY WILDLIFE MANAGEMENT AREA WATERS"
-    ]
+    ],
+    "canonical_name": "Creston Valley Wildlife Management Area"
   },
   {
     "type": "override",
@@ -5143,7 +5181,8 @@
     ],
     "name_variants": [
       "KIKOMUN CREEK PARK"
-    ]
+    ],
+    "canonical_name": "Kikomun Creek Park"
   },
   {
     "type": "override",
@@ -5161,9 +5200,7 @@
         "feature_id": "519"
       }
     ],
-    "name_variants": [
-      "Bowron Lake Park"
-    ]
+    "canonical_name": "Bowron Lake Park"
   },
   {
     "type": "override",
@@ -5181,9 +5218,7 @@
         "feature_id": "4af28ce2-bda0-47bf-8e64-664b1be54922"
       }
     ],
-    "name_variants": [
-      "Chilkoot Trail National Historic Park"
-    ]
+    "canonical_name": "Chilkoot Trail National Historic Park"
   },
   {
     "type": "override",
@@ -5208,7 +5243,8 @@
     ],
     "name_variants": [
       "LIARD RIVER WATERSHED"
-    ]
+    ],
+    "canonical_name": "Liard River Watershed"
   },
   {
     "type": "override",
@@ -5648,7 +5684,8 @@
       "20189"
     ],
     "name_variants": [
-      "HEALY LAKE"
+      "HEALY LAKE",
+      "PANTHER LAKE"
     ]
   },
   {
@@ -5665,7 +5702,8 @@
       "26096"
     ],
     "name_variants": [
-      "LAKE WESTON"
+      "LAKE WESTON",
+      "WESTON LAKE LAKE"
     ]
   },
   {
@@ -5699,7 +5737,8 @@
       "30821"
     ],
     "name_variants": [
-      "MARBLE RIVER"
+      "MARBLE RIVER",
+      "LINK RIVER"
     ]
   },
   {
@@ -5733,7 +5772,8 @@
       "37434"
     ],
     "name_variants": [
-      "COMO LAKE"
+      "COMO LAKE",
+      "WELCOME LAKE"
     ]
   },
   {
@@ -5781,7 +5821,8 @@
       "17315"
     ],
     "name_variants": [
-      "EMILY LAKE"
+      "EMILY LAKE",
+      "TURTLE LAKE"
     ]
   },
   {
@@ -5815,7 +5856,8 @@
       "10805"
     ],
     "name_variants": [
-      "IVEY LAKE"
+      "IVEY LAKE",
+      "HORSESHOE LAKE"
     ]
   },
   {
@@ -5866,7 +5908,8 @@
       "2159"
     ],
     "name_variants": [
-      "LILY LAKE"
+      "LILY LAKE",
+      "PAQ LAKE"
     ]
   },
   {
@@ -5917,7 +5960,8 @@
       "29975"
     ],
     "name_variants": [
-      "MIXAL LAKE"
+      "MIXAL LAKE",
+      "BEAR LAKE"
     ]
   },
   {
@@ -5934,7 +5978,8 @@
       "7892"
     ],
     "name_variants": [
-      "NATHAN CREEK"
+      "NATHAN CREEK",
+      "BEAVER CREEK"
     ]
   },
   {
@@ -5951,7 +5996,8 @@
       "23402"
     ],
     "name_variants": [
-      "NORRISH CREEK"
+      "NORRISH CREEK",
+      "SUICIDE CREEK"
     ]
   },
   {
@@ -6002,7 +6048,8 @@
       "23557"
     ],
     "name_variants": [
-      "SAYRES LAKE"
+      "SAYRES LAKE",
+      "CEDAR LAKE"
     ]
   },
   {
@@ -6036,7 +6083,8 @@
       "24243"
     ],
     "name_variants": [
-      "SCOTT CREEK"
+      "SCOTT CREEK",
+      "HOY CREEK"
     ]
   },
   {
@@ -6053,7 +6101,8 @@
       "26292"
     ],
     "name_variants": [
-      "SILVER LAKE"
+      "SILVER LAKE",
+      "SILVERHOPE LAKE"
     ]
   },
   {
@@ -6070,7 +6119,8 @@
       "26290"
     ],
     "name_variants": [
-      "SILVERHOPE CREEK"
+      "SILVERHOPE CREEK",
+      "SILVER CREEK"
     ]
   },
   {
@@ -6104,7 +6154,8 @@
       "2481"
     ],
     "name_variants": [
-      "SUMALLO RIVER"
+      "SUMALLO RIVER",
+      "CEDAR RIVER"
     ]
   },
   {
@@ -6152,7 +6203,8 @@
       "22474"
     ],
     "name_variants": [
-      "WAHLEACH LAKE"
+      "WAHLEACH LAKE",
+      "JONES LAKE"
     ]
   },
   {
@@ -6169,7 +6221,8 @@
       "25246"
     ],
     "name_variants": [
-      "WAUGH LAKE"
+      "WAUGH LAKE",
+      "WORM LAKE"
     ]
   },
   {
@@ -6217,7 +6270,8 @@
       "17668"
     ],
     "name_variants": [
-      "AYLMER LAKE"
+      "AYLMER LAKE",
+      "STAR LAKE"
     ]
   },
   {
@@ -6234,7 +6288,8 @@
       "39742"
     ],
     "name_variants": [
-      "BIG O.K. LAKE"
+      "BIG O.K. LAKE",
+      "ISLAND LAKE"
     ]
   },
   {
@@ -6302,7 +6357,8 @@
       "15041"
     ],
     "name_variants": [
-      "LAJOIE LAKE"
+      "LAJOIE LAKE",
+      "LITTLE GUN LAKE"
     ]
   },
   {
@@ -6336,7 +6392,8 @@
       "6911"
     ],
     "name_variants": [
-      "MACHETE LAKE"
+      "MACHETE LAKE",
+      "BEAR LAKE"
     ]
   },
   {
@@ -6370,7 +6427,8 @@
       "27322"
     ],
     "name_variants": [
-      "MELLIN LAKE"
+      "MELLIN LAKE",
+      "JERRY LAKE"
     ]
   },
   {
@@ -6387,7 +6445,8 @@
       "22675"
     ],
     "name_variants": [
-      "PAT LAKE"
+      "PAT LAKE",
+      "SIX MILE LAKE"
     ]
   },
   {
@@ -6536,7 +6595,8 @@
       "12441"
     ],
     "name_variants": [
-      "BIG FISH LAKE"
+      "BIG FISH LAKE",
+      "DUNBAR LAKE"
     ]
   },
   {
@@ -6553,7 +6613,8 @@
       "12449"
     ],
     "name_variants": [
-      "BIGHORN CREEK"
+      "BIGHORN CREEK",
+      "RAM CREEK"
     ]
   },
   {
@@ -6701,7 +6762,8 @@
       "30933"
     ],
     "name_variants": [
-      "KITCHENER CREEK"
+      "KITCHENER CREEK",
+      "MEADOW CREEK"
     ]
   },
   {
@@ -6799,7 +6861,8 @@
       "5400"
     ],
     "name_variants": [
-      "MOOSE LAKE"
+      "MOOSE LAKE",
+      "ALCES LAKE"
     ]
   },
   {
@@ -6816,7 +6879,8 @@
       "1731"
     ],
     "name_variants": [
-      "NANCY GREENE LAKE"
+      "NANCY GREENE LAKE",
+      "SHEEP LAKE"
     ]
   },
   {
@@ -6833,7 +6897,8 @@
       "23373"
     ],
     "name_variants": [
-      "NORBURY CREEK"
+      "NORBURY CREEK",
+      "LITTLE BULL CREEK"
     ]
   },
   {
@@ -6851,7 +6916,8 @@
       "23376"
     ],
     "name_variants": [
-      "NORBURY LAKE"
+      "NORBURY LAKE",
+      "GARBUTT LAKE"
     ]
   },
   {
@@ -6868,7 +6934,8 @@
       "23396"
     ],
     "name_variants": [
-      "NORNS CREEK"
+      "NORNS CREEK",
+      "PASS CREEK"
     ]
   },
   {
@@ -6902,7 +6969,8 @@
       "38915"
     ],
     "name_variants": [
-      "RYKERTS LAKE"
+      "RYKERTS LAKE",
+      "VIC MAWSON LAKE"
     ]
   },
   {
@@ -6936,7 +7004,8 @@
       "26534"
     ],
     "name_variants": [
-      "SOWERBY LAKE"
+      "SOWERBY LAKE",
+      "GRUNDY LAKE"
     ]
   },
   {
@@ -6953,7 +7022,8 @@
       "6416"
     ],
     "name_variants": [
-      "TONKAWATLA CREEK"
+      "TONKAWATLA CREEK",
+      "TUM TUM CREEK"
     ]
   },
   {
@@ -7005,7 +7075,8 @@
       "43994"
     ],
     "name_variants": [
-      "BISHOP LAKE"
+      "BISHOP LAKE",
+      "BROWN LAKE"
     ]
   },
   {
@@ -7124,7 +7195,8 @@
       "2113"
     ],
     "name_variants": [
-      "CRAZY BEAR LAKE"
+      "CRAZY BEAR LAKE",
+      "GINNY LAKE"
     ]
   },
   {
@@ -7362,7 +7434,8 @@
       "3942"
     ],
     "name_variants": [
-      "KITSUMKALUM RIVER"
+      "KITSUMKALUM RIVER",
+      "KALUM RIVER"
     ]
   },
   {
@@ -7396,7 +7469,8 @@
       "1870"
     ],
     "name_variants": [
-      "ROSS LAKE"
+      "ROSS LAKE",
+      "SIX MILE LAKE"
     ]
   },
   {
@@ -7413,7 +7487,8 @@
       "35115"
     ],
     "name_variants": [
-      "SILVERTHORNE LAKE"
+      "SILVERTHORNE LAKE",
+      "ERICKSON LAKE"
     ]
   },
   {
@@ -7447,7 +7522,8 @@
       "2637"
     ],
     "name_variants": [
-      "SUSKWA RIVER"
+      "SUSKWA RIVER",
+      "BEAR RIVER"
     ]
   },
   {
@@ -7481,7 +7557,8 @@
       "3137"
     ],
     "name_variants": [
-      "ZYMOETZ RIVER"
+      "ZYMOETZ RIVER",
+      "COPPER RIVER"
     ]
   },
   {
@@ -7549,7 +7626,8 @@
       "7174"
     ],
     "name_variants": [
-      "ANDY BAILEY LAKE"
+      "ANDY BAILEY LAKE",
+      "JACKFISH LAKE"
     ]
   },
   {
@@ -7628,7 +7706,8 @@
       "17171"
     ],
     "name_variants": [
-      "ASP CREEK"
+      "ASP CREEK",
+      "CHINA CREEK"
     ]
   },
   {
@@ -7645,7 +7724,8 @@
       "10637"
     ],
     "name_variants": [
-      "BURNELL LAKE"
+      "BURNELL LAKE",
+      "SAWMILL LAKE"
     ]
   },
   {
@@ -7679,7 +7759,8 @@
       "10764"
     ],
     "name_variants": [
-      "ISLAHT LAKE"
+      "ISLAHT LAKE",
+      "HORSESHOE LAKE"
     ]
   },
   {
@@ -7696,7 +7777,8 @@
       "2374"
     ],
     "name_variants": [
-      "KUMP LAKE"
+      "KUMP LAKE",
+      "LOST LAKE"
     ]
   },
   {
@@ -7713,7 +7795,8 @@
       "15077"
     ],
     "name_variants": [
-      "LAMBLY LAKE"
+      "LAMBLY LAKE",
+      "BEAR LAKE"
     ]
   },
   {
