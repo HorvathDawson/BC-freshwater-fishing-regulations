@@ -353,11 +353,14 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                     <div className="mobile-handle-bar" />
                     
                     <div className="header-row">
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <div className="header-left">
                             <div className="type-icon" style={{ backgroundColor: getColorForType(feature.type) }}>
-                                <Icon icon={getIconForType(feature.type)} width={32} height={32} color="white" />
+                                <Icon icon={getIconForType(feature.type)} width={26} height={26} color="white" />
                             </div>
-                            <span className="type-tag">{typeLabel}</span>
+                            <div className="header-title-block">
+                                <h1 className="title">{title}</h1>
+                                <span className="type-tag">{typeLabel}</span>
+                            </div>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '4px', position: 'relative' }}>
                             <button 
@@ -373,9 +376,7 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                             </button>
                         </div>
                     </div>
-                    <div className="title-group">
-                        <h1 className="title">{title}</h1>
-                        {hasAliases && (() => {
+                    {hasAliases && (() => {
                             const tributaryAliases = aliases.filter(a => a.source === 'tributary');
                             const adminAliases = aliases.filter(a => a.source === 'admin');
                             const regularAliases = aliases.filter(a => a.source === 'direct');
@@ -410,7 +411,6 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                                 </>
                             );
                         })()}
-                    </div>
                 </div>
 
                 {/* Section tab bar — only rendered for multi-section waterbodies.
@@ -480,59 +480,61 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                     aria-labelledby={sortedSiblings.length > 1 ? `section-tab-${activeFgid}` : undefined}
                     tabIndex={sortedSiblings.length > 1 ? 0 : undefined}
                 >
-                    {/* Zoom button — always shown when feature has a valid bbox.
-                        Multi-section: "Zoom to Section X", single-section: "Zoom to Feature". */}
-                    {sectionBbox && (() => {
-                        const bbox = sectionBbox;
-                        const minZoom = sectionMinZoom;
-                        const isMultiSection = sortedSiblings.length > 1;
-                        const activeLabel = isMultiSection
-                            ? `Section ${sectionLabel(sortedSiblings.findIndex(sf =>
-                                (sf.regulation_segments?.[0]?.frontend_group_id ?? sf.id) === activeFgid
-                            ))}`
-                            : 'Feature';
-                        return (
-                            <button
-                                className="zoom-to-section-btn"
-                                onClick={() => onFlyToSection?.(bbox, minZoom)}
-                                aria-label={`Zoom to ${activeLabel}`}
-                            >
-                                <ZoomIn size={13} strokeWidth={2} />
-                                <span>Zoom to {activeLabel}</span>
-                            </button>
-                        );
-                    })()}
                     {/* REGULATIONS SECTION */}
                     <div className="data-section">
                         <div className="section-header-row">
                             <h3>REGULATIONS</h3>
                             
-                            {/* Compact filter dropdown */}
-                            {!loadingRegs && availableCategories.length > 1 && (
-                                <div className="reg-filter-compact">
-                                    <select 
-                                        className="reg-filter-select"
-                                        value={activeFilter}
-                                        onChange={(e) => setActiveFilter(e.target.value)}
-                                    >
-                                        <option value="">All</option>
-                                        {availableCategories.map(cat => (
-                                            <option key={cat} value={cat}>
-                                                {FILTER_CATEGORIES[cat]?.label || cat}
-                                            </option>
-                                        ))}
-                                    </select>
-                                    {activeFilter && (
-                                        <button 
-                                            className="reg-filter-reset-icon" 
-                                            onClick={resetFilters} 
-                                            title="Clear filter"
+                            <div className="section-header-actions">
+                                {/* Zoom to feature/section */}
+                                {sectionBbox && (() => {
+                                    const bbox = sectionBbox;
+                                    const minZoom = sectionMinZoom;
+                                    const isMultiSection = sortedSiblings.length > 1;
+                                    const activeLabel = isMultiSection
+                                        ? `Section ${sectionLabel(sortedSiblings.findIndex(sf =>
+                                            (sf.regulation_segments?.[0]?.frontend_group_id ?? sf.id) === activeFgid
+                                        ))}`
+                                        : 'Feature';
+                                    return (
+                                        <button
+                                            className="zoom-to-section-btn"
+                                            onClick={() => onFlyToSection?.(bbox, minZoom)}
+                                            aria-label={`Zoom to ${activeLabel}`}
                                         >
+                                            <ZoomIn size={13} strokeWidth={2} />
+                                            <span>Zoom</span>
+                                        </button>
+                                    );
+                                })()}
+
+                                {/* Compact filter dropdown */}
+                                {!loadingRegs && availableCategories.length > 1 && (
+                                    <div className="reg-filter-compact">
+                                        <select 
+                                            className="reg-filter-select"
+                                            value={activeFilter}
+                                            onChange={(e) => setActiveFilter(e.target.value)}
+                                        >
+                                            <option value="">All</option>
+                                            {availableCategories.map(cat => (
+                                                <option key={cat} value={cat}>
+                                                    {FILTER_CATEGORIES[cat]?.label || cat}
+                                                </option>
+                                            ))}
+                                        </select>
+                                        {activeFilter && (
+                                            <button 
+                                                className="reg-filter-reset-icon" 
+                                                onClick={resetFilters} 
+                                                title="Clear filter"
+                                            >
                                             <RotateCcw size={12} />
                                         </button>
                                     )}
                                 </div>
-                            )}
+                                )}
+                            </div>
                         </div>
                         
 
