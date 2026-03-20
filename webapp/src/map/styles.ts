@@ -271,8 +271,8 @@ export const createRegulationLayers = (): LayerSpecification[] => {
         }
     });
 
-    // Ungazetted waterbodies — NOT YET IN TILES (no data source available).
-    // Re-add circle + label layers when ungazetted data is included in tile_exporter.
+    // Ungazetted waterbodies — rendered via GeoJSON source in Map.tsx
+    // (populated from tier0.json search index after data load).
 
     // ── WATERBODY NAME LABELS ────────────────────────────────────────
     // (Moved below region/MU boundary lines so text is not obscured.)

@@ -1003,6 +1003,31 @@ const MapComponent = () => {
         setFiltersApplied(true);
     }, [mapReady, dataLoaded]);
 
+    // Populate ungazetted points on the map once both map and data are ready.
+    // These are GeoJSON points (not in PMTiles) derived from tier0 search entries.
+    useEffect(() => {
+        if (!mapReady || !dataLoaded) return;
+        const map = mapRef.current;
+        if (!map) return;
+        const ugSrc = map.getSource('ungazetted-points') as maplibregl.GeoJSONSource | undefined;
+        if (!ugSrc) return;
+        const ugFeatures = searchableFeatures.filter(f => f.type === 'ungazetted' && f.bbox && isValidBbox(f.bbox));
+        if (ugFeatures.length === 0) return;
+        ugSrc.setData({
+            type: 'FeatureCollection',
+            features: ugFeatures.map(f => {
+                const [lng, lat] = [(f.bbox![0] + f.bbox![2]) / 2, (f.bbox![1] + f.bbox![3]) / 2];
+                const reachId = f.regulation_segments?.[0]?.frontend_group_id || '';
+                return {
+                    type: 'Feature' as const,
+                    geometry: { type: 'Point' as const, coordinates: [lng, lat] },
+                    properties: { display_name: f.display_name, reach_id: reachId },
+                };
+            }),
+        });
+        console.log(`📍 ${ugFeatures.length} ungazetted points added to map`);
+    }, [mapReady, dataLoaded, searchableFeatures]);
+
     // URL restoration — restore feature selection from /waterbody/<wbg>/ or ?f=<id> or ?s=<reach_id>.
     // V2: Uses wbgIndexRef and searchLookupRef (keyed by reach_id) to find features.
     useEffect(() => {
@@ -1411,6 +1436,35 @@ const MapComponent = () => {
                 layout: { 'text-field': ['get', 'display_name'], 'text-font': ['Noto Sans Regular'], 'text-size': 13,
                     'text-offset': [0, 2.2], 'text-anchor': 'top', 'text-max-width': 12 },
                 paint: { 'text-color': '#1a1a2e', 'text-halo-color': '#ffffff', 'text-halo-width': 1.5 } });
+
+            // ── UNGAZETTED ALWAYS-VISIBLE POINTS (GeoJSON — populated from tier0) ────
+            map.addSource('ungazetted-points', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+            map.addLayer({ id: 'ungazetted-points-dot', type: 'circle', source: 'ungazetted-points',
+                minzoom: 10,
+                paint: {
+                    'circle-radius': ['interpolate', ['linear'], ['zoom'], 10, 4, 13, 7, 16, 10],
+                    'circle-color': '#F5A623', // Amber — matches FEATURE_COLORS.ungazetted
+                    'circle-opacity': 0.85,
+                    'circle-stroke-color': '#ffffff',
+                    'circle-stroke-width': 1.5,
+                } });
+            map.addLayer({ id: 'ungazetted-points-label', type: 'symbol', source: 'ungazetted-points',
+                minzoom: 12,
+                layout: {
+                    'text-field': ['get', 'display_name'],
+                    'text-font': ['Noto Sans Italic'],
+                    'text-size': ['interpolate', ['linear'], ['zoom'], 12, 10, 14, 13],
+                    'text-offset': [0, 1.8],
+                    'text-anchor': 'top',
+                    'text-max-width': 10,
+                    'text-allow-overlap': false,
+                    'text-padding': 4,
+                },
+                paint: {
+                    'text-color': '#92400E',
+                    'text-halo-color': '#ffffff',
+                    'text-halo-width': 1.2,
+                } });
             
             // Signal that map is ready for URL restoration
             setMapReady(true);
@@ -1438,7 +1492,10 @@ const MapComponent = () => {
             if (!map.isStyleLoaded()) return;
             cursorLngLatRef.current = e.lngLat;
             const features = map.queryRenderedFeatures([[e.point.x - 10, e.point.y - 10], [e.point.x + 10, e.point.y + 10]], { layers: INTERACTABLE_LAYERS });
-            map.getCanvas().style.cursor = features.length > 0 ? 'pointer' : '';
+            const ugHits = features.length === 0
+                ? map.queryRenderedFeatures([[e.point.x - 10, e.point.y - 10], [e.point.x + 10, e.point.y + 10]], { layers: ['ungazetted-points-dot'] })
+                : [];
+            map.getCanvas().style.cursor = (features.length > 0 || ugHits.length > 0) ? 'pointer' : '';
             (map.getSource('cursor-circle') as maplibregl.GeoJSONSource)?.setData({ type: 'FeatureCollection', features: [{ type: 'Feature', geometry: createCirclePolygon(e.lngLat, map.getZoom()), properties: {} }] });
         });
 
@@ -1455,6 +1512,27 @@ const MapComponent = () => {
                 [[e.point.x - 15, e.point.y - 15], [e.point.x + 15, e.point.y + 15]],
                 { layers: INTERACTABLE_LAYERS }
             );
+
+            // Check for ungazetted point clicks (GeoJSON layer, not tile-based)
+            if (!features.length) {
+                const ugHits = map.queryRenderedFeatures(
+                    [[e.point.x - 15, e.point.y - 15], [e.point.x + 15, e.point.y + 15]],
+                    { layers: ['ungazetted-points-dot'] }
+                );
+                if (ugHits.length > 0) {
+                    const reachId = String(ugHits[0].properties?.reach_id || '');
+                    const lookup = reachId ? searchLookupRef.current.get(reachId) : undefined;
+                    if (lookup) {
+                        clearSelection();
+                        const { feature: sf, segment: seg } = lookup;
+                        const fidList = regDataRef.current?.reachSegments[reachId];
+                        const selected = buildFeatureFromJSON(sf, seg, { fidList });
+                        setSelectedFeature(selected);
+                    }
+                    return;
+                }
+            }
+
             if (!features.length) {
                 // Click on blank map area — close both the info panel and disambig menu.
                 clearSelection();
