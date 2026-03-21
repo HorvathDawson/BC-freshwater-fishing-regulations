@@ -1489,7 +1489,7 @@ const MapComponent = () => {
         });
 
         map.on('mousemove', (e) => {
-            if (!map.isStyleLoaded()) return;
+            if (!map.isStyleLoaded() || isMobileViewport()) return;
             cursorLngLatRef.current = e.lngLat;
             const features = map.queryRenderedFeatures([[e.point.x - 10, e.point.y - 10], [e.point.x + 10, e.point.y + 10]], { layers: INTERACTABLE_LAYERS });
             const ugHits = features.length === 0
@@ -1501,7 +1501,7 @@ const MapComponent = () => {
 
         // Re-draw cursor circle on zoom so it resizes without requiring mouse movement
         map.on('zoom', () => {
-            if (!cursorLngLatRef.current) return;
+            if (!cursorLngLatRef.current || isMobileViewport()) return;
             const src = map.getSource('cursor-circle') as maplibregl.GeoJSONSource;
             src?.setData({ type: 'FeatureCollection', features: [{ type: 'Feature', geometry: createCirclePolygon(cursorLngLatRef.current, map.getZoom()), properties: {} }] });
         });
