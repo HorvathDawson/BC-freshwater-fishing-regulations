@@ -1287,6 +1287,98 @@ const MapComponent = () => {
             compassPosition
         );
 
+        // ── GPS LOCATION DOT (custom — no GeolocateControl state machine) ───
+        // Shows user's position as a pulsing dot. Button centers the map.
+        // Permission remembered in localStorage; auto-requests on first visit.
+        // Source/layers added inside map.on('load') below.
+        let gpsPosition: [number, number] | null = null;
+        let gpsWatchId: number | null = null;
+        let pendingGps: [number, number] | null = null;
+
+        const updateGpsDot = (lng: number, lat: number) => {
+            gpsPosition = [lng, lat];
+            setGpsBtnSpinner(false);
+            const src = map.getSource('gps-location') as maplibregl.GeoJSONSource | undefined;
+            if (src) {
+                src.setData({ type: 'FeatureCollection', features: [
+                    { type: 'Feature', geometry: { type: 'Point', coordinates: [lng, lat] }, properties: {} },
+                ] });
+            } else {
+                // Source not ready yet — queue for replay after load
+                pendingGps = [lng, lat];
+            }
+        };
+
+        const startGpsWatch = () => {
+            if (gpsWatchId != null) return;
+            // Fast coarse position first (cell/wifi), then refine with GPS
+            navigator.geolocation.getCurrentPosition(
+                (pos) => {
+                    localStorage.setItem('gps_permission', 'granted');
+                    updateGpsDot(pos.coords.longitude, pos.coords.latitude);
+                },
+                () => {},
+                { enableHighAccuracy: false, maximumAge: 60000, timeout: 3000 },
+            );
+            gpsWatchId = navigator.geolocation.watchPosition(
+                (pos) => {
+                    localStorage.setItem('gps_permission', 'granted');
+                    updateGpsDot(pos.coords.longitude, pos.coords.latitude);
+                },
+                () => { localStorage.setItem('gps_permission', 'denied'); },
+                { enableHighAccuracy: true, maximumAge: 10000 },
+            );
+        };
+
+        // Custom "center on me" button with spinner while awaiting GPS
+        const GPS_ICON = '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/></svg>';
+        const GPS_SPINNER = '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" style="animation:gps-spin 1s linear infinite"><path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round"/></svg>';
+        let gpsBtnEl: HTMLButtonElement | null = null;
+
+        const setGpsBtnSpinner = (spinning: boolean) => {
+            if (gpsBtnEl) gpsBtnEl.innerHTML = spinning ? GPS_SPINNER : GPS_ICON;
+        };
+
+        // Inject the keyframe animation once
+        if (!document.getElementById('gps-spin-style')) {
+            const style = document.createElement('style');
+            style.id = 'gps-spin-style';
+            style.textContent = '@keyframes gps-spin{to{transform:rotate(360deg)}}';
+            document.head.appendChild(style);
+        }
+
+        const gpsControl: maplibregl.IControl = {
+            onAdd() {
+                const container = document.createElement('div');
+                container.className = 'maplibregl-ctrl maplibregl-ctrl-group';
+                const btn = document.createElement('button');
+                btn.className = 'gps-center-btn';
+                btn.title = 'Center on my location';
+                btn.setAttribute('aria-label', 'Center on my location');
+                btn.innerHTML = gpsPosition ? GPS_ICON : GPS_SPINNER;
+                btn.onclick = () => {
+                    if (gpsPosition) {
+                        map.flyTo({ center: gpsPosition, zoom: Math.min(Math.max(map.getZoom(), 10), 14) });
+                    } else {
+                        setGpsBtnSpinner(true);
+                        startGpsWatch(); // prompts permission if not yet granted
+                    }
+                };
+                gpsBtnEl = btn;
+                container.appendChild(btn);
+                return container;
+            },
+            onRemove() { gpsBtnEl = null; },
+        };
+        map.addControl(gpsControl, compassPosition);
+
+        // Auto-start GPS watch immediately (before map load) so the permission
+        // prompt fires early and positions queue up. The dot renders once the
+        // source exists (inside map.on('load')).
+        if (localStorage.getItem('gps_permission') !== 'denied') {
+            startGpsWatch();
+        }
+
         // Add satellite toggle as a native MapLibre control
         // Desktop: bottom-left (stacked above compass).
         // Mobile: top-right (next to compass).
@@ -1436,6 +1528,28 @@ const MapComponent = () => {
                 layout: { 'text-field': ['get', 'display_name'], 'text-font': ['Noto Sans Regular'], 'text-size': 13,
                     'text-offset': [0, 2.2], 'text-anchor': 'top', 'text-max-width': 12 },
                 paint: { 'text-color': '#1a1a2e', 'text-halo-color': '#ffffff', 'text-halo-width': 1.5 } });
+
+            // ── GPS LOCATION DOT (GeoJSON — updated via watchPosition) ────
+            map.addSource('gps-location', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+            map.addLayer({ id: 'gps-accuracy', type: 'circle', source: 'gps-location',
+                paint: {
+                    'circle-radius': ['interpolate', ['linear'], ['zoom'], 4, 4, 14, 40],
+                    'circle-color': '#4285F4', 'circle-opacity': 0.12,
+                } });
+            map.addLayer({ id: 'gps-dot', type: 'circle', source: 'gps-location',
+                paint: {
+                    'circle-radius': 7, 'circle-color': '#4285F4',
+                    'circle-stroke-color': '#ffffff', 'circle-stroke-width': 2.5,
+                } });
+
+            // Replay any GPS position that arrived before the source was ready
+            if (pendingGps) {
+                const src = map.getSource('gps-location') as maplibregl.GeoJSONSource;
+                src.setData({ type: 'FeatureCollection', features: [
+                    { type: 'Feature', geometry: { type: 'Point', coordinates: pendingGps }, properties: {} },
+                ] });
+                pendingGps = null;
+            }
 
             // ── UNGAZETTED ALWAYS-VISIBLE POINTS (GeoJSON — populated from tier0) ────
             map.addSource('ungazetted-points', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
