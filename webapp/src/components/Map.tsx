@@ -9,6 +9,7 @@ import { waterbodyDataService } from '../services/waterbodyDataService';
 import type { Reach, RegulationData, ResolveResult } from '../services/waterbodyDataService';
 import { 
     isMobileViewport,
+    getFeatureDisplayName,
     type FeatureInfo, 
     type FeatureOption, 
     type FeatureGeometry,
@@ -19,6 +20,7 @@ import InfoPanel from './InfoPanel';
 import DisambiguationMenu from './DisambiguationMenu';
 import SearchBar from './SearchBar';
 import Disclaimer, { DisclaimerLink } from './Disclaimer';
+import IssueReport, { IssueReportLink, type IssueReportContext } from './IssueReport';
 import type { SearchableFeature, RegulationSegment } from './SearchBar';
 import './Map.css';
 
@@ -566,6 +568,7 @@ const MapComponent = () => {
     // Used as ?v= query param on PMTiles URLs to bust browser cache on deploys.
     const [dataVersion, setDataVersion] = useState<string | null>(null);
     const [disclaimerOpen, setDisclaimerOpen] = useState(false);
+    const [issueReportOpen, setIssueReportOpen] = useState(false);
     const [isSatellite, setIsSatellite] = useState(false);
     const [overlayOpacity, setOverlayOpacity] = useState(1);
     const [sliderOpen, setSliderOpen] = useState(false);
@@ -1992,6 +1995,31 @@ const MapComponent = () => {
         flyToBox(bbox, minZoom);
     }, [flyToBox]);
 
+    /**
+     * Snapshot the current app state for a feedback report: map view, the
+     * selected waterbody (if any), the shareable URL and the data version.
+     * Read imperatively from refs so the modal always gets live values.
+     */
+    const getIssueContext = useCallback((): IssueReportContext => {
+        const map = mapRef.current;
+        const center = map?.getCenter();
+        const context: IssueReportContext = {
+            lat: center?.lat,
+            lng: center?.lng,
+            zoom: map?.getZoom(),
+            dataVersion: dataVersion || undefined,
+            pageUrl: window.location.href,
+        };
+        const feature = selectedFeatureRef.current;
+        if (feature) {
+            const props = feature.properties as Record<string, any>;
+            context.waterbodyName = getFeatureDisplayName(props, feature.type);
+            context.waterbodyType = feature.type;
+            context.waterbodyId = String(feature.id ?? props?.fid ?? props?.wbk ?? '') || undefined;
+        }
+        return context;
+    }, [dataVersion]);
+
     return (
         <div className="map-container">
             <div ref={mapContainerRef} className="map-canvas" />
@@ -2025,8 +2053,12 @@ const MapComponent = () => {
                 />
             </div>
             <InfoPanel feature={selectedFeature} onClose={clearSelection} collapseState={mobilePanelState} onSetCollapseState={setMobilePanelState} siblingFeatures={siblingFeatures} onHighlightSection={handleHighlightSection} onFlyToSection={handleFlyToSection} />
-            <DisclaimerLink onClick={() => setDisclaimerOpen(true)} />
+            <div className="map-footer-links">
+                <DisclaimerLink onClick={() => setDisclaimerOpen(true)} />
+                <IssueReportLink onClick={() => setIssueReportOpen(true)} />
+            </div>
             <Disclaimer isOpen={disclaimerOpen} onClose={() => setDisclaimerOpen(false)} />
+            <IssueReport isOpen={issueReportOpen} onClose={() => setIssueReportOpen(false)} getContext={getIssueContext} />
             {disambigOptions.length > 0 && (
                 <DisambiguationMenu 
                     options={disambigOptions} position={disambigPosition} highlightedOption={highlightedOption}

@@ -1,0 +1,256 @@
+/* Footer link cluster (bottom-left) holding Disclaimer + Feedback together.
+   Positioned here so the two links flow side by side; the individual links are
+   made static (see Disclaimer.css) so this flex container controls placement. */
+.map-footer-links {
+    position: absolute;
+    bottom: 8px;
+    left: 44px;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* Feedback link — matches the Disclaimer link's pill styling. */
+.feedback-link {
+    background: rgba(255, 255, 255, 0.85);
+    border: none;
+    padding: 4px 8px;
+    font-size: 11px;
+    color: #666;
+    cursor: pointer;
+    border-radius: 3px;
+    font-family: var(--font-sans, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif);
+    transition: color 0.15s, background 0.15s;
+}
+
+.feedback-link:hover {
+    color: #333;
+    background: rgba(255, 255, 255, 0.95);
+    text-decoration: underline;
+}
+
+/* Modal overlay */
+.issue-report-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+/* Modal container */
+.issue-report-modal {
+    background: white;
+    border: 1px solid #000;
+    box-shadow: 6px 6px 0 rgba(0, 0, 0, 1);
+    max-width: 520px;
+    width: 100%;
+    max-height: 85vh;
+    overflow-y: auto;
+    position: relative;
+    padding: 24px;
+}
+
+.issue-report-modal h2 {
+    margin: 0 0 16px 0;
+    font-size: 18px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 2px solid #000;
+    padding-bottom: 12px;
+}
+
+.issue-report-close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #333;
+    transition: color 0.15s;
+}
+
+.issue-report-close:hover {
+    color: #000;
+}
+
+/* Content */
+.issue-report-content {
+    font-size: 13px;
+    line-height: 1.6;
+    color: #333;
+}
+
+.issue-report-intro {
+    margin: 0 0 16px 0;
+}
+
+.issue-report-intro strong {
+    font-weight: 700;
+}
+
+/* Form fields */
+.issue-report-field {
+    display: block;
+    margin-bottom: 14px;
+}
+
+.issue-report-field > span {
+    display: block;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    margin-bottom: 6px;
+    color: #222;
+}
+
+.issue-report-req {
+    color: #c0392b;
+    display: inline;
+    text-transform: none;
+}
+
+.issue-report-field select,
+.issue-report-field input,
+.issue-report-field textarea {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 8px 10px;
+    font-size: 13px;
+    font-family: inherit;
+    color: #222;
+    border: 1px solid #000;
+    border-radius: 0;
+    background: #fff;
+}
+
+.issue-report-field textarea {
+    resize: vertical;
+    min-height: 84px;
+}
+
+.issue-report-field select:focus,
+.issue-report-field input:focus,
+.issue-report-field textarea:focus {
+    outline: none;
+    box-shadow: 3px 3px 0 rgba(0, 0, 0, 1);
+}
+
+/* Preview of the generated report body */
+.issue-report-preview {
+    margin-top: 4px;
+    font-size: 12px;
+}
+
+.issue-report-preview summary {
+    cursor: pointer;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: #555;
+}
+
+.issue-report-preview pre {
+    margin: 10px 0 0 0;
+    padding: 10px;
+    background: #f6f6f6;
+    border: 1px solid #ddd;
+    font-size: 11px;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-break: break-word;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+/* Actions */
+.issue-report-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid #eee;
+}
+
+.issue-report-secondary,
+.issue-report-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    font-size: 13px;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    border: 1px solid #000;
+    border-radius: 0;
+    text-decoration: none;
+    transition: box-shadow 0.12s, transform 0.12s;
+}
+
+.issue-report-secondary {
+    background: #fff;
+    color: #222;
+}
+
+.issue-report-primary {
+    background: #111;
+    color: #fff;
+}
+
+.issue-report-secondary:not(:disabled):hover,
+.issue-report-primary:not(.disabled):hover {
+    box-shadow: 3px 3px 0 rgba(0, 0, 0, 1);
+    transform: translate(-1px, -1px);
+}
+
+.issue-report-secondary:disabled,
+.issue-report-primary.disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+/* Mobile adjustments */
+@media (max-width: 768px) {
+    .map-footer-links {
+        bottom: calc(6px + env(safe-area-inset-bottom, 0px));
+        left: 6px;
+        gap: 5px;
+    }
+
+    .feedback-link {
+        font-size: 10px;
+        padding: 3px 6px;
+    }
+
+    .issue-report-modal {
+        padding: 20px;
+    }
+
+    .issue-report-modal h2 {
+        font-size: 16px;
+    }
+
+    .issue-report-actions {
+        flex-direction: column-reverse;
+    }
+
+    .issue-report-secondary,
+    .issue-report-primary {
+        justify-content: center;
+        width: 100%;
+    }
+}

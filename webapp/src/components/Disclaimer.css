@@ -1,9 +1,6 @@
-/* Disclaimer link - positioned in bottom-left corner of map, beside compass */
+/* Disclaimer link - flows inside the .map-footer-links flex cluster
+   (positioned in IssueReport.css) alongside the Feedback link. */
 .disclaimer-link {
-    position: absolute;
-    bottom: 8px;
-    left: 44px;
-    z-index: 1;
     background: rgba(255, 255, 255, 0.85);
     border: none;
     padding: 4px 8px;
@@ -115,8 +112,6 @@
 /* Mobile adjustments */
 @media (max-width: 768px) {
     .disclaimer-link {
-        bottom: calc(6px + env(safe-area-inset-bottom, 0px));
-        left: 6px;
         font-size: 10px;
         padding: 3px 6px;
     }
