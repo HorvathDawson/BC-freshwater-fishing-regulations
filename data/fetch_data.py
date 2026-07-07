@@ -487,15 +487,52 @@ def fetch_csv_download(short_name: str, url: str, dest_path: Path) -> None:
         print(f"  ⚠️  saved but could not count rows: {exc}")
 
 
-def fetch_bathymetry_pdfs(short_name: str, csv_path: Path, dest_dir: Path) -> None:
+def _bathy_pdf_filename(url: object) -> "str | None":
+    """Extract the canonical PDF filename from a WSA download URL.
+
+    Both bathymetry sources point at the same gov BC endpoint
+    (``downloadBathymetricMap.do?filename=00045501.pdf``); the ``filename``
+    query param is the authoritative per-sheet key shared across them, so we key
+    every download on it rather than on a per-source filename column.  Returns
+    the lowercased filename, or ``None`` when the URL carries no usable name.
+    """
+    if not isinstance(url, str) or not url.strip():
+        return None
+    query = urllib.parse.urlparse(url.strip()).query
+    value = urllib.parse.parse_qs(query).get("filename")
+    if not value or not value[0].strip():
+        return None
+    fname = value[0].strip().lower()
+    # Reject degenerate names (a handful of source rows carry ``filename=.pdf``
+    # or an empty stem); they map to no waterbody and would just be dead weight.
+    if not fname.endswith(".pdf") or not fname[: -len(".pdf")]:
+        return None
+    return fname
+
+
+def fetch_bathymetry_pdfs(
+    short_name: str,
+    csv_path: Path,
+    dest_dir: Path,
+    gpkg_path: "Path | None" = None,
+    poly_layer: str = "bathymetry_polygons",
+) -> None:
     """Bulk-download every WSA bathymetric survey map PDF into ``dest_dir``.
 
-    Reads the reference CSV produced by the ``bathymetry_maps`` download and
-    saves each survey map to ``dest_dir`` named by its unique map-sheet filename
-    (``MAP_IMAGE_FILENAME_PDF``, e.g. ``00045501.pdf``).  These local copies are
-    the "just in case" archive and are later pushed to R2 under ``bathymetry/``
-    by ``scripts/seed-r2.sh`` so the web app can serve depth maps from our own
-    bucket instead of hot-linking the gov BC endpoint.
+    Unions the PDF links from **both** bathymetry sources so no survey map is
+    missed:
+
+      * the reference CSV produced by the ``bathymetry_maps`` download, and
+      * the ``bathymetry_polygons`` survey-map-sheets layer in the gpkg
+        (``WHSE_FISH.BATH_SURVEY_MAP_SHEETS_SVW``).
+
+    The two catalogues do not fully overlap (each lists ~90 sheets the other
+    omits), so relying on either alone leaves gaps.  Every map is keyed on the
+    ``filename=`` query param of ``PDF_FILE_URL`` — the one identifier both
+    sources share — and saved as ``<filename>.pdf``.  These local copies are the
+    "just in case" archive, later pushed to R2 under ``bathymetry/`` by
+    ``scripts/seed-r2.sh`` so the web app serves depth maps from our own bucket
+    instead of hot-linking the gov BC endpoint.
 
     A single survey (``WATERBODY_IDENTIFIER_WSA_50K``) may span several map
     sheets, so the PDF filename — not the identifier — is the unique key.
@@ -513,28 +550,49 @@ def fetch_bathymetry_pdfs(short_name: str, csv_path: Path, dest_dir: Path) -> No
     dest_dir.mkdir(parents=True, exist_ok=True)
     print(f"\n[PDF] Downloading bathymetry survey maps -> {dest_dir}")
 
-    url_col, name_col = "PDF_FILE_URL", "MAP_IMAGE_FILENAME_PDF"
-    df = pd.read_csv(csv_path, dtype=str)
-    missing_cols = {url_col, name_col} - set(df.columns)
-    if missing_cols:
-        raise KeyError(
-            f"Bathymetry CSV missing expected column(s): {sorted(missing_cols)}"
-        )
+    url_col = "PDF_FILE_URL"
 
-    # Deduplicate on the target filename: the same map sheet can appear on
-    # multiple rows, and we only need one copy per unique PDF.
-    seen: set = set()
-    jobs = []
-    for url, fname in zip(df[url_col], df[name_col]):
-        if not isinstance(url, str) or not url.strip():
-            continue
-        if not isinstance(fname, str) or not fname.strip():
-            continue
-        key = fname.strip().lower()
-        if key in seen:
-            continue
-        seen.add(key)
-        jobs.append((url.strip(), key))
+    # Collect (filename -> url) from both catalogues, keyed on the shared
+    # filename query param.  CSV is added first so its https URL wins over the
+    # polygon layer's http URL when a sheet appears in both.
+    seen: dict = {}
+
+    def _harvest(urls, source: str) -> int:
+        added = 0
+        for url in urls:
+            fname = _bathy_pdf_filename(url)
+            if fname is None or fname in seen:
+                continue
+            seen[fname] = url.strip()
+            added += 1
+        return added
+
+    df = pd.read_csv(csv_path, dtype=str)
+    if url_col not in df.columns:
+        raise KeyError(f"Bathymetry CSV missing expected column: {url_col}")
+    csv_added = _harvest(df[url_col], "csv")
+
+    poly_added = 0
+    if gpkg_path is not None and Path(gpkg_path).exists():
+        try:
+            available = set(fiona.listlayers(str(gpkg_path)))
+        except Exception:
+            available = set()
+        if poly_layer in available:
+            poly = gpd.read_file(str(gpkg_path), layer=poly_layer, ignore_geometry=True)
+            if url_col in poly.columns:
+                poly_added = _harvest(poly[url_col], "polygons")
+            else:
+                print(f"  ⚠️  '{poly_layer}' has no {url_col} column; skipping.")
+        else:
+            print(f"  ⚠️  Layer '{poly_layer}' not in gpkg; using CSV only.")
+
+    print(
+        f"  [PDF] {len(seen)} unique maps "
+        f"(CSV +{csv_added}, polygons +{poly_added} beyond CSV)."
+    )
+
+    jobs = [(url, fname) for fname, url in seen.items()]
 
     downloaded = skipped = 0
     failures = []
@@ -794,6 +852,8 @@ def main():
                     name,
                     gpkg_out.parent / cfg["csv"],
                     gpkg_out.parent / cfg["dest_dir"],
+                    gpkg_path=gpkg_out,
+                    poly_layer=cfg.get("poly_layer", "bathymetry_polygons"),
                 )
             elif cfg["type"] == "OVERPASS_ABORIGINAL":
                 fetch_overpass_aboriginal_lands(name, gpkg_out)
