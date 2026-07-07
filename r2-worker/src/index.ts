@@ -26,6 +26,8 @@ const CACHE_JSON    = 'public, max-age=300, stale-while-revalidate=60';       //
 function getCacheControl(key: string): string {
   if (key === 'data_version.json') return 'no-store';  // always fresh — tiny file, busts PMTiles cache
   if (key.endsWith('.pmtiles')) return CACHE_PMTILES;
+  // Mobile bundle: versioned under mobile/v{N}/ → immutable, cache aggressively.
+  if (key.startsWith('mobile/')) return CACHE_PMTILES;
   if (key.endsWith('.json'))    return CACHE_JSON;
   return 'public, max-age=3600';  // 1h default
 }
@@ -40,6 +42,8 @@ const EDGE_CACHE_VER = '3';
 
 function getContentType(key: string): string | null {
   if (key.endsWith('.pmtiles')) return 'application/octet-stream';
+  if (key.endsWith('.sqlite'))  return 'application/vnd.sqlite3';
+  if (key.endsWith('.gz'))      return 'application/gzip';
   if (key.endsWith('.json'))    return 'application/json; charset=utf-8';
   if (key.endsWith('.png'))     return 'image/png';
   return null;
@@ -176,7 +180,7 @@ function errorResponse(error: string, status: number): Response {
 
 interface ReachData {
   display_name: string;
-  name_variants: { name: string; source: 'direct' | 'tributary' | 'admin' }[];
+  name_variants: { name: string; source: 'direct' | 'tributary' | 'admin' | 'bathymetry' }[];
   feature_type: string;
   reg_set_index: number;
   watershed_code: string;
@@ -186,6 +190,8 @@ interface ReachData {
   length_km: number;
   fids: string[];
   tributary_reg_ids?: string[];
+  /** Bathymetry survey depth-map PDFs (polygon reaches only; served at bathymetry/<pdf>). */
+  bathymetry?: { pdf: string; title: string }[];
 }
 
 interface ResolveResult {

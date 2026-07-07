@@ -18,6 +18,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 DEPLOY_DIR="$ROOT/output/pipeline/deploy"
+BATHY_PDF_DIR="$ROOT/data/bathymetry_pdfs"
 RCLONE_FLAGS="--s3-no-check-bucket --progress"
 
 DEPLOY_ENV="${DEPLOY_ENV:-staging}"
@@ -77,6 +78,33 @@ upload_deploy() {
   ok "Deploy complete ($file_count files → $BUCKET)."
 }
 
+# ── Upload bathymetry survey-map PDFs ────────────────────────────────
+# The PDFs live in data/bathymetry_pdfs/ (populated by data/fetch_data.py),
+# separate from the regenerated deploy/ tree, and are mirrored to the bucket
+# under bathymetry/ so the web app can serve depth maps from our own domain.
+# Idempotent + checksum-based, so unchanged PDFs are skipped on re-runs.
+upload_bathymetry_pdfs() {
+  if [[ ! -d "$BATHY_PDF_DIR" ]]; then
+    info "No bathymetry PDF dir ($BATHY_PDF_DIR) — skipping map upload."
+    return
+  fi
+
+  local count
+  count="$(find "$BATHY_PDF_DIR" -type f -name '*.pdf' | wc -l | tr -d ' ')"
+  if [[ "$count" -eq 0 ]]; then
+    info "No bathymetry PDFs found in $BATHY_PDF_DIR — skipping map upload."
+    return
+  fi
+
+  info "=== Uploading $count bathymetry PDF(s) → $BUCKET/bathymetry/ ==="
+  rclone copy "$BATHY_PDF_DIR" "$BUCKET/bathymetry/" \
+    $RCLONE_FLAGS \
+    --include "*.pdf" \
+    --checksum \
+    --transfers 32
+  ok "Bathymetry maps uploaded ($count files → $BUCKET/bathymetry/)."
+}
+
 # ── Upload single file ───────────────────────────────────────────────
 upload_file() {
   local file="$1"
@@ -103,19 +131,28 @@ case "${1:-}" in
       --exclude "layer_manifest.json" \
       --checksum \
       --dry-run
+    if [[ -d "$BATHY_PDF_DIR" ]]; then
+      info "=== Dry run: bathymetry PDFs → $BUCKET/bathymetry/ ==="
+      rclone copy "$BATHY_PDF_DIR" "$BUCKET/bathymetry/" \
+        $RCLONE_FLAGS \
+        --include "*.pdf" \
+        --checksum \
+        --dry-run
+    fi
     ;;
   --help|-h)
     echo "Usage: $0 [--file <path> | --dry-run | --help]"
     echo "  DEPLOY_ENV=staging|production (default: staging)"
     echo ""
-    echo "  (no args)     Upload entire deploy/ directory to R2"
+    echo "  (no args)     Upload entire deploy/ directory to R2 + bathymetry PDFs"
     echo "  --file <f>    Upload a single file"
-    echo "  --dry-run     Show what would be uploaded"
+    echo "  --dry-run     Show what would be uploaded (deploy/ + bathymetry PDFs)"
     exit 0
     ;;
   *)
     write_version
     upload_deploy
+    upload_bathymetry_pdfs
     ;;
 esac
 

@@ -471,6 +471,41 @@
     color: var(--text);
 }
 
+/* Bathymetry depth-map PDFs (WSA lake survey maps) */
+.bathymetry-section {
+    margin-bottom: 14px;
+    border: 1px solid var(--border-light);
+    border-radius: 4px;
+    background: var(--bg-subtle);
+    padding: 8px 10px;
+}
+
+.bathymetry-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.bathymetry-link {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 0;
+    font-size: 12px;
+    line-height: 1.4;
+    color: var(--text-secondary);
+    text-decoration: none;
+}
+
+.bathymetry-link:hover {
+    color: var(--text);
+    text-decoration: underline;
+}
+
 
 
 .regulation-group {

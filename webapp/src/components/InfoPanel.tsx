@@ -18,6 +18,7 @@ import { sectionLabel } from '../utils/sectionLabel';
 import SourceImageViewer from './SourceImageViewer';
 import type { SearchableFeature } from './SearchBar';
 import { waterbodyDataService } from '../services/waterbodyDataService';
+import type { Reach, BathymetrySurvey } from '../services/waterbodyDataService';
 import './InfoPanel.css';
 
 /** Human-readable labels for admin scope_location keys */
@@ -182,6 +183,30 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
         const changes = waterbodyDataService.getInSeasonChanges(reachId);
         const meta = changes.length > 0 ? waterbodyDataService.getInSeasonMeta() : undefined;
         return { changes, meta };
+    }, [activeSection, feature?.properties.frontend_group_id]);
+
+    // Bathymetry depth-map PDFs for the active reach (polygon waterbodies only).
+    // The bathymetry list rides the reach shard, so resolve the reach by ID and
+    // read it; streams / reaches without surveys yield an empty list.
+    const [bathymetry, setBathymetry] = useState<BathymetrySurvey[]>([]);
+    useEffect(() => {
+        const reachId = activeSection?.frontend_group_id
+            || (feature?.properties.frontend_group_id as string | undefined);
+        if (!reachId) {
+            setBathymetry([]);
+            return;
+        }
+        let cancelled = false;
+        waterbodyDataService.resolveByReachId(reachId)
+            .then(r => {
+                if (cancelled) return;
+                const b = (r?.reach as Reach | undefined)?.bathymetry;
+                setBathymetry(Array.isArray(b) ? b : []);
+            })
+            .catch(() => {
+                if (!cancelled) setBathymetry([]);
+            });
+        return () => { cancelled = true; };
     }, [activeSection, feature?.properties.frontend_group_id]);
 
     // Handle share button click
@@ -571,6 +596,28 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                                 </div>
                             );
                         })()}
+
+                        {/* Bathymetry depth-map PDFs (WSA lake survey maps, served from R2) */}
+                        {bathymetry.length > 0 && (
+                            <div className="bathymetry-section" role="region" aria-label="Depth maps">
+                                <div className="bathymetry-header">
+                                    <FileImage size={13} strokeWidth={2} aria-hidden="true" />
+                                    <span>Depth {bathymetry.length > 1 ? 'maps' : 'map'}</span>
+                                </div>
+                                {bathymetry.map((b, i) => (
+                                    <a
+                                        key={b.pdf}
+                                        className="bathymetry-link"
+                                        href={waterbodyDataService.bathymetryUrl(b.pdf)}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                    >
+                                        <FileImage size={14} strokeWidth={2} aria-hidden="true" />
+                                        <span>{b.title?.trim() ? `${b.title} (PDF)` : `Bathymetric survey ${i + 1} (PDF)`}</span>
+                                    </a>
+                                ))}
+                            </div>
+                        )}
 
                         {!loadingRegs && (() => {
                             // Show message if filters hide all results

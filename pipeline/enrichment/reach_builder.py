@@ -23,6 +23,7 @@ from pyproj import Transformer
 from shapely.geometry.base import BaseGeometry
 
 from pipeline.atlas.freshwater_atlas import FreshWaterAtlas
+from pipeline.enrichment.nearby_towns import NearbyTownsIndex
 from pipeline.matching.display_name_resolver import DisplayNameResolver
 from pipeline.matching.match_table import (
     FEATURE_DISPLAY_NAMES_PATH,
@@ -62,6 +63,11 @@ def _reach_id(wsc: str, display_name: str, sorted_reg_ids: str) -> str:
 
 # EPSG:3005 → WGS 84 transformer (cached once)
 _TO_WGS84 = Transformer.from_crs("EPSG:3005", "EPSG:4326", always_xy=True)
+
+# Nearby-town spatial join: a town is attached to a waterbody when it lies
+# within this radius of any of the waterbody's segment centroids.
+_NEARBY_TOWN_RADIUS_M = 15000.0  # 15 km
+_NEARBY_TOWN_MAX = 30  # payload safety cap; None = unbounded
 
 
 def _bbox_wgs84(geom: BaseGeometry) -> List[float]:
@@ -284,10 +290,16 @@ def _group_polygon_reaches(
     admin_reg_ids: Optional[Set[str]] = None,
     resolver: Optional[DisplayNameResolver] = None,
     reg_water_lookup: Optional[Dict[str, str]] = None,
+    wbk_bathymetry: Optional[Dict[str, List[Dict[str, str]]]] = None,
 ) -> Dict[str, Dict[str, Any]]:
     """Group polygon waterbody_keys into reaches.
 
     Each (wbk, reg_set) = one reach.
+
+    ``wbk_bathymetry`` maps ``str(WATERBODY_KEY)`` to a list of survey sheets
+    (``{"pdf", "title", "name"}``).  When a waterbody has survey maps they are
+    attached to the reach as ``bathymetry`` (``[{pdf, title}]``) and the survey
+    name is added as an extra searchable name variant.
 
     Returns reach_id → {display_name, wbk, reg_set_str, feature_type, minzoom}
     """
@@ -295,6 +307,7 @@ def _group_polygon_reaches(
     _variants = reg_id_variants or {}
     _reg_water = reg_water_lookup or {}
     _admin = admin_reg_ids or set()
+    _bathy = wbk_bathymetry or {}
 
     poly_collections = [
         ("lake", atlas.lakes),
@@ -350,6 +363,30 @@ def _group_polygon_reaches(
             for n in sorted(nv_admin - nv_direct):
                 structured_nv.append({"name": n, "source": "admin"})
 
+            # Bathymetry survey maps for this waterbody (optional dataset).
+            # Attach the depth-map PDFs and expose the survey's gazetted name as
+            # an extra searchable variant when it differs from the display name.
+            bathy_sheets = _bathy.get(str(wbk))
+            bathymetry: List[Dict[str, str]] = []
+            if bathy_sheets:
+                existing_nv = {e["name"] for e in structured_nv}
+                existing_nv.add(display_name)
+                seen_survey_names: Set[str] = set()
+                for sheet in bathy_sheets:
+                    bathymetry.append(
+                        {"pdf": sheet["pdf"], "title": sheet.get("title", "")}
+                    )
+                    survey_name = _title_case((sheet.get("name") or "").strip())
+                    if (
+                        survey_name
+                        and survey_name not in existing_nv
+                        and survey_name not in seen_survey_names
+                    ):
+                        seen_survey_names.add(survey_name)
+                        structured_nv.append(
+                            {"name": survey_name, "source": "bathymetry"}
+                        )
+
             reaches[rid] = {
                 "wsc": wbk,  # Use wbk as the grouping key for polys
                 "display_name": display_name,
@@ -360,6 +397,8 @@ def _group_polygon_reaches(
                 "feature_type": ft_name,
                 "name_variants": structured_nv,
             }
+            if bathymetry:
+                reaches[rid]["bathymetry"] = bathymetry
 
     return reaches
 
@@ -534,6 +573,7 @@ def _enrich_reaches(
 def _build_search_index(
     reaches: Dict[str, Dict[str, Any]],
     atlas: FreshWaterAtlas,
+    towns_index: Optional["NearbyTownsIndex"] = None,
 ) -> List[Dict[str, Any]]:
     """Build Fuse.js-compatible search index.
 
@@ -541,6 +581,14 @@ def _build_search_index(
     named geographic feature.  Features with different display names on the
     same watershed code (e.g. side channels) get separate entries.
     Unnamed features are excluded from search.
+
+    When ``towns_index`` is supplied, each entry gains a ``nearby_towns`` list.
+    Towns are found by a radius spatial join: the centroid of every stream
+    segment (or the polygon representative point for lakes) is queried against
+    the town gazetteer, and every town within ``_NEARBY_TOWN_RADIUS_M`` of *any*
+    segment is attached, ordered by how close the feature actually gets.  This
+    correctly tags a long river with every town it passes, not just the one
+    nearest its bounding-box centre.
 
     Reaches must be enriched (_enrich_reaches) before calling this.
     """
@@ -573,8 +621,8 @@ def _build_search_index(
         if reach["minzoom"] < grp["min_zoom"]:
             grp["min_zoom"] = reach["minzoom"]
         # Name variants: merge structured [{name, source}] across reaches.
-        # Most specific source wins: direct > tributary > admin.
-        _SOURCE_PRIORITY = {"direct": 0, "tributary": 1, "admin": 2}
+        # Most specific source wins: direct > tributary > admin > bathymetry.
+        _SOURCE_PRIORITY = {"direct": 0, "tributary": 1, "admin": 2, "bathymetry": 3}
         for nv_entry in reach.get("name_variants", []):
             name = nv_entry["name"]
             src = nv_entry["source"]
@@ -599,6 +647,17 @@ def _build_search_index(
 
     # Convert to list
     index: List[Dict[str, Any]] = []
+
+    # Segment-centroid accessors for the nearby-town spatial join (only when
+    # tagging towns).  Use fallback-chain lookups instead of merging the atlas
+    # dicts to avoid copying millions of records.
+    def _seg_record(fid: str):
+        return atlas.streams.get(fid) or atlas.under_lake_streams.get(fid)
+
+    def _poly_geom(wbk: str):
+        rec = atlas.lakes.get(wbk) or atlas.wetlands.get(wbk) or atlas.manmade.get(wbk)
+        return rec.geometry if rec is not None else None
+
     for (wsc, dn), grp in sorted(
         wsc_groups.items(), key=lambda kv: kv[1]["display_name"]
     ):
@@ -623,6 +682,37 @@ def _build_search_index(
                 round(grp["total_length_km"], 2) if grp["total_length_km"] else 0
             ),
         }
+        # Nearest towns via radius spatial join over segment centroids —
+        # search-index only, never in shards.
+        if towns_index is not None:
+            seg_pts: List[Tuple[float, float]] = []
+            for rid in grp["reaches"]:
+                r = reaches.get(rid)
+                if not r:
+                    continue
+                for fid in r.get("fids", []):
+                    s = _seg_record(fid)
+                    if s is not None:
+                        c = s.geometry.centroid
+                        seg_pts.append((c.x, c.y))
+                wbk = r.get("wbk")
+                if wbk is not None:
+                    g = _poly_geom(wbk)
+                    if g is not None:
+                        c = g.representative_point()
+                        seg_pts.append((c.x, c.y))
+
+            if seg_pts:
+                entry["nearby_towns"] = towns_index.within_radius(
+                    seg_pts, _NEARBY_TOWN_RADIUS_M, _NEARBY_TOWN_MAX
+                )
+            elif grp["bbox"]:
+                # Fallback for reaches without atlas geometry (e.g. ungazetted):
+                # tag the towns nearest the bbox centre.
+                minlon, minlat, maxlon, maxlat = grp["bbox"]
+                entry["nearby_towns"] = towns_index.nearest(
+                    (minlon + maxlon) / 2.0, (minlat + maxlat) / 2.0, 10
+                )
         index.append(entry)
 
     return index
@@ -641,6 +731,8 @@ def build_regulation_index(
     *,
     reach_level_reg_ids: Set[str] = frozenset(),
     match_table_path: Optional[str] = None,
+    wbk_bathymetry: Optional[Dict[str, List[Dict[str, str]]]] = None,
+    towns_index: Optional[NearbyTownsIndex] = None,
 ) -> Dict[str, Any]:
     """Build the 5-section regulation_index.json.
 
@@ -650,6 +742,8 @@ def build_regulation_index(
         base_regulations: reg_id→info from Phase 4 (zone + provincial)
         records: RegulationRecords from Phase 1 (for synopsis reg info)
         reach_level_reg_ids: reg IDs that propagate at reach level
+        wbk_bathymetry: optional str(WATERBODY_KEY)→[survey sheets] for depth maps
+        towns_index: optional NearbyTownsIndex to tag search entries with nearby towns
 
     Returns:
         The complete regulation index dict ready for JSON serialization.
@@ -738,6 +832,7 @@ def build_regulation_index(
         admin_reg_ids,
         resolver,
         reg_water_lookup,
+        wbk_bathymetry,
     )
 
     # Merge all reaches
@@ -785,6 +880,10 @@ def build_regulation_index(
             "length_km": reach.get("lkm", 0),
             "tributary_reg_ids": reach.get("_trib_reg_ids", []),
         }
+        # Depth-map PDFs (optional; polygon reaches only) — omit the key entirely
+        # when absent so stream/ungazetted reaches carry no extra weight.
+        if reach.get("bathymetry"):
+            reaches_out[rid]["bathymetry"] = reach["bathymetry"]
 
         # Stream reaches → reach_segments
         if reach["fids"]:
@@ -795,7 +894,7 @@ def build_regulation_index(
             poly_reaches_out[reach["wbk"]] = rid
 
     # 5. Search index
-    search_index = _build_search_index(all_reaches, atlas)
+    search_index = _build_search_index(all_reaches, atlas, towns_index)
     logger.info("  %d search index entries", len(search_index))
 
     result = {

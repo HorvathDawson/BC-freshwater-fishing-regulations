@@ -45,9 +45,9 @@ data_accessor:
 # LLM Parsing Settings
 # ============================================================================
 llm:
-  batch_size: 45
+  batch_size: 30
   max_retries: 3
-  model: "gemini-3-flash-preview"
+  model: "gemini-2.5-flash"
 
   api_keys:
     # API keys are loaded from environment variables
@@ -55,16 +55,6 @@ llm:
       env_var: "GOOGLE_API_KEY"
     - id: "darcy.turin"
       env_var: "GOOGLE_API_KEY_2"
-    - id: "datswrite"
-      env_var: "GOOGLE_API_KEY_3"
-    - id: "helpfulhints116"
-      env_var: "GOOGLE_API_KEY_4"
-    - id: "ridgedvids"
-      env_var: "GOOGLE_API_KEY_5"
-    - id: "rylee1"
-      env_var: "GOOGLE_API_KEY_6"
-    - id: "rylee2"
-      env_var: "GOOGLE_API_KEY_7"
 
 # ============================================================================
 # Graph Builder Settings

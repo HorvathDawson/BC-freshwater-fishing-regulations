@@ -119,13 +119,14 @@ export const getFeatureDisplayName = (
 
 /**
  * Name variant with source provenance.
- *   - "direct"    — regulation directly matched to this feature
+ *   - "direct"     — regulation directly matched to this feature
  *   - "tributary"  — inherited via tributary BFS
  *   - "admin"      — inherited via admin polygon (park/reserve)
+ *   - "bathymetry" — alternate name from a WSA bathymetric survey map
  */
 export interface NameVariant {
     name: string;
-    source: 'direct' | 'tributary' | 'admin';
+    source: 'direct' | 'tributary' | 'admin' | 'bathymetry';
 }
 
 /**
@@ -184,12 +185,15 @@ export const buildAliasLines = (aliases: NameVariant[]): { alsoKnownAs: string |
     const tributaryAliases = aliases.filter(a => a.source === 'tributary');
     const adminAliases = aliases.filter(a => a.source === 'admin');
     const regularAliases = aliases.filter(a => a.source === 'direct');
+    const bathymetryAliases = aliases.filter(a => a.source === 'bathymetry');
 
     const parts: string[] = [];
     if (tributaryAliases.length > 0) {
         parts.push(`Tributary of ${formatList(tributaryAliases.map(a => a.name))}`);
     }
     regularAliases.forEach(a => parts.push(a.name));
+    // Bathymetric-survey names are legitimate alternate names — list them too.
+    bathymetryAliases.forEach(a => parts.push(a.name));
 
     return {
         alsoKnownAs: parts.length > 0 ? `Also known as: ${parts.join(' · ')}` : null,

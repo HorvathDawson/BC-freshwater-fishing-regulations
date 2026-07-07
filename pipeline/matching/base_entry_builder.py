@@ -130,13 +130,23 @@ def _ref_identity(ref: FeatureRecord) -> tuple:
 
 
 def _name_variations(name: str) -> List[str]:
-    """Return name as-is — no parenthetical stripping.
+    """Return the verbatim name plus an apostrophe-stripped fallback.
 
-    Parenthetical qualifiers are preserved in the base table.
-    Name→feature resolution for entries with parens is handled
-    by OverrideEntry records in overrides.json.
+    Parenthetical qualifiers are preserved in the base table — name→feature
+    resolution for entries with parens is handled by OverrideEntry records in
+    overrides.json.
+
+    The gazetteer (GNIS/FWA) drops possessive apostrophes, so the synopsis
+    "John's Lake" is stored as "Johns Lake".  The verbatim name is tried first
+    (so features the gazetteer genuinely spells with an apostrophe still match),
+    then an apostrophe-stripped variant as a fallback.  Both the straight (')
+    and curly (\u2019) apostrophes are removed.
     """
-    return [name]
+    variations = [name]
+    stripped = name.replace("'", "").replace("\u2019", "")
+    if stripped != name:
+        variations.append(stripped)
+    return variations
 
 
 def _zone_from_region(region: Optional[str]) -> Optional[str]:
@@ -247,8 +257,23 @@ def _extract_gnis_ids(refs: List[FeatureRecord]) -> List[str]:
 _POLY_LAYERS: list[tuple[FeatureType, str]] = [
     (FeatureType.LAKE, "lakes"),
     (FeatureType.WETLAND, "wetlands"),
-    (FeatureType.MANMADE, "manmade_water"),
+    (FeatureType.MANMADE, "manmade"),
 ]
+
+
+def _first_name(*values: object) -> str:
+    """Return the first genuine, non-empty string among ``values``, else "".
+
+    Polygon GNIS name columns (GNIS_NAME_1/2/GNIS_NAME) are text fields the
+    FWADataAccessor does not clean, so arrow-backed reads surface SQL NULLs
+    as float NaN (not None). The ``x or ""`` idiom does NOT coerce NaN
+    (NaN is truthy), so select only real strings here — the same fix applied
+    at the graph_builder source for stream gnis_name.
+    """
+    for v in values:
+        if isinstance(v, str) and v.strip():
+            return v
+    return ""
 
 
 def _build_metadata(graph_path: Path, gpkg_path: Path) -> Metadata:
@@ -364,9 +389,9 @@ def _build_metadata(graph_path: Path, gpkg_path: Path) -> Metadata:
             grp = poly_groups.setdefault(
                 wbk,
                 {
-                    "gnis_name": row.get("GNIS_NAME_1") or row.get("GNIS_NAME") or "",
+                    "gnis_name": _first_name(row.get("GNIS_NAME_1"), row.get("GNIS_NAME")),
                     "gnis_id": str(row.get("GNIS_ID_1") or row.get("GNIS_ID") or ""),
-                    "gnis_name_2": row.get("GNIS_NAME_2") or "",
+                    "gnis_name_2": _first_name(row.get("GNIS_NAME_2")),
                     "gnis_id_2": str(row.get("GNIS_ID_2") or ""),
                     "poly_ids": [],
                     "geoms": [],

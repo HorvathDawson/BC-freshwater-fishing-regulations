@@ -17,6 +17,9 @@ matplotlib
 geopandas
 fiona
 shapely
+osmnx
+pyogrio
+pyarrow  # arrow-backed reads (FWADataAccessor.get_layer use_arrow=True)
 
 # Graph Analysis
 networkx

@@ -1414,8 +1414,10 @@ class SynopsisExtractor:
     def __init__(self, output_dir="output"):
         self.parser = FishingSynopsisParser(output_dir=output_dir)
         self.base_output_dir = output_dir
-        # Use extract_synopsis subfolder for JSON files
-        self.output_dir = os.path.join(output_dir, "extract_synopsis")
+        # JSON output lives in the canonical ``extraction`` subfolder — the
+        # single source of truth referenced by config.synopsis_raw_data_path,
+        # the enrichment builder, and the debug-dir logic in main().
+        self.output_dir = os.path.join(output_dir, "extraction")
         # PDF stays in base output directory for shared access
         self.pdf_path = os.path.join(self.base_output_dir, "fishing_synopsis.pdf")
 

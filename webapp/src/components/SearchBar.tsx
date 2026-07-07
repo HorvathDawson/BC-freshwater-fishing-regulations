@@ -32,6 +32,8 @@ export interface SearchableFeature {
     id: string;
     display_name?: string;
     name_variants?: NameVariant[];
+    /** Towns nearest this waterbody — searchable so a town query surfaces it. */
+    nearby_towns?: string[];
     type: 'stream' | 'lake' | 'wetland' | 'manmade' | 'ungazetted' | 'streams' | 'lakes' | 'wetlands';
     properties: Record<string, string | number | boolean | null | undefined>;
     geometry?: FeatureGeometry;
@@ -75,7 +77,8 @@ const SearchBar: React.FC<SearchBarProps> = ({ features, onSelect, highlightedRe
         fuse.current = new Fuse(searchableFeatures, {
             keys: [
                 { name: 'display_name', weight: 3 },
-                { name: 'name_variants.name', weight: 2 }
+                { name: 'name_variants.name', weight: 2 },
+                { name: 'nearby_towns', weight: 0.5 }
             ],
             threshold: 0.3, // Even stricter for exact word matches
             distance: 50, // Strongly prefer matches at the beginning

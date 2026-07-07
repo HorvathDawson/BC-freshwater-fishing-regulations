@@ -40,7 +40,7 @@ from tqdm import tqdm
 from data.data_extractor import FWADataAccessor
 from .geometry_utils import merge_overlapping_polygons
 
-from .models import AdminRecord, PolygonRecord, StreamRecord, trim_wsc
+from .models import AdminRecord, PolygonRecord, StreamRecord, format_wsc_50k, trim_wsc
 
 logger = logging.getLogger(__name__)
 
@@ -314,7 +314,7 @@ class FreshWaterAtlas:
         layer_map = {
             "lakes": "lakes",
             "wetlands": "wetlands",
-            "manmade_water": "manmade",
+            "manmade": "manmade",
         }
         for gpkg_layer, attr_name in layer_map.items():
             if gpkg_layer not in available:
@@ -342,11 +342,30 @@ class FreshWaterAtlas:
                 poly_id = str(row.get("WATERBODY_POLY_ID") or "")
                 if poly_id:
                     self.poly_id_to_wbk[poly_id] = wbk
-                grp = groups.setdefault(wbk, {"name": "", "gnis_id": "", "geoms": []})
+                grp = groups.setdefault(
+                    wbk,
+                    {
+                        "name": "",
+                        "gnis_id": "",
+                        "grp50k": "",
+                        "wsc50k": "",
+                        "geoms": [],
+                    },
+                )
                 if not grp["name"]:
                     grp["name"] = row.get("GNIS_NAME_1") or row.get("GNIS_NAME_2") or ""
                 if not grp["gnis_id"]:
                     grp["gnis_id"] = str(row.get("GNIS_ID_1") or "")
+                if not grp["grp50k"]:
+                    raw50k = row.get("WATERBODY_KEY_GROUP_CODE_50K")
+                    grp["grp50k"] = (
+                        ""
+                        if raw50k is None
+                        or (isinstance(raw50k, float) and np.isnan(raw50k))
+                        else str(raw50k)
+                    )
+                if not grp["wsc50k"]:
+                    grp["wsc50k"] = format_wsc_50k(row.get("WATERSHED_CODE_50K"))
                 grp["geoms"].append(row.geometry)
 
             for wbk, grp in groups.items():
@@ -359,6 +378,8 @@ class FreshWaterAtlas:
                     display_name=grp["name"],
                     area=area,
                     gnis_id=grp["gnis_id"],
+                    waterbody_key_group_code_50k=grp["grp50k"],
+                    watershed_code_50k=grp["wsc50k"],
                     minzoom=minzoom,
                 )
 
@@ -502,7 +523,10 @@ class FreshWaterAtlas:
                 )
             logger.info(f"Loaded {len(self.historic_sites):,} historic sites")
         else:
-            logger.warning("'historic_sites' layer not found in GPKG — skipping")
+            raise FileNotFoundError(
+                "'historic_sites' layer not found in GPKG. "
+                "Run data fetch first: python -m data.fetch_data --layers historic_sites"
+            )
 
         # Named watersheds
         if "watersheds" in available:
@@ -525,7 +549,10 @@ class FreshWaterAtlas:
                 )
             logger.info(f"Loaded {len(self.watersheds):,} named watersheds")
         else:
-            logger.warning("'watersheds' layer not found in GPKG — skipping")
+            raise FileNotFoundError(
+                "'watersheds' layer not found in GPKG. "
+                "Run data fetch first: python -m data.fetch_data --layers watersheds"
+            )
 
         # Wildlife Management Units (zones/MUs)
         if "wmu" in available:
@@ -731,6 +758,7 @@ class FreshWaterAtlas:
             stream_order = attrs.get("stream_order")
             stream_magnitude = attrs.get("stream_magnitude")
             fwa_wsc = trim_wsc(str(attrs.get("fwa_watershed_code") or ""))
+            wsc_50k = format_wsc_50k(attrs.get("watershed_code_50k"))
 
             record = StreamRecord(
                 fid=fid,
@@ -741,6 +769,7 @@ class FreshWaterAtlas:
                 stream_magnitude=stream_magnitude,
                 waterbody_key=wbk,
                 fwa_watershed_code=fwa_wsc,
+                watershed_code_50k=wsc_50k,
             )
 
             if wbk and wbk in lake_manmade_wbkeys:

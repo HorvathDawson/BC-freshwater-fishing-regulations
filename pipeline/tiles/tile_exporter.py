@@ -346,6 +346,7 @@ class TileExporter:
                         "blk": rec.blk,
                         "stream_order": rec.stream_order,
                         "fwa_watershed_code": rec.fwa_watershed_code,
+                        "watershed_code_50k": rec.watershed_code_50k,
                     },
                     "geometry": _round_coords(geom.__geo_interface__),
                     "tippecanoe": {
@@ -376,6 +377,7 @@ class TileExporter:
                         "waterbody_key": rec.waterbody_key,
                         "display_name": dn,
                         "area": rec.area,
+                        "waterbody_key_group_code_50k": rec.waterbody_key_group_code_50k,
                     },
                     "geometry": _round_coords(geom.__geo_interface__),
                     "tippecanoe": {

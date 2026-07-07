@@ -115,6 +115,7 @@ def build(config_path: Path = Path("config.yaml"), dry_run: bool = False) -> Pat
     """
     from pipeline.atlas.freshwater_atlas import FreshWaterAtlas
     from pipeline.deploy.r2_sharder import shard_from_dict
+    from pipeline.deploy.mobile_sharder import build_mobile_sqlite
     from pipeline.matching.match_table import (
         OVERRIDES_PATH,
         OverrideEntry,
@@ -146,6 +147,12 @@ def build(config_path: Path = Path("config.yaml"), dry_run: bool = False) -> Pat
     gpkg_path = project_root / cfg["data_accessor"]["gpkg_path"]
     deploy_dir = project_root / cfg["output"]["pipeline"]["deploy"]
     shard_version = cfg["output"]["pipeline"].get("shard_version", 1)
+    # Optional bathymetry survey maps (depth-map PDFs). Absent CSV degrades
+    # gracefully — reaches simply carry no depth maps.
+    bathy_csv_path = project_root / "data" / "wsa_bathymetry_maps.csv"
+    # Optional OSM populated-places gazetteer for nearest-town search tagging.
+    # Absent file degrades gracefully — search entries carry no nearby_towns.
+    places_path = project_root / "data" / "bc_places.json"
 
     # ── Phase 1: Load & Merge ────────────────────────────────────────
     t0 = time.perf_counter()
@@ -192,6 +199,12 @@ def build(config_path: Path = Path("config.yaml"), dry_run: bool = False) -> Pat
 
     # ── Phase 5: Reach Build + Output ────────────────────────────────
     t0 = time.perf_counter()
+    from pipeline.matching.bathymetry_matcher import build_wbk_bathymetry_map
+    from pipeline.enrichment.nearby_towns import NearbyTownsIndex
+
+    wbk_bathymetry = build_wbk_bathymetry_map(bathy_csv_path, gpkg_path)
+    towns_index = NearbyTownsIndex.from_file(places_path)
+    logger.info("Loaded %d towns for nearest-town search tagging", len(towns_index))
     index = reach_builder.build_regulation_index(
         atlas,
         assignments,
@@ -199,6 +212,8 @@ def build(config_path: Path = Path("config.yaml"), dry_run: bool = False) -> Pat
         records,
         reach_level_reg_ids=reach_level_reg_ids,
         match_table_path=str(match_table_path),
+        wbk_bathymetry=wbk_bathymetry,
+        towns_index=towns_index,
     )
     logger.info("Phase 5 done in %.1fs", time.perf_counter() - t0)
 
@@ -212,6 +227,17 @@ def build(config_path: Path = Path("config.yaml"), dry_run: bool = False) -> Pat
         summary["fid_shards"],
         summary["reach_shards"],
         summary["poly_shards"],
+    )
+
+    # ── Deploy: mobile SQLite bundle (offline React Native app) ────────
+    t0 = time.perf_counter()
+    mobile_summary = build_mobile_sqlite(index, deploy_dir, shard_version)
+    logger.info(
+        "Mobile SQLite bundle written in %.1fs — %.1f MB (%.1f MB gz) → %s",
+        time.perf_counter() - t0,
+        mobile_summary["db_bytes"] / 1_048_576,
+        mobile_summary["gz_bytes"] / 1_048_576,
+        mobile_summary["mobile_dir"],
     )
 
     # ── Admin visibility export ──────────────────────────────────────

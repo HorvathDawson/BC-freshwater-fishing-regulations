@@ -19,6 +19,60 @@ from project_config import get_config
 
 logger = logging.getLogger(__name__)
 
+# Some CDNs (e.g. Cloudflare in front of R2) reject the default
+# ``Python-urllib`` User-Agent with HTTP 403, so downloads send a descriptive
+# agent instead.
+_DOWNLOAD_USER_AGENT = "BC-FishRegs-DataFetch/1.0"
+
+
+def _download_with_progress(url, dest_path, desc=None):
+    """Download ``url`` to ``dest_path`` showing a tqdm byte progress bar.
+
+    Sends an explicit User-Agent so CDN-fronted hosts (e.g. Cloudflare/R2)
+    don't reject the request with HTTP 403. Falls back gracefully when the
+    server does not report a content length (e.g. some FTP responses), in
+    which case the bar tracks bytes downloaded without a known total.
+    """
+    desc = desc or os.path.basename(str(dest_path))
+    req = urllib.request.Request(
+        url, headers={"User-Agent": _DOWNLOAD_USER_AGENT}
+    )
+    chunk_size = 1 << 16
+    with urllib.request.urlopen(req) as resp:
+        total = int(resp.headers.get("Content-Length") or 0)
+        with open(dest_path, "wb") as out, tqdm(
+            total=total or None,
+            unit="B",
+            unit_scale=True,
+            unit_divisor=1024,
+            miniters=1,
+            desc=desc,
+        ) as bar:
+            while True:
+                chunk = resp.read(chunk_size)
+                if not chunk:
+                    break
+                out.write(chunk)
+                bar.update(len(chunk))
+
+
+def _download_quiet(url, dest_path, timeout=60):
+    """Download ``url`` to ``dest_path`` without a per-file progress bar.
+
+    Intended for bulk loops (e.g. thousands of small PDFs) where an outer
+    progress bar tracks overall completion and per-file bars would be noise.
+    Sends the same descriptive User-Agent as ``_download_with_progress`` so
+    CDN-fronted hosts don't reject the request with HTTP 403.
+    """
+    req = urllib.request.Request(
+        url, headers={"User-Agent": _DOWNLOAD_USER_AGENT}
+    )
+    with urllib.request.urlopen(req, timeout=timeout) as resp, open(
+        dest_path, "wb"
+    ) as out:
+        shutil.copyfileobj(resp, out)
+
+
 # ==========================================
 # 1. CORE FUNCTIONS
 # ==========================================
@@ -31,6 +85,7 @@ def fetch_wfs_paginated(
     start_index = 0
     max_features = 10000
     all_chunks = []
+    progress = tqdm(desc=f"WFS {short_name}", unit=" feat", unit_scale=True)
     while True:
         params = {
             "SERVICE": "WFS",
@@ -49,11 +104,14 @@ def fetch_wfs_paginated(
             if chunk.empty:
                 break
             all_chunks.append(chunk)
+            progress.update(len(chunk))
             if len(chunk) < max_features:
                 break
             start_index += max_features
         except Exception as e:
+            progress.close()
             raise RuntimeError(f"WFS fetch failed for '{type_name}': {e}") from e
+    progress.close()
     if all_chunks:
         final_gdf = pd.concat(all_chunks, ignore_index=True)
         if final_gdf.crs and final_gdf.crs.to_epsg() != 3005:
@@ -205,8 +263,13 @@ out skel qt;
             return Polygon(coords)
         return None
 
-    def _tags_to_record(osm_id, tags, geom):
-        """Build a GeoDataFrame-ready dict from OSM tags."""
+    def _tags_to_record(osm_id, tags, geom, group_name=""):
+        """Build a GeoDataFrame-ready dict from OSM tags.
+
+        ``group_name`` is the top-level grouping this feature rolls up to
+        (e.g. the tribal council above a First Nation band); it is retained
+        for reference even though ``name`` holds the displayed band name.
+        """
         return {
             "osm_id": str(osm_id),
             "name": tags.get("name", ""),
@@ -221,6 +284,9 @@ out skel qt;
                 ),
                 "",
             ),
+            # Top-level grouping (e.g. tribal council); empty when this feature
+            # is itself the top of its hierarchy or has no parent grouping.
+            "name_group": group_name,
             "boundary": tags.get("boundary", ""),
             "type": "aboriginal_lands",
             "url": tags.get("url", tags.get("website", "")),
@@ -230,13 +296,101 @@ out skel qt;
         }
 
     records = []
-    # Process relations
-    for rel in relations:
-        tags = rel.get("tags", {})
+
+    # OSM models Indigenous lands as a nested hierarchy of
+    # boundary=aboriginal_lands relations, e.g.:
+    #     Stó:lō Tribal Council      (top-level grouping)
+    #       └─ Cheam First Nation    (band grouping)  <-- desired display level
+    #            └─ Cheam 1           (individual reserve / leaf)
+    # A parent lists its child areas as ``subarea`` members. Emitting every
+    # relation stacks overlapping polygons over a single location, so we collapse
+    # the hierarchy to the "band" level: the immediate parent of the individual
+    # reserves (e.g. "Cheam First Nation"), rather than the bare reserve name or a
+    # broad tribal-council grouping.
+    rel_by_id = {r["id"]: r for r in relations}
+
+    def _subarea_child_ids(rel):
+        return [
+            m["ref"]
+            for m in rel.get("members", [])
+            if m.get("role") == "subarea" and m["type"] == "relation"
+        ]
+
+    def _has_subarea(rel):
+        return any(m.get("role") == "subarea" for m in rel.get("members", []))
+
+    # Leaf relations are individual areas with no child subareas (reserves).
+    leaf_ids = {rid for rid, r in rel_by_id.items() if not _has_subarea(r)}
+
+    # "Band" level = the immediate parent of at least one leaf reserve. Higher
+    # groupings (tribal councils) only have aggregate children, so they are
+    # excluded here and dropped below.
+    band_ids = {
+        rid
+        for rid, r in rel_by_id.items()
+        if any(cid in leaf_ids for cid in _subarea_child_ids(r))
+    }
+
+    # Map each child area to its parent grouping so we can surface the top-level
+    # grouping (e.g. tribal council) name on every feature we emit.
+    parent_of = {}
+    for rid, r in rel_by_id.items():
+        for cid in _subarea_child_ids(r):
+            parent_of.setdefault(cid, rid)
+
+    def _top_group_name(rid):
+        """Walk up the subarea hierarchy and return the top-level grouping name.
+
+        Returns "" when ``rid`` is itself the top of its hierarchy.
+        """
+        top = rid
+        seen = {rid}
+        while parent_of.get(top) is not None and parent_of[top] not in seen:
+            top = parent_of[top]
+            seen.add(top)
+        if top == rid:
+            return ""
+        return rel_by_id.get(top, {}).get("tags", {}).get("name", "")
+
+    # Build band-level polygons first. A band only "covers" its reserves if it
+    # actually produced geometry from its own outer ways; otherwise we fall back
+    # to emitting the reserves themselves so coverage is never lost.
+    covered_leaf_ids = set()
+    kept_bands = 0
+    for rid in band_ids:
+        rel = rel_by_id[rid]
         geom = _build_polygon_from_relation(rel)
         if geom is None:
             continue
-        records.append(_tags_to_record(rel["id"], tags, geom))
+        records.append(
+            _tags_to_record(rid, rel.get("tags", {}), geom, _top_group_name(rid))
+        )
+        kept_bands += 1
+        covered_leaf_ids.update(
+            cid for cid in _subarea_child_ids(rel) if cid in leaf_ids
+        )
+
+    # Emit reserves that no kept band represents (orphan reserves with no band
+    # parent, plus reserves whose band had no geometry of its own).
+    kept_reserves = 0
+    for rid in leaf_ids:
+        if rid in covered_leaf_ids:
+            continue
+        rel = rel_by_id[rid]
+        geom = _build_polygon_from_relation(rel)
+        if geom is None:
+            continue
+        records.append(
+            _tags_to_record(rid, rel.get("tags", {}), geom, _top_group_name(rid))
+        )
+        kept_reserves += 1
+
+    dropped = len(relations) - kept_bands - kept_reserves
+    print(
+        f"  -> Collapsed hierarchy: kept {kept_bands} band grouping(s) + "
+        f"{kept_reserves} standalone reserve(s); dropped {dropped} nested "
+        "relation(s)"
+    )
 
     # Process standalone ways (not part of a relation)
     relation_way_ids = set()
@@ -274,10 +428,12 @@ def ensure_ftp_extracted(ftp_url, temp_dir):
     gdb_path = temp_dir / zip_path.name.replace(".zip", ".gdb")
     if not zip_path.exists():
         print(f"\n[FTP] Downloading: {zip_path.name}")
-        urllib.request.urlretrieve(ftp_url, zip_path)
+        _download_with_progress(ftp_url, zip_path, desc=zip_path.name)
     if not gdb_path.exists():
         with zipfile.ZipFile(zip_path, "r") as zip_ref:
-            zip_ref.extractall(temp_dir)
+            members = zip_ref.namelist()
+            for member in tqdm(members, desc=f"Extracting {zip_path.name}", unit="file"):
+                zip_ref.extract(member, temp_dir)
     return gdb_path
 
 
@@ -299,6 +455,10 @@ def combine_streams(short_name, ftp_url, gpkg_path, temp_dir):
         gdf = gpd.read_file(gdb_path, layer=lyr, engine="pyogrio")
         if gdf.empty:
             continue
+        # Non-spatial GDB layers (attribute tables) come back as plain
+        # DataFrames with no geometry/CRS; skip them so the merge doesn't fail.
+        if not isinstance(gdf, gpd.GeoDataFrame) or gdf.geometry.isna().all():
+            continue
         if gdf.crs and gdf.crs.to_epsg() != 3005:
             gdf = gdf.to_crs(epsg=3005)
         mode = "w" if is_first else "a"
@@ -306,6 +466,182 @@ def combine_streams(short_name, ftp_url, gpkg_path, temp_dir):
             gpkg_path, layer=short_name, driver="GPKG", engine="pyogrio", mode=mode
         )
         is_first = False
+
+
+def fetch_csv_download(short_name: str, url: str, dest_path: Path) -> None:
+    """Download a reference CSV to the data folder (not the GeoPackage).
+
+    Used for tabular BC Data Catalogue datasets such as the WSA lake bathymetry
+    reference table (one row per bathymetric survey map: waterbody identifier,
+    gazetted name, watershed code, and the PDF map URL), consumed by
+    ``pipeline.matching.bathymetry_matcher``.
+    """
+    dest_path.parent.mkdir(parents=True, exist_ok=True)
+    print(f"\n[CSV] Fetching '{short_name}' -> {dest_path}")
+    _download_with_progress(url, dest_path, desc=short_name)
+    try:
+        with open(dest_path, encoding="utf-8", errors="replace") as fh:
+            n_rows = max(sum(1 for _ in fh) - 1, 0)
+        print(f"  ✅ '{short_name}' saved ({n_rows} row(s)) -> {dest_path}")
+    except OSError as exc:
+        print(f"  ⚠️  saved but could not count rows: {exc}")
+
+
+def fetch_bathymetry_pdfs(short_name: str, csv_path: Path, dest_dir: Path) -> None:
+    """Bulk-download every WSA bathymetric survey map PDF into ``dest_dir``.
+
+    Reads the reference CSV produced by the ``bathymetry_maps`` download and
+    saves each survey map to ``dest_dir`` named by its unique map-sheet filename
+    (``MAP_IMAGE_FILENAME_PDF``, e.g. ``00045501.pdf``).  These local copies are
+    the "just in case" archive and are later pushed to R2 under ``bathymetry/``
+    by ``scripts/seed-r2.sh`` so the web app can serve depth maps from our own
+    bucket instead of hot-linking the gov BC endpoint.
+
+    A single survey (``WATERBODY_IDENTIFIER_WSA_50K``) may span several map
+    sheets, so the PDF filename — not the identifier — is the unique key.
+
+    Idempotent: files already present (non-empty) are skipped, so re-running
+    only fetches missing/new maps.  Individual download failures are collected
+    and reported at the end rather than aborting the whole batch; the partial
+    file for a failed download is removed so a later run retries it.
+    """
+    if not csv_path.exists():
+        raise FileNotFoundError(
+            f"Bathymetry CSV not found: {csv_path}. "
+            "Fetch the 'bathymetry_maps' layer first."
+        )
+    dest_dir.mkdir(parents=True, exist_ok=True)
+    print(f"\n[PDF] Downloading bathymetry survey maps -> {dest_dir}")
+
+    url_col, name_col = "PDF_FILE_URL", "MAP_IMAGE_FILENAME_PDF"
+    df = pd.read_csv(csv_path, dtype=str)
+    missing_cols = {url_col, name_col} - set(df.columns)
+    if missing_cols:
+        raise KeyError(
+            f"Bathymetry CSV missing expected column(s): {sorted(missing_cols)}"
+        )
+
+    # Deduplicate on the target filename: the same map sheet can appear on
+    # multiple rows, and we only need one copy per unique PDF.
+    seen: set = set()
+    jobs = []
+    for url, fname in zip(df[url_col], df[name_col]):
+        if not isinstance(url, str) or not url.strip():
+            continue
+        if not isinstance(fname, str) or not fname.strip():
+            continue
+        key = fname.strip().lower()
+        if key in seen:
+            continue
+        seen.add(key)
+        jobs.append((url.strip(), key))
+
+    downloaded = skipped = 0
+    failures = []
+    for url, fname in tqdm(jobs, desc=short_name, unit="pdf"):
+        dest = dest_dir / fname
+        if dest.exists() and dest.stat().st_size > 0:
+            skipped += 1
+            continue
+        try:
+            _download_quiet(url, dest)
+            downloaded += 1
+        except Exception as exc:
+            # Collect and report; never abort the whole batch on one bad URL.
+            failures.append((fname, str(exc)))
+            dest.unlink(missing_ok=True)
+
+    print(
+        f"  ✅ '{short_name}': {downloaded} downloaded, {skipped} already present, "
+        f"{len(failures)} failed ({len(jobs)} unique maps)."
+    )
+    if failures:
+        print(f"  ⚠️  {len(failures)} PDF(s) failed to download:")
+        for fname, msg in failures[:20]:
+            print(f"       - {fname}: {msg}")
+        if len(failures) > 20:
+            print(f"       … and {len(failures) - 20} more.")
+
+
+def fetch_osm_places(short_name: str, dest_path: Path) -> None:
+    """Fetch BC populated places (city/town/village/hamlet) from OSM Overpass.
+
+    Writes a compact JSON list ``[{"name", "lat", "lon", "place"}, …]`` to
+    ``dest_path``.  This is the town gazetteer used by the enrichment step to
+    tag every named waterbody with its nearest towns, so the web-app search can
+    surface a lake when a user searches the town beside it.
+
+    Uses the same Overpass endpoint + BC bounding box as
+    :func:`fetch_overpass_aboriginal_lands`.  Border towns just outside BC are
+    harmless (a BC lake genuinely closest to one is a valid nearest town).
+
+    Idempotent: an existing non-empty file is left untouched so re-running the
+    fetch does not re-query Overpass.
+    """
+    if dest_path.exists() and dest_path.stat().st_size > 0:
+        print(f"\n[OSM] Places already present -> {dest_path} (skipping)")
+        return
+
+    print(f"\n[OSM] Fetching BC populated places (towns) from Overpass...")
+
+    # BC bounding box (lat/lon): south, west, north, east
+    bbox = "48.2,-139.1,60.0,-114.0"
+    query = f"""
+[out:json][timeout:180];
+(
+  node["place"~"^(city|town|village|hamlet)$"]["name"]({bbox});
+);
+out qt;
+"""
+
+    overpass_url = "https://overpass-api.de/api/interpreter"
+    encoded = urllib.parse.urlencode({"data": query})
+    req = urllib.request.Request(
+        overpass_url,
+        data=encoded.encode("utf-8"),
+        headers={"User-Agent": _DOWNLOAD_USER_AGENT},
+    )
+    print("  -> Querying Overpass API (this may take a minute)...")
+    try:
+        with urllib.request.urlopen(req, timeout=240) as resp:
+            raw = json.loads(resp.read().decode("utf-8"))
+    except Exception as e:
+        raise RuntimeError(f"Overpass fetch failed for OSM places: {e}") from e
+
+    places = []
+    seen = set()
+    for el in raw.get("elements", []):
+        if el.get("type") != "node":
+            continue
+        tags = el.get("tags", {})
+        name = (tags.get("name") or "").strip()
+        lat, lon = el.get("lat"), el.get("lon")
+        if not name or lat is None or lon is None:
+            continue
+        # Dedup exact (name, rounded coord) duplicates.
+        key = (name, round(float(lat), 5), round(float(lon), 5))
+        if key in seen:
+            continue
+        seen.add(key)
+        places.append(
+            {
+                "name": name,
+                "lat": float(lat),
+                "lon": float(lon),
+                "place": tags.get("place", ""),
+            }
+        )
+
+    if not places:
+        raise RuntimeError(
+            "Overpass returned no populated places for BC — refusing to write an "
+            "empty gazetteer (check the query / Overpass availability)."
+        )
+
+    dest_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(dest_path, "w", encoding="utf-8") as fh:
+        json.dump(places, fh, ensure_ascii=False)
+    print(f"  ✅ '{short_name}': {len(places)} places saved -> {dest_path}")
 
 
 def fetch_r2_gpkg_layer(short_name, r2_url, source_layer, gpkg_path):
@@ -320,7 +656,7 @@ def fetch_r2_gpkg_layer(short_name, r2_url, source_layer, gpkg_path):
     with tempfile.NamedTemporaryFile(suffix=".gpkg", delete=False) as tmp:
         tmp_path = Path(tmp.name)
     try:
-        urllib.request.urlretrieve(r2_url, tmp_path)
+        _download_with_progress(r2_url, tmp_path, desc=f"{short_name} (R2)")
         gdf = gpd.read_file(tmp_path, layer=source_layer, engine="pyogrio")
         if gdf.crs and gdf.crs.to_epsg() != 3005:
             gdf = gdf.to_crs(epsg=3005)
@@ -343,6 +679,14 @@ def main():
     FTP_FWA = "ftp://ftp.geobc.gov.bc.ca/sections/outgoing/bmgs/FWA_Public/FWA_BC.zip"
     FTP_STR = "ftp://ftp.geobc.gov.bc.ca/sections/outgoing/bmgs/FWA_Public/FWA_STREAM_NETWORKS_SP.zip"
 
+    # BC Data Catalogue — "Bathymetry Open Reference Table and Maps" (one row per
+    # bathymetric survey map, with the PDF map URL).  Tabular CSV, saved to data/.
+    BATHY_CSV_URL = (
+        "https://catalogue.data.gov.bc.ca/dataset/1427d389-cd21-4fe2-8ed9-282d9bdcb7e2/"
+        "resource/d1d89c2e-1994-4f7d-a269-55b40e26067d/download/"
+        "bathyopenreferencetableandmapsaug22_2023final.csv"
+    )
+
     DATASETS = {
         # OSM Admin Boundaries Layer - Add as many names as you like to this list
         "osm_admin_boundaries": {
@@ -361,16 +705,47 @@ def main():
             "source": "WHSE_WILDLIFE_MANAGEMENT.WAA_WILDLIFE_MGMT_UNITS_SVW",
         },
         "parks_bc": {"type": "WFS", "source": "WHSE_TANTALIS.TA_PARK_ECORES_PA_SVW"},
+        "parks_nat": {"type": "WFS", "source": "WHSE_ADMIN_BOUNDARIES.CLAB_NATIONAL_PARKS"},
+        "historic_sites": {"type": "WFS", "source": "WHSE_HUMAN_CULTURAL_ECONOMIC.HIST_HISTORIC_ENVIRONMNT_PA_SV"},
         "lakes": {"type": "FWA_GDB", "ftp": FTP_FWA, "layer": "FWA_LAKES_POLY"},
         "wetlands": {"type": "FWA_GDB", "ftp": FTP_FWA, "layer": "FWA_WETLANDS_POLY"},
+        "manmade": {"type": "FWA_GDB", "ftp": FTP_FWA, "layer": "FWA_MANMADE_WATERBODIES_POLY"},
+        "watersheds": {"type": "FWA_GDB", "ftp": FTP_FWA, "layer": "FWA_NAMED_WATERSHEDS_POLY"},
         "streams": {"type": "FWA_STREAMS", "ftp": FTP_STR},
         "tidal_boundary": {
             "type": "R2_GPKG",
             "url": "https://data.canifishthis.ca/DFO_TIDAL_BOUNDARY.gpkg",
             "layer": "tidal_boundary",
         },
+        "bathymetry_maps": {
+            "type": "CSV_DOWNLOAD",
+            "url": BATHY_CSV_URL,
+            "dest": "wsa_bathymetry_maps.csv",
+        },
+        # Bulk download of every survey map PDF referenced by bathymetry_maps.
+        # Saved to data/bathymetry_pdfs/ (gitignored) and later mirrored to R2
+        # under bathymetry/ by scripts/seed-r2.sh.  Must run after
+        # bathymetry_maps so the reference CSV already exists.
+        "bathymetry_pdfs": {
+            "type": "PDF_BULK",
+            "csv": "wsa_bathymetry_maps.csv",
+            "dest_dir": "bathymetry_pdfs",
+        },
+        # Spatial companion to bathymetry_maps: the survey polygons (lake outlines)
+        # from the BC Geographic Warehouse, keyed by WATERBODY_IDENTIFIER.  Enables
+        # the spatial best-overlap tier in pipeline.matching.bathymetry_matcher.
+        "bathymetry_polygons": {
+            "type": "WFS",
+            "source": "WHSE_FISH.BATH_SURVEY_MAP_SHEETS_SVW",
+        },
+        # OSM populated places (city/town/village/hamlet) gazetteer.  Saved to
+        # data/bc_places.json and used by the enrichment step to tag every named
+        # waterbody with its nearest towns (search-index only).
+        "osm_places": {
+            "type": "OSM_PLACES",
+            "dest": "bc_places.json",
+        },
     }
-
     parser = argparse.ArgumentParser(description="BC Fresh Water Data Fetcher")
     parser.add_argument("--layers", nargs="+", help="Explicitly list layers to fetch")
     parser.add_argument(
@@ -398,7 +773,9 @@ def main():
         elif args.skip_streams:
             to_fetch.pop("streams", None)
 
-    for name, cfg in to_fetch.items():
+    for name, cfg in tqdm(
+        to_fetch.items(), total=len(to_fetch), desc="Datasets", unit="layer"
+    ):
         try:
             if cfg["type"] == "WFS":
                 fetch_wfs_paginated(name, cfg["source"], gpkg_out, temp_dir)
@@ -410,8 +787,18 @@ def main():
                 combine_streams(name, cfg["ftp"], gpkg_out, temp_dir)
             elif cfg["type"] == "R2_GPKG":
                 fetch_r2_gpkg_layer(name, cfg["url"], cfg["layer"], gpkg_out)
+            elif cfg["type"] == "CSV_DOWNLOAD":
+                fetch_csv_download(name, cfg["url"], gpkg_out.parent / cfg["dest"])
+            elif cfg["type"] == "PDF_BULK":
+                fetch_bathymetry_pdfs(
+                    name,
+                    gpkg_out.parent / cfg["csv"],
+                    gpkg_out.parent / cfg["dest_dir"],
+                )
             elif cfg["type"] == "OVERPASS_ABORIGINAL":
                 fetch_overpass_aboriginal_lands(name, gpkg_out)
+            elif cfg["type"] == "OSM_PLACES":
+                fetch_osm_places(name, gpkg_out.parent / cfg["dest"])
         except Exception as e:
             print(f"❌ Error on {name}: {e}")
 

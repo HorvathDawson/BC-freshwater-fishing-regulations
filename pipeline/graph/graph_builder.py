@@ -156,9 +156,13 @@ class FWAPrimalGraphIGraph:
                 if not u:
                     stats["skipped_invalid_endpoints"] += 1
                     continue
-                # FWADataAccessor already cleans ID/code columns to strings
-                # Only GNIS_NAME needs None handling (text field, not cleaned by accessor)
-                gnis_name = props.get("GNIS_NAME") or ""
+                # FWADataAccessor already cleans ID/code columns to strings.
+                # GNIS_NAME is a text field the accessor does not clean, and
+                # arrow-backed reads surface SQL NULLs as float NaN (not None),
+                # so coerce any non-string (None / NaN) to "" at this single
+                # source — every downstream edge["gnis_name"] is then a str.
+                _gnis_name = props.get("GNIS_NAME")
+                gnis_name = _gnis_name if isinstance(_gnis_name, str) else ""
                 gnis_id = props.get("GNIS_ID")
                 waterbody_key = props.get("WATERBODY_KEY")
                 sid = props.get("LINEAR_FEATURE_ID")
@@ -168,6 +172,7 @@ class FWAPrimalGraphIGraph:
                 feature_code = props.get("FEATURE_CODE")
                 blue_line_key = props.get("BLUE_LINE_KEY")
                 edge_type = props.get("EDGE_TYPE")
+                watershed_code_50k = props.get("WATERSHED_CODE_50K")
                 edge_attr = {
                     "u": u,
                     "v": v,
@@ -183,6 +188,7 @@ class FWAPrimalGraphIGraph:
                     "feature_code": feature_code,
                     "blue_line_key": blue_line_key,
                     "edge_type": edge_type,
+                    "watershed_code_50k": watershed_code_50k,
                     "length": geom.length,
                 }
                 all_nodes.append((u, u_coord[0], u_coord[1]))

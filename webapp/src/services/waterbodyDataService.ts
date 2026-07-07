@@ -16,7 +16,13 @@
 /** Name variant with source provenance (structurally identical to NameVariant in featureUtils) */
 export interface NameVariantEntry {
   name: string;
-  source: 'direct' | 'tributary' | 'admin';
+  source: 'direct' | 'tributary' | 'admin' | 'bathymetry';
+}
+
+/** A bathymetry survey depth-map sheet. URL = <R2 base>/bathymetry/<pdf>. */
+export interface BathymetrySurvey {
+  pdf: string;
+  title: string;
 }
 
 // ── Raw JSON shapes ──────────────────────────────────────────────────
@@ -73,6 +79,8 @@ export interface Reach {
   bbox: [number, number, number, number] | null;
   length_km: number;
   tributary_reg_ids?: string[];
+  /** Bathymetry survey depth-map PDFs (polygon reaches only). */
+  bathymetry?: BathymetrySurvey[];
 }
 
 /** Search index entry (tier0 enriched format with segments) */
@@ -88,6 +96,8 @@ export interface SearchEntry {
   zones: string[];
   management_units: string[];
   total_length_km: number;
+  /** Up to 10 towns nearest this feature (search-index only). */
+  nearby_towns?: string[];
 }
 
 /** Enriched segment from tier0 search_index */
@@ -691,6 +701,11 @@ class WaterbodyDataService {
       scrapedAt: this.data?.inSeasonScrapedAt || '',
       sourceUrl: this.data?.inSeasonSourceUrl || '',
     };
+  }
+
+  /** Absolute URL for a bathymetry survey PDF served from the data bucket. */
+  bathymetryUrl(pdf: string): string {
+    return `${WaterbodyDataService.DATA_BASE}/bathymetry/${pdf}`;
   }
 
   getDataVersion(): Promise<string> {

@@ -913,6 +913,7 @@ const MapComponent = () => {
                         id: entry.waterbody_group || entry.display_name,
                         display_name: entry.display_name,
                         name_variants: entry.name_variants || [],
+                        nearby_towns: entry.nearby_towns || [],
                         type,
                         properties: {
                             waterbody_group: entry.waterbody_group,

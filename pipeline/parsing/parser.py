@@ -174,12 +174,30 @@ class SynopsisParser:
                     contents=prompt,
                     config=types.GenerateContentConfig(
                         response_mime_type="application/json",
+                        max_output_tokens=65535,
+                        http_options=types.HttpOptions(timeout=120_000),
                     ),
                 )
                 if not resp.text:
                     raise ValueError("Empty response from API")
+                try:
+                    parsed = json.loads(resp.text)
+                except json.JSONDecodeError as exc:
+                    # Usually a truncated response (output-token limit).
+                    # Retry rather than abort the whole run.
+                    errors.append(
+                        f"Attempt {attempt + 1}: malformed/truncated JSON "
+                        f"({len(resp.text)} chars): {str(exc)[:120]}"
+                    )
+                    logger.warning(
+                        "Batch JSON parse failed (attempt %d/%d): %s",
+                        attempt + 1,
+                        self.max_retries,
+                        exc,
+                    )
+                    continue
                 self.api.record_success()
-                return json.loads(resp.text)
+                return parsed
             except Exception as exc:
                 err_str = str(exc).lower()
                 errors.append(
@@ -191,7 +209,28 @@ class SynopsisParser:
                         raise RuntimeError(
                             "All API keys rate-limited. Errors: " + "; ".join(errors)
                         )
-                elif "503" in err_str:
+                elif any(
+                    t in err_str
+                    for t in (
+                        "500",
+                        "502",
+                        "503",
+                        "504",
+                        "unavailable",
+                        "internal",
+                        "deadline",
+                        "timeout",
+                        "timed out",
+                        "connection reset",
+                        "connection error",
+                        "read error",
+                        "peer",
+                        "broken pipe",
+                        "temporarily",
+                        "disconnected",
+                    )
+                ):
+                    # Transient server/network error — back off and retry.
                     time.sleep((2**attempt) * 2)
                 else:
                     self.api.record_failure()
@@ -301,9 +340,17 @@ def main() -> None:
 
         try:
             entries = parser_engine.parse_batch(batch_rows, dry_run=args.dry_run)
-        except RuntimeError as exc:
-            print(f"  FATAL: {exc}")
-            break
+        except Exception as exc:
+            if "rate-limit" in str(exc).lower() or "rate limit" in str(exc).lower():
+                print(f"  FATAL: {exc}")
+                break
+            # Non-fatal batch failure (malformed JSON, transient network, etc.):
+            # leave these rows pending and continue; --resume retries them.
+            print(
+                f"  Batch {batch_num} failed: {type(exc).__name__}: {exc} — skipping; "
+                f"rows stay pending (rerun with --resume to retry)."
+            )
+            continue
 
         # Record into session (indices may not be contiguous on resume)
         for j, entry in enumerate(entries):

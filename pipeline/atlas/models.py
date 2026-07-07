@@ -13,7 +13,7 @@ from typing import Optional
 from shapely.geometry.base import BaseGeometry
 
 # Re-export for backward compatibility — canonical home is pipeline.utils.wsc
-from pipeline.utils.wsc import trim_wsc  # noqa: F401
+from pipeline.utils.wsc import format_wsc_50k, trim_wsc  # noqa: F401
 
 
 @dataclass(frozen=True)
@@ -28,6 +28,7 @@ class StreamRecord:
     stream_magnitude: Optional[int]
     waterbody_key: str  # "" if open air
     fwa_watershed_code: str = ""  # cleaned FWA watershed code
+    watershed_code_50k: str = ""  # FWA 1:50k watershed code (padded; "9999…" = unknown)
     minzoom: int = 11
 
 
@@ -40,6 +41,8 @@ class PolygonRecord:
     display_name: str  # GNIS_NAME_1
     area: float  # m²
     gnis_id: str = ""  # GNIS_ID_1 — needed for synopsis lake matching
+    waterbody_key_group_code_50k: str = ""  # FWA 1:50k waterbody group code (e.g. "00081HARR")
+    watershed_code_50k: str = ""  # FWA 1:50k watershed code (padded; "9999…" = unknown)
     minzoom: int = 11
 
 
