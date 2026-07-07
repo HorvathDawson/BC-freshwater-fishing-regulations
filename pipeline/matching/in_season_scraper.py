@@ -22,6 +22,7 @@ import json
 import logging
 import re
 import sys
+import time
 import yaml
 from collections import defaultdict
 from dataclasses import asdict, dataclass, field
@@ -45,6 +46,8 @@ _USER_AGENT = (
 )
 
 _REQUEST_TIMEOUT = 30
+_MAX_RETRIES = 3
+_RETRY_BACKOFF = 2  # seconds; wait doubles each attempt (2 s, 4 s)
 
 # Whitespace normalization
 _RE_MULTI_SPACE = re.compile(r"\s+")
@@ -95,11 +98,35 @@ class ScrapedResult:
 
 
 def _fetch_page(url: str) -> str:
-    """Fetch the raw HTML from the BC Gov fishing regulations page."""
+    """Fetch the raw HTML from the BC Gov fishing regulations page.
+
+    Retries up to _MAX_RETRIES times with exponential backoff on transient
+    connection errors or timeouts (e.g. RemoteDisconnected).
+    """
     headers = {"User-Agent": _USER_AGENT}
-    resp = requests.get(url, headers=headers, timeout=_REQUEST_TIMEOUT)
-    resp.raise_for_status()
-    return resp.text
+    last_exc: Exception = RuntimeError("No attempts made")
+    for attempt in range(1, _MAX_RETRIES + 1):
+        try:
+            resp = requests.get(url, headers=headers, timeout=_REQUEST_TIMEOUT)
+            resp.raise_for_status()
+            return resp.text
+        except (requests.exceptions.ConnectionError, requests.exceptions.Timeout) as exc:
+            last_exc = exc
+            if attempt < _MAX_RETRIES:
+                wait = _RETRY_BACKOFF * (2 ** (attempt - 1))
+                logger.warning(
+                    "Request failed (attempt %d/%d): %s. Retrying in %ds…",
+                    attempt,
+                    _MAX_RETRIES,
+                    exc,
+                    wait,
+                )
+                time.sleep(wait)
+            else:
+                logger.error(
+                    "Request failed after %d attempts: %s", _MAX_RETRIES, exc
+                )
+    raise last_exc
 
 
 def _parse_table(table: Tag) -> List[InSeasonChange]:
