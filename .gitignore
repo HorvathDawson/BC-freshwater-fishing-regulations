@@ -25,6 +25,9 @@ cache/
 output/
 **/node_modules/
 
+# Vite build cache / dep pre-bundling
+**/.vite/
+
 # Python virtual environments
 .venv/
 venv/

@@ -246,33 +246,33 @@ class SynopsisParser:
 # ---------------------------------------------------------------------------
 
 
-def main() -> None:
+def run(
+    *,
+    raw: Optional[str] = None,
+    output: Optional[str] = None,
+    batch_size: Optional[int] = None,
+    dry_run: bool = False,
+    resume: bool = False,
+) -> None:
+    """Parse the synopsis rows into structured entries.
+
+    Shared entry point used by both the standalone CLI (``main``) and the
+    unified pipeline runner (``python -m pipeline --step parse``).
+    """
     from project_config import get_config, get_api_keys, load_config
 
     signal.signal(signal.SIGINT, _signal_handler)
 
-    parser = argparse.ArgumentParser(description="V2 Synopsis Parser")
-    parser.add_argument("--raw", help="Path to synopsis_raw_data.json")
-    parser.add_argument("--output", help="Output directory")
-    parser.add_argument("--batch-size", type=int, default=None)
-    parser.add_argument("--dry-run", action="store_true")
-    parser.add_argument(
-        "--resume",
-        action="store_true",
-        help="Resume a previous run, skipping already-parsed rows",
-    )
-    args = parser.parse_args()
-
     config = get_config()
     llm_cfg = load_config()["llm"]
 
-    raw_path = Path(args.raw) if args.raw else config.synopsis_raw_data_path
-    batch_size = args.batch_size or llm_cfg.get("batch_size", 45)
+    raw_path = Path(raw) if raw else config.synopsis_raw_data_path
+    batch_size = batch_size or llm_cfg.get("batch_size", 45)
     model = llm_cfg.get("model", "gemini-2.5-flash")
 
     # Output directory: output/pipeline/parsing/
-    if args.output:
-        out_dir = Path(args.output)
+    if output:
+        out_dir = Path(output)
     else:
         import yaml
 
@@ -303,18 +303,18 @@ def main() -> None:
     )
 
     # Session for checkpoint/resume
-    if not args.resume:
+    if not resume:
         # Fresh run — remove any stale session
         session_file = out_dir / "session_state.json"
         if session_file.exists():
             session_file.unlink()
     session = ParsingSession(session_dir=out_dir, total_rows=len(rows))
-    if args.resume:
+    if resume:
         reset_count = session.revalidate(rows)
         if reset_count:
             print(f"  Re-validation reset {reset_count} entries for re-parsing")
     pending = session.pending_indices()
-    if args.resume and len(pending) < len(rows):
+    if resume and len(pending) < len(rows):
         s = session.summary()
         print(
             f"  Resuming: {s['success']} done, {s['failed']} failed, {s['pending']} pending"
@@ -339,7 +339,7 @@ def main() -> None:
         print(f"  API keys: {api.status()}")
 
         try:
-            entries = parser_engine.parse_batch(batch_rows, dry_run=args.dry_run)
+            entries = parser_engine.parse_batch(batch_rows, dry_run=dry_run)
         except Exception as exc:
             if "rate-limit" in str(exc).lower() or "rate limit" in str(exc).lower():
                 print(f"  FATAL: {exc}")
@@ -376,6 +376,27 @@ def main() -> None:
     if s["failed"] > 0 or s["pending"] > 0:
         print(f"  Restart with --resume to retry failed/pending rows.")
     print(f"{'=' * 50}")
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description="V2 Synopsis Parser")
+    parser.add_argument("--raw", help="Path to synopsis_raw_data.json")
+    parser.add_argument("--output", help="Output directory")
+    parser.add_argument("--batch-size", type=int, default=None)
+    parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument(
+        "--resume",
+        action="store_true",
+        help="Resume a previous run, skipping already-parsed rows",
+    )
+    args = parser.parse_args()
+    run(
+        raw=args.raw,
+        output=args.output,
+        batch_size=args.batch_size,
+        dry_run=args.dry_run,
+        resume=args.resume,
+    )
 
 
 if __name__ == "__main__":

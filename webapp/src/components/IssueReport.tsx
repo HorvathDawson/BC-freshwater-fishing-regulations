@@ -1,9 +1,13 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { X, Check, ExternalLink, Copy } from 'lucide-react';
+import { X, Check, ExternalLink, Copy, Send } from 'lucide-react';
 import './IssueReport.css';
 
 /** GitHub repo that receives pre-filled issue reports. */
 const GITHUB_REPO = 'HorvathDawson/BC-freshwater-fishing-regulations';
+
+/** Base URL for the /api/feedback endpoint — empty in dev (Vite proxies to the
+ *  worker), the R2 worker origin in production. Mirrors waterbodyDataService. */
+const API_BASE = import.meta.env.VITE_TILE_BASE_URL || '';
 
 /** Snapshot of app state attached to a report so a maintainer can reproduce it. */
 export interface IssueReportContext {
@@ -15,6 +19,36 @@ export interface IssueReportContext {
     zoom?: number;
     dataVersion?: string;
     pageUrl?: string;
+    /** Extra diagnostics (map view internals, selected-feature metadata, …)
+     *  rendered verbatim under "Technical details". Empty values are skipped. */
+    details?: Record<string, string | number | boolean | null | undefined>;
+}
+
+/**
+ * Capture universal browser/runtime environment for the report. This is
+ * app-agnostic (viewport, UA, locale, …) so it lives here rather than in the
+ * map component, keeping getContext focused on app/map/feature state.
+ */
+function collectEnvironment(): Record<string, string | number> {
+    const env: Record<string, string | number> = {};
+    if (typeof window !== 'undefined') {
+        env['Viewport'] = `${window.innerWidth}\u00d7${window.innerHeight}`;
+        env['Device pixel ratio'] = window.devicePixelRatio || 1;
+        if (window.screen) env['Screen'] = `${window.screen.width}\u00d7${window.screen.height}`;
+    }
+    if (typeof navigator !== 'undefined') {
+        env['User agent'] = navigator.userAgent;
+        env['Language'] = navigator.language;
+        env['Online'] = navigator.onLine ? 'yes' : 'no';
+        if (navigator.maxTouchPoints != null) env['Touch points'] = navigator.maxTouchPoints;
+    }
+    try {
+        env['Timezone'] = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    } catch {
+        // Intl unavailable — skip.
+    }
+    env['Local time'] = new Date().toString();
+    return env;
 }
 
 const CATEGORIES = [
@@ -44,6 +78,7 @@ function buildReportBody(
     description: string,
     contact: string,
     ctx: IssueReportContext,
+    environment: Record<string, string | number>,
 ): string {
     const lines: string[] = [
         '### Description',
@@ -72,6 +107,23 @@ function buildReportBody(
     if (context.length) {
         lines.push('### Context', ...context, '');
     }
+
+    // Verbose diagnostics: app/map/feature internals + browser environment.
+    // Merged into one section; empty values are omitted.
+    const diagnostics: Record<string, string | number | boolean> = {};
+    for (const [k, v] of Object.entries(ctx.details ?? {})) {
+        if (v !== null && v !== undefined && v !== '') diagnostics[k] = v;
+    }
+    for (const [k, v] of Object.entries(environment)) {
+        if (v !== null && v !== undefined && v !== '') diagnostics[k] = v;
+    }
+    const detailKeys = Object.keys(diagnostics);
+    if (detailKeys.length) {
+        lines.push('### Technical details');
+        for (const k of detailKeys) lines.push(`- ${k}: ${diagnostics[k]}`);
+        lines.push('');
+    }
+
     return lines.join('\n').trim();
 }
 
@@ -80,7 +132,11 @@ const IssueReport: React.FC<IssueReportProps> = ({ isOpen, onClose, getContext }
     const [description, setDescription] = useState('');
     const [contact, setContact] = useState('');
     const [ctx, setCtx] = useState<IssueReportContext>({});
+    const [environment, setEnvironment] = useState<Record<string, string | number>>({});
     const [copied, setCopied] = useState(false);
+    const [submitState, setSubmitState] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
+    // Honeypot: hidden field; only bots fill it. Kept out of the report body.
+    const [hp, setHp] = useState('');
 
     // Keep the latest getContext without making it an effect dependency, so the
     // snapshot fires exactly once per open (not on every parent re-render).
@@ -91,10 +147,13 @@ const IssueReport: React.FC<IssueReportProps> = ({ isOpen, onClose, getContext }
     useEffect(() => {
         if (!isOpen) return;
         setCtx(getContextRef.current ? getContextRef.current() : {});
+        setEnvironment(collectEnvironment());
         setCategory('Incorrect regulation');
         setDescription('');
         setContact('');
         setCopied(false);
+        setSubmitState('idle');
+        setHp('');
     }, [isOpen]);
 
     // Close on Escape.
@@ -107,8 +166,8 @@ const IssueReport: React.FC<IssueReportProps> = ({ isOpen, onClose, getContext }
     }, [isOpen, onClose]);
 
     const body = useMemo(
-        () => buildReportBody(category, description, contact, ctx),
-        [category, description, contact, ctx],
+        () => buildReportBody(category, description, contact, ctx, environment),
+        [category, description, contact, ctx, environment],
     );
 
     const title = useMemo(() => {
@@ -135,6 +194,24 @@ const IssueReport: React.FC<IssueReportProps> = ({ isOpen, onClose, getContext }
         }
     };
 
+    // Send the report directly — no account needed. The worker stores it and
+    // (if configured) emails it. On failure, the GitHub/Copy paths remain.
+    const handleSend = async () => {
+        if (!canSubmit || submitState === 'sending' || submitState === 'sent') return;
+        setSubmitState('sending');
+        try {
+            const resp = await fetch(`${API_BASE}/api/feedback`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title, body, hp }),
+            });
+            if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+            setSubmitState('sent');
+        } catch {
+            setSubmitState('error');
+        }
+    };
+
     return (
         <div className="issue-report-overlay" onClick={onClose} role="presentation">
             <div
@@ -156,8 +233,9 @@ const IssueReport: React.FC<IssueReportProps> = ({ isOpen, onClose, getContext }
                 <div className="issue-report-content">
                     <p className="issue-report-intro">
                         Spotted a wrong regulation, a misplaced boundary, or a bug? Let us know.
-                        Submitting opens a pre-filled GitHub issue — no GitHub account? Use
-                        <strong> Copy report</strong> and send it however you like.
+                        <strong> Send report</strong> delivers it straight to the maintainers—no
+                        account needed. Prefer GitHub, or want to send it yourself? Use the
+                        <strong> GitHub</strong> or <strong>Copy</strong> options.
                     </p>
 
                     <label className="issue-report-field">
@@ -201,7 +279,30 @@ const IssueReport: React.FC<IssueReportProps> = ({ isOpen, onClose, getContext }
                         <summary>What gets sent</summary>
                         <pre>{body}</pre>
                     </details>
+
+                    {/* Honeypot: hidden from users; bots that fill it are silently dropped. */}
+                    <input
+                        type="text"
+                        className="issue-report-hp"
+                        tabIndex={-1}
+                        autoComplete="off"
+                        aria-hidden="true"
+                        value={hp}
+                        onChange={e => setHp(e.target.value)}
+                    />
                 </div>
+
+                {submitState === 'sent' && (
+                    <p className="issue-report-status success" role="status">
+                        <Check size={14} /> Thanks — your report was sent.
+                    </p>
+                )}
+                {submitState === 'error' && (
+                    <p className="issue-report-status error" role="alert">
+                        Couldn&apos;t send automatically. Use <strong>Copy report</strong> or the
+                        GitHub option instead.
+                    </p>
+                )}
 
                 <div className="issue-report-actions">
                     <button
@@ -221,7 +322,7 @@ const IssueReport: React.FC<IssueReportProps> = ({ isOpen, onClose, getContext }
                         )}
                     </button>
                     <a
-                        className={`issue-report-primary${canSubmit ? '' : ' disabled'}`}
+                        className={`issue-report-secondary${canSubmit ? '' : ' disabled'}`}
                         href={canSubmit ? githubUrl : undefined}
                         target="_blank"
                         rel="noopener noreferrer"
@@ -231,11 +332,30 @@ const IssueReport: React.FC<IssueReportProps> = ({ isOpen, onClose, getContext }
                                 e.preventDefault();
                                 return;
                             }
-                            onClose();
                         }}
                     >
-                        <ExternalLink size={15} /> Open GitHub issue
+                        <ExternalLink size={15} /> GitHub
                     </a>
+                    <button
+                        type="button"
+                        className="issue-report-primary"
+                        onClick={handleSend}
+                        disabled={!canSubmit || submitState === 'sending' || submitState === 'sent'}
+                    >
+                        {submitState === 'sending' ? (
+                            <>
+                                <Send size={15} /> Sending…
+                            </>
+                        ) : submitState === 'sent' ? (
+                            <>
+                                <Check size={15} /> Sent
+                            </>
+                        ) : (
+                            <>
+                                <Send size={15} /> Send report
+                            </>
+                        )}
+                    </button>
                 </div>
             </div>
         </div>

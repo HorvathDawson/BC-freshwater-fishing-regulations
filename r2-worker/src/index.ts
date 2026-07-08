@@ -1,12 +1,20 @@
 interface Env {
   BUCKET: R2Bucket;
   SHARD_VERSION: string;
+  /** Cloudflare Email send binding (optional — enables feedback emails). */
+  SEND_EMAIL?: {
+    send(message: { to: string; from: string; subject: string; text?: string; html?: string }): Promise<unknown>;
+  };
+  /** Sender address on your verified domain (e.g. feedback@canifishthis.ca). */
+  FEEDBACK_FROM?: string;
+  /** Verified destination address that receives feedback emails. */
+  FEEDBACK_TO?: string;
 }
 
 const CORS_HEADERS: Record<string, string> = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, HEAD, OPTIONS',
-  'Access-Control-Allow-Headers': 'Range, If-None-Match, If-Modified-Since',
+  'Access-Control-Allow-Methods': 'GET, HEAD, POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Range, If-None-Match, If-Modified-Since, Content-Type',
   'Access-Control-Expose-Headers': 'Content-Length, Content-Range, Content-Type, Content-Encoding, ETag',
   'Access-Control-Max-Age': '86400',
 };
@@ -320,18 +328,119 @@ async function handleVersion(env: Env): Promise<Response> {
   return jsonResponse({ version: env.SHARD_VERSION || 'v7' });
 }
 
+// ── Feedback submission API ──────────────────────────────────────────
+
+const MAX_FEEDBACK_TITLE = 300;
+const MAX_FEEDBACK_BODY = 8000;
+
+interface FeedbackRecord {
+  receivedAt: string;
+  title: string;
+  body: string;
+  userAgent: string | null;
+  country: string | null;
+}
+
+/**
+ * Accept a feedback report (no account required) via POST /api/feedback.
+ *
+ * The report is ALWAYS stored durably in R2 under feedback/<date>/… — those
+ * keys are never served over GET (see the guard in fetch()).  If Cloudflare
+ * Email Routing is configured (SEND_EMAIL binding + FEEDBACK_FROM/FEEDBACK_TO),
+ * a notification email is also sent.  Email is best-effort: a failure there
+ * never fails the request, because the report is already saved.
+ *
+ * Body: { title?: string, body: string, hp?: string }
+ *   hp — honeypot; bots fill it, humans never see it → silently dropped.
+ */
+async function handleFeedback(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+  let payload: { title?: unknown; body?: unknown; hp?: unknown };
+  try {
+    const raw = await request.text();
+    if (raw.length > MAX_FEEDBACK_BODY + 2000) {
+      return errorResponse('Report too large', 413);
+    }
+    payload = JSON.parse(raw);
+  } catch {
+    return errorResponse('Invalid JSON body', 400);
+  }
+
+  // Honeypot: pretend success so bots move on, but store nothing.
+  if (typeof payload.hp === 'string' && payload.hp.trim()) {
+    return jsonResponse({ ok: true });
+  }
+
+  const title = String(payload.title ?? '').slice(0, MAX_FEEDBACK_TITLE).trim();
+  const body = String(payload.body ?? '').slice(0, MAX_FEEDBACK_BODY).trim();
+  if (!body) {
+    return errorResponse('Report body is required', 400);
+  }
+
+  const receivedAt = new Date().toISOString();
+  const record: FeedbackRecord = {
+    receivedAt,
+    title: title || '[Report]',
+    body,
+    userAgent: request.headers.get('User-Agent'),
+    country: request.headers.get('CF-IPCountry'),
+  };
+
+  // 1. Durable storage — the source of truth, independent of email setup.
+  const key = `feedback/${receivedAt.slice(0, 10)}/${receivedAt}-${crypto.randomUUID()}.json`;
+  try {
+    await env.BUCKET.put(key, JSON.stringify(record, null, 2), {
+      httpMetadata: { contentType: 'application/json' },
+    });
+  } catch (err) {
+    // Storage is required — surface the failure rather than hiding it.
+    console.error('Feedback storage failed:', err);
+    return errorResponse('Failed to store report', 500);
+  }
+
+  // 2. Optional email notification (best-effort, never blocks the response).
+  if (env.SEND_EMAIL && env.FEEDBACK_FROM && env.FEEDBACK_TO) {
+    ctx.waitUntil(
+      sendFeedbackEmail(env, record).catch(err => {
+        console.error('Feedback email failed (report is stored in R2):', err);
+      }),
+    );
+  }
+
+  return jsonResponse({ ok: true });
+}
+
+/** Send a feedback notification email via the Cloudflare Email send binding. */
+async function sendFeedbackEmail(env: Env, record: FeedbackRecord): Promise<void> {
+  await env.SEND_EMAIL!.send({
+    to: env.FEEDBACK_TO!,
+    from: env.FEEDBACK_FROM!,
+    subject: record.title.replace(/[\r\n]+/g, ' ').slice(0, 200) || '[Report]',
+    text:
+      `${record.body}\n\n` +
+      `— — —\n` +
+      `Received: ${record.receivedAt}\n` +
+      `User-Agent: ${record.userAgent ?? 'n/a'}\n` +
+      `Country: ${record.country ?? 'n/a'}`,
+  });
+}
+
 export default {
-  async fetch(request: Request, env: Env): Promise<Response> {
+  async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     // ── CORS preflight ──────────────────────────────────────────────
     if (request.method === 'OPTIONS') {
       return new Response(null, { status: 204, headers: CORS_HEADERS });
     }
 
+    const url = new URL(request.url);
+
+    // ── Feedback submission (POST) — handled before the GET/HEAD guard ─
+    if (url.pathname === '/api/feedback' && request.method === 'POST') {
+      return handleFeedback(request, env, ctx);
+    }
+
     if (request.method !== 'GET' && request.method !== 'HEAD') {
       return new Response('Method Not Allowed', { status: 405, headers: CORS_HEADERS });
     }
-
-    const url = new URL(request.url);
 
     // ── API routes (checked BEFORE R2 file lookup) ──────────────────
     if (url.pathname === '/api/resolve' && request.method === 'GET') {
@@ -343,6 +452,11 @@ export default {
 
     const key = url.pathname.slice(1); // strip leading /
     if (!key) {
+      return new Response('Not Found', { status: 404, headers: CORS_HEADERS });
+    }
+
+    // Stored feedback reports are private — never serve them over GET.
+    if (key.startsWith('feedback/')) {
       return new Response('Not Found', { status: 404, headers: CORS_HEADERS });
     }
 

@@ -4,13 +4,15 @@ Unified regulation pipeline runner.
 Steps:
     atlas   — build the atlas pickle from graph + GPKG
     tiles   — export atlas pickle → PMTiles via tippecanoe
+    parse   — parse synopsis rows into structured entries via the LLM parser
     enrich  — run the 5-phase regulation index builder
-    all     — atlas → tiles → enrich (default)
+    all     — atlas → tiles → enrich (default; parse is excluded — run explicitly)
 
 Usage:
     python -m pipeline                        # run all
     python -m pipeline --step atlas           # atlas only
     python -m pipeline --step tiles enrich    # tiles then enrich
+    python -m pipeline --step parse --resume  # resume synopsis parse
     python -m pipeline --step all             # full pipeline
     python -m pipeline --dry-run              # enrich dry-run
 """
@@ -92,12 +94,21 @@ def _step_enrich(cfg: dict, config_path: Path, dry_run: bool = False) -> Path:
     return output_path
 
 
+def _step_parse(dry_run: bool = False, resume: bool = False) -> None:
+    """Parse synopsis rows into structured entries via the LLM parser."""
+    from .parsing.parser import run
+
+    t0 = time.perf_counter()
+    run(dry_run=dry_run, resume=resume)
+    log.info(f"Parse done in {time.perf_counter() - t0:.1f}s")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="V2 pipeline runner")
     parser.add_argument(
         "--step",
         nargs="*",
-        choices=["atlas", "tiles", "enrich", "all"],
+        choices=["atlas", "tiles", "parse", "enrich", "all"],
         default=["all"],
         help="Pipeline step(s) to run — executed in canonical order (default: all)",
     )
@@ -110,6 +121,11 @@ def main() -> None:
         "--dry-run",
         action="store_true",
         help="Enrich step: load and merge only — skip atlas/graph processing",
+    )
+    parser.add_argument(
+        "--resume",
+        action="store_true",
+        help="Parse step: resume a previous run, skipping already-parsed rows",
     )
     args = parser.parse_args()
 
@@ -125,6 +141,10 @@ def main() -> None:
 
     if run_all or "tiles" in steps:
         _step_tiles(cfg, atlas_path)
+
+    # Parse is expensive (LLM) and NOT part of "all" — run only when requested.
+    if "parse" in steps:
+        _step_parse(dry_run=args.dry_run, resume=args.resume)
 
     if run_all or "enrich" in steps:
         _step_enrich(cfg, config_path, dry_run=args.dry_run)

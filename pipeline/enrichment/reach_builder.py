@@ -456,7 +456,7 @@ def _build_ungazetted_reaches(
 
         reaches[uid] = {
             "wsc": uid,  # Use ungazetted ID as the grouping key
-            "display_name": rec.water,
+            "display_name": str(rec.water) if rec.water is not None else "",
             "reg_set_str": rec.reg_id,
             "fids": [],
             "minzoom": 13,

@@ -90,7 +90,7 @@ class DisplayNameResolver:
                 (caller computes — only non-tributary, non-admin regs).
             fid: Linear feature ID for fid-level reg name lookup.
         """
-        return (
+        return str(
             self._blk_dn.get(blk)
             or gnis_name
             or direct_reg_name
@@ -105,7 +105,7 @@ class DisplayNameResolver:
         direct_reg_name: str = "",
     ) -> str:
         """Resolve display name for a polygon (lake / wetland / manmade)."""
-        return (
+        return str(
             self._wbk_dn.get(wbk)
             or gnis_name
             or direct_reg_name

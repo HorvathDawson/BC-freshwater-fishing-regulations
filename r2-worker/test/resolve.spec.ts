@@ -7,6 +7,8 @@
 
 import {
   env,
+  createExecutionContext,
+  waitOnExecutionContext,
 } from 'cloudflare:test';
 import { describe, it, expect, beforeAll } from 'vitest';
 import worker from '../src/index';
@@ -117,7 +119,9 @@ async function callWorker(
   method = 'GET',
 ): Promise<Response> {
   const request = new Request(`https://test.example.com${path}`, { method });
-  const response = await worker.fetch(request, env as unknown as { BUCKET: R2Bucket; SHARD_VERSION: string });
+  const ctx = createExecutionContext();
+  const response = await worker.fetch(request, env as unknown as { BUCKET: R2Bucket; SHARD_VERSION: string }, ctx);
+  await waitOnExecutionContext(ctx);
   return response;
 }
 

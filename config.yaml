@@ -55,6 +55,12 @@ llm:
       env_var: "GOOGLE_API_KEY"
     - id: "darcy.turin"
       env_var: "GOOGLE_API_KEY_2"
+    - id: "key_3"
+      env_var: "GOOGLE_API_KEY_3"
+    - id: "key_4"
+      env_var: "GOOGLE_API_KEY_4"
+    - id: "key_5"
+      env_var: "GOOGLE_API_KEY_5"
 
 # ============================================================================
 # Graph Builder Settings

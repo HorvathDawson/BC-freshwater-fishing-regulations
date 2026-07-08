@@ -210,16 +210,53 @@
     color: #fff;
 }
 
-.issue-report-secondary:not(:disabled):hover,
+.issue-report-secondary:not(:disabled):not(.disabled):hover,
 .issue-report-primary:not(.disabled):hover {
     box-shadow: 3px 3px 0 rgba(0, 0, 0, 1);
     transform: translate(-1px, -1px);
 }
 
 .issue-report-secondary:disabled,
+.issue-report-secondary.disabled,
 .issue-report-primary.disabled {
     opacity: 0.45;
     cursor: not-allowed;
+    pointer-events: none;
+}
+
+/* Status line (send success / failure) */
+.issue-report-status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    line-height: 1.5;
+    margin: 16px 0 0 0;
+    padding: 8px 10px;
+    border: 1px solid #000;
+}
+
+.issue-report-status.success {
+    background: #eafaef;
+    color: #1a7f3c;
+}
+
+.issue-report-status.error {
+    background: #fdecea;
+    color: #c0392b;
+}
+
+.issue-report-status svg {
+    flex-shrink: 0;
+}
+
+/* Honeypot — visually hidden, off the accessibility tree, non-interactive. */
+.issue-report-hp {
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
     pointer-events: none;
 }
 

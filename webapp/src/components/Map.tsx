@@ -2003,6 +2003,20 @@ const MapComponent = () => {
     const getIssueContext = useCallback((): IssueReportContext => {
         const map = mapRef.current;
         const center = map?.getCenter();
+        const details: Record<string, string | number | boolean | null | undefined> = {};
+
+        if (map) {
+            details['Map bearing'] = Math.round(map.getBearing());
+            details['Map pitch'] = Math.round(map.getPitch());
+            const b = map.getBounds();
+            if (b) {
+                details['Map bounds (W,S,E,N)'] =
+                    `${b.getWest().toFixed(4)}, ${b.getSouth().toFixed(4)}, ${b.getEast().toFixed(4)}, ${b.getNorth().toFixed(4)}`;
+            }
+            const canvas = map.getCanvas?.();
+            if (canvas) details['Map canvas'] = `${canvas.clientWidth}\u00d7${canvas.clientHeight}`;
+        }
+
         const context: IssueReportContext = {
             lat: center?.lat,
             lng: center?.lng,
@@ -2016,7 +2030,25 @@ const MapComponent = () => {
             context.waterbodyName = getFeatureDisplayName(props, feature.type);
             context.waterbodyType = feature.type;
             context.waterbodyId = String(feature.id ?? props?.fid ?? props?.wbk ?? '') || undefined;
+
+            details['Reach ID'] = props?._reachId || props?.frontend_group_id || undefined;
+            details['Waterbody key'] = props?.waterbody_key || undefined;
+            details['Feature type'] = feature.type;
+            details['Region'] = props?.region_name || undefined;
+            details['Zones'] = props?.zones || undefined;
+            details['Mgmt units'] = props?.mgmt_units || undefined;
+            details['Watershed code'] = props?.fwa_watershed_code || undefined;
+            details['Regulation IDs'] = props?.regulation_ids || undefined;
+            details['Regulation count'] = props?.regulation_count ?? undefined;
+            if (props?.length_km) details['Segment length (km)'] = Number(props.length_km).toFixed(2);
+            if (props?.total_length_km) details['Total length (km)'] = Number(props.total_length_km).toFixed(2);
+            details['Min zoom'] = props?.minzoom ?? undefined;
+            const fids = props?._fidList as string[] | undefined;
+            if (fids?.length) {
+                details['FIDs'] = fids.slice(0, 12).join(', ') + (fids.length > 12 ? ` (+${fids.length - 12} more)` : '');
+            }
         }
+        context.details = details;
         return context;
     }, [dataVersion]);
 

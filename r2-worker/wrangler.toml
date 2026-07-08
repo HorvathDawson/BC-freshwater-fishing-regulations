@@ -52,7 +52,27 @@ bucket_name = "bc-fishing-regulations"
 # Keep in sync with [vars].SHARD_VERSION above
 [env.production.vars]
 SHARD_VERSION = "v1"
+FEEDBACK_FROM = "feedback@canifishthis.ca"
+FEEDBACK_TO = "horvath.dawson@gmail.com"
 
 [[env.production.routes]]
 pattern = "data.canifishthis.ca"
 custom_domain = true
+
+# Sends feedback emails to the verified destination above.
+[[env.production.send_email]]
+name = "SEND_EMAIL"
+destination_address = "horvath.dawson@gmail.com"
+
+# ── Feedback email ──────────────────────────────────────────
+# POST /api/feedback ALWAYS stores reports in R2 (under feedback/…).  It ALSO
+# emails them when the Cloudflare Email send binding is configured (done for
+# [env.production] above).  Requirements already satisfied:
+#   • canifishthis.ca onboarded to Email Service (Compute → Email Service)
+#   • horvath.dawson@gmail.com added as a verified Destination Address
+# destination_address MUST equal FEEDBACK_TO and be the verified inbox;
+# FEEDBACK_FROM is any address on the onboarded domain.
+#
+# To also send from the staging worker, mirror the three additions under
+# [env.staging.vars] (FEEDBACK_FROM/FEEDBACK_TO) and add a matching
+# [[env.staging.send_email]] block.
