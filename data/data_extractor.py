@@ -72,6 +72,18 @@ class FWADataAccessor:
         # Admin layer fields
         "SITE_ID",  # UUID for historic sites
         "PROTECTED_LANDS_CODE",  # Classification code for parks_bc
+        # Name/text columns — arrow-backed reads surface SQL NULL as float NaN
+        # (which is truthy in Python), so normalising here to "" is the single
+        # source that keeps `x or ""` fallbacks from leaking a literal "nan".
+        "GNIS_NAME",
+        "GNIS_NAME_1",
+        "GNIS_NAME_2",
+        "ENGLISH_NAME",
+        "PROTECTED_LANDS_NAME",
+        "WILDLIFE_MANAGEMENT_AREA_NAME",
+        "GAME_MANAGEMENT_ZONE_NAME",
+        "COMMON_SITE_NAME",
+        "name",
     ]
 
     INT_COLUMNS = ["STREAM_ORDER", "STREAM_MAGNITUDE"]

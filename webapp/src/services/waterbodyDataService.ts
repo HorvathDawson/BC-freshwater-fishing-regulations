@@ -49,6 +49,12 @@ interface SynopsisReg {
       details: string;
       location_text?: string;
       dates?: string[];
+      /** Verbatim "except ..." carve-out that qualifies this one rule.
+       *  Empty/undefined when the rule has no exception. */
+      exception?: string;
+      /** Per-rule tributary override: null/undefined = inherit entry-level
+       *  includes_tributaries; true/false = override for this rule only. */
+      includes_tributaries?: boolean | null;
     }[];
   };
 }
@@ -96,8 +102,9 @@ export interface SearchEntry {
   zones: string[];
   management_units: string[];
   total_length_km: number;
-  /** Up to 10 towns nearest this feature (search-index only). */
-  nearby_towns?: string[];
+  /** Towns nearest this feature (search-index only). New builds carry
+   *  ``{name, km}`` records; legacy/cached indexes may still be plain strings. */
+  nearby_towns?: (string | { name: string; km?: number })[];
 }
 
 /** Enriched segment from tier0 search_index */
@@ -134,6 +141,9 @@ export interface Regulation {
   dates: string[] | string | { period: string } | null;
   scope_type: string;
   scope_location: string | null;
+  /** Verbatim "except ..." carve-out for this rule, shown inline in the UI so
+   *  each rule card is self-contained.  Empty/undefined when none. */
+  restriction_exception?: string;
   source: 'synopsis' | 'provincial' | 'zone';
   zone_ids?: string[];
   feature_types?: string[] | null;
@@ -144,6 +154,11 @@ export interface Regulation {
   /** How this regulation reached the current reach.
    *  Stamped by regulationsService when resolving for a specific reach. */
   provenance?: RegulationProvenance;
+  /** Effective tributary scope of this rule, resolved at expansion time:
+   *  the rule's own includes_tributaries if set, else the entry-level flag.
+   *  Used by regulationsService to drop mainstem-only rules on tributary
+   *  reaches.  Undefined for base regs (never tributary-filtered). */
+  effective_includes_tributaries?: boolean;
 }
 
 // ── Admin visibility config (from admin_visibility.json) ─────────────
@@ -179,6 +194,9 @@ export interface RegulationData {
   reaches: Record<string, Reach>;
   /** reach_id → [fid, ...] (for highlighting; from tier0 segments, extended by /api/resolve) */
   reachSegments: Record<string, string[]>;
+  /** reach_ids whose full metadata (incl. bathymetry) was loaded from a shard,
+   *  not just the lightweight tier0 search_index segment. */
+  hydratedReaches: Set<string>;
   /** Tier0-enriched search entries (with segments instead of reach IDs) */
   searchIndex: SearchEntry[];
   /** Original reg_set strings (before rule expansion) */
@@ -217,11 +235,17 @@ function expandRegulations(
     if (raw.source === 'synopsis') {
       const syn = raw as SynopsisReg;
       if (syn.parsed?.rules?.length) {
+        const entryIncludesTribs = syn.parsed.includes_tributaries === true;
         const ruleIds: string[] = [];
         for (let i = 0; i < syn.parsed.rules.length; i++) {
           const rule = syn.parsed.rules[i];
           const ruleId = `${regId}_rule${i}`;
           ruleIds.push(ruleId);
+          // Effective tributary scope = rule override if set, else entry flag.
+          const effectiveIncludesTribs =
+            rule.includes_tributaries == null
+              ? entryIncludesTribs
+              : rule.includes_tributaries === true;
           regulations[ruleId] = {
             regulation_id: ruleId,
             waterbody_name: syn.water || '',
@@ -233,16 +257,20 @@ function expandRegulations(
             dates: rule.dates?.length ? rule.dates : null,
             scope_type: rule.location_text ? 'location' : 'waterbody',
             scope_location: rule.location_text || null,
+            restriction_exception: rule.exception || undefined,
             source: 'synopsis',
             iid: regId,
             source_image: syn.image || null,
             source_page: syn.page ?? null,
             exclusions: null,
+            effective_includes_tributaries: effectiveIncludesTribs,
           };
         }
         expansionMap[regId] = ruleIds;
       } else {
-        // Unparsed synopsis — show raw_regs as single entry
+        // Unparsed synopsis — show raw_regs as single entry.  With no parsed
+        // rules there is no per-rule scope, so treat it as tributary-applicable
+        // (inherit) and never filter it out on tributary reaches.
         regulations[regId] = {
           regulation_id: regId,
           waterbody_name: syn.water || '',
@@ -259,6 +287,7 @@ function expandRegulations(
           source_image: syn.image || null,
           source_page: syn.page ?? null,
           exclusions: null,
+          effective_includes_tributaries: true,
         };
         expansionMap[regId] = [regId];
       }
@@ -470,6 +499,9 @@ class WaterbodyDataService {
         cachedData.inSeasonIndex = index;
         cachedData.inSeasonScrapedAt = scrapedAt;
         cachedData.inSeasonSourceUrl = sourceUrl;
+        // Hydration state is per-session and never persisted — reaches loaded
+        // from cache start un-hydrated (no bathymetry) until a shard fetch runs.
+        cachedData.hydratedReaches = new Set<string>();
         this.data = cachedData;
         this.loadPromise = null;
         console.log(`✅ tier0 loaded from cache (304)`);
@@ -520,9 +552,12 @@ class WaterbodyDataService {
 
     const { regulations, regSets } = expandRegulations(rawRegs, rawRegSets);
 
-    // Build reaches and reachSegments from enriched search_index segments
+    // Build reaches and reachSegments from enriched search_index segments.
+    // These are lightweight (no bathymetry) — see hydratedReaches below.
     const reaches: Record<string, Reach> = {};
     const reachSegments: Record<string, string[]> = {};
+    // reach_ids whose full shard metadata (incl. bathymetry) has been loaded.
+    const hydratedReaches = new Set<string>();
 
     for (const entry of searchEntries) {
       for (const seg of (entry.segments || [])) {
@@ -552,6 +587,7 @@ class WaterbodyDataService {
       reg_sets: regSets,
       reaches,
       reachSegments,
+      hydratedReaches,
       searchIndex: searchEntries,
       rawRegSets,
       adminVisibility,
@@ -630,6 +666,7 @@ class WaterbodyDataService {
       // Inject into data for use by click handler fallback paths
       if (this.data) {
         this.data.reaches[r.reach_id] = r.reach as Reach;
+        this.data.hydratedReaches.add(r.reach_id);
         if (r.fids?.length) {
           this.data.reachSegments[r.reach_id] = r.fids;
         }
@@ -651,8 +688,10 @@ class WaterbodyDataService {
    * Returns the ResolveResult or null if not found.
    */
   async resolveByReachId(reachId: string): Promise<ResolveResult | null> {
-    // Check if already in local reaches (from tier0 or previous resolve)
-    if (this.data?.reaches[reachId]) {
+    // Return the cached reach only if it was hydrated from a shard (so it
+    // carries bathymetry etc.). Lightweight tier0 search_index reaches are not
+    // hydrated, so fall through to the /api/resolve?rids= fetch for those.
+    if (this.data?.reaches[reachId] && this.data.hydratedReaches.has(reachId)) {
       return {
         reach_id: reachId,
         reach: this.data.reaches[reachId],
@@ -675,6 +714,7 @@ class WaterbodyDataService {
       // Inject into data for reuse
       if (this.data) {
         this.data.reaches[r.reach_id] = r.reach as Reach;
+        this.data.hydratedReaches.add(r.reach_id);
         if (r.fids?.length) {
           this.data.reachSegments[r.reach_id] = r.fids;
         }

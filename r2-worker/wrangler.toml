@@ -9,7 +9,7 @@ bucket_name = "bc-fishing-regulations"
 # Worker-side source of truth for shard version.
 # Keep in sync with config.yaml → output.pipeline.shard_version
 [vars]
-SHARD_VERSION = "v1"
+SHARD_VERSION = "v2"
 
 [observability]
 [observability.logs]
@@ -30,7 +30,7 @@ bucket_name = "bc-fishing-regulations-staging"
 
 # Keep in sync with [vars].SHARD_VERSION above
 [env.staging.vars]
-SHARD_VERSION = "v1"
+SHARD_VERSION = "v2"
 
 [[env.staging.routes]]
 pattern = "data-staging.canifishthis.ca"
@@ -51,7 +51,7 @@ bucket_name = "bc-fishing-regulations"
 
 # Keep in sync with [vars].SHARD_VERSION above
 [env.production.vars]
-SHARD_VERSION = "v1"
+SHARD_VERSION = "v2"
 FEEDBACK_FROM = "feedback@canifishthis.ca"
 FEEDBACK_TO = "horvath.dawson@gmail.com"
 

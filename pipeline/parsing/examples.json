@@ -25,11 +25,11 @@
   {
     "input": {
       "water": "COQUIHALLA RIVER",
-      "raw_regs": "Bait ban, single barbless hook.\nDec 1 - Mar 31: No fishing upstream of the Carolin Mine Road bridge.\nDaily quota of 2 trout.",
+      "raw_regs": "Bait ban, single barbless hook.\nDec 1 - Mar 31: No fishing upstream of the Carolin Mine Road bridge (see map on page 24).\nDaily quota of 2 trout.",
       "symbols": []
     },
     "output": {
-      "regs_verbatim": "Bait ban, single barbless hook.\nDec 1 - Mar 31: No fishing upstream of the Carolin Mine Road bridge.\nDaily quota of 2 trout.",
+      "regs_verbatim": "Bait ban, single barbless hook.\nDec 1 - Mar 31: No fishing upstream of the Carolin Mine Road bridge (see map on page 24).\nDaily quota of 2 trout.",
       "includes_tributaries": false,
       "tributary_only": false,
       "entry_location_text": "",
@@ -49,9 +49,9 @@
           "dates": []
         },
         {
-          "rule_text": "Dec 1 - Mar 31: No fishing upstream of the Carolin Mine Road bridge.",
+          "rule_text": "Dec 1 - Mar 31: No fishing upstream of the Carolin Mine Road bridge (see map on page 24).",
           "restriction_type": "closure",
-          "details": "No fishing Dec 1 - Mar 31",
+          "details": "No fishing Dec 1 - Mar 31 (see map on page 24)",
           "location_text": "upstream of the Carolin Mine Road bridge",
           "dates": ["Dec 1 - Mar 31"]
         },
@@ -225,6 +225,94 @@
           "details": "Catch and release for all species Jan 1 - Jun 30",
           "location_text": "",
           "dates": ["Jan 1 - Jun 30"]
+        }
+      ],
+      "audit_log": []
+    }
+  },
+  {
+    "input": {
+      "water": "PITT RIVER",
+      "raw_regs": "[Includes Tributaries] Bait ban.\n**No Fishing** in the Lower Pitt River (tributaries not included).",
+      "symbols": ["Incl. Tribs"]
+    },
+    "output": {
+      "regs_verbatim": "[Includes Tributaries] Bait ban.\n**No Fishing** in the Lower Pitt River (tributaries not included).",
+      "includes_tributaries": true,
+      "tributary_only": false,
+      "entry_location_text": "",
+      "rules": [
+        {
+          "rule_text": "Bait ban.",
+          "restriction_type": "gear_restriction",
+          "details": "Bait ban",
+          "location_text": "",
+          "dates": [],
+          "includes_tributaries": null
+        },
+        {
+          "rule_text": "**No Fishing** in the Lower Pitt River (tributaries not included).",
+          "restriction_type": "closure",
+          "details": "No fishing in the Lower Pitt River",
+          "location_text": "in the Lower Pitt River",
+          "dates": [],
+          "includes_tributaries": false
+        }
+      ],
+      "audit_log": []
+    }
+  },
+  {
+    "input": {
+      "water": "SOMASS RIVER",
+      "raw_regs": "Bait ban.\n**No Fishing** for steelhead, including tributaries.",
+      "symbols": []
+    },
+    "output": {
+      "regs_verbatim": "Bait ban.\n**No Fishing** for steelhead, including tributaries.",
+      "includes_tributaries": false,
+      "tributary_only": false,
+      "entry_location_text": "",
+      "rules": [
+        {
+          "rule_text": "Bait ban.",
+          "restriction_type": "gear_restriction",
+          "details": "Bait ban",
+          "location_text": "",
+          "dates": [],
+          "includes_tributaries": null
+        },
+        {
+          "rule_text": "**No Fishing** for steelhead, including tributaries.",
+          "restriction_type": "closure",
+          "details": "No fishing for steelhead",
+          "location_text": "",
+          "dates": [],
+          "includes_tributaries": true
+        }
+      ],
+      "audit_log": []
+    }
+  },
+  {
+    "input": {
+      "water": "PAUL LAKE",
+      "raw_regs": "No powered boats, except electric motors.",
+      "symbols": []
+    },
+    "output": {
+      "regs_verbatim": "No powered boats, except electric motors.",
+      "includes_tributaries": false,
+      "tributary_only": false,
+      "entry_location_text": "",
+      "rules": [
+        {
+          "rule_text": "No powered boats, except electric motors.",
+          "restriction_type": "vessel_restriction",
+          "details": "No powered boats",
+          "location_text": "",
+          "dates": [],
+          "exception": "except electric motors"
         }
       ],
       "audit_log": []

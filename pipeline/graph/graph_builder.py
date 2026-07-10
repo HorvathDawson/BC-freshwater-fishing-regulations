@@ -156,13 +156,10 @@ class FWAPrimalGraphIGraph:
                 if not u:
                     stats["skipped_invalid_endpoints"] += 1
                     continue
-                # FWADataAccessor already cleans ID/code columns to strings.
-                # GNIS_NAME is a text field the accessor does not clean, and
-                # arrow-backed reads surface SQL NULLs as float NaN (not None),
-                # so coerce any non-string (None / NaN) to "" at this single
-                # source — every downstream edge["gnis_name"] is then a str.
-                _gnis_name = props.get("GNIS_NAME")
-                gnis_name = _gnis_name if isinstance(_gnis_name, str) else ""
+                # FWADataAccessor normalizes ID/code AND name columns
+                # (incl. GNIS_NAME) to clean strings — SQL NULL / NaN → "" —
+                # so gnis_name is already a str here.
+                gnis_name = props.get("GNIS_NAME") or ""
                 gnis_id = props.get("GNIS_ID")
                 waterbody_key = props.get("WATERBODY_KEY")
                 sid = props.get("LINEAR_FEATURE_ID")

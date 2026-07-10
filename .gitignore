@@ -36,3 +36,7 @@ venv/
 **/.wrangler/
 .seed-stamp
 **/.seed-stamp
+
+# macOS Finder metadata
+.DS_Store
+**/.DS_Store

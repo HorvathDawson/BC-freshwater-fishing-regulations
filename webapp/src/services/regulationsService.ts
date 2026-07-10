@@ -107,19 +107,32 @@ class RegulationsService {
 
     const tribSet = new Set(tributaryRegIds);
 
-    return regs.map(reg => {
-      let provenance: RegulationProvenance;
-      if (reg.source === 'zone') {
-        provenance = 'zone';
-      } else if (reg.source === 'provincial') {
-        provenance = 'provincial';
-      } else if (tribSet.size > 0 && tribSet.has(reg.iid || reg.regulation_id)) {
-        provenance = 'tributary';
-      } else {
-        provenance = 'direct';
-      }
-      return { ...reg, provenance };
-    });
+    return regs
+      .filter(reg => {
+        // On a tributary-sourced reach, hide synopsis rules whose effective
+        // tributary scope is false (mainstem-only rules).  Base regs and
+        // rules on direct/mainstem reaches are always kept.  feature_resolver
+        // only BFS-expands a reg when at least one rule is tributary-scoped,
+        // so this can never filter a tributary reach down to zero rules.
+        if (reg.source !== 'synopsis') return true;
+        const isTribSourced =
+          tribSet.size > 0 && tribSet.has(reg.iid || reg.regulation_id);
+        if (!isTribSourced) return true;
+        return reg.effective_includes_tributaries !== false;
+      })
+      .map(reg => {
+        let provenance: RegulationProvenance;
+        if (reg.source === 'zone') {
+          provenance = 'zone';
+        } else if (reg.source === 'provincial') {
+          provenance = 'provincial';
+        } else if (tribSet.size > 0 && tribSet.has(reg.iid || reg.regulation_id)) {
+          provenance = 'tributary';
+        } else {
+          provenance = 'direct';
+        }
+        return { ...reg, provenance };
+      });
   }
 
   preload(): void {

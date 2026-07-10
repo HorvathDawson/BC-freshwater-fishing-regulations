@@ -27,6 +27,7 @@ from google.genai import types
 
 from .api_manager import APIKeyManager
 from .models import ParsedBatch, ParsedEntry, validate_batch
+from .rows import load_synopsis_rows
 from .session import ParsingSession
 
 logger = logging.getLogger(__name__)
@@ -281,18 +282,9 @@ def run(
         out_dir = config.project_root / cfg["output"]["pipeline"]["parsing"]
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    # Load raw rows
+    # Load raw rows (shared loader — keeps indices aligned with agent parsing)
     print(f"Loading synopsis rows from: {raw_path}")
-    with open(raw_path, encoding="utf-8") as f:
-        pages = json.load(f)
-    rows: List[Dict[str, Any]] = []
-    for page in pages:
-        region = page.get("context", {}).get("region")
-        for row in page.get("rows", []):
-            row_dict = dict(row)
-            if region and not row_dict.get("region"):
-                row_dict["region"] = region
-            rows.append(row_dict)
+    rows = load_synopsis_rows(raw_path)
     print(f"  {len(rows)} rows loaded")
 
     # Setup API

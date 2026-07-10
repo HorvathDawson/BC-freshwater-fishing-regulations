@@ -15,6 +15,7 @@ Every `rule_text` field MUST be an exact, contiguous substring of the input
 
     rule_text    ⊆  raw_regs        (after bold/whitespace normalization)
     location_text ⊆  rule_text       (after bold/whitespace normalization)
+    exception     ⊆  rule_text       (after bold/whitespace normalization)
     each date     ⊆  rule_text       (after bold/whitespace normalization)
 
 When extracting verbatim fields (`rule_text`, `location_text`, dates):
@@ -58,18 +59,65 @@ Classify each rule as exactly one of:
 `location_text` is a verbatim substring from `rule_text` describing WHERE a
 specific rule applies. Examples:
   - "upstream of McKinley Lake" (from the rule text)
+  - "at Grant Narrows" (from "speed restriction at Grant Narrows (10 km/h)")
   - "from Hwy 3 bridge to the mouth"
   - "" (empty = whole waterbody)
 
-Only extract location_text when the rule itself contains spatial context.
+Always extract location_text when the rule itself contains spatial context —
+including short "at/near <place>" phrases embedded mid-sentence. Do NOT drop
+the location just because it sits next to other wording (e.g. keep "at Grant
+Narrows" from "speed restriction at Grant Narrows (10 km/h)").
 If the spatial context is in the entry TITLE (not the rule text), put it in
 `entry_location_text` on the ParsedEntry instead.
+
+## Exception
+
+`exception` is an OPTIONAL verbatim substring of `rule_text` capturing an
+"except ..." carve-out that qualifies THIS rule so the rule is self-contained.
+Examples:
+  - "except electric motors" (from "No powered boats, except electric motors.")
+  - "except as noted below"
+  - "except artificial fly"
+  - "" (empty = the rule has no exception; this is the default)
+
+Rules:
+  - Copy the exception clause VERBATIM from rule_text (it must be an exact
+    substring after bold/whitespace normalization). Do NOT paraphrase.
+  - Use `exception` ONLY for a qualifier that MODIFIES the current rule. If the
+    word "except" introduces a whole separate restriction (e.g. "..., except
+    **No Fishing** May 1 - June 30"), emit that as its OWN separate Rule rather
+    than only stuffing it into this field.
+  - Leave it "" whenever the rule has no carve-out. Never invent one.
 
 ## Entry-Level Fields
 
 ### includes_tributaries (boolean, always true or false)
-  - `true` — raw_regs text contains "[Includes Tributaries]", OR symbols array contains "Incl. Tribs", OR text explicitly says "including tributaries"
-  - `false` — text is silent on tributaries, says "excluding tributaries", or says "mainstem only" (most common)
+This is an ENTRY-LEVEL flag: does the entry, as a whole, govern the
+waterbody's tributaries? Set it from entry-wide scope ONLY — it is NEVER
+flipped by a restriction that excludes tributaries for a single rule.
+  - `true` — an ENTRY-WIDE marker includes tributaries: raw_regs contains "[Includes Tributaries]" (usually at the start), OR the symbols array contains "Incl. Tribs", OR an entry-wide qualifier says "including tributaries". A "including tributaries" phrase embedded inside ONE rule's sentence is a PER-RULE override (set that rule's includes_tributaries=true) and does NOT by itself make this entry-level flag true.
+  - `false` — the entry as a whole is silent on tributaries, OR an entry-wide qualifier says "excluding tributaries" / "mainstem only" (most common)
+  - IMPORTANT: a tributary exclusion attached to ONE rule (e.g. a single
+    "**No Fishing** ... (tributaries not included)" clause among several rules)
+    does NOT make this false. If the entry is otherwise tributary-inclusive
+    (e.g. "Incl. Tribs" in symbols), keep includes_tributaries=true; that one
+    rule's exclusion is carried by the rule's own `includes_tributaries`
+    override (see below), not this entry flag.
+
+### includes_tributaries (PER-RULE override — a field on each Rule)
+Every Rule ALSO has its own optional `includes_tributaries` field that overrides
+the entry-level flag for that ONE rule only. Three states:
+  - null / omitted — DEFAULT. The rule inherits the entry-level
+    includes_tributaries. Use this for almost every rule.
+  - `true` — set ONLY when THIS rule's own text says it reaches tributaries even
+    though the entry does not (e.g. the entry is mainstem/silent but this rule
+    says "including tributaries").
+  - `false` — set ONLY when THIS rule's own text excludes tributaries even
+    though the entry includes them (e.g. the entry has "Incl. Tribs" but this
+    one rule says "(tributaries not included)" or "mainstem only").
+Never set true/false unless THIS rule's text explicitly differs from the
+entry-wide scope. The entry-level includes_tributaries flag above is NOT changed
+by this per-rule override.
 
 ### tributary_only
   - `true` — entry title ends with "'S TRIBUTARIES", "INLET & OUTLET STREAMS", etc.
@@ -109,6 +157,20 @@ Do NOT use audit_log for normal parsing decisions.
 Every restriction, closure, quota, gear rule, licensing requirement, and note
 in the input text must produce a Rule. Do not skip anything. If the text says
 "see Note on page 42", that is a `note` type rule.
+
+Map and page references are notes and must NEVER be dropped. Any "(see map on
+page 24)", "see page 8", "see Note 42 on page 64", or similar pointer must be
+preserved so the reader can still find the referenced map/note.
+  - STANDALONE reference (it is its OWN sentence, e.g. "See Note 42 on page 64
+    for kokanee restrictions.") — emit it as its OWN separate `note` rule, using
+    that sentence as `rule_text`.
+  - EMBEDDED reference (a pointer sitting inside another rule's sentence, e.g.
+    "No fishing upstream of the bridge (see map on page 24).") — do NOT split it
+    into a second rule. It already lives in that rule's `rule_text`; keep it
+    there and surface it in that SAME rule's `details` (e.g. "No fishing Dec 1 -
+    Mar 31 (see map on page 24)") so the pointer shows on the one
+    self-contained card. Never emit a duplicate note rule for it.
+A note carries no dates unless the reference itself is date-scoped.
 
 # INPUT FORMAT
 

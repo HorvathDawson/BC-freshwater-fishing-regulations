@@ -269,6 +269,35 @@ def build(config_path: Path = Path("config.yaml"), dry_run: bool = False) -> Pat
         shutil.copytree(extraction_images, dest_images)
         logger.info("Row images → %s", dest_images)
 
+    # ── Copy bathymetry survey PDFs to deploy dir ────────────────
+    # Depth-map PDFs live in data/bathymetry_pdfs/ (populated by
+    # data/fetch_data.py). Copying them into deploy/bathymetry/ makes the deploy
+    # tree the single artifact that both the production R2 sync
+    # (scripts/seed-r2.sh) and the local dev seed (scripts/seed.mjs) serve depth
+    # maps from.
+    bathy_pdf_src = project_root / "data" / "bathymetry_pdfs"
+    if bathy_pdf_src.is_dir():
+        import shutil
+
+        dest_bathy = deploy_dir / "bathymetry"
+        dest_bathy.mkdir(parents=True, exist_ok=True)
+        copied = 0
+        for pdf in sorted(bathy_pdf_src.glob("*.pdf")):
+            shutil.copy2(pdf, dest_bathy / pdf.name)
+            copied += 1
+        logger.info("Bathymetry PDFs → %s (%d files)", dest_bathy, copied)
+
+    # ── Copy basemap tiles to deploy dir ──────────────────────
+    # bc.pmtiles is the OSM/Protomaps map background. It's not produced by the
+    # pipeline — data/fetch_data.py downloads it from R2 into data/. Copy it into
+    # deploy/ so the same tree serves the basemap at /bc.pmtiles.
+    basemap_src = project_root / "data" / "bc.pmtiles"
+    if basemap_src.is_file():
+        import shutil
+
+        shutil.copy2(basemap_src, deploy_dir / "bc.pmtiles")
+        logger.info("Basemap tiles → %s", deploy_dir / "bc.pmtiles")
+
     # ── In-season changes: scrape + resolve ──────────────────────────
     # Produces in_season.json as an initial seed in the deploy folder.
     # Non-fatal: if the scrape fails (network, page changes), warn and

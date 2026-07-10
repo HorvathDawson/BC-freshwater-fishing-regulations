@@ -5,7 +5,9 @@ Dramatically simplified from v1:
 - No ScopeObject — location_text is a plain verbatim string
 - No IdentityObject — match table handles identity
 - Rules are flat: text + type + details + location + dates
-- Only two scope concepts: includes_tributaries (bool) and tributary_only
+- Two entry-level scope concepts: includes_tributaries (bool) and
+  tributary_only; plus an optional per-rule includes_tributaries override
+  (null = inherit entry, true/false = override for that rule only)
 
 Anti-hallucination enforced at every level via verbatim chain validators:
     rule_text ⊆ regs_verbatim
@@ -110,6 +112,33 @@ class Rule(BaseModel):
             "(e.g., ['Jan 1 - Apr 30']). Empty if no dates specified."
         ),
     )
+    exception: str = Field(
+        default="",
+        description=(
+            "Verbatim carve-out clause from rule_text that limits or qualifies "
+            "THIS rule (e.g. 'except electric motors', 'except as noted "
+            "below'). Must be an exact substring of rule_text. Empty string "
+            "when the rule has no exception. Use this ONLY for a qualifier that "
+            "modifies this rule; a standalone restriction introduced by "
+            "'except' should be its own separate Rule."
+        ),
+    )
+    includes_tributaries: Optional[bool] = Field(
+        default=None,
+        description=(
+            "Per-rule tributary override. Three states:\n"
+            "  null  = inherit the entry-level includes_tributaries flag "
+            "(the default — use this unless THIS rule's text says otherwise);\n"
+            "  true  = this specific rule applies to tributaries even if the "
+            "entry does not (e.g. a rule whose text says 'including "
+            "tributaries');\n"
+            "  false = this specific rule does NOT apply to tributaries even "
+            "if the entry does (e.g. a rule whose text says 'tributaries not "
+            "included').\n"
+            "Only set true/false when THIS rule's own text overrides the "
+            "entry-wide scope; otherwise leave null to inherit."
+        ),
+    )
 
     @model_validator(mode="after")
     def _validate_chain(self) -> "Rule":
@@ -128,7 +157,7 @@ class Rule(BaseModel):
             errors.append("details is empty")
 
         # Anti-hallucination: no ellipsis in verbatim fields
-        for field_name in ("rule_text", "location_text"):
+        for field_name in ("rule_text", "location_text", "exception"):
             val = getattr(self, field_name)
             if val and "..." in val:
                 errors.append(
@@ -143,6 +172,27 @@ class Rule(BaseModel):
                     f"location_text not found in rule_text. "
                     f"Location: '{self.location_text[:80]}'. "
                     f"Rule: '{self.rule_text[:100]}'"
+                )
+
+        # Exception chain: exception ⊆ rule_text (only if non-empty)
+        if self.exception:
+            if _normalize(self.exception) not in _normalize(self.rule_text):
+                errors.append(
+                    f"exception not found in rule_text. "
+                    f"Exception: '{self.exception[:80]}'. "
+                    f"Rule: '{self.rule_text[:100]}'"
+                )
+
+        # Tributary chain: an explicit '[Includes Tributaries]' marker inside
+        # THIS rule's own text means the rule includes tributaries, so the
+        # per-rule flag must be True (not null/inherit, not False).
+        if "[includes tributaries]" in self.rule_text.lower():
+            if self.includes_tributaries is not True:
+                errors.append(
+                    "rule_text contains '[Includes Tributaries]' but "
+                    f"includes_tributaries is {self.includes_tributaries!r} "
+                    "— a rule whose text marks tributary inclusion must set "
+                    "includes_tributaries=True"
                 )
 
         # Date chain: each date ⊆ rule_text

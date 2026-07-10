@@ -70,6 +70,15 @@ _NEARBY_TOWN_RADIUS_M = 15000.0  # 15 km
 _NEARBY_TOWN_MAX = 30  # payload safety cap; None = unbounded
 
 
+def _towns_with_km(scored: List[Tuple[str, float]]) -> List[Dict[str, Any]]:
+    """Convert ``(name, distance_m)`` pairs to ``{"name", "km"}`` records.
+
+    Distances are rounded to one decimal kilometre for a compact, readable
+    search payload; ordering (nearest first) is preserved.
+    """
+    return [{"name": name, "km": round(dist_m / 1000.0, 1)} for name, dist_m in scored]
+
+
 def _bbox_wgs84(geom: BaseGeometry) -> List[float]:
     """Compute [minlon, minlat, maxlon, maxlat] from an EPSG:3005 geometry."""
     minx, miny, maxx, maxy = geom.bounds
@@ -703,15 +712,19 @@ def _build_search_index(
                         seg_pts.append((c.x, c.y))
 
             if seg_pts:
-                entry["nearby_towns"] = towns_index.within_radius(
-                    seg_pts, _NEARBY_TOWN_RADIUS_M, _NEARBY_TOWN_MAX
+                entry["nearby_towns"] = _towns_with_km(
+                    towns_index.within_radius_scored(
+                        seg_pts, _NEARBY_TOWN_RADIUS_M, _NEARBY_TOWN_MAX
+                    )
                 )
             elif grp["bbox"]:
                 # Fallback for reaches without atlas geometry (e.g. ungazetted):
                 # tag the towns nearest the bbox centre.
                 minlon, minlat, maxlon, maxlat = grp["bbox"]
-                entry["nearby_towns"] = towns_index.nearest(
-                    (minlon + maxlon) / 2.0, (minlat + maxlat) / 2.0, 10
+                entry["nearby_towns"] = _towns_with_km(
+                    towns_index.nearest_scored(
+                        (minlon + maxlon) / 2.0, (minlat + maxlat) / 2.0, 10
+                    )
                 )
         index.append(entry)
 

@@ -43,6 +43,7 @@ CLI
 from __future__ import annotations
 
 import argparse
+import json
 import logging
 import re
 import sys
@@ -51,6 +52,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Dict, List, Optional, Set, Tuple
 
+import fiona
 import geopandas as gpd
 import pandas as pd
 
@@ -58,6 +60,11 @@ from project_config import ProjectConfig
 from pipeline.extraction.extract_synopsis import _normalize_unicode
 
 logger = logging.getLogger(__name__)
+
+# Manual survey -> FWA waterbody override table: curated links for depth-map
+# surveys the automatic tiers (identifier / name+wsc / spatial) cannot resolve.
+# Committed next to this module; matched by normalised MAP_TITLE.
+BATHYMETRY_OVERRIDES_PATH = Path(__file__).with_name("bathymetry_overrides.json")
 
 # --- WSA bathymetry CSV column names -----------------------------------------
 COL_ID = "WATERBODY_IDENTIFIER_WSA_50K"
@@ -123,7 +130,7 @@ def normalize_map_title(value: object) -> str:
     text = re.sub(r"\bL\.\b", "LAKE", text)
     text = re.sub(r"\bL\b", "LAKE", text)
     text = re.sub(r"\bCR\.?\b", "CREEK", text)
-    return _RE_SPACES.sub(" ", text).strip()
+    return _RE_SPACES.sub(" ", text).strip().strip(".").strip()
 
 
 def strip_wsc(value: object) -> str:
@@ -131,6 +138,126 @@ def strip_wsc(value: object) -> str:
     if not isinstance(value, str):
         return ""
     return value.replace("-", "").strip()
+
+
+# ---------------------------------------------------------------------------
+# Survey catalogue loader (unions both WSA bathymetry sources)
+# ---------------------------------------------------------------------------
+# The survey-map-sheets polygon layer carries the same survey attributes as the
+# reference CSV under different column names; mapping them onto the CSV schema
+# lets a sheet from either source feed the same tier cascade.
+_POLY_COL_ALIASES = {
+    COL_BATHY_POLY_ID: COL_ID,        # WATERBODY_IDENTIFIER -> ..._WSA_50K
+    "GAZETTED_NAME": COL_NAME,
+    "NEW_WATERSHED_CODE": COL_WSC,
+    "MAP_TITLE": COL_MAPTITLE,
+    "PDF_FILE_URL": COL_PDF,
+}
+
+_RE_PDF_URL_FILENAME = re.compile(r"filename=([^&]+)", re.IGNORECASE)
+
+
+def _pdf_filename_from_url(url: object) -> str:
+    """Lowercased ``filename=`` query param of a WSA map URL (the per-sheet key)."""
+    if not isinstance(url, str):
+        return ""
+    m = _RE_PDF_URL_FILENAME.search(url)
+    return m.group(1).strip().lower() if m else ""
+
+
+def _load_polygon_only_surveys(
+    csv: pd.DataFrame, gpkg_path: Path
+) -> Optional[pd.DataFrame]:
+    """Polygon-layer survey sheets absent from the CSV, normalised to the CSV schema."""
+    try:
+        available = set(fiona.listlayers(str(gpkg_path)))
+    except Exception as exc:  # unreadable gpkg — loud, then CSV-only
+        logger.warning("Bathymetry catalogue: cannot list gpkg layers (%s).", exc)
+        return None
+    if BATHY_POLYGON_LAYER not in available:
+        logger.warning(
+            "Bathymetry catalogue: layer %r not in gpkg — using CSV only.",
+            BATHY_POLYGON_LAYER,
+        )
+        return None
+    poly = gpd.read_file(gpkg_path, layer=BATHY_POLYGON_LAYER, ignore_geometry=True)
+    if "PDF_FILE_URL" not in poly.columns or COL_BATHY_POLY_ID not in poly.columns:
+        logger.warning(
+            "Bathymetry catalogue: polygon layer missing PDF_FILE_URL/%s — CSV only.",
+            COL_BATHY_POLY_ID,
+        )
+        return None
+
+    # PDF filenames the CSV already lists (via its filename column and the URL),
+    # so only genuinely poly-only sheets are added.
+    csv_pdfs: Set[str] = set()
+    if COL_PDF_FILENAME in csv.columns:
+        csv_pdfs |= {str(v).strip().lower() for v in csv[COL_PDF_FILENAME].dropna()}
+    if COL_PDF in csv.columns:
+        csv_pdfs |= {_pdf_filename_from_url(u) for u in csv[COL_PDF]}
+    csv_pdfs.discard("")
+
+    poly = poly.rename(columns=_POLY_COL_ALIASES)
+    poly["_pdf"] = poly[COL_PDF].map(_pdf_filename_from_url)
+    poly = poly[poly["_pdf"].astype(bool) & ~poly["_pdf"].isin(csv_pdfs)]
+    poly = poly.drop_duplicates("_pdf")
+    if poly.empty:
+        return poly.iloc[0:0]
+    # MAP_IMAGE_FILENAME_PDF on the CSV is the uppercase '<stem>.PDF'; mirror it
+    # from the URL so build_wbk_bathymetry_map keys sheets identically.
+    poly[COL_PDF_FILENAME] = poly["_pdf"].str.upper()
+    cols = [COL_ID, COL_NAME, COL_WSC, COL_MAPTITLE, COL_PDF, COL_PDF_FILENAME]
+    for c in cols:
+        if c not in poly.columns:
+            poly[c] = None
+    return poly[cols].copy()
+
+
+def load_survey_catalogue(bathy_csv: Path, gpkg_path: Path) -> pd.DataFrame:
+    """Union of both WSA bathymetry survey catalogues on the CSV schema.
+
+    The reference CSV (``bathymetry_maps``) and the survey-map-sheets polygon
+    layer (``BATHY_POLYGON_LAYER`` = ``WHSE_FISH.BATH_SURVEY_MAP_SHEETS_SVW``)
+    each list survey sheets the other omits.  ``fetch_bathymetry_pdfs`` already
+    downloads the union, so a sheet that lives only in the polygon layer (e.g.
+    Pitt Lake ``00288LFRA``) lands in R2 yet — if the matcher read the CSV alone
+    — would never attach to a reach.  This unions both sources, keeping only the
+    polygon sheets whose PDF the CSV does not already carry (CSV wins on
+    conflict, preserving its https URL and existing matches).  Degrades to
+    CSV-only when the polygon layer is absent/unreadable.
+    """
+    csv = pd.read_csv(bathy_csv, dtype=str)
+    poly_only = _load_polygon_only_surveys(csv, gpkg_path)
+    if poly_only is None or poly_only.empty:
+        return csv
+    logger.info(
+        "Bathymetry catalogue: %d CSV sheet(s) + %d polygon-only sheet(s).",
+        len(csv), len(poly_only),
+    )
+    return pd.concat([csv, poly_only], ignore_index=True)
+
+
+def load_bathymetry_overrides(
+    path: Optional[Path] = None,
+) -> List[Dict[str, object]]:
+    """Load the manual bathymetry survey → FWA waterbody override table.
+
+    Curated links (keyed by ``map_title``) for depth-map surveys the automatic
+    tiers cannot resolve — a blank or mismatched WSA identifier, a missing
+    watershed code, or no survey polygon.  Each entry is
+    ``{map_title, waterbody_key, pdfs?, fwa_name?, reason?}``; when ``pdfs`` is
+    given only those sheets attach (lets a shared map name pin specific sheets).
+    Returns ``[]`` (never raises) when the file is absent so a build without it
+    still works.
+    """
+    p = path or BATHYMETRY_OVERRIDES_PATH
+    if not p.exists():
+        logger.info("Bathymetry overrides: none found at %s.", p)
+        return []
+    with open(p, encoding="utf-8") as f:
+        data = json.load(f)
+    entries = data.get("overrides", []) if isinstance(data, dict) else data
+    return [e for e in entries if isinstance(e, dict)]
 
 
 # ---------------------------------------------------------------------------
@@ -455,7 +582,7 @@ def run_matcher(bathy_csv: Path, gpkg_path: Path) -> pd.DataFrame:
     if not gpkg_path.exists():
         raise FileNotFoundError(f"FWA GeoPackage not found at {gpkg_path}")
 
-    bathy = pd.read_csv(bathy_csv, dtype=str)
+    bathy = load_survey_catalogue(bathy_csv, gpkg_path)
     missing = {COL_ID, COL_NAME, COL_WSC, COL_MAPTITLE, COL_PDF} - set(bathy.columns)
     if missing:
         raise ValueError(f"Bathymetry CSV missing required columns: {sorted(missing)}")
@@ -510,7 +637,7 @@ def build_wbk_bathymetry_map(
         )
         return {}
 
-    bathy = pd.read_csv(bathy_csv, dtype=str)
+    bathy = load_survey_catalogue(bathy_csv, gpkg_path)
     missing = {COL_ID, COL_NAME, COL_MAPTITLE, COL_PDF_FILENAME} - set(bathy.columns)
     if missing:
         logger.warning(
@@ -565,6 +692,56 @@ def build_wbk_bathymetry_map(
                     continue
                 seen_by_wbk[wbk_str].add(sheet["pdf"])
                 wbk_map[wbk_str].append(sheet)
+
+    # 4. Manual overrides: attach curated survey→waterbody links the automatic
+    #    tiers cannot settle (blank/mismatched identifier, no polygon, ...).
+    #    Matched by normalised MAP_TITLE; an optional ``pdfs`` list pins specific
+    #    sheets when a map name is shared by more than one survey.
+    overrides = load_bathymetry_overrides()
+    if overrides:
+        sheets_by_title: Dict[str, List[Dict[str, str]]] = defaultdict(list)
+        for _, row in bathy.iterrows():
+            raw_pdf = row.get(COL_PDF_FILENAME)
+            if not isinstance(raw_pdf, str) or not raw_pdf.strip():
+                continue
+            title_norm = normalize_map_title(row.get(COL_MAPTITLE))
+            if not title_norm:
+                continue
+            gazetted = str(row.get(COL_NAME) or "").strip()
+            map_title = str(row.get(COL_MAPTITLE) or "").strip()
+            sheets_by_title[title_norm].append(
+                {
+                    "pdf": raw_pdf.strip().lower(),
+                    "title": map_title or gazetted,
+                    "name": gazetted or map_title,
+                }
+            )
+        applied = 0
+        for ov in overrides:
+            if ov.get("ignore"):
+                # Documented but deliberately not linked yet (e.g. the correct
+                # FWA waterbody has not been identified). Kept in the table so
+                # the survey is tracked and can be resolved later.
+                continue
+            wbk = ov.get("waterbody_key")
+            title = ov.get("map_title")
+            if wbk is None or not isinstance(title, str) or not title.strip():
+                continue
+            wbk_str = str(wbk)
+            allow = {str(p).strip().lower() for p in ov.get("pdfs", [])} or None
+            for sheet in sheets_by_title.get(normalize_map_title(title), []):
+                if allow is not None and sheet["pdf"] not in allow:
+                    continue
+                if sheet["pdf"] in seen_by_wbk[wbk_str]:
+                    continue
+                seen_by_wbk[wbk_str].add(sheet["pdf"])
+                wbk_map[wbk_str].append(sheet)
+                applied += 1
+        if applied:
+            logger.info(
+                "Bathymetry accessor: applied %d manual override sheet(s) from %s.",
+                applied, BATHYMETRY_OVERRIDES_PATH.name,
+            )
 
     logger.info(
         "Bathymetry accessor: %d waterbodies matched to %d survey sheet(s).",

@@ -15,7 +15,7 @@ from __future__ import annotations
 import json
 import logging
 from pathlib import Path
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 import numpy as np
 from pyproj import Transformer
@@ -72,19 +72,26 @@ class NearbyTownsIndex:
     def from_file(cls, path: Path) -> "NearbyTownsIndex":
         return cls(load_places(path))
 
-    def nearest(self, lon: float, lat: float, n: int = 10) -> List[str]:
-        """Return up to ``n`` unique town names closest to (lon, lat), nearest first."""
+    def nearest_scored(
+        self, lon: float, lat: float, n: int = 10
+    ) -> List[Tuple[str, float]]:
+        """Like :meth:`nearest` but returns ``(name, distance_m)`` pairs.
+
+        Distance is the straight-line distance in metres (EPSG:3005) from
+        (lon, lat) to the town, ordered nearest first.
+        """
         if self._tree is None or n <= 0:
             return []
         x, y = _TO_ALBERS.transform(lon, lat)
         # Over-fetch so we can drop duplicate town names and still return n.
         k = min(len(self._names), max(n * 3, n))
-        _, idxs = self._tree.query([x, y], k=k)
+        dists, idxs = self._tree.query([x, y], k=k)
         idxs = np.atleast_1d(idxs)
+        dists = np.atleast_1d(dists)
 
-        out: List[str] = []
+        out: List[Tuple[str, float]] = []
         seen: set[str] = set()
-        for raw_i in idxs:
+        for raw_i, dist in zip(idxs, dists):
             i = int(raw_i)
             # cKDTree pads missing neighbours with index == len when k > n_points.
             if i >= len(self._names):
@@ -94,8 +101,59 @@ class NearbyTownsIndex:
             if key in seen:
                 continue
             seen.add(key)
-            out.append(name)
+            out.append((name, float(dist)))
             if len(out) >= n:
+                break
+        return out
+
+    def nearest(self, lon: float, lat: float, n: int = 10) -> List[str]:
+        """Return up to ``n`` unique town names closest to (lon, lat), nearest first."""
+        return [name for name, _ in self.nearest_scored(lon, lat, n)]
+
+    def within_radius_scored(
+        self,
+        points_xy,
+        radius_m: float = 15000.0,
+        max_towns: Optional[int] = None,
+    ) -> List[Tuple[str, float]]:
+        """Like :meth:`within_radius` but returns ``(name, distance_m)`` pairs.
+
+        Distance is the town's *minimum* straight-line distance in metres
+        (EPSG:3005) to any of the given points, ordered nearest first.
+        """
+        if self._tree is None:
+            return []
+        pts = np.asarray(points_xy, dtype="float64")
+        if pts.ndim != 2 or pts.shape[0] == 0:
+            return []
+
+        # For each point, town indices within radius (object array of lists).
+        neighbours = self._tree.query_ball_point(pts, r=radius_m)
+
+        best: dict[int, float] = {}
+        for p, town_idxs in zip(pts, neighbours):
+            if not town_idxs:
+                continue
+            cand = np.asarray(town_idxs, dtype="int64")
+            dx = self._xy[cand, 0] - p[0]
+            dy = self._xy[cand, 1] - p[1]
+            dists = np.hypot(dx, dy)
+            for ti, dist in zip(cand.tolist(), dists.tolist()):
+                prev = best.get(ti)
+                if prev is None or dist < prev:
+                    best[ti] = dist
+
+        ordered = sorted(best.items(), key=lambda kv: kv[1])
+        out: List[Tuple[str, float]] = []
+        seen: set[str] = set()
+        for ti, dist in ordered:
+            name = self._names[ti]
+            key = name.lower()
+            if key in seen:
+                continue
+            seen.add(key)
+            out.append((name, float(dist)))
+            if max_towns is not None and len(out) >= max_towns:
                 break
         return out
 
@@ -123,38 +181,7 @@ class NearbyTownsIndex:
         Returns:
             Unique town names ordered by ascending minimum distance.
         """
-        if self._tree is None:
-            return []
-        pts = np.asarray(points_xy, dtype="float64")
-        if pts.ndim != 2 or pts.shape[0] == 0:
-            return []
-
-        # For each point, town indices within radius (object array of lists).
-        neighbours = self._tree.query_ball_point(pts, r=radius_m)
-
-        best: dict[int, float] = {}
-        for p, town_idxs in zip(pts, neighbours):
-            if not town_idxs:
-                continue
-            cand = np.asarray(town_idxs, dtype="int64")
-            dx = self._xy[cand, 0] - p[0]
-            dy = self._xy[cand, 1] - p[1]
-            dists = np.hypot(dx, dy)
-            for ti, dist in zip(cand.tolist(), dists.tolist()):
-                prev = best.get(ti)
-                if prev is None or dist < prev:
-                    best[ti] = dist
-
-        ordered = sorted(best.items(), key=lambda kv: kv[1])
-        out: List[str] = []
-        seen: set[str] = set()
-        for ti, _dist in ordered:
-            name = self._names[ti]
-            key = name.lower()
-            if key in seen:
-                continue
-            seen.add(key)
-            out.append(name)
-            if max_towns is not None and len(out) >= max_towns:
-                break
-        return out
+        return [
+            name
+            for name, _ in self.within_radius_scored(points_xy, radius_m, max_towns)
+        ]

@@ -136,6 +136,34 @@ class ParsingSession:
                 self.status[idx] = "failed"
         self._save()
 
+    def record_indexed(
+        self, results: Dict[int, Optional[ParsedEntry]]
+    ) -> None:
+        """Record results by (possibly non-contiguous) global row index.
+
+        Used by ingest paths that resolve arbitrary indices (e.g. agent
+        parsing).  Bounds-guarded and centralised so the results/status
+        length invariants and the atomic save stay in one place.  A single
+        checkpoint is written after all entries are applied.
+
+        Parameters
+        ----------
+        results:
+            Mapping of global row index → ParsedEntry (success) or None
+            (failure).  Indices outside ``[0, total)`` raise ``IndexError``.
+        """
+        for idx, entry in results.items():
+            if idx < 0 or idx >= self.total:
+                raise IndexError(
+                    f"row index {idx} out of range (total={self.total})"
+                )
+            if entry is not None:
+                self.results[idx] = entry.model_dump(mode="json")
+                self.status[idx] = "success"
+            else:
+                self.status[idx] = "failed"
+        self._save()
+
     # ------------------------------------------------------------------
     # Query
     # ------------------------------------------------------------------

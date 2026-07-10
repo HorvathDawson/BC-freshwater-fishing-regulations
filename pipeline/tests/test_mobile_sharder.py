@@ -59,7 +59,10 @@ def sample_index() -> dict:
                 "zones": [],
                 "management_units": [],
                 "total_length_km": 0,
-                "nearby_towns": ["Squamish", "Brackendale"],
+                "nearby_towns": [
+                    {"name": "Squamish", "km": 3.2},
+                    {"name": "Brackendale", "km": 5.7},
+                ],
             },
         ],
     }
@@ -162,7 +165,10 @@ def test_search_row_carries_nearby_towns(sample_index: dict) -> None:
                 "SELECT nearby_towns, segments FROM search WHERE display_name = ?",
                 ("Alice Lake",),
             ).fetchone()
-            assert json.loads(row[0]) == ["Squamish", "Brackendale"]
+            assert json.loads(row[0]) == [
+                {"name": "Squamish", "km": 3.2},
+                {"name": "Brackendale", "km": 5.7},
+            ]
             # Enriched segments embedded (same shape as tier0).
             segments = json.loads(row[1])
             assert segments[0]["rid"] == "abc123def456"

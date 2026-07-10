@@ -30,6 +30,37 @@ from .models import (
 logger = logging.getLogger(__name__)
 
 
+def effective_includes_tributaries(parsed: Optional[Dict[str, Any]]) -> bool:
+    """Whether a parsed regulation BFS-expands to tributaries (Phase 3).
+
+    The entry-level ``includes_tributaries`` flag is the default tributary
+    scope for every rule.  A rule may override it via its own
+    ``includes_tributaries`` field (``None`` = inherit the entry flag,
+    ``True``/``False`` = override for that rule only).
+
+    A regulation expands to tributaries iff AT LEAST ONE rule is effectively
+    tributary-scoped.  Using ``any(effective)`` — rather than the entry flag
+    alone — means an entry that includes tributaries but whose rules ALL opt
+    out produces no tributary expansion, so a tributary reach can never end up
+    with zero applicable rules.  ``tributary_only`` entries have no mainstem
+    and therefore always expand, regardless of any contradictory override.
+    """
+    if not parsed:
+        return False
+    entry_incl = parsed.get("includes_tributaries", False) is True
+    if parsed.get("tributary_only", False) is True:
+        return True
+    rules = parsed.get("rules") or []
+    if not rules:
+        return entry_incl
+    return any(
+        entry_incl
+        if r.get("includes_tributaries") is None
+        else r.get("includes_tributaries") is True
+        for r in rules
+    )
+
+
 # ---------------------------------------------------------------------------
 # Metadata building (gnis_id → edge_ids, wbk → gnis reverse map)
 # ---------------------------------------------------------------------------
@@ -657,10 +688,10 @@ def resolve_features(
         trib_only = False
         has_trib_symbol = "Incl. Tribs" in rec.symbols or "Tribs Only" in rec.symbols
         if rec.parsed:
-            includes_tribs = rec.parsed.get("includes_tributaries", False) is True
             trib_only = rec.parsed.get("tributary_only", False) is True
-            if trib_only:
-                includes_tribs = True
+            # Effective tributary scope honours per-rule includes_tributaries
+            # overrides (see effective_includes_tributaries).
+            includes_tribs = effective_includes_tributaries(rec.parsed)
         elif has_trib_symbol:
             # Parse failed but synopsis symbols indicate tributaries —
             # don’t silently drop the tributary expansion.

@@ -201,7 +201,7 @@ DEPLOY_ENV=staging ./scripts/update-in-season.sh --upload  # upload to staging
 
 ## SHARD_VERSION
 
-Both environments use `SHARD_VERSION = "v1"` in `r2-worker/wrangler.toml`. This prefixes all shard keys in R2. To deploy a new data format:
+Both environments use `SHARD_VERSION = "v2"` in `r2-worker/wrangler.toml`. This prefixes all shard keys in R2. To deploy a new data format:
 1. Bump the version in `[env.staging.vars]` / `[env.production.vars]`
 2. Re-run pipeline + re-seed R2
 3. Old shards remain in the bucket (safe rollback point)

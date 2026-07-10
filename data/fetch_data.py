@@ -300,13 +300,19 @@ out skel qt;
     # OSM models Indigenous lands as a nested hierarchy of
     # boundary=aboriginal_lands relations, e.g.:
     #     Stó:lō Tribal Council      (top-level grouping)
-    #       └─ Cheam First Nation    (band grouping)  <-- desired display level
-    #            └─ Cheam 1           (individual reserve / leaf)
-    # A parent lists its child areas as ``subarea`` members. Emitting every
-    # relation stacks overlapping polygons over a single location, so we collapse
-    # the hierarchy to the "band" level: the immediate parent of the individual
-    # reserves (e.g. "Cheam First Nation"), rather than the bare reserve name or a
-    # broad tribal-council grouping.
+    #       └─ Cheam First Nation    (band grouping)
+    #            └─ Cheam 1           (individual reserve / leaf)  <-- emitted
+    # A parent lists its child areas as ``subarea`` members and shares the same
+    # ground as the union of those children, so emitting parents as well would
+    # stack overlapping polygons over a single location. Worse, a parent's member
+    # ways are often an incomplete subset (and reserves such as "Pekw'Xe:yles"
+    # belong to *two* bands at once), so building parent polygons can smear one
+    # band's name across a neighbouring band's territory.
+    #
+    # To mirror what the OSM map actually renders, we emit only the leaf reserves
+    # — the real land parcels — each with its own name and its own geometry, and
+    # drop every parent grouping. The parent band/tribal-council name is still
+    # surfaced on each reserve via ``name_group`` for reference.
     rel_by_id = {r["id"]: r for r in relations}
 
     def _subarea_child_ids(rel):
@@ -319,20 +325,11 @@ out skel qt;
     def _has_subarea(rel):
         return any(m.get("role") == "subarea" for m in rel.get("members", []))
 
-    # Leaf relations are individual areas with no child subareas (reserves).
+    # Leaf relations are individual reserves with no child subareas.
     leaf_ids = {rid for rid, r in rel_by_id.items() if not _has_subarea(r)}
 
-    # "Band" level = the immediate parent of at least one leaf reserve. Higher
-    # groupings (tribal councils) only have aggregate children, so they are
-    # excluded here and dropped below.
-    band_ids = {
-        rid
-        for rid, r in rel_by_id.items()
-        if any(cid in leaf_ids for cid in _subarea_child_ids(r))
-    }
-
     # Map each child area to its parent grouping so we can surface the top-level
-    # grouping (e.g. tribal council) name on every feature we emit.
+    # grouping (e.g. tribal council) name on every reserve we emit.
     parent_of = {}
     for rid, r in rel_by_id.items():
         for cid in _subarea_child_ids(r):
@@ -352,30 +349,12 @@ out skel qt;
             return ""
         return rel_by_id.get(top, {}).get("tags", {}).get("name", "")
 
-    # Build band-level polygons first. A band only "covers" its reserves if it
-    # actually produced geometry from its own outer ways; otherwise we fall back
-    # to emitting the reserves themselves so coverage is never lost.
-    covered_leaf_ids = set()
-    kept_bands = 0
-    for rid in band_ids:
-        rel = rel_by_id[rid]
-        geom = _build_polygon_from_relation(rel)
-        if geom is None:
-            continue
-        records.append(
-            _tags_to_record(rid, rel.get("tags", {}), geom, _top_group_name(rid))
-        )
-        kept_bands += 1
-        covered_leaf_ids.update(
-            cid for cid in _subarea_child_ids(rel) if cid in leaf_ids
-        )
-
-    # Emit reserves that no kept band represents (orphan reserves with no band
-    # parent, plus reserves whose band had no geometry of its own).
+    # Emit each leaf reserve as its own polygon, built from its own outer ways.
+    # A reserve shared by multiple bands (e.g. "Pekw'Xe:yles") is a single leaf,
+    # so it is emitted exactly once with its own name rather than duplicated
+    # under each band.
     kept_reserves = 0
     for rid in leaf_ids:
-        if rid in covered_leaf_ids:
-            continue
         rel = rel_by_id[rid]
         geom = _build_polygon_from_relation(rel)
         if geom is None:
@@ -385,11 +364,10 @@ out skel qt;
         )
         kept_reserves += 1
 
-    dropped = len(relations) - kept_bands - kept_reserves
+    dropped = len(relations) - kept_reserves
     print(
-        f"  -> Collapsed hierarchy: kept {kept_bands} band grouping(s) + "
-        f"{kept_reserves} standalone reserve(s); dropped {dropped} nested "
-        "relation(s)"
+        f"  -> Emitted {kept_reserves} reserve polygon(s); "
+        f"dropped {dropped} parent grouping relation(s)"
     )
 
     # Process standalone ways (not part of a relation)
@@ -729,6 +707,24 @@ def fetch_r2_gpkg_layer(short_name, r2_url, source_layer, gpkg_path):
 # ==========================================
 
 
+def fetch_r2_file(name, url, dest_path):
+    """Download a static asset from our R2-backed data domain into ``data/``.
+
+    Used for large binaries that aren't produced by the pipeline but are needed
+    for local dev / deploy (e.g. the ``bc.pmtiles`` basemap). Skips the download
+    when a non-empty file already exists so re-runs stay cheap.
+    """
+    dest_path = Path(dest_path)
+    if dest_path.exists() and dest_path.stat().st_size > 0:
+        logger.info(
+            "%s: %s already present — skipping download", name, dest_path.name
+        )
+        return
+    dest_path.parent.mkdir(parents=True, exist_ok=True)
+    logger.info("%s: downloading %s", name, url)
+    _download_with_progress(url, dest_path, desc=dest_path.name)
+
+
 def main():
     config = get_config()
     gpkg_out = Path(config.fetch_output_gpkg_path)
@@ -774,6 +770,14 @@ def main():
             "type": "R2_GPKG",
             "url": "https://data.canifishthis.ca/DFO_TIDAL_BOUNDARY.gpkg",
             "layer": "tidal_boundary",
+        },
+        # Protomaps basemap tiles (OSM-derived). Not produced by the pipeline —
+        # downloaded from our R2 data domain so local dev / deploy can serve the
+        # map background at /bc.pmtiles.
+        "basemap": {
+            "type": "R2_FILE",
+            "url": "https://data.canifishthis.ca/bc.pmtiles",
+            "dest": "bc.pmtiles",
         },
         "bathymetry_maps": {
             "type": "CSV_DOWNLOAD",
@@ -845,6 +849,8 @@ def main():
                 combine_streams(name, cfg["ftp"], gpkg_out, temp_dir)
             elif cfg["type"] == "R2_GPKG":
                 fetch_r2_gpkg_layer(name, cfg["url"], cfg["layer"], gpkg_out)
+            elif cfg["type"] == "R2_FILE":
+                fetch_r2_file(name, cfg["url"], gpkg_out.parent / cfg["dest"])
             elif cfg["type"] == "CSV_DOWNLOAD":
                 fetch_csv_download(name, cfg["url"], gpkg_out.parent / cfg["dest"])
             elif cfg["type"] == "PDF_BULK":

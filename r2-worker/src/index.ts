@@ -54,6 +54,7 @@ function getContentType(key: string): string | null {
   if (key.endsWith('.gz'))      return 'application/gzip';
   if (key.endsWith('.json'))    return 'application/json; charset=utf-8';
   if (key.endsWith('.png'))     return 'image/png';
+  if (key.endsWith('.pdf'))     return 'application/pdf';
   return null;
 }
 
@@ -141,12 +142,23 @@ async function fetchShard<T>(
   const cache = caches.default;
 
   const cached = await cache.match(cacheKey);
-  if (cached) return cached.json() as Promise<T>;
+  if (cached) {
+    // Miniflare's caches.default can occasionally return an empty/truncated
+    // body, which makes JSON.parse throw "Unexpected end of JSON input" and
+    // 500s the whole resolve. Guard the read and fall through to a fresh R2
+    // fetch on any cache-read/parse failure.
+    try {
+      const cachedText = await cached.text();
+      if (cachedText) return JSON.parse(cachedText) as T;
+    } catch { /* corrupt cache entry — fall through to R2 */ }
+  }
 
   const obj = await r2.get(objectKey);
   if (!obj) return null;
 
   const body = await obj.text();
+  if (!body) return null;
+
   const cacheResponse = new Response(body, {
     headers: {
       'Content-Type': 'application/json',
@@ -155,7 +167,11 @@ async function fetchShard<T>(
   });
   cache.put(cacheKey, cacheResponse.clone()).catch(() => {});
 
-  return JSON.parse(body) as T;
+  try {
+    return JSON.parse(body) as T;
+  } catch {
+    return null;
+  }
 }
 
 function parseIds(param: string | null, pattern: RegExp, max: number): string[] | null {

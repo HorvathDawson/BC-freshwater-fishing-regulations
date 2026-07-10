@@ -175,6 +175,19 @@
     opacity: 0.85;
 }
 
+.search-result-near {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    color: var(--accent, #2b7a4b);
+    opacity: 0.9;
+    font-weight: 600;
+}
+
+.search-result-near svg {
+    flex-shrink: 0;
+}
+
 .search-result-meta {
     display: flex;
     align-items: center;

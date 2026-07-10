@@ -916,7 +916,11 @@ const MapComponent = () => {
                         id: entry.waterbody_group || entry.display_name,
                         display_name: entry.display_name,
                         name_variants: entry.name_variants || [],
-                        nearby_towns: entry.nearby_towns || [],
+                        // Normalise to {name, km} records; tolerate legacy string lists
+                        // that may still be cached in IndexedDB from older builds.
+                        nearby_towns: (entry.nearby_towns || []).map(t =>
+                            typeof t === 'string' ? { name: t } : t
+                        ),
                         type,
                         properties: {
                             waterbody_group: entry.waterbody_group,

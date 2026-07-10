@@ -94,12 +94,14 @@ def _step_enrich(cfg: dict, config_path: Path, dry_run: bool = False) -> Path:
     return output_path
 
 
-def _step_parse(dry_run: bool = False, resume: bool = False) -> None:
+def _step_parse(
+    dry_run: bool = False, resume: bool = False, batch_size: int | None = None
+) -> None:
     """Parse synopsis rows into structured entries via the LLM parser."""
     from .parsing.parser import run
 
     t0 = time.perf_counter()
-    run(dry_run=dry_run, resume=resume)
+    run(dry_run=dry_run, resume=resume, batch_size=batch_size)
     log.info(f"Parse done in {time.perf_counter() - t0:.1f}s")
 
 
@@ -127,6 +129,12 @@ def main() -> None:
         action="store_true",
         help="Parse step: resume a previous run, skipping already-parsed rows",
     )
+    parser.add_argument(
+        "--batch-size",
+        type=int,
+        default=None,
+        help="Parse step: rows per LLM request (default: config llm.batch_size)",
+    )
     args = parser.parse_args()
 
     config_path = Path(args.config)
@@ -144,7 +152,9 @@ def main() -> None:
 
     # Parse is expensive (LLM) and NOT part of "all" — run only when requested.
     if "parse" in steps:
-        _step_parse(dry_run=args.dry_run, resume=args.resume)
+        _step_parse(
+            dry_run=args.dry_run, resume=args.resume, batch_size=args.batch_size
+        )
 
     if run_all or "enrich" in steps:
         _step_enrich(cfg, config_path, dry_run=args.dry_run)

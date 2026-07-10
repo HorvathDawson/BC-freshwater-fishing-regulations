@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState, useMemo } from 'react';
-import { X, Calendar, MapPin, FileImage, RotateCcw, Share2, Check, ChevronDown, ChevronRight, ZoomIn } from 'lucide-react';
+import { X, Calendar, MapPin, FileImage, RotateCcw, Share2, Check, ChevronDown, ChevronRight, ZoomIn, Maximize2, ExternalLink, Download } from 'lucide-react';
 import { Icon } from '@iconify/react';
 import type { Regulation } from '../services/regulationsService';
 import { regulationsService } from '../services/regulationsService';
@@ -16,10 +16,31 @@ import {
 import { getShareableUrl, getCanonicalUrl, copyToClipboard, setActiveSectionParam } from '../utils/urlState';
 import { sectionLabel } from '../utils/sectionLabel';
 import SourceImageViewer from './SourceImageViewer';
+import PdfViewer from './PdfViewer';
 import type { SearchableFeature } from './SearchBar';
 import { waterbodyDataService } from '../services/waterbodyDataService';
 import type { Reach, BathymetrySurvey } from '../services/waterbodyDataService';
+import { PDFDocument } from 'pdf-lib';
 import './InfoPanel.css';
+
+/** Fetch every PDF and merge them, in order, into a single PDF byte array. */
+async function buildCombinedPdf(urls: string[]): Promise<Uint8Array> {
+    const merged = await PDFDocument.create();
+    for (const url of urls) {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`Failed to fetch ${url}: ${res.status}`);
+        const src = await PDFDocument.load(await res.arrayBuffer());
+        const pages = await merged.copyPages(src, src.getPageIndices());
+        pages.forEach((p) => merged.addPage(p));
+    }
+    return merged.save();
+}
+
+/** Turn a survey title into a safe download filename stem. */
+function pdfFileStem(title: string): string {
+    const stem = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+    return stem || 'depth-maps';
+}
 
 /** Human-readable labels for admin scope_location keys */
 const SCOPE_LOCATION_LABELS: Record<string, string> = {
@@ -115,6 +136,62 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
     const [regulations, setRegulations] = useState<Regulation[]>([]);
     const [loadingRegs, setLoadingRegs] = useState(false);
     const [sourceImage, setSourceImage] = useState<{ src: string; name: string } | null>(null);
+    // Depth-map PDF popup. When a lake has several surveys we merge them into one
+    // combined PDF (blob URL) so they view/download together.
+    const [pdfView, setPdfView] = useState<{ url: string; title: string; downloadName?: string } | null>(null);
+    const [pdfBusy, setPdfBusy] = useState(false);
+    const pdfBlobUrlRef = useRef<string | null>(null);
+
+    const revokePdfBlob = () => {
+        if (pdfBlobUrlRef.current) {
+            URL.revokeObjectURL(pdfBlobUrlRef.current);
+            pdfBlobUrlRef.current = null;
+        }
+    };
+
+    const closePdfView = () => {
+        setPdfView(null);
+        revokePdfBlob();
+    };
+
+    // Open one survey directly, or several merged into a single combined PDF.
+    const openBathymetry = async (urls: string[], title: string) => {
+        revokePdfBlob();
+        if (urls.length <= 1) {
+            setPdfView({ url: urls[0], title });
+            return;
+        }
+        setPdfBusy(true);
+        try {
+            const bytes = await buildCombinedPdf(urls);
+            // Copy into a standalone ArrayBuffer so the Blob part is typed
+            // concretely (avoids TS's ArrayBufferLike/SharedArrayBuffer union).
+            const buffer = bytes.buffer.slice(
+                bytes.byteOffset,
+                bytes.byteOffset + bytes.byteLength,
+            ) as ArrayBuffer;
+            const blobUrl = URL.createObjectURL(new Blob([buffer], { type: 'application/pdf' }));
+            pdfBlobUrlRef.current = blobUrl;
+            setPdfView({ url: blobUrl, title, downloadName: `${pdfFileStem(title)}-depth-maps.pdf` });
+        } catch (err) {
+            console.error('[InfoPanel] failed to combine depth maps', err);
+            // Fall back to the first survey so the user still sees something.
+            setPdfView({ url: urls[0], title });
+        } finally {
+            setPdfBusy(false);
+        }
+    };
+
+    // Close the depth-map popup on Escape.
+    useEffect(() => {
+        if (!pdfView) return;
+        const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') closePdfView(); };
+        window.addEventListener('keydown', onKey);
+        return () => window.removeEventListener('keydown', onKey);
+    }, [pdfView]);
+
+    // Release any combined-PDF blob URL on unmount.
+    useEffect(() => () => revokePdfBlob(), []);
     const [activeFilter, setActiveFilter] = useState<string>('');
     const [copied, setCopied] = useState(false);
     const [expandedExclusions, setExpandedExclusions] = useState<Set<number>>(new Set());
@@ -598,26 +675,49 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                         })()}
 
                         {/* Bathymetry depth-map PDFs (WSA lake survey maps, served from R2) */}
-                        {bathymetry.length > 0 && (
-                            <div className="bathymetry-section" role="region" aria-label="Depth maps">
-                                <div className="bathymetry-header">
-                                    <FileImage size={13} strokeWidth={2} aria-hidden="true" />
-                                    <span>Depth {bathymetry.length > 1 ? 'maps' : 'map'}</span>
+                        {bathymetry.length > 0 && (() => {
+                            const urls = bathymetry.map((b) => waterbodyDataService.bathymetryUrl(b.pdf));
+                            const combined = bathymetry.length > 1;
+                            const label = bathymetry[0].title?.trim() ? bathymetry[0].title! : 'Bathymetric survey';
+                            return (
+                                <div className="bathymetry-section" role="region" aria-label="Depth maps">
+                                    <div className="bathymetry-header">
+                                        <FileImage size={13} strokeWidth={2} aria-hidden="true" />
+                                        <span>Depth {combined ? 'maps' : 'map'}</span>
+                                        {combined && (
+                                            <span className="bathymetry-count">{bathymetry.length}</span>
+                                        )}
+                                    </div>
+                                    <div className="bathymetry-list">
+                                        <button
+                                            type="button"
+                                            className="bathymetry-card"
+                                            title={combined
+                                                ? `View ${bathymetry.length} depth maps combined`
+                                                : `View depth map: ${label}`}
+                                            disabled={pdfBusy}
+                                            onClick={() => openBathymetry(urls, label)}
+                                        >
+                                            <span className="bathymetry-card-icon">
+                                                <FileImage size={16} strokeWidth={2} aria-hidden="true" />
+                                            </span>
+                                            <span className="bathymetry-card-body">
+                                                <span className="bathymetry-card-title">{label}</span>
+                                                <span className="bathymetry-card-sub">
+                                                    {pdfBusy
+                                                        ? 'Combining surveys…'
+                                                        : combined
+                                                            ? `${bathymetry.length} surveys combined`
+                                                            : 'Depth contour survey'}
+                                                </span>
+                                            </span>
+                                            <span className="bathymetry-card-badge">PDF</span>
+                                            <Maximize2 size={14} strokeWidth={2} className="bathymetry-card-open" aria-hidden="true" />
+                                        </button>
+                                    </div>
                                 </div>
-                                {bathymetry.map((b, i) => (
-                                    <a
-                                        key={b.pdf}
-                                        className="bathymetry-link"
-                                        href={waterbodyDataService.bathymetryUrl(b.pdf)}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                    >
-                                        <FileImage size={14} strokeWidth={2} aria-hidden="true" />
-                                        <span>{b.title?.trim() ? `${b.title} (PDF)` : `Bathymetric survey ${i + 1} (PDF)`}</span>
-                                    </a>
-                                ))}
-                            </div>
-                        )}
+                            );
+                        })()}
 
                         {!loadingRegs && (() => {
                             // Show message if filters hide all results
@@ -869,6 +969,12 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                                                         <span className="reg-detail-text">{reg.restriction_details}</span>
                                                     )}
                                                 </div>
+                                                {reg.restriction_exception && (
+                                                    <div className="reg-exception">
+                                                        <span className="reg-exception-label">Exception</span>
+                                                        <span className="reg-exception-text">{reg.restriction_exception}</span>
+                                                    </div>
+                                                )}
                                                 {hasMeta && (
                                                     <div className="reg-row-meta">
                                                         {dateStr && (
@@ -993,6 +1099,59 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                     name={sourceImage.name}
                     onClose={() => setSourceImage(null)}
                 />
+            )}
+
+            {/* Depth-map PDF viewer (desktop popup) */}
+            {pdfView && (
+                <div
+                    className="pdf-modal-overlay"
+                    role="dialog"
+                    aria-modal="true"
+                    aria-label={`Depth map: ${pdfView.title}`}
+                    onClick={(e) => { if (e.target === e.currentTarget) closePdfView(); }}
+                >
+                    <div className="pdf-modal">
+                        <div className="pdf-modal-header">
+                            <span className="pdf-modal-title">
+                                <FileImage size={14} strokeWidth={2} aria-hidden="true" />
+                                {pdfView.title}
+                            </span>
+                            <div className="pdf-modal-actions">
+                                <a
+                                    className="pdf-modal-btn"
+                                    href={pdfView.url}
+                                    download={pdfView.downloadName ?? true}
+                                    title="Download PDF"
+                                    aria-label="Download PDF"
+                                >
+                                    <Download size={16} strokeWidth={2} />
+                                </a>
+                                <a
+                                    className="pdf-modal-btn"
+                                    href={pdfView.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    title="Open in new tab"
+                                    aria-label="Open in new tab"
+                                >
+                                    <ExternalLink size={16} strokeWidth={2} />
+                                </a>
+                                <button
+                                    className="pdf-modal-btn pdf-modal-close"
+                                    onClick={closePdfView}
+                                    aria-label="Close depth map"
+                                    title="Close"
+                                >
+                                    <X size={18} strokeWidth={2} />
+                                </button>
+                            </div>
+                        </div>
+                        <PdfViewer
+                            url={pdfView.url}
+                            title={`Depth map: ${pdfView.title}`}
+                        />
+                    </div>
+                </div>
             )}
         </>
     );

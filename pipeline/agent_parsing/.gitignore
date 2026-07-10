@@ -1,0 +1,5 @@
+# Ignore generated agent-parsing artifacts (regenerable from session + raw data).
+batches/
+responses/
+manifest.json
+*.backup-*.json

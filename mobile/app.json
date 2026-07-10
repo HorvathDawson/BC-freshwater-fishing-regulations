@@ -1,0 +1,40 @@
+{
+  "expo": {
+    "name": "Can I Fish This?",
+    "slug": "canifishthis-mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "canifishthis",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "ca.canifishthis.mobile"
+    },
+    "android": {
+      "package": "ca.canifishthis.mobile",
+      "adaptiveIcon": {
+        "backgroundColor": "#0b1020"
+      }
+    },
+    "plugins": [
+      "expo-sqlite",
+      [
+        "expo-asset",
+        {
+          "assets": ["./assets/db", "./assets/bathymetry", "./assets/source"]
+        }
+      ]
+    ],
+    "assetBundlePatterns": [
+      "assets/db/**",
+      "assets/bathymetry/**",
+      "assets/source/**"
+    ],
+    "extra": {
+      "//": "Overridable at build time. Mirrors webapp R2 data domain.",
+      "dataBaseUrl": "https://data.canifishthis.ca",
+      "shardVersion": "v2"
+    }
+  }
+}

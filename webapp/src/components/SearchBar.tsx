@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Search, X, Eye } from 'lucide-react';
+import { Search, X, Eye, MapPin } from 'lucide-react';
 import { Icon } from '@iconify/react';
 import Fuse from 'fuse.js';
 import { 
@@ -13,6 +13,13 @@ import {
 import './SearchBar.css';
 
 import type { NameVariant, FeatureGeometry } from '../utils/featureUtils';
+
+/** A town near a waterbody, with its straight-line distance in kilometres. */
+export interface NearbyTown {
+    name: string;
+    km?: number;
+}
+
 
 export interface RegulationSegment {
     frontend_group_id: string;
@@ -33,7 +40,7 @@ export interface SearchableFeature {
     display_name?: string;
     name_variants?: NameVariant[];
     /** Towns nearest this waterbody — searchable so a town query surfaces it. */
-    nearby_towns?: string[];
+    nearby_towns?: NearbyTown[];
     type: 'stream' | 'lake' | 'wetland' | 'manmade' | 'ungazetted' | 'streams' | 'lakes' | 'wetlands';
     properties: Record<string, string | number | boolean | null | undefined>;
     geometry?: FeatureGeometry;
@@ -56,6 +63,8 @@ interface SearchBarProps {
 const SearchBar: React.FC<SearchBarProps> = ({ features, onSelect, highlightedResult, onHighlight, onSearchActive, placeholder = "Search waterbodies..." }) => {
     const [query, setQuery] = useState('');
     const [results, setResults] = useState<SearchableFeature[]>([]);
+    /** For results that only surfaced via a nearby town: feature → that town (name + distance). */
+    const [townLabels, setTownLabels] = useState<Map<SearchableFeature, NearbyTown>>(() => new Map());
     const [isOpen, setIsOpen] = useState(false);
     const [selectedIndex, setSelectedIndex] = useState(-1);
     const [isMobile, setIsMobile] = useState(isMobileViewport());
@@ -78,7 +87,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ features, onSelect, highlightedRe
             keys: [
                 { name: 'display_name', weight: 3 },
                 { name: 'name_variants.name', weight: 2 },
-                { name: 'nearby_towns', weight: 0.5 }
+                { name: 'nearby_towns.name', weight: 0.5 }
             ],
             threshold: 0.3, // Even stricter for exact word matches
             distance: 50, // Strongly prefer matches at the beginning
@@ -86,6 +95,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ features, onSelect, highlightedRe
             ignoreLocation: false, // Prioritize matches at the beginning of strings
             useExtendedSearch: false,
             includeScore: true,
+            includeMatches: true, // needed to tell name matches from nearby-town matches
             shouldSort: true,
             findAllMatches: true, // Find all matches
         });
@@ -95,40 +105,69 @@ const SearchBar: React.FC<SearchBarProps> = ({ features, onSelect, highlightedRe
     useEffect(() => {
         if (!query.trim() || query.trim().length < 1 || !fuse.current) {
             setResults([]);
+            setTownLabels(new Map());
             setIsOpen(false);
             setSelectedIndex(-1);
             return;
         }
 
         const searchResults = fuse.current.search(query, { limit: 50 });
-        
-        // Custom sort to boost exact prefix matches
         const queryLower = query.toLowerCase();
-        const sortedResults = searchResults.sort((a, b) => {
-            const aItem = a.item;
-            const bItem = b.item;
-            
-            // Check if any name field starts with the query
-            const aStartsWith = [
-                aItem.display_name,
-                ...(aItem.name_variants || []).map(nv => nv.name)
-            ].some(name => name?.toLowerCase().startsWith(queryLower));
-            
-            const bStartsWith = [
-                bItem.display_name,
-                ...(bItem.name_variants || []).map(nv => nv.name)
-            ].some(name => name?.toLowerCase().startsWith(queryLower));
-            
-            // Prioritize exact prefix matches
-            if (aStartsWith && !bStartsWith) return -1;
-            if (!aStartsWith && bStartsWith) return 1;
-            
-            // Otherwise use Fuse.js score
+
+        type Result = (typeof searchResults)[number];
+
+        // A result is a direct "name match" when the query hit its display_name
+        // or a name variant. Otherwise it only surfaced via a nearby town.
+        const nameMatched = (r: Result) =>
+            (r.matches || []).some(m => m.key === 'display_name' || m.key === 'name_variants.name');
+
+        // The nearest matched town (nearby_towns is ordered nearest-first, so the
+        // lowest refIndex is closest) — used to label and sort town-only results.
+        const townFor = (r: Result): NearbyTown | null => {
+            const townMatches = (r.matches || []).filter(m => m.key === 'nearby_towns.name');
+            if (townMatches.length === 0) return null;
+            townMatches.sort((a, b) => (a.refIndex ?? 0) - (b.refIndex ?? 0));
+            const idx = townMatches[0].refIndex ?? 0;
+            const town = r.item.nearby_towns?.[idx];
+            if (town) return town;
+            const name = townMatches[0].value as string | undefined;
+            return name ? { name } : null;
+        };
+
+        const startsWithQuery = (item: SearchableFeature) =>
+            [item.display_name, ...(item.name_variants || []).map(nv => nv.name)]
+                .some(name => name?.toLowerCase().startsWith(queryLower));
+
+        const sortedResults = [...searchResults].sort((a, b) => {
+            const aName = nameMatched(a);
+            const bName = nameMatched(b);
+            // 1. Direct name matches always rank above town-only matches.
+            if (aName !== bName) return aName ? -1 : 1;
+            // 2. Within name matches, boost exact prefix hits.
+            if (aName) {
+                const aPre = startsWithQuery(a.item);
+                const bPre = startsWithQuery(b.item);
+                if (aPre !== bPre) return aPre ? -1 : 1;
+            } else {
+                // 2b. Within town-only matches, nearest town first.
+                const aKm = townFor(a)?.km ?? Infinity;
+                const bKm = townFor(b)?.km ?? Infinity;
+                if (aKm !== bKm) return aKm - bKm;
+            }
+            // 3. Otherwise use Fuse.js score.
             return (a.score || 0) - (b.score || 0);
         });
-        
+
         const items = sortedResults.map(result => result.item);
+        const labels = new Map<SearchableFeature, NearbyTown>();
+        for (const r of sortedResults) {
+            if (nameMatched(r)) continue;
+            const town = townFor(r);
+            if (town) labels.set(r.item, town);
+        }
+
         setResults(items);
+        setTownLabels(labels);
         setIsOpen(items.length > 0);
         setSelectedIndex(-1);
     }, [query]);
@@ -324,6 +363,19 @@ const SearchBar: React.FC<SearchBarProps> = ({ features, onSelect, highlightedRe
                                                     Also known as: {parts.join(' · ')}
                                                 </div>
                                             ) : null;
+                                        })()}
+                                        {townLabels.get(feature) && (() => {
+                                            const town = townLabels.get(feature)!;
+                                            const km = town.km;
+                                            const label = (km != null && Number.isFinite(km))
+                                                ? `${km} km from ${town.name}`
+                                                : `Near ${town.name}`;
+                                            return (
+                                                <div className="search-result-subtitle search-result-near">
+                                                    <MapPin size={11} strokeWidth={2} aria-hidden="true" />
+                                                    {label}
+                                                </div>
+                                            );
                                         })()}
                                         <div className="search-result-meta">
                                             <span className="search-result-type">{feature.type}</span>

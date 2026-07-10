@@ -77,6 +77,23 @@ def _names_text(name_variants: list[dict[str, Any]]) -> str:
     return " ".join(nv.get("name", "") for nv in name_variants if nv.get("name"))
 
 
+def _towns_text(nearby_towns: list) -> str:
+    """Join nearby-town names into a searchable FTS string.
+
+    Accepts both the current ``[{"name", "km"}, ...]`` records and the legacy
+    ``["name", ...]`` string list so older indexes still shard cleanly.
+    """
+    parts = []
+    for t in nearby_towns:
+        if isinstance(t, dict):
+            name = t.get("name", "")
+        else:
+            name = t
+        if name:
+            parts.append(name)
+    return " ".join(parts)
+
+
 def _sha256(path: Path) -> str:
     h = hashlib.sha256()
     with open(path, "rb") as f:
@@ -203,7 +220,7 @@ def _build_db(db_path: Path, data: dict[str, Any], version_str: str) -> dict[str
                     idx,
                     entry.get("display_name", ""),
                     _names_text(name_variants),
-                    " ".join(nearby_towns),
+                    _towns_text(nearby_towns),
                 )
             )
 
