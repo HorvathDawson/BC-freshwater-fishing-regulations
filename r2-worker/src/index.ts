@@ -184,12 +184,20 @@ function parseIds(param: string | null, pattern: RegExp, max: number): string[] 
   return ids;
 }
 
-function jsonResponse(data: unknown, status = 200): Response {
+function jsonResponse(
+  data: unknown,
+  status = 200,
+  // Dynamic API responses (resolve/version) depend on the current data
+  // deploy, so the default is "always revalidate" — otherwise a browser
+  // that cached a pre-deploy response keeps serving stale data (e.g. a
+  // reach with no bathymetry) until the entry expires.
+  cacheControl = 'no-cache',
+): Response {
   return new Response(JSON.stringify(data), {
     status,
     headers: {
       'Content-Type': 'application/json',
-      'Cache-Control': 'public, max-age=3600',
+      'Cache-Control': cacheControl,
       ...CORS_HEADERS,
     },
   });
@@ -341,7 +349,9 @@ async function handleResolve(request: Request, env: Env): Promise<Response> {
 }
 
 async function handleVersion(env: Env): Promise<Response> {
-  return jsonResponse({ version: env.SHARD_VERSION || 'v7' });
+  // Source of truth for the active data version — must never be cached so
+  // clients notice a new deploy immediately.
+  return jsonResponse({ version: env.SHARD_VERSION || 'v7' }, 200, 'no-store');
 }
 
 // ── Feedback submission API ──────────────────────────────────────────
