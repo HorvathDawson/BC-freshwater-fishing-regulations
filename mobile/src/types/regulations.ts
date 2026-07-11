@@ -95,6 +95,9 @@ export interface Regulation {
   iid?: string;
   source_image?: string | null;
   source_page?: number | null;
+  /** Full verbatim official text of the synopsis entry (all rules). Mirrors the
+   *  web `Regulation.raw_regs`. Undefined for base regs. */
+  raw_regs?: string | null;
   exclusions?: {
     lookup_name: string;
     direction?: string;

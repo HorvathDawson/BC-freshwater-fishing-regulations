@@ -93,6 +93,7 @@ export function expandRegulations(
             iid: regId,
             source_image: syn.image || null,
             source_page: syn.page ?? null,
+            raw_regs: syn.raw_regs || null,
             exclusions: null,
             effective_includes_tributaries: effectiveIncludesTribs,
           };
