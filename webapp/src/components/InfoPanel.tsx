@@ -998,8 +998,8 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                                         const src = group.regulations.find(r => r.source === 'synopsis' && (r.source_image || r.source_page || r.rule_text));
                                         if (!src) return null;
                                         return (
-                                            <details className="reg-source-details">
-                                                <summary><FileImage size={10} strokeWidth={2} /> Source{src.source_page ? ` · p.${src.source_page}` : ''}</summary>
+                                            <div className="reg-source">
+                                                <div className="reg-source-header"><FileImage size={10} strokeWidth={2} /> Source{src.source_page ? ` · p.${src.source_page}` : ''}</div>
                                                 <div className="reg-source-content">
                                                     {src.source_image && (
                                                         <button
@@ -1018,7 +1018,7 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                                                         </>
                                                     )}
                                                 </div>
-                                            </details>
+                                            </div>
                                         );
                                     })()}
                                 </div>
