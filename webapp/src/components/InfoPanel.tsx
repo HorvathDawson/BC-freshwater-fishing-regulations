@@ -1012,7 +1012,11 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                                                 )}
                                                 {officialText && (
                                                     <details className="reg-source-details">
-                                                        <summary><FileImage size={10} strokeWidth={2} /> Official text{src.source_page ? ` · p.${src.source_page}` : ''}</summary>
+                                                        <summary>
+                                                            <ChevronRight size={12} strokeWidth={2.5} className="reg-source-chevron" aria-hidden="true" />
+                                                            Official text{src.source_page ? ` · p.${src.source_page}` : ''}
+                                                            <span className="reg-source-toggle-hint" aria-hidden="true" />
+                                                        </summary>
                                                         <div className="reg-text-body">{officialText}</div>
                                                     </details>
                                                 )}

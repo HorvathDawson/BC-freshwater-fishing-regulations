@@ -1219,20 +1219,50 @@
 
 .reg-source-details summary {
     cursor: pointer;
-    display: inline-flex;
+    display: flex;
     align-items: center;
-    gap: 3px;
+    gap: 4px;
     font-size: 9px;
     font-weight: 700;
     color: var(--text-muted);
     text-transform: uppercase;
     letter-spacing: 0.04em;
-    padding: 1px 0;
+    padding: 3px 4px;
+    border-radius: 3px;
     font-family: var(--font-sans);
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.reg-source-details summary::-webkit-details-marker {
+    display: none;
 }
 
 .reg-source-details summary:hover {
     color: var(--text);
+    background: rgba(59, 130, 246, 0.08);
+}
+
+.reg-source-chevron {
+    flex-shrink: 0;
+    transition: transform 0.15s ease;
+}
+
+.reg-source-details[open] .reg-source-chevron {
+    transform: rotate(90deg);
+}
+
+.reg-source-toggle-hint {
+    margin-left: auto;
+    color: #2563eb;
+    font-weight: 700;
+}
+
+.reg-source-toggle-hint::after {
+    content: 'Show';
+}
+
+.reg-source-details[open] .reg-source-toggle-hint::after {
+    content: 'Hide';
 }
 
 /* --- Source image modal (now handled by SourceImageViewer component) --- */
