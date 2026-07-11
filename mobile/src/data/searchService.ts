@@ -16,6 +16,13 @@ import type { SQLiteDatabase } from 'expo-sqlite';
 import type { SearchEntry } from '../types/regulations';
 import { getDatabase } from './database';
 
+/**
+ * The object returned for each search hit. Identical to {@link SearchEntry};
+ * re-exported under a stable name so UI components (SearchBar) import a single
+ * "search result" contract from the service they call.
+ */
+export type SearchResult = SearchEntry;
+
 interface SearchRow {
   id: number;
   display_name: string;

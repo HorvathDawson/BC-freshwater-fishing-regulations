@@ -7,7 +7,7 @@
 import React from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-import type { Regulation } from '../types/regulations';
+import type { BathymetrySurvey, Regulation } from '../types/regulations';
 import { buildAliasLines, getColorForType, type NameVariant } from '../utils/featureUtils';
 import { colors, radius, spacing, typography } from '../theme/tokens';
 
@@ -16,14 +16,30 @@ export interface InfoPanelData {
   featureType: string;
   nameVariants: NameVariant[];
   regulations: Regulation[];
+  bathymetry?: BathymetrySurvey[];
 }
 
 interface InfoPanelProps {
   data: InfoPanelData | null;
   onClose: () => void;
+  /** Tablet layout docks the panel to the right instead of a bottom sheet. */
+  isTablet?: boolean;
+  /** Open a bathymetry depth-map PDF. */
+  onOpenPdf?: (survey: BathymetrySurvey) => void;
+  /** Open a synopsis source-page image (PNG filename + human label). */
+  onOpenSource?: (png: string, label: string) => void;
+  /** Open the issue-report form for this waterbody. */
+  onReportIssue?: () => void;
 }
 
-export function InfoPanel({ data, onClose }: InfoPanelProps): React.JSX.Element | null {
+export function InfoPanel({
+  data,
+  onClose,
+  isTablet = false,
+  onOpenPdf,
+  onOpenSource,
+  onReportIssue,
+}: InfoPanelProps): React.JSX.Element | null {
   if (!data) return null;
 
   const accent = getColorForType(data.featureType as never);
@@ -32,7 +48,7 @@ export function InfoPanel({ data, onClose }: InfoPanelProps): React.JSX.Element 
   );
 
   return (
-    <View style={styles.sheet}>
+    <View style={isTablet ? styles.sheetTablet : styles.sheet}>
       <View style={[styles.header, { borderLeftColor: accent }]}>
         <View style={styles.headerText}>
           <Text style={styles.title} numberOfLines={2}>
@@ -68,9 +84,50 @@ export function InfoPanel({ data, onClose }: InfoPanelProps): React.JSX.Element 
               {reg.provenance ? (
                 <Text style={styles.provenance}>via {reg.provenance}</Text>
               ) : null}
+              {reg.source_image ? (
+                <TouchableOpacity
+                  onPress={() =>
+                    onOpenSource?.(
+                      reg.source_image as string,
+                      reg.source_page ? `Synopsis page ${reg.source_page}` : 'Synopsis source',
+                    )
+                  }
+                  accessibilityRole="button"
+                >
+                  <Text style={styles.link}>
+                    View source{reg.source_page ? ` (page ${reg.source_page})` : ''}
+                  </Text>
+                </TouchableOpacity>
+              ) : null}
             </View>
           ))
         )}
+
+        {data.bathymetry && data.bathymetry.length > 0 ? (
+          <View style={styles.bathySection}>
+            <Text style={styles.sectionLabel}>Depth maps</Text>
+            {data.bathymetry.map((survey) => (
+              <TouchableOpacity
+                key={survey.pdf}
+                style={styles.bathyRow}
+                onPress={() => onOpenPdf?.(survey)}
+                accessibilityRole="button"
+                accessibilityLabel={`Open depth map ${survey.title}`}
+              >
+                <Text style={styles.bathyIcon}>▤</Text>
+                <Text style={styles.bathyTitle} numberOfLines={2}>
+                  {survey.title}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        ) : null}
+
+        {onReportIssue ? (
+          <TouchableOpacity onPress={onReportIssue} accessibilityRole="button">
+            <Text style={styles.reportLink}>Report an issue with this waterbody</Text>
+          </TouchableOpacity>
+        ) : null}
       </ScrollView>
     </View>
   );
@@ -87,6 +144,19 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: radius.lg,
     borderTopRightRadius: radius.lg,
     paddingBottom: spacing.xl,
+  },
+  sheetTablet: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    bottom: 0,
+    width: 400,
+    backgroundColor: colors.panel,
+    borderTopLeftRadius: radius.lg,
+    borderBottomLeftRadius: radius.lg,
+    paddingBottom: spacing.xl,
+    borderLeftWidth: StyleSheet.hairlineWidth,
+    borderLeftColor: colors.border,
   },
   header: {
     flexDirection: 'row',
@@ -116,5 +186,36 @@ const styles = StyleSheet.create({
     fontSize: typography.caption,
     marginTop: spacing.xs,
     fontStyle: 'italic',
+  },
+  link: {
+    color: colors.accent,
+    fontSize: typography.small,
+    marginTop: spacing.sm,
+    fontWeight: '600',
+  },
+  bathySection: { gap: spacing.sm, marginTop: spacing.sm },
+  sectionLabel: {
+    color: colors.textMuted,
+    fontSize: typography.caption,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  bathyRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    backgroundColor: colors.panelElevated,
+    borderRadius: radius.md,
+    padding: spacing.md,
+  },
+  bathyIcon: { color: colors.accent, fontSize: typography.title },
+  bathyTitle: { flex: 1, color: colors.text, fontSize: typography.body },
+  reportLink: {
+    color: colors.textMuted,
+    fontSize: typography.small,
+    textDecorationLine: 'underline',
+    marginTop: spacing.lg,
+    textAlign: 'center',
   },
 });

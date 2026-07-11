@@ -8,9 +8,17 @@
  * NOTE: `@maplibre/maplibre-react-native` requires a custom dev client (it is a
  * native module and does not run in Expo Go). See `mobile/README.md`.
  */
-import React, { useCallback, useRef } from 'react';
+import React, {
+  forwardRef,
+  useCallback,
+  useImperativeHandle,
+  useRef,
+} from 'react';
 import { StyleSheet, View } from 'react-native';
-import MapLibreGL from '@maplibre/maplibre-react-native';
+import MapLibreGL, {
+  type MapViewRef,
+  type CameraRef,
+} from '@maplibre/maplibre-react-native';
 
 import { buildMapStyle } from './styles';
 
@@ -32,13 +40,68 @@ export interface TappedFeature {
   properties: Record<string, unknown>;
 }
 
-interface MapViewProps {
-  /** Called when the user taps a waterbody/reserve feature. */
-  onFeatureTap?: (feature: TappedFeature) => void;
+/** Imperative handle so the app shell can drive the camera (e.g. from search). */
+export interface MapViewHandle {
+  /**
+   * Fly to a bbox `[minLng, minLat, maxLng, maxLat]`. Point (zero-area) bboxes
+   * center at `minZoom` instead of fitting bounds. Mirrors the web `flyToBbox`.
+   */
+  flyTo: (bbox: [number, number, number, number] | null, minZoom?: number) => void;
 }
 
-export function MapView({ onFeatureTap }: MapViewProps): React.JSX.Element {
-  const mapRef = useRef<MapLibreGL.MapView>(null);
+interface MapViewProps {
+  /**
+   * Called with every waterbody/reserve feature under the tap. One feature →
+   * resolve directly; several → the shell shows the disambiguation menu.
+   */
+  onFeatures?: (features: TappedFeature[]) => void;
+}
+
+/** Collapse overlapping query hits to unique features (by fid/wbk/name). */
+function dedupeFeatures(features: GeoJSON.Feature[]): TappedFeature[] {
+  const seen = new Set<string>();
+  const out: TappedFeature[] = [];
+  for (const f of features) {
+    const properties = (f.properties ?? {}) as Record<string, unknown>;
+    const sourceLayer = (f as { sourceLayer?: string }).sourceLayer ?? '';
+    const key = String(
+      properties.fid ?? properties.wbk ?? properties.name ?? `${sourceLayer}:${out.length}`,
+    );
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push({ sourceLayer, properties });
+  }
+  return out;
+}
+
+export const MapView = forwardRef<MapViewHandle, MapViewProps>(function MapView(
+  { onFeatures },
+  ref,
+): React.JSX.Element {
+  const mapRef = useRef<MapViewRef>(null);
+  const cameraRef = useRef<CameraRef>(null);
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      flyTo: (bbox, minZoom) => {
+        const cam = cameraRef.current;
+        if (!cam || !bbox) return;
+        const isPoint = bbox[0] === bbox[2] && bbox[1] === bbox[3];
+        if (isPoint) {
+          cam.setCamera({
+            centerCoordinate: [bbox[0], bbox[1]],
+            zoomLevel: Math.min(minZoom ?? 12, 15),
+            animationDuration: 800,
+          });
+        } else {
+          // fitBounds(ne, sw, padding, duration)
+          cam.fitBounds([bbox[2], bbox[3]], [bbox[0], bbox[1]], 48, 800);
+        }
+      },
+    }),
+    [],
+  );
 
   const handlePress = useCallback(
     async (e: GeoJSON.Feature) => {
@@ -52,15 +115,10 @@ export function MapView({ onFeatureTap }: MapViewProps): React.JSX.Element {
         undefined,
         QUERYABLE_LAYERS,
       );
-      const hit = results?.features?.[0];
-      if (hit) {
-        onFeatureTap?.({
-          sourceLayer: (hit as { sourceLayer?: string }).sourceLayer ?? '',
-          properties: (hit.properties ?? {}) as Record<string, unknown>,
-        });
-      }
+      const features = dedupeFeatures(results?.features ?? []);
+      if (features.length > 0) onFeatures?.(features);
     },
-    [onFeatureTap],
+    [onFeatures],
   );
 
   return (
@@ -68,18 +126,19 @@ export function MapView({ onFeatureTap }: MapViewProps): React.JSX.Element {
       <MapLibreGL.MapView
         ref={mapRef}
         style={styles.map}
-        styleJSON={JSON.stringify(buildMapStyle())}
+        mapStyle={JSON.stringify(buildMapStyle())}
         onPress={handlePress}
         logoEnabled={false}
         attributionEnabled
       >
         <MapLibreGL.Camera
+          ref={cameraRef}
           defaultSettings={{ centerCoordinate: INITIAL_CENTER, zoomLevel: INITIAL_ZOOM }}
         />
       </MapLibreGL.MapView>
     </View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   container: { flex: 1 },

@@ -104,3 +104,24 @@ export async function isDatabaseReady(): Promise<boolean> {
   const info = await FileSystem.getInfoAsync(dbPath);
   return info.exists;
 }
+
+/**
+ * True when the DB must be downloaded from R2 before the app can be used —
+ * i.e. it is neither already on disk nor available as a dev-bundled asset.
+ * The UI uses this to gate startup behind an explicit, explained download so
+ * the ~1.2 GB transfer never happens silently.
+ */
+export async function databaseNeedsDownload(): Promise<boolean> {
+  await ensureSqliteDir();
+  const existing = await FileSystem.getInfoAsync(dbPath);
+  if (existing.exists) return false;
+  try {
+    // Resolves only when sync-assets has placed a dev-bundled copy; when it
+    // throws there is no local data and a remote download is required.
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    require('../../assets/db/regulations.sqlite');
+    return false;
+  } catch {
+    return true;
+  }
+}
