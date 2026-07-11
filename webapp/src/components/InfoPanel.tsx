@@ -1000,25 +1000,22 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                                         const officialText = src.raw_regs || src.rule_text;
                                         return (
                                             <div className="reg-source">
-                                                <div className="reg-source-header"><FileImage size={10} strokeWidth={2} /> Source{src.source_page ? ` · p.${src.source_page}` : ''}</div>
-                                                <div className="reg-source-content">
-                                                    {src.source_image && (
-                                                        <button
-                                                            className="reg-source-img-btn"
-                                                            title="View source image from synopsis"
-                                                            onClick={() => setSourceImage({ src: `${import.meta.env.VITE_TILE_BASE_URL || '/data'}/row_images/${src.source_image}`, name: src.waterbody_name || 'Source' })}
-                                                        >
-                                                            <FileImage size={12} strokeWidth={2} />
-                                                            <span>View source image</span>
-                                                        </button>
-                                                    )}
-                                                    {officialText && (
-                                                        <>
-                                                            <span className="reg-source-label">Official text</span>
-                                                            <div className="reg-text-body">{officialText}</div>
-                                                        </>
-                                                    )}
-                                                </div>
+                                                {src.source_image && (
+                                                    <button
+                                                        className="reg-source-img-btn"
+                                                        title="See this regulation as printed in the synopsis"
+                                                        onClick={() => setSourceImage({ src: `${import.meta.env.VITE_TILE_BASE_URL || '/data'}/row_images/${src.source_image}`, name: src.waterbody_name || 'Source' })}
+                                                    >
+                                                        <FileImage size={12} strokeWidth={2} />
+                                                        <span>View regulation in synopsis</span>
+                                                    </button>
+                                                )}
+                                                {officialText && (
+                                                    <details className="reg-source-details">
+                                                        <summary><FileImage size={10} strokeWidth={2} /> Official text{src.source_page ? ` · p.${src.source_page}` : ''}</summary>
+                                                        <div className="reg-text-body">{officialText}</div>
+                                                    </details>
+                                                )}
                                             </div>
                                         );
                                     })()}

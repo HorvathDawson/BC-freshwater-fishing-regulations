@@ -1173,35 +1173,13 @@
     opacity: 0.7;
 }
 
-/* --- Source block (always-visible official text + source image) --- */
+/* --- Source block: standalone image button + collapsible official text --- */
 .reg-source {
     margin-top: 6px;
-    padding: 3px 6px;
-    border: 1px solid var(--border-light);
-    border-radius: 3px;
-    background: var(--bg-subtle);
-}
-
-.reg-source-header {
-    display: inline-flex;
-    align-items: center;
-    gap: 3px;
-    font-size: 9px;
-    font-weight: 700;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    padding: 1px 0;
-    font-family: var(--font-sans);
-}
-
-.reg-source-content {
     display: flex;
     flex-direction: column;
     gap: 6px;
-    margin-top: 4px;
-    padding-top: 4px;
-    border-top: 1px solid var(--border-light);
+    align-items: flex-start;
 }
 
 .reg-source-img-btn {
@@ -1230,19 +1208,37 @@
     color: #2563eb;
 }
 
-.reg-source-label {
-    font-size: 10px;
+/* Collapsible official (raw synopsis) text */
+.reg-source-details {
+    align-self: stretch;
+    padding: 3px 6px;
+    border: 1px solid var(--border-light);
+    border-radius: 3px;
+    background: var(--bg-subtle);
+}
+
+.reg-source-details summary {
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 9px;
     font-weight: 700;
     color: var(--text-muted);
     text-transform: uppercase;
     letter-spacing: 0.04em;
+    padding: 1px 0;
     font-family: var(--font-sans);
+}
+
+.reg-source-details summary:hover {
+    color: var(--text);
 }
 
 /* --- Source image modal (now handled by SourceImageViewer component) --- */
 
 .reg-text-body {
-    margin-top: 2px;
+    margin-top: 4px;
     padding: 8px;
     background: var(--bg-subtle);
     border: 1px solid var(--border-light);
@@ -1422,7 +1418,7 @@
         font-size: 12px;
     }
 
-    .reg-source-header {
+    .reg-source-details summary {
         font-size: 12px;
     }
 
