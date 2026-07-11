@@ -32,6 +32,36 @@ interface InfoPanelProps {
   onReportIssue?: () => void;
 }
 
+/**
+ * Group expanded rules so each synopsis entry renders its parsed rule cards
+ * followed by a single source block (matches the web InfoPanel grouping).
+ * Synopsis rules from one entry share an `iid`; base regs stand alone.
+ */
+type RegGroup = { key: string; regs: Regulation[]; source?: Regulation };
+
+function buildRegGroups(regs: Regulation[]): RegGroup[] {
+  const groups: RegGroup[] = [];
+  const byKey = new Map<string, RegGroup>();
+  for (const reg of regs) {
+    const key = reg.source === 'synopsis' ? `syn:${reg.iid ?? reg.regulation_id}` : reg.regulation_id;
+    let g = byKey.get(key);
+    if (!g) {
+      g = { key, regs: [] };
+      byKey.set(key, g);
+      groups.push(g);
+    }
+    g.regs.push(reg);
+  }
+  for (const g of groups) {
+    g.source = g.regs.find(
+      (r) =>
+        r.source === 'synopsis' &&
+        Boolean(r.source_image || r.source_page || r.raw_regs || r.rule_text),
+    );
+  }
+  return groups;
+}
+
 export function InfoPanel({
   data,
   onClose,
@@ -40,6 +70,7 @@ export function InfoPanel({
   onOpenSource,
   onReportIssue,
 }: InfoPanelProps): React.JSX.Element | null {
+  const [openText, setOpenText] = React.useState<Record<string, boolean>>({});
   if (!data) return null;
 
   const accent = getColorForType(data.featureType as never);
@@ -75,32 +106,68 @@ export function InfoPanel({
         {data.regulations.length === 0 ? (
           <Text style={styles.muted}>No regulations found for this waterbody.</Text>
         ) : (
-          data.regulations.map((reg) => (
-            <View key={reg.regulation_id} style={styles.card}>
-              <Text style={styles.ruleText}>{reg.rule_text}</Text>
-              {reg.restriction_details ? (
-                <Text style={styles.details}>{reg.restriction_details}</Text>
-              ) : null}
-              {reg.provenance ? (
-                <Text style={styles.provenance}>via {reg.provenance}</Text>
-              ) : null}
-              {reg.source_image ? (
-                <TouchableOpacity
-                  onPress={() =>
-                    onOpenSource?.(
-                      reg.source_image as string,
-                      reg.source_page ? `Synopsis page ${reg.source_page}` : 'Synopsis source',
-                    )
-                  }
-                  accessibilityRole="button"
-                >
-                  <Text style={styles.link}>
-                    View source{reg.source_page ? ` (page ${reg.source_page})` : ''}
-                  </Text>
-                </TouchableOpacity>
-              ) : null}
-            </View>
-          ))
+          buildRegGroups(data.regulations).map((group) => {
+            const src = group.source;
+            const officialText = src ? src.raw_regs || src.rule_text : null;
+            const isOpen = Boolean(openText[group.key]);
+            return (
+              <View key={group.key} style={styles.group}>
+                {group.regs.map((reg) => (
+                  <View key={reg.regulation_id} style={styles.card}>
+                    <Text style={styles.ruleText}>{reg.rule_text}</Text>
+                    {reg.restriction_details ? (
+                      <Text style={styles.details}>{reg.restriction_details}</Text>
+                    ) : null}
+                    {reg.provenance ? (
+                      <Text style={styles.provenance}>via {reg.provenance}</Text>
+                    ) : null}
+                  </View>
+                ))}
+
+                {src ? (
+                  <View style={styles.source}>
+                    {src.source_image ? (
+                      <TouchableOpacity
+                        style={styles.sourceImgBtn}
+                        onPress={() =>
+                          onOpenSource?.(
+                            src.source_image as string,
+                            src.source_page ? `Synopsis page ${src.source_page}` : 'Synopsis source',
+                          )
+                        }
+                        accessibilityRole="button"
+                        accessibilityLabel="View regulation in synopsis"
+                      >
+                        <Text style={styles.sourceImgIcon}>▤</Text>
+                        <Text style={styles.sourceImgTxt}>View regulation in synopsis</Text>
+                      </TouchableOpacity>
+                    ) : null}
+
+                    {officialText ? (
+                      <View style={styles.sourceDetails}>
+                        <TouchableOpacity
+                          style={styles.sourceSummary}
+                          onPress={() =>
+                            setOpenText((prev) => ({ ...prev, [group.key]: !prev[group.key] }))
+                          }
+                          accessibilityRole="button"
+                          accessibilityState={{ expanded: isOpen }}
+                          accessibilityLabel={`${isOpen ? 'Hide' : 'Show'} official text`}
+                        >
+                          <Text style={styles.sourceChevron}>{isOpen ? '▾' : '▸'}</Text>
+                          <Text style={styles.sourceSummaryTxt}>
+                            Official text{src.source_page ? ` · p.${src.source_page}` : ''}
+                          </Text>
+                          <Text style={styles.sourceHint}>{isOpen ? 'Hide' : 'Show'}</Text>
+                        </TouchableOpacity>
+                        {isOpen ? <Text style={styles.sourceBody}>{officialText}</Text> : null}
+                      </View>
+                    ) : null}
+                  </View>
+                ) : null}
+              </View>
+            );
+          })
         )}
 
         {data.bathymetry && data.bathymetry.length > 0 ? (
@@ -187,11 +254,50 @@ const styles = StyleSheet.create({
     marginTop: spacing.xs,
     fontStyle: 'italic',
   },
-  link: {
-    color: colors.accent,
+  group: { gap: spacing.sm },
+  source: { gap: spacing.sm, marginTop: spacing.xs },
+  sourceImgBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    gap: spacing.xs,
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.sm,
+    borderRadius: radius.sm,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.border,
+    backgroundColor: colors.panelElevated,
+  },
+  sourceImgIcon: { color: colors.accent, fontSize: typography.small },
+  sourceImgTxt: { color: colors.accent, fontSize: typography.small, fontWeight: '700' },
+  sourceDetails: {
+    borderRadius: radius.sm,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.border,
+    backgroundColor: colors.panelElevated,
+    overflow: 'hidden',
+  },
+  sourceSummary: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.sm,
+  },
+  sourceChevron: { color: colors.textMuted, fontSize: typography.small, width: 14 },
+  sourceSummaryTxt: {
+    flex: 1,
+    color: colors.textMuted,
     fontSize: typography.small,
-    marginTop: spacing.sm,
-    fontWeight: '600',
+    fontWeight: '700',
+  },
+  sourceHint: { color: colors.accent, fontSize: typography.small, fontWeight: '700' },
+  sourceBody: {
+    color: colors.text,
+    fontSize: typography.small,
+    lineHeight: 18,
+    paddingHorizontal: spacing.sm,
+    paddingBottom: spacing.sm,
   },
   bathySection: { gap: spacing.sm, marginTop: spacing.sm },
   sectionLabel: {
