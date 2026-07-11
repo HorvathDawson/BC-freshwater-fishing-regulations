@@ -995,8 +995,9 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                                         );
                                     })}
                                     {(() => {
-                                        const src = group.regulations.find(r => r.source === 'synopsis' && (r.source_image || r.source_page || r.rule_text));
+                                        const src = group.regulations.find(r => r.source === 'synopsis' && (r.source_image || r.source_page || r.raw_regs || r.rule_text));
                                         if (!src) return null;
+                                        const officialText = src.raw_regs || src.rule_text;
                                         return (
                                             <div className="reg-source">
                                                 <div className="reg-source-header"><FileImage size={10} strokeWidth={2} /> Source{src.source_page ? ` · p.${src.source_page}` : ''}</div>
@@ -1011,10 +1012,10 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                                                             <span>View source image</span>
                                                         </button>
                                                     )}
-                                                    {src.rule_text && (
+                                                    {officialText && (
                                                         <>
                                                             <span className="reg-source-label">Official text</span>
-                                                            <div className="reg-text-body">{src.rule_text}</div>
+                                                            <div className="reg-text-body">{officialText}</div>
                                                         </>
                                                     )}
                                                 </div>

@@ -150,6 +150,9 @@ export interface Regulation {
   iid?: string;
   source_image?: string | null;
   source_page?: number | null;
+  /** Full verbatim official text of the synopsis entry (all rules), shown as
+   *  the "Official text" source block.  Undefined for base regs. */
+  raw_regs?: string | null;
   exclusions?: { lookup_name: string; direction?: string; landmark_verbatim?: string; includes_tributaries?: boolean }[] | null;
   /** How this regulation reached the current reach.
    *  Stamped by regulationsService when resolving for a specific reach. */
@@ -262,6 +265,7 @@ function expandRegulations(
             iid: regId,
             source_image: syn.image || null,
             source_page: syn.page ?? null,
+            raw_regs: syn.raw_regs || null,
             exclusions: null,
             effective_includes_tributaries: effectiveIncludesTribs,
           };
