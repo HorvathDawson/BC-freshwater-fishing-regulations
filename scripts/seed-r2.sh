@@ -28,6 +28,16 @@ case "$DEPLOY_ENV" in
   *) echo "ERROR: Unknown DEPLOY_ENV=$DEPLOY_ENV" >&2; exit 1 ;;
 esac
 
+# ── Exclusions ────────────────────────────────────────────────────────
+# Staging R2 is space-constrained, so a couple of large artifacts are not
+# seeded there:
+#   • bc.pmtiles   — 4.3 GB basemap (staging falls back to another origin)
+#   • mobile/**    — ~1.1 GB mobile SQLite bundle (tested locally for now)
+EXCLUDE_FLAGS=(--exclude "_tile_temp/**" --exclude "layer_manifest.json" --exclude ".DS_Store" --exclude "**/.DS_Store")
+if [[ "$DEPLOY_ENV" == "staging" ]]; then
+  EXCLUDE_FLAGS+=(--exclude "bc.pmtiles" --exclude "mobile/**")
+fi
+
 # ── Colours ───────────────────────────────────────────────────────────
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'; CYAN='\033[0;36m'; NC='\033[0m'
 info()  { echo -e "${CYAN}[INFO]${NC}  $*"; }
@@ -69,8 +79,7 @@ upload_deploy() {
 
   rclone copy "$DEPLOY_DIR" "$BUCKET/" \
     $RCLONE_FLAGS \
-    --exclude "_tile_temp/**" \
-    --exclude "layer_manifest.json" \
+    "${EXCLUDE_FLAGS[@]}" \
     --checksum \
     --transfers 32
 
@@ -99,8 +108,7 @@ case "${1:-}" in
     info "=== Dry run: showing what would be uploaded ==="
     rclone copy "$DEPLOY_DIR" "$BUCKET/" \
       $RCLONE_FLAGS \
-      --exclude "_tile_temp/**" \
-      --exclude "layer_manifest.json" \
+      "${EXCLUDE_FLAGS[@]}" \
       --checksum \
       --dry-run
     ;;
