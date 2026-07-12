@@ -1,5 +1,16 @@
 {
     "python-envs.defaultEnvManager": "ms-python.python:conda",
     "python-envs.defaultPackageManager": "ms-python.python:conda",
-    "python-envs.pythonProjects": []
+    "python-envs.pythonProjects": [],
+    "files.watcherExclude": {
+        "**/output/**": true,
+        "**/.venv/**": true,
+        "**/__pycache__/**": true,
+        "**/node_modules/**": true
+    },
+    "search.exclude": {
+        "**/output": true,
+        "**/.venv": true,
+        "**/__pycache__": true
+    }
 }

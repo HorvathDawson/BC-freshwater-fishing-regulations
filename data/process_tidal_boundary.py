@@ -47,7 +47,9 @@ logger = logging.getLogger(__name__)
 ROOT = Path(__file__).parent.parent
 DFO_GPKG = ROOT / "data" / "DFO_TIDAL_BOUNDARY.gpkg"
 MAIN_GPKG = ROOT / "data" / "bc_fisheries_data.gpkg"
-R2_BUCKET = "r2:bc-fishing-regulations"
+# Build-assets bucket (custom domain build.canifishthis.ca) — the tidal boundary
+# is a build input consumed by data/fetch_data.py, not a runtime app asset.
+R2_BUCKET = "r2:bc-fishing-build-assets"
 
 # Layer names
 RAW_LAYER = "dfodfooy__dfo_bc_pfma_subareas_chs_v3_gshp"

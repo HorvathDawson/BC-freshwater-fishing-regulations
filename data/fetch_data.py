@@ -725,6 +725,37 @@ def fetch_r2_file(name, url, dest_path):
     _download_with_progress(url, dest_path, desc=dest_path.name)
 
 
+# Build-assets bucket (custom domain) that hosts backed-up, expensive-to-
+# regenerate pipeline inputs.  Only referenced when the user explicitly opts in
+# via --add-parsing-data so a rebuild can skip the extraction + LLM parsing steps.
+BUILD_ASSETS_BASE_URL = "https://build.canifishthis.ca"
+
+
+def fetch_parsing_backup(config):
+    """Restore backed-up extraction + parsing outputs from the build-assets bucket.
+
+    Downloads the expensive-to-regenerate pipeline inputs (raw synopsis extraction
+    and LLM-parsed regulations) so the pipeline can be rebuilt without re-running
+    the extraction and parsing stages.  Overwrites any local copies so the restore
+    is deterministic.
+    """
+    restores = [
+        (
+            "extraction/synopsis_raw_data.json",
+            config.extraction_dir / "synopsis_raw_data.json",
+        ),
+        ("parsing/synopsis_parsed.json", config.parsing_dir / "synopsis_parsed.json"),
+        ("parsing/session_state.json", config.parsing_dir / "session_state.json"),
+    ]
+    print(f"\n[Backup] Restoring parsing data from {BUILD_ASSETS_BASE_URL}")
+    for key, dest in restores:
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        _download_with_progress(
+            f"{BUILD_ASSETS_BASE_URL}/{key}", dest, desc=dest.name
+        )
+        print(f"  ✅ {key} → {dest}")
+
+
 def main():
     config = get_config()
     gpkg_out = Path(config.fetch_output_gpkg_path)
@@ -768,7 +799,7 @@ def main():
         "streams": {"type": "FWA_STREAMS", "ftp": FTP_STR},
         "tidal_boundary": {
             "type": "R2_GPKG",
-            "url": "https://data.canifishthis.ca/DFO_TIDAL_BOUNDARY.gpkg",
+            "url": "https://build.canifishthis.ca/DFO_TIDAL_BOUNDARY.gpkg",
             "layer": "tidal_boundary",
         },
         # Protomaps basemap tiles (OSM-derived). Not produced by the pipeline —
@@ -816,10 +847,24 @@ def main():
     parser.add_argument(
         "--skip-ftp", action="store_true", help="Skip all heavy FTP downloads"
     )
+    parser.add_argument(
+        "--add-parsing-data",
+        action="store_true",
+        help=(
+            "Restore backed-up extraction + parsing outputs from the build-assets "
+            "bucket (build.canifishthis.ca) so the pipeline can be rebuilt without "
+            "re-running extraction/parsing, then exit."
+        ),
+    )
     args = parser.parse_args()
 
     if not temp_dir.exists():
         temp_dir.mkdir(parents=True)
+
+    if args.add_parsing_data:
+        fetch_parsing_backup(config)
+        print("\n✅ Parsing data restored from backup!")
+        return
 
     # Filtering Logic
     if args.layers:
