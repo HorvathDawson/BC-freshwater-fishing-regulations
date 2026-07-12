@@ -46,6 +46,11 @@ SIMPLIFY_M = (
 )
 R2_BUCKET = "r2:bc-fishing-regulations"
 R2_FILENAME = "DFO_TIDAL_BOUNDARY.gpkg"
+# Long-term backup of expensive-to-regenerate build inputs. Mirrored here so a
+# future rebuild can pull the processed tidal boundary without re-running this
+# geometry pipeline. Create this bucket once in the Cloudflare dashboard; the
+# scoped R2 token cannot create buckets.
+R2_BACKUP_BUCKET = "r2:bc-fishing-build-assets"
 
 
 # ── Geometry helpers ──────────────────────────────────────────────────────────
@@ -204,6 +209,31 @@ def run(skip_upload: bool = False, skip_copy: bool = False):
         if result.returncode != 0:
             raise RuntimeError("rclone upload failed — check rclone config")
         logger.info(f"  ✅ Uploaded to {R2_BUCKET}/{R2_FILENAME}")
+
+        # ── Step 9b: mirror to the build-assets backup bucket ────────────────
+        # Best-effort: a missing backup bucket must not fail the primary deploy,
+        # but the failure is surfaced clearly (never silently swallowed).
+        logger.info(f"Step 9b: backing up {DFO_GPKG.name} to {R2_BACKUP_BUCKET}…")
+        backup = subprocess.run(
+            [
+                "rclone",
+                "copy",
+                str(DFO_GPKG),
+                R2_BACKUP_BUCKET + "/",
+                "--s3-no-check-bucket",
+                "--progress",
+            ],
+            capture_output=False,
+        )
+        if backup.returncode != 0:
+            logger.warning(
+                "  ⚠️  Backup to %s failed — does the bucket exist? "
+                "Create 'bc-fishing-build-assets' in the Cloudflare R2 "
+                "dashboard, then re-run with scripts/backup-build-assets.sh.",
+                R2_BACKUP_BUCKET,
+            )
+        else:
+            logger.info(f"  ✅ Backed up to {R2_BACKUP_BUCKET}/{R2_FILENAME}")
 
     logger.info("Done.")
 
