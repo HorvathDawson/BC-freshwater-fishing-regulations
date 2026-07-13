@@ -3,6 +3,7 @@ import * as pdfjsLib from 'pdfjs-dist';
 import type { PDFDocumentProxy, RenderTask } from 'pdfjs-dist';
 import workerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import { ZoomIn, ZoomOut, Maximize2 } from 'lucide-react';
+import FishLoader from './FishLoader';
 
 // Render the PDF with pdf.js so it always displays inline, regardless of the
 // user's browser PDF settings (e.g. Chrome's "download PDFs instead of opening
@@ -221,7 +222,10 @@ export default function PdfViewer({ url, title }: PdfViewerProps) {
                 <div className="pdf-viewer-pages" ref={pagesRef} aria-label={title} />
 
                 {status === 'loading' && (
-                    <div className="pdf-viewer-status">Loading depth map…</div>
+                    <div className="pdf-viewer-status" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+                        <FishLoader size={180} />
+                        <span>Loading depth map…</span>
+                    </div>
                 )}
                 {status === 'error' && (
                     <div className="pdf-viewer-status pdf-viewer-error">

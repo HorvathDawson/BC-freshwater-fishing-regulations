@@ -16,6 +16,7 @@ import {
 import { getShareableUrl, getCanonicalUrl, copyToClipboard, setActiveSectionParam } from '../utils/urlState';
 import { sectionLabel } from '../utils/sectionLabel';
 import SourceImageViewer from './SourceImageViewer';
+import FishLoader from './FishLoader';
 import type { SearchableFeature } from './SearchBar';
 import { waterbodyDataService } from '../services/waterbodyDataService';
 import type { Reach, BathymetrySurvey } from '../services/waterbodyDataService';
@@ -1071,7 +1072,7 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
             {/* Regulations loading overlay — fixed centered spinner */}
             {loadingRegs && (
                 <div className="regs-loading-overlay" role="status" aria-label="Loading regulations">
-                    <div className="regs-loading-spinner" aria-hidden="true" />
+                    <FishLoader size={200} />
                 </div>
             )}
 

@@ -1,5 +1,6 @@
 import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { X, ZoomIn, ZoomOut, RotateCcw } from 'lucide-react';
+import FishLoader from './FishLoader';
 import './SourceImageViewer.css';
 
 interface SourceImageViewerProps {
@@ -213,7 +214,11 @@ const SourceImageViewer: React.FC<SourceImageViewerProps> = ({ src, name, onClos
                         opacity: imgLoaded ? 1 : 0,
                     }}
                 />
-                {!imgLoaded && <div className="siv-loading">Loading…</div>}
+                {!imgLoaded && (
+                    <div className="siv-loading">
+                        <FishLoader size={160} />
+                    </div>
+                )}
             </div>
         </div>
     );

@@ -21,6 +21,7 @@ import DisambiguationMenu from './DisambiguationMenu';
 import SearchBar from './SearchBar';
 import Disclaimer, { DisclaimerLink } from './Disclaimer';
 import IssueReport, { IssueReportLink, type IssueReportContext } from './IssueReport';
+import FishLoader from './FishLoader';
 import type { SearchableFeature, RegulationSegment } from './SearchBar';
 import './Map.css';
 
@@ -2061,7 +2062,7 @@ const MapComponent = () => {
             <div ref={mapContainerRef} className="map-canvas" />
             {!(dataLoaded && filtersApplied) && (
                 <div className="loading-overlay" role="status" aria-live="polite">
-                    <div className="loading-spinner" aria-hidden="true" />
+                    <FishLoader size={240} />
                     <p className="loading-text">Loading waterbody data…</p>
                 </div>
             )}
@@ -2117,10 +2118,9 @@ const MapComponent = () => {
                 />
             )}
             {clickLoadingPos && (
-                <div
-                    className="click-loading-spinner"
-                    aria-label="Loading feature data"
-                />
+                <div className="click-loading-fish" role="status" aria-label="Loading feature data">
+                    <FishLoader size={180} />
+                </div>
             )}
         </div>
     );
