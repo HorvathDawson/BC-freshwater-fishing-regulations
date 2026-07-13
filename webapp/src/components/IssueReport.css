@@ -147,6 +147,20 @@
     box-shadow: 3px 3px 0 rgba(0, 0, 0, 1);
 }
 
+.issue-report-field input[aria-invalid='true'] {
+    border-color: #c0392b;
+}
+
+.issue-report-field-error {
+    display: block;
+    margin-top: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #c0392b;
+    text-transform: none;
+    letter-spacing: 0;
+}
+
 /* Preview of the generated report body */
 .issue-report-preview {
     margin-top: 4px;

@@ -9,6 +9,10 @@ const GITHUB_REPO = 'HorvathDawson/BC-freshwater-fishing-regulations';
  *  worker), the R2 worker origin in production. Mirrors waterbodyDataService. */
 const API_BASE = import.meta.env.VITE_TILE_BASE_URL || '';
 
+/** Pragmatic email shape check (mirrors the worker's server-side validation).
+ *  Deliberately loose — the goal is to catch typos, not enforce RFC 5322. */
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 /** Snapshot of app state attached to a report so a maintainer can reproduce it. */
 export interface IssueReportContext {
     waterbodyName?: string;
@@ -76,7 +80,7 @@ interface IssueReportProps {
 function buildReportBody(
     category: Category,
     description: string,
-    contact: string,
+    email: string,
     ctx: IssueReportContext,
     environment: Record<string, string | number>,
 ): string {
@@ -102,7 +106,7 @@ function buildReportBody(
     }
     if (ctx.pageUrl) context.push(`- Page: ${ctx.pageUrl}`);
     if (ctx.dataVersion) context.push(`- Data version: ${ctx.dataVersion}`);
-    if (contact.trim()) context.push(`- Contact: ${contact.trim()}`);
+    if (email.trim()) context.push(`- Contact email: ${email.trim()}`);
 
     if (context.length) {
         lines.push('### Context', ...context, '');
@@ -130,7 +134,7 @@ function buildReportBody(
 const IssueReport: React.FC<IssueReportProps> = ({ isOpen, onClose, getContext }) => {
     const [category, setCategory] = useState<Category>('Incorrect regulation');
     const [description, setDescription] = useState('');
-    const [contact, setContact] = useState('');
+    const [email, setEmail] = useState('');
     const [ctx, setCtx] = useState<IssueReportContext>({});
     const [environment, setEnvironment] = useState<Record<string, string | number>>({});
     const [copied, setCopied] = useState(false);
@@ -150,7 +154,7 @@ const IssueReport: React.FC<IssueReportProps> = ({ isOpen, onClose, getContext }
         setEnvironment(collectEnvironment());
         setCategory('Incorrect regulation');
         setDescription('');
-        setContact('');
+        setEmail('');
         setCopied(false);
         setSubmitState('idle');
         setHp('');
@@ -166,8 +170,8 @@ const IssueReport: React.FC<IssueReportProps> = ({ isOpen, onClose, getContext }
     }, [isOpen, onClose]);
 
     const body = useMemo(
-        () => buildReportBody(category, description, contact, ctx, environment),
-        [category, description, contact, ctx, environment],
+        () => buildReportBody(category, description, email, ctx, environment),
+        [category, description, email, ctx, environment],
     );
 
     const title = useMemo(() => {
@@ -182,7 +186,12 @@ const IssueReport: React.FC<IssueReportProps> = ({ isOpen, onClose, getContext }
 
     if (!isOpen) return null;
 
+    const trimmedEmail = email.trim();
+    // Optional: blank is fine; if provided it must look like an email.
+    const emailValid = trimmedEmail === '' || EMAIL_RE.test(trimmedEmail);
     const canSubmit = description.trim().length > 0;
+    // Sending also requires a well-formed email (Copy/GitHub don't).
+    const canSend = canSubmit && emailValid;
 
     const handleCopy = async () => {
         try {
@@ -197,13 +206,13 @@ const IssueReport: React.FC<IssueReportProps> = ({ isOpen, onClose, getContext }
     // Send the report directly — no account needed. The worker stores it and
     // (if configured) emails it. On failure, the GitHub/Copy paths remain.
     const handleSend = async () => {
-        if (!canSubmit || submitState === 'sending' || submitState === 'sent') return;
+        if (!canSend || submitState === 'sending' || submitState === 'sent') return;
         setSubmitState('sending');
         try {
             const resp = await fetch(`${API_BASE}/api/feedback`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ title, body, hp }),
+                body: JSON.stringify({ title, body, email: trimmedEmail || undefined, hp }),
             });
             if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
             setSubmitState('sent');
@@ -266,13 +275,26 @@ const IssueReport: React.FC<IssueReportProps> = ({ isOpen, onClose, getContext }
                     </label>
 
                     <label className="issue-report-field">
-                        <span>Contact (optional)</span>
+                        <span>Email (optional)</span>
                         <input
-                            type="text"
-                            value={contact}
-                            onChange={e => setContact(e.target.value)}
-                            placeholder="Email or name, if you'd like a reply"
+                            type="email"
+                            value={email}
+                            onChange={e => setEmail(e.target.value)}
+                            placeholder="you@example.com — we'll email you a confirmation"
+                            autoComplete="email"
+                            inputMode="email"
+                            aria-invalid={!emailValid}
+                            aria-describedby={emailValid ? undefined : 'issue-report-email-error'}
                         />
+                        {!emailValid && (
+                            <span
+                                id="issue-report-email-error"
+                                className="issue-report-field-error"
+                                role="alert"
+                            >
+                                Enter a valid email address, or leave it blank.
+                            </span>
+                        )}
                     </label>
 
                     <details className="issue-report-preview">
@@ -295,6 +317,7 @@ const IssueReport: React.FC<IssueReportProps> = ({ isOpen, onClose, getContext }
                 {submitState === 'sent' && (
                     <p className="issue-report-status success" role="status">
                         <Check size={14} /> Thanks — your report was sent.
+                        {trimmedEmail && ' A confirmation is on its way to your inbox.'}
                     </p>
                 )}
                 {submitState === 'error' && (
@@ -340,7 +363,7 @@ const IssueReport: React.FC<IssueReportProps> = ({ isOpen, onClose, getContext }
                         type="button"
                         className="issue-report-primary"
                         onClick={handleSend}
-                        disabled={!canSubmit || submitState === 'sending' || submitState === 'sent'}
+                        disabled={!canSend || submitState === 'sending' || submitState === 'sent'}
                     >
                         {submitState === 'sending' ? (
                             <>

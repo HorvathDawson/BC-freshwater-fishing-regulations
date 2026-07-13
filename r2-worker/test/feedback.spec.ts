@@ -50,6 +50,33 @@ describe('/api/feedback', () => {
     expect(resp.status).toBe(400);
   });
 
+  it('stores a valid contact email on the record', async () => {
+    const resp = await postFeedback({ body: 'ping', email: 'angler@example.com' });
+    expect(resp.status).toBe(200);
+    const keys = await listFeedback();
+    const stored = await (env as unknown as TestEnv).BUCKET.get(keys[keys.length - 1]);
+    const record = JSON.parse(await stored!.text());
+    expect(record.email).toBe('angler@example.com');
+  });
+
+  it('stores null email when none is provided', async () => {
+    const resp = await postFeedback({ body: 'no email here' });
+    expect(resp.status).toBe(200);
+    const keys = await listFeedback();
+    const stored = await (env as unknown as TestEnv).BUCKET.get(keys[keys.length - 1]);
+    const record = JSON.parse(await stored!.text());
+    expect(record.email).toBeNull();
+  });
+
+  it('rejects a malformed email address', async () => {
+    const before = await listFeedback();
+    const resp = await postFeedback({ body: 'valid body', email: 'not-an-email' });
+    expect(resp.status).toBe(400);
+    // Nothing stored when the email is rejected.
+    const after = await listFeedback();
+    expect(after.length).toBe(before.length);
+  });
+
   it('rejects invalid JSON', async () => {
     const request = new Request('https://test.example.com/api/feedback', {
       method: 'POST',

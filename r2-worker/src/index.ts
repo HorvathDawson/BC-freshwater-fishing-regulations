@@ -1,10 +1,10 @@
+import { EmailMessage } from "cloudflare:email";
+
 interface Env {
   BUCKET: R2Bucket;
   SHARD_VERSION: string;
   /** Cloudflare Email send binding (optional — enables feedback emails). */
-  SEND_EMAIL?: {
-    send(message: { to: string; from: string; subject: string; text?: string; html?: string }): Promise<unknown>;
-  };
+  SEND_EMAIL?: { send(message: EmailMessage): Promise<void> };
   /** Sender address on your verified domain (e.g. feedback@canifishthis.ca). */
   FEEDBACK_FROM?: string;
   /** Verified destination address that receives feedback emails. */
@@ -358,11 +358,17 @@ async function handleVersion(env: Env): Promise<Response> {
 
 const MAX_FEEDBACK_TITLE = 300;
 const MAX_FEEDBACK_BODY = 8000;
+const MAX_FEEDBACK_EMAIL = 254; // RFC 5321 max address length
+
+/** Pragmatic email shape check (mirrors the webapp's client-side validation). */
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 interface FeedbackRecord {
   receivedAt: string;
   title: string;
   body: string;
+  /** Optional contact address supplied by the submitter (validated). */
+  email: string | null;
   userAgent: string | null;
   country: string | null;
 }
@@ -373,14 +379,16 @@ interface FeedbackRecord {
  * The report is ALWAYS stored durably in R2 under feedback/<date>/… — those
  * keys are never served over GET (see the guard in fetch()).  If Cloudflare
  * Email Routing is configured (SEND_EMAIL binding + FEEDBACK_FROM/FEEDBACK_TO),
- * a notification email is also sent.  Email is best-effort: a failure there
- * never fails the request, because the report is already saved.
+ * a notification email is also sent.  When the submitter leaves a valid email, a
+ * best-effort "we got your feedback" confirmation is sent to them as well.
+ * Email is best-effort: a failure there never fails the request, because the
+ * report is already saved.
  *
- * Body: { title?: string, body: string, hp?: string }
+ * Body: { title?: string, body: string, email?: string, hp?: string }
  *   hp — honeypot; bots fill it, humans never see it → silently dropped.
  */
 async function handleFeedback(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
-  let payload: { title?: unknown; body?: unknown; hp?: unknown };
+  let payload: { title?: unknown; body?: unknown; email?: unknown; hp?: unknown };
   try {
     const raw = await request.text();
     if (raw.length > MAX_FEEDBACK_BODY + 2000) {
@@ -402,11 +410,19 @@ async function handleFeedback(request: Request, env: Env, ctx: ExecutionContext)
     return errorResponse('Report body is required', 400);
   }
 
+  // Optional contact email — must be well-formed if present.  Enforced here too
+  // (not just in the browser), since anyone can POST to this endpoint.
+  const email = String(payload.email ?? '').trim().slice(0, MAX_FEEDBACK_EMAIL);
+  if (email && !EMAIL_RE.test(email)) {
+    return errorResponse('Invalid email address', 400);
+  }
+
   const receivedAt = new Date().toISOString();
   const record: FeedbackRecord = {
     receivedAt,
     title: title || '[Report]',
     body,
+    email: email || null,
     userAgent: request.headers.get('User-Agent'),
     country: request.headers.get('CF-IPCountry'),
   };
@@ -423,31 +439,115 @@ async function handleFeedback(request: Request, env: Env, ctx: ExecutionContext)
     return errorResponse('Failed to store report', 500);
   }
 
-  // 2. Optional email notification (best-effort, never blocks the response).
-  if (env.SEND_EMAIL && env.FEEDBACK_FROM && env.FEEDBACK_TO) {
-    ctx.waitUntil(
-      sendFeedbackEmail(env, record).catch(err => {
-        console.error('Feedback email failed (report is stored in R2):', err);
-      }),
-    );
+  // 2. Optional emails (best-effort — a failure here never fails the request,
+  //    because the report is already stored above).
+  if (env.SEND_EMAIL && env.FEEDBACK_FROM) {
+    // 2a. Notify the maintainer.  FEEDBACK_TO is a verified destination, so this
+    //     works even with only Email Routing configured.
+    if (env.FEEDBACK_TO) {
+      ctx.waitUntil(
+        sendFeedbackNotification(env, record).catch(err => {
+          console.error('Feedback notification email failed (report is stored in R2):', err);
+        }),
+      );
+    }
+    // 2b. Confirm receipt to the submitter.  This targets an arbitrary address,
+    //     so it requires Email Sending to be onboarded on the domain; with only
+    //     Email Routing it is rejected — hence best-effort.
+    if (record.email) {
+      ctx.waitUntil(
+        sendFeedbackConfirmation(env, record).catch(err => {
+          console.error('Feedback confirmation email failed (report is stored in R2):', err);
+        }),
+      );
+    }
   }
 
   return jsonResponse({ ok: true });
 }
 
-/** Send a feedback notification email via the Cloudflare Email send binding. */
-async function sendFeedbackEmail(env: Env, record: FeedbackRecord): Promise<void> {
-  await env.SEND_EMAIL!.send({
-    to: env.FEEDBACK_TO!,
-    from: env.FEEDBACK_FROM!,
-    subject: record.title.replace(/[\r\n]+/g, ' ').slice(0, 200) || '[Report]',
-    text:
-      `${record.body}\n\n` +
-      `— — —\n` +
-      `Received: ${record.receivedAt}\n` +
-      `User-Agent: ${record.userAgent ?? 'n/a'}\n` +
-      `Country: ${record.country ?? 'n/a'}`,
-  });
+/** Base64-encode a UTF-8 string (Workers-safe, no Buffer). */
+function base64Utf8(str: string): string {
+  const bytes = new TextEncoder().encode(str);
+  let bin = '';
+  for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+  return btoa(bin);
+}
+
+/** RFC 2047 encode a header value only when it contains non-ASCII characters. */
+function encodeHeaderValue(value: string): string {
+  return /[^\x20-\x7E]/.test(value) ? `=?utf-8?B?${base64Utf8(value)}?=` : value;
+}
+
+/**
+ * Build a minimal RFC 5322 message (CRLF line endings, base64 text body) for
+ * the Cloudflare Email send binding. A Message-ID whose domain matches the
+ * sender is required by Cloudflare Email Routing.
+ */
+function buildMimeMessage(opts: {
+  from: string;
+  to: string;
+  subject: string;
+  text: string;
+  replyTo?: string;
+}): string {
+  const domain = opts.from.split('@')[1] || 'localhost';
+  const bodyB64 = base64Utf8(opts.text).replace(/(.{76})/g, '$1\r\n');
+  const headers = [`From: ${opts.from}`, `To: ${opts.to}`];
+  if (opts.replyTo) headers.push(`Reply-To: ${opts.replyTo}`);
+  headers.push(
+    `Subject: ${encodeHeaderValue(opts.subject)}`,
+    `Message-ID: <${crypto.randomUUID()}@${domain}>`,
+    `Date: ${new Date().toUTCString()}`,
+    `MIME-Version: 1.0`,
+    `Content-Type: text/plain; charset=utf-8`,
+    `Content-Transfer-Encoding: base64`,
+    ``,
+    bodyB64,
+  );
+  return headers.join('\r\n');
+}
+
+/**
+ * Notify the maintainer of a new feedback report (delivered to FEEDBACK_TO).
+ * When the submitter left an email, it is set as Reply-To so a reply reaches
+ * them directly.
+ */
+async function sendFeedbackNotification(env: Env, record: FeedbackRecord): Promise<void> {
+  const from = env.FEEDBACK_FROM!;
+  const to = env.FEEDBACK_TO!;
+  const subject = record.title.replace(/[\r\n]+/g, ' ').slice(0, 200) || '[Report]';
+  const text =
+    `${record.body}\n\n` +
+    `— — —\n` +
+    `Contact email: ${record.email ?? '(none provided)'}\n` +
+    `Received: ${record.receivedAt}\n` +
+    `User-Agent: ${record.userAgent ?? 'n/a'}\n` +
+    `Country: ${record.country ?? 'n/a'}`;
+  const raw = buildMimeMessage({ from, to, subject, text, replyTo: record.email ?? undefined });
+  await env.SEND_EMAIL!.send(new EmailMessage(from, to, raw));
+}
+
+/**
+ * Send an automated "we got your feedback" confirmation to the submitter.
+ * Sent from FEEDBACK_FROM as an unmonitored, no-reply address.
+ */
+async function sendFeedbackConfirmation(env: Env, record: FeedbackRecord): Promise<void> {
+  const from = env.FEEDBACK_FROM!;
+  const to = record.email!;
+  const subject = 'We got your feedback — Can I Fish This';
+  const text =
+    `Hi,\n\n` +
+    `Thanks for sending feedback on Can I Fish This. We received your report and a ` +
+    `maintainer will take a look.\n\n` +
+    `For your reference, here's what you submitted:\n\n` +
+    `${record.title}\n${record.body}\n\n` +
+    `— — —\n` +
+    `This is an automated confirmation from an unmonitored address — please don't ` +
+    `reply. Spotted something else? Just send another report from the app.\n\n` +
+    `Can I Fish This\nhttps://canifishthis.ca`;
+  const raw = buildMimeMessage({ from, to, subject, text });
+  await env.SEND_EMAIL!.send(new EmailMessage(from, to, raw));
 }
 
 export default {

@@ -52,27 +52,48 @@ bucket_name = "bc-fishing-regulations"
 # Keep in sync with [vars].SHARD_VERSION above
 [env.production.vars]
 SHARD_VERSION = "v2"
+# Sender address on the onboarded domain (public — safe to commit).
 FEEDBACK_FROM = "feedback@canifishthis.ca"
-FEEDBACK_TO = "horvath.dawson@gmail.com"
+# NOTE: FEEDBACK_TO (your private inbox) is intentionally NOT stored here.
+# It lives as a Cloudflare secret so it never appears in git:
+#   npx wrangler secret put FEEDBACK_TO --env production
+# (enter your inbox address when prompted).
 
 [[env.production.routes]]
 pattern = "data.canifishthis.ca"
 custom_domain = true
 
-# Sends feedback emails to the verified destination above.
+# Sends feedback emails.  No destination restriction → the binding may send to
+# any verified destination in the account; the actual recipient is supplied at
+# runtime from the FEEDBACK_TO secret, so your personal address stays out of git.
 [[env.production.send_email]]
 name = "SEND_EMAIL"
-destination_address = "horvath.dawson@gmail.com"
 
 # ── Feedback email ──────────────────────────────────────────
 # POST /api/feedback ALWAYS stores reports in R2 (under feedback/…).  It ALSO
-# emails them when the Cloudflare Email send binding is configured (done for
-# [env.production] above).  Requirements already satisfied:
-#   • canifishthis.ca onboarded to Email Service (Compute → Email Service)
-#   • horvath.dawson@gmail.com added as a verified Destination Address
-# destination_address MUST equal FEEDBACK_TO and be the verified inbox;
-# FEEDBACK_FROM is any address on the onboarded domain.
+# emails them when the Cloudflare Email send binding + FEEDBACK_FROM/FEEDBACK_TO
+# are configured, and sends the submitter a confirmation when they leave an
+# email.  Two different delivery paths, two different requirements:
 #
-# To also send from the staging worker, mirror the three additions under
-# [env.staging.vars] (FEEDBACK_FROM/FEEDBACK_TO) and add a matching
-# [[env.staging.send_email]] block.
+#   1. Maintainer notification → FEEDBACK_TO (your inbox).
+#      • The RECIPIENT must be a VERIFIED destination address in your account.
+#        Works with Email Routing alone (free).  Keep it private as a secret:
+#            npx wrangler secret put FEEDBACK_TO --env production
+#
+#   2. Submitter confirmation → the address the reporter typed (arbitrary).
+#      • Sending to arbitrary recipients requires Email Sending (Beta) to be
+#        onboarded on the domain (Compute → Email Service → Email Sending;
+#        Workers Paid plan).  With only Email Routing this send is rejected —
+#        it's best-effort, so the report is still stored + you're still notified.
+#
+#   • FEEDBACK_FROM is any address on the onboarded domain (public, set above).
+#     It's the From for both emails; the confirmation is worded as no-reply.
+#
+# Prefer routing the maintainer copy through the domain instead of your raw
+# inbox?  Add feedback@canifishthis.ca as a Destination Address and verify it
+# (the link is forwarded to your inbox by your existing catch-all), then set the
+# FEEDBACK_TO secret to feedback@canifishthis.ca.
+#
+# To also send from the staging worker, mirror FEEDBACK_FROM under
+# [env.staging.vars], set the FEEDBACK_TO secret with --env staging, and add a
+# matching [[env.staging.send_email]] block.
