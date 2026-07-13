@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState, useMemo } from 'react';
-import { X, Calendar, MapPin, FileImage, RotateCcw, Share2, Check, ChevronDown, ChevronRight, ZoomIn, Maximize2, ExternalLink, Download } from 'lucide-react';
+import { X, Calendar, MapPin, FileImage, RotateCcw, Share2, Check, ChevronDown, ChevronRight, ZoomIn, ExternalLink } from 'lucide-react';
 import { Icon } from '@iconify/react';
 import type { Regulation } from '../services/regulationsService';
 import { regulationsService } from '../services/regulationsService';
@@ -16,7 +16,6 @@ import {
 import { getShareableUrl, getCanonicalUrl, copyToClipboard, setActiveSectionParam } from '../utils/urlState';
 import { sectionLabel } from '../utils/sectionLabel';
 import SourceImageViewer from './SourceImageViewer';
-import PdfViewer from './PdfViewer';
 import type { SearchableFeature } from './SearchBar';
 import { waterbodyDataService } from '../services/waterbodyDataService';
 import type { Reach, BathymetrySurvey } from '../services/waterbodyDataService';
@@ -34,12 +33,6 @@ async function buildCombinedPdf(urls: string[]): Promise<Uint8Array> {
         pages.forEach((p) => merged.addPage(p));
     }
     return merged.save();
-}
-
-/** Turn a survey title into a safe download filename stem. */
-function pdfFileStem(title: string): string {
-    const stem = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
-    return stem || 'depth-maps';
 }
 
 /** Human-readable labels for admin scope_location keys */
@@ -136,31 +129,23 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
     const [regulations, setRegulations] = useState<Regulation[]>([]);
     const [loadingRegs, setLoadingRegs] = useState(false);
     const [sourceImage, setSourceImage] = useState<{ src: string; name: string } | null>(null);
-    // Depth-map PDF popup. When a lake has several surveys we merge them into one
-    // combined PDF (blob URL) so they view/download together.
-    const [pdfView, setPdfView] = useState<{ url: string; title: string; downloadName?: string } | null>(null);
+    // Depth-map PDFs. A lake may have several survey sheets; when there are
+    // multiple we merge them into a single combined PDF and open it in a new
+    // browser tab so the user's default PDF viewer renders it. (The previous
+    // in-app viewer failed to display in Safari.)
     const [pdfBusy, setPdfBusy] = useState(false);
-    const pdfBlobUrlRef = useRef<string | null>(null);
 
-    const revokePdfBlob = () => {
-        if (pdfBlobUrlRef.current) {
-            URL.revokeObjectURL(pdfBlobUrlRef.current);
-            pdfBlobUrlRef.current = null;
-        }
-    };
-
-    const closePdfView = () => {
-        setPdfView(null);
-        revokePdfBlob();
-    };
-
-    // Open one survey directly, or several merged into a single combined PDF.
-    const openBathymetry = async (urls: string[], title: string) => {
-        revokePdfBlob();
+    // Open the depth map(s) in a new tab using the browser's default PDF viewer.
+    // Single survey → open its URL directly. Multiple → merge into one combined
+    // PDF, then point the newly-opened tab at the resulting blob URL.
+    const openBathymetry = async (urls: string[]) => {
         if (urls.length <= 1) {
-            setPdfView({ url: urls[0], title });
+            window.open(urls[0], '_blank', 'noopener,noreferrer');
             return;
         }
+        // Open the tab synchronously within the click gesture so Safari's popup
+        // blocker doesn't reject the (async) navigation below.
+        const tab = window.open('', '_blank');
         setPdfBusy(true);
         try {
             const bytes = await buildCombinedPdf(urls);
@@ -171,27 +156,23 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                 bytes.byteOffset + bytes.byteLength,
             ) as ArrayBuffer;
             const blobUrl = URL.createObjectURL(new Blob([buffer], { type: 'application/pdf' }));
-            pdfBlobUrlRef.current = blobUrl;
-            setPdfView({ url: blobUrl, title, downloadName: `${pdfFileStem(title)}-depth-maps.pdf` });
+            if (tab) {
+                tab.location.href = blobUrl;
+            } else {
+                // Popup was blocked — fall back to a fresh window.open.
+                window.open(blobUrl, '_blank', 'noopener,noreferrer');
+            }
+            // Free the blob once the new tab has had time to load it.
+            window.setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
         } catch (err) {
             console.error('[InfoPanel] failed to combine depth maps', err);
-            // Fall back to the first survey so the user still sees something.
-            setPdfView({ url: urls[0], title });
+            // Fall back to the first survey so the user still gets a map.
+            if (tab) tab.location.href = urls[0];
+            else window.open(urls[0], '_blank', 'noopener,noreferrer');
         } finally {
             setPdfBusy(false);
         }
     };
-
-    // Close the depth-map popup on Escape.
-    useEffect(() => {
-        if (!pdfView) return;
-        const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') closePdfView(); };
-        window.addEventListener('keydown', onKey);
-        return () => window.removeEventListener('keydown', onKey);
-    }, [pdfView]);
-
-    // Release any combined-PDF blob URL on unmount.
-    useEffect(() => () => revokePdfBlob(), []);
     const [activeFilter, setActiveFilter] = useState<string>('');
     const [copied, setCopied] = useState(false);
     const [expandedExclusions, setExpandedExclusions] = useState<Set<number>>(new Set());
@@ -693,10 +674,10 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                                             type="button"
                                             className="bathymetry-card"
                                             title={combined
-                                                ? `View ${bathymetry.length} depth maps combined`
-                                                : `View depth map: ${label}`}
+                                                ? `Open ${bathymetry.length} depth maps as one combined PDF in a new tab`
+                                                : `Open depth map in a new tab: ${label}`}
                                             disabled={pdfBusy}
-                                            onClick={() => openBathymetry(urls, label)}
+                                            onClick={() => openBathymetry(urls)}
                                         >
                                             <span className="bathymetry-card-icon">
                                                 <FileImage size={16} strokeWidth={2} aria-hidden="true" />
@@ -705,14 +686,14 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                                                 <span className="bathymetry-card-title">{label}</span>
                                                 <span className="bathymetry-card-sub">
                                                     {pdfBusy
-                                                        ? 'Combining surveys…'
+                                                        ? 'Preparing PDF…'
                                                         : combined
-                                                            ? `${bathymetry.length} surveys combined`
-                                                            : 'Depth contour survey'}
+                                                            ? `Opens ${bathymetry.length} surveys as one combined PDF in a new tab`
+                                                            : 'Opens PDF in a new tab'}
                                                 </span>
                                             </span>
                                             <span className="bathymetry-card-badge">PDF</span>
-                                            <Maximize2 size={14} strokeWidth={2} className="bathymetry-card-open" aria-hidden="true" />
+                                            <ExternalLink size={14} strokeWidth={2} className="bathymetry-card-open" aria-hidden="true" />
                                         </button>
                                     </div>
                                 </div>
@@ -1103,58 +1084,6 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                 />
             )}
 
-            {/* Depth-map PDF viewer (desktop popup) */}
-            {pdfView && (
-                <div
-                    className="pdf-modal-overlay"
-                    role="dialog"
-                    aria-modal="true"
-                    aria-label={`Depth map: ${pdfView.title}`}
-                    onClick={(e) => { if (e.target === e.currentTarget) closePdfView(); }}
-                >
-                    <div className="pdf-modal">
-                        <div className="pdf-modal-header">
-                            <span className="pdf-modal-title">
-                                <FileImage size={14} strokeWidth={2} aria-hidden="true" />
-                                {pdfView.title}
-                            </span>
-                            <div className="pdf-modal-actions">
-                                <a
-                                    className="pdf-modal-btn"
-                                    href={pdfView.url}
-                                    download={pdfView.downloadName ?? true}
-                                    title="Download PDF"
-                                    aria-label="Download PDF"
-                                >
-                                    <Download size={16} strokeWidth={2} />
-                                </a>
-                                <a
-                                    className="pdf-modal-btn"
-                                    href={pdfView.url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    title="Open in new tab"
-                                    aria-label="Open in new tab"
-                                >
-                                    <ExternalLink size={16} strokeWidth={2} />
-                                </a>
-                                <button
-                                    className="pdf-modal-btn pdf-modal-close"
-                                    onClick={closePdfView}
-                                    aria-label="Close depth map"
-                                    title="Close"
-                                >
-                                    <X size={18} strokeWidth={2} />
-                                </button>
-                            </div>
-                        </div>
-                        <PdfViewer
-                            url={pdfView.url}
-                            title={`Depth map: ${pdfView.title}`}
-                        />
-                    </div>
-                </div>
-            )}
         </>
     );
 };
