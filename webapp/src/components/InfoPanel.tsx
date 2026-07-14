@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState, useMemo } from 'react';
-import { X, Calendar, MapPin, FileImage, RotateCcw, Share2, Check, ChevronDown, ChevronRight, ZoomIn, ExternalLink } from 'lucide-react';
+import { X, Calendar, MapPin, FileImage, RotateCcw, Share2, Check, ChevronDown, ChevronRight, ZoomIn, ExternalLink, Flag } from 'lucide-react';
 import { Icon } from '@iconify/react';
 import type { Regulation } from '../services/regulationsService';
 import { regulationsService } from '../services/regulationsService';
@@ -58,6 +58,8 @@ interface InfoPanelProps {
     /** Fly to a section bbox at a minimum zoom. Used by the "Zoom to section" button.
      *  minZoom ensures the tile layer is visible at the destination zoom level. */
     onFlyToSection?: (bbox: [number, number, number, number], minZoom: number) => void;
+    /** Open the issue/feedback report modal, pre-filled with the current feature. */
+    onReportIssue?: () => void;
 };
 
 /** Map restriction_type to CSS class for colored pills */
@@ -99,12 +101,31 @@ const getFilterCategory = (type: string): string | null => {
     return null;
 };
 
-const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapseState, siblingFeatures = [], onHighlightSection, onFlyToSection }: InfoPanelProps) => {
+const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapseState, siblingFeatures = [], onHighlightSection, onFlyToSection, onReportIssue }: InfoPanelProps) => {
     const touchStartY = useRef<number>(0);
     const touchStartTime = useRef<number>(0);
     // Set to true by tab clicks so the feature-change effect below
     // knows to skip overwriting activeFgid (the tab click already set it).
     const tabSwitchRef = useRef(false);
+
+    // Mobile bottom-sheet: in the "partial" state we reveal only the header
+    // (down to the line separating it from content). The header height is
+    // dynamic (title, subtitle, tags), so measure it and expose it as a CSS
+    // custom property that the .partial transform reads.
+    const mobilePanelRef = useRef<HTMLElement>(null);
+    useEffect(() => {
+        const panel = mobilePanelRef.current;
+        if (!panel) return;
+        const header = panel.querySelector<HTMLElement>('.panel-header');
+        if (!header) return;
+        const applyOffset = () => {
+            panel.style.setProperty('--partial-offset', `${header.offsetHeight}px`);
+        };
+        applyOffset();
+        const ro = new ResizeObserver(applyOffset);
+        ro.observe(header);
+        return () => ro.disconnect();
+    }, [feature, collapseState]);
 
     // --- Section tab bar overflow detection (edge fade indicators) ---
     const tabBarRef = useRef<HTMLDivElement>(null);
@@ -341,6 +362,20 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
         touchStartTime.current = Date.now();
     };
 
+    // Ignore header taps that arrive immediately after the panel opens. When a
+    // feature is picked from the mobile disambiguation bottom-sheet, the tap's
+    // synthesized "ghost click" can land on the newly-opened panel header (which
+    // occupies the same bottom-of-screen area) and spuriously expand it.
+    const openedAtRef = useRef<number>(0);
+    useEffect(() => {
+        if (feature) openedAtRef.current = Date.now();
+    }, [feature]);
+
+    const handleHeaderToggle = () => {
+        if (Date.now() - openedAtRef.current < 500) return;
+        onSetCollapseState(collapseState === 'expanded' ? 'partial' : 'expanded');
+    };
+
     const handleTouchEnd = (e: React.TouchEvent) => {
         const result = calculateSwipeState(
             touchStartY.current,
@@ -364,7 +399,7 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                 <>
                     <div
                         className="panel-header"
-                        onClick={() => onSetCollapseState(collapseState === 'expanded' ? 'partial' : 'expanded')}
+                        onClick={handleHeaderToggle}
                         onTouchStart={handleTouchStart}
                         onTouchEnd={handleTouchEnd}
                     >
@@ -427,10 +462,7 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
             <>
                 <div 
                     className="panel-header" 
-                    onClick={() => {
-                        // Toggle between expanded and partial
-                        onSetCollapseState(collapseState === 'expanded' ? 'partial' : 'expanded');
-                    }}
+                    onClick={handleHeaderToggle}
                     onTouchStart={handleTouchStart}
                     onTouchEnd={handleTouchEnd}
                 >
@@ -1035,7 +1067,7 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                                         </div>
                                     </div>
                                     {muList.length > 0 && (
-                                        <details className="mu-details">
+                                        <details className="mu-details" open>
                                             <summary>MGMT UNITS ({muList.length})</summary>
                                             <div className="mu-tags-row">
                                                 {muList.map((mu: string) => (
@@ -1054,6 +1086,19 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                             </div>
                         )}
                     </div>
+
+                    {onReportIssue && (
+                        <div className="data-section report-section">
+                            <button
+                                type="button"
+                                className="report-issue-btn"
+                                onClick={() => onReportIssue()}
+                            >
+                                <Flag size={14} />
+                                Report a problem with this regulation
+                            </button>
+                        </div>
+                    )}
                 </div>
             </>
         );
@@ -1065,7 +1110,7 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                 {renderContent()}
             </aside>
             
-            <aside className={`panel-mobile ${feature ? 'visible' : ''} ${collapseState === 'partial' ? 'partial' : ''}`} aria-label="Feature details">
+            <aside ref={mobilePanelRef} className={`panel-mobile ${feature ? 'visible' : ''} ${collapseState === 'partial' ? 'partial' : ''}`} aria-label="Feature details">
                 {renderContent()}
             </aside>
 

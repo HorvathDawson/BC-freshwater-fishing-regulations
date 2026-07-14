@@ -170,7 +170,7 @@ const DisambiguationMenu = ({ options, position, highlightedOption, onSelect, on
                                 {isMobile && (
                                     <button
                                         className={`focus-button ${isHighlighted ? '' : 'hidden'}`}
-                                        onPointerDown={(e) => { e.stopPropagation(); onSelect(option); }}
+                                        onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); onSelect(option); }}
                                         aria-label="Focus on this feature"
                                         tabIndex={isHighlighted ? 0 : -1}
                                     >

@@ -496,8 +496,8 @@ const setGroupFilter = (map: maplibregl.Map, layerIds: string[], feature: Featur
     }
 };
 
-/** Bottom padding for the partial (35 vh) mobile panel. */
-const getMobileBottomPadding = () => Math.round(window.innerHeight * 0.35) + 20;
+/** Bottom padding for the partial mobile panel (header-only ≈ 130px tall). */
+const getMobileBottomPadding = () => 150;
 
 /**
  * Pick mobile padding and target panel state based on bbox shape.
@@ -529,8 +529,9 @@ const MapComponent = () => {
     const hoverTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const searchPollRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const selectedFeatureRef = useRef<FeatureInfo | null>(null);
-    const mobilePanelStateRef = useRef<CollapseState>('expanded');
-    const prevMobilePanelStateRef = useRef<CollapseState>('expanded');
+    const mobilePanelStateRef = useRef<CollapseState>('partial');
+    const prevMobilePanelStateRef = useRef<CollapseState>('partial');
+    const prevSelectedFeatureRef = useRef<FeatureInfo | null>(null);
     const urlRestoredRef = useRef<boolean>(false);
     const popstateInProgressRef = useRef<boolean>(false);
     // Lookup map: reach_id → { feature, segment }
@@ -558,7 +559,7 @@ const MapComponent = () => {
     const spinnerTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const spinnerShownAtRef = useRef<number>(0);
 
-    const [mobilePanelState, setMobilePanelState] = useState<CollapseState>('expanded');
+    const [mobilePanelState, setMobilePanelState] = useState<CollapseState>('partial');
     const [highlightedOption, setHighlightedOption] = useState<FeatureOption | null>(null);
     const [highlightedSearchResult, setHighlightedSearchResult] = useState<SearchableFeature | null>(null);
     const [searchableFeatures, setSearchableFeatures] = useState<SearchableFeature[]>([]);
@@ -636,34 +637,40 @@ const MapComponent = () => {
         prevMobilePanelStateRef.current = mobilePanelState;
     }, [mobilePanelState]);
 
-    // On desktop, shrink the map viewport when the info panel opens so it
-    // doesn't overlap.  The CSS transition on .map-canvas is 200ms, so we
-    // resize the MapLibre canvas after that transition completes.
-    // After resize, pan so the selected feature stays centered in the
-    // now-smaller (or restored) visible area.
+    // On desktop the info panel now overlays the map (no width change), so we
+    // no longer resize the MapLibre canvas — the panel simply slides in on top.
+    // On mobile the panel is a bottom sheet and likewise doesn't resize the map.
     useEffect(() => {
         const container = mapContainerRef.current;
         if (!container) return;
         const panelOpen = selectedFeature !== null;
         container.closest('.map-container')?.classList.toggle('panel-open', panelOpen);
-        // Resize after the CSS width transition (200ms) finishes
-        const timer = setTimeout(() => {
-            const map = mapRef.current;
-            if (!map) return;
-            map.resize();
-            // Re-center on feature bbox after the canvas resizes (desktop only).
-            // Skip re-center if the map is mid-flight (search/URL restore fly-to)
-            // — the flyTo animation already targets the correct position.
-            if (panelOpen && selectedFeature?.bbox && !isMobileViewport() && !map.isMoving()) {
-                const bbox = selectedFeature.bbox;
-                if (isValidBbox(bbox)) {
-                    const center: [number, number] = [(bbox[0] + bbox[2]) / 2, (bbox[1] + bbox[3]) / 2];
-                    map.easeTo({ center, duration: 200 });
-                }
-            }
-        }, 220);
-        return () => clearTimeout(timer);
+        // On mobile, always open the panel in the "partial" state initially so
+        // the map stays visible. Only trigger on the null → open transition so
+        // we don't fight the user re-expanding it (tab switches keep the feature
+        // non-null and won't re-collapse).
+        if (panelOpen && prevSelectedFeatureRef.current === null && isMobileViewport()) {
+            setMobilePanelState('partial');
+        }
+        prevSelectedFeatureRef.current = selectedFeature;
     }, [selectedFeature]);
+
+    // Disable ALL map interactions while the loading overlay is up. Zooming or
+    // panning before data/filters are applied leaves the map in a broken state
+    // (tiles/filters not yet wired), so we lock the map until it's ready.
+    useEffect(() => {
+        const map = mapRef.current;
+        if (!map) return;
+        const ready = mapReady && dataLoaded && filtersApplied;
+        const handlers = [
+            map.scrollZoom, map.boxZoom, map.dragRotate, map.dragPan,
+            map.keyboard, map.doubleClickZoom, map.touchZoomRotate, map.touchPitch,
+        ];
+        for (const h of handlers) {
+            if (ready) h.enable();
+            else h.disable();
+        }
+    }, [mapReady, dataLoaded, filtersApplied]);
 
     const toggleSatellite = useCallback(() => {
         const map = mapRef.current;
@@ -854,7 +861,7 @@ const MapComponent = () => {
         setDisambigOptions([]);
         setDisambigPosition(null);
         isDisambigOpenRef.current = false;
-        setMobilePanelState('expanded');
+        setMobilePanelState('partial');
         
         // Clear feature from URL
         clearUrlState();
@@ -1629,6 +1636,19 @@ const MapComponent = () => {
             src?.setData({ type: 'FeatureCollection', features: [{ type: 'Feature', geometry: createCirclePolygon(cursorLngLatRef.current, map.getZoom()), properties: {} }] });
         });
 
+        // Select a single option directly, or open the disambiguation menu for multiple.
+        const presentOptions = (opts: FeatureOption[], point: { x: number; y: number }) => {
+            clearSelection();
+            if (opts.length === 1) {
+                setSelectedFeature(opts[0]);
+                return;
+            }
+            setDisambigOptions(opts);
+            setDisambigPosition({ x: point.x, y: point.y });
+            isDisambigOpenRef.current = true;
+            if (isMobileViewport()) setMobilePanelState('partial');
+        };
+
         map.on('click', async (e) => {
             // V2 click handler: resolve tile fid/wbk → reach via /api/resolve.
             const features = map.queryRenderedFeatures(
@@ -1636,27 +1656,32 @@ const MapComponent = () => {
                 { layers: INTERACTABLE_LAYERS }
             );
 
-            // Check for ungazetted point clicks (GeoJSON layer, not tile-based)
-            if (!features.length) {
-                const ugHits = map.queryRenderedFeatures(
-                    [[e.point.x - 15, e.point.y - 15], [e.point.x + 15, e.point.y + 15]],
-                    { layers: ['ungazetted-points-dot'] }
-                );
-                if (ugHits.length > 0) {
-                    const reachId = String(ugHits[0].properties?.reach_id || '');
-                    const lookup = reachId ? searchLookupRef.current.get(reachId) : undefined;
-                    if (lookup) {
-                        clearSelection();
-                        const { feature: sf, segment: seg } = lookup;
-                        const fidList = regDataRef.current?.reachSegments[reachId];
-                        const selected = buildFeatureFromJSON(sf, seg, { fidList });
-                        setSelectedFeature(selected);
-                    }
-                    return;
-                }
+            // Ungazetted points live in a GeoJSON layer (not tile-based), so query them
+            // separately and build their options synchronously. They must always be
+            // considered — even when overlapping tile features — so they can appear in
+            // the disambiguation menu alongside streams/lakes.
+            const ugHits = map.queryRenderedFeatures(
+                [[e.point.x - 15, e.point.y - 15], [e.point.x + 15, e.point.y + 15]],
+                { layers: ['ungazetted-points-dot'] }
+            );
+            const ugOptions: FeatureOption[] = [];
+            const ugSeen = new Set<string>();
+            for (const hit of ugHits) {
+                const reachId = String(hit.properties?.reach_id || '');
+                if (!reachId || ugSeen.has(reachId)) continue;
+                const lookup = searchLookupRef.current.get(reachId);
+                if (!lookup) continue;
+                ugSeen.add(reachId);
+                const { feature: sf, segment: seg } = lookup;
+                const fidList = regDataRef.current?.reachSegments[reachId];
+                ugOptions.push(buildFeatureFromJSON(sf, seg, { fidList }));
             }
 
             if (!features.length) {
+                if (ugOptions.length) {
+                    presentOptions(ugOptions, e.point);
+                    return;
+                }
                 // Click on blank map area — close both the info panel and disambig menu.
                 clearSelection();
                 return;
@@ -1694,6 +1719,8 @@ const MapComponent = () => {
             }
 
             if (!fids.length && !wbks.length) {
+                // No resolvable tile features — fall back to any ungazetted hits.
+                if (ugOptions.length) { presentOptions(ugOptions, e.point); return; }
                 console.debug('[Map] clicked feature has no fid/wbk:', features[0].properties);
                 return;
             }
@@ -1737,12 +1764,14 @@ const MapComponent = () => {
             }
 
             if (candidates.length === 0) {
+                // No tile reaches resolved — fall back to any ungazetted hits.
+                if (ugOptions.length) { presentOptions(ugOptions, e.point); return; }
                 console.debug('[Map] resolve returned no matching reaches for:', fids, wbks);
                 return;
             }
 
             // Build FeatureOptions from candidates
-            const options: FeatureOption[] = candidates.map(({ reachId, feature: tileFeature }) => {
+            const tileOptions: FeatureOption[] = candidates.map(({ reachId, feature: tileFeature }) => {
                 const lookup = searchLookupRef.current.get(reachId);
                 const sf = lookup?.feature;
                 const seg = lookup?.segment;
@@ -1768,20 +1797,13 @@ const MapComponent = () => {
                 });
             }).filter(Boolean) as FeatureOption[];
 
-            if (options.length === 0) return;
+            // Merge ungazetted options (dedup by reach_id) so they appear in the menu
+            // alongside overlapping streams/lakes.
+            const tileReachIds = new Set(tileOptions.map(o => o.properties.frontend_group_id as string));
+            const options = [...tileOptions, ...ugOptions.filter(o => !tileReachIds.has(o.properties.frontend_group_id as string))];
 
-            if (options.length === 1) {
-                // Single reach — select directly
-                clearSelection();
-                setSelectedFeature(options[0]);
-            } else {
-                // Multiple overlapping reaches — show disambiguation menu
-                clearSelection();
-                setDisambigOptions(options);
-                setDisambigPosition({ x: e.point.x, y: e.point.y });
-                isDisambigOpenRef.current = true;
-                if (isMobileViewport()) setMobilePanelState('partial');
-            }
+            if (options.length === 0) return;
+            presentOptions(options, e.point);
         });
 
         mapRef.current = map;
@@ -2089,7 +2111,7 @@ const MapComponent = () => {
                     placeholder="Search waterbodies..." 
                 />
             </div>
-            <InfoPanel feature={selectedFeature} onClose={clearSelection} collapseState={mobilePanelState} onSetCollapseState={setMobilePanelState} siblingFeatures={siblingFeatures} onHighlightSection={handleHighlightSection} onFlyToSection={handleFlyToSection} />
+            <InfoPanel feature={selectedFeature} onClose={clearSelection} collapseState={mobilePanelState} onSetCollapseState={setMobilePanelState} siblingFeatures={siblingFeatures} onHighlightSection={handleHighlightSection} onFlyToSection={handleFlyToSection} onReportIssue={() => setIssueReportOpen(true)} />
             <div className="map-footer-links">
                 <DisclaimerLink onClick={() => setDisclaimerOpen(true)} />
                 <IssueReportLink onClick={() => setIssueReportOpen(true)} />

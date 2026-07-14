@@ -10,6 +10,36 @@
     --font-mono: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', 'Consolas', monospace;
 }
 
+/* "Report a problem" button — shown at the bottom of the panel content on both
+   desktop and mobile. Opens the shared IssueReport feedback modal. */
+.report-section {
+    padding-top: 4px;
+}
+
+.report-issue-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+    justify-content: center;
+    padding: 10px 12px;
+    background: var(--bg-subtle);
+    border: 1px solid var(--border-light);
+    border-radius: 6px;
+    color: var(--text-secondary);
+    font-family: var(--font-sans);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.report-issue-btn:hover {
+    background: #fff;
+    color: var(--text);
+    border-color: var(--border);
+}
+
 .panel-desktop {
     position: absolute; 
     top: 0; 
@@ -1350,7 +1380,9 @@
     }
     
     .panel-mobile.partial { 
-        transform: translateY(50%); 
+        /* Reveal only the header (down to its bottom border). --partial-offset
+           is the measured header height, set in JS. Fallback ~120px. */
+        transform: translateY(calc(100% - var(--partial-offset, 120px))); 
     }
     
 

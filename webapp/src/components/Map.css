@@ -8,7 +8,6 @@
 .map-canvas {
     width: 100%;
     height: 100%;
-    transition: width 0.2s cubic-bezier(0,0,0,1);
     will-change: transform;
 }
 
@@ -34,12 +33,7 @@
     letter-spacing: 0.02em;
 }
 
-/* Shrink map viewport when desktop info panel is open */
-@media (min-width: 769px) {
-    .map-container.panel-open .map-canvas {
-        width: calc(100% - 350px);
-    }
-}
+/* Desktop info panel overlays the map (no map resize) — see .panel-desktop */
 
 .map-menu-wrapper {
     position: absolute;
