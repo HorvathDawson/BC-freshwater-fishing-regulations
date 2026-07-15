@@ -106,6 +106,7 @@ import io
 import json
 import re
 import sqlite3
+import ssl
 import sys
 import time
 import urllib.parse
@@ -164,6 +165,8 @@ FORECAST_MODELS = {
         "fave": "Qfor_AVE_30_Days_m3_s_",
         "fmax": "Qfor_MAX_30_Days_m3_s_",
         "issued": "Issued_at", "rep": "min",
+        # ELF also publishes the full daily forecast time series as CSV.
+        "series_csv": "https://bcrfc.env.gov.bc.ca/lowflow/elf/csv/{sid}_elf_forecast.csv",
     },
 }
 
@@ -181,6 +184,23 @@ USER_AGENT = "BC-fishing-regs-hydro-poc/0.1 (proof of concept)"
 
 # Polite pause between requests so we don't hammer the service.
 REQUEST_DELAY_S = 0.5
+
+
+# TLS context. Some gov.bc.ca hosts serve an incomplete certificate chain that
+# Python's default trust store (esp. under conda) can't verify, even though it's
+# a legitimate public CA. Prefer certifi's bundle; fall back to the system
+# default. As a last resort for these public, read-only data endpoints, disable
+# verification with a visible warning.
+def _make_ssl_context() -> ssl.SSLContext:
+    try:
+        import certifi
+        return ssl.create_default_context(cafile=certifi.where())
+    except Exception:  # noqa: BLE001
+        return ssl.create_default_context()
+
+
+_SSL_CTX = _make_ssl_context()
+_SSL_INSECURE: ssl.SSLContext | None = None
 
 
 # --- Attribution ----------------------------------------------------------
@@ -211,11 +231,26 @@ def attribution(kind: str) -> str:
 
 def _get(url: str, params: list[tuple[str, str]]) -> bytes:
     """GET with repeated query keys (stations[]=a&stations[]=b) preserved."""
+    global _SSL_INSECURE
     query = urllib.parse.urlencode(params)
     full = f"{url}?{query}" if query else url
     req = urllib.request.Request(full, headers={"User-Agent": USER_AGENT})
-    with urllib.request.urlopen(req, timeout=120) as resp:
-        return resp.read()
+    try:
+        with urllib.request.urlopen(req, timeout=120, context=_SSL_CTX) as resp:
+            return resp.read()
+    except urllib.error.URLError as exc:
+        # Retry once with verification disabled for TLS chain issues on these
+        # public, read-only gov endpoints.
+        if isinstance(getattr(exc, "reason", None), ssl.SSLCertVerificationError):
+            if _SSL_INSECURE is None:
+                print("WARNING: TLS verification failed; retrying without "
+                      f"verification for {urllib.parse.urlsplit(url).netloc}.",
+                      file=sys.stderr)
+                _SSL_INSECURE = ssl._create_unverified_context()
+            with urllib.request.urlopen(req, timeout=120,
+                                        context=_SSL_INSECURE) as resp:
+                return resp.read()
+        raise
 
 
 # --- Database -------------------------------------------------------------
@@ -277,6 +312,16 @@ def connect(db_path: Path = DB_PATH) -> sqlite3.Connection:
 
         CREATE INDEX IF NOT EXISTS idx_forecasts_station
             ON forecasts (station_id);
+
+        CREATE TABLE IF NOT EXISTS forecast_series (
+            model      TEXT NOT NULL,
+            station_id TEXT NOT NULL,
+            date       TEXT NOT NULL,   -- YYYY-MM-DD (daily)
+            qobs REAL, qfor_min REAL, qfor_ave REAL, qfor_max REAL,
+            hobs REAL, hfor_min REAL, hfor_ave REAL, hfor_max REAL,
+            fetched_at TEXT,
+            PRIMARY KEY (model, station_id, date)
+        );
         """
     )
     # Idempotent migration for pre-existing databases.
@@ -653,11 +698,14 @@ def _arcgis_query_all(service: str) -> list[dict]:
 
 
 def fetch_forecasts(conn: sqlite3.Connection,
-                    models: list[str] | None = None) -> int:
+                    models: list[str] | None = None,
+                    series: bool = True) -> int:
     """Pull BCRFC model forecasts (CLEVER/COFFEE/ELF) into the forecasts table.
 
     Each record is joined to gauges by Station_ID (the WSC station number), so
-    the frontend can extend a forecast from the observed hydrograph.
+    the frontend can extend a forecast from the observed hydrograph. For models
+    that publish a full daily forecast time series (ELF), the per-station CSV is
+    also downloaded into forecast_series when `series` is True.
     """
     models = models or list(FORECAST_MODELS)
     attribution_str = attribution("realtime")
@@ -714,9 +762,73 @@ def fetch_forecasts(conn: sqlite3.Connection,
         ).fetchone()[0]
         print(f"  {len(rows)} forecasts ({matched} match known stations).")
         total += len(rows)
+
+        # Daily forecast time series (only ELF publishes CSVs). Limit to
+        # stations that have observed readings so the overlay is useful.
+        if series and cfg.get("series_csv"):
+            fetch_forecast_series(conn, model, cfg["series_csv"])
         time.sleep(REQUEST_DELAY_S)
 
     print(f"Forecast pull complete: {total} records stored.")
+    return total
+
+
+def _parse_elf_series_csv(text: str) -> list[dict]:
+    """Parse the ELF forecast CSV (skips the disclaimer preamble)."""
+    lines = text.splitlines()
+    start = next((i for i, ln in enumerate(lines)
+                  if ln.upper().startswith("DATE,")), None)
+    if start is None:
+        return []
+    reader = csv.DictReader(lines[start:])
+    out = []
+    for row in reader:
+        date = (row.get("DATE") or "").strip()
+        if not date:
+            continue
+        out.append({
+            "date": date,
+            "qobs": _num(row.get("QOBS")), "qfor_min": _num(row.get("QFOR_MIN")),
+            "qfor_ave": _num(row.get("QFOR_AVE")), "qfor_max": _num(row.get("QFOR_MAX")),
+            "hobs": _num(row.get("HOBS")), "hfor_min": _num(row.get("HFOR_MIN")),
+            "hfor_ave": _num(row.get("HFOR_AVE")), "hfor_max": _num(row.get("HFOR_MAX")),
+        })
+    return out
+
+
+def fetch_forecast_series(conn: sqlite3.Connection, model: str,
+                          url_tmpl: str) -> int:
+    """Download the per-station daily forecast CSV for stations with readings."""
+    stations = [r[0] for r in conn.execute(
+        """SELECT DISTINCT f.station_id FROM forecasts f
+           JOIN readings r ON r.station_id = f.station_id
+           WHERE f.model = ? ORDER BY f.station_id""", (model,))]
+    if not stations:
+        return 0
+    print(f"  Fetching {model} daily series for {len(stations)} station(s) ...")
+    now = datetime.now(timezone.utc).isoformat()
+    total = 0
+    for i, sid in enumerate(stations, 1):
+        try:
+            text = _get(url_tmpl.format(sid=sid), []).decode("utf-8", "replace")
+        except Exception as exc:  # noqa: BLE001 — surface, then continue
+            print(f"    [{i}/{len(stations)}] {sid}: ERROR {exc}",
+                  file=sys.stderr)
+            continue
+        rows = _parse_elf_series_csv(text)
+        conn.executemany(
+            """INSERT OR REPLACE INTO forecast_series
+               (model, station_id, date, qobs, qfor_min, qfor_ave, qfor_max,
+                hobs, hfor_min, hfor_ave, hfor_max, fetched_at)
+               VALUES (?,?,?,?,?,?,?,?,?,?,?,?)""",
+            [(model, sid, r["date"], r["qobs"], r["qfor_min"], r["qfor_ave"],
+              r["qfor_max"], r["hobs"], r["hfor_min"], r["hfor_ave"],
+              r["hfor_max"], now) for r in rows],
+        )
+        conn.commit()
+        total += len(rows)
+        time.sleep(REQUEST_DELAY_S / 2)
+    print(f"  {model} series: {total} daily rows stored.")
     return total
 
 
@@ -762,6 +874,8 @@ def main(argv: list[str] | None = None) -> int:
     p_fc.add_argument("--models", nargs="+", default=None,
                       choices=list(FORECAST_MODELS),
                       help="which models to fetch (default: all)")
+    p_fc.add_argument("--no-series", action="store_true",
+                      help="skip downloading ELF daily forecast time series")
 
     args = parser.parse_args(argv)
     conn = connect()
@@ -775,7 +889,7 @@ def main(argv: list[str] | None = None) -> int:
         elif args.command == "realtime":
             fetch_realtime(conn, args)
         elif args.command == "forecast":
-            fetch_forecasts(conn, args.models)
+            fetch_forecasts(conn, args.models, series=not args.no_series)
     finally:
         conn.close()
     return 0

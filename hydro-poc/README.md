@@ -45,20 +45,23 @@ python hydro_poc.py realtime --bc
 python hydro_poc.py realtime --all
 
 # 4. BCRFC model forecasts (CLEVER / COFFEE / ELF)
-python hydro_poc.py forecast                 # all three models
+python hydro_poc.py forecast                 # all three models (+ ELF daily series)
 python hydro_poc.py forecast --models CLEVER # one model
+python hydro_poc.py forecast --no-series      # skip ELF daily-series CSVs
 
 # 5. View it
 python serve.py       # open http://localhost:8765
 ```
 
 In the viewer, pick a **Forecast model** to filter the station list to stations
-that have that forecast (and observed data). The forecast is shown as its
-**min–max bounds band** over the model's horizon (CLEVER 10d, COFFEE 5d,
-ELF 30d) — not a straight line, since the summary services only expose the
-period min/avg/max, not the day-by-day curve. A link to the referenced
-**hydrograph PDF** is shown for the full detailed forecast. The overlay applies
-when a discharge parameter (6 or 47) is selected.
+that have that forecast (and observed data). The observed week is always shown;
+then:
+- **ELF** — the **real daily forecast** (QFOR min/avg/max time series) is drawn
+  extending past the observations, pulled from BCRFC's per-station CSV.
+- **CLEVER / COFFEE** — only period min/avg/max summaries are published, so a
+  bounds band is shown with a link to the full hydrograph PDF.
+
+The overlay applies when a discharge parameter (6 or 47) is selected.
 
 Re-running `realtime` on a schedule (cron / GitHub Action) is how the
 production version would keep the "current conditions" fresh.
@@ -85,6 +88,14 @@ All service times are **UTC**.
   obs_value, obs_rp, forecast_value, forecast_min, forecast_ave, forecast_max,
   forecast_rp, hydrograph_url, lat, lon, raw, attribution, fetched_at)` —
   BCRFC CLEVER/COFFEE/ELF summaries, joined to gauges by `station_id`.
+- `forecast_series(model, station_id, date, qobs, qfor_min, qfor_ave, qfor_max,
+  hobs, hfor_min, hfor_ave, hfor_max, fetched_at)` — ELF full daily forecast
+  time series (from BCRFC per-station CSVs).
+
+> Note: some gov.bc.ca hosts serve an incomplete TLS chain that conda's Python
+> can't verify. Install `certifi` (`pip install certifi`) for clean fetching;
+> otherwise the script retries those public endpoints without verification and
+> prints a warning.
 
 `source` is `bulk` or `realtime`; `attribution` stores the exact ECCC string
 for that batch so the website can render it.

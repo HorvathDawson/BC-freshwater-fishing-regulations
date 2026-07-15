@@ -154,6 +154,23 @@ class Handler(BaseHTTPRequestHandler):
             self._json(rows[0] if rows else {})
             return
 
+        if parsed.path == "/api/forecast_series":
+            station = (qs.get("station") or [""])[0]
+            model = (qs.get("model") or [""])[0]
+            if not station or not model:
+                self._json({"error": "station and model required"}, 400)
+                return
+            rows = query(
+                """SELECT date, qobs, qfor_min, qfor_ave, qfor_max,
+                          hobs, hfor_min, hfor_ave, hfor_max
+                   FROM forecast_series
+                   WHERE station_id = ? AND model = ?
+                   ORDER BY date""",
+                (station, model),
+            )
+            self._json(rows)
+            return
+
         if parsed.path == "/api/attributes":
             station = (qs.get("station") or [""])[0]
             if not station:
