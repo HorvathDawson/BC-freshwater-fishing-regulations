@@ -149,6 +149,9 @@ FORECAST_MODELS = {
         "obs": "Latest_Reading", "obs_rp": "Return_Period_OBS",
         "fmax": "Forecast_maximum_in_5_days", "for_rp": "Return_Period_FOR",
         "issued": "Issued_at", "rep": "max",
+        # CLEVER publishes an HOURLY 10-day forecast CSV (forecast + bounds).
+        "series_csv": "https://bcrfc.env.gov.bc.ca/freshet/clever/{sid}.CSV",
+        "series_kind": "fdlu_hourly",
     },
     "COFFEE": {
         "service": "coffee_MapHub_forecast", "horizon_days": 5,
@@ -157,6 +160,9 @@ FORECAST_MODELS = {
         "fave": "Forecast_average_in_5_days",
         "fmax": "Forecast_maximum_in_5_days", "for_rp": "Return_Period_FOR",
         "issued": "Issued_at", "rep": "max",
+        # COFFEE publishes a DAILY 5-day forecast CSV (forecast + bounds).
+        "series_csv": "https://bcrfc.env.gov.bc.ca/fallfloods/coffee/COFFEE_{sid}.CSV",
+        "series_kind": "fdlu_daily",
     },
     "ELF": {
         "service": "MapHub_ELF_Forecast", "horizon_days": 30,
@@ -165,8 +171,9 @@ FORECAST_MODELS = {
         "fave": "Qfor_AVE_30_Days_m3_s_",
         "fmax": "Qfor_MAX_30_Days_m3_s_",
         "issued": "Issued_at", "rep": "min",
-        # ELF also publishes the full daily forecast time series as CSV.
+        # ELF publishes a DAILY 30-day forecast CSV (obs + min/ave/max).
         "series_csv": "https://bcrfc.env.gov.bc.ca/lowflow/elf/csv/{sid}_elf_forecast.csv",
+        "series_kind": "elf",
     },
 }
 
@@ -763,10 +770,10 @@ def fetch_forecasts(conn: sqlite3.Connection,
         print(f"  {len(rows)} forecasts ({matched} match known stations).")
         total += len(rows)
 
-        # Daily forecast time series (only ELF publishes CSVs). Limit to
-        # stations that have observed readings so the overlay is useful.
+        # Daily/hourly forecast time series (CLEVER hourly, COFFEE & ELF daily).
+        # Limited to stations that have observed readings so the overlay is useful.
         if series and cfg.get("series_csv"):
-            fetch_forecast_series(conn, model, cfg["series_csv"])
+            fetch_forecast_series(conn, model, cfg)
         time.sleep(REQUEST_DELAY_S)
 
     print(f"Forecast pull complete: {total} records stored.")
@@ -796,26 +803,73 @@ def _parse_elf_series_csv(text: str) -> list[dict]:
     return out
 
 
+def _parse_fdlu_series_csv(text: str, hourly: bool) -> list[dict]:
+    """Parse the CLEVER/COFFEE forecast CSV format:
+       DATE,[HOUR,]FORECAST_DISCHARGE,LOWER_BOUND,UPPER_BOUND.
+
+    Mapped onto the shared series columns as forecast average (=FORECAST_DISCHARGE)
+    with min/max = LOWER/UPPER bound. CLEVER is hourly (DATE+HOUR → timestamp).
+    """
+    lines = text.splitlines()
+    start = next((i for i, ln in enumerate(lines)
+                  if ln.upper().startswith("DATE,")), None)
+    if start is None:
+        return []
+    reader = csv.DictReader(lines[start:])
+    out = []
+    for row in reader:
+        date = (row.get("DATE") or "").strip()
+        if not date:
+            continue
+        if hourly:
+            hour = (row.get("HOUR") or "00").strip().zfill(2)
+            ts = f"{date}T{hour}:00:00"
+        else:
+            ts = date
+        out.append({
+            "date": ts,
+            "qobs": None,
+            "qfor_min": _num(row.get("LOWER_BOUND")),
+            "qfor_ave": _num(row.get("FORECAST_DISCHARGE")),
+            "qfor_max": _num(row.get("UPPER_BOUND")),
+            "hobs": None, "hfor_min": None, "hfor_ave": None, "hfor_max": None,
+        })
+    return out
+
+
+def _parse_series_csv(text: str, kind: str) -> list[dict]:
+    if kind == "elf":
+        return _parse_elf_series_csv(text)
+    if kind.startswith("fdlu"):
+        return _parse_fdlu_series_csv(text, hourly=kind.endswith("hourly"))
+    return []
+
+
 def fetch_forecast_series(conn: sqlite3.Connection, model: str,
-                          url_tmpl: str) -> int:
-    """Download the per-station daily forecast CSV for stations with readings."""
+                          cfg: dict) -> int:
+    """Download the per-station daily/hourly forecast CSV for stations that
+    also have observed readings (so the overlay is useful)."""
+    url_tmpl = cfg["series_csv"]
+    kind = cfg.get("series_kind", "elf")
     stations = [r[0] for r in conn.execute(
         """SELECT DISTINCT f.station_id FROM forecasts f
            JOIN readings r ON r.station_id = f.station_id
            WHERE f.model = ? ORDER BY f.station_id""", (model,))]
     if not stations:
         return 0
-    print(f"  Fetching {model} daily series for {len(stations)} station(s) ...")
+    print(f"  Fetching {model} forecast series for {len(stations)} station(s) ...")
     now = datetime.now(timezone.utc).isoformat()
     total = 0
     for i, sid in enumerate(stations, 1):
         try:
             text = _get(url_tmpl.format(sid=sid), []).decode("utf-8", "replace")
         except Exception as exc:  # noqa: BLE001 — surface, then continue
-            print(f"    [{i}/{len(stations)}] {sid}: ERROR {exc}",
-                  file=sys.stderr)
+            # 404s are common (not every station publishes a CSV) — skip quietly.
+            if "404" not in str(exc):
+                print(f"    [{i}/{len(stations)}] {sid}: ERROR {exc}",
+                      file=sys.stderr)
             continue
-        rows = _parse_elf_series_csv(text)
+        rows = _parse_series_csv(text, kind)
         conn.executemany(
             """INSERT OR REPLACE INTO forecast_series
                (model, station_id, date, qobs, qfor_min, qfor_ave, qfor_max,
@@ -828,7 +882,7 @@ def fetch_forecast_series(conn: sqlite3.Connection, model: str,
         conn.commit()
         total += len(rows)
         time.sleep(REQUEST_DELAY_S / 2)
-    print(f"  {model} series: {total} daily rows stored.")
+    print(f"  {model} series: {total} rows stored.")
     return total
 
 

@@ -53,15 +53,16 @@ python hydro_poc.py forecast --no-series      # skip ELF daily-series CSVs
 python serve.py       # open http://localhost:8765
 ```
 
-In the viewer, pick a **Forecast model** to filter the station list to stations
-that have that forecast (and observed data). The observed week is always shown;
-then:
-- **ELF** — the **real daily forecast** (QFOR min/avg/max time series) is drawn
-  extending past the observations, pulled from BCRFC's per-station CSV.
-- **CLEVER / COFFEE** — only period min/avg/max summaries are published, so a
-  bounds band is shown with a link to the full hydrograph PDF.
+The observed week is always shown; then every model the station has is overlaid
+(color-coded) using its **real forecast time series**, pulled from each model's
+per-station CSV:
+- **CLEVER** — hourly 10-day forecast (`…/freshet/clever/{station}.CSV`)
+- **COFFEE** — daily 5-day forecast (`…/fallfloods/coffee/COFFEE_{station}.CSV`)
+- **ELF** — daily 30-day low-flow forecast (`…/lowflow/elf/csv/{station}_elf_forecast.csv`)
 
-The overlay applies when a discharge parameter (6 or 47) is selected.
+Each shows the forecast line plus its lower/upper (or min/max) bound band, with a
+link to the source PDF. The overlay applies when a discharge parameter (6 or 47)
+is selected. The "Filter by forecast" selector just narrows the station list.
 
 Re-running `realtime` on a schedule (cron / GitHub Action) is how the
 production version would keep the "current conditions" fresh.
