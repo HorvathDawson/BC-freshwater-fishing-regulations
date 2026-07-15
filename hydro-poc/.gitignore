@@ -9,3 +9,6 @@ __pycache__/
 
 # Scratch
 clever.html
+elf.htm
+*.htm
+*.tmp
