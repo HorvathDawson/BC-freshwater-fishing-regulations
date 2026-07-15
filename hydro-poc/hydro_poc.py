@@ -7,11 +7,11 @@ Fetches water level / discharge data from Environment and Climate Change
 Canada's Wateroffice real-time web services, stores it in a local SQLite
 database, and (via serve.py) renders raw plots in the browser.
 
-Two stages:
-  1. `stations`  — discover stations from the Real-time Station Search
-                   (province-tagged; official name + province + schedule).
-  2. `bulk`      — one-time historical pull (default: daily means, last 18 months).
-  3. `realtime`  — recurring pull of the latest real-time (unit) values.
+Recommended workflow (see `main()` below):
+  `bootstrap` — one-time: discover stations, pull 18mo of daily means, 14d of
+                unit values, and BCRFC forecasts.
+  `update`    — recurring: refresh the last 14 days of readings and the
+                latest BCRFC forecasts.
 
 --------------------------------------------------------------------------
 DATA ATTRIBUTION  (REQUIRED — this data MUST be referenced like this)
@@ -120,7 +120,6 @@ from pathlib import Path
 
 BASE = "https://wateroffice.ec.gc.ca/services"
 CURRENT_CONDITIONS_URL = f"{BASE}/current_conditions/xml/inline"
-RECENT_REALTIME_URL = f"{BASE}/recent_real_time_data/csv/inline"
 REALTIME_URL = f"{BASE}/real_time_data/csv/inline"
 
 # Authoritative station list (province-tagged) — the Real-time Station Search
@@ -288,7 +287,7 @@ def connect(db_path: Path = DB_PATH) -> sqlite3.Connection:
             symbol     TEXT,
             approval   TEXT,
             qualifier  TEXT,
-            source     TEXT,            -- 'bulk' | 'realtime'
+            source     TEXT,            -- 'bulk'
             attribution TEXT,
             PRIMARY KEY (station_id, ts, parameter)
         );
@@ -573,11 +572,6 @@ def select_stations(conn: sqlite3.Connection, args) -> list[str]:
     return sample[: limit]
 
 
-def _chunk(seq: list, n: int):
-    for i in range(0, len(seq), n):
-        yield seq[i:i + n]
-
-
 # --- Stage 2: bulk historical (Parallelized) ------------------------------
 
 def fetch_bulk(conn: sqlite3.Connection, args) -> int:
@@ -632,43 +626,7 @@ def fetch_bulk(conn: sqlite3.Connection, args) -> int:
     return total
 
 
-# --- Stage 3: realtime update (Parallelized) ------------------------------
-
-def fetch_realtime(conn: sqlite3.Connection, args) -> int:
-    """Latest 5-minute values (recent real-time). Only params 46 & 47 exist."""
-    stations = select_stations(conn, args)
-    req_params = getattr(args, "parameters", ["46", "47"])
-    params = [p for p in req_params if p in ("46", "47")] or ["46", "47"]
-    attribution_str = attribution("realtime")
-
-    print(f"Realtime pull: {len(stations)} station(s), params={params}")
-    total = 0
-    chunks = list(_chunk(stations, 20))
-
-    def _worker(group: list[str]) -> list[dict]:
-        query = [("stations[]", s) for s in group]
-        for p in params:
-            query.append(("parameters[]", p))
-        raw = _get(RECENT_REALTIME_URL, query).decode("utf-8", "replace")
-        return parse_readings_csv(raw)
-
-    with concurrent.futures.ThreadPoolExecutor(max_workers=8) as executor:
-        futures = {executor.submit(_worker, chunk): chunk for chunk in chunks}
-        for future in concurrent.futures.as_completed(futures):
-            group = futures[future]
-            try:
-                readings = future.result()
-                n = _store_readings(conn, readings, params, "realtime", attribution_str)
-                total += n
-                print(f"  {len(group)} stations -> {n} readings")
-            except Exception as exc:
-                print(f"  chunk {group[:2]}...: ERROR {exc}", file=sys.stderr)
-
-    print(f"Realtime pull complete: {total} readings stored.")
-    return total
-
-
-# --- Stage 4: BCRFC model forecasts --------------------------------------
+# --- Stage 3: BCRFC model forecasts --------------------------------------
 
 def _num(s) -> float | None:
     if s is None:
@@ -715,6 +673,10 @@ def fetch_forecasts(conn: sqlite3.Connection,
         except Exception as exc:
             print(f"  ERROR: {exc}", file=sys.stderr)
             continue
+
+        # Drop the previous batch first so stations that fell out of this
+        # model's forecast (or were renamed) don't linger as stale rows.
+        conn.execute("DELETE FROM forecasts WHERE model = ?", (model,))
 
         rows = []
         for a in attrs:
@@ -824,7 +786,7 @@ def _parse_series_csv(text: str, kind: str) -> list[dict]:
     return []
 
 
-# --- Stage 4.1: forecast series (Parallelized) ----------------------------
+# --- Stage 3.1: forecast series (Parallelized) ----------------------------
 
 def fetch_forecast_series(conn: sqlite3.Connection, model: str, cfg: dict) -> int:
     """Download the per-station daily/hourly forecast CSV for known stations."""
@@ -853,7 +815,13 @@ def fetch_forecast_series(conn: sqlite3.Connection, model: str, cfg: dict) -> in
             completed += 1
             try:
                 _, rows = future.result()
-                # Main thread database writes
+                # Drop this station's previous series before writing the fresh
+                # one — the forecast horizon is a rolling window, so old dates
+                # that fell off the front/back of it must not linger.
+                conn.execute(
+                    "DELETE FROM forecast_series WHERE model = ? AND station_id = ?",
+                    (model, sid),
+                )
                 conn.executemany(
                     """INSERT OR REPLACE INTO forecast_series
                        (model, station_id, date, qobs, qfor_min, qfor_ave, qfor_max,
@@ -922,24 +890,6 @@ def main(argv: list[str] | None = None) -> int:
         p.add_argument("--province", help="filter by province code, e.g. BC")
         p.add_argument("--limit", type=int, default=5, help="cap station count for sample/province modes")
 
-    p_st = sub.add_parser("stations", help="discover stations (stage 1)")
-    p_st.add_argument("--provinces", nargs="+", default=None, help="province codes to fetch (default: all)")
-    p_st.add_argument("--coords", action="store_true", help="also backfill lat/lon from the KML feed")
-
-    p_bulk = sub.add_parser("bulk", help="one-time historical pull (stage 2)")
-    add_selection(p_bulk)
-    p_bulk.add_argument("--months", type=float, default=18, help="history window in months (default 18)")
-    p_bulk.add_argument("--days", type=float, default=None, help="history window in days (overrides --months)")
-    p_bulk.add_argument("--parameters", nargs="+", default=["3", "6"], help="parameter ids")
-
-    p_rt = sub.add_parser("realtime", help="latest real-time values (stage 3)")
-    add_selection(p_rt)
-    p_rt.add_argument("--parameters", nargs="+", default=["46", "47"], help="parameter ids (only 46 & 47 supported)")
-
-    p_fc = sub.add_parser("forecast", help="BCRFC model forecasts (CLEVER/COFFEE/ELF)")
-    p_fc.add_argument("--models", nargs="+", default=None, choices=list(FORECAST_MODELS), help="which models to fetch")
-    p_fc.add_argument("--no-series", action="store_true", help="skip downloading ELF daily forecast time series")
-
     p_boot = sub.add_parser("bootstrap", help="Initial fetch: stations, 18mo daily, 14d unit, forecasts")
     add_selection(p_boot)
     p_boot.add_argument("--no-series", action="store_true", help="skip downloading forecast time series")
@@ -951,17 +901,7 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     conn = connect()
     try:
-        if args.command == "stations":
-            fetch_stations(conn, args.provinces)
-            if args.coords:
-                enrich_coordinates(conn)
-        elif args.command == "bulk":
-            fetch_bulk(conn, args)
-        elif args.command == "realtime":
-            fetch_realtime(conn, args)
-        elif args.command == "forecast":
-            fetch_forecasts(conn, args.models, series=not args.no_series)
-        elif args.command == "bootstrap":
+        if args.command == "bootstrap":
             run_bootstrap(conn, args)
         elif args.command == "update":
             run_update(conn, args)

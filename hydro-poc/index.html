@@ -334,11 +334,20 @@
           const hasSeries = series.some(r => r.qfor_ave != null || r.qfor_min != null || r.qfor_max != null);
 
           if (hasSeries) {
-            const line = (key) => series.filter(r => r[key] != null).map(r => ({ x: new Date(r.date).getTime(), y: r[key] }));
+            // Prepend the last observed reading to each band so the forecast
+            // visually tapers out of the measured line instead of jumping in
+            // cold at the first forecast date. Some models (e.g. CLEVER's
+            // hourly series) include hours at/before the last reading, so
+            // only keep points strictly after it to preserve ascending x.
+            const line = (key) => {
+              const pts = series.filter(r => r[key] != null && new Date(r.date).getTime() > last.x)
+                .map(r => ({ x: new Date(r.date).getTime(), y: r[key] }));
+              return pts.length ? [{ x: last.x, y: last.y }, ...pts] : pts;
+            };
             datasets.push({ label: `${fc.model} min`, data: line("qfor_min"),
               borderColor: color, borderDash: [4, 3], borderWidth: 1, fill: false });
             datasets.push({ label: `${fc.model} max`, data: line("qfor_max"),
-              borderColor: color, borderDash: [4, 3], borderWidth: 1, 
+              borderColor: color, borderDash: [4, 3], borderWidth: 1,
               backgroundColor: color + "22", fill: "-1" });
             datasets.push({ label: `${fc.model} avg`, data: line("qfor_ave"),
               borderColor: color, borderWidth: 2, fill: false });
@@ -346,10 +355,13 @@
           } else if (fc.forecast_max != null || fc.forecast_min != null || fc.forecast_value != null) {
             const startX = last.x;
             const endX = new Date(last.x + (fc.horizon_days || 5) * 86400000).getTime();
-            const hLine = (y) => [{ x: startX, y }, { x: endX, y }];
+            // Ramp from the last observed value up to the forecast bound
+            // instead of drawing a flat line at the bound from the start —
+            // it should taper into the forecast, not appear out of nowhere.
+            const hLine = (y) => [{ x: startX, y: last.y }, { x: endX, y }];
             const lo = fc.forecast_min;
             const hi = fc.forecast_max != null ? fc.forecast_max : fc.forecast_value;
-            
+
             if (lo != null && hi != null) {
               datasets.push({ label: `${fc.model} min`, data: hLine(lo),
                 borderColor: color + "88", borderDash: [4, 4], borderWidth: 1, fill: false });

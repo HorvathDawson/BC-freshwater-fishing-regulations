@@ -40,3 +40,9 @@ venv/
 # macOS Finder metadata
 .DS_Store
 **/.DS_Store
+
+# Local Claude Code tooling — not part of the project
+.claude/
+CLAUDE.md
+.rtk/
+graphify-out/

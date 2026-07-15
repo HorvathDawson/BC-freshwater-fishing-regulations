@@ -11,30 +11,19 @@ database (`hydro.db`), and renders raw plots in the browser.
 No third-party Python dependencies — standard library only (`urllib`,
 `sqlite3`, `csv`, `http.server`, `concurrent.futures`). Uses a capped thread pool to parallelize network requests for fast data fetching while keeping database writes safe on the main thread. Plots use Chart.js from a CDN.
 
-## Workflows & Stages
+## Workflow
 
-To keep the database lightweight while maintaining both long-term context and high-resolution current conditions, the POC uses composite workflows:
+To keep the database lightweight while maintaining both long-term context and high-resolution current conditions, the POC uses two composite commands — this is the only supported CLI surface:
 
-* **`bootstrap`** — Initial heavy lift. Discovers stations, pulls 18 months of daily means (long-term context), 14 days of 5-minute unit values (current conditions), and all forecasts. Network requests are multithreaded (up to 8 concurrent workers) to speed up the massive data pull.
-* **`update`** — Maintenance pull. Fetches the last 14 days of both daily means and 5-minute unit values, plus the latest forecasts, to keep the "head" of the dataset fresh. 
+* **`bootstrap`** — Initial heavy lift. Discovers stations, pulls 18 months of daily means (long-term context), 14 days of 5-minute unit values (current conditions), and all BCRFC forecasts. Network requests are multithreaded (up to 8 concurrent workers) to speed up the pull.
+* **`update`** — Maintenance pull. Refreshes the last 14 days of both daily means and 5-minute unit values, plus the latest BCRFC forecasts. Each `update` first purges the previous forecast batch (both the summary row and the per-station forecast series) before storing the new one, so stale forecast data never lingers alongside a fresh pull.
 
-You can also run the individual stages manually:
-1. **`stations`** — discover stations from the authoritative **Real-time Station
-   Search** (province-tagged: official name, province, number, data-availability,
-   operation schedule). No bounding box needed.
-2. **`bulk`** — one-time historical pull (default: daily means, last 18 months).
-3. **`realtime`** — recurring pull of the latest real-time (unit) values.
-4. **`forecast`** — BCRFC model forecasts (CLEVER / COFFEE / ELF) from their
-   ArcGIS feature services, joined to gauges by station number.
+BCRFC forecasts (CLEVER / COFFEE / ELF) come from two sources per model: an ArcGIS feature service (per-station summary bounds + hydrograph PDF link) and that model's own forecast CSV (the real daily/hourly forecast time series, fetched and parsed the same way for all three models — see `fetch_forecast_series` in `hydro_poc.py`).
 
 ## Usage
 
 ```bash
 cd hydro-poc
-
-# ==========================================
-# RECOMMENDED WORKFLOW
-# ==========================================
 
 # 1. Initial setup (Stations, 18mo daily means, 14d 5-min values, forecasts)
 python hydro_poc.py bootstrap --bc
@@ -42,32 +31,8 @@ python hydro_poc.py bootstrap --bc
 # 2. Recurring update (Run on a cron / GitHub Action to refresh the last 14 days)
 python hydro_poc.py update --bc
 
-# ==========================================
-# GRANULAR / MANUAL COMMANDS
-# ==========================================
+# Station selection flags (both commands): --bc | --all | --province XX | --stations 08MF005 08HB048
+# --no-series skips downloading the per-station forecast CSVs (summary bounds only)
 
-# 1. Discover stations (province-tagged). Default = all provinces.
-python hydro_poc.py stations                  # every province
-python hydro_poc.py stations --provinces BC    # BC only
-python hydro_poc.py stations --provinces BC --coords   # + lat/lon from KML
-
-# 2. Bulk historical pull. Default = a small BC sample, daily means, 18 months.
-python hydro_poc.py bulk                       # sample of 5 stations
-python hydro_poc.py bulk --bc                   # ALL BC stations (province=BC)
-python hydro_poc.py bulk --stations 08MF005 08HB048
-python hydro_poc.py bulk --all                 # EVERY station 
-
-# Unit values (5-min) instead of daily means (18-month availability):
-python hydro_poc.py bulk --bc --parameters 46 47 --months 18
-
-# 3. Latest real-time values (only params 46 & 47 exist here)
-python hydro_poc.py realtime --bc
-python hydro_poc.py realtime --all
-
-# 4. BCRFC model forecasts (CLEVER / COFFEE / ELF)
-python hydro_poc.py forecast                 # all three models (+ daily/hourly series)
-python hydro_poc.py forecast --models CLEVER # one model
-python hydro_poc.py forecast --no-series      # skip forecast series CSVs
-
-# 5. View it
+# 3. View it
 python serve.py       # open http://localhost:8765
