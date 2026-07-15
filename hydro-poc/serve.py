@@ -140,34 +140,39 @@ class Handler(BaseHTTPRequestHandler):
         if parsed.path == "/api/forecast":
             station = (qs.get("station") or [""])[0]
             model = (qs.get("model") or [""])[0]
-            if not station or not model:
-                self._json({"error": "station and model required"}, 400)
+            if not station:
+                self._json({"error": "station required"}, 400)
                 return
-            rows = query(
-                """SELECT model, station_id, station_name, issued_at,
+            sql = """SELECT model, station_id, station_name, issued_at,
                           horizon_days, obs_value, obs_rp, forecast_value,
                           forecast_min, forecast_ave, forecast_max, forecast_rp,
                           hydrograph_url
-                   FROM forecasts WHERE station_id = ? AND model = ?""",
-                (station, model),
-            )
-            self._json(rows[0] if rows else {})
+                     FROM forecasts WHERE station_id = ?"""
+            params = [station]
+            if model:
+                sql += " AND model = ?"
+                params.append(model)
+            sql += " ORDER BY model"
+            rows = query(sql, tuple(params))
+            # Back-compat: single object when a model is specified.
+            self._json((rows[0] if rows else {}) if model else rows)
             return
 
         if parsed.path == "/api/forecast_series":
             station = (qs.get("station") or [""])[0]
             model = (qs.get("model") or [""])[0]
-            if not station or not model:
-                self._json({"error": "station and model required"}, 400)
+            if not station:
+                self._json({"error": "station required"}, 400)
                 return
-            rows = query(
-                """SELECT date, qobs, qfor_min, qfor_ave, qfor_max,
+            sql = """SELECT model, date, qobs, qfor_min, qfor_ave, qfor_max,
                           hobs, hfor_min, hfor_ave, hfor_max
-                   FROM forecast_series
-                   WHERE station_id = ? AND model = ?
-                   ORDER BY date""",
-                (station, model),
-            )
+                     FROM forecast_series WHERE station_id = ?"""
+            params = [station]
+            if model:
+                sql += " AND model = ?"
+                params.append(model)
+            sql += " ORDER BY model, date"
+            rows = query(sql, tuple(params))
             self._json(rows)
             return
 

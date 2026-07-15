@@ -48,7 +48,7 @@
       <select id="parameter"></select>
     </div>
     <div>
-      <label for="forecast">Forecast model</label>
+      <label for="forecast">Filter by forecast</label>
       <select id="forecast"></select>
     </div>
     <button id="reset" type="button">Reset zoom</button>
@@ -124,9 +124,9 @@
 
     async function loadForecastModels() {
       forecastModels = await (await fetch("/api/forecast_models")).json();
-      const opts = ['<option value="">None (observations only)</option>'];
+      const opts = ['<option value="">All stations</option>'];
       for (const m of forecastModels) {
-        opts.push(`<option value="${m.model}">${m.model} — ${m.horizon_days}d (${m.with_readings} stations)</option>`);
+        opts.push(`<option value="${m.model}">Has ${m.model} — ${m.horizon_days}d (${m.with_readings} stations)</option>`);
       }
       $("forecast").innerHTML = opts.join("");
       $("forecast").onchange = onForecastChange;
@@ -146,14 +146,11 @@
     function onStationChange() {
       const s = stations.find(x => x.station_id === $("station").value);
       const params = (s?.parameters || "").split(",").filter(Boolean);
-      // If a forecast is selected, prefer a discharge parameter so units match.
-      const model = $("forecast").value;
-      let list = params;
-      if (model) {
-        const disch = params.filter(isDischarge);
-        if (disch.length) list = disch;
-      }
-      $("parameter").innerHTML = (list.length ? list : params).map(p =>
+      // Prefer a discharge parameter so it lines up with the forecast overlays
+      // (forecasts are discharge, m³/s). Fall back to whatever the station has.
+      const disch = params.filter(isDischarge);
+      const list = disch.length ? disch : params;
+      $("parameter").innerHTML = list.map(p =>
         `<option value="${p}">${PARAM_LABELS[p] || p}</option>`
       ).join("");
       $("parameter").onchange = draw;
@@ -188,71 +185,64 @@
       // Forecast overlay: show the forecast BOUNDS over the horizon window
       // (not a straight line to the max — the horizon endpoint isn't the
       // max/min). The true day-by-day curve lives in the referenced PDF.
-      const model = $("forecast").value;
+      // Forecast overlay: draw ALL models this station has. The dropdown only
+      // filters which stations appear in the list — it does not restrict what
+      // is drawn. ELF publishes a real daily series; CLEVER/COFFEE only expose
+      // summary min/avg/max bounds (+ a PDF link to the full curve).
+      const MODEL_COLORS = { CLEVER: "#7c3aed", COFFEE: "#0891b2", ELF: "#dc2626" };
       $("forecast-link").innerHTML = "";
-      if (model && points.length && isDischarge(parameter)) {
-        // Prefer the real daily forecast time series (ELF publishes it). Draw
-        // the actual QFOR min/avg/max lines extending past the observed data.
-        const series = await (await fetch(`/api/forecast_series?station=${encodeURIComponent(station)}&model=${encodeURIComponent(model)}`)).json();
-        const hasSeries = Array.isArray(series) && series.some(r => r.qfor_ave != null || r.qfor_min != null || r.qfor_max != null);
+      if (points.length && isDischarge(parameter)) {
+        const [fcs, allSeries] = await Promise.all([
+          fetch(`/api/forecast?station=${encodeURIComponent(station)}`).then(r => r.json()),
+          fetch(`/api/forecast_series?station=${encodeURIComponent(station)}`).then(r => r.json()),
+        ]);
+        const seriesByModel = {};
+        for (const row of (allSeries || [])) (seriesByModel[row.model] ||= []).push(row);
 
-        const fc = await (await fetch(`/api/forecast?station=${encodeURIComponent(station)}&model=${encodeURIComponent(model)}`)).json();
+        const links = [];
+        const last = points[points.length - 1];
+        for (const fc of (fcs || [])) {
+          const color = MODEL_COLORS[fc.model] || "#dc2626";
+          const series = seriesByModel[fc.model] || [];
+          const hasSeries = series.some(r => r.qfor_ave != null || r.qfor_min != null || r.qfor_max != null);
 
-        if (hasSeries) {
-          const line = (key) => series.filter(r => r[key] != null)
-            .map(r => ({ x: r.date, y: r[key] }));
-          const band = { fill: false, pointRadius: 0, tension: 0.15, borderWidth: 1.2 };
-          // min & max as a shaded band (max fills to min).
-          datasets.push({ label: `${model} min`, data: line("qfor_min"),
-            borderColor: "rgba(220,38,38,0.4)", borderDash: [4, 3], ...band });
-          datasets.push({ label: `${model} max`, data: line("qfor_max"),
-            borderColor: "rgba(220,38,38,0.4)", borderDash: [4, 3],
-            backgroundColor: "rgba(220,38,38,0.10)", fill: "-1",
-            pointRadius: 0, tension: 0.15, borderWidth: 1.2 });
-          datasets.push({ label: `${model} avg`, data: line("qfor_ave"),
-            borderColor: "#dc2626", borderWidth: 2, ...band });
-
-          metaText += ` · ${model} daily forecast (${series.length} days)`
-            + (fc && fc.issued_at ? ` · issued ${fc.issued_at}` : "");
-        } else if (fc && (fc.forecast_max != null || fc.forecast_min != null || fc.forecast_value != null)) {
-          // No daily series (CLEVER/COFFEE): show the summary bounds band.
-          const last = points[points.length - 1];
-          const startX = last.x;
-          const endX = new Date(new Date(last.x).getTime() + (fc.horizon_days || 5) * 86400000).toISOString();
-          const hLine = (y) => [{ x: startX, y }, { x: endX, y }];
-          const lo = fc.forecast_min;
-          const hi = fc.forecast_max != null ? fc.forecast_max : fc.forecast_value;
-
-          if (lo != null && hi != null) {
-            datasets.push({ label: `${model} min`, data: hLine(lo),
-              borderColor: "rgba(220,38,38,0.35)", borderDash: [4, 4],
-              borderWidth: 1, pointRadius: 0, fill: false, tension: 0 });
-            datasets.push({ label: `${model} forecast range`, data: hLine(hi),
-              borderColor: "rgba(220,38,38,0.35)", borderDash: [4, 4],
-              borderWidth: 1, pointRadius: 0,
-              backgroundColor: "rgba(220,38,38,0.10)", fill: "-1", tension: 0 });
-          } else if (hi != null) {
-            datasets.push({ label: `${model} forecast bound`, data: hLine(hi),
-              borderColor: "rgba(220,38,38,0.5)", borderDash: [6, 4],
-              borderWidth: 1.5, pointRadius: 0, fill: false, tension: 0 });
+          if (hasSeries) {
+            const line = (key) => series.filter(r => r[key] != null).map(r => ({ x: r.date, y: r[key] }));
+            datasets.push({ label: `${fc.model} min`, data: line("qfor_min"),
+              borderColor: color, borderDash: [4, 3], borderWidth: 1, pointRadius: 0, fill: false, tension: 0.15 });
+            datasets.push({ label: `${fc.model} max`, data: line("qfor_max"),
+              borderColor: color, borderDash: [4, 3], borderWidth: 1, pointRadius: 0,
+              backgroundColor: color + "22", fill: "-1", tension: 0.15 });
+            datasets.push({ label: `${fc.model} avg`, data: line("qfor_ave"),
+              borderColor: color, borderWidth: 2, pointRadius: 0, fill: false, tension: 0.15 });
+            metaText += ` · ${fc.model}: daily forecast (${series.length}d)`;
+          } else if (fc.forecast_max != null || fc.forecast_min != null || fc.forecast_value != null) {
+            const startX = last.x;
+            const endX = new Date(new Date(last.x).getTime() + (fc.horizon_days || 5) * 86400000).toISOString();
+            const hLine = (y) => [{ x: startX, y }, { x: endX, y }];
+            const lo = fc.forecast_min;
+            const hi = fc.forecast_max != null ? fc.forecast_max : fc.forecast_value;
+            if (lo != null && hi != null) {
+              datasets.push({ label: `${fc.model} min`, data: hLine(lo),
+                borderColor: color + "88", borderDash: [4, 4], borderWidth: 1, pointRadius: 0, fill: false, tension: 0 });
+              datasets.push({ label: `${fc.model} range`, data: hLine(hi),
+                borderColor: color + "88", borderDash: [4, 4], borderWidth: 1, pointRadius: 0,
+                backgroundColor: color + "1A", fill: "-1", tension: 0 });
+            } else if (hi != null) {
+              datasets.push({ label: `${fc.model} bound`, data: hLine(hi),
+                borderColor: color, borderDash: [6, 4], borderWidth: 1.5, pointRadius: 0, fill: false, tension: 0 });
+            }
+            if (fc.forecast_ave != null) {
+              datasets.push({ label: `${fc.model} avg`, data: hLine(fc.forecast_ave),
+                borderColor: color, borderDash: [2, 3], borderWidth: 1, pointRadius: 0, fill: false, tension: 0 });
+            }
+            metaText += ` · ${fc.model}: bounds ${lo ?? "?"}–${hi ?? "?"} m³/s/${fc.horizon_days}d (summary — see PDF)`;
           }
-          if (fc.forecast_ave != null) {
-            datasets.push({ label: `${model} avg`, data: hLine(fc.forecast_ave),
-              borderColor: "rgba(234,88,12,0.7)", borderDash: [2, 3],
-              borderWidth: 1, pointRadius: 0, fill: false, tension: 0 });
+          if (fc.hydrograph_url) {
+            links.push(`<a href="${fc.hydrograph_url}" target="_blank" rel="noopener noreferrer" style="color:${color}">${fc.model} full forecast ↗</a>`);
           }
-          const bounds = `bounds ${lo ?? "?"}–${hi ?? "?"}${fc.forecast_ave != null ? ` (avg ${fc.forecast_ave})` : ""} m³/s over ${fc.horizon_days}d`;
-          metaText += ` · ${model} issued ${fc.issued_at || "?"} · ${bounds}`
-            + (fc.forecast_rp ? ` · return period ${fc.forecast_rp}` : "")
-            + " · (summary only — see PDF for full curve)";
         }
-
-        const pdf = fc && fc.hydrograph_url;
-        if (pdf) {
-          $("forecast-link").innerHTML =
-            `📈 <a href="${pdf}" target="_blank" rel="noopener noreferrer">`
-            + `View the full ${model} forecast for ${station}</a>`;
-        }
+        if (links.length) $("forecast-link").innerHTML = "📈 " + links.join(" · ");
       }
 
       $("meta").textContent = metaText;
