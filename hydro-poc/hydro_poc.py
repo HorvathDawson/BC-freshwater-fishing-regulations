@@ -101,6 +101,7 @@ All service times are in UTC.
 from __future__ import annotations
 
 import argparse
+import concurrent.futures
 import csv
 import io
 import json
@@ -189,7 +190,7 @@ DB_PATH = Path(__file__).parent / "hydro.db"
 
 USER_AGENT = "BC-fishing-regs-hydro-poc/0.1 (proof of concept)"
 
-# Polite pause between requests so we don't hammer the service.
+# Polite pause between requests for sequential functions.
 REQUEST_DELAY_S = 0.5
 
 
@@ -346,13 +347,6 @@ def _localname(tag: str) -> str:
     return tag.rsplit("}", 1)[-1]
 
 
-# One results row looks like:
-#   <td><input ... value="08LD003,1,,,"/></td>
-#   <td><label for="check1">ADAMS LAKE NEAR SQUILAX</label></td>
-#   <td>BC</td>
-#   <td>08LD003</td>
-#   <td class="icon-green image-center">Yes</td>
-#   <td>Continuous</td>
 _ROW_RE = re.compile(
     r"<label[^>]*>([^<]+)</label>\s*</td>\s*"   # 1: station name
     r"<td>\s*([A-Z]{2})\s*</td>\s*"             # 2: province
@@ -374,13 +368,7 @@ def _parse_station_rows(html: str) -> list[tuple[str, str, str, str, str]]:
 
 def fetch_stations(conn: sqlite3.Connection,
                    provinces: list[str] | None = None) -> int:
-    """Discover stations from the authoritative Real-time Station Search.
-
-    Filtering the search by province yields a table with each station's
-    official name, PROVINCE, number, data-availability, and operation
-    schedule — no bounding box needed. We iterate the requested provinces
-    (default: all) and upsert every row.
-    """
+    """Discover stations from the authoritative Real-time Station Search."""
     provinces = provinces or PROVINCES
     now = datetime.now(timezone.utc).isoformat()
     total = 0
@@ -394,7 +382,7 @@ def fetch_stations(conn: sqlite3.Connection,
                 ("station_name", ""),
                 ("station_number", ""),
             ]).decode("utf-8", "replace")
-        except Exception as exc:  # noqa: BLE001 — surface, then continue
+        except Exception as exc:  # noqa: BLE001
             print(f"  ERROR fetching {prov}: {exc}", file=sys.stderr)
             continue
 
@@ -428,11 +416,7 @@ def fetch_stations(conn: sqlite3.Connection,
 
 
 def enrich_coordinates(conn: sqlite3.Connection) -> int:
-    """Optionally add lat/lon to known stations from the Current Conditions KML.
-
-    The province search table has no coordinates; this backfills them so the
-    data can later be placed on a map. Omitting stations[] returns all.
-    """
+    """Optionally add lat/lon to known stations from the Current Conditions KML."""
     print("Enriching coordinates from Current Conditions KML feed ...")
     raw = _get(CURRENT_CONDITIONS_URL, [("lang", "en")])
     try:
@@ -479,11 +463,7 @@ def _match_col(headers: list[str], *keywords: str) -> str | None:
 
 
 def parse_readings_csv(text: str) -> list[dict]:
-    """Defensively parse a Wateroffice CSV into normalized reading dicts.
-
-    Column names vary (bilingual headers), so we match by keyword rather than
-    exact string.
-    """
+    """Defensively parse a Wateroffice CSV into normalized reading dicts."""
     reader = csv.DictReader(io.StringIO(text))
     if reader.fieldnames is None:
         return []
@@ -532,7 +512,6 @@ def _normalize_parameter(raw: str, requested: list[str]) -> str:
         return "6" if "daily" in rl or "mean" in rl else "47"
     if "level" in rl or "niveau" in rl:
         return "3" if "daily" in rl or "mean" in rl else "46"
-    # Fall back to the single requested parameter if unambiguous.
     return requested[0] if len(requested) == 1 else r
 
 
@@ -560,7 +539,6 @@ def _store_readings(conn: sqlite3.Connection, readings: list[dict],
 
 # --- Station selection ----------------------------------------------------
 
-# A small default sample so the POC stays fast. Use --all for everything.
 DEFAULT_SAMPLE = [
     "08MF005",  # Fraser River at Hope
     "08HB048",  # Englishman River near Parksville
@@ -571,30 +549,28 @@ DEFAULT_SAMPLE = [
 
 
 def select_stations(conn: sqlite3.Connection, args) -> list[str]:
-    if args.stations:
+    if getattr(args, "stations", None):
         return args.stations
     if getattr(args, "bc", False):
-        # Province comes straight from the authoritative station-search table.
         return [
             r[0] for r in conn.execute(
                 "SELECT station_id FROM stations WHERE province = 'BC' "
                 "ORDER BY station_id"
             )
         ]
-    if args.all:
+    if getattr(args, "all", False):
         return [r[0] for r in conn.execute("SELECT station_id FROM stations")]
-    if args.province:
+    if getattr(args, "province", None):
         return [
             r[0] for r in conn.execute(
                 "SELECT station_id FROM stations WHERE province = ? LIMIT ?",
-                (args.province.upper(), args.limit),
+                (args.province.upper(), getattr(args, "limit", 5)),
             )
         ]
-    # Default: known sample, but only those that exist in the stations table
-    # (fall back to the raw sample if discovery hasn't run yet).
     known = {r[0] for r in conn.execute("SELECT station_id FROM stations")}
     sample = [s for s in DEFAULT_SAMPLE if s in known] or DEFAULT_SAMPLE
-    return sample[: args.limit]
+    limit = getattr(args, "limit", 5)
+    return sample[: limit]
 
 
 def _chunk(seq: list, n: int):
@@ -602,71 +578,91 @@ def _chunk(seq: list, n: int):
         yield seq[i:i + n]
 
 
-# --- Stage 2: bulk historical --------------------------------------------
+# --- Stage 2: bulk historical (Parallelized) ------------------------------
 
 def fetch_bulk(conn: sqlite3.Connection, args) -> int:
     stations = select_stations(conn, args)
-    params = args.parameters
+    params = getattr(args, "parameters", ["3", "6"])
     end = datetime.now(timezone.utc)
-    # --days takes precedence over --months when provided.
-    if getattr(args, "days", None):
-        start = end - timedelta(days=args.days)
+    
+    days = getattr(args, "days", None)
+    months = getattr(args, "months", 18)
+    if days is not None:
+        start = end - timedelta(days=days)
     else:
-        start = end - timedelta(days=int(args.months * 30.44))
+        start = end - timedelta(days=int(months * 30.44))
+        
     fmt = "%Y-%m-%d %H:%M:%S"
+    start_str, end_str = start.strftime(fmt), end.strftime(fmt)
     attribution_str = attribution("historical")
 
     print(f"Bulk pull: {len(stations)} station(s), params={params}, "
           f"{start:%Y-%m-%d}..{end:%Y-%m-%d}")
     total = 0
-    # One station per request keeps each response small (per the API notes).
-    for i, station in enumerate(stations, 1):
-        query = [("stations[]", station)]
+
+    # The function our worker threads will execute
+    def _worker(station_id: str) -> tuple[str, list[dict]]:
+        query = [("stations[]", station_id)]
         for p in params:
             query.append(("parameters[]", p))
-        query.append(("start_date", start.strftime(fmt)))
-        query.append(("end_date", end.strftime(fmt)))
-        try:
-            raw = _get(REALTIME_URL, query).decode("utf-8", "replace")
-        except Exception as exc:  # noqa: BLE001 — surface, then continue
-            print(f"  [{i}/{len(stations)}] {station}: ERROR {exc}",
-                  file=sys.stderr)
-            continue
-        readings = parse_readings_csv(raw)
-        n = _store_readings(conn, readings, params, "bulk", attribution_str)
-        total += n
-        print(f"  [{i}/{len(stations)}] {station}: {n} readings")
-        time.sleep(REQUEST_DELAY_S)
+        query.append(("start_date", start_str))
+        query.append(("end_date", end_str))
+        raw = _get(REALTIME_URL, query).decode("utf-8", "replace")
+        return station_id, parse_readings_csv(raw)
+
+    # 8 concurrent workers is a polite but fast limit for public API endpoints
+    with concurrent.futures.ThreadPoolExecutor(max_workers=8) as executor:
+        futures = {executor.submit(_worker, s): s for s in stations}
+        completed = 0
+        
+        # as_completed yields futures as soon as they finish, out of order
+        for future in concurrent.futures.as_completed(futures):
+            station = futures[future]
+            completed += 1
+            try:
+                _, readings = future.result()
+                # Database write happens safely on the main thread
+                n = _store_readings(conn, readings, params, "bulk", attribution_str)
+                total += n
+                print(f"  [{completed}/{len(stations)}] {station}: {n} readings")
+            except Exception as exc:
+                print(f"  [{completed}/{len(stations)}] {station}: ERROR {exc}", file=sys.stderr)
 
     print(f"Bulk pull complete: {total} readings stored.")
     return total
 
 
-# --- Stage 3: realtime update --------------------------------------------
+# --- Stage 3: realtime update (Parallelized) ------------------------------
 
 def fetch_realtime(conn: sqlite3.Connection, args) -> int:
     """Latest 5-minute values (recent real-time). Only params 46 & 47 exist."""
     stations = select_stations(conn, args)
-    params = [p for p in args.parameters if p in ("46", "47")] or ["46", "47"]
+    req_params = getattr(args, "parameters", ["46", "47"])
+    params = [p for p in req_params if p in ("46", "47")] or ["46", "47"]
     attribution_str = attribution("realtime")
 
     print(f"Realtime pull: {len(stations)} station(s), params={params}")
     total = 0
-    # Recent endpoint accepts many stations at once; chunk to stay polite.
-    for group in _chunk(stations, 20):
+    chunks = list(_chunk(stations, 20))
+
+    def _worker(group: list[str]) -> list[dict]:
         query = [("stations[]", s) for s in group]
         for p in params:
             query.append(("parameters[]", p))
-        try:
-            raw = _get(RECENT_REALTIME_URL, query).decode("utf-8", "replace")
-        except Exception as exc:  # noqa: BLE001
-            print(f"  chunk {group[:2]}...: ERROR {exc}", file=sys.stderr)
-            continue
-        readings = parse_readings_csv(raw)
-        n = _store_readings(conn, readings, params, "realtime", attribution_str)
-        total += n
-        print(f"  {len(group)} stations -> {n} readings")
-        time.sleep(REQUEST_DELAY_S)
+        raw = _get(RECENT_REALTIME_URL, query).decode("utf-8", "replace")
+        return parse_readings_csv(raw)
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=8) as executor:
+        futures = {executor.submit(_worker, chunk): chunk for chunk in chunks}
+        for future in concurrent.futures.as_completed(futures):
+            group = futures[future]
+            try:
+                readings = future.result()
+                n = _store_readings(conn, readings, params, "realtime", attribution_str)
+                total += n
+                print(f"  {len(group)} stations -> {n} readings")
+            except Exception as exc:
+                print(f"  chunk {group[:2]}...: ERROR {exc}", file=sys.stderr)
 
     print(f"Realtime pull complete: {total} readings stored.")
     return total
@@ -675,7 +671,6 @@ def fetch_realtime(conn: sqlite3.Connection, args) -> int:
 # --- Stage 4: BCRFC model forecasts --------------------------------------
 
 def _num(s) -> float | None:
-    """Extract the first number from strings like '=0.001(m3/s)' or '>3000'."""
     if s is None:
         return None
     m = re.search(r"-?\d+(?:\.\d+)?", str(s))
@@ -707,13 +702,6 @@ def _arcgis_query_all(service: str) -> list[dict]:
 def fetch_forecasts(conn: sqlite3.Connection,
                     models: list[str] | None = None,
                     series: bool = True) -> int:
-    """Pull BCRFC model forecasts (CLEVER/COFFEE/ELF) into the forecasts table.
-
-    Each record is joined to gauges by Station_ID (the WSC station number), so
-    the frontend can extend a forecast from the observed hydrograph. For models
-    that publish a full daily forecast time series (ELF), the per-station CSV is
-    also downloaded into forecast_series when `series` is True.
-    """
     models = models or list(FORECAST_MODELS)
     attribution_str = attribution("realtime")
     now = datetime.now(timezone.utc).isoformat()
@@ -724,7 +712,7 @@ def fetch_forecasts(conn: sqlite3.Connection,
         print(f"Fetching {model} forecasts ({cfg['service']}) ...")
         try:
             attrs = _arcgis_query_all(cfg["service"])
-        except Exception as exc:  # noqa: BLE001 — surface, then continue
+        except Exception as exc:
             print(f"  ERROR: {exc}", file=sys.stderr)
             continue
 
@@ -750,7 +738,7 @@ def fetch_forecasts(conn: sqlite3.Connection,
                 json.dumps(a), attribution_str, now,
             ))
 
-        rows = [r for r in rows if r[1]]  # require a station id
+        rows = [r for r in rows if r[1]]
         conn.executemany(
             """INSERT OR REPLACE INTO forecasts
                (model, station_id, station_name, issued_at, horizon_days,
@@ -770,8 +758,6 @@ def fetch_forecasts(conn: sqlite3.Connection,
         print(f"  {len(rows)} forecasts ({matched} match known stations).")
         total += len(rows)
 
-        # Daily/hourly forecast time series (CLEVER hourly, COFFEE & ELF daily).
-        # Limited to stations that have observed readings so the overlay is useful.
         if series and cfg.get("series_csv"):
             fetch_forecast_series(conn, model, cfg)
         time.sleep(REQUEST_DELAY_S)
@@ -781,7 +767,6 @@ def fetch_forecasts(conn: sqlite3.Connection,
 
 
 def _parse_elf_series_csv(text: str) -> list[dict]:
-    """Parse the ELF forecast CSV (skips the disclaimer preamble)."""
     lines = text.splitlines()
     start = next((i for i, ln in enumerate(lines)
                   if ln.upper().startswith("DATE,")), None)
@@ -804,12 +789,6 @@ def _parse_elf_series_csv(text: str) -> list[dict]:
 
 
 def _parse_fdlu_series_csv(text: str, hourly: bool) -> list[dict]:
-    """Parse the CLEVER/COFFEE forecast CSV format:
-       DATE,[HOUR,]FORECAST_DISCHARGE,LOWER_BOUND,UPPER_BOUND.
-
-    Mapped onto the shared series columns as forecast average (=FORECAST_DISCHARGE)
-    with min/max = LOWER/UPPER bound. CLEVER is hourly (DATE+HOUR → timestamp).
-    """
     lines = text.splitlines()
     start = next((i for i, ln in enumerate(lines)
                   if ln.upper().startswith("DATE,")), None)
@@ -845,10 +824,10 @@ def _parse_series_csv(text: str, kind: str) -> list[dict]:
     return []
 
 
-def fetch_forecast_series(conn: sqlite3.Connection, model: str,
-                          cfg: dict) -> int:
-    """Download the per-station daily/hourly forecast CSV for stations that
-    also have observed readings (so the overlay is useful)."""
+# --- Stage 4.1: forecast series (Parallelized) ----------------------------
+
+def fetch_forecast_series(conn: sqlite3.Connection, model: str, cfg: dict) -> int:
+    """Download the per-station daily/hourly forecast CSV for known stations."""
     url_tmpl = cfg["series_csv"]
     kind = cfg.get("series_kind", "elf")
     stations = [r[0] for r in conn.execute(
@@ -857,79 +836,117 @@ def fetch_forecast_series(conn: sqlite3.Connection, model: str,
            WHERE f.model = ? ORDER BY f.station_id""", (model,))]
     if not stations:
         return 0
+        
     print(f"  Fetching {model} forecast series for {len(stations)} station(s) ...")
     now = datetime.now(timezone.utc).isoformat()
     total = 0
-    for i, sid in enumerate(stations, 1):
-        try:
-            text = _get(url_tmpl.format(sid=sid), []).decode("utf-8", "replace")
-        except Exception as exc:  # noqa: BLE001 — surface, then continue
-            # 404s are common (not every station publishes a CSV) — skip quietly.
-            if "404" not in str(exc):
-                print(f"    [{i}/{len(stations)}] {sid}: ERROR {exc}",
-                      file=sys.stderr)
-            continue
-        rows = _parse_series_csv(text, kind)
-        conn.executemany(
-            """INSERT OR REPLACE INTO forecast_series
-               (model, station_id, date, qobs, qfor_min, qfor_ave, qfor_max,
-                hobs, hfor_min, hfor_ave, hfor_max, fetched_at)
-               VALUES (?,?,?,?,?,?,?,?,?,?,?,?)""",
-            [(model, sid, r["date"], r["qobs"], r["qfor_min"], r["qfor_ave"],
-              r["qfor_max"], r["hobs"], r["hfor_min"], r["hfor_ave"],
-              r["hfor_max"], now) for r in rows],
-        )
-        conn.commit()
-        total += len(rows)
-        time.sleep(REQUEST_DELAY_S / 2)
+
+    def _worker(sid: str) -> tuple[str, list[dict]]:
+        text = _get(url_tmpl.format(sid=sid), []).decode("utf-8", "replace")
+        return sid, _parse_series_csv(text, kind)
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=8) as executor:
+        futures = {executor.submit(_worker, sid): sid for sid in stations}
+        completed = 0
+        for future in concurrent.futures.as_completed(futures):
+            sid = futures[future]
+            completed += 1
+            try:
+                _, rows = future.result()
+                # Main thread database writes
+                conn.executemany(
+                    """INSERT OR REPLACE INTO forecast_series
+                       (model, station_id, date, qobs, qfor_min, qfor_ave, qfor_max,
+                        hobs, hfor_min, hfor_ave, hfor_max, fetched_at)
+                       VALUES (?,?,?,?,?,?,?,?,?,?,?,?)""",
+                    [(model, sid, r["date"], r["qobs"], r["qfor_min"], r["qfor_ave"],
+                      r["qfor_max"], r["hobs"], r["hfor_min"], r["hfor_ave"],
+                      r["hfor_max"], now) for r in rows],
+                )
+                conn.commit()
+                total += len(rows)
+            except Exception as exc:
+                if "404" not in str(exc):
+                    print(f"    [{completed}/{len(stations)}] {sid}: ERROR {exc}", file=sys.stderr)
+
     print(f"  {model} series: {total} rows stored.")
     return total
+
+
+# --- Workflows ------------------------------------------------------------
+
+def run_bootstrap(conn: sqlite3.Connection, args: argparse.Namespace):
+    print("=== BOOTSTRAPPING HYDRO POC ===")
+    provinces = ["BC"] if getattr(args, "bc", False) else None
+    fetch_stations(conn, provinces=provinces)
+    enrich_coordinates(conn)
+
+    print("\n--- Fetching 18-month daily means (parameters 3, 6) ---")
+    args_long = argparse.Namespace(**vars(args), parameters=["3", "6"], months=18, days=None)
+    fetch_bulk(conn, args_long)
+
+    print("\n--- Fetching 14-day high-frequency unit values (parameters 46, 47) ---")
+    args_short = argparse.Namespace(**vars(args), parameters=["46", "47"], months=None, days=14)
+    fetch_bulk(conn, args_short)
+
+    print("\n--- Fetching Forecasts ---")
+    fetch_forecasts(conn, series=not getattr(args, "no_series", False))
+    print("\n=== BOOTSTRAP COMPLETE ===")
+
+
+def run_update(conn: sqlite3.Connection, args: argparse.Namespace):
+    print("=== UPDATING HYDRO POC HEAD ===")
+    print("\n--- Updating daily means (last 14 days) ---")
+    args_long = argparse.Namespace(**vars(args), parameters=["3", "6"], months=None, days=14)
+    fetch_bulk(conn, args_long)
+
+    print("\n--- Updating high-frequency unit values (last 14 days) ---")
+    args_short = argparse.Namespace(**vars(args), parameters=["46", "47"], months=None, days=14)
+    fetch_bulk(conn, args_short)
+
+    print("\n--- Updating Forecasts ---")
+    fetch_forecasts(conn, series=not getattr(args, "no_series", False))
+    print("\n=== UPDATE COMPLETE ===")
 
 
 # --- CLI ------------------------------------------------------------------
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description=__doc__.split("\n")[1])
+    parser = argparse.ArgumentParser(description=__doc__.split("\n")[1] if __doc__ else "")
     sub = parser.add_subparsers(dest="command", required=True)
 
     def add_selection(p):
         p.add_argument("--stations", nargs="*", help="explicit station ids")
         p.add_argument("--all", action="store_true", help="all known stations")
-        p.add_argument("--bc", action="store_true",
-                       help="all BC stations (province = BC)")
+        p.add_argument("--bc", action="store_true", help="all BC stations (province = BC)")
         p.add_argument("--province", help="filter by province code, e.g. BC")
-        p.add_argument("--limit", type=int, default=5,
-                       help="cap station count for sample/province modes")
+        p.add_argument("--limit", type=int, default=5, help="cap station count for sample/province modes")
 
     p_st = sub.add_parser("stations", help="discover stations (stage 1)")
-    p_st.add_argument("--provinces", nargs="+", default=None,
-                      help="province codes to fetch (default: all)")
-    p_st.add_argument("--coords", action="store_true",
-                      help="also backfill lat/lon from the KML feed")
+    p_st.add_argument("--provinces", nargs="+", default=None, help="province codes to fetch (default: all)")
+    p_st.add_argument("--coords", action="store_true", help="also backfill lat/lon from the KML feed")
 
     p_bulk = sub.add_parser("bulk", help="one-time historical pull (stage 2)")
     add_selection(p_bulk)
-    p_bulk.add_argument("--months", type=float, default=18,
-                        help="history window in months (default 18)")
-    p_bulk.add_argument("--days", type=float, default=None,
-                        help="history window in days (overrides --months); "
-                             "use with --parameters 46 47 for high-frequency data")
-    p_bulk.add_argument("--parameters", nargs="+", default=["3", "6"],
-                        help="parameter ids (default daily means 3 & 6; "
-                             "use 46 47 for unit/high-frequency values)")
+    p_bulk.add_argument("--months", type=float, default=18, help="history window in months (default 18)")
+    p_bulk.add_argument("--days", type=float, default=None, help="history window in days (overrides --months)")
+    p_bulk.add_argument("--parameters", nargs="+", default=["3", "6"], help="parameter ids")
 
     p_rt = sub.add_parser("realtime", help="latest real-time values (stage 3)")
     add_selection(p_rt)
-    p_rt.add_argument("--parameters", nargs="+", default=["46", "47"],
-                      help="parameter ids (only 46 & 47 supported)")
+    p_rt.add_argument("--parameters", nargs="+", default=["46", "47"], help="parameter ids (only 46 & 47 supported)")
 
-    p_fc = sub.add_parser("forecast",
-                          help="BCRFC model forecasts (CLEVER/COFFEE/ELF)")
-    p_fc.add_argument("--models", nargs="+", default=None,
-                      choices=list(FORECAST_MODELS),
-                      help="which models to fetch (default: all)")
-    p_fc.add_argument("--no-series", action="store_true",
-                      help="skip downloading ELF daily forecast time series")
+    p_fc = sub.add_parser("forecast", help="BCRFC model forecasts (CLEVER/COFFEE/ELF)")
+    p_fc.add_argument("--models", nargs="+", default=None, choices=list(FORECAST_MODELS), help="which models to fetch")
+    p_fc.add_argument("--no-series", action="store_true", help="skip downloading ELF daily forecast time series")
+
+    p_boot = sub.add_parser("bootstrap", help="Initial fetch: stations, 18mo daily, 14d unit, forecasts")
+    add_selection(p_boot)
+    p_boot.add_argument("--no-series", action="store_true", help="skip downloading forecast time series")
+
+    p_up = sub.add_parser("update", help="Update head: 14d daily, 14d unit, forecasts")
+    add_selection(p_up)
+    p_up.add_argument("--no-series", action="store_true", help="skip downloading forecast time series")
 
     args = parser.parse_args(argv)
     conn = connect()
@@ -944,6 +961,10 @@ def main(argv: list[str] | None = None) -> int:
             fetch_realtime(conn, args)
         elif args.command == "forecast":
             fetch_forecasts(conn, args.models, series=not args.no_series)
+        elif args.command == "bootstrap":
+            run_bootstrap(conn, args)
+        elif args.command == "update":
+            run_update(conn, args)
     finally:
         conn.close()
     return 0

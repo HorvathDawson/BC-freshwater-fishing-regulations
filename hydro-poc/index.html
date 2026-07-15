@@ -3,86 +3,213 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Hydrometric Data — POC</title>
+  <title>Hydrometric Data — POC Dashboard</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2"></script>
   <style>
-    :root { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { margin: 0; padding: 24px; color: #1a1a1a; background: #fafafa; }
-    h1 { font-size: 20px; margin: 0 0 4px; }
-    h2 { font-size: 15px; margin: 24px 0 8px; }
-    .sub { color: #666; font-size: 13px; margin-bottom: 20px; }
-    .controls { display: flex; gap: 12px; flex-wrap: wrap; align-items: end; margin-bottom: 16px; }
-    label { display: block; font-size: 12px; color: #555; margin-bottom: 4px; }
-    select, button { padding: 8px; font-size: 14px; }
-    select { min-width: 220px; }
-    button { cursor: pointer; background: #fff; border: 1px solid #ccc; border-radius: 6px; }
-    button:hover { background: #f0f0f0; }
-    .hint { font-size: 12px; color: #888; margin-left: auto; align-self: center; }
-    .chart-wrap { background: #fff; border: 1px solid #e5e5e5; border-radius: 8px; padding: 16px; }
-    canvas { max-height: 460px; }
-    footer { margin-top: 24px; font-size: 11px; color: #888; line-height: 1.5; }
-    .meta { font-size: 12px; color: #555; margin-top: 8px; }
-    table.attr { border-collapse: collapse; width: 100%; background: #fff; border: 1px solid #e5e5e5; border-radius: 8px; overflow: hidden; font-size: 13px; }
-    table.attr th, table.attr td { text-align: left; padding: 8px 12px; border-bottom: 1px solid #eee; vertical-align: top; }
-    table.attr th { background: #f6f6f6; font-weight: 600; }
-    table.attr td.key { font-family: ui-monospace, monospace; color: #2563eb; white-space: nowrap; }
-    table.attr td.ex { color: #555; }
+    :root { 
+      --bg: #f8fafc; 
+      --surface: #ffffff; 
+      --text: #0f172a; 
+      --text-muted: #64748b;
+      --border: #e2e8f0; 
+      --accent: #2563eb; 
+      --accent-hover: #1d4ed8;
+      --radius-lg: 12px;
+      --radius-md: 8px;
+    }
+    
+    * { box-sizing: border-box; }
+    
+    body { 
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+      margin: 0; 
+      padding: 32px 24px; 
+      color: var(--text); 
+      background: var(--bg); 
+      max-width: 1400px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    header { margin-bottom: 24px; }
+    h1 { font-size: 24px; font-weight: 700; margin: 0 0 8px; letter-spacing: -0.5px; }
+    h2 { font-size: 18px; font-weight: 600; margin: 0 0 8px; }
+    .sub { color: var(--text-muted); font-size: 14px; margin-bottom: 20px; line-height: 1.5; }
+    
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+      margin-bottom: 24px;
+    }
+
+    /* Controls Setup */
+    .controls { display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 16px; }
+    .control-group { display: flex; flex-direction: column; gap: 6px; }
+    label { font-size: 13px; font-weight: 600; color: var(--text); }
+    
+    select, button { 
+      padding: 10px 14px; 
+      font-size: 14px; 
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border);
+      background-color: var(--surface);
+      color: var(--text);
+      outline: none;
+      transition: all 0.15s ease;
+    }
+    
+    select { min-width: 240px; cursor: pointer; appearance: auto; }
+    select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+    
+    button { cursor: pointer; font-weight: 500; background: var(--surface); }
+    button:hover { background: #f1f5f9; border-color: #cbd5e1; }
+    button:active { background: #e2e8f0; }
+
+    .loading-spinner {
+      display: none;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--accent);
+      align-self: center;
+      margin-left: 12px;
+      animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
+
+    .hint { font-size: 13px; color: var(--text-muted); margin-left: auto; align-self: center; }
+
+    /* Chart Container */
+    .chart-wrap { position: relative; width: 100%; height: 500px; margin-bottom: 16px; }
+    
+    .meta-container {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+    
+    .forecast-links a {
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 500;
+      background: rgba(37, 99, 235, 0.1);
+      padding: 4px 10px;
+      border-radius: 12px;
+      margin-left: 6px;
+      transition: background 0.15s ease;
+    }
+    
+    .forecast-links a:hover { background: rgba(37, 99, 235, 0.2); }
+
+    /* Tables */
     .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
-    @media (max-width: 800px) { .cols { grid-template-columns: 1fr; } }
+    @media (max-width: 900px) { .cols { grid-template-columns: 1fr; } }
+    
+    .table-container { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; text-align: left; font-size: 13px; }
+    th, td { padding: 12px 16px; border-bottom: 1px solid var(--border); vertical-align: top; }
+    th { background: #f8fafc; font-weight: 600; color: var(--text); }
+    tr:last-child td { border-bottom: none; }
+    td.key { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; color: var(--accent); white-space: nowrap; font-size: 12px; }
+    td.ex { color: var(--text-muted); }
+    
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 9999px;
+      font-size: 11px;
+      font-weight: 600;
+      background: #e2e8f0;
+      color: #475569;
+    }
+
+    footer { margin-top: 40px; font-size: 12px; color: var(--text-muted); line-height: 1.6; border-top: 1px solid var(--border); padding-top: 24px; }
+    footer strong { color: var(--text); }
   </style>
 </head>
 <body>
-  <h1>Hydrometric Data — Proof of Concept</h1>
-  <div class="sub">Local viewer over <code>hydro.db</code>. All times UTC. Source: Environment and Climate Change Canada / Wateroffice.</div>
 
-  <div class="controls">
-    <div>
-      <label for="station">Station</label>
-      <select id="station"></select>
-    </div>
-    <div>
-      <label for="parameter">Parameter</label>
-      <select id="parameter"></select>
-    </div>
-    <div>
-      <label for="forecast">Filter by forecast</label>
-      <select id="forecast"></select>
-    </div>
-    <button id="reset" type="button">Reset zoom</button>
-    <span class="hint">Scroll / pinch to zoom · drag to pan</span>
-  </div>
+  <header>
+    <h1>Hydrometric Data — Proof of Concept</h1>
+    <div class="sub">Local viewer over <code>hydro.db</code>. All times UTC. Source: Environment and Climate Change Canada / Wateroffice.</div>
+  </header>
 
-  <div class="chart-wrap">
-    <canvas id="chart"></canvas>
-    <div class="meta" id="meta"></div>
-    <div class="meta" id="forecast-link"></div>
+  <div class="card">
+    <div class="controls">
+      <div class="control-group">
+        <label for="station">Station</label>
+        <select id="station"></select>
+      </div>
+      <div class="control-group">
+        <label for="parameter">Parameter</label>
+        <select id="parameter"></select>
+      </div>
+      <div class="control-group">
+        <label for="forecast">Filter by forecast</label>
+        <select id="forecast"></select>
+      </div>
+      <button id="reset" type="button">Reset zoom</button>
+      <span class="loading-spinner" id="loading">Fetching data...</span>
+      <span class="hint">Scroll / pinch to zoom · drag to pan</span>
+    </div>
+
+    <div class="chart-wrap">
+      <canvas id="chart"></canvas>
+    </div>
+    
+    <div class="meta-container">
+      <div id="meta">No data selected</div>
+      <div id="forecast-link" class="forecast-links"></div>
+    </div>
   </div>
 
   <div class="cols">
-    <div>
-      <h2>Station attributes</h2>
-      <div class="sub">Fields available for linking a gauge to a river / waterbody.</div>
-      <table class="attr"><tbody id="station-attrs"></tbody></table>
+    <div class="card">
+      <header>
+        <h2>Station attributes</h2>
+        <div class="sub">Fields available for linking a gauge to a river / waterbody.</div>
+      </header>
+      <div class="table-container">
+        <table><tbody id="station-attrs"></tbody></table>
+      </div>
     </div>
-    <div>
-      <h2>Reading attributes</h2>
-      <div class="sub">Every field the time-series carries (distinct values for this station).</div>
-      <table class="attr">
-        <thead><tr><th>field</th><th>distinct</th><th>examples</th></tr></thead>
-        <tbody id="reading-attrs"></tbody>
-      </table>
+    <div class="card">
+      <header>
+        <h2>Reading attributes</h2>
+        <div class="sub">Every field the time-series carries (distinct values for this station).</div>
+      </header>
+      <div class="table-container">
+        <table>
+          <thead><tr><th>field</th><th>distinct</th><th>examples</th></tr></thead>
+          <tbody id="reading-attrs"></tbody>
+        </table>
+      </div>
     </div>
   </div>
 
-  <h2>Forecasts available for this station</h2>
-  <div class="sub">Summary bounds from BCRFC models. Open the PDF for the full day-by-day forecast hydrograph.</div>
-  <table class="attr">
-    <thead><tr><th>model</th><th>issued</th><th>horizon</th><th>min</th><th>avg</th><th>max</th><th>return period</th><th>full forecast</th></tr></thead>
-    <tbody id="forecast-attrs"></tbody>
-  </table>
+  <div class="card">
+    <header>
+      <h2>Forecasts available for this station</h2>
+      <div class="sub">Summary bounds from BCRFC models. Open the PDF for the full day-by-day forecast hydrograph.</div>
+    </header>
+    <div class="table-container">
+      <table>
+        <thead><tr><th>model</th><th>issued</th><th>horizon</th><th>min</th><th>avg</th><th>max</th><th>return period</th><th>full forecast</th></tr></thead>
+        <tbody id="forecast-attrs"></tbody>
+      </table>
+    </div>
+  </div>
 
   <footer id="attribution"></footer>
 
@@ -90,8 +217,8 @@
     const PARAM_LABELS = {
       "3": "Water level (daily mean)",
       "6": "Discharge (daily mean)",
-      "46": "Water level (unit)",
-      "47": "Discharge (unit)",
+      "46": "Water level (unit / 5-min)",
+      "47": "Discharge (unit / 5-min)",
     };
 
     let stations = [];
@@ -100,25 +227,29 @@
 
     const $ = (id) => document.getElementById(id);
     const isDischarge = (p) => p === "6" || p === "47";
+    const setLoading = (state) => $("loading").style.display = state ? "inline-block" : "none";
 
     async function init() {
+      setLoading(true);
       stations = await (await fetch("/api/stations")).json();
       const sel = $("station");
       if (!stations.length) {
         sel.innerHTML = '<option>(no data — run the fetch script first)</option>';
+        setLoading(false);
         return;
       }
       fillStationSelect(stations);
       sel.onchange = onStationChange;
       await loadForecastModels();
-      onStationChange();
-      loadAttribution();
+      await onStationChange();
+      await loadAttribution();
       $("reset").onclick = () => chart && chart.resetZoom();
+      setLoading(false);
     }
 
     function fillStationSelect(list) {
       $("station").innerHTML = list.map(s =>
-        `<option value="${s.station_id}">${s.station_id}${s.name ? " — " + s.name : ""}${s.n ? " (" + s.n + ")" : ""}</option>`
+        `<option value="${s.station_id}">${s.station_id}${s.name ? " — " + s.name : ""}${s.n ? " (" + s.n.toLocaleString() + " pts)" : ""}</option>`
       ).join("");
     }
 
@@ -135,7 +266,7 @@
     async function onForecastChange() {
       const model = $("forecast").value;
       if (!model) {
-        fillStationSelect(stations);       // restore full list
+        fillStationSelect(stations);
       } else {
         const fs = await (await fetch(`/api/forecast_stations?model=${encodeURIComponent(model)}`)).json();
         if (fs.length) fillStationSelect(fs);
@@ -146,8 +277,6 @@
     function onStationChange() {
       const s = stations.find(x => x.station_id === $("station").value);
       const params = (s?.parameters || "").split(",").filter(Boolean);
-      // Prefer a discharge parameter so it lines up with the forecast overlays
-      // (forecasts are discharge, m³/s). Fall back to whatever the station has.
       const disch = params.filter(isDischarge);
       const list = disch.length ? disch : params;
       $("parameter").innerHTML = list.map(p =>
@@ -162,10 +291,16 @@
       const station = $("station").value;
       const parameter = $("parameter").value;
       if (!station || !parameter) return;
+      
+      setLoading(true);
+      
       const rows = await (await fetch(`/api/readings?station=${encodeURIComponent(station)}&parameter=${encodeURIComponent(parameter)}`)).json();
       const points = rows.map(r => ({
-        x: r.ts.replace(" ", "T"), y: r.value,
-        grade: r.grade, approval: r.approval, source: r.source,
+        x: new Date(r.ts.replace(" ", "T")).getTime(), // Use epoch for massive performance gain in chart.js
+        y: r.value,
+        grade: r.grade, 
+        approval: r.approval, 
+        source: r.source,
       }));
 
       const datasets = [{
@@ -173,24 +308,15 @@
         data: points,
         borderColor: "#2563eb",
         backgroundColor: "rgba(37,99,235,0.1)",
-        pointRadius: 0,
-        pointHoverRadius: 4,
         borderWidth: 1.5,
-        tension: 0.1,
       }];
 
-      let metaText = `${rows.length} readings`
-        + (rows.length ? ` · ${rows[0].ts} → ${rows[rows.length - 1].ts} · source: ${[...new Set(rows.map(r => r.source))].join(", ")}` : "");
+      let metaText = `<strong>${rows.length.toLocaleString()} readings</strong>`
+        + (rows.length ? ` &nbsp;·&nbsp; ${rows[0].ts.split(' ')[0]} to ${rows[rows.length - 1].ts.split(' ')[0]} &nbsp;·&nbsp; Sources: <span class="badge">${[...new Set(rows.map(r => r.source))].join(", ")}</span>` : "");
 
-      // Forecast overlay: show the forecast BOUNDS over the horizon window
-      // (not a straight line to the max — the horizon endpoint isn't the
-      // max/min). The true day-by-day curve lives in the referenced PDF.
-      // Forecast overlay: draw ALL models this station has. The dropdown only
-      // filters which stations appear in the list — it does not restrict what
-      // is drawn. ELF publishes a real daily series; CLEVER/COFFEE only expose
-      // summary min/avg/max bounds (+ a PDF link to the full curve).
       const MODEL_COLORS = { CLEVER: "#7c3aed", COFFEE: "#0891b2", ELF: "#dc2626" };
       $("forecast-link").innerHTML = "";
+      
       if (points.length && isDischarge(parameter)) {
         const [fcs, allSeries] = await Promise.all([
           fetch(`/api/forecast?station=${encodeURIComponent(station)}`).then(r => r.json()),
@@ -201,74 +327,99 @@
 
         const links = [];
         const last = points[points.length - 1];
+        
         for (const fc of (fcs || [])) {
           const color = MODEL_COLORS[fc.model] || "#dc2626";
           const series = seriesByModel[fc.model] || [];
           const hasSeries = series.some(r => r.qfor_ave != null || r.qfor_min != null || r.qfor_max != null);
 
           if (hasSeries) {
-            const line = (key) => series.filter(r => r[key] != null).map(r => ({ x: r.date, y: r[key] }));
+            const line = (key) => series.filter(r => r[key] != null).map(r => ({ x: new Date(r.date).getTime(), y: r[key] }));
             datasets.push({ label: `${fc.model} min`, data: line("qfor_min"),
-              borderColor: color, borderDash: [4, 3], borderWidth: 1, pointRadius: 0, fill: false, tension: 0.15 });
+              borderColor: color, borderDash: [4, 3], borderWidth: 1, fill: false });
             datasets.push({ label: `${fc.model} max`, data: line("qfor_max"),
-              borderColor: color, borderDash: [4, 3], borderWidth: 1, pointRadius: 0,
-              backgroundColor: color + "22", fill: "-1", tension: 0.15 });
+              borderColor: color, borderDash: [4, 3], borderWidth: 1, 
+              backgroundColor: color + "22", fill: "-1" });
             datasets.push({ label: `${fc.model} avg`, data: line("qfor_ave"),
-              borderColor: color, borderWidth: 2, pointRadius: 0, fill: false, tension: 0.15 });
-            metaText += ` · ${fc.model}: daily forecast (${series.length}d)`;
+              borderColor: color, borderWidth: 2, fill: false });
+            metaText += ` &nbsp;·&nbsp; ${fc.model} forecast (${series.length}d)`;
           } else if (fc.forecast_max != null || fc.forecast_min != null || fc.forecast_value != null) {
             const startX = last.x;
-            const endX = new Date(new Date(last.x).getTime() + (fc.horizon_days || 5) * 86400000).toISOString();
+            const endX = new Date(last.x + (fc.horizon_days || 5) * 86400000).getTime();
             const hLine = (y) => [{ x: startX, y }, { x: endX, y }];
             const lo = fc.forecast_min;
             const hi = fc.forecast_max != null ? fc.forecast_max : fc.forecast_value;
+            
             if (lo != null && hi != null) {
               datasets.push({ label: `${fc.model} min`, data: hLine(lo),
-                borderColor: color + "88", borderDash: [4, 4], borderWidth: 1, pointRadius: 0, fill: false, tension: 0 });
+                borderColor: color + "88", borderDash: [4, 4], borderWidth: 1, fill: false });
               datasets.push({ label: `${fc.model} range`, data: hLine(hi),
-                borderColor: color + "88", borderDash: [4, 4], borderWidth: 1, pointRadius: 0,
-                backgroundColor: color + "1A", fill: "-1", tension: 0 });
+                borderColor: color + "88", borderDash: [4, 4], borderWidth: 1,
+                backgroundColor: color + "1A", fill: "-1" });
             } else if (hi != null) {
               datasets.push({ label: `${fc.model} bound`, data: hLine(hi),
-                borderColor: color, borderDash: [6, 4], borderWidth: 1.5, pointRadius: 0, fill: false, tension: 0 });
+                borderColor: color, borderDash: [6, 4], borderWidth: 1.5, fill: false });
             }
             if (fc.forecast_ave != null) {
               datasets.push({ label: `${fc.model} avg`, data: hLine(fc.forecast_ave),
-                borderColor: color, borderDash: [2, 3], borderWidth: 1, pointRadius: 0, fill: false, tension: 0 });
+                borderColor: color, borderDash: [2, 3], borderWidth: 1, fill: false });
             }
-            metaText += ` · ${fc.model}: bounds ${lo ?? "?"}–${hi ?? "?"} m³/s/${fc.horizon_days}d (summary — see PDF)`;
+            metaText += ` &nbsp;·&nbsp; ${fc.model} bounds (${lo ?? "?"}–${hi ?? "?"} m³/s)`;
           }
           if (fc.hydrograph_url) {
-            links.push(`<a href="${fc.hydrograph_url}" target="_blank" rel="noopener noreferrer" style="color:${color}">${fc.model} full forecast ↗</a>`);
+            links.push(`<a href="${fc.hydrograph_url}" target="_blank" rel="noopener noreferrer">${fc.model} PDF ↗</a>`);
           }
         }
-        if (links.length) $("forecast-link").innerHTML = "📈 " + links.join(" · ");
+        if (links.length) $("forecast-link").innerHTML = links.join("");
       }
 
-      $("meta").textContent = metaText;
+      $("meta").innerHTML = metaText;
 
       if (chart) chart.destroy();
+      
+      // Chart.js Performance configuration for handling 100k+ points
       chart = new Chart($("chart"), {
         type: "line",
         data: { datasets },
         options: {
           responsive: true,
-          parsing: true,
+          maintainAspectRatio: false,
+          parsing: false,       // Huge performance boost (relies on raw data format {x, y})
+          normalized: true,     // Assumes data is sorted, huge performance boost
+          animation: false,     // Disable animation for instant load
+          spanGaps: true,
+          elements: {
+            line: { tension: 0 }, // Disable bezier curves for faster rendering
+            point: { radius: 0, hitRadius: 5, hoverRadius: 4 } // Hide points until hovered
+          },
           interaction: { mode: "nearest", axis: "x", intersect: false },
           scales: {
-            x: { type: "time", time: { tooltipFormat: "yyyy-MM-dd HH:mm" }, ticks: { maxRotation: 0 } },
-            y: { title: { display: true, text: parameter === "3" || parameter === "46" ? "Water level (m)" : "Discharge (m³/s)" } },
+            x: { 
+              type: "time", 
+              time: { tooltipFormat: "yyyy-MM-dd HH:mm" }, 
+              ticks: { maxRotation: 0 } 
+            },
+            y: { 
+              title: { 
+                display: true, 
+                text: parameter === "3" || parameter === "46" ? "Water level (m)" : "Discharge (m³/s)" 
+              } 
+            },
           },
           plugins: {
             legend: { display: true },
+            decimation: {
+              enabled: true,
+              algorithm: 'lttb', // Largest-Triangle-Three-Buckets downsampling
+            },
             tooltip: {
               callbacks: {
                 afterBody: (items) => {
                   const p = items[0]?.raw || {};
                   const extra = [];
-                  if (p.grade) extra.push(`grade: ${p.grade}`);
-                  if (p.approval) extra.push(`approval: ${p.approval}`);
-                  if (p.source) extra.push(`source: ${p.source}`);
+                  if (p.grade) extra.push(`Grade: ${p.grade}`);
+                  if (p.approval) extra.push(`Approval: ${p.approval}`);
+                  if (p.source) extra.push(`Source: ${p.source}`);
                   return extra;
                 },
               },
@@ -286,38 +437,43 @@
           },
         },
       });
+      
+      setLoading(false);
     }
 
     async function loadAttributes() {
       const station = $("station").value;
       if (!station) return;
       const data = await (await fetch(`/api/attributes?station=${encodeURIComponent(station)}`)).json();
+      
       const meta = data.station || {};
       $("station-attrs").innerHTML = Object.entries(meta).map(([k, v]) =>
         `<tr><td class="key">${k}</td><td>${v === null || v === "" ? "—" : v}</td></tr>`
       ).join("");
+      
       $("reading-attrs").innerHTML = (data.reading_fields || []).map(f =>
-        `<tr><td class="key">${f.field}</td><td>${f.distinct}</td><td class="ex">${f.examples || "—"}</td></tr>`
+        `<tr><td class="key">${f.field}</td><td><span class="badge">${f.distinct}</span></td><td class="ex">${f.examples || "—"}</td></tr>`
       ).join("");
+      
       const fc = data.forecasts || [];
       $("forecast-attrs").innerHTML = fc.length ? fc.map(f =>
         `<tr>
            <td class="key">${f.model}</td>
-           <td>${f.issued_at || "—"}</td>
+           <td>${f.issued_at ? f.issued_at.split('T')[0] : "—"}</td>
            <td>${f.horizon_days ?? "—"}d</td>
            <td>${f.forecast_min ?? "—"}</td>
            <td>${f.forecast_ave ?? "—"}</td>
            <td>${f.forecast_max ?? f.forecast_value ?? "—"}</td>
            <td>${f.forecast_rp || "—"}</td>
-           <td>${f.hydrograph_url ? `<a href="${f.hydrograph_url}" target="_blank" rel="noopener noreferrer">PDF ↗</a>` : "—"}</td>
+           <td>${f.hydrograph_url ? `<a href="${f.hydrograph_url}" target="_blank" rel="noopener noreferrer" style="color:var(--accent)">PDF ↗</a>` : "—"}</td>
          </tr>`
-      ).join("") : `<tr><td colspan="8" class="ex">No BCRFC forecasts for this station.</td></tr>`;
+      ).join("") : `<tr><td colspan="8" class="ex" style="text-align:center; padding:24px;">No BCRFC forecasts for this station.</td></tr>`;
     }
 
     async function loadAttribution() {
       const rows = await (await fetch("/api/attribution")).json();
-      $("attribution").innerHTML = "<strong>Data attribution (required):</strong><br>" +
-        rows.map(r => `• (${r.source}) ${r.attribution}`).join("<br>");
+      $("attribution").innerHTML = "<strong>Data attribution (required):</strong><br><br>" +
+        rows.map(r => `• <span class="badge">${r.source}</span> ${r.attribution}`).join("<br><br>");
     }
 
     init();

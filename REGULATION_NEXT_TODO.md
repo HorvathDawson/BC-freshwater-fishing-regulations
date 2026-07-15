@@ -1,0 +1,2 @@
+- need to find municipal regulations outside of Lost Lagoon (Stanley Park): Fishing is banned. The lagoon is an ecologically sensitive area that suffers from poor water quality and shallow depths due to a lack of natural tidal flushing.  Beaver Lake (Stanley Park): Fishing is not permitted. It serves as a rare, naturally occurring salmon-bearing stream system within the city limits.  
+- need to add protected areas (private access) like watersheds https://www.openstreetmap.org/relation/13480215#map=11/49.4420/-122.8718. this land ownership is improtant. 
