@@ -80,9 +80,8 @@ unmatched-in-WDIC row should be reviewed).
 
 CLI
 ---
-    cd live-data/waterbody_db
-    python match_fwa_gazette.py                 # run after match.py; writes match_fwa_gazette
-    python match_fwa_gazette.py --dry-run        # print only, no DB writes
+    python -m pipeline.recurring.waterbody_db.match_fwa_gazette                 # run after match.py; writes match_fwa_gazette
+    python -m pipeline.recurring.waterbody_db.match_fwa_gazette --dry-run        # print only, no DB writes
 """
 
 from __future__ import annotations
@@ -97,24 +96,15 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, List, Optional, Set, Tuple
 
-# live-data/ isn't an importable package (dash in the name), so the repo
-# root has to be added to sys.path by hand for pipeline/project_config
-# imports below. waterbody_matcher here is this directory's own local
-# module (not live-data/common/'s — see its own docstring for why), so it
-# resolves without any extra path entry, same as every other same-directory
-# import in this folder (fetch_wdic, match, match_fwa_gazette, etc.).
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-
 from pyproj import Transformer
 from shapely.geometry import Point
 
-import waterbody_matcher as wm
-from pipeline.matching.base_entry_builder import _natural_search
-from pipeline.matching.bathymetry_matcher import normalize_name
+from . import waterbody_matcher as wm
+from pipeline.matching.base_entry_builder import _natural_search, normalize_name
 from project_config import ProjectConfig
 
-from fetch_wdic import DB_PATH
-from match import osm_url
+from .fetch_wdic import DB_PATH
+from .match import osm_url
 
 logger = logging.getLogger(__name__)
 

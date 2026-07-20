@@ -3,19 +3,24 @@
 One shared SQLite file (`waterbody_db.db`) holding stocking, marker,
 bathymetry, and WDIC 1:50K reference data together, so `match.py` can match
 everything against WDIC with a single local connection and no cross-directory
-DB paths. This folder started as a testbed alongside three standalone POCs —
-`stocking/`, `bathymetry/`, and `common/` — and absorbed them once its own
-matching chain reached 100% resolution across both source populations (see
-"Results" below): `fetch_stocking.py`/`fetch_bathymetry.py` began as
-replicated copies of those POCs' own fetch scripts, and `waterbody_matcher.py`
-began as a trimmed copy of the pieces of `common/waterbody_matcher.py` this
-folder's own matching scripts use (`LakeIndex`/`build_lake_index()`,
-`locate_at_point()`, `_confirmed_by_name()`, `build_override_index()`) — see
-that file's own docstring. The three originals have since been removed;
-this folder is now the only stocking/bathymetry feed in `live-data/`.
+DB paths. This package started as a testbed in `live-data/waterbody_db/`
+(recurring, non-static data feeds not yet in production) alongside three
+standalone POCs — `stocking/`, `bathymetry/`, and `common/` — and absorbed
+them once its own matching chain reached 100% resolution across both source
+populations (see "Results" below): `fetch_stocking.py`/`fetch_bathymetry.py`
+began as replicated copies of those POCs' own fetch scripts, and
+`waterbody_matcher.py` began as a trimmed copy of the pieces of
+`common/waterbody_matcher.py` this package's own matching scripts use
+(`LakeIndex`/`build_lake_index()`, `locate_at_point()`, `_confirmed_by_name()`,
+`build_override_index()`) — see that file's own docstring. The three
+originals have since been removed. This package has since graduated out of
+`live-data/` into `pipeline/recurring/waterbody_db/` — its own matching chain
+replaced `pipeline/matching/bathymetry_matcher.py` entirely (see
+`pipeline/enrichment/waterbody_accessor.py`), and feeds waterbody enrichment
+(names, depth-map PDFs, marker amenities) into the main regulations build,
+plus a recurring stocking-info pipeline (`pipeline/recurring/stocking_resolver.py`).
 Everything still depends on the main pipeline (`pipeline/`, `data/`,
-`project_config`) the same way the rest of this project does — that boundary
-is `live-data/`'s own sibling folders, not the main codebase.
+`project_config`) the same way every other `pipeline/` package does.
 
 ## Why WDIC, not FWA
 
@@ -229,35 +234,40 @@ that has one, not just recomputed or dropped at each stage. Confirmed live:
 
 ## CLI
 
-```bash
-cd live-data/waterbody_db
+Run as a package from the project root (not `cd`-and-`python file.py` — these
+are proper package-relative imports now, not script-relative ones):
 
-python fetch_all.py                 # stocking, bathymetry, wdic — all into waterbody_db.db
-python fetch_all.py --skip stocking  # skip one or more (repeatable)
+```bash
+python -m pipeline.recurring.waterbody_db.fetch_all                 # stocking, bathymetry, wdic — all into waterbody_db.db
+python -m pipeline.recurring.waterbody_db.fetch_all --skip stocking  # skip one or more (repeatable)
 
 # or individually:
-python fetch_stocking.py update
-python fetch_bathymetry.py --csv-only
-python fetch_wdic.py
+python -m pipeline.recurring.waterbody_db.fetch_stocking update
+python -m pipeline.recurring.waterbody_db.fetch_bathymetry --csv-only
+python -m pipeline.recurring.waterbody_db.fetch_wdic
 
-python match.py                      # match all, write match_wbid to waterbody_db.db
-python match.py --dry-run            # match all, print only, no DB writes
+python -m pipeline.recurring.waterbody_db.match                      # match all, write match_wbid to waterbody_db.db
+python -m pipeline.recurring.waterbody_db.match --dry-run            # match all, print only, no DB writes
 
-python match_fwa_gazette.py          # run after match.py; write match_fwa_gazette
-python match_fwa_gazette.py --dry-run
-python match_fwa_gazette.py --gpkg /path/to/bc_fisheries_data.gpkg
+python -m pipeline.recurring.waterbody_db.match_fwa_gazette          # run after match; write match_fwa_gazette
+python -m pipeline.recurring.waterbody_db.match_fwa_gazette --dry-run
+python -m pipeline.recurring.waterbody_db.match_fwa_gazette --gpkg /path/to/bc_fisheries_data.gpkg
 
-python match_fwa_identifier.py       # run after match_fwa_gazette.py; write match_fwa_identifier
-python match_fwa_identifier.py --dry-run
+python -m pipeline.recurring.waterbody_db.match_fwa_identifier       # run after match_fwa_gazette; write match_fwa_identifier
+python -m pipeline.recurring.waterbody_db.match_fwa_identifier --dry-run
 
-python match_fwa_override.py         # run after match_fwa_identifier.py; write match_fwa_override
-python match_fwa_override.py --dry-run
+python -m pipeline.recurring.waterbody_db.match_fwa_override         # run after match_fwa_identifier; write match_fwa_override
+python -m pipeline.recurring.waterbody_db.match_fwa_override --dry-run
 
-python match_wbid_gazette.py         # run after match.py; write match_wbid_gazette
-python match_wbid_gazette.py --dry-run
+python -m pipeline.recurring.waterbody_db.match_wbid_gazette         # run after match; write match_wbid_gazette
+python -m pipeline.recurring.waterbody_db.match_wbid_gazette --dry-run
 
-python match_final.py                # run after everything else; write match_final
-python match_final.py --dry-run
+python -m pipeline.recurring.waterbody_db.match_final                # run after everything else; write match_final
+python -m pipeline.recurring.waterbody_db.match_final --dry-run
+
+python -m pipeline.recurring.waterbody_db.export                     # run after match_final; writes
+                                                                       # data/bathymetry_pdfs/waterbody_matches.json
+                                                                       # (see pipeline/enrichment/waterbody_accessor.py)
 ```
 
 ## Results (confirmed live)
@@ -308,8 +318,23 @@ source combined.
 `fetch_stocking.py`, `fetch_bathymetry.py`, and `waterbody_matcher.py` here
 started as **copies** of `stocking/fetch_stocking.py`,
 `bathymetry/fetch_bathymetry.py`, and `common/waterbody_matcher.py` — not
-imports, since this folder was deliberately kept self-contained within
+imports, since this package was deliberately kept self-contained within
 `live-data/` while it proved itself out alongside those three originals.
-Those originals have since been removed (this folder's own matching chain
+Those originals have since been removed (this package's own matching chain
 fully superseded them — see "Results" above), so these are now simply this
-folder's own copies of that logic, not a fork to keep in sync with anything.
+package's own copies of that logic, not a fork to keep in sync with anything.
+
+This package itself has since graduated from `live-data/waterbody_db/` (a
+POC directory) into `pipeline/recurring/waterbody_db/` (production): its
+matching chain fully replaced `pipeline/matching/bathymetry_matcher.py`
+(deleted — bathymetry resolution is now precomputed once via `export.py`
+rather than re-derived on every build, see
+`pipeline/enrichment/waterbody_accessor.py`), and its stocking match results
+feed a recurring pipeline (`pipeline/recurring/stocking_resolver.py`,
+modeled on `pipeline/recurring/in_season_scraper.py`/`in_season_resolver.py`)
+that isn't yet cron-scheduled. Imports were converted from bare/script-style
+(`from fetch_wdic import DB_PATH`, relying on the script's own directory
+being on `sys.path[0]`) to proper package-relative imports
+(`from .fetch_wdic import DB_PATH`) — run every module here via
+`python -m pipeline.recurring.waterbody_db.<module>` from the project root,
+not `cd`-and-`python <file>.py`.

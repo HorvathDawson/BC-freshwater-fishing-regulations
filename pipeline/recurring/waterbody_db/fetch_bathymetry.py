@@ -44,9 +44,8 @@ already does (a sheet can live in one source and not the other):
 
 CLI
 ---
-    cd live-data/bathymetry
-    python fetch_bathymetry.py              # fetch both sources
-    python fetch_bathymetry.py --csv-only    # skip the (slower) polygon WFS fetch
+    python -m pipeline.recurring.waterbody_db.fetch_bathymetry              # fetch both sources
+    python -m pipeline.recurring.waterbody_db.fetch_bathymetry --csv-only    # skip the (slower) polygon WFS fetch
 """
 
 from __future__ import annotations
@@ -60,8 +59,6 @@ import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import List
-
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 import geopandas as gpd
 import pandas as pd

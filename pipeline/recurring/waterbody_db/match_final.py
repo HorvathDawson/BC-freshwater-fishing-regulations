@@ -37,9 +37,8 @@ chain already follows (see match.py's own `osm_url()`).
 
 CLI
 ---
-    cd live-data/waterbody_db
-    python match_final.py                 # run after every other stage; writes match_final
-    python match_final.py --dry-run        # print only, no DB writes
+    python -m pipeline.recurring.waterbody_db.match_final                 # run after every other stage; writes match_final
+    python -m pipeline.recurring.waterbody_db.match_final --dry-run        # print only, no DB writes
 """
 
 from __future__ import annotations
@@ -52,8 +51,8 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Dict, List, Optional, Tuple
 
-from fetch_wdic import DB_PATH
-from match import osm_url
+from .fetch_wdic import DB_PATH
+from .match import osm_url
 
 logger = logging.getLogger(__name__)
 

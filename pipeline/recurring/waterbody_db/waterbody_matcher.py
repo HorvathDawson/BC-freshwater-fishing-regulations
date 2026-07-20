@@ -1,24 +1,20 @@
 """
 waterbody_matcher.py — self-contained FWA lake index + override lookup for
-this directory's own matching scripts (match_fwa_gazette.py,
+this package's own matching scripts (match_fwa_gazette.py,
 match_fwa_identifier.py, match_fwa_override.py, match_wbid_gazette.py).
 
-This is a trimmed, standalone copy of the pieces of
-`live-data/common/waterbody_matcher.py` this folder's scripts actually use
-(`LakeIndex`/`build_lake_index()`, `locate_at_point()`, `_confirmed_by_name()`,
-`OverrideCandidate`/`build_override_index()`) — not an import of that module.
-waterbody_db/ is meant to be self-contained within `live-data/` (it already
-replicates `stocking/fetch_stocking.py` and `bathymetry/fetch_bathymetry.py`
-rather than importing them — see this directory's own README), so its
-matching scripts shouldn't reach into `common/` either. The full T1-T5
-identifier/override cascade in the original (`match_row_t1()`,
-`match_records()`, etc.) isn't reproduced here — this folder's own scripts
-each build their own tier logic on top of just the FWA index + override
-lookup, not the whole cascade.
+This is a trimmed, standalone copy of the pieces of the original
+`live-data/common/waterbody_matcher.py` (since removed) this package's
+scripts actually use (`LakeIndex`/`build_lake_index()`, `locate_at_point()`,
+`_confirmed_by_name()`, `OverrideCandidate`/`build_override_index()`) — not
+an import of that module. The full T1-T5 identifier/override cascade in the
+original (`match_row_t1()`, `match_records()`, etc.) isn't reproduced here —
+this package's own scripts each build their own tier logic on top of just
+the FWA index + override lookup, not the whole cascade.
 
 Everything below still depends on the main pipeline (`pipeline/`, `data/`)
 the same way the original does — that's the production matching/gazetteer
-code this whole project shares, not a `live-data/` sibling.
+code this whole project shares.
 """
 
 from __future__ import annotations
@@ -37,13 +33,10 @@ from shapely.prepared import prep
 from shapely.strtree import STRtree
 
 from data.data_extractor import FWADataAccessor
-from pipeline.matching.base_entry_builder import _add_name, _natural_search
-from pipeline.matching.bathymetry_matcher import normalize_name
-from pipeline.matching.match_table import OverrideEntry
+from pipeline.matching.base_entry_builder import _add_name, _natural_search, normalize_name
+from pipeline.matching.match_table import OverrideEntry, OVERRIDES_PATH
 
 logger = logging.getLogger(__name__)
-
-OVERRIDES_PATH = Path(__file__).resolve().parents[2] / "pipeline" / "matching" / "overrides.json"
 
 # The three FWA polygon layers a "lake" can physically live in — natural
 # lakes, wetlands, and man-made waterbodies (dammed lakes, reservoirs, urban

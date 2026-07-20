@@ -77,10 +77,9 @@ DB paths, unlike the original `wbid50k/` version this folder replaced.
 
 CLI
 ---
-    cd live-data/waterbody_db
-    python fetch_all.py                     # run all three fetchers into waterbody_db.db
-    python match.py                          # match all, write to waterbody_db.db
-    python match.py --dry-run                # match all, print only, no DB writes
+    python -m pipeline.recurring.waterbody_db.fetch_all                     # run all three fetchers into waterbody_db.db
+    python -m pipeline.recurring.waterbody_db.match                          # match all, write to waterbody_db.db
+    python -m pipeline.recurring.waterbody_db.match --dry-run                # match all, print only, no DB writes
 """
 
 from __future__ import annotations
@@ -93,7 +92,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
-from fetch_wdic import DB_PATH
+from .fetch_wdic import DB_PATH
 
 logger = logging.getLogger(__name__)
 

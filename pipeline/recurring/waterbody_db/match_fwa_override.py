@@ -52,9 +52,8 @@ as "reviewed, no polygon exists" rather than an unexplained gap.
 
 CLI
 ---
-    cd live-data/waterbody_db
-    python match_fwa_override.py                 # run after match_fwa_identifier.py; writes match_fwa_override
-    python match_fwa_override.py --dry-run        # print only, no DB writes
+    python -m pipeline.recurring.waterbody_db.match_fwa_override                 # run after match_fwa_identifier.py; writes match_fwa_override
+    python -m pipeline.recurring.waterbody_db.match_fwa_override --dry-run        # print only, no DB writes
 """
 
 from __future__ import annotations
@@ -69,14 +68,12 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, List, Optional
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-
-import waterbody_matcher as wm
+from . import waterbody_matcher as wm
 from project_config import ProjectConfig
 
-from fetch_wdic import DB_PATH
-from match import osm_url
-from match_fwa_gazette import _VARIANT_JOIN
+from .fetch_wdic import DB_PATH
+from .match import osm_url
+from .match_fwa_gazette import _VARIANT_JOIN
 
 logger = logging.getLogger(__name__)
 

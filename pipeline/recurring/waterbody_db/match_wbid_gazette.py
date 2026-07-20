@@ -67,9 +67,8 @@ this chain has a coordinate for these rows to read instead).
 
 CLI
 ---
-    cd live-data/waterbody_db
-    python match_wbid_gazette.py                 # run after match.py; writes match_wbid_gazette
-    python match_wbid_gazette.py --dry-run        # print only, no DB writes
+    python -m pipeline.recurring.waterbody_db.match_wbid_gazette                 # run after match.py; writes match_wbid_gazette
+    python -m pipeline.recurring.waterbody_db.match_wbid_gazette --dry-run        # print only, no DB writes
 """
 
 from __future__ import annotations
@@ -83,17 +82,15 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, List, Optional, Set
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-
 from pyproj import Transformer
 from shapely.geometry import Point
 
-import waterbody_matcher as wm
+from . import waterbody_matcher as wm
 from project_config import ProjectConfig
 
-from fetch_wdic import DB_PATH
-from match import osm_url
-from match_fwa_gazette import _VARIANT_JOIN, _closest, _search_candidates
+from .fetch_wdic import DB_PATH
+from .match import osm_url
+from .match_fwa_gazette import _VARIANT_JOIN, _closest, _search_candidates
 
 logger = logging.getLogger(__name__)
 

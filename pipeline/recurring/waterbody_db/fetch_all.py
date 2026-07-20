@@ -14,9 +14,8 @@ convention one level up.
 
 CLI
 ---
-    cd live-data/waterbody_db
-    python fetch_all.py                   # stocking, bathymetry, wdic, in order
-    python fetch_all.py --skip stocking     # skip one or more (repeatable)
+    python -m pipeline.recurring.waterbody_db.fetch_all                   # stocking, bathymetry, wdic, in order
+    python -m pipeline.recurring.waterbody_db.fetch_all --skip stocking     # skip one or more (repeatable)
 """
 
 from __future__ import annotations
@@ -34,17 +33,17 @@ FEEDS = ["stocking", "bathymetry", "wdic"]
 
 
 def fetch_stocking() -> None:
-    import fetch_stocking
+    from . import fetch_stocking
     fetch_stocking.main(["update"])
 
 
 def fetch_bathymetry() -> None:
-    import fetch_bathymetry
+    from . import fetch_bathymetry
     fetch_bathymetry.main([])
 
 
 def fetch_wdic() -> None:
-    import fetch_wdic
+    from . import fetch_wdic
     fetch_wdic.main([])
 
 

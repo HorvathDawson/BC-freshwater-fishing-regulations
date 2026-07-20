@@ -48,8 +48,7 @@ uncompressed.
 
 CLI
 ---
-    cd live-data/waterbody_db
-    python fetch_wdic.py             # fetch the full WDIC layer into waterbody_db.db's wdic_cache
+    python -m pipeline.recurring.waterbody_db.fetch_wdic             # fetch the full WDIC layer into waterbody_db.db's wdic_cache
 """
 
 from __future__ import annotations
@@ -62,8 +61,6 @@ import urllib.parse
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List
-
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 import geopandas as gpd
 from pyproj import Transformer

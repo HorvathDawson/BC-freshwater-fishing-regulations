@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 from pathlib import Path
 import logging
@@ -41,6 +42,10 @@ from pipeline.utils.wsc import trim_wsc
 
 from .match_table import BaseEntry, OverrideEntry, MatchTable
 from .reg_models import MatchCriteria
+from pipeline.extraction.extract_synopsis import _normalize_unicode
+
+_RE_BRACKETS = re.compile(r"\s*\([^)]*\)\s*")
+_RE_SPACES = re.compile(r"\s+")
 
 logger = logging.getLogger(__name__)
 
@@ -127,6 +132,22 @@ def _ref_identity(ref: FeatureRecord) -> tuple:
     if pids:
         return ("poly", pids[0])
     return ("unknown", ref.get("gnis_name", ""))
+
+
+def normalize_name(value: object) -> str:
+    """Codebase-style waterbody-name key: unicode-fold, drop parentheticals,
+    collapse whitespace, uppercase.  Keeps the LAKE/CREEK type word so that
+    'Goose Lake' can never collide with 'Goose Creek'.
+
+    Moved here from the (retired) pipeline/matching/bathymetry_matcher.py —
+    shared by pipeline/recurring/waterbody_db/'s waterbody_matcher.py and
+    match_fwa_gazette.py, which both depended on it.
+    """
+    if not isinstance(value, str):
+        return ""
+    text = _normalize_unicode(value)
+    text = _RE_BRACKETS.sub(" ", text)
+    return _RE_SPACES.sub(" ", text).strip().upper()
 
 
 def _name_variations(name: str) -> List[str]:
