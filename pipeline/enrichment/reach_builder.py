@@ -401,16 +401,28 @@ def _group_polygon_reaches(
             # just one representative name per sheet.
             extra_names = _names.get(str(wbk))
             if extra_names:
-                existing_nv = {e["name"] for e in structured_nv}
-                existing_nv.add(display_name)
-                seen_names: Set[str] = set()
                 for entry in extra_names:
-                    name = _title_case((entry.get("name") or "").strip())
-                    if name and name not in existing_nv and name not in seen_names:
-                        seen_names.add(name)
+                    name = _title_case((entry.get("name") or "").replace('"', "").strip())
+                    if name and name != display_name:
                         structured_nv.append(
                             {"name": name, "source": entry.get("source", "")}
                         )
+
+            # Final dedup pass over the complete list (direct + admin +
+            # bathymetry + stocking): keep only the first occurrence of each
+            # name, regardless of which source contributed it — a name can
+            # otherwise appear twice (e.g. an admin-inherited name that's
+            # also a stocking alias, or the same lake name surfacing from
+            # both a bathymetry survey and a stocking record).
+            seen_names: Set[str] = set()
+            deduped_nv: List[Dict[str, Any]] = []
+            for entry in structured_nv:
+                name = entry["name"]
+                if name in seen_names:
+                    continue
+                seen_names.add(name)
+                deduped_nv.append(entry)
+            structured_nv = deduped_nv
 
             reaches[rid] = {
                 "wsc": wbk,  # Use wbk as the grouping key for polys
