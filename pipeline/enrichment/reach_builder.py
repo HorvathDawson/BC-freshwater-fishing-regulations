@@ -300,15 +300,26 @@ def _group_polygon_reaches(
     resolver: Optional[DisplayNameResolver] = None,
     reg_water_lookup: Optional[Dict[str, str]] = None,
     wbk_bathymetry: Optional[Dict[str, List[Dict[str, str]]]] = None,
+    wbk_names: Optional[Dict[str, List[Dict[str, str]]]] = None,
+    wbk_marker: Optional[Dict[str, Dict[str, Any]]] = None,
 ) -> Dict[str, Dict[str, Any]]:
     """Group polygon waterbody_keys into reaches.
 
     Each (wbk, reg_set) = one reach.
 
     ``wbk_bathymetry`` maps ``str(WATERBODY_KEY)`` to a list of survey sheets
-    (``{"pdf", "title", "name"}``).  When a waterbody has survey maps they are
-    attached to the reach as ``bathymetry`` (``[{pdf, title}]``) and the survey
-    name is added as an extra searchable name variant.
+    (``{"pdf", "title", "name"}``) — attached to the reach as ``bathymetry``
+    (``[{pdf, title}]``).
+
+    ``wbk_names`` maps ``str(WATERBODY_KEY)`` to every known alternate name
+    for that waterbody from stocking and bathymetry (``{"name", "source"}``,
+    source ``"stocking"`` or ``"bathymetry"``) — see
+    ``pipeline/recurring/waterbody_db/export.py``. Each is added as an extra
+    searchable name variant.
+
+    ``wbk_marker`` maps ``str(WATERBODY_KEY)`` to a gofishbc map marker's
+    amenity/access fields (a fixed 10-field whitelist, already filtered by
+    the export step) — attached to the reach as ``marker``.
 
     Returns reach_id → {display_name, wbk, reg_set_str, feature_type, minzoom}
     """
@@ -317,6 +328,8 @@ def _group_polygon_reaches(
     _reg_water = reg_water_lookup or {}
     _admin = admin_reg_ids or set()
     _bathy = wbk_bathymetry or {}
+    _names = wbk_names or {}
+    _marker = wbk_marker or {}
 
     poly_collections = [
         ("lake", atlas.lakes),
@@ -373,27 +386,30 @@ def _group_polygon_reaches(
                 structured_nv.append({"name": n, "source": "admin"})
 
             # Bathymetry survey maps for this waterbody (optional dataset).
-            # Attach the depth-map PDFs and expose the survey's gazetted name as
-            # an extra searchable variant when it differs from the display name.
+            # Depth-map PDFs only — name variants come from wbk_names below.
             bathy_sheets = _bathy.get(str(wbk))
             bathymetry: List[Dict[str, str]] = []
             if bathy_sheets:
-                existing_nv = {e["name"] for e in structured_nv}
-                existing_nv.add(display_name)
-                seen_survey_names: Set[str] = set()
                 for sheet in bathy_sheets:
                     bathymetry.append(
                         {"pdf": sheet["pdf"], "title": sheet.get("title", "")}
                     )
-                    survey_name = _title_case((sheet.get("name") or "").strip())
-                    if (
-                        survey_name
-                        and survey_name not in existing_nv
-                        and survey_name not in seen_survey_names
-                    ):
-                        seen_survey_names.add(survey_name)
+
+            # Stocking + bathymetry name variants (optional dataset, from
+            # pipeline/recurring/waterbody_db's precomputed export) — every
+            # known alternate name for this waterbody from either source, not
+            # just one representative name per sheet.
+            extra_names = _names.get(str(wbk))
+            if extra_names:
+                existing_nv = {e["name"] for e in structured_nv}
+                existing_nv.add(display_name)
+                seen_names: Set[str] = set()
+                for entry in extra_names:
+                    name = _title_case((entry.get("name") or "").strip())
+                    if name and name not in existing_nv and name not in seen_names:
+                        seen_names.add(name)
                         structured_nv.append(
-                            {"name": survey_name, "source": "bathymetry"}
+                            {"name": name, "source": entry.get("source", "")}
                         )
 
             reaches[rid] = {
@@ -408,6 +424,11 @@ def _group_polygon_reaches(
             }
             if bathymetry:
                 reaches[rid]["bathymetry"] = bathymetry
+
+            # Map marker amenity/access info (optional dataset).
+            marker = _marker.get(str(wbk))
+            if marker:
+                reaches[rid]["marker"] = marker
 
     return reaches
 
@@ -631,7 +652,7 @@ def _build_search_index(
             grp["min_zoom"] = reach["minzoom"]
         # Name variants: merge structured [{name, source}] across reaches.
         # Most specific source wins: direct > tributary > admin > bathymetry.
-        _SOURCE_PRIORITY = {"direct": 0, "tributary": 1, "admin": 2, "bathymetry": 3}
+        _SOURCE_PRIORITY = {"direct": 0, "tributary": 1, "admin": 2, "bathymetry": 3, "stocking": 4}
         for nv_entry in reach.get("name_variants", []):
             name = nv_entry["name"]
             src = nv_entry["source"]
@@ -745,6 +766,8 @@ def build_regulation_index(
     reach_level_reg_ids: Set[str] = frozenset(),
     match_table_path: Optional[str] = None,
     wbk_bathymetry: Optional[Dict[str, List[Dict[str, str]]]] = None,
+    wbk_names: Optional[Dict[str, List[Dict[str, str]]]] = None,
+    wbk_marker: Optional[Dict[str, Dict[str, Any]]] = None,
     towns_index: Optional[NearbyTownsIndex] = None,
 ) -> Dict[str, Any]:
     """Build the 5-section regulation_index.json.
@@ -756,6 +779,8 @@ def build_regulation_index(
         records: RegulationRecords from Phase 1 (for synopsis reg info)
         reach_level_reg_ids: reg IDs that propagate at reach level
         wbk_bathymetry: optional str(WATERBODY_KEY)→[survey sheets] for depth maps
+        wbk_names: optional str(WATERBODY_KEY)→[{name, source}] stocking/bathymetry name variants
+        wbk_marker: optional str(WATERBODY_KEY)→{amenity/access fields} gofishbc marker info
         towns_index: optional NearbyTownsIndex to tag search entries with nearby towns
 
     Returns:
@@ -846,6 +871,8 @@ def build_regulation_index(
         resolver,
         reg_water_lookup,
         wbk_bathymetry,
+        wbk_names,
+        wbk_marker,
     )
 
     # Merge all reaches
@@ -897,6 +924,9 @@ def build_regulation_index(
         # when absent so stream/ungazetted reaches carry no extra weight.
         if reach.get("bathymetry"):
             reaches_out[rid]["bathymetry"] = reach["bathymetry"]
+        # Map marker amenity/access info (optional; polygon reaches only).
+        if reach.get("marker"):
+            reaches_out[rid]["marker"] = reach["marker"]
 
         # Stream reaches → reach_segments
         if reach["fids"]:

@@ -16,13 +16,29 @@
 /** Name variant with source provenance (structurally identical to NameVariant in featureUtils) */
 export interface NameVariantEntry {
   name: string;
-  source: 'direct' | 'tributary' | 'admin' | 'bathymetry';
+  source: 'direct' | 'tributary' | 'admin' | 'bathymetry' | 'stocking';
 }
 
 /** A bathymetry survey depth-map sheet. URL = <R2 base>/bathymetry/<pdf>. */
 export interface BathymetrySurvey {
   pdf: string;
   title: string;
+}
+
+/** gofishbc.com "Where To Fish" map marker enrichment — amenity/access
+ * whitelist only. Not yet surfaced in any UI — attached to the reach for
+ * future display work. */
+export interface MarkerInfo {
+  more_info?: string;
+  description?: string;
+  photo_url?: string;
+  road_access?: string;
+  boat_launch?: string;
+  fishing_dock?: string;
+  campsite?: string;
+  washroom?: string;
+  wheelchair_access?: string;
+  hike_in_required?: string;
 }
 
 // ── Raw JSON shapes ──────────────────────────────────────────────────
@@ -87,6 +103,8 @@ export interface Reach {
   tributary_reg_ids?: string[];
   /** Bathymetry survey depth-map PDFs (polygon reaches only). */
   bathymetry?: BathymetrySurvey[];
+  /** gofishbc map marker amenity/access info (polygon reaches only). */
+  marker?: MarkerInfo;
 }
 
 /** Search index entry (tier0 enriched format with segments) */

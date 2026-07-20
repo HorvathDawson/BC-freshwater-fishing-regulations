@@ -147,9 +147,6 @@ def build(config_path: Path = Path("config.yaml"), dry_run: bool = False) -> Pat
     gpkg_path = project_root / cfg["data_accessor"]["gpkg_path"]
     deploy_dir = project_root / cfg["output"]["pipeline"]["deploy"]
     shard_version = cfg["output"]["pipeline"].get("shard_version", 1)
-    # Optional bathymetry survey maps (depth-map PDFs). Absent CSV degrades
-    # gracefully — reaches simply carry no depth maps.
-    bathy_csv_path = project_root / "data" / "wsa_bathymetry_maps.csv"
     # Optional OSM populated-places gazetteer for nearest-town search tagging.
     # Absent file degrades gracefully — search entries carry no nearby_towns.
     places_path = project_root / "data" / "bc_places.json"
@@ -199,10 +196,10 @@ def build(config_path: Path = Path("config.yaml"), dry_run: bool = False) -> Pat
 
     # ── Phase 5: Reach Build + Output ────────────────────────────────
     t0 = time.perf_counter()
-    from pipeline.matching.bathymetry_matcher import build_wbk_bathymetry_map
+    from pipeline.enrichment.waterbody_accessor import load_waterbody_matches
     from pipeline.enrichment.nearby_towns import NearbyTownsIndex
 
-    wbk_bathymetry = build_wbk_bathymetry_map(bathy_csv_path, gpkg_path)
+    matches = load_waterbody_matches()
     towns_index = NearbyTownsIndex.from_file(places_path)
     logger.info("Loaded %d towns for nearest-town search tagging", len(towns_index))
     index = reach_builder.build_regulation_index(
@@ -212,7 +209,9 @@ def build(config_path: Path = Path("config.yaml"), dry_run: bool = False) -> Pat
         records,
         reach_level_reg_ids=reach_level_reg_ids,
         match_table_path=str(match_table_path),
-        wbk_bathymetry=wbk_bathymetry,
+        wbk_bathymetry=matches.wbk_bathymetry,
+        wbk_names=matches.wbk_names,
+        wbk_marker=matches.wbk_marker,
         towns_index=towns_index,
     )
     logger.info("Phase 5 done in %.1fs", time.perf_counter() - t0)
@@ -220,6 +219,15 @@ def build(config_path: Path = Path("config.yaml"), dry_run: bool = False) -> Pat
     # ── Deploy: shard into R2-ready files ──────────────────────────────
     t0 = time.perf_counter()
     deploy_dir.mkdir(parents=True, exist_ok=True)
+
+    # Flat (unsharded) wbk -> reach_id map, for pipeline.recurring.stocking_resolver
+    # (and any future consumer) to resolve a waterbody_key to a reach without
+    # needing the full sharded poly_reaches/ tree.
+    poly_reaches_path = deploy_dir / "poly_reaches.json"
+    with open(poly_reaches_path, "w", encoding="utf-8") as f:
+        json.dump(index["poly_reaches"], f, ensure_ascii=False)
+    logger.info("Poly reaches → %s (%d waterbodies)", poly_reaches_path, len(index["poly_reaches"]))
+
     summary = shard_from_dict(index, deploy_dir, shard_version)
     logger.info(
         "Deploy shards written in %.1fs — %d fid, %d reach, %d poly shards",
@@ -337,6 +345,36 @@ def build(config_path: Path = Path("config.yaml"), dry_run: bool = False) -> Pat
     except Exception:
         logger.warning(
             "In-season scrape/resolve failed — skipping (%.1fs)",
+            time.perf_counter() - t0,
+            exc_info=True,
+        )
+
+    # ── Stocking info: resolve to reach IDs ───────────────────────────
+    # Produces stocking.json in the deploy folder, same shape/role as
+    # in_season.json above. Not yet consumed by any frontend display (that's
+    # future work) — this just keeps a fresh copy shipping with every build.
+    # Non-fatal: waterbody_db.db (the underlying fetch+match data) is refreshed
+    # on its own, separate, manual cadence — see pipeline/recurring/waterbody_db.
+    t0 = time.perf_counter()
+    try:
+        from pipeline.recurring.stocking_resolver import resolve_stocking
+
+        result = resolve_stocking(poly_reaches_path=poly_reaches_path)
+        stocking_path = deploy_dir / "stocking.json"
+        with open(stocking_path, "w", encoding="utf-8") as f:
+            json.dump(result, f, indent=2, ensure_ascii=False)
+
+        stats = result["stats"]
+        logger.info(
+            "Stocking data → %s (%d/%d resolved to a reach, %.1fs)",
+            stocking_path,
+            stats["resolved_to_reach"],
+            stats["total"],
+            time.perf_counter() - t0,
+        )
+    except Exception:
+        logger.warning(
+            "Stocking resolve failed — skipping (%.1fs)",
             time.perf_counter() - t0,
             exc_info=True,
         )

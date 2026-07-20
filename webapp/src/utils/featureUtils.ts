@@ -123,10 +123,11 @@ export const getFeatureDisplayName = (
  *   - "tributary"  — inherited via tributary BFS
  *   - "admin"      — inherited via admin polygon (park/reserve)
  *   - "bathymetry" — alternate name from a WSA bathymetric survey map
+ *   - "stocking"   — alternate name from a FIDQ stocking record
  */
 export interface NameVariant {
     name: string;
-    source: 'direct' | 'tributary' | 'admin' | 'bathymetry';
+    source: 'direct' | 'tributary' | 'admin' | 'bathymetry' | 'stocking';
 }
 
 /**
