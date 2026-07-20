@@ -2,8 +2,11 @@ import os
 import json
 import argparse
 import logging
+import sys
+import time
 import urllib.request
 import urllib.parse
+import urllib.error
 import zipfile
 import shutil
 import fiona
@@ -11,7 +14,7 @@ import geopandas as gpd
 import pandas as pd
 import osmnx as ox
 from pathlib import Path
-from shapely.geometry import Polygon, LineString
+from shapely.geometry import Point, Polygon, LineString
 from shapely.ops import polygonize, linemerge
 from tqdm import tqdm
 
@@ -73,6 +76,48 @@ def _download_quiet(url, dest_path, timeout=60):
         shutil.copyfileobj(resp, out)
 
 
+_OVERPASS_URL = "https://overpass-api.de/api/interpreter"
+
+
+def _overpass_query(query: str, what: str, timeout: int = 240, retries: int = 3) -> dict:
+    """POST an Overpass QL query, retrying transient server errors.
+
+    The public overpass-api.de instance is shared infrastructure and
+    occasionally returns 502/503/504 or times out under load, independent of
+    whether the query itself is fine — a short backoff retry clears most of
+    these without changing the query. ``what`` is used only in the error
+    message if every attempt fails.
+    """
+    encoded = urllib.parse.urlencode({"data": query})
+    last_exc: Exception | None = None
+    for attempt in range(1, retries + 1):
+        req = urllib.request.Request(
+            _OVERPASS_URL,
+            data=encoded.encode("utf-8"),
+            headers={"User-Agent": _DOWNLOAD_USER_AGENT},
+        )
+        try:
+            with urllib.request.urlopen(req, timeout=timeout) as resp:
+                return json.loads(resp.read().decode("utf-8"))
+        except Exception as e:  # noqa: BLE001
+            last_exc = e
+            # HTTPError is a URLError subclass, so it must be checked first —
+            # otherwise a permanent 400 would look "transient" via the
+            # broader URLError branch below.
+            if isinstance(e, urllib.error.HTTPError):
+                transient = e.code in (429, 502, 503, 504)
+            else:
+                transient = isinstance(e, (urllib.error.URLError, TimeoutError))
+            if attempt < retries and transient:
+                wait = 10 * attempt
+                print(f"  ⚠️  Overpass request failed ({e}); retrying in {wait}s "
+                      f"({attempt}/{retries - 1})...", file=sys.stderr)
+                time.sleep(wait)
+                continue
+            break
+    raise RuntimeError(f"Overpass fetch failed for {what}: {last_exc}") from last_exc
+
+
 # ==========================================
 # 1. CORE FUNCTIONS
 # ==========================================
@@ -117,6 +162,79 @@ def fetch_wfs_paginated(
         if final_gdf.crs and final_gdf.crs.to_epsg() != 3005:
             final_gdf = final_gdf.to_crs(epsg=3005)
         final_gdf.to_file(gpkg_path, layer=short_name, driver="GPKG", engine="pyogrio")
+
+
+# PARCEL_CLASS values that never represent a meaningful ground footprint for
+# an access-to-water question: condo/apartment units (each is its own title
+# stacked on the same building footprint), airspace parcels, non-physical
+# legal interests/easements, strata common areas, and road right-of-way.
+# Checked live against WHSE_CADASTRE.PMBC_PARCEL_FABRIC_POLY_SVW: these
+# account for 754,201 of 2,044,965 Private parcels (37%) and 204,101 of
+# 445,392 non-private parcels (46%).
+_PARCEL_NOISE_CLASSES = (
+    "Building Strata", "Air Space", "Interest", "Common Ownership", "Road",
+)
+
+
+def fetch_parcel_fabric(
+    short_name: str, zip_url: str, gdb_layer: str, gpkg_path: Path, temp_dir: Path
+) -> None:
+    """Fetch ParcelMap BC, split into a private layer and a dissolved crown layer.
+
+    Uses the BC Data Catalogue's bulk File Geodatabase download rather than
+    paginated WFS — one ~358MB zip for all 2.49M parcels province-wide,
+    already in EPSG:3005, vs. ~150+ paginated HTTP requests. Same
+    download+extract pattern as the FWA hydrography (:func:`ensure_ftp_extracted`),
+    just over HTTPS instead of FTP.
+
+    Most of those 2.49M parcels don't matter for "is this shoreline private
+    or public": condo units, road allowances, and legal interests carry no
+    distinct ground footprint. This:
+
+      1. Drops those noise classes at read-time via pyogrio's ``where=``
+         (an attribute filter pushed down to GDAL, so excluded rows are never
+         even parsed into memory).
+      2. Keeps every remaining ``OWNER_TYPE='Private'`` parcel as its own
+         polygon (``{short_name}_private``) — individual boundaries are the
+         point, since that's what tells you whose land you'd be crossing.
+      3. Dissolves every non-private parcel (Crown Provincial, Crown Agency,
+         Federal, Local Government, First Nations, Untitled Provincial,
+         Mixed Ownership, Unclassified) into one merged polygon per
+         ``OWNER_TYPE`` (``{short_name}_crown``) — the distinction between
+         individual adjacent government parcels doesn't matter here, only
+         "not private" does, so merging collapses what would otherwise be
+         hundreds of thousands of slivers into a handful of polygons.
+    """
+    gdb_path = ensure_ftp_extracted(zip_url, temp_dir)
+    noise_list = ", ".join(f"'{c}'" for c in _PARCEL_NOISE_CLASSES)
+
+    print(f"\n[GDB] Reading private parcels from {gdb_path.name} ...")
+    private_gdf = gpd.read_file(
+        gdb_path, layer=gdb_layer, engine="pyogrio",
+        where=f"OWNER_TYPE='Private' AND PARCEL_CLASS NOT IN ({noise_list})",
+    )
+    if private_gdf.crs and private_gdf.crs.to_epsg() != 3005:
+        private_gdf = private_gdf.to_crs(epsg=3005)
+    private_gdf.to_file(gpkg_path, layer=f"{short_name}_private", driver="GPKG", engine="pyogrio")
+    print(f"  ✅ '{short_name}_private': {len(private_gdf):,} parcel(s)")
+
+    print(f"\n[GDB] Reading non-private parcels from {gdb_path.name} ...")
+    crown_gdf = gpd.read_file(
+        gdb_path, layer=gdb_layer, engine="pyogrio",
+        where=f"OWNER_TYPE<>'Private' AND PARCEL_CLASS NOT IN ({noise_list})",
+    )
+    if crown_gdf.empty:
+        print(f"  ⚠️  '{short_name}_crown': no non-private parcels found.")
+        return
+    if crown_gdf.crs and crown_gdf.crs.to_epsg() != 3005:
+        crown_gdf = crown_gdf.to_crs(epsg=3005)
+
+    print(f"  Dissolving {len(crown_gdf):,} non-private parcels by OWNER_TYPE...")
+    dissolved = crown_gdf.dissolve(by="OWNER_TYPE", as_index=False)
+    dissolved = dissolved[["OWNER_TYPE", "geometry"]]
+    dissolved.to_file(gpkg_path, layer=f"{short_name}_crown", driver="GPKG", engine="pyogrio")
+    print(f"  ✅ '{short_name}_crown': {len(dissolved)} merged polygon(s) "
+          f"(from {len(crown_gdf):,} source parcels)")
 
 
 def fetch_osm_roi_boundaries(short_name, queries, gpkg_path):
@@ -179,19 +297,8 @@ out body;
 out skel qt;
 """
 
-    overpass_url = "https://overpass-api.de/api/interpreter"
-    encoded = urllib.parse.urlencode({"data": query})
-    req = urllib.request.Request(
-        overpass_url,
-        data=encoded.encode("utf-8"),
-        headers={"User-Agent": "BC-FishRegs-DataFetch/1.0"},
-    )
     print("  -> Querying Overpass API (this may take a minute)...")
-    try:
-        with urllib.request.urlopen(req, timeout=180) as resp:
-            raw = json.loads(resp.read().decode("utf-8"))
-    except Exception as e:
-        raise RuntimeError(f"Overpass fetch failed for aboriginal lands: {e}") from e
+    raw = _overpass_query(query, "aboriginal lands")
 
     elements = raw.get("elements", [])
     nodes = {e["id"]: e for e in elements if e["type"] == "node"}
@@ -399,6 +506,349 @@ out skel qt;
 
     gdf.to_file(gpkg_path, layer=short_name, driver="GPKG", engine="pyogrio")
     print(f"  ✅ '{short_name}' written ({len(gdf)} aboriginal lands polygons)")
+
+
+_RESTRICTIVE_ACCESS_VALUES = {
+    "private",
+    "permissive",
+    "permit",
+    "destination",
+    "customers",
+    "no",
+}
+
+
+def fetch_overpass_land_access(short_name: str, gpkg_path: Path) -> None:
+    """Fetch BC land polygons with restrictive access from OSM via Overpass.
+
+    Captures land the public cannot freely enter: private/restricted protected
+    areas & nature reserves (e.g. Metro Vancouver's Coquitlam Watershed —
+    ``access=private``, ``boundary=protected_area``, ``leisure=nature_reserve``,
+    ``protect_class=12``), plus any other area feature carrying one of the
+    access-restriction values documented at
+    https://wiki.openstreetmap.org/wiki/Tag:access=private — private,
+    permissive, permit, destination, customers, no.
+
+    Only closed ways / multipolygon relations are kept — an open way tagged
+    ``highway``/``barrier`` (a private driveway, gate, trail) is a linear
+    feature, not land, and is excluded at the query level to keep the result
+    set to actual parcels.
+    """
+    print(f"\n[OVERPASS] Fetching land access layer for BC...")
+
+    # Scope to the actual BC administrative boundary (not a lat/lon bounding
+    # box) so results don't bleed into neighbouring Alberta/Washington.
+    access_re = "|".join(sorted(_RESTRICTIVE_ACCESS_VALUES))
+
+    query = f"""
+[out:json][timeout:180];
+area["ISO3166-2"="CA-BC"]["admin_level"="4"]->.bc;
+(
+  way["access"~"^({access_re})$"]["highway"!~".*"]["barrier"!~".*"](area.bc);
+  relation["access"~"^({access_re})$"](area.bc);
+);
+out body;
+>;
+out skel qt;
+"""
+
+    print("  -> Querying Overpass API (this may take a minute)...")
+    raw = _overpass_query(query, "land access")
+
+    elements = raw.get("elements", [])
+    nodes = {e["id"]: e for e in elements if e["type"] == "node"}
+    ways = {e["id"]: e for e in elements if e["type"] == "way"}
+    relations = [e for e in elements if e["type"] == "relation"]
+    tagged_ways = [
+        e
+        for e in elements
+        if e["type"] == "way"
+        and e.get("tags", {}).get("access") in _RESTRICTIVE_ACCESS_VALUES
+    ]
+
+    def _way_coords(way_element):
+        return [
+            (nodes[nid]["lon"], nodes[nid]["lat"])
+            for nid in way_element.get("nodes", [])
+            if nid in nodes
+        ]
+
+    def _is_closed(coords):
+        return len(coords) >= 4 and coords[0] == coords[-1]
+
+    def _build_polygon_from_relation(rel):
+        """Assemble a polygon from a relation's outer/inner way members."""
+        outers, inners = [], []
+        for member in rel.get("members", []):
+            if member["type"] != "way" or member["ref"] not in ways:
+                continue
+            coords = _way_coords(ways[member["ref"]])
+            if len(coords) < 2:
+                continue
+            role = member.get("role", "outer")
+            (inners if role == "inner" else outers).append(coords)
+
+        if not outers:
+            return None
+        outer_lines = [LineString(c) for c in outers if len(c) >= 2]
+        if not outer_lines:
+            return None
+        merged = linemerge(outer_lines)
+        outer_polys = list(polygonize(merged))
+        if not outer_polys:
+            return None
+
+        inner_polys = []
+        if inners:
+            inner_lines = [LineString(c) for c in inners if len(c) >= 2]
+            if inner_lines:
+                inner_merged = linemerge(inner_lines)
+                inner_polys = list(polygonize(inner_merged))
+
+        result = outer_polys[0]
+        for op in outer_polys[1:]:
+            result = result.union(op)
+        for ip in inner_polys:
+            result = result.difference(ip)
+        return result if not result.is_empty else None
+
+    def _tags_to_record(osm_id, tags, geom, osm_type):
+        return {
+            "osm_id": str(osm_id),
+            "osm_type": osm_type,
+            "name": tags.get("name", ""),
+            "access": tags.get("access", ""),
+            "boundary": tags.get("boundary", ""),
+            "leisure": tags.get("leisure", ""),
+            "landuse": tags.get("landuse", ""),
+            "protect_class": tags.get("protect_class", ""),
+            "owner": tags.get("owner", ""),
+            "operator": tags.get("operator", ""),
+            "geometry": geom,
+        }
+
+    records = []
+    for rel in relations:
+        geom = _build_polygon_from_relation(rel)
+        if geom is None:
+            continue
+        records.append(_tags_to_record(rel["id"], rel.get("tags", {}), geom, "relation"))
+
+    # Standalone closed ways (not already covered as a relation member).
+    relation_way_ids = {
+        m["ref"]
+        for rel in relations
+        for m in rel.get("members", [])
+        if m["type"] == "way"
+    }
+    for way_el in tagged_ways:
+        if way_el["id"] in relation_way_ids:
+            continue
+        coords = _way_coords(way_el)
+        if not _is_closed(coords):
+            continue  # open way (e.g. a private trail) — not land
+        records.append(
+            _tags_to_record(way_el["id"], way_el.get("tags", {}), Polygon(coords), "way")
+        )
+
+    if not records:
+        print("  ⚠️  No land-access polygons found.")
+        return
+
+    gdf = gpd.GeoDataFrame(records, crs="EPSG:4326")
+    gdf = gdf.to_crs(epsg=3005)
+
+    for col in gdf.columns:
+        if col != "geometry" and gdf[col].apply(lambda x: isinstance(x, list)).any():
+            gdf[col] = gdf[col].apply(str)
+
+    gdf.to_file(gpkg_path, layer=short_name, driver="GPKG", engine="pyogrio")
+    print(f"  ✅ '{short_name}' written ({len(gdf)} land-access polygons)")
+
+
+def fetch_overpass_water_access(short_name: str, gpkg_path: Path) -> None:
+    """Fetch OSM physical water-access points across BC via Overpass.
+
+    Combines every point-of-interest tag relevant to "can I get to the
+    water, and what's there when I do" into one layer, distinguished by a
+    ``poi_type`` column:
+
+    - ``leisure=slipway``   — boat launch/ramp
+    - ``man_made=pier``     — dock/pier
+    - ``leisure=marina``    — marina
+    - ``leisure=fishing``   — designated fishing platform/spot
+
+    Not a permission/regulation layer — BC's own regulations already cover
+    where fishing is allowed, so this is deliberately just the physical
+    infrastructure. Almost all features are nodes; piers/marinas
+    occasionally come through as a way (the structure's outline/edge).
+    """
+    print(f"\n[OVERPASS] Fetching water access points for BC...")
+
+    query = """
+[out:json][timeout:180];
+area["ISO3166-2"="CA-BC"]["admin_level"="4"]->.bc;
+(
+  node["leisure"="slipway"](area.bc);
+  way["leisure"="slipway"](area.bc);
+  node["man_made"="pier"](area.bc);
+  way["man_made"="pier"](area.bc);
+  node["leisure"="marina"](area.bc);
+  way["leisure"="marina"](area.bc);
+  node["leisure"="fishing"](area.bc);
+  way["leisure"="fishing"](area.bc);
+);
+out body;
+>;
+out skel qt;
+"""
+
+    print("  -> Querying Overpass API (this may take a minute)...")
+    raw = _overpass_query(query, "water access")
+
+    elements = raw.get("elements", [])
+    nodes = {e["id"]: e for e in elements if e["type"] == "node"}
+
+    def _poi_type(tags):
+        if tags.get("leisure") == "slipway":
+            return "boat_launch"
+        if tags.get("man_made") == "pier":
+            return "pier"
+        if tags.get("leisure") == "marina":
+            return "marina"
+        if tags.get("leisure") == "fishing":
+            return "fishing_platform"
+        return None
+
+    def _way_coords(way_element):
+        return [
+            (nodes[nid]["lon"], nodes[nid]["lat"])
+            for nid in way_element.get("nodes", [])
+            if nid in nodes
+        ]
+
+    def _tags_to_record(osm_id, tags, geom, osm_type, poi_type):
+        return {
+            "osm_id": str(osm_id),
+            "osm_type": osm_type,
+            "poi_type": poi_type,
+            "name": tags.get("name", tags.get("alt_name", "")),
+            "access": tags.get("access", ""),
+            "fee": tags.get("fee", ""),
+            "surface": tags.get("surface", ""),
+            "motorboat": tags.get("motorboat", ""),
+            "trailer": tags.get("trailer", ""),
+            "operator": tags.get("operator", ""),
+            "geometry": geom,
+        }
+
+    records = []
+    for el in elements:
+        tags = el.get("tags", {})
+        poi_type = _poi_type(tags)
+        if poi_type is None:
+            continue
+        if el["type"] == "node":
+            geom = Point(el["lon"], el["lat"])
+        elif el["type"] == "way":
+            coords = _way_coords(el)
+            if len(coords) < 2:
+                continue
+            geom = LineString(coords)
+        else:
+            continue
+        records.append(_tags_to_record(el["id"], tags, geom, el["type"], poi_type))
+
+    if not records:
+        print("  ⚠️  No water access features found.")
+        return
+
+    gdf = gpd.GeoDataFrame(records, crs="EPSG:4326")
+    gdf = gdf.to_crs(epsg=3005)
+
+    for col in gdf.columns:
+        if col != "geometry" and gdf[col].apply(lambda x: isinstance(x, list)).any():
+            gdf[col] = gdf[col].apply(str)
+
+    gdf.to_file(gpkg_path, layer=short_name, driver="GPKG", engine="pyogrio")
+    print(f"  ✅ '{short_name}' written ({len(gdf)} water access feature(s))")
+
+
+def fetch_overpass_waterfalls(short_name: str, gpkg_path: Path) -> None:
+    """Fetch OSM waterfall points/ways across BC via Overpass.
+
+    ``waterway=waterfall`` marks a waterfall on a stream — almost always a
+    node, occasionally a short way. Not access-related; this is a points-
+    of-interest layer for the map.
+    """
+    print(f"\n[OVERPASS] Fetching waterfalls for BC...")
+
+    query = """
+[out:json][timeout:180];
+area["ISO3166-2"="CA-BC"]["admin_level"="4"]->.bc;
+(
+  node["waterway"="waterfall"](area.bc);
+  way["waterway"="waterfall"](area.bc);
+);
+out body;
+>;
+out skel qt;
+"""
+
+    print("  -> Querying Overpass API (this may take a minute)...")
+    raw = _overpass_query(query, "waterfalls")
+
+    elements = raw.get("elements", [])
+    nodes = {e["id"]: e for e in elements if e["type"] == "node"}
+    tagged_nodes = [
+        e for e in elements if e["type"] == "node" and e.get("tags", {}).get("waterway") == "waterfall"
+    ]
+    tagged_ways = [
+        e for e in elements if e["type"] == "way" and e.get("tags", {}).get("waterway") == "waterfall"
+    ]
+
+    def _way_coords(way_element):
+        return [
+            (nodes[nid]["lon"], nodes[nid]["lat"])
+            for nid in way_element.get("nodes", [])
+            if nid in nodes
+        ]
+
+    def _tags_to_record(osm_id, tags, geom, osm_type):
+        return {
+            "osm_id": str(osm_id),
+            "osm_type": osm_type,
+            "name": tags.get("name", ""),
+            "height": tags.get("height", ""),
+            "geometry": geom,
+        }
+
+    records = []
+    for el in tagged_nodes:
+        records.append(
+            _tags_to_record(el["id"], el.get("tags", {}), Point(el["lon"], el["lat"]), "node")
+        )
+    for way_el in tagged_ways:
+        coords = _way_coords(way_el)
+        if len(coords) < 2:
+            continue
+        records.append(
+            _tags_to_record(way_el["id"], way_el.get("tags", {}), LineString(coords), "way")
+        )
+
+    if not records:
+        print("  ⚠️  No waterfalls found.")
+        return
+
+    gdf = gpd.GeoDataFrame(records, crs="EPSG:4326")
+    gdf = gdf.to_crs(epsg=3005)
+
+    for col in gdf.columns:
+        if col != "geometry" and gdf[col].apply(lambda x: isinstance(x, list)).any():
+            gdf[col] = gdf[col].apply(str)
+
+    gdf.to_file(gpkg_path, layer=short_name, driver="GPKG", engine="pyogrio")
+    print(f"  ✅ '{short_name}' written ({len(gdf)} waterfall feature(s))")
 
 
 def ensure_ftp_extracted(ftp_url, temp_dir):
@@ -630,19 +1080,8 @@ def fetch_osm_places(short_name: str, dest_path: Path) -> None:
 out qt;
 """
 
-    overpass_url = "https://overpass-api.de/api/interpreter"
-    encoded = urllib.parse.urlencode({"data": query})
-    req = urllib.request.Request(
-        overpass_url,
-        data=encoded.encode("utf-8"),
-        headers={"User-Agent": _DOWNLOAD_USER_AGENT},
-    )
     print("  -> Querying Overpass API (this may take a minute)...")
-    try:
-        with urllib.request.urlopen(req, timeout=240) as resp:
-            raw = json.loads(resp.read().decode("utf-8"))
-    except Exception as e:
-        raise RuntimeError(f"Overpass fetch failed for OSM places: {e}") from e
+    raw = _overpass_query(query, "OSM places")
 
     places = []
     seen = set()
@@ -756,6 +1195,25 @@ def fetch_parsing_backup(config):
         print(f"  ✅ {key} → {dest}")
 
 
+def _layer_already_fetched(name: str, cfg: dict, gpkg_out: Path, existing_layers: set) -> bool:
+    """Best-effort "has this already been fetched" check, for --missing-only.
+
+    Most dataset types write a single gpkg layer named after the dataset key
+    — those are checked against ``existing_layers``. A few write to plain
+    files or split into multiple layers, so those types get their own check.
+    """
+    t = cfg["type"]
+    if t == "PARCEL_FABRIC":
+        return {f"{name}_private", f"{name}_crown"}.issubset(existing_layers)
+    if t in ("R2_FILE", "CSV_DOWNLOAD", "OSM_PLACES"):
+        dest = gpkg_out.parent / cfg["dest"]
+        return dest.exists() and dest.stat().st_size > 0
+    if t == "PDF_BULK":
+        dest_dir = gpkg_out.parent / cfg["dest_dir"]
+        return dest_dir.exists() and any(dest_dir.iterdir())
+    return name in existing_layers
+
+
 def main():
     config = get_config()
     gpkg_out = Path(config.fetch_output_gpkg_path)
@@ -763,6 +1221,14 @@ def main():
 
     FTP_FWA = "ftp://ftp.geobc.gov.bc.ca/sections/outgoing/bmgs/FWA_Public/FWA_BC.zip"
     FTP_STR = "ftp://ftp.geobc.gov.bc.ca/sections/outgoing/bmgs/FWA_Public/FWA_STREAM_NETWORKS_SP.zip"
+
+    # BC Data Catalogue — ParcelMap BC bulk File Geodatabase download (all
+    # ~2.49M parcels province-wide, ~358MB). Same bulk download+extract
+    # pattern as FTP_FWA/FTP_STR above, just over HTTPS.
+    PARCEL_FABRIC_ZIP = (
+        "https://pub.data.gov.bc.ca/datasets/4cf233c2-f020-4f7a-9b87-1923252fbc24/"
+        "pmbc_parcel_fabric_poly_svw.zip"
+    )
 
     # BC Data Catalogue — "Bathymetry Open Reference Table and Maps" (one row per
     # bathymetric survey map, with the PDF map URL).  Tabular CSV, saved to data/.
@@ -783,6 +1249,44 @@ def main():
         # Aboriginal / Indigenous lands from OpenStreetMap (Overpass API)
         "aboriginal_lands": {
             "type": "OVERPASS_ABORIGINAL",
+        },
+        # Land with restrictive public access from OpenStreetMap (Overpass API):
+        # private protected areas / nature reserves (e.g. watersheds) plus any
+        # area tagged access=private|permissive|permit|destination|customers|no.
+        "land_access": {
+            "type": "OVERPASS_LAND_ACCESS",
+        },
+        # OSM physical water-access points — boat launches, docks/piers,
+        # marinas, designated fishing platforms. Not a permission layer (BC's
+        # own regulations already cover where fishing is allowed) — just the
+        # physical "can I get to the water, and what's there" infrastructure.
+        "water_access_points": {
+            "type": "OVERPASS_WATER_ACCESS",
+        },
+        # BC Forest Service Roads (active/deactivated/gated status) — sourced
+        # from DataBC rather than OSM since BC's backcountry road network is
+        # far more complete/authoritative there than OSM tagging.
+        "forest_service_roads": {
+            "type": "WFS",
+            "source": "WHSE_FOREST_TENURE.FTEN_ROAD_SECTION_LINES_SVW",
+        },
+        # ParcelMap BC — parcel-level land ownership. Bulk File Geodatabase
+        # download (~358MB, all 2.49M parcels), same pattern as FWA_BC.zip
+        # above. fetch_parcel_fabric() drops condo/road/interest noise
+        # classes at read-time and dissolves non-private ownership into one
+        # merged polygon per OWNER_TYPE, writing "{name}_private" (individual
+        # private lots) + "{name}_crown" (merged public land) layers. Still a
+        # heavier pull than most layers here, same as `streams` — included in
+        # every run by default, not gated behind `--layers`.
+        "land_parcels": {
+            "type": "PARCEL_FABRIC",
+            "url": PARCEL_FABRIC_ZIP,
+            "layer": "PMBC_PARCEL_FABRIC_POLY_SVW",
+        },
+        # OSM waterfalls (waterway=waterfall), mostly points with occasional
+        # short ways marking the falls location on a stream.
+        "waterfalls": {
+            "type": "OVERPASS_WATERFALLS",
         },
         "wma": {"type": "WFS", "source": "WHSE_TANTALIS.TA_WILDLIFE_MGMT_AREAS_SVW"},
         "wmu": {
@@ -848,6 +1352,15 @@ def main():
         "--skip-ftp", action="store_true", help="Skip all heavy FTP downloads"
     )
     parser.add_argument(
+        "--missing-only",
+        action="store_true",
+        help=(
+            "Skip layers already present in the output gpkg/files — fetch only "
+            "what's new or missing (e.g. to resume after a partial/failed run "
+            "without re-fetching everything already done)."
+        ),
+    )
+    parser.add_argument(
         "--add-parsing-data",
         action="store_true",
         help=(
@@ -880,12 +1393,26 @@ def main():
         elif args.skip_streams:
             to_fetch.pop("streams", None)
 
+    if args.missing_only:
+        existing_layers = set(fiona.listlayers(gpkg_out)) if gpkg_out.exists() else set()
+        before = set(to_fetch)
+        to_fetch = {
+            k: v for k, v in to_fetch.items()
+            if not _layer_already_fetched(k, v, gpkg_out, existing_layers)
+        }
+        skipped = before - set(to_fetch)
+        if skipped:
+            print(f"--missing-only: skipping {len(skipped)} already-fetched layer(s): "
+                  f"{', '.join(sorted(skipped))}")
+
     for name, cfg in tqdm(
         to_fetch.items(), total=len(to_fetch), desc="Datasets", unit="layer"
     ):
         try:
             if cfg["type"] == "WFS":
                 fetch_wfs_paginated(name, cfg["source"], gpkg_out, temp_dir)
+            elif cfg["type"] == "PARCEL_FABRIC":
+                fetch_parcel_fabric(name, cfg["url"], cfg["layer"], gpkg_out, temp_dir)
             elif cfg["type"] in ("OSM_ROI", "OSM_ADMIN"):
                 fetch_osm_roi_boundaries(name, cfg["queries"], gpkg_out)
             elif cfg["type"] == "FWA_GDB":
@@ -908,6 +1435,12 @@ def main():
                 )
             elif cfg["type"] == "OVERPASS_ABORIGINAL":
                 fetch_overpass_aboriginal_lands(name, gpkg_out)
+            elif cfg["type"] == "OVERPASS_LAND_ACCESS":
+                fetch_overpass_land_access(name, gpkg_out)
+            elif cfg["type"] == "OVERPASS_WATER_ACCESS":
+                fetch_overpass_water_access(name, gpkg_out)
+            elif cfg["type"] == "OVERPASS_WATERFALLS":
+                fetch_overpass_waterfalls(name, gpkg_out)
             elif cfg["type"] == "OSM_PLACES":
                 fetch_osm_places(name, gpkg_out.parent / cfg["dest"])
         except Exception as e:

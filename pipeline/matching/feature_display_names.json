@@ -48,5 +48,12 @@
       "360219234",
       "360553991"
     ]
+  },
+  {
+    "display_name": "Cahilty Lake",
+    "note": "Polygon has no GNIS_ID — keyed by WATERBODY_KEY instead of GNIS ID or blue line key since it's a lake polygon, not a stream.",
+    "waterbody_keys": [
+      "329321459"
+    ]
   }
 ]

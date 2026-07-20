@@ -69,14 +69,14 @@ fi
 # ── Step 1: Scrape ──────────────────────────────────────────────────
 
 echo "── Scraping in-season changes ──"
-python -m pipeline.matching.in_season_scraper \
+python -m pipeline.recurring.in_season_scraper \
   --match-table "$DEPLOY_DIR/match_table.json" \
   --quiet
 
 # ── Step 2: Resolve ─────────────────────────────────────────────────
 
 echo "── Resolving to reach IDs ──"
-python -m pipeline.matching.in_season_resolver \
+python -m pipeline.recurring.in_season_resolver \
   --tier0 "$DEPLOY_DIR/tier0.json" \
   --match-table "$DEPLOY_DIR/match_table.json" \
   --quiet

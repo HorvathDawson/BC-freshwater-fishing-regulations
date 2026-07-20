@@ -304,8 +304,8 @@ def build(config_path: Path = Path("config.yaml"), dry_run: bool = False) -> Pat
     # continue — the daily GHA cron will keep it updated anyway.
     t0 = time.perf_counter()
     try:
-        from pipeline.matching.in_season_scraper import scrape_in_season_changes
-        from pipeline.matching.in_season_resolver import (
+        from pipeline.recurring.in_season_scraper import scrape_in_season_changes
+        from pipeline.recurring.in_season_resolver import (
             resolve_to_reaches,
             _load_match_table,
         )

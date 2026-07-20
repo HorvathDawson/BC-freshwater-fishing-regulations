@@ -23,7 +23,7 @@ BCRFC forecasts (CLEVER / COFFEE / ELF) come from two sources per model: an ArcG
 ## Usage
 
 ```bash
-cd hydro-poc
+cd live-data/hydro
 
 # 1. Initial setup (Stations, 18mo daily means, 14d 5-min values, forecasts)
 python hydro_poc.py bootstrap --bc

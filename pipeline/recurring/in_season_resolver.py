@@ -13,8 +13,8 @@ Dependencies: only built-in Python + pipeline.matching (no geo libs).
 
 CLI
 ---
-    python -m pipeline.matching.in_season_resolver
-    python -m pipeline.matching.in_season_resolver --scraped path/to/in_season_changes.json
+    python -m pipeline.recurring.in_season_resolver
+    python -m pipeline.recurring.in_season_resolver --scraped path/to/in_season_changes.json
 """
 
 from __future__ import annotations
@@ -29,7 +29,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Tuple
 
 from .in_season_scraper import ScrapedResult, InSeasonChange, RegionChanges
-from .match_table import BaseEntry, MatchTable, OverrideEntry, OVERRIDES_PATH
+from pipeline.matching.match_table import BaseEntry, MatchTable, OverrideEntry, OVERRIDES_PATH
 
 logger = logging.getLogger(__name__)
 

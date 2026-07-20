@@ -155,6 +155,46 @@ class FWADataAccessor:
         ]
         return gdf
 
+    def get_layers(
+        self,
+        layer_names: List[str],
+        columns: Optional[List[str]] = None,
+        bbox: Optional[Tuple[float, float, float, float]] = None,
+        source_column: Optional[str] = "_source_layer",
+    ) -> gpd.GeoDataFrame:
+        """
+        Loads and concatenates several layers that share a common schema into
+        one GeoDataFrame — e.g. FWA's `lakes`/`wetlands`/`manmade` layers all
+        carry WATERBODY_KEY, GNIS_NAME_1/2, WATERBODY_KEY_GROUP_CODE_50K, and
+        WATERSHED_CODE_50K, but a given "lake" (by common name or by an
+        external source's own type classification, e.g. FIDQ's waterbodyType
+        "L") can physically live in any of the three depending on whether FWA
+        classifies it as natural, wetland, or man-made (dammed lakes,
+        reservoirs, urban ponds). Searching `lakes` alone silently misses
+        those — this is the shared, multi-layer counterpart to `get_layer`
+        for exactly that situation.
+
+        :param columns: passed through to each per-layer `get_layer` call.
+        :param source_column: name of a column stamped with the source layer
+            name on every row, so a downstream consumer can tell which layer
+            a match came from; pass None to omit it.
+        """
+        frames = []
+        for name in layer_names:
+            gdf = self.get_layer(name, columns=columns, bbox=bbox)
+            if gdf.empty:
+                continue
+            if source_column:
+                gdf = gdf.copy()
+                gdf[source_column] = name
+            frames.append(gdf)
+        if not frames:
+            empty_cols = list(columns or [])
+            if source_column:
+                empty_cols.append(source_column)
+            return gpd.GeoDataFrame(columns=empty_cols)
+        return gpd.GeoDataFrame(pd.concat(frames, ignore_index=True), crs=frames[0].crs)
+
     def get_features_by_attribute(
         self,
         layer_name: str,

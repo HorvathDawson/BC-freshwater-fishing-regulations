@@ -11,8 +11,8 @@ Output is a JSON file with one entry per section, each containing its rows.
 
 CLI
 ---
-    python -m pipeline.matching.in_season_scraper
-    python -m pipeline.matching.in_season_scraper --out path/to/output.json
+    python -m pipeline.recurring.in_season_scraper
+    python -m pipeline.recurring.in_season_scraper --out path/to/output.json
 """
 
 from __future__ import annotations
