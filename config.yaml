@@ -20,6 +20,7 @@ output:
     pmtiles: "output/pipeline/deploy/freshwater_atlas.pmtiles"
     match_table: "output/pipeline/matching/match_table.json"
     in_season: "output/pipeline/matching/in_season_changes.json"
+    stocking: "output/pipeline/matching/stocking.json"
     extraction: "output/pipeline/extraction"
     parsing: "output/pipeline/parsing"
     deploy: "output/pipeline/deploy"
@@ -30,12 +31,16 @@ output:
 # ============================================================================
 data:
   base: "data"
-  
+
   # Data Fetch Settings (for downloading BC GIS data)
   fetch:
     output_gpkg: "data/bc_fisheries_data.gpkg"
     temp_dir: "data/temp_bc_data"
-  
+
+  # Precomputed bathymetry/name/marker matches from pipeline/recurring/waterbody_db's
+  # export.py (replaces pipeline/matching/bathymetry_matcher.py's live re-matching).
+  waterbody_matches: "data/bathymetry_pdfs/waterbody_matches.json"
+
 
 # Unified Data Accessor
 data_accessor:
