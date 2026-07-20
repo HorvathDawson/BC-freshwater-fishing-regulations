@@ -165,6 +165,7 @@ from __future__ import annotations
 
 import argparse
 import concurrent.futures
+import html
 import http.cookiejar
 import json
 import re
@@ -966,8 +967,13 @@ def _fix_bulk_escapes(blob: str) -> str:
     """Preview's JSON has a stray backslash before HTML entities (e.g.
     ``\\&#039;`` for an apostrophe) — invalid JSON otherwise. Confirmed
     live only on this endpoint (the per-waterbody detail endpoint's own
-    output is clean)."""
-    return blob.replace("\\&", "&")
+    output is clean). Also decodes the entity itself (``&#039;`` -> ``'``)
+    — the fix above alone leaves valid-but-still-HTML-encoded JSON string
+    values (confirmed live: FIDQ waterbody 37841's own alias is literally
+    stored as ``BOBB&#039;S``, not ``BOBB'S``, across 751 rows), which would
+    otherwise leak the raw entity into gazetted_name/aliases and anything
+    downstream that displays them verbatim (e.g. a promoted display_name)."""
+    return html.unescape(blob.replace("\\&", "&"))
 
 
 def fetch_watershed_groups() -> list[str]:

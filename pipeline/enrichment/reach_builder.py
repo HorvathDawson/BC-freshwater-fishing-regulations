@@ -42,6 +42,12 @@ import re as _re
 
 _MC_RE = _re.compile(r"\bMc([a-z])")
 
+# Name-variant source priority, most specific/authoritative first. Used both
+# to promote a display_name when the FWA gazetteer has none (see
+# _group_polygon_reaches) and to pick a winning source when the same name
+# string is claimed by more than one source (see _build_search_index).
+_SOURCE_PRIORITY = {"direct": 0, "tributary": 1, "admin": 2, "bathymetry": 3, "stocking": 4, "marker": 5}
+
 
 def _title_case(s: str) -> str:
     """Title-case with Mc/O' prefix handling (McNaughton, O'Clock)."""
@@ -312,10 +318,14 @@ def _group_polygon_reaches(
     (``[{pdf, title}]``).
 
     ``wbk_names`` maps ``str(WATERBODY_KEY)`` to every known alternate name
-    for that waterbody from stocking and bathymetry (``{"name", "source"}``,
-    source ``"stocking"`` or ``"bathymetry"``) — see
-    ``pipeline/recurring/waterbody_db/export.py``. Each is added as an extra
-    searchable name variant.
+    for that waterbody from stocking, bathymetry, and gofishbc markers
+    (``{"name", "source"}``, source ``"stocking"``, ``"bathymetry"``, or
+    ``"marker"``) — see ``pipeline/recurring/waterbody_db/export.py``. When
+    the FWA gazetteer itself has no name for this waterbody (no GNIS name,
+    no matching regulation name), the most authoritative available entry
+    here (by ``_SOURCE_PRIORITY``) is *promoted* to ``display_name`` instead
+    of leaving the reach unnamed and excluded from search — otherwise each
+    is added as an extra searchable name variant.
 
     ``wbk_marker`` maps ``str(WATERBODY_KEY)`` to a gofishbc map marker's
     amenity/access fields (a fixed 10-field whitelist, already filtered by
@@ -343,6 +353,20 @@ def _group_polygon_reaches(
             if poly_rec is None:
                 continue
 
+            # Stocking + bathymetry + marker name variants (optional dataset,
+            # from pipeline/recurring/waterbody_db's precomputed export) —
+            # every known alternate name for this waterbody from any of the
+            # three sources, normalized once up front so both the display-name
+            # fallback below and the name_variants list further down read the
+            # same deduped, title-cased candidates.
+            extra_names: List[Dict[str, str]] = []
+            seen_extra: Set[str] = set()
+            for entry in _names.get(str(wbk), []):
+                name = _title_case((entry.get("name") or "").replace('"', "").strip())
+                if name and name not in seen_extra:
+                    seen_extra.add(name)
+                    extra_names.append({"name": name, "source": entry.get("source", "")})
+
             # Resolve display name via shared resolver
             direct_reg_name = ""
             if resolver and not poly_rec.display_name:
@@ -361,6 +385,15 @@ def _group_polygon_reaches(
                 )
             else:
                 display_name = poly_rec.display_name
+
+            if not display_name and extra_names:
+                # The FWA gazetteer has no name at all for this waterbody (no
+                # GNIS name, no matching regulation name) — fall back to the
+                # most authoritative available bathymetry/stocking/marker name
+                # rather than leaving it unnamed and excluded from search
+                # (see _build_search_index's `if not dn: continue`).
+                best = min(extra_names, key=lambda e: _SOURCE_PRIORITY.get(e["source"], 9))
+                display_name = best["name"]
 
             reg_set_str = ",".join(sorted(reg_ids))
             rid = _reach_id(wbk, display_name, reg_set_str)
@@ -395,21 +428,15 @@ def _group_polygon_reaches(
                         {"pdf": sheet["pdf"], "title": sheet.get("title", "")}
                     )
 
-            # Stocking + bathymetry name variants (optional dataset, from
-            # pipeline/recurring/waterbody_db's precomputed export) — every
-            # known alternate name for this waterbody from either source, not
-            # just one representative name per sheet.
-            extra_names = _names.get(str(wbk))
-            if extra_names:
-                for entry in extra_names:
-                    name = _title_case((entry.get("name") or "").replace('"', "").strip())
-                    if name and name != display_name:
-                        structured_nv.append(
-                            {"name": name, "source": entry.get("source", "")}
-                        )
+            # Stocking + bathymetry + marker name variants — already
+            # normalized/deduped above (and possibly already promoted to
+            # display_name, in which case it's excluded here).
+            for entry in extra_names:
+                if entry["name"] != display_name:
+                    structured_nv.append(entry)
 
             # Final dedup pass over the complete list (direct + admin +
-            # bathymetry + stocking): keep only the first occurrence of each
+            # bathymetry + stocking + marker): keep only the first occurrence of each
             # name, regardless of which source contributed it — a name can
             # otherwise appear twice (e.g. an admin-inherited name that's
             # also a stocking alias, or the same lake name surfacing from
@@ -663,8 +690,7 @@ def _build_search_index(
         if reach["minzoom"] < grp["min_zoom"]:
             grp["min_zoom"] = reach["minzoom"]
         # Name variants: merge structured [{name, source}] across reaches.
-        # Most specific source wins: direct > tributary > admin > bathymetry.
-        _SOURCE_PRIORITY = {"direct": 0, "tributary": 1, "admin": 2, "bathymetry": 3, "stocking": 4}
+        # Most specific source wins (module-level _SOURCE_PRIORITY).
         for nv_entry in reach.get("name_variants", []):
             name = nv_entry["name"]
             src = nv_entry["source"]

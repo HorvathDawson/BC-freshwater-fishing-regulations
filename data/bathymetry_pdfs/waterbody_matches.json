@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-20T04:35:55.574505+00:00",
+  "generated_at": "2026-07-20T17:27:43.453929+00:00",
   "wbk_bathymetry": {
     "328961689": [
       {
@@ -20917,6 +20917,10 @@
     ],
     "328963513": [
       {
+        "name": "Little Big Bar",
+        "source": "marker"
+      },
+      {
         "name": "LAKE #5117",
         "source": "stocking"
       },
@@ -20926,6 +20930,10 @@
       }
     ],
     "328963516": [
+      {
+        "name": "Kelly",
+        "source": "marker"
+      },
       {
         "name": "KELLY LAKE",
         "source": "stocking"
@@ -20987,6 +20995,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Kersey",
+        "source": "marker"
+      },
+      {
         "name": "5 MILE",
         "source": "stocking"
       },
@@ -21031,6 +21043,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Lower",
+        "source": "marker"
+      },
+      {
         "name": "LOWER LAKE",
         "source": "stocking"
       }
@@ -21053,6 +21069,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Lu",
+        "source": "marker"
+      },
+      {
         "name": "LU LAKE",
         "source": "stocking"
       }
@@ -21061,6 +21081,10 @@
       {
         "name": "HELEN LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Helen",
+        "source": "marker"
       },
       {
         "name": "HELEN LAKE",
@@ -21129,6 +21153,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Larry",
+        "source": "marker"
+      },
+      {
         "name": "LARRY LAKE",
         "source": "stocking"
       }
@@ -21137,6 +21165,10 @@
       {
         "name": "DOGSLEG LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Dogsleg",
+        "source": "marker"
       },
       {
         "name": "DOGSLED L.",
@@ -21149,11 +21181,15 @@
     ],
     "328966176": [
       {
-        "name": "SAM&#039;S FOLLIES LAKE",
+        "name": "Sam'S Folly",
+        "source": "marker"
+      },
+      {
+        "name": "SAM'S FOLLIES LAKE",
         "source": "stocking"
       },
       {
-        "name": "SAM&#039;S FOLLY",
+        "name": "SAM'S FOLLY",
         "source": "stocking"
       }
     ],
@@ -21175,6 +21211,10 @@
       {
         "name": "BATTLESHIP LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Battleship",
+        "source": "marker"
       },
       {
         "name": "BATTLESHIP LAKE",
@@ -21255,6 +21295,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Milburn",
+        "source": "marker"
+      },
+      {
         "name": "MILBURN LAKE",
         "source": "stocking"
       },
@@ -21277,6 +21321,10 @@
       {
         "name": "RHEINHART LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Rheinhart",
+        "source": "marker"
       },
       {
         "name": "RHEINHART LAKE",
@@ -21339,11 +21387,19 @@
     ],
     "328966805": [
       {
+        "name": "Elbow",
+        "source": "marker"
+      },
+      {
         "name": "ELBOW LAKE",
         "source": "stocking"
       }
     ],
     "328966809": [
+      {
+        "name": "Fatox",
+        "source": "marker"
+      },
       {
         "name": "FATOX LAKE",
         "source": "stocking"
@@ -21392,6 +21448,10 @@
       }
     ],
     "328967799": [
+      {
+        "name": "Wilimena",
+        "source": "marker"
+      },
       {
         "name": "WILIMENA LAKE",
         "source": "stocking"
@@ -21455,6 +21515,10 @@
     ],
     "328970740": [
       {
+        "name": "Gump",
+        "source": "marker"
+      },
+      {
         "name": "GUMP LAKE",
         "source": "stocking"
       }
@@ -21463,6 +21527,10 @@
       {
         "name": "LOGAN LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Logan",
+        "source": "marker"
       },
       {
         "name": "LAKE #569",
@@ -21475,6 +21543,10 @@
     ],
     "328970744": [
       {
+        "name": "Tupper",
+        "source": "marker"
+      },
+      {
         "name": "TUPPER LAKE",
         "source": "stocking"
       }
@@ -21483,6 +21555,10 @@
       {
         "name": "LOOKOUT LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Lookout",
+        "source": "marker"
       },
       {
         "name": "LOOKOUT LAKE",
@@ -21531,6 +21607,10 @@
       {
         "name": "HOTEL LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Hotel",
+        "source": "marker"
       },
       {
         "name": "HOTEL LAKE",
@@ -21641,6 +21721,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Kiakho",
+        "source": "marker"
+      },
+      {
         "name": "KIAKHO LAKES",
         "source": "stocking"
       }
@@ -21663,6 +21747,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Mineral",
+        "source": "marker"
+      },
+      {
         "name": "MINERAL LAKE",
         "source": "stocking"
       }
@@ -21675,6 +21763,10 @@
       {
         "name": "LOON LAKE  NEAR AINSWORTH",
         "source": "bathymetry"
+      },
+      {
+        "name": "Loon",
+        "source": "marker"
       },
       {
         "name": "LOON LAKE",
@@ -21765,6 +21857,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Nancy Greene",
+        "source": "marker"
+      },
+      {
         "name": "ALSO KNOWN AS SHEEP LAKE",
         "source": "stocking"
       },
@@ -21789,6 +21885,12 @@
       {
         "name": "RITCHIE LAKE",
         "source": "stocking"
+      }
+    ],
+    "328974978": [
+      {
+        "name": "Champion 1St",
+        "source": "marker"
       }
     ],
     "328975555": [
@@ -21817,6 +21919,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Deer",
+        "source": "marker"
+      },
+      {
         "name": "DEER LAKE",
         "source": "stocking"
       }
@@ -21835,6 +21941,10 @@
       {
         "name": "IVEY LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Ivey",
+        "source": "marker"
       },
       {
         "name": "HORSESHOE LAKE",
@@ -21863,6 +21973,10 @@
     ],
     "328977792": [
       {
+        "name": "Gwen",
+        "source": "marker"
+      },
+      {
         "name": "GWEN LAKE",
         "source": "stocking"
       }
@@ -21880,6 +21994,10 @@
       }
     ],
     "328977807": [
+      {
+        "name": "Lily",
+        "source": "marker"
+      },
       {
         "name": "LAKE #2114",
         "source": "stocking"
@@ -21919,11 +22037,19 @@
     ],
     "328978029": [
       {
+        "name": "Moose",
+        "source": "marker"
+      },
+      {
         "name": "MOOSE LAKE",
         "source": "stocking"
       }
     ],
     "328978034": [
+      {
+        "name": "Andy",
+        "source": "marker"
+      },
       {
         "name": "ANDY LAKE",
         "source": "stocking"
@@ -21947,6 +22073,10 @@
       {
         "name": "BYERS LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Byers",
+        "source": "marker"
       },
       {
         "name": "BYERS LAKE",
@@ -22013,6 +22143,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "La Salle (West)",
+        "source": "marker"
+      },
+      {
         "name": "LA SALLE (WEST)",
         "source": "stocking"
       },
@@ -22047,6 +22181,12 @@
         "source": "stocking"
       }
     ],
+    "328982379": [
+      {
+        "name": "Borrow Pit # 4",
+        "source": "marker"
+      }
+    ],
     "328982496": [
       {
         "name": "BUG L.",
@@ -22061,6 +22201,10 @@
       {
         "name": "QUALITY LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Quality",
+        "source": "marker"
       },
       {
         "name": "QUALITY LAKE",
@@ -22121,11 +22265,19 @@
     ],
     "328985447": [
       {
+        "name": "Wasley",
+        "source": "marker"
+      },
+      {
         "name": "WASLEY LAKE",
         "source": "stocking"
       }
     ],
     "328985462": [
+      {
+        "name": "Loon",
+        "source": "marker"
+      },
       {
         "name": "LOON LAKE",
         "source": "stocking"
@@ -22142,6 +22294,10 @@
       }
     ],
     "328985532": [
+      {
+        "name": "Kentucky Se Pothole",
+        "source": "marker"
+      },
       {
         "name": "KENTUCKY SE POTHOLE",
         "source": "stocking"
@@ -22177,6 +22333,10 @@
       {
         "name": "BURNELL LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Burnell",
+        "source": "marker"
       },
       {
         "name": "BURNELL LAKE",
@@ -22231,6 +22391,10 @@
     ],
     "328985755": [
       {
+        "name": "Silver",
+        "source": "marker"
+      },
+      {
         "name": "SILVER LAKE",
         "source": "stocking"
       }
@@ -22239,6 +22403,10 @@
       {
         "name": "SQUARE LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Square",
+        "source": "marker"
       },
       {
         "name": "SQUARE LAKE",
@@ -22258,6 +22426,10 @@
       }
     ],
     "328985760": [
+      {
+        "name": "Baker",
+        "source": "marker"
+      },
       {
         "name": "BAKER LAKE",
         "source": "stocking"
@@ -22289,6 +22461,10 @@
       {
         "name": "CHICADEE LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Chicadee",
+        "source": "marker"
       },
       {
         "name": "CHICADEE LAKE",
@@ -22371,6 +22547,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Abbott",
+        "source": "marker"
+      },
+      {
         "name": "ABBOTT LAKE",
         "source": "stocking"
       }
@@ -22379,6 +22559,10 @@
       {
         "name": "KLINNE LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Klinne",
+        "source": "marker"
       },
       {
         "name": "KLINNE LAKE",
@@ -22420,6 +22604,10 @@
       }
     ],
     "328987837": [
+      {
+        "name": "Little Jones",
+        "source": "marker"
+      },
       {
         "name": "LAKE #337",
         "source": "stocking"
@@ -22515,11 +22703,19 @@
         "source": "bathymetry"
       },
       {
+        "name": "Missezula",
+        "source": "marker"
+      },
+      {
         "name": "MISSEZULA LAKE",
         "source": "stocking"
       }
     ],
     "328988959": [
+      {
+        "name": "Boulder",
+        "source": "marker"
+      },
       {
         "name": "BOULDER",
         "source": "stocking"
@@ -22533,6 +22729,10 @@
       {
         "name": "KUMP LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Kump",
+        "source": "marker"
       },
       {
         "name": "KUMP LAKE",
@@ -22553,6 +22753,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Borgeson",
+        "source": "marker"
+      },
+      {
         "name": "BORGESON LAKE",
         "source": "stocking"
       },
@@ -22569,6 +22773,10 @@
       {
         "name": "HOOK LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Hook",
+        "source": "marker"
       },
       {
         "name": "BOOMERANG LAKE",
@@ -22671,6 +22879,10 @@
     ],
     "328989162": [
       {
+        "name": "Canuck",
+        "source": "marker"
+      },
+      {
         "name": "CANUCK LAKE",
         "source": "stocking"
       },
@@ -22680,6 +22892,10 @@
       }
     ],
     "328989174": [
+      {
+        "name": "Grundy",
+        "source": "marker"
+      },
       {
         "name": "GRUNDY",
         "source": "stocking"
@@ -22701,6 +22917,12 @@
         "source": "stocking"
       }
     ],
+    "328989253": [
+      {
+        "name": "Cat'S Eye",
+        "source": "marker"
+      }
+    ],
     "328989579": [
       {
         "name": "SYLVIA LAKE",
@@ -22711,6 +22933,10 @@
       {
         "name": "BROHM LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Brohm",
+        "source": "marker"
       },
       {
         "name": "BROHM LAKE",
@@ -22729,11 +22955,19 @@
         "source": "bathymetry"
       },
       {
+        "name": "Nita",
+        "source": "marker"
+      },
+      {
         "name": "NITA LAKE",
         "source": "stocking"
       }
     ],
     "328989616": [
+      {
+        "name": "Rice",
+        "source": "marker"
+      },
       {
         "name": "RICE LAKE",
         "source": "stocking"
@@ -22751,6 +22985,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Edith",
+        "source": "marker"
+      },
+      {
         "name": "EDITH LAKE",
         "source": "stocking"
       },
@@ -22761,6 +22999,10 @@
     ],
     "328989636": [
       {
+        "name": "Ernest",
+        "source": "marker"
+      },
+      {
         "name": "ERNEST LAKE",
         "source": "stocking"
       },
@@ -22770,6 +23012,10 @@
       }
     ],
     "328989667": [
+      {
+        "name": "Joyce",
+        "source": "marker"
+      },
       {
         "name": "JOYCE",
         "source": "stocking"
@@ -22795,6 +23041,10 @@
     ],
     "328991046": [
       {
+        "name": "Dairy",
+        "source": "marker"
+      },
+      {
         "name": "DAIRY LAKE",
         "source": "stocking"
       },
@@ -22815,6 +23065,10 @@
     ],
     "328991052": [
       {
+        "name": "Pat",
+        "source": "marker"
+      },
+      {
         "name": "PAT LAKE",
         "source": "stocking"
       },
@@ -22828,6 +23082,10 @@
       }
     ],
     "328991056": [
+      {
+        "name": "Sedge",
+        "source": "marker"
+      },
       {
         "name": "LAKE #907",
         "source": "stocking"
@@ -22861,6 +23119,10 @@
       {
         "name": "WITNEY LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Witney",
+        "source": "marker"
       },
       {
         "name": "WITNEY LAKE",
@@ -22905,6 +23167,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Chunamun",
+        "source": "marker"
+      },
+      {
         "name": "CHINAMAN LAKE",
         "source": "stocking"
       },
@@ -22923,6 +23189,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Gardom",
+        "source": "marker"
+      },
+      {
         "name": "GARDOM LAKE",
         "source": "stocking"
       }
@@ -22931,6 +23201,10 @@
       {
         "name": "HOLSTEIN LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Holstein",
+        "source": "marker"
       },
       {
         "name": "HOLSTEIN LAKE",
@@ -22954,6 +23228,10 @@
       }
     ],
     "328995948": [
+      {
+        "name": "Seidner",
+        "source": "marker"
+      },
       {
         "name": "LOST AND FOUND LAKE",
         "source": "stocking"
@@ -22999,6 +23277,10 @@
       {
         "name": "CUSHEON LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Cusheon",
+        "source": "marker"
       },
       {
         "name": "CUSHEON LAKE",
@@ -23145,6 +23427,10 @@
     ],
     "329014410": [
       {
+        "name": "Forest",
+        "source": "marker"
+      },
+      {
         "name": "FOREST LAKE",
         "source": "stocking"
       },
@@ -23190,6 +23476,10 @@
       }
     ],
     "329014441": [
+      {
+        "name": "Skmana",
+        "source": "marker"
+      },
       {
         "name": "LAKE #719",
         "source": "stocking"
@@ -23359,6 +23649,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Nimnim",
+        "source": "marker"
+      },
+      {
         "name": "LONG",
         "source": "stocking"
       },
@@ -23371,6 +23665,10 @@
       {
         "name": "GRACIE LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Gracie",
+        "source": "marker"
       },
       {
         "name": "GRACIE LAKE",
@@ -23499,6 +23797,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Hawthorn",
+        "source": "marker"
+      },
+      {
         "name": "DOT",
         "source": "stocking"
       },
@@ -23525,6 +23827,10 @@
       {
         "name": "LOON LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Loon",
+        "source": "marker"
       },
       {
         "name": "LOON LAKE",
@@ -23590,6 +23896,10 @@
       }
     ],
     "329018588": [
+      {
+        "name": "Como",
+        "source": "marker"
+      },
       {
         "name": "COMO LAKE",
         "source": "stocking"
@@ -24119,6 +24429,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Pavilion",
+        "source": "marker"
+      },
+      {
         "name": "LAKE #3033",
         "source": "stocking"
       },
@@ -24131,6 +24445,10 @@
       {
         "name": "BIG BAR LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Big Bar",
+        "source": "marker"
       },
       {
         "name": "BIG BAR LAKE",
@@ -24158,6 +24476,10 @@
       }
     ],
     "329037130": [
+      {
+        "name": "Kwotlenemo",
+        "source": "marker"
+      },
       {
         "name": "3121",
         "source": "stocking"
@@ -24199,6 +24521,10 @@
     ],
     "329037192": [
       {
+        "name": "Crown",
+        "source": "marker"
+      },
+      {
         "name": "CROWN LAKE",
         "source": "stocking"
       },
@@ -24208,6 +24534,10 @@
       }
     ],
     "329037199": [
+      {
+        "name": "Turquoise",
+        "source": "marker"
+      },
       {
         "name": "LAKE #3035",
         "source": "stocking"
@@ -24277,6 +24607,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Fishpot",
+        "source": "marker"
+      },
+      {
         "name": "FISHPOT LAKE",
         "source": "stocking"
       }
@@ -24343,6 +24677,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Machete",
+        "source": "marker"
+      },
+      {
         "name": "#549 AND #207",
         "source": "stocking"
       },
@@ -24381,6 +24719,10 @@
     ],
     "329054729": [
       {
+        "name": "Hihium",
+        "source": "marker"
+      },
+      {
         "name": "HI HUIME",
         "source": "stocking"
       },
@@ -24394,6 +24736,10 @@
       }
     ],
     "329054733": [
+      {
+        "name": "Beaverdam",
+        "source": "marker"
+      },
       {
         "name": "BEAVER DAM;LAKE #5042",
         "source": "stocking"
@@ -24437,6 +24783,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Hammer",
+        "source": "marker"
+      },
+      {
         "name": "HAMMER LAKE",
         "source": "stocking"
       },
@@ -24449,6 +24799,10 @@
       {
         "name": "SHARPE LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Sharpe",
+        "source": "marker"
       },
       {
         "name": "LAKE #5491",
@@ -24466,6 +24820,10 @@
       }
     ],
     "329054774": [
+      {
+        "name": "Leighwood",
+        "source": "marker"
+      },
       {
         "name": "LAKE #5002",
         "source": "stocking"
@@ -24486,6 +24844,10 @@
       }
     ],
     "329054804": [
+      {
+        "name": "Spectacle",
+        "source": "marker"
+      },
       {
         "name": "LAKE #5459",
         "source": "stocking"
@@ -24561,6 +24923,10 @@
     ],
     "329054843": [
       {
+        "name": "Alkali - 6 Mile",
+        "source": "marker"
+      },
+      {
         "name": "6 MILE LAKE",
         "source": "stocking"
       },
@@ -24592,6 +24958,10 @@
       }
     ],
     "329054856": [
+      {
+        "name": "Scott #1",
+        "source": "marker"
+      },
       {
         "name": "SCOTT #1",
         "source": "stocking"
@@ -24653,7 +25023,17 @@
         "source": "stocking"
       }
     ],
+    "329055056": [
+      {
+        "name": "Scott #2",
+        "source": "marker"
+      }
+    ],
     "329055090": [
+      {
+        "name": "Alkali - 4 Mile",
+        "source": "marker"
+      },
       {
         "name": "4 MILE",
         "source": "stocking"
@@ -24699,6 +25079,10 @@
       {
         "name": "PURDEN LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Purden",
+        "source": "marker"
       },
       {
         "name": "PURDEN LAKE",
@@ -24903,6 +25287,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Wendle",
+        "source": "marker"
+      },
+      {
         "name": "WENDLE LAKE",
         "source": "stocking"
       }
@@ -24917,6 +25305,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Sheridan",
+        "source": "marker"
+      },
+      {
         "name": "SHERIDAN LAKE",
         "source": "stocking"
       }
@@ -24925,6 +25317,10 @@
       {
         "name": "BRIDGE LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Bridge",
+        "source": "marker"
       },
       {
         "name": "BRIDGE LAKE",
@@ -24937,6 +25333,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Horse",
+        "source": "marker"
+      },
+      {
         "name": "HORSE LAKE",
         "source": "stocking"
       }
@@ -24945,6 +25345,10 @@
       {
         "name": "DEKA LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Deka",
+        "source": "marker"
       },
       {
         "name": "DEKA LAKE",
@@ -24965,6 +25369,10 @@
       {
         "name": "SULPHURUS LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Sulphurous",
+        "source": "marker"
       },
       {
         "name": "SULPHUROUS LAKE",
@@ -24997,6 +25405,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Hathaway",
+        "source": "marker"
+      },
+      {
         "name": "HATHAWAY LAKE",
         "source": "stocking"
       }
@@ -25005,6 +25417,10 @@
       {
         "name": "BIG LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Big",
+        "source": "marker"
       },
       {
         "name": "BIG LAKE",
@@ -25021,7 +25437,11 @@
         "source": "bathymetry"
       },
       {
-        "name": "BOBB&#039;S",
+        "name": "Bobbs",
+        "source": "marker"
+      },
+      {
+        "name": "BOBB'S",
         "source": "stocking"
       },
       {
@@ -25037,6 +25457,10 @@
       {
         "name": "EDMUND LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Edmund",
+        "source": "marker"
       },
       {
         "name": "EDMUND LAKE",
@@ -25071,6 +25495,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Mcneil",
+        "source": "marker"
+      },
+      {
         "name": "MCNEIL LAKE",
         "source": "stocking"
       }
@@ -25079,6 +25507,10 @@
       {
         "name": "VALENTINE LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Valentine",
+        "source": "marker"
       },
       {
         "name": "VALENTINE LAKE",
@@ -25109,6 +25541,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Earle",
+        "source": "marker"
+      },
+      {
         "name": "EARLE LAKE",
         "source": "stocking"
       }
@@ -25133,6 +25569,10 @@
       {
         "name": "FAWN LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Fawn",
+        "source": "marker"
       },
       {
         "name": "FAWN LAKE",
@@ -25225,6 +25665,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Irish",
+        "source": "marker"
+      },
+      {
         "name": "IRIS LAKE",
         "source": "stocking"
       },
@@ -25255,6 +25699,10 @@
       {
         "name": "BURN LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Burn",
+        "source": "marker"
       },
       {
         "name": "BURN",
@@ -25291,6 +25739,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Higgins",
+        "source": "marker"
+      },
+      {
         "name": "HIGGENS LAKE",
         "source": "stocking"
       },
@@ -25303,6 +25755,10 @@
       {
         "name": "FAULKNER LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Faulkner",
+        "source": "marker"
       },
       {
         "name": "FAULKNER LAKE",
@@ -25469,6 +25925,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Tyhee",
+        "source": "marker"
+      },
+      {
         "name": "MACLURE LAKE",
         "source": "stocking"
       },
@@ -25527,6 +25987,10 @@
       {
         "name": "ROUND LAKE (LACROIX L.)",
         "source": "bathymetry"
+      },
+      {
+        "name": "Round",
+        "source": "marker"
       },
       {
         "name": "LACROIX",
@@ -25591,11 +26055,19 @@
         "source": "bathymetry"
       },
       {
+        "name": "Duckwing",
+        "source": "marker"
+      },
+      {
         "name": "DUCKWING LAKE",
         "source": "stocking"
       }
     ],
     "329064503": [
+      {
+        "name": "Barrett",
+        "source": "marker"
+      },
       {
         "name": "BARRETT LAKE",
         "source": "stocking"
@@ -25627,6 +26099,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Ross",
+        "source": "marker"
+      },
+      {
         "name": "ROSS LAKE",
         "source": "stocking"
       },
@@ -25635,10 +26111,20 @@
         "source": "stocking"
       }
     ],
+    "329064528": [
+      {
+        "name": "Watson",
+        "source": "marker"
+      }
+    ],
     "329064543": [
       {
         "name": "DUNALTER LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Irrigation",
+        "source": "marker"
       },
       {
         "name": "DUNALTER LAKE",
@@ -25679,6 +26165,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Duckbill",
+        "source": "marker"
+      },
+      {
         "name": "DUCKBILL LAKE",
         "source": "stocking"
       }
@@ -25709,11 +26199,19 @@
     ],
     "329064685": [
       {
+        "name": "Call",
+        "source": "marker"
+      },
+      {
         "name": "CALL LAKE",
         "source": "stocking"
       }
     ],
     "329064732": [
+      {
+        "name": "Llama",
+        "source": "marker"
+      },
       {
         "name": "LLAMA LAKE",
         "source": "stocking"
@@ -25745,6 +26243,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Edwards",
+        "source": "marker"
+      },
+      {
         "name": "EDWARDS LAKES",
         "source": "stocking"
       }
@@ -25753,6 +26255,10 @@
       {
         "name": "ROSEN LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Rosen",
+        "source": "marker"
       },
       {
         "name": "ROSEN LAKE",
@@ -25779,6 +26285,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Suzanne",
+        "source": "marker"
+      },
+      {
         "name": "MANISTEE LAKE",
         "source": "stocking"
       },
@@ -25793,6 +26303,12 @@
         "source": "stocking"
       }
     ],
+    "329069261": [
+      {
+        "name": "Cliff",
+        "source": "marker"
+      }
+    ],
     "329069262": [
       {
         "name": "1.-BAYNES LAKE  2.-LOON LAKE",
@@ -25801,6 +26317,10 @@
       {
         "name": "BAYNES LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Baynes",
+        "source": "marker"
       },
       {
         "name": "BAYNES LAKE",
@@ -25823,6 +26343,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "North Star",
+        "source": "marker"
+      },
+      {
         "name": "NORTH STAR LAKE",
         "source": "stocking"
       }
@@ -25835,6 +26359,10 @@
       {
         "name": "LOON LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Loon",
+        "source": "marker"
       },
       {
         "name": "LOON LAKE",
@@ -25855,6 +26383,10 @@
       {
         "name": "WAPITI LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Wapiti",
+        "source": "marker"
       },
       {
         "name": "WAPITI LAKE",
@@ -25921,7 +26453,7 @@
         "source": "bathymetry"
       },
       {
-        "name": "SURVEYOR&#039;S LAKE #1",
+        "name": "SURVEYOR'S LAKE #1",
         "source": "stocking"
       },
       {
@@ -25988,6 +26520,10 @@
       }
     ],
     "329069300": [
+      {
+        "name": "Englishman",
+        "source": "marker"
+      },
       {
         "name": "ENGLISHMAN LAKE",
         "source": "stocking"
@@ -26059,6 +26595,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Bronze",
+        "source": "marker"
+      },
+      {
         "name": "BRONZE LAKE",
         "source": "stocking"
       },
@@ -26071,6 +26611,10 @@
       {
         "name": "PICKERING (WEATHERHEAD) (NEAR BULL RIVER)",
         "source": "bathymetry"
+      },
+      {
+        "name": "Pickering",
+        "source": "marker"
       },
       {
         "name": "PICKERING LAKE (NORTH)",
@@ -26089,6 +26633,10 @@
       {
         "name": "FUSSEE LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Fusee",
+        "source": "marker"
       },
       {
         "name": "FUSEE LAKE",
@@ -26118,6 +26666,10 @@
       }
     ],
     "329069464": [
+      {
+        "name": "Burton",
+        "source": "marker"
+      },
       {
         "name": "BURTON LAKE",
         "source": "stocking"
@@ -26191,6 +26743,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Boot",
+        "source": "marker"
+      },
+      {
         "name": "BOOT LAKE",
         "source": "stocking"
       }
@@ -26203,6 +26759,10 @@
       {
         "name": "BEAVERTAIL LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Beavertail",
+        "source": "marker"
       },
       {
         "name": "BEAVERTAIL LAKE",
@@ -26261,6 +26821,10 @@
     ],
     "329069983": [
       {
+        "name": "Gray",
+        "source": "marker"
+      },
+      {
         "name": "GRAY LAKE",
         "source": "stocking"
       }
@@ -26284,6 +26848,10 @@
       }
     ],
     "329069992": [
+      {
+        "name": "Reginald",
+        "source": "marker"
+      },
       {
         "name": "REGINALD LAKE",
         "source": "stocking"
@@ -26313,6 +26881,10 @@
       {
         "name": "ECHO LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Echo",
+        "source": "marker"
       },
       {
         "name": "ECHO LAKE",
@@ -26355,6 +26927,10 @@
       {
         "name": "DARKIS LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Darkis",
+        "source": "marker"
       },
       {
         "name": "DARKIS LAKE",
@@ -26519,6 +27095,10 @@
       {
         "name": "BUTTERNUT LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Butternut",
+        "source": "marker"
       },
       {
         "name": "BUTTERNUT LAKE",
@@ -26867,6 +27447,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Hobson",
+        "source": "marker"
+      },
+      {
         "name": "HOBSON LAKE",
         "source": "stocking"
       }
@@ -26929,6 +27513,10 @@
       {
         "name": "CHIEF GRAY LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Chief Gray",
+        "source": "marker"
       },
       {
         "name": "BITCH",
@@ -27009,6 +27597,10 @@
       {
         "name": "LINTZ LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Lintz",
+        "source": "marker"
       },
       {
         "name": "LINTZ",
@@ -27117,6 +27709,10 @@
       {
         "name": "TORY LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Tory",
+        "source": "marker"
       },
       {
         "name": "TORY",
@@ -27407,6 +28003,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Susan",
+        "source": "marker"
+      },
+      {
         "name": "SUSAN LAKE",
         "source": "stocking"
       }
@@ -27442,6 +28042,10 @@
       }
     ],
     "329085120": [
+      {
+        "name": "Jeb",
+        "source": "marker"
+      },
       {
         "name": "JEB LAKE",
         "source": "stocking"
@@ -27499,6 +28103,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Dutch",
+        "source": "marker"
+      },
+      {
         "name": "DUTCH LAKE",
         "source": "stocking"
       }
@@ -27510,6 +28118,10 @@
       }
     ],
     "329086727": [
+      {
+        "name": "Grizzly",
+        "source": "marker"
+      },
       {
         "name": "GRIZZLY LAKES",
         "source": "stocking"
@@ -27561,6 +28173,10 @@
     ],
     "329086810": [
       {
+        "name": "Placid",
+        "source": "marker"
+      },
+      {
         "name": "LAKE # 891",
         "source": "stocking"
       },
@@ -27585,11 +28201,15 @@
         "source": "stocking"
       },
       {
-        "name": "NORMAN&#039;S EDDY;LAKE #880",
+        "name": "NORMAN'S EDDY;LAKE #880",
         "source": "stocking"
       }
     ],
     "329086863": [
+      {
+        "name": "Foot",
+        "source": "marker"
+      },
       {
         "name": "FOOT LAKE",
         "source": "stocking"
@@ -27651,6 +28271,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Whitetail",
+        "source": "marker"
+      },
+      {
         "name": "WHITETAIL LAKE",
         "source": "stocking"
       }
@@ -27665,6 +28289,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Cartwright",
+        "source": "marker"
+      },
+      {
         "name": "CARTWRIGHT L.",
         "source": "stocking"
       },
@@ -27677,6 +28305,10 @@
       {
         "name": "CLELAND LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Cleland",
+        "source": "marker"
       },
       {
         "name": "CLELAND L.",
@@ -27697,6 +28329,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Lillian",
+        "source": "marker"
+      },
+      {
         "name": "LILLIAN LAKE",
         "source": "stocking"
       }
@@ -27705,6 +28341,10 @@
       {
         "name": "BIG FISH LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Big Fish",
+        "source": "marker"
       },
       {
         "name": "BIG FISH L.",
@@ -27730,6 +28370,10 @@
       }
     ],
     "329093946": [
+      {
+        "name": "Enid",
+        "source": "marker"
+      },
       {
         "name": "LAKE ENID",
         "source": "stocking"
@@ -27767,6 +28411,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Wilmer",
+        "source": "marker"
+      },
+      {
         "name": "MUNN LAKE",
         "source": "stocking"
       },
@@ -27779,6 +28427,10 @@
       {
         "name": "JADE LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Jade",
+        "source": "marker"
       },
       {
         "name": "JADE L.",
@@ -27881,6 +28533,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Upper Halgrave",
+        "source": "marker"
+      },
+      {
         "name": "UPPER HALGRAVE L.",
         "source": "stocking"
       },
@@ -27911,6 +28567,10 @@
     ],
     "329094071": [
       {
+        "name": "Halfway",
+        "source": "marker"
+      },
+      {
         "name": "HALFWAY LAKE",
         "source": "stocking"
       }
@@ -27922,6 +28582,10 @@
       }
     ],
     "329094080": [
+      {
+        "name": "Brady",
+        "source": "marker"
+      },
       {
         "name": "BRADY LAKE",
         "source": "stocking"
@@ -27975,6 +28639,10 @@
     ],
     "329094173": [
       {
+        "name": "Steamboat",
+        "source": "marker"
+      },
+      {
         "name": "STEAMBOAT L.",
         "source": "stocking"
       },
@@ -28003,6 +28671,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Dorothy",
+        "source": "marker"
+      },
+      {
         "name": "DOROTHY LAKE",
         "source": "stocking"
       }
@@ -28014,6 +28686,10 @@
       }
     ],
     "329094337": [
+      {
+        "name": "Cub",
+        "source": "marker"
+      },
       {
         "name": "CUB LAKE",
         "source": "stocking"
@@ -28077,6 +28753,10 @@
       {
         "name": "WOLF LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Wolf",
+        "source": "marker"
       },
       {
         "name": "WOLF LAKE",
@@ -28163,6 +28843,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Wowo",
+        "source": "marker"
+      },
+      {
         "name": "WOWO LAKE",
         "source": "stocking"
       }
@@ -28191,6 +28875,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Circlet",
+        "source": "marker"
+      },
+      {
         "name": "CIRCLET LAKE",
         "source": "stocking"
       }
@@ -28213,6 +28901,10 @@
       {
         "name": "MAPLE LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Maple",
+        "source": "marker"
       },
       {
         "name": "MAPLE LAKE",
@@ -28315,6 +29007,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Helldiver",
+        "source": "marker"
+      },
+      {
         "name": "HELL DIVER LAKE",
         "source": "stocking"
       },
@@ -28347,6 +29043,10 @@
     ],
     "329095645": [
       {
+        "name": "Amphitheatre",
+        "source": "marker"
+      },
+      {
         "name": "AMPHITHEATRE LAKE",
         "source": "stocking"
       }
@@ -28359,6 +29059,10 @@
       {
         "name": "LITTLE LOST LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Little Lost",
+        "source": "marker"
       },
       {
         "name": "LITTLE LOST LAKE",
@@ -28427,6 +29131,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Kwai",
+        "source": "marker"
+      },
+      {
         "name": "KWAI LAKE",
         "source": "stocking"
       }
@@ -28479,6 +29187,10 @@
       {
         "name": "BOUCHIE LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Bouchie",
+        "source": "marker"
       },
       {
         "name": "BOUCHIE LAKE",
@@ -28563,6 +29275,10 @@
     ],
     "329097651": [
       {
+        "name": "Bellos",
+        "source": "marker"
+      },
+      {
         "name": "BELLOS LAKE",
         "source": "stocking"
       }
@@ -28621,6 +29337,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Hush",
+        "source": "marker"
+      },
+      {
         "name": "HUSH LAKE",
         "source": "stocking"
       }
@@ -28643,6 +29363,10 @@
       {
         "name": "QUAMICHAN LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Quamichan",
+        "source": "marker"
       },
       {
         "name": "QUAMICHAN LAKE",
@@ -28701,6 +29425,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Quennell",
+        "source": "marker"
+      },
+      {
         "name": "FISHHOOK LAKE",
         "source": "stocking"
       },
@@ -28717,6 +29445,10 @@
       {
         "name": "SOMENOS LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Somenos",
+        "source": "marker"
       },
       {
         "name": "SOMENOS LAKE",
@@ -28791,6 +29523,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Fuller",
+        "source": "marker"
+      },
+      {
         "name": "FULLER LAKE",
         "source": "stocking"
       }
@@ -28829,6 +29565,10 @@
       {
         "name": "LOIS LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Lois",
+        "source": "marker"
       },
       {
         "name": "LOIS LAKE",
@@ -28891,6 +29631,10 @@
       {
         "name": "DOUGAN LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Dougan",
+        "source": "marker"
       },
       {
         "name": "DOUGAN LAKE",
@@ -28965,6 +29709,10 @@
     ],
     "329101370": [
       {
+        "name": "Chemainus",
+        "source": "marker"
+      },
+      {
         "name": "ASKEW",
         "source": "stocking"
       },
@@ -28983,6 +29731,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Tadjiss",
+        "source": "marker"
+      },
+      {
         "name": "TADJISS LAKE",
         "source": "stocking"
       }
@@ -28991,6 +29743,10 @@
       {
         "name": "BLIND LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Blind",
+        "source": "marker"
       },
       {
         "name": "BLIND LAKE",
@@ -29035,6 +29791,10 @@
       {
         "name": "MAYO POND",
         "source": "bathymetry"
+      },
+      {
+        "name": "Mayo",
+        "source": "marker"
       },
       {
         "name": "MAYO LAKE",
@@ -29223,6 +29983,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Hart",
+        "source": "marker"
+      },
+      {
         "name": "HART LAKE",
         "source": "stocking"
       }
@@ -29251,6 +30015,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Crystal",
+        "source": "marker"
+      },
+      {
         "name": "CRYSTAL LAKE",
         "source": "stocking"
       }
@@ -29267,11 +30035,19 @@
         "source": "bathymetry"
       },
       {
+        "name": "Boot",
+        "source": "marker"
+      },
+      {
         "name": "BOOT LAKE",
         "source": "stocking"
       }
     ],
     "329102641": [
+      {
+        "name": "Emerald",
+        "source": "marker"
+      },
       {
         "name": "EMERALD LAKE",
         "source": "stocking"
@@ -29315,6 +30091,10 @@
     ],
     "329106517": [
       {
+        "name": "Bare",
+        "source": "marker"
+      },
+      {
         "name": "BARE LAKE",
         "source": "stocking"
       },
@@ -29327,6 +30107,10 @@
       {
         "name": "RED LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Red",
+        "source": "marker"
       },
       {
         "name": "LAKE #286",
@@ -29411,6 +30195,10 @@
     ],
     "329106535": [
       {
+        "name": "Bog",
+        "source": "marker"
+      },
+      {
         "name": "BOG LAKE",
         "source": "stocking"
       },
@@ -29453,7 +30241,7 @@
     ],
     "329106600": [
       {
-        "name": "DAD&#039;S LAKE",
+        "name": "DAD'S LAKE",
         "source": "stocking"
       },
       {
@@ -29493,20 +30281,6 @@
         "source": "stocking"
       }
     ],
-    "329106706": [
-      {
-        "name": "#1038",
-        "source": "stocking"
-      },
-      {
-        "name": "BOB&#039;S LAKE",
-        "source": "stocking"
-      },
-      {
-        "name": "HOWLONG LAKE",
-        "source": "stocking"
-      }
-    ],
     "329106748": [
       {
         "name": "LAKE #1220",
@@ -29527,6 +30301,10 @@
       {
         "name": "SAWMILL LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Sawmill",
+        "source": "marker"
       },
       {
         "name": "SAWMILL",
@@ -29631,6 +30409,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Boar",
+        "source": "marker"
+      },
+      {
         "name": "BOAR LAKE",
         "source": "stocking"
       }
@@ -29639,6 +30421,10 @@
       {
         "name": "PIGEON LAKE #2",
         "source": "bathymetry"
+      },
+      {
+        "name": "Pigeon Lake # 2",
+        "source": "marker"
       },
       {
         "name": "5566",
@@ -29665,6 +30451,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Pigeon Lake #1",
+        "source": "marker"
+      },
+      {
         "name": "LAKE 5567",
         "source": "stocking"
       },
@@ -29679,8 +30469,18 @@
     ],
     "329116887": [
       {
+        "name": "Lake 5565",
+        "source": "marker"
+      },
+      {
         "name": "LAKE 5565",
         "source": "stocking"
+      }
+    ],
+    "329116944": [
+      {
+        "name": "Snake",
+        "source": "marker"
       }
     ],
     "329120714": [
@@ -29769,6 +30569,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Grave",
+        "source": "marker"
+      },
+      {
         "name": "GRAVE LAKE",
         "source": "stocking"
       }
@@ -29789,6 +30593,10 @@
       {
         "name": "SUMMIT LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Summit",
+        "source": "marker"
       },
       {
         "name": "S.E. OF SPARWOOD",
@@ -29835,6 +30643,10 @@
     ],
     "329123467": [
       {
+        "name": "Frozen",
+        "source": "marker"
+      },
+      {
         "name": "FROZEN LAKE",
         "source": "stocking"
       }
@@ -29865,6 +30677,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Silver Spring #1",
+        "source": "marker"
+      },
+      {
         "name": "SILVER SPRING #1",
         "source": "stocking"
       },
@@ -29889,6 +30705,10 @@
     ],
     "329123512": [
       {
+        "name": "Aosta Lower",
+        "source": "marker"
+      },
+      {
         "name": "AOSTA LOWER",
         "source": "stocking"
       },
@@ -29909,6 +30729,12 @@
         "source": "stocking"
       }
     ],
+    "329123540": [
+      {
+        "name": "Leech Ponds",
+        "source": "marker"
+      }
+    ],
     "329123550": [
       {
         "name": "BILLICK LAKE",
@@ -29926,6 +30752,10 @@
       }
     ],
     "329123584": [
+      {
+        "name": "Silver Spring #2",
+        "source": "marker"
+      },
       {
         "name": "SILVER SPRING #2",
         "source": "stocking"
@@ -29955,11 +30785,15 @@
     ],
     "329123625": [
       {
-        "name": "O&#039;ROURKE LAKE",
+        "name": "O'ROURKE LAKE",
         "source": "stocking"
       }
     ],
     "329123632": [
+      {
+        "name": "Aosta Upper",
+        "source": "marker"
+      },
       {
         "name": "AOSTA UPPER",
         "source": "stocking"
@@ -29970,6 +30804,10 @@
       }
     ],
     "329123638": [
+      {
+        "name": "Phillipps",
+        "source": "marker"
+      },
       {
         "name": "PHILLIPPS LAKE",
         "source": "stocking"
@@ -29982,6 +30820,10 @@
       }
     ],
     "329123698": [
+      {
+        "name": "Hartley",
+        "source": "marker"
+      },
       {
         "name": "HARTLEY LAKE",
         "source": "stocking"
@@ -30019,6 +30861,10 @@
       {
         "name": "YIMPAKLUK LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Yimpakluk",
+        "source": "marker"
       },
       {
         "name": "YIMPAKLUK LAKE",
@@ -30323,6 +31169,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Burns",
+        "source": "marker"
+      },
+      {
         "name": "BURNS LAKE",
         "source": "stocking"
       }
@@ -30615,6 +31465,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Co-Op",
+        "source": "marker"
+      },
+      {
         "name": "CO-OP LAKE",
         "source": "stocking"
       }
@@ -30629,6 +31483,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Richmond",
+        "source": "marker"
+      },
+      {
         "name": "PRIESTLY",
         "source": "stocking"
       },
@@ -30638,6 +31496,10 @@
       }
     ],
     "329148423": [
+      {
+        "name": "Casey",
+        "source": "marker"
+      },
       {
         "name": "CASEY LAKE",
         "source": "stocking"
@@ -30663,6 +31525,10 @@
       {
         "name": "KAGER LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Kager",
+        "source": "marker"
       },
       {
         "name": "KAGER LAKE",
@@ -30785,6 +31651,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Schkam",
+        "source": "marker"
+      },
+      {
         "name": "LAKE OF THE WOODS",
         "source": "stocking"
       },
@@ -30815,6 +31685,10 @@
       {
         "name": "FISHBLUE LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Fishblue",
+        "source": "marker"
       },
       {
         "name": "BLUE LAKE",
@@ -30855,7 +31729,7 @@
         "source": "stocking"
       },
       {
-        "name": "DELAIR&#039;S POND",
+        "name": "DELAIR'S POND",
         "source": "stocking"
       }
     ],
@@ -30993,6 +31867,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Antler",
+        "source": "marker"
+      },
+      {
         "name": "ANTLER LAKE",
         "source": "stocking"
       }
@@ -31003,11 +31881,19 @@
         "source": "bathymetry"
       },
       {
+        "name": "Malaspina",
+        "source": "marker"
+      },
+      {
         "name": "MALASPINA LAKE",
         "source": "stocking"
       }
     ],
     "329161858": [
+      {
+        "name": "Star",
+        "source": "marker"
+      },
       {
         "name": "STAR LAKE",
         "source": "stocking"
@@ -31079,6 +31965,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Green",
+        "source": "marker"
+      },
+      {
         "name": "GREEN LAKE",
         "source": "stocking"
       }
@@ -31089,6 +31979,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Watch",
+        "source": "marker"
+      },
+      {
         "name": "WATCH LAKE",
         "source": "stocking"
       }
@@ -31097,6 +31991,10 @@
       {
         "name": "CRYSTAL LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Crystal",
+        "source": "marker"
       },
       {
         "name": "CRYSTAL LAKE",
@@ -31125,6 +32023,10 @@
       {
         "name": "JIM LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Jim",
+        "source": "marker"
       },
       {
         "name": "JIM LAKE",
@@ -31162,6 +32064,10 @@
       }
     ],
     "329170758": [
+      {
+        "name": "Nolan",
+        "source": "marker"
+      },
       {
         "name": "NOLAN LAKE",
         "source": "stocking"
@@ -31289,6 +32195,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Lac Le Jeune",
+        "source": "marker"
+      },
+      {
         "name": "LAC LE JEUNE",
         "source": "stocking"
       },
@@ -31313,6 +32223,10 @@
     ],
     "329176282": [
       {
+        "name": "Paska",
+        "source": "marker"
+      },
+      {
         "name": "LAKE #592",
         "source": "stocking"
       },
@@ -31322,6 +32236,10 @@
       }
     ],
     "329176283": [
+      {
+        "name": "Dot",
+        "source": "marker"
+      },
       {
         "name": "DOT LAKE",
         "source": "stocking"
@@ -31349,6 +32267,10 @@
     ],
     "329176288": [
       {
+        "name": "Billy",
+        "source": "marker"
+      },
+      {
         "name": "BILLY LAKE",
         "source": "stocking"
       },
@@ -31359,6 +32281,10 @@
     ],
     "329176290": [
       {
+        "name": "Bose",
+        "source": "marker"
+      },
+      {
         "name": "BOSE LAKE",
         "source": "stocking"
       }
@@ -31367,6 +32293,10 @@
       {
         "name": "STAKE LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Stake",
+        "source": "marker"
       },
       {
         "name": "LAKE #334",
@@ -31393,6 +32323,10 @@
     ],
     "329176299": [
       {
+        "name": "Tyner",
+        "source": "marker"
+      },
+      {
         "name": "TYNER LAKE",
         "source": "stocking"
       }
@@ -31409,6 +32343,10 @@
     ],
     "329176308": [
       {
+        "name": "Gypsum",
+        "source": "marker"
+      },
+      {
         "name": "GYPSUM LAKE",
         "source": "stocking"
       },
@@ -31421,6 +32359,12 @@
       {
         "name": "SOPHIA LAKE",
         "source": "stocking"
+      }
+    ],
+    "329176314": [
+      {
+        "name": "Allen Meadows",
+        "source": "marker"
       }
     ],
     "329176315": [
@@ -31439,6 +32383,10 @@
     ],
     "329176324": [
       {
+        "name": "Leroy East",
+        "source": "marker"
+      },
+      {
         "name": "LEROY EAST",
         "source": "stocking"
       },
@@ -31449,6 +32397,10 @@
     ],
     "329176336": [
       {
+        "name": "Leroy West",
+        "source": "marker"
+      },
+      {
         "name": "LEROY WEST",
         "source": "stocking"
       }
@@ -31457,6 +32409,10 @@
       {
         "name": "LODGEPOLE LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Lodgepole",
+        "source": "marker"
       },
       {
         "name": "LAKE #568",
@@ -31481,11 +32437,19 @@
     ],
     "329176397": [
       {
+        "name": "Wyse",
+        "source": "marker"
+      },
+      {
         "name": "WYSE LAKES",
         "source": "stocking"
       }
     ],
     "329176402": [
+      {
+        "name": "Morgan",
+        "source": "marker"
+      },
       {
         "name": "MORGAN LAKE",
         "source": "stocking"
@@ -31541,6 +32505,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Wahleach",
+        "source": "marker"
+      },
+      {
         "name": "JONES",
         "source": "stocking"
       },
@@ -31553,6 +32521,10 @@
       {
         "name": "HICKS LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Hicks",
+        "source": "marker"
       },
       {
         "name": "HICKS LAKE",
@@ -31571,6 +32543,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Weaver",
+        "source": "marker"
+      },
+      {
         "name": "WEAVER LAKE",
         "source": "stocking"
       }
@@ -31579,6 +32555,10 @@
       {
         "name": "DEER LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Deer",
+        "source": "marker"
       },
       {
         "name": "DEER LAKE",
@@ -31647,6 +32627,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Elbow",
+        "source": "marker"
+      },
+      {
         "name": "ELBOW LAKE",
         "source": "stocking"
       }
@@ -31699,6 +32683,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Grace",
+        "source": "marker"
+      },
+      {
         "name": "GRACE LAKE",
         "source": "stocking"
       }
@@ -31707,6 +32695,10 @@
       {
         "name": "WOOD LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Wood",
+        "source": "marker"
       },
       {
         "name": "WOOD LAKE",
@@ -31723,6 +32715,10 @@
       {
         "name": "FRANCIS LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Francis",
+        "source": "marker"
       },
       {
         "name": "FRANCIS LAKE",
@@ -31797,6 +32793,10 @@
       {
         "name": "STACEY LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Stacey",
+        "source": "marker"
       },
       {
         "name": "STACEY LAKE",
@@ -31883,6 +32883,10 @@
       {
         "name": "HORN LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Horn",
+        "source": "marker"
       },
       {
         "name": "HORN LAKE",
@@ -32101,6 +33105,10 @@
     ],
     "329184514": [
       {
+        "name": "Oslie",
+        "source": "marker"
+      },
+      {
         "name": "OSLIE LAKE",
         "source": "stocking"
       }
@@ -32175,6 +33183,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Green",
+        "source": "marker"
+      },
+      {
         "name": "GREEN LAKE",
         "source": "stocking"
       },
@@ -32193,6 +33205,10 @@
       {
         "name": "GAMMARUS LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Gammarus",
+        "source": "marker"
       },
       {
         "name": "GAMMARUS",
@@ -32387,6 +33403,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Waugh",
+        "source": "marker"
+      },
+      {
         "name": "WAUGH LAKE",
         "source": "stocking"
       },
@@ -32543,6 +33563,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Trout",
+        "source": "marker"
+      },
+      {
         "name": "HALFMOON BAY LAKE",
         "source": "stocking"
       },
@@ -32564,6 +33588,10 @@
       }
     ],
     "329197246": [
+      {
+        "name": "Crowston",
+        "source": "marker"
+      },
       {
         "name": "CROWSTON LAKE",
         "source": "stocking"
@@ -32703,6 +33731,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Nevertouch",
+        "source": "marker"
+      },
+      {
         "name": "NEVERTOUCH LAKE",
         "source": "stocking"
       }
@@ -32711,6 +33743,10 @@
       {
         "name": "IDABEL LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Idabel",
+        "source": "marker"
       },
       {
         "name": "CARIBOO",
@@ -32795,6 +33831,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Wilgress",
+        "source": "marker"
+      },
+      {
         "name": "WILGRESS LAKE",
         "source": "stocking"
       },
@@ -32809,11 +33849,19 @@
         "source": "bathymetry"
       },
       {
+        "name": "Hoodoo",
+        "source": "marker"
+      },
+      {
         "name": "HOODOO LAKE",
         "source": "stocking"
       }
     ],
     "329216640": [
+      {
+        "name": "Buck",
+        "source": "marker"
+      },
       {
         "name": "BUCK LAKE",
         "source": "stocking"
@@ -32830,6 +33878,10 @@
       }
     ],
     "329216645": [
+      {
+        "name": "Bisson",
+        "source": "marker"
+      },
       {
         "name": "BISSON LAKE",
         "source": "stocking"
@@ -32851,6 +33903,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Xenia",
+        "source": "marker"
+      },
+      {
         "name": "XENIA LAKE",
         "source": "stocking"
       }
@@ -32865,7 +33921,7 @@
         "source": "stocking"
       },
       {
-        "name": "CAT&#039;S EYE LAKE",
+        "name": "CAT'S EYE LAKE",
         "source": "stocking"
       }
     ],
@@ -32879,6 +33935,10 @@
       {
         "name": "IDLEBACK LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Idleback",
+        "source": "marker"
       },
       {
         "name": "IDLEBACK LAKE",
@@ -32903,6 +33963,10 @@
     ],
     "329216662": [
       {
+        "name": "Pear",
+        "source": "marker"
+      },
+      {
         "name": "LITTLE WHITEHEAD LAKE",
         "source": "stocking"
       },
@@ -32921,6 +33985,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Collier Lower (Nw)",
+        "source": "marker"
+      },
+      {
         "name": "COLLIER 2 (NW)",
         "source": "stocking"
       },
@@ -32934,6 +34002,10 @@
       }
     ],
     "329216664": [
+      {
+        "name": "Loch Larsen",
+        "source": "marker"
+      },
       {
         "name": "LOCH LARSEN",
         "source": "stocking"
@@ -33005,7 +34077,11 @@
     ],
     "329216683": [
       {
-        "name": "FIVE O&#039;CLOCK LAKE",
+        "name": "Five O'Clock",
+        "source": "marker"
+      },
+      {
+        "name": "FIVE O'CLOCK LAKE",
         "source": "stocking"
       }
     ],
@@ -33043,11 +34119,19 @@
     ],
     "329216688": [
       {
+        "name": "Mcintyre",
+        "source": "marker"
+      },
+      {
         "name": "MCINTYRE LAKE",
         "source": "stocking"
       }
     ],
     "329216689": [
+      {
+        "name": "Derickson",
+        "source": "marker"
+      },
       {
         "name": "DERICKSON LAKE",
         "source": "stocking"
@@ -33083,6 +34167,10 @@
     ],
     "329216710": [
       {
+        "name": "Providence",
+        "source": "marker"
+      },
+      {
         "name": "MARSHALL",
         "source": "stocking"
       },
@@ -33097,7 +34185,7 @@
         "source": "bathymetry"
       },
       {
-        "name": "PETE&#039;S",
+        "name": "PETE'S",
         "source": "stocking"
       }
     ],
@@ -33125,6 +34213,10 @@
     ],
     "329216775": [
       {
+        "name": "Terraced",
+        "source": "marker"
+      },
+      {
         "name": "TERRACED",
         "source": "stocking"
       }
@@ -33136,6 +34228,10 @@
       }
     ],
     "329216836": [
+      {
+        "name": "Beacon",
+        "source": "marker"
+      },
       {
         "name": "BEACON LAKE",
         "source": "stocking"
@@ -33239,6 +34335,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Mitten",
+        "source": "marker"
+      },
+      {
         "name": "MITTEN LAKE",
         "source": "stocking"
       }
@@ -33249,11 +34349,19 @@
         "source": "bathymetry"
       },
       {
+        "name": "Nine Bay",
+        "source": "marker"
+      },
+      {
         "name": "NINE BAY LAKE",
         "source": "stocking"
       }
     ],
     "329220311": [
+      {
+        "name": "Three Island",
+        "source": "marker"
+      },
       {
         "name": "THREE ISLAND LAKE",
         "source": "stocking"
@@ -33269,6 +34377,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Rocky Point",
+        "source": "marker"
+      },
+      {
         "name": "ROCKY POINT LAKE",
         "source": "stocking"
       }
@@ -33277,6 +34389,10 @@
       {
         "name": "BITTERN LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Bittern",
+        "source": "marker"
       },
       {
         "name": "BITTERN LAKE",
@@ -33303,6 +34419,10 @@
     ],
     "329220389": [
       {
+        "name": "Loon",
+        "source": "marker"
+      },
+      {
         "name": "LOON",
         "source": "stocking"
       },
@@ -33321,6 +34441,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Wilbur",
+        "source": "marker"
+      },
+      {
         "name": "WILBUR LAKE",
         "source": "stocking"
       }
@@ -33332,6 +34456,10 @@
       }
     ],
     "329220417": [
+      {
+        "name": "Mcclain",
+        "source": "marker"
+      },
       {
         "name": "MCCLAIN LAKE",
         "source": "stocking"
@@ -33391,6 +34519,10 @@
     ],
     "329220477": [
       {
+        "name": "Silent",
+        "source": "marker"
+      },
+      {
         "name": "SILENT LAKE",
         "source": "stocking"
       },
@@ -33425,6 +34557,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Cedar #1",
+        "source": "marker"
+      },
+      {
         "name": "CEDAR #1",
         "source": "stocking"
       },
@@ -33442,6 +34578,10 @@
       }
     ],
     "329220512": [
+      {
+        "name": "Little Mitten",
+        "source": "marker"
+      },
       {
         "name": "LITTLE MITTEN",
         "source": "stocking"
@@ -33465,6 +34605,10 @@
       {
         "name": "NIXON LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Nixon",
+        "source": "marker"
       },
       {
         "name": "NIXON LAKE",
@@ -33503,6 +34647,10 @@
       {
         "name": "SUMMIT LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Summit",
+        "source": "marker"
       },
       {
         "name": "S.W. OF PARSON",
@@ -33571,23 +34719,23 @@
         "source": "bathymetry"
       },
       {
-        "name": "NISGA&#039;A LAKE WEST",
+        "name": "NISGA'A LAKE WEST",
         "source": "stocking"
       },
       {
-        "name": "NISGA&#039;A LAKES",
+        "name": "NISGA'A LAKES",
         "source": "stocking"
       },
       {
-        "name": "NISGA&#039;A LAKES (LOWER)",
+        "name": "NISGA'A LAKES (LOWER)",
         "source": "stocking"
       },
       {
-        "name": "NISGA&#039;A UPPER",
+        "name": "NISGA'A UPPER",
         "source": "stocking"
       },
       {
-        "name": "NISGA&#039;A WEST",
+        "name": "NISGA'A WEST",
         "source": "stocking"
       },
       {
@@ -33597,19 +34745,19 @@
     ],
     "329223898": [
       {
-        "name": "NISGA&#039;A LAKE EAST",
+        "name": "NISGA'A LAKE EAST",
         "source": "stocking"
       },
       {
-        "name": "NISGA&#039;A LAKE UPPER",
+        "name": "NISGA'A LAKE UPPER",
         "source": "stocking"
       },
       {
-        "name": "NISGA&#039;A LAKES",
+        "name": "NISGA'A LAKES",
         "source": "stocking"
       },
       {
-        "name": "NISGA&#039;A LOWER",
+        "name": "NISGA'A LOWER",
         "source": "stocking"
       },
       {
@@ -33647,6 +34795,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "One Island",
+        "source": "marker"
+      },
+      {
         "name": "99",
         "source": "stocking"
       },
@@ -33675,6 +34827,10 @@
       {
         "name": "BOOT LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Boot",
+        "source": "marker"
       },
       {
         "name": "BOOT LAKE",
@@ -33849,6 +35005,10 @@
     ],
     "329238286": [
       {
+        "name": "Diamond",
+        "source": "marker"
+      },
+      {
         "name": "DIAMOND LAKE",
         "source": "stocking"
       }
@@ -33915,6 +35075,10 @@
     ],
     "329246294": [
       {
+        "name": "Moyie (North)",
+        "source": "marker"
+      },
+      {
         "name": "MOYIE LAKE",
         "source": "stocking"
       },
@@ -33931,6 +35095,10 @@
       {
         "name": "MOYIE LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Moyie",
+        "source": "marker"
       },
       {
         "name": "MOYIE (SOUTH)",
@@ -33955,6 +35123,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Monroe",
+        "source": "marker"
+      },
+      {
         "name": "MONROE LAKE",
         "source": "stocking"
       },
@@ -33975,7 +35147,7 @@
         "source": "stocking"
       },
       {
-        "name": "TAM O&#039;SHANTER",
+        "name": "TAM O'SHANTER",
         "source": "stocking"
       }
     ],
@@ -33983,6 +35155,10 @@
       {
         "name": "BOUNDARY LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Boundary",
+        "source": "marker"
       },
       {
         "name": "BOUNDARY LAKE",
@@ -34004,6 +35180,10 @@
       }
     ],
     "329246334": [
+      {
+        "name": "Woodenshoe",
+        "source": "marker"
+      },
       {
         "name": "SHELLY LAKE",
         "source": "stocking"
@@ -34059,6 +35239,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Bear",
+        "source": "marker"
+      },
+      {
         "name": "BEAR LAKE",
         "source": "stocking"
       }
@@ -34097,6 +35281,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Fish",
+        "source": "marker"
+      },
+      {
         "name": "FISH",
         "source": "stocking"
       },
@@ -34123,6 +35311,10 @@
       {
         "name": "COTTONWOOD LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Cottonwood",
+        "source": "marker"
       },
       {
         "name": "COTTONWOOD LAKE",
@@ -34159,12 +35351,22 @@
         "source": "bathymetry"
       },
       {
+        "name": "Mirror",
+        "source": "marker"
+      },
+      {
         "name": "MIRROR LAKE",
         "source": "stocking"
       },
       {
         "name": "PRIVATE LAKE",
         "source": "stocking"
+      }
+    ],
+    "329246396": [
+      {
+        "name": "Little Monroe",
+        "source": "marker"
       }
     ],
     "329246397": [
@@ -34207,11 +35409,11 @@
         "source": "stocking"
       },
       {
-        "name": "SANDBERG&#039;S LAKE",
+        "name": "SANDBERG'S LAKE",
         "source": "stocking"
       },
       {
-        "name": "WARD&#039;S LAKE",
+        "name": "WARD'S LAKE",
         "source": "stocking"
       }
     ],
@@ -34341,6 +35543,10 @@
     ],
     "329246493": [
       {
+        "name": "Milford",
+        "source": "marker"
+      },
+      {
         "name": "MILFORD LAKE",
         "source": "stocking"
       }
@@ -34403,6 +35609,12 @@
         "source": "stocking"
       }
     ],
+    "329246710": [
+      {
+        "name": "Ryan Park",
+        "source": "marker"
+      }
+    ],
     "329246756": [
       {
         "name": "CAROLINA",
@@ -34449,6 +35661,10 @@
       {
         "name": "MOOSE LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Alces",
+        "source": "marker"
       },
       {
         "name": "ALCES LAKE",
@@ -34583,6 +35799,10 @@
     ],
     "329247994": [
       {
+        "name": "Fenwick",
+        "source": "marker"
+      },
+      {
         "name": "FENWICK LAKE",
         "source": "stocking"
       }
@@ -34653,6 +35873,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Champion 2Nd",
+        "source": "marker"
+      },
+      {
         "name": "CHAMPION 1ST",
         "source": "stocking"
       },
@@ -34679,6 +35903,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Rosebud",
+        "source": "marker"
+      },
+      {
         "name": "ROSEBUD LAKE",
         "source": "stocking"
       }
@@ -34687,6 +35915,10 @@
       {
         "name": "SOUTH CARIBOU LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "South Caribou",
+        "source": "marker"
       },
       {
         "name": "CARIBOU #1",
@@ -34709,6 +35941,10 @@
       {
         "name": "CHAMPION LAKES",
         "source": "bathymetry"
+      },
+      {
+        "name": "Champion 3Rd",
+        "source": "marker"
       },
       {
         "name": "CHAMPION 3RD",
@@ -34761,6 +35997,10 @@
     ],
     "329262680": [
       {
+        "name": "Lost",
+        "source": "marker"
+      },
+      {
         "name": "LOST LAKE",
         "source": "stocking"
       },
@@ -34776,6 +36016,10 @@
       }
     ],
     "329262690": [
+      {
+        "name": "Barrett",
+        "source": "marker"
+      },
       {
         "name": "BARRETT LAKE",
         "source": "stocking"
@@ -34891,6 +36135,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Ness",
+        "source": "marker"
+      },
+      {
         "name": "NESS LAKE",
         "source": "stocking"
       }
@@ -34922,6 +36170,10 @@
       }
     ],
     "329272369": [
+      {
+        "name": "Grizzly West",
+        "source": "marker"
+      },
       {
         "name": "GRIZZLY WEST",
         "source": "stocking"
@@ -34979,6 +36231,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Berman",
+        "source": "marker"
+      },
+      {
         "name": "BERMAN LAKE",
         "source": "stocking"
       }
@@ -35007,6 +36263,10 @@
     ],
     "329272407": [
       {
+        "name": "Mckenzie East",
+        "source": "marker"
+      },
+      {
         "name": "MACKENZIE #2 (EAST)",
         "source": "stocking"
       },
@@ -35033,6 +36293,10 @@
     ],
     "329272436": [
       {
+        "name": "Mckenzie West",
+        "source": "marker"
+      },
+      {
         "name": "MACKENZIE #1 (WEST)",
         "source": "stocking"
       },
@@ -35045,10 +36309,20 @@
         "source": "stocking"
       }
     ],
+    "329272482": [
+      {
+        "name": "Square",
+        "source": "marker"
+      }
+    ],
     "329272491": [
       {
         "name": "CLEAR LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Clear",
+        "source": "marker"
       },
       {
         "name": "CLEAR LAKE",
@@ -35061,11 +36335,19 @@
         "source": "bathymetry"
       },
       {
+        "name": "Nelson",
+        "source": "marker"
+      },
+      {
         "name": "NELSON LAKE",
         "source": "stocking"
       }
     ],
     "329272817": [
+      {
+        "name": "Kwitzil",
+        "source": "marker"
+      },
       {
         "name": "GRAVEL PIT",
         "source": "stocking"
@@ -35089,6 +36371,10 @@
       {
         "name": "EAGLE LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Eagle",
+        "source": "marker"
       },
       {
         "name": "EAGLE LAKE",
@@ -35199,6 +36485,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Raven",
+        "source": "marker"
+      },
+      {
         "name": "RAVEN LAKE",
         "source": "stocking"
       }
@@ -35241,6 +36531,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Mackill",
+        "source": "marker"
+      },
+      {
         "name": "MACKILL LAKE",
         "source": "stocking"
       },
@@ -35253,6 +36547,10 @@
       {
         "name": "TWO LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Two",
+        "source": "marker"
       },
       {
         "name": "TWO LAKE",
@@ -35287,7 +36585,11 @@
     ],
     "329276620": [
       {
-        "name": "DANTE&#039;S INFERNO",
+        "name": "Dante'S Inferno",
+        "source": "marker"
+      },
+      {
+        "name": "DANTE'S INFERNO",
         "source": "stocking"
       },
       {
@@ -35501,6 +36803,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Salsbury",
+        "source": "marker"
+      },
+      {
         "name": "CYPRESS",
         "source": "stocking"
       },
@@ -35523,6 +36829,10 @@
       {
         "name": "WHONNOCK LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Whonnock",
+        "source": "marker"
       },
       {
         "name": "WHONNOCK LAKE",
@@ -35623,6 +36933,10 @@
     ],
     "329291884": [
       {
+        "name": "Rolley",
+        "source": "marker"
+      },
+      {
         "name": "ROLLEY LAKE",
         "source": "stocking"
       }
@@ -35641,6 +36955,10 @@
       {
         "name": "MILL LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Mill",
+        "source": "marker"
       },
       {
         "name": "ABBOTSFORD",
@@ -35727,6 +37045,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Mike",
+        "source": "marker"
+      },
+      {
         "name": "MIKE LAKE",
         "source": "stocking"
       }
@@ -35735,6 +37057,10 @@
       {
         "name": "COMO LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Como",
+        "source": "marker"
       },
       {
         "name": "COMO LAKE",
@@ -35753,6 +37079,10 @@
       {
         "name": "PINETREE GRAVEL PIT LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Lafarge",
+        "source": "marker"
       },
       {
         "name": "COQUITLAM PIT",
@@ -35809,6 +37139,12 @@
       {
         "name": "MIRROR LAKE",
         "source": "stocking"
+      }
+    ],
+    "329292658": [
+      {
+        "name": "Rose",
+        "source": "marker"
       }
     ],
     "329292800": [
@@ -35911,6 +37247,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Alta",
+        "source": "marker"
+      },
+      {
         "name": "ALTA LAKE",
         "source": "stocking"
       }
@@ -36003,6 +37343,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Lost",
+        "source": "marker"
+      },
+      {
         "name": "LOST LAKE",
         "source": "stocking"
       }
@@ -36079,6 +37423,10 @@
       {
         "name": "MOSQUITO LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Mosquito",
+        "source": "marker"
       },
       {
         "name": "MOSQUITO LAKE",
@@ -36189,11 +37537,19 @@
         "source": "bathymetry"
       },
       {
+        "name": "Herman",
+        "source": "marker"
+      },
+      {
         "name": "HERMAN LAKE",
         "source": "stocking"
       }
     ],
     "329310772": [
+      {
+        "name": "Onion",
+        "source": "marker"
+      },
       {
         "name": "ONION LAKE",
         "source": "stocking"
@@ -36291,6 +37647,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Stump",
+        "source": "marker"
+      },
+      {
         "name": "LAKE #342",
         "source": "stocking"
       },
@@ -36301,6 +37661,10 @@
     ],
     "329316069": [
       {
+        "name": "Peter Hope",
+        "source": "marker"
+      },
+      {
         "name": "LAKE #2054",
         "source": "stocking"
       },
@@ -36310,6 +37674,10 @@
       }
     ],
     "329316073": [
+      {
+        "name": "Surrey",
+        "source": "marker"
+      },
       {
         "name": "SURREY LAKE",
         "source": "stocking"
@@ -36331,6 +37699,10 @@
     ],
     "329316075": [
       {
+        "name": "Lundbom",
+        "source": "marker"
+      },
+      {
         "name": "LAKE #2116",
         "source": "stocking"
       },
@@ -36341,11 +37713,19 @@
     ],
     "329316076": [
       {
+        "name": "Dardanelles",
+        "source": "marker"
+      },
+      {
         "name": "DARDANELLES LAKE",
         "source": "stocking"
       }
     ],
     "329316077": [
+      {
+        "name": "Ross Moore",
+        "source": "marker"
+      },
       {
         "name": "LAKE #299",
         "source": "stocking"
@@ -36357,6 +37737,10 @@
     ],
     "329316078": [
       {
+        "name": "Plateau",
+        "source": "marker"
+      },
+      {
         "name": "PLATEAU LAKE",
         "source": "stocking"
       }
@@ -36365,6 +37749,10 @@
       {
         "name": "MURRAY LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Murray",
+        "source": "marker"
       },
       {
         "name": "MURRAY LAKE",
@@ -36409,6 +37797,10 @@
     ],
     "329316083": [
       {
+        "name": "Bob",
+        "source": "marker"
+      },
+      {
         "name": "BOB LAKE",
         "source": "stocking"
       },
@@ -36418,6 +37810,10 @@
       }
     ],
     "329316086": [
+      {
+        "name": "Mildred",
+        "source": "marker"
+      },
       {
         "name": "LAKE #581",
         "source": "stocking"
@@ -36433,6 +37829,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Harmon",
+        "source": "marker"
+      },
+      {
         "name": "HARMON LAKE",
         "source": "stocking"
       },
@@ -36443,17 +37843,29 @@
     ],
     "329316088": [
       {
+        "name": "Gordon",
+        "source": "marker"
+      },
+      {
         "name": "GORDON LAKE",
         "source": "stocking"
       }
     ],
     "329316091": [
       {
+        "name": "Hamilton",
+        "source": "marker"
+      },
+      {
         "name": "HAMILTON LAKE",
         "source": "stocking"
       }
     ],
     "329316098": [
+      {
+        "name": "Marquart",
+        "source": "marker"
+      },
       {
         "name": "LAKE #2117",
         "source": "stocking"
@@ -36464,6 +37876,10 @@
       }
     ],
     "329316101": [
+      {
+        "name": "Gillis",
+        "source": "marker"
+      },
       {
         "name": "GILLIS LAKE",
         "source": "stocking"
@@ -36489,11 +37905,19 @@
     ],
     "329316108": [
       {
+        "name": "Fred",
+        "source": "marker"
+      },
+      {
         "name": "FRED LAKE",
         "source": "stocking"
       }
     ],
     "329316110": [
+      {
+        "name": "Shea",
+        "source": "marker"
+      },
       {
         "name": "LAKE #2183",
         "source": "stocking"
@@ -36515,6 +37939,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Second Upper",
+        "source": "marker"
+      },
+      {
         "name": "EAST SECOND LAKE",
         "source": "stocking"
       },
@@ -36529,6 +37957,10 @@
     ],
     "329316121": [
       {
+        "name": "Abbott",
+        "source": "marker"
+      },
+      {
         "name": "ABBOTT LAKE",
         "source": "stocking"
       },
@@ -36539,6 +37971,10 @@
     ],
     "329316127": [
       {
+        "name": "Edna",
+        "source": "marker"
+      },
+      {
         "name": "EDNA LAKE",
         "source": "stocking"
       },
@@ -36548,6 +37984,10 @@
       }
     ],
     "329316130": [
+      {
+        "name": "Kane #2 Right",
+        "source": "marker"
+      },
       {
         "name": "#2;LOWER KANE",
         "source": "stocking"
@@ -36589,6 +38029,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Kane #1 Left",
+        "source": "marker"
+      },
+      {
         "name": "KANE #1 LEFT",
         "source": "stocking"
       },
@@ -36622,6 +38066,10 @@
       }
     ],
     "329316175": [
+      {
+        "name": "Chicken Ranch",
+        "source": "marker"
+      },
       {
         "name": "CHICKEN RANCH LAKE",
         "source": "stocking"
@@ -36665,6 +38113,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Second Lower",
+        "source": "marker"
+      },
+      {
         "name": "LAKE #2174",
         "source": "stocking"
       },
@@ -36686,6 +38138,10 @@
       }
     ],
     "329316206": [
+      {
+        "name": "Englishmen",
+        "source": "marker"
+      },
       {
         "name": "ENGLISHMEN LAKE",
         "source": "stocking"
@@ -36733,6 +38189,10 @@
       {
         "name": "ENGLISHMEN L. NO.1 L. HARMON L.  KANE VALLEY CHAIN",
         "source": "bathymetry"
+      },
+      {
+        "name": "Little Harmon",
+        "source": "marker"
       },
       {
         "name": "LAKE NO.1",
@@ -36849,6 +38309,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Lac Des Roches",
+        "source": "marker"
+      },
+      {
         "name": "LAC DES",
         "source": "stocking"
       },
@@ -36913,6 +38377,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Paul",
+        "source": "marker"
+      },
+      {
         "name": "LAKE #261",
         "source": "stocking"
       },
@@ -36931,6 +38399,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Birch",
+        "source": "marker"
+      },
+      {
         "name": "BIRCH LAKE",
         "source": "stocking"
       },
@@ -36947,6 +38419,10 @@
       {
         "name": "HEFFLEY LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Heffley",
+        "source": "marker"
       },
       {
         "name": "HEFFLEY LAKE",
@@ -36999,6 +38475,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Sullivan",
+        "source": "marker"
+      },
+      {
         "name": "KNOUFF LAKE",
         "source": "stocking"
       },
@@ -37025,6 +38505,10 @@
       {
         "name": "BADGER LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Badger",
+        "source": "marker"
       },
       {
         "name": "BADGER LAKE",
@@ -37061,6 +38545,10 @@
       {
         "name": "PINANTAN LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Pinantan",
+        "source": "marker"
       },
       {
         "name": "LAKE #270",
@@ -37109,6 +38597,10 @@
     ],
     "329320888": [
       {
+        "name": "Lynn",
+        "source": "marker"
+      },
+      {
         "name": "LAKE #853",
         "source": "stocking"
       },
@@ -37143,6 +38635,10 @@
     ],
     "329320892": [
       {
+        "name": "Community",
+        "source": "marker"
+      },
+      {
         "name": "COMMUNITY LAKE",
         "source": "stocking"
       },
@@ -37151,7 +38647,17 @@
         "source": "stocking"
       }
     ],
+    "329320894": [
+      {
+        "name": "Little Lac Des Roches",
+        "source": "marker"
+      }
+    ],
     "329320899": [
+      {
+        "name": "Windy",
+        "source": "marker"
+      },
       {
         "name": "LAKE #952",
         "source": "stocking"
@@ -37162,6 +38668,10 @@
       }
     ],
     "329320900": [
+      {
+        "name": "Smith",
+        "source": "marker"
+      },
       {
         "name": "LAKE #917",
         "source": "stocking"
@@ -37185,6 +38695,10 @@
       {
         "name": "HALLAMORE LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Hallamore",
+        "source": "marker"
       },
       {
         "name": "HALAMORE",
@@ -37217,6 +38731,10 @@
       {
         "name": "PHINETTA LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Phinetta",
+        "source": "marker"
       },
       {
         "name": "LAKE #268",
@@ -37257,6 +38775,10 @@
       {
         "name": "LEMIEUX LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Lemieux",
+        "source": "marker"
       },
       {
         "name": "LAKE #840",
@@ -37303,6 +38825,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Isobel",
+        "source": "marker"
+      },
+      {
         "name": "ISOBEL LAKE",
         "source": "stocking"
       },
@@ -37337,6 +38863,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Lolo",
+        "source": "marker"
+      },
+      {
         "name": "LAKE #846",
         "source": "stocking"
       },
@@ -37361,6 +38891,10 @@
       {
         "name": "GORMAN LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Gorman",
+        "source": "marker"
       },
       {
         "name": "GORMAN LAKE",
@@ -37422,6 +38956,10 @@
       }
     ],
     "329320964": [
+      {
+        "name": "Warren",
+        "source": "marker"
+      },
       {
         "name": "LAKE #391",
         "source": "stocking"
@@ -37485,11 +39023,15 @@
         "source": "stocking"
       },
       {
-        "name": "O&#039;CONNOR LAKE",
+        "name": "O'CONNOR LAKE",
         "source": "stocking"
       }
     ],
     "329321011": [
+      {
+        "name": "West Badger",
+        "source": "marker"
+      },
       {
         "name": "WEST BADGER LAKE",
         "source": "stocking"
@@ -37515,6 +39057,10 @@
       {
         "name": "NOBLE LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Noble",
+        "source": "marker"
       },
       {
         "name": "LAKE #246",
@@ -37549,6 +39095,12 @@
       {
         "name": "LITTLE BADGER LAKE",
         "source": "stocking"
+      }
+    ],
+    "329321037": [
+      {
+        "name": "Float",
+        "source": "marker"
       }
     ],
     "329321048": [
@@ -37589,6 +39141,10 @@
     ],
     "329321066": [
       {
+        "name": "Hadlow",
+        "source": "marker"
+      },
+      {
         "name": "HADLOW LAKE",
         "source": "stocking"
       },
@@ -37607,6 +39163,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Jeep",
+        "source": "marker"
+      },
+      {
         "name": "JEEP LAKE",
         "source": "stocking"
       },
@@ -37615,7 +39175,17 @@
         "source": "stocking"
       }
     ],
+    "329321070": [
+      {
+        "name": "Armour",
+        "source": "marker"
+      }
+    ],
     "329321118": [
+      {
+        "name": "Eileen",
+        "source": "marker"
+      },
       {
         "name": "EILEEN LAKE",
         "source": "stocking"
@@ -37626,6 +39196,10 @@
       }
     ],
     "329321123": [
+      {
+        "name": "Wineholt",
+        "source": "marker"
+      },
       {
         "name": "LAKE #954",
         "source": "stocking"
@@ -37673,6 +39247,10 @@
     ],
     "329321212": [
       {
+        "name": "Little Dum",
+        "source": "marker"
+      },
+      {
         "name": "CHUCK",
         "source": "stocking"
       },
@@ -37698,6 +39276,10 @@
       }
     ],
     "329321244": [
+      {
+        "name": "Rexford",
+        "source": "marker"
+      },
       {
         "name": "LAKE #",
         "source": "stocking"
@@ -37729,6 +39311,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Black",
+        "source": "marker"
+      },
+      {
         "name": "BLACK",
         "source": "stocking"
       },
@@ -37742,6 +39328,10 @@
       }
     ],
     "329321526": [
+      {
+        "name": "Dytiscid",
+        "source": "marker"
+      },
       {
         "name": "DYTISCID",
         "source": "stocking"
@@ -37825,6 +39415,12 @@
       {
         "name": "ANDY BAILEY LAKE (FORMERLY JACKFISH LAKE)",
         "source": "bathymetry"
+      }
+    ],
+    "329335209": [
+      {
+        "name": "Borrow Pit # 8",
+        "source": "marker"
       }
     ],
     "329336024": [
@@ -37923,6 +39519,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Eena",
+        "source": "marker"
+      },
+      {
         "name": "EENA LAKE",
         "source": "stocking"
       }
@@ -37931,6 +39531,10 @@
       {
         "name": "KATHIE LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Kathie",
+        "source": "marker"
       },
       {
         "name": "KATHIE LAKE",
@@ -37977,6 +39581,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Camp",
+        "source": "marker"
+      },
+      {
         "name": "CAMP LAKE",
         "source": "stocking"
       }
@@ -38003,6 +39611,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Ferguson",
+        "source": "marker"
+      },
+      {
         "name": "FERGUSON LAKE",
         "source": "stocking"
       }
@@ -38019,6 +39631,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Butterfly",
+        "source": "marker"
+      },
+      {
         "name": "BUTTERFLY LAKE",
         "source": "stocking"
       }
@@ -38027,6 +39643,10 @@
       {
         "name": "BOW LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Bow",
+        "source": "marker"
       },
       {
         "name": "BOW LAKE",
@@ -38159,6 +39779,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Ruth",
+        "source": "marker"
+      },
+      {
         "name": "RUTH LAKE",
         "source": "stocking"
       }
@@ -38181,6 +39805,10 @@
       {
         "name": "LORIN LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Lorin",
+        "source": "marker"
       },
       {
         "name": "AIRPLANE LAKE",
@@ -38219,6 +39847,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Howard",
+        "source": "marker"
+      },
+      {
         "name": "HOWARD LAKE",
         "source": "stocking"
       }
@@ -38231,6 +39863,10 @@
       {
         "name": "TWO-MILE L.",
         "source": "bathymetry"
+      },
+      {
+        "name": "Two Mile",
+        "source": "marker"
       },
       {
         "name": "LAKE #944",
@@ -38269,6 +39905,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Donnely",
+        "source": "marker"
+      },
+      {
         "name": "DONNELY LAKE",
         "source": "stocking"
       }
@@ -38286,6 +39926,10 @@
       }
     ],
     "329354727": [
+      {
+        "name": "Schoolhouse",
+        "source": "marker"
+      },
       {
         "name": "SCHOOLHOUSE LAKE",
         "source": "stocking"
@@ -38331,6 +39975,10 @@
       {
         "name": "FRENCH LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "French",
+        "source": "marker"
       },
       {
         "name": "FRENCH LAKE",
@@ -38451,11 +40099,19 @@
     ],
     "329354760": [
       {
+        "name": "Lake #6067",
+        "source": "marker"
+      },
+      {
         "name": "LAKE #6067",
         "source": "stocking"
       }
     ],
     "329354773": [
+      {
+        "name": "Dor",
+        "source": "marker"
+      },
       {
         "name": "DOR LAKE",
         "source": "stocking"
@@ -38465,6 +40121,10 @@
       {
         "name": "WHALE LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Whale",
+        "source": "marker"
       },
       {
         "name": "#6290",
@@ -38479,6 +40139,10 @@
       {
         "name": "GREENLEE LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Greenlee",
+        "source": "marker"
       },
       {
         "name": "GREENLEE LAKE",
@@ -38521,6 +40185,10 @@
       {
         "name": "COUGAR LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Cougar",
+        "source": "marker"
       },
       {
         "name": "COUGAR LAKE",
@@ -38581,6 +40249,12 @@
       {
         "name": "CATTAIL",
         "source": "stocking"
+      }
+    ],
+    "329355611": [
+      {
+        "name": "Herby",
+        "source": "marker"
       }
     ],
     "329361934": [
@@ -38737,6 +40411,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Chimney",
+        "source": "marker"
+      },
+      {
         "name": "CHIMNEY LAKE",
         "source": "stocking"
       },
@@ -38763,6 +40441,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Felker",
+        "source": "marker"
+      },
+      {
         "name": "FELKER LAKE",
         "source": "stocking"
       },
@@ -38783,6 +40465,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Till",
+        "source": "marker"
+      },
+      {
         "name": "TILL LAKE",
         "source": "stocking"
       }
@@ -38801,6 +40487,10 @@
       {
         "name": "SNAG LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Snag",
+        "source": "marker"
       },
       {
         "name": "SNAG LAKE",
@@ -38871,11 +40561,19 @@
         "source": "bathymetry"
       },
       {
+        "name": "Mcintyre",
+        "source": "marker"
+      },
+      {
         "name": "MCINTYRE LAKE",
         "source": "stocking"
       }
     ],
     "329371004": [
+      {
+        "name": "Gardner",
+        "source": "marker"
+      },
       {
         "name": "GARDNER",
         "source": "stocking"
@@ -38892,6 +40590,10 @@
       }
     ],
     "329371063": [
+      {
+        "name": "West",
+        "source": "marker"
+      },
       {
         "name": "LAKE #938",
         "source": "stocking"
@@ -39081,6 +40783,10 @@
     ],
     "329382049": [
       {
+        "name": "Slim",
+        "source": "marker"
+      },
+      {
         "name": "SLIM LAKE",
         "source": "stocking"
       }
@@ -39209,6 +40915,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Klinger",
+        "source": "marker"
+      },
+      {
         "name": "KLINGER LAKE",
         "source": "stocking"
       }
@@ -39221,6 +40931,12 @@
       {
         "name": "SILVERTHORNE LAKE",
         "source": "stocking"
+      }
+    ],
+    "329390435": [
+      {
+        "name": "Borrow Pit # 1",
+        "source": "marker"
       }
     ],
     "329391100": [
@@ -39263,6 +40979,10 @@
       {
         "name": "ALLAN LAKE (DEASE LAKE AREA)",
         "source": "bathymetry"
+      },
+      {
+        "name": "Allan",
+        "source": "marker"
       },
       {
         "name": "ALLAN LAKE",
@@ -39333,6 +41053,10 @@
       {
         "name": "MOOSE LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Moose",
+        "source": "marker"
       },
       {
         "name": "MOOSE LAKE",
@@ -39713,6 +41437,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Owen",
+        "source": "marker"
+      },
+      {
         "name": "OWEN LAKE",
         "source": "stocking"
       }
@@ -39737,6 +41465,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Puntchesakut",
+        "source": "marker"
+      },
+      {
         "name": "PUNTCHESAKUT LAKE",
         "source": "stocking"
       }
@@ -39745,6 +41477,10 @@
       {
         "name": "CUISSON LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Cuisson",
+        "source": "marker"
       },
       {
         "name": "CUISSON LAKE",
@@ -39765,6 +41501,10 @@
       {
         "name": "FIR LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Fir",
+        "source": "marker"
       },
       {
         "name": "FIR LAKE",
@@ -39793,6 +41533,10 @@
       {
         "name": "RIMROCK LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Rimrock",
+        "source": "marker"
       },
       {
         "name": "RIMROCK LAKE",
@@ -39831,6 +41575,10 @@
       {
         "name": "BLUE LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Blue",
+        "source": "marker"
       },
       {
         "name": "BLUE LAKE",
@@ -39989,6 +41737,10 @@
       {
         "name": "BURDEN LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Burden",
+        "source": "marker"
       },
       {
         "name": "BURDEN LAKE",
@@ -40231,6 +41983,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Palmer",
+        "source": "marker"
+      },
+      {
         "name": "PALMER LAKE",
         "source": "stocking"
       }
@@ -40279,6 +42035,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Marmot",
+        "source": "marker"
+      },
+      {
         "name": "MARMOT LAKE",
         "source": "stocking"
       }
@@ -40305,6 +42065,10 @@
       {
         "name": "CRATER LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Crater",
+        "source": "marker"
       },
       {
         "name": "CRATER LAKE",
@@ -40339,6 +42103,10 @@
       {
         "name": "NULKI LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Nulki",
+        "source": "marker"
       },
       {
         "name": "NULKI LAKE",
@@ -40379,6 +42147,10 @@
       {
         "name": "COBB LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Cobb",
+        "source": "marker"
       },
       {
         "name": "COBB LAKE",
@@ -40501,6 +42273,10 @@
     ],
     "329451886": [
       {
+        "name": "Minnie",
+        "source": "marker"
+      },
+      {
         "name": "MINNIE LAKE",
         "source": "stocking"
       }
@@ -40517,6 +42293,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Hatheume",
+        "source": "marker"
+      },
+      {
         "name": "HATHEUME LAKE",
         "source": "stocking"
       },
@@ -40529,6 +42309,10 @@
       {
         "name": "GLIMPSE LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Glimpse",
+        "source": "marker"
       },
       {
         "name": "GLIMPSE LAKE",
@@ -40547,6 +42331,10 @@
       {
         "name": "COURTNEY LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Courtney",
+        "source": "marker"
       },
       {
         "name": "COURTNEY LAKE",
@@ -40579,6 +42367,10 @@
     ],
     "329451897": [
       {
+        "name": "Stoney",
+        "source": "marker"
+      },
+      {
         "name": "LAKE 2518",
         "source": "stocking"
       },
@@ -40588,6 +42380,10 @@
       }
     ],
     "329451898": [
+      {
+        "name": "Barton",
+        "source": "marker"
+      },
       {
         "name": "BARTON LAKE",
         "source": "stocking"
@@ -40617,6 +42413,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Island",
+        "source": "marker"
+      },
+      {
         "name": "ISLAND LAKE",
         "source": "stocking"
       },
@@ -40629,6 +42429,10 @@
       {
         "name": "ALLEYNE LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Alleyne",
+        "source": "marker"
       },
       {
         "name": "ALLEYNE LAKE",
@@ -40653,6 +42457,10 @@
       {
         "name": "KENTUCKY LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Kentucky",
+        "source": "marker"
       },
       {
         "name": "KENTUCKY LAKE",
@@ -40687,6 +42495,10 @@
     ],
     "329451912": [
       {
+        "name": "Boot",
+        "source": "marker"
+      },
+      {
         "name": "BOOT LAKE",
         "source": "stocking"
       },
@@ -40696,6 +42508,10 @@
       }
     ],
     "329451913": [
+      {
+        "name": "Cameron",
+        "source": "marker"
+      },
       {
         "name": "CAMERON LAKE",
         "source": "stocking"
@@ -40761,6 +42577,10 @@
     ],
     "329451925": [
       {
+        "name": "Walker",
+        "source": "marker"
+      },
+      {
         "name": "LAKE #2210",
         "source": "stocking"
       },
@@ -40773,6 +42593,10 @@
       {
         "name": "BRENDA LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Brenda",
+        "source": "marker"
       },
       {
         "name": "BRENDA LAKE",
@@ -40795,6 +42619,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Jackson",
+        "source": "marker"
+      },
+      {
         "name": "JACKSON LAKE",
         "source": "stocking"
       },
@@ -40804,6 +42632,10 @@
       }
     ],
     "329451935": [
+      {
+        "name": "Blue",
+        "source": "marker"
+      },
       {
         "name": "BLUE",
         "source": "stocking"
@@ -40858,6 +42690,10 @@
       }
     ],
     "329451976": [
+      {
+        "name": "Pinnacl",
+        "source": "marker"
+      },
       {
         "name": "LAKE #4580",
         "source": "stocking"
@@ -40923,9 +42759,25 @@
       {
         "name": "LAKE #2203",
         "source": "stocking"
+      },
+      {
+        "name": "#1038",
+        "source": "stocking"
+      },
+      {
+        "name": "BOB'S LAKE",
+        "source": "stocking"
+      },
+      {
+        "name": "HOWLONG LAKE",
+        "source": "stocking"
       }
     ],
     "329452299": [
+      {
+        "name": "Kentucky Nw Pothole",
+        "source": "marker"
+      },
       {
         "name": "KENTUCKY NW POTHOLE",
         "source": "stocking"
@@ -41135,7 +42987,7 @@
         "source": "bathymetry"
       },
       {
-        "name": "O&#039;CONNOR LAKE",
+        "name": "O'CONNOR LAKE",
         "source": "stocking"
       }
     ],
@@ -41317,7 +43169,7 @@
         "source": "bathymetry"
       },
       {
-        "name": "HOWIE RICHARDSON&#039;S BEACH",
+        "name": "HOWIE RICHARDSON'S BEACH",
         "source": "stocking"
       },
       {
@@ -41349,6 +43201,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Swan",
+        "source": "marker"
+      },
+      {
         "name": "SWAN LAKE",
         "source": "stocking"
       },
@@ -41376,6 +43232,10 @@
       }
     ],
     "329459122": [
+      {
+        "name": "Hydraulic",
+        "source": "marker"
+      },
       {
         "name": "HYDRAULIC LAKE",
         "source": "stocking"
@@ -41405,6 +43265,10 @@
     ],
     "329459125": [
       {
+        "name": "Oyama",
+        "source": "marker"
+      },
+      {
         "name": "OYAMA LAKE",
         "source": "stocking"
       }
@@ -41423,6 +43287,10 @@
       {
         "name": "PINAUS LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Pinaus",
+        "source": "marker"
       },
       {
         "name": "PINAUS LAKE",
@@ -41447,11 +43315,19 @@
     ],
     "329459130": [
       {
+        "name": "Postill",
+        "source": "marker"
+      },
+      {
         "name": "POSTILL LAKE",
         "source": "stocking"
       }
     ],
     "329459132": [
+      {
+        "name": "Lambly",
+        "source": "marker"
+      },
       {
         "name": "BEAR LAKE",
         "source": "stocking"
@@ -41491,6 +43367,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Headwater 1",
+        "source": "marker"
+      },
+      {
         "name": "HEADWATER 1 (S)",
         "source": "stocking"
       },
@@ -41521,6 +43401,10 @@
       {
         "name": "ROSE VALLEY LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Rose Valley",
+        "source": "marker"
       },
       {
         "name": "ROSE VALLEY LAKE",
@@ -41607,6 +43491,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Jackpine",
+        "source": "marker"
+      },
+      {
         "name": "JACKPINE LAKE",
         "source": "stocking"
       }
@@ -41618,6 +43506,10 @@
       }
     ],
     "329459149": [
+      {
+        "name": "Dee",
+        "source": "marker"
+      },
       {
         "name": "DEE LAKE",
         "source": "stocking"
@@ -41667,6 +43559,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Garnet",
+        "source": "marker"
+      },
+      {
         "name": "GARNET LAKE",
         "source": "stocking"
       },
@@ -41697,6 +43593,10 @@
     ],
     "329459162": [
       {
+        "name": "Twin Lakes",
+        "source": "marker"
+      },
+      {
         "name": "LOWER",
         "source": "stocking"
       },
@@ -41710,6 +43610,10 @@
       }
     ],
     "329459163": [
+      {
+        "name": "Browne",
+        "source": "marker"
+      },
       {
         "name": "BROWNE LAKE",
         "source": "stocking"
@@ -41759,6 +43663,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Moore",
+        "source": "marker"
+      },
+      {
         "name": "BULLMAN",
         "source": "stocking"
       },
@@ -41785,6 +43693,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Headwater 2",
+        "source": "marker"
+      },
+      {
         "name": "HEADWATER 2 (E)",
         "source": "stocking"
       },
@@ -41808,6 +43720,10 @@
       }
     ],
     "329459173": [
+      {
+        "name": "Headwater 3",
+        "source": "marker"
+      },
       {
         "name": "HEADWATER 3 (M)",
         "source": "stocking"
@@ -41863,6 +43779,10 @@
     ],
     "329459181": [
       {
+        "name": "Lost",
+        "source": "marker"
+      },
+      {
         "name": "LOST LAKE",
         "source": "stocking"
       },
@@ -41886,6 +43806,10 @@
       }
     ],
     "329459183": [
+      {
+        "name": "Headwater 4",
+        "source": "marker"
+      },
       {
         "name": "HEADWATER 4 (W)",
         "source": "stocking"
@@ -41927,6 +43851,10 @@
     ],
     "329459193": [
       {
+        "name": "Shannon",
+        "source": "marker"
+      },
+      {
         "name": "SHANNON LAKE",
         "source": "stocking"
       }
@@ -41938,6 +43866,10 @@
       }
     ],
     "329459197": [
+      {
+        "name": "Fish",
+        "source": "marker"
+      },
       {
         "name": "FISH LAKE",
         "source": "stocking"
@@ -41957,6 +43889,10 @@
       {
         "name": "BARDOLPH LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Bardolph",
+        "source": "marker"
       },
       {
         "name": "BARDOLPH LAKE",
@@ -41991,6 +43927,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Becker",
+        "source": "marker"
+      },
+      {
         "name": "BECKER LAKE",
         "source": "stocking"
       }
@@ -42003,6 +43943,10 @@
       {
         "name": "MUNRO LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Munro",
+        "source": "marker"
       },
       {
         "name": "MUNRO LAKE",
@@ -42029,11 +43973,19 @@
     ],
     "329459222": [
       {
+        "name": "Eastmere",
+        "source": "marker"
+      },
+      {
         "name": "EASTMERE LAKE",
         "source": "stocking"
       }
     ],
     "329459223": [
+      {
+        "name": "Churchill",
+        "source": "marker"
+      },
       {
         "name": "CHURCHILL",
         "source": "stocking"
@@ -42059,6 +44011,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Glen",
+        "source": "marker"
+      },
+      {
         "name": "GLEN LAKE",
         "source": "stocking"
       },
@@ -42074,6 +44030,10 @@
       }
     ],
     "329459244": [
+      {
+        "name": "Hudson Bay",
+        "source": "marker"
+      },
       {
         "name": "HUDSON BAY LAKE",
         "source": "stocking"
@@ -42119,6 +44079,10 @@
     ],
     "329459253": [
       {
+        "name": "Derenzy",
+        "source": "marker"
+      },
+      {
         "name": "DERENZY LAKE",
         "source": "stocking"
       }
@@ -42127,6 +44091,10 @@
       {
         "name": "RIPLEY LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Ripley",
+        "source": "marker"
       },
       {
         "name": "BEAR LAKE",
@@ -42175,6 +44143,10 @@
       {
         "name": "MADDEN LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Madden",
+        "source": "marker"
       },
       {
         "name": "MADDEN LAKE",
@@ -42241,6 +44213,10 @@
     ],
     "329459285": [
       {
+        "name": "Duo Via",
+        "source": "marker"
+      },
+      {
         "name": "DUO VIA LAKE",
         "source": "stocking"
       }
@@ -42267,6 +44243,10 @@
     ],
     "329459304": [
       {
+        "name": "Deep",
+        "source": "marker"
+      },
+      {
         "name": "DEEP LAKE",
         "source": "stocking"
       },
@@ -42280,6 +44260,10 @@
       }
     ],
     "329459305": [
+      {
+        "name": "Agur",
+        "source": "marker"
+      },
       {
         "name": "AGUR LAKE",
         "source": "stocking"
@@ -42315,6 +44299,10 @@
     ],
     "329459364": [
       {
+        "name": "Spring",
+        "source": "marker"
+      },
+      {
         "name": "SPRING LAKE",
         "source": "stocking"
       }
@@ -42341,6 +44329,10 @@
     ],
     "329459391": [
       {
+        "name": "Long",
+        "source": "marker"
+      },
+      {
         "name": "LONG LAKE",
         "source": "stocking"
       },
@@ -42351,11 +44343,19 @@
     ],
     "329459400": [
       {
+        "name": "Divide",
+        "source": "marker"
+      },
+      {
         "name": "DIVIDE LAKE",
         "source": "stocking"
       }
     ],
     "329459403": [
+      {
+        "name": "Christie",
+        "source": "marker"
+      },
       {
         "name": "CHRISTIE LAKE",
         "source": "stocking"
@@ -42369,11 +44369,19 @@
     ],
     "329459419": [
       {
+        "name": "Turtle",
+        "source": "marker"
+      },
+      {
         "name": "TURTLE LAKE",
         "source": "stocking"
       }
     ],
     "329459429": [
+      {
+        "name": "Ern",
+        "source": "marker"
+      },
       {
         "name": "ERN LAKE",
         "source": "stocking"
@@ -42517,6 +44525,12 @@
         "source": "stocking"
       }
     ],
+    "329460964": [
+      {
+        "name": "Hall Road Pond",
+        "source": "marker"
+      }
+    ],
     "329461300": [
       {
         "name": "INKANEEP",
@@ -42524,6 +44538,10 @@
       }
     ],
     "329461379": [
+      {
+        "name": "Norman",
+        "source": "marker"
+      },
       {
         "name": "NORMAN",
         "source": "stocking"
@@ -42575,6 +44593,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Dina #1",
+        "source": "marker"
+      },
+      {
         "name": "DINA LAKE #1",
         "source": "stocking"
       },
@@ -42611,6 +44633,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Gantahaz",
+        "source": "marker"
+      },
+      {
         "name": "GANTAHAZ LAKE",
         "source": "stocking"
       }
@@ -42643,6 +44669,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Dina #2",
+        "source": "marker"
+      },
+      {
         "name": "DINA LAKE #2",
         "source": "stocking"
       },
@@ -42651,7 +44681,7 @@
         "source": "stocking"
       },
       {
-        "name": "LAKE &#034;A&#034;",
+        "name": "LAKE \"A\"",
         "source": "stocking"
       }
     ],
@@ -42671,6 +44701,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Dina #3",
+        "source": "marker"
+      },
+      {
         "name": "DINA LAKE #3",
         "source": "stocking"
       },
@@ -42687,6 +44721,10 @@
       {
         "name": "POTHOLE LAKES (NO. 1)",
         "source": "bathymetry"
+      },
+      {
+        "name": "43 Mile Pothole",
+        "source": "marker"
       },
       {
         "name": "43 MILE LAKE",
@@ -42745,6 +44783,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Lost",
+        "source": "marker"
+      },
+      {
         "name": "LOST LAKE",
         "source": "stocking"
       }
@@ -42767,6 +44809,10 @@
       {
         "name": "DINA LAKES (#7*)",
         "source": "bathymetry"
+      },
+      {
+        "name": "Dina #7",
+        "source": "marker"
       },
       {
         "name": "DINA LAKE #7",
@@ -42807,6 +44853,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Brannen",
+        "source": "marker"
+      },
+      {
         "name": "BRANNEN LAKE",
         "source": "stocking"
       }
@@ -42827,6 +44877,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Westwood",
+        "source": "marker"
+      },
+      {
         "name": "WESTWOOD LAKE",
         "source": "stocking"
       }
@@ -42835,6 +44889,10 @@
       {
         "name": "SPIDER LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Spider",
+        "source": "marker"
       },
       {
         "name": "SPIDER LAKE",
@@ -42851,6 +44909,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Long",
+        "source": "marker"
+      },
+      {
         "name": "LONG LAKE",
         "source": "stocking"
       }
@@ -42863,6 +44925,10 @@
       {
         "name": "SHELTON LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Shelton",
+        "source": "marker"
       },
       {
         "name": "ECHO",
@@ -42887,6 +44953,10 @@
     ],
     "329467603": [
       {
+        "name": "Rowbotham",
+        "source": "marker"
+      },
+      {
         "name": "ROWBOTHAM LAKE",
         "source": "stocking"
       }
@@ -42909,6 +44979,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Green",
+        "source": "marker"
+      },
+      {
         "name": "GREEN",
         "source": "stocking"
       },
@@ -42925,6 +44999,10 @@
       {
         "name": "DIVER LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Diver",
+        "source": "marker"
       },
       {
         "name": "DIVER LAKE",
@@ -42995,6 +45073,10 @@
       {
         "name": "RHODODENDRON LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Rhododendron",
+        "source": "marker"
       },
       {
         "name": "RHODODENDRON LAKE",
@@ -43085,9 +45167,17 @@
       {
         "name": "RICHARD LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Richard",
+        "source": "marker"
       }
     ],
     "329467729": [
+      {
+        "name": "Colliery #1",
+        "source": "marker"
+      },
       {
         "name": "COLLIERY #1",
         "source": "stocking"
@@ -43099,6 +45189,10 @@
     ],
     "329467733": [
       {
+        "name": "Colliery #2",
+        "source": "marker"
+      },
+      {
         "name": "COLLIERY #2",
         "source": "stocking"
       },
@@ -43108,6 +45202,10 @@
       }
     ],
     "329467775": [
+      {
+        "name": "Colliery #3",
+        "source": "marker"
+      },
       {
         "name": "COLLIERY #3",
         "source": "stocking"
@@ -43231,6 +45329,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Bruce",
+        "source": "marker"
+      },
+      {
         "name": "BRUCE LAKE",
         "source": "stocking"
       }
@@ -43243,6 +45345,10 @@
       {
         "name": "WINDY POINT LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Windy Point",
+        "source": "marker"
       },
       {
         "name": "WINDY POINT LAKE",
@@ -43319,6 +45425,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Iver",
+        "source": "marker"
+      },
+      {
         "name": "IVER LAKE",
         "source": "stocking"
       },
@@ -43351,6 +45461,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Stewart",
+        "source": "marker"
+      },
+      {
         "name": "STEWART LAKE",
         "source": "stocking"
       }
@@ -43371,6 +45485,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Boulder",
+        "source": "marker"
+      },
+      {
         "name": "BOULDER LAKE",
         "source": "stocking"
       },
@@ -43383,6 +45501,10 @@
       {
         "name": "HEART LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Heart",
+        "source": "marker"
       },
       {
         "name": "HART",
@@ -43403,6 +45525,10 @@
       {
         "name": "SUNDANCE LAKES",
         "source": "bathymetry"
+      },
+      {
+        "name": "Sundance",
+        "source": "marker"
       },
       {
         "name": "SUNDANCE LAKES",
@@ -43451,6 +45577,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Big",
+        "source": "marker"
+      },
+      {
         "name": "BIG LAKE",
         "source": "stocking"
       }
@@ -43459,6 +45589,10 @@
       {
         "name": "DRAGON LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Dragon",
+        "source": "marker"
       },
       {
         "name": "DRAGON LAKE",
@@ -43473,6 +45607,10 @@
       {
         "name": "TYEE LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Tyee",
+        "source": "marker"
       },
       {
         "name": "TYEE LAKE",
@@ -43499,6 +45637,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Hen Ingram",
+        "source": "marker"
+      },
+      {
         "name": "9 MILE",
         "source": "stocking"
       },
@@ -43515,6 +45657,10 @@
       {
         "name": "TEN MILE LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Ten Mile",
+        "source": "marker"
       },
       {
         "name": "TEN MILE LAKE",
@@ -43717,6 +45863,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Howes",
+        "source": "marker"
+      },
+      {
         "name": "HOWES LAKE",
         "source": "stocking"
       }
@@ -43763,6 +45913,10 @@
       {
         "name": "ELK LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Elk",
+        "source": "marker"
       },
       {
         "name": "ELK LAKE",
@@ -43837,7 +45991,11 @@
         "source": "bathymetry"
       },
       {
-        "name": "JACK&#039;S HOLE",
+        "name": "Jackson",
+        "source": "marker"
+      },
+      {
+        "name": "JACK'S HOLE",
         "source": "stocking"
       },
       {
@@ -43889,6 +46047,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Ballon",
+        "source": "marker"
+      },
+      {
         "name": "BAILLON LAKE",
         "source": "stocking"
       },
@@ -43907,6 +46069,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Dorsey",
+        "source": "marker"
+      },
+      {
         "name": "DORSEY LAKE",
         "source": "stocking"
       }
@@ -43918,6 +46084,10 @@
       }
     ],
     "329480895": [
+      {
+        "name": "Cook",
+        "source": "marker"
+      },
       {
         "name": "COOK LAKE",
         "source": "stocking"
@@ -43937,6 +46107,10 @@
       {
         "name": "FIRE LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Fire",
+        "source": "marker"
       },
       {
         "name": "FIRE LAKE",
@@ -44011,6 +46185,12 @@
         "source": "bathymetry"
       }
     ],
+    "329482842": [
+      {
+        "name": "Sardine",
+        "source": "marker"
+      }
+    ],
     "329484653": [
       {
         "name": "LAKE REVELSTOKE",
@@ -44057,6 +46237,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Lac La Hache",
+        "source": "marker"
+      },
+      {
         "name": "LAC LA HACHE",
         "source": "stocking"
       }
@@ -44081,6 +46265,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Timothy",
+        "source": "marker"
+      },
+      {
         "name": "TIMOTHY LAKE",
         "source": "stocking"
       }
@@ -44095,6 +46283,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Helena",
+        "source": "marker"
+      },
+      {
         "name": "HELENA LAKE",
         "source": "stocking"
       }
@@ -44103,6 +46295,10 @@
       {
         "name": "RAIL LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Rail",
+        "source": "marker"
       },
       {
         "name": "RAIL LAKE",
@@ -44153,6 +46349,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "108 Mile",
+        "source": "marker"
+      },
+      {
         "name": "108 MILE LAKE",
         "source": "stocking"
       }
@@ -44185,6 +46385,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Dugan",
+        "source": "marker"
+      },
+      {
         "name": "DUGAN LAKE",
         "source": "stocking"
       }
@@ -44211,6 +46415,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Simon",
+        "source": "marker"
+      },
+      {
         "name": "SIMON LAKE",
         "source": "stocking"
       }
@@ -44219,6 +46427,10 @@
       {
         "name": "GREENY LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Greeny",
+        "source": "marker"
       },
       {
         "name": "GREENE LAKE",
@@ -44255,6 +46467,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Island",
+        "source": "marker"
+      },
+      {
         "name": "#5442",
         "source": "stocking"
       },
@@ -44267,6 +46483,10 @@
       {
         "name": "DEWAR LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Dewar",
+        "source": "marker"
       },
       {
         "name": "DEWAR LAKE",
@@ -44377,6 +46597,10 @@
     ],
     "329495006": [
       {
+        "name": "Club",
+        "source": "marker"
+      },
+      {
         "name": "CLUB",
         "source": "stocking"
       },
@@ -44393,6 +46617,10 @@
       {
         "name": "RESERVOIR LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Reservoir",
+        "source": "marker"
       },
       {
         "name": "PGE RESERVOIR",
@@ -44653,6 +46881,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Martha",
+        "source": "marker"
+      },
+      {
         "name": "MARTHA LAKE",
         "source": "stocking"
       }
@@ -44747,6 +46979,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Tureen",
+        "source": "marker"
+      },
+      {
         "name": "TUREEN LAKE",
         "source": "stocking"
       }
@@ -44769,6 +47005,10 @@
       {
         "name": "TEARDROP LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Teardrop",
+        "source": "marker"
       },
       {
         "name": "TEARDROP LAKE",
@@ -44833,6 +47073,10 @@
     ],
     "329504257": [
       {
+        "name": "Mcclure",
+        "source": "marker"
+      },
+      {
         "name": "MCCLURE LAKE",
         "source": "stocking"
       }
@@ -44865,6 +47109,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Kemp",
+        "source": "marker"
+      },
+      {
         "name": "KEMP LAKE",
         "source": "stocking"
       }
@@ -44889,6 +47137,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Matheson",
+        "source": "marker"
+      },
+      {
         "name": "MATHESON LAKE",
         "source": "stocking"
       }
@@ -44907,6 +47159,10 @@
       {
         "name": "FLORA LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Flora",
+        "source": "marker"
       },
       {
         "name": "FLORA LAKE",
@@ -44967,6 +47223,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Kissinger",
+        "source": "marker"
+      },
+      {
         "name": "KISSINGER LAKE",
         "source": "stocking"
       }
@@ -44975,6 +47235,10 @@
       {
         "name": "LIZARD LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Lizard",
+        "source": "marker"
       },
       {
         "name": "LIZARD LAKE",
@@ -45073,6 +47337,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Macdonald",
+        "source": "marker"
+      },
+      {
         "name": "MACDONALD LAKE",
         "source": "stocking"
       },
@@ -45091,6 +47359,10 @@
       {
         "name": "POIRIER LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Poirier",
+        "source": "marker"
       },
       {
         "name": "POIRIER LAKE",
@@ -45131,6 +47403,10 @@
       {
         "name": "BLINKHORN LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Blinkhorn",
+        "source": "marker"
       },
       {
         "name": "BLINKHORN LAKE",
@@ -45189,6 +47465,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Gun",
+        "source": "marker"
+      },
+      {
         "name": "3086",
         "source": "stocking"
       },
@@ -45215,6 +47495,10 @@
       {
         "name": "TYAUGHTON LAKE  (TYAX)",
         "source": "bathymetry"
+      },
+      {
+        "name": "Tyaughton",
+        "source": "marker"
       },
       {
         "name": "LAKE #3050",
@@ -45259,6 +47543,10 @@
     ],
     "329505202": [
       {
+        "name": "Marshall",
+        "source": "marker"
+      },
+      {
         "name": "3059",
         "source": "stocking"
       },
@@ -45285,6 +47573,10 @@
       {
         "name": "LAJOIE LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Lajoie",
+        "source": "marker"
       },
       {
         "name": "LAJOIE LAKE",
@@ -45333,6 +47625,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Mowson Pond",
+        "source": "marker"
+      },
+      {
         "name": "LAKE #3053",
         "source": "stocking"
       },
@@ -45363,6 +47659,10 @@
       {
         "name": "BLACKWATER LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Blackwater",
+        "source": "marker"
       },
       {
         "name": "BLACKWATER LAKE",
@@ -45419,12 +47719,22 @@
         "source": "bathymetry"
       },
       {
+        "name": "Pearson Pond",
+        "source": "marker"
+      },
+      {
         "name": "LAKE #3052",
         "source": "stocking"
       },
       {
         "name": "PEARSON POND",
         "source": "stocking"
+      }
+    ],
+    "329505282": [
+      {
+        "name": "Carol",
+        "source": "marker"
       }
     ],
     "329505286": [
@@ -45494,6 +47804,10 @@
       }
     ],
     "329505379": [
+      {
+        "name": "Plateau Ponds",
+        "source": "marker"
+      },
       {
         "name": ".",
         "source": "stocking"
@@ -45619,6 +47933,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "White",
+        "source": "marker"
+      },
+      {
         "name": "LAKE #4276",
         "source": "stocking"
       },
@@ -45697,6 +48015,10 @@
     ],
     "329518248": [
       {
+        "name": "Nellies",
+        "source": "marker"
+      },
+      {
         "name": "NELLIE LAKE",
         "source": "stocking"
       },
@@ -45735,6 +48057,10 @@
       {
         "name": "OTTER LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Otter",
+        "source": "marker"
       },
       {
         "name": "OTTER LAKE",
@@ -45777,6 +48103,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Allison",
+        "source": "marker"
+      },
+      {
         "name": "ALLISON LAKE",
         "source": "stocking"
       },
@@ -45795,6 +48125,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Chain",
+        "source": "marker"
+      },
+      {
         "name": "CHAIN LAKE",
         "source": "stocking"
       },
@@ -45807,6 +48141,10 @@
       {
         "name": "OSPREY LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Osprey",
+        "source": "marker"
       },
       {
         "name": "OSPREY LAKE",
@@ -45831,6 +48169,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Yellow",
+        "source": "marker"
+      },
+      {
         "name": "YELLOW LAKE",
         "source": "stocking"
       }
@@ -45843,6 +48185,10 @@
       {
         "name": "DAVIS LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Davis",
+        "source": "marker"
       },
       {
         "name": "DAVIS LAKE",
@@ -45885,6 +48231,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Bluey",
+        "source": "marker"
+      },
+      {
         "name": "BLUEY LAKE",
         "source": "stocking"
       }
@@ -45897,6 +48247,10 @@
       {
         "name": "MACKENZIE LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Laird",
+        "source": "marker"
       },
       {
         "name": "LAIRD",
@@ -45915,6 +48269,10 @@
       {
         "name": "DRY LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Dry",
+        "source": "marker"
       },
       {
         "name": "DRY LAKE",
@@ -45937,6 +48295,10 @@
     ],
     "329520020": [
       {
+        "name": "Vinson",
+        "source": "marker"
+      },
+      {
         "name": "VINSON LAKE",
         "source": "stocking"
       }
@@ -45951,6 +48313,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Boss",
+        "source": "marker"
+      },
+      {
         "name": "BOSS LAKE",
         "source": "stocking"
       }
@@ -45963,6 +48329,10 @@
       {
         "name": "LUDWICK L.",
         "source": "bathymetry"
+      },
+      {
+        "name": "Ludwick",
+        "source": "marker"
       },
       {
         "name": "LODWICK LAKE",
@@ -45987,6 +48357,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Thalia",
+        "source": "marker"
+      },
+      {
         "name": "THALIA LAKE",
         "source": "stocking"
       }
@@ -45999,11 +48373,19 @@
     ],
     "329520029": [
       {
+        "name": "Kidd",
+        "source": "marker"
+      },
+      {
         "name": "KIDD LAKE",
         "source": "stocking"
       }
     ],
     "329520031": [
+      {
+        "name": "Garrison 1 (N)",
+        "source": "marker"
+      },
       {
         "name": "GARRISON #1 (NORTH) LAKE",
         "source": "stocking"
@@ -46033,6 +48415,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Link",
+        "source": "marker"
+      },
+      {
         "name": "LINK LAKE",
         "source": "stocking"
       }
@@ -46045,6 +48431,10 @@
       {
         "name": "RAMPART LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Rampart",
+        "source": "marker"
       },
       {
         "name": "HANS LAKE",
@@ -46111,8 +48501,18 @@
         "source": "bathymetry"
       },
       {
+        "name": "Tahla",
+        "source": "marker"
+      },
+      {
         "name": "TAHLA LAKE",
         "source": "stocking"
+      }
+    ],
+    "329520055": [
+      {
+        "name": "Leonard",
+        "source": "marker"
       }
     ],
     "329520058": [
@@ -46165,6 +48565,10 @@
     ],
     "329520066": [
       {
+        "name": "Goose",
+        "source": "marker"
+      },
+      {
         "name": "GOOSE LAKE",
         "source": "stocking"
       }
@@ -46185,6 +48589,10 @@
       {
         "name": "MURPHY LAKES",
         "source": "bathymetry"
+      },
+      {
+        "name": "Murphy 2 (W)",
+        "source": "marker"
       },
       {
         "name": "BEAR LAKE",
@@ -46209,6 +48617,10 @@
     ],
     "329520086": [
       {
+        "name": "Butler",
+        "source": "marker"
+      },
+      {
         "name": "BUTLER LAKE",
         "source": "stocking"
       }
@@ -46220,6 +48632,10 @@
       }
     ],
     "329520088": [
+      {
+        "name": "Spukunne",
+        "source": "marker"
+      },
       {
         "name": "SPUKUNNE LAKE",
         "source": "stocking"
@@ -46239,6 +48655,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Gladstone",
+        "source": "marker"
+      },
+      {
         "name": "BATHSTONE",
         "source": "stocking"
       },
@@ -46248,6 +48668,10 @@
       }
     ],
     "329520107": [
+      {
+        "name": "Garrison 2 (S)",
+        "source": "marker"
+      },
       {
         "name": "GARRISON #2 (SOUTH) LAKE",
         "source": "stocking"
@@ -46262,6 +48686,10 @@
       }
     ],
     "329520111": [
+      {
+        "name": "Murphy 1 (E)",
+        "source": "marker"
+      },
       {
         "name": "LOWER MURPHY LAKE",
         "source": "stocking"
@@ -46281,11 +48709,19 @@
     ],
     "329520112": [
       {
+        "name": "Stringer",
+        "source": "marker"
+      },
+      {
         "name": "STRINGER LAKE",
         "source": "stocking"
       }
     ],
     "329520118": [
+      {
+        "name": "Deadman",
+        "source": "marker"
+      },
       {
         "name": "DEADMAN LAKE",
         "source": "stocking"
@@ -46301,6 +48737,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Mccaffrey",
+        "source": "marker"
+      },
+      {
         "name": "BLUE LAKE",
         "source": "stocking"
       },
@@ -46311,11 +48751,19 @@
     ],
     "329520132": [
       {
+        "name": "Joe",
+        "source": "marker"
+      },
+      {
         "name": "JOE LAKE",
         "source": "stocking"
       }
     ],
     "329520133": [
+      {
+        "name": "Biely",
+        "source": "marker"
+      },
       {
         "name": "BIELY LAKE",
         "source": "stocking"
@@ -46323,11 +48771,29 @@
     ],
     "329520166": [
       {
+        "name": "Dewolf",
+        "source": "marker"
+      },
+      {
         "name": "DEWOLF LAKE",
         "source": "stocking"
       }
     ],
+    "329520169": [
+      {
+        "name": "Johnny",
+        "source": "marker"
+      },
+      {
+        "name": "Rick",
+        "source": "marker"
+      }
+    ],
     "329520172": [
+      {
+        "name": "Taylor",
+        "source": "marker"
+      },
       {
         "name": "GULLIFORD",
         "source": "stocking"
@@ -46344,6 +48810,10 @@
       }
     ],
     "329520184": [
+      {
+        "name": "Taylor",
+        "source": "marker"
+      },
       {
         "name": "TAYLOR LAKE",
         "source": "stocking"
@@ -46368,6 +48838,10 @@
       }
     ],
     "329520187": [
+      {
+        "name": "Loosemore",
+        "source": "marker"
+      },
       {
         "name": "HORNET #2",
         "source": "stocking"
@@ -46409,6 +48883,10 @@
     ],
     "329520198": [
       {
+        "name": "Robertson",
+        "source": "marker"
+      },
+      {
         "name": "ROBERTSON LAKE",
         "source": "stocking"
       }
@@ -46426,6 +48904,10 @@
       }
     ],
     "329520205": [
+      {
+        "name": "Prosser",
+        "source": "marker"
+      },
       {
         "name": "HORNET #3",
         "source": "stocking"
@@ -46454,6 +48936,10 @@
       }
     ],
     "329520236": [
+      {
+        "name": "Lodestone",
+        "source": "marker"
+      },
       {
         "name": "LODESTONE LAKE",
         "source": "stocking"
@@ -46485,6 +48971,10 @@
     ],
     "329520322": [
       {
+        "name": "Martin",
+        "source": "marker"
+      },
+      {
         "name": "MARTIN LAKE",
         "source": "stocking"
       },
@@ -46501,6 +48991,10 @@
       {
         "name": "SUMMIT LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Summit",
+        "source": "marker"
       },
       {
         "name": "SUMMIT LAKE",
@@ -46531,11 +49025,11 @@
     ],
     "329520355": [
       {
-        "name": "RENE&#039;S POTHOLE",
+        "name": "RENE'S POTHOLE",
         "source": "stocking"
       },
       {
-        "name": "RENNEE&#039;S POTHOLE",
+        "name": "RENNEE'S POTHOLE",
         "source": "stocking"
       }
     ],
@@ -46550,6 +49044,10 @@
       }
     ],
     "329520396": [
+      {
+        "name": "Gill",
+        "source": "marker"
+      },
       {
         "name": "GILL LAKE",
         "source": "stocking"
@@ -46639,6 +49137,12 @@
       {
         "name": "CIGAR",
         "source": "stocking"
+      }
+    ],
+    "329521628": [
+      {
+        "name": "Paddy",
+        "source": "marker"
       }
     ],
     "329521921": [
@@ -46741,6 +49245,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Summit",
+        "source": "marker"
+      },
+      {
         "name": "SUMMIT LAKE",
         "source": "stocking"
       },
@@ -46817,6 +49325,10 @@
     ],
     "329523076": [
       {
+        "name": "Little Wilson",
+        "source": "marker"
+      },
+      {
         "name": "LITTLE WILSON LAKE",
         "source": "stocking"
       }
@@ -46871,6 +49383,10 @@
       {
         "name": "BEAVER LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Beaver",
+        "source": "marker"
       },
       {
         "name": "BEAVER LAKE",
@@ -46989,6 +49505,10 @@
     ],
     "329523321": [
       {
+        "name": "Donut",
+        "source": "marker"
+      },
+      {
         "name": "DONUT LAKE",
         "source": "stocking"
       }
@@ -47017,6 +49537,10 @@
       {
         "name": "PREMIER LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Premier",
+        "source": "marker"
       },
       {
         "name": "PREMIER LAKE",
@@ -47051,6 +49575,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Stoney",
+        "source": "marker"
+      },
+      {
         "name": "HAHAS LAKE",
         "source": "stocking"
       },
@@ -47081,6 +49609,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Lazy",
+        "source": "marker"
+      },
+      {
         "name": "LAZY LAKE",
         "source": "stocking"
       },
@@ -47107,6 +49639,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Jim Smith",
+        "source": "marker"
+      },
+      {
         "name": "JIM SMITH LAKE",
         "source": "stocking"
       },
@@ -47123,6 +49659,10 @@
       {
         "name": "HORSESHOE LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Horseshoe",
+        "source": "marker"
       },
       {
         "name": "HORSE SHOE",
@@ -47149,6 +49689,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Rockbluff",
+        "source": "marker"
+      },
+      {
         "name": "QUARTZ LAKE",
         "source": "stocking"
       },
@@ -47158,6 +49702,10 @@
       }
     ],
     "329523999": [
+      {
+        "name": "Ta Ta",
+        "source": "marker"
+      },
       {
         "name": "TA TA LAKE",
         "source": "stocking"
@@ -47177,6 +49725,10 @@
       {
         "name": "LARCHWOOD LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Larchwood",
+        "source": "marker"
       },
       {
         "name": "LARCHWOOD LAKE",
@@ -47203,11 +49755,15 @@
         "source": "bathymetry"
       },
       {
+        "name": "Peckhams",
+        "source": "marker"
+      },
+      {
         "name": "NORBURY LAKES",
         "source": "stocking"
       },
       {
-        "name": "PECKHAM&#039;S LAKE",
+        "name": "PECKHAM'S LAKE",
         "source": "stocking"
       },
       {
@@ -47241,6 +49797,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Tamarack",
+        "source": "marker"
+      },
+      {
         "name": "LARCH LAKE",
         "source": "stocking"
       },
@@ -47250,6 +49810,10 @@
       }
     ],
     "329524034": [
+      {
+        "name": "Echo South",
+        "source": "marker"
+      },
       {
         "name": "ECHO LAKE #2",
         "source": "stocking"
@@ -47333,6 +49897,10 @@
     ],
     "329524100": [
       {
+        "name": "Twin Lakes",
+        "source": "marker"
+      },
+      {
         "name": "TWIN LAKES",
         "source": "stocking"
       },
@@ -47348,6 +49916,10 @@
       }
     ],
     "329524104": [
+      {
+        "name": "Echo North",
+        "source": "marker"
+      },
       {
         "name": "ECHO LAKE #1",
         "source": "stocking"
@@ -47431,6 +50003,10 @@
     ],
     "329524190": [
       {
+        "name": "Solar",
+        "source": "marker"
+      },
+      {
         "name": "HAHAS POTHOLE LAKE",
         "source": "stocking"
       },
@@ -47459,6 +50035,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Mcnair South",
+        "source": "marker"
+      },
+      {
         "name": "MCNAIR LAKES",
         "source": "stocking"
       },
@@ -47479,6 +50059,12 @@
       {
         "name": "UPPER RICHMOND LAKE",
         "source": "stocking"
+      }
+    ],
+    "329524257": [
+      {
+        "name": "Mcnair North",
+        "source": "marker"
       }
     ],
     "329524267": [
@@ -47537,6 +50123,10 @@
     ],
     "329524502": [
       {
+        "name": "Idlewild",
+        "source": "marker"
+      },
+      {
         "name": "IDLEWILD LAKE",
         "source": "stocking"
       }
@@ -47562,6 +50152,10 @@
       }
     ],
     "329524609": [
+      {
+        "name": "Engstrom",
+        "source": "marker"
+      },
       {
         "name": "ENGSTROM",
         "source": "stocking"
@@ -47839,6 +50433,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Buntzen",
+        "source": "marker"
+      },
+      {
         "name": "BUNTZEN LAKE",
         "source": "stocking"
       }
@@ -47883,6 +50481,10 @@
       {
         "name": "SASAMAT LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Sasamat",
+        "source": "marker"
       },
       {
         "name": "DEER",
@@ -47965,6 +50567,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Alpha",
+        "source": "marker"
+      },
+      {
         "name": "ALPHA LAKE",
         "source": "stocking"
       }
@@ -47973,6 +50579,10 @@
       {
         "name": "ALICE LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Alice",
+        "source": "marker"
       },
       {
         "name": "ALICE LAKE",
@@ -48093,6 +50703,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Stump",
+        "source": "marker"
+      },
+      {
         "name": "STUMP LAKE",
         "source": "stocking"
       }
@@ -48205,6 +50819,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Edith",
+        "source": "marker"
+      },
+      {
         "name": "EDITH LAKE",
         "source": "stocking"
       }
@@ -48220,6 +50838,10 @@
       }
     ],
     "329532667": [
+      {
+        "name": "Loggers",
+        "source": "marker"
+      },
       {
         "name": "LOGGERS",
         "source": "stocking"
@@ -48247,6 +50869,10 @@
       {
         "name": "BROWNING LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Browning",
+        "source": "marker"
       },
       {
         "name": "BROWNING LAKE",
@@ -48339,6 +50965,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Monte",
+        "source": "marker"
+      },
+      {
         "name": "LAKE #4394",
         "source": "stocking"
       },
@@ -48348,6 +50978,10 @@
       }
     ],
     "329534139": [
+      {
+        "name": "Roche",
+        "source": "marker"
+      },
       {
         "name": "LAKE #293",
         "source": "stocking"
@@ -48373,6 +51007,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Salmon",
+        "source": "marker"
+      },
+      {
         "name": "LAKE #2500",
         "source": "stocking"
       },
@@ -48385,6 +51023,10 @@
       {
         "name": "CAMPBELL LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Campbell",
+        "source": "marker"
       },
       {
         "name": "CAMPBELL LAKE",
@@ -48479,6 +51121,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Bleeker",
+        "source": "marker"
+      },
+      {
         "name": "BLEEKER LAKE",
         "source": "stocking"
       },
@@ -48507,6 +51153,10 @@
       {
         "name": "PILLAR LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Pillar",
+        "source": "marker"
       },
       {
         "name": "LAKE #4363",
@@ -48555,6 +51205,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Jacko",
+        "source": "marker"
+      },
+      {
         "name": "JACKO LAKE",
         "source": "stocking"
       },
@@ -48569,6 +51223,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Frisken",
+        "source": "marker"
+      },
+      {
         "name": "FRISKEN LAKE",
         "source": "stocking"
       },
@@ -48578,6 +51236,10 @@
       }
     ],
     "329534165": [
+      {
+        "name": "Jimmy",
+        "source": "marker"
+      },
       {
         "name": "JIMMIES LAKE",
         "source": "stocking"
@@ -48595,6 +51257,10 @@
       {
         "name": "MCCONNELL LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Mcconnell",
+        "source": "marker"
       },
       {
         "name": "LAKE #215",
@@ -48619,6 +51285,10 @@
     ],
     "329534170": [
       {
+        "name": "Phillips",
+        "source": "marker"
+      },
+      {
         "name": "LAKE #4268",
         "source": "stocking"
       },
@@ -48629,6 +51299,10 @@
     ],
     "329534171": [
       {
+        "name": "Woods",
+        "source": "marker"
+      },
+      {
         "name": "LAKE #4466",
         "source": "stocking"
       },
@@ -48638,6 +51312,10 @@
       }
     ],
     "329534172": [
+      {
+        "name": "Bulman",
+        "source": "marker"
+      },
       {
         "name": "BULMAN LAKE",
         "source": "stocking"
@@ -48651,6 +51329,10 @@
       {
         "name": "HARPER LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Harper",
+        "source": "marker"
       },
       {
         "name": "HARPER LAKE",
@@ -48671,6 +51353,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "John Frank",
+        "source": "marker"
+      },
+      {
         "name": "JOHN FRANK LAKE",
         "source": "stocking"
       },
@@ -48689,7 +51375,11 @@
         "source": "bathymetry"
       },
       {
-        "name": "&#039;E&#039;LAKE;LAKE #147",
+        "name": "Hosli",
+        "source": "marker"
+      },
+      {
+        "name": "'E'LAKE;LAKE #147",
         "source": "stocking"
       },
       {
@@ -48717,6 +51407,10 @@
     ],
     "329534184": [
       {
+        "name": "Mcglashan",
+        "source": "marker"
+      },
+      {
         "name": "LAKE #216",
         "source": "stocking"
       },
@@ -48726,6 +51420,10 @@
       }
     ],
     "329534185": [
+      {
+        "name": "Horseshoe",
+        "source": "marker"
+      },
       {
         "name": "HORSESHOE LAKE",
         "source": "stocking"
@@ -48743,6 +51441,10 @@
     ],
     "329534187": [
       {
+        "name": "Beautiful",
+        "source": "marker"
+      },
+      {
         "name": "BEAR LAKE",
         "source": "stocking"
       },
@@ -48756,6 +51458,10 @@
       }
     ],
     "329534189": [
+      {
+        "name": "Miller",
+        "source": "marker"
+      },
       {
         "name": "LAKE #4361",
         "source": "stocking"
@@ -48783,6 +51489,10 @@
     ],
     "329534206": [
       {
+        "name": "Pement",
+        "source": "marker"
+      },
+      {
         "name": "LAKE #4369",
         "source": "stocking"
       },
@@ -48798,6 +51508,10 @@
       }
     ],
     "329534210": [
+      {
+        "name": "Drum",
+        "source": "marker"
+      },
       {
         "name": "DRUM LAKE",
         "source": "stocking"
@@ -48827,6 +51541,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Tulip",
+        "source": "marker"
+      },
+      {
         "name": "LAKE #371",
         "source": "stocking"
       },
@@ -48841,11 +51559,19 @@
     ],
     "329534216": [
       {
+        "name": "Nugget",
+        "source": "marker"
+      },
+      {
         "name": "NUGGET LAKE",
         "source": "stocking"
       }
     ],
     "329534217": [
+      {
+        "name": "Dennis",
+        "source": "marker"
+      },
       {
         "name": "DENNIS LAKE",
         "source": "stocking"
@@ -48877,12 +51603,22 @@
     ],
     "329534226": [
       {
+        "name": "Spanish",
+        "source": "marker"
+      },
+      {
         "name": "LAKE #4445",
         "source": "stocking"
       },
       {
         "name": "SPANISH LAKE",
         "source": "stocking"
+      }
+    ],
+    "329534233": [
+      {
+        "name": "Powerline",
+        "source": "marker"
       }
     ],
     "329534247": [
@@ -48909,9 +51645,17 @@
       {
         "name": "BLEEKER L.  NO.3 L.    ROCHE LAKE GROUP",
         "source": "bathymetry"
+      },
+      {
+        "name": "Tom Campbell",
+        "source": "marker"
       }
     ],
     "329534292": [
+      {
+        "name": "Bog",
+        "source": "marker"
+      },
       {
         "name": "BOG LAKE",
         "source": "stocking"
@@ -48924,6 +51668,10 @@
       }
     ],
     "329534347": [
+      {
+        "name": "Butterball",
+        "source": "marker"
+      },
       {
         "name": "BUTTERBALL",
         "source": "stocking"
@@ -48948,6 +51696,10 @@
       }
     ],
     "329534361": [
+      {
+        "name": "Ida",
+        "source": "marker"
+      },
       {
         "name": "IDA LAKE",
         "source": "stocking"
@@ -49022,6 +51774,10 @@
       }
     ],
     "329536299": [
+      {
+        "name": "Sawmill",
+        "source": "marker"
+      },
       {
         "name": "SAWMILL LAKE",
         "source": "stocking"
@@ -49205,12 +51961,22 @@
         "source": "bathymetry"
       },
       {
+        "name": "Tebbutt",
+        "source": "marker"
+      },
+      {
         "name": "TEBBUT LAKE",
         "source": "stocking"
       },
       {
         "name": "TEBBUTT LAKE",
         "source": "stocking"
+      }
+    ],
+    "329537667": [
+      {
+        "name": "Dog",
+        "source": "marker"
       }
     ],
     "329539640": [
@@ -49245,6 +52011,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Vivian",
+        "source": "marker"
+      },
+      {
         "name": "VIVIAN LAKE",
         "source": "stocking"
       }
@@ -49259,6 +52029,10 @@
       {
         "name": "ECHO LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Echo",
+        "source": "marker"
       },
       {
         "name": "ECHO LAKE",
@@ -49281,6 +52055,10 @@
       {
         "name": "VERDANT LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Verdant",
+        "source": "marker"
       },
       {
         "name": "VERDANT LAKE",
@@ -49357,6 +52135,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Trapping",
+        "source": "marker"
+      },
+      {
         "name": "TRAPPER",
         "source": "stocking"
       },
@@ -49399,6 +52181,10 @@
       {
         "name": "SHANE LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Shane",
+        "source": "marker"
       },
       {
         "name": "BEAVER",
@@ -49523,6 +52309,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Big",
+        "source": "marker"
+      },
+      {
         "name": "BIG LAKE",
         "source": "stocking"
       }
@@ -49609,6 +52399,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Tunkwa",
+        "source": "marker"
+      },
+      {
         "name": "LAKE 373",
         "source": "stocking"
       },
@@ -49659,6 +52453,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Barnes",
+        "source": "marker"
+      },
+      {
         "name": "BARNES LAKE",
         "source": "stocking"
       },
@@ -49668,6 +52466,10 @@
       }
     ],
     "329563848": [
+      {
+        "name": "Big O.K.",
+        "source": "marker"
+      },
       {
         "name": "BIG O.K. LAKE",
         "source": "stocking"
@@ -49683,6 +52485,10 @@
     ],
     "329563850": [
       {
+        "name": "Tsotin",
+        "source": "marker"
+      },
+      {
         "name": "DAIRY",
         "source": "stocking"
       },
@@ -49695,6 +52501,10 @@
       {
         "name": "PASS LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Pass",
+        "source": "marker"
       },
       {
         "name": "LAKE #259",
@@ -49712,6 +52522,10 @@
       }
     ],
     "329563853": [
+      {
+        "name": "Dominic",
+        "source": "marker"
+      },
       {
         "name": "DOMINIC LAKE",
         "source": "stocking"
@@ -49767,6 +52581,10 @@
       {
         "name": "DUFFY LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Duffy",
+        "source": "marker"
       },
       {
         "name": "DUFFY LAKE",
@@ -49845,6 +52663,10 @@
     ],
     "329563892": [
       {
+        "name": "Ok",
+        "source": "marker"
+      },
+      {
         "name": "#2253",
         "source": "stocking"
       },
@@ -49858,6 +52680,10 @@
       }
     ],
     "329563896": [
+      {
+        "name": "Beaton",
+        "source": "marker"
+      },
       {
         "name": "BEATON LAKE",
         "source": "stocking"
@@ -50053,7 +52879,7 @@
         "source": "stocking"
       },
       {
-        "name": "BLACK&#039;S",
+        "name": "BLACK'S",
         "source": "stocking"
       }
     ],
@@ -50199,6 +53025,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Mcleese",
+        "source": "marker"
+      },
+      {
         "name": "MCLEESE LAKE",
         "source": "stocking"
       }
@@ -50227,6 +53057,10 @@
       {
         "name": "ROSE LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Rose",
+        "source": "marker"
       },
       {
         "name": "ROSE LAKE",
@@ -50289,6 +53123,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Forest",
+        "source": "marker"
+      },
+      {
         "name": "FOREST LAKE",
         "source": "stocking"
       }
@@ -50315,6 +53153,10 @@
     ],
     "329586239": [
       {
+        "name": "Kestrel",
+        "source": "marker"
+      },
+      {
         "name": "BARE ASS LAKE",
         "source": "stocking"
       },
@@ -50334,6 +53176,10 @@
       }
     ],
     "329586257": [
+      {
+        "name": "Seven Mile",
+        "source": "marker"
+      },
       {
         "name": "SEVEN MILE",
         "source": "stocking"
@@ -50365,6 +53211,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Blue",
+        "source": "marker"
+      },
+      {
         "name": "BLUE LAKE",
         "source": "stocking"
       }
@@ -50373,6 +53223,10 @@
       {
         "name": "SKULOW LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Skulow",
+        "source": "marker"
       },
       {
         "name": "SKULOW LAKE",
@@ -50441,7 +53295,7 @@
         "source": "bathymetry"
       },
       {
-        "name": "HERMIE&#039;S (4290 HIGHWAY 23)",
+        "name": "HERMIE'S (4290 HIGHWAY 23)",
         "source": "stocking"
       },
       {
@@ -50457,6 +53311,10 @@
       {
         "name": "BOX LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Box",
+        "source": "marker"
       },
       {
         "name": "BOX LAKE",
@@ -50479,6 +53337,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Cameron",
+        "source": "marker"
+      },
+      {
         "name": "CAMERON LAKE",
         "source": "stocking"
       }
@@ -50497,6 +53359,10 @@
       {
         "name": "CATHERINE LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Catherine",
+        "source": "marker"
       },
       {
         "name": "CATHERINE LAKE",
@@ -50561,6 +53427,10 @@
     ],
     "329590081": [
       {
+        "name": "Begbie",
+        "source": "marker"
+      },
+      {
         "name": "BEGBIE LAKE",
         "source": "stocking"
       },
@@ -50577,6 +53447,10 @@
       {
         "name": "WILLIAMSON LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Williamson",
+        "source": "marker"
       },
       {
         "name": "WILLIAMSON LAKE",
@@ -50602,6 +53476,10 @@
       }
     ],
     "329590578": [
+      {
+        "name": "Marion",
+        "source": "marker"
+      },
       {
         "name": "MARION LAKE",
         "source": "stocking"
@@ -50747,6 +53625,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Poison Lakes (North)",
+        "source": "marker"
+      },
+      {
         "name": "NORTH POISON LAKE",
         "source": "stocking"
       },
@@ -50775,6 +53657,10 @@
       {
         "name": "POISON LAKES (SOUTH)",
         "source": "bathymetry"
+      },
+      {
+        "name": "Poison Lakes (South)",
+        "source": "marker"
       },
       {
         "name": "POISON LAKE SOUTH",
@@ -51007,6 +53893,12 @@
       {
         "name": "KINNEY LAKE",
         "source": "stocking"
+      }
+    ],
+    "329619114": [
+      {
+        "name": "Shere",
+        "source": "marker"
       }
     ],
     "329619693": [
@@ -51289,6 +54181,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Mud",
+        "source": "marker"
+      },
+      {
         "name": "LITTLE MONROE",
         "source": "stocking"
       },
@@ -51310,6 +54206,10 @@
       }
     ],
     "329649973": [
+      {
+        "name": "Silence",
+        "source": "marker"
+      },
       {
         "name": "LAKE #911",
         "source": "stocking"
@@ -51373,6 +54273,10 @@
     ],
     "329650131": [
       {
+        "name": "Little Angus Horne",
+        "source": "marker"
+      },
+      {
         "name": "LAKE #1480",
         "source": "stocking"
       },
@@ -51405,7 +54309,17 @@
         "source": "stocking"
       }
     ],
+    "329650238": [
+      {
+        "name": "Russell",
+        "source": "marker"
+      }
+    ],
     "329650506": [
+      {
+        "name": "Mccormick",
+        "source": "marker"
+      },
       {
         "name": "MCCORMICK;LAKE #1833",
         "source": "stocking"
@@ -51428,6 +54342,10 @@
       }
     ],
     "329650841": [
+      {
+        "name": "Twin Lakes 1",
+        "source": "marker"
+      },
       {
         "name": "LAKE #941",
         "source": "stocking"
@@ -51523,11 +54441,19 @@
         "source": "bathymetry"
       },
       {
+        "name": "Inga",
+        "source": "marker"
+      },
+      {
         "name": "INGA LAKE",
         "source": "stocking"
       }
     ],
     "329657367": [
+      {
+        "name": "Pete",
+        "source": "marker"
+      },
       {
         "name": "PETE LAKE",
         "source": "stocking"
@@ -51537,6 +54463,10 @@
       {
         "name": "WRIGHT LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Wright",
+        "source": "marker"
       },
       {
         "name": "WRIGHT LAKE",
@@ -51615,6 +54545,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Hidden",
+        "source": "marker"
+      },
+      {
         "name": "HIDDEN LAKE",
         "source": "stocking"
       },
@@ -51649,6 +54583,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Echo",
+        "source": "marker"
+      },
+      {
         "name": "ECHO LAKE",
         "source": "stocking"
       }
@@ -51669,11 +54607,19 @@
         "source": "bathymetry"
       },
       {
+        "name": "Doreen",
+        "source": "marker"
+      },
+      {
         "name": "DOREEN LAKE",
         "source": "stocking"
       }
     ],
     "329663969": [
+      {
+        "name": "Specs",
+        "source": "marker"
+      },
       {
         "name": "SPEC LAKE 1",
         "source": "stocking"
@@ -51719,6 +54665,10 @@
     ],
     "329663976": [
       {
+        "name": "Flyfish 2 (E)",
+        "source": "marker"
+      },
+      {
         "name": "FLYFISH (E)",
         "source": "stocking"
       },
@@ -51737,6 +54687,10 @@
     ],
     "329663977": [
       {
+        "name": "Kidney",
+        "source": "marker"
+      },
+      {
         "name": "KIDNEY LAKE",
         "source": "stocking"
       }
@@ -51748,6 +54702,10 @@
       }
     ],
     "329663982": [
+      {
+        "name": "Flyfish 1 (W)",
+        "source": "marker"
+      },
       {
         "name": "FLYFISH (W)",
         "source": "stocking"
@@ -51762,6 +54720,10 @@
       }
     ],
     "329663983": [
+      {
+        "name": "Haggkvist",
+        "source": "marker"
+      },
       {
         "name": "HAGGKVIST LAKE",
         "source": "stocking"
@@ -51782,6 +54744,10 @@
       }
     ],
     "329663993": [
+      {
+        "name": "Bonneau",
+        "source": "marker"
+      },
       {
         "name": "BONNEAU LAKE",
         "source": "stocking"
@@ -51849,11 +54815,19 @@
     ],
     "329664016": [
       {
+        "name": "Brunette",
+        "source": "marker"
+      },
+      {
         "name": "BRUNETTE LAKE",
         "source": "stocking"
       }
     ],
     "329664017": [
+      {
+        "name": "Aileen",
+        "source": "marker"
+      },
       {
         "name": "AILEEN LAKE",
         "source": "stocking"
@@ -51865,11 +54839,19 @@
     ],
     "329664027": [
       {
+        "name": "Loon",
+        "source": "marker"
+      },
+      {
         "name": "LOON LAKE",
         "source": "stocking"
       }
     ],
     "329664029": [
+      {
+        "name": "Baird",
+        "source": "marker"
+      },
       {
         "name": "BAIRD LAKE",
         "source": "stocking"
@@ -51968,6 +54950,10 @@
       }
     ],
     "329664230": [
+      {
+        "name": "Liver",
+        "source": "marker"
+      },
       {
         "name": "LIVER LAKE",
         "source": "stocking"
@@ -52097,6 +55083,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Shawnigan",
+        "source": "marker"
+      },
+      {
         "name": "SHAWNIGAN LAKE",
         "source": "stocking"
       }
@@ -52109,6 +55099,10 @@
       {
         "name": "ELK LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Elk",
+        "source": "marker"
       },
       {
         "name": "BEAVER-ELK",
@@ -52137,6 +55131,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "St. Mary",
+        "source": "marker"
+      },
+      {
         "name": "ST. MARY LAKE",
         "source": "stocking"
       }
@@ -52161,6 +55159,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Prospect",
+        "source": "marker"
+      },
+      {
         "name": "PROSPECT LAKE",
         "source": "stocking"
       }
@@ -52169,6 +55171,10 @@
       {
         "name": "LANGFORD LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Langford",
+        "source": "marker"
       },
       {
         "name": "LANGFORD LAKE",
@@ -52205,6 +55211,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Glen",
+        "source": "marker"
+      },
+      {
         "name": "GLEN LAKE",
         "source": "stocking"
       }
@@ -52213,6 +55223,10 @@
       {
         "name": "THETIS LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Thetis",
+        "source": "marker"
       },
       {
         "name": "LOWER THETIS",
@@ -52228,6 +55242,10 @@
       }
     ],
     "329676323": [
+      {
+        "name": "Magic",
+        "source": "marker"
+      },
       {
         "name": "MAGIC",
         "source": "stocking"
@@ -52267,6 +55285,10 @@
       {
         "name": "DURRANCE LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Durrance",
+        "source": "marker"
       },
       {
         "name": "DURRANCE LAKE",
@@ -52325,6 +55347,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Stowell",
+        "source": "marker"
+      },
+      {
         "name": "LAKE STOWELL",
         "source": "stocking"
       }
@@ -52361,6 +55387,10 @@
       {
         "name": "SPECTACLE LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Spectacle",
+        "source": "marker"
       },
       {
         "name": "SPECTACLE LAKE",
@@ -52469,6 +55499,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Colwood",
+        "source": "marker"
+      },
+      {
         "name": "COLWOOD LAKE",
         "source": "stocking"
       }
@@ -52529,6 +55563,12 @@
       {
         "name": "GARDOM POND",
         "source": "stocking"
+      }
+    ],
+    "329676541": [
+      {
+        "name": "Ida Anne",
+        "source": "marker"
       }
     ],
     "329676629": [
@@ -52597,6 +55637,10 @@
         "source": "bathymetry"
       },
       {
+        "name": "Grizzly East",
+        "source": "marker"
+      },
+      {
         "name": "GRIZZLY EAST",
         "source": "stocking"
       },
@@ -52625,6 +55669,10 @@
       {
         "name": "OPATCHO LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Opatcho",
+        "source": "marker"
       },
       {
         "name": "OPATCHO LAKE",
@@ -52698,6 +55746,10 @@
       }
     ],
     "329677253": [
+      {
+        "name": "Otipemisewak",
+        "source": "marker"
+      },
       {
         "name": "OTIPEMISIWAK LAKE",
         "source": "stocking"
@@ -52831,14 +55883,28 @@
     ],
     "360887617": [
       {
+        "name": "Green Timbers",
+        "source": "marker"
+      },
+      {
         "name": "GREEN TIMBERS",
         "source": "stocking"
+      }
+    ],
+    "708021444": [
+      {
+        "name": "Sanctuary Pond",
+        "source": "marker"
       }
     ],
     "708021500": [
       {
         "name": "PORTAL LAKE",
         "source": "bathymetry"
+      },
+      {
+        "name": "Portal",
+        "source": "marker"
       },
       {
         "name": "PORTAL LAKE",

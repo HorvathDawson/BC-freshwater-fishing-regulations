@@ -23,7 +23,7 @@ export type FeatureType =
 /** Name variant with source provenance. */
 export interface NameVariant {
   name: string;
-  source: 'direct' | 'tributary' | 'admin' | 'bathymetry' | 'stocking';
+  source: 'direct' | 'tributary' | 'admin' | 'bathymetry' | 'stocking' | 'marker';
 }
 
 // ── Mobile detection ─────────────────────────────────────────────────

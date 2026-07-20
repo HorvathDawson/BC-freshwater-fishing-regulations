@@ -124,10 +124,11 @@ export const getFeatureDisplayName = (
  *   - "admin"      — inherited via admin polygon (park/reserve)
  *   - "bathymetry" — alternate name from a WSA bathymetric survey map
  *   - "stocking"   — alternate name from a FIDQ stocking record
+ *   - "marker"     — alternate name from a gofishbc map marker
  */
 export interface NameVariant {
     name: string;
-    source: 'direct' | 'tributary' | 'admin' | 'bathymetry' | 'stocking';
+    source: 'direct' | 'tributary' | 'admin' | 'bathymetry' | 'stocking' | 'marker';
 }
 
 /**

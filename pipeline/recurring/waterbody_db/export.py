@@ -110,26 +110,37 @@ def build_wbk_bathymetry(conn: sqlite3.Connection) -> Dict[str, List[Dict[str, s
     return dict(out)
 
 
+# match_final's own source value -> the source tag reach_builder.py's
+# name_variants (and _SOURCE_PRIORITY) use. map_markers -> "marker" for
+# consistency with the "marker" key reach_builder.py already attaches
+# amenity info under.
+_NAME_SOURCE_TAG = {"stocking": "stocking", "bathymetry": "bathymetry", "map_markers": "marker"}
+
+
 def build_wbk_names(conn: sqlite3.Connection) -> Dict[str, List[Dict[str, str]]]:
     """<wbk> -> [{"name", "source"}, ...] — every name (primary + all
-    name_variants) match_final carries for a matched stocking or bathymetry
-    row, not just one representative name per source."""
+    name_variants) match_final carries for a matched stocking, bathymetry,
+    or map_markers row, not just one representative name per source. Feeds
+    both the reach's searchable name_variants AND (when the FWA gazetteer
+    itself has no name for this waterbody) the display_name fallback — see
+    reach_builder.py's _group_polygon_reaches()."""
     rows = conn.execute(
         "SELECT source, waterbody_key, name, name_variants FROM match_final "
-        "WHERE source IN ('stocking', 'bathymetry') AND status = 'matched'"
+        "WHERE source IN ('stocking', 'bathymetry', 'map_markers') AND status = 'matched'"
     ).fetchall()
 
     out: Dict[str, List[Dict[str, str]]] = defaultdict(list)
     seen_by_wbk: Dict[str, Set[str]] = defaultdict(set)
     for source, waterbody_key, name, name_variants in rows:
+        tag = _NAME_SOURCE_TAG[source]
         names = {n.strip() for n in [name, *_split_variants(name_variants)] if n and n.strip()}
         for wbk in _split_keys(waterbody_key):
             for n in sorted(names):
-                key = (n, source)
+                key = (n, tag)
                 if key in seen_by_wbk[wbk]:
                     continue
                 seen_by_wbk[wbk].add(key)
-                out[wbk].append({"name": n, "source": source})
+                out[wbk].append({"name": n, "source": tag})
     return dict(out)
 
 

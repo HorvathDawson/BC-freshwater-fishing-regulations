@@ -16,7 +16,7 @@
 /** Name variant with source provenance (structurally identical to NameVariant in featureUtils) */
 export interface NameVariantEntry {
   name: string;
-  source: 'direct' | 'tributary' | 'admin' | 'bathymetry' | 'stocking';
+  source: 'direct' | 'tributary' | 'admin' | 'bathymetry' | 'stocking' | 'marker';
 }
 
 /** A bathymetry survey depth-map sheet. URL = <R2 base>/bathymetry/<pdf>. */
