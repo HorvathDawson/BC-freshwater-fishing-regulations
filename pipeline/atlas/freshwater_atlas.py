@@ -23,6 +23,7 @@ Usage
 from __future__ import annotations
 
 import hashlib
+import json
 import logging
 import pickle
 from collections import defaultdict
@@ -40,7 +41,15 @@ from tqdm import tqdm
 from data.data_extractor import FWADataAccessor
 from .geometry_utils import merge_overlapping_polygons
 
-from .models import AdminRecord, PolygonRecord, StreamRecord, format_wsc_50k, trim_wsc
+from .models import (
+    AdminRecord,
+    PointRecord,
+    PolygonRecord,
+    RoadRecord,
+    StreamRecord,
+    format_wsc_50k,
+    trim_wsc,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -104,7 +113,7 @@ ADMIN_ZOOM_THRESHOLDS_AGGRESSIVE: List[Tuple[float, int]] = sorted(
 MAIN_FLOW_CODES = {1000, 1050, 1200, 1250, 1410, 1450}
 
 # Atlas pickle version — bump when the schema changes.
-_ATLAS_VERSION = 8
+_ATLAS_VERSION = 11
 
 
 # ---------------------------------------------------------------------------
@@ -143,8 +152,12 @@ class FreshWaterAtlas:
         self.historic_sites: Dict[str, AdminRecord] = {}
         self.watersheds: Dict[str, AdminRecord] = {}
         self.wmu: Dict[str, AdminRecord] = {}
-        self.osm_admin: Dict[str, AdminRecord] = {}
+        self.land_access: Dict[str, AdminRecord] = {}
         self.aboriginal_lands: Dict[str, AdminRecord] = {}
+        self.land_parcels_crown: Dict[str, AdminRecord] = {}
+        self.water_access_points: Dict[str, PointRecord] = {}
+        self.waterfalls: Dict[str, PointRecord] = {}
+        self.forest_service_roads: Dict[str, RoadRecord] = {}
         self.tidal_boundary: Optional[BaseGeometry] = None
         self.poly_id_to_wbk: Dict[str, str] = {}
         self.zone_polygons: Dict[str, BaseGeometry] = {}
@@ -173,8 +186,12 @@ class FreshWaterAtlas:
             "historic_sites": self.historic_sites,
             "watersheds": self.watersheds,
             "wmu": self.wmu,
-            "osm_admin": self.osm_admin,
+            "land_access": self.land_access,
             "aboriginal_lands": self.aboriginal_lands,
+            "land_parcels_crown": self.land_parcels_crown,
+            "water_access_points": self.water_access_points,
+            "waterfalls": self.waterfalls,
+            "forest_service_roads": self.forest_service_roads,
             "tidal_boundary": self.tidal_boundary,
             "poly_id_to_wbk": self.poly_id_to_wbk,
             "zone_polygons": self.zone_polygons,
@@ -193,8 +210,12 @@ class FreshWaterAtlas:
             + len(self.historic_sites)
             + len(self.watersheds)
             + len(self.wmu)
-            + len(self.osm_admin)
+            + len(self.land_access)
             + len(self.aboriginal_lands)
+            + len(self.land_parcels_crown)
+            + len(self.water_access_points)
+            + len(self.waterfalls)
+            + len(self.forest_service_roads)
         )
         logger.info(f"Atlas saved → {path}  ({total:,} features)")
 
@@ -228,8 +249,12 @@ class FreshWaterAtlas:
         obj.historic_sites = payload.get("historic_sites", {})
         obj.watersheds = payload.get("watersheds", {})
         obj.wmu = payload.get("wmu", {})
-        obj.osm_admin = payload.get("osm_admin", {})
+        obj.land_access = payload.get("land_access", {})
         obj.aboriginal_lands = payload.get("aboriginal_lands", {})
+        obj.land_parcels_crown = payload.get("land_parcels_crown", {})
+        obj.water_access_points = payload.get("water_access_points", {})
+        obj.waterfalls = payload.get("waterfalls", {})
+        obj.forest_service_roads = payload.get("forest_service_roads", {})
         obj.tidal_boundary = payload["tidal_boundary"]
         obj.poly_id_to_wbk = payload.get("poly_id_to_wbk", {})
         obj.zone_polygons = payload.get("zone_polygons", {})
@@ -246,8 +271,12 @@ class FreshWaterAtlas:
             + len(obj.historic_sites)
             + len(obj.watersheds)
             + len(obj.wmu)
-            + len(obj.osm_admin)
+            + len(obj.land_access)
             + len(obj.aboriginal_lands)
+            + len(obj.land_parcels_crown)
+            + len(obj.water_access_points)
+            + len(obj.waterfalls)
+            + len(obj.forest_service_roads)
         )
         logger.info(f"Atlas loaded ← {path}  ({total:,} features)")
         return obj
@@ -264,6 +293,9 @@ class FreshWaterAtlas:
         self._load_tidal_boundary(accessor, available)
         self._load_polygons(accessor, available)
         self._load_admin_layers(accessor, available)
+        self._load_land_parcels_crown(accessor, available)
+        self._load_point_layers(accessor, available)
+        self._load_forest_service_roads(accessor, available)
 
         lake_manmade_wbkeys = self._collect_lake_manmade_wbkeys()
         self._load_streams(accessor, lake_manmade_wbkeys)
@@ -281,8 +313,12 @@ class FreshWaterAtlas:
             + len(self.historic_sites)
             + len(self.watersheds)
             + len(self.wmu)
-            + len(self.osm_admin)
+            + len(self.land_access)
             + len(self.aboriginal_lands)
+            + len(self.land_parcels_crown)
+            + len(self.water_access_points)
+            + len(self.waterfalls)
+            + len(self.forest_service_roads)
         )
         logger.info(f"Atlas built: {total:,} total features")
 
@@ -604,31 +640,45 @@ class FreshWaterAtlas:
         else:
             self._bc_boundary = None
 
-        # OSM admin boundaries (research forests, protected areas, etc.)
-        if "osm_admin_boundaries" in available:
-            gdf = accessor.get_layer("osm_admin_boundaries")
+        # Land access (watersheds, private/restricted land, DND land, etc.)
+        if "land_access" in available:
+            gdf = accessor.get_layer("land_access")
+            gdf = merge_overlapping_polygons(gdf, "osm_id", "name")
+
+            bc_boundary = self._bc_boundary
+            if bc_boundary is not None:
+                logger.info("  Clipping land access to BC boundary")
+
             for _, row in tqdm(
                 gdf.iterrows(),
                 total=len(gdf),
-                desc="  osm_admin",
+                desc="  land_access",
                 leave=False,
             ):
                 aid = str(row.get("osm_id") or "")
                 if not aid:
                     continue
                 geom = row.geometry
+                if not geom.is_valid:
+                    geom = geom.buffer(0)
+                if bc_boundary is not None:
+                    geom = geom.intersection(bc_boundary)
+                    if geom.is_empty:
+                        continue
                 area = geom.area
-                self.osm_admin[aid] = AdminRecord(
+                self.land_access[aid] = AdminRecord(
                     admin_id=aid,
                     geometry=geom,
                     display_name=row.get("name") or "",
-                    admin_type="osm_admin",
+                    admin_type="land_access",
                     area=area,
                     minzoom=_area_minzoom(area, ADMIN_ZOOM_THRESHOLDS),
+                    restriction_level=row.get("restriction_level") or "",
+                    access=row.get("access") or "",
                 )
-            logger.info(f"Loaded {len(self.osm_admin):,} OSM admin boundaries")
+            logger.info(f"Loaded {len(self.land_access):,} land access polygons")
         else:
-            logger.warning("'osm_admin_boundaries' layer not found in GPKG — skipping")
+            logger.warning("'land_access' layer not found in GPKG — skipping")
 
         # Aboriginal lands (Indigenous territories from OSM)
         if "aboriginal_lands" in available:
@@ -650,6 +700,8 @@ class FreshWaterAtlas:
                 if not aid:
                     continue
                 geom = row.geometry
+                if not geom.is_valid:
+                    geom = geom.buffer(0)
                 if bc_boundary is not None:
                     geom = geom.intersection(bc_boundary)
                     if geom.is_empty:
@@ -666,6 +718,133 @@ class FreshWaterAtlas:
             logger.info(f"Loaded {len(self.aboriginal_lands):,} aboriginal lands")
         else:
             logger.warning("'aboriginal_lands' layer not found in GPKG — skipping")
+
+    # ------------------------------------------------------------------
+    # Land ownership (BC parcel fabric, dissolved to one polygon per OWNER_TYPE)
+    # ------------------------------------------------------------------
+
+    def _load_land_parcels_crown(
+        self, accessor: FWADataAccessor, available: Set[str]
+    ) -> None:
+        """Load the dissolved-by-OWNER_TYPE land ownership polygons.
+
+        Includes Private (one merged polygon, same dissolve as the crown
+        types) alongside Crown Provincial/Agency/Federal/First Nations/Local
+        Government/Mixed/Unclassified/Untitled Provincial. Toggled via the
+        frontend's layer menu (not the admin-visibility regulation system)
+        — always loaded whole, no per-feature IDs beyond OWNER_TYPE (one row
+        per ownership type, Private included).
+        """
+        if "land_parcels_crown" not in available:
+            logger.warning("'land_parcels_crown' layer not found in GPKG — skipping")
+            return
+        gdf = accessor.get_layer("land_parcels_crown")
+        for _, row in tqdm(
+            gdf.iterrows(),
+            total=len(gdf),
+            desc="  land_parcels_crown",
+            leave=False,
+        ):
+            owner_type = str(row.get("OWNER_TYPE") or "")
+            if not owner_type:
+                continue
+            geom = row.geometry
+            if not geom.is_valid:
+                geom = geom.buffer(0)
+            area = geom.area
+            self.land_parcels_crown[owner_type] = AdminRecord(
+                admin_id=owner_type,
+                geometry=geom,
+                display_name=owner_type,
+                admin_type="land_parcels_crown",
+                area=area,
+                minzoom=_area_minzoom(area, ADMIN_ZOOM_THRESHOLDS),
+            )
+        logger.info(f"Loaded {len(self.land_parcels_crown):,} land ownership polygons (Crown/Public + Private)")
+
+    # ------------------------------------------------------------------
+    # Point-of-interest layers (water access points, waterfalls)
+    # ------------------------------------------------------------------
+
+    def _load_point_layers(
+        self, accessor: FWADataAccessor, available: Set[str]
+    ) -> None:
+        """Load OSM point-of-interest layers into PointRecord dicts.
+
+        Both fetchers can emit way-derived (LineString/Polygon) geometry for
+        a handful of features (e.g. a pier mapped as its outline rather than
+        a single node) — those are reduced to their centroid so every record
+        is a renderable point icon.
+        """
+        specs = [
+            ("water_access_points", self.water_access_points, "poi_type"),
+            ("waterfalls", self.waterfalls, None),
+        ]
+        for layer_name, target, poi_type_col in specs:
+            if layer_name not in available:
+                logger.warning(f"'{layer_name}' layer not found in GPKG — skipping")
+                continue
+            gdf = accessor.get_layer(layer_name)
+            for _, row in tqdm(
+                gdf.iterrows(), total=len(gdf), desc=f"  {layer_name}", leave=False
+            ):
+                pid = str(row.get("osm_id") or "")
+                if not pid:
+                    continue
+                geom = row.geometry
+                if geom is None or geom.is_empty:
+                    continue
+                if geom.geom_type != "Point":
+                    geom = geom.centroid
+                poi_type = (
+                    row.get(poi_type_col) if poi_type_col else "waterfall"
+                ) or "waterfall"
+                extra = {
+                    k: row.get(k)
+                    for k in ("access", "fee", "surface", "motorboat", "trailer", "operator", "height")
+                    if k in gdf.columns and row.get(k)
+                }
+                target[pid] = PointRecord(
+                    id=pid,
+                    geometry=geom,
+                    display_name=row.get("name") or "",
+                    poi_type=str(poi_type),
+                    extra=json.dumps(extra) if extra else "",
+                )
+            logger.info(f"Loaded {len(target):,} {layer_name}")
+
+    # ------------------------------------------------------------------
+    # BC Forest Service Roads
+    # ------------------------------------------------------------------
+
+    def _load_forest_service_roads(
+        self, accessor: FWADataAccessor, available: Set[str]
+    ) -> None:
+        if "forest_service_roads" not in available:
+            logger.warning(
+                "'forest_service_roads' layer not found in GPKG — skipping"
+            )
+            return
+        gdf = accessor.get_layer("forest_service_roads")
+        for _, row in tqdm(
+            gdf.iterrows(), total=len(gdf), desc="  forest_service_roads", leave=False
+        ):
+            fid = str(row.get("OBJECTID") or "")
+            if not fid:
+                continue
+            geom = row.geometry
+            if geom is None or geom.is_empty:
+                continue
+            display_name = row.get("ROAD_SECTION_NAME") or row.get("MAP_LABEL") or ""
+            self.forest_service_roads[fid] = RoadRecord(
+                fid=fid,
+                geometry=geom,
+                display_name=display_name,
+                status=row.get("LIFE_CYCLE_STATUS_CODE") or "",
+            )
+        logger.info(
+            f"Loaded {len(self.forest_service_roads):,} forest service road sections"
+        )
 
     # ------------------------------------------------------------------
     # Step 4: Collect lake + manmade waterbody keys

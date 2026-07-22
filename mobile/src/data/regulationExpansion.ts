@@ -40,7 +40,7 @@ interface SynopsisReg {
 
 interface BaseReg {
   raw_regs: string;
-  source: 'zone' | 'provincial';
+  source: 'zone' | 'provincial' | 'municipal' | 'land_access';
   restriction?: { type: string; details: string };
   zone_ids?: string[];
   dates?: string[];

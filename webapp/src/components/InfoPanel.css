@@ -199,6 +199,14 @@
     font-family: var(--font-sans);
 }
 
+.dawn-dusk-row {
+    padding: 6px 16px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    border-bottom: 1px solid var(--border-light, #e5e5e5);
+}
+
 .alias-list {
     font-size: 10px;
     font-weight: 500;
@@ -890,6 +898,14 @@
     border-left-color: var(--border);
 }
 
+.regulation-group-header.municipal-header {
+    border-left-color: #dc2626;
+}
+
+.regulation-group-header.land-access-header {
+    border-left-color: #dc2626;
+}
+
 .header-badge {
     display: inline-block;
     padding: 1px 6px;
@@ -910,6 +926,18 @@
 .header-badge.provincial-badge {
     background: var(--border);
     color: var(--bg);
+    border: none;
+}
+
+.header-badge.municipal-badge {
+    background: rgba(220, 38, 38, 0.15);
+    color: #dc2626;
+    border: none;
+}
+
+.header-badge.land-access-badge {
+    background: rgba(220, 38, 38, 0.12);
+    color: #dc2626;
     border: none;
 }
 

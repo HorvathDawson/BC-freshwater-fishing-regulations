@@ -2,11 +2,13 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import maplibregl from 'maplibre-gl';
 import { Protocol } from 'pmtiles';
 import { layers, LIGHT } from '@protomaps/basemaps';
+import type { Flavor } from '@protomaps/basemaps';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { createRegulationLayers, createAdminLabelLayers, createEarlyRoadLayers, HIGHLIGHT_COLORS, SELECTION_COLOR } from '../map/styles';
 import bcBoundary from '../map/bcBoundary.json';
 import { waterbodyDataService } from '../services/waterbodyDataService';
 import type { Reach, RegulationData, ResolveResult } from '../services/waterbodyDataService';
+import { TILE_BASE } from '../config/endpoints';
 import { 
     isMobileViewport,
     getFeatureDisplayName,
@@ -23,6 +25,7 @@ import Disclaimer, { DisclaimerLink } from './Disclaimer';
 import IssueReport, { IssueReportLink, type IssueReportContext } from './IssueReport';
 import FishLoader from './FishLoader';
 import type { SearchableFeature, RegulationSegment } from './SearchBar';
+import { useDawnDusk } from '../hooks/useDawnDusk';
 import './Map.css';
 
 // --- CONFIG & PROTOCOL ---
@@ -35,10 +38,27 @@ if (!(globalThis as any).__pmtilesProtocolAdded) {
     (globalThis as any).__pmtilesProtocolAdded = true;
 }
 
-// Tile base URL: empty in dev (local /data/), R2 public URL in production
-const TILE_BASE = import.meta.env.VITE_TILE_BASE_URL
-    ? `pmtiles://${import.meta.env.VITE_TILE_BASE_URL}`
-    : 'pmtiles:///data';
+// ── Basemap road theme override ─────────────────────────────────────
+// Protomaps' stock LIGHT flavor renders roads in near-white/pale-gray
+// (`other`/`minor_*`: "#ebebeb") — a deliberate minimalist-cartography
+// choice, but the minor/other tier (backcountry tracks, paths, minor local
+// roads — the FSR-adjacent stuff) becomes nearly invisible against the
+// light "earth" background once zoomed in past where our own
+// `roads_other_early` overlay hands off to the basemap's native styling.
+// Deliberately scoped to ONLY that minor/other tier — highways, major
+// arterials, and city streets keep their stock (white) styling untouched.
+const BROWN_ROAD_THEME: Flavor = {
+    ...LIGHT,
+    minor_a: '#dcc9a3',
+    minor_b: '#dcc9a3',
+    minor_service: '#dcc9a3',
+    other: '#dcc9a3',
+    bridges_minor: '#dcc9a3',
+    bridges_other: '#dcc9a3',
+};
+
+// Tile base URL: empty in dev (local /data/), R2 public URL in production.
+// Derived from VITE_TILE_BASE_URL — see src/config/endpoints.ts.
 
 // BC bounding box with margin for map constraints
 // Interior: approx -139.05 to -114.03 (lng), 48.30 to 60.00 (lat)
@@ -311,6 +331,56 @@ const createHorizontalLinePattern = (hexColor: string): ImageData | null => {
     return ctx.getImageData(0, 0, size, size);
 };
 
+/**
+ * Small circular badge icon with a vendored SVG glyph drawn on top in
+ * white, used for the water-access-point / waterfall POI layers. Each
+ * `poi_type` gets a distinct, recognizable icon (not just a color) so
+ * they stay distinguishable for colorblind users. The glyphs are real
+ * paths from Maki (BSD-3-Clause/CC0, via Mapbox — purpose-built for small
+ * map markers) and MDI (Apache-2.0, via Pictogrammers), not hand-drawn
+ * shapes, since a wedge/two-lines/two-masts read as ambiguous at 22px.
+ */
+const createSvgBadgeIcon = (bgColor: string, pathD: string, viewBoxSize: number): ImageData | null => {
+    const size = 22;
+    const canvas = document.createElement('canvas');
+    canvas.width = size; canvas.height = size;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return null;
+    const cx = size / 2, cy = size / 2, r = size / 2 - 1;
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.fillStyle = bgColor;
+    ctx.fill();
+    ctx.lineWidth = 1.2;
+    ctx.strokeStyle = '#ffffff';
+    ctx.stroke();
+
+    // Scale the icon's native viewBox to ~60% of the badge diameter, centered.
+    const glyphSize = size * 0.6;
+    const scale = glyphSize / viewBoxSize;
+    ctx.save();
+    ctx.translate(cx - glyphSize / 2, cy - glyphSize / 2);
+    ctx.scale(scale, scale);
+    ctx.fillStyle = '#ffffff';
+    ctx.fill(new Path2D(pathD));
+    ctx.restore();
+    return ctx.getImageData(0, 0, size, size);
+};
+
+// Boat launch — Maki "slipway" (ramp + water ripple), viewBox 15x15.
+const ICON_SLIPWAY_PATH = 'm2 10l12 1.495V12H2zm12-4l-1 1v.583L5.196 4.332l.063-.125L6.61 2.845h.831a.35.35 0 0 0 0-.7h-.976a.35.35 0 0 0-.248.103L4.723 3.753a.4.4 0 0 0-.066.09l-.109.219L2 3c0 2-.03 3.958 2.86 4.5C6.28 7.765 13 9 13 9l2-2z';
+// Pier / dock — MDI "pier" (dock with support posts over waves), viewBox 24x24.
+const ICON_PIER_PATH = 'M20 18c-1.4 0-2.8-.5-4-1.3c-2.4 1.7-5.6 1.7-8 0c-1.2.8-2.6 1.3-4 1.3H2v2h2c1.4 0 2.7-.4 4-1c2.5 1.3 5.5 1.3 8 0c1.3.6 2.6 1 4 1h2v-2zm0-5h-1v3.9c-.7-.1-1.4-.3-2-.7V13h-5v4c-.7 0-1.3-.1-2-.3V13H5v3.9c-.3.1-.7.1-1 .1H3v-4H2v-2h1V9h2v2h5V9h2v2h5V9h2v2h1z';
+// Designated fishing platform — MDI "fishing" (rod + line), viewBox 24x24.
+const ICON_FISHING_PATH = 'M16 9h.41l-13 13L2 20.59l13-13V9zm0-5v4h4l2-6z';
+// Waterfall — Maki "waterfall", viewBox 15x15.
+const ICON_WATERFALL_PATH = 'M14 1H5a3 3 0 0 0-3 3v4.88a2.25 2.25 0 0 0 2.5 3.742a2.25 2.25 0 0 0 2.664-.122h.353A3.25 3.25 0 1 0 10.5 6.75V5a2 2 0 0 1 2-2H14zm-2.5 8.75a2.25 2.25 0 0 1-3.664 1.75H6.75a1.248 1.248 0 0 1-2 0h-.5A1.25 1.25 0 1 1 3 9.525V5.75a.75.75 0 0 1 1.5 0V9a.5.5 0 0 0 1 0V6.75a.75.75 0 0 1 1.5 0V9a.5.5 0 0 0 1 0V5.75a.75.75 0 0 1 1.5 0v1.764a2.25 2.25 0 0 1 2 2.236';
+
+const createBoatLaunchIcon = (): ImageData | null => createSvgBadgeIcon('#0072B2', ICON_SLIPWAY_PATH, 15);
+const createPierIcon = (): ImageData | null => createSvgBadgeIcon('#4A90E2', ICON_PIER_PATH, 24);
+const createFishingPlatformIcon = (): ImageData | null => createSvgBadgeIcon('#059669', ICON_FISHING_PATH, 24);
+const createWaterfallIcon = (): ImageData | null => createSvgBadgeIcon('#0D47A1', ICON_WATERFALL_PATH, 15);
+
 /** Normalize plural backend types to singular frontend types */
 const normalizeType = (type: string): 'stream' | 'lake' | 'wetland' | 'manmade' | 'ungazetted' => {
     if (type === 'streams' || type === 'stream') return 'stream';
@@ -515,9 +585,11 @@ const MapComponent = () => {
     const mapRef = useRef<maplibregl.Map | null>(null);
     const satBtnRef = useRef<HTMLButtonElement | null>(null);
     const toggleSatelliteRef = useRef<() => void>(() => {});
-    const opacityCtrlRef = useRef<HTMLElement | null>(null);
-    const toggleSliderRef = useRef<() => void>(() => {});
     const handleOverlayOpacityRef = useRef<(val: string) => void>(() => {});
+    const layerMenuCtrlRef = useRef<HTMLElement | null>(null);
+    const toggleLayerMenuRef = useRef<() => void>(() => {});
+    const toggleLandOwnershipRef = useRef<() => void>(() => {});
+    const togglePrivateLandRef = useRef<() => void>(() => {});
     // Cache of each regulation layer's original paint opacity values,
     // captured on first satellite toggle so the slider can multiply them.
     const baseOpacitiesRef = useRef<Record<string, [string, any][]>>({});
@@ -565,6 +637,7 @@ const MapComponent = () => {
     const [searchableFeatures, setSearchableFeatures] = useState<SearchableFeature[]>([]);
     const [dataLoaded, setDataLoaded] = useState(false);
     const [mapReady, setMapReady] = useState(false);
+    const { times: dawnDusk, updatePosition: updateDawnDuskPosition } = useDawnDusk();
     const [filtersApplied, setFiltersApplied] = useState(false);
     // Fetched once from data_version.json (no-store). null = not yet resolved.
     // Used as ?v= query param on PMTiles URLs to bust browser cache on deploys.
@@ -573,7 +646,9 @@ const MapComponent = () => {
     const [issueReportOpen, setIssueReportOpen] = useState(false);
     const [isSatellite, setIsSatellite] = useState(false);
     const [overlayOpacity, setOverlayOpacity] = useState(1);
-    const [sliderOpen, setSliderOpen] = useState(false);
+    const [layerMenuOpen, setLayerMenuOpen] = useState(false);
+    const [showLandOwnership, setShowLandOwnership] = useState(false);
+    const [showPrivateLand, setShowPrivateLand] = useState(false);
 
     // Spinner delay constants (ms)
     const SPINNER_DELAY = 150;  // wait before showing
@@ -711,8 +786,7 @@ const MapComponent = () => {
                 }
             }
         }
-        setIsSatellite(next);
-        setSliderOpen(next); // auto-expand slider when satellite turns on
+        setIsSatellite(next); // the opacity dropdown row shows/hides via its own isSatellite-synced effect
 
         // Show/hide satellite raster
         map.setLayoutProperty('satellite-tiles', 'visibility', next ? 'visible' : 'none');
@@ -780,13 +854,64 @@ const MapComponent = () => {
 
     // Keep the imperative satellite button ref in sync with React state
     useEffect(() => { toggleSatelliteRef.current = toggleSatellite; }, [toggleSatellite]);
+
+    // Land ownership layer toggles — shows/hides the land_parcels_crown fill
+    // + line layers (same setLayoutProperty pattern the admin-layer
+    // visibility effect elsewhere in this file uses). Crown/Public and
+    // Private are independently toggleable: both draw from the same
+    // `land_parcels_crown` tile source-layer but as separately-filtered
+    // style layers (see styles.ts), so each can be shown/hidden on its own.
+    useEffect(() => {
+        toggleLandOwnershipRef.current = () => setShowLandOwnership(v => !v);
+        togglePrivateLandRef.current = () => setShowPrivateLand(v => !v);
+    }, []);
+    useEffect(() => {
+        const map = mapRef.current;
+        if (!map || !map.isStyleLoaded()) return;
+        const vis = showLandOwnership ? 'visible' : 'none';
+        for (const id of ['admin_land_parcels_crown-fill', 'admin_land_parcels_crown-line']) {
+            if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', vis);
+        }
+    }, [showLandOwnership, mapReady]);
+    useEffect(() => {
+        const map = mapRef.current;
+        if (!map || !map.isStyleLoaded()) return;
+        const vis = showPrivateLand ? 'visible' : 'none';
+        for (const id of ['admin_land_parcels_private-fill', 'admin_land_parcels_private-line']) {
+            if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', vis);
+        }
+    }, [showPrivateLand, mapReady]);
+
+    // Layer menu trigger button — always shows a generic "layers" icon; the
+    // menu itself (not this button) reflects satellite/land-ownership state.
     useEffect(() => {
         const btn = satBtnRef.current;
         if (!btn) return;
-        btn.innerHTML = isSatellite ? MAP_SVG : LAYERS_SVG;
-        btn.title = isSatellite ? 'Switch to map view' : 'Switch to satellite view';
+        btn.innerHTML = LAYERS_SVG;
+        btn.title = 'Map layers';
         btn.setAttribute('aria-label', btn.title);
-    }, [isSatellite]);
+    }, []);
+
+    // Layer menu open/close + its two toggle rows' checked state
+    useEffect(() => {
+        toggleLayerMenuRef.current = () => setLayerMenuOpen(o => !o);
+    }, []);
+    useEffect(() => {
+        const wrapper = layerMenuCtrlRef.current;
+        if (!wrapper) return;
+        const popup = wrapper.querySelector('.layer-menu-popup') as HTMLElement | null;
+        if (popup) popup.style.display = layerMenuOpen ? '' : 'none';
+    }, [layerMenuOpen]);
+    useEffect(() => {
+        const wrapper = layerMenuCtrlRef.current;
+        if (!wrapper) return;
+        const satToggle = wrapper.querySelector('.layer-menu-sat-toggle') as HTMLInputElement | null;
+        if (satToggle) satToggle.checked = isSatellite;
+        const landToggle = wrapper.querySelector('.layer-menu-land-toggle') as HTMLInputElement | null;
+        if (landToggle) landToggle.checked = showLandOwnership;
+        const privateToggle = wrapper.querySelector('.layer-menu-private-toggle') as HTMLInputElement | null;
+        if (privateToggle) privateToggle.checked = showPrivateLand;
+    }, [isSatellite, showLandOwnership, showPrivateLand]);
 
     // Apply overlay opacity multiplier to all regulation-sourced layers.
     // Captures each layer's paint opacity on first satellite activation,
@@ -825,10 +950,9 @@ const MapComponent = () => {
         }
     }, [isSatellite, overlayOpacity]);
 
-    // Wire imperative refs for opacity IControl
-    useEffect(() => {
-        toggleSliderRef.current = () => setSliderOpen(o => !o);
-    }, []);
+    // Wire imperative ref for the opacity slider's input handler (the
+    // slider itself now lives inside the layer menu popup, as a dropdown
+    // row under "Satellite" — see layerMenuControl below).
     useEffect(() => {
         handleOverlayOpacityRef.current = (val: string) => {
             const v = parseFloat(val);
@@ -837,22 +961,22 @@ const MapComponent = () => {
         };
     }, []);
 
-    // Sync opacity IControl visibility and slider state with React state
+    // Sync the opacity dropdown row (visible only while satellite is on)
+    // and its slider value/percentage with React state.
     useEffect(() => {
-        const wrapper = opacityCtrlRef.current;
+        const wrapper = layerMenuCtrlRef.current;
         if (!wrapper) return;
-        wrapper.style.display = isSatellite ? '' : 'none';
+        const row = wrapper.querySelector('.layer-menu-opacity-row') as HTMLElement | null;
+        if (row) row.style.display = isSatellite ? '' : 'none';
     }, [isSatellite]);
     useEffect(() => {
-        const wrapper = opacityCtrlRef.current;
+        const wrapper = layerMenuCtrlRef.current;
         if (!wrapper) return;
-        const popup = wrapper.querySelector('.overlay-opacity-popup') as HTMLElement | null;
-        if (popup) popup.style.display = sliderOpen ? '' : 'none';
-        const input = wrapper.querySelector('input') as HTMLInputElement | null;
+        const input = wrapper.querySelector('.layer-menu-opacity-slider') as HTMLInputElement | null;
         if (input) input.value = String(overlayOpacity);
-        const pct = wrapper.querySelector('.overlay-pct');
+        const pct = wrapper.querySelector('.layer-menu-opacity-pct');
         if (pct) pct.textContent = `${Math.round(overlayOpacity * 100)}%`;
-    }, [sliderOpen, overlayOpacity]);
+    }, [overlayOpacity]);
 
     const clearSelection = useCallback(() => {
         setSelectedFeature(null);
@@ -980,7 +1104,10 @@ const MapComponent = () => {
         wma: ['admin_wma-fill', 'admin_wma-line', 'admin_wma-label'],
         watersheds: ['admin_watersheds-fill', 'admin_watersheds-line', 'admin_watersheds-label'],
         historic_sites: ['admin_historic_sites-fill', 'admin_historic_sites-line', 'admin_historic_sites-label'],
-        osm_admin: ['admin_osm_admin-fill', 'admin_osm_admin-line', 'admin_osm_admin-label'],
+        land_access: [
+            'admin_land_access-fill', 'admin_land_access-line', 'admin_land_access-label',
+            'admin_land_access-hatch-closed', 'admin_land_access-hatch-restricted',
+        ],
         aboriginal_lands: ['admin_aboriginal_lands-fill', 'admin_aboriginal_lands-line', 'admin_aboriginal_lands-label'],
     };
     useEffect(() => {
@@ -1253,6 +1380,10 @@ const MapComponent = () => {
         if (mapRef.current) return; // already initialized
         if (!mapContainerRef.current) return;
         const vParam = dataVersion ? `?v=${encodeURIComponent(dataVersion)}` : '';
+        // Split so waterbody name labels (.labels) can be placed after
+        // createAdminLabelLayers() below — see createRegulationLayers()'s
+        // comment for why the split exists (collision-priority ordering).
+        const regulationLayers = createRegulationLayers();
         const map = new maplibregl.Map({
             container: mapContainerRef.current,
             maxBounds: BC_BOUNDS,
@@ -1269,21 +1400,35 @@ const MapComponent = () => {
                 // The `layers()` call without `lang` returns geometry-only layers;
                 // `labelsOnly + lang` returns road / place / water name labels
                 // so they render above the regulation fills and remain readable.
-                // We filter out OSM water labels since we display our own.
+                // We filter out OSM water labels since we display our own, and
+                // the generic 'pois' layer (post offices, shops, restaurants,
+                // etc.) — this is a fishing-regulations app, not a general
+                // basemap, and those commercial/amenity icons don't apply and
+                // just add clutter. Place-name labels (places_* — cities,
+                // towns) are kept; only the commercial POI icon layer is cut.
                 layers: [
                     // Satellite raster sits at the very bottom, hidden by default
                     { id: 'satellite-tiles', type: 'raster', source: 'satellite', layout: { visibility: 'none' } },
-                    ...layers('protomaps', LIGHT),
+                    // 'roads_other' (kind=other/path — trails/backcountry
+                    // tracks) excluded: createEarlyRoadLayers() below now
+                    // owns that tier for the full zoom range instead of
+                    // handing off to it (see comment there for why).
+                    ...layers('protomaps', BROWN_ROAD_THEME).filter(l => l.id !== 'roads_other'),
                     ...createEarlyRoadLayers(),
-                    ...createRegulationLayers(),
-                    ...layers('protomaps', LIGHT, { labelsOnly: true, lang: 'en' })
-                        .filter(l => !['water_waterway_label', 'water_label_ocean', 'water_label_lakes'].includes(l.id))
+                    ...regulationLayers.layers,
+                    ...layers('protomaps', BROWN_ROAD_THEME, { labelsOnly: true, lang: 'en' })
+                        .filter(l => !['water_waterway_label', 'water_label_ocean', 'water_label_lakes', 'pois'].includes(l.id))
                         .map(l => {
                             const withinBC: any = ['within', bcBoundary];
                             if (!('filter' in l) || !l.filter) return { ...l, filter: withinBC };
                             return { ...l, filter: ['all', legacyFilterToExpression(l.filter), withinBC] as any };
                         }),
                     ...createAdminLabelLayers(),
+                    // Waterbody names last — see comment above regulationLayers'
+                    // declaration: this must come after createAdminLabelLayers()
+                    // so lake/wetland/manmade/stream names win collision
+                    // priority over park/watershed/land-use labels.
+                    ...regulationLayers.labels,
                 ]
             },
             center: [-123.0, 49.25], zoom: 8, maxZoom: 18, minZoom: 4, hash: true,
@@ -1395,61 +1540,82 @@ const MapComponent = () => {
             startGpsWatch();
         }
 
-        // Add satellite toggle as a native MapLibre control
+        // Add the map-layers menu as a native MapLibre control — a trigger
+        // button that opens a small popup with toggle rows: base map ↔
+        // satellite (reuses the existing toggleSatellite logic unchanged),
+        // and BC parcel-level land ownership split into two independently
+        // toggleable rows (Crown/Public, Private — both draw from the same
+        // land_parcels_crown tile source-layer, filtered client-side).
+        // land_access (restricted/closed) and aboriginal_lands (Indigenous)
+        // are NOT here — those stay always-visible, driven by
+        // admin_visibility.json rather than a user toggle.
         // Desktop: bottom-left (stacked above compass).
         // Mobile: top-right (next to compass).
         const satPosition = isMobileViewport() ? 'top-right' : 'bottom-left';
-        const satControl: maplibregl.IControl = {
-            onAdd() {
-                const container = document.createElement('div');
-                container.className = 'maplibregl-ctrl maplibregl-ctrl-group';
-                const btn = document.createElement('button');
-                btn.className = 'satellite-toggle';
-                btn.title = 'Switch to satellite view';
-                btn.setAttribute('aria-label', 'Switch to satellite view');
-                btn.innerHTML = LAYERS_SVG;
-                btn.addEventListener('click', () => toggleSatelliteRef.current());
-                container.appendChild(btn);
-                satBtnRef.current = btn;
-                return container;
-            },
-            onRemove() { satBtnRef.current = null; }
-        };
-        map.addControl(satControl, satPosition);
-
-        // Add overlay opacity toggle as a small IControl button (same position as satellite).
-        // Shows a sun icon; on click, toggles a compact slider popup.
-        const opacityControl: maplibregl.IControl = {
+        const layerMenuControl: maplibregl.IControl = {
             onAdd() {
                 const wrapper = document.createElement('div');
-                wrapper.className = 'maplibregl-ctrl maplibregl-ctrl-group overlay-opacity-ctrl';
-                wrapper.style.display = 'none'; // hidden until satellite activates
+                wrapper.className = 'maplibregl-ctrl maplibregl-ctrl-group layer-menu-ctrl';
                 const btn = document.createElement('button');
-                btn.className = 'satellite-toggle overlay-opacity-btn';
-                btn.title = 'Overlay opacity';
-                btn.setAttribute('aria-label', 'Overlay opacity');
-                btn.innerHTML = OPACITY_SVG;
+                btn.className = 'satellite-toggle layer-menu-btn';
+                btn.title = 'Map layers';
+                btn.setAttribute('aria-label', 'Map layers');
+                btn.innerHTML = LAYERS_SVG;
                 btn.addEventListener('click', (e) => {
                     e.stopPropagation();
-                    toggleSliderRef.current();
+                    toggleLayerMenuRef.current();
                 });
+
                 const popup = document.createElement('div');
-                popup.className = 'overlay-opacity-popup';
+                popup.className = 'layer-menu-popup';
                 popup.style.display = 'none';
-                popup.innerHTML = '<label class="overlay-opacity-label"><span class="overlay-pct"></span></label>'
-                    + '<input type="range" min="0" max="1" step="0.05" value="1" />';
-                const input = popup.querySelector('input')!;
-                input.addEventListener('input', (ev) => {
-                    handleOverlayOpacityRef.current((ev as any).target.value);
+                popup.innerHTML = `
+                    <label class="layer-menu-row">
+                        <span class="layer-menu-row-label">${MAP_SVG} Satellite</span>
+                        <input type="checkbox" class="layer-menu-sat-toggle" />
+                    </label>
+                    <div class="layer-menu-opacity-row" style="display:none">
+                        <label class="layer-menu-opacity-label">
+                            ${OPACITY_SVG} Overlay opacity
+                            <span class="layer-menu-opacity-pct"></span>
+                        </label>
+                        <input type="range" min="0" max="1" step="0.05" value="1" class="layer-menu-opacity-slider" />
+                    </div>
+                    <label class="layer-menu-row">
+                        <span class="layer-menu-row-label">${LAYERS_SVG} Crown / Public Land</span>
+                        <input type="checkbox" class="layer-menu-land-toggle" />
+                    </label>
+                    <label class="layer-menu-row">
+                        <span class="layer-menu-row-label">${LAYERS_SVG} Private Land</span>
+                        <input type="checkbox" class="layer-menu-private-toggle" />
+                    </label>
+                `;
+                popup.querySelector('.layer-menu-sat-toggle')!.addEventListener('change', (e) => {
+                    e.stopPropagation();
+                    toggleSatelliteRef.current();
                 });
+                popup.querySelector('.layer-menu-land-toggle')!.addEventListener('change', (e) => {
+                    e.stopPropagation();
+                    toggleLandOwnershipRef.current();
+                });
+                popup.querySelector('.layer-menu-private-toggle')!.addEventListener('change', (e) => {
+                    e.stopPropagation();
+                    togglePrivateLandRef.current();
+                });
+                popup.querySelector('.layer-menu-opacity-slider')!.addEventListener('input', (e) => {
+                    e.stopPropagation();
+                    handleOverlayOpacityRef.current((e as any).target.value);
+                });
+
                 wrapper.appendChild(btn);
                 wrapper.appendChild(popup);
-                opacityCtrlRef.current = wrapper;
+                satBtnRef.current = btn;
+                layerMenuCtrlRef.current = wrapper;
                 return wrapper;
             },
-            onRemove() { opacityCtrlRef.current = null; }
+            onRemove() { satBtnRef.current = null; layerMenuCtrlRef.current = null; }
         };
-        map.addControl(opacityControl, satPosition);
+        map.addControl(layerMenuControl, satPosition);
 
         map.on('load', () => {
             const pattern = createWetlandPattern();
@@ -1463,6 +1629,12 @@ const MapComponent = () => {
             if (hatchDiag) map.addImage('hatch-diagonal', hatchDiag);
             const hatchCross = createCrossHatchPattern('#C22E2E');
             if (hatchCross) map.addImage('hatch-cross', hatchCross);
+            // Amber diagonal hatch for land_access "restricted" (conditional/
+            // permit-based access, e.g. Malcolm Knapp Research Forest) — kept
+            // visually distinct from the red "closed" hatch above so a
+            // permit-required area doesn't read as a hard closure.
+            const hatchDiagAmber = createDiagonalHatchPattern('#CC7A00');
+            if (hatchDiagAmber) map.addImage('hatch-diagonal-amber', hatchDiagAmber);
             // Horizontal lines for partial restriction zones (research forests, etc.)
             const hatchHoriz = createHorizontalLinePattern('#CC7A00');
             if (hatchHoriz) map.addImage('hatch-horizontal', hatchHoriz);
@@ -1484,6 +1656,102 @@ const MapComponent = () => {
                 'source-layer': 'eco_reserves',
                 filter: ['==', ['get', 'admin_type'], 'ECOLOGICAL_RESERVE'],
                 paint: { 'fill-pattern': 'hatch-cross', 'fill-opacity': 0.50 },
+            } as any);
+
+            // Land access hatch overlays — colorblind-friendly: both pattern
+            // AND color signal severity, not just hue. "closed" (no public
+            // access at all) gets the denser red cross-hatch; "restricted"
+            // (permit/conditional access, e.g. Malcolm Knapp) gets the
+            // lighter amber diagonal hatch — same amber "caution, not
+            // prohibited" language the old osm_admin layer used.
+            map.addLayer({
+                id: 'admin_land_access-hatch-closed',
+                type: 'fill',
+                source: 'regulations',
+                'source-layer': 'land_access',
+                layout: { visibility: 'none' },
+                filter: ['==', ['get', 'restriction_level'], 'closed'],
+                paint: { 'fill-pattern': 'hatch-cross', 'fill-opacity': 0.55 },
+            } as any);
+            map.addLayer({
+                id: 'admin_land_access-hatch-restricted',
+                type: 'fill',
+                source: 'regulations',
+                'source-layer': 'land_access',
+                layout: { visibility: 'none' },
+                filter: ['==', ['get', 'restriction_level'], 'restricted'],
+                paint: { 'fill-pattern': 'hatch-diagonal-amber', 'fill-opacity': 0.45 },
+            } as any);
+
+            // Water access point + waterfall icons — registered once, then
+            // referenced by poi_type/waterfall symbol layers below.
+            const boatLaunchIcon = createBoatLaunchIcon();
+            if (boatLaunchIcon) map.addImage('icon-boat-launch', boatLaunchIcon);
+            const pierIcon = createPierIcon();
+            if (pierIcon) map.addImage('icon-pier', pierIcon);
+            const fishingPlatformIcon = createFishingPlatformIcon();
+            if (fishingPlatformIcon) map.addImage('icon-fishing-platform', fishingPlatformIcon);
+            const waterfallIcon = createWaterfallIcon();
+            if (waterfallIcon) map.addImage('icon-waterfall', waterfallIcon);
+
+            // Icons grow with zoom instead of staying a fixed size — at
+            // minzoom 13 (where they first appear) 0.8 keeps them
+            // unobtrusive; by close-in zoom 19 they're large enough to
+            // read clearly as a specific glyph rather than a small dot.
+            const POI_ICON_SIZE_EXPR = [
+                'interpolate', ['linear'], ['zoom'],
+                13, 0.7,
+                16, 1.0,
+                19, 1.6,
+            ] as unknown as number;
+
+            map.addLayer({
+                id: 'water_access_points-icon',
+                type: 'symbol',
+                source: 'regulations',
+                'source-layer': 'water_access_points',
+                minzoom: 13,
+                // Marina removed entirely — not rendered even if older cached
+                // tiles still carry poi_type='marina' rows.
+                filter: ['!=', ['get', 'poi_type'], 'marina'],
+                layout: {
+                    'icon-image': [
+                        'match', ['get', 'poi_type'],
+                        'boat_launch', 'icon-boat-launch',
+                        'pier', 'icon-pier',
+                        'fishing_platform', 'icon-fishing-platform',
+                        'icon-pier',
+                    ],
+                    'icon-size': POI_ICON_SIZE_EXPR,
+                    'icon-allow-overlap': false,
+                    'icon-padding': 4,
+                },
+            } as any);
+
+            map.addLayer({
+                id: 'waterfalls-icon',
+                type: 'symbol',
+                source: 'regulations',
+                'source-layer': 'waterfalls',
+                minzoom: 13,
+                layout: {
+                    'icon-image': 'icon-waterfall',
+                    'icon-size': POI_ICON_SIZE_EXPR,
+                    'icon-allow-overlap': false,
+                    'icon-padding': 4,
+                    'text-field': ['get', 'display_name'],
+                    'text-font': ['Noto Sans Regular'],
+                    'text-size': 10,
+                    'text-offset': [0, 1.1],
+                    'text-anchor': 'top',
+                    'text-optional': true,
+                    'text-allow-overlap': false,
+                },
+                paint: {
+                    'text-color': '#0D47A1',
+                    'text-halo-color': '#ffffff',
+                    'text-halo-width': 1.2,
+                },
             } as any);
 
             // ── HIGHLIGHT LAYERS (hover / disambiguation) ─────────────
@@ -1598,6 +1866,18 @@ const MapComponent = () => {
             
             // Signal that map is ready for URL restoration
             setMapReady(true);
+
+            // Dawn/dusk: seed with the initial view center; further updates
+            // come from the `moveend` listener below.
+            const initialCenter = map.getCenter();
+            updateDawnDuskPosition(initialCenter.lat, initialCenter.lng);
+        });
+
+        // Dawn/dusk: recompute (subject to the hook's own distance threshold)
+        // whenever the user finishes panning/zooming the map.
+        map.on('moveend', () => {
+            const center = map.getCenter();
+            updateDawnDuskPosition(center.lat, center.lng);
         });
 
         // -------------------------------------------------------------
@@ -2111,7 +2391,7 @@ const MapComponent = () => {
                     placeholder="Search waterbodies..." 
                 />
             </div>
-            <InfoPanel feature={selectedFeature} onClose={clearSelection} collapseState={mobilePanelState} onSetCollapseState={setMobilePanelState} siblingFeatures={siblingFeatures} onHighlightSection={handleHighlightSection} onFlyToSection={handleFlyToSection} onReportIssue={() => setIssueReportOpen(true)} />
+            <InfoPanel feature={selectedFeature} onClose={clearSelection} collapseState={mobilePanelState} onSetCollapseState={setMobilePanelState} siblingFeatures={siblingFeatures} onHighlightSection={handleHighlightSection} onFlyToSection={handleFlyToSection} onReportIssue={() => setIssueReportOpen(true)} dawnDusk={dawnDusk} />
             <div className="map-footer-links">
                 <DisclaimerLink onClick={() => setDisclaimerOpen(true)} />
                 <IssueReportLink onClick={() => setIssueReportOpen(true)} />

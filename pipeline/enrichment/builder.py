@@ -31,14 +31,19 @@ _LAYER_NAME_MAP = {
     "wma": "wma",
     "historic_sites": "historic_sites",
     "watersheds": "watersheds",
-    "osm_admin_boundaries": "osm_admin",
+    "land_access": "land_access",
     "aboriginal_lands": "aboriginal_lands",
 }
 
 # Layers that show ALL features regardless of regulation status.
 # Layers NOT listed here default to "regulated_only" — only features
 # with an explicit admin_target reference are shown on the map.
-_SHOW_ALL_LAYERS = {"eco_reserves", "parks_nat", "aboriginal_lands"}
+# land_access is "all" so watersheds/DND/private land render even though
+# most of them are only covered by the unscoped (no feature_id)
+# LAND_ACCESS_NO/LAND_ACCESS_PRIVATE/LAND_ACCESS_CLOSED_OTHER/
+# LAND_ACCESS_RESTRICTED advisories, not a specific feature_id target
+# like the Malcolm Knapp closure.
+_SHOW_ALL_LAYERS = {"eco_reserves", "parks_nat", "aboriginal_lands", "land_access"}
 
 
 def _collect_admin_visibility(

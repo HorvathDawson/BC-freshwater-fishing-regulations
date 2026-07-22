@@ -106,7 +106,7 @@ export interface Regulation {
   scope_type: string;
   scope_location: string | null;
   restriction_exception?: string;
-  source: 'synopsis' | 'provincial' | 'zone';
+  source: 'synopsis' | 'provincial' | 'zone' | 'municipal' | 'land_access';
   zone_ids?: string[];
   feature_types?: string[] | null;
   iid?: string;

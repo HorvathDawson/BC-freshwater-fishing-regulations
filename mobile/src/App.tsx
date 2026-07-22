@@ -22,6 +22,7 @@ import { regulationsService } from './data/regulationsService';
 import { getFeatureDisplayName } from './utils/featureUtils';
 import type { NameVariant } from './utils/featureUtils';
 import { colors, spacing, typography } from './theme/tokens';
+import { useDawnDusk } from './hooks/useDawnDusk';
 
 type LoadState =
   | { phase: 'loading'; progress: number }
@@ -31,6 +32,7 @@ type LoadState =
 export default function App(): React.JSX.Element {
   const [load, setLoad] = useState<LoadState>({ phase: 'loading', progress: 0 });
   const [panel, setPanel] = useState<InfoPanelData | null>(null);
+  const { times: dawnDusk, updatePosition: updateDawnDuskPosition } = useDawnDusk();
 
   useEffect(() => {
     let cancelled = false;
@@ -99,8 +101,8 @@ export default function App(): React.JSX.Element {
         <StatusBar style="light" />
         {load.phase === 'ready' ? (
           <>
-            <MapView onFeatureTap={handleFeatureTap} />
-            <InfoPanel data={panel} onClose={() => setPanel(null)} />
+            <MapView onFeatureTap={handleFeatureTap} onRegionChange={updateDawnDuskPosition} />
+            <InfoPanel data={panel} onClose={() => setPanel(null)} dawnDusk={dawnDusk} />
           </>
         ) : (
           <View style={styles.center}>

@@ -674,7 +674,7 @@ class TestBaseRegulationsJson:
         for entry in data:
             reg = BaseRegulationDef.from_dict(entry)
             assert reg.reg_id
-            assert reg.source in ("zone", "provincial")
+            assert reg.source in ("zone", "provincial", "municipal", "land_access")
             assert reg.rule_text
             assert isinstance(reg.restriction, dict)
 

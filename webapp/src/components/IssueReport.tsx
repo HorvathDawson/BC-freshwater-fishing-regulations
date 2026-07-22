@@ -1,13 +1,10 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { X, Check, ExternalLink, Copy, Send } from 'lucide-react';
 import './IssueReport.css';
+import { API_BASE } from '../config/endpoints';
 
 /** GitHub repo that receives pre-filled issue reports. */
 const GITHUB_REPO = 'HorvathDawson/BC-freshwater-fishing-regulations';
-
-/** Base URL for the /api/feedback endpoint — empty in dev (Vite proxies to the
- *  worker), the R2 worker origin in production. Mirrors waterbodyDataService. */
-const API_BASE = import.meta.env.VITE_TILE_BASE_URL || '';
 
 /** Pragmatic email shape check (mirrors the worker's server-side validation).
  *  Deliberately loose — the goal is to catch typos, not enforce RFC 5322. */

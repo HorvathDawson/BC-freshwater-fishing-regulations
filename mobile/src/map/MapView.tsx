@@ -8,7 +8,7 @@
  * NOTE: `@maplibre/maplibre-react-native` requires a custom dev client (it is a
  * native module and does not run in Expo Go). See `mobile/README.md`.
  */
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { StyleSheet, View } from 'react-native';
 import MapLibreGL from '@maplibre/maplibre-react-native';
 
@@ -35,9 +35,11 @@ export interface TappedFeature {
 interface MapViewProps {
   /** Called when the user taps a waterbody/reserve feature. */
   onFeatureTap?: (feature: TappedFeature) => void;
+  /** Called when the map finishes panning/zooming, with the new center [lat, lng]. */
+  onRegionChange?: (lat: number, lng: number) => void;
 }
 
-export function MapView({ onFeatureTap }: MapViewProps): React.JSX.Element {
+export function MapView({ onFeatureTap, onRegionChange }: MapViewProps): React.JSX.Element {
   const mapRef = useRef<MapLibreGL.MapView>(null);
 
   const handlePress = useCallback(
@@ -63,6 +65,21 @@ export function MapView({ onFeatureTap }: MapViewProps): React.JSX.Element {
     [onFeatureTap],
   );
 
+  const handleRegionDidChange = useCallback(
+    (feature: GeoJSON.Feature<GeoJSON.Point>) => {
+      const [lng, lat] = feature.geometry.coordinates as [number, number];
+      onRegionChange?.(lat, lng);
+    },
+    [onRegionChange],
+  );
+
+  // Seed the initial camera position (dawn/dusk needs a starting point even
+  // before the user pans).
+  useEffect(() => {
+    onRegionChange?.(INITIAL_CENTER[1], INITIAL_CENTER[0]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
     <View style={styles.container}>
       <MapLibreGL.MapView
@@ -70,6 +87,7 @@ export function MapView({ onFeatureTap }: MapViewProps): React.JSX.Element {
         style={styles.map}
         styleJSON={JSON.stringify(buildMapStyle())}
         onPress={handlePress}
+        onRegionDidChange={handleRegionDidChange}
         logoEnabled={false}
         attributionEnabled
       >

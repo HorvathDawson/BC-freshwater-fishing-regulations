@@ -347,8 +347,9 @@ _ADMIN_LAYER_MAP = {
     "wma": "wma",
     "historic_sites": "historic_sites",
     "watersheds": "watersheds",
-    "osm_admin_boundaries": "osm_admin",
+    "land_access": "land_access",
     "aboriginal_lands": "aboriginal_lands",
+    "land_parcels_crown": "land_parcels_crown",
 }
 
 
@@ -375,8 +376,17 @@ def _assign_admin_targeted(
         target = dict(target_dict)
         layer = target["layer"]
         feature_id = target.get("feature_id")
+        type_filter = target.get("type_filter")
+        level_filter = target.get("restriction_level_filter")
+        access_filter = target.get("access_filter")
 
-        cache_key = (layer, feature_id)
+        # Cache key must include every filter that can change which
+        # records `admin_list` resolves to — two targets on the same
+        # (layer, feature_id) but different type_filter/restriction_level_filter/
+        # access_filter are NOT the same result set (e.g. LAND_ACCESS_NO vs
+        # LAND_ACCESS_PRIVATE both target layer="land_access" with no
+        # feature_id, filtered only by access_filter).
+        cache_key = (layer, feature_id, type_filter, level_filter, access_filter)
         if cache_key in admin_cache:
             cached_fids, cached_wbks = admin_cache[cache_key]
             count += _filter_and_assign(
@@ -405,9 +415,23 @@ def _assign_admin_targeted(
         # Filter by admin_type if type_filter is specified.
         # Used e.g. to target only ECOLOGICAL_RESERVE within the eco_reserves
         # dict (which also contains PROVINCIAL_PARK, PROTECTED_AREA, etc.).
-        type_filter = target.get("type_filter")
         if type_filter:
             admin_list = [r for r in admin_list if r.admin_type == type_filter]
+
+        # Filter by restriction_level if restriction_level_filter is specified.
+        # Used to split the land_access layer into "closed" (no public access)
+        # vs "restricted" (conditional/permit-based access) advisory regs.
+        if level_filter:
+            admin_list = [r for r in admin_list if r.restriction_level == level_filter]
+
+        # Filter by the raw OSM access tag if access_filter is specified.
+        # Used to give "access=no" and "access=private" land_access polygons
+        # distinct regulation wording even though both fall under the same
+        # "closed" restriction_level for map-styling purposes. `""` is a
+        # meaningful filter value here (landuse=military polygons with no
+        # explicit access tag), so this checks `is not None`, not truthiness.
+        if access_filter is not None:
+            admin_list = [r for r in admin_list if r.access == access_filter]
 
         if not admin_list:
             logger.warning(

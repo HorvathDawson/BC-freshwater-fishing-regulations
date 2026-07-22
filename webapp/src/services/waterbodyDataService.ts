@@ -13,6 +13,8 @@
  *     segments[]       — [{rid, display_name, name_variants[], feature_type, reg_set_index, watershed_code, min_zoom, regions[], bbox, length_km, waterbody_group, fids[], tributary_reg_ids[]}]
  */
 
+import { DATA_BASE, API_BASE } from '../config/endpoints';
+
 /** Name variant with source provenance (structurally identical to NameVariant in featureUtils) */
 export interface NameVariantEntry {
   name: string;
@@ -75,10 +77,10 @@ interface SynopsisReg {
   };
 }
 
-/** Raw base regulation (zone/provincial) from regulation_index.json */
+/** Raw base regulation (zone/provincial/municipal/land_access) from regulation_index.json */
 interface BaseReg {
   raw_regs: string;
-  source: 'zone' | 'provincial';
+  source: 'zone' | 'provincial' | 'municipal' | 'land_access';
   restriction?: { type: string; details: string };
   zone_ids?: string[];
   dates?: string[];
@@ -162,7 +164,7 @@ export interface Regulation {
   /** Verbatim "except ..." carve-out for this rule, shown inline in the UI so
    *  each rule card is self-contained.  Empty/undefined when none. */
   restriction_exception?: string;
-  source: 'synopsis' | 'provincial' | 'zone';
+  source: 'synopsis' | 'provincial' | 'zone' | 'municipal' | 'land_access';
   zone_ids?: string[];
   feature_types?: string[] | null;
   iid?: string;
@@ -440,9 +442,9 @@ class WaterbodyDataService {
   private dataVersionPromise: Promise<string> | null = null;
 
   /** /data endpoint for file fetches (tier0.json, pmtiles, admin_visibility) */
-  private static readonly DATA_BASE = import.meta.env.VITE_TILE_BASE_URL || '/data';
+  private static readonly DATA_BASE = DATA_BASE;
   /** API endpoint for /api/resolve, /api/version */
-  private static readonly API_BASE = import.meta.env.VITE_TILE_BASE_URL || '';
+  private static readonly API_BASE = API_BASE;
 
   private static readonly ETAG_KEY = 'tier0_etag';
   private static readonly DATA_KEY = 'tier0_data';

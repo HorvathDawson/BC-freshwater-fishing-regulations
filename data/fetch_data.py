@@ -179,7 +179,7 @@ _PARCEL_NOISE_CLASSES = (
 def fetch_parcel_fabric(
     short_name: str, zip_url: str, gdb_layer: str, gpkg_path: Path, temp_dir: Path
 ) -> None:
-    """Fetch ParcelMap BC, split into a private layer and a dissolved crown layer.
+    """Fetch ParcelMap BC and dissolve every parcel into one merged polygon per OWNER_TYPE.
 
     Uses the BC Data Catalogue's bulk File Geodatabase download rather than
     paginated WFS — one ~358MB zip for all 2.49M parcels province-wide,
@@ -189,89 +189,41 @@ def fetch_parcel_fabric(
 
     Most of those 2.49M parcels don't matter for "is this shoreline private
     or public": condo units, road allowances, and legal interests carry no
-    distinct ground footprint. This:
+    distinct ground footprint. Those noise classes are dropped at read-time
+    via pyogrio's ``where=`` (an attribute filter pushed down to GDAL, so
+    excluded rows are never even parsed into memory).
 
-      1. Drops those noise classes at read-time via pyogrio's ``where=``
-         (an attribute filter pushed down to GDAL, so excluded rows are never
-         even parsed into memory).
-      2. Keeps every remaining ``OWNER_TYPE='Private'`` parcel as its own
-         polygon (``{short_name}_private``) — individual boundaries are the
-         point, since that's what tells you whose land you'd be crossing.
-      3. Dissolves every non-private parcel (Crown Provincial, Crown Agency,
-         Federal, Local Government, First Nations, Untitled Provincial,
-         Mixed Ownership, Unclassified) into one merged polygon per
-         ``OWNER_TYPE`` (``{short_name}_crown``) — the distinction between
-         individual adjacent government parcels doesn't matter here, only
-         "not private" does, so merging collapses what would otherwise be
-         hundreds of thousands of slivers into a handful of polygons.
+    Every remaining parcel — Private included — is dissolved into one merged
+    polygon per ``OWNER_TYPE`` (Private, Crown Provincial, Crown Agency,
+    Federal, Local Government, First Nations, Untitled Provincial, Mixed
+    Ownership, Unclassified), written to a single ``{short_name}_crown``
+    layer. Individual parcel-level boundaries aren't kept for Private either
+    — for a province-wide "is this land private" advisory, only the
+    ownership category matters, not the ~1.29M individual property lines,
+    so this collapses what would otherwise be well over a million slivers
+    (across all ownership types) into a small handful of polygons, the same
+    way the previous crown-only dissolve did.
     """
     gdb_path = ensure_ftp_extracted(zip_url, temp_dir)
     noise_list = ", ".join(f"'{c}'" for c in _PARCEL_NOISE_CLASSES)
 
-    print(f"\n[GDB] Reading private parcels from {gdb_path.name} ...")
-    private_gdf = gpd.read_file(
+    print(f"\n[GDB] Reading parcels from {gdb_path.name} ...")
+    parcels_gdf = gpd.read_file(
         gdb_path, layer=gdb_layer, engine="pyogrio",
-        where=f"OWNER_TYPE='Private' AND PARCEL_CLASS NOT IN ({noise_list})",
+        where=f"PARCEL_CLASS NOT IN ({noise_list})",
     )
-    if private_gdf.crs and private_gdf.crs.to_epsg() != 3005:
-        private_gdf = private_gdf.to_crs(epsg=3005)
-    private_gdf.to_file(gpkg_path, layer=f"{short_name}_private", driver="GPKG", engine="pyogrio")
-    print(f"  ✅ '{short_name}_private': {len(private_gdf):,} parcel(s)")
-
-    print(f"\n[GDB] Reading non-private parcels from {gdb_path.name} ...")
-    crown_gdf = gpd.read_file(
-        gdb_path, layer=gdb_layer, engine="pyogrio",
-        where=f"OWNER_TYPE<>'Private' AND PARCEL_CLASS NOT IN ({noise_list})",
-    )
-    if crown_gdf.empty:
-        print(f"  ⚠️  '{short_name}_crown': no non-private parcels found.")
+    if parcels_gdf.empty:
+        print(f"  ⚠️  '{short_name}_crown': no parcels found.")
         return
-    if crown_gdf.crs and crown_gdf.crs.to_epsg() != 3005:
-        crown_gdf = crown_gdf.to_crs(epsg=3005)
+    if parcels_gdf.crs and parcels_gdf.crs.to_epsg() != 3005:
+        parcels_gdf = parcels_gdf.to_crs(epsg=3005)
 
-    print(f"  Dissolving {len(crown_gdf):,} non-private parcels by OWNER_TYPE...")
-    dissolved = crown_gdf.dissolve(by="OWNER_TYPE", as_index=False)
+    print(f"  Dissolving {len(parcels_gdf):,} parcels by OWNER_TYPE (Private included)...")
+    dissolved = parcels_gdf.dissolve(by="OWNER_TYPE", as_index=False)
     dissolved = dissolved[["OWNER_TYPE", "geometry"]]
     dissolved.to_file(gpkg_path, layer=f"{short_name}_crown", driver="GPKG", engine="pyogrio")
     print(f"  ✅ '{short_name}_crown': {len(dissolved)} merged polygon(s) "
-          f"(from {len(crown_gdf):,} source parcels)")
-
-
-def fetch_osm_roi_boundaries(short_name, queries, gpkg_path):
-    """Fetches multiple OSM polygons and merges them into a single ROI layer."""
-    print(f"\n[OSM] Building ROI Layer: {short_name}")
-    is_first = True
-
-    for query in queries:
-        print(f"  -> Fetching query: {query}")
-        try:
-            gdf = ox.geocoder.geocode_to_gdf(query)
-            if gdf.empty:
-                print(f"     ⚠️ No results for {query}")
-                continue
-
-            if gdf.crs and gdf.crs.to_epsg() != 3005:
-                gdf = gdf.to_crs(epsg=3005)
-
-            # Clean list-type columns for GPKG compatibility
-            for col in gdf.columns:
-                if gdf[col].apply(lambda x: isinstance(x, list)).any():
-                    gdf[col] = gdf[col].apply(str)
-
-            # Determine write mode: overwrite on first success, append thereafter
-            write_mode = "w" if is_first else "a"
-            gdf.to_file(
-                gpkg_path,
-                layer=short_name,
-                driver="GPKG",
-                engine="pyogrio",
-                mode=write_mode,
-            )
-            is_first = False
-            print(f"     ✅ Added {query}")
-
-        except Exception as e:
-            logger.warning("OSM fetch failed for '%s': %s", query, e)
+          f"(from {len(parcels_gdf):,} source parcels)")
 
 
 def fetch_overpass_aboriginal_lands(short_name: str, gpkg_path: Path) -> None:
@@ -517,22 +469,51 @@ _RESTRICTIVE_ACCESS_VALUES = {
     "no",
 }
 
+# access values (or landuse=military, which often carries no explicit
+# access tag at all) that mean "the public cannot get in" — vs. the
+# remaining restrictive values, which mean "conditional/permission-based
+# entry." Drives the `restriction_level` column below, which the regulation
+# pipeline uses to split a single generic "Closed" advisory from a lighter
+# "Restricted" one (see LAND_ACCESS_CLOSED / LAND_ACCESS_RESTRICTED in
+# base_regulations.json).
+_CLOSED_ACCESS_VALUES = {"no", "private"}
+
+# Small hardcoded list of named areas with real-world access restrictions
+# that don't carry a matching OSM access/landuse tag (so the tag-based query
+# above wouldn't find them) — geocoded by name via the same mechanism the
+# old, now-retired `osm_admin_boundaries` dataset used. Folded in here so
+# `land_access` is the single source of truth for this kind of restriction,
+# rather than a separate always-one-hardcoded-query dataset.
+_NAMED_RESTRICTED_AREAS = ["Malcolm Knapp Research Forest"]
+
 
 def fetch_overpass_land_access(short_name: str, gpkg_path: Path) -> None:
     """Fetch BC land polygons with restrictive access from OSM via Overpass.
 
-    Captures land the public cannot freely enter: private/restricted protected
+    Captures land the public cannot freely enter: restricted protected
     areas & nature reserves (e.g. Metro Vancouver's Coquitlam Watershed —
     ``access=private``, ``boundary=protected_area``, ``leisure=nature_reserve``,
-    ``protect_class=12``), plus any other area feature carrying one of the
-    access-restriction values documented at
-    https://wiki.openstreetmap.org/wiki/Tag:access=private — private,
-    permissive, permit, destination, customers, no.
+    ``protect_class=12``), DND/military land (``landuse=military``, which
+    often carries no ``access`` tag of its own), and municipal watersheds
+    (``landuse=reservoir_watershed``).
 
     Only closed ways / multipolygon relations are kept — an open way tagged
     ``highway``/``barrier`` (a private driveway, gate, trail) is a linear
     feature, not land, and is excluded at the query level to keep the result
     set to actual parcels.
+
+    The raw Overpass query matches any closed way/relation carrying a
+    restrictive ``access`` value (private, permissive, permit, destination,
+    customers, no — see https://wiki.openstreetmap.org/wiki/Tag:access=private),
+    which pulls in a lot more than land-access restrictions: checked live,
+    91% of raw results were backyard/hotel swimming pools or unlabeled
+    private parking lots. Everything not tagged ``landuse=military``,
+    ``boundary=protected_area``, ``leisure=nature_reserve``, or
+    ``landuse=reservoir_watershed`` is filtered back out before writing.
+
+    Also folds in a small supplemental pass of named areas (geocoded by
+    name, not by tag) that are known to be access-restricted but don't
+    carry a matching OSM tag — see ``_NAMED_RESTRICTED_AREAS``.
     """
     print(f"\n[OVERPASS] Fetching land access layer for BC...")
 
@@ -546,6 +527,8 @@ area["ISO3166-2"="CA-BC"]["admin_level"="4"]->.bc;
 (
   way["access"~"^({access_re})$"]["highway"!~".*"]["barrier"!~".*"](area.bc);
   relation["access"~"^({access_re})$"](area.bc);
+  way["landuse"="military"]["highway"!~".*"]["barrier"!~".*"](area.bc);
+  relation["landuse"="military"](area.bc);
 );
 out body;
 >;
@@ -563,7 +546,10 @@ out skel qt;
         e
         for e in elements
         if e["type"] == "way"
-        and e.get("tags", {}).get("access") in _RESTRICTIVE_ACCESS_VALUES
+        and (
+            e.get("tags", {}).get("access") in _RESTRICTIVE_ACCESS_VALUES
+            or e.get("tags", {}).get("landuse") == "military"
+        )
     ]
 
     def _way_coords(way_element):
@@ -612,6 +598,11 @@ out skel qt;
             result = result.difference(ip)
         return result if not result.is_empty else None
 
+    def _restriction_level(tags):
+        if tags.get("access") in _CLOSED_ACCESS_VALUES or tags.get("landuse") == "military":
+            return "closed"
+        return "restricted"
+
     def _tags_to_record(osm_id, tags, geom, osm_type):
         return {
             "osm_id": str(osm_id),
@@ -624,6 +615,7 @@ out skel qt;
             "protect_class": tags.get("protect_class", ""),
             "owner": tags.get("owner", ""),
             "operator": tags.get("operator", ""),
+            "restriction_level": _restriction_level(tags),
             "geometry": geom,
         }
 
@@ -651,6 +643,52 @@ out skel qt;
             _tags_to_record(way_el["id"], way_el.get("tags", {}), Polygon(coords), "way")
         )
 
+    # Drop tag-driven noise: the raw Overpass query above matches ANY closed
+    # way/relation carrying a restrictive `access` value, regardless of what
+    # kind of feature it actually is. Checked live against a full BC fetch:
+    # 91% of the 16,360 raw results were backyard/hotel swimming pools
+    # (leisure=swimming_pool, 33%) or completely unlabeled parking lots
+    # (58% — named "Impark", "Visitor Parking", "Staff Parking", etc, with
+    # no boundary/leisure/landuse tag of any kind) — none of which bear on
+    # "can the public reach this water to fish." Keep only the tag
+    # combinations that represent a real land-access restriction: military
+    # bases, protected areas / nature reserves, and municipal watersheds.
+    before = len(records)
+    records = [
+        r for r in records
+        if r["landuse"] == "military"
+        or r["boundary"] == "protected_area"
+        or r["leisure"] == "nature_reserve"
+        or r["landuse"] == "reservoir_watershed"
+    ]
+    print(f"  Filtered {before:,} raw tagged polygons → {len(records):,} "
+          f"real land-access restrictions (dropped pools/parking/other noise)")
+
+    # Supplemental named-area pass — areas known to be access-restricted in
+    # the real world but not reliably tagged in OSM for the query above.
+    # Folds in what the retired `osm_admin_boundaries` dataset used to do.
+    # Exempt from the noise filter above: this is a small, hand-curated
+    # list, not raw crowd-sourced tagging, so being on it already means
+    # it's a real restriction regardless of what tags it carries.
+    for name in _NAMED_RESTRICTED_AREAS:
+        print(f"  -> Geocoding named restricted area: {name}")
+        try:
+            named_gdf = ox.geocoder.geocode_to_gdf(name)
+        except Exception as e:
+            logger.warning("Named-area geocode failed for '%s': %s", name, e)
+            continue
+        if named_gdf.empty:
+            print(f"     ⚠️ No results for {name}")
+            continue
+        if named_gdf.crs and named_gdf.crs.to_epsg() != 4326:
+            named_gdf = named_gdf.to_crs(epsg=4326)
+        row = named_gdf.iloc[0]
+        tags = {"name": row.get("name") or name, "access": "permit"}
+        records.append(
+            _tags_to_record(row.get("osm_id"), tags, row.geometry, "relation")
+        )
+        print(f"     ✅ Added {name}")
+
     if not records:
         print("  ⚠️  No land-access polygons found.")
         return
@@ -675,13 +713,17 @@ def fetch_overpass_water_access(short_name: str, gpkg_path: Path) -> None:
 
     - ``leisure=slipway``   — boat launch/ramp
     - ``man_made=pier``     — dock/pier
-    - ``leisure=marina``    — marina
     - ``leisure=fishing``   — designated fishing platform/spot
+
+    Marina (``leisure=marina``) deliberately excluded — not relevant to
+    "can I get to the water to fish" (a marina is boat moorage, not a
+    fishing access point), so it was dropped as noise rather than kept as
+    a fourth category.
 
     Not a permission/regulation layer — BC's own regulations already cover
     where fishing is allowed, so this is deliberately just the physical
-    infrastructure. Almost all features are nodes; piers/marinas
-    occasionally come through as a way (the structure's outline/edge).
+    infrastructure. Almost all features are nodes; piers occasionally come
+    through as a way (the structure's outline/edge).
     """
     print(f"\n[OVERPASS] Fetching water access points for BC...")
 
@@ -693,8 +735,6 @@ area["ISO3166-2"="CA-BC"]["admin_level"="4"]->.bc;
   way["leisure"="slipway"](area.bc);
   node["man_made"="pier"](area.bc);
   way["man_made"="pier"](area.bc);
-  node["leisure"="marina"](area.bc);
-  way["leisure"="marina"](area.bc);
   node["leisure"="fishing"](area.bc);
   way["leisure"="fishing"](area.bc);
 );
@@ -714,8 +754,6 @@ out skel qt;
             return "boat_launch"
         if tags.get("man_made") == "pier":
             return "pier"
-        if tags.get("leisure") == "marina":
-            return "marina"
         if tags.get("leisure") == "fishing":
             return "fishing_platform"
         return None
@@ -734,6 +772,7 @@ out skel qt;
             "poi_type": poi_type,
             "name": tags.get("name", tags.get("alt_name", "")),
             "access": tags.get("access", ""),
+            "mooring": tags.get("mooring", ""),
             "fee": tags.get("fee", ""),
             "surface": tags.get("surface", ""),
             "motorboat": tags.get("motorboat", ""),
@@ -742,11 +781,30 @@ out skel qt;
             "geometry": geom,
         }
 
+    # A feature carrying a private-access signal isn't a real public water
+    # access point, even though it's tagged with the right leisure/man_made
+    # kind — e.g. a private dock: `man_made=pier, access=private,
+    # mooring=private`. Checked both `access` (the general OSM access tag)
+    # and `mooring` (boat-mooring-specific, can be set without a matching
+    # `access` tag) so a private mooring doesn't slip through either way.
+    _PRIVATE_ACCESS_VALUES = {"private", "no"}
+
+    def _is_publicly_accessible(tags):
+        if tags.get("access") in _PRIVATE_ACCESS_VALUES:
+            return False
+        if tags.get("mooring") in _PRIVATE_ACCESS_VALUES:
+            return False
+        return True
+
     records = []
+    dropped_private = 0
     for el in elements:
         tags = el.get("tags", {})
         poi_type = _poi_type(tags)
         if poi_type is None:
+            continue
+        if not _is_publicly_accessible(tags):
+            dropped_private += 1
             continue
         if el["type"] == "node":
             geom = Point(el["lon"], el["lat"])
@@ -758,6 +816,10 @@ out skel qt;
         else:
             continue
         records.append(_tags_to_record(el["id"], tags, geom, el["type"], poi_type))
+
+    if dropped_private:
+        print(f"  Dropped {dropped_private:,} private-access water access points "
+              f"(access=private/no or mooring=private/no)")
 
     if not records:
         print("  ⚠️  No water access features found.")
@@ -1204,7 +1266,7 @@ def _layer_already_fetched(name: str, cfg: dict, gpkg_out: Path, existing_layers
     """
     t = cfg["type"]
     if t == "PARCEL_FABRIC":
-        return {f"{name}_private", f"{name}_crown"}.issubset(existing_layers)
+        return f"{name}_crown" in existing_layers
     if t in ("R2_FILE", "CSV_DOWNLOAD", "OSM_PLACES"):
         dest = gpkg_out.parent / cfg["dest"]
         return dest.exists() and dest.stat().st_size > 0
@@ -1239,13 +1301,6 @@ def main():
     )
 
     DATASETS = {
-        # OSM Admin Boundaries Layer - Add as many names as you like to this list
-        "osm_admin_boundaries": {
-            "type": "OSM_ADMIN",
-            "queries": [
-                "Malcolm Knapp Research Forest",
-            ],
-        },
         # Aboriginal / Indigenous lands from OpenStreetMap (Overpass API)
         "aboriginal_lands": {
             "type": "OVERPASS_ABORIGINAL",
@@ -1257,7 +1312,7 @@ def main():
             "type": "OVERPASS_LAND_ACCESS",
         },
         # OSM physical water-access points — boat launches, docks/piers,
-        # marinas, designated fishing platforms. Not a permission layer (BC's
+        # designated fishing platforms. Not a permission layer (BC's
         # own regulations already cover where fishing is allowed) — just the
         # physical "can I get to the water, and what's there" infrastructure.
         "water_access_points": {
@@ -1273,11 +1328,11 @@ def main():
         # ParcelMap BC — parcel-level land ownership. Bulk File Geodatabase
         # download (~358MB, all 2.49M parcels), same pattern as FWA_BC.zip
         # above. fetch_parcel_fabric() drops condo/road/interest noise
-        # classes at read-time and dissolves non-private ownership into one
-        # merged polygon per OWNER_TYPE, writing "{name}_private" (individual
-        # private lots) + "{name}_crown" (merged public land) layers. Still a
-        # heavier pull than most layers here, same as `streams` — included in
-        # every run by default, not gated behind `--layers`.
+        # classes at read-time and dissolves every remaining parcel —
+        # Private included — into one merged polygon per OWNER_TYPE,
+        # writing a single "{name}_crown" layer. Still a heavier pull than
+        # most layers here, same as `streams` — included in every run by
+        # default, not gated behind `--layers`.
         "land_parcels": {
             "type": "PARCEL_FABRIC",
             "url": PARCEL_FABRIC_ZIP,
@@ -1413,8 +1468,6 @@ def main():
                 fetch_wfs_paginated(name, cfg["source"], gpkg_out, temp_dir)
             elif cfg["type"] == "PARCEL_FABRIC":
                 fetch_parcel_fabric(name, cfg["url"], cfg["layer"], gpkg_out, temp_dir)
-            elif cfg["type"] in ("OSM_ROI", "OSM_ADMIN"):
-                fetch_osm_roi_boundaries(name, cfg["queries"], gpkg_out)
             elif cfg["type"] == "FWA_GDB":
                 extract_gdb_layer(name, cfg["ftp"], cfg["layer"], gpkg_out, temp_dir)
             elif cfg["type"] == "FWA_STREAMS":

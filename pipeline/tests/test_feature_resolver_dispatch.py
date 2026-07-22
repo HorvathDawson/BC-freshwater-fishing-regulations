@@ -120,7 +120,7 @@ class AtlasStub:
         self.historic_sites: Dict[str, AdminRecord] = {}
         self.watersheds: Dict[str, AdminRecord] = {}
         self.wmu: Dict[str, AdminRecord] = {}
-        self.osm_admin: Dict[str, AdminRecord] = {}
+        self.land_access: Dict[str, AdminRecord] = {}
         self.aboriginal_lands: Dict[str, AdminRecord] = {}
         self.poly_id_to_wbk: Dict[str, str] = {}
         self.zone_polygons: Dict[str, Any] = {}

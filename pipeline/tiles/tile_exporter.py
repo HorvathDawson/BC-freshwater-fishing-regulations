@@ -27,7 +27,7 @@ from shapely.geometry.base import BaseGeometry
 from shapely.ops import unary_union
 
 from ..atlas.freshwater_atlas import FreshWaterAtlas
-from ..atlas.models import AdminRecord, PolygonRecord, StreamRecord
+from ..atlas.models import AdminRecord, PointRecord, PolygonRecord, RoadRecord, StreamRecord
 from ..matching.display_name_resolver import DisplayNameResolver
 
 logger = logging.getLogger(__name__)
@@ -233,15 +233,35 @@ class TileExporter:
             "label": "Named Watersheds",
             "type": "polygon",
         },
-        "osm_admin": {
+        "land_access": {
             "visible": True,
-            "label": "Restricted Areas",
+            "label": "Land Access",
             "type": "polygon",
         },
         "aboriginal_lands": {
             "visible": True,
             "label": "Indigenous Lands",
             "type": "polygon",
+        },
+        "land_parcels_crown": {
+            "visible": True,
+            "label": "Land Ownership (Crown/Public + Private)",
+            "type": "polygon",
+        },
+        "forest_service_roads": {
+            "visible": True,
+            "label": "Forest Service Roads",
+            "type": "line",
+        },
+        "water_access_points": {
+            "visible": True,
+            "label": "Water Access Points",
+            "type": "point",
+        },
+        "waterfalls": {
+            "visible": True,
+            "label": "Waterfalls",
+            "type": "point",
         },
         "bc_mask": {
             "visible": True,
@@ -306,13 +326,19 @@ class TileExporter:
                 lambda p: self._write_admin(p, self.atlas.watersheds, "watersheds"),
             ),
             (
-                "osm_admin",
-                lambda p: self._write_admin(p, self.atlas.osm_admin, "osm_admin"),
+                "land_access",
+                lambda p: self._write_admin(p, self.atlas.land_access, "land_access"),
             ),
             (
                 "aboriginal_lands",
                 lambda p: self._write_admin(
                     p, self.atlas.aboriginal_lands, "aboriginal_lands"
+                ),
+            ),
+            (
+                "land_parcels_crown",
+                lambda p: self._write_admin(
+                    p, self.atlas.land_parcels_crown, "land_parcels_crown"
                 ),
             ),
             (
@@ -323,6 +349,20 @@ class TileExporter:
             ("regions", lambda p: self._write_regions(p)),
             ("regions_fill", lambda p: self._write_regions_fill(p)),
             ("bc_mask", lambda p: self._write_bc_mask(p)),
+            (
+                "forest_service_roads",
+                lambda p: self._write_roads(p, self.atlas.forest_service_roads),
+            ),
+            (
+                "water_access_points",
+                lambda p: self._write_points(
+                    p, self.atlas.water_access_points, "water_access_points"
+                ),
+            ),
+            (
+                "waterfalls",
+                lambda p: self._write_points(p, self.atlas.waterfalls, "waterfalls"),
+            ),
         ]
 
     def _write_streams(self, path: Path, records: Dict[str, StreamRecord]) -> int:
@@ -400,14 +440,66 @@ class TileExporter:
         with open(path, "wb") as f:
             for rec in records.values():
                 geom = _to_wgs84(rec.geometry)
+                properties: Dict[str, Any] = {
+                    "admin_id": rec.admin_id,
+                    "name": rec.display_name,
+                    "display_name": rec.display_name,
+                    "admin_type": rec.admin_type,
+                    "area": rec.area,
+                }
+                if rec.restriction_level:
+                    properties["restriction_level"] = rec.restriction_level
+                feature = {
+                    "type": "Feature",
+                    "properties": properties,
+                    "geometry": _round_coords(geom.__geo_interface__),
+                    "tippecanoe": {
+                        "layer": layer_name,
+                        "minzoom": rec.minzoom,
+                    },
+                }
+                f.write(orjson.dumps(feature) + b"\n")
+                count += 1
+        return count
+
+    def _write_roads(self, path: Path, records: Dict[str, RoadRecord]) -> int:
+        """Write BC Forest Service Road sections as GeoJSONSeq."""
+        count = 0
+        with open(path, "wb") as f:
+            for rec in records.values():
+                geom = _to_wgs84(rec.geometry)
                 feature = {
                     "type": "Feature",
                     "properties": {
-                        "admin_id": rec.admin_id,
-                        "name": rec.display_name,
+                        "fid": rec.fid,
                         "display_name": rec.display_name,
-                        "admin_type": rec.admin_type,
-                        "area": rec.area,
+                        "status": rec.status,
+                    },
+                    "geometry": _round_coords(geom.__geo_interface__),
+                    "tippecanoe": {
+                        "layer": "forest_service_roads",
+                        "minzoom": rec.minzoom,
+                    },
+                }
+                f.write(orjson.dumps(feature) + b"\n")
+                count += 1
+        return count
+
+    def _write_points(
+        self, path: Path, records: Dict[str, PointRecord], layer_name: str
+    ) -> int:
+        """Write point-of-interest records (water access, waterfalls) as GeoJSONSeq."""
+        count = 0
+        with open(path, "wb") as f:
+            for rec in records.values():
+                geom = _to_wgs84(rec.geometry)
+                feature = {
+                    "type": "Feature",
+                    "properties": {
+                        "id": rec.id,
+                        "display_name": rec.display_name,
+                        "poi_type": rec.poi_type,
+                        "extra": rec.extra,
                     },
                     "geometry": _round_coords(geom.__geo_interface__),
                     "tippecanoe": {

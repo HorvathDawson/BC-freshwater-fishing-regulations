@@ -1,4 +1,4 @@
-import type { LayerSpecification } from 'maplibre-gl';
+import type { LayerSpecification, FilterSpecification } from 'maplibre-gl';
 
 // Feature base colors
 const FEATURE_COLORS = {
@@ -45,14 +45,55 @@ const ADMIN_COLORS: Record<string, string> = {
     admin_wma: '#7B2D8B',             // Purple — wildlife mgmt areas
     admin_watersheds: '#006D77',       // Deep teal — watersheds
     admin_historic_sites: '#795548',   // Warm brown — heritage sites
-    // ── OSM Admin boundaries (partial restriction) ──────────────────
-    osm_admin: '#CC7A00',              // Deep amber — partial restriction (caution)
+    // ── Land access (watersheds, private/restricted land, DND, etc.) ────
+    // Two-tier severity, not one flat color: red = no public access at all
+    // (private/no/military); amber = conditional/permit-based access (e.g.
+    // Malcolm Knapp Research Forest) — same "caution, not prohibited"
+    // language the old osm_admin amber used before it merged into this layer.
+    land_access_closed: '#DC2626',     // Red — no public access
+    land_access_restricted: '#CC7A00', // Amber — conditional/permit-based access
     // ── Indigenous / Aboriginal lands ────────────────────────────────
     aboriginal_lands: '#8B6508',       // Dark goldenrod — OSM-style tan/ochre
+    // ── Land ownership (toggled via the layer menu) ─────────────────────
+    // Deliberately outside the red/amber restriction language — this is a
+    // neutral "who owns this" informational layer, not a restriction.
+    // Two distinct colors so Crown/Public and Private read as different
+    // categories at a glance, not one undifferentiated blob.
+    land_parcels_crown: '#546E7A',      // Slate blue-grey — Crown/Public (all non-private OWNER_TYPEs)
+    land_parcels_private: '#8D6E63',    // Warm brown — Private, distinct from both crown-blue and the red/amber restriction colors
 };
 
+/** Data-driven land_access color: red for "closed", amber for "restricted".
+ *  Shared between createRegulationLayers() (fill/line) and
+ *  createAdminLabelLayers() (label text-color). */
+const LAND_ACCESS_COLOR_EXPR = [
+    'match', ['get', 'restriction_level'],
+    'closed', ADMIN_COLORS.land_access_closed,
+    'restricted', ADMIN_COLORS.land_access_restricted,
+    ADMIN_COLORS.land_access_closed,
+] as unknown as string;
+
+// Admin overlay polygon borders (national/BC parks, eco reserves, WMAs,
+// watersheds, historic sites, land access / Malcolm Knapp, land ownership,
+// Indigenous lands). Below this zoom the polygons render as fill (bg) only
+// — no border; the border fades in uniformly at this single zoom across
+// every overlay so they all appear at the same time, at a deliberately low
+// opacity so borders don't dominate once visible. This only changes HOW a
+// polygon is styled when it's already visible — the per-layer logic that
+// decides WHETHER a polygon shows at all (admin_visibility.json /
+// layer-menu toggles) is untouched.
+const ADMIN_BORDER_MINZOOM = 11;
+const ADMIN_BORDER_OPACITY = 0.35;
+
 // Helper function to create regulation layers from new PMTiles structure
-export const createRegulationLayers = (): LayerSpecification[] => {
+// Waterbody name labels (streams/lakes/wetlands/manmade/FSRs) are returned
+// separately from everything else so Map.tsx can insert them into the
+// style AFTER createAdminLabelLayers() (park/watershed/land-use/aboriginal
+// names) — MapLibre's symbol collision priority is decided by array order,
+// later layers win, so keeping them bundled together with the fills meant
+// waterbody names were losing collisions to park/land-use labels, which
+// get added later. See Map.tsx for how the two are combined.
+export const createRegulationLayers = (): { layers: LayerSpecification[]; labels: LayerSpecification[] } => {
     // Render order (bottom → top):
     //   1. fwaLayers   — waterbody fills, lines, geometry
     //   2. adminLayers — admin polygon fills, borders, query layers
@@ -271,6 +312,31 @@ export const createRegulationLayers = (): LayerSpecification[] => {
         }
     });
 
+    // Forest Service Roads — BC backcountry road network (DataBC), solid
+    // when active, dotted when retired/deactivated so users can tell a
+    // gated/decommissioned road from a driveable one at a glance.
+    // Hidden by default for now (OSM's own road coverage reads better for
+    // this) — kept wired, not deleted, so it's a one-line flip to bring
+    // back or offer as a toggle later.
+    fwaLayers.push({
+        id: 'forest_service_roads',
+        type: 'line',
+        source: 'regulations',
+        'source-layer': 'forest_service_roads',
+        minzoom: 9,
+        paint: {
+            'line-color': '#8B6D3F',
+            'line-width': ['interpolate', ['linear'], ['zoom'], 9, 0.6, 12, 1, 15, 1.8],
+            'line-opacity': 0.75,
+            'line-dasharray': ['match', ['get', 'status'], 'RETIRED', ['literal', [1, 2]], ['literal', [1, 0]]],
+        },
+        layout: {
+            visibility: 'none',
+            'line-cap': 'round',
+            'line-join': 'round',
+        },
+    });
+
     // Ungazetted waterbodies — rendered via GeoJSON source in Map.tsx
     // (populated from tier0.json search index after data load).
 
@@ -365,6 +431,33 @@ export const createRegulationLayers = (): LayerSpecification[] => {
         },
     });
 
+    // Forest Service Road labels — follow line geometry like stream labels
+    fwaLabels.push({
+        id: 'forest_service_roads-label',
+        type: 'symbol',
+        source: 'regulations',
+        'source-layer': 'forest_service_roads',
+        minzoom: 12,
+        filter: ['!=', ['get', 'display_name'], ''],
+        layout: {
+            visibility: 'none',
+            'symbol-placement': 'line',
+            'text-field': ['get', 'display_name'],
+            'text-font': ['Noto Sans Regular'],
+            'text-size': ['interpolate', ['linear'], ['zoom'], 12, 9, 15, 11],
+            'text-letter-spacing': 0.08,
+            'text-max-angle': 30,
+            'symbol-spacing': 300,
+            'text-allow-overlap': false,
+            'text-padding': 6,
+        },
+        paint: {
+            'text-color': '#8B6D3F',
+            'text-halo-color': '#FFFFFF',
+            'text-halo-width': 1.2,
+        },
+    });
+
     // Under-lake stream labels — subtle names following the dashed lines
     fwaLabels.push({
         id: 'under-lake-streams-label',
@@ -412,6 +505,11 @@ export const createRegulationLayers = (): LayerSpecification[] => {
         ],
         layout: {
             'symbol-placement': 'point',
+            // Lower sort key wins placement/collision priority — negative
+            // area means bigger lakes are placed (and win collisions)
+            // before smaller ones, so a cluster of small lakes can no
+            // longer crowd out a big, expected lake's label.
+            'symbol-sort-key': ['-', 0, ['get', 'area']],
             'text-field': ['get', 'display_name'],
             'text-font': ['Noto Sans Italic'],
             'text-size': ['interpolate', ['linear'], ['zoom'], 8, 10, 14, 14],
@@ -437,6 +535,7 @@ export const createRegulationLayers = (): LayerSpecification[] => {
         filter: ['!=', ['get', 'display_name'], ''],
         layout: {
             'symbol-placement': 'point',
+            'symbol-sort-key': ['-', 0, ['get', 'area']],
             'text-field': ['get', 'display_name'],
             'text-font': ['Noto Sans Italic'],
             'text-size': ['interpolate', ['linear'], ['zoom'], 11, 10, 14, 12],
@@ -462,6 +561,7 @@ export const createRegulationLayers = (): LayerSpecification[] => {
         filter: ['!=', ['get', 'display_name'], ''],
         layout: {
             'symbol-placement': 'point',
+            'symbol-sort-key': ['-', 0, ['get', 'area']],
             'text-field': ['get', 'display_name'],
             'text-font': ['Noto Sans Italic'],
             'text-size': ['interpolate', ['linear'], ['zoom'], 10, 10, 14, 13],
@@ -543,11 +643,11 @@ export const createRegulationLayers = (): LayerSpecification[] => {
         type: 'line',
         source: 'regulations',
         'source-layer': 'parks_nat',
-        minzoom: 9,
+        minzoom: ADMIN_BORDER_MINZOOM,
         paint: {
             'line-color': ADMIN_COLORS.admin_parks_nat,
             'line-width': 3.0,
-            'line-opacity': 0.80,
+            'line-opacity': ADMIN_BORDER_OPACITY,
         },
     });
 
@@ -569,11 +669,11 @@ export const createRegulationLayers = (): LayerSpecification[] => {
         source: 'regulations',
         'source-layer': 'eco_reserves',
         filter: ['==', ['get', 'admin_type'], 'ECOLOGICAL_RESERVE'],
-        minzoom: 9,
+        minzoom: ADMIN_BORDER_MINZOOM,
         paint: {
             'line-color': ADMIN_COLORS.ECOLOGICAL_RESERVE,
             'line-width': 2.5,
-            'line-opacity': 0.75,
+            'line-opacity': ADMIN_BORDER_OPACITY,
         },
     });
 
@@ -619,8 +719,9 @@ export const createRegulationLayers = (): LayerSpecification[] => {
                 ADMIN_COLORS.admin_parks_bc_default,
             ],
             'line-width': 1.5,
-            'line-opacity': 0.75,
+            'line-opacity': ADMIN_BORDER_OPACITY,
         },
+        minzoom: ADMIN_BORDER_MINZOOM,
     });
     adminLayers.push({
         id: 'admin_parks_bc-eco-line',
@@ -628,11 +729,11 @@ export const createRegulationLayers = (): LayerSpecification[] => {
         source: 'regulations',
         'source-layer': 'eco_reserves',
         filter: ['==', ['get', 'admin_type'], 'ECOLOGICAL_RESERVE'],
-        minzoom: 9,
+        minzoom: ADMIN_BORDER_MINZOOM,
         paint: {
             'line-color': ADMIN_COLORS.ECOLOGICAL_RESERVE,
             'line-width': 2.5,
-            'line-opacity': 0.75,
+            'line-opacity': ADMIN_BORDER_OPACITY,
         },
     });
 
@@ -650,9 +751,9 @@ export const createRegulationLayers = (): LayerSpecification[] => {
         type: 'line',
         source: 'regulations',
         'source-layer': 'wma',
-        minzoom: 9,
+        minzoom: ADMIN_BORDER_MINZOOM,
         layout: { visibility: 'none' },
-        paint: { 'line-color': ADMIN_COLORS.admin_wma, 'line-width': 1.5, 'line-opacity': 0.5 },
+        paint: { 'line-color': ADMIN_COLORS.admin_wma, 'line-width': 1.5, 'line-opacity': ADMIN_BORDER_OPACITY },
     });
 
     // Watersheds (tiles filtered to regulated features only)
@@ -669,9 +770,9 @@ export const createRegulationLayers = (): LayerSpecification[] => {
         type: 'line',
         source: 'regulations',
         'source-layer': 'watersheds',
-        minzoom: 9,
+        minzoom: ADMIN_BORDER_MINZOOM,
         layout: { visibility: 'none' },
-        paint: { 'line-color': ADMIN_COLORS.admin_watersheds, 'line-width': 1.5, 'line-opacity': 0.45 },
+        paint: { 'line-color': ADMIN_COLORS.admin_watersheds, 'line-width': 1.5, 'line-opacity': ADMIN_BORDER_OPACITY },
     });
 
     // Historic Sites (tiles filtered to regulated features only)
@@ -688,26 +789,84 @@ export const createRegulationLayers = (): LayerSpecification[] => {
         type: 'line',
         source: 'regulations',
         'source-layer': 'historic_sites',
+        minzoom: ADMIN_BORDER_MINZOOM,
         layout: { visibility: 'none' },
-        paint: { 'line-color': ADMIN_COLORS.admin_historic_sites, 'line-width': 1.5, 'line-opacity': 0.5 },
+        paint: { 'line-color': ADMIN_COLORS.admin_historic_sites, 'line-width': 1.5, 'line-opacity': ADMIN_BORDER_OPACITY },
     });
 
-    // OSM Admin Boundaries (research forests, protected areas, etc.)
+    // Land Access (watersheds, private/restricted land, DND land, research
+    // forests, etc.) — fill/border color keyed on restriction_level (red =
+    // closed, amber = restricted/conditional); the matching hatch overlay
+    // layers (colorblind-friendly, pattern differs by severity too, not
+    // just hue) are added separately in Map.tsx alongside the other
+    // hatch-pattern overlays (parks_nat/eco_reserves).
     adminLayers.push({
-        id: 'admin_osm_admin-fill',
+        id: 'admin_land_access-fill',
         type: 'fill',
         source: 'regulations',
-        'source-layer': 'osm_admin',
+        'source-layer': 'land_access',
         layout: { visibility: 'none' },
-        paint: { 'fill-color': ADMIN_COLORS.osm_admin, 'fill-opacity': 0.12 },
+        paint: { 'fill-color': LAND_ACCESS_COLOR_EXPR, 'fill-opacity': 0.14 },
     });
     adminLayers.push({
-        id: 'admin_osm_admin-line',
+        id: 'admin_land_access-line',
         type: 'line',
         source: 'regulations',
-        'source-layer': 'osm_admin',
+        'source-layer': 'land_access',
+        minzoom: ADMIN_BORDER_MINZOOM,
         layout: { visibility: 'none' },
-        paint: { 'line-color': ADMIN_COLORS.osm_admin, 'line-width': 1.5, 'line-opacity': 0.5 },
+        paint: { 'line-color': LAND_ACCESS_COLOR_EXPR, 'line-width': 1.5, 'line-opacity': ADMIN_BORDER_OPACITY },
+    });
+
+    // Land ownership — BC parcel-level, dissolved to one polygon per
+    // OWNER_TYPE (Private/Crown Provincial/Agency/Federal/First Nations/
+    // Local Government/Mixed/Unclassified/Untitled Provincial), all in a
+    // single `land_parcels_crown` tile source-layer distinguished by the
+    // `name` property. Split into two independently-toggleable style
+    // layers via a filter on that property — Crown/Public and Private read
+    // as different categories (different colors) and toggle separately.
+    // Toggled via the layer menu, not the admin-visibility system (no
+    // regulation drives visibility here), so both default hidden and the
+    // menu's checkboxes flip visibility directly.
+    const NOT_PRIVATE_FILTER = ['!=', ['get', 'name'], 'Private'] as unknown as FilterSpecification;
+    const IS_PRIVATE_FILTER = ['==', ['get', 'name'], 'Private'] as unknown as FilterSpecification;
+    adminLayers.push({
+        id: 'admin_land_parcels_crown-fill',
+        type: 'fill',
+        source: 'regulations',
+        'source-layer': 'land_parcels_crown',
+        filter: NOT_PRIVATE_FILTER,
+        layout: { visibility: 'none' },
+        paint: { 'fill-color': ADMIN_COLORS.land_parcels_crown, 'fill-opacity': 0.12 },
+    });
+    adminLayers.push({
+        id: 'admin_land_parcels_crown-line',
+        type: 'line',
+        source: 'regulations',
+        'source-layer': 'land_parcels_crown',
+        filter: NOT_PRIVATE_FILTER,
+        minzoom: ADMIN_BORDER_MINZOOM,
+        layout: { visibility: 'none' },
+        paint: { 'line-color': ADMIN_COLORS.land_parcels_crown, 'line-width': 1, 'line-opacity': ADMIN_BORDER_OPACITY },
+    });
+    adminLayers.push({
+        id: 'admin_land_parcels_private-fill',
+        type: 'fill',
+        source: 'regulations',
+        'source-layer': 'land_parcels_crown',
+        filter: IS_PRIVATE_FILTER,
+        layout: { visibility: 'none' },
+        paint: { 'fill-color': ADMIN_COLORS.land_parcels_private, 'fill-opacity': 0.12 },
+    });
+    adminLayers.push({
+        id: 'admin_land_parcels_private-line',
+        type: 'line',
+        source: 'regulations',
+        'source-layer': 'land_parcels_crown',
+        filter: IS_PRIVATE_FILTER,
+        minzoom: ADMIN_BORDER_MINZOOM,
+        layout: { visibility: 'none' },
+        paint: { 'line-color': ADMIN_COLORS.land_parcels_private, 'line-width': 1, 'line-opacity': ADMIN_BORDER_OPACITY },
     });
 
     // Aboriginal / Indigenous Lands
@@ -724,35 +883,43 @@ export const createRegulationLayers = (): LayerSpecification[] => {
         type: 'line',
         source: 'regulations',
         'source-layer': 'aboriginal_lands',
-        minzoom: 9,
+        minzoom: ADMIN_BORDER_MINZOOM,
         layout: { visibility: 'none' },
         paint: {
             'line-color': ADMIN_COLORS.aboriginal_lands,
-            'line-width': ['interpolate', ['linear'], ['zoom'], 9, 2, 14, 4],
-            'line-opacity': ['interpolate', ['linear'], ['zoom'], 9, 0.15, 14, 0.30],
+            'line-width': ['interpolate', ['linear'], ['zoom'], ADMIN_BORDER_MINZOOM, 2, 14, 4],
+            'line-opacity': ADMIN_BORDER_OPACITY,
         },
     });
 
     // FWA geometry → admin polygons → FWA labels on top
-    return [...fwaLayers, ...adminLayers, ...fwaLabels];
+    return { layers: [...fwaLayers, ...adminLayers], labels: fwaLabels };
 };
 
 /**
- * Early-zoom layers for forest service roads, paths, and other minor roads.
- * The built-in protomaps `roads_other` layer only renders kind=other/path
- * starting at ~z14.  These supplemental layers make them visible from z11
- * so users can see FSRs while still at regulation-relevant zoom levels.
- * Labels appear from z12.
+ * Trail/track/backcountry-road ("kind=other/path") line layer, z11 through
+ * max zoom. Owns the FULL zoom range rather than handing off to the
+ * built-in protomaps `roads_other` layer at z15 — that native layer's own
+ * width curve is `interpolate(exponential 1.6, zoom, 14, 0, 20, 7)`, i.e.
+ * literally 0px at z14 and still under 1px through z16, which is why
+ * trails became "extremely hard to see" past z15 (the custom overlay
+ * handed off right at the zoom where the native layer is at its most
+ * invisible). The native `roads_other` layer is filtered out of the
+ * basemap entirely (see BROWN_ROAD_THEME usage in Map.tsx) so there's no
+ * double-render — this layer is now the only thing drawing that tier, at
+ * every zoom.
+ * Labels still hand off to protomaps' `roads_labels_minor` at z15 — that
+ * one uses a fixed `text-size: 12` with no zoom-based width-style curve,
+ * so it was never actually broken.
  */
 export const createEarlyRoadLayers = (): LayerSpecification[] => [
-    // ── Road lines (z11 – z14, then protomaps takes over) ────────────
+    // ── Road lines (z11 → max zoom, no handoff) ──────────────────────
     {
         id: 'roads_other_early',
         type: 'line',
         source: 'protomaps',
         'source-layer': 'roads',
         minzoom: 11,
-        maxzoom: 15,           // protomaps roads_other handles z14+
         filter: [
             'all',
             ['!has', 'is_tunnel'],
@@ -768,6 +935,8 @@ export const createEarlyRoadLayers = (): LayerSpecification[] => [
                 11, 0.4,
                 12, 0.8,
                 14, 1.5,
+                17, 2.2,
+                20, 3.2,
             ],
             'line-opacity': [
                 'interpolate', ['linear'], ['zoom'],
@@ -985,13 +1154,16 @@ export const createAdminLabelLayers = (): LayerSpecification[] => {
         },
     });
 
-    // ── OSM Admin (research forests, protected areas) ────────────────
+    // ── Land Access (watersheds, private/restricted land, DND, etc.) ──
+    // Names withheld until z11 — at lower zooms the polygon fill/hatch is
+    // still visible, but the name label just adds clutter before the user
+    // is zoomed in enough to actually be near it.
     labelLayers.push({
-        id: 'admin_osm_admin-label',
+        id: 'admin_land_access-label',
         type: 'symbol',
         source: 'regulations',
-        'source-layer': 'osm_admin',
-        minzoom: 7,
+        'source-layer': 'land_access',
+        minzoom: 11,
         layout: {
             visibility: 'none',
             'symbol-placement': 'point',
@@ -1004,7 +1176,7 @@ export const createAdminLabelLayers = (): LayerSpecification[] => {
             'text-padding': ['interpolate', ['linear'], ['zoom'], 7, 50, 10, 12, 14, 4],
         },
         paint: {
-            'text-color': '#CC7A00',
+            'text-color': LAND_ACCESS_COLOR_EXPR,
             'text-halo-color': '#ffffff',
             'text-halo-width': 0.8,
         },
@@ -1061,12 +1233,14 @@ export const createAdminLabelLayers = (): LayerSpecification[] => {
     });
 
     // ── Aboriginal / Indigenous Lands label ──────────────────────────
+    // Same z11 hold-off as land_access-label above — the fill is visible
+    // earlier, the name just waits until the user is zoomed in closer.
     labelLayers.push({
         id: 'admin_aboriginal_lands-label',
         type: 'symbol',
         source: 'regulations',
         'source-layer': 'aboriginal_lands',
-        minzoom: 7,
+        minzoom: 11,
         layout: {
             visibility: 'none',
             'symbol-placement': 'point',

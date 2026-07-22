@@ -20,6 +20,7 @@ import FishLoader from './FishLoader';
 import type { SearchableFeature } from './SearchBar';
 import { waterbodyDataService } from '../services/waterbodyDataService';
 import type { Reach, BathymetrySurvey } from '../services/waterbodyDataService';
+import { DATA_BASE } from '../config/endpoints';
 import { PDFDocument } from 'pdf-lib';
 import './InfoPanel.css';
 
@@ -60,7 +61,13 @@ interface InfoPanelProps {
     onFlyToSection?: (bbox: [number, number, number, number], minZoom: number) => void;
     /** Open the issue/feedback report modal, pre-filled with the current feature. */
     onReportIssue?: () => void;
+    /** Civil dawn/dusk for the current map view center — recomputed by Map.tsx
+     *  on pan-threshold/date-change, not tied to the selected feature. */
+    dawnDusk?: { dawn: Date | null; dusk: Date | null } | null;
 };
+
+const formatDawnDuskTime = (d: Date | null): string =>
+    d ? d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' }) : '—';
 
 /** Map restriction_type to CSS class for colored pills */
 const getRestrictionClass = (type: string): string => {
@@ -101,7 +108,7 @@ const getFilterCategory = (type: string): string | null => {
     return null;
 };
 
-const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapseState, siblingFeatures = [], onHighlightSection, onFlyToSection, onReportIssue }: InfoPanelProps) => {
+const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapseState, siblingFeatures = [], onHighlightSection, onFlyToSection, onReportIssue, dawnDusk }: InfoPanelProps) => {
     const touchStartY = useRef<number>(0);
     const touchStartTime = useRef<number>(0);
     // Set to true by tab clicks so the feature-change effect below
@@ -511,6 +518,12 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                         })()}
                 </div>
 
+                {dawnDusk && (
+                    <div className="dawn-dusk-row">
+                        Dawn {formatDawnDuskTime(dawnDusk.dawn)} · Dusk {formatDawnDuskTime(dawnDusk.dusk)}
+                    </div>
+                )}
+
                 {/* Section tab bar — only rendered for multi-section waterbodies.
                     Sticky between the header and the scrolling content area.
                     Single-section waterbodies render without any additional chrome. */}
@@ -765,7 +778,23 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                                 let groupLabel: string = '';
                                 let groupSubtitle: string = '';
 
-                                if (reg.source === 'zone') {
+                                if (reg.source === 'municipal') {
+                                    // Municipal-level closures (e.g. Lost Lagoon, Beaver Lake) —
+                                    // one group per regulation, pinned to the top of the panel.
+                                    groupKey = `municipal|${reg.regulation_id}`;
+                                    groupLabel = 'Municipal Closure';
+                                    groupSubtitle = '';
+                                } else if (reg.source === 'land_access') {
+                                    // Land access / land ownership advisories (restricted
+                                    // watersheds, DND land, permit-based research forests, etc.)
+                                    // — collapsed into a single "Land Use" section per reach.
+                                    // Label left blank: the "Land Use" badge already carries
+                                    // this, and repeating it as the label read as a literal
+                                    // duplicate ("Land Use" twice) with nothing added.
+                                    groupKey = 'land_access';
+                                    groupLabel = '';
+                                    groupSubtitle = '';
+                                } else if (reg.source === 'zone') {
                                     // Zone regulations: derive label from region + zone_ids.
                                     const zoneKey = reg.zone_ids?.length ? reg.zone_ids.sort().join(',') : '';
                                     const regionName = reg.region || '';
@@ -781,24 +810,22 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                                     groupLabel = label;
                                     groupSubtitle = '';
                                 } else if (reg.source === 'provincial') {
-                                    // Provincial / admin-boundary regulations
-                                    const isIndigenousAdvisory = (reg.restriction_type || '').toLowerCase().includes('indigenous territory');
+                                    // Provincial / admin-boundary regulations.
+                                    // Matched by regulation_id (a stable constant from
+                                    // base_regulations.json), not restriction_type — the
+                                    // reg's restriction.type is just "Advisory" at the data
+                                    // layer, it never actually contains the words "indigenous
+                                    // territory" (that text only lives in rule_text/details),
+                                    // so a text match against restriction_type always missed.
+                                    const isIndigenousAdvisory = reg.regulation_id === 'PROV_ABORIGINAL_LANDS_ADVISORY';
 
                                     if (isIndigenousAdvisory) {
-                                        // After pipeline polygon merging, overlapping territories
-                                        // share a single regulation instance.  Group all indigenous
-                                        // advisories under one key; the label comes from adminZones.
-                                        groupKey = 'prov|indigenous_territory_advisory';
-                                        const zoneNames = adminZones[reg.regulation_id];
-                                        const name = (zoneNames && zoneNames.length > 0) ? zoneNames.join(', ') : 'Indigenous Territory';
-                                        if (groups[groupKey]) {
-                                            // Append any additional territory name (rare: non-overlapping territories)
-                                            if (name !== 'Indigenous Territory' && !groups[groupKey].label.includes(name)) {
-                                                groups[groupKey].label += `, ${name}`;
-                                            }
-                                            return groups;
-                                        }
-                                        groupLabel = name;
+                                        // Folded into the same "Land Use" group/section as
+                                        // land_access advisories (watersheds, DND land, research
+                                        // forests) rather than its own group — same top-pinned
+                                        // header, same visual language.
+                                        groupKey = 'land_access';
+                                        groupLabel = '';
                                     } else if (reg.scope_location) {
                                         const zoneNames = adminZones[reg.regulation_id];
                                         if (zoneNames && zoneNames.length > 0) {
@@ -834,7 +861,12 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                                     groups[groupKey] = {
                                         label: groupLabel,
                                         subtitle: groupSubtitle,
-                                        source: reg.source || 'synopsis',
+                                        // The merged "Land Use" group must read as land_access
+                                        // regardless of whether a land_access-source or an
+                                        // indigenous-advisory (provincial-source) reg created it
+                                        // first — group identity, not first-reg identity, drives
+                                        // the badge/header styling and sort priority.
+                                        source: groupKey === 'land_access' ? 'land_access' : (reg.source || 'synopsis'),
                                         isTributary: false,
                                         exclusions: null,
                                         regulations: [],
@@ -848,14 +880,36 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                                 return groups;
                             }, {} as Record<string, { label: string; subtitle: string; source: string; isTributary: boolean; exclusions: Regulation['exclusions']; regulations: Regulation[] }>);
 
-                            // Sort groups: provincial with a "closed" reg floats to
-                            // the top so users immediately see closures (e.g.
-                            // Ecological Reserves).  Indigenous advisory stays at the
-                            // provincial tier (below synopsis).
-                            // Otherwise: synopsis → zone → provincial.
+                            // The merged "Land Use" group can independently accumulate up to
+                            // three access-severity regs (LAND_ACCESS_CLOSED, LAND_ACCESS_RESTRICTED,
+                            // LAND_OWNERSHIP_PRIVATE — a reach can genuinely touch a closed
+                            // watershed AND a private parcel AND sit near restricted land all
+                            // at once) plus the always-separate indigenous-territory advisory.
+                            // Showing all of them read as confusing near-duplicate notices, so
+                            // collapse to the single most severe access reg + the indigenous
+                            // line (if present) — never more than two rows in this group.
+                            if (groupedRegulations['land_access']) {
+                                const ACCESS_SEVERITY: Record<string, number> = {
+                                    LAND_ACCESS_CLOSED: 0,
+                                    LAND_ACCESS_RESTRICTED: 1,
+                                    LAND_OWNERSHIP_PRIVATE: 2,
+                                };
+                                const landUseRegs = groupedRegulations['land_access'].regulations;
+                                const indigenous = landUseRegs.find(r => r.regulation_id === 'PROV_ABORIGINAL_LANDS_ADVISORY');
+                                const mostSevereAccess = landUseRegs
+                                    .filter(r => r.regulation_id in ACCESS_SEVERITY)
+                                    .sort((a, b) => ACCESS_SEVERITY[a.regulation_id] - ACCESS_SEVERITY[b.regulation_id])[0];
+                                groupedRegulations['land_access'].regulations = [mostSevereAccess, indigenous].filter(Boolean) as Regulation[];
+                            }
+
+                            // Sort groups so the most actionable/severe notices float to
+                            // the top: municipal closures (0) → land access / indigenous
+                            // advisory (merged "Land Use" group, 1) → provincial/zone
+                            // closures folded into the same top bucket (0) as municipal →
+                            // synopsis (3) → zone (4) → provincial (5).
                             // Within synopsis, direct-match groups appear before tributary groups.
-                            const hasHighPriorityProvReg = (g: { regulations: Regulation[] }) =>
-                                g.regulations.some(r => {
+                            const hasHighPriorityProvReg = (g: { source: string; regulations: Regulation[] }) =>
+                                (g.source === 'provincial' || g.source === 'zone') && g.regulations.some(r => {
                                     const t = (r.restriction_type || '').toLowerCase();
                                     return t === 'closed' || t === 'closure';
                                 });
@@ -868,18 +922,17 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                                 }
                             }
 
-                            const isIndigenousAdvisoryGroup = (g: { regulations: Regulation[] }) =>
-                                g.regulations.some(r =>
-                                    (r.restriction_type || '').toLowerCase().includes('indigenous territory'));
-
-                            const sourceOrder: Record<string, number> = { synopsis: 1, zone: 3, provincial: 4 };
+                            const sourceOrder: Record<string, number> = {
+                                municipal: 0, land_access: 1, synopsis: 3, zone: 4, provincial: 5,
+                            };
+                            const groupPriority = (g: { source: string; regulations: Regulation[] }) => {
+                                if (g.source === 'municipal' || hasHighPriorityProvReg(g)) return 0;
+                                if (g.source === 'land_access') return 1;
+                                return sourceOrder[g.source] ?? 9;
+                            };
                             const sortedGroups = Object.values(groupedRegulations).sort((a, b) => {
-                                const aIsHighProv = a.source === 'provincial' && hasHighPriorityProvReg(a);
-                                const bIsHighProv = b.source === 'provincial' && hasHighPriorityProvReg(b);
-                                const aIsIndigenous = a.source === 'provincial' && isIndigenousAdvisoryGroup(a);
-                                const bIsIndigenous = b.source === 'provincial' && isIndigenousAdvisoryGroup(b);
-                                const aOrder = aIsHighProv ? 0 : aIsIndigenous ? 2 : (sourceOrder[a.source] ?? 9);
-                                const bOrder = bIsHighProv ? 0 : bIsIndigenous ? 2 : (sourceOrder[b.source] ?? 9);
+                                const aOrder = groupPriority(a);
+                                const bOrder = groupPriority(b);
                                 if (aOrder !== bOrder) return aOrder - bOrder;
                                 // Within same source tier, push tributary synopsis groups after direct ones
                                 const aTrib = a.isTributary ? 1 : 0;
@@ -909,9 +962,11 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                             return sortedGroups.map((group, groupIdx) => (
                                 <div key={groupIdx} className="regulation-group">
                                     {/* Group Header */}
-                                    <div className={`regulation-group-header ${group.source === 'zone' ? 'zone-header' : ''} ${group.source === 'provincial' ? 'provincial-header' : ''} ${group.isTributary ? 'tributary-header' : ''}`}>
+                                    <div className={`regulation-group-header ${group.source === 'zone' ? 'zone-header' : ''} ${group.source === 'provincial' ? 'provincial-header' : ''} ${group.source === 'municipal' ? 'municipal-header' : ''} ${group.source === 'land_access' ? 'land-access-header' : ''} ${group.isTributary ? 'tributary-header' : ''}`}>
                                         {group.source === 'zone' && <span className="header-badge zone-badge">Zone</span>}
                                         {group.source === 'provincial' && <span className="header-badge provincial-badge">Provincial</span>}
+                                        {group.source === 'municipal' && <span className="header-badge municipal-badge">Closure</span>}
+                                        {group.source === 'land_access' && <span className="header-badge land-access-badge">Land Use</span>}
                                         {group.isTributary && <span className="header-badge tributary-badge">Tributary of</span>}
                                         {group.label}
                                         {group.subtitle && <div className="regulation-group-subtitle">{group.subtitle}</div>}
@@ -1018,7 +1073,7 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                                                     <button
                                                         className="reg-source-img-btn"
                                                         title="See this regulation as printed in the synopsis"
-                                                        onClick={() => setSourceImage({ src: `${import.meta.env.VITE_TILE_BASE_URL || '/data'}/row_images/${src.source_image}`, name: src.waterbody_name || 'Source' })}
+                                                        onClick={() => setSourceImage({ src: `${DATA_BASE}/row_images/${src.source_image}`, name: src.waterbody_name || 'Source' })}
                                                     >
                                                         <FileImage size={12} strokeWidth={2} />
                                                         <span>View regulation in synopsis</span>
