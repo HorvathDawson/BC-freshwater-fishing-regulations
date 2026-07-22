@@ -4,7 +4,7 @@ fetch_bathymetry.py — BC WSA lake bathymetric survey maps, live.
 
 Replicated copy: this is `../bathymetry/fetch_bathymetry.py`, unchanged
 except for DB_PATH — it writes `bathy_surveys` into this directory's shared
-`waterbody_db.db` instead of `bathymetry/`'s own `bathymetry.db`, so this
+`anglerinfo.db` instead of `bathymetry/`'s own `bathymetry.db`, so this
 folder's testbed (see this dir's README) has bathymetry data alongside
 stocking/markers and WDIC in one file. `bathy_survey_polygons` still goes
 into its own local GPKG (sqlite has no geometry type without spatialite —
@@ -44,8 +44,8 @@ already does (a sheet can live in one source and not the other):
 
 CLI
 ---
-    python -m pipeline.recurring.waterbody_db.fetch_bathymetry              # fetch both sources
-    python -m pipeline.recurring.waterbody_db.fetch_bathymetry --csv-only    # skip the (slower) polygon WFS fetch
+    python -m pipeline.recurring.anglerinfo.fetch_bathymetry              # fetch both sources
+    python -m pipeline.recurring.anglerinfo.fetch_bathymetry --csv-only    # skip the (slower) polygon WFS fetch
 """
 
 from __future__ import annotations
@@ -65,7 +65,7 @@ import pandas as pd
 
 logger = logging.getLogger(__name__)
 
-DB_PATH = Path(__file__).parent / "waterbody_db.db"
+from .paths import DB_PATH  # centralized output/pipeline/anglerinfo/ location
 GPKG_PATH = Path(__file__).parent / "bathymetry_polygons.gpkg"
 POLYGON_LAYER = "bathymetry_polygons"
 

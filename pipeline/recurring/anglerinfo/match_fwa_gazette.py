@@ -80,8 +80,8 @@ unmatched-in-WDIC row should be reviewed).
 
 CLI
 ---
-    python -m pipeline.recurring.waterbody_db.match_fwa_gazette                 # run after match.py; writes match_fwa_gazette
-    python -m pipeline.recurring.waterbody_db.match_fwa_gazette --dry-run        # print only, no DB writes
+    python -m pipeline.recurring.anglerinfo.match_fwa_gazette                 # run after match.py; writes match_fwa_gazette
+    python -m pipeline.recurring.anglerinfo.match_fwa_gazette --dry-run        # print only, no DB writes
 """
 
 from __future__ import annotations
@@ -429,7 +429,7 @@ def main(argv: Optional[List[str]] = None) -> int:
     )
     parser.add_argument(
         "--dry-run", action="store_true",
-        help="Match and print the breakdown without writing match_fwa_gazette to waterbody_db.db.",
+        help="Match and print the breakdown without writing match_fwa_gazette to anglerinfo.db.",
     )
     args = parser.parse_args(argv)
 
@@ -455,7 +455,7 @@ def main(argv: Optional[List[str]] = None) -> int:
         results = match_gazette(rows, index, override_index)
 
         if args.dry_run:
-            logger.info("--dry-run: not writing match_fwa_gazette to waterbody_db.db")
+            logger.info("--dry-run: not writing match_fwa_gazette to anglerinfo.db")
         else:
             write_matches(conn, results)
     finally:

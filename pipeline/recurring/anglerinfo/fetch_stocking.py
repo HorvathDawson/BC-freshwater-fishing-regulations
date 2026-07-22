@@ -4,7 +4,7 @@ Fish stocking records — FIDQ (BC gov canonical source)
 ========================================================
 
 Replicated copy: this is `../stocking/fetch_stocking.py`, unchanged except
-for DB_PATH — it writes into this directory's shared `waterbody_db.db`
+for DB_PATH — it writes into this directory's shared `anglerinfo.db`
 instead of `stocking/`'s own `stocking.db`, so this folder's testbed (see
 this dir's README) has stocking/marker data alongside bathymetry and WDIC in
 one file. `../stocking/` stays the standalone original; this copy isn't
@@ -180,7 +180,7 @@ from datetime import datetime, timezone
 from html.parser import HTMLParser
 from pathlib import Path
 
-DB_PATH = Path(__file__).parent / "waterbody_db.db"
+from .paths import DB_PATH  # centralized output/pipeline/anglerinfo/ location
 
 FIDQ_BASE = "https://a100.gov.bc.ca/pub/fidq"
 SEARCH_URL = FIDQ_BASE + "/searchFishStocking.do"
@@ -730,7 +730,9 @@ _RE_END_DATE = re.compile(r'id="endDate"[^>]*value="([^"]+)"')
 
 
 def _num(s: str) -> "float | None":
-    s = s.strip()
+    # Strip thousands separators first, else re.search below matches only the
+    # leading group ("10,000" -> "10") and silently truncates the quantity.
+    s = s.strip().replace(",", "")
     if not s:
         return None
     m = re.search(r"-?\d+(?:\.\d+)?", s)
@@ -1071,7 +1073,7 @@ def fetch_all_details_bulk(conn: sqlite3.Connection, workers: int = DEFAULT_WORK
                       f"{len(by_waterbody)} waterbod(y/ies) so far")
 
     print(f"[detail] fetched {total} record(s) across {len(by_waterbody)} waterbod(y/ies); "
-          f"writing to waterbody_db.db ...")
+          f"writing to anglerinfo.db ...")
     for wid, records in by_waterbody.items():
         conn.execute("DELETE FROM fidq_stocking_records WHERE waterbody_id = ?", (wid,))
         conn.executemany(

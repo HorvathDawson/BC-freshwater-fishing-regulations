@@ -9,9 +9,7 @@ plus two raw tables it doesn't itself carry (bathy_surveys for per-sheet PDF
 filenames, map_markers for amenity/access fields), and writes one combined
 JSON:
 
-    data/bathymetry_pdfs/waterbody_matches.json
-    {
-      "generated_at": "...",
+    output/pipeline/anglerinfo/anglerinfo_matches.json
       "wbk_bathymetry": {"<wbk>": [{"pdf", "title", "name"}, ...]},
       "wbk_names":      {"<wbk>": [{"name", "source": "bathymetry"|"stocking"}, ...]},
       "wbk_marker":      {"<wbk>": {<10-field amenity whitelist>}}
@@ -23,16 +21,16 @@ one-row-per-(source, source_id) while bathymetry pdfs are inherently
 one-to-many (one WSA identifier can span several map sheets). This script is
 the join layer, run separately from (and after) the match chain.
 
-Regeneration is manual/occasional — the same cadence as refreshing
-data/wsa_bathymetry_maps.csv itself (whenever the fetch+match chain above is
-re-run), not tied to the regulations build. The output is committed, and
-pipeline/enrichment/waterbody_accessor.py just reads it — no live matching,
-no gpkg dependency, at build time.
+Both the db and this JSON are regenerable build artifacts under the pipeline
+output tree (not committed) — see paths.py. The regulations build regenerates
+this JSON from the db at build time (see pipeline/enrichment/builder.py) and
+pipeline/enrichment/anglerinfo_accessor.py reads it — no live matching, no
+gpkg dependency, at build time.
 
 CLI
 ---
-    python -m pipeline.recurring.waterbody_db.export
-    python -m pipeline.recurring.waterbody_db.export --out /path/to/waterbody_matches.json
+    python -m pipeline.recurring.anglerinfo.export
+    python -m pipeline.recurring.anglerinfo.export --out /path/to/anglerinfo_matches.json
 """
 
 from __future__ import annotations
@@ -47,13 +45,11 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Set
 
-from .fetch_wdic import DB_PATH
+from .paths import DB_PATH, MATCHES_PATH
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_OUT_PATH = (
-    Path(__file__).resolve().parents[3] / "data" / "bathymetry_pdfs" / "waterbody_matches.json"
-)
+DEFAULT_OUT_PATH = MATCHES_PATH
 
 # Matches match.py's own _VARIANT_JOIN exactly — match_final.name_variants is
 # passed straight through from match_wbid, joined the same way there.
@@ -203,9 +199,9 @@ def main(argv: List[str] | None = None) -> int:
     logging.basicConfig(level=logging.INFO, format="%(message)s")
 
     parser = argparse.ArgumentParser(
-        description="Precompute waterbody_db's match results into a static build-time artifact.",
+        description="Precompute anglerinfo's match results into a static build-time artifact.",
     )
-    parser.add_argument("--db", type=Path, default=DB_PATH, help="waterbody_db.db path.")
+    parser.add_argument("--db", type=Path, default=DB_PATH, help="anglerinfo.db path.")
     parser.add_argument("--out", type=Path, default=DEFAULT_OUT_PATH, help="Output JSON path.")
     args = parser.parse_args(argv)
 
@@ -217,7 +213,7 @@ def main(argv: List[str] | None = None) -> int:
 
     logger.info(
         "Wrote %s — %d wbk(s) with bathymetry, %d wbk(s) with names, %d wbk(s) with marker info -> %s",
-        "waterbody_matches.json",
+        "anglerinfo_matches.json",
         len(export["wbk_bathymetry"]),
         len(export["wbk_names"]),
         len(export["wbk_marker"]),

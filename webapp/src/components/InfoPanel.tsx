@@ -884,10 +884,10 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                             // three access-severity regs (LAND_ACCESS_CLOSED, LAND_ACCESS_RESTRICTED,
                             // LAND_OWNERSHIP_PRIVATE — a reach can genuinely touch a closed
                             // watershed AND a private parcel AND sit near restricted land all
-                            // at once) plus the always-separate indigenous-territory advisory.
-                            // Showing all of them read as confusing near-duplicate notices, so
-                            // collapse to the single most severe access reg + the indigenous
-                            // line (if present) — never more than two rows in this group.
+                            // at once). Showing all read as confusing near-duplicates, so keep
+                            // only the single most severe generic access advisory — but leave
+                            // every other reg in place (the indigenous advisory AND any
+                            // feature-targeted closure like Malcolm Knapp are never dropped).
                             if (groupedRegulations['land_access']) {
                                 const ACCESS_SEVERITY: Record<string, number> = {
                                     LAND_ACCESS_CLOSED: 0,
@@ -895,11 +895,16 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                                     LAND_OWNERSHIP_PRIVATE: 2,
                                 };
                                 const landUseRegs = groupedRegulations['land_access'].regulations;
-                                const indigenous = landUseRegs.find(r => r.regulation_id === 'PROV_ABORIGINAL_LANDS_ADVISORY');
-                                const mostSevereAccess = landUseRegs
-                                    .filter(r => r.regulation_id in ACCESS_SEVERITY)
-                                    .sort((a, b) => ACCESS_SEVERITY[a.regulation_id] - ACCESS_SEVERITY[b.regulation_id])[0];
-                                groupedRegulations['land_access'].regulations = [mostSevereAccess, indigenous].filter(Boolean) as Regulation[];
+                                const accessRegs = landUseRegs.filter(r => r.regulation_id in ACCESS_SEVERITY);
+                                if (accessRegs.length > 1) {
+                                    const mostSevereAccess = [...accessRegs]
+                                        .sort((a, b) => ACCESS_SEVERITY[a.regulation_id] - ACCESS_SEVERITY[b.regulation_id])[0];
+                                    // Filter by object identity so duplicate same-id regs
+                                    // collapse to one rather than all being dropped.
+                                    groupedRegulations['land_access'].regulations = landUseRegs.filter(
+                                        r => !(r.regulation_id in ACCESS_SEVERITY) || r === mostSevereAccess,
+                                    );
+                                }
                             }
 
                             // Sort groups so the most actionable/severe notices float to

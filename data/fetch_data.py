@@ -1385,7 +1385,7 @@ def main():
         },
         # Spatial companion to bathymetry_maps: the survey polygons (lake outlines)
         # from the BC Geographic Warehouse, keyed by WATERBODY_IDENTIFIER.  Enables
-        # the spatial best-overlap tier in pipeline.matching.bathymetry_matcher.
+        # the spatial best-overlap tier in the anglerinfo match chain.
         "bathymetry_polygons": {
             "type": "WFS",
             "source": "WHSE_FISH.BATH_SURVEY_MAP_SHEETS_SVW",

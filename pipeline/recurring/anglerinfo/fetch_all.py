@@ -2,7 +2,7 @@
 """
 fetch_all.py — runs this folder's three fetchers (fetch_stocking.py,
 fetch_bathymetry.py, fetch_wdic.py — see this dir's README) in one pass, all
-writing into the shared waterbody_db.db.
+writing into the shared anglerinfo.db.
 
 Order matters for `match.py`'s inputs but not for correctness: fetch_wdic.py
 is self-contained (it fetches the entire WDIC layer, not just identifiers
@@ -14,8 +14,8 @@ convention one level up.
 
 CLI
 ---
-    python -m pipeline.recurring.waterbody_db.fetch_all                   # stocking, bathymetry, wdic, in order
-    python -m pipeline.recurring.waterbody_db.fetch_all --skip stocking     # skip one or more (repeatable)
+    python -m pipeline.recurring.anglerinfo.fetch_all                   # stocking, bathymetry, wdic, in order
+    python -m pipeline.recurring.anglerinfo.fetch_all --skip stocking     # skip one or more (repeatable)
 """
 
 from __future__ import annotations
@@ -57,7 +57,7 @@ FETCHERS = {
 def main(argv: List[str] | None = None) -> int:
     logging.basicConfig(level=logging.INFO, format="%(message)s")
 
-    parser = argparse.ArgumentParser(description="Fetch stocking + bathymetry + WDIC into this folder's shared waterbody_db.db.")
+    parser = argparse.ArgumentParser(description="Fetch stocking + bathymetry + WDIC into this folder's shared anglerinfo.db.")
     parser.add_argument(
         "--skip", action="append", choices=FEEDS, default=[],
         help="Skip a feed (repeatable).",

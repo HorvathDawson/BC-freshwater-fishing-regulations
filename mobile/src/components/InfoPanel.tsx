@@ -74,16 +74,20 @@ const ACCESS_SEVERITY: Record<string, number> = {
   LAND_OWNERSHIP_PRIVATE: 2,
 };
 
-/** Collapse the "Land Use" tier down to at most two regs: the single most
- *  severe access reg (if any) plus the indigenous advisory (if present). */
+/** Collapse the "Land Use" tier: keep the single most severe generic access
+ *  advisory (closed > restricted > private) plus every other reg untouched —
+ *  the indigenous advisory and any feature-targeted closure (e.g. Malcolm
+ *  Knapp) are never dropped. */
 function dedupLandUse(regulations: Regulation[]): Regulation[] {
   const accessRegs = regulations.filter(r => r.regulation_id in ACCESS_SEVERITY);
   if (accessRegs.length <= 1) return regulations;
   const mostSevere = [...accessRegs].sort(
     (a, b) => ACCESS_SEVERITY[a.regulation_id] - ACCESS_SEVERITY[b.regulation_id],
   )[0];
-  const dropped = new Set(accessRegs.filter(r => r !== mostSevere).map(r => r.regulation_id));
-  return regulations.filter(r => !dropped.has(r.regulation_id));
+  // Filter by object identity (not regulation_id) so two regs sharing an id
+  // — e.g. a reach touching two LAND_ACCESS_CLOSED polygons — collapse to one
+  // instead of both being dropped.
+  return regulations.filter(r => !(r.regulation_id in ACCESS_SEVERITY) || r === mostSevere);
 }
 
 function sortRegulations(regulations: Regulation[]): Regulation[] {

@@ -3,7 +3,7 @@
 fetch_wdic.py — fetches the *entire* WHSE_FISH.WDIC_WATERBODY_POLY_SVW
 layer ("WSA - Water Polygon Features (50,000)", BC Data Catalogue
 414be2d6-f4d9-4f32-b960-caa074c6d36b) into `wdic_cache`, one table in this
-directory's shared `waterbody_db.db` (see this dir's README) — self-
+directory's shared `anglerinfo.db` (see this dir's README) — self-
 contained: it doesn't need `fetch_stocking.py`/`fetch_bathymetry.py` (this
 folder's own replicated copies, or the originals in `../stocking/`,
 `../bathymetry/`) to have run first. Every one of BC's ~322k WDIC waterbody
@@ -48,7 +48,7 @@ uncompressed.
 
 CLI
 ---
-    python -m pipeline.recurring.waterbody_db.fetch_wdic             # fetch the full WDIC layer into waterbody_db.db's wdic_cache
+    python -m pipeline.recurring.anglerinfo.fetch_wdic             # fetch the full WDIC layer into anglerinfo.db's wdic_cache
 """
 
 from __future__ import annotations
@@ -67,7 +67,7 @@ from pyproj import Transformer
 
 logger = logging.getLogger(__name__)
 
-DB_PATH = Path(__file__).parent / "waterbody_db.db"
+from .paths import DB_PATH  # centralized output/pipeline/anglerinfo/ location
 
 WDIC_WFS_URL = "https://openmaps.gov.bc.ca/geo/pub/WHSE_FISH.WDIC_WATERBODY_POLY_SVW/ows"
 WDIC_TYPE_NAME = "pub:WHSE_FISH.WDIC_WATERBODY_POLY_SVW"

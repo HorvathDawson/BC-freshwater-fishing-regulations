@@ -4,12 +4,12 @@ stocking_resolver — resolve FIDQ stocking records to reach IDs.
 Modeled on pipeline/recurring/in_season_resolver.py, but simpler: in-season
 notices only ever carry a water *name*, so that resolver has to go through
 MatchTable + tier0's search index to find a reach. Stocking rows already
-carry a resolved waterbody_key (pipeline/recurring/waterbody_db's own
+carry a resolved waterbody_key (pipeline/recurring/anglerinfo's own
 match_final table), so this just needs waterbody_key -> reach_id — a flat
 lookup against poly_reaches.json (written by pipeline/enrichment/builder.py
 right after build_regulation_index() runs), no name matching at all.
 
-No separate "scraper" here — pipeline/recurring/waterbody_db's own
+No separate "scraper" here — pipeline/recurring/anglerinfo's own
 fetch_stocking.py + match chain already is the fetch+resolve step. This
 module's whole job is reading what's already matched: match_final
 (source='stocking') for the waterbody_key, fidq_stocking_records for the
@@ -23,7 +23,7 @@ step, same non-fatal pattern as in-season.
 CLI
 ---
     python -m pipeline.recurring.stocking_resolver
-    python -m pipeline.recurring.stocking_resolver --db path/to/waterbody_db.db --poly-reaches path/to/poly_reaches.json --out path/to/stocking.json
+    python -m pipeline.recurring.stocking_resolver --db path/to/anglerinfo.db --poly-reaches path/to/poly_reaches.json --out path/to/stocking.json
 """
 
 from __future__ import annotations
@@ -39,12 +39,12 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from project_config import ProjectConfig
-from pipeline.recurring.waterbody_db.fetch_wdic import DB_PATH as WATERBODY_DB_PATH
+from pipeline.recurring.anglerinfo.fetch_wdic import DB_PATH as WATERBODY_DB_PATH
 
 logger = logging.getLogger(__name__)
 
 # Fields surfaced per release row — a useful subset of fidq_stocking_records'
-# full schema (see pipeline/recurring/waterbody_db/README.md), not every column.
+# full schema (see pipeline/recurring/anglerinfo/README.md), not every column.
 _RELEASE_FIELDS = (
     "release_date", "species_name", "brood_year", "strain_name",
     "source_name", "origin", "life_stage", "released_quantity", "average_weight",
@@ -77,7 +77,7 @@ def resolve_stocking(
     the stocking.json structure."""
     if not db_path.exists():
         raise FileNotFoundError(
-            f"{db_path} not found — run pipeline.recurring.waterbody_db's "
+            f"{db_path} not found — run pipeline.recurring.anglerinfo's "
             "fetch+match chain first."
         )
     if poly_reaches_path is None:
@@ -151,7 +151,7 @@ def main(argv: Optional[List[str]] = None) -> int:
     cfg = ProjectConfig()
 
     parser = argparse.ArgumentParser(description="Resolve FIDQ stocking records to reach IDs.")
-    parser.add_argument("--db", type=Path, default=WATERBODY_DB_PATH, help="waterbody_db.db path.")
+    parser.add_argument("--db", type=Path, default=WATERBODY_DB_PATH, help="anglerinfo.db path.")
     parser.add_argument(
         "--poly-reaches", type=Path, default=None,
         help="poly_reaches.json path (default: output/pipeline/deploy/poly_reaches.json).",

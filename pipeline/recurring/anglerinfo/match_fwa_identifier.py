@@ -44,8 +44,8 @@ module).
 
 CLI
 ---
-    python -m pipeline.recurring.waterbody_db.match_fwa_identifier                 # run after match_fwa_gazette.py; writes match_fwa_identifier
-    python -m pipeline.recurring.waterbody_db.match_fwa_identifier --dry-run        # print only, no DB writes
+    python -m pipeline.recurring.anglerinfo.match_fwa_identifier                 # run after match_fwa_gazette.py; writes match_fwa_identifier
+    python -m pipeline.recurring.anglerinfo.match_fwa_identifier --dry-run        # print only, no DB writes
 """
 
 from __future__ import annotations
@@ -224,7 +224,7 @@ def main(argv: Optional[List[str]] = None) -> int:
     )
     parser.add_argument(
         "--dry-run", action="store_true",
-        help="Match and print the breakdown without writing match_fwa_identifier to waterbody_db.db.",
+        help="Match and print the breakdown without writing match_fwa_identifier to anglerinfo.db.",
     )
     args = parser.parse_args(argv)
 
@@ -248,7 +248,7 @@ def main(argv: Optional[List[str]] = None) -> int:
         results = match_identifier(rows, index)
 
         if args.dry_run:
-            logger.info("--dry-run: not writing match_fwa_identifier to waterbody_db.db")
+            logger.info("--dry-run: not writing match_fwa_identifier to anglerinfo.db")
         else:
             write_matches(conn, results)
     finally:

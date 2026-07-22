@@ -40,9 +40,9 @@ _LAYER_NAME_MAP = {
 # with an explicit admin_target reference are shown on the map.
 # land_access is "all" so watersheds/DND/private land render even though
 # most of them are only covered by the unscoped (no feature_id)
-# LAND_ACCESS_NO/LAND_ACCESS_PRIVATE/LAND_ACCESS_CLOSED_OTHER/
-# LAND_ACCESS_RESTRICTED advisories, not a specific feature_id target
-# like the Malcolm Knapp closure.
+# LAND_ACCESS_CLOSED / LAND_ACCESS_RESTRICTED advisories (and the
+# LAND_OWNERSHIP_PRIVATE ownership advisory), not a specific feature_id
+# target like the Malcolm Knapp closure.
 _SHOW_ALL_LAYERS = {"eco_reserves", "parks_nat", "aboriginal_lands", "land_access"}
 
 
@@ -201,10 +201,28 @@ def build(config_path: Path = Path("config.yaml"), dry_run: bool = False) -> Pat
 
     # ── Phase 5: Reach Build + Output ────────────────────────────────
     t0 = time.perf_counter()
-    from pipeline.enrichment.waterbody_accessor import load_waterbody_matches
+    from pipeline.enrichment.anglerinfo_accessor import load_anglerinfo
     from pipeline.enrichment.nearby_towns import NearbyTownsIndex
 
-    matches = load_waterbody_matches()
+    # Regenerate anglerinfo_matches.json from the fetched anglerinfo.db so the
+    # build always reads a fresh export. Non-fatal + graceful: if the db was
+    # never built (it's fetched separately, at data-fetch time), the export is
+    # skipped and load_anglerinfo() degrades to empty enrichment.
+    try:
+        from pipeline.recurring.anglerinfo.paths import DB_PATH
+        from pipeline.recurring.anglerinfo import export as wbdb_export
+
+        if DB_PATH.exists():
+            wbdb_export.main([])
+        else:
+            logger.info(
+                "anglerinfo.db not found at %s — skipping matches export "
+                "(run data.fetch_data to build it)", DB_PATH,
+            )
+    except Exception:
+        logger.warning("anglerinfo_matches export failed — continuing", exc_info=True)
+
+    matches = load_anglerinfo()
     towns_index = NearbyTownsIndex.from_file(places_path)
     logger.info("Loaded %d towns for nearest-town search tagging", len(towns_index))
     index = reach_builder.build_regulation_index(
@@ -358,8 +376,8 @@ def build(config_path: Path = Path("config.yaml"), dry_run: bool = False) -> Pat
     # Produces stocking.json in the deploy folder, same shape/role as
     # in_season.json above. Not yet consumed by any frontend display (that's
     # future work) — this just keeps a fresh copy shipping with every build.
-    # Non-fatal: waterbody_db.db (the underlying fetch+match data) is refreshed
-    # on its own, separate, manual cadence — see pipeline/recurring/waterbody_db.
+    # Non-fatal: anglerinfo.db (the underlying fetch+match data) is refreshed
+    # on its own, separate, manual cadence — see pipeline/recurring/anglerinfo.
     t0 = time.perf_counter()
     try:
         from pipeline.recurring.stocking_resolver import resolve_stocking

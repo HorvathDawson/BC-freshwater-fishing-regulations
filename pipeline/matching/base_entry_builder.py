@@ -140,7 +140,7 @@ def normalize_name(value: object) -> str:
     'Goose Lake' can never collide with 'Goose Creek'.
 
     Moved here from the (retired) pipeline/matching/bathymetry_matcher.py —
-    shared by pipeline/recurring/waterbody_db/'s waterbody_matcher.py and
+    shared by pipeline/recurring/anglerinfo/'s waterbody_matcher.py and
     match_fwa_gazette.py, which both depended on it.
     """
     if not isinstance(value, str):

@@ -1,9 +1,9 @@
-# waterbody_db
+# anglerinfo
 
-One shared SQLite file (`waterbody_db.db`) holding stocking, marker,
+One shared SQLite file (`anglerinfo.db`) holding stocking, marker,
 bathymetry, and WDIC 1:50K reference data together, so `match.py` can match
 everything against WDIC with a single local connection and no cross-directory
-DB paths. This package started as a testbed in `live-data/waterbody_db/`
+DB paths. This package started as a testbed in `live-data/anglerinfo/`
 (recurring, non-static data feeds not yet in production) alongside three
 standalone POCs — `stocking/`, `bathymetry/`, and `common/` — and absorbed
 them once its own matching chain reached 100% resolution across both source
@@ -14,9 +14,9 @@ began as replicated copies of those POCs' own fetch scripts, and
 (`LakeIndex`/`build_lake_index()`, `locate_at_point()`, `_confirmed_by_name()`,
 `build_override_index()`) — see that file's own docstring. The three
 originals have since been removed. This package has since graduated out of
-`live-data/` into `pipeline/recurring/waterbody_db/` — its own matching chain
+`live-data/` into `pipeline/recurring/anglerinfo/` — its own matching chain
 replaced `pipeline/matching/bathymetry_matcher.py` entirely (see
-`pipeline/enrichment/waterbody_accessor.py`), and feeds waterbody enrichment
+`pipeline/enrichment/anglerinfo_accessor.py`), and feeds waterbody enrichment
 (names, depth-map PDFs, marker amenities) into the main regulations build,
 plus a recurring stocking-info pipeline (`pipeline/recurring/stocking_resolver.py`).
 Everything still depends on the main pipeline (`pipeline/`, `data/`,
@@ -36,10 +36,10 @@ truth — with no FWA join, name fallback, or override at that stage;
 ## Files
 
 - **`fetch_stocking.py`** — replicated copy of `../stocking/fetch_stocking.py`,
-  DB_PATH repointed at `waterbody_db.db`. Writes `fidq_waterbodies`,
+  DB_PATH repointed at `anglerinfo.db`. Writes `fidq_waterbodies`,
   `map_markers`, `fidq_stocking_records`, `stocking_records`.
 - **`fetch_bathymetry.py`** — replicated copy of
-  `../bathymetry/fetch_bathymetry.py`, DB_PATH repointed at `waterbody_db.db`.
+  `../bathymetry/fetch_bathymetry.py`, DB_PATH repointed at `anglerinfo.db`.
   Writes `bathy_surveys`; `--csv-only` skips the (slower, and not needed by
   `match.py`) survey-polygon WFS fetch into a local GPKG.
 - **`fetch_wdic.py`** — fetches the *entire* `WHSE_FISH.WDIC_WATERBODY_POLY_SVW`
@@ -52,9 +52,9 @@ truth — with no FWA join, name fallback, or override at that stage;
   service with no bulk vector/attribute mechanism) — the catalogue page
   itself only lists WMS + a KML loader, but the same server's WFS endpoint is
   the actual data service underneath, confirmed live.
-- **`fetch_all.py`** — runs all three, in order, into `waterbody_db.db`.
+- **`fetch_all.py`** — runs all three, in order, into `anglerinfo.db`.
 - **`match.py`** — reads `fidq_stocking_records`, `bathy_surveys`,
-  `map_markers`, and `wdic_cache` from `waterbody_db.db`, matches every
+  `map_markers`, and `wdic_cache` from `anglerinfo.db`, matches every
   stocking/bathymetry/marker identifier against the WDIC cache, writes
   `match_wbid`. Three sources, one output row shape:
     - `stocking` — from `fidq_stocking_records`, keyed by `waterbody_id`,
@@ -238,36 +238,36 @@ Run as a package from the project root (not `cd`-and-`python file.py` — these
 are proper package-relative imports now, not script-relative ones):
 
 ```bash
-python -m pipeline.recurring.waterbody_db.fetch_all                 # stocking, bathymetry, wdic — all into waterbody_db.db
-python -m pipeline.recurring.waterbody_db.fetch_all --skip stocking  # skip one or more (repeatable)
+python -m pipeline.recurring.anglerinfo.fetch_all                 # stocking, bathymetry, wdic — all into anglerinfo.db
+python -m pipeline.recurring.anglerinfo.fetch_all --skip stocking  # skip one or more (repeatable)
 
 # or individually:
-python -m pipeline.recurring.waterbody_db.fetch_stocking update
-python -m pipeline.recurring.waterbody_db.fetch_bathymetry --csv-only
-python -m pipeline.recurring.waterbody_db.fetch_wdic
+python -m pipeline.recurring.anglerinfo.fetch_stocking update
+python -m pipeline.recurring.anglerinfo.fetch_bathymetry --csv-only
+python -m pipeline.recurring.anglerinfo.fetch_wdic
 
-python -m pipeline.recurring.waterbody_db.match                      # match all, write match_wbid to waterbody_db.db
-python -m pipeline.recurring.waterbody_db.match --dry-run            # match all, print only, no DB writes
+python -m pipeline.recurring.anglerinfo.match                      # match all, write match_wbid to anglerinfo.db
+python -m pipeline.recurring.anglerinfo.match --dry-run            # match all, print only, no DB writes
 
-python -m pipeline.recurring.waterbody_db.match_fwa_gazette          # run after match; write match_fwa_gazette
-python -m pipeline.recurring.waterbody_db.match_fwa_gazette --dry-run
-python -m pipeline.recurring.waterbody_db.match_fwa_gazette --gpkg /path/to/bc_fisheries_data.gpkg
+python -m pipeline.recurring.anglerinfo.match_fwa_gazette          # run after match; write match_fwa_gazette
+python -m pipeline.recurring.anglerinfo.match_fwa_gazette --dry-run
+python -m pipeline.recurring.anglerinfo.match_fwa_gazette --gpkg /path/to/bc_fisheries_data.gpkg
 
-python -m pipeline.recurring.waterbody_db.match_fwa_identifier       # run after match_fwa_gazette; write match_fwa_identifier
-python -m pipeline.recurring.waterbody_db.match_fwa_identifier --dry-run
+python -m pipeline.recurring.anglerinfo.match_fwa_identifier       # run after match_fwa_gazette; write match_fwa_identifier
+python -m pipeline.recurring.anglerinfo.match_fwa_identifier --dry-run
 
-python -m pipeline.recurring.waterbody_db.match_fwa_override         # run after match_fwa_identifier; write match_fwa_override
-python -m pipeline.recurring.waterbody_db.match_fwa_override --dry-run
+python -m pipeline.recurring.anglerinfo.match_fwa_override         # run after match_fwa_identifier; write match_fwa_override
+python -m pipeline.recurring.anglerinfo.match_fwa_override --dry-run
 
-python -m pipeline.recurring.waterbody_db.match_wbid_gazette         # run after match; write match_wbid_gazette
-python -m pipeline.recurring.waterbody_db.match_wbid_gazette --dry-run
+python -m pipeline.recurring.anglerinfo.match_wbid_gazette         # run after match; write match_wbid_gazette
+python -m pipeline.recurring.anglerinfo.match_wbid_gazette --dry-run
 
-python -m pipeline.recurring.waterbody_db.match_final                # run after everything else; write match_final
-python -m pipeline.recurring.waterbody_db.match_final --dry-run
+python -m pipeline.recurring.anglerinfo.match_final                # run after everything else; write match_final
+python -m pipeline.recurring.anglerinfo.match_final --dry-run
 
-python -m pipeline.recurring.waterbody_db.export                     # run after match_final; writes
-                                                                       # data/bathymetry_pdfs/waterbody_matches.json
-                                                                       # (see pipeline/enrichment/waterbody_accessor.py)
+python -m pipeline.recurring.anglerinfo.export                     # run after match_final; writes
+                                                                       # data/bathymetry_pdfs/anglerinfo_matches.json
+                                                                       # (see pipeline/enrichment/anglerinfo_accessor.py)
 ```
 
 ## Results (confirmed live)
@@ -324,17 +324,17 @@ Those originals have since been removed (this package's own matching chain
 fully superseded them — see "Results" above), so these are now simply this
 package's own copies of that logic, not a fork to keep in sync with anything.
 
-This package itself has since graduated from `live-data/waterbody_db/` (a
-POC directory) into `pipeline/recurring/waterbody_db/` (production): its
+This package itself has since graduated from `live-data/anglerinfo/` (a
+POC directory) into `pipeline/recurring/anglerinfo/` (production): its
 matching chain fully replaced `pipeline/matching/bathymetry_matcher.py`
 (deleted — bathymetry resolution is now precomputed once via `export.py`
 rather than re-derived on every build, see
-`pipeline/enrichment/waterbody_accessor.py`), and its stocking match results
+`pipeline/enrichment/anglerinfo_accessor.py`), and its stocking match results
 feed a recurring pipeline (`pipeline/recurring/stocking_resolver.py`,
 modeled on `pipeline/recurring/in_season_scraper.py`/`in_season_resolver.py`)
 that isn't yet cron-scheduled. Imports were converted from bare/script-style
 (`from fetch_wdic import DB_PATH`, relying on the script's own directory
 being on `sys.path[0]`) to proper package-relative imports
 (`from .fetch_wdic import DB_PATH`) — run every module here via
-`python -m pipeline.recurring.waterbody_db.<module>` from the project root,
+`python -m pipeline.recurring.anglerinfo.<module>` from the project root,
 not `cd`-and-`python <file>.py`.

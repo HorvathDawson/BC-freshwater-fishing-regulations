@@ -13,9 +13,7 @@ __pycache__/
 *.geojsonseq
 # *.pdf
 # Bulk-downloaded WSA bathymetry survey map PDFs (mirrored to R2, not committed).
-# waterbody_matches.json is NOT one of these — it's the committed, periodically
-# -refreshed precomputed matches artifact (see pipeline/recurring/waterbody_db/export.py).
-data/bathymetry_pdfs/*.pdf
+data/bathymetry_pdfs/
 scripts/output/fwa_modules
 scripts/output/synopsis_pipeline
 scripts/output/fishing_synopsis.pdf

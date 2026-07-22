@@ -20,7 +20,7 @@ export interface BathymetrySurvey {
 }
 
 /** gofishbc.com "Where To Fish" map marker enrichment — amenity/access
- * whitelist only (see pipeline/recurring/waterbody_db/export.py). Not yet
+ * whitelist only (see pipeline/recurring/anglerinfo/export.py). Not yet
  * surfaced in any UI — attached to the reach for future display work. */
 export interface MarkerInfo {
   more_info?: string;

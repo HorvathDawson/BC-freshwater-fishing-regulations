@@ -28,28 +28,15 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Tuple
 
-from .in_season_scraper import ScrapedResult, InSeasonChange, RegionChanges
+from .in_season_scraper import (
+    ScrapedResult,
+    InSeasonChange,
+    RegionChanges,
+    _SECTION_TO_REGION,
+)
 from pipeline.matching.match_table import BaseEntry, MatchTable, OverrideEntry, OVERRIDES_PATH
 
 logger = logging.getLogger(__name__)
-
-
-# ---------------------------------------------------------------------------
-# Section → synopsis-region mapping (shared with scraper)
-# ---------------------------------------------------------------------------
-
-_SECTION_TO_REGION: Dict[str, Optional[str]] = {
-    "Provincial level information": None,
-    "Region 1 - Vancouver Island (includes Haida Gwaii: WMU 6-12, 6-13)": "REGION 1 - Vancouver Island",
-    "Region 2 - Lower Mainland": "REGION 2 - Lower Mainland",
-    "Region 3 - Thompson": "REGION 3 - Thompson-Nicola",
-    "Region 4 - Kootenay": "REGION 4 - Kootenay",
-    "Region 5 - Cariboo": "REGION 5 - Cariboo",
-    "Region 6 - Skeena": "REGION 6 - Skeena",
-    "Region 7A - Omineca": "REGION 7A - Omineca",
-    "Region 7B - Peace": "REGION 7B - Peace",
-    "Region 8 - Okanagan": "REGION 8 - Okanagan",
-}
 
 
 # ---------------------------------------------------------------------------

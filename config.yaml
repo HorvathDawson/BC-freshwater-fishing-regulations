@@ -21,6 +21,12 @@ output:
     match_table: "output/pipeline/matching/match_table.json"
     in_season: "output/pipeline/matching/in_season_changes.json"
     stocking: "output/pipeline/matching/stocking.json"
+    # anglerinfo.db is the fetch+match artifact (built at data-fetch time);
+    # anglerinfo_matches.json is derived from it by export.py during the build
+    # and read by pipeline/enrichment/anglerinfo_accessor.py. Both are
+    # regenerable build artifacts — not committed (output/ is gitignored).
+    anglerinfo: "output/pipeline/anglerinfo/anglerinfo.db"
+    anglerinfo_matches: "output/pipeline/anglerinfo/anglerinfo_matches.json"
     extraction: "output/pipeline/extraction"
     parsing: "output/pipeline/parsing"
     deploy: "output/pipeline/deploy"
@@ -36,10 +42,6 @@ data:
   fetch:
     output_gpkg: "data/bc_fisheries_data.gpkg"
     temp_dir: "data/temp_bc_data"
-
-  # Precomputed bathymetry/name/marker matches from pipeline/recurring/waterbody_db's
-  # export.py (replaces pipeline/matching/bathymetry_matcher.py's live re-matching).
-  waterbody_matches: "data/bathymetry_pdfs/waterbody_matches.json"
 
 
 # Unified Data Accessor

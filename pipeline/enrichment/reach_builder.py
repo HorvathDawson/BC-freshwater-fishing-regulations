@@ -320,7 +320,7 @@ def _group_polygon_reaches(
     ``wbk_names`` maps ``str(WATERBODY_KEY)`` to every known alternate name
     for that waterbody from stocking, bathymetry, and gofishbc markers
     (``{"name", "source"}``, source ``"stocking"``, ``"bathymetry"``, or
-    ``"marker"``) — see ``pipeline/recurring/waterbody_db/export.py``. When
+    ``"marker"``) — see ``pipeline/recurring/anglerinfo/export.py``. When
     the FWA gazetteer itself has no name for this waterbody (no GNIS name,
     no matching regulation name), the most authoritative available entry
     here (by ``_SOURCE_PRIORITY``) is *promoted* to ``display_name`` instead
@@ -354,7 +354,7 @@ def _group_polygon_reaches(
                 continue
 
             # Stocking + bathymetry + marker name variants (optional dataset,
-            # from pipeline/recurring/waterbody_db's precomputed export) —
+            # from pipeline/recurring/anglerinfo's precomputed export) —
             # every known alternate name for this waterbody from any of the
             # three sources, normalized once up front so both the display-name
             # fallback below and the name_variants list further down read the

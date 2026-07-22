@@ -2,10 +2,10 @@
 # update-stocking.sh — Resolve FIDQ stocking data to reach IDs.
 #
 # Mirrors scripts/update-in-season.sh's shape, with one deliberate difference:
-# there is no "scrape" step here. pipeline/recurring/waterbody_db/'s own
+# there is no "scrape" step here. pipeline/recurring/anglerinfo/'s own
 # fetch+match chain (fetch_stocking.py -> match.py -> match_fwa_*.py ->
 # match_final.py -> export.py) is a separate, slower, manual cadence — this
-# script assumes waterbody_db.db is already fetched/matched locally and just
+# script assumes anglerinfo.db is already fetched/matched locally and just
 # resolves its stocking rows to reach IDs.
 #
 # NOT yet wired into a GitHub Actions workflow (unlike update-in-season.sh's

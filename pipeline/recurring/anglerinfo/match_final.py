@@ -37,8 +37,8 @@ chain already follows (see match.py's own `osm_url()`).
 
 CLI
 ---
-    python -m pipeline.recurring.waterbody_db.match_final                 # run after every other stage; writes match_final
-    python -m pipeline.recurring.waterbody_db.match_final --dry-run        # print only, no DB writes
+    python -m pipeline.recurring.anglerinfo.match_final                 # run after every other stage; writes match_final
+    python -m pipeline.recurring.anglerinfo.match_final --dry-run        # print only, no DB writes
 """
 
 from __future__ import annotations
@@ -244,7 +244,7 @@ def main(argv: Optional[List[str]] = None) -> int:
     )
     parser.add_argument(
         "--dry-run", action="store_true",
-        help="Match and print the breakdown without writing match_final to waterbody_db.db.",
+        help="Match and print the breakdown without writing match_final to anglerinfo.db.",
     )
     args = parser.parse_args(argv)
 
@@ -270,7 +270,7 @@ def main(argv: Optional[List[str]] = None) -> int:
         results = build_final_rows(conn)
 
         if args.dry_run:
-            logger.info("--dry-run: not writing match_final to waterbody_db.db")
+            logger.info("--dry-run: not writing match_final to anglerinfo.db")
         else:
             write_matches(conn, results)
     finally:

@@ -67,8 +67,8 @@ this chain has a coordinate for these rows to read instead).
 
 CLI
 ---
-    python -m pipeline.recurring.waterbody_db.match_wbid_gazette                 # run after match.py; writes match_wbid_gazette
-    python -m pipeline.recurring.waterbody_db.match_wbid_gazette --dry-run        # print only, no DB writes
+    python -m pipeline.recurring.anglerinfo.match_wbid_gazette                 # run after match.py; writes match_wbid_gazette
+    python -m pipeline.recurring.anglerinfo.match_wbid_gazette --dry-run        # print only, no DB writes
 """
 
 from __future__ import annotations
@@ -343,7 +343,7 @@ def main(argv: Optional[List[str]] = None) -> int:
     )
     parser.add_argument(
         "--dry-run", action="store_true",
-        help="Match and print the breakdown without writing match_wbid_gazette to waterbody_db.db.",
+        help="Match and print the breakdown without writing match_wbid_gazette to anglerinfo.db.",
     )
     args = parser.parse_args(argv)
 
@@ -364,7 +364,7 @@ def main(argv: Optional[List[str]] = None) -> int:
         results = match_wbid_gazette(rows, index)
 
         if args.dry_run:
-            logger.info("--dry-run: not writing match_wbid_gazette to waterbody_db.db")
+            logger.info("--dry-run: not writing match_wbid_gazette to anglerinfo.db")
         else:
             write_matches(conn, results)
     finally:

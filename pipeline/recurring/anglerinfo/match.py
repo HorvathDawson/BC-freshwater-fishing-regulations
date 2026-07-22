@@ -42,7 +42,7 @@ Scope (deliberately narrow for this first pass)
     overrides — those all assume WDIC coverage gaps that haven't actually
     been measured yet.
   * Reads already-fetched data from this directory's shared
-    `waterbody_db.db` — `fidq_stocking_records`, `map_markers` (both
+    `anglerinfo.db` — `fidq_stocking_records`, `map_markers` (both
     fetch_stocking.py), and `bathy_surveys` (fetch_bathymetry.py) — rather
     than re-fetching from FIDQ/WSA/gofishbc. `map_markers` matches on its
     own `wbid` column directly (gofishbc's marker data, not FIDQ's stocking
@@ -71,15 +71,15 @@ This directory is a testbed: `fetch_stocking.py`/`fetch_bathymetry.py` here
 are replicated copies of `../stocking/`'s and `../bathymetry/`'s own fetch
 scripts, and `fetch_wdic.py` fetches the *entire* WDIC layer (self-contained
 — no dependency on the other two, see its own docstring) — all three write
-into this single `waterbody_db.db` instead of three separate per-feed DBs.
+into this single `anglerinfo.db` instead of three separate per-feed DBs.
 This module reads all of it from that one file/connection: no cross-directory
 DB paths, unlike the original `wbid50k/` version this folder replaced.
 
 CLI
 ---
-    python -m pipeline.recurring.waterbody_db.fetch_all                     # run all three fetchers into waterbody_db.db
-    python -m pipeline.recurring.waterbody_db.match                          # match all, write to waterbody_db.db
-    python -m pipeline.recurring.waterbody_db.match --dry-run                # match all, print only, no DB writes
+    python -m pipeline.recurring.anglerinfo.fetch_all                     # run all three fetchers into anglerinfo.db
+    python -m pipeline.recurring.anglerinfo.match                          # match all, write to anglerinfo.db
+    python -m pipeline.recurring.anglerinfo.match --dry-run                # match all, print only, no DB writes
 """
 
 from __future__ import annotations
@@ -321,7 +321,7 @@ def main(argv: Optional[List[str]] = None) -> int:
     )
     parser.add_argument(
         "--dry-run", action="store_true",
-        help="Match and print the breakdown without writing match_wbid to waterbody_db.db.",
+        help="Match and print the breakdown without writing match_wbid to anglerinfo.db.",
     )
     args = parser.parse_args(argv)
 
@@ -343,7 +343,7 @@ def main(argv: Optional[List[str]] = None) -> int:
         results = match_records(stocking_records + bathy_records + marker_records, wdic_cache)
 
         if args.dry_run:
-            logger.info("--dry-run: not writing match_wbid to waterbody_db.db")
+            logger.info("--dry-run: not writing match_wbid to anglerinfo.db")
         else:
             write_matches(conn, results)
     finally:

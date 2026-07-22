@@ -5,14 +5,16 @@ Steps:
     atlas   — build the atlas pickle from graph + GPKG
     tiles   — export atlas pickle → PMTiles via tippecanoe
     parse   — parse synopsis rows into structured entries via the LLM parser
+    waterbody — build anglerinfo.db (fetch + match) and export anglerinfo_matches.json
     enrich  — run the 5-phase regulation index builder
-    all     — atlas → tiles → enrich (default; parse is excluded — run explicitly)
+    all     — atlas → tiles → enrich (default; parse and anglerinfo are excluded — run explicitly)
 
 Usage:
     python -m pipeline                        # run all
     python -m pipeline --step atlas           # atlas only
     python -m pipeline --step tiles enrich    # tiles then enrich
     python -m pipeline --step parse --resume  # resume synopsis parse
+    python -m pipeline --step anglerinfo      # (re)build the angler-info db + matches export
     python -m pipeline --step all             # full pipeline
     python -m pipeline --dry-run              # enrich dry-run
 """
@@ -105,12 +107,22 @@ def _step_parse(
     log.info(f"Parse done in {time.perf_counter() - t0:.1f}s")
 
 
+def _step_anglerinfo(skip_fetch: bool = False) -> None:
+    """Build anglerinfo.db (fetch + full match chain) and export
+    anglerinfo_matches.json into the output tree."""
+    from .recurring.anglerinfo.build_db import build_db
+
+    t0 = time.perf_counter()
+    build_db(skip_fetch=skip_fetch, do_export=True)
+    log.info(f"Angler-info db built in {time.perf_counter() - t0:.1f}s")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="V2 pipeline runner")
     parser.add_argument(
         "--step",
         nargs="*",
-        choices=["atlas", "tiles", "parse", "enrich", "all"],
+        choices=["atlas", "tiles", "parse", "anglerinfo", "enrich", "all"],
         default=["all"],
         help="Pipeline step(s) to run — executed in canonical order (default: all)",
     )
@@ -155,6 +167,12 @@ def main() -> None:
         _step_parse(
             dry_run=args.dry_run, resume=args.resume, batch_size=args.batch_size
         )
+
+    # Angler-info db build is expensive (external network fetch + match chain)
+    # and NOT part of "all" — run explicitly to (re)build it. The enrich step
+    # re-exports anglerinfo_matches.json from whatever db exists on every run.
+    if "anglerinfo" in steps:
+        _step_anglerinfo()
 
     if run_all or "enrich" in steps:
         _step_enrich(cfg, config_path, dry_run=args.dry_run)
