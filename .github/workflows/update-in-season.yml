@@ -21,7 +21,7 @@ jobs:
       # R2 I/O is pure-Python now (S3/boto3 via pipeline.recurring.r2_storage) —
       # no Node/wrangler needed.
       - name: Install dependencies
-        run: pip install requests beautifulsoup4 pyyaml python-dotenv boto3
+        run: pip install curl_cffi requests beautifulsoup4 pyyaml python-dotenv boto3
 
       - name: Scrape, resolve, and upload
         run: bash scripts/update-in-season.sh --upload

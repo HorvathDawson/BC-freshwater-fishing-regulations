@@ -30,7 +30,12 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, List, Optional, Set
 
-import requests
+# curl_cffi is a drop-in for the `requests` API but performs the TLS handshake
+# with a real browser's fingerprint (impersonate=). The BC gov WAF (Akamai)
+# closes the connection (RemoteDisconnected) on plain-`requests` traffic from
+# datacenter IPs like GitHub Actions runners; a Chrome TLS/JA3 fingerprint gets
+# through. Same call surface: .get / .raise_for_status / .text / .exceptions.
+from curl_cffi import requests
 from bs4 import BeautifulSoup, Tag
 
 logger = logging.getLogger(__name__)
@@ -107,7 +112,12 @@ def _fetch_page(url: str) -> str:
     last_exc: Exception = RuntimeError("No attempts made")
     for attempt in range(1, _MAX_RETRIES + 1):
         try:
-            resp = requests.get(url, headers=headers, timeout=_REQUEST_TIMEOUT)
+            resp = requests.get(
+                url,
+                headers=headers,
+                timeout=_REQUEST_TIMEOUT,
+                impersonate="chrome120",
+            )
             resp.raise_for_status()
             return resp.text
         except (requests.exceptions.ConnectionError, requests.exceptions.Timeout) as exc:
