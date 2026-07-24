@@ -1,311 +1,262 @@
-"""hydro.jobs — the single portable entrypoint for the hydro crons.
+"""hydro.jobs — the single portable entrypoint for the (now unified) hydro cron.
 
-    python -m pipeline.recurring.hydro.jobs realtime   # frequent (~15 min)
-    python -m pipeline.recurring.hydro.jobs nightly     # nightly history + climatology
+    python -m pipeline.recurring.hydro.jobs run            # the one cron
+    python -m pipeline.recurring.hydro.jobs run --local DIR  # dry run vs a local dir
 
-This module owns all the orchestration AND its own R2 (S3-compatible) GET/PUT via
-boto3, so the ONLY GitHub-Actions-specific artifact is the workflow YAML — the same
-entrypoint runs unchanged in a Cloudflare Container triggered by a Cron Trigger
-(the ~68 s / ~1825-request fetch is container-shaped, not a Worker isolate).
+ONE job does everything, gating internally by cheap change-detection instead of
+running on separate cadences:
 
-Design invariants (see plan Parts C + G):
-  * realtime is STATELESS for heavy readings — it pulls only the small seed DB
-    (``cron/hydro/hydro_seed.db``), re-fetches the last 14 days fresh, exports,
-    discards. It pulls just the fid shards its gauges need (not all 4096).
-  * nightly is STATEFUL — it keeps ``hydro.db`` in R2, refreshes daily means +
-    climatology, exports history + climatology, rebuilds the seed, then compacts
-    the DB (``_compact_db``: drop sub-daily 5-min noise recent/ never emits) and
-    pushes it back for the next night. Compaction runs AFTER the export, so it
-    cannot change any artifact — it only shrinks the persisted/re-downloaded copy.
-  * a ``version.json`` marker is written/uploaded LAST so the webapp can fence on
-    a consistent artifact set (avoids reading a new stations.json against a stale
-    recent/*.json mid-upload).
+  * EVERY run  — fetch latest conditions/readings/forecasts and (re)write
+    ``stations.json`` (the live map index), ``gauges.geojson`` (map points), and
+    ``recent/<id>.json`` (the chart time-series). The cron trigger cadence (~30 min)
+    sets how fresh these are.
+  * DAILY      — merge fresh daily means into ``history/<id>.json`` (pull-merge-push,
+    idempotent by date), gated by the ``history_date.json`` marker.
+  * HYDAT      — rebuild ``climatology/<id>.json`` + refresh station coords, gated by
+    comparing the latest HYDAT *listing date* (no 266 MB download to check) to the
+    ``hydat_release.json`` marker.
 
-R2 credentials (env): ``R2_S3_ENDPOINT`` (or ``CLOUDFLARE_ACCOUNT_ID`` →
-``https://<id>.r2.cloudflarestorage.com``), ``R2_ACCESS_KEY_ID``,
-``R2_SECRET_ACCESS_KEY``, ``R2_BUCKET`` (or derived from ``DEPLOY_ENV``).
+STATE lives in the JSON artifacts themselves — there is NO persisted database in
+R2. Each run uses an ephemeral ``/tmp`` sqlite purely as scratch (so it can reuse
+hydro_poc's fetchers + export_hydro's shapers), seeding the station roster/coords
+from the prior ``stations.json`` and merging history at the JSON level. First run
+(no prior ``stations.json``) does a full bootstrap incl. HYDAT.
+
+R2 credentials (env): ``R2_S3_ENDPOINT`` (or ``CLOUDFLARE_ACCOUNT_ID``),
+``R2_ACCESS_KEY_ID``, ``R2_SECRET_ACCESS_KEY``, ``R2_BUCKET`` (or ``DEPLOY_ENV``).
 """
 
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import shutil
-import subprocess
 import sqlite3
-import sys
 import tempfile
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
 
-from pipeline.deploy.r2_sharder import shard_prefix
 from pipeline.recurring.r2_storage import storage_from_env
 
-from .seed import build_seed_db
+from . import export_hydro
+from .export_hydro import HISTORY_DAYS, _write, build_climatology, build_history
+from .hydro_poc import connect, run_bootstrap, run_update
 
 KEY_PREFIX = "cron/hydro"
-STREAM_LAYERS = ("streams", "under_lake_streams")
-
-# Compaction policy for the persisted nightly hydro.db.
-#
-# The exported artifacts are always built from the full 5-min data BEFORE this
-# runs (see nightly_job), and every run's `update --bc` re-fetches the last 14
-# days at full resolution before the next export — so nothing here can change an
-# emitted artifact; it only slims the copy we persist + re-download each night.
-#
-# * Sub-daily *unit values* (params 46/47, ~288 rows/station/day → ~1.3 GB) are
-#   what makes the DB huge. recent/ downsamples them to 30-min (last 3 d) / hourly
-#   (days 3-14) via _on_step, so we keep only on-the-30-min-mark rows (:00/:30 —
-#   a superset of the hourly marks) within a small retention window. That is a
-#   ~6x reduction and matches recent/'s own resolution exactly.
-# * Daily means (params 3/6, 1 row/day) back history/ over HISTORY_DAYS (550);
-#   they are already compact, so we only trim well beyond that window to bound
-#   long-term growth.
-UNIT_PARAMS = ("46", "47")     # sub-daily discharge/level (recent/ only)
-DAILY_PARAMS = ("3", "6")      # daily means (history/)
-UNIT_RETAIN_DAYS = 21          # > export_hydro.COARSE_DAYS (14)
-UNIT_STEP_MIN = 30             # == export_hydro.FINE_STEP_MIN; hourly ⊂ 30-min
-DAILY_RETAIN_DAYS = 730        # > export_hydro.HISTORY_DAYS (550)
 
 
-# ── Helpers ─────────────────────────────────────────────────────────────────
+# ── JSON storage helpers ─────────────────────────────────────────────────────
 
-def _shard_version() -> int:
-    from project_config import ProjectConfig
-
-    v = ProjectConfig().config.get("output", {}).get("pipeline", {}).get("shard_version")
-    return int(v) if v is not None else 2
-
-
-def _has_table(conn: sqlite3.Connection, name: str) -> bool:
-    return conn.execute(
-        "SELECT 1 FROM sqlite_master WHERE type='table' AND name=?", (name,)
-    ).fetchone() is not None
-
-
-def _ensure_gauge_fwa_match(storage, db: Path, workdir: Path, key_prefix: str) -> None:
-    """Make sure ``gauge_fwa_match`` (+ summary) exist in ``db``.
-
-    The nightly job builds hydro.db via ``hydro_poc bootstrap`` (WSC roster +
-    readings + climatology) which never runs the atlas-time ``match_fwa`` step,
-    so its db has no gauge→FWA link table. The authoritative copy lives in the
-    enrich-built ``hydro_seed.db``; pull it and copy the tables across so the
-    nightly export can still resolve gauge reach_ids. Degrades to a no-op (with
-    a warning) if the seed isn't in storage — ``_gauge_fids`` then returns empty.
-    """
-    conn = sqlite3.connect(db)
+def _get_json(storage, key: str, workdir: Path) -> Optional[dict]:
+    """Pull a JSON object from storage, or None if absent."""
+    tmp = workdir / ("_dl_" + key.replace("/", "_"))
+    if not storage.get(key, tmp):
+        return None
     try:
-        if _has_table(conn, "gauge_fwa_match"):
-            return
-        seed = workdir / "hydro_seed.db"
-        if not storage.get(f"{key_prefix}/hydro_seed.db", seed):
-            print("gauge_fwa_match missing and no hydro_seed.db in storage — "
-                  "gauge FWA links will be skipped this run")
-            return
-        conn.execute("ATTACH DATABASE ? AS seed", (str(seed),))
-        restored = []
-        for tbl in ("gauge_fwa_match", "gauge_fwa_match_summary"):
-            if conn.execute(
-                "SELECT 1 FROM seed.sqlite_master WHERE type='table' AND name=?", (tbl,)
-            ).fetchone():
-                conn.execute(f"CREATE TABLE {tbl} AS SELECT * FROM seed.{tbl}")
-                restored.append(tbl)
-        conn.commit()
-        conn.execute("DETACH DATABASE seed")
-        print(f"restored {', '.join(restored)} from hydro_seed.db")
-    finally:
-        conn.close()
+        return json.loads(tmp.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError) as e:
+        print(f"WARN: could not parse {key}: {e}")
+        return None
 
 
-def _gauge_fids(db: Path) -> set[str]:
-    """Distinct stream fids from the seed's gauge_fwa_match (primary matches).
-
-    Guards the table's absence (matching export_hydro's own guard) — a db built
-    without the atlas-time match_fwa step simply yields no gauge fids.
-    """
-    conn = sqlite3.connect(f"file:{db}?mode=ro", uri=True)
-    try:
-        if not _has_table(conn, "gauge_fwa_match"):
-            return set()
-        rows = conn.execute(
-            "SELECT DISTINCT fwa_id FROM gauge_fwa_match "
-            "WHERE is_primary=1 AND layer IN (?, ?) AND fwa_id IS NOT NULL",
-            STREAM_LAYERS,
-        ).fetchall()
-    finally:
-        conn.close()
-    return {str(r[0]) for r in rows if r[0] is not None}
-
-
-def _pull_fid_shards(storage, db: Path, workdir: Path) -> Path:
-    """Download only the ``shards/v{N}/fids/{prefix}.json`` buckets the gauges need.
-
-    Returns the shard root (``.../shards/v{N}``) to hand to the exporter via
-    ``HYDRO_SHARD_ROOT`` — the fid→reach_id resolver reads local disk, so this is
-    the step that stops the realtime export emitting null reach_ids (review G1).
-    """
-    version = _shard_version()
-    shard_root = workdir / "shards" / f"v{version}"
-    (shard_root / "fids").mkdir(parents=True, exist_ok=True)
-    prefixes = {shard_prefix(fid) for fid in _gauge_fids(db)}
-    got = 0
-    for prefix in sorted(prefixes):
-        key = f"shards/v{version}/fids/{prefix}.json"
-        if storage.get(key, shard_root / "fids" / f"{prefix}.json"):
-            got += 1
-    print(f"pulled {got}/{len(prefixes)} fid shard buckets for {len(prefixes)} prefixes")
-    return shard_root
-
-
-def _compact_db(db: Path) -> None:
-    """Slim the persisted hydro.db and VACUUM to reclaim space.
-
-    Three deletes, none of which touches a window the exporter reads (and this
-    runs AFTER the export regardless), so no emitted artifact changes:
-      1. unit values (46/47) older than UNIT_RETAIN_DAYS — beyond recent/'s reach;
-      2. unit values not on a UNIT_STEP_MIN mark — recent/ only emits 30-min/hourly
-         samples, so the intra-mark 5-min rows are pure storage overhead (~6x);
-      3. daily means (3/6) older than DAILY_RETAIN_DAYS — beyond history/'s reach.
-    Run BEFORE the storage.put that persists it.
-    """
-    now = datetime.now(timezone.utc)
-    unit_cutoff = (now - timedelta(days=UNIT_RETAIN_DAYS)).strftime("%Y-%m-%dT%H:%M:%SZ")
-    daily_cutoff = (now - timedelta(days=DAILY_RETAIN_DAYS)).strftime("%Y-%m-%dT%H:%M:%SZ")
-    before = db.stat().st_size
-    conn = sqlite3.connect(db)
-    try:
-        if not _has_table(conn, "readings"):
-            return
-        unit_ph = ",".join("?" * len(UNIT_PARAMS))
-        deleted = conn.execute(
-            f"DELETE FROM readings WHERE parameter IN ({unit_ph}) AND ts < ?",
-            (*UNIT_PARAMS, unit_cutoff),
-        ).rowcount
-        # Down-sample surviving unit values to the 30-min marks recent/ keeps.
-        # substr(ts,15,2) is the minute field of '...THH:MM:SSZ' (matches _on_step).
-        deleted += conn.execute(
-            f"DELETE FROM readings WHERE parameter IN ({unit_ph}) "
-            "AND CAST(substr(ts, 15, 2) AS INTEGER) % ? <> 0",
-            (*UNIT_PARAMS, UNIT_STEP_MIN),
-        ).rowcount
-        daily_ph = ",".join("?" * len(DAILY_PARAMS))
-        deleted += conn.execute(
-            f"DELETE FROM readings WHERE parameter IN ({daily_ph}) AND ts < ?",
-            (*DAILY_PARAMS, daily_cutoff),
-        ).rowcount
-        conn.commit()
-        conn.isolation_level = None  # VACUUM cannot run inside a transaction
-        conn.execute("VACUUM")
-    finally:
-        conn.close()
-    after = db.stat().st_size
-    print(f"compacted hydro.db: pruned {deleted} readings, "
-          f"{before / 1e6:.0f} MB -> {after / 1e6:.0f} MB")
-
-
-def _run(argv: list[str], env: dict) -> None:
-    print(f"$ {' '.join(argv)}")
-    subprocess.run(argv, env=env, check=True)
-
-
-def _write_version_marker(out_dir: Path) -> Path:
-    marker = out_dir / "version.json"
-    marker.write_text(
-        f'{{"v":"{datetime.now(timezone.utc).isoformat()}"}}', encoding="utf-8"
+def _selection_args() -> argparse.Namespace:
+    """The station-selection Namespace hydro_poc's fetchers expect (all BC)."""
+    return argparse.Namespace(
+        stations=None, all=False, bc=True, province=None, limit=5, no_series=False,
     )
-    return marker
+
+
+def _seed_stations(conn: sqlite3.Connection, index: dict) -> int:
+    """Seed the scratch DB's ``stations`` table (roster + coords) from a prior
+    ``stations.json`` so a non-first run can fetch/export without re-pulling the
+    266 MB HYDAT metadata. Coords are authoritative until the next HYDAT refresh.
+    """
+    rows = index.get("stations", [])
+    conn.executemany(
+        """INSERT OR REPLACE INTO stations
+             (station_id, name, province, lat, lon, hyd_status,
+              drainage_area_gross_km2, coord_source)
+           VALUES (?, ?, 'BC', ?, ?, ?, ?, ?)""",
+        [
+            (s["id"], s.get("name"), s.get("lat"), s.get("lon"), s.get("hyd_status"),
+             s.get("drainage_area_km2"), s.get("coord_source"))
+            for s in rows
+        ],
+    )
+    conn.commit()
+    return len(rows)
+
+
+def _clim_ids_from_index(index: Optional[dict]) -> set:
+    """station_ids the prior index flagged as having a climatology envelope."""
+    if not index:
+        return set()
+    return {s["id"] for s in index.get("stations", []) if s.get("has_climatology")}
+
+
+def _merge_daily(existing: list, fresh: list, keep_days: int, today: str) -> list:
+    """Merge two [date, value] daily series: fresh overrides existing on a shared
+    date, then trim to the last ``keep_days`` and sort. Idempotent — re-running
+    with the same fresh series yields the same result (no dupes)."""
+    from datetime import date, timedelta
+
+    merged: dict[str, object] = {}
+    for d, v in existing or []:
+        merged[d] = v
+    for d, v in fresh or []:
+        merged[d] = v  # fresh wins
+    cutoff = (date.fromisoformat(today) - timedelta(days=keep_days)).isoformat()
+    return sorted(([d, v] for d, v in merged.items() if d >= cutoff), key=lambda p: p[0])
+
+
+def _merge_history(storage, conn, out: Path, key_prefix: str, workdir: Path, today: str) -> int:
+    """For every station: pull its existing history/<id>.json, merge the freshly
+    fetched (last ~14 d) daily means into it, trim to HISTORY_DAYS, write to out.
+    The JSON files ARE the persisted record (no DB in R2), so this is the merge
+    that keeps the ~18-month window without re-fetching it each run."""
+    sids = [r[0] for r in conn.execute("SELECT station_id FROM stations ORDER BY station_id")]
+    n = 0
+    for sid in sids:
+        fresh = build_history(conn, sid)  # DB only has the last ~14 d after `update`
+        prior = _get_json(storage, f"{key_prefix}/history/{sid}.json", workdir) or {}
+        merged = {
+            "id": sid,
+            "discharge_daily": _merge_daily(
+                prior.get("discharge_daily"), fresh.get("discharge_daily"), HISTORY_DAYS, today),
+            "level_daily": _merge_daily(
+                prior.get("level_daily"), fresh.get("level_daily"), HISTORY_DAYS, today),
+        }
+        _write(out / "history" / f"{sid}.json", merged)
+        n += 1
+    print(f"history/: merged {n} files")
+    return n
+
+
+def _export_climatology(conn, out: Path) -> int:
+    """Write climatology/<id>.json for every station that has an envelope (built
+    into the scratch DB by the HYDAT sync). Only runs on a HYDAT-change run."""
+    sids = [r[0] for r in conn.execute("SELECT station_id FROM stations ORDER BY station_id")]
+    n = 0
+    for sid in sids:
+        payload = build_climatology(conn, sid)
+        if payload is None:
+            continue
+        _write(out / "climatology" / f"{sid}.json", payload)
+        n += 1
+    print(f"climatology/: {n} files")
+    return n
+
+
+def _write_version_marker(out_dir: Path) -> None:
+    out_dir.mkdir(parents=True, exist_ok=True)
+    (out_dir / "version.json").write_text(
+        json.dumps({"v": datetime.now(timezone.utc).isoformat()}), encoding="utf-8")
 
 
 def _upload_tree(storage, out_dir: Path, key_prefix: str) -> None:
-    """Upload every file under out_dir to key_prefix/..., version.json LAST."""
+    """Upload every file under out_dir to key_prefix/..., version.json LAST so the
+    webapp can fence on a consistent artifact set."""
     files = [p for p in out_dir.rglob("*") if p.is_file()]
-    version_files = [p for p in files if p.name == "version.json"]
-    data_files = [p for p in files if p.name != "version.json"]
-    for p in data_files:
+    data = [p for p in files if p.name != "version.json"]
+    ver = [p for p in files if p.name == "version.json"]
+    for p in data + ver:
         rel = p.relative_to(out_dir).as_posix()
-        ct = "application/json" if p.suffix == ".json" else None
+        ct = "application/json" if p.suffix in (".json", ".geojson") else None
         storage.put(p, f"{key_prefix}/{rel}", content_type=ct)
-    for p in version_files:  # fence marker last
-        rel = p.relative_to(out_dir).as_posix()
-        storage.put(p, f"{key_prefix}/{rel}", content_type="application/json")
-    print(f"uploaded {len(data_files)} data files + version marker → {key_prefix}/")
+    print(f"uploaded {len(data)} data files + version marker → {key_prefix}/")
 
 
-# ── Jobs ────────────────────────────────────────────────────────────────────
+# ── The one job ──────────────────────────────────────────────────────────────
 
-def realtime_job(storage, workdir: Path, key_prefix: str = KEY_PREFIX, upload: bool = True) -> Path:
-    db = workdir / "hydro.db"
-    if not storage.get(f"{key_prefix}/hydro_seed.db", db):
-        raise RuntimeError(
-            f"seed DB {key_prefix}/hydro_seed.db not found in storage — run the "
-            "nightly job (or a full enrich seed) first."
-        )
-
-    shard_root = _pull_fid_shards(storage, db, workdir)
+def run_job(storage, workdir: Path, key_prefix: str = KEY_PREFIX,
+            upload: bool = True, force: bool = False) -> Path:
+    db = workdir / "hydro.db"          # ephemeral scratch — never persisted to R2
     out = workdir / "out"
-    env = {
-        **os.environ,
-        "HYDRO_DB_PATH": str(db),
-        "HYDRO_SHARD_ROOT": str(shard_root),
-        "HYDRO_OUT_DIR": str(out),
-    }
-    _run([sys.executable, "-m", "pipeline.recurring.hydro.hydro_poc", "update", "--bc"], env)
-    _run(
-        [sys.executable, "-m", "pipeline.recurring.hydro.export_hydro",
-         "--scope", "realtime", "--db", str(db), "--out", str(out)],
-        env,
-    )
-    _write_version_marker(out)
-    if upload:
-        _upload_tree(storage, out, key_prefix)
-    return out
+    conn = connect(db)
+    try:
+        args = _selection_args()
+
+        prior_index = _get_json(storage, f"{key_prefix}/stations.json", workdir)
+        first_run = prior_index is None
+        clim_ids: Optional[set] = _clim_ids_from_index(prior_index)
+
+        # HYDAT change detection — cheap listing date, no 266 MB download.
+        from . import fetch_hydat
+        latest_release = None
+        try:
+            latest_release, _ = fetch_hydat.find_latest_release()
+        except Exception as e:  # noqa: BLE001 — non-fatal; skip the HYDAT path
+            print(f"WARN: could not check latest HYDAT release: {e}")
+        rel_marker = _get_json(storage, f"{key_prefix}/hydat_release.json", workdir) or {}
+        do_hydat = bool(force) or first_run or (
+            latest_release is not None and latest_release != rel_marker.get("release_date"))
+
+        today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        hist_marker = _get_json(storage, f"{key_prefix}/history_date.json", workdir) or {}
+        do_history = bool(force) or first_run or hist_marker.get("date") != today
+
+        if first_run:
+            print("=== first run: full bootstrap (roster + HYDAT + 18mo history + climatology) ===")
+            run_bootstrap(conn, args)
+            export_hydro.export(conn, out, "all")
+            latest_release = _current_release(conn) or latest_release
+        else:
+            print(f"=== incremental run (do_history={do_history}, do_hydat={do_hydat}) ===")
+            seeded = _seed_stations(conn, prior_index)
+            print(f"seeded {seeded} stations from prior stations.json")
+            run_update(conn, args)
+            if do_hydat:
+                print("HYDAT release changed — syncing metadata + climatology")
+                fetch_hydat.sync(conn)
+                clim_ids = None  # DB now has the authoritative climatology set
+                latest_release = _current_release(conn) or latest_release
+            # Index + geojson + recent every run (has_climatology from prior index
+            # unless the HYDAT sync just rebuilt it in-DB).
+            export_hydro.export(conn, out, "realtime", clim_station_ids=clim_ids)
+            if do_history:
+                _merge_history(storage, conn, out, key_prefix, workdir, today)
+            if do_hydat:
+                _export_climatology(conn, out)
+
+        # Markers: only (re)written on the run that refreshed their tier, so a plain
+        # run doesn't churn them (and their absence-of-write leaves R2's copy intact).
+        if do_history:
+            _write(out / "history_date.json", {"date": today})
+        if do_hydat and latest_release:
+            _write(out / "hydat_release.json", {"release_date": latest_release})
+
+        _write_version_marker(out)
+        if upload:
+            _upload_tree(storage, out, key_prefix)
+        return out
+    finally:
+        conn.close()
 
 
-def nightly_job(storage, workdir: Path, key_prefix: str = KEY_PREFIX, upload: bool = True) -> Path:
-    db = workdir / "hydro.db"
-    env_base = {**os.environ, "HYDRO_DB_PATH": str(db)}
-
-    if storage.get(f"{key_prefix}/hydro.db", db):
-        # Refresh the persisted DB: recent readings/forecasts + HYDAT climatology.
-        _run([sys.executable, "-m", "pipeline.recurring.hydro.hydro_poc", "update", "--bc"], env_base)
-        _run([sys.executable, "-m", "pipeline.recurring.hydro.fetch_hydat"], env_base)
-    else:
-        # First run: full bootstrap (roster + 18mo history + HYDAT + climatology).
-        _run([sys.executable, "-m", "pipeline.recurring.hydro.hydro_poc", "bootstrap", "--bc"], env_base)
-
-    out = workdir / "out"
-    env = {**env_base, "HYDRO_OUT_DIR": str(out)}
-    # No shard pull here: history/climatology don't resolve reach_ids; but the
-    # 'all' scope also re-writes stations.json, so pull shards to keep fwa links.
-    # bootstrap/update build a db with no gauge_fwa_match — restore it from the
-    # enrich-built seed first so _gauge_fids (and stations.json fwa links) work.
-    _ensure_gauge_fwa_match(storage, db, workdir, key_prefix)
-    shard_root = _pull_fid_shards(storage, db, workdir)
-    env["HYDRO_SHARD_ROOT"] = str(shard_root)
-    _run(
-        [sys.executable, "-m", "pipeline.recurring.hydro.export_hydro",
-         "--scope", "all", "--db", str(db), "--out", str(out)],
-        env,
-    )
-    build_seed_db(db, out / "hydro_seed.db")
-    _write_version_marker(out)
-    _compact_db(db)  # slim the persisted DB — export is already done above
-    if upload:
-        _upload_tree(storage, out, key_prefix)
-        storage.put(db, f"{key_prefix}/hydro.db")  # persist for next night
-    return out
+def _current_release(conn) -> Optional[str]:
+    """Most recent HYDAT release_date recorded in the scratch DB, if any."""
+    try:
+        row = conn.execute(
+            "SELECT release_date FROM hydat_sync ORDER BY synced_at DESC LIMIT 1"
+        ).fetchone()
+        return row[0] if row else None
+    except sqlite3.OperationalError:
+        return None
 
 
 def main(argv: Optional[list[str]] = None) -> int:
-    p = argparse.ArgumentParser(description="Hydro cron jobs (portable R2 entrypoint).")
-    p.add_argument("job", choices=["realtime", "nightly"])
+    p = argparse.ArgumentParser(description="Unified hydro cron job (portable R2 entrypoint).")
+    p.add_argument("job", nargs="?", default="run", choices=["run"])
     p.add_argument("--local", type=Path, default=None,
                    help="use a local dir as the storage backend instead of R2 (dry run)")
     p.add_argument("--workdir", type=Path, default=None,
                    help="scratch dir (default: a temp dir, cleaned up)")
     p.add_argument("--key-prefix", default=KEY_PREFIX)
     p.add_argument("--no-upload", action="store_true", help="skip the upload step")
+    p.add_argument("--force", action="store_true",
+                   help="force the history + HYDAT/climatology tiers this run")
     args = p.parse_args(argv)
 
     storage = storage_from_env(args.local)
@@ -314,9 +265,9 @@ def main(argv: Optional[list[str]] = None) -> int:
     workdir = args.workdir or Path(tempfile.mkdtemp(prefix="hydro-job-"))
     workdir.mkdir(parents=True, exist_ok=True)
     try:
-        job = realtime_job if args.job == "realtime" else nightly_job
-        out = job(storage, workdir, key_prefix=args.key_prefix, upload=not args.no_upload)
-        print(f"{args.job} job done → {out}")
+        out = run_job(storage, workdir, key_prefix=args.key_prefix,
+                      upload=not args.no_upload, force=args.force)
+        print(f"hydro run done → {out}")
         return 0
     finally:
         if cleanup:

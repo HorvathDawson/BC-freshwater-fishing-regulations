@@ -1,0 +1,27 @@
+name = "bc-fishing-cron"
+main = "src/index.ts"
+compatibility_date = "2025-11-01"
+
+# Reliable cron clock: GHA's schedule: trigger drifts 20-30 min under load, so
+# this Worker fires punctually and DISPATCHES the GitHub Actions workflows via
+# the REST API (workflow_dispatch). No container/image — a plain free-tier Worker.
+# GHA keeps its own schedule: as a coarse fallback; a double-run is harmless
+# (the jobs are idempotent full-tree overwrites).
+[triggers]
+crons = ["7,22,37,52 * * * *"]   # every 15 min, offset ~7 min from GHA's */15
+
+[vars]
+GITHUB_OWNER = "HorvathDawson"
+GITHUB_REPO = "BC-freshwater-fishing-regulations"
+GITHUB_REF = "main"
+# Comma-separated workflow file names to dispatch each tick. The unified hydro
+# workflow gates its own cadence internally (recent 30-min, history daily,
+# climatology on HYDAT release), so triggering every 15 min is fine.
+WORKFLOWS = "update-hydro.yml"
+
+[observability]
+enabled = true
+
+# ── Secrets (NOT stored here — set once via wrangler) ────────────────────────
+#   npx wrangler secret put GITHUB_TOKEN     # fine-grained PAT, Actions: read/write
+#   npx wrangler secret put TRIGGER_TOKEN    # optional: guards GET /__run?token=…

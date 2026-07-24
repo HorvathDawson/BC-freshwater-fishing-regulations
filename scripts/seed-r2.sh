@@ -70,7 +70,6 @@ upload_deploy() {
   rclone copy "$DEPLOY_DIR" "$BUCKET/" \
     $RCLONE_FLAGS \
     --exclude "_tile_temp/**" \
-    --exclude "layer_manifest.json" \
     --checksum \
     --transfers 32
 
@@ -100,7 +99,6 @@ case "${1:-}" in
     rclone copy "$DEPLOY_DIR" "$BUCKET/" \
       $RCLONE_FLAGS \
       --exclude "_tile_temp/**" \
-      --exclude "layer_manifest.json" \
       --checksum \
       --dry-run
     ;;

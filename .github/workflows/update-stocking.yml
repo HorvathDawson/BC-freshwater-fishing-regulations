@@ -2,9 +2,11 @@ name: Update Stocking
 
 # Light tier of the two-tier stocking refresh (see refresh-stocking-db.yml for
 # the heavy tier). Pulls anglerinfo.db from R2 read-only, refreshes FIDQ
-# stocking release rows via fetch_stocking (no geopandas), resolves to reach
-# IDs, and uploads stocking.json. Surfaces NEW RELEASES for already-matched
-# waterbodies; new waterbodies enter via the monthly heavy job.
+# stocking release rows via fetch_stocking (no geopandas), then exports
+# per-waterbody records/<waterbody_id>.json + stocking_index.json (NO reach
+# resolution — the reach→waterbody match table ships with a full pipeline build).
+# Surfaces NEW RELEASES for existing waterbodies; new waterbodies enter via the
+# monthly heavy job.
 #
 # Weekly, not daily — FIDQ stocking changes seasonally, and reach mappings only
 # move on a full regulations build.
@@ -32,7 +34,7 @@ jobs:
       - name: Install dependencies
         run: pip install pyyaml python-dotenv boto3
 
-      - name: Resolve and upload stocking data
+      - name: Export and upload stocking records
         run: bash scripts/update-stocking.sh --upload
         env:
           DEPLOY_ENV: ${{ github.ref_name == 'main' && 'production' || 'staging' }}

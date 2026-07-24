@@ -1,29 +1,28 @@
 """
-stocking_resolver — resolve FIDQ stocking records to reach IDs.
+stocking resolver — DECOUPLED into fetch-shaping (cron) vs matching (pipeline).
 
-Modeled on pipeline/recurring/in_season_resolver.py, but simpler: in-season
-notices only ever carry a water *name*, so that resolver has to go through
-MatchTable + tier0's search index to find a reach. Stocking rows already
-carry a resolved waterbody_key (pipeline/recurring/anglerinfo's own
-match_final table), so this just needs waterbody_key -> reach_id — a flat
-lookup against poly_reaches.json (written by pipeline/enrichment/builder.py
-right after build_regulation_index() runs), no name matching at all.
+Two capabilities, mirroring the hydro split:
 
-No separate "scraper" here — pipeline/recurring/anglerinfo's own
-fetch_stocking.py + match chain already is the fetch+resolve step. This
-module's whole job is reading what's already matched: match_final
-(source='stocking') for the waterbody_key, fidq_stocking_records for the
-actual release history.
+  * ``export_records`` (CRON) — read fidq_stocking_records and write per-waterbody
+    ``cron/stocking/records/<waterbody_id>.json`` + a small ``stocking_index.json``.
+    NO reach resolution, NO match_final, NO poly_reaches — just fetch-shaped data
+    keyed by the FIDQ waterbody_id. The light weekly cron owns this.
 
-Produces stocking.json — structurally analogous to in_season.json, but not
-yet consumed by any frontend display (that's future work once stocking info
-display is built). Kept fresh by an inline call from builder.py's main build
-step, same non-fatal pattern as in-season.
+  * ``build_matches`` (PIPELINE) — read match_final (source='stocking') + poly_reaches
+    and write the static ``stocking_matches.json``::
+
+        { "reach":     { "<reach_id>": ["<waterbody_id>", ...] },
+          "waterbody": { "<waterbody_key>": ["<waterbody_id>", ...] } }
+
+    Produced once per full build (it only changes when reaches/matches change).
+
+The webapp loads ``stocking_matches.json`` and, on info-panel open, maps a reach_id
+(and/or waterbody_key) → waterbody_ids, then fetches ``records/<waterbody_id>.json``.
 
 CLI
 ---
-    python -m pipeline.recurring.stocking_resolver
-    python -m pipeline.recurring.stocking_resolver --db path/to/anglerinfo.db --poly-reaches path/to/poly_reaches.json --out path/to/stocking.json
+    python -m pipeline.recurring.stocking.resolver records --out <cron/stocking dir>
+    python -m pipeline.recurring.stocking.resolver matches --poly-reaches <path> --out <file>
 """
 
 from __future__ import annotations
@@ -34,7 +33,6 @@ import logging
 import sqlite3
 import sys
 from collections import defaultdict
-from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -60,9 +58,8 @@ def _split_keys(waterbody_key: str) -> List[str]:
 def _load_poly_reaches(path: Path) -> Dict[str, str]:
     if not path.exists():
         logger.warning(
-            "poly_reaches.json not found at %s — stocking rows will resolve "
-            "with no reach_id. Run a full build first (it's written by "
-            "pipeline/enrichment/builder.py).",
+            "poly_reaches.json not found at %s — stocking matches will be empty. "
+            "Run a full build first (it's written by pipeline/enrichment/builder.py).",
             path,
         )
         return {}
@@ -70,124 +67,149 @@ def _load_poly_reaches(path: Path) -> Dict[str, str]:
         return json.load(f)
 
 
-def resolve_stocking(
-    db_path: Path = WATERBODY_DB_PATH,
-    poly_reaches_path: Optional[Path] = None,
-) -> Dict[str, Any]:
-    """Read match_final (source='stocking') + fidq_stocking_records, resolve
-    each row's waterbody_key(s) to a reach_id via poly_reaches, and return
-    the stocking.json structure."""
+def _provenance() -> Dict[str, Any]:
+    from pipeline.recurring.provenance import provenance
+
+    return provenance(
+        generator="stocking_resolver",
+        source="FIDQ (BC gov Fish Inventories Data Queries)",
+        source_url="https://a100.gov.bc.ca/pub/fidq/main.do",
+        attribution=(
+            "Fish stocking data sourced from the Province of British Columbia "
+            "(Fish Inventories Data Queries) and used under the Province's "
+            "copyright terms (https://www2.gov.bc.ca/gov/content/home/copyright)."
+        ),
+    )
+
+
+# ── CRON: per-waterbody records + index (no reach resolution) ────────────────
+
+def export_records(db_path: Path, out_dir: Path) -> Dict[str, Any]:
+    """Write cron/stocking/records/<waterbody_id>.json for every FIDQ waterbody
+    that has stocking history, plus stocking_index.json. Keyed by waterbody_id —
+    the frontend resolves reach_id → waterbody_id via the static match table."""
     if not db_path.exists():
         raise FileNotFoundError(
-            f"{db_path} not found — run pipeline.recurring.anglerinfo's "
-            "fetch+match chain first."
+            f"{db_path} not found — run pipeline.recurring.anglerinfo's fetch chain first."
         )
-    if poly_reaches_path is None:
-        cfg = ProjectConfig()
-        poly_reaches_path = cfg.get_path(
-            "output", "pipeline", "deploy", default="output/pipeline/deploy"
-        ) / "poly_reaches.json"
+    records_dir = out_dir / "records"
+    records_dir.mkdir(parents=True, exist_ok=True)
+
+    release_cols = ", ".join(_RELEASE_FIELDS)
+    conn = sqlite3.connect(db_path)
+    try:
+        if not conn.execute(
+            "SELECT 1 FROM sqlite_master WHERE type='table' AND name='fidq_stocking_records'"
+        ).fetchone():
+            raise FileNotFoundError(
+                f"{db_path} has no fidq_stocking_records — run fetch_stocking first."
+            )
+        # One entry per waterbody that has any release row. gazetted_name rides along.
+        waterbodies = conn.execute(
+            "SELECT DISTINCT waterbody_id, gazetted_name FROM fidq_stocking_records"
+        ).fetchall()
+
+        index_entries: List[Dict[str, Any]] = []
+        for waterbody_id, name in waterbodies:
+            wid = str(waterbody_id)
+            releases = [
+                dict(zip(_RELEASE_FIELDS, r))
+                for r in conn.execute(
+                    f"SELECT {release_cols} FROM fidq_stocking_records WHERE waterbody_id = ? "
+                    "ORDER BY release_date DESC",
+                    (waterbody_id,),
+                ).fetchall()
+            ]
+            if not releases:
+                continue
+            (records_dir / f"{wid}.json").write_text(
+                json.dumps({"id": wid, "name": name, "releases": releases},
+                           separators=(",", ":"), ensure_ascii=False),
+                encoding="utf-8",
+            )
+            index_entries.append({"id": wid, "name": name, "n": len(releases)})
+    finally:
+        conn.close()
+
+    index = {**_provenance(), "count": len(index_entries), "waterbodies": index_entries}
+    (out_dir / "stocking_index.json").write_text(
+        json.dumps(index, separators=(",", ":"), ensure_ascii=False), encoding="utf-8")
+    return {"count": len(index_entries)}
+
+
+# ── PIPELINE: static reach/waterbody → waterbody_id match table ──────────────
+
+def build_matches(db_path: Path, poly_reaches_path: Path) -> Dict[str, Any]:
+    """From match_final (source='stocking') + poly_reaches, build the static
+    reach_id/waterbody_key → [waterbody_id] index the frontend joins on."""
+    if not db_path.exists():
+        raise FileNotFoundError(
+            f"{db_path} not found — run pipeline.recurring.anglerinfo's fetch+match chain first."
+        )
     poly_reaches = _load_poly_reaches(poly_reaches_path)
 
+    reach: Dict[str, List[str]] = defaultdict(list)
+    waterbody: Dict[str, List[str]] = defaultdict(list)
     conn = sqlite3.connect(db_path)
     try:
         if not conn.execute(
             "SELECT 1 FROM sqlite_master WHERE type='table' AND name='match_final'"
         ).fetchone():
             raise FileNotFoundError(
-                f"{db_path} has no match_final table — run the full match chain "
-                "(match, match_fwa_gazette, match_fwa_identifier, match_fwa_override, "
-                "match_wbid_gazette, match_final) first."
+                f"{db_path} has no match_final table — run the full match chain first."
             )
-
         rows = conn.execute(
-            "SELECT source_id, name, waterbody_key, status FROM match_final "
-            "WHERE source = 'stocking'"
+            "SELECT source_id, waterbody_key, status FROM match_final WHERE source = 'stocking'"
         ).fetchall()
-
-        release_cols = ", ".join(_RELEASE_FIELDS)
-        waterbodies: List[Dict[str, Any]] = []
-        resolved_to_reach = 0
-        for waterbody_id, name, waterbody_key, status in rows:
-            reach_id = None
-            if status == "matched":
-                for wbk in _split_keys(waterbody_key):
-                    reach_id = poly_reaches.get(wbk)
-                    if reach_id:
-                        break
-
-            releases = [
-                dict(zip(_RELEASE_FIELDS, r))
-                for r in conn.execute(
-                    f"SELECT {release_cols} FROM fidq_stocking_records WHERE waterbody_id = ?",
-                    (waterbody_id,),
-                ).fetchall()
-            ]
-
-            if reach_id:
-                resolved_to_reach += 1
-            waterbodies.append({
-                "waterbody_key": waterbody_key or None,
-                "reach_id": reach_id,
-                "fidq_name": name,
-                "releases": releases,
-            })
+        for waterbody_id, waterbody_key, status in rows:
+            wid = str(waterbody_id)
+            if status != "matched":
+                continue
+            for wbk in _split_keys(waterbody_key):
+                waterbody[wbk].append(wid)
+                rid = poly_reaches.get(wbk)
+                if rid:
+                    reach[rid].append(wid)
     finally:
         conn.close()
 
-    total = len(waterbodies)
-    from pipeline.recurring.provenance import provenance
-
     return {
-        **provenance(
-            generator="stocking_resolver",
-            source="FIDQ (BC gov Fish Inventories Data Queries)",
-            source_url="https://a100.gov.bc.ca/pub/fidq/main.do",
-            attribution=(
-                "Fish stocking data sourced from the Province of British Columbia "
-                "(Fish Inventories Data Queries) and used under the Province's "
-                "copyright terms (https://www2.gov.bc.ca/gov/content/home/copyright)."
-            ),
-        ),
-        # legacy top-level keys kept for existing consumers
-        "source": "FIDQ (BC gov Fish Inventories Data Queries)",
-        "waterbodies": waterbodies,
-        "stats": {
-            "total": total,
-            "resolved_to_reach": resolved_to_reach,
-            "unresolved": total - resolved_to_reach,
-        },
+        "reach": {k: sorted(set(v)) for k, v in reach.items()},
+        "waterbody": {k: sorted(set(v)) for k, v in waterbody.items()},
     }
 
 
 def main(argv: Optional[List[str]] = None) -> int:
     logging.basicConfig(level=logging.INFO, format="%(message)s")
     cfg = ProjectConfig()
+    deploy = cfg.get_path("output", "pipeline", "deploy", default="output/pipeline/deploy")
 
-    parser = argparse.ArgumentParser(description="Resolve FIDQ stocking records to reach IDs.")
+    parser = argparse.ArgumentParser(description="Stocking: per-waterbody records (cron) or match table (pipeline).")
     parser.add_argument("--db", type=Path, default=WATERBODY_DB_PATH, help="anglerinfo.db path.")
-    parser.add_argument(
-        "--poly-reaches", type=Path, default=None,
-        help="poly_reaches.json path (default: output/pipeline/deploy/poly_reaches.json).",
-    )
-    parser.add_argument(
-        "--out", type=Path,
-        default=cfg.get_path("output", "pipeline", "stocking", default="output/pipeline/matching/stocking.json"),
-        help="Output stocking.json path.",
-    )
+    sub = parser.add_subparsers(dest="command", required=True)
+
+    p_rec = sub.add_parser("records", help="CRON: write per-waterbody records + index.")
+    p_rec.add_argument("--out", type=Path, default=deploy / "cron" / "stocking",
+                       help="cron/stocking output dir (records/ + stocking_index.json).")
+
+    p_mat = sub.add_parser("matches", help="PIPELINE: write the reach→waterbody match table.")
+    p_mat.add_argument("--poly-reaches", type=Path, default=deploy / "poly_reaches.json",
+                       help="poly_reaches.json path.")
+    p_mat.add_argument("--out", type=Path, default=deploy / "cron" / "stocking" / "stocking_matches.json",
+                       help="Output stocking_matches.json path.")
+
     args = parser.parse_args(argv)
 
-    result = resolve_stocking(args.db, args.poly_reaches)
-
-    args.out.parent.mkdir(parents=True, exist_ok=True)
-    with open(args.out, "w", encoding="utf-8") as f:
-        json.dump(result, f, indent=2, ensure_ascii=False)
-
-    stats = result["stats"]
-    logger.info(
-        "Wrote %d waterbody(ies) (%d resolved to a reach, %d unresolved) -> %s",
-        stats["total"], stats["resolved_to_reach"], stats["unresolved"], args.out,
-    )
+    if args.command == "records":
+        stats = export_records(args.db, args.out)
+        logger.info("Wrote %d per-waterbody record file(s) → %s", stats["count"], args.out)
+    elif args.command == "matches":
+        matches = build_matches(args.db, args.poly_reaches)
+        args.out.parent.mkdir(parents=True, exist_ok=True)
+        args.out.write_text(json.dumps(matches, separators=(",", ":"), ensure_ascii=False),
+                            encoding="utf-8")
+        logger.info("Wrote match table (%d reach keys, %d waterbody keys) → %s",
+                    len(matches["reach"]), len(matches["waterbody"]), args.out)
     return 0
 
 

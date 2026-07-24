@@ -52,12 +52,16 @@ staging.
 | Workflow | Schedule | Writes (R2 key) |
 |----------|----------|-----------------|
 | `update-in-season.yml`      | every 6h        | `cron/in-season/in_season.json` |
-| `update-stocking.yml`       | `0 9 * * *` (~01:00 PST) | `cron/stocking/stocking.json` |
-| `update-hydro-realtime.yml` | `*/15`          | `cron/hydro/{stations.json,recent/*}` |
-| `update-hydro-nightly.yml`  | `0 9 * * *`     | `cron/hydro/{history,climatology}/*`, rebuilds `hydro_seed.db` + full DB |
+| `update-stocking.yml`       | `0 9 * * 1` (weekly) | `cron/stocking/records/*`, `cron/stocking/stocking_index.json` |
+| `update-hydro.yml`          | `*/30`          | `cron/hydro/{stations.json,gauges.geojson,recent/*}` every run; `history/*` daily; `climatology/*` on HYDAT release |
 
-All four share **one** R2 transport — `pipeline/recurring/r2_storage.py` (S3 API
-via boto3). No wrangler/Node in the cron workflows.
+All share **one** R2 transport — `pipeline/recurring/r2_storage.py` (S3 API via
+boto3). No wrangler/Node in the cron workflows.
+
+A free Cloudflare Worker (`cron-runner/`) fires punctually and dispatches these
+workflows via `workflow_dispatch`; the GHA `schedule:` is a coarse fallback. It
+needs a `GITHUB_TOKEN` (fine-grained PAT, Actions: read/write) — see
+`cron-runner/README.md`.
 
 ### Required GitHub Actions secrets (crons)
 
@@ -75,11 +79,12 @@ Tokens → Create API token** (permission *Object Read & Write*, scoped to both
 
 ### First-run ordering (hydro)
 
-The realtime `*/15` job pulls `cron/hydro/hydro_seed.db` from R2, which doesn't
-exist until either the **nightly** job runs once (it bootstraps + pushes the
-seed) or a full `python -m pipeline … enrich` + `seed-r2.sh` upload seeds it.
-Trigger the nightly hydro job manually (`workflow_dispatch`) once after adding
-secrets, confirm it succeeds, then let the realtime cron take over.
+The unified hydro job is self-seeding: on its **first** run (no
+`cron/hydro/stations.json` in R2) it does a full bootstrap (roster + 18-month
+history + HYDAT climatology) and writes every tier, then subsequent runs are
+incremental. A full pipeline build (`enrich`) also seeds `cron/hydro/*` +
+`gauge_matches.json` up front via `seed-r2.sh`. Either path works; no separate
+seed DB is involved anymore.
 
 ---
 

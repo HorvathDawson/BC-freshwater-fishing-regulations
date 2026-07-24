@@ -382,52 +382,56 @@ def build(config_path: Path = Path("config.yaml"), dry_run: bool = False) -> Pat
             exc_info=True,
         )
 
-    # ── Stocking info: resolve to reach IDs ───────────────────────────
-    # Produces stocking.json in the deploy folder, same shape/role as
-    # in_season.json above — a standalone recurring artifact the frontend
-    # fetches directly (not baked into the reach shards, which only rebuild
-    # on a full pipeline run). This keeps stocking data refreshable on its
-    # own lightweight cadence, same as in-season notices.
-    # Non-fatal: anglerinfo.db (the underlying fetch+match data) is refreshed
-    # on its own, separate, manual cadence — see pipeline/recurring/anglerinfo.
+    # ── Stocking: static reach → waterbody_id match table ─────────────
+    # The full build owns the MATCHING half (which FIDQ waterbody maps to which
+    # reach); the light weekly cron owns the FETCH half (per-waterbody records).
+    # Produces cron/stocking/stocking_matches.json — the frontend joins reach_id →
+    # waterbody_id here, then fetches cron/stocking/records/<id>.json. Non-fatal:
+    # anglerinfo.db is refreshed on its own manual cadence (pipeline.recurring.anglerinfo).
     t0 = time.perf_counter()
     try:
-        from pipeline.recurring.stocking.resolver import resolve_stocking
+        from pipeline.recurring.stocking.resolver import build_matches, export_records
+        from pipeline.recurring.anglerinfo.paths import DB_PATH as ANGLERINFO_DB
 
-        result = resolve_stocking(poly_reaches_path=poly_reaches_path)
+        matches = build_matches(ANGLERINFO_DB, poly_reaches_path)
         stocking_path = _write_cron_json(
-            deploy_dir, "stocking", "stocking.json", result
+            deploy_dir, "stocking", "stocking_matches.json", matches
         )
-
-        stats = result["stats"]
+        # Also seed the per-waterbody release records so the first deploy ships
+        # stocking content up front (the weekly cron keeps them fresh after).
+        rec_stats = export_records(ANGLERINFO_DB, deploy_dir / "cron" / "stocking")
         logger.info(
-            "Stocking data → %s (%d/%d resolved to a reach, %.1fs)",
+            "Stocking → %s (%d reach keys, %d waterbody keys, %d record files, %.1fs)",
             stocking_path,
-            stats["resolved_to_reach"],
-            stats["total"],
+            len(matches["reach"]),
+            len(matches["waterbody"]),
+            rec_stats["count"],
             time.perf_counter() - t0,
         )
     except Exception:
         logger.warning(
-            "Stocking resolve failed — skipping (%.1fs)",
+            "Stocking match table/records failed — skipping (%.1fs)",
             time.perf_counter() - t0,
             exc_info=True,
         )
 
-    # ── Hydro: seed initial gauge artifacts + the small seed DB ───────────
-    # Produces cron/hydro/{stations.json,recent/,history/,climatology/} plus the
-    # small hydro_seed.db into the deploy folder, so the first R2 seed already
-    # ships hydro data before any cron runs. Requires a working hydro.db present
-    # locally (heavy, ~1.3 GB — built by `python -m pipeline.recurring.hydro.hydro_poc
-    # bootstrap --bc`). Non-fatal: if it's absent (e.g. a CI enrich with no hydro
-    # fetch), warn and continue — the hydro crons keep it fresh anyway.
+    # ── Hydro: seed initial gauge artifacts + the static match table ──────
+    # Produces cron/hydro/{stations.json,gauges.geojson,recent/,history/,
+    # climatology/} plus the static gauge_matches.json (reach_id/waterbody_key →
+    # station_ids) into the deploy folder, so the first R2 seed already ships
+    # hydro data + the match table before any cron runs. Requires a working
+    # hydro.db present locally (heavy, ~1.3 GB — built by `python -m
+    # pipeline.recurring.hydro.hydro_poc bootstrap --bc` + match_fwa). Non-fatal:
+    # if it's absent (e.g. a CI enrich with no hydro fetch), warn and continue —
+    # the hydro cron keeps the data fresh anyway (the match table only changes on
+    # a full build, so it's shipped here, not by the cron).
     t0 = time.perf_counter()
     try:
         import sqlite3
 
         from project_config import ProjectConfig
         from pipeline.recurring.hydro import export_hydro
-        from pipeline.recurring.hydro.seed import build_seed_db
+        from pipeline.recurring.hydro.gauge_matches import write_gauge_matches
 
         cfg = ProjectConfig()
         hydro_db = cfg.get_path(
@@ -443,18 +447,22 @@ def build(config_path: Path = Path("config.yaml"), dry_run: bool = False) -> Pat
         finally:
             conn.close()
 
-        seed_dst = hydro_out / "hydro_seed.db"
-        counts = build_seed_db(hydro_db, seed_dst)
+        # Static reach/waterbody → station_id match table (fid→reach via shards).
+        shard_version = cfg.config.get("output", {}).get("pipeline", {}).get("shard_version")
+        shard_root = (
+            deploy_dir / "shards" / f"v{shard_version}" if shard_version is not None else None
+        )
+        matches = write_gauge_matches(hydro_db, shard_root, hydro_out / "gauge_matches.json")
         logger.info(
-            "Hydro seed → %s (seed DB %d stations, %d matches, %.1fs)",
+            "Hydro seed → %s (%d reach keys, %d waterbody keys, %.1fs)",
             hydro_out,
-            counts.get("stations", 0),
-            counts.get("gauge_fwa_match", 0),
+            len(matches.get("reach", {})),
+            len(matches.get("waterbody", {})),
             time.perf_counter() - t0,
         )
     except Exception:
         logger.warning(
-            "Hydro seed failed — skipping (%.1fs); the hydro crons keep it fresh",
+            "Hydro seed failed — skipping (%.1fs); the hydro cron keeps data fresh",
             time.perf_counter() - t0,
             exc_info=True,
         )

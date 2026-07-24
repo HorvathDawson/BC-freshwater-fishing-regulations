@@ -8,7 +8,7 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 import { createRegulationLayers, createAdminLabelLayers, createEarlyRoadLayers, HIGHLIGHT_COLORS, SELECTION_COLOR } from '../map/styles';
 import bcBoundary from '../map/bcBoundary.json';
 import { waterbodyDataService } from '../services/waterbodyDataService';
-import type { Reach, RegulationData, ResolveResult } from '../services/waterbodyDataService';
+import type { Reach, RegulationData, ResolveResult, LayerManifest } from '../services/waterbodyDataService';
 import { TILE_BASE } from '../config/endpoints';
 import {
     isMobileViewport,
@@ -70,6 +70,16 @@ const BC_BOUNDS: [[number, number], [number, number]] = [
     [-148.0, 45.0], // SW with margin
     [-108.0, 63.5], // NE with margin
 ];
+
+// Fallback center when the user's real location is outside BC (this app only
+// covers BC) — downtown Vancouver.
+const VANCOUVER: [number, number] = [-123.12, 49.28];
+
+// Is a lon/lat inside the BC map bounds? Used to gate GPS: an out-of-province
+// position must not drop a (far-away) location dot or drive "center on me".
+const isInBC = (lng: number, lat: number): boolean =>
+    lng >= BC_BOUNDS[0][0] && lng <= BC_BOUNDS[1][0] &&
+    lat >= BC_BOUNDS[0][1] && lat <= BC_BOUNDS[1][1];
 
 // ── Satellite imagery source ────────────────────────────────────────
 // Abstracted so it's easy to swap providers.  To switch to BC Gov SPOT 15m
@@ -187,6 +197,28 @@ const ADMIN_INTERACTABLE_LAYERS = [
     'admin_land_parcels_private-fill',
     'admin_aboriginal_lands-fill',
 ];
+
+/** Frontend render map for the layer menu's data-layer toggles.
+ *
+ * The pipeline `layer_manifest.json` is the SINGLE SOURCE OF TRUTH for WHICH
+ * layers are user-toggleable (`toggleable: true`), their menu label, and their
+ * default visibility. This map holds only the one thing that can't live in a
+ * tile artifact: HOW to render each — the MapLibre style-layer ids a toggle
+ * flips. Keyed by the manifest's tile-layer key.
+ *
+ * NOTE: the menu key `land_parcels_private` surfaces only PRIVATE parcels. The
+ * underlying tile SOURCE layer is still `land_parcels_crown` (the full parcel
+ * fabric), which is why the style-layer ids reference the private-filtered
+ * variant. Crown/Public is simply "everything that isn't private", so it's
+ * implied — not shown as its own layer. Manifest entries that are `toggleable`
+ * but absent here are skipped (nothing to render).
+ *
+ * Basemap controls (Satellite + overlay opacity) are NOT layer toggles and stay
+ * as their own fixed rows in the menu.
+ */
+const LAYER_STYLE_MAP: Record<string, string[]> = {
+    land_parcels_private: ['admin_land_parcels_private-fill', 'admin_land_parcels_private-line'],
+};
 
 /** Map a clicked admin-layer tile feature to its AdminFeatureType, keyed on
  *  the style layer id (and, for the multi-subtype BC-parks layer, admin_type). */
@@ -666,8 +698,7 @@ const MapComponent = () => {
     const handleOverlayOpacityRef = useRef<(val: string) => void>(() => {});
     const layerMenuCtrlRef = useRef<HTMLElement | null>(null);
     const toggleLayerMenuRef = useRef<() => void>(() => {});
-    const toggleLandOwnershipRef = useRef<() => void>(() => {});
-    const togglePrivateLandRef = useRef<() => void>(() => {});
+    const toggleLayerRef = useRef<(id: string) => void>(() => {});
     // Cache of each regulation layer's original paint opacity values,
     // captured on first satellite toggle so the slider can multiply them.
     const baseOpacitiesRef = useRef<Record<string, [string, any][]>>({});
@@ -737,8 +768,10 @@ const MapComponent = () => {
     const [isSatellite, setIsSatellite] = useState(false);
     const [overlayOpacity, setOverlayOpacity] = useState(1);
     const [layerMenuOpen, setLayerMenuOpen] = useState(false);
-    const [showLandOwnership, setShowLandOwnership] = useState(false);
-    const [showPrivateLand, setShowPrivateLand] = useState(false);
+    // Layer menu config from layer_manifest.json (source of truth for which layers
+    // are toggleable + label + default) and the live per-layer on/off state.
+    const [layerManifest, setLayerManifest] = useState<LayerManifest>({});
+    const [layerToggles, setLayerToggles] = useState<Record<string, boolean>>({});
 
     // Spinner delay constants (ms)
     const SPINNER_DELAY = 150;  // wait before showing
@@ -945,37 +978,59 @@ const MapComponent = () => {
     // Keep the imperative satellite button ref in sync with React state
     useEffect(() => { toggleSatelliteRef.current = toggleSatellite; }, [toggleSatellite]);
 
-    // Land ownership layer toggles — shows/hides the land_parcels_crown fill
-    // + line layers (same setLayoutProperty pattern the admin-layer
-    // visibility effect elsewhere in this file uses). "Crown / Public Land"
-    // (one checkbox) flips both the Crown and Public/Local-Government style
-    // layers together — they're different colors so they read as distinct
-    // categories, but share one toggle. Private has its own separate
-    // toggle. All three draw from the same `land_parcels_crown` tile
-    // source-layer but as separately-filtered style layers (see styles.ts).
+    // Data-layer toggles are driven by layer_manifest.json (the source of truth
+    // for which layers are toggleable + label + default) plus LAYER_STYLE_MAP
+    // (frontend: which MapLibre layers each flips). Load the manifest once and
+    // seed each toggleable+mapped layer's on/off state from its default `visible`.
     useEffect(() => {
-        toggleLandOwnershipRef.current = () => setShowLandOwnership(v => !v);
-        togglePrivateLandRef.current = () => setShowPrivateLand(v => !v);
+        let cancelled = false;
+        waterbodyDataService.getLayerManifest().then((m) => {
+            if (cancelled) return;
+            setLayerManifest(m);
+            const init: Record<string, boolean> = {};
+            for (const [key, cfg] of Object.entries(m)) {
+                if (cfg?.toggleable && LAYER_STYLE_MAP[key]) init[key] = cfg.visible === true;
+            }
+            setLayerToggles(init);
+        }).catch(() => { /* no toggles if the manifest is unavailable */ });
+        return () => { cancelled = true; };
+    }, []);
+    useEffect(() => {
+        toggleLayerRef.current = (key: string) =>
+            setLayerToggles(s => ({ ...s, [key]: !s[key] }));
     }, []);
     useEffect(() => {
         const map = mapRef.current;
         if (!map || !map.isStyleLoaded()) return;
-        const vis = showLandOwnership ? 'visible' : 'none';
-        for (const id of [
-            'admin_land_parcels_crown-fill', 'admin_land_parcels_crown-line',
-            'admin_land_parcels_public-fill', 'admin_land_parcels_public-line',
-        ]) {
-            if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', vis);
+        for (const [key, on] of Object.entries(layerToggles)) {
+            const vis = on ? 'visible' : 'none';
+            for (const id of LAYER_STYLE_MAP[key] || []) {
+                if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', vis);
+            }
         }
-    }, [showLandOwnership, mapReady]);
+    }, [layerToggles, mapReady]);
+    // Generate the menu's data-layer rows from the manifest (into the placeholder
+    // the control's onAdd renders). Re-runs when the manifest loads or the control
+    // is (re)created (mapReady).
     useEffect(() => {
-        const map = mapRef.current;
-        if (!map || !map.isStyleLoaded()) return;
-        const vis = showPrivateLand ? 'visible' : 'none';
-        for (const id of ['admin_land_parcels_private-fill', 'admin_land_parcels_private-line']) {
-            if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', vis);
-        }
-    }, [showPrivateLand, mapReady]);
+        const wrapper = layerMenuCtrlRef.current;
+        const container = wrapper?.querySelector('.layer-menu-layers') as HTMLElement | null;
+        if (!container) return;
+        const entries = Object.entries(layerManifest)
+            .filter(([key, cfg]) => cfg?.toggleable && LAYER_STYLE_MAP[key]);
+        container.innerHTML = entries.map(([key, cfg]) => `
+            <label class="layer-menu-row">
+                <span class="layer-menu-row-label">${LAYERS_SVG} ${cfg.label || key}</span>
+                <input type="checkbox" class="layer-menu-layer-toggle" data-layer-toggle="${key}" />
+            </label>`).join('');
+        container.querySelectorAll('.layer-menu-layer-toggle').forEach((el) => {
+            el.addEventListener('change', (e) => {
+                e.stopPropagation();
+                const key = (e.currentTarget as HTMLElement).getAttribute('data-layer-toggle');
+                if (key) toggleLayerRef.current(key);
+            });
+        });
+    }, [layerManifest, mapReady]);
 
     // Layer menu trigger button — always shows a generic "layers" icon; the
     // menu itself (not this button) reflects satellite/land-ownership state.
@@ -1002,11 +1057,13 @@ const MapComponent = () => {
         if (!wrapper) return;
         const satToggle = wrapper.querySelector('.layer-menu-sat-toggle') as HTMLInputElement | null;
         if (satToggle) satToggle.checked = isSatellite;
-        const landToggle = wrapper.querySelector('.layer-menu-land-toggle') as HTMLInputElement | null;
-        if (landToggle) landToggle.checked = showLandOwnership;
-        const privateToggle = wrapper.querySelector('.layer-menu-private-toggle') as HTMLInputElement | null;
-        if (privateToggle) privateToggle.checked = showPrivateLand;
-    }, [isSatellite, showLandOwnership, showPrivateLand]);
+        for (const [key, on] of Object.entries(layerToggles)) {
+            const el = wrapper.querySelector(
+                `.layer-menu-layer-toggle[data-layer-toggle="${key}"]`,
+            ) as HTMLInputElement | null;
+            if (el) el.checked = !!on;
+        }
+    }, [isSatellite, layerToggles]);
 
     // Apply overlay opacity multiplier to all regulation-sourced layers.
     // Captures each layer's paint opacity on first satellite activation,
@@ -1559,6 +1616,16 @@ const MapComponent = () => {
         let pendingGps: [number, number] | null = null;
 
         const updateGpsDot = (lng: number, lat: number) => {
+            if (!isInBC(lng, lat)) {
+                // Outside BC — this app only covers BC. Don't drop a far-away GPS
+                // dot; clear any existing one and default "center on me" to Vancouver.
+                gpsPosition = VANCOUVER;
+                setGpsBtnSpinner(false);
+                const src = map.getSource('gps-location') as maplibregl.GeoJSONSource | undefined;
+                if (src) src.setData({ type: 'FeatureCollection', features: [] });
+                pendingGps = null;
+                return;
+            }
             gpsPosition = [lng, lat];
             setGpsBtnSpinner(false);
             const src = map.getSource('gps-location') as maplibregl.GeoJSONSource | undefined;
@@ -1671,6 +1738,9 @@ const MapComponent = () => {
                 const popup = document.createElement('div');
                 popup.className = 'layer-menu-popup';
                 popup.style.display = 'none';
+                // Satellite + opacity are fixed basemap rows. The data-layer toggle
+                // rows are generated from layer_manifest.json into `.layer-menu-layers`
+                // by an effect (source of truth = the manifest).
                 popup.innerHTML = `
                     <label class="layer-menu-row">
                         <span class="layer-menu-row-label">${MAP_SVG} Satellite</span>
@@ -1683,26 +1753,11 @@ const MapComponent = () => {
                         </label>
                         <input type="range" min="0" max="1" step="0.05" value="1" class="layer-menu-opacity-slider" />
                     </div>
-                    <label class="layer-menu-row">
-                        <span class="layer-menu-row-label">${LAYERS_SVG} Crown / Public Land</span>
-                        <input type="checkbox" class="layer-menu-land-toggle" />
-                    </label>
-                    <label class="layer-menu-row">
-                        <span class="layer-menu-row-label">${LAYERS_SVG} Private Land</span>
-                        <input type="checkbox" class="layer-menu-private-toggle" />
-                    </label>
+                    <div class="layer-menu-layers"></div>
                 `;
                 popup.querySelector('.layer-menu-sat-toggle')!.addEventListener('change', (e) => {
                     e.stopPropagation();
                     toggleSatelliteRef.current();
-                });
-                popup.querySelector('.layer-menu-land-toggle')!.addEventListener('change', (e) => {
-                    e.stopPropagation();
-                    toggleLandOwnershipRef.current();
-                });
-                popup.querySelector('.layer-menu-private-toggle')!.addEventListener('change', (e) => {
-                    e.stopPropagation();
-                    togglePrivateLandRef.current();
                 });
                 popup.querySelector('.layer-menu-opacity-slider')!.addEventListener('input', (e) => {
                     e.stopPropagation();
@@ -2048,23 +2103,21 @@ const MapComponent = () => {
                 },
             } as any);
             // Populate off the startup critical path; tolerate absence.
-            waterbodyDataService.getAllStations().then((stations) => {
+            waterbodyDataService.getGaugePoints().then((points) => {
                 const src = map.getSource('gauge-points') as maplibregl.GeoJSONSource | undefined;
                 if (!src) return;
                 src.setData({
                     type: 'FeatureCollection',
-                    features: stations
-                        .filter(s => Number.isFinite(s.lon) && Number.isFinite(s.lat))
-                        .map(s => ({
-                            type: 'Feature' as const,
-                            geometry: { type: 'Point' as const, coordinates: [s.lon, s.lat] },
-                            properties: {
-                                station_id: s.id,
-                                station_name: s.name || '',
-                                reach_id: s.fwa?.reach_id || '',
-                                waterbody_key: s.fwa?.waterbody_key || '',
-                            },
-                        })),
+                    features: points.map(p => ({
+                        type: 'Feature' as const,
+                        geometry: { type: 'Point' as const, coordinates: [p.lon, p.lat] },
+                        properties: {
+                            station_id: p.id,
+                            station_name: p.name,
+                            reach_id: p.reach_id,
+                            waterbody_key: p.waterbody_key,
+                        },
+                    })),
                 });
             }).catch(() => { /* no gauge icons if unavailable */ });
 

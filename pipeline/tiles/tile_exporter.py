@@ -173,6 +173,14 @@ class TileExporter:
     # Admin layers default to not visible — the frontend enables them
     # when instructed (e.g. user toggles a layer, or a regulation
     # references an admin_id and the UI highlights it).
+    #
+    # Per-entry fields:
+    #   visible    — default map visibility (the menu checkbox's initial state).
+    #   label/type — menu label + geometry type.
+    #   toggleable — render a user checkbox in the layer menu for this layer
+    #                (absent = false). This manifest is the SOURCE OF TRUTH for
+    #                which layers are user-toggleable, their label, and default;
+    #                the frontend only maps each key → its MapLibre style layers.
     _LAYER_MANIFEST = {
         "streams": {"visible": True, "label": "Streams", "type": "line"},
         "under_lake_streams": {
@@ -243,9 +251,16 @@ class TileExporter:
             "label": "Indigenous Lands",
             "type": "polygon",
         },
-        "land_parcels_crown": {
-            "visible": True,
-            "label": "Land Ownership (Crown/Public + Private)",
+        # Menu key is `land_parcels_private` because only PRIVATE parcels are
+        # surfaced as a toggle. The underlying tile SOURCE layer stays
+        # `land_parcels_crown` (it holds the full parcel fabric — crown/public/
+        # private — filtered client-side); this manifest entry is menu config,
+        # not the tile-writer name. Crown/Public is the inverse of private, so
+        # it's implied and not shown as its own layer.
+        "land_parcels_private": {
+            "visible": False,
+            "toggleable": True,
+            "label": "Private Land",
             "type": "polygon",
         },
         "forest_service_roads": {

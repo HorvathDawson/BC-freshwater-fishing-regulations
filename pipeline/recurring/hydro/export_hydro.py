@@ -43,7 +43,6 @@ CLI
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import os
 import sqlite3
@@ -175,119 +174,21 @@ def _latest(conn, sid, unit_param, daily_param):
 # Builders
 # ---------------------------------------------------------------------------
 
-class _FidReachResolver:
-    """Resolve a stream segment ``fid`` → its ``reach_id`` using the deploy
-    shards the app already serves — ``shards/v{N}/fids/{sha3}.json`` maps
-    fid → reach_id (sha3 = first 3 hex chars of SHA-256(fid); 4096 buckets).
+# NOTE: the gauge→reach/waterbody link is NO LONGER resolved here. It is a static
+# artifact (gauge_matches.json) produced once during the full pipeline run (see
+# match_fwa.py); the frontend joins reach_id → station_id at lookup time. This
+# cron only fetches + shapes per-station data keyed by station_id, so it needs no
+# atlas, no fid shards, and no gauge_fwa_match table.
 
-    This is what keeps the (frequent) hydro cron seamless with the
-    independently-regenerated reaches: the gauge→fid match is stable, and the
-    volatile fid→reach_id half is looked up against whatever shards are
-    currently deployed. Only the handful of shard buckets the gauge fids fall
-    into are read, and each is cached — a few hundred small file reads.
+
+def build_stations_index(conn, clim_station_ids: set | None = None) -> dict:
+    """Roster + metadata + latest value + percentile — the map/headline file.
+
+    ``clim_station_ids`` overrides the has_climatology flag source. The unified
+    cron runs on an ephemeral scratch DB that only has the climatology table on
+    HYDAT-refresh runs, so it passes the flag set preserved from the prior
+    stations.json; when None we derive it from the DB (full/pipeline runs).
     """
-
-    def __init__(self, shard_root: Path):
-        self._fids_dir = shard_root / "fids"
-        self._cache: dict[str, dict] = {}
-
-    @property
-    def available(self) -> bool:
-        return self._fids_dir.is_dir()
-
-    @staticmethod
-    def _prefix(fid: str) -> str:
-        return hashlib.sha256(fid.encode()).hexdigest()[:3]
-
-    def _shard(self, prefix: str) -> dict:
-        if prefix not in self._cache:
-            path = self._fids_dir / f"{prefix}.json"
-            self._cache[prefix] = (
-                json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
-            )
-        return self._cache[prefix]
-
-    def reach_id(self, fid: str) -> str | None:
-        return self._shard(self._prefix(fid)).get(fid)
-
-
-def _deploy_shard_root() -> Path | None:
-    """Local dir holding ``shards/v{shard_version}/fids/*`` for fid→reach_id.
-
-    Precedence: ``HYDRO_SHARD_ROOT`` env override (a CI/container step pulls the
-    needed fid buckets from R2 into this dir — the resolver reads local disk, not
-    R2) → config ``output.pipeline.deploy`` + ``shard_version``. Returns None if
-    unresolved, in which case stream reach_ids stay null (caller warns).
-    """
-    env = os.environ.get("HYDRO_SHARD_ROOT")
-    if env:
-        return Path(env)
-    try:
-        from project_config import ProjectConfig
-
-        cfg = ProjectConfig()
-        deploy = cfg.get_path("output", "pipeline", "deploy")
-        version = cfg.config.get("output", {}).get("pipeline", {}).get("shard_version")
-        if version is None:
-            return None
-        return deploy / "shards" / f"v{version}"
-    except Exception:
-        return None
-
-
-def _fwa_links(conn) -> dict:
-    """station_id → its confident FWA waterbody link (the primary match from
-    match_fwa.py). Emits only the single resolved match per station — clean
-    exactly-one, closest-distance tiebreak winner, or manual override.
-
-    The join key is per-layer: streams resolve their nearest segment ``fid`` →
-    ``reach_id`` against the deploy shards (the exact reach the gauge sits on);
-    polygons/lakes join by ``waterbody_key``. Stations with no confident match
-    are absent (``fwa`` stays null).
-    """
-    has_table = conn.execute(
-        "SELECT name FROM sqlite_master WHERE type='table' AND name='gauge_fwa_match'"
-    ).fetchone()
-    if not has_table:
-        return {}
-
-    shard_root = _deploy_shard_root()
-    resolver = _FidReachResolver(shard_root) if shard_root else None
-    if resolver and not resolver.available:
-        print(f"WARNING: fid shards not found under {shard_root} — "
-              "stream reach_ids will be null", file=sys.stderr)
-        resolver = None
-
-    links = {}
-    n_stream = n_reach = 0
-    for sid, layer, fwa_id, wbk, blk, dist, res in conn.execute(
-        """SELECT station_id, layer, fwa_id, waterbody_key, blue_line_key,
-                  distance_m, resolution
-           FROM gauge_fwa_match WHERE is_primary=1"""
-    ):
-        is_stream = layer in ("streams", "under_lake_streams")
-        reach_id = None
-        if is_stream:
-            n_stream += 1
-            if resolver is not None:
-                reach_id = resolver.reach_id(fwa_id)
-                if reach_id is not None:
-                    n_reach += 1
-        links[sid] = {
-            "layer": layer,
-            "fwa_id": fwa_id,
-            "reach_id": reach_id,
-            "waterbody_key": None if is_stream else (wbk or None),
-            "distance_m": dist,
-            "resolution": res,
-        }
-    if n_stream:
-        print(f"fwa: {n_reach}/{n_stream} stream gauges resolved to a reach_id")
-    return links
-
-
-def build_stations_index(conn) -> dict:
-    """Roster + metadata + latest value + percentile — the map/headline file."""
     now = _iso(datetime.now(timezone.utc))
     attribution = conn.execute(
         "SELECT attribution FROM readings WHERE attribution IS NOT NULL LIMIT 1"
@@ -297,8 +198,7 @@ def build_stations_index(conn) -> dict:
     forecast_attribution = conn.execute(
         "SELECT attribution FROM forecasts WHERE attribution IS NOT NULL LIMIT 1"
     ).fetchone()
-    fwa_links = _fwa_links(conn)
-    clim_stations = _climatology_stations(conn)
+    clim_stations = _climatology_stations(conn) if clim_station_ids is None else clim_station_ids
     stations = []
     for s in conn.execute(
         """SELECT station_id, name, lat, lon, hyd_status,
@@ -313,7 +213,6 @@ def build_stations_index(conn) -> dict:
         stations.append({
             "id": sid, "name": s[1], "lat": s[2], "lon": s[3],
             "hyd_status": s[4], "drainage_area_km2": s[5], "coord_source": s[6],
-            "fwa": fwa_links.get(sid),
             "has_climatology": sid in clim_stations,
             "latest": {
                 "discharge": _latest(conn, sid, P_DISCHARGE_UNIT, P_DISCHARGE_DAILY),
@@ -336,6 +235,31 @@ def build_stations_index(conn) -> dict:
             "generated_at": now,  # keep the DB-derived timestamp as the canonical one
             "forecast_attribution": forecast_attribution[0] if forecast_attribution else None,
             "count": len(stations), "stations": stations}
+
+
+def build_geojson(index: dict) -> dict:
+    """A GeoJSON FeatureCollection of gauge points for the map layer, derived
+    from the already-built stations index (so latest value + condition + the
+    has_climatology flag ride along without a second DB pass). Stations with no
+    coordinate are omitted (they can't be placed on the map)."""
+    features = []
+    for st in index.get("stations", []):
+        lon, lat = st.get("lon"), st.get("lat")
+        if lon is None or lat is None:
+            continue
+        features.append({
+            "type": "Feature",
+            "geometry": {"type": "Point", "coordinates": [lon, lat]},
+            "properties": {
+                "id": st["id"],
+                "name": st.get("name"),
+                "hyd_status": st.get("hyd_status"),
+                "has_climatology": st.get("has_climatology", False),
+                "latest": st.get("latest"),
+                "condition": st.get("condition"),
+            },
+        })
+    return {"type": "FeatureCollection", "features": features}
 
 
 def build_recent(conn, sid, now) -> dict:
@@ -423,13 +347,16 @@ def _write(path: Path, payload: dict) -> int:
     return len(blob)
 
 
-def export(conn, out_dir: Path, scope: str) -> None:
+def export(conn, out_dir: Path, scope: str, clim_station_ids: set | None = None) -> None:
     now = datetime.now(timezone.utc)
     station_ids = [r[0] for r in conn.execute("SELECT station_id FROM stations ORDER BY station_id")]
 
     if scope in ("realtime", "all"):
-        size = _write(out_dir / "stations.json", build_stations_index(conn))
+        index = build_stations_index(conn, clim_station_ids=clim_station_ids)
+        size = _write(out_dir / "stations.json", index)
         print(f"stations.json: {len(station_ids)} stations, {size/1024:.1f} KB")
+        gsize = _write(out_dir / "gauges.geojson", build_geojson(index))
+        print(f"gauges.geojson: {gsize/1024:.1f} KB")
         total = 0
         for sid in station_ids:
             total += _write(out_dir / "recent" / f"{sid}.json", build_recent(conn, sid, now))

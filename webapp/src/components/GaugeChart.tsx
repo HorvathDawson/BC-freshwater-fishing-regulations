@@ -206,9 +206,14 @@ export default function GaugeChart({ station }: { station: GaugeStation }) {
         ]);
         if (cancelled) return;
         const bands = climToBands(clim?.[param]);
-        if (!bands.length) {
+        const dailyKey = param === 'discharge' ? 'discharge_daily' : 'level_daily';
+        const hasDaily = (hist?.[dailyKey]?.length || 0) > 0;
+        // Show the seasonal view whenever we have EITHER the percentile envelope
+        // (≥10 yr climatology) OR at least a daily record to trace this year's
+        // line — short-record stations still get a bare annual hydrograph.
+        if (!bands.length && !hasDaily) {
           setStatus('empty');
-          setNote('No historical climatology for this station (needs ≥10 yr of record).');
+          setNote('No seasonal data for this station yet.');
           destroyChart();
           return;
         }
@@ -342,7 +347,7 @@ export default function GaugeChart({ station }: { station: GaugeStation }) {
       datasets.push({ label: `${curYear} (this year)`, data: byYear[curYear].sort((a, b) => a.x - b.x), borderColor: '#ea580c', borderWidth: 2.25, pointRadius: 0, fill: false, tension: 0, spanGaps: true });
     }
 
-    const positive = param === 'discharge' && bands.every((b) => b.p0 == null || (b.p0 as number) > 0);
+    const positive = bands.length > 0 && param === 'discharge' && bands.every((b) => b.p0 == null || (b.p0 as number) > 0);
     const todayX = dateToDoyX(new Date());
     const win = 45 * DAY;
     buildChart(datasets, {
@@ -355,7 +360,13 @@ export default function GaugeChart({ station }: { station: GaugeStation }) {
     });
     setStatus('ready');
     const rec = cp?.record;
-    setNote(rec ? `record ${rec.start_year}–${rec.end_year} (${rec.n_years} yr)${byYear[curYear] ? '' : ' · no data this year yet'}` : '');
+    if (rec) {
+      setNote(`record ${rec.start_year}–${rec.end_year} (${rec.n_years} yr)${byYear[curYear] ? '' : ' · no data this year yet'}`);
+    } else {
+      // No ≥10 yr climatology — percentile bands absent; we're showing the raw
+      // annual trace only.
+      setNote(`no percentile bands (needs ≥10 yr)${byYear[curYear] ? '' : ' · no data this year yet'}`);
+    }
   }
 
   function buildChart(

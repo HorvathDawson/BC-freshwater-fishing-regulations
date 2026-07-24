@@ -3,11 +3,12 @@
 #
 # This is the CHEAP, geopandas-free half (wired to .github/workflows/
 # update-stocking.yml, weekly):
-#   1. Pull anglerinfo.db from R2 read-only (for match_final — which FIDQ
-#      waterbodies map to an FWA waterbody_key).
+#   1. Pull anglerinfo.db from R2 read-only (for the FIDQ stocking release rows).
 #   2. Refresh the FIDQ stocking release rows locally via fetch_stocking update
 #      (no geopandas; new releases for already-matched waterbodies land here).
-#   3. Resolve to reach IDs against poly_reaches.json → stocking.json.
+#   3. Export per-waterbody records → cron/stocking/records/<waterbody_id>.json
+#      + stocking_index.json. NO reach resolution here — the reach→waterbody
+#      match table (stocking_matches.json) ships with the full pipeline build.
 # It never writes anglerinfo.db back to R2 — the heavy job owns that.
 #
 # The HEAVY, EXPENSIVE half (full fetch+match chain, geopandas, WFS downloads)
@@ -63,20 +64,15 @@ _fetch_r2_file() {
   python -m pipeline.recurring.r2_storage get "$r2_key" "$dest"
 }
 
-if [[ ! -f "$DEPLOY_DIR/poly_reaches.json" ]]; then
-  echo "── Fetching poly_reaches.json from R2 ──"
-  _fetch_r2_file "poly_reaches.json" "$DEPLOY_DIR/poly_reaches.json"
-fi
-
 # ── Step 1: Refresh stocking records (light tier) ───────────────────
 # Two-tier design (see refresh-stocking-db.yml for the heavy tier):
 #   • Heavy monthly job runs the full fetch+match chain (geopandas) and is the
 #     ONLY writer of anglerinfo.db to R2 — it's the source of match_final, i.e.
 #     which FIDQ waterbodies map to an FWA waterbody_key. New waterbodies enter
 #     the system here.
-#   • This light job pulls that db read-only (for match_final), then refreshes
-#     just the FIDQ stocking release rows locally via fetch_stocking — no
-#     geopandas, no db write-back to R2 (avoids racing the heavy job). New
+#   • This light job pulls that db read-only (for the release rows), then
+#     refreshes just the FIDQ stocking release rows locally via fetch_stocking —
+#     no geopandas, no db write-back to R2 (avoids racing the heavy job). New
 #     releases for already-matched waterbodies enter the system here.
 ANGLERINFO_DB="$ROOT/output/pipeline/anglerinfo/anglerinfo.db"
 DB_R2_KEY="cron/stocking/anglerinfo.db"
@@ -90,21 +86,34 @@ fi
 echo "── Refreshing FIDQ stocking records (fetch_stocking update) ──"
 python -m pipeline.recurring.anglerinfo.fetch_stocking update
 
-# ── Step 2: Resolve ─────────────────────────────────────────────────
-echo "── Resolving stocking data to reach IDs ──"
+# ── Step 2: Export per-waterbody records ────────────────────────────
+echo "── Exporting per-waterbody stocking records ──"
 mkdir -p "$DEPLOY_DIR/cron/stocking"
-python -m pipeline.recurring.stocking.resolver \
-  --poly-reaches "$DEPLOY_DIR/poly_reaches.json" \
-  --out "$DEPLOY_DIR/cron/stocking/stocking.json"
+python -m pipeline.recurring.stocking.resolver records \
+  --out "$DEPLOY_DIR/cron/stocking"
 
-echo "✅ stocking.json → $DEPLOY_DIR/cron/stocking/stocking.json"
+echo "✅ records/ + stocking_index.json → $DEPLOY_DIR/cron/stocking/"
 
 # ── Step 3: Upload / seed (optional) ────────────────────────────────
 
 if [[ "${1:-}" == "--upload" ]]; then
-  echo "── Uploading to R2 ($R2_BUCKET) ──"
-  python -m pipeline.recurring.r2_storage put \
-    "$DEPLOY_DIR/cron/stocking/stocking.json" "cron/stocking/stocking.json"
+  echo "── Uploading cron/stocking/ tree to R2 ($R2_BUCKET) ──"
+  python - "$DEPLOY_DIR/cron/stocking" <<'PY'
+import sys
+from pathlib import Path
+from pipeline.recurring.r2_storage import storage_from_env
+
+root = Path(sys.argv[1])
+storage = storage_from_env()
+n = 0
+for p in sorted(root.rglob("*")):
+    if not p.is_file():
+        continue
+    key = "cron/stocking/" + p.relative_to(root).as_posix()
+    storage.put(p, key, content_type="application/json")
+    n += 1
+print(f"uploaded {n} file(s) under cron/stocking/")
+PY
   echo "✅ Uploaded to R2"
 
 elif [[ "${1:-}" == "--seed" ]]; then

@@ -1,0 +1,46 @@
+name: Update Hydro
+
+# The single unified hydro cron. ONE job does everything, gating internally by
+# cheap change-detection (see pipeline/recurring/hydro/jobs.py):
+#   • every run — latest conditions/readings/forecasts → stations.json,
+#     gauges.geojson, recent/<id>.json
+#   • daily     — merge fresh daily means into history/<id>.json (idempotent)
+#   • HYDAT     — rebuild climatology/<id>.json when a new HYDAT release lands
+# STATE lives in the JSON artifacts (no persisted DB in R2). The Cloudflare cron
+# Worker (cron-runner/) dispatches this punctually via workflow_dispatch; the
+# schedule: below is a coarse fallback.
+on:
+  schedule:
+    - cron: '*/30 * * * *'   # every 30 min (recent cadence); best-effort fallback
+  workflow_dispatch: {}
+
+# Overlapping runs would clobber each other's uploads — serialize.
+concurrency:
+  group: hydro-${{ github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    # First-run bootstrap (18mo history + HYDAT ~266 MB) is slow; give it room.
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      # hydro fetch/export is stdlib-only for HTTP; the job entrypoint needs only
+      # boto3 (R2 S3 I/O) + pyyaml/python-dotenv (ProjectConfig). No geo stack.
+      - name: Install dependencies
+        run: pip install boto3 pyyaml python-dotenv
+
+      - name: Run hydro job
+        run: python -m pipeline.recurring.hydro.jobs run
+        env:
+          DEPLOY_ENV: ${{ github.ref_name == 'main' && 'production' || 'staging' }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}

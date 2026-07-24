@@ -28,12 +28,12 @@ output:
     anglerinfo: "output/pipeline/anglerinfo/anglerinfo.db"
     anglerinfo_matches: "output/pipeline/anglerinfo/anglerinfo_matches.json"
     # Hydro (recurring gauge/hydrometric data — pipeline/recurring/hydro).
-    # hydro_db is the heavy working DB (~1.3 GB, gitignored, local dev only);
-    # hydro_seed_db is the small CI seed (roster + gauge_fwa_match + climatology)
-    # the frequent cron pulls from R2. Exported R2 artifacts land under the
-    # unified cron subtree in deploy/ (output.pipeline.cron below).
+    # hydro_db is the heavy working DB (~1.3 GB, gitignored, local dev only) used
+    # by match_fwa at build time to emit gauge_matches.json. The cron itself keeps
+    # NO persisted DB — it uses an ephemeral /tmp scratch and stores state in the
+    # JSON artifacts. Exported R2 artifacts land under the unified cron subtree in
+    # deploy/ (output.pipeline.cron below).
     hydro: "output/pipeline/hydro/hydro.db"
-    hydro_seed: "output/pipeline/hydro/hydro_seed.db"
     extraction: "output/pipeline/extraction"
     parsing: "output/pipeline/parsing"
     deploy: "output/pipeline/deploy"

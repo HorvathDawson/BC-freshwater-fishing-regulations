@@ -40,16 +40,18 @@ export interface StockingRelease {
   average_weight: number;
 }
 
-/** A hydrometric gauge station from cron/hydro/stations.json (ECCC Wateroffice
- * + BC River Forecast Centre). Linked to a reach/waterbody via `fwa`. */
-export interface GaugeFwaLink {
-  layer: string;                 // 'streams' | 'under_lake_streams' | 'lakes' | ...
-  fwa_id?: string | null;
-  reach_id?: string | null;      // stream layers: the reach the gauge sits on
-  waterbody_key?: string | null; // polygon layers: the lake/wetland/manmade key
-  distance_m?: number | null;
-  resolution?: string | null;
+/** Static stocking match table (cron/stocking/stocking_matches.json): reach_id /
+ * waterbody_key → [waterbody_id]. The frontend joins here, then fetches the
+ * per-waterbody release history from cron/stocking/records/<waterbody_id>.json. */
+export interface StockingMatches {
+  reach: Record<string, string[]>;
+  waterbody: Record<string, string[]>;
 }
+
+/** A hydrometric gauge station from cron/hydro/stations.json (ECCC Wateroffice
+ * + BC River Forecast Centre). The gauge→reach/waterbody link is NOT stored on
+ * the station anymore — it lives in the static cron/hydro/gauge_matches.json
+ * match table, joined by reach_id/waterbody_key at lookup time. */
 export interface GaugeStation {
   id: string;
   name: string;
@@ -70,7 +72,6 @@ export interface GaugeStation {
     latest_discharge?: number | null;
     latest_stage?: number | null;
   } | null;
-  fwa?: GaugeFwaLink | null;
 }
 export interface GaugeStationsDoc {
   generated_at?: string;
@@ -247,6 +248,21 @@ export interface AdminLayerVisibility {
 
 /** Full admin visibility map: tile_layer_name → config */
 export type AdminVisibility = Record<string, AdminLayerVisibility>;
+
+// ── Layer manifest (from layer_manifest.json) ────────────────────────
+
+/** Per-layer menu config from the tiles pipeline — the SOURCE OF TRUTH for which
+ * layers are user-toggleable. `toggleable` marks a layer as controllable in the
+ * layer menu; `visible` is its default visibility (the checkbox's initial state);
+ * `label` is the menu row text. The frontend supplies only the style-layer
+ * mapping (see LAYER_STYLE_MAP in Map.tsx). */
+export interface LayerManifestEntry {
+  label?: string;
+  type?: string;
+  visible?: boolean;
+  toggleable?: boolean;
+}
+export type LayerManifest = Record<string, LayerManifestEntry>;
 
 // ── In-season changes (from in_season.json) ──────────────────────────
 
@@ -507,29 +523,32 @@ class WaterbodyDataService {
   private resolveCache = new Map<string, ResolveResult>();
   private static readonly CACHE_CAP = 5000;
 
-  // Stocking index: reach_id → StockingRelease[], built from stocking.json.
-  // Unlike in_season.json (9.9 KB, fetched eagerly on every load()),
-  // stocking.json is ~22 MB — fetched lazily, only the first time a caller
-  // actually asks for stocking data, and cached in memory after that. It's
-  // still a standalone recurring artifact fetched fresh at request time
-  // (same role as in_season.json — independently refreshable without a full
-  // pipeline rebuild), just not loaded unconditionally for every user.
-  private stockingIndex: Map<string, StockingRelease[]> | null = null;
-  private stockingIndexPromise: Promise<Map<string, StockingRelease[]>> | null = null;
+  // Stocking: reach_id/waterbody_key → [waterbody_id] match table (small, static;
+  // cron/stocking/stocking_matches.json, produced by the full pipeline). Per-waterbody
+  // release history lives in cron/stocking/records/<id>.json, fetched on demand and
+  // cached. Replaces the old ~22 MB whole-file stocking.json load.
+  private stockingMatches: StockingMatches | null = null;
+  private stockingMatchesPromise: Promise<StockingMatches> | null = null;
+  private stockingRecordCache = new Map<string, StockingRelease[]>();
 
-  // Gauge station indexes, built lazily from cron/hydro/stations.json (small,
-  // ~450 stations). NOT eager-loaded at startup — fetched on the first Gauges-tab
-  // open / first gauge map interaction, and degrades gracefully to empty if the
-  // file is missing (hydro seed may not have shipped). Two reverse indexes: by
-  // reach_id (stream gauges) and by waterbody_key (lake/polygon gauges). The raw
-  // list is kept too for the map layer (Part E).
+  // Gauge station indexes. stations.json is the roster (id → GaugeStation); the
+  // gauge→reach/waterbody link comes from the static gauge_matches.json match table
+  // (reach_id/waterbody_key → [station_id]). Both are small (~450 stations) and lazily
+  // loaded on the first Gauges-tab open / gauge interaction, degrading to empty if
+  // absent (hydro seed may not have shipped).
   private gaugeStations: GaugeStation[] | null = null;
+  private gaugeById: Map<string, GaugeStation> | null = null;
   private gaugeByReach: Map<string, GaugeStation[]> | null = null;
   private gaugeByWbk: Map<string, GaugeStation[]> | null = null;
   private gaugeDoc: GaugeStationsDoc | null = null;
   private gaugeIndexPromise: Promise<void> | null = null;
   // Per-station artifact caches (recent/history/climatology), fetched on demand.
   private gaugeArtifactCache = new Map<string, unknown>();
+
+  // Layer menu config (which layers are toggleable + label + default visibility),
+  // fetched once from layer_manifest.json.
+  private layerManifest: LayerManifest | null = null;
+  private layerManifestPromise: Promise<LayerManifest> | null = null;
 
   async load(): Promise<RegulationData> {
     if (this.data) return this.data;
@@ -836,79 +855,107 @@ class WaterbodyDataService {
     return this.data?.inSeasonIndex.get(reachId) || [];
   }
 
-  /** Get FIDQ stocking release history for a specific reach. Triggers the
-   *  (large, lazy) stocking.json fetch on first call; cached after that. */
-  async getStockingReleases(reachId: string): Promise<StockingRelease[]> {
-    if (!this.stockingIndex) {
-      if (!this.stockingIndexPromise) {
-        this.stockingIndexPromise = this._loadStockingIndex();
-      }
-      this.stockingIndex = await this.stockingIndexPromise;
-    }
-    return this.stockingIndex.get(reachId) || [];
+  /** Get FIDQ stocking release history for a reach (and/or waterbody_key).
+   *  Loads the small static match table on first call, then fetches only the
+   *  per-waterbody record files the reach maps to (cached). */
+  async getStockingReleases(reachId: string, waterbodyKey?: string | null): Promise<StockingRelease[]> {
+    const matches = await this._ensureStockingMatches();
+    const ids = new Set<string>();
+    for (const id of matches.reach[reachId] || []) ids.add(id);
+    if (waterbodyKey) for (const id of matches.waterbody[waterbodyKey] || []) ids.add(id);
+    if (!ids.size) return [];
+    const out: StockingRelease[] = [];
+    await Promise.all([...ids].map(async (id) => {
+      out.push(...await this._stockingRecord(id));
+    }));
+    return out;
   }
 
-  private async _loadStockingIndex(): Promise<Map<string, StockingRelease[]>> {
-    const url = `${WaterbodyDataService.DATA_BASE}/cron/stocking/stocking.json`;
+  private async _ensureStockingMatches(): Promise<StockingMatches> {
+    if (this.stockingMatches) return this.stockingMatches;
+    if (!this.stockingMatchesPromise) this.stockingMatchesPromise = this._loadStockingMatches();
+    this.stockingMatches = await this.stockingMatchesPromise;
+    return this.stockingMatches;
+  }
+
+  private async _loadStockingMatches(): Promise<StockingMatches> {
+    const url = `${WaterbodyDataService.DATA_BASE}/cron/stocking/stocking_matches.json`;
     try {
       const resp = await fetch(url);
       if (!resp.ok) {
-        console.warn(`⚠️ stocking.json returned ${resp.status} — stocking info unavailable`);
-        return new Map();
+        console.warn(`⚠️ stocking_matches.json returned ${resp.status} — stocking info unavailable`);
+        return { reach: {}, waterbody: {} };
       }
-      const raw: { waterbodies?: { reach_id?: string | null; releases?: StockingRelease[] }[] } = await resp.json();
-      const index = new Map<string, StockingRelease[]>();
-      for (const wb of raw.waterbodies || []) {
-        if (wb.reach_id && wb.releases?.length) {
-          index.set(wb.reach_id, wb.releases);
-        }
-      }
-      return index;
+      const doc = (await resp.json()) as Partial<StockingMatches>;
+      return { reach: doc.reach || {}, waterbody: doc.waterbody || {} };
     } catch {
-      console.warn('⚠️ Failed to fetch stocking.json — stocking info unavailable');
-      return new Map();
+      console.warn('⚠️ Failed to fetch stocking_matches.json — stocking info unavailable');
+      return { reach: {}, waterbody: {} };
     }
+  }
+
+  private async _stockingRecord(waterbodyId: string): Promise<StockingRelease[]> {
+    const cached = this.stockingRecordCache.get(waterbodyId);
+    if (cached) return cached;
+    const url = `${WaterbodyDataService.DATA_BASE}/cron/stocking/records/${waterbodyId}.json`;
+    let releases: StockingRelease[] = [];
+    try {
+      const resp = await fetch(url);
+      if (resp.ok) {
+        const doc = (await resp.json()) as { releases?: StockingRelease[] };
+        releases = doc.releases || [];
+      }
+    } catch {
+      // network error — degrade to no releases for this waterbody
+    }
+    this.stockingRecordCache.set(waterbodyId, releases);
+    return releases;
   }
 
   // ── Hydro gauge stations ────────────────────────────────────────────────
 
   private async _loadGaugeIndex(): Promise<void> {
-    const url = `${WaterbodyDataService.DATA_BASE}/cron/hydro/stations.json`;
+    const base = WaterbodyDataService.DATA_BASE;
     try {
-      const resp = await fetch(url);
-      if (!resp.ok) {
-        console.warn(`⚠️ stations.json returned ${resp.status} — gauge data unavailable`);
-        this.gaugeStations = [];
-        this.gaugeByReach = new Map();
-        this.gaugeByWbk = new Map();
+      // Roster (id → station) + the static reach/waterbody → station_id match table.
+      const [rosterResp, matchResp] = await Promise.all([
+        fetch(`${base}/cron/hydro/stations.json`),
+        fetch(`${base}/cron/hydro/gauge_matches.json`),
+      ]);
+      if (!rosterResp.ok) {
+        console.warn(`⚠️ stations.json returned ${rosterResp.status} — gauge data unavailable`);
+        this._emptyGaugeIndex();
         return;
       }
-      const doc: GaugeStationsDoc = await resp.json();
+      const doc: GaugeStationsDoc = await rosterResp.json();
+      const byId = new Map<string, GaugeStation>();
+      for (const st of doc.stations || []) byId.set(st.id, st);
+
+      const matches: { reach?: Record<string, string[]>; waterbody?: Record<string, string[]> } =
+        matchResp.ok ? await matchResp.json() : {};
+      const toStations = (ids?: string[]) =>
+        (ids || []).map((id) => byId.get(id)).filter((s): s is GaugeStation => !!s);
       const byReach = new Map<string, GaugeStation[]>();
+      for (const [rid, ids] of Object.entries(matches.reach || {})) byReach.set(rid, toStations(ids));
       const byWbk = new Map<string, GaugeStation[]>();
-      for (const st of doc.stations || []) {
-        const fwa = st.fwa;
-        if (!fwa) continue;
-        if (fwa.reach_id) {
-          const arr = byReach.get(fwa.reach_id) || [];
-          arr.push(st);
-          byReach.set(fwa.reach_id, arr);
-        } else if (fwa.waterbody_key) {
-          const arr = byWbk.get(fwa.waterbody_key) || [];
-          arr.push(st);
-          byWbk.set(fwa.waterbody_key, arr);
-        }
-      }
+      for (const [wbk, ids] of Object.entries(matches.waterbody || {})) byWbk.set(wbk, toStations(ids));
+
       this.gaugeDoc = doc;
       this.gaugeStations = doc.stations || [];
+      this.gaugeById = byId;
       this.gaugeByReach = byReach;
       this.gaugeByWbk = byWbk;
     } catch {
-      console.warn('⚠️ Failed to fetch stations.json — gauge data unavailable');
-      this.gaugeStations = [];
-      this.gaugeByReach = new Map();
-      this.gaugeByWbk = new Map();
+      console.warn('⚠️ Failed to fetch gauge index — gauge data unavailable');
+      this._emptyGaugeIndex();
     }
+  }
+
+  private _emptyGaugeIndex(): void {
+    this.gaugeStations = [];
+    this.gaugeById = new Map();
+    this.gaugeByReach = new Map();
+    this.gaugeByWbk = new Map();
   }
 
   private async _ensureGaugeIndex(): Promise<void> {
@@ -940,6 +987,67 @@ class WaterbodyDataService {
   async getAllStations(): Promise<GaugeStation[]> {
     await this._ensureGaugeIndex();
     return this.gaugeStations || [];
+  }
+
+  /** Layer menu config keyed by tile layer (which layers are toggleable, their
+   *  label + default visibility). Lazily fetched from layer_manifest.json; {} if
+   *  unavailable. The pipeline is the source of truth; the frontend maps each
+   *  toggleable key → its MapLibre style layers. */
+  async getLayerManifest(): Promise<LayerManifest> {
+    if (this.layerManifest) return this.layerManifest;
+    if (!this.layerManifestPromise) {
+      const url = `${WaterbodyDataService.DATA_BASE}/layer_manifest.json`;
+      this.layerManifestPromise = fetch(url)
+        .then((r) => (r.ok ? (r.json() as Promise<LayerManifest>) : {}))
+        .catch(() => {
+          console.warn('⚠️ Failed to fetch layer_manifest.json — no layer toggles');
+          return {} as LayerManifest;
+        });
+    }
+    this.layerManifest = await this.layerManifestPromise;
+    return this.layerManifest;
+  }
+
+  /** A single gauge station by id (e.g. a gauge map-icon click). Lazily loads the
+   *  index; null if unknown. Map points come from cron/hydro/gauges.geojson. */
+  async getStationById(id: string): Promise<GaugeStation | null> {
+    await this._ensureGaugeIndex();
+    return this.gaugeById?.get(id) ?? null;
+  }
+
+  /** Gauge map points enriched with their reach_id/waterbody_key (resolved from
+   *  the static match table), for the map's gauge-points source. A gauge can link
+   *  to multiple reaches; the first is used for the click→reach association. */
+  async getGaugePoints(): Promise<Array<{
+    id: string; name: string; lon: number; lat: number;
+    reach_id: string; waterbody_key: string;
+  }>> {
+    await this._ensureGaugeIndex();
+    const linkByStation = new Map<string, { reach_id?: string; waterbody_key?: string }>();
+    for (const [rid, arr] of this.gaugeByReach || []) {
+      for (const s of arr) {
+        const e = linkByStation.get(s.id) || {};
+        if (!e.reach_id) e.reach_id = rid;
+        linkByStation.set(s.id, e);
+      }
+    }
+    for (const [wbk, arr] of this.gaugeByWbk || []) {
+      for (const s of arr) {
+        const e = linkByStation.get(s.id) || {};
+        if (!e.waterbody_key) e.waterbody_key = wbk;
+        linkByStation.set(s.id, e);
+      }
+    }
+    return (this.gaugeStations || [])
+      .filter((s) => Number.isFinite(s.lon) && Number.isFinite(s.lat))
+      .map((s) => ({
+        id: s.id,
+        name: s.name || '',
+        lon: s.lon,
+        lat: s.lat,
+        reach_id: linkByStation.get(s.id)?.reach_id || '',
+        waterbody_key: linkByStation.get(s.id)?.waterbody_key || '',
+      }));
   }
 
   /** Required attribution strings for gauge data (ECCC + BC RFC). */
