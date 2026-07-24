@@ -67,12 +67,26 @@ if [[ ! -f "$DEPLOY_DIR/poly_reaches.json" ]]; then
 fi
 
 # ── Step 1: Resolve ─────────────────────────────────────────────────
+# The 66 MB anglerinfo.db (source of the frozen FIDQ release rows) isn't
+# available in CI — it's built by anglerinfo's heavy fetch+match chain on a
+# separate manual cadence. When it's absent, fall back to a db-free re-resolve:
+# pull the previously published stocking.json from R2 and re-map its reach_ids
+# against the current poly_reaches.json. Local/full runs still use the db.
 
-echo "── Resolving stocking data to reach IDs ──"
 mkdir -p "$DEPLOY_DIR/cron/stocking"
-python -m pipeline.recurring.stocking.resolver \
-  --poly-reaches "$DEPLOY_DIR/poly_reaches.json" \
-  --out "$DEPLOY_DIR/cron/stocking/stocking.json"
+RESOLVE_ARGS=(--poly-reaches "$DEPLOY_DIR/poly_reaches.json"
+              --out "$DEPLOY_DIR/cron/stocking/stocking.json")
+
+DB_PATH="$ROOT/output/pipeline/anglerinfo/anglerinfo.db"
+if [[ -f "$DB_PATH" ]]; then
+  echo "── Resolving stocking data to reach IDs (from anglerinfo.db) ──"
+else
+  echo "── anglerinfo.db absent — db-free re-resolve from published stocking.json ──"
+  _fetch_r2_file "cron/stocking/stocking.json" "$DEPLOY_DIR/cron/stocking/stocking.json.src"
+  RESOLVE_ARGS+=(--source-json "$DEPLOY_DIR/cron/stocking/stocking.json.src")
+fi
+
+python -m pipeline.recurring.stocking.resolver "${RESOLVE_ARGS[@]}"
 # Legacy dual-write (one release) so the webapp can cut over to cron/ paths
 # without an outage — see plan Part F3.
 cp "$DEPLOY_DIR/cron/stocking/stocking.json" "$DEPLOY_DIR/stocking.json"
