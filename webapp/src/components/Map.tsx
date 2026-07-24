@@ -720,6 +720,9 @@ const MapComponent = () => {
 
     const [mobilePanelState, setMobilePanelState] = useState<CollapseState>('partial');
     const [highlightedOption, setHighlightedOption] = useState<FeatureOption | null>(null);
+    // Gauge station the info panel is currently showing (its Gauges-tab dropdown
+    // value) — drives the map expand-highlight so changing the dropdown moves it.
+    const [panelGaugeId, setPanelGaugeId] = useState<string | null>(null);
     const [highlightedSearchResult, setHighlightedSearchResult] = useState<SearchableFeature | null>(null);
     const [searchableFeatures, setSearchableFeatures] = useState<SearchableFeature[]>([]);
     const [dataLoaded, setDataLoaded] = useState(false);
@@ -2407,15 +2410,19 @@ const MapComponent = () => {
     useEffect(() => {
         const map = mapRef.current;
         if (!map || !map.getLayer('gauge-points-active')) return;
+        // Priority: a live hover/preview in the disambiguation menu wins; then
+        // the gauge the panel is showing (its dropdown, so changing it moves the
+        // highlight); then the originally-clicked gauge as a fallback.
         const activeStationId =
             (highlightedOption?.properties?._gauge_station_id as string | undefined)
+            || panelGaugeId
             || (selectedFeature?.properties?._gauge_station_id as string | undefined)
             || null;
         map.setFilter(
             'gauge-points-active',
             ['==', ['get', 'station_id'], activeStationId ?? ' '] as any,
         );
-    }, [selectedFeature, highlightedOption]);
+    }, [selectedFeature, highlightedOption, panelGaugeId]);
 
     // Handle selected state changes — filter-based, no event listeners needed.
     useEffect(() => {
@@ -2727,7 +2734,7 @@ const MapComponent = () => {
                     placeholder="Search waterbodies..." 
                 />
             </div>
-            <InfoPanel feature={selectedFeature} onClose={clearSelection} collapseState={mobilePanelState} onSetCollapseState={setMobilePanelState} siblingFeatures={siblingFeatures} onHighlightSection={handleHighlightSection} onFlyToSection={handleFlyToSection} onReportIssue={() => setIssueReportOpen(true)} dawnDusk={dawnDusk} openGaugeSeq={gaugeOpenSeq} />
+            <InfoPanel feature={selectedFeature} onClose={clearSelection} collapseState={mobilePanelState} onSetCollapseState={setMobilePanelState} siblingFeatures={siblingFeatures} onHighlightSection={handleHighlightSection} onFlyToSection={handleFlyToSection} onReportIssue={() => setIssueReportOpen(true)} dawnDusk={dawnDusk} openGaugeSeq={gaugeOpenSeq} onActiveGaugeChange={setPanelGaugeId} />
             <div className="map-footer-links">
                 <DisclaimerLink onClick={() => setDisclaimerOpen(true)} />
                 <IssueReportLink onClick={() => setIssueReportOpen(true)} />

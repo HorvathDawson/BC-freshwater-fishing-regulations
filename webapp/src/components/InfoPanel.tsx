@@ -82,6 +82,10 @@ interface InfoPanelProps {
     /** Bumped by Map when a gauge map-icon is selected — opens the Gauges tab,
      *  overriding the reset-to-'rules'-on-feature-change. */
     openGaugeSeq?: number;
+    /** Reports which gauge station the panel is currently showing (the Gauges
+     *  tab's selected dropdown value), so Map can expand-highlight it. null when
+     *  no gauge is being viewed. */
+    onActiveGaugeChange?: (stationId: string | null) => void;
 };
 
 /** Map restriction_type to CSS class for colored pills */
@@ -130,7 +134,7 @@ const formatReleaseDate = (raw: string): string => {
     return new Date(y, m - 1, d).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
 };
 
-const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapseState, siblingFeatures = [], onHighlightSection, onFlyToSection, onReportIssue, dawnDusk, openGaugeSeq }: InfoPanelProps) => {
+const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapseState, siblingFeatures = [], onHighlightSection, onFlyToSection, onReportIssue, dawnDusk, openGaugeSeq, onActiveGaugeChange }: InfoPanelProps) => {
     const touchStartY = useRef<number>(0);
     const touchStartTime = useRef<number>(0);
     // Set to true by tab clicks so the feature-change effect below
@@ -409,6 +413,16 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
         setActiveTab('gauges');
         setActiveTabParam('gauges');
     }, [openGaugeSeq]);
+
+    // Tell Map which gauge the panel is showing so it can expand-highlight it on
+    // the map. Only while the Gauges tab is actually open (and a feature is
+    // selected) — clears otherwise. Follows the dropdown, so changing the
+    // selected gauge moves the highlight.
+    useEffect(() => {
+        onActiveGaugeChange?.(feature && activeTab === 'gauges' ? selectedGauge : null);
+    }, [feature, activeTab, selectedGauge, onActiveGaugeChange]);
+    // Clear the map highlight when the panel unmounts.
+    useEffect(() => () => onActiveGaugeChange?.(null), [onActiveGaugeChange]);
 
     // Handle share button click
     const handleShare = async (e: React.MouseEvent) => {
