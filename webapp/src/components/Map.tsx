@@ -1994,6 +1994,14 @@ const MapComponent = () => {
             const gaugeIcon = createGaugeIcon();
             if (gaugeIcon) map.addImage('icon-gauge', gaugeIcon);
             map.addSource('gauge-points', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+            // Gauges read as a distinct, first-class layer — bigger than the
+            // amenity POIs (own size ramp, not POI_ICON_SIZE_EXPR).
+            const GAUGE_BASE_SIZE = [
+                'interpolate', ['linear'], ['zoom'],
+                11, 0.85,
+                16, 1.25,
+                19, 1.9,
+            ] as unknown as number;
             map.addLayer({
                 id: 'gauge-points-icon',
                 type: 'symbol',
@@ -2001,8 +2009,25 @@ const MapComponent = () => {
                 minzoom: 11,
                 layout: {
                     'icon-image': 'icon-gauge',
-                    'icon-size': POI_ICON_SIZE_EXPR,
+                    'icon-size': GAUGE_BASE_SIZE,
                     'icon-allow-overlap': false,
+                    'icon-padding': 4,
+                },
+            } as any);
+            // Active-gauge overlay: the station whose Gauges tab is open grows
+            // ~1.7x and ignores overlap culling so it's always visible above its
+            // neighbours. Driven by setFilter on station_id (feature-state isn't
+            // reliable in layout props like icon-size), starting matched-to-none.
+            map.addLayer({
+                id: 'gauge-points-active',
+                type: 'symbol',
+                source: 'gauge-points',
+                minzoom: 11,
+                filter: ['==', ['get', 'station_id'], ' '],
+                layout: {
+                    'icon-image': 'icon-gauge',
+                    'icon-size': ['*', GAUGE_BASE_SIZE, 1.7] as unknown as number,
+                    'icon-allow-overlap': true,
                     'icon-padding': 4,
                 },
             } as any);
@@ -2360,6 +2385,21 @@ const MapComponent = () => {
             );
         }
     }, [highlightedOption]);
+
+    // Highlight the gauge whose station is currently being viewed — the
+    // gauge-points-active overlay grows it ~1.7x and lifts it above neighbours.
+    // Point its filter at the selected station_id (or match-none when no gauge
+    // is being viewed).
+    useEffect(() => {
+        const map = mapRef.current;
+        if (!map || !map.getLayer('gauge-points-active')) return;
+        const activeStationId =
+            (selectedFeature?.properties?._gauge_station_id as string | undefined) || null;
+        map.setFilter(
+            'gauge-points-active',
+            ['==', ['get', 'station_id'], activeStationId ?? ' '] as any,
+        );
+    }, [selectedFeature]);
 
     // Handle selected state changes — filter-based, no event listeners needed.
     useEffect(() => {
