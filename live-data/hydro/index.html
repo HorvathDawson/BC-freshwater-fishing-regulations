@@ -457,6 +457,13 @@
 
       const datasets = [];
 
+      // Cap the forecast horizon to the recent window (~2 weeks). A model like
+      // ELF issues a 60-day outlook, but this high-res view is about the next
+      // few days — the long tail just clutters it (its full horizon lives in the
+      // model's PDF / the seasonal view).
+      const FORECAST_CAP_DAYS = 12;  // matches the percentile-band extent below
+      const forecastMaxX = Date.now() + FORECAST_CAP_DAYS * 86400000;
+
       // Percentile context bands, mapped from day-of-year onto the real dates
       // spanning the recent window + forecast horizon. Drawn first so they sit
       // behind the observed line and forecast. Subtle (no Min–Max ribbon here).
@@ -512,6 +519,7 @@
             const line = (key) => {
               const pts = series.filter(r => r[key] != null)
                 .map(r => ({ x: new Date(r.date).getTime(), y: r[key] }))
+                .filter(p => p.x <= forecastMaxX)
                 .sort((a, b) => a.x - b.x);
               if (!pts.length) return pts;
               return pts[0].x > last.x ? [{ x: last.x, y: last.y }, ...pts] : pts;
@@ -523,11 +531,14 @@
               backgroundColor: hatchPattern(hexToRgb(color)), fill: "-1" });
             datasets.push({ label: `${fc.model} forecast`, data: line("qfor_ave"),
               borderColor: color, borderWidth: 2.25, pointRadius: 0, fill: false });
-            const fcDays = new Set(series.map(r => r.date.slice(0, 10))).size;
-            metaText += ` &nbsp;·&nbsp; ${fc.model} forecast (${fcDays}d)`;
+            const fcDays = new Set(series.filter(r => {
+              const t = new Date(r.date).getTime();
+              return t >= Date.now() - 86400000 && t <= forecastMaxX;
+            }).map(r => r.date.slice(0, 10))).size;
+            metaText += ` &nbsp;·&nbsp; ${fc.model} forecast (${fcDays}d shown)`;
           } else if (fc.forecast_max != null || fc.forecast_min != null || fc.forecast_value != null) {
             const startX = last.x;
-            const endX = new Date(last.x + (fc.horizon_days || 5) * 86400000).getTime();
+            const endX = Math.min(last.x + (fc.horizon_days || 5) * 86400000, forecastMaxX);
             // Taper from the last observed value into the forecast bound.
             const hLine = (y) => [{ x: startX, y: last.y }, { x: endX, y }];
             const lo = fc.forecast_min;
@@ -647,9 +658,8 @@
                 mode: "x",
               },
               pan: { enabled: true, mode: "x" },
-              // Allow panning out to the full forecast horizon / recent history,
-              // beyond the tight initial window.
-              limits: { x: { min: Date.now() - 20 * 86400000, max: Date.now() + 70 * 86400000 } },
+              // Pan across the recent record + the capped forecast window.
+              limits: { x: { min: Date.now() - 20 * 86400000, max: Date.now() + 15 * 86400000 } },
             },
           },
         },
