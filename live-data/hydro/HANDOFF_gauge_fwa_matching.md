@@ -290,3 +290,87 @@ Only after seeing the straight-match rate:
   don't reintroduce an uncapped nearest-match fallback.
 - Everything through `FWADataAccessor` / the cached atlas — no direct GPKG
   reads, matching how every other matcher in this repo works.
+
+---
+
+## SESSION UPDATE (2026-07-24) — percentile climatology, seasonal view, forecast attribution, 30-min cadence
+
+Broader than gauge↔FWA, but this is the hydro-POC handoff so the current state
+lives here. All landed on `feat/land-ownership-layer` (commits below).
+
+### 1. Day-of-year percentile climatology  (commit `8bffd0a`)
+The continuous-curve counterpart to the single ECCC "current condition" label —
+"is today's flow normal / low / high for this date?", drawn as an envelope.
+
+- **Source & cadence:** built by `fetch_hydat.compute_climatology()` from
+  HYDAT's full daily record (`DLY_FLOWS` = discharge, `DLY_LEVELS` = level)
+  **while the ~266 MB release is already extracted** — no extra download. So it
+  rides the SLOW cadence (bootstrap / `fetch_hydat --force`), never the frequent
+  `update`. A new release replaces it wholesale; a pre-feature DB self-heals
+  (sync notices the empty table and rebuilds without `--force`).
+- **Method:** per station × day-of-year, pool all obs within **±2 days**
+  (wraps the year boundary) → **P0/P10/P25/P50/P75/P90/P100** into
+  `flow_climatology`, period-of-record in `flow_climatology_meta`.
+- **Integrity gates:** publish a station only with **≥10 yr** record; emit a
+  day-of-year percentile only with **≥10 pooled obs** (else NULL). Verified on
+  the real release: **370 discharge + 384 level** series, 0 non-monotonic rows
+  across 273k, all 366 slots incl. Feb 29 (slot 60).
+- **Export:** `climatology/<id>.json` on the **daily `history` scope**
+  (cheap/idempotent re-serialize; picks up a new envelope the day after a HYDAT
+  sync). 4-sig-fig rounded, ~17 KB raw / ~2.5 KB gzip. `has_climatology` flag on
+  `stations.json`. Served live at `GET /api/climatology?station=..&parameter=..`
+  (unit params 46/47 map to daily 3/6).
+- **Tests:** `test_climatology.py` (7 passing) — percentile math, Feb-29
+  slotting, window wrap, publish gates, end-to-end + rerun-replace.
+
+### 2. Viewer restructure  (commits `ab022d7`, `a45a9c7`, `35d80d1`)
+- **Seasonal view *replaces* the long daily-mean line.** Selecting a daily-mean
+  param (3/6, now labelled "… — seasonal") draws the full blue envelope
+  (Min–Max → 10–90 → 25–75 → median) + this year bold + last year thin, ±45-day
+  window around a "today" marker, log-y for discharge. The old flat multi-year
+  daily line and the Seasonal toggle button are gone.
+- **Recent view (unit params 46/47) gained percentile context + forecast.**
+  Bands mapped from day-of-year onto real dates behind the observed line.
+- **Two categories kept visually distinct** (they read the same before):
+  historical bands = **neutral grey solid** fills (context); forecast ranges =
+  **model-coloured diagonal hatch** (the projection texture) + solid centre
+  line; observed = near-black. `envelopeDatasets()` is shared (takes an `rgb`);
+  `hatchPattern()`/`hexToRgb()` helpers added.
+- **Forecast capped to ~12 days** (the band extent) so ELF's 60-day outlook no
+  longer stretches/clutters the high-res view; full horizon stays in the model
+  PDF + seasonal view.
+
+### 3. BC River Forecast Centre attribution  (commit `8bffd0a`)
+Forecasts were mis-attributed as ECCC realtime. Per the RFC's own confirmation
+(free to reproduce with attribution to the Province + copyright link + their
+disclaimer), `attribution('bcrfc')` now emits: *"Forecast data provided by the
+BC River Forecast Centre, Province of British Columbia, and used under the
+Province's copyright terms (https://www2.gov.bc.ca/gov/content/home/copyright).
+Users should use the information on this website with caution and at their own
+risk."* Wired into `fetch_forecasts`, `/api/attribution`, the viewer footer, and
+`stations.json.forecast_attribution`. (988 existing rows back-filled in the
+live DB.)
+
+### 4. Recent tier 15-min → 30-min  (commit `f89fbd6`)
+The recent view was showing **raw 5-min** (`/api/readings` returned the DB feed
+untouched) — denser than what ships and noisier than useful.
+- `export_hydro` recent fine window **15-min → 30-min** (hourly for days 3-14
+  unchanged); JSON key `q15m_3d` → `q30m_3d`.
+- `serve.py /api/readings` now downsamples unit params to the **same**
+  30-min/hourly cadence, so the local viewer previews production, not the raw
+  feed (~407 pts vs 4,146 for a 14-day window). Raw 5-min still kept in
+  `hydro.db` at full resolution.
+
+### Open / next
+- **Wire the webapp** to actually consume the hydro artifacts (still POC / "not
+  yet wired" — see README "Recommended cloud cadence"): map headline from
+  `stations.json`, `recent/<id>.json` on gauge select, `history/` + new
+  `climatology/` for the long/seasonal view.
+- **Level climatology in the seasonal view**: the endpoint + export support
+  param 3, but the default param dropdown is discharge-first — confirm level
+  stations surface it.
+- **Verify visually in-browser** on a level-only / no-climatology station
+  (recent view should just omit the bands; seasonal view shows the "no
+  climatology (≥10 yr needed)" message).
+- Regenerate/upload artifacts on the next cron so R2 reflects the 30-min cadence
+  + `climatology/` tier.
