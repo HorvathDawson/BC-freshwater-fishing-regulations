@@ -1541,7 +1541,9 @@
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
     flex-shrink: 0;
-    background: var(--border);
+    /* Softer slate-grey band — the previous near-black (var(--border)) read as
+       abrasive against the panel. */
+    background: #64748b;
 }
 
 .content-tab-bar::-webkit-scrollbar {
@@ -1559,7 +1561,7 @@
     background: none;
     border: none;
     border-bottom: 2px solid transparent;
-    color: rgba(255, 255, 255, 0.6);
+    color: rgba(255, 255, 255, 0.82);
     font-family: var(--font-sans);
     font-size: 11px;
     font-weight: 700;
@@ -1640,6 +1642,197 @@
     font-size: 12px;
     line-height: 1.4;
     max-width: 240px;
+}
+
+/* ── Gauge (hydro) tab ───────────────────────────────────────────────────── */
+
+.gauge-tab {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 4px 0 8px;
+}
+
+.gauge-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.gauge-condition {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.gauge-select {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    font-size: 10px;
+    color: var(--text-muted);
+}
+
+.gauge-select select {
+    padding: 4px 6px;
+    font-size: 11px;
+    border: 1px solid var(--border, #d1d5db);
+    border-radius: 6px;
+    background: var(--bg-subtle);
+    color: var(--text-primary);
+}
+
+.gauge-chart-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 6px;
+}
+
+.gauge-seg {
+    display: inline-flex;
+    border: 1px solid var(--border, #d1d5db);
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.gauge-seg button {
+    padding: 4px 9px;
+    font-size: 11px;
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+}
+
+.gauge-seg button + button {
+    border-left: 1px solid var(--border, #d1d5db);
+}
+
+.gauge-seg button.active {
+    background: var(--accent, #2563eb);
+    color: #fff;
+}
+
+.gauge-seg button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+/* Plot fills the full content width (no wasted edge space) without bleeding past
+   the panel — negative side margins caused horizontal scroll in the flex column,
+   so the chart stays inside the content box and overflow is clipped. */
+.gauge-tab {
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
+.gauge-chart-canvas {
+    position: relative;
+    height: 320px;
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+}
+
+.gauge-chart-canvas canvas {
+    max-width: 100% !important;
+}
+
+.gauge-chart-msg {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 0 20px;
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+/* Transient "Hold Ctrl to zoom" hint (desktop wheel without the modifier). */
+.gauge-zoom-hint {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    background: rgba(15, 23, 42, 0.55);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    animation: gauge-hint-fade 0.12s ease;
+}
+
+.gauge-zoom-hint kbd {
+    display: inline-block;
+    margin: 0 3px;
+    padding: 1px 5px;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.9);
+    color: #0f172a;
+    font-family: var(--font-sans);
+    font-size: 11px;
+    font-weight: 700;
+}
+
+@keyframes gauge-hint-fade {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.gauge-chart-note {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 4px;
+}
+
+.gauge-explainer {
+    margin-top: 8px;
+    font-size: 11px;
+    line-height: 1.5;
+    color: var(--text-muted);
+}
+
+.gauge-explainer p {
+    margin: 0 0 6px;
+}
+
+.gauge-explainer p:last-child {
+    margin-bottom: 0;
+}
+
+.gauge-explainer strong {
+    color: var(--text-secondary);
+}
+
+/* Mobile: the info panel is short — keep controls compact and let the chart
+   breathe so the toggles aren't crowded off-screen while viewing the graph. */
+@media (max-width: 768px) {
+    .gauge-chart-canvas {
+        height: 240px;
+    }
+    .gauge-seg button {
+        padding: 6px 10px;   /* keep a comfortable tap target */
+        font-size: 11px;
+    }
+    .gauge-chart-controls {
+        gap: 6px;
+    }
+}
+
+.gauge-attribution {
+    font-size: 10px;
+    line-height: 1.4;
+    color: var(--text-muted);
+    border-top: 1px solid var(--border, #e5e7eb);
+    padding-top: 6px;
+}
+
+.gauge-attribution p {
+    margin: 0 0 4px;
 }
 
 /* ── Section Tab Bar ─────────────────────────────────────────────────────── */

@@ -23,7 +23,10 @@ import SourceImageViewer from './SourceImageViewer';
 import FishLoader from './FishLoader';
 import type { SearchableFeature } from './SearchBar';
 import { waterbodyDataService } from '../services/waterbodyDataService';
-import type { Reach, BathymetrySurvey, StockingRelease } from '../services/waterbodyDataService';
+import type { Reach, BathymetrySurvey, StockingRelease, GaugeStation } from '../services/waterbodyDataService';
+// Lazy so chart.js (~200 KB) is code-split out of the main bundle — only fetched
+// when a user actually opens a Gauges tab that has a station.
+const GaugeChart = React.lazy(() => import('./GaugeChart'));
 import { DATA_BASE } from '../config/endpoints';
 import { PDFDocument } from 'pdf-lib';
 import './InfoPanel.css';
@@ -68,6 +71,9 @@ interface InfoPanelProps {
     /** Civil dawn/dusk for the current map view center — recomputed by Map.tsx
      *  on pan-threshold/date-change, not tied to the selected feature. */
     dawnDusk?: { dawn: Date | null; dusk: Date | null } | null;
+    /** Bumped by Map when a gauge map-icon is selected — opens the Gauges tab,
+     *  overriding the reset-to-'rules'-on-feature-change. */
+    openGaugeSeq?: number;
 };
 
 /** Map restriction_type to CSS class for colored pills */
@@ -116,7 +122,7 @@ const formatReleaseDate = (raw: string): string => {
     return new Date(y, m - 1, d).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
 };
 
-const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapseState, siblingFeatures = [], onHighlightSection, onFlyToSection, onReportIssue, dawnDusk }: InfoPanelProps) => {
+const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapseState, siblingFeatures = [], onHighlightSection, onFlyToSection, onReportIssue, dawnDusk, openGaugeSeq }: InfoPanelProps) => {
     const touchStartY = useRef<number>(0);
     const touchStartTime = useRef<number>(0);
     // Set to true by tab clicks so the feature-change effect below
@@ -328,6 +334,32 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
         return () => { cancelled = true; };
     }, [activeSection, feature?.properties.frontend_group_id]);
 
+    // Hydro gauge stations for this reach/waterbody. Lazily loads stations.json
+    // on first access (see waterbodyDataService.getStationsForReach); degrades to
+    // [] when the hydro seed hasn't shipped. Stream gauges join on reach_id;
+    // lake/polygon gauges on waterbody_key.
+    const [gaugeStations, setGaugeStations] = useState<GaugeStation[]>([]);
+    const [selectedGauge, setSelectedGauge] = useState<string | null>(null);
+    useEffect(() => {
+        const reachId = activeSection?.frontend_group_id
+            || (feature?.properties.frontend_group_id as string | undefined);
+        const wbk = feature?.properties.waterbody_key != null
+            ? String(feature.properties.waterbody_key) : undefined;
+        if (!reachId && !wbk) {
+            setGaugeStations([]);
+            return;
+        }
+        let cancelled = false;
+        waterbodyDataService.getStationsForReach(reachId, wbk)
+            .then(stations => {
+                if (cancelled) return;
+                setGaugeStations(stations);
+                setSelectedGauge(stations.length ? stations[0].id : null);
+            })
+            .catch(() => { if (!cancelled) setGaugeStations([]); });
+        return () => { cancelled = true; };
+    }, [activeSection, feature?.properties.frontend_group_id, feature?.properties.waterbody_key]);
+
     // Active content tab (Rules / Stocking / Bathy map / Gauges). Seeded once
     // from the URL's ?tab= param (deep-linking, e.g. a shared Stocking-tab
     // link) so a fresh page load lands on the right tab; every subsequent
@@ -354,6 +386,16 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
         }
         setActiveTab('rules');
     }, [feature]);
+
+    // Gauge map-icon → open the Gauges tab. Declared AFTER the reset effect so
+    // that when a gauge selection changes both the feature and this signal, this
+    // effect runs last and wins (setting 'gauges' over the reset's 'rules'). Also
+    // fires when the same reach's gauge is re-selected (feature unchanged).
+    useEffect(() => {
+        if (!openGaugeSeq) return;
+        setActiveTab('gauges');
+        setActiveTabParam('gauges');
+    }, [openGaugeSeq]);
 
     // Handle share button click
     const handleShare = async (e: React.MouseEvent) => {
@@ -595,7 +637,9 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
         if (hasBathymetry) {
             contentTabs.push({ key: 'bathymetry', label: 'Bathy map', count: bathymetry.length });
         }
-        contentTabs.push({ key: 'gauges', label: 'Gauges' });
+        if (gaugeStations.length > 0) {
+            contentTabs.push({ key: 'gauges', label: 'Gauges', count: gaugeStations.length });
+        }
         const effectiveTab = contentTabs.some(t => t.key === activeTab) ? activeTab : 'rules';
 
         return (
@@ -650,12 +694,6 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                             );
                         })()}
                 </div>
-
-                {dawnDusk && (
-                    <div className="dawn-dusk-row">
-                        Dawn {formatDawnDuskTime(dawnDusk.dawn)} · Dusk {formatDawnDuskTime(dawnDusk.dusk)}
-                    </div>
-                )}
 
                 {/* Section tab bar — only rendered for multi-section waterbodies.
                     Sticky between the header and the scrolling content area.
@@ -718,10 +756,11 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                 })()}
 
                 {/* Content tab bar — Rules / Stocking / Bathy map / Gauges.
-                    Always shown (Rules is always available). Distinct from the
-                    section-tab-bar above: this switches which content panel is
-                    visible for the currently-selected section, not which
-                    section is selected. */}
+                    Hidden entirely when Rules is the only tab (nothing to switch
+                    between). Distinct from the section-tab-bar above: this switches
+                    which content panel is visible for the currently-selected
+                    section, not which section is selected. */}
+                {contentTabs.length > 1 && (
                 <div className="content-tab-bar" role="tablist" aria-label="Waterbody info sections">
                     {contentTabs.map(t => (
                         <button
@@ -741,6 +780,7 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                         </button>
                     ))}
                 </div>
+                )}
 
 <div
                     className="panel-content"
@@ -756,6 +796,11 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                     >
                     {effectiveTab === 'rules' && (
                     <>
+                    {dawnDusk && (
+                        <div className="dawn-dusk-row">
+                            Dawn {formatDawnDuskTime(dawnDusk.dawn)} · Dusk {formatDawnDuskTime(dawnDusk.dusk)}
+                        </div>
+                    )}
                     {/* REGULATIONS SECTION */}
                     <div className="data-section">
                         <div className="section-header-row">
@@ -1364,11 +1409,54 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                         data later with no further restructuring. */}
                     {effectiveTab === 'gauges' && (
                         <div className="data-section">
-                            <div className="tab-empty-state">
-                                <Gauge size={28} strokeWidth={1.5} aria-hidden="true" />
-                                <p>Gauge data is coming soon.</p>
-                                <span>Real-time water level and flow information for this waterbody will appear here.</span>
-                            </div>
+                            {gaugeStations.length === 0 ? (
+                                <div className="tab-empty-state">
+                                    <Gauge size={28} strokeWidth={1.5} aria-hidden="true" />
+                                    <p>No gauge on this waterbody.</p>
+                                    <span>Real-time water level and flow appear here for rivers and lakes that have a hydrometric gauge station.</span>
+                                </div>
+                            ) : (
+                                <div className="gauge-tab">
+                                    {gaugeStations.length > 1 && (
+                                        <label className="gauge-select">
+                                            <span>Gauge station</span>
+                                            <select
+                                                value={selectedGauge ?? gaugeStations[0].id}
+                                                onChange={(e) => setSelectedGauge(e.target.value)}
+                                            >
+                                                {gaugeStations.map(s => (
+                                                    <option key={s.id} value={s.id}>
+                                                        {s.id}{s.name ? ` — ${s.name}` : ''}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </label>
+                                    )}
+                                    {(() => {
+                                        const st = gaugeStations.find(s => s.id === selectedGauge) || gaugeStations[0];
+                                        const attrib = waterbodyDataService.getGaugeAttribution();
+                                        return (
+                                            <>
+                                                {gaugeStations.length === 1 && (
+                                                    <div className="gauge-title">
+                                                        {st.id}{st.name ? ` — ${st.name}` : ''}
+                                                    </div>
+                                                )}
+                                                {st.condition?.text && (
+                                                    <div className="gauge-condition">{st.condition.text}</div>
+                                                )}
+                                                <React.Suspense fallback={<div className="gauge-chart-note">Loading chart…</div>}>
+                                                    <GaugeChart key={st.id} station={st} />
+                                                </React.Suspense>
+                                                <div className="gauge-attribution">
+                                                    {attrib.data && <p>{attrib.data}</p>}
+                                                    {attrib.forecast && <p>{attrib.forecast}</p>}
+                                                </div>
+                                            </>
+                                        );
+                                    })()}
+                                </div>
+                            )}
                         </div>
                     )}
                     </div>

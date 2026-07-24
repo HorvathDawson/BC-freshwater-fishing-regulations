@@ -449,10 +449,15 @@ const ICON_FISHING_PATH = 'M16 9h.41l-13 13L2 20.59l13-13V9zm0-5v4h4l2-6z';
 // Waterfall — Maki "waterfall", viewBox 15x15.
 const ICON_WATERFALL_PATH = 'M14 1H5a3 3 0 0 0-3 3v4.88a2.25 2.25 0 0 0 2.5 3.742a2.25 2.25 0 0 0 2.664-.122h.353A3.25 3.25 0 1 0 10.5 6.75V5a2 2 0 0 1 2-2H14zm-2.5 8.75a2.25 2.25 0 0 1-3.664 1.75H6.75a1.248 1.248 0 0 1-2 0h-.5A1.25 1.25 0 1 1 3 9.525V5.75a.75.75 0 0 1 1.5 0V9a.5.5 0 0 0 1 0V6.75a.75.75 0 0 1 1.5 0V9a.5.5 0 0 0 1 0V5.75a.75.75 0 0 1 1.5 0v1.764a2.25 2.25 0 0 1 2 2.236';
 
+// Hydrometric gauge station — MDI "gauge" (speedometer dial), viewBox 24x24.
+const ICON_GAUGE_PATH = 'M12,16A3,3 0 0,1 9,13C9,11.88 9.61,10.9 10.5,10.39L20.21,4.77L14.68,14.35C14.18,15.33 13.17,16 12,16M12,3C13.81,3 15.5,3.5 16.97,4.32L14.87,5.53C14,5.19 13,5 12,5A8,8 0 0,0 4,13C4,15.21 4.89,17.21 6.34,18.65H6.35C6.74,19.04 6.74,19.67 6.35,20.06C5.96,20.45 5.32,20.45 4.93,20.07V20.07C3.12,18.26 2,15.76 2,13A10,10 0 0,1 12,3M22,13C22,15.76 20.88,18.26 19.07,20.07V20.07C18.68,20.45 18.05,20.45 17.66,20.06C17.27,19.67 17.27,19.04 17.66,18.65V18.65C19.11,17.2 20,15.21 20,13C20,12 19.81,11 19.46,10.1L20.67,8C21.5,9.5 22,11.19 22,13Z';
+
 const createBoatLaunchIcon = (): ImageData | null => createSvgBadgeIcon('#0072B2', ICON_SLIPWAY_PATH, 15);
 const createPierIcon = (): ImageData | null => createSvgBadgeIcon('#4A90E2', ICON_PIER_PATH, 24);
 const createFishingPlatformIcon = (): ImageData | null => createSvgBadgeIcon('#059669', ICON_FISHING_PATH, 24);
 const createWaterfallIcon = (): ImageData | null => createSvgBadgeIcon('#0D47A1', ICON_WATERFALL_PATH, 15);
+// Teal badge — distinct from the blue access-point / waterfall icons.
+const createGaugeIcon = (): ImageData | null => createSvgBadgeIcon('#0d9488', ICON_GAUGE_PATH, 24);
 
 /** Normalize plural backend types to singular frontend types */
 const normalizeType = (type: string): 'stream' | 'lake' | 'wetland' | 'manmade' | 'ungazetted' => {
@@ -694,6 +699,10 @@ const MapComponent = () => {
     const cursorLngLatRef = useRef<{ lng: number; lat: number } | null>(null);
     
     const [selectedFeature, setSelectedFeature] = useState<FeatureInfo | null>(null);
+    // Bumped when a gauge map-icon option is chosen, so InfoPanel opens its Gauges
+    // tab (surviving the reset-to-'rules'-on-feature-change). Counter, not bool, so
+    // re-selecting the same reach's gauge still re-triggers.
+    const [gaugeOpenSeq, setGaugeOpenSeq] = useState(0);
     // Derived from wbgIndexRef whenever selectedFeature changes — never set manually.
     const [siblingFeatures, setSiblingFeatures] = useState<SearchableFeature[]>([]);
     const [disambigOptions, setDisambigOptions] = useState<FeatureOption[]>([]);
@@ -1978,7 +1987,46 @@ const MapComponent = () => {
                     'text-halo-color': '#ffffff',
                     'text-halo-width': 1.2,
                 } });
-            
+
+            // ── HYDROMETRIC GAUGE STATIONS (GeoJSON — from cron/hydro/stations.json) ──
+            // Amenity-style icons. Data is fetched lazily (not on app startup) and
+            // failure-tolerant — no icons if the hydro seed hasn't shipped.
+            const gaugeIcon = createGaugeIcon();
+            if (gaugeIcon) map.addImage('icon-gauge', gaugeIcon);
+            map.addSource('gauge-points', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+            map.addLayer({
+                id: 'gauge-points-icon',
+                type: 'symbol',
+                source: 'gauge-points',
+                minzoom: 11,
+                layout: {
+                    'icon-image': 'icon-gauge',
+                    'icon-size': POI_ICON_SIZE_EXPR,
+                    'icon-allow-overlap': false,
+                    'icon-padding': 4,
+                },
+            } as any);
+            // Populate off the startup critical path; tolerate absence.
+            waterbodyDataService.getAllStations().then((stations) => {
+                const src = map.getSource('gauge-points') as maplibregl.GeoJSONSource | undefined;
+                if (!src) return;
+                src.setData({
+                    type: 'FeatureCollection',
+                    features: stations
+                        .filter(s => Number.isFinite(s.lon) && Number.isFinite(s.lat))
+                        .map(s => ({
+                            type: 'Feature' as const,
+                            geometry: { type: 'Point' as const, coordinates: [s.lon, s.lat] },
+                            properties: {
+                                station_id: s.id,
+                                station_name: s.name || '',
+                                reach_id: s.fwa?.reach_id || '',
+                                waterbody_key: s.fwa?.waterbody_key || '',
+                            },
+                        })),
+                });
+            }).catch(() => { /* no gauge icons if unavailable */ });
+
             // Signal that map is ready for URL restoration
             setMapReady(true);
 
@@ -2039,6 +2087,7 @@ const MapComponent = () => {
         ) => {
             clearSelection();
             if (opts.length === 1) {
+                if (opts[0].properties?._gauge_station_id) setGaugeOpenSeq(s => s + 1);
                 setSelectedFeature(opts[0]);
                 return;
             }
@@ -2114,8 +2163,39 @@ const MapComponent = () => {
                 adminOptions.push(buildAdminFeatureOption(hit));
             }
 
+            // Gauge station hits (GeoJSON icon layer). Each resolves to the river
+            // reach it sits on and is tagged (_gauge_station_id) so its menu row
+            // reads as a gauge and selecting it opens the info panel's Gauges tab.
+            // Stream gauges carry reach_id directly (the common case, 415/449);
+            // polygon-only gauges (no reach_id) are left to the underlying lake
+            // tile's normal resolution.
+            const gaugeHits = map.queryRenderedFeatures(
+                [[e.point.x - 15, e.point.y - 15], [e.point.x + 15, e.point.y + 15]],
+                { layers: ['gauge-points-icon'] }
+            );
+            const gaugeOptions: FeatureOption[] = [];
+            const gaugeSeen = new Set<string>();
+            for (const hit of gaugeHits) {
+                const stationId = String(hit.properties?.station_id || '');
+                const reachId = String(hit.properties?.reach_id || '');
+                if (!stationId || gaugeSeen.has(stationId) || !reachId) continue;
+                const lookup = searchLookupRef.current.get(reachId);
+                if (!lookup) continue;
+                gaugeSeen.add(stationId);
+                const fidList = regDataRef.current?.reachSegments[reachId];
+                const opt = buildFeatureFromJSON(lookup.feature, lookup.segment, {
+                    fidList,
+                    extras: {
+                        _gauge_station_id: stationId,
+                        _gauge_station_name: hit.properties?.station_name || '',
+                    },
+                });
+                opt.id = `gauge-${stationId}`;  // distinct menu row from the plain reach
+                gaugeOptions.push(opt);
+            }
+
             if (!features.length) {
-                const combined = [...ugOptions, ...adminOptions];
+                const combined = [...gaugeOptions, ...ugOptions, ...adminOptions];
                 if (combined.length) {
                     presentOptions(combined, e.point, clickContext);
                     return;
@@ -2158,7 +2238,7 @@ const MapComponent = () => {
 
             if (!fids.length && !wbks.length) {
                 // No resolvable tile features — fall back to any ungazetted/admin hits.
-                const combined = [...ugOptions, ...adminOptions];
+                const combined = [...gaugeOptions, ...ugOptions, ...adminOptions];
                 if (combined.length) { presentOptions(combined, e.point, clickContext); return; }
                 console.debug('[Map] clicked feature has no fid/wbk:', features[0].properties);
                 return;
@@ -2204,7 +2284,7 @@ const MapComponent = () => {
 
             if (candidates.length === 0) {
                 // No tile reaches resolved — fall back to any ungazetted/admin hits.
-                const combined = [...ugOptions, ...adminOptions];
+                const combined = [...gaugeOptions, ...ugOptions, ...adminOptions];
                 if (combined.length) { presentOptions(combined, e.point, clickContext); return; }
                 console.debug('[Map] resolve returned no matching reaches for:', fids, wbks);
                 return;
@@ -2241,6 +2321,9 @@ const MapComponent = () => {
             // alongside overlapping streams/lakes.
             const tileReachIds = new Set(tileOptions.map(o => o.properties.frontend_group_id as string));
             const options = [
+                // Gauge rows first — intentionally NOT deduped against the plain
+                // reach (they're a distinct "open the gauge" entry for the river).
+                ...gaugeOptions,
                 ...tileOptions,
                 ...ugOptions.filter(o => !tileReachIds.has(o.properties.frontend_group_id as string)),
                 ...adminOptions,
@@ -2588,7 +2671,7 @@ const MapComponent = () => {
                     placeholder="Search waterbodies..." 
                 />
             </div>
-            <InfoPanel feature={selectedFeature} onClose={clearSelection} collapseState={mobilePanelState} onSetCollapseState={setMobilePanelState} siblingFeatures={siblingFeatures} onHighlightSection={handleHighlightSection} onFlyToSection={handleFlyToSection} onReportIssue={() => setIssueReportOpen(true)} dawnDusk={dawnDusk} />
+            <InfoPanel feature={selectedFeature} onClose={clearSelection} collapseState={mobilePanelState} onSetCollapseState={setMobilePanelState} siblingFeatures={siblingFeatures} onHighlightSection={handleHighlightSection} onFlyToSection={handleFlyToSection} onReportIssue={() => setIssueReportOpen(true)} dawnDusk={dawnDusk} openGaugeSeq={gaugeOpenSeq} />
             <div className="map-footer-links">
                 <DisclaimerLink onClick={() => setDisclaimerOpen(true)} />
                 <IssueReportLink onClick={() => setIssueReportOpen(true)} />
@@ -2610,10 +2693,11 @@ const MapComponent = () => {
                             setHighlightedOption(null);
                         }
                     }}
-                    onSelect={f => { 
-                        clearSelection(); 
-                        setSelectedFeature(f); 
-                        setMobilePanelState('partial'); 
+                    onSelect={f => {
+                        clearSelection();
+                        if (f.properties?._gauge_station_id) setGaugeOpenSeq(s => s + 1);
+                        setSelectedFeature(f);
+                        setMobilePanelState('partial');
                     }} onClose={clearSelection}
                 />
             )}

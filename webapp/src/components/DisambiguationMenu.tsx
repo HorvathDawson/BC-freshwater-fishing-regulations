@@ -147,6 +147,8 @@ const DisambiguationMenu = ({ options, position, highlightedOption, onSelect, on
                 <div className="menu-list" role="listbox" aria-label="Overlapping features">
                     {sorted.map((option, idx) => {
                         const isHighlighted = highlightedOption?.id === option.id;
+                        const isGauge = !!option.properties?._gauge_station_id;
+                        const gaugeName = String(option.properties?._gauge_station_name || '');
                         const label = getLabel(option);
                         const aliases = getUniqueAliases(
                             (option.properties?.name_variants ?? []) as NameVariant[],
@@ -175,8 +177,8 @@ const DisambiguationMenu = ({ options, position, highlightedOption, onSelect, on
                                         }
                                     }}
                                 >
-                                    <div className={`icon-container ${option.type}`} style={{ backgroundColor: getColorForType(option.type) }}>
-                                        <Icon icon={getIconForType(option.type)} width={28} height={28} color="white" />
+                                    <div className={`icon-container ${isGauge ? 'gauge' : option.type}`} style={{ backgroundColor: isGauge ? '#0d9488' : getColorForType(option.type) }}>
+                                        <Icon icon={isGauge ? 'mdi:gauge' : getIconForType(option.type)} width={28} height={28} color="white" />
                                     </div>
                                     <div className="item-info">
                                         <span className="name">
@@ -202,7 +204,7 @@ const DisambiguationMenu = ({ options, position, highlightedOption, onSelect, on
                                                 </>
                                             );
                                         })()}
-                                        <span className="type">{getTypeLabel(option.type)}</span>
+                                        <span className="type">{isGauge ? `Gauge station${gaugeName ? ` · ${gaugeName}` : ''}` : getTypeLabel(option.type)}</span>
                                     </div>
                                 </button>
                                 {isMobile && (
