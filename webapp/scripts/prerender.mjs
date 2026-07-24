@@ -118,11 +118,11 @@ function patchTemplate(tmpl, { title, description, canonicalUrl }) {
     let html = tmpl;
 
     // The homepage template (index.html) already carries site-level canonical /
-    // og / twitter tags, so per-waterbody pages must REPLACE the page-varying
-    // ones (not append) — otherwise a page ends up with two <title>s / two
-    // canonicals / two og:titles and crawlers pick unpredictably. Site-level
-    // tags (og:site_name, og:type, og:locale, twitter:card, robots, keywords,
-    // JSON-LD) are correctly inherited unchanged.
+    // og tags, so per-waterbody pages must REPLACE the page-varying ones (not
+    // append) — otherwise a page ends up with two <title>s / two canonicals /
+    // two og:titles and crawlers pick unpredictably. Site-level tags
+    // (og:site_name, og:type, og:locale, og:image, robots, keywords, JSON-LD)
+    // are correctly inherited unchanged.
     // Function replacers avoid `$` in a waterbody name being treated as a
     // replacement special.
     const inserts = [];
@@ -137,8 +137,6 @@ function patchTemplate(tmpl, { title, description, canonicalUrl }) {
     upsert(/<meta\s+property="og:title"[^>]*\/?>/i, `<meta property="og:title" content="${escapeHtml(title)}" />`);
     upsert(/<meta\s+property="og:description"[^>]*\/?>/i, `<meta property="og:description" content="${escapeHtml(description)}" />`);
     upsert(/<meta\s+property="og:url"[^>]*\/?>/i, `<meta property="og:url" content="${canonicalUrl}" />`);
-    upsert(/<meta\s+name="twitter:title"[^>]*\/?>/i, `<meta name="twitter:title" content="${escapeHtml(title)}" />`);
-    upsert(/<meta\s+name="twitter:description"[^>]*\/?>/i, `<meta name="twitter:description" content="${escapeHtml(description)}" />`);
 
     if (inserts.length) {
         const headEnd = html.indexOf('</head>');
