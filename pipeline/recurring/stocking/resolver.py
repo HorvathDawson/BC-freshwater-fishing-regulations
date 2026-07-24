@@ -160,90 +160,12 @@ def resolve_stocking(
     }
 
 
-def resolve_stocking_from_json(
-    source_json_path: Path,
-    poly_reaches_path: Optional[Path] = None,
-) -> Dict[str, Any]:
-    """Db-free re-resolve: rebuild the stocking.json structure from a previously
-    generated stocking.json, re-mapping each waterbody's ``reach_id`` against the
-    current ``poly_reaches`` while carrying the (frozen) FIDQ ``releases`` and
-    ``fidq_name`` through unchanged.
-
-    Lets the lightweight daily cron run without the 66 MB anglerinfo.db — the
-    only thing that changes between the heavy manual fetch+match runs is the
-    reach mapping, which lives in poly_reaches.json. Full/local runs still use
-    :func:`resolve_stocking` against the db (the source of truth for releases).
-    """
-    if not source_json_path.exists():
-        raise FileNotFoundError(
-            f"{source_json_path} not found — the db-free re-resolve needs an "
-            "existing stocking.json (fetched from R2 in CI)."
-        )
-    if poly_reaches_path is None:
-        cfg = ProjectConfig()
-        poly_reaches_path = cfg.get_path(
-            "output", "pipeline", "deploy", default="output/pipeline/deploy"
-        ) / "poly_reaches.json"
-    poly_reaches = _load_poly_reaches(poly_reaches_path)
-
-    with open(source_json_path, encoding="utf-8") as f:
-        src = json.load(f)
-
-    waterbodies: List[Dict[str, Any]] = []
-    resolved_to_reach = 0
-    for wb in src.get("waterbodies", []):
-        waterbody_key = wb.get("waterbody_key")
-        reach_id = None
-        # poly_reaches only maps legitimately-built reaches, so attempting a
-        # lookup for every key is equivalent to the db path's status gate.
-        for wbk in _split_keys(waterbody_key or ""):
-            reach_id = poly_reaches.get(wbk)
-            if reach_id:
-                break
-        if reach_id:
-            resolved_to_reach += 1
-        waterbodies.append({
-            "waterbody_key": waterbody_key or None,
-            "reach_id": reach_id,
-            "fidq_name": wb.get("fidq_name"),
-            "releases": wb.get("releases", []),
-        })
-
-    total = len(waterbodies)
-    from pipeline.recurring.provenance import provenance
-
-    return {
-        **provenance(
-            generator="stocking_resolver",
-            source="FIDQ (BC gov Fish Inventories Data Queries)",
-            source_url="https://a100.gov.bc.ca/pub/fidq/main.do",
-            attribution=(
-                "Fish stocking data sourced from the Province of British Columbia "
-                "(Fish Inventories Data Queries) and used under the Province's "
-                "copyright terms (https://www2.gov.bc.ca/gov/content/home/copyright)."
-            ),
-        ),
-        "source": "FIDQ (BC gov Fish Inventories Data Queries)",
-        "waterbodies": waterbodies,
-        "stats": {
-            "total": total,
-            "resolved_to_reach": resolved_to_reach,
-            "unresolved": total - resolved_to_reach,
-        },
-    }
-
-
 def main(argv: Optional[List[str]] = None) -> int:
     logging.basicConfig(level=logging.INFO, format="%(message)s")
     cfg = ProjectConfig()
 
     parser = argparse.ArgumentParser(description="Resolve FIDQ stocking records to reach IDs.")
     parser.add_argument("--db", type=Path, default=WATERBODY_DB_PATH, help="anglerinfo.db path.")
-    parser.add_argument(
-        "--source-json", type=Path, default=None,
-        help="Existing stocking.json to re-resolve reach_ids from, db-free "
-             "(used by the lightweight CI cron). Takes precedence over --db.",
-    )
     parser.add_argument(
         "--poly-reaches", type=Path, default=None,
         help="poly_reaches.json path (default: output/pipeline/deploy/poly_reaches.json).",
@@ -255,10 +177,7 @@ def main(argv: Optional[List[str]] = None) -> int:
     )
     args = parser.parse_args(argv)
 
-    if args.source_json is not None:
-        result = resolve_stocking_from_json(args.source_json, args.poly_reaches)
-    else:
-        result = resolve_stocking(args.db, args.poly_reaches)
+    result = resolve_stocking(args.db, args.poly_reaches)
 
     args.out.parent.mkdir(parents=True, exist_ok=True)
     with open(args.out, "w", encoding="utf-8") as f:

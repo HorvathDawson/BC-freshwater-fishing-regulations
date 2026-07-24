@@ -1,22 +1,24 @@
 #!/usr/bin/env bash
-# update-stocking.sh — Resolve FIDQ stocking data to reach IDs.
+# update-stocking.sh — Light tier of the two-tier stocking refresh.
 #
-# Mirrors scripts/update-in-season.sh's shape, with one deliberate difference:
-# there is no "scrape" step here. pipeline/recurring/anglerinfo/'s own
-# fetch+match chain (fetch_stocking.py -> match.py -> match_fwa_*.py ->
-# match_final.py -> export.py) is a separate, slower, manual cadence — this
-# script assumes anglerinfo.db is already fetched/matched locally and just
-# resolves its stocking rows to reach IDs.
+# This is the CHEAP, geopandas-free half (wired to .github/workflows/
+# update-stocking.yml, weekly):
+#   1. Pull anglerinfo.db from R2 read-only (for match_final — which FIDQ
+#      waterbodies map to an FWA waterbody_key).
+#   2. Refresh the FIDQ stocking release rows locally via fetch_stocking update
+#      (no geopandas; new releases for already-matched waterbodies land here).
+#   3. Resolve to reach IDs against poly_reaches.json → stocking.json.
+# It never writes anglerinfo.db back to R2 — the heavy job owns that.
 #
-# NOT yet wired into a GitHub Actions workflow (unlike update-in-season.sh's
-# .github/workflows/update-in-season.yml) — stocking-info display isn't built
-# in the frontend yet, so there's nothing consuming stocking.json on a
-# schedule. Run manually, or call from CI once that lands.
+# The HEAVY, EXPENSIVE half (full fetch+match chain, geopandas, WFS downloads)
+# is pipeline.recurring.anglerinfo.build_db, wired to .github/workflows/
+# refresh-stocking-db.yml (monthly + manual). It's the only writer of
+# anglerinfo.db to R2, and where genuinely NEW waterbodies enter the system.
 #
 # Usage:
-#   ./scripts/update-stocking.sh              # resolve (local)
+#   ./scripts/update-stocking.sh              # refresh + resolve (local)
 #   ./scripts/update-stocking.sh --seed        # also re-seed local R2
-#   ./scripts/update-stocking.sh --upload      # resolve + upload to R2 (CI)
+#   ./scripts/update-stocking.sh --upload      # refresh + resolve + upload to R2 (CI)
 #
 # Environment:
 #   DEPLOY_ENV   staging | production (default: staging)
@@ -66,34 +68,41 @@ if [[ ! -f "$DEPLOY_DIR/poly_reaches.json" ]]; then
   _fetch_r2_file "poly_reaches.json" "$DEPLOY_DIR/poly_reaches.json"
 fi
 
-# ── Step 1: Resolve ─────────────────────────────────────────────────
-# The 66 MB anglerinfo.db (source of the frozen FIDQ release rows) isn't
-# available in CI — it's built by anglerinfo's heavy fetch+match chain on a
-# separate manual cadence. When it's absent, fall back to a db-free re-resolve:
-# pull the previously published stocking.json from R2 and re-map its reach_ids
-# against the current poly_reaches.json. Local/full runs still use the db.
+# ── Step 1: Refresh stocking records (light tier) ───────────────────
+# Two-tier design (see refresh-stocking-db.yml for the heavy tier):
+#   • Heavy monthly job runs the full fetch+match chain (geopandas) and is the
+#     ONLY writer of anglerinfo.db to R2 — it's the source of match_final, i.e.
+#     which FIDQ waterbodies map to an FWA waterbody_key. New waterbodies enter
+#     the system here.
+#   • This light job pulls that db read-only (for match_final), then refreshes
+#     just the FIDQ stocking release rows locally via fetch_stocking — no
+#     geopandas, no db write-back to R2 (avoids racing the heavy job). New
+#     releases for already-matched waterbodies enter the system here.
+ANGLERINFO_DB="$ROOT/output/pipeline/anglerinfo/anglerinfo.db"
+DB_R2_KEY="cron/stocking/anglerinfo.db"
 
-mkdir -p "$DEPLOY_DIR/cron/stocking"
-RESOLVE_ARGS=(--poly-reaches "$DEPLOY_DIR/poly_reaches.json"
-              --out "$DEPLOY_DIR/cron/stocking/stocking.json")
-
-DB_PATH="$ROOT/output/pipeline/anglerinfo/anglerinfo.db"
-if [[ -f "$DB_PATH" ]]; then
-  echo "── Resolving stocking data to reach IDs (from anglerinfo.db) ──"
-else
-  echo "── anglerinfo.db absent — db-free re-resolve from published stocking.json ──"
-  _fetch_r2_file "cron/stocking/stocking.json" "$DEPLOY_DIR/cron/stocking/stocking.json.src"
-  RESOLVE_ARGS+=(--source-json "$DEPLOY_DIR/cron/stocking/stocking.json.src")
+if [[ ! -f "$ANGLERINFO_DB" ]]; then
+  echo "── Fetching anglerinfo.db from R2 ($DB_R2_KEY) ──"
+  mkdir -p "$(dirname "$ANGLERINFO_DB")"
+  _fetch_r2_file "$DB_R2_KEY" "$ANGLERINFO_DB"
 fi
 
-python -m pipeline.recurring.stocking.resolver "${RESOLVE_ARGS[@]}"
+echo "── Refreshing FIDQ stocking records (fetch_stocking update) ──"
+python -m pipeline.recurring.anglerinfo.fetch_stocking update
+
+# ── Step 2: Resolve ─────────────────────────────────────────────────
+echo "── Resolving stocking data to reach IDs ──"
+mkdir -p "$DEPLOY_DIR/cron/stocking"
+python -m pipeline.recurring.stocking.resolver \
+  --poly-reaches "$DEPLOY_DIR/poly_reaches.json" \
+  --out "$DEPLOY_DIR/cron/stocking/stocking.json"
 # Legacy dual-write (one release) so the webapp can cut over to cron/ paths
 # without an outage — see plan Part F3.
 cp "$DEPLOY_DIR/cron/stocking/stocking.json" "$DEPLOY_DIR/stocking.json"
 
 echo "✅ stocking.json → $DEPLOY_DIR/cron/stocking/stocking.json (+ legacy root)"
 
-# ── Step 2: Upload / seed (optional) ────────────────────────────────
+# ── Step 3: Upload / seed (optional) ────────────────────────────────
 
 if [[ "${1:-}" == "--upload" ]]; then
   echo "── Uploading to R2 ($R2_BUCKET) ──"

@@ -1,16 +1,16 @@
 name: Update Stocking
 
-# Resolves FIDQ stocking data → reach IDs and uploads stocking.json. Mirrors
-# update-in-season.yml. Runs daily overnight PST.
+# Light tier of the two-tier stocking refresh (see refresh-stocking-db.yml for
+# the heavy tier). Pulls anglerinfo.db from R2 read-only, refreshes FIDQ
+# stocking release rows via fetch_stocking (no geopandas), resolves to reach
+# IDs, and uploads stocking.json. Surfaces NEW RELEASES for already-matched
+# waterbodies; new waterbodies enter via the monthly heavy job.
 #
-# NB: the resolver reads the anglerinfo.db fetch+match artifact. update-stocking.sh
-# pulls poly_reaches.json from R2, but anglerinfo.db is refreshed on its own separate
-# (heavier, manual) cadence — this cron re-resolves the current data. If anglerinfo.db
-# is unavailable in CI, the resolve is a no-op/skip; wire the anglerinfo fetch when
-# that pipeline is CI-ready.
+# Weekly, not daily — FIDQ stocking changes seasonally, and reach mappings only
+# move on a full regulations build.
 on:
   schedule:
-    - cron: '0 9 * * *'   # ~01:00 PST (09:00 UTC)
+    - cron: '0 9 * * 1'   # Mondays ~01:00 PST (09:00 UTC)
   workflow_dispatch: {}
 
 concurrency:
