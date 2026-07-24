@@ -198,7 +198,6 @@
         <label for="forecast">Filter by forecast</label>
         <select id="forecast"></select>
       </div>
-      <button id="seasonal" type="button" title="Compare this year's flow against the historical day-of-year percentile envelope">Seasonal view</button>
       <button id="reset" type="button">Reset zoom</button>
       <span class="loading-spinner" id="loading">Fetching data...</span>
       <span class="hint" id="chart-hint">Scroll / pinch to zoom · drag to pan</span>
@@ -257,16 +256,18 @@
 
   <script>
     const PARAM_LABELS = {
-      "3": "Water level (daily mean)",
-      "6": "Discharge (daily mean)",
-      "46": "Water level (unit / 5-min)",
-      "47": "Discharge (unit / 5-min)",
+      "3": "Water level — seasonal (this year vs. history)",
+      "6": "Discharge — seasonal (this year vs. history)",
+      "46": "Water level — recent (5-min + forecast)",
+      "47": "Discharge — recent (5-min + forecast)",
     };
+    // Daily-mean params render the seasonal percentile envelope; unit params
+    // render the high-resolution recent view (with percentile context + forecast).
+    const isSeasonalParam = (p) => p === "3" || p === "6";
 
     let stations = [];
     let chart = null;
     let forecastModels = [];
-    let seasonalMode = false;
 
     const $ = (id) => document.getElementById(id);
     const isDischarge = (p) => p === "6" || p === "47";
@@ -277,6 +278,39 @@
     const YEAR0 = Date.UTC(2000, 0, 1);
     const doyToX = (doy) => YEAR0 + (doy - 1) * 86400000;
     const dateToDoyX = (d) => Date.UTC(2000, d.getUTCMonth(), d.getUTCDate());
+    const doyOf = (d) => Math.round((dateToDoyX(d) - YEAR0) / 86400000) + 1;
+    const ENVELOPE_RGB = "37,99,235";  // brand blue, matches --accent
+
+    // Build the shaded percentile-envelope datasets shared by both views.
+    // `xOf(doy)` maps a climatology day-of-year to an x (epoch ms) on the target
+    // axis — the 2000 calendar for the seasonal view, real dates for the recent
+    // view. `full` adds the outer Min–Max ribbon (seasonal only; too busy for
+    // the short view). Lower-bound lines are invisible ("_"-prefixed) so only
+    // the filled ribbons + median show.
+    function envelopeDatasets(bands, xOf, { full }) {
+      const pts = (col) => bands
+        .map(b => ({ x: xOf(b.doy), y: b[col] }))
+        .filter(p => p.x != null && p.y != null)
+        .sort((a, b) => a.x - b.x);
+      const ribbon = (col, lower, alpha, label) => ({
+        label, data: pts(col), borderColor: "rgba(0,0,0,0)", borderWidth: 0,
+        pointRadius: 0, backgroundColor: `rgba(${ENVELOPE_RGB},${alpha})`,
+        fill: lower, tension: 0.3, spanGaps: true,
+      });
+      const ds = [];
+      if (full) {
+        ds.push(ribbon("p0", false, 0, "_p0"));
+        ds.push(ribbon("p100", "-1", 0.06, "Min–Max"));
+      }
+      ds.push(ribbon("p10", false, 0, "_p10"));
+      ds.push(ribbon("p90", "-1", 0.12, "10th–90th pct"));
+      ds.push(ribbon("p25", false, 0, "_p25"));
+      ds.push(ribbon("p75", "-1", 0.22, "25th–75th pct"));
+      ds.push({ label: "Median", data: pts("p50"), borderColor: `rgb(${ENVELOPE_RGB})`,
+        borderWidth: 1.5, borderDash: [5, 3], pointRadius: 0, fill: false,
+        tension: 0.3, spanGaps: true });
+      return ds;
+    }
     const setLoading = (state) => $("loading").style.display = state ? "inline-block" : "none";
 
     async function init() {
@@ -294,7 +328,6 @@
       await onStationChange();
       await loadAttribution();
       $("reset").onclick = () => chart && chart.resetZoom();
-      $("seasonal").onclick = toggleSeasonal;
       setLoading(false);
     }
 
@@ -374,15 +407,6 @@
         + (latest ? `<span class="cval">Latest: ${latest}</span>` : "");
     }
 
-    function toggleSeasonal() {
-      seasonalMode = !seasonalMode;
-      $("seasonal").classList.toggle("active", seasonalMode);
-      $("chart-hint").textContent = seasonalMode
-        ? "This year vs. historical day-of-year percentiles · scroll to zoom"
-        : "Scroll / pinch to zoom · drag to pan";
-      draw();
-    }
-
     async function draw() {
       const station = $("station").value;
       const parameter = $("parameter").value;
@@ -390,38 +414,57 @@
 
       setLoading(true);
 
-      if (seasonalMode) {
-        try {
-          await drawSeasonal(station, parameter);
-        } finally {
-          setLoading(false);
-        }
+      // Daily-mean params ARE the long/seasonal view now — the flat multi-year
+      // daily line is replaced by the percentile envelope + this year's trace.
+      if (isSeasonalParam(parameter)) {
+        $("chart-hint").textContent = "This year vs. historical day-of-year percentiles · scroll to zoom";
+        try { await drawSeasonal(station, parameter); }
+        finally { setLoading(false); }
         return;
       }
+      $("chart-hint").textContent = "Recent 5-min data, forecast & historical percentiles · scroll to zoom";
 
-      const rows = await (await fetch(`/api/readings?station=${encodeURIComponent(station)}&parameter=${encodeURIComponent(parameter)}`)).json();
+      const dParam = dailyParam(parameter);
+      const [rows, clim] = await Promise.all([
+        fetch(`/api/readings?station=${encodeURIComponent(station)}&parameter=${encodeURIComponent(parameter)}`).then(r => r.json()),
+        fetch(`/api/climatology?station=${encodeURIComponent(station)}&parameter=${encodeURIComponent(dParam)}`).then(r => r.json()),
+      ]);
       const points = rows.map(r => ({
-        x: new Date(r.ts.replace(" ", "T")).getTime(), // Use epoch for massive performance gain in chart.js
-        y: r.value,
-        grade: r.grade, 
-        approval: r.approval, 
-        source: r.source,
+        x: new Date(r.ts.replace(" ", "T")).getTime(), // epoch for chart.js perf
+        y: r.value, grade: r.grade, approval: r.approval, source: r.source,
       }));
 
-      const datasets = [{
-        label: `${station} — ${PARAM_LABELS[parameter] || parameter}`,
+      const datasets = [];
+
+      // Percentile context bands, mapped from day-of-year onto the real dates
+      // spanning the recent window + forecast horizon. Drawn first so they sit
+      // behind the observed line and forecast. Subtle (no Min–Max ribbon here).
+      const bands = (clim && clim.bands) || [];
+      if (bands.length) {
+        const doyToRealX = {};
+        const now = Date.now();
+        for (let off = -18; off <= 12; off++) {
+          const d = new Date(now + off * 86400000);
+          doyToRealX[doyOf(d)] = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), 12);
+        }
+        datasets.push(...envelopeDatasets(bands, (doy) => doyToRealX[doy] ?? null, { full: false }));
+      }
+
+      datasets.push({
+        label: `Observed`,
         data: points,
-        borderColor: "#2563eb",
-        backgroundColor: "rgba(37,99,235,0.1)",
-        borderWidth: 1.5,
-      }];
+        borderColor: "#0f172a",
+        backgroundColor: "rgba(15,23,42,0.06)",
+        borderWidth: 1.75,
+      });
 
       let metaText = `<strong>${rows.length.toLocaleString()} readings</strong>`
-        + (rows.length ? ` &nbsp;·&nbsp; ${rows[0].ts.split(' ')[0]} to ${rows[rows.length - 1].ts.split(' ')[0]} &nbsp;·&nbsp; Sources: <span class="badge">${[...new Set(rows.map(r => r.source))].join(", ")}</span>` : "");
+        + (rows.length ? ` &nbsp;·&nbsp; ${rows[0].ts.split(' ')[0]} to ${rows[rows.length - 1].ts.split(' ')[0]} &nbsp;·&nbsp; Sources: <span class="badge">${[...new Set(rows.map(r => r.source))].join(", ")}</span>` : "")
+        + (bands.length ? ` &nbsp;·&nbsp; percentile bands from ${clim.record.n_years}-yr record` : "");
 
       const MODEL_COLORS = { CLEVER: "#7c3aed", COFFEE: "#0891b2", ELF: "#dc2626" };
       $("forecast-link").innerHTML = "";
-      
+
       if (points.length && isDischarge(parameter)) {
         const [fcs, allSeries] = await Promise.all([
           fetch(`/api/forecast?station=${encodeURIComponent(station)}`).then(r => r.json()),
@@ -432,24 +475,19 @@
 
         const links = [];
         const last = points[points.length - 1];
-        
+
+        // Keep the forecast readable: one muted min–max ribbon + one avg line
+        // per model (not the old 3 dashed lines each). The invisible lower
+        // bound is "_"-prefixed so only the ribbon + avg reach the legend.
         for (const fc of (fcs || [])) {
           const color = MODEL_COLORS[fc.model] || "#dc2626";
           const series = seriesByModel[fc.model] || [];
           const hasSeries = series.some(r => r.qfor_ave != null || r.qfor_min != null || r.qfor_max != null);
 
           if (hasSeries) {
-            // Render the FULL forecast horizon (all series points), sorted by
-            // date. A daily model like COFFEE issues a 5-day forecast whose
-            // first day is "today" at day-granularity, while the last observed
-            // reading is intraday on that same day — an earlier strict
-            // "date > last observation timestamp" filter silently dropped
-            // today's forecast point (and, when the forecast was issued a few
-            // days before the latest observation, most of the horizon — the
-            // "COFFEE only shows 1 day" bug). We only prepend the last observed
-            // point as a connector when the forecast starts strictly after it,
-            // which also keeps every dataset's x ascending (required by
-            // chart.js `normalized: true`).
+            // Full horizon, sorted; prepend the last observed point as a
+            // connector only when the forecast starts strictly after it (keeps
+            // x ascending for normalized:true and avoids the COFFEE "1 day" bug).
             const line = (key) => {
               const pts = series.filter(r => r[key] != null)
                 .map(r => ({ x: new Date(r.date).getTime(), y: r[key] }))
@@ -457,38 +495,36 @@
               if (!pts.length) return pts;
               return pts[0].x > last.x ? [{ x: last.x, y: last.y }, ...pts] : pts;
             };
-            datasets.push({ label: `${fc.model} min`, data: line("qfor_min"),
-              borderColor: color, borderDash: [4, 3], borderWidth: 1, fill: false });
-            datasets.push({ label: `${fc.model} max`, data: line("qfor_max"),
-              borderColor: color, borderDash: [4, 3], borderWidth: 1,
-              backgroundColor: color + "22", fill: "-1" });
-            datasets.push({ label: `${fc.model} avg`, data: line("qfor_ave"),
-              borderColor: color, borderWidth: 2, fill: false });
+            datasets.push({ label: `_${fc.model}_min`, data: line("qfor_min"),
+              borderColor: "rgba(0,0,0,0)", borderWidth: 0, pointRadius: 0, fill: false });
+            datasets.push({ label: `${fc.model} range`, data: line("qfor_max"),
+              borderColor: "rgba(0,0,0,0)", borderWidth: 0, pointRadius: 0,
+              backgroundColor: color + "1f", fill: "-1" });
+            datasets.push({ label: `${fc.model} forecast`, data: line("qfor_ave"),
+              borderColor: color, borderWidth: 2, pointRadius: 0, fill: false });
             const fcDays = new Set(series.map(r => r.date.slice(0, 10))).size;
             metaText += ` &nbsp;·&nbsp; ${fc.model} forecast (${fcDays}d)`;
           } else if (fc.forecast_max != null || fc.forecast_min != null || fc.forecast_value != null) {
             const startX = last.x;
             const endX = new Date(last.x + (fc.horizon_days || 5) * 86400000).getTime();
-            // Ramp from the last observed value up to the forecast bound
-            // instead of drawing a flat line at the bound from the start —
-            // it should taper into the forecast, not appear out of nowhere.
+            // Taper from the last observed value into the forecast bound.
             const hLine = (y) => [{ x: startX, y: last.y }, { x: endX, y }];
             const lo = fc.forecast_min;
             const hi = fc.forecast_max != null ? fc.forecast_max : fc.forecast_value;
 
             if (lo != null && hi != null) {
-              datasets.push({ label: `${fc.model} min`, data: hLine(lo),
-                borderColor: color + "88", borderDash: [4, 4], borderWidth: 1, fill: false });
+              datasets.push({ label: `_${fc.model}_min`, data: hLine(lo),
+                borderColor: "rgba(0,0,0,0)", borderWidth: 0, pointRadius: 0, fill: false });
               datasets.push({ label: `${fc.model} range`, data: hLine(hi),
-                borderColor: color + "88", borderDash: [4, 4], borderWidth: 1,
-                backgroundColor: color + "1A", fill: "-1" });
+                borderColor: "rgba(0,0,0,0)", borderWidth: 0, pointRadius: 0,
+                backgroundColor: color + "1f", fill: "-1" });
             } else if (hi != null) {
               datasets.push({ label: `${fc.model} bound`, data: hLine(hi),
                 borderColor: color, borderDash: [6, 4], borderWidth: 1.5, fill: false });
             }
             if (fc.forecast_ave != null) {
-              datasets.push({ label: `${fc.model} avg`, data: hLine(fc.forecast_ave),
-                borderColor: color, borderDash: [2, 3], borderWidth: 1, fill: false });
+              datasets.push({ label: `${fc.model} forecast`, data: hLine(fc.forecast_ave),
+                borderColor: color, borderWidth: 2, pointRadius: 0, fill: false });
             }
             metaText += ` &nbsp;·&nbsp; ${fc.model} bounds (${lo ?? "?"}–${hi ?? "?"} m³/s)`;
           }
@@ -546,10 +582,15 @@
           },
           interaction: { mode: "nearest", axis: "x", intersect: false },
           scales: {
-            x: { 
-              type: "time", 
-              time: { tooltipFormat: "yyyy-MM-dd HH:mm" }, 
-              ticks: { maxRotation: 0 } 
+            x: {
+              type: "time",
+              // Keep the high-res recent window prominent — a long-horizon model
+              // (ELF, 60d) would otherwise stretch the axis and squash it. The
+              // full forecast is a pan away (see zoom limits below).
+              min: Date.now() - 15 * 86400000,
+              max: Date.now() + 10 * 86400000,
+              time: { tooltipFormat: "yyyy-MM-dd HH:mm" },
+              ticks: { maxRotation: 0 }
             },
             y: { 
               title: { 
@@ -559,12 +600,13 @@
             },
           },
           plugins: {
-            legend: { display: true },
+            legend: { display: true, labels: { filter: (i) => !i.text.startsWith("_") } },
             decimation: {
               enabled: true,
               algorithm: 'lttb', // Largest-Triangle-Three-Buckets downsampling
             },
             tooltip: {
+              filter: (item) => !item.dataset.label.startsWith("_"),
               callbacks: {
                 afterBody: (items) => {
                   const p = items[0]?.raw || {};
@@ -584,7 +626,9 @@
                 mode: "x",
               },
               pan: { enabled: true, mode: "x" },
-              limits: { x: { min: "original", max: "original" } },
+              // Allow panning out to the full forecast horizon / recent history,
+              // beyond the tight initial window.
+              limits: { x: { min: Date.now() - 20 * 86400000, max: Date.now() + 70 * 86400000 } },
             },
           },
         },
@@ -612,30 +656,13 @@
         $("chart").getContext("2d").clearRect(0, 0, $("chart").width, $("chart").height);
         $("meta").innerHTML = `<strong>No historical climatology for this station.</strong> `
           + `The percentile envelope needs a long daily record (≥ 10 years) in ECCC's HYDAT release; `
-          + `this station doesn't have one. Toggle <em>Seasonal view</em> off to see the raw series.`;
+          + `this station doesn't have one. Pick the <em>recent (5-min)</em> parameter to see the raw series.`;
         return;
       }
 
-      const line = (col) => bands.map(b => ({ x: doyToX(b.doy), y: b[col] }));
-      const ACCENT = "37,99,235";  // brand blue, matches --accent
-      const band = (col, lower, fillRGBA, label) => ({
-        label, data: line(col),
-        borderColor: "rgba(0,0,0,0)", borderWidth: 0, pointRadius: 0,
-        backgroundColor: fillRGBA, fill: lower, tension: 0.3, spanGaps: true,
-      });
-      // Nested ribbons (each fills to the dataset immediately before it):
-      // outer P0–P100, then P10–P90, then P25–P75, then the median line.
-      const datasets = [
-        band("p0",  false, "rgba(0,0,0,0)",           "_p0"),
-        band("p100", "-1", `rgba(${ACCENT},0.07)`,    "Min–Max"),
-        band("p10", false, "rgba(0,0,0,0)",           "_p10"),
-        band("p90", "-1", `rgba(${ACCENT},0.13)`,     "10th–90th pct"),
-        band("p25", false, "rgba(0,0,0,0)",           "_p25"),
-        band("p75", "-1", `rgba(${ACCENT},0.24)`,     "25th–75th pct"),
-        { label: "Median", data: line("p50"), borderColor: `rgb(${ACCENT})`,
-          borderWidth: 1.75, borderDash: [5, 3], pointRadius: 0, fill: false,
-          tension: 0.3, spanGaps: true },
-      ];
+      // Full nested envelope (Min–Max → 10–90 → 25–75 → median) mapped onto the
+      // shared day-of-year (2000) calendar.
+      const datasets = envelopeDatasets(bands, (doy) => doyToX(doy), { full: true });
 
       // Overlay observed year(s): current calendar year (bold) + the most
       // recent prior year present in our record (thin), each mapped onto the
