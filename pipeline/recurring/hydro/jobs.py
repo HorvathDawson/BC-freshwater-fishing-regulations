@@ -12,9 +12,11 @@ Design invariants (see plan Parts C + G):
   * realtime is STATELESS for heavy readings — it pulls only the small seed DB
     (``cron/hydro/hydro_seed.db``), re-fetches the last 14 days fresh, exports,
     discards. It pulls just the fid shards its gauges need (not all 4096).
-  * nightly is STATEFUL — it keeps the full ``hydro.db`` in R2, refreshes daily
-    means + climatology, exports history + climatology, rebuilds the seed, and
-    pushes the full DB back for the next night.
+  * nightly is STATEFUL — it keeps ``hydro.db`` in R2, refreshes daily means +
+    climatology, exports history + climatology, rebuilds the seed, then compacts
+    the DB (``_compact_db``: drop sub-daily 5-min noise recent/ never emits) and
+    pushes it back for the next night. Compaction runs AFTER the export, so it
+    cannot change any artifact — it only shrinks the persisted/re-downloaded copy.
   * a ``version.json`` marker is written/uploaded LAST so the webapp can fence on
     a consistent artifact set (avoids reading a new stations.json against a stale
     recent/*.json mid-upload).
@@ -33,7 +35,7 @@ import subprocess
 import sqlite3
 import sys
 import tempfile
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Optional
 
@@ -44,6 +46,27 @@ from .seed import build_seed_db
 
 KEY_PREFIX = "cron/hydro"
 STREAM_LAYERS = ("streams", "under_lake_streams")
+
+# Compaction policy for the persisted nightly hydro.db.
+#
+# The exported artifacts are always built from the full 5-min data BEFORE this
+# runs (see nightly_job), and every run's `update --bc` re-fetches the last 14
+# days at full resolution before the next export — so nothing here can change an
+# emitted artifact; it only slims the copy we persist + re-download each night.
+#
+# * Sub-daily *unit values* (params 46/47, ~288 rows/station/day → ~1.3 GB) are
+#   what makes the DB huge. recent/ downsamples them to 30-min (last 3 d) / hourly
+#   (days 3-14) via _on_step, so we keep only on-the-30-min-mark rows (:00/:30 —
+#   a superset of the hourly marks) within a small retention window. That is a
+#   ~6x reduction and matches recent/'s own resolution exactly.
+# * Daily means (params 3/6, 1 row/day) back history/ over HISTORY_DAYS (550);
+#   they are already compact, so we only trim well beyond that window to bound
+#   long-term growth.
+UNIT_PARAMS = ("46", "47")     # sub-daily discharge/level (recent/ only)
+DAILY_PARAMS = ("3", "6")      # daily means (history/)
+UNIT_RETAIN_DAYS = 21          # > export_hydro.COARSE_DAYS (14)
+UNIT_STEP_MIN = 30             # == export_hydro.FINE_STEP_MIN; hourly ⊂ 30-min
+DAILY_RETAIN_DAYS = 730        # > export_hydro.HISTORY_DAYS (550)
 
 
 # ── Helpers ─────────────────────────────────────────────────────────────────
@@ -135,6 +158,52 @@ def _pull_fid_shards(storage, db: Path, workdir: Path) -> Path:
     return shard_root
 
 
+def _compact_db(db: Path) -> None:
+    """Slim the persisted hydro.db and VACUUM to reclaim space.
+
+    Three deletes, none of which touches a window the exporter reads (and this
+    runs AFTER the export regardless), so no emitted artifact changes:
+      1. unit values (46/47) older than UNIT_RETAIN_DAYS — beyond recent/'s reach;
+      2. unit values not on a UNIT_STEP_MIN mark — recent/ only emits 30-min/hourly
+         samples, so the intra-mark 5-min rows are pure storage overhead (~6x);
+      3. daily means (3/6) older than DAILY_RETAIN_DAYS — beyond history/'s reach.
+    Run BEFORE the storage.put that persists it.
+    """
+    now = datetime.now(timezone.utc)
+    unit_cutoff = (now - timedelta(days=UNIT_RETAIN_DAYS)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    daily_cutoff = (now - timedelta(days=DAILY_RETAIN_DAYS)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    before = db.stat().st_size
+    conn = sqlite3.connect(db)
+    try:
+        if not _has_table(conn, "readings"):
+            return
+        unit_ph = ",".join("?" * len(UNIT_PARAMS))
+        deleted = conn.execute(
+            f"DELETE FROM readings WHERE parameter IN ({unit_ph}) AND ts < ?",
+            (*UNIT_PARAMS, unit_cutoff),
+        ).rowcount
+        # Down-sample surviving unit values to the 30-min marks recent/ keeps.
+        # substr(ts,15,2) is the minute field of '...THH:MM:SSZ' (matches _on_step).
+        deleted += conn.execute(
+            f"DELETE FROM readings WHERE parameter IN ({unit_ph}) "
+            "AND CAST(substr(ts, 15, 2) AS INTEGER) % ? <> 0",
+            (*UNIT_PARAMS, UNIT_STEP_MIN),
+        ).rowcount
+        daily_ph = ",".join("?" * len(DAILY_PARAMS))
+        deleted += conn.execute(
+            f"DELETE FROM readings WHERE parameter IN ({daily_ph}) AND ts < ?",
+            (*DAILY_PARAMS, daily_cutoff),
+        ).rowcount
+        conn.commit()
+        conn.isolation_level = None  # VACUUM cannot run inside a transaction
+        conn.execute("VACUUM")
+    finally:
+        conn.close()
+    after = db.stat().st_size
+    print(f"compacted hydro.db: pruned {deleted} readings, "
+          f"{before / 1e6:.0f} MB -> {after / 1e6:.0f} MB")
+
+
 def _run(argv: list[str], env: dict) -> None:
     print(f"$ {' '.join(argv)}")
     subprocess.run(argv, env=env, check=True)
@@ -221,6 +290,7 @@ def nightly_job(storage, workdir: Path, key_prefix: str = KEY_PREFIX, upload: bo
     )
     build_seed_db(db, out / "hydro_seed.db")
     _write_version_marker(out)
+    _compact_db(db)  # slim the persisted DB — export is already done above
     if upload:
         _upload_tree(storage, out, key_prefix)
         storage.put(db, f"{key_prefix}/hydro.db")  # persist for next night
