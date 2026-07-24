@@ -27,8 +27,13 @@ interface Env {
   TRIGGER_TOKEN?: string;
 }
 
-/** POST a single workflow_dispatch. Returns the HTTP status for logging. */
-async function dispatchWorkflow(env: Env, workflow: string): Promise<number> {
+/**
+ * POST a single workflow_dispatch. Returns the HTTP status for logging.
+ * `source` is passed as the workflow's `trigger_source` input so the Actions
+ * run-name shows what dispatched it (e.g. "Cloudflare cron"). The target
+ * workflow must define a `trigger_source` workflow_dispatch input.
+ */
+async function dispatchWorkflow(env: Env, workflow: string, source: string): Promise<number> {
   const ref = env.GITHUB_REF || "main";
   const url =
     `https://api.github.com/repos/${env.GITHUB_OWNER}/${env.GITHUB_REPO}` +
@@ -44,7 +49,7 @@ async function dispatchWorkflow(env: Env, workflow: string): Promise<number> {
       "User-Agent": "bc-fishing-cron",
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ ref }),
+    body: JSON.stringify({ ref, inputs: { trigger_source: source } }),
   });
 
   if (resp.status !== 204) {
@@ -57,15 +62,18 @@ async function dispatchWorkflow(env: Env, workflow: string): Promise<number> {
   return resp.status;
 }
 
-/** Dispatch every workflow named in WORKFLOWS. */
-async function dispatchAll(env: Env): Promise<{ workflow: string; status: number }[]> {
+/** Dispatch every workflow named in WORKFLOWS, tagging each with `source`. */
+async function dispatchAll(
+  env: Env,
+  source: string,
+): Promise<{ workflow: string; status: number }[]> {
   const names = (env.WORKFLOWS || "")
     .split(",")
     .map((s) => s.trim())
     .filter(Boolean);
   const results: { workflow: string; status: number }[] = [];
   for (const name of names) {
-    results.push({ workflow: name, status: await dispatchWorkflow(env, name) });
+    results.push({ workflow: name, status: await dispatchWorkflow(env, name, source) });
   }
   return results;
 }
@@ -73,7 +81,7 @@ async function dispatchAll(env: Env): Promise<{ workflow: string; status: number
 export default {
   // Fired by the Cron Trigger(s) in wrangler.toml.
   async scheduled(_controller: ScheduledController, env: Env): Promise<void> {
-    await dispatchAll(env);
+    await dispatchAll(env, "Cloudflare cron");
   },
 
   // Manual trigger for testing without waiting for the cron. Guarded by a secret
@@ -84,7 +92,7 @@ export default {
       if (!env.TRIGGER_TOKEN || url.searchParams.get("token") !== env.TRIGGER_TOKEN) {
         return new Response("forbidden\n", { status: 403 });
       }
-      const results = await dispatchAll(env);
+      const results = await dispatchAll(env, "Cloudflare manual (/__run)");
       return new Response(JSON.stringify({ dispatched: results }, null, 2) + "\n", {
         headers: { "Content-Type": "application/json" },
       });

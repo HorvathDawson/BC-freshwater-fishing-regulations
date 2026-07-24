@@ -1,5 +1,11 @@
 name: Update Hydro
 
+# Show what triggered each run in the Actions list: the Cloudflare cron Worker
+# passes a `trigger_source` input (e.g. "Cloudflare cron"); the coarse GHA
+# schedule: fallback and manual UI runs surface their own event/source instead.
+run-name: >-
+  Update Hydro — ${{ github.event_name == 'workflow_dispatch' && inputs.trigger_source || github.event_name }}
+
 # The single unified hydro cron. ONE job does everything, gating internally by
 # cheap change-detection (see pipeline/recurring/hydro/jobs.py):
 #   • every run — latest conditions/readings/forecasts → stations.json,
@@ -12,7 +18,12 @@ name: Update Hydro
 on:
   schedule:
     - cron: '*/30 * * * *'   # every 30 min (recent cadence); best-effort fallback
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      trigger_source:
+        description: 'Who dispatched this run (set automatically by the cron Worker)'
+        required: false
+        default: 'manual (GitHub UI)'
 
 # Overlapping runs would clobber each other's uploads — serialize.
 concurrency:
