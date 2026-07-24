@@ -273,11 +273,16 @@ const IssueReport: React.FC<IssueReportProps> = ({ isOpen, onClose, getContext }
 
                     <label className="issue-report-field">
                         <span>Email (optional)</span>
+                        <span className="issue-report-field-hint">
+                            Add your email if you&apos;d like us to be able to reply—for
+                            clarifications or to let you know when it&apos;s fixed. Leave it blank to
+                            report anonymously.
+                        </span>
                         <input
                             type="email"
                             value={email}
                             onChange={e => setEmail(e.target.value)}
-                            placeholder="you@example.com — we'll email you a confirmation"
+                            placeholder="you@example.com"
                             autoComplete="email"
                             inputMode="email"
                             aria-invalid={!emailValid}

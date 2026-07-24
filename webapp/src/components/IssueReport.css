@@ -121,6 +121,15 @@
     text-transform: none;
 }
 
+.issue-report-field > span.issue-report-field-hint {
+    font-size: 12px;
+    font-weight: 400;
+    text-transform: none;
+    letter-spacing: 0;
+    color: #555;
+    margin-bottom: 8px;
+}
+
 .issue-report-field select,
 .issue-report-field input,
 .issue-report-field textarea {
