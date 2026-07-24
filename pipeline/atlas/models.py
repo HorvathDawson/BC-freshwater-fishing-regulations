@@ -27,6 +27,7 @@ class StreamRecord:
     stream_order: Optional[int]
     stream_magnitude: Optional[int]
     waterbody_key: str  # "" if open air
+    gnis_id: str = ""  # GNIS_ID — the canonical stream→reach grouping key
     fwa_watershed_code: str = ""  # cleaned FWA watershed code
     watershed_code_50k: str = ""  # FWA 1:50k watershed code (padded; "9999…" = unknown)
     minzoom: int = 11

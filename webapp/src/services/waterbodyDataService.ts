@@ -27,6 +27,19 @@ export interface BathymetrySurvey {
   title: string;
 }
 
+/** One FIDQ (BC gov Fish Inventories Data Queries) stocking release record. */
+export interface StockingRelease {
+  release_date: string;
+  species_name: string;
+  brood_year: string;
+  strain_name: string;
+  source_name: string;
+  origin: string;
+  life_stage: string;
+  released_quantity: number;
+  average_weight: number;
+}
+
 /** gofishbc.com "Where To Fish" map marker enrichment — amenity/access
  * whitelist only. Not yet surfaced in any UI — attached to the reach for
  * future display work. */
@@ -454,6 +467,16 @@ class WaterbodyDataService {
   private resolveCache = new Map<string, ResolveResult>();
   private static readonly CACHE_CAP = 5000;
 
+  // Stocking index: reach_id → StockingRelease[], built from stocking.json.
+  // Unlike in_season.json (9.9 KB, fetched eagerly on every load()),
+  // stocking.json is ~22 MB — fetched lazily, only the first time a caller
+  // actually asks for stocking data, and cached in memory after that. It's
+  // still a standalone recurring artifact fetched fresh at request time
+  // (same role as in_season.json — independently refreshable without a full
+  // pipeline rebuild), just not loaded unconditionally for every user.
+  private stockingIndex: Map<string, StockingRelease[]> | null = null;
+  private stockingIndexPromise: Promise<Map<string, StockingRelease[]>> | null = null;
+
   async load(): Promise<RegulationData> {
     if (this.data) return this.data;
     if (this.loadPromise) return this.loadPromise;
@@ -757,6 +780,40 @@ class WaterbodyDataService {
   /** Get in-season changes for a specific reach (synchronous — data must be loaded). */
   getInSeasonChanges(reachId: string): InSeasonChange[] {
     return this.data?.inSeasonIndex.get(reachId) || [];
+  }
+
+  /** Get FIDQ stocking release history for a specific reach. Triggers the
+   *  (large, lazy) stocking.json fetch on first call; cached after that. */
+  async getStockingReleases(reachId: string): Promise<StockingRelease[]> {
+    if (!this.stockingIndex) {
+      if (!this.stockingIndexPromise) {
+        this.stockingIndexPromise = this._loadStockingIndex();
+      }
+      this.stockingIndex = await this.stockingIndexPromise;
+    }
+    return this.stockingIndex.get(reachId) || [];
+  }
+
+  private async _loadStockingIndex(): Promise<Map<string, StockingRelease[]>> {
+    const url = `${WaterbodyDataService.DATA_BASE}/stocking.json`;
+    try {
+      const resp = await fetch(url);
+      if (!resp.ok) {
+        console.warn(`⚠️ stocking.json returned ${resp.status} — stocking info unavailable`);
+        return new Map();
+      }
+      const raw: { waterbodies?: { reach_id?: string | null; releases?: StockingRelease[] }[] } = await resp.json();
+      const index = new Map<string, StockingRelease[]>();
+      for (const wb of raw.waterbodies || []) {
+        if (wb.reach_id && wb.releases?.length) {
+          index.set(wb.reach_id, wb.releases);
+        }
+      }
+      return index;
+    } catch {
+      console.warn('⚠️ Failed to fetch stocking.json — stocking info unavailable');
+      return new Map();
+    }
   }
 
   /** Get in-season metadata (synchronous — data must be loaded). */

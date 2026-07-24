@@ -1635,6 +1635,10 @@ class TestNameVariantSourceTagging:
         resolver = DisplayNameResolver.__new__(DisplayNameResolver)
         resolver._blk_dn = {}
         resolver._wbk_dn = {}
+        resolver._fid_dn = {}
+        resolver._blk_variants = {}
+        resolver._wbk_variants = {}
+        resolver._fid_variants = {}
         resolver._blk_reg_name = {}
         resolver._wbk_reg_name = {}
         resolver._fid_reg_name = {}

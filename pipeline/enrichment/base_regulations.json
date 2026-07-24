@@ -1445,23 +1445,6 @@
     ]
   },
   {
-    "reg_id": "LAND_OWNERSHIP_PRIVATE",
-    "source": "land_access",
-    "rule_text": "This waterbody may be located near or within privately owned land.",
-    "restriction": {
-      "type": "Private",
-      "details": "Private land is shown in a distinct color on the map — check the exact boundary before visiting."
-    },
-    "notes": "Driven by ParcelMap BC ownership (OWNER_TYPE='Private', dissolved into one polygon), not OSM tagging — this is comprehensive province-wide ownership data, unlike the sparse land_access layer above. Lowest priority of the three Land Use advisories: only shown when neither LAND_ACCESS_CLOSED nor LAND_ACCESS_RESTRICTED already applies to the same reach (frontend picks the single most severe applicable advisory).",
-    "reach_level": true,
-    "admin_targets": [
-      {
-        "layer": "land_parcels_crown",
-        "feature_id": "Private"
-      }
-    ]
-  },
-  {
     "reg_id": "MUNICIPAL_LOST_LAGOON_CLOSURE",
     "source": "municipal",
     "rule_text": "Fishing is banned in Lost Lagoon. The lagoon is an ecologically sensitive area that suffers from poor water quality and shallow depths due to a lack of natural tidal flushing.",

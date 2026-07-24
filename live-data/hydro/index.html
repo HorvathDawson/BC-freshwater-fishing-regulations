@@ -70,6 +70,10 @@
     button { cursor: pointer; font-weight: 500; background: var(--surface); }
     button:hover { background: #f1f5f9; border-color: #cbd5e1; }
     button:active { background: #e2e8f0; }
+    button.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+    button.active:hover { background: #1d4ed8; }
+    button:disabled { opacity: 0.45; cursor: not-allowed; }
+    button:disabled:hover { background: var(--surface); border-color: var(--border); }
 
     .loading-spinner {
       display: none;
@@ -134,6 +138,41 @@
       color: #475569;
     }
 
+    /* Current condition (percentile) banner */
+    .condition {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+      padding: 14px 16px;
+      border-radius: var(--radius-md);
+      margin-bottom: 16px;
+      font-size: 14px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+    }
+    .condition.hidden { display: none; }
+    .condition .cclass { font-weight: 700; font-size: 15px; }
+    .condition .cpct { color: var(--text-muted); }
+    .condition .cval { color: var(--text-muted); margin-left: auto; font-size: 13px; }
+    /* percentile-driven accent colours */
+    .cond-low    { background: #fef2f2; border-color: #fecaca; }
+    .cond-low    .cclass { color: #b91c1c; }
+    .cond-below  { background: #fff7ed; border-color: #fed7aa; }
+    .cond-below  .cclass { color: #c2410c; }
+    .cond-normal { background: #f0fdf4; border-color: #bbf7d0; }
+    .cond-normal .cclass { color: #15803d; }
+    .cond-above  { background: #eff6ff; border-color: #bfdbfe; }
+    .cond-above  .cclass { color: #1d4ed8; }
+    .cond-high   { background: #faf5ff; border-color: #e9d5ff; }
+    .cond-high   .cclass { color: #7c2d92; }
+    .cond-none   { color: var(--text-muted); }
+    /* percentile bar */
+    .pbar { position: relative; flex: 0 0 160px; height: 8px; border-radius: 4px;
+      background: linear-gradient(90deg,#ef4444,#f97316,#22c55e,#3b82f6,#a855f7); }
+    .pbar .pmark { position: absolute; top: -3px; width: 3px; height: 14px;
+      background: var(--text); border-radius: 2px; transform: translateX(-50%); }
+
     footer { margin-top: 40px; font-size: 12px; color: var(--text-muted); line-height: 1.6; border-top: 1px solid var(--border); padding-top: 24px; }
     footer strong { color: var(--text); }
   </style>
@@ -159,10 +198,13 @@
         <label for="forecast">Filter by forecast</label>
         <select id="forecast"></select>
       </div>
+      <button id="seasonal" type="button" title="Compare this year's flow against the historical day-of-year percentile envelope">Seasonal view</button>
       <button id="reset" type="button">Reset zoom</button>
       <span class="loading-spinner" id="loading">Fetching data...</span>
-      <span class="hint">Scroll / pinch to zoom · drag to pan</span>
+      <span class="hint" id="chart-hint">Scroll / pinch to zoom · drag to pan</span>
     </div>
+
+    <div id="condition" class="condition hidden"></div>
 
     <div class="chart-wrap">
       <canvas id="chart"></canvas>
@@ -224,9 +266,17 @@
     let stations = [];
     let chart = null;
     let forecastModels = [];
+    let seasonalMode = false;
 
     const $ = (id) => document.getElementById(id);
     const isDischarge = (p) => p === "6" || p === "47";
+    // Daily-mean parameter that carries the climatology for a given selection.
+    const dailyParam = (p) => ({ "47": "6", "46": "3" }[p] || p);
+    // Percentile envelope is on a leap-year (2000) calendar so Feb 29 has a
+    // slot; every calendar date maps to the same day-of-year position.
+    const YEAR0 = Date.UTC(2000, 0, 1);
+    const doyToX = (doy) => YEAR0 + (doy - 1) * 86400000;
+    const dateToDoyX = (d) => Date.UTC(2000, d.getUTCMonth(), d.getUTCDate());
     const setLoading = (state) => $("loading").style.display = state ? "inline-block" : "none";
 
     async function init() {
@@ -244,6 +294,7 @@
       await onStationChange();
       await loadAttribution();
       $("reset").onclick = () => chart && chart.resetZoom();
+      $("seasonal").onclick = toggleSeasonal;
       setLoading(false);
     }
 
@@ -285,15 +336,69 @@
       $("parameter").onchange = draw;
       draw();
       loadAttributes();
+      loadCondition();
+    }
+
+    // Map ECCC's own condition class label to one of five accent colours
+    // (matches their semantics directly — more robust than a percentile
+    // midpoint for one-sided bands like "< 10th" or "All-time low").
+    function condClass(label) {
+      const t = (label || "").toLowerCase();
+      if (!t) return "cond-none";
+      if (t.includes("all-time low") || t.includes("much below")) return "cond-low";
+      if (t.includes("below")) return "cond-below";
+      if (t.includes("all-time high") || t.includes("much above")) return "cond-high";
+      if (t.includes("above")) return "cond-above";
+      if (t.includes("normal")) return "cond-normal";
+      return "cond-none";  // "Not flowing", "Not ranked", "No discharge data..."
+    }
+
+    async function loadCondition() {
+      const station = $("station").value;
+      const el = $("condition");
+      if (!station) { el.className = "condition hidden"; return; }
+      const c = await (await fetch(`/api/current_conditions?station=${encodeURIComponent(station)}`)).json();
+      if (!c || !c.condition_text) { el.className = "condition hidden"; return; }
+
+      const cls = condClass(c.condition_class || c.condition_text);
+      el.className = `condition ${cls}`;
+      const mid = c.percentile_low == null ? null
+        : (c.percentile_high == null ? c.percentile_low : (c.percentile_low + c.percentile_high) / 2);
+      const bar = mid == null ? "" :
+        `<div class="pbar"><div class="pmark" style="left:${Math.max(0, Math.min(100, mid))}%"></div></div>`;
+      const latest = c.latest_discharge || c.latest_stage || "";
+      el.innerHTML =
+        `<span class="cclass">${c.condition_class || c.condition_text}</span>`
+        + (c.percentile_text ? `<span class="cpct">${c.percentile_text}</span>` : "")
+        + bar
+        + (latest ? `<span class="cval">Latest: ${latest}</span>` : "");
+    }
+
+    function toggleSeasonal() {
+      seasonalMode = !seasonalMode;
+      $("seasonal").classList.toggle("active", seasonalMode);
+      $("chart-hint").textContent = seasonalMode
+        ? "This year vs. historical day-of-year percentiles · scroll to zoom"
+        : "Scroll / pinch to zoom · drag to pan";
+      draw();
     }
 
     async function draw() {
       const station = $("station").value;
       const parameter = $("parameter").value;
       if (!station || !parameter) return;
-      
+
       setLoading(true);
-      
+
+      if (seasonalMode) {
+        try {
+          await drawSeasonal(station, parameter);
+        } finally {
+          setLoading(false);
+        }
+        return;
+      }
+
       const rows = await (await fetch(`/api/readings?station=${encodeURIComponent(station)}&parameter=${encodeURIComponent(parameter)}`)).json();
       const points = rows.map(r => ({
         x: new Date(r.ts.replace(" ", "T")).getTime(), // Use epoch for massive performance gain in chart.js
@@ -334,15 +439,23 @@
           const hasSeries = series.some(r => r.qfor_ave != null || r.qfor_min != null || r.qfor_max != null);
 
           if (hasSeries) {
-            // Prepend the last observed reading to each band so the forecast
-            // visually tapers out of the measured line instead of jumping in
-            // cold at the first forecast date. Some models (e.g. CLEVER's
-            // hourly series) include hours at/before the last reading, so
-            // only keep points strictly after it to preserve ascending x.
+            // Render the FULL forecast horizon (all series points), sorted by
+            // date. A daily model like COFFEE issues a 5-day forecast whose
+            // first day is "today" at day-granularity, while the last observed
+            // reading is intraday on that same day — an earlier strict
+            // "date > last observation timestamp" filter silently dropped
+            // today's forecast point (and, when the forecast was issued a few
+            // days before the latest observation, most of the horizon — the
+            // "COFFEE only shows 1 day" bug). We only prepend the last observed
+            // point as a connector when the forecast starts strictly after it,
+            // which also keeps every dataset's x ascending (required by
+            // chart.js `normalized: true`).
             const line = (key) => {
-              const pts = series.filter(r => r[key] != null && new Date(r.date).getTime() > last.x)
-                .map(r => ({ x: new Date(r.date).getTime(), y: r[key] }));
-              return pts.length ? [{ x: last.x, y: last.y }, ...pts] : pts;
+              const pts = series.filter(r => r[key] != null)
+                .map(r => ({ x: new Date(r.date).getTime(), y: r[key] }))
+                .sort((a, b) => a.x - b.x);
+              if (!pts.length) return pts;
+              return pts[0].x > last.x ? [{ x: last.x, y: last.y }, ...pts] : pts;
             };
             datasets.push({ label: `${fc.model} min`, data: line("qfor_min"),
               borderColor: color, borderDash: [4, 3], borderWidth: 1, fill: false });
@@ -351,7 +464,8 @@
               backgroundColor: color + "22", fill: "-1" });
             datasets.push({ label: `${fc.model} avg`, data: line("qfor_ave"),
               borderColor: color, borderWidth: 2, fill: false });
-            metaText += ` &nbsp;·&nbsp; ${fc.model} forecast (${series.length}d)`;
+            const fcDays = new Set(series.map(r => r.date.slice(0, 10))).size;
+            metaText += ` &nbsp;·&nbsp; ${fc.model} forecast (${fcDays}d)`;
           } else if (fc.forecast_max != null || fc.forecast_min != null || fc.forecast_value != null) {
             const startX = last.x;
             const endX = new Date(last.x + (fc.horizon_days || 5) * 86400000).getTime();
@@ -388,11 +502,37 @@
       $("meta").innerHTML = metaText;
 
       if (chart) chart.destroy();
-      
+
+      // Vertical "now" marker: a dashed line at the current time, so the
+      // observed/forecast boundary is obvious. Drawn only when now falls inside
+      // the visible x-range (it won't when panned/zoomed into the past).
+      const nowLine = {
+        id: "nowLine",
+        afterDatasetsDraw(c) {
+          const x = c.scales.x.getPixelForValue(Date.now());
+          const { top, bottom, left, right } = c.chartArea;
+          if (x < left || x > right) return;
+          const ctx = c.ctx;
+          ctx.save();
+          ctx.beginPath();
+          ctx.setLineDash([5, 4]);
+          ctx.lineWidth = 1.5;
+          ctx.strokeStyle = "#64748b";
+          ctx.moveTo(x, top); ctx.lineTo(x, bottom); ctx.stroke();
+          ctx.setLineDash([]);
+          ctx.fillStyle = "#64748b";
+          ctx.font = "11px ui-sans-serif, system-ui, sans-serif";
+          ctx.textAlign = "center";
+          ctx.fillText("now", x, top + 10);
+          ctx.restore();
+        },
+      };
+
       // Chart.js Performance configuration for handling 100k+ points
       chart = new Chart($("chart"), {
         type: "line",
         data: { datasets },
+        plugins: [nowLine],
         options: {
           responsive: true,
           maintainAspectRatio: false,
@@ -451,6 +591,148 @@
       });
       
       setLoading(false);
+    }
+
+    // Seasonal view: shade this year's daily flow against the historical
+    // day-of-year percentile envelope (from HYDAT's full record). The bands
+    // come from /api/climatology; the overlaid year(s) from the daily-mean
+    // observed series. Matches the BC RFC drought-interactive presentation.
+    async function drawSeasonal(station, parameter) {
+      const dParam = dailyParam(parameter);
+      const isDisch = isDischarge(parameter) || dParam === "6";
+      const [clim, obs] = await Promise.all([
+        fetch(`/api/climatology?station=${encodeURIComponent(station)}&parameter=${encodeURIComponent(dParam)}`).then(r => r.json()),
+        fetch(`/api/readings?station=${encodeURIComponent(station)}&parameter=${encodeURIComponent(dParam)}`).then(r => r.json()),
+      ]);
+
+      if (chart) chart.destroy();
+      const bands = (clim && clim.bands) || [];
+      if (!bands.length) {
+        chart = null;
+        $("chart").getContext("2d").clearRect(0, 0, $("chart").width, $("chart").height);
+        $("meta").innerHTML = `<strong>No historical climatology for this station.</strong> `
+          + `The percentile envelope needs a long daily record (≥ 10 years) in ECCC's HYDAT release; `
+          + `this station doesn't have one. Toggle <em>Seasonal view</em> off to see the raw series.`;
+        return;
+      }
+
+      const line = (col) => bands.map(b => ({ x: doyToX(b.doy), y: b[col] }));
+      const ACCENT = "37,99,235";  // brand blue, matches --accent
+      const band = (col, lower, fillRGBA, label) => ({
+        label, data: line(col),
+        borderColor: "rgba(0,0,0,0)", borderWidth: 0, pointRadius: 0,
+        backgroundColor: fillRGBA, fill: lower, tension: 0.3, spanGaps: true,
+      });
+      // Nested ribbons (each fills to the dataset immediately before it):
+      // outer P0–P100, then P10–P90, then P25–P75, then the median line.
+      const datasets = [
+        band("p0",  false, "rgba(0,0,0,0)",           "_p0"),
+        band("p100", "-1", `rgba(${ACCENT},0.07)`,    "Min–Max"),
+        band("p10", false, "rgba(0,0,0,0)",           "_p10"),
+        band("p90", "-1", `rgba(${ACCENT},0.13)`,     "10th–90th pct"),
+        band("p25", false, "rgba(0,0,0,0)",           "_p25"),
+        band("p75", "-1", `rgba(${ACCENT},0.24)`,     "25th–75th pct"),
+        { label: "Median", data: line("p50"), borderColor: `rgb(${ACCENT})`,
+          borderWidth: 1.75, borderDash: [5, 3], pointRadius: 0, fill: false,
+          tension: 0.3, spanGaps: true },
+      ];
+
+      // Overlay observed year(s): current calendar year (bold) + the most
+      // recent prior year present in our record (thin), each mapped onto the
+      // shared day-of-year (2000) calendar.
+      const byYear = {};
+      for (const r of (obs || [])) {
+        if (r.value == null) continue;
+        const d = new Date(r.ts.replace(" ", "T"));
+        (byYear[d.getUTCFullYear()] ||= []).push({ x: dateToDoyX(d), y: r.value });
+      }
+      const years = Object.keys(byYear).map(Number).sort((a, b) => b - a);
+      const curYear = new Date().getUTCFullYear();
+      const priorYear = years.find(y => y < curYear);
+      if (priorYear != null) {
+        datasets.push({ label: `${priorYear}`, data: byYear[priorYear].sort((a, b) => a.x - b.x),
+          borderColor: "#94a3b8", borderWidth: 1.25, pointRadius: 0, fill: false,
+          tension: 0, spanGaps: true });
+      }
+      if (byYear[curYear]) {
+        datasets.push({ label: `${curYear} (this year)`, data: byYear[curYear].sort((a, b) => a.x - b.x),
+          borderColor: "#ea580c", borderWidth: 2.25, pointRadius: 0, fill: false,
+          tension: 0, spanGaps: true });
+      }
+
+      const rec = clim.record || {};
+      const unit = isDisch ? "m³/s" : "m";
+      $("meta").innerHTML =
+        `<strong>Seasonal percentile envelope</strong> &nbsp;·&nbsp; `
+        + `record ${rec.start_year}–${rec.end_year} (${rec.n_years} yr) &nbsp;·&nbsp; `
+        + `HYDAT ${clim.record && clim.record.window_days != null ? `±${clim.record.window_days}d smoothing` : ""} `
+        + `&nbsp;·&nbsp; ${curYear}${byYear[curYear] ? "" : " (no data yet)"} vs. history`;
+      $("forecast-link").innerHTML = "";
+
+      // Default to a ±45-day window around today; pan/zoom reveals the rest.
+      const todayX = dateToDoyX(new Date());
+      const win = 45 * 86400000;
+      const positive = isDisch && bands.every(b => b.p0 == null || b.p0 > 0);
+
+      const todayLine = {
+        id: "todayLine",
+        afterDatasetsDraw(c) {
+          const x = c.scales.x.getPixelForValue(todayX);
+          const { top, bottom, left, right } = c.chartArea;
+          if (x < left || x > right) return;
+          const ctx = c.ctx;
+          ctx.save();
+          ctx.beginPath(); ctx.setLineDash([5, 4]); ctx.lineWidth = 1.5;
+          ctx.strokeStyle = "#64748b";
+          ctx.moveTo(x, top); ctx.lineTo(x, bottom); ctx.stroke();
+          ctx.setLineDash([]); ctx.fillStyle = "#64748b";
+          ctx.font = "11px ui-sans-serif, system-ui, sans-serif";
+          ctx.textAlign = "center"; ctx.fillText("today", x, top + 10);
+          ctx.restore();
+        },
+      };
+
+      chart = new Chart($("chart"), {
+        type: "line",
+        data: { datasets },
+        plugins: [todayLine],
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          parsing: false, normalized: true, animation: false, spanGaps: true,
+          elements: { point: { radius: 0, hitRadius: 5, hoverRadius: 4 } },
+          interaction: { mode: "index", axis: "x", intersect: false },
+          scales: {
+            x: {
+              type: "time",
+              min: todayX - win, max: todayX + win,
+              time: { unit: "month", tooltipFormat: "MMM d", displayFormats: { month: "MMM" } },
+              ticks: { maxRotation: 0 },
+            },
+            y: {
+              type: positive ? "logarithmic" : "linear",
+              title: { display: true, text: isDisch ? "Discharge (m³/s)" : "Water level (m)" },
+            },
+          },
+          plugins: {
+            legend: { display: true, labels: { filter: (i) => !i.text.startsWith("_") } },
+            tooltip: {
+              callbacks: {
+                title: (items) => {
+                  const d = new Date(items[0].parsed.x);
+                  return d.toLocaleString("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
+                },
+                label: (ctx) => ctx.dataset.label.startsWith("_") ? null
+                  : `${ctx.dataset.label}: ${ctx.parsed.y == null ? "—" : ctx.parsed.y.toFixed(2)} ${unit}`,
+              },
+            },
+            zoom: {
+              zoom: { wheel: { enabled: true }, pinch: { enabled: true }, drag: { enabled: false }, mode: "x" },
+              pan: { enabled: true, mode: "x" },
+              limits: { x: { min: doyToX(1), max: doyToX(366) } },
+            },
+          },
+        },
+      });
     }
 
     async function loadAttributes() {

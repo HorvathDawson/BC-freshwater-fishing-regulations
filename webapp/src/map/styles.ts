@@ -59,7 +59,8 @@ const ADMIN_COLORS: Record<string, string> = {
     // neutral "who owns this" informational layer, not a restriction.
     // Two distinct colors so Crown/Public and Private read as different
     // categories at a glance, not one undifferentiated blob.
-    land_parcels_crown: '#546E7A',      // Slate blue-grey — Crown/Public (all non-private OWNER_TYPEs)
+    land_parcels_crown: '#546E7A',      // Slate blue-grey — Crown (Provincial/Agency/Federal/Untitled Provincial/First Nations/Mixed/Unclassified)
+    land_parcels_public: '#4A6FA5',     // Denim blue — Public/Local Government, distinct from Crown's slate-grey
     land_parcels_private: '#8D6E63',    // Warm brown — Private, distinct from both crown-blue and the red/amber restriction colors
 };
 
@@ -84,6 +85,16 @@ const LAND_ACCESS_COLOR_EXPR = [
 // layer-menu toggles) is untouched.
 const ADMIN_BORDER_MINZOOM = 11;
 const ADMIN_BORDER_OPACITY = 0.35;
+
+// Land-ownership fills (Crown/Public/Private) have no hatch pattern to lean
+// on — unlike land_access's closed/restricted overlays, which stay legible
+// at a low 0.14 fill-opacity because the diagonal hatch carries the visual
+// weight. Without that, 0.12 measured as essentially invisible against the
+// green forest basemap in testing (data was rendering correctly — it just
+// couldn't be seen). Bumped up, plus a thicker border, so ownership is
+// actually perceptible once toggled on.
+const LAND_OWNERSHIP_FILL_OPACITY = 0.22;
+const LAND_OWNERSHIP_LINE_WIDTH = 1.5;
 
 // Helper function to create regulation layers from new PMTiles structure
 // Waterbody name labels (streams/lakes/wetlands/manmade/FSRs) are returned
@@ -627,6 +638,19 @@ export const createRegulationLayers = (): { layers: LayerSpecification[]; labels
     // Map.tsx on 'load' (after pattern images are registered) and appended
     // above these layers.
 
+    // Invisible hit-test layer for the WMU polygon fill (the visible dotted
+    // boundary is 'management_units', a *line* layer over 'wmu_boundary' —
+    // lines aren't reliably hit-testable by an interior click). Used only by
+    // Map.tsx's click handler to look up "which management unit was this
+    // click inside" for the disambiguation menu header; never painted.
+    adminLayers.push({
+        id: 'mu-hit-test',
+        type: 'fill',
+        source: 'regulations',
+        'source-layer': 'wmu',
+        paint: { 'fill-opacity': 0 },
+    });
+
     // National parks — crimson tint + thick solid border (NO FISHING)
     adminLayers.push({
         id: 'admin_parks_nat-fill',
@@ -822,32 +846,57 @@ export const createRegulationLayers = (): { layers: LayerSpecification[]; labels
     // OWNER_TYPE (Private/Crown Provincial/Agency/Federal/First Nations/
     // Local Government/Mixed/Unclassified/Untitled Provincial), all in a
     // single `land_parcels_crown` tile source-layer distinguished by the
-    // `name` property. Split into two independently-toggleable style
-    // layers via a filter on that property — Crown/Public and Private read
-    // as different categories (different colors) and toggle separately.
-    // Toggled via the layer menu, not the admin-visibility system (no
-    // regulation drives visibility here), so both default hidden and the
-    // menu's checkboxes flip visibility directly.
-    const NOT_PRIVATE_FILTER = ['!=', ['get', 'name'], 'Private'] as unknown as FilterSpecification;
+    // `name` property. Split into three independently-colored style layers
+    // via filters on that property — Crown (Provincial/Agency/Federal/
+    // Untitled Provincial/First Nations/Mixed/Unclassified), Public (Local
+    // Government — municipal/civic land, a genuinely different category
+    // from provincial/federal Crown land), and Private each read as
+    // distinct categories. Crown and Public share the single "Crown /
+    // Public Land" layer-menu toggle (both flip together) but render in
+    // different colors; Private has its own separate toggle. Toggled via
+    // the layer menu, not the admin-visibility system (no regulation
+    // drives visibility here), so all default hidden and the menu's
+    // checkboxes flip visibility directly.
     const IS_PRIVATE_FILTER = ['==', ['get', 'name'], 'Private'] as unknown as FilterSpecification;
+    const IS_LOCAL_GOV_FILTER = ['==', ['get', 'name'], 'Local Government'] as unknown as FilterSpecification;
+    const IS_CROWN_FILTER = ['!', ['in', ['get', 'name'], ['literal', ['Private', 'Local Government']]]] as unknown as FilterSpecification;
     adminLayers.push({
         id: 'admin_land_parcels_crown-fill',
         type: 'fill',
         source: 'regulations',
         'source-layer': 'land_parcels_crown',
-        filter: NOT_PRIVATE_FILTER,
+        filter: IS_CROWN_FILTER,
         layout: { visibility: 'none' },
-        paint: { 'fill-color': ADMIN_COLORS.land_parcels_crown, 'fill-opacity': 0.12 },
+        paint: { 'fill-color': ADMIN_COLORS.land_parcels_crown, 'fill-opacity': LAND_OWNERSHIP_FILL_OPACITY },
     });
     adminLayers.push({
         id: 'admin_land_parcels_crown-line',
         type: 'line',
         source: 'regulations',
         'source-layer': 'land_parcels_crown',
-        filter: NOT_PRIVATE_FILTER,
+        filter: IS_CROWN_FILTER,
         minzoom: ADMIN_BORDER_MINZOOM,
         layout: { visibility: 'none' },
-        paint: { 'line-color': ADMIN_COLORS.land_parcels_crown, 'line-width': 1, 'line-opacity': ADMIN_BORDER_OPACITY },
+        paint: { 'line-color': ADMIN_COLORS.land_parcels_crown, 'line-width': LAND_OWNERSHIP_LINE_WIDTH, 'line-opacity': ADMIN_BORDER_OPACITY },
+    });
+    adminLayers.push({
+        id: 'admin_land_parcels_public-fill',
+        type: 'fill',
+        source: 'regulations',
+        'source-layer': 'land_parcels_crown',
+        filter: IS_LOCAL_GOV_FILTER,
+        layout: { visibility: 'none' },
+        paint: { 'fill-color': ADMIN_COLORS.land_parcels_public, 'fill-opacity': LAND_OWNERSHIP_FILL_OPACITY },
+    });
+    adminLayers.push({
+        id: 'admin_land_parcels_public-line',
+        type: 'line',
+        source: 'regulations',
+        'source-layer': 'land_parcels_crown',
+        filter: IS_LOCAL_GOV_FILTER,
+        minzoom: ADMIN_BORDER_MINZOOM,
+        layout: { visibility: 'none' },
+        paint: { 'line-color': ADMIN_COLORS.land_parcels_public, 'line-width': LAND_OWNERSHIP_LINE_WIDTH, 'line-opacity': ADMIN_BORDER_OPACITY },
     });
     adminLayers.push({
         id: 'admin_land_parcels_private-fill',
@@ -856,7 +905,7 @@ export const createRegulationLayers = (): { layers: LayerSpecification[]; labels
         'source-layer': 'land_parcels_crown',
         filter: IS_PRIVATE_FILTER,
         layout: { visibility: 'none' },
-        paint: { 'fill-color': ADMIN_COLORS.land_parcels_private, 'fill-opacity': 0.12 },
+        paint: { 'fill-color': ADMIN_COLORS.land_parcels_private, 'fill-opacity': LAND_OWNERSHIP_FILL_OPACITY },
     });
     adminLayers.push({
         id: 'admin_land_parcels_private-line',
@@ -866,7 +915,7 @@ export const createRegulationLayers = (): { layers: LayerSpecification[]; labels
         filter: IS_PRIVATE_FILTER,
         minzoom: ADMIN_BORDER_MINZOOM,
         layout: { visibility: 'none' },
-        paint: { 'line-color': ADMIN_COLORS.land_parcels_private, 'line-width': 1, 'line-opacity': ADMIN_BORDER_OPACITY },
+        paint: { 'line-color': ADMIN_COLORS.land_parcels_private, 'line-width': LAND_OWNERSHIP_LINE_WIDTH, 'line-opacity': ADMIN_BORDER_OPACITY },
     });
 
     // Aboriginal / Indigenous Lands

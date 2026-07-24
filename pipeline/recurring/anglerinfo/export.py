@@ -5,9 +5,9 @@ artifact the main regulations build reads directly, replacing
 pipeline/matching/bathymetry_matcher.py's live re-matching at build time.
 
 Reads match_final (this package's own aggregated result — see match_final.py)
-plus two raw tables it doesn't itself carry (bathy_surveys for per-sheet PDF
-filenames, map_markers for amenity/access fields), and writes one combined
-JSON:
+plus raw tables it doesn't itself carry (bathy_surveys, falling back to
+bathy_surveys_wfs, for per-sheet PDF filenames — see _bathy_sheets();
+map_markers for amenity/access fields), and writes one combined JSON:
 
     output/pipeline/anglerinfo/anglerinfo_matches.json
       "wbk_bathymetry": {"<wbk>": [{"pdf", "title", "name"}, ...]},
@@ -76,24 +76,48 @@ def _split_variants(name_variants: str) -> List[str]:
     return [v for v in (name_variants or "").split(_VARIANT_JOIN) if v]
 
 
+def _table_exists(conn: sqlite3.Connection, name: str) -> bool:
+    return conn.execute(
+        "SELECT 1 FROM sqlite_master WHERE type='table' AND name=?", (name,)
+    ).fetchone() is not None
+
+
+def _bathy_sheets(conn: sqlite3.Connection, identifier: str, has_wfs_table: bool) -> List[tuple]:
+    """Per-sheet (pdf_filename, map_title, gazetted_name) rows for a matched
+    bathymetry identifier — bathy_surveys (the CSV reference table) first,
+    falling back to bathy_surveys_wfs for identifiers match.py's WFS
+    gap-fill matched that have no rows in bathy_surveys at all (confirmed
+    live: HARRISON LAKE / 00081HARR — without this fallback it'd resolve a
+    wbk but zero PDF sheets)."""
+    sheets = conn.execute(
+        "SELECT pdf_filename, map_title, gazetted_name FROM bathy_surveys "
+        "WHERE identifier = ?",
+        (identifier,),
+    ).fetchall()
+    if sheets or not has_wfs_table:
+        return sheets
+    return conn.execute(
+        "SELECT pdf_filename, map_title, gazetted_name FROM bathy_surveys_wfs "
+        "WHERE identifier = ?",
+        (identifier,),
+    ).fetchall()
+
+
 def build_wbk_bathymetry(conn: sqlite3.Connection) -> Dict[str, List[Dict[str, str]]]:
     """<wbk> -> [{"pdf", "title", "name"}, ...] for every matched bathymetry
-    survey, fanned out to every map sheet (bathy_surveys.pdf_filename) that
-    identifier covers — mirrors the old
+    survey, fanned out to every map sheet that identifier covers (see
+    _bathy_sheets()) — mirrors the old
     bathymetry_matcher.build_wbk_bathymetry_map()'s fan-out exactly."""
     rows = conn.execute(
         "SELECT source_id, waterbody_key FROM match_final "
         "WHERE source = 'bathymetry' AND status = 'matched'"
     ).fetchall()
 
+    has_wfs_table = _table_exists(conn, "bathy_surveys_wfs")
     out: Dict[str, List[Dict[str, str]]] = defaultdict(list)
     seen_by_wbk: Dict[str, Set[str]] = defaultdict(set)
     for identifier, waterbody_key in rows:
-        sheets = conn.execute(
-            "SELECT pdf_filename, map_title, gazetted_name FROM bathy_surveys "
-            "WHERE identifier = ?",
-            (identifier,),
-        ).fetchall()
+        sheets = _bathy_sheets(conn, identifier, has_wfs_table)
         for wbk in _split_keys(waterbody_key):
             for pdf_filename, map_title, gazetted_name in sheets:
                 pdf = (pdf_filename or "").strip().lower()

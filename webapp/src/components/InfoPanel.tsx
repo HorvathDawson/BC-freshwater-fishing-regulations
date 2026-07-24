@@ -1,25 +1,29 @@
 import React, { useRef, useEffect, useState, useMemo } from 'react';
-import { X, Calendar, MapPin, FileImage, RotateCcw, Share2, Check, ChevronDown, ChevronRight, ZoomIn, ExternalLink, Flag } from 'lucide-react';
+import { X, Calendar, MapPin, FileImage, RotateCcw, Share2, Check, ChevronDown, ChevronRight, ZoomIn, ExternalLink, Flag, Gauge } from 'lucide-react';
 import { Icon } from '@iconify/react';
 import type { Regulation } from '../services/regulationsService';
 import { regulationsService } from '../services/regulationsService';
-import { 
-    getIconForType, 
-    getColorForType, 
+import {
+    getIconForType,
+    getColorForType,
     getFeatureDisplayName,
     calculateSwipeState,
     buildAliasLines,
+    formatDawnDuskTime,
+    isAdminFeatureType,
+    ADMIN_TYPE_INFO,
+    formatArea,
     type CollapseState,
     type FeatureInfo,
     type NameVariant
 } from '../utils/featureUtils';
-import { getShareableUrl, getCanonicalUrl, copyToClipboard, setActiveSectionParam } from '../utils/urlState';
+import { getShareableUrl, getCanonicalUrl, copyToClipboard, setActiveSectionParam, setActiveTabParam, parseUrlState } from '../utils/urlState';
 import { sectionLabel } from '../utils/sectionLabel';
 import SourceImageViewer from './SourceImageViewer';
 import FishLoader from './FishLoader';
 import type { SearchableFeature } from './SearchBar';
 import { waterbodyDataService } from '../services/waterbodyDataService';
-import type { Reach, BathymetrySurvey } from '../services/waterbodyDataService';
+import type { Reach, BathymetrySurvey, StockingRelease } from '../services/waterbodyDataService';
 import { DATA_BASE } from '../config/endpoints';
 import { PDFDocument } from 'pdf-lib';
 import './InfoPanel.css';
@@ -66,9 +70,6 @@ interface InfoPanelProps {
     dawnDusk?: { dawn: Date | null; dusk: Date | null } | null;
 };
 
-const formatDawnDuskTime = (d: Date | null): string =>
-    d ? d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' }) : '—';
-
 /** Map restriction_type to CSS class for colored pills */
 const getRestrictionClass = (type: string): string => {
     const normalized = type.toLowerCase().replace(/[_ ]/g, '-');
@@ -106,6 +107,13 @@ const getFilterCategory = (type: string): string | null => {
         if (types.includes(normalized)) return key;
     }
     return null;
+};
+
+/** Format a FIDQ release_date ("2006-10-17 00:00:00.0") as "Oct 17, 2006". */
+const formatReleaseDate = (raw: string): string => {
+    const [y, m, d] = (raw || '').split(' ')[0].split('-').map(Number);
+    if (!y || !m || !d) return raw || '—';
+    return new Date(y, m - 1, d).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
 };
 
 const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapseState, siblingFeatures = [], onHighlightSection, onFlyToSection, onReportIssue, dawnDusk }: InfoPanelProps) => {
@@ -296,6 +304,57 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
         return () => { cancelled = true; };
     }, [activeSection, feature?.properties.frontend_group_id]);
 
+    // Stocking release history for the active reach (polygon waterbodies
+    // only). stocking.json is a standalone recurring artifact (same role as
+    // in_season.json) fetched lazily by the service the first time this is
+    // called — not part of the reach shard, so it stays independently
+    // refreshable without a full pipeline rebuild.
+    const [stocking, setStocking] = useState<StockingRelease[]>([]);
+    useEffect(() => {
+        const reachId = activeSection?.frontend_group_id
+            || (feature?.properties.frontend_group_id as string | undefined);
+        if (!reachId) {
+            setStocking([]);
+            return;
+        }
+        let cancelled = false;
+        waterbodyDataService.getStockingReleases(reachId)
+            .then(releases => {
+                if (!cancelled) setStocking(releases);
+            })
+            .catch(() => {
+                if (!cancelled) setStocking([]);
+            });
+        return () => { cancelled = true; };
+    }, [activeSection, feature?.properties.frontend_group_id]);
+
+    // Active content tab (Rules / Stocking / Bathy map / Gauges). Seeded once
+    // from the URL's ?tab= param (deep-linking, e.g. a shared Stocking-tab
+    // link) so a fresh page load lands on the right tab; every subsequent
+    // feature change resets to 'rules'. Not reset on section-tab clicks
+    // within the same waterbody (those update activeFgid locally without
+    // changing the feature prop), so switching sections keeps whichever tab
+    // the user was already looking at.
+    const [activeTab, setActiveTab] = useState<'rules' | 'stocking' | 'bathymetry' | 'gauges'>(() => {
+        const t = parseUrlState().activeTab;
+        return t === 'stocking' || t === 'bathymetry' || t === 'gauges' ? t : 'rules';
+    });
+    const initialTabRef = useRef(true);
+    useEffect(() => {
+        // Ignore the null/undefined feature render(s) before the app has
+        // resolved anything from the URL yet — consuming the guard here
+        // would skip past the real first selection and reset activeTab back
+        // to 'rules' the moment it actually loads, discarding the seed above.
+        if (!feature) return;
+        if (initialTabRef.current) {
+            // Skip the reset on the first real feature assignment — activeTab
+            // was already seeded from the URL above.
+            initialTabRef.current = false;
+            return;
+        }
+        setActiveTab('rules');
+    }, [feature]);
+
     // Handle share button click
     const handleShare = async (e: React.MouseEvent) => {
         e.stopPropagation();
@@ -311,7 +370,7 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
             console.warn('Cannot share: feature missing waterbody_group and all IDs');
             return;
         }
-        const url = wbg ? getCanonicalUrl(wbg, activeFgid) : getShareableUrl(String(featureId), activeFgid);
+        const url = wbg ? getCanonicalUrl(wbg, activeFgid, activeTab) : getShareableUrl(String(featureId), activeFgid, activeTab);
         const success = await copyToClipboard(url);
         if (success) {
             setCopied(true);
@@ -449,6 +508,54 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
             );
         }
 
+        // Land ownership/access + protected-area/admin-boundary features: a
+        // much simpler informational card (no regulations, tabs, bathymetry,
+        // or in-season data — those concepts don't apply to a park/WMA/
+        // ownership polygon). Mirrors the tidal-waters branch above.
+        if (isAdminFeatureType(feature.type)) {
+            const info = ADMIN_TYPE_INFO[feature.type];
+            const adminTitle = getFeatureDisplayName(props, feature.type);
+            const area = formatArea(props.area);
+            return (
+                <>
+                    <div
+                        className="panel-header"
+                        onClick={handleHeaderToggle}
+                        onTouchStart={handleTouchStart}
+                        onTouchEnd={handleTouchEnd}
+                    >
+                        <div className="mobile-handle-bar" />
+                        <div className="header-row">
+                            <div className="header-left">
+                                <div className="type-icon" style={{ backgroundColor: getColorForType(feature.type) }}>
+                                    <Icon icon={getIconForType(feature.type)} width={26} height={26} color="white" />
+                                </div>
+                                <div className="header-title-block">
+                                    <h1 className="title">{adminTitle}</h1>
+                                    <span className="type-tag">{info.label}</span>
+                                </div>
+                            </div>
+                            <button onClick={(e) => { e.stopPropagation(); onClose(); }} className="square-btn" aria-label="Close panel">
+                                <X size={20} />
+                            </button>
+                        </div>
+                    </div>
+                    <div className="panel-content">
+                        <div className="data-section">
+                            {info.note && (
+                                <p style={{ margin: '0 0 12px', lineHeight: 1.5 }}>{info.note}</p>
+                            )}
+                            {area && (
+                                <p style={{ margin: '0 0 4px', fontSize: '14px', color: 'var(--text-secondary, #666)' }}>
+                                    Area: {area}
+                                </p>
+                            )}
+                        </div>
+                    </div>
+                </>
+            );
+        }
+
         // Build deduplicated aliases from name_variants
         const nameVariantsRaw: NameVariant[] = Array.isArray(props.name_variants) ? props.name_variants : [];
         const title = getFeatureDisplayName(props, feature.type);
@@ -465,10 +572,36 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
         }
         const hasAliases = aliases.length > 0;
 
+        // Content tabs (Rules / Stocking / Bathy map / Gauges) — Stocking and
+        // Bathy map only appear when this reach actually has that data (same
+        // "don't show empty chrome" rule the old cards followed); Gauges is a
+        // placeholder tab always shown since there's no gauge data source yet.
+        // Rules is always available (it has its own "no regulations" empty
+        // state). If activeTab points at a tab that just disappeared (e.g. a
+        // section switch landed on a reach with no stocking records), fall
+        // back to 'rules' rather than rendering nothing.
+        // Text-only labels (no icons) — at the panel's 350px width, four
+        // icon+label+count tabs didn't fit and pushed Gauges off-screen with
+        // no scroll affordance. Bold uppercase text matches how every other
+        // section header (REGULATIONS, DETAILS) already reads in this panel.
+        const hasStocking = stocking.length > 0;
+        const hasBathymetry = bathymetry.length > 0;
+        const contentTabs: { key: typeof activeTab; label: string; count?: number }[] = [
+            { key: 'rules', label: 'Rules' },
+        ];
+        if (hasStocking) {
+            contentTabs.push({ key: 'stocking', label: 'Stocking', count: stocking.length });
+        }
+        if (hasBathymetry) {
+            contentTabs.push({ key: 'bathymetry', label: 'Bathy map', count: bathymetry.length });
+        }
+        contentTabs.push({ key: 'gauges', label: 'Gauges' });
+        const effectiveTab = contentTabs.some(t => t.key === activeTab) ? activeTab : 'rules';
+
         return (
             <>
-                <div 
-                    className="panel-header" 
+                <div
+                    className="panel-header panel-header--tabbed"
                     onClick={handleHeaderToggle}
                     onTouchStart={handleTouchStart}
                     onTouchEnd={handleTouchEnd}
@@ -584,6 +717,31 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                     );
                 })()}
 
+                {/* Content tab bar — Rules / Stocking / Bathy map / Gauges.
+                    Always shown (Rules is always available). Distinct from the
+                    section-tab-bar above: this switches which content panel is
+                    visible for the currently-selected section, not which
+                    section is selected. */}
+                <div className="content-tab-bar" role="tablist" aria-label="Waterbody info sections">
+                    {contentTabs.map(t => (
+                        <button
+                            key={t.key}
+                            role="tab"
+                            aria-selected={effectiveTab === t.key}
+                            aria-controls="content-panel"
+                            id={`content-tab-${t.key}`}
+                            className={`content-tab${effectiveTab === t.key ? ' active' : ''}`}
+                            onClick={() => {
+                                setActiveTab(t.key);
+                                setActiveTabParam(t.key);
+                            }}
+                        >
+                            <span>{t.label}</span>
+                            {typeof t.count === 'number' && <span className="content-tab-count">{t.count}</span>}
+                        </button>
+                    ))}
+                </div>
+
 <div
                     className="panel-content"
                     role={sortedSiblings.length > 1 ? 'tabpanel' : undefined}
@@ -591,11 +749,18 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                     aria-labelledby={sortedSiblings.length > 1 ? `section-tab-${activeFgid}` : undefined}
                     tabIndex={sortedSiblings.length > 1 ? 0 : undefined}
                 >
+                    <div
+                        id="content-panel"
+                        role="tabpanel"
+                        aria-labelledby={`content-tab-${effectiveTab}`}
+                    >
+                    {effectiveTab === 'rules' && (
+                    <>
                     {/* REGULATIONS SECTION */}
                     <div className="data-section">
                         <div className="section-header-row">
                             <h3>REGULATIONS</h3>
-                            
+
                             <div className="section-header-actions">
                                 {/* Zoom to feature/section */}
                                 {sectionBbox && (() => {
@@ -701,50 +866,6 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                             );
                         })()}
 
-                        {/* Bathymetry depth-map PDFs (WSA lake survey maps, served from R2) */}
-                        {bathymetry.length > 0 && (() => {
-                            const urls = bathymetry.map((b) => waterbodyDataService.bathymetryUrl(b.pdf));
-                            const combined = bathymetry.length > 1;
-                            const label = bathymetry[0].title?.trim() ? bathymetry[0].title! : 'Bathymetric survey';
-                            return (
-                                <div className="bathymetry-section" role="region" aria-label="Depth maps">
-                                    <div className="bathymetry-header">
-                                        <FileImage size={13} strokeWidth={2} aria-hidden="true" />
-                                        <span>Depth {combined ? 'maps' : 'map'}</span>
-                                        {combined && (
-                                            <span className="bathymetry-count">{bathymetry.length}</span>
-                                        )}
-                                    </div>
-                                    <div className="bathymetry-list">
-                                        <button
-                                            type="button"
-                                            className="bathymetry-card"
-                                            title={combined
-                                                ? `Open ${bathymetry.length} depth maps as one combined PDF in a new tab`
-                                                : `Open depth map in a new tab: ${label}`}
-                                            disabled={pdfBusy}
-                                            onClick={() => openBathymetry(urls)}
-                                        >
-                                            <span className="bathymetry-card-icon">
-                                                <FileImage size={16} strokeWidth={2} aria-hidden="true" />
-                                            </span>
-                                            <span className="bathymetry-card-body">
-                                                <span className="bathymetry-card-title">{label}</span>
-                                                <span className="bathymetry-card-sub">
-                                                    {pdfBusy
-                                                        ? 'Preparing PDF…'
-                                                        : combined
-                                                            ? `Opens ${bathymetry.length} surveys as one combined PDF in a new tab`
-                                                            : 'Opens PDF in a new tab'}
-                                                </span>
-                                            </span>
-                                            <span className="bathymetry-card-badge">PDF</span>
-                                            <ExternalLink size={14} strokeWidth={2} className="bathymetry-card-open" aria-hidden="true" />
-                                        </button>
-                                    </div>
-                                </div>
-                            );
-                        })()}
 
                         {!loadingRegs && (() => {
                             // Show message if filters hide all results
@@ -880,19 +1001,18 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                                 return groups;
                             }, {} as Record<string, { label: string; subtitle: string; source: string; isTributary: boolean; exclusions: Regulation['exclusions']; regulations: Regulation[] }>);
 
-                            // The merged "Land Use" group can independently accumulate up to
-                            // three access-severity regs (LAND_ACCESS_CLOSED, LAND_ACCESS_RESTRICTED,
-                            // LAND_OWNERSHIP_PRIVATE — a reach can genuinely touch a closed
-                            // watershed AND a private parcel AND sit near restricted land all
-                            // at once). Showing all read as confusing near-duplicates, so keep
-                            // only the single most severe generic access advisory — but leave
-                            // every other reg in place (the indigenous advisory AND any
-                            // feature-targeted closure like Malcolm Knapp are never dropped).
+                            // The merged "Land Use" group can independently accumulate both
+                            // access-severity regs (LAND_ACCESS_CLOSED, LAND_ACCESS_RESTRICTED —
+                            // a reach can genuinely touch a closed watershed AND sit near
+                            // restricted land at once). Showing both read as confusing
+                            // near-duplicates, so keep only the single most severe generic
+                            // access advisory — but leave every other reg in place (the
+                            // indigenous advisory AND any feature-targeted closure like
+                            // Malcolm Knapp are never dropped).
                             if (groupedRegulations['land_access']) {
                                 const ACCESS_SEVERITY: Record<string, number> = {
                                     LAND_ACCESS_CLOSED: 0,
                                     LAND_ACCESS_RESTRICTED: 1,
-                                    LAND_OWNERSHIP_PRIVATE: 2,
                                 };
                                 const landUseRegs = groupedRegulations['land_access'].regulations;
                                 const accessRegs = landUseRegs.filter(r => r.regulation_id in ACCESS_SEVERITY);
@@ -1159,6 +1279,99 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                             </button>
                         </div>
                     )}
+                    </>
+                    )}
+
+                    {/* STOCKING TAB — the same per-release table the old full-panel
+                        sub-view used, now embedded directly under the tab
+                        instead of behind a "Stocking history" card + back button. */}
+                    {effectiveTab === 'stocking' && (() => {
+                        const sortedReleases = [...stocking].sort((a, b) => (b.release_date || '').localeCompare(a.release_date || ''));
+                        return (
+                            <div className="data-section">
+                                <div className="section-header-row">
+                                    <h3>STOCKING</h3>
+                                    <span className="tab-section-count">
+                                        {stocking.length} release{stocking.length === 1 ? '' : 's'} on record
+                                    </span>
+                                </div>
+                                <div className="stocking-list">
+                                    {sortedReleases.map((r, i) => (
+                                        <div className="stocking-row" key={i}>
+                                            <div className="stocking-row-line1">
+                                                <span className="stocking-row-date">{formatReleaseDate(r.release_date)}</span>
+                                                <span className="stocking-row-qty">
+                                                    {Number.isFinite(r.released_quantity) ? r.released_quantity.toLocaleString() : '—'}
+                                                </span>
+                                            </div>
+                                            <div className="stocking-row-line2">
+                                                {[r.species_name, r.life_stage, r.average_weight ? `${r.average_weight}g avg` : null]
+                                                    .filter(Boolean)
+                                                    .join(' · ') || '—'}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        );
+                    })()}
+
+                    {/* BATHY MAP TAB — same "open combined PDF" card as before, now
+                        full-width in its own tab instead of squeezed into a
+                        two-column row next to Stocking. */}
+                    {effectiveTab === 'bathymetry' && (() => {
+                        const urls = bathymetry.map((b) => waterbodyDataService.bathymetryUrl(b.pdf));
+                        const combined = bathymetry.length > 1;
+                        const label = bathymetry[0]?.title?.trim() ? bathymetry[0].title! : 'Bathymetric survey';
+                        return (
+                            <div className="data-section">
+                                <div className="section-header-row">
+                                    <h3>DEPTH {combined ? 'MAPS' : 'MAP'}</h3>
+                                </div>
+                                <div className="bathymetry-list">
+                                    <button
+                                        type="button"
+                                        className="bathymetry-card"
+                                        title={combined
+                                            ? `Open ${bathymetry.length} depth maps as one combined PDF in a new tab`
+                                            : `Open depth map in a new tab: ${label}`}
+                                        disabled={pdfBusy}
+                                        onClick={() => openBathymetry(urls)}
+                                    >
+                                        <span className="bathymetry-card-icon">
+                                            <FileImage size={16} strokeWidth={2} aria-hidden="true" />
+                                        </span>
+                                        <span className="bathymetry-card-body">
+                                            <span className="bathymetry-card-title">{label}</span>
+                                            <span className="bathymetry-card-sub">
+                                                {pdfBusy
+                                                    ? 'Preparing PDF…'
+                                                    : combined
+                                                        ? `Opens ${bathymetry.length} surveys as one combined PDF in a new tab`
+                                                        : 'Opens PDF in a new tab'}
+                                            </span>
+                                        </span>
+                                        <span className="bathymetry-card-badge">PDF</span>
+                                        <ExternalLink size={14} strokeWidth={2} className="bathymetry-card-open" aria-hidden="true" />
+                                    </button>
+                                </div>
+                            </div>
+                        );
+                    })()}
+
+                    {/* GAUGES TAB — placeholder. No gauge/hydrometric data source
+                        exists yet; shown now so the tab is ready to receive real
+                        data later with no further restructuring. */}
+                    {effectiveTab === 'gauges' && (
+                        <div className="data-section">
+                            <div className="tab-empty-state">
+                                <Gauge size={28} strokeWidth={1.5} aria-hidden="true" />
+                                <p>Gauge data is coming soon.</p>
+                                <span>Real-time water level and flow information for this waterbody will appear here.</span>
+                            </div>
+                        </div>
+                    )}
+                    </div>
                 </div>
             </>
         );

@@ -25,13 +25,31 @@
     letter-spacing: 0.1em; 
 }
 
-.close-x { 
-    border: none; 
-    background: none; 
-    font-size: 16px; 
-    font-weight: bold; 
-    cursor: pointer; 
-    line-height: 1; 
+.close-x {
+    border: none;
+    background: none;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    line-height: 1;
+}
+
+.menu-context-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 14px;
+    padding: 6px 12px;
+    background: var(--bg, #fff);
+    border-bottom: 1px solid var(--border-light, #eee);
+    font-size: 11px;
+    color: var(--text-secondary, #666);
+}
+
+.menu-context-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
 }
 
 .menu-list { 

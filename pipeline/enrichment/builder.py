@@ -40,9 +40,8 @@ _LAYER_NAME_MAP = {
 # with an explicit admin_target reference are shown on the map.
 # land_access is "all" so watersheds/DND/private land render even though
 # most of them are only covered by the unscoped (no feature_id)
-# LAND_ACCESS_CLOSED / LAND_ACCESS_RESTRICTED advisories (and the
-# LAND_OWNERSHIP_PRIVATE ownership advisory), not a specific feature_id
-# target like the Malcolm Knapp closure.
+# LAND_ACCESS_CLOSED / LAND_ACCESS_RESTRICTED advisories, not a specific
+# feature_id target like the Malcolm Knapp closure.
 _SHOW_ALL_LAYERS = {"eco_reserves", "parks_nat", "aboriginal_lands", "land_access"}
 
 
@@ -374,8 +373,10 @@ def build(config_path: Path = Path("config.yaml"), dry_run: bool = False) -> Pat
 
     # ── Stocking info: resolve to reach IDs ───────────────────────────
     # Produces stocking.json in the deploy folder, same shape/role as
-    # in_season.json above. Not yet consumed by any frontend display (that's
-    # future work) — this just keeps a fresh copy shipping with every build.
+    # in_season.json above — a standalone recurring artifact the frontend
+    # fetches directly (not baked into the reach shards, which only rebuild
+    # on a full pipeline run). This keeps stocking data refreshable on its
+    # own lightweight cadence, same as in-season notices.
     # Non-fatal: anglerinfo.db (the underlying fetch+match data) is refreshed
     # on its own, separate, manual cadence — see pipeline/recurring/anglerinfo.
     t0 = time.perf_counter()

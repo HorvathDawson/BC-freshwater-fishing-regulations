@@ -3,19 +3,22 @@ import maplibregl from 'maplibre-gl';
 import { Protocol } from 'pmtiles';
 import { layers, LIGHT } from '@protomaps/basemaps';
 import type { Flavor } from '@protomaps/basemaps';
+import * as SunCalc from 'suncalc';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { createRegulationLayers, createAdminLabelLayers, createEarlyRoadLayers, HIGHLIGHT_COLORS, SELECTION_COLOR } from '../map/styles';
 import bcBoundary from '../map/bcBoundary.json';
 import { waterbodyDataService } from '../services/waterbodyDataService';
 import type { Reach, RegulationData, ResolveResult } from '../services/waterbodyDataService';
 import { TILE_BASE } from '../config/endpoints';
-import { 
+import {
     isMobileViewport,
     getFeatureDisplayName,
-    type FeatureInfo, 
-    type FeatureOption, 
+    isAdminFeatureType,
+    type AdminFeatureType,
+    type FeatureInfo,
+    type FeatureOption,
     type FeatureGeometry,
-    type CollapseState 
+    type CollapseState
 } from '../utils/featureUtils';
 import { parseUrlState, navigateToWaterbody, navigateToFeature, clearUrlState } from '../utils/urlState';
 import InfoPanel from './InfoPanel';
@@ -26,6 +29,7 @@ import IssueReport, { IssueReportLink, type IssueReportContext } from './IssueRe
 import FishLoader from './FishLoader';
 import type { SearchableFeature, RegulationSegment } from './SearchBar';
 import { useDawnDusk } from '../hooks/useDawnDusk';
+import type { DawnDuskTimes } from '../hooks/useDawnDusk';
 import './Map.css';
 
 // --- CONFIG & PROTOCOL ---
@@ -161,6 +165,75 @@ function legacyFilterToExpression(f: any): any {
 }
 
 const INTERACTABLE_LAYERS = ['streams', 'lakes-fill', 'wetlands-fill', 'manmade-fill'];
+
+// Land-ownership/access + protected-area/admin-boundary fill layers that are
+// clickable in addition to waterbodies. Only actually returns hits for
+// layers currently visible on screen — MapLibre's queryRenderedFeatures
+// naturally respects each layer's own visibility (layer-menu toggle /
+// admin_visibility filtering), so no extra gating is needed here.
+// 'admin_parks_bc-fill' alone covers eco reserves too (no filter on that
+// fill layer) — 'eco_reserves-fill' is a redundant subset kept only for its
+// distinct border styling, so it's deliberately not queried here to avoid
+// duplicate hits on the same polygon.
+const ADMIN_INTERACTABLE_LAYERS = [
+    'admin_parks_nat-fill',
+    'admin_parks_bc-fill',
+    'admin_wma-fill',
+    'admin_watersheds-fill',
+    'admin_historic_sites-fill',
+    'admin_land_access-fill',
+    'admin_land_parcels_crown-fill',
+    'admin_land_parcels_public-fill',
+    'admin_land_parcels_private-fill',
+    'admin_aboriginal_lands-fill',
+];
+
+/** Map a clicked admin-layer tile feature to its AdminFeatureType, keyed on
+ *  the style layer id (and, for the multi-subtype BC-parks layer, admin_type). */
+const adminFeatureType = (layerId: string, props: Record<string, any>): AdminFeatureType => {
+    switch (layerId) {
+        case 'admin_parks_nat-fill': return 'park_national';
+        case 'admin_parks_bc-fill':
+            switch (props.admin_type) {
+                case 'ECOLOGICAL_RESERVE': return 'eco_reserve';
+                case 'PROTECTED_AREA': return 'protected_area';
+                case 'RECREATION_AREA': return 'recreation_area';
+                default: return 'park_provincial';
+            }
+        case 'admin_wma-fill': return 'wma';
+        case 'admin_watersheds-fill': return 'watershed';
+        case 'admin_historic_sites-fill': return 'historic_site';
+        case 'admin_land_access-fill':
+            return props.restriction_level === 'restricted' ? 'land_access_restricted' : 'land_access_closed';
+        case 'admin_land_parcels_private-fill': return 'land_ownership_private';
+        case 'admin_land_parcels_public-fill': return 'land_ownership_public';
+        case 'admin_aboriginal_lands-fill': return 'aboriginal_land';
+        case 'admin_land_parcels_crown-fill':
+        default: return 'land_ownership_crown';
+    }
+};
+
+/** Build a FeatureOption directly from a clicked admin/land tile feature —
+ *  these are self-contained (AdminRecord fields only), no /api/resolve needed. */
+const buildAdminFeatureOption = (tileFeature: maplibregl.MapGeoJSONFeature): FeatureOption => {
+    const props = tileFeature.properties || {};
+    const type = adminFeatureType(tileFeature.layer.id, props);
+    const adminId = String(props.admin_id ?? '');
+    return {
+        type,
+        id: `admin:${tileFeature.sourceLayer}:${adminId}`,
+        geometry: (tileFeature.geometry || (tileFeature as any).toJSON?.().geometry) as FeatureGeometry,
+        source: tileFeature.source,
+        sourceLayer: tileFeature.sourceLayer,
+        properties: {
+            display_name: props.display_name || props.name || '',
+            admin_id: adminId,
+            admin_type: props.admin_type || '',
+            area: props.area,
+            restriction_level: props.restriction_level || '',
+        },
+    };
+};
 
 // Filter-based highlight / selection layer IDs.
 // These render directly from the 'regulations' PMTiles source — no geometry
@@ -625,6 +698,11 @@ const MapComponent = () => {
     const [siblingFeatures, setSiblingFeatures] = useState<SearchableFeature[]>([]);
     const [disambigOptions, setDisambigOptions] = useState<FeatureOption[]>([]);
     const [disambigPosition, setDisambigPosition] = useState<{ x: number; y: number } | null>(null);
+    // Click-point context shown at the top of the disambiguation menu —
+    // computed once at click time (dawn/dusk from SunCalc, MU from the
+    // invisible 'mu-hit-test' layer) and reused across whichever
+    // presentOptions() call ends up firing for that click.
+    const [disambigContext, setDisambigContext] = useState<{ dawnDusk: DawnDuskTimes; managementUnit: string | null } | null>(null);
     const [clickLoadingPos, setClickLoadingPos] = useState<{ x: number; y: number } | null>(null);
     // Delayed spinner — avoid flash on fast resolves.
     // Only show spinner after SPINNER_DELAY ms; once visible, keep for at least SPINNER_MIN ms.
@@ -857,10 +935,12 @@ const MapComponent = () => {
 
     // Land ownership layer toggles — shows/hides the land_parcels_crown fill
     // + line layers (same setLayoutProperty pattern the admin-layer
-    // visibility effect elsewhere in this file uses). Crown/Public and
-    // Private are independently toggleable: both draw from the same
-    // `land_parcels_crown` tile source-layer but as separately-filtered
-    // style layers (see styles.ts), so each can be shown/hidden on its own.
+    // visibility effect elsewhere in this file uses). "Crown / Public Land"
+    // (one checkbox) flips both the Crown and Public/Local-Government style
+    // layers together — they're different colors so they read as distinct
+    // categories, but share one toggle. Private has its own separate
+    // toggle. All three draw from the same `land_parcels_crown` tile
+    // source-layer but as separately-filtered style layers (see styles.ts).
     useEffect(() => {
         toggleLandOwnershipRef.current = () => setShowLandOwnership(v => !v);
         togglePrivateLandRef.current = () => setShowPrivateLand(v => !v);
@@ -869,7 +949,10 @@ const MapComponent = () => {
         const map = mapRef.current;
         if (!map || !map.isStyleLoaded()) return;
         const vis = showLandOwnership ? 'visible' : 'none';
-        for (const id of ['admin_land_parcels_crown-fill', 'admin_land_parcels_crown-line']) {
+        for (const id of [
+            'admin_land_parcels_crown-fill', 'admin_land_parcels_crown-line',
+            'admin_land_parcels_public-fill', 'admin_land_parcels_public-line',
+        ]) {
             if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', vis);
         }
     }, [showLandOwnership, mapReady]);
@@ -984,9 +1067,10 @@ const MapComponent = () => {
         setHighlightedSearchResult(null);
         setDisambigOptions([]);
         setDisambigPosition(null);
+        setDisambigContext(null);
         isDisambigOpenRef.current = false;
         setMobilePanelState('partial');
-        
+
         // Clear feature from URL
         clearUrlState();
 
@@ -1003,6 +1087,11 @@ const MapComponent = () => {
         // Clear ungazetted point marker
         const ugSrc = map.getSource('ungazetted-marker') as maplibregl.GeoJSONSource;
         if (ugSrc) ugSrc.setData({ type: 'FeatureCollection', features: [] });
+        // Clear land-use highlight + selection
+        const adminHlSrc = map.getSource('admin-highlight') as maplibregl.GeoJSONSource;
+        if (adminHlSrc) adminHlSrc.setData({ type: 'FeatureCollection', features: [] });
+        const adminSlSrc = map.getSource('admin-selection') as maplibregl.GeoJSONSource;
+        if (adminSlSrc) adminSlSrc.setData({ type: 'FeatureCollection', features: [] });
         // Reset highlight & selection layer filters to hide them
         setGroupFilter(map, HL_LAYER_IDS, null);
         setGroupFilter(map, SL_LAYER_IDS, null);
@@ -1306,6 +1395,7 @@ const MapComponent = () => {
                 setSelectedFeature(null);
                 setDisambigOptions([]);
                 setDisambigPosition(null);
+                setDisambigContext(null);
                 isDisambigOpenRef.current = false;
             }
         };
@@ -1798,6 +1888,31 @@ const MapComponent = () => {
             map.addLayer({ id: 'sl-manmade-line', type: 'line', source: 'regulations', 'source-layer': 'manmade', filter: FILTER_NONE,
                 paint: { 'line-color': SELECTION_COLOR, 'line-width': slPolyLineWidth, 'line-opacity': 1.0 }, layout: hlLineLayout });
             
+            // Land-use (admin) highlight — unlike waterbodies, admin/land
+            // options span many different tile source-layers (parks_nat,
+            // eco_reserves, wma, watersheds, historic_sites, land_access,
+            // land_parcels_crown, aboriginal_lands), so a per-source-layer
+            // filter-based hl-* layer per type isn't practical. Instead,
+            // reuse the geometry already captured on the FeatureOption at
+            // click time (buildAdminFeatureOption) and draw it through one
+            // GeoJSON source, same pattern as cursor-circle/ungazetted-marker
+            // below. Same uniform highlight color as waterbodies.
+            map.addSource('admin-highlight', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+            map.addLayer({ id: 'hl-admin-fill', type: 'fill', source: 'admin-highlight',
+                paint: { 'fill-color': SELECTION_COLOR, 'fill-opacity': 0.4 } });
+            map.addLayer({ id: 'hl-admin-line', type: 'line', source: 'admin-highlight',
+                paint: { 'line-color': SELECTION_COLOR, 'line-width': hlLineWidth, 'line-opacity': 1.0 }, layout: hlLineLayout });
+
+            // Same idea, for the active-selection state (InfoPanel open on a
+            // land-use option) — mirrors sl-streams/sl-lakes-fill/etc. above,
+            // added after hl-admin-* so it draws on top, same as the
+            // waterbody hl-*/sl-* pair.
+            map.addSource('admin-selection', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+            map.addLayer({ id: 'sl-admin-fill', type: 'fill', source: 'admin-selection',
+                paint: { 'fill-color': SELECTION_COLOR, 'fill-opacity': 0.4 } });
+            map.addLayer({ id: 'sl-admin-line', type: 'line', source: 'admin-selection',
+                paint: { 'line-color': SELECTION_COLOR, 'line-width': hlLineWidth, 'line-opacity': 1.0 }, layout: hlLineLayout });
+
             map.addSource('cursor-circle', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
             map.addLayer({ id: 'cursor-circle-fill', type: 'fill', source: 'cursor-circle', paint: { 'fill-color': '#7C3AED', 'fill-opacity': 0.1 } });
             map.addLayer({ id: 'cursor-circle-line', type: 'line', source: 'cursor-circle', paint: { 'line-color': '#7C3AED', 'line-width': 1.5, 'line-opacity': 0.6 } });
@@ -1917,7 +2032,11 @@ const MapComponent = () => {
         });
 
         // Select a single option directly, or open the disambiguation menu for multiple.
-        const presentOptions = (opts: FeatureOption[], point: { x: number; y: number }) => {
+        const presentOptions = (
+            opts: FeatureOption[],
+            point: { x: number; y: number },
+            context?: { dawnDusk: DawnDuskTimes; managementUnit: string | null } | null,
+        ) => {
             clearSelection();
             if (opts.length === 1) {
                 setSelectedFeature(opts[0]);
@@ -1925,11 +2044,32 @@ const MapComponent = () => {
             }
             setDisambigOptions(opts);
             setDisambigPosition({ x: point.x, y: point.y });
+            setDisambigContext(context ?? null);
             isDisambigOpenRef.current = true;
             if (isMobileViewport()) setMobilePanelState('partial');
         };
 
         map.on('click', async (e) => {
+            // Click-point context for the disambiguation menu header — computed
+            // once up front (cheap, synchronous) and reused by whichever
+            // presentOptions() call below ends up firing for this click.
+            const sunTimes = SunCalc.getTimes(new Date(), e.lngLat.lat, e.lngLat.lng);
+            const muHit = map.queryRenderedFeatures(e.point, { layers: ['mu-hit-test'] })[0];
+            // admin_id is the actual WILDLIFE_MGMT_UNIT_ID code (e.g. "2-6") —
+            // the specific identifier anglers look up in regulations.
+            // display_name is the broader GAME_MANAGEMENT_ZONE_NAME (e.g.
+            // "Fraser Valley"), shared by dozens of MUs, so it's shown only as
+            // secondary context, never on its own.
+            const muId = muHit?.properties?.admin_id as string | undefined;
+            const muZone = muHit?.properties?.display_name as string | undefined;
+            const managementUnit = muId
+                ? (muZone && muZone !== muId ? `MU ${muId} (${muZone})` : `MU ${muId}`)
+                : null;
+            const clickContext = {
+                dawnDusk: { dawn: sunTimes.dawn, dusk: sunTimes.dusk } as DawnDuskTimes,
+                managementUnit,
+            };
+
             // V2 click handler: resolve tile fid/wbk → reach via /api/resolve.
             const features = map.queryRenderedFeatures(
                 [[e.point.x - 15, e.point.y - 15], [e.point.x + 15, e.point.y + 15]],
@@ -1957,9 +2097,27 @@ const MapComponent = () => {
                 ugOptions.push(buildFeatureFromJSON(sf, seg, { fidList }));
             }
 
+            // Land ownership/access + protected-area/admin-boundary hits — built
+            // directly from tile properties (self-contained AdminRecord fields,
+            // no /api/resolve needed). Deduped by layer+admin_id since tile
+            // buffering can return the same polygon twice near a tile edge.
+            const adminHits = map.queryRenderedFeatures(
+                [[e.point.x - 15, e.point.y - 15], [e.point.x + 15, e.point.y + 15]],
+                { layers: ADMIN_INTERACTABLE_LAYERS }
+            );
+            const adminOptions: FeatureOption[] = [];
+            const adminSeen = new Set<string>();
+            for (const hit of adminHits) {
+                const key = `${hit.layer.id}:${hit.properties?.admin_id ?? ''}`;
+                if (adminSeen.has(key)) continue;
+                adminSeen.add(key);
+                adminOptions.push(buildAdminFeatureOption(hit));
+            }
+
             if (!features.length) {
-                if (ugOptions.length) {
-                    presentOptions(ugOptions, e.point);
+                const combined = [...ugOptions, ...adminOptions];
+                if (combined.length) {
+                    presentOptions(combined, e.point, clickContext);
                     return;
                 }
                 // Click on blank map area — close both the info panel and disambig menu.
@@ -1999,8 +2157,9 @@ const MapComponent = () => {
             }
 
             if (!fids.length && !wbks.length) {
-                // No resolvable tile features — fall back to any ungazetted hits.
-                if (ugOptions.length) { presentOptions(ugOptions, e.point); return; }
+                // No resolvable tile features — fall back to any ungazetted/admin hits.
+                const combined = [...ugOptions, ...adminOptions];
+                if (combined.length) { presentOptions(combined, e.point, clickContext); return; }
                 console.debug('[Map] clicked feature has no fid/wbk:', features[0].properties);
                 return;
             }
@@ -2044,8 +2203,9 @@ const MapComponent = () => {
             }
 
             if (candidates.length === 0) {
-                // No tile reaches resolved — fall back to any ungazetted hits.
-                if (ugOptions.length) { presentOptions(ugOptions, e.point); return; }
+                // No tile reaches resolved — fall back to any ungazetted/admin hits.
+                const combined = [...ugOptions, ...adminOptions];
+                if (combined.length) { presentOptions(combined, e.point, clickContext); return; }
                 console.debug('[Map] resolve returned no matching reaches for:', fids, wbks);
                 return;
             }
@@ -2080,10 +2240,14 @@ const MapComponent = () => {
             // Merge ungazetted options (dedup by reach_id) so they appear in the menu
             // alongside overlapping streams/lakes.
             const tileReachIds = new Set(tileOptions.map(o => o.properties.frontend_group_id as string));
-            const options = [...tileOptions, ...ugOptions.filter(o => !tileReachIds.has(o.properties.frontend_group_id as string))];
+            const options = [
+                ...tileOptions,
+                ...ugOptions.filter(o => !tileReachIds.has(o.properties.frontend_group_id as string)),
+                ...adminOptions,
+            ];
 
             if (options.length === 0) return;
-            presentOptions(options, e.point);
+            presentOptions(options, e.point, clickContext);
         });
 
         mapRef.current = map;
@@ -2096,6 +2260,22 @@ const MapComponent = () => {
         const map = mapRef.current;
         if (!map) return;
         setGroupFilter(map, HL_LAYER_IDS, highlightedOption);
+
+        // Land-use options don't have a matching filter-based hl-* layer
+        // (see admin-highlight source setup above) — draw the highlighted
+        // polygon straight from the geometry already captured on the
+        // FeatureOption at click time instead.
+        const adminHlSrc = map.getSource('admin-highlight') as maplibregl.GeoJSONSource | undefined;
+        if (adminHlSrc) {
+            const geom = highlightedOption && isAdminFeatureType(highlightedOption.type)
+                ? highlightedOption.geometry
+                : undefined;
+            adminHlSrc.setData(
+                geom
+                    ? { type: 'FeatureCollection', features: [{ type: 'Feature', geometry: geom as any, properties: {} }] }
+                    : { type: 'FeatureCollection', features: [] }
+            );
+        }
     }, [highlightedOption]);
 
     // Handle selected state changes — filter-based, no event listeners needed.
@@ -2103,6 +2283,21 @@ const MapComponent = () => {
         const map = mapRef.current;
         if (!map) return;
         setGroupFilter(map, SL_LAYER_IDS, selectedFeature);
+
+        // Land-use options: same geometry-driven approach as admin-highlight
+        // (see that effect above) but for the active selection (InfoPanel
+        // open), not just hover/2-tap.
+        const adminSlSrc = map.getSource('admin-selection') as maplibregl.GeoJSONSource | undefined;
+        if (adminSlSrc) {
+            const geom = selectedFeature && isAdminFeatureType(selectedFeature.type)
+                ? selectedFeature.geometry
+                : undefined;
+            adminSlSrc.setData(
+                geom
+                    ? { type: 'FeatureCollection', features: [{ type: 'Feature', geometry: geom as any, properties: {} }] }
+                    : { type: 'FeatureCollection', features: [] }
+            );
+        }
 
         // Sync ungazetted point marker with selection state
         const ugSrc = map.getSource('ungazetted-marker') as maplibregl.GeoJSONSource | undefined;
@@ -2174,6 +2369,7 @@ const MapComponent = () => {
         setHighlightedSearchResult(null);
         setDisambigOptions([]);
         setDisambigPosition(null);
+        setDisambigContext(null);
         isDisambigOpenRef.current = false;
         if (searchPollRef.current) {
             clearInterval(searchPollRef.current);
@@ -2382,6 +2578,7 @@ const MapComponent = () => {
                         if (disambigOptions.length > 0) {
                             setDisambigOptions([]);
                             setDisambigPosition(null);
+                            setDisambigContext(null);
                             isDisambigOpenRef.current = false;
                         }
                         if (selectedFeature && isMobileViewport()) {
@@ -2399,8 +2596,9 @@ const MapComponent = () => {
             <Disclaimer isOpen={disclaimerOpen} onClose={() => setDisclaimerOpen(false)} />
             <IssueReport isOpen={issueReportOpen} onClose={() => setIssueReportOpen(false)} getContext={getIssueContext} />
             {disambigOptions.length > 0 && (
-                <DisambiguationMenu 
+                <DisambiguationMenu
                     options={disambigOptions} position={disambigPosition} highlightedOption={highlightedOption}
+                    dawnDusk={disambigContext?.dawnDusk ?? null} managementUnit={disambigContext?.managementUnit ?? null}
 
                     onHighlight={(option) => {
                         if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);

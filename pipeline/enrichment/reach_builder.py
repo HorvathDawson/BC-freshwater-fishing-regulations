@@ -46,7 +46,7 @@ _MC_RE = _re.compile(r"\bMc([a-z])")
 # to promote a display_name when the FWA gazetteer has none (see
 # _group_polygon_reaches) and to pick a winning source when the same name
 # string is claimed by more than one source (see _build_search_index).
-_SOURCE_PRIORITY = {"direct": 0, "tributary": 1, "admin": 2, "bathymetry": 3, "stocking": 4, "marker": 5}
+_SOURCE_PRIORITY = {"direct": 0, "tributary": 1, "admin": 2, "bathymetry": 3, "stocking": 4, "marker": 5, "alias": 6}
 
 
 def _title_case(s: str) -> str:
@@ -283,6 +283,19 @@ def _group_stream_reaches(
             structured_nv.append({"name": name, "source": "tributary"})
         for name in sorted(admin_only_names):
             structured_nv.append({"name": name, "source": "admin"})
+        # Feature-level aliases from feature_display_names.json (the single
+        # tier0 source of names — also feeds the gauge matcher). Makes e.g.
+        # "Cedar Creek" searchable on the Blakeny Creek reach. Excludes the
+        # display name and names already present from a regulation source.
+        if resolver is not None:
+            present = {e["name"] for e in structured_nv}
+            alias_names: Set[str] = set()
+            for fid in grp["fids"]:
+                st = all_streams.get(fid) or atlas.under_lake_streams.get(fid)
+                blk = st.blk if st is not None else ""
+                alias_names.update(resolver.variants_for_stream(blk=blk, fid=fid))
+            for name in sorted(alias_names - present - {grp["display_name"]}):
+                structured_nv.append({"name": name, "source": "alias"})
         grp["name_variants"] = structured_nv
 
     # Convert to reach_id → reach_data
@@ -434,6 +447,14 @@ def _group_polygon_reaches(
             for entry in extra_names:
                 if entry["name"] != display_name:
                     structured_nv.append(entry)
+
+            # Feature-level aliases from feature_display_names.json (single
+            # tier0 source → also searchable). E.g. "Arrow Reservoir" on the
+            # Upper Arrow Lake reach. Dedup below drops any collisions.
+            if resolver is not None:
+                for name in resolver.variants_for_polygon(wbk):
+                    if name != display_name:
+                        structured_nv.append({"name": name, "source": "alias"})
 
             # Final dedup pass over the complete list (direct + admin +
             # bathymetry + stocking + marker): keep only the first occurrence of each

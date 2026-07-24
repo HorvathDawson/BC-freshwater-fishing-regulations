@@ -69,12 +69,21 @@
     display: none; 
 }
 
-.panel-header { 
-    padding: 16px 24px; 
-    border-bottom: 2px solid var(--border); 
-    background: var(--bg-subtle); 
-    cursor: pointer; 
-    touch-action: none; 
+.panel-header {
+    padding: 16px 24px;
+    border-bottom: 2px solid var(--border);
+    background: var(--bg-subtle);
+    cursor: pointer;
+    touch-action: none;
+}
+
+/* Waterbodies with content tabs: the black .content-tab-bar band that
+   follows (directly, or after the lighter dawn-dusk/section-tab-bar rows)
+   is the divider — the header's own black border would just double it up
+   right above the tab bar's identical black. Non-tabbed panels (tidal
+   waters, admin/land polygons) keep the plain border above. */
+.panel-header--tabbed {
+    border-bottom: none;
 }
 
 .mobile-handle-bar { 
@@ -509,38 +518,8 @@
     color: var(--text);
 }
 
-/* Bathymetry depth-map PDFs (WSA lake survey maps) */
-.bathymetry-section {
-    margin-bottom: 14px;
-}
-
-.bathymetry-header {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    margin-bottom: 8px;
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    color: var(--text-secondary);
-}
-
-.bathymetry-count {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 16px;
-    height: 16px;
-    padding: 0 5px;
-    border-radius: 8px;
-    background: var(--border-light);
-    color: var(--text-secondary);
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 0;
-}
-
+/* Bathymetry depth-map PDFs (WSA lake survey maps) — lives in its own
+   content tab now, so this is just the card list, full width. */
 .bathymetry-list {
     display: flex;
     flex-direction: column;
@@ -628,6 +607,47 @@
 
 .bathymetry-card:hover .bathymetry-card-open {
     color: var(--text);
+}
+
+/* Stocking-history list (full-panel sub-view) — two lines per release
+   instead of a wide table, so every column fits the panel width with no
+   horizontal scroll: date + quantity (the two numbers worth scanning fast)
+   on line 1, species/life-stage/weight as secondary text on line 2. */
+.stocking-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.stocking-row {
+    padding: 9px 2px;
+    border-bottom: 1px solid var(--border-light);
+}
+
+.stocking-row-line1 {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+}
+
+.stocking-row-date {
+    white-space: nowrap;
+}
+
+.stocking-row-qty {
+    font-variant-numeric: tabular-nums;
+    color: var(--text-secondary);
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.stocking-row-line2 {
+    margin-top: 2px;
+    font-size: 11px;
+    color: var(--text-secondary);
 }
 
 /* Depth-map PDF viewer modal */
@@ -1502,6 +1522,124 @@
     .reg-text-body {
         font-size: 13px;
     }
+}
+
+/* ── Content Tab Bar ─────────────────────────────────────────────────────── */
+
+/*
+ * Rules / Stocking / Bathy map / Gauges — a full-width dark band directly
+ * under the header (and under the light "Sections" tab bar, when present).
+ * Distinct purpose from Section Tab Bar below: that picks which river
+ * segment is active, this picks which content category is shown for it.
+ * Always rendered (Rules is always available), underline-style active state
+ * reads clearly against the solid black background.
+ */
+.content-tab-bar {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    flex-shrink: 0;
+    background: var(--border);
+}
+
+.content-tab-bar::-webkit-scrollbar {
+    display: none;
+}
+
+.content-tab {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    flex: 1 1 0;
+    min-width: fit-content;
+    padding: 11px 8px;
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: rgba(255, 255, 255, 0.6);
+    font-family: var(--font-sans);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: color 0.12s ease, border-color 0.12s ease, background 0.12s ease;
+}
+
+.content-tab:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.content-tab.active {
+    color: #fff;
+    border-bottom-color: #fff;
+}
+
+.content-tab:focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: -2px;
+}
+
+.content-tab-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 15px;
+    height: 15px;
+    padding: 0 4px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.18);
+    color: #fff;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0;
+}
+
+.content-tab.active .content-tab-count {
+    background: #fff;
+    color: #000;
+}
+
+/* Small count/subtitle next to a tab's own <h3> header, e.g. "STOCKING"
+   paired with "50 releases on record" — same role .section-header-actions
+   plays for REGULATIONS, simplified to plain text since these tabs have no
+   filter/zoom controls to share the row with. */
+.tab-section-count {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    white-space: nowrap;
+}
+
+/* Empty-state placeholder (currently only Gauges, ahead of a real data
+   source) — centered icon + message, distinct from .no-regulations'
+   single-line treatment since it's the tab's only content. */
+.tab-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 8px;
+    padding: 40px 16px;
+    color: var(--text-muted);
+}
+
+.tab-empty-state p {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.tab-empty-state span {
+    font-size: 12px;
+    line-height: 1.4;
+    max-width: 240px;
 }
 
 /* ── Section Tab Bar ─────────────────────────────────────────────────────── */

@@ -113,7 +113,7 @@ ADMIN_ZOOM_THRESHOLDS_AGGRESSIVE: List[Tuple[float, int]] = sorted(
 MAIN_FLOW_CODES = {1000, 1050, 1200, 1250, 1410, 1450}
 
 # Atlas pickle version — bump when the schema changes.
-_ATLAS_VERSION = 11
+_ATLAS_VERSION = 12
 
 
 # ---------------------------------------------------------------------------
@@ -734,6 +734,19 @@ class FreshWaterAtlas:
         frontend's layer menu (not the admin-visibility regulation system)
         — always loaded whole, no per-feature IDs beyond OWNER_TYPE (one row
         per ownership type, Private included).
+
+        ParcelMap BC's "parcel fabric" only contains titled, surveyed
+        parcels — the vast majority of BC's Crown land was never formally
+        surveyed into a parcel at all, so it's simply absent from this
+        source, not merely uncategorized. Summing every OWNER_TYPE bucket
+        as fetched covers only ~10% of BC's land area, almost all of it
+        clustered near roads/development (the parts that got surveyed) —
+        nowhere near the real ~94% Crown-land figure. `_replace_untitled_provincial_with_complement`
+        fixes this: rather than trusting the sparse "Untitled Provincial"
+        rows the parcel fabric happens to tag, it recomputes that bucket as
+        the geometric complement of the province boundary — everything not
+        already accounted for by a reliable category (Private, the other
+        Crown-ish types, or Indigenous/treaty land) is Crown by definition.
         """
         if "land_parcels_crown" not in available:
             logger.warning("'land_parcels_crown' layer not found in GPKG — skipping")
@@ -762,6 +775,85 @@ class FreshWaterAtlas:
             )
         logger.info(f"Loaded {len(self.land_parcels_crown):,} land ownership polygons (Crown/Public + Private)")
 
+        self._replace_untitled_provincial_with_complement()
+
+    def _replace_untitled_provincial_with_complement(self) -> None:
+        """Recompute 'Untitled Provincial' as the province-wide complement.
+
+        "Untitled Provincial" is supposed to mean "provincial Crown land
+        without a formal survey/title" — i.e. exactly the vast unsurveyed
+        backcountry that's missing from the parcel fabric. So instead of
+        keeping whatever sparse rows ParcelMap BC happened to tag that way,
+        replace it with: province boundary minus everything we DO reliably
+        have — every other OWNER_TYPE bucket (Private, Crown Provincial,
+        Crown Agency, Federal, Local Government, First Nations, Mixed
+        Ownership, Unclassified) and Indigenous/treaty land (`aboriginal_lands`
+        — legally distinct from Crown land, e.g. Indian Reserve land held in
+        trust rather than Crown-owned outright, and already carries its own
+        separate advisory, so it shouldn't also render as generic "Crown
+        land"). Whatever's left over inside the province boundary is Crown
+        by construction — this is what actually gets BC's real ~94%
+        Crown-land figure in the ballpark, instead of the ~10% the raw
+        parcel fabric alone covers.
+
+        Water surfaces (lakes/wetlands/manmade) are deliberately NOT
+        subtracted — every other admin overlay in this atlas (parks, WMA,
+        land_access, etc.) already renders over water where it geographically
+        applies (e.g. a reservoir inside a closed watershed), and subtracting
+        would mean unioning ~700k+ individual water polygons, which is a
+        very different performance profile than the handful of large,
+        already-dissolved polygons unioned here.
+        """
+        if not self._bc_boundary:
+            logger.warning(
+                "No _bc_boundary (WMU union) available — leaving 'Untitled "
+                "Provincial' as the sparse parcel-fabric rows, uncorrected."
+            )
+            return
+
+        accounted_for = [
+            rec.geometry
+            for owner_type, rec in self.land_parcels_crown.items()
+            if owner_type != "Untitled Provincial"
+        ]
+        accounted_for.extend(rec.geometry for rec in self.aboriginal_lands.values())
+
+        if not accounted_for:
+            logger.warning(
+                "No accounted-for land parcels to subtract — skipping "
+                "Untitled Provincial complement."
+            )
+            return
+
+        subtract_union = unary_union(accounted_for)
+        if not subtract_union.is_valid:
+            subtract_union = subtract_union.buffer(0)
+
+        complement = self._bc_boundary.difference(subtract_union)
+        if not complement.is_valid:
+            complement = complement.buffer(0)
+
+        if complement.is_empty:
+            logger.warning(
+                "Untitled Provincial complement came out empty — leaving "
+                "existing parcel-fabric rows in place."
+            )
+            return
+
+        area = complement.area
+        self.land_parcels_crown["Untitled Provincial"] = AdminRecord(
+            admin_id="Untitled Provincial",
+            geometry=complement,
+            display_name="Untitled Provincial",
+            admin_type="land_parcels_crown",
+            area=area,
+            minzoom=_area_minzoom(area, ADMIN_ZOOM_THRESHOLDS),
+        )
+        logger.info(
+            f"Untitled Provincial recomputed as province-boundary complement: "
+            f"{area / 1e6:,.0f} km² (was a sparse parcel-fabric subset before)"
+        )
+
     # ------------------------------------------------------------------
     # Point-of-interest layers (water access points, waterfalls)
     # ------------------------------------------------------------------
@@ -775,11 +867,16 @@ class FreshWaterAtlas:
         a handful of features (e.g. a pier mapped as its outline rather than
         a single node) — those are reduced to their centroid so every record
         is a renderable point icon.
+
+        Piers/docks/boat launches/fishing platforms tagged access=private or
+        access=no in OSM are excluded — they're not public infrastructure and
+        shouldn't be advertised as a place to reach the water.
         """
         specs = [
             ("water_access_points", self.water_access_points, "poi_type"),
             ("waterfalls", self.waterfalls, None),
         ]
+        skipped_private = 0
         for layer_name, target, poi_type_col in specs:
             if layer_name not in available:
                 logger.warning(f"'{layer_name}' layer not found in GPKG — skipping")
@@ -790,6 +887,10 @@ class FreshWaterAtlas:
             ):
                 pid = str(row.get("osm_id") or "")
                 if not pid:
+                    continue
+                access = str(row.get("access") or "").strip().lower()
+                if access in ("private", "no"):
+                    skipped_private += 1
                     continue
                 geom = row.geometry
                 if geom is None or geom.is_empty:
@@ -812,6 +913,10 @@ class FreshWaterAtlas:
                     extra=json.dumps(extra) if extra else "",
                 )
             logger.info(f"Loaded {len(target):,} {layer_name}")
+        if skipped_private:
+            logger.info(
+                f"Skipped {skipped_private:,} point features tagged access=private/no"
+            )
 
     # ------------------------------------------------------------------
     # BC Forest Service Roads
@@ -928,11 +1033,14 @@ class FreshWaterAtlas:
 
             wbk = str(attrs.get("waterbody_key") or "")
             display_name = attrs.get("gnis_name") or ""
+            gnis_id = str(attrs.get("gnis_id") or "")
             # Inherit name from graph's upstream BFS when gnis_name is empty
             if not display_name:
                 inherited = attrs.get("inherited_gnis_names")
                 if inherited and len(inherited) == 1:
                     display_name = inherited[0].get("gnis_name", "")
+                    if not gnis_id:
+                        gnis_id = str(inherited[0].get("gnis_id", "") or "")
             blk = str(attrs.get("blue_line_key") or "")
             stream_order = attrs.get("stream_order")
             stream_magnitude = attrs.get("stream_magnitude")
@@ -947,6 +1055,7 @@ class FreshWaterAtlas:
                 stream_order=stream_order,
                 stream_magnitude=stream_magnitude,
                 waterbody_key=wbk,
+                gnis_id=gnis_id,
                 fwa_watershed_code=fwa_wsc,
                 watershed_code_50k=wsc_50k,
             )
@@ -1005,7 +1114,9 @@ class FreshWaterAtlas:
                     stream_order=rec.stream_order,
                     stream_magnitude=rec.stream_magnitude,
                     waterbody_key=rec.waterbody_key,
+                    gnis_id=rec.gnis_id,
                     fwa_watershed_code=rec.fwa_watershed_code,
+                    watershed_code_50k=rec.watershed_code_50k,
                     minzoom=mz,
                 )
             return stamped

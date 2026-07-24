@@ -1,16 +1,25 @@
 import React, { useRef, useLayoutEffect, useState } from 'react';
-import { Eye } from 'lucide-react';
+import { Eye, Sunrise, Sunset, MapPin } from 'lucide-react';
 import { Icon } from '@iconify/react';
-import { 
-    getIconForType, 
-    getColorForType, 
+import {
+    getIconForType,
+    getColorForType,
     getFeatureDisplayName,
     getUniqueAliases,
     buildAliasLines,
     isMobileViewport,
+    formatDawnDuskTime,
+    isAdminFeatureType,
+    ADMIN_TYPE_INFO,
+    ADMIN_TYPE_SEVERITY,
     type FeatureOption,
     type NameVariant,
 } from '../utils/featureUtils';
+
+/** Human-readable type label — admin/land types get their category label, waterbodies show their raw type. */
+const getTypeLabel = (type: string): string =>
+    isAdminFeatureType(type) ? ADMIN_TYPE_INFO[type].label : type;
+import type { DawnDuskTimes } from '../hooks/useDawnDusk';
 import './DisambiguationMenu.css';
 
 interface DisambiguationMenuProps {
@@ -20,9 +29,13 @@ interface DisambiguationMenuProps {
     onSelect: (option: FeatureOption) => void;
     onHighlight: (option: FeatureOption | null) => void;
     onClose: () => void;
+    /** Civil dawn/dusk for the clicked location, computed at click time. */
+    dawnDusk?: DawnDuskTimes | null;
+    /** Name of the fishing management unit the click landed in, if any. */
+    managementUnit?: string | null;
 }
 
-const DisambiguationMenu = ({ options, position, highlightedOption, onSelect, onHighlight, onClose }: DisambiguationMenuProps) => {
+const DisambiguationMenu = ({ options, position, highlightedOption, onSelect, onHighlight, onClose, dawnDusk, managementUnit }: DisambiguationMenuProps) => {
     const menuRef = useRef<HTMLDivElement>(null);
     const [menuStyle, setMenuStyle] = useState<React.CSSProperties>({
         visibility: 'hidden',
@@ -75,10 +88,20 @@ const DisambiguationMenu = ({ options, position, highlightedOption, onSelect, on
 
     if (options.length === 0) return null;
 
-    // Sort: named lakes/manmade → ungazetted → named wetlands → named streams → unnamed streams → unnamed wetlands
+    // Sort: named lakes/manmade → ungazetted → named wetlands → named streams →
+    // unnamed streams → unnamed wetlands, then — always below every
+    // waterbody, named or not — land-use options ordered by severity (most
+    // restrictive/severe first, see ADMIN_TYPE_SEVERITY).
     const TYPE_ORDER: Record<string, number> = { lake: 0, manmade: 0, ungazetted: 1, wetland: 2, stream: 3 };
     const UNNAMED_TYPE_ORDER: Record<string, number> = { lake: 0, manmade: 0, stream: 1, wetland: 2, ungazetted: 1 };
     const sorted = [...options].sort((a, b) => {
+        const aIsLand = isAdminFeatureType(a.type);
+        const bIsLand = isAdminFeatureType(b.type);
+        if (aIsLand !== bIsLand) return aIsLand ? 1 : -1;
+        if (isAdminFeatureType(a.type) && isAdminFeatureType(b.type)) {
+            return ADMIN_TYPE_SEVERITY[a.type] - ADMIN_TYPE_SEVERITY[b.type];
+        }
+
         const aName = getFeatureDisplayName(a.properties, a.type) || '';
         const bName = getFeatureDisplayName(b.properties, b.type) || '';
         const aUnnamed = /^unnamed/i.test(aName) || aName === '';
@@ -106,6 +129,21 @@ const DisambiguationMenu = ({ options, position, highlightedOption, onSelect, on
                     <span>MULTIPLE FEATURES ({options.length})</span>
                     <button onClick={(e) => { e.stopPropagation(); onClose(); }} className="close-x" aria-label="Close feature menu">×</button>
                 </div>
+                {(managementUnit || dawnDusk) && (
+                    <div className="menu-context-row">
+                        {managementUnit && (
+                            <span className="menu-context-item">
+                                <MapPin size={12} /> {managementUnit}
+                            </span>
+                        )}
+                        {dawnDusk && (
+                            <span className="menu-context-item">
+                                <Sunrise size={12} /> {formatDawnDuskTime(dawnDusk.dawn)}
+                                <Sunset size={12} /> {formatDawnDuskTime(dawnDusk.dusk)}
+                            </span>
+                        )}
+                    </div>
+                )}
                 <div className="menu-list" role="listbox" aria-label="Overlapping features">
                     {sorted.map((option, idx) => {
                         const isHighlighted = highlightedOption?.id === option.id;
@@ -164,7 +202,7 @@ const DisambiguationMenu = ({ options, position, highlightedOption, onSelect, on
                                                 </>
                                             );
                                         })()}
-                                        <span className="type">{option.type}</span>
+                                        <span className="type">{getTypeLabel(option.type)}</span>
                                     </div>
                                 </button>
                                 {isMobile && (

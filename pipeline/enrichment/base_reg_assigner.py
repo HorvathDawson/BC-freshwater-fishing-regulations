@@ -248,12 +248,21 @@ def _precompute_admin_features(
     import numpy as np
     from shapely import STRtree
 
+    # Simplify before buffering: some admin layers (e.g. dissolved province-wide
+    # ownership/reserve masks) carry millions of vertices, and GEOS buffer cost
+    # scales super-linearly with vertex count. A tolerance well under buffer_m
+    # shifts the boundary by a negligible amount relative to the buffer offset,
+    # so it doesn't change which streams/waterbodies end up intersecting.
+    simplify_tolerance = min(buffer_m * 0.05, 25.0)
+
     # Buffer admin polygons and build tree
     buffered = []
     for p in admin_polygons:
         geom = p if not hasattr(p, "geometry") else p.geometry
         if not geom.is_valid:
             geom = geom.buffer(0)
+        if simplify_tolerance > 0:
+            geom = geom.simplify(simplify_tolerance, preserve_topology=True)
         buffered.append(geom.buffer(buffer_m))
 
     tree = STRtree(buffered)

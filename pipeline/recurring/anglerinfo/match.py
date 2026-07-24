@@ -43,9 +43,11 @@ Scope (deliberately narrow for this first pass)
     been measured yet.
   * Reads already-fetched data from this directory's shared
     `anglerinfo.db` — `fidq_stocking_records`, `map_markers` (both
-    fetch_stocking.py), and `bathy_surveys` (fetch_bathymetry.py) — rather
-    than re-fetching from FIDQ/WSA/gofishbc. `map_markers` matches on its
-    own `wbid` column directly (gofishbc's marker data, not FIDQ's stocking
+    fetch_stocking.py), and `bathy_surveys` + `bathy_surveys_wfs` (both
+    fetch_bathymetry.py — the latter a gap-fill fallback for identifiers
+    the CSV reference table is missing) — rather than re-fetching from
+    FIDQ/WSA/gofishbc. `map_markers` matches on its own `wbid` column directly
+    (gofishbc's marker data, not FIDQ's stocking
     history — a marker can exist with no stocking record at all).
   * Every matched row also carries every other name variant its own source
     has, alongside the primary `name`/`wdic_gazetted_name` pair: FIDQ's own
@@ -170,6 +172,16 @@ def load_stocking_records(conn: sqlite3.Connection) -> List[SourceRecord]:
     return list(seen.values())
 
 
+def _bathy_source_record(ident: str, name: str, map_title: str) -> Optional[SourceRecord]:
+    ident = (ident or "").strip()
+    if not ident:
+        return None
+    name = (name or "").strip()
+    map_title = (map_title or "").strip()
+    variants = [map_title] if map_title and map_title.upper() != name.upper() else []
+    return SourceRecord("bathymetry", ident, ident, name, variants)
+
+
 def load_bathymetry_records(conn: sqlite3.Connection) -> List[SourceRecord]:
     if not _table_exists(conn, "bathy_surveys"):
         logger.warning("bathy_surveys not in %s — run fetch_bathymetry.py first, skipping.", DB_PATH)
@@ -179,13 +191,33 @@ def load_bathymetry_records(conn: sqlite3.Connection) -> List[SourceRecord]:
     ).fetchall()
     seen: Dict[str, SourceRecord] = {}
     for ident, name, map_title in rows:
-        ident = (ident or "").strip()
-        if not ident or ident in seen:
+        record = _bathy_source_record(ident, name, map_title)
+        if record is None or record.identifier in seen:
             continue
-        name = (name or "").strip()
-        map_title = (map_title or "").strip()
-        variants = [map_title] if map_title and map_title.upper() != name.upper() else []
-        seen[ident] = SourceRecord("bathymetry", ident, ident, name, variants)
+        seen[record.identifier] = record
+
+    # bathy_surveys_wfs (WHSE_FISH.BATH_SURVEY_MAP_SHEETS_SVW's own tabular
+    # attributes, fetched alongside the survey-sheet polygons) covers
+    # identifiers the CSV reference table above is missing — confirmed live,
+    # 83 identifiers incl. HARRISON LAKE / 00081HARR, all matching WDIC
+    # cleanly. Gap-fill only: tagged the same "bathymetry" source so it
+    # flows through match_final/export.py exactly like a CSV row, and never
+    # overrides one that's already present.
+    if _table_exists(conn, "bathy_surveys_wfs"):
+        wfs_rows = conn.execute(
+            """SELECT identifier, gazetted_name, map_title FROM bathy_surveys_wfs WHERE identifier != ''"""
+        ).fetchall()
+        for ident, name, map_title in wfs_rows:
+            record = _bathy_source_record(ident, name, map_title)
+            if record is None or record.identifier in seen:
+                continue
+            seen[record.identifier] = record
+    else:
+        logger.warning(
+            "bathy_surveys_wfs not in %s — run fetch_bathymetry.py without "
+            "--csv-only for full coverage.", DB_PATH,
+        )
+
     return list(seen.values())
 
 
