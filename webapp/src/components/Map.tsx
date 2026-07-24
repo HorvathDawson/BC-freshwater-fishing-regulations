@@ -1996,17 +1996,30 @@ const MapComponent = () => {
             map.addSource('gauge-points', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
             // Gauges read as a distinct, first-class layer — bigger than the
             // amenity POIs (own size ramp, not POI_ICON_SIZE_EXPR).
+            // Visible from a lower zoom so gauges are findable when zoomed out.
+            const GAUGE_MINZOOM = 8;
             const GAUGE_BASE_SIZE = [
                 'interpolate', ['linear'], ['zoom'],
-                11, 0.85,
-                16, 1.25,
+                8, 0.7,
+                11, 0.9,
+                16, 1.3,
                 19, 1.9,
+            ] as unknown as number;
+            // Active-gauge size: the base ramp pre-multiplied ~1.7x. MapLibre
+            // forbids nesting a zoom expression inside another (['*', <zoom
+            // interp>, 1.7] throws), so bake the factor into a top-level ramp.
+            const GAUGE_ACTIVE_SIZE = [
+                'interpolate', ['linear'], ['zoom'],
+                8, 1.2,
+                11, 1.55,
+                16, 2.2,
+                19, 3.2,
             ] as unknown as number;
             map.addLayer({
                 id: 'gauge-points-icon',
                 type: 'symbol',
                 source: 'gauge-points',
-                minzoom: 11,
+                minzoom: GAUGE_MINZOOM,
                 layout: {
                     'icon-image': 'icon-gauge',
                     'icon-size': GAUGE_BASE_SIZE,
@@ -2022,11 +2035,11 @@ const MapComponent = () => {
                 id: 'gauge-points-active',
                 type: 'symbol',
                 source: 'gauge-points',
-                minzoom: 11,
+                minzoom: GAUGE_MINZOOM,
                 filter: ['==', ['get', 'station_id'], ' '],
                 layout: {
                     'icon-image': 'icon-gauge',
-                    'icon-size': ['*', GAUGE_BASE_SIZE, 1.7] as unknown as number,
+                    'icon-size': GAUGE_ACTIVE_SIZE,
                     'icon-allow-overlap': true,
                     'icon-padding': 4,
                 },

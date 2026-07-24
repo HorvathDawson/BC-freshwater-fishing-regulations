@@ -34,10 +34,18 @@ import './InfoPanel.css';
 /** Fetch every PDF and merge them, in order, into a single PDF byte array. */
 async function buildCombinedPdf(urls: string[]): Promise<Uint8Array> {
     const merged = await PDFDocument.create();
-    for (const url of urls) {
-        const res = await fetch(url);
-        if (!res.ok) throw new Error(`Failed to fetch ${url}: ${res.status}`);
-        const src = await PDFDocument.load(await res.arrayBuffer());
+    // Fetch every sheet in parallel — the old sequential await-in-loop meant a
+    // lake with N survey sheets waited for N round-trips back to back, which is
+    // what made "lots of them" take forever to open. Merge in original order.
+    const buffers = await Promise.all(
+        urls.map(async (url) => {
+            const res = await fetch(url);
+            if (!res.ok) throw new Error(`Failed to fetch ${url}: ${res.status}`);
+            return res.arrayBuffer();
+        }),
+    );
+    for (const buf of buffers) {
+        const src = await PDFDocument.load(buf);
         const pages = await merged.copyPages(src, src.getPageIndices());
         pages.forEach((p) => merged.addPage(p));
     }
@@ -186,9 +194,9 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
             window.open(urls[0], '_blank', 'noopener,noreferrer');
             return;
         }
-        // Open the tab synchronously within the click gesture so Safari's popup
-        // blocker doesn't reject the (async) navigation below.
-        const tab = window.open('', '_blank');
+        // Merge FIRST (the in-app fish spinner covers the wait), then open the
+        // finished PDF in one new tab — no more blank placeholder tab that sits
+        // empty while the merge runs.
         setPdfBusy(true);
         try {
             const bytes = await buildCombinedPdf(urls);
@@ -199,19 +207,13 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                 bytes.byteOffset + bytes.byteLength,
             ) as ArrayBuffer;
             const blobUrl = URL.createObjectURL(new Blob([buffer], { type: 'application/pdf' }));
-            if (tab) {
-                tab.location.href = blobUrl;
-            } else {
-                // Popup was blocked — fall back to a fresh window.open.
-                window.open(blobUrl, '_blank', 'noopener,noreferrer');
-            }
+            window.open(blobUrl, '_blank', 'noopener,noreferrer');
             // Free the blob once the new tab has had time to load it.
             window.setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
         } catch (err) {
             console.error('[InfoPanel] failed to combine depth maps', err);
             // Fall back to the first survey so the user still gets a map.
-            if (tab) tab.location.href = urls[0];
-            else window.open(urls[0], '_blank', 'noopener,noreferrer');
+            window.open(urls[0], '_blank', 'noopener,noreferrer');
         } finally {
             setPdfBusy(false);
         }
@@ -354,11 +356,22 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
             .then(stations => {
                 if (cancelled) return;
                 setGaugeStations(stations);
-                setSelectedGauge(stations.length ? stations[0].id : null);
+                // Prefer the specific gauge the user clicked on the map — it's
+                // carried on the selected feature as _gauge_station_id (set for
+                // BOTH the direct-select and disambiguation-menu paths). Fall
+                // back to the first station when opened any other way.
+                const clicked = feature?.properties?._gauge_station_id != null
+                    ? String(feature.properties._gauge_station_id) : null;
+                setSelectedGauge(
+                    clicked && stations.some(s => s.id === clicked)
+                        ? clicked
+                        : (stations.length ? stations[0].id : null),
+                );
             })
             .catch(() => { if (!cancelled) setGaugeStations([]); });
         return () => { cancelled = true; };
-    }, [activeSection, feature?.properties.frontend_group_id, feature?.properties.waterbody_key]);
+    }, [activeSection, feature?.properties.frontend_group_id, feature?.properties.waterbody_key,
+        feature?.properties._gauge_station_id]);
 
     // Active content tab (Rules / Stocking / Bathy map / Gauges). Seeded once
     // from the URL's ?tab= param (deep-linking, e.g. a shared Stocking-tab
@@ -1479,6 +1492,14 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
             {loadingRegs && (
                 <div className="regs-loading-overlay" role="status" aria-label="Loading regulations">
                     <FishLoader size={200} />
+                </div>
+            )}
+
+            {/* Depth-map combine overlay — merging multiple survey PDFs can take
+                a moment, so show the same fish spinner while it runs. */}
+            {pdfBusy && (
+                <div className="regs-loading-overlay" role="status" aria-label="Preparing depth maps">
+                    <FishLoader size={200} label="Combining depth maps…" />
                 </div>
             )}
 
