@@ -43,17 +43,13 @@ echo "Environment: $DEPLOY_ENV (bucket: $R2_BUCKET)"
 mkdir -p "$DEPLOY_DIR" "$MATCHING_DIR"
 
 # ── Step 0: Fetch data files from R2 if not present locally ─────────
-# In CI there's no pipeline output — pull tier0 + match_table from R2.
-# Use wrangler (direct R2 API) when available to avoid Cloudflare bot
-# protection blocking GHA runner IPs on the public worker URL.
+# In CI there's no pipeline output — pull tier0 + match_table from R2 via the
+# shared S3/boto3 helper (direct R2 API, no bot-protection on the public origin).
 
+# R2 I/O goes through the shared S3/boto3 helper (same transport as every cron).
 _fetch_r2_file() {
   local r2_key="$1" dest="$2"
-  if command -v wrangler &>/dev/null && [[ -n "${CLOUDFLARE_ACCOUNT_ID:-}" ]]; then
-    npx wrangler r2 object get "$R2_BUCKET/$r2_key" --file "$dest" --remote
-  else
-    curl -sfSL "$R2_ORIGIN/$r2_key" -o "$dest"
-  fi
+  python -m pipeline.recurring.r2_storage get "$r2_key" "$dest"
 }
 
 if [[ ! -f "$DEPLOY_DIR/tier0.json" ]]; then
@@ -69,28 +65,34 @@ fi
 # ── Step 1: Scrape ──────────────────────────────────────────────────
 
 echo "── Scraping in-season changes ──"
-python -m pipeline.recurring.in_season_scraper \
+python -m pipeline.recurring.in_season.scraper \
   --match-table "$DEPLOY_DIR/match_table.json" \
   --quiet
 
 # ── Step 2: Resolve ─────────────────────────────────────────────────
 
 echo "── Resolving to reach IDs ──"
-python -m pipeline.recurring.in_season_resolver \
+mkdir -p "$DEPLOY_DIR/cron/in-season"
+python -m pipeline.recurring.in_season.resolver \
   --tier0 "$DEPLOY_DIR/tier0.json" \
   --match-table "$DEPLOY_DIR/match_table.json" \
+  --out "$DEPLOY_DIR/cron/in-season/in_season.json" \
   --quiet
+# Legacy dual-write (one release) so the webapp can cut over to cron/ paths
+# without an outage — see plan Part F3. The workflow's jq summary reads either.
+cp "$DEPLOY_DIR/cron/in-season/in_season.json" "$DEPLOY_DIR/in_season.json"
 
-echo "✅ in_season.json → $DEPLOY_DIR/in_season.json"
+echo "✅ in_season.json → $DEPLOY_DIR/cron/in-season/in_season.json (+ legacy root)"
 
 # ── Step 3: Upload / seed (optional) ────────────────────────────────
 
 if [[ "${1:-}" == "--upload" ]]; then
   echo "── Uploading to R2 ($R2_BUCKET) ──"
-  npx wrangler r2 object put "$R2_BUCKET/in_season.json" \
-    --file "$DEPLOY_DIR/in_season.json" \
-    --content-type "application/json" \
-    --remote
+  # New canonical key + legacy key (dual-write during cutover).
+  for key in "cron/in-season/in_season.json" "in_season.json"; do
+    python -m pipeline.recurring.r2_storage put \
+      "$DEPLOY_DIR/cron/in-season/in_season.json" "$key"
+  done
   echo "✅ Uploaded to R2"
 
 elif [[ "${1:-}" == "--seed" ]]; then

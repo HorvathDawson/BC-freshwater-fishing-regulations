@@ -15,8 +15,8 @@ import tempfile
 import unittest
 from pathlib import Path
 
-import fetch_hydat as fh
-import hydro_poc
+from pipeline.recurring.hydro import fetch_hydat as fh
+from pipeline.recurring.hydro import hydro_poc
 
 
 class TestPercentiles(unittest.TestCase):

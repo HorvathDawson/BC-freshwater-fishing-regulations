@@ -45,18 +45,44 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import sqlite3
 import sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-import yaml
+from .hydro_poc import DB_PATH
 
-from hydro_poc import DB_PATH
+
+def _default_out_dir() -> Path:
+    """Where the R2-ready hydro artifacts are written.
+
+    Precedence: ``HYDRO_OUT_DIR`` env override → config ``output.pipeline.cron``
+    + ``hydro`` (the unified cron subtree, deploy/cron/hydro) → repo-relative
+    fallback. Env override keeps this portable to a container with no repo.
+    """
+    env = os.environ.get("HYDRO_OUT_DIR")
+    if env:
+        return Path(env)
+    try:
+        from project_config import ProjectConfig
+
+        return ProjectConfig().get_path(
+            "output", "pipeline", "cron", default="output/pipeline/deploy/cron"
+        ) / "hydro"
+    except Exception:
+        return (
+            Path(__file__).resolve().parents[3]
+            / "output"
+            / "pipeline"
+            / "deploy"
+            / "cron"
+            / "hydro"
+        )
+
 
 HERE = Path(__file__).parent
-DEFAULT_OUT = HERE / "output" / "hydro"
-_REPO = HERE.parents[1]
+DEFAULT_OUT = _default_out_dir()
 
 # Parameter ids (see hydro_poc.PARAMETERS)
 P_LEVEL_DAILY, P_DISCHARGE_DAILY = "3", "6"
@@ -186,17 +212,27 @@ class _FidReachResolver:
 
 
 def _deploy_shard_root() -> Path | None:
-    """``output/pipeline/deploy/shards/v{shard_version}`` from config.yaml."""
-    cfg_path = _REPO / "config.yaml"
-    if not cfg_path.exists():
+    """Local dir holding ``shards/v{shard_version}/fids/*`` for fid→reach_id.
+
+    Precedence: ``HYDRO_SHARD_ROOT`` env override (a CI/container step pulls the
+    needed fid buckets from R2 into this dir — the resolver reads local disk, not
+    R2) → config ``output.pipeline.deploy`` + ``shard_version``. Returns None if
+    unresolved, in which case stream reach_ids stay null (caller warns).
+    """
+    env = os.environ.get("HYDRO_SHARD_ROOT")
+    if env:
+        return Path(env)
+    try:
+        from project_config import ProjectConfig
+
+        cfg = ProjectConfig()
+        deploy = cfg.get_path("output", "pipeline", "deploy")
+        version = cfg.config.get("output", {}).get("pipeline", {}).get("shard_version")
+        if version is None:
+            return None
+        return deploy / "shards" / f"v{version}"
+    except Exception:
         return None
-    cfg = yaml.safe_load(cfg_path.read_text())
-    out = cfg.get("output", {}).get("pipeline", {})
-    deploy = out.get("deploy")
-    version = out.get("shard_version")
-    if not deploy or version is None:
-        return None
-    return _REPO / deploy / "shards" / f"v{version}"
 
 
 def _fwa_links(conn) -> dict:
@@ -288,8 +324,16 @@ def build_stations_index(conn) -> dict:
                 "text": cc[3], "latest_discharge": cc[4], "latest_stage": cc[5],
             },
         })
-    return {"generated_at": now,
-            "attribution": attribution[0] if attribution else None,
+    from pipeline.recurring.provenance import provenance
+
+    base = provenance(
+        generator="export_hydro",
+        source="Environment and Climate Change Canada (Wateroffice) + BC River Forecast Centre",
+        source_url="https://wateroffice.ec.gc.ca/",
+        attribution=attribution[0] if attribution else None,
+    )
+    return {**base,
+            "generated_at": now,  # keep the DB-derived timestamp as the canonical one
             "forecast_attribution": forecast_attribution[0] if forecast_attribution else None,
             "count": len(stations), "stations": stations}
 

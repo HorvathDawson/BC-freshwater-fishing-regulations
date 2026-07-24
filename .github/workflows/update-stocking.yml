@@ -1,0 +1,41 @@
+name: Update Stocking
+
+# Resolves FIDQ stocking data → reach IDs and uploads stocking.json. Mirrors
+# update-in-season.yml. Runs daily overnight PST.
+#
+# NB: the resolver reads the anglerinfo.db fetch+match artifact. update-stocking.sh
+# pulls poly_reaches.json from R2, but anglerinfo.db is refreshed on its own separate
+# (heavier, manual) cadence — this cron re-resolves the current data. If anglerinfo.db
+# is unavailable in CI, the resolve is a no-op/skip; wire the anglerinfo fetch when
+# that pipeline is CI-ready.
+on:
+  schedule:
+    - cron: '0 9 * * *'   # ~01:00 PST (09:00 UTC)
+  workflow_dispatch: {}
+
+concurrency:
+  group: stocking-${{ github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      # R2 I/O is pure-Python now (S3/boto3 via pipeline.recurring.r2_storage).
+      - name: Install dependencies
+        run: pip install pyyaml python-dotenv boto3
+
+      - name: Resolve and upload stocking data
+        run: bash scripts/update-stocking.sh --upload
+        env:
+          DEPLOY_ENV: ${{ github.ref_name == 'main' && 'production' || 'staging' }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}

@@ -1,0 +1,39 @@
+name: Update Hydro (nightly)
+
+# Nightly history + climatology refresh + seed-DB rebuild. Stateful: keeps the full
+# hydro.db in R2. See pipeline/recurring/hydro/jobs.py.
+on:
+  schedule:
+    - cron: '0 9 * * *'   # ~01:00 PST (09:00 UTC)
+  workflow_dispatch: {}
+
+concurrency:
+  group: hydro-nightly-${{ github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  nightly:
+    runs-on: ubuntu-latest
+    # First-run bootstrap (18mo history + HYDAT ~266 MB) is slow; give it room.
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      # Same light deps as realtime — the nightly does NOT run the atlas-time
+      # gauge→FWA match (that needs the geo stack: pyproj/shapely/atlas). It only
+      # carries the existing gauge_fwa_match forward from the persisted DB / seed.
+      - name: Install dependencies
+        run: pip install boto3 pyyaml python-dotenv
+
+      - name: Run hydro nightly job
+        run: python -m pipeline.recurring.hydro.jobs nightly
+        env:
+          DEPLOY_ENV: ${{ github.ref_name == 'main' && 'production' || 'staging' }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}

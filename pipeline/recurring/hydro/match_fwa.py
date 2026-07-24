@@ -29,28 +29,26 @@ from __future__ import annotations
 import logging
 import re
 import sqlite3
-import sys
 from collections import defaultdict
 from pathlib import Path
 
-import yaml
 from pyproj import Transformer
 from shapely.geometry import Point
 from shapely.strtree import STRtree
 
-# --- repo imports (run from anywhere) --------------------------------------
-_REPO = Path(__file__).resolve().parents[2]
-sys.path.insert(0, str(_REPO))
+# Run as a module (``python -m pipeline.recurring.hydro.match_fwa``) so these
+# absolute imports resolve without a sys.path hack.
+from pipeline.atlas.freshwater_atlas import FreshWaterAtlas
+from pipeline.matching.base_entry_builder import normalize_name
+from pipeline.matching.display_name_resolver import DisplayNameResolver
+from pipeline.matching.match_table import FEATURE_DISPLAY_NAMES_PATH
 
-from pipeline.atlas.freshwater_atlas import FreshWaterAtlas  # noqa: E402
-from pipeline.matching.base_entry_builder import normalize_name  # noqa: E402
-from pipeline.matching.display_name_resolver import DisplayNameResolver  # noqa: E402
+from .hydro_poc import DB_PATH as HYDRO_DB
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
 logger = logging.getLogger("match_fwa")
 
-HYDRO_DB = _REPO / "live-data" / "hydro" / "hydro.db"
-FEATURE_DISPLAY_NAMES = _REPO / "pipeline" / "matching" / "feature_display_names.json"
+FEATURE_DISPLAY_NAMES = FEATURE_DISPLAY_NAMES_PATH
 RADIUS_M = 5_000.0
 
 # Manual station → FWA stream overrides. The tidal Fraser mainstem reach is
@@ -101,9 +99,11 @@ def parse_waterbody_name(station_name: str) -> str:
 
 
 def _atlas_path() -> Path:
-    with open(_REPO / "config.yaml") as f:
-        cfg = yaml.safe_load(f)
-    return _REPO / cfg["output"]["pipeline"]["atlas"]
+    from project_config import ProjectConfig
+
+    return ProjectConfig().get_path(
+        "output", "pipeline", "atlas", default="output/pipeline/atlas/atlas.pkl"
+    )
 
 
 def build_candidate_index(atlas: FreshWaterAtlas, resolver: DisplayNameResolver):

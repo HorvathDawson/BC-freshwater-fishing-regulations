@@ -134,8 +134,20 @@ def resolve_stocking(
         conn.close()
 
     total = len(waterbodies)
+    from pipeline.recurring.provenance import provenance
+
     return {
-        "generated_at": datetime.now(timezone.utc).isoformat(),
+        **provenance(
+            generator="stocking_resolver",
+            source="FIDQ (BC gov Fish Inventories Data Queries)",
+            source_url="https://a100.gov.bc.ca/pub/fidq/main.do",
+            attribution=(
+                "Fish stocking data sourced from the Province of British Columbia "
+                "(Fish Inventories Data Queries) and used under the Province's "
+                "copyright terms (https://www2.gov.bc.ca/gov/content/home/copyright)."
+            ),
+        ),
+        # legacy top-level keys kept for existing consumers
         "source": "FIDQ (BC gov Fish Inventories Data Queries)",
         "waterbodies": waterbodies,
         "stats": {

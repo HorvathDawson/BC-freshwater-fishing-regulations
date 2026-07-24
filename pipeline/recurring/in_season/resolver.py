@@ -28,7 +28,7 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Tuple
 
-from .in_season_scraper import (
+from .scraper import (
     ScrapedResult,
     InSeasonChange,
     RegionChanges,
@@ -235,7 +235,21 @@ def resolve_to_reaches(
                 }
             )
 
+    from pipeline.recurring.provenance import provenance
+
     return {
+        **provenance(
+            generator="in_season_resolver",
+            source="BC freshwater fishing regulations — in-season changes",
+            source_url=scraped.source_url,
+            attribution=(
+                "In-season regulation changes sourced from the Province of British "
+                "Columbia and used under the Province's copyright terms "
+                "(https://www2.gov.bc.ca/gov/content/home/copyright)."
+            ),
+            extra={"scraped_at": scraped.scraped_at},
+        ),
+        # legacy top-level keys kept for existing consumers (jq summary, webapp)
         "scraped_at": scraped.scraped_at,
         "source_url": scraped.source_url,
         "changes": changes,

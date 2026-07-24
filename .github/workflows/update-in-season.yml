@@ -18,23 +18,18 @@ jobs:
           python-version: '3.11'
           cache: 'pip'
 
-      - uses: actions/setup-node@v5
-        with:
-          node-version: '22'
-          cache: 'npm'
-          cache-dependency-path: r2-worker/package-lock.json
-
+      # R2 I/O is pure-Python now (S3/boto3 via pipeline.recurring.r2_storage) —
+      # no Node/wrangler needed.
       - name: Install dependencies
-        run: |
-          pip install requests beautifulsoup4 pyyaml
-          npm install -g wrangler
+        run: pip install requests beautifulsoup4 pyyaml python-dotenv boto3
 
       - name: Scrape, resolve, and upload
         run: bash scripts/update-in-season.sh --upload
         env:
           DEPLOY_ENV: ${{ github.ref_name == 'main' && 'production' || 'staging' }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
 
       - name: Check for unmatched regulations
         id: check

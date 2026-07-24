@@ -30,6 +30,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sqlite3
 import subprocess
 import sys
@@ -41,8 +42,12 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 HERE = Path(__file__).parent
-DB_PATH = HERE / "hydro.db"
-OUTPUT_DIR = HERE / "output" / "hydro"
+# Repo root: pipeline/recurring/hydro/serve.py → parents[3].
+_REPO = HERE.resolve().parents[3]
+# Local dev tool: resolve the working DB + export dir the same way the modules do
+# (env override → repo-relative default under output/pipeline/).
+DB_PATH = Path(os.environ.get("HYDRO_DB_PATH") or (_REPO / "output" / "pipeline" / "hydro" / "hydro.db"))
+OUTPUT_DIR = Path(os.environ.get("HYDRO_OUT_DIR") or (_REPO / "output" / "pipeline" / "deploy" / "cron" / "hydro"))
 
 # Unit-value params (46/47) are stored at 5-min in hydro.db, but the viewer
 # should show what production ships, not the raw feed — so downsample them to
@@ -108,7 +113,7 @@ class CronRunner(threading.Thread):
         ok, msg = False, ""
         try:
             proc = subprocess.run(
-                [sys.executable, *argv], cwd=str(HERE),
+                [sys.executable, *argv], cwd=str(_REPO),
                 capture_output=True, text=True, timeout=timeout,
             )
             ok = proc.returncode == 0
@@ -129,11 +134,11 @@ class CronRunner(threading.Thread):
         print(f"[cron] {name}: {'ok' if ok else 'FAIL'} ({dur}s) {msg}")
 
     def _match(self) -> None:
-        self._run("match_fwa", [str(HERE / "match_fwa.py")], timeout=600)
+        self._run("match_fwa", ["-m", "pipeline.recurring.hydro.match_fwa"], timeout=600)
 
     def _cycle(self) -> None:
-        self._run("update", [str(HERE / "hydro_poc.py"), "update", "--bc"], timeout=1200)
-        self._run("export", [str(HERE / "export_hydro.py"), "--scope", "realtime"], timeout=300)
+        self._run("update", ["-m", "pipeline.recurring.hydro.hydro_poc", "update", "--bc"], timeout=1200)
+        self._run("export", ["-m", "pipeline.recurring.hydro.export_hydro", "--scope", "realtime"], timeout=300)
 
     def run(self) -> None:
         with _CRON_LOCK:

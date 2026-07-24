@@ -17,6 +17,7 @@ matplotlib
 geopandas
 fiona
 shapely
+pyproj  # gauge lat/lon → EPSG:3005 reprojection (pipeline/recurring/hydro/match_fwa)
 osmnx
 pyogrio
 pyarrow  # arrow-backed reads (FWADataAccessor.get_layer use_arrow=True)
@@ -32,6 +33,9 @@ orjson
 # Configuration
 pyyaml
 python-dotenv
+
+# Cloud storage (R2 S3-compatible I/O for the hydro cron jobs entrypoint)
+boto3
 
 # AI/LLM API
 google-genai

@@ -1,6 +1,10 @@
 """recurring — jobs re-run on a schedule against a live site, not a one-shot static build.
 
-Currently: in-season regulation change scraping + resolution
-(in_season_scraper.py / in_season_resolver.py), re-run every 6 hours by
-.github/workflows/update-in-season.yml via scripts/update-in-season.sh.
+Each job type lives in its own subpackage:
+    in_season/  — scrape + resolve in-season regulation changes (6-hourly cron)
+    stocking/   — resolve FIDQ stocking data to reach IDs (nightly cron)
+    anglerinfo/ — fetch + match angler-info data (slow, manual cadence)
+    hydro/      — hydrometric gauge data (realtime + nightly crons)
+
+Shared: provenance.py (uniform provenance block on every cron artifact).
 """

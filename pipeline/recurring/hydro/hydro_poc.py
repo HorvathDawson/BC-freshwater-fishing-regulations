@@ -113,6 +113,7 @@ import csv
 import http.cookiejar
 import io
 import json
+import os
 import re
 import sqlite3
 import ssl
@@ -193,7 +194,34 @@ PARAMETERS = {
     "47": "Discharge (unit)",
 }
 
-DB_PATH = Path(__file__).parent / "hydro.db"
+def _default_db_path() -> Path:
+    """Resolve the working hydro.db path.
+
+    Precedence: ``HYDRO_DB_PATH`` env override → repo ``config.yaml``
+    (``output.pipeline.hydro``) → a repo-relative fallback. The config lookup is
+    best-effort so this module stays importable standalone (stdlib-only) and in a
+    container/Worker that has no repo checkout (env override is the portable path).
+    """
+    env = os.environ.get("HYDRO_DB_PATH")
+    if env:
+        return Path(env)
+    try:
+        from project_config import ProjectConfig
+
+        return ProjectConfig().get_path(
+            "output", "pipeline", "hydro", default="output/pipeline/hydro/hydro.db"
+        )
+    except Exception:
+        return (
+            Path(__file__).resolve().parents[3]
+            / "output"
+            / "pipeline"
+            / "hydro"
+            / "hydro.db"
+        )
+
+
+DB_PATH = _default_db_path()
 
 USER_AGENT = "BC-fishing-regs-hydro-poc/0.1 (proof of concept)"
 
@@ -1120,7 +1148,7 @@ def run_bootstrap(conn: sqlite3.Connection, args: argparse.Namespace):
     fetch_stations(conn, provinces=provinces)
 
     print("\n--- Syncing bulk HYDAT station metadata (lat/lon, status, drainage area) ---")
-    import fetch_hydat  # deferred: fetch_hydat imports this module at load time
+    from . import fetch_hydat  # deferred: fetch_hydat imports this module at load time
     fetch_hydat.sync(conn)
 
     fetch_current_conditions(conn)  # live percentiles + coord backfill for any HYDAT missed

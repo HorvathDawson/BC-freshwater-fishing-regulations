@@ -117,12 +117,32 @@ def _step_anglerinfo(skip_fetch: bool = False) -> None:
     log.info(f"Angler-info db built in {time.perf_counter() - t0:.1f}s")
 
 
+def _step_hydro_match(cfg: dict, atlas_path: Path | None = None) -> None:
+    """Re-run the gauge→FWA matcher (writes gauge_fwa_match into hydro.db).
+
+    Atlas-time, not recurring: the gauge→fid match only changes when the atlas
+    rebuilds. Excluded from ``all`` (needs the heavy hydro.db + atlas present);
+    run explicitly after an atlas rebuild. The frequent/nightly hydro cron carry
+    this table forward via the seed DB — see pipeline/recurring/hydro.
+    """
+    from .atlas.freshwater_atlas import FreshWaterAtlas
+    from .recurring.hydro.match_fwa import match_all
+
+    if atlas_path is None:
+        atlas_path = Path(cfg["output"]["pipeline"]["atlas"])
+
+    t0 = time.perf_counter()
+    atlas = FreshWaterAtlas.load(atlas_path)
+    match_all(atlas)
+    log.info(f"Hydro gauge→FWA match done in {time.perf_counter() - t0:.1f}s")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="V2 pipeline runner")
     parser.add_argument(
         "--step",
         nargs="*",
-        choices=["atlas", "tiles", "parse", "anglerinfo", "enrich", "all"],
+        choices=["atlas", "tiles", "parse", "anglerinfo", "hydro-match", "enrich", "all"],
         default=["all"],
         help="Pipeline step(s) to run — executed in canonical order (default: all)",
     )
@@ -173,6 +193,10 @@ def main() -> None:
     # re-exports anglerinfo_matches.json from whatever db exists on every run.
     if "anglerinfo" in steps:
         _step_anglerinfo()
+
+    # Hydro gauge→FWA match is atlas-time + needs hydro.db present; NOT in "all".
+    if "hydro-match" in steps:
+        _step_hydro_match(cfg, atlas_path)
 
     if run_all or "enrich" in steps:
         _step_enrich(cfg, config_path, dry_run=args.dry_run)

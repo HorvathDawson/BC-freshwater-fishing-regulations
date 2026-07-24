@@ -112,6 +112,20 @@ def _collect_admin_visibility(
     return result
 
 
+def _write_cron_json(deploy_dir: Path, subdir: str, filename: str, data) -> Path:
+    """Dual-write a recurring artifact: the new unified ``cron/<subdir>/`` subtree
+    plus the legacy deploy-root location (kept for one release so the webapp can
+    cut over to ``cron/`` paths without an outage — see plan Part F3). Returns the
+    canonical (cron/) path.
+    """
+    cron_path = deploy_dir / "cron" / subdir / filename
+    cron_path.parent.mkdir(parents=True, exist_ok=True)
+    payload = json.dumps(data, indent=2, ensure_ascii=False)
+    cron_path.write_text(payload, encoding="utf-8")
+    (deploy_dir / filename).write_text(payload, encoding="utf-8")  # legacy dual-write
+    return cron_path
+
+
 def build(config_path: Path = Path("config.yaml"), dry_run: bool = False) -> Path:
     """Run the full 5-phase pipeline.
 
@@ -242,7 +256,7 @@ def build(config_path: Path = Path("config.yaml"), dry_run: bool = False) -> Pat
     t0 = time.perf_counter()
     deploy_dir.mkdir(parents=True, exist_ok=True)
 
-    # Flat (unsharded) wbk -> reach_id map, for pipeline.recurring.stocking_resolver
+    # Flat (unsharded) wbk -> reach_id map, for pipeline.recurring.stocking.resolver
     # (and any future consumer) to resolve a waterbody_key to a reach without
     # needing the full sharded poly_reaches/ tree.
     poly_reaches_path = deploy_dir / "poly_reaches.json"
@@ -334,8 +348,8 @@ def build(config_path: Path = Path("config.yaml"), dry_run: bool = False) -> Pat
     # continue — the daily GHA cron will keep it updated anyway.
     t0 = time.perf_counter()
     try:
-        from pipeline.recurring.in_season_scraper import scrape_in_season_changes
-        from pipeline.recurring.in_season_resolver import (
+        from pipeline.recurring.in_season.scraper import scrape_in_season_changes
+        from pipeline.recurring.in_season.resolver import (
             resolve_to_reaches,
             _load_match_table,
         )
@@ -351,9 +365,9 @@ def build(config_path: Path = Path("config.yaml"), dry_run: bool = False) -> Pat
             tier0_data = json.load(f)
 
         result = resolve_to_reaches(scraped, table, tier0_data)
-        in_season_path = deploy_dir / "in_season.json"
-        with open(in_season_path, "w", encoding="utf-8") as f:
-            json.dump(result, f, indent=2, ensure_ascii=False)
+        in_season_path = _write_cron_json(
+            deploy_dir, "in-season", "in_season.json", result
+        )
 
         matched = result["stats"]["matched"]
         unmatched = result["stats"]["unmatched"]
@@ -381,12 +395,12 @@ def build(config_path: Path = Path("config.yaml"), dry_run: bool = False) -> Pat
     # on its own, separate, manual cadence — see pipeline/recurring/anglerinfo.
     t0 = time.perf_counter()
     try:
-        from pipeline.recurring.stocking_resolver import resolve_stocking
+        from pipeline.recurring.stocking.resolver import resolve_stocking
 
         result = resolve_stocking(poly_reaches_path=poly_reaches_path)
-        stocking_path = deploy_dir / "stocking.json"
-        with open(stocking_path, "w", encoding="utf-8") as f:
-            json.dump(result, f, indent=2, ensure_ascii=False)
+        stocking_path = _write_cron_json(
+            deploy_dir, "stocking", "stocking.json", result
+        )
 
         stats = result["stats"]
         logger.info(
@@ -399,6 +413,51 @@ def build(config_path: Path = Path("config.yaml"), dry_run: bool = False) -> Pat
     except Exception:
         logger.warning(
             "Stocking resolve failed — skipping (%.1fs)",
+            time.perf_counter() - t0,
+            exc_info=True,
+        )
+
+    # ── Hydro: seed initial gauge artifacts + the small seed DB ───────────
+    # Produces cron/hydro/{stations.json,recent/,history/,climatology/} plus the
+    # small hydro_seed.db into the deploy folder, so the first R2 seed already
+    # ships hydro data before any cron runs. Requires a working hydro.db present
+    # locally (heavy, ~1.3 GB — built by `python -m pipeline.recurring.hydro.hydro_poc
+    # bootstrap --bc`). Non-fatal: if it's absent (e.g. a CI enrich with no hydro
+    # fetch), warn and continue — the hydro crons keep it fresh anyway.
+    t0 = time.perf_counter()
+    try:
+        import sqlite3
+
+        from project_config import ProjectConfig
+        from pipeline.recurring.hydro import export_hydro
+        from pipeline.recurring.hydro.seed import build_seed_db
+
+        cfg = ProjectConfig()
+        hydro_db = cfg.get_path(
+            "output", "pipeline", "hydro", default="output/pipeline/hydro/hydro.db"
+        )
+        if not hydro_db.exists():
+            raise FileNotFoundError(f"working hydro.db not found: {hydro_db}")
+
+        hydro_out = deploy_dir / "cron" / "hydro"
+        conn = sqlite3.connect(f"file:{hydro_db}?mode=ro", uri=True)
+        try:
+            export_hydro.export(conn, hydro_out, "all")
+        finally:
+            conn.close()
+
+        seed_dst = hydro_out / "hydro_seed.db"
+        counts = build_seed_db(hydro_db, seed_dst)
+        logger.info(
+            "Hydro seed → %s (seed DB %d stations, %d matches, %.1fs)",
+            hydro_out,
+            counts.get("stations", 0),
+            counts.get("gauge_fwa_match", 0),
+            time.perf_counter() - t0,
+        )
+    except Exception:
+        logger.warning(
+            "Hydro seed failed — skipping (%.1fs); the hydro crons keep it fresh",
             time.perf_counter() - t0,
             exc_info=True,
         )

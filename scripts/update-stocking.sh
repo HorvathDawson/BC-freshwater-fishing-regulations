@@ -55,13 +55,10 @@ mkdir -p "$DEPLOY_DIR"
 # In CI there's no pipeline output — pull the wbk->reach_id map from R2
 # (written by pipeline/enrichment/builder.py's own build step).
 
+# R2 I/O goes through the shared S3/boto3 helper (same transport as every cron).
 _fetch_r2_file() {
   local r2_key="$1" dest="$2"
-  if command -v wrangler &>/dev/null && [[ -n "${CLOUDFLARE_ACCOUNT_ID:-}" ]]; then
-    npx wrangler r2 object get "$R2_BUCKET/$r2_key" --file "$dest" --remote
-  else
-    curl -sfSL "$R2_ORIGIN/$r2_key" -o "$dest"
-  fi
+  python -m pipeline.recurring.r2_storage get "$r2_key" "$dest"
 }
 
 if [[ ! -f "$DEPLOY_DIR/poly_reaches.json" ]]; then
@@ -72,20 +69,25 @@ fi
 # ── Step 1: Resolve ─────────────────────────────────────────────────
 
 echo "── Resolving stocking data to reach IDs ──"
-python -m pipeline.recurring.stocking_resolver \
+mkdir -p "$DEPLOY_DIR/cron/stocking"
+python -m pipeline.recurring.stocking.resolver \
   --poly-reaches "$DEPLOY_DIR/poly_reaches.json" \
-  --out "$DEPLOY_DIR/stocking.json"
+  --out "$DEPLOY_DIR/cron/stocking/stocking.json"
+# Legacy dual-write (one release) so the webapp can cut over to cron/ paths
+# without an outage — see plan Part F3.
+cp "$DEPLOY_DIR/cron/stocking/stocking.json" "$DEPLOY_DIR/stocking.json"
 
-echo "✅ stocking.json → $DEPLOY_DIR/stocking.json"
+echo "✅ stocking.json → $DEPLOY_DIR/cron/stocking/stocking.json (+ legacy root)"
 
 # ── Step 2: Upload / seed (optional) ────────────────────────────────
 
 if [[ "${1:-}" == "--upload" ]]; then
   echo "── Uploading to R2 ($R2_BUCKET) ──"
-  npx wrangler r2 object put "$R2_BUCKET/stocking.json" \
-    --file "$DEPLOY_DIR/stocking.json" \
-    --content-type "application/json" \
-    --remote
+  # New canonical key + legacy key (dual-write during cutover).
+  for key in "cron/stocking/stocking.json" "stocking.json"; do
+    python -m pipeline.recurring.r2_storage put \
+      "$DEPLOY_DIR/cron/stocking/stocking.json" "$key"
+  done
   echo "✅ Uploaded to R2"
 
 elif [[ "${1:-}" == "--seed" ]]; then

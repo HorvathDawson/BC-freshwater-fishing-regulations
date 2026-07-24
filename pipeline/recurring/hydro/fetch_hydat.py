@@ -44,7 +44,7 @@ import zipfile
 from datetime import date, datetime, timezone
 from pathlib import Path
 
-from hydro_poc import DB_PATH, USER_AGENT, _SSL_CTX, attribution, connect
+from .hydro_poc import DB_PATH, USER_AGENT, _SSL_CTX, attribution, connect
 
 HYDAT_INDEX_URL = "https://collaboration.cmc.ec.gc.ca/cmc/hydrometrics/www/"
 _RELEASE_RE = re.compile(r'href="(Hydat_sqlite3_(\d{8})\.zip)"')
