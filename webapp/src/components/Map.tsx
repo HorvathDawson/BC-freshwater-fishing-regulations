@@ -2399,20 +2399,23 @@ const MapComponent = () => {
         }
     }, [highlightedOption]);
 
-    // Highlight the gauge whose station is currently being viewed — the
-    // gauge-points-active overlay grows it ~1.7x and lifts it above neighbours.
-    // Point its filter at the selected station_id (or match-none when no gauge
-    // is being viewed).
+    // Highlight the gauge being viewed OR previewed — the gauge-points-active
+    // overlay grows it ~1.7x and lifts it above neighbours. A disambiguation
+    // hover (desktop onMouseEnter) or first-tap (mobile) sets highlightedOption,
+    // so previewing a gauge row there expands it on the map too; the committed
+    // selection keeps it expanded. Match-none when neither is a gauge.
     useEffect(() => {
         const map = mapRef.current;
         if (!map || !map.getLayer('gauge-points-active')) return;
         const activeStationId =
-            (selectedFeature?.properties?._gauge_station_id as string | undefined) || null;
+            (highlightedOption?.properties?._gauge_station_id as string | undefined)
+            || (selectedFeature?.properties?._gauge_station_id as string | undefined)
+            || null;
         map.setFilter(
             'gauge-points-active',
             ['==', ['get', 'station_id'], activeStationId ?? ' '] as any,
         );
-    }, [selectedFeature]);
+    }, [selectedFeature, highlightedOption]);
 
     // Handle selected state changes — filter-based, no event listeners needed.
     useEffect(() => {
