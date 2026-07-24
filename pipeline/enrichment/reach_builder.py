@@ -443,10 +443,14 @@ def _group_polygon_reaches(
 
             # Stocking + bathymetry + marker name variants — already
             # normalized/deduped above (and possibly already promoted to
-            # display_name, in which case it's excluded here).
+            # display_name, in which case it's excluded here). Bathymetric-
+            # survey names are folded into the general "alias" bucket (the
+            # single catch-all source the frontend renders under "Also known
+            # as"); stocking/marker keep their own provenance.
             for entry in extra_names:
                 if entry["name"] != display_name:
-                    structured_nv.append(entry)
+                    src = "alias" if entry["source"] == "bathymetry" else entry["source"]
+                    structured_nv.append({"name": entry["name"], "source": src})
 
             # Feature-level aliases from feature_display_names.json (single
             # tier0 source → also searchable). E.g. "Arrow Reservoir" on the

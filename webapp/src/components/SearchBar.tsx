@@ -352,7 +352,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ features, onSelect, highlightedRe
                                         </div>
                                         {hasAliases && (() => {
                                             const tributaryAliases = aliases.filter(a => a.source === 'tributary');
-                                            const regularAliases = aliases.filter(a => a.source === 'direct');
+                                            const regularAliases = aliases.filter(a => a.source === 'direct' || a.source === 'alias');
                                             const parts: string[] = [];
                                             if (tributaryAliases.length > 0) {
                                                 parts.push(`Tributary of ${formatList(tributaryAliases.map(a => a.name))}`);

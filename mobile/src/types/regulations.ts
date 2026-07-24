@@ -10,7 +10,7 @@
 /** Name variant with source provenance. */
 export interface NameVariantEntry {
   name: string;
-  source: 'direct' | 'tributary' | 'admin' | 'bathymetry' | 'stocking' | 'marker';
+  source: 'direct' | 'tributary' | 'admin' | 'alias' | 'stocking' | 'marker';
 }
 
 /** A bathymetry survey depth-map sheet. URL = <R2 base>/bathymetry/<pdf>. */
