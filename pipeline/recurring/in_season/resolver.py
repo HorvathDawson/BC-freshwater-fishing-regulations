@@ -366,7 +366,7 @@ def main() -> None:
     logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 
     # Resolve defaults from config.yaml
-    project_root = Path(__file__).resolve().parents[2]
+    project_root = Path(__file__).resolve().parents[3]
     with open(project_root / "config.yaml") as f:
         cfg = yaml.safe_load(f)
     v2_cfg = cfg["output"]["pipeline"]

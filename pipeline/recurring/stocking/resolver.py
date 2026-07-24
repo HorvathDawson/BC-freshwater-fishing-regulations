@@ -39,7 +39,9 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from project_config import ProjectConfig
-from pipeline.recurring.anglerinfo.fetch_wdic import DB_PATH as WATERBODY_DB_PATH
+# Import DB_PATH from the lightweight paths module, not fetch_wdic — the latter
+# top-level-imports geopandas/pyproj, which the stocking cron doesn't install.
+from pipeline.recurring.anglerinfo.paths import DB_PATH as WATERBODY_DB_PATH
 
 logger = logging.getLogger(__name__)
 

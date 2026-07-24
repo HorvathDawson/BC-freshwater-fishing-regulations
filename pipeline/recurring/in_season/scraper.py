@@ -400,7 +400,7 @@ def main() -> None:
     logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 
     # Resolve defaults from config.yaml
-    with open(Path(__file__).resolve().parents[2] / "config.yaml") as f:
+    with open(Path(__file__).resolve().parents[3] / "config.yaml") as f:
         cfg = yaml.safe_load(f)
     v2_cfg = cfg["output"]["pipeline"]
     out_path = Path(args.out) if args.out else Path(v2_cfg["in_season"])
