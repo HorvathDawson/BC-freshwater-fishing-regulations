@@ -413,6 +413,37 @@ class TestEdgeCases:
         name = resolver.resolve_stream(blk="SHARED_BLK", gnis_name="")
         assert name == "FIRST"
 
+    def test_fid_override_wins_over_blk_and_gnis(self, tmp_path):
+        """A linear_feature_ids override names a sub-reach of a shared BLK,
+        winning over both the BLK override and the (inherited) gnis_name."""
+        feature_dn = tmp_path / "feature_display_names.json"
+        feature_dn.write_text(
+            json.dumps(
+                [
+                    {
+                        "display_name": "Two Forty-One Creek",
+                        "linear_feature_ids": ["707348241", "707349595"],
+                    }
+                ]
+            ),
+            encoding="utf-8",
+        )
+        resolver = DisplayNameResolver(feature_dn_path=feature_dn)
+        # above-lake segment → overridden name
+        assert (
+            resolver.resolve_stream(
+                blk="356569726", gnis_name="Penticton Creek", fid="707348241"
+            )
+            == "Two Forty-One Creek"
+        )
+        # a segment on the same BLK not in the fid list → keeps gnis_name
+        assert (
+            resolver.resolve_stream(
+                blk="356569726", gnis_name="Penticton Creek", fid="999999"
+            )
+            == "Penticton Creek"
+        )
+
     def test_resolver_with_no_sources(self, tmp_path):
         """Resolver with empty feature_display_names and no tables."""
         feature_dn = tmp_path / "feature_display_names.json"

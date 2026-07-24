@@ -42,6 +42,47 @@ Workers auto-deploy via Cloudflare git integration when you push to the correspo
 
 ---
 
+## Recurring crons (GitHub Actions)
+
+Four scheduled workflows keep the live data fresh. They activate automatically
+once on the default branch (`main`); `DEPLOY_ENV` derives from the branch, so
+`main` → production bucket, any other branch (via manual `workflow_dispatch`) →
+staging.
+
+| Workflow | Schedule | Writes (R2 key) |
+|----------|----------|-----------------|
+| `update-in-season.yml`      | every 6h        | `cron/in-season/in_season.json` |
+| `update-stocking.yml`       | `0 9 * * *` (~01:00 PST) | `cron/stocking/stocking.json` |
+| `update-hydro-realtime.yml` | `*/15`          | `cron/hydro/{stations.json,recent/*}` |
+| `update-hydro-nightly.yml`  | `0 9 * * *`     | `cron/hydro/{history,climatology}/*`, rebuilds `hydro_seed.db` + full DB |
+
+All four share **one** R2 transport — `pipeline/recurring/r2_storage.py` (S3 API
+via boto3). No wrangler/Node in the cron workflows.
+
+### Required GitHub Actions secrets (crons)
+
+| Secret | Purpose |
+|--------|---------|
+| `CLOUDFLARE_ACCOUNT_ID` | derives the R2 S3 endpoint `https://<id>.r2.cloudflarestorage.com` (already set) |
+| `R2_ACCESS_KEY_ID` | R2 API token → Access Key ID |
+| `R2_SECRET_ACCESS_KEY` | R2 API token → Secret Access Key |
+
+Generate the two R2 keys in the Cloudflare dashboard → **R2 → Manage R2 API
+Tokens → Create API token** (permission *Object Read & Write*, scoped to both
+`bc-fishing-regulations` and `bc-fishing-regulations-staging`). Optional
+`R2_S3_ENDPOINT` overrides the derived endpoint; `R2_BUCKET` overrides the
+`DEPLOY_ENV`-selected bucket.
+
+### First-run ordering (hydro)
+
+The realtime `*/15` job pulls `cron/hydro/hydro_seed.db` from R2, which doesn't
+exist until either the **nightly** job runs once (it bootstraps + pushes the
+seed) or a full `python -m pipeline … enrich` + `seed-r2.sh` upload seeds it.
+Trigger the nightly hydro job manually (`workflow_dispatch`) once after adding
+secrets, confirm it succeeds, then let the realtime cron take over.
+
+---
+
 ## Deploy to Staging
 
 ### 1. Run the pipeline (if data changed)

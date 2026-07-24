@@ -21,7 +21,9 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
+import unicodedata
 from pathlib import Path
 import logging
 import pickle
@@ -41,6 +43,10 @@ from pipeline.utils.wsc import trim_wsc
 
 from .match_table import BaseEntry, OverrideEntry, MatchTable
 from .reg_models import MatchCriteria
+from pipeline.extraction.extract_synopsis import _normalize_unicode
+
+_RE_BRACKETS = re.compile(r"\s*\([^)]*\)\s*")
+_RE_SPACES = re.compile(r"\s+")
 
 logger = logging.getLogger(__name__)
 
@@ -127,6 +133,37 @@ def _ref_identity(ref: FeatureRecord) -> tuple:
     if pids:
         return ("poly", pids[0])
     return ("unknown", ref.get("gnis_name", ""))
+
+
+def _strip_diacritics(text: str) -> str:
+    """Fold accented Latin letters to ASCII: 'Barrière' → 'Barriere'.
+
+    NFKD-decompose, then drop the combining marks.  Gauge/synopsis names spell
+    these without the accent ('BARRIERE RIVER') while the FWA gazetteer keeps
+    it ('Barrière River'), so both sides must fold for the key to compare.
+    """
+    return "".join(
+        ch
+        for ch in unicodedata.normalize("NFKD", text)
+        if not unicodedata.combining(ch)
+    )
+
+
+def normalize_name(value: object) -> str:
+    """Codebase-style waterbody-name key: unicode-fold, drop diacritics + \
+    parentheticals, collapse whitespace, uppercase.  Keeps the LAKE/CREEK type
+    word so that 'Goose Lake' can never collide with 'Goose Creek'.
+
+    Moved here from the (retired) pipeline/matching/bathymetry_matcher.py —
+    shared by pipeline/recurring/anglerinfo/'s waterbody_matcher.py and
+    match_fwa_gazette.py, which both depended on it.
+    """
+    if not isinstance(value, str):
+        return ""
+    text = _normalize_unicode(value)
+    text = _strip_diacritics(text)
+    text = _RE_BRACKETS.sub(" ", text)
+    return _RE_SPACES.sub(" ", text).strip().upper()
 
 
 def _name_variations(name: str) -> List[str]:

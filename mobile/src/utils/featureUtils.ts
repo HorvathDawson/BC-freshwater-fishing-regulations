@@ -23,7 +23,7 @@ export type FeatureType =
 /** Name variant with source provenance. */
 export interface NameVariant {
   name: string;
-  source: 'direct' | 'tributary' | 'admin' | 'bathymetry';
+  source: 'direct' | 'tributary' | 'admin' | 'alias' | 'stocking' | 'marker';
 }
 
 // ── Mobile detection ─────────────────────────────────────────────────
@@ -150,15 +150,16 @@ export const buildAliasLines = (
 ): { alsoKnownAs: string | null; inContext: string | null } => {
   const tributaryAliases = aliases.filter((a) => a.source === 'tributary');
   const adminAliases = aliases.filter((a) => a.source === 'admin');
-  const regularAliases = aliases.filter((a) => a.source === 'direct');
-  const bathymetryAliases = aliases.filter((a) => a.source === 'bathymetry');
+  // General alternate names: reg-match "direct" names plus the catch-all
+  // "alias" bucket (feature display-name overrides, bathymetric-survey names,
+  // and any future alternate-name source folded into `alias`).
+  const regularAliases = aliases.filter((a) => a.source === 'direct' || a.source === 'alias');
 
   const parts: string[] = [];
   if (tributaryAliases.length > 0) {
     parts.push(`Tributary of ${formatList(tributaryAliases.map((a) => a.name))}`);
   }
   regularAliases.forEach((a) => parts.push(a.name));
-  bathymetryAliases.forEach((a) => parts.push(a.name));
 
   return {
     alsoKnownAs: parts.length > 0 ? `Also known as: ${parts.join(' · ')}` : null,

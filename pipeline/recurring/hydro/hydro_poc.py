@@ -36,6 +36,13 @@ ECCC attribution. Per https://wateroffice.ec.gc.ca/contactus/faq_e.html :
       "Extracted from Environment and Climate Change Canada's HYDAT.mdb,
        released on [DATE]"
 
+BC River Forecast Centre forecasts (CLEVER / COFFEE / ELF) are a SEPARATE
+source — Province of British Columbia, not ECCC. The RFC confirmed the data is
+free to reproduce/redistribute provided attribution to the Province and the
+copyright link (https://www2.gov.bc.ca/gov/content/home/copyright) are shown,
+along with their disclaimer ("Users should use the information on this website
+with caution and at their own risk."). See `attribution('bcrfc')`.
+
 The exact attribution string (with today's date substituted) is emitted by
 `attribution()` below and stored alongside every fetch batch so the website
 can render it verbatim.
@@ -103,8 +110,10 @@ from __future__ import annotations
 import argparse
 import concurrent.futures
 import csv
+import http.cookiejar
 import io
 import json
+import os
 import re
 import sqlite3
 import ssl
@@ -185,7 +194,34 @@ PARAMETERS = {
     "47": "Discharge (unit)",
 }
 
-DB_PATH = Path(__file__).parent / "hydro.db"
+def _default_db_path() -> Path:
+    """Resolve the working hydro.db path.
+
+    Precedence: ``HYDRO_DB_PATH`` env override → repo ``config.yaml``
+    (``output.pipeline.hydro``) → a repo-relative fallback. The config lookup is
+    best-effort so this module stays importable standalone (stdlib-only) and in a
+    container/Worker that has no repo checkout (env override is the portable path).
+    """
+    env = os.environ.get("HYDRO_DB_PATH")
+    if env:
+        return Path(env)
+    try:
+        from project_config import ProjectConfig
+
+        return ProjectConfig().get_path(
+            "output", "pipeline", "hydro", default="output/pipeline/hydro/hydro.db"
+        )
+    except Exception:
+        return (
+            Path(__file__).resolve().parents[3]
+            / "output"
+            / "pipeline"
+            / "hydro"
+            / "hydro.db"
+        )
+
+
+DB_PATH = _default_db_path()
 
 USER_AGENT = "BC-fishing-regs-hydro-poc/0.1 (proof of concept)"
 
@@ -212,13 +248,35 @@ _SSL_INSECURE: ssl.SSLContext | None = None
 
 # --- Attribution ----------------------------------------------------------
 
-def attribution(kind: str) -> str:
+def attribution(kind: str, release_date: str | None = None) -> str:
     """Return the exact ECCC attribution string (see module docstring).
 
-    `kind` is 'realtime' or 'historical'. The website MUST display this
-    verbatim wherever the data appears.
+    `kind` is 'realtime', 'historical', 'hydat' (percentile climatology
+    derived from the bulk HYDAT release), or 'bcrfc' (BC River Forecast Centre
+    model forecasts). The website MUST display this verbatim wherever the data
+    appears. For 'hydat', pass the release date as `release_date`.
+
+    The BC River Forecast Centre confirmed (D. Campbell, RFC) the forecast data
+    is free for public reproduction/redistribution provided attribution to the
+    Province and the copyright link are shown, and their disclaimer accompanies
+    it. See https://www2.gov.bc.ca/gov/content/home/copyright and the RFC
+    disclaimer carried verbatim below.
     """
     today = datetime.now().strftime("%Y-%m-%d")
+    if kind == "bcrfc":
+        return (
+            "Forecast data provided by the BC River Forecast Centre, "
+            "Province of British Columbia, and used under the Province's "
+            "copyright terms (https://www2.gov.bc.ca/gov/content/home/copyright). "
+            "Users should use the information on this website with caution and "
+            "at their own risk."
+        )
+    if kind == "hydat":
+        release = release_date or today
+        return (
+            "Extracted from Environment and Climate Change Canada's HYDAT.mdb, "
+            f"released on {release}"
+        )
     if kind == "historical":
         return (
             "Extracted from the Environment and Climate Change Canada Historical "
@@ -329,6 +387,65 @@ def connect(db_path: Path = DB_PATH) -> sqlite3.Connection:
             fetched_at TEXT,
             PRIMARY KEY (model, station_id, date)
         );
+
+        -- One row per HYDAT release ever merged, so fetch_hydat.py can skip
+        -- re-downloading the ~266MB bulk file when already at the latest.
+        CREATE TABLE IF NOT EXISTS hydat_sync (
+            release_date TEXT PRIMARY KEY,
+            synced_at    TEXT NOT NULL,
+            rows_matched INTEGER
+        );
+
+        -- Live "current condition" percentile classification per station, from
+        -- the Current Conditions KML feed. Refreshed every update (this is live
+        -- data, same cadence as forecasts) — it says how today's flow compares
+        -- to the historical record for this day of year (e.g. "Below normal
+        -- (10th – 24th percentile)").
+        CREATE TABLE IF NOT EXISTS current_conditions (
+            station_id       TEXT PRIMARY KEY,
+            condition_text   TEXT,     -- full text, e.g. "Below normal (10th – 24th percentile)"
+            condition_class  TEXT,     -- classification only, e.g. "Below normal"
+            percentile_low   INTEGER,  -- low end of the percentile band (NULL if unranked)
+            percentile_high  INTEGER,  -- high end (== low for single-value bands)
+            percentile_text  TEXT,     -- the parenthetical, e.g. "10th – 24th percentile"
+            latest_discharge TEXT,     -- raw "48.5 m³/s @ 2026-07-23 09:10:00 (PST)"
+            latest_stage     TEXT,     -- raw "3.168 m @ 2026-07-23 09:10:00 (PST)"
+            fetched_at       TEXT,
+            attribution      TEXT
+        );
+
+        -- Per-day-of-year percentile climatology, derived from HYDAT's full
+        -- multi-decade daily record (DLY_FLOWS / DLY_LEVELS) by fetch_hydat.py.
+        -- This is the historical envelope the "seasonal" chart draws today's
+        -- flow against — the continuous-curve counterpart to the single KML
+        -- current_conditions label. SLOW-changing: only recomputed when a new
+        -- HYDAT release is synced (bootstrap / fetch_hydat --force), never by
+        -- the frequent `update`. `doy` is 1..366 on a leap-year calendar
+        -- (Feb 29 = 60), so a given calendar date always lands in the same slot.
+        CREATE TABLE IF NOT EXISTS flow_climatology (
+            station_id TEXT NOT NULL,
+            parameter  TEXT NOT NULL,   -- '6' discharge | '3' water level
+            doy        INTEGER NOT NULL,-- 1..366 (leap-year calendar)
+            p0  REAL, p10 REAL, p25 REAL, p50 REAL, p75 REAL, p90 REAL, p100 REAL,
+            n_obs INTEGER,              -- pooled observations behind this doy
+            PRIMARY KEY (station_id, parameter, doy)
+        );
+
+        -- One row per (station, parameter) climatology: its period of record
+        -- and provenance. Present only for stations with enough record to
+        -- publish (see fetch_hydat.MIN_YEARS).
+        CREATE TABLE IF NOT EXISTS flow_climatology_meta (
+            station_id TEXT NOT NULL,
+            parameter  TEXT NOT NULL,
+            start_year INTEGER,
+            end_year   INTEGER,
+            n_years    INTEGER,         -- distinct years with >=1 observation
+            window_days INTEGER,        -- centered ± pooling half-width used
+            hydat_release_date TEXT,
+            computed_at TEXT,
+            attribution TEXT,
+            PRIMARY KEY (station_id, parameter)
+        );
         """
     )
     # Idempotent migration for pre-existing databases.
@@ -336,6 +453,17 @@ def connect(db_path: Path = DB_PATH) -> sqlite3.Connection:
     for col in ("data_available", "operation_schedule"):
         if col not in existing:
             conn.execute(f"ALTER TABLE stations ADD COLUMN {col} TEXT")
+    for col, coltype in (
+        ("hyd_status", "TEXT"),
+        ("drainage_area_gross_km2", "REAL"),
+        ("drainage_area_effective_km2", "REAL"),
+        ("rhbn", "INTEGER"),
+        ("real_time_flag", "INTEGER"),
+        ("coord_source", "TEXT"),
+        ("hydat_release_date", "TEXT"),
+    ):
+        if col not in existing:
+            conn.execute(f"ALTER TABLE stations ADD COLUMN {col} {coltype}")
     conn.commit()
     return conn
 
@@ -414,9 +542,66 @@ def fetch_stations(conn: sqlite3.Connection,
     return total
 
 
-def enrich_coordinates(conn: sqlite3.Connection) -> int:
-    """Optionally add lat/lon to known stations from the Current Conditions KML."""
-    print("Enriching coordinates from Current Conditions KML feed ...")
+_PERCENTILE_RE = re.compile(r"(\d+)")
+
+
+def _parse_condition(text: str | None) -> dict:
+    """Split a Current Condition string into class + percentile band.
+
+    "Below normal (10th – 24th percentile)"      -> class="Below normal", low=10, high=24
+    "Normal (25th – 75th percentile)"            -> class="Normal", low=25, high=75
+    "All-time low for this day (0th percentile - minimum)" -> class="All-time low...", low=0, high=0
+    "Not flowing" / "No discharge data available today"    -> class=<text>, no percentile
+    """
+    if not text or text.strip() in ("", "N/A"):
+        return {"class": None, "low": None, "high": None, "pct_text": None}
+    m = re.match(r"^(.*?)\s*\((.*)\)\s*$", text.strip())
+    if not m:
+        return {"class": text.strip(), "low": None, "high": None, "pct_text": None}
+    cls, paren = m.group(1).strip(), m.group(2).strip()
+    nums = [int(n) for n in _PERCENTILE_RE.findall(paren)]
+    low = nums[0] if nums else None
+    high = nums[1] if len(nums) > 1 else low
+    return {"class": cls, "low": low, "high": high, "pct_text": paren}
+
+
+def _placemark_data(placemark) -> tuple[str | None, float | None, float | None, dict]:
+    """Extract (station_id, lat, lon, {Data name: value}) from one KML Placemark."""
+    station_id = None
+    lat = lon = None
+    data: dict[str, str] = {}
+    for child in placemark.iter():
+        ln = _localname(child.tag)
+        if ln == "name" and station_id is None and child.text:
+            station_id = child.text.strip()
+        elif ln == "coordinates" and child.text:
+            parts = child.text.strip().split(",")
+            if len(parts) >= 2:
+                try:
+                    lon, lat = float(parts[0]), float(parts[1])
+                except ValueError:
+                    pass
+        elif ln == "Data":
+            nm = child.get("name")
+            val = None
+            for v in child.iter():
+                if _localname(v.tag) == "value":
+                    val = (v.text or "").strip()
+            if nm:
+                data[nm] = val
+    return station_id, lat, lon, data
+
+
+def fetch_current_conditions(conn: sqlite3.Connection) -> int:
+    """Refresh live current-condition percentiles from the Current Conditions
+    KML feed, and backfill any still-missing station coordinates.
+
+    Runs on both bootstrap and update: the percentile classification is live
+    data (same cadence as forecasts). Coordinates are only filled where NULL —
+    HYDAT (fetch_hydat.py) is the authoritative source and must not be
+    overwritten by the KML's display-pin coordinate.
+    """
+    print("Fetching current conditions (percentiles) + coordinate backfill from KML ...")
     raw = _get(CURRENT_CONDITIONS_URL, [("lang", "en")])
     try:
         root = ET.fromstring(raw)
@@ -424,31 +609,142 @@ def enrich_coordinates(conn: sqlite3.Connection) -> int:
         print(f"ERROR: could not parse KML: {exc}", file=sys.stderr)
         raise
 
-    updates: list[tuple] = []
+    known = {r[0] for r in conn.execute("SELECT station_id FROM stations")}
+    now = datetime.now(timezone.utc).isoformat()
+    attribution_str = attribution("realtime")
+
+    coord_updates: list[tuple] = []
+    cond_rows: list[tuple] = []
     for elem in root.iter():
         if _localname(elem.tag) != "Placemark":
             continue
-        station_id = None
-        lat = lon = None
-        for child in elem.iter():
-            ln = _localname(child.tag)
-            if ln == "name" and station_id is None and child.text:
-                station_id = child.text.strip()
-            elif ln == "coordinates" and child.text:
-                parts = child.text.strip().split(",")
-                if len(parts) >= 2:
-                    try:
-                        lon, lat = float(parts[0]), float(parts[1])
-                    except ValueError:
-                        pass
-        if station_id and lat is not None:
-            updates.append((lat, lon, station_id))
+        station_id, lat, lon, data = _placemark_data(elem)
+        if not station_id or station_id not in known:
+            continue
+        if lat is not None and lon is not None:
+            coord_updates.append((lat, lon, station_id))
+        cond = _parse_condition(data.get("Current Condition"))
+        cond_rows.append((
+            station_id, data.get("Current Condition"), cond["class"],
+            cond["low"], cond["high"], cond["pct_text"],
+            data.get("Latest Discharge Value"), data.get("Latest Stage Value"),
+            now, attribution_str,
+        ))
 
+    # Coordinates: fill only where still NULL — never overwrite HYDAT's value.
     conn.executemany(
-        "UPDATE stations SET lat = ?, lon = ? WHERE station_id = ?", updates)
+        "UPDATE stations SET lat = ?, lon = ?, coord_source = COALESCE(coord_source, 'kml') "
+        "WHERE station_id = ? AND (lat IS NULL OR lon IS NULL)",
+        coord_updates,
+    )
+    conn.executemany(
+        """INSERT OR REPLACE INTO current_conditions
+           (station_id, condition_text, condition_class, percentile_low,
+            percentile_high, percentile_text, latest_discharge, latest_stage,
+            fetched_at, attribution)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+        cond_rows,
+    )
     conn.commit()
-    print(f"Updated coordinates for {len(updates)} stations.")
-    return len(updates)
+    print(f"Current conditions: {len(cond_rows)} stations updated "
+          f"({len(coord_updates)} carried a coordinate).")
+    return len(cond_rows)
+
+
+# --- Stage 1c: per-station coordinate backfill (last resort) --------------
+
+class _NoRedirect(urllib.request.HTTPRedirectHandler):
+    """Swallow the 302 the disclaimer POST returns, so accepting it doesn't
+    bounce into a redirect target that rejects the method."""
+
+    def redirect_request(self, *args, **kwargs):
+        return None
+
+
+def _parse_dms(block: str) -> float | None:
+    """Parse a DMS coordinate block from the report page (e.g.
+    '50° 02\\' 01" N') into signed decimal degrees."""
+    text = re.sub(r"&#160;", " ", block)
+    text = re.sub(r"<[^>]+>", " ", text).replace("&apos;", "'").replace("&quot;", '"')
+    m = re.search(r"(\d+)\D+(\d+)\D+(\d+)\D+([NSEW])", text)
+    if not m:
+        return None
+    deg, minutes, seconds, hemi = m.groups()
+    val = int(deg) + int(minutes) / 60 + int(seconds) / 3600
+    return round(-val if hemi in ("S", "W") else val, 6)
+
+
+def _report_page_coords(sid: str) -> tuple[float, float] | None:
+    """Scrape lat/lon from a station's own Wateroffice real-time report page.
+
+    The fallback for stations both the bulk HYDAT release and the Current
+    Conditions KML miss (brand-new stations, or level-only stations absent from
+    the KML). The page sits behind a one-time site disclaimer, so: GET (sets a
+    session cookie) -> POST accept -> GET again to read the DMS coordinates.
+    """
+    cj = http.cookiejar.CookieJar()
+    opener = urllib.request.build_opener(
+        urllib.request.HTTPSHandler(context=_SSL_CTX),
+        urllib.request.HTTPCookieProcessor(cj),
+        _NoRedirect(),
+    )
+    url = f"https://wateroffice.ec.gc.ca/report/real_time_e.html?stn={sid}"
+    hdr = {"User-Agent": USER_AGENT}
+    try:
+        opener.open(urllib.request.Request(url, headers=hdr), timeout=60).read()
+        accept = urllib.parse.urlencode({"disclaimer_action": "I Agree"}).encode()
+        try:
+            opener.open(urllib.request.Request(
+                "https://wateroffice.ec.gc.ca/disclaimer_e.html",
+                data=accept, headers=hdr), timeout=60)
+        except urllib.error.HTTPError:
+            pass  # the swallowed 302 after accepting surfaces here — expected
+        html = opener.open(urllib.request.Request(url, headers=hdr),
+                           timeout=60).read().decode("utf-8", "replace")
+    except Exception as exc:  # noqa: BLE001
+        print(f"  {sid}: report-page fetch failed ({exc})", file=sys.stderr)
+        return None
+
+    latm = re.search(r'id="latitude".*?</div>\s*<div[^>]*>(.*?)</div>', html, re.S)
+    lonm = re.search(r'id="longitude".*?</div>\s*<div[^>]*>(.*?)</div>', html, re.S)
+    if not latm or not lonm:
+        return None
+    lat, lon = _parse_dms(latm.group(1)), _parse_dms(lonm.group(1))
+    if lat is None or lon is None:
+        return None
+    return lat, lon
+
+
+def backfill_missing_coords(conn: sqlite3.Connection) -> int:
+    """Last-resort coordinate scrape for stations HYDAT + KML both left NULL.
+
+    One HTTP round-trip per missing station (rare — usually a handful), so it's
+    sequential and polite. coord_source is tagged 'report'.
+    """
+    missing = [r[0] for r in conn.execute(
+        "SELECT station_id FROM stations WHERE lat IS NULL OR lon IS NULL "
+        "ORDER BY station_id")]
+    if not missing:
+        return 0
+    print(f"Backfilling coordinates for {len(missing)} station(s) from their "
+          "Wateroffice report pages ...")
+    filled = 0
+    for sid in missing:
+        coords = _report_page_coords(sid)
+        if coords:
+            conn.execute(
+                "UPDATE stations SET lat = ?, lon = ?, "
+                "coord_source = COALESCE(coord_source, 'report') "
+                "WHERE station_id = ?",
+                (coords[0], coords[1], sid))
+            filled += 1
+            print(f"  {sid}: {coords[0]}, {coords[1]}")
+        else:
+            print(f"  {sid}: no coordinate found on report page", file=sys.stderr)
+        time.sleep(REQUEST_DELAY_S)
+    conn.commit()
+    print(f"Backfilled {filled}/{len(missing)} station coordinates.")
+    return filled
 
 
 # --- CSV parsing ----------------------------------------------------------
@@ -661,7 +957,10 @@ def fetch_forecasts(conn: sqlite3.Connection,
                     models: list[str] | None = None,
                     series: bool = True) -> int:
     models = models or list(FORECAST_MODELS)
-    attribution_str = attribution("realtime")
+    # BCRFC forecasts are Province of BC (River Forecast Centre) data, not the
+    # ECCC realtime feed — attribute them to the Province with its copyright
+    # link and the RFC disclaimer.
+    attribution_str = attribution("bcrfc")
     now = datetime.now(timezone.utc).isoformat()
     total = 0
 
@@ -847,7 +1146,13 @@ def run_bootstrap(conn: sqlite3.Connection, args: argparse.Namespace):
     print("=== BOOTSTRAPPING HYDRO POC ===")
     provinces = ["BC"] if getattr(args, "bc", False) else None
     fetch_stations(conn, provinces=provinces)
-    enrich_coordinates(conn)
+
+    print("\n--- Syncing bulk HYDAT station metadata (lat/lon, status, drainage area) ---")
+    from . import fetch_hydat  # deferred: fetch_hydat imports this module at load time
+    fetch_hydat.sync(conn)
+
+    fetch_current_conditions(conn)  # live percentiles + coord backfill for any HYDAT missed
+    backfill_missing_coords(conn)   # last resort: scrape report page for any still-NULL coords
 
     print("\n--- Fetching 18-month daily means (parameters 3, 6) ---")
     args_long = argparse.Namespace(**vars(args), parameters=["3", "6"], months=18, days=None)
@@ -864,6 +1169,10 @@ def run_bootstrap(conn: sqlite3.Connection, args: argparse.Namespace):
 
 def run_update(conn: sqlite3.Connection, args: argparse.Namespace):
     print("=== UPDATING HYDRO POC HEAD ===")
+
+    print("\n--- Refreshing current conditions (percentiles) ---")
+    fetch_current_conditions(conn)
+
     print("\n--- Updating daily means (last 14 days) ---")
     args_long = argparse.Namespace(**vars(args), parameters=["3", "6"], months=None, days=14)
     fetch_bulk(conn, args_long)

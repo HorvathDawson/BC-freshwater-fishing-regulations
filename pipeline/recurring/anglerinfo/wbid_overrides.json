@@ -1,0 +1,62 @@
+[
+  {
+    "identifier": "01445OKAN",
+    "waterbody_keys": ["329459226"],
+    "note": "CLARK #1 (WEST) LAKE / CLARK 1 (W) / CLARK LOWER (stocking source_id 175278) — surfaced only after removing match_fwa_gazette.py's old normalize_map_title()-based '#N' stripping (which had silently collapsed this to plain 'CLARK LAKE' and matched the wrong candidate). WDIC itself has a record for this exact identifier (poly_id 336730) with a blank gazetted_name, so no automated name-based tier could ever resolve it. Resolved instead by a direct point-in-polygon lookup (common/waterbody_matcher.py::locate_at_point()) at that WDIC record's own anchor point: lands exactly inside FWA waterbody_key 329459226 (unnamed, WATERBODY_KEY_GROUP_CODE_50K '01437OKAN') — a one-digit catalogue typo off from the survey's own '01445OKAN' (same 'OKAN' watershed-group suffix, same pattern already documented for RICHARD LAKE's 00765PARK/00767PARK typo elsewhere in this project)."
+  },
+  {
+    "identifier": "00095CAMB",
+    "waterbody_keys": ["329069968"],
+    "note": "MCIVOR / MCIVOR LAKE (bathymetry 00095CAMB, stocking source_id 308615) — manually confirmed against BC's own waterbody lookup: Waterbody Key 329069968, GNIS Name 1 'Campbell Lake'. Confirmed live: the WDIC anchor point for this identifier falls exactly inside that polygon (distance 0m) — same lake, FWA just doesn't carry 'McIvor' as a GNIS name variant at all, so neither T3 gazetteer search nor the name_variant_index fallback could ever have found it by name."
+  },
+  {
+    "identifier": "01032NICL",
+    "waterbody_keys": ["329451894"],
+    "note": "LITTLE ROCK (stocking source_id 26669) — 'Rock Lake' is a common name (6 candidates province-wide via gazetteer search), so an automated tier couldn't safely pick one by name alone. Confirmed live: the WDIC anchor point for this identifier falls exactly inside FWA waterbody_key 329451894's polygon (distance 0m), the same waterbody the actual full name ('Rock Lake') refers to — the closest of the 6 candidates by a wide margin (next-closest is 132.5km away)."
+  },
+  {
+    "identifier": "00728PARK",
+    "waterbody_keys": ["329467775"],
+    "note": "COLLIERY #3 / HAREWOOD #3 (stocking source_id 307182; also a gofishbc marker, source_id 15424, same identifier) — confirmed location, no FWA name to search by at all (entirely unnamed FWA `lakes` polygon, no GNIS name, no WATERBODY_KEY_GROUP_CODE_50K either — outside both the identifier-join and gazetteer-search schemes entirely). Resolved by a direct point-in-polygon lookup (common/waterbody_matcher.py's locate_at_point()) at the WDIC anchor point instead: lands exactly inside (distance 0m) this specific unnamed lakes polygon."
+  },
+  {
+    "identifier": "00748PARK",
+    "waterbody_keys": ["329467710"],
+    "note": "COLLIERY / HAREWOOD RESERVOIR (stocking source_id 307188) — same situation as 00728PARK above (confirmed location, entirely unnamed FWA polygon, no group code), but a *different* nearby waterbody, not the same lake as 00728PARK — resolved the same way, a direct point-in-polygon lookup at this identifier's own WDIC anchor point, landing exactly inside (distance 0m) this specific unnamed lakes polygon."
+  },
+  {
+    "identifier": "00402GATA",
+    "waterbody_keys": ["329158484"],
+    "note": "SOUTH GATAGA LAKE NO. 2 * (bathymetry source_id, WSA MAP_TITLE) — user-verified directly against the WSA bathymetric survey PDF itself (00158901.pdf, https://a100.gov.bc.ca/pub/fidq/downloadBathymetricMap.do?filename=00158901.pdf), not just the WDIC anchor: Waterbody Key 329158484, Waterbody Type 'L', GNIS ID 39680, GNIS Name 1 'South Gataga Lakes'. Supersedes an earlier, wrong guess (329158809, an unnamed wetland polygon 7.7m from the WDIC anchor) that proximity alone picked incorrectly — this polygon sits 460m from the anchor, farther but confirmed correct by the actual survey map, a reminder that the WDIC point is only approximate and proximity alone isn't sufficient evidence for a real lake vs. a nearby unrelated polygon."
+  },
+  {
+    "identifier": "01138BOWR",
+    "waterbody_keys": ["329058706", "329058707"],
+    "note": "SPECTACLE - SWAN LAKES (bathymetry MAP_TITLE) — user-confirmed this identifier actually covers *two* distinct FWA lake polygons: Spectacle Lakes (Waterbody Key 329058706, GNIS ID 8146) and Swan Lake (Waterbody Key 329058707, GNIS ID 1785). Both included, mirroring this project's own multi-part-waterbody convention (common/waterbody_matcher.py's build_resolved() — a tie neither name nor identifier can break to one polygon isn't a matching failure when FWA genuinely represents the source's one identifier as more than one polygon). Confirmed live: the WDIC anchor point for this identifier falls exactly inside Spectacle Lakes (0m) and 1,361m from Swan Lake — both real, both part of the named complex, not a stray second candidate."
+  },
+  {
+    "identifier": "00199GUIC",
+    "skip": true,
+    "note": "Stocking source_id 24823, no gazetted name at all — user identified this as likely a mining dam/impoundment, not a waterbody FWA's lakes/wetlands/manmade layers currently represent as a polygon. Treated as no-polygon rather than guessing at a nearby candidate."
+  },
+  {
+    "identifier": "00665FRCN",
+    "skip": true,
+    "note": "UNNAMED SOWERBY CR (stocking source_id 2056) — user identified this as a 'phantom lake': possibly a real wetland on the ground, but with no FWA polygon representation to match to."
+  },
+  {
+    "identifier": "00832KHOR",
+    "skip": true,
+    "note": "Jubilee (gofishbc marker, source_id 15672) — confirmed no current FWA polygon exists at/near this location. Not a matching failure to keep chasing; recorded here so future runs don't re-flag it as unexplained."
+  },
+  {
+    "identifier": "00344HARR",
+    "skip": true,
+    "note": "HARRISON BAY LAKE (stocking source_id 22042) — confirmed no current FWA polygon exists at/near this location. Not a matching failure to keep chasing; recorded here so future runs don't re-flag it as unexplained."
+  },
+  {
+    "identifier": "01471LNTH",
+    "skip": true,
+    "note": "TOD (stocking source_id 34807) — confirmed no current FWA polygon exists at/near this location. Not a matching failure to keep chasing; recorded here so future runs don't re-flag it as unexplained."
+  }
+]

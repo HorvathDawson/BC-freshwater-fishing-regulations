@@ -26,6 +26,9 @@ export interface UrlState {
     waterbodyGroup?: string;
     /** Active section fgid from ?s=<fgid> param — written on tab switch, read on page load. */
     activeFgid?: string;
+    /** Active InfoPanel content tab from ?tab=<key> param (rules/stocking/bathymetry/gauges)
+     *  — written on tab switch, read on page load. Absent means the default ('rules'). */
+    activeTab?: string;
 }
 
 /** Extract waterbody_group slug from path /waterbody/<wbg>/ — undefined if not a wbg path. */
@@ -40,21 +43,29 @@ const parseWbgFromPath = (): string | undefined => {
 // Read-only in parseUrlState; written exclusively via setActiveSectionParam.
 const SECTION_PARAM = 's';
 
+// Content tab param — encodes InfoPanel's active tab (rules/stocking/bathymetry/gauges).
+// Read-only in parseUrlState; written exclusively via setActiveTabParam. Omitted
+// from the URL entirely for the default ('rules') so canonical/shared links for
+// the common case stay as short as they were before tabs existed.
+const TAB_PARAM = 'tab';
+
 /**
  * Parse current URL for state parameters.
  * Path-based wbg takes priority over legacy query params.
- * Always reads ?s=<fgid> regardless of path type.
+ * Always reads ?s=<fgid> and ?tab=<key> regardless of path type.
  */
 export const parseUrlState = (): UrlState => {
     const wbg = parseWbgFromPath();
     const params = new URLSearchParams(window.location.search);
     const activeFgid = params.get(SECTION_PARAM) || undefined;
+    const activeTab = params.get(TAB_PARAM) || undefined;
     if (wbg) {
-        return { waterbodyGroup: wbg, activeFgid };
+        return { waterbodyGroup: wbg, activeFgid, activeTab };
     }
     return {
         featureId: params.get(PARAMS.FEATURE) || undefined,
         activeFgid,
+        activeTab,
     };
 };
 
@@ -79,6 +90,27 @@ export const setActiveSectionParam = (fgid: string | undefined): void => {
 };
 
 /**
+ * Write or clear the active content-tab param (?tab=<key>) without navigating.
+ * Called by InfoPanel on every content-tab switch. 'rules' (the default) clears
+ * the param instead of writing it, same convention setActiveSectionParam uses
+ * for "no section". Preserves the existing pathname and hash (MapLibre position).
+ */
+export const setActiveTabParam = (tab: string | undefined): void => {
+    const params = new URLSearchParams(window.location.search);
+    if (tab && tab !== 'rules') {
+        params.set(TAB_PARAM, tab);
+    } else {
+        params.delete(TAB_PARAM);
+    }
+    const search = params.toString();
+    window.history.replaceState(
+        null,
+        '',
+        `${window.location.pathname}${search ? `?${search}` : ''}${window.location.hash}`,
+    );
+};
+
+/**
  * Strip trailing -000000 padding segments from FWA watershed codes for URL slugs.
  * FWA codes are fixed-length hierarchical codes where trailing zero groups are padding.
  *   900-105574-000000-...-000000  →  900-105574
@@ -89,13 +121,19 @@ export const collapseWbg = (wbg: string): string => wbg.replace(/(-000000)+$/, '
 /**
  * Navigate to the canonical URL for a named waterbody group.
  * Writes /waterbody/<wbg>/ as the path, preserving the map position hash.
- * Always includes ?s=<fgid> when a sectionFgid is provided.
+ * Always includes ?s=<fgid> when a sectionFgid is provided, and ?tab=<key>
+ * when a non-default contentTab is provided.
  * Uses pushState so browser back/forward navigates between features.
  */
-export const navigateToWaterbody = (wbg: string, sectionFgid?: string): void => {
-    const section = sectionFgid || new URLSearchParams(window.location.search).get(SECTION_PARAM);
-    const search = section ? `?${SECTION_PARAM}=${encodeURIComponent(section)}` : '';
-    const newUrl = `${WBG_PATH_PREFIX}${encodeURIComponent(collapseWbg(wbg))}/${search}${window.location.hash}`;
+export const navigateToWaterbody = (wbg: string, sectionFgid?: string, contentTab?: string): void => {
+    const currentParams = new URLSearchParams(window.location.search);
+    const section = sectionFgid || currentParams.get(SECTION_PARAM);
+    const tab = contentTab || currentParams.get(TAB_PARAM);
+    const params = new URLSearchParams();
+    if (section) params.set(SECTION_PARAM, section);
+    if (tab && tab !== 'rules') params.set(TAB_PARAM, tab);
+    const search = params.toString();
+    const newUrl = `${WBG_PATH_PREFIX}${encodeURIComponent(collapseWbg(wbg))}/${search ? `?${search}` : ''}${window.location.hash}`;
     // pushState for new navigations so back button works
     if (window.location.pathname + window.location.search === newUrl.split('#')[0]) {
         window.history.replaceState(null, '', newUrl);
@@ -106,14 +144,17 @@ export const navigateToWaterbody = (wbg: string, sectionFgid?: string): void => 
 
 /**
  * Navigate to the legacy ?f=<fgid> URL for unnamed/compact features.
- * Preserves the map position hash and active section param.
+ * Preserves the map position hash, active section param, and content-tab param.
  * Uses pushState so browser back/forward navigates between features.
  */
-export const navigateToFeature = (fgid: string, sectionFgid?: string): void => {
-    const section = sectionFgid || new URLSearchParams(window.location.search).get(SECTION_PARAM);
+export const navigateToFeature = (fgid: string, sectionFgid?: string, contentTab?: string): void => {
+    const currentParams = new URLSearchParams(window.location.search);
+    const section = sectionFgid || currentParams.get(SECTION_PARAM);
+    const tab = contentTab || currentParams.get(TAB_PARAM);
     const params = new URLSearchParams();
     params.set(PARAMS.FEATURE, fgid);
     if (section) params.set(SECTION_PARAM, section);
+    if (tab && tab !== 'rules') params.set(TAB_PARAM, tab);
     const newUrl = `/?${params.toString()}${window.location.hash}`;
     if (window.location.pathname + window.location.search === newUrl.split('#')[0]) {
         window.history.replaceState(null, '', newUrl);
@@ -139,24 +180,32 @@ export const clearUrlState = (): void => {
 /**
  * Generate the canonical shareable URL for a named waterbody group.
  * Uses the stable /waterbody/<wbg>/ path format, includes current map position hash.
- * Automatically collapses trailing FWA padding from the slug.
+ * Automatically collapses trailing FWA padding from the slug. Includes ?tab=<key>
+ * when contentTab is a non-default tab, so sharing from e.g. the Stocking tab
+ * deep-links the recipient straight there.
  */
-export const getCanonicalUrl = (wbg: string, sectionFgid?: string): string => {
-    const sectionParam = sectionFgid ? `?${SECTION_PARAM}=${encodeURIComponent(sectionFgid)}` : '';
-    return `${window.location.origin}${WBG_PATH_PREFIX}${encodeURIComponent(collapseWbg(wbg))}/${sectionParam}${window.location.hash}`;
+export const getCanonicalUrl = (wbg: string, sectionFgid?: string, contentTab?: string): string => {
+    const params = new URLSearchParams();
+    if (sectionFgid) params.set(SECTION_PARAM, sectionFgid);
+    if (contentTab && contentTab !== 'rules') params.set(TAB_PARAM, contentTab);
+    const search = params.toString();
+    return `${window.location.origin}${WBG_PATH_PREFIX}${encodeURIComponent(collapseWbg(wbg))}/${search ? `?${search}` : ''}${window.location.hash}`;
 };
 
 /**
  * Generate a shareable URL using a feature ID (for unnamed/legacy features).
  * Prefers getCanonicalUrl() for all named waterbodies.
  */
-export const getShareableUrl = (featureId?: string, sectionFgid?: string): string => {
+export const getShareableUrl = (featureId?: string, sectionFgid?: string, contentTab?: string): string => {
     const params = new URLSearchParams();
     if (featureId) {
         params.set(PARAMS.FEATURE, featureId);
     }
     if (sectionFgid) {
         params.set(SECTION_PARAM, sectionFgid);
+    }
+    if (contentTab && contentTab !== 'rules') {
+        params.set(TAB_PARAM, contentTab);
     }
     const search = params.toString();
     const hash = window.location.hash;

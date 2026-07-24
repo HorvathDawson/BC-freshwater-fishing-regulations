@@ -48,5 +48,194 @@
       "360219234",
       "360553991"
     ]
+  },
+  {
+    "note": "Polygon has no GNIS_ID — keyed by WATERBODY_KEY instead of GNIS ID or blue line key since it's a lake polygon, not a stream. Authored as a name_variant: the polygon is unnamed, so the resolver promotes this to the display label.",
+    "waterbody_keys": [
+      "329321459"
+    ],
+    "name_variants": [
+      "Cahilty Lake"
+    ]
+  },
+  {
+    "display_name": "Two Forty-One Creek",
+    "note": "Reach of blue line 356569726 above Greyback Lake (route measure >=26850). FWA lumps it under 'Penticton Creek' (shared BLK/gnis_id 14718); the segments above the lake are locally Two Forty-One Creek, gauged by WSC 08NM241. Segments found by anchoring on Greyback Lake (wbk 328985751/329459131) and taking the blue line upstream. Source: live-data/hydro gauge match.",
+    "linear_feature_ids": [
+      "707346539",
+      "707346864",
+      "707347026",
+      "707347298",
+      "707347536",
+      "707347677",
+      "707347729",
+      "707347781",
+      "707347782",
+      "707347871",
+      "707348241",
+      "707348300",
+      "707348349",
+      "707348352",
+      "707348405",
+      "707348498",
+      "707348572",
+      "707349154",
+      "707349179",
+      "707349203",
+      "707349595"
+    ]
+  },
+  {
+    "note": "'Cedar Creek' is the local/gauge alias for FWA 'Blakeny Creek' (gnis_id 38801, entire blue line 356337017); gauged by WSC 08MH166 (CEDAR CREEK ABOVE THE MOUTH). Alias only — keeps the Blakeny Creek label. Source: live-data/hydro gauge match.",
+    "blue_line_keys": [
+      "356337017"
+    ],
+    "name_variants": [
+      "Cedar Creek"
+    ]
+  },
+  {
+    "note": "Unnamed FWA stream (blue line 356330156) gauged by WSC 08LF100 (\"DAIRY CREEK ABOVE TSOTIN LAKE\"); named from the gauge. Source: live-data/hydro gauge name+location match.",
+    "blue_line_keys": [
+      "356330156"
+    ],
+    "name_variants": [
+      "Dairy Creek"
+    ]
+  },
+  {
+    "note": "Unnamed FWA stream (blue line 360882624) gauged by WSC 08GE003 (\"ICY CREEK NEAR THE MOUTH\"); named from the gauge. Source: live-data/hydro gauge name+location match.",
+    "blue_line_keys": [
+      "360882624"
+    ],
+    "name_variants": [
+      "Icy Creek"
+    ]
+  },
+  {
+    "note": "Unnamed FWA stream (blue line 360862493) gauged by WSC 08EF006 (\"M3 CREEK NEAR SMITHERS\"); named from the gauge. Source: live-data/hydro gauge name+location match.",
+    "blue_line_keys": [
+      "360862493"
+    ],
+    "name_variants": [
+      "M3 Creek"
+    ]
+  },
+  {
+    "note": "Unnamed FWA stream (blue line 356338340) gauged by WSC 08JB003 (\"NAUTLEY RIVER NEAR FORT FRASER\"); named from the gauge. Source: live-data/hydro gauge name+location match.",
+    "blue_line_keys": [
+      "356338340"
+    ],
+    "name_variants": [
+      "Nautley River"
+    ]
+  },
+  {
+    "note": "Unnamed FWA stream (blue line 356511253) gauged by WSC 08NB020 (\"NORDIC CREEK AT THE OUTLET OF NORDIC GLACIER\"); named from the gauge. Source: live-data/hydro gauge name+location match.",
+    "blue_line_keys": [
+      "356511253"
+    ],
+    "name_variants": [
+      "Nordic Creek"
+    ]
+  },
+  {
+    "note": "Unnamed FWA stream (blue line 354089001) gauged by WSC 08HD026 (\"QUINSAM DIVERSION NEAR CAMPBELL RIVER\"); named from the gauge. Source: live-data/hydro gauge name+location match.",
+    "blue_line_keys": [
+      "354089001"
+    ],
+    "name_variants": [
+      "Quinsam Diversion"
+    ]
+  },
+  {
+    "note": "Unnamed FWA stream (blue line 360865045) gauged by WSC 08FF006 (\"RENEGADE CREEK NEAR KITIMAT\"); named from the gauge. Source: live-data/hydro gauge name+location match.",
+    "blue_line_keys": [
+      "360865045"
+    ],
+    "name_variants": [
+      "Renegade Creek"
+    ]
+  },
+  {
+    "note": "Unnamed FWA stream (blue line 360801822) gauged by WSC 08ED004 (\"THAUTIL CORNER CREEK NEAR MORICE LAKE\"); named from the gauge. Source: live-data/hydro gauge name+location match.",
+    "blue_line_keys": [
+      "360801822"
+    ],
+    "name_variants": [
+      "Thautil Corner Creek"
+    ]
+  },
+  {
+    "note": "Unnamed FWA stream (blue line 356554628) gauged by WSC 08NM240 (\"TWO FORTY CREEK NEAR PENTICTON\"); named from the gauge. Source: live-data/hydro gauge name+location match.",
+    "blue_line_keys": [
+      "356554628"
+    ],
+    "name_variants": [
+      "Two Forty Creek"
+    ]
+  },
+  {
+    "note": "Unnamed FWA stream (blue line 356328437) gauged by WSC 08JA029 (\"WHITESAIL MIDDLE CREEK NEAR TAHTSA REACH\"); named from the gauge. Source: live-data/hydro gauge name+location match.",
+    "blue_line_keys": [
+      "356328437"
+    ],
+    "name_variants": [
+      "Whitesail Middle Creek"
+    ]
+  },
+  {
+    "note": "Unnamed FWA stream (blue line 360862483) gauged by WSC 08DA012 (\"KELLY CREEK NEAR STEWART\"); named from the gauge. Source: live-data/hydro gauge name+location match.",
+    "blue_line_keys": [
+      "360862483"
+    ],
+    "name_variants": [
+      "Kelly Creek"
+    ]
+  },
+  {
+    "note": "\"Revelstoke Reservoir\" is a reservoir alias for FWA \"Revelstoke Lake\" (wbk 329484653); gauged by an ECCC \"... RESERVOIR\" station. Alias only — keeps the lake name as the label. Source: live-data/hydro gauge match.",
+    "waterbody_keys": [
+      "329484653"
+    ],
+    "name_variants": [
+      "Revelstoke Reservoir"
+    ]
+  },
+  {
+    "note": "\"Duncan Reservoir\" is a reservoir alias for FWA \"Duncan Lake\" (wbk 329120714); gauged by an ECCC \"... RESERVOIR\" station. Alias only — keeps the lake name as the label. Source: live-data/hydro gauge match.",
+    "waterbody_keys": [
+      "329120714"
+    ],
+    "name_variants": [
+      "Duncan Reservoir"
+    ]
+  },
+  {
+    "note": "\"Arrow Reservoir\" is a reservoir alias for FWA \"Upper Arrow Lake\" (wbk 328961689); gauged by an ECCC \"... RESERVOIR\" station. Alias only — keeps the lake name as the label. Source: live-data/hydro gauge match.",
+    "waterbody_keys": [
+      "328961689"
+    ],
+    "name_variants": [
+      "Arrow Reservoir"
+    ]
+  },
+  {
+    "note": "\"Arrow Reservoir\" is a reservoir alias for FWA \"Lower Arrow Lake\" (wbk 328961720); gauged by an ECCC \"... RESERVOIR\" station. Alias only — keeps the lake name as the label. Source: live-data/hydro gauge match.",
+    "waterbody_keys": [
+      "328961720"
+    ],
+    "name_variants": [
+      "Arrow Reservoir"
+    ]
+  },
+  {
+    "note": "\"Nechako Reservoir\" is a reservoir alias for FWA \"Intata Reach\" (wbk 328961766); gauged by an ECCC \"... RESERVOIR\" station. Alias only — keeps the lake name as the label. Source: live-data/hydro gauge match.",
+    "waterbody_keys": [
+      "328961766"
+    ],
+    "name_variants": [
+      "Nechako Reservoir"
+    ]
   }
 ]

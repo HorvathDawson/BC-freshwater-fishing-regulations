@@ -674,7 +674,7 @@ class TestBaseRegulationsJson:
         for entry in data:
             reg = BaseRegulationDef.from_dict(entry)
             assert reg.reg_id
-            assert reg.source in ("zone", "provincial")
+            assert reg.source in ("zone", "provincial", "municipal", "land_access")
             assert reg.rule_text
             assert isinstance(reg.restriction, dict)
 
@@ -1635,6 +1635,10 @@ class TestNameVariantSourceTagging:
         resolver = DisplayNameResolver.__new__(DisplayNameResolver)
         resolver._blk_dn = {}
         resolver._wbk_dn = {}
+        resolver._fid_dn = {}
+        resolver._blk_variants = {}
+        resolver._wbk_variants = {}
+        resolver._fid_variants = {}
         resolver._blk_reg_name = {}
         resolver._wbk_reg_name = {}
         resolver._fid_reg_name = {}

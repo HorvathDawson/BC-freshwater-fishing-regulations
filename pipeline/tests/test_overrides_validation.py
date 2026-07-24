@@ -293,19 +293,24 @@ class TestFeatureDisplayNames:
             except Exception as exc:
                 pytest.fail(f"FeatureDisplayName {i} failed: {exc}\n{raw}")
 
-    def test_display_name_not_empty(
+    def test_has_display_name_or_variants(
         self, raw_feature_display_names: List[Dict[str, Any]]
     ) -> None:
+        """Each entry must carry a display_name or at least one name_variant
+        (a variant-only entry is an alias / a name promoted for an unnamed
+        feature)."""
         for i, raw in enumerate(raw_feature_display_names):
             fd = FeatureDisplayName.from_dict(raw)
-            assert fd.display_name.strip(), f"Entry {i} has empty display_name"
+            assert fd.display_name.strip() or fd.name_variants, (
+                f"Entry {i} has neither display_name nor name_variants"
+            )
 
     def test_has_at_least_one_key(
         self, raw_feature_display_names: List[Dict[str, Any]]
     ) -> None:
-        """Each FeatureDisplayName must have a BLK or WBK."""
+        """Each FeatureDisplayName must have a BLK, WBK, or linear_feature_id."""
         for i, raw in enumerate(raw_feature_display_names):
             fd = FeatureDisplayName.from_dict(raw)
             assert (
-                fd.blue_line_keys or fd.waterbody_keys
-            ), f"Entry {i} ({fd.display_name}) has no BLK or WBK"
+                fd.blue_line_keys or fd.waterbody_keys or fd.linear_feature_ids
+            ), f"Entry {i} ({fd.display_name}) has no BLK, WBK, or fid"

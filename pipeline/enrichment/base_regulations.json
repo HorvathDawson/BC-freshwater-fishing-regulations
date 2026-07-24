@@ -1387,11 +1387,8 @@
     ]
   },
   {
-    "reg_id": "zone_r2_knapp_forest_closure",
-    "source": "zone",
-    "zone_ids": [
-      "2"
-    ],
+    "reg_id": "land_access_knapp_forest_closure",
+    "source": "land_access",
     "rule_text": "No fishing in any lake in the UBC Malcolm Knapp Research Forest near Maple Ridge.",
     "restriction": {
       "type": "Closed",
@@ -1400,16 +1397,91 @@
       ],
       "details": "All lakes closed in UBC Malcolm Knapp Research Forest."
     },
-    "notes": "Source: Region 2 preamble, 2025-2027 Synopsis.",
+    "notes": "Source: Region 2 preamble, 2025-2027 Synopsis. Moved from Zone Regulations into the Land Use / land_access advisory tier.",
     "feature_types": [
       "lake",
       "manmade"
     ],
+    "reach_level": true,
     "admin_targets": [
       {
-        "layer": "osm_admin_boundaries",
+        "layer": "land_access",
         "feature_id": "1166294466"
       }
+    ]
+  },
+  {
+    "reg_id": "LAND_ACCESS_CLOSED",
+    "source": "land_access",
+    "rule_text": "This waterbody may be located near or within closed land with no public access, such as a military base or a closed watershed.",
+    "restriction": {
+      "type": "Closed",
+      "details": "Closed land (military, closed watersheds) is shown in red on the map — check the exact boundary before visiting."
+    },
+    "notes": "Always-visible advisory for awareness — not a fishing-specific closure unless separately regulated. Single consolidated advisory for the whole 'closed' restriction_level tier of the land_access layer (military bases, no-access protected areas/watersheds) rather than one reg per underlying OSM access tag, so a reach touching multiple closed polygons still shows one statement, not several near-duplicates.",
+    "reach_level": true,
+    "admin_targets": [
+      {
+        "layer": "land_access",
+        "restriction_level_filter": "closed"
+      }
+    ]
+  },
+  {
+    "reg_id": "LAND_ACCESS_RESTRICTED",
+    "source": "land_access",
+    "rule_text": "This waterbody may be located near land with conditional access, such as a permit, membership, or day-use fee.",
+    "restriction": {
+      "type": "Notice",
+      "details": "This land is shown in amber on the map — check the exact boundary before visiting."
+    },
+    "notes": "Always-visible advisory for awareness. Single consolidated advisory for the 'restricted' restriction_level tier (permit/permissive/destination/customers-tagged protected areas and nature reserves).",
+    "reach_level": true,
+    "admin_targets": [
+      {
+        "layer": "land_access",
+        "restriction_level_filter": "restricted"
+      }
+    ]
+  },
+  {
+    "reg_id": "MUNICIPAL_LOST_LAGOON_CLOSURE",
+    "source": "municipal",
+    "rule_text": "Fishing is banned in Lost Lagoon. The lagoon is an ecologically sensitive area that suffers from poor water quality and shallow depths due to a lack of natural tidal flushing.",
+    "restriction": {
+      "type": "Closed",
+      "species": [
+        "all"
+      ],
+      "details": "Fishing closed — ecologically sensitive, poor water quality, no natural tidal flushing."
+    },
+    "notes": "Municipal-level closure (Vancouver / Stanley Park), Region 2.",
+    "feature_types": [
+      "lake"
+    ],
+    "reach_level": true,
+    "waterbody_keys": [
+      "329532481"
+    ]
+  },
+  {
+    "reg_id": "MUNICIPAL_BEAVER_LAKE_CLOSURE",
+    "source": "municipal",
+    "rule_text": "Fishing is not permitted in Beaver Lake. It serves as a rare, naturally occurring salmon-bearing stream system within the city limits.",
+    "restriction": {
+      "type": "Closed",
+      "species": [
+        "all"
+      ],
+      "details": "Fishing closed — naturally occurring salmon-bearing stream system within city limits."
+    },
+    "notes": "Municipal-level closure (Vancouver / Stanley Park), Region 2.",
+    "feature_types": [
+      "lake"
+    ],
+    "reach_level": true,
+    "waterbody_keys": [
+      "329532620"
     ]
   },
   {

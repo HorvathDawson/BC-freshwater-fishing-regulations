@@ -2,18 +2,23 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import maplibregl from 'maplibre-gl';
 import { Protocol } from 'pmtiles';
 import { layers, LIGHT } from '@protomaps/basemaps';
+import type { Flavor } from '@protomaps/basemaps';
+import * as SunCalc from 'suncalc';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { createRegulationLayers, createAdminLabelLayers, createEarlyRoadLayers, HIGHLIGHT_COLORS, SELECTION_COLOR } from '../map/styles';
 import bcBoundary from '../map/bcBoundary.json';
 import { waterbodyDataService } from '../services/waterbodyDataService';
 import type { Reach, RegulationData, ResolveResult } from '../services/waterbodyDataService';
-import { 
+import { TILE_BASE } from '../config/endpoints';
+import {
     isMobileViewport,
     getFeatureDisplayName,
-    type FeatureInfo, 
-    type FeatureOption, 
+    isAdminFeatureType,
+    type AdminFeatureType,
+    type FeatureInfo,
+    type FeatureOption,
     type FeatureGeometry,
-    type CollapseState 
+    type CollapseState
 } from '../utils/featureUtils';
 import { parseUrlState, navigateToWaterbody, navigateToFeature, clearUrlState } from '../utils/urlState';
 import InfoPanel from './InfoPanel';
@@ -23,6 +28,8 @@ import Disclaimer, { DisclaimerLink } from './Disclaimer';
 import IssueReport, { IssueReportLink, type IssueReportContext } from './IssueReport';
 import FishLoader from './FishLoader';
 import type { SearchableFeature, RegulationSegment } from './SearchBar';
+import { useDawnDusk } from '../hooks/useDawnDusk';
+import type { DawnDuskTimes } from '../hooks/useDawnDusk';
 import './Map.css';
 
 // --- CONFIG & PROTOCOL ---
@@ -35,10 +42,27 @@ if (!(globalThis as any).__pmtilesProtocolAdded) {
     (globalThis as any).__pmtilesProtocolAdded = true;
 }
 
-// Tile base URL: empty in dev (local /data/), R2 public URL in production
-const TILE_BASE = import.meta.env.VITE_TILE_BASE_URL
-    ? `pmtiles://${import.meta.env.VITE_TILE_BASE_URL}`
-    : 'pmtiles:///data';
+// ── Basemap road theme override ─────────────────────────────────────
+// Protomaps' stock LIGHT flavor renders roads in near-white/pale-gray
+// (`other`/`minor_*`: "#ebebeb") — a deliberate minimalist-cartography
+// choice, but the minor/other tier (backcountry tracks, paths, minor local
+// roads — the FSR-adjacent stuff) becomes nearly invisible against the
+// light "earth" background once zoomed in past where our own
+// `roads_other_early` overlay hands off to the basemap's native styling.
+// Deliberately scoped to ONLY that minor/other tier — highways, major
+// arterials, and city streets keep their stock (white) styling untouched.
+const BROWN_ROAD_THEME: Flavor = {
+    ...LIGHT,
+    minor_a: '#dcc9a3',
+    minor_b: '#dcc9a3',
+    minor_service: '#dcc9a3',
+    other: '#dcc9a3',
+    bridges_minor: '#dcc9a3',
+    bridges_other: '#dcc9a3',
+};
+
+// Tile base URL: empty in dev (local /data/), R2 public URL in production.
+// Derived from VITE_TILE_BASE_URL — see src/config/endpoints.ts.
 
 // BC bounding box with margin for map constraints
 // Interior: approx -139.05 to -114.03 (lng), 48.30 to 60.00 (lat)
@@ -141,6 +165,75 @@ function legacyFilterToExpression(f: any): any {
 }
 
 const INTERACTABLE_LAYERS = ['streams', 'lakes-fill', 'wetlands-fill', 'manmade-fill'];
+
+// Land-ownership/access + protected-area/admin-boundary fill layers that are
+// clickable in addition to waterbodies. Only actually returns hits for
+// layers currently visible on screen — MapLibre's queryRenderedFeatures
+// naturally respects each layer's own visibility (layer-menu toggle /
+// admin_visibility filtering), so no extra gating is needed here.
+// 'admin_parks_bc-fill' alone covers eco reserves too (no filter on that
+// fill layer) — 'eco_reserves-fill' is a redundant subset kept only for its
+// distinct border styling, so it's deliberately not queried here to avoid
+// duplicate hits on the same polygon.
+const ADMIN_INTERACTABLE_LAYERS = [
+    'admin_parks_nat-fill',
+    'admin_parks_bc-fill',
+    'admin_wma-fill',
+    'admin_watersheds-fill',
+    'admin_historic_sites-fill',
+    'admin_land_access-fill',
+    'admin_land_parcels_crown-fill',
+    'admin_land_parcels_public-fill',
+    'admin_land_parcels_private-fill',
+    'admin_aboriginal_lands-fill',
+];
+
+/** Map a clicked admin-layer tile feature to its AdminFeatureType, keyed on
+ *  the style layer id (and, for the multi-subtype BC-parks layer, admin_type). */
+const adminFeatureType = (layerId: string, props: Record<string, any>): AdminFeatureType => {
+    switch (layerId) {
+        case 'admin_parks_nat-fill': return 'park_national';
+        case 'admin_parks_bc-fill':
+            switch (props.admin_type) {
+                case 'ECOLOGICAL_RESERVE': return 'eco_reserve';
+                case 'PROTECTED_AREA': return 'protected_area';
+                case 'RECREATION_AREA': return 'recreation_area';
+                default: return 'park_provincial';
+            }
+        case 'admin_wma-fill': return 'wma';
+        case 'admin_watersheds-fill': return 'watershed';
+        case 'admin_historic_sites-fill': return 'historic_site';
+        case 'admin_land_access-fill':
+            return props.restriction_level === 'restricted' ? 'land_access_restricted' : 'land_access_closed';
+        case 'admin_land_parcels_private-fill': return 'land_ownership_private';
+        case 'admin_land_parcels_public-fill': return 'land_ownership_public';
+        case 'admin_aboriginal_lands-fill': return 'aboriginal_land';
+        case 'admin_land_parcels_crown-fill':
+        default: return 'land_ownership_crown';
+    }
+};
+
+/** Build a FeatureOption directly from a clicked admin/land tile feature —
+ *  these are self-contained (AdminRecord fields only), no /api/resolve needed. */
+const buildAdminFeatureOption = (tileFeature: maplibregl.MapGeoJSONFeature): FeatureOption => {
+    const props = tileFeature.properties || {};
+    const type = adminFeatureType(tileFeature.layer.id, props);
+    const adminId = String(props.admin_id ?? '');
+    return {
+        type,
+        id: `admin:${tileFeature.sourceLayer}:${adminId}`,
+        geometry: (tileFeature.geometry || (tileFeature as any).toJSON?.().geometry) as FeatureGeometry,
+        source: tileFeature.source,
+        sourceLayer: tileFeature.sourceLayer,
+        properties: {
+            display_name: props.display_name || props.name || '',
+            admin_id: adminId,
+            admin_type: props.admin_type || '',
+            area: props.area,
+            restriction_level: props.restriction_level || '',
+        },
+    };
+};
 
 // Filter-based highlight / selection layer IDs.
 // These render directly from the 'regulations' PMTiles source — no geometry
@@ -310,6 +403,61 @@ const createHorizontalLinePattern = (hexColor: string): ImageData | null => {
     }
     return ctx.getImageData(0, 0, size, size);
 };
+
+/**
+ * Small circular badge icon with a vendored SVG glyph drawn on top in
+ * white, used for the water-access-point / waterfall POI layers. Each
+ * `poi_type` gets a distinct, recognizable icon (not just a color) so
+ * they stay distinguishable for colorblind users. The glyphs are real
+ * paths from Maki (BSD-3-Clause/CC0, via Mapbox — purpose-built for small
+ * map markers) and MDI (Apache-2.0, via Pictogrammers), not hand-drawn
+ * shapes, since a wedge/two-lines/two-masts read as ambiguous at 22px.
+ */
+const createSvgBadgeIcon = (bgColor: string, pathD: string, viewBoxSize: number): ImageData | null => {
+    const size = 22;
+    const canvas = document.createElement('canvas');
+    canvas.width = size; canvas.height = size;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return null;
+    const cx = size / 2, cy = size / 2, r = size / 2 - 1;
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.fillStyle = bgColor;
+    ctx.fill();
+    ctx.lineWidth = 1.2;
+    ctx.strokeStyle = '#ffffff';
+    ctx.stroke();
+
+    // Scale the icon's native viewBox to ~60% of the badge diameter, centered.
+    const glyphSize = size * 0.6;
+    const scale = glyphSize / viewBoxSize;
+    ctx.save();
+    ctx.translate(cx - glyphSize / 2, cy - glyphSize / 2);
+    ctx.scale(scale, scale);
+    ctx.fillStyle = '#ffffff';
+    ctx.fill(new Path2D(pathD));
+    ctx.restore();
+    return ctx.getImageData(0, 0, size, size);
+};
+
+// Boat launch — Maki "slipway" (ramp + water ripple), viewBox 15x15.
+const ICON_SLIPWAY_PATH = 'm2 10l12 1.495V12H2zm12-4l-1 1v.583L5.196 4.332l.063-.125L6.61 2.845h.831a.35.35 0 0 0 0-.7h-.976a.35.35 0 0 0-.248.103L4.723 3.753a.4.4 0 0 0-.066.09l-.109.219L2 3c0 2-.03 3.958 2.86 4.5C6.28 7.765 13 9 13 9l2-2z';
+// Pier / dock — MDI "pier" (dock with support posts over waves), viewBox 24x24.
+const ICON_PIER_PATH = 'M20 18c-1.4 0-2.8-.5-4-1.3c-2.4 1.7-5.6 1.7-8 0c-1.2.8-2.6 1.3-4 1.3H2v2h2c1.4 0 2.7-.4 4-1c2.5 1.3 5.5 1.3 8 0c1.3.6 2.6 1 4 1h2v-2zm0-5h-1v3.9c-.7-.1-1.4-.3-2-.7V13h-5v4c-.7 0-1.3-.1-2-.3V13H5v3.9c-.3.1-.7.1-1 .1H3v-4H2v-2h1V9h2v2h5V9h2v2h5V9h2v2h1z';
+// Designated fishing platform — MDI "fishing" (rod + line), viewBox 24x24.
+const ICON_FISHING_PATH = 'M16 9h.41l-13 13L2 20.59l13-13V9zm0-5v4h4l2-6z';
+// Waterfall — Maki "waterfall", viewBox 15x15.
+const ICON_WATERFALL_PATH = 'M14 1H5a3 3 0 0 0-3 3v4.88a2.25 2.25 0 0 0 2.5 3.742a2.25 2.25 0 0 0 2.664-.122h.353A3.25 3.25 0 1 0 10.5 6.75V5a2 2 0 0 1 2-2H14zm-2.5 8.75a2.25 2.25 0 0 1-3.664 1.75H6.75a1.248 1.248 0 0 1-2 0h-.5A1.25 1.25 0 1 1 3 9.525V5.75a.75.75 0 0 1 1.5 0V9a.5.5 0 0 0 1 0V6.75a.75.75 0 0 1 1.5 0V9a.5.5 0 0 0 1 0V5.75a.75.75 0 0 1 1.5 0v1.764a2.25 2.25 0 0 1 2 2.236';
+
+// Hydrometric gauge station — MDI "gauge" (speedometer dial), viewBox 24x24.
+const ICON_GAUGE_PATH = 'M12,16A3,3 0 0,1 9,13C9,11.88 9.61,10.9 10.5,10.39L20.21,4.77L14.68,14.35C14.18,15.33 13.17,16 12,16M12,3C13.81,3 15.5,3.5 16.97,4.32L14.87,5.53C14,5.19 13,5 12,5A8,8 0 0,0 4,13C4,15.21 4.89,17.21 6.34,18.65H6.35C6.74,19.04 6.74,19.67 6.35,20.06C5.96,20.45 5.32,20.45 4.93,20.07V20.07C3.12,18.26 2,15.76 2,13A10,10 0 0,1 12,3M22,13C22,15.76 20.88,18.26 19.07,20.07V20.07C18.68,20.45 18.05,20.45 17.66,20.06C17.27,19.67 17.27,19.04 17.66,18.65V18.65C19.11,17.2 20,15.21 20,13C20,12 19.81,11 19.46,10.1L20.67,8C21.5,9.5 22,11.19 22,13Z';
+
+const createBoatLaunchIcon = (): ImageData | null => createSvgBadgeIcon('#0072B2', ICON_SLIPWAY_PATH, 15);
+const createPierIcon = (): ImageData | null => createSvgBadgeIcon('#4A90E2', ICON_PIER_PATH, 24);
+const createFishingPlatformIcon = (): ImageData | null => createSvgBadgeIcon('#059669', ICON_FISHING_PATH, 24);
+const createWaterfallIcon = (): ImageData | null => createSvgBadgeIcon('#0D47A1', ICON_WATERFALL_PATH, 15);
+// Teal badge — distinct from the blue access-point / waterfall icons.
+const createGaugeIcon = (): ImageData | null => createSvgBadgeIcon('#0d9488', ICON_GAUGE_PATH, 24);
 
 /** Normalize plural backend types to singular frontend types */
 const normalizeType = (type: string): 'stream' | 'lake' | 'wetland' | 'manmade' | 'ungazetted' => {
@@ -515,9 +663,11 @@ const MapComponent = () => {
     const mapRef = useRef<maplibregl.Map | null>(null);
     const satBtnRef = useRef<HTMLButtonElement | null>(null);
     const toggleSatelliteRef = useRef<() => void>(() => {});
-    const opacityCtrlRef = useRef<HTMLElement | null>(null);
-    const toggleSliderRef = useRef<() => void>(() => {});
     const handleOverlayOpacityRef = useRef<(val: string) => void>(() => {});
+    const layerMenuCtrlRef = useRef<HTMLElement | null>(null);
+    const toggleLayerMenuRef = useRef<() => void>(() => {});
+    const toggleLandOwnershipRef = useRef<() => void>(() => {});
+    const togglePrivateLandRef = useRef<() => void>(() => {});
     // Cache of each regulation layer's original paint opacity values,
     // captured on first satellite toggle so the slider can multiply them.
     const baseOpacitiesRef = useRef<Record<string, [string, any][]>>({});
@@ -549,10 +699,19 @@ const MapComponent = () => {
     const cursorLngLatRef = useRef<{ lng: number; lat: number } | null>(null);
     
     const [selectedFeature, setSelectedFeature] = useState<FeatureInfo | null>(null);
+    // Bumped when a gauge map-icon option is chosen, so InfoPanel opens its Gauges
+    // tab (surviving the reset-to-'rules'-on-feature-change). Counter, not bool, so
+    // re-selecting the same reach's gauge still re-triggers.
+    const [gaugeOpenSeq, setGaugeOpenSeq] = useState(0);
     // Derived from wbgIndexRef whenever selectedFeature changes — never set manually.
     const [siblingFeatures, setSiblingFeatures] = useState<SearchableFeature[]>([]);
     const [disambigOptions, setDisambigOptions] = useState<FeatureOption[]>([]);
     const [disambigPosition, setDisambigPosition] = useState<{ x: number; y: number } | null>(null);
+    // Click-point context shown at the top of the disambiguation menu —
+    // computed once at click time (dawn/dusk from SunCalc, MU from the
+    // invisible 'mu-hit-test' layer) and reused across whichever
+    // presentOptions() call ends up firing for that click.
+    const [disambigContext, setDisambigContext] = useState<{ dawnDusk: DawnDuskTimes; managementUnit: string | null } | null>(null);
     const [clickLoadingPos, setClickLoadingPos] = useState<{ x: number; y: number } | null>(null);
     // Delayed spinner — avoid flash on fast resolves.
     // Only show spinner after SPINNER_DELAY ms; once visible, keep for at least SPINNER_MIN ms.
@@ -565,6 +724,7 @@ const MapComponent = () => {
     const [searchableFeatures, setSearchableFeatures] = useState<SearchableFeature[]>([]);
     const [dataLoaded, setDataLoaded] = useState(false);
     const [mapReady, setMapReady] = useState(false);
+    const { times: dawnDusk, updatePosition: updateDawnDuskPosition } = useDawnDusk();
     const [filtersApplied, setFiltersApplied] = useState(false);
     // Fetched once from data_version.json (no-store). null = not yet resolved.
     // Used as ?v= query param on PMTiles URLs to bust browser cache on deploys.
@@ -573,7 +733,9 @@ const MapComponent = () => {
     const [issueReportOpen, setIssueReportOpen] = useState(false);
     const [isSatellite, setIsSatellite] = useState(false);
     const [overlayOpacity, setOverlayOpacity] = useState(1);
-    const [sliderOpen, setSliderOpen] = useState(false);
+    const [layerMenuOpen, setLayerMenuOpen] = useState(false);
+    const [showLandOwnership, setShowLandOwnership] = useState(false);
+    const [showPrivateLand, setShowPrivateLand] = useState(false);
 
     // Spinner delay constants (ms)
     const SPINNER_DELAY = 150;  // wait before showing
@@ -711,8 +873,7 @@ const MapComponent = () => {
                 }
             }
         }
-        setIsSatellite(next);
-        setSliderOpen(next); // auto-expand slider when satellite turns on
+        setIsSatellite(next); // the opacity dropdown row shows/hides via its own isSatellite-synced effect
 
         // Show/hide satellite raster
         map.setLayoutProperty('satellite-tiles', 'visibility', next ? 'visible' : 'none');
@@ -780,13 +941,69 @@ const MapComponent = () => {
 
     // Keep the imperative satellite button ref in sync with React state
     useEffect(() => { toggleSatelliteRef.current = toggleSatellite; }, [toggleSatellite]);
+
+    // Land ownership layer toggles — shows/hides the land_parcels_crown fill
+    // + line layers (same setLayoutProperty pattern the admin-layer
+    // visibility effect elsewhere in this file uses). "Crown / Public Land"
+    // (one checkbox) flips both the Crown and Public/Local-Government style
+    // layers together — they're different colors so they read as distinct
+    // categories, but share one toggle. Private has its own separate
+    // toggle. All three draw from the same `land_parcels_crown` tile
+    // source-layer but as separately-filtered style layers (see styles.ts).
+    useEffect(() => {
+        toggleLandOwnershipRef.current = () => setShowLandOwnership(v => !v);
+        togglePrivateLandRef.current = () => setShowPrivateLand(v => !v);
+    }, []);
+    useEffect(() => {
+        const map = mapRef.current;
+        if (!map || !map.isStyleLoaded()) return;
+        const vis = showLandOwnership ? 'visible' : 'none';
+        for (const id of [
+            'admin_land_parcels_crown-fill', 'admin_land_parcels_crown-line',
+            'admin_land_parcels_public-fill', 'admin_land_parcels_public-line',
+        ]) {
+            if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', vis);
+        }
+    }, [showLandOwnership, mapReady]);
+    useEffect(() => {
+        const map = mapRef.current;
+        if (!map || !map.isStyleLoaded()) return;
+        const vis = showPrivateLand ? 'visible' : 'none';
+        for (const id of ['admin_land_parcels_private-fill', 'admin_land_parcels_private-line']) {
+            if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', vis);
+        }
+    }, [showPrivateLand, mapReady]);
+
+    // Layer menu trigger button — always shows a generic "layers" icon; the
+    // menu itself (not this button) reflects satellite/land-ownership state.
     useEffect(() => {
         const btn = satBtnRef.current;
         if (!btn) return;
-        btn.innerHTML = isSatellite ? MAP_SVG : LAYERS_SVG;
-        btn.title = isSatellite ? 'Switch to map view' : 'Switch to satellite view';
+        btn.innerHTML = LAYERS_SVG;
+        btn.title = 'Map layers';
         btn.setAttribute('aria-label', btn.title);
-    }, [isSatellite]);
+    }, []);
+
+    // Layer menu open/close + its two toggle rows' checked state
+    useEffect(() => {
+        toggleLayerMenuRef.current = () => setLayerMenuOpen(o => !o);
+    }, []);
+    useEffect(() => {
+        const wrapper = layerMenuCtrlRef.current;
+        if (!wrapper) return;
+        const popup = wrapper.querySelector('.layer-menu-popup') as HTMLElement | null;
+        if (popup) popup.style.display = layerMenuOpen ? '' : 'none';
+    }, [layerMenuOpen]);
+    useEffect(() => {
+        const wrapper = layerMenuCtrlRef.current;
+        if (!wrapper) return;
+        const satToggle = wrapper.querySelector('.layer-menu-sat-toggle') as HTMLInputElement | null;
+        if (satToggle) satToggle.checked = isSatellite;
+        const landToggle = wrapper.querySelector('.layer-menu-land-toggle') as HTMLInputElement | null;
+        if (landToggle) landToggle.checked = showLandOwnership;
+        const privateToggle = wrapper.querySelector('.layer-menu-private-toggle') as HTMLInputElement | null;
+        if (privateToggle) privateToggle.checked = showPrivateLand;
+    }, [isSatellite, showLandOwnership, showPrivateLand]);
 
     // Apply overlay opacity multiplier to all regulation-sourced layers.
     // Captures each layer's paint opacity on first satellite activation,
@@ -825,10 +1042,9 @@ const MapComponent = () => {
         }
     }, [isSatellite, overlayOpacity]);
 
-    // Wire imperative refs for opacity IControl
-    useEffect(() => {
-        toggleSliderRef.current = () => setSliderOpen(o => !o);
-    }, []);
+    // Wire imperative ref for the opacity slider's input handler (the
+    // slider itself now lives inside the layer menu popup, as a dropdown
+    // row under "Satellite" — see layerMenuControl below).
     useEffect(() => {
         handleOverlayOpacityRef.current = (val: string) => {
             const v = parseFloat(val);
@@ -837,22 +1053,22 @@ const MapComponent = () => {
         };
     }, []);
 
-    // Sync opacity IControl visibility and slider state with React state
+    // Sync the opacity dropdown row (visible only while satellite is on)
+    // and its slider value/percentage with React state.
     useEffect(() => {
-        const wrapper = opacityCtrlRef.current;
+        const wrapper = layerMenuCtrlRef.current;
         if (!wrapper) return;
-        wrapper.style.display = isSatellite ? '' : 'none';
+        const row = wrapper.querySelector('.layer-menu-opacity-row') as HTMLElement | null;
+        if (row) row.style.display = isSatellite ? '' : 'none';
     }, [isSatellite]);
     useEffect(() => {
-        const wrapper = opacityCtrlRef.current;
+        const wrapper = layerMenuCtrlRef.current;
         if (!wrapper) return;
-        const popup = wrapper.querySelector('.overlay-opacity-popup') as HTMLElement | null;
-        if (popup) popup.style.display = sliderOpen ? '' : 'none';
-        const input = wrapper.querySelector('input') as HTMLInputElement | null;
+        const input = wrapper.querySelector('.layer-menu-opacity-slider') as HTMLInputElement | null;
         if (input) input.value = String(overlayOpacity);
-        const pct = wrapper.querySelector('.overlay-pct');
+        const pct = wrapper.querySelector('.layer-menu-opacity-pct');
         if (pct) pct.textContent = `${Math.round(overlayOpacity * 100)}%`;
-    }, [sliderOpen, overlayOpacity]);
+    }, [overlayOpacity]);
 
     const clearSelection = useCallback(() => {
         setSelectedFeature(null);
@@ -860,9 +1076,10 @@ const MapComponent = () => {
         setHighlightedSearchResult(null);
         setDisambigOptions([]);
         setDisambigPosition(null);
+        setDisambigContext(null);
         isDisambigOpenRef.current = false;
         setMobilePanelState('partial');
-        
+
         // Clear feature from URL
         clearUrlState();
 
@@ -879,6 +1096,11 @@ const MapComponent = () => {
         // Clear ungazetted point marker
         const ugSrc = map.getSource('ungazetted-marker') as maplibregl.GeoJSONSource;
         if (ugSrc) ugSrc.setData({ type: 'FeatureCollection', features: [] });
+        // Clear land-use highlight + selection
+        const adminHlSrc = map.getSource('admin-highlight') as maplibregl.GeoJSONSource;
+        if (adminHlSrc) adminHlSrc.setData({ type: 'FeatureCollection', features: [] });
+        const adminSlSrc = map.getSource('admin-selection') as maplibregl.GeoJSONSource;
+        if (adminSlSrc) adminSlSrc.setData({ type: 'FeatureCollection', features: [] });
         // Reset highlight & selection layer filters to hide them
         setGroupFilter(map, HL_LAYER_IDS, null);
         setGroupFilter(map, SL_LAYER_IDS, null);
@@ -980,7 +1202,10 @@ const MapComponent = () => {
         wma: ['admin_wma-fill', 'admin_wma-line', 'admin_wma-label'],
         watersheds: ['admin_watersheds-fill', 'admin_watersheds-line', 'admin_watersheds-label'],
         historic_sites: ['admin_historic_sites-fill', 'admin_historic_sites-line', 'admin_historic_sites-label'],
-        osm_admin: ['admin_osm_admin-fill', 'admin_osm_admin-line', 'admin_osm_admin-label'],
+        land_access: [
+            'admin_land_access-fill', 'admin_land_access-line', 'admin_land_access-label',
+            'admin_land_access-hatch-closed', 'admin_land_access-hatch-restricted',
+        ],
         aboriginal_lands: ['admin_aboriginal_lands-fill', 'admin_aboriginal_lands-line', 'admin_aboriginal_lands-label'],
     };
     useEffect(() => {
@@ -1179,6 +1404,7 @@ const MapComponent = () => {
                 setSelectedFeature(null);
                 setDisambigOptions([]);
                 setDisambigPosition(null);
+                setDisambigContext(null);
                 isDisambigOpenRef.current = false;
             }
         };
@@ -1253,6 +1479,10 @@ const MapComponent = () => {
         if (mapRef.current) return; // already initialized
         if (!mapContainerRef.current) return;
         const vParam = dataVersion ? `?v=${encodeURIComponent(dataVersion)}` : '';
+        // Split so waterbody name labels (.labels) can be placed after
+        // createAdminLabelLayers() below — see createRegulationLayers()'s
+        // comment for why the split exists (collision-priority ordering).
+        const regulationLayers = createRegulationLayers();
         const map = new maplibregl.Map({
             container: mapContainerRef.current,
             maxBounds: BC_BOUNDS,
@@ -1269,21 +1499,35 @@ const MapComponent = () => {
                 // The `layers()` call without `lang` returns geometry-only layers;
                 // `labelsOnly + lang` returns road / place / water name labels
                 // so they render above the regulation fills and remain readable.
-                // We filter out OSM water labels since we display our own.
+                // We filter out OSM water labels since we display our own, and
+                // the generic 'pois' layer (post offices, shops, restaurants,
+                // etc.) — this is a fishing-regulations app, not a general
+                // basemap, and those commercial/amenity icons don't apply and
+                // just add clutter. Place-name labels (places_* — cities,
+                // towns) are kept; only the commercial POI icon layer is cut.
                 layers: [
                     // Satellite raster sits at the very bottom, hidden by default
                     { id: 'satellite-tiles', type: 'raster', source: 'satellite', layout: { visibility: 'none' } },
-                    ...layers('protomaps', LIGHT),
+                    // 'roads_other' (kind=other/path — trails/backcountry
+                    // tracks) excluded: createEarlyRoadLayers() below now
+                    // owns that tier for the full zoom range instead of
+                    // handing off to it (see comment there for why).
+                    ...layers('protomaps', BROWN_ROAD_THEME).filter(l => l.id !== 'roads_other'),
                     ...createEarlyRoadLayers(),
-                    ...createRegulationLayers(),
-                    ...layers('protomaps', LIGHT, { labelsOnly: true, lang: 'en' })
-                        .filter(l => !['water_waterway_label', 'water_label_ocean', 'water_label_lakes'].includes(l.id))
+                    ...regulationLayers.layers,
+                    ...layers('protomaps', BROWN_ROAD_THEME, { labelsOnly: true, lang: 'en' })
+                        .filter(l => !['water_waterway_label', 'water_label_ocean', 'water_label_lakes', 'pois'].includes(l.id))
                         .map(l => {
                             const withinBC: any = ['within', bcBoundary];
                             if (!('filter' in l) || !l.filter) return { ...l, filter: withinBC };
                             return { ...l, filter: ['all', legacyFilterToExpression(l.filter), withinBC] as any };
                         }),
                     ...createAdminLabelLayers(),
+                    // Waterbody names last — see comment above regulationLayers'
+                    // declaration: this must come after createAdminLabelLayers()
+                    // so lake/wetland/manmade/stream names win collision
+                    // priority over park/watershed/land-use labels.
+                    ...regulationLayers.labels,
                 ]
             },
             center: [-123.0, 49.25], zoom: 8, maxZoom: 18, minZoom: 4, hash: true,
@@ -1395,61 +1639,82 @@ const MapComponent = () => {
             startGpsWatch();
         }
 
-        // Add satellite toggle as a native MapLibre control
+        // Add the map-layers menu as a native MapLibre control — a trigger
+        // button that opens a small popup with toggle rows: base map ↔
+        // satellite (reuses the existing toggleSatellite logic unchanged),
+        // and BC parcel-level land ownership split into two independently
+        // toggleable rows (Crown/Public, Private — both draw from the same
+        // land_parcels_crown tile source-layer, filtered client-side).
+        // land_access (restricted/closed) and aboriginal_lands (Indigenous)
+        // are NOT here — those stay always-visible, driven by
+        // admin_visibility.json rather than a user toggle.
         // Desktop: bottom-left (stacked above compass).
         // Mobile: top-right (next to compass).
         const satPosition = isMobileViewport() ? 'top-right' : 'bottom-left';
-        const satControl: maplibregl.IControl = {
-            onAdd() {
-                const container = document.createElement('div');
-                container.className = 'maplibregl-ctrl maplibregl-ctrl-group';
-                const btn = document.createElement('button');
-                btn.className = 'satellite-toggle';
-                btn.title = 'Switch to satellite view';
-                btn.setAttribute('aria-label', 'Switch to satellite view');
-                btn.innerHTML = LAYERS_SVG;
-                btn.addEventListener('click', () => toggleSatelliteRef.current());
-                container.appendChild(btn);
-                satBtnRef.current = btn;
-                return container;
-            },
-            onRemove() { satBtnRef.current = null; }
-        };
-        map.addControl(satControl, satPosition);
-
-        // Add overlay opacity toggle as a small IControl button (same position as satellite).
-        // Shows a sun icon; on click, toggles a compact slider popup.
-        const opacityControl: maplibregl.IControl = {
+        const layerMenuControl: maplibregl.IControl = {
             onAdd() {
                 const wrapper = document.createElement('div');
-                wrapper.className = 'maplibregl-ctrl maplibregl-ctrl-group overlay-opacity-ctrl';
-                wrapper.style.display = 'none'; // hidden until satellite activates
+                wrapper.className = 'maplibregl-ctrl maplibregl-ctrl-group layer-menu-ctrl';
                 const btn = document.createElement('button');
-                btn.className = 'satellite-toggle overlay-opacity-btn';
-                btn.title = 'Overlay opacity';
-                btn.setAttribute('aria-label', 'Overlay opacity');
-                btn.innerHTML = OPACITY_SVG;
+                btn.className = 'satellite-toggle layer-menu-btn';
+                btn.title = 'Map layers';
+                btn.setAttribute('aria-label', 'Map layers');
+                btn.innerHTML = LAYERS_SVG;
                 btn.addEventListener('click', (e) => {
                     e.stopPropagation();
-                    toggleSliderRef.current();
+                    toggleLayerMenuRef.current();
                 });
+
                 const popup = document.createElement('div');
-                popup.className = 'overlay-opacity-popup';
+                popup.className = 'layer-menu-popup';
                 popup.style.display = 'none';
-                popup.innerHTML = '<label class="overlay-opacity-label"><span class="overlay-pct"></span></label>'
-                    + '<input type="range" min="0" max="1" step="0.05" value="1" />';
-                const input = popup.querySelector('input')!;
-                input.addEventListener('input', (ev) => {
-                    handleOverlayOpacityRef.current((ev as any).target.value);
+                popup.innerHTML = `
+                    <label class="layer-menu-row">
+                        <span class="layer-menu-row-label">${MAP_SVG} Satellite</span>
+                        <input type="checkbox" class="layer-menu-sat-toggle" />
+                    </label>
+                    <div class="layer-menu-opacity-row" style="display:none">
+                        <label class="layer-menu-opacity-label">
+                            ${OPACITY_SVG} Overlay opacity
+                            <span class="layer-menu-opacity-pct"></span>
+                        </label>
+                        <input type="range" min="0" max="1" step="0.05" value="1" class="layer-menu-opacity-slider" />
+                    </div>
+                    <label class="layer-menu-row">
+                        <span class="layer-menu-row-label">${LAYERS_SVG} Crown / Public Land</span>
+                        <input type="checkbox" class="layer-menu-land-toggle" />
+                    </label>
+                    <label class="layer-menu-row">
+                        <span class="layer-menu-row-label">${LAYERS_SVG} Private Land</span>
+                        <input type="checkbox" class="layer-menu-private-toggle" />
+                    </label>
+                `;
+                popup.querySelector('.layer-menu-sat-toggle')!.addEventListener('change', (e) => {
+                    e.stopPropagation();
+                    toggleSatelliteRef.current();
                 });
+                popup.querySelector('.layer-menu-land-toggle')!.addEventListener('change', (e) => {
+                    e.stopPropagation();
+                    toggleLandOwnershipRef.current();
+                });
+                popup.querySelector('.layer-menu-private-toggle')!.addEventListener('change', (e) => {
+                    e.stopPropagation();
+                    togglePrivateLandRef.current();
+                });
+                popup.querySelector('.layer-menu-opacity-slider')!.addEventListener('input', (e) => {
+                    e.stopPropagation();
+                    handleOverlayOpacityRef.current((e as any).target.value);
+                });
+
                 wrapper.appendChild(btn);
                 wrapper.appendChild(popup);
-                opacityCtrlRef.current = wrapper;
+                satBtnRef.current = btn;
+                layerMenuCtrlRef.current = wrapper;
                 return wrapper;
             },
-            onRemove() { opacityCtrlRef.current = null; }
+            onRemove() { satBtnRef.current = null; layerMenuCtrlRef.current = null; }
         };
-        map.addControl(opacityControl, satPosition);
+        map.addControl(layerMenuControl, satPosition);
 
         map.on('load', () => {
             const pattern = createWetlandPattern();
@@ -1463,6 +1728,12 @@ const MapComponent = () => {
             if (hatchDiag) map.addImage('hatch-diagonal', hatchDiag);
             const hatchCross = createCrossHatchPattern('#C22E2E');
             if (hatchCross) map.addImage('hatch-cross', hatchCross);
+            // Amber diagonal hatch for land_access "restricted" (conditional/
+            // permit-based access, e.g. Malcolm Knapp Research Forest) — kept
+            // visually distinct from the red "closed" hatch above so a
+            // permit-required area doesn't read as a hard closure.
+            const hatchDiagAmber = createDiagonalHatchPattern('#CC7A00');
+            if (hatchDiagAmber) map.addImage('hatch-diagonal-amber', hatchDiagAmber);
             // Horizontal lines for partial restriction zones (research forests, etc.)
             const hatchHoriz = createHorizontalLinePattern('#CC7A00');
             if (hatchHoriz) map.addImage('hatch-horizontal', hatchHoriz);
@@ -1484,6 +1755,102 @@ const MapComponent = () => {
                 'source-layer': 'eco_reserves',
                 filter: ['==', ['get', 'admin_type'], 'ECOLOGICAL_RESERVE'],
                 paint: { 'fill-pattern': 'hatch-cross', 'fill-opacity': 0.50 },
+            } as any);
+
+            // Land access hatch overlays — colorblind-friendly: both pattern
+            // AND color signal severity, not just hue. "closed" (no public
+            // access at all) gets the denser red cross-hatch; "restricted"
+            // (permit/conditional access, e.g. Malcolm Knapp) gets the
+            // lighter amber diagonal hatch — same amber "caution, not
+            // prohibited" language the old osm_admin layer used.
+            map.addLayer({
+                id: 'admin_land_access-hatch-closed',
+                type: 'fill',
+                source: 'regulations',
+                'source-layer': 'land_access',
+                layout: { visibility: 'none' },
+                filter: ['==', ['get', 'restriction_level'], 'closed'],
+                paint: { 'fill-pattern': 'hatch-cross', 'fill-opacity': 0.55 },
+            } as any);
+            map.addLayer({
+                id: 'admin_land_access-hatch-restricted',
+                type: 'fill',
+                source: 'regulations',
+                'source-layer': 'land_access',
+                layout: { visibility: 'none' },
+                filter: ['==', ['get', 'restriction_level'], 'restricted'],
+                paint: { 'fill-pattern': 'hatch-diagonal-amber', 'fill-opacity': 0.45 },
+            } as any);
+
+            // Water access point + waterfall icons — registered once, then
+            // referenced by poi_type/waterfall symbol layers below.
+            const boatLaunchIcon = createBoatLaunchIcon();
+            if (boatLaunchIcon) map.addImage('icon-boat-launch', boatLaunchIcon);
+            const pierIcon = createPierIcon();
+            if (pierIcon) map.addImage('icon-pier', pierIcon);
+            const fishingPlatformIcon = createFishingPlatformIcon();
+            if (fishingPlatformIcon) map.addImage('icon-fishing-platform', fishingPlatformIcon);
+            const waterfallIcon = createWaterfallIcon();
+            if (waterfallIcon) map.addImage('icon-waterfall', waterfallIcon);
+
+            // Icons grow with zoom instead of staying a fixed size — at
+            // minzoom 13 (where they first appear) 0.8 keeps them
+            // unobtrusive; by close-in zoom 19 they're large enough to
+            // read clearly as a specific glyph rather than a small dot.
+            const POI_ICON_SIZE_EXPR = [
+                'interpolate', ['linear'], ['zoom'],
+                13, 0.7,
+                16, 1.0,
+                19, 1.6,
+            ] as unknown as number;
+
+            map.addLayer({
+                id: 'water_access_points-icon',
+                type: 'symbol',
+                source: 'regulations',
+                'source-layer': 'water_access_points',
+                minzoom: 13,
+                // Marina removed entirely — not rendered even if older cached
+                // tiles still carry poi_type='marina' rows.
+                filter: ['!=', ['get', 'poi_type'], 'marina'],
+                layout: {
+                    'icon-image': [
+                        'match', ['get', 'poi_type'],
+                        'boat_launch', 'icon-boat-launch',
+                        'pier', 'icon-pier',
+                        'fishing_platform', 'icon-fishing-platform',
+                        'icon-pier',
+                    ],
+                    'icon-size': POI_ICON_SIZE_EXPR,
+                    'icon-allow-overlap': false,
+                    'icon-padding': 4,
+                },
+            } as any);
+
+            map.addLayer({
+                id: 'waterfalls-icon',
+                type: 'symbol',
+                source: 'regulations',
+                'source-layer': 'waterfalls',
+                minzoom: 13,
+                layout: {
+                    'icon-image': 'icon-waterfall',
+                    'icon-size': POI_ICON_SIZE_EXPR,
+                    'icon-allow-overlap': false,
+                    'icon-padding': 4,
+                    'text-field': ['get', 'display_name'],
+                    'text-font': ['Noto Sans Regular'],
+                    'text-size': 10,
+                    'text-offset': [0, 1.1],
+                    'text-anchor': 'top',
+                    'text-optional': true,
+                    'text-allow-overlap': false,
+                },
+                paint: {
+                    'text-color': '#0D47A1',
+                    'text-halo-color': '#ffffff',
+                    'text-halo-width': 1.2,
+                },
             } as any);
 
             // ── HIGHLIGHT LAYERS (hover / disambiguation) ─────────────
@@ -1530,6 +1897,31 @@ const MapComponent = () => {
             map.addLayer({ id: 'sl-manmade-line', type: 'line', source: 'regulations', 'source-layer': 'manmade', filter: FILTER_NONE,
                 paint: { 'line-color': SELECTION_COLOR, 'line-width': slPolyLineWidth, 'line-opacity': 1.0 }, layout: hlLineLayout });
             
+            // Land-use (admin) highlight — unlike waterbodies, admin/land
+            // options span many different tile source-layers (parks_nat,
+            // eco_reserves, wma, watersheds, historic_sites, land_access,
+            // land_parcels_crown, aboriginal_lands), so a per-source-layer
+            // filter-based hl-* layer per type isn't practical. Instead,
+            // reuse the geometry already captured on the FeatureOption at
+            // click time (buildAdminFeatureOption) and draw it through one
+            // GeoJSON source, same pattern as cursor-circle/ungazetted-marker
+            // below. Same uniform highlight color as waterbodies.
+            map.addSource('admin-highlight', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+            map.addLayer({ id: 'hl-admin-fill', type: 'fill', source: 'admin-highlight',
+                paint: { 'fill-color': SELECTION_COLOR, 'fill-opacity': 0.4 } });
+            map.addLayer({ id: 'hl-admin-line', type: 'line', source: 'admin-highlight',
+                paint: { 'line-color': SELECTION_COLOR, 'line-width': hlLineWidth, 'line-opacity': 1.0 }, layout: hlLineLayout });
+
+            // Same idea, for the active-selection state (InfoPanel open on a
+            // land-use option) — mirrors sl-streams/sl-lakes-fill/etc. above,
+            // added after hl-admin-* so it draws on top, same as the
+            // waterbody hl-*/sl-* pair.
+            map.addSource('admin-selection', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+            map.addLayer({ id: 'sl-admin-fill', type: 'fill', source: 'admin-selection',
+                paint: { 'fill-color': SELECTION_COLOR, 'fill-opacity': 0.4 } });
+            map.addLayer({ id: 'sl-admin-line', type: 'line', source: 'admin-selection',
+                paint: { 'line-color': SELECTION_COLOR, 'line-width': hlLineWidth, 'line-opacity': 1.0 }, layout: hlLineLayout });
+
             map.addSource('cursor-circle', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
             map.addLayer({ id: 'cursor-circle-fill', type: 'fill', source: 'cursor-circle', paint: { 'fill-color': '#7C3AED', 'fill-opacity': 0.1 } });
             map.addLayer({ id: 'cursor-circle-line', type: 'line', source: 'cursor-circle', paint: { 'line-color': '#7C3AED', 'line-width': 1.5, 'line-opacity': 0.6 } });
@@ -1595,9 +1987,60 @@ const MapComponent = () => {
                     'text-halo-color': '#ffffff',
                     'text-halo-width': 1.2,
                 } });
-            
+
+            // ── HYDROMETRIC GAUGE STATIONS (GeoJSON — from cron/hydro/stations.json) ──
+            // Amenity-style icons. Data is fetched lazily (not on app startup) and
+            // failure-tolerant — no icons if the hydro seed hasn't shipped.
+            const gaugeIcon = createGaugeIcon();
+            if (gaugeIcon) map.addImage('icon-gauge', gaugeIcon);
+            map.addSource('gauge-points', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+            map.addLayer({
+                id: 'gauge-points-icon',
+                type: 'symbol',
+                source: 'gauge-points',
+                minzoom: 11,
+                layout: {
+                    'icon-image': 'icon-gauge',
+                    'icon-size': POI_ICON_SIZE_EXPR,
+                    'icon-allow-overlap': false,
+                    'icon-padding': 4,
+                },
+            } as any);
+            // Populate off the startup critical path; tolerate absence.
+            waterbodyDataService.getAllStations().then((stations) => {
+                const src = map.getSource('gauge-points') as maplibregl.GeoJSONSource | undefined;
+                if (!src) return;
+                src.setData({
+                    type: 'FeatureCollection',
+                    features: stations
+                        .filter(s => Number.isFinite(s.lon) && Number.isFinite(s.lat))
+                        .map(s => ({
+                            type: 'Feature' as const,
+                            geometry: { type: 'Point' as const, coordinates: [s.lon, s.lat] },
+                            properties: {
+                                station_id: s.id,
+                                station_name: s.name || '',
+                                reach_id: s.fwa?.reach_id || '',
+                                waterbody_key: s.fwa?.waterbody_key || '',
+                            },
+                        })),
+                });
+            }).catch(() => { /* no gauge icons if unavailable */ });
+
             // Signal that map is ready for URL restoration
             setMapReady(true);
+
+            // Dawn/dusk: seed with the initial view center; further updates
+            // come from the `moveend` listener below.
+            const initialCenter = map.getCenter();
+            updateDawnDuskPosition(initialCenter.lat, initialCenter.lng);
+        });
+
+        // Dawn/dusk: recompute (subject to the hook's own distance threshold)
+        // whenever the user finishes panning/zooming the map.
+        map.on('moveend', () => {
+            const center = map.getCenter();
+            updateDawnDuskPosition(center.lat, center.lng);
         });
 
         // -------------------------------------------------------------
@@ -1637,19 +2080,45 @@ const MapComponent = () => {
         });
 
         // Select a single option directly, or open the disambiguation menu for multiple.
-        const presentOptions = (opts: FeatureOption[], point: { x: number; y: number }) => {
+        const presentOptions = (
+            opts: FeatureOption[],
+            point: { x: number; y: number },
+            context?: { dawnDusk: DawnDuskTimes; managementUnit: string | null } | null,
+        ) => {
             clearSelection();
             if (opts.length === 1) {
+                if (opts[0].properties?._gauge_station_id) setGaugeOpenSeq(s => s + 1);
                 setSelectedFeature(opts[0]);
                 return;
             }
             setDisambigOptions(opts);
             setDisambigPosition({ x: point.x, y: point.y });
+            setDisambigContext(context ?? null);
             isDisambigOpenRef.current = true;
             if (isMobileViewport()) setMobilePanelState('partial');
         };
 
         map.on('click', async (e) => {
+            // Click-point context for the disambiguation menu header — computed
+            // once up front (cheap, synchronous) and reused by whichever
+            // presentOptions() call below ends up firing for this click.
+            const sunTimes = SunCalc.getTimes(new Date(), e.lngLat.lat, e.lngLat.lng);
+            const muHit = map.queryRenderedFeatures(e.point, { layers: ['mu-hit-test'] })[0];
+            // admin_id is the actual WILDLIFE_MGMT_UNIT_ID code (e.g. "2-6") —
+            // the specific identifier anglers look up in regulations.
+            // display_name is the broader GAME_MANAGEMENT_ZONE_NAME (e.g.
+            // "Fraser Valley"), shared by dozens of MUs, so it's shown only as
+            // secondary context, never on its own.
+            const muId = muHit?.properties?.admin_id as string | undefined;
+            const muZone = muHit?.properties?.display_name as string | undefined;
+            const managementUnit = muId
+                ? (muZone && muZone !== muId ? `MU ${muId} (${muZone})` : `MU ${muId}`)
+                : null;
+            const clickContext = {
+                dawnDusk: { dawn: sunTimes.dawn, dusk: sunTimes.dusk } as DawnDuskTimes,
+                managementUnit,
+            };
+
             // V2 click handler: resolve tile fid/wbk → reach via /api/resolve.
             const features = map.queryRenderedFeatures(
                 [[e.point.x - 15, e.point.y - 15], [e.point.x + 15, e.point.y + 15]],
@@ -1677,9 +2146,58 @@ const MapComponent = () => {
                 ugOptions.push(buildFeatureFromJSON(sf, seg, { fidList }));
             }
 
+            // Land ownership/access + protected-area/admin-boundary hits — built
+            // directly from tile properties (self-contained AdminRecord fields,
+            // no /api/resolve needed). Deduped by layer+admin_id since tile
+            // buffering can return the same polygon twice near a tile edge.
+            const adminHits = map.queryRenderedFeatures(
+                [[e.point.x - 15, e.point.y - 15], [e.point.x + 15, e.point.y + 15]],
+                { layers: ADMIN_INTERACTABLE_LAYERS }
+            );
+            const adminOptions: FeatureOption[] = [];
+            const adminSeen = new Set<string>();
+            for (const hit of adminHits) {
+                const key = `${hit.layer.id}:${hit.properties?.admin_id ?? ''}`;
+                if (adminSeen.has(key)) continue;
+                adminSeen.add(key);
+                adminOptions.push(buildAdminFeatureOption(hit));
+            }
+
+            // Gauge station hits (GeoJSON icon layer). Each resolves to the river
+            // reach it sits on and is tagged (_gauge_station_id) so its menu row
+            // reads as a gauge and selecting it opens the info panel's Gauges tab.
+            // Stream gauges carry reach_id directly (the common case, 415/449);
+            // polygon-only gauges (no reach_id) are left to the underlying lake
+            // tile's normal resolution.
+            const gaugeHits = map.queryRenderedFeatures(
+                [[e.point.x - 15, e.point.y - 15], [e.point.x + 15, e.point.y + 15]],
+                { layers: ['gauge-points-icon'] }
+            );
+            const gaugeOptions: FeatureOption[] = [];
+            const gaugeSeen = new Set<string>();
+            for (const hit of gaugeHits) {
+                const stationId = String(hit.properties?.station_id || '');
+                const reachId = String(hit.properties?.reach_id || '');
+                if (!stationId || gaugeSeen.has(stationId) || !reachId) continue;
+                const lookup = searchLookupRef.current.get(reachId);
+                if (!lookup) continue;
+                gaugeSeen.add(stationId);
+                const fidList = regDataRef.current?.reachSegments[reachId];
+                const opt = buildFeatureFromJSON(lookup.feature, lookup.segment, {
+                    fidList,
+                    extras: {
+                        _gauge_station_id: stationId,
+                        _gauge_station_name: hit.properties?.station_name || '',
+                    },
+                });
+                opt.id = `gauge-${stationId}`;  // distinct menu row from the plain reach
+                gaugeOptions.push(opt);
+            }
+
             if (!features.length) {
-                if (ugOptions.length) {
-                    presentOptions(ugOptions, e.point);
+                const combined = [...gaugeOptions, ...ugOptions, ...adminOptions];
+                if (combined.length) {
+                    presentOptions(combined, e.point, clickContext);
                     return;
                 }
                 // Click on blank map area — close both the info panel and disambig menu.
@@ -1719,8 +2237,9 @@ const MapComponent = () => {
             }
 
             if (!fids.length && !wbks.length) {
-                // No resolvable tile features — fall back to any ungazetted hits.
-                if (ugOptions.length) { presentOptions(ugOptions, e.point); return; }
+                // No resolvable tile features — fall back to any ungazetted/admin hits.
+                const combined = [...gaugeOptions, ...ugOptions, ...adminOptions];
+                if (combined.length) { presentOptions(combined, e.point, clickContext); return; }
                 console.debug('[Map] clicked feature has no fid/wbk:', features[0].properties);
                 return;
             }
@@ -1764,8 +2283,9 @@ const MapComponent = () => {
             }
 
             if (candidates.length === 0) {
-                // No tile reaches resolved — fall back to any ungazetted hits.
-                if (ugOptions.length) { presentOptions(ugOptions, e.point); return; }
+                // No tile reaches resolved — fall back to any ungazetted/admin hits.
+                const combined = [...gaugeOptions, ...ugOptions, ...adminOptions];
+                if (combined.length) { presentOptions(combined, e.point, clickContext); return; }
                 console.debug('[Map] resolve returned no matching reaches for:', fids, wbks);
                 return;
             }
@@ -1800,10 +2320,17 @@ const MapComponent = () => {
             // Merge ungazetted options (dedup by reach_id) so they appear in the menu
             // alongside overlapping streams/lakes.
             const tileReachIds = new Set(tileOptions.map(o => o.properties.frontend_group_id as string));
-            const options = [...tileOptions, ...ugOptions.filter(o => !tileReachIds.has(o.properties.frontend_group_id as string))];
+            const options = [
+                // Gauge rows first — intentionally NOT deduped against the plain
+                // reach (they're a distinct "open the gauge" entry for the river).
+                ...gaugeOptions,
+                ...tileOptions,
+                ...ugOptions.filter(o => !tileReachIds.has(o.properties.frontend_group_id as string)),
+                ...adminOptions,
+            ];
 
             if (options.length === 0) return;
-            presentOptions(options, e.point);
+            presentOptions(options, e.point, clickContext);
         });
 
         mapRef.current = map;
@@ -1816,6 +2343,22 @@ const MapComponent = () => {
         const map = mapRef.current;
         if (!map) return;
         setGroupFilter(map, HL_LAYER_IDS, highlightedOption);
+
+        // Land-use options don't have a matching filter-based hl-* layer
+        // (see admin-highlight source setup above) — draw the highlighted
+        // polygon straight from the geometry already captured on the
+        // FeatureOption at click time instead.
+        const adminHlSrc = map.getSource('admin-highlight') as maplibregl.GeoJSONSource | undefined;
+        if (adminHlSrc) {
+            const geom = highlightedOption && isAdminFeatureType(highlightedOption.type)
+                ? highlightedOption.geometry
+                : undefined;
+            adminHlSrc.setData(
+                geom
+                    ? { type: 'FeatureCollection', features: [{ type: 'Feature', geometry: geom as any, properties: {} }] }
+                    : { type: 'FeatureCollection', features: [] }
+            );
+        }
     }, [highlightedOption]);
 
     // Handle selected state changes — filter-based, no event listeners needed.
@@ -1823,6 +2366,21 @@ const MapComponent = () => {
         const map = mapRef.current;
         if (!map) return;
         setGroupFilter(map, SL_LAYER_IDS, selectedFeature);
+
+        // Land-use options: same geometry-driven approach as admin-highlight
+        // (see that effect above) but for the active selection (InfoPanel
+        // open), not just hover/2-tap.
+        const adminSlSrc = map.getSource('admin-selection') as maplibregl.GeoJSONSource | undefined;
+        if (adminSlSrc) {
+            const geom = selectedFeature && isAdminFeatureType(selectedFeature.type)
+                ? selectedFeature.geometry
+                : undefined;
+            adminSlSrc.setData(
+                geom
+                    ? { type: 'FeatureCollection', features: [{ type: 'Feature', geometry: geom as any, properties: {} }] }
+                    : { type: 'FeatureCollection', features: [] }
+            );
+        }
 
         // Sync ungazetted point marker with selection state
         const ugSrc = map.getSource('ungazetted-marker') as maplibregl.GeoJSONSource | undefined;
@@ -1894,6 +2452,7 @@ const MapComponent = () => {
         setHighlightedSearchResult(null);
         setDisambigOptions([]);
         setDisambigPosition(null);
+        setDisambigContext(null);
         isDisambigOpenRef.current = false;
         if (searchPollRef.current) {
             clearInterval(searchPollRef.current);
@@ -2102,6 +2661,7 @@ const MapComponent = () => {
                         if (disambigOptions.length > 0) {
                             setDisambigOptions([]);
                             setDisambigPosition(null);
+                            setDisambigContext(null);
                             isDisambigOpenRef.current = false;
                         }
                         if (selectedFeature && isMobileViewport()) {
@@ -2111,7 +2671,7 @@ const MapComponent = () => {
                     placeholder="Search waterbodies..." 
                 />
             </div>
-            <InfoPanel feature={selectedFeature} onClose={clearSelection} collapseState={mobilePanelState} onSetCollapseState={setMobilePanelState} siblingFeatures={siblingFeatures} onHighlightSection={handleHighlightSection} onFlyToSection={handleFlyToSection} onReportIssue={() => setIssueReportOpen(true)} />
+            <InfoPanel feature={selectedFeature} onClose={clearSelection} collapseState={mobilePanelState} onSetCollapseState={setMobilePanelState} siblingFeatures={siblingFeatures} onHighlightSection={handleHighlightSection} onFlyToSection={handleFlyToSection} onReportIssue={() => setIssueReportOpen(true)} dawnDusk={dawnDusk} openGaugeSeq={gaugeOpenSeq} />
             <div className="map-footer-links">
                 <DisclaimerLink onClick={() => setDisclaimerOpen(true)} />
                 <IssueReportLink onClick={() => setIssueReportOpen(true)} />
@@ -2119,8 +2679,9 @@ const MapComponent = () => {
             <Disclaimer isOpen={disclaimerOpen} onClose={() => setDisclaimerOpen(false)} />
             <IssueReport isOpen={issueReportOpen} onClose={() => setIssueReportOpen(false)} getContext={getIssueContext} />
             {disambigOptions.length > 0 && (
-                <DisambiguationMenu 
+                <DisambiguationMenu
                     options={disambigOptions} position={disambigPosition} highlightedOption={highlightedOption}
+                    dawnDusk={disambigContext?.dawnDusk ?? null} managementUnit={disambigContext?.managementUnit ?? null}
 
                     onHighlight={(option) => {
                         if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
@@ -2132,10 +2693,11 @@ const MapComponent = () => {
                             setHighlightedOption(null);
                         }
                     }}
-                    onSelect={f => { 
-                        clearSelection(); 
-                        setSelectedFeature(f); 
-                        setMobilePanelState('partial'); 
+                    onSelect={f => {
+                        clearSelection();
+                        if (f.properties?._gauge_station_id) setGaugeOpenSeq(s => s + 1);
+                        setSelectedFeature(f);
+                        setMobilePanelState('partial');
                     }} onClose={clearSelection}
                 />
             )}

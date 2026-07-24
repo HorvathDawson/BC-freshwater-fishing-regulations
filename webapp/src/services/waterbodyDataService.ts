@@ -13,16 +13,87 @@
  *     segments[]       — [{rid, display_name, name_variants[], feature_type, reg_set_index, watershed_code, min_zoom, regions[], bbox, length_km, waterbody_group, fids[], tributary_reg_ids[]}]
  */
 
+import { DATA_BASE, API_BASE } from '../config/endpoints';
+
 /** Name variant with source provenance (structurally identical to NameVariant in featureUtils) */
 export interface NameVariantEntry {
   name: string;
-  source: 'direct' | 'tributary' | 'admin' | 'bathymetry';
+  source: 'direct' | 'tributary' | 'admin' | 'alias' | 'stocking' | 'marker';
 }
 
 /** A bathymetry survey depth-map sheet. URL = <R2 base>/bathymetry/<pdf>. */
 export interface BathymetrySurvey {
   pdf: string;
   title: string;
+}
+
+/** One FIDQ (BC gov Fish Inventories Data Queries) stocking release record. */
+export interface StockingRelease {
+  release_date: string;
+  species_name: string;
+  brood_year: string;
+  strain_name: string;
+  source_name: string;
+  origin: string;
+  life_stage: string;
+  released_quantity: number;
+  average_weight: number;
+}
+
+/** A hydrometric gauge station from cron/hydro/stations.json (ECCC Wateroffice
+ * + BC River Forecast Centre). Linked to a reach/waterbody via `fwa`. */
+export interface GaugeFwaLink {
+  layer: string;                 // 'streams' | 'under_lake_streams' | 'lakes' | ...
+  fwa_id?: string | null;
+  reach_id?: string | null;      // stream layers: the reach the gauge sits on
+  waterbody_key?: string | null; // polygon layers: the lake/wetland/manmade key
+  distance_m?: number | null;
+  resolution?: string | null;
+}
+export interface GaugeStation {
+  id: string;
+  name: string;
+  lat: number;
+  lon: number;
+  hyd_status?: string | null;
+  drainage_area_km2?: number | null;
+  has_climatology?: boolean;
+  latest?: {
+    discharge?: { value: number | null; ts: string } | null;
+    level?: { value: number | null; ts: string } | null;
+  };
+  condition?: {
+    class?: string | null;
+    pct_low?: number | null;
+    pct_high?: number | null;
+    text?: string | null;
+    latest_discharge?: number | null;
+    latest_stage?: number | null;
+  } | null;
+  fwa?: GaugeFwaLink | null;
+}
+export interface GaugeStationsDoc {
+  generated_at?: string;
+  attribution?: string | null;
+  forecast_attribution?: string | null;
+  count?: number;
+  stations: GaugeStation[];
+}
+
+/** gofishbc.com "Where To Fish" map marker enrichment — amenity/access
+ * whitelist only. Not yet surfaced in any UI — attached to the reach for
+ * future display work. */
+export interface MarkerInfo {
+  more_info?: string;
+  description?: string;
+  photo_url?: string;
+  road_access?: string;
+  boat_launch?: string;
+  fishing_dock?: string;
+  campsite?: string;
+  washroom?: string;
+  wheelchair_access?: string;
+  hike_in_required?: string;
 }
 
 // ── Raw JSON shapes ──────────────────────────────────────────────────
@@ -59,10 +130,10 @@ interface SynopsisReg {
   };
 }
 
-/** Raw base regulation (zone/provincial) from regulation_index.json */
+/** Raw base regulation (zone/provincial/municipal/land_access) from regulation_index.json */
 interface BaseReg {
   raw_regs: string;
-  source: 'zone' | 'provincial';
+  source: 'zone' | 'provincial' | 'municipal' | 'land_access';
   restriction?: { type: string; details: string };
   zone_ids?: string[];
   dates?: string[];
@@ -87,6 +158,8 @@ export interface Reach {
   tributary_reg_ids?: string[];
   /** Bathymetry survey depth-map PDFs (polygon reaches only). */
   bathymetry?: BathymetrySurvey[];
+  /** gofishbc map marker amenity/access info (polygon reaches only). */
+  marker?: MarkerInfo;
 }
 
 /** Search index entry (tier0 enriched format with segments) */
@@ -144,7 +217,7 @@ export interface Regulation {
   /** Verbatim "except ..." carve-out for this rule, shown inline in the UI so
    *  each rule card is self-contained.  Empty/undefined when none. */
   restriction_exception?: string;
-  source: 'synopsis' | 'provincial' | 'zone';
+  source: 'synopsis' | 'provincial' | 'zone' | 'municipal' | 'land_access';
   zone_ids?: string[];
   feature_types?: string[] | null;
   iid?: string;
@@ -422,9 +495,9 @@ class WaterbodyDataService {
   private dataVersionPromise: Promise<string> | null = null;
 
   /** /data endpoint for file fetches (tier0.json, pmtiles, admin_visibility) */
-  private static readonly DATA_BASE = import.meta.env.VITE_TILE_BASE_URL || '/data';
+  private static readonly DATA_BASE = DATA_BASE;
   /** API endpoint for /api/resolve, /api/version */
-  private static readonly API_BASE = import.meta.env.VITE_TILE_BASE_URL || '';
+  private static readonly API_BASE = API_BASE;
 
   private static readonly ETAG_KEY = 'tier0_etag';
   private static readonly DATA_KEY = 'tier0_data';
@@ -433,6 +506,30 @@ class WaterbodyDataService {
   // Resolve cache: keyed by "f{fid}" or "w{wbk}" → ResolveResult
   private resolveCache = new Map<string, ResolveResult>();
   private static readonly CACHE_CAP = 5000;
+
+  // Stocking index: reach_id → StockingRelease[], built from stocking.json.
+  // Unlike in_season.json (9.9 KB, fetched eagerly on every load()),
+  // stocking.json is ~22 MB — fetched lazily, only the first time a caller
+  // actually asks for stocking data, and cached in memory after that. It's
+  // still a standalone recurring artifact fetched fresh at request time
+  // (same role as in_season.json — independently refreshable without a full
+  // pipeline rebuild), just not loaded unconditionally for every user.
+  private stockingIndex: Map<string, StockingRelease[]> | null = null;
+  private stockingIndexPromise: Promise<Map<string, StockingRelease[]>> | null = null;
+
+  // Gauge station indexes, built lazily from cron/hydro/stations.json (small,
+  // ~450 stations). NOT eager-loaded at startup — fetched on the first Gauges-tab
+  // open / first gauge map interaction, and degrades gracefully to empty if the
+  // file is missing (hydro seed may not have shipped). Two reverse indexes: by
+  // reach_id (stream gauges) and by waterbody_key (lake/polygon gauges). The raw
+  // list is kept too for the map layer (Part E).
+  private gaugeStations: GaugeStation[] | null = null;
+  private gaugeByReach: Map<string, GaugeStation[]> | null = null;
+  private gaugeByWbk: Map<string, GaugeStation[]> | null = null;
+  private gaugeDoc: GaugeStationsDoc | null = null;
+  private gaugeIndexPromise: Promise<void> | null = null;
+  // Per-station artifact caches (recent/history/climatology), fetched on demand.
+  private gaugeArtifactCache = new Map<string, unknown>();
 
   async load(): Promise<RegulationData> {
     if (this.data) return this.data;
@@ -737,6 +834,152 @@ class WaterbodyDataService {
   /** Get in-season changes for a specific reach (synchronous — data must be loaded). */
   getInSeasonChanges(reachId: string): InSeasonChange[] {
     return this.data?.inSeasonIndex.get(reachId) || [];
+  }
+
+  /** Get FIDQ stocking release history for a specific reach. Triggers the
+   *  (large, lazy) stocking.json fetch on first call; cached after that. */
+  async getStockingReleases(reachId: string): Promise<StockingRelease[]> {
+    if (!this.stockingIndex) {
+      if (!this.stockingIndexPromise) {
+        this.stockingIndexPromise = this._loadStockingIndex();
+      }
+      this.stockingIndex = await this.stockingIndexPromise;
+    }
+    return this.stockingIndex.get(reachId) || [];
+  }
+
+  private async _loadStockingIndex(): Promise<Map<string, StockingRelease[]>> {
+    const url = `${WaterbodyDataService.DATA_BASE}/stocking.json`;
+    try {
+      const resp = await fetch(url);
+      if (!resp.ok) {
+        console.warn(`⚠️ stocking.json returned ${resp.status} — stocking info unavailable`);
+        return new Map();
+      }
+      const raw: { waterbodies?: { reach_id?: string | null; releases?: StockingRelease[] }[] } = await resp.json();
+      const index = new Map<string, StockingRelease[]>();
+      for (const wb of raw.waterbodies || []) {
+        if (wb.reach_id && wb.releases?.length) {
+          index.set(wb.reach_id, wb.releases);
+        }
+      }
+      return index;
+    } catch {
+      console.warn('⚠️ Failed to fetch stocking.json — stocking info unavailable');
+      return new Map();
+    }
+  }
+
+  // ── Hydro gauge stations ────────────────────────────────────────────────
+
+  private async _loadGaugeIndex(): Promise<void> {
+    const url = `${WaterbodyDataService.DATA_BASE}/cron/hydro/stations.json`;
+    try {
+      const resp = await fetch(url);
+      if (!resp.ok) {
+        console.warn(`⚠️ stations.json returned ${resp.status} — gauge data unavailable`);
+        this.gaugeStations = [];
+        this.gaugeByReach = new Map();
+        this.gaugeByWbk = new Map();
+        return;
+      }
+      const doc: GaugeStationsDoc = await resp.json();
+      const byReach = new Map<string, GaugeStation[]>();
+      const byWbk = new Map<string, GaugeStation[]>();
+      for (const st of doc.stations || []) {
+        const fwa = st.fwa;
+        if (!fwa) continue;
+        if (fwa.reach_id) {
+          const arr = byReach.get(fwa.reach_id) || [];
+          arr.push(st);
+          byReach.set(fwa.reach_id, arr);
+        } else if (fwa.waterbody_key) {
+          const arr = byWbk.get(fwa.waterbody_key) || [];
+          arr.push(st);
+          byWbk.set(fwa.waterbody_key, arr);
+        }
+      }
+      this.gaugeDoc = doc;
+      this.gaugeStations = doc.stations || [];
+      this.gaugeByReach = byReach;
+      this.gaugeByWbk = byWbk;
+    } catch {
+      console.warn('⚠️ Failed to fetch stations.json — gauge data unavailable');
+      this.gaugeStations = [];
+      this.gaugeByReach = new Map();
+      this.gaugeByWbk = new Map();
+    }
+  }
+
+  private async _ensureGaugeIndex(): Promise<void> {
+    if (this.gaugeStations) return;
+    if (!this.gaugeIndexPromise) this.gaugeIndexPromise = this._loadGaugeIndex();
+    await this.gaugeIndexPromise;
+  }
+
+  /** Gauge station(s) whose FWA link matches this reach and/or waterbody. Lazily
+   *  loads stations.json on first call; returns [] if the file is unavailable. */
+  async getStationsForReach(
+    reachId?: string | null,
+    waterbodyKey?: string | null,
+  ): Promise<GaugeStation[]> {
+    await this._ensureGaugeIndex();
+    const out: GaugeStation[] = [];
+    const seen = new Set<string>();
+    const push = (arr?: GaugeStation[]) => {
+      for (const s of arr || []) {
+        if (!seen.has(s.id)) { seen.add(s.id); out.push(s); }
+      }
+    };
+    if (reachId) push(this.gaugeByReach?.get(reachId));
+    if (waterbodyKey) push(this.gaugeByWbk?.get(waterbodyKey));
+    return out;
+  }
+
+  /** All gauge stations (for the map layer). Lazily loaded; [] if unavailable. */
+  async getAllStations(): Promise<GaugeStation[]> {
+    await this._ensureGaugeIndex();
+    return this.gaugeStations || [];
+  }
+
+  /** Required attribution strings for gauge data (ECCC + BC RFC). */
+  getGaugeAttribution(): { data: string | null; forecast: string | null } {
+    return {
+      data: this.gaugeDoc?.attribution ?? null,
+      forecast: this.gaugeDoc?.forecast_attribution ?? null,
+    };
+  }
+
+  private async _gaugeArtifact<T>(kind: 'recent' | 'history' | 'climatology', id: string): Promise<T | null> {
+    const cacheKey = `${kind}/${id}`;
+    if (this.gaugeArtifactCache.has(cacheKey)) {
+      return this.gaugeArtifactCache.get(cacheKey) as T | null;
+    }
+    const url = `${WaterbodyDataService.DATA_BASE}/cron/hydro/${kind}/${id}.json`;
+    try {
+      const resp = await fetch(url);
+      if (!resp.ok) {
+        // climatology is legitimately absent for short-record stations (404)
+        this.gaugeArtifactCache.set(cacheKey, null);
+        return null;
+      }
+      const doc = (await resp.json()) as T;
+      this.gaugeArtifactCache.set(cacheKey, doc);
+      return doc;
+    } catch {
+      this.gaugeArtifactCache.set(cacheKey, null);
+      return null;
+    }
+  }
+
+  getStationRecent<T = unknown>(id: string): Promise<T | null> {
+    return this._gaugeArtifact<T>('recent', id);
+  }
+  getStationHistory<T = unknown>(id: string): Promise<T | null> {
+    return this._gaugeArtifact<T>('history', id);
+  }
+  getStationClimatology<T = unknown>(id: string): Promise<T | null> {
+    return this._gaugeArtifact<T>('climatology', id);
   }
 
   /** Get in-season metadata (synchronous — data must be loaded). */

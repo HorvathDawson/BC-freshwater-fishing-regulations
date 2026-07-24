@@ -20,9 +20,26 @@ output:
     pmtiles: "output/pipeline/deploy/freshwater_atlas.pmtiles"
     match_table: "output/pipeline/matching/match_table.json"
     in_season: "output/pipeline/matching/in_season_changes.json"
+    stocking: "output/pipeline/matching/stocking.json"
+    # anglerinfo.db is the fetch+match artifact (built at data-fetch time);
+    # anglerinfo_matches.json is derived from it by export.py during the build
+    # and read by pipeline/enrichment/anglerinfo_accessor.py. Both are
+    # regenerable build artifacts — not committed (output/ is gitignored).
+    anglerinfo: "output/pipeline/anglerinfo/anglerinfo.db"
+    anglerinfo_matches: "output/pipeline/anglerinfo/anglerinfo_matches.json"
+    # Hydro (recurring gauge/hydrometric data — pipeline/recurring/hydro).
+    # hydro_db is the heavy working DB (~1.3 GB, gitignored, local dev only);
+    # hydro_seed_db is the small CI seed (roster + gauge_fwa_match + climatology)
+    # the frequent cron pulls from R2. Exported R2 artifacts land under the
+    # unified cron subtree in deploy/ (output.pipeline.cron below).
+    hydro: "output/pipeline/hydro/hydro.db"
+    hydro_seed: "output/pipeline/hydro/hydro_seed.db"
     extraction: "output/pipeline/extraction"
     parsing: "output/pipeline/parsing"
     deploy: "output/pipeline/deploy"
+    # Unified subtree for all recurring/cron artifacts (in-season, stocking, hydro).
+    # This is the R2 upload layout going forward: deploy/cron/{in-season,stocking,hydro}/.
+    cron: "output/pipeline/deploy/cron"
     shard_version: 2
 
 # ============================================================================
@@ -30,12 +47,12 @@ output:
 # ============================================================================
 data:
   base: "data"
-  
+
   # Data Fetch Settings (for downloading BC GIS data)
   fetch:
     output_gpkg: "data/bc_fisheries_data.gpkg"
     temp_dir: "data/temp_bc_data"
-  
+
 
 # Unified Data Accessor
 data_accessor:

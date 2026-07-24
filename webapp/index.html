@@ -5,11 +5,66 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="description" content="Interactive map of BC freshwater fishing regulations - search streams, lakes, and find fishing rules" />
-    <title>Can I Fish This? - BC Freshwater Fishing Regulations</title>
+    <meta name="theme-color" content="#2563eb" />
+
+    <!-- Primary SEO — homepage targets the head terms (BC fishing regulations /
+         regs / map). Per-waterbody pages get their own title/description/canonical
+         patched in by scripts/prerender.mjs. -->
+    <title>BC Fishing Regulations Map | Freshwater Fishing Rules by Lake &amp; Stream — Can I Fish This?</title>
+    <meta name="description" content="Free interactive BC fishing regulations map. Search any lake, river, or stream in British Columbia for current freshwater fishing rules — closures, quotas, gear and bait restrictions, catch-and-release, stocking, and live water gauge levels." />
+    <meta name="keywords" content="BC fishing regulations, BC fishing regs, BC fishing map, British Columbia fishing rules, freshwater fishing BC, BC fishing closures, BC fishing limits, where can I fish BC, BC fishing regulations map, BC lake and stream fishing" />
+    <meta name="robots" content="index, follow, max-image-preview:large" />
+    <link rel="canonical" href="https://canifishthis.ca/" />
+
+    <!-- Open Graph (Facebook, iMessage, Slack, …) -->
+    <meta property="og:site_name" content="Can I Fish This?" />
+    <meta property="og:title" content="BC Fishing Regulations Map — Freshwater Fishing Rules by Water" />
+    <meta property="og:description" content="Search any BC lake, river, or stream for current freshwater fishing regulations — closures, quotas, gear restrictions, stocking, and live water levels. Free and interactive." />
+    <meta property="og:url" content="https://canifishthis.ca/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="en_CA" />
+    <meta property="og:image" content="https://canifishthis.ca/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="BC Fishing Regulations Map — Can I Fish This?" />
+
+    <!-- Structured data: site + web app (site-level, valid on every page) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "WebSite",
+          "@id": "https://canifishthis.ca/#website",
+          "url": "https://canifishthis.ca/",
+          "name": "Can I Fish This?",
+          "description": "Interactive map of British Columbia freshwater fishing regulations.",
+          "inLanguage": "en-CA"
+        },
+        {
+          "@type": "WebApplication",
+          "name": "Can I Fish This? — BC Fishing Regulations Map",
+          "url": "https://canifishthis.ca/",
+          "applicationCategory": "https://schema.org/ReferenceApplication",
+          "operatingSystem": "Web",
+          "browserRequirements": "Requires JavaScript.",
+          "description": "Search any British Columbia lake, river, or stream to see current freshwater fishing regulations — closures, quotas, gear and bait restrictions, stocking, and live water gauge levels.",
+          "offers": { "@type": "Offer", "price": "0", "priceCurrency": "CAD" },
+          "areaServed": { "@type": "AdministrativeArea", "name": "British Columbia, Canada" }
+        }
+      ]
+    }
+    </script>
+
     <!-- Preconnect to CDN origins used immediately by the map -->
     <link rel="preconnect" href="https://cdn.protomaps.com" crossorigin />
     <link rel="preconnect" href="https://protomaps.github.io" crossorigin />
+
+    <!-- Screen-reader-accessible, visually-hidden helper for the crawlable
+         content block below (a full-screen map SPA has no visible body text). -->
+    <style>
+      .visually-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:normal;border:0}
+    </style>
   </head>
   <body>
     <div id="root">
@@ -25,6 +80,17 @@
         <p>Loading…</p>
       </div>
     </div>
+
+    <!-- Crawlable content. Lives OUTSIDE #root so React never removes it (present
+         in both raw HTML and the rendered DOM — not cloaking), visually hidden so
+         it doesn't clutter the map, but read by search engines + screen readers.
+         prerender.mjs replaces the inner markup per waterbody. -->
+    <div id="seo-content" class="visually-hidden">
+      <h1>BC Fishing Regulations Map</h1>
+      <p>Can I Fish This? is a free interactive map of British Columbia freshwater fishing regulations. Search any lake, river, or stream in BC to see the current fishing rules that apply to it.</p>
+      <p>Each waterbody shows closures, catch limits and quotas, gear and bait restrictions, catch-and-release rules, fish stocking history, and live water gauge levels from Environment and Climate Change Canada and the BC River Forecast Centre.</p>
+    </div>
+
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

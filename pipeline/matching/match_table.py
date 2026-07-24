@@ -344,36 +344,63 @@ class FeatureDisplayName:
     display name and search grouping on the front end.  Applied at the
     merge/export step, not during matching.
 
-    At least one of blue_line_keys or waterbody_keys must be provided.
+    At least one target key (blue_line_keys, waterbody_keys, or
+    linear_feature_ids) and at least one of display_name / name_variants must
+    be provided. ``linear_feature_ids`` names a sub-reach of a blue line that
+    shares its BLK with a differently-named reach (e.g. an above-lake reach FWA
+    lumped under the downstream stream's name) — it wins over the BLK override
+    in DisplayNameResolver.
+
+    ``display_name`` (optional) overrides the feature's primary label.
+    ``name_variants`` (optional) are alternative names that are **searchable
+    and matchable but do NOT replace the primary label** — e.g. "Arrow
+    Reservoir" as an alias of "Upper Arrow Lake". This is the single source of
+    truth: the same list feeds the front-end search AND the gauge→FWA matcher,
+    so a variation is never defined twice.
     """
 
-    display_name: str
+    display_name: str = ""
     note: str = ""
     blue_line_keys: List[str] = field(default_factory=list)
     waterbody_keys: List[str] = field(default_factory=list)
+    linear_feature_ids: List[str] = field(default_factory=list)
+    name_variants: List[str] = field(default_factory=list)
 
     def __post_init__(self) -> None:
-        if not self.blue_line_keys and not self.waterbody_keys:
+        if not (self.blue_line_keys or self.waterbody_keys or self.linear_feature_ids):
             raise ValueError(
                 "FeatureDisplayName requires at least one of "
-                "blue_line_keys or waterbody_keys"
+                "blue_line_keys, waterbody_keys, or linear_feature_ids"
+            )
+        if not (self.display_name or self.name_variants):
+            raise ValueError(
+                "FeatureDisplayName requires a display_name or name_variants"
             )
 
     def to_dict(self) -> Dict[str, Any]:
-        d: Dict[str, Any] = {"display_name": self.display_name, "note": self.note}
+        d: Dict[str, Any] = {}
+        if self.display_name:
+            d["display_name"] = self.display_name
+        d["note"] = self.note
         if self.blue_line_keys:
             d["blue_line_keys"] = self.blue_line_keys
         if self.waterbody_keys:
             d["waterbody_keys"] = self.waterbody_keys
+        if self.linear_feature_ids:
+            d["linear_feature_ids"] = self.linear_feature_ids
+        if self.name_variants:
+            d["name_variants"] = self.name_variants
         return d
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "FeatureDisplayName":
         return cls(
-            display_name=data["display_name"],
+            display_name=data.get("display_name", ""),
             note=data.get("note", ""),
             blue_line_keys=data.get("blue_line_keys", []),
             waterbody_keys=data.get("waterbody_keys", []),
+            linear_feature_ids=data.get("linear_feature_ids", []),
+            name_variants=data.get("name_variants", []),
         )
 
 

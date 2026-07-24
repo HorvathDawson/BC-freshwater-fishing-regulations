@@ -1,25 +1,33 @@
 import React, { useRef, useEffect, useState, useMemo } from 'react';
-import { X, Calendar, MapPin, FileImage, RotateCcw, Share2, Check, ChevronDown, ChevronRight, ZoomIn, ExternalLink, Flag } from 'lucide-react';
+import { X, Calendar, MapPin, FileImage, RotateCcw, Share2, Check, ChevronDown, ChevronRight, ZoomIn, ExternalLink, Flag, Gauge } from 'lucide-react';
 import { Icon } from '@iconify/react';
 import type { Regulation } from '../services/regulationsService';
 import { regulationsService } from '../services/regulationsService';
-import { 
-    getIconForType, 
-    getColorForType, 
+import {
+    getIconForType,
+    getColorForType,
     getFeatureDisplayName,
     calculateSwipeState,
     buildAliasLines,
+    formatDawnDuskTime,
+    isAdminFeatureType,
+    ADMIN_TYPE_INFO,
+    formatArea,
     type CollapseState,
     type FeatureInfo,
     type NameVariant
 } from '../utils/featureUtils';
-import { getShareableUrl, getCanonicalUrl, copyToClipboard, setActiveSectionParam } from '../utils/urlState';
+import { getShareableUrl, getCanonicalUrl, copyToClipboard, setActiveSectionParam, setActiveTabParam, parseUrlState } from '../utils/urlState';
 import { sectionLabel } from '../utils/sectionLabel';
 import SourceImageViewer from './SourceImageViewer';
 import FishLoader from './FishLoader';
 import type { SearchableFeature } from './SearchBar';
 import { waterbodyDataService } from '../services/waterbodyDataService';
-import type { Reach, BathymetrySurvey } from '../services/waterbodyDataService';
+import type { Reach, BathymetrySurvey, StockingRelease, GaugeStation } from '../services/waterbodyDataService';
+// Lazy so chart.js (~200 KB) is code-split out of the main bundle — only fetched
+// when a user actually opens a Gauges tab that has a station.
+const GaugeChart = React.lazy(() => import('./GaugeChart'));
+import { DATA_BASE } from '../config/endpoints';
 import { PDFDocument } from 'pdf-lib';
 import './InfoPanel.css';
 
@@ -60,6 +68,12 @@ interface InfoPanelProps {
     onFlyToSection?: (bbox: [number, number, number, number], minZoom: number) => void;
     /** Open the issue/feedback report modal, pre-filled with the current feature. */
     onReportIssue?: () => void;
+    /** Civil dawn/dusk for the current map view center — recomputed by Map.tsx
+     *  on pan-threshold/date-change, not tied to the selected feature. */
+    dawnDusk?: { dawn: Date | null; dusk: Date | null } | null;
+    /** Bumped by Map when a gauge map-icon is selected — opens the Gauges tab,
+     *  overriding the reset-to-'rules'-on-feature-change. */
+    openGaugeSeq?: number;
 };
 
 /** Map restriction_type to CSS class for colored pills */
@@ -101,7 +115,14 @@ const getFilterCategory = (type: string): string | null => {
     return null;
 };
 
-const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapseState, siblingFeatures = [], onHighlightSection, onFlyToSection, onReportIssue }: InfoPanelProps) => {
+/** Format a FIDQ release_date ("2006-10-17 00:00:00.0") as "Oct 17, 2006". */
+const formatReleaseDate = (raw: string): string => {
+    const [y, m, d] = (raw || '').split(' ')[0].split('-').map(Number);
+    if (!y || !m || !d) return raw || '—';
+    return new Date(y, m - 1, d).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+};
+
+const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapseState, siblingFeatures = [], onHighlightSection, onFlyToSection, onReportIssue, dawnDusk, openGaugeSeq }: InfoPanelProps) => {
     const touchStartY = useRef<number>(0);
     const touchStartTime = useRef<number>(0);
     // Set to true by tab clicks so the feature-change effect below
@@ -289,6 +310,93 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
         return () => { cancelled = true; };
     }, [activeSection, feature?.properties.frontend_group_id]);
 
+    // Stocking release history for the active reach (polygon waterbodies
+    // only). stocking.json is a standalone recurring artifact (same role as
+    // in_season.json) fetched lazily by the service the first time this is
+    // called — not part of the reach shard, so it stays independently
+    // refreshable without a full pipeline rebuild.
+    const [stocking, setStocking] = useState<StockingRelease[]>([]);
+    useEffect(() => {
+        const reachId = activeSection?.frontend_group_id
+            || (feature?.properties.frontend_group_id as string | undefined);
+        if (!reachId) {
+            setStocking([]);
+            return;
+        }
+        let cancelled = false;
+        waterbodyDataService.getStockingReleases(reachId)
+            .then(releases => {
+                if (!cancelled) setStocking(releases);
+            })
+            .catch(() => {
+                if (!cancelled) setStocking([]);
+            });
+        return () => { cancelled = true; };
+    }, [activeSection, feature?.properties.frontend_group_id]);
+
+    // Hydro gauge stations for this reach/waterbody. Lazily loads stations.json
+    // on first access (see waterbodyDataService.getStationsForReach); degrades to
+    // [] when the hydro seed hasn't shipped. Stream gauges join on reach_id;
+    // lake/polygon gauges on waterbody_key.
+    const [gaugeStations, setGaugeStations] = useState<GaugeStation[]>([]);
+    const [selectedGauge, setSelectedGauge] = useState<string | null>(null);
+    useEffect(() => {
+        const reachId = activeSection?.frontend_group_id
+            || (feature?.properties.frontend_group_id as string | undefined);
+        const wbk = feature?.properties.waterbody_key != null
+            ? String(feature.properties.waterbody_key) : undefined;
+        if (!reachId && !wbk) {
+            setGaugeStations([]);
+            return;
+        }
+        let cancelled = false;
+        waterbodyDataService.getStationsForReach(reachId, wbk)
+            .then(stations => {
+                if (cancelled) return;
+                setGaugeStations(stations);
+                setSelectedGauge(stations.length ? stations[0].id : null);
+            })
+            .catch(() => { if (!cancelled) setGaugeStations([]); });
+        return () => { cancelled = true; };
+    }, [activeSection, feature?.properties.frontend_group_id, feature?.properties.waterbody_key]);
+
+    // Active content tab (Rules / Stocking / Bathy map / Gauges). Seeded once
+    // from the URL's ?tab= param (deep-linking, e.g. a shared Stocking-tab
+    // link) so a fresh page load lands on the right tab; every subsequent
+    // feature change resets to 'rules'. Not reset on section-tab clicks
+    // within the same waterbody (those update activeFgid locally without
+    // changing the feature prop), so switching sections keeps whichever tab
+    // the user was already looking at.
+    const [activeTab, setActiveTab] = useState<'rules' | 'stocking' | 'bathymetry' | 'gauges'>(() => {
+        const t = parseUrlState().activeTab;
+        return t === 'stocking' || t === 'bathymetry' || t === 'gauges' ? t : 'rules';
+    });
+    const initialTabRef = useRef(true);
+    useEffect(() => {
+        // Ignore the null/undefined feature render(s) before the app has
+        // resolved anything from the URL yet — consuming the guard here
+        // would skip past the real first selection and reset activeTab back
+        // to 'rules' the moment it actually loads, discarding the seed above.
+        if (!feature) return;
+        if (initialTabRef.current) {
+            // Skip the reset on the first real feature assignment — activeTab
+            // was already seeded from the URL above.
+            initialTabRef.current = false;
+            return;
+        }
+        setActiveTab('rules');
+    }, [feature]);
+
+    // Gauge map-icon → open the Gauges tab. Declared AFTER the reset effect so
+    // that when a gauge selection changes both the feature and this signal, this
+    // effect runs last and wins (setting 'gauges' over the reset's 'rules'). Also
+    // fires when the same reach's gauge is re-selected (feature unchanged).
+    useEffect(() => {
+        if (!openGaugeSeq) return;
+        setActiveTab('gauges');
+        setActiveTabParam('gauges');
+    }, [openGaugeSeq]);
+
     // Handle share button click
     const handleShare = async (e: React.MouseEvent) => {
         e.stopPropagation();
@@ -304,7 +412,7 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
             console.warn('Cannot share: feature missing waterbody_group and all IDs');
             return;
         }
-        const url = wbg ? getCanonicalUrl(wbg, activeFgid) : getShareableUrl(String(featureId), activeFgid);
+        const url = wbg ? getCanonicalUrl(wbg, activeFgid, activeTab) : getShareableUrl(String(featureId), activeFgid, activeTab);
         const success = await copyToClipboard(url);
         if (success) {
             setCopied(true);
@@ -442,6 +550,54 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
             );
         }
 
+        // Land ownership/access + protected-area/admin-boundary features: a
+        // much simpler informational card (no regulations, tabs, bathymetry,
+        // or in-season data — those concepts don't apply to a park/WMA/
+        // ownership polygon). Mirrors the tidal-waters branch above.
+        if (isAdminFeatureType(feature.type)) {
+            const info = ADMIN_TYPE_INFO[feature.type];
+            const adminTitle = getFeatureDisplayName(props, feature.type);
+            const area = formatArea(props.area);
+            return (
+                <>
+                    <div
+                        className="panel-header"
+                        onClick={handleHeaderToggle}
+                        onTouchStart={handleTouchStart}
+                        onTouchEnd={handleTouchEnd}
+                    >
+                        <div className="mobile-handle-bar" />
+                        <div className="header-row">
+                            <div className="header-left">
+                                <div className="type-icon" style={{ backgroundColor: getColorForType(feature.type) }}>
+                                    <Icon icon={getIconForType(feature.type)} width={26} height={26} color="white" />
+                                </div>
+                                <div className="header-title-block">
+                                    <h1 className="title">{adminTitle}</h1>
+                                    <span className="type-tag">{info.label}</span>
+                                </div>
+                            </div>
+                            <button onClick={(e) => { e.stopPropagation(); onClose(); }} className="square-btn" aria-label="Close panel">
+                                <X size={20} />
+                            </button>
+                        </div>
+                    </div>
+                    <div className="panel-content">
+                        <div className="data-section">
+                            {info.note && (
+                                <p style={{ margin: '0 0 12px', lineHeight: 1.5 }}>{info.note}</p>
+                            )}
+                            {area && (
+                                <p style={{ margin: '0 0 4px', fontSize: '14px', color: 'var(--text-secondary, #666)' }}>
+                                    Area: {area}
+                                </p>
+                            )}
+                        </div>
+                    </div>
+                </>
+            );
+        }
+
         // Build deduplicated aliases from name_variants
         const nameVariantsRaw: NameVariant[] = Array.isArray(props.name_variants) ? props.name_variants : [];
         const title = getFeatureDisplayName(props, feature.type);
@@ -458,10 +614,38 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
         }
         const hasAliases = aliases.length > 0;
 
+        // Content tabs (Rules / Stocking / Bathy map / Gauges) — Stocking and
+        // Bathy map only appear when this reach actually has that data (same
+        // "don't show empty chrome" rule the old cards followed); Gauges is a
+        // placeholder tab always shown since there's no gauge data source yet.
+        // Rules is always available (it has its own "no regulations" empty
+        // state). If activeTab points at a tab that just disappeared (e.g. a
+        // section switch landed on a reach with no stocking records), fall
+        // back to 'rules' rather than rendering nothing.
+        // Text-only labels (no icons) — at the panel's 350px width, four
+        // icon+label+count tabs didn't fit and pushed Gauges off-screen with
+        // no scroll affordance. Bold uppercase text matches how every other
+        // section header (REGULATIONS, DETAILS) already reads in this panel.
+        const hasStocking = stocking.length > 0;
+        const hasBathymetry = bathymetry.length > 0;
+        const contentTabs: { key: typeof activeTab; label: string; count?: number }[] = [
+            { key: 'rules', label: 'Rules' },
+        ];
+        if (hasStocking) {
+            contentTabs.push({ key: 'stocking', label: 'Stocking', count: stocking.length });
+        }
+        if (hasBathymetry) {
+            contentTabs.push({ key: 'bathymetry', label: 'Bathy map', count: bathymetry.length });
+        }
+        if (gaugeStations.length > 0) {
+            contentTabs.push({ key: 'gauges', label: 'Gauges', count: gaugeStations.length });
+        }
+        const effectiveTab = contentTabs.some(t => t.key === activeTab) ? activeTab : 'rules';
+
         return (
             <>
-                <div 
-                    className="panel-header" 
+                <div
+                    className="panel-header panel-header--tabbed"
                     onClick={handleHeaderToggle}
                     onTouchStart={handleTouchStart}
                     onTouchEnd={handleTouchEnd}
@@ -571,6 +755,33 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                     );
                 })()}
 
+                {/* Content tab bar — Rules / Stocking / Bathy map / Gauges.
+                    Hidden entirely when Rules is the only tab (nothing to switch
+                    between). Distinct from the section-tab-bar above: this switches
+                    which content panel is visible for the currently-selected
+                    section, not which section is selected. */}
+                {contentTabs.length > 1 && (
+                <div className="content-tab-bar" role="tablist" aria-label="Waterbody info sections">
+                    {contentTabs.map(t => (
+                        <button
+                            key={t.key}
+                            role="tab"
+                            aria-selected={effectiveTab === t.key}
+                            aria-controls="content-panel"
+                            id={`content-tab-${t.key}`}
+                            className={`content-tab${effectiveTab === t.key ? ' active' : ''}`}
+                            onClick={() => {
+                                setActiveTab(t.key);
+                                setActiveTabParam(t.key);
+                            }}
+                        >
+                            <span>{t.label}</span>
+                            {typeof t.count === 'number' && <span className="content-tab-count">{t.count}</span>}
+                        </button>
+                    ))}
+                </div>
+                )}
+
 <div
                     className="panel-content"
                     role={sortedSiblings.length > 1 ? 'tabpanel' : undefined}
@@ -578,11 +789,23 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                     aria-labelledby={sortedSiblings.length > 1 ? `section-tab-${activeFgid}` : undefined}
                     tabIndex={sortedSiblings.length > 1 ? 0 : undefined}
                 >
+                    <div
+                        id="content-panel"
+                        role="tabpanel"
+                        aria-labelledby={`content-tab-${effectiveTab}`}
+                    >
+                    {effectiveTab === 'rules' && (
+                    <>
+                    {dawnDusk && (
+                        <div className="dawn-dusk-row">
+                            Dawn {formatDawnDuskTime(dawnDusk.dawn)} · Dusk {formatDawnDuskTime(dawnDusk.dusk)}
+                        </div>
+                    )}
                     {/* REGULATIONS SECTION */}
                     <div className="data-section">
                         <div className="section-header-row">
                             <h3>REGULATIONS</h3>
-                            
+
                             <div className="section-header-actions">
                                 {/* Zoom to feature/section */}
                                 {sectionBbox && (() => {
@@ -688,50 +911,6 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                             );
                         })()}
 
-                        {/* Bathymetry depth-map PDFs (WSA lake survey maps, served from R2) */}
-                        {bathymetry.length > 0 && (() => {
-                            const urls = bathymetry.map((b) => waterbodyDataService.bathymetryUrl(b.pdf));
-                            const combined = bathymetry.length > 1;
-                            const label = bathymetry[0].title?.trim() ? bathymetry[0].title! : 'Bathymetric survey';
-                            return (
-                                <div className="bathymetry-section" role="region" aria-label="Depth maps">
-                                    <div className="bathymetry-header">
-                                        <FileImage size={13} strokeWidth={2} aria-hidden="true" />
-                                        <span>Depth {combined ? 'maps' : 'map'}</span>
-                                        {combined && (
-                                            <span className="bathymetry-count">{bathymetry.length}</span>
-                                        )}
-                                    </div>
-                                    <div className="bathymetry-list">
-                                        <button
-                                            type="button"
-                                            className="bathymetry-card"
-                                            title={combined
-                                                ? `Open ${bathymetry.length} depth maps as one combined PDF in a new tab`
-                                                : `Open depth map in a new tab: ${label}`}
-                                            disabled={pdfBusy}
-                                            onClick={() => openBathymetry(urls)}
-                                        >
-                                            <span className="bathymetry-card-icon">
-                                                <FileImage size={16} strokeWidth={2} aria-hidden="true" />
-                                            </span>
-                                            <span className="bathymetry-card-body">
-                                                <span className="bathymetry-card-title">{label}</span>
-                                                <span className="bathymetry-card-sub">
-                                                    {pdfBusy
-                                                        ? 'Preparing PDF…'
-                                                        : combined
-                                                            ? `Opens ${bathymetry.length} surveys as one combined PDF in a new tab`
-                                                            : 'Opens PDF in a new tab'}
-                                                </span>
-                                            </span>
-                                            <span className="bathymetry-card-badge">PDF</span>
-                                            <ExternalLink size={14} strokeWidth={2} className="bathymetry-card-open" aria-hidden="true" />
-                                        </button>
-                                    </div>
-                                </div>
-                            );
-                        })()}
 
                         {!loadingRegs && (() => {
                             // Show message if filters hide all results
@@ -765,7 +944,23 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                                 let groupLabel: string = '';
                                 let groupSubtitle: string = '';
 
-                                if (reg.source === 'zone') {
+                                if (reg.source === 'municipal') {
+                                    // Municipal-level closures (e.g. Lost Lagoon, Beaver Lake) —
+                                    // one group per regulation, pinned to the top of the panel.
+                                    groupKey = `municipal|${reg.regulation_id}`;
+                                    groupLabel = 'Municipal Closure';
+                                    groupSubtitle = '';
+                                } else if (reg.source === 'land_access') {
+                                    // Land access / land ownership advisories (restricted
+                                    // watersheds, DND land, permit-based research forests, etc.)
+                                    // — collapsed into a single "Land Use" section per reach.
+                                    // Label left blank: the "Land Use" badge already carries
+                                    // this, and repeating it as the label read as a literal
+                                    // duplicate ("Land Use" twice) with nothing added.
+                                    groupKey = 'land_access';
+                                    groupLabel = '';
+                                    groupSubtitle = '';
+                                } else if (reg.source === 'zone') {
                                     // Zone regulations: derive label from region + zone_ids.
                                     const zoneKey = reg.zone_ids?.length ? reg.zone_ids.sort().join(',') : '';
                                     const regionName = reg.region || '';
@@ -781,24 +976,22 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                                     groupLabel = label;
                                     groupSubtitle = '';
                                 } else if (reg.source === 'provincial') {
-                                    // Provincial / admin-boundary regulations
-                                    const isIndigenousAdvisory = (reg.restriction_type || '').toLowerCase().includes('indigenous territory');
+                                    // Provincial / admin-boundary regulations.
+                                    // Matched by regulation_id (a stable constant from
+                                    // base_regulations.json), not restriction_type — the
+                                    // reg's restriction.type is just "Advisory" at the data
+                                    // layer, it never actually contains the words "indigenous
+                                    // territory" (that text only lives in rule_text/details),
+                                    // so a text match against restriction_type always missed.
+                                    const isIndigenousAdvisory = reg.regulation_id === 'PROV_ABORIGINAL_LANDS_ADVISORY';
 
                                     if (isIndigenousAdvisory) {
-                                        // After pipeline polygon merging, overlapping territories
-                                        // share a single regulation instance.  Group all indigenous
-                                        // advisories under one key; the label comes from adminZones.
-                                        groupKey = 'prov|indigenous_territory_advisory';
-                                        const zoneNames = adminZones[reg.regulation_id];
-                                        const name = (zoneNames && zoneNames.length > 0) ? zoneNames.join(', ') : 'Indigenous Territory';
-                                        if (groups[groupKey]) {
-                                            // Append any additional territory name (rare: non-overlapping territories)
-                                            if (name !== 'Indigenous Territory' && !groups[groupKey].label.includes(name)) {
-                                                groups[groupKey].label += `, ${name}`;
-                                            }
-                                            return groups;
-                                        }
-                                        groupLabel = name;
+                                        // Folded into the same "Land Use" group/section as
+                                        // land_access advisories (watersheds, DND land, research
+                                        // forests) rather than its own group — same top-pinned
+                                        // header, same visual language.
+                                        groupKey = 'land_access';
+                                        groupLabel = '';
                                     } else if (reg.scope_location) {
                                         const zoneNames = adminZones[reg.regulation_id];
                                         if (zoneNames && zoneNames.length > 0) {
@@ -834,7 +1027,12 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                                     groups[groupKey] = {
                                         label: groupLabel,
                                         subtitle: groupSubtitle,
-                                        source: reg.source || 'synopsis',
+                                        // The merged "Land Use" group must read as land_access
+                                        // regardless of whether a land_access-source or an
+                                        // indigenous-advisory (provincial-source) reg created it
+                                        // first — group identity, not first-reg identity, drives
+                                        // the badge/header styling and sort priority.
+                                        source: groupKey === 'land_access' ? 'land_access' : (reg.source || 'synopsis'),
                                         isTributary: false,
                                         exclusions: null,
                                         regulations: [],
@@ -848,14 +1046,40 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                                 return groups;
                             }, {} as Record<string, { label: string; subtitle: string; source: string; isTributary: boolean; exclusions: Regulation['exclusions']; regulations: Regulation[] }>);
 
-                            // Sort groups: provincial with a "closed" reg floats to
-                            // the top so users immediately see closures (e.g.
-                            // Ecological Reserves).  Indigenous advisory stays at the
-                            // provincial tier (below synopsis).
-                            // Otherwise: synopsis → zone → provincial.
+                            // The merged "Land Use" group can independently accumulate both
+                            // access-severity regs (LAND_ACCESS_CLOSED, LAND_ACCESS_RESTRICTED —
+                            // a reach can genuinely touch a closed watershed AND sit near
+                            // restricted land at once). Showing both read as confusing
+                            // near-duplicates, so keep only the single most severe generic
+                            // access advisory — but leave every other reg in place (the
+                            // indigenous advisory AND any feature-targeted closure like
+                            // Malcolm Knapp are never dropped).
+                            if (groupedRegulations['land_access']) {
+                                const ACCESS_SEVERITY: Record<string, number> = {
+                                    LAND_ACCESS_CLOSED: 0,
+                                    LAND_ACCESS_RESTRICTED: 1,
+                                };
+                                const landUseRegs = groupedRegulations['land_access'].regulations;
+                                const accessRegs = landUseRegs.filter(r => r.regulation_id in ACCESS_SEVERITY);
+                                if (accessRegs.length > 1) {
+                                    const mostSevereAccess = [...accessRegs]
+                                        .sort((a, b) => ACCESS_SEVERITY[a.regulation_id] - ACCESS_SEVERITY[b.regulation_id])[0];
+                                    // Filter by object identity so duplicate same-id regs
+                                    // collapse to one rather than all being dropped.
+                                    groupedRegulations['land_access'].regulations = landUseRegs.filter(
+                                        r => !(r.regulation_id in ACCESS_SEVERITY) || r === mostSevereAccess,
+                                    );
+                                }
+                            }
+
+                            // Sort groups so the most actionable/severe notices float to
+                            // the top: municipal closures (0) → land access / indigenous
+                            // advisory (merged "Land Use" group, 1) → provincial/zone
+                            // closures folded into the same top bucket (0) as municipal →
+                            // synopsis (3) → zone (4) → provincial (5).
                             // Within synopsis, direct-match groups appear before tributary groups.
-                            const hasHighPriorityProvReg = (g: { regulations: Regulation[] }) =>
-                                g.regulations.some(r => {
+                            const hasHighPriorityProvReg = (g: { source: string; regulations: Regulation[] }) =>
+                                (g.source === 'provincial' || g.source === 'zone') && g.regulations.some(r => {
                                     const t = (r.restriction_type || '').toLowerCase();
                                     return t === 'closed' || t === 'closure';
                                 });
@@ -868,18 +1092,17 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                                 }
                             }
 
-                            const isIndigenousAdvisoryGroup = (g: { regulations: Regulation[] }) =>
-                                g.regulations.some(r =>
-                                    (r.restriction_type || '').toLowerCase().includes('indigenous territory'));
-
-                            const sourceOrder: Record<string, number> = { synopsis: 1, zone: 3, provincial: 4 };
+                            const sourceOrder: Record<string, number> = {
+                                municipal: 0, land_access: 1, synopsis: 3, zone: 4, provincial: 5,
+                            };
+                            const groupPriority = (g: { source: string; regulations: Regulation[] }) => {
+                                if (g.source === 'municipal' || hasHighPriorityProvReg(g)) return 0;
+                                if (g.source === 'land_access') return 1;
+                                return sourceOrder[g.source] ?? 9;
+                            };
                             const sortedGroups = Object.values(groupedRegulations).sort((a, b) => {
-                                const aIsHighProv = a.source === 'provincial' && hasHighPriorityProvReg(a);
-                                const bIsHighProv = b.source === 'provincial' && hasHighPriorityProvReg(b);
-                                const aIsIndigenous = a.source === 'provincial' && isIndigenousAdvisoryGroup(a);
-                                const bIsIndigenous = b.source === 'provincial' && isIndigenousAdvisoryGroup(b);
-                                const aOrder = aIsHighProv ? 0 : aIsIndigenous ? 2 : (sourceOrder[a.source] ?? 9);
-                                const bOrder = bIsHighProv ? 0 : bIsIndigenous ? 2 : (sourceOrder[b.source] ?? 9);
+                                const aOrder = groupPriority(a);
+                                const bOrder = groupPriority(b);
                                 if (aOrder !== bOrder) return aOrder - bOrder;
                                 // Within same source tier, push tributary synopsis groups after direct ones
                                 const aTrib = a.isTributary ? 1 : 0;
@@ -909,9 +1132,11 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                             return sortedGroups.map((group, groupIdx) => (
                                 <div key={groupIdx} className="regulation-group">
                                     {/* Group Header */}
-                                    <div className={`regulation-group-header ${group.source === 'zone' ? 'zone-header' : ''} ${group.source === 'provincial' ? 'provincial-header' : ''} ${group.isTributary ? 'tributary-header' : ''}`}>
+                                    <div className={`regulation-group-header ${group.source === 'zone' ? 'zone-header' : ''} ${group.source === 'provincial' ? 'provincial-header' : ''} ${group.source === 'municipal' ? 'municipal-header' : ''} ${group.source === 'land_access' ? 'land-access-header' : ''} ${group.isTributary ? 'tributary-header' : ''}`}>
                                         {group.source === 'zone' && <span className="header-badge zone-badge">Zone</span>}
                                         {group.source === 'provincial' && <span className="header-badge provincial-badge">Provincial</span>}
+                                        {group.source === 'municipal' && <span className="header-badge municipal-badge">Closure</span>}
+                                        {group.source === 'land_access' && <span className="header-badge land-access-badge">Land Use</span>}
                                         {group.isTributary && <span className="header-badge tributary-badge">Tributary of</span>}
                                         {group.label}
                                         {group.subtitle && <div className="regulation-group-subtitle">{group.subtitle}</div>}
@@ -1018,7 +1243,7 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                                                     <button
                                                         className="reg-source-img-btn"
                                                         title="See this regulation as printed in the synopsis"
-                                                        onClick={() => setSourceImage({ src: `${import.meta.env.VITE_TILE_BASE_URL || '/data'}/row_images/${src.source_image}`, name: src.waterbody_name || 'Source' })}
+                                                        onClick={() => setSourceImage({ src: `${DATA_BASE}/row_images/${src.source_image}`, name: src.waterbody_name || 'Source' })}
                                                     >
                                                         <FileImage size={12} strokeWidth={2} />
                                                         <span>View regulation in synopsis</span>
@@ -1099,6 +1324,142 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                             </button>
                         </div>
                     )}
+                    </>
+                    )}
+
+                    {/* STOCKING TAB — the same per-release table the old full-panel
+                        sub-view used, now embedded directly under the tab
+                        instead of behind a "Stocking history" card + back button. */}
+                    {effectiveTab === 'stocking' && (() => {
+                        const sortedReleases = [...stocking].sort((a, b) => (b.release_date || '').localeCompare(a.release_date || ''));
+                        return (
+                            <div className="data-section">
+                                <div className="section-header-row">
+                                    <h3>STOCKING</h3>
+                                    <span className="tab-section-count">
+                                        {stocking.length} release{stocking.length === 1 ? '' : 's'} on record
+                                    </span>
+                                </div>
+                                <div className="stocking-list">
+                                    {sortedReleases.map((r, i) => (
+                                        <div className="stocking-row" key={i}>
+                                            <div className="stocking-row-line1">
+                                                <span className="stocking-row-date">{formatReleaseDate(r.release_date)}</span>
+                                                <span className="stocking-row-qty">
+                                                    {Number.isFinite(r.released_quantity) ? r.released_quantity.toLocaleString() : '—'}
+                                                </span>
+                                            </div>
+                                            <div className="stocking-row-line2">
+                                                {[r.species_name, r.life_stage, r.average_weight ? `${r.average_weight}g avg` : null]
+                                                    .filter(Boolean)
+                                                    .join(' · ') || '—'}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        );
+                    })()}
+
+                    {/* BATHY MAP TAB — same "open combined PDF" card as before, now
+                        full-width in its own tab instead of squeezed into a
+                        two-column row next to Stocking. */}
+                    {effectiveTab === 'bathymetry' && (() => {
+                        const urls = bathymetry.map((b) => waterbodyDataService.bathymetryUrl(b.pdf));
+                        const combined = bathymetry.length > 1;
+                        const label = bathymetry[0]?.title?.trim() ? bathymetry[0].title! : 'Bathymetric survey';
+                        return (
+                            <div className="data-section">
+                                <div className="section-header-row">
+                                    <h3>DEPTH {combined ? 'MAPS' : 'MAP'}</h3>
+                                </div>
+                                <div className="bathymetry-list">
+                                    <button
+                                        type="button"
+                                        className="bathymetry-card"
+                                        title={combined
+                                            ? `Open ${bathymetry.length} depth maps as one combined PDF in a new tab`
+                                            : `Open depth map in a new tab: ${label}`}
+                                        disabled={pdfBusy}
+                                        onClick={() => openBathymetry(urls)}
+                                    >
+                                        <span className="bathymetry-card-icon">
+                                            <FileImage size={16} strokeWidth={2} aria-hidden="true" />
+                                        </span>
+                                        <span className="bathymetry-card-body">
+                                            <span className="bathymetry-card-title">{label}</span>
+                                            <span className="bathymetry-card-sub">
+                                                {pdfBusy
+                                                    ? 'Preparing PDF…'
+                                                    : combined
+                                                        ? `Opens ${bathymetry.length} surveys as one combined PDF in a new tab`
+                                                        : 'Opens PDF in a new tab'}
+                                            </span>
+                                        </span>
+                                        <span className="bathymetry-card-badge">PDF</span>
+                                        <ExternalLink size={14} strokeWidth={2} className="bathymetry-card-open" aria-hidden="true" />
+                                    </button>
+                                </div>
+                            </div>
+                        );
+                    })()}
+
+                    {/* GAUGES TAB — placeholder. No gauge/hydrometric data source
+                        exists yet; shown now so the tab is ready to receive real
+                        data later with no further restructuring. */}
+                    {effectiveTab === 'gauges' && (
+                        <div className="data-section">
+                            {gaugeStations.length === 0 ? (
+                                <div className="tab-empty-state">
+                                    <Gauge size={28} strokeWidth={1.5} aria-hidden="true" />
+                                    <p>No gauge on this waterbody.</p>
+                                    <span>Real-time water level and flow appear here for rivers and lakes that have a hydrometric gauge station.</span>
+                                </div>
+                            ) : (
+                                <div className="gauge-tab">
+                                    {gaugeStations.length > 1 && (
+                                        <label className="gauge-select">
+                                            <span>Gauge station</span>
+                                            <select
+                                                value={selectedGauge ?? gaugeStations[0].id}
+                                                onChange={(e) => setSelectedGauge(e.target.value)}
+                                            >
+                                                {gaugeStations.map(s => (
+                                                    <option key={s.id} value={s.id}>
+                                                        {s.id}{s.name ? ` — ${s.name}` : ''}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </label>
+                                    )}
+                                    {(() => {
+                                        const st = gaugeStations.find(s => s.id === selectedGauge) || gaugeStations[0];
+                                        const attrib = waterbodyDataService.getGaugeAttribution();
+                                        return (
+                                            <>
+                                                {gaugeStations.length === 1 && (
+                                                    <div className="gauge-title">
+                                                        {st.id}{st.name ? ` — ${st.name}` : ''}
+                                                    </div>
+                                                )}
+                                                {st.condition?.text && (
+                                                    <div className="gauge-condition">{st.condition.text}</div>
+                                                )}
+                                                <React.Suspense fallback={<div className="gauge-chart-note">Loading chart…</div>}>
+                                                    <GaugeChart key={st.id} station={st} />
+                                                </React.Suspense>
+                                                <div className="gauge-attribution">
+                                                    {attrib.data && <p>{attrib.data}</p>}
+                                                    {attrib.forecast && <p>{attrib.forecast}</p>}
+                                                </div>
+                                            </>
+                                        );
+                                    })()}
+                                </div>
+                            )}
+                        </div>
+                    )}
+                    </div>
                 </div>
             </>
         );

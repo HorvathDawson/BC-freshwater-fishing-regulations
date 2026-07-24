@@ -1,13 +1,10 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { X, Check, ExternalLink, Copy, Send } from 'lucide-react';
 import './IssueReport.css';
+import { API_BASE } from '../config/endpoints';
 
 /** GitHub repo that receives pre-filled issue reports. */
 const GITHUB_REPO = 'HorvathDawson/BC-freshwater-fishing-regulations';
-
-/** Base URL for the /api/feedback endpoint — empty in dev (Vite proxies to the
- *  worker), the R2 worker origin in production. Mirrors waterbodyDataService. */
-const API_BASE = import.meta.env.VITE_TILE_BASE_URL || '';
 
 /** Pragmatic email shape check (mirrors the worker's server-side validation).
  *  Deliberately loose — the goal is to catch typos, not enforce RFC 5322. */
@@ -276,11 +273,16 @@ const IssueReport: React.FC<IssueReportProps> = ({ isOpen, onClose, getContext }
 
                     <label className="issue-report-field">
                         <span>Email (optional)</span>
+                        <span className="issue-report-field-hint">
+                            Add your email if you&apos;d like us to be able to reply—for
+                            clarifications or to let you know when it&apos;s fixed. Leave it blank to
+                            report anonymously.
+                        </span>
                         <input
                             type="email"
                             value={email}
                             onChange={e => setEmail(e.target.value)}
-                            placeholder="you@example.com — we'll email you a confirmation"
+                            placeholder="you@example.com"
                             autoComplete="email"
                             inputMode="email"
                             aria-invalid={!emailValid}

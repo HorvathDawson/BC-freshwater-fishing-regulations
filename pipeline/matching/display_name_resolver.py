@@ -55,6 +55,11 @@ class DisplayNameResolver:
     ) -> None:
         self._blk_dn: Dict[str, str] = {}
         self._wbk_dn: Dict[str, str] = {}
+        self._fid_dn: Dict[str, str] = {}
+        # Alias names (searchable + matchable, do NOT replace the label).
+        self._blk_variants: Dict[str, List[str]] = {}
+        self._wbk_variants: Dict[str, List[str]] = {}
+        self._fid_variants: Dict[str, List[str]] = {}
         self._blk_reg_name: Dict[str, str] = {}
         self._wbk_reg_name: Dict[str, str] = {}
         self._fid_reg_name: Dict[str, str] = {}
@@ -90,9 +95,14 @@ class DisplayNameResolver:
                 (caller computes — only non-tributary, non-admin regs).
             fid: Linear feature ID for fid-level reg name lookup.
         """
+        variants = self.variants_for_stream(blk=blk, fid=fid)
         return str(
-            self._blk_dn.get(blk)
+            (self._fid_dn.get(fid, "") if fid else "")
+            or self._blk_dn.get(blk)
             or gnis_name
+            # Promote an alias to the label only when nothing else names the
+            # feature (e.g. a formerly-unnamed stream named after its gauge).
+            or (variants[0] if variants else "")
             or direct_reg_name
             or self._blk_reg_name.get(blk, "")
             or (self._fid_reg_name.get(fid, "") if fid else "")
@@ -105,9 +115,11 @@ class DisplayNameResolver:
         direct_reg_name: str = "",
     ) -> str:
         """Resolve display name for a polygon (lake / wetland / manmade)."""
+        variants = self.variants_for_polygon(wbk)
         return str(
             self._wbk_dn.get(wbk)
             or gnis_name
+            or (variants[0] if variants else "")
             or direct_reg_name
             or self._wbk_reg_name.get(wbk, "")
         )
@@ -121,16 +133,51 @@ class DisplayNameResolver:
         with open(path, encoding="utf-8") as f:
             entries = json.load(f)
         for entry in entries:
-            dn = entry["display_name"]
+            dn = entry.get("display_name", "")
+            variants = entry.get("name_variants", [])
             for blk in entry.get("blue_line_keys", []):
-                self._blk_dn[blk] = dn
+                if dn:
+                    self._blk_dn[blk] = dn
+                if variants:
+                    self._blk_variants.setdefault(blk, []).extend(variants)
             for wbk in entry.get("waterbody_keys", []):
-                self._wbk_dn[wbk] = dn
+                if dn:
+                    self._wbk_dn[wbk] = dn
+                if variants:
+                    self._wbk_variants.setdefault(wbk, []).extend(variants)
+            # Per-segment override: names a sub-reach of a blue line that shares
+            # its BLK with a differently-named reach (e.g. an above-lake reach
+            # FWA lumped under the downstream name). Wins over the BLK override.
+            for fid in entry.get("linear_feature_ids", []):
+                if dn:
+                    self._fid_dn[str(fid)] = dn
+                if variants:
+                    self._fid_variants.setdefault(str(fid), []).extend(variants)
         logger.info(
-            "  %d BLK + %d WBK display name overrides loaded",
+            "  %d BLK + %d WBK + %d fid display name overrides, "
+            "%d BLK + %d WBK + %d fid alias sets loaded",
             len(self._blk_dn),
             len(self._wbk_dn),
+            len(self._fid_dn),
+            len(self._blk_variants),
+            len(self._wbk_variants),
+            len(self._fid_variants),
         )
+
+    # ── Alias accessors (single source for search + gauge matcher) ──────
+
+    def variants_for_stream(self, blk: str = "", fid: str = "") -> List[str]:
+        """Alias names for a stream segment (union of fid- and BLK-level)."""
+        out: List[str] = []
+        if fid:
+            out.extend(getattr(self, "_fid_variants", {}).get(str(fid), []))
+        if blk:
+            out.extend(getattr(self, "_blk_variants", {}).get(blk, []))
+        return list(dict.fromkeys(out))
+
+    def variants_for_polygon(self, wbk: str) -> List[str]:
+        """Alias names for a polygon (lake / wetland / manmade)."""
+        return list(dict.fromkeys(getattr(self, "_wbk_variants", {}).get(wbk, [])))
 
     def _load_reg_name_fallbacks(
         self,

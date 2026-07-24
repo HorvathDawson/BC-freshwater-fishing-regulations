@@ -1,0 +1,834 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Hydrometric Data — POC Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2"></script>
+  <style>
+    :root { 
+      --bg: #f8fafc; 
+      --surface: #ffffff; 
+      --text: #0f172a; 
+      --text-muted: #64748b;
+      --border: #e2e8f0; 
+      --accent: #2563eb; 
+      --accent-hover: #1d4ed8;
+      --radius-lg: 12px;
+      --radius-md: 8px;
+    }
+    
+    * { box-sizing: border-box; }
+    
+    body { 
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+      margin: 0; 
+      padding: 32px 24px; 
+      color: var(--text); 
+      background: var(--bg); 
+      max-width: 1400px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    header { margin-bottom: 24px; }
+    h1 { font-size: 24px; font-weight: 700; margin: 0 0 8px; letter-spacing: -0.5px; }
+    h2 { font-size: 18px; font-weight: 600; margin: 0 0 8px; }
+    .sub { color: var(--text-muted); font-size: 14px; margin-bottom: 20px; line-height: 1.5; }
+    
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+      margin-bottom: 24px;
+    }
+
+    /* Controls Setup */
+    .controls { display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 16px; }
+    .control-group { display: flex; flex-direction: column; gap: 6px; }
+    label { font-size: 13px; font-weight: 600; color: var(--text); }
+    
+    select, button { 
+      padding: 10px 14px; 
+      font-size: 14px; 
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border);
+      background-color: var(--surface);
+      color: var(--text);
+      outline: none;
+      transition: all 0.15s ease;
+    }
+    
+    select { min-width: 240px; cursor: pointer; appearance: auto; }
+    select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+    
+    button { cursor: pointer; font-weight: 500; background: var(--surface); }
+    button:hover { background: #f1f5f9; border-color: #cbd5e1; }
+    button:active { background: #e2e8f0; }
+    button.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+    button.active:hover { background: #1d4ed8; }
+    button:disabled { opacity: 0.45; cursor: not-allowed; }
+    button:disabled:hover { background: var(--surface); border-color: var(--border); }
+
+    .loading-spinner {
+      display: none;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--accent);
+      align-self: center;
+      margin-left: 12px;
+      animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
+
+    .hint { font-size: 13px; color: var(--text-muted); margin-left: auto; align-self: center; }
+
+    /* Chart Container */
+    .chart-wrap { position: relative; width: 100%; height: 500px; margin-bottom: 16px; }
+    
+    .meta-container {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+    
+    .forecast-links a {
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 500;
+      background: rgba(37, 99, 235, 0.1);
+      padding: 4px 10px;
+      border-radius: 12px;
+      margin-left: 6px;
+      transition: background 0.15s ease;
+    }
+    
+    .forecast-links a:hover { background: rgba(37, 99, 235, 0.2); }
+
+    /* Tables */
+    .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
+    @media (max-width: 900px) { .cols { grid-template-columns: 1fr; } }
+    
+    .table-container { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; text-align: left; font-size: 13px; }
+    th, td { padding: 12px 16px; border-bottom: 1px solid var(--border); vertical-align: top; }
+    th { background: #f8fafc; font-weight: 600; color: var(--text); }
+    tr:last-child td { border-bottom: none; }
+    td.key { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; color: var(--accent); white-space: nowrap; font-size: 12px; }
+    td.ex { color: var(--text-muted); }
+    
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 9999px;
+      font-size: 11px;
+      font-weight: 600;
+      background: #e2e8f0;
+      color: #475569;
+    }
+
+    /* Current condition (percentile) banner */
+    .condition {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+      padding: 14px 16px;
+      border-radius: var(--radius-md);
+      margin-bottom: 16px;
+      font-size: 14px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+    }
+    .condition.hidden { display: none; }
+    .condition .cclass { font-weight: 700; font-size: 15px; }
+    .condition .cpct { color: var(--text-muted); }
+    .condition .cval { color: var(--text-muted); margin-left: auto; font-size: 13px; }
+    /* percentile-driven accent colours */
+    .cond-low    { background: #fef2f2; border-color: #fecaca; }
+    .cond-low    .cclass { color: #b91c1c; }
+    .cond-below  { background: #fff7ed; border-color: #fed7aa; }
+    .cond-below  .cclass { color: #c2410c; }
+    .cond-normal { background: #f0fdf4; border-color: #bbf7d0; }
+    .cond-normal .cclass { color: #15803d; }
+    .cond-above  { background: #eff6ff; border-color: #bfdbfe; }
+    .cond-above  .cclass { color: #1d4ed8; }
+    .cond-high   { background: #faf5ff; border-color: #e9d5ff; }
+    .cond-high   .cclass { color: #7c2d92; }
+    .cond-none   { color: var(--text-muted); }
+    /* percentile bar */
+    .pbar { position: relative; flex: 0 0 160px; height: 8px; border-radius: 4px;
+      background: linear-gradient(90deg,#ef4444,#f97316,#22c55e,#3b82f6,#a855f7); }
+    .pbar .pmark { position: absolute; top: -3px; width: 3px; height: 14px;
+      background: var(--text); border-radius: 2px; transform: translateX(-50%); }
+
+    footer { margin-top: 40px; font-size: 12px; color: var(--text-muted); line-height: 1.6; border-top: 1px solid var(--border); padding-top: 24px; }
+    footer strong { color: var(--text); }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Hydrometric Data — Proof of Concept</h1>
+    <div class="sub">Local viewer over <code>hydro.db</code>. All times UTC. Source: Environment and Climate Change Canada / Wateroffice.</div>
+  </header>
+
+  <div class="card">
+    <div class="controls">
+      <div class="control-group">
+        <label for="station">Station</label>
+        <select id="station"></select>
+      </div>
+      <div class="control-group">
+        <label for="parameter">Parameter</label>
+        <select id="parameter"></select>
+      </div>
+      <div class="control-group">
+        <label for="forecast">Filter by forecast</label>
+        <select id="forecast"></select>
+      </div>
+      <button id="reset" type="button">Reset zoom</button>
+      <span class="loading-spinner" id="loading">Fetching data...</span>
+      <span class="hint" id="chart-hint">Scroll / pinch to zoom · drag to pan</span>
+    </div>
+
+    <div id="condition" class="condition hidden"></div>
+
+    <div class="chart-wrap">
+      <canvas id="chart"></canvas>
+    </div>
+    
+    <div class="meta-container">
+      <div id="meta">No data selected</div>
+      <div id="forecast-link" class="forecast-links"></div>
+    </div>
+  </div>
+
+  <div class="cols">
+    <div class="card">
+      <header>
+        <h2>Station attributes</h2>
+        <div class="sub">Fields available for linking a gauge to a river / waterbody.</div>
+      </header>
+      <div class="table-container">
+        <table><tbody id="station-attrs"></tbody></table>
+      </div>
+    </div>
+    <div class="card">
+      <header>
+        <h2>Reading attributes</h2>
+        <div class="sub">Every field the time-series carries (distinct values for this station).</div>
+      </header>
+      <div class="table-container">
+        <table>
+          <thead><tr><th>field</th><th>distinct</th><th>examples</th></tr></thead>
+          <tbody id="reading-attrs"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <header>
+      <h2>Forecasts available for this station</h2>
+      <div class="sub">Summary bounds from BCRFC models. Open the PDF for the full day-by-day forecast hydrograph.</div>
+    </header>
+    <div class="table-container">
+      <table>
+        <thead><tr><th>model</th><th>issued</th><th>horizon</th><th>min</th><th>avg</th><th>max</th><th>return period</th><th>full forecast</th></tr></thead>
+        <tbody id="forecast-attrs"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <footer id="attribution"></footer>
+
+  <script>
+    const PARAM_LABELS = {
+      "3": "Water level — seasonal (this year vs. history)",
+      "6": "Discharge — seasonal (this year vs. history)",
+      "46": "Water level — recent (30-min + forecast)",
+      "47": "Discharge — recent (30-min + forecast)",
+    };
+    // Daily-mean params render the seasonal percentile envelope; unit params
+    // render the high-resolution recent view (with percentile context + forecast).
+    const isSeasonalParam = (p) => p === "3" || p === "6";
+
+    let stations = [];
+    let chart = null;
+    let forecastModels = [];
+
+    const $ = (id) => document.getElementById(id);
+    const isDischarge = (p) => p === "6" || p === "47";
+    // Daily-mean parameter that carries the climatology for a given selection.
+    const dailyParam = (p) => ({ "47": "6", "46": "3" }[p] || p);
+    // Percentile envelope is on a leap-year (2000) calendar so Feb 29 has a
+    // slot; every calendar date maps to the same day-of-year position.
+    const YEAR0 = Date.UTC(2000, 0, 1);
+    const doyToX = (doy) => YEAR0 + (doy - 1) * 86400000;
+    const dateToDoyX = (d) => Date.UTC(2000, d.getUTCMonth(), d.getUTCDate());
+    const doyOf = (d) => Math.round((dateToDoyX(d) - YEAR0) / 86400000) + 1;
+    const ENVELOPE_RGB = "37,99,235";  // brand blue, matches --accent
+    const CONTEXT_RGB = "100,116,139";  // slate — neutral "historical context"
+
+    const hexToRgb = (hex) => {
+      const n = parseInt(hex.replace("#", ""), 16);
+      return `${(n >> 16) & 255},${(n >> 8) & 255},${n & 255}`;
+    };
+
+    // Diagonal-hatch CanvasPattern — the "forecast / projection" texture, so a
+    // forecast range never reads as a (solid-filled) historical percentile band
+    // even when their colours are close.
+    function hatchPattern(rgb, alpha = 0.55) {
+      const c = document.createElement("canvas");
+      c.width = c.height = 7;
+      const x = c.getContext("2d");
+      x.strokeStyle = `rgba(${rgb},${alpha})`;
+      x.lineWidth = 1.1;
+      x.beginPath(); x.moveTo(0, 7); x.lineTo(7, 0);
+      x.moveTo(-1, 1); x.lineTo(1, -1); x.moveTo(6, 8); x.lineTo(8, 6);
+      x.stroke();
+      return x.createPattern(c, "repeat");
+    }
+
+    // Build the shaded percentile-envelope datasets shared by both views.
+    // `xOf(doy)` maps a climatology day-of-year to an x (epoch ms) on the target
+    // axis — the 2000 calendar for the seasonal view, real dates for the recent
+    // view. `full` adds the outer Min–Max ribbon (seasonal only; too busy for
+    // the short view). Lower-bound lines are invisible ("_"-prefixed) so only
+    // the filled ribbons + median show.
+    function envelopeDatasets(bands, xOf, { full, rgb = ENVELOPE_RGB }) {
+      const pts = (col) => bands
+        .map(b => ({ x: xOf(b.doy), y: b[col] }))
+        .filter(p => p.x != null && p.y != null)
+        .sort((a, b) => a.x - b.x);
+      const ribbon = (col, lower, alpha, label) => ({
+        label, data: pts(col), borderColor: "rgba(0,0,0,0)", borderWidth: 0,
+        pointRadius: 0, backgroundColor: `rgba(${rgb},${alpha})`,
+        fill: lower, tension: 0.3, spanGaps: true,
+      });
+      const ds = [];
+      if (full) {
+        ds.push(ribbon("p0", false, 0, "_p0"));
+        ds.push(ribbon("p100", "-1", 0.06, "Min–Max"));
+      }
+      ds.push(ribbon("p10", false, 0, "_p10"));
+      ds.push(ribbon("p90", "-1", 0.12, "10th–90th pct"));
+      ds.push(ribbon("p25", false, 0, "_p25"));
+      ds.push(ribbon("p75", "-1", 0.22, "25th–75th pct"));
+      ds.push({ label: "Median (history)", data: pts("p50"), borderColor: `rgba(${rgb},0.9)`,
+        borderWidth: 1.5, borderDash: [5, 3], pointRadius: 0, fill: false,
+        tension: 0.3, spanGaps: true });
+      return ds;
+    }
+    const setLoading = (state) => $("loading").style.display = state ? "inline-block" : "none";
+
+    async function init() {
+      setLoading(true);
+      stations = await (await fetch("/api/stations")).json();
+      const sel = $("station");
+      if (!stations.length) {
+        sel.innerHTML = '<option>(no data — run the fetch script first)</option>';
+        setLoading(false);
+        return;
+      }
+      fillStationSelect(stations);
+      sel.onchange = onStationChange;
+      await loadForecastModels();
+      await onStationChange();
+      await loadAttribution();
+      $("reset").onclick = () => chart && chart.resetZoom();
+      setLoading(false);
+    }
+
+    function fillStationSelect(list) {
+      $("station").innerHTML = list.map(s =>
+        `<option value="${s.station_id}">${s.station_id}${s.name ? " — " + s.name : ""}${s.n ? " (" + s.n.toLocaleString() + " pts)" : ""}</option>`
+      ).join("");
+    }
+
+    async function loadForecastModels() {
+      forecastModels = await (await fetch("/api/forecast_models")).json();
+      const opts = ['<option value="">All stations</option>'];
+      for (const m of forecastModels) {
+        opts.push(`<option value="${m.model}">Has ${m.model} — ${m.horizon_days}d (${m.with_readings} stations)</option>`);
+      }
+      $("forecast").innerHTML = opts.join("");
+      $("forecast").onchange = onForecastChange;
+    }
+
+    async function onForecastChange() {
+      const model = $("forecast").value;
+      if (!model) {
+        fillStationSelect(stations);
+      } else {
+        const fs = await (await fetch(`/api/forecast_stations?model=${encodeURIComponent(model)}`)).json();
+        if (fs.length) fillStationSelect(fs);
+      }
+      onStationChange();
+    }
+
+    function onStationChange() {
+      const s = stations.find(x => x.station_id === $("station").value);
+      const params = (s?.parameters || "").split(",").filter(Boolean);
+      const disch = params.filter(isDischarge);
+      const list = disch.length ? disch : params;
+      $("parameter").innerHTML = list.map(p =>
+        `<option value="${p}">${PARAM_LABELS[p] || p}</option>`
+      ).join("");
+      $("parameter").onchange = draw;
+      draw();
+      loadAttributes();
+      loadCondition();
+    }
+
+    // Map ECCC's own condition class label to one of five accent colours
+    // (matches their semantics directly — more robust than a percentile
+    // midpoint for one-sided bands like "< 10th" or "All-time low").
+    function condClass(label) {
+      const t = (label || "").toLowerCase();
+      if (!t) return "cond-none";
+      if (t.includes("all-time low") || t.includes("much below")) return "cond-low";
+      if (t.includes("below")) return "cond-below";
+      if (t.includes("all-time high") || t.includes("much above")) return "cond-high";
+      if (t.includes("above")) return "cond-above";
+      if (t.includes("normal")) return "cond-normal";
+      return "cond-none";  // "Not flowing", "Not ranked", "No discharge data..."
+    }
+
+    async function loadCondition() {
+      const station = $("station").value;
+      const el = $("condition");
+      if (!station) { el.className = "condition hidden"; return; }
+      const c = await (await fetch(`/api/current_conditions?station=${encodeURIComponent(station)}`)).json();
+      if (!c || !c.condition_text) { el.className = "condition hidden"; return; }
+
+      const cls = condClass(c.condition_class || c.condition_text);
+      el.className = `condition ${cls}`;
+      const mid = c.percentile_low == null ? null
+        : (c.percentile_high == null ? c.percentile_low : (c.percentile_low + c.percentile_high) / 2);
+      const bar = mid == null ? "" :
+        `<div class="pbar"><div class="pmark" style="left:${Math.max(0, Math.min(100, mid))}%"></div></div>`;
+      const latest = c.latest_discharge || c.latest_stage || "";
+      el.innerHTML =
+        `<span class="cclass">${c.condition_class || c.condition_text}</span>`
+        + (c.percentile_text ? `<span class="cpct">${c.percentile_text}</span>` : "")
+        + bar
+        + (latest ? `<span class="cval">Latest: ${latest}</span>` : "");
+    }
+
+    async function draw() {
+      const station = $("station").value;
+      const parameter = $("parameter").value;
+      if (!station || !parameter) return;
+
+      setLoading(true);
+
+      // Daily-mean params ARE the long/seasonal view now — the flat multi-year
+      // daily line is replaced by the percentile envelope + this year's trace.
+      if (isSeasonalParam(parameter)) {
+        $("chart-hint").textContent = "This year vs. historical day-of-year percentiles · scroll to zoom";
+        try { await drawSeasonal(station, parameter); }
+        finally { setLoading(false); }
+        return;
+      }
+      $("chart-hint").textContent = "Recent 30-min data, forecast & historical percentiles · scroll to zoom";
+
+      const dParam = dailyParam(parameter);
+      const [rows, clim] = await Promise.all([
+        fetch(`/api/readings?station=${encodeURIComponent(station)}&parameter=${encodeURIComponent(parameter)}`).then(r => r.json()),
+        fetch(`/api/climatology?station=${encodeURIComponent(station)}&parameter=${encodeURIComponent(dParam)}`).then(r => r.json()),
+      ]);
+      const points = rows.map(r => ({
+        x: new Date(r.ts.replace(" ", "T")).getTime(), // epoch for chart.js perf
+        y: r.value, grade: r.grade, approval: r.approval, source: r.source,
+      }));
+
+      const datasets = [];
+
+      // Cap the forecast horizon to the recent window (~2 weeks). A model like
+      // ELF issues a 60-day outlook, but this high-res view is about the next
+      // few days — the long tail just clutters it (its full horizon lives in the
+      // model's PDF / the seasonal view).
+      const FORECAST_CAP_DAYS = 12;  // matches the percentile-band extent below
+      const forecastMaxX = Date.now() + FORECAST_CAP_DAYS * 86400000;
+
+      // Percentile context bands, mapped from day-of-year onto the real dates
+      // spanning the recent window + forecast horizon. Drawn first so they sit
+      // behind the observed line and forecast. Subtle (no Min–Max ribbon here).
+      const bands = (clim && clim.bands) || [];
+      if (bands.length) {
+        const doyToRealX = {};
+        const now = Date.now();
+        for (let off = -18; off <= 12; off++) {
+          const d = new Date(now + off * 86400000);
+          doyToRealX[doyOf(d)] = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), 12);
+        }
+        datasets.push(...envelopeDatasets(bands, (doy) => doyToRealX[doy] ?? null, { full: false, rgb: CONTEXT_RGB }));
+      }
+
+      datasets.push({
+        label: `Observed`,
+        data: points,
+        borderColor: "#0f172a",
+        backgroundColor: "rgba(15,23,42,0.06)",
+        borderWidth: 1.75,
+      });
+
+      let metaText = `<strong>${rows.length.toLocaleString()} readings</strong>`
+        + (rows.length ? ` &nbsp;·&nbsp; ${rows[0].ts.split(' ')[0]} to ${rows[rows.length - 1].ts.split(' ')[0]} &nbsp;·&nbsp; Sources: <span class="badge">${[...new Set(rows.map(r => r.source))].join(", ")}</span>` : "")
+        + (bands.length ? ` &nbsp;·&nbsp; percentile bands from ${clim.record.n_years}-yr record` : "");
+
+      const MODEL_COLORS = { CLEVER: "#7c3aed", COFFEE: "#0891b2", ELF: "#dc2626" };
+      $("forecast-link").innerHTML = "";
+
+      if (points.length && isDischarge(parameter)) {
+        const [fcs, allSeries] = await Promise.all([
+          fetch(`/api/forecast?station=${encodeURIComponent(station)}`).then(r => r.json()),
+          fetch(`/api/forecast_series?station=${encodeURIComponent(station)}`).then(r => r.json()),
+        ]);
+        const seriesByModel = {};
+        for (const row of (allSeries || [])) (seriesByModel[row.model] ||= []).push(row);
+
+        const links = [];
+        const last = points[points.length - 1];
+
+        // Keep the forecast readable: one muted min–max ribbon + one avg line
+        // per model (not the old 3 dashed lines each). The invisible lower
+        // bound is "_"-prefixed so only the ribbon + avg reach the legend.
+        for (const fc of (fcs || [])) {
+          const color = MODEL_COLORS[fc.model] || "#dc2626";
+          const series = seriesByModel[fc.model] || [];
+          const hasSeries = series.some(r => r.qfor_ave != null || r.qfor_min != null || r.qfor_max != null);
+
+          if (hasSeries) {
+            // Full horizon, sorted; prepend the last observed point as a
+            // connector only when the forecast starts strictly after it (keeps
+            // x ascending for normalized:true and avoids the COFFEE "1 day" bug).
+            const line = (key) => {
+              const pts = series.filter(r => r[key] != null)
+                .map(r => ({ x: new Date(r.date).getTime(), y: r[key] }))
+                .filter(p => p.x <= forecastMaxX)
+                .sort((a, b) => a.x - b.x);
+              if (!pts.length) return pts;
+              return pts[0].x > last.x ? [{ x: last.x, y: last.y }, ...pts] : pts;
+            };
+            datasets.push({ label: `_${fc.model}_min`, data: line("qfor_min"),
+              borderColor: color + "70", borderWidth: 1, pointRadius: 0, fill: false });
+            datasets.push({ label: `${fc.model} range`, data: line("qfor_max"),
+              borderColor: color + "70", borderWidth: 1, pointRadius: 0,
+              backgroundColor: hatchPattern(hexToRgb(color)), fill: "-1" });
+            datasets.push({ label: `${fc.model} forecast`, data: line("qfor_ave"),
+              borderColor: color, borderWidth: 2.25, pointRadius: 0, fill: false });
+            const fcDays = new Set(series.filter(r => {
+              const t = new Date(r.date).getTime();
+              return t >= Date.now() - 86400000 && t <= forecastMaxX;
+            }).map(r => r.date.slice(0, 10))).size;
+            metaText += ` &nbsp;·&nbsp; ${fc.model} forecast (${fcDays}d shown)`;
+          } else if (fc.forecast_max != null || fc.forecast_min != null || fc.forecast_value != null) {
+            const startX = last.x;
+            const endX = Math.min(last.x + (fc.horizon_days || 5) * 86400000, forecastMaxX);
+            // Taper from the last observed value into the forecast bound.
+            const hLine = (y) => [{ x: startX, y: last.y }, { x: endX, y }];
+            const lo = fc.forecast_min;
+            const hi = fc.forecast_max != null ? fc.forecast_max : fc.forecast_value;
+
+            if (lo != null && hi != null) {
+              datasets.push({ label: `_${fc.model}_min`, data: hLine(lo),
+                borderColor: color + "70", borderWidth: 1, pointRadius: 0, fill: false });
+              datasets.push({ label: `${fc.model} range`, data: hLine(hi),
+                borderColor: color + "70", borderWidth: 1, pointRadius: 0,
+                backgroundColor: hatchPattern(hexToRgb(color)), fill: "-1" });
+            } else if (hi != null) {
+              datasets.push({ label: `${fc.model} bound`, data: hLine(hi),
+                borderColor: color, borderDash: [6, 4], borderWidth: 1.5, fill: false });
+            }
+            if (fc.forecast_ave != null) {
+              datasets.push({ label: `${fc.model} forecast`, data: hLine(fc.forecast_ave),
+                borderColor: color, borderWidth: 2.25, pointRadius: 0, fill: false });
+            }
+            metaText += ` &nbsp;·&nbsp; ${fc.model} bounds (${lo ?? "?"}–${hi ?? "?"} m³/s)`;
+          }
+          if (fc.hydrograph_url) {
+            links.push(`<a href="${fc.hydrograph_url}" target="_blank" rel="noopener noreferrer">${fc.model} PDF ↗</a>`);
+          }
+        }
+        if (links.length) $("forecast-link").innerHTML = links.join("");
+      }
+
+      $("meta").innerHTML = metaText;
+
+      if (chart) chart.destroy();
+
+      // Vertical "now" marker: a dashed line at the current time, so the
+      // observed/forecast boundary is obvious. Drawn only when now falls inside
+      // the visible x-range (it won't when panned/zoomed into the past).
+      const nowLine = {
+        id: "nowLine",
+        afterDatasetsDraw(c) {
+          const x = c.scales.x.getPixelForValue(Date.now());
+          const { top, bottom, left, right } = c.chartArea;
+          if (x < left || x > right) return;
+          const ctx = c.ctx;
+          ctx.save();
+          ctx.beginPath();
+          ctx.setLineDash([5, 4]);
+          ctx.lineWidth = 1.5;
+          ctx.strokeStyle = "#64748b";
+          ctx.moveTo(x, top); ctx.lineTo(x, bottom); ctx.stroke();
+          ctx.setLineDash([]);
+          ctx.fillStyle = "#64748b";
+          ctx.font = "11px ui-sans-serif, system-ui, sans-serif";
+          ctx.textAlign = "center";
+          ctx.fillText("now", x, top + 10);
+          ctx.restore();
+        },
+      };
+
+      // Chart.js Performance configuration for handling 100k+ points
+      chart = new Chart($("chart"), {
+        type: "line",
+        data: { datasets },
+        plugins: [nowLine],
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          parsing: false,       // Huge performance boost (relies on raw data format {x, y})
+          normalized: true,     // Assumes data is sorted, huge performance boost
+          animation: false,     // Disable animation for instant load
+          spanGaps: true,
+          elements: {
+            line: { tension: 0 }, // Disable bezier curves for faster rendering
+            point: { radius: 0, hitRadius: 5, hoverRadius: 4 } // Hide points until hovered
+          },
+          interaction: { mode: "nearest", axis: "x", intersect: false },
+          scales: {
+            x: {
+              type: "time",
+              // Keep the high-res recent window prominent — a long-horizon model
+              // (ELF, 60d) would otherwise stretch the axis and squash it. The
+              // full forecast is a pan away (see zoom limits below).
+              min: Date.now() - 15 * 86400000,
+              max: Date.now() + 10 * 86400000,
+              time: { tooltipFormat: "yyyy-MM-dd HH:mm" },
+              ticks: { maxRotation: 0 }
+            },
+            y: { 
+              title: { 
+                display: true, 
+                text: parameter === "3" || parameter === "46" ? "Water level (m)" : "Discharge (m³/s)" 
+              } 
+            },
+          },
+          plugins: {
+            legend: { display: true, labels: { filter: (i) => !i.text.startsWith("_") } },
+            decimation: {
+              enabled: true,
+              algorithm: 'lttb', // Largest-Triangle-Three-Buckets downsampling
+            },
+            tooltip: {
+              filter: (item) => !item.dataset.label.startsWith("_"),
+              callbacks: {
+                afterBody: (items) => {
+                  const p = items[0]?.raw || {};
+                  const extra = [];
+                  if (p.grade) extra.push(`Grade: ${p.grade}`);
+                  if (p.approval) extra.push(`Approval: ${p.approval}`);
+                  if (p.source) extra.push(`Source: ${p.source}`);
+                  return extra;
+                },
+              },
+            },
+            zoom: {
+              zoom: {
+                wheel: { enabled: true },
+                pinch: { enabled: true },
+                drag: { enabled: false },
+                mode: "x",
+              },
+              pan: { enabled: true, mode: "x" },
+              // Pan across the recent record + the capped forecast window.
+              limits: { x: { min: Date.now() - 20 * 86400000, max: Date.now() + 15 * 86400000 } },
+            },
+          },
+        },
+      });
+      
+      setLoading(false);
+    }
+
+    // Seasonal view: shade this year's daily flow against the historical
+    // day-of-year percentile envelope (from HYDAT's full record). The bands
+    // come from /api/climatology; the overlaid year(s) from the daily-mean
+    // observed series. Matches the BC RFC drought-interactive presentation.
+    async function drawSeasonal(station, parameter) {
+      const dParam = dailyParam(parameter);
+      const isDisch = isDischarge(parameter) || dParam === "6";
+      const [clim, obs] = await Promise.all([
+        fetch(`/api/climatology?station=${encodeURIComponent(station)}&parameter=${encodeURIComponent(dParam)}`).then(r => r.json()),
+        fetch(`/api/readings?station=${encodeURIComponent(station)}&parameter=${encodeURIComponent(dParam)}`).then(r => r.json()),
+      ]);
+
+      if (chart) chart.destroy();
+      const bands = (clim && clim.bands) || [];
+      if (!bands.length) {
+        chart = null;
+        $("chart").getContext("2d").clearRect(0, 0, $("chart").width, $("chart").height);
+        $("meta").innerHTML = `<strong>No historical climatology for this station.</strong> `
+          + `The percentile envelope needs a long daily record (≥ 10 years) in ECCC's HYDAT release; `
+          + `this station doesn't have one. Pick the <em>recent (5-min)</em> parameter to see the raw series.`;
+        return;
+      }
+
+      // Full nested envelope (Min–Max → 10–90 → 25–75 → median) mapped onto the
+      // shared day-of-year (2000) calendar.
+      const datasets = envelopeDatasets(bands, (doy) => doyToX(doy), { full: true });
+
+      // Overlay observed year(s): current calendar year (bold) + the most
+      // recent prior year present in our record (thin), each mapped onto the
+      // shared day-of-year (2000) calendar.
+      const byYear = {};
+      for (const r of (obs || [])) {
+        if (r.value == null) continue;
+        const d = new Date(r.ts.replace(" ", "T"));
+        (byYear[d.getUTCFullYear()] ||= []).push({ x: dateToDoyX(d), y: r.value });
+      }
+      const years = Object.keys(byYear).map(Number).sort((a, b) => b - a);
+      const curYear = new Date().getUTCFullYear();
+      const priorYear = years.find(y => y < curYear);
+      if (priorYear != null) {
+        datasets.push({ label: `${priorYear}`, data: byYear[priorYear].sort((a, b) => a.x - b.x),
+          borderColor: "#94a3b8", borderWidth: 1.25, pointRadius: 0, fill: false,
+          tension: 0, spanGaps: true });
+      }
+      if (byYear[curYear]) {
+        datasets.push({ label: `${curYear} (this year)`, data: byYear[curYear].sort((a, b) => a.x - b.x),
+          borderColor: "#ea580c", borderWidth: 2.25, pointRadius: 0, fill: false,
+          tension: 0, spanGaps: true });
+      }
+
+      const rec = clim.record || {};
+      const unit = isDisch ? "m³/s" : "m";
+      $("meta").innerHTML =
+        `<strong>Seasonal percentile envelope</strong> &nbsp;·&nbsp; `
+        + `record ${rec.start_year}–${rec.end_year} (${rec.n_years} yr) &nbsp;·&nbsp; `
+        + `HYDAT ${clim.record && clim.record.window_days != null ? `±${clim.record.window_days}d smoothing` : ""} `
+        + `&nbsp;·&nbsp; ${curYear}${byYear[curYear] ? "" : " (no data yet)"} vs. history`;
+      $("forecast-link").innerHTML = "";
+
+      // Default to a ±45-day window around today; pan/zoom reveals the rest.
+      const todayX = dateToDoyX(new Date());
+      const win = 45 * 86400000;
+      const positive = isDisch && bands.every(b => b.p0 == null || b.p0 > 0);
+
+      const todayLine = {
+        id: "todayLine",
+        afterDatasetsDraw(c) {
+          const x = c.scales.x.getPixelForValue(todayX);
+          const { top, bottom, left, right } = c.chartArea;
+          if (x < left || x > right) return;
+          const ctx = c.ctx;
+          ctx.save();
+          ctx.beginPath(); ctx.setLineDash([5, 4]); ctx.lineWidth = 1.5;
+          ctx.strokeStyle = "#64748b";
+          ctx.moveTo(x, top); ctx.lineTo(x, bottom); ctx.stroke();
+          ctx.setLineDash([]); ctx.fillStyle = "#64748b";
+          ctx.font = "11px ui-sans-serif, system-ui, sans-serif";
+          ctx.textAlign = "center"; ctx.fillText("today", x, top + 10);
+          ctx.restore();
+        },
+      };
+
+      chart = new Chart($("chart"), {
+        type: "line",
+        data: { datasets },
+        plugins: [todayLine],
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          parsing: false, normalized: true, animation: false, spanGaps: true,
+          elements: { point: { radius: 0, hitRadius: 5, hoverRadius: 4 } },
+          interaction: { mode: "index", axis: "x", intersect: false },
+          scales: {
+            x: {
+              type: "time",
+              min: todayX - win, max: todayX + win,
+              time: { unit: "month", tooltipFormat: "MMM d", displayFormats: { month: "MMM" } },
+              ticks: { maxRotation: 0 },
+            },
+            y: {
+              type: positive ? "logarithmic" : "linear",
+              title: { display: true, text: isDisch ? "Discharge (m³/s)" : "Water level (m)" },
+            },
+          },
+          plugins: {
+            legend: { display: true, labels: { filter: (i) => !i.text.startsWith("_") } },
+            tooltip: {
+              callbacks: {
+                title: (items) => {
+                  const d = new Date(items[0].parsed.x);
+                  return d.toLocaleString("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
+                },
+                label: (ctx) => ctx.dataset.label.startsWith("_") ? null
+                  : `${ctx.dataset.label}: ${ctx.parsed.y == null ? "—" : ctx.parsed.y.toFixed(2)} ${unit}`,
+              },
+            },
+            zoom: {
+              zoom: { wheel: { enabled: true }, pinch: { enabled: true }, drag: { enabled: false }, mode: "x" },
+              pan: { enabled: true, mode: "x" },
+              limits: { x: { min: doyToX(1), max: doyToX(366) } },
+            },
+          },
+        },
+      });
+    }
+
+    async function loadAttributes() {
+      const station = $("station").value;
+      if (!station) return;
+      const data = await (await fetch(`/api/attributes?station=${encodeURIComponent(station)}`)).json();
+      
+      const meta = data.station || {};
+      $("station-attrs").innerHTML = Object.entries(meta).map(([k, v]) =>
+        `<tr><td class="key">${k}</td><td>${v === null || v === "" ? "—" : v}</td></tr>`
+      ).join("");
+      
+      $("reading-attrs").innerHTML = (data.reading_fields || []).map(f =>
+        `<tr><td class="key">${f.field}</td><td><span class="badge">${f.distinct}</span></td><td class="ex">${f.examples || "—"}</td></tr>`
+      ).join("");
+      
+      const fc = data.forecasts || [];
+      $("forecast-attrs").innerHTML = fc.length ? fc.map(f =>
+        `<tr>
+           <td class="key">${f.model}</td>
+           <td>${f.issued_at ? f.issued_at.split('T')[0] : "—"}</td>
+           <td>${f.horizon_days ?? "—"}d</td>
+           <td>${f.forecast_min ?? "—"}</td>
+           <td>${f.forecast_ave ?? "—"}</td>
+           <td>${f.forecast_max ?? f.forecast_value ?? "—"}</td>
+           <td>${f.forecast_rp || "—"}</td>
+           <td>${f.hydrograph_url ? `<a href="${f.hydrograph_url}" target="_blank" rel="noopener noreferrer" style="color:var(--accent)">PDF ↗</a>` : "—"}</td>
+         </tr>`
+      ).join("") : `<tr><td colspan="8" class="ex" style="text-align:center; padding:24px;">No BCRFC forecasts for this station.</td></tr>`;
+    }
+
+    async function loadAttribution() {
+      const rows = await (await fetch("/api/attribution")).json();
+      $("attribution").innerHTML = "<strong>Data attribution (required):</strong><br><br>" +
+        rows.map(r => `• <span class="badge">${r.source}</span> ${r.attribution}`).join("<br><br>");
+    }
+
+    init();
+  </script>
+</body>
+</html>

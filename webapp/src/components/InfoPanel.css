@@ -69,12 +69,21 @@
     display: none; 
 }
 
-.panel-header { 
-    padding: 16px 24px; 
-    border-bottom: 2px solid var(--border); 
-    background: var(--bg-subtle); 
-    cursor: pointer; 
-    touch-action: none; 
+.panel-header {
+    padding: 16px 24px;
+    border-bottom: 2px solid var(--border);
+    background: var(--bg-subtle);
+    cursor: pointer;
+    touch-action: none;
+}
+
+/* Waterbodies with content tabs: the black .content-tab-bar band that
+   follows (directly, or after the lighter dawn-dusk/section-tab-bar rows)
+   is the divider — the header's own black border would just double it up
+   right above the tab bar's identical black. Non-tabbed panels (tidal
+   waters, admin/land polygons) keep the plain border above. */
+.panel-header--tabbed {
+    border-bottom: none;
 }
 
 .mobile-handle-bar { 
@@ -197,6 +206,14 @@
     margin-top: 6px;
     letter-spacing: 0.05em;
     font-family: var(--font-sans);
+}
+
+.dawn-dusk-row {
+    padding: 6px 16px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    border-bottom: 1px solid var(--border-light, #e5e5e5);
 }
 
 .alias-list {
@@ -501,38 +518,8 @@
     color: var(--text);
 }
 
-/* Bathymetry depth-map PDFs (WSA lake survey maps) */
-.bathymetry-section {
-    margin-bottom: 14px;
-}
-
-.bathymetry-header {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    margin-bottom: 8px;
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    color: var(--text-secondary);
-}
-
-.bathymetry-count {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 16px;
-    height: 16px;
-    padding: 0 5px;
-    border-radius: 8px;
-    background: var(--border-light);
-    color: var(--text-secondary);
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 0;
-}
-
+/* Bathymetry depth-map PDFs (WSA lake survey maps) — lives in its own
+   content tab now, so this is just the card list, full width. */
 .bathymetry-list {
     display: flex;
     flex-direction: column;
@@ -620,6 +607,47 @@
 
 .bathymetry-card:hover .bathymetry-card-open {
     color: var(--text);
+}
+
+/* Stocking-history list (full-panel sub-view) — two lines per release
+   instead of a wide table, so every column fits the panel width with no
+   horizontal scroll: date + quantity (the two numbers worth scanning fast)
+   on line 1, species/life-stage/weight as secondary text on line 2. */
+.stocking-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.stocking-row {
+    padding: 9px 2px;
+    border-bottom: 1px solid var(--border-light);
+}
+
+.stocking-row-line1 {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+}
+
+.stocking-row-date {
+    white-space: nowrap;
+}
+
+.stocking-row-qty {
+    font-variant-numeric: tabular-nums;
+    color: var(--text-secondary);
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.stocking-row-line2 {
+    margin-top: 2px;
+    font-size: 11px;
+    color: var(--text-secondary);
 }
 
 /* Depth-map PDF viewer modal */
@@ -890,6 +918,14 @@
     border-left-color: var(--border);
 }
 
+.regulation-group-header.municipal-header {
+    border-left-color: #dc2626;
+}
+
+.regulation-group-header.land-access-header {
+    border-left-color: #dc2626;
+}
+
 .header-badge {
     display: inline-block;
     padding: 1px 6px;
@@ -910,6 +946,18 @@
 .header-badge.provincial-badge {
     background: var(--border);
     color: var(--bg);
+    border: none;
+}
+
+.header-badge.municipal-badge {
+    background: rgba(220, 38, 38, 0.15);
+    color: #dc2626;
+    border: none;
+}
+
+.header-badge.land-access-badge {
+    background: rgba(220, 38, 38, 0.12);
+    color: #dc2626;
     border: none;
 }
 
@@ -1474,6 +1522,317 @@
     .reg-text-body {
         font-size: 13px;
     }
+}
+
+/* ── Content Tab Bar ─────────────────────────────────────────────────────── */
+
+/*
+ * Rules / Stocking / Bathy map / Gauges — a full-width dark band directly
+ * under the header (and under the light "Sections" tab bar, when present).
+ * Distinct purpose from Section Tab Bar below: that picks which river
+ * segment is active, this picks which content category is shown for it.
+ * Always rendered (Rules is always available), underline-style active state
+ * reads clearly against the solid black background.
+ */
+.content-tab-bar {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    flex-shrink: 0;
+    /* Softer slate-grey band — the previous near-black (var(--border)) read as
+       abrasive against the panel. */
+    background: #64748b;
+}
+
+.content-tab-bar::-webkit-scrollbar {
+    display: none;
+}
+
+.content-tab {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    flex: 1 1 0;
+    min-width: fit-content;
+    padding: 11px 8px;
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: rgba(255, 255, 255, 0.82);
+    font-family: var(--font-sans);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: color 0.12s ease, border-color 0.12s ease, background 0.12s ease;
+}
+
+.content-tab:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.content-tab.active {
+    color: #fff;
+    border-bottom-color: #fff;
+}
+
+.content-tab:focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: -2px;
+}
+
+.content-tab-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 15px;
+    height: 15px;
+    padding: 0 4px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.18);
+    color: #fff;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0;
+}
+
+.content-tab.active .content-tab-count {
+    background: #fff;
+    color: #000;
+}
+
+/* Small count/subtitle next to a tab's own <h3> header, e.g. "STOCKING"
+   paired with "50 releases on record" — same role .section-header-actions
+   plays for REGULATIONS, simplified to plain text since these tabs have no
+   filter/zoom controls to share the row with. */
+.tab-section-count {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    white-space: nowrap;
+}
+
+/* Empty-state placeholder (currently only Gauges, ahead of a real data
+   source) — centered icon + message, distinct from .no-regulations'
+   single-line treatment since it's the tab's only content. */
+.tab-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 8px;
+    padding: 40px 16px;
+    color: var(--text-muted);
+}
+
+.tab-empty-state p {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.tab-empty-state span {
+    font-size: 12px;
+    line-height: 1.4;
+    max-width: 240px;
+}
+
+/* ── Gauge (hydro) tab ───────────────────────────────────────────────────── */
+
+.gauge-tab {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 4px 0 8px;
+}
+
+.gauge-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.gauge-condition {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.gauge-select {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    font-size: 10px;
+    color: var(--text-muted);
+}
+
+.gauge-select select {
+    padding: 4px 6px;
+    font-size: 11px;
+    border: 1px solid var(--border, #d1d5db);
+    border-radius: 6px;
+    background: var(--bg-subtle);
+    color: var(--text-primary);
+}
+
+.gauge-chart-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 6px;
+}
+
+.gauge-seg {
+    display: inline-flex;
+    border: 1px solid var(--border, #d1d5db);
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.gauge-seg button {
+    padding: 4px 9px;
+    font-size: 11px;
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+}
+
+.gauge-seg button + button {
+    border-left: 1px solid var(--border, #d1d5db);
+}
+
+.gauge-seg button.active {
+    background: var(--accent, #2563eb);
+    color: #fff;
+}
+
+.gauge-seg button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+/* Plot fills the full content width (no wasted edge space) without bleeding past
+   the panel — negative side margins caused horizontal scroll in the flex column,
+   so the chart stays inside the content box and overflow is clipped. */
+.gauge-tab {
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
+.gauge-chart-canvas {
+    position: relative;
+    height: 320px;
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+}
+
+.gauge-chart-canvas canvas {
+    max-width: 100% !important;
+}
+
+.gauge-chart-msg {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 0 20px;
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+/* Transient "Hold Ctrl to zoom" hint (desktop wheel without the modifier). */
+.gauge-zoom-hint {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    background: rgba(15, 23, 42, 0.55);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    animation: gauge-hint-fade 0.12s ease;
+}
+
+.gauge-zoom-hint kbd {
+    display: inline-block;
+    margin: 0 3px;
+    padding: 1px 5px;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.9);
+    color: #0f172a;
+    font-family: var(--font-sans);
+    font-size: 11px;
+    font-weight: 700;
+}
+
+@keyframes gauge-hint-fade {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.gauge-chart-note {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 4px;
+}
+
+.gauge-explainer {
+    margin-top: 8px;
+    font-size: 11px;
+    line-height: 1.5;
+    color: var(--text-muted);
+}
+
+.gauge-explainer p {
+    margin: 0 0 6px;
+}
+
+.gauge-explainer p:last-child {
+    margin-bottom: 0;
+}
+
+.gauge-explainer strong {
+    color: var(--text-secondary);
+}
+
+/* Mobile: the info panel is short — keep controls compact and let the chart
+   breathe so the toggles aren't crowded off-screen while viewing the graph. */
+@media (max-width: 768px) {
+    .gauge-chart-canvas {
+        height: 240px;
+    }
+    .gauge-seg button {
+        padding: 6px 10px;   /* keep a comfortable tap target */
+        font-size: 11px;
+    }
+    .gauge-chart-controls {
+        gap: 6px;
+    }
+}
+
+.gauge-attribution {
+    font-size: 10px;
+    line-height: 1.4;
+    color: var(--text-muted);
+    border-top: 1px solid var(--border, #e5e7eb);
+    padding-top: 6px;
+}
+
+.gauge-attribution p {
+    margin: 0 0 4px;
 }
 
 /* ── Section Tab Bar ─────────────────────────────────────────────────────── */

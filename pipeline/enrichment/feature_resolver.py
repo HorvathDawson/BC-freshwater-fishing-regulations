@@ -438,8 +438,8 @@ def _get_admin_polygons(atlas: FreshWaterAtlas, layer: str, feature_id: Optional
         records = atlas.historic_sites
     elif layer == "watersheds":
         records = atlas.watersheds
-    elif layer == "osm_admin_boundaries":
-        records = atlas.osm_admin
+    elif layer == "land_access":
+        records = atlas.land_access
     elif layer == "aboriginal_lands":
         records = atlas.aboriginal_lands
     else:

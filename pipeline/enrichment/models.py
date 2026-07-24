@@ -287,6 +287,8 @@ class AdminTargetDef(TypedDict, total=False):
     layer: str  # "parks_nat", "parks_bc", etc.
     feature_id: str  # specific polygon ID (optional)
     code_filter: str  # e.g. "OI" for eco reserves (optional)
+    restriction_level_filter: str  # "closed" | "restricted" — land_access only (optional)
+    access_filter: str  # raw OSM access tag, e.g. "no" | "private" — land_access only (optional)
 
 
 @dataclass(frozen=True)
@@ -294,7 +296,7 @@ class BaseRegulationDef:
     """Zone or provincial base regulation definition, loaded from JSON."""
 
     reg_id: str  # "ZONE_2_BASE" or "PROV_NAT_PARKS_CLOSED"
-    source: Literal["zone", "provincial"]
+    source: Literal["zone", "provincial", "municipal", "land_access"]
     rule_text: str
     restriction: Dict[str, Any]  # {"type": "Quota", "details": "..."}
     zone_ids: tuple = field(default_factory=tuple)

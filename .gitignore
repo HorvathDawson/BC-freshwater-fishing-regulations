@@ -12,7 +12,7 @@ __pycache__/
 *.pmtiles
 *.geojsonseq
 # *.pdf
-# Bulk-downloaded WSA bathymetry survey map PDFs (mirrored to R2, not committed)
+# Bulk-downloaded WSA bathymetry survey map PDFs (mirrored to R2, not committed).
 data/bathymetry_pdfs/
 scripts/output/fwa_modules
 scripts/output/synopsis_pipeline

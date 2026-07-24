@@ -13,8 +13,8 @@ Dependencies: only built-in Python + pipeline.matching (no geo libs).
 
 CLI
 ---
-    python -m pipeline.matching.in_season_resolver
-    python -m pipeline.matching.in_season_resolver --scraped path/to/in_season_changes.json
+    python -m pipeline.recurring.in_season_resolver
+    python -m pipeline.recurring.in_season_resolver --scraped path/to/in_season_changes.json
 """
 
 from __future__ import annotations
@@ -28,28 +28,15 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Tuple
 
-from .in_season_scraper import ScrapedResult, InSeasonChange, RegionChanges
-from .match_table import BaseEntry, MatchTable, OverrideEntry, OVERRIDES_PATH
+from .scraper import (
+    ScrapedResult,
+    InSeasonChange,
+    RegionChanges,
+    _SECTION_TO_REGION,
+)
+from pipeline.matching.match_table import BaseEntry, MatchTable, OverrideEntry, OVERRIDES_PATH
 
 logger = logging.getLogger(__name__)
-
-
-# ---------------------------------------------------------------------------
-# Section → synopsis-region mapping (shared with scraper)
-# ---------------------------------------------------------------------------
-
-_SECTION_TO_REGION: Dict[str, Optional[str]] = {
-    "Provincial level information": None,
-    "Region 1 - Vancouver Island (includes Haida Gwaii: WMU 6-12, 6-13)": "REGION 1 - Vancouver Island",
-    "Region 2 - Lower Mainland": "REGION 2 - Lower Mainland",
-    "Region 3 - Thompson": "REGION 3 - Thompson-Nicola",
-    "Region 4 - Kootenay": "REGION 4 - Kootenay",
-    "Region 5 - Cariboo": "REGION 5 - Cariboo",
-    "Region 6 - Skeena": "REGION 6 - Skeena",
-    "Region 7A - Omineca": "REGION 7A - Omineca",
-    "Region 7B - Peace": "REGION 7B - Peace",
-    "Region 8 - Okanagan": "REGION 8 - Okanagan",
-}
 
 
 # ---------------------------------------------------------------------------
@@ -248,7 +235,21 @@ def resolve_to_reaches(
                 }
             )
 
+    from pipeline.recurring.provenance import provenance
+
     return {
+        **provenance(
+            generator="in_season_resolver",
+            source="BC freshwater fishing regulations — in-season changes",
+            source_url=scraped.source_url,
+            attribution=(
+                "In-season regulation changes sourced from the Province of British "
+                "Columbia and used under the Province's copyright terms "
+                "(https://www2.gov.bc.ca/gov/content/home/copyright)."
+            ),
+            extra={"scraped_at": scraped.scraped_at},
+        ),
+        # legacy top-level keys kept for existing consumers (jq summary, webapp)
         "scraped_at": scraped.scraped_at,
         "source_url": scraped.source_url,
         "changes": changes,

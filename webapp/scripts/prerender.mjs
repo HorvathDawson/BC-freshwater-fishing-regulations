@@ -114,40 +114,53 @@ function collapseWbg(wbg) {
  * Patch the Vite-built index.html template for a specific waterbody.
  * Replaces title/description in place; inserts canonical + og tags before </head>.
  */
-function patchTemplate(tmpl, { title, description, canonicalUrl }) {
+function patchTemplate(tmpl, { title, description, canonicalUrl, bodyHtml, breadcrumbJsonLd }) {
     let html = tmpl;
 
-    // Replace <title>...</title>
-    // Guard both sentinels separately — indexOf returns -1 on miss, and
-    // -1 + length would produce a truthy but wrong offset.
-    const titleStart = html.indexOf('<title>');
-    const titleEndIdx = html.indexOf('</title>');
-    if (titleStart !== -1 && titleEndIdx !== -1) {
-        const titleEnd = titleEndIdx + '</title>'.length;
-        html = html.slice(0, titleStart)
-            + `<title>${escapeHtml(title)}</title>`
-            + html.slice(titleEnd);
+    // Replace the crawlable #seo-content block with waterbody-specific markup
+    // (H1 + description + a link home). Function replacer avoids `$` issues.
+    if (bodyHtml) {
+        html = html.replace(
+            /(<div id="seo-content"[^>]*>)[\s\S]*?(<\/div>)/i,
+            () => `<div id="seo-content" class="visually-hidden">${bodyHtml}</div>`,
+        );
     }
 
-    // Replace <meta name="description" ...>
-    // Use a regex to match the full tag robustly — indexOf('>') would break
-    // if a future attribute value ever contains a literal >.
-    html = html.replace(
-        /<meta\s+name="description"[^>]*\/?>/i,
-        `<meta name="description" content="${escapeHtml(description)}" />`,
-    );
+    // BreadcrumbList structured data (Home → Waterbody) before </head>.
+    if (breadcrumbJsonLd) {
+        const headEnd0 = html.indexOf('</head>');
+        if (headEnd0 !== -1) {
+            const tag = `  <script type="application/ld+json">${breadcrumbJsonLd}</script>\n`;
+            html = html.slice(0, headEnd0) + tag + html.slice(headEnd0);
+        }
+    }
 
-    // Insert canonical + Open Graph tags before </head>
-    const headEnd = html.indexOf('</head>');
-    if (headEnd !== -1) {
-        const extraTags = [
-            `  <link rel="canonical" href="${canonicalUrl}" />`,
-            `  <meta property="og:title" content="${escapeHtml(title)}" />`,
-            `  <meta property="og:description" content="${escapeHtml(description)}" />`,
-            `  <meta property="og:url" content="${canonicalUrl}" />`,
-            `  <meta property="og:type" content="website" />`,
-        ].join('\n') + '\n';
-        html = html.slice(0, headEnd) + extraTags + html.slice(headEnd);
+    // The homepage template (index.html) already carries site-level canonical /
+    // og tags, so per-waterbody pages must REPLACE the page-varying ones (not
+    // append) — otherwise a page ends up with two <title>s / two canonicals /
+    // two og:titles and crawlers pick unpredictably. Site-level tags
+    // (og:site_name, og:type, og:locale, og:image, robots, keywords, JSON-LD)
+    // are correctly inherited unchanged.
+    // Function replacers avoid `$` in a waterbody name being treated as a
+    // replacement special.
+    const inserts = [];
+    const upsert = (regex, tag) => {
+        if (regex.test(html)) html = html.replace(regex, () => tag);
+        else inserts.push(tag);
+    };
+
+    upsert(/<title>[\s\S]*?<\/title>/i, `<title>${escapeHtml(title)}</title>`);
+    upsert(/<meta\s+name="description"[^>]*\/?>/i, `<meta name="description" content="${escapeHtml(description)}" />`);
+    upsert(/<link\s+rel="canonical"[^>]*\/?>/i, `<link rel="canonical" href="${canonicalUrl}" />`);
+    upsert(/<meta\s+property="og:title"[^>]*\/?>/i, `<meta property="og:title" content="${escapeHtml(title)}" />`);
+    upsert(/<meta\s+property="og:description"[^>]*\/?>/i, `<meta property="og:description" content="${escapeHtml(description)}" />`);
+    upsert(/<meta\s+property="og:url"[^>]*\/?>/i, `<meta property="og:url" content="${canonicalUrl}" />`);
+
+    if (inserts.length) {
+        const headEnd = html.indexOf('</head>');
+        if (headEnd !== -1) {
+            html = html.slice(0, headEnd) + inserts.map(t => '  ' + t).join('\n') + '\n' + html.slice(headEnd);
+        }
     }
 
     return html;
@@ -244,7 +257,26 @@ for (const [wbg, raw] of entries) {
     const encodedWbg = encodeURIComponent(wbg);
     const canonicalUrl = `${SITE_URL}/waterbody/${encodedWbg}/`;
 
-    const html = patchTemplate(template, { title, description, canonicalUrl });
+    // Crawlable body content (visually hidden; replaces the homepage placeholder).
+    const h1 = `${displayName} Fishing Regulations`;
+    const aka = nameVariants.length > 0 ? ` Also known as ${nameVariants.join(', ')}.` : '';
+    const bodyHtml =
+        `<h1>${escapeHtml(h1)}</h1>` +
+        `<p>Current British Columbia freshwater fishing regulations for ${escapeHtml(displayName)} (${escapeHtml(typeLabel)}).${escapeHtml(aka)} ` +
+        `${escapeHtml(regText)} View catch limits, closures, gear and bait restrictions, seasons, fish stocking, and live water gauge levels on the interactive map.</p>` +
+        `<p><a href="/">BC Fishing Regulations Map</a> — search any BC lake, river, or stream.</p>`;
+
+    // BreadcrumbList: Home → Waterbody.
+    const breadcrumbJsonLd = JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+            { '@type': 'ListItem', position: 1, name: 'BC Fishing Regulations Map', item: `${SITE_URL}/` },
+            { '@type': 'ListItem', position: 2, name: h1, item: canonicalUrl },
+        ],
+    });
+
+    const html = patchTemplate(template, { title, description, canonicalUrl, bodyHtml, breadcrumbJsonLd });
 
     const outPath = resolve(OUT_DIR, encodedWbg);
     mkdirSync(outPath, { recursive: true });
@@ -259,8 +291,8 @@ const now = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
 const sitemap = [
     '<?xml version="1.0" encoding="UTF-8"?>',
     '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
-    `  <url><loc>${SITE_URL}/</loc><changefreq>weekly</changefreq><lastmod>${now}</lastmod></url>`,
-    ...sitemapUrls.map(u => `  <url><loc>${u}</loc><changefreq>yearly</changefreq><lastmod>${now}</lastmod></url>`),
+    `  <url><loc>${SITE_URL}/</loc><changefreq>weekly</changefreq><priority>1.0</priority><lastmod>${now}</lastmod></url>`,
+    ...sitemapUrls.map(u => `  <url><loc>${u}</loc><changefreq>yearly</changefreq><priority>0.6</priority><lastmod>${now}</lastmod></url>`),
     '</urlset>',
 ].join('\n');
 
