@@ -175,6 +175,63 @@ DEPLOY_ENV=production ./scripts/upload-stocking-db.sh        # publish db to R2
 
 ---
 
+## Limitations (today)
+
+The current design optimises for "cheap to run on free GitHub Actions + R2" and
+accepts real trade-offs to get there:
+
+1. **R2 blobs are the database.** State lives in whole-file sqlite DBs / JSON in
+   R2 that crons pull → mutate → push. There are no transactions and no
+   incremental updates — every run rewrites whole objects. Correctness against
+   concurrency relies on workflow `concurrency:` groups plus conventions (the
+   stocking light job is read-only; hydro's version.json is written last).
+2. **New stocking waterbodies need a human.** The heavy match chain needs
+   geopandas + the ~10 GB FWA GeoPackage + gov WFS, which can't run on a CI
+   runner, so it's a manual local job (`build_db` → `upload-stocking-db.sh`).
+   Until someone runs it, genuinely new waterbodies never appear — a staleness
+   and bus-factor risk.
+3. **Fragile hydro seed coupling.** `bootstrap`/`update` build a hydro DB with no
+   `gauge_fwa_match`; we patch it by restoring that table from `hydro_seed.db`.
+   That seed must exist and be current, and gauge→FWA matches only refresh at
+   full-atlas build time — not on any cron.
+4. **Reach mappings aren't a cron.** `poly_reaches.json` / `tier0.json` / tiles
+   come from the full regulations build, which is manual. Stocking reach_ids and
+   in-season reconciliation silently depend on that output being fresh.
+5. **Weak cross-dataset versioning.** `data_version.json` is a single global
+   marker; a partly-completed multi-file upload can briefly serve a mixed state.
+   Only hydro uses a per-tree `version.json` fence.
+6. **Schedule reliability.** GHA cron is best-effort (the 15-min realtime job is
+   often delayed), schedules are disabled after 60 days of repo inactivity, and
+   a newly-added workflow may skip its first tick.
+7. **Thin observability.** Only in-season surfaces failures (it files a GitHub
+   issue for unmatched regs). The others fail silently in the Actions UI — no
+   alerting, metrics, or freshness dashboard.
+
+## If rebuilt from scratch
+
+Roughly in order of leverage:
+
+- **Real datastore instead of sqlite-in-R2.** A Postgres/PostGIS (or DuckDB)
+  source of truth would give transactions and *incremental* updates: crons
+  UPSERT rows, exporters read. This removes the pull-whole-DB / push-whole-DB
+  dance and most concurrency hazards.
+- **Atomic, versioned snapshots.** Publish each build to a content-addressed or
+  timestamped prefix and flip a single manifest pointer last, so clients never
+  observe a partial update. Replaces the ad-hoc `data_version.json`.
+- **Give the heavy anglerinfo build real compute.** A self-hosted runner /
+  scheduled cloud VM / container with the FWA gpkg cached (or streamed from R2)
+  would let new-waterbody matching run automatically instead of manually — and
+  fold the two stocking tiers back into one scheduled flow.
+- **Publish `gauge_fwa_match` as its own scheduled artifact** so hydro stops
+  depending on an enrich-time seed and the bootstrap-restore hack goes away.
+- **Make the regulations build schedulable/incremental** so `poly_reaches` /
+  `tier0` refresh without a manual run — the thing every downstream cron leans on.
+- **One orchestrator, not N independent scripts.** A small DAG (or a single
+  workflow running ordered steps) with shared input caching removes the repeated
+  "pull the same tier0/poly_reaches from R2" work and makes ordering explicit.
+- **Uniform alerting + run summaries** for every cron (not just in-season), plus
+  a simple freshness check per dataset.
+
 ## Adding / changing a cron — checklist
 
 1. The workflow's `schedule:` only takes effect once it's on **`main`**.
