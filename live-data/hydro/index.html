@@ -258,8 +258,8 @@
     const PARAM_LABELS = {
       "3": "Water level — seasonal (this year vs. history)",
       "6": "Discharge — seasonal (this year vs. history)",
-      "46": "Water level — recent (5-min + forecast)",
-      "47": "Discharge — recent (5-min + forecast)",
+      "46": "Water level — recent (30-min + forecast)",
+      "47": "Discharge — recent (30-min + forecast)",
     };
     // Daily-mean params render the seasonal percentile envelope; unit params
     // render the high-resolution recent view (with percentile context + forecast).
@@ -443,7 +443,7 @@
         finally { setLoading(false); }
         return;
       }
-      $("chart-hint").textContent = "Recent 5-min data, forecast & historical percentiles · scroll to zoom";
+      $("chart-hint").textContent = "Recent 30-min data, forecast & historical percentiles · scroll to zoom";
 
       const dParam = dailyParam(parameter);
       const [rows, clim] = await Promise.all([

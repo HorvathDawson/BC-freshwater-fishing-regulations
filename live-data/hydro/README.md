@@ -135,13 +135,15 @@ small fast-moving files and never regenerates the historical record:
 | Artifact | Contents | Size | Cadence |
 |---|---|---|---|
 | `stations.json` | roster + metadata + **latest value + percentile** per station (map index / headline) | ~210 KB | frequent |
-| `recent/<id>.json` | per station: discharge & level at **15-min for 3 days**, **hourly for days 3-14**, + forecast series | ~10-46 KB (~8 KB gzip) | frequent |
+| `recent/<id>.json` | per station: discharge & level at **30-min for 3 days**, **hourly for days 3-14**, + forecast series | ~10-46 KB (~8 KB gzip) | frequent |
 | `history/<id>.json` | per station: daily-mean discharge & level, long record | ~10-20 KB | daily |
 | `climatology/<id>.json` | per station: day-of-year percentile envelope (P0–P100) from HYDAT's full record — the seasonal chart's bands | ~17 KB (~2.5 KB gzip) | daily (rides history scope) |
 
 The 5-min unit values in `hydro.db` are **downsampled** on export (kept on the
-:00/:15/:30/:45 marks, then on-the-hour) — they never leave the DB at full
-resolution, which is what keeps the cloud payload small.
+:00/:30 marks for the last 3 days, then on-the-hour) — they never leave the DB
+at full resolution, which is what keeps the cloud payload small. `serve.py`'s
+`/api/readings` applies the **same** downsample for unit params, so the local
+viewer previews the shipped cadence rather than the raw 5-min feed.
 
 ```bash
 python export_hydro.py                  # --scope all  (bootstrap / manual)

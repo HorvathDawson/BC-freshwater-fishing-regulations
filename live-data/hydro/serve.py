@@ -36,13 +36,46 @@ import sys
 import threading
 import time
 import urllib.parse
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 HERE = Path(__file__).parent
 DB_PATH = HERE / "hydro.db"
 OUTPUT_DIR = HERE / "output" / "hydro"
+
+# Unit-value params (46/47) are stored at 5-min in hydro.db, but the viewer
+# should show what production ships, not the raw feed — so downsample them to
+# the SAME cadence as export_hydro's recent tier: 30-min for the last 3 days,
+# hourly for days 3-14 (older unit values are dropped). Keep these in sync with
+# export_hydro.FINE_DAYS / FINE_STEP_MIN / COARSE_DAYS.
+UNIT_PARAMS = ("46", "47")
+FINE_DAYS, FINE_STEP_MIN, COARSE_DAYS = 3, 30, 14
+
+
+def _on_step(ts: str, step_min: int) -> bool:
+    """True when an ISO timestamp's minute falls on a step boundary (:00/:30 for
+    30) — keeps on-the-mark readings rather than blindly decimating."""
+    try:
+        return int(ts[14:16]) % step_min == 0
+    except (ValueError, IndexError):
+        return False
+
+
+def _downsample_unit(rows: list[dict], now: datetime) -> list[dict]:
+    """Mirror export_hydro's recent tier: 30-min over the last FINE_DAYS, hourly
+    for days FINE..COARSE, nothing older. `rows` are ordered by ts ascending."""
+    fine_cut = (now - timedelta(days=FINE_DAYS)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    coarse_cut = (now - timedelta(days=COARSE_DAYS)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    out = []
+    for r in rows:
+        ts = r["ts"]
+        if ts >= fine_cut:
+            if _on_step(ts, FINE_STEP_MIN):
+                out.append(r)
+        elif ts >= coarse_cut and _on_step(ts, 60):
+            out.append(r)
+    return out
 PORT = 8765
 
 # Background cron state, published at /api/cron (guarded by _CRON_LOCK).
@@ -210,6 +243,10 @@ class Handler(BaseHTTPRequestHandler):
                    ORDER BY ts""",
                 (station, param),
             )
+            # Serve unit values at the shipped cadence (30-min/hourly), not the
+            # raw 5-min feed, so the viewer previews production faithfully.
+            if param in UNIT_PARAMS:
+                rows = _downsample_unit(rows, datetime.now(timezone.utc))
             self._json(rows)
             return
 

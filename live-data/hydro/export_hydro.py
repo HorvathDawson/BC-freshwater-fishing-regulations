@@ -9,7 +9,7 @@ fast-changing ones and never regenerates the slow historical record:
   output/hydro/
     stations.json          roster + metadata + latest value + percentile per
                            station — the map index / headline. One small file.
-    recent/<id>.json       per station: discharge & level at 15-min for the last
+    recent/<id>.json       per station: discharge & level at 30-min for the last
                            3 days, hourly for days 3-14, plus forecast series.
                            ~10-30 KB each.
     history/<id>.json      per station: daily-mean discharge & level, long record.
@@ -68,8 +68,8 @@ _CLIMATOLOGY_PARAMS = {P_DISCHARGE_DAILY: ("discharge", "m³/s"),
 _PCTL_COLS = ("p0", "p10", "p25", "p50", "p75", "p90", "p100")
 
 # Recent-tier windows / resolutions
-FINE_DAYS = 3        # last 3 days at 15-min
-FINE_STEP_MIN = 15
+FINE_DAYS = 3        # last 3 days at 30-min
+FINE_STEP_MIN = 30
 COARSE_DAYS = 14     # days 3-14 at hourly
 HISTORY_DAYS = 550   # ~18 months of daily means
 
@@ -122,7 +122,7 @@ def _series(conn, sid, param, since, until=None):
 
 
 def _recent_param(conn, sid, unit_param, now):
-    """15-min for the last FINE_DAYS + hourly for days FINE..COARSE, from the
+    """30-min for the last FINE_DAYS + hourly for days FINE..COARSE, from the
     5-min unit-value series."""
     t_fine = _iso(now - timedelta(days=FINE_DAYS))
     t_coarse = _iso(now - timedelta(days=COARSE_DAYS))
@@ -304,8 +304,8 @@ def build_recent(conn, sid, now) -> dict:
         forecast.setdefault(model, []).append([date, mn, av, mx])
     return {
         "id": sid, "generated_at": _iso(now),
-        "discharge": {"q15m_3d": d_fine, "q1h_3to14d": d_coarse},
-        "level": {"q15m_3d": l_fine, "q1h_3to14d": l_coarse},
+        "discharge": {"q30m_3d": d_fine, "q1h_3to14d": d_coarse},
+        "level": {"q30m_3d": l_fine, "q1h_3to14d": l_coarse},
         "forecast": forecast,
     }
 
