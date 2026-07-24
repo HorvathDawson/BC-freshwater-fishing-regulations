@@ -580,7 +580,7 @@ class WaterbodyDataService {
 
       // Fetch in-season changes (fresh every load, like admin_visibility).
       // Gracefully degrades to empty if file doesn't exist or fetch fails.
-      const inSeasonUrl = `${WaterbodyDataService.DATA_BASE}/in_season.json`;
+      const inSeasonUrl = `${WaterbodyDataService.DATA_BASE}/cron/in-season/in_season.json`;
       const inSeasonRaw: { scraped_at?: string; source_url?: string; changes?: any[] } = await fetch(inSeasonUrl)
         .then(r => {
           if (!r.ok) {
@@ -849,7 +849,7 @@ class WaterbodyDataService {
   }
 
   private async _loadStockingIndex(): Promise<Map<string, StockingRelease[]>> {
-    const url = `${WaterbodyDataService.DATA_BASE}/stocking.json`;
+    const url = `${WaterbodyDataService.DATA_BASE}/cron/stocking/stocking.json`;
     try {
       const resp = await fetch(url);
       if (!resp.ok) {

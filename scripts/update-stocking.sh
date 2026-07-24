@@ -96,21 +96,15 @@ mkdir -p "$DEPLOY_DIR/cron/stocking"
 python -m pipeline.recurring.stocking.resolver \
   --poly-reaches "$DEPLOY_DIR/poly_reaches.json" \
   --out "$DEPLOY_DIR/cron/stocking/stocking.json"
-# Legacy dual-write (one release) so the webapp can cut over to cron/ paths
-# without an outage — see plan Part F3.
-cp "$DEPLOY_DIR/cron/stocking/stocking.json" "$DEPLOY_DIR/stocking.json"
 
-echo "✅ stocking.json → $DEPLOY_DIR/cron/stocking/stocking.json (+ legacy root)"
+echo "✅ stocking.json → $DEPLOY_DIR/cron/stocking/stocking.json"
 
 # ── Step 3: Upload / seed (optional) ────────────────────────────────
 
 if [[ "${1:-}" == "--upload" ]]; then
   echo "── Uploading to R2 ($R2_BUCKET) ──"
-  # New canonical key + legacy key (dual-write during cutover).
-  for key in "cron/stocking/stocking.json" "stocking.json"; do
-    python -m pipeline.recurring.r2_storage put \
-      "$DEPLOY_DIR/cron/stocking/stocking.json" "$key"
-  done
+  python -m pipeline.recurring.r2_storage put \
+    "$DEPLOY_DIR/cron/stocking/stocking.json" "cron/stocking/stocking.json"
   echo "✅ Uploaded to R2"
 
 elif [[ "${1:-}" == "--seed" ]]; then

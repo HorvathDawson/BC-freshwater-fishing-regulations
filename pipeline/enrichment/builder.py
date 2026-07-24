@@ -113,16 +113,13 @@ def _collect_admin_visibility(
 
 
 def _write_cron_json(deploy_dir: Path, subdir: str, filename: str, data) -> Path:
-    """Dual-write a recurring artifact: the new unified ``cron/<subdir>/`` subtree
-    plus the legacy deploy-root location (kept for one release so the webapp can
-    cut over to ``cron/`` paths without an outage — see plan Part F3). Returns the
-    canonical (cron/) path.
+    """Write a recurring artifact to the unified ``cron/<subdir>/`` subtree — the
+    single canonical location the webapp reads and the crons refresh. Returns the
+    written path.
     """
     cron_path = deploy_dir / "cron" / subdir / filename
     cron_path.parent.mkdir(parents=True, exist_ok=True)
-    payload = json.dumps(data, indent=2, ensure_ascii=False)
-    cron_path.write_text(payload, encoding="utf-8")
-    (deploy_dir / filename).write_text(payload, encoding="utf-8")  # legacy dual-write
+    cron_path.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
     return cron_path
 
 

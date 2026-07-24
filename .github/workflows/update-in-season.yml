@@ -34,7 +34,7 @@ jobs:
       - name: Check for unmatched regulations
         id: check
         run: |
-          REPORT="output/pipeline/deploy/in_season.json"
+          REPORT="output/pipeline/deploy/cron/in-season/in_season.json"
           if [ ! -f "$REPORT" ]; then
             echo "No in_season.json found — skipping check."
             echo "skip=true" >> "$GITHUB_OUTPUT"
@@ -101,7 +101,7 @@ jobs:
       - name: Write run summary
         if: always()
         run: |
-          REPORT="output/pipeline/deploy/in_season.json"
+          REPORT="output/pipeline/deploy/cron/in-season/in_season.json"
           {
             echo "## In-Season Update Summary"
             echo ""

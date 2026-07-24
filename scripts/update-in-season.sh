@@ -78,21 +78,15 @@ python -m pipeline.recurring.in_season.resolver \
   --match-table "$DEPLOY_DIR/match_table.json" \
   --out "$DEPLOY_DIR/cron/in-season/in_season.json" \
   --quiet
-# Legacy dual-write (one release) so the webapp can cut over to cron/ paths
-# without an outage — see plan Part F3. The workflow's jq summary reads either.
-cp "$DEPLOY_DIR/cron/in-season/in_season.json" "$DEPLOY_DIR/in_season.json"
 
-echo "✅ in_season.json → $DEPLOY_DIR/cron/in-season/in_season.json (+ legacy root)"
+echo "✅ in_season.json → $DEPLOY_DIR/cron/in-season/in_season.json"
 
 # ── Step 3: Upload / seed (optional) ────────────────────────────────
 
 if [[ "${1:-}" == "--upload" ]]; then
   echo "── Uploading to R2 ($R2_BUCKET) ──"
-  # New canonical key + legacy key (dual-write during cutover).
-  for key in "cron/in-season/in_season.json" "in_season.json"; do
-    python -m pipeline.recurring.r2_storage put \
-      "$DEPLOY_DIR/cron/in-season/in_season.json" "$key"
-  done
+  python -m pipeline.recurring.r2_storage put \
+    "$DEPLOY_DIR/cron/in-season/in_season.json" "cron/in-season/in_season.json"
   echo "✅ Uploaded to R2"
 
 elif [[ "${1:-}" == "--seed" ]]; then
