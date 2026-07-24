@@ -1997,10 +1997,10 @@ const MapComponent = () => {
             // Gauges read as a distinct, first-class layer — bigger than the
             // amenity POIs (own size ramp, not POI_ICON_SIZE_EXPR).
             // Visible from a lower zoom so gauges are findable when zoomed out.
-            const GAUGE_MINZOOM = 8;
+            const GAUGE_MINZOOM = 9;
             const GAUGE_BASE_SIZE = [
                 'interpolate', ['linear'], ['zoom'],
-                8, 0.7,
+                9, 0.75,
                 11, 0.9,
                 16, 1.3,
                 19, 1.9,
@@ -2010,7 +2010,7 @@ const MapComponent = () => {
             // interp>, 1.7] throws), so bake the factor into a top-level ramp.
             const GAUGE_ACTIVE_SIZE = [
                 'interpolate', ['linear'], ['zoom'],
-                8, 1.2,
+                9, 1.3,
                 11, 1.55,
                 16, 2.2,
                 19, 3.2,
