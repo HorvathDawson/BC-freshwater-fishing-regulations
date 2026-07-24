@@ -5,8 +5,60 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="description" content="Interactive map of BC freshwater fishing regulations - search streams, lakes, and find fishing rules" />
-    <title>Can I Fish This? - BC Freshwater Fishing Regulations</title>
+    <meta name="theme-color" content="#2563eb" />
+
+    <!-- Primary SEO — homepage targets the head terms (BC fishing regulations /
+         regs / map). Per-waterbody pages get their own title/description/canonical
+         patched in by scripts/prerender.mjs. -->
+    <title>BC Fishing Regulations Map | Freshwater Fishing Rules by Lake &amp; Stream — Can I Fish This?</title>
+    <meta name="description" content="Free interactive BC fishing regulations map. Search any lake, river, or stream in British Columbia for current freshwater fishing rules — closures, quotas, gear and bait restrictions, catch-and-release, stocking, and live water gauge levels." />
+    <meta name="keywords" content="BC fishing regulations, BC fishing regs, BC fishing map, British Columbia fishing rules, freshwater fishing BC, BC fishing closures, BC fishing limits, where can I fish BC, BC fishing regulations map, BC lake and stream fishing" />
+    <meta name="robots" content="index, follow, max-image-preview:large" />
+    <link rel="canonical" href="https://canifishthis.ca/" />
+
+    <!-- Open Graph (Facebook, iMessage, Slack, …) -->
+    <meta property="og:site_name" content="Can I Fish This?" />
+    <meta property="og:title" content="BC Fishing Regulations Map — Freshwater Fishing Rules by Water" />
+    <meta property="og:description" content="Search any BC lake, river, or stream for current freshwater fishing regulations — closures, quotas, gear restrictions, stocking, and live water levels. Free and interactive." />
+    <meta property="og:url" content="https://canifishthis.ca/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="en_CA" />
+    <!-- TODO: add public/og-image.png (1200×630) then uncomment:
+    <meta property="og:image" content="https://canifishthis.ca/og-image.png" /> -->
+
+    <!-- Twitter / X card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="BC Fishing Regulations Map — Can I Fish This?" />
+    <meta name="twitter:description" content="Interactive map of BC freshwater fishing regulations. Search any lake or stream for rules, closures, quotas, stocking, and live water levels." />
+
+    <!-- Structured data: site + web app (site-level, valid on every page) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "WebSite",
+          "@id": "https://canifishthis.ca/#website",
+          "url": "https://canifishthis.ca/",
+          "name": "Can I Fish This?",
+          "description": "Interactive map of British Columbia freshwater fishing regulations.",
+          "inLanguage": "en-CA"
+        },
+        {
+          "@type": "WebApplication",
+          "name": "Can I Fish This? — BC Fishing Regulations Map",
+          "url": "https://canifishthis.ca/",
+          "applicationCategory": "https://schema.org/ReferenceApplication",
+          "operatingSystem": "Web",
+          "browserRequirements": "Requires JavaScript.",
+          "description": "Search any British Columbia lake, river, or stream to see current freshwater fishing regulations — closures, quotas, gear and bait restrictions, stocking, and live water gauge levels.",
+          "offers": { "@type": "Offer", "price": "0", "priceCurrency": "CAD" },
+          "areaServed": { "@type": "AdministrativeArea", "name": "British Columbia, Canada" }
+        }
+      ]
+    }
+    </script>
+
     <!-- Preconnect to CDN origins used immediately by the map -->
     <link rel="preconnect" href="https://cdn.protomaps.com" crossorigin />
     <link rel="preconnect" href="https://protomaps.github.io" crossorigin />

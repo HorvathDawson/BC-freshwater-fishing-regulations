@@ -117,37 +117,34 @@ function collapseWbg(wbg) {
 function patchTemplate(tmpl, { title, description, canonicalUrl }) {
     let html = tmpl;
 
-    // Replace <title>...</title>
-    // Guard both sentinels separately — indexOf returns -1 on miss, and
-    // -1 + length would produce a truthy but wrong offset.
-    const titleStart = html.indexOf('<title>');
-    const titleEndIdx = html.indexOf('</title>');
-    if (titleStart !== -1 && titleEndIdx !== -1) {
-        const titleEnd = titleEndIdx + '</title>'.length;
-        html = html.slice(0, titleStart)
-            + `<title>${escapeHtml(title)}</title>`
-            + html.slice(titleEnd);
-    }
+    // The homepage template (index.html) already carries site-level canonical /
+    // og / twitter tags, so per-waterbody pages must REPLACE the page-varying
+    // ones (not append) — otherwise a page ends up with two <title>s / two
+    // canonicals / two og:titles and crawlers pick unpredictably. Site-level
+    // tags (og:site_name, og:type, og:locale, twitter:card, robots, keywords,
+    // JSON-LD) are correctly inherited unchanged.
+    // Function replacers avoid `$` in a waterbody name being treated as a
+    // replacement special.
+    const inserts = [];
+    const upsert = (regex, tag) => {
+        if (regex.test(html)) html = html.replace(regex, () => tag);
+        else inserts.push(tag);
+    };
 
-    // Replace <meta name="description" ...>
-    // Use a regex to match the full tag robustly — indexOf('>') would break
-    // if a future attribute value ever contains a literal >.
-    html = html.replace(
-        /<meta\s+name="description"[^>]*\/?>/i,
-        `<meta name="description" content="${escapeHtml(description)}" />`,
-    );
+    upsert(/<title>[\s\S]*?<\/title>/i, `<title>${escapeHtml(title)}</title>`);
+    upsert(/<meta\s+name="description"[^>]*\/?>/i, `<meta name="description" content="${escapeHtml(description)}" />`);
+    upsert(/<link\s+rel="canonical"[^>]*\/?>/i, `<link rel="canonical" href="${canonicalUrl}" />`);
+    upsert(/<meta\s+property="og:title"[^>]*\/?>/i, `<meta property="og:title" content="${escapeHtml(title)}" />`);
+    upsert(/<meta\s+property="og:description"[^>]*\/?>/i, `<meta property="og:description" content="${escapeHtml(description)}" />`);
+    upsert(/<meta\s+property="og:url"[^>]*\/?>/i, `<meta property="og:url" content="${canonicalUrl}" />`);
+    upsert(/<meta\s+name="twitter:title"[^>]*\/?>/i, `<meta name="twitter:title" content="${escapeHtml(title)}" />`);
+    upsert(/<meta\s+name="twitter:description"[^>]*\/?>/i, `<meta name="twitter:description" content="${escapeHtml(description)}" />`);
 
-    // Insert canonical + Open Graph tags before </head>
-    const headEnd = html.indexOf('</head>');
-    if (headEnd !== -1) {
-        const extraTags = [
-            `  <link rel="canonical" href="${canonicalUrl}" />`,
-            `  <meta property="og:title" content="${escapeHtml(title)}" />`,
-            `  <meta property="og:description" content="${escapeHtml(description)}" />`,
-            `  <meta property="og:url" content="${canonicalUrl}" />`,
-            `  <meta property="og:type" content="website" />`,
-        ].join('\n') + '\n';
-        html = html.slice(0, headEnd) + extraTags + html.slice(headEnd);
+    if (inserts.length) {
+        const headEnd = html.indexOf('</head>');
+        if (headEnd !== -1) {
+            html = html.slice(0, headEnd) + inserts.map(t => '  ' + t).join('\n') + '\n' + html.slice(headEnd);
+        }
     }
 
     return html;
@@ -259,8 +256,8 @@ const now = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
 const sitemap = [
     '<?xml version="1.0" encoding="UTF-8"?>',
     '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
-    `  <url><loc>${SITE_URL}/</loc><changefreq>weekly</changefreq><lastmod>${now}</lastmod></url>`,
-    ...sitemapUrls.map(u => `  <url><loc>${u}</loc><changefreq>yearly</changefreq><lastmod>${now}</lastmod></url>`),
+    `  <url><loc>${SITE_URL}/</loc><changefreq>weekly</changefreq><priority>1.0</priority><lastmod>${now}</lastmod></url>`,
+    ...sitemapUrls.map(u => `  <url><loc>${u}</loc><changefreq>yearly</changefreq><priority>0.6</priority><lastmod>${now}</lastmod></url>`),
     '</urlset>',
 ].join('\n');
 
