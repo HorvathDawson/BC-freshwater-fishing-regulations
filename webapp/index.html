@@ -59,6 +59,12 @@
     <!-- Preconnect to CDN origins used immediately by the map -->
     <link rel="preconnect" href="https://cdn.protomaps.com" crossorigin />
     <link rel="preconnect" href="https://protomaps.github.io" crossorigin />
+
+    <!-- Screen-reader-accessible, visually-hidden helper for the crawlable
+         content block below (a full-screen map SPA has no visible body text). -->
+    <style>
+      .visually-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:normal;border:0}
+    </style>
   </head>
   <body>
     <div id="root">
@@ -74,6 +80,17 @@
         <p>Loading…</p>
       </div>
     </div>
+
+    <!-- Crawlable content. Lives OUTSIDE #root so React never removes it (present
+         in both raw HTML and the rendered DOM — not cloaking), visually hidden so
+         it doesn't clutter the map, but read by search engines + screen readers.
+         prerender.mjs replaces the inner markup per waterbody. -->
+    <div id="seo-content" class="visually-hidden">
+      <h1>BC Fishing Regulations Map</h1>
+      <p>Can I Fish This? is a free interactive map of British Columbia freshwater fishing regulations. Search any lake, river, or stream in BC to see the current fishing rules that apply to it.</p>
+      <p>Each waterbody shows closures, catch limits and quotas, gear and bait restrictions, catch-and-release rules, fish stocking history, and live water gauge levels from Environment and Climate Change Canada and the BC River Forecast Centre.</p>
+    </div>
+
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

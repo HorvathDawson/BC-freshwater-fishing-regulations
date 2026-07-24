@@ -114,8 +114,26 @@ function collapseWbg(wbg) {
  * Patch the Vite-built index.html template for a specific waterbody.
  * Replaces title/description in place; inserts canonical + og tags before </head>.
  */
-function patchTemplate(tmpl, { title, description, canonicalUrl }) {
+function patchTemplate(tmpl, { title, description, canonicalUrl, bodyHtml, breadcrumbJsonLd }) {
     let html = tmpl;
+
+    // Replace the crawlable #seo-content block with waterbody-specific markup
+    // (H1 + description + a link home). Function replacer avoids `$` issues.
+    if (bodyHtml) {
+        html = html.replace(
+            /(<div id="seo-content"[^>]*>)[\s\S]*?(<\/div>)/i,
+            () => `<div id="seo-content" class="visually-hidden">${bodyHtml}</div>`,
+        );
+    }
+
+    // BreadcrumbList structured data (Home → Waterbody) before </head>.
+    if (breadcrumbJsonLd) {
+        const headEnd0 = html.indexOf('</head>');
+        if (headEnd0 !== -1) {
+            const tag = `  <script type="application/ld+json">${breadcrumbJsonLd}</script>\n`;
+            html = html.slice(0, headEnd0) + tag + html.slice(headEnd0);
+        }
+    }
 
     // The homepage template (index.html) already carries site-level canonical /
     // og tags, so per-waterbody pages must REPLACE the page-varying ones (not
@@ -239,7 +257,26 @@ for (const [wbg, raw] of entries) {
     const encodedWbg = encodeURIComponent(wbg);
     const canonicalUrl = `${SITE_URL}/waterbody/${encodedWbg}/`;
 
-    const html = patchTemplate(template, { title, description, canonicalUrl });
+    // Crawlable body content (visually hidden; replaces the homepage placeholder).
+    const h1 = `${displayName} Fishing Regulations`;
+    const aka = nameVariants.length > 0 ? ` Also known as ${nameVariants.join(', ')}.` : '';
+    const bodyHtml =
+        `<h1>${escapeHtml(h1)}</h1>` +
+        `<p>Current British Columbia freshwater fishing regulations for ${escapeHtml(displayName)} (${escapeHtml(typeLabel)}).${escapeHtml(aka)} ` +
+        `${escapeHtml(regText)} View catch limits, closures, gear and bait restrictions, seasons, fish stocking, and live water gauge levels on the interactive map.</p>` +
+        `<p><a href="/">BC Fishing Regulations Map</a> — search any BC lake, river, or stream.</p>`;
+
+    // BreadcrumbList: Home → Waterbody.
+    const breadcrumbJsonLd = JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+            { '@type': 'ListItem', position: 1, name: 'BC Fishing Regulations Map', item: `${SITE_URL}/` },
+            { '@type': 'ListItem', position: 2, name: h1, item: canonicalUrl },
+        ],
+    });
+
+    const html = patchTemplate(template, { title, description, canonicalUrl, bodyHtml, breadcrumbJsonLd });
 
     const outPath = resolve(OUT_DIR, encodedWbg);
     mkdirSync(outPath, { recursive: true });
