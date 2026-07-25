@@ -401,25 +401,6 @@ const createCrossHatchPattern = (hexColor: string): ImageData | null => {
 };
 
 /**
- * Horizontal line pattern (used for OSM Admin / research forests — partial restriction).
- * Wide-spaced horizontal bars signal "caution" rather than "prohibited."
- */
-const createHorizontalLinePattern = (hexColor: string): ImageData | null => {
-    const size = 18, spacing = 14;
-    const canvas = document.createElement('canvas');
-    canvas.width = size; canvas.height = size;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return null;
-    const [r, g, b] = parseHex(hexColor);
-    ctx.strokeStyle = `rgba(${r},${g},${b},0.40)`;
-    ctx.lineWidth = 1.0;
-    for (let y = spacing / 2; y < size; y += spacing) {
-        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(size, y); ctx.stroke();
-    }
-    return ctx.getImageData(0, 0, size, size);
-};
-
-/**
  * Small circular badge icon with a vendored SVG glyph drawn on top in
  * white, used for the water-access-point / waterfall POI layers. Each
  * `poi_type` gets a distinct, recognizable icon (not just a color) so
