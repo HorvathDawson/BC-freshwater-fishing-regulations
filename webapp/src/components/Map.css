@@ -571,6 +571,9 @@
         max-height: 80% !important;
         z-index: 99999 !important;
     }
+    .layer-menu-popup .layer-menu-row-cog {
+        opacity: 1 !important;
+    }
 }
 
 /* ── Click loading spinner (shown during resolve) ────────────────── */
