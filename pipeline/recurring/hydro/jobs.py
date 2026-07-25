@@ -29,6 +29,7 @@ R2 credentials (env): ``R2_S3_ENDPOINT`` (or ``CLOUDFLARE_ACCOUNT_ID``),
 from __future__ import annotations
 
 import argparse
+import concurrent.futures
 import contextlib
 import json
 import os
@@ -119,10 +120,23 @@ def _merge_history(storage, conn, out: Path, key_prefix: str, workdir: Path, tod
     The JSON files ARE the persisted record (no DB in R2), so this is the merge
     that keeps the ~18-month window without re-fetching it each run."""
     sids = [r[0] for r in conn.execute("SELECT station_id FROM stations ORDER BY station_id")]
+
+    # Pull the prior history/<id>.json for every station CONCURRENTLY — 450
+    # independent R2 GETs whose round-trip latency (not the merge) dominates this
+    # phase. The merge itself stays serial because it touches the sqlite conn,
+    # which is single-thread only.
+    def _fetch_prior(sid: str) -> tuple[str, dict]:
+        return sid, (_get_json(storage, f"{key_prefix}/history/{sid}.json", workdir) or {})
+
+    priors: dict[str, dict] = {}
+    with concurrent.futures.ThreadPoolExecutor(max_workers=UPLOAD_WORKERS) as ex:
+        for sid, prior in ex.map(_fetch_prior, sids):
+            priors[sid] = prior
+
     n = 0
     for sid in sids:
         fresh = build_history(conn, sid)  # DB only has the last ~14 d after `update`
-        prior = _get_json(storage, f"{key_prefix}/history/{sid}.json", workdir) or {}
+        prior = priors.get(sid, {})
         merged = {
             "id": sid,
             "discharge_daily": _merge_daily(
