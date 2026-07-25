@@ -108,6 +108,9 @@ function envelopeDatasets(bands: Band[], xOf: (doy: number) => number | null, op
   const ribbon = (col: (typeof PCTL_COLS)[number], lower: any, alpha: number, label: string) => ({
     label, data: pts(col), borderColor: 'rgba(0,0,0,0)', borderWidth: 0,
     pointRadius: 0, backgroundColor: `rgba(${rgb},${alpha})`, fill: lower, tension: 0.3, spanGaps: true,
+    // _band marks percentile envelope ribbons so the legend draws a filled box
+    // swatch for them (vs. a line swatch for actual line series).
+    _band: true,
   });
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const ds: any[] = [];
@@ -154,6 +157,7 @@ function vLine(id: string, xValue: () => number, label: string) {
 export default function GaugeChart({ station }: { station: GaugeStation }) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const chartRef = useRef<Chart | null>(null);
+  const readoutRef = useRef<HTMLDivElement | null>(null);
   const [param, setParam] = useState<Param>('discharge');
   const [mode, setMode] = useState<Mode>('recent');
   const [status, setStatus] = useState<'loading' | 'ready' | 'empty'>('loading');
@@ -369,6 +373,47 @@ export default function GaugeChart({ station }: { station: GaugeStation }) {
     }
   }
 
+  const READOUT_HINT = 'Hover the chart to read values at a point.';
+
+  function clearReadout() {
+    const el = readoutRef.current;
+    if (!el) return;
+    el.classList.add('empty');
+    el.textContent = READOUT_HINT;
+  }
+
+  const fmtVal = (v: number) =>
+    Math.abs(v) >= 100 ? Math.round(v).toLocaleString() : Math.abs(v) >= 10 ? v.toFixed(1) : v.toFixed(2);
+
+  // Chart.js `external` tooltip handler — writes the hovered point(s) into the
+  // off-plot readout strip instead of a floating box that hides the data.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  function renderReadout(context: any) {
+    const el = readoutRef.current;
+    if (!el) return;
+    const tt = context.tooltip;
+    if (!tt || tt.opacity === 0) { clearReadout(); return; }
+    el.classList.remove('empty');
+    const parts: string[] = [];
+    const title = (tt.title || []).join(' ');
+    if (title) parts.push(`<span class="gauge-readout-title">${title}</span>`);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (tt.dataPoints || []).forEach((dp: any) => {
+      const label: string = dp.dataset?.label || '';
+      if (label.startsWith('_')) return;
+      const y = dp.parsed?.y;
+      if (y == null) return;
+      const border = dp.dataset?.borderColor;
+      const color = border && border !== 'rgba(0,0,0,0)' ? border : dp.dataset?.backgroundColor || '#64748b';
+      parts.push(
+        `<span class="gauge-readout-item"><span class="gauge-readout-swatch" style="background:${color}"></span>` +
+        `${label} <span class="gauge-readout-val">${fmtVal(y)}</span></span>`,
+      );
+    });
+    el.innerHTML = parts.length > 1 ? parts.join('') : (title ? `${parts[0]}<span class="gauge-readout-item">no value here</span>` : READOUT_HINT);
+    if (parts.length <= 1 && !title) clearReadout();
+  }
+
   function buildChart(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     datasets: any[],
@@ -409,6 +454,10 @@ export default function GaugeChart({ station }: { station: GaugeStation }) {
           legend: {
             display: true,
             labels: {
+              // usePointStyle lets each legend item pick its own swatch shape via
+              // pointStyle: percentile bands get a filled 'rect' box, line series
+              // (Observed, Median, year traces, forecasts) get a 'line'.
+              usePointStyle: true,
               // Build the legend from scratch so each forecast MODEL is a single
               // item (fill = band colour, border = line colour) instead of three,
               // and non-applicable series (empty data or "_"-prefixed) are dropped.
@@ -430,7 +479,9 @@ export default function GaugeChart({ station }: { station: GaugeStation }) {
                     const idx = anchor >= 0 ? anchor : i;
                     items.push({
                       text: `${model} forecast`,
-                      fillStyle: `rgba(${hexToRgb(color)},0.28)`,
+                      // Forecasts are line series → line swatch in the model colour.
+                      pointStyle: 'line',
+                      fillStyle: color,
                       strokeStyle: color,
                       lineWidth: 2,
                       hidden: !chart.isDatasetVisible(idx),
@@ -438,11 +489,15 @@ export default function GaugeChart({ station }: { station: GaugeStation }) {
                       _model: model,
                     });
                   } else {
+                    // Percentile bands → filled box; everything else → line swatch.
+                    const isBand = d._band === true;
                     items.push({
                       text: label,
+                      pointStyle: isBand ? 'rect' : 'line',
                       fillStyle: d.backgroundColor,
-                      strokeStyle: d.borderColor,
-                      lineWidth: d.borderWidth || 1,
+                      strokeStyle: isBand ? d.backgroundColor : d.borderColor,
+                      lineWidth: isBand ? 0 : (d.borderWidth || 1.5),
+                      lineDash: d.borderDash || [],
                       hidden: !chart.isDatasetVisible(i),
                       datasetIndex: i,
                     });
@@ -469,7 +524,13 @@ export default function GaugeChart({ station }: { station: GaugeStation }) {
           },
           /* eslint-enable @typescript-eslint/no-explicit-any */
           decimation: { enabled: true, algorithm: 'lttb' },
-          tooltip: { filter: (item) => !(item.dataset.label || '').startsWith('_') },
+          tooltip: {
+            // Disable the floating overlay — it covered the very point you're
+            // inspecting. Values render off-plot in the readout strip below.
+            enabled: false,
+            filter: (item) => !(item.dataset.label || '').startsWith('_'),
+            external: renderReadout,
+          },
           zoom: {
             // Desktop: require Ctrl so plain wheel scrolls the page, not the chart
             // (Ctrl+wheel zooms, Ctrl+drag box-zooms). Plain drag pans; pinch zooms
@@ -522,6 +583,10 @@ export default function GaugeChart({ station }: { station: GaugeStation }) {
           <div className="gauge-zoom-hint">Hold <kbd>Ctrl</kbd> + scroll to zoom · drag to pan</div>
         )}
       </div>
+
+      {status === 'ready' && (
+        <div ref={readoutRef} className="gauge-readout empty" aria-live="polite">{READOUT_HINT}</div>
+      )}
 
       {status === 'ready' && note && <div className="gauge-chart-note">{note}</div>}
 

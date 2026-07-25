@@ -29,6 +29,7 @@ from shapely.ops import unary_union
 from ..atlas.freshwater_atlas import FreshWaterAtlas
 from ..atlas.models import AdminRecord, PointRecord, PolygonRecord, RoadRecord, StreamRecord
 from ..matching.display_name_resolver import DisplayNameResolver
+from .layer_manifest import LAYER_MANIFEST, write_manifest
 
 logger = logging.getLogger(__name__)
 
@@ -170,127 +171,29 @@ class TileExporter:
     # Layer manifest
     # ------------------------------------------------------------------
 
-    # Admin layers default to not visible — the frontend enables them
-    # when instructed (e.g. user toggles a layer, or a regulation
-    # references an admin_id and the UI highlights it).
-    #
-    # Per-entry fields:
-    #   visible    — default map visibility (the menu checkbox's initial state).
-    #   label/type — menu label + geometry type.
-    #   toggleable — render a user checkbox in the layer menu for this layer
-    #                (absent = false). This manifest is the SOURCE OF TRUTH for
-    #                which layers are user-toggleable, their label, and default;
-    #                the frontend only maps each key → its MapLibre style layers.
-    _LAYER_MANIFEST = {
-        "streams": {"visible": True, "label": "Streams", "type": "line"},
-        "under_lake_streams": {
-            "visible": True,
-            "label": "Under-Lake Streams",
-            "type": "line",
-        },
-        "lakes": {"visible": True, "label": "Lakes", "type": "polygon"},
-        "wetlands": {"visible": True, "label": "Wetlands", "type": "polygon"},
-        "manmade": {"visible": True, "label": "Manmade Water", "type": "polygon"},
-        "tidal_boundary": {
-            "visible": True,
-            "label": "Tidal Boundary",
-            "type": "polygon",
-        },
-        "regions": {
-            "visible": True,
-            "label": "Region Boundaries",
-            "type": "line",
-        },
-        "regions_fill": {
-            "visible": True,
-            "label": "Regions",
-            "type": "polygon",
-        },
-        "wmu": {
-            "visible": True,
-            "label": "Management Units",
-            "type": "polygon",
-        },
-        "wmu_boundary": {
-            "visible": True,
-            "label": "Management Unit Boundaries",
-            "type": "line",
-        },
-        "parks_nat": {
-            "visible": True,
-            "label": "National Parks",
-            "type": "polygon",
-        },
-        "eco_reserves": {
-            "visible": True,
-            "label": "Parks & Eco Reserves",
-            "type": "polygon",
-        },
-        "wma": {
-            "visible": True,
-            "label": "Wildlife Management Areas",
-            "type": "polygon",
-        },
-        "historic_sites": {
-            "visible": True,
-            "label": "Historic Sites",
-            "type": "polygon",
-        },
-        "watersheds": {
-            "visible": True,
-            "label": "Named Watersheds",
-            "type": "polygon",
-        },
-        "land_access": {
-            "visible": True,
-            "label": "Land Access",
-            "type": "polygon",
-        },
-        "aboriginal_lands": {
-            "visible": True,
-            "label": "Indigenous Lands",
-            "type": "polygon",
-        },
-        # Menu key is `land_parcels_private` because only PRIVATE parcels are
-        # surfaced as a toggle. The underlying tile SOURCE layer stays
-        # `land_parcels_crown` (it holds the full parcel fabric — crown/public/
-        # private — filtered client-side); this manifest entry is menu config,
-        # not the tile-writer name. Crown/Public is the inverse of private, so
-        # it's implied and not shown as its own layer.
-        "land_parcels_private": {
-            "visible": False,
-            "toggleable": True,
-            "label": "Private Land",
-            "type": "polygon",
-        },
-        "forest_service_roads": {
-            "visible": True,
-            "label": "Forest Service Roads",
-            "type": "line",
-        },
-        "water_access_points": {
-            "visible": True,
-            "label": "Water Access Points",
-            "type": "point",
-        },
-        "waterfalls": {
-            "visible": True,
-            "label": "Waterfalls",
-            "type": "point",
-        },
-        "bc_mask": {
-            "visible": True,
-            "label": "Outside BC",
-            "type": "polygon",
-        },
-    }
+    # Single source of truth lives in pipeline/tiles/layer_manifest.py (a
+    # dependency-light module so the JSON can be regenerated without importing
+    # the atlas stack — see that file for the field reference and the fast
+    # standalone regeneration command).
+    _LAYER_MANIFEST = LAYER_MANIFEST
 
     def _write_layer_manifest(self, path: Path) -> None:
         """Write layer_manifest.json for frontend layer visibility config."""
-        path.parent.mkdir(parents=True, exist_ok=True)
-        with open(path, "wb") as f:
-            f.write(orjson.dumps(self._LAYER_MANIFEST, option=orjson.OPT_INDENT_2))
+        write_manifest(path)
         logger.info(f"Layer manifest → {path}")
+
+    def _tile_minzoom(self, layer_name: str, feature_minzoom: int) -> int:
+        """Effective tippecanoe minzoom for a feature.
+
+        Honours the manifest's optional ``min_tile_zoom`` floor: where a whole
+        layer is hidden in the frontend below some zoom, we drop its geometry
+        from lower-zoom tiles entirely (lossless — the map never draws it) so
+        the tiles stay smaller. Falls back to the feature's own minzoom.
+        """
+        floor = self._LAYER_MANIFEST.get(layer_name, {}).get("min_tile_zoom")
+        if floor is None:
+            return feature_minzoom
+        return max(feature_minzoom, floor)
 
     # ------------------------------------------------------------------
     # Layer writers
@@ -406,7 +309,7 @@ class TileExporter:
                     "geometry": _round_coords(geom.__geo_interface__),
                     "tippecanoe": {
                         "layer": path.stem,
-                        "minzoom": rec.minzoom,
+                        "minzoom": self._tile_minzoom(path.stem, rec.minzoom),
                     },
                 }
                 f.write(orjson.dumps(feature) + b"\n")
@@ -493,7 +396,9 @@ class TileExporter:
                     "geometry": _round_coords(geom.__geo_interface__),
                     "tippecanoe": {
                         "layer": "forest_service_roads",
-                        "minzoom": rec.minzoom,
+                        "minzoom": self._tile_minzoom(
+                            "forest_service_roads", rec.minzoom
+                        ),
                     },
                 }
                 f.write(orjson.dumps(feature) + b"\n")
@@ -544,7 +449,7 @@ class TileExporter:
                     "geometry": _round_coords(geom.__geo_interface__),
                     "tippecanoe": {
                         "layer": "wmu_boundary",
-                        "minzoom": 4,
+                        "minzoom": self._tile_minzoom("wmu_boundary", 4),
                     },
                 }
                 f.write(orjson.dumps(feature) + b"\n")

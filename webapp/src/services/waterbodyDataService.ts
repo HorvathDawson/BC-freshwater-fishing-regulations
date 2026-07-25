@@ -256,11 +256,39 @@ export type AdminVisibility = Record<string, AdminLayerVisibility>;
  * layer menu; `visible` is its default visibility (the checkbox's initial state);
  * `label` is the menu row text. The frontend supplies only the style-layer
  * mapping (see LAYER_STYLE_MAP in Map.tsx). */
+/** Flat appearance knobs the frontend applies on top of its base style-layer
+ *  definitions (see LAYER_STYLE_MAP / applyManifestStyle in Map.tsx). Only FLAT
+ *  values live here — data-driven (match/interpolate) appearance stays in code
+ *  and is omitted from the manifest. Any omitted key leaves the code default. */
+export interface LayerManifestStyle {
+  fill_color?: string;
+  line_color?: string;
+  fill_opacity?: number;
+  line_opacity?: number;
+  line_width?: number;
+  line_dash?: number[];
+  /** Zoom the polygon border/line fades in (applied via setLayerZoomRange). */
+  border_minzoom?: number;
+}
+/** One data-source attribution link shown in a layer's settings popup. */
+export interface LayerManifestSource {
+  name: string;
+  url: string;
+}
 export interface LayerManifestEntry {
   label?: string;
   type?: string;
   visible?: boolean;
   toggleable?: boolean;
+  style?: LayerManifestStyle;
+  /** Tile-generation-only floor (consumed by the pipeline, not the frontend). */
+  min_tile_zoom?: number;
+  /** Plain-language blurb shown in the layer's settings popup (About). */
+  description?: string;
+  /** Ordered data-source attribution links (settings popup → Data sources). */
+  sources?: LayerManifestSource[];
+  /** List-view grouping + order key. Omitted → "Other". */
+  group?: 'water' | 'boundaries' | 'land' | 'roads' | 'points';
 }
 export type LayerManifest = Record<string, LayerManifestEntry>;
 

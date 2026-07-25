@@ -1,4 +1,121 @@
-import type { LayerSpecification, FilterSpecification } from 'maplibre-gl';
+import type { LayerSpecification, FilterSpecification, Map as MapLibreMap } from 'maplibre-gl';
+import type { LayerManifest } from '../services/waterbodyDataService';
+import type { LayerOverrides } from '../utils/layerOverrides';
+
+/**
+ * Canonical map: layer_manifest.json key → the MapLibre style-layer ids it
+ * drives, split by geometry role so manifest `style` knobs land on the right
+ * paint properties (fill_* on fills, line_* on lines). This is the SINGLE
+ * frontend mapping — the layer-menu toggle list is derived from it (fill+line),
+ * and applyManifestStyle() reads it to push manifest appearance onto the map.
+ *
+ * A manifest key that drives a data-driven layer (colour via match/interpolate)
+ * simply omits that colour in the manifest — applyManifestStyle only writes the
+ * keys actually present, so listing the layer here is always safe.
+ */
+export const LAYER_STYLE_TARGETS: Record<string, { fill?: string[]; line?: string[]; label?: string[] }> = {
+    streams: { line: ['streams'], label: ['streams-label'] },
+    under_lake_streams: { line: ['under-lake-streams'], label: ['under-lake-streams-label'] },
+    lakes: { fill: ['lakes-fill'], line: ['lakes-line'], label: ['lakes-label'] },
+    wetlands: { fill: ['wetlands-fill'], line: ['wetlands-line'], label: ['wetlands-label'] },
+    manmade: { fill: ['manmade-fill'], line: ['manmade-line'], label: ['manmade-label'] },
+    tidal_boundary: { fill: ['tidal_boundary-fill'], line: ['tidal_boundary-line'] },
+    regions: { line: ['regions'] },
+    wmu_boundary: { line: ['management_units'] },
+    parks_nat: { fill: ['admin_parks_nat-fill'], line: ['admin_parks_nat-line'] },
+    // Border fade-in zoom applies to every eco/parks border variant.
+    eco_reserves: { fill: ['eco_reserves-fill', 'admin_parks_bc-fill'], line: ['eco_reserves-line', 'admin_parks_bc-line', 'admin_parks_bc-eco-line'] },
+    wma: { fill: ['admin_wma-fill'], line: ['admin_wma-line'] },
+    historic_sites: { fill: ['admin_historic_sites-fill'], line: ['admin_historic_sites-line'] },
+    watersheds: { fill: ['admin_watersheds-fill'], line: ['admin_watersheds-line'] },
+    land_access: { fill: ['admin_land_access-fill'], line: ['admin_land_access-line'] },
+    aboriginal_lands: { fill: ['admin_aboriginal_lands-fill'], line: ['admin_aboriginal_lands-line'] },
+    land_parcels_private: { fill: ['admin_land_parcels_private-fill'], line: ['admin_land_parcels_private-line'] },
+    forest_service_roads: { line: ['forest_service_roads'], label: ['forest_service_roads-label'] },
+    // OSM trails/paths ("kind=other/path") — the basemap trail overlay (source:
+    // 'protomaps'), surfaced here so it can be toggled like any other layer
+    // instead of being permanently on. See createEarlyRoadLayers().
+    osm_trails: { line: ['roads_other_early'], label: ['roads_other_early_label'] },
+    bc_mask: { fill: ['bc-mask'] },
+};
+
+/** Flat list of every style-layer id a manifest key maps to (fill+line+label). */
+export const styleLayerIds = (key: string): string[] => {
+    const t = LAYER_STYLE_TARGETS[key];
+    return t ? [...(t.fill || []), ...(t.line || []), ...(t.label || [])] : [];
+};
+
+/** Fill+line ids only (the layers that carry an adjustable opacity paint prop). */
+export const opacityLayerIds = (key: string): string[] => {
+    const t = LAYER_STYLE_TARGETS[key];
+    return t ? [...(t.fill || []), ...(t.line || [])] : [];
+};
+
+/** Max zoom used when a manifest `border_minzoom` sets a layer's zoom range. */
+const MAX_STYLE_ZOOM = 24;
+
+/**
+ * Push manifest `style` knobs onto the live map, on top of the base style-layer
+ * definitions above. Only the flat keys present in each entry are written, so a
+ * layer keeps its coded default (including data-driven expressions) for anything
+ * the manifest omits. Safe to call once the style is loaded.
+ *
+ * `border_minzoom` maps to the line layer's zoom range (setLayerZoomRange),
+ * reproducing the coded ADMIN_BORDER_MINZOOM fade-in from the manifest instead.
+ */
+export const applyManifestStyle = (map: MapLibreMap, manifest: LayerManifest): void => {
+    for (const [key, cfg] of Object.entries(manifest)) {
+        const style = cfg?.style;
+        const targets = LAYER_STYLE_TARGETS[key];
+        if (!style || !targets) continue;
+
+        for (const id of targets.fill || []) {
+            if (!map.getLayer(id)) continue;
+            if (style.fill_color !== undefined) map.setPaintProperty(id, 'fill-color', style.fill_color);
+            if (style.fill_opacity !== undefined) map.setPaintProperty(id, 'fill-opacity', style.fill_opacity);
+        }
+        for (const id of targets.line || []) {
+            if (!map.getLayer(id)) continue;
+            if (style.line_color !== undefined) map.setPaintProperty(id, 'line-color', style.line_color);
+            if (style.line_opacity !== undefined) map.setPaintProperty(id, 'line-opacity', style.line_opacity);
+            if (style.line_width !== undefined) map.setPaintProperty(id, 'line-width', style.line_width);
+            if (style.line_dash !== undefined) map.setPaintProperty(id, 'line-dasharray', style.line_dash);
+            if (style.border_minzoom !== undefined) map.setLayerZoomRange(id, style.border_minzoom, MAX_STYLE_ZOOM);
+        }
+    }
+};
+
+/**
+ * Push user overrides (localStorage) onto the live style — the highest layer of
+ * precedence, applied immediately AFTER applyManifestStyle so user edits win over
+ * manifest defaults. Only properties present in each override are written; absent
+ * ones keep whatever applyManifestStyle/code left in place.
+ *
+ * A color override on a data-driven-colour layer (e.g. eco_reserves, land_access,
+ * regions) replaces its match/interpolate expression with the chosen flat colour.
+ * That is intentional and reversible: clearing the override and re-running
+ * applyManifestStyle (plus a fresh style spec) restores the coded default — see
+ * the reset path in Map.tsx.
+ *
+ * `visible` is NOT applied here — layer visibility flows through the existing
+ * layerToggles path in Map.tsx, seeded from the override.
+ */
+export const applyUserOverrides = (map: MapLibreMap, overrides: LayerOverrides): void => {
+    for (const [key, ov] of Object.entries(overrides)) {
+        const targets = LAYER_STYLE_TARGETS[key];
+        if (!targets || !ov) continue;
+        for (const id of targets.fill || []) {
+            if (!map.getLayer(id)) continue;
+            if (ov.fill_color !== undefined) map.setPaintProperty(id, 'fill-color', ov.fill_color);
+            if (ov.fill_opacity !== undefined) map.setPaintProperty(id, 'fill-opacity', ov.fill_opacity);
+        }
+        for (const id of targets.line || []) {
+            if (!map.getLayer(id)) continue;
+            if (ov.line_color !== undefined) map.setPaintProperty(id, 'line-color', ov.line_color);
+            if (ov.line_opacity !== undefined) map.setPaintProperty(id, 'line-opacity', ov.line_opacity);
+        }
+    }
+};
 
 // Feature base colors
 const FEATURE_COLORS = {

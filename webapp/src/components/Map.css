@@ -74,135 +74,407 @@
     height: 29px;
 }
 
+/* ── Layer menu — matches the app's brutalist menus (SearchBar /
+   DisambiguationMenu): 1px solid border, hard 4px offset shadow, sharp
+   corners, uppercase 800 headers, blue #3b82f6 action accent. ───────────── */
 .layer-menu-popup {
     position: absolute;
-    left: calc(100% + 6px);
+    left: calc(100% + 8px);
     bottom: 0;
-    background: rgba(255, 255, 255, 0.95);
-    border-radius: 4px;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
-    padding: 6px 4px;
-    white-space: nowrap;
+    background: var(--bg, #fff);
+    border: 1px solid var(--border, #000);
+    box-shadow: 4px 4px 0 rgba(0, 0, 0, 1);
+    padding: 0;
     display: flex;
     flex-direction: column;
-    min-width: 170px;
+    width: 272px;
+    /* Cap the height (long list scrolls) but let the short Settings view shrink
+       to its content so there's no dead space below the Reset button. */
+    max-height: min(72vh, 460px);
+    overflow: hidden;
+    font-family: var(--font-sans, sans-serif);
+    color: var(--text, #1a1a1a);
+}
+
+/* Fixed header — basemap segmented control. */
+.layer-menu-header {
+    padding: 8px;
+    border-bottom: 1px solid var(--border, #000);
+    flex-shrink: 0;
+}
+
+.layer-menu-basemap {
+    display: flex;
+    border: 1px solid var(--border, #000);
+}
+
+.layer-menu-basemap-seg {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 8px;
+    border: none;
+    background: var(--bg, #fff);
+    cursor: pointer;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: var(--text-secondary, #666);
+}
+.layer-menu-basemap-seg svg { width: 14px; height: 14px; }
+.layer-menu-basemap-seg + .layer-menu-basemap-seg { border-left: 1px solid var(--border, #000); }
+.layer-menu-basemap-seg:not(.is-active):hover { color: var(--text, #1a1a1a); }
+.layer-menu-basemap-seg.is-active { background: var(--text, #111); color: var(--bg, #fff); }
+
+/* Scrollable region holding the grouped layer rows. */
+.layer-menu-layers {
+    overflow-y: auto;
+    flex: 1 1 auto;
+}
+
+.layer-menu-group-header {
+    background: var(--bg-subtle, #f8f8f8);
+    border-bottom: 1px solid var(--border-light, #e5e5e5);
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-secondary, #666);
+    padding: 7px 12px;
+    position: sticky;
+    top: 0;
+    z-index: 1;
 }
 
 .layer-menu-row {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    padding: 6px 8px;
-    border-radius: 3px;
-    cursor: pointer;
-    font-size: 12px;
-    font-weight: 600;
-    color: #333;
+    gap: 8px;
+    padding: 0 8px 0 12px;
+    border-bottom: 1px solid var(--border-light, #e5e5e5);
+    color: var(--text, #1a1a1a);
 }
+.layer-menu-row:hover { background: rgba(0, 0, 0, 0.03); }
 
-.layer-menu-row:hover {
-    background: var(--bg-subtle, #f0f0f0);
+.layer-menu-row-main {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    cursor: pointer;
+    padding: 10px 0;
 }
 
 .layer-menu-row-label {
-    display: flex;
-    align-items: center;
-    gap: 8px;
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 13px;
+    font-weight: 600;
 }
 
-.layer-menu-row-label svg {
-    width: 15px;
-    height: 15px;
-    flex-shrink: 0;
-    color: #555;
-}
-
-.layer-menu-row input[type="checkbox"] {
+.layer-menu-layer-toggle {
     width: 16px;
     height: 16px;
-    accent-color: #7C3AED;
+    accent-color: var(--text, #111);
     cursor: pointer;
     flex-shrink: 0;
+    margin: 0;
+    border-radius: 0;
 }
 
-/* ── Overlay opacity dropdown row (inside .layer-menu-popup, under the
-   Satellite toggle — visible only while satellite mode is on) ────────── */
-.layer-menu-opacity-row {
-    padding: 4px 8px 8px;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
-    margin-bottom: 2px;
-}
-
-.layer-menu-opacity-label {
+/* Per-row settings cog — subtle until row hover/focus. */
+.layer-menu-row-cog {
+    flex-shrink: 0;
     display: flex;
     align-items: center;
-    gap: 6px;
-    font-size: 11px;
-    font-weight: 600;
-    color: #333;
-    margin-bottom: 4px;
-}
-
-.layer-menu-opacity-label svg {
-    width: 14px;
-    height: 14px;
-    flex-shrink: 0;
-    color: #555;
-}
-
-.layer-menu-opacity-pct {
-    margin-left: auto;
-    font-size: 10px;
-    opacity: 0.7;
-}
-
-.layer-menu-opacity-slider {
-    width: 100%;
-    height: 8px;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: var(--text-muted, #999);
     cursor: pointer;
-    accent-color: #7C3AED;
+    opacity: 0;
+    transition: opacity 0.12s ease;
+}
+.layer-menu-row:hover .layer-menu-row-cog,
+.layer-menu-row-cog:focus-visible { opacity: 1; }
+.layer-menu-row-cog:hover { color: var(--text, #111); }
+.layer-menu-row-cog svg { width: 16px; height: 16px; }
+
+/* Footer — quiet global reset. */
+.layer-menu-foot {
+    border-top: 1px solid var(--border, #000);
+    padding: 8px;
+    flex-shrink: 0;
+}
+.layer-menu-reset-all {
+    width: 100%;
+    border: none;
+    background: transparent;
+    color: var(--text-muted, #999);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 8px;
+    cursor: pointer;
+}
+.layer-menu-reset-all:hover { color: var(--text, #111); }
+
+/* MapLibre's default `.maplibregl-ctrl-group button { width:29px; height:29px }`
+   (specificity 0,1,1) otherwise crushes every menu button to 29×29 — the Back
+   and Reset buttons collapse and their labels overflow/wrap. Re-scope under
+   `.layer-menu-popup` (0,2,0) so each button sizes to its own rule again. */
+.layer-menu-popup .layer-menu-back { width: auto; height: auto; }
+.layer-menu-popup .layer-menu-reset { width: auto; height: auto; padding: 9px; }
+.layer-menu-popup .layer-menu-reset-all { width: 100%; height: auto; padding: 8px; }
+.layer-menu-popup .layer-menu-row-cog { width: 30px; height: 30px; }
+/* Restore the segmented control's padding/height (MapLibre also zeroes button
+   padding, which otherwise collapses these to bare text height). */
+.layer-menu-popup .layer-menu-basemap-seg {
+    height: auto;
+    min-height: 34px;
+    padding: 8px;
+}
+/* MapLibre's `.maplibregl-ctrl-group button:hover` background (0,2,1) otherwise
+   overrides the active segment's black fill on hover → white-on-white. Pin the
+   active segment's colours with higher specificity for both states. */
+.layer-menu-popup .layer-menu-basemap-seg.is-active,
+.layer-menu-popup .layer-menu-basemap-seg.is-active:hover {
+    background: var(--text, #111);
+    color: var(--bg, #fff);
+}
+
+/* ── Per-layer Settings sub-view ─────────────────────────────────────── */
+.layer-menu-settings {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;   /* whole sub-view scrolls; head stays pinned */
+    color: var(--text, #1a1a1a);
+    white-space: normal;
+}
+
+.layer-menu-settings-head {
+    display: flex;
+    align-items: stretch;   /* children fill the row height; each centres itself */
+    height: 42px;
+    background: var(--bg-subtle, #f8f8f8);
+    border-bottom: 1px solid var(--border, #000);
+    position: sticky;
+    top: 0;
+    z-index: 2;
+}
+
+.layer-menu-back {
+    flex-shrink: 0;
+    align-self: stretch;          /* divider spans the full header height */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    width: 42px;
+    border: none;
+    border-right: 1px solid var(--border, #000);
+    background: transparent;
+    color: var(--text-secondary, #666);
+    padding: 11px 0;
+    cursor: pointer;
+}
+.layer-menu-back:hover { color: var(--text, #111); background: #fffbeb; }
+.layer-menu-back svg {
+    width: 18px;
+    height: 18px;
+    /* Nudge the left-pointing chevron right so it reads optically centred. */
+    transform: translateX(1px);
+}
+
+.layer-menu-settings-title {
+    flex: 1 1 auto;
+    min-width: 0;
+    line-height: 42px;   /* centre the single-line label in the 42px row */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 0 12px;
+}
+
+.layer-menu-about,
+.layer-menu-sources,
+.layer-menu-appearance {
+    padding-left: 14px;
+    padding-right: 14px;
+}
+.layer-menu-about {
+    margin: 14px 0 16px;
+    font-size: 12.5px;
+    line-height: 1.55;
+    color: var(--text-secondary, #666);
+}
+
+/* Give whichever block lands first a gutter below the sticky header, and drop
+   the appearance divider when it's the very first block (avoids a double rule
+   right under the header border). */
+.layer-menu-settings-head + .layer-menu-sources,
+.layer-menu-settings-head + .layer-menu-appearance { margin-top: 14px; }
+.layer-menu-settings-head + .layer-menu-appearance {
+    border-top: none;
+    padding-top: 0;
+}
+
+.layer-menu-sources { margin-bottom: 18px; }
+.layer-menu-sources-head,
+.layer-menu-appearance-title {
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted, #999);
+    margin-bottom: 8px;
+}
+.layer-menu-sources ul { margin: 0; padding-left: 16px; }
+.layer-menu-sources li { font-size: 12.5px; line-height: 1.7; }
+.layer-menu-sources a { color: #3b82f6; text-decoration: none; }
+.layer-menu-sources a:hover { text-decoration: underline; }
+
+.layer-menu-appearance {
+    border-top: 1px solid var(--border-light, #e5e5e5);
+    padding-top: 14px;
+    padding-bottom: 14px;
+}
+.layer-menu-appearance-group { margin-bottom: 18px; }
+.layer-menu-appearance-group:last-child { margin-bottom: 0; }
+
+/* Small caption above each control (Colour / Opacity). */
+.layer-menu-sublabel {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-secondary, #555);
+    margin: 10px 0 7px;
+}
+
+/* Custom-colour tile — the trailing swatch that opens the native picker. */
+.layer-menu-popup .layer-menu-color-custom {
+    display: inline-flex;
+    width: 22px;
+    height: 22px;
+    flex: 0 0 auto;
+    margin-left: 4px;
+    border: 1px dashed var(--text-muted, #999);
+    overflow: hidden;
+    cursor: pointer;
+    box-sizing: border-box;
+}
+.layer-menu-popup .layer-menu-color {
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    border: none;
+    background: none;
+    cursor: pointer;
+}
+.layer-menu-popup .layer-menu-color::-webkit-color-swatch-wrapper { padding: 0; }
+.layer-menu-popup .layer-menu-color::-webkit-color-swatch { border: none; }
+/* Preset swatch grid under the colour row (§3.4). */
+.layer-menu-swatches {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 0 0 12px;
+}
+.layer-menu-popup .layer-menu-swatch {
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    border: 1px solid rgba(0, 0, 0, 0.25);
+    background: var(--sw, #888);
+    cursor: pointer;
+    position: relative;
+    flex: 0 0 auto;
+}
+.layer-menu-popup .layer-menu-swatch:hover { transform: scale(1.12); }
+.layer-menu-popup .layer-menu-swatch.is-selected {
+    border-color: var(--text, #111);
+    box-shadow: 0 0 0 2px var(--bg, #fff), 0 0 0 3px var(--text, #111);
+}
+.layer-menu-popup .layer-menu-swatch:focus-visible {
+    outline: 2px solid var(--text, #111);
+    outline-offset: 2px;
+}
+
+.layer-menu-ap-opacity { display: flex; align-items: center; gap: 10px; }
+.layer-menu-appearance-opacity {
     -webkit-appearance: none;
     appearance: none;
-    background: transparent;
-    padding: 10px 0;      /* fat-finger touch area */
-    margin: -10px 0;
+    flex: 1 1 auto;
+    min-width: 0;
+    height: 6px;
+    background: var(--border-light, #e5e5e5);
+    cursor: pointer;
 }
-
-/* Track */
-.layer-menu-opacity-slider::-webkit-slider-runnable-track {
-    height: 8px;
-    border-radius: 4px;
-    background: #ddd;
-}
-.layer-menu-opacity-slider::-moz-range-track {
-    height: 8px;
-    border-radius: 4px;
-    background: #ddd;
-    border: none;
-}
-
-/* Thumb */
-.layer-menu-opacity-slider::-webkit-slider-thumb {
+.layer-menu-appearance-opacity::-webkit-slider-thumb {
     -webkit-appearance: none;
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    background: #7C3AED;
-    border: 2px solid #fff;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
-    margin-top: -8px;     /* center on track */
-    cursor: pointer;
+    width: 16px;
+    height: 16px;
+    background: var(--text, #111);
+    border: 1px solid var(--border, #000);
 }
-.layer-menu-opacity-slider::-moz-range-thumb {
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    background: #7C3AED;
-    border: 2px solid #fff;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
-    cursor: pointer;
+.layer-menu-appearance-opacity::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    background: var(--text, #111);
+    border: 1px solid var(--border, #000);
+    border-radius: 0;
 }
+.layer-menu-ap-pct {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-secondary, #666);
+    font-variant-numeric: tabular-nums;
+    width: 32px;
+    text-align: right;
+}
+.layer-menu-appearance-note {
+    margin: -2px 0 10px;
+    font-size: 10.5px;
+    line-height: 1.4;
+    color: var(--text-muted, #999);
+}
+
+.layer-menu-reset {
+    /* Direct child of the column-flex settings view: stretch across the cross
+       axis and inset with margins so it aligns to the 14px content gutter and
+       leaves room for the offset shadow (never collapses to its text width). */
+    align-self: stretch;
+    flex-shrink: 0;
+    white-space: nowrap;
+    margin: 4px 14px 16px;
+    padding: 9px;
+    border: 1px solid var(--border, #000);
+    background: var(--bg, #fff);
+    color: var(--text, #1a1a1a);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    cursor: pointer;
+    box-shadow: 2px 2px 0 rgba(0, 0, 0, 1);
+}
+.layer-menu-reset:hover { background: #fffbeb; }
 
 .map-toggle-btn {
     width: 40px;

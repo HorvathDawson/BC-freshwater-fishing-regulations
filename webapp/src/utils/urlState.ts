@@ -29,6 +29,9 @@ export interface UrlState {
     /** Active InfoPanel content tab from ?tab=<key> param (rules/stocking/bathymetry/gauges)
      *  — written on tab switch, read on page load. Absent means the default ('rules'). */
     activeTab?: string;
+    /** Selected gauge station id from ?gauge=<id> param — deep-links a specific
+     *  hydrometric station within the Gauges tab. Absent means the first station. */
+    activeGauge?: string;
 }
 
 /** Extract waterbody_group slug from path /waterbody/<wbg>/ — undefined if not a wbg path. */
@@ -49,6 +52,11 @@ const SECTION_PARAM = 's';
 // the common case stay as short as they were before tabs existed.
 const TAB_PARAM = 'tab';
 
+// Gauge param — encodes the selected hydrometric station id within the Gauges
+// tab. Read-only in parseUrlState; written exclusively via setActiveGaugeParam.
+// Only meaningful alongside ?tab=gauges; omitted when no station is selected.
+const GAUGE_PARAM = 'gauge';
+
 /**
  * Parse current URL for state parameters.
  * Path-based wbg takes priority over legacy query params.
@@ -59,13 +67,15 @@ export const parseUrlState = (): UrlState => {
     const params = new URLSearchParams(window.location.search);
     const activeFgid = params.get(SECTION_PARAM) || undefined;
     const activeTab = params.get(TAB_PARAM) || undefined;
+    const activeGauge = params.get(GAUGE_PARAM) || undefined;
     if (wbg) {
-        return { waterbodyGroup: wbg, activeFgid, activeTab };
+        return { waterbodyGroup: wbg, activeFgid, activeTab, activeGauge };
     }
     return {
         featureId: params.get(PARAMS.FEATURE) || undefined,
         activeFgid,
         activeTab,
+        activeGauge,
     };
 };
 
@@ -101,6 +111,26 @@ export const setActiveTabParam = (tab: string | undefined): void => {
         params.set(TAB_PARAM, tab);
     } else {
         params.delete(TAB_PARAM);
+    }
+    const search = params.toString();
+    window.history.replaceState(
+        null,
+        '',
+        `${window.location.pathname}${search ? `?${search}` : ''}${window.location.hash}`,
+    );
+};
+
+/**
+ * Write or clear the selected-gauge param (?gauge=<id>) without navigating.
+ * Called by InfoPanel when the active gauge station changes (or the Gauges tab
+ * closes). Preserves the existing pathname, other query params, and hash.
+ */
+export const setActiveGaugeParam = (gauge: string | undefined): void => {
+    const params = new URLSearchParams(window.location.search);
+    if (gauge) {
+        params.set(GAUGE_PARAM, gauge);
+    } else {
+        params.delete(GAUGE_PARAM);
     }
     const search = params.toString();
     window.history.replaceState(
@@ -184,10 +214,11 @@ export const clearUrlState = (): void => {
  * when contentTab is a non-default tab, so sharing from e.g. the Stocking tab
  * deep-links the recipient straight there.
  */
-export const getCanonicalUrl = (wbg: string, sectionFgid?: string, contentTab?: string): string => {
+export const getCanonicalUrl = (wbg: string, sectionFgid?: string, contentTab?: string, gaugeId?: string): string => {
     const params = new URLSearchParams();
     if (sectionFgid) params.set(SECTION_PARAM, sectionFgid);
     if (contentTab && contentTab !== 'rules') params.set(TAB_PARAM, contentTab);
+    if (gaugeId && contentTab === 'gauges') params.set(GAUGE_PARAM, gaugeId);
     const search = params.toString();
     return `${window.location.origin}${WBG_PATH_PREFIX}${encodeURIComponent(collapseWbg(wbg))}/${search ? `?${search}` : ''}${window.location.hash}`;
 };
@@ -196,7 +227,7 @@ export const getCanonicalUrl = (wbg: string, sectionFgid?: string, contentTab?: 
  * Generate a shareable URL using a feature ID (for unnamed/legacy features).
  * Prefers getCanonicalUrl() for all named waterbodies.
  */
-export const getShareableUrl = (featureId?: string, sectionFgid?: string, contentTab?: string): string => {
+export const getShareableUrl = (featureId?: string, sectionFgid?: string, contentTab?: string, gaugeId?: string): string => {
     const params = new URLSearchParams();
     if (featureId) {
         params.set(PARAMS.FEATURE, featureId);
@@ -206,6 +237,9 @@ export const getShareableUrl = (featureId?: string, sectionFgid?: string, conten
     }
     if (contentTab && contentTab !== 'rules') {
         params.set(TAB_PARAM, contentTab);
+    }
+    if (gaugeId && contentTab === 'gauges') {
+        params.set(GAUGE_PARAM, gaugeId);
     }
     const search = params.toString();
     const hash = window.location.hash;

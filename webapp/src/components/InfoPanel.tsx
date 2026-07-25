@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState, useMemo } from 'react';
-import { X, Calendar, MapPin, FileImage, RotateCcw, Share2, Check, ChevronDown, ChevronRight, ZoomIn, ExternalLink, Flag, Gauge } from 'lucide-react';
+import { X, Calendar, MapPin, FileImage, RotateCcw, Share2, Check, ChevronDown, ChevronRight, ZoomIn, ExternalLink, Flag, Gauge, ScrollText, Fish, Map as MapIcon, type LucideIcon } from 'lucide-react';
 import { Icon } from '@iconify/react';
 import type { Regulation } from '../services/regulationsService';
 import { regulationsService } from '../services/regulationsService';
@@ -17,7 +17,7 @@ import {
     type FeatureInfo,
     type NameVariant
 } from '../utils/featureUtils';
-import { getShareableUrl, getCanonicalUrl, copyToClipboard, setActiveSectionParam, setActiveTabParam, parseUrlState } from '../utils/urlState';
+import { getShareableUrl, getCanonicalUrl, copyToClipboard, setActiveSectionParam, setActiveTabParam, setActiveGaugeParam, parseUrlState } from '../utils/urlState';
 import { sectionLabel } from '../utils/sectionLabel';
 import SourceImageViewer from './SourceImageViewer';
 import FishLoader from './FishLoader';
@@ -30,6 +30,32 @@ const GaugeChart = React.lazy(() => import('./GaugeChart'));
 import { DATA_BASE } from '../config/endpoints';
 import { PDFDocument } from 'pdf-lib';
 import './InfoPanel.css';
+
+// Forecast-model disclaimers, shown as an expandable note under the gauge
+// attribution. The ELF and CLEVER models both feed the discharge forecast
+// ribbons; this is the provider-supplied limitation language for each.
+const FORECAST_MODEL_DISCLAIMER = {
+    elf:
+        'The ELF Model is an empirical mathematical model without any climate ' +
+        'data input. Therefore, the ELF Model forecasts are only the worst ' +
+        '(lowest flow) scenarios without any rainfall during the forecast ' +
+        'period. The model and data have limitations, inaccuracies and errors. ' +
+        'As such, the forecast should only be treated as estimates, are provided ' +
+        'for guidance only, and are subject to change. The actual discharges or ' +
+        'water levels observed will be different from the forecasts. Users of ' +
+        'this data must accept all responsibility for their use and interpretation.',
+    clever:
+        'This forecast is derived from the CLEVER Model, a hydrological model ' +
+        'using third-party data as inputs. The model has two categories of ' +
+        'uncertainty or forecast errors, systematic errors from the model’s ' +
+        'intrinsic limitations and random errors inherited from the input data. ' +
+        'Therefore, it can be expected that the model forecasts are different ' +
+        'from the observations. It is also possible that the actual flow is ' +
+        'higher than the forecast upper bound or lower than the forecast lower ' +
+        'bound. Users of this forecast must accept all responsibility for their ' +
+        'use and interpretation.',
+    cleverMoreInfoUrl: 'https://bcrfc.env.gov.bc.ca/freshet/for_chart.pdf',
+} as const;
 
 /** Fetch every PDF and merge them, in order, into a single PDF byte array. */
 async function buildCombinedPdf(urls: string[]): Promise<Uint8Array> {
@@ -346,6 +372,9 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
     // lake/polygon gauges on waterbody_key.
     const [gaugeStations, setGaugeStations] = useState<GaugeStation[]>([]);
     const [selectedGauge, setSelectedGauge] = useState<string | null>(null);
+    // Consume any ?gauge=<id> deep-link exactly once, so a shared gauge link lands
+    // on that station but later waterbody navigations don't reuse the stale id.
+    const initialGaugeRef = useRef<string | undefined>(parseUrlState().activeGauge);
     useEffect(() => {
         const reachId = activeSection?.frontend_group_id
             || (feature?.properties.frontend_group_id as string | undefined);
@@ -366,10 +395,16 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                 // back to the first station when opened any other way.
                 const clicked = feature?.properties?._gauge_station_id != null
                     ? String(feature.properties._gauge_station_id) : null;
+                // Priority: the gauge clicked on the map → a ?gauge= deep-link
+                // (consumed once) → the first station.
+                const urlGauge = initialGaugeRef.current;
+                initialGaugeRef.current = undefined;
                 setSelectedGauge(
                     clicked && stations.some(s => s.id === clicked)
                         ? clicked
-                        : (stations.length ? stations[0].id : null),
+                        : urlGauge && stations.some(s => s.id === urlGauge)
+                            ? urlGauge
+                            : (stations.length ? stations[0].id : null),
                 );
             })
             .catch(() => { if (!cancelled) setGaugeStations([]); });
@@ -419,7 +454,11 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
     // selected) — clears otherwise. Follows the dropdown, so changing the
     // selected gauge moves the highlight.
     useEffect(() => {
-        onActiveGaugeChange?.(feature && activeTab === 'gauges' ? selectedGauge : null);
+        const active = feature && activeTab === 'gauges' ? selectedGauge : null;
+        onActiveGaugeChange?.(active);
+        // Keep the URL pointed at the specific gauge so the share link (and a
+        // browser refresh) deep-links back to it; cleared off the Gauges tab.
+        setActiveGaugeParam(active ?? undefined);
     }, [feature, activeTab, selectedGauge, onActiveGaugeChange]);
     // Clear the map highlight when the panel unmounts.
     useEffect(() => () => onActiveGaugeChange?.(null), [onActiveGaugeChange]);
@@ -439,7 +478,9 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
             console.warn('Cannot share: feature missing waterbody_group and all IDs');
             return;
         }
-        const url = wbg ? getCanonicalUrl(wbg, activeFgid, activeTab) : getShareableUrl(String(featureId), activeFgid, activeTab);
+        // On the Gauges tab, deep-link the specific station too.
+        const gauge = activeTab === 'gauges' ? (selectedGauge ?? undefined) : undefined;
+        const url = wbg ? getCanonicalUrl(wbg, activeFgid, activeTab, gauge) : getShareableUrl(String(featureId), activeFgid, activeTab, gauge);
         const success = await copyToClipboard(url);
         if (success) {
             setCopied(true);
@@ -655,17 +696,20 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
         // section header (REGULATIONS, DETAILS) already reads in this panel.
         const hasStocking = stocking.length > 0;
         const hasBathymetry = bathymetry.length > 0;
-        const contentTabs: { key: typeof activeTab; label: string; count?: number }[] = [
-            { key: 'rules', label: 'Rules' },
+        // Icon-only tabs (label kept for the tooltip + aria-label). Symbols read
+        // cleaner at the panel's 350px width than the four bold text labels, which
+        // previously crowded Gauges off-screen.
+        const contentTabs: { key: typeof activeTab; label: string; icon: LucideIcon; count?: number }[] = [
+            { key: 'rules', label: 'Rules', icon: ScrollText },
         ];
         if (hasStocking) {
-            contentTabs.push({ key: 'stocking', label: 'Stocking', count: stocking.length });
+            contentTabs.push({ key: 'stocking', label: 'Stocking', icon: Fish, count: stocking.length });
         }
         if (hasBathymetry) {
-            contentTabs.push({ key: 'bathymetry', label: 'Bathy map', count: bathymetry.length });
+            contentTabs.push({ key: 'bathymetry', label: 'Bathy map', icon: MapIcon, count: bathymetry.length });
         }
         if (gaugeStations.length > 0) {
-            contentTabs.push({ key: 'gauges', label: 'Gauges', count: gaugeStations.length });
+            contentTabs.push({ key: 'gauges', label: 'Gauges', icon: Gauge, count: gaugeStations.length });
         }
         const effectiveTab = contentTabs.some(t => t.key === activeTab) ? activeTab : 'rules';
 
@@ -797,12 +841,14 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                             aria-controls="content-panel"
                             id={`content-tab-${t.key}`}
                             className={`content-tab${effectiveTab === t.key ? ' active' : ''}`}
+                            title={t.label}
+                            aria-label={t.label}
                             onClick={() => {
                                 setActiveTab(t.key);
                                 setActiveTabParam(t.key);
                             }}
                         >
-                            <span>{t.label}</span>
+                            <t.icon size={17} strokeWidth={2} aria-hidden="true" />
                             {typeof t.count === 'number' && <span className="content-tab-count">{t.count}</span>}
                         </button>
                     ))}
@@ -1478,6 +1524,16 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                                                 <div className="gauge-attribution">
                                                     {attrib.data && <p>{attrib.data}</p>}
                                                     {attrib.forecast && <p>{attrib.forecast}</p>}
+                                                    <details className="forecast-model-disclaimer">
+                                                        <summary>About the forecast models &amp; limitations</summary>
+                                                        <p><strong>ELF Model.</strong> {FORECAST_MODEL_DISCLAIMER.elf}</p>
+                                                        <p>
+                                                            <strong>CLEVER Model.</strong> {FORECAST_MODEL_DISCLAIMER.clever}{' '}
+                                                            <a href={FORECAST_MODEL_DISCLAIMER.cleverMoreInfoUrl} target="_blank" rel="noopener noreferrer">
+                                                                More information
+                                                            </a>.
+                                                        </p>
+                                                    </details>
                                                 </div>
                                             </>
                                         );

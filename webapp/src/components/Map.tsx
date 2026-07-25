@@ -5,7 +5,8 @@ import { layers, LIGHT } from '@protomaps/basemaps';
 import type { Flavor } from '@protomaps/basemaps';
 import * as SunCalc from 'suncalc';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import { createRegulationLayers, createAdminLabelLayers, createEarlyRoadLayers, HIGHLIGHT_COLORS, SELECTION_COLOR } from '../map/styles';
+import { createRegulationLayers, createAdminLabelLayers, createEarlyRoadLayers, applyManifestStyle, applyUserOverrides, LAYER_STYLE_TARGETS, styleLayerIds, HIGHLIGHT_COLORS, SELECTION_COLOR } from '../map/styles';
+import { loadOverrides, saveOverrides, setOverrideProp, clearLayerOverride, clearAllOverrides, hasLayerOverride, hasAnyOverride, type LayerOverrides } from '../utils/layerOverrides';
 import bcBoundary from '../map/bcBoundary.json';
 import { waterbodyDataService } from '../services/waterbodyDataService';
 import type { Reach, RegulationData, ResolveResult, LayerManifest } from '../services/waterbodyDataService';
@@ -102,44 +103,17 @@ const SATELLITE_CONFIG = {
 // Lucide SVG icon strings for the satellite toggle button (rendered imperatively via IControl)
 const LAYERS_SVG = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/><path d="m22.54 12.43-1.42-.65-8.29 3.78a2 2 0 0 1-1.66 0l-8.29-3.78-1.42.65a1 1 0 0 0 0 1.84l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.85Z"/><path d="m22.54 16.43-1.42-.65-8.29 3.78a2 2 0 0 1-1.66 0l-8.29-3.78-1.42.65a1 1 0 0 0 0 1.84l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.85Z"/></svg>';
 const MAP_SVG = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z"/><path d="M15 5.764v15"/><path d="M9 3.236v15"/></svg>';
-// Lucide "sun" icon for disclosure of overlay opacity slider
-const OPACITY_SVG = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>';
+// Lucide "settings-2" (sliders) — the per-layer settings cog.
+const COG_SVG = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg>';
+// Lucide "chevron-left" — the settings Back button.
+const BACK_SVG = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>';
 
-// Map layer type → paint property names that control opacity.
-// Used to capture and multiply base opacities when the overlay slider is active.
-const OPACITY_PAINT_PROPS: Record<string, string[]> = {
-    fill: ['fill-opacity'], line: ['line-opacity'], circle: ['circle-opacity'],
-};
-
-/**
- * Multiply an opacity value (or zoom-based expression) by a scalar.
- * MapLibre forbids wrapping zoom expressions with ['*', factor, expr] —
- * zoom inputs must be top-level inside 'step' or 'interpolate'.
- * So we walk the stop outputs and scale each numeric value directly.
- */
-function scaleOpacity(base: unknown, factor: number): unknown {
-    if (typeof base === 'number') return base * factor;
-    if (!Array.isArray(base) || base.length < 4) return base;
-    const head = base[0];
-    if (head === 'interpolate') {
-        // ['interpolate', method, ['zoom'], z1, v1, z2, v2, ...]
-        const result = [...base];
-        for (let i = 4; i < result.length; i += 2) {
-            if (typeof result[i] === 'number') result[i] = result[i] * factor;
-        }
-        return result;
-    }
-    if (head === 'step') {
-        // ['step', ['zoom'], defaultValue, z1, v1, z2, v2, ...]
-        const result = [...base];
-        if (typeof result[2] === 'number') result[2] = result[2] * factor;
-        for (let i = 4; i < result.length; i += 2) {
-            if (typeof result[i] === 'number') result[i] = result[i] * factor;
-        }
-        return result;
-    }
-    return base;
-}
+// Curated preset hues for the per-layer colour control (§3.4). The native
+// colour picker remains for fully custom values.
+const LAYER_COLOR_SWATCHES = [
+    '#EF4444', '#F97316', '#EAB308', '#22C55E', '#14B8A6',
+    '#3B82F6', '#6366F1', '#A855F7', '#EC4899', '#78716C',
+];
 
 /**
  * Convert a legacy Mapbox GL filter to expression syntax so it can be
@@ -198,27 +172,18 @@ const ADMIN_INTERACTABLE_LAYERS = [
     'admin_aboriginal_lands-fill',
 ];
 
-/** Frontend render map for the layer menu's data-layer toggles.
- *
- * The pipeline `layer_manifest.json` is the SINGLE SOURCE OF TRUTH for WHICH
- * layers are user-toggleable (`toggleable: true`), their menu label, and their
- * default visibility. This map holds only the one thing that can't live in a
- * tile artifact: HOW to render each — the MapLibre style-layer ids a toggle
- * flips. Keyed by the manifest's tile-layer key.
- *
- * NOTE: the menu key `land_parcels_private` surfaces only PRIVATE parcels. The
- * underlying tile SOURCE layer is still `land_parcels_crown` (the full parcel
- * fabric), which is why the style-layer ids reference the private-filtered
- * variant. Crown/Public is simply "everything that isn't private", so it's
- * implied — not shown as its own layer. Manifest entries that are `toggleable`
- * but absent here are skipped (nothing to render).
- *
- * Basemap controls (Satellite + overlay opacity) are NOT layer toggles and stay
- * as their own fixed rows in the menu.
- */
-const LAYER_STYLE_MAP: Record<string, string[]> = {
-    land_parcels_private: ['admin_land_parcels_private-fill', 'admin_land_parcels_private-line'],
-};
+// Frontend layer-menu wiring: the pipeline `layer_manifest.json` is the SINGLE
+// SOURCE OF TRUTH for WHICH layers are user-toggleable (`toggleable: true`),
+// their menu label, default visibility, and now their appearance (`style`).
+// The manifest key → MapLibre style-layer id mapping lives in LAYER_STYLE_TARGETS
+// (see ../map/styles), consumed here via styleLayerIds() for visibility toggling
+// and via applyManifestStyle() for appearance. A `toggleable` manifest entry with
+// no LAYER_STYLE_TARGETS entry is skipped (nothing to render).
+//
+// NOTE: the menu key `land_parcels_private` surfaces only PRIVATE parcels; the
+// underlying tile SOURCE layer is still `land_parcels_crown` (the full parcel
+// fabric), which is why its style-layer ids reference the private-filtered
+// variant. Crown/Public is "everything that isn't private", so it's implied.
 
 /** Map a clicked admin-layer tile feature to its AdminFeatureType, keyed on
  *  the style layer id (and, for the multi-subtype BC-parks layer, admin_type). */
@@ -244,6 +209,24 @@ const adminFeatureType = (layerId: string, props: Record<string, any>): AdminFea
         default: return 'land_ownership_crown';
     }
 };
+
+// Layer-menu grouping (from manifest `group`). Order = display order; the
+// synthetic "other" bucket catches any toggleable layer with no/unknown group.
+const GROUP_ORDER = ['water', 'boundaries', 'land', 'roads', 'points', 'other'] as const;
+const GROUP_LABELS: Record<string, string> = {
+    water: 'Water',
+    boundaries: 'Boundaries',
+    land: 'Land',
+    roads: 'Trails & Roads',
+    points: 'Points of Interest',
+    other: 'Other',
+};
+
+/** Minimal HTML-escape for manifest-supplied text injected via innerHTML. */
+const escapeHtml = (s: string): string =>
+    s.replace(/[&<>"']/g, (c) => (
+        { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c] as string
+    ));
 
 /** Build a FeatureOption directly from a clicked admin/land tile feature —
  *  these are self-contained (AdminRecord fields only), no /api/resolve needed. */
@@ -695,15 +678,15 @@ const MapComponent = () => {
     const mapRef = useRef<maplibregl.Map | null>(null);
     const satBtnRef = useRef<HTMLButtonElement | null>(null);
     const toggleSatelliteRef = useRef<() => void>(() => {});
-    const handleOverlayOpacityRef = useRef<(val: string) => void>(() => {});
+    const isSatelliteRef = useRef(false);
     const layerMenuCtrlRef = useRef<HTMLElement | null>(null);
     const toggleLayerMenuRef = useRef<() => void>(() => {});
     const toggleLayerRef = useRef<(id: string) => void>(() => {});
-    // Cache of each regulation layer's original paint opacity values,
-    // captured on first satellite toggle so the slider can multiply them.
-    const baseOpacitiesRef = useRef<Record<string, [string, any][]>>({});
-    // Remember the user's last satellite-mode opacity so it persists across toggles.
-    const lastSatelliteOpacityRef = useRef(0.4);
+    const openLayerSettingsRef = useRef<(key: string) => void>(() => {});
+    const resetAllOverridesRef = useRef<() => void>(() => {});
+    // How many history entries the layer menu has pushed (list, settings), so
+    // close actions can history.back() without ever popping the user off the app.
+    const menuHistoryDepthRef = useRef(0);
     // Cache original label paint props so we can swap to satellite-friendly colours and restore.
     const baseLabelPaintsRef = useRef<Record<string, Record<string, any>>>({});
     const isDisambigOpenRef = useRef<boolean>(false);
@@ -766,12 +749,19 @@ const MapComponent = () => {
     const [disclaimerOpen, setDisclaimerOpen] = useState(false);
     const [issueReportOpen, setIssueReportOpen] = useState(false);
     const [isSatellite, setIsSatellite] = useState(false);
-    const [overlayOpacity, setOverlayOpacity] = useState(1);
     const [layerMenuOpen, setLayerMenuOpen] = useState(false);
+    // Which layer's per-layer settings sub-view is open (null = list view).
+    const [settingsLayerKey, setSettingsLayerKey] = useState<string | null>(null);
     // Layer menu config from layer_manifest.json (source of truth for which layers
     // are toggleable + label + default) and the live per-layer on/off state.
     const [layerManifest, setLayerManifest] = useState<LayerManifest>({});
     const [layerToggles, setLayerToggles] = useState<Record<string, boolean>>({});
+    // Persisted per-layer appearance overrides (opacity/color/visibility).
+    // Seeded once from localStorage; the highest layer of style precedence.
+    const [layerOverrides, setLayerOverrides] = useState<LayerOverrides>(() => loadOverrides());
+    const layerOverridesRef = useRef<LayerOverrides>(layerOverrides);
+    const settingsLayerKeyRef = useRef<string | null>(null);
+    const layerTogglesRef = useRef<Record<string, boolean>>({});
 
     // Spinner delay constants (ms)
     const SPINNER_DELAY = 150;  // wait before showing
@@ -874,42 +864,10 @@ const MapComponent = () => {
         const map = mapRef.current;
         if (!map) return;
         const next = !isSatellite;
-        if (next) {
-            // Entering satellite — restore last satellite opacity (default 40%)
-            const satOpacity = lastSatelliteOpacityRef.current;
-            setOverlayOpacity(satOpacity);
-            // Capture base opacities on first activation
-            if (Object.keys(baseOpacitiesRef.current).length === 0) {
-                const style = map.getStyle();
-                for (const layer of (style?.layers || [])) {
-                    if ((layer as any).source !== 'regulations') continue;
-                    if (layer.id.startsWith('admin_') || layer.id === 'bc-mask') continue;
-                    const props = OPACITY_PAINT_PROPS[layer.type];
-                    if (!props) continue;
-                    baseOpacitiesRef.current[layer.id] = props.map(p =>
-                        [p, map.getPaintProperty(layer.id, p) ?? 1]
-                    );
-                }
-            }
-            // Immediately apply scaled opacity so there's no full-opacity flash
-            for (const [id, entries] of Object.entries(baseOpacitiesRef.current)) {
-                for (const [prop, base] of entries) {
-                    map.setPaintProperty(id, prop, scaleOpacity(base, satOpacity) as any);
-                }
-            }
-        } else {
-            // Leaving satellite — remember current opacity, force 100%
-            lastSatelliteOpacityRef.current = overlayOpacity;
-            setOverlayOpacity(1);
-            // Immediately restore original paint opacities on the map
-            // so there's no frame where satellite-level opacity persists.
-            for (const [id, entries] of Object.entries(baseOpacitiesRef.current)) {
-                for (const [prop, base] of entries) {
-                    map.setPaintProperty(id, prop, base);
-                }
-            }
-        }
-        setIsSatellite(next); // the opacity dropdown row shows/hides via its own isSatellite-synced effect
+        // Satellite is now a pure basemap swap — it no longer changes the
+        // opacity of overlay layers (that's per-layer, user-controlled). Only
+        // the basemap raster + protomaps geometry/label styling changes below.
+        setIsSatellite(next);
 
         // Show/hide satellite raster
         map.setLayoutProperty('satellite-tiles', 'visibility', next ? 'visible' : 'none');
@@ -973,13 +931,14 @@ const MapComponent = () => {
                 }
             }
         }
-    }, [isSatellite, overlayOpacity]);
+    }, [isSatellite]);
 
     // Keep the imperative satellite button ref in sync with React state
     useEffect(() => { toggleSatelliteRef.current = toggleSatellite; }, [toggleSatellite]);
+    useEffect(() => { isSatelliteRef.current = isSatellite; }, [isSatellite]);
 
     // Data-layer toggles are driven by layer_manifest.json (the source of truth
-    // for which layers are toggleable + label + default) plus LAYER_STYLE_MAP
+    // for which layers are toggleable + label + default) plus LAYER_STYLE_TARGETS
     // (frontend: which MapLibre layers each flips). Load the manifest once and
     // seed each toggleable+mapped layer's on/off state from its default `visible`.
     useEffect(() => {
@@ -988,46 +947,103 @@ const MapComponent = () => {
             if (cancelled) return;
             setLayerManifest(m);
             const init: Record<string, boolean> = {};
+            const overrides = layerOverridesRef.current;
             for (const [key, cfg] of Object.entries(m)) {
-                if (cfg?.toggleable && LAYER_STYLE_MAP[key]) init[key] = cfg.visible === true;
+                if (cfg?.toggleable && LAYER_STYLE_TARGETS[key]) {
+                    // User override wins over the manifest default visibility.
+                    const ovVisible = overrides[key]?.visible;
+                    init[key] = ovVisible !== undefined ? ovVisible : cfg.visible === true;
+                }
             }
             setLayerToggles(init);
         }).catch(() => { /* no toggles if the manifest is unavailable */ });
         return () => { cancelled = true; };
     }, []);
+    useEffect(() => { layerTogglesRef.current = layerToggles; }, [layerToggles]);
     useEffect(() => {
-        toggleLayerRef.current = (key: string) =>
-            setLayerToggles(s => ({ ...s, [key]: !s[key] }));
+        toggleLayerRef.current = (key: string) => {
+            const next = !layerTogglesRef.current[key];
+            setLayerToggles(s => ({ ...s, [key]: next }));
+            // Persist the visibility choice as an override so it survives reload.
+            setLayerOverrides(o => setOverrideProp(o, key, 'visible', next));
+        };
     }, []);
     useEffect(() => {
         const map = mapRef.current;
         if (!map || !map.isStyleLoaded()) return;
         for (const [key, on] of Object.entries(layerToggles)) {
             const vis = on ? 'visible' : 'none';
-            for (const id of LAYER_STYLE_MAP[key] || []) {
+            for (const id of styleLayerIds(key)) {
                 if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', vis);
             }
         }
     }, [layerToggles, mapReady]);
+    // Single appearance-apply pass: manifest defaults first (colors, static
+    // opacities, widths, dashes, border fade-in), then user overrides on top so
+    // they win (§5.2). Runs whenever the manifest, overrides, or map readiness
+    // change. Re-running the manifest pass first means RESETTING an override
+    // (removing a property) restores the manifest/coded default before overrides
+    // are re-layered. NOTE: data-driven-colour layers don't fully restore their
+    // expression this way — that reset path is handled explicitly in Phase E.
+    useEffect(() => {
+        layerOverridesRef.current = layerOverrides;
+        const map = mapRef.current;
+        if (!map || !mapReady || !map.isStyleLoaded()) return;
+        applyManifestStyle(map, layerManifest);
+        applyUserOverrides(map, layerOverrides);
+    }, [layerManifest, layerOverrides, mapReady]);
+    // Persist overrides to localStorage, debounced so dragging a slider doesn't
+    // hammer storage on every input event (§5.4).
+    useEffect(() => {
+        const t = setTimeout(() => saveOverrides(layerOverrides), 150);
+        return () => clearTimeout(t);
+    }, [layerOverrides]);
     // Generate the menu's data-layer rows from the manifest (into the placeholder
-    // the control's onAdd renders). Re-runs when the manifest loads or the control
-    // is (re)created (mapReady).
+    // the control's onAdd renders), grouped by manifest `group`. Each row is a
+    // toggle + label + inline opacity slider. Re-runs when the manifest loads or
+    // the control is (re)created (mapReady).
     useEffect(() => {
         const wrapper = layerMenuCtrlRef.current;
         const container = wrapper?.querySelector('.layer-menu-layers') as HTMLElement | null;
         if (!container) return;
         const entries = Object.entries(layerManifest)
-            .filter(([key, cfg]) => cfg?.toggleable && LAYER_STYLE_MAP[key]);
-        container.innerHTML = entries.map(([key, cfg]) => `
-            <label class="layer-menu-row">
-                <span class="layer-menu-row-label">${LAYERS_SVG} ${cfg.label || key}</span>
-                <input type="checkbox" class="layer-menu-layer-toggle" data-layer-toggle="${key}" />
-            </label>`).join('');
+            .filter(([key, cfg]) => cfg?.toggleable && LAYER_STYLE_TARGETS[key]);
+
+        // Bucket rows by group, preserving GROUP_ORDER; unknown/absent → "other".
+        const byGroup = new Map<string, string>();
+        for (const g of GROUP_ORDER) byGroup.set(g, '');
+        for (const [key, cfg] of entries) {
+            const g = (cfg.group && byGroup.has(cfg.group)) ? cfg.group : 'other';
+            const label = escapeHtml(cfg.label || key);
+            byGroup.set(g, (byGroup.get(g) || '') + `
+                <div class="layer-menu-row" data-layer-row="${key}">
+                    <label class="layer-menu-row-main">
+                        <input type="checkbox" class="layer-menu-layer-toggle" data-layer-toggle="${key}" aria-label="Toggle ${label}" />
+                        <span class="layer-menu-row-label">${label}</span>
+                    </label>
+                    <button type="button" class="layer-menu-row-cog" data-layer-cog="${key}" title="${label} settings" aria-label="${label} settings">${COG_SVG}</button>
+                </div>`);
+        }
+        container.innerHTML = [...byGroup.entries()]
+            .filter(([, rows]) => rows)
+            .map(([g, rows]) => `
+                <div class="layer-menu-group">
+                    <div class="layer-menu-group-header">${GROUP_LABELS[g] || 'Other'}</div>
+                    ${rows}
+                </div>`).join('');
+
         container.querySelectorAll('.layer-menu-layer-toggle').forEach((el) => {
             el.addEventListener('change', (e) => {
                 e.stopPropagation();
                 const key = (e.currentTarget as HTMLElement).getAttribute('data-layer-toggle');
                 if (key) toggleLayerRef.current(key);
+            });
+        });
+        container.querySelectorAll('.layer-menu-row-cog').forEach((el) => {
+            el.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const key = (e.currentTarget as HTMLElement).getAttribute('data-layer-cog');
+                if (key) openLayerSettingsRef.current(key);
             });
         });
     }, [layerManifest, mapReady]);
@@ -1051,84 +1067,222 @@ const MapComponent = () => {
         if (!wrapper) return;
         const popup = wrapper.querySelector('.layer-menu-popup') as HTMLElement | null;
         if (popup) popup.style.display = layerMenuOpen ? '' : 'none';
+        // Closing the menu always returns to the list view for next open, and
+        // consumes any settings history entry we pushed.
+        if (!layerMenuOpen && settingsLayerKeyRef.current !== null) {
+            if (menuHistoryDepthRef.current > 0) history.back();
+            else setSettingsLayerKey(null);
+        }
     }, [layerMenuOpen]);
     useEffect(() => {
         const wrapper = layerMenuCtrlRef.current;
         if (!wrapper) return;
-        const satToggle = wrapper.querySelector('.layer-menu-sat-toggle') as HTMLInputElement | null;
-        if (satToggle) satToggle.checked = isSatellite;
+        // Basemap segmented control: mark the active segment.
+        wrapper.querySelectorAll('.layer-menu-basemap-seg').forEach((el) => {
+            const seg = el as HTMLElement;
+            const active = (seg.getAttribute('data-basemap') === 'satellite') === isSatellite;
+            seg.classList.toggle('is-active', active);
+            seg.setAttribute('aria-pressed', String(active));
+        });
         for (const [key, on] of Object.entries(layerToggles)) {
             const el = wrapper.querySelector(
                 `.layer-menu-layer-toggle[data-layer-toggle="${key}"]`,
             ) as HTMLInputElement | null;
             if (el) el.checked = !!on;
         }
-    }, [isSatellite, layerToggles]);
-
-    // Apply overlay opacity multiplier to all regulation-sourced layers.
-    // Captures each layer's paint opacity on first satellite activation,
-    // then multiplies by the slider value.  Restores originals on deactivation.
+        // Deps include layerManifest + mapReady so this re-runs after the row
+        // template is (re)generated — otherwise the freshly-rebuilt checkboxes
+        // render unchecked and never get synced to the real toggle state.
+    }, [isSatellite, layerToggles, layerManifest, mapReady]);
+    // Show/hide the global "Reset all" button based on whether any override exists.
     useEffect(() => {
-        const map = mapRef.current;
-        if (!map || !map.isStyleLoaded()) return;
-
-        if (isSatellite) {
-            // Capture base opacities on first activation
-            if (Object.keys(baseOpacitiesRef.current).length === 0) {
-                const style = map.getStyle();
-                for (const layer of (style?.layers || [])) {
-                    if ((layer as any).source !== 'regulations') continue;
-                    if (layer.id.startsWith('admin_') || layer.id === 'bc-mask') continue;
-                    const props = OPACITY_PAINT_PROPS[layer.type];
-                    if (!props) continue;
-                    baseOpacitiesRef.current[layer.id] = props.map(p =>
-                        [p, map.getPaintProperty(layer.id, p) ?? 1]
-                    );
-                }
-            }
-            // Apply multiplied opacity
-            for (const [id, entries] of Object.entries(baseOpacitiesRef.current)) {
-                for (const [prop, base] of entries) {
-                    map.setPaintProperty(id, prop, scaleOpacity(base, overlayOpacity) as any);
-                }
-            }
-        } else {
-            // Restore original opacities
-            for (const [id, entries] of Object.entries(baseOpacitiesRef.current)) {
-                for (const [prop, base] of entries) {
-                    map.setPaintProperty(id, prop, base);
-                }
-            }
-        }
-    }, [isSatellite, overlayOpacity]);
-
-    // Wire imperative ref for the opacity slider's input handler (the
-    // slider itself now lives inside the layer menu popup, as a dropdown
-    // row under "Satellite" — see layerMenuControl below).
+        const wrapper = layerMenuCtrlRef.current;
+        if (!wrapper) return;
+        const resetAll = wrapper.querySelector('.layer-menu-reset-all') as HTMLElement | null;
+        if (resetAll) resetAll.style.display = hasAnyOverride(layerOverrides) ? '' : 'none';
+    }, [layerOverrides, mapReady]);
     useEffect(() => {
-        handleOverlayOpacityRef.current = (val: string) => {
-            const v = parseFloat(val);
-            setOverlayOpacity(v);
-            lastSatelliteOpacityRef.current = v;
+        resetAllOverridesRef.current = () => {
+            setLayerOverrides(clearAllOverrides());
+            // Revert visibility toggles to their manifest defaults too.
+            const init: Record<string, boolean> = {};
+            for (const [key, cfg] of Object.entries(layerManifest)) {
+                if (cfg?.toggleable && LAYER_STYLE_TARGETS[key]) init[key] = cfg.visible === true;
+            }
+            setLayerToggles(init);
+        };
+    }, [layerManifest]);
+
+    // ── Per-layer Settings sub-view (cog → About / sources / appearance) ──────
+    useEffect(() => { settingsLayerKeyRef.current = settingsLayerKey; }, [settingsLayerKey]);
+
+    // Open settings for a layer: push a history entry so the browser/hardware
+    // Back button closes it (§6), guarded by menuHistoryDepthRef so we never pop
+    // the user off the app.
+    useEffect(() => {
+        openLayerSettingsRef.current = (key: string) => {
+            if (!LAYER_STYLE_TARGETS[key]) return;
+            try {
+                history.pushState({ layerMenu: 'settings', key }, '');
+                menuHistoryDepthRef.current += 1;
+            } catch { /* history unavailable — fall back to plain state */ }
+            setSettingsLayerKey(key);
         };
     }, []);
 
-    // Sync the opacity dropdown row (visible only while satellite is on)
-    // and its slider value/percentage with React state.
+    // Close settings — via Back button, ✕, or Esc. Prefer history.back() (fires
+    // popstate → clears state) so our pushed entry is consumed; else set directly.
+    const closeLayerSettings = useCallback(() => {
+        if (menuHistoryDepthRef.current > 0) history.back();
+        else setSettingsLayerKey(null);
+    }, []);
+
+    // Hardware/browser Back → step out of the settings sub-view.
+    useEffect(() => {
+        const onPop = () => {
+            if (settingsLayerKeyRef.current !== null) {
+                setSettingsLayerKey(null);
+                menuHistoryDepthRef.current = Math.max(0, menuHistoryDepthRef.current - 1);
+            }
+        };
+        window.addEventListener('popstate', onPop);
+        return () => window.removeEventListener('popstate', onPop);
+    }, []);
+
+    // Esc closes the settings sub-view (list-view Esc handling is elsewhere).
+    useEffect(() => {
+        if (settingsLayerKey === null) return;
+        const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') closeLayerSettings(); };
+        window.addEventListener('keydown', onKey);
+        return () => window.removeEventListener('keydown', onKey);
+    }, [settingsLayerKey, closeLayerSettings]);
+
+    // Render the settings sub-view DOM when its layer (or that layer's overrides)
+    // change, and toggle between the list and settings views.
     useEffect(() => {
         const wrapper = layerMenuCtrlRef.current;
         if (!wrapper) return;
-        const row = wrapper.querySelector('.layer-menu-opacity-row') as HTMLElement | null;
-        if (row) row.style.display = isSatellite ? '' : 'none';
-    }, [isSatellite]);
-    useEffect(() => {
-        const wrapper = layerMenuCtrlRef.current;
-        if (!wrapper) return;
-        const input = wrapper.querySelector('.layer-menu-opacity-slider') as HTMLInputElement | null;
-        if (input) input.value = String(overlayOpacity);
-        const pct = wrapper.querySelector('.layer-menu-opacity-pct');
-        if (pct) pct.textContent = `${Math.round(overlayOpacity * 100)}%`;
-    }, [overlayOpacity]);
+        const header = wrapper.querySelector('.layer-menu-header') as HTMLElement | null;
+        const list = wrapper.querySelector('.layer-menu-layers') as HTMLElement | null;
+        const foot = wrapper.querySelector('.layer-menu-foot') as HTMLElement | null;
+        const settings = wrapper.querySelector('.layer-menu-settings') as HTMLElement | null;
+        if (!settings || !list) return;
+
+        const key = settingsLayerKey;
+        const showSettings = key !== null && !!LAYER_STYLE_TARGETS[key];
+        if (header) header.style.display = showSettings ? 'none' : '';
+        list.style.display = showSettings ? 'none' : '';
+        if (foot) foot.style.display = showSettings ? 'none' : '';
+        settings.style.display = showSettings ? '' : 'none';
+        if (!showSettings || !key) { settings.innerHTML = ''; return; }
+
+        const cfg = layerManifest[key] || {};
+        const targets = LAYER_STYLE_TARGETS[key];
+        const hasFill = (targets.fill?.length ?? 0) > 0;
+        const hasLine = (targets.line?.length ?? 0) > 0;
+        const style = cfg.style || {};
+        const ov = layerOverrides[key] || {};
+        const label = escapeHtml(cfg.label || key);
+
+        // A colour section is "auto-coloured" when the manifest omits a flat
+        // colour (the layer paints via a data-driven expression). Editing it
+        // replaces the expression — shown with a note (§5.2).
+        const fillAuto = hasFill && style.fill_color === undefined;
+        const lineAuto = hasLine && style.line_color === undefined;
+        const fillColor = ov.fill_color ?? style.fill_color ?? '#888888';
+        const lineColor = ov.line_color ?? style.line_color ?? '#888888';
+        const fillOpacity = ov.fill_opacity ?? style.fill_opacity ?? 1;
+        const lineOpacity = ov.line_opacity ?? style.line_opacity ?? 1;
+
+        const sourcesHtml = (cfg.sources || []).map(s =>
+            `<li><a href="${escapeHtml(s.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(s.name)}</a></li>`
+        ).join('');
+
+        const appearanceSection = (roleLabel: string, role: 'fill' | 'line', color: string, opacity: number, auto: boolean) => `
+            <div class="layer-menu-appearance-group">
+                <div class="layer-menu-appearance-title">${roleLabel}</div>
+                <div class="layer-menu-sublabel">Colour</div>
+                <div class="layer-menu-swatches" role="group" aria-label="${roleLabel} colour">
+                    ${LAYER_COLOR_SWATCHES.map(hex => {
+                        const sel = hex.toLowerCase() === color.toLowerCase();
+                        return `<button type="button" class="layer-menu-swatch${sel ? ' is-selected' : ''}" data-role="${role}" data-color="${hex}" style="--sw:${hex}" title="${hex}" aria-label="${hex}" aria-pressed="${sel}"></button>`;
+                    }).join('')}
+                    <label class="layer-menu-color-custom" title="Custom colour">
+                        <input type="color" class="layer-menu-color" data-role="${role}" value="${color}" aria-label="Custom ${roleLabel} colour" />
+                    </label>
+                </div>
+                ${auto ? '<p class="layer-menu-appearance-note">Setting a colour replaces this layer’s automatic colouring.</p>' : ''}
+                <div class="layer-menu-sublabel">Opacity</div>
+                <div class="layer-menu-ap-opacity">
+                    <input type="range" class="layer-menu-appearance-opacity" data-role="${role}" min="0" max="1" step="0.05" value="${opacity}" aria-label="${roleLabel} opacity" />
+                    <span class="layer-menu-ap-pct">${Math.round(opacity * 100)}%</span>
+                </div>
+            </div>`;
+
+        settings.innerHTML = `
+            <div class="layer-menu-settings-head">
+                <button type="button" class="layer-menu-back" aria-label="Back to layers" title="Back to layers">${BACK_SVG}</button>
+                <span class="layer-menu-settings-title">${label}</span>
+            </div>
+            ${cfg.description ? `<p class="layer-menu-about">${escapeHtml(cfg.description)}</p>` : ''}
+            ${sourcesHtml ? `<div class="layer-menu-sources"><div class="layer-menu-sources-head">Data sources</div><ul>${sourcesHtml}</ul></div>` : ''}
+            <div class="layer-menu-appearance">
+                ${hasFill ? appearanceSection('Fill', 'fill', fillColor, fillOpacity, fillAuto) : ''}
+                ${hasLine ? appearanceSection(hasFill ? 'Border' : 'Line', 'line', lineColor, lineOpacity, lineAuto) : ''}
+            </div>
+            ${hasLayerOverride(layerOverrides, key) ? `<button type="button" class="layer-menu-reset">Reset this layer to default</button>` : ''}
+        `;
+
+        settings.querySelector('.layer-menu-back')?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            closeLayerSettings();
+        });
+        settings.querySelectorAll('.layer-menu-color').forEach((el) => {
+            el.addEventListener('input', (e) => {
+                e.stopPropagation();
+                const t = e.currentTarget as HTMLInputElement;
+                const prop = t.getAttribute('data-role') === 'fill' ? 'fill_color' : 'line_color';
+                setLayerOverrides(o => setOverrideProp(o, key, prop, t.value));
+            });
+        });
+        settings.querySelectorAll('.layer-menu-swatch').forEach((el) => {
+            el.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const t = e.currentTarget as HTMLElement;
+                const role = t.getAttribute('data-role');
+                const hex = t.getAttribute('data-color');
+                if (!hex) return;
+                const prop = role === 'fill' ? 'fill_color' : 'line_color';
+                // Reflect selection immediately (the effect re-renders on override
+                // change, but update in place so the tap feels instant).
+                t.parentElement?.querySelectorAll('.layer-menu-swatch').forEach((s) => {
+                    const sel = s === t;
+                    s.classList.toggle('is-selected', sel);
+                    s.setAttribute('aria-pressed', String(sel));
+                });
+                const picker = settings.querySelector(
+                    `.layer-menu-color[data-role="${role}"]`,
+                ) as HTMLInputElement | null;
+                if (picker) picker.value = hex;
+                setLayerOverrides(o => setOverrideProp(o, key, prop, hex));
+            });
+        });
+        settings.querySelectorAll('.layer-menu-appearance-opacity').forEach((el) => {
+            el.addEventListener('input', (e) => {
+                e.stopPropagation();
+                const t = e.currentTarget as HTMLInputElement;
+                const val = parseFloat(t.value);
+                const pct = t.nextElementSibling as HTMLElement | null;
+                if (pct) pct.textContent = `${Math.round(val * 100)}%`;
+                const prop = t.getAttribute('data-role') === 'fill' ? 'fill_opacity' : 'line_opacity';
+                setLayerOverrides(o => setOverrideProp(o, key, prop, val));
+            });
+        });
+        settings.querySelector('.layer-menu-reset')?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            setLayerOverrides(o => clearLayerOverride(o, key));
+        });
+    }, [settingsLayerKey, layerManifest, layerOverrides, closeLayerSettings]);
 
     const clearSelection = useCallback(() => {
         setSelectedFeature(null);
@@ -1738,30 +1892,31 @@ const MapComponent = () => {
                 const popup = document.createElement('div');
                 popup.className = 'layer-menu-popup';
                 popup.style.display = 'none';
-                // Satellite + opacity are fixed basemap rows. The data-layer toggle
-                // rows are generated from layer_manifest.json into `.layer-menu-layers`
-                // by an effect (source of truth = the manifest).
+                // Fixed header: basemap segmented control ([ Map | Satellite ]).
+                // The data-layer rows are generated from layer_manifest.json into
+                // `.layer-menu-layers` by an effect (source of truth = the manifest).
                 popup.innerHTML = `
-                    <label class="layer-menu-row">
-                        <span class="layer-menu-row-label">${MAP_SVG} Satellite</span>
-                        <input type="checkbox" class="layer-menu-sat-toggle" />
-                    </label>
-                    <div class="layer-menu-opacity-row" style="display:none">
-                        <label class="layer-menu-opacity-label">
-                            ${OPACITY_SVG} Overlay opacity
-                            <span class="layer-menu-opacity-pct"></span>
-                        </label>
-                        <input type="range" min="0" max="1" step="0.05" value="1" class="layer-menu-opacity-slider" />
+                    <div class="layer-menu-header">
+                        <div class="layer-menu-basemap" role="group" aria-label="Basemap">
+                            <button type="button" class="layer-menu-basemap-seg is-active" data-basemap="map" aria-pressed="true">${MAP_SVG} Map</button>
+                            <button type="button" class="layer-menu-basemap-seg" data-basemap="satellite" aria-pressed="false">${LAYERS_SVG} Satellite</button>
+                        </div>
                     </div>
                     <div class="layer-menu-layers"></div>
+                    <div class="layer-menu-foot"><button type="button" class="layer-menu-reset-all" style="display:none">Reset all layers</button></div>
+                    <div class="layer-menu-settings" style="display:none"></div>
                 `;
-                popup.querySelector('.layer-menu-sat-toggle')!.addEventListener('change', (e) => {
-                    e.stopPropagation();
-                    toggleSatelliteRef.current();
+                popup.querySelectorAll('.layer-menu-basemap-seg').forEach((seg) => {
+                    seg.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const wantSat = (e.currentTarget as HTMLElement).getAttribute('data-basemap') === 'satellite';
+                        // toggleSatellite flips; only fire when it would change state.
+                        if (wantSat !== isSatelliteRef.current) toggleSatelliteRef.current();
+                    });
                 });
-                popup.querySelector('.layer-menu-opacity-slider')!.addEventListener('input', (e) => {
+                popup.querySelector('.layer-menu-reset-all')?.addEventListener('click', (e) => {
                     e.stopPropagation();
-                    handleOverlayOpacityRef.current((e as any).target.value);
+                    resetAllOverridesRef.current();
                 });
 
                 wrapper.appendChild(btn);
