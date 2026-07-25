@@ -1057,8 +1057,21 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                                     // territory" (that text only lives in rule_text/details),
                                     // so a text match against restriction_type always missed.
                                     const isIndigenousAdvisory = reg.regulation_id === 'PROV_ABORIGINAL_LANDS_ADVISORY';
+                                    // Park-designation regs (National Parks, Ecological
+                                    // Reserves / BC Parks) are land-based access rules —
+                                    // the fishing status follows from the water sitting
+                                    // inside a park boundary (permit required / closed
+                                    // unless opened), exactly like the land_access
+                                    // advisories. Fold them into the same "Land Use"
+                                    // group rather than a standalone provincial section.
+                                    // Matched by regulation_id (like the indigenous
+                                    // advisory) — scope_location isn't carried on the
+                                    // built reg json, only the stable regulation_id is.
+                                    const isParkScope = reg.regulation_id === 'PROV_NAT_PARKS_CLOSED'
+                                        || reg.regulation_id === 'PROV_ECO_RESERVES_CLOSED';
+                                    const foldIntoLandUse = isIndigenousAdvisory || isParkScope;
 
-                                    if (isIndigenousAdvisory) {
+                                    if (foldIntoLandUse) {
                                         // Folded into the same "Land Use" group/section as
                                         // land_access advisories (watersheds, DND land, research
                                         // forests) rather than its own group — same top-pinned
@@ -1075,7 +1088,7 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                                     } else {
                                         groupLabel = 'Provincial Regulations';
                                     }
-                                    if (!isIndigenousAdvisory) {
+                                    if (!foldIntoLandUse) {
                                         groupKey = `prov|${groupLabel}`;
                                     }
                                     groupSubtitle = '';
@@ -1151,8 +1164,12 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                             // closures folded into the same top bucket (0) as municipal →
                             // synopsis (3) → zone (4) → provincial (5).
                             // Within synopsis, direct-match groups appear before tributary groups.
+                            // Only provincial closures float to the top. Zone groups
+                            // stay pinned at the bottom even when they contain a
+                            // closure — a zone-wide closed regulation is the broad
+                            // baseline, not a reach-specific closure worth surfacing.
                             const hasHighPriorityProvReg = (g: { source: string; regulations: Regulation[] }) =>
-                                (g.source === 'provincial' || g.source === 'zone') && g.regulations.some(r => {
+                                g.source === 'provincial' && g.regulations.some(r => {
                                     const t = (r.restriction_type || '').toLowerCase();
                                     return t === 'closed' || t === 'closure';
                                 });
@@ -1165,10 +1182,16 @@ const InfoPanel = ({ feature, onClose, collapseState = 'expanded', onSetCollapse
                                 }
                             }
 
+                            // Zone regulations always sort to the very bottom of the
+                            // rules list — a reach's own synopsis/tributary and
+                            // provincial rules are more specific and actionable than
+                            // the broad zone-wide baseline, so Zone sits last.
                             const sourceOrder: Record<string, number> = {
-                                municipal: 0, land_access: 1, synopsis: 3, zone: 4, provincial: 5,
+                                municipal: 0, land_access: 1, synopsis: 3, provincial: 5, zone: 8,
                             };
                             const groupPriority = (g: { source: string; regulations: Regulation[] }) => {
+                                // A high-priority zone/provincial closure still floats to the top —
+                                // an active closure outranks the "zone always last" rule.
                                 if (g.source === 'municipal' || hasHighPriorityProvReg(g)) return 0;
                                 if (g.source === 'land_access') return 1;
                                 return sourceOrder[g.source] ?? 9;

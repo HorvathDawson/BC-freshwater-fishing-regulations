@@ -162,13 +162,11 @@ const ADMIN_COLORS: Record<string, string> = {
     admin_wma: '#7B2D8B',             // Purple — wildlife mgmt areas
     admin_watersheds: '#006D77',       // Deep teal — watersheds
     admin_historic_sites: '#795548',   // Warm brown — heritage sites
-    // ── Land access (watersheds, private/restricted land, DND, etc.) ────
-    // Two-tier severity, not one flat color: red = no public access at all
-    // (private/no/military); amber = conditional/permit-based access (e.g.
-    // Malcolm Knapp Research Forest) — same "caution, not prohibited"
-    // language the old osm_admin amber used before it merged into this layer.
+    // ── Land access (closed watersheds, military / DND land, etc.) ──────
+    // Single tier now: only genuinely closed land (no public access) is
+    // kept. The old amber "restricted" (conditional/permit-based) tier was
+    // dropped upstream at atlas load, so this layer is uniformly red.
     land_access_closed: '#DC2626',     // Red — no public access
-    land_access_restricted: '#CC7A00', // Amber — conditional/permit-based access
     // ── Indigenous / Aboriginal lands ────────────────────────────────
     aboriginal_lands: '#8B6508',       // Dark goldenrod — OSM-style tan/ochre
     // ── Land ownership (toggled via the layer menu) ─────────────────────
@@ -181,15 +179,10 @@ const ADMIN_COLORS: Record<string, string> = {
     land_parcels_private: '#8D6E63',    // Warm brown — Private, distinct from both crown-blue and the red/amber restriction colors
 };
 
-/** Data-driven land_access color: red for "closed", amber for "restricted".
- *  Shared between createRegulationLayers() (fill/line) and
- *  createAdminLabelLayers() (label text-color). */
-const LAND_ACCESS_COLOR_EXPR = [
-    'match', ['get', 'restriction_level'],
-    'closed', ADMIN_COLORS.land_access_closed,
-    'restricted', ADMIN_COLORS.land_access_restricted,
-    ADMIN_COLORS.land_access_closed,
-] as unknown as string;
+/** land_access color — uniformly red now that only the "closed" tier ships
+ *  (the amber "restricted" tier was removed upstream). Shared between
+ *  createRegulationLayers() (fill/line) and createAdminLabelLayers() (label). */
+const LAND_ACCESS_COLOR_EXPR = ADMIN_COLORS.land_access_closed as string;
 
 // Admin overlay polygon borders (national/BC parks, eco reserves, WMAs,
 // watersheds, historic sites, land access / Malcolm Knapp, land ownership,

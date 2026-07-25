@@ -40,6 +40,9 @@ boto3
 # AI/LLM API
 google-genai
 
+# HTTP (browser-impersonating client for in-season scraper)
+curl_cffi
+
 # Progress
 tqdm
 

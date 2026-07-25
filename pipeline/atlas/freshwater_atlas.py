@@ -658,6 +658,14 @@ class FreshWaterAtlas:
                 aid = str(row.get("osm_id") or "")
                 if not aid:
                     continue
+                # Drop the "restricted" (amber) tier entirely — only genuinely
+                # closed land (military / closed watersheds, restriction_level
+                # "closed") is kept. The conditional/permit-based "restricted"
+                # polygons were low-signal and near-invisible on the map, and
+                # LAND_ACCESS_RESTRICTED has been removed from base_regulations,
+                # so these must never be loaded, exported, or matched.
+                if (row.get("restriction_level") or "") != "closed":
+                    continue
                 geom = row.geometry
                 if not geom.is_valid:
                     geom = geom.buffer(0)

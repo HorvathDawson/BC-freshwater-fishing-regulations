@@ -385,9 +385,9 @@ LAYER_MANIFEST: Dict[str, Dict[str, Any]] = {
         "type": "polygon",
         "group": "land",
         "description": (
-            "Areas where public land access is closed or restricted — private "
-            "land, military (DND) land, research forests, and similar. Red = "
-            "no public access; amber = conditional/permit-based access."
+            "Areas closed to public access — private land, military (DND) "
+            "land, and closed watersheds. Shown in red; check the exact "
+            "boundary before visiting."
         ),
         "sources": [
             # OSM Overpass — restrictive-access land polygons (access=private,

@@ -1418,7 +1418,7 @@ const MapComponent = () => {
         historic_sites: ['admin_historic_sites-fill', 'admin_historic_sites-line', 'admin_historic_sites-label'],
         land_access: [
             'admin_land_access-fill', 'admin_land_access-line', 'admin_land_access-label',
-            'admin_land_access-hatch-closed', 'admin_land_access-hatch-restricted',
+            'admin_land_access-hatch-closed',
         ],
         aboriginal_lands: ['admin_aboriginal_lands-fill', 'admin_aboriginal_lands-line', 'admin_aboriginal_lands-label'],
     };
@@ -1941,15 +1941,6 @@ const MapComponent = () => {
             if (hatchDiag) map.addImage('hatch-diagonal', hatchDiag);
             const hatchCross = createCrossHatchPattern('#C22E2E');
             if (hatchCross) map.addImage('hatch-cross', hatchCross);
-            // Amber diagonal hatch for land_access "restricted" (conditional/
-            // permit-based access, e.g. Malcolm Knapp Research Forest) — kept
-            // visually distinct from the red "closed" hatch above so a
-            // permit-required area doesn't read as a hard closure.
-            const hatchDiagAmber = createDiagonalHatchPattern('#CC7A00');
-            if (hatchDiagAmber) map.addImage('hatch-diagonal-amber', hatchDiagAmber);
-            // Horizontal lines for partial restriction zones (research forests, etc.)
-            const hatchHoriz = createHorizontalLinePattern('#CC7A00');
-            if (hatchHoriz) map.addImage('hatch-horizontal', hatchHoriz);
 
             // Hatch overlays — appended after all static layers so they sit
             // above admin fills/lines but below the dynamic highlight layers.
@@ -1970,12 +1961,10 @@ const MapComponent = () => {
                 paint: { 'fill-pattern': 'hatch-cross', 'fill-opacity': 0.50 },
             } as any);
 
-            // Land access hatch overlays — colorblind-friendly: both pattern
-            // AND color signal severity, not just hue. "closed" (no public
-            // access at all) gets the denser red cross-hatch; "restricted"
-            // (permit/conditional access, e.g. Malcolm Knapp) gets the
-            // lighter amber diagonal hatch — same amber "caution, not
-            // prohibited" language the old osm_admin layer used.
+            // Land access hatch overlay — only the "closed" tier ships now
+            // (no public access at all: military / closed watersheds), so a
+            // single red cross-hatch. Colorblind-friendly: pattern AND color
+            // both signal the closure, not hue alone.
             map.addLayer({
                 id: 'admin_land_access-hatch-closed',
                 type: 'fill',
@@ -1984,15 +1973,6 @@ const MapComponent = () => {
                 layout: { visibility: 'none' },
                 filter: ['==', ['get', 'restriction_level'], 'closed'],
                 paint: { 'fill-pattern': 'hatch-cross', 'fill-opacity': 0.55 },
-            } as any);
-            map.addLayer({
-                id: 'admin_land_access-hatch-restricted',
-                type: 'fill',
-                source: 'regulations',
-                'source-layer': 'land_access',
-                layout: { visibility: 'none' },
-                filter: ['==', ['get', 'restriction_level'], 'restricted'],
-                paint: { 'fill-pattern': 'hatch-diagonal-amber', 'fill-opacity': 0.45 },
             } as any);
 
             // Water access point + waterfall icons — registered once, then

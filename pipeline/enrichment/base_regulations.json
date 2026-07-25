@@ -1416,7 +1416,7 @@
     "rule_text": "This waterbody may be located near or within closed land with no public access, such as a military base or a closed watershed.",
     "restriction": {
       "type": "Closed",
-      "details": "Closed land (military, closed watersheds) is shown in red on the map — check the exact boundary before visiting."
+      "details": "This water sits near or within closed land with no public access, such as a military base or a closed watershed. Check the exact boundary before visiting."
     },
     "notes": "Always-visible advisory for awareness — not a fishing-specific closure unless separately regulated. Single consolidated advisory for the whole 'closed' restriction_level tier of the land_access layer (military bases, no-access protected areas/watersheds) rather than one reg per underlying OSM access tag, so a reach touching multiple closed polygons still shows one statement, not several near-duplicates.",
     "reach_level": true,
@@ -1424,23 +1424,6 @@
       {
         "layer": "land_access",
         "restriction_level_filter": "closed"
-      }
-    ]
-  },
-  {
-    "reg_id": "LAND_ACCESS_RESTRICTED",
-    "source": "land_access",
-    "rule_text": "This waterbody may be located near land with conditional access, such as a permit, membership, or day-use fee.",
-    "restriction": {
-      "type": "Notice",
-      "details": "This land is shown in amber on the map — check the exact boundary before visiting."
-    },
-    "notes": "Always-visible advisory for awareness. Single consolidated advisory for the 'restricted' restriction_level tier (permit/permissive/destination/customers-tagged protected areas and nature reserves).",
-    "reach_level": true,
-    "admin_targets": [
-      {
-        "layer": "land_access",
-        "restriction_level_filter": "restricted"
       }
     ]
   },
