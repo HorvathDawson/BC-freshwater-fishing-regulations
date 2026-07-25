@@ -101,18 +101,14 @@ if [[ "${1:-}" == "--upload" ]]; then
   python - "$DEPLOY_DIR/cron/stocking" <<'PY'
 import sys
 from pathlib import Path
-from pipeline.recurring.r2_storage import storage_from_env
+from pipeline.recurring.r2_storage import put_tree, storage_from_env
 
+# ~2300 per-waterbody record files: independent PUTs, latency-bound on CI, so
+# upload them in parallel via the shared helper (no version.json here → nothing
+# to fence). Serial uploads were the bulk of this job's runtime.
 root = Path(sys.argv[1])
-storage = storage_from_env()
-n = 0
-for p in sorted(root.rglob("*")):
-    if not p.is_file():
-        continue
-    key = "cron/stocking/" + p.relative_to(root).as_posix()
-    storage.put(p, key, content_type="application/json")
-    n += 1
-print(f"uploaded {n} file(s) under cron/stocking/")
+n = put_tree(storage_from_env(), root, "cron/stocking", version_last=False)
+print(f"uploaded {n} file(s) under cron/stocking/ (parallel)")
 PY
   echo "✅ Uploaded to R2"
 

@@ -148,7 +148,42 @@ def storage_from_env(local_root: Optional[Path] = None):
 
 
 def _content_type_for(path: Path) -> Optional[str]:
-    return "application/json" if path.suffix == ".json" else None
+    return "application/json" if path.suffix in (".json", ".geojson") else None
+
+
+# Uploads are our own R2 (not a public API), so we can be aggressive: these are
+# independent PUTs and per-object round-trip latency from a CI runner dominates
+# wall-clock. Threads (not processes) because boto3's low-level client is
+# thread-safe and the work is I/O-bound.
+UPLOAD_WORKERS = 32
+
+
+def put_tree(storage, root: Path, key_prefix: str, *,
+             max_workers: int = UPLOAD_WORKERS, version_last: bool = True) -> int:
+    """Upload every file under ``root`` to ``key_prefix/<relpath>`` concurrently
+    and return the count. When ``version_last`` (default), any ``version.json``
+    is uploaded strictly AFTER every other file lands, so a reader never sees a
+    bumped version marker ahead of the data it fences. Safe against both
+    R2Storage (boto3 client is thread-safe) and LocalStorage."""
+    import concurrent.futures
+
+    files = [p for p in root.rglob("*") if p.is_file()]
+    if version_last:
+        data = [p for p in files if p.name != "version.json"]
+        ver = [p for p in files if p.name == "version.json"]
+    else:
+        data, ver = files, []
+
+    def _put(p: Path) -> None:
+        key = f"{key_prefix}/{p.relative_to(root).as_posix()}"
+        storage.put(p, key, content_type=_content_type_for(p))
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as ex:
+        for _ in ex.map(_put, data):  # re-raises the first failed upload
+            pass
+    for p in ver:
+        _put(p)
+    return len(data) + len(ver)
 
 
 def main(argv: Optional[list[str]] = None) -> int:

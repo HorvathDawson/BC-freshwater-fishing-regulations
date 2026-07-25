@@ -228,6 +228,17 @@ USER_AGENT = "BC-fishing-regs-hydro-poc/0.1 (proof of concept)"
 # Polite pause between requests for sequential functions.
 REQUEST_DELAY_S = 0.5
 
+# Concurrency for the per-station fetch pools. Capped, NOT one-thread-per-station:
+# these hit a PUBLIC Environment Canada endpoint and going wide risks rate limits
+# / IP bans that break the whole cron. 16 is a fast-but-polite balance.
+FETCH_WORKERS = 16
+
+# _get retries transient network failures (timeouts / dropped connections). The
+# gov endpoints intermittently stall from CI runners; one blip must not kill the
+# whole job, so every HTTP call funnels through this retry.
+_GET_MAX_RETRIES = 4
+_GET_BACKOFF_S = 2.0  # 2s, 4s, 8s between attempts
+
 
 # TLS context. Some gov.bc.ca hosts serve an incomplete certificate chain that
 # Python's default trust store (esp. under conda) can't verify, even though it's
@@ -295,27 +306,46 @@ def attribution(kind: str, release_date: str | None = None) -> str:
 # --- HTTP -----------------------------------------------------------------
 
 def _get(url: str, params: list[tuple[str, str]]) -> bytes:
-    """GET with repeated query keys (stations[]=a&stations[]=b) preserved."""
+    """GET with repeated query keys (stations[]=a&stations[]=b) preserved.
+
+    Retries transient network failures (timeouts / dropped connections) with
+    exponential backoff — the gov endpoints intermittently stall from CI runners,
+    and a single blip must not abort the whole cron. A TLS chain-verification
+    failure is handled separately (retry once, unverified) and is not counted as
+    a transient attempt."""
     global _SSL_INSECURE
     query = urllib.parse.urlencode(params)
     full = f"{url}?{query}" if query else url
     req = urllib.request.Request(full, headers={"User-Agent": USER_AGENT})
-    try:
-        with urllib.request.urlopen(req, timeout=120, context=_SSL_CTX) as resp:
-            return resp.read()
-    except urllib.error.URLError as exc:
-        # Retry once with verification disabled for TLS chain issues on these
-        # public, read-only gov endpoints.
-        if isinstance(getattr(exc, "reason", None), ssl.SSLCertVerificationError):
-            if _SSL_INSECURE is None:
-                print("WARNING: TLS verification failed; retrying without "
-                      f"verification for {urllib.parse.urlsplit(url).netloc}.",
-                      file=sys.stderr)
-                _SSL_INSECURE = ssl._create_unverified_context()
-            with urllib.request.urlopen(req, timeout=120,
-                                        context=_SSL_INSECURE) as resp:
+    netloc = urllib.parse.urlsplit(url).netloc
+
+    last_exc: Exception = RuntimeError("no attempts made")
+    for attempt in range(1, _GET_MAX_RETRIES + 1):
+        try:
+            with urllib.request.urlopen(req, timeout=120, context=_SSL_CTX) as resp:
                 return resp.read()
-        raise
+        except urllib.error.URLError as exc:
+            # TLS chain issue: retry once with verification disabled for these
+            # public, read-only gov endpoints (not a transient — don't back off).
+            if isinstance(getattr(exc, "reason", None), ssl.SSLCertVerificationError):
+                if _SSL_INSECURE is None:
+                    print("WARNING: TLS verification failed; retrying without "
+                          f"verification for {netloc}.", file=sys.stderr)
+                    _SSL_INSECURE = ssl._create_unverified_context()
+                with urllib.request.urlopen(req, timeout=120,
+                                            context=_SSL_INSECURE) as resp:
+                    return resp.read()
+            last_exc = exc
+        except TimeoutError as exc:  # bare socket read timeout
+            last_exc = exc
+
+        if attempt < _GET_MAX_RETRIES:
+            wait = _GET_BACKOFF_S * (2 ** (attempt - 1))
+            print(f"WARN: request to {netloc} failed "
+                  f"(attempt {attempt}/{_GET_MAX_RETRIES}): {last_exc}. "
+                  f"Retrying in {wait:.0f}s…", file=sys.stderr)
+            time.sleep(wait)
+    raise last_exc
 
 
 # --- Database -------------------------------------------------------------
@@ -900,8 +930,11 @@ def fetch_bulk(conn: sqlite3.Connection, args) -> int:
         raw = _get(REALTIME_URL, query).decode("utf-8", "replace")
         return station_id, parse_readings_csv(raw)
 
-    # 8 concurrent workers is a polite but fast limit for public API endpoints
-    with concurrent.futures.ThreadPoolExecutor(max_workers=8) as executor:
+    # Concurrency is capped (FETCH_WORKERS) rather than "one thread per station":
+    # this hits a PUBLIC Environment Canada endpoint, and going wider risks rate
+    # limiting / IP bans that would break the whole cron. 16 is a fast-but-polite
+    # balance; do not crank this to hundreds.
+    with concurrent.futures.ThreadPoolExecutor(max_workers=FETCH_WORKERS) as executor:
         futures = {executor.submit(_worker, s): s for s in stations}
         completed = 0
         
@@ -1106,7 +1139,7 @@ def fetch_forecast_series(conn: sqlite3.Connection, model: str, cfg: dict) -> in
         text = _get(url_tmpl.format(sid=sid), []).decode("utf-8", "replace")
         return sid, _parse_series_csv(text, kind)
 
-    with concurrent.futures.ThreadPoolExecutor(max_workers=8) as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=FETCH_WORKERS) as executor:
         futures = {executor.submit(_worker, sid): sid for sid in stations}
         completed = 0
         for future in concurrent.futures.as_completed(futures):

@@ -29,16 +29,18 @@ R2 credentials (env): ``R2_S3_ENDPOINT`` (or ``CLOUDFLARE_ACCOUNT_ID``),
 from __future__ import annotations
 
 import argparse
+import contextlib
 import json
 import os
 import shutil
 import sqlite3
 import tempfile
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
 
-from pipeline.recurring.r2_storage import storage_from_env
+from pipeline.recurring.r2_storage import UPLOAD_WORKERS, put_tree, storage_from_env
 
 from . import export_hydro
 from .export_hydro import HISTORY_DAYS, _write, build_climatology, build_history
@@ -156,16 +158,62 @@ def _write_version_marker(out_dir: Path) -> None:
 
 
 def _upload_tree(storage, out_dir: Path, key_prefix: str) -> None:
-    """Upload every file under out_dir to key_prefix/..., version.json LAST so the
-    webapp can fence on a consistent artifact set."""
-    files = [p for p in out_dir.rglob("*") if p.is_file()]
-    data = [p for p in files if p.name != "version.json"]
-    ver = [p for p in files if p.name == "version.json"]
-    for p in data + ver:
-        rel = p.relative_to(out_dir).as_posix()
-        ct = "application/json" if p.suffix in (".json", ".geojson") else None
-        storage.put(p, f"{key_prefix}/{rel}", content_type=ct)
-    print(f"uploaded {len(data)} data files + version marker → {key_prefix}/")
+    """Upload every file under out_dir to key_prefix/... concurrently, version.json
+    LAST so the webapp can fence on a consistent artifact set. The parallel PUT
+    logic (450+ independent uploads, latency-bound on CI) lives in r2_storage."""
+    n = put_tree(storage, out_dir, key_prefix)
+    print(f"uploaded {n} files → {key_prefix}/ ({UPLOAD_WORKERS}-way parallel)")
+
+
+# ── Timing + run summary ─────────────────────────────────────────────────────
+
+@contextlib.contextmanager
+def _timed(timings: "list[tuple[str, float]]", label: str):
+    """Record wall-clock for a phase into ``timings`` and echo it to the log."""
+    t0 = time.perf_counter()
+    try:
+        yield
+    finally:
+        dt = time.perf_counter() - t0
+        timings.append((label, dt))
+        print(f"⏱  {label}: {dt:.1f}s")
+
+
+def _write_run_summary(out: Path, did: dict, timings: "list[tuple[str, float]]") -> None:
+    """Emit a Markdown run summary to $GITHUB_STEP_SUMMARY (if running in CI) so
+    the Actions run page shows what the job did and how long each phase took."""
+    def _count(sub: str) -> int:
+        d = out / sub
+        return sum(1 for p in d.rglob("*.json") if p.is_file()) if d.is_dir() else 0
+
+    total = sum(dt for _, dt in timings)
+    mode = "first-run bootstrap" if did.get("first_run") else "incremental"
+    lines = [
+        "## Hydro cron summary",
+        "",
+        f"**Mode:** {mode} · "
+        f"**history:** {'✅' if did.get('do_history') else '—'} · "
+        f"**HYDAT/climatology:** {'✅' if did.get('do_hydat') else '—'}",
+        "",
+        "| Tier | Files |",
+        "|------|------:|",
+        f"| recent/ | {_count('recent')} |",
+        f"| history/ | {_count('history')} |",
+        f"| climatology/ | {_count('climatology')} |",
+        "",
+        "| Phase | Duration |",
+        "|-------|---------:|",
+    ]
+    lines += [f"| {label} | {dt:.1f}s |" for label, dt in timings]
+    lines += [f"| **total** | **{total:.1f}s** |", ""]
+
+    md = "\n".join(lines)
+    summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
+    if summary_path:
+        with contextlib.suppress(OSError):
+            with open(summary_path, "a", encoding="utf-8") as fh:
+                fh.write(md + "\n")
+    print(md)
 
 
 # ── The one job ──────────────────────────────────────────────────────────────
@@ -175,6 +223,8 @@ def run_job(storage, workdir: Path, key_prefix: str = KEY_PREFIX,
     db = workdir / "hydro.db"          # ephemeral scratch — never persisted to R2
     out = workdir / "out"
     conn = connect(db)
+    timings: list[tuple[str, float]] = []
+    did: dict = {}
     try:
         args = _selection_args()
 
@@ -196,29 +246,37 @@ def run_job(storage, workdir: Path, key_prefix: str = KEY_PREFIX,
         today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
         hist_marker = _get_json(storage, f"{key_prefix}/history_date.json", workdir) or {}
         do_history = bool(force) or first_run or hist_marker.get("date") != today
+        did.update(first_run=first_run, do_history=do_history, do_hydat=do_hydat)
 
         if first_run:
             print("=== first run: full bootstrap (roster + HYDAT + 18mo history + climatology) ===")
-            run_bootstrap(conn, args)
-            export_hydro.export(conn, out, "all")
+            with _timed(timings, "bootstrap fetch (roster + HYDAT + history)"):
+                run_bootstrap(conn, args)
+            with _timed(timings, "export (all tiers)"):
+                export_hydro.export(conn, out, "all")
             latest_release = _current_release(conn) or latest_release
         else:
             print(f"=== incremental run (do_history={do_history}, do_hydat={do_hydat}) ===")
             seeded = _seed_stations(conn, prior_index)
             print(f"seeded {seeded} stations from prior stations.json")
-            run_update(conn, args)
+            with _timed(timings, "fetch latest (conditions + readings + forecasts)"):
+                run_update(conn, args)
             if do_hydat:
                 print("HYDAT release changed — syncing metadata + climatology")
-                fetch_hydat.sync(conn)
+                with _timed(timings, "HYDAT sync (266 MB)"):
+                    fetch_hydat.sync(conn)
                 clim_ids = None  # DB now has the authoritative climatology set
                 latest_release = _current_release(conn) or latest_release
             # Index + geojson + recent every run (has_climatology from prior index
             # unless the HYDAT sync just rebuilt it in-DB).
-            export_hydro.export(conn, out, "realtime", clim_station_ids=clim_ids)
+            with _timed(timings, "export (index + geojson + recent)"):
+                export_hydro.export(conn, out, "realtime", clim_station_ids=clim_ids)
             if do_history:
-                _merge_history(storage, conn, out, key_prefix, workdir, today)
+                with _timed(timings, "history merge (pull + merge + write)"):
+                    _merge_history(storage, conn, out, key_prefix, workdir, today)
             if do_hydat:
-                _export_climatology(conn, out)
+                with _timed(timings, "climatology export"):
+                    _export_climatology(conn, out)
 
         # Markers: only (re)written on the run that refreshed their tier, so a plain
         # run doesn't churn them (and their absence-of-write leaves R2's copy intact).
@@ -229,7 +287,9 @@ def run_job(storage, workdir: Path, key_prefix: str = KEY_PREFIX,
 
         _write_version_marker(out)
         if upload:
-            _upload_tree(storage, out, key_prefix)
+            with _timed(timings, "upload to R2"):
+                _upload_tree(storage, out, key_prefix)
+        _write_run_summary(out, did, timings)
         return out
     finally:
         conn.close()
