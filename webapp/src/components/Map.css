@@ -94,6 +94,7 @@
     overflow: hidden;
     font-family: var(--font-sans, sans-serif);
     color: var(--text, #1a1a1a);
+    z-index: 99999;
 }
 
 /* Fixed header — basemap segmented control. */
@@ -553,10 +554,22 @@
     }
 
     /* On mobile, popup opens to the left of the button instead of right */
-    .layer-menu-popup {
+    /* .layer-menu-popup {
         left: auto;
         right: calc(100% + 6px);
         bottom: 0;
+    } */
+     .layer-menu-popup {
+        position: fixed !important;
+        top: 50% !important;
+        left: 45% !important;
+        right: auto !important;
+        bottom: auto !important;
+        transform: translate(-50%, -50%) !important;
+        width: 80% !important;
+        max-width: 340px !important;
+        max-height: 80% !important;
+        z-index: 99999 !important;
     }
 }
 
@@ -568,4 +581,16 @@
     transform: translate(-50%, -50%);
     pointer-events: none;
     z-index: 1000;
+}
+
+/* Break the layer menu out of MapLibre's isolated control layout */
+.maplibregl-control-container .maplibregl-ctrl-top-right,
+.maplibregl-control-container .maplibregl-ctrl-bottom-left,
+.maplibregl-ctrl-group,
+.layer-menu-ctrl {
+    transform: none !important;
+    will-change: auto !important;
+    filter: none !important;
+    contain: none !important;
+    z-index: 9999 !important;
 }
