@@ -102,8 +102,13 @@ class BlkChain:
 
 @dataclass(frozen=True)
 class StreamNode:
-    """A graph node: a whole BLK now; a BLK sub-range (section) after splitting. Or a lake."""
-    node_id: str                 # = blk now; section_id after splitting; "lake:{wbk}" for lakes
+    """A graph node: a stream piece (a BLK cut at lake-runs + curated splits) or a lake.
+
+    Geometry is NOT stored here — the graph is pure topology + attributes. Geometry is looked
+    up by ``node_id`` in the sidecar produced by ``graph.build_section_geometries`` (so the
+    graph pickle stays light and a geometry-free consumer never pays for shapely).
+    """
+    node_id: str                 # stream piece: "{blk}:{int(down_m)}"; lake: "lake:{wbk}"
     kind: NodeKind               # stream | lake
     blk: str = ""                # "" for lake nodes
     wbk: str = ""                # set for lake nodes
@@ -111,14 +116,14 @@ class StreamNode:
     gnis_id: str = ""
     display_name: str = ""
     name_tuples: tuple[NameTuple, ...] = ()
-    down_m: float = 0.0          # measure range on the BLK (full chain now; sub-range once split)
+    through_names: tuple[str, ...] = ()         # lake nodes: GNIS names of rivers threading it
+    down_m: float = 0.0          # stream piece: measure sub-range on its BLK; 0 for lakes
     up_m: float = 0.0
     length_m: float = 0.0
     stream_order: Optional[int] = None
     stream_magnitude: Optional[int] = None
     member_fids: tuple[str, ...] = ()
-    edge_types: tuple[str, ...] = ()            # preserved from the BLK merge; "2300" => barrier
-    geometry: Any = None
+    edge_types: tuple[str, ...] = ()            # this piece's distinct EDGE_TYPEs; "2300" => barrier
     location_identifier: Optional[str] = None   # filled once splits define bounds (04)
 
     @property

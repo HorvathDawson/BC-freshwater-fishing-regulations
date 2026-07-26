@@ -18,7 +18,7 @@ from data.data_extractor import FWADataAccessor
 
 from .blk_chains import build_blk_chains, load_stream_fids
 from .export_gpkg import export_graph_gpkg, export_lake_io, export_tributaries
-from .graph import build_stream_graph
+from .graph import build_section_geometries, build_stream_graph
 from .names import resolve_names
 from .serialize import write_artifact
 from .splits import load_split_defs
@@ -35,6 +35,19 @@ def get_lake_wbk_kind(fwa: FWADataAccessor, bbox=None) -> dict[str, str]:
                 if wbk:
                     kind.setdefault(str(wbk), k)
     return kind
+
+
+def get_lake_names(fwa: FWADataAccessor, bbox=None) -> dict[str, str]:
+    """wbk -> lake's own GNIS_NAME_1 (null ~96.7% of the time -> falls back to a threading
+    river name in the graph builder)."""
+    names: dict[str, str] = {}
+    for layer in ("lakes", "manmade"):
+        if layer in fwa.layer_names:
+            gdf = fwa.get_layer(layer, columns=["WATERBODY_KEY", "GNIS_NAME_1"], bbox=bbox)
+            for wbk, nm in zip(gdf["WATERBODY_KEY"], gdf["GNIS_NAME_1"]):
+                if wbk and nm:
+                    names.setdefault(str(wbk), str(nm))
+    return names
 
 
 def bbox_from_gnis(fwa: FWADataAccessor, names: list[str], pad: float = 3000.0):
@@ -63,36 +76,42 @@ def resolve_node(graph, key: str):
 
 
 def summarize(chains, graph, fids) -> str:
+    from .models import NodeKind
+    streams = [n for n in graph.nodes.values() if n.kind == NodeKind.stream]
+    lakes = [n for n in graph.nodes.values() if n.kind == NodeKind.lake]
     named = sum(1 for n in graph.nodes.values() if n.name_tuples)
     roots = [nid for nid in graph.nodes if not graph.down_adj.get(nid)]
     in_deg = {nid: len(graph.up_adj.get(nid, [])) for nid in graph.nodes}
     with_tribs = sum(1 for v in in_deg.values() if v)
     top = sorted(graph.nodes.values(), key=lambda n: in_deg[n.node_id], reverse=True)[:5]
 
-    # Sanity: every edge references existing nodes; every fid's BLK is a node.
+    # Sanity: every edge references existing nodes; every fid maps to some node.
     bad_edge = sum(1 for e in graph.edges if e.from_node not in graph.nodes or e.to_node not in graph.nodes)
-    fid_blks = {f.blk for f in fids}
-    missing_blk_nodes = len(fid_blks - set(graph.nodes) - {""})
+    covered = set()
+    for n in graph.nodes.values():
+        covered.update(n.member_fids)
+    missing_fids = len({f.fid for f in fids} - covered)
+    multi_outlet = sum(1 for n in lakes if len(graph.down_adj.get(n.node_id, [])) > 1)
 
     lines = [
-        f"stream nodes (BLKs):      {len(graph.nodes)}",
+        f"nodes: {len(graph.nodes)}   stream pieces={len(streams)}  lakes={len(lakes)}",
         f"  with a name:            {named}",
-        f"flow edges (confluences): {len(graph.edges)}",
+        f"flow edges:               {len(graph.edges)}",
         f"  nodes with tributaries: {with_tribs}",
         f"  roots (drain out/clip): {len(roots)}",
+        f"  multi-outlet lakes:     {multi_outlet}",
         "",
-        f"INTEGRITY: edges w/ missing node={bad_edge}  fid-BLKs w/o a node={missing_blk_nodes} "
-        f"-> {'OK' if bad_edge == 0 and missing_blk_nodes == 0 else 'FAIL'}",
+        f"INTEGRITY: edges w/ missing node={bad_edge}  fids w/o a node={missing_fids} "
+        f"-> {'OK' if bad_edge == 0 and missing_fids == 0 else 'FAIL'}",
         "",
         "biggest confluences (node -> #tributaries in):",
     ]
     for n in top:
-        lines.append(f"  {in_deg[n.node_id]:4d}  {n.blk}  {n.display_name or '(unnamed)'}")
+        lines.append(f"  {in_deg[n.node_id]:4d}  {n.node_id}  {n.display_name or '(unnamed)'}")
     lines.append("")
-    lines.append("sample named streams (blk -> name_tuples):")
-    for n in [n for n in graph.nodes.values() if n.name_tuples][:15]:
-        lines.append(f"  {n.blk}  wsc={n.wsc}  "
-                     + "; ".join(f"{t.name}[{t.source.value}]" for t in n.name_tuples))
+    lines.append("sample lake nodes (wbk -> name [through rivers]):")
+    for n in lakes[:8]:
+        lines.append(f"  {n.wbk}  {n.display_name or '(unnamed)'}  through={list(n.through_names)[:3]}")
     return "\n".join(lines)
 
 
@@ -123,7 +142,8 @@ def main() -> None:
 
     print("loading lake/manmade waterbody keys ...")
     lake_kind = get_lake_wbk_kind(fwa, bbox)
-    print(f"  {len(lake_kind)} lake/manmade wbks")
+    lake_names = get_lake_names(fwa, bbox)
+    print(f"  {len(lake_kind)} lake/manmade wbks ({len(lake_names)} named)")
 
     print("loading stream fids ...")
     fids = load_stream_fids(args.gpkg, bbox=bbox)
@@ -132,8 +152,10 @@ def main() -> None:
     print("building blk chains + names ...")
     chains = resolve_names(build_blk_chains(fids, lake_kind))
 
-    print("building stream graph ...")
-    graph = build_stream_graph(chains, fids)
+    print("building stream graph (lakes as nodes) ...")
+    graph = build_stream_graph(chains, fids, lake_kind, lake_names)
+    print("building geometry sidecar ...")
+    geoms = build_section_geometries(chains, fids, lake_kind)
 
     splits = load_split_defs(args.splits) if args.splits else None
 
@@ -141,22 +163,23 @@ def main() -> None:
     out.mkdir(parents=True, exist_ok=True)
     write_artifact(chains, str(out / "blk_chains.pkl"))
     write_artifact(graph, str(out / "graph.pkl"))
+    write_artifact(geoms, str(out / "geometries.pkl"))
     gpkg_path = str(out / "graph.gpkg")
-    export_graph_gpkg(graph, gpkg_path, splits=splits)
+    export_graph_gpkg(graph, geoms, gpkg_path, splits=splits)
 
     if args.tributaries_of:
         nid = resolve_node(graph, args.tributaries_of)
         if nid is None:
             print(f"  tributaries: no node matched {args.tributaries_of!r}")
         else:
-            n = export_tributaries(graph, nid, gpkg_path)
+            n = export_tributaries(graph, geoms, nid, gpkg_path)
             tgt = graph.nodes[nid]
-            print(f"  tributaries of {tgt.display_name or nid} (blk {tgt.blk}): "
+            print(f"  tributaries of {tgt.display_name or nid} ({nid}): "
                   f"{n - 1} tributary nodes -> 'tributaries' layer")
 
     if args.lakes:
-        n = export_lake_io(fids, lake_kind, graph, gpkg_path)
-        print(f"  lake inlet/outlet points: {n} -> 'lake_io' layer")
+        n = export_lake_io(graph, geoms, gpkg_path)
+        print(f"  lake inlet/outlet edges: {n} -> 'lake_io' layer")
 
     summary = summarize(chains, graph, fids)
     (out / "summary.txt").write_text(summary)
