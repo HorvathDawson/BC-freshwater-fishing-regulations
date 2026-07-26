@@ -17,11 +17,13 @@ lists) and resolves clicks through a `fid → reach` shard chain.
 
 ## The redesign in one paragraph
 
-Merge FWA into **per-BLK chains**, contract them into a small **topology graph** (confluences
-+ collapsed lake nodes), and cut them into **sections** — the matching/display/tile atom,
-identified by `(name tuples, location_identifier, lake_wbk)` and a stable `section_id`.
-Sections carry **new cut geometry** (route-measure `substring`), `(name, source)` name tuples,
-precomputed **tributary reachability**, and a **zone → reg_set map**. Tiles become
+Merge FWA into **per-BLK chains**, then build **one inverted graph** — a **node is a stream**
+(a BLK, subdivided into **sections** only at lakes + curated splits), an **edge is "flows
+into"**. A mainstem is one node with many incoming tributary edges (no per-confluence
+segmentation; fids never enter the graph). Sections are the matching/display/tile atom,
+identified by `(name tuples, location_identifier, lake_wbk)` and a stable `section_id`, carry
+**new cut geometry** (route-measure `substring`), `(name, source)` name tuples, and
+**tributary reachability = ancestors** in the graph. Tiles become
 **self-identifying by `section_id`**, which deletes the fid highlight lists, the `/api/resolve`
 chain, and the mobile fid/poly tables — shrinking the boot payload to a sub-1 MB bootstrap.
 Matching logic is unchanged; it just targets sections.
@@ -32,8 +34,8 @@ Matching logic is unchanged; it just targets sections.
 |------|---------|
 | `00-README.md` | This index + status |
 | `01-current-pipeline-map.md` | **Legacy reference** — what exists today (to port logic/data from). We are NOT preserving its structure; see `08` for what actually must carry over. |
-| `02-domain-model.md` | Verified FWA terms (BLK/WSC/GNIS/fid/wbk/route-measure), `(name,source)` tuples, the two granularities, section identity |
-| `03-graph-design.md` | **The real graph design — start implementation here.** Merge→topology→sections, lake collapse, barriers, geometry re-cut, tributary reachability |
+| `02-domain-model.md` | Verified FWA terms (BLK/WSC/GNIS/fid/wbk/route-measure), `(name,source)` tuples, the single inverted graph, section identity |
+| `03-graph-design.md` | **The real graph design — start implementation here.** Merge→names→split→inverted graph (nodes=streams, edges=flows-into)→ancestor tributary walk |
 | `04-section-split-design.md` | General hand-split boundary system (any anchor → route measure → cut; auto `location_identifier`) |
 | `05-pipeline-architecture.md` | Clean-slate step DAG, partial reruns, build-in-v2-then-cutover |
 | `06-storage-and-client.md` | `section_id` self-identifying tiles, sub-1 MB bootstrap, lazy reg chunks, mobile rebuilt |
@@ -51,13 +53,14 @@ All code lives in top-level `stream_sections/` (outside `pipeline/`). Run with `
 - `blk_chains.py` — load FWA fids + merge into per-BLK chains (route spans, under-lake runs).
 - `names.py` — `(name, source)` tuples: gazette + side-channel (shared-WSC main channel) +
   manual overrides (`feature_display_names.json`). upstream-inherited = TODO.
-- `topology.py` — contracted directed graph: lake-node collapse, degree-2 contraction,
-  split at confluences + edge_type transitions (preserves the 2300 barrier granularity).
-- `cutting.py` — endpoint ids, geometry stitch, `substring` cut, `section_id`.
-- `build.py` — CLI: `--gnis`/`--bbox`/`--full`; writes chains+topology pickles, segments/
-  nodes GeoJSON (WGS84, for QGIS/geojson.io), and a **self-validating coverage check**.
-- Validated on Adams River: 100% open-fid coverage (0 missing/dup/extra), Adams = 1 BLK /
-  361 segments, name tuples correct. 14 unit tests pass (`tests/`).
+- `graph.py` — **the single inverted graph**: `StreamNode` per BLK, `FlowEdge` "flows into"
+  at a confluence measure; `ancestors()` = tributary closure. No per-confluence segments; no
+  fids in the graph.
+- `cutting.py` — endpoint ids, geometry stitch, `substring` cut, node/section id.
+- `build.py` — CLI: `--gnis`/`--bbox`/`--full` (+ `--splits`); writes chains + graph pickles,
+  `graph.gpkg` (streams / confluences / anchors), and an integrity self-check.
+- Validated on Adams extent: **8393 nodes / 8243 edges** (was 21632 segments), integrity OK,
+  Adams River = **1 node / 435 tributaries**, name tuples correct. 15 unit tests pass.
 
 **Manual splits — schema + example DONE:** `splits.schema.md` (authoritative; supersedes the
 mechanics in `docs/04`) + `splits.example.json`. **Every cut is a line or a polygon
@@ -67,8 +70,9 @@ boundary** (not a point/fid): `point` → auto perpendicular line at the target 
 (`proximity_m`). No `barrier`/`landmark`/`linear_feature_id`. `SplitDef.from_dict` validates.
 
 **Debug/report tools (temporary):**
-- `export_gpkg.py` — `build.py` writes `graph.gpkg` (layers: `blk_chains`, `segments`,
-  `nodes`) for QGIS: colour `segments` by `blk` to see splits; `nodes` shows joins.
+- `export_gpkg.py` — `build.py` writes `graph.gpkg` (layers: `streams` = one line per BLK
+  node with name tuples + downstream + tributary count; `confluences` = flow edges as points;
+  `anchors` = authored splits) for QGIS.
 - `complex_regs_report.py` — writes `output/v2/complex_regulations.md`: 62 curated overrides
   with section-language names (prime split candidates) + parsed synopsis complexity
   (location, tributary, multi-rule/exception).
@@ -100,7 +104,7 @@ de-risking:
   section); handle the 0.69% all-2-point BLKs with interpolation.
 
 Net: the section model is de-risked, but the WSC filter and 2300 barrier are **kept** (the
-tributary walk applies them). Paste exact leak numbers into `test_topology.py` when building.
+tributary walk applies them). Paste exact leak numbers into `test_graph.py` when building.
 
 ## Open decisions surfaced for the group
 

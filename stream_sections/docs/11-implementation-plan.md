@@ -16,12 +16,13 @@ Outcome: **keep both the WSC-hierarchy filter and the 2300 barrier.**
   with interpolation in `cutting.py`.
 
 Remaining spike work during build: paste the exact leak numbers into the two
-`test_topology.py` regression fixtures and un-skip them once `topology.py` exists.
+`test_graph.py` regression fixtures and un-skip them once the guarded walk (`tributaries.py`)
+exists.
 
 ## Phase 1 — blk-chains + names (`blk_chains.py`, `names.py`, `cutting.py`) ✅ DONE
 
-Implemented + validated (Adams River: 100% fid coverage, name tuples correct; 14 tests).
-upstream-inherited names deferred (needs topology). Serialization is pickle for now
+Implemented + validated (Adams River: 100% fid coverage, name tuples correct; 15 tests).
+upstream-inherited names deferred (needs the graph). Serialization is pickle for now
 (GeoParquet later). Original plan below for reference.
 
 ### Phase 1 (original)
@@ -33,22 +34,18 @@ upstream-inherited names deferred (needs topology). Serialization is pickle for 
 - Tests: `test_blk_chains`, `test_names`, `test_cutting` (substring + id stability).
 - **Verify:** run on one watershed group; eyeball a dozen BLKs; confirm S4 structural numbers.
 
-## Phase 2 — topology (`topology.py`) ✅ DONE (graph constructed + validated)
+## Phase 2 — the inverted graph (`graph.py`) ✅ DONE (constructed + validated)
 
-Contracted graph builds with lake-node collapse, degree-2 contraction, confluence + edge_type
-splits, unique measure-based segment ids, and `member_fids`. Coverage self-check passes.
-Remaining: the two real-data regression tests (need the tributary walk). Original below.
+Replaced the fine per-confluence segment graph with the **single inverted graph**: node = a
+stream (BLK), edge = "flows into" at a confluence measure; `ancestors()` = tributary closure.
+Validated on the Adams extent (8393 nodes / 8243 edges, integrity OK; Adams = 1 node / 435
+tributaries). Node carries `fwa_watershed_code` + member fids so the Phase-4 walk can apply
+the **WSC-descendant filter** and the **2300 barrier** (both kept per Phase 0).
 
-### Phase 2 (original)
-
-- Fine directed micro-graph → lake-node collapse → degree-2 contraction → `Topology` with
-  `down_adj`/`up_adj`. Barrier split nodes if any. (No SCC condensation — it's a no-op.)
-- Carry `fwa_watershed_code` + `edge_type` on every segment: the tributary walk (Phase 4)
-  applies the **WSC-descendant filter** and the **2300 barrier** — both kept per Phase 0.
-- Tests: `test_topology` incl. the two regressions (leak stopped **by** WSC filter / 2300
-  barrier), lake collapse, reverse adjacency, edge_type guard.
-- **Verify:** the two regression tests pass; the WSC filter + 2300 rule are present, not
-  deleted.
+Remaining: Phase 3 splits BLK nodes into section nodes (lakes + curated splits) and promotes
+lakes to nodes; the two real-data regression tests need the guarded walk.
+- Tests: `test_graph` (mainstem = one node; tributary flows-into at measure; ancestors); the
+  two regressions skipped until the guarded walk exists.
 
 ## Phase 3 — splits + sectionizer (`anchors.py`, `splits.py`, `sectionizer.py`)
 
@@ -61,8 +58,8 @@ Remaining: the two real-data regression tests (need the tributary walk). Origina
 
 ## Phase 4 — tributaries (`tributaries.py`)
 
-- Build `SectionGraph`; upstream walk over `Topology.up_adj` honoring barriers →
-  `tributary_section_ids`; seed-set cache.
+- Guarded ancestor walk over `StreamGraph` (`graph.ancestors` + WSC-descendant filter + 2300
+  barrier + lake barrier) → `tributary_node_ids`; seed-set cache.
 - Tests: `test_tributaries` (lake barrier stop, tributary_only, no backtracking, cache).
 - **Verify:** golden parity of tributary sets vs legacy on the known rivers (minus corrected
   leaks).
@@ -94,9 +91,9 @@ Remaining: the two real-data regression tests (need the tributary walk). Origina
 
 ## First concrete steps (right now)
 
-1. **Run Phase 0 spikes**, paste results into `test_topology.py` + `10`'s spike table.
+1. **Run Phase 0 spikes**, paste results into `test_graph.py` + `10`'s spike table.
 2. If green: implement `cutting.py` + `blk_chains.py` (Phase 1), un-skip their tests.
 3. Author the seed `splits.json` (Adams, Wigwam) so Phase 3 has fixtures early.
 
-Scaffolding already in place: `pipeline/sections/` (all modules, `models.py` complete) and
-`pipeline/tests/sections/` (skipped stubs incl. the two regression cases).
+Code in place: `stream_sections/` (S1–S2 + the inverted graph implemented; splits/sectionizer/
+tributaries stubbed) and `stream_sections/tests/`.

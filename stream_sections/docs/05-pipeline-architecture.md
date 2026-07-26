@@ -24,8 +24,8 @@ in-place migration; the old pipeline keeps running until v2 is proven.
  fetch (raw) ─┬──┤                                                 │
               │  └─ matching data (overrides, display names, splits)│
               │                                                     │
-              ├─ blk-chains ─ topology ─ sections ──────────────────┼─ match ─ bundle ─ deploy
-              │   (03 S1)     (03 S3-4)  (03 S5-6)                   │  (08)    (06)
+              ├─ blk-chains ─ sections ─ graph ─────────────────────┼─ match ─ bundle ─ deploy
+              │   (03 S1-2)    (03 S3)    (03 S4-5)                  │  (08)    (06)
               └─ overlays (zones, admin, towns, anglerinfo, hydro) ──┘
 ```
 
@@ -35,8 +35,8 @@ in-place migration; the old pipeline keeps running until v2 is proven.
 |------|-------|--------|-------|
 | `fetch` | remote | `data/*.gpkg` | unchanged from today |
 | `blk-chains` | streams gpkg (via `FWADataAccessor`) | `v2/blk_chains.pkl` | 03 Step 1–2: merge by BLK, route measures, `(name,source)` tuples |
-| `topology` | blk_chains | `v2/topology.pkl` | 03 Step 3–4: contracted graph, lake nodes, barriers |
-| `sections` | topology + `splits.json` | `v2/sections.pkl`, `v2/section_geom.*` | 03 Step 5–6: cut geometry, tributary_section_ids, per-section minzoom |
+| `sections` | blk_chains + `splits.json` | `v2/sections.*` | 03 Step 3: split BLKs at lakes + curated splits → section nodes; cut geometry; per-section minzoom |
+| `graph` | sections (+ fid incidence) | `v2/graph.pkl` | 03 Step 4–5: inverted graph (nodes=sections/lakes, edges=flows-into); ancestor tributary reachability |
 | `overlays` | atlas polygons, zones, towns, anglerinfo/hydro dbs | `v2/overlays.pkl` | zone polygons, nearby-towns index, bathymetry/markers keyed to wbk/section |
 
 ### Steps (content chain) — reused, lightly adapted
@@ -56,8 +56,8 @@ in-place migration; the old pipeline keeps running until v2 is proven.
 
 ## Why this is faster / simpler than today
 
-- The **2.37 GB micro-graph is consumed once** (`blk-chains`/`topology`) to derive the small
-  contracted graph, then never touched again. Tributary reachability is precomputed **per
+- The FWA micro-fids are consumed once (`blk-chains`/`graph`) to derive the small inverted
+  graph, then never touched again. Tributary reachability is precomputed **per
   section** and reused across all regs — no per-reg BFS over the giant graph.
 - A regulation-text change re-runs only `parse → match → bundle → deploy`; geometry steps are
   cache-hit. A split-definition change re-runs only `sections → match → bundle`. Today a
@@ -81,7 +81,7 @@ in-place migration; the old pipeline keeps running until v2 is proven.
 
 ## Suggested build order when picking up
 
-1. `blk-chains` + `topology` (03 S1–4) — de-risks the graph + directionality assumption.
+1. `blk-chains` + `graph` (03 S1–S5) — the inverted graph (DONE); de-risks connectivity.
 2. `sections` (03 S5–6) + `splits.json` schema (04).
 3. `match` (08) on top of sections.
 4. `bundle`/tiles/storage (06).

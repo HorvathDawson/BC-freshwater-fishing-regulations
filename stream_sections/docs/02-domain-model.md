@@ -62,23 +62,28 @@ Normalization note: GNIS_ID is float in raw data (`3429.0`) → str via `int(flo
 rounded `"x_y"` string (3 dp, `graph_builder.py:71`). Access data only through
 `FWADataAccessor`.
 
-## The two granularities (critical distinction)
+## One graph — nodes are streams, edges are "flows into"
 
-The redesign has **two** graph granularities — do not conflate:
+There is a **single inverted graph** (an earlier draft's "two granularities" is abandoned):
 
-- **Segment / topology edge** — a maximal run of one BLK **between topology nodes**
-  (confluences, lake in/out). Fine-grained. This is the connectivity graph used for
-  **tributary reachability** (walk upstream to enumerate tributary segments).
-- **Section** — the **matching + display + tile unit**. A run of one BLK cut **only at
-  lakes and hand-defined splits** (NOT at every tributary confluence). Most BLKs → one
-  section; a BLK through a lake → two sections; etc.
+- A **node** is a **stream** — a BLK-merged chain, subdivided into **sections** only at lakes
+  and curated splits (NOT at every tributary confluence). Most BLKs → one node; a BLK through
+  a lake → two section nodes + a lake node.
+- An **edge** is **"A flows into B"** — the tributary/upstream node A drains into B at a
+  confluence measure on B. A mainstem node therefore has **many incoming edges** (its
+  tributaries) and **one outgoing edge** (its own mouth).
 
-A section spans many segments/confluences. `location_identifier` is null unless a
-lake/hand-split cut the BLK. **Tributaries of a section** = segments reachable upstream in the
-topology graph whose `FWA_WATERSHED_CODE` is a **descendant** (prefix-extension) of the
-section's trimmed WSC (this drainage-subtree filter is what stops the walk climbing the parent
-mainstem at a confluence — spike-confirmed, `10` S1), further stopped by the `EDGE_TYPE=2300`
-connector barrier (`10` S2) and regulated-lake barriers.
+So the mainstem is **one node** regardless of how many tributaries join it (Adams River: one
+node, 435 tributaries) — no per-confluence segmentation, and fids never appear in the graph.
+`location_identifier` is null unless a lake/split subdivided the BLK.
+
+**Tributaries of a node = its ancestors** (walk incoming edges upstream). Because each stream
+flows into exactly one downstream stream, the confluence-parent leak is avoided by
+construction (the Harrison is what the Chehalis flows *into* — a descendant, never an
+ancestor). Two guards still apply on the closure (`10`): the **WSC-descendant filter** (keep
+ancestors within the drainage subtree — braided/multi-mouth edge cases) and the
+**`EDGE_TYPE=2300` barrier** (connector/canal nodes), plus a **lake barrier** once lakes are
+nodes.
 
 ## Section identity
 

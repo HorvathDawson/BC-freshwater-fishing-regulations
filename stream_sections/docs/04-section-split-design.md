@@ -76,7 +76,7 @@ section {
   blk, name_tuples, display_name,  # name_tuples per 02; display = highest-priority tuple
   lake_wbk,                        # non-null if this section abuts / is a lake run
   geometry,                        # NEW cut geometry (substring), not whole fids
-  member_segment_ids: [...],       # topology edges covered (for tributary walk)
+  member_fids: [...],              # composing FWA fids (provenance; graph uses ancestors)
   lower_bound: split_id | "outlet",     # toward the mouth
   upper_bound: split_id | "headwaters", # toward the source
   location_identifier              # AUTO-GENERATED, see below

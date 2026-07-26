@@ -21,8 +21,8 @@ suite grows with the code, so a regression always points at the step you just ch
 ## The gating spikes (run FIRST, before deleting legacy logic)
 
 These decide whether the biggest simplifications are valid. Encoded as
-`test_topology.py::test_chehalis_harrison_braiding_no_leak` and
-`::test_kootenay_columbia_lake_barrier`.
+`test_graph.py::test_chehalis_harrison_no_leak_via_wsc_filter` and
+`::test_kootenay_columbia_no_leak_via_2300_barrier` (skipped until the guarded walk exists).
 
 | Spike | Question | Result | Finding |
 |-------|----------|--------|---------|
@@ -42,8 +42,8 @@ as a complement. The two regression tests below assert the leak is stopped **by 
   under-lake runs from wbk (not edge_type); sentinel-BLK skip.
 - **names** (`test_names.py`): NameSource priority; Seabird→Fraser side-channel inheritance;
   upstream-inherited for unnamed headwaters; override wins.
-- **topology** (`test_topology.py`): lake collapse (no orphans / no double-count); reverse
-  adjacency = upstream; missing edge_type raises; **S1 + S2**.
+- **graph** (`test_graph.py`): mainstem = one node (not per-confluence); tributary flows-into
+  at the confluence measure; `ancestors` = tributaries (descendant not counted); **S1 + S2**.
 - **cutting** (`test_cutting.py`): substring ~cm; 2-point fallback; section_id stable under
   unrelated split, changes on in-section split.
 - **splits** (`test_splits.py`): every anchor → `(blk, measure)`; barrier vs non-barrier
