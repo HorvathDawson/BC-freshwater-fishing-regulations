@@ -2,7 +2,7 @@
 
 `load_stream_fids` reads the `streams` layer once (via FWADataAccessor) into lightweight
 FidRow records (with computed endpoint node ids); both `build_blk_chains` and
-`topology.build_topology` consume that single load. Chains are sorted mouth->source by
+`graph.build_stream_graph` consume that single load. Chains are sorted mouth->source by
 DOWNSTREAM_ROUTE_MEASURE, geometry stitched, under-lake runs recorded. Sentinel 999-999999
 WSC/BLKs are skipped. Names beyond the direct gazette tuple are added by names.py.
 """

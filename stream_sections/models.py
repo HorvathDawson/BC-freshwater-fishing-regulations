@@ -27,10 +27,8 @@ class NameSource(str, Enum):
 
 
 class NodeKind(str, Enum):
-    confluence = "confluence"   # "x_y" endpoint where >=1 other BLK attaches
-    lake = "lake"               # collapsed lake/manmade wbk (structural barrier)
-    outlet = "outlet"           # outdegree 0 (mouth / ocean / border)
-    headwater = "headwater"     # indegree 0 (source)
+    stream = "stream"           # a BLK-merged stream (a section after splitting)
+    lake = "lake"               # a lake/manmade waterbody node
 
 
 class BoundaryKind(str, Enum):
@@ -94,43 +92,52 @@ class BlkChain:
     waterbody_runs: tuple[WaterbodyRun, ...] = ()
 
 
-# ------------------------------------------------------------------- topology graph
+# --------------------------------------------------------- the stream graph (INVERTED)
+# ONE graph. A NODE is a stream (a BLK-merged chain, later split into sections) or a lake.
+# An EDGE is "flows into": the from_node drains into the to_node at a confluence measure.
+# A mainstem node has many incoming edges (its tributaries) and one outgoing edge (its own
+# confluence). fids never appear in the graph — only inside StreamNode as provenance.
+# Tributaries of a node = its ANCESTORS (walk incoming edges upstream).
 
 @dataclass(frozen=True)
-class TopologyNode:
-    node_id: str            # "x_y" | "lake:{wbk}" | "split:{split_id}"
-    kind: NodeKind
-    x: Optional[float] = None
-    y: Optional[float] = None
-    wbk: str = ""           # set for lake nodes
-    is_barrier: bool = False
-
-
-@dataclass(frozen=True)
-class Segment:
-    """A topology EDGE: maximal BLK-run between two nodes, directed downstream."""
-    segment_id: str         # f"{blk}|{int(down_m)}|{int(up_m)}" (unique per run)
-    blk: str
-    wsc: str
-    from_node: str          # UPSTREAM end
-    to_node: str            # DOWNSTREAM end (mouthward)
-    down_m: float
-    up_m: float
-    member_fids: tuple[str, ...] = ()   # composing linear_feature_ids (mouth->source)
+class StreamNode:
+    """A graph node: a whole BLK now; a BLK sub-range (section) after splitting. Or a lake."""
+    node_id: str                 # = blk now; section_id after splitting; "lake:{wbk}" for lakes
+    kind: NodeKind               # stream | lake
+    blk: str = ""                # "" for lake nodes
+    wbk: str = ""                # set for lake nodes
+    wsc: str = ""
     gnis_id: str = ""
+    display_name: str = ""
+    name_tuples: tuple[NameTuple, ...] = ()
+    down_m: float = 0.0          # measure range on the BLK (full chain now; sub-range once split)
+    up_m: float = 0.0
+    length_m: float = 0.0
     stream_order: Optional[int] = None
     stream_magnitude: Optional[int] = None
-    edge_type: str = ""     # FWA class; missing must raise upstream (strict guard)
-    geometry: Any = None    # kept OUT of the graph pickle; in companion geoparquet
+    member_fids: tuple[str, ...] = ()
+    geometry: Any = None
+    location_identifier: Optional[str] = None   # filled once splits define bounds (04)
+
+
+@dataclass(frozen=True)
+class FlowEdge:
+    """``from_node`` flows into ``to_node`` at ``at_measure`` on the to_node's BLK."""
+    from_node: str
+    to_node: str
+    at_measure: float            # route measure on to_node where the confluence is
+    x: float = 0.0               # confluence coordinate (EPSG:3005) — for review/gpkg
+    y: float = 0.0
+    kind: str = "confluence"     # confluence | lake_in | lake_out | outlet
 
 
 @dataclass
-class Topology:
-    """The contracted graph artifact (post SCC-condensation). Geometry stripped from pickle."""
-    nodes: dict[str, TopologyNode] = field(default_factory=dict)
-    segments: dict[str, Segment] = field(default_factory=dict)
-    down_adj: dict[str, list[str]] = field(default_factory=dict)  # node -> downstream segment_ids
-    up_adj: dict[str, list[str]] = field(default_factory=dict)    # node -> upstream segment_ids (trib walk)
+class StreamGraph:
+    """The single stream graph. up_adj[node] = incoming edges = the tributary/ancestor walk."""
+    nodes: dict[str, StreamNode] = field(default_factory=dict)
+    edges: list[FlowEdge] = field(default_factory=list)
+    up_adj: dict[str, list[int]] = field(default_factory=dict)    # to_node -> edge indices (tributaries in)
+    down_adj: dict[str, list[int]] = field(default_factory=dict)  # from_node -> edge indices (flows out)
 
 
 # ------------------------------------------------------------------------ splits (04)
@@ -260,16 +267,6 @@ class Section:
     mu_ids: tuple[str, ...] = ()         # MUs the section intersects (07)
     tributary_section_ids: tuple[str, ...] = ()
     is_lake: bool = False                # a lake polygon acting as a section (keyed by lake_wbk)
-
-
-@dataclass
-class SectionGraph:
-    """Section-level adjacency for tributary walks (walk runs on Topology.up_adj)."""
-    segment_to_section: dict[str, str] = field(default_factory=dict)
-    section_to_segments: dict[str, tuple[str, ...]] = field(default_factory=dict)
-    tributary_index: dict[str, tuple[str, ...]] = field(default_factory=dict)
-    # section_id -> (downstream_section_id, upstream_section_id) on the same BLK
-    mainstem_neighbors: dict[str, tuple[Optional[str], Optional[str]]] = field(default_factory=dict)
 
 
 # ------------------------------------------------------------------ matching output (07/08)
