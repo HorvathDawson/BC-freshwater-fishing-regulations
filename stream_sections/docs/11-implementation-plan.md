@@ -18,7 +18,13 @@ Outcome: **keep both the WSC-hierarchy filter and the 2300 barrier.**
 Remaining spike work during build: paste the exact leak numbers into the two
 `test_topology.py` regression fixtures and un-skip them once `topology.py` exists.
 
-## Phase 1 — blk-chains + names (`blk_chains.py`, `names.py`, `cutting.py`)
+## Phase 1 — blk-chains + names (`blk_chains.py`, `names.py`, `cutting.py`) ✅ DONE
+
+Implemented + validated (Adams River: 100% fid coverage, name tuples correct; 14 tests).
+upstream-inherited names deferred (needs topology). Serialization is pickle for now
+(GeoParquet later). Original plan below for reference.
+
+### Phase 1 (original)
 
 - Merge streams by BLK via `FWADataAccessor`; route spans; `WaterbodyRun`s; aggregates.
 - `(name, source)` tuples (port `propagate_names_by_watershed` + `annotate_unnamed_context`,
@@ -27,7 +33,13 @@ Remaining spike work during build: paste the exact leak numbers into the two
 - Tests: `test_blk_chains`, `test_names`, `test_cutting` (substring + id stability).
 - **Verify:** run on one watershed group; eyeball a dozen BLKs; confirm S4 structural numbers.
 
-## Phase 2 — topology (`topology.py`)
+## Phase 2 — topology (`topology.py`) ✅ DONE (graph constructed + validated)
+
+Contracted graph builds with lake-node collapse, degree-2 contraction, confluence + edge_type
+splits, unique measure-based segment ids, and `member_fids`. Coverage self-check passes.
+Remaining: the two real-data regression tests (need the tributary walk). Original below.
+
+### Phase 2 (original)
 
 - Fine directed micro-graph → lake-node collapse → degree-2 contraction → `Topology` with
   `down_adj`/`up_adj`. Barrier split nodes if any. (No SCC condensation — it's a no-op.)

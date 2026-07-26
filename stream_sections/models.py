@@ -111,13 +111,14 @@ class TopologyNode:
 @dataclass(frozen=True)
 class Segment:
     """A topology EDGE: maximal BLK-run between two nodes, directed downstream."""
-    segment_id: str         # f"{blk}|{from_node}|{to_node}"
+    segment_id: str         # f"{blk}|{int(down_m)}|{int(up_m)}" (unique per run)
     blk: str
     wsc: str
     from_node: str          # UPSTREAM end
     to_node: str            # DOWNSTREAM end (mouthward)
     down_m: float
     up_m: float
+    member_fids: tuple[str, ...] = ()   # composing linear_feature_ids (mouth->source)
     gnis_id: str = ""
     stream_order: Optional[int] = None
     stream_magnitude: Optional[int] = None
@@ -138,48 +139,76 @@ class Topology:
 
 @dataclass(frozen=True)
 class SplitAnchor:
-    """How to FIND a split point. Only the fields relevant to ``type`` are populated."""
-    type: AnchorType
-    wbk: str = ""
-    tributary_gnis_id: str = ""
-    tributary_blk: str = ""
-    fid: str = ""
-    name: str = ""
-    lat: Optional[float] = None
-    lng: Optional[float] = None
-    mu_id: str = ""
+    """WHERE to cut. Only the fields relevant to ``type`` are populated.
 
-    def to_dict(self) -> dict: ...       # TODO
+    Primary form is ``point`` + a coordinate: snap it to the nearest point on the target
+    stream(s) and cut there. Other types locate the position differently.
+    """
+    type: AnchorType
+    coord: Optional[tuple[float, float]] = None   # (x, y) EPSG:3005, or (lng, lat) if is_lonlat
+    is_lonlat: bool = False
+    wbk: str = ""                 # lake anchor
+    fid: str = ""                 # linear_feature_id anchor (exact)
+    mu_id: str = ""               # mu_boundary anchor
+    name: str = ""                # landmark / confluence descriptor
+    tributary_gnis_id: str = ""   # confluence anchor
+
     @classmethod
-    def from_dict(cls, d: Mapping[str, Any]) -> "SplitAnchor": ...  # TODO (normalize ids)
+    def from_dict(cls, d: Mapping[str, Any]) -> "SplitAnchor":
+        coord = d.get("coord")
+        return cls(
+            type=AnchorType(d["type"]),
+            coord=(float(coord[0]), float(coord[1])) if coord else None,
+            is_lonlat=bool(d.get("is_lonlat", False)),
+            wbk=str(d.get("wbk", "")), fid=str(d.get("fid", "")),
+            mu_id=str(d.get("mu_id", "")), name=str(d.get("name", "")),
+            tributary_gnis_id=str(d.get("tributary_gnis_id", "")),
+        )
 
 
 @dataclass(frozen=True)
 class SplitDef:
-    """One hand-authored split from splits.json. ``id`` is a STABLE key (part of the ABI)."""
+    """One hand-authored split from splits.json. ``id`` is a STABLE key (part of the ABI).
+
+    Target (which streams to cut) is exactly one of:
+      - ``blk``     : cut this single blue line (one cut).
+      - ``wsc``     : cut EVERY blue line sharing this watershed code (main + side channels)
+                      at the anchor — the multi-cut form for zone/section boundaries.
+      - ``gnis_id`` : resolve to the named stream's blk(s), then behave like ``blk``.
+    """
     id: str
     anchor: SplitAnchor
-    gnis_id: str = ""
     blk: str = ""
+    wsc: str = ""
+    gnis_id: str = ""
     stream_name: str = ""
     label: str = ""
     barrier: bool = False
 
-    def to_dict(self) -> dict: ...       # TODO
     @classmethod
-    def from_dict(cls, d: Mapping[str, Any]) -> "SplitDef": ...  # TODO
+    def from_dict(cls, d: Mapping[str, Any]) -> "SplitDef":
+        targets = [k for k in ("blk", "wsc", "gnis_id") if d.get(k)]
+        if len(targets) != 1:
+            raise ValueError(f"split {d.get('id')!r} must set exactly one of blk/wsc/gnis_id, got {targets}")
+        return cls(
+            id=str(d["id"]), anchor=SplitAnchor.from_dict(d["anchor"]),
+            blk=str(d.get("blk", "")), wsc=str(d.get("wsc", "")),
+            gnis_id=str(d.get("gnis_id", "")), stream_name=str(d.get("stream_name", "")),
+            label=str(d.get("label", "")), barrier=bool(d.get("barrier", False)),
+        )
 
 
 @dataclass(frozen=True)
 class SplitPoint:
     """A resolved split. Written back to splits.resolved.json for reviewable, deterministic builds."""
     split_id: str
-    blk: str
+    blk: str                # the specific blue line this cut lands on (one per blk for wsc targets)
     route_measure: float    # absolute DOWNSTREAM_ROUTE_MEASURE cut position
     fid: str                # containing fid (stored back)
     label: str
     barrier: bool
     anchor_type: AnchorType
+    snap_dist_m: float = 0.0  # distance from the authored coord to the snapped point (review aid)
 
 
 # ---------------------------------------------------------------------- sections (03/04)

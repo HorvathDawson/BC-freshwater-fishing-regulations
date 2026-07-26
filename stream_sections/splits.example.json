@@ -1,0 +1,58 @@
+{
+  "_about": "Example curated stream splits. Copy to a real splits.json at cutover. Each entry cuts one or more blue lines at one location. from_dict ignores _comment/_about fields. See splits.schema.md.",
+  "splits": [
+
+    {
+      "_comment": "PRIMARY FORM: a single coordinate + one blue line. Snap the point to the nearest point on that BLK and cut there. Use for a dam, gauge, bridge, or any hand-picked spot on one channel.",
+      "id": "example_point_on_blk",
+      "blk": "356362743",
+      "anchor": { "type": "point", "coord": [-119.615, 51.010], "is_lonlat": true },
+      "label": "Squilax bridge"
+    },
+
+    {
+      "_comment": "PRIMARY FORM (multi-cut): a single coordinate + a WATERSHED CODE. Snap the point to the nearest point on EACH blue line sharing that WSC (main channel + all side channels) and cut them all at that location. This is how you split a braided river (e.g. the Fraser) cleanly across every channel at a section/zone boundary.",
+      "id": "fraser_zone_boundary_example",
+      "wsc": "100-190442",
+      "anchor": { "type": "point", "coord": [-121.440, 49.180], "is_lonlat": true },
+      "label": "Zone 2/3 boundary"
+    },
+
+    {
+      "_comment": "LAKE: cut where the stream enters/exits a lake. Target the named river; anchor the lake by waterbody_key. Produces the 'upstream of Adams Lake' / 'downstream of Adams Lake' sections automatically.",
+      "id": "adams_lake",
+      "gnis_id": "39257",
+      "stream_name": "Adams River",
+      "anchor": { "type": "lake", "wbk": "REPLACE_WITH_ADAMS_LAKE_WBK" },
+      "label": "Adams Lake"
+    },
+
+    {
+      "_comment": "EXACT: cut at a specific linear_feature_id boundary (used today for Wigwam/Shuswap in overrides.json). No snapping — deterministic.",
+      "id": "wigwam_divide",
+      "gnis_id": "27703",
+      "stream_name": "Wigwam River",
+      "anchor": { "type": "linear_feature_id", "fid": "706869683" },
+      "label": "the divide"
+    },
+
+    {
+      "_comment": "MU BOUNDARY: cut where the stream crosses a management-unit boundary (curated, only where specific regs differ per zone). Behaves like a point cut located at the crossing.",
+      "id": "fraser_mu_2_3",
+      "gnis_id": "12345",
+      "stream_name": "Fraser River",
+      "anchor": { "type": "mu_boundary", "mu_id": "2-3" },
+      "label": "Zone 2 / Zone 3"
+    },
+
+    {
+      "_comment": "BARRIER: a flow barrier (dam) — cuts geometry AND stops upstream tributary propagation (becomes a topology barrier node).",
+      "id": "example_dam",
+      "blk": "356366076",
+      "anchor": { "type": "point", "coord": [-115.848, 50.147], "is_lonlat": true },
+      "label": "the dam",
+      "barrier": true
+    }
+
+  ]
+}

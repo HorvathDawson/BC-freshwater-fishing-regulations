@@ -1,22 +1,35 @@
 """Load splits.json, resolve anchors, and write back splits.resolved.json (04).
 
-Authored splits live at pipeline/matching/splits.json (next to overrides.json). Resolved
-(blk, route_measure, fid) is written to pipeline/matching/splits.resolved.json for
-deterministic, human-reviewable builds (mirrors the overrides.json "divide ~= LFID ..." note).
+Authored splits live in a curated splits.json (see splits.example.json / splits.schema.md).
+Resolution (anchor -> route measure per targeted BLK) happens in the `sections` step, after
+the topology graph exists; `resolve_splits` uses anchors.py and is a stub until then.
+`load_split_defs` is implemented so the schema is validated at authoring time.
 """
 
 from __future__ import annotations
+
+import json
+from pathlib import Path
 
 from .models import BlkChain, SplitDef, SplitPoint
 
 
 def load_split_defs(path: str) -> list[SplitDef]:
-    raise NotImplementedError
+    """Parse + validate a splits.json (or splits.example.json). Fails loud on bad targets."""
+    data = json.loads(Path(path).read_text())
+    entries = data.get("splits", data) if isinstance(data, dict) else data
+    defs = [SplitDef.from_dict(e) for e in entries if isinstance(e, dict) and e.get("id")]
+    ids = [d.id for d in defs]
+    dupes = {i for i in ids if ids.count(i) > 1}
+    if dupes:
+        raise ValueError(f"duplicate split ids: {sorted(dupes)}")
+    return defs
 
 
 def resolve_splits(defs: list[SplitDef], chains: list[BlkChain], context: dict) -> list[SplitPoint]:
-    raise NotImplementedError
+    """Resolve each SplitDef to SplitPoint(s) via anchors.py. Implemented in the sections step."""
+    raise NotImplementedError("resolve_splits: sections-step work (needs geometry snap + graph)")
 
 
 def write_resolved(points: list[SplitPoint], path: str) -> None:
-    raise NotImplementedError
+    raise NotImplementedError("write_resolved: sections-step work")

@@ -43,13 +43,28 @@ Matching logic is unchanged; it just targets sections.
 | `10-testing-plan.md` | Test-as-you-build tiers, the gating spikes (Chehalis/Kootenay), golden parity |
 | `11-implementation-plan.md` | De-risk-first build order + concrete first steps |
 
-## Scaffolding created (on this branch)
+## Implemented so far (branch `redesign/stream-sections`)
 
-- `pipeline/sections/` — package with complete `models.py` and stubbed step modules
-  (`blk_chains, names, topology, anchors, splits, cutting, sectionizer, tributaries,
-  serialize, run`). Imports verified.
-- `pipeline/tests/sections/` — one skipped `test_<module>.py` per module, including the two
-  braiding/lake regression cases in `test_topology.py`.
+All code lives in top-level `stream_sections/` (outside `pipeline/`). Run with `.venv/bin/python`.
+
+**Graph construction — DONE and validated:**
+- `blk_chains.py` — load FWA fids + merge into per-BLK chains (route spans, under-lake runs).
+- `names.py` — `(name, source)` tuples: gazette + side-channel (shared-WSC main channel) +
+  manual overrides (`feature_display_names.json`). upstream-inherited = TODO.
+- `topology.py` — contracted directed graph: lake-node collapse, degree-2 contraction,
+  split at confluences + edge_type transitions (preserves the 2300 barrier granularity).
+- `cutting.py` — endpoint ids, geometry stitch, `substring` cut, `section_id`.
+- `build.py` — CLI: `--gnis`/`--bbox`/`--full`; writes chains+topology pickles, segments/
+  nodes GeoJSON (WGS84, for QGIS/geojson.io), and a **self-validating coverage check**.
+- Validated on Adams River: 100% open-fid coverage (0 missing/dup/extra), Adams = 1 BLK /
+  361 segments, name tuples correct. 14 unit tests pass (`tests/`).
+
+**Manual splits — schema + example DONE:** `splits.schema.md` + `splits.example.json`
+(primary form: a single coord + `blk` (one cut) or `wsc` (cut main + all side channels));
+`splits.load_split_defs` parses/validates. Anchor *resolution* is the next (sections) step.
+
+**Next:** anchor resolution + `sectionizer.py` (cut at lakes/splits) + `tributaries.py`
+(upstream walk with WSC filter + 2300 barrier) + the two real-data regression tests.
 
 ## Key verified facts driving the design (see `02` for evidence)
 
