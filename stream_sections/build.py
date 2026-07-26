@@ -17,7 +17,7 @@ from pathlib import Path
 from data.data_extractor import FWADataAccessor
 
 from .blk_chains import build_blk_chains, load_stream_fids
-from .export_gpkg import export_graph_gpkg
+from .export_gpkg import export_graph_gpkg, export_lake_io, export_tributaries
 from .graph import build_stream_graph
 from .names import resolve_names
 from .serialize import write_artifact
@@ -43,6 +43,23 @@ def bbox_from_gnis(fwa: FWADataAccessor, names: list[str], pad: float = 3000.0):
         raise SystemExit(f"No streams matched GNIS_NAME in {names}")
     minx, miny, maxx, maxy = gdf.total_bounds
     return (minx - pad, miny - pad, maxx + pad, maxy + pad)
+
+
+def resolve_node(graph, key: str):
+    """Resolve a --tributaries-of key to a node_id: exact blk, then exact name, then substring.
+
+    On a name match, prefer the mainstem (largest magnitude, then longest) so
+    ``--tributaries-of "Adams River"`` lands on the whole river, not a short same-named reach.
+    """
+    if key in graph.nodes:
+        return key
+    lk = key.lower()
+    exact = [n for n in graph.nodes.values() if (n.display_name or "").lower() == lk]
+    partial = [n for n in graph.nodes.values() if lk in (n.display_name or "").lower()]
+    cands = exact or partial
+    if not cands:
+        return None
+    return max(cands, key=lambda n: (n.stream_magnitude or 0, n.length_m)).node_id
 
 
 def summarize(chains, graph, fids) -> str:
@@ -86,6 +103,10 @@ def main() -> None:
     ap.add_argument("--gnis", help="comma-separated GNIS_NAME(s); bbox derived from them")
     ap.add_argument("--full", action="store_true", help="whole province (no bbox; heavy)")
     ap.add_argument("--splits", help="path to a splits.json to overlay as an anchors layer")
+    ap.add_argument("--tributaries-of", metavar="NAME|BLK",
+                    help="export the upstream tributary walk of this node as a 'tributaries' layer")
+    ap.add_argument("--lakes", action="store_true",
+                    help="export lake inlet/outlet points as a 'lake_io' layer")
     ap.add_argument("--out", default="output/v2/validate")
     args = ap.parse_args()
 
@@ -120,7 +141,22 @@ def main() -> None:
     out.mkdir(parents=True, exist_ok=True)
     write_artifact(chains, str(out / "blk_chains.pkl"))
     write_artifact(graph, str(out / "graph.pkl"))
-    export_graph_gpkg(graph, str(out / "graph.gpkg"), splits=splits)
+    gpkg_path = str(out / "graph.gpkg")
+    export_graph_gpkg(graph, gpkg_path, splits=splits)
+
+    if args.tributaries_of:
+        nid = resolve_node(graph, args.tributaries_of)
+        if nid is None:
+            print(f"  tributaries: no node matched {args.tributaries_of!r}")
+        else:
+            n = export_tributaries(graph, nid, gpkg_path)
+            tgt = graph.nodes[nid]
+            print(f"  tributaries of {tgt.display_name or nid} (blk {tgt.blk}): "
+                  f"{n - 1} tributary nodes -> 'tributaries' layer")
+
+    if args.lakes:
+        n = export_lake_io(fids, lake_kind, graph, gpkg_path)
+        print(f"  lake inlet/outlet points: {n} -> 'lake_io' layer")
 
     summary = summarize(chains, graph, fids)
     (out / "summary.txt").write_text(summary)
