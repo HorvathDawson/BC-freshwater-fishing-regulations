@@ -90,6 +90,7 @@ class BlkChain:
     stream_order: Optional[int] = None
     stream_magnitude: Optional[int] = None   # max over fids -> per-section minzoom
     waterbody_runs: tuple[WaterbodyRun, ...] = ()
+    edge_types: tuple[str, ...] = ()         # distinct FWA EDGE_TYPEs over fids; "2300" => barrier
 
 
 # --------------------------------------------------------- the stream graph (INVERTED)
@@ -116,8 +117,14 @@ class StreamNode:
     stream_order: Optional[int] = None
     stream_magnitude: Optional[int] = None
     member_fids: tuple[str, ...] = ()
+    edge_types: tuple[str, ...] = ()            # preserved from the BLK merge; "2300" => barrier
     geometry: Any = None
     location_identifier: Optional[str] = None   # filled once splits define bounds (04)
+
+    @property
+    def is_barrier(self) -> bool:
+        """A 2300 (canal/artificial connector) node stops the tributary walk (spike S2)."""
+        return "2300" in self.edge_types
 
 
 @dataclass(frozen=True)

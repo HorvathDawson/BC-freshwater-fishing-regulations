@@ -97,6 +97,9 @@ def build_blk_chains(fid_rows: list[FidRow], lake_wbk_kind: dict[str, str]) -> l
         for r in group:
             order = _max_opt(order, r.stream_order)
             magnitude = _max_opt(magnitude, r.stream_magnitude)
+        # Preserve distinct edge types: the merge would otherwise lose per-fid EDGE_TYPE, and
+        # 2300 (artificial connector) must survive to act as a tributary-walk barrier (S2).
+        edge_types = tuple(sorted({r.edge_type for r in group if r.edge_type}))
 
         runs = tuple(
             WaterbodyRun(wbk=r.wbk, down_m=r.down_m, up_m=r.up_m,
@@ -109,6 +112,6 @@ def build_blk_chains(fid_rows: list[FidRow], lake_wbk_kind: dict[str, str]) -> l
             blk=blk, fwa_watershed_code=group[0].wsc, fids=fids, geometry=geometry,
             mouth_measure=mouth_measure, length_m=length_m, name_tuples=name_tuples,
             gnis_id=gnis_id, gnis_name=gnis_name, stream_order=order,
-            stream_magnitude=magnitude, waterbody_runs=runs,
+            stream_magnitude=magnitude, waterbody_runs=runs, edge_types=edge_types,
         ))
     return chains

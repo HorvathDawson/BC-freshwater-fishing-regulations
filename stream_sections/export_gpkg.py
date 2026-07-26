@@ -140,14 +140,13 @@ def export_graph_gpkg(graph: StreamGraph, path: str,
 
 
 def export_tributaries(graph: StreamGraph, target_node_id: str, path: str,
-                       layer: str = "tributaries") -> int:
+                       layer: str = "tributaries", guarded: bool = True) -> int:
     """Write the ancestor set of ``target_node_id`` (the upstream tributary walk) as a layer.
 
     Appends to an existing GeoPackage. ``role`` = target|tributary; ``depth`` = number of
-    confluences upstream of the target (target = 0). This is the raw connectivity closure
-    (``graph.ancestors``); the WSC-descendant filter + 2300 barrier are NOT applied here — this
-    is exactly what the Phase-4 guarded walk will start from, so you can see the unfiltered
-    reach first and later diff the guarded result against it.
+    confluences upstream of the target (target = 0). The WSC-descendant filter is already baked
+    into the edge set at build time. ``guarded`` (default) additionally stops at EDGE_TYPE=2300
+    barrier nodes, matching ``graph.ancestors``; pass ``guarded=False`` to see the raw closure.
     """
     if target_node_id not in graph.nodes:
         raise ValueError(f"target node {target_node_id!r} not in graph")
@@ -158,9 +157,12 @@ def export_tributaries(graph: StreamGraph, target_node_id: str, path: str,
         cur = q.popleft()
         for ei in graph.up_adj.get(cur, []):
             src = graph.edges[ei].from_node
-            if src not in depth:
-                depth[src] = depth[cur] + 1
-                q.append(src)
+            if src in depth:
+                continue
+            if guarded and graph.nodes[src].is_barrier:
+                continue
+            depth[src] = depth[cur] + 1
+            q.append(src)
 
     rows = []
     for nid, d in depth.items():
