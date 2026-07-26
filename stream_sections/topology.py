@@ -6,6 +6,9 @@
    homogeneous — this preserves the 2300 barrier at segment granularity.
 3. Emit Topology(nodes, segments, down_adj, up_adj).
 
+Splits (04) are NOT flow barriers and do NOT appear here — they are section boundaries only,
+applied downstream in the sections step. Lakes are the only structural barrier (is_barrier).
+
 Edges are directed downstream (from_node=upstream, to_node=downstream); up_adj is the
 tributary (upstream) walk. FWA is already a DAG so there is no SCC condensation (spike 10).
 """
@@ -35,8 +38,7 @@ def _max_opt(a: Optional[int], b: Optional[int]) -> Optional[int]:
     return max(vals) if vals else None
 
 
-def build_topology(fid_rows: list[FidRow], lake_wbk_kind: dict[str, str],
-                   barrier_split_nodes: Optional[list] = None) -> Topology:
+def build_topology(fid_rows: list[FidRow], lake_wbk_kind: dict[str, str]) -> Topology:
     lake_map = _lake_endpoint_map(fid_rows, lake_wbk_kind)
 
     def node_of(coord_node: str) -> str:

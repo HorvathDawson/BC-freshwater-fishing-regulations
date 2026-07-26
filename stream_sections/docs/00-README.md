@@ -59,12 +59,23 @@ All code lives in top-level `stream_sections/` (outside `pipeline/`). Run with `
 - Validated on Adams River: 100% open-fid coverage (0 missing/dup/extra), Adams = 1 BLK /
   361 segments, name tuples correct. 14 unit tests pass (`tests/`).
 
-**Manual splits — schema + example DONE:** `splits.schema.md` + `splits.example.json`
-(primary form: a single coord + `blk` (one cut) or `wsc` (cut main + all side channels));
-`splits.load_split_defs` parses/validates. Anchor *resolution* is the next (sections) step.
+**Manual splits — schema + example DONE:** `splits.schema.md` (authoritative; supersedes the
+mechanics in `docs/04`) + `splits.example.json`. **Every cut is a line or a polygon
+boundary** (not a point/fid): `point` → auto perpendicular line at the target mainstem;
+`line` → explicit; `lake` → lake boundary; `mu_boundary` → the line between two MUs;
+`confluence` → at a tributary BLK. Target scope `blk`/`wsc`/`gnis` is proximity-limited
+(`proximity_m`). No `barrier`/`landmark`/`linear_feature_id`. `SplitDef.from_dict` validates.
 
-**Next:** anchor resolution + `sectionizer.py` (cut at lakes/splits) + `tributaries.py`
-(upstream walk with WSC filter + 2300 barrier) + the two real-data regression tests.
+**Debug/report tools (temporary):**
+- `export_gpkg.py` — `build.py` writes `graph.gpkg` (layers: `blk_chains`, `segments`,
+  `nodes`) for QGIS: colour `segments` by `blk` to see splits; `nodes` shows joins.
+- `complex_regs_report.py` — writes `output/v2/complex_regulations.md`: 62 curated overrides
+  with section-language names (prime split candidates) + parsed synopsis complexity
+  (location, tributary, multi-rule/exception).
+
+**Next:** anchor resolution (line/boundary ∩ channels, proximity-gated) + `sectionizer.py`
+(cut at lakes/splits) + `tributaries.py` (upstream walk with WSC filter + 2300 barrier) +
+the two real-data regression tests.
 
 ## Key verified facts driving the design (see `02` for evidence)
 

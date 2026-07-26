@@ -28,8 +28,7 @@ class NameSource(str, Enum):
 
 class NodeKind(str, Enum):
     confluence = "confluence"   # "x_y" endpoint where >=1 other BLK attaches
-    lake = "lake"               # collapsed lake/manmade wbk (barrier)
-    barrier = "barrier"         # a barrier:true split node
+    lake = "lake"               # collapsed lake/manmade wbk (structural barrier)
     outlet = "outlet"           # outdegree 0 (mouth / ocean / border)
     headwater = "headwater"     # indegree 0 (source)
 
@@ -42,13 +41,12 @@ class BoundaryKind(str, Enum):
 
 
 class AnchorType(str, Enum):
-    lake = "lake"
-    confluence = "confluence"
-    linear_feature_id = "linear_feature_id"
-    landmark = "landmark"
-    point = "point"
-    border = "border"
-    mu_boundary = "mu_boundary"   # management-unit boundary crossing (07)
+    """How a cut GEOMETRY is defined. Every cut is a LINE or a polygon BOUNDARY."""
+    point = "point"             # a coord -> auto perpendicular cut line at the target mainstem
+    line = "line"              # an explicit cut line (list of coords)
+    lake = "lake"              # a lake polygon boundary (wbk)
+    mu_boundary = "mu_boundary"  # the shared boundary line between two MUs
+    confluence = "confluence"    # a cut line at where a tributary BLK meets the mainstem
 
 
 # --------------------------------------------------------------------------- names
@@ -139,42 +137,58 @@ class Topology:
 
 @dataclass(frozen=True)
 class SplitAnchor:
-    """WHERE to cut. Only the fields relevant to ``type`` are populated.
+    """Defines the CUT GEOMETRY (always a line or a polygon boundary). Only the fields
+    relevant to ``type`` are populated.
 
-    Primary form is ``point`` + a coordinate: snap it to the nearest point on the target
-    stream(s) and cut there. Other types locate the position differently.
+    - point       : a coord -> an auto perpendicular cut line across the target mainstem
+                    (length bounded by SplitDef.proximity_m, so it also catches nearby side
+                    channels but nothing far away).
+    - line        : an explicit cut line (>=2 coords).
+    - lake        : the lake polygon boundary (wbk).
+    - mu_boundary : the shared boundary line between mu_a and mu_b (needs BOTH).
+    - confluence  : an auto cut line where tributary_blk meets the target mainstem.
     """
     type: AnchorType
-    coord: Optional[tuple[float, float]] = None   # (x, y) EPSG:3005, or (lng, lat) if is_lonlat
+    coord: Optional[tuple[float, float]] = None       # point
+    coords: tuple[tuple[float, float], ...] = ()      # line (>=2 vertices)
     is_lonlat: bool = False
-    wbk: str = ""                 # lake anchor
-    fid: str = ""                 # linear_feature_id anchor (exact)
-    mu_id: str = ""               # mu_boundary anchor
-    name: str = ""                # landmark / confluence descriptor
-    tributary_gnis_id: str = ""   # confluence anchor
+    wbk: str = ""                 # lake
+    mu_a: str = ""                # mu_boundary (one side)
+    mu_b: str = ""                # mu_boundary (other side)
+    tributary_blk: str = ""       # confluence (the tributary's BLK, not gnis)
 
     @classmethod
     def from_dict(cls, d: Mapping[str, Any]) -> "SplitAnchor":
+        t = AnchorType(d["type"])
         coord = d.get("coord")
+        coords = tuple((float(c[0]), float(c[1])) for c in d.get("coords", []))
+        if t == AnchorType.mu_boundary and not (d.get("mu_a") and d.get("mu_b")):
+            raise ValueError("mu_boundary anchor needs both mu_a and mu_b")
+        if t == AnchorType.line and len(coords) < 2:
+            raise ValueError("line anchor needs >=2 coords")
+        if t == AnchorType.confluence and not d.get("tributary_blk"):
+            raise ValueError("confluence anchor needs tributary_blk")
         return cls(
-            type=AnchorType(d["type"]),
+            type=t,
             coord=(float(coord[0]), float(coord[1])) if coord else None,
-            is_lonlat=bool(d.get("is_lonlat", False)),
-            wbk=str(d.get("wbk", "")), fid=str(d.get("fid", "")),
-            mu_id=str(d.get("mu_id", "")), name=str(d.get("name", "")),
-            tributary_gnis_id=str(d.get("tributary_gnis_id", "")),
+            coords=coords, is_lonlat=bool(d.get("is_lonlat", False)),
+            wbk=str(d.get("wbk", "")), mu_a=str(d.get("mu_a", "")), mu_b=str(d.get("mu_b", "")),
+            tributary_blk=str(d.get("tributary_blk", "")),
         )
 
 
 @dataclass(frozen=True)
 class SplitDef:
-    """One hand-authored split from splits.json. ``id`` is a STABLE key (part of the ABI).
+    """One hand-authored split. ``id`` is a STABLE key (part of the section_id ABI).
 
-    Target (which streams to cut) is exactly one of:
-      - ``blk``     : cut this single blue line (one cut).
-      - ``wsc``     : cut EVERY blue line sharing this watershed code (main + side channels)
-                      at the anchor — the multi-cut form for zone/section boundaries.
-      - ``gnis_id`` : resolve to the named stream's blk(s), then behave like ``blk``.
+    A split's cut geometry (anchor) intersects streams; each crossed channel within
+    ``proximity_m`` and matching the optional target scope is cut where it crosses.
+
+    Target scope (optional, at most one) narrows which channels are eligible:
+      - ``blk``     : only this blue line.
+      - ``wsc``     : this river + its side channels (share the WSC) — proximity-limited.
+      - ``gnis_id`` : resolve to the named stream's blk(s).
+    A ``point``/``confluence`` anchor REQUIRES a target (it needs a mainstem to cut across).
     """
     id: str
     anchor: SplitAnchor
@@ -183,32 +197,34 @@ class SplitDef:
     gnis_id: str = ""
     stream_name: str = ""
     label: str = ""
-    barrier: bool = False
+    proximity_m: float = 500.0    # max distance a channel may be from the cut geometry
 
     @classmethod
     def from_dict(cls, d: Mapping[str, Any]) -> "SplitDef":
         targets = [k for k in ("blk", "wsc", "gnis_id") if d.get(k)]
-        if len(targets) != 1:
-            raise ValueError(f"split {d.get('id')!r} must set exactly one of blk/wsc/gnis_id, got {targets}")
+        if len(targets) > 1:
+            raise ValueError(f"split {d.get('id')!r}: at most one of blk/wsc/gnis_id, got {targets}")
+        anchor = SplitAnchor.from_dict(d["anchor"])
+        if anchor.type in (AnchorType.point, AnchorType.confluence) and not targets:
+            raise ValueError(f"split {d.get('id')!r}: {anchor.type.value} anchor requires a target (blk/wsc/gnis_id)")
         return cls(
-            id=str(d["id"]), anchor=SplitAnchor.from_dict(d["anchor"]),
+            id=str(d["id"]), anchor=anchor,
             blk=str(d.get("blk", "")), wsc=str(d.get("wsc", "")),
             gnis_id=str(d.get("gnis_id", "")), stream_name=str(d.get("stream_name", "")),
-            label=str(d.get("label", "")), barrier=bool(d.get("barrier", False)),
+            label=str(d.get("label", "")), proximity_m=float(d.get("proximity_m", 500.0)),
         )
 
 
 @dataclass(frozen=True)
 class SplitPoint:
-    """A resolved split. Written back to splits.resolved.json for reviewable, deterministic builds."""
+    """A resolved cut on one blue line. Written to splits.resolved.json for reviewable builds."""
     split_id: str
-    blk: str                # the specific blue line this cut lands on (one per blk for wsc targets)
+    blk: str                # the specific blue line this cut lands on (one per crossed channel)
     route_measure: float    # absolute DOWNSTREAM_ROUTE_MEASURE cut position
     fid: str                # containing fid (stored back)
     label: str
-    barrier: bool
     anchor_type: AnchorType
-    snap_dist_m: float = 0.0  # distance from the authored coord to the snapped point (review aid)
+    offset_m: float = 0.0   # distance from the cut geometry to the channel crossing (review aid)
 
 
 # ---------------------------------------------------------------------- sections (03/04)

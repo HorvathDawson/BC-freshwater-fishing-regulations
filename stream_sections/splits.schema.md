@@ -1,57 +1,54 @@
 # Manual stream splits — schema & how to author them
 
-A **split** cuts one or more blue lines at one location, producing separate **sections** with
-auto-generated `location_identifier`s (e.g. "upstream of Adams Lake"). This is how you say
-*which stream* and *where*. Authored as JSON; see `splits.example.json`. Loaded by
-`SplitDef.from_dict` (see `models.py`).
+A **split** defines a **cut geometry — always a line or a polygon boundary** — that slices
+the channels it crosses. Each crossed channel becomes two **sections** with auto-generated
+`location_identifier`s (e.g. "upstream of Adams Lake"). Authored as JSON; see
+`splits.example.json`. Loaded/validated by `SplitDef.from_dict` (`models.py`).
 
 ## Entry shape
 
 ```jsonc
 {
-  "id": "adams_lake",         // STABLE key — part of the section_id ABI; never rename casually
-  "blk"|"wsc"|"gnis_id": ..., // TARGET: exactly one (which stream(s) to cut) — see below
-  "anchor": { ... },          // WHERE to cut — see below
-  "label": "Adams Lake",      // human name used in the generated location_identifier
-  "barrier": false            // optional; true = also a flow barrier (dam) that stops tributaries
+  "id": "adams_lake",            // STABLE key — part of the section_id ABI; don't rename casually
+  "blk"|"wsc"|"gnis_id": ...,    // TARGET scope (optional, at most one) — which channels are eligible
+  "anchor": { "type": ... },     // the CUT GEOMETRY (line or polygon boundary)
+  "label": "Adams Lake",         // human name used in the generated location_identifier
+  "proximity_m": 500             // max distance a channel may be from the cut geometry (default 500)
 }
 ```
 
-## TARGET — which stream(s) to cut (exactly one)
+## The cut is always a line or a boundary
 
-| field | meaning | # cuts |
-|-------|---------|--------|
-| `blk` | cut this single blue line | 1 |
-| `wsc` | cut **every** blue line sharing this watershed code (main channel **and** all side channels) | N (one per BLK) |
-| `gnis_id` | resolve to the named stream's BLK(s), then behave like `blk` | 1+ |
+| `anchor.type` | fields | the cut geometry |
+|---------------|--------|------------------|
+| `point` **(primary)** | `coord:[x,y]`, `is_lonlat` | a short **line perpendicular** to the target mainstem at the nearest point, extended ±`proximity_m` so it also crosses nearby side channels. |
+| `line` | `coords:[[x,y],…]` (≥2), `is_lonlat` | the **explicit line** you author; cuts every eligible channel it crosses. |
+| `lake` | `wbk` | the **lake polygon boundary**; cut where the stream crosses in/out. |
+| `mu_boundary` | `mu_a`, `mu_b` (**both required**) | the **shared boundary line** between the two MUs; cut where streams cross it. |
+| `confluence` | `tributary_blk` | a cut line where that **tributary BLK** meets the target mainstem (BLK, not name — robust to unnamed tributaries and multi-mouth tributaries). |
 
-`wsc` is the braided-river form: one coordinate cuts the mainstem and every side channel at
-the same place, so a section boundary crosses the whole river cleanly. (Recall BLK→WSC is
-1:1; side channels share the mainstem's WSC — so a WSC target is exactly "this river and its
-side channels".)
+A cut never lands "at a fid boundary" — it is a geometric line/boundary, and each channel is
+cut exactly where it intersects.
 
-## ANCHOR — where to cut
+## TARGET scope — which channels are eligible (optional, at most one)
 
-| `type` | fields | resolution |
-|--------|--------|------------|
-| `point` **(primary)** | `coord: [x,y]`, `is_lonlat` | snap the coordinate to the **nearest point on each targeted BLK's geometry**, take that point's route measure, cut. `is_lonlat:true` → coord is `[lng,lat]` (WGS84, as read off a map); else EPSG:3005 `[x,y]`. |
-| `lake` | `wbk` | cut where the targeted stream enters/exits the lake (lake outlet/inlet route measure). |
-| `linear_feature_id` | `fid` | cut at that fid's downstream boundary — exact, no snapping. |
-| `mu_boundary` | `mu_id` | cut where the targeted stream crosses the MU boundary polygon (a located point cut). |
-| `landmark` | `name` (+ resolved `coord`) | resolve a named point feature to a coordinate, then as `point`. |
-| `confluence` | `tributary_gnis_id` | cut at the confluence with the named tributary. |
+| field | eligible channels |
+|-------|-------------------|
+| `blk` | only this blue line |
+| `wsc` | this river **and its side channels** (they share the WSC) — **proximity-limited**, so far-away same-WSC channels are never cut |
+| `gnis_id` | the named stream's blk(s) |
 
-**The primary workflow** is: pick a coordinate off a map, and say either `blk` (one channel)
-or `wsc` (the whole braided river). Everything else is for cases where a coordinate is
-awkward (a known lake, an exact fid, an admin boundary).
+`point` and `confluence` anchors **require** a target (they need a mainstem to cut across).
+`line`/`lake`/`mu_boundary` may omit it (the geometry defines the scope), but a target still
+narrows eligibility. Every match is additionally gated by `proximity_m`.
 
 ## What resolution produces
 
-Each targeted BLK yields a `SplitPoint(blk, route_measure, fid, label, barrier, snap_dist_m)`.
-`snap_dist_m` (distance from your coordinate to the snapped point) is written to
-`splits.resolved.json` so you can eyeball that the cut landed where you meant — if it's large,
-your coordinate was off the channel. The sectionizer then cuts geometry with
-`shapely.ops.substring` at each `route_measure` and generates the section labels:
+Each eligible channel the cut geometry crosses yields a
+`SplitPoint(blk, route_measure, fid, label, offset_m)`. `offset_m` (distance from the cut
+geometry to the crossing) is written to `splits.resolved.json` so you can confirm the cut
+landed where you meant. The sectionizer then cuts geometry with `shapely.ops.substring` at
+each `route_measure` and labels the sections:
 
 | section bounds | `location_identifier` |
 |----------------|-----------------------|
@@ -62,9 +59,7 @@ your coordinate was off the channel. The sectionizer then cuts geometry with
 
 ## Stability rules (ABI)
 
-- `id` and the target (`blk`/`wsc`/`gnis_id`) are stable keys. Renaming an `id` changes the
-  `section_id`s of the sections it bounds.
-- Changing only an anchor's **position** (moving the coordinate) re-cuts geometry but keeps
-  `section_id`s (the bound identity is the split `id`, not its measure).
+- `id` and the target are stable keys; renaming an `id` changes bounded sections' `section_id`s.
+- Moving a cut's **position** re-cuts geometry but keeps `section_id`s.
 - Adding a split on one stretch never changes sections elsewhere.
 - Build validation fails loud on duplicate generated `location_identifier`s within one gnis.

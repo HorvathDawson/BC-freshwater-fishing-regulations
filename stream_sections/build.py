@@ -17,6 +17,7 @@ from pathlib import Path
 from data.data_extractor import FWADataAccessor
 
 from .blk_chains import build_blk_chains, load_stream_fids
+from .export_gpkg import export_graph_gpkg
 from .names import resolve_names
 from .serialize import export_nodes_geojson, export_segments_geojson, write_artifact
 from .topology import build_topology
@@ -121,6 +122,7 @@ def main() -> None:
     write_artifact(topo, str(out / "topology.pkl"))
     export_segments_geojson(topo, str(out / "segments.geojson"))
     export_nodes_geojson(topo, str(out / "nodes.geojson"))
+    export_graph_gpkg(chains, topo, str(out / "graph.gpkg"))   # temporary QGIS inspection layer
 
     summary = summarize(chains, topo, fids, lake_kind)
     (out / "summary.txt").write_text(summary)
