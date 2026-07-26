@@ -1,167 +1,109 @@
-# 04 — General Hand-Split Boundary System (deep design)
+# 04 — Curated Split Boundary System (design)
 
-This is the "define a split location that is carried into the section description" item the
-user asked to make **fully general**: one side ("downstream of X" / "upstream of X"), both
-sides ("downstream of X, upstream of Y"), and everything in between — from one declarative
-definition.
+The "define a split location that is carried into the section description" idea, made
+**general**: one side ("downstream of X"), both sides ("between X and Y"), N splits → N+1
+sections — from one declarative definition per stream.
+
+> **Authoritative mechanics live in `stream_sections/splits.schema.md`** (anchor kinds, target
+> scope, proximity). This doc covers the *concepts* and the auto-`location_identifier` rule.
+> Where the two differ, the schema wins.
+
+## Scope: curated splits are for NON-lake boundaries
+
+A lake is **not** a curated split. Lakes are handled in the combine phase: a BLK is cut at the
+contiguous run of fids whose `wbk` is a lake/manmade waterbody (the under-lake distinction is
+carried on the fids themselves — no polygon needed), which promotes the lake to its own node
+**and** splits the through-river into its below-lake / above-lake sections automatically. So
+"Adams River **upstream of Adams Lake**" vs "**downstream of Adams Lake**" fall out for free
+from the lake node — no authored split is required for them (verified: Adams Lake's own
+`BLUE_LINE_KEY` *is* the Adams River BLK, with the under-lake fids flagged by `wbk`).
+
+Curated splits therefore exist only for boundaries the data does **not** already give us:
+- a falls / dam / bridge partway along a reach,
+- an **MU / zone boundary** where regulations genuinely differ (Fraser-type, see `07`),
+- a named-confluence boundary a synopsis entry references.
+
+Most regulations are the **same** above and below a lake — those need no split at all; both
+lake-side sections simply match the whole-river reg by name (see "How regulations attach").
 
 ## Core concepts
 
-### Split point
-A **split point** is a location along a single stream where we cut. It is defined
-*declaratively* by how to *find* it, and resolved *once at build time* to a concrete
-position on the stream (a boundary between two adjacent `linear_feature_id`s).
+### Anchor — the cut geometry
+Every cut is a **line or a polygon boundary** (never a bare point/fid). The anchor kinds are
+exactly those in `models.py::AnchorType` — see `splits.schema.md` for fields:
 
-A split point's **anchor** (how to find it) is one of:
+| Anchor | Cut geometry |
+|--------|--------------|
+| `point` | an auto **perpendicular line** across the target mainstem at that coord (length bounded by `proximity_m`, so it also catches nearby side channels but nothing far) |
+| `line` | an explicit cut line (≥2 coords) |
+| `lake` | a lake polygon boundary (`wbk`) — for the rare case a *curated* boundary should sit on a lake edge that the combine-phase split did not already create |
+| `mu_boundary` | the shared boundary line between `mu_a` and `mu_b` (needs both) |
+| `confluence` | an auto cut line where `tributary_blk` meets the target mainstem |
 
-| Anchor type | Field(s) | Resolves to | Example |
-|-------------|----------|-------------|---------|
-| `lake` | `wbk` | the fid where the stream enters/exits that lake | Adams Lake |
-| `confluence` | `tributary_gnis_id` (or `tributary_blk`) | the confluence node fid | "at the mouth of the Coquihalla" |
-| `linear_feature_id` | `fid` | that exact fid boundary | Wigwam River divide @ 706869683 |
-| `landmark` | `name` + resolved `fid` | a named point feature snapped to nearest stream fid | "the CPR Bridge" |
-| `point` | `lat, lng` | nearest stream fid boundary (linear-referenced) | manual coordinate |
-| `border` | admin polygon edge | fid where stream crosses the boundary | "the Idaho border" |
+All anchors **resolve once at build time** to `SplitPoint(blk, route_measure, fid, offset_m)`
+along a blue line. After resolution every anchor is identical downstream — that is what makes
+the system general. The resolved points are written to `splits.resolved.json` so a human can
+eyeball "did the cut land where I meant?" and builds stay deterministic.
 
-All anchor types **normalize to a single resolved position**: `(blk, route_measure)` — an
-absolute `DOWNSTREAM_ROUTE_MEASURE` value along the blue line. Once resolved, every anchor
-type is identical downstream in the pipeline. This is what makes it general.
-
-**Geometry cut (verified):** FWA carries `DOWNSTREAM_ROUTE_MEASURE`/`UPSTREAM_ROUTE_MEASURE`
-/`LENGTH_METRE` on every row, and 2D geometry length matches route measure to ~1 cm. So a
-split at absolute measure `M` cuts the containing segment at local offset
-`M − DOWNSTREAM_ROUTE_MEASURE` via `shapely.ops.substring` — we can split **mid-segment**,
-not only at fid boundaries. This is why sections carry **new cut geometry** (see `02` §"two
-granularities" and `03` Step 5), and why the tiles ship section geometry rather than the old
-fids.
-
-### Split definition (the hand-authored input)
-
-Authored per stream (keyed by gnis_id, or blk when a gnis spans identities). One stream can
-have any number of split points. Proposed schema (JSON, sits alongside `overrides.json` or
-folded into it):
-
-```json
-{
-  "gnis_id": "39257",
-  "stream_name": "Adams River",
-  "splits": [
-    { "id": "adams_lake", "anchor": { "type": "lake", "wbk": "9200..." } }
-  ]
-}
-```
-
-Multi-split example (a river cut in two places → three sections):
-
-```json
-{
-  "gnis_id": "12345",
-  "stream_name": "Example River",
-  "splits": [
-    { "id": "hwy_bridge", "anchor": { "type": "landmark", "name": "Highway 1 Bridge" } },
-    { "id": "falls",      "anchor": { "type": "linear_feature_id", "fid": "706..." } }
-  ]
-}
-```
+**Geometry cut (verified):** FWA carries route measures and 2D length matches to ~1 cm, so a
+cut at absolute measure `M` slices the containing fid at local offset `M − mouth_measure` via
+`shapely.ops.substring` — **mid-fid**, not only at fid boundaries. Sections thus carry **new
+cut geometry**, not whole fids. (Handle the 0.69% all-2-point BLKs with interpolation.)
 
 ### Section (the output)
+Walking a stream mouth→source and cutting at each resolved split (plus the lake boundaries the
+combine phase already produced) yields an ordered list of sections. Each records `section_id`,
+`blk`, `name_tuples`/`display_name`, `lake_wbk` (if it abuts a lake), the **new cut geometry**,
+`member_fids` (provenance only — the graph uses ancestors, not fids), its two bounds, and an
+auto `location_identifier`.
 
-The split builder walks the stream's fids **in flow order** (downstream→upstream, using the
-directed graph / FWA downstream_route_measure) and cuts at each resolved split position,
-producing an ordered list of sections. Each section records:
+## Auto-generating `location_identifier`
 
-```
-section {
-  section_id,                      # stable hash of (blk, ordered boundary ids, lake_wbk)
-  blk, name_tuples, display_name,  # name_tuples per 02; display = highest-priority tuple
-  lake_wbk,                        # non-null if this section abuts / is a lake run
-  geometry,                        # NEW cut geometry (substring), not whole fids
-  member_fids: [...],              # composing FWA fids (provenance; graph uses ancestors)
-  lower_bound: split_id | "outlet",     # toward the mouth
-  upper_bound: split_id | "headwaters", # toward the source
-  location_identifier              # AUTO-GENERATED, see below
-}
-```
-
-## Auto-generating `location_identifier` (the general rule)
-
-Given a section with `lower_bound` L (downstream side) and `upper_bound` U (upstream side),
-where each bound is either a split point or a natural end:
+A section has exactly two bounds — `lower_bound` L (toward the mouth) and `upper_bound` U
+(toward the source) — each either a split, a lake, or a natural end:
 
 | lower_bound (L) | upper_bound (U) | location_identifier |
 |-----------------|-----------------|---------------------|
-| outlet | headwaters | `null`  *(stream has no splits)* |
-| outlet | split X | `"downstream of {X}"` |
-| split X | headwaters | `"upstream of {X}"` |
-| split X | split Y | `"between {X} and {Y}"` *(equivalently "downstream of Y, upstream of X")* |
+| outlet | headwaters | `null` *(stream has no boundaries)* |
+| outlet | X | `"downstream of {X}"` |
+| X | headwaters | `"upstream of {X}"` |
+| X | Y | `"between {X} and {Y}"` |
 
-Where `{X}` is the split point's human name (`stream_name` of a confluence tributary, lake
-name, landmark name, or an authored `label`). Direction words come **purely from flow
-geometry**: the bound nearer the mouth → "downstream of"; nearer the source → "upstream of".
-This single table covers every case the user listed and any number of splits, because a
-section only ever has exactly two bounds.
+`{X}` is the boundary's human name — a lake name, a confluence tributary's `stream_name`, or an
+authored `label`. Direction words come **purely from flow geometry**: the bound nearer the
+mouth → "downstream of", nearer the source → "upstream of". Because a section only ever has two
+bounds, this one table covers every case and any number of splits, and labels stay **stable and
+local** — adding a split elsewhere on the river does not relabel unrelated sections.
 
-**Consistency rule:** always describe a section by its two immediate bounds. This makes
-labels stable and local — adding a third split elsewhere on the river does not relabel
-unrelated sections.
-
-**Disambiguation:** if two split points share a name (e.g. two "Falls"), append the authored
-`id` or a distance qualifier. Validate uniqueness of generated `location_identifier` within
-a gnis at build time (fail loud, like `test_overrides_validation.py` does today).
-
-## Resolving anchors to positions (build-time, once)
-
-1. **lake**: from `wbk`, get the lake's outlet/inlet fids (the existing
-   `_wbk_to_fids` / lake-outlet machinery in `feature_resolver.py` already computes lake
-   outlet fids). The split sits at the outlet (downstream side) and, for a through-flowing
-   lake, the inlet (upstream side) — a lake naturally produces a barrier node, so an
-   "upstream of Adams Lake" section starts at the lake's upstream inlet.
-2. **confluence**: find the graph node where `tributary_gnis_id` meets this stream; the
-   split boundary is the fid immediately upstream of that node on the mainstem.
-3. **linear_feature_id**: use the fid's `DOWNSTREAM_ROUTE_MEASURE` (or its up-measure) as
-   the cut position — exact, already the mechanism behind Wigwam/Shuswap in `overrides.json`.
-4. **landmark / point / border**: project the coordinate (or admin-boundary crossing) onto
-   the blue line to get a route measure (`geom.project` → measure), then cut. Store the
-   resolved `(blk, route_measure)` back into the split definition (this is exactly
-   `Landmark.fid`/position in `matching/reg_models.py` — "leave as None until that linking
-   step is done").
-
-**Store resolved fids back** into the authored file (or a generated sidecar) so builds are
-deterministic and reviewable, and so a human can eyeball "did the split land where I meant?"
-— mirroring how `overrides.json` already notes "divide is approximately at LFID 706869683".
+**Disambiguation:** if two boundaries share a name, append the authored `id` or a distance
+qualifier. Validate `location_identifier` uniqueness within a stream at build time (fail loud).
 
 ## How regulations attach to sections
 
-A regulation that says "Adams River (upstream of Adams Lake)" now resolves cleanly:
-- `_natural_search` finds the Adams River gnis.
-- the `location_text` "upstream of Adams Lake" matches the section whose
-  `location_identifier == "upstream of Adams Lake"` (or, more robustly, whose `upper_bound`
-  is above / `lower_bound` is the `adams_lake` split).
-- **This replaces the duplicate-override-row hack** where both halves pointed at the same
-  gnis. The two synopsis rows now land on two distinct sections.
+- "Adams River" (no qualifier) → matches **all** Adams River sections (below-lake, above-lake,
+  …) by name. This is the common "same reg above and below the lake" case — nothing special.
+- "Adams River (upstream of Adams Lake)" → the section whose `upper_bound` is above / whose
+  `location_identifier == "upstream of Adams Lake"`. The two synopsis rows land on two distinct
+  sections, **replacing the old duplicate-override-row hack** where both pointed at one gnis.
 
-Matching precedence: (1) explicit section_id in an override, (2) parsed `location_text`
-mapped to a split id, (3) whole-gnis fallback (all sections) when no location given.
+Matching precedence: (1) explicit `section_id` in an override, (2) parsed location text mapped
+to a boundary, (3) whole-stream fallback (all sections) when no location is given.
 
 ## Tributary interaction
 
-Splits define sections; the **contracted tree** connects them. A split point is also a tree
-node, so "tributaries upstream of the section boundary" fall out of the upstream walk from
-that section (see `03` G6). A section-level split does not by itself break tributary flow —
-only lakes and 2300 edges do (barriers). A hand split is a *labeling/matching* boundary, not
-necessarily a *flow* barrier, **unless** the authored split sets `barrier: true` (e.g. a dam
-that should stop upstream propagation). Add an optional `barrier` flag to the split schema
-for that case.
+Splits define section boundaries; the graph (nodes = sections/lakes, edges = flows-into)
+carries connectivity. A curated split is a **labeling/matching** boundary, not a flow barrier:
+tributary reachability is the guarded ancestor walk over the graph, and the only flow barriers
+are **lakes** and **EDGE_TYPE=2300** connectors — both already applied at graph-build time (the
+WSC-descendant edge filter + the 2300 `is_barrier` node). There is **no** per-split `barrier`
+flag; if a dam should stop propagation, that is a lake/2300 property of the geometry, not an
+authored flag on the split.
 
-## Generality checklist (maps to the user's ask)
+## Generality checklist
 
-- ✅ one-side split ("upstream of X" / "downstream of X") — 1 split → 2 sections.
-- ✅ two-side split ("downstream of X, upstream of Y") — 2 splits → the middle section is
-  `between X and Y`.
-- ✅ N splits → N+1 sections, each labeled by its two immediate bounds.
-- ✅ any anchor kind (lake / confluence / fid / landmark / point / border) via one
-  normalize-to-position step.
-- ✅ description carried on the section (`location_identifier`), auto-generated, stable,
-  local.
-- ✅ optional flow-barrier semantics via `barrier: true`.
-- ✅ deterministic + reviewable (resolved fids stored back).
+- ✅ one-side / two-side / N splits → N+1 sections, each labeled by its two immediate bounds.
+- ✅ any curated anchor kind (point/line/lake/mu_boundary/confluence) via one resolve-to-`(blk,
+  measure)` step.
+- ✅ lake above/below sections come **free** from the combine-phase lake split — not authored.
+- ✅ description carried on the section (`location_identifier`), auto-generated, stable, local.
+- ✅ deterministic + reviewable (resolved points stored back to `splits.resolved.json`).

@@ -42,25 +42,45 @@ Validated on the Adams extent (8393 nodes / 8243 edges, integrity OK; Adams = 1 
 tributaries). Node carries `fwa_watershed_code` + member fids so the Phase-4 walk can apply
 the **WSC-descendant filter** and the **2300 barrier** (both kept per Phase 0).
 
-Remaining: Phase 3 splits BLK nodes into section nodes (lakes + curated splits) and promotes
-lakes to nodes; the two real-data regression tests need the guarded walk.
-- Tests: `test_graph` (mainstem = one node; tributary flows-into at measure; ancestors); the
-  two regressions skipped until the guarded walk exists.
+**Guards now baked in at build time** (2026-07): the WSC-descendant edge filter drops
+braiding-reversed and cross-watershed edges at creation (only 7/8243 Adams edges dropped), and
+distinct `EDGE_TYPE`s are preserved through the merge so a 2300 node is `is_barrier`;
+`ancestors(guarded=True)` stops at it. Both real-data regressions (Chehalis/Harrison,
+Columbia/Kootenay) are **un-skipped** and green, plus synthetic pins for each guard.
 
-## Phase 3 — splits + sectionizer (`anchors.py`, `splits.py`, `sectionizer.py`)
+Remaining: Phase 3 promotes lakes to nodes + splits BLKs at lake-runs and curated splits, and
+decouples geometry from the graph (nodes hold a section id; geometry stored separately).
+- Tests: `test_graph` (mainstem = one node; flows-into at measure; ancestors; WSC filter; 2300
+  barrier; the two real-data regressions). ✅ done.
 
-- Author an initial `pipeline/matching/splits.json` (start with Adams lake split + Wigwam fid
-  split as fixtures); anchor resolvers → `SplitPoint`; write `splits.resolved.json`.
-- Cut BLK chains at lakes + splits → `Section`s with cut geometry, bounds,
-  `location_identifier`, per-section minzoom. Coverage + uniqueness validation.
-- Tests: `test_splits`, `test_sectionizer` (Adams two-section, label table, coverage).
-- **Verify:** Adams shows the two real sections; Wigwam splits at the divide.
+## Phase 3 — lake nodes + geometry decoupling + curated sectionizer
 
-## Phase 4 — tributaries (`tributaries.py`)
+Two mechanisms, kept separate (see `04`):
 
-- Guarded ancestor walk over `StreamGraph` (`graph.ancestors` + WSC-descendant filter + 2300
-  barrier + lake barrier) → `tributary_node_ids`; seed-set cache.
-- Tests: `test_tributaries` (lake barrier stop, tributary_only, no backtracking, cache).
+1. **Lakes → nodes, in the combine phase (`blk_chains.py`/`graph.py`).** Cut each BLK at its
+   contiguous lake/manmade `wbk` runs (only wbk present in the `lakes`/`manmade` layers — NOT
+   wetlands). Promote each lake `wbk` to ONE node; its incoming edges = inlets, outgoing =
+   outlet. This also produces the below-lake / above-lake stream sections **for free** (Adams
+   upper/lower). Record on the lake node which named river(s) thread it. `export_lake_io` then
+   just reads `up_adj`/`down_adj` of the lake node.
+   - Node-count impact (Adams extent, measured): 8393 BLKs → 9276 stream pieces + 1567 lake
+     nodes; only ~600 BLKs split into >1 piece. Acceptable.
+2. **Geometry off the graph.** `StreamNode` drops `geometry`; the graph holds only ids. Section
+   geometry is stored in a sidecar keyed by node/section id; `export_gpkg` joins on it.
+3. **Curated sectionizer (`anchors.py`, `splits.py`, `sectionizer.py`) — non-lake only.** Author
+   `splits.json` (falls/bridges/MU boundaries); anchor resolvers → `SplitPoint` →
+   `splits.resolved.json`; cut at curated splits → `Section`s with cut geometry, bounds,
+   `location_identifier`, minzoom. Coverage + uniqueness validation.
+- Tests: `test_blk_chains` (lake-run split, no wetland split, edge_types), `test_splits`,
+  `test_sectionizer` (label table, coverage), lake-node inlet/outlet.
+- **Verify:** Adams shows Lower Adams | Adams Lake | Upper Adams from the lake split alone;
+  a curated split (e.g. a falls) adds a further boundary.
+
+## Phase 4 — tributaries roll-up (`tributaries.py`)
+
+- The flow guards already live in the graph (`ancestors(guarded=True)`). This step only
+  aggregates the guarded ancestor node set to **section** ids and caches seed sets.
+- Tests: `test_tributaries` (`tributary_only` excludes the named section; cache).
 - **Verify:** golden parity of tributary sets vs legacy on the known rivers (minus corrected
   leaks).
 
