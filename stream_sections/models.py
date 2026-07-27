@@ -27,6 +27,8 @@ class NameSource(str, Enum):
     gauge = "gauge"                       # hydrometric gauge (WSC) name
     stocking = "stocking"                 # stocking DB common name (by wbk)
     bathymetry = "bathymetry"             # bathymetry map name (by wbk)
+    marker = "marker"                     # bathymetry map marker / point-of-interest name (by wbk)
+    alias = "alias"                       # alternate name — SEARCHABLE but never beats gazette
     synopsis = "synopsis"                 # a verbatim name used by a regulation entry
 
 

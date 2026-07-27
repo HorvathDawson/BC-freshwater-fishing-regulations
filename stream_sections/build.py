@@ -149,6 +149,7 @@ def main() -> None:
     ap.add_argument("--gnis", help="comma-separated GNIS_NAME(s); bbox derived from them")
     ap.add_argument("--full", action="store_true", help="whole province (no bbox; heavy)")
     ap.add_argument("--splits", help="path to a splits.json to overlay as an anchors layer")
+    ap.add_argument("--name-variants", help="path to a compiled name_variants.json (docs/13)")
     ap.add_argument("--tributaries-of", metavar="NAME|BLK",
                     help="export the upstream tributary walk of this node as a 'tributaries' layer")
     ap.add_argument("--lakes", action="store_true",
@@ -195,6 +196,14 @@ def main() -> None:
         fid_index = {f.fid: (f.down_m, f.up_m, f.stream_order, f.stream_magnitude) for f in fids}
         split_graph_at(graph, geoms, pts, fid_index)   # curated sections BEFORE any tributary walk
         print(f"  resolved {len(pts)} curated split point(s) -> {len(graph.nodes)} nodes")
+
+    # Attach compiled name variations (docs/13) to nodes — AFTER splits so reach targets hit pieces.
+    from .names import apply_name_variants, load_name_variants
+    nv_path = args.name_variants or (Path(__file__).resolve().parent / "name_variants.json")
+    nv = load_name_variants(nv_path)
+    if nv:
+        n = apply_name_variants(graph, nv)
+        print(f"  applied {len(nv)} name-variant entries -> {n} node attachments")
 
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)

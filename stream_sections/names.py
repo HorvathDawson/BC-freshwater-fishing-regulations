@@ -11,18 +11,16 @@ upstream-inherited is deferred (needs the topology graph) — see TODO.
 from __future__ import annotations
 
 import json
+import re
 from dataclasses import replace
 from pathlib import Path
 from typing import Optional
 
-from .models import BlkChain, NameSource, NameTuple
+from .models import BlkChain, NameSource, NameTuple, NodeKind, StreamGraph
 
-_PRIORITY = {
-    NameSource.override: 0,
-    NameSource.gazette: 1,
-    NameSource.side_channel: 2,
-    NameSource.upstream_inherited: 3,
-}
+# Display priority = the NameSource declaration order (override highest). Derived so it can
+# never drift out of sync with the enum (a missing source used to KeyError in _sorted_unique).
+_PRIORITY = {s: i for i, s in enumerate(NameSource)}
 
 _DEFAULT_OVERRIDES = Path(__file__).resolve().parents[1] / "pipeline" / "matching" / "feature_display_names.json"
 
@@ -78,16 +76,10 @@ def resolve_names(chains: list[BlkChain], overrides: Optional[dict] = None,
     for c in chains:
         tuples: list[NameTuple] = list(c.name_tuples)  # gazette tuple set in blk_chains
 
-        # override (highest priority) — by blk, then any member fid
-        ov = overrides["blk"].get(c.blk)
-        if ov is None:
-            ov = next((overrides["fid"][f.fid] for f in c.fids if f.fid in overrides["fid"]), None)
-        if ov:
-            name, variants = ov
-            if name:
-                tuples.append(NameTuple(name, NameSource.override))
-            for v in variants:
-                tuples.append(NameTuple(v, NameSource.override))
+        # NOTE manual display-name overrides (feature_display_names.json) are NOT applied here
+        # anymore — they moved into the compiled name_variants.json + names.apply_name_variants,
+        # which runs on the GRAPH (reach-aware, so 'Two Forty-One Creek above Greyback Lake' hits
+        # only the upper piece, not the whole shared BLK). resolve_names sets gazette + side-channel.
 
         # side-channel — the highest-magnitude DIFFERENT named BLK sharing this WSC
         siblings = [s for s in by_wsc.get(c.fwa_watershed_code, [])
@@ -102,3 +94,72 @@ def resolve_names(chains: list[BlkChain], overrides: Optional[dict] = None,
 
         out.append(replace(c, name_tuples=_sorted_unique(tuples)))
     return out
+
+
+# ------------------------------------------------------------ name variations (docs/13, graph)
+
+_ABBREV = [(re.compile(r"\bL\.$"), "Lake"), (re.compile(r"\bCr\.$"), "Creek"),
+           (re.compile(r"\bR\.$"), "River")]
+
+
+def _display_case(name: str) -> str:
+    """Title-case a SHOUTING/abbreviated name (stocking/bathy/synopsis) for display; leave
+    already-cased names (override/gazette like 'McArthur') untouched."""
+    if not name or name != name.upper():
+        return name
+    s = name.title()
+    for pat, full in _ABBREV:
+        s = pat.sub(full, s)
+    return s
+
+
+def load_name_variants(path) -> list[dict]:
+    p = Path(path)
+    return json.loads(p.read_text()) if p.exists() else []
+
+
+def _node_matches(node, target: dict, reach: Optional[dict]) -> bool:
+    if "blk" in target:
+        if node.kind != NodeKind.stream or node.blk != target["blk"]:
+            return False
+        if reach:
+            lo, hi = reach.get("from_m", node.down_m), reach.get("to_m", node.up_m)
+            return node.up_m > lo and node.down_m < hi   # piece overlaps the reach window
+        return True
+    if "wbk" in target:
+        return node.kind == NodeKind.lake and node.wbk == target["wbk"]
+    if "gnis_id" in target:
+        return node.gnis_id == target["gnis_id"] and bool(node.gnis_id)
+    if "wsc" in target:
+        return node.wsc == target["wsc"] and bool(node.wsc)
+    return False
+
+
+def apply_name_variants(graph: StreamGraph, entries: list[dict]) -> int:
+    """Attach compiled name variants (docs/13) to graph nodes as (name, source, note) tuples,
+    re-priority the tuples, and recompute display_name (title-cased for shouty sources). Returns
+    the number of (entry, node) applications. Runs AFTER splits so reach targeting hits pieces."""
+    applied = 0
+    for entry in entries:
+        target, reach = entry.get("target", {}), entry.get("reach")
+        tuples = []
+        for n in entry.get("names", []):
+            nm = n.get("name")
+            if not nm:
+                continue
+            try:
+                src = NameSource(n.get("source", "alias"))
+            except ValueError:
+                src = NameSource.alias                # unknown source -> searchable alias
+            tuples.append(NameTuple(nm, src, n.get("note", "")))
+        if not tuples:
+            continue
+        for nid, node in graph.nodes.items():
+            if not _node_matches(node, target, reach):
+                continue
+            merged = _sorted_unique(list(node.name_tuples) + tuples)
+            top = merged[0] if merged else None
+            display = _display_case(top.name) if top else node.display_name
+            graph.nodes[nid] = replace(node, name_tuples=merged, display_name=display)
+            applied += 1
+    return applied
