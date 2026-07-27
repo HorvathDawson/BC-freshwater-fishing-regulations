@@ -79,7 +79,7 @@ or split up/downstream changes the measure. Authoring against it is fragile. Aut
 stable **blk (+ reach)**; resolve to the concrete piece(s) at build, and write the resolved
 section_ids to a review sidecar (`name_variants.resolved.json`) like `splits.resolved.json`.
 
-## Compiler (`stream_sections/name_variants_compile.py`) — one-off bootstrap
+## Compiler (`stream_sections/oneoff/name_variants_compile.py`) — one-off bootstrap
 
 Reads the current sources and emits `name_variants.json`. Future sources (stocking/bathy/gauges
 in new formats) get their own small appenders; this is just the initial merge.

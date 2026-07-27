@@ -1,6 +1,6 @@
 """One-off compiler (docs/13): merge the current static name sources into ONE name_variants.json.
 
-    .venv/bin/python -m stream_sections.name_variants_compile --out stream_sections/name_variants.json
+    .venv/bin/python -m stream_sections.oneoff.name_variants_compile --out stream_sections/name_variants.json
 
 Sources: feature_display_names.json, overrides.json, and the stocking/bathy names in
 output/pipeline/anglerinfo/anglerinfo_matches.json (wbk_names). FWA gazette stays live at build,
@@ -21,7 +21,7 @@ from typing import Optional
 from data.data_extractor import FWADataAccessor
 from pipeline.utils.wsc import trim_wsc
 
-_ROOT = Path(__file__).resolve().parents[1]
+_ROOT = Path(__file__).resolve().parents[2]   # stream_sections/oneoff/ -> repo root
 _FDN = _ROOT / "pipeline" / "matching" / "feature_display_names.json"
 _OVR = _ROOT / "pipeline" / "matching" / "overrides.json"
 _ANG = _ROOT / "output" / "pipeline" / "anglerinfo" / "anglerinfo_matches.json"

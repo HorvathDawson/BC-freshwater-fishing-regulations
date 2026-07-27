@@ -72,7 +72,8 @@ measure-independent id is ever needed.)
 sidecar) · `anchors.py` + `splits.py` (04) · `sectionizer.py` (**curated** splits — next) ·
 `tributaries.py` (section-level roll-up — next) · `cutting.py` (substring, node id, endpoint id)
 · `serialize.py` (IO + cache) · `build.py` (end-to-end validation CLI) · `export_gpkg.py` +
-`complex_regs_report.py` (temporary tools) · `run.py` (step entrypoints).
+`oneoff/` (one-off bootstrap scripts: `name_variants_compile.py`, `complex_regs_report.py`) ·
+`run.py` (step entrypoints).
 
 Tests: `stream_sections/tests/` — `test_<module>.py`. `test_graph.py` holds synthetic pins
 (mainstem-one-node, lake split, no-wetland-split, WSC filter, 2300 barrier) plus the two

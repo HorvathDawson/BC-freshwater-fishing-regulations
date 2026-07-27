@@ -78,8 +78,8 @@ boundary** (not a point/fid): `point` → auto perpendicular line at the target 
   tuples + tributary count + `is_barrier`), `lakes` (lake nodes + through-rivers + #inlets/
   #outlets), `confluences` (edges), `graph_nodes`/`graph_edges` (the topology as a node-link
   schematic), `anchors`, and optional `tributaries` (guarded ancestor walk) + `lake_io`.
-- `complex_regs_report.py` — writes `output/v2/complex_regulations.md`: 62 curated overrides
-  with section-language names (prime split candidates) + parsed synopsis complexity.
+- `oneoff/` — one-off bootstrap scripts (not part of the build): `name_variants_compile.py`
+  (→ `name_variants.json`, docs/13) and `complex_regs_report.py` (→ `output/v2/complex_regulations.md`).
 
 **Next:** `sectionizer.py`/`anchors.py` — **curated** splits only (lakes already split in the
 graph step): resolve cut line/boundary ∩ channels (proximity-gated) → cut geometry +
