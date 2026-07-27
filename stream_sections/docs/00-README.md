@@ -41,9 +41,12 @@ Matching logic is unchanged; it just targets sections.
 | `06-storage-and-client.md` | `section_id` self-identifying tiles, sub-1 MB bootstrap, lazy reg chunks, mobile rebuilt |
 | `07-zone-regulations.md` | **MU overlay** for base regs + **curated `mu_boundary` splits** for Fraser-type (Fraser vs Similkameen) |
 | `08-matching-and-invariants.md` | Matching pinned onto sections; the hard invariants that survive the rebuild |
-| `09-data-structures.md` | Schema rationale + serialization + split-indexing. **Authoritative schema is `pipeline/sections/models.py`.** |
+| `09-data-structures.md` | Schema rationale + serialization + split-indexing. **Authoritative schema is `stream_sections/models.py`.** |
 | `10-testing-plan.md` | Test-as-you-build tiers, the gating spikes (Chehalis/Kootenay), golden parity |
 | `11-implementation-plan.md` | De-risk-first build order + concrete first steps |
+| `12-section-tests.md` | **Visual** ASCII walkthrough of every anchor/section/tributary test case |
+| `13-name-variations.md` | Unified name-variations file (compiler + graph apply); `display` flag; wetland overlay |
+| `14-test-status.md` | **Dashboard** — pipeline status + all test files (46 pass / 11 skip), what's next |
 
 ## Implemented so far (branch `redesign/stream-sections`)
 
