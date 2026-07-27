@@ -55,6 +55,16 @@ def get_lake_names(fwa: FWADataAccessor, bbox=None) -> dict[str, tuple]:
     return names
 
 
+def get_mu_polys(fwa: FWADataAccessor) -> dict:
+    """WILDLIFE_MGMT_UNIT_ID -> full MU polygon (the fishing region-MU scheme reuses these).
+    Loaded whole (only ~225 rows) so mu_boundary anchors get unclipped polygons for adjacency."""
+    if "wmu" not in fwa.layer_names:
+        return {}
+    gdf = fwa.get_layer("wmu", columns=["WILDLIFE_MGMT_UNIT_ID"])
+    return {str(r.WILDLIFE_MGMT_UNIT_ID): r.geometry for r in gdf.itertuples()
+            if r.WILDLIFE_MGMT_UNIT_ID and r.geometry is not None}
+
+
 def bbox_from_gnis(fwa: FWADataAccessor, names: list[str], pad: float = 3000.0):
     gdf = fwa.get_features_by_attribute("streams", "GNIS_NAME", names)
     if gdf.empty:
@@ -165,8 +175,11 @@ def main() -> None:
     splits = load_split_defs(args.splits) if args.splits else None
     if splits:
         from .anchors import resolve_split_defs
+        from .models import AnchorType
         from .sectionizer import split_graph_at
-        pts = resolve_split_defs(splits, chains)
+        mu_polys = (get_mu_polys(fwa) if any(s.anchor.type == AnchorType.mu_boundary for s in splits)
+                    else None)
+        pts = resolve_split_defs(splits, chains, mu_polys=mu_polys)
         fid_index = {f.fid: (f.down_m, f.up_m, f.stream_order, f.stream_magnitude) for f in fids}
         split_graph_at(graph, geoms, pts, fid_index)   # curated sections BEFORE any tributary walk
         print(f"  resolved {len(pts)} curated split point(s) -> {len(graph.nodes)} nodes")

@@ -26,10 +26,15 @@ def load_split_defs(path: str) -> list[SplitDef]:
     return defs
 
 
-def resolve_splits(defs: list[SplitDef], chains: list[BlkChain], context: dict) -> list[SplitPoint]:
-    """Resolve each SplitDef to SplitPoint(s) via anchors.py. Implemented in the sections step."""
-    raise NotImplementedError("resolve_splits: sections-step work (needs geometry snap + graph)")
+def resolve_splits(defs: list[SplitDef], chains: list[BlkChain],
+                   mu_polys: dict | None = None) -> list[SplitPoint]:
+    """Resolve each SplitDef to SplitPoint(s) via anchors.py (geometry only, before the graph)."""
+    from .anchors import resolve_split_defs
+    return resolve_split_defs(defs, chains, mu_polys=mu_polys)
 
 
 def write_resolved(points: list[SplitPoint], path: str) -> None:
-    raise NotImplementedError("write_resolved: sections-step work")
+    """Write resolved SplitPoints to a reviewable JSON sidecar (splits.resolved.json)."""
+    rows = [{"split_id": p.split_id, "blk": p.blk, "route_measure": round(p.route_measure, 2),
+             "label": p.label, "anchor_type": p.anchor_type.value} for p in points]
+    Path(path).write_text(json.dumps(rows, indent=2))

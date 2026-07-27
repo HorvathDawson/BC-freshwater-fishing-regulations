@@ -5,12 +5,19 @@ tiny straight mainstem X on the y=0 axis over measures 0..300 so a resolved meas
 x-coordinate of the cut.
 """
 
+import os
+
+import pytest
 from shapely.geometry import LineString, box
 
+from data.data_extractor import FWADataAccessor
 from stream_sections import cutting
 from stream_sections.anchors import resolve_split_defs
 from stream_sections.blk_chains import FidRow, build_blk_chains
 from stream_sections.models import AnchorType, SplitAnchor, SplitDef
+
+_DATA = "data/bc_fisheries_data.gpkg"
+_needs_data = pytest.mark.skipif(not os.path.exists(_DATA), reason="needs data/bc_fisheries_data.gpkg")
 
 
 def _fid(fid, blk, wsc, coords, down_m, up_m, wbk="", gnis_name=""):
@@ -75,7 +82,8 @@ def test_lake_anchor_resolves_to_run_boundary():
     chains = build_blk_chains(fids, {"W": "lake"})
     sd = SplitDef(id="lk", blk="X", anchor=SplitAnchor(type=AnchorType.lake, wbk="W"))
     pts = resolve_split_defs([sd], chains)
-    assert [(p.blk, round(p.route_measure)) for p in pts] == [("X", 100)]
+    # a lake resolves to its two boundaries on the BLK (entry 100, exit 200) — both no-op splits.
+    assert sorted(round(p.route_measure) for p in pts) == [100, 200]
 
 
 def test_mu_boundary_anchor_splits_where_shared_edge_crosses():
@@ -94,3 +102,24 @@ def test_mu_boundary_non_adjacent_makes_no_split():
     sd = SplitDef(id="mu", blk="X",
                   anchor=SplitAnchor(type=AnchorType.mu_boundary, mu_a="a", mu_b="b"))
     assert resolve_split_defs([sd], chains, mu_polys=mu_polys) == []
+
+
+@_needs_data
+def test_real_splits_json_resolves_on_atnarko_extract():
+    """The authored splits.json confluence lands on the Atnarko where Hunlen Creek joins; the
+    lake anchor yields the two Adams-Lake boundaries; the REPLACE_ME entry resolves to nothing."""
+    from stream_sections.blk_chains import load_stream_fids
+    from stream_sections.build import bbox_from_gnis, get_lake_wbk_kind
+    from stream_sections.splits import load_split_defs
+
+    fwa = FWADataAccessor(_DATA)
+    defs = load_split_defs("stream_sections/splits.json")
+    bbox = bbox_from_gnis(fwa, ["Atnarko River", "Hunlen Creek"])
+    chains = build_blk_chains(load_stream_fids(_DATA, bbox=bbox), get_lake_wbk_kind(fwa, bbox))
+    by_id = {}
+    for p in resolve_split_defs(defs, chains):
+        by_id.setdefault(p.split_id, []).append(p)
+    # confluence: exactly one point on the Atnarko BLK
+    assert [(p.blk) for p in by_id.get("atnarko_at_hunlen", [])] == ["360879335"]
+    # the unresolved REPLACE_ME confluence yields nothing (tributary blk not in the data)
+    assert "burnt_bridge_at_sitkatapa" not in by_id

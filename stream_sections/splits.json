@@ -1,0 +1,52 @@
+{
+  "_about": "REAL curated splits grounded in FWA data + the fishing synopsis. One worked example per anchor kind. Every split defines a CUT that slices the targeted channel(s). See splits.schema.md and docs/04. from_dict ignores _comment/_about.",
+  "splits": [
+
+    {
+      "_comment": "LAKE — 'Adams River (upstream/downstream of Adams Lake)'. Adams Lake wbk=329014384 IS the Adams River blk 356362743. NOTE the lake already splits the BLK in the graph build, so this is a no-op split kept for matching (the boundary + label already exist).",
+      "id": "adams_lake",
+      "blk": "356362743",
+      "stream_name": "Adams River",
+      "anchor": { "type": "lake", "wbk": "329014384" },
+      "label": "Adams Lake"
+    },
+
+    {
+      "_comment": "POINT — 'Kootenay River (downstream of the Idaho border)'. The Kootenay (blk 356570348) crosses the 49th parallel; the coord is that border crossing in EPSG:3005 (southernmost Kootenay vertex).",
+      "id": "kootenay_idaho_border",
+      "blk": "356570348",
+      "stream_name": "Kootenay River",
+      "anchor": { "type": "point", "coord": [1784461.6, 430672.0], "is_lonlat": false },
+      "label": "Idaho border",
+      "proximity_m": 500
+    },
+
+    {
+      "_comment": "CONFLUENCE (both named) — 'Atnarko River' split where Hunlen Creek joins. Parent Atnarko blk=360879335; tributary Hunlen blk=360862431. Defined by BLK ids, not names.",
+      "id": "atnarko_at_hunlen",
+      "blk": "360879335",
+      "stream_name": "Atnarko River",
+      "anchor": { "type": "confluence", "tributary_blk": "360862431" },
+      "label": "Hunlen Creek"
+    },
+
+    {
+      "_comment": "MU BOUNDARY (the hard Fraser case) — split the Fraser (blk 356364114) where region-2 and region-3 MUs meet. mu_a/mu_b are WILDLIFE_MGMT_UNIT_IDs in the wmu layer. Because the Fraser runs ALONG this boundary the shared edge may cross it more than once; the resolver emits a SplitPoint at each crossing (enter/exit).",
+      "id": "fraser_region_2_3",
+      "blk": "356364114",
+      "stream_name": "Fraser River",
+      "anchor": { "type": "mu_boundary", "mu_a": "2-17", "mu_b": "3-15" },
+      "label": "Region 2 / Region 3"
+    },
+
+    {
+      "_comment": "CONFLUENCE (hard, unresolved) — 'Burnt Bridge Creek (upstream of Sitkatapa Creek)'. Burnt Bridge IS named (blk 360883785) but Sitkatapa Creek is ABSENT from FWA gnis, so its BLK must be found manually (map inspection) and pasted into tributary_blk. Left as REPLACE_ME so load validates the shape but resolution is a documented no-op until the blk is supplied. If the PARENT were unnamed it would also need a name override keyed by blk.",
+      "id": "burnt_bridge_at_sitkatapa",
+      "blk": "360883785",
+      "stream_name": "Burnt Bridge Creek",
+      "anchor": { "type": "confluence", "tributary_blk": "REPLACE_WITH_SITKATAPA_BLK" },
+      "label": "Sitkatapa Creek"
+    }
+
+  ]
+}

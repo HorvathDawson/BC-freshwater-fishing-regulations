@@ -20,11 +20,29 @@ cut may thus land on several BLKs (main + side channels), one SplitPoint each.
 from __future__ import annotations
 
 from collections import defaultdict
+from functools import lru_cache
 from typing import Optional
 
 from shapely.geometry import LineString, Point
 
 from .models import AnchorType, BlkChain, SplitDef, SplitPoint
+
+
+@lru_cache(maxsize=1)
+def _to_3005():
+    from pyproj import Transformer
+    return Transformer.from_crs(4326, 3005, always_xy=True)   # lon/lat -> BC Albers
+
+
+def _pt(coord, is_lonlat: bool) -> Point:
+    if is_lonlat:
+        x, y = _to_3005().transform(coord[0], coord[1])
+        return Point(x, y)
+    return Point(coord)
+
+
+def _line(coords, is_lonlat: bool) -> LineString:
+    return LineString([_pt(c, is_lonlat).coords[0] for c in coords])
 
 
 def _target_blks(sd: SplitDef, chains: list[BlkChain]) -> list[str]:
@@ -88,12 +106,12 @@ def resolve_split_defs(split_defs: list[SplitDef], chains: list[BlkChain],
                 if g is None or g.is_empty:
                     continue
                 if a.type == AnchorType.point and a.coord is not None:
-                    p = Point(a.coord)
+                    p = _pt(a.coord, a.is_lonlat)
                     d = g.project(p)
                     if g.interpolate(d).distance(p) <= sd.proximity_m:
                         _emit(sd, blk, c.mouth_measure + d)
                 elif a.type == AnchorType.line and a.coords:
-                    for p in _points(g.intersection(LineString(a.coords))):
+                    for p in _points(g.intersection(_line(a.coords, a.is_lonlat))):
                         _emit(sd, blk, c.mouth_measure + g.project(p))
 
         elif a.type == AnchorType.confluence:
@@ -110,9 +128,13 @@ def resolve_split_defs(split_defs: list[SplitDef], chains: list[BlkChain],
 
         elif a.type == AnchorType.lake:
             for blk, c in targets:
-                for run in c.waterbody_runs:
-                    if str(run.wbk) == a.wbk:
-                        _emit(sd, blk, run.down_m)   # no-op split (lake already split the BLK)
+                # waterbody_runs are per-fid; consolidate to the lake's two boundaries on this
+                # BLK (downstream entry, upstream exit). Both are no-op splits (the lake already
+                # split the BLK) — emitted for matching / completeness.
+                runs = [r for r in c.waterbody_runs if str(r.wbk) == a.wbk]
+                if runs:
+                    _emit(sd, blk, min(r.down_m for r in runs))
+                    _emit(sd, blk, max(r.up_m for r in runs))
 
         elif a.type == AnchorType.mu_boundary:
             if not mu_polys:
