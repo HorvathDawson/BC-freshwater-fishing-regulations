@@ -43,6 +43,7 @@ class _Compiler:
 
     def emit(self, target: dict, names: list[dict], reach: Optional[dict] = None):
         names = [n for n in names if n.get("name")]
+        target = {k: v for k, v in target.items() if v}   # drop empty id lists
         if target and names:
             e = {"target": target, "names": names}
             if reach:
@@ -94,28 +95,36 @@ class _Compiler:
     def add_feature_display_names(self, path: Path):
         for e in json.loads(path.read_text()):
             note = _clean(e.get("note"))
-            names = ([{"name": _clean(e.get("display_name")), "source": "override", "note": note}]
-                     + [{"name": _clean(v), "source": "alias", "note": note}
-                        for v in e.get("name_variants", []) or []])
-            for blk in e.get("blue_line_keys", []) or []:
-                self.emit({"blk": str(blk)}, names)
-            for wbk in e.get("waterbody_keys", []) or []:
-                self.emit({"wbk": str(wbk)}, names)
+            # provenance: a gauge-derived name (note says so) is `gauge`; the rest are manual
+            # names added for regulation matching -> `regulation`.
+            source = "gauge" if "gauge" in note.lower() else "regulation"
+            names = []
+            dn = _clean(e.get("display_name"))
+            if dn:                                   # the authored DISPLAY name -> beats gazette
+                names.append({"name": dn, "source": source, "note": note, "display": True})
+            names += [{"name": _clean(v), "source": source, "note": note}
+                      for v in e.get("name_variants", []) or []]
+            blks = [str(b) for b in e.get("blue_line_keys", []) or []]
+            wbks = [str(w) for w in e.get("waterbody_keys", []) or []]
+            if blks:                                 # one entry, all blks (multi-blk side channels)
+                self.emit({"blks": blks}, names)
+            if wbks:
+                self.emit({"wbks": wbks}, names)
             fids = e.get("linear_feature_ids", []) or []
             if fids:
                 res = self.fids_to_blk_reach([str(f) for f in fids])
                 if res:
                     blk, reach = res
-                    self.emit({"blk": blk}, names, reach=reach)
+                    self.emit({"blks": [blk]}, names, reach=reach)
 
-    def _entry_ids(self, e: dict) -> list[dict]:
-        """The structured target id(s) of an override entry (before 1:1 gating)."""
-        ids: list[dict] = []
-        ids += [{"gnis_id": str(g)} for g in e.get("gnis_ids", []) or []]
-        ids += [{"wbk": str(w)} for w in e.get("waterbody_keys", []) or []]
-        ids += [{"wbk": w} for w in self.polys_to_wbks([str(p) for p in e.get("waterbody_poly_ids", []) or []])]
-        ids += [{"wsc": trim_wsc(str(w))} for w in e.get("fwa_watershed_codes", []) or []]
-        ids += [{"blk": str(b)} for b in e.get("blue_line_keys", []) or []]
+    def _entry_ids(self, e: dict) -> list[tuple]:
+        """The structured target id(s) of an override entry as (plural_key, id), before 1:1 gating."""
+        ids: list[tuple] = []
+        ids += [("gnis_ids", str(g)) for g in e.get("gnis_ids", []) or []]
+        ids += [("wbks", str(w)) for w in e.get("waterbody_keys", []) or []]
+        ids += [("wbks", w) for w in self.polys_to_wbks([str(p) for p in e.get("waterbody_poly_ids", []) or []])]
+        ids += [("wscs", trim_wsc(str(w))) for w in e.get("fwa_watershed_codes", []) or []]
+        ids += [("blks", str(b)) for b in e.get("blue_line_keys", []) or []]
         return ids
 
     def add_overrides(self, path: Path):
@@ -140,11 +149,11 @@ class _Compiler:
                 ids = self._entry_ids(canon) if canon else []
                 if not ids:                                   # e.g. Heber River — gazette lookup
                     gnis = self.gazette_to_gnis(vo.get("name_verbatim", "").title())
-                    ids = [{"gnis_id": gnis}] if gnis else []
+                    ids = [("gnis_ids", gnis)] if gnis else []
                 variant_name = _clean(c.get("name_verbatim"))
-                for t in ids:
-                    self.emit(t, [{"name": variant_name, "source": "alias",
-                                   "note": f"variant_of {vo.get('name_verbatim')}; {note}"}])
+                for key, val in ids:
+                    self.emit({key: [val]}, [{"name": variant_name, "source": "regulation",
+                                              "note": f"variant_of {vo.get('name_verbatim')}; {note}"}])
                 if not ids:
                     self.log.append(f"variant_of unresolved: {c.get('name_verbatim')} -> {vo.get('name_verbatim')}")
                 continue
@@ -155,12 +164,13 @@ class _Compiler:
                     self.log.append(f"multi-id override not harvested (compound/group): "
                                     f"{c.get('name_verbatim')!r} -> {len(ids)} ids")
                 continue                                       # 1:1 gate (Q6)
-            names = [{"name": _clean(c.get("name_verbatim")), "source": "synopsis", "note": note}]
+            names = [{"name": _clean(c.get("name_verbatim")), "source": "regulation", "note": note}]
             if _clean(e.get("canonical_name")):
-                names.append({"name": _clean(e["canonical_name"]), "source": "alias", "note": note})
-            names += [{"name": _clean(v), "source": "alias", "note": note}
+                names.append({"name": _clean(e["canonical_name"]), "source": "regulation", "note": note})
+            names += [{"name": _clean(v), "source": "regulation", "note": note}
                       for v in e.get("name_variants", []) or []]
-            self.emit(ids[0], names)
+            key, val = ids[0]
+            self.emit({key: [val]}, names)
 
     def add_anglerinfo(self, path: Path):
         if not path.exists():
@@ -168,7 +178,7 @@ class _Compiler:
             return
         wbk_names = json.loads(path.read_text()).get("wbk_names", {})
         for wbk, names in wbk_names.items():
-            self.emit({"wbk": str(wbk)},
+            self.emit({"wbks": [str(wbk)]},
                       [{"name": _clean(n.get("name")), "source": n.get("source", "stocking"),
                         "note": ""} for n in names])
 

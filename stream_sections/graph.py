@@ -137,6 +137,7 @@ def build_stream_graph(chains: list[BlkChain], fid_rows: list[FidRow],
             down_m=frs[0].down_m, up_m=frs[-1].up_m, length_m=frs[-1].up_m - frs[0].down_m,
             stream_order=order, stream_magnitude=mag,
             member_fids=tuple(r.fid for r in frs), edge_types=_edge_types(frs),
+            member_wbks=tuple(sorted({str(r.wbk) for r in frs if r.wbk})),  # wetland/river overlays
         )
 
     # --- lake nodes (one per wbk; name = layer GNIS, else a threading river) ---

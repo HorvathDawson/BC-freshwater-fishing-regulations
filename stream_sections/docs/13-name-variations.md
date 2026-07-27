@@ -16,18 +16,22 @@ harvested here so both names survive.
 
 ## `NameTuple` (extended)
 
-`(name, source, note)`. `note` = free-text provenance ("WSC gauge 08NM241; above Greyback
-Lake"). `NameSource` (display priority high→low): `override` > `gazette` > `side_channel` >
-`upstream_inherited` > `gauge` > `stocking` > `bathymetry` > `alias` > `synopsis`.
+`(name, source, note)`. `source` is **provenance** (`gazette`, `gauge`, `regulation`,
+`stocking`, `bathymetry`, `marker`, plus computed `side_channel`/`upstream_inherited`);
+`note` = free-text context. Default display priority = the `NameSource` declaration order
+(gazette high). `note` records the true origin (e.g. "WSC gauge 08NM241…").
 
-**Display-worthy vs alias-only (critical).** A curated decision to *display* a non-gazette name
-(Two Forty-One from a gauge; an unnamed polygon's assigned name) is tagged `override` so it
-beats gazette on that piece. But an alternate name that must stay *searchable only* (e.g. "Arrow
-Reservoir" for Upper Arrow Lake — the source note says "alias only, keep the lake name") is
-tagged `alias`, below gazette, so the official name still displays. The distinction is authored,
-not guessed: `feature_display_names.display_name` → `override`; its `name_variants[]` and every
-harvested regulation/stocking/bathy name → `alias`/`stocking`/`bathymetry`/`synopsis` (all
-below gazette). `note` records the true origin regardless of the display tag.
+**Display-worthy is a separate `display: true` flag, NOT the source (critical).** Provenance and
+"which name to show" are orthogonal — a gauge name can be either the label (Two Forty-One) or a
+searchable alias (Arrow Reservoir). So the file marks the label explicitly:
+- `feature_display_names.display_name` → its name gets `display: true` (beats gazette on the
+  target, even though its provenance is `gauge`/`regulation`).
+- `name_variants[]`, harvested regulation verbatims, stocking/bathy names → **no** `display`
+  flag → searchable only; the highest-priority tuple (usually gazette) is the label.
+
+This replaces the earlier override-vs-alias source hack: "Arrow Reservoir" (gauge, no display)
+stays searchable while "Upper Arrow Lake" (gazette) displays; "Two Forty-One Creek" (gauge,
+`display: true`) beats the inherited "Penticton Creek".
 
 **Display casing.** Stocking/bathy/synopsis names are UPPERCASE and abbreviated ("UPPER ARROW
 L.", "LONG LAKE"). The stored tuple keeps the raw name (for search); `display_name` is
@@ -39,23 +43,34 @@ when the chosen display tuple is all-caps — override/gazette (already correctl
 
 ```json
 [
-  { "target": {"blk": "356569726"},
-    "reach": {"from_m": 26850},                                  // optional — a sub-piece of the blk
-    "names": [{"name": "Two Forty-One Creek", "source": "override",
+  { "target": {"blks": ["356569726"]},
+    "reach": {"from_m": 26850, "to_m": 34677},                   // optional — a sub-piece of the blk
+    "names": [{"name": "Two Forty-One Creek", "source": "gauge", "display": true,
                "note": "WSC gauge 08NM241; blk lumped under Penticton Creek, above Greyback Lake"}] },
 
-  { "target": {"wbk": "329459226"},
-    "names": [{"name": "Clark Lake", "source": "stocking", "note": "stocking source_id 175278; #1 (West)"}] },
+  { "target": {"blks": ["355994571","355994568","355994563","355994564"]},   // multi-blk side channel
+    "names": [{"name": "Jeperson Side Channel", "source": "regulation", "display": true, "note": "…"}] },
 
-  { "target": {"gnis_id": "17501"},
-    "names": [{"name": "Long Lake", "source": "override", "note": "alias; disambiguated from Long Lake (Nanaimo)"}] }
+  { "target": {"wbks": ["328961689"]},
+    "names": [{"name": "Arrow Reservoir", "source": "gauge", "note": "alias only — keep the lake name"}] },
+
+  { "target": {"gnis_ids": ["20215"]},
+    "names": [{"name": "Heber Creek", "source": "regulation", "note": "variant_of Heber River"}] }
 ]
 ```
 
-- `target`: exactly one of `blk` / `wbk` / `gnis_id` / `wsc`.
-- `reach` (optional, sub-piece targeting, **fid-free**): `{from_m, to_m}` measure window, or
-  `{upstream_of_wbk}` / `{downstream_of_wbk}` (relative to a lake that already split the blk).
-- `names`: one or more `{name, source, note}`.
+- `target`: **lists** — any of `blks` / `wbks` / `gnis_ids` / `wscs` (one entry can name a
+  multi-blk side channel, or several ids at once). Singular keys (`blk`…) are still accepted.
+- `reach` (optional, sub-piece targeting, **fid-free**): `{from_m, to_m}` measure window (the
+  piece the lake split already made — no fids).
+- `names`: one or more `{name, source, note, display?}`.
+  - **`source`** = provenance: `gauge` (note says gauge), `regulation` (from overrides / the
+    manual display-name file), `stocking`/`bathymetry`/`marker` (anglerinfo), or live `gazette`.
+  - **`display: true`** = this is the label for the target even if its source ranks below
+    gazette (how the gauge-sourced "Two Forty-One Creek" beats the inherited "Penticton Creek").
+    Omitted ⇒ the name is **searchable only**; the highest-priority tuple (usually gazette)
+    displays. So "Arrow Reservoir" (no `display`) stays searchable while "Upper Arrow Lake"
+    (gazette) is the label — replaces the old override-vs-alias hack.
 
 ### Why not key by section_id / "rename by identifier"
 Considered (the "rename by blk/identifier" idea). **Rejected as the authored key**: a
@@ -71,9 +86,9 @@ in new formats) get their own small appenders; this is just the initial merge.
 
 | Source | → target | names harvested | note |
 |--------|----------|-----------------|------|
-| `feature_display_names.json` | `blue_line_keys`→blk, `waterbody_keys`→wbk, `linear_feature_ids`→blk+reach (resolve fids→blk & min/max measure via FWA, **once**; assert single-blk + contiguous, so output is fid-free) | `display_name`→**override**; `name_variants[]`→**alias** | its `note` |
-| `overrides.json` | `gnis_ids`/`waterbody_keys`/**`waterbody_poly_ids`→wbk (via lakes layer)**/`fwa_watershed_codes`/`blue_line_keys` | **only when the entry maps 1:1 to a single id**: `criteria.name_verbatim`→`synopsis`, `canonical_name`→`alias`, `name_variants[]`→`alias`. Compound/group verbatims (multi-id) are NOT harvested per member (Q6). | `note`/`skip_reason` + region+MUs (scope stays in overrides.json for match) |
-| `overrides.json` `variant_of` (17, no own id) | resolve variant_of→canonical entry's id; else **gazette name+region → gnis/blk** (Heber, Bear R., Little Campbell have no override) | the variant `name_verbatim`→`alias` on the canonical | `variant_of` provenance |
+| `feature_display_names.json` | `blue_line_keys`→`blks`, `waterbody_keys`→`wbks`, `linear_feature_ids`→`blks`+reach (resolve fids→blk & min/max measure via FWA, **once**; assert single-blk + contiguous, so output is fid-free) | source = **`gauge`** if the note mentions a gauge else **`regulation`**; `display_name`→ that name with **`display: true`**; `name_variants[]`→ same source, searchable | its `note` |
+| `overrides.json` | `gnis_ids`/`waterbody_keys`/**`waterbody_poly_ids`→wbk (via lakes layer)**/`fwa_watershed_codes`/`blue_line_keys` | **only when the entry maps 1:1 to a single id**: `criteria.name_verbatim`, `canonical_name`, `name_variants[]` → **`regulation`** (searchable). Compound/group verbatims (multi-id) NOT harvested per member (Q6). | `note`/`skip_reason` + region+MUs (scope stays in overrides.json for match) |
+| `overrides.json` `variant_of` (17, no own id) | resolve variant_of→canonical entry's id; else **gazette name → gnis** (Heber→gnis 20215; Little Campbell/Bear R. ambiguous → logged) | the variant `name_verbatim`→**`regulation`** on the canonical | `variant_of` provenance |
 | `anglerinfo_matches.json.wbk_names` | `waterbody_keys`→wbk (already `str(wbk)`-keyed) | stocking names→`stocking`, bathy→`bathymetry` | source tag |
 | FWA gazette | (live at build, not in the file) | stream `GNIS_NAME`; lake `GNIS_NAME_1/2/3` (unioned across polygon rows) | — |
 
@@ -107,6 +122,26 @@ uses must end up as a node.
 arm/bay names ("Beaton Arm", "Galena Bay" on Upper Arrow Lake). They stay as low-priority
 searchable `stocking` tuples (never display); searching an arm name returns the whole lake.
 Acceptable for now; flag for a later filter.
+
+## Wetlands — overlay, NOT nodes (how lakes and wetlands differ)
+
+A named waterbody a regulation references must be attachable, but wetlands must behave unlike
+lakes: **do not remove the under-wetland stream, do not split the BLK, and do not act as a
+tributary barrier.** So:
+
+- **Lakes / manmade** (`get_lake_wbk_kind`): become a graph **node**; the BLK is split at the
+  wbk-run and the under-lake fids are absorbed into the lake node (a barrier-capable junction).
+- **Wetlands** (and river-polygon wbks): stay a pure **overlay**. The stream keeps flowing
+  through unbroken; each stream piece records the non-lake wbks its fids pass through in
+  `StreamNode.member_wbks`. A name-variant `target.wbks` resolves to a lake node by `wbk` **or**
+  to any stream piece whose `member_wbks` contains it — so a wetland name rides on the
+  through-stream piece with no node, no split, no barrier.
+
+```
+lake W:   … ──stream── [ lake:W node ] ──stream── …     (split, absorbed, barrier-capable)
+wetland WET: … ─────────stream piece─────────── …        (unbroken; piece.member_wbks = {WET})
+                         ▲ name "Cattail Marsh" (target wbks:[WET]) overlays this piece
+```
 
 ## Cases covered (acceptance checklist)
 

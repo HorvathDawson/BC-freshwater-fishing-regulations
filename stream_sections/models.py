@@ -25,6 +25,7 @@ class NameSource(str, Enum):
     side_channel = "side-channel"         # inherited from same-WSC main-channel BLK
     upstream_inherited = "upstream-inherited"  # nearest upstream named edge
     gauge = "gauge"                       # hydrometric gauge (WSC) name
+    regulation = "regulation"             # name a regulation entry / synopsis uses (by id)
     stocking = "stocking"                 # stocking DB common name (by wbk)
     bathymetry = "bathymetry"             # bathymetry map name (by wbk)
     marker = "marker"                     # bathymetry map marker / point-of-interest name (by wbk)
@@ -133,6 +134,8 @@ class StreamNode:
     stream_order: Optional[int] = None
     stream_magnitude: Optional[int] = None      # max in this piece -> front-end line weight
     member_fids: tuple[str, ...] = ()
+    member_wbks: tuple[str, ...] = ()           # non-lake wbks the fids pass through (wetland/river
+                                                # OVERLAYS — named, but NOT nodes/splits/barriers)
     edge_types: tuple[str, ...] = ()            # this piece's distinct EDGE_TYPEs; "2300" => barrier
     # Structured bounds (04): each end is a lake/split/confluence/mu boundary, or None = natural
     # (outlet toward the mouth, headwaters toward the source). Carry route_measure so a range

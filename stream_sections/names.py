@@ -118,48 +118,76 @@ def load_name_variants(path) -> list[dict]:
     return json.loads(p.read_text()) if p.exists() else []
 
 
+def _as_list(target: dict, singular: str, plural: str) -> list:
+    """Accept either a singular key (blk) or a plural list (blks) in a target."""
+    return list(target.get(plural, [])) + ([target[singular]] if target.get(singular) else [])
+
+
 def _node_matches(node, target: dict, reach: Optional[dict]) -> bool:
-    if "blk" in target:
-        if node.kind != NodeKind.stream or node.blk != target["blk"]:
-            return False
+    blks = _as_list(target, "blk", "blks")
+    wbks = _as_list(target, "wbk", "wbks")
+    gnis = _as_list(target, "gnis_id", "gnis_ids")
+    wscs = _as_list(target, "wsc", "wscs")
+    if blks and node.kind == NodeKind.stream and node.blk in blks:
         if reach:
             lo, hi = reach.get("from_m", node.down_m), reach.get("to_m", node.up_m)
             return node.up_m > lo and node.down_m < hi   # piece overlaps the reach window
         return True
-    if "wbk" in target:
-        return node.kind == NodeKind.lake and node.wbk == target["wbk"]
-    if "gnis_id" in target:
-        return node.gnis_id == target["gnis_id"] and bool(node.gnis_id)
-    if "wsc" in target:
-        return node.wsc == target["wsc"] and bool(node.wsc)
+    if wbks:
+        # a lake NODE by its wbk, OR a stream piece OVERLAID by a wetland/river wbk (member_wbks
+        # — the wetland is not a node/split/barrier; the name rides on the through-stream piece).
+        if node.kind == NodeKind.lake and node.wbk in wbks:
+            return True
+        if node.kind == NodeKind.stream and any(w in node.member_wbks for w in wbks):
+            return True
+    if gnis and node.gnis_id and node.gnis_id in gnis:
+        return True
+    if wscs and node.wsc and node.wsc in wscs:
+        return True
     return False
 
 
 def apply_name_variants(graph: StreamGraph, entries: list[dict]) -> int:
-    """Attach compiled name variants (docs/13) to graph nodes as (name, source, note) tuples,
-    re-priority the tuples, and recompute display_name (title-cased for shouty sources). Returns
-    the number of (entry, node) applications. Runs AFTER splits so reach targeting hits pieces."""
+    """Attach compiled name variants (docs/13) to graph nodes as (name, source, note) tuples and
+    recompute display_name. A name flagged ``display: true`` in the file becomes the node's label
+    even if its source ranks below gazette (e.g. the gauge-sourced 'Two Forty-One Creek' beats the
+    inherited 'Penticton Creek'); otherwise the highest-priority tuple displays. Shouty
+    stocking/gauge names are title-cased. Runs AFTER splits so reach targets hit pieces. Returns
+    the number of (entry, node) applications."""
+    authored: dict[str, str] = {}     # node_id -> explicit display name (display: true)
+    touched: set[str] = set()
     applied = 0
     for entry in entries:
         target, reach = entry.get("target", {}), entry.get("reach")
-        tuples = []
+        tuples, disp = [], ""
         for n in entry.get("names", []):
             nm = n.get("name")
             if not nm:
                 continue
             try:
-                src = NameSource(n.get("source", "alias"))
+                src = NameSource(n.get("source", "regulation"))
             except ValueError:
                 src = NameSource.alias                # unknown source -> searchable alias
             tuples.append(NameTuple(nm, src, n.get("note", "")))
+            if n.get("display"):
+                disp = nm
         if not tuples:
             continue
         for nid, node in graph.nodes.items():
             if not _node_matches(node, target, reach):
                 continue
-            merged = _sorted_unique(list(node.name_tuples) + tuples)
-            top = merged[0] if merged else None
-            display = _display_case(top.name) if top else node.display_name
-            graph.nodes[nid] = replace(node, name_tuples=merged, display_name=display)
+            graph.nodes[nid] = replace(node, name_tuples=_sorted_unique(list(node.name_tuples) + tuples))
+            touched.add(nid)
+            if disp:
+                authored[nid] = disp
             applied += 1
+
+    for nid in touched:                               # finalize display once, per touched node
+        node = graph.nodes[nid]
+        if nid in authored:
+            display = _display_case(authored[nid])
+        else:
+            top = node.name_tuples[0] if node.name_tuples else None
+            display = _display_case(top.name) if top else node.display_name
+        graph.nodes[nid] = replace(node, display_name=display)
     return applied
