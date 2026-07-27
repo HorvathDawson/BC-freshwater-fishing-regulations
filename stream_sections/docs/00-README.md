@@ -50,17 +50,21 @@ Matching logic is unchanged; it just targets sections.
 All code lives in top-level `stream_sections/` (outside `pipeline/`). Run with `.venv/bin/python`.
 
 **Graph construction — DONE and validated:**
-- `blk_chains.py` — load FWA fids + merge into per-BLK chains (route spans, under-lake runs).
+- `blk_chains.py` — load FWA fids + merge into per-BLK chains (route spans, under-lake runs,
+  distinct `edge_types` so `2300` survives the merge).
 - `names.py` — `(name, source)` tuples: gazette + side-channel (shared-WSC main channel) +
   manual overrides (`feature_display_names.json`). upstream-inherited = TODO.
-- `graph.py` — **the single inverted graph**: `StreamNode` per BLK, `FlowEdge` "flows into"
-  at a confluence measure; `ancestors()` = tributary closure. No per-confluence segments; no
-  fids in the graph.
+- `graph.py` — **the single inverted graph** with **lakes as nodes**: a `StreamNode` is a
+  stream **piece** (a BLK cut at its lake-runs) or a **lake** (one per `wbk`); `FlowEdge` "flows
+  into" (`confluence`/`lake_in`/`lake_out`). Guards baked in at build: WSC-descendant filter on
+  stream→stream edges + `EDGE_TYPE=2300` `is_barrier`; `ancestors(guarded=True)` = tributary
+  closure. `build_section_geometries` writes a `node_id → geom` sidecar (graph is geometry-free).
 - `cutting.py` — endpoint ids, geometry stitch, `substring` cut, node/section id.
-- `build.py` — CLI: `--gnis`/`--bbox`/`--full` (+ `--splits`); writes chains + graph pickles,
-  `graph.gpkg` (streams / confluences / anchors), and an integrity self-check.
-- Validated on Adams extent: **8393 nodes / 8243 edges** (was 21632 segments), integrity OK,
-  Adams River = **1 node / 435 tributaries**, name tuples correct. 15 unit tests pass.
+- `build.py` — CLI: `--gnis`/`--bbox`/`--full` (+ `--splits`, `--tributaries-of`, `--lakes`);
+  writes chains/graph/geometries pickles, `graph.gpkg`, and an integrity self-check.
+- Validated on Adams extent: **10821 nodes (9254 pieces + 1567 lakes) / 10929 edges**, integrity
+  OK (0 fids uncovered); Adams Lake outlet = Lower Adams, inlet = Upper Adams (the up/down-of-lake
+  split falls out for free). 23 tests pass incl. both real-data regressions.
 
 **Manual splits — schema + example DONE:** `splits.schema.md` (authoritative; supersedes the
 mechanics in `docs/04`) + `splits.example.json`. **Every cut is a line or a polygon
@@ -70,16 +74,16 @@ boundary** (not a point/fid): `point` → auto perpendicular line at the target 
 (`proximity_m`). No `barrier`/`landmark`/`linear_feature_id`. `SplitDef.from_dict` validates.
 
 **Debug/report tools (temporary):**
-- `export_gpkg.py` — `build.py` writes `graph.gpkg` (layers: `streams` = one line per BLK
-  node with name tuples + downstream + tributary count; `confluences` = flow edges as points;
-  `anchors` = authored splits) for QGIS.
+- `export_gpkg.py` — `build.py` writes `graph.gpkg` for QGIS: `streams` (piece lines + name
+  tuples + tributary count + `is_barrier`), `lakes` (lake nodes + through-rivers + #inlets/
+  #outlets), `confluences` (edges), `graph_nodes`/`graph_edges` (the topology as a node-link
+  schematic), `anchors`, and optional `tributaries` (guarded ancestor walk) + `lake_io`.
 - `complex_regs_report.py` — writes `output/v2/complex_regulations.md`: 62 curated overrides
-  with section-language names (prime split candidates) + parsed synopsis complexity
-  (location, tributary, multi-rule/exception).
+  with section-language names (prime split candidates) + parsed synopsis complexity.
 
-**Next:** anchor resolution (line/boundary ∩ channels, proximity-gated) + `sectionizer.py`
-(cut at lakes/splits) + `tributaries.py` (upstream walk with WSC filter + 2300 barrier) +
-the two real-data regression tests.
+**Next:** `sectionizer.py`/`anchors.py` — **curated** splits only (lakes already split in the
+graph step): resolve cut line/boundary ∩ channels (proximity-gated) → cut geometry +
+`location_identifier`. Then `tributaries.py` — roll the guarded ancestor sets up to sections.
 
 ## Key verified facts driving the design (see `02` for evidence)
 

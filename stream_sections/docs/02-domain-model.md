@@ -66,51 +66,53 @@ rounded `"x_y"` string (3 dp, `graph_builder.py:71`). Access data only through
 
 There is a **single inverted graph** (an earlier draft's "two granularities" is abandoned):
 
-- A **node** is a **stream** — a BLK-merged chain, subdivided into **sections** only at lakes
-  and curated splits (NOT at every tributary confluence). Most BLKs → one node; a BLK through
-  a lake → two section nodes + a lake node.
-- An **edge** is **"A flows into B"** — the tributary/upstream node A drains into B at a
-  confluence measure on B. A mainstem node therefore has **many incoming edges** (its
-  tributaries) and **one outgoing edge** (its own mouth).
+- A **node** is a **stream piece** — a BLK cut at its lake-runs (and, later, curated splits),
+  NOT at every tributary confluence — **or a lake** (one node per `wbk`). Most BLKs → one
+  piece; a BLK through a lake → below-lake piece + lake node + above-lake piece. **Geometry is
+  not on the node** — a `node_id → geom` sidecar holds it, so the graph is pure topology.
+- An **edge** is **"A flows into B"** — the upstream node A drains into B at a confluence
+  measure on B (`kind` = confluence / lake_in / lake_out). A mainstem piece has **many incoming
+  edges** (its tributaries) and one outgoing; a lake's incoming edges are its **inlets**, its
+  outgoing its **outlet(s)**.
 
-So the mainstem is **one node** regardless of how many tributaries join it (Adams River: one
-node, 435 tributaries) — no per-confluence segmentation, and fids never appear in the graph.
-`location_identifier` is null unless a lake/split subdivided the BLK.
+So the mainstem is **one node per lake-bounded reach** regardless of tributary count — no
+per-confluence segmentation, fids never appear in the graph. `location_identifier` is null
+unless a lake/split subdivided the BLK.
 
 **Tributaries of a node = its ancestors** (walk incoming edges upstream). Because each stream
-flows into exactly one downstream stream, the confluence-parent leak is avoided by
-construction (the Harrison is what the Chehalis flows *into* — a descendant, never an
-ancestor). Two guards still apply on the closure (`10`): the **WSC-descendant filter** (keep
-ancestors within the drainage subtree — braided/multi-mouth edge cases) and the
-**`EDGE_TYPE=2300` barrier** (connector/canal nodes), plus a **lake barrier** once lakes are
-nodes.
+flows into exactly one downstream stream, the confluence-parent leak is avoided by construction
+(the Harrison is what the Chehalis flows *into* — a descendant, never an ancestor). Guards are
+applied **at graph-build time** (`10`): the **WSC-descendant filter** on stream→stream edges
+(braided/cross-watershed cases; drops the edge at creation) and the **`EDGE_TYPE=2300` barrier**
+(`is_barrier` nodes, stopped by `ancestors(guarded=True)`). With lakes as nodes the
+Columbia/Kootenay canal drains into a lake node, so the 2300 barrier — not the WSC filter — is
+the operative guard there.
 
-## Section identity
+## Section / node identity
 
-- **Stable id:** hash over the section's **two immediate bounds** only:
-  `section_id = sha1(blk | lower.boundary_id | upper.boundary_id | lake_wbk)[:16]`, where
-  each `boundary_id` is a stable string from a fixed domain (`"outlet"`, `"headwaters"`,
-  `"lake:{wbk}"`, `"split:{authored_split_id}"`). Hashing only the two bounds is what keeps
-  ids stable when a split is added *elsewhere* on the river (an unrelated section's bounds
-  don't change); adding a split *inside* a section legitimately mints two new ids. Never hash
-  from fid order.
-  - **Debuggability option:** a human-readable form `f"{blk}:{int(lower_route_measure)}"`
-    (BLK + start measure from the mouth) is equally stable under unrelated splits and far
-    easier to trace in logs. Pick one and keep it fixed — it's an ABI. (Lean: the readable
-    form; note that renaming an authored `split.id` or moving a *downstream* bound changes
-    ids either way, so treat split ids + bounds as stable keys.)
-- **Display identity:** `(name_tuples, location_identifier, lake_wbk)` — the user's
-  "gnis name / location identifier (null if no splits) / lake wbk".
+- **Chosen id (ABI):** the **readable** form —
+  - stream piece: `f"{blk}:{int(down_m)}"` (BLK + start route measure from the mouth);
+  - lake: `f"lake:{wbk}"`.
+
+  Stable when a split is added *elsewhere*; a split *inside* a piece re-cuts it and changes the
+  affected piece's start-measure id (expected). A measure-independent hash
+  `sha1(blk | lower | upper | lake_wbk)[:16]` stays available (`cutting.section_id`) if ever
+  needed. Never derive an id from fid order.
+- **Display identity:** `(name_tuples, location_identifier, lake_wbk)` — "gnis name / location
+  identifier (null if no splits) / lake wbk".
 
 ## Lakes
 
-- One **WATERBODY_KEY = one logical lake** (grouped at `freshwater_atlas.py:366-420`).
-- **Collapse the whole lake to a single graph node**; every BLK whose flow lines carry that
-  waterbody_key attaches to it. Under-lake connector segments are absorbed into the lake
-  node (retained separately only as render geometry for the `under_lake_streams` layer).
-- **Inlet/outlet is not a field** — derive: outlet = most-downstream node of the lake's flow
-  lines (`outdegree` leaving the wbk set / lowest route measure); inlets = the rest.
-- A lake node is a **tributary barrier** (see `03`).
+- One **WATERBODY_KEY = one logical lake** (only `wbk ∈ lakes∪manmade` — wetlands are NOT
+  noded). **One graph node per lake** (`"lake:{wbk}"`); every BLK carrying that wbk attaches to
+  it. Under-lake fids are the lake node's members; their stitched geometry is the lake node's
+  entry in the geometry sidecar (the `under_lake_streams` render layer).
+- **Inlet/outlet fall out of graph adjacency** — `up_adj(lake)` = inlets, `down_adj(lake)` =
+  outlet(s) (multi-outlet is fine; 0.5% of lakes). No fid-incidence scan needed.
+- **Name:** the lake's own `GNIS_NAME_1` when present (null ~96.7% of the time) → else a
+  threading river's name; through-river GNIS names are kept as `through_names` metadata.
+- A lake is a natural flow junction; whether a lake *stops* the tributary walk is a
+  regulation-time choice (see `03`).
 
 ## OSM — still no
 

@@ -34,47 +34,37 @@ upstream-inherited names deferred (needs the graph). Serialization is pickle for
 - Tests: `test_blk_chains`, `test_names`, `test_cutting` (substring + id stability).
 - **Verify:** run on one watershed group; eyeball a dozen BLKs; confirm S4 structural numbers.
 
-## Phase 2 — the inverted graph (`graph.py`) ✅ DONE (constructed + validated)
+## Phase 2 — the inverted graph, lakes as nodes, guards, geometry sidecar (`graph.py`) ✅ DONE
 
-Replaced the fine per-confluence segment graph with the **single inverted graph**: node = a
-stream (BLK), edge = "flows into" at a confluence measure; `ancestors()` = tributary closure.
-Validated on the Adams extent (8393 nodes / 8243 edges, integrity OK; Adams = 1 node / 435
-tributaries). Node carries `fwa_watershed_code` + member fids so the Phase-4 walk can apply
-the **WSC-descendant filter** and the **2300 barrier** (both kept per Phase 0).
+The **single inverted graph**: node = a stream **piece** (a BLK cut at its lake-runs) or a
+**lake** (one per `wbk`); edge = "flows into" (`confluence`/`lake_in`/`lake_out`) at a
+confluence measure; `ancestors(guarded=True)` = tributary closure.
 
-**Guards now baked in at build time** (2026-07): the WSC-descendant edge filter drops
-braiding-reversed and cross-watershed edges at creation (only 7/8243 Adams edges dropped), and
-distinct `EDGE_TYPE`s are preserved through the merge so a 2300 node is `is_barrier`;
-`ancestors(guarded=True)` stops at it. Both real-data regressions (Chehalis/Harrison,
-Columbia/Kootenay) are **un-skipped** and green, plus synthetic pins for each guard.
+- **Lakes as nodes, in the combine** (from the fid `wbk`-run; only `lakes∪manmade`, NOT
+  wetlands). A BLK through a lake → below-lake piece + lake node + above-lake piece, so the
+  **up/down-of-lake sections come for free** (Adams). A lake's `up_adj`=inlets, `down_adj`=
+  outlet(s); `export_lake_io` just reads adjacency. Lake name = `GNIS_NAME_1` else a threading
+  river; `through_names` metadata records the threading rivers.
+- **Guards at build:** WSC-descendant filter on stream→stream edges (only 7/8243 Adams edges
+  dropped, all mis-picks); distinct `EDGE_TYPE`s preserved so a 2300 piece is `is_barrier` and
+  `ancestors(guarded=True)` stops at it. (With lakes as nodes the Columbia canal drains into a
+  lake node → the 2300 barrier is the operative guard there.)
+- **Geometry off the graph:** `build_section_geometries` writes a `node_id → geom` sidecar;
+  `StreamNode` holds no geometry (adds `through_names`).
+- Validated on the Adams extent: **10821 nodes (9254 pieces + 1567 lakes) / 10929 edges**,
+  integrity OK; Adams Lake outlet = Lower Adams, inlet = Upper Adams (~600 BLKs split, max 8).
+- Tests ✅: mainstem-one-node, lake split, no-wetland-split, WSC filter, 2300 barrier, plus the
+  two real-data regressions (Chehalis/Harrison, Columbia/Kootenay), un-skipped and green.
 
-Remaining: Phase 3 promotes lakes to nodes + splits BLKs at lake-runs and curated splits, and
-decouples geometry from the graph (nodes hold a section id; geometry stored separately).
-- Tests: `test_graph` (mainstem = one node; flows-into at measure; ancestors; WSC filter; 2300
-  barrier; the two real-data regressions). ✅ done.
+## Phase 3 — curated sectionizer (`anchors.py`, `splits.py`, `sectionizer.py`) — NON-lake only
 
-## Phase 3 — lake nodes + geometry decoupling + curated sectionizer
-
-Two mechanisms, kept separate (see `04`):
-
-1. **Lakes → nodes, in the combine phase (`blk_chains.py`/`graph.py`).** Cut each BLK at its
-   contiguous lake/manmade `wbk` runs (only wbk present in the `lakes`/`manmade` layers — NOT
-   wetlands). Promote each lake `wbk` to ONE node; its incoming edges = inlets, outgoing =
-   outlet. This also produces the below-lake / above-lake stream sections **for free** (Adams
-   upper/lower). Record on the lake node which named river(s) thread it. `export_lake_io` then
-   just reads `up_adj`/`down_adj` of the lake node.
-   - Node-count impact (Adams extent, measured): 8393 BLKs → 9276 stream pieces + 1567 lake
-     nodes; only ~600 BLKs split into >1 piece. Acceptable.
-2. **Geometry off the graph.** `StreamNode` drops `geometry`; the graph holds only ids. Section
-   geometry is stored in a sidecar keyed by node/section id; `export_gpkg` joins on it.
-3. **Curated sectionizer (`anchors.py`, `splits.py`, `sectionizer.py`) — non-lake only.** Author
-   `splits.json` (falls/bridges/MU boundaries); anchor resolvers → `SplitPoint` →
-   `splits.resolved.json`; cut at curated splits → `Section`s with cut geometry, bounds,
-   `location_identifier`, minzoom. Coverage + uniqueness validation.
-- Tests: `test_blk_chains` (lake-run split, no wetland split, edge_types), `test_splits`,
-  `test_sectionizer` (label table, coverage), lake-node inlet/outlet.
-- **Verify:** Adams shows Lower Adams | Adams Lake | Upper Adams from the lake split alone;
-  a curated split (e.g. a falls) adds a further boundary.
+Lakes are already split (Phase 2), so this handles only authored boundaries (see `04`).
+- Author `splits.json` (falls/bridges/MU boundaries); anchor resolvers → `SplitPoint` →
+  `splits.resolved.json`; cut a stream-piece node at curated splits → `Section`s with cut
+  geometry, bounds, `location_identifier`, minzoom. Coverage + uniqueness validation.
+- Tests: `test_splits` (anchor → `(blk, measure)`), `test_sectionizer` (label table, coverage).
+- **Verify:** Adams already shows Lower Adams | Adams Lake | Upper Adams (Phase 2); a curated
+  split (e.g. a falls) adds a further boundary within a piece.
 
 ## Phase 4 — tributaries roll-up (`tributaries.py`)
 
@@ -109,11 +99,15 @@ Two mechanisms, kept separate (see `04`):
 - Flip `deploy` target / bump `SECTION_VERSION`. Rollback = previous version on R2.
 - Retire legacy graph/atlas/enrich stream path once stable; `graphify update .`.
 
-## First concrete steps (right now)
+## Next concrete steps (Phases 0–2 done)
 
-1. **Run Phase 0 spikes**, paste results into `test_graph.py` + `10`'s spike table.
-2. If green: implement `cutting.py` + `blk_chains.py` (Phase 1), un-skip their tests.
-3. Author the seed `splits.json` (Adams, Wigwam) so Phase 3 has fixtures early.
+1. **Phase 3 — curated sectionizer:** implement `anchors.py` (resolve a cut line/polygon ∩
+   channels → `SplitPoint`, proximity-gated) + `sectionizer.py` (cut a stream-piece node,
+   auto `location_identifier`). Author a seed `splits.json` (a falls/bridge fixture) — NOT a
+   lake split (lakes are Phase 2).
+2. **Phase 4 — tributary roll-up:** aggregate `ancestors(guarded=True)` to section ids + cache.
+3. Then Phase 5 (match onto sections + MU overlay).
 
-Code in place: `stream_sections/` (S1–S2 + the inverted graph implemented; splits/sectionizer/
-tributaries stubbed) and `stream_sections/tests/`.
+Code in place: `stream_sections/` — blk-chains + names + the inverted graph **with lakes as
+nodes, both guards, and the geometry sidecar** (Phases 1–2 done); `anchors`/`splits`/
+`sectionizer`/`tributaries` stubbed. Tests in `stream_sections/tests/` (23 pass).

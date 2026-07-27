@@ -8,19 +8,21 @@ draining its mainstem at a confluence measure). Tributaries of a node = its **an
 ## Output artifacts
 
 1. **`blk_chains`** — every blue line merged into one ordered chain (route measures,
-   under-lake runs, `(name, source)` tuples).
-2. **`stream graph`** — `StreamNode`s (one per BLK now; per section after splitting) + `FlowEdge`s
-   (`from_node` flows into `to_node` at `at_measure`), with `up_adj` (incoming = tributaries)
-   and `down_adj` (outgoing).
-3. **`sections`** (next step, not yet built) — BLK nodes subdivided at lakes + curated splits,
-   with **new cut geometry**, `location_identifier`, and lakes promoted to their own nodes.
+   under-lake runs, `(name, source)` tuples, distinct `edge_types`).
+2. **`stream graph`** — `StreamNode`s (a **stream piece** = a BLK cut at its lake-runs; or a
+   **lake** node, one per `wbk`) + `FlowEdge`s (`from_node` flows into `to_node` at
+   `at_measure`, `kind` ∈ confluence/lake_in/lake_out), with `up_adj` (incoming = tributaries)
+   and `down_adj` (outgoing). **Geometry-free**; a `geometries.pkl` sidecar maps `node_id →
+   geom`.
+3. **`sections`** (next step) — stream-piece nodes subdivided further at **curated** splits only
+   (lakes are already handled in the graph step), with cut geometry + `location_identifier`.
 
 ## Ordering
 
-`merge (S1) → names (S2) → split BLKs into sections (S3) → build the graph connecting sections
-(S4) → tributary reachability (S5)`. Splitting happens **before/at graph building**, not
-after. (The current implementation builds the graph at whole-BLK granularity; S3 splitting is
-the next increment and refines each BLK node into a chain of section nodes.)
+`merge (S1) → names (S2) → build the graph, splitting BLKs at lakes into piece + lake nodes
+(S3+S4) → curated splits (S5a) → tributary reachability (S5b)`. **Lake splitting happens in
+the graph build** (from the fid `wbk`-run, no polygon); curated splitting is the only remaining
+sectionizer step. Guards (WSC filter, 2300 barrier) are applied **during** the graph build.
 
 ## Step 1 — Merge into per-BLK chains
 
@@ -39,53 +41,58 @@ gives the Seabird channel its `(Fraser, side-channel)`) → `upstream-inherited`
 upstream named edge; deferred — needs the graph). Keep the ordered list; display = top by
 priority, search = all. (upstream-inherited is the one deferred piece — it runs after S4.)
 
-## Step 3 — Split BLK chains into sections (at lakes + curated splits)
+## Step 3 — Split BLKs at lakes (in the combine, from the fid `wbk`-run)
 
-Cut each BLK chain **only** at:
-- **lake boundaries** — a BLK through a lake → downstream-of-lake + upstream-of-lake sections;
-  the lake becomes its **own node** between them; the under-lake run belongs to the lake node.
-- **curated splits** (`04`) — a cut line / polygon boundary; resolve to a route measure per
-  crossed channel and cut geometry with `shapely.ops.substring`.
+Assign every fid an **owner**: a fid whose `WATERBODY_KEY ∈ lakes∪manmade` belongs to that
+lake's node (`"lake:{wbk}"`); a contiguous run of non-lake fids is a **stream piece**
+(`"{blk}:{int(down_m)}"`). A lake fid **breaks** the piece, so a BLK threading a lake becomes
+below-lake piece + lake node + above-lake piece. Wetlands are **not** lake wbks → no split
+(verified: an extent with 3138 lake fids has 4819 wetland fids). No polygon geometry needed —
+the fids already terminate at the lake edge. **Do not** cut at tributary confluences (that was
+the 361-segment mistake). A BLK with no lake stays **one** piece.
 
-**Do not** cut at tributary confluences — that was the mistake that produced 361 segments for
-Adams. A BLK with no lake/split stays **one** section node. `section_id` = the readable
-`f"{blk}:{int(start_measure)}"` or the two-bound hash (`02`). **2-point-geometry trap**: the
-0.69% of multi-segment BLKs that are entirely 2-point can't be vertex-cut — interpolate
-(`cutting.substring_cut`). Recompute per-section minzoom from the section's own max magnitude.
+Node growth is bounded (Adams extent: 8393 BLKs → 9254 pieces + 1567 lakes; 7773 BLKs stay one
+piece, max 8). Piece geometry = `substring` of the merged BLK line over `[down_m, up_m]`; lake
+geometry = the stitched under-lake fid lines. **2-point trap**: the 0.69% all-2-point BLKs
+interpolate (`cutting.substring_cut`).
 
-## Step 4 — Build the inverted graph (nodes = sections, edges = flows-into)
+## Step 4 — Build the inverted graph (nodes = pieces/lakes, edges = flows-into)
 
-For each BLK/section, find the stream it drains into: at its **mouth node** (the down_node of
-its lowest-`down_m` fid), the fid whose **up_node == mouth** and whose BLK differs is the
-downstream mainstem; its measure at that node is the **confluence measure**. Emit
-`FlowEdge(from=tributary, to=mainstem, at_measure)`. A mainstem accrues **many incoming
-edges** (its tributaries) and has **one outgoing edge** (its own mouth). At a lake, edges go
-`stream → lake` and `lake → outlet stream`. Forks/distributaries (a side channel leaving and
-rejoining) create rare cycles — tolerate with a visited set.
+Edges come from **fid endpoint incidence**: at a coordinate `C`, every owner with a fid whose
+**downstream** end is `C` (it sits above `C`) flows into the owner whose **upstream** end is `C`
+(it sits below `C`). Same-owner boundaries — a piece's internal fid joints, and a mainstem
+spanning a confluence — emit **no** edge, so a mainstem stays **one node** with many incoming
+tributary edges; a tributary/lake boundary emits one edge. A lake node therefore accrues its
+**inlets** as `up_adj` and its **outlet(s)** as `down_adj` (multi-outlet is fine — 0.5% of
+lakes). Edge `kind` = confluence / lake_in / lake_out. Forks create rare cycles — tolerated
+with a visited set; edges are sorted for deterministic output.
 
-Once sections exist, a tributary edge attaches to the **specific section** whose measure range
-contains the confluence, and consecutive sections of one BLK are joined by continuation edges.
+**Guards applied here (not deferred):**
+- **WSC-descendant filter** on **stream→stream** edges only: create `T→M` iff
+  `T.wsc.startswith(M.wsc)`. Drops braiding-reversed and cross-watershed edges at creation
+  (only 7/8243 Adams edges — all builder mis-picks, 0 real tributaries). Lake-incident edges
+  skip the filter (lakes are legitimate junctions).
+- **`edge_types` preserved** through the merge so a `2300` piece is `is_barrier`.
 
-**Why this is right:** the mainstem is one node regardless of tributary count; fids never
-appear in the graph; and the **Chehalis→Harrison leak vanishes structurally** — the Harrison
-is what the Chehalis *flows into* (a descendant), so it is never an ancestor. (Measured on the
-Adams extent: Adams River = **1 node with 435 tributaries**, was 361 segments.)
+**Why this is right:** the mainstem is one node per lake-bounded reach regardless of tributary
+count; fids never appear in the graph; the **Chehalis→Harrison leak vanishes structurally**
+(the Harrison is what the Chehalis *flows into* — a descendant, never an ancestor). Validated:
+Adams Lake's outlet is the Lower Adams and its inlet the Upper Adams; Lower Adams' ancestors
+reach the whole watershed **through** the lake node — the up/down-of-lake split for free.
 
-## Step 5 — Tributary reachability = ancestors (+ two required guards)
+## Step 5 — Tributary reachability = ancestors (guards already in the graph)
 
-Tributaries of a node = its **ancestors** (`graph.ancestors`, walking `up_adj`). Computed once
-per node, reused by every regulation on it — replacing the per-regulation BFS over the 2.37 GB
-micro-graph. Two guards from the spike (`10`) still apply on top of the closure:
+Tributaries of a node = its **ancestors** (`graph.ancestors(guarded=True)`, walking `up_adj`).
+Computed once per node, reused by every regulation on it — replacing the per-regulation BFS
+over the 2.37 GB micro-graph. Because the WSC filter is already baked into the edge set, the
+raw closure is free of braiding/cross-watershed leaks; the walk applies the remaining guard:
 
-- **WSC-descendant filter** — keep only ancestors whose `FWA_WATERSHED_CODE` is a descendant
-  of the node's trimmed WSC (the drainage subtree). The inverted graph avoids the *confluence*
-  leak by construction, but this still guards braided/distributary edge cases and multi-mouth
-  tributaries. **Keep it** (`10` S1: 145/145 Chehalis, 0 Harrison).
-- **`EDGE_TYPE=2300` barrier** — do not traverse through connector/canal nodes (Kootenay↔
-  Columbia canal, blk 356366076). Lake-collapse does **not** replace this (the canal bypasses
-  the lake polygon; `10` S2: leak 86→0). Keep the strict missing-edge_type guard.
-- **Lake barrier** — once lakes are nodes, stop at a regulated lake (parameterizable:
-  cross when the reg *is* the lake).
+- **`EDGE_TYPE=2300` barrier** — `ancestors(guarded=True)` does not include or traverse a
+  `is_barrier` node (the Kootenay↔Columbia canal, blk 356366076). Once lakes are nodes the
+  canal drains into a **lake** node, so the WSC filter (stream-stream only) no longer touches
+  that edge — **the 2300 barrier is the operative guard there** (spike `10` S2 upheld).
+- **Lake barrier** — lakes are nodes; a lake regulation can choose to stop or cross the walk
+  (parameterizable: cross when the reg *is* the lake). The `sections`/`match` step owns this.
 
 ## Spike results (`10`) — settled
 
@@ -97,8 +104,9 @@ micro-graph. Two guards from the spike (`10`) still apply on top of the closure:
 
 ## Worked examples (acceptance targets)
 
-- **Adams River + Adams Lake** → 2 section nodes (`downstream/upstream of Adams Lake`) with
-  the lake as a node between them; replaces the duplicate override rows.
+- **Adams River + Adams Lake** → Lower Adams piece + Adams Lake node + Upper Adams piece **from
+  the lake split alone** (no curated split); replaces the duplicate override rows. Validated:
+  lake outlet = Lower Adams, Adams inlet = Upper Adams.
 - **Fraser + Seabird channel** → Fraser node `(Fraser, gazette)`; side-channel node
   `(Seabird…, override)` + `(Fraser, side-channel)`; side channel drops at low zoom.
 - **Similkameen** (crosses a zone, one reg set) → **one** node; zone handled as attribute /
@@ -107,6 +115,9 @@ micro-graph. Two guards from the spike (`10`) still apply on top of the closure:
 
 ## Current implementation status
 
-`graph.py::build_stream_graph` implements S1/S2/S4 at whole-BLK granularity (validated:
-8393 nodes / 8243 edges on the Adams extent, integrity OK). **Next:** S3 (split at lakes +
-resolve curated splits → section nodes) and S5's guarded walk (`tributaries.py`).
+`graph.py::build_stream_graph` implements S1–S4 **including lakes as nodes** and both guards
+(validated: 10821 nodes = 9254 pieces + 1567 lakes / 10929 edges on the Adams extent, integrity
+OK; Adams up/down-of-lake split confirmed). `build_section_geometries` writes the geometry
+sidecar. `ancestors(guarded=True)` is the S5 walk; the two real-data regressions are green.
+**Next:** S5a curated sectionizer (`sectionizer.py`/`anchors.py`) and S5b section-level
+tributary roll-up (`tributaries.py`).
