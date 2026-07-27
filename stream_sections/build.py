@@ -41,23 +41,15 @@ def get_lake_names(fwa: FWADataAccessor, bbox=None) -> dict[str, tuple]:
     """wbk -> tuple of the lake's gazette names (GNIS_NAME_1/2/3, non-null). Usually empty
     (~96.7% of lakes are unnamed -> display falls back to a threading river name)."""
     cols = ["WATERBODY_KEY", "GNIS_NAME_1", "GNIS_NAME_2", "GNIS_NAME_3"]
-
-    def _clean(n) -> str:
-        if n is None:
-            return ""
-        s = str(n).strip()
-        return "" if s.lower() in ("", "nan", "none") else s   # GNIS_NAME_2/3 are float NaN cols
-
     names: dict[str, tuple] = {}
     for layer in ("lakes", "manmade"):
         if layer in fwa.layer_names:
-            gdf = fwa.get_layer(layer, columns=cols, bbox=bbox)
+            gdf = fwa.get_layer(layer, columns=cols, bbox=bbox)  # accessor normalizes null -> ""
             for row in gdf.itertuples():
                 wbk = row.WATERBODY_KEY
                 if not wbk or str(wbk) in names:
                     continue
-                variants = tuple(v for v in (_clean(row.GNIS_NAME_1), _clean(row.GNIS_NAME_2),
-                                             _clean(row.GNIS_NAME_3)) if v)
+                variants = tuple(v for v in (row.GNIS_NAME_1, row.GNIS_NAME_2, row.GNIS_NAME_3) if v)
                 if variants:
                     names[str(wbk)] = variants
     return names

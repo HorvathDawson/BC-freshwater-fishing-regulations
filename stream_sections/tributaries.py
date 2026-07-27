@@ -16,7 +16,7 @@ braiding/cross-watershed edges at build time, and `graph.ancestors(guarded=True)
 from __future__ import annotations
 
 from .graph import ancestors  # noqa: F401  (re-export the guarded closure)
-from .models import StreamGraph
+from .models import NodeKind, StreamGraph
 
 _MAINSTEM_EDGE_KINDS = frozenset({"continuation", "lake_out"})
 
@@ -42,3 +42,37 @@ def tributaries_between(graph: StreamGraph, section_id: str,
             above.add(e.from_node)
             above |= ancestors(graph, e.from_node, guarded=guarded)
     return frozenset(anc - above)
+
+
+def lake_inlets(graph: StreamGraph, lake_id: str) -> frozenset[str]:
+    """Streams flowing INTO a lake node (its incoming edges)."""
+    return frozenset(graph.edges[ei].from_node for ei in graph.up_adj.get(lake_id, []))
+
+
+def lake_outlets(graph: StreamGraph, lake_id: str) -> frozenset[str]:
+    """Streams a lake node drains OUT into (its outgoing edges) — usually one."""
+    return frozenset(graph.edges[ei].to_node for ei in graph.down_adj.get(lake_id, []))
+
+
+def lake_tributaries(graph: StreamGraph, lake_id: str, guarded: bool = True) -> frozenset[str]:
+    """Tributaries of a lake EXCLUDING the through-mainstem — the inflow whose BLK also drains
+    the lake as an outlet (the main river continuing through) and its upstream river system.
+    Leaves the lake's side tributaries and their catchments."""
+    outlet_blks = {graph.nodes[o].blk for o in lake_outlets(graph, lake_id) if graph.nodes[o].blk}
+    anc = set(ancestors(graph, lake_id, guarded=guarded))
+    drop: set[str] = set()
+    for inlet in lake_inlets(graph, lake_id):
+        if graph.nodes[inlet].blk in outlet_blks:        # the through-mainstem inflow
+            drop.add(inlet)
+            drop |= ancestors(graph, inlet, guarded=guarded)
+    return frozenset(anc - drop)
+
+
+def sections_in_reach(graph: StreamGraph, blk: str, m_lo: float, m_hi: float,
+                      eps: float = 1e-6) -> frozenset[str]:
+    """Stream-piece sections of ``blk`` whose span lies within [m_lo, m_hi] — for a range reg
+    'X from A to C' (spans any lakes/sections between A and C). Bound measures come from a
+    section's structured lower_bound/upper_bound.route_measure."""
+    return frozenset(nid for nid, n in graph.nodes.items()
+                     if n.kind == NodeKind.stream and n.blk == blk
+                     and n.down_m >= m_lo - eps and n.up_m <= m_hi + eps)

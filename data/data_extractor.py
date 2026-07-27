@@ -78,6 +78,7 @@ class FWADataAccessor:
         "GNIS_NAME",
         "GNIS_NAME_1",
         "GNIS_NAME_2",
+        "GNIS_NAME_3",
         "ENGLISH_NAME",
         "PROTECTED_LANDS_NAME",
         "WILDLIFE_MANAGEMENT_AREA_NAME",

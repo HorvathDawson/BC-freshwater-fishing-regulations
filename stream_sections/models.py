@@ -195,7 +195,8 @@ class SplitAnchor:
     wbk: str = ""                 # lake
     mu_a: str = ""                # mu_boundary (one side)
     mu_b: str = ""                # mu_boundary (other side)
-    tributary_blk: str = ""       # confluence (the tributary's BLK, not gnis)
+    tributary_blk: str = ""       # confluence: the tributary's BLK (an id, not a name)
+    tributary_wsc: str = ""       # confluence: OR the tributary's WSC (trimmed) — its mouth
 
     @classmethod
     def from_dict(cls, d: Mapping[str, Any]) -> "SplitAnchor":
@@ -206,14 +207,17 @@ class SplitAnchor:
             raise ValueError("mu_boundary anchor needs both mu_a and mu_b")
         if t == AnchorType.line and len(coords) < 2:
             raise ValueError("line anchor needs >=2 coords")
-        if t == AnchorType.confluence and not d.get("tributary_blk"):
-            raise ValueError("confluence anchor needs tributary_blk")
+        if t == AnchorType.confluence and not (d.get("tributary_blk") or d.get("tributary_wsc")):
+            raise ValueError("confluence anchor needs tributary_blk or tributary_wsc")
+        if t == AnchorType.lake and not d.get("wbk"):
+            raise ValueError("lake anchor needs wbk")
         return cls(
             type=t,
             coord=(float(coord[0]), float(coord[1])) if coord else None,
             coords=coords, is_lonlat=bool(d.get("is_lonlat", False)),
             wbk=str(d.get("wbk", "")), mu_a=str(d.get("mu_a", "")), mu_b=str(d.get("mu_b", "")),
             tributary_blk=str(d.get("tributary_blk", "")),
+            tributary_wsc=str(d.get("tributary_wsc", "")),
         )
 
 
