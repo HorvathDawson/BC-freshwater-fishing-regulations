@@ -38,23 +38,33 @@ def get_lake_wbk_kind(fwa: FWADataAccessor, bbox=None) -> dict[str, str]:
 
 
 def get_lake_names(fwa: FWADataAccessor, bbox=None) -> dict[str, tuple]:
-    """wbk -> tuple of the lake's gazette names (GNIS_NAME_1/2, non-null). Usually empty
-    (~96.7% of lakes are unnamed -> display falls back to a threading river name). GNIS_NAME_3
-    is skipped: only 4 non-null province-wide, and both _1/_2 are already accessor-normalized
-    (null -> "") so no float-NaN 'nan' leaks in."""
-    cols = ["WATERBODY_KEY", "GNIS_NAME_1", "GNIS_NAME_2"]
-    names: dict[str, tuple] = {}
+    """wbk -> tuple of the lake's gazette names (GNIS_NAME_1/2/3, non-null). Usually empty
+    (~96.7% of lakes are unnamed -> display falls back to a threading river name). GNIS_NAME_1/2
+    are accessor-normalized (null -> ""); GNIS_NAME_3 is NOT in the prod STRING_COLUMNS (only 4
+    non-null province-wide), so it may arrive as float NaN in a bbox subset -> cleaned locally."""
+    cols = ["WATERBODY_KEY", "GNIS_NAME_1", "GNIS_NAME_2", "GNIS_NAME_3"]
+
+    def _clean(n) -> str:
+        if n is None:
+            return ""
+        s = str(n).strip()
+        return "" if s.lower() in ("", "nan", "none") else s
+
+    # A wbk can span several polygon rows (e.g. Nechako Reservoir's reaches), each with
+    # different GNIS names — UNION them so every gazette name of the waterbody is captured.
+    acc: dict[str, list] = {}
     for layer in ("lakes", "manmade"):
         if layer in fwa.layer_names:
-            gdf = fwa.get_layer(layer, columns=cols, bbox=bbox)  # accessor normalizes null -> ""
+            gdf = fwa.get_layer(layer, columns=cols, bbox=bbox)
             for row in gdf.itertuples():
-                wbk = row.WATERBODY_KEY
-                if not wbk or str(wbk) in names:
+                wbk = str(row.WATERBODY_KEY) if row.WATERBODY_KEY else ""
+                if not wbk:
                     continue
-                variants = tuple(v for v in (row.GNIS_NAME_1, row.GNIS_NAME_2) if v)
-                if variants:
-                    names[str(wbk)] = variants
-    return names
+                seen = acc.setdefault(wbk, [])
+                for v in (_clean(row.GNIS_NAME_1), _clean(row.GNIS_NAME_2), _clean(row.GNIS_NAME_3)):
+                    if v and v not in seen:
+                        seen.append(v)
+    return {w: tuple(v) for w, v in acc.items() if v}
 
 
 def get_mu_polys(fwa: FWADataAccessor) -> dict:

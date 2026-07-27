@@ -20,10 +20,14 @@ from typing import Any, Mapping, Optional
 
 class NameSource(str, Enum):
     """Provenance of a name; also the display-priority order (high -> low)."""
-    override = "override"                 # manual feature_display_names.json
-    gazette = "gazette"                   # direct GNIS on this BLK
+    override = "override"                 # manual name_variants.json / feature_display_names.json
+    gazette = "gazette"                   # direct GNIS (stream GNIS_NAME; lake GNIS_NAME_1/2/3)
     side_channel = "side-channel"         # inherited from same-WSC main-channel BLK
     upstream_inherited = "upstream-inherited"  # nearest upstream named edge
+    gauge = "gauge"                       # hydrometric gauge (WSC) name
+    stocking = "stocking"                 # stocking DB common name (by wbk)
+    bathymetry = "bathymetry"             # bathymetry map name (by wbk)
+    synopsis = "synopsis"                 # a verbatim name used by a regulation entry
 
 
 class NodeKind(str, Enum):
@@ -53,9 +57,11 @@ class AnchorType(str, Enum):
 
 @dataclass(frozen=True)
 class NameTuple:
-    """One provenance-tagged name. Display = first by NameSource priority; search = all."""
+    """One provenance-tagged name. Display = first by NameSource priority; search = all.
+    ``note`` carries free-text provenance/context (why the variant was added, from the source)."""
     name: str
     source: NameSource
+    note: str = ""
 
 
 # --------------------------------------------------------------- blk-chain building blocks
