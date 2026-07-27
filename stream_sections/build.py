@@ -38,9 +38,11 @@ def get_lake_wbk_kind(fwa: FWADataAccessor, bbox=None) -> dict[str, str]:
 
 
 def get_lake_names(fwa: FWADataAccessor, bbox=None) -> dict[str, tuple]:
-    """wbk -> tuple of the lake's gazette names (GNIS_NAME_1/2/3, non-null). Usually empty
-    (~96.7% of lakes are unnamed -> display falls back to a threading river name)."""
-    cols = ["WATERBODY_KEY", "GNIS_NAME_1", "GNIS_NAME_2", "GNIS_NAME_3"]
+    """wbk -> tuple of the lake's gazette names (GNIS_NAME_1/2, non-null). Usually empty
+    (~96.7% of lakes are unnamed -> display falls back to a threading river name). GNIS_NAME_3
+    is skipped: only 4 non-null province-wide, and both _1/_2 are already accessor-normalized
+    (null -> "") so no float-NaN 'nan' leaks in."""
+    cols = ["WATERBODY_KEY", "GNIS_NAME_1", "GNIS_NAME_2"]
     names: dict[str, tuple] = {}
     for layer in ("lakes", "manmade"):
         if layer in fwa.layer_names:
@@ -49,7 +51,7 @@ def get_lake_names(fwa: FWADataAccessor, bbox=None) -> dict[str, tuple]:
                 wbk = row.WATERBODY_KEY
                 if not wbk or str(wbk) in names:
                     continue
-                variants = tuple(v for v in (row.GNIS_NAME_1, row.GNIS_NAME_2, row.GNIS_NAME_3) if v)
+                variants = tuple(v for v in (row.GNIS_NAME_1, row.GNIS_NAME_2) if v)
                 if variants:
                     names[str(wbk)] = variants
     return names
