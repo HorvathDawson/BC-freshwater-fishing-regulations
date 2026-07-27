@@ -74,6 +74,7 @@ def export_graph_gpkg(graph: StreamGraph, geoms: dict, path: str,
             stream_rows.append({
                 "node_id": n.node_id, "blk": n.blk, "wsc": n.wsc, "gnis_id": n.gnis_id,
                 "display_name": n.display_name, "name_tuples": _name_tuples_str(n),
+                "location_identifier": n.location_identifier or "",
                 "downstream_node": downstream.get(n.node_id, ""),
                 "n_tributaries": len(graph.up_adj.get(n.node_id, [])),
                 "edge_types": ",".join(n.edge_types), "is_barrier": n.is_barrier,

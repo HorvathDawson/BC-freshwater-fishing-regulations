@@ -25,11 +25,13 @@ sidecar). fids appear only inside a node as provenance, never as graph structure
 from __future__ import annotations
 
 from collections import defaultdict
+from dataclasses import replace
 from typing import Optional
 
 from . import cutting
 from .blk_chains import FidRow
-from .models import BlkChain, FlowEdge, NameSource, NameTuple, NodeKind, StreamGraph, StreamNode
+from .models import (BlkChain, BoundaryKind, FlowEdge, NameSource, NameTuple, NodeKind,
+                     SectionBoundary, StreamGraph, StreamNode)
 
 
 def _coord(node_id: str) -> tuple[float, float]:
@@ -97,12 +99,21 @@ def _edge_types(frs: list[FidRow]) -> tuple[str, ...]:
     return tuple(sorted({r.edge_type for r in frs if r.edge_type}))
 
 
+def _name_variants(v) -> tuple[str, ...]:
+    """Normalize a lake_names value (a single name or a tuple of GNIS_NAME_1/2/3) to a tuple."""
+    if not v:
+        return ()
+    return (v,) if isinstance(v, str) else tuple(x for x in v if x)
+
+
 def build_stream_graph(chains: list[BlkChain], fid_rows: list[FidRow],
                        lake_kind: Optional[dict[str, str]] = None,
-                       lake_names: Optional[dict[str, str]] = None,
+                       lake_names: Optional[dict] = None,
+                       lake_overrides: Optional[dict[str, str]] = None,
                        apply_wsc_filter: bool = True) -> StreamGraph:
     lake_kind = lake_kind or {}
     lake_names = lake_names or {}
+    lake_overrides = lake_overrides or {}
     chain_by_blk = {c.blk: c for c in chains}
     owner_of_fid, piece_fids, lake_fids = _assign_owners(fid_rows, lake_kind)
 
@@ -132,9 +143,18 @@ def build_stream_graph(chains: list[BlkChain], fid_rows: list[FidRow],
     for owner, frs in lake_fids.items():
         wbk = owner.split(":", 1)[1]
         through = tuple(sorted({r.gnis_name for r in frs if r.gnis_name}))
-        lake_name = lake_names.get(wbk, "")
-        display = lake_name or (through[0] if through else "")
-        name_tuples = (NameTuple(lake_name, NameSource.gazette),) if lake_name else ()
+        # Lake name_tuples like streams: override(s) first, then each gazette GNIS name. A
+        # threading river is NOT a lake name (kept in through_names); it is only the display
+        # fallback for an unnamed widening.
+        nts: list[NameTuple] = []
+        if lake_overrides.get(wbk):
+            nts.append(NameTuple(lake_overrides[wbk], NameSource.override))
+        for nm in _name_variants(lake_names.get(wbk)):
+            nts.append(NameTuple(nm, NameSource.gazette))
+        name_tuples = tuple(nts)
+        # display = the lake's own top name; unnamed widenings stay "" (a threading river is not
+        # a lake name — it lives in through_names). Boundary labels use "unnamed lake" instead.
+        display = name_tuples[0].name if name_tuples else ""
         order = mag = None
         for r in frs:
             order = _max_opt(order, r.stream_order)
@@ -183,7 +203,42 @@ def build_stream_graph(chains: list[BlkChain], fid_rows: list[FidRow],
         up_adj[e.to_node].append(i)
         down_adj[e.from_node].append(i)
 
-    return StreamGraph(nodes=nodes, edges=edges, up_adj=dict(up_adj), down_adj=dict(down_adj))
+    graph = StreamGraph(nodes=nodes, edges=edges, up_adj=dict(up_adj), down_adj=dict(down_adj))
+    _finalize_lake_bounds(graph)
+    return graph
+
+
+def _finalize_lake_bounds(graph: StreamGraph) -> None:
+    """Give lake-adjacent stream pieces a structured bound (so 'downstream of Adams Lake' etc.
+    work). Upper bound = a lake draining into the piece from above (incoming lake_out). Lower
+    bound = a lake the piece drains into (outgoing lake_in) UNLESS the piece is its BLK's mouth
+    piece — that lake is the river's terminal mouth (outlet), not a named boundary."""
+    mouth_piece: dict[str, str] = {}
+    for nid, n in graph.nodes.items():
+        if n.kind == NodeKind.stream:
+            cur = mouth_piece.get(n.blk)
+            if cur is None or n.down_m < graph.nodes[cur].down_m:
+                mouth_piece[n.blk] = nid
+
+    def _bnd(lake: StreamNode, m: float) -> SectionBoundary:
+        return SectionBoundary(boundary_id=f"lake:{lake.wbk}", kind=BoundaryKind.lake,
+                               route_measure=m, label=lake.display_name or "unnamed lake")
+
+    for nid, n in list(graph.nodes.items()):
+        if n.kind != NodeKind.stream:
+            continue
+        lower, upper = n.lower_bound, n.upper_bound
+        for ei in graph.up_adj.get(nid, []):
+            e = graph.edges[ei]
+            if e.kind == "lake_out":
+                upper = _bnd(graph.nodes[e.from_node], n.up_m)
+        if mouth_piece.get(n.blk) != nid:
+            for ei in graph.down_adj.get(nid, []):
+                e = graph.edges[ei]
+                if e.kind == "lake_in":
+                    lower = _bnd(graph.nodes[e.to_node], n.down_m)
+        if lower is not n.lower_bound or upper is not n.upper_bound:
+            graph.nodes[nid] = replace(n, lower_bound=lower, upper_bound=upper)
 
 
 def build_section_geometries(chains: list[BlkChain], fid_rows: list[FidRow],

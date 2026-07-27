@@ -32,10 +32,12 @@ class NodeKind(str, Enum):
 
 
 class BoundaryKind(str, Enum):
-    outlet = "outlet"
-    headwaters = "headwaters"
-    lake = "lake"
-    split = "split"
+    outlet = "outlet"           # natural mouth end (no named boundary)
+    headwaters = "headwaters"   # natural source end
+    lake = "lake"               # abuts a lake node
+    split = "split"             # a point/line curated cut
+    confluence = "confluence"   # a curated cut at a tributary's mouth
+    mu = "mu"                   # a curated cut on an MU/zone boundary line
 
 
 class AnchorType(str, Enum):
@@ -121,15 +123,34 @@ class StreamNode:
     up_m: float = 0.0
     length_m: float = 0.0
     stream_order: Optional[int] = None
-    stream_magnitude: Optional[int] = None
+    stream_magnitude: Optional[int] = None      # max in this piece -> front-end line weight
     member_fids: tuple[str, ...] = ()
     edge_types: tuple[str, ...] = ()            # this piece's distinct EDGE_TYPEs; "2300" => barrier
-    location_identifier: Optional[str] = None   # filled once splits define bounds (04)
+    # Structured bounds (04): each end is a lake/split/confluence/mu boundary, or None = natural
+    # (outlet toward the mouth, headwaters toward the source). Carry route_measure so a range
+    # regulation ("X from lake A to lake C") selects pieces by measure. See location_identifier.
+    lower_bound: Optional["SectionBoundary"] = None   # toward the mouth
+    upper_bound: Optional["SectionBoundary"] = None   # toward the source
 
     @property
     def is_barrier(self) -> bool:
         """A 2300 (canal/artificial connector) node stops the tributary walk (spike S2)."""
         return "2300" in self.edge_types
+
+    @property
+    def location_identifier(self) -> Optional[str]:
+        """Human qualifier derived from the two bounds (04 table). None when the piece spans the
+        whole named stream. The display_name (the river name) is unaffected — a piece is always
+        e.g. 'Adams River' with an optional qualifier 'downstream of Adams Lake'."""
+        lo = self.lower_bound.label if self.lower_bound else ""
+        hi = self.upper_bound.label if self.upper_bound else ""
+        if not lo and not hi:
+            return None
+        if not lo:
+            return f"downstream of {hi}"
+        if not hi:
+            return f"upstream of {lo}"
+        return f"between {lo} and {hi}"
 
 
 @dataclass(frozen=True)

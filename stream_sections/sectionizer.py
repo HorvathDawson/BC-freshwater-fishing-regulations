@@ -6,8 +6,10 @@ first-class graph node: "tributaries of X between A and B" is then a walk over t
 
 Splitting a piece P at route measure M yields P_low = [P.down_m, M] (keeps P's node_id) and
 P_high = [M, P.up_m] (new id "{blk}:{int(M)}"), joined by a **continuation** edge P_high→P_low.
-Incoming tributary edges reattach by their confluence `at_measure` (< M → low, ≥ M → high). The
-two bounds of each piece drive its `location_identifier` via the 04 table.
+Incoming tributary edges reattach by their confluence `at_measure` (< M → low, ≥ M → high). Each
+side inherits the other bound of P and gains a structured `SectionBoundary` at M, so
+`location_identifier` and range regulations both work. Per-piece order/magnitude and member_fids
+are re-partitioned by measure so the front-end line weight of each piece is correct.
 """
 
 from __future__ import annotations
@@ -18,18 +20,12 @@ from typing import Optional
 
 from shapely.ops import substring
 
-from .models import FlowEdge, NodeKind, SplitPoint, StreamGraph
+from .models import (BoundaryKind, FlowEdge, NodeKind, SectionBoundary, SplitPoint,
+                     StreamGraph)
 
-
-def _label(lower: str, upper: str) -> Optional[str]:
-    """04 table: bound toward the mouth = 'downstream of', toward the source = 'upstream of'."""
-    if not lower and not upper:
-        return None
-    if not lower:
-        return f"downstream of {upper}"
-    if not upper:
-        return f"upstream of {lower}"
-    return f"between {lower} and {upper}"
+_ANCHOR_KIND = {"point": BoundaryKind.split, "line": BoundaryKind.split,
+                "confluence": BoundaryKind.confluence, "mu_boundary": BoundaryKind.mu,
+                "lake": BoundaryKind.lake}
 
 
 def _rebuild_adj(edges):
@@ -48,7 +44,26 @@ def _find_piece(graph: StreamGraph, blk: str, m: float) -> Optional[str]:
     return None
 
 
-def _split_one(graph: StreamGraph, geoms: dict, bounds: dict, blk: str, sp: SplitPoint) -> bool:
+def _repartition(member_fids, fid_index, lo, hi):
+    """(order, magnitude, member_fids) restricted to fids overlapping measure range [lo, hi]."""
+    if not fid_index:
+        return None, None, member_fids
+    order = mag = None
+    kept = []
+    for f in member_fids:
+        info = fid_index.get(f)
+        if info is None:
+            kept.append(f)
+            continue
+        fd, fu, fo, fm = info
+        if fd < hi and fu > lo:                       # overlaps the range
+            kept.append(f)
+            order = fo if order is None else (max(order, fo) if fo is not None else order)
+            mag = fm if mag is None else (max(mag, fm) if fm is not None else mag)
+    return order, mag, tuple(kept)
+
+
+def _split_one(graph, geoms, blk, sp, fid_index) -> bool:
     M = sp.route_measure
     pid = _find_piece(graph, blk, M)
     if pid is None:
@@ -57,8 +72,9 @@ def _split_one(graph: StreamGraph, geoms: dict, bounds: dict, blk: str, sp: Spli
     if hi_id == pid or hi_id in graph.nodes:
         return False                          # degenerate or id collision — skip
     P = graph.nodes[pid]
-    lo_prev, hi_prev = bounds.get(pid, ("", ""))
-    label = sp.label or sp.split_id
+    bnd = SectionBoundary(boundary_id=f"split:{sp.split_id}",
+                          kind=_ANCHOR_KIND.get(sp.anchor_type.value, BoundaryKind.split),
+                          route_measure=M, label=(sp.label or sp.split_id))
 
     cx = cy = 0.0
     g = geoms.get(pid)
@@ -69,11 +85,18 @@ def _split_one(graph: StreamGraph, geoms: dict, bounds: dict, blk: str, sp: Spli
         geoms[pid] = substring(g, 0.0, a)
         geoms[hi_id] = substring(g, a, g.length)
 
-    graph.nodes[pid] = replace(P, up_m=M, length_m=max(M - P.down_m, 0.0))
+    lo_ord, lo_mag, lo_fids = _repartition(P.member_fids, fid_index, P.down_m, M)
+    hi_ord, hi_mag, hi_fids = _repartition(P.member_fids, fid_index, M, P.up_m)
+    graph.nodes[pid] = replace(P, up_m=M, length_m=max(M - P.down_m, 0.0), upper_bound=bnd,
+                               stream_order=lo_ord if fid_index else P.stream_order,
+                               stream_magnitude=lo_mag if fid_index else P.stream_magnitude,
+                               member_fids=lo_fids)
     graph.nodes[hi_id] = replace(P, node_id=hi_id, down_m=M, up_m=P.up_m,
-                                 length_m=max(P.up_m - M, 0.0))
-    bounds[pid] = (lo_prev, label)
-    bounds[hi_id] = (label, hi_prev)
+                                 length_m=max(P.up_m - M, 0.0), lower_bound=bnd,
+                                 upper_bound=P.upper_bound,
+                                 stream_order=hi_ord if fid_index else P.stream_order,
+                                 stream_magnitude=hi_mag if fid_index else P.stream_magnitude,
+                                 member_fids=hi_fids)
 
     for i, e in enumerate(graph.edges):
         if e.to_node == pid and e.at_measure >= M:
@@ -83,25 +106,19 @@ def _split_one(graph: StreamGraph, geoms: dict, bounds: dict, blk: str, sp: Spli
     return True
 
 
-def split_graph_at(graph: StreamGraph, geoms: dict,
-                   split_points: list[SplitPoint]) -> StreamGraph:
-    """Subdivide piece nodes at curated ``split_points`` (in place) and set location_identifier.
+def split_graph_at(graph: StreamGraph, geoms: dict, split_points: list[SplitPoint],
+                   fid_index: Optional[dict] = None) -> StreamGraph:
+    """Subdivide piece nodes at curated ``split_points`` (in place); rebuild adjacency.
 
-    Splits on one BLK are applied mouth→source so each lands in the current top piece. Returns
-    the same graph (mutated) with rebuilt adjacency.
+    Splits on one BLK are applied mouth→source so each lands in the current top piece.
+    ``fid_index`` (fid -> (down_m, up_m, order, magnitude)) enables per-piece order/magnitude
+    re-partitioning; omit it (synthetic tests) to keep the parent piece's values.
     """
-    bounds: dict[str, tuple[str, str]] = {}
     by_blk: dict[str, list[SplitPoint]] = defaultdict(list)
     for sp in split_points:
         by_blk[sp.blk].append(sp)
-    applied = 0
     for blk, sps in by_blk.items():
         for sp in sorted(sps, key=lambda s: s.route_measure):
-            applied += _split_one(graph, geoms, bounds, blk, sp)
-
-    for nid, (lo, hi) in bounds.items():
-        if nid in graph.nodes:
-            graph.nodes[nid] = replace(graph.nodes[nid], location_identifier=_label(lo, hi))
-
+            _split_one(graph, geoms, blk, sp, fid_index)
     graph.up_adj, graph.down_adj = _rebuild_adj(graph.edges)
     return graph
