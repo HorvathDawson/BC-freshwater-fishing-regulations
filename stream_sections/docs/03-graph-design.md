@@ -113,11 +113,25 @@ raw closure is free of braiding/cross-watershed leaks; the walk applies the rema
   curated `mu_boundary` split only if regs differ (`07`).
 - **Wigwam** (hand divide) → split at a `point`/`line` cut into two labelled sections.
 
+## Curated splits run BEFORE the tributary walk (so a section is a node)
+
+`sectionizer.split_graph_at` subdivides a piece node at each curated `SplitPoint` (P_low keeps
+its id, P_high = `"{blk}:{int(M)}"`), rewires incoming tributary edges by `at_measure`, adds a
+`continuation` edge P_high→P_low, and labels each piece via the 04 table. `build.py` applies it
+**right after the graph build, before persisting** — so every tributary walk sees sections.
+
+This is what makes **"tributaries of X between A and B"** work: with A and B as split nodes, the
+A–B reach is a node, and `tributaries.tributaries_between(section)` = `ancestors(section)` minus
+the upstream mainstem entering at B (its `continuation`/`lake_out` edge + that subtree) — i.e.
+only the side tributaries joining inside A–B. Pure set arithmetic, only possible because the
+section is a real node.
+
 ## Current implementation status
 
 `graph.py::build_stream_graph` implements S1–S4 **including lakes as nodes** and both guards
 (validated: 10821 nodes = 9254 pieces + 1567 lakes / 10929 edges on the Adams extent, integrity
 OK; Adams up/down-of-lake split confirmed). `build_section_geometries` writes the geometry
-sidecar. `ancestors(guarded=True)` is the S5 walk; the two real-data regressions are green.
-**Next:** S5a curated sectionizer (`sectionizer.py`/`anchors.py`) and S5b section-level
-tributary roll-up (`tributaries.py`).
+sidecar. `sectionizer.py` applies curated splits (point/line anchors; validated on real Adams
+geometry — a mid-fid cut split 11705 m → 5853 + 5853). `tributaries.py` provides the guarded
+closure + `tributaries_between`. **Next:** remaining anchor resolvers (lake/confluence/
+mu_boundary), `location_identifier` uniqueness validation, then the match step (`08`).

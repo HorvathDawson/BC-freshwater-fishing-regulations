@@ -158,6 +158,12 @@ def main() -> None:
     geoms = build_section_geometries(chains, fids, lake_kind)
 
     splits = load_split_defs(args.splits) if args.splits else None
+    if splits:
+        from .anchors import resolve_split_defs
+        from .sectionizer import split_graph_at
+        pts = resolve_split_defs(splits, chains)
+        split_graph_at(graph, geoms, pts)     # curated sections BEFORE any tributary walk
+        print(f"  resolved {len(pts)} curated split point(s) -> {len(graph.nodes)} nodes")
 
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)

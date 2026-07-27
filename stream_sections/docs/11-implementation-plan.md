@@ -56,23 +56,37 @@ confluence measure; `ancestors(guarded=True)` = tributary closure.
 - Tests ✅: mainstem-one-node, lake split, no-wetland-split, WSC filter, 2300 barrier, plus the
   two real-data regressions (Chehalis/Harrison, Columbia/Kootenay), un-skipped and green.
 
-## Phase 3 — curated sectionizer (`anchors.py`, `splits.py`, `sectionizer.py`) — NON-lake only
+## Phase 3 — curated sectionizer (`anchors.py`, `sectionizer.py`) — NON-lake only ✅ CORE DONE
 
-Lakes are already split (Phase 2), so this handles only authored boundaries (see `04`).
-- Author `splits.json` (falls/bridges/MU boundaries); anchor resolvers → `SplitPoint` →
-  `splits.resolved.json`; cut a stream-piece node at curated splits → `Section`s with cut
-  geometry, bounds, `location_identifier`, minzoom. Coverage + uniqueness validation.
-- Tests: `test_splits` (anchor → `(blk, measure)`), `test_sectionizer` (label table, coverage).
-- **Verify:** Adams already shows Lower Adams | Adams Lake | Upper Adams (Phase 2); a curated
-  split (e.g. a falls) adds a further boundary within a piece.
+Lakes are already split (Phase 2); this handles only authored boundaries (see `04`). **Applied
+to the graph BEFORE any tributary walk** so a curated section is a first-class node — that is
+what makes "tributaries of X between A and B" expressible (see Phase 4).
 
-## Phase 4 — tributaries roll-up (`tributaries.py`)
+- `anchors.resolve_split_defs` — `point`/`line` anchors → `SplitPoint(blk, route_measure)` on
+  the target `blk`/`gnis`/`wsc` blue line(s), proximity-gated. (`lake`/`mu_boundary`/
+  `confluence` anchors still to add — they need lake/MU/graph context.)
+- `sectionizer.split_graph_at` — subdivide the piece node containing each split measure into
+  P_low (keeps id) + P_high (`"{blk}:{int(M)}"`), rewire incoming tributary edges by
+  `at_measure`, add a `continuation` edge P_high→P_low, split the sidecar geometry, and set
+  `location_identifier` from the two bounds (04 table). `build.py` runs this right after the
+  graph build, before persisting.
+- ✅ Validated: synthetic `test_sectionizer` (section nodes + labels + `between`), and on real
+  Adams geometry a mid-fid `point` cut splits 11705 m → 5853 + 5853 with a continuation edge.
+- **Remaining:** `location_identifier` uniqueness-within-gnis validation; lake/confluence/
+  mu_boundary anchor resolvers; author a real `splits.json`.
 
-- The flow guards already live in the graph (`ancestors(guarded=True)`). This step only
-  aggregates the guarded ancestor node set to **section** ids and caches seed sets.
-- Tests: `test_tributaries` (`tributary_only` excludes the named section; cache).
-- **Verify:** golden parity of tributary sets vs legacy on the known rivers (minus corrected
-  leaks).
+## Phase 4 — tributaries roll-up (`tributaries.py`) ✅ CORE DONE
+
+The flow guards already live in the graph (`ancestors(guarded=True)`). This layer rolls the
+guarded ancestor set up to sections:
+- `tributary_node_ids(graph, node)` — the guarded closure of a section.
+- `tributaries_between(graph, section)` — for "tributaries of X **between A and B**": the
+  ancestors of the A–B section MINUS the upstream mainstem entering at its upper bound (its
+  incoming `continuation`/`lake_out` edge and that subtree). Leaves only the side tributaries
+  joining inside the reach. Depends on Phase 3 having made A–B a node.
+- ✅ Validated in `test_sectionizer` (Mid Creek only, not the upper mainstem/Up Creek).
+- **Remaining:** roll node ids → section ids at the `match` layer; seed-set cache; golden
+  parity vs legacy on the known rivers.
 
 ## Phase 5 — match (reuse `matching/` + new `match` step)
 
@@ -99,15 +113,14 @@ Lakes are already split (Phase 2), so this handles only authored boundaries (see
 - Flip `deploy` target / bump `SECTION_VERSION`. Rollback = previous version on R2.
 - Retire legacy graph/atlas/enrich stream path once stable; `graphify update .`.
 
-## Next concrete steps (Phases 0–2 done)
+## Next concrete steps (Phases 0–4 core done)
 
-1. **Phase 3 — curated sectionizer:** implement `anchors.py` (resolve a cut line/polygon ∩
-   channels → `SplitPoint`, proximity-gated) + `sectionizer.py` (cut a stream-piece node,
-   auto `location_identifier`). Author a seed `splits.json` (a falls/bridge fixture) — NOT a
-   lake split (lakes are Phase 2).
-2. **Phase 4 — tributary roll-up:** aggregate `ancestors(guarded=True)` to section ids + cache.
-3. Then Phase 5 (match onto sections + MU overlay).
+1. **Finish Phase 3:** remaining anchor resolvers (`lake`/`confluence`/`mu_boundary`),
+   `location_identifier` uniqueness validation, author a real `splits.json`.
+2. **Phase 5 — match onto sections** (+ MU overlay): resolve regs → section ids using name +
+   `location_identifier`; tributary expansion via `tributaries_between`/`tributary_node_ids`.
+3. **Phase 6/7** — bundle/tiles/client on the `section_id` spine; validate + cut over.
 
-Code in place: `stream_sections/` — blk-chains + names + the inverted graph **with lakes as
-nodes, both guards, and the geometry sidecar** (Phases 1–2 done); `anchors`/`splits`/
-`sectionizer`/`tributaries` stubbed. Tests in `stream_sections/tests/` (23 pass).
+Code in place: `stream_sections/` — blk-chains + names + inverted graph **with lakes as nodes,
+both guards, geometry sidecar** (Phases 1–2); **curated sectionizer + tributary roll-up incl.
+`between`** (Phases 3–4 core). Tests in `stream_sections/tests/` (28 pass).

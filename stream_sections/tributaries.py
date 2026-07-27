@@ -1,28 +1,44 @@
 """Tributary reachability over the single stream graph (03 S6 / 08).
 
-Tributaries of a node = its ANCESTORS in the graph (walk incoming flow edges upstream).
-``graph.ancestors`` gives the raw closure; this module adds the two REQUIRED guards from
-spike 10 on top of it (directionality alone is not enough for a full walk, though the
-inverted graph already avoids the confluence-parent leak by construction):
+Tributaries of a section = its ANCESTORS in the graph (walk incoming flow edges upstream). The
+two flow guards are already baked into the graph: the WSC-descendant filter drops
+braiding/cross-watershed edges at build time, and `graph.ancestors(guarded=True)` stops at
+`EDGE_TYPE=2300` barrier nodes. So this module is a thin roll-up:
 
-- WSC-descendant filter: keep only ancestors whose fwa_watershed_code is a descendant
-  (prefix-extension) of the seed node's trimmed WSC — the drainage subtree.
-- EDGE_TYPE=2300 barrier: do not traverse through connector/canal nodes (e.g. the
-  Kootenay<->Columbia canal), so regs don't leak across systems.
-- Lake barrier: once lakes are nodes (sectionizer), stop at regulated lakes.
-
-Implemented against StreamGraph once the guards' node metadata (edge_type per node, lake
-nodes) is populated by the sectionizer. Until then, ``graph.ancestors`` is the connectivity
-closure used for validation.
+- `tributary_node_ids` — the guarded ancestor closure of a section.
+- `tributaries_between` — for "tributaries of X between A and B": the ancestors of the A–B
+  section MINUS the upstream mainstem that merely continues through B. Because a curated split
+  (and a lake) joins its downstream piece by a `continuation`/`lake_out` edge, subtracting that
+  edge's subtree leaves exactly the side tributaries entering the A–B reach. This only works
+  because the section is a real node — i.e. splits are applied before the walk (sectionizer).
 """
 
 from __future__ import annotations
 
-from .graph import ancestors  # noqa: F401  (re-export the raw closure)
+from .graph import ancestors  # noqa: F401  (re-export the guarded closure)
 from .models import StreamGraph
 
+_MAINSTEM_EDGE_KINDS = frozenset({"continuation", "lake_out"})
 
-def tributary_node_ids(graph: StreamGraph, node_id: str,
-                       wsc_filter: bool = True, block_2300: bool = True) -> tuple[str, ...]:
-    """Guarded tributary closure of ``node_id``. TODO: apply WSC filter + 2300 barrier."""
-    raise NotImplementedError("guarded tributary walk: sectionizer must populate node guards first")
+
+def tributary_node_ids(graph: StreamGraph, node_id: str, guarded: bool = True) -> frozenset[str]:
+    """Guarded tributary closure of ``node_id`` (all upstream nodes)."""
+    return frozenset(ancestors(graph, node_id, guarded=guarded))
+
+
+def tributaries_between(graph: StreamGraph, section_id: str,
+                        guarded: bool = True) -> frozenset[str]:
+    """Tributaries entering the mainstem WITHIN ``section_id`` only.
+
+    = ancestors(section) minus the upstream-mainstem subtree entering at the section's upper
+    bound (its incoming `continuation`/`lake_out` edge). Excludes the mainstem's own
+    continuation above the reach; keeps the side tributaries joining inside the reach.
+    """
+    anc = set(ancestors(graph, section_id, guarded=guarded))
+    above: set[str] = set()
+    for ei in graph.up_adj.get(section_id, []):
+        e = graph.edges[ei]
+        if e.kind in _MAINSTEM_EDGE_KINDS:
+            above.add(e.from_node)
+            above |= ancestors(graph, e.from_node, guarded=guarded)
+    return frozenset(anc - above)
