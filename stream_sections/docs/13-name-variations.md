@@ -90,7 +90,15 @@ in new formats) get their own small appenders; this is just the initial merge.
 | `overrides.json` | `gnis_ids`/`waterbody_keys`/**`waterbody_poly_ids`→wbk (via lakes layer)**/`fwa_watershed_codes`/`blue_line_keys` | **only when the entry maps 1:1 to a single id**: `criteria.name_verbatim`, `canonical_name`, `name_variants[]` → **`regulation`** (searchable). Compound/group verbatims (multi-id) NOT harvested per member (Q6). | `note`/`skip_reason` + region+MUs (scope stays in overrides.json for match) |
 | `overrides.json` `variant_of` (17, no own id) | resolve variant_of→canonical entry's id; else **gazette name → gnis** (Heber→gnis 20215; Little Campbell/Bear R. ambiguous → logged) | the variant `name_verbatim`→**`regulation`** on the canonical | `variant_of` provenance |
 | `anglerinfo_matches.json.wbk_names` | `waterbody_keys`→wbk (already `str(wbk)`-keyed) | stocking names→`stocking`, bathy→`bathymetry` | source tag |
+| `_MANUAL` (in the compiler) | grounded names inferred while authoring **curated splits** (docs/04) that no source file carries | `regulation` | each records WHY + a `concern` on the split |
 | FWA gazette | (live at build, not in the file) | stream `GNIS_NAME`; lake `GNIS_NAME_1/2/3` (unioned across polygon rows) | — |
+
+**Grounded split-inferred names (`_MANUAL`).** When a split references an FWA-unnamed feature we
+infer a name and record it here so search/display can find it. Current entry: **"Sitkatapa
+Creek"** (blk 360844922) — the unnamed direct tributary of Burnt Bridge Creek, named for Sitkatapa
+Lake up its upper fork; backs the `burnt_bridge_at_sitkatapa` split and carries the same
+low-confidence note the split's `concern` does. A future source: the FISS **obstacles** layer's
+`GAZETTED_NAME` (fetched as `obstacles`) can seed falls/dam names the same way.
 
 ### Out of the identity model (documented, not silently dropped)
 - **lon/lat-only ungazetted points** (`ungazetted_location`, no id): `MARSH POND`,

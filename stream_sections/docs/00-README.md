@@ -1,6 +1,7 @@
 # Stream Section Redesign — Working Folder
 
-**Status:** DESIGN complete, clean-slate. No implementation yet.
+**Status:** Graph + naming + splits + border + tributary/EXCEPT chain BUILT & tested (53 pass /
+11 skip; see `14`). Next step is the **match** stage. Runs on real data via `stream_sections/build.py`.
 **Branch (intended):** `redesign/stream-sections` (create with
 `git checkout -b redesign/stream-sections` — these untracked files follow onto it).
 **Approach:** rebuild from scratch into `output/pipeline/v2/`, validate in parallel, then cut
@@ -69,24 +70,34 @@ All code lives in top-level `stream_sections/` (outside `pipeline/`). Run with `
   OK (0 fids uncovered); Adams Lake outlet = Lower Adams, inlet = Upper Adams (the up/down-of-lake
   split falls out for free). 23 tests pass incl. both real-data regressions.
 
-**Manual splits — schema + example DONE:** `splits.schema.md` (authoritative; supersedes the
-mechanics in `docs/04`) + `splits.example.json`. **Every cut is a line or a polygon
-boundary** (not a point/fid): `point` → auto perpendicular line at the target mainstem;
-`line` → explicit; `lake` → lake boundary; `mu_boundary` → the line between two MUs;
-`confluence` → at a tributary BLK. Target scope `blk`/`wsc`/`gnis` is proximity-limited
-(`proximity_m`). No `barrier`/`landmark`/`linear_feature_id`. `SplitDef.from_dict` validates.
+**Curated splits — DONE + grounded:** `splits.schema.md` (authoritative) + a real `splits.json`
+verified against data (Adams Lake; Kootenay Idaho-border + Koocanusa; Hunlen Falls; Young Cr. Hwy 20;
+Burnt Bridge ↑ Sitkatapa; Fraser 2‑18/3‑14). Anchors (`anchors.py`): `point`, `line`, `lake`,
+`mu_boundary` (→ **one** split, median + `concern` if a weaving river crosses N×), `confluence`
+(prefer `tributary_wsc` — **self-validates** the WSC-descendant relationship). `sectionizer.py`
+applies them as graph nodes with **proximity pickup** (a curated point reuses a nearby lake/border
+boundary — how Kootenay's border reaches resolve) and an optional `_concern` surfaced everywhere.
+**Border (`border.py`):** cross-border BLKs are split at the BC outline (WMU union) and the outside
+pieces flagged `out_of_bc` (geometry kept, dotted, not a barrier). **EXCEPT algebra
+(`tributaries.py`):** "[Includes Tributaries] EXCEPT …" = `reach_except` set difference over the
+split pieces (Atnarko/Bella Coola).
 
 **Debug/report tools (temporary):**
-- `export_gpkg.py` — `build.py` writes `graph.gpkg` for QGIS: `streams` (piece lines + name
-  tuples + tributary count + `is_barrier`), `lakes` (lake nodes + through-rivers + #inlets/
-  #outlets), `confluences` (edges), `graph_nodes`/`graph_edges` (the topology as a node-link
-  schematic), `anchors`, and optional `tributaries` (guarded ancestor walk) + `lake_io`.
+- `export_gpkg.py` — `build.py` writes `graph.gpkg` for QGIS: `streams` (final section pieces:
+  name tuples, `full_name`, `location_identifier`, `is_barrier`, `out_of_bc`, tributary count),
+  `lakes`, `confluences`, `graph_nodes`/`graph_edges` (topology schematic), `anchors`,
+  `split_points` (every resolved cut + `picked_up`/`concern`), optional `obstacles` (FISS
+  fish-passage points), `tributaries`, `lake_io`.
 - `oneoff/` — one-off bootstrap scripts (not part of the build): `name_variants_compile.py`
-  (→ `name_variants.json`, docs/13) and `complex_regs_report.py` (→ `output/v2/complex_regulations.md`).
+  (→ `name_variants.json`, docs/13; includes a `_MANUAL` grounded list) and `complex_regs_report.py`.
 
-**Next:** `sectionizer.py`/`anchors.py` — **curated** splits only (lakes already split in the
-graph step): resolve cut line/boundary ∩ channels (proximity-gated) → cut geometry +
-`location_identifier`. Then `tributaries.py` — roll the guarded ancestor sets up to sections.
+**Data layers:** `data/fetch_data.py` + `FWADataAccessor` now include `obstacles`
+(`WHSE_FISH.FISS_OBSTACLES_PNT_SP`) — falls/dams as points, with `NEW_WATERSHED_CODE` renamed to
+`WATERSHED_CODE_50K` so obstacles join to streams; the point source for falls-anchored splits and
+future client display (replacing OSM `waterfalls`).
+
+**Next:** the **match** step (regs → sections by name + `location_identifier`; MU overlay;
+tributary/EXCEPT expansion). Everything upstream of match is built + tested (see `14`).
 
 ## Key verified facts driving the design (see `02` for evidence)
 
@@ -122,6 +133,7 @@ tributary walk applies them). Paste exact leak numbers into `test_graph.py` when
 
 ## Ground rules
 
-- Nothing implemented yet — design only.
+- Graph → naming → border → curated splits → tributary/EXCEPT is implemented + tested; **match**
+  is the next unbuilt stage (see `14` for the live status).
 - After any real code change, run `graphify update .` (project CLAUDE.md).
 - The three de-risking spikes in `03` gate deletion of legacy logic — run them first.

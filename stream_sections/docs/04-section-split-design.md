@@ -37,8 +37,9 @@ exactly those in `models.py::AnchorType` — see `splits.schema.md` for fields:
 | `point` | an auto **perpendicular line** across the target mainstem at that coord (length bounded by `proximity_m`, so it also catches nearby side channels but nothing far) |
 | `line` | an explicit cut line (≥2 coords) |
 | `lake` | a lake polygon boundary (`wbk`) — for the rare case a *curated* boundary should sit on a lake edge that the combine-phase split did not already create |
-| `mu_boundary` | the shared boundary line between `mu_a` and `mu_b` (needs both) |
-| `confluence` | an auto cut line where `tributary_blk` meets the target mainstem |
+| `mu_boundary` | the shared boundary line between `mu_a` and `mu_b` (needs both). Collapses to **one** split even where the river runs along the boundary (multi-crossing → dedupe within `proximity_m`, else keep the median + record a `concern`). Verified on the Fraser: the region-2/3 adjacent pair is **`2-18/3-14`** (not `2-17/3-15`, which don't touch), crossing once at m≈196 967. |
+| `confluence` | an auto cut line where the tributary meets the target mainstem. Prefer **`tributary_wsc`** over `tributary_blk`: since BLK↔WSC is 1:1 they resolve identically, but the WSC lets the resolver **self-validate** (the tributary's trimmed WSC must be a strict descendant of the parent's, e.g. Burnt Bridge `…777225` ⊃ `…777225-504013`); a failed check keeps the split but records a `concern`. |
+| `border` (auto) | the BC provincial outline (WMU union). Not hand-authored — `border.py` emits one per crossing of a cross-border BLK; the piece beyond the outline is flagged `out_of_bc` (see below). |
 
 All anchors **resolve once at build time** to `SplitPoint(blk, route_measure, fid, offset_m)`
 along a blue line. After resolution every anchor is identical downstream — that is what makes
@@ -78,6 +79,42 @@ local** — adding a split elsewhere on the river does not relabel unrelated sec
 **Disambiguation:** if two boundaries share a name, append the authored `id` or a distance
 qualifier. Validate `location_identifier` uniqueness within a stream at build time (fail loud).
 
+## Proximity pickup — a curated point reuses an existing boundary
+
+When a curated split resolves to a measure within `proximity_m` of a boundary that **already
+exists** on that BLK (a lake edge, a `border` split, or an earlier curated cut), the sectionizer
+**reuses and relabels** that boundary instead of cutting a near-duplicate sliver. This is how the
+authored waters express themselves without needing exact geometry:
+
+- Kootenay **"downstream of the Idaho border"** is a **point** anchor that snaps onto the auto
+  `border` split at the 49th parallel (m≈168 730, `picked_up: true`) — the reg names a boundary
+  that only the border pass creates.
+- The `lake` anchor is inherently a pickup: the combine phase already split the BLK at the lake, so
+  a `lake` split lands on the existing boundary and just relabels it — Adams Lake (both boundaries
+  `picked_up: true`) and **Koocanusa Reservoir** (Lake Koocanusa is FWA manmade wbk 328961702, a
+  real node threading the Kootenay — verified in the build; earlier notes calling it "absent from
+  FWA" were wrong).
+
+Pickup is recorded per split (`picked_up`) in `splits.resolved.json` and the gpkg `split_points`
+layer, so it's never silent.
+
+## `concern` — never-silent caveats
+
+A split may carry an optional authored `_concern` (free text), and the resolver adds its own for
+inferred/ambiguous cases (MU multi-crossing collapse, a failed confluence WSC-descendant check).
+Examples: Burnt Bridge's tributary is FWA-unnamed, so **"Sitkatapa Creek"** is inferred from
+Sitkatapa Lake up its second fork (WSC `…504013-327666`) — flagged, and added as a name variant
+with the same note. Concerns surface in `splits.resolved.json` + the gpkg; they never block a
+build.
+
+## Border reaches (`out_of_bc`) — like under-lake, but kept
+
+A few reg streams leave BC and return (the Kootenay loops through Montana/Idaho — FWA carries the
+full geometry). The `border` pass splits such a BLK at the provincial outline and flags the
+outside pieces `out_of_bc`. Unlike an under-lake reach (absorbed into the lake node), the geometry
+is **kept** so the client can draw it dotted, and the piece is **not** a flow barrier — BC regs
+simply don't apply there.
+
 ## How regulations attach to sections
 
 - "Adams River" (no qualifier) → matches **all** Adams River sections (below-lake, above-lake,
@@ -99,6 +136,33 @@ WSC-descendant edge filter + the 2300 `is_barrier` node). There is **no** per-sp
 flag; if a dam should stop propagation, that is a lake/2300 property of the geometry, not an
 authored flag on the split.
 
+## "[Includes Tributaries] EXCEPT …" — pure set algebra
+
+Once the splits exist, a compound reg is a set difference over node ids — no geometry re-walk.
+Real case: *ATNARKO / BELLA COOLA RIVERS [Includes Tributaries] EXCEPT Burnt Bridge Cr. upstream
+of Sitkatapa Cr., Hunlen Cr. upstream of Hunlen Falls, Young Cr. upstream of Hwy 20*.
+
+```
+base   = with_tributaries(Atnarko) ∪ with_tributaries(Bella Coola)     # rivers + all upstream
+except = tribs(Hunlen ↑ Hunlen Falls) ∪ tribs(Burnt Bridge ↑ Sitkatapa) ∪ tribs(Young ↑ Hwy 20)
+result = base − except
+```
+
+Each "X upstream of Y" is the **upper piece** the Y-split already made (`piece_above(blk, label)`
+finds it by the split's boundary label); its exclusion set is that piece's own guarded ancestor
+closure (`tributary_node_ids`). `reach_except(base_ids, except_ids)` in `tributaries.py` is the
+whole thing. The un-split downstream pieces (below each falls/road) and any un-split creek stay in
+`result`.
+
+```
+        ocean ── Bella Coola ─────────────────────────────  headwaters
+                   ▲Ordinary   ▲Young      ▲Burnt Bridge   ▲Atnarko
+                   (no split)  ┊Hwy 20      ┊Sitkatapa       └─ Hunlen ┊Hunlen Falls
+                               │                                        │
+        EXCEPT drops:      Young↑Hwy20   BurntBridge↑Sitkatapa    Hunlen↑Falls
+        result keeps:      everything else, incl. the reaches BELOW each ┊ split
+```
+
 ## Generality checklist
 
 - ✅ one-side / two-side / N splits → N+1 sections, each labeled by its two immediate bounds.
@@ -107,3 +171,8 @@ authored flag on the split.
 - ✅ lake above/below sections come **free** from the combine-phase lake split — not authored.
 - ✅ description carried on the section (`location_identifier`), auto-generated, stable, local.
 - ✅ deterministic + reviewable (resolved points stored back to `splits.resolved.json`).
+- ✅ MU boundary → exactly one split (median + `concern` if a weaving river crosses N times).
+- ✅ confluence self-validates by WSC descendant check; `concern` on failure, never a hard stop.
+- ✅ proximity pickup: a curated point reuses a nearby lake/border/earlier boundary (Kootenay).
+- ✅ cross-border BLKs split at the BC outline; outside pieces `out_of_bc` (kept, dotted, not a barrier).
+- ✅ "[Includes Tributaries] EXCEPT …" = `reach_except` set difference over the split pieces.

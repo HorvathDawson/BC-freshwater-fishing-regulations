@@ -24,10 +24,18 @@ in-place migration; the old pipeline keeps running until v2 is proven.
  fetch (raw) ─┬──┤                                                 │
               │  └─ matching data (overrides, display names, splits)│
               │                                                     │
-              ├─ blk-chains ─ sections ─ graph ─────────────────────┼─ match ─ bundle ─ deploy
-              │   (03 S1-2)    (03 S3)    (03 S4-5)                  │  (08)    (06)
+              ├─ blk-chains ─ graph ─ border ─ splits ─ tributaries ┼─ match ─ bundle ─ deploy
+              │   (03 S1-2)   (S4-5,  (out-of- (section- (guarded    │  (08)    (06)
+              │               lakes   BC flag) izer +    ancestors,  │
+              │               split)           pickup)   EXCEPT)     │
               └─ overlays (zones, admin, towns, anglerinfo, hydro) ──┘
 ```
+
+**Ordering note (important):** lakes split the BLK **inside** `graph` (from the fid `wbk`-runs);
+`border` and curated `splits` run **after** the graph exists (they subdivide piece nodes), and
+they run **before** any tributary walk so a section is a real node. The artifact chain is
+`blk_chains.pkl → graph.pkl (+ geometries.pkl) → [border+splits mutate graph in place] →
+tributaries/match`.
 
 ### Steps (geometry chain)
 
@@ -35,8 +43,9 @@ in-place migration; the old pipeline keeps running until v2 is proven.
 |------|-------|--------|-------|
 | `fetch` | remote | `data/*.gpkg` | unchanged from today |
 | `blk-chains` | streams gpkg (via `FWADataAccessor`) | `v2/blk_chains.pkl` | 03 Step 1–2: merge by BLK, route measures, `(name,source)` tuples |
-| `sections` | blk_chains + `splits.json` | `v2/sections.*` | 03 Step 3: split BLKs at lakes + curated splits → section nodes; cut geometry; per-section minzoom |
-| `graph` | sections (+ fid incidence) | `v2/graph.pkl` | 03 Step 4–5: inverted graph (nodes=sections/lakes, edges=flows-into); ancestor tributary reachability |
+| `graph` | blk_chains (+ fid incidence) | `v2/graph.pkl` + `geometries.pkl` | 03 Step 4–5: inverted graph (nodes=stream pieces/lakes, edges=flows-into); **lakes split the BLK here**; geometry-free graph + `node_id→geom` sidecar |
+| `border` | graph + WMU outline | (mutates `graph.pkl`) | split cross-border BLKs at the BC outline; flag `out_of_bc` pieces (geometry kept, not a barrier) |
+| `splits` | graph + `splits.json` | (mutates `graph.pkl`) + `splits.resolved.json` | 04: resolve anchors → cut piece nodes; **proximity pickup**; `location_identifier`; `concern` |
 | `overlays` | atlas polygons, zones, towns, anglerinfo/hydro dbs | `v2/overlays.pkl` | zone polygons, nearby-towns index, bathymetry/markers keyed to wbk/section |
 
 ### Steps (content chain) — reused, lightly adapted
