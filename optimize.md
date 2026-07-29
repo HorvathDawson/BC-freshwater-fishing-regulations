@@ -14,6 +14,4 @@ future hard:
 3) split regulations more
 4) add a way to filter the target species. 
 
-next todos
-1) regulations can put zone above tributary of regs in info panel https://canifishthis.ca/waterbody/300-625474-920305/?s=a38d04a07b6c#9.77/50.8176/-115.953
 
