@@ -1343,6 +1343,12 @@ def main():
         "waterfalls": {
             "type": "OVERPASS_WATERFALLS",
         },
+        # Provincial Obstacles to Fish Passage (FISS): falls/dams/etc. as points, with
+        # OBSTACLE_NAME, GAZETTED_NAME, HEIGHT and the Watershed-Atlas 50k code
+        # (NEW_WATERSHED_CODE, joinable to streams.WATERSHED_CODE_50K). Point source for
+        # falls-anchored splits (e.g. Hunlen Falls) and future client display (replacing OSM
+        # waterfalls). See stream_sections/docs/04.
+        "obstacles": {"type": "WFS", "source": "WHSE_FISH.FISS_OBSTACLES_PNT_SP"},
         "wma": {"type": "WFS", "source": "WHSE_TANTALIS.TA_WILDLIFE_MGMT_AREAS_SVW"},
         "wmu": {
             "type": "WFS",

@@ -63,6 +63,8 @@ class FWADataAccessor:
         "ADMIN_AREA_SID",
         "NAMED_WATERSHED_ID",
         "osm_id",
+        # Obstacles (fish-passage) layer id
+        "FISH_OBSTACLE_POINT_ID",
     ]
 
     STRING_COLUMNS = [
@@ -84,6 +86,13 @@ class FWADataAccessor:
         "GAME_MANAGEMENT_ZONE_NAME",
         "COMMON_SITE_NAME",
         "name",
+        # Obstacles (fish-passage) layer text fields
+        "OBSTACLE_NAME",       # obstacle type ("Falls", "Beaver Dam", ...)
+        "OBSTACLE_CODE",
+        "GAZETTED_NAME",       # waterbody the obstacle sits on
+        "NEW_WATERSHED_CODE",  # Watershed-Atlas 50k code (renamed -> WATERSHED_CODE_50K below)
+        "TRIMMED_WATERSHED_CODE",
+        "WATERBODY_TYPE",
     ]
 
     INT_COLUMNS = ["STREAM_ORDER", "STREAM_MAGNITUDE"]
@@ -115,6 +124,19 @@ class FWADataAccessor:
                 df[col] = df[col].apply(
                     lambda x: None if pd.isnull(x) or x == "" else int(float(x))
                 )
+
+        # The obstacles layer's Watershed-Atlas code is the SAME 50k scheme as the streams layer's
+        # WATERSHED_CODE_50K, but written DASHED+fully-padded ("910-290700-99900-41500-0000-...")
+        # whereas streams store it undelimited ("910290700999004150..."). Normalise it to the
+        # canonical dashed, zero-trimmed form via the shared formatter (proper zero-dropping, not a
+        # naive dash strip) and rename to WATERSHED_CODE_50K — the join to streams then runs the
+        # same format_wsc_50k() on the stream value. Only fires on the obstacles layer (nothing
+        # else carries NEW_WATERSHED_CODE), so this is a no-op elsewhere.
+        if "NEW_WATERSHED_CODE" in df.columns and "WATERSHED_CODE_50K" not in df.columns:
+            from pipeline.utils.wsc import format_wsc_50k
+            df["NEW_WATERSHED_CODE"] = df["NEW_WATERSHED_CODE"].apply(
+                lambda v: format_wsc_50k(str(v).replace("-", "")))
+            df = df.rename(columns={"NEW_WATERSHED_CODE": "WATERSHED_CODE_50K"})
         return df
 
     # ── Public access methods ─────────────────────────────────────────
