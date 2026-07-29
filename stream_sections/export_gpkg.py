@@ -12,9 +12,17 @@ Layers (EPSG:3005):
                   (kind/order/magnitude/#tributaries/root), independent of river geometry.
   - graph_edges : one straight line per flow edge, from_node-mouth -> to_node-mouth.
   - anchors     : (optional) authored split anchors (point/line).
+  - split_points: (optional) every RESOLVED cut point (curated + auto border/lake), with label,
+                  anchor_type, picked_up (reused an existing boundary), offset + concern.
+  - obstacles   : (optional) FISS fish-passage obstacles (falls/dams) in view — the point source
+                  for falls-anchored splits + future client display.
   - tributaries : (optional) the guarded ancestor set of one target node, by role + depth.
   - lake_io     : (optional) inlet/outlet points for lakes, read straight off lake-node
                   adjacency (up_adj = inlets, down_adj = outlets).
+
+The `streams` layer IS the final section set (BLK pieces after lake + border + curated splits):
+each row carries display_name, the location_identifier qualifier, a combined `full_name`, and
+`out_of_bc` so the whole "what the data looks like after every step" is inspectable in QGIS.
 """
 
 from __future__ import annotations
@@ -48,8 +56,20 @@ def _write(rows, path, layer, crs=3005):
     return len(rows)
 
 
+def _measure_point(graph: StreamGraph, geoms: dict, blk: str, m: float) -> Optional[Point]:
+    """Point on ``blk`` at absolute route measure ``m`` (via the piece that contains it)."""
+    for n in graph.nodes.values():
+        if n.kind == NodeKind.stream and n.blk == blk and n.down_m - 1e-6 <= m <= n.up_m + 1e-6:
+            g = geoms.get(n.node_id)
+            if g is not None and not g.is_empty:
+                return g.interpolate(min(max(m - n.down_m, 0.0), g.length))
+    return None
+
+
 def export_graph_gpkg(graph: StreamGraph, geoms: dict, path: str,
-                      splits: Optional[list[SplitDef]] = None) -> None:
+                      splits: Optional[list[SplitDef]] = None,
+                      split_points: Optional[list] = None,
+                      obstacles=None, area_polys: Optional[dict] = None) -> None:
     p = Path(path)
     p.parent.mkdir(parents=True, exist_ok=True)
     if p.exists():
@@ -71,13 +91,16 @@ def export_graph_gpkg(graph: StreamGraph, geoms: dict, path: str,
                 "geometry": g,
             })
         else:
+            loc = n.location_identifier or ""
             stream_rows.append({
                 "node_id": n.node_id, "blk": n.blk, "wsc": n.wsc, "gnis_id": n.gnis_id,
                 "display_name": n.display_name, "name_tuples": _name_tuples_str(n),
-                "location_identifier": n.location_identifier or "",
+                "location_identifier": loc,
+                "full_name": f"{n.display_name} ({loc})" if loc else n.display_name,
                 "downstream_node": downstream.get(n.node_id, ""),
                 "n_tributaries": len(graph.up_adj.get(n.node_id, [])),
                 "edge_types": ",".join(n.edge_types), "is_barrier": n.is_barrier,
+                "out_of_bc": n.out_of_bc, "in_areas": ", ".join(n.in_areas),
                 "stream_order": n.stream_order, "stream_magnitude": n.stream_magnitude,
                 "length_m": round(n.length_m, 1), "geometry": g,
             })
@@ -116,19 +139,61 @@ def export_graph_gpkg(graph: StreamGraph, geoms: dict, path: str,
     _write(edge_rows, p, "graph_edges")
 
     if splits:
+        from .anchors import _line as _anchor_line, _pt as _anchor_pt
         anchor_rows = []
         for s in splits:
             target = f"blk={s.blk}" if s.blk else (f"wsc={s.wsc}" if s.wsc else f"gnis={s.gnis_id}")
             a = s.anchor
-            geom = Point(a.coord) if a.coord is not None else (
-                LineString(a.coords) if a.coords else None)
+            # Reproject lon/lat anchors to EPSG:3005 (else a coord like (-116,49) lands at the
+            # BC-Albers origin — the QGIS "0,0" bug). Same transform the resolver uses.
+            geom = (_anchor_pt(a.coord, a.is_lonlat) if a.coord is not None
+                    else (_anchor_line(a.coords, a.is_lonlat) if a.coords else None))
             if geom is None:
                 continue  # lake/mu_boundary/confluence anchors have no authored coord
             anchor_rows.append({"id": s.id, "type": a.type.value, "target": target,
                                 "label": s.label, "is_lonlat": a.is_lonlat, "geometry": geom})
         if anchor_rows:
-            gpd.GeoDataFrame(anchor_rows, geometry="geometry").to_file(
+            gpd.GeoDataFrame(anchor_rows, geometry="geometry", crs=3005).to_file(
                 p, layer="anchors", driver="GPKG")
+
+    if split_points:
+        sp_rows = []
+        for sp in split_points:
+            mp = _measure_point(graph, geoms, sp.blk, sp.route_measure)
+            if mp is None:
+                continue
+            sp_rows.append({
+                "split_id": sp.split_id, "blk": sp.blk, "label": sp.label,
+                "anchor_type": sp.anchor_type.value,
+                "route_measure": round(sp.route_measure, 1),
+                "picked_up": bool(getattr(sp, "picked_up", False)),
+                "offset_m": round(getattr(sp, "offset_m", 0.0), 1),
+                "concern": getattr(sp, "concern", ""), "geometry": mp,
+            })
+        _write(sp_rows, p, "split_points")
+
+    if obstacles is not None and len(obstacles):
+        obs_rows = []
+        for r in obstacles.itertuples():
+            g = getattr(r, "geometry", None)
+            if g is None or g.is_empty:
+                continue
+            obs_rows.append({
+                "obstacle_id": str(getattr(r, "FISH_OBSTACLE_POINT_ID", "")),
+                "obstacle_name": str(getattr(r, "OBSTACLE_NAME", "")),
+                "gazetted_name": str(getattr(r, "GAZETTED_NAME", "")),
+                "wsc_50k": str(getattr(r, "WATERSHED_CODE_50K", "")),
+                "height_m": getattr(r, "HEIGHT", None),
+                "geometry": g if g.geom_type == "Point" else g.representative_point(),
+            })
+        _write(obs_rows, p, "obstacles")
+
+    # The admin/park polygon(s) an area_boundary split cut against — so you can visually confirm
+    # the split_points land ON this boundary and the 'within {area}' pieces fall INSIDE it.
+    if area_polys:
+        _write([{"area_name": name, "geometry": poly}
+                for name, poly in area_polys.items() if poly is not None and not poly.is_empty],
+               p, "areas")
 
 
 def export_tributaries(graph: StreamGraph, geoms: dict, target_node_id: str, path: str,

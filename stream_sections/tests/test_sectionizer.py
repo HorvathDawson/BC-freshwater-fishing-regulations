@@ -75,6 +75,32 @@ def test_tributary_edge_reattaches_by_measure():
     assert {"M:0", "U:0"} <= tributary_node_ids(g, "X:120")
 
 
+def test_proximity_pickup_reuses_nearby_boundary():
+    """A curated split within proximity_m of an EXISTING boundary reuses + relabels it instead of
+    cutting a near-duplicate (how Kootenay 'Idaho border' snaps onto the auto border split)."""
+    g, _ = _graph()
+    split_graph_at(g, {}, [SplitPoint("A", "X", 120.0, "", "A", AnchorType.point)])
+    before = set(g.nodes)
+    applied: list = []
+    near = SplitPoint("border_pickup", "X", 123.0, "", "Idaho border", AnchorType.point,
+                      proximity_m=10.0)
+    split_graph_at(g, {}, [near], proximity_pickup=True, applied=applied)
+    assert set(g.nodes) == before                        # no new node — reused the 120 boundary
+    assert applied[0].picked_up is True
+    assert g.nodes["X:0"].upper_bound.label == "Idaho border"   # boundary relabelled
+    assert g.nodes["X:120"].lower_bound.label == "Idaho border"
+
+
+def test_proximity_pickup_far_split_still_cuts():
+    """Outside proximity_m, a curated split cuts normally (no false pickup)."""
+    g, _ = _graph()
+    split_graph_at(g, {}, [SplitPoint("A", "X", 120.0, "", "A", AnchorType.point)])
+    applied: list = []
+    far = SplitPoint("C", "X", 250.0, "", "C", AnchorType.point, proximity_m=10.0)
+    split_graph_at(g, {}, [far], proximity_pickup=True, applied=applied)
+    assert "X:250" in g.nodes and applied[0].picked_up is False
+
+
 def test_anchor_resolves_point_to_measure():
     _, fids = _graph()
     chains = build_blk_chains(fids, {})

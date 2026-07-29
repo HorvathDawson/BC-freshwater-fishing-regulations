@@ -183,6 +183,19 @@ class _Compiler:
                         "note": ""} for n in names])
 
 
+# Grounded manual entries that no source file yet carries — names inferred while authoring the
+# curated splits (docs/04). Kept here so a regen preserves them; each records WHY (a `concern`
+# elsewhere). Add sparingly and always with a note.
+_MANUAL: list[dict] = [
+    {"target": {"blks": ["360844922"]},
+     "names": [{"name": "Sitkatapa Creek", "source": "regulation",
+                "note": "INFERRED: FWA-unnamed direct tributary of Burnt Bridge Creek "
+                        "(WSC 910-275583-777225-504013); named for Sitkatapa Lake up its upper "
+                        "fork (blk 360855126). Backs the burnt_bridge_at_sitkatapa split; low "
+                        "confidence, no alternative."}]},
+]
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--gpkg", default=_GPKG)
@@ -193,6 +206,8 @@ def main() -> None:
     c.add_feature_display_names(_FDN)
     c.add_overrides(_OVR)
     c.add_anglerinfo(_ANG)
+    for m in _MANUAL:                      # grounded split-inferred names (docs/04)
+        c.emit(m["target"], m["names"], m.get("reach"))
 
     Path(args.out).write_text(json.dumps(c.entries, indent=1))
     print(f"wrote {len(c.entries)} name-variant entries -> {args.out}")

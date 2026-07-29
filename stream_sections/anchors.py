@@ -8,13 +8,17 @@ cut may thus land on several BLKs (main + side channels), one SplitPoint each.
 - point       : project the coord onto the target blue line (kept iff within `proximity_m`).
 - line        : intersect the cut line with the target blue line; measure the crossing.
 - confluence  : the tributary (by `tributary_blk` or `tributary_wsc`) has a mouth; project it
-                onto the target (parent) blue line -> the confluence measure. The parent may be
-                unnamed (author supplies `label` + a name override elsewhere).
+                onto the target (parent) blue line -> the confluence measure. `tributary_wsc` is
+                preferred: the tributary's WSC must be a strict descendant of the parent's WSC
+                (self-validating; a failed check keeps the split but records a `concern`). The
+                parent may be unnamed (author supplies `label` + a name override elsewhere).
 - lake        : the target's waterbody-run for `wbk` -> its boundary measure. NOTE lakes already
                 split the BLK in the graph build, so this is a no-op split; it exists so a
                 lake-anchored reg resolves to the (already-present) boundary for matching.
 - mu_boundary : the shared boundary line of two ADJACENT MUs (`mu_a`,`mu_b`) intersected with the
-                target blue line -> the crossing measure(s). Needs `mu_polys` context.
+                target blue line -> a SINGLE crossing measure (collapsed to one even where the
+                river runs along the boundary; multi-crossing is deduped + flagged). Needs
+                `mu_polys` context.
 """
 
 from __future__ import annotations
@@ -45,13 +49,22 @@ def _line(coords, is_lonlat: bool) -> LineString:
     return LineString([_pt(c, is_lonlat).coords[0] for c in coords])
 
 
-def _target_blks(sd: SplitDef, chains: list[BlkChain]) -> list[str]:
+from .wsc import trim_wsc as _trim_wsc   # shared util (stream_sections/wsc.py); prefix-safe WSC trim
+
+
+def _target_blks(sd: SplitDef, chains: list[BlkChain], descendants: bool = False) -> list[str]:
     if sd.blk:
         return [sd.blk]
     if sd.gnis_id:
         return [c.blk for c in chains if c.gnis_id == sd.gnis_id]
     if sd.wsc:
-        return [c.blk for c in chains if c.fwa_watershed_code == sd.wsc]
+        w = _trim_wsc(sd.wsc)
+        if descendants:
+            # the whole WSC subtree: the trunk itself + everything draining into it (prefix match,
+            # dash-guarded so '100-025956' never matches a sibling like '100-0259560').
+            return [c.blk for c in chains
+                    if (tc := _trim_wsc(c.fwa_watershed_code)) == w or tc.startswith(w + "-")]
+        return [c.blk for c in chains if _trim_wsc(c.fwa_watershed_code) == w]
     return []
 
 
@@ -78,23 +91,26 @@ def _tributary_chain(anchor, by_blk, by_wsc) -> Optional[BlkChain]:
     if anchor.tributary_blk:
         return by_blk.get(anchor.tributary_blk)
     if anchor.tributary_wsc:
-        cands = by_wsc.get(anchor.tributary_wsc, [])
+        cands = by_wsc.get(_trim_wsc(anchor.tributary_wsc), [])
         # the main channel of that WSC (side channels share it) = the largest.
         return max(cands, key=lambda c: (c.stream_magnitude or 0, c.length_m)) if cands else None
     return None
 
 
 def resolve_split_defs(split_defs: list[SplitDef], chains: list[BlkChain],
-                       mu_polys: Optional[dict] = None) -> list[SplitPoint]:
+                       mu_polys: Optional[dict] = None,
+                       area_polys: Optional[dict] = None) -> list[SplitPoint]:
     by_blk = {c.blk: c for c in chains}
-    by_wsc: dict[str, list[BlkChain]] = defaultdict(list)
+    by_wsc: dict[str, list[BlkChain]] = defaultdict(list)   # keyed by TRIMMED wsc (authored form)
     for c in chains:
-        by_wsc[c.fwa_watershed_code].append(c)
+        by_wsc[_trim_wsc(c.fwa_watershed_code)].append(c)
     out: list[SplitPoint] = []
 
-    def _emit(sd, blk, m):
+    def _emit(sd, blk, m, concern="", offset=0.0):
         out.append(SplitPoint(split_id=sd.id, blk=blk, route_measure=float(m), fid="",
-                              label=(sd.label or sd.id), anchor_type=sd.anchor.type))
+                              label=(sd.label or sd.id), anchor_type=sd.anchor.type,
+                              offset_m=float(offset), proximity_m=sd.proximity_m,
+                              concern=(concern or sd.concern)))
 
     for sd in split_defs:
         a = sd.anchor
@@ -122,9 +138,16 @@ def resolve_split_defs(split_defs: list[SplitDef], chains: list[BlkChain],
             for blk, c in targets:
                 if c.geometry is None:
                     continue
+                # WSC self-validation: the tributary's WSC must be a strict descendant of the
+                # parent's (a real confluence). If not, keep the split but flag it — the author
+                # likely picked the wrong tributary/parent.
+                pw, tw = _trim_wsc(c.fwa_watershed_code), _trim_wsc(trib.fwa_watershed_code)
+                concern = "" if (tw.startswith(pw + "-") and tw != pw) else (
+                    f"confluence WSC check failed: tributary {tw} is not a descendant of parent {pw}")
                 d = c.geometry.project(mouth)
-                if c.geometry.interpolate(d).distance(mouth) <= sd.proximity_m:
-                    _emit(sd, blk, c.mouth_measure + d)
+                off = c.geometry.interpolate(d).distance(mouth)
+                if off <= sd.proximity_m:
+                    _emit(sd, blk, c.mouth_measure + d, concern=concern, offset=off)
 
         elif a.type == AnchorType.lake:
             for blk, c in targets:
@@ -148,7 +171,41 @@ def resolve_split_defs(split_defs: list[SplitDef], chains: list[BlkChain],
             for blk, c in targets:
                 if c.geometry is None:
                     continue
-                for p in _points(c.geometry.intersection(shared)):
+                # A region boundary should divide the river ONCE. Where the river runs ALONG the
+                # boundary it may intersect several times; collapse to a single split: dedupe
+                # crossings closer than proximity_m, and if several distinct ones remain keep the
+                # median (deterministic) + flag a concern. Real data (Fraser 2-18/3-14) yields one.
+                measures = sorted(c.geometry.project(p) for p in _points(c.geometry.intersection(shared)))
+                if not measures:
+                    continue
+                deduped: list[float] = []
+                for m in measures:
+                    if not deduped or (m - deduped[-1]) > sd.proximity_m:
+                        deduped.append(m)
+                concern = ""
+                if len(deduped) > 1:
+                    concern = (f"MU boundary crossed the river {len(deduped)}x at measures "
+                               f"{[round(c.mouth_measure + m) for m in deduped]}; kept the median")
+                    chosen = deduped[len(deduped) // 2]
+                else:
+                    chosen = deduped[0]
+                _emit(sd, blk, c.mouth_measure + chosen, concern=concern)
+
+        elif a.type == AnchorType.area_boundary:
+            # Cut the target water + (optionally) its WSC descendants wherever they cross the
+            # admin/park polygon boundary. Unlike mu_boundary we KEEP every crossing (a stream can
+            # enter/leave a park many times, and a tributary can leave then re-enter) — the
+            # inside/outside decision is made later, geometrically, by border.mark_inside_area.
+            poly = (area_polys or {}).get(a.area_name)
+            if poly is None:
+                continue
+            boundary = poly.boundary
+            scope = _target_blks(sd, chains, descendants=a.wsc_descendants)
+            for blk in scope:
+                c = by_blk.get(blk)
+                if c is None or c.geometry is None or c.geometry.is_empty:
+                    continue
+                for p in _points(c.geometry.intersection(boundary)):
                     _emit(sd, blk, c.mouth_measure + c.geometry.project(p))
 
     return out

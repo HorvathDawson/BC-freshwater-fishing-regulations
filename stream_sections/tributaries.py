@@ -68,6 +68,39 @@ def lake_tributaries(graph: StreamGraph, lake_id: str, guarded: bool = True) -> 
     return frozenset(anc - drop)
 
 
+def with_tributaries(graph: StreamGraph, section_ids, guarded: bool = True) -> frozenset[str]:
+    """Union of the guarded tributary closures of several sections — a '[Includes Tributaries]'
+    set over one or more base waters (e.g. Atnarko ∪ Bella Coola + everything draining into them)."""
+    out: set[str] = set(section_ids)          # the base waters themselves ARE in the set
+    for sid in section_ids:
+        out |= tributary_node_ids(graph, sid, guarded=guarded)
+    return frozenset(out)
+
+
+def piece_above(graph: StreamGraph, blk: str, boundary_label: str):
+    """The stream piece of ``blk`` whose LOWER bound is the boundary labelled ``boundary_label``
+    — i.e. the reach 'upstream of <label>' after a split/lake/border boundary. Returns its
+    node_id (or None). This is how a reg 'X upstream of Y' resolves to a concrete node."""
+    for nid, n in graph.nodes.items():
+        if (n.kind == NodeKind.stream and n.blk == blk and n.lower_bound
+                and n.lower_bound.label == boundary_label):
+            return nid
+    return None
+
+
+def reach_except(graph: StreamGraph, base_ids, except_ids, guarded: bool = True) -> frozenset[str]:
+    """The exact 'Includes Tributaries EXCEPT …' set: the tributary closure of the base waters
+    MINUS the tributary closures of the excepted upstream reaches.
+
+    Models 'ATNARKO/BELLA COOLA RIVERS [Includes Tributaries] EXCEPT: Burnt Bridge Cr. upstream of
+    Sitkatapa Cr., Hunlen Cr. upstream of Hunlen Falls, Young Cr. upstream of Hwy 20'. Each EXCEPT
+    is the upper piece a split already made (resolve via ``piece_above``); its exclusion set is
+    that piece's own tributary closure. Pure set difference — the splits do all the structural
+    work upstream (sectionizer), so nothing here re-walks geometry."""
+    return frozenset(with_tributaries(graph, base_ids, guarded)
+                     - with_tributaries(graph, except_ids, guarded))
+
+
 def sections_in_reach(graph: StreamGraph, blk: str, m_lo: float, m_hi: float,
                       eps: float = 1e-6) -> frozenset[str]:
     """Stream-piece sections of ``blk`` whose span lies within [m_lo, m_hi] — for a range reg

@@ -34,7 +34,17 @@ def resolve_splits(defs: list[SplitDef], chains: list[BlkChain],
 
 
 def write_resolved(points: list[SplitPoint], path: str) -> None:
-    """Write resolved SplitPoints to a reviewable JSON sidecar (splits.resolved.json)."""
-    rows = [{"split_id": p.split_id, "blk": p.blk, "route_measure": round(p.route_measure, 2),
-             "label": p.label, "anchor_type": p.anchor_type.value} for p in points]
+    """Write resolved SplitPoints to a reviewable JSON sidecar (splits.resolved.json).
+    Surfaces ``concern``/``picked_up`` so ambiguous or deduped splits are never silent."""
+    rows = []
+    for p in points:
+        row = {"split_id": p.split_id, "blk": p.blk, "route_measure": round(p.route_measure, 2),
+               "label": p.label, "anchor_type": p.anchor_type.value}
+        if getattr(p, "offset_m", 0.0):
+            row["offset_m"] = round(p.offset_m, 1)
+        if getattr(p, "picked_up", False):
+            row["picked_up"] = True
+        if getattr(p, "concern", ""):
+            row["concern"] = p.concern
+        rows.append(row)
     Path(path).write_text(json.dumps(rows, indent=2))

@@ -14,8 +14,11 @@ from shapely.geometry import LineString
 from stream_sections import cutting
 from stream_sections.blk_chains import FidRow, build_blk_chains
 from stream_sections.graph import build_stream_graph
+from stream_sections.models import AnchorType, SplitPoint
+from stream_sections.sectionizer import split_graph_at
 from stream_sections.tributaries import (lake_inlets, lake_outlets, lake_tributaries,
-                                         sections_in_reach, tributary_node_ids)
+                                         piece_above, reach_except, sections_in_reach,
+                                         tributary_node_ids, with_tributaries)
 
 
 def _fid(fid, blk, wsc, coords, down_m, up_m, wbk="", gnis_name=""):
@@ -85,3 +88,56 @@ def test_full_closure_reaches_through_lakes():
     # the lowest mainstem piece's guarded closure includes every lake + side creek + upper piece.
     anc = tributary_node_ids(g, "X:0")
     assert {"lake:A", "lake:B", "lake:C", "SA:0", "SB:0", "SC:0"} <= anc
+
+
+def _bella_coola_system():
+    """The 'ATNARKO/BELLA COOLA [Includes Tributaries] EXCEPT …' shape.
+
+        ocean 0 ── Bella Coola (X) ──────────────────────────── 500 headwaters
+                     ▲OK@100  ▲Young@200  ▲BurntBridge@300  ▲Atnarko@400
+                                                                 └─ Hunlen@(AT 80)
+
+    Young/Burnt Bridge/Hunlen each get a split so 'upstream of Y' is a real upper piece; the
+    Ordinary creek (OK) has no split (must survive the EXCEPT)."""
+    fids = [
+        _fid("X0", "X", "100", [(0, 0), (100, 0)], 0, 100, gnis_name="Bella Coola River"),
+        _fid("Xa", "X", "100", [(100, 0), (200, 0)], 100, 200, gnis_name="Bella Coola River"),
+        _fid("Xb", "X", "100", [(200, 0), (300, 0)], 200, 300, gnis_name="Bella Coola River"),
+        _fid("Xc", "X", "100", [(300, 0), (400, 0)], 300, 400, gnis_name="Bella Coola River"),
+        _fid("Xd", "X", "100", [(400, 0), (500, 0)], 400, 500, gnis_name="Bella Coola River"),
+        _fid("OK", "OK", "100-1", [(100, 0), (100, 40)], 0, 40, gnis_name="Ordinary Creek"),
+        _fid("YO", "YO", "100-2", [(200, 0), (200, 80)], 0, 80, gnis_name="Young Creek"),
+        _fid("BB", "BB", "100-3", [(300, 0), (300, 80)], 0, 80, gnis_name="Burnt Bridge Creek"),
+        _fid("AT1", "AT", "100-4", [(400, 0), (400, 80)], 0, 80, gnis_name="Atnarko River"),
+        _fid("AT2", "AT", "100-4", [(400, 80), (400, 200)], 80, 200, gnis_name="Atnarko River"),
+        _fid("HU", "HU", "100-4-1", [(400, 80), (440, 80)], 0, 40, gnis_name="Hunlen Creek"),
+    ]
+    g = build_stream_graph(build_blk_chains(fids, {}), fids)
+    # curated splits (the three EXCEPT waters); OK gets none.
+    split_graph_at(g, {}, [
+        SplitPoint("hunlen_falls", "HU", 20.0, "", "Hunlen Falls", AnchorType.point),
+        SplitPoint("burnt_bridge", "BB", 40.0, "", "Sitkatapa Creek", AnchorType.confluence),
+        SplitPoint("young_hwy20", "YO", 40.0, "", "Hwy 20", AnchorType.point),
+    ])
+    return g
+
+
+def test_includes_tributaries_except_upstream_of_splits():
+    """ATNARKO/BELLA COOLA [Includes Tributaries] EXCEPT the three upstream-of reaches — pure set
+    difference over the pieces the splits already made (docs/04)."""
+    g = _bella_coola_system()
+    # each 'X upstream of Y' resolves to the upper piece via its split's boundary label:
+    hu_up = piece_above(g, "HU", "Hunlen Falls")
+    bb_up = piece_above(g, "BB", "Sitkatapa Creek")
+    yo_up = piece_above(g, "YO", "Hwy 20")
+    assert (hu_up, bb_up, yo_up) == ("HU:20", "BB:40", "YO:40")
+
+    base = with_tributaries(g, ["X:0", "AT:0"])          # Bella Coola ∪ Atnarko + all tributaries
+    assert {"X:0", "AT:0"} <= base                        # the base rivers are IN the set
+    result = reach_except(g, ["X:0", "AT:0"], [hu_up, bb_up, yo_up])
+
+    # the three excepted upper reaches are gone …
+    assert result.isdisjoint({"HU:20", "BB:40", "YO:40"})
+    # … but their DOWNSTREAM pieces, the un-split Ordinary creek, and both mainstems remain.
+    assert {"X:0", "AT:0", "OK:0", "YO:0", "BB:0", "HU:0"} <= result
+    assert result == base - {"HU:20", "BB:40", "YO:40"}

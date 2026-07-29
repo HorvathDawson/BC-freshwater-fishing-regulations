@@ -45,6 +45,8 @@ class BoundaryKind(str, Enum):
     split = "split"             # a point/line curated cut
     confluence = "confluence"   # a curated cut at a tributary's mouth
     mu = "mu"                   # a curated cut on an MU/zone boundary line
+    border = "border"           # the BC provincial boundary (auto split; beyond it = out_of_bc)
+    area = "area"               # an admin/park polygon boundary (curated closure; inside = in_areas)
 
 
 class AnchorType(str, Enum):
@@ -54,6 +56,9 @@ class AnchorType(str, Enum):
     lake = "lake"              # a lake polygon boundary (wbk)
     mu_boundary = "mu_boundary"  # the shared boundary line between two MUs
     confluence = "confluence"    # a cut line at where a tributary BLK meets the mainstem
+    border = "border"           # the BC provincial outline (auto, not hand-authored)
+    area_boundary = "area_boundary"  # an admin/park polygon boundary; cut a named water + its WSC
+                                # descendants where they cross it, then flag INSIDE pieces (in_areas).
 
 
 # --------------------------------------------------------------------------- names
@@ -137,6 +142,15 @@ class StreamNode:
     member_wbks: tuple[str, ...] = ()           # non-lake wbks the fids pass through (wetland/river
                                                 # OVERLAYS — named, but NOT nodes/splits/barriers)
     edge_types: tuple[str, ...] = ()            # this piece's distinct EDGE_TYPEs; "2300" => barrier
+    out_of_bc: bool = False                      # piece lies OUTSIDE the BC boundary (a cross-border
+                                                # blk, split at the provincial outline). Geometry is
+                                                # KEPT (unlike under-lake) for dotted display; NOT a
+                                                # barrier — BC regs simply don't apply here.
+    in_areas: tuple[str, ...] = ()               # admin/park polygons (by label) this piece falls
+                                                # INSIDE, set by an `area_boundary` split's inside-flag
+                                                # pass. A geometric fact only (rule-agnostic); Phase-5
+                                                # matching maps an area -> its closure reg. Drives the
+                                                # "within {area}" location_identifier.
     # Structured bounds (04): each end is a lake/split/confluence/mu boundary, or None = natural
     # (outlet toward the mouth, headwaters toward the source). Carry route_measure so a range
     # regulation ("X from lake A to lake C") selects pieces by measure. See location_identifier.
@@ -153,6 +167,11 @@ class StreamNode:
         """Human qualifier derived from the two bounds (04 table). None when the piece spans the
         whole named stream. The display_name (the river name) is unaffected — a piece is always
         e.g. 'Adams River' with an optional qualifier 'downstream of Adams Lake'."""
+        if self.in_areas:
+            # An inside-an-area piece reads 'within {area}' regardless of which side of the
+            # polygon boundary its up/down bounds are — point-in-polygon is the source of truth,
+            # so a boundary→headwaters reach INSIDE a park reads 'within', not 'upstream of'.
+            return "within " + " and ".join(self.in_areas)
         lo = self.lower_bound.label if self.lower_bound else ""
         hi = self.upper_bound.label if self.upper_bound else ""
         if not lo and not hi:
@@ -208,6 +227,10 @@ class SplitAnchor:
     mu_b: str = ""                # mu_boundary (other side)
     tributary_blk: str = ""       # confluence: the tributary's BLK (an id, not a name)
     tributary_wsc: str = ""       # confluence: OR the tributary's WSC (trimmed) — its mouth
+    area_layer: str = ""          # area_boundary: the polygon layer (e.g. "parks_bc")
+    area_name_field: str = ""     # area_boundary: the layer field to match on (e.g. PROTECTED_LANDS_NAME)
+    area_name: str = ""           # area_boundary: the value to match (e.g. "GARIBALDI PARK")
+    wsc_descendants: bool = False # area_boundary: target the whole WSC subtree (prefix) not exact WSC
 
     @classmethod
     def from_dict(cls, d: Mapping[str, Any]) -> "SplitAnchor":
@@ -222,6 +245,8 @@ class SplitAnchor:
             raise ValueError("confluence anchor needs tributary_blk or tributary_wsc")
         if t == AnchorType.lake and not d.get("wbk"):
             raise ValueError("lake anchor needs wbk")
+        if t == AnchorType.area_boundary and not (d.get("area_layer") and d.get("area_name")):
+            raise ValueError("area_boundary anchor needs area_layer and area_name")
         return cls(
             type=t,
             coord=(float(coord[0]), float(coord[1])) if coord else None,
@@ -229,6 +254,10 @@ class SplitAnchor:
             wbk=str(d.get("wbk", "")), mu_a=str(d.get("mu_a", "")), mu_b=str(d.get("mu_b", "")),
             tributary_blk=str(d.get("tributary_blk", "")),
             tributary_wsc=str(d.get("tributary_wsc", "")),
+            area_layer=str(d.get("area_layer", "")),
+            area_name_field=str(d.get("area_name_field", "")),
+            area_name=str(d.get("area_name", "")),
+            wsc_descendants=bool(d.get("wsc_descendants", False)),
         )
 
 
@@ -253,6 +282,8 @@ class SplitDef:
     stream_name: str = ""
     label: str = ""
     proximity_m: float = 500.0    # max distance a channel may be from the cut geometry
+    concern: str = ""             # optional free-text caveat (inferred name, multi-crossing collapse,
+                                  # unresolved) — surfaced in splits.resolved.json + the gpkg, never silent
 
     @classmethod
     def from_dict(cls, d: Mapping[str, Any]) -> "SplitDef":
@@ -260,13 +291,14 @@ class SplitDef:
         if len(targets) > 1:
             raise ValueError(f"split {d.get('id')!r}: at most one of blk/wsc/gnis_id, got {targets}")
         anchor = SplitAnchor.from_dict(d["anchor"])
-        if anchor.type in (AnchorType.point, AnchorType.confluence) and not targets:
+        if anchor.type in (AnchorType.point, AnchorType.confluence, AnchorType.area_boundary) and not targets:
             raise ValueError(f"split {d.get('id')!r}: {anchor.type.value} anchor requires a target (blk/wsc/gnis_id)")
         return cls(
             id=str(d["id"]), anchor=anchor,
             blk=str(d.get("blk", "")), wsc=str(d.get("wsc", "")),
             gnis_id=str(d.get("gnis_id", "")), stream_name=str(d.get("stream_name", "")),
             label=str(d.get("label", "")), proximity_m=float(d.get("proximity_m", 500.0)),
+            concern=str(d.get("_concern", d.get("concern", ""))),
         )
 
 
@@ -280,6 +312,11 @@ class SplitPoint:
     label: str
     anchor_type: AnchorType
     offset_m: float = 0.0   # distance from the cut geometry to the channel crossing (review aid)
+    proximity_m: float = 0.0  # authored pickup radius (carried from SplitDef) — reuse an existing
+                            # boundary within this many route-metres instead of cutting a duplicate
+    concern: str = ""       # carried from SplitDef.concern (+ resolver-added caveats)
+    picked_up: bool = False # True => this curated split reused an existing (lake/border) boundary
+                            # within proximity instead of cutting a new one (docs/04 proximity pickup)
 
 
 # ---------------------------------------------------------------------- sections (03/04)

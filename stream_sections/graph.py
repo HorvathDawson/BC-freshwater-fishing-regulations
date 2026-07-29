@@ -154,7 +154,8 @@ def build_stream_graph(chains: list[BlkChain], fid_rows: list[FidRow],
             nts.append(NameTuple(nm, NameSource.gazette))
         name_tuples = tuple(nts)
         # display = the lake's own top name; unnamed widenings stay "" (a threading river is not
-        # a lake name — it lives in through_names). Boundary labels use "unnamed lake" instead.
+        # a lake name — it lives in through_names). Boundary labels then fall back to "lake {wbk}"
+        # (see _finalize_lake_bounds) so identifiers stay distinct + stable.
         display = name_tuples[0].name if name_tuples else ""
         order = mag = None
         for r in frs:
@@ -222,8 +223,13 @@ def _finalize_lake_bounds(graph: StreamGraph) -> None:
                 mouth_piece[n.blk] = nid
 
     def _bnd(lake: StreamNode, m: float) -> SectionBoundary:
+        # Unnamed lakes get a wbk-keyed label ("lake 329093897") instead of a repeated, undescriptive
+        # "unnamed lake" — so a piece's location_identifier stays DISTINCT + STABLE (e.g. two
+        # unnamed-lake bounds don't collide) and a reg like "upstream of Koocanusa Reservoir" can
+        # union all the unnamed-lake-bounded pieces above the named boundary without ambiguity.
         return SectionBoundary(boundary_id=f"lake:{lake.wbk}", kind=BoundaryKind.lake,
-                               route_measure=m, label=lake.display_name or "unnamed lake")
+                               route_measure=m,
+                               label=lake.display_name or f"lake {lake.wbk}")
 
     for nid, n in list(graph.nodes.items()):
         if n.kind != NodeKind.stream:

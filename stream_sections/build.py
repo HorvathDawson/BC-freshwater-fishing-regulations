@@ -77,6 +77,24 @@ def get_mu_polys(fwa: FWADataAccessor) -> dict:
             if r.WILDLIFE_MGMT_UNIT_ID and r.geometry is not None}
 
 
+def get_area_polys(fwa: FWADataAccessor, area_specs, bbox=None) -> dict:
+    """Load the admin/park polygon for each area_boundary split: ``area_name -> (Multi)Polygon``.
+    ``area_specs`` = iterable of (layer, name_field, name_value); one ``unary_union`` per matched
+    name. Loaded within ``bbox`` (the build extent) — a park larger than the bbox is returned with
+    full geometry for the features that intersect it, which is all the in-frame streams can cross."""
+    from shapely.ops import unary_union
+    out: dict = {}
+    for layer, field, value in area_specs:
+        if layer not in fwa.layer_names or value in out:
+            continue
+        gdf = fwa.get_layer(layer, columns=[field], bbox=bbox)
+        polys = [g for v, g in zip(gdf[field], gdf.geometry)
+                 if str(v) == value and g is not None and not g.is_empty]
+        if polys:
+            out[value] = unary_union(polys)
+    return out
+
+
 def bbox_from_gnis(fwa: FWADataAccessor, names: list[str], pad: float = 3000.0):
     gdf = fwa.get_features_by_attribute("streams", "GNIS_NAME", names)
     if gdf.empty:
@@ -149,6 +167,9 @@ def main() -> None:
     ap.add_argument("--gnis", help="comma-separated GNIS_NAME(s); bbox derived from them")
     ap.add_argument("--full", action="store_true", help="whole province (no bbox; heavy)")
     ap.add_argument("--splits", help="path to a splits.json to overlay as an anchors layer")
+    ap.add_argument("--border", action="store_true",
+                    help="split cross-border BLKs at the BC outline + flag out-of-BC pieces "
+                         "(auto-on with --full; off for small inland bboxes to stay fast)")
     ap.add_argument("--name-variants", help="path to a compiled name_variants.json (docs/13)")
     ap.add_argument("--tributaries-of", metavar="NAME|BLK",
                     help="export the upstream tributary walk of this node as a 'tributaries' layer")
@@ -168,6 +189,18 @@ def main() -> None:
     else:
         raise SystemExit("provide --gnis, --bbox, or --full")
 
+    import time as _time
+    _clock = _time.perf_counter
+    _t0 = _prev = _clock()
+    timings: list[tuple[str, float]] = []
+
+    def _tick(label: str) -> None:
+        nonlocal _prev
+        now = _clock()
+        timings.append((label, now - _prev))
+        _prev = now
+        print(f"    [{label}: {timings[-1][1]:.1f}s]")
+
     print("loading lake/manmade waterbody keys ...")
     lake_kind = get_lake_wbk_kind(fwa, bbox)
     lake_names = get_lake_names(fwa, bbox)
@@ -176,6 +209,7 @@ def main() -> None:
     print("loading stream fids ...")
     fids = load_stream_fids(args.gpkg, bbox=bbox)
     print(f"  {len(fids)} fids")
+    _tick("load fids + lakes")
 
     print("building blk chains + names ...")
     chains = resolve_names(build_blk_chains(fids, lake_kind))
@@ -184,18 +218,53 @@ def main() -> None:
     graph = build_stream_graph(chains, fids, lake_kind, lake_names)
     print("building geometry sidecar ...")
     geoms = build_section_geometries(chains, fids, lake_kind)
+    _tick("blk-chains + graph + geometry")
+
+    fid_index = {f.fid: (f.down_m, f.up_m, f.stream_order, f.stream_magnitude) for f in fids}
+
+    # Border pass FIRST (like lakes, but via splits) so curated points can pick up border splits.
+    if args.border or args.full:
+        from .border import apply_border
+        print("applying BC border splits (cross-border BLKs) ...")
+        n_bsplits, n_flagged = apply_border(fwa, graph, geoms, chains, fid_index)
+        print(f"  {n_bsplits} border split(s); {n_flagged} out-of-BC piece(s) flagged "
+              f"-> {len(graph.nodes)} nodes")
+        _tick("border")
 
     splits = load_split_defs(args.splits) if args.splits else None
+    applied_splits: list = []
     if splits:
         from .anchors import resolve_split_defs
         from .models import AnchorType
         from .sectionizer import split_graph_at
         mu_polys = (get_mu_polys(fwa) if any(s.anchor.type == AnchorType.mu_boundary for s in splits)
                     else None)
-        pts = resolve_split_defs(splits, chains, mu_polys=mu_polys)
-        fid_index = {f.fid: (f.down_m, f.up_m, f.stream_order, f.stream_magnitude) for f in fids}
-        split_graph_at(graph, geoms, pts, fid_index)   # curated sections BEFORE any tributary walk
-        print(f"  resolved {len(pts)} curated split point(s) -> {len(graph.nodes)} nodes")
+        area_specs = [(s.anchor.area_layer, s.anchor.area_name_field, s.anchor.area_name)
+                      for s in splits if s.anchor.type == AnchorType.area_boundary]
+        area_polys = get_area_polys(fwa, area_specs, bbox=bbox) if area_specs else None
+        pts = resolve_split_defs(splits, chains, mu_polys=mu_polys, area_polys=area_polys)
+        # Area cuts are the PRIMARY boundary of a closure (never a relabel of an existing one), so
+        # they run with proximity-pickup OFF and separately from the pickup-enabled point/line/lake
+        # cuts. Everything still runs BEFORE any tributary walk so each piece is a first-class node.
+        area_pts = [p for p in pts if p.anchor_type == AnchorType.area_boundary]
+        other_pts = [p for p in pts if p.anchor_type != AnchorType.area_boundary]
+        split_graph_at(graph, geoms, other_pts, fid_index, proximity_pickup=True, applied=applied_splits)
+        if area_pts:
+            from .anchors import _target_blks
+            from .border import mark_inside_area
+            split_graph_at(graph, geoms, area_pts, fid_index, proximity_pickup=False,
+                           applied=applied_splits)
+            for s in splits:
+                poly = (area_polys or {}).get(s.anchor.area_name) if s.anchor.type == AnchorType.area_boundary else None
+                if poly is not None:
+                    blks = set(_target_blks(s, chains, descendants=s.anchor.wsc_descendants))
+                    marked = mark_inside_area(graph, geoms, poly, s.label, blks=blks)
+                    print(f"  area '{s.label}': cut {sum(1 for p in area_pts if p.split_id == s.id)} "
+                          f"crossing(s), flagged {marked} inside piece(s)")
+        n_pick = sum(1 for s in applied_splits if s.picked_up)
+        print(f"  resolved {len(pts)} curated split point(s) ({n_pick} picked up existing "
+              f"boundaries) -> {len(graph.nodes)} nodes")
+        _tick("curated splits")
 
     # Attach compiled name variations (docs/13) to nodes — AFTER splits so reach targets hit pieces.
     from .names import apply_name_variants, load_name_variants
@@ -210,8 +279,20 @@ def main() -> None:
     write_artifact(chains, str(out / "blk_chains.pkl"))
     write_artifact(graph, str(out / "graph.pkl"))
     write_artifact(geoms, str(out / "geometries.pkl"))
+    if applied_splits:
+        from .splits import write_resolved
+        write_resolved(applied_splits, str(out / "splits.resolved.json"))
+    obstacles = None
+    if "obstacles" in fwa.layer_names:
+        obstacles = fwa.get_layer(
+            "obstacles", bbox=bbox,
+            columns=["FISH_OBSTACLE_POINT_ID", "OBSTACLE_NAME", "GAZETTED_NAME",
+                     "WATERSHED_CODE_50K", "HEIGHT", "geometry"])
+        print(f"  loaded {len(obstacles)} fish-passage obstacle(s) for the obstacles layer")
     gpkg_path = str(out / "graph.gpkg")
-    export_graph_gpkg(graph, geoms, gpkg_path, splits=splits)
+    export_graph_gpkg(graph, geoms, gpkg_path, splits=splits, split_points=applied_splits,
+                      obstacles=obstacles, area_polys=area_polys if splits else None)
+    _tick("write artifacts + gpkg")
 
     if args.tributaries_of:
         nid = resolve_node(graph, args.tributaries_of)
@@ -227,7 +308,10 @@ def main() -> None:
         n = export_lake_io(graph, geoms, gpkg_path)
         print(f"  lake inlet/outlet edges: {n} -> 'lake_io' layer")
 
-    summary = summarize(chains, graph, fids)
+    timings.append(("TOTAL", _clock() - _t0))
+    timing_str = "timings:\n" + "\n".join(f"  {label:32} {secs:8.1f}s" for label, secs in timings)
+
+    summary = summarize(chains, graph, fids) + "\n\n" + timing_str
     (out / "summary.txt").write_text(summary)
     print("\n" + summary)
     print(f"\nwrote artifacts + graph.gpkg to {out}/")

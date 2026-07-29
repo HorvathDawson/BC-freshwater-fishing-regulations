@@ -74467,5 +74467,19 @@
     "note": ""
    }
   ]
+ },
+ {
+  "target": {
+   "blks": [
+    "360844922"
+   ]
+  },
+  "names": [
+   {
+    "name": "Sitkatapa Creek",
+    "source": "regulation",
+    "note": "INFERRED: FWA-unnamed direct tributary of Burnt Bridge Creek (WSC 910-275583-777225-504013); named for Sitkatapa Lake up its upper fork (blk 360855126). Backs the burnt_bridge_at_sitkatapa split; low confidence, no alternative."
+   }
+  ]
  }
 ]

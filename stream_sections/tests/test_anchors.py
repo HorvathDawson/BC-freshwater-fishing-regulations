@@ -62,6 +62,20 @@ def test_confluence_anchor_by_blk_uses_tributary_mouth():
     pts = resolve_split_defs([sd], chains)
     assert [(p.blk, round(p.route_measure)) for p in pts] == [("X", 200)]
     assert pts[0].label == "Y Creek"        # boundary named after the tributary
+    assert pts[0].concern == ""             # Y wsc 100-3 IS a descendant of X wsc 100 -> no concern
+
+
+def test_confluence_wsc_mismatch_flags_concern():
+    """Tributary WSC not a strict descendant of the parent's -> keep the split but flag a concern
+    (the author likely picked the wrong parent/tributary). WSC self-validation, not a hard fail."""
+    fids = [_fid("X1", "X", "100", [(0, 0), (300, 0)], 0, 300, gnis_name="X River"),
+            _fid("Y1", "Y", "200-3", [(200, 0), (200, 90)], 0, 90, gnis_name="Y Creek")]
+    chains = build_blk_chains(fids, {})
+    sd = SplitDef(id="c", label="Y", blk="X",
+                  anchor=SplitAnchor(type=AnchorType.confluence, tributary_blk="Y"))
+    pts = resolve_split_defs([sd], chains)
+    assert [(p.blk, round(p.route_measure)) for p in pts] == [("X", 200)]
+    assert pts[0].concern            # 200-3 is NOT under 100
 
 
 def test_confluence_anchor_by_wsc_picks_main_channel():
@@ -96,6 +110,21 @@ def test_mu_boundary_anchor_splits_where_shared_edge_crosses():
     assert ("X", 180) in [(p.blk, round(p.route_measure)) for p in pts]
 
 
+def test_mu_boundary_collapses_multiple_crossings_to_one():
+    """A river that WEAVES across a region boundary (the Fraser case) must yield ONE split, not
+    one per crossing. The resolver keeps the median crossing and records a concern."""
+    coords = [(0, 0), (200, 0), (160, 100), (200, 200)]   # crosses x=180 three times
+    ln = LineString(coords)
+    fid = _fid("X1", "X", "100", coords, 0, ln.length, gnis_name="X River")
+    chains = build_blk_chains([fid], {})
+    mu_polys = {"a": box(-100, -100, 180, 300), "b": box(180, -100, 500, 300)}
+    sd = SplitDef(id="mu", blk="X", proximity_m=10,
+                  anchor=SplitAnchor(type=AnchorType.mu_boundary, mu_a="a", mu_b="b"))
+    pts = resolve_split_defs([sd], chains, mu_polys=mu_polys)
+    assert len(pts) == 1                     # collapsed to a single split
+    assert "3" in pts[0].concern             # flags that it crossed 3x
+
+
 def test_mu_boundary_non_adjacent_makes_no_split():
     chains, _ = _mainstem_chain()
     mu_polys = {"a": box(-100, -100, 100, 100), "b": box(200, -100, 400, 100)}  # gap, not adjacent
@@ -105,21 +134,35 @@ def test_mu_boundary_non_adjacent_makes_no_split():
 
 
 @_needs_data
-def test_real_splits_json_resolves_on_atnarko_extract():
-    """The authored splits.json confluence lands on the Atnarko where Hunlen Creek joins; the
-    lake anchor yields the two Adams-Lake boundaries; the REPLACE_ME entry resolves to nothing."""
+def test_real_splits_json_resolves_on_bella_coola_extract():
+    """The authored splits.json resolves on real Bella Coola-system data:
+    - hunlen_falls (POINT, obstacle-grounded) lands on Hunlen Creek blk 360862431 at m≈1685;
+    - young_hwy20 (POINT) lands on Young Creek blk 360862631;
+    - burnt_bridge_at_sitkatapa (CONFLUENCE by tributary_wsc) lands on Burnt Bridge blk 360883785
+      AND the WSC-descendant self-validation passes (no concern), because the tributary WSC
+      910-275583-777225-504013 is a strict descendant of the parent's 910-275583-777225.
+    """
     from stream_sections.blk_chains import load_stream_fids
     from stream_sections.build import bbox_from_gnis, get_lake_wbk_kind
     from stream_sections.splits import load_split_defs
 
     fwa = FWADataAccessor(_DATA)
     defs = load_split_defs("stream_sections/splits.json")
-    bbox = bbox_from_gnis(fwa, ["Atnarko River", "Hunlen Creek"])
+    bbox = bbox_from_gnis(fwa, ["Atnarko River", "Hunlen Creek", "Burnt Bridge Creek", "Young Creek"])
     chains = build_blk_chains(load_stream_fids(_DATA, bbox=bbox), get_lake_wbk_kind(fwa, bbox))
     by_id = {}
     for p in resolve_split_defs(defs, chains):
         by_id.setdefault(p.split_id, []).append(p)
-    # confluence: exactly one point on the Atnarko BLK
-    assert [(p.blk) for p in by_id.get("atnarko_at_hunlen", [])] == ["360879335"]
-    # the unresolved REPLACE_ME confluence yields nothing (tributary blk not in the data)
-    assert "burnt_bridge_at_sitkatapa" not in by_id
+
+    hunlen = by_id.get("hunlen_falls", [])
+    assert [p.blk for p in hunlen] == ["360862431"]
+    assert abs(hunlen[0].route_measure - 1685) < 60      # falls near the mouth of Hunlen Creek
+
+    young = by_id.get("young_hwy20", [])
+    assert [p.blk for p in young] == ["360862631"]
+
+    bb = by_id.get("burnt_bridge_at_sitkatapa", [])
+    assert [p.blk for p in bb] == ["360883785"]
+    # WSC-descendant self-check PASSED (no failure text); the authored Sitkatapa concern is kept.
+    assert "WSC check failed" not in bb[0].concern
+    assert "INFERRED" in bb[0].concern
