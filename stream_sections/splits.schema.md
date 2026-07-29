@@ -13,7 +13,8 @@ the channels it crosses. Each crossed channel becomes two **sections** with auto
   "blk"|"wsc"|"gnis_id": ...,    // TARGET scope (optional, at most one) — which channels are eligible
   "anchor": { "type": ... },     // the CUT GEOMETRY (line or polygon boundary)
   "label": "Adams Lake",         // human name used in the generated location_identifier
-  "proximity_m": 500             // max distance a channel may be from the cut geometry (default 500)
+  "proximity_m": 500,            // max distance to the cut geometry AND the pickup radius (default 500)
+  "_concern": "…"                // OPTIONAL free-text caveat (inferred name, etc.) — never blocks a build
 }
 ```
 
@@ -24,11 +25,21 @@ the channels it crosses. Each crossed channel becomes two **sections** with auto
 | `point` **(primary)** | `coord:[x,y]`, `is_lonlat` | a short **line perpendicular** to the target mainstem at the nearest point, extended ±`proximity_m` so it also crosses nearby side channels. |
 | `line` | `coords:[[x,y],…]` (≥2), `is_lonlat` | the **explicit line** you author; cuts every eligible channel it crosses. |
 | `lake` | `wbk` | the **lake polygon boundary**; cut where the stream crosses in/out. |
-| `mu_boundary` | `mu_a`, `mu_b` (**both required**) | the **shared boundary line** between the two MUs; cut where streams cross it. |
-| `confluence` | `tributary_blk` | a cut line where that **tributary BLK** meets the target mainstem (BLK, not name — robust to unnamed tributaries and multi-mouth tributaries). |
+| `mu_boundary` | `mu_a`, `mu_b` (**both required**) | the **shared boundary line** between the two MUs; collapses to **one** split even if the river weaves across it (median crossing + a `concern` recording the count). |
+| `confluence` | `tributary_wsc` **(preferred)** or `tributary_blk` | a cut line where that tributary meets the target mainstem. Prefer `tributary_wsc`: it **self-validates** (the tributary's trimmed WSC must be a strict descendant of the parent's; a mismatch keeps the split but records a `concern`). BLK↔WSC is 1:1, so either resolves identically. |
 
 A cut never lands "at a fid boundary" — it is a geometric line/boundary, and each channel is
 cut exactly where it intersects.
+
+`border` is a further anchor kind but is **not authored** — `border.py` emits it automatically at
+every crossing of a cross-border BLK with the BC outline; the outside piece is flagged
+`out_of_bc` (geometry kept, drawn dotted, not a flow barrier).
+
+**Proximity pickup.** If a `point`/`confluence`/`lake` split resolves within `proximity_m` of a
+boundary that already exists on the BLK (a lake edge, a `border` split, or an earlier cut), the
+sectionizer **reuses and relabels** that boundary instead of cutting a near-duplicate — set
+`picked_up:true` in `splits.resolved.json`. This lets a reg's wording name an existing boundary
+(Kootenay "Idaho border" / "Koocanusa Reservoir" snap onto the auto border splits).
 
 ## TARGET scope — which channels are eligible (optional, at most one)
 
@@ -45,10 +56,11 @@ narrows eligibility. Every match is additionally gated by `proximity_m`.
 ## What resolution produces
 
 Each eligible channel the cut geometry crosses yields a
-`SplitPoint(blk, route_measure, fid, label, offset_m)`. `offset_m` (distance from the cut
-geometry to the crossing) is written to `splits.resolved.json` so you can confirm the cut
-landed where you meant. The sectionizer then cuts geometry with `shapely.ops.substring` at
-each `route_measure` and labels the sections:
+`SplitPoint(blk, route_measure, fid, label, offset_m, proximity_m, picked_up, concern)`.
+`offset_m` (distance from the cut geometry to the crossing), `picked_up` (reused an existing
+boundary), and `concern` are written to `splits.resolved.json` so you can confirm the cut landed
+where you meant. The sectionizer then cuts geometry with `shapely.ops.substring` at each
+`route_measure` and labels the sections:
 
 | section bounds | `location_identifier` |
 |----------------|-----------------------|

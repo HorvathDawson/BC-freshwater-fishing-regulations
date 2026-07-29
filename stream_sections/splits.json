@@ -1,9 +1,9 @@
 {
-  "_about": "REAL curated splits grounded in FWA data + the fishing synopsis. One worked example per anchor kind. Every split defines a CUT that slices the targeted channel(s). See splits.schema.md and docs/04. from_dict ignores _comment/_about.",
+  "_about": "REAL curated splits grounded in FWA data + the fishing synopsis. One worked example per anchor kind, all verified against data/bc_fisheries_data.gpkg. Every split defines a CUT that slices the targeted channel(s). `_comment`/`_about` are ignored by from_dict; `_concern` is a real (optional) field surfaced in splits.resolved.json + the gpkg. See splits.schema.md and docs/04.",
   "splits": [
 
     {
-      "_comment": "LAKE — 'Adams River (upstream/downstream of Adams Lake)'. Adams Lake wbk=329014384 IS the Adams River blk 356362743. NOTE the lake already splits the BLK in the graph build, so this is a no-op split kept for matching (the boundary + label already exist).",
+      "_comment": "LAKE — 'Adams River (upstream/downstream of Adams Lake)'. Adams Lake wbk=329014384 IS the Adams River blk 356362743. The lake already splits the BLK in the graph build, so this is a no-op split kept for matching (the boundary + label already exist).",
       "id": "adams_lake",
       "blk": "356362743",
       "stream_name": "Adams River",
@@ -12,40 +12,119 @@
     },
 
     {
-      "_comment": "POINT — 'Kootenay River (downstream of the Idaho border)'. The Kootenay (blk 356570348) crosses the 49th parallel; the coord is that border crossing in EPSG:3005 (southernmost Kootenay vertex).",
+      "_comment": "POINT — 'Kootenay River (downstream of the Idaho border)'. The Kootenay (blk 356570348) crosses the 49th parallel TWICE; this coord is the Creston-area crossing (verified m~=168733). With border auto-splits on, this point falls within proximity of the border split and PICKS IT UP (no second cut) — the label just names that boundary the way the reg does.",
       "id": "kootenay_idaho_border",
       "blk": "356570348",
       "stream_name": "Kootenay River",
-      "anchor": { "type": "point", "coord": [1784461.6, 430672.0], "is_lonlat": false },
+      "anchor": { "type": "point", "coord": [-116.5036, 48.9999], "is_lonlat": true },
       "label": "Idaho border",
-      "proximity_m": 500
+      "proximity_m": 2000
     },
 
     {
-      "_comment": "CONFLUENCE (both named) — 'Atnarko River' split where Hunlen Creek joins. Parent Atnarko blk=360879335; tributary Hunlen blk=360862431. Defined by BLK ids, not names.",
-      "id": "atnarko_at_hunlen",
-      "blk": "360879335",
-      "stream_name": "Atnarko River",
-      "anchor": { "type": "confluence", "tributary_blk": "360862431" },
-      "label": "Hunlen Creek"
+      "_comment": "LAKE — 'Kootenay River (upstream of Koocanusa Reservoir)'. Lake Koocanusa IS in FWA as manmade waterbody wbk 328961702 (verified: a lake node threading the Kootenay). Like Adams this is a no-op split that relabels the boundary the lake already made — the reservoir head sits ~47m above the Kootenay's BC border re-entry (which is why an earlier point+border-pickup produced a sliver; the lake anchor is exact).",
+      "id": "kootenay_koocanusa",
+      "blk": "356570348",
+      "stream_name": "Kootenay River",
+      "anchor": { "type": "lake", "wbk": "328961702" },
+      "label": "Koocanusa Reservoir"
     },
 
     {
-      "_comment": "MU BOUNDARY (the hard Fraser case) — split the Fraser (blk 356364114) where region-2 and region-3 MUs meet. mu_a/mu_b are WILDLIFE_MGMT_UNIT_IDs in the wmu layer. Because the Fraser runs ALONG this boundary the shared edge may cross it more than once; the resolver emits a SplitPoint at each crossing (enter/exit).",
+      "_comment": "POINT (obstacle) — 'Hunlen Creek (upstream of Hunlen Falls)'. Hunlen Falls (gazetted lon/lat) snaps onto Hunlen Creek (blk 360862431) at m~=1685, 15.6m off — the ~260m falls plunging into the Atnarko valley near the mouth. Upstream reach (1685->32698) is the excepted water. Coord source: FISS obstacle / gazetteer; the obstacles layer (WHSE_FISH.FISS_OBSTACLES_PNT_SP) can supply this automatically in future.",
+      "id": "hunlen_falls",
+      "blk": "360862431",
+      "stream_name": "Hunlen Creek",
+      "anchor": { "type": "point", "coord": [-125.77085, 52.27612], "is_lonlat": true },
+      "label": "Hunlen Falls",
+      "proximity_m": 200
+    },
+
+    {
+      "_comment": "POINT — 'Young Creek (upstream of Hwy 20)'. Hwy 20 crossing (lon/lat) snaps onto Young Creek (blk 360862631) at 2.6m. Upstream reach is the excepted water.",
+      "id": "young_hwy20",
+      "blk": "360862631",
+      "stream_name": "Young Creek",
+      "anchor": { "type": "point", "coord": [-125.84592, 52.49158], "is_lonlat": true },
+      "label": "Hwy 20",
+      "proximity_m": 100
+    },
+
+    {
+      "_comment": "CONFLUENCE (WSC-keyed) — 'Burnt Bridge Creek (upstream of Sitkatapa Creek)'. Burnt Bridge (blk 360883785, WSC ...777225) is split where its DIRECT tributary (WSC ...777225-504013 = blk 360844922) joins. Verified: that tributary's WSC = parent WSC + one level (a self-validating confluence). The creek is UNNAMED in FWA; 'Sitkatapa Creek' is inferred from Sitkatapa Lake sitting up its second fork (WSC ...504013-327666 = blk 360855126) — see _concern + the name_variant entry.",
+      "id": "burnt_bridge_at_sitkatapa",
+      "blk": "360883785",
+      "stream_name": "Burnt Bridge Creek",
+      "anchor": { "type": "confluence", "tributary_wsc": "910-275583-777225-504013" },
+      "label": "Sitkatapa Creek",
+      "_concern": "Tributary name 'Sitkatapa Creek' is INFERRED (FWA-unnamed); named for Sitkatapa Lake up its upper fork (blk 360855126). No alternative name available. Added as a name_variant with the same note."
+    },
+
+    {
+      "_comment": "MU BOUNDARY — 'Fraser River' region-2 / region-3 boundary (blk 356364114). VERIFIED: 2-17/3-15 are NOT adjacent (the previously authored pair was wrong). The adjacent region-2/3 pair on the Fraser is 2-18 / 3-14, whose shared boundary crosses the Fraser at EXACTLY ONE point (m~=196967, near Hope). The resolver collapses to a single split; a multi-crossing boundary would be deduped + flagged (_concern).",
       "id": "fraser_region_2_3",
       "blk": "356364114",
       "stream_name": "Fraser River",
-      "anchor": { "type": "mu_boundary", "mu_a": "2-17", "mu_b": "3-15" },
+      "anchor": { "type": "mu_boundary", "mu_a": "2-18", "mu_b": "3-14" },
       "label": "Region 2 / Region 3"
     },
 
     {
-      "_comment": "CONFLUENCE (hard, unresolved) — 'Burnt Bridge Creek (upstream of Sitkatapa Creek)'. Burnt Bridge IS named (blk 360883785) but Sitkatapa Creek is ABSENT from FWA gnis, so its BLK must be found manually (map inspection) and pasted into tributary_blk. Left as REPLACE_ME so load validates the shape but resolution is a documented no-op until the blk is supplied. If the PARENT were unnamed it would also need a name override keyed by blk.",
-      "id": "burnt_bridge_at_sitkatapa",
-      "blk": "360883785",
-      "stream_name": "Burnt Bridge Creek",
-      "anchor": { "type": "confluence", "tributary_blk": "REPLACE_WITH_SITKATAPA_BLK" },
-      "label": "Sitkatapa Creek"
+      "_comment": "POINT — 'Coquihalla River (Othello Tunnels — upper/N tunnel entrance)'. Othello Tunnels upper-most railway tunnel, N entrance (page-24 reg map). Pairs with coquihalla_othello_lower_tunnel to bound the ~700 m tunnel-interior closure reach; the entry's rules attach upstream-of / at / downstream-of these two landmarks. Targets Coquihalla River by gnis_id 19983 (_target_blks resolves gnis_id -> its blk[s]).",
+      "id": "coquihalla_othello_upper_tunnel",
+      "gnis_id": "19983",
+      "stream_name": "Coquihalla River",
+      "anchor": { "type": "point", "coord": [-121.36979, 49.37443], "is_lonlat": true },
+      "label": "the upper Othello railway tunnel (N entrance)",
+      "proximity_m": 200
+    },
+
+    {
+      "_comment": "POINT — 'Coquihalla River (Othello Tunnels — lower/S tunnel entrance)'. Othello Tunnels lower-most railway tunnel, S entrance (page-24 reg map). Pairs with coquihalla_othello_upper_tunnel to bound the ~700 m Othello Tunnels closure reach.",
+      "id": "coquihalla_othello_lower_tunnel",
+      "gnis_id": "19983",
+      "stream_name": "Coquihalla River",
+      "anchor": { "type": "point", "coord": [-121.36458, 49.36894], "is_lonlat": true },
+      "label": "the lower Othello railway tunnel (S entrance)",
+      "proximity_m": 200
+    },
+
+    {
+      "_comment": "POINT — Wigwam River km-42 divide. TWO regs bound this ONE point from opposite sides: 'WIGWAM RIVER CW (downstream of the access road adjacent to km 42 on the Bighorn (Ram) FSR)' and 'WIGWAM RIVER CW (upstream of the Forest Service recreation site adjacent to km 42 ...)'. The access road and the FS rec site are adjacent (same location at the km-42 marker / junction of the Wigwam River FSR and the Ram Creek FSR), so a single cut yields the downstream reach + the upstream reach and both rules attach (one downstream_of, one upstream_of). Targets Wigwam River by gnis_id 2311 (_target_blks resolves gnis_id -> its blk[s]); MU 4-2, Region 4 Kootenay. Coord = FS rec site (Lat 49.18220 N, Lon 114.95794 W). Corroborated by overrides note: 'Divide is approximately at Linear Feature ID 706869683'.",
+      "id": "wigwam_km42_ram_fsr",
+      "gnis_id": "2311",
+      "stream_name": "Wigwam River",
+      "anchor": { "type": "point", "coord": [-114.95794, 49.18220], "is_lonlat": true },
+      "label": "km 42 on the Bighorn (Ram) Forest Service Road",
+      "proximity_m": 300,
+      "_concern": "NOT yet built/verified — run build.py on the Wigwam extent and confirm the point snaps onto blk(s) for gnis 2311 within proximity and yields a downstream/upstream pair. The two regs phrase the landmark differently ('access road' vs 'Forest Service recreation site') though they mark the same km-42 point; Phase-5 location_identifier narrowing must map both wordings to this one split label."
+    },
+
+    {
+      "_comment": "POINT (obstacle) — Whiteswan Lake OUTLET-STREAM falls. Reg entry 'WHITESWAN LAKE'S INLET & OUTLET STREAMS' (Region 4, MU 4-24) is closure EXCEPT 'the outlet stream downstream of the falls 2.4 km downstream of Whiteswan Lake', and that excepted reach then carries its own rules (No Fishing Aug 1-Mar 31; rainbow quota=5 C&R others when open). This split cuts the outlet stream at that falls so the downstream reach becomes its own section. Falls = FISS obstacle point id 21225 ('Falls', WSC-50K 349-666200-32000) at Lat 50.17300 N, Lon 115.46190 W. Verified against FWA: the falls sits 6.7 m off blue line 356560775 (FWA_WATERSHED_CODE 300-625474-814939-312002 = the same 50K code 349-666200-32000; GNIS null = UNNAMED, which is why the reg entry is not_found). Targets that blk directly (gnis is null; the obstacle's 50K WSC won't match the streams' 20K code, so blk is the safe key).",
+      "id": "whiteswan_outlet_falls",
+      "blk": "356560775",
+      "stream_name": "Whiteswan Lake outlet stream (unnamed)",
+      "anchor": { "type": "point", "coord": [-115.46190, 50.17300], "is_lonlat": true },
+      "label": "the falls 2.4 km downstream of Whiteswan Lake",
+      "proximity_m": 200,
+      "_concern": "NOT yet built/verified — run build.py on the Whiteswan extent and confirm the point snaps onto blk 356560775 (~6.7 m off) and yields a downstream reach. Separately, resolving the base entry 'WHITESWAN LAKE'S INLET & OUTLET STREAMS' needs a NEW lake-immediate-IO operator (lake_inlets ∪ lake_outlets), NOT the full tributary closure — see review notes; the tier0 parse flags includes_tributaries/tributary_only which conflicts with the 'immediate inlets/outlets only' reading and belongs in the corrections memo."
+    },
+
+    {
+      "_comment": "AREA_BOUNDARY (tributary-scoped) — cut the Pitt River (gnis 7551, WSC 100-025956) AND every one of its WSC descendants where they cross the Garibaldi Park polygon boundary; the build then flags every resulting piece whose midpoint is INSIDE the polygon with in_areas=['Garibaldi Park'] -> location_identifier 'within Garibaldi Park'. RULE-AGNOSTIC: this only establishes the geometric fact of park membership + the boundary cuts; Phase-5 matching later attaches the 'No Fishing within Garibaldi Park' closure to the in_areas pieces. WSC-descendant scope (not gnis, which is mainstem-only) catches blk 356350872, which leaves the park then re-enters — a point split cannot. Measured (docs/15 §10): 20 blks cross the boundary (21 crossings, 1 re-enter); mainstem 27 km inside. Garibaldi is a PROVINCIAL park (code PP) closed only by this named reg (a curated closure, exempt from the 'never render closed for provincial parks' flag).",
+      "id": "garibaldi_pitt",
+      "wsc": "100-025956",
+      "stream_name": "Pitt River",
+      "anchor": {
+        "type": "area_boundary",
+        "area_layer": "parks_bc",
+        "area_name_field": "PROTECTED_LANDS_NAME",
+        "area_name": "GARIBALDI PARK",
+        "wsc_descendants": true
+      },
+      "label": "Garibaldi Park",
+      "_concern": "NOT yet built/verified — run build.py --gnis 'Pitt River' --splits with parks_bc loaded; confirm ~20 boundary crossings, the mainstem split once into a ~27 km 'within Garibaldi Park' piece, and blk 356350872's middle segment flagged inside. Human-verify a crossing near 49.73752,-122.75042. parks_bc must be a fetched/loaded layer in the build's gpkg."
     }
 
   ]
