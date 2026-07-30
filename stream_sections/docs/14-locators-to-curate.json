@@ -798,7 +798,7 @@
       "coord": null,
       "split_id": "",
       "label": "Anahim Lake boundary",
-      "notes": "Reg extends 'upstream of Anahim Lake'. Author as a lake anchor (wbk 329601583); the lake already splits the BLK, so this is a no-op boundary used for matching."
+      "notes": "AUTO — resolved by normal lake splitting: Anahim Lake (wbk 329601583) already splits the Dean BLK in the graph build, so this is a no-op boundary. The lake anchor is kept only to carry the reg's label for matching (like the adams_lake split). No manual point work."
     },
     {
       "id": "dean-river-signs-500m-above-canyon",
@@ -1039,12 +1039,12 @@
       "locator_text": "upstream of Hunlen Falls",
       "full_regulation": "No Fishing Apr 1-June 30\nBait ban\nDownstream of Hunlen Falls: see Atnarko/Bella Coola Rivers[Includes Tributaries]",
       "anchor_kind": "falls_canyon_obstacle",
-      "status": "todo",
+      "status": "curated",
       "target": "",
       "coord": null,
-      "split_id": "",
+      "split_id": "hunlen_falls",
       "label": "",
-      "notes": ""
+      "notes": "Split authored in splits.json: 'hunlen_falls' (point(obstacle))."
     },
     {
       "id": "hunlen-creek-upstream-of-hunlen-falls-135c97",
@@ -1057,12 +1057,12 @@
       "locator_text": "Downstream of Hunlen Falls",
       "full_regulation": "No Fishing Apr 1-June 30\nBait ban\nDownstream of Hunlen Falls: see Atnarko/Bella Coola Rivers[Includes Tributaries]",
       "anchor_kind": "falls_canyon_obstacle",
-      "status": "todo",
+      "status": "curated",
       "target": "",
       "coord": null,
-      "split_id": "",
+      "split_id": "hunlen_falls",
       "label": "",
-      "notes": ""
+      "notes": "Split authored in splits.json: 'hunlen_falls' (point(obstacle))."
     },
     {
       "id": "illecillewaet-river-43349c",
@@ -3075,12 +3075,12 @@
       "locator_text": "upstream of the northern entrance to the upper most railway tunnel",
       "full_regulation": "No Fishing upstream of the northern entrance to the upper most railway tunnel, Nov 1-June 30 (see map on page 24)\nFly fishing only; bait ban upstream of the northern entrance to the upper most railway tunnel, Jul 1-Oct 31\nNo Fishing downstream of the southern entrance to the lower most railway tunnel, Apr 1-Oct 31\nNo Fishing at Othello Tunnels from the northern entrance to the upper most railway tunnel to the southern entrance of the lower most tunnel;\napproximately 700 m length\nTrout/char (including steelhead) catch and release, bait ban, downstream of the southern entrance to the lower most railway tunnel, Nov",
       "anchor_kind": "bridge_road_km",
-      "status": "todo",
+      "status": "curated",
       "target": "",
       "coord": null,
-      "split_id": "",
+      "split_id": "coquihalla_othello_upper_tunnel",
       "label": "",
-      "notes": ""
+      "notes": "Split authored in splits.json: 'coquihalla_othello_upper_tunnel' (point)."
     },
     {
       "id": "coquihalla-river-dc9dbc",
@@ -3093,12 +3093,12 @@
       "locator_text": "downstream of the southern entrance to the lower most railway tunnel",
       "full_regulation": "No Fishing upstream of the northern entrance to the upper most railway tunnel, Nov 1-June 30 (see map on page 24)\nFly fishing only; bait ban upstream of the northern entrance to the upper most railway tunnel, Jul 1-Oct 31\nNo Fishing downstream of the southern entrance to the lower most railway tunnel, Apr 1-Oct 31\nNo Fishing at Othello Tunnels from the northern entrance to the upper most railway tunnel to the southern entrance of the lower most tunnel;\napproximately 700 m length\nTrout/char (including steelhead) catch and release, bait ban, downstream of the southern entrance to the lower most railway tunnel, Nov",
       "anchor_kind": "bridge_road_km",
-      "status": "todo",
+      "status": "curated",
       "target": "",
       "coord": null,
-      "split_id": "",
+      "split_id": "coquihalla_othello_lower_tunnel",
       "label": "",
-      "notes": ""
+      "notes": "Split authored in splits.json: 'coquihalla_othello_lower_tunnel' (point)."
     },
     {
       "id": "coquihalla-river-990a53",
@@ -3111,12 +3111,12 @@
       "locator_text": "at Othello Tunnels from the northern entrance to the upper most railway tunnel to the southern entrance of the lower mos",
       "full_regulation": "No Fishing upstream of the northern entrance to the upper most railway tunnel, Nov 1-June 30 (see map on page 24)\nFly fishing only; bait ban upstream of the northern entrance to the upper most railway tunnel, Jul 1-Oct 31\nNo Fishing downstream of the southern entrance to the lower most railway tunnel, Apr 1-Oct 31\nNo Fishing at Othello Tunnels from the northern entrance to the upper most railway tunnel to the southern entrance of the lower most tunnel;\napproximately 700 m length\nTrout/char (including steelhead) catch and release, bait ban, downstream of the southern entrance to the lower most railway tunnel, Nov",
       "anchor_kind": "bridge_road_km",
-      "status": "todo",
+      "status": "curated",
       "target": "",
       "coord": null,
-      "split_id": "",
+      "split_id": "coquihalla_othello_upper_tunnel + coquihalla_othello_lower_tunnel",
       "label": "",
-      "notes": ""
+      "notes": "Split authored in splits.json: 'coquihalla_othello_upper_tunnel + coquihalla_othello_lower_tunnel' (point x2)."
     },
     {
       "id": "coquitlam-river-ef1688",
@@ -4611,12 +4611,12 @@
       "locator_text": "downstream of the access road adjacent to km 42 on the Bighorn (Ram",
       "full_regulation": "Trout/char catch and release\nBait ban\nClass II water when open, including tributaries",
       "anchor_kind": "bridge_road_km",
-      "status": "todo",
+      "status": "curated",
       "target": "",
       "coord": null,
-      "split_id": "",
+      "split_id": "wigwam_km42_ram_fsr",
       "label": "",
-      "notes": ""
+      "notes": "Split authored in splits.json: 'wigwam_km42_ram_fsr' (point)."
     },
     {
       "id": "wigwam-river-downstream-of-the-access-road-ad-ff41b7",
@@ -4629,12 +4629,12 @@
       "locator_text": "downstream of the access road adjacent to km 42 on the Bighorn (Ram) Forest Service Road",
       "full_regulation": "Trout/char catch and release\nBait ban\nClass II water when open, including tributaries",
       "anchor_kind": "bridge_road_km",
-      "status": "todo",
+      "status": "curated",
       "target": "",
       "coord": null,
-      "split_id": "",
+      "split_id": "wigwam_km42_ram_fsr",
       "label": "",
-      "notes": ""
+      "notes": "Split authored in splits.json: 'wigwam_km42_ram_fsr' (point)."
     },
     {
       "id": "wigwam-river-upstream-of-the-forest-service-r-b0dd87",
@@ -4647,12 +4647,12 @@
       "locator_text": "upstream of the Forest Service recreation site adjacent to km 42 on the Bighorn (Ram",
       "full_regulation": "No Fishing Sept 1-Oct 31\nTrout/char catch and release; bait ban\nClass II water when open, including tributaries",
       "anchor_kind": "bridge_road_km",
-      "status": "todo",
+      "status": "curated",
       "target": "",
       "coord": null,
-      "split_id": "",
+      "split_id": "wigwam_km42_ram_fsr",
       "label": "",
-      "notes": ""
+      "notes": "Split authored in splits.json: 'wigwam_km42_ram_fsr' (point)."
     },
     {
       "id": "williston-lake-in-zone-a-includes-waters-500--456568",
@@ -4725,12 +4725,12 @@
       "locator_text": "upstream of Hwy 20",
       "full_regulation": "No Fishing for steelhead\nBait ban\nDownstream of Hwy 20: see Atnarko/Bella Coola Rivers[Includes Tributaries]",
       "anchor_kind": "bridge_road_km",
-      "status": "todo",
+      "status": "curated",
       "target": "",
       "coord": null,
-      "split_id": "",
+      "split_id": "young_hwy20",
       "label": "",
-      "notes": ""
+      "notes": "Split authored in splits.json: 'young_hwy20' (point)."
     },
     {
       "id": "lower-campbell-lake-s-tributaries-a724e1",
@@ -5044,9 +5044,9 @@
         -126.14958,
         52.50792
       ],
-      "split_id": "",
+      "split_id": "burnt_bridge_at_sitkatapa",
       "label": "Sitkatapa confluence",
-      "notes": "Confluence = mouth of Sitkatapa Creek (blk 360844922); parent = Burnt Bridge Creek. Author as confluence anchor tributary_wsc=910-275583-777225-504013-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000. OSM: https://www.openstreetmap.org/?mlat=52.50792&mlon=-126.14958#map=15/52.50792/-126.14958"
+      "notes": "Confluence = mouth of Sitkatapa Creek (blk 360844922); parent = Burnt Bridge Creek. Author as confluence anchor tributary_wsc=910-275583-777225-504013-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000. OSM: https://www.openstreetmap.org/?mlat=52.50792&mlon=-126.14958#map=15/52.50792/-126.14958 — Split authored in splits.json: 'burnt_bridge_at_sitkatapa' (confluence)."
     },
     {
       "id": "burnt-bridge-creek-upstream-of-sitkatapa-cree-3eb419",
@@ -5068,9 +5068,9 @@
         -126.14958,
         52.50792
       ],
-      "split_id": "",
+      "split_id": "burnt_bridge_at_sitkatapa",
       "label": "Sitkatapa confluence",
-      "notes": "Confluence = mouth of Sitkatapa Creek (blk 360844922); parent = Burnt Bridge Creek. Author as confluence anchor tributary_wsc=910-275583-777225-504013-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000. OSM: https://www.openstreetmap.org/?mlat=52.50792&mlon=-126.14958#map=15/52.50792/-126.14958 — Shares the Sitkatapa confluence split with burnt-bridge-creek-upstream-of-sitkatapa-cree-22aca4."
+      "notes": "Confluence = mouth of Sitkatapa Creek (blk 360844922); parent = Burnt Bridge Creek. Author as confluence anchor tributary_wsc=910-275583-777225-504013-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000. OSM: https://www.openstreetmap.org/?mlat=52.50792&mlon=-126.14958#map=15/52.50792/-126.14958 — Shares the Sitkatapa confluence split with burnt-bridge-creek-upstream-of-sitkatapa-cree-22aca4. — Split authored in splits.json: 'burnt_bridge_at_sitkatapa' (confluence)."
     },
     {
       "id": "buttle-lake-s-tributaries-2ff8d6",
@@ -6345,7 +6345,7 @@
       ],
       "split_id": "",
       "label": "White River confluence",
-      "notes": "Confluence = mouth of White River (blk 356570381); parent = Kootenay River. Author as confluence anchor tributary_wsc=300-625474-814939-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000. OSM: https://www.openstreetmap.org/?mlat=50.35270&mlon=-115.62503#map=15/50.35270/-115.62503"
+      "notes": "Confluence = mouth of White River (blk 356570381); parent = Kootenay River. Author as confluence anchor tributary_wsc=300-625474-814939-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000. OSM: https://www.openstreetmap.org/?mlat=50.35270&mlon=-115.62503#map=15/50.35270/-115.62503 — Downstream boundary = Koocanusa Reservoir (splits.json 'kootenay_koocanusa')."
     },
     {
       "id": "kootenay-river-upstream-of-koocanusa-reservoi-82bacc",
@@ -7991,12 +7991,12 @@
       "locator_text": "outlet of Seeley Lake",
       "full_regulation": "Bait ban; open all year, no minimum size for trout",
       "anchor_kind": "lake_reach",
-      "status": "todo",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "split_id": "",
       "label": "",
-      "notes": ""
+      "notes": "Whole-stream reg (bait ban; open all year, no min size) — applies to the entire \"Seeley\" Creek, matched by stream name. No split/location needed. ('outlet of Seeley Lake' just disambiguates which creek.)"
     },
     {
       "id": "adams-river-downstream-of-adams-lake-037302",
@@ -8009,12 +8009,14 @@
       "locator_text": "downstream of Adams Lake",
       "full_regulation": "No Fishing from Sept 1-Oct 31 between fishing boundary signs in the vicinity of the public salmon viewing platforms in Tsutswecew\nProvincial Park\nRainbow trout and char catch and release; bait ban; no powered boats",
       "anchor_kind": "lake_reach",
-      "status": "todo",
-      "target": "",
+      "status": "curated",
+      "target": {
+        "wbk": "329014384"
+      },
       "coord": null,
-      "split_id": "",
+      "split_id": "adams_lake",
       "label": "",
-      "notes": ""
+      "notes": "Split authored in splits.json: 'adams_lake' (lake)."
     },
     {
       "id": "adams-river-upstream-of-adams-lake-54ec4b",
@@ -8027,12 +8029,14 @@
       "locator_text": "upstream of Adams Lake",
       "full_regulation": "Rainbow trout daily quota = 2 (none under 30 cm); bait ban\nBull trout (Dolly Varden) daily quota = 1 (none under 80 cm), July 1-30 and Nov 1-Dec 31",
       "anchor_kind": "lake_reach",
-      "status": "todo",
-      "target": "",
+      "status": "curated",
+      "target": {
+        "wbk": "329014384"
+      },
       "coord": null,
-      "split_id": "",
+      "split_id": "adams_lake",
       "label": "",
-      "notes": ""
+      "notes": "Split authored in splits.json: 'adams_lake' (lake)."
     },
     {
       "id": "ash-river-f11aa9",
@@ -8435,12 +8439,14 @@
       "locator_text": "upstream of Koocanusa Reservoir",
       "full_regulation": "Bait ban all year\nTrout/char catch and release, Nov 1-Mar 31\nBurbot catch and release upstream of the Montana border\nUpstream of Koocanusa Reservoir to White River: EXEMPT from Apr 1-June 14 closure; trout/char daily quota = 1 (no trout under 30 cm and\nno bull trout under 75 cm), Apr 1-Oct 31\nUpstream of White River: trout/char daily quota = 1 (no trout under 30 cm and no bull trout under 75 cm), Jun 15-Oct 31\nUpstream of White River, including tributaries: Class II water when open",
       "anchor_kind": "lake_reach",
-      "status": "todo",
-      "target": "",
+      "status": "curated",
+      "target": {
+        "wbk": "328961702"
+      },
       "coord": null,
-      "split_id": "",
+      "split_id": "kootenay_koocanusa",
       "label": "",
-      "notes": ""
+      "notes": "Split authored in splits.json: 'kootenay_koocanusa' (lake)."
     },
     {
       "id": "liard-river-watershed-see-map-on-page-63-772040",
@@ -9067,12 +9073,12 @@
       "locator_text": "EXCEPT the outlet stream downstream of the falls 2.4 km downstream of Whiteswan Lake",
       "full_regulation": "No Fishing EXCEPT the outlet stream downstream of the falls 2.4 km downstream of Whiteswan Lake, No Fishing Aug 1-Mar 31, rainbow\ntrout daily quota = 5 (catch and release all other species) when open",
       "anchor_kind": "lake_inlet_outlet",
-      "status": "todo",
+      "status": "curated",
       "target": "",
       "coord": null,
-      "split_id": "",
+      "split_id": "whiteswan_outlet_falls",
       "label": "",
-      "notes": ""
+      "notes": "Split authored in splits.json: 'whiteswan_outlet_falls' (point(obstacle))."
     },
     {
       "id": "whitetail-lake-s-inlet-outlet-streams-e361cc",
@@ -10321,12 +10327,12 @@
       "locator_text": "within Garibaldi Park",
       "full_regulation": "No Fishing within Garibaldi Park; speed restriction at Grant Narrows (10 km/h)\nBait ban upstream of Pitt Lake\nNo Fishing in the Lower Pitt River (CPR Bridge upstream to Pitt Lake) from one hour after sunset to one hour before sunrise (tributaries not\nincluded)",
       "anchor_kind": "area_park_polygon",
-      "status": "todo",
+      "status": "curated",
       "target": "",
       "coord": null,
-      "split_id": "",
+      "split_id": "garibaldi_pitt",
       "label": "",
-      "notes": ""
+      "notes": "Split authored in splits.json: 'garibaldi_pitt' (area_boundary)."
     },
     {
       "id": "square-lake-located-in-crooked-river-provinci-87f47f",
@@ -12047,12 +12053,12 @@
       "locator_text": "downstream of Idaho border",
       "full_regulation": "No Fishing from CPR Bridge near Creston downstream 2 km to navigation dolphin\nDownstream from the Idaho border to CPR Bridge near Creston and from Corra Linn Dam to the Columbia River: EXEMPT from Apr 1-June 14 closure AND from Nov 1-Mar 31 trout/char catch and release\nBurbot catch and release from Idaho border near Creston to Kootenay Lake, including tributaries to that part\nWalleye daily quota = 16 from the Brilliant Dam to the confluence with the Columbia River\nFrom the Brilliant Dam to the confluence with the Columbia River: northern pike and bass daily quota = unlimited",
       "anchor_kind": "other_reach",
-      "status": "todo",
+      "status": "curated",
       "target": "",
       "coord": null,
-      "split_id": "",
+      "split_id": "kootenay_idaho_border",
       "label": "",
-      "notes": ""
+      "notes": "Split authored in splits.json: 'kootenay_idaho_border' (point(border-pickup))."
     },
     {
       "id": "kootenay-river-upstream-of-koocanusa-reservoi-f89737",

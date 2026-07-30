@@ -14,6 +14,10 @@ can be parked with ``defer`` so they sort to the BACK of the queue and stop crow
     .venv/bin/python -m stream_sections.oneoff.curation_status defer chapman-creek-6d4cfd-b --reason "falls point unknown"
     .venv/bin/python -m stream_sections.oneoff.curation_status undefer chapman-creek-6d4cfd-b
 
+    # audit a whole status bucket with reg text + notes (e.g. sanity-check the not_applicable set-regs)
+    .venv/bin/python -m stream_sections.oneoff.curation_status review not_applicable --kind confluence_tributary
+    .venv/bin/python -m stream_sections.oneoff.curation_status review deferred
+
     # full detail for one row
     .venv/bin/python -m stream_sections.oneoff.curation_status show chapman-creek-6d4cfd-b
 
@@ -111,6 +115,33 @@ def show(doc: dict, locator_id: str) -> None:
     print(json.dumps(_find(doc, locator_id), indent=2, ensure_ascii=False))
 
 
+def review(doc: dict, status: str, kind: str | None, limit: int) -> None:
+    """List items of a given status with full context (reg text + notes) for auditing —
+    e.g. sanity-check the not_applicable set-regs/exclusions, or eyeball the curated points."""
+    rows = [x for x in doc["locators"] if x["status"] == status]
+    if kind:
+        rows = [x for x in rows if x["anchor_kind"] == kind]
+    scope = f" kind={kind}" if kind else ""
+    print(f"REVIEW status={status}{scope}: {len(rows)} item(s)"
+          + (f" (showing {limit})" if len(rows) > limit else "") + "\n")
+    for x in rows[:limit]:
+        mus = ",".join(x.get("mus") or [])
+        print(f"• {x['id']}   [{x['anchor_kind']}]  MU {mus}")
+        print(f"    name : {x['name_verbatim']}")
+        if x.get("locator_text"):
+            print(f"    loc  : {' '.join(x['locator_text'].split())[:110]}")
+        reg = " ".join((x.get("full_regulation") or "").split())
+        if reg:
+            print(f"    reg  : {reg[:160]}{'…' if len(reg) > 160 else ''}")
+        if x.get("coord"):
+            print(f"    coord: {x['coord']}")
+        if x.get("split_id"):
+            print(f"    split: {x['split_id']}")
+        if x.get("notes"):
+            print(f"    note : {' '.join(x['notes'].split())[:200]}")
+        print()
+
+
 # ---------------------------------------------------------------- mutations
 
 def defer(doc: dict, locator_id: str, reason: str | None) -> None:
@@ -149,6 +180,12 @@ def main() -> None:
     ps = sub.add_parser("show", help="dump one locator as JSON")
     ps.add_argument("id")
 
+    pr = sub.add_parser("review", help="audit items of a status with reg text + notes")
+    pr.add_argument("status", nargs="?", default="not_applicable",
+                    help="todo|curated|manual|not_applicable|deferred (default not_applicable)")
+    pr.add_argument("--kind", help="filter by anchor_kind")
+    pr.add_argument("-n", type=int, default=1000, help="max items to show")
+
     pd = sub.add_parser("defer", help="park an unsolved item at the back of the queue")
     pd.add_argument("id")
     pd.add_argument("--reason", help="why it's parked (appended to notes)")
@@ -163,6 +200,8 @@ def main() -> None:
         summary(doc)
     elif args.cmd == "show":
         show(doc, args.id)
+    elif args.cmd == "review":
+        review(doc, args.status, args.kind, args.n)
     elif args.cmd == "defer":
         defer(doc, args.id, args.reason)
     elif args.cmd == "undefer":
