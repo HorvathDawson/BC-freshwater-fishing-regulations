@@ -20,15 +20,25 @@ and write the confirmed result back. The human decides; the agent never self-con
 - **bridge_road_km** (99) — enriched, `todo`. 11 M FSR∩stream crossings, ~88 L public road/rail bridges (coord=map-only).
 - **lake_reach** (~68 after reclassifies) — a subagent is/was classifying each as lake_split / whole_lake / point → `lake_proposals.json`; merge into notes the same way.
 - Still bare `todo`: `other_reach`, `line_between_signs`, `map_or_vague`, `radius_buffer`, `except_negative`, `area_park_polygon`, `boundary_signs_generic`, a few `falls_canyon_obstacle`.
-- **Authored splits**: `stream_sections/splits.json` (12). 18 locators are already linked to them (`split_id` set, curated).
+- **Authored splits**: `stream_sections/splits.json` (12). 18 locators reference them via a
+  `authored split: <id>` line in `notes` (curated). Those authored coords/targets are VERIFIED and
+  should be reused to fill any matching un-curated locator rather than re-resolved.
+
+## Schema note (post-migration)
+`anchor_kind` now equals the split `anchor.type` (`point | confluence | line | lake |
+area_boundary | mu_boundary | lake_io | buffer | not_a_split | unclassified`). The old granular
+bucket moved to `resolver_hint` (`falls_obstacle | dam_weir_fence | bridge_road_km |
+boundary_signs | tributary | lake_reach | between_signs | park_polygon | …`). The `point` bucket
+is large, so filter batches by `--hint`. The `split_id` field is gone — authored-split links live
+in `notes` as `authored split: <id>`.
 
 ## Tooling
 ```bash
 # progress table + next 10 open items (deferred sort last)
 .venv/bin/python -m stream_sections.oneoff.curation_status
-.venv/bin/python -m stream_sections.oneoff.curation_status next 12 --kind dam_weir_fence
-.venv/bin/python -m stream_sections.oneoff.curation_status review not_applicable --kind confluence_tributary   # audit a bucket
-.venv/bin/python -m stream_sections.oneoff.curation_status defer <id> --reason "..."                            # park unsolved -> back of queue
+.venv/bin/python -m stream_sections.oneoff.curation_status next 12 --hint dam_weir_fence
+.venv/bin/python -m stream_sections.oneoff.curation_status review not_applicable --kind confluence   # audit a bucket
+.venv/bin/python -m stream_sections.oneoff.curation_status defer <id> --reason "..."                  # park unsolved -> back of queue
 .venv/bin/python -m stream_sections.oneoff.curation_status show <id>
 ```
 Statuses: `todo | curated | manual | not_applicable | deferred`. Done = curated+manual+not_applicable.

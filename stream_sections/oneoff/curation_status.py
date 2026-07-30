@@ -84,19 +84,21 @@ def summary(doc: dict) -> None:
 
 # ---------------------------------------------------------------- queue
 
-def _open_queue(doc: dict, kind: str | None) -> list[dict]:
+def _open_queue(doc: dict, kind: str | None, hint: str | None) -> list[dict]:
     q = [x for x in doc["locators"] if x["status"] in _QUEUE_RANK]
     if kind:
         q = [x for x in q if x["anchor_kind"] == kind]
+    if hint:
+        q = [x for x in q if x.get("resolver_hint") == hint]
     # fresh todo first, deferred last; stable within a rank by original order
     return sorted(q, key=lambda x: _QUEUE_RANK[x["status"]])
 
 
-def next_batch(doc: dict, n: int, kind: str | None) -> None:
-    q = _open_queue(doc, kind)
+def next_batch(doc: dict, n: int, kind: str | None, hint: str | None) -> None:
+    q = _open_queue(doc, kind, hint)
     todo = sum(1 for x in q if x["status"] == "todo")
     defer = len(q) - todo
-    scope = f" [kind={kind}]" if kind else ""
+    scope = "".join(f" [{k}={v}]" for k, v in (("kind", kind), ("hint", hint)) if v)
     print(f"OPEN{scope}: {len(q)} ({todo} todo, {defer} deferred). Showing up to {n}:\n")
     for i, x in enumerate(q[:n], 1):
         tag = "  (deferred)" if x["status"] == "deferred" else ""
@@ -104,8 +106,10 @@ def next_batch(doc: dict, n: int, kind: str | None) -> None:
         lt = " ".join((x.get("locator_text") or "").split())
         if len(lt) > 96:
             lt = lt[:95] + "…"
+        hint = x.get("resolver_hint") or ""
+        kind = x["anchor_kind"] + (f"/{hint}" if hint else "")
         print(f"{i:2d}. {x['id']}{tag}")
-        print(f"    {x['anchor_kind']} | {x['name_verbatim'][:34]} | MU {mus}")
+        print(f"    {kind} | {x['name_verbatim'][:34]} | MU {mus}")
         print(f"    “{lt}”")
     if not q:
         print("nothing open — all done \U0001f389")
@@ -115,18 +119,22 @@ def show(doc: dict, locator_id: str) -> None:
     print(json.dumps(_find(doc, locator_id), indent=2, ensure_ascii=False))
 
 
-def review(doc: dict, status: str, kind: str | None, limit: int) -> None:
+def review(doc: dict, status: str, kind: str | None, hint: str | None, limit: int) -> None:
     """List items of a given status with full context (reg text + notes) for auditing —
     e.g. sanity-check the not_applicable set-regs/exclusions, or eyeball the curated points."""
     rows = [x for x in doc["locators"] if x["status"] == status]
     if kind:
         rows = [x for x in rows if x["anchor_kind"] == kind]
-    scope = f" kind={kind}" if kind else ""
+    if hint:
+        rows = [x for x in rows if x.get("resolver_hint") == hint]
+    scope = "".join(f" {k}={v}" for k, v in (("kind", kind), ("hint", hint)) if v)
     print(f"REVIEW status={status}{scope}: {len(rows)} item(s)"
           + (f" (showing {limit})" if len(rows) > limit else "") + "\n")
     for x in rows[:limit]:
         mus = ",".join(x.get("mus") or [])
-        print(f"• {x['id']}   [{x['anchor_kind']}]  MU {mus}")
+        hint = x.get("resolver_hint") or ""
+        kind = x["anchor_kind"] + (f"/{hint}" if hint else "")
+        print(f"• {x['id']}   [{kind}]  MU {mus}")
         print(f"    name : {x['name_verbatim']}")
         if x.get("locator_text"):
             print(f"    loc  : {' '.join(x['locator_text'].split())[:110]}")
@@ -135,8 +143,6 @@ def review(doc: dict, status: str, kind: str | None, limit: int) -> None:
             print(f"    reg  : {reg[:160]}{'…' if len(reg) > 160 else ''}")
         if x.get("coord"):
             print(f"    coord: {x['coord']}")
-        if x.get("split_id"):
-            print(f"    split: {x['split_id']}")
         if x.get("notes"):
             print(f"    note : {' '.join(x['notes'].split())[:200]}")
         print()
@@ -175,7 +181,8 @@ def main() -> None:
 
     pn = sub.add_parser("next", help="show the next N open items (default 10)")
     pn.add_argument("n", nargs="?", type=int, default=10)
-    pn.add_argument("--kind", help="filter by anchor_kind")
+    pn.add_argument("--kind", help="filter by anchor_kind (split type)")
+    pn.add_argument("--hint", help="filter by resolver_hint (falls_obstacle/dam_weir_fence/...)")
 
     ps = sub.add_parser("show", help="dump one locator as JSON")
     ps.add_argument("id")
@@ -183,7 +190,8 @@ def main() -> None:
     pr = sub.add_parser("review", help="audit items of a status with reg text + notes")
     pr.add_argument("status", nargs="?", default="not_applicable",
                     help="todo|curated|manual|not_applicable|deferred (default not_applicable)")
-    pr.add_argument("--kind", help="filter by anchor_kind")
+    pr.add_argument("--kind", help="filter by anchor_kind (split type)")
+    pr.add_argument("--hint", help="filter by resolver_hint")
     pr.add_argument("-n", type=int, default=1000, help="max items to show")
 
     pd = sub.add_parser("defer", help="park an unsolved item at the back of the queue")
@@ -201,17 +209,17 @@ def main() -> None:
     elif args.cmd == "show":
         show(doc, args.id)
     elif args.cmd == "review":
-        review(doc, args.status, args.kind, args.n)
+        review(doc, args.status, args.kind, args.hint, args.n)
     elif args.cmd == "defer":
         defer(doc, args.id, args.reason)
     elif args.cmd == "undefer":
         undefer(doc, args.id)
     elif args.cmd == "next":
-        next_batch(doc, args.n, args.kind)
+        next_batch(doc, args.n, args.kind, args.hint)
     else:  # default: summary + next 10
         summary(doc)
         print()
-        next_batch(doc, 10, None)
+        next_batch(doc, 10, None, None)
 
 
 if __name__ == "__main__":
