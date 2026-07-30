@@ -2641,13 +2641,13 @@
       "src": "name",
       "locator_text": "unnamed lake approx. 4 km north of Bridge Lake",
       "full_regulation": "Trout daily quota = 2\nBait ban, single barbless hook",
-      "anchor_kind": "bridge_road_km",
+      "anchor_kind": "lake_reach",
       "status": "todo",
       "target": "",
       "coord": null,
       "split_id": "",
       "label": "",
-      "notes": "[auto-proposal L] unnamed 'High' Lake ~4 km N of Bridge Lake on unnamed lake (Region 5). No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Identify the unnamed lake ~4 km N of Bridge Lake on a map; this is a lake ID, not a road crossing.. Mis-bucketed as bridge_road_km: the locator names/identifies a lake, not a bridge or road crossing. Bridge Lake is in Region 5 (MU 5-1). Recommend manual/map: find the unnamed lake ~4 km north of Bridge Lake."
+      "notes": "[reclassified bridge_road_km -> lake_reach: whole_lake] Whole-lake reg (trout quota, bait ban) on an unnamed lake ~4 km N of Bridge Lake. 'Bridge Lake' is a LANDMARK, not a road bridge. Target the lake wbk; no split."
     },
     {
       "id": "adam-river-except-eve-river-939f98",
@@ -3616,13 +3616,13 @@
       "src": "rule",
       "locator_text": "south of the CPR bridge",
       "full_regulation": "See Shuswap Lake in Region 3\nNo powered boats south of the CPR bridge",
-      "anchor_kind": "bridge_road_km",
+      "anchor_kind": "lake_reach",
       "status": "todo",
       "target": "",
       "coord": null,
       "split_id": "",
       "label": "",
-      "notes": "[auto-proposal L] CPR bridge at Sicamous (south side) on Mara Lake. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the CPR bridge at the Sicamous narrows (Mara Lake south of it); lake+railway bridge, map-only.. Reg = 'south of the CPR bridge' on Mara Lake. Lake landmark at the Sicamous channel; not in FWA (Mara Lake not returned as a stream). Map/OSM-confirmable."
+      "notes": "[reclassified bridge_road_km -> lake_reach: lake_internal] LAKE reg (Mara Lake) divided 'south of the CPR bridge' — a lake-INTERNAL split at the CPR bridge (lake splitting, docs/15), not a stream bridge."
     },
     {
       "id": "mcarthur-island-slough-cd2507",
@@ -4048,13 +4048,13 @@
       "src": "name",
       "locator_text": "south of the Hwy 16 bridge",
       "full_regulation": "No Fishing Aug 1-Oct 31\nTrout/char daily quota = 2 (none under 30 cm); bait ban, single barbless hook",
-      "anchor_kind": "bridge_road_km",
+      "anchor_kind": "lake_reach",
       "status": "todo",
       "target": "",
       "coord": null,
       "split_id": "",
       "label": "",
-      "notes": "[auto-proposal L] Hwy 16 bridge at Prudhomme Lake on Prudhomme Lake. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Hwy 16 bridge at Prudhomme Lake (E of Prince Rupert); lake+highway, map-only.. Reg = 'south of the Hwy 16 bridge' on Prudhomme Lake. Lake not returned by FWA as a stream; Hwy 16 crosses at the lake's neck. Map/OSM-confirmable."
+      "notes": "[reclassified bridge_road_km -> lake_reach: lake_internal] LAKE reg (Prudhomme Lake) 'south of the Hwy 16 bridge' — lake-internal split at the bridge (docs/15)."
     },
     {
       "id": "quesnel-river-cf8577",
@@ -4102,13 +4102,13 @@
       "src": "rule",
       "locator_text": "south of the CPR Bridge",
       "full_regulation": "No powered boats south of the CPR Bridge",
-      "anchor_kind": "bridge_road_km",
+      "anchor_kind": "lake_reach",
       "status": "todo",
       "target": "",
       "coord": null,
       "split_id": "",
       "label": "",
-      "notes": "[auto-proposal L] CPR Bridge at Rosemond Lake (south side) on Rosemond Lake. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate Rosemond Lake and its CPR bridge; lake not in FWA -> map-only.. Reg = 'south of the CPR Bridge' on Rosemond Lake. Lake not returned by FWA; railway bridge landmark. Map/OSM-confirmable."
+      "notes": "[reclassified bridge_road_km -> lake_reach: lake_internal] LAKE reg (Rosemond Lake) 'south of the CPR Bridge' — lake-internal split (docs/15)."
     },
     {
       "id": "salmon-river-8e66cb",
@@ -4445,13 +4445,13 @@
       "src": "name",
       "locator_text": "adjacent to West Road River",
       "full_regulation": "No Fishing Nov 1-June 14\nTrout daily quota = 1 (none under 30 cm)\nArtificial fly only, bait ban, barbless hook",
-      "anchor_kind": "bridge_road_km",
+      "anchor_kind": "lake_reach",
       "status": "todo",
       "target": "",
       "coord": null,
       "split_id": "",
       "label": "",
-      "notes": "[auto-proposal L] Teepee Lake (adjacent to West Road River) on Teepee Lake. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Identify Teepee Lake next to the West Road River; this is a lake ID, not a road crossing -> manual.. Mis-bucketed as bridge_road_km: the locator identifies a lake adjacent to the West Road River, no bridge/road. Manual/map."
+      "notes": "[reclassified bridge_road_km -> lake_reach: whole_lake] Whole-lake reg on Teepee Lake (adjacent to West Road River). Target the lake wbk; no split."
     },
     {
       "id": "thompson-river-downstream-of-signs-at-kamloop-1db152",
@@ -4556,13 +4556,13 @@
       "src": "rule",
       "locator_text": "between Hwy 1 bridge in Revelstoke and the power line crossing at Akolkolex Narrows",
       "full_regulation": "\"The drawdown area\", that water known as either Upper Arrow Lake or Columbia River (depending on the reservoir's level), located\nbetween Hwy 1 bridge in Revelstoke and the power line crossing at Akolkolex Narrows (approximately 1.5 km downstream of the\nAkolkolex River confluence): trout/char daily quota = 2 (no bull trout under 60 cm and only 1 bull trout over 60 cm); single barbless hook\nEXEMPT from the regional kokanee \"none from streams\" daily quota (the combined daily quota for kokanee in Lower Arrow Lake, Upper\nArrow Lake and the drawdown area is the regional daily quota on page 34)\nEXEMPT from the regional Nov 1-Mar 31 trout/char catch and release from streams\nEXEMPT from the regional Apr 1-June 14 stream closure",
-      "anchor_kind": "bridge_road_km",
+      "anchor_kind": "lake_reach",
       "status": "todo",
       "target": "",
       "coord": null,
       "split_id": "",
       "label": "",
-      "notes": "[auto-proposal L] Hwy 1 bridge in Revelstoke & power line at Akolkolex Narrows on Upper Arrow Lake. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Hwy 1 bridge in Revelstoke and the power-line crossing at Akolkolex Narrows on Upper Arrow Lake; reservoir, map-only.. Reservoir drawdown reach between the Revelstoke Hwy 1 bridge and the Akolkolex Narrows power line. Lake not returned by FWA as a stream. Map/OSM-confirmable."
+      "notes": "[reclassified bridge_road_km -> lake_reach: reservoir_reach] RESERVOIR reach: Upper Arrow Lake drawdown area between the Hwy 1 bridge (Revelstoke) and the power line crossing — a reservoir/lake reach, not a stream bridge (docs/15)."
     },
     {
       "id": "west-road-blackwater-river-s-tributaries-aec300",
@@ -4574,13 +4574,13 @@
       "src": "name",
       "locator_text": "WEST ROAD RIVER'S TRIBUTARIES",
       "full_regulation": "Trout daily quota = 1; artificial fly only, bait ban\nFor regulations on the mainstem of the West Road River, see Region 5",
-      "anchor_kind": "bridge_road_km",
-      "status": "todo",
+      "anchor_kind": "confluence_tributary",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "split_id": "",
       "label": "",
-      "notes": "[auto-proposal L] West Road ('Blackwater') River's tributaries (whole-scope) on West Road River tributaries. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Not a crossing locator -- the 'locator' is just the river/tributaries name; likely mis-bucketed. Manual review.. The locator_text is 'WEST ROAD RIVER'S TRIBUTARIES' with no bridge/road/km landmark. Mis-bucketed as bridge_road_km; this is a whole-tributaries scope, not a point. Manual / reclassify."
+      "notes": "[reclassified bridge_road_km -> confluence_tributary] tributary-SET reg (West Road/Blackwater River's tributaries) — whole-subtree membership, not a split. not_applicable."
     },
     {
       "id": "white-river-90c274",
@@ -4666,13 +4666,13 @@
       "src": "name",
       "locator_text": "includes waters 500 m east/upstream of the Causeway Road",
       "full_regulation": "No rainbow trout under 30 cm\nBait ban 500 m upstream and downstream of Causeway Road July 1-Oct 30\nSee Nation Arm\nREMINDER: Arctic grayling catch and release from tributaries\nSee mercury warning on page 75 and definition of \"stream mouth\" on page 80 in the Provincial Regulations",
-      "anchor_kind": "bridge_road_km",
+      "anchor_kind": "lake_reach",
       "status": "todo",
       "target": "",
       "coord": null,
       "split_id": "",
       "label": "",
-      "notes": "[auto-proposal L] Causeway Road on Williston Lake (Zone A, +500 m E/upstream) on Williston Lake. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Causeway Road on Williston Lake (Zone A boundary) and the +500 m E/upstream offset; reservoir, map-only.. Zone-A boundary offset (500 m east/upstream of the Causeway Road) on Williston Reservoir. Lake not returned by FWA. Map/OSM-confirmable."
+      "notes": "[reclassified bridge_road_km -> lake_reach: reservoir_zone] RESERVOIR zone reg (Williston Lake Zone A): bait ban ±500 m of the Causeway Road within the reservoir — lake/reservoir zone, not a stream bridge."
     },
     {
       "id": "williston-lake-in-zone-a-includes-waters-500--7972e6",
@@ -4686,13 +4686,13 @@
       "src": "entry",
       "locator_text": "in Zone A (includes waters 500 m east/upstream of the Causeway Road)",
       "full_regulation": "No rainbow trout under 30 cm\nBait ban 500 m upstream and downstream of Causeway Road July 1-Oct 30\nSee Nation Arm\nREMINDER: Arctic grayling catch and release from tributaries\nSee mercury warning on page 75 and definition of \"stream mouth\" on page 80 in the Provincial Regulations",
-      "anchor_kind": "bridge_road_km",
+      "anchor_kind": "lake_reach",
       "status": "todo",
       "target": "",
       "coord": null,
       "split_id": "",
       "label": "",
-      "notes": "[auto-proposal L] Causeway Road on Williston Lake (Zone A) on Williston Lake. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Causeway Road / Zone A boundary on Williston Lake; reservoir, map-only.. Zone-A definition tied to the Causeway Road on Williston Reservoir. Map/OSM-confirmable; not in FWA."
+      "notes": "[reclassified bridge_road_km -> lake_reach: reservoir_zone] RESERVOIR zone reg (Williston Lake Zone A): bait ban ±500 m of the Causeway Road within the reservoir — lake/reservoir zone, not a stream bridge."
     },
     {
       "id": "williston-lake-in-zone-a-includes-waters-500--3be97e",
@@ -4706,13 +4706,13 @@
       "src": "rule",
       "locator_text": "500 m upstream and downstream of Causeway Road",
       "full_regulation": "No rainbow trout under 30 cm\nBait ban 500 m upstream and downstream of Causeway Road July 1-Oct 30\nSee Nation Arm\nREMINDER: Arctic grayling catch and release from tributaries\nSee mercury warning on page 75 and definition of \"stream mouth\" on page 80 in the Provincial Regulations",
-      "anchor_kind": "bridge_road_km",
+      "anchor_kind": "lake_reach",
       "status": "todo",
       "target": "",
       "coord": null,
       "split_id": "",
       "label": "",
-      "notes": "[auto-proposal L] Causeway Road on Williston Lake (+/- 500 m) on Williston Lake. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Causeway Road on Williston Lake and the 500 m up/downstream offsets; reservoir, map-only.. 500 m upstream & downstream of the Causeway Road (Zone A). Reservoir landmark; map/OSM-confirmable."
+      "notes": "[reclassified bridge_road_km -> lake_reach: reservoir_zone] RESERVOIR zone reg (Williston Lake Zone A): bait ban ±500 m of the Causeway Road within the reservoir — lake/reservoir zone, not a stream bridge."
     },
     {
       "id": "young-creek-upstream-of-hwy-20-f08b82",
@@ -7864,13 +7864,13 @@
       "src": "rule",
       "locator_text": "from tributaries",
       "full_regulation": "No rainbow trout under 30 cm\nBait ban 500 m upstream and downstream of Causeway Road July 1-Oct 30\nSee Nation Arm\nREMINDER: Arctic grayling catch and release from tributaries\nSee mercury warning on page 75 and definition of \"stream mouth\" on page 80 in the Provincial Regulations",
-      "anchor_kind": "confluence_tributary",
+      "anchor_kind": "lake_reach",
       "status": "not_applicable",
       "target": "",
       "coord": null,
       "split_id": "",
       "label": "",
-      "notes": "tributary-SET reg (all tributaries of the named lake/river): a whole-WSC-subtree membership, NOT a curated point split. Handle via tributary inheritance / wsc_descendants, not a confluence point."
+      "notes": "[reclassified bridge_road_km -> lake_reach: reservoir_zone] RESERVOIR zone reg (Williston Lake Zone A): bait ban ±500 m of the Causeway Road within the reservoir — lake/reservoir zone, not a stream bridge."
     },
     {
       "id": "wilson-creek-3a55c3",
