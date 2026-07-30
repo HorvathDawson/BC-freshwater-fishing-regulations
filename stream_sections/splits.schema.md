@@ -23,6 +23,7 @@ the channels it crosses. Each crossed channel becomes two **sections** with auto
 | `anchor.type` | fields | the cut geometry |
 |---------------|--------|------------------|
 | `point` **(primary)** | `coord:[x,y]`, `is_lonlat` | a short **line perpendicular** to the target mainstem at the nearest point, extended ±`proximity_m` so it also crosses nearby side channels. |
+| `point`/`confluence` **offset** | `offset_m`, `offset_dir` (`"upstream"`\|`"downstream"`) | shifts the resolved cut `offset_m` metres **along the channel** from the projected coord/mouth (e.g. "100 m downstream of the falls"). Follows the streamline, not straight-line; clamped to the channel ends (a clamp records a `concern`). Default `offset_m:0` = no shift. |
 | `line` | `coords:[[x,y],…]` (≥2), `is_lonlat` | the **explicit line** you author; cuts every eligible channel it crosses. |
 | `lake` | `wbk` | the **lake polygon boundary**; cut where the stream crosses in/out. |
 | `mu_boundary` | `mu_a`, `mu_b` (**both required**) | the **shared boundary line** between the two MUs; collapses to **one** split even if the river weaves across it (median crossing + a `concern` recording the count). |

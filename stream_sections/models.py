@@ -217,11 +217,18 @@ class SplitAnchor:
     - lake        : the lake polygon boundary (wbk).
     - mu_boundary : the shared boundary line between mu_a and mu_b (needs BOTH).
     - confluence  : an auto cut line where tributary_blk meets the target mainstem.
+
+    A ``point``/``confluence`` anchor may carry an ALONG-CHANNEL offset: the cut lands
+    ``offset_m`` metres ``offset_dir`` ("upstream"|"downstream") from the projected coord/mouth,
+    following the channel (not straight-line). Lets a reg like "100 m downstream of the falls" be
+    authored from the falls point alone; clamped to the channel ends (with a concern if clamped).
     """
     type: AnchorType
     coord: Optional[tuple[float, float]] = None       # point
     coords: tuple[tuple[float, float], ...] = ()      # line (>=2 vertices)
     is_lonlat: bool = False
+    offset_m: float = 0.0         # point/confluence: shift the cut this many metres ALONG the
+    offset_dir: str = ""          # channel, in offset_dir ("upstream"|"downstream"). 0 => no shift.
     wbk: str = ""                 # lake
     mu_a: str = ""                # mu_boundary (one side)
     mu_b: str = ""                # mu_boundary (other side)
@@ -247,10 +254,20 @@ class SplitAnchor:
             raise ValueError("lake anchor needs wbk")
         if t == AnchorType.area_boundary and not (d.get("area_layer") and d.get("area_name")):
             raise ValueError("area_boundary anchor needs area_layer and area_name")
+        offset_m = float(d.get("offset_m", 0.0))
+        offset_dir = str(d.get("offset_dir", ""))
+        if offset_m < 0:
+            raise ValueError("offset_m must be >= 0 (give the direction via offset_dir)")
+        if offset_m:
+            if t not in (AnchorType.point, AnchorType.confluence):
+                raise ValueError(f"offset_m only valid on point/confluence anchors, not {t.value}")
+            if offset_dir not in ("upstream", "downstream"):
+                raise ValueError("offset_m requires offset_dir 'upstream' or 'downstream'")
         return cls(
             type=t,
             coord=(float(coord[0]), float(coord[1])) if coord else None,
             coords=coords, is_lonlat=bool(d.get("is_lonlat", False)),
+            offset_m=offset_m, offset_dir=offset_dir,
             wbk=str(d.get("wbk", "")), mu_a=str(d.get("mu_a", "")), mu_b=str(d.get("mu_b", "")),
             tributary_blk=str(d.get("tributary_blk", "")),
             tributary_wsc=str(d.get("tributary_wsc", "")),

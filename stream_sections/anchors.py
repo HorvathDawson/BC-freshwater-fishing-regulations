@@ -6,6 +6,8 @@ Every anchor normalizes to an absolute DOWNSTREAM_ROUTE_MEASURE on a target BLK,
 cut may thus land on several BLKs (main + side channels), one SplitPoint each.
 
 - point       : project the coord onto the target blue line (kept iff within `proximity_m`).
+                An optional `offset_m`/`offset_dir` then shifts the cut that many metres up/down
+                the channel (e.g. "100 m downstream of the falls"), clamped to the channel ends.
 - line        : intersect the cut line with the target blue line; measure the crossing.
 - confluence  : the tributary (by `tributary_blk` or `tributary_wsc`) has a mouth; project it
                 onto the target (parent) blue line -> the confluence measure. `tributary_wsc` is
@@ -87,6 +89,20 @@ def _points(geom) -> list[Point]:
     return []
 
 
+def _apply_offset(d: float, length: float, anchor) -> tuple[float, str]:
+    """Shift an along-channel distance ``d`` (metres from the mouth) by the anchor's authored
+    offset, following the channel. +upstream / -downstream (geometry is mouth->source, so a larger
+    along-distance is farther upstream). Clamped to [0, length]; a clamp records a concern."""
+    if not anchor.offset_m:
+        return d, ""
+    m = d + anchor.offset_m if anchor.offset_dir == "upstream" else d - anchor.offset_m
+    if m < 0.0:
+        return 0.0, f"offset {anchor.offset_m:.0f}m {anchor.offset_dir} clamped at the mouth"
+    if m > length:
+        return length, f"offset {anchor.offset_m:.0f}m {anchor.offset_dir} clamped at the source"
+    return m, ""
+
+
 def _tributary_chain(anchor, by_blk, by_wsc) -> Optional[BlkChain]:
     if anchor.tributary_blk:
         return by_blk.get(anchor.tributary_blk)
@@ -125,7 +141,8 @@ def resolve_split_defs(split_defs: list[SplitDef], chains: list[BlkChain],
                     p = _pt(a.coord, a.is_lonlat)
                     d = g.project(p)
                     if g.interpolate(d).distance(p) <= sd.proximity_m:
-                        _emit(sd, blk, c.mouth_measure + d)
+                        m, oc = _apply_offset(d, g.length, a)
+                        _emit(sd, blk, c.mouth_measure + m, concern=oc)
                 elif a.type == AnchorType.line and a.coords:
                     for p in _points(g.intersection(_line(a.coords, a.is_lonlat))):
                         _emit(sd, blk, c.mouth_measure + g.project(p))
@@ -147,7 +164,9 @@ def resolve_split_defs(split_defs: list[SplitDef], chains: list[BlkChain],
                 d = c.geometry.project(mouth)
                 off = c.geometry.interpolate(d).distance(mouth)
                 if off <= sd.proximity_m:
-                    _emit(sd, blk, c.mouth_measure + d, concern=concern, offset=off)
+                    m, oc = _apply_offset(d, c.geometry.length, a)
+                    concern = "; ".join(x for x in (concern, oc) if x)
+                    _emit(sd, blk, c.mouth_measure + m, concern=concern, offset=off)
 
         elif a.type == AnchorType.lake:
             for blk, c in targets:

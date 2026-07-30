@@ -42,6 +42,53 @@ def test_point_anchor_projects_to_measure():
     assert [(p.blk, round(p.route_measure)) for p in pts] == [("X", 120)]
 
 
+def test_point_anchor_offset_downstream_shifts_toward_mouth():
+    chains, _ = _mainstem_chain()
+    # falls at x=120; reg boundary is 30 m DOWNSTREAM (toward the mouth) => measure 90.
+    sd = SplitDef(id="p", blk="X", anchor=SplitAnchor(
+        type=AnchorType.point, coord=(120.0, 0.0), offset_m=30.0, offset_dir="downstream"))
+    pts = resolve_split_defs([sd], chains)
+    assert [(p.blk, round(p.route_measure)) for p in pts] == [("X", 90)]
+    assert pts[0].concern == ""
+
+
+def test_point_anchor_offset_upstream_shifts_toward_source():
+    chains, _ = _mainstem_chain()
+    # falls at x=120; boundary 40 m UPSTREAM (toward the source) => measure 160.
+    sd = SplitDef(id="p", blk="X", anchor=SplitAnchor(
+        type=AnchorType.point, coord=(120.0, 0.0), offset_m=40.0, offset_dir="upstream"))
+    pts = resolve_split_defs([sd], chains)
+    assert [(p.blk, round(p.route_measure)) for p in pts] == [("X", 160)]
+
+
+def test_point_anchor_offset_clamps_at_mouth_with_concern():
+    chains, _ = _mainstem_chain()
+    # coord at x=20, 100 m downstream would be -80 => clamp to the mouth (measure 0) + concern.
+    sd = SplitDef(id="p", blk="X", anchor=SplitAnchor(
+        type=AnchorType.point, coord=(20.0, 0.0), offset_m=100.0, offset_dir="downstream"))
+    pts = resolve_split_defs([sd], chains)
+    assert [(p.blk, round(p.route_measure)) for p in pts] == [("X", 0)]
+    assert "clamped at the mouth" in pts[0].concern
+
+
+def test_offset_validation_rejects_bad_specs():
+    # offset needs a valid direction
+    with pytest.raises(ValueError):
+        SplitAnchor.from_dict({"type": "point", "coord": [0, 0], "offset_m": 50})
+    # offset only on point/confluence, not line
+    with pytest.raises(ValueError):
+        SplitAnchor.from_dict({"type": "line", "coords": [[0, 0], [1, 1]],
+                               "offset_m": 50, "offset_dir": "upstream"})
+    # negative magnitude is rejected (direction carries the sign)
+    with pytest.raises(ValueError):
+        SplitAnchor.from_dict({"type": "point", "coord": [0, 0],
+                               "offset_m": -50, "offset_dir": "upstream"})
+    # a clean offset spec round-trips
+    a = SplitAnchor.from_dict({"type": "point", "coord": [0, 0],
+                               "offset_m": 100, "offset_dir": "downstream"})
+    assert (a.offset_m, a.offset_dir) == (100.0, "downstream")
+
+
 def test_line_anchor_crosses_at_measure():
     chains, _ = _mainstem_chain()
     # a cut line crossing the mainstem at x=210
