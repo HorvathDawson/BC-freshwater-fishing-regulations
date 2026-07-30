@@ -167,12 +167,18 @@
       "locator_text": "from fishing boundary signs approximately 2 km downstream (the \"Dunes\", UTM: 603741.00E, 5998628.00N) of Morice Lake to",
       "full_regulation": "Angling prohibited for non-guided non-resident aliens on Saturdays and Sundays, Sept 1-Oct 31\nNo Fishing from fishing boundary signs near outlet of Morice Lake (UTM: 602539.02E, 5997165.96N) to the fishing boundary signs\napproximately 2 km downstream (the \"Dunes\", UTM: 603741.00E, 5998628.00N)\nNo Fishing Jan 1-Sept 30 from fishing boundary signs approximately 2 km downstream (the \"Dunes\", UTM: 603741.00E, 5998628.00N) of\nMorice Lake to Gosnell Creek\nNo Fishing from Gosnell Creek to Lamprey Creek, Jan 1-Aug 31; Fly fishing only from Gosnell Creek to Lamprey Creek, Sept 1-Sept 30\nBait ban\nNo angling from boats, Aug 15-Dec 31 (all parts)\nClass II water Sept 1-Oct 31; Steelhead Stamp mandatory Sept 1-Oct 31",
       "anchor_kind": "confluence_tributary",
-      "status": "todo",
-      "target": "",
-      "coord": null,
+      "status": "curated",
+      "target": {
+        "blk": "360885021",
+        "wsc": "400-431358-585806-558169-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      },
+      "coord": [
+        -127.34589,
+        54.20711
+      ],
       "split_id": "",
       "label": "Gosnell Creek confluence",
-      "notes": "Downstream boundary = Gosnell Creek mouth. Author as a confluence anchor (tributary_wsc/blk of Gosnell Creek); creek not yet resolved."
+      "notes": "Confluence = mouth of Gosnell Creek. Author as confluence anchor tributary_wsc=400-431358-585806-558169-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000. OSM: https://www.openstreetmap.org/?mlat=54.20711&mlon=-127.34589#map=15/54.20711/-127.34589 — Gosnell's mouth ≈ Thautil/Morice confluence; shares split with morice-river-b90f66-a."
     },
     {
       "id": "sakinaw-lake-df4750",
@@ -4785,7 +4791,7 @@
       "notes": "tributary-SET reg (all tributaries of the named lake/river): a whole-WSC-subtree membership, NOT a curated point split. Handle via tributary inheritance / wsc_descendants, not a confluence point."
     },
     {
-      "id": "atnarko-bella-coola-rivers-includes-tributari-f69d72",
+      "id": "atnarko-bella-coola-rivers-includes-tributari-f69d72-a",
       "name_verbatim": "ATNARKO/BELLA COOLA RIVERS [Includes Tributaries] EXCE",
       "region": "REGION 5",
       "mus": [
@@ -4797,12 +4803,44 @@
       "locator_text": "on Atnarko River, from Goat Creek to the confluence with Talchako River",
       "full_regulation": "No Fishing upstream of Tweedsmuir Provincial Park plus Tenas Lake, Apr 1-June 30\nNo Fishing from Tenas Lake to fishing boundary signs near Atnarko Park campsite\nTrout/char daily quota = 1 (none under 25 cm and all cutthroat trout catch and release) EXCEPT: on Bella Coola R. MAINSTEM ONLY, trout/\nchar daily quota = 2, of which only one may be a trout (cutthroat or rainbow) and none may be under 25 cm, no cutthroat may be over 33\ncm, and no rainbow may be over 50 cm), Apr 1-May 31 ONLY, EXCEPT: char catch and release (on TRIBUTARIES ONLY), Sept 1-May 31\nBait ban downstream of eastern boundary of Tweedsmuir Provincial Park, Sept 1- May 15\nNo angling from powered boats on mainstems of Atnarko River and Bella Coola River\nNo powered boats on Atnarko River, from Goat Creek to the confluence with Talchako River\nNo Fishing for steelhead\nClass II water downstream of Young Creek, Mar 1-May 31. NOTE: Classified Waters Licence or Steelhead Stamp not required until\nreopened to steelhead fishing",
       "anchor_kind": "confluence_tributary",
-      "status": "todo",
-      "target": "",
-      "coord": null,
+      "status": "curated",
+      "target": {
+        "blk": "360869566",
+        "wsc": "910-275583-999439-337822-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      },
+      "coord": [
+        -125.77161,
+        52.34176
+      ],
       "split_id": "",
-      "label": "",
-      "notes": ""
+      "label": "Goat Creek confluence",
+      "notes": "Confluence = mouth of Goat Creek (blk 360869566); parent = Atnarko River. Author as confluence anchor tributary_wsc=910-275583-999439-337822-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000. OSM: https://www.openstreetmap.org/?mlat=52.34176&mlon=-125.77161#map=15/52.34176/-125.77161"
+    },
+    {
+      "id": "atnarko-bella-coola-rivers-includes-tributari-f69d72-b",
+      "name_verbatim": "ATNARKO/BELLA COOLA RIVERS [Includes Tributaries] EXCE",
+      "region": "REGION 5",
+      "mus": [
+        "5-6",
+        "5-8",
+        "5-11"
+      ],
+      "src": "rule",
+      "locator_text": "on Atnarko River, from Goat Creek to the confluence with Talchako River",
+      "full_regulation": "No Fishing upstream of Tweedsmuir Provincial Park plus Tenas Lake, Apr 1-June 30\nNo Fishing from Tenas Lake to fishing boundary signs near Atnarko Park campsite\nTrout/char daily quota = 1 (none under 25 cm and all cutthroat trout catch and release) EXCEPT: on Bella Coola R. MAINSTEM ONLY, trout/\nchar daily quota = 2, of which only one may be a trout (cutthroat or rainbow) and none may be under 25 cm, no cutthroat may be over 33\ncm, and no rainbow may be over 50 cm), Apr 1-May 31 ONLY, EXCEPT: char catch and release (on TRIBUTARIES ONLY), Sept 1-May 31\nBait ban downstream of eastern boundary of Tweedsmuir Provincial Park, Sept 1- May 15\nNo angling from powered boats on mainstems of Atnarko River and Bella Coola River\nNo powered boats on Atnarko River, from Goat Creek to the confluence with Talchako River\nNo Fishing for steelhead\nClass II water downstream of Young Creek, Mar 1-May 31. NOTE: Classified Waters Licence or Steelhead Stamp not required until\nreopened to steelhead fishing",
+      "anchor_kind": "confluence_tributary",
+      "status": "curated",
+      "target": {
+        "blk": "360887426",
+        "wsc": "910-275583-999074-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      },
+      "coord": [
+        -126.09508,
+        52.37676
+      ],
+      "split_id": "",
+      "label": "Talchako confluence",
+      "notes": "Confluence = mouth of Talchako River (blk 360887426); parent = Bella Coola River, Atnarko River. Author as confluence anchor tributary_wsc=910-275583-999074-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000. OSM: https://www.openstreetmap.org/?mlat=52.37676&mlon=-126.09508#map=15/52.37676/-126.09508"
     },
     {
       "id": "atnarko-bella-coola-rivers-includes-tributari-a8b6c2",
@@ -4831,7 +4869,7 @@
       "notes": "Confluence = mouth of Young Creek (blk 360862631). Auto-resolved from FWA; parent stream at the mouth = Atnarko River. OSM: https://www.openstreetmap.org/?mlat=52.40871&mlon=-125.87929#map=15/52.40871/-125.87929"
     },
     {
-      "id": "attichika-creek-880292",
+      "id": "attichika-creek-880292-a",
       "name_verbatim": "ATTICHIKA CREEK",
       "region": "REGION 7A",
       "mus": [
@@ -4841,12 +4879,90 @@
       "locator_text": "500 m upstream and downstream of the Thorn Creek confluence or the Kemess Creek confluence",
       "full_regulation": "No Fishing 500 m upstream and downstream of the Thorn Creek confluence or the Kemess Creek confluence",
       "anchor_kind": "confluence_tributary",
-      "status": "todo",
-      "target": "",
-      "coord": null,
+      "status": "curated",
+      "target": {
+        "blk": "359557375",
+        "wsc": "200-948755-999851-889551-445636-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      },
+      "coord": [
+        -126.67873,
+        56.92522
+      ],
       "split_id": "",
-      "label": "",
-      "notes": ""
+      "label": "Thorn(e) Creek confluence 500m upstream",
+      "notes": "500 m upstream of the Thorne Creek confluence. Author as confluence anchor tributary_wsc=200-948755-999851-889551-445636-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000 + offset_m 500, offset_dir upstream. OSM: https://www.openstreetmap.org/?mlat=56.92522&mlon=-126.67873#map=15/56.92522/-126.67873"
+    },
+    {
+      "id": "attichika-creek-880292-b",
+      "name_verbatim": "ATTICHIKA CREEK",
+      "region": "REGION 7A",
+      "mus": [
+        "7-39"
+      ],
+      "src": "rule",
+      "locator_text": "500 m upstream and downstream of the Thorn Creek confluence or the Kemess Creek confluence",
+      "full_regulation": "No Fishing 500 m upstream and downstream of the Thorn Creek confluence or the Kemess Creek confluence",
+      "anchor_kind": "confluence_tributary",
+      "status": "curated",
+      "target": {
+        "blk": "359557375",
+        "wsc": "200-948755-999851-889551-445636-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      },
+      "coord": [
+        -126.68707,
+        56.92831
+      ],
+      "split_id": "",
+      "label": "Thorn(e) Creek confluence 500m downstream",
+      "notes": "500 m downstream of the Thorne Creek confluence. Author as confluence anchor tributary_wsc=200-948755-999851-889551-445636-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000 + offset_m 500, offset_dir downstream. OSM: https://www.openstreetmap.org/?mlat=56.92831&mlon=-126.68707#map=15/56.92831/-126.68707"
+    },
+    {
+      "id": "attichika-creek-880292-c",
+      "name_verbatim": "ATTICHIKA CREEK",
+      "region": "REGION 7A",
+      "mus": [
+        "7-39"
+      ],
+      "src": "rule",
+      "locator_text": "500 m upstream and downstream of the Thorn Creek confluence or the Kemess Creek confluence",
+      "full_regulation": "No Fishing 500 m upstream and downstream of the Thorn Creek confluence or the Kemess Creek confluence",
+      "anchor_kind": "confluence_tributary",
+      "status": "curated",
+      "target": {
+        "blk": "359567528",
+        "wsc": "200-948755-999851-889551-178842-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      },
+      "coord": [
+        -126.77549,
+        56.9749
+      ],
+      "split_id": "",
+      "label": "Kemess Creek confluence 500m upstream",
+      "notes": "500 m upstream of the Kemess Creek confluence. Author as confluence anchor tributary_wsc=200-948755-999851-889551-178842-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000 + offset_m 500, offset_dir upstream. OSM: https://www.openstreetmap.org/?mlat=56.97490&mlon=-126.77549#map=15/56.97490/-126.77549"
+    },
+    {
+      "id": "attichika-creek-880292-d",
+      "name_verbatim": "ATTICHIKA CREEK",
+      "region": "REGION 7A",
+      "mus": [
+        "7-39"
+      ],
+      "src": "rule",
+      "locator_text": "500 m upstream and downstream of the Thorn Creek confluence or the Kemess Creek confluence",
+      "full_regulation": "No Fishing 500 m upstream and downstream of the Thorn Creek confluence or the Kemess Creek confluence",
+      "anchor_kind": "confluence_tributary",
+      "status": "curated",
+      "target": {
+        "blk": "359567528",
+        "wsc": "200-948755-999851-889551-178842-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      },
+      "coord": [
+        -126.78904,
+        56.97879
+      ],
+      "split_id": "",
+      "label": "Kemess Creek confluence 500m downstream",
+      "notes": "500 m downstream of the Kemess Creek confluence. Author as confluence anchor tributary_wsc=200-948755-999851-889551-178842-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000 + offset_m 500, offset_dir downstream. OSM: https://www.openstreetmap.org/?mlat=56.97879&mlon=-126.78904#map=15/56.97879/-126.78904"
     },
     {
       "id": "brunette-river-s-tributaries-aa1996",
@@ -4877,12 +4993,18 @@
       "locator_text": "upstream of Morice/Bulkley River confluence",
       "full_regulation": "Angling prohibited for non-guided non-resident aliens on Saturdays and Sundays, Sept 1-Oct 31\nSee Suskwa River and Telkwa River\nNo Fishing upstream of Morice/Bulkley River confluence\nBait ban\nNo angling from boats from Morice River to CNR Bridge at Barrett, Aug 15-Dec 31, and in Moricetown Canyon or within 100 m downstream,\nall year\nClass II water Sept 1-Oct 31 and Steelhead Stamp mandatory Sept 1-Oct 31",
       "anchor_kind": "confluence_tributary",
-      "status": "todo",
-      "target": "",
-      "coord": null,
+      "status": "curated",
+      "target": {
+        "blk": "360885316",
+        "wsc": "400-431358-585806-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      },
+      "coord": [
+        -126.74602,
+        54.41127
+      ],
       "split_id": "",
-      "label": "",
-      "notes": ""
+      "label": "Morice/Bulkley confluence",
+      "notes": "Confluence = mouth of Morice River (blk 360885316); parent = Bulkley River. Author as confluence anchor tributary_wsc=400-431358-585806-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000. OSM: https://www.openstreetmap.org/?mlat=54.41127&mlon=-126.74602#map=15/54.41127/-126.74602"
     },
     {
       "id": "burnaby-lake-s-tributaries-fbc31b",
@@ -4913,12 +5035,18 @@
       "locator_text": "upstream of Sitkatapa Creek",
       "full_regulation": "Bait ban; No Fishing for steelhead\nClass II water Mar 1-May 31. NOTE: Classified Waters Licence or Steelhead Stamp not required until reopened to steelhead fishing\nDownstream of Sitkatapa Creek: see Atnarko/Bella Coola Rivers[Includes Tributaries]",
       "anchor_kind": "confluence_tributary",
-      "status": "todo",
-      "target": "",
-      "coord": null,
+      "status": "curated",
+      "target": {
+        "blk": "360844922",
+        "wsc": "910-275583-777225-504013-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      },
+      "coord": [
+        -126.14958,
+        52.50792
+      ],
       "split_id": "",
-      "label": "",
-      "notes": ""
+      "label": "Sitkatapa confluence",
+      "notes": "Confluence = mouth of Sitkatapa Creek (blk 360844922); parent = Burnt Bridge Creek. Author as confluence anchor tributary_wsc=910-275583-777225-504013-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000. OSM: https://www.openstreetmap.org/?mlat=52.50792&mlon=-126.14958#map=15/52.50792/-126.14958"
     },
     {
       "id": "burnt-bridge-creek-upstream-of-sitkatapa-cree-3eb419",
@@ -4931,12 +5059,18 @@
       "locator_text": "Downstream of Sitkatapa Creek",
       "full_regulation": "Bait ban; No Fishing for steelhead\nClass II water Mar 1-May 31. NOTE: Classified Waters Licence or Steelhead Stamp not required until reopened to steelhead fishing\nDownstream of Sitkatapa Creek: see Atnarko/Bella Coola Rivers[Includes Tributaries]",
       "anchor_kind": "confluence_tributary",
-      "status": "todo",
-      "target": "",
-      "coord": null,
+      "status": "curated",
+      "target": {
+        "blk": "360844922",
+        "wsc": "910-275583-777225-504013-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      },
+      "coord": [
+        -126.14958,
+        52.50792
+      ],
       "split_id": "",
-      "label": "",
-      "notes": ""
+      "label": "Sitkatapa confluence",
+      "notes": "Confluence = mouth of Sitkatapa Creek (blk 360844922); parent = Burnt Bridge Creek. Author as confluence anchor tributary_wsc=910-275583-777225-504013-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000. OSM: https://www.openstreetmap.org/?mlat=52.50792&mlon=-126.14958#map=15/52.50792/-126.14958 — Shares the Sitkatapa confluence split with burnt-bridge-creek-upstream-of-sitkatapa-cree-22aca4."
     },
     {
       "id": "buttle-lake-s-tributaries-2ff8d6",
@@ -5027,12 +5161,12 @@
       "locator_text": "downstream of Bannon Creek",
       "full_regulation": "No Fishing downstream of Bannon Creek[Includes Tributaries] July 1-Sept 30, No Fishing upstream of Bannon Creek[Includes Tributaries] Dec 1-Sept 30\nNo Fishing from Copper Canyon Falls downstream 100 m to the fishing boundary signs",
       "anchor_kind": "confluence_tributary",
-      "status": "todo",
+      "status": "deferred",
       "target": "",
       "coord": null,
       "split_id": "",
       "label": "",
-      "notes": ""
+      "notes": "[deferred] unresolved_trib"
     },
     {
       "id": "chemainus-river-688d54",
@@ -5045,12 +5179,12 @@
       "locator_text": "upstream of Bannon Creek",
       "full_regulation": "No Fishing downstream of Bannon Creek[Includes Tributaries] July 1-Sept 30, No Fishing upstream of Bannon Creek[Includes Tributaries] Dec 1-Sept 30\nNo Fishing from Copper Canyon Falls downstream 100 m to the fishing boundary signs",
       "anchor_kind": "confluence_tributary",
-      "status": "todo",
+      "status": "deferred",
       "target": "",
       "coord": null,
       "split_id": "",
       "label": "",
-      "notes": ""
+      "notes": "[deferred] unresolved_trib"
     },
     {
       "id": "chilcotin-river-c15955",
@@ -5091,12 +5225,18 @@
       "locator_text": "downstream of Chilko River",
       "full_regulation": "No Fishing upstream of Chilko River, Apr 1-June 30\nNo Fishing downstream of Chilko River, Oct 1-June 10\nNo trout/char under 30 cm downstream of Chilko River\nNo hooks greater than 15 mm from point to shank, Oct 1-May 31; bait ban\nNo angling from powered boats\nDownstream of Chilko River[Includes Tributaries]: Class II water Oct 1-May 31 and Steelhead Stamp mandatory Oct 1-May 31 (if opened for fall or spring\nfishing; see Notice on page 42)",
       "anchor_kind": "confluence_tributary",
-      "status": "todo",
-      "target": "",
-      "coord": null,
+      "status": "curated",
+      "target": {
+        "blk": "356364103",
+        "wsc": "100-342455-328500-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      },
+      "coord": [
+        -123.46036,
+        52.09646
+      ],
       "split_id": "",
-      "label": "",
-      "notes": ""
+      "label": "Chilko/Chilcotin confluence",
+      "notes": "Confluence = mouth of Chilko River (blk 356364103); parent = Chilcotin River. Author as confluence anchor tributary_wsc=100-342455-328500-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000. OSM: https://www.openstreetmap.org/?mlat=52.09646&mlon=-123.46036#map=15/52.09646/-123.46036 — Shares the Chilko/Chilcotin confluence split with chilcotin-river-c15955."
     },
     {
       "id": "chilcotin-river-e0f019",
@@ -5111,12 +5251,18 @@
       "locator_text": "Downstream of Chilko River",
       "full_regulation": "No Fishing upstream of Chilko River, Apr 1-June 30\nNo Fishing downstream of Chilko River, Oct 1-June 10\nNo trout/char under 30 cm downstream of Chilko River\nNo hooks greater than 15 mm from point to shank, Oct 1-May 31; bait ban\nNo angling from powered boats\nDownstream of Chilko River[Includes Tributaries]: Class II water Oct 1-May 31 and Steelhead Stamp mandatory Oct 1-May 31 (if opened for fall or spring\nfishing; see Notice on page 42)",
       "anchor_kind": "confluence_tributary",
-      "status": "todo",
-      "target": "",
-      "coord": null,
+      "status": "curated",
+      "target": {
+        "blk": "356364103",
+        "wsc": "100-342455-328500-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      },
+      "coord": [
+        -123.46036,
+        52.09646
+      ],
       "split_id": "",
-      "label": "",
-      "notes": ""
+      "label": "Chilko/Chilcotin confluence",
+      "notes": "Confluence = mouth of Chilko River (blk 356364103); parent = Chilcotin River. Author as confluence anchor tributary_wsc=100-342455-328500-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000. OSM: https://www.openstreetmap.org/?mlat=52.09646&mlon=-123.46036#map=15/52.09646/-123.46036 — Shares the Chilko/Chilcotin confluence split with chilcotin-river-c15955."
     },
     {
       "id": "chilko-lake-s-tributary-streams-3e8be6",
@@ -5161,7 +5307,7 @@
       "notes": "Confluence = mouth of Brittany Creek (blk 356356416). Auto-resolved from FWA; parent stream at the mouth = Chilko River. OSM: https://www.openstreetmap.org/?mlat=51.78953&mlon=-124.03944#map=15/51.78953/-124.03944"
     },
     {
-      "id": "clearwater-river-dddc3f",
+      "id": "clearwater-river-dddc3f-a",
       "name_verbatim": "CLEARWATER RIVER",
       "region": "REGION 3",
       "mus": [
@@ -5172,12 +5318,43 @@
       "locator_text": "from Mahood River to North Thompson River",
       "full_regulation": "Downstream of old Clearwater Bridge exempt from spring closure, except No Fishing May 1-June 30\nBait ban (a) from Falls Creek to Mahood River, all year, and (b) from Mahood River to North Thompson River, Sept 1-July 31\nNo angling from powered boats downstream of Falls Creek\nRainbow trout daily quota = 2 (none over 35 cm), char catch and release",
       "anchor_kind": "confluence_tributary",
-      "status": "todo",
-      "target": "",
-      "coord": null,
+      "status": "curated",
+      "target": {
+        "blk": "356347721",
+        "wsc": "100-190442-998192-349877-237590-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      },
+      "coord": [
+        -120.19352,
+        51.91649
+      ],
       "split_id": "",
-      "label": "",
-      "notes": ""
+      "label": "Mahood River confluence",
+      "notes": "Confluence = mouth of Mahood River (blk 356347721); parent = Clearwater River. Author as confluence anchor tributary_wsc=100-190442-998192-349877-237590-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000. OSM: https://www.openstreetmap.org/?mlat=51.91649&mlon=-120.19352#map=15/51.91649/-120.19352"
+    },
+    {
+      "id": "clearwater-river-dddc3f-b",
+      "name_verbatim": "CLEARWATER RIVER",
+      "region": "REGION 3",
+      "mus": [
+        "3-40",
+        "3-46"
+      ],
+      "src": "rule",
+      "locator_text": "from Mahood River to North Thompson River",
+      "full_regulation": "Downstream of old Clearwater Bridge exempt from spring closure, except No Fishing May 1-June 30\nBait ban (a) from Falls Creek to Mahood River, all year, and (b) from Mahood River to North Thompson River, Sept 1-July 31\nNo angling from powered boats downstream of Falls Creek\nRainbow trout daily quota = 2 (none over 35 cm), char catch and release",
+      "anchor_kind": "confluence_tributary",
+      "status": "curated",
+      "target": {
+        "blk": "356364464",
+        "wsc": "100-190442-998192-349877-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      },
+      "coord": [
+        -120.08013,
+        51.63264
+      ],
+      "split_id": "",
+      "label": "Clearwater/N.Thompson confluence",
+      "notes": "Confluence = mouth of Clearwater River (blk 356364464); parent = North Thompson River. Author as confluence anchor tributary_wsc=100-190442-998192-349877-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000. OSM: https://www.openstreetmap.org/?mlat=51.63264&mlon=-120.08013#map=15/51.63264/-120.08013"
     },
     {
       "id": "coldwater-river-s-tributaries-cd6684",
@@ -5244,12 +5421,18 @@
       "locator_text": "in tributaries upstream of and including Holt Creek",
       "full_regulation": "No Fishing July 4-July 14\nNo Fishing July 15-Aug 31[Includes Tributaries], No Fishing from weir (dam) at Cowichan Lake's outlet to Greendale Trestle, Nov 15-Apr 15\nNo Fishing in tributaries upstream of and including Holt Creek\nFly fishing only upstream of CNR Trestle (Mile 66) Sept 1-Nov 15\nNo Fishing downstream of the CNR Mile 66 Trestle between Sept 1-Nov 15\nFly fishing only from signs at Greendale Trestle to CNR Bridge (mile 70.2)\nSpeed restriction (8 km/h) and engine power restriction - 7.5 kW (10 hp) on parts",
       "anchor_kind": "confluence_tributary",
-      "status": "todo",
-      "target": "",
-      "coord": null,
+      "status": "curated",
+      "target": {
+        "blk": "354153534",
+        "wsc": "920-252823-203808-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      },
+      "coord": [
+        -123.80185,
+        48.76151
+      ],
       "split_id": "",
-      "label": "",
-      "notes": ""
+      "label": "Holt Creek confluence",
+      "notes": "Confluence = mouth of Holt Creek (blk 354153534); parent = Cowichan River. Author as confluence anchor tributary_wsc=920-252823-203808-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000. OSM: https://www.openstreetmap.org/?mlat=48.76151&mlon=-123.80185#map=15/48.76151/-123.80185"
     },
     {
       "id": "cultus-creek-5762c5",
@@ -5348,7 +5531,7 @@
       "notes": "tributary-SET reg (all tributaries of the named lake/river): a whole-WSC-subtree membership, NOT a curated point split. Handle via tributary inheritance / wsc_descendants, not a confluence point."
     },
     {
-      "id": "dutch-creek-9bbac3",
+      "id": "dutch-creek-9bbac3-a",
       "name_verbatim": "DUTCH CREEK",
       "region": "REGION 4",
       "mus": [
@@ -5358,12 +5541,42 @@
       "locator_text": "from Ben Able Creek to Columbia Lake and/or River",
       "full_regulation": "Trout/char catch and release from Ben Able Creek to Columbia Lake and/or River\nBait ban, June 15-Oct 31\nBurbot catch and release\nEXEMPT from Columbia Lake's tributaries closure",
       "anchor_kind": "confluence_tributary",
-      "status": "todo",
-      "target": "",
-      "coord": null,
+      "status": "curated",
+      "target": {
+        "blk": "356569048",
+        "wsc": "300-992449-498711-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      },
+      "coord": [
+        -116.15556,
+        50.27126
+      ],
       "split_id": "",
-      "label": "",
-      "notes": ""
+      "label": "Ben Abel Creek confluence",
+      "notes": "Confluence = mouth of Ben Abel Creek (blk 356569048); parent = Dutch Creek. Author as confluence anchor tributary_wsc=300-992449-498711-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000. OSM: https://www.openstreetmap.org/?mlat=50.27126&mlon=-116.15556#map=15/50.27126/-116.15556"
+    },
+    {
+      "id": "dutch-creek-9bbac3-b",
+      "name_verbatim": "DUTCH CREEK",
+      "region": "REGION 4",
+      "mus": [
+        "4-26"
+      ],
+      "src": "rule",
+      "locator_text": "from Ben Able Creek to Columbia Lake and/or River",
+      "full_regulation": "Trout/char catch and release from Ben Able Creek to Columbia Lake and/or River\nBait ban, June 15-Oct 31\nBurbot catch and release\nEXEMPT from Columbia Lake's tributaries closure",
+      "anchor_kind": "confluence_tributary",
+      "status": "curated",
+      "target": {
+        "blk": "356566459",
+        "wsc": "300-992449-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      },
+      "coord": [
+        -115.86053,
+        50.29318
+      ],
+      "split_id": "",
+      "label": "Columbia Lake boundary (Dutch Creek mouth)",
+      "notes": "LAKE split: Dutch Creek reaches Columbia Lake/River here [-115.86053,50.29318]. Author as a LAKE anchor (Columbia Lake wbk), NOT a stream confluence — lake splitting not yet implemented (docs/15). Coord recorded for when it is."
     },
     {
       "id": "elk-river-s-tributaries-see-exceptions-9149a8",
@@ -5509,12 +5722,18 @@
       "locator_text": "in the Fraser River mainstem downstream of the confluence with the Chilcoltin River",
       "full_regulation": "No Fishing for trout in the Fraser River mainstem downstream of the confluence with the Chilcoltin River from Oct 1-Oct 31\nMainstem open all year; bait ban Sept 15-July 15\nNo Fishing for sturgeon Sept 15-July 15\nNo Fishing for sturgeon in the Fraser River Watershed upstream of Williams Lake River (sturgeon catch and release)\nNo Fishing for steelhead from the confluence with the Chilcotin River downstream to the Region 5 boundary Jan 1-Dec 31",
       "anchor_kind": "confluence_tributary",
-      "status": "todo",
-      "target": "",
-      "coord": null,
+      "status": "curated",
+      "target": {
+        "blk": "356363411",
+        "wsc": "100-342455-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      },
+      "coord": [
+        -122.39931,
+        51.73999
+      ],
       "split_id": "",
-      "label": "",
-      "notes": ""
+      "label": "Chilcotin/Fraser confluence",
+      "notes": "Confluence = mouth of Chilcotin River (blk 356363411); parent = Fraser River. Author as confluence anchor tributary_wsc=100-342455-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000. OSM: https://www.openstreetmap.org/?mlat=51.73999&mlon=-122.39931#map=15/51.73999/-122.39931"
     },
     {
       "id": "fraser-river-6d7816",
@@ -5575,12 +5794,18 @@
       "locator_text": "upstream of Cottonwood River",
       "full_regulation": "Exempt from spring closure; also EXEMPT from bait ban upstream of Cottonwood River",
       "anchor_kind": "confluence_tributary",
-      "status": "todo",
-      "target": "",
-      "coord": null,
+      "status": "curated",
+      "target": {
+        "blk": "356359574",
+        "wsc": "100-478686-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      },
+      "coord": [
+        -122.61307,
+        53.11651
+      ],
       "split_id": "",
-      "label": "",
-      "notes": ""
+      "label": "Cottonwood confluence",
+      "notes": "Confluence = mouth of Cottonwood River (blk 356359574); parent = Fraser River. Author as confluence anchor tributary_wsc=100-478686-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000. OSM: https://www.openstreetmap.org/?mlat=53.11651&mlon=-122.61307#map=15/53.11651/-122.61307"
     },
     {
       "id": "fraser-river-upstream-of-the-cpr-bridge-at-mi-af0798",
@@ -5593,12 +5818,12 @@
       "locator_text": "in the area bounded by a line commencing at a fishing boundary sign located at the eastern end of Landstrom Bar (Scale B",
       "full_regulation": "Dead fin fish may be used for bait only when fishing for sturgeon (see page 8 in the Provincial Regulations)\nNo Fishing in the area bounded by a line commencing at a fishing boundary sign located at the eastern end of Landstrom Bar (Scale Bar)\nto a fishing boundary sign on the opposite bank of the river, thence to a fishing boundary sign at the southern end of Croft Island, thence\nto a fishing boundary sign on the nearest bank of the river in a westerly direction, thence following the bank of the river in a westerly\ndirection to the Point of Commencement, May 1-Oct 31\nNo Fishing in the non-tidal portion of the Fraser River in Region 2 from one hour after sunset to one hour before sunrise\nNo Fishing in the Jesperson's Side Channel, Herrling Side Channel, and Seabird Island north Side Channel May 15-July 31. See page 26\nfor a map of the No Fishing areas\nNo Fishing for steelhead Fraser River Mainstem Aug 15-Dec 31\nBoats less than 20 m in length, under power or anchored, must not impede the passage of commercial vessels",
       "anchor_kind": "confluence_tributary",
-      "status": "todo",
+      "status": "deferred",
       "target": "",
       "coord": null,
       "split_id": "",
       "label": "",
-      "notes": ""
+      "notes": "[deferred] 1_nonconfluence_boundary"
     },
     {
       "id": "glacier-redslide-creek-unnamed-tributary-to-n-b7d777",
@@ -5611,12 +5836,12 @@
       "locator_text": "unnamed tributary to Nanika River",
       "full_regulation": "No Fishing Aug 1-Sept 30; bait ban",
       "anchor_kind": "confluence_tributary",
-      "status": "todo",
+      "status": "deferred",
       "target": "",
       "coord": null,
       "split_id": "",
       "label": "",
-      "notes": ""
+      "notes": "[deferred] 1_nonconfluence_boundary"
     },
     {
       "id": "goat-river-3f55d2",
@@ -5629,12 +5854,12 @@
       "locator_text": "EXCEPT Kitchener Creek, see Kitchener Creek, a tributary",
       "full_regulation": "Trout/char catch and release (mainstem only) Leadville Creek Cameron Creek\nBait ban, June 15-Oct 31 (EXCEPT Kitchener Creek, see Kitchener Creek, a tributary)",
       "anchor_kind": "confluence_tributary",
-      "status": "todo",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "split_id": "",
       "label": "",
-      "notes": ""
+      "notes": "EXCEPT Kitchener Creek: a tributary EXCLUSION (Kitchener Ck handled under its own reg), NOT a mainstem split. src=except."
     },
     {
       "id": "goat-river-e66b3a",
@@ -5647,12 +5872,18 @@
       "locator_text": "upstream of the Macleod Creek confluence",
       "full_regulation": "No Fishing upstream of the Macleod Creek confluence, including Macleod Creek[Includes Tributaries], Sept 1-June 30",
       "anchor_kind": "confluence_tributary",
-      "status": "todo",
-      "target": "",
-      "coord": null,
+      "status": "curated",
+      "target": {
+        "blk": "356291750",
+        "wsc": "100-790283-581209-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      },
+      "coord": [
+        -120.87889,
+        53.40549
+      ],
       "split_id": "",
-      "label": "",
-      "notes": ""
+      "label": "Macleod Creek confluence",
+      "notes": "Confluence = mouth of Macleod Creek (blk 356291750); parent = Goat River. Author as confluence anchor tributary_wsc=100-790283-581209-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000. OSM: https://www.openstreetmap.org/?mlat=53.40549&mlon=-120.87889#map=15/53.40549/-120.87889"
     },
     {
       "id": "gold-river-c18915",
@@ -5665,12 +5896,18 @@
       "locator_text": "upstream of the Muchalat River",
       "full_regulation": "No Fishing upstream of the Muchalat River[Includes Tributaries] (see river specific regulations for Muchalat River)\nNo Fishing downstream of the Muchalat River[Includes Tributaries], Dec 1-Aug 15, but not including the Muchalat or Heber Rivers (see river specific\nregulations for those waters)\nNo Fishing between the cascade falls (located approximately 6.5 km upstream of Muchalat Inlet, UTM 709137E, 5512420N) and fishing\nboundary signs approximately 80 m downstream\nNo powered boats",
       "anchor_kind": "confluence_tributary",
-      "status": "todo",
-      "target": "",
-      "coord": null,
+      "status": "curated",
+      "target": {
+        "blk": "354154901",
+        "wsc": "930-508366-413291-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      },
+      "coord": [
+        -126.09319,
+        49.8425
+      ],
       "split_id": "",
-      "label": "",
-      "notes": ""
+      "label": "Muchalat confluence",
+      "notes": "Confluence = mouth of Muchalat River (blk 354154901); parent = Gold River. Author as confluence anchor tributary_wsc=930-508366-413291-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000. OSM: https://www.openstreetmap.org/?mlat=49.84250&mlon=-126.09319#map=15/49.84250/-126.09319"
     },
     {
       "id": "gold-river-65a8d8",
@@ -5683,12 +5920,18 @@
       "locator_text": "downstream of the Muchalat River",
       "full_regulation": "No Fishing upstream of the Muchalat River[Includes Tributaries] (see river specific regulations for Muchalat River)\nNo Fishing downstream of the Muchalat River[Includes Tributaries], Dec 1-Aug 15, but not including the Muchalat or Heber Rivers (see river specific\nregulations for those waters)\nNo Fishing between the cascade falls (located approximately 6.5 km upstream of Muchalat Inlet, UTM 709137E, 5512420N) and fishing\nboundary signs approximately 80 m downstream\nNo powered boats",
       "anchor_kind": "confluence_tributary",
-      "status": "todo",
-      "target": "",
-      "coord": null,
+      "status": "curated",
+      "target": {
+        "blk": "354154901",
+        "wsc": "930-508366-413291-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      },
+      "coord": [
+        -126.09319,
+        49.8425
+      ],
       "split_id": "",
-      "label": "",
-      "notes": ""
+      "label": "Muchalat confluence",
+      "notes": "Confluence = mouth of Muchalat River (blk 354154901); parent = Gold River. Author as confluence anchor tributary_wsc=930-508366-413291-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000. OSM: https://www.openstreetmap.org/?mlat=49.84250&mlon=-126.09319#map=15/49.84250/-126.09319 — Shares the Muchalat/Gold confluence split with gold-river-c18915 (one split; up/downstream rules)."
     },
     {
       "id": "gordon-river-fceab6",
@@ -5701,12 +5944,18 @@
       "locator_text": "upstream of Bugaboo Creek",
       "full_regulation": "No Fishing July 15-Aug 31\nNo Fishing upstream of Bugaboo Creek, Nov 1-Apr 30; artificial fly only upstream of Bugaboo Creek when open",
       "anchor_kind": "confluence_tributary",
-      "status": "todo",
-      "target": "",
-      "coord": null,
+      "status": "curated",
+      "target": {
+        "blk": "354137176",
+        "wsc": "930-056675-244796-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      },
+      "coord": [
+        -124.46144,
+        48.65342
+      ],
       "split_id": "",
-      "label": "",
-      "notes": ""
+      "label": "Bugaboo confluence",
+      "notes": "Confluence = mouth of Bugaboo Creek (blk 354137176); parent = Gordon River. Author as confluence anchor tributary_wsc=930-056675-244796-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000. OSM: https://www.openstreetmap.org/?mlat=48.65342&mlon=-124.46144#map=15/48.65342/-124.46144"
     },
     {
       "id": "granby-river-967165",
@@ -5775,7 +6024,7 @@
       "notes": "tributary-SET reg (all tributaries of the named lake/river): a whole-WSC-subtree membership, NOT a curated point split. Handle via tributary inheritance / wsc_descendants, not a confluence point."
     },
     {
-      "id": "halfway-river-f25bbc",
+      "id": "halfway-river-f25bbc-a",
       "name_verbatim": "HALFWAY RIVER",
       "region": "REGION 7B",
       "mus": [
@@ -5785,12 +6034,42 @@
       "locator_text": "from confluence with Peace River to fishing boundary signs approximately 5 km upstream",
       "full_regulation": "No Fishing from confluence with Peace River to fishing boundary signs approximately 5 km upstream, Mar 1-June 30\nArctic grayling catch and release, Mountain whitefish catch and release",
       "anchor_kind": "confluence_tributary",
-      "status": "todo",
-      "target": "",
-      "coord": null,
+      "status": "curated",
+      "target": {
+        "blk": "359570578",
+        "wsc": "200-948755-837217-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      },
+      "coord": [
+        -121.44457,
+        56.21055
+      ],
       "split_id": "",
-      "label": "",
-      "notes": ""
+      "label": "Halfway/Peace confluence",
+      "notes": "Confluence = mouth of Halfway River. Author as confluence anchor tributary_wsc=200-948755-837217-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000. OSM: https://www.openstreetmap.org/?mlat=56.21055&mlon=-121.44457#map=15/56.21055/-121.44457"
+    },
+    {
+      "id": "halfway-river-f25bbc-b",
+      "name_verbatim": "HALFWAY RIVER",
+      "region": "REGION 7B",
+      "mus": [
+        "7-34"
+      ],
+      "src": "rule",
+      "locator_text": "from confluence with Peace River to fishing boundary signs approximately 5 km upstream",
+      "full_regulation": "No Fishing from confluence with Peace River to fishing boundary signs approximately 5 km upstream, Mar 1-June 30\nArctic grayling catch and release, Mountain whitefish catch and release",
+      "anchor_kind": "confluence_tributary",
+      "status": "curated",
+      "target": {
+        "blk": "359570578",
+        "wsc": "200-948755-837217-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      },
+      "coord": [
+        -121.48495,
+        56.22651
+      ],
+      "split_id": "",
+      "label": "signs ~5 km up Halfway (from Peace confluence)",
+      "notes": "5000 m upstream of the Halfway River confluence. Author as confluence anchor tributary_wsc=200-948755-837217-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000 + offset_m 5000, offset_dir upstream. OSM: https://www.openstreetmap.org/?mlat=56.22651&mlon=-121.48495#map=15/56.22651/-121.48495"
     },
     {
       "id": "harris-creek-991c43",
@@ -5803,12 +6082,18 @@
       "locator_text": "upstream of and including Hemmingsen Creek",
       "full_regulation": "No Fishing July 15-Aug 31[Includes Tributaries], No Fishing upstream of and including Hemmingsen Creek[Includes Tributaries],",
       "anchor_kind": "confluence_tributary",
-      "status": "todo",
-      "target": "",
-      "coord": null,
+      "status": "curated",
+      "target": {
+        "blk": "354153116",
+        "wsc": "930-055749-213082-332450-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      },
+      "coord": [
+        -124.25417,
+        48.63145
+      ],
       "split_id": "",
-      "label": "",
-      "notes": ""
+      "label": "Hemmingsen Creek confluence",
+      "notes": "Confluence = mouth of Hemmingsen Creek (blk 354153116); parent = Harris Creek. Author as confluence anchor tributary_wsc=930-055749-213082-332450-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000. OSM: https://www.openstreetmap.org/?mlat=48.63145&mlon=-124.25417#map=15/48.63145/-124.25417"
     },
     {
       "id": "hellroaring-creek-5b006d",
@@ -5947,15 +6232,15 @@
       "locator_text": "Angling regulations for the Kitimat River are currently under review. Please check the in-season regulation change websi",
       "full_regulation": "No Fishing on the west half of river between fishing boundary signs near Kitimat Hatchery outfall\nNo Fishing in tributaries and upstream of Hwy 37 bridge, Mar 16-May 31\nBait ban\nHatchery rainbow trout (adipose clipped, <50 cm) daily quota = 5, no minimum size, all year\nHatchery steelhead (adipose clipped, >50 cm) daily quota = 2; province-wide hatchery steelhead annual quota = 10. When you have\ncaught and retained your daily steelhead quota from the Kitimat, you must stop fishing the Kitimat for the remainder of that day\nNo powered boats",
       "anchor_kind": "confluence_tributary",
-      "status": "todo",
+      "status": "deferred",
       "target": "",
       "coord": null,
       "split_id": "",
       "label": "",
-      "notes": ""
+      "notes": "[deferred] 1_nonconfluence_boundary"
     },
     {
-      "id": "kitsumkalum-kalum-river-b6b706",
+      "id": "kitsumkalum-kalum-river-b6b706-a",
       "name_verbatim": "KITSUMKALUM (Kalum) RIVER",
       "region": "REGION 6",
       "mus": [
@@ -5965,12 +6250,36 @@
       "locator_text": "from the outlet of Kitsumkalum Lake to Glacier Creek confluence",
       "full_regulation": "Angling prohibited for non-guided non-resident aliens on Saturdays from the outlet of Kitsumkalum Lake to Glacier Creek confluence\nall year (See map page 56)\nAngling prohibited for non-guided non-resident aliens on Sundays for the entire river all year\nClass II water all year[Includes Tributaries] ; Steelhead Stamp mandatory Aug 7 - May 31\nBait ban",
       "anchor_kind": "confluence_tributary",
-      "status": "todo",
+      "status": "deferred",
       "target": "",
       "coord": null,
       "split_id": "",
-      "label": "",
-      "notes": ""
+      "label": "Kitsumkalum Lake outlet",
+      "notes": "non-confluence: lake outlet boundary"
+    },
+    {
+      "id": "kitsumkalum-kalum-river-b6b706-b",
+      "name_verbatim": "KITSUMKALUM (Kalum) RIVER",
+      "region": "REGION 6",
+      "mus": [
+        "6-15"
+      ],
+      "src": "rule",
+      "locator_text": "from the outlet of Kitsumkalum Lake to Glacier Creek confluence",
+      "full_regulation": "Angling prohibited for non-guided non-resident aliens on Saturdays from the outlet of Kitsumkalum Lake to Glacier Creek confluence\nall year (See map page 56)\nAngling prohibited for non-guided non-resident aliens on Sundays for the entire river all year\nClass II water all year[Includes Tributaries] ; Steelhead Stamp mandatory Aug 7 - May 31\nBait ban",
+      "anchor_kind": "confluence_tributary",
+      "status": "curated",
+      "target": {
+        "blk": "360815671",
+        "wsc": "400-195432-246433-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      },
+      "coord": [
+        -128.72805,
+        54.66544
+      ],
+      "split_id": "",
+      "label": "Glacier Creek confluence",
+      "notes": "Confluence = mouth of Glacier Creek (blk 360815671); parent = Kitsumkalum River. Author as confluence anchor tributary_wsc=400-195432-246433-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000. OSM: https://www.openstreetmap.org/?mlat=54.66544&mlon=-128.72805#map=15/54.66544/-128.72805"
     },
     {
       "id": "kokish-river-02cef0",
@@ -5983,12 +6292,12 @@
       "locator_text": "between signs at the IPP tail race confluence downstream approximately 500 m to signs",
       "full_regulation": "No Fishing from boundary signs in Kokish canyon to Ida Lake, Nov 1-Apr 30;\nNo Fishing from the log boom located approximately 100 m upstream of the IPP intake to signs at the tail of the canyon pool located\napproximately 250 m downstream\nNo Fishing between signs at the IPP tail race confluence downstream approximately 500 m to signs",
       "anchor_kind": "confluence_tributary",
-      "status": "todo",
+      "status": "deferred",
       "target": "",
       "coord": null,
       "split_id": "",
       "label": "",
-      "notes": ""
+      "notes": "[deferred] 1_nonconfluence_boundary"
     },
     {
       "id": "kootenay-lake-s-tributaries-6b7979",
@@ -6025,12 +6334,18 @@
       "locator_text": "Upstream of Koocanusa Reservoir to White River",
       "full_regulation": "Bait ban all year\nTrout/char catch and release, Nov 1-Mar 31\nBurbot catch and release upstream of the Montana border\nUpstream of Koocanusa Reservoir to White River: EXEMPT from Apr 1-June 14 closure; trout/char daily quota = 1 (no trout under 30 cm and\nno bull trout under 75 cm), Apr 1-Oct 31\nUpstream of White River: trout/char daily quota = 1 (no trout under 30 cm and no bull trout under 75 cm), Jun 15-Oct 31\nUpstream of White River, including tributaries: Class II water when open",
       "anchor_kind": "confluence_tributary",
-      "status": "todo",
-      "target": "",
-      "coord": null,
+      "status": "curated",
+      "target": {
+        "blk": "356570381",
+        "wsc": "300-625474-814939-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      },
+      "coord": [
+        -115.62503,
+        50.3527
+      ],
       "split_id": "",
-      "label": "",
-      "notes": ""
+      "label": "White River confluence",
+      "notes": "Confluence = mouth of White River (blk 356570381); parent = Kootenay River. Author as confluence anchor tributary_wsc=300-625474-814939-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000. OSM: https://www.openstreetmap.org/?mlat=50.35270&mlon=-115.62503#map=15/50.35270/-115.62503"
     },
     {
       "id": "kootenay-river-upstream-of-koocanusa-reservoi-82bacc",
@@ -6048,12 +6363,18 @@
       "locator_text": "Upstream of White River",
       "full_regulation": "Bait ban all year\nTrout/char catch and release, Nov 1-Mar 31\nBurbot catch and release upstream of the Montana border\nUpstream of Koocanusa Reservoir to White River: EXEMPT from Apr 1-June 14 closure; trout/char daily quota = 1 (no trout under 30 cm and\nno bull trout under 75 cm), Apr 1-Oct 31\nUpstream of White River: trout/char daily quota = 1 (no trout under 30 cm and no bull trout under 75 cm), Jun 15-Oct 31\nUpstream of White River, including tributaries: Class II water when open",
       "anchor_kind": "confluence_tributary",
-      "status": "todo",
-      "target": "",
-      "coord": null,
+      "status": "curated",
+      "target": {
+        "blk": "356570381",
+        "wsc": "300-625474-814939-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      },
+      "coord": [
+        -115.62503,
+        50.3527
+      ],
       "split_id": "",
-      "label": "",
-      "notes": ""
+      "label": "White River confluence",
+      "notes": "Confluence = mouth of White River (blk 356570381); parent = Kootenay River. Author as confluence anchor tributary_wsc=300-625474-814939-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000. OSM: https://www.openstreetmap.org/?mlat=50.35270&mlon=-115.62503#map=15/50.35270/-115.62503 — Shares the White/Kootenay confluence split with ...-6f3c82."
     },
     {
       "id": "lake-revelstoke-s-tributaries-96d2a3",
@@ -6074,7 +6395,7 @@
       "notes": "tributary-SET reg (all tributaries of the named lake/river): a whole-WSC-subtree membership, NOT a curated point split. Handle via tributary inheritance / wsc_descendants, not a confluence point."
     },
     {
-      "id": "lardeau-river-e666ed",
+      "id": "lardeau-river-e666ed-a",
       "name_verbatim": "LARDEAU RIVER",
       "region": "REGION 4",
       "mus": [
@@ -6085,12 +6406,37 @@
       "locator_text": "downstream of fishing boundary signs at Trout Lake outlet, to fishing boundary signs approximately 600m downstream near",
       "full_regulation": "No Fishing downstream of fishing boundary signs at Trout Lake outlet, to fishing boundary signs approximately 600m downstream\nnear the confluence of Mobbs Creek\nExempt from spring closure (Apr 1-Jun 14), exempt from trout/char release (Nov 1-Mar 31)\nRainbow trout daily quota = 5 (any size), bull trout daily quota = 2 (any size)",
       "anchor_kind": "confluence_tributary",
-      "status": "todo",
+      "status": "deferred",
       "target": "",
       "coord": null,
       "split_id": "",
-      "label": "",
-      "notes": ""
+      "label": "Trout Lake outlet signs",
+      "notes": "[deferred] LAKE outlet boundary (Trout Lake) — author as lake anchor; lake splitting not yet implemented (docs/15)."
+    },
+    {
+      "id": "lardeau-river-e666ed-b",
+      "name_verbatim": "LARDEAU RIVER",
+      "region": "REGION 4",
+      "mus": [
+        "4-29",
+        "4-30"
+      ],
+      "src": "rule",
+      "locator_text": "downstream of fishing boundary signs at Trout Lake outlet, to fishing boundary signs approximately 600m downstream near",
+      "full_regulation": "No Fishing downstream of fishing boundary signs at Trout Lake outlet, to fishing boundary signs approximately 600m downstream\nnear the confluence of Mobbs Creek\nExempt from spring closure (Apr 1-Jun 14), exempt from trout/char release (Nov 1-Mar 31)\nRainbow trout daily quota = 5 (any size), bull trout daily quota = 2 (any size)",
+      "anchor_kind": "confluence_tributary",
+      "status": "curated",
+      "target": {
+        "blk": "356569420",
+        "wsc": "300-625474-096683-076865-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      },
+      "coord": [
+        -117.26344,
+        50.50518
+      ],
+      "split_id": "",
+      "label": "signs ~600 m below Trout Lake outlet (near Mobbs Ck)",
+      "notes": "600 m downstream of the Mobbs Creek confluence. Author as confluence anchor tributary_wsc=300-625474-096683-076865-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000 + offset_m 600, offset_dir downstream. OSM: https://www.openstreetmap.org/?mlat=50.50518&mlon=-117.26344#map=15/50.50518/-117.26344 (signs ~600 m downstream, near Mobbs Ck)"
     },
     {
       "id": "little-qualicum-river-496f12",
@@ -6181,15 +6527,21 @@
       "locator_text": "within the fishing boundary signs at the western tip of the lake near the mouth of Canim River",
       "full_regulation": "No Fishing within the fishing boundary signs at the western tip of the lake near the mouth of Canim River, Jan 1-June 30\nTrout/char catch and release, bait ban and single barbless hook: within fishing boundary signs at the western tip of the lake, July 1-Dec 31\nNo Fishing within 200 m of the Mahood River outlet, Jan 1-June 30\nTrout/char catch and release, bait ban and single barbless hook: within 200 m of the mouth of the Mahood River outlet, July 1-Dec 31",
       "anchor_kind": "confluence_tributary",
-      "status": "todo",
-      "target": "",
-      "coord": null,
+      "status": "curated",
+      "target": {
+        "blk": "356357461",
+        "wsc": "100-190442-998192-349877-237590-984912-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      },
+      "coord": [
+        -120.51819,
+        51.88238
+      ],
       "split_id": "",
-      "label": "",
-      "notes": ""
+      "label": "closure at Mahood Lake W tip (near Canim mouth)",
+      "notes": "LAKE split: a point/area WITHIN Mahood Lake at its western tip near the Canim River mouth [-120.51819,51.88238]. NOT a stream confluence — lake-internal splitting is not yet implemented (see docs/15-lake-splitting-design.md). Coord recorded for when it is."
     },
     {
-      "id": "meziadin-river-09af13",
+      "id": "meziadin-river-09af13-a",
       "name_verbatim": "MEZIADIN RIVER",
       "region": "REGION 6",
       "mus": [
@@ -6199,12 +6551,36 @@
       "locator_text": "from fishing boundary signs at outlet of Meziadin Lake to Nass River",
       "full_regulation": "Bait ban\nNo fishing from fishing boundary signs at outlet of Meziadin Lake to Nass River, including tributaries, Jan 1-June 15",
       "anchor_kind": "confluence_tributary",
-      "status": "todo",
+      "status": "deferred",
       "target": "",
       "coord": null,
       "split_id": "",
-      "label": "",
-      "notes": ""
+      "label": "Meziadin Lake outlet",
+      "notes": "non-confluence: lake outlet boundary"
+    },
+    {
+      "id": "meziadin-river-09af13-b",
+      "name_verbatim": "MEZIADIN RIVER",
+      "region": "REGION 6",
+      "mus": [
+        "6-16"
+      ],
+      "src": "rule",
+      "locator_text": "from fishing boundary signs at outlet of Meziadin Lake to Nass River",
+      "full_regulation": "Bait ban\nNo fishing from fishing boundary signs at outlet of Meziadin Lake to Nass River, including tributaries, Jan 1-June 15",
+      "anchor_kind": "confluence_tributary",
+      "status": "curated",
+      "target": {
+        "blk": "360882420",
+        "wsc": "500-462445-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      },
+      "coord": [
+        -129.14764,
+        56.02451
+      ],
+      "split_id": "",
+      "label": "Meziadin/Nass confluence",
+      "notes": "Confluence = mouth of Meziadin River (blk 360882420); parent = Nass River. Author as confluence anchor tributary_wsc=500-462445-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000. OSM: https://www.openstreetmap.org/?mlat=56.02451&mlon=-129.14764#map=15/56.02451/-129.14764"
     },
     {
       "id": "mitchell-river-5bc0ff",
@@ -6279,7 +6655,7 @@
       "notes": "Confluence = mouth of Cameron Creek (blk 356347114); parent = Mitchell River. Same confluence as mitchell-river-5bc0ff (already confirmed); different reg rule. OSM: https://www.openstreetmap.org/?mlat=52.82627&mlon=-120.80844#map=15/52.82627/-120.80844"
     },
     {
-      "id": "morice-river-b90f66",
+      "id": "morice-river-b90f66-a",
       "name_verbatim": "MORICE RIVER",
       "region": "REGION 6",
       "mus": [
@@ -6289,12 +6665,42 @@
       "locator_text": "from Gosnell Creek to Lamprey Creek",
       "full_regulation": "Angling prohibited for non-guided non-resident aliens on Saturdays and Sundays, Sept 1-Oct 31\nNo Fishing from fishing boundary signs near outlet of Morice Lake (UTM: 602539.02E, 5997165.96N) to the fishing boundary signs\napproximately 2 km downstream (the \"Dunes\", UTM: 603741.00E, 5998628.00N)\nNo Fishing Jan 1-Sept 30 from fishing boundary signs approximately 2 km downstream (the \"Dunes\", UTM: 603741.00E, 5998628.00N) of\nMorice Lake to Gosnell Creek\nNo Fishing from Gosnell Creek to Lamprey Creek, Jan 1-Aug 31; Fly fishing only from Gosnell Creek to Lamprey Creek, Sept 1-Sept 30\nBait ban\nNo angling from boats, Aug 15-Dec 31 (all parts)\nClass II water Sept 1-Oct 31; Steelhead Stamp mandatory Sept 1-Oct 31",
       "anchor_kind": "confluence_tributary",
-      "status": "todo",
-      "target": "",
-      "coord": null,
+      "status": "curated",
+      "target": {
+        "blk": "360885021",
+        "wsc": "400-431358-585806-558169-005657-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      },
+      "coord": [
+        -127.34589,
+        54.20711
+      ],
       "split_id": "",
-      "label": "",
-      "notes": ""
+      "label": "Gosnell Creek confluence",
+      "notes": "Confluence = mouth of Gosnell Creek (blk 360885021); parent = Thautil River. Author as confluence anchor tributary_wsc=400-431358-585806-558169-005657-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000. OSM: https://www.openstreetmap.org/?mlat=54.20711&mlon=-127.34589#map=15/54.20711/-127.34589 — Accepted: Gosnell's mouth ≈ the Thautil/Morice confluence (very close, treated as equivalent)."
+    },
+    {
+      "id": "morice-river-b90f66-b",
+      "name_verbatim": "MORICE RIVER",
+      "region": "REGION 6",
+      "mus": [
+        "6-9"
+      ],
+      "src": "rule",
+      "locator_text": "from Gosnell Creek to Lamprey Creek",
+      "full_regulation": "Angling prohibited for non-guided non-resident aliens on Saturdays and Sundays, Sept 1-Oct 31\nNo Fishing from fishing boundary signs near outlet of Morice Lake (UTM: 602539.02E, 5997165.96N) to the fishing boundary signs\napproximately 2 km downstream (the \"Dunes\", UTM: 603741.00E, 5998628.00N)\nNo Fishing Jan 1-Sept 30 from fishing boundary signs approximately 2 km downstream (the \"Dunes\", UTM: 603741.00E, 5998628.00N) of\nMorice Lake to Gosnell Creek\nNo Fishing from Gosnell Creek to Lamprey Creek, Jan 1-Aug 31; Fly fishing only from Gosnell Creek to Lamprey Creek, Sept 1-Sept 30\nBait ban\nNo angling from boats, Aug 15-Dec 31 (all parts)\nClass II water Sept 1-Oct 31; Steelhead Stamp mandatory Sept 1-Oct 31",
+      "anchor_kind": "confluence_tributary",
+      "status": "curated",
+      "target": {
+        "blk": "360880441",
+        "wsc": "400-431358-585806-405041-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      },
+      "coord": [
+        -127.08766,
+        54.18695
+      ],
+      "split_id": "",
+      "label": "Lamprey Creek confluence",
+      "notes": "Confluence = mouth of Lamprey Creek (blk 360880441); parent = Morice River. Author as confluence anchor tributary_wsc=400-431358-585806-405041-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000. OSM: https://www.openstreetmap.org/?mlat=54.18695&mlon=-127.08766#map=15/54.18695/-127.08766"
     },
     {
       "id": "moyie-river-a098eb",
@@ -6307,12 +6713,12 @@
       "locator_text": "Irishman Creek (Moyie River tributary)",
       "full_regulation": "Irishman Creek (Moyie River tributary) closed all year; no powered boats from bridge at south end of Moyie Lake to U.S. border\nBull trout and cutthroat trout catch and release",
       "anchor_kind": "confluence_tributary",
-      "status": "todo",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "split_id": "",
       "label": "",
-      "notes": ""
+      "notes": "Reg targets the WHOLE Irishman Creek (a Moyie tributary) 'closed all year' — matched by stream name, not a mainstem split point."
     },
     {
       "id": "nimpkish-river-3bd766",
@@ -6349,12 +6755,18 @@
       "locator_text": "upstream of Parker Creek",
       "full_regulation": "Exempt from July 15-Aug 31 summer closure\nNo Fishing upstream of Parker Creek\nNo Fishing between fishing boundary signs approximately 100 m upstream of and downstream of \"Red Rock Pool,\" approximately 2 km\n(by road) south of the Nitinat River Bridge, Aug 25-Dec 31\nNo Fishing between boundary signs approximately 50 m upstream of and downstream of the Nitinat River Bridge, Aug 25-Oct 15",
       "anchor_kind": "confluence_tributary",
-      "status": "todo",
-      "target": "",
-      "coord": null,
+      "status": "curated",
+      "target": {
+        "blk": "354150422",
+        "wsc": "930-073434-514461-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      },
+      "coord": [
+        -124.57054,
+        48.89839
+      ],
       "split_id": "",
-      "label": "",
-      "notes": ""
+      "label": "Parker Creek confluence",
+      "notes": "Confluence = mouth of Parker Creek (blk 354150422); parent = Nitinat River. Author as confluence anchor tributary_wsc=930-073434-514461-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000. OSM: https://www.openstreetmap.org/?mlat=48.89839&mlon=-124.57054#map=15/48.89839/-124.57054"
     },
     {
       "id": "oyster-river-fa45af",
@@ -6367,15 +6779,21 @@
       "locator_text": "upstream of the confluence with Little Oyster River",
       "full_regulation": "Exempt from July 15-Aug 31 summer closure; No Fishing upstream of the confluence with Little Oyster River[Includes Tributaries], Dec 1-June 30",
       "anchor_kind": "confluence_tributary",
-      "status": "todo",
-      "target": "",
-      "coord": null,
+      "status": "curated",
+      "target": {
+        "blk": "354152367",
+        "wsc": "920-602544-127942-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      },
+      "coord": [
+        -125.18767,
+        49.8828
+      ],
       "split_id": "",
-      "label": "",
-      "notes": ""
+      "label": "Little Oyster confluence",
+      "notes": "Confluence = mouth of Little Oyster River (blk 354152367); parent = Oyster River. Author as confluence anchor tributary_wsc=920-602544-127942-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000. OSM: https://www.openstreetmap.org/?mlat=49.88280&mlon=-125.18767#map=15/49.88280/-125.18767"
     },
     {
-      "id": "peace-river-from-hwy-29-bridge-to-the-site-c--9d576a",
+      "id": "peace-river-from-hwy-29-bridge-to-the-site-c--9d576a-a",
       "name_verbatim": "PEACE RIVER (From Hwy. 29 bridge to the Site C dam)",
       "region": "REGION 7B",
       "mus": [
@@ -6385,12 +6803,42 @@
       "locator_text": "from mouth of Halfway River to fishing boundary signs approximately 5 km upstream and 5 km downstream",
       "full_regulation": "Kokanee daily quota = 10\nArctic grayling catch and release, including tributaries; Mountain whitefish catch and release, including tributaries\nLake trout daily quota = 3\nNo Fishing from mouth of Halfway River to fishing boundary signs approximately 5 km upstream and 5 km downstream, Mar 1-June 30\nNo Fishing between Peace Canyon Dam and Hwy 29 Bridge",
       "anchor_kind": "confluence_tributary",
-      "status": "todo",
-      "target": "",
-      "coord": null,
+      "status": "curated",
+      "target": {
+        "blk": "359570578",
+        "wsc": "200-948755-837217-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      },
+      "coord": [
+        -121.50767,
+        56.18908
+      ],
       "split_id": "",
-      "label": "",
-      "notes": ""
+      "label": "5 km upstream of Halfway mouth (on Peace)",
+      "notes": "5000 m upstream of the Halfway River confluence. Author as confluence anchor tributary_wsc=200-948755-837217-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000 + offset_m 5000, offset_dir upstream. OSM: https://www.openstreetmap.org/?mlat=56.18908&mlon=-121.50767#map=15/56.18908/-121.50767 (offset along the Peace mainstem)"
+    },
+    {
+      "id": "peace-river-from-hwy-29-bridge-to-the-site-c--9d576a-b",
+      "name_verbatim": "PEACE RIVER (From Hwy. 29 bridge to the Site C dam)",
+      "region": "REGION 7B",
+      "mus": [
+        "7-31"
+      ],
+      "src": "rule",
+      "locator_text": "from mouth of Halfway River to fishing boundary signs approximately 5 km upstream and 5 km downstream",
+      "full_regulation": "Kokanee daily quota = 10\nArctic grayling catch and release, including tributaries; Mountain whitefish catch and release, including tributaries\nLake trout daily quota = 3\nNo Fishing from mouth of Halfway River to fishing boundary signs approximately 5 km upstream and 5 km downstream, Mar 1-June 30\nNo Fishing between Peace Canyon Dam and Hwy 29 Bridge",
+      "anchor_kind": "confluence_tributary",
+      "status": "curated",
+      "target": {
+        "blk": "359570578",
+        "wsc": "200-948755-837217-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      },
+      "coord": [
+        -121.38217,
+        56.22989
+      ],
+      "split_id": "",
+      "label": "5 km downstream of Halfway mouth (on Peace)",
+      "notes": "5000 m downstream of the Halfway River confluence. Author as confluence anchor tributary_wsc=200-948755-837217-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000 + offset_m 5000, offset_dir downstream. OSM: https://www.openstreetmap.org/?mlat=56.22989&mlon=-121.38217#map=15/56.22989/-121.38217 (offset along the Peace mainstem)"
     },
     {
       "id": "pend-d-oreille-river-s-tributaries-except-sal-5ae680",
@@ -6447,7 +6895,7 @@
       "notes": "tributary-SET reg (all tributaries of the named lake/river): a whole-WSC-subtree membership, NOT a curated point split. Handle via tributary inheritance / wsc_descendants, not a confluence point."
     },
     {
-      "id": "puntledge-river-3d202d",
+      "id": "puntledge-river-3d202d-a",
       "name_verbatim": "PUNTLEDGE RIVER",
       "region": "REGION 1",
       "mus": [
@@ -6457,12 +6905,42 @@
       "locator_text": "between fishing boundary signs approximately 100 m upstream and downstream of the confluence with Morrison Creek",
       "full_regulation": "Exempt from July 15-August 31 summer closure\nNo Fishing downstream of the BC Hydro diversion dam (approximately 3.5 km downstream of Comox Lake) to the base of Stotan Falls\n(approximately 450 m downstream of the Duncan Bay Mainline logging road)\nNo Fishing between fishing boundary signs approximately 100 m upstream and downstream of the confluence with Morrison Creek\nNo Fishing from fishing boundary signs located 50 m upstream of the BC Hydro generating station tailrace to signs located 75 m\ndownstream of the Puntledge River hatchery fence (total distance approximately 500 m)\nNo Fishing tributaries\nFly fishing only upstream of the BC Hydro diversion dam (approximately 3.5 km downstream of Comox Lake), including tributaries",
       "anchor_kind": "confluence_tributary",
-      "status": "todo",
-      "target": "",
-      "coord": null,
+      "status": "curated",
+      "target": {
+        "blk": "354146703",
+        "wsc": "920-559826-984406-044942-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      },
+      "coord": [
+        -125.01502,
+        49.68943
+      ],
       "split_id": "",
-      "label": "",
-      "notes": ""
+      "label": "Morrison Creek confluence 100m upstream",
+      "notes": "100 m upstream of the Morrison Creek confluence. Author as confluence anchor tributary_wsc=920-559826-984406-044942-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000 + offset_m 100, offset_dir upstream. OSM: https://www.openstreetmap.org/?mlat=49.68943&mlon=-125.01502#map=15/49.68943/-125.01502"
+    },
+    {
+      "id": "puntledge-river-3d202d-b",
+      "name_verbatim": "PUNTLEDGE RIVER",
+      "region": "REGION 1",
+      "mus": [
+        "1-6"
+      ],
+      "src": "rule",
+      "locator_text": "between fishing boundary signs approximately 100 m upstream and downstream of the confluence with Morrison Creek",
+      "full_regulation": "Exempt from July 15-August 31 summer closure\nNo Fishing downstream of the BC Hydro diversion dam (approximately 3.5 km downstream of Comox Lake) to the base of Stotan Falls\n(approximately 450 m downstream of the Duncan Bay Mainline logging road)\nNo Fishing between fishing boundary signs approximately 100 m upstream and downstream of the confluence with Morrison Creek\nNo Fishing from fishing boundary signs located 50 m upstream of the BC Hydro generating station tailrace to signs located 75 m\ndownstream of the Puntledge River hatchery fence (total distance approximately 500 m)\nNo Fishing tributaries\nFly fishing only upstream of the BC Hydro diversion dam (approximately 3.5 km downstream of Comox Lake), including tributaries",
+      "anchor_kind": "confluence_tributary",
+      "status": "curated",
+      "target": {
+        "blk": "354146703",
+        "wsc": "920-559826-984406-044942-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      },
+      "coord": [
+        -125.01262,
+        49.68965
+      ],
+      "split_id": "",
+      "label": "Morrison Creek confluence 100m downstream",
+      "notes": "100 m downstream of the Morrison Creek confluence. Author as confluence anchor tributary_wsc=920-559826-984406-044942-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000 + offset_m 100, offset_dir downstream. OSM: https://www.openstreetmap.org/?mlat=49.68965&mlon=-125.01262#map=15/49.68965/-125.01262"
     },
     {
       "id": "quesnel-river-befb92",
@@ -6475,12 +6953,18 @@
       "locator_text": "upstream of Cariboo River",
       "full_regulation": "No Fishing from 50 m upstream of Likely Bridge to 50 m downstream of Likely Bridge\nNo Fishing upstream of Cariboo River, Mar 1-June 15\nTrout/char catch and release from the boundary signs approximately 1.8 km east of the Likely Bridge downstream to Morehead Creek\nTrout/char daily quota = 1 (none under 40 cm) downstream of Morehead Creek\nBait ban",
       "anchor_kind": "confluence_tributary",
-      "status": "todo",
-      "target": "",
-      "coord": null,
+      "status": "curated",
+      "target": {
+        "blk": "356363010",
+        "wsc": "100-458399-466616-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      },
+      "coord": [
+        -121.67562,
+        52.66224
+      ],
       "split_id": "",
-      "label": "",
-      "notes": ""
+      "label": "Cariboo River confluence",
+      "notes": "Confluence = mouth of Cariboo River (blk 356363010); parent = Quesnel River. Author as confluence anchor tributary_wsc=100-458399-466616-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000. OSM: https://www.openstreetmap.org/?mlat=52.66224&mlon=-121.67562#map=15/52.66224/-121.67562"
     },
     {
       "id": "quesnel-river-583bb9",
@@ -6543,7 +7027,7 @@
       "notes": "tributary-SET reg (all tributaries of the named lake/river): a whole-WSC-subtree membership, NOT a curated point split. Handle via tributary inheritance / wsc_descendants, not a confluence point."
     },
     {
-      "id": "salmo-river-2f831e",
+      "id": "salmo-river-2f831e-a",
       "name_verbatim": "SALMO RIVER",
       "region": "REGION 4",
       "mus": [
@@ -6553,12 +7037,42 @@
       "locator_text": "Sheep Creek to South Salmo River",
       "full_regulation": "Sheep Creek to South Salmo River: catch and release rainbow and bull trout\nRemainder of mainstem: rainbow trout daily quota = 1 (none under 30 cm), June 15-Oct 31, and bull trout catch and release year-round\nBait ban",
       "anchor_kind": "confluence_tributary",
-      "status": "todo",
-      "target": "",
-      "coord": null,
+      "status": "curated",
+      "target": {
+        "blk": "356567397",
+        "wsc": "300-602565-081811-357413-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      },
+      "coord": [
+        -117.26338,
+        49.14172
+      ],
       "split_id": "",
-      "label": "",
-      "notes": ""
+      "label": "Sheep Creek confluence",
+      "notes": "Confluence = mouth of Sheep Creek (blk 356567397); parent = Salmo River. Author as confluence anchor tributary_wsc=300-602565-081811-357413-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000. OSM: https://www.openstreetmap.org/?mlat=49.14172&mlon=-117.26338#map=15/49.14172/-117.26338"
+    },
+    {
+      "id": "salmo-river-2f831e-b",
+      "name_verbatim": "SALMO RIVER",
+      "region": "REGION 4",
+      "mus": [
+        "4-8"
+      ],
+      "src": "rule",
+      "locator_text": "Sheep Creek to South Salmo River",
+      "full_regulation": "Sheep Creek to South Salmo River: catch and release rainbow and bull trout\nRemainder of mainstem: rainbow trout daily quota = 1 (none under 30 cm), June 15-Oct 31, and bull trout catch and release year-round\nBait ban",
+      "anchor_kind": "confluence_tributary",
+      "status": "curated",
+      "target": {
+        "blk": "356564001",
+        "wsc": "300-602565-081811-196969-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      },
+      "coord": [
+        -117.27919,
+        49.07006
+      ],
+      "split_id": "",
+      "label": "South Salmo confluence",
+      "notes": "Confluence = mouth of South Salmo River (blk 356564001); parent = Salmo River. Author as confluence anchor tributary_wsc=300-602565-081811-196969-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000. OSM: https://www.openstreetmap.org/?mlat=49.07006&mlon=-117.27919#map=15/49.07006/-117.27919"
     },
     {
       "id": "salmo-river-s-tributaries-d8cd97",
@@ -6613,15 +7127,21 @@
       "locator_text": "upstream of confluence with White River",
       "full_regulation": "No Fishing upstream of Kay Creek\nNo powered boats upstream of confluence with White River; speed restriction (10 km/h) from estuary to confluence with White River",
       "anchor_kind": "confluence_tributary",
-      "status": "todo",
-      "target": "",
-      "coord": null,
+      "status": "curated",
+      "target": {
+        "blk": "354154853",
+        "wsc": "920-722273-132687-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      },
+      "coord": [
+        -125.90192,
+        50.30742
+      ],
       "split_id": "",
-      "label": "",
-      "notes": ""
+      "label": "White River confluence",
+      "notes": "Confluence = mouth of White River (blk 354154853); parent = Salmon River. Author as confluence anchor tributary_wsc=920-722273-132687-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000. OSM: https://www.openstreetmap.org/?mlat=50.30742&mlon=-125.90192#map=15/50.30742/-125.90192"
     },
     {
-      "id": "salmon-river-4a0073",
+      "id": "salmon-river-4a0073-a",
       "name_verbatim": "SALMON RIVER",
       "region": "REGION 1",
       "mus": [
@@ -6631,12 +7151,36 @@
       "locator_text": "from estuary to confluence with White River",
       "full_regulation": "No Fishing upstream of Kay Creek\nNo powered boats upstream of confluence with White River; speed restriction (10 km/h) from estuary to confluence with White River",
       "anchor_kind": "confluence_tributary",
-      "status": "todo",
+      "status": "deferred",
       "target": "",
       "coord": null,
       "split_id": "",
-      "label": "",
-      "notes": ""
+      "label": "estuary",
+      "notes": "non-confluence: estuary/tidal boundary"
+    },
+    {
+      "id": "salmon-river-4a0073-b",
+      "name_verbatim": "SALMON RIVER",
+      "region": "REGION 1",
+      "mus": [
+        "1-10"
+      ],
+      "src": "rule",
+      "locator_text": "from estuary to confluence with White River",
+      "full_regulation": "No Fishing upstream of Kay Creek\nNo powered boats upstream of confluence with White River; speed restriction (10 km/h) from estuary to confluence with White River",
+      "anchor_kind": "confluence_tributary",
+      "status": "curated",
+      "target": {
+        "blk": "354154853",
+        "wsc": "920-722273-132687-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      },
+      "coord": [
+        -125.90192,
+        50.30742
+      ],
+      "split_id": "",
+      "label": "White River confluence",
+      "notes": "Confluence = mouth of White River (blk 354154853); parent = Salmon River. Author as confluence anchor tributary_wsc=920-722273-132687-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000. OSM: https://www.openstreetmap.org/?mlat=50.30742&mlon=-125.90192#map=15/50.30742/-125.90192"
     },
     {
       "id": "san-juan-river-de2eb5",
@@ -6681,7 +7225,7 @@
       "notes": "tributary-SET reg (all tributaries of the named lake/river): a whole-WSC-subtree membership, NOT a curated point split. Handle via tributary inheritance / wsc_descendants, not a confluence point."
     },
     {
-      "id": "skeena-river-mainstem-only-b079a0",
+      "id": "skeena-river-mainstem-only-b079a0-a",
       "name_verbatim": "SKEENA RIVER (mainstem only)",
       "region": "REGION 6",
       "mus": [
@@ -6691,12 +7235,42 @@
       "locator_text": "from Exchamsiks River to 1.5 km upstream of Kitsumkalum River (known as \"Skeena River 2\")",
       "full_regulation": "There are two separate Class II waters on the Skeena River (non-residents and non-resident aliens require separate licences describing\nwhich section they are fishing): (a) from Exchamsiks River to 1.5 km upstream of Kitsumkalum River (known as \"Skeena River 2\"), July 1-Sept 30; and (b) 1.5 km upstream of Zymoetz River (known as \"Skeena River Section 4\"), July 1-Dec 31; Steelhead Stamp not mandatory for\nSkeena River 2 unless fishing for steelhead. Steelhead Stamp is mandatory in Skeena River Section 4 during the Classified Waters period\nfrom July 1-Dec 31\nAngling prohibited for non-guided non-resident aliens in Skeena River Section 4 on Saturdays and Sundays in two zones: (a) Shegunia\nRiver confluence to Sedan Creek confluence July 1-Dec 31 (See map page 54), and (b) Chimdemash Creek confluence to 1.5 km upstream of\nZymoetz River confluence, July 1 - Dec 31, (See map page 55)",
       "anchor_kind": "confluence_tributary",
-      "status": "todo",
-      "target": "",
-      "coord": null,
+      "status": "curated",
+      "target": {
+        "blk": "360884603",
+        "wsc": "400-107640-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      },
+      "coord": [
+        -129.29404,
+        54.33151
+      ],
       "split_id": "",
-      "label": "",
-      "notes": ""
+      "label": "Exchamsiks confluence",
+      "notes": "Confluence = mouth of Exchamsiks River (blk 360884603); parent = . Author as confluence anchor tributary_wsc=400-107640-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000. OSM: https://www.openstreetmap.org/?mlat=54.33151&mlon=-129.29404#map=15/54.33151/-129.29404"
+    },
+    {
+      "id": "skeena-river-mainstem-only-b079a0-b",
+      "name_verbatim": "SKEENA RIVER (mainstem only)",
+      "region": "REGION 6",
+      "mus": [
+        "6-10"
+      ],
+      "src": "rule",
+      "locator_text": "from Exchamsiks River to 1.5 km upstream of Kitsumkalum River (known as \"Skeena River 2\")",
+      "full_regulation": "There are two separate Class II waters on the Skeena River (non-residents and non-resident aliens require separate licences describing\nwhich section they are fishing): (a) from Exchamsiks River to 1.5 km upstream of Kitsumkalum River (known as \"Skeena River 2\"), July 1-Sept 30; and (b) 1.5 km upstream of Zymoetz River (known as \"Skeena River Section 4\"), July 1-Dec 31; Steelhead Stamp not mandatory for\nSkeena River 2 unless fishing for steelhead. Steelhead Stamp is mandatory in Skeena River Section 4 during the Classified Waters period\nfrom July 1-Dec 31\nAngling prohibited for non-guided non-resident aliens in Skeena River Section 4 on Saturdays and Sundays in two zones: (a) Shegunia\nRiver confluence to Sedan Creek confluence July 1-Dec 31 (See map page 54), and (b) Chimdemash Creek confluence to 1.5 km upstream of\nZymoetz River confluence, July 1 - Dec 31, (See map page 55)",
+      "anchor_kind": "confluence_tributary",
+      "status": "curated",
+      "target": {
+        "blk": "360883243",
+        "wsc": "400-195432-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      },
+      "coord": [
+        -128.64193,
+        54.51296
+      ],
+      "split_id": "",
+      "label": "Kitsumkalum confluence (+1.5km u/s) 1500m upstream",
+      "notes": "1500 m upstream of the Kitsumkalum River confluence. Author as confluence anchor tributary_wsc=400-195432-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000 + offset_m 1500, offset_dir upstream. OSM: https://www.openstreetmap.org/?mlat=54.51296&mlon=-128.64193#map=15/54.51296/-128.64193"
     },
     {
       "id": "skeena-river-mainstem-only-3f082d",
@@ -6709,15 +7283,21 @@
       "locator_text": "1.5 km upstream of Zymoetz River (known as \"Skeena River Section 4\")",
       "full_regulation": "There are two separate Class II waters on the Skeena River (non-residents and non-resident aliens require separate licences describing\nwhich section they are fishing): (a) from Exchamsiks River to 1.5 km upstream of Kitsumkalum River (known as \"Skeena River 2\"), July 1-Sept 30; and (b) 1.5 km upstream of Zymoetz River (known as \"Skeena River Section 4\"), July 1-Dec 31; Steelhead Stamp not mandatory for\nSkeena River 2 unless fishing for steelhead. Steelhead Stamp is mandatory in Skeena River Section 4 during the Classified Waters period\nfrom July 1-Dec 31\nAngling prohibited for non-guided non-resident aliens in Skeena River Section 4 on Saturdays and Sundays in two zones: (a) Shegunia\nRiver confluence to Sedan Creek confluence July 1-Dec 31 (See map page 54), and (b) Chimdemash Creek confluence to 1.5 km upstream of\nZymoetz River confluence, July 1 - Dec 31, (See map page 55)",
       "anchor_kind": "confluence_tributary",
-      "status": "todo",
-      "target": "",
-      "coord": null,
+      "status": "curated",
+      "target": {
+        "blk": "360881231",
+        "wsc": "400-221484-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      },
+      "coord": [
+        -128.47415,
+        54.55705
+      ],
       "split_id": "",
-      "label": "",
-      "notes": ""
+      "label": "Zymoetz confluence (+1.5km u/s) 1500m upstream",
+      "notes": "1500 m upstream of the Zymoetz River confluence. Author as confluence anchor tributary_wsc=400-221484-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000 + offset_m 1500, offset_dir upstream. OSM: https://www.openstreetmap.org/?mlat=54.55705&mlon=-128.47415#map=15/54.55705/-128.47415"
     },
     {
-      "id": "skeena-river-mainstem-only-24b357",
+      "id": "skeena-river-mainstem-only-24b357-a",
       "name_verbatim": "SKEENA RIVER (mainstem only)",
       "region": "REGION 6",
       "mus": [
@@ -6727,15 +7307,45 @@
       "locator_text": "Shegunia River confluence to Sedan Creek confluence",
       "full_regulation": "There are two separate Class II waters on the Skeena River (non-residents and non-resident aliens require separate licences describing\nwhich section they are fishing): (a) from Exchamsiks River to 1.5 km upstream of Kitsumkalum River (known as \"Skeena River 2\"), July 1-Sept 30; and (b) 1.5 km upstream of Zymoetz River (known as \"Skeena River Section 4\"), July 1-Dec 31; Steelhead Stamp not mandatory for\nSkeena River 2 unless fishing for steelhead. Steelhead Stamp is mandatory in Skeena River Section 4 during the Classified Waters period\nfrom July 1-Dec 31\nAngling prohibited for non-guided non-resident aliens in Skeena River Section 4 on Saturdays and Sundays in two zones: (a) Shegunia\nRiver confluence to Sedan Creek confluence July 1-Dec 31 (See map page 54), and (b) Chimdemash Creek confluence to 1.5 km upstream of\nZymoetz River confluence, July 1 - Dec 31, (See map page 55)",
       "anchor_kind": "confluence_tributary",
-      "status": "todo",
-      "target": "",
-      "coord": null,
+      "status": "curated",
+      "target": {
+        "blk": "360875115",
+        "wsc": "400-456504-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      },
+      "coord": [
+        -127.67983,
+        55.34879
+      ],
       "split_id": "",
-      "label": "",
-      "notes": ""
+      "label": "Shegunia confluence",
+      "notes": "Confluence = mouth of Shegunia River (blk 360875115); parent = Skeena River. Author as confluence anchor tributary_wsc=400-456504-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000. OSM: https://www.openstreetmap.org/?mlat=55.34879&mlon=-127.67983#map=15/55.34879/-127.67983"
     },
     {
-      "id": "skeena-river-mainstem-only-bd494f",
+      "id": "skeena-river-mainstem-only-24b357-b",
+      "name_verbatim": "SKEENA RIVER (mainstem only)",
+      "region": "REGION 6",
+      "mus": [
+        "6-10"
+      ],
+      "src": "rule",
+      "locator_text": "Shegunia River confluence to Sedan Creek confluence",
+      "full_regulation": "There are two separate Class II waters on the Skeena River (non-residents and non-resident aliens require separate licences describing\nwhich section they are fishing): (a) from Exchamsiks River to 1.5 km upstream of Kitsumkalum River (known as \"Skeena River 2\"), July 1-Sept 30; and (b) 1.5 km upstream of Zymoetz River (known as \"Skeena River Section 4\"), July 1-Dec 31; Steelhead Stamp not mandatory for\nSkeena River 2 unless fishing for steelhead. Steelhead Stamp is mandatory in Skeena River Section 4 during the Classified Waters period\nfrom July 1-Dec 31\nAngling prohibited for non-guided non-resident aliens in Skeena River Section 4 on Saturdays and Sundays in two zones: (a) Shegunia\nRiver confluence to Sedan Creek confluence July 1-Dec 31 (See map page 54), and (b) Chimdemash Creek confluence to 1.5 km upstream of\nZymoetz River confluence, July 1 - Dec 31, (See map page 55)",
+      "anchor_kind": "confluence_tributary",
+      "status": "curated",
+      "target": {
+        "blk": "360871236",
+        "wsc": "400-351455-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      },
+      "coord": [
+        -128.19713,
+        55.07807
+      ],
+      "split_id": "",
+      "label": "Sedan Creek confluence",
+      "notes": "Confluence = mouth of Sedan Creek (blk 360871236); parent = Skeena River. Author as confluence anchor tributary_wsc=400-351455-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000. OSM: https://www.openstreetmap.org/?mlat=55.07807&mlon=-128.19713#map=15/55.07807/-128.19713"
+    },
+    {
+      "id": "skeena-river-mainstem-only-bd494f-a",
       "name_verbatim": "SKEENA RIVER (mainstem only)",
       "region": "REGION 6",
       "mus": [
@@ -6745,12 +7355,42 @@
       "locator_text": "Chimdemash Creek confluence to 1.5 km upstream of Zymoetz River confluence",
       "full_regulation": "There are two separate Class II waters on the Skeena River (non-residents and non-resident aliens require separate licences describing\nwhich section they are fishing): (a) from Exchamsiks River to 1.5 km upstream of Kitsumkalum River (known as \"Skeena River 2\"), July 1-Sept 30; and (b) 1.5 km upstream of Zymoetz River (known as \"Skeena River Section 4\"), July 1-Dec 31; Steelhead Stamp not mandatory for\nSkeena River 2 unless fishing for steelhead. Steelhead Stamp is mandatory in Skeena River Section 4 during the Classified Waters period\nfrom July 1-Dec 31\nAngling prohibited for non-guided non-resident aliens in Skeena River Section 4 on Saturdays and Sundays in two zones: (a) Shegunia\nRiver confluence to Sedan Creek confluence July 1-Dec 31 (See map page 54), and (b) Chimdemash Creek confluence to 1.5 km upstream of\nZymoetz River confluence, July 1 - Dec 31, (See map page 55)",
       "anchor_kind": "confluence_tributary",
-      "status": "todo",
-      "target": "",
-      "coord": null,
+      "status": "curated",
+      "target": {
+        "blk": "360856909",
+        "wsc": "400-251326-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      },
+      "coord": [
+        -128.37636,
+        54.66582
+      ],
       "split_id": "",
-      "label": "",
-      "notes": ""
+      "label": "Chimdemash confluence",
+      "notes": "Confluence = mouth of Chimdemash Creek (blk 360856909); parent = Skeena River, Shannon Creek. Author as confluence anchor tributary_wsc=400-251326-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000. OSM: https://www.openstreetmap.org/?mlat=54.66582&mlon=-128.37636#map=15/54.66582/-128.37636"
+    },
+    {
+      "id": "skeena-river-mainstem-only-bd494f-b",
+      "name_verbatim": "SKEENA RIVER (mainstem only)",
+      "region": "REGION 6",
+      "mus": [
+        "6-10"
+      ],
+      "src": "rule",
+      "locator_text": "Chimdemash Creek confluence to 1.5 km upstream of Zymoetz River confluence",
+      "full_regulation": "There are two separate Class II waters on the Skeena River (non-residents and non-resident aliens require separate licences describing\nwhich section they are fishing): (a) from Exchamsiks River to 1.5 km upstream of Kitsumkalum River (known as \"Skeena River 2\"), July 1-Sept 30; and (b) 1.5 km upstream of Zymoetz River (known as \"Skeena River Section 4\"), July 1-Dec 31; Steelhead Stamp not mandatory for\nSkeena River 2 unless fishing for steelhead. Steelhead Stamp is mandatory in Skeena River Section 4 during the Classified Waters period\nfrom July 1-Dec 31\nAngling prohibited for non-guided non-resident aliens in Skeena River Section 4 on Saturdays and Sundays in two zones: (a) Shegunia\nRiver confluence to Sedan Creek confluence July 1-Dec 31 (See map page 54), and (b) Chimdemash Creek confluence to 1.5 km upstream of\nZymoetz River confluence, July 1 - Dec 31, (See map page 55)",
+      "anchor_kind": "confluence_tributary",
+      "status": "curated",
+      "target": {
+        "blk": "360881231",
+        "wsc": "400-221484-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      },
+      "coord": [
+        -128.47415,
+        54.55705
+      ],
+      "split_id": "",
+      "label": "Zymoetz confluence (+1.5km u/s) 1500m upstream",
+      "notes": "1500 m upstream of the Zymoetz River confluence. Author as confluence anchor tributary_wsc=400-221484-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000 + offset_m 1500, offset_dir upstream. OSM: https://www.openstreetmap.org/?mlat=54.55705&mlon=-128.47415#map=15/54.55705/-128.47415"
     },
     {
       "id": "skeena-river-kispiox-river-confluence-94452c",
@@ -6763,12 +7403,18 @@
       "locator_text": "SKEENA RIVER/KISPIOX RIVER CONFLUENCE",
       "full_regulation": "Waters within 3 white fishing boundary signs located at the confluence of the Skeena and Kispiox rivers: no angling from boats",
       "anchor_kind": "confluence_tributary",
-      "status": "todo",
-      "target": "",
-      "coord": null,
+      "status": "curated",
+      "target": {
+        "blk": "360885864",
+        "wsc": "400-454855-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      },
+      "coord": [
+        -127.69129,
+        55.3426
+      ],
       "split_id": "",
-      "label": "",
-      "notes": ""
+      "label": "Skeena/Kispiox confluence",
+      "notes": "Confluence = mouth of Kispiox River (blk 360885864); parent = Skeena River. Author as confluence anchor tributary_wsc=400-454855-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000. OSM: https://www.openstreetmap.org/?mlat=55.34260&mlon=-127.69129#map=15/55.34260/-127.69129"
     },
     {
       "id": "skeena-river-kispiox-river-confluence-d33eff",
@@ -6781,12 +7427,18 @@
       "locator_text": "within 3 white fishing boundary signs located at the confluence of the Skeena and Kispiox rivers",
       "full_regulation": "Waters within 3 white fishing boundary signs located at the confluence of the Skeena and Kispiox rivers: no angling from boats",
       "anchor_kind": "confluence_tributary",
-      "status": "todo",
-      "target": "",
-      "coord": null,
+      "status": "curated",
+      "target": {
+        "blk": "360885864",
+        "wsc": "400-454855-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      },
+      "coord": [
+        -127.69129,
+        55.3426
+      ],
       "split_id": "",
-      "label": "",
-      "notes": ""
+      "label": "Skeena/Kispiox confluence",
+      "notes": "Confluence = mouth of Kispiox River (blk 360885864); parent = Skeena River. Author as confluence anchor tributary_wsc=400-454855-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000. OSM: https://www.openstreetmap.org/?mlat=55.34260&mlon=-127.69129#map=15/55.34260/-127.69129 — Shares the Skeena/Kispiox confluence split with skeena-river-kispiox-river-confluence-94452c (one split; this rule is a signs-closure AT that confluence, not a separate split)."
     },
     {
       "id": "slocan-lake-s-tributaries-37bf91",
@@ -6901,12 +7553,12 @@
       "locator_text": "in the Northrop Spawning Channel, from the intake downstream to where the channel joins the Stave River main",
       "full_regulation": "No Fishing in the Ruskin spawning channel, from the inlet near the dam downstream to the boat ramp crossing\nNo Fishing in the Northrop Spawning Channel, from the intake downstream to where the channel joins the Stave River main, including its\ntributaries containg the fishway",
       "anchor_kind": "confluence_tributary",
-      "status": "todo",
+      "status": "deferred",
       "target": "",
       "coord": null,
       "split_id": "",
       "label": "",
-      "notes": ""
+      "notes": "[deferred] 1_nonconfluence_boundary"
     },
     {
       "id": "tanya-lake-s-tributaries-52749a",
@@ -6927,7 +7579,7 @@
       "notes": "tributary-SET reg (all tributaries of the named lake/river): a whole-WSC-subtree membership, NOT a curated point split. Handle via tributary inheritance / wsc_descendants, not a confluence point."
     },
     {
-      "id": "thompson-river-downstream-of-signs-at-kamloop-bc221e",
+      "id": "thompson-river-downstream-of-signs-at-kamloop-bc221e-a",
       "name_verbatim": "THOMPSON RIVER (downstream of signs at Kamloops Lake o",
       "region": "REGION 3",
       "mus": [
@@ -6939,12 +7591,38 @@
       "locator_text": "downstream of signs at Kamloops Lake outlet to the confluence with Fraser River",
       "full_regulation": "No Fishing Oct 1-May 31\nTrout/char daily quota = 2 (none under 35 cm)\nAdditional opening from the CNR Bridge downstream of Deadman River to CNR Bridge upstream of Bonaparte River, May 1-31; trout/char\ncatch and release and artificial fly only, May 1-31\nUpstream of boundary signs 1 km downstream of Martel: bait ban\nNo angling from boats\nDownstream of signs at Kamloops Lake: Class II water Oct 1-Dec 31 and Steelhead Stamp mandatory Oct 1-Dec 31 (when open)",
       "anchor_kind": "confluence_tributary",
-      "status": "todo",
+      "status": "deferred",
       "target": "",
       "coord": null,
       "split_id": "",
-      "label": "",
-      "notes": ""
+      "label": "Kamloops Lake outlet",
+      "notes": "non-confluence: lake outlet boundary"
+    },
+    {
+      "id": "thompson-river-downstream-of-signs-at-kamloop-bc221e-b",
+      "name_verbatim": "THOMPSON RIVER (downstream of signs at Kamloops Lake o",
+      "region": "REGION 3",
+      "mus": [
+        "3-13",
+        "3-14",
+        "3-18"
+      ],
+      "src": "name",
+      "locator_text": "downstream of signs at Kamloops Lake outlet to the confluence with Fraser River",
+      "full_regulation": "No Fishing Oct 1-May 31\nTrout/char daily quota = 2 (none under 35 cm)\nAdditional opening from the CNR Bridge downstream of Deadman River to CNR Bridge upstream of Bonaparte River, May 1-31; trout/char\ncatch and release and artificial fly only, May 1-31\nUpstream of boundary signs 1 km downstream of Martel: bait ban\nNo angling from boats\nDownstream of signs at Kamloops Lake: Class II water Oct 1-Dec 31 and Steelhead Stamp mandatory Oct 1-Dec 31 (when open)",
+      "anchor_kind": "confluence_tributary",
+      "status": "curated",
+      "target": {
+        "blk": "356364690",
+        "wsc": "100-190442-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      },
+      "coord": [
+        -121.58488,
+        50.23551
+      ],
+      "split_id": "",
+      "label": "Thompson/Fraser confluence",
+      "notes": "Confluence = mouth of Thompson River (blk 356364690); parent = Fraser River. Author as confluence anchor tributary_wsc=100-190442-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000. OSM: https://www.openstreetmap.org/?mlat=50.23551&mlon=-121.58488#map=15/50.23551/-121.58488 — Shares the Thompson/Fraser confluence split with fraser-river-65211d et al. (one split)."
     },
     {
       "id": "trout-lake-s-tributaries-d2d6c5",
@@ -7067,7 +7745,7 @@
       "notes": "tributary-SET reg (all tributaries of the named lake/river): a whole-WSC-subtree membership, NOT a curated point split. Handle via tributary inheritance / wsc_descendants, not a confluence point."
     },
     {
-      "id": "weaver-lake-and-weaver-creek-47d5a0",
+      "id": "weaver-lake-and-weaver-creek-47d5a0-a",
       "name_verbatim": "WEAVER LAKE and WEAVER CREEK",
       "region": "REGION 2",
       "mus": [
@@ -7077,12 +7755,36 @@
       "locator_text": "from fishing boundary signs at log booms on Weaver Lake downstream to where Sakwi Creek enters Weaver Creek",
       "full_regulation": "No Fishing from fishing boundary signs at log booms on Weaver Lake downstream to where Sakwi Creek enters Weaver Creek\nEngine power restriction on Weaver Lake - 7.5 kW (10 hp)",
       "anchor_kind": "confluence_tributary",
-      "status": "todo",
+      "status": "deferred",
       "target": "",
       "coord": null,
       "split_id": "",
-      "label": "",
-      "notes": ""
+      "label": "log booms on Weaver Lake",
+      "notes": "non-confluence: lake boundary at log booms"
+    },
+    {
+      "id": "weaver-lake-and-weaver-creek-47d5a0-b",
+      "name_verbatim": "WEAVER LAKE and WEAVER CREEK",
+      "region": "REGION 2",
+      "mus": [
+        "2-19"
+      ],
+      "src": "rule",
+      "locator_text": "from fishing boundary signs at log booms on Weaver Lake downstream to where Sakwi Creek enters Weaver Creek",
+      "full_regulation": "No Fishing from fishing boundary signs at log booms on Weaver Lake downstream to where Sakwi Creek enters Weaver Creek\nEngine power restriction on Weaver Lake - 7.5 kW (10 hp)",
+      "anchor_kind": "confluence_tributary",
+      "status": "curated",
+      "target": {
+        "blk": "356357734",
+        "wsc": "100-077501-154487-942852-376971-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      },
+      "coord": [
+        -121.87778,
+        49.32952
+      ],
+      "split_id": "",
+      "label": "Sakwi Creek enters Weaver Creek",
+      "notes": "Confluence = mouth of Sakwi Creek (blk 356357734); parent = Weaver Creek. Author as confluence anchor tributary_wsc=100-077501-154487-942852-376971-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000. OSM: https://www.openstreetmap.org/?mlat=49.32952&mlon=-121.87778#map=15/49.32952/-121.87778"
     },
     {
       "id": "west-kettle-river-s-tributaries-c892a9",
