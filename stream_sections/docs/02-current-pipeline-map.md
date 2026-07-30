@@ -1,9 +1,9 @@
 # 01 — Current Pipeline Map (LEGACY REFERENCE)
 
 > ⚠️ **This documents the OLD pipeline we are replacing.** We are NOT preserving its
-> structure — the redesign is clean-slate (see `03`/`05`). Use this only to (a) understand
+> structure — the redesign is clean-slate (see `03`/`07`). Use this only to (a) understand
 > what logic/data exists to **port** (name propagation, tributary rules, curated overrides,
-> tests) and (b) cross-check `08`'s list of what must actually carry over. Do not treat
+> tests) and (b) cross-check `10`'s list of what must actually carry over. Do not treat
 > "must reproduce" language below as the current plan.
 
 Verified against source on 2026-07-25.

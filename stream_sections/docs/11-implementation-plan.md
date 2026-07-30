@@ -1,11 +1,11 @@
 # 11 — Implementation Plan (ordered, de-risk first)
 
 Build order is chosen so the **riskiest assumptions are proven before code depends on them**,
-and so each step is testable in isolation (`10`). Everything lands in `pipeline/sections/`
+and so each step is testable in isolation (`12`). Everything lands in `pipeline/sections/`
 (scaffolded) and outputs to `output/pipeline/v2/`; the legacy pipeline keeps running until
 cutover.
 
-## Phase 0 — Spikes ✅ DONE (see `10` for numbers)
+## Phase 0 — Spikes ✅ DONE (see `12` for numbers)
 
 Outcome: **keep both the WSC-hierarchy filter and the 2300 barrier.**
 - **S1**: SCC condensation is a no-op (FWA is a DAG); the WSC-descendant filter stops the
@@ -98,7 +98,7 @@ guarded ancestor set up to sections:
   `test_tributary_override`.
 - **Verify:** golden parity of reg assignments vs legacy.
 
-## Phase 6 — bundle + tiles + client (`06`)
+## Phase 6 — bundle + tiles + client (`09`)
 
 - Section geometry → PMTiles keyed by `section_id`; `under_lake_sections`; lakes by wbk.
 - Tiny `boot.json` (search + labels); lazy `reg_sets`/`regulations`/`mu_overlay`.
@@ -109,7 +109,7 @@ guarded ancestor set up to sections:
 
 ## Phase 7 — validate in parallel + cut over
 
-- Full-build sanity gates (`10`); diff counts/coverage vs prod; client smoke on hard cases.
+- Full-build sanity gates (`12`); diff counts/coverage vs prod; client smoke on hard cases.
 - Flip `deploy` target / bump `SECTION_VERSION`. Rollback = previous version on R2.
 - Retire legacy graph/atlas/enrich stream path once stable; `graphify update .`.
 

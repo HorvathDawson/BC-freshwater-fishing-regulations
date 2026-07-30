@@ -14,7 +14,7 @@ now the *target* is a section (or lake/wbk) instead of a scatter of fids.
 - `name_tuples` (all variants + source) for gazette natural-search,
 - `location_identifier` + `boundary ids` (so "upstream of Adams Lake" resolves),
 - `mu_ids` it passes through (for `only_within_zones`/MU include-exclude; drives whether a
-  curated `mu_boundary` split is needed — `07`),
+  curated `mu_boundary` split is needed — `06`),
 - `member_segment_ids` + `tributary_section_ids` (for tributary expansion).
 
 A section stores only **named-waterbody-specific** regs (normally one reg set; Fraser-type
@@ -48,7 +48,7 @@ become `splits.json` anchors.
 ## Base / provincial regulations → MU overlay (not per-section)
 
 Preserve the Phase-4 MU-granular resolution (`_resolve_mu_set` = zone→MUs + include −
-exclude), but emit it as a standalone **`mu_id → base_reg_set` overlay** (`07`), not baked
+exclude), but emit it as a standalone **`mu_id → base_reg_set` overlay** (`06`), not baked
 onto sections. Provincial park closures resolve by park polygon → MUs/sub-extents. The
 client shows the overlay by the located/clicked MU. This is the change that removes the UI
 bloat and keeps sections regulation-light.
@@ -76,13 +76,13 @@ old shape" — they are the things that would silently corrupt data or break use
 
 ## What is explicitly NOT an invariant anymore (free to redesign)
 
-- The `fid → reach` shard chain and `/api/resolve` (replaced by self-identifying tiles, `06`).
+- The `fid → reach` shard chain and `/api/resolve` (replaced by self-identifying tiles, `09`).
 - `tier0.json`'s shape and its embedded `fids[]` (replaced by tiny bootstrap + lazy chunks).
 - The mobile `fids`/`polys` tables (dropped).
 - The dynamic `(wsc, display_name, reg_set)` reach key (replaced by section + zone_reg_map).
 - `filter_unnamed_depth` (dropped; rely on per-section minzoom + tile-byte budget).
 
-## KEPT after the spike (do NOT delete — `10` proved these necessary)
+## KEPT after the spike (do NOT delete — `12` proved these necessary)
 
 - **The WSC-hierarchy (excluded-WSC / parent-WSC) filter** — reframed as "a tributary is a
   WSC-descendant reachable upstream." SCC condensation is a no-op on FWA; this filter is what

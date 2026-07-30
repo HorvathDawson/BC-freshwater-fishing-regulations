@@ -20,8 +20,9 @@ from the lake node — no authored split is required for them (verified: Adams L
 
 Curated splits therefore exist only for boundaries the data does **not** already give us:
 - a falls / dam / bridge partway along a reach,
-- an **MU / zone boundary** where regulations genuinely differ (Fraser-type, see `07`),
-- a named-confluence boundary a synopsis entry references.
+- an **MU / zone boundary** where regulations genuinely differ (Fraser-type, see `06`),
+- a named-confluence boundary a synopsis entry references,
+- an **admin / park boundary** a reg scopes to (Garibaldi-type — see "Area reaches" below).
 
 Most regulations are the **same** above and below a lake — those need no split at all; both
 lake-side sections simply match the whole-river reg by name (see "How regulations attach").
@@ -40,6 +41,7 @@ exactly those in `models.py::AnchorType` — see `splits.schema.md` for fields:
 | `mu_boundary` | the shared boundary line between `mu_a` and `mu_b` (needs both). Collapses to **one** split even where the river runs along the boundary (multi-crossing → dedupe within `proximity_m`, else keep the median + record a `concern`). Verified on the Fraser: the region-2/3 adjacent pair is **`2-18/3-14`** (not `2-17/3-15`, which don't touch), crossing once at m≈196 967. |
 | `confluence` | an auto cut line where the tributary meets the target mainstem. Prefer **`tributary_wsc`** over `tributary_blk`: since BLK↔WSC is 1:1 they resolve identically, but the WSC lets the resolver **self-validate** (the tributary's trimmed WSC must be a strict descendant of the parent's, e.g. Burnt Bridge `…777225` ⊃ `…777225-504013`); a failed check keeps the split but records a `concern`. |
 | `border` (auto) | the BC provincial outline (WMU union). Not hand-authored — `border.py` emits one per crossing of a cross-border BLK; the piece beyond the outline is flagged `out_of_bc` (see below). |
+| `area_boundary` | an admin / park polygon boundary (`area_layer` + `area_name`, optional `wsc_descendants` to target the whole WSC subtree). Cuts the named water **and its WSC descendants** at every crossing, then flags the **inside** pieces `in_areas` — the mirror of `border` (same cut machinery, opposite pieces flagged). See "Area reaches" below. |
 
 All anchors **resolve once at build time** to `SplitPoint(blk, route_measure, fid, offset_m)`
 along a blue line. After resolution every anchor is identical downstream — that is what makes
@@ -75,6 +77,9 @@ authored `label`. Direction words come **purely from flow geometry**: the bound 
 mouth → "downstream of", nearer the source → "upstream of". Because a section only ever has two
 bounds, this one table covers every case and any number of splits, and labels stay **stable and
 local** — adding a split elsewhere on the river does not relabel unrelated sections.
+
+**Area override:** a piece flagged `in_areas` reads `within {area}` instead of the two-bound
+label (see "Area reaches" below).
 
 **Disambiguation:** if two boundaries share a name, append the authored `id` or a distance
 qualifier. Validate `location_identifier` uniqueness within a stream at build time (fail loud).
@@ -114,6 +119,20 @@ full geometry). The `border` pass splits such a BLK at the provincial outline an
 outside pieces `out_of_bc`. Unlike an under-lake reach (absorbed into the lake node), the geometry
 is **kept** so the client can draw it dotted, and the piece is **not** a flow barrier — BC regs
 simply don't apply there.
+
+## Area reaches (`in_areas`) — the mirror of `out_of_bc`
+
+An `area_boundary` split is the same machinery pointed the other way: it cuts a named water and
+its WSC descendants at every crossing of an admin/park polygon and flags the pieces that fall
+**inside** (`in_areas`), for regs scoped to a park or WMA (e.g. "all waters within Garibaldi
+Park"). `border.py::mark_inside_area` walks the target BLKs (WSC-prefix scoped via
+`wsc_descendants`), and an inside piece — whichever side of the boundary it lies on — reads
+**"within {area}"** as its `location_identifier`, overriding the plain upstream/downstream label.
+This handles the two tricky shapes correctly: a stream that **passes through** yields three
+pieces with only the middle flagged, and a stream that **ends inside** the park (boundary →
+headwaters) still reads "within", not the misleading "upstream of" the bounds alone would give.
+Geometry is kept on every piece; scope is WSC-gated, so an inside stream on a different WSC is
+ignored.
 
 ## How regulations attach to sections
 
@@ -175,4 +194,5 @@ whole thing. The un-split downstream pieces (below each falls/road) and any un-s
 - ✅ confluence self-validates by WSC descendant check; `concern` on failure, never a hard stop.
 - ✅ proximity pickup: a curated point reuses a nearby lake/border/earlier boundary (Kootenay).
 - ✅ cross-border BLKs split at the BC outline; outside pieces `out_of_bc` (kept, dotted, not a barrier).
+- ✅ admin/park `area_boundary` splits a water + its WSC descendants; inside pieces `in_areas` → "within {area}".
 - ✅ "[Includes Tributaries] EXCEPT …" = `reach_except` set difference over the split pieces.

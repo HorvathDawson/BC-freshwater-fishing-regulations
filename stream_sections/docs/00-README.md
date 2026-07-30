@@ -31,23 +31,28 @@ Matching logic is unchanged; it just targets sections.
 
 ## Read in order
 
+Docs are ordered by the **dataflow** (domain → graph → splits → names → regs → pipeline/storage →
+matching → testing), then reference material, then the forward plan (`16`).
+
 | File | Purpose |
 |------|---------|
 | `00-README.md` | This index + status |
-| `01-current-pipeline-map.md` | **Legacy reference** — what exists today (to port logic/data from). We are NOT preserving its structure; see `08` for what actually must carry over. |
-| `02-domain-model.md` | Verified FWA terms (BLK/WSC/GNIS/fid/wbk/route-measure), `(name,source)` tuples, the single inverted graph, section identity |
-| `03-graph-design.md` | **The real graph design — start implementation here.** Merge→names→split→inverted graph (nodes=streams, edges=flows-into)→ancestor tributary walk |
-| `04-section-split-design.md` | General hand-split boundary system (any anchor → route measure → cut; auto `location_identifier`) |
-| `05-pipeline-architecture.md` | Clean-slate step DAG, partial reruns, build-in-v2-then-cutover |
-| `06-storage-and-client.md` | `section_id` self-identifying tiles, sub-1 MB bootstrap, lazy reg chunks, mobile rebuilt |
-| `07-zone-regulations.md` | **MU overlay** for base regs + **curated `mu_boundary` splits** for Fraser-type (Fraser vs Similkameen) |
-| `08-matching-and-invariants.md` | Matching pinned onto sections; the hard invariants that survive the rebuild |
-| `09-data-structures.md` | Schema rationale + serialization + split-indexing. **Authoritative schema is `stream_sections/models.py`.** |
-| `10-testing-plan.md` | Test-as-you-build tiers, the gating spikes (Chehalis/Kootenay), golden parity |
+| `01-domain-model.md` | Verified FWA terms (BLK/WSC/GNIS/fid/wbk/route-measure), `(name,source)` tuples, the single inverted graph, section identity |
+| `02-current-pipeline-map.md` | **Legacy reference** — what exists today (to port logic/data from). We are NOT preserving its structure; see `10` for what actually must carry over. |
+| `03-graph-design.md` | **The graph design — start here.** Merge→names→split→inverted graph (nodes=streams/lakes, edges=flows-into)→ancestor tributary walk *(implemented)* |
+| `04-section-split-design.md` | Hand-split boundary system: any anchor → cut → auto `location_identifier`; incl. `area_boundary` (park closures) *(implemented)* |
+| `05-name-variations.md` | Unified name-variations file (compiler + graph apply); `display` flag; wetland overlay *(implemented)* |
+| `06-zone-regulations.md` | **MU overlay** for base regs + **curated `mu_boundary` splits** for Fraser-type differences *(planned)* |
+| `07-pipeline-architecture.md` | Step DAG, partial reruns, build-in-v2-then-cutover |
+| `08-data-structures.md` | Schema rationale + serialization + split-indexing. **Authoritative schema is `stream_sections/models.py`.** |
+| `09-storage-and-client.md` | `section_id` self-identifying tiles, sub-1 MB bootstrap, lazy reg chunks *(planned)* |
+| `10-matching-and-invariants.md` | Matching pinned onto sections; the hard invariants that survive the rebuild *(planned)* |
 | `11-implementation-plan.md` | De-risk-first build order + concrete first steps |
-| `12-section-tests.md` | **Visual** ASCII walkthrough of every anchor/section/tributary test case |
-| `13-name-variations.md` | Unified name-variations file (compiler + graph apply); `display` flag; wetland overlay |
-| `14-test-status.md` | **Dashboard** — pipeline status + all test files (46 pass / 11 skip), what's next |
+| `12-testing.md` | **Testing (everything up to matching)** — test-as-you-build tiers, the visual anchor/section/tributary catalogue, and the status dashboard |
+| `13-corrections-memo.md` | Regulation weirdness & corrections catalog (480 overrides classified) (+ `13-corrections-classified.json`) |
+| `14-locators-to-curate.md` | Locator-curation guide; the editable data is `14-locators-to-curate.json` (622 locators by anchor kind) |
+| `15-lake-splitting-design.md` | **Future option** — how lake subdivision would work (NOT built) |
+| `16-phase5-match-plan.md` | **Forward plan** — Phase 5 (match): TDD review of the 4 selectors + blockers; the Garibaldi area-closure is shipped, matching is what's left |
 
 ## Implemented so far (branch `redesign/stream-sections`)
 
@@ -89,7 +94,7 @@ split pieces (Atnarko/Bella Coola).
   `split_points` (every resolved cut + `picked_up`/`concern`), optional `obstacles` (FISS
   fish-passage points), `tributaries`, `lake_io`.
 - `oneoff/` — one-off bootstrap scripts (not part of the build): `name_variants_compile.py`
-  (→ `name_variants.json`, docs/13; includes a `_MANUAL` grounded list) and `complex_regs_report.py`.
+  (→ `name_variants.json`, docs/05; includes a `_MANUAL` grounded list) and `complex_regs_report.py`.
 
 **Data layers:** `data/fetch_data.py` + `FWADataAccessor` now include `obstacles`
 (`WHSE_FISH.FISS_OBSTACLES_PNT_SP`) — falls/dams as points, with `NEW_WATERSHED_CODE` renamed to

@@ -56,7 +56,7 @@ River — Zone 2 rules ≠ Zone 3 rules on the same water):
 We could auto-split any waterbody wherever its specific regs differ by MU. **We deliberately
 don't**, because that couples *section geometry* to *regulation data*: a new zone-specific
 reg would silently change section boundaries and therefore `section_id`s, breaking stability
-and the "geometry decoupled from regs" principle (`05`). Fraser-type cases are **rare and
+and the "geometry decoupled from regs" principle (`07`). Fraser-type cases are **rare and
 known**, so curating a handful of `mu_boundary` splits is cheap and keeps geometry stable.
 (If auto-detection is ever wanted, gate it behind a validation that flags the case for a
 human to confirm into `splits.json` — never let it mutate geometry silently.)

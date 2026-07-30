@@ -82,7 +82,7 @@ unless a lake/split subdivided the BLK.
 **Tributaries of a node = its ancestors** (walk incoming edges upstream). Because each stream
 flows into exactly one downstream stream, the confluence-parent leak is avoided by construction
 (the Harrison is what the Chehalis flows *into* — a descendant, never an ancestor). Guards are
-applied **at graph-build time** (`10`): the **WSC-descendant filter** on stream→stream edges
+applied **at graph-build time** (`12`): the **WSC-descendant filter** on stream→stream edges
 (braided/cross-watershed cases; drops the edge at creation) and the **`EDGE_TYPE=2300` barrier**
 (`is_barrier` nodes, stopped by `ancestors(guarded=True)`). With lakes as nodes the
 Columbia/Kootenay canal drains into a lake node, so the 2300 barrier — not the WSC filter — is

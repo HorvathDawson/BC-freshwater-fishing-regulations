@@ -1,9 +1,10 @@
 # 03 — The Graph Design (real, start here)
 
-The concrete design for combining FWA into **one inverted stream graph**. Read `02` first for
-terms. There is a **single graph** (no "fine vs coarse" split): a **node is a stream** (a
-BLK-merged chain, later subdivided into sections); an **edge is "flows into"** (a tributary
-draining its mainstem at a confluence measure). Tributaries of a node = its **ancestors**.
+FWA is combined into **one inverted stream graph**. Read `01` first for terms. There is a
+**single graph** (no "fine vs coarse" split): a **node is a stream** (a BLK-merged chain,
+subdivided into sections); an **edge is "flows into"** (a tributary draining its mainstem at a
+confluence measure). Tributaries of a node = its **ancestors**. This is built and validated —
+`graph.py` and `sectionizer.py`; de-risking spikes are in the Appendix.
 
 ## Output artifacts
 
@@ -14,8 +15,8 @@ draining its mainstem at a confluence measure). Tributaries of a node = its **an
    `at_measure`, `kind` ∈ confluence/lake_in/lake_out), with `up_adj` (incoming = tributaries)
    and `down_adj` (outgoing). **Geometry-free**; a `geometries.pkl` sidecar maps `node_id →
    geom`.
-3. **`sections`** (next step) — stream-piece nodes subdivided further at **curated** splits only
-   (lakes are already handled in the graph step), with cut geometry + `location_identifier`.
+3. **`sections`** — stream-piece nodes subdivided further at **curated** splits (lakes are
+   already handled in the graph step), with cut geometry + `location_identifier`.
 
 ## Ordering
 
@@ -90,19 +91,11 @@ raw closure is free of braiding/cross-watershed leaks; the walk applies the rema
 - **`EDGE_TYPE=2300` barrier** — `ancestors(guarded=True)` does not include or traverse a
   `is_barrier` node (the Kootenay↔Columbia canal, blk 356366076). Once lakes are nodes the
   canal drains into a **lake** node, so the WSC filter (stream-stream only) no longer touches
-  that edge — **the 2300 barrier is the operative guard there** (spike `10` S2 upheld).
+  that edge — **the 2300 barrier is the operative guard there** (spike S2 upheld; Appendix).
 - **Lake barrier** — lakes are nodes; a lake regulation can choose to stop or cross the walk
   (parameterizable: cross when the reg *is* the lake). The `sections`/`match` step owns this.
 
-## Spike results (`10`) — settled
-
-- ✅ **BLK is a safe atom** — 0.03% of named GNIS span >1 BLK; 99.995% contiguity.
-- ✅ **Lake-transition cutting is bounded** — 84.7% single section, 96.6% ≤3, max 180.
-- ❌ **SCC condensation is a no-op** (FWA already a DAG) → keep the **WSC filter**.
-- ❌ **Lake-collapse ≠ 2300 rule** → keep the **2300 barrier**.
-- ⚠️ **2-point geometry** — 0.69% of multi-segment BLKs need interpolation.
-
-## Worked examples (acceptance targets)
+## Worked examples (validated)
 
 - **Adams River + Adams Lake** → Lower Adams piece + Adams Lake node + Upper Adams piece **from
   the lake split alone** (no curated split); replaces the duplicate override rows. Validated:
@@ -110,7 +103,7 @@ raw closure is free of braiding/cross-watershed leaks; the walk applies the rema
 - **Fraser + Seabird channel** → Fraser node `(Fraser, gazette)`; side-channel node
   `(Seabird…, override)` + `(Fraser, side-channel)`; side channel drops at low zoom.
 - **Similkameen** (crosses a zone, one reg set) → **one** node; zone handled as attribute /
-  curated `mu_boundary` split only if regs differ (`07`).
+  curated `mu_boundary` split only if regs differ (`06`).
 - **Wigwam** (hand divide) → split at a `point`/`line` cut into two labelled sections.
 
 ## Curated splits run BEFORE the tributary walk (so a section is a node)
@@ -131,7 +124,20 @@ section is a real node.
 `graph.py::build_stream_graph` implements S1–S4 **including lakes as nodes** and both guards
 (validated: 10821 nodes = 9254 pieces + 1567 lakes / 10929 edges on the Adams extent, integrity
 OK; Adams up/down-of-lake split confirmed). `build_section_geometries` writes the geometry
-sidecar. `sectionizer.py` applies curated splits (point/line anchors; validated on real Adams
-geometry — a mid-fid cut split 11705 m → 5853 + 5853). `tributaries.py` provides the guarded
-closure + `tributaries_between`. **Next:** remaining anchor resolvers (lake/confluence/
-mu_boundary), `location_identifier` uniqueness validation, then the match step (`08`).
+sidecar. `sectionizer.py` applies curated splits for every anchor kind (point/line/lake/
+confluence/mu_boundary/area_boundary; validated on real Adams geometry — a mid-fid cut split
+11705 m → 5853 + 5853). `tributaries.py` provides the guarded closure + `tributaries_between`.
+The one remaining unbuilt stage is the **match** step (`10`).
+
+## Appendix — deferred & rationale
+
+**Deferred:** `upstream-inherited` naming (nearest upstream named edge) runs after the graph
+exists and is not yet wired; every other name source is live (see `05`).
+
+**Spike results (de-risking, settled) — see `12` for the tests that pin them:**
+
+- ✅ **BLK is a safe atom** — 0.03% of named GNIS span >1 BLK; 99.995% contiguity.
+- ✅ **Lake-transition cutting is bounded** — 84.7% single section, 96.6% ≤3, max 180.
+- ❌ **SCC condensation is a no-op** (FWA already a DAG) → keep the **WSC filter**.
+- ❌ **Lake-collapse ≠ 2300 rule** → keep the **2300 barrier**.
+- ⚠️ **2-point geometry** — 0.69% of multi-segment BLKs need interpolation (`cutting.substring_cut`).

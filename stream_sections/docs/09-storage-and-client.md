@@ -35,12 +35,12 @@ change cascades:
 ### Vector tiles (PMTiles) — one geometry spine
 - Layer `sections` keyed by `section_id`, props: `section_id, display_name, min_zoom,
   stream_order`, and a compact `reg_set_index`. **Each section is single-reg-set** (Fraser-
-  type per-MU differences are separate sections via curated `mu_boundary` splits, `07`), so
+  type per-MU differences are separate sections via curated `mu_boundary` splits, `06`), so
   there is **no per-zone reg_set and no render-clip layer** — a big simplification over the
   earlier draft.
 - Layer `under_lake_sections` (floor z10) + `lakes`/polys keyed by `waterbody_key`
   (unchanged join for lakes).
-- The MU **base-reg overlay** (`07`) reuses the existing `wmu`/`regions` tile layers for
+- The MU **base-reg overlay** (`06`) reuses the existing `wmu`/`regions` tile layers for
   point-in-MU resolution — no new geometry needed for it.
 - Side channels (separate BLK sections) get higher `min_zoom` → drop out when zoomed out,
   exactly as required.

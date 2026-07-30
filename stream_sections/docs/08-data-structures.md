@@ -1,4 +1,4 @@
-# 09 — Data Structures, Serialization, Layout
+# 08 — Data Structures, Serialization, Layout
 
 The **authoritative schema lives in code**: [`stream_sections/models.py`](../models.py).
 This doc records the rationale, split-indexing rules, serialization, and layout so the code
@@ -7,11 +7,11 @@ is understandable if revisited cold. (Everything lives in top-level `stream_sect
 
 ## Artifacts and their dataclasses (see `models.py`)
 
-| Step (05) | Produces | Dataclass(es) | Rationale |
+| Step (07) | Produces | Dataclass(es) | Rationale |
 |-----------|----------|---------------|-----------|
 | `blk-chains` | `blk_chains.pkl` (parquet later) | `BlkChain`, `FidSpan`, `WaterbodyRun`, `NameTuple` | Merge on **BLK** (1:1 w/ WSC). `mouth_measure` stored so `substring` offset math works. `WaterbodyRun` = under-lake sub-spans by `WATERBODY_KEY ∈ lakes∪manmade`. `edge_types` = distinct FWA `EDGE_TYPE`s (preserved so `2300` survives the merge). |
 | `graph` | `graph.pkl` + `geometries.pkl` | `StreamGraph`, `StreamNode`, `FlowEdge` | **One inverted graph**: node = a stream **piece** (a BLK cut at lake-runs) or a **lake** (one per `wbk`); edge = "flows into". Lakes are split in **this** step from the fid `wbk`-run (no polygon). `up_adj` = incoming = ancestor walk; a lake's `up_adj`=inlets, `down_adj`=outlet(s). **Geometry is NOT on the node** — a separate `node_id → geom` sidecar (`geometries.pkl`) keeps the graph light. fids live only inside `StreamNode` as provenance. |
-| `sections` (next) | refines graph nodes | `StreamNode` (sub-range) + `SplitPoint` | **Curated splits only** (falls/bridges/MU boundaries). Lake above/below splits already exist from the `graph` step. A curated split subdivides a stream-piece node further; tributary edges reattach to the piece whose measure range contains the confluence. |
+| `sections` | refines graph nodes | `StreamNode` (sub-range) + `SplitPoint` | **Curated splits** (falls/bridges/MU boundaries/area boundaries). Lake above/below splits already exist from the `graph` step. A curated split subdivides a stream-piece node further; tributary edges reattach to the piece whose measure range contains the confluence. |
 | `splits` (input+sidecar) | `splits.json` → `splits.resolved.json` | `SplitDef`, `SplitAnchor`, `SplitPoint` | The anchor defines a **cut line or polygon boundary**; resolution yields one `SplitPoint` per crossed channel; written back for reviewable, deterministic builds. |
 | `match` | `section_regs.*` | `SectionRegs` | One `reg_set_index` per section (Fraser handled by curated `mu_boundary` splits). Base regs are a separate `mu_id → base_reg_set` overlay, **not** here. |
 
@@ -27,7 +27,7 @@ lake-bounded reach; the Adams River mainstem BLK is 4 pieces (Lower Adams | Adam
 Upper Adams | …), and Lower Adams' guarded ancestors reach the whole watershed through the lake
 node — the upstream/downstream-of-Adams-Lake split comes free, with no curated split.
 
-**Guards at build (spike 10):** the WSC-descendant filter drops braiding-reversed and
+**Guards at build (spike 12):** the WSC-descendant filter drops braiding-reversed and
 cross-watershed **stream→stream** edges at creation; a node whose fids include `EDGE_TYPE=2300`
 is `is_barrier` and `ancestors(guarded=True)` stops at it. (Once lakes are nodes, the
 Columbia/Kootenay canal drains into a lake node, so the 2300 barrier — not the WSC filter — is
@@ -56,7 +56,7 @@ measure (hence its id) — expected; a split *inside* a piece mints two new ids.
 `sha1(blk | lower | upper | lake_wbk)[:16]` remains available via `cutting.section_id` if a
 measure-independent id is ever needed.)
 
-## Serialization (05 partial-rerun model)
+## Serialization (07 partial-rerun model)
 
 - **pickle** now for `blk_chains`, `StreamGraph` (geometry-free — small, adjacency-shaped), and
   the `geometries.pkl` sidecar (`node_id → shapely`); **GeoParquet** is the planned optimization
@@ -69,8 +69,9 @@ measure-independent id is ever needed.)
 
 `models.py` (schema) · `blk_chains.py` (load fids + merge, `edge_types`) · `names.py` ·
 `graph.py` (inverted graph incl. **lake-node split** + `ancestors` + `build_section_geometries`
-sidecar) · `anchors.py` + `splits.py` (04) · `sectionizer.py` (**curated** splits — next) ·
-`tributaries.py` (section-level roll-up — next) · `cutting.py` (substring, node id, endpoint id)
+sidecar) · `anchors.py` + `splits.py` (04) · `border.py` (border + area-boundary cuts) ·
+`sectionizer.py` (**curated** splits) · `tributaries.py` (section-level roll-up) ·
+`cutting.py` (substring, node id, endpoint id)
 · `serialize.py` (IO + cache) · `build.py` (end-to-end validation CLI) · `export_gpkg.py` +
 `oneoff/` (one-off bootstrap scripts: `name_variants_compile.py`, `complex_regs_report.py`) ·
 `run.py` (step entrypoints).

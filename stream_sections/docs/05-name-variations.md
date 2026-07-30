@@ -1,9 +1,10 @@
-# 13 — Unified Name Variations (graph-applied)
+# 05 — Unified Name Variations (graph-applied)
 
-Consolidate every static name/alias a feature has into ONE compiled file that the graph applies
-as `(name, source, note)` tuples — replacing the old per-fid inheritance and the scattered
-override files. Regulation *interpretation* stays in match; the *names* it references are
-harvested here so both names survive.
+Every static name/alias a feature has is consolidated into ONE compiled file that the graph
+applies as `(name, source, note)` tuples — replacing the old per-fid inheritance and the
+scattered override files. This is built: the compiler emits `name_variants.json` and `names.py`
+applies it at graph build. Regulation *interpretation* stays in match; the *names* it references
+are harvested here so both names survive.
 
 ## Principle: identity vs interpretation
 
@@ -71,13 +72,6 @@ when the chosen display tuple is all-caps — override/gazette (already correctl
     Omitted ⇒ the name is **searchable only**; the highest-priority tuple (usually gazette)
     displays. So "Arrow Reservoir" (no `display`) stays searchable while "Upper Arrow Lake"
     (gazette) is the label — replaces the old override-vs-alias hack.
-
-### Why not key by section_id / "rename by identifier"
-Considered (the "rename by blk/identifier" idea). **Rejected as the authored key**: a
-`section_id` is `"{blk}:{int(down_m)}"`, derived at build time, and it *shifts* whenever a lake
-or split up/downstream changes the measure. Authoring against it is fragile. Author against the
-stable **blk (+ reach)**; resolve to the concrete piece(s) at build, and write the resolved
-section_ids to a review sidecar (`name_variants.resolved.json`) like `splits.resolved.json`.
 
 ## Compiler (`stream_sections/oneoff/name_variants_compile.py`) — one-off bootstrap
 
@@ -163,8 +157,27 @@ wetland WET: … ─────────stream piece────────
       inherited Penticton on that piece only.
 - [x] provenance `note` per variant.
 
-## Matching (future, not this work)
+## Appendix — deferred & rationale
 
+**Why not key by `section_id` / "rename by identifier".** Considered (the "rename by
+blk/identifier" idea) and **rejected as the authored key**: a `section_id` is
+`"{blk}:{int(down_m)}"`, derived at build time, and it *shifts* whenever a lake or split
+up/downstream changes the measure. Authoring against it is fragile. Author against the stable
+**blk (+ reach)**; resolve to the concrete piece(s) at build, and write the resolved section_ids
+to a review sidecar (`name_variants.resolved.json`) like `splits.resolved.json`.
+
+**Matching (future, not this work; see `10`/`16`).**
 - Search resolves a reg's `name_verbatim` against **all** node `name_tuples` (any source).
 - **Missing-variant detection**: a reg name that matches no tuple is flagged as a candidate to
   add to `name_variants.json` (with a note) — the "tell us if we're missing a variation" hook.
+
+
+## TODO — future name sources
+
+- [ ] **Federal power-driven-vessel schedule (SOR/2008-120):** the "Waters on Which Power-driven
+      Vessels and Vessels Driven by Electrical Propulsion Are Prohibited" schedule
+      (https://laws-lois.justice.gc.ca/eng/regulations/SOR-2008-120/section-sched743254-20220221.html)
+      lists many **unnamed lakes by coordinate + a "local name"**. Harvest these as name variants
+      (source = federal schedule; note the local name + the coord it resolves against) — a rich
+      source of names for FWA-unnamed waterbodies. Also doubles as a vessel-restriction reg source.
+data for Waters on Which Power-driven Vessels and Vessels Driven by Electrical Propulsion Are Prohibited has a lot of coords with unnamed lakes with "local name"

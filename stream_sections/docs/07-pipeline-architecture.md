@@ -1,9 +1,14 @@
-# 05 — New Pipeline Architecture (clean-slate)
+# 07 — New Pipeline Architecture (clean-slate)
 
 Not a modification of the old flow — a from-scratch DAG of small, independently re-runnable
 steps, each with a typed input/output artifact. **Build into a new folder
 (`output/pipeline/v2/`); cut over by swapping the deploy target once validated.** No
 in-place migration; the old pipeline keeps running until v2 is proven.
+
+**Built today:** `build.py` wires the whole geometry chain — `blk-chains → graph (lakes split
+here) → border → curated splits (sectionizer) → tributaries` — and writes the graph/geometry
+pickles, `graph.gpkg`, and an integrity self-check. The `match`, `bundle`, and `deploy` steps
+below are not built yet.
 
 ## Design principles
 
@@ -25,7 +30,7 @@ in-place migration; the old pipeline keeps running until v2 is proven.
               │  └─ matching data (overrides, display names, splits)│
               │                                                     │
               ├─ blk-chains ─ graph ─ border ─ splits ─ tributaries ┼─ match ─ bundle ─ deploy
-              │   (03 S1-2)   (S4-5,  (out-of- (section- (guarded    │  (08)    (06)
+              │   (03 S1-2)   (S4-5,  (out-of- (section- (guarded    │  (10)    (09)
               │               lakes   BC flag) izer +    ancestors,  │
               │               split)           pickup)   EXCEPT)     │
               └─ overlays (zones, admin, towns, anglerinfo, hydro) ──┘
@@ -59,20 +64,9 @@ tributaries/match`.
 
 | Step | Reads | Writes | Notes |
 |------|-------|--------|-------|
-| `match` | sections, parsed regs, overrides, splits, overlays | `v2/section_regs.pkl` | 08: resolve regs→sections (simple/complex), zone_reg_map, base/provincial regs, tributary reg propagation over the section graph |
-| `bundle` | section_regs + section_geom | `v2/deploy/*` | 06: `section_id` PMTiles, tiny search bootstrap, lazy reg chunks, mobile SQLite |
+| `match` | sections, parsed regs, overrides, splits, overlays | `v2/section_regs.pkl` | 10: resolve regs→sections (simple/complex), zone_reg_map, base/provincial regs, tributary reg propagation over the section graph |
+| `bundle` | section_regs + section_geom | `v2/deploy/*` | 09: `section_id` PMTiles, tiny search bootstrap, lazy reg chunks, mobile SQLite |
 | `deploy` | bundle | R2 | swap `SHARD_VERSION`/path once validated |
-
-## Why this is faster / simpler than today
-
-- The FWA micro-fids are consumed once (`blk-chains`/`graph`) to derive the small inverted
-  graph, then never touched again. Tributary reachability is precomputed **per
-  section** and reused across all regs — no per-reg BFS over the giant graph.
-- A regulation-text change re-runs only `parse → match → bundle → deploy`; geometry steps are
-  cache-hit. A split-definition change re-runs only `sections → match → bundle`. Today a
-  change forces monolithic `atlas/tiles/enrich` rebuilds of 5.4 GB artifacts.
-- One spine (`section_id`) collapses today's fid/blk/reach/reg-set/wbk id sprawl at the
-  delivery boundary (fids still exist inside `sections.pkl` for provenance, but never ship).
 
 ## Validation & cutover
 
@@ -91,8 +85,21 @@ tributaries/match`.
 ## Suggested build order when picking up
 
 1. `blk-chains` + `graph` (03 S1–S5) — the inverted graph (DONE); de-risks connectivity.
-2. `sections` (03 S5–6) + `splits.json` schema (04).
-3. `match` (08) on top of sections.
-4. `bundle`/tiles/storage (06).
-5. Client changes (06) + mobile rebuild.
+2. `sections` (03 S5–6) + `splits.json` schema (04) — DONE.
+3. `match` (10) on top of sections — NEXT.
+4. `bundle`/tiles/storage (09).
+5. Client changes (09) + mobile rebuild.
 6. Validate parallel, cut over, retire old pipeline.
+
+## Appendix — deferred & rationale
+
+**Why this is faster / simpler than today:**
+
+- The FWA micro-fids are consumed once (`blk-chains`/`graph`) to derive the small inverted
+  graph, then never touched again. Tributary reachability is precomputed **per section** and
+  reused across all regs — no per-reg BFS over the giant graph.
+- A regulation-text change re-runs only `parse → match → bundle → deploy`; geometry steps are
+  cache-hit. A split-definition change re-runs only `sections → match → bundle`. Today a
+  change forces monolithic `atlas/tiles/enrich` rebuilds of 5.4 GB artifacts.
+- One spine (`section_id`) collapses today's fid/blk/reach/reg-set/wbk id sprawl at the
+  delivery boundary (fids still exist inside `sections.pkl` for provenance, but never ship).

@@ -1,7 +1,7 @@
-# 15 — Phase 5 (Match) — Plan & Handoff
+# 16 — Phase 5 (Match) — Plan & Handoff
 
 **Status:** DESIGN COMPLETE, not yet implemented. All decisions locked (Q1/Q2/Q3 below).
-Concretizes `08-matching-and-invariants.md` into an executable plan. Supersedes the memo-era
+Concretizes `10-matching-and-invariants.md` into an executable plan. Supersedes the memo-era
 per-reg framing in favor of a **split-into-uniform-reaches → link-rules-by-selector** model.
 Derived from four expert design investigations (corrections taxonomy, core resolver, tributary+
 MU overlay, and a 4-way Q1/Q2 dive). Self-contained: a fresh agent can resume from this file.
@@ -133,7 +133,7 @@ built only if an admin_poly/coord locator exists. All emitted collections `tuple
 `tributaries.py` is DONE (ancestors, with_tributaries, reach_except, lake_tributaries,
 piece_above, sections_in_reach) and tested — do NOT reimplement. New = the thin per-RULE attach
 step + corrected semantics (§2b). Precompute lake tributary closures onto lake sections at graph
-time (zero graph walk at match time). Base regs three-branch (docs/07 Q3): direct-target base
+time (zero graph walk at match time). Base regs three-branch (docs/06 Q3): direct-target base
 regs → sections as named regs; admin/park → area selector; zone-wide/provincial → `_resolve_mu_set`
 (zone_ids→MUs + include−exclude, `base_reg_assigner.py:292`) → MU overlay.
 
@@ -161,7 +161,7 @@ Investigation (2 memos: pro-split 70% + skeptic 85%) converged on: base regs are
 honest for straddlers; do NOT blind-cut where a river IS the boundary (collinear weave gives an
 arbitrary, non-deterministic median cut; braiding puts sibling channels in different MUs;
 `section_id` churns on WMU re-fetch).
-- **DECISION:** overlay-by-default (docs/07) + curated `mu_boundary` splits ONLY where a NAMED
+- **DECISION:** overlay-by-default (docs/06) + curated `mu_boundary` splits ONLY where a NAMED
   water genuinely differs by zone (Fraser Zone 2≠3, already in `splits.json`). The client shows
   the base regs for the ONE clicked/located MU — never both. No auto-MU cutting.
 - **ADOPT INDEPENDENTLY — `merge_group_id`:** build-time union-find over graph adjacency where
@@ -333,7 +333,7 @@ rule-landmark-unresolved); fail-loud gates; not_found ratchet.
 Added after two advanced reviews (design/correctness + codebase-feasibility) measured the plan against the
 real corpus (`output/pipeline/parsing/synopsis_parsed.json` 1395 entries 1:1 with `match_table.json`,
 `pipeline/matching/overrides.json` 480). Every count below is **measured**. Companion references:
-`docs/16-corrections-memo.md` (the 480 legacy corrections, classified — the "do we represent every known
+`docs/13-corrections-memo.md` (the 480 legacy corrections, classified — the "do we represent every known
 error" oracle) and `output/v2/locators_to_curate.md` (622 locator strings / 360 regs, grouped by the anchor
 kind to hand-author — the point-curation worklist).
 
@@ -397,7 +397,7 @@ unreliable — which is why §9.12 proposes binding rules to splits by ID instea
   rule to a curated split's stable `id` (e.g. rule "upstream of the N tunnel entrance" → `split_id:
   coquihalla_othello_upper_tunnel`, side: upstream). The rule references the split `id` directly; the label
   string is display-only and never has to match the prose. This removes the vocabulary-bridge problem entirely
-  for curated cases and is the natural authoring model for the 360 regs in `docs/17-locators-to-curate.md`.
+  for curated cases and is the natural authoring model for the 360 regs in `docs/14-locators-to-curate.md`.
   Auto-narrowing by label is then reserved ONLY for the simple auto-generated lake/split identifiers where the
   vocabulary genuinely is shared. (See §9.12.)
 
@@ -536,7 +536,7 @@ point-radius, the rest are map-only descriptions).
   silently attached to the whole water).
 - **CURRENT:** 🔴 no operator for either; the tributary selector over-grabs, the waterbody selector under-fits.
   ⚠️ The parser also over-tags Whiteswan `includes_tributaries=true, tributary_only=true`, which contradicts
-  the "immediate inlets/outlets only" reading — logged in `docs/16` as a correction.
+  the "immediate inlets/outlets only" reading — logged in `docs/13` as a correction.
 - **WHY:** the 4-selector model quantized scope into whole-water / reach / full-closure; "just the immediate
   lake mouths" and "a circle around a point" are distinct shapes that fell between those buckets.
 
@@ -651,7 +651,7 @@ rule, don't try to resolve it automatically — curate it by hand in two levels.
   per-member list where each member has its own parent + its own rule bindings; a lake-inlet/outlet scope (H3)
   is just a rule bound to a `lake_io` operator on the parent; an area closure (H5) is a rule bound to an
   `area_boundary` split.
-- It makes `docs/17-locators-to-curate.md` the **worklist**: each row is one (parent, rule-locator) pair to
+- It makes `docs/14-locators-to-curate.md` the **worklist**: each row is one (parent, rule-locator) pair to
   bind. `coordinate`/`falls`/`dam`/`bridge` rows are turnkey; `map_or_vague` rows are the human judgment calls.
 
 **Auto-narrowing stays** ONLY for the simple auto-generated lake/split identifiers where the vocabulary is
