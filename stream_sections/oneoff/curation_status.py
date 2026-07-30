@@ -171,6 +171,40 @@ def undefer(doc: dict, locator_id: str) -> None:
     print(f"undeferred {locator_id} (back to todo)")
 
 
+_VALID_STATUS = ("todo", "curated", "manual", "not_applicable", "deferred")
+
+
+def annotate(doc: dict, locator_id: str, *, status: str | None, wbk: str | None,
+             blk: str | None, coord: str | None, label: str | None,
+             note: str | None) -> None:
+    """Write ONE row back to disk immediately (incremental persistence for batch work).
+
+    Sets any provided field and appends `note` to notes. Saving after every call means a
+    killed batch loses nothing already annotated. coord is "lon,lat".
+    """
+    x = _find(doc, locator_id)
+    if status:
+        if status not in _VALID_STATUS:
+            raise SystemExit(f"bad status {status!r}; pick {'/'.join(_VALID_STATUS)}")
+        x["status"] = status
+    if wbk or blk:
+        tgt = dict(x["target"]) if isinstance(x.get("target"), dict) else {}
+        if wbk:
+            tgt["wbk"] = wbk
+        if blk:
+            tgt["blk"] = blk
+        x["target"] = tgt
+    if coord:
+        lon, lat = (float(v) for v in coord.split(","))
+        x["coord"] = [lon, lat]
+    if label is not None:
+        x["label"] = label
+    if note:
+        x["notes"] = (x["notes"] + " — " if x.get("notes") else "") + note
+    _save(doc)
+    print(f"annotated {locator_id}: status={x['status']} target={x.get('target')!r} coord={x.get('coord')}")
+
+
 # ---------------------------------------------------------------- cli
 
 def main() -> None:
@@ -201,6 +235,15 @@ def main() -> None:
     pu = sub.add_parser("undefer", help="return a deferred item to todo")
     pu.add_argument("id")
 
+    pa = sub.add_parser("annotate", help="write ONE row back to disk now (incremental batch work)")
+    pa.add_argument("id")
+    pa.add_argument("--status", help="todo|curated|manual|not_applicable|deferred")
+    pa.add_argument("--wbk", help="lake waterbody key -> target.wbk")
+    pa.add_argument("--blk", help="blue-line key -> target.blk")
+    pa.add_argument("--coord", help="'lon,lat'")
+    pa.add_argument("--label", help="section label")
+    pa.add_argument("--note", help="appended to notes")
+
     args = p.parse_args()
     doc = _load()
 
@@ -214,6 +257,9 @@ def main() -> None:
         defer(doc, args.id, args.reason)
     elif args.cmd == "undefer":
         undefer(doc, args.id)
+    elif args.cmd == "annotate":
+        annotate(doc, args.id, status=args.status, wbk=args.wbk, blk=args.blk,
+                 coord=args.coord, label=args.label, note=args.note)
     elif args.cmd == "next":
         next_batch(doc, args.n, args.kind, args.hint)
     else:  # default: summary + next 10

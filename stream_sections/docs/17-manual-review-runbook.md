@@ -20,7 +20,7 @@ and write the confirmed result back. The human decides; the agent never self-con
 - **confluence** (hint=tributary) — DONE (92 curated / 42 not_applicable / 13 deferred / 3 manual, 0 todo).
 - **point/dam_weir_fence** (43) — enriched, `todo`. 14 H reservoir-outlets, 9 M, 20 L (fences/hatchery weirs, coord=map-only).
 - **point/bridge_road_km** (~99) — enriched, `todo`. 11 M FSR∩stream crossings, ~88 L public road/rail bridges (coord=map-only).
-- **lake** (hint=lake_reach, 63 todo) — NEEDS a subagent to classify each as lake_split / whole_lake / point → `lake_proposals.json`; merge into notes the same way. NOT yet done.
+- **lake** (hint=lake_reach) — CLASSIFIED (commit pending): all 63 sorted via `oneoff/classify_lakes.py` (saves per row). 38 **lake_split** (todo — stream bounded by a named lake edge; need wbk lookup then author a `lake` anchor, cf. adams_lake), 8 **not_applicable** (whole-lake / set-of-lakes, name-matched), 15 **deferred** (9 lake-internal + 4 reservoir + 2 vague-map, all docs/15-unsupported), 2 reclassified out (asher-creek→confluence, thompson-signs→point). Each row carries a `[lake-class: ...]` note. NEXT: resolve wbk for the 38 lake_split rows.
 - Still bare `todo`: `other_reach`, `line_between_signs`, `map_or_vague`, `radius_buffer`, `except_negative`, `area_park_polygon`, `boundary_signs_generic`, a few `falls_canyon_obstacle`.
 - **Authored splits**: `stream_sections/splits.json` (12). 18 locators reference them via a
   `authored split: <id>` line in `notes` (curated). Those authored coords/targets are VERIFIED and

@@ -2639,11 +2639,11 @@
       "full_regulation": "Trout daily quota = 2\nBait ban, single barbless hook",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "todo",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[reclassified bridge_road_km -> lake_reach: whole_lake] Whole-lake reg (trout quota, bait ban) on an unnamed lake ~4 km N of Bridge Lake. 'Bridge Lake' is a LANDMARK, not a road bridge. Target the lake wbk; no split."
+      "notes": "[reclassified bridge_road_km -> lake_reach: whole_lake] Whole-lake reg (trout quota, bait ban) on an unnamed lake ~4 km N of Bridge Lake. 'Bridge Lake' is a LANDMARK, not a road bridge. Target the lake wbk; no split. — [lake-class: whole_lake] whole-lake quota/bait reg, matched by (unnamed) lake — no cut."
     },
     {
       "id": "adam-river-except-eve-river-939f98",
@@ -3614,11 +3614,11 @@
       "full_regulation": "See Shuswap Lake in Region 3\nNo powered boats south of the CPR bridge",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "todo",
+      "status": "deferred",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[reclassified bridge_road_km -> lake_reach: lake_internal] LAKE reg (Mara Lake) divided 'south of the CPR bridge' — a lake-INTERNAL split at the CPR bridge (lake splitting, docs/15), not a stream bridge."
+      "notes": "[reclassified bridge_road_km -> lake_reach: lake_internal] LAKE reg (Mara Lake) divided 'south of the CPR bridge' — a lake-INTERNAL split at the CPR bridge (lake splitting, docs/15), not a stream bridge. — [lake-class: lake_internal] lake-internal divide at the CPR bridge (docs/15) — unsupported."
     },
     {
       "id": "mcarthur-island-slough-cd2507",
@@ -4046,11 +4046,11 @@
       "full_regulation": "No Fishing Aug 1-Oct 31\nTrout/char daily quota = 2 (none under 30 cm); bait ban, single barbless hook",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "todo",
+      "status": "deferred",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[reclassified bridge_road_km -> lake_reach: lake_internal] LAKE reg (Prudhomme Lake) 'south of the Hwy 16 bridge' — lake-internal split at the bridge (docs/15)."
+      "notes": "[reclassified bridge_road_km -> lake_reach: lake_internal] LAKE reg (Prudhomme Lake) 'south of the Hwy 16 bridge' — lake-internal split at the bridge (docs/15). — [lake-class: lake_internal] lake-internal divide at the Hwy 16 bridge (docs/15) — unsupported."
     },
     {
       "id": "quesnel-river-cf8577",
@@ -4100,11 +4100,11 @@
       "full_regulation": "No powered boats south of the CPR Bridge",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "todo",
+      "status": "deferred",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[reclassified bridge_road_km -> lake_reach: lake_internal] LAKE reg (Rosemond Lake) 'south of the CPR Bridge' — lake-internal split (docs/15)."
+      "notes": "[reclassified bridge_road_km -> lake_reach: lake_internal] LAKE reg (Rosemond Lake) 'south of the CPR Bridge' — lake-internal split (docs/15). — [lake-class: lake_internal] lake-internal divide at the CPR bridge (docs/15) — unsupported."
     },
     {
       "id": "salmon-river-8e66cb",
@@ -4443,11 +4443,11 @@
       "full_regulation": "No Fishing Nov 1-June 14\nTrout daily quota = 1 (none under 30 cm)\nArtificial fly only, bait ban, barbless hook",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "todo",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[reclassified bridge_road_km -> lake_reach: whole_lake] Whole-lake reg on Teepee Lake (adjacent to West Road River). Target the lake wbk; no split."
+      "notes": "[reclassified bridge_road_km -> lake_reach: whole_lake] Whole-lake reg on Teepee Lake (adjacent to West Road River). Target the lake wbk; no split. — [lake-class: whole_lake] whole-lake reg on Teepee Lake — no cut."
     },
     {
       "id": "thompson-river-downstream-of-signs-at-kamloop-1db152",
@@ -4554,11 +4554,11 @@
       "full_regulation": "\"The drawdown area\", that water known as either Upper Arrow Lake or Columbia River (depending on the reservoir's level), located\nbetween Hwy 1 bridge in Revelstoke and the power line crossing at Akolkolex Narrows (approximately 1.5 km downstream of the\nAkolkolex River confluence): trout/char daily quota = 2 (no bull trout under 60 cm and only 1 bull trout over 60 cm); single barbless hook\nEXEMPT from the regional kokanee \"none from streams\" daily quota (the combined daily quota for kokanee in Lower Arrow Lake, Upper\nArrow Lake and the drawdown area is the regional daily quota on page 34)\nEXEMPT from the regional Nov 1-Mar 31 trout/char catch and release from streams\nEXEMPT from the regional Apr 1-June 14 stream closure",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "todo",
+      "status": "deferred",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[reclassified bridge_road_km -> lake_reach: reservoir_reach] RESERVOIR reach: Upper Arrow Lake drawdown area between the Hwy 1 bridge (Revelstoke) and the power line crossing — a reservoir/lake reach, not a stream bridge (docs/15)."
+      "notes": "[reclassified bridge_road_km -> lake_reach: reservoir_reach] RESERVOIR reach: Upper Arrow Lake drawdown area between the Hwy 1 bridge (Revelstoke) and the power line crossing — a reservoir/lake reach, not a stream bridge (docs/15). — [lake-class: reservoir] reservoir drawdown reach (Hwy 1 bridge <-> Akolkolex Narrows power line) — complex."
     },
     {
       "id": "west-road-blackwater-river-s-tributaries-aec300",
@@ -4664,11 +4664,11 @@
       "full_regulation": "No rainbow trout under 30 cm\nBait ban 500 m upstream and downstream of Causeway Road July 1-Oct 30\nSee Nation Arm\nREMINDER: Arctic grayling catch and release from tributaries\nSee mercury warning on page 75 and definition of \"stream mouth\" on page 80 in the Provincial Regulations",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "todo",
+      "status": "deferred",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[reclassified bridge_road_km -> lake_reach: reservoir_zone] RESERVOIR zone reg (Williston Lake Zone A): bait ban ±500 m of the Causeway Road within the reservoir — lake/reservoir zone, not a stream bridge."
+      "notes": "[reclassified bridge_road_km -> lake_reach: reservoir_zone] RESERVOIR zone reg (Williston Lake Zone A): bait ban ±500 m of the Causeway Road within the reservoir — lake/reservoir zone, not a stream bridge. — [lake-class: reservoir] reservoir zone (Williston Zone A, ±500 m Causeway Rd) — complex."
     },
     {
       "id": "williston-lake-in-zone-a-includes-waters-500--7972e6",
@@ -4684,11 +4684,11 @@
       "full_regulation": "No rainbow trout under 30 cm\nBait ban 500 m upstream and downstream of Causeway Road July 1-Oct 30\nSee Nation Arm\nREMINDER: Arctic grayling catch and release from tributaries\nSee mercury warning on page 75 and definition of \"stream mouth\" on page 80 in the Provincial Regulations",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "todo",
+      "status": "deferred",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[reclassified bridge_road_km -> lake_reach: reservoir_zone] RESERVOIR zone reg (Williston Lake Zone A): bait ban ±500 m of the Causeway Road within the reservoir — lake/reservoir zone, not a stream bridge."
+      "notes": "[reclassified bridge_road_km -> lake_reach: reservoir_zone] RESERVOIR zone reg (Williston Lake Zone A): bait ban ±500 m of the Causeway Road within the reservoir — lake/reservoir zone, not a stream bridge. — [lake-class: reservoir] reservoir zone (Williston Zone A) — complex."
     },
     {
       "id": "williston-lake-in-zone-a-includes-waters-500--3be97e",
@@ -4704,11 +4704,11 @@
       "full_regulation": "No rainbow trout under 30 cm\nBait ban 500 m upstream and downstream of Causeway Road July 1-Oct 30\nSee Nation Arm\nREMINDER: Arctic grayling catch and release from tributaries\nSee mercury warning on page 75 and definition of \"stream mouth\" on page 80 in the Provincial Regulations",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "todo",
+      "status": "deferred",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[reclassified bridge_road_km -> lake_reach: reservoir_zone] RESERVOIR zone reg (Williston Lake Zone A): bait ban ±500 m of the Causeway Road within the reservoir — lake/reservoir zone, not a stream bridge."
+      "notes": "[reclassified bridge_road_km -> lake_reach: reservoir_zone] RESERVOIR zone reg (Williston Lake Zone A): bait ban ±500 m of the Causeway Road within the reservoir — lake/reservoir zone, not a stream bridge. — [lake-class: reservoir] reservoir zone (Williston Zone A) — complex."
     },
     {
       "id": "young-creek-upstream-of-hwy-20-f08b82",
@@ -7952,11 +7952,11 @@
       "full_regulation": "No Fishing\nIncludes all unnamed lakes within 2 km of Bluey Lake (except Bluey Lake itself and Kentucky Lake)",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "todo",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "[lake-class: multi_lake] set of unnamed lakes within 2 km of Bluey Lake — area membership, no cut."
     },
     {
       "id": "grizzly-lake-unnamed-lake-approx-4-5-km-upstr-81a537",
@@ -7970,11 +7970,11 @@
       "full_regulation": "No Ice Fishing\nTrout/char catch and release; bait ban, single barbless hook",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "todo",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "[lake-class: whole_lake] whole (unnamed) lake — matched by description, no cut."
     },
     {
       "id": "seeley-creek-outlet-of-seeley-lake-b14442",
@@ -8050,7 +8050,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "[lake-class: lake_split] bounded by Elsie Lake (up) and Dickson Lake (down); author two `lake` anchors."
     },
     {
       "id": "asher-creek-4b601a",
@@ -8062,13 +8062,13 @@
       "src": "rule",
       "locator_text": "downstream of South Fork (approximately 5 km from Trout Lake)",
       "full_regulation": "No Fishing downstream of South Fork (approximately 5 km from Trout Lake), June 15-Oct 31",
-      "anchor_kind": "lake",
-      "resolver_hint": "lake_reach",
+      "anchor_kind": "confluence",
+      "resolver_hint": "tributary",
       "status": "todo",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "[lake-class: mis_bucket] NOT a lake: 'downstream of South Fork' is a fork confluence, not a lake reach."
     },
     {
       "id": "atnarko-bella-coola-rivers-includes-tributari-985001",
@@ -8088,7 +8088,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "[lake-class: lake_split] Tenas Lake edge (up) + boundary signs (down) — lake anchor + point."
     },
     {
       "id": "big-bar-creek-ce0182",
@@ -8106,7 +8106,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "[lake-class: lake_split] outlet of Big Bar Lake."
     },
     {
       "id": "bonaparte-river-98b62b",
@@ -8124,7 +8124,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "[lake-class: lake_split] outlet of Bonaparte Lake."
     },
     {
       "id": "bridge-river-3fa485",
@@ -8142,7 +8142,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "[lake-class: lake_split] head of Downton Lake (reservoir)."
     },
     {
       "id": "chilko-lake-83dc6f",
@@ -8156,11 +8156,11 @@
       "full_regulation": "Trout/char daily quota = 2 (no rainbow trout over 70 cm; only 1 bull trout and it may not be under 60 cm)\nBait ban, single barbless hook\nNo powered boats on Big Lagoon (west side of lake)",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "todo",
+      "status": "deferred",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "[lake-class: lake_internal] lake-internal (Big Lagoon, west side of Chilko Lake) — unsupported."
     },
     {
       "id": "chimney-creek-04b2dc",
@@ -8178,7 +8178,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "[lake-class: lake_split] outlet of Brunson Lake."
     },
     {
       "id": "columbia-river-73fe32",
@@ -8200,7 +8200,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "[lake-class: lake_split] bounded by Mud Lake and Columbia Lake; two `lake` anchors."
     },
     {
       "id": "davie-river-f757c8",
@@ -8218,7 +8218,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "[lake-class: lake_split] outlet of Schoen Lake."
     },
     {
       "id": "deadman-river-aa98fb",
@@ -8236,7 +8236,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "[lake-class: lake_split] outlet of Mowich Lake."
     },
     {
       "id": "downton-lake-reservoir-73beda",
@@ -8250,11 +8250,11 @@
       "full_regulation": "Bull trout catch and release",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "todo",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "[lake-class: whole_lake] whole reservoir (Downton Lake) — matched by name, no cut."
     },
     {
       "id": "eagle-river-a52a4f",
@@ -8272,7 +8272,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "[lake-class: lake_split] outlet of Griffin Lake."
     },
     {
       "id": "echoes-lake-near-kimberley-4adc24",
@@ -8286,11 +8286,11 @@
       "full_regulation": "No Ice Fishing; trout/char daily quota = 1 in the aggregate from both lakes (none under 50 cm); bait ban, single barbless hook",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "todo",
+      "status": "deferred",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "[lake-class: multi_lake] 'from both lakes' (Echoes Lake pair) — ambiguous, needs map."
     },
     {
       "id": "forsyth-creek-3adc4a",
@@ -8308,7 +8308,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "[lake-class: lake_split] Connor Lake outlet + 3 km offset downstream (lake anchor + offset)."
     },
     {
       "id": "fran-ois-lake-9c8274",
@@ -8326,7 +8326,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "[lake-class: lake_split] at the outlet of Francois Lake (map-described) — lake outlet edge."
     },
     {
       "id": "guichon-creek-9a81b6",
@@ -8344,7 +8344,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "[lake-class: lake_split] outlet of Mamit Lake."
     },
     {
       "id": "harrison-river-from-the-fraser-river-upstream-f8ecc6",
@@ -8362,7 +8362,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "[lake-class: lake_split] Harrison Lake edge (up) + Fraser confluence (down) — lake anchor + confluence."
     },
     {
       "id": "idlewild-lake-old-cranbrook-reservoir-85e69f",
@@ -8376,11 +8376,11 @@
       "full_regulation": "No Ice Fishing\nYouth/Disabled Accompanied Water year round (see page 4)",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "todo",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "[lake-class: whole_lake] whole lake (Idlewild / old Cranbrook Reservoir) — no cut."
     },
     {
       "id": "jewel-creek-b23cd8",
@@ -8398,7 +8398,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "[lake-class: lake_split] Jewel Lake outlet + ~1.5 km offset downstream."
     },
     {
       "id": "kootenay-river-downstream-of-idaho-border-c2529b",
@@ -8417,7 +8417,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "[lake-class: lake_split] Kootenay Lake edge (up) + Idaho border (down) — authored split kootenay_idaho_border already covers the border."
     },
     {
       "id": "kootenay-river-upstream-of-koocanusa-reservoi-3bb758",
@@ -8456,11 +8456,11 @@
       "full_regulation": "Bull trout catch and release from all lakes and streams, Aug 15-Oct 15\nBull trout daily and possession quotas = 1 (none under 30 cm or over 50 cm) from all lakes and streams, Oct 16-Aug 14",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "todo",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "[lake-class: multi_lake] whole Liard watershed (all lakes & streams, see map) — no single cut."
     },
     {
       "id": "mahood-lake-see-map-on-page-28-for-area-closu-79ec2d",
@@ -8474,11 +8474,11 @@
       "full_regulation": "No Fishing within the fishing boundary signs at the western tip of the lake near the mouth of Canim River, Jan 1-June 30\nTrout/char catch and release, bait ban and single barbless hook: within fishing boundary signs at the western tip of the lake, July 1-Dec 31\nNo Fishing within 200 m of the Mahood River outlet, Jan 1-June 30\nTrout/char catch and release, bait ban and single barbless hook: within 200 m of the mouth of the Mahood River outlet, July 1-Dec 31",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "todo",
+      "status": "deferred",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "[lake-class: lake_internal] lake-internal area closure within boundary signs (see map, docs/15) — unsupported."
     },
     {
       "id": "mckinley-creek-9d6931",
@@ -8496,7 +8496,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "[lake-class: lake_split] outlet of McKinley Lake."
     },
     {
       "id": "moberly-river-b2a8ec",
@@ -8514,7 +8514,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "[lake-class: lake_split] outlet of Moberly Lake."
     },
     {
       "id": "nahatlatch-river-1d1eaf",
@@ -8532,7 +8532,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "[lake-class: lake_split] outlet of Nahatlatch Lake."
     },
     {
       "id": "nahatlatch-river-0bb710",
@@ -8550,7 +8550,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "[lake-class: lake_split] outlet of Nahatlatch Lake."
     },
     {
       "id": "nahmint-river-786f4c",
@@ -8568,7 +8568,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "[lake-class: lake_split] up & downstream of Nahmint Lake — two lake edges."
     },
     {
       "id": "nahmint-river-66b328",
@@ -8586,7 +8586,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "[lake-class: lake_split] inlet/head of Nahmint Lake."
     },
     {
       "id": "nanaimo-river-76bf11",
@@ -8604,7 +8604,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "[lake-class: lake_split] westernmost of the two Nanaimo (First/Second) lakes — that lake edge."
     },
     {
       "id": "nicola-river-aba357",
@@ -8622,7 +8622,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "[lake-class: lake_split] inlet/head of Nicola Lake."
     },
     {
       "id": "nicola-river-4b9f64",
@@ -8640,7 +8640,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "[lake-class: lake_split] outlet of Nicola Lake."
     },
     {
       "id": "paul-creek-downstream-of-paul-lake-b809c0",
@@ -8658,7 +8658,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "[lake-class: lake_split] outlet of Paul Lake."
     },
     {
       "id": "pennask-creek-c98c41",
@@ -8676,7 +8676,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "[lake-class: lake_split] inlet/head of Pennask Lake."
     },
     {
       "id": "pitt-lake-47a388",
@@ -8690,11 +8690,11 @@
       "full_regulation": "No wild trout over 50 cm, 1 bull trout over 60 cm\nWild trout/char catch and release, single barbless hook north of fishing boundary signs (east and west shores) near the head of the lake",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "todo",
+      "status": "deferred",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "[lake-class: lake_internal] lake-internal line at boundary signs (docs/15) — unsupported."
     },
     {
       "id": "pitt-river-564cfe",
@@ -8712,7 +8712,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "[lake-class: lake_split] head/inlet of Pitt Lake."
     },
     {
       "id": "premier-lake-895b0d",
@@ -8726,11 +8726,11 @@
       "full_regulation": "No Fishing south of fishing boundary signs on the lake shore, May 15-June 20\nRainbow trout daily quota = 2, brook trout daily quota = 20\nNo towing, speed restriction (15 km/h), south half only",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "todo",
+      "status": "deferred",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "[lake-class: lake_internal] lake-internal line at boundary signs (docs/15) — unsupported."
     },
     {
       "id": "ruby-creek-ad1f2c",
@@ -8748,7 +8748,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "[lake-class: lake_split] Ruby Lake outlet (up) + boundary signs (down) — lake anchor + point."
     },
     {
       "id": "seton-river-includes-bc-hydro-power-canal-ups-5f4cbe",
@@ -8766,7 +8766,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "[lake-class: lake_split] outlet of Seton Lake."
     },
     {
       "id": "seton-river-includes-bc-hydro-power-canal-ups-8eb4d1",
@@ -8784,7 +8784,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "[lake-class: lake_split] outlet of Seton Lake."
     },
     {
       "id": "seymour-river-db4eb4",
@@ -8802,7 +8802,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "[lake-class: lake_split] outlet of Seymour Lake."
     },
     {
       "id": "shannon-lake-netted-off-portion-on-the-south--c375a0",
@@ -8816,11 +8816,11 @@
       "full_regulation": "Trout daily quota = 1 Youth/Disabled Accompanied Water May 1-Jun 15 (see page 4)",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "todo",
+      "status": "deferred",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "[lake-class: lake_internal] netted-off lake portion (docs/15 lake-internal) — unsupported."
     },
     {
       "id": "shumway-lake-02ae86",
@@ -8834,11 +8834,11 @@
       "full_regulation": "No Fishing north of fishing boundary signs located at south end of lake, Apr 1-Oct 31",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "todo",
+      "status": "deferred",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "[lake-class: lake_internal] lake-internal line at boundary signs (docs/15) — unsupported."
     },
     {
       "id": "shuswap-lake-see-maps-on-page-28-includes-lit-80ee82",
@@ -8852,11 +8852,11 @@
       "full_regulation": "No Fishing Mar 15-May 14, and rainbow trout and char catch and release, May 15-Mar 14, in the waters lying west of a line between\nsigns at Henstridge Road and Wharf Road to a line between signs on the south and north shores of Little Shuswap Lake (see map A on\npage 28)\nNo Fishing in the entire area north of Albas, Mar 15-May 14 (see map B on page 28)\nNo Fishing east of a line between fishing boundary signs on Murdock and Semaphore points, to Hwy 1 bridge, Mar 15-May 14 (see map C\non page 28)\nNo fishing in Salmon Arm Bay, west of line between Engineer's Point and Sunnybrae Point (see map on page 28), for the conservation\nof chinook and coho salmon stocks, Sept 1-Dec 31 (anglers fishing from the community pier in the city of Salmon Arm are exempt from\nthe closure)\nNo Ice Fishing\nRainbow trout daily quota = 1 (none under 50 cm), annual quota = 5\nChar daily quota = 1 (none under 60 cm), annual quota = 5\nBait ban, single barbless hook (anglers fishing from the community pier in the city of Salmon Arm are exempt from the bait ban)\nConservation Surcharge Stamp required to catch and keep rainbow trout over 50 cm or char over 60 cm",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "todo",
+      "status": "deferred",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "[lake-class: multi_lake] multi-basin (Shuswap + Little Shuswap + arms, see maps) — needs map-driven splits."
     },
     {
       "id": "shuswap-river-521556",
@@ -8874,7 +8874,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "[lake-class: lake_split] head/inlet of Sugar Lake."
     },
     {
       "id": "silverhope-silver-creek-015132",
@@ -8892,7 +8892,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "[lake-class: lake_split] head/inlet of Silver Lake."
     },
     {
       "id": "thompson-river-downstream-of-signs-at-kamloop-38fc02",
@@ -8906,13 +8906,13 @@
       "src": "rule",
       "locator_text": "Downstream of signs at Kamloops Lake",
       "full_regulation": "No Fishing Oct 1-May 31\nTrout/char daily quota = 2 (none under 35 cm)\nAdditional opening from the CNR Bridge downstream of Deadman River to CNR Bridge upstream of Bonaparte River, May 1-31; trout/char\ncatch and release and artificial fly only, May 1-31\nUpstream of boundary signs 1 km downstream of Martel: bait ban\nNo angling from boats\nDownstream of signs at Kamloops Lake: Class II water Oct 1-Dec 31 and Steelhead Stamp mandatory Oct 1-Dec 31 (when open)",
-      "anchor_kind": "lake",
-      "resolver_hint": "lake_reach",
+      "anchor_kind": "point",
+      "resolver_hint": "boundary_signs",
       "status": "todo",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "[lake-class: mis_bucket] NOT a lake cut: boundary signs at Kamloops Lake outlet on the Thompson — a point."
     },
     {
       "id": "thompson-river-upstream-of-kamloops-lake-e0c70b",
@@ -8930,7 +8930,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "[lake-class: lake_split] head/inlet of Kamloops Lake."
     },
     {
       "id": "unnamed-lakes-located-immediately-north-and-s-3aca70",
@@ -8944,11 +8944,11 @@
       "full_regulation": "No Fishing\nKnown by Ministry of Forests designations as lakes 711, 712, 713, 364 and 309 on Map 92H-088",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "todo",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "[lake-class: multi_lake] set of unnamed lakes N/S of Bluey Lake — area membership, no cut."
     },
     {
       "id": "whatshan-river-bcc368",
@@ -8966,7 +8966,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "[lake-class: lake_split] head/inlet of Whatshan Lake."
     },
     {
       "id": "yakoun-river-eace82",
@@ -8984,7 +8984,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "[lake-class: lake_split] Yakoun Lake outlet + offset downstream."
     },
     {
       "id": "zymoetz-copper-river-f226e7",
@@ -9002,7 +9002,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "[lake-class: lake_split] McDonell Lake outlet + ~3 km offset downstream (lake anchor + offset)."
     },
     {
       "id": "healy-lake-s-outlet-stream-afd7d5",
