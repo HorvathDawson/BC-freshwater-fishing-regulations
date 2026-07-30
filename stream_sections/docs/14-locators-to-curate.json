@@ -8,7 +8,7 @@
     "src": "where the locator came from: name | entry | rule | except",
     "locator_text": "the locator string to resolve to a point/reach (may be truncated in the source md)",
     "anchor_kind": "split anchor.type this locator maps to; see anchor_kinds",
-    "status": "todo | curated | manual | not_applicable | deferred (default 'todo'; 'deferred' = looked at but unsolved, sorts last in the curation_status queue)",
+    "status": "todo | curated | manual | not_applicable | auto | deferred (default 'todo'; 'auto' = resolved for free by the combine-phase lake split per docs/04, no authored split needed; 'deferred' = looked at but unsolved, sorts last)",
     "target": "resolved feature target: object like {blk:..} / {wsc:..} / {gnis:..}, or '' if unset",
     "coord": "[lon, lat] once a single point is chosen, else null",
     "label": "short human label for the point/section, or ''",
@@ -8046,11 +8046,11 @@
       "full_regulation": "No Fishing from Elsie Lake to Dickson Lake\nNo Fishing from Dickson Lake to signs 200 m downstream of Lanternman Falls, Dec 1-Apr 30\nNo Fishing from Dickson Falls downstream 30 m to signs",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "todo",
+      "status": "auto",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[lake-class: lake_split] bounded by Elsie Lake (up) and Dickson Lake (down); author two `lake` anchors."
+      "notes": "[lake-class: lake_split] bounded by Elsie Lake (up) and Dickson Lake (down); author two `lake` anchors. — [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 — NO authored split needed."
     },
     {
       "id": "asher-creek-4b601a",
@@ -8088,7 +8088,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[lake-class: lake_split] Tenas Lake edge (up) + boundary signs (down) — lake anchor + point."
+      "notes": "[lake-class: lake_split] Tenas Lake edge (up) + boundary signs (down) — lake anchor + point. — [lake-bound-auto] MIXED: Tenas Lake edge is auto; the downstream boundary-signs point needs authoring."
     },
     {
       "id": "big-bar-creek-ce0182",
@@ -8102,11 +8102,11 @@
       "full_regulation": "Exempt from spring closure downstream of Big Bar Lake",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "todo",
+      "status": "auto",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[lake-class: lake_split] outlet of Big Bar Lake."
+      "notes": "[lake-class: lake_split] outlet of Big Bar Lake. — [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 — NO authored split needed."
     },
     {
       "id": "bonaparte-river-98b62b",
@@ -8120,11 +8120,11 @@
       "full_regulation": "No Fishing downstream of falls at Bonaparte fishway; no trout under 25 cm downstream of Bonaparte Lake",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "todo",
+      "status": "auto",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[lake-class: lake_split] outlet of Bonaparte Lake."
+      "notes": "[lake-class: lake_split] outlet of Bonaparte Lake. — [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 — NO authored split needed."
     },
     {
       "id": "bridge-river-3fa485",
@@ -8138,11 +8138,11 @@
       "full_regulation": "No Fishing from Terzaghi Dam to Yalakom River\nNo Fishing downstream of Hwy 40 bridge (approximately 6 km north of Lillooet), Mar 31-June 20\nNo trout under 25 cm; bull trout catch and release upstream of Downton Lake (reservoir)",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "todo",
+      "status": "auto",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[lake-class: lake_split] head of Downton Lake (reservoir)."
+      "notes": "[lake-class: lake_split] head of Downton Lake (reservoir). — [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 — NO authored split needed."
     },
     {
       "id": "chilko-lake-83dc6f",
@@ -8174,11 +8174,11 @@
       "full_regulation": "Open all year downstream of Brunson Lake",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "todo",
+      "status": "auto",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[lake-class: lake_split] outlet of Brunson Lake."
+      "notes": "[lake-class: lake_split] outlet of Brunson Lake. — [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 — NO authored split needed."
     },
     {
       "id": "columbia-river-73fe32",
@@ -8196,11 +8196,11 @@
       "full_regulation": "No Fishing from Revelstoke Dam downstream to Hwy 1 bridge in Revelstoke\nNo Fishing from a line between the old Robson Ferry landing and a sign on the south river bank, downstream approximately 950 m to the\nCPR Bridge, Mar 1-June 30\nWhere angling is permitted: EXEMPT from the regional Nov 1-Mar 31 trout/char catch and release and the regional Apr 1-June 14 closure\nBass daily quota = unlimited\nKokanee daily quota = 15 from Keenleyside Dam to a line between the old Robson Ferry landing and a sign on the south river bank\nWalleye daily quota = 16 from Keenleyside Dam to the Washington state border\nFrom Keenleyside Dam downstream to the Washington state border and connected reaches: the Kootenay River (Columbia River\nconfluence to Brilliant Dam) and the Pend d'Oreille River (Columbia River confluence to Waneta Dam): Northern pike daily quota =\nunlimited and bass daily quota = unlimited\nBurbot catch and release\nSpeed restriction (10 km/h) from Mud Lake to Columbia Lake, no power boats in wetlands, no towing and engine power restriction -\n15 kW (20 hp), in main channel from Fairmont to Donald\nSee Upper Arrow Lake for the portion of the Columbia River which may be found downstream of the Hwy 1 bridge in Revelstoke\n(depending on reservoir level)",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "todo",
+      "status": "auto",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[lake-class: lake_split] bounded by Mud Lake and Columbia Lake; two `lake` anchors."
+      "notes": "[lake-class: lake_split] bounded by Mud Lake and Columbia Lake; two `lake` anchors. — [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 — NO authored split needed."
     },
     {
       "id": "davie-river-f757c8",
@@ -8214,11 +8214,11 @@
       "full_regulation": "No Fishing downstream of Schoen Lake, Dec 1-May 31",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "todo",
+      "status": "auto",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[lake-class: lake_split] outlet of Schoen Lake."
+      "notes": "[lake-class: lake_split] outlet of Schoen Lake. — [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 — NO authored split needed."
     },
     {
       "id": "deadman-river-aa98fb",
@@ -8232,11 +8232,11 @@
       "full_regulation": "No trout under 25 cm downstream of Mowich Lake",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "todo",
+      "status": "auto",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[lake-class: lake_split] outlet of Mowich Lake."
+      "notes": "[lake-class: lake_split] outlet of Mowich Lake. — [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 — NO authored split needed."
     },
     {
       "id": "downton-lake-reservoir-73beda",
@@ -8268,11 +8268,11 @@
       "full_regulation": "Rainbow trout and char catch and release; speed restriction (5 km/h)\nBait ban downstream of Griffin Lake",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "todo",
+      "status": "auto",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[lake-class: lake_split] outlet of Griffin Lake."
+      "notes": "[lake-class: lake_split] outlet of Griffin Lake. — [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 — NO authored split needed."
     },
     {
       "id": "echoes-lake-near-kimberley-4adc24",
@@ -8308,7 +8308,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[lake-class: lake_split] Connor Lake outlet + 3 km offset downstream (lake anchor + offset)."
+      "notes": "[lake-class: lake_split] Connor Lake outlet + 3 km offset downstream (lake anchor + offset). — [lake-bound-auto] OFFSET: lake bound (Connor Lake outlet) is auto, but the +3 km downstream point needs an authored point (lake anchor + offset, or a point)."
     },
     {
       "id": "fran-ois-lake-9c8274",
@@ -8322,11 +8322,11 @@
       "full_regulation": "For the area at the outlet of François Lake described on map 1, (see below): No Fishing Nov 15-May 31; char daily quota = 2, no more than\n1 over 50 cm; rainbow trout catch and release; bait ban; single barbless hook; no set lining",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "todo",
+      "status": "auto",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[lake-class: lake_split] at the outlet of Francois Lake (map-described) — lake outlet edge."
+      "notes": "[lake-class: lake_split] at the outlet of Francois Lake (map-described) — lake outlet edge. — [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 — NO authored split needed."
     },
     {
       "id": "guichon-creek-9a81b6",
@@ -8340,11 +8340,11 @@
       "full_regulation": "No Fishing Jan 1-May 31\nNo trout under 25 cm downstream of Mamit Lake",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "todo",
+      "status": "auto",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[lake-class: lake_split] outlet of Mamit Lake."
+      "notes": "[lake-class: lake_split] outlet of Mamit Lake. — [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 — NO authored split needed."
     },
     {
       "id": "harrison-river-from-the-fraser-river-upstream-f8ecc6",
@@ -8358,11 +8358,11 @@
       "full_regulation": "No Fishing from one hour after sunset to one hour before sunrise, tributaries not included\nDead fin fish may be used for bait only when fishing for sturgeon (see page 8 in the Provincial Regulations)\nSpeed restriction or no powered boats in small bays along the river as signed",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "todo",
+      "status": "auto",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[lake-class: lake_split] Harrison Lake edge (up) + Fraser confluence (down) — lake anchor + confluence."
+      "notes": "[lake-class: lake_split] Harrison Lake edge (up) + Fraser confluence (down) — lake anchor + confluence. — [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 — NO authored split needed."
     },
     {
       "id": "idlewild-lake-old-cranbrook-reservoir-85e69f",
@@ -8398,7 +8398,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[lake-class: lake_split] Jewel Lake outlet + ~1.5 km offset downstream."
+      "notes": "[lake-class: lake_split] Jewel Lake outlet + ~1.5 km offset downstream. — [lake-bound-auto] OFFSET: Jewel Lake outlet is auto; the ~1.5 km downstream point needs authoring."
     },
     {
       "id": "kootenay-river-downstream-of-idaho-border-c2529b",
@@ -8413,11 +8413,11 @@
       "full_regulation": "No Fishing from CPR Bridge near Creston downstream 2 km to navigation dolphin\nDownstream from the Idaho border to CPR Bridge near Creston and from Corra Linn Dam to the Columbia River: EXEMPT from Apr 1-June 14 closure AND from Nov 1-Mar 31 trout/char catch and release\nBurbot catch and release from Idaho border near Creston to Kootenay Lake, including tributaries to that part\nWalleye daily quota = 16 from the Brilliant Dam to the confluence with the Columbia River\nFrom the Brilliant Dam to the confluence with the Columbia River: northern pike and bass daily quota = unlimited",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "todo",
+      "status": "auto",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[lake-class: lake_split] Kootenay Lake edge (up) + Idaho border (down) — authored split kootenay_idaho_border already covers the border."
+      "notes": "[lake-class: lake_split] Kootenay Lake edge (up) + Idaho border (down) — authored split kootenay_idaho_border already covers the border. — [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 — NO authored split needed."
     },
     {
       "id": "kootenay-river-upstream-of-koocanusa-reservoi-3bb758",
@@ -8492,11 +8492,11 @@
       "full_regulation": "Trout/char catch and release downstream of McKinley Lake; bait ban",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "todo",
+      "status": "auto",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[lake-class: lake_split] outlet of McKinley Lake."
+      "notes": "[lake-class: lake_split] outlet of McKinley Lake. — [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 — NO authored split needed."
     },
     {
       "id": "moberly-river-b2a8ec",
@@ -8510,11 +8510,11 @@
       "full_regulation": "Arctic grayling catch and release downstream of Moberly Lake, Mountain whitefish catch and release downstream of Moberly Lake",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "todo",
+      "status": "auto",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[lake-class: lake_split] outlet of Moberly Lake."
+      "notes": "[lake-class: lake_split] outlet of Moberly Lake. — [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 — NO authored split needed."
     },
     {
       "id": "nahatlatch-river-1d1eaf",
@@ -8528,11 +8528,11 @@
       "full_regulation": "No Fishing from Frances Lake downstream approximately 400 m to fishing boundary signs at the logging bridge\nDownstream of Nahatlatch Lake (including Hannah and Frances lakes; except as noted upstream of ), open until Dec 31; No Fishing\nJan 1-May 31\nNo Fishing downstream of Nahatlatch Lake, Jan 1-May 31\nTrout daily quota = 2 (none under 30 cm)",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "todo",
+      "status": "auto",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[lake-class: lake_split] outlet of Nahatlatch Lake."
+      "notes": "[lake-class: lake_split] outlet of Nahatlatch Lake. — [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 — NO authored split needed."
     },
     {
       "id": "nahatlatch-river-0bb710",
@@ -8546,11 +8546,11 @@
       "full_regulation": "No Fishing from Frances Lake downstream approximately 400 m to fishing boundary signs at the logging bridge\nDownstream of Nahatlatch Lake (including Hannah and Frances lakes; except as noted upstream of ), open until Dec 31; No Fishing\nJan 1-May 31\nNo Fishing downstream of Nahatlatch Lake, Jan 1-May 31\nTrout daily quota = 2 (none under 30 cm)",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "todo",
+      "status": "auto",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[lake-class: lake_split] outlet of Nahatlatch Lake."
+      "notes": "[lake-class: lake_split] outlet of Nahatlatch Lake. — [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 — NO authored split needed."
     },
     {
       "id": "nahmint-river-786f4c",
@@ -8564,11 +8564,11 @@
       "full_regulation": "No Fishing Nahmint River (upstream and downstream of the lake), Nov 1-Apr 30; fly fishing only upstream of Nahmint Lake when open",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "todo",
+      "status": "auto",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[lake-class: lake_split] up & downstream of Nahmint Lake — two lake edges."
+      "notes": "[lake-class: lake_split] up & downstream of Nahmint Lake — two lake edges. — [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 — NO authored split needed."
     },
     {
       "id": "nahmint-river-66b328",
@@ -8582,11 +8582,11 @@
       "full_regulation": "No Fishing Nahmint River (upstream and downstream of the lake), Nov 1-Apr 30; fly fishing only upstream of Nahmint Lake when open",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "todo",
+      "status": "auto",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[lake-class: lake_split] inlet/head of Nahmint Lake."
+      "notes": "[lake-class: lake_split] inlet/head of Nahmint Lake. — [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 — NO authored split needed."
     },
     {
       "id": "nanaimo-river-76bf11",
@@ -8600,11 +8600,11 @@
       "full_regulation": "No Fishing July 15-Aug 31\nNo Fishing from power line crossing at \"Bore Hole\" upstream to fishing boundary signs at the mouth of Boulder Creek\nNo Fishing from the Cedar Road Bridge upstream to the Hwy 19 bridge, Sept 1-Oct 15\nNo Fishing upstream of the Hwy 1 bridge[Includes Tributaries], Dec 1-May 31\nArtificial fly only upstream of the westernmost of the two Nanaimo Lakes, known locally as \"Second\" Lake, including tributaries\nEngine power restriction on parts - 7.5 kW (10 hp)",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "todo",
+      "status": "auto",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[lake-class: lake_split] westernmost of the two Nanaimo (First/Second) lakes — that lake edge."
+      "notes": "[lake-class: lake_split] westernmost of the two Nanaimo (First/Second) lakes — that lake edge. — [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 — NO authored split needed."
     },
     {
       "id": "nicola-river-aba357",
@@ -8618,11 +8618,11 @@
       "full_regulation": "No Fishing upstream of Nicola Lake, Jan 1-June 30\nNo Fishing downstream of Nicola Lake, Mar 1-Sept 30\nTrout catch and release downstream of Nicola Lake, Jan 1-Feb 28\nNo trout under 25 cm downstream of Nicola Lake\nBull trout catch and release",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "todo",
+      "status": "auto",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[lake-class: lake_split] inlet/head of Nicola Lake."
+      "notes": "[lake-class: lake_split] inlet/head of Nicola Lake. — [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 — NO authored split needed."
     },
     {
       "id": "nicola-river-4b9f64",
@@ -8636,11 +8636,11 @@
       "full_regulation": "No Fishing upstream of Nicola Lake, Jan 1-June 30\nNo Fishing downstream of Nicola Lake, Mar 1-Sept 30\nTrout catch and release downstream of Nicola Lake, Jan 1-Feb 28\nNo trout under 25 cm downstream of Nicola Lake\nBull trout catch and release",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "todo",
+      "status": "auto",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[lake-class: lake_split] outlet of Nicola Lake."
+      "notes": "[lake-class: lake_split] outlet of Nicola Lake. — [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 — NO authored split needed."
     },
     {
       "id": "paul-creek-downstream-of-paul-lake-b809c0",
@@ -8654,11 +8654,11 @@
       "full_regulation": "Exempt from spring closure, Youth/Disabled Accompanied Water year round (see page 4)",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "todo",
+      "status": "auto",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[lake-class: lake_split] outlet of Paul Lake."
+      "notes": "[lake-class: lake_split] outlet of Paul Lake. — [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 — NO authored split needed."
     },
     {
       "id": "pennask-creek-c98c41",
@@ -8672,11 +8672,11 @@
       "full_regulation": "No Fishing upstream of Pennask Lake",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "todo",
+      "status": "auto",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[lake-class: lake_split] inlet/head of Pennask Lake."
+      "notes": "[lake-class: lake_split] inlet/head of Pennask Lake. — [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 — NO authored split needed."
     },
     {
       "id": "pitt-lake-47a388",
@@ -8708,11 +8708,11 @@
       "full_regulation": "No Fishing within Garibaldi Park; speed restriction at Grant Narrows (10 km/h)\nBait ban upstream of Pitt Lake\nNo Fishing in the Lower Pitt River (CPR Bridge upstream to Pitt Lake) from one hour after sunset to one hour before sunrise (tributaries not\nincluded)",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "todo",
+      "status": "auto",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[lake-class: lake_split] head/inlet of Pitt Lake."
+      "notes": "[lake-class: lake_split] head/inlet of Pitt Lake. — [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 — NO authored split needed."
     },
     {
       "id": "premier-lake-895b0d",
@@ -8748,7 +8748,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[lake-class: lake_split] Ruby Lake outlet (up) + boundary signs (down) — lake anchor + point."
+      "notes": "[lake-class: lake_split] Ruby Lake outlet (up) + boundary signs (down) — lake anchor + point. — [lake-bound-auto] MIXED: Ruby Lake outlet is auto; the downstream boundary-signs point needs authoring."
     },
     {
       "id": "seton-river-includes-bc-hydro-power-canal-ups-5f4cbe",
@@ -8762,11 +8762,11 @@
       "full_regulation": "Exempt from spring closure\nNo trout under 25 cm downstream of Seton Lake\nDownstream of Seton Lake, No Fishing Apr 1-May 31",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "todo",
+      "status": "auto",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[lake-class: lake_split] outlet of Seton Lake."
+      "notes": "[lake-class: lake_split] outlet of Seton Lake. — [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 — NO authored split needed."
     },
     {
       "id": "seton-river-includes-bc-hydro-power-canal-ups-8eb4d1",
@@ -8780,11 +8780,11 @@
       "full_regulation": "Exempt from spring closure\nNo trout under 25 cm downstream of Seton Lake\nDownstream of Seton Lake, No Fishing Apr 1-May 31",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "todo",
+      "status": "auto",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[lake-class: lake_split] outlet of Seton Lake."
+      "notes": "[lake-class: lake_split] outlet of Seton Lake. — [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 — NO authored split needed."
     },
     {
       "id": "seymour-river-db4eb4",
@@ -8798,11 +8798,11 @@
       "full_regulation": "No Fishing downstream of Seymour Lake",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "todo",
+      "status": "auto",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[lake-class: lake_split] outlet of Seymour Lake."
+      "notes": "[lake-class: lake_split] outlet of Seymour Lake. — [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 — NO authored split needed."
     },
     {
       "id": "shannon-lake-netted-off-portion-on-the-south--c375a0",
@@ -8870,11 +8870,11 @@
       "full_regulation": "No Fishing from Mara Lake upstream to Mara Bridge\nNo Fishing 50 m upstream and 50 m downstream of Trinity Bridge, Jun 15-Nov 15\nRainbow trout/char catch and release; exempt from spring closure from Mara Bridge upstream to Sugar Lake\nUpstream of Sugar Lake: No fishing Sept 1-Oct 31; bait ban",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "todo",
+      "status": "auto",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[lake-class: lake_split] head/inlet of Sugar Lake."
+      "notes": "[lake-class: lake_split] head/inlet of Sugar Lake. — [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 — NO authored split needed."
     },
     {
       "id": "silverhope-silver-creek-015132",
@@ -8888,11 +8888,11 @@
       "full_regulation": "No Fishing upstream of Silver Lake, Nov 1-June 30\nFly fishing only and bait ban upstream of Silver Lake, July 1-Oct 31\nNo Fishing from Silver Lake down to the Bailey Bridge situated approximately 8 km upstream of Hwy 1\nBait ban downstream of Bailey Bridge situated approximately 8 km upstream of Hwy 1",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "todo",
+      "status": "auto",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[lake-class: lake_split] head/inlet of Silver Lake."
+      "notes": "[lake-class: lake_split] head/inlet of Silver Lake. — [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 — NO authored split needed."
     },
     {
       "id": "thompson-river-downstream-of-signs-at-kamloop-38fc02",
@@ -8926,11 +8926,11 @@
       "full_regulation": "Exempt from spring closure\nRainbow trout daily quota = 2 (none over 50 cm)",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "todo",
+      "status": "auto",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[lake-class: lake_split] head/inlet of Kamloops Lake."
+      "notes": "[lake-class: lake_split] head/inlet of Kamloops Lake. — [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 — NO authored split needed."
     },
     {
       "id": "unnamed-lakes-located-immediately-north-and-s-3aca70",
@@ -8962,11 +8962,11 @@
       "full_regulation": "No Fishing upstream of Whatshan Lake",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "todo",
+      "status": "auto",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[lake-class: lake_split] head/inlet of Whatshan Lake."
+      "notes": "[lake-class: lake_split] head/inlet of Whatshan Lake. — [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 — NO authored split needed."
     },
     {
       "id": "yakoun-river-eace82",
@@ -8984,7 +8984,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[lake-class: lake_split] Yakoun Lake outlet + offset downstream."
+      "notes": "[lake-class: lake_split] Yakoun Lake outlet + offset downstream. — [lake-bound-auto] OFFSET: Yakoun Lake outlet is auto; the downstream offset point needs authoring."
     },
     {
       "id": "zymoetz-copper-river-f226e7",
@@ -9002,7 +9002,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[lake-class: lake_split] McDonell Lake outlet + ~3 km offset downstream (lake anchor + offset)."
+      "notes": "[lake-class: lake_split] McDonell Lake outlet + ~3 km offset downstream (lake anchor + offset). — [lake-bound-auto] OFFSET: McDonell Lake outlet is auto; the ~3 km downstream point needs authoring."
     },
     {
       "id": "healy-lake-s-outlet-stream-afd7d5",

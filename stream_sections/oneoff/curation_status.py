@@ -34,7 +34,7 @@ from pathlib import Path
 
 _DOC = Path("stream_sections/docs/14-locators-to-curate.json")
 
-DONE = ("curated", "manual", "not_applicable")
+DONE = ("curated", "manual", "not_applicable", "auto")
 # queue order: fresh todo first, deferred last (0 sorts before 1)
 _QUEUE_RANK = {"todo": 0, "deferred": 1}
 
@@ -59,8 +59,8 @@ def _find(doc: dict, locator_id: str) -> dict:
 def summary(doc: dict) -> None:
     locs = doc["locators"]
     kinds = sorted({x["anchor_kind"] for x in locs})
-    statuses = ("curated", "manual", "not_applicable", "todo", "deferred")
-    hdr = f"{'anchor_kind':26s} {'tot':>4} {'cur':>4} {'man':>4} {'n/a':>4} {'todo':>5} {'defer':>6} {'done%':>6}"
+    statuses = ("curated", "manual", "not_applicable", "auto", "todo", "deferred")
+    hdr = f"{'anchor_kind':26s} {'tot':>4} {'cur':>4} {'man':>4} {'n/a':>4} {'auto':>5} {'todo':>5} {'defer':>6} {'done%':>6}"
     print(hdr)
     print("-" * len(hdr))
     tot = {s: 0 for s in statuses}
@@ -74,12 +74,12 @@ def summary(doc: dict) -> None:
         done = sum(c[s] for s in DONE)
         pct = 100 * done / len(rows) if rows else 0
         print(f"{k:26s} {len(rows):4d} {c['curated']:4d} {c['manual']:4d} "
-              f"{c['not_applicable']:4d} {c['todo']:5d} {c['deferred']:6d} {pct:5.0f}%")
+              f"{c['not_applicable']:4d} {c['auto']:5d} {c['todo']:5d} {c['deferred']:6d} {pct:5.0f}%")
     print("-" * len(hdr))
     done_all = sum(tot[s] for s in DONE)
     pct = 100 * done_all / tot_all if tot_all else 0
     print(f"{'TOTAL':26s} {tot_all:4d} {tot['curated']:4d} {tot['manual']:4d} "
-          f"{tot['not_applicable']:4d} {tot['todo']:5d} {tot['deferred']:6d} {pct:5.0f}%")
+          f"{tot['not_applicable']:4d} {tot['auto']:5d} {tot['todo']:5d} {tot['deferred']:6d} {pct:5.0f}%")
 
 
 # ---------------------------------------------------------------- queue
@@ -171,7 +171,7 @@ def undefer(doc: dict, locator_id: str) -> None:
     print(f"undeferred {locator_id} (back to todo)")
 
 
-_VALID_STATUS = ("todo", "curated", "manual", "not_applicable", "deferred")
+_VALID_STATUS = ("todo", "curated", "manual", "not_applicable", "deferred", "auto")
 
 
 def annotate(doc: dict, locator_id: str, *, status: str | None, wbk: str | None,
