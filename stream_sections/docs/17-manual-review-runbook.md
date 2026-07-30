@@ -14,11 +14,13 @@ Most un-curated rows now carry an **auto-proposal** in `notes` (written by resea
 The job: present each proposal to the human with map links, ask a **multiple-choice** confirm,
 and write the confirmed result back. The human decides; the agent never self-confirms.
 
-## Current state (2026-07-30)
-- **confluence_tributary** — DONE (92 curated / 42 not_applicable / 13 deferred / 3 manual, 0 todo).
-- **dam_weir_fence** (43) — enriched, `todo`. 14 H reservoir-outlets, 9 M, 20 L (fences/hatchery weirs, coord=map-only).
-- **bridge_road_km** (99) — enriched, `todo`. 11 M FSR∩stream crossings, ~88 L public road/rail bridges (coord=map-only).
-- **lake_reach** (~68 after reclassifies) — a subagent is/was classifying each as lake_split / whole_lake / point → `lake_proposals.json`; merge into notes the same way.
+## Current state (2026-07-30, post schema-migration)
+- **Schema migrated** (commit 4a0c58c): anchor_kind = split type; old buckets moved to `resolver_hint`; `split_id` removed. Filter batches by `--hint`.
+- **not_applicable audit DONE — verdict SOUND**: all 45 n/a rows are correctly classified. The tributary-SET rows ("X'S TRIBUTARIES") show mainstem splits in their reg text, but every such split IS captured as its own dedicated row (verified Campbell/Salmo/Brunette/Granby/Little Qualicum/Trout Lake/Lake Revelstoke/Premier). No reclassification needed — the earlier "issues" were mainstem rows still in `todo` (uncurated auto-proposals), not missing splits.
+- **confluence** (hint=tributary) — DONE (92 curated / 42 not_applicable / 13 deferred / 3 manual, 0 todo).
+- **point/dam_weir_fence** (43) — enriched, `todo`. 14 H reservoir-outlets, 9 M, 20 L (fences/hatchery weirs, coord=map-only).
+- **point/bridge_road_km** (~99) — enriched, `todo`. 11 M FSR∩stream crossings, ~88 L public road/rail bridges (coord=map-only).
+- **lake** (hint=lake_reach, 63 todo) — NEEDS a subagent to classify each as lake_split / whole_lake / point → `lake_proposals.json`; merge into notes the same way. NOT yet done.
 - Still bare `todo`: `other_reach`, `line_between_signs`, `map_or_vague`, `radius_buffer`, `except_negative`, `area_park_polygon`, `boundary_signs_generic`, a few `falls_canyon_obstacle`.
 - **Authored splits**: `stream_sections/splits.json` (12). 18 locators reference them via a
   `authored split: <id>` line in `notes` (curated). Those authored coords/targets are VERIFIED and
