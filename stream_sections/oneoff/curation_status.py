@@ -266,9 +266,9 @@ def _dec_save(path: Path, dec: dict) -> None:
 
 
 _LABEL_HELP = ("[enter]/s=skip  y=accept candidate  c lon,lat=set coord  d[ reason]=defer  "
-               "x[ reason]=confirm not-a-split  k <anchor_kind>=reclassify as a real split  "
-               "m[ reason]=manual  t key=val..=target(wbk/blk/wsc)  n <note>  a <text>=flag for agent  "
-               "u=undo  q=quit")
+               "x[ reason]=not-a-split  o[ reason]=auto(lake edge/no split)  "
+               "k <anchor_kind>=reclassify as a real split  m[ reason]=manual  "
+               "t key=val..=target(wbk/blk/wsc)  n <note>  a <text>=flag for agent  u=undo  q=quit")
 _KINDS = ("point", "confluence", "line", "lake", "area_boundary", "mu_boundary",
           "lake_io", "buffer", "not_a_split", "unclassified")
 
@@ -304,7 +304,8 @@ def label(doc: dict, kind: str | None, hint: str | None, easy: bool, out: Path) 
         print(f"[{i+1}/{len(q)}] {khint}  ·  {x['id']}  ·  {x['region']} {mus}  ·  status={x['status']}"
               + (f"  ·  ALREADY DECIDED: {prev.get('verdict','note')}" if prev else ""))
         if x["status"] == "likely_na":
-            print("  ⚑ FLAGGED LIKELY-NOT-APPLICABLE — confirm with 'x', or 'k <anchor_kind>' if it IS a split.")
+            print("  ⚑ REVIEW (assume nothing) — re-decide: x=not-a-split · d=defer · o=auto · "
+                  "m=manual · y/c=curate · k=reclassify.")
         print(f"  {x['name_verbatim']}")
         if x.get("locator_text"):
             print("  loc: " + " ".join(x["locator_text"].split())[:170])
@@ -344,6 +345,8 @@ def label(doc: dict, kind: str | None, hint: str | None, easy: bool, out: Path) 
             put(x["id"], verdict="defer", note=rest or None); i += 1
         elif op == "x":
             put(x["id"], verdict="not_a_split", note=rest or None); i += 1
+        elif op == "o":
+            put(x["id"], verdict="auto", note=rest or None); i += 1
         elif op == "m":
             put(x["id"], verdict="manual", note=rest or None); i += 1
         elif op == "k":
@@ -395,6 +398,8 @@ def apply_decisions(doc: dict, path: str) -> None:
             needs_agent.append(lid)                     # wrong, no replacement coord
         elif verdict == "not_a_split":
             x["status"] = "not_applicable"
+        elif verdict == "auto":
+            x["status"] = "auto"
         elif verdict == "reclass" and v.get("kind"):
             x["anchor_kind"] = v["kind"]; x["status"] = "todo"    # it IS a split -> back in the queue
         elif verdict == "defer":

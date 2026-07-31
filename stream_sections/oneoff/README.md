@@ -41,10 +41,13 @@ Full method & gotchas: **`../docs/17-manual-review-runbook.md`**.
 ### Offline labelling (no service / no API) — two front-ends, one apply
 Both produce a **decisions file** the doc consumes later; neither needs the network to label.
 
-**Review order.** Rows auto-classified as probably-not-a-split sit in status **`likely_na`** and are
-surfaced **first** (with a ⚑ banner) so you confirm them before real curation: `x` = yes, not a split
-(→ not_applicable) · `k <anchor_kind>` = no, it IS a split, reclassify (→ back in the queue). After
-those come the easiest real rows (a candidate coord), then the rest.
+**Review order — assume nothing.** Only `curated` and `manual` are trusted. Every other
+auto-decided row (was `not_applicable` / `deferred` / `auto`, plus the `not_a_split` rows) sits in
+status **`likely_na`** and is surfaced **first** (⚑ banner, prior status kept in a `[review · was:X]`
+note) so you re-decide each before touching real curation:
+`x`=not-a-split(→n/a) · `d`=defer · `o`=auto(lake edge) · `m`=manual · `y`/`c`=curate ·
+`k <anchor_kind>`=reclassify as a real split. After the ⚑ pile come the easiest real rows
+(a candidate coord), then the rest.
 
 **A. Interactive CLI (best beside QGIS).** Walks the queue in that order, shows *what to find* +
 OSM/Google/Satellite links + `target` (blk/wsc/wbk to locate in QGIS/FWA). Decisions go to a
