@@ -77,6 +77,23 @@ write them with `annotate`.
 .venv/bin/python -m stream_sections.oneoff.resolve_lake_offsets
 ```
 
+### Review comments in the docs (offline reading → reviewable discussion)
+One universal convention: an **HTML comment** — invisible in rendered markdown, present in the
+source, greppable in any file. Drop them anywhere as you read:
+```
+<!-- @REVIEW: this confluence looks like the north fork, double-check -->
+<!-- @Q: why is Dean's canyon 3–5 km from the mouth, not the upper canyon? -->
+<!-- @BLOCKER: don't author the Skeena splits until I confirm the reach labels -->
+```
+An agent answers inline right below, so it reads as a thread: `<!-- @REPLY: … fixed in <commit> -->`.
+Collect them back in service (this makes the discussion reviewable):
+```bash
+.venv/bin/python -m stream_sections.oneoff.review_comments          # all @REVIEW/@Q/@BLOCKER/@REPLY
+.venv/bin/python -m stream_sections.oneoff.review_comments --open   # only unanswered
+```
+Tags: `@REVIEW` (note), `@Q` (question), `@BLOCKER` (must-fix-first), `@TODO`, `@REPLY` (answer).
+For the locators JSON specifically, prefer the `label` loop's `n <note>` / `a <for-agent>` instead.
+
 ## Typical away-from-service loop
 1. `curation_status label --hint <bucket> --easy` (or open `output/locator_review.html`) → label offline.
 2. Decisions accumulate in `output/review_decisions.json` (safe to copy around; regenerable HTML is gitignored).

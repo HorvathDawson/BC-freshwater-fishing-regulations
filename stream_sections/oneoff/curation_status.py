@@ -47,6 +47,12 @@ _DOC = Path("stream_sections/docs/14-locators-to-curate.json")
 _DECISIONS = Path("output/review_decisions.json")   # offline label output; apply back on return
 _CAND = re.compile(r"Candidate coord\s*\[\s*(-?\d+\.?\d*)\s*,\s*(-?\d+\.?\d*)\s*\]")
 _CONF = re.compile(r"\[auto-proposal\s*([HML])")
+# rows that likely need TWO points (‑a/‑b) or an offset, so a single 'correct' coord is suspect
+_MULTI = re.compile(r"\bfrom\b.+\bto\b|upstream and downstream|between\b.+\band\b", re.I)
+
+
+def _looks_multi(x: dict) -> bool:
+    return bool(_MULTI.search(x.get("locator_text") or ""))
 
 DONE = ("curated", "manual", "not_applicable", "auto")
 # queue order: fresh todo first, deferred last (0 sorts before 1)
@@ -315,12 +321,15 @@ def label(doc: dict, kind: str | None, hint: str | None, easy: bool, out: Path) 
         if cmd == "?":
             print("  " + _LABEL_HELP); continue
         op, rest = cmd[0], cmd[1:].strip()
+        _warn = lambda: _looks_multi(x) and print(
+            "  ⚠ looks like a 2-boundary/offset reach — a single point may be wrong; "
+            "consider 'a' (for-agent) or 'u' to undo.")
         if op == "y" and cand:
-            put(x["id"], verdict="correct", coord=cand); i += 1
+            put(x["id"], verdict="correct", coord=cand); _warn(); i += 1
         elif op == "c":
             m = re.search(r"(-?\d+\.?\d*)\s*,\s*(-?\d+\.?\d*)", rest)
             if m:
-                put(x["id"], verdict="correct", coord=[float(m.group(1)), float(m.group(2))]); i += 1
+                put(x["id"], verdict="correct", coord=[float(m.group(1)), float(m.group(2))]); _warn(); i += 1
             else:
                 print("  ! use 'c lon,lat'")
         elif op == "d":
@@ -354,7 +363,7 @@ def apply_decisions(doc: dict, path: str) -> None:
     defer -> deferred · manual -> manual · for_agent -> left todo + flagged · skip -> untouched.
     A `target` (wbk/blk/wsc) and/or `note` on any row is merged in too."""
     dec = json.loads(Path(path).read_text())
-    applied = 0; needs_agent = []
+    applied = 0; needs_agent = []; check = []
     for lid, v in dec.items():
         try:
             x = _find(doc, lid)
@@ -367,6 +376,8 @@ def apply_decisions(doc: dict, path: str) -> None:
             if coord:
                 x["coord"] = coord
             x["status"] = "curated"
+            if _looks_multi(x) and coord:
+                check.append(lid)                       # single coord on a 2-boundary/offset row
         elif verdict == "wrong":
             needs_agent.append(lid)                     # wrong, no replacement coord
         elif verdict == "not_a_split":
@@ -385,6 +396,9 @@ def apply_decisions(doc: dict, path: str) -> None:
     print(f"applied {applied} decisions.")
     if needs_agent:
         print(f"NEEDS AGENT ({len(needs_agent)}): {', '.join(needs_agent)}")
+    if check:
+        print(f"⚠ CHECK ({len(check)} correct rows read like 2-boundary/offset reaches — a single "
+              f"coord may bound the wrong stretch; an agent should split into -a/-b): {', '.join(check)}")
 
 
 # ---------------------------------------------------------------- cli
