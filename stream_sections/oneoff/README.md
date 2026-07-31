@@ -1,16 +1,83 @@
-# stream_sections/oneoff — one-off / bootstrap scripts
+# stream_sections/oneoff — one-off / bootstrap & curation tooling
 
-Run-once tooling, kept for reproducibility but NOT part of the build. Run from the repo root.
+Run-once and hand-curation tooling, kept for reproducibility but NOT part of the build.
+**Run everything from the repo root** with `.venv/bin/python -m stream_sections.oneoff.<script>`.
 
+## Bootstrap / reports
 | Script | What it does | Output |
 |--------|--------------|--------|
-| `name_variants_compile.py` | Bootstrap the unified name-variations file from the current sources (feature_display_names + overrides + anglerinfo). Future-format sources get their own appenders (docs/13). | `stream_sections/name_variants.json` |
-| `complex_regs_report.py` | One-time scan of overrides + parsed synopsis for section-language / tributary / multi-rule complexity (split-candidate triage). | `output/v2/complex_regulations.md` |
+| `name_variants_compile.py` | Bootstrap the unified name-variations file (feature_display_names + overrides + anglerinfo). | `stream_sections/name_variants.json` |
+| `complex_regs_report.py` | Scan overrides + parsed synopsis for section-language / tributary / multi-rule complexity. | `output/v2/complex_regulations.md` |
 
+---
+
+## Curation tooling — `14-locators-to-curate.json`
+Point/boundary curation for fishing-reg locators. Each row has `anchor_kind` (split type: `point |
+confluence | lake | line | area_boundary | lake_io | buffer | not_a_split | unclassified`), a
+`resolver_hint` (old bucket: `tributary | falls_obstacle | dam_weir_fence | bridge_road_km | …`),
+a `status` (`todo | curated | manual | not_applicable | deferred | auto`), and a free-text `notes`
+that carries research + `[auto-proposal H|M|L] … Candidate coord [lon,lat]` lines.
+Full method & gotchas: **`../docs/17-manual-review-runbook.md`**.
+
+### `curation_status.py` — progress + work queue + review
+```bash
+# progress table (per anchor_kind) + the next 10 open items
+.venv/bin/python -m stream_sections.oneoff.curation_status
+.venv/bin/python -m stream_sections.oneoff.curation_status next 15 --hint bridge_road_km
+.venv/bin/python -m stream_sections.oneoff.curation_status show  <id>          # one row as JSON
+.venv/bin/python -m stream_sections.oneoff.curation_status review not_applicable --kind confluence   # audit a bucket
+.venv/bin/python -m stream_sections.oneoff.curation_status defer <id> --reason "…"   # park to back of queue
+.venv/bin/python -m stream_sections.oneoff.curation_status undefer <id>
 ```
-.venv/bin/python -m stream_sections.oneoff.name_variants_compile --out stream_sections/name_variants.json
-.venv/bin/python -m stream_sections.oneoff.complex_regs_report
+`--kind` filters by split type, `--hint` by the granular bucket. Deferred rows sort last.
+
+**Write one row (online, direct-to-doc):**
+```bash
+.venv/bin/python -m stream_sections.oneoff.curation_status annotate <id> \
+    --status curated --coord=-118.634,49.148 --blk 356526465 --label "…" --note "…"
+# NOTE: use --coord=-LON,LAT (equals form) so argparse doesn't read the leading '-' as a flag.
 ```
 
-The durable outputs (`name_variants.json`, the regs report) are what the pipeline/docs consume;
-these scripts only regenerate them.
+### Offline labelling (no service / no API) — two front-ends, one apply
+Both produce a **decisions file** the doc consumes later; neither needs the network to label.
+
+**A. Interactive CLI (best beside QGIS).** Walks the queue easiest-first (rows with a candidate
+coord, best confidence first), shows *what to find* + OSM/Google/Satellite links + `target`
+(blk/wsc/wbk to locate in QGIS/FWA). Decisions go to a **separate file** — the live doc is untouched.
+```bash
+.venv/bin/python -m stream_sections.oneoff.curation_status label --hint dam_weir_fence --easy
+#   per item:  y = accept candidate         c -125.1,50.2 = set coord (paste from QGIS)
+#              d[ reason] = defer            x[ reason] = not a split      m[ reason] = manual
+#              t wbk=..|blk=..|wsc=.. = set target      n <note>      a <text> = flag for an agent
+#              u = undo this row             enter/s = skip            q = quit
+#   --easy hides rows without a candidate; --out <path> overrides output/review_decisions.json
+```
+
+**B. Offline HTML labeller (nice on a plane, no terminal).** One self-contained page; filter/search,
+click map links, pick a verdict per card; persists in-browser; **⬇ Export** to `decisions.json`.
+```bash
+.venv/bin/python -m stream_sections.oneoff.build_review_html          # -> output/locator_review.html  (open file://)
+```
+
+**Back in service — apply the decisions into the doc:**
+```bash
+.venv/bin/python -m stream_sections.oneoff.curation_status apply                       # output/review_decisions.json
+.venv/bin/python -m stream_sections.oneoff.curation_status apply path/to/decisions.json   # e.g. the HTML export
+#   correct->curated(+coord) · wrong+coord->curated · not_a_split->not_applicable
+#   defer->deferred · manual->manual · for_agent-> left todo & reported as NEEDS AGENT
+```
+Rows you can't finish solo (two-boundary "A→B" splits, confluence `wsc`, offsets) — mark them `a`
+(for-agent) in the CLI or leave a `[for-agent]` note; an agent finishes them (grep notes for `[for-agent]`).
+
+### `resolve_lake_offsets.py` — auto-resolve "N km below <Lake>" boundary-sign points
+Finds each lake's outlet on the target stream (nearest `(blk, poly)` pair to beat name collisions;
+clean boundary-crossing else nearest-point) and walks the reg's downstream offset. Prints proposals;
+write them with `annotate`.
+```bash
+.venv/bin/python -m stream_sections.oneoff.resolve_lake_offsets
+```
+
+## Typical away-from-service loop
+1. `curation_status label --hint <bucket> --easy` (or open `output/locator_review.html`) → label offline.
+2. Decisions accumulate in `output/review_decisions.json` (safe to copy around; regenerable HTML is gitignored).
+3. On return: `curation_status apply` → then hand-finish any `NEEDS AGENT` rows → commit.

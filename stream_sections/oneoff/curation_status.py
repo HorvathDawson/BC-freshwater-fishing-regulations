@@ -21,14 +21,15 @@ can be parked with ``defer`` so they sort to the BACK of the queue and stop crow
     # full detail for one row
     .venv/bin/python -m stream_sections.oneoff.curation_status show chapman-creek-6d4cfd-b
 
-    # INTERACTIVE review loop for QGIS work — show each item + map links, skip or update inline
-    .venv/bin/python -m stream_sections.oneoff.curation_status label --hint dam_weir_fence
+    # OFFLINE interactive review loop for QGIS work — writes a DECISIONS FILE, not the doc.
+    # Easiest rows (those with a candidate coord) come first; --easy hides the rest.
+    .venv/bin/python -m stream_sections.oneoff.curation_status label --hint dam_weir_fence --easy
     #   per item:  y=accept candidate · c <lon,lat>=set coord · d/x/m=defer/not-a-split/manual
-    #              t wbk=..|blk=..=set target · n <note> · a <for-agent> · enter=skip · q=quit
-    #   every action saves immediately + logs to docs/review_log.jsonl (agent-consumable)
+    #              t wbk=..|blk=..=set target · n <note> · a <for-agent> · u=undo · enter=skip · q=quit
+    #   decisions accumulate in output/review_decisions.json (override with --out)
 
-    # consume a decisions.json exported by the offline HTML labeller (build_review_html.py)
-    .venv/bin/python -m stream_sections.oneoff.curation_status apply decisions.json
+    # back in service: apply the offline decisions (from `label` OR the HTML labeller) into the doc
+    .venv/bin/python -m stream_sections.oneoff.curation_status apply            # default output/review_decisions.json
 
 Statuses: todo | curated | manual | not_applicable | deferred.
   DONE  = curated + manual + not_applicable   (no more work expected)
@@ -40,12 +41,12 @@ from __future__ import annotations
 import argparse
 import json
 import re
-from datetime import datetime
 from pathlib import Path
 
 _DOC = Path("stream_sections/docs/14-locators-to-curate.json")
-_LOG = Path("stream_sections/docs/review_log.jsonl")   # append-only audit trail (agent-consumable)
+_DECISIONS = Path("output/review_decisions.json")   # offline label output; apply back on return
 _CAND = re.compile(r"Candidate coord\s*\[\s*(-?\d+\.?\d*)\s*,\s*(-?\d+\.?\d*)\s*\]")
+_CONF = re.compile(r"\[auto-proposal\s*([HML])")
 
 DONE = ("curated", "manual", "not_applicable", "auto")
 # queue order: fresh todo first, deferred last (0 sorts before 1)
@@ -235,46 +236,61 @@ def _links(c) -> str:
             f"    Sat  https://www.google.com/maps/@{lat},{lon},15z/data=!3m1!1e3")
 
 
-def _log(entry: dict) -> None:
-    with _LOG.open("a", encoding="utf-8") as f:
-        f.write(json.dumps(entry, ensure_ascii=False) + "\n")
+def _conf(x: dict) -> str:
+    m = _CONF.search(x.get("notes") or "")
+    return m.group(1) if m else ""
 
 
-def _apply(doc: dict, x: dict, *, status=None, coord=None, target=None, note=None, action="") -> None:
-    """Mutate one row, save the doc NOW (incremental), and log the decision."""
-    if status:
-        x["status"] = status
-    if coord:
-        x["coord"] = coord
-    if target:
-        x["target"] = target
-    if note:
-        x["notes"] = (x["notes"] + " — " if x.get("notes") else "") + note
-    _save(doc)
-    _log({"ts": datetime.now().isoformat(timespec="seconds"), "id": x["id"], "action": action,
-          "status": x.get("status"), "coord": x.get("coord"), "target": x.get("target"), "note": note})
-    print(f"  ✓ {action}: status={x.get('status')} coord={x.get('coord')}")
+def _easy_key(x: dict):
+    """Sort key so the quickest wins come first: rows WITH a candidate coord, best confidence first."""
+    order = {"H": 0, "M": 1, "L": 2, "": 3}
+    return (0 if _candidate(x) else 1, order.get(_conf(x), 3))
+
+
+def _dec_load(path: Path) -> dict:
+    return json.loads(path.read_text()) if path.exists() else {}
+
+
+def _dec_save(path: Path, dec: dict) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(dec, indent=2, ensure_ascii=False) + "\n")
 
 
 _LABEL_HELP = ("[enter]/s=skip  y=accept candidate  c lon,lat=set coord  d[ reason]=defer  "
-               "x[ reason]=not_a_split  m[ reason]=manual  t key=val..=set target(wbk/blk/wsc)  "
-               "n <note>=add note  a <text>=flag for agent  q=quit")
+               "x[ reason]=not_a_split  m[ reason]=manual  t key=val..=target(wbk/blk/wsc)  "
+               "n <note>  a <text>=flag for agent  u=undo this row  q=quit")
 
 
-def label(doc: dict, kind: str | None, hint: str | None) -> None:
-    """Interactive review loop for QGIS work: shows each open item (what to find + candidate +
-    map links), you skip or update; every action is saved immediately and logged to review_log.jsonl."""
+def label(doc: dict, kind: str | None, hint: str | None, easy: bool, out: Path) -> None:
+    """OFFLINE interactive review loop (QGIS-friendly). Shows each open item (what to find +
+    candidate + map links); you skip or update. Decisions are written to a SEPARATE file (`out`,
+    default output/review_decisions.json) — the live doc is NOT touched. Apply on return with
+    `curation_status apply <out>`. Easiest items (those with a candidate coord) are shown first."""
     q = _open_queue(doc, kind, hint)
+    if easy:
+        q = [x for x in q if _candidate(x)]
+    q.sort(key=lambda x: (_QUEUE_RANK[x["status"]], *_easy_key(x)))   # candidates-first
     if not q:
         print("nothing open in that scope."); return
-    scope = "".join(f" [{k}={v}]" for k, v in (("kind", kind), ("hint", hint)) if v)
-    print(f"REVIEW{scope}: {len(q)} open. Actions:\n  {_LABEL_HELP}\n")
+    dec = _dec_load(out)
+    scope = "".join(f" [{k}={v}]" for k, v in (("kind", kind), ("hint", hint), ("easy", easy)) if v)
+    have = sum(1 for x in q if _candidate(x))
+    print(f"REVIEW{scope}: {len(q)} open ({have} with a candidate). Decisions -> {out}")
+    print(f"  {_LABEL_HELP}\n")
+
+    def put(lid, **kw):
+        d = dec.get(lid, {}); d.update({k: v for k, v in kw.items() if v is not None}); dec[lid] = d
+        _dec_save(out, dec)
+        print(f"  ✓ {kw.get('verdict') or 'note'}  (saved to {out.name})")
+
     i = 0
     while i < len(q):
         x = q[i]; cand = _candidate(x); mus = ",".join(x.get("mus") or [])
         khint = x["anchor_kind"] + (f"/{x['resolver_hint']}" if x.get("resolver_hint") else "")
+        prev = dec.get(x["id"])
         print("=" * 92)
-        print(f"[{i+1}/{len(q)}] {khint}  ·  {x['id']}  ·  {x['region']} {mus}  ·  status={x['status']}")
+        print(f"[{i+1}/{len(q)}] {khint}  ·  {x['id']}  ·  {x['region']} {mus}  ·  status={x['status']}"
+              + (f"  ·  ALREADY DECIDED: {prev.get('verdict','note')}" if prev else ""))
         print(f"  {x['name_verbatim']}")
         if x.get("locator_text"):
             print("  loc: " + " ".join(x["locator_text"].split())[:170])
@@ -284,7 +300,7 @@ def label(doc: dict, kind: str | None, hint: str | None) -> None:
         if isinstance(x.get("target"), dict) and x["target"]:
             print(f"  target: {x['target']}   (locate in QGIS/FWA)")
         if cand:
-            print(f"  candidate: [{cand[0]}, {cand[1]}]")
+            print(f"  candidate: [{cand[0]}, {cand[1]}]" + (f"  (conf {_conf(x)})" if _conf(x) else ""))
             print(_links(cand))
         if x.get("notes"):
             print("  notes: " + " ".join(x["notes"].split())[:220])
@@ -300,70 +316,75 @@ def label(doc: dict, kind: str | None, hint: str | None) -> None:
             print("  " + _LABEL_HELP); continue
         op, rest = cmd[0], cmd[1:].strip()
         if op == "y" and cand:
-            _apply(doc, x, status="curated", coord=cand, action="accept-candidate"); i += 1
+            put(x["id"], verdict="correct", coord=cand); i += 1
         elif op == "c":
             m = re.search(r"(-?\d+\.?\d*)\s*,\s*(-?\d+\.?\d*)", rest)
             if m:
-                _apply(doc, x, status="curated", coord=[float(m.group(1)), float(m.group(2))],
-                       action="set-coord"); i += 1
+                put(x["id"], verdict="correct", coord=[float(m.group(1)), float(m.group(2))]); i += 1
             else:
                 print("  ! use 'c lon,lat'")
         elif op == "d":
-            _apply(doc, x, status="deferred", note=f"[deferred] {rest}" if rest else None, action="defer"); i += 1
+            put(x["id"], verdict="defer", note=rest or None); i += 1
         elif op == "x":
-            _apply(doc, x, status="not_applicable", note=f"[n/a] {rest}" if rest else None, action="not_a_split"); i += 1
+            put(x["id"], verdict="not_a_split", note=rest or None); i += 1
         elif op == "m":
-            _apply(doc, x, status="manual", note=f"[manual] {rest}" if rest else None, action="manual"); i += 1
+            put(x["id"], verdict="manual", note=rest or None); i += 1
         elif op == "n":
-            _apply(doc, x, note=rest, action="note")           # stay on this item
+            put(x["id"], note=rest)            # stay on this item
         elif op == "a":
-            _apply(doc, x, note=f"[for-agent] {rest}", action="for-agent"); i += 1
+            put(x["id"], verdict="for_agent", note=rest or None); i += 1
         elif op == "t":
             tgt = dict(x["target"]) if isinstance(x.get("target"), dict) else {}
             for kv in rest.split():
                 if "=" in kv:
                     k, v = kv.split("=", 1); tgt[k] = v
-            _apply(doc, x, target=tgt, action="set-target")    # stay on this item
+            put(x["id"], target=tgt)            # stay on this item
+        elif op == "u":
+            dec.pop(x["id"], None); _dec_save(out, dec); print("  ↺ undone")
         else:
             print("  ? unknown — '?' for help")
-    print(f"\nsaved. log: {_LOG}")
+    n = sum(1 for v in dec.values() if v.get("verdict"))
+    print(f"\n{n} decision(s) in {out}. Apply on return:  "
+          f"python -m stream_sections.oneoff.curation_status apply {out}")
 
 
 def apply_decisions(doc: dict, path: str) -> None:
-    """Consume a decisions.json exported by the offline HTML labeller and write it into the doc.
-    Correct -> curated (+coord); wrong+coord -> curated; not_a_split -> not_applicable;
-    defer -> deferred; skip -> left as-is. Tricky/`for-agent` rows are reported for hand-finishing."""
+    """Consume a decisions file (from the `label` loop OR the offline HTML labeller) into the doc.
+    correct -> curated(+coord) · wrong+coord -> curated · not_a_split -> not_applicable ·
+    defer -> deferred · manual -> manual · for_agent -> left todo + flagged · skip -> untouched.
+    A `target` (wbk/blk/wsc) and/or `note` on any row is merged in too."""
     dec = json.loads(Path(path).read_text())
-    applied = 0; flagged = []
+    applied = 0; needs_agent = []
     for lid, v in dec.items():
-        if not v.get("verdict"):
-            continue
         try:
             x = _find(doc, lid)
         except SystemExit:
             print(f"  ? no row {lid}"); continue
-        verdict, coord = v["verdict"], v.get("coord")
-        if verdict == "correct":
+        verdict, coord = v.get("verdict"), v.get("coord")
+        if isinstance(v.get("target"), dict) and v["target"]:
+            x["target"] = v["target"]
+        if verdict in ("correct",) or (verdict == "wrong" and coord):
             if coord:
                 x["coord"] = coord
             x["status"] = "curated"
         elif verdict == "wrong":
-            if coord:
-                x["coord"] = coord; x["status"] = "curated"
-            else:
-                flagged.append(lid)              # wrong but no replacement coord -> needs an agent
+            needs_agent.append(lid)                     # wrong, no replacement coord
         elif verdict == "not_a_split":
             x["status"] = "not_applicable"
         elif verdict == "defer":
             x["status"] = "deferred"
-        # verdict == "skip": leave untouched
+        elif verdict == "manual":
+            x["status"] = "manual"
+        elif verdict == "for_agent":
+            needs_agent.append(lid)                     # leave todo; agent finishes
         if v.get("note"):
             x["notes"] = (x["notes"] + " — " if x.get("notes") else "") + "[review] " + v["note"]
-        applied += 1
+        if verdict or v.get("target") or v.get("note"):
+            applied += 1
     _save(doc)
     print(f"applied {applied} decisions.")
-    if flagged:
-        print(f"NEEDS AGENT ({len(flagged)} marked 'wrong' with no coord): {', '.join(flagged)}")
+    if needs_agent:
+        print(f"NEEDS AGENT ({len(needs_agent)}): {', '.join(needs_agent)}")
 
 
 # ---------------------------------------------------------------- cli
@@ -405,12 +426,14 @@ def main() -> None:
     pa.add_argument("--label", help="section label")
     pa.add_argument("--note", help="appended to notes")
 
-    pl = sub.add_parser("label", help="INTERACTIVE review loop (QGIS-friendly): show → skip/update → note")
+    pl = sub.add_parser("label", help="INTERACTIVE offline review loop (writes a decisions file, not the doc)")
     pl.add_argument("--kind", help="filter by anchor_kind (split type)")
     pl.add_argument("--hint", help="filter by resolver_hint (falls_obstacle/dam_weir_fence/...)")
+    pl.add_argument("--easy", action="store_true", help="only rows that already have a candidate coord")
+    pl.add_argument("--out", default=str(_DECISIONS), help=f"decisions file (default {_DECISIONS})")
 
-    pp = sub.add_parser("apply", help="consume a decisions.json (from the offline HTML labeller)")
-    pp.add_argument("decisions", help="path to decisions.json")
+    pp = sub.add_parser("apply", help="consume a decisions file (label loop OR HTML labeller) into the doc")
+    pp.add_argument("decisions", nargs="?", default=str(_DECISIONS), help=f"path (default {_DECISIONS})")
 
     args = p.parse_args()
     doc = _load()
@@ -429,7 +452,7 @@ def main() -> None:
         annotate(doc, args.id, status=args.status, wbk=args.wbk, blk=args.blk,
                  coord=args.coord, label=args.label, note=args.note)
     elif args.cmd == "label":
-        label(doc, args.kind, args.hint)
+        label(doc, args.kind, args.hint, args.easy, Path(args.out))
     elif args.cmd == "apply":
         apply_decisions(doc, args.decisions)
     elif args.cmd == "next":

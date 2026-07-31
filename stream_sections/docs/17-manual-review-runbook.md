@@ -48,13 +48,16 @@ Statuses: `todo | curated | manual | not_applicable | deferred`. Done = curated+
 ## Offline labelling (no agent / no API needed) — for QGIS sessions & travel
 Two front-ends, both produce results an agent consumes on return. Scripts live in `stream_sections/oneoff/`.
 
-**A. Interactive CLI (QGIS-friendly).** Walks the open queue, shows *what to find* + candidate +
-OSM/Google/Satellite links + `target` (blk/wsc/wbk to locate in QGIS/FWA), and you skip or update
-inline. Every action **saves the doc immediately** and appends to `docs/review_log.jsonl`.
+**A. Interactive CLI (QGIS-friendly).** Walks the queue **easiest-first** (rows with a candidate
+coord, best confidence first), shows *what to find* + OSM/Google/Satellite links + `target`
+(blk/wsc/wbk to locate in QGIS/FWA), and you skip or update inline. Decisions go to a **separate
+file** (`output/review_decisions.json`) — the live doc is **not** touched, so you apply them
+deliberately on return.
 ```bash
-.venv/bin/python -m stream_sections.oneoff.curation_status label --hint dam_weir_fence
+.venv/bin/python -m stream_sections.oneoff.curation_status label --hint dam_weir_fence --easy
 #   y=accept candidate · c <lon,lat>=set coord (paste from QGIS) · d/x/m=defer/not-a-split/manual
-#   t wbk=..|blk=..|wsc=..=set target · n <note> · a <text>=flag for an agent · enter=skip · q=quit
+#   t wbk=..|blk=..|wsc=..=set target · n <note> · a <text>=flag for agent · u=undo · enter=skip · q=quit
+#   --easy hides rows without a candidate; --out overrides the decisions path
 ```
 (Reading the coord via a prompt avoids the argparse `--coord=-118..` negative-number gotcha.)
 
