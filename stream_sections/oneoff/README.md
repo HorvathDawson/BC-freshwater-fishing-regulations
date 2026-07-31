@@ -41,9 +41,14 @@ Full method & gotchas: **`../docs/17-manual-review-runbook.md`**.
 ### Offline labelling (no service / no API) — two front-ends, one apply
 Both produce a **decisions file** the doc consumes later; neither needs the network to label.
 
-**A. Interactive CLI (best beside QGIS).** Walks the queue easiest-first (rows with a candidate
-coord, best confidence first), shows *what to find* + OSM/Google/Satellite links + `target`
-(blk/wsc/wbk to locate in QGIS/FWA). Decisions go to a **separate file** — the live doc is untouched.
+**Review order.** Rows auto-classified as probably-not-a-split sit in status **`likely_na`** and are
+surfaced **first** (with a ⚑ banner) so you confirm them before real curation: `x` = yes, not a split
+(→ not_applicable) · `k <anchor_kind>` = no, it IS a split, reclassify (→ back in the queue). After
+those come the easiest real rows (a candidate coord), then the rest.
+
+**A. Interactive CLI (best beside QGIS).** Walks the queue in that order, shows *what to find* +
+OSM/Google/Satellite links + `target` (blk/wsc/wbk to locate in QGIS/FWA). Decisions go to a
+**separate file** — the live doc is untouched.
 ```bash
 .venv/bin/python -m stream_sections.oneoff.curation_status label --hint dam_weir_fence --easy
 #   per item:  y = accept candidate         c -125.1,50.2 = set coord (paste from QGIS)

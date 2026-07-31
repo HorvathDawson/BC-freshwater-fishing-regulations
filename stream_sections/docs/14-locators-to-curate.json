@@ -10652,11 +10652,11 @@
       "full_regulation": "No Fishing\nIncludes all unnamed lakes within 2 km of Bluey Lake (except Bluey Lake itself and Kentucky Lake)",
       "anchor_kind": "not_a_split",
       "resolver_hint": "except_negative",
-      "status": "todo",
+      "status": "likely_na",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'."
     },
     {
       "id": "adam-river-except-eve-river-ca05b3",
@@ -10670,11 +10670,11 @@
       "full_regulation": "Artificial fly only upstream of Eve River, to Hwy 19 bridge",
       "anchor_kind": "not_a_split",
       "resolver_hint": "except_negative",
-      "status": "todo",
+      "status": "likely_na",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'."
     },
     {
       "id": "campbell-river-38d85c",
@@ -10688,11 +10688,11 @@
       "full_regulation": "No Fishing between Elk Falls and John Hart Dam Power Station\nNo Fishing from Strathcona Dam downstream 100 m\nNo Fishing from the boundary sign at the end of Maple Street downstream to the boundary sign at the cement block, Aug 1-Oct 31\nNo Fishing in any tributaries (except Quinsam River), Dec 1-May 31\nFrom John Hart Dam Power Station to power line crossing approximately 200 m upstream of Quinsam River confluence: fly fishing only\nyear-round\nArtificial fly only downstream of power line crossing approximately 200 m upstream of Quinsam River: Dec 1-May 31\nNo vessels between Elk Falls and John Hart Dam Power Station",
       "anchor_kind": "not_a_split",
       "resolver_hint": "except_negative",
-      "status": "todo",
+      "status": "likely_na",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'."
     },
     {
       "id": "chilliwack-vedder-rivers-does-not-include-sum-7f8826",
@@ -10706,11 +10706,11 @@
       "full_regulation": "No Fishing upstream from a line between two fishing boundary signs on either side of the Chilliwack River 100 m downstream of the\nconfluence of the Chilliwack River and Slesse Creek\nNo Fishing downstream of a line between two fishing boundary signs on either side of the Chilliwack River 100m downstream of the\nconfluence of the Chilliwack River and Slesse Creek to Tamihi Rapids Bridge, Apr 1-June 30\nNo Fishing downstream of Tamihi Rapids Bridge to Vedder Crossing Bridge, May 1-June 30\nDownstream of Vedder Crossing Bridge: (a) fly fishing only, bait ban, hatchery rainbow trout catch and release (50 cm or less), and hatch-\nery cutthroat catch and release, May 1-31; (b) No Fishing June 1-30; (c) hatchery rainbow trout of any length 50 cm or less: daily quota =\n4, July 1-Apr 30",
       "anchor_kind": "not_a_split",
       "resolver_hint": "except_negative",
-      "status": "todo",
+      "status": "likely_na",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'."
     },
     {
       "id": "columbia-lake-s-tributaries-9e4087",
@@ -10724,11 +10724,11 @@
       "full_regulation": "No Fishing (except Dutch Creek)",
       "anchor_kind": "not_a_split",
       "resolver_hint": "except_negative",
-      "status": "todo",
+      "status": "likely_na",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'."
     },
     {
       "id": "creston-valley-wildlife-management-area-cvwma-cdf441",
@@ -10742,11 +10742,11 @@
       "full_regulation": "Bass daily quota = unlimited; yellow perch daily quota = unlimited - applies to all waters within the CVWMA, including Six Mile Lake, Leach\nLake, Kootenay River and Canal, EXCEPT Duck Lake (see separate entry)\nPermit required see note on page 34",
       "anchor_kind": "not_a_split",
       "resolver_hint": "except_negative",
-      "status": "todo",
+      "status": "likely_na",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'."
     },
     {
       "id": "elk-river-s-tributaries-see-exceptions-6bd27b",
@@ -10761,11 +10761,11 @@
       "full_regulation": "No Fishing Sept 1-Oct 31\nTrout/char daily quota = 1 (none under 30 cm) and bait ban, June 15-Aug 31\nBull trout catch and release\nEXCEPTIONS - SEE SEPARATE LISTINGS FOR: Abruzzi Cr., Alexander Cr.[Includes Tributaries] upstream of the easternmost Hwy 3 bridge, Bighorn\n(Ram) Cr., Cadorna Cr., Fording R. downstream of Josephine Falls, Forsyth Cr. from Connor Lk. downstream 3 km, Line Cr.[Includes Tributaries], Grave\nCreek[Includes Tributaries], Michel Cr.[Includes Tributaries], Morrissey Cr.[Includes Tributaries], Wigwam River\nALL tributaries (EXCEPT Coal Creek downstream of old MF&M Railway Bridge 7 km upstream of Elk River) are Class II waters when open",
       "anchor_kind": "not_a_split",
       "resolver_hint": "except_negative",
-      "status": "todo",
+      "status": "likely_na",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'."
     },
     {
       "id": "findlay-creek-1b3bee",
@@ -10779,11 +10779,11 @@
       "full_regulation": "Trout/char catch and release (mainstem only) from Doctor Creek Bridge to Lavington Creek Bridge, June 15-Oct 31; other parts (including\ntributaries, except Lavington Creek) trout/char daily quota = 2 (none under 30 cm and only 1 bull trout), June 15-Oct 31; bait ban, June 15-Oct 31\nSee Lavington Creek, a tributary",
       "anchor_kind": "not_a_split",
       "resolver_hint": "except_negative",
-      "status": "todo",
+      "status": "likely_na",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'."
     },
     {
       "id": "fraser-river-7c032d",
@@ -10797,11 +10797,11 @@
       "full_regulation": "Exempt from spring closure upstream of Thompson River, except as noted below\nNo Fishing for trout in Fraser River mainstem: downstream of Hell's Gate Sept 1-Nov 15, from Hell's Gate to the confluence with the\nThompson River from Oct 1-Nov 30, and upstream of the confluence with the Thompson River Oct 1-Oct 31\nNo Fishing between fishing boundary signs approximately 6.5 km downstream of Boston Bar to signs 2.8 km downstream of\nHell's Gate\nNo Fishing from the lower entrance of the fish ladder at Bridge River Rapids to the BC Railway Bridge approximately 2 km north of\nLillooet, Mar 31-June 20\nFrom Hwy 99 bridge at Lillooet downstream approximately 1.2 km to BC Hydro's tail race outflow channel: No Fishing Oct 1-May 31;\nFrom the confluence with Thompson River to the CNR Bridge approximately 1 km downstream: No Fishing, Oct 1-May 31; bait ban and no\nhooks greater than 15 mm from point to shank, Oct 1-Dec 31\nNo Fishing for steelhead from the confluence with Spuzzum Creek (Region 3 boundary) to Hells Gate Aug 15-Dec 31\nNo Fishing for steelhead from Hells Gate upstream to the Region 3 boundary Jan 1-Dec 31",
       "anchor_kind": "not_a_split",
       "resolver_hint": "except_negative",
-      "status": "todo",
+      "status": "likely_na",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'."
     },
     {
       "id": "kootenay-lake-upper-west-arm-for-location-see-f597ff",
@@ -10815,11 +10815,11 @@
       "full_regulation": "Rainbow trout catch and release, Jan 1-May 31; trout/char daily quota = 2 (only 1 bull trout)\nKokanee catch and release, EXCEPT Apr 1-Apr 3 and July 1-July 2 only, when daily quota = 5; NOTE: The combined daily quota for kokanee\nfrom the Upper West Arm (when open to kokanee harvest) and the Lower West Arm (when open to kokanee harvest) cannot exceed 5",
       "anchor_kind": "not_a_split",
       "resolver_hint": "except_negative",
-      "status": "todo",
+      "status": "likely_na",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'."
     },
     {
       "id": "mcleod-river-c29823",
@@ -10833,11 +10833,11 @@
       "full_regulation": "Artificial fly only from Carp Lake to War Falls (excluding War Lake)",
       "anchor_kind": "not_a_split",
       "resolver_hint": "except_negative",
-      "status": "todo",
+      "status": "likely_na",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'."
     },
     {
       "id": "nahatlatch-river-a0ebb8",
@@ -10851,11 +10851,11 @@
       "full_regulation": "No Fishing from Frances Lake downstream approximately 400 m to fishing boundary signs at the logging bridge\nDownstream of Nahatlatch Lake (including Hannah and Frances lakes; except as noted upstream of ), open until Dec 31; No Fishing\nJan 1-May 31\nNo Fishing downstream of Nahatlatch Lake, Jan 1-May 31\nTrout daily quota = 2 (none under 30 cm)",
       "anchor_kind": "not_a_split",
       "resolver_hint": "except_negative",
-      "status": "todo",
+      "status": "likely_na",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'."
     },
     {
       "id": "nilkitkwa-lake-02d932",
@@ -10869,11 +10869,11 @@
       "full_regulation": "Fly fishing only, bait ban (EXCEPT dead fin fish may be used as bait when set lining; see page 8 in the Provincial Regulations)\nThat section of flowing water between Babine and Nilkitkwa Lakes known as \"Rainbow Alley\" is open for fishing all year (see also Babine\nRiver) (See map 2 page 51)",
       "anchor_kind": "not_a_split",
       "resolver_hint": "except_negative",
-      "status": "todo",
+      "status": "likely_na",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'."
     },
     {
       "id": "salmo-river-s-tributaries-d27d87",
@@ -10887,11 +10887,11 @@
       "full_regulation": "Regional quotas apply, EXCEPT bull trout catch and release; bait ban",
       "anchor_kind": "not_a_split",
       "resolver_hint": "except_negative",
-      "status": "todo",
+      "status": "likely_na",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'."
     },
     {
       "id": "squamish-river-s-tributaries-7b5921",
@@ -10905,11 +10905,11 @@
       "full_regulation": "No Fishing tributaries EXCEPT: Ashlu Creek, Cheakamus, Elaho and Mamquam Rivers, and the Squamish Powerhouse Channel",
       "anchor_kind": "not_a_split",
       "resolver_hint": "except_negative",
-      "status": "todo",
+      "status": "likely_na",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'."
     },
     {
       "id": "st-mary-river-55b0c6",
@@ -10923,11 +10923,11 @@
       "full_regulation": "Trout/char catch and release\nTrout/char daily quota = 1 (none under 30 cm) on all tributaries, June 15-Oct 31, see tables for exceptions\nBait ban[Includes Tributaries]\nClass II water when open, including tributaries (except Joseph Creek)",
       "anchor_kind": "not_a_split",
       "resolver_hint": "except_negative",
-      "status": "todo",
+      "status": "likely_na",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'."
     },
     {
       "id": "strathcona-park-waters-89fdab",
@@ -10941,11 +10941,11 @@
       "full_regulation": "No powered boats on any water within Strathcona Park except Gold, Upper Campbell and Buttle lakes",
       "anchor_kind": "not_a_split",
       "resolver_hint": "except_negative",
-      "status": "todo",
+      "status": "likely_na",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'."
     },
     {
       "id": "tchesinkut-lake-370650",
@@ -10959,11 +10959,11 @@
       "full_regulation": "Lake trout catch and release EXCEPT during months of February and July (when regional quotas apply)\nSingle barbless hook",
       "anchor_kind": "not_a_split",
       "resolver_hint": "except_negative",
-      "status": "todo",
+      "status": "likely_na",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'."
     },
     {
       "id": "wap-creek-7d3df8",
@@ -10977,11 +10977,11 @@
       "full_regulation": "No Fishing downstream of Frog Falls (excluding Wap Lake) Sept 1-June 30\nExempt from spring closure upstream of Frog Falls",
       "anchor_kind": "not_a_split",
       "resolver_hint": "except_negative",
-      "status": "todo",
+      "status": "likely_na",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'."
     },
     {
       "id": "alouette-lake-396262",
@@ -10995,11 +10995,11 @@
       "full_regulation": "Bull trout (char) release\nNo vessels in swimming areas, as buoyed and signed; speed restriction (8 km/h) at S. end of lake, S. of a line drawn from the BC Parks boat ramp\nto signs on the E. side of the lake",
       "anchor_kind": "not_a_split",
       "resolver_hint": "map_or_vague",
-      "status": "todo",
+      "status": "likely_na",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'."
     },
     {
       "id": "alouette-river-b5a707",
@@ -11013,11 +11013,11 @@
       "full_regulation": "No Fishing upstream of the fishing boundary signs located at 49° 14.790'N and 122° 32.080'W, near the southern boundary (chain-link\nfence) of the Alouette River Management Society\nNo Fishing upstream of 216th Street (including North Alouette River[Includes Tributaries]), May 1-June 30; no powered boats on mainstem",
       "anchor_kind": "not_a_split",
       "resolver_hint": "map_or_vague",
-      "status": "todo",
+      "status": "likely_na",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'."
     },
     {
       "id": "atnarko-bella-coola-rivers-includes-tributari-250ae0",
@@ -11033,11 +11033,11 @@
       "full_regulation": "No Fishing upstream of Tweedsmuir Provincial Park plus Tenas Lake, Apr 1-June 30\nNo Fishing from Tenas Lake to fishing boundary signs near Atnarko Park campsite\nTrout/char daily quota = 1 (none under 25 cm and all cutthroat trout catch and release) EXCEPT: on Bella Coola R. MAINSTEM ONLY, trout/\nchar daily quota = 2, of which only one may be a trout (cutthroat or rainbow) and none may be under 25 cm, no cutthroat may be over 33\ncm, and no rainbow may be over 50 cm), Apr 1-May 31 ONLY, EXCEPT: char catch and release (on TRIBUTARIES ONLY), Sept 1-May 31\nBait ban downstream of eastern boundary of Tweedsmuir Provincial Park, Sept 1- May 15\nNo angling from powered boats on mainstems of Atnarko River and Bella Coola River\nNo powered boats on Atnarko River, from Goat Creek to the confluence with Talchako River\nNo Fishing for steelhead\nClass II water downstream of Young Creek, Mar 1-May 31. NOTE: Classified Waters Licence or Steelhead Stamp not required until\nreopened to steelhead fishing",
       "anchor_kind": "not_a_split",
       "resolver_hint": "map_or_vague",
-      "status": "todo",
+      "status": "likely_na",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'."
     },
     {
       "id": "beaver-lake-6e12af",
@@ -11051,11 +11051,11 @@
       "full_regulation": "Smallmouth bass daily quota = 4; engine power restriction - 7.5 kW (10 hp), no towing on parts",
       "anchor_kind": "not_a_split",
       "resolver_hint": "map_or_vague",
-      "status": "todo",
+      "status": "likely_na",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'."
     },
     {
       "id": "brannen-lake-1539e6",
@@ -11069,11 +11069,11 @@
       "full_regulation": "Speed restriction on parts (60 km/h)",
       "anchor_kind": "not_a_split",
       "resolver_hint": "map_or_vague",
-      "status": "todo",
+      "status": "likely_na",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'."
     },
     {
       "id": "canim-lake-see-map-on-page-42-de63b0",
@@ -11087,11 +11087,11 @@
       "full_regulation": "No Fishing within the waters of the small bay at the mouth of Eagle Creek northerly of a line drawn between two boundary signs located\non opposite shores of the bay, Sept 1-Sept 30",
       "anchor_kind": "not_a_split",
       "resolver_hint": "map_or_vague",
-      "status": "todo",
+      "status": "likely_na",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'."
     },
     {
       "id": "chilliwack-vedder-rivers-does-not-include-sum-3ab919",
@@ -11105,11 +11105,11 @@
       "full_regulation": "No Fishing upstream from a line between two fishing boundary signs on either side of the Chilliwack River 100 m downstream of the\nconfluence of the Chilliwack River and Slesse Creek\nNo Fishing downstream of a line between two fishing boundary signs on either side of the Chilliwack River 100m downstream of the\nconfluence of the Chilliwack River and Slesse Creek to Tamihi Rapids Bridge, Apr 1-June 30\nNo Fishing downstream of Tamihi Rapids Bridge to Vedder Crossing Bridge, May 1-June 30\nDownstream of Vedder Crossing Bridge: (a) fly fishing only, bait ban, hatchery rainbow trout catch and release (50 cm or less), and hatch-\nery cutthroat catch and release, May 1-31; (b) No Fishing June 1-30; (c) hatchery rainbow trout of any length 50 cm or less: daily quota =\n4, July 1-Apr 30",
       "anchor_kind": "not_a_split",
       "resolver_hint": "map_or_vague",
-      "status": "todo",
+      "status": "likely_na",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'."
     },
     {
       "id": "chuckwalla-river-a0316a",
@@ -11123,11 +11123,11 @@
       "full_regulation": "No Fishing entire river, June 1-Aug 31; No Fishing between fishing boundary signs at Ten Mile Pool\nClass II water[Includes Tributaries] Apr 1-May 31 and Steelhead Stamp mandatory Apr 1-May 31",
       "anchor_kind": "not_a_split",
       "resolver_hint": "map_or_vague",
-      "status": "todo",
+      "status": "likely_na",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'."
     },
     {
       "id": "courtenay-river-78779a",
@@ -11141,11 +11141,11 @@
       "full_regulation": "No Fishing Dec 1-Sept 30; speed restriction on part (8 km/h),",
       "anchor_kind": "not_a_split",
       "resolver_hint": "map_or_vague",
-      "status": "todo",
+      "status": "likely_na",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'."
     },
     {
       "id": "cowichan-lake-including-bear-lake-5a1513",
@@ -11159,11 +11159,11 @@
       "full_regulation": "Cutthroat trout daily quota = 2 (none over 50 cm); bait ban and single barbless hook, Nov 15-Apr 15\nSpeed restriction on parts (8 km/h), plus overall 10 km/h speed restriction within 60 m of shore",
       "anchor_kind": "not_a_split",
       "resolver_hint": "map_or_vague",
-      "status": "todo",
+      "status": "likely_na",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'."
     },
     {
       "id": "cowichan-river-see-map-below-337c0e",
@@ -11177,11 +11177,11 @@
       "full_regulation": "No Fishing July 4-July 14\nNo Fishing July 15-Aug 31[Includes Tributaries], No Fishing from weir (dam) at Cowichan Lake's outlet to Greendale Trestle, Nov 15-Apr 15\nNo Fishing in tributaries upstream of and including Holt Creek\nFly fishing only upstream of CNR Trestle (Mile 66) Sept 1-Nov 15\nNo Fishing downstream of the CNR Mile 66 Trestle between Sept 1-Nov 15\nFly fishing only from signs at Greendale Trestle to CNR Bridge (mile 70.2)\nSpeed restriction (8 km/h) and engine power restriction - 7.5 kW (10 hp) on parts",
       "anchor_kind": "not_a_split",
       "resolver_hint": "map_or_vague",
-      "status": "todo",
+      "status": "likely_na",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'."
     },
     {
       "id": "cowichan-river-see-map-below-bc238a",
@@ -11195,11 +11195,11 @@
       "full_regulation": "No Fishing July 4-July 14\nNo Fishing July 15-Aug 31[Includes Tributaries], No Fishing from weir (dam) at Cowichan Lake's outlet to Greendale Trestle, Nov 15-Apr 15\nNo Fishing in tributaries upstream of and including Holt Creek\nFly fishing only upstream of CNR Trestle (Mile 66) Sept 1-Nov 15\nNo Fishing downstream of the CNR Mile 66 Trestle between Sept 1-Nov 15\nFly fishing only from signs at Greendale Trestle to CNR Bridge (mile 70.2)\nSpeed restriction (8 km/h) and engine power restriction - 7.5 kW (10 hp) on parts",
       "anchor_kind": "not_a_split",
       "resolver_hint": "map_or_vague",
-      "status": "todo",
+      "status": "likely_na",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'."
     },
     {
       "id": "elk-lake-fdc47b",
@@ -11213,11 +11213,11 @@
       "full_regulation": "Smallmouth bass daily quota = 4\nEngine power restriction on parts - 7.5 kW (10 hp); no vessels on parts, no powered boats on parts, no towing on parts\nA wheelchair accessible fishing pier is located on the lake's northwest shore via Brookleigh Road",
       "anchor_kind": "not_a_split",
       "resolver_hint": "map_or_vague",
-      "status": "todo",
+      "status": "likely_na",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'."
     },
     {
       "id": "fraser-river-upstream-of-the-cpr-bridge-at-mi-4460d2",
@@ -11231,11 +11231,11 @@
       "full_regulation": "Dead fin fish may be used for bait only when fishing for sturgeon (see page 8 in the Provincial Regulations)\nNo Fishing in the area bounded by a line commencing at a fishing boundary sign located at the eastern end of Landstrom Bar (Scale Bar)\nto a fishing boundary sign on the opposite bank of the river, thence to a fishing boundary sign at the southern end of Croft Island, thence\nto a fishing boundary sign on the nearest bank of the river in a westerly direction, thence following the bank of the river in a westerly\ndirection to the Point of Commencement, May 1-Oct 31\nNo Fishing in the non-tidal portion of the Fraser River in Region 2 from one hour after sunset to one hour before sunrise\nNo Fishing in the Jesperson's Side Channel, Herrling Side Channel, and Seabird Island north Side Channel May 15-July 31. See page 26\nfor a map of the No Fishing areas\nNo Fishing for steelhead Fraser River Mainstem Aug 15-Dec 31\nBoats less than 20 m in length, under power or anchored, must not impede the passage of commercial vessels",
       "anchor_kind": "not_a_split",
       "resolver_hint": "map_or_vague",
-      "status": "todo",
+      "status": "likely_na",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'."
     },
     {
       "id": "kitsumkalum-kalum-river-443a33",
@@ -11249,11 +11249,11 @@
       "full_regulation": "Angling prohibited for non-guided non-resident aliens on Saturdays from the outlet of Kitsumkalum Lake to Glacier Creek confluence\nall year (See map page 56)\nAngling prohibited for non-guided non-resident aliens on Sundays for the entire river all year\nClass II water all year[Includes Tributaries] ; Steelhead Stamp mandatory Aug 7 - May 31\nBait ban",
       "anchor_kind": "not_a_split",
       "resolver_hint": "map_or_vague",
-      "status": "todo",
+      "status": "likely_na",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'."
     },
     {
       "id": "kootenay-lake-lower-west-arm-for-location-see-3def30",
@@ -11267,11 +11267,11 @@
       "full_regulation": "Rainbow trout catch and release, Jan 1-May 31; trout/char daily quota = 2 (only 1 bull trout)\nKokanee catch and release, EXCEPT Apr 1-Apr 3 and July 1-July 2 only, when daily quota = 5; NOTE: The combined daily quota for kokanee\nfrom the Upper West Arm (when open to kokanee harvest) and the Lower West Arm (when open to kokanee harvest) cannot exceed 5",
       "anchor_kind": "not_a_split",
       "resolver_hint": "map_or_vague",
-      "status": "todo",
+      "status": "likely_na",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'."
     },
     {
       "id": "kootenay-lake-main-body-for-location-see-map--ba2e51",
@@ -11285,11 +11285,11 @@
       "full_regulation": "A person in a boat may angle with an unlimited number of rods.\nKokanee daily quota = 0\nBull trout daily quota = 1; rainbow trout daily quota = 10 (any size)\nConservation Surcharge Stamp required to keep rainbow trout over 50 cm, annual quota = 20",
       "anchor_kind": "not_a_split",
       "resolver_hint": "map_or_vague",
-      "status": "todo",
+      "status": "likely_na",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'."
     },
     {
       "id": "kootenay-lake-upper-west-arm-for-location-see-f589c1",
@@ -11303,11 +11303,11 @@
       "full_regulation": "Rainbow trout catch and release, Jan 1-May 31; trout/char daily quota = 2 (only 1 bull trout)\nKokanee catch and release, EXCEPT Apr 1-Apr 3 and July 1-July 2 only, when daily quota = 5; NOTE: The combined daily quota for kokanee\nfrom the Upper West Arm (when open to kokanee harvest) and the Lower West Arm (when open to kokanee harvest) cannot exceed 5",
       "anchor_kind": "not_a_split",
       "resolver_hint": "map_or_vague",
-      "status": "todo",
+      "status": "likely_na",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'."
     },
     {
       "id": "liard-river-watershed-see-map-on-page-63-5f8021",
@@ -11321,11 +11321,11 @@
       "full_regulation": "Bull trout catch and release from all lakes and streams, Aug 15-Oct 15\nBull trout daily and possession quotas = 1 (none under 30 cm or over 50 cm) from all lakes and streams, Oct 16-Aug 14",
       "anchor_kind": "not_a_split",
       "resolver_hint": "map_or_vague",
-      "status": "todo",
+      "status": "likely_na",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'."
     },
     {
       "id": "long-lake-nanaimo-5c3300",
@@ -11339,11 +11339,11 @@
       "full_regulation": "Speed restriction on parts (60 km/h); wheelchair accessible fishing platform is located in Loudon Park",
       "anchor_kind": "not_a_split",
       "resolver_hint": "map_or_vague",
-      "status": "todo",
+      "status": "likely_na",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'."
     },
     {
       "id": "mahood-lake-see-map-on-page-28-for-area-closu-a93848",
@@ -11357,11 +11357,11 @@
       "full_regulation": "No Fishing within the fishing boundary signs at the western tip of the lake near the mouth of Canim River, Jan 1-June 30\nTrout/char catch and release, bait ban and single barbless hook: within fishing boundary signs at the western tip of the lake, July 1-Dec 31\nNo Fishing within 200 m of the Mahood River outlet, Jan 1-June 30\nTrout/char catch and release, bait ban and single barbless hook: within 200 m of the mouth of the Mahood River outlet, July 1-Dec 31",
       "anchor_kind": "not_a_split",
       "resolver_hint": "map_or_vague",
-      "status": "todo",
+      "status": "likely_na",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'."
     },
     {
       "id": "nanaimo-river-bd9e20",
@@ -11375,11 +11375,11 @@
       "full_regulation": "No Fishing July 15-Aug 31\nNo Fishing from power line crossing at \"Bore Hole\" upstream to fishing boundary signs at the mouth of Boulder Creek\nNo Fishing from the Cedar Road Bridge upstream to the Hwy 19 bridge, Sept 1-Oct 15\nNo Fishing upstream of the Hwy 1 bridge[Includes Tributaries], Dec 1-May 31\nArtificial fly only upstream of the westernmost of the two Nanaimo Lakes, known locally as \"Second\" Lake, including tributaries\nEngine power restriction on parts - 7.5 kW (10 hp)",
       "anchor_kind": "not_a_split",
       "resolver_hint": "map_or_vague",
-      "status": "todo",
+      "status": "likely_na",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'."
     },
     {
       "id": "osoyoos-lake-29ce8a",
@@ -11393,11 +11393,11 @@
       "full_regulation": "Kokanee daily quota = 5 (none over 30cm from July 1-Oct 31), bass daily quota = 8, yellow perch daily quota = 20\nBarbless hook July 1-Oct 31\nSpeed restriction on parts, no vessels (see definition on page 4) in 5 signed swimming areas",
       "anchor_kind": "not_a_split",
       "resolver_hint": "map_or_vague",
-      "status": "todo",
+      "status": "likely_na",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'."
     },
     {
       "id": "salmo-river-57c52d",
@@ -11411,11 +11411,11 @@
       "full_regulation": "Sheep Creek to South Salmo River: catch and release rainbow and bull trout\nRemainder of mainstem: rainbow trout daily quota = 1 (none under 30 cm), June 15-Oct 31, and bull trout catch and release year-round\nBait ban",
       "anchor_kind": "not_a_split",
       "resolver_hint": "map_or_vague",
-      "status": "todo",
+      "status": "likely_na",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'."
     },
     {
       "id": "shuswap-lake-see-maps-on-page-28-includes-lit-db54cd",
@@ -11429,11 +11429,11 @@
       "full_regulation": "No Fishing Mar 15-May 14, and rainbow trout and char catch and release, May 15-Mar 14, in the waters lying west of a line between\nsigns at Henstridge Road and Wharf Road to a line between signs on the south and north shores of Little Shuswap Lake (see map A on\npage 28)\nNo Fishing in the entire area north of Albas, Mar 15-May 14 (see map B on page 28)\nNo Fishing east of a line between fishing boundary signs on Murdock and Semaphore points, to Hwy 1 bridge, Mar 15-May 14 (see map C\non page 28)\nNo fishing in Salmon Arm Bay, west of line between Engineer's Point and Sunnybrae Point (see map on page 28), for the conservation\nof chinook and coho salmon stocks, Sept 1-Dec 31 (anglers fishing from the community pier in the city of Salmon Arm are exempt from\nthe closure)\nNo Ice Fishing\nRainbow trout daily quota = 1 (none under 50 cm), annual quota = 5\nChar daily quota = 1 (none under 60 cm), annual quota = 5\nBait ban, single barbless hook (anglers fishing from the community pier in the city of Salmon Arm are exempt from the bait ban)\nConservation Surcharge Stamp required to catch and keep rainbow trout over 50 cm or char over 60 cm",
       "anchor_kind": "not_a_split",
       "resolver_hint": "map_or_vague",
-      "status": "todo",
+      "status": "likely_na",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'."
     },
     {
       "id": "west-road-blackwater-river-fbb33d",
@@ -11448,11 +11448,11 @@
       "full_regulation": "No Fishing in mainstem (only) Nov 1-June 14; tributaries subject to spring closure\nTrout daily quota = 1 (none under 30 cm)\nArtificial fly only, bait ban\nElectric motor only - max 7.5 kW\nMainstem only: Class II water June 15-Oct 31; Steelhead Stamp not required",
       "anchor_kind": "not_a_split",
       "resolver_hint": "map_or_vague",
-      "status": "todo",
+      "status": "likely_na",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'."
     },
     {
       "id": "arrow-park-mosquito-creek-bc2bd8",

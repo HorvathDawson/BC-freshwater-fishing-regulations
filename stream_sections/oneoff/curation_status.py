@@ -55,8 +55,8 @@ def _looks_multi(x: dict) -> bool:
     return bool(_MULTI.search(x.get("locator_text") or ""))
 
 DONE = ("curated", "manual", "not_applicable", "auto")
-# queue order: fresh todo first, deferred last (0 sorts before 1)
-_QUEUE_RANK = {"todo": 0, "deferred": 1}
+# queue order: likely-not-applicable reviewed FIRST, then fresh todo, deferred last
+_QUEUE_RANK = {"likely_na": -1, "todo": 0, "deferred": 1}
 
 
 def _load() -> dict:
@@ -79,8 +79,9 @@ def _find(doc: dict, locator_id: str) -> dict:
 def summary(doc: dict) -> None:
     locs = doc["locators"]
     kinds = sorted({x["anchor_kind"] for x in locs})
-    statuses = ("curated", "manual", "not_applicable", "auto", "todo", "deferred")
-    hdr = f"{'anchor_kind':26s} {'tot':>4} {'cur':>4} {'man':>4} {'n/a':>4} {'auto':>5} {'todo':>5} {'defer':>6} {'done%':>6}"
+    statuses = ("curated", "manual", "not_applicable", "auto", "likely_na", "todo", "deferred")
+    hdr = (f"{'anchor_kind':26s} {'tot':>4} {'cur':>4} {'man':>4} {'n/a':>4} {'auto':>5} "
+           f"{'lna':>4} {'todo':>5} {'defer':>6} {'done%':>6}")
     print(hdr)
     print("-" * len(hdr))
     tot = {s: 0 for s in statuses}
@@ -94,12 +95,14 @@ def summary(doc: dict) -> None:
         done = sum(c[s] for s in DONE)
         pct = 100 * done / len(rows) if rows else 0
         print(f"{k:26s} {len(rows):4d} {c['curated']:4d} {c['manual']:4d} "
-              f"{c['not_applicable']:4d} {c['auto']:5d} {c['todo']:5d} {c['deferred']:6d} {pct:5.0f}%")
+              f"{c['not_applicable']:4d} {c['auto']:5d} {c['likely_na']:4d} {c['todo']:5d} "
+              f"{c['deferred']:6d} {pct:5.0f}%")
     print("-" * len(hdr))
     done_all = sum(tot[s] for s in DONE)
     pct = 100 * done_all / tot_all if tot_all else 0
     print(f"{'TOTAL':26s} {tot_all:4d} {tot['curated']:4d} {tot['manual']:4d} "
-          f"{tot['not_applicable']:4d} {tot['auto']:5d} {tot['todo']:5d} {tot['deferred']:6d} {pct:5.0f}%")
+          f"{tot['not_applicable']:4d} {tot['auto']:5d} {tot['likely_na']:4d} {tot['todo']:5d} "
+          f"{tot['deferred']:6d} {pct:5.0f}%")
 
 
 # ---------------------------------------------------------------- queue
@@ -191,7 +194,7 @@ def undefer(doc: dict, locator_id: str) -> None:
     print(f"undeferred {locator_id} (back to todo)")
 
 
-_VALID_STATUS = ("todo", "curated", "manual", "not_applicable", "deferred", "auto")
+_VALID_STATUS = ("todo", "curated", "manual", "not_applicable", "deferred", "auto", "likely_na")
 
 
 def annotate(doc: dict, locator_id: str, *, status: str | None, wbk: str | None,
@@ -263,8 +266,11 @@ def _dec_save(path: Path, dec: dict) -> None:
 
 
 _LABEL_HELP = ("[enter]/s=skip  y=accept candidate  c lon,lat=set coord  d[ reason]=defer  "
-               "x[ reason]=not_a_split  m[ reason]=manual  t key=val..=target(wbk/blk/wsc)  "
-               "n <note>  a <text>=flag for agent  u=undo this row  q=quit")
+               "x[ reason]=confirm not-a-split  k <anchor_kind>=reclassify as a real split  "
+               "m[ reason]=manual  t key=val..=target(wbk/blk/wsc)  n <note>  a <text>=flag for agent  "
+               "u=undo  q=quit")
+_KINDS = ("point", "confluence", "line", "lake", "area_boundary", "mu_boundary",
+          "lake_io", "buffer", "not_a_split", "unclassified")
 
 
 def label(doc: dict, kind: str | None, hint: str | None, easy: bool, out: Path) -> None:
@@ -297,6 +303,8 @@ def label(doc: dict, kind: str | None, hint: str | None, easy: bool, out: Path) 
         print("=" * 92)
         print(f"[{i+1}/{len(q)}] {khint}  ·  {x['id']}  ·  {x['region']} {mus}  ·  status={x['status']}"
               + (f"  ·  ALREADY DECIDED: {prev.get('verdict','note')}" if prev else ""))
+        if x["status"] == "likely_na":
+            print("  ⚑ FLAGGED LIKELY-NOT-APPLICABLE — confirm with 'x', or 'k <anchor_kind>' if it IS a split.")
         print(f"  {x['name_verbatim']}")
         if x.get("locator_text"):
             print("  loc: " + " ".join(x["locator_text"].split())[:170])
@@ -338,6 +346,11 @@ def label(doc: dict, kind: str | None, hint: str | None, easy: bool, out: Path) 
             put(x["id"], verdict="not_a_split", note=rest or None); i += 1
         elif op == "m":
             put(x["id"], verdict="manual", note=rest or None); i += 1
+        elif op == "k":
+            if rest in _KINDS:
+                put(x["id"], verdict="reclass", kind=rest); i += 1
+            else:
+                print(f"  ! anchor_kind must be one of: {', '.join(_KINDS)}")
         elif op == "n":
             put(x["id"], note=rest)            # stay on this item
         elif op == "a":
@@ -382,6 +395,8 @@ def apply_decisions(doc: dict, path: str) -> None:
             needs_agent.append(lid)                     # wrong, no replacement coord
         elif verdict == "not_a_split":
             x["status"] = "not_applicable"
+        elif verdict == "reclass" and v.get("kind"):
+            x["anchor_kind"] = v["kind"]; x["status"] = "todo"    # it IS a split -> back in the queue
         elif verdict == "defer":
             x["status"] = "deferred"
         elif verdict == "manual":
