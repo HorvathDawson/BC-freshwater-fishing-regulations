@@ -45,6 +45,34 @@ in `notes` as `authored split: <id>`.
 ```
 Statuses: `todo | curated | manual | not_applicable | deferred`. Done = curated+manual+not_applicable.
 
+## Offline labelling (no agent / no API needed) — for QGIS sessions & travel
+Two front-ends, both produce results an agent consumes on return. Scripts live in `stream_sections/oneoff/`.
+
+**A. Interactive CLI (QGIS-friendly).** Walks the open queue, shows *what to find* + candidate +
+OSM/Google/Satellite links + `target` (blk/wsc/wbk to locate in QGIS/FWA), and you skip or update
+inline. Every action **saves the doc immediately** and appends to `docs/review_log.jsonl`.
+```bash
+.venv/bin/python -m stream_sections.oneoff.curation_status label --hint dam_weir_fence
+#   y=accept candidate · c <lon,lat>=set coord (paste from QGIS) · d/x/m=defer/not-a-split/manual
+#   t wbk=..|blk=..|wsc=..=set target · n <note> · a <text>=flag for an agent · enter=skip · q=quit
+```
+(Reading the coord via a prompt avoids the argparse `--coord=-118..` negative-number gotcha.)
+
+**B. Offline HTML labeller** (nice on a plane; no terminal). Generate a single self-contained page,
+open it `file://`, filter/search, click map links, pick a verdict per card; decisions persist in the
+browser and **⬇ Export** to `decisions.json`.
+```bash
+.venv/bin/python -m stream_sections.oneoff.build_review_html      # -> output/locator_review.html
+```
+**On return**, feed the HTML export back into the doc:
+```bash
+.venv/bin/python -m stream_sections.oneoff.curation_status apply decisions.json
+#   correct->curated(+coord) · wrong+coord->curated · not_a_split->not_applicable · defer->deferred
+#   'wrong' with no coord is reported as NEEDS AGENT for hand-finishing.
+```
+Rows flagged `[for-agent]` (CLI `a`) or reported by `apply` are the ones an agent finishes (two-boundary
+splits, confluence `wsc`, offsets) — grep the notes for `[for-agent]`.
+
 ## The review loop (batches of ~4)
 1. Pull the next `todo` rows for a bucket that have a `Candidate coord` in `notes`.
 2. For each, parse the candidate `[lon,lat]` from `notes` and build **all three** links (remote BC
