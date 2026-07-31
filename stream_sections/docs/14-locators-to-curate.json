@@ -8084,11 +8084,11 @@
       "full_regulation": "No Fishing upstream of Tweedsmuir Provincial Park plus Tenas Lake, Apr 1-June 30\nNo Fishing from Tenas Lake to fishing boundary signs near Atnarko Park campsite\nTrout/char daily quota = 1 (none under 25 cm and all cutthroat trout catch and release) EXCEPT: on Bella Coola R. MAINSTEM ONLY, trout/\nchar daily quota = 2, of which only one may be a trout (cutthroat or rainbow) and none may be under 25 cm, no cutthroat may be over 33\ncm, and no rainbow may be over 50 cm), Apr 1-May 31 ONLY, EXCEPT: char catch and release (on TRIBUTARIES ONLY), Sept 1-May 31\nBait ban downstream of eastern boundary of Tweedsmuir Provincial Park, Sept 1- May 15\nNo angling from powered boats on mainstems of Atnarko River and Bella Coola River\nNo powered boats on Atnarko River, from Goat Creek to the confluence with Talchako River\nNo Fishing for steelhead\nClass II water downstream of Young Creek, Mar 1-May 31. NOTE: Classified Waters Licence or Steelhead Stamp not required until\nreopened to steelhead fishing",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "todo",
+      "status": "manual",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[lake-class: lake_split] Tenas Lake edge (up) + boundary signs (down) — lake anchor + point. — [lake-bound-auto] MIXED: Tenas Lake edge is auto; the downstream boundary-signs point needs authoring."
+      "notes": "[lake-class: lake_split] Tenas Lake edge (up) + boundary signs (down) — lake anchor + point. — [lake-bound-auto] MIXED: Tenas Lake edge is auto; the downstream boundary-signs point needs authoring. — [manual] boundary signs near Atnarko Park campsite (no distance given) — locate the campsite by map."
     },
     {
       "id": "big-bar-creek-ce0182",
@@ -8304,11 +8304,11 @@
       "full_regulation": "No Fishing from Connor Lake downstream 3 km\nFor remainder, see Elk River's tributaries\nClass II water when/where open, including tributaries",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "todo",
+      "status": "manual",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[lake-class: lake_split] Connor Lake outlet + 3 km offset downstream (lake anchor + offset). — [lake-bound-auto] OFFSET: lake bound (Connor Lake outlet) is auto, but the +3 km downstream point needs an authored point (lake anchor + offset, or a point)."
+      "notes": "[lake-class: lake_split] Connor Lake outlet + 3 km offset downstream (lake anchor + offset). — [lake-bound-auto] OFFSET: lake bound (Connor Lake outlet) is auto, but the +3 km downstream point needs an authored point (lake anchor + offset, or a point). — [manual] Connor Lake not in FWA by GNIS name; locate the signs ~3 km below the Connor Lake outlet on Forsyth Creek by map."
     },
     {
       "id": "fran-ois-lake-9c8274",
@@ -8394,10 +8394,15 @@
       "full_regulation": "No Fishing from Jewel Lake downstream approximately 1.5 km to fishing boundary signs",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "todo",
-      "target": "",
-      "coord": null,
-      "label": "",
+      "status": "curated",
+      "target": {
+        "blk": "356526465"
+      },
+      "coord": [
+        -118.63427,
+        49.14846
+      ],
+      "label": "fishing boundary signs (~1.5 km below Jewel Lake)",
       "notes": "[lake-class: lake_split] Jewel Lake outlet + ~1.5 km offset downstream. — [lake-bound-auto] OFFSET: Jewel Lake outlet is auto; the ~1.5 km downstream point needs authoring."
     },
     {
@@ -8744,10 +8749,15 @@
       "full_regulation": "No Fishing from Ruby Lake to fishing boundary signs approximately 100 m downstream",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "todo",
-      "target": "",
-      "coord": null,
-      "label": "",
+      "status": "curated",
+      "target": {
+        "blk": "360878295"
+      },
+      "coord": [
+        -123.97519,
+        49.70954
+      ],
+      "label": "fishing boundary signs (~100 m below Ruby Lake)",
       "notes": "[lake-class: lake_split] Ruby Lake outlet (up) + boundary signs (down) — lake anchor + point. — [lake-bound-auto] MIXED: Ruby Lake outlet is auto; the downstream boundary-signs point needs authoring."
     },
     {
@@ -8980,10 +8990,15 @@
       "full_regulation": "No Fishing from Yakoun Lake downstream approximately 13 km to fishing boundary signs, Oct 1-Apr 30\nBait ban Nov 1-Apr 30\nCutthroat trout catch and release\nNo powered boats\nClass II water Sept 1-Apr 30; Steelhead Stamp mandatory Dec 1-Apr 30",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "todo",
-      "target": "",
-      "coord": null,
-      "label": "",
+      "status": "curated",
+      "target": {
+        "blk": "360881586"
+      },
+      "coord": [
+        -132.2658,
+        53.42556
+      ],
+      "label": "fishing boundary signs (~13 km below Yakoun Lake)",
       "notes": "[lake-class: lake_split] Yakoun Lake outlet + offset downstream. — [lake-bound-auto] OFFSET: Yakoun Lake outlet is auto; the downstream offset point needs authoring."
     },
     {
@@ -8998,10 +9013,15 @@
       "full_regulation": "No Fishing from McDonell Lake downstream approximately 3 km to fishing boundary signs\nNo Fishing between fishing boundary signs in Zymoetz Canyon\nNo Fishing upstream of fishing boundary sign at the transmission line crossing (located downstream of Zymoetz Canyon), Jan 1-June 15\nBait ban\nUpstream of Limonite Creek (Zymoetz River A): Class I water Jul 24 - Dec 31; Steelhead Stamp mandatory Jul 24 - Dec 31;\nAngling prohibited for non-guided non-resident aliens on Fridays, Saturdays, and Sundays Jul 24 - Dec 31\nDownstream of Limonite Creek (Zymoetz River B): Class II water Jul 24 - May 31; Steelhead Stamp mandatory Jul 24 - May 31;\nAngling prohibited for non-guided non-resident aliens on Fridays, Saturdays, and Sundays Jul 24 - May 31",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "todo",
-      "target": "",
-      "coord": null,
-      "label": "",
+      "status": "curated",
+      "target": {
+        "blk": "360881231"
+      },
+      "coord": [
+        -127.67629,
+        54.78351
+      ],
+      "label": "fishing boundary signs (~3 km below McDonell Lake)",
       "notes": "[lake-class: lake_split] McDonell Lake outlet + ~3 km offset downstream (lake anchor + offset). — [lake-bound-auto] OFFSET: McDonell Lake outlet is auto; the ~3 km downstream point needs authoring."
     },
     {
