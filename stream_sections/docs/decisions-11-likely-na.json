@@ -1,0 +1,786 @@
+{
+  "chapman-creek-6d4cfd-a": {
+    "verdict": "defer",
+    "ts": 1785558307828
+  },
+  "chapman-creek-6d4cfd-b": {
+    "verdict": "defer",
+    "ts": 1785558332294
+  },
+  "high-lake-unnamed-lake-approx-4-km-north-of-b-0ec39d": {
+    "verdict": "not_a_split",
+    "ts": 1785558380653
+  },
+  "mara-lake-70c173": {
+    "verdict": "defer",
+    "ts": 1785558467151,
+    "note": "lake needing splitting."
+  },
+  "prudhomme-lake-south-of-the-hwy-16-bridge-eccc4b": {
+    "verdict": "not_a_split",
+    "ts": 1785558523338
+  },
+  "rosemond-lake-061373": {
+    "verdict": "defer",
+    "ts": 1785558543635,
+    "note": "lake needing splitting."
+  },
+  "teepee-lake-adjacent-to-west-road-river-a62e7b": {
+    "verdict": "not_a_split",
+    "ts": 1785558557904
+  },
+  "upper-arrow-lake-drawdown-area-f15974": {
+    "verdict": "not_a_split",
+    "ts": 1785558570825
+  },
+  "west-road-blackwater-river-s-tributaries-aec300": {
+    "verdict": "not_a_split",
+    "ts": 1785558603175
+  },
+  "williston-lake-in-zone-a-includes-waters-500--456568": {
+    "note": "lake needing splitting.",
+    "verdict": "defer",
+    "ts": 1785558627212
+  },
+  "williston-lake-in-zone-a-includes-waters-500--7972e6": {
+    "verdict": "defer",
+    "ts": 1785558631904,
+    "note": "lake needing splitting."
+  },
+  "williston-lake-in-zone-a-includes-waters-500--3be97e": {
+    "verdict": "defer",
+    "ts": 1785558643104,
+    "note": "lake needing splitting."
+  },
+  "lower-campbell-lake-s-tributaries-a724e1": {
+    "verdict": "wrong",
+    "ts": 1785558710091,
+    "note": " this is a part too. including Campbell River between Strathcona Dam and (Lower) Campbell Lake. means the dam is a split..."
+  },
+  "arrow-lakes-tributaries-ba5f05": {
+    "verdict": "not_a_split",
+    "ts": 1785558969781
+  },
+  "brunette-river-s-tributaries-aa1996": {
+    "verdict": "wrong",
+    "ts": 1785559028213,
+    "note": "need splits here: No Fishing upstream of Burnaby Lake or from Cariboo Dam to Salamander Creek;. "
+  },
+  "burnaby-lake-s-tributaries-fbc31b": {
+    "verdict": "not_a_split",
+    "ts": 1785559783849
+  },
+  "buttle-lake-s-tributaries-2ff8d6": {
+    "verdict": "not_a_split",
+    "ts": 1785644888565,
+    "note": "not a split but it does have an except."
+  },
+  "campbell-river-caa7ef": {
+    "verdict": "not_a_split",
+    "ts": 1785644932128,
+    "note": "in any tributaries is weird. it is basically [includes tributaries]"
+  },
+  "chehalis-lake-s-tributaries-493a00": {
+    "verdict": "not_a_split",
+    "ts": 1785644995577
+  },
+  "chemainus-river-79cc9a": {
+    "verdict": "wrong",
+    "ts": 1785645013611,
+    "note": "requires split: downstream of Bannon Creek"
+  },
+  "chemainus-river-688d54": {
+    "verdict": "not_a_split",
+    "ts": 1785645042252,
+    "note": "requires split: upstream of Bannon Creek"
+  },
+  "chilko-lake-s-tributary-streams-3e8be6": {
+    "verdict": "not_a_split",
+    "ts": 1785645077322,
+    "note": "this is tributaries of."
+  },
+  "coldwater-river-s-tributaries-cd6684": {
+    "verdict": "not_a_split",
+    "ts": 1785645104535
+  },
+  "columbia-lake-s-tributaries-6bcd2c": {
+    "verdict": "not_a_split",
+    "ts": 1785645115268
+  },
+  "connor-lake-s-tributaries-e24408": {
+    "verdict": "not_a_split",
+    "ts": 1785645148822
+  },
+  "duncan-lake-s-tributaries-ab7d0c": {
+    "verdict": "not_a_split",
+    "ts": 1785645191439
+  },
+  "elk-river-s-tributaries-see-exceptions-9149a8": {
+    "verdict": "wrong",
+    "ts": 1785645217097,
+    "note": "exceptions have splits in them."
+  },
+  "flathead-river-s-tributaries-a034c1": {
+    "verdict": "not_a_split",
+    "ts": 1785645243863
+  },
+  "fraser-river-upstream-of-the-cpr-bridge-at-mi-af0798": {
+    "verdict": "wrong",
+    "ts": 1785645324942,
+    "note": "very hard split..."
+  },
+  "glacier-redslide-creek-unnamed-tributary-to-n-b7d777": {
+    "verdict": "not_a_split",
+    "ts": 1785645354658
+  },
+  "goat-river-3f55d2": {
+    "verdict": "not_a_split",
+    "ts": 1785645378117,
+    "note": "it is an exception tho"
+  },
+  "granby-river-s-tributaries-465204": {
+    "verdict": "wrong",
+    "ts": 1785645425983,
+    "note": "Upstream of Burrell Creek: is a split"
+  },
+  "john-hart-lake-s-tributaries-4e8025": {
+    "verdict": "wrong",
+    "ts": 1785645477166,
+    "note": "need to look what channel is might be a split"
+  },
+  "kettle-river-s-tributaries-4ac815": {
+    "verdict": "not_a_split",
+    "ts": 1785645500595
+  },
+  "kinbasket-mcnaughton-lake-s-tributaries-f98c5c": {
+    "verdict": "not_a_split",
+    "ts": 1785645545774,
+    "note": "upstream is just tributary i think so already split just needs match for exception."
+  },
+  "kitimat-river-angling-regulations-for-the-kit-eb7a2e": {
+    "verdict": "wrong",
+    "ts": 1785645616356,
+    "note": "many splits No Fishing on the west half of river between fishing boundary signs near Kitimat Hatchery outfall No Fishing in tributaries and upstream of Hwy 37 bridge, Mar 16-May 31"
+  },
+  "kitsumkalum-kalum-river-b6b706-a": {
+    "verdict": "wrong",
+    "ts": 1785645689915,
+    "note": "has splits Glacier Creek confluence"
+  },
+  "kokish-river-02cef0": {
+    "verdict": "wrong",
+    "ts": 1785645717748,
+    "note": "between signs at the IPP tail race confluence downstream approximately 500 m to signs"
+  },
+  "kootenay-lake-s-tributaries-6b7979": {
+    "note": "involves splits alreasdy there Does not include the Kootenay River upstream from Kootenay Lake to the U.S. border near Creston",
+    "verdict": "wrong",
+    "ts": 1785645762485
+  },
+  "lake-revelstoke-s-tributaries-96d2a3": {
+    "verdict": "wrong",
+    "ts": 1785645785735,
+    "note": "No Fishing from Mica Dam to fishing boundary signs at the narrows immediately downstream of the mouth of Bigmouth Creek"
+  },
+  "lardeau-river-e666ed-a": {
+    "verdict": "wrong",
+    "ts": 1785645801488,
+    "note": "downstream of fishing boundary signs at Trout Lake outlet, to fishing boundary signs approximately 600m downstream near"
+  },
+  "little-qualicum-river-496f12": {
+    "verdict": "wrong",
+    "ts": 1785645828634,
+    "note": "all tributaries is not a split but this is \"No Fishing from the falls in Little Qualicum Falls Provincial Park downstream to the hatchery fence\""
+  },
+  "little-slocan-lake-s-tributaries-957a0b": {
+    "verdict": "not_a_split",
+    "ts": 1785645887288,
+    "note": "has exceptions"
+  },
+  "lower-arrow-lake-s-tributaries-8e4c21": {
+    "verdict": "not_a_split",
+    "ts": 1785645906371
+  },
+  "meziadin-river-09af13-a": {
+    "verdict": "wrong",
+    "ts": 1785645925150,
+    "note": "from fishing boundary signs at outlet of Meziadin Lake to Nass River"
+  },
+  "moyie-river-a098eb": {
+    "note": "not a split but it is a split here \"from bridge at south end of Moyie Lake to U.S. border\" and this is only a single regulation (rishman Creek (Moyie River tributary) in regs",
+    "verdict": "not_a_split",
+    "ts": 1785722601436
+  },
+  "pend-d-oreille-river-s-tributaries-except-sal-5ae680": {
+    "verdict": "not_a_split",
+    "ts": 1785646029438,
+    "note": "has exceptions tho"
+  },
+  "pend-d-oreille-river-s-tributaries-except-sal-da7c79": {
+    "verdict": "not_a_split",
+    "ts": 1785646077278
+  },
+  "premier-lake-s-tributaries-99ac9d": {
+    "verdict": "wrong",
+    "ts": 1785646112132,
+    "note": "confused by thius No Fishing south of fishing boundary signs on the lake shore, is this a trib or lake reg"
+  },
+  "rancheria-river-s-tributaries-adddde": {
+    "verdict": "not_a_split",
+    "ts": 1785646177844
+  },
+  "revelstoke-lake-s-tributaries-065f03": {
+    "verdict": "not_a_split",
+    "ts": 1785646191019
+  },
+  "salmo-river-s-tributaries-d8cd97": {
+    "verdict": "wrong",
+    "ts": 1785646222119,
+    "note": "Sheep Creek to South Salmo River: catch and release rainbow and bull trout is a split"
+  },
+  "salmon-river-4a0073-a": {
+    "verdict": "wrong",
+    "ts": 1785646238140,
+    "note": "all splits No Fishing upstream of Kay Creek No powered boats upstream of confluence with White River; speed restriction (10 km/h) from estuary to confluence with White River"
+  },
+  "seven-mile-reservoir-s-tributaries-f25c92": {
+    "verdict": "not_a_split",
+    "ts": 1785646260994
+  },
+  "slocan-lake-s-tributaries-37bf91": {
+    "verdict": "not_a_split",
+    "ts": 1785646289635
+  },
+  "squamish-river-s-tributaries-07f930": {
+    "verdict": "not_a_split",
+    "ts": 1785646301669,
+    "note": "has exception no split"
+  },
+  "st-mary-river-67d028": {
+    "verdict": "not_a_split",
+    "ts": 1785646339339
+  },
+  "stave-river-c74d9d": {
+    "verdict": "wrong",
+    "ts": 1785646356626,
+    "note": "has a split involved"
+  },
+  "tanya-lake-s-tributaries-52749a": {
+    "verdict": "not_a_split",
+    "ts": 1785646387710
+  },
+  "thompson-river-downstream-of-signs-at-kamloop-bc221e-a": {
+    "verdict": "wrong",
+    "ts": 1785646399768,
+    "note": "lake split and confluence both exist already."
+  },
+  "trout-lake-s-tributaries-d2d6c5": {
+    "verdict": "wrong",
+    "ts": 1785646442310,
+    "note": "this is awkward. split the lake node so tribs can be seperated?"
+  },
+  "upper-arrow-lake-s-tributaries-330f07": {
+    "verdict": "wrong",
+    "ts": 1785646508501
+  },
+  "wahleach-jones-lake-s-tributaries-44df7a": {
+    "verdict": "not_a_split",
+    "ts": 1785646520588
+  },
+  "waneta-reservoir-s-tributaries-5f1ab5": {
+    "verdict": "not_a_split",
+    "ts": 1785646527780
+  },
+  "weaver-lake-and-weaver-creek-47d5a0-a": {
+    "verdict": "wrong",
+    "ts": 1785646537900
+  },
+  "west-kettle-river-s-tributaries-c892a9": {
+    "verdict": "not_a_split",
+    "ts": 1785646596992
+  },
+  "williston-lake-in-zone-a-includes-waters-500--4b3987": {
+    "verdict": "defer",
+    "ts": 1785646601325
+  },
+  "bluey-lake-potholes-d4ca7c": {
+    "verdict": "defer",
+    "ts": 1785646615096
+  },
+  "grizzly-lake-unnamed-lake-approx-4-5-km-upstr-81a537": {
+    "verdict": "not_a_split",
+    "ts": 1785646629729
+  },
+  "seeley-creek-outlet-of-seeley-lake-b14442": {
+    "verdict": "not_a_split",
+    "ts": 1785646641071
+  },
+  "ash-river-f11aa9": {
+    "verdict": "wrong",
+    "ts": 1785646659929,
+    "note": "from Elsie Lake to Dickson Lake..split but on lakes so it is fine?"
+  },
+  "big-bar-creek-ce0182": {
+    "verdict": "wrong",
+    "ts": 1785646688529,
+    "note": "split but on lake so ok..."
+  },
+  "bonaparte-river-98b62b": {
+    "note": "split but on lake so ok...",
+    "verdict": "wrong",
+    "ts": 1785646716703
+  },
+  "bridge-river-3fa485": {
+    "note": "split but on lake so ok...",
+    "verdict": "wrong",
+    "ts": 1785646728508
+  },
+  "chilko-lake-83dc6f": {
+    "verdict": "defer",
+    "ts": 1785646745382,
+    "note": "lake split"
+  },
+  "chimney-creek-04b2dc": {
+    "note": "split but on lake so ok...",
+    "verdict": "wrong",
+    "ts": 1785646771561
+  },
+  "columbia-river-73fe32": {
+    "note": "split but on lake so ok... lots otgher splits too...",
+    "verdict": "wrong",
+    "ts": 1785646787232
+  },
+  "davie-river-f757c8": {
+    "verdict": "wrong",
+    "ts": 1785646803711,
+    "note": "split but on lake so ok..."
+  },
+  "deadman-river-aa98fb": {
+    "note": "split but on lake so ok...",
+    "verdict": "wrong",
+    "ts": 1785646814449
+  },
+  "downton-lake-reservoir-73beda": {
+    "verdict": "not_a_split",
+    "ts": 1785646834157
+  },
+  "eagle-river-a52a4f": {
+    "note": "split but on lake so ok...",
+    "verdict": "wrong",
+    "ts": 1785646849557
+  },
+  "echoes-lake-near-kimberley-4adc24": {
+    "verdict": "not_a_split",
+    "ts": 1785719487612
+  },
+  "fran-ois-lake-9c8274": {
+    "verdict": "defer",
+    "ts": 1785719493425,
+    "note": "lake split"
+  },
+  "guichon-creek-9a81b6": {
+    "verdict": "wrong",
+    "ts": 1785719519133,
+    "note": "lake split should be handled already."
+  },
+  "harrison-river-from-the-fraser-river-upstream-f8ecc6": {
+    "verdict": "wrong",
+    "ts": 1785719545178,
+    "note": "harris lake split should be handled already."
+  },
+  "idlewild-lake-old-cranbrook-reservoir-85e69f": {
+    "verdict": "not_a_split",
+    "ts": 1785719568161
+  },
+  "kootenay-river-downstream-of-idaho-border-c2529b": {
+    "verdict": "wrong",
+    "ts": 1785719581041,
+    "note": "split at border and kootenay lake. should already be handled. "
+  },
+  "liard-river-watershed-see-map-on-page-63-772040": {
+    "verdict": "not_a_split",
+    "ts": 1785719608665
+  },
+  "mahood-lake-see-map-on-page-28-for-area-closu-79ec2d": {
+    "verdict": "defer",
+    "ts": 1785719613325,
+    "note": "lake splits"
+  },
+  "mckinley-creek-9d6931": {
+    "verdict": "wrong",
+    "ts": 1785719655369,
+    "note": "lake split should be handled already."
+  },
+  "moberly-river-b2a8ec": {
+    "note": "lake split should be handled already.",
+    "verdict": "wrong",
+    "ts": 1785719677098
+  },
+  "nahatlatch-river-1d1eaf": {
+    "verdict": "wrong",
+    "ts": 1785719687106,
+    "note": "has splits. it is a complex one. this one we will need to go through together. this one might even have a small parsing error we should check \"exept as noted upstream of\" what? "
+  },
+  "nahatlatch-river-0bb710": {
+    "note": "lake split should be handled already.",
+    "verdict": "wrong",
+    "ts": 1785719798068
+  },
+  "nahmint-river-786f4c": {
+    "note": "lake split should be handled already.",
+    "verdict": "wrong",
+    "ts": 1785719812094
+  },
+  "nahmint-river-66b328": {
+    "verdict": "wrong",
+    "ts": 1785719814285,
+    "note": "lake split should be handled already. combined with previous one."
+  },
+  "nanaimo-river-76bf11": {
+    "note": "lake split should be handled already. need to check lake name. ",
+    "verdict": "wrong",
+    "ts": 1785719859618
+  },
+  "nicola-river-aba357": {
+    "note": "lake split should be handled already.",
+    "verdict": "wrong",
+    "ts": 1785719879747
+  },
+  "nicola-river-4b9f64": {
+    "verdict": "wrong",
+    "ts": 1785719888739,
+    "note": "lake split should be handled already."
+  },
+  "paul-creek-downstream-of-paul-lake-b809c0": {
+    "verdict": "wrong",
+    "ts": 1785719892351,
+    "note": "lake split should be handled already."
+  },
+  "pennask-creek-c98c41": {
+    "note": "lake split should be handled already.",
+    "verdict": "wrong",
+    "ts": 1785719932642
+  },
+  "pitt-lake-47a388": {
+    "verdict": "defer",
+    "ts": 1785719944264,
+    "note": "lake split. will require lake splitting later."
+  },
+  "pitt-river-564cfe": {
+    "note": "lake split should be handled already.",
+    "verdict": "wrong",
+    "ts": 1785719965796
+  },
+  "premier-lake-895b0d": {
+    "verdict": "defer",
+    "ts": 1785719970596,
+    "note": "lake split"
+  },
+  "seton-river-includes-bc-hydro-power-canal-ups-5f4cbe": {
+    "note": "lake split should be handled already.",
+    "verdict": "wrong",
+    "ts": 1785719999755
+  },
+  "seton-river-includes-bc-hydro-power-canal-ups-8eb4d1": {
+    "note": "lake split should be handled already.",
+    "verdict": "wrong",
+    "ts": 1785720017246
+  },
+  "seymour-river-db4eb4": {
+    "verdict": "wrong",
+    "ts": 1785720019113,
+    "note": "lake split should be handled already."
+  },
+  "shannon-lake-netted-off-portion-on-the-south--c375a0": {
+    "verdict": "defer",
+    "ts": 1785720043971,
+    "note": "lake split."
+  },
+  "shumway-lake-02ae86": {
+    "verdict": "defer",
+    "ts": 1785720071520,
+    "note": "lake split"
+  },
+  "shuswap-lake-see-maps-on-page-28-includes-lit-80ee82": {
+    "verdict": "defer",
+    "ts": 1785720114037,
+    "note": "requires the section of river between the shuswap lakes and there are lake splits in the regs too: like this \"No Fishing in the entire area north of Albas,\"."
+  },
+  "shuswap-river-521556": {
+    "note": "lake split should be handled already. also mara bridge split in this reg.",
+    "verdict": "wrong",
+    "ts": 1785720192820
+  },
+  "silverhope-silver-creek-015132": {
+    "verdict": "wrong",
+    "ts": 1785720214386,
+    "note": "lake split should be handled already."
+  },
+  "thompson-river-upstream-of-kamloops-lake-e0c70b": {
+    "verdict": "wrong",
+    "ts": 1785720219591,
+    "note": "lake split should be handled already."
+  },
+  "unnamed-lakes-located-immediately-north-and-s-3aca70": {
+    "verdict": "not_a_split",
+    "ts": 1785720225774
+  },
+  "whatshan-river-bcc368": {
+    "note": "lake split should be handled already.",
+    "verdict": "wrong",
+    "ts": 1785720251711
+  },
+  "bluey-lake-potholes-1e916b": {
+    "verdict": "not_a_split",
+    "ts": 1785720261615
+  },
+  "adam-river-except-eve-river-ca05b3": {
+    "verdict": "wrong",
+    "ts": 1785720288219,
+    "note": "upstream of eve river (but not including?)look into this. need to make sure it doesn't conflict we other splits too. "
+  },
+  "campbell-river-38d85c": {
+    "verdict": "not_a_split",
+    "ts": 1785720427064,
+    "note": "except quinsam river is just an exception on the tributaries. "
+  },
+  "chilliwack-vedder-rivers-does-not-include-sum-7f8826": {
+    "verdict": "not_a_split",
+    "ts": 1785720454397,
+    "note": "just an exception to sumas river... other splits in other regs in it tho."
+  },
+  "columbia-lake-s-tributaries-9e4087": {
+    "verdict": "not_a_split",
+    "ts": 1785720520509,
+    "note": "just an exception to ditch creek on a tributaries. "
+  },
+  "creston-valley-wildlife-management-area-cvwma-cdf441": {
+    "verdict": "not_a_split",
+    "ts": 1785720541926,
+    "note": "except duck lake. is just an exception."
+  },
+  "elk-river-s-tributaries-see-exceptions-6bd27b": {
+    "verdict": "not_a_split",
+    "ts": 1785720660829,
+    "note": "see exceptions is not a split but some of the exceptions have needed splits, i think it was done already tho."
+  },
+  "findlay-creek-1b3bee": {
+    "verdict": "not_a_split",
+    "ts": 1785720768367,
+    "note": "exception is not a split but \"from Doctor Creek Bridge to Lavington Creek Bridge\" has splits..."
+  },
+  "fraser-river-7c032d": {
+    "verdict": "not_a_split",
+    "ts": 1785720814423,
+    "note": "note is not a split but there are splits inside the regs... stuff like (downstream of Hell's Gate )"
+  },
+  "kootenay-lake-upper-west-arm-for-location-see-f597ff": {
+    "verdict": "not_a_split",
+    "ts": 1785720847769,
+    "note": "exception is not a split. "
+  },
+  "mcleod-river-c29823": {
+    "verdict": "wrong",
+    "ts": 1785720907498,
+    "note": "splits in (Carp Lake to War Falls) but excluding war lake is jsut an exclusion."
+  },
+  "nahatlatch-river-a0ebb8": {
+    "verdict": "wrong",
+    "ts": 1785720960385,
+    "note": "not sure what this means... there are splits in it and this could be a parsing error."
+  },
+  "nilkitkwa-lake-02d932": {
+    "verdict": "not_a_split",
+    "ts": 1785720992022,
+    "note": "need to add rainbow alley to the name variations (and override)... double check this entry."
+  },
+  "salmo-river-s-tributaries-d27d87": {
+    "verdict": "not_a_split",
+    "ts": 1785721088393
+  },
+  "squamish-river-s-tributaries-7b5921": {
+    "verdict": "not_a_split",
+    "ts": 1785721094910,
+    "note": "just exceptions to tribs"
+  },
+  "st-mary-river-55b0c6": {
+    "verdict": "not_a_split",
+    "ts": 1785721145534,
+    "note": "just exceptions to tribs"
+  },
+  "strathcona-park-waters-89fdab": {
+    "verdict": "not_a_split",
+    "ts": 1785721224304,
+    "note": "just exceptions to the admin region"
+  },
+  "tchesinkut-lake-370650": {
+    "verdict": "not_a_split",
+    "ts": 1785721243442,
+    "note": "just date exceptions."
+  },
+  "wap-creek-7d3df8": {
+    "verdict": "not_a_split",
+    "ts": 1785721282408,
+    "note": "ecluding is not a split but there are splits inside of it (downstream of Frog Falls )... "
+  },
+  "alouette-lake-396262": {
+    "verdict": "defer",
+    "ts": 1785721361120,
+    "note": "lake split"
+  },
+  "alouette-river-b5a707": {
+    "verdict": "not_a_split",
+    "ts": 1785721470940,
+    "note": "mainstem is not a split but there are splits inside of the regs."
+  },
+  "atnarko-bella-coola-rivers-includes-tributari-250ae0": {
+    "verdict": "not_a_split",
+    "ts": 1785721496469,
+    "note": "mainstem is not a split but there are splits in the regs."
+  },
+  "beaver-lake-6e12af": {
+    "verdict": "defer",
+    "ts": 1785721539401,
+    "note": "lake split but this one is iffy... it is not able to be. resolved tho really because it is vague."
+  },
+  "canim-lake-see-map-on-page-42-de63b0": {
+    "verdict": "not_a_split",
+    "ts": 1785721651447,
+    "note": "note is not a split. but this lake does have lake split in it. "
+  },
+  "chilliwack-vedder-rivers-does-not-include-sum-3ab919": {
+    "verdict": "not_a_split",
+    "ts": 1785721702080,
+    "note": "note is not a split. but there are splits in the regs."
+  },
+  "chuckwalla-river-a0316a": {
+    "verdict": "not_a_split",
+    "ts": 1785721728046,
+    "note": "entire river is not a split but there are splits in the regs for this stream."
+  },
+  "courtenay-river-78779a": {
+    "verdict": "not_a_split",
+    "ts": 1785721809229,
+    "note": "on parts could be a split but it is so vague..."
+  },
+  "cowichan-lake-including-bear-lake-5a1513": {
+    "verdict": "defer",
+    "ts": 1785721816520,
+    "note": "on parts could be a lake split but it is so vague..."
+  },
+  "cowichan-river-see-map-below-337c0e": {
+    "verdict": "not_a_split",
+    "ts": 1785721827112,
+    "note": "note is not a split. but there are splits in the regs."
+  },
+  "cowichan-river-see-map-below-bc238a": {
+    "verdict": "not_a_split",
+    "ts": 1785721915604,
+    "note": "on parts is not a split. but there are splits in the regs."
+  },
+  "elk-lake-fdc47b": {
+    "note": "on parts is not a split. but there are splits in the regs.",
+    "verdict": "not_a_split",
+    "ts": 1785721980524
+  },
+  "fraser-river-upstream-of-the-cpr-bridge-at-mi-4460d2": {
+    "note": "mainstem is not a split. but there are splits in the regs.",
+    "verdict": "not_a_split",
+    "ts": 1785721981336
+  },
+  "kitsumkalum-kalum-river-443a33": {
+    "note": "entire river is not a split. but there are splits in the regs.",
+    "verdict": "not_a_split",
+    "ts": 1785721982653
+  },
+  "kootenay-lake-lower-west-arm-for-location-see-3def30": {
+    "note": "note is not a split. but there are lake splits in the regs/name.",
+    "verdict": "not_a_split",
+    "ts": 1785722034215
+  },
+  "kootenay-lake-main-body-for-location-see-map--ba2e51": {
+    "note": "note is not a split. ",
+    "verdict": "not_a_split",
+    "ts": 1785722125731
+  },
+  "kootenay-lake-upper-west-arm-for-location-see-f589c1": {
+    "note": "note is not a split. but there are lake splits in the regs/name.",
+    "verdict": "not_a_split",
+    "ts": 1785722129735
+  },
+  "liard-river-watershed-see-map-on-page-63-5f8021": {
+    "note": "note is not a split. ",
+    "verdict": "not_a_split",
+    "ts": 1785722155072
+  },
+  "long-lake-nanaimo-5c3300": {
+    "note": "on parts is vague. it is a lake split but ambiguous.",
+    "verdict": "defer",
+    "ts": 1785722187243
+  },
+  "mahood-lake-see-map-on-page-28-for-area-closu-a93848": {
+    "note": "note is not a split. the map does give the proper area closures for split",
+    "verdict": "defer",
+    "ts": 1785722217518
+  },
+  "nanaimo-river-bd9e20": {
+    "note": "on parts is ambiguous and impossible to split.  there are other splits there though.",
+    "verdict": "not_a_split",
+    "ts": 1785722250330
+  },
+  "osoyoos-lake-29ce8a": {
+    "verdict": "defer",
+    "ts": 1785722271101,
+    "note": "lake split"
+  },
+  "salmo-river-57c52d": {
+    "verdict": "wrong",
+    "ts": 1785722285988,
+    "note": "remainder of mainstem is a split? it is a inverse of the others already split? "
+  },
+  "shuswap-lake-see-maps-on-page-28-includes-lit-db54cd": {
+    "note": "note is not a split. but there are other splits in the regs... ",
+    "verdict": "defer",
+    "ts": 1785722416425
+  },
+  "west-road-blackwater-river-fbb33d": {
+    "note": "in mainstem is not a split but there are splits in the regs.",
+    "verdict": "not_a_split",
+    "ts": 1785722428346
+  },
+  "dean-river-65ebf2": {
+    "note": "all parts is not a split but there other splits in the regs... ",
+    "verdict": "not_a_split",
+    "ts": 1785722429703
+  },
+  "brannen-lake-1539e6": {
+    "verdict": "defer",
+    "ts": 1785722607469,
+    "note": "vague lake split."
+  },
+  "dinosaur-lake-reservoir-downstream-of-w-a-c-b-4fc5f6": {
+    "verdict": "wrong",
+    "ts": 1785722745801,
+    "note": "lake split with tribuatries. which means we need to split the lake nodes in the graph to see where tribs sit."
+  },
+  "sakinaw-lake-df4750": {
+    "verdict": "defer",
+    "ts": 1785722798331,
+    "note": "lake split"
+  },
+  "dinosaur-lake-reservoir-downstream-of-w-a-c-b-50210f": {
+    "note": "lake split but pairs with other dinosaur lake entry... i think it needs lake splits in graph to so tributaries are handled properly. deferable for now I think.",
+    "verdict": "defer",
+    "ts": 1785722886275
+  },
+  "great-central-lake-4ff0ab": {
+    "verdict": "defer",
+    "ts": 1785722928108,
+    "note": "lake split but might be a complex one. "
+  },
+  "john-hart-lake-s-tributaries-36c501": {
+    "verdict": "wrong",
+    "ts": 1785723000908,
+    "note": "has a include in it not a split but might need a split at ladore dam. "
+  }
+}
