@@ -7836,5 +7836,20 @@
     "name_variants": [
       "VASEUX LAKE"
     ]
+  },
+  {
+    "type": "override",
+    "criteria": {
+      "name_verbatim": "BESSETTE CREEK",
+      "region": "REGION 8 - Okanagan",
+      "mus": []
+    },
+    "note": "In-season closure water absent from synopsis; resolved directly to FWA stream reaches via watershed code (Bessette Creek, Upper Shuswap group USHU, Blue Line Key 356349528).",
+    "fwa_watershed_codes": [
+      "100-190442-999098-995997-730848-543292-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+    ],
+    "blue_line_keys": [
+      "356349528"
+    ]
   }
 ]

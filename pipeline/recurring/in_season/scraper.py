@@ -63,6 +63,16 @@ def _normalize_text(text: str) -> str:
     return _RE_MULTI_SPACE.sub(" ", text.replace("\xa0", " ")).strip()
 
 
+def _match_key(name: str) -> str:
+    """Uppercase match key with Unicode apostrophes folded to ASCII.
+
+    The BC gov page uses curly apostrophes (U+2019) in names like
+    "Granby River's Tributaries", while match_table entries store straight
+    ASCII apostrophes. Fold both so exact matching succeeds.
+    """
+    return name.replace("\u2019", "'").replace("\u02bc", "'").upper()
+
+
 # ---------------------------------------------------------------------------
 # Data models
 # ---------------------------------------------------------------------------
@@ -243,7 +253,7 @@ def _build_match_table_index(
         if not name:
             continue
         region = criteria.get("region")
-        index[region][name.upper()].append(name)
+        index[region][_match_key(name)].append(name)
 
     return dict(index)
 
@@ -261,7 +271,7 @@ def _match_water(
     Exact matches only — unqualified base names are expected to exist as
     their own entries (created by base_entry_builder).
     """
-    water_upper = water.upper()
+    water_upper = _match_key(water)
 
     # 1. Exact match in region
     if water_upper in region_names:

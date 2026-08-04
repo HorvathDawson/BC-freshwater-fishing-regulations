@@ -35,6 +35,7 @@ from .scraper import (
     _SECTION_TO_REGION,
 )
 from pipeline.matching.match_table import BaseEntry, MatchTable, OverrideEntry, OVERRIDES_PATH
+from pipeline.utils.wsc import trim_wsc
 
 logger = logging.getLogger(__name__)
 
@@ -67,15 +68,27 @@ def _build_water_to_reg_ids(
 def _build_reg_id_to_reach_ids(
     search_index: List[Dict[str, Any]],
     reg_sets: List[str],
+    regulations: Dict[str, Dict[str, Any]],
 ) -> Dict[str, Set[str]]:
     """Build reg_id → {reach_id, ...} from tier0 search_index segments.
 
-    Only includes reaches where the reg_id is a *direct* match — not
-    inherited via tributary BFS.  Each segment carries a
+    Normally only reaches where the reg_id is a *direct* match are included —
+    not inherited via tributary BFS.  Each segment carries a
     ``tributary_reg_ids`` list; any reg_id in that list is inherited and
     excluded so that an in-season change to "Duncan River" doesn't
     cascade to every tributary that inherited the Duncan River regulation.
+
+    Exception: a "<Water>'s Tributaries" regulation is assigned to its
+    reaches *through* tributary BFS, so all of its reaches are legitimately
+    "inherited".  For those regs the exclusion is skipped — otherwise an
+    in-season change on the tributaries entry would resolve to zero reaches.
     """
+    # Tributaries regs whose reaches are inherited by design (don't exclude).
+    trib_regs = {
+        rid
+        for rid, reg in regulations.items()
+        if "TRIBUTAR" in (reg.get("water") or "").upper()
+    }
     index: Dict[str, Set[str]] = defaultdict(set)
     for entry in search_index:
         for seg in entry.get("segments", []):
@@ -86,9 +99,36 @@ def _build_reg_id_to_reach_ids(
             trib_set = set(seg.get("tributary_reg_ids") or [])
             for reg_id in reg_sets[rsi].split(","):
                 reg_id = reg_id.strip()
-                if reg_id and reg_id not in trib_set:
-                    index[reg_id].add(rid)
+                if not reg_id:
+                    continue
+                if reg_id in trib_set and reg_id not in trib_regs:
+                    continue
+                index[reg_id].add(rid)
     return dict(index)
+
+
+def _build_fwa_id_to_reach_ids(
+    search_index: List[Dict[str, Any]],
+) -> Tuple[Dict[str, Set[str]], Dict[str, Set[str]]]:
+    """Build (watershed_code → reaches, linear_feature_id → reaches).
+
+    Lets the resolver attach reaches directly from FWA feature identifiers
+    on an override when the water has no regulation of its own (e.g. an
+    in-season closure on a stream that isn't in the synopsis). Watershed
+    codes are trimmed so they match override ``fwa_watershed_codes``.
+    """
+    wsc_index: Dict[str, Set[str]] = defaultdict(set)
+    fid_index: Dict[str, Set[str]] = defaultdict(set)
+    for entry in search_index:
+        for seg in entry.get("segments", []):
+            rid = seg["rid"]
+            wsc = seg.get("watershed_code")
+            if wsc:
+                wsc_index[trim_wsc(wsc)].add(rid)
+            for fid in seg.get("fids") or []:
+                if fid:
+                    fid_index[str(fid)].add(rid)
+    return dict(wsc_index), dict(fid_index)
 
 
 # ---------------------------------------------------------------------------
@@ -164,8 +204,9 @@ def resolve_to_reaches(
 
     # Build lookup indexes
     water_reg_ids = _build_water_to_reg_ids(regulations)
-    reg_id_reaches = _build_reg_id_to_reach_ids(search_index, reg_sets)
+    reg_id_reaches = _build_reg_id_to_reach_ids(search_index, reg_sets, regulations)
     gnis_to_waters = _build_gnis_to_water_names(table)
+    wsc_reaches, fid_reaches = _build_fwa_id_to_reach_ids(search_index)
 
     changes: List[Dict[str, Any]] = []
     unmatched: List[str] = []
@@ -222,6 +263,15 @@ def resolve_to_reaches(
             reach_ids: Set[str] = set()
             for reg_id in reg_ids:
                 reach_ids |= reg_id_reaches.get(reg_id, set())
+
+            # Fallback: waters with no regulation of their own (e.g. an
+            # in-season closure on a stream absent from the synopsis) can
+            # still resolve via FWA feature identifiers on the override.
+            if not reach_ids:
+                for wsc in getattr(entry, "fwa_watershed_codes", None) or []:
+                    reach_ids |= wsc_reaches.get(trim_wsc(wsc), set())
+                for fid in getattr(entry, "linear_feature_ids", None) or []:
+                    reach_ids |= fid_reaches.get(str(fid), set())
 
             stats["matched"] += 1
             changes.append(

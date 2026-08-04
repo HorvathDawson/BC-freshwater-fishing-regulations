@@ -411,6 +411,17 @@ class FeatureDisplayName:
 AnyEntry = Union[BaseEntry, OverrideEntry]
 
 
+def _fold_apostrophes(name: str) -> str:
+    """Fold Unicode apostrophes (U+2019, U+02BC) to ASCII "'".
+
+    Source data mixes curly and straight apostrophes for the same water
+    (e.g. the BC gov in-season page emits "Granby River's Tributaries" with
+    U+2019 while overrides store a straight "'"). Folding both to ASCII lets
+    otherwise-identical names collide in the index.
+    """
+    return name.replace("\u2019", "'").replace("\u02bc", "'")
+
+
 class MatchTable:
     """Merge base entries and overrides into one lookup index.
 
@@ -490,7 +501,7 @@ class MatchTable:
         mus: List[str],
     ) -> tuple:
         """Stable, hashable index key including all three match dimensions."""
-        return (region, name_verbatim, frozenset(mus))
+        return (region, _fold_apostrophes(name_verbatim), frozenset(mus))
 
     def _index(self, entry: AnyEntry) -> None:
         """Add an entry (and all its name variants) to the index."""
@@ -528,9 +539,9 @@ class MatchTable:
         if exact is not None or not ignore_mus:
             return exact
         # Fallback: scan for any entry with same (region, name) case-insensitively
-        name_upper = name_verbatim.upper()
+        name_upper = _fold_apostrophes(name_verbatim).upper()
         for (r, n, _mu_set), entry in self._idx.items():
-            if r == region and n.upper() == name_upper:
+            if r == region and _fold_apostrophes(n).upper() == name_upper:
                 return entry
         return None
 
