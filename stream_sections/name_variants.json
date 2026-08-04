@@ -105,6 +105,20 @@
  },
  {
   "target": {
+   "wbks": [
+    "329453617"
+   ]
+  },
+  "names": [
+   {
+    "name": "That Other Small Body of Water",
+    "source": "regulation",
+    "note": "Polygon has no GNIS_ID. lake found on google map, but not in FWA. Authored as a name_variant: the polygon is unnamed, so the resolver promotes this to the display label."
+   }
+  ]
+ },
+ {
+  "target": {
    "blks": [
     "356569726"
    ]
