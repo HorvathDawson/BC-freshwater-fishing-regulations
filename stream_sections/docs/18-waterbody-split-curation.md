@@ -62,11 +62,32 @@ The name+MU matcher is prefix/containment based — treat `MISSING`/`DRIFT` as *
 not gospel: a `MISSING` may be a matcher-miss or a non-spatial `except`; a `DRIFT` may be a trib-set
 row with no standalone source entry.
 
-## Current state (2026-08-05, first source-first run)
+## Current state (2026-08-05)
 
-`312 split-bearing entries → COMPLETE 99 · INCOMPLETE 210 · MISSING_SPLITS 3 · NO_CURATION 0`;
-**8 MISSING boundaries** (Dean River canyon reaches ×6, Nation Arm line, one Shuswap non-spatial
-except) and **5 DRIFT** rows (trib-set / alias-name cases). Rows: 590/651 linked to a card.
+The output JSON now carries **every field of each curated row** embedded under its locator (via
+`l["rows"]`), so `waterbody-splits.json` is a **superset of `14-locators-to-curate.json` grouped by
+reg entry** — the intended successor file. A card is emitted for **every entry that carries
+curation**, not only split-bearing ones; whole-water / tributary-set entries (no boundary) get
+completeness **`NO_SPLIT`**.
+
+`383 cards → COMPLETE 99 · INCOMPLETE 210 · MISSING_SPLITS 3 · NO_SPLIT 71 · NO_CURATION 0`.
+Rows embedded: **639/651** (7 Dean endpoint rows + 5 drift not embedded — see below).
+
+**The 8 MISSING boundaries are all matcher/model artifacts, NOT unauthored gaps** (verified
+2026-08-05):
+- **DEAN RIVER (6)** — every canyon reach IS authored, as 7 `curated` *endpoint* rows (Crag Creek
+  + Iltasyuko confluences, Anahim Lake boundary, 3 sign points, tidal boundary). They carry
+  **empty `locator_text`**, and the backfill matches reach-boundaries by `locator_text`, so it
+  can't link an endpoint row to a "from A to B" reach. Dean is effectively COMPLETE; the fix is a
+  **reach↔endpoint linker** (or populating each endpoint row's `locator_text`).
+- **NATION ARM (1)** — the `line` row `nation-arm-williston-lake-d2e637` **exists** (`todo`); the
+  name+MU join missed it. Real remaining work = curate that one line row (not a missing split).
+- **SHUSWAP (1)** — the "community pier … exempt from the bait ban" `except` is a **non-spatial**
+  person-based exemption, not a geographic split → should be `not_applicable`.
+
+**5 DRIFT**: 3 are trib-set rows whose source water carries an *alias* paren (WEST ROAD/Blackwater,
+KINBASKET/McNaughton, WAHLEACH/Jones) — all `not_applicable`, harmless. 2 are `todo` rows that
+matched no source entry (`arrow-park-mosquito-creek`, `lost-lake-near-taweel-lake`) — worth a look.
 
 ## Workflow (per entry, worst-first)
 
