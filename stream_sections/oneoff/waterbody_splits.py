@@ -112,12 +112,12 @@ def label_matches(r: dict, boundary_text: str) -> bool:
     return bool(at) and set(at) <= set(canon(boundary_text))
 
 
-def trim_row(r: dict, water: str, mus) -> dict:
+def trim_row(r: dict, water: str, mus, loc_text: str) -> dict:
     """Curation-only view of a row for embedding under its locator: entry-level fields (water, mu,
-    region, reg_text, entry_id) live on the CARD, so keep only per-row curation and any curated
-    name/mu that actually diverges from the card (so the grouped file is a lossless, de-duped
-    successor to 14-locators-to-curate.json)."""
-    out = {"id": r["id"], "status": r["status"], "anchor_kind": r["anchor_kind"]}
+    region, reg_text, entry_id) live on the CARD, so keep only per-row curation and any field that
+    actually diverges from the card/locator — so the grouped file is a **lossless, de-duped**
+    successor to 14-locators-to-curate.json (see flatten_curation / `verify-flatten`)."""
+    out = {"id": r["id"], "status": r["status"], "anchor_kind": r["anchor_kind"], "src": r.get("src")}
     for k in ("resolver_hint", "label", "notes"):
         if (r.get(k) or "").strip():
             out[k] = r[k]
@@ -129,6 +129,10 @@ def trim_row(r: dict, water: str, mus) -> dict:
         out["name_verbatim"] = r.get("name_verbatim")
     if set(r.get("mus") or []) != set(mus or []):
         out["mus"] = r.get("mus")
+    # locator_text only when it diverges (exact) from the locator's boundary text — covers truncated
+    # rows, the empty-lt endpoint rows, and case/whitespace variants; needed to reconstruct on flatten.
+    if (r.get("locator_text") or "") != (loc_text or ""):
+        out["locator_text"] = r.get("locator_text", "")
     return out
 
 
@@ -227,7 +231,7 @@ def build():
         cands = candidates(water, mu)
         for l in locators:
             hits = backfill(cands, l, water)
-            l["rows"] = [trim_row(r, water, mu) for r in hits]  # curation-only (entry fields on card)
+            l["rows"] = [trim_row(r, water, mu, l["text"]) for r in hits]  # curation-only (entry fields on card)
             l["resolved"] = bool(hits) and all(r["status"] in RESOLVED for r in hits)
             l["flag"] = "MISSING" if (l["src"] in BOUNDARY_SRC and not hits) else "OK"
 
@@ -260,9 +264,48 @@ def build():
 
     # drift: curated rows never matched to any source locator (real anomalies / manual additions)
     drift = [{"id": r["id"], "water": r["name_verbatim"], "mu": r.get("mus"),
-              "src": r.get("src"), "locator_text": r.get("locator_text", ""), "status": r["status"]}
+              "src": r.get("src"), "locator_text": r.get("locator_text", ""), "status": r["status"],
+              "row": r}  # full row kept so drift is recoverable on flatten
              for r in curated if r["id"] not in consumed and norm(r.get("locator_text"))]
     return cards, drift
+
+
+# fields that MUST round-trip grouped->flat (curation + identity); region/full_regulation are
+# metadata regenerated from source, so excluded from the verify.
+CUR_FIELDS = ("status", "anchor_kind", "resolver_hint", "coord", "target", "label", "notes",
+              "name_verbatim", "mus", "src", "locator_text")
+
+
+def flatten_curation(cards, drift):
+    """Reconstruct the flat 14-locators list from the grouped file — the inverse of the grouping.
+    entry fields come from the card, per-row from the trimmed row (with divergent name/mu/lt kept),
+    deduped by id. Drift rows are recovered from their stored full row. Lossless on CUR_FIELDS."""
+    seen = {}
+    for c in cards.values():
+        for l in c["locators"]:
+            for r in l["rows"]:
+                if r["id"] in seen:
+                    continue
+                src = r.get("src") or ("name" if l["src"] == "water" else l["src"])
+                seen[r["id"]] = {
+                    "id": r["id"], "name_verbatim": r.get("name_verbatim", c["water"]),
+                    "region": c.get("region") or "", "mus": r.get("mus", c["mu"]), "src": src,
+                    "locator_text": r.get("locator_text", l["text"]), "full_regulation": c["reg_text"],
+                    "anchor_kind": r["anchor_kind"], "resolver_hint": r.get("resolver_hint", ""),
+                    "status": r["status"], "target": r.get("target", ""), "coord": r.get("coord"),
+                    "label": r.get("label", ""), "notes": r.get("notes", ""), "entry_id": c["entry_id"],
+                }
+    for d in drift:
+        if d["id"] not in seen and d.get("row"):
+            seen[d["id"]] = d["row"]
+    return list(seen.values())
+
+
+def _eq(a, b):
+    empty = (None, "", [], {})
+    if a in empty and b in empty:
+        return True
+    return a == b
 
 
 def _rank(c):
@@ -395,6 +438,23 @@ def main():
     if args and args[0] == "drift":
         for d in drift:
             print(f"{d['id']:46s} [{d['status']:14s}] src={d['src']:6s} “{d['locator_text'][:45]}”")
+        return
+    if args and args[0] == "verify-flatten":
+        flat = flatten_curation(cards, drift)
+        orig = json.loads(CURATED.read_text())["locators"]
+        fi = {r["id"]: r for r in flat}
+        oi = {r["id"]: r for r in orig}
+        miss, extra = set(oi) - set(fi), set(fi) - set(oi)
+        diffs = [(i, k, oi[i].get(k), fi[i].get(k)) for i in set(oi) & set(fi)
+                 for k in CUR_FIELDS if not _eq(oi[i].get(k), fi[i].get(k))]
+        print(f"flat {len(flat)} | orig {len(orig)} | missing {len(miss)} | extra {len(extra)} "
+              f"| field diffs {len(diffs)}  => {'LOSSLESS ✅' if not (miss or extra or diffs) else 'MISMATCH ❌'}")
+        for i in list(miss)[:8]:
+            print("  MISSING", i)
+        for i in list(extra)[:8]:
+            print("  EXTRA  ", i)
+        for i, k, a, b in diffs[:20]:
+            print(f"  DIFF {i} .{k}: {a!r:.34} != {b!r:.34}")
         return
     if args and args[0] == "regs-md":
         n_hi = write_regs_md(cards)
