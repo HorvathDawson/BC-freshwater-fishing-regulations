@@ -2075,11 +2075,11 @@
       "full_regulation": "No Fishing from W.A.C. Bennett Dam to 100 m south of Gething Creek and between the anti-vortex dyke and Peace Canyon Dam[Includes Tributaries]\nNo trout/char under 25 cm (bull trout catch and release); single barbless hook",
       "anchor_kind": "point",
       "resolver_hint": "dam_weir_fence",
-      "status": "todo",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal H] Dinosaur Reservoir (between W.A.C. Bennett Dam and Peace Canyon Dam) on Peace River / Dinosaur Lake. Candidate coord [-122.19419, 56.01573]. OSM: https://www.openstreetmap.org/?mlat=56.01573&mlon=-122.19419#map=15/56.01573/-122.19419. Verify: This is a lake_reach (Dinosaur Lake wbk 329657308), not a single point. Upper bound = W.A.C. Bennett Dam (coord given); lower bound = Peace Canyon Dam at the outlet ~[-121.994,55.982].. 'Reservoir Downstream of W.A.C. Bennett Dam' = Dinosaur Lake, impounded between the W.A.C. Bennett Dam (upstream, coord given, = Williston Lake outlet) and Peace Canyon Dam (downstream, = Dinosaur Lake outlet [-121.994,55.982]). Better modelled as a lake polygon (Dinosaur Lake, lakes layer) than a point."
+      "notes": "[auto-proposal H] Dinosaur Reservoir (between W.A.C. Bennett Dam and Peace Canyon Dam) on Peace River / Dinosaur Lake. Candidate coord [-122.19419, 56.01573]. OSM: https://www.openstreetmap.org/?mlat=56.01573&mlon=-122.19419#map=15/56.01573/-122.19419. Verify: This is a lake_reach (Dinosaur Lake wbk 329657308), not a single point. Upper bound = W.A.C. Bennett Dam (coord given); lower bound = Peace Canyon Dam at the outlet ~[-121.994,55.982].. 'Reservoir Downstream of W.A.C. Bennett Dam' = Dinosaur Lake, impounded between the W.A.C. Bennett Dam (upstream, coord given, = Williston Lake outlet) and Peace Canyon Dam (downstream, = Dinosaur Lake outlet [-121.994,55.982]). Better modelled as a lake polygon (Dinosaur Lake, lakes layer) than a point. \u2014 [human-review 2026-08-04 not_applicable] DUPLICATE of dinosaur-lake-reservoir-downstream-of-w-a-c-b-4fc5f6 (same regulation, parser emitted multiple locator rows). \u2192 see dinosaur-lake-reservoir-downstream-of-w-a-c-b-4fc5f6; dedup collapses."
     },
     {
       "id": "duncan-river-402ead",
@@ -2171,7 +2171,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal H] Dam at Great Central Lake outlet on Stamp River / Great Central Lake outlet (dam -> signs near Ash Main Bridge). Candidate coord [-124.99219, 49.32835]. OSM: https://www.openstreetmap.org/?mlat=49.32835&mlon=-124.99219#map=15/49.32835/-124.99219. Verify: Confirm the dam at the Great Central Lake outlet; downstream end = signs ~50 m SW of the Ash Main Bridge.. A dam controls the Great Central Lake outlet, source of the Stamp River. Coord = FWA stream exit from the Great Central Lake polygon. Reach runs to boundary signs ~50 m upstream (SW) of the Ash Main Bridge. Same dam as the Stamp River item (stamp-river-853100)."
+      "notes": "[auto-proposal H] Dam at Great Central Lake outlet on Stamp River / Great Central Lake outlet (dam -> signs near Ash Main Bridge). Candidate coord [-124.99219, 49.32835]. OSM: https://www.openstreetmap.org/?mlat=49.32835&mlon=-124.99219#map=15/49.32835/-124.99219. Verify: Confirm the dam at the Great Central Lake outlet; downstream end = signs ~50 m SW of the Ash Main Bridge.. A dam controls the Great Central Lake outlet, source of the Stamp River. Coord = FWA stream exit from the Great Central Lake polygon. Reach runs to boundary signs ~50 m upstream (SW) of the Ash Main Bridge. Same dam as the Stamp River item (stamp-river-853100). \u2014 [human-review 2026-08-04 reclassified: Stamp River reach] NOT a lake split nor a duplicate. Distinct Stamp River closure 'from the Great Central Lake dam downstream to signs ~50m upstream of Ash Main Bridge, Jan1-Apr30'. Two-boundary: A = the dam (= Great Central Lake outlet), B = signs ~50m above Ash Main Bridge. Author on Stamp River blk (related to but distinct from stamp-river-853100 = Ash R confluence\u2192dam)."
     },
     {
       "id": "john-hart-lake-s-tributaries-36c501",
@@ -2283,11 +2283,11 @@
       "full_regulation": "No Fishing from CPR Bridge near Creston downstream 2 km to navigation dolphin\nDownstream from the Idaho border to CPR Bridge near Creston and from Corra Linn Dam to the Columbia River: EXEMPT from Apr 1-June 14 closure AND from Nov 1-Mar 31 trout/char catch and release\nBurbot catch and release from Idaho border near Creston to Kootenay Lake, including tributaries to that part\nWalleye daily quota = 16 from the Brilliant Dam to the confluence with the Columbia River\nFrom the Brilliant Dam to the confluence with the Columbia River: northern pike and bass daily quota = unlimited",
       "anchor_kind": "point",
       "resolver_hint": "dam_weir_fence",
-      "status": "todo",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal M] Brilliant Dam (run-of-river, lower Kootenay River) on Kootenay River (Brilliant Dam -> Columbia confluence). Candidate coord [-117.59864, 49.33662]. OSM: https://www.openstreetmap.org/?mlat=49.33662&mlon=-117.59864#map=15/49.33662/-117.59864. Verify: Duplicate of kootenay-river-...-1e5f9d; same Brilliant Dam point.. Duplicate wording ('From the Brilliant Dam to the confluence with the Columbia River'). Same Brilliant Dam candidate."
+      "notes": "[auto-proposal M] Brilliant Dam (run-of-river, lower Kootenay River) on Kootenay River (Brilliant Dam -> Columbia confluence). Candidate coord [-117.59864, 49.33662]. OSM: https://www.openstreetmap.org/?mlat=49.33662&mlon=-117.59864#map=15/49.33662/-117.59864. Verify: Duplicate of kootenay-river-...-1e5f9d; same Brilliant Dam point.. Duplicate wording ('From the Brilliant Dam to the confluence with the Columbia River'). Same Brilliant Dam candidate. \u2014 [human-review 2026-08-04 not_applicable] DUPLICATE of kootenay-river-downstream-of-idaho-border-1e5f9d (same regulation, parser emitted multiple locator rows). \u2192 see kootenay-river-downstream-of-idaho-border-1e5f9d; dedup collapses."
     },
     {
       "id": "lake-revelstoke-62de4f",
@@ -4669,11 +4669,11 @@
       "full_regulation": "No rainbow trout under 30 cm\nBait ban 500 m upstream and downstream of Causeway Road July 1-Oct 30\nSee Nation Arm\nREMINDER: Arctic grayling catch and release from tributaries\nSee mercury warning on page 75 and definition of \"stream mouth\" on page 80 in the Provincial Regulations",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "likely_na",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[reclassified bridge_road_km -> lake_reach: reservoir_zone] RESERVOIR zone reg (Williston Lake Zone A): bait ban \u00b1500 m of the Causeway Road within the reservoir \u2014 lake/reservoir zone, not a stream bridge. \u2014 [lake-class: reservoir] reservoir zone (Williston Zone A, \u00b1500 m Causeway Rd) \u2014 complex. \u2014 [review \u00b7 was:deferred] assume nothing \u2014 re-decide."
+      "notes": "[reclassified bridge_road_km -> lake_reach: reservoir_zone] RESERVOIR zone reg (Williston Lake Zone A): bait ban \u00b1500 m of the Causeway Road within the reservoir \u2014 lake/reservoir zone, not a stream bridge. \u2014 [lake-class: reservoir] reservoir zone (Williston Zone A, \u00b1500 m Causeway Rd) \u2014 complex. \u2014 [review \u00b7 was:deferred] assume nothing \u2014 re-decide. \u2014 [human-review 2026-08-04 not_applicable] DUPLICATE of williston-lake-in-zone-a-includes-waters-500--3be97e (same regulation, parser emitted multiple locator rows). \u2192 see williston-lake-in-zone-a-includes-waters-500--3be97e; dedup collapses."
     },
     {
       "id": "williston-lake-in-zone-a-includes-waters-500--7972e6",
@@ -4689,11 +4689,11 @@
       "full_regulation": "No rainbow trout under 30 cm\nBait ban 500 m upstream and downstream of Causeway Road July 1-Oct 30\nSee Nation Arm\nREMINDER: Arctic grayling catch and release from tributaries\nSee mercury warning on page 75 and definition of \"stream mouth\" on page 80 in the Provincial Regulations",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "likely_na",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[reclassified bridge_road_km -> lake_reach: reservoir_zone] RESERVOIR zone reg (Williston Lake Zone A): bait ban \u00b1500 m of the Causeway Road within the reservoir \u2014 lake/reservoir zone, not a stream bridge. \u2014 [lake-class: reservoir] reservoir zone (Williston Zone A) \u2014 complex. \u2014 [review \u00b7 was:deferred] assume nothing \u2014 re-decide."
+      "notes": "[reclassified bridge_road_km -> lake_reach: reservoir_zone] RESERVOIR zone reg (Williston Lake Zone A): bait ban \u00b1500 m of the Causeway Road within the reservoir \u2014 lake/reservoir zone, not a stream bridge. \u2014 [lake-class: reservoir] reservoir zone (Williston Zone A) \u2014 complex. \u2014 [review \u00b7 was:deferred] assume nothing \u2014 re-decide. \u2014 [human-review 2026-08-04 not_applicable] DUPLICATE of williston-lake-in-zone-a-includes-waters-500--3be97e (same regulation, parser emitted multiple locator rows). \u2192 see williston-lake-in-zone-a-includes-waters-500--3be97e; dedup collapses."
     },
     {
       "id": "williston-lake-in-zone-a-includes-waters-500--3be97e",
@@ -6228,11 +6228,11 @@
       "full_regulation": "Bull trout catch and release\nDoes not include Columbia River upstream of Kinbasket Reservoir",
       "anchor_kind": "confluence",
       "resolver_hint": "tributary",
-      "status": "likely_na",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "tributary-SET reg (all tributaries of the named lake/river): a whole-WSC-subtree membership, NOT a curated point split. Handle via tributary inheritance / wsc_descendants, not a confluence point. \u2014 [review \u00b7 was:not_applicable] assume nothing \u2014 re-decide."
+      "notes": "tributary-SET reg (all tributaries of the named lake/river): a whole-WSC-subtree membership, NOT a curated point split. Handle via tributary inheritance / wsc_descendants, not a confluence point. \u2014 [review \u00b7 was:not_applicable] assume nothing \u2014 re-decide. \u2014 [human-review 2026-08-04 not_applicable] tributaries-SET row; 'Does not include Columbia R upstream of Kinbasket' is an exclusion."
     },
     {
       "id": "kitimat-river-angling-regulations-for-the-kit-eb7a2e",
@@ -8155,11 +8155,11 @@
       "full_regulation": "No Fishing from Terzaghi Dam to Yalakom River\nNo Fishing downstream of Hwy 40 bridge (approximately 6 km north of Lillooet), Mar 31-June 20\nNo trout under 25 cm; bull trout catch and release upstream of Downton Lake (reservoir)",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "likely_na",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[lake-class: lake_split] head of Downton Lake (reservoir). \u2014 [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 \u2014 NO authored split needed. \u2014 [review \u00b7 was:auto] assume nothing \u2014 re-decide."
+      "notes": "[lake-class: lake_split] head of Downton Lake (reservoir). \u2014 [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 \u2014 NO authored split needed. \u2014 [review \u00b7 was:auto] assume nothing \u2014 re-decide. \u2014 [human-review 2026-08-04 not_applicable] 'upstream of Downton Lake (reservoir)' = auto lake-edge boundary; the reg's other splits (Terzaghi Dam\u2192Yalakom, Hwy40 bridge) are separate rows."
     },
     {
       "id": "chilko-lake-83dc6f",
@@ -8496,11 +8496,11 @@
       "full_regulation": "No Fishing within the fishing boundary signs at the western tip of the lake near the mouth of Canim River, Jan 1-June 30\nTrout/char catch and release, bait ban and single barbless hook: within fishing boundary signs at the western tip of the lake, July 1-Dec 31\nNo Fishing within 200 m of the Mahood River outlet, Jan 1-June 30\nTrout/char catch and release, bait ban and single barbless hook: within 200 m of the mouth of the Mahood River outlet, July 1-Dec 31",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "likely_na",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[lake-class: lake_internal] lake-internal area closure within boundary signs (see map, docs/15) \u2014 unsupported. \u2014 [review \u00b7 was:deferred] assume nothing \u2014 re-decide."
+      "notes": "[lake-class: lake_internal] lake-internal area closure within boundary signs (see map, docs/15) \u2014 unsupported. \u2014 [review \u00b7 was:deferred] assume nothing \u2014 re-decide. \u2014 [human-review 2026-08-04 not_applicable] DUPLICATE of mahood-lake-see-map-on-page-28-for-area-closu-42f4bc (same regulation, parser emitted multiple locator rows). \u2192 see mahood-lake-see-map-on-page-28-for-area-closu-42f4bc; dedup collapses."
     },
     {
       "id": "mckinley-creek-9d6931",
@@ -8622,11 +8622,11 @@
       "full_regulation": "No Fishing July 15-Aug 31\nNo Fishing from power line crossing at \"Bore Hole\" upstream to fishing boundary signs at the mouth of Boulder Creek\nNo Fishing from the Cedar Road Bridge upstream to the Hwy 19 bridge, Sept 1-Oct 15\nNo Fishing upstream of the Hwy 1 bridge[Includes Tributaries], Dec 1-May 31\nArtificial fly only upstream of the westernmost of the two Nanaimo Lakes, known locally as \"Second\" Lake, including tributaries\nEngine power restriction on parts - 7.5 kW (10 hp)",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "likely_na",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[lake-class: lake_split] westernmost of the two Nanaimo (First/Second) lakes \u2014 that lake edge. \u2014 [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 \u2014 NO authored split needed. \u2014 [review \u00b7 was:auto] assume nothing \u2014 re-decide."
+      "notes": "[lake-class: lake_split] westernmost of the two Nanaimo (First/Second) lakes \u2014 that lake edge. \u2014 [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 \u2014 NO authored split needed. \u2014 [review \u00b7 was:auto] assume nothing \u2014 re-decide. \u2014 [human-review 2026-08-04 not_applicable] 'upstream of the westernmost Nanaimo lake (Second Lake)' = auto lake-edge boundary; the reg's other splits are separate rows."
     },
     {
       "id": "nicola-river-aba357",
@@ -8879,11 +8879,11 @@
       "full_regulation": "No Fishing Mar 15-May 14, and rainbow trout and char catch and release, May 15-Mar 14, in the waters lying west of a line between\nsigns at Henstridge Road and Wharf Road to a line between signs on the south and north shores of Little Shuswap Lake (see map A on\npage 28)\nNo Fishing in the entire area north of Albas, Mar 15-May 14 (see map B on page 28)\nNo Fishing east of a line between fishing boundary signs on Murdock and Semaphore points, to Hwy 1 bridge, Mar 15-May 14 (see map C\non page 28)\nNo fishing in Salmon Arm Bay, west of line between Engineer's Point and Sunnybrae Point (see map on page 28), for the conservation\nof chinook and coho salmon stocks, Sept 1-Dec 31 (anglers fishing from the community pier in the city of Salmon Arm are exempt from\nthe closure)\nNo Ice Fishing\nRainbow trout daily quota = 1 (none under 50 cm), annual quota = 5\nChar daily quota = 1 (none under 60 cm), annual quota = 5\nBait ban, single barbless hook (anglers fishing from the community pier in the city of Salmon Arm are exempt from the bait ban)\nConservation Surcharge Stamp required to catch and keep rainbow trout over 50 cm or char over 60 cm",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "likely_na",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[lake-class: multi_lake] multi-basin (Shuswap + Little Shuswap + arms, see maps) \u2014 needs map-driven splits. \u2014 [review \u00b7 was:deferred] assume nothing \u2014 re-decide."
+      "notes": "[lake-class: multi_lake] multi-basin (Shuswap + Little Shuswap + arms, see maps) \u2014 needs map-driven splits. \u2014 [review \u00b7 was:deferred] assume nothing \u2014 re-decide. \u2014 [human-review 2026-08-04 not_applicable] scope-descriptor row (includes Little Shuswap + the S.Thompson reach + named arms); the real closures are sibling Shuswap Lake rows."
     },
     {
       "id": "shuswap-river-521556",
@@ -9089,11 +9089,11 @@
       "full_regulation": "No Fishing EXCEPT the outlet stream downstream of the falls 2.4 km downstream of Whiteswan Lake, No Fishing Aug 1-Mar 31, rainbow\ntrout daily quota = 5 (catch and release all other species) when open",
       "anchor_kind": "lake_io",
       "resolver_hint": "inlet_outlet",
-      "status": "todo",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "\u2014 [human-review 2026-08-04 not_applicable] inlet+outlet stream SET (whole-stream membership); the outlet-falls carve-out is authored separately (splits.json whiteswan_outlet_falls)."
     },
     {
       "id": "whiteswan-lake-s-inlet-outlet-streams-89ed48",
@@ -10397,11 +10397,11 @@
       "full_regulation": "No powered boats on any water within Strathcona Park except Gold, Upper Campbell and Buttle lakes",
       "anchor_kind": "area_boundary",
       "resolver_hint": "park_polygon",
-      "status": "todo",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "\u2014 [human-review 2026-08-04 not_applicable] park-wide 'No powered boats within Strathcona Park' area rule, not a stream split."
     },
     {
       "id": "strathcona-park-waters-a4d50b",
@@ -10415,11 +10415,11 @@
       "full_regulation": "No powered boats on any water within Strathcona Park except Gold, Upper Campbell and Buttle lakes",
       "anchor_kind": "area_boundary",
       "resolver_hint": "park_polygon",
-      "status": "todo",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "\u2014 [human-review 2026-08-04 not_applicable] DUPLICATE of strathcona-park-waters-6ad989 (same regulation, parser emitted multiple locator rows). \u2192 see strathcona-park-waters-6ad989; dedup collapses."
     },
     {
       "id": "wood-river-495c0d",
@@ -10778,11 +10778,11 @@
       "full_regulation": "No Fishing Sept 1-Oct 31\nTrout/char daily quota = 1 (none under 30 cm) and bait ban, June 15-Aug 31\nBull trout catch and release\nEXCEPTIONS - SEE SEPARATE LISTINGS FOR: Abruzzi Cr., Alexander Cr.[Includes Tributaries] upstream of the easternmost Hwy 3 bridge, Bighorn\n(Ram) Cr., Cadorna Cr., Fording R. downstream of Josephine Falls, Forsyth Cr. from Connor Lk. downstream 3 km, Line Cr.[Includes Tributaries], Grave\nCreek[Includes Tributaries], Michel Cr.[Includes Tributaries], Morrissey Cr.[Includes Tributaries], Wigwam River\nALL tributaries (EXCEPT Coal Creek downstream of old MF&M Railway Bridge 7 km upstream of Elk River) are Class II waters when open",
       "anchor_kind": "not_a_split",
       "resolver_hint": "except_negative",
-      "status": "likely_na",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'."
+      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'. \u2014 [human-review 2026-08-04 not_applicable] 'see exceptions' descriptor; twin of elk-...-9149a8 (already n/a). Exceptions are separate listings."
     },
     {
       "id": "findlay-creek-1b3bee",
@@ -11230,11 +11230,11 @@
       "full_regulation": "Smallmouth bass daily quota = 4\nEngine power restriction on parts - 7.5 kW (10 hp); no vessels on parts, no powered boats on parts, no towing on parts\nA wheelchair accessible fishing pier is located on the lake's northwest shore via Brookleigh Road",
       "anchor_kind": "not_a_split",
       "resolver_hint": "map_or_vague",
-      "status": "likely_na",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'."
+      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'. \u2014 [human-review 2026-08-04 not_applicable] 'on parts' = engine-power/vessel restrictions, not a fishing boundary; any fishing splits are separate rows."
     },
     {
       "id": "fraser-river-upstream-of-the-cpr-bridge-at-mi-4460d2",
@@ -11465,11 +11465,11 @@
       "full_regulation": "No Fishing in mainstem (only) Nov 1-June 14; tributaries subject to spring closure\nTrout daily quota = 1 (none under 30 cm)\nArtificial fly only, bait ban\nElectric motor only - max 7.5 kW\nMainstem only: Class II water June 15-Oct 31; Steelhead Stamp not required",
       "anchor_kind": "not_a_split",
       "resolver_hint": "map_or_vague",
-      "status": "likely_na",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'."
+      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'. \u2014 [human-review 2026-08-04 not_applicable] 'No Fishing in mainstem (only)' = whole-mainstem reg, no A\u2192B boundary. Mainstem/trib distinction handled by the SET row."
     },
     {
       "id": "arrow-park-mosquito-creek-bc2bd8",
@@ -11591,11 +11591,11 @@
       "full_regulation": "Fly fishing only; except Thelwood Creek is closed all year",
       "anchor_kind": "unclassified",
       "resolver_hint": "other_reach",
-      "status": "todo",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "\u2014 [human-review 2026-08-04 not_applicable] tributaries-SET ('fly only; except Thelwood Creek closed') \u2014 set membership + exclusion, no point split."
     },
     {
       "id": "campbell-river-b6bb5f",
@@ -11780,11 +11780,11 @@
       "full_regulation": "Trout/char catch and release (mainstem only) from Doctor Creek Bridge to Lavington Creek Bridge, June 15-Oct 31; other parts (including\ntributaries, except Lavington Creek) trout/char daily quota = 2 (none under 30 cm and only 1 bull trout), June 15-Oct 31; bait ban, June 15-Oct 31\nSee Lavington Creek, a tributary",
       "anchor_kind": "unclassified",
       "resolver_hint": "other_reach",
-      "status": "todo",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "\u2014 [human-review 2026-08-04 not_applicable] 'other parts' = remainder/complement descriptor; the real split (Doctor Ck Bridge\u2192Lavington Ck Bridge) is separate."
     },
     {
       "id": "fraser-river-498f12",
@@ -12218,11 +12218,11 @@
       "full_regulation": "Fly fishing only, bait ban (EXCEPT dead fin fish may be used as bait when set lining; see page 8 in the Provincial Regulations)\nThat section of flowing water between Babine and Nilkitkwa Lakes known as \"Rainbow Alley\" is open for fishing all year (see also Babine\nRiver) (See map 2 page 51)",
       "anchor_kind": "unclassified",
       "resolver_hint": "other_reach",
-      "status": "todo",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "\u2014 [human-review 2026-08-04 not_applicable] 'Rainbow Alley' reach between Babine & Nilkitkwa Lakes = bounded by two lake edges (auto). [name-variant TODO: add 'Rainbow Alley' as a variant for this between-lakes reach \u2014 NOT committing name_variants.json per runbook; Dawson to add.]"
     },
     {
       "id": "pitt-river-14096c",
