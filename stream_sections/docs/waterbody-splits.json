@@ -12268,11 +12268,16 @@
           "rows": [
             {
               "id": "findlay-creek-6df88c-a",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal M] Lavington Creek Bridge (& Doctor Creek Bridge) on Findlay Creek. Candidate coord [-115.96801, 50.13214]. OSM: https://www.openstreetmap.org/?mlat=50.13214&mlon=-115.96801#map=15/50.13214/-115.96801. Verify: FINDLAY-LAVINGTON FSR crossing = Lavington Creek Bridge (name-confirmed) at ~18.5 km; Doctor Creek Bridge is the upstream endpoint.. Reach = 'Doctor Creek Bridge to Lavington Creek Bridge'. FWA FSR 'FINDLAY-LAVINGTON' crossing firmly matches the Lavington bridge; the nearby 'Skookumchuck Creek' road crossing at ~10.4 km may be the Doctor Creek bridge. Candidate is the Lavington endpoint. [structural-split 2026-08-05 from “from Doctor Creek Bridge to Lavington Creek Bridge”] boundary=Doctor Creek Bridge [osm-candidate 2026-08-05] [-116.04373, 50.12643] (OSM Overpass ∩ MU-clipped FWA river; VERIFY).",
+              "label": "Doctor Creek FSR bridge",
+              "notes": "[auto-proposal M] Lavington Creek Bridge (& Doctor Creek Bridge) on Findlay Creek. Candidate coord [-115.96801, 50.13214]. OSM: https://www.openstreetmap.org/?mlat=50.13214&mlon=-115.96801#map=15/50.13214/-115.96801. Verify: FINDLAY-LAVINGTON FSR crossing = Lavington Creek Bridge (name-confirmed) at ~18.5 km; Doctor Creek Bridge is the upstream endpoint.. Reach = 'Doctor Creek Bridge to Lavington Creek Bridge'. FWA FSR 'FINDLAY-LAVINGTON' crossing firmly matches the Lavington bridge; the nearby 'Skookumchuck Creek' road crossing at ~10.4 km may be the Doctor Creek bridge. Candidate is the Lavington endpoint. [structural-split 2026-08-05 from “from Doctor Creek Bridge to Lavington Creek Bridge”] boundary=Doctor Creek Bridge [human-review 2026-08-05 OSM-confirmed] [-116.04373, 50.12643].",
+              "coord": [
+                -116.04373,
+                50.12643
+              ],
               "locator_text": "Doctor Creek Bridge"
             },
             {
@@ -13965,21 +13970,26 @@
         "Classified"
       ],
       "reg_text": "**No Fishing** Sept 1-Oct 31\nTrout/char catch and release, June 15-Aug 31\nBait ban\n**Class II water when open, including tributaries - Wigwam River classified licence required for non-resident anglers**",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 2,
       "locators": [
         {
           "src": "water",
           "text": "downstream of falls near the km 26 post on Lodgepole Road",
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "lodgepole-creek-downstream-of-falls-near-the--f54873",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "name",
               "resolver_hint": "falls_obstacle",
-              "notes": "[osm-candidate 2026-08-05] [-114.73204, 49.29352] (OSM Overpass ∩ MU-clipped FWA river; VERIFY).",
+              "label": "Falls (FISS obstacle 27756)",
+              "notes": "[osm-candidate 2026-08-05] [-114.73204, 49.29352] (OSM Overpass ∩ MU-clipped FWA river; VERIFY). [human-review 2026-08-05 FISS-obstacle user-provided] [-114.76147, 49.28952].",
+              "coord": [
+                -114.76147,
+                49.28952
+              ],
               "name_verbatim": "LODGEPOLE CREEK (downstream of falls near the km 26 po"
             }
           ]
@@ -13987,15 +13997,20 @@
         {
           "src": "entry",
           "text": "downstream of falls near the km 26 post on Lodgepole Road",
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "lodgepole-creek-downstream-of-falls-near-the--f54873",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "name",
               "resolver_hint": "falls_obstacle",
-              "notes": "[osm-candidate 2026-08-05] [-114.73204, 49.29352] (OSM Overpass ∩ MU-clipped FWA river; VERIFY).",
+              "label": "Falls (FISS obstacle 27756)",
+              "notes": "[osm-candidate 2026-08-05] [-114.73204, 49.29352] (OSM Overpass ∩ MU-clipped FWA river; VERIFY). [human-review 2026-08-05 FISS-obstacle user-provided] [-114.76147, 49.28952].",
+              "coord": [
+                -114.76147,
+                49.28952
+              ],
               "name_verbatim": "LODGEPOLE CREEK (downstream of falls near the km 26 po"
             }
           ]
@@ -14003,15 +14018,20 @@
         {
           "src": "name",
           "text": "LODGEPOLE CREEK (downstream of falls near the km 26 post on Lodgepole Road)",
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "lodgepole-creek-downstream-of-falls-near-the--f54873",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "name",
               "resolver_hint": "falls_obstacle",
-              "notes": "[osm-candidate 2026-08-05] [-114.73204, 49.29352] (OSM Overpass ∩ MU-clipped FWA river; VERIFY).",
+              "label": "Falls (FISS obstacle 27756)",
+              "notes": "[osm-candidate 2026-08-05] [-114.73204, 49.29352] (OSM Overpass ∩ MU-clipped FWA river; VERIFY). [human-review 2026-08-05 FISS-obstacle user-provided] [-114.76147, 49.28952].",
+              "coord": [
+                -114.76147,
+                49.28952
+              ],
               "name_verbatim": "LODGEPOLE CREEK (downstream of falls near the km 26 po",
               "locator_text": "downstream of falls near the km 26 post on Lodgepole Road"
             }
@@ -20195,11 +20215,16 @@
             },
             {
               "id": "lakelse-river-e03417-b",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] power line crossing 3.5 km above Lakelse River mouth on Lakelse River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the power line 3.5 km above the Lakelse mouth (from Lakelse Lake outlet); power line, map-only.. Reach = 'Lakelse Lake outlet to power line 3.5 km above the mouth'. Transmission-line landmark near Terrace; not in FWA. Map/OSM. [structural-split 2026-08-05 from “from the outlet of Lakelse Lake to the power line crossing, located 3.5 km upstream of the Lakelse River mouth”] boundary=power line crossing, located 3.5 km upstream of the Lakelse River mouth [osm-candidate 2026-08-05] [-128.75105, 54.43999] (OSM Overpass ∩ MU-clipped FWA river; VERIFY).",
+              "label": "power line crossing",
+              "notes": "[auto-proposal L] power line crossing 3.5 km above Lakelse River mouth on Lakelse River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the power line 3.5 km above the Lakelse mouth (from Lakelse Lake outlet); power line, map-only.. Reach = 'Lakelse Lake outlet to power line 3.5 km above the mouth'. Transmission-line landmark near Terrace; not in FWA. Map/OSM. [structural-split 2026-08-05 from “from the outlet of Lakelse Lake to the power line crossing, located 3.5 km upstream of the Lakelse River mouth”] boundary=power line crossing, located 3.5 km upstream of the Lakelse River mouth [human-review 2026-08-05 OSM-confirmed] [-128.75105, 54.43999].",
+              "coord": [
+                -128.75105,
+                54.43999
+              ],
               "locator_text": "power line crossing, located 3.5 km upstream of the Lakelse River mouth"
             },
             {
@@ -20235,11 +20260,16 @@
             },
             {
               "id": "lakelse-river-1a8e36-b",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] CNR Bridge over Lakelse River (from Lakelse Lake) on Lakelse River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the CNR (railway) bridge on the Lakelse River near Terrace; railway bridge, map-only.. Reach = 'between Lakelse Lake and CNR Bridge'. Railway bridge -> not in FWA; map/OSM-confirmable. [structural-split 2026-08-05 from “between Lakelse Lake and CNR Bridge”] boundary=CNR Bridge [osm-candidate 2026-08-05] [-128.64308, 54.39856] (OSM Overpass ∩ MU-clipped FWA river; VERIFY).",
+              "label": "CNR bridge",
+              "notes": "[auto-proposal L] CNR Bridge over Lakelse River (from Lakelse Lake) on Lakelse River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the CNR (railway) bridge on the Lakelse River near Terrace; railway bridge, map-only.. Reach = 'between Lakelse Lake and CNR Bridge'. Railway bridge -> not in FWA; map/OSM-confirmable. [structural-split 2026-08-05 from “between Lakelse Lake and CNR Bridge”] boundary=CNR Bridge [human-review 2026-08-05 OSM-confirmed] [-128.64308, 54.39856].",
+              "coord": [
+                -128.64308,
+                54.39856
+              ],
               "locator_text": "CNR Bridge"
             }
           ]

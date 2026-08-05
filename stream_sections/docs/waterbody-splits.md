@@ -7,8 +7,8 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 |---|--:|
 | NO_CURATION | 0 |
 | MISSING_SPLITS | 2 |
-| INCOMPLETE | 205 |
-| COMPLETE | 105 |
+| INCOMPLETE | 204 |
+| COMPLETE | 106 |
 | NO_SPLIT | 75 |
 
 **Drift** (curated rows matching no source locator): 1
@@ -340,7 +340,7 @@ approximately 35 m downstream” → little-qualicum-river-4dbb9b[todo]
 - • [rule] “upstream of Downton Lake (reservoir)” → bridge-river-3fa485[not_applicable]
 
 ## FINDLAY CREEK · MU ['4-26'] · p38 · [INCOMPLETE] (10cce399)
-- • [rule] “from Doctor Creek Bridge to Lavington Creek Bridge” → findlay-creek-6df88c-a[todo], findlay-creek-6df88c-b[todo]
+- • [rule] “from Doctor Creek Bridge to Lavington Creek Bridge” → findlay-creek-6df88c-a[curated], findlay-creek-6df88c-b[todo]
 - • [rule] “other parts” → findlay-creek-405247[not_applicable]
 - • [except] “except Lavington Creek” → findlay-creek-1b3bee[not_applicable]
 
@@ -493,10 +493,6 @@ approximately 35 m downstream” → little-qualicum-river-4dbb9b[todo]
 - • [water] “downstream of Josephine Falls” → fording-river-downstream-of-josephine-falls-97d67a[todo]
 - • [entry] “downstream of Josephine Falls” → fording-river-downstream-of-josephine-falls-97d67a[todo]
 
-## LODGEPOLE CREEK (downstream of falls near the km 26 post on Lodgepole Road) · MU ['4-2'] · p40 · [INCOMPLETE] (4050199b)
-- • [water] “downstream of falls near the km 26 post on Lodgepole Road” → lodgepole-creek-downstream-of-falls-near-the--f54873[todo]
-- • [entry] “downstream of falls near the km 26 post on Lodgepole Road” → lodgepole-creek-downstream-of-falls-near-the--f54873[todo]
-
 ## LODGEPOLE CREEK (upstream of falls) · MU ['4-2'] · p40 · [INCOMPLETE] (4dbdd58a)
 - • [water] “upstream of falls” → lodgepole-creek-upstream-of-falls-615359[todo]
 - • [entry] “upstream of falls” → lodgepole-creek-upstream-of-falls-615359[todo]
@@ -546,8 +542,8 @@ approximately 35 m downstream” → little-qualicum-river-4dbb9b[todo]
 - • [rule] “in tributaries and upstream of Hwy 37 bridge” → kitimat-river-angling-regulations-for-the-kit-b3b21f[todo]
 
 ## LAKELSE RIVER · MU ['6-10'] · p58 · [INCOMPLETE] (dd7048cb)
-- • [rule] “from the outlet of Lakelse Lake to the power line crossing, locate” → lakelse-river-e03417-a[todo], lakelse-river-e03417-b[todo], lakelse-river-1a8e36-a[todo]
-- • [rule] “between Lakelse Lake and CNR Bridge” → lakelse-river-1a8e36-a[todo], lakelse-river-1a8e36-b[todo]
+- • [rule] “from the outlet of Lakelse Lake to the power line crossing, locate” → lakelse-river-e03417-a[todo], lakelse-river-e03417-b[curated], lakelse-river-1a8e36-a[todo]
+- • [rule] “between Lakelse Lake and CNR Bridge” → lakelse-river-1a8e36-a[todo], lakelse-river-1a8e36-b[curated]
 
 ## STELLAKO RIVER · MU ['6-4', '7-12'] · p59 · [INCOMPLETE] (aed39f94)
 - • [rule] “between fishing boundary signs approximately 250 m and 4 km downst” → stellako-river-76c305-a[todo], stellako-river-76c305-b[todo]
