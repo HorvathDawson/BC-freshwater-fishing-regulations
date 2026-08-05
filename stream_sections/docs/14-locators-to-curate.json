@@ -5832,11 +5832,11 @@
       "full_regulation": "Dead fin fish may be used for bait only when fishing for sturgeon (see page 8 in the Provincial Regulations)\nNo Fishing in the area bounded by a line commencing at a fishing boundary sign located at the eastern end of Landstrom Bar (Scale Bar)\nto a fishing boundary sign on the opposite bank of the river, thence to a fishing boundary sign at the southern end of Croft Island, thence\nto a fishing boundary sign on the nearest bank of the river in a westerly direction, thence following the bank of the river in a westerly\ndirection to the Point of Commencement, May 1-Oct 31\nNo Fishing in the non-tidal portion of the Fraser River in Region 2 from one hour after sunset to one hour before sunrise\nNo Fishing in the Jesperson's Side Channel, Herrling Side Channel, and Seabird Island north Side Channel May 15-July 31. See page 26\nfor a map of the No Fishing areas\nNo Fishing for steelhead Fraser River Mainstem Aug 15-Dec 31\nBoats less than 20 m in length, under power or anchored, must not impede the passage of commercial vessels",
       "anchor_kind": "confluence",
       "resolver_hint": "tributary",
-      "status": "likely_na",
+      "status": "todo",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[deferred] 1_nonconfluence_boundary \u2014 [review \u00b7 was:deferred] assume nothing \u2014 re-decide."
+      "notes": "[deferred] 1_nonconfluence_boundary \u2014 [review \u00b7 was:deferred] assume nothing \u2014 re-decide. \u2014 [human-review 2026-08-04 manual-find | Dawson to locate] IN-RIVER POLYGON: Landstrom Bar closure (Fraser, MU 2-4, near Mission) \u2014 4 fishing-boundary signs: (1) E end of Landstrom Bar (Scale Bar), (2) opposite bank, (3) S end of Croft Island, (4) nearest bank westerly, back to start. Digitize the polygon by hand (like a lake sub-region, docs/15)."
     },
     {
       "id": "glacier-redslide-creek-unnamed-tributary-to-n-b7d777",
@@ -6264,11 +6264,11 @@
       "full_regulation": "Angling prohibited for non-guided non-resident aliens on Saturdays from the outlet of Kitsumkalum Lake to Glacier Creek confluence\nall year (See map page 56)\nAngling prohibited for non-guided non-resident aliens on Sundays for the entire river all year\nClass II water all year[Includes Tributaries] ; Steelhead Stamp mandatory Aug 7 - May 31\nBait ban",
       "anchor_kind": "confluence",
       "resolver_hint": "tributary",
-      "status": "likely_na",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "Kitsumkalum Lake outlet",
-      "notes": "non-confluence: lake outlet boundary \u2014 [review \u00b7 was:deferred] assume nothing \u2014 re-decide."
+      "notes": "non-confluence: lake outlet boundary \u2014 [review \u00b7 was:deferred] assume nothing \u2014 re-decide. \u2014 [human-review 2026-08-04 not_applicable] reach endpoint A = Kitsumkalum Lake outlet (auto lake edge, no authored split needed); the reach's point endpoint B (Glacier Creek confluence) is curated in kitsumkalum-kalum-river-b6b706-b. \u2192 see -b (same A\u2192B reach)."
     },
     {
       "id": "kitsumkalum-kalum-river-b6b706-b",
@@ -6306,11 +6306,11 @@
       "full_regulation": "No Fishing from boundary signs in Kokish canyon to Ida Lake, Nov 1-Apr 30;\nNo Fishing from the log boom located approximately 100 m upstream of the IPP intake to signs at the tail of the canyon pool located\napproximately 250 m downstream\nNo Fishing between signs at the IPP tail race confluence downstream approximately 500 m to signs",
       "anchor_kind": "confluence",
       "resolver_hint": "tributary",
-      "status": "likely_na",
+      "status": "todo",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[deferred] 1_nonconfluence_boundary \u2014 [review \u00b7 was:deferred] assume nothing \u2014 re-decide."
+      "notes": "[deferred] 1_nonconfluence_boundary \u2014 [review \u00b7 was:deferred] assume nothing \u2014 re-decide. \u2014 [human-review 2026-08-04 manual-find | Dawson to locate] BETWEEN-SIGNS reach (Kokish, MU 1-11): upper sign at the IPP tail-race confluence, lower sign ~500 m downstream. Tailrace = man-made powerhouse outfall (not in FWA). Locate both signs on satellite."
     },
     {
       "id": "kootenay-lake-s-tributaries-6b7979",
@@ -6420,11 +6420,11 @@
       "full_regulation": "No Fishing downstream of fishing boundary signs at Trout Lake outlet, to fishing boundary signs approximately 600m downstream\nnear the confluence of Mobbs Creek\nExempt from spring closure (Apr 1-Jun 14), exempt from trout/char release (Nov 1-Mar 31)\nRainbow trout daily quota = 5 (any size), bull trout daily quota = 2 (any size)",
       "anchor_kind": "confluence",
       "resolver_hint": "tributary",
-      "status": "likely_na",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "Trout Lake outlet signs",
-      "notes": "[deferred] LAKE outlet boundary (Trout Lake) \u2014 author as lake anchor; lake splitting not yet implemented (docs/15). \u2014 [review \u00b7 was:deferred] assume nothing \u2014 re-decide."
+      "notes": "[deferred] LAKE outlet boundary (Trout Lake) \u2014 author as lake anchor; lake splitting not yet implemented (docs/15). \u2014 [review \u00b7 was:deferred] assume nothing \u2014 re-decide. \u2014 [human-review 2026-08-04 not_applicable] reach endpoint A = Trout Lake outlet signs (auto lake edge); point endpoint B (signs ~600 m below) curated in lardeau-river-e666ed-b. \u2192 see -b."
     },
     {
       "id": "lardeau-river-e666ed-b",
@@ -6565,11 +6565,11 @@
       "full_regulation": "Bait ban\nNo fishing from fishing boundary signs at outlet of Meziadin Lake to Nass River, including tributaries, Jan 1-June 15",
       "anchor_kind": "confluence",
       "resolver_hint": "tributary",
-      "status": "likely_na",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "Meziadin Lake outlet",
-      "notes": "non-confluence: lake outlet boundary \u2014 [review \u00b7 was:deferred] assume nothing \u2014 re-decide."
+      "notes": "non-confluence: lake outlet boundary \u2014 [review \u00b7 was:deferred] assume nothing \u2014 re-decide. \u2014 [human-review 2026-08-04 not_applicable] reach endpoint A = Meziadin Lake outlet (auto lake edge); point endpoint B (Meziadin/Nass confluence = natural mouth) curated in meziadin-river-09af13-b. \u2192 see -b."
     },
     {
       "id": "meziadin-river-09af13-b",
@@ -7165,11 +7165,11 @@
       "full_regulation": "No Fishing upstream of Kay Creek\nNo powered boats upstream of confluence with White River; speed restriction (10 km/h) from estuary to confluence with White River",
       "anchor_kind": "confluence",
       "resolver_hint": "tributary",
-      "status": "likely_na",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "estuary",
-      "notes": "non-confluence: estuary/tidal boundary \u2014 [review \u00b7 was:deferred] assume nothing \u2014 re-decide."
+      "notes": "non-confluence: estuary/tidal boundary \u2014 [review \u00b7 was:deferred] assume nothing \u2014 re-decide. \u2014 [human-review 2026-08-04 not_applicable] reach endpoint A = estuary / natural river mouth (terminus, no split); point endpoint B (White River confluence) curated in salmon-river-4a0073-b. \u2192 see -b."
     },
     {
       "id": "salmon-river-4a0073-b",
@@ -7567,11 +7567,11 @@
       "full_regulation": "No Fishing in the Ruskin spawning channel, from the inlet near the dam downstream to the boat ramp crossing\nNo Fishing in the Northrop Spawning Channel, from the intake downstream to where the channel joins the Stave River main, including its\ntributaries containg the fishway",
       "anchor_kind": "confluence",
       "resolver_hint": "tributary",
-      "status": "likely_na",
+      "status": "todo",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[deferred] 1_nonconfluence_boundary \u2014 [review \u00b7 was:deferred] assume nothing \u2014 re-decide."
+      "notes": "[deferred] 1_nonconfluence_boundary \u2014 [review \u00b7 was:deferred] assume nothing \u2014 re-decide. \u2014 [human-review 2026-08-04 manual-find | Dawson to locate] Northrop Spawning Channel (Stave, MU 2-8): from the channel intake downstream to where it joins the Stave main, incl. the fishway tributary. Man-made channel, likely FWA-unnamed. Digitize/locate by hand."
     },
     {
       "id": "tanya-lake-s-tributaries-52749a",
@@ -7605,11 +7605,11 @@
       "full_regulation": "No Fishing Oct 1-May 31\nTrout/char daily quota = 2 (none under 35 cm)\nAdditional opening from the CNR Bridge downstream of Deadman River to CNR Bridge upstream of Bonaparte River, May 1-31; trout/char\ncatch and release and artificial fly only, May 1-31\nUpstream of boundary signs 1 km downstream of Martel: bait ban\nNo angling from boats\nDownstream of signs at Kamloops Lake: Class II water Oct 1-Dec 31 and Steelhead Stamp mandatory Oct 1-Dec 31 (when open)",
       "anchor_kind": "confluence",
       "resolver_hint": "tributary",
-      "status": "likely_na",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "Kamloops Lake outlet",
-      "notes": "non-confluence: lake outlet boundary \u2014 [review \u00b7 was:deferred] assume nothing \u2014 re-decide."
+      "notes": "non-confluence: lake outlet boundary \u2014 [review \u00b7 was:deferred] assume nothing \u2014 re-decide. \u2014 [human-review 2026-08-04 not_applicable] reach endpoint A = signs at Kamloops Lake outlet (\u2248 auto lake edge; signs sit at the outlet); point endpoint B (Thompson/Fraser confluence) curated in ...bc221e-b. \u2192 see -b."
     },
     {
       "id": "thompson-river-downstream-of-signs-at-kamloop-bc221e-b",
@@ -7769,11 +7769,11 @@
       "full_regulation": "No Fishing from fishing boundary signs at log booms on Weaver Lake downstream to where Sakwi Creek enters Weaver Creek\nEngine power restriction on Weaver Lake - 7.5 kW (10 hp)",
       "anchor_kind": "confluence",
       "resolver_hint": "tributary",
-      "status": "likely_na",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "log booms on Weaver Lake",
-      "notes": "non-confluence: lake boundary at log booms \u2014 [review \u00b7 was:deferred] assume nothing \u2014 re-decide."
+      "notes": "non-confluence: lake boundary at log booms \u2014 [review \u00b7 was:deferred] assume nothing \u2014 re-decide. \u2014 [human-review 2026-08-04 not_applicable] reach endpoint A = log booms at Weaver Lake outlet (auto lake edge); point endpoint B (Sakwi Creek confluence) curated in weaver-lake-and-weaver-creek-47d5a0-b. \u2192 see -b."
     },
     {
       "id": "weaver-lake-and-weaver-creek-47d5a0-b",
@@ -8435,11 +8435,11 @@
       "full_regulation": "No Fishing from CPR Bridge near Creston downstream 2 km to navigation dolphin\nDownstream from the Idaho border to CPR Bridge near Creston and from Corra Linn Dam to the Columbia River: EXEMPT from Apr 1-June 14 closure AND from Nov 1-Mar 31 trout/char catch and release\nBurbot catch and release from Idaho border near Creston to Kootenay Lake, including tributaries to that part\nWalleye daily quota = 16 from the Brilliant Dam to the confluence with the Columbia River\nFrom the Brilliant Dam to the confluence with the Columbia River: northern pike and bass daily quota = unlimited",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "likely_na",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[lake-class: lake_split] Kootenay Lake edge (up) + Idaho border (down) \u2014 authored split kootenay_idaho_border already covers the border. \u2014 [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 \u2014 NO authored split needed. \u2014 [review \u00b7 was:auto] assume nothing \u2014 re-decide."
+      "notes": "[lake-class: lake_split] Kootenay Lake edge (up) + Idaho border (down) \u2014 authored split kootenay_idaho_border already covers the border. \u2014 [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 \u2014 NO authored split needed. \u2014 [review \u00b7 was:auto] assume nothing \u2014 re-decide. \u2014 [human-review 2026-08-04 not_applicable] reach 'Idaho border \u2192 Kootenay Lake': border endpoint = authored split kootenay_idaho_border; upstream endpoint = Kootenay Lake (auto edge). No new authored split. \u2192 references authored split kootenay_idaho_border."
     },
     {
       "id": "kootenay-river-upstream-of-koocanusa-reservoi-3bb758",
@@ -8550,11 +8550,11 @@
       "full_regulation": "No Fishing from Frances Lake downstream approximately 400 m to fishing boundary signs at the logging bridge\nDownstream of Nahatlatch Lake (including Hannah and Frances lakes; except as noted upstream of ), open until Dec 31; No Fishing\nJan 1-May 31\nNo Fishing downstream of Nahatlatch Lake, Jan 1-May 31\nTrout daily quota = 2 (none under 30 cm)",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "likely_na",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[lake-class: lake_split] outlet of Nahatlatch Lake. \u2014 [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 \u2014 NO authored split needed. \u2014 [review \u00b7 was:auto] assume nothing \u2014 re-decide."
+      "notes": "[lake-class: lake_split] outlet of Nahatlatch Lake. \u2014 [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 \u2014 NO authored split needed. \u2014 [review \u00b7 was:auto] assume nothing \u2014 re-decide. \u2014 [human-review 2026-08-04 not_applicable] below-Nahatlatch-Lake reach (scope incl. Hannah & Frances lakes), seasonal (open to Dec 31 / No Fishing Jan1-May31); bounded by Nahatlatch Lake (auto edge). 'except as noted upstream of [the lake]' = the separately-listed closure upstream = Frances Lake\u2192400 m logging-bridge closure, tracked in nahatlatch-river-285a59 (todo). No new authored split."
     },
     {
       "id": "nahatlatch-river-0bb710",
@@ -10868,11 +10868,11 @@
       "full_regulation": "No Fishing from Frances Lake downstream approximately 400 m to fishing boundary signs at the logging bridge\nDownstream of Nahatlatch Lake (including Hannah and Frances lakes; except as noted upstream of ), open until Dec 31; No Fishing\nJan 1-May 31\nNo Fishing downstream of Nahatlatch Lake, Jan 1-May 31\nTrout daily quota = 2 (none under 30 cm)",
       "anchor_kind": "not_a_split",
       "resolver_hint": "except_negative",
-      "status": "likely_na",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'."
+      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'. \u2014 [human-review 2026-08-04 not_applicable] phantom locator split off the exception clause 'except as noted upstream of [Nahatlatch Lake]'; the exception = the Frances Lake\u2192400 m closure (nahatlatch-river-285a59). Not a separate boundary. Terse source wording (lake implied by context), not a parse error."
     },
     {
       "id": "nilkitkwa-lake-02d932",
