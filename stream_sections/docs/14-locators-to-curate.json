@@ -4745,11 +4745,11 @@
       "full_regulation": "No Fishing Feb 1-July 15 including Campbell River between Strathcona Dam and (Lower) Campbell Lake",
       "anchor_kind": "confluence",
       "resolver_hint": "tributary",
-      "status": "likely_na",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "tributary-SET reg (all tributaries of the named lake/river): a whole-WSC-subtree membership, NOT a curated point split. Handle via tributary inheritance / wsc_descendants, not a confluence point. \u2014 [review \u00b7 was:not_applicable] assume nothing \u2014 re-decide."
+      "notes": "tributary-SET reg (all tributaries of the named lake/river): a whole-WSC-subtree membership, NOT a curated point split. Handle via tributary inheritance / wsc_descendants, not a confluence point. \u2014 [review \u00b7 was:not_applicable] assume nothing \u2014 re-decide. \u2014 [human-review 2026-08-04 not_applicable] tributaries-SET row; the 'Campbell R between Strathcona Dam and Campbell Lake' mainstem reach is separate (Strathcona Dam = campbell-river-657d6e, todo)."
     },
     {
       "id": "anzac-river-ae3f1c",
@@ -4977,11 +4977,11 @@
       "full_regulation": "No Fishing upstream of Burnaby Lake or from Cariboo Dam to Salamander Creek; steelhead catch and release",
       "anchor_kind": "confluence",
       "resolver_hint": "tributary",
-      "status": "likely_na",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "tributary-SET reg (all tributaries of the named lake/river): a whole-WSC-subtree membership, NOT a curated point split. Handle via tributary inheritance / wsc_descendants, not a confluence point. \u2014 [review \u00b7 was:not_applicable] assume nothing \u2014 re-decide."
+      "notes": "tributary-SET reg (all tributaries of the named lake/river): a whole-WSC-subtree membership, NOT a curated point split. Handle via tributary inheritance / wsc_descendants, not a confluence point. \u2014 [review \u00b7 was:not_applicable] assume nothing \u2014 re-decide. \u2014 [human-review 2026-08-04 not_applicable] tributaries-SET row; mainstem split is separate (brunette-river-3c4590, todo)."
     },
     {
       "id": "bulkley-river-e30268",
@@ -6030,11 +6030,11 @@
       "full_regulation": "Upstream of Burrell Creek: exempt from spring closure; bait ban Apr 1-Oct 31; trout/char daily quota = 1\nDownstream of Burrell Creek: bait ban July 1-Oct 31; rainbow trout catch and release",
       "anchor_kind": "confluence",
       "resolver_hint": "tributary",
-      "status": "likely_na",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "tributary-SET reg (all tributaries of the named lake/river): a whole-WSC-subtree membership, NOT a curated point split. Handle via tributary inheritance / wsc_descendants, not a confluence point. \u2014 [review \u00b7 was:not_applicable] assume nothing \u2014 re-decide."
+      "notes": "tributary-SET reg (all tributaries of the named lake/river): a whole-WSC-subtree membership, NOT a curated point split. Handle via tributary inheritance / wsc_descendants, not a confluence point. \u2014 [review \u00b7 was:not_applicable] assume nothing \u2014 re-decide. \u2014 [human-review 2026-08-04 not_applicable] tributaries-SET row; Burrell Creek mainstem split is separate (granby-river-967165/-328008, curated). No point split here."
     },
     {
       "id": "halfway-river-f25bbc-a",
@@ -6325,11 +6325,11 @@
       "full_regulation": "Bull trout catch and release\nDoes not include the Kootenay River upstream from Kootenay Lake to the U.S. border near Creston",
       "anchor_kind": "confluence",
       "resolver_hint": "tributary",
-      "status": "likely_na",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "tributary-SET reg (all tributaries of the named lake/river): a whole-WSC-subtree membership, NOT a curated point split. Handle via tributary inheritance / wsc_descendants, not a confluence point. \u2014 [review \u00b7 was:not_applicable] assume nothing \u2014 re-decide."
+      "notes": "tributary-SET reg (all tributaries of the named lake/river): a whole-WSC-subtree membership, NOT a curated point split. Handle via tributary inheritance / wsc_descendants, not a confluence point. \u2014 [review \u00b7 was:not_applicable] assume nothing \u2014 re-decide. \u2014 [human-review 2026-08-04 not_applicable] tributaries-SET row; 'does not include the Kootenay River...' is an exclusion pointing at the separate Kootenay River rows."
     },
     {
       "id": "kootenay-river-upstream-of-koocanusa-reservoi-6f3c82",
@@ -6463,11 +6463,11 @@
       "full_regulation": "No Fishing July 15-Aug 31[Includes Tributaries], No Fishing - All tributaries\nNo Fishing from the falls in Little Qualicum Falls Provincial Park downstream to the hatchery fence, Dec 1-May 31\nThe standard 100 m closure around a fish rearing facility has been reduced to a no fishing area from the hatchery fence to signs\napproximately 35 m downstream\nFly fishing only, Sept 1-Nov 30 (where open)",
       "anchor_kind": "confluence",
       "resolver_hint": "tributary",
-      "status": "likely_na",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "tributary-SET reg (all tributaries of the named lake/river): a whole-WSC-subtree membership, NOT a curated point split. Handle via tributary inheritance / wsc_descendants, not a confluence point. \u2014 [review \u00b7 was:not_applicable] assume nothing \u2014 re-decide."
+      "notes": "tributary-SET reg (all tributaries of the named lake/river): a whole-WSC-subtree membership, NOT a curated point split. Handle via tributary inheritance / wsc_descendants, not a confluence point. \u2014 [review \u00b7 was:not_applicable] assume nothing \u2014 re-decide. \u2014 [human-review 2026-08-04 not_applicable] 'All tributaries' set row. Note the reg's [Includes Tributaries] is a whole-mainstem Jul15-Aug31 seasonal closure (not an A->B split); the falls->hatchery reach is separate (little-qualicum-031042/4dbb9b, todo)."
     },
     {
       "id": "little-slocan-lake-s-tributaries-957a0b",
@@ -7099,11 +7099,11 @@
       "full_regulation": "Sheep Creek to South Salmo River: catch and release rainbow and bull trout\nRemainder of mainstem: rainbow trout daily quota = 1 (none under 30 cm), June 15-Oct 31, and bull trout catch and release year-round\nBait ban",
       "anchor_kind": "confluence",
       "resolver_hint": "tributary",
-      "status": "likely_na",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "tributary-SET reg (all tributaries of the named lake/river): a whole-WSC-subtree membership, NOT a curated point split. Handle via tributary inheritance / wsc_descendants, not a confluence point. \u2014 [review \u00b7 was:not_applicable] assume nothing \u2014 re-decide."
+      "notes": "tributary-SET reg (all tributaries of the named lake/river): a whole-WSC-subtree membership, NOT a curated point split. Handle via tributary inheritance / wsc_descendants, not a confluence point. \u2014 [review \u00b7 was:not_applicable] assume nothing \u2014 re-decide. \u2014 [human-review 2026-08-04 not_applicable] tributaries-SET row; Sheep Ck\u2192S.Salmo mainstem split is separate (salmo-river-2f831e-a/-b, curated)."
     },
     {
       "id": "salmon-river-1c1fc3",
@@ -10850,11 +10850,11 @@
       "full_regulation": "Artificial fly only from Carp Lake to War Falls (excluding War Lake)",
       "anchor_kind": "not_a_split",
       "resolver_hint": "except_negative",
-      "status": "likely_na",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'."
+      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'. \u2014 [human-review 2026-08-04 not_applicable] 'excluding War Lake' is an exclusion, not a split; the real 'Carp Lk->War Falls' reach is separate (mcleod-river-362e9a, todo)."
     },
     {
       "id": "nahatlatch-river-a0ebb8",
@@ -11428,11 +11428,11 @@
       "full_regulation": "Sheep Creek to South Salmo River: catch and release rainbow and bull trout\nRemainder of mainstem: rainbow trout daily quota = 1 (none under 30 cm), June 15-Oct 31, and bull trout catch and release year-round\nBait ban",
       "anchor_kind": "not_a_split",
       "resolver_hint": "map_or_vague",
-      "status": "likely_na",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'."
+      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'. \u2014 [human-review 2026-08-04 not_applicable] 'Remainder of mainstem' = complement reach left by the curated Sheep Ck->S.Salmo split; no boundary of its own."
     },
     {
       "id": "shuswap-lake-see-maps-on-page-28-includes-lit-db54cd",
