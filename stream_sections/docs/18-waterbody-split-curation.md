@@ -144,3 +144,32 @@ into it), so it is both source AND writable. Then `14` is redundant.
 **Keep** — `waterbody_splits.py` (becomes the reader/writer core) and the independent oneoffs
 `resolve_lake_offsets.py`, `review_comments.py`, `complex_regs_report.py`,
 `name_variants_compile.py` (0 refs to `14`).
+
+## Coord resolution — data-source discipline (FWA vs OSM)
+
+**Rivers/lakes/confluences come from FWA; OSM is ONLY for man-made crossings we don't have in the
+gpkg.** Never geolocate a river reach or confluence from OSM.
+
+- **FWA (`data/bc_fisheries_data.gpkg`)** — river geometry (`streams`), lake outlets/edges (`lakes`),
+  confluences (tributary mouth), MU polygons (`wmu`, `WILDLIFE_MGMT_UNIT_ID`). Used for confluence
+  splits, lake-outlet points (e.g. Strathcona Dam = Upper Campbell Lake outlet), offsets.
+- **OSM Overpass** — ONLY highways/roads (`highway`, by `ref` or road name), rail
+  (`railway=rail`), **power lines (`power=line`)**, and **dams (`man_made=dam` / `waterway=dam`)**
+  that FWA lacks. Method: intersect the OSM feature geometry with the **MU-clipped** FWA river line
+  → crossing point(s). MU-clip (`wmu` ∩ river) is essential — same-named rivers elsewhere in BC
+  otherwise union into a province-wide bbox and match unrelated bridges.
+
+**Resolver** (`oneoff/osm_bridges.py`, to be committed from scratch): report → writes
+`[osm-candidate] [lon,lat]; … (OSM Overpass ∩ river; VERIFY)` into the row `notes` (NEVER curates —
+the human confirms). **All** crossings shown when a feature crosses several times (dual carriageway,
+multiple same-name bridges). Public Overpass rate-limits: use retry+backoff and ≥2.5 s pacing.
+
+## Batch manual review (next step)
+
+Once candidates are attached, review **per waterbody (entry-as-a-unit)**: for each entry show its reg
+text (see `regs-md`), every locator, and for each its `[osm-candidate]`(s) with OSM/Google/satellite
+map links, and confirm coords with the human (they paste/accept per the `docs/17` link template).
+Bridge/road/powerline/dam points are map-confirm; confluence/lake/offset points come from FWA.
+
+> **Handoff note:** the OSM resolver + the bridge structural-split pass currently live as scratch
+> scripts — commit them into `oneoff/` so the pipeline is reproducible if the session ends.
