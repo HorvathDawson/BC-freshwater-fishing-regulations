@@ -86,6 +86,66 @@ def name_key(water: str) -> str:
     return norm(re.sub(r"\s*\(([^)]*)\)", repl, water))
 
 
+_KM_RE = re.compile(r"(\d+(?:\.\d+)?)\s*km\b")
+_CANON_STOP = {"the", "of", "a", "fishing", "approximately", "to", "from", "and", "between",
+               "near", "at", "on", "signs", "sign"}
+
+
+def canon(t: str | None):
+    """Normalized tokens for endpoint↔reach matching: km→m, above→upstream, below→downstream,
+    drop filler. 'signs ~0.5 km above the canyon' -> ['500','m','upstream','canyon']."""
+    t = (t or "").lower().replace("~", " ")
+    t = _KM_RE.sub(lambda m: f"{int(float(m.group(1)) * 1000)} m", t)
+    t = re.sub(r"\babove\b", "upstream", t)
+    t = re.sub(r"\bbelow\b", "downstream", t)
+    return [w for w in re.findall(r"[a-z0-9.]+", t) if w not in _CANON_STOP]
+
+
+def label_matches(r: dict, boundary_text: str) -> bool:
+    """Link an *endpoint* row (empty locator_text, identity in `label`) to a reach boundary: the
+    row's label tokens (e.g. 'Crag Creek' or 'signs 500 m upstream of canyon'), normalized for
+    km/m + above/upstream, must ALL appear in the boundary text. Scoped to empty-lt rows only."""
+    lab = re.sub(r"\s*\([^)]*\)", "", r.get("label") or "")
+    lab = re.sub(r"\b(confluence|boundary)\b", "", lab, flags=re.I)
+    at = canon(lab)
+    return bool(at) and set(at) <= set(canon(boundary_text))
+
+
+def trim_row(r: dict, water: str, mus) -> dict:
+    """Curation-only view of a row for embedding under its locator: entry-level fields (water, mu,
+    region, reg_text, entry_id) live on the CARD, so keep only per-row curation and any curated
+    name/mu that actually diverges from the card (so the grouped file is a lossless, de-duped
+    successor to 14-locators-to-curate.json)."""
+    out = {"id": r["id"], "status": r["status"], "anchor_kind": r["anchor_kind"]}
+    for k in ("resolver_hint", "label", "notes"):
+        if (r.get(k) or "").strip():
+            out[k] = r[k]
+    if r.get("coord"):
+        out["coord"] = r["coord"]
+    if r.get("target"):
+        out["target"] = r["target"]
+    if name_key(r.get("name_verbatim")) != name_key(water):
+        out["name_verbatim"] = r.get("name_verbatim")
+    if set(r.get("mus") or []) != set(mus or []):
+        out["mus"] = r.get("mus")
+    return out
+
+
+def tidy_locator(l: dict) -> dict:
+    """Readable locator: source boundary text + optional parse info block + the trimmed rows.
+    Drops empty/derivable fields (row_ids/statuses/anchor_kinds, OK flag, empty dates/type)."""
+    out = {"src": l["src"], "text": l["text"]}
+    info = {k: l[k] for k in ("restriction_type", "dates", "includes_tributaries")
+            if l.get(k) not in (None, [], "")}
+    if info:
+        out["info"] = info
+    if l.get("flag") == "MISSING":
+        out["flag"] = "MISSING"
+    out["resolved"] = l["resolved"]
+    out["rows"] = l["rows"]
+    return out
+
+
 def build():
     raw = json.loads(RAW.read_text())
     rows = [r for pg in raw for r in pg["rows"]]
@@ -119,9 +179,14 @@ def build():
         for r in cands:
             lt = r.get("locator_text", "")
             if loc["src"] in ("name", "water"):
-                if r.get("src") == "name" and (_match(lt, loc["text"]) or _match(lt, water)):
+                if r.get("src") == "name" and (
+                        _match(lt, loc["text"]) or _match(lt, water)
+                        or (loc["src"] == "name" and name_key(lt) == name_key(water))):
                     hits.append(r)
-            elif _match(lt, loc["text"]):
+            elif norm(lt):
+                if _match(lt, loc["text"]):
+                    hits.append(r)
+            elif label_matches(r, loc["text"]):  # endpoint row (empty locator_text) ↔ reach
                 hits.append(r)
         for r in hits:
             consumed.add(r["id"])
@@ -157,27 +222,25 @@ def build():
         locators.append({"src": "name", "text": water})
 
         # backfill EVERY entry (so name/whole-water rows are consumed -> real drift only)
-        cands = candidates(water, row.get("mu"))
+        mu = row.get("mu")
+        cands = candidates(water, mu)
         for l in locators:
             hits = backfill(cands, l, water)
-            l["row_ids"] = [r["id"] for r in hits]
-            l["rows"] = hits  # FULL curated row objects (all fields from 14-locators-to-curate)
-            l["statuses"] = [r["status"] for r in hits]
-            l["anchor_kinds"] = sorted({r["anchor_kind"] for r in hits})
+            l["rows"] = [trim_row(r, water, mu) for r in hits]  # curation-only (entry fields on card)
             l["resolved"] = bool(hits) and all(r["status"] in RESOLVED for r in hits)
             l["flag"] = "MISSING" if (l["src"] in BOUNDARY_SRC and not hits) else "OK"
 
         boundary_locs = [l for l in locators if l["src"] in BOUNDARY_SRC]
-        n_curated_rows = len({rid for l in locators for rid in l["row_ids"]})
-        if not boundary_locs and n_curated_rows == 0:
+        row_ids = {r["id"] for l in locators for r in l["rows"]}
+        if not boundary_locs and not row_ids:
             continue  # neither a split nor any curation on this entry -> nothing to track
 
-        eid = entry_id(water, row.get("mu"), reg)
+        eid = entry_id(water, mu, reg)
         n_missing = sum(1 for l in boundary_locs if l["flag"] == "MISSING")
         n_unresolved = sum(1 for l in boundary_locs if l["flag"] != "MISSING" and not l["resolved"])
         if not boundary_locs:
             completeness = "NO_SPLIT"  # entry carries only whole-water / tributary-set rows (n/a)
-        elif n_curated_rows == 0:
+        elif not row_ids:
             completeness = "NO_CURATION"
         elif n_missing:
             completeness = "MISSING_SPLITS"
@@ -186,11 +249,12 @@ def build():
         else:
             completeness = "COMPLETE"
         cards[eid] = {
-            "entry_id": eid, "water": water, "mu": row.get("mu"),
+            "entry_id": eid, "water": water, "mu": mu,
             "region": row.get("region") or (pe.get("region") if pe else None),
             "page": row.get("page"), "image": row.get("image"), "symbols": row.get("symbols"),
             "reg_text": reg, "completeness": completeness,
-            "n_boundaries": len(boundary_locs), "locators": locators,
+            "n_boundaries": len(boundary_locs),
+            "locators": [tidy_locator(l) for l in locators],
         }
 
     # drift: curated rows never matched to any source locator (real anomalies / manual additions)
@@ -222,8 +286,8 @@ def write_outputs(cards, drift):
         for l in c["locators"]:
             if l["src"] == "name":
                 continue
-            mark = "❌ MISSING" if l["flag"] == "MISSING" else "•"
-            rows = ", ".join(f"{i}[{s}]" for i, s in zip(l["row_ids"], l["statuses"])) or "—"
+            mark = "❌ MISSING" if l.get("flag") == "MISSING" else "•"
+            rows = ", ".join(f'{r["id"]}[{r["status"]}]' for r in l["rows"]) or "—"
             L.append(f"- {mark} [{l['src']}] “{l['text'][:66]}” → {rows}")
         L.append("")
     if drift:
@@ -245,13 +309,13 @@ def main():
     if args and args[0] == "missing":
         for c in sorted(cards.values(), key=_rank):
             for l in c["locators"]:
-                if l["flag"] == "MISSING":
+                if l.get("flag") == "MISSING":
                     print(f"{c['water']:34.34s} MU{c['mu']} p{c['page']} | [{l['src']}] {l['text']}")
         return
     if args and args[0] == "incomplete":
         for c in sorted(cards.values(), key=_rank):
             if c["completeness"] != "COMPLETE":
-                miss = sum(1 for l in c["locators"] if l["flag"] == "MISSING")
+                miss = sum(1 for l in c["locators"] if l.get("flag") == "MISSING")
                 print(f"[{c['completeness']:14s}] {c['water']:32.32s} MU{c['mu']} "
                       f"bounds={c['n_boundaries']} missing={miss}")
         return
@@ -262,7 +326,7 @@ def main():
     if args and args[0] == "stamp":
         # write each curated row's entry_id = the card it belongs to (reliable name+MU join),
         # so row <-> card is a durable bidirectional link. Rows in no card get a self-id.
-        r2e = {rid: c["entry_id"] for c in cards.values() for l in c["locators"] for rid in l["row_ids"]}
+        r2e = {r["id"]: c["entry_id"] for c in cards.values() for l in c["locators"] for r in l["rows"]}
         doc = json.loads(CURATED.read_text())
         linked = 0
         for r in doc["locators"]:
@@ -275,7 +339,7 @@ def main():
         return
     write_outputs(cards, drift)
     tally = Counter(c["completeness"] for c in cards.values())
-    n_missing = sum(1 for c in cards.values() for l in c["locators"] if l["flag"] == "MISSING")
+    n_missing = sum(1 for c in cards.values() for l in c["locators"] if l.get("flag") == "MISSING")
     print(f"split-bearing entries: {len(cards)} | {dict(tally)}")
     print(f"MISSING boundaries: {n_missing} | DRIFT rows: {len(drift)}")
     print(f"wrote {OUT_JSON.relative_to(ROOT)} and {OUT_MD.relative_to(ROOT)}")

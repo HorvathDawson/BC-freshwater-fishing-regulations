@@ -62,32 +62,40 @@ The name+MU matcher is prefix/containment based — treat `MISSING`/`DRIFT` as *
 not gospel: a `MISSING` may be a matcher-miss or a non-spatial `except`; a `DRIFT` may be a trib-set
 row with no standalone source entry.
 
+## Output shape (de-duped, readable)
+
+`waterbody-splits.json` is a **superset of `14-locators-to-curate.json` grouped by reg entry** — the
+intended successor file. Entry-level fields (`water`, `mu`, `region`, `page`, `reg_text`,
+`entry_id`) live **once on the card**; each locator embeds only the **curation-specific** part of
+its rows via `trim_row` (id, status, anchor_kind, resolver_hint, coord, target, label, notes — plus
+`name_verbatim`/`mus` only when they diverge from the card). Empty/derivable fields are dropped
+(`row_ids`/`statuses`/`anchor_kinds`, the `OK` flag, empty `dates`/`restriction_type`). A card is
+emitted for **every entry that carries curation**, not only split-bearing ones; whole-water /
+tributary-set entries (no boundary) get completeness **`NO_SPLIT`**. Result: ~940 KB (was ~1.7 MB),
+**650/651 rows embedded**, 0 orphans.
+
+**Endpoint linker.** Some boundaries are curated as *endpoint* rows with **empty `locator_text`**
+(identity in `label`), e.g. Dean River's canyon reaches → Crag Creek / Iltasyuko confluences, sign
+points, tidal boundary. `label_matches` (`canon`: km→m, above→upstream, below→downstream, drop
+filler) links such a row to a "from A to B" reach when its label tokens all appear in the reach —
+so a reach is resolved by the endpoint rows that bound it.
+
 ## Current state (2026-08-05)
 
-The output JSON now carries **every field of each curated row** embedded under its locator (via
-`l["rows"]`), so `waterbody-splits.json` is a **superset of `14-locators-to-curate.json` grouped by
-reg entry** — the intended successor file. A card is emitted for **every entry that carries
-curation**, not only split-bearing ones; whole-water / tributary-set entries (no boundary) get
-completeness **`NO_SPLIT`**.
+`387 cards → COMPLETE 100 · INCOMPLETE 210 · MISSING_SPLITS 2 · NO_SPLIT 75 · NO_CURATION 0`.
 
-`383 cards → COMPLETE 99 · INCOMPLETE 210 · MISSING_SPLITS 3 · NO_SPLIT 71 · NO_CURATION 0`.
-Rows embedded: **639/651** (7 Dean endpoint rows + 5 drift not embedded — see below).
-
-**The 8 MISSING boundaries are all matcher/model artifacts, NOT unauthored gaps** (verified
-2026-08-05):
-- **DEAN RIVER (6)** — every canyon reach IS authored, as 7 `curated` *endpoint* rows (Crag Creek
-  + Iltasyuko confluences, Anahim Lake boundary, 3 sign points, tidal boundary). They carry
-  **empty `locator_text`**, and the backfill matches reach-boundaries by `locator_text`, so it
-  can't link an endpoint row to a "from A to B" reach. Dean is effectively COMPLETE; the fix is a
-  **reach↔endpoint linker** (or populating each endpoint row's `locator_text`).
-- **NATION ARM (1)** — the `line` row `nation-arm-williston-lake-d2e637` **exists** (`todo`); the
-  name+MU join missed it. Real remaining work = curate that one line row (not a missing split).
+**The MISSING boundaries are all matcher/model artifacts, NOT unauthored gaps** (verified 2026-08-05):
+- **DEAN RIVER — RESOLVED.** The endpoint linker now maps all 10 reaches to their curated endpoint
+  rows; the entry is `COMPLETE`.
+- **NATION ARM (1)** — a **parse duplicate**: the one line-rule was parsed into two `location_text`
+  variants (with/without "(east)"); the curated `line` row `nation-arm-williston-lake-d2e637`
+  (`todo`) matches one, the dup variant flags MISSING. Real work = curate that one row.
 - **SHUSWAP (1)** — the "community pier … exempt from the bait ban" `except` is a **non-spatial**
-  person-based exemption, not a geographic split → should be `not_applicable`.
+  person-based exemption, not a geographic split → mark `not_applicable`.
 
-**5 DRIFT**: 3 are trib-set rows whose source water carries an *alias* paren (WEST ROAD/Blackwater,
-KINBASKET/McNaughton, WAHLEACH/Jones) — all `not_applicable`, harmless. 2 are `todo` rows that
-matched no source entry (`arrow-park-mosquito-creek`, `lost-lake-near-taweel-lake`) — worth a look.
+**1 DRIFT**: `lost-lake-near-taweel-lake` (now `not_applicable`) — whole-lake quota whose source
+`entry_location_text` didn't join; harmless. (The former trib-set/alias and `arrow-park` drifts now
+link via a `name_key` whole-water match; `arrow-park` + `lost-lake` were marked `not_applicable`.)
 
 ## Workflow (per entry, worst-first)
 

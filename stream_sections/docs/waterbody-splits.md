@@ -6,24 +6,12 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 | completeness | entries |
 |---|--:|
 | NO_CURATION | 0 |
-| MISSING_SPLITS | 3 |
+| MISSING_SPLITS | 2 |
 | INCOMPLETE | 210 |
-| COMPLETE | 99 |
-| NO_SPLIT | 71 |
+| COMPLETE | 100 |
+| NO_SPLIT | 75 |
 
-**Drift** (curated rows matching no source locator): 5
-
-## DEAN RIVER · MU ['5-9'] · p50 · [MISSING_SPLITS] (a4e08e9e)
-- • [rule] “upstream of Iltasyuko River” → dean-river-9c45e4[manual]
-- • [rule] “from Iltasyuko River to Crag Creek” → dean-river-269b75[manual]
-- ❌ MISSING [rule] “from Crag Creek to fishing boundary signs approximately 500 m upst” → —
-- ❌ MISSING [rule] “from fishing boundary signs approximately 500 m upstream of canyon” → —
-- ❌ MISSING [rule] “from fishing boundary signs approximately 100 m downstream of cany” → —
-- • [rule] “all parts” → dean-river-65ebf2[not_applicable]
-- ❌ MISSING [rule] “between signs 0.5 km and 3.5 km upstream of canyon” → —
-- ❌ MISSING [rule] “From Crag Creek to signs 500 m upstream of the canyon” → —
-- ❌ MISSING [rule] “From signs 100 m downstream of canyon to tidal boundary” → —
-- • [rule] “From Anahim Lake to Iltasyuko River” → dean-river-6123ec[manual]
+**Drift** (curated rows matching no source locator): 1
 
 ## SHUSWAP LAKE (see maps on page 28) (includes Little Shuswap Lake, that part of South Thompson River between Shuswap Lake and Little Shuswap Lake, Seymour, Anstey and Salmon arms and Mara Lake unless stated otherwise) · MU ['3-26'] · p34 · [MISSING_SPLITS] (268902d7)
 - • [rule] “in the waters lying west of a line between signs at Henstridge Roa” → shuswap-lake-see-maps-on-page-28-includes-lit-a72a63[todo]
@@ -921,8 +909,4 @@ approximately 35 m downstream” → little-qualicum-river-4dbb9b[todo]
 
 ## ⚠️ DRIFT — curated rows not found in the source (review)
 
-- `west-road-blackwater-river-s-tributaries-aec300` [not_applicable] WEST ROAD ("Blackwater") RIVER'S TRIBUTARIES — src=name “WEST ROAD RIVER'S TRIBUTARIES”
-- `kinbasket-mcnaughton-lake-s-tributaries-f98c5c` [not_applicable] KINBASKET (McNaughton) LAKE'S TRIBUTARIES — src=name “KINBASKET LAKE'S TRIBUTARIES”
-- `wahleach-jones-lake-s-tributaries-44df7a` [not_applicable] WAHLEACH ("Jones") LAKE'S TRIBUTARIES — src=name “WAHLEACH LAKE'S TRIBUTARIES”
-- `arrow-park-mosquito-creek-bc2bd8` [todo] ARROW PARK (Mosquito) CREEK — src=name “ARROW PARK CREEK”
-- `lost-lake-near-taweel-lake-e49a1f` [todo] LOST LAKE (near Taweel Lake) — src=entry “near Taweel Lake”
+- `lost-lake-near-taweel-lake-e49a1f` [not_applicable] LOST LAKE (near Taweel Lake) — src=entry “near Taweel Lake”
