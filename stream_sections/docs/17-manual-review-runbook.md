@@ -4,6 +4,12 @@
 human-in-the-loop batch review of point/boundary curation without re-deriving context. Everything
 needed is either in this doc or already inlined in each locator row's `notes`.
 
+> **For the COMPLETENESS pass, work waterbody-by-waterbody:** see
+> **`docs/18-waterbody-split-curation.md`** + `oneoff/waterbody_splits.py`, which group every reg
+> entry's splits together and flag any reg boundary with no curated row (`MISSING`). Use that to
+> finish a waterbody's *whole* split set before authoring; this per-row runbook still governs *how*
+> to resolve each row.
+
 ## What "review" means here
 Most un-curated rows now carry an **auto-proposal** in `notes` (written by research subagents):
 

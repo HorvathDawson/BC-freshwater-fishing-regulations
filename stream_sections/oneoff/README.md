@@ -19,6 +19,17 @@ a `status` (`todo | curated | manual | not_applicable | deferred | auto`), and a
 that carries research + `[auto-proposal H|M|L] … Candidate coord [lon,lat]` lines.
 Full method & gotchas: **`../docs/17-manual-review-runbook.md`**.
 
+### `waterbody_splits.py` — group splits by reg entry + completeness check
+Pivots the locator rows by their source reg entry (waterbody+MU+reg), links each reg-text boundary
+(`synopsis_parsed.json` rules) to the curated row(s) that resolve it, and flags any boundary with no
+row (`MISSING`). Regenerable view over `14-locators-to-curate.json` (source of truth untouched).
+Full model & workflow: **`../docs/18-waterbody-split-curation.md`**.
+```bash
+.venv/bin/python -m stream_sections.oneoff.waterbody_splits            # write cards + summary
+.venv/bin/python -m stream_sections.oneoff.waterbody_splits incomplete # entries not fully resolved
+.venv/bin/python -m stream_sections.oneoff.waterbody_splits show "DEAN RIVER"
+```
+
 ### `curation_status.py` — progress + work queue + review
 ```bash
 # progress table (per anchor_kind) + the next 10 open items
