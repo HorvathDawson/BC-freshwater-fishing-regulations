@@ -1,0 +1,1709 @@
+{
+  "thompson-river-downstream-of-signs-at-kamloop-bc221e-a": {
+    "bucket": "C",
+    "action": "not_applicable",
+    "reclassify_anchor_kind": null,
+    "label": "",
+    "note_to_append": "[human-review 2026-08-04 lake-verify] VERIFIED auto_lake_edge: 'signs at Kamloops Lake outlet' is the lake-edge boundary the combine-phase split already creates (docs/04); reg attaches via location_identifier. Fraser-confluence bound is the natural mouth. n/a. Confirms Dawson's 'lake split + confluence exist already'.",
+    "confidence": "M",
+    "needs_dawson": false,
+    "reason_code": "auto_lake_edge",
+    "evidence": "This -a row = the 'signs at Kamloops Lake outlet' boundary (notes: non-confluence lake-outlet). Signs sit at the lake outlet = plain lake edge; combine-phase lake split (docs/04) makes this cut for free. The reach's other bound (Fraser confluence, the -b row) is the Thompson mouth = natural end. No authored split needed.",
+    "apply_now_safe": false
+  },
+  "ash-river-f11aa9": {
+    "bucket": "C",
+    "action": "not_applicable",
+    "reclassify_anchor_kind": null,
+    "label": "",
+    "note_to_append": "[human-review 2026-08-04 lake-verify] VERIFIED auto_lake_edge: reach bounded ONLY by Elsie Lake and Dickson Lake edges; both boundaries fall out of the lake nodes (docs/04). n/a.",
+    "confidence": "H",
+    "needs_dawson": false,
+    "reason_code": "auto_lake_edge",
+    "evidence": "Two lake edges (Elsie Lake head, Dickson Lake outlet). Both cut for free by combine-phase lake split (docs/04). No authored split.",
+    "apply_now_safe": true
+  },
+  "big-bar-creek-ce0182": {
+    "bucket": "C",
+    "action": "not_applicable",
+    "reclassify_anchor_kind": null,
+    "label": "",
+    "note_to_append": "[human-review 2026-08-04 lake-verify] VERIFIED auto_lake_edge: 'downstream of Big Bar Lake' = lake-outlet edge, handled for free (docs/04). n/a.",
+    "confidence": "H",
+    "needs_dawson": false,
+    "reason_code": "auto_lake_edge",
+    "evidence": "Plain lake outlet of Big Bar Lake. Combine-phase split handles it (docs/04).",
+    "apply_now_safe": true
+  },
+  "bonaparte-river-98b62b": {
+    "bucket": "C",
+    "action": "not_applicable",
+    "reclassify_anchor_kind": null,
+    "label": "",
+    "note_to_append": "[human-review 2026-08-04 lake-verify] VERIFIED auto_lake_edge: 'downstream of Bonaparte Lake' = lake-outlet edge, handled for free. n/a.",
+    "confidence": "H",
+    "needs_dawson": false,
+    "reason_code": "auto_lake_edge",
+    "evidence": "Plain lake outlet of Bonaparte Lake (docs/04).",
+    "apply_now_safe": true
+  },
+  "bridge-river-3fa485": {
+    "bucket": "C",
+    "action": "not_applicable",
+    "reclassify_anchor_kind": null,
+    "label": "",
+    "note_to_append": "[human-review 2026-08-04 lake-verify] auto_lake_edge (reservoir): Downton Lake is a manmade reservoir; its head edge is cut for free like Koocanusa (docs/04), reg attaches via location_identifier. n/a. Caveat: confirm Downton Lake is present as a manmade wbk in FWA at build (assumed, not queried).",
+    "confidence": "M",
+    "needs_dawson": false,
+    "reason_code": "auto_lake_edge",
+    "evidence": "'upstream of Downton Lake (reservoir)' = reservoir head/edge. Named BC Hydro reservoir; per docs/04 a manmade waterbody (like Koocanusa wbk 328961702) is a lake node that splits the BLK for free at its edge.",
+    "apply_now_safe": false
+  },
+  "chimney-creek-04b2dc": {
+    "bucket": "C",
+    "action": "not_applicable",
+    "reclassify_anchor_kind": null,
+    "label": "",
+    "note_to_append": "[human-review 2026-08-04 lake-verify] VERIFIED auto_lake_edge: 'downstream of Brunson Lake' = lake-outlet edge, handled for free. n/a.",
+    "confidence": "H",
+    "needs_dawson": false,
+    "reason_code": "auto_lake_edge",
+    "evidence": "Plain lake outlet of Brunson Lake (docs/04).",
+    "apply_now_safe": true
+  },
+  "columbia-river-73fe32": {
+    "bucket": "C",
+    "action": "not_applicable",
+    "reclassify_anchor_kind": null,
+    "label": "",
+    "note_to_append": "[human-review 2026-08-04 lake-verify] VERIFIED auto_lake_edge: 'from Mud Lake to Columbia Lake' bounded only by two lake edges; both fall out of the lake nodes (docs/04). n/a for THIS reach.",
+    "confidence": "H",
+    "needs_dawson": false,
+    "reason_code": "auto_lake_edge",
+    "evidence": "This locator's reach is bounded by two lake edges (Mud Lake, Columbia Lake). Both handled for free (docs/04). Other splits Dawson mentions belong to other locators/rows, not this reach.",
+    "apply_now_safe": true
+  },
+  "davie-river-f757c8": {
+    "bucket": "C",
+    "action": "not_applicable",
+    "reclassify_anchor_kind": null,
+    "label": "",
+    "note_to_append": "[human-review 2026-08-04 lake-verify] VERIFIED auto_lake_edge: 'downstream of Schoen Lake' = lake-outlet edge, handled for free. n/a.",
+    "confidence": "H",
+    "needs_dawson": false,
+    "reason_code": "auto_lake_edge",
+    "evidence": "Plain lake outlet of Schoen Lake (docs/04).",
+    "apply_now_safe": true
+  },
+  "deadman-river-aa98fb": {
+    "bucket": "C",
+    "action": "not_applicable",
+    "reclassify_anchor_kind": null,
+    "label": "",
+    "note_to_append": "[human-review 2026-08-04 lake-verify] VERIFIED auto_lake_edge: 'downstream of Mowich Lake' = lake-outlet edge, handled for free. n/a.",
+    "confidence": "H",
+    "needs_dawson": false,
+    "reason_code": "auto_lake_edge",
+    "evidence": "Plain lake outlet of Mowich Lake (docs/04).",
+    "apply_now_safe": true
+  },
+  "eagle-river-a52a4f": {
+    "bucket": "C",
+    "action": "not_applicable",
+    "reclassify_anchor_kind": null,
+    "label": "",
+    "note_to_append": "[human-review 2026-08-04 lake-verify] VERIFIED auto_lake_edge: 'downstream of Griffin Lake' = lake-outlet edge, handled for free. n/a.",
+    "confidence": "H",
+    "needs_dawson": false,
+    "reason_code": "auto_lake_edge",
+    "evidence": "Plain lake outlet of Griffin Lake (docs/04).",
+    "apply_now_safe": true
+  },
+  "guichon-creek-9a81b6": {
+    "bucket": "C",
+    "action": "not_applicable",
+    "reclassify_anchor_kind": null,
+    "label": "",
+    "note_to_append": "[human-review 2026-08-04 lake-verify] VERIFIED auto_lake_edge: 'downstream of Mamit Lake' = lake-outlet edge, handled for free. n/a.",
+    "confidence": "H",
+    "needs_dawson": false,
+    "reason_code": "auto_lake_edge",
+    "evidence": "Plain lake outlet of Mamit Lake (docs/04).",
+    "apply_now_safe": true
+  },
+  "harrison-river-from-the-fraser-river-upstream-f8ecc6": {
+    "bucket": "C",
+    "action": "not_applicable",
+    "reclassify_anchor_kind": null,
+    "label": "",
+    "note_to_append": "[human-review 2026-08-04 lake-verify] VERIFIED auto_lake_edge: Harrison Lake bound handled for free (docs/04); Fraser bound is the natural mouth. n/a.",
+    "confidence": "H",
+    "needs_dawson": false,
+    "reason_code": "auto_lake_edge",
+    "evidence": "Reach bounded by Harrison Lake edge (up) and the Fraser confluence = the Harrison River mouth (down). Lake edge is auto (docs/04); mouth is a natural stream end. No authored split.",
+    "apply_now_safe": true
+  },
+  "mckinley-creek-9d6931": {
+    "bucket": "C",
+    "action": "not_applicable",
+    "reclassify_anchor_kind": null,
+    "label": "",
+    "note_to_append": "[human-review 2026-08-04 lake-verify] VERIFIED auto_lake_edge: 'downstream of McKinley Lake' = lake-outlet edge, handled for free. n/a.",
+    "confidence": "H",
+    "needs_dawson": false,
+    "reason_code": "auto_lake_edge",
+    "evidence": "Plain lake outlet of McKinley Lake (docs/04).",
+    "apply_now_safe": true
+  },
+  "moberly-river-b2a8ec": {
+    "bucket": "C",
+    "action": "not_applicable",
+    "reclassify_anchor_kind": null,
+    "label": "",
+    "note_to_append": "[human-review 2026-08-04 lake-verify] VERIFIED auto_lake_edge: 'downstream of Moberly Lake' = lake-outlet edge, handled for free. n/a.",
+    "confidence": "H",
+    "needs_dawson": false,
+    "reason_code": "auto_lake_edge",
+    "evidence": "Plain lake outlet of Moberly Lake (docs/04).",
+    "apply_now_safe": true
+  },
+  "nahatlatch-river-0bb710": {
+    "bucket": "C",
+    "action": "not_applicable",
+    "reclassify_anchor_kind": null,
+    "label": "",
+    "note_to_append": "[human-review 2026-08-04 lake-verify] VERIFIED auto_lake_edge: 'downstream of Nahatlatch Lake' = lake-outlet edge, handled for free. n/a.",
+    "confidence": "H",
+    "needs_dawson": false,
+    "reason_code": "auto_lake_edge",
+    "evidence": "Plain lake outlet of Nahatlatch Lake (docs/04).",
+    "apply_now_safe": true
+  },
+  "nahmint-river-786f4c": {
+    "bucket": "C",
+    "action": "not_applicable",
+    "reclassify_anchor_kind": null,
+    "label": "",
+    "note_to_append": "[human-review 2026-08-04 lake-verify] VERIFIED auto_lake_edge: both bounds are Nahmint Lake edges, handled for free (docs/04). n/a. (Pairs with nahmint-river-66b328.)",
+    "confidence": "H",
+    "needs_dawson": false,
+    "reason_code": "auto_lake_edge",
+    "evidence": "'upstream and downstream of the lake' = the two Nahmint Lake edges; both cut for free by the lake node (docs/04).",
+    "apply_now_safe": true
+  },
+  "nahmint-river-66b328": {
+    "bucket": "C",
+    "action": "not_applicable",
+    "reclassify_anchor_kind": null,
+    "label": "",
+    "note_to_append": "[human-review 2026-08-04 lake-verify] VERIFIED auto_lake_edge: Nahmint Lake head edge, handled for free (docs/04). n/a. Same lake as -786f4c (combined).",
+    "confidence": "H",
+    "needs_dawson": false,
+    "reason_code": "auto_lake_edge",
+    "evidence": "'upstream of Nahmint Lake' = lake head edge; combined with nahmint-river-786f4c per Dawson. Handled for free (docs/04).",
+    "apply_now_safe": true
+  },
+  "nanaimo-river-76bf11": {
+    "bucket": "C",
+    "action": "not_applicable",
+    "reclassify_anchor_kind": null,
+    "label": "westernmost Nanaimo Lake (Second Lake)",
+    "note_to_append": "[human-review 2026-08-04 lake-verify] auto_lake_edge: the CUT at the westernmost Nanaimo (Second) Lake is handled for free (docs/04). n/a for the split. NAME-VARIANT flag: the section label must carry 'Second Lake' / 'westernmost of the two Nanaimo Lakes' so matching lands (cf. name_variant precedent) - verify which FWA lake node it is.",
+    "confidence": "M",
+    "needs_dawson": false,
+    "reason_code": "auto_lake_edge",
+    "evidence": "'upstream of the westernmost of the two Nanaimo Lakes (Second Lake)' = a lake head edge; the cut falls out of that lake node for free (docs/04). Geometry is fine; only the label/name needs care.",
+    "apply_now_safe": false
+  },
+  "nicola-river-aba357": {
+    "bucket": "C",
+    "action": "not_applicable",
+    "reclassify_anchor_kind": null,
+    "label": "",
+    "note_to_append": "[human-review 2026-08-04 lake-verify] VERIFIED auto_lake_edge: 'upstream of Nicola Lake' = lake head edge, handled for free. n/a.",
+    "confidence": "H",
+    "needs_dawson": false,
+    "reason_code": "auto_lake_edge",
+    "evidence": "Plain lake head of Nicola Lake (docs/04).",
+    "apply_now_safe": true
+  },
+  "nicola-river-4b9f64": {
+    "bucket": "C",
+    "action": "not_applicable",
+    "reclassify_anchor_kind": null,
+    "label": "",
+    "note_to_append": "[human-review 2026-08-04 lake-verify] VERIFIED auto_lake_edge: 'downstream of Nicola Lake' = lake-outlet edge, handled for free. n/a.",
+    "confidence": "H",
+    "needs_dawson": false,
+    "reason_code": "auto_lake_edge",
+    "evidence": "Plain lake outlet of Nicola Lake (docs/04).",
+    "apply_now_safe": true
+  },
+  "paul-creek-downstream-of-paul-lake-b809c0": {
+    "bucket": "C",
+    "action": "not_applicable",
+    "reclassify_anchor_kind": null,
+    "label": "",
+    "note_to_append": "[human-review 2026-08-04 lake-verify] VERIFIED auto_lake_edge: 'downstream of Paul Lake' = lake-outlet edge, handled for free. n/a.",
+    "confidence": "H",
+    "needs_dawson": false,
+    "reason_code": "auto_lake_edge",
+    "evidence": "Plain lake outlet of Paul Lake (docs/04).",
+    "apply_now_safe": true
+  },
+  "pennask-creek-c98c41": {
+    "bucket": "C",
+    "action": "not_applicable",
+    "reclassify_anchor_kind": null,
+    "label": "",
+    "note_to_append": "[human-review 2026-08-04 lake-verify] VERIFIED auto_lake_edge: 'upstream of Pennask Lake' = lake head edge, handled for free. n/a.",
+    "confidence": "H",
+    "needs_dawson": false,
+    "reason_code": "auto_lake_edge",
+    "evidence": "Plain lake head of Pennask Lake (docs/04).",
+    "apply_now_safe": true
+  },
+  "pitt-river-564cfe": {
+    "bucket": "C",
+    "action": "not_applicable",
+    "reclassify_anchor_kind": null,
+    "label": "",
+    "note_to_append": "[human-review 2026-08-04 lake-verify] VERIFIED auto_lake_edge: Pitt Lake head edge handled for free (docs/04). n/a. (Distinct from splits.json garibaldi_pitt, which is a park area_boundary on the Pitt.)",
+    "confidence": "H",
+    "needs_dawson": false,
+    "reason_code": "auto_lake_edge",
+    "evidence": "'upstream of Pitt Lake' = lake head edge, handled for free (docs/04). NOTE: splits.json garibaldi_pitt targets Pitt River but is an area_boundary (Garibaldi Park), unrelated to this Pitt Lake bound.",
+    "apply_now_safe": true
+  },
+  "seton-river-includes-bc-hydro-power-canal-ups-5f4cbe": {
+    "bucket": "C",
+    "action": "not_applicable",
+    "reclassify_anchor_kind": null,
+    "label": "",
+    "note_to_append": "[human-review 2026-08-04 lake-verify] VERIFIED auto_lake_edge: 'downstream of Seton Lake' = lake-outlet edge, handled for free. n/a. (Shared boundary with -8eb4d1.)",
+    "confidence": "H",
+    "needs_dawson": false,
+    "reason_code": "auto_lake_edge",
+    "evidence": "Plain lake outlet of Seton Lake (docs/04). Name mentions BC Hydro Power Canal but this locator is just the Seton Lake outlet edge.",
+    "apply_now_safe": true
+  },
+  "seton-river-includes-bc-hydro-power-canal-ups-8eb4d1": {
+    "bucket": "C",
+    "action": "not_applicable",
+    "reclassify_anchor_kind": null,
+    "label": "",
+    "note_to_append": "[human-review 2026-08-04 lake-verify] VERIFIED auto_lake_edge: 'Downstream of Seton Lake' = lake-outlet edge, handled for free. n/a. Duplicate/shared split with -5f4cbe.",
+    "confidence": "H",
+    "needs_dawson": false,
+    "reason_code": "auto_lake_edge",
+    "evidence": "Duplicate of -5f4cbe: Seton Lake outlet edge (docs/04).",
+    "apply_now_safe": true
+  },
+  "seymour-river-db4eb4": {
+    "bucket": "C",
+    "action": "not_applicable",
+    "reclassify_anchor_kind": null,
+    "label": "",
+    "note_to_append": "[human-review 2026-08-04 lake-verify] VERIFIED auto_lake_edge: 'downstream of Seymour Lake' = lake-outlet edge, handled for free. n/a.",
+    "confidence": "H",
+    "needs_dawson": false,
+    "reason_code": "auto_lake_edge",
+    "evidence": "Plain lake outlet of Seymour Lake (docs/04).",
+    "apply_now_safe": true
+  },
+  "shuswap-river-521556": {
+    "bucket": "C",
+    "action": "not_applicable",
+    "reclassify_anchor_kind": null,
+    "label": "",
+    "note_to_append": "[human-review 2026-08-04 lake-verify] VERIFIED auto_lake_edge for THIS bound: Sugar Lake head edge handled for free (docs/04). n/a. FLAG: the same reg's 'Mara bridge' boundary is a distinct split (separate locator) and is NOT covered here.",
+    "confidence": "H",
+    "needs_dawson": false,
+    "reason_code": "auto_lake_edge",
+    "evidence": "'Upstream of Sugar Lake' = lake head edge, handled for free (docs/04). Dawson notes the reg ALSO has a Mara bridge boundary - that is a SEPARATE boundary/row, not this lake bound.",
+    "apply_now_safe": true
+  },
+  "silverhope-silver-creek-015132": {
+    "bucket": "C",
+    "action": "not_applicable",
+    "reclassify_anchor_kind": null,
+    "label": "",
+    "note_to_append": "[human-review 2026-08-04 lake-verify] VERIFIED auto_lake_edge: 'upstream of Silver Lake' = lake head edge, handled for free. n/a.",
+    "confidence": "H",
+    "needs_dawson": false,
+    "reason_code": "auto_lake_edge",
+    "evidence": "Plain lake head of Silver Lake (docs/04).",
+    "apply_now_safe": true
+  },
+  "thompson-river-upstream-of-kamloops-lake-e0c70b": {
+    "bucket": "C",
+    "action": "not_applicable",
+    "reclassify_anchor_kind": null,
+    "label": "",
+    "note_to_append": "[human-review 2026-08-04 lake-verify] VERIFIED auto_lake_edge: 'upstream of Kamloops Lake' = lake head edge, handled for free. n/a.",
+    "confidence": "H",
+    "needs_dawson": false,
+    "reason_code": "auto_lake_edge",
+    "evidence": "Plain lake head of Kamloops Lake (docs/04).",
+    "apply_now_safe": true
+  },
+  "whatshan-river-bcc368": {
+    "bucket": "C",
+    "action": "not_applicable",
+    "reclassify_anchor_kind": null,
+    "label": "",
+    "note_to_append": "[human-review 2026-08-04 lake-verify] VERIFIED auto_lake_edge: Whatshan Lake head edge handled for free (docs/04). n/a. (Whatshan is a reservoir; edge handled like a lake per Koocanusa precedent.)",
+    "confidence": "H",
+    "needs_dawson": false,
+    "reason_code": "auto_lake_edge",
+    "evidence": "'upstream of Whatshan Lake' = lake/reservoir head edge, handled for free (docs/04).",
+    "apply_now_safe": true
+  },
+  "canim-lake-see-map-on-page-42-de63b0": {
+    "bucket": "C",
+    "action": "deferred",
+    "reclassify_anchor_kind": null,
+    "label": "Canim Lake mapped area (page 42, map-only)",
+    "note_to_append": "[human-review 2026-08-04 lake-verify] UNCONFIRMED: 'see map on page 42' is map-only. If page 42 shows the WHOLE lake -> not_applicable; if it shows a sub-region closure -> lake-internal map-only (docs/15 Tier-2, unbuilt). Cannot resolve without the map. Dawson marked not_a_split but noted 'lake does have a split in it' - needs his eyes on page 42.",
+    "confidence": "L",
+    "needs_dawson": true,
+    "reason_code": "unconfirmed",
+    "evidence": "Name is bare 'CANIM LAKE' (no sub-region qualifier); locator is only 'see map on page 42'. Cannot tell from text whether this is a whole-lake reg (n/a) or a mapped lake sub-region. Whole Canim Lake node already exists; any within-lake area is map-only (docs/15 Tier-2, unresolvable without the page-42 map).",
+    "apply_now_safe": false
+  },
+  "kootenay-lake-lower-west-arm-for-location-see-3def30": {
+    "bucket": "C",
+    "action": "deferred",
+    "reclassify_anchor_kind": null,
+    "label": "Kootenay Lake - Lower West Arm",
+    "note_to_append": "[human-review 2026-08-04 lake-verify] LAKE-INTERNAL (deferred): a named sub-region of Kootenay Lake (the Lower West Arm), not a plain edge. Needs the docs/15 lake_region overlay (unbuilt). Consistent with Dawson's not_a_split (no curated STREAM split); parked as lake-internal.",
+    "confidence": "M",
+    "needs_dawson": false,
+    "reason_code": "lake_internal_defer",
+    "evidence": "'KOOTENAY LAKE - LOWER WEST ARM' is a NAMED sub-region (arm) of Kootenay Lake, located by a page-34 map. Not a plain edge - it is a portion of the lake body. Lake-internal sub-region (docs/15), unbuilt (model B lake_region overlay not implemented).",
+    "apply_now_safe": false
+  },
+  "kootenay-lake-upper-west-arm-for-location-see-f589c1": {
+    "bucket": "C",
+    "action": "deferred",
+    "reclassify_anchor_kind": null,
+    "label": "Kootenay Lake - Upper West Arm",
+    "note_to_append": "[human-review 2026-08-04 lake-verify] LAKE-INTERNAL (deferred): a named sub-region of Kootenay Lake (the Upper West Arm), not a plain edge. Needs the docs/15 lake_region overlay (unbuilt). Pairs with the Lower West Arm row.",
+    "confidence": "M",
+    "needs_dawson": false,
+    "reason_code": "lake_internal_defer",
+    "evidence": "'KOOTENAY LAKE - UPPER WEST ARM' is a NAMED sub-region (arm) of Kootenay Lake, located by a page-34 map. Portion of the lake body, not a plain edge. Lake-internal (docs/15), unbuilt.",
+    "apply_now_safe": false
+  },
+  "dinosaur-lake-reservoir-downstream-of-w-a-c-b-4fc5f6": {
+    "bucket": "C",
+    "action": "deferred",
+    "reclassify_anchor_kind": null,
+    "label": "Dinosaur Lake reservoir reach (W.A.C. Bennett Dam <-> Peace Canyon Dam)",
+    "note_to_append": "[human-review 2026-08-04 lake-verify] LAKE-INTERNAL (deferred, COMPLEX): reservoir sub-region bounded by internal landmarks (Bennett Dam, ~100 m S of Gething Cr, anti-vortex dyke, Peace Canyon Dam). Needs docs/15 lake_region overlay AND, per Dawson, sub-region tributary membership (which the current model-B overlay only partly addresses via \u00a73.4 containment). Confirms Dawson's 'wrong' - NOT handled by the auto lake split.",
+    "confidence": "H",
+    "needs_dawson": false,
+    "reason_code": "lake_internal_defer",
+    "evidence": "Dinosaur Lake is a reservoir; locator 'from W.A.C. Bennett Dam to 100 m south of Gething Creek and between the anti-vortex dyke and Peace Canyon Dam' defines a reach/sub-region INSIDE the reservoir bounded by dams/dyke/offset-point - not a plain edge. Lake/reservoir-internal (docs/15), unbuilt. Dawson: also needs the lake node subdivided so tributaries can be placed by sub-region.",
+    "apply_now_safe": true
+  },
+  "prudhomme-lake-south-of-the-hwy-16-bridge-eccc4b": {
+    "bucket": "C",
+    "action": "deferred",
+    "reclassify_anchor_kind": null,
+    "label": "Prudhomme Lake - south of the Hwy 16 bridge",
+    "note_to_append": "[human-review 2026-08-04 lake-verify] DECISION (c) LAKE-INTERNAL, not not_applicable: the reg cuts the lake body at the Hwy 16 bridge line (docs/15 line-across-lake, 5a), leaving a real south sub-region. Unbuilt (lake_region overlay). This is a genuine within-lake cut, so it is NOT 'handled for free' by docs/04 - deferred + label rather than n/a.",
+    "confidence": "H",
+    "needs_dawson": false,
+    "reason_code": "lake_internal_defer",
+    "evidence": "SPECIAL ROW. 'PRUDHOMME LAKE (south of the Hwy 16 bridge)' scopes to the portion of the LAKE south of the Hwy 16 bridge - a line-across-the-lake cut (docs/15 5a). Per runbook gotcha, 'Hwy N bridge' in a LAKE row = a lake-internal divider, NOT a stream crossing. Not a plain edge; the auto lake split does NOT create this cut.",
+    "apply_now_safe": true
+  },
+  "upper-arrow-lake-drawdown-area-f15974": {
+    "bucket": "C",
+    "action": "deferred",
+    "reclassify_anchor_kind": null,
+    "label": "Upper Arrow Lake - drawdown area (Hwy 1 bridge <-> Akolkolex Narrows power line)",
+    "note_to_append": "[human-review 2026-08-04 lake-verify] DECISION (c) LAKE/RESERVOIR-INTERNAL, not not_applicable: the drawdown area is a portion of Upper Arrow reservoir bounded by two internal landmarks (Hwy 1 bridge, Akolkolex Narrows power line). A within-reservoir reach, so NOT handled for free by docs/04 - deferred + label. Needs docs/15 lake_region overlay (unbuilt).",
+    "confidence": "H",
+    "needs_dawson": false,
+    "reason_code": "lake_internal_defer",
+    "evidence": "SPECIAL ROW. 'UPPER ARROW LAKE (drawdown area)' between the Hwy 1 bridge (Revelstoke) and the Akolkolex Narrows power-line crossing = a reach/sub-region WITHIN the reservoir bounded by two internal landmarks - not a plain edge, not a stream bridge. Reservoir-internal (docs/15), unbuilt.",
+    "apply_now_safe": true
+  },
+  "mara-lake-70c173": {
+    "bucket": "D",
+    "action": "deferred",
+    "reclassify_anchor_kind": null,
+    "label": "south of the CPR bridge (Mara Lake)",
+    "note_to_append": "[human-review 2026-08-04 lake-internal] line per docs/15 \u00a75a: south of the CPR bridge (Mara Lake). Bridge crossing acts as the shore-to-shore cut line; label the resulting side by sub-polygon centroid once cut, not by the word 'south' in the reg text.",
+    "confidence": "H",
+    "needs_dawson": false,
+    "lake_region_method": "line",
+    "apply_now_safe": true
+  },
+  "rosemond-lake-061373": {
+    "bucket": "D",
+    "action": "deferred",
+    "reclassify_anchor_kind": null,
+    "label": "south of the CPR Bridge (Rosemond Lake)",
+    "note_to_append": "[human-review 2026-08-04 lake-internal] line per docs/15 \u00a75a: south of the CPR Bridge (Rosemond Lake). Same bridge-as-line pattern as mara-lake-70c173; likely the same physical CPR line crossing both adjacent lakes \u2014 check whether one authored line serves both.",
+    "confidence": "H",
+    "needs_dawson": false,
+    "lake_region_method": "line",
+    "apply_now_safe": true
+  },
+  "williston-lake-in-zone-a-includes-waters-500--456568": {
+    "bucket": "D",
+    "action": "deferred",
+    "reclassify_anchor_kind": null,
+    "label": "within 500 m east/upstream of Causeway Road (Williston Lake, Zone A)",
+    "note_to_append": "[human-review 2026-08-04 lake-internal] buffer (line-buffer hybrid) per docs/15 \u00a75b: within 500 m of Causeway Road, Williston Lake Zone A. Not a clean point-buffer \u2014 the feature is a road/causeway LINE, not a point, so this needs a 'buffer-around-a-line' variant (two parallel offset lines 500 m each side of the causeway) not yet in the docs/15 schema. Duplicate of the other two williston-lake-in-zone-a-* rows (same reg, different src field) \u2014 author once.",
+    "confidence": "M",
+    "needs_dawson": true,
+    "lake_region_method": "buffer",
+    "apply_now_safe": false
+  },
+  "williston-lake-in-zone-a-includes-waters-500--7972e6": {
+    "bucket": "D",
+    "action": "deferred",
+    "reclassify_anchor_kind": null,
+    "label": "within 500 m east/upstream of Causeway Road (Williston Lake, Zone A)",
+    "note_to_append": "[human-review 2026-08-04 lake-internal] buffer (line-buffer hybrid) per docs/15 \u00a75b: within 500 m of Causeway Road, Williston Lake Zone A. Duplicate of williston-lake-in-zone-a-...-456568 and -3be97e (same reg, different src field) \u2014 author one shared region, see that row's note for the buffer-around-a-line nuance.",
+    "confidence": "M",
+    "needs_dawson": true,
+    "lake_region_method": "buffer",
+    "apply_now_safe": false
+  },
+  "williston-lake-in-zone-a-includes-waters-500--3be97e": {
+    "bucket": "D",
+    "action": "deferred",
+    "reclassify_anchor_kind": null,
+    "label": "within 500 m upstream and downstream of Causeway Road (Williston Lake, Zone A)",
+    "note_to_append": "[human-review 2026-08-04 lake-internal] buffer (line-buffer hybrid) per docs/15 \u00a75b: 500 m upstream AND downstream of Causeway Road, Williston Lake Zone A \u2014 this phrasing is the clearest of the three duplicate rows (explicit two-sided band). Duplicate of -456568 and -7972e6; author one shared region, needs a buffer-around-a-line variant not yet in docs/15.",
+    "confidence": "M",
+    "needs_dawson": true,
+    "lake_region_method": "buffer",
+    "apply_now_safe": false
+  },
+  "chilko-lake-83dc6f": {
+    "bucket": "D",
+    "action": "deferred",
+    "reclassify_anchor_kind": null,
+    "label": "Big Lagoon, west side of Chilko Lake",
+    "note_to_append": "[human-review 2026-08-04 lake-internal] polygon (Tier-2, named bay) per docs/15 \u00a75c: Big Lagoon, west side of Chilko Lake. 'West side of lake' reads as descriptive of the lagoon's location, not a separate line/region \u2014 confirm against full reg text that the restriction is scoped to Big Lagoon only.",
+    "confidence": "M",
+    "needs_dawson": true,
+    "lake_region_method": "polygon",
+    "apply_now_safe": false
+  },
+  "fran-ois-lake-9c8274": {
+    "bucket": "D",
+    "action": "not_applicable",
+    "reclassify_anchor_kind": "lake",
+    "label": "outlet of Fran\u00e7ois Lake",
+    "note_to_append": "[human-review 2026-08-04 lake-internal] NOT lake-internal. Existing row note already says '[auto-lake-split] Bounded only by lake edge(s)/mouth ... NO authored split needed.' 'At the outlet of Fran\u00e7ois Lake' is the natural lake-edge boundary the combine phase already cuts \u2014 this needs only target:{wbk} + label, not a lake_region overlay.",
+    "confidence": "H",
+    "needs_dawson": true,
+    "lake_region_method": "NA",
+    "apply_now_safe": false
+  },
+  "mahood-lake-see-map-on-page-28-for-area-closu-79ec2d": {
+    "bucket": "D",
+    "action": "deferred",
+    "reclassify_anchor_kind": null,
+    "label": "western tip of Mahood Lake, within fishing boundary signs (see map p.28)",
+    "note_to_append": "[human-review 2026-08-04 lake-internal] polygon (Tier-2, map-only) per docs/15 \u00a75c/\u00a77: western tip of Mahood Lake, within fishing boundary signs; name_verbatim itself says 'see map on page 28 for area closure'. If the full reg text names exactly 2 signs isolating the tip, reconsider as 'line' instead of an authored polygon.",
+    "confidence": "M",
+    "needs_dawson": true,
+    "lake_region_method": "polygon",
+    "apply_now_safe": false
+  },
+  "pitt-lake-47a388": {
+    "bucket": "D",
+    "action": "deferred",
+    "reclassify_anchor_kind": null,
+    "label": "north of the boundary-sign line (east/west shores) near the head of Pitt Lake",
+    "note_to_append": "[human-review 2026-08-04 lake-internal] line per docs/15 \u00a75a: north of the boundary-sign line (east and west shore signs) near the head of Pitt Lake. Two named shore signs = the textbook line-across-lake pattern.",
+    "confidence": "H",
+    "needs_dawson": false,
+    "lake_region_method": "line",
+    "apply_now_safe": true
+  },
+  "premier-lake-895b0d": {
+    "bucket": "D",
+    "action": "deferred",
+    "reclassify_anchor_kind": null,
+    "label": "south of the boundary-sign line (Premier Lake)",
+    "note_to_append": "[human-review 2026-08-04 lake-internal] line per docs/15 \u00a75a: south of the boundary-sign line on the lake shore (Premier Lake). Locator text names only one shore ('on the lake shore') vs Pitt/Shumway's explicit two-shore wording \u2014 confirm the full reg names a second sign to anchor the line's far end.",
+    "confidence": "M",
+    "needs_dawson": true,
+    "lake_region_method": "line",
+    "apply_now_safe": false
+  },
+  "shannon-lake-netted-off-portion-on-the-south--c375a0": {
+    "bucket": "D",
+    "action": "deferred",
+    "reclassify_anchor_kind": null,
+    "label": "netted-off portion, south end of Shannon Lake",
+    "note_to_append": "[human-review 2026-08-04 lake-internal] polygon (Tier-2, authored enclosure) per docs/15 \u00a75c: netted-off portion, south end of Shannon Lake. Boundary is a physical net, not signs/radius \u2014 no derivable geometry; needs a human-digitized polygon or stays map-only.",
+    "confidence": "H",
+    "needs_dawson": true,
+    "lake_region_method": "polygon",
+    "apply_now_safe": false
+  },
+  "shumway-lake-02ae86": {
+    "bucket": "D",
+    "action": "deferred",
+    "reclassify_anchor_kind": null,
+    "label": "north of the boundary-sign line at the south end of Shumway Lake",
+    "note_to_append": "[human-review 2026-08-04 lake-internal] line per docs/15 \u00a75a: north of the boundary-sign line at the south end of Shumway Lake. Same pattern as pitt-lake-47a388.",
+    "confidence": "H",
+    "needs_dawson": false,
+    "lake_region_method": "line",
+    "apply_now_safe": true
+  },
+  "shuswap-lake-see-maps-on-page-28-includes-lit-80ee82": {
+    "bucket": "D",
+    "action": "deferred",
+    "reclassify_anchor_kind": null,
+    "label": "Shuswap Lake named arms/portions (Seymour, Anstey, etc.) \u2014 multi-basin, see maps p.28",
+    "note_to_append": "[human-review 2026-08-04 lake-internal] MIXED, needs splitting into multiple rows before authoring: (1) the part of South Thompson River BETWEEN Shuswap and Little Shuswap Lake is a STREAM section, not lake-internal \u2014 belongs as its own confluence/point split row; (2) named-arm portions within Shuswap Lake (Seymour, Anstey, etc., 'see maps p.28') are polygon, Tier-2; (3) per USER_NOTE, the reg also contains a further line closure ('No Fishing ... north of Albas'), a separate line region. Do not treat as a single lake_region \u2014 recommend a Dawson pass to decompose this row into its constituent stream-section + polygon(s) + line pieces.",
+    "confidence": "L",
+    "needs_dawson": true,
+    "lake_region_method": "polygon",
+    "apply_now_safe": false
+  },
+  "alouette-lake-396262": {
+    "bucket": "D",
+    "action": "deferred",
+    "reclassify_anchor_kind": "lake",
+    "label": "swimming areas, Alouette Lake",
+    "note_to_append": "[human-review 2026-08-04 lake-internal] polygon (Tier-2, vague/map-only) per docs/15 \u00a71/\u00a77 (swimming areas are explicitly listed as a lake-internal example). Row was auto-classified not_a_split by the earlier vague-locator pass, but 'in swimming areas' IS a lake-internal sub-region, not a whole-water/tributary-set/EXCEPT case \u2014 reclassify anchor_kind to lake before deferring. Likely multiple unnamed areas; stays map-only.",
+    "confidence": "M",
+    "needs_dawson": true,
+    "lake_region_method": "polygon",
+    "apply_now_safe": false
+  },
+  "beaver-lake-6e12af": {
+    "bucket": "D",
+    "action": "deferred",
+    "reclassify_anchor_kind": null,
+    "label": "vague portion(s), Beaver Lake ('on parts')",
+    "note_to_append": "[human-review 2026-08-04 lake-internal] polygon (Tier-2, vague) per docs/15 \u00a77: 'on parts' gives no derivable geometry \u2014 stays map-only until the full reg text/map is checked. Dawson's own USER_NOTE flags this as real-but-unresolvable ('not able to be resolved ... because it is vague').",
+    "confidence": "L",
+    "needs_dawson": true,
+    "lake_region_method": "polygon",
+    "apply_now_safe": false
+  },
+  "cowichan-lake-including-bear-lake-5a1513": {
+    "bucket": "D",
+    "action": "deferred",
+    "reclassify_anchor_kind": null,
+    "label": "vague portion(s), Cowichan Lake ('on parts')",
+    "note_to_append": "[human-review 2026-08-04 lake-internal] polygon (Tier-2, vague) per docs/15 \u00a77: 'on parts' gives no derivable geometry \u2014 stays map-only. Also note name_verbatim includes Bear Lake ('including Bear Lake') \u2014 confirm whether Bear Lake is a separate waterbody or a bay of Cowichan Lake when this is picked up.",
+    "confidence": "L",
+    "needs_dawson": true,
+    "lake_region_method": "polygon",
+    "apply_now_safe": false
+  },
+  "long-lake-nanaimo-5c3300": {
+    "bucket": "D",
+    "action": "deferred",
+    "reclassify_anchor_kind": null,
+    "label": "vague portion(s), Long Lake (Nanaimo) ('on parts')",
+    "note_to_append": "[human-review 2026-08-04 lake-internal] polygon (Tier-2, vague) per docs/15 \u00a77: 'on parts' gives no derivable geometry \u2014 stays map-only.",
+    "confidence": "L",
+    "needs_dawson": true,
+    "lake_region_method": "polygon",
+    "apply_now_safe": false
+  },
+  "osoyoos-lake-29ce8a": {
+    "bucket": "D",
+    "action": "deferred",
+    "reclassify_anchor_kind": null,
+    "label": "5 signed swimming areas, Osoyoos Lake",
+    "note_to_append": "[human-review 2026-08-04 lake-internal] polygon (Tier-2, named/signed but multiple) per docs/15 \u00a75c: 5 signed swimming areas, Osoyoos Lake. More concrete than the plain 'on parts' rows (an explicit count is given) but still needs 5 separate authored sub-polygons, or stays map-only for the first pass (docs/15 \u00a78 decision #4).",
+    "confidence": "M",
+    "needs_dawson": true,
+    "lake_region_method": "polygon",
+    "apply_now_safe": false
+  },
+  "brannen-lake-1539e6": {
+    "bucket": "D",
+    "action": "deferred",
+    "reclassify_anchor_kind": null,
+    "label": "vague portion(s), Brannen Lake ('on parts')",
+    "note_to_append": "[human-review 2026-08-04 lake-internal] polygon (Tier-2, vague) per docs/15 \u00a77: 'on parts' gives no derivable geometry \u2014 stays map-only.",
+    "confidence": "L",
+    "needs_dawson": true,
+    "lake_region_method": "polygon",
+    "apply_now_safe": false
+  },
+  "sakinaw-lake-df4750": {
+    "bucket": "D",
+    "action": "deferred",
+    "reclassify_anchor_kind": "lake",
+    "label": "easterly of the line from the Sakinaw Lake boat-launch sign",
+    "note_to_append": "[human-review 2026-08-04 lake-internal] line per docs/15 \u00a75a: 'easterly of a line drawn from a boundary sign located at the north side of the Sakinaw Lake boat launch southwesterly to \u2026' \u2014 textbook two-point line-across-lake wording, this is the cleanest H-confidence line case in the batch. locator_text is truncated mid-sentence; pull the full reg text for the line's second endpoint before authoring. Currently sits in anchor_kind=point/resolver_hint=coordinate/status=todo \u2014 should move to lake/lake_reach like the others, then defer.",
+    "confidence": "H",
+    "needs_dawson": true,
+    "lake_region_method": "line",
+    "apply_now_safe": false
+  },
+  "dinosaur-lake-reservoir-downstream-of-w-a-c-b-50210f": {
+    "bucket": "D",
+    "action": "not_applicable",
+    "reclassify_anchor_kind": "lake",
+    "label": "Dinosaur Lake (Reservoir Downstream of W.A.C. Bennett Dam)",
+    "note_to_append": "[human-review 2026-08-04 lake-internal] NOT a lake-internal subdivision. The existing auto-proposal note already concludes: 'Better modelled as a lake polygon (Dinosaur Lake, lakes layer, wbk 329657308) than a point.' The whole reservoir between W.A.C. Bennett Dam and Peace Canyon Dam IS the lake polygon (its own wbk) \u2014 a whole-lake case, not an internal split. USER_NOTE's concern about tributaries pairs with docs/15 \u00a78's open item on extending in_areas/mark_inside_area to lake nodes, not with lake_region overlay work.",
+    "confidence": "M",
+    "needs_dawson": true,
+    "lake_region_method": "NA",
+    "apply_now_safe": false
+  },
+  "great-central-lake-4ff0ab": {
+    "bucket": "D",
+    "action": "todo",
+    "reclassify_anchor_kind": "point",
+    "label": "Stamp River, dam to signs ~50 m SW of Ash Main Bridge (Great Central Lake outlet)",
+    "note_to_append": "[human-review 2026-08-04 lake-internal] NOT lake-internal. 'From the dam to fishing boundary signs \u2026 upstream of the Ash Main Bridge' describes a STREAM reach on the Stamp River below the lake's outlet dam, not a division of the lake polygon itself. Existing auto-proposal note (H confidence, coord [-124.99219, 49.32835]) already flags 'Same dam as the Stamp River item (stamp-river-853100)' \u2014 pair/dedupe with that row and author as a normal point-to-point dam+signs split.",
+    "confidence": "H",
+    "needs_dawson": true,
+    "lake_region_method": "NA",
+    "apply_now_safe": false
+  },
+  "chemainus-river-688d54": {
+    "bucket": "E",
+    "action": "not_applicable",
+    "reclassify_anchor_kind": null,
+    "label": "",
+    "note_to_append": "[human-review 2026-08-04 na-with-siblings] ANOMALY \u2014 USER_NOTE 'requires split: upstream of Bannon Creek' names the exact same locator_text as this row. full_regulation shows TWO date-differentiated closures split at Bannon Creek confluence ('downstream of Bannon Creek...July1-Sept30' vs 'upstream of Bannon Creek...Dec1-Sept30') \u2014 this looks like a genuine confluence split, not a whole-stream note. Sibling row chemainus-river-79cc9a ('downstream of Bannon Creek') has the identical issue \u2014 both still sit at status=likely_na/confluence, uncurated. Recommend Dawson re-examine both before confirming not_applicable; may need reclassifying to curated confluence splits instead.",
+    "confidence": "L",
+    "needs_dawson": true,
+    "sibling_splits": [
+      {
+        "desc": "downstream of Bannon Creek (paired boundary, same reg)",
+        "existing_row_id": "chemainus-river-79cc9a",
+        "existing_status": "likely_na",
+        "gap": false
+      }
+    ],
+    "apply_now_safe": false
+  },
+  "kinbasket-mcnaughton-lake-s-tributaries-f98c5c": {
+    "bucket": "E",
+    "action": "not_applicable",
+    "reclassify_anchor_kind": null,
+    "label": "",
+    "note_to_append": "[human-review 2026-08-04 na-with-siblings] confirmed tributary-SET row, not a split. USER_NOTE is vague ('already split just needs match for exception') and full_regulation's only extra clause is 'Does not include Columbia River upstream of Kinbasket Reservoir' \u2014 an EXCEPT on a different waterbody (Columbia River), not a Kinbasket split. No other Kinbasket boundary text found; sole sibling row (kinbasket-mcnaughton-lake-4535e6, buffer/todo, 'within 200m of Bush-Sullivan Road Bridge') is an unrelated lake-buffer rule.",
+    "confidence": "M",
+    "needs_dawson": false,
+    "sibling_splits": [],
+    "apply_now_safe": false
+  },
+  "moyie-river-a098eb": {
+    "bucket": "E",
+    "action": "not_applicable",
+    "reclassify_anchor_kind": null,
+    "label": "",
+    "note_to_append": "[human-review 2026-08-04 na-with-siblings] confirmed \u2014 targets whole Irishman Creek tributary, not a mainstem split. USER_NOTE-quoted boundary 'from bridge at south end of Moyie Lake to U.S. border' already has a DEDICATED row.",
+    "confidence": "H",
+    "needs_dawson": false,
+    "sibling_splits": [
+      {
+        "desc": "from bridge at south end of Moyie Lake to U.S. border",
+        "existing_row_id": "moyie-river-53143e",
+        "existing_status": "todo",
+        "gap": false
+      }
+    ],
+    "apply_now_safe": true
+  },
+  "elk-river-s-tributaries-see-exceptions-6bd27b": {
+    "bucket": "E",
+    "action": "not_applicable",
+    "reclassify_anchor_kind": null,
+    "label": "",
+    "note_to_append": "[human-review 2026-08-04 na-with-siblings] confirmed \u2014 'see exceptions' pointer, not a split. full_regulation's exceptions list names OTHER tributary streams by name (Abruzzi/Alexander/Bighorn(Ram)/Cadorna/Fording R downstream of Josephine Falls/Forsyth Cr/Line Cr/Grave Creek/Michel Cr/Morrissey Cr/Wigwam River) \u2014 these are separate regulation entries for those creeks, not Elk River splits. Elk River's OWN mainstem splits (Elko Dam up/downstream) already exist as dedicated rows.",
+    "confidence": "M",
+    "needs_dawson": false,
+    "sibling_splits": [
+      {
+        "desc": "downstream of Elko Dam",
+        "existing_row_id": "elk-river-downstream-of-elko-dam-4c9207",
+        "existing_status": "todo",
+        "gap": false
+      },
+      {
+        "desc": "upstream of Elko Dam",
+        "existing_row_id": "elk-river-upstream-of-elko-dam-8bedc5",
+        "existing_status": "todo",
+        "gap": false
+      },
+      {
+        "desc": "from Lower Elk Lake to Forsyth Cr / Line Creek Bridge to CPR Bridge at Sparwood",
+        "existing_row_id": "elk-river-upstream-of-elko-dam-e38cd2",
+        "existing_status": "todo",
+        "gap": false
+      }
+    ],
+    "apply_now_safe": false
+  },
+  "findlay-creek-1b3bee": {
+    "bucket": "E",
+    "action": "not_applicable",
+    "reclassify_anchor_kind": null,
+    "label": "",
+    "note_to_append": "[human-review 2026-08-04 na-with-siblings] confirmed \u2014 tributary exclusion, not a split. USER_NOTE-quoted boundary 'from Doctor Creek Bridge to Lavington Creek Bridge' already has a DEDICATED row.",
+    "confidence": "H",
+    "needs_dawson": false,
+    "sibling_splits": [
+      {
+        "desc": "from Doctor Creek Bridge to Lavington Creek Bridge",
+        "existing_row_id": "findlay-creek-6df88c",
+        "existing_status": "todo",
+        "gap": false
+      }
+    ],
+    "apply_now_safe": true
+  },
+  "fraser-river-7c032d": {
+    "bucket": "E",
+    "action": "not_applicable",
+    "reclassify_anchor_kind": null,
+    "label": "",
+    "note_to_append": "[human-review 2026-08-04 na-with-siblings] confirmed \u2014 'except as noted below' heading, not a split. USER_NOTE-quoted boundary 'downstream of Hell's Gate' already has a DEDICATED row; several other Fraser R (Region 3) confluence splits around Hell's Gate/Thompson River are also already curated.",
+    "confidence": "H",
+    "needs_dawson": false,
+    "sibling_splits": [
+      {
+        "desc": "downstream of Hell's Gate",
+        "existing_row_id": "fraser-river-498f12",
+        "existing_status": "todo",
+        "gap": false
+      },
+      {
+        "desc": "from Hell's Gate to confluence with Thompson River",
+        "existing_row_id": "fraser-river-158a53",
+        "existing_status": "curated",
+        "gap": false
+      },
+      {
+        "desc": "from Hells Gate upstream to Region 3 boundary",
+        "existing_row_id": "fraser-river-aa3425",
+        "existing_status": "todo",
+        "gap": false
+      }
+    ],
+    "apply_now_safe": true
+  },
+  "kootenay-lake-upper-west-arm-for-location-see-f597ff": {
+    "bucket": "E",
+    "action": "not_applicable",
+    "reclassify_anchor_kind": null,
+    "label": "",
+    "note_to_append": "[human-review 2026-08-04 na-with-siblings] confirmed \u2014 EXCEPT clause on kokanee quota dates, not a split. USER_NOTE flags no other split ('exception is not a split' only); full_regulation confirms no boundary text present.",
+    "confidence": "H",
+    "needs_dawson": false,
+    "sibling_splits": [],
+    "apply_now_safe": true
+  },
+  "wap-creek-7d3df8": {
+    "bucket": "E",
+    "action": "not_applicable",
+    "reclassify_anchor_kind": null,
+    "label": "",
+    "note_to_append": "[human-review 2026-08-04 na-with-siblings] confirmed \u2014 tributary exclusion ('excluding Wap Lake'), not a split. USER_NOTE-quoted boundary 'downstream of Frog Falls' already has a DEDICATED row (and its pair 'upstream of Frog Falls').",
+    "confidence": "H",
+    "needs_dawson": false,
+    "sibling_splits": [
+      {
+        "desc": "downstream of Frog Falls",
+        "existing_row_id": "wap-creek-15b721",
+        "existing_status": "todo",
+        "gap": false
+      },
+      {
+        "desc": "upstream of Frog Falls",
+        "existing_row_id": "wap-creek-4333d3",
+        "existing_status": "todo",
+        "gap": false
+      }
+    ],
+    "apply_now_safe": true
+  },
+  "alouette-river-b5a707": {
+    "bucket": "E",
+    "action": "not_applicable",
+    "reclassify_anchor_kind": null,
+    "label": "",
+    "note_to_append": "[human-review 2026-08-04 na-with-siblings] confirmed \u2014 'on mainstem' whole-water descriptor, not a split. full_regulation's two boundary clauses ('upstream of fishing boundary signs at 49\u00b014.790'N/122\u00b032.080'W' and 'upstream of 216th Street') already have DEDICATED rows.",
+    "confidence": "H",
+    "needs_dawson": false,
+    "sibling_splits": [
+      {
+        "desc": "upstream of fishing boundary signs at 49\u00b014.790'N, 122\u00b032.080'W",
+        "existing_row_id": "alouette-river-741304",
+        "existing_status": "curated",
+        "gap": false
+      },
+      {
+        "desc": "upstream of 216th Street",
+        "existing_row_id": "alouette-river-daecfd",
+        "existing_status": "todo",
+        "gap": false
+      },
+      {
+        "desc": "upstream of 216th Street (Fifth Ave) \u2014 North Alouette River",
+        "existing_row_id": "north-alouette-river-e3810a",
+        "existing_status": "todo",
+        "gap": false
+      }
+    ],
+    "apply_now_safe": true
+  },
+  "atnarko-bella-coola-rivers-includes-tributari-250ae0": {
+    "bucket": "E",
+    "action": "not_applicable",
+    "reclassify_anchor_kind": null,
+    "label": "",
+    "note_to_append": "[human-review 2026-08-04 na-with-siblings] confirmed \u2014 'on mainstems' whole-water descriptor, not a split. All boundary clauses in full_regulation (Tweedsmuir Park boundaries, Tenas Lake to campsite signs, Goat Creek\u2013Talchako confluence, downstream of Young Creek) already have DEDICATED rows, several already curated/manual. Matches runbook's prior SOUND audit finding for this waterbody.",
+    "confidence": "H",
+    "needs_dawson": false,
+    "sibling_splits": [
+      {
+        "desc": "upstream of Tweedsmuir Provincial Park plus Tenas Lake",
+        "existing_row_id": "atnarko-bella-coola-rivers-includes-tributari-8142a5",
+        "existing_status": "todo",
+        "gap": false
+      },
+      {
+        "desc": "downstream of eastern boundary of Tweedsmuir Provincial Park",
+        "existing_row_id": "atnarko-bella-coola-rivers-includes-tributari-01c9b0",
+        "existing_status": "todo",
+        "gap": false
+      },
+      {
+        "desc": "from Tenas Lake to fishing boundary signs near Atnarko Park campsite",
+        "existing_row_id": "atnarko-bella-coola-rivers-includes-tributari-985001",
+        "existing_status": "manual",
+        "gap": false
+      },
+      {
+        "desc": "on Atnarko River, from Goat Creek to confluence with Talchako River",
+        "existing_row_id": "atnarko-bella-coola-rivers-includes-tributari-f69d72-a",
+        "existing_status": "curated",
+        "gap": false
+      },
+      {
+        "desc": "downstream of Young Creek",
+        "existing_row_id": "atnarko-bella-coola-rivers-includes-tributari-a8b6c2",
+        "existing_status": "curated",
+        "gap": false
+      }
+    ],
+    "apply_now_safe": true
+  },
+  "chilliwack-vedder-rivers-does-not-include-sum-3ab919": {
+    "bucket": "E",
+    "action": "not_applicable",
+    "reclassify_anchor_kind": null,
+    "label": "",
+    "note_to_append": "[human-review 2026-08-04 na-with-siblings] confirmed \u2014 'see map on page 24' pointer, not a split. All boundary clauses in full_regulation (Slesse Creek confluence signs, Tamihi Rapids Bridge, Vedder Crossing Bridge) already have DEDICATED rows.",
+    "confidence": "H",
+    "needs_dawson": false,
+    "sibling_splits": [
+      {
+        "desc": "line between signs on Chilliwack R 100m downstream of confluence with Slesse Creek (upstream side)",
+        "existing_row_id": "chilliwack-vedder-rivers-does-not-include-sum-94aff2",
+        "existing_status": "todo",
+        "gap": false
+      },
+      {
+        "desc": "line between signs on Chilliwack R 100m downstream of confluence with Slesse Creek (downstream side, to Tamihi Rapids Bridge)",
+        "existing_row_id": "chilliwack-vedder-rivers-does-not-include-sum-805915",
+        "existing_status": "todo",
+        "gap": false
+      },
+      {
+        "desc": "downstream of Tamihi Rapids Bridge to Vedder Crossing Bridge",
+        "existing_row_id": "chilliwack-vedder-rivers-does-not-include-sum-f59392",
+        "existing_status": "todo",
+        "gap": false
+      },
+      {
+        "desc": "downstream of Vedder Crossing Bridge",
+        "existing_row_id": "chilliwack-vedder-rivers-does-not-include-sum-96c294",
+        "existing_status": "todo",
+        "gap": false
+      }
+    ],
+    "apply_now_safe": true
+  },
+  "chuckwalla-river-a0316a": {
+    "bucket": "E",
+    "action": "not_applicable",
+    "reclassify_anchor_kind": null,
+    "label": "",
+    "note_to_append": "[human-review 2026-08-04 na-with-siblings] confirmed \u2014 'entire river' whole-water descriptor, not a split. full_regulation's boundary clause 'between fishing boundary signs at Ten Mile Pool' already has a DEDICATED row.",
+    "confidence": "H",
+    "needs_dawson": false,
+    "sibling_splits": [
+      {
+        "desc": "between fishing boundary signs at Ten Mile Pool",
+        "existing_row_id": "chuckwalla-river-eec2f0",
+        "existing_status": "todo",
+        "gap": false
+      }
+    ],
+    "apply_now_safe": true
+  },
+  "courtenay-river-78779a": {
+    "bucket": "E",
+    "action": "not_applicable",
+    "reclassify_anchor_kind": null,
+    "label": "",
+    "note_to_append": "[human-review 2026-08-04 na-with-siblings] confirmed \u2014 'on part' is vague and unmappable, matches USER_NOTE's own assessment. full_regulation shows the 'on part' clause is a SPEED restriction (8 km/h), not a fishing-closure boundary \u2014 no other split text exists for Courtenay River anywhere in the doc (no sibling rows found at all). Nothing to flag as a gap; there is no locatable boundary to author.",
+    "confidence": "M",
+    "needs_dawson": false,
+    "sibling_splits": [],
+    "apply_now_safe": false
+  },
+  "cowichan-river-see-map-below-337c0e": {
+    "bucket": "E",
+    "action": "not_applicable",
+    "reclassify_anchor_kind": null,
+    "label": "",
+    "note_to_append": "[human-review 2026-08-04 na-with-siblings] confirmed \u2014 'see map below' pointer, not a split. All boundary clauses in full_regulation (weir at Cowichan Lake outlet\u2013Greendale Trestle, Holt Creek tributaries, CNR Trestle Mile 66, Greendale Trestle\u2013CNR Bridge Mile 70.2) already have DEDICATED rows.",
+    "confidence": "H",
+    "needs_dawson": false,
+    "sibling_splits": [
+      {
+        "desc": "from weir (dam) at Cowichan Lake's outlet to Greendale Trestle",
+        "existing_row_id": "cowichan-river-see-map-below-794a2f",
+        "existing_status": "todo",
+        "gap": false
+      },
+      {
+        "desc": "upstream of CNR Trestle (Mile 66)",
+        "existing_row_id": "cowichan-river-see-map-below-5abb4d",
+        "existing_status": "todo",
+        "gap": false
+      },
+      {
+        "desc": "downstream of the CNR Mile 66 Trestle",
+        "existing_row_id": "cowichan-river-see-map-below-85312e",
+        "existing_status": "todo",
+        "gap": false
+      },
+      {
+        "desc": "from signs at Greendale Trestle to CNR Bridge (mile 70.2)",
+        "existing_row_id": "cowichan-river-see-map-below-bb9987",
+        "existing_status": "todo",
+        "gap": false
+      },
+      {
+        "desc": "in tributaries upstream of and including Holt Creek",
+        "existing_row_id": "cowichan-river-see-map-below-0374fa",
+        "existing_status": "curated",
+        "gap": false
+      }
+    ],
+    "apply_now_safe": true
+  },
+  "cowichan-river-see-map-below-bc238a": {
+    "bucket": "E",
+    "action": "not_applicable",
+    "reclassify_anchor_kind": null,
+    "label": "",
+    "note_to_append": "[human-review 2026-08-04 na-with-siblings] confirmed \u2014 'on parts' (same reg block as cowichan-river-see-map-below-337c0e), not a split. Same DEDICATED sibling rows already cover the boundaries.",
+    "confidence": "H",
+    "needs_dawson": false,
+    "sibling_splits": [
+      {
+        "desc": "from weir (dam) at Cowichan Lake's outlet to Greendale Trestle",
+        "existing_row_id": "cowichan-river-see-map-below-794a2f",
+        "existing_status": "todo",
+        "gap": false
+      },
+      {
+        "desc": "upstream of CNR Trestle (Mile 66)",
+        "existing_row_id": "cowichan-river-see-map-below-5abb4d",
+        "existing_status": "todo",
+        "gap": false
+      },
+      {
+        "desc": "downstream of the CNR Mile 66 Trestle",
+        "existing_row_id": "cowichan-river-see-map-below-85312e",
+        "existing_status": "todo",
+        "gap": false
+      },
+      {
+        "desc": "from signs at Greendale Trestle to CNR Bridge (mile 70.2)",
+        "existing_row_id": "cowichan-river-see-map-below-bb9987",
+        "existing_status": "todo",
+        "gap": false
+      },
+      {
+        "desc": "in tributaries upstream of and including Holt Creek",
+        "existing_row_id": "cowichan-river-see-map-below-0374fa",
+        "existing_status": "curated",
+        "gap": false
+      }
+    ],
+    "apply_now_safe": true
+  },
+  "elk-lake-fdc47b": {
+    "bucket": "E",
+    "action": "not_applicable",
+    "reclassify_anchor_kind": null,
+    "label": "",
+    "note_to_append": "[human-review 2026-08-04 na-with-siblings] confirmed \u2014 'on parts' is vague. full_regulation shows it's an ENGINE/VESSEL restriction (7.5kW, no vessels/towing on parts), not a fishing-closure boundary \u2014 no other split text exists for Elk Lake anywhere in the doc (no sibling rows found at all, this is the only Elk Lake row). Nothing to flag as a gap; there is no locatable boundary to author.",
+    "confidence": "M",
+    "needs_dawson": false,
+    "sibling_splits": [],
+    "apply_now_safe": false
+  },
+  "fraser-river-upstream-of-the-cpr-bridge-at-mi-4460d2": {
+    "bucket": "E",
+    "action": "not_applicable",
+    "reclassify_anchor_kind": null,
+    "label": "",
+    "note_to_append": "[human-review 2026-08-04 na-with-siblings] confirmed \u2014 'Fraser River Mainstem' whole-water descriptor (Region 2 / MU 2-4), not a split. Region 2 Fraser River boundary clauses (CPR Bridge at Mission, non-tidal portion, side channels) already have DEDICATED rows, though still uncurated (todo).",
+    "confidence": "H",
+    "needs_dawson": false,
+    "sibling_splits": [
+      {
+        "desc": "upstream of the CPR Bridge at Mission",
+        "existing_row_id": "fraser-river-upstream-of-the-cpr-bridge-at-mi-73e755",
+        "existing_status": "todo",
+        "gap": false
+      },
+      {
+        "desc": "in the non-tidal portion of the Fraser River in Region 2",
+        "existing_row_id": "fraser-river-upstream-of-the-cpr-bridge-at-mi-fe3020",
+        "existing_status": "todo",
+        "gap": false
+      },
+      {
+        "desc": "area bounded by a line commencing at a fishing boundary sign (Region 2)",
+        "existing_row_id": "fraser-river-upstream-of-the-cpr-bridge-at-mi-af0798",
+        "existing_status": "likely_na",
+        "gap": false
+      }
+    ],
+    "apply_now_safe": true
+  },
+  "kitsumkalum-kalum-river-443a33": {
+    "bucket": "E",
+    "action": "not_applicable",
+    "reclassify_anchor_kind": null,
+    "label": "",
+    "note_to_append": "[human-review 2026-08-04 na-with-siblings] confirmed \u2014 'for the entire river' whole-water descriptor, not a split. The only boundary clause in full_regulation ('from the outlet of Kitsumkalum Lake to Glacier Creek confluence') already has a DEDICATED row, already curated.",
+    "confidence": "H",
+    "needs_dawson": false,
+    "sibling_splits": [
+      {
+        "desc": "from the outlet of Kitsumkalum Lake to Glacier Creek confluence",
+        "existing_row_id": "kitsumkalum-kalum-river-b6b706-b",
+        "existing_status": "curated",
+        "gap": false
+      }
+    ],
+    "apply_now_safe": true
+  },
+  "kootenay-lake-main-body-for-location-see-map--ba2e51": {
+    "bucket": "E",
+    "action": "not_applicable",
+    "reclassify_anchor_kind": null,
+    "label": "",
+    "note_to_append": "[human-review 2026-08-04 na-with-siblings] confirmed \u2014 'for location see map on page 34' pointer, not a split. USER_NOTE flags no other split; full_regulation confirms no boundary text present (quota rules only).",
+    "confidence": "H",
+    "needs_dawson": false,
+    "sibling_splits": [],
+    "apply_now_safe": true
+  },
+  "liard-river-watershed-see-map-on-page-63-5f8021": {
+    "bucket": "E",
+    "action": "not_applicable",
+    "reclassify_anchor_kind": null,
+    "label": "",
+    "note_to_append": "[human-review 2026-08-04 na-with-siblings] confirmed \u2014 'see map on page 63' pointer, not a split. USER_NOTE flags no other split; full_regulation confirms no boundary text present ('from all lakes and streams' bull-trout quota rules only).",
+    "confidence": "H",
+    "needs_dawson": false,
+    "sibling_splits": [],
+    "apply_now_safe": true
+  },
+  "nanaimo-river-bd9e20": {
+    "bucket": "E",
+    "action": "not_applicable",
+    "reclassify_anchor_kind": null,
+    "label": "",
+    "note_to_append": "[human-review 2026-08-04 na-with-siblings] confirmed \u2014 'on parts' vague/unmappable engine-restriction descriptor, not a split. All boundary clauses in full_regulation (Bore Hole power line\u2013Boulder Creek mouth, Cedar Road Bridge\u2013Hwy19 bridge, Hwy1 bridge, Second Lake) already have DEDICATED rows.",
+    "confidence": "H",
+    "needs_dawson": false,
+    "sibling_splits": [
+      {
+        "desc": "from power line crossing at \"Bore Hole\" upstream to fishing boundary signs at mouth of Boulder Creek",
+        "existing_row_id": "nanaimo-river-633e28",
+        "existing_status": "todo",
+        "gap": false
+      },
+      {
+        "desc": "from the Cedar Road Bridge upstream to the Hwy 19 bridge",
+        "existing_row_id": "nanaimo-river-e9ebfc",
+        "existing_status": "todo",
+        "gap": false
+      },
+      {
+        "desc": "upstream of the Hwy 1 bridge",
+        "existing_row_id": "nanaimo-river-41353f",
+        "existing_status": "todo",
+        "gap": false
+      },
+      {
+        "desc": "upstream of the westernmost of the two Nanaimo Lakes (\"Second\" Lake)",
+        "existing_row_id": "nanaimo-river-76bf11",
+        "existing_status": "likely_na",
+        "gap": false
+      }
+    ],
+    "apply_now_safe": true
+  },
+  "west-road-blackwater-river-fbb33d": {
+    "bucket": "E",
+    "action": "not_applicable",
+    "reclassify_anchor_kind": null,
+    "label": "",
+    "note_to_append": "[human-review 2026-08-04 na-with-siblings] confirmed \u2014 'in mainstem (only)' descriptor itself is not a split. However, full_regulation for this Region 5 (MU 5-12/5-13) entry contains NO explicit named boundary phrase ('tributaries subject to spring closure' is a scope distinction, not a locatable point) and NO dedicated sibling row exists in Region 5 for this waterbody at all. The only other West Road/Blackwater row in the doc is west-road-blackwater-river-s-tributaries-aec300, a TRIBUTARIES-SET row in a DIFFERENT region/MU (Region 6 / MU 6-1) \u2014 likely a separate regulatory listing for the same river as it crosses regions, not a sibling split of this entry. Recommend Dawson confirm whether the 'splits in the regs' referenced in USER_NOTE exist elsewhere (e.g. a Region 6 mainstem entry not yet captured) or whether none actually apply here.",
+    "confidence": "L",
+    "needs_dawson": true,
+    "sibling_splits": [
+      {
+        "desc": "(no named boundary found in this entry's full_regulation)",
+        "existing_row_id": null,
+        "existing_status": null,
+        "gap": true
+      }
+    ],
+    "apply_now_safe": false
+  },
+  "dean-river-65ebf2": {
+    "bucket": "E",
+    "action": "not_applicable",
+    "reclassify_anchor_kind": null,
+    "label": "",
+    "note_to_append": "[human-review 2026-08-04 na-with-siblings] confirmed \u2014 'all parts' whole-river descriptor, not a split. Dean River is extensively split already: every boundary clause in full_regulation (Iltasyuko River/Anahim Lake, Iltasyuko\u2013Crag Creek, Crag Creek\u2013signs 500m above canyon, signs 500m above\u2013100m below canyon, signs 100m below canyon\u2013tidal boundary) has a DEDICATED row, all curated or manual.",
+    "confidence": "H",
+    "needs_dawson": false,
+    "sibling_splits": [
+      {
+        "desc": "upstream of Iltasyuko River / Anahim Lake boundary",
+        "existing_row_id": "dean-river-anahim-lake-boundary",
+        "existing_status": "curated",
+        "gap": false
+      },
+      {
+        "desc": "from Iltasyuko River to Crag Creek",
+        "existing_row_id": "dean-river-iltasyuko-confluence",
+        "existing_status": "curated",
+        "gap": false
+      },
+      {
+        "desc": "from Crag Creek to signs ~500m upstream of canyon",
+        "existing_row_id": "dean-river-crag-creek-confluence",
+        "existing_status": "curated",
+        "gap": false
+      },
+      {
+        "desc": "signs ~500m above canyon to signs 100m below canyon",
+        "existing_row_id": "dean-river-signs-500m-above-canyon",
+        "existing_status": "curated",
+        "gap": false
+      },
+      {
+        "desc": "signs 100m below canyon to tidal boundary",
+        "existing_row_id": "dean-river-signs-100m-below-canyon",
+        "existing_status": "curated",
+        "gap": false
+      },
+      {
+        "desc": "tidal boundary",
+        "existing_row_id": "dean-river-tidal-boundary",
+        "existing_status": "curated",
+        "gap": false
+      }
+    ],
+    "apply_now_safe": true
+  },
+  "lower-campbell-lake-s-tributaries-a724e1": {
+    "bucket": "F",
+    "action": "todo",
+    "reclassify_anchor_kind": null,
+    "label": "",
+    "note_to_append": "[human-review 2026-08-04 needs-split] point split at Strathcona Dam on Campbell River mainstem (not this trib-set row); lower Campbell Lake bound is auto lake edge.",
+    "confidence": "M",
+    "needs_dawson": false,
+    "split_shape": "point",
+    "anchors": [
+      "Strathcona Dam on Campbell River (Upper Campbell Lake outlet / head of the Strathcona-to-Lower-Campbell reach)"
+    ],
+    "existing_split_json_id": null,
+    "proposed_edit": "Tributary-SET row itself is not-a-split. The real split lives on CAMPBELL RIVER mainstem: reg 'Campbell River between Strathcona Dam and (Lower) Campbell Lake' => single point split at Strathcona Dam (dam_weir_fence). Lower Campbell Lake bound is the lake edge (auto). Author a point split on Campbell River blk at Strathcona Dam; needs coord (dam_weir_fence, resolve later).",
+    "apply_now_safe": false
+  },
+  "brunette-river-s-tributaries-aa1996": {
+    "bucket": "F",
+    "action": "todo",
+    "reclassify_anchor_kind": null,
+    "label": "",
+    "note_to_append": "[human-review 2026-08-04 needs-split] Brunette mainstem: Burnaby Lake edge (auto) + Cariboo Dam->Salamander Creek two-boundary (-a dam, -b confluence).",
+    "confidence": "M",
+    "needs_dawson": false,
+    "split_shape": "two_boundary",
+    "anchors": [
+      "Burnaby Lake (lake edge, upstream-of)",
+      "Cariboo Dam (dam point)",
+      "Salamander Creek (confluence)"
+    ],
+    "existing_split_json_id": null,
+    "proposed_edit": "Trib-SET row not-a-split; two mainstem BRUNETTE RIVER regs: (1) 'No Fishing upstream of Burnaby Lake' => lake anchor/auto lake edge at Burnaby Lake; (2) 'from Cariboo Dam to Salamander Creek' => two-boundary -a Cariboo Dam (dam point) + -b Salamander Creek (confluence). Author on Brunette River mainstem blk. Multi-boundary row: keep boundaries as distinct rows/splits per anti-silent-multi-boundary guard.",
+    "apply_now_safe": false
+  },
+  "chemainus-river-79cc9a": {
+    "bucket": "F",
+    "action": "todo",
+    "reclassify_anchor_kind": null,
+    "label": "",
+    "note_to_append": "[human-review 2026-08-04 needs-split] single confluence split at Bannon Creek mouth on Chemainus River; set target to Bannon Creek {blk,wsc}.",
+    "confidence": "H",
+    "needs_dawson": false,
+    "split_shape": "confluence",
+    "anchors": [
+      "Bannon Creek confluence (mouth on Chemainus River)"
+    ],
+    "existing_split_json_id": null,
+    "proposed_edit": "Single confluence split. 'downstream of Bannon Creek' = one boundary at the Bannon Creek mouth; a confluence anchor cuts once and yields both the downstream and upstream reaches automatically. Set target:{blk,wsc} of Bannon Creek (tributary), authored as a confluence anchor keyed on tributary_wsc. No -a/-b needed (single boundary).",
+    "apply_now_safe": false
+  },
+  "elk-river-s-tributaries-see-exceptions-9149a8": {
+    "bucket": "F",
+    "action": "deferred",
+    "reclassify_anchor_kind": null,
+    "label": "",
+    "note_to_append": "[human-review 2026-08-04 needs-split] deferred: exceptions contain unspecified splits; pull Elk River exception reg text and review boundaries with Dawson.",
+    "confidence": "L",
+    "needs_dawson": true,
+    "split_shape": "unclear",
+    "anchors": [],
+    "existing_split_json_id": null,
+    "proposed_edit": "USER_NOTE only says 'exceptions have splits in them' without naming boundaries. Which tributary exceptions and their split wording are unspecified; needs the actual Elk River exception reg text pulled and reviewed with Dawson before any anchor can be named.",
+    "apply_now_safe": false
+  },
+  "fraser-river-upstream-of-the-cpr-bridge-at-mi-af0798": {
+    "bucket": "F",
+    "action": "deferred",
+    "reclassify_anchor_kind": null,
+    "label": "",
+    "note_to_append": "[human-review 2026-08-04 needs-split] deferred: very-hard boundary-sign line/area (Landstrom Bar Scale B); needs reg-map sign coords, resolve with Dawson.",
+    "confidence": "L",
+    "needs_dawson": true,
+    "split_shape": "line",
+    "anchors": [
+      "fishing boundary sign at the eastern end of Landstrom Bar (Scale B)"
+    ],
+    "existing_split_json_id": null,
+    "proposed_edit": "Area/line bounded by fishing boundary signs ('area bounded by a line commencing at a fishing boundary sign at the eastern end of Landstrom Bar (Scale B ...'). USER_NOTE: 'very hard split'. Boundary-sign polygon/line on the Fraser; multiple sign coords needed from a reg map. Defer to joint session.",
+    "apply_now_safe": false
+  },
+  "granby-river-s-tributaries-465204": {
+    "bucket": "F",
+    "action": "todo",
+    "reclassify_anchor_kind": null,
+    "label": "",
+    "note_to_append": "[human-review 2026-08-04 needs-split] single confluence split at Burrell Creek mouth on Granby River mainstem; set target to Burrell Creek {blk,wsc}.",
+    "confidence": "H",
+    "needs_dawson": false,
+    "split_shape": "confluence",
+    "anchors": [
+      "Burrell Creek confluence (mouth on Granby River)"
+    ],
+    "existing_split_json_id": null,
+    "proposed_edit": "Trib-SET row not-a-split; real split is on GRANBY RIVER mainstem: 'Upstream of Burrell Creek' => single confluence split at Burrell Creek mouth. Set target:{blk,wsc} of Burrell Creek (tributary) as a confluence anchor on Granby River. Single boundary, no -a/-b.",
+    "apply_now_safe": false
+  },
+  "john-hart-lake-s-tributaries-4e8025": {
+    "bucket": "F",
+    "action": "deferred",
+    "reclassify_anchor_kind": null,
+    "label": "",
+    "note_to_append": "[human-review 2026-08-04 needs-split] deferred: unnamed 'channel' \u2014 clarify vs sibling Ladore Dam row (36c501) with Dawson.",
+    "confidence": "L",
+    "needs_dawson": true,
+    "split_shape": "unclear",
+    "anchors": [],
+    "existing_split_json_id": null,
+    "proposed_edit": "USER_NOTE 'need to look what channel is might be a split' \u2014 no boundary named. Likely overlaps the sibling row john-hart-lake-s-tributaries-36c501 ('channel downstream of Ladore Dam'). Confirm whether this trib-set row carries its own split or defers to the Ladore Dam channel row; needs Dawson.",
+    "apply_now_safe": false
+  },
+  "kitimat-river-angling-regulations-for-the-kit-eb7a2e": {
+    "bucket": "F",
+    "action": "deferred",
+    "reclassify_anchor_kind": null,
+    "label": "",
+    "note_to_append": "[human-review 2026-08-04 needs-split] deferred: multi-split + regs under review (west-half sign line at hatchery outfall, tribs, Hwy 37 bridge point); review with Dawson.",
+    "confidence": "L",
+    "needs_dawson": true,
+    "split_shape": "unclear",
+    "anchors": [
+      "fishing boundary signs near Kitimat Hatchery outfall (west-half closure)",
+      "Hwy 37 bridge (point)"
+    ],
+    "existing_split_json_id": null,
+    "proposed_edit": "Multiple splits AND regs are 'currently under review' per locator_text. USER_NOTE lists: west-half-of-river closure between boundary signs near Kitimat Hatchery outfall (partial-width/line), tributaries closure, and 'upstream of Hwy 37 bridge' (point, seasonal Mar16-May31). Half-width + boundary-sign + under-review => defer to joint session; only Hwy 37 bridge is cleanly a point.",
+    "apply_now_safe": false
+  },
+  "kitsumkalum-kalum-river-b6b706-a": {
+    "bucket": "F",
+    "action": "todo",
+    "reclassify_anchor_kind": null,
+    "label": "",
+    "note_to_append": "[human-review 2026-08-04 needs-split] confluence split at Glacier Creek mouth on Kitsumkalum R; lake outlet is auto. Verify correct Glacier Creek (name collision).",
+    "confidence": "M",
+    "needs_dawson": false,
+    "split_shape": "confluence",
+    "anchors": [
+      "Kitsumkalum Lake outlet (lake edge, auto)",
+      "Glacier Creek confluence (mouth on Kitsumkalum River)"
+    ],
+    "existing_split_json_id": null,
+    "proposed_edit": "'from the outlet of Kitsumkalum Lake to Glacier Creek confluence': -a boundary = lake outlet (auto lake edge, no authored split). -b = Glacier Creek confluence => author a confluence split at Glacier Creek mouth on Kitsumkalum (Kalum) River (target:{blk,wsc} of Glacier Creek). GOTCHA: Glacier Creek is a common name \u2014 confirm the Region 6 / MU 6-15 Glacier Creek.",
+    "apply_now_safe": false
+  },
+  "kokish-river-02cef0": {
+    "bucket": "F",
+    "action": "deferred",
+    "reclassify_anchor_kind": null,
+    "label": "",
+    "note_to_append": "[human-review 2026-08-04 needs-split] deferred: between-signs line, IPP tail-race confluence + ~500 m downstream offset; tailrace point not in FWA, resolve with Dawson.",
+    "confidence": "L",
+    "needs_dawson": true,
+    "split_shape": "line",
+    "anchors": [
+      "signs at the IPP tail race confluence (upper sign)",
+      "signs ~500 m downstream (lower sign, offset)"
+    ],
+    "existing_split_json_id": null,
+    "proposed_edit": "Between-signs reach: upper sign at the IPP (independent power project) tail-race confluence, lower sign ~500 m downstream. Anchor A is a powerhouse tailrace outfall (not a natural tributary; hard to locate in FWA), anchor B is a 500 m along-channel offset from it. Needs a reg-map / on-the-ground sign location; defer.",
+    "apply_now_safe": false
+  },
+  "kootenay-lake-s-tributaries-6b7979": {
+    "bucket": "F",
+    "action": "todo",
+    "reclassify_anchor_kind": null,
+    "label": "",
+    "note_to_append": "[human-review 2026-08-04 needs-split] no new split: exclusion pointing at Kootenay R lake->border reach already covered by kootenay_idaho_border + Kootenay Lake auto edge.",
+    "confidence": "M",
+    "needs_dawson": false,
+    "split_shape": "unclear",
+    "anchors": [
+      "Kootenay Lake (lake edge)",
+      "Idaho border near Creston (existing point split)"
+    ],
+    "existing_split_json_id": "kootenay_idaho_border",
+    "proposed_edit": "Trib-SET row; USER_NOTE is an EXCLUSION not a new split: 'Does not include the Kootenay River upstream from Kootenay Lake to the U.S. border near Creston'. That excluded reach is the separate KOOTENAY RIVER row (kootenay-river-downstream-of-idaho-border-c2529b) already covered by authored split kootenay_idaho_border + Kootenay Lake auto edge. No new split for this row; keep as not-a-split / tributary exclusion.",
+    "apply_now_safe": false
+  },
+  "lake-revelstoke-s-tributaries-96d2a3": {
+    "bucket": "F",
+    "action": "deferred",
+    "reclassify_anchor_kind": null,
+    "label": "",
+    "note_to_append": "[human-review 2026-08-04 needs-split] deferred: two-boundary Mica Dam -> Bigmouth Creek narrows, but within Lake Revelstoke reservoir (lake-internal split not implemented, docs/15).",
+    "confidence": "M",
+    "needs_dawson": true,
+    "split_shape": "two_boundary",
+    "anchors": [
+      "Mica Dam (dam point, head of Lake Revelstoke)",
+      "fishing boundary signs at the narrows immediately downstream of the mouth of Bigmouth Creek (confluence + short offset)"
+    ],
+    "existing_split_json_id": null,
+    "proposed_edit": "'No Fishing from Mica Dam to fishing boundary signs at the narrows immediately downstream of the mouth of Bigmouth Creek': two-boundary -a Mica Dam (dam point), -b narrows just below Bigmouth Creek mouth (Bigmouth Creek confluence + small downstream offset). BUT the reach lies within Lake Revelstoke reservoir (Mica Dam sits at its head) => this is a LAKE-INTERNAL division, not implemented yet (docs/15). Defer.",
+    "apply_now_safe": false
+  },
+  "lardeau-river-e666ed-a": {
+    "bucket": "F",
+    "action": "todo",
+    "reclassify_anchor_kind": null,
+    "label": "",
+    "note_to_append": "[human-review 2026-08-04 needs-split] offset split ~600 m downstream of Trout Lake outlet on Lardeau R; lake outlet auto. offset_m=600 dir=downstream. Confirm truncated sign name.",
+    "confidence": "M",
+    "needs_dawson": false,
+    "split_shape": "offset",
+    "anchors": [
+      "Trout Lake outlet (lake edge, auto)",
+      "fishing boundary signs ~600 m downstream of Trout Lake outlet (along-channel offset)"
+    ],
+    "existing_split_json_id": null,
+    "proposed_edit": "'downstream of fishing boundary signs at Trout Lake outlet, to fishing boundary signs approximately 600m downstream near ...': -a = Trout Lake outlet (auto lake edge). -b = point 600 m downstream (offset). Author one point via offset: anchor = Trout Lake outlet, offset_m=600, offset_dir=downstream on Lardeau River. (Sign location name truncated in locator_text \u2014 confirm.)",
+    "apply_now_safe": false
+  },
+  "little-qualicum-river-496f12": {
+    "bucket": "F",
+    "action": "todo",
+    "reclassify_anchor_kind": null,
+    "label": "",
+    "note_to_append": "[human-review 2026-08-04 needs-split] two-boundary: -a falls in Little Qualicum Falls Prov Park (obstacle) + -b hatchery fence, on Little Qualicum R mainstem.",
+    "confidence": "M",
+    "needs_dawson": false,
+    "split_shape": "two_boundary",
+    "anchors": [
+      "the falls in Little Qualicum Falls Provincial Park (falls obstacle point)",
+      "the hatchery fence (dam_weir_fence point)"
+    ],
+    "existing_split_json_id": null,
+    "proposed_edit": "'All tributaries' is not-a-split (trib-set). Real split: 'No Fishing from the falls in Little Qualicum Falls Provincial Park downstream to the hatchery fence' => two-boundary -a the falls (falls_obstacle; may be in FISS obstacles layer) + -b the hatchery fence (dam_weir_fence, coord=map-only). Author on Little Qualicum River mainstem.",
+    "apply_now_safe": false
+  },
+  "meziadin-river-09af13-a": {
+    "bucket": "F",
+    "action": "todo",
+    "reclassify_anchor_kind": null,
+    "label": "",
+    "note_to_append": "[human-review 2026-08-04 needs-split] no point split needed: Meziadin Lake outlet (auto edge) to natural Nass River mouth; optional lake-anchor label on Meziadin Lake.",
+    "confidence": "M",
+    "needs_dawson": false,
+    "split_shape": "two_boundary",
+    "anchors": [
+      "Meziadin Lake outlet (lake edge, auto)",
+      "Nass River confluence (natural mouth of Meziadin River)"
+    ],
+    "existing_split_json_id": null,
+    "proposed_edit": "'from fishing boundary signs at outlet of Meziadin Lake to Nass River' = the entire Meziadin River below the lake: bounded ONLY by the lake edge (up) and the natural mouth at the Nass River (down). Per the auto-lake-split rule this needs NO authored point split; attaches via location_identifier. Optionally add a lake anchor target:{wbk} of Meziadin Lake purely for the label (cf. adams_lake no-op).",
+    "apply_now_safe": false
+  },
+  "premier-lake-s-tributaries-99ac9d": {
+    "bucket": "F",
+    "action": "deferred",
+    "reclassify_anchor_kind": null,
+    "label": "",
+    "note_to_append": "[human-review 2026-08-04 needs-split] deferred: 'south of boundary signs on the lake shore' \u2014 clarify lake-reg vs tributary with Dawson.",
+    "confidence": "L",
+    "needs_dawson": true,
+    "split_shape": "unclear",
+    "anchors": [
+      "fishing boundary signs on the lake shore (south-of closure)"
+    ],
+    "existing_split_json_id": null,
+    "proposed_edit": "USER_NOTE is a question: 'No Fishing south of fishing boundary signs on the lake shore \u2014 is this a trib or lake reg?'. Ambiguous whether it's a lake-shore closure (lake reg / lake-internal, not implemented) or a tributary boundary. Needs Dawson to disambiguate before authoring.",
+    "apply_now_safe": false
+  },
+  "salmo-river-s-tributaries-d8cd97": {
+    "bucket": "F",
+    "action": "todo",
+    "reclassify_anchor_kind": null,
+    "label": "",
+    "note_to_append": "[human-review 2026-08-04 needs-split] two confluence boundaries on Salmo R: -a Sheep Creek + -b South Salmo River. Verify correct Sheep Creek (name collision).",
+    "confidence": "M",
+    "needs_dawson": false,
+    "split_shape": "two_boundary",
+    "anchors": [
+      "Sheep Creek confluence (mouth on Salmo River)",
+      "South Salmo River confluence (mouth on Salmo River)"
+    ],
+    "existing_split_json_id": null,
+    "proposed_edit": "Trib-SET row not-a-split; real split on SALMO RIVER mainstem: 'Sheep Creek to South Salmo River' (C&R rainbow/bull trout) => two-boundary -a Sheep Creek confluence + -b South Salmo River confluence, both confluence anchors (target:{blk,wsc} of each tributary). GOTCHA: 'Sheep Creek' is common \u2014 confirm Region 4 / MU 4-8.",
+    "apply_now_safe": false
+  },
+  "salmon-river-4a0073-a": {
+    "bucket": "F",
+    "action": "todo",
+    "reclassify_anchor_kind": null,
+    "label": "",
+    "note_to_append": "[human-review 2026-08-04 needs-split] two confluence splits on Salmon R: Kay Creek + White River (shared with speed-limit reach); estuary is natural mouth. Verify names.",
+    "confidence": "M",
+    "needs_dawson": false,
+    "split_shape": "two_boundary",
+    "anchors": [
+      "Kay Creek confluence (mouth on Salmon River)",
+      "White River confluence (mouth on Salmon River)",
+      "estuary/tidal boundary (natural mouth)"
+    ],
+    "existing_split_json_id": null,
+    "proposed_edit": "Multiple regs on SALMON RIVER (MU 1-10): (1) 'No Fishing upstream of Kay Creek' => single confluence split at Kay Creek mouth; (2) 'no powered boats upstream of confluence with White River' => single confluence split at White River mouth; (3) 'speed restriction (10 km/h) from estuary to confluence with White River' => reach bounded by natural estuary mouth (auto) + White River confluence (shares boundary #2). Author TWO confluence splits (Kay Creek, White River); estuary is the natural tidal terminus. GOTCHA: White River / Salmon River are common names \u2014 confirm region.",
+    "apply_now_safe": false
+  },
+  "stave-river-c74d9d": {
+    "bucket": "F",
+    "action": "deferred",
+    "reclassify_anchor_kind": null,
+    "label": "",
+    "note_to_append": "[human-review 2026-08-04 needs-split] deferred: Northrop Spawning Channel (likely FWA-unnamed) intake -> Stave confluence; needs manual channel identification with Dawson.",
+    "confidence": "L",
+    "needs_dawson": true,
+    "split_shape": "two_boundary",
+    "anchors": [
+      "Northrop Spawning Channel intake (upper)",
+      "confluence where Northrop Spawning Channel joins the Stave River mainstem (lower)"
+    ],
+    "existing_split_json_id": null,
+    "proposed_edit": "'in the Northrop Spawning Channel, from the intake downstream to where the channel joins the Stave River main': a side/spawning channel (likely UNNAMED in FWA) with two boundaries (intake, and its confluence with Stave River). Locating the Northrop Spawning Channel blk and its intake requires manual FWA/map work; defer.",
+    "apply_now_safe": false
+  },
+  "trout-lake-s-tributaries-d2d6c5": {
+    "bucket": "F",
+    "action": "deferred",
+    "reclassify_anchor_kind": null,
+    "label": "",
+    "note_to_append": "[human-review 2026-08-04 needs-split] deferred: wants lake-node split to separate tributaries; lake-internal splitting not implemented (docs/15).",
+    "confidence": "L",
+    "needs_dawson": true,
+    "split_shape": "unclear",
+    "anchors": [],
+    "existing_split_json_id": null,
+    "proposed_edit": "USER_NOTE 'this is awkward. split the lake node so tribs can be separated?' \u2014 the desired split is a division of the LAKE node itself so tributaries attach to different reaches. Lake-internal / lake-node splitting is not implemented (docs/15). Defer to joint design.",
+    "apply_now_safe": false
+  },
+  "upper-arrow-lake-s-tributaries-330f07": {
+    "bucket": "F",
+    "action": "deferred",
+    "reclassify_anchor_kind": null,
+    "label": "",
+    "note_to_append": "[human-review 2026-08-04 needs-split] deferred: verdict wrong but no USER_NOTE; ask Dawson which split applies to Upper Arrow Lake tributaries.",
+    "confidence": "L",
+    "needs_dawson": true,
+    "split_shape": "unclear",
+    "anchors": [],
+    "existing_split_json_id": null,
+    "proposed_edit": "Marked 'wrong' but USER_NOTE is EMPTY \u2014 no reg wording provided for the claimed split. Cannot name any anchor; needs Dawson to supply the split text.",
+    "apply_now_safe": false
+  },
+  "weaver-lake-and-weaver-creek-47d5a0-a": {
+    "bucket": "F",
+    "action": "todo",
+    "reclassify_anchor_kind": null,
+    "label": "",
+    "note_to_append": "[human-review 2026-08-04 needs-split] confluence split at Sakwi Creek mouth on Weaver Creek; Weaver Lake outlet (log booms) is auto edge.",
+    "confidence": "M",
+    "needs_dawson": false,
+    "split_shape": "two_boundary",
+    "anchors": [
+      "fishing boundary signs at log booms on Weaver Lake (lake outlet, ~auto edge)",
+      "confluence where Sakwi Creek enters Weaver Creek"
+    ],
+    "existing_split_json_id": null,
+    "proposed_edit": "'from fishing boundary signs at log booms on Weaver Lake downstream to where Sakwi Creek enters Weaver Creek': -a = Weaver Lake outlet at the log booms (lake edge, auto). -b = Sakwi Creek confluence on Weaver Creek => author a confluence split at Sakwi Creek mouth (target:{blk,wsc} of Sakwi Creek). Lake outlet handled by auto edge.",
+    "apply_now_safe": false
+  },
+  "kootenay-river-downstream-of-idaho-border-c2529b": {
+    "bucket": "F",
+    "action": "todo",
+    "reclassify_anchor_kind": null,
+    "label": "",
+    "note_to_append": "[human-review 2026-08-04 needs-split] no new split: border via kootenay_idaho_border + Kootenay Lake auto edge; confirm attachment only.",
+    "confidence": "H",
+    "needs_dawson": false,
+    "split_shape": "two_boundary",
+    "anchors": [
+      "Idaho border near Creston (existing point split)",
+      "Kootenay Lake (lake edge, auto)"
+    ],
+    "existing_split_json_id": "kootenay_idaho_border",
+    "proposed_edit": "'from Idaho border near Creston to Kootenay Lake': both boundaries already handled \u2014 authored split kootenay_idaho_border covers the border point, and Kootenay Lake auto edge covers the down boundary. NO new authoring; Dawson agrees ('should already be handled'). Confirm the reg attaches to the between reach via location_identifier.",
+    "apply_now_safe": false
+  },
+  "nahatlatch-river-1d1eaf": {
+    "bucket": "F",
+    "action": "deferred",
+    "reclassify_anchor_kind": null,
+    "label": "",
+    "note_to_append": "[human-review 2026-08-04 needs-split] deferred: complex multi-split + parsing error ('except as noted upstream of' truncated); go through with Dawson, re-check source reg.",
+    "confidence": "L",
+    "needs_dawson": true,
+    "split_shape": "unclear",
+    "anchors": [
+      "Nahatlatch Lake outlet (lake edge)"
+    ],
+    "existing_split_json_id": null,
+    "proposed_edit": "'Downstream of Nahatlatch Lake (including Hannah and Frances lakes; except as noted upstream of )': USER_NOTE says complex, 'we will need to go through together', and flags a likely PARSING ERROR \u2014 'except as noted upstream of' is truncated (upstream of WHAT?). Multiple splits + broken reg text. Defer to joint session; also check the source reg for the dropped clause.",
+    "apply_now_safe": false
+  },
+  "adam-river-except-eve-river-ca05b3": {
+    "bucket": "F",
+    "action": "deferred",
+    "reclassify_anchor_kind": null,
+    "label": "",
+    "note_to_append": "[human-review 2026-08-04 needs-split] deferred: 'except Eve River' \u2014 split at Eve River confluence vs pure exclusion is ambiguous; check conflicts with existing splits, review with Dawson.",
+    "confidence": "L",
+    "needs_dawson": true,
+    "split_shape": "unclear",
+    "anchors": [
+      "Eve River confluence (mouth on Adam River) \u2014 if a split rather than exclusion"
+    ],
+    "existing_split_json_id": null,
+    "proposed_edit": "'except Eve River' normally = a tributary EXCLUSION (not a split). USER_NOTE questions whether it is actually 'upstream of Eve River (but not including?)' and warns to CHECK CONFLICTS with other splits. Ambiguous split-vs-exclusion + conflict check needed. Defer.",
+    "apply_now_safe": false
+  },
+  "mcleod-river-c29823": {
+    "bucket": "F",
+    "action": "todo",
+    "reclassify_anchor_kind": null,
+    "label": "",
+    "note_to_append": "[human-review 2026-08-04 needs-split] two-boundary Carp Lake (auto edge) -> War Falls (obstacle point) on McLeod R; 'excluding War Lake' is a plain exclusion.",
+    "confidence": "M",
+    "needs_dawson": false,
+    "split_shape": "two_boundary",
+    "anchors": [
+      "Carp Lake (lake edge, auto/lake anchor)",
+      "War Falls (falls obstacle point)"
+    ],
+    "existing_split_json_id": null,
+    "proposed_edit": "'excluding War Lake' is a not-a-split exclusion. Real split: 'Carp Lake to War Falls' => two-boundary -a Carp Lake outlet (lake edge, auto) + -b War Falls (falls_obstacle point; may be in FISS obstacles layer). Author a point split at War Falls on McLeod River (MU 7-24). Confirm 'War Falls' location; War Lake stays excluded (no split).",
+    "apply_now_safe": false
+  },
+  "nahatlatch-river-a0ebb8": {
+    "bucket": "F",
+    "action": "deferred",
+    "reclassify_anchor_kind": null,
+    "label": "",
+    "note_to_append": "[human-review 2026-08-04 needs-split] deferred: truncated 'except as noted upstream of' (parsing error); resolve together with nahatlatch-river-1d1eaf and source reg.",
+    "confidence": "L",
+    "needs_dawson": true,
+    "split_shape": "unclear",
+    "anchors": [],
+    "existing_split_json_id": null,
+    "proposed_edit": "locator_text 'except as noted upstream of' is the SAME truncated/broken clause as nahatlatch-river-1d1eaf. USER_NOTE: 'not sure what this means ... could be a parsing error.' Cannot name an anchor from broken text. Defer and re-check source reg alongside 1d1eaf.",
+    "apply_now_safe": false
+  },
+  "salmo-river-57c52d": {
+    "bucket": "F",
+    "action": "todo",
+    "reclassify_anchor_kind": null,
+    "label": "",
+    "note_to_append": "[human-review 2026-08-04 needs-split] no new split: 'remainder of mainstem' is the complement of the Sheep Creek/South Salmo splits (d8cd97); attaches to leftover section automatically.",
+    "confidence": "M",
+    "needs_dawson": false,
+    "split_shape": "unclear",
+    "anchors": [],
+    "existing_split_json_id": null,
+    "proposed_edit": "'Remainder of mainstem' is NOT a new boundary \u2014 it is the COMPLEMENT reach left over after the other Salmo River splits (e.g. Sheep Creek -> South Salmo, see salmo-river-s-tributaries-d8cd97). It emerges automatically once those confluence splits are authored; no separate anchor exists. Keep as not-a-split; the 'remainder' rules attach to the leftover section via location_identifier.",
+    "apply_now_safe": false
+  },
+  "john-hart-lake-s-tributaries-36c501": {
+    "bucket": "F",
+    "action": "todo",
+    "reclassify_anchor_kind": null,
+    "label": "",
+    "note_to_append": "[human-review 2026-08-04 needs-split] single point split at Ladore Dam (Campbell system); candidate coord [-125.42,50.02] is approximate, verify before curating.",
+    "confidence": "M",
+    "needs_dawson": false,
+    "split_shape": "point",
+    "anchors": [
+      "Ladore Dam (Lower Campbell Lake outlet into John Hart Lake) on the Campbell system"
+    ],
+    "existing_split_json_id": null,
+    "proposed_edit": "'channel downstream of Ladore Dam' => single point split at Ladore Dam (dam_weir_fence). The 'includes' clause is not-a-split. Auto-proposal has a rough candidate coord [-125.42, 50.02] flagged approximate \u2014 author a point anchor at Ladore Dam and VERIFY the coord on a BC Hydro / satellite map before curating.",
+    "apply_now_safe": false
+  }
+}
