@@ -145,5 +145,6 @@ Offsets: project the anchor point onto the target's merged blue line, walk `offs
 
 ## Commit convention
 Branch `redesign/stream-sections`. Small logical commits; co-author trailer
-`Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>`. Never commit `name_variants.json`
-(a pre-existing unrelated working change).
+`Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>`. `name_variants.json` is a real
+tracked artifact (compiled from `oneoff/name_variants_compile.py`, incl. its `_MANUAL` list) —
+commit changes to it normally alongside the compiler edit that produced them.

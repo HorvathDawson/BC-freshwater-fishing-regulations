@@ -193,6 +193,18 @@ _MANUAL: list[dict] = [
                         "(WSC 910-275583-777225-504013); named for Sitkatapa Lake up its upper "
                         "fork (blk 360855126). Backs the burnt_bridge_at_sitkatapa split; low "
                         "confidence, no alternative."}]},
+    {"target": {"blks": ["360886970"]},
+     "reach": {"from_m": 108816.1, "to_m": 111116.3},
+     "names": [{"name": "Rainbow Alley", "source": "regulation",
+                "note": "Local name for the flowing-water reach of the Babine River between "
+                        "Babine Lake (wbk 329026676, upstream) and Nilkitkwa Lake (wbk 329026685, "
+                        "downstream) on BLK 360886970 (connecting waterbody 329705328, route measure "
+                        "108816.1-111116.3). Regulation locator 'between Babine and Nilkitkwa Lakes' / "
+                        "'Rainbow Alley'. FWA gazettes this reach as Babine River, so this is a "
+                        "searchable/matchable variant (does not override the display name). "
+                        "Reach-scoped so it hits only the between-lakes pieces, not all of Babine "
+                        "River or either lake. NOTE: an overrides.json entry cannot express a reach "
+                        "window (1:1 id gate, no from_m/to_m), so _MANUAL is the correct home."}]},
 ]
 
 
