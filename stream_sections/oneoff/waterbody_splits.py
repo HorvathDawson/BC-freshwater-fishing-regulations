@@ -161,20 +161,23 @@ def build():
         for l in locators:
             hits = backfill(cands, l, water)
             l["row_ids"] = [r["id"] for r in hits]
+            l["rows"] = hits  # FULL curated row objects (all fields from 14-locators-to-curate)
             l["statuses"] = [r["status"] for r in hits]
             l["anchor_kinds"] = sorted({r["anchor_kind"] for r in hits})
             l["resolved"] = bool(hits) and all(r["status"] in RESOLVED for r in hits)
             l["flag"] = "MISSING" if (l["src"] in BOUNDARY_SRC and not hits) else "OK"
 
         boundary_locs = [l for l in locators if l["src"] in BOUNDARY_SRC]
-        if not boundary_locs:
-            continue  # not split-bearing (no card), but its name rows were consumed above
+        n_curated_rows = len({rid for l in locators for rid in l["row_ids"]})
+        if not boundary_locs and n_curated_rows == 0:
+            continue  # neither a split nor any curation on this entry -> nothing to track
 
         eid = entry_id(water, row.get("mu"), reg)
-        n_curated_rows = len({rid for l in locators for rid in l["row_ids"]})
         n_missing = sum(1 for l in boundary_locs if l["flag"] == "MISSING")
         n_unresolved = sum(1 for l in boundary_locs if l["flag"] != "MISSING" and not l["resolved"])
-        if n_curated_rows == 0:
+        if not boundary_locs:
+            completeness = "NO_SPLIT"  # entry carries only whole-water / tributary-set rows (n/a)
+        elif n_curated_rows == 0:
             completeness = "NO_CURATION"
         elif n_missing:
             completeness = "MISSING_SPLITS"
@@ -198,7 +201,7 @@ def build():
 
 
 def _rank(c):
-    order = {"NO_CURATION": 0, "MISSING_SPLITS": 1, "INCOMPLETE": 2, "COMPLETE": 3}
+    order = {"NO_CURATION": 0, "MISSING_SPLITS": 1, "INCOMPLETE": 2, "COMPLETE": 3, "NO_SPLIT": 4}
     return (order[c["completeness"]], -c["n_boundaries"])
 
 
@@ -209,11 +212,11 @@ def write_outputs(cards, drift):
          "One card per split-bearing reg entry from `synopsis_raw_data.json`; each reg boundary is",
          "linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.\n",
          "| completeness | entries |", "|---|--:|"]
-    for k in ["NO_CURATION", "MISSING_SPLITS", "INCOMPLETE", "COMPLETE"]:
+    for k in ["NO_CURATION", "MISSING_SPLITS", "INCOMPLETE", "COMPLETE", "NO_SPLIT"]:
         L.append(f"| {k} | {tally.get(k, 0)} |")
     L.append(f"\n**Drift** (curated rows matching no source locator): {len(drift)}\n")
     for c in sorted(cards.values(), key=_rank):
-        if c["completeness"] == "COMPLETE":
+        if c["completeness"] in ("COMPLETE", "NO_SPLIT"):
             continue
         L.append(f"## {c['water']} · MU {c['mu']} · p{c['page']} · [{c['completeness']}] ({c['entry_id']})")
         for l in c["locators"]:
