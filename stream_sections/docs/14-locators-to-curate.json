@@ -892,11 +892,11 @@
       "full_regulation": "No Fishing from W.A.C. Bennett Dam to 100 m south of Gething Creek and between the anti-vortex dyke and Peace Canyon Dam[Includes Tributaries]\nNo trout/char under 25 cm (bull trout catch and release); single barbless hook",
       "anchor_kind": "point",
       "resolver_hint": "falls_obstacle",
-      "status": "todo",
+      "status": "deferred",
       "target": "",
       "coord": null,
-      "label": "",
-      "notes": ""
+      "label": "Dinosaur Lake reservoir reach (W.A.C. Bennett Dam <-> Peace Canyon Dam)",
+      "notes": "[human-review 2026-08-04 lake-verify] LAKE-INTERNAL (deferred, COMPLEX): reservoir sub-region bounded by internal landmarks (Bennett Dam, ~100 m S of Gething Cr, anti-vortex dyke, Peace Canyon Dam). Needs docs/15 lake_region overlay AND, per Dawson, sub-region tributary membership (which the current model-B overlay only partly addresses via \u00a73.4 containment). Confirms Dawson's 'wrong' - NOT handled by the auto lake split."
     },
     {
       "id": "fording-river-downstream-of-josephine-falls-97d67a",
@@ -3614,11 +3614,11 @@
       "full_regulation": "See Shuswap Lake in Region 3\nNo powered boats south of the CPR bridge",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "likely_na",
+      "status": "deferred",
       "target": "",
       "coord": null,
-      "label": "",
-      "notes": "[reclassified bridge_road_km -> lake_reach: lake_internal] LAKE reg (Mara Lake) divided 'south of the CPR bridge' \u2014 a lake-INTERNAL split at the CPR bridge (lake splitting, docs/15), not a stream bridge. \u2014 [lake-class: lake_internal] lake-internal divide at the CPR bridge (docs/15) \u2014 unsupported. \u2014 [review \u00b7 was:deferred] assume nothing \u2014 re-decide."
+      "label": "south of the CPR bridge (Mara Lake)",
+      "notes": "[reclassified bridge_road_km -> lake_reach: lake_internal] LAKE reg (Mara Lake) divided 'south of the CPR bridge' \u2014 a lake-INTERNAL split at the CPR bridge (lake splitting, docs/15), not a stream bridge. \u2014 [lake-class: lake_internal] lake-internal divide at the CPR bridge (docs/15) \u2014 unsupported. \u2014 [review \u00b7 was:deferred] assume nothing \u2014 re-decide. \u2014 [human-review 2026-08-04 lake-internal] line per docs/15 \u00a75a: south of the CPR bridge (Mara Lake). Bridge crossing acts as the shore-to-shore cut line; label the resulting side by sub-polygon centroid once cut, not by the word 'south' in the reg text."
     },
     {
       "id": "mcarthur-island-slough-cd2507",
@@ -4046,11 +4046,11 @@
       "full_regulation": "No Fishing Aug 1-Oct 31\nTrout/char daily quota = 2 (none under 30 cm); bait ban, single barbless hook",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "likely_na",
+      "status": "deferred",
       "target": "",
       "coord": null,
-      "label": "",
-      "notes": "[reclassified bridge_road_km -> lake_reach: lake_internal] LAKE reg (Prudhomme Lake) 'south of the Hwy 16 bridge' \u2014 lake-internal split at the bridge (docs/15). \u2014 [lake-class: lake_internal] lake-internal divide at the Hwy 16 bridge (docs/15) \u2014 unsupported. \u2014 [review \u00b7 was:deferred] assume nothing \u2014 re-decide."
+      "label": "Prudhomme Lake - south of the Hwy 16 bridge",
+      "notes": "[reclassified bridge_road_km -> lake_reach: lake_internal] LAKE reg (Prudhomme Lake) 'south of the Hwy 16 bridge' \u2014 lake-internal split at the bridge (docs/15). \u2014 [lake-class: lake_internal] lake-internal divide at the Hwy 16 bridge (docs/15) \u2014 unsupported. \u2014 [review \u00b7 was:deferred] assume nothing \u2014 re-decide. \u2014 [human-review 2026-08-04 lake-verify] DECISION (c) LAKE-INTERNAL, not not_applicable: the reg cuts the lake body at the Hwy 16 bridge line (docs/15 line-across-lake, 5a), leaving a real south sub-region. Unbuilt (lake_region overlay). This is a genuine within-lake cut, so it is NOT 'handled for free' by docs/04 - deferred + label rather than n/a."
     },
     {
       "id": "quesnel-river-cf8577",
@@ -4100,11 +4100,11 @@
       "full_regulation": "No powered boats south of the CPR Bridge",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "likely_na",
+      "status": "deferred",
       "target": "",
       "coord": null,
-      "label": "",
-      "notes": "[reclassified bridge_road_km -> lake_reach: lake_internal] LAKE reg (Rosemond Lake) 'south of the CPR Bridge' \u2014 lake-internal split (docs/15). \u2014 [lake-class: lake_internal] lake-internal divide at the CPR bridge (docs/15) \u2014 unsupported. \u2014 [review \u00b7 was:deferred] assume nothing \u2014 re-decide."
+      "label": "south of the CPR Bridge (Rosemond Lake)",
+      "notes": "[reclassified bridge_road_km -> lake_reach: lake_internal] LAKE reg (Rosemond Lake) 'south of the CPR Bridge' \u2014 lake-internal split (docs/15). \u2014 [lake-class: lake_internal] lake-internal divide at the CPR bridge (docs/15) \u2014 unsupported. \u2014 [review \u00b7 was:deferred] assume nothing \u2014 re-decide. \u2014 [human-review 2026-08-04 lake-internal] line per docs/15 \u00a75a: south of the CPR Bridge (Rosemond Lake). Same bridge-as-line pattern as mara-lake-70c173; likely the same physical CPR line crossing both adjacent lakes \u2014 check whether one authored line serves both."
     },
     {
       "id": "salmon-river-8e66cb",
@@ -4554,11 +4554,11 @@
       "full_regulation": "\"The drawdown area\", that water known as either Upper Arrow Lake or Columbia River (depending on the reservoir's level), located\nbetween Hwy 1 bridge in Revelstoke and the power line crossing at Akolkolex Narrows (approximately 1.5 km downstream of the\nAkolkolex River confluence): trout/char daily quota = 2 (no bull trout under 60 cm and only 1 bull trout over 60 cm); single barbless hook\nEXEMPT from the regional kokanee \"none from streams\" daily quota (the combined daily quota for kokanee in Lower Arrow Lake, Upper\nArrow Lake and the drawdown area is the regional daily quota on page 34)\nEXEMPT from the regional Nov 1-Mar 31 trout/char catch and release from streams\nEXEMPT from the regional Apr 1-June 14 stream closure",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "likely_na",
+      "status": "deferred",
       "target": "",
       "coord": null,
-      "label": "",
-      "notes": "[reclassified bridge_road_km -> lake_reach: reservoir_reach] RESERVOIR reach: Upper Arrow Lake drawdown area between the Hwy 1 bridge (Revelstoke) and the power line crossing \u2014 a reservoir/lake reach, not a stream bridge (docs/15). \u2014 [lake-class: reservoir] reservoir drawdown reach (Hwy 1 bridge <-> Akolkolex Narrows power line) \u2014 complex. \u2014 [review \u00b7 was:deferred] assume nothing \u2014 re-decide."
+      "label": "Upper Arrow Lake - drawdown area (Hwy 1 bridge <-> Akolkolex Narrows power line)",
+      "notes": "[reclassified bridge_road_km -> lake_reach: reservoir_reach] RESERVOIR reach: Upper Arrow Lake drawdown area between the Hwy 1 bridge (Revelstoke) and the power line crossing \u2014 a reservoir/lake reach, not a stream bridge (docs/15). \u2014 [lake-class: reservoir] reservoir drawdown reach (Hwy 1 bridge <-> Akolkolex Narrows power line) \u2014 complex. \u2014 [review \u00b7 was:deferred] assume nothing \u2014 re-decide. \u2014 [human-review 2026-08-04 lake-verify] DECISION (c) LAKE/RESERVOIR-INTERNAL, not not_applicable: the drawdown area is a portion of Upper Arrow reservoir bounded by two internal landmarks (Hwy 1 bridge, Akolkolex Narrows power line). A within-reservoir reach, so NOT handled for free by docs/04 - deferred + label. Needs docs/15 lake_region overlay (unbuilt)."
     },
     {
       "id": "west-road-blackwater-river-s-tributaries-aec300",
@@ -6710,11 +6710,11 @@
       "full_regulation": "Irishman Creek (Moyie River tributary) closed all year; no powered boats from bridge at south end of Moyie Lake to U.S. border\nBull trout and cutthroat trout catch and release",
       "anchor_kind": "confluence",
       "resolver_hint": "tributary",
-      "status": "likely_na",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "Reg targets the WHOLE Irishman Creek (a Moyie tributary) 'closed all year' \u2014 matched by stream name, not a mainstem split point. \u2014 [review \u00b7 was:not_applicable] assume nothing \u2014 re-decide."
+      "notes": "Reg targets the WHOLE Irishman Creek (a Moyie tributary) 'closed all year' \u2014 matched by stream name, not a mainstem split point. \u2014 [review \u00b7 was:not_applicable] assume nothing \u2014 re-decide. \u2014 [human-review 2026-08-04 na-with-siblings] confirmed \u2014 targets whole Irishman Creek tributary, not a mainstem split. USER_NOTE-quoted boundary 'from bridge at south end of Moyie Lake to U.S. border' already has a DEDICATED row."
     },
     {
       "id": "nimpkish-river-3bd766",
@@ -8046,11 +8046,11 @@
       "full_regulation": "No Fishing from Elsie Lake to Dickson Lake\nNo Fishing from Dickson Lake to signs 200 m downstream of Lanternman Falls, Dec 1-Apr 30\nNo Fishing from Dickson Falls downstream 30 m to signs",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "likely_na",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[lake-class: lake_split] bounded by Elsie Lake (up) and Dickson Lake (down); author two `lake` anchors. \u2014 [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 \u2014 NO authored split needed. \u2014 [review \u00b7 was:auto] assume nothing \u2014 re-decide."
+      "notes": "[lake-class: lake_split] bounded by Elsie Lake (up) and Dickson Lake (down); author two `lake` anchors. \u2014 [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 \u2014 NO authored split needed. \u2014 [review \u00b7 was:auto] assume nothing \u2014 re-decide. \u2014 [human-review 2026-08-04 lake-verify] VERIFIED auto_lake_edge: reach bounded ONLY by Elsie Lake and Dickson Lake edges; both boundaries fall out of the lake nodes (docs/04). n/a."
     },
     {
       "id": "asher-creek-4b601a",
@@ -8102,11 +8102,11 @@
       "full_regulation": "Exempt from spring closure downstream of Big Bar Lake",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "likely_na",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[lake-class: lake_split] outlet of Big Bar Lake. \u2014 [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 \u2014 NO authored split needed. \u2014 [review \u00b7 was:auto] assume nothing \u2014 re-decide."
+      "notes": "[lake-class: lake_split] outlet of Big Bar Lake. \u2014 [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 \u2014 NO authored split needed. \u2014 [review \u00b7 was:auto] assume nothing \u2014 re-decide. \u2014 [human-review 2026-08-04 lake-verify] VERIFIED auto_lake_edge: 'downstream of Big Bar Lake' = lake-outlet edge, handled for free (docs/04). n/a."
     },
     {
       "id": "bonaparte-river-98b62b",
@@ -8120,11 +8120,11 @@
       "full_regulation": "No Fishing downstream of falls at Bonaparte fishway; no trout under 25 cm downstream of Bonaparte Lake",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "likely_na",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[lake-class: lake_split] outlet of Bonaparte Lake. \u2014 [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 \u2014 NO authored split needed. \u2014 [review \u00b7 was:auto] assume nothing \u2014 re-decide."
+      "notes": "[lake-class: lake_split] outlet of Bonaparte Lake. \u2014 [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 \u2014 NO authored split needed. \u2014 [review \u00b7 was:auto] assume nothing \u2014 re-decide. \u2014 [human-review 2026-08-04 lake-verify] VERIFIED auto_lake_edge: 'downstream of Bonaparte Lake' = lake-outlet edge, handled for free. n/a."
     },
     {
       "id": "bridge-river-3fa485",
@@ -8174,11 +8174,11 @@
       "full_regulation": "Open all year downstream of Brunson Lake",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "likely_na",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[lake-class: lake_split] outlet of Brunson Lake. \u2014 [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 \u2014 NO authored split needed. \u2014 [review \u00b7 was:auto] assume nothing \u2014 re-decide."
+      "notes": "[lake-class: lake_split] outlet of Brunson Lake. \u2014 [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 \u2014 NO authored split needed. \u2014 [review \u00b7 was:auto] assume nothing \u2014 re-decide. \u2014 [human-review 2026-08-04 lake-verify] VERIFIED auto_lake_edge: 'downstream of Brunson Lake' = lake-outlet edge, handled for free. n/a."
     },
     {
       "id": "columbia-river-73fe32",
@@ -8196,11 +8196,11 @@
       "full_regulation": "No Fishing from Revelstoke Dam downstream to Hwy 1 bridge in Revelstoke\nNo Fishing from a line between the old Robson Ferry landing and a sign on the south river bank, downstream approximately 950 m to the\nCPR Bridge, Mar 1-June 30\nWhere angling is permitted: EXEMPT from the regional Nov 1-Mar 31 trout/char catch and release and the regional Apr 1-June 14 closure\nBass daily quota = unlimited\nKokanee daily quota = 15 from Keenleyside Dam to a line between the old Robson Ferry landing and a sign on the south river bank\nWalleye daily quota = 16 from Keenleyside Dam to the Washington state border\nFrom Keenleyside Dam downstream to the Washington state border and connected reaches: the Kootenay River (Columbia River\nconfluence to Brilliant Dam) and the Pend d'Oreille River (Columbia River confluence to Waneta Dam): Northern pike daily quota =\nunlimited and bass daily quota = unlimited\nBurbot catch and release\nSpeed restriction (10 km/h) from Mud Lake to Columbia Lake, no power boats in wetlands, no towing and engine power restriction -\n15 kW (20 hp), in main channel from Fairmont to Donald\nSee Upper Arrow Lake for the portion of the Columbia River which may be found downstream of the Hwy 1 bridge in Revelstoke\n(depending on reservoir level)",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "likely_na",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[lake-class: lake_split] bounded by Mud Lake and Columbia Lake; two `lake` anchors. \u2014 [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 \u2014 NO authored split needed. \u2014 [review \u00b7 was:auto] assume nothing \u2014 re-decide."
+      "notes": "[lake-class: lake_split] bounded by Mud Lake and Columbia Lake; two `lake` anchors. \u2014 [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 \u2014 NO authored split needed. \u2014 [review \u00b7 was:auto] assume nothing \u2014 re-decide. \u2014 [human-review 2026-08-04 lake-verify] VERIFIED auto_lake_edge: 'from Mud Lake to Columbia Lake' bounded only by two lake edges; both fall out of the lake nodes (docs/04). n/a for THIS reach."
     },
     {
       "id": "davie-river-f757c8",
@@ -8214,11 +8214,11 @@
       "full_regulation": "No Fishing downstream of Schoen Lake, Dec 1-May 31",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "likely_na",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[lake-class: lake_split] outlet of Schoen Lake. \u2014 [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 \u2014 NO authored split needed. \u2014 [review \u00b7 was:auto] assume nothing \u2014 re-decide."
+      "notes": "[lake-class: lake_split] outlet of Schoen Lake. \u2014 [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 \u2014 NO authored split needed. \u2014 [review \u00b7 was:auto] assume nothing \u2014 re-decide. \u2014 [human-review 2026-08-04 lake-verify] VERIFIED auto_lake_edge: 'downstream of Schoen Lake' = lake-outlet edge, handled for free. n/a."
     },
     {
       "id": "deadman-river-aa98fb",
@@ -8232,11 +8232,11 @@
       "full_regulation": "No trout under 25 cm downstream of Mowich Lake",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "likely_na",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[lake-class: lake_split] outlet of Mowich Lake. \u2014 [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 \u2014 NO authored split needed. \u2014 [review \u00b7 was:auto] assume nothing \u2014 re-decide."
+      "notes": "[lake-class: lake_split] outlet of Mowich Lake. \u2014 [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 \u2014 NO authored split needed. \u2014 [review \u00b7 was:auto] assume nothing \u2014 re-decide. \u2014 [human-review 2026-08-04 lake-verify] VERIFIED auto_lake_edge: 'downstream of Mowich Lake' = lake-outlet edge, handled for free. n/a."
     },
     {
       "id": "downton-lake-reservoir-73beda",
@@ -8268,11 +8268,11 @@
       "full_regulation": "Rainbow trout and char catch and release; speed restriction (5 km/h)\nBait ban downstream of Griffin Lake",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "likely_na",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[lake-class: lake_split] outlet of Griffin Lake. \u2014 [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 \u2014 NO authored split needed. \u2014 [review \u00b7 was:auto] assume nothing \u2014 re-decide."
+      "notes": "[lake-class: lake_split] outlet of Griffin Lake. \u2014 [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 \u2014 NO authored split needed. \u2014 [review \u00b7 was:auto] assume nothing \u2014 re-decide. \u2014 [human-review 2026-08-04 lake-verify] VERIFIED auto_lake_edge: 'downstream of Griffin Lake' = lake-outlet edge, handled for free. n/a."
     },
     {
       "id": "echoes-lake-near-kimberley-4adc24",
@@ -8340,11 +8340,11 @@
       "full_regulation": "No Fishing Jan 1-May 31\nNo trout under 25 cm downstream of Mamit Lake",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "likely_na",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[lake-class: lake_split] outlet of Mamit Lake. \u2014 [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 \u2014 NO authored split needed. \u2014 [review \u00b7 was:auto] assume nothing \u2014 re-decide."
+      "notes": "[lake-class: lake_split] outlet of Mamit Lake. \u2014 [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 \u2014 NO authored split needed. \u2014 [review \u00b7 was:auto] assume nothing \u2014 re-decide. \u2014 [human-review 2026-08-04 lake-verify] VERIFIED auto_lake_edge: 'downstream of Mamit Lake' = lake-outlet edge, handled for free. n/a."
     },
     {
       "id": "harrison-river-from-the-fraser-river-upstream-f8ecc6",
@@ -8358,11 +8358,11 @@
       "full_regulation": "No Fishing from one hour after sunset to one hour before sunrise, tributaries not included\nDead fin fish may be used for bait only when fishing for sturgeon (see page 8 in the Provincial Regulations)\nSpeed restriction or no powered boats in small bays along the river as signed",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "likely_na",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[lake-class: lake_split] Harrison Lake edge (up) + Fraser confluence (down) \u2014 lake anchor + confluence. \u2014 [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 \u2014 NO authored split needed. \u2014 [review \u00b7 was:auto] assume nothing \u2014 re-decide."
+      "notes": "[lake-class: lake_split] Harrison Lake edge (up) + Fraser confluence (down) \u2014 lake anchor + confluence. \u2014 [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 \u2014 NO authored split needed. \u2014 [review \u00b7 was:auto] assume nothing \u2014 re-decide. \u2014 [human-review 2026-08-04 lake-verify] VERIFIED auto_lake_edge: Harrison Lake bound handled for free (docs/04); Fraser bound is the natural mouth. n/a."
     },
     {
       "id": "idlewild-lake-old-cranbrook-reservoir-85e69f",
@@ -8497,11 +8497,11 @@
       "full_regulation": "Trout/char catch and release downstream of McKinley Lake; bait ban",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "likely_na",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[lake-class: lake_split] outlet of McKinley Lake. \u2014 [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 \u2014 NO authored split needed. \u2014 [review \u00b7 was:auto] assume nothing \u2014 re-decide."
+      "notes": "[lake-class: lake_split] outlet of McKinley Lake. \u2014 [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 \u2014 NO authored split needed. \u2014 [review \u00b7 was:auto] assume nothing \u2014 re-decide. \u2014 [human-review 2026-08-04 lake-verify] VERIFIED auto_lake_edge: 'downstream of McKinley Lake' = lake-outlet edge, handled for free. n/a."
     },
     {
       "id": "moberly-river-b2a8ec",
@@ -8515,11 +8515,11 @@
       "full_regulation": "Arctic grayling catch and release downstream of Moberly Lake, Mountain whitefish catch and release downstream of Moberly Lake",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "likely_na",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[lake-class: lake_split] outlet of Moberly Lake. \u2014 [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 \u2014 NO authored split needed. \u2014 [review \u00b7 was:auto] assume nothing \u2014 re-decide."
+      "notes": "[lake-class: lake_split] outlet of Moberly Lake. \u2014 [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 \u2014 NO authored split needed. \u2014 [review \u00b7 was:auto] assume nothing \u2014 re-decide. \u2014 [human-review 2026-08-04 lake-verify] VERIFIED auto_lake_edge: 'downstream of Moberly Lake' = lake-outlet edge, handled for free. n/a."
     },
     {
       "id": "nahatlatch-river-1d1eaf",
@@ -8551,11 +8551,11 @@
       "full_regulation": "No Fishing from Frances Lake downstream approximately 400 m to fishing boundary signs at the logging bridge\nDownstream of Nahatlatch Lake (including Hannah and Frances lakes; except as noted upstream of ), open until Dec 31; No Fishing\nJan 1-May 31\nNo Fishing downstream of Nahatlatch Lake, Jan 1-May 31\nTrout daily quota = 2 (none under 30 cm)",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "likely_na",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[lake-class: lake_split] outlet of Nahatlatch Lake. \u2014 [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 \u2014 NO authored split needed. \u2014 [review \u00b7 was:auto] assume nothing \u2014 re-decide."
+      "notes": "[lake-class: lake_split] outlet of Nahatlatch Lake. \u2014 [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 \u2014 NO authored split needed. \u2014 [review \u00b7 was:auto] assume nothing \u2014 re-decide. \u2014 [human-review 2026-08-04 lake-verify] VERIFIED auto_lake_edge: 'downstream of Nahatlatch Lake' = lake-outlet edge, handled for free. n/a."
     },
     {
       "id": "nahmint-river-786f4c",
@@ -8569,11 +8569,11 @@
       "full_regulation": "No Fishing Nahmint River (upstream and downstream of the lake), Nov 1-Apr 30; fly fishing only upstream of Nahmint Lake when open",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "likely_na",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[lake-class: lake_split] up & downstream of Nahmint Lake \u2014 two lake edges. \u2014 [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 \u2014 NO authored split needed. \u2014 [review \u00b7 was:auto] assume nothing \u2014 re-decide."
+      "notes": "[lake-class: lake_split] up & downstream of Nahmint Lake \u2014 two lake edges. \u2014 [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 \u2014 NO authored split needed. \u2014 [review \u00b7 was:auto] assume nothing \u2014 re-decide. \u2014 [human-review 2026-08-04 lake-verify] VERIFIED auto_lake_edge: both bounds are Nahmint Lake edges, handled for free (docs/04). n/a. (Pairs with nahmint-river-66b328.)"
     },
     {
       "id": "nahmint-river-66b328",
@@ -8587,11 +8587,11 @@
       "full_regulation": "No Fishing Nahmint River (upstream and downstream of the lake), Nov 1-Apr 30; fly fishing only upstream of Nahmint Lake when open",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "likely_na",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[lake-class: lake_split] inlet/head of Nahmint Lake. \u2014 [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 \u2014 NO authored split needed. \u2014 [review \u00b7 was:auto] assume nothing \u2014 re-decide."
+      "notes": "[lake-class: lake_split] inlet/head of Nahmint Lake. \u2014 [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 \u2014 NO authored split needed. \u2014 [review \u00b7 was:auto] assume nothing \u2014 re-decide. \u2014 [human-review 2026-08-04 lake-verify] VERIFIED auto_lake_edge: Nahmint Lake head edge, handled for free (docs/04). n/a. Same lake as -786f4c (combined)."
     },
     {
       "id": "nanaimo-river-76bf11",
@@ -8623,11 +8623,11 @@
       "full_regulation": "No Fishing upstream of Nicola Lake, Jan 1-June 30\nNo Fishing downstream of Nicola Lake, Mar 1-Sept 30\nTrout catch and release downstream of Nicola Lake, Jan 1-Feb 28\nNo trout under 25 cm downstream of Nicola Lake\nBull trout catch and release",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "likely_na",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[lake-class: lake_split] inlet/head of Nicola Lake. \u2014 [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 \u2014 NO authored split needed. \u2014 [review \u00b7 was:auto] assume nothing \u2014 re-decide."
+      "notes": "[lake-class: lake_split] inlet/head of Nicola Lake. \u2014 [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 \u2014 NO authored split needed. \u2014 [review \u00b7 was:auto] assume nothing \u2014 re-decide. \u2014 [human-review 2026-08-04 lake-verify] VERIFIED auto_lake_edge: 'upstream of Nicola Lake' = lake head edge, handled for free. n/a."
     },
     {
       "id": "nicola-river-4b9f64",
@@ -8641,11 +8641,11 @@
       "full_regulation": "No Fishing upstream of Nicola Lake, Jan 1-June 30\nNo Fishing downstream of Nicola Lake, Mar 1-Sept 30\nTrout catch and release downstream of Nicola Lake, Jan 1-Feb 28\nNo trout under 25 cm downstream of Nicola Lake\nBull trout catch and release",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "likely_na",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[lake-class: lake_split] outlet of Nicola Lake. \u2014 [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 \u2014 NO authored split needed. \u2014 [review \u00b7 was:auto] assume nothing \u2014 re-decide."
+      "notes": "[lake-class: lake_split] outlet of Nicola Lake. \u2014 [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 \u2014 NO authored split needed. \u2014 [review \u00b7 was:auto] assume nothing \u2014 re-decide. \u2014 [human-review 2026-08-04 lake-verify] VERIFIED auto_lake_edge: 'downstream of Nicola Lake' = lake-outlet edge, handled for free. n/a."
     },
     {
       "id": "paul-creek-downstream-of-paul-lake-b809c0",
@@ -8659,11 +8659,11 @@
       "full_regulation": "Exempt from spring closure, Youth/Disabled Accompanied Water year round (see page 4)",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "likely_na",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[lake-class: lake_split] outlet of Paul Lake. \u2014 [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 \u2014 NO authored split needed. \u2014 [review \u00b7 was:auto] assume nothing \u2014 re-decide."
+      "notes": "[lake-class: lake_split] outlet of Paul Lake. \u2014 [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 \u2014 NO authored split needed. \u2014 [review \u00b7 was:auto] assume nothing \u2014 re-decide. \u2014 [human-review 2026-08-04 lake-verify] VERIFIED auto_lake_edge: 'downstream of Paul Lake' = lake-outlet edge, handled for free. n/a."
     },
     {
       "id": "pennask-creek-c98c41",
@@ -8677,11 +8677,11 @@
       "full_regulation": "No Fishing upstream of Pennask Lake",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "likely_na",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[lake-class: lake_split] inlet/head of Pennask Lake. \u2014 [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 \u2014 NO authored split needed. \u2014 [review \u00b7 was:auto] assume nothing \u2014 re-decide."
+      "notes": "[lake-class: lake_split] inlet/head of Pennask Lake. \u2014 [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 \u2014 NO authored split needed. \u2014 [review \u00b7 was:auto] assume nothing \u2014 re-decide. \u2014 [human-review 2026-08-04 lake-verify] VERIFIED auto_lake_edge: 'upstream of Pennask Lake' = lake head edge, handled for free. n/a."
     },
     {
       "id": "pitt-lake-47a388",
@@ -8695,11 +8695,11 @@
       "full_regulation": "No wild trout over 50 cm, 1 bull trout over 60 cm\nWild trout/char catch and release, single barbless hook north of fishing boundary signs (east and west shores) near the head of the lake",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "likely_na",
+      "status": "deferred",
       "target": "",
       "coord": null,
-      "label": "",
-      "notes": "[lake-class: lake_internal] lake-internal line at boundary signs (docs/15) \u2014 unsupported. \u2014 [review \u00b7 was:deferred] assume nothing \u2014 re-decide."
+      "label": "north of the boundary-sign line (east/west shores) near the head of Pitt Lake",
+      "notes": "[lake-class: lake_internal] lake-internal line at boundary signs (docs/15) \u2014 unsupported. \u2014 [review \u00b7 was:deferred] assume nothing \u2014 re-decide. \u2014 [human-review 2026-08-04 lake-internal] line per docs/15 \u00a75a: north of the boundary-sign line (east and west shore signs) near the head of Pitt Lake. Two named shore signs = the textbook line-across-lake pattern."
     },
     {
       "id": "pitt-river-564cfe",
@@ -8713,11 +8713,11 @@
       "full_regulation": "No Fishing within Garibaldi Park; speed restriction at Grant Narrows (10 km/h)\nBait ban upstream of Pitt Lake\nNo Fishing in the Lower Pitt River (CPR Bridge upstream to Pitt Lake) from one hour after sunset to one hour before sunrise (tributaries not\nincluded)",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "likely_na",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[lake-class: lake_split] head/inlet of Pitt Lake. \u2014 [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 \u2014 NO authored split needed. \u2014 [review \u00b7 was:auto] assume nothing \u2014 re-decide."
+      "notes": "[lake-class: lake_split] head/inlet of Pitt Lake. \u2014 [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 \u2014 NO authored split needed. \u2014 [review \u00b7 was:auto] assume nothing \u2014 re-decide. \u2014 [human-review 2026-08-04 lake-verify] VERIFIED auto_lake_edge: Pitt Lake head edge handled for free (docs/04). n/a. (Distinct from splits.json garibaldi_pitt, which is a park area_boundary on the Pitt.)"
     },
     {
       "id": "premier-lake-895b0d",
@@ -8772,11 +8772,11 @@
       "full_regulation": "Exempt from spring closure\nNo trout under 25 cm downstream of Seton Lake\nDownstream of Seton Lake, No Fishing Apr 1-May 31",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "likely_na",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[lake-class: lake_split] outlet of Seton Lake. \u2014 [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 \u2014 NO authored split needed. \u2014 [review \u00b7 was:auto] assume nothing \u2014 re-decide."
+      "notes": "[lake-class: lake_split] outlet of Seton Lake. \u2014 [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 \u2014 NO authored split needed. \u2014 [review \u00b7 was:auto] assume nothing \u2014 re-decide. \u2014 [human-review 2026-08-04 lake-verify] VERIFIED auto_lake_edge: 'downstream of Seton Lake' = lake-outlet edge, handled for free. n/a. (Shared boundary with -8eb4d1.)"
     },
     {
       "id": "seton-river-includes-bc-hydro-power-canal-ups-8eb4d1",
@@ -8790,11 +8790,11 @@
       "full_regulation": "Exempt from spring closure\nNo trout under 25 cm downstream of Seton Lake\nDownstream of Seton Lake, No Fishing Apr 1-May 31",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "likely_na",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[lake-class: lake_split] outlet of Seton Lake. \u2014 [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 \u2014 NO authored split needed. \u2014 [review \u00b7 was:auto] assume nothing \u2014 re-decide."
+      "notes": "[lake-class: lake_split] outlet of Seton Lake. \u2014 [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 \u2014 NO authored split needed. \u2014 [review \u00b7 was:auto] assume nothing \u2014 re-decide. \u2014 [human-review 2026-08-04 lake-verify] VERIFIED auto_lake_edge: 'Downstream of Seton Lake' = lake-outlet edge, handled for free. n/a. Duplicate/shared split with -5f4cbe."
     },
     {
       "id": "seymour-river-db4eb4",
@@ -8808,11 +8808,11 @@
       "full_regulation": "No Fishing downstream of Seymour Lake",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "likely_na",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[lake-class: lake_split] outlet of Seymour Lake. \u2014 [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 \u2014 NO authored split needed. \u2014 [review \u00b7 was:auto] assume nothing \u2014 re-decide."
+      "notes": "[lake-class: lake_split] outlet of Seymour Lake. \u2014 [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 \u2014 NO authored split needed. \u2014 [review \u00b7 was:auto] assume nothing \u2014 re-decide. \u2014 [human-review 2026-08-04 lake-verify] VERIFIED auto_lake_edge: 'downstream of Seymour Lake' = lake-outlet edge, handled for free. n/a."
     },
     {
       "id": "shannon-lake-netted-off-portion-on-the-south--c375a0",
@@ -8844,11 +8844,11 @@
       "full_regulation": "No Fishing north of fishing boundary signs located at south end of lake, Apr 1-Oct 31",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "likely_na",
+      "status": "deferred",
       "target": "",
       "coord": null,
-      "label": "",
-      "notes": "[lake-class: lake_internal] lake-internal line at boundary signs (docs/15) \u2014 unsupported. \u2014 [review \u00b7 was:deferred] assume nothing \u2014 re-decide."
+      "label": "north of the boundary-sign line at the south end of Shumway Lake",
+      "notes": "[lake-class: lake_internal] lake-internal line at boundary signs (docs/15) \u2014 unsupported. \u2014 [review \u00b7 was:deferred] assume nothing \u2014 re-decide. \u2014 [human-review 2026-08-04 lake-internal] line per docs/15 \u00a75a: north of the boundary-sign line at the south end of Shumway Lake. Same pattern as pitt-lake-47a388."
     },
     {
       "id": "shuswap-lake-see-maps-on-page-28-includes-lit-80ee82",
@@ -8880,11 +8880,11 @@
       "full_regulation": "No Fishing from Mara Lake upstream to Mara Bridge\nNo Fishing 50 m upstream and 50 m downstream of Trinity Bridge, Jun 15-Nov 15\nRainbow trout/char catch and release; exempt from spring closure from Mara Bridge upstream to Sugar Lake\nUpstream of Sugar Lake: No fishing Sept 1-Oct 31; bait ban",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "likely_na",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[lake-class: lake_split] head/inlet of Sugar Lake. \u2014 [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 \u2014 NO authored split needed. \u2014 [review \u00b7 was:auto] assume nothing \u2014 re-decide."
+      "notes": "[lake-class: lake_split] head/inlet of Sugar Lake. \u2014 [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 \u2014 NO authored split needed. \u2014 [review \u00b7 was:auto] assume nothing \u2014 re-decide. \u2014 [human-review 2026-08-04 lake-verify] VERIFIED auto_lake_edge for THIS bound: Sugar Lake head edge handled for free (docs/04). n/a. FLAG: the same reg's 'Mara bridge' boundary is a distinct split (separate locator) and is NOT covered here."
     },
     {
       "id": "silverhope-silver-creek-015132",
@@ -8898,11 +8898,11 @@
       "full_regulation": "No Fishing upstream of Silver Lake, Nov 1-June 30\nFly fishing only and bait ban upstream of Silver Lake, July 1-Oct 31\nNo Fishing from Silver Lake down to the Bailey Bridge situated approximately 8 km upstream of Hwy 1\nBait ban downstream of Bailey Bridge situated approximately 8 km upstream of Hwy 1",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "likely_na",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[lake-class: lake_split] head/inlet of Silver Lake. \u2014 [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 \u2014 NO authored split needed. \u2014 [review \u00b7 was:auto] assume nothing \u2014 re-decide."
+      "notes": "[lake-class: lake_split] head/inlet of Silver Lake. \u2014 [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 \u2014 NO authored split needed. \u2014 [review \u00b7 was:auto] assume nothing \u2014 re-decide. \u2014 [human-review 2026-08-04 lake-verify] VERIFIED auto_lake_edge: 'upstream of Silver Lake' = lake head edge, handled for free. n/a."
     },
     {
       "id": "thompson-river-downstream-of-signs-at-kamloop-38fc02",
@@ -8936,11 +8936,11 @@
       "full_regulation": "Exempt from spring closure\nRainbow trout daily quota = 2 (none over 50 cm)",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "likely_na",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[lake-class: lake_split] head/inlet of Kamloops Lake. \u2014 [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 \u2014 NO authored split needed. \u2014 [review \u00b7 was:auto] assume nothing \u2014 re-decide."
+      "notes": "[lake-class: lake_split] head/inlet of Kamloops Lake. \u2014 [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 \u2014 NO authored split needed. \u2014 [review \u00b7 was:auto] assume nothing \u2014 re-decide. \u2014 [human-review 2026-08-04 lake-verify] VERIFIED auto_lake_edge: 'upstream of Kamloops Lake' = lake head edge, handled for free. n/a."
     },
     {
       "id": "unnamed-lakes-located-immediately-north-and-s-3aca70",
@@ -8972,11 +8972,11 @@
       "full_regulation": "No Fishing upstream of Whatshan Lake",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "likely_na",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[lake-class: lake_split] head/inlet of Whatshan Lake. \u2014 [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 \u2014 NO authored split needed. \u2014 [review \u00b7 was:auto] assume nothing \u2014 re-decide."
+      "notes": "[lake-class: lake_split] head/inlet of Whatshan Lake. \u2014 [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 \u2014 NO authored split needed. \u2014 [review \u00b7 was:auto] assume nothing \u2014 re-decide. \u2014 [human-review 2026-08-04 lake-verify] VERIFIED auto_lake_edge: Whatshan Lake head edge handled for free (docs/04). n/a. (Whatshan is a reservoir; edge handled like a lake per Koocanusa precedent.)"
     },
     {
       "id": "yakoun-river-eace82",
@@ -10779,11 +10779,11 @@
       "full_regulation": "Trout/char catch and release (mainstem only) from Doctor Creek Bridge to Lavington Creek Bridge, June 15-Oct 31; other parts (including\ntributaries, except Lavington Creek) trout/char daily quota = 2 (none under 30 cm and only 1 bull trout), June 15-Oct 31; bait ban, June 15-Oct 31\nSee Lavington Creek, a tributary",
       "anchor_kind": "not_a_split",
       "resolver_hint": "except_negative",
-      "status": "likely_na",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'."
+      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'. \u2014 [human-review 2026-08-04 na-with-siblings] confirmed \u2014 tributary exclusion, not a split. USER_NOTE-quoted boundary 'from Doctor Creek Bridge to Lavington Creek Bridge' already has a DEDICATED row."
     },
     {
       "id": "fraser-river-7c032d",
@@ -10797,11 +10797,11 @@
       "full_regulation": "Exempt from spring closure upstream of Thompson River, except as noted below\nNo Fishing for trout in Fraser River mainstem: downstream of Hell's Gate Sept 1-Nov 15, from Hell's Gate to the confluence with the\nThompson River from Oct 1-Nov 30, and upstream of the confluence with the Thompson River Oct 1-Oct 31\nNo Fishing between fishing boundary signs approximately 6.5 km downstream of Boston Bar to signs 2.8 km downstream of\nHell's Gate\nNo Fishing from the lower entrance of the fish ladder at Bridge River Rapids to the BC Railway Bridge approximately 2 km north of\nLillooet, Mar 31-June 20\nFrom Hwy 99 bridge at Lillooet downstream approximately 1.2 km to BC Hydro's tail race outflow channel: No Fishing Oct 1-May 31;\nFrom the confluence with Thompson River to the CNR Bridge approximately 1 km downstream: No Fishing, Oct 1-May 31; bait ban and no\nhooks greater than 15 mm from point to shank, Oct 1-Dec 31\nNo Fishing for steelhead from the confluence with Spuzzum Creek (Region 3 boundary) to Hells Gate Aug 15-Dec 31\nNo Fishing for steelhead from Hells Gate upstream to the Region 3 boundary Jan 1-Dec 31",
       "anchor_kind": "not_a_split",
       "resolver_hint": "except_negative",
-      "status": "likely_na",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'."
+      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'. \u2014 [human-review 2026-08-04 na-with-siblings] confirmed \u2014 'except as noted below' heading, not a split. USER_NOTE-quoted boundary 'downstream of Hell's Gate' already has a DEDICATED row; several other Fraser R (Region 3) confluence splits around Hell's Gate/Thompson River are also already curated."
     },
     {
       "id": "kootenay-lake-upper-west-arm-for-location-see-f597ff",
@@ -10815,11 +10815,11 @@
       "full_regulation": "Rainbow trout catch and release, Jan 1-May 31; trout/char daily quota = 2 (only 1 bull trout)\nKokanee catch and release, EXCEPT Apr 1-Apr 3 and July 1-July 2 only, when daily quota = 5; NOTE: The combined daily quota for kokanee\nfrom the Upper West Arm (when open to kokanee harvest) and the Lower West Arm (when open to kokanee harvest) cannot exceed 5",
       "anchor_kind": "not_a_split",
       "resolver_hint": "except_negative",
-      "status": "likely_na",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'."
+      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'. \u2014 [human-review 2026-08-04 na-with-siblings] confirmed \u2014 EXCEPT clause on kokanee quota dates, not a split. USER_NOTE flags no other split ('exception is not a split' only); full_regulation confirms no boundary text present."
     },
     {
       "id": "mcleod-river-c29823",
@@ -10977,11 +10977,11 @@
       "full_regulation": "No Fishing downstream of Frog Falls (excluding Wap Lake) Sept 1-June 30\nExempt from spring closure upstream of Frog Falls",
       "anchor_kind": "not_a_split",
       "resolver_hint": "except_negative",
-      "status": "likely_na",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'."
+      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'. \u2014 [human-review 2026-08-04 na-with-siblings] confirmed \u2014 tributary exclusion ('excluding Wap Lake'), not a split. USER_NOTE-quoted boundary 'downstream of Frog Falls' already has a DEDICATED row (and its pair 'upstream of Frog Falls')."
     },
     {
       "id": "alouette-lake-396262",
@@ -11013,11 +11013,11 @@
       "full_regulation": "No Fishing upstream of the fishing boundary signs located at 49\u00b0 14.790'N and 122\u00b0 32.080'W, near the southern boundary (chain-link\nfence) of the Alouette River Management Society\nNo Fishing upstream of 216th Street (including North Alouette River[Includes Tributaries]), May 1-June 30; no powered boats on mainstem",
       "anchor_kind": "not_a_split",
       "resolver_hint": "map_or_vague",
-      "status": "likely_na",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'."
+      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'. \u2014 [human-review 2026-08-04 na-with-siblings] confirmed \u2014 'on mainstem' whole-water descriptor, not a split. full_regulation's two boundary clauses ('upstream of fishing boundary signs at 49\u00b014.790'N/122\u00b032.080'W' and 'upstream of 216th Street') already have DEDICATED rows."
     },
     {
       "id": "atnarko-bella-coola-rivers-includes-tributari-250ae0",
@@ -11033,11 +11033,11 @@
       "full_regulation": "No Fishing upstream of Tweedsmuir Provincial Park plus Tenas Lake, Apr 1-June 30\nNo Fishing from Tenas Lake to fishing boundary signs near Atnarko Park campsite\nTrout/char daily quota = 1 (none under 25 cm and all cutthroat trout catch and release) EXCEPT: on Bella Coola R. MAINSTEM ONLY, trout/\nchar daily quota = 2, of which only one may be a trout (cutthroat or rainbow) and none may be under 25 cm, no cutthroat may be over 33\ncm, and no rainbow may be over 50 cm), Apr 1-May 31 ONLY, EXCEPT: char catch and release (on TRIBUTARIES ONLY), Sept 1-May 31\nBait ban downstream of eastern boundary of Tweedsmuir Provincial Park, Sept 1- May 15\nNo angling from powered boats on mainstems of Atnarko River and Bella Coola River\nNo powered boats on Atnarko River, from Goat Creek to the confluence with Talchako River\nNo Fishing for steelhead\nClass II water downstream of Young Creek, Mar 1-May 31. NOTE: Classified Waters Licence or Steelhead Stamp not required until\nreopened to steelhead fishing",
       "anchor_kind": "not_a_split",
       "resolver_hint": "map_or_vague",
-      "status": "likely_na",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'."
+      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'. \u2014 [human-review 2026-08-04 na-with-siblings] confirmed \u2014 'on mainstems' whole-water descriptor, not a split. All boundary clauses in full_regulation (Tweedsmuir Park boundaries, Tenas Lake to campsite signs, Goat Creek\u2013Talchako confluence, downstream of Young Creek) already have DEDICATED rows, several already curated/manual. Matches runbook's prior SOUND audit finding for this waterbody."
     },
     {
       "id": "beaver-lake-6e12af",
@@ -11105,11 +11105,11 @@
       "full_regulation": "No Fishing upstream from a line between two fishing boundary signs on either side of the Chilliwack River 100 m downstream of the\nconfluence of the Chilliwack River and Slesse Creek\nNo Fishing downstream of a line between two fishing boundary signs on either side of the Chilliwack River 100m downstream of the\nconfluence of the Chilliwack River and Slesse Creek to Tamihi Rapids Bridge, Apr 1-June 30\nNo Fishing downstream of Tamihi Rapids Bridge to Vedder Crossing Bridge, May 1-June 30\nDownstream of Vedder Crossing Bridge: (a) fly fishing only, bait ban, hatchery rainbow trout catch and release (50 cm or less), and hatch-\nery cutthroat catch and release, May 1-31; (b) No Fishing June 1-30; (c) hatchery rainbow trout of any length 50 cm or less: daily quota =\n4, July 1-Apr 30",
       "anchor_kind": "not_a_split",
       "resolver_hint": "map_or_vague",
-      "status": "likely_na",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'."
+      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'. \u2014 [human-review 2026-08-04 na-with-siblings] confirmed \u2014 'see map on page 24' pointer, not a split. All boundary clauses in full_regulation (Slesse Creek confluence signs, Tamihi Rapids Bridge, Vedder Crossing Bridge) already have DEDICATED rows."
     },
     {
       "id": "chuckwalla-river-a0316a",
@@ -11123,11 +11123,11 @@
       "full_regulation": "No Fishing entire river, June 1-Aug 31; No Fishing between fishing boundary signs at Ten Mile Pool\nClass II water[Includes Tributaries] Apr 1-May 31 and Steelhead Stamp mandatory Apr 1-May 31",
       "anchor_kind": "not_a_split",
       "resolver_hint": "map_or_vague",
-      "status": "likely_na",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'."
+      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'. \u2014 [human-review 2026-08-04 na-with-siblings] confirmed \u2014 'entire river' whole-water descriptor, not a split. full_regulation's boundary clause 'between fishing boundary signs at Ten Mile Pool' already has a DEDICATED row."
     },
     {
       "id": "courtenay-river-78779a",
@@ -11177,11 +11177,11 @@
       "full_regulation": "No Fishing July 4-July 14\nNo Fishing July 15-Aug 31[Includes Tributaries], No Fishing from weir (dam) at Cowichan Lake's outlet to Greendale Trestle, Nov 15-Apr 15\nNo Fishing in tributaries upstream of and including Holt Creek\nFly fishing only upstream of CNR Trestle (Mile 66) Sept 1-Nov 15\nNo Fishing downstream of the CNR Mile 66 Trestle between Sept 1-Nov 15\nFly fishing only from signs at Greendale Trestle to CNR Bridge (mile 70.2)\nSpeed restriction (8 km/h) and engine power restriction - 7.5 kW (10 hp) on parts",
       "anchor_kind": "not_a_split",
       "resolver_hint": "map_or_vague",
-      "status": "likely_na",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'."
+      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'. \u2014 [human-review 2026-08-04 na-with-siblings] confirmed \u2014 'see map below' pointer, not a split. All boundary clauses in full_regulation (weir at Cowichan Lake outlet\u2013Greendale Trestle, Holt Creek tributaries, CNR Trestle Mile 66, Greendale Trestle\u2013CNR Bridge Mile 70.2) already have DEDICATED rows."
     },
     {
       "id": "cowichan-river-see-map-below-bc238a",
@@ -11195,11 +11195,11 @@
       "full_regulation": "No Fishing July 4-July 14\nNo Fishing July 15-Aug 31[Includes Tributaries], No Fishing from weir (dam) at Cowichan Lake's outlet to Greendale Trestle, Nov 15-Apr 15\nNo Fishing in tributaries upstream of and including Holt Creek\nFly fishing only upstream of CNR Trestle (Mile 66) Sept 1-Nov 15\nNo Fishing downstream of the CNR Mile 66 Trestle between Sept 1-Nov 15\nFly fishing only from signs at Greendale Trestle to CNR Bridge (mile 70.2)\nSpeed restriction (8 km/h) and engine power restriction - 7.5 kW (10 hp) on parts",
       "anchor_kind": "not_a_split",
       "resolver_hint": "map_or_vague",
-      "status": "likely_na",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'."
+      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'. \u2014 [human-review 2026-08-04 na-with-siblings] confirmed \u2014 'on parts' (same reg block as cowichan-river-see-map-below-337c0e), not a split. Same DEDICATED sibling rows already cover the boundaries."
     },
     {
       "id": "elk-lake-fdc47b",
@@ -11231,11 +11231,11 @@
       "full_regulation": "Dead fin fish may be used for bait only when fishing for sturgeon (see page 8 in the Provincial Regulations)\nNo Fishing in the area bounded by a line commencing at a fishing boundary sign located at the eastern end of Landstrom Bar (Scale Bar)\nto a fishing boundary sign on the opposite bank of the river, thence to a fishing boundary sign at the southern end of Croft Island, thence\nto a fishing boundary sign on the nearest bank of the river in a westerly direction, thence following the bank of the river in a westerly\ndirection to the Point of Commencement, May 1-Oct 31\nNo Fishing in the non-tidal portion of the Fraser River in Region 2 from one hour after sunset to one hour before sunrise\nNo Fishing in the Jesperson's Side Channel, Herrling Side Channel, and Seabird Island north Side Channel May 15-July 31. See page 26\nfor a map of the No Fishing areas\nNo Fishing for steelhead Fraser River Mainstem Aug 15-Dec 31\nBoats less than 20 m in length, under power or anchored, must not impede the passage of commercial vessels",
       "anchor_kind": "not_a_split",
       "resolver_hint": "map_or_vague",
-      "status": "likely_na",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'."
+      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'. \u2014 [human-review 2026-08-04 na-with-siblings] confirmed \u2014 'Fraser River Mainstem' whole-water descriptor (Region 2 / MU 2-4), not a split. Region 2 Fraser River boundary clauses (CPR Bridge at Mission, non-tidal portion, side channels) already have DEDICATED rows, though still uncurated (todo)."
     },
     {
       "id": "kitsumkalum-kalum-river-443a33",
@@ -11249,11 +11249,11 @@
       "full_regulation": "Angling prohibited for non-guided non-resident aliens on Saturdays from the outlet of Kitsumkalum Lake to Glacier Creek confluence\nall year (See map page 56)\nAngling prohibited for non-guided non-resident aliens on Sundays for the entire river all year\nClass II water all year[Includes Tributaries] ; Steelhead Stamp mandatory Aug 7 - May 31\nBait ban",
       "anchor_kind": "not_a_split",
       "resolver_hint": "map_or_vague",
-      "status": "likely_na",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'."
+      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'. \u2014 [human-review 2026-08-04 na-with-siblings] confirmed \u2014 'for the entire river' whole-water descriptor, not a split. The only boundary clause in full_regulation ('from the outlet of Kitsumkalum Lake to Glacier Creek confluence') already has a DEDICATED row, already curated."
     },
     {
       "id": "kootenay-lake-lower-west-arm-for-location-see-3def30",
@@ -11285,11 +11285,11 @@
       "full_regulation": "A person in a boat may angle with an unlimited number of rods.\nKokanee daily quota = 0\nBull trout daily quota = 1; rainbow trout daily quota = 10 (any size)\nConservation Surcharge Stamp required to keep rainbow trout over 50 cm, annual quota = 20",
       "anchor_kind": "not_a_split",
       "resolver_hint": "map_or_vague",
-      "status": "likely_na",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'."
+      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'. \u2014 [human-review 2026-08-04 na-with-siblings] confirmed \u2014 'for location see map on page 34' pointer, not a split. USER_NOTE flags no other split; full_regulation confirms no boundary text present (quota rules only)."
     },
     {
       "id": "kootenay-lake-upper-west-arm-for-location-see-f589c1",
@@ -11321,11 +11321,11 @@
       "full_regulation": "Bull trout catch and release from all lakes and streams, Aug 15-Oct 15\nBull trout daily and possession quotas = 1 (none under 30 cm or over 50 cm) from all lakes and streams, Oct 16-Aug 14",
       "anchor_kind": "not_a_split",
       "resolver_hint": "map_or_vague",
-      "status": "likely_na",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'."
+      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'. \u2014 [human-review 2026-08-04 na-with-siblings] confirmed \u2014 'see map on page 63' pointer, not a split. USER_NOTE flags no other split; full_regulation confirms no boundary text present ('from all lakes and streams' bull-trout quota rules only)."
     },
     {
       "id": "long-lake-nanaimo-5c3300",
@@ -11375,11 +11375,11 @@
       "full_regulation": "No Fishing July 15-Aug 31\nNo Fishing from power line crossing at \"Bore Hole\" upstream to fishing boundary signs at the mouth of Boulder Creek\nNo Fishing from the Cedar Road Bridge upstream to the Hwy 19 bridge, Sept 1-Oct 15\nNo Fishing upstream of the Hwy 1 bridge[Includes Tributaries], Dec 1-May 31\nArtificial fly only upstream of the westernmost of the two Nanaimo Lakes, known locally as \"Second\" Lake, including tributaries\nEngine power restriction on parts - 7.5 kW (10 hp)",
       "anchor_kind": "not_a_split",
       "resolver_hint": "map_or_vague",
-      "status": "likely_na",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'."
+      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'. \u2014 [human-review 2026-08-04 na-with-siblings] confirmed \u2014 'on parts' vague/unmappable engine-restriction descriptor, not a split. All boundary clauses in full_regulation (Bore Hole power line\u2013Boulder Creek mouth, Cedar Road Bridge\u2013Hwy19 bridge, Hwy1 bridge, Second Lake) already have DEDICATED rows."
     },
     {
       "id": "osoyoos-lake-29ce8a",
@@ -11708,11 +11708,11 @@
       "full_regulation": "No Fishing upstream of Iltasyuko River[Includes Tributaries], including upstream of Anahim Lake[Includes Tributaries], Apr 1-June 14\nNo Fishing from Iltasyuko River to Crag Creek[Includes Tributaries]\nNo Fishing from Crag Creek to fishing boundary signs approximately 500 m upstream of canyon[Includes Tributaries], Oct 1-May 31\nNo Fishing from fishing boundary signs approximately 500 m upstream of canyon to signs 100 m downstream of canyon\nNo Fishing from fishing boundary signs approximately 100 m downstream of canyon to tidal boundary, Oct 1 - May 31\nTrout/char daily quota = 1 (none under 35 cm)\nBait ban all parts[Includes Tributaries]\nFly fishing only from (a) Anahim Lake to Iltasyuko River, June 15- Mar 31, and (b) Crag Creek to fishing boundary signs approximately 500 m\nupstream of canyon, July 15-Sept 30\nNo powered boats between signs 0.5 km and 3.5 km upstream of canyon, Aug 1-Aug 31\nFrom Crag Creek to signs 500 m upstream of the canyon[Includes Tributaries]: Class I water June 1-Sept 30 and Steelhead Stamp mandatory June 1-Sept 30; see map below (Non-residents see notice on page 42)\nFrom signs 100 m downstream of canyon to tidal boundary[Includes Tributaries]: Class I water June 1-Sept 30 and Steelhead Stamp mandatory June 1-Sept 30: see map below\nFrom Anahim Lake to Iltasyuko River[Includes Tributaries]: Class II water June 16-Oct 31 (see map below); Steelhead Stamp not required\nNOTE: \"canyon\" means lower canyon 3-5 km from river's mouth",
       "anchor_kind": "unclassified",
       "resolver_hint": "other_reach",
-      "status": "likely_na",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "'all parts' \u2014 whole-river base reg, no split point. \u2014 [review \u00b7 was:not_applicable] assume nothing \u2014 re-decide."
+      "notes": "'all parts' \u2014 whole-river base reg, no split point. \u2014 [review \u00b7 was:not_applicable] assume nothing \u2014 re-decide. \u2014 [human-review 2026-08-04 na-with-siblings] confirmed \u2014 'all parts' whole-river descriptor, not a split. Dean River is extensively split already: every boundary clause in full_regulation (Iltasyuko River/Anahim Lake, Iltasyuko\u2013Crag Creek, Crag Creek\u2013signs 500m above canyon, signs 500m above\u2013100m below canyon, signs 100m below canyon\u2013tidal boundary) has a DEDICATED row, all curated or manual."
     },
     {
       "id": "deer-lake-sasquatch-park-9c2360",
