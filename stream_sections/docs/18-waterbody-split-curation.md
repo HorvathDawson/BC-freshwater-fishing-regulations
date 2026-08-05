@@ -45,6 +45,7 @@ Regenerable; never hand-edit its outputs. Curation stays the source of truth.
 .venv/bin/python -m stream_sections.oneoff.waterbody_splits missing      # reg boundaries with NO row
 .venv/bin/python -m stream_sections.oneoff.waterbody_splits incomplete   # entries not fully resolved
 .venv/bin/python -m stream_sections.oneoff.waterbody_splits drift        # curated rows not found in source
+.venv/bin/python -m stream_sections.oneoff.waterbody_splits regs-md      # synopsis-style table, live locators bolded inline (docs/waterbody-splits-regs.md)
 .venv/bin/python -m stream_sections.oneoff.waterbody_splits stamp        # write entry_id onto rows (row<->card link)
 ```
 
@@ -130,10 +131,10 @@ into it), so it is both source AND writable. Then `14` is redundant.
 1. **Writer for the grouped file** — persist a per-locator edit (status, coord, target, note) back
    into `waterbody-splits.json`, so it stops being regenerated-from-`14` and becomes source-of-truth.
 2. **Rewire `curation_status.py`** onto the grouped file (progress / work-queue / annotate / label /
-   apply), plus a **new `regs-md` view**: render ALL reg entries as a markdown table (like the
-   original synopsis), with each entry's **locator phrases highlighted inline** in the reg text —
-   an `not_applicable` locator is rendered **un-highlighted**, so live splits vs n/a are visible at
-   a glance.
+   apply), plus the **`regs-md` view** (**prototyped** as `waterbody_splits regs-md` →
+   `docs/waterbody-splits-regs.md`): ALL reg entries as a synopsis-style markdown table with each
+   entry's **live locator phrases bolded inline** in the reg text and `not_applicable` locators left
+   **un-highlighted**, so live splits vs n/a are visible at a glance.
 3. **Delete** the dead one-shots `migrate_curation_schema.py`, `classify_lakes.py`,
    `mark_auto_lakes.py` (already applied; effects baked into rows + git history) **and**
    `build_review_html.py` (offline labeller — retire, do not rewire).

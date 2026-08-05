@@ -28,6 +28,7 @@ Full model & workflow: **`../docs/18-waterbody-split-curation.md`**.
 .venv/bin/python -m stream_sections.oneoff.waterbody_splits            # write cards + summary
 .venv/bin/python -m stream_sections.oneoff.waterbody_splits incomplete # entries not fully resolved
 .venv/bin/python -m stream_sections.oneoff.waterbody_splits show "DEAN RIVER"
+.venv/bin/python -m stream_sections.oneoff.waterbody_splits regs-md    # synopsis table w/ live locators bolded inline
 ```
 
 ### `curation_status.py` — progress + work queue + review
