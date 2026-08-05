@@ -12077,11 +12077,11 @@
       "full_regulation": "No Fishing",
       "anchor_kind": "unclassified",
       "resolver_hint": "other_reach",
-      "status": "todo",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "",
+      "notes": "[human-review 2026-08-05] whole-creek 'No Fishing' reg; '(Mosquito)' is an alias, not a boundary -> not a split.",
       "entry_id": "2b4d03f6"
     },
     {
@@ -12795,11 +12795,11 @@
       "full_regulation": "Rainbow trout daily quota = 2; single hook",
       "anchor_kind": "unclassified",
       "resolver_hint": "other_reach",
-      "status": "todo",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "",
+      "notes": "[human-review 2026-08-05] whole-lake quota; '(near Taweel Lake)' only disambiguates which Lost Lake -> not a split.",
       "entry_id": "a3d12f42"
     },
     {
