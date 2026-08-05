@@ -3,12 +3,12 @@
 Every reg entry (source-first), booklet order. **Bold** = a live split boundary; plain text
 = whole-water / tributary-set / `not_applicable`. Regenerate; do not hand-edit.
 
-387 entries · 420 highlighted boundary phrases.
+387 entries · 419 highlighted boundary phrases.
 
 | Water | MU | p | Regulation |
 |---|---|--:|---|
 | ALOUETTE LAKE | 2-8 | 6 | Bull trout (char) release No vessels **in swimming areas**, as buoyed and signed; speed restriction (8 km/h) **at S. end of lake, S. of a line drawn from the BC Parks boat ramp to signs on the E. side of the lake** |
-| "ANDERSON" LAKE | 1-3 | 16 | Artificial fly only, bait ban, single barbless hook Trout and kokanee catch and release[Includes Tributaries] **Unnamed lake in the Walbran Creek Watershed approximately 7 km west/southwest of Mt. Walbran** |
+| "ANDERSON" LAKE | 1-3 | 16 | Artificial fly only, bait ban, single barbless hook Trout and kokanee catch and release[Includes Tributaries] Unnamed lake in the Walbran Creek Watershed approximately 7 km west/southwest of Mt. Walbran |
 | (Lower) CAMPBELL LAKE'S TRIBUTARIES | 1-6 | 16 | No Fishing Feb 1-July 15 **including Campbell River between Strathcona Dam and (Lower) Campbell Lake** |
 | ADAM RIVER (except Eve River) | 1-10 | 16 | Artificial fly only **upstream of Eve River, to Hwy 19 bridge** |
 | AMOR DE COSMOS CREEK | 1-10 | 16 | No Fishing **from upper falls downstream 1 km to (Bear River) logging road bridge 3 km from tidewater** No Fishing **from mouth to falls about 4 km upstream**, Dec 1-May 31 |

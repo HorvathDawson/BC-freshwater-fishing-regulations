@@ -7,8 +7,8 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 |---|--:|
 | NO_CURATION | 0 |
 | MISSING_SPLITS | 2 |
-| INCOMPLETE | 210 |
-| COMPLETE | 100 |
+| INCOMPLETE | 208 |
+| COMPLETE | 102 |
 | NO_SPLIT | 75 |
 
 **Drift** (curated rows matching no source locator): 1
@@ -586,14 +586,8 @@ approximately 35 m downstream” → little-qualicum-river-4dbb9b[todo]
 - • [water] “including two lagoons on the west side of Okanagan River upstream ” → vaseux-lake-including-two-lagoons-on-the-west-f208f2[todo]
 - • [entry] “including two lagoons on the west side of Okanagan River upstream ” → vaseux-lake-including-two-lagoons-on-the-west-f208f2[todo]
 
-## "ANDERSON" LAKE · MU ['1-3'] · p16 · [INCOMPLETE] (adeedcf7)
-- • [entry] “Unnamed lake in the Walbran Creek Watershed approximately 7 km wes” → anderson-lake-9ce121[todo]
-
 ## ARTLISH RIVER · MU ['1-12'] · p16 · [INCOMPLETE] (0505ec23)
 - • [rule] “upstream of the boundary signs at the bridge crossing approximatel” → artlish-river-9e60a3[todo]
-
-## (Lower) CAMPBELL LAKE'S TRIBUTARIES · MU ['1-6'] · p16 · [INCOMPLETE] (9b706123)
-- • [rule] “including Campbell River between Strathcona Dam and (Lower) Campbe” → lower-campbell-lake-s-tributaries-190ad5[todo]
 
 ## CLUXEWE RIVER · MU ['1-13'] · p16 · [INCOMPLETE] (ed6790c7)
 - • [rule] “upstream of the West Main logging road bridge (approximately 7.5 k” → cluxewe-river-b911f6[todo]

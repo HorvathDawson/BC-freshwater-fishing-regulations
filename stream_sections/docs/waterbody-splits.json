@@ -220,19 +220,20 @@
       "image": "page_016_row_005.png",
       "symbols": [],
       "reg_text": "Artificial fly only, bait ban, single barbless hook\nTrout and kokanee catch and release[Includes Tributaries] **Unnamed lake in the Walbran Creek Watershed approximately** 7 km west/southwest of Mt.\nWalbran",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 1,
       "locators": [
         {
           "src": "entry",
           "text": "Unnamed lake in the Walbran Creek Watershed approximately 7 km west/southwest of Mt. Walbran",
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "anderson-lake-9ce121",
-              "status": "todo",
-              "anchor_kind": "line",
-              "resolver_hint": "between_signs"
+              "status": "not_applicable",
+              "anchor_kind": "not_a_split",
+              "resolver_hint": "between_signs",
+              "notes": "[human-review 2026-08-05] whole (unnamed) lake reg; entry text only disambiguates which lake -> not a split."
             }
           ]
         },
@@ -524,7 +525,7 @@
       "image": "page_016_row_023.png",
       "symbols": [],
       "reg_text": "**No Fishing** Feb 1-July 15 including Campbell River between Strathcona Dam and (Lower) Campbell Lake",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 1,
       "locators": [
         {
@@ -536,13 +537,19 @@
               "Feb 1-July 15"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "lower-campbell-lake-s-tributaries-190ad5",
-              "status": "todo",
-              "anchor_kind": "area_boundary",
-              "resolver_hint": "park_polygon"
+              "status": "curated",
+              "anchor_kind": "point",
+              "resolver_hint": "dam_weir_fence",
+              "label": "Strathcona Dam (Upper Campbell Lake outlet)",
+              "notes": "[human-review 2026-08-05] split at Strathcona Dam; reach = Campbell River between Strathcona Dam and (Lower) Campbell Lake (lower end is an auto lake edge). Coord = Upper Campbell Lake outlet via FWA.",
+              "coord": [
+                -125.58778,
+                49.99836
+              ]
             }
           ]
         },
@@ -622,7 +629,8 @@
               "id": "campbell-river-657d6e",
               "status": "todo",
               "anchor_kind": "area_boundary",
-              "resolver_hint": "park_polygon"
+              "resolver_hint": "park_polygon",
+              "notes": "[shared-anchor] Strathcona Dam = [-125.58778, 49.99836] (see lower-campbell-lake-s-tributaries-190ad5); this reg is Strathcona Dam +100 m downstream -> needs the along-channel offset."
             }
           ]
         },

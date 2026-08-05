@@ -10043,13 +10043,13 @@
       "src": "entry",
       "locator_text": "Unnamed lake in the Walbran Creek Watershed approximately 7 km west/southwest of Mt. Walbran",
       "full_regulation": "Artificial fly only, bait ban, single barbless hook\nTrout and kokanee catch and release[Includes Tributaries] Unnamed lake in the Walbran Creek Watershed approximately 7 km west/southwest of Mt.\nWalbran",
-      "anchor_kind": "line",
+      "anchor_kind": "not_a_split",
       "resolver_hint": "between_signs",
-      "status": "todo",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "",
+      "notes": "[human-review 2026-08-05] whole (unnamed) lake reg; entry text only disambiguates which lake -> not a split.",
       "entry_id": "adeedcf7"
     },
     {
@@ -10640,13 +10640,16 @@
       "src": "rule",
       "locator_text": "including Campbell River between Strathcona Dam and (Lower) Campbell Lake",
       "full_regulation": "No Fishing Feb 1-July 15 including Campbell River between Strathcona Dam and (Lower) Campbell Lake",
-      "anchor_kind": "area_boundary",
-      "resolver_hint": "park_polygon",
-      "status": "todo",
+      "anchor_kind": "point",
+      "resolver_hint": "dam_weir_fence",
+      "status": "curated",
       "target": "",
-      "coord": null,
-      "label": "",
-      "notes": "",
+      "coord": [
+        -125.58778,
+        49.99836
+      ],
+      "label": "Strathcona Dam (Upper Campbell Lake outlet)",
+      "notes": "[human-review 2026-08-05] split at Strathcona Dam; reach = Campbell River between Strathcona Dam and (Lower) Campbell Lake (lower end is an auto lake edge). Coord = Upper Campbell Lake outlet via FWA.",
       "entry_id": "9b706123"
     },
     {
@@ -10783,7 +10786,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "",
+      "notes": "[shared-anchor] Strathcona Dam = [-125.58778, 49.99836] (see lower-campbell-lake-s-tributaries-190ad5); this reg is Strathcona Dam +100 m downstream -> needs the along-channel offset.",
       "entry_id": "2d6a28ef"
     },
     {
