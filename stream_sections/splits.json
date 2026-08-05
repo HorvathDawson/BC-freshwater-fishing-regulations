@@ -125,6 +125,27 @@
       },
       "label": "Garibaldi Park",
       "_concern": "NOT yet built/verified — run build.py --gnis 'Pitt River' --splits with parks_bc loaded; confirm ~20 boundary crossings, the mainstem split once into a ~27 km 'within Garibaldi Park' piece, and blk 356350872's middle segment flagged inside. Human-verify a crossing near 49.73752,-122.75042. parks_bc must be a fetched/loaded layer in the build's gpkg."
+    },
+
+    {
+      "_comment": "CONFLUENCE (WSC-keyed) — 'Chemainus River (downstream/upstream of Bannon Creek)' (Region 1, MU 1-5). ONE confluence cut at the mouth of Bannon Creek (FWA gazettes it 'Banon Creek', single N; tributary blk 354135507, WSC 920-302830-171638, a direct child of Chemainus River WSC 920-302830) yields BOTH the downstream-of and upstream-of reaches; the reg's two rules (No Fishing downstream Jul 1-Sep 30 / upstream Dec 1-Sep 30) attach one to each side. Locators chemainus-river-79cc9a (downstream) + -688d54 (upstream) both map here — SHARED split. The third Chemainus locator (Copper Canyon Falls) is a separate point split, already curated (chemainus-river-07756e). Mouth coord [-123.75806,48.90332] validated parent-at-mouth = Chemainus River at 0.0 m; ~1.7 km NE of the Copper Canyon Falls point (consistent).",
+      "id": "chemainus_bannon_creek",
+      "blk": "354154440",
+      "stream_name": "Chemainus River",
+      "anchor": { "type": "confluence", "tributary_wsc": "920-302830-171638" },
+      "label": "Bannon Creek",
+      "_concern": "NOT yet built/verified — run build.py on the Chemainus extent and confirm the confluence (tributary_wsc 920-302830-171638 = blk 354135507) cuts Chemainus blk 354154440 into a downstream/upstream pair. FWA name is 'Banon Creek' (one N) — a name_variant may be wanted so the reg's 'Bannon Creek' matches."
+    },
+
+    {
+      "_comment": "POINT — 'John Hart Lake's Tributaries — No Fishing Apr 15-Jul 15 (includes channel downstream of Ladore Dam)' (Region 1, MU 1-10). Point split at the Ladore Dam face on the Campbell River mainstem (blk 354154635, WSC 920-627155). Ladore Dam is the BC Hydro dam between Strathcona Dam and John Hart Dam; the reg's 'channel downstream of Ladore Dam' is the reach running from the dam toward John Hart Lake, so the dam is its head / split point. Coord [-125.38949,50.01217] = Lower Campbell Lake outlet (the dam) snapped to the mainstem; web-sourced (mapcarta 'Ladore Dam and Generating Station' 50.01209,-125.38962) then FWA-validated (4.3 m off the reservoir edge, 12.9 m off the mainstem). Human-confirmed dam-face (not the John Hart Lake inlet ~1.9 km downstream). Locator john-hart-lake-s-tributaries-36c501 maps here.",
+      "id": "ladore_dam",
+      "blk": "354154635",
+      "stream_name": "Campbell River",
+      "anchor": { "type": "point", "coord": [-125.38949, 50.01217], "is_lonlat": true },
+      "label": "Ladore Dam",
+      "proximity_m": 200,
+      "_concern": "NOT yet built/verified — run build.py on the Campbell extent and confirm the point snaps onto blk 354154635 within proximity and yields a downstream reach. Coord is web-sourced + snapped (no FWA dam feature in this gpkg); confirm on satellite at 50.0121,-125.3896."
     }
 
   ]

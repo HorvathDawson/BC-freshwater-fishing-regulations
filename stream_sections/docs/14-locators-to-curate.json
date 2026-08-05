@@ -2185,11 +2185,16 @@
       "full_regulation": "No Fishing Apr 15-July 15 (includes channel downstream of Ladore Dam)",
       "anchor_kind": "point",
       "resolver_hint": "dam_weir_fence",
-      "status": "todo",
-      "target": "",
-      "coord": null,
-      "label": "",
-      "notes": "[auto-proposal L] Ladore Dam (Lower Campbell Lake outlet into John Hart Lake) on Campbell system - channel downstream of Ladore Dam. Candidate coord [-125.42, 50.02]. OSM: https://www.openstreetmap.org/?mlat=50.02000&mlon=-125.42000#map=15/50.02000/-125.42000. Verify: Locate Ladore Dam (between Lower Campbell Lake and John Hart Lake) on a map; candidate is a rough estimate.. 'John Hart Lake's tributaries - channel downstream of Ladore Dam.' Ladore Dam discharges from Lower Campbell Lake into John Hart Lake. Exact dam not confirmed in FWA; candidate is an approximate estimate near the John Hart Lake head - verify on BC Hydro map."
+      "status": "curated",
+      "target": {
+        "blk": "354154635"
+      },
+      "coord": [
+        -125.38949,
+        50.01217
+      ],
+      "label": "Ladore Dam",
+      "notes": "[auto-proposal L] Ladore Dam (Lower Campbell Lake outlet into John Hart Lake) on Campbell system - channel downstream of Ladore Dam. Candidate coord [-125.42, 50.02]. OSM: https://www.openstreetmap.org/?mlat=50.02000&mlon=-125.42000#map=15/50.02000/-125.42000. Verify: Locate Ladore Dam (between Lower Campbell Lake and John Hart Lake) on a map; candidate is a rough estimate.. 'John Hart Lake's tributaries - channel downstream of Ladore Dam.' Ladore Dam discharges from Lower Campbell Lake into John Hart Lake. Exact dam not confirmed in FWA; candidate is an approximate estimate near the John Hart Lake head - verify on BC Hydro map. \u2014 [human-review 2026-08-04 curated] Point split at Ladore Dam face on Campbell River mainstem (blk 354154635); confirmed dam-face not John Hart Lake inlet. authored split: ladore_dam."
     },
     {
       "id": "keogh-river-bf1c5b",
@@ -5158,11 +5163,17 @@
       "full_regulation": "No Fishing downstream of Bannon Creek[Includes Tributaries] July 1-Sept 30, No Fishing upstream of Bannon Creek[Includes Tributaries] Dec 1-Sept 30\nNo Fishing from Copper Canyon Falls downstream 100 m to the fishing boundary signs",
       "anchor_kind": "confluence",
       "resolver_hint": "tributary",
-      "status": "likely_na",
-      "target": "",
-      "coord": null,
-      "label": "",
-      "notes": "[deferred] unresolved_trib \u2014 [review \u00b7 was:deferred] assume nothing \u2014 re-decide."
+      "status": "curated",
+      "target": {
+        "blk": "354135507",
+        "wsc": "920-302830-171638-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      },
+      "coord": [
+        -123.75806,
+        48.90332
+      ],
+      "label": "Bannon Creek confluence",
+      "notes": "[deferred] unresolved_trib \u2014 [review \u00b7 was:deferred] assume nothing \u2014 re-decide. \u2014 [human-review 2026-08-04 curated] Confluence = mouth of Bannon Creek (FWA 'Banon Creek', blk 354135507); parent = Chemainus River. Downstream reach. authored split: chemainus_bannon_creek (shared with chemainus-river-688d54)."
     },
     {
       "id": "chemainus-river-688d54",
@@ -5176,11 +5187,17 @@
       "full_regulation": "No Fishing downstream of Bannon Creek[Includes Tributaries] July 1-Sept 30, No Fishing upstream of Bannon Creek[Includes Tributaries] Dec 1-Sept 30\nNo Fishing from Copper Canyon Falls downstream 100 m to the fishing boundary signs",
       "anchor_kind": "confluence",
       "resolver_hint": "tributary",
-      "status": "likely_na",
-      "target": "",
-      "coord": null,
-      "label": "",
-      "notes": "[deferred] unresolved_trib \u2014 [review \u00b7 was:deferred] assume nothing \u2014 re-decide."
+      "status": "curated",
+      "target": {
+        "blk": "354135507",
+        "wsc": "920-302830-171638-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      },
+      "coord": [
+        -123.75806,
+        48.90332
+      ],
+      "label": "Bannon Creek confluence",
+      "notes": "[deferred] unresolved_trib \u2014 [review \u00b7 was:deferred] assume nothing \u2014 re-decide. \u2014 [human-review 2026-08-04 curated] Same confluence as chemainus-river-79cc9a (mouth of Bannon Creek). Upstream reach. authored split: chemainus_bannon_creek (SHARED \u2014 one split, both reaches)."
     },
     {
       "id": "chilcotin-river-c15955",
