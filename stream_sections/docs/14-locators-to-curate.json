@@ -1262,7 +1262,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "",
+      "notes": "[osm-candidate 2026-08-05] [-114.73204, 49.29352] (OSM Overpass ∩ MU-clipped FWA river; VERIFY).",
       "entry_id": "4050199b"
     },
     {
@@ -1300,7 +1300,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "",
+      "notes": "[osm-candidate 2026-08-05] [-123.01604, 49.34148] (OSM Overpass ∩ MU-clipped FWA river; VERIFY).",
       "entry_id": "362df0a9"
     },
     {
@@ -1471,7 +1471,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "",
+      "notes": "[osm-candidate 2026-08-05] [-122.19498, 56.0152]; [-122.19422, 56.01571] (OSM Overpass ∩ MU-clipped FWA river; VERIFY).",
       "entry_id": "03e3acbe"
     },
     {
@@ -1528,7 +1528,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "",
+      "notes": "[osm-candidate 2026-08-05] [-125.09409, 49.66409]; [-125.09621, 49.64361] (OSM Overpass ∩ MU-clipped FWA river; VERIFY).",
       "entry_id": "3952f2fb"
     },
     {
@@ -1566,7 +1566,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "",
+      "notes": "[osm-candidate 2026-08-05] [-125.32212, 49.97615]; [-125.31588, 49.98038]; [-125.30282, 50.01388]; [-125.31202, 49.96781]; [-125.31142, 49.96712] (OSM Overpass ∩ MU-clipped FWA river; VERIFY).",
       "entry_id": "04a9a77c"
     },
     {
@@ -1833,7 +1833,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "",
+      "notes": "[osm-candidate 2026-08-05] [-119.65443, 49.56589] (OSM Overpass ∩ MU-clipped FWA river; VERIFY).",
       "entry_id": "f24bd72f"
     },
     {
@@ -1928,7 +1928,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "",
+      "notes": "[osm-candidate 2026-08-05] [-128.40927, 54.524]; [-127.9424, 54.49921]; [-128.26025, 54.4776]; [-128.22762, 54.47419] (OSM Overpass ∩ MU-clipped FWA river; VERIFY).",
       "entry_id": "883f7f02"
     },
     {
@@ -2023,7 +2023,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal H] Terzaghi Dam (Carpenter Lake outlet) on Bridge River (Terzaghi Dam -> Yalakom River). Candidate coord [-122.22175, 50.78765]. OSM: https://www.openstreetmap.org/?mlat=50.78765&mlon=-122.22175#map=15/50.78765/-122.22175. Verify: Confirm cut at Carpenter Lake outlet (Terzaghi Dam); downstream end = Yalakom R mouth ~[-122.173,50.863].. Terzaghi Dam impounds Carpenter Lake on the Bridge River. Coord = FWA-computed Bridge River blue-line exit from the Carpenter Lake polygon; matches the known Terzaghi Dam location. Reach ends at the Yalakom River confluence.",
+      "notes": "[auto-proposal H] Terzaghi Dam (Carpenter Lake outlet) on Bridge River (Terzaghi Dam -> Yalakom River). Candidate coord [-122.22175, 50.78765]. OSM: https://www.openstreetmap.org/?mlat=50.78765&mlon=-122.22175#map=15/50.78765/-122.22175. Verify: Confirm cut at Carpenter Lake outlet (Terzaghi Dam); downstream end = Yalakom R mouth ~[-122.173,50.863].. Terzaghi Dam impounds Carpenter Lake on the Bridge River. Coord = FWA-computed Bridge River blue-line exit from the Carpenter Lake polygon; matches the known Terzaghi Dam location. Reach ends at the Yalakom River confluence. [osm-candidate 2026-08-05] [-122.22183, 50.78767]; [-122.85774, 50.83877]; [-122.8565, 50.83942] (OSM Overpass ∩ MU-clipped FWA river; VERIFY).",
       "entry_id": "58790669"
     },
     {
@@ -2042,7 +2042,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal H] Cariboo Dam (Burnaby Lake outlet) on Brunette River (Cariboo Dam). Candidate coord [-122.935, 49.24134]. OSM: https://www.openstreetmap.org/?mlat=49.24134&mlon=-122.93500#map=15/49.24134/-122.93500. Verify: Confirm Cariboo Dam sits at the Burnaby Lake outlet; downstream bound = Salamander Creek (not found in FWA by that name).. Cariboo Dam controls the Brunette River at the outlet of Burnaby Lake. Coord = FWA Brunette River exit from the Burnaby Lake polygon. Note 'Salamander Creek' (reach terminus) is not in FWA under that name - human should locate it.",
+      "notes": "[auto-proposal H] Cariboo Dam (Burnaby Lake outlet) on Brunette River (Cariboo Dam). Candidate coord [-122.935, 49.24134]. OSM: https://www.openstreetmap.org/?mlat=49.24134&mlon=-122.93500#map=15/49.24134/-122.93500. Verify: Confirm Cariboo Dam sits at the Burnaby Lake outlet; downstream bound = Salamander Creek (not found in FWA by that name).. Cariboo Dam controls the Brunette River at the outlet of Burnaby Lake. Coord = FWA Brunette River exit from the Burnaby Lake polygon. Note 'Salamander Creek' (reach terminus) is not in FWA under that name - human should locate it. [osm-candidate 2026-08-05] [-122.87503, 49.23082]; [-122.91698, 49.24793] (OSM Overpass ∩ MU-clipped FWA river; VERIFY).",
       "entry_id": "e7274b4e"
     },
     {
@@ -2061,7 +2061,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal H] John Hart Dam / Power Station (John Hart Lake outlet) on Campbell River (John Hart Dam -> power line ~200 m above Quinsam confl). Candidate coord [-125.33978, 50.04171]. OSM: https://www.openstreetmap.org/?mlat=50.04171&mlon=-125.33978#map=15/50.04171/-125.33978. Verify: Confirm point at John Hart Lake outlet; the reg means the generating-station tailrace which is ~1 km below the dam - decide dam-face vs tailrace.. John Hart Dam impounds John Hart Lake; the Campbell River flows out to the John Hart generating station. Coord = FWA Campbell River exit from John Hart Lake polygon (dam face). Downstream terminus is a power-line crossing ~200 m above the Quinsam confluence (~[-125.294,50.038]).",
+      "notes": "[auto-proposal H] John Hart Dam / Power Station (John Hart Lake outlet) on Campbell River (John Hart Dam -> power line ~200 m above Quinsam confl). Candidate coord [-125.33978, 50.04171]. OSM: https://www.openstreetmap.org/?mlat=50.04171&mlon=-125.33978#map=15/50.04171/-125.33978. Verify: Confirm point at John Hart Lake outlet; the reg means the generating-station tailrace which is ~1 km below the dam - decide dam-face vs tailrace.. John Hart Dam impounds John Hart Lake; the Campbell River flows out to the John Hart generating station. Coord = FWA Campbell River exit from John Hart Lake polygon (dam face). Downstream terminus is a power-line crossing ~200 m above the Quinsam confluence (~[-125.294,50.038]). [osm-candidate 2026-08-05] [-125.58293, 49.99517]; [-125.38945, 50.01214]; [-125.33964, 50.04192]; [-125.40137, 50.0066]; [-125.39229, 50.01552]; [-125.57243, 50.00379]; [-125.30918, 50.04401] (OSM Overpass ∩ MU-clipped FWA river; VERIFY).",
       "entry_id": "2d6a28ef"
     },
     {
@@ -2103,7 +2103,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal H] Revelstoke Dam (Revelstoke Lake outlet) on Columbia River (Revelstoke Dam -> Hwy 1 bridge). Candidate coord [-118.19266, 51.04957]. OSM: https://www.openstreetmap.org/?mlat=51.04957&mlon=-118.19266#map=15/51.04957/-118.19266. Verify: Confirm cut at Revelstoke Dam (Revelstoke Lake outlet); downstream end = Hwy 1 bridge in Revelstoke.. Revelstoke Dam impounds Revelstoke Lake on the Columbia. Coord = FWA Columbia exit from Revelstoke Lake polygon; matches known Revelstoke Dam. Reach ends at the Hwy 1 bridge in Revelstoke.",
+      "notes": "[auto-proposal H] Revelstoke Dam (Revelstoke Lake outlet) on Columbia River (Revelstoke Dam -> Hwy 1 bridge). Candidate coord [-118.19266, 51.04957]. OSM: https://www.openstreetmap.org/?mlat=51.04957&mlon=-118.19266#map=15/51.04957/-118.19266. Verify: Confirm cut at Revelstoke Dam (Revelstoke Lake outlet); downstream end = Hwy 1 bridge in Revelstoke.. Revelstoke Dam impounds Revelstoke Lake on the Columbia. Coord = FWA Columbia exit from Revelstoke Lake polygon; matches known Revelstoke Dam. Reach ends at the Hwy 1 bridge in Revelstoke. [osm-candidate 2026-08-05] [-117.77353, 49.34196]; [-118.5659, 52.07445]; [-118.56661, 52.0779]; [-118.19268, 51.04956]; [-118.19358, 51.04874] (OSM Overpass ∩ MU-clipped FWA river; VERIFY).",
       "entry_id": "1f199dad"
     },
     {
@@ -2126,7 +2126,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal H] Hugh Keenleyside Dam (Lower Arrow Lake outlet) on Columbia River (Keenleyside Dam -> WA border). Candidate coord [-117.77394, 49.34194]. OSM: https://www.openstreetmap.org/?mlat=49.34194&mlon=-117.77394#map=15/49.34194/-117.77394. Verify: Confirm cut at Keenleyside Dam (Lower Arrow Lake outlet); downstream end = Washington state border (auto border split).. Hugh Keenleyside Dam impounds the Arrow Lakes; coord = FWA Columbia exit from the Lower Arrow Lake polygon, matching the known dam near Castlegar. Reach runs to the US border.",
+      "notes": "[auto-proposal H] Hugh Keenleyside Dam (Lower Arrow Lake outlet) on Columbia River (Keenleyside Dam -> WA border). Candidate coord [-117.77394, 49.34194]. OSM: https://www.openstreetmap.org/?mlat=49.34194&mlon=-117.77394#map=15/49.34194/-117.77394. Verify: Confirm cut at Keenleyside Dam (Lower Arrow Lake outlet); downstream end = Washington state border (auto border split).. Hugh Keenleyside Dam impounds the Arrow Lakes; coord = FWA Columbia exit from the Lower Arrow Lake polygon, matching the known dam near Castlegar. Reach runs to the US border. [osm-candidate 2026-08-05] [-117.77353, 49.34196]; [-118.5659, 52.07445]; [-118.56661, 52.0779]; [-118.19268, 51.04956]; [-118.19358, 51.04874] (OSM Overpass ∩ MU-clipped FWA river; VERIFY).",
       "entry_id": "1f199dad"
     },
     {
@@ -2149,7 +2149,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal H] Hugh Keenleyside Dam (Lower Arrow Lake outlet) on Columbia River (Keenleyside Dam -> WA border, + Kootenay reach). Candidate coord [-117.77394, 49.34194]. OSM: https://www.openstreetmap.org/?mlat=49.34194&mlon=-117.77394#map=15/49.34194/-117.77394. Verify: Same dam as columbia-river-f4c5a3; entry also bundles a connected Kootenay River reach - handle separately.. Duplicate Keenleyside Dam structure; this entry additionally names a connected Kootenay River reach (see the Kootenay dam items 21-23). Coord = Keenleyside Dam at Lower Arrow Lake outlet.",
+      "notes": "[auto-proposal H] Hugh Keenleyside Dam (Lower Arrow Lake outlet) on Columbia River (Keenleyside Dam -> WA border, + Kootenay reach). Candidate coord [-117.77394, 49.34194]. OSM: https://www.openstreetmap.org/?mlat=49.34194&mlon=-117.77394#map=15/49.34194/-117.77394. Verify: Same dam as columbia-river-f4c5a3; entry also bundles a connected Kootenay River reach - handle separately.. Duplicate Keenleyside Dam structure; this entry additionally names a connected Kootenay River reach (see the Kootenay dam items 21-23). Coord = Keenleyside Dam at Lower Arrow Lake outlet. [osm-candidate 2026-08-05] [-117.77353, 49.34196]; [-118.5659, 52.07445]; [-118.56661, 52.0779]; [-118.19268, 51.04956]; [-118.19358, 51.04874] (OSM Overpass ∩ MU-clipped FWA river; VERIFY).",
       "entry_id": "1f199dad"
     },
     {
@@ -2225,7 +2225,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal M] Elko Dam (run-of-river, Elk River) on Elk River (downstream of Elko Dam). Candidate coord [-115.10633, 49.29954]. OSM: https://www.openstreetmap.org/?mlat=49.29954&mlon=-115.10633#map=15/49.29954/-115.10633. Verify: Confirm the Elko Dam / diversion location on the Elk River in the canyon just above the town of Elko; candidate is the nearest Elk River blue-line point.. Elko Dam is a small run-of-river diversion dam on the Elk River near the town of Elko - no large named reservoir in FWA. Candidate is the Elk River blue-line point nearest the town of Elko; refine against BC Hydro/map. Pairs with the 'upstream of Elko Dam' entries.",
+      "notes": "[auto-proposal M] Elko Dam (run-of-river, Elk River) on Elk River (downstream of Elko Dam). Candidate coord [-115.10633, 49.29954]. OSM: https://www.openstreetmap.org/?mlat=49.29954&mlon=-115.10633#map=15/49.29954/-115.10633. Verify: Confirm the Elko Dam / diversion location on the Elk River in the canyon just above the town of Elko; candidate is the nearest Elk River blue-line point.. Elko Dam is a small run-of-river diversion dam on the Elk River near the town of Elko - no large named reservoir in FWA. Candidate is the Elk River blue-line point nearest the town of Elko; refine against BC Hydro/map. Pairs with the 'upstream of Elko Dam' entries. [osm-candidate 2026-08-05] [-115.10453, 49.29006] (OSM Overpass ∩ MU-clipped FWA river; VERIFY).",
       "entry_id": "6bfbbcb3"
     },
     {
@@ -2245,7 +2245,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal M] Elko Dam (run-of-river, Elk River) on Elk River (upstream of Elko Dam). Candidate coord [-115.10633, 49.29954]. OSM: https://www.openstreetmap.org/?mlat=49.29954&mlon=-115.10633#map=15/49.29954/-115.10633. Verify: Same Elko Dam point as the downstream entry; confirm on map.. Same Elko Dam structure as elk-river-downstream-of-elko-dam; this is the upstream side (MU 4-2/4-23). One cut at the dam yields both the up- and downstream reaches.",
+      "notes": "[auto-proposal M] Elko Dam (run-of-river, Elk River) on Elk River (upstream of Elko Dam). Candidate coord [-115.10633, 49.29954]. OSM: https://www.openstreetmap.org/?mlat=49.29954&mlon=-115.10633#map=15/49.29954/-115.10633. Verify: Same Elko Dam point as the downstream entry; confirm on map.. Same Elko Dam structure as elk-river-downstream-of-elko-dam; this is the upstream side (MU 4-2/4-23). One cut at the dam yields both the up- and downstream reaches. [osm-candidate 2026-08-05] [-115.10453, 49.29006] (OSM Overpass ∩ MU-clipped FWA river; VERIFY).",
       "entry_id": "e8ba6b4f"
     },
     {
@@ -2265,7 +2265,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal L] Multiple bridge/lake segments (NOT a single dam) on Elk River (Lower Elk Lake, Line Creek Bridge, CPR Bridge Sparwood, Hwy 3 Hosmer...). No FWA coord (needs map / external source). Verify: This rule is a chain of bridge/lake landmarks, not the Elko Dam - needs manual map work per landmark.. Mis-bucketed under dam_weir_fence: the locator lists several bridge and lake segments (Lower Elk Lake -> Forsyth Cr [outlet ref ~[-115.084,50.550]], Line Creek Bridge -> CPR Bridge at Sparwood, Hwy 3 bridge at Hosmer...). Recommend manual: resolve each bridge/lake landmark individually.",
+      "notes": "[auto-proposal L] Multiple bridge/lake segments (NOT a single dam) on Elk River (Lower Elk Lake, Line Creek Bridge, CPR Bridge Sparwood, Hwy 3 Hosmer...). No FWA coord (needs map / external source). Verify: This rule is a chain of bridge/lake landmarks, not the Elko Dam - needs manual map work per landmark.. Mis-bucketed under dam_weir_fence: the locator lists several bridge and lake segments (Lower Elk Lake -> Forsyth Cr [outlet ref ~[-115.084,50.550]], Line Creek Bridge -> CPR Bridge at Sparwood, Hwy 3 bridge at Hosmer...). Recommend manual: resolve each bridge/lake landmark individually. [osm-candidate 2026-08-05] [-114.87645, 49.88184] (OSM Overpass ∩ MU-clipped FWA river; VERIFY).",
       "entry_id": "e8ba6b4f"
     },
     {
@@ -2366,7 +2366,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal H] Corra Linn Dam (Kootenay Lake West Arm outlet) + CPR Bridge near Creston on Kootenay River (Idaho border->CPR Bridge Creston; Corra Linn Dam->Columbia). Candidate coord [-117.46818, 49.46895]. OSM: https://www.openstreetmap.org/?mlat=49.46895&mlon=-117.46818#map=15/49.46895/-117.46818. Verify: Confirm Corra Linn Dam at the West Arm outlet of Kootenay Lake; the 'Idaho border' and 'CPR Bridge near Creston' bounds relate to existing kootenay splits.. Two Kootenay reaches: (1) Idaho border -> CPR Bridge near Creston, (2) Corra Linn Dam -> Columbia confluence. Coord = Corra Linn Dam = FWA Kootenay River exit from Kootenay Lake polygon (West Arm outlet). See existing splits kootenay_idaho_border / kootenay_koocanusa in splits.json for the border end.",
+      "notes": "[auto-proposal H] Corra Linn Dam (Kootenay Lake West Arm outlet) + CPR Bridge near Creston on Kootenay River (Idaho border->CPR Bridge Creston; Corra Linn Dam->Columbia). Candidate coord [-117.46818, 49.46895]. OSM: https://www.openstreetmap.org/?mlat=49.46895&mlon=-117.46818#map=15/49.46895/-117.46818. Verify: Confirm Corra Linn Dam at the West Arm outlet of Kootenay Lake; the 'Idaho border' and 'CPR Bridge near Creston' bounds relate to existing kootenay splits.. Two Kootenay reaches: (1) Idaho border -> CPR Bridge near Creston, (2) Corra Linn Dam -> Columbia confluence. Coord = Corra Linn Dam = FWA Kootenay River exit from Kootenay Lake polygon (West Arm outlet). See existing splits kootenay_idaho_border / kootenay_koocanusa in splits.json for the border end. [osm-candidate 2026-08-05] [-117.62009, 49.32481]; [-117.49994, 49.46163]; [-117.51961, 49.45584]; [-117.48406, 49.45978]; [-115.31472, 48.40988]; [-115.31426, 48.41049]; [-115.31522, 48.40922] (OSM Overpass ∩ MU-clipped FWA river; VERIFY).",
       "entry_id": "32b0f4bc"
     },
     {
@@ -2386,7 +2386,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal M] Brilliant Dam (run-of-river, lower Kootenay River) on Kootenay River (Brilliant Dam -> Columbia confluence). Candidate coord [-117.59864, 49.33662]. OSM: https://www.openstreetmap.org/?mlat=49.33662&mlon=-117.59864#map=15/49.33662/-117.59864. Verify: Confirm Brilliant Dam location on the lower Kootenay near Castlegar; candidate is the nearest Kootenay blue-line point.. Brilliant Dam is a run-of-river dam on the lower Kootenay River near its Columbia confluence (Castlegar). No named reservoir polygon; candidate = Kootenay River blue-line point nearest the known dam site. Reach runs to the Columbia confluence.",
+      "notes": "[auto-proposal M] Brilliant Dam (run-of-river, lower Kootenay River) on Kootenay River (Brilliant Dam -> Columbia confluence). Candidate coord [-117.59864, 49.33662]. OSM: https://www.openstreetmap.org/?mlat=49.33662&mlon=-117.59864#map=15/49.33662/-117.59864. Verify: Confirm Brilliant Dam location on the lower Kootenay near Castlegar; candidate is the nearest Kootenay blue-line point.. Brilliant Dam is a run-of-river dam on the lower Kootenay River near its Columbia confluence (Castlegar). No named reservoir polygon; candidate = Kootenay River blue-line point nearest the known dam site. Reach runs to the Columbia confluence. [osm-candidate 2026-08-05] [-117.62009, 49.32481]; [-117.49994, 49.46163]; [-117.51961, 49.45584]; [-117.48406, 49.45978]; [-115.31472, 48.40988]; [-115.31426, 48.41049]; [-115.31522, 48.40922] (OSM Overpass ∩ MU-clipped FWA river; VERIFY).",
       "entry_id": "32b0f4bc"
     },
     {
@@ -2464,7 +2464,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal M] Okanagan Lake Dam (Penticton) + McIntyre Dam + Drop Structure No.1 on Okanagan River (channelized, Penticton -> Vaseux). Candidate coord [-119.61346, 49.50123]. OSM: https://www.openstreetmap.org/?mlat=49.50123&mlon=-119.61346#map=15/49.50123/-119.61346. Verify: Multi-structure reg. Candidate = Okanagan Lake Dam (upper bound, Penticton). Also locate McIntyre Dam ~[-119.574,49.357] and Drop Structure No.1 (channelized river S of Oliver) on a map.. Okanagan Lake Dam controls the Okanagan River at Penticton (coord = FWA Okanagan River exit from Okanagan Lake polygon). The reg also references McIntyre Dam and Drop Structure No.1 further down the channelized river - those are separate small structures needing map confirmation.",
+      "notes": "[auto-proposal M] Okanagan Lake Dam (Penticton) + McIntyre Dam + Drop Structure No.1 on Okanagan River (channelized, Penticton -> Vaseux). Candidate coord [-119.61346, 49.50123]. OSM: https://www.openstreetmap.org/?mlat=49.50123&mlon=-119.61346#map=15/49.50123/-119.61346. Verify: Multi-structure reg. Candidate = Okanagan Lake Dam (upper bound, Penticton). Also locate McIntyre Dam ~[-119.574,49.357] and Drop Structure No.1 (channelized river S of Oliver) on a map.. Okanagan Lake Dam controls the Okanagan River at Penticton (coord = FWA Okanagan River exit from Okanagan Lake polygon). The reg also references McIntyre Dam and Drop Structure No.1 further down the channelized river - those are separate small structures needing map confirmation. [osm-candidate 2026-08-05] [-119.58007, 49.34453]; [-119.52842, 49.25681] (OSM Overpass ∩ MU-clipped FWA river; VERIFY).",
       "entry_id": "52c291bb"
     },
     {
@@ -2483,7 +2483,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal L] McIntyre Dam (upper bound) / Vaseux Lake (lower bound) on Okanagan River oxbows (below McIntyre Dam, above Vaseux Lake). Candidate coord [-119.57386, 49.35652]. OSM: https://www.openstreetmap.org/?mlat=49.35652&mlon=-119.57386#map=15/49.35652/-119.57386. Verify: Confirm McIntyre Dam on the Okanagan River just above Vaseux Lake; candidate is nearest blue-line point (~1.6 km off a rough guess).. Oxbow reach downstream of McIntyre Dam and upstream of Vaseux Lake. Candidate = Okanagan River blue-line point nearest the known McIntyre Dam site above Vaseux Lake; refine on map. Vaseux Lake polygon (wbk 329459123) gives the lower bound.",
+      "notes": "[auto-proposal L] McIntyre Dam (upper bound) / Vaseux Lake (lower bound) on Okanagan River oxbows (below McIntyre Dam, above Vaseux Lake). Candidate coord [-119.57386, 49.35652]. OSM: https://www.openstreetmap.org/?mlat=49.35652&mlon=-119.57386#map=15/49.35652/-119.57386. Verify: Confirm McIntyre Dam on the Okanagan River just above Vaseux Lake; candidate is nearest blue-line point (~1.6 km off a rough guess).. Oxbow reach downstream of McIntyre Dam and upstream of Vaseux Lake. Candidate = Okanagan River blue-line point nearest the known McIntyre Dam site above Vaseux Lake; refine on map. Vaseux Lake polygon (wbk 329459123) gives the lower bound. [osm-candidate 2026-08-05] [-119.58007, 49.34453]; [-119.52842, 49.25681] (OSM Overpass ∩ MU-clipped FWA river; VERIFY).",
       "entry_id": "586d0cc0"
     },
     {
@@ -2502,7 +2502,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal L] Boundary signs 1,200 m downstream of Site C Dam on Peace River (below Site C). No FWA coord (needs map / external source). Verify: Locate Site C Dam (BC Hydro, ~7 km SW of Fort St John) then place a point 1,200 m downstream along the Peace - Site C reservoir is too new to be in FWA.. Site C Dam is a recent BC Hydro facility likely absent from the FWA dataset. This entry is the reach downstream of signs 1,200 m below the dam. Recommend manual: get the Site C dam coord from BC Hydro, then offset 1,200 m downstream on the Peace River blue line.",
+      "notes": "[auto-proposal L] Boundary signs 1,200 m downstream of Site C Dam on Peace River (below Site C). No FWA coord (needs map / external source). Verify: Locate Site C Dam (BC Hydro, ~7 km SW of Fort St John) then place a point 1,200 m downstream along the Peace - Site C reservoir is too new to be in FWA.. Site C Dam is a recent BC Hydro facility likely absent from the FWA dataset. This entry is the reach downstream of signs 1,200 m below the dam. Recommend manual: get the Site C dam coord from BC Hydro, then offset 1,200 m downstream on the Peace River blue line. [osm-candidate 2026-08-05] [-122.19498, 56.0152]; [-122.19422, 56.01571] (OSM Overpass ∩ MU-clipped FWA river; VERIFY).",
       "entry_id": "4068efd2"
     },
     {
@@ -2521,7 +2521,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal L] Site C Dam (upstream bound) / Hwy 29 bridge (downstream) on Peace River (Hwy 29 bridge -> Site C Dam). No FWA coord (needs map / external source). Verify: Locate Site C Dam and the Hwy 29 bridge on the Peace; both external to FWA.. Reach from the Hwy 29 bridge upstream to the Site C Dam. Site C not in FWA (recent). Recommend manual with BC Hydro / map coords for both landmarks.",
+      "notes": "[auto-proposal L] Site C Dam (upstream bound) / Hwy 29 bridge (downstream) on Peace River (Hwy 29 bridge -> Site C Dam). No FWA coord (needs map / external source). Verify: Locate Site C Dam and the Hwy 29 bridge on the Peace; both external to FWA.. Reach from the Hwy 29 bridge upstream to the Site C Dam. Site C not in FWA (recent). Recommend manual with BC Hydro / map coords for both landmarks. [osm-candidate 2026-08-05] [-122.19498, 56.0152]; [-122.19422, 56.01571] (OSM Overpass ∩ MU-clipped FWA river; VERIFY).",
       "entry_id": "03e3acbe"
     },
     {
@@ -2540,7 +2540,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal L] Site C Dam (upstream) -> signs 1,200 m downstream on Peace River (Site C Dam -> signs 1,200 m below). No FWA coord (needs map / external source). Verify: Locate Site C Dam; downstream end = signs 1,200 m below. External to FWA.. Short reach from the Site C Dam to boundary signs 1,200 m downstream (pairs with peace-river-downstream-of-boundary-signs). Site C absent from FWA - manual/BC Hydro coord needed.",
+      "notes": "[auto-proposal L] Site C Dam (upstream) -> signs 1,200 m downstream on Peace River (Site C Dam -> signs 1,200 m below). No FWA coord (needs map / external source). Verify: Locate Site C Dam; downstream end = signs 1,200 m below. External to FWA.. Short reach from the Site C Dam to boundary signs 1,200 m downstream (pairs with peace-river-downstream-of-boundary-signs). Site C absent from FWA - manual/BC Hydro coord needed. [osm-candidate 2026-08-05] [-122.19498, 56.0152]; [-122.19422, 56.01571] (OSM Overpass ∩ MU-clipped FWA river; VERIFY).",
       "entry_id": "789839ce"
     },
     {
@@ -2616,7 +2616,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal M] BC Hydro diversion dam (~3.5 km below Comox Lake) on Puntledge River (diversion dam). Candidate coord [-125.09333, 49.66258]. OSM: https://www.openstreetmap.org/?mlat=49.66258&mlon=-125.09333#map=15/49.66258/-125.09333. Verify: Confirm the diversion dam ~3.5 km downstream of Comox Lake; candidate computed by walking 3.5 km down the Puntledge blue line from the Comox Lake outlet.. Closure upstream of the BC Hydro diversion dam, described as ~3.5 km downstream of Comox Lake. Candidate = point 3,500 m down the Puntledge River blue line from the FWA Comox Lake outlet [-125.096,49.644]. Reasonable but confirm the exact dam on a map.",
+      "notes": "[auto-proposal M] BC Hydro diversion dam (~3.5 km below Comox Lake) on Puntledge River (diversion dam). Candidate coord [-125.09333, 49.66258]. OSM: https://www.openstreetmap.org/?mlat=49.66258&mlon=-125.09333#map=15/49.66258/-125.09333. Verify: Confirm the diversion dam ~3.5 km downstream of Comox Lake; candidate computed by walking 3.5 km down the Puntledge blue line from the Comox Lake outlet.. Closure upstream of the BC Hydro diversion dam, described as ~3.5 km downstream of Comox Lake. Candidate = point 3,500 m down the Puntledge River blue line from the FWA Comox Lake outlet [-125.096,49.644]. Reasonable but confirm the exact dam on a map. [osm-candidate 2026-08-05] [-125.09409, 49.66409]; [-125.09621, 49.64361] (OSM Overpass ∩ MU-clipped FWA river; VERIFY).",
       "entry_id": "3952f2fb"
     },
     {
@@ -2673,7 +2673,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal L] Power-line crossing ~25 m above Quinsam Hatchery weir on Quinsam River (at hatchery). Candidate coord [-125.2941, 50.0379]. OSM: https://www.openstreetmap.org/?mlat=50.03790&mlon=-125.29410#map=15/50.03790/-125.29410. Verify: Locate the Quinsam Hatchery weir and the power-line crossing ~25 m upstream; candidate is the FWA mouth reference.. Closure from signs at a power-line crossing (~25 m above the Quinsam Hatchery weir) to further fishing signs. Hatchery/weir not in FWA; candidate = FWA Quinsam River mouth [-125.294,50.038] - the hatchery is a short way up. Verify on map.",
+      "notes": "[auto-proposal L] Power-line crossing ~25 m above Quinsam Hatchery weir on Quinsam River (at hatchery). Candidate coord [-125.2941, 50.0379]. OSM: https://www.openstreetmap.org/?mlat=50.03790&mlon=-125.29410#map=15/50.03790/-125.29410. Verify: Locate the Quinsam Hatchery weir and the power-line crossing ~25 m upstream; candidate is the FWA mouth reference.. Closure from signs at a power-line crossing (~25 m above the Quinsam Hatchery weir) to further fishing signs. Hatchery/weir not in FWA; candidate = FWA Quinsam River mouth [-125.294,50.038] - the hatchery is a short way up. Verify on map. [osm-candidate 2026-08-05] [-125.32212, 49.97615]; [-125.31588, 49.98038]; [-125.30282, 50.01388]; [-125.31202, 49.96781]; [-125.31142, 49.96712] (OSM Overpass ∩ MU-clipped FWA river; VERIFY).",
       "entry_id": "04a9a77c"
     },
     {
@@ -2692,7 +2692,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal H] Seton Dam (Seton Lake outlet) + BC Hydro Power Canal on Seton River / Seton Lake outlet. Candidate coord [-121.97777, 50.66951]. OSM: https://www.openstreetmap.org/?mlat=50.66951&mlon=-121.97777#map=15/50.66951/-121.97777. Verify: Confirm Seton Dam at the Seton Lake outlet; the reg also includes the parallel BC Hydro Power Canal up to signs on Seton Lake.. Seton Dam controls the Seton River at the Seton Lake outlet. Coord = FWA Seton River exit from the Seton Lake polygon. The entry also includes the BC Hydro Power Canal upstream of the dam up to signs on Seton Lake (a parallel man-made channel - may need separate geometry).",
+      "notes": "[auto-proposal H] Seton Dam (Seton Lake outlet) + BC Hydro Power Canal on Seton River / Seton Lake outlet. Candidate coord [-121.97777, 50.66951]. OSM: https://www.openstreetmap.org/?mlat=50.66951&mlon=-121.97777#map=15/50.66951/-121.97777. Verify: Confirm Seton Dam at the Seton Lake outlet; the reg also includes the parallel BC Hydro Power Canal up to signs on Seton Lake.. Seton Dam controls the Seton River at the Seton Lake outlet. Coord = FWA Seton River exit from the Seton Lake polygon. The entry also includes the BC Hydro Power Canal upstream of the dam up to signs on Seton Lake (a parallel man-made channel - may need separate geometry). [osm-candidate 2026-08-05] [-121.97778, 50.6695] (OSM Overpass ∩ MU-clipped FWA river; VERIFY).",
       "entry_id": "5a3609ce"
     },
     {
@@ -2711,7 +2711,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal H] Great Central Lake dam (Stamp River head) on Stamp River (Ash R confluence -> Great Central Lake dam). Candidate coord [-124.99219, 49.32835]. OSM: https://www.openstreetmap.org/?mlat=49.32835&mlon=-124.99219#map=15/49.32835/-124.99219. Verify: Confirm the Great Central Lake dam (upstream bound); downstream end = Ash River confluence (~[-124.978,49.362]).. Same dam as great-central-lake-4ff0ab: the Great Central Lake outlet dam is the head of the Stamp River. Coord = FWA stream exit from Great Central Lake polygon. Reach runs from the Ash River confluence up to this dam.",
+      "notes": "[auto-proposal H] Great Central Lake dam (Stamp River head) on Stamp River (Ash R confluence -> Great Central Lake dam). Candidate coord [-124.99219, 49.32835]. OSM: https://www.openstreetmap.org/?mlat=49.32835&mlon=-124.99219#map=15/49.32835/-124.99219. Verify: Confirm the Great Central Lake dam (upstream bound); downstream end = Ash River confluence (~[-124.978,49.362]).. Same dam as great-central-lake-4ff0ab: the Great Central Lake outlet dam is the head of the Stamp River. Coord = FWA stream exit from Great Central Lake polygon. Reach runs from the Ash River confluence up to this dam. [osm-candidate 2026-08-05] [-124.99216, 49.3284] (OSM Overpass ∩ MU-clipped FWA river; VERIFY).",
       "entry_id": "703b9db3"
     },
     {
@@ -2730,7 +2730,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal M] Ruskin Dam (Hayward Lake outlet) + Ruskin spawning channel on Stave River (Ruskin spawning channel, near dam). Candidate coord [-122.4074, 49.19594]. OSM: https://www.openstreetmap.org/?mlat=49.19594&mlon=-122.40740#map=15/49.19594/-122.40740. Verify: Confirm Ruskin Dam at the Hayward Lake outlet; the closure is within the Ruskin spawning channel from the inlet near the dam to the boat-ramp crossing.. Ruskin Dam impounds Hayward Lake on the Stave River; coord = FWA Stave River exit from the Hayward Lake polygon, matching the known Ruskin Dam. The closure is inside the adjacent Ruskin spawning channel (a side channel), from its inlet near the dam to the boat-ramp crossing - side-channel geometry, verify.",
+      "notes": "[auto-proposal M] Ruskin Dam (Hayward Lake outlet) + Ruskin spawning channel on Stave River (Ruskin spawning channel, near dam). Candidate coord [-122.4074, 49.19594]. OSM: https://www.openstreetmap.org/?mlat=49.19594&mlon=-122.40740#map=15/49.19594/-122.40740. Verify: Confirm Ruskin Dam at the Hayward Lake outlet; the closure is within the Ruskin spawning channel from the inlet near the dam to the boat-ramp crossing.. Ruskin Dam impounds Hayward Lake on the Stave River; coord = FWA Stave River exit from the Hayward Lake polygon, matching the known Ruskin Dam. The closure is inside the adjacent Ruskin spawning channel (a side channel), from its inlet near the dam to the boat-ramp crossing - side-channel geometry, verify. [osm-candidate 2026-08-05] [-122.35618, 49.22952]; [-122.40739, 49.19594]; [-122.46227, 49.6276]; [-122.36772, 49.573] (OSM Overpass ∩ MU-clipped FWA river; VERIFY).",
       "entry_id": "50faaf74"
     },
     {
@@ -2749,7 +2749,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal L] Weir on Swift Creek (upstream side) -> CNR Bridge Valemount on Swift Creek (Valemount). Candidate coord [-119.29953, 52.84848]. OSM: https://www.openstreetmap.org/?mlat=52.84848&mlon=-119.29953#map=15/52.84848/-119.29953. Verify: Locate the weir on Swift Creek and the CNR Bridge in Valemount; candidate is the FWA mouth reference.. Reach from the upstream side of a weir on Swift Creek to the CNR Bridge in Valemount (MU 7-2). Weir/bridge not in FWA; candidate = FWA Swift Creek mouth [-119.300,52.848] near Valemount - refine on map.",
+      "notes": "[auto-proposal L] Weir on Swift Creek (upstream side) -> CNR Bridge Valemount on Swift Creek (Valemount). Candidate coord [-119.29953, 52.84848]. OSM: https://www.openstreetmap.org/?mlat=52.84848&mlon=-119.29953#map=15/52.84848/-119.29953. Verify: Locate the weir on Swift Creek and the CNR Bridge in Valemount; candidate is the FWA mouth reference.. Reach from the upstream side of a weir on Swift Creek to the CNR Bridge in Valemount (MU 7-2). Weir/bridge not in FWA; candidate = FWA Swift Creek mouth [-119.300,52.848] near Valemount - refine on map. [osm-candidate 2026-08-05] [-119.26786, 52.83822] (OSM Overpass ∩ MU-clipped FWA river; VERIFY).",
       "entry_id": "07d64663"
     },
     {
@@ -2825,7 +2825,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal L] Hwy 19 bridge over Adam River on Adam River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the Hwy 19 bridge over Adam River (Sayward area) on a map; single obvious crossing -> review.. Reach is 'upstream of Eve River (confluence) to the Hwy 19 bridge'. Adam River drains to Johnstone Strait near Sayward; Hwy 19 crosses it in the lower river. Public-highway bridge, not in FWA/FSR data -> map/OSM-confirmable. The Eve River endpoint is a separate confluence locator. — [review: two-boundary] 'upstream of Eve River, to Hwy 19 bridge' = TWO boundaries (Eve River confluence + Hwy 19 bridge); may need -a/-b rows per the two-boundary writing rule. [structural-split 2026-08-05 from “upstream of Eve River, to Hwy 19 bridge”] boundary=Hwy 19 bridge",
+      "notes": "[auto-proposal L] Hwy 19 bridge over Adam River on Adam River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the Hwy 19 bridge over Adam River (Sayward area) on a map; single obvious crossing -> review.. Reach is 'upstream of Eve River (confluence) to the Hwy 19 bridge'. Adam River drains to Johnstone Strait near Sayward; Hwy 19 crosses it in the lower river. Public-highway bridge, not in FWA/FSR data -> map/OSM-confirmable. The Eve River endpoint is a separate confluence locator. — [review: two-boundary] 'upstream of Eve River, to Hwy 19 bridge' = TWO boundaries (Eve River confluence + Hwy 19 bridge); may need -a/-b rows per the two-boundary writing rule. [structural-split 2026-08-05 from “upstream of Eve River, to Hwy 19 bridge”] boundary=Hwy 19 bridge [osm-candidate 2026-08-05] [-126.13643, 50.36229] (OSM Overpass ∩ MU-clipped FWA river; VERIFY).",
       "entry_id": "ce41432a"
     },
     {
@@ -2977,7 +2977,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal L] CNR (railway) Bridge at Barrett on Bulkley River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the CNR bridge over the Bulkley at Barrett (near Houston/Telkwa); railway bridge, map-only.. Reach = 'from Morice River (confluence) to CNR Bridge at Barrett'. Barrett is a locality near Houston; the Morice confluence is at Houston. Railway bridge -> not in FWA; map/OSM-confirmable. [structural-split 2026-08-05 from “from Morice River to CNR Bridge at Barrett”] boundary=CNR Bridge at Barrett",
+      "notes": "[auto-proposal L] CNR (railway) Bridge at Barrett on Bulkley River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the CNR bridge over the Bulkley at Barrett (near Houston/Telkwa); railway bridge, map-only.. Reach = 'from Morice River (confluence) to CNR Bridge at Barrett'. Barrett is a locality near Houston; the Morice confluence is at Houston. Railway bridge -> not in FWA; map/OSM-confirmable. [structural-split 2026-08-05 from “from Morice River to CNR Bridge at Barrett”] boundary=CNR Bridge at Barrett [osm-candidate 2026-08-05] [-126.26577, 54.48625]; [-126.25689, 54.47936]; [-126.22571, 54.45028]; [-126.13583, 54.38589]; [-126.63541, 54.40691]; [-126.8093, 54.44474]; [-126.7206, 54.39875]; [-126.37075, 54.51382]; [-126.40701, 54.51481]; [-126.18164, 54.40472]; [-126.20586, 54.43466]; [-126.05446, 54.39512] (OSM Overpass ∩ MU-clipped FWA river; VERIFY).",
       "entry_id": "d850b295"
     },
     {
@@ -3072,7 +3072,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal L] power line crossing ~200 m upstream of Quinsam River confluence on Campbell River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Quinsam River confluence on the Campbell, then the power line ~200 m upstream; map.. This is a power-line landmark tied to the Quinsam confluence (a confluence+offset, not a bridge). Map/OSM to place the transmission line; the Quinsam mouth on the Campbell anchors it.",
+      "notes": "[auto-proposal L] power line crossing ~200 m upstream of Quinsam River confluence on Campbell River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Quinsam River confluence on the Campbell, then the power line ~200 m upstream; map.. This is a power-line landmark tied to the Quinsam confluence (a confluence+offset, not a bridge). Map/OSM to place the transmission line; the Quinsam mouth on the Campbell anchors it. [osm-candidate 2026-08-05] [-125.40137, 50.0066]; [-125.39229, 50.01552]; [-125.57243, 50.00379]; [-125.30918, 50.04401] (OSM Overpass ∩ MU-clipped FWA river; VERIFY).",
       "entry_id": "2d6a28ef"
     },
     {
@@ -3224,7 +3224,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal L] bridge at Henry's Crossing on Chilko River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate Henry's Crossing bridge on the Chilko River (Chilcotin); map. (FSR match found is far upstream at Chilko Lake.). Henry's Crossing is a named road bridge on the Chilko River. The only FWA FSR intersection is the Chilko Lake outlet (74 km up), not this bridge -> map/OSM-confirmable.",
+      "notes": "[auto-proposal L] bridge at Henry's Crossing on Chilko River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate Henry's Crossing bridge on the Chilko River (Chilcotin); map. (FSR match found is far upstream at Chilko Lake.). Henry's Crossing is a named road bridge on the Chilko River. The only FWA FSR intersection is the Chilko Lake outlet (74 km up), not this bridge -> map/OSM-confirmable. [osm-candidate 2026-08-05] [-124.1069, 51.71516] (OSM Overpass ∩ MU-clipped FWA river; VERIFY).",
       "entry_id": "a42e90ca"
     },
     {
@@ -3339,7 +3339,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal M] West Main logging road bridge (~7.5 km above Hwy 19 bridge) on Cluxewe River. Candidate coord [-127.14618, 50.55097]. OSM: https://www.openstreetmap.org/?mlat=50.55097&mlon=-127.14618#map=15/50.55097/-127.14618. Verify: WM6 ('West Main') FSR crosses at ~9.8 km; reg says ~7.5 km above the Hwy 19 bridge (near the mouth). Confirm West Main bridge.. Reg = 'West Main logging road bridge ~7.5 km upstream of the Hwy 19 bridge'. FWA has a 'WM6' (West Main branch 6) crossing at ~9.8 km and other Cluxewe mainline crossings; WM6 is the best name match. Verify chainage/bridge on map.",
+      "notes": "[auto-proposal M] West Main logging road bridge (~7.5 km above Hwy 19 bridge) on Cluxewe River. Candidate coord [-127.14618, 50.55097]. OSM: https://www.openstreetmap.org/?mlat=50.55097&mlon=-127.14618#map=15/50.55097/-127.14618. Verify: WM6 ('West Main') FSR crosses at ~9.8 km; reg says ~7.5 km above the Hwy 19 bridge (near the mouth). Confirm West Main bridge.. Reg = 'West Main logging road bridge ~7.5 km upstream of the Hwy 19 bridge'. FWA has a 'WM6' (West Main branch 6) crossing at ~9.8 km and other Cluxewe mainline crossings; WM6 is the best name match. Verify chainage/bridge on map. [osm-candidate 2026-08-05] [-127.17028, 50.60447] (OSM Overpass ∩ MU-clipped FWA river; VERIFY).",
       "entry_id": "ed6790c7"
     },
     {
@@ -3701,7 +3701,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal M] Lavington Creek Bridge (& Doctor Creek Bridge) on Findlay Creek. Candidate coord [-115.96801, 50.13214]. OSM: https://www.openstreetmap.org/?mlat=50.13214&mlon=-115.96801#map=15/50.13214/-115.96801. Verify: FINDLAY-LAVINGTON FSR crossing = Lavington Creek Bridge (name-confirmed) at ~18.5 km; Doctor Creek Bridge is the upstream endpoint.. Reach = 'Doctor Creek Bridge to Lavington Creek Bridge'. FWA FSR 'FINDLAY-LAVINGTON' crossing firmly matches the Lavington bridge; the nearby 'Skookumchuck Creek' road crossing at ~10.4 km may be the Doctor Creek bridge. Candidate is the Lavington endpoint. [structural-split 2026-08-05 from “from Doctor Creek Bridge to Lavington Creek Bridge”] boundary=Doctor Creek Bridge",
+      "notes": "[auto-proposal M] Lavington Creek Bridge (& Doctor Creek Bridge) on Findlay Creek. Candidate coord [-115.96801, 50.13214]. OSM: https://www.openstreetmap.org/?mlat=50.13214&mlon=-115.96801#map=15/50.13214/-115.96801. Verify: FINDLAY-LAVINGTON FSR crossing = Lavington Creek Bridge (name-confirmed) at ~18.5 km; Doctor Creek Bridge is the upstream endpoint.. Reach = 'Doctor Creek Bridge to Lavington Creek Bridge'. FWA FSR 'FINDLAY-LAVINGTON' crossing firmly matches the Lavington bridge; the nearby 'Skookumchuck Creek' road crossing at ~10.4 km may be the Doctor Creek bridge. Candidate is the Lavington endpoint. [structural-split 2026-08-05 from “from Doctor Creek Bridge to Lavington Creek Bridge”] boundary=Doctor Creek Bridge [osm-candidate 2026-08-05] [-116.04373, 50.12643] (OSM Overpass ∩ MU-clipped FWA river; VERIFY).",
       "entry_id": "10cce399"
     },
     {
@@ -3758,7 +3758,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal L] BC Railway Bridge ~2 km N of Lillooet (from Bridge River Rapids fish ladder) on Fraser River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the BC Rail bridge ~2 km N of Lillooet and the fish ladder at Bridge River Rapids; map.. Lower-entrance-of-fish-ladder-at-Bridge-River-Rapids to BC Rail bridge, near Lillooet. Both railway/infrastructure landmarks -> map/OSM-confirmable; not in FWA (FSR hits are 900+ km up the Fraser). [structural-split 2026-08-05 from “from the lower entrance of the fish ladder at Bridge River Rapids to the BC Railway Bridge approximately 2 km north of L”] boundary=BC Railway Bridge approximately 2 km north of L",
+      "notes": "[auto-proposal L] BC Railway Bridge ~2 km N of Lillooet (from Bridge River Rapids fish ladder) on Fraser River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the BC Rail bridge ~2 km N of Lillooet and the fish ladder at Bridge River Rapids; map.. Lower-entrance-of-fish-ladder-at-Bridge-River-Rapids to BC Rail bridge, near Lillooet. Both railway/infrastructure landmarks -> map/OSM-confirmable; not in FWA (FSR hits are 900+ km up the Fraser). [structural-split 2026-08-05 from “from the lower entrance of the fish ladder at Bridge River Rapids to the BC Railway Bridge approximately 2 km north of L”] boundary=BC Railway Bridge approximately 2 km north of L [osm-candidate 2026-08-05] [-121.58507, 50.22424]; [-121.58101, 50.15131] (OSM Overpass ∩ MU-clipped FWA river; VERIFY).",
       "entry_id": "d32909fa"
     },
     {
@@ -3834,7 +3834,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal L] CNR Bridge ~1 km below Thompson confluence (Lytton) on Fraser River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the CNR bridge ~1 km below the Thompson-Fraser confluence at Lytton; railway bridge, map.. Reach = Thompson River confluence (Lytton) to the CNR bridge ~1 km downstream. Confluence + railway bridge -> map/OSM-confirmable. [structural-split 2026-08-05 from “From the confluence with Thompson River to the CNR Bridge approximately 1 km downstream”] boundary=CNR Bridge approximately 1 km downstream",
+      "notes": "[auto-proposal L] CNR Bridge ~1 km below Thompson confluence (Lytton) on Fraser River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the CNR bridge ~1 km below the Thompson-Fraser confluence at Lytton; railway bridge, map.. Reach = Thompson River confluence (Lytton) to the CNR bridge ~1 km downstream. Confluence + railway bridge -> map/OSM-confirmable. [structural-split 2026-08-05 from “From the confluence with Thompson River to the CNR Bridge approximately 1 km downstream”] boundary=CNR Bridge approximately 1 km downstream [osm-candidate 2026-08-05] [-121.58507, 50.22424]; [-121.58101, 50.15131] (OSM Overpass ∩ MU-clipped FWA river; VERIFY).",
       "entry_id": "d32909fa"
     },
     {
@@ -4064,7 +4064,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal L] power line crossing 3.5 km above Lakelse River mouth on Lakelse River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the power line 3.5 km above the Lakelse mouth (from Lakelse Lake outlet); power line, map-only.. Reach = 'Lakelse Lake outlet to power line 3.5 km above the mouth'. Transmission-line landmark near Terrace; not in FWA. Map/OSM. [structural-split 2026-08-05 from “from the outlet of Lakelse Lake to the power line crossing, located 3.5 km upstream of the Lakelse River mouth”] boundary=power line crossing, located 3.5 km upstream of the Lakelse River mouth",
+      "notes": "[auto-proposal L] power line crossing 3.5 km above Lakelse River mouth on Lakelse River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the power line 3.5 km above the Lakelse mouth (from Lakelse Lake outlet); power line, map-only.. Reach = 'Lakelse Lake outlet to power line 3.5 km above the mouth'. Transmission-line landmark near Terrace; not in FWA. Map/OSM. [structural-split 2026-08-05 from “from the outlet of Lakelse Lake to the power line crossing, located 3.5 km upstream of the Lakelse River mouth”] boundary=power line crossing, located 3.5 km upstream of the Lakelse River mouth [osm-candidate 2026-08-05] [-128.75105, 54.43999] (OSM Overpass ∩ MU-clipped FWA river; VERIFY).",
       "entry_id": "dd7048cb"
     },
     {
@@ -4102,7 +4102,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal L] CNR Bridge over Lakelse River (from Lakelse Lake) on Lakelse River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the CNR (railway) bridge on the Lakelse River near Terrace; railway bridge, map-only.. Reach = 'between Lakelse Lake and CNR Bridge'. Railway bridge -> not in FWA; map/OSM-confirmable. [structural-split 2026-08-05 from “between Lakelse Lake and CNR Bridge”] boundary=CNR Bridge",
+      "notes": "[auto-proposal L] CNR Bridge over Lakelse River (from Lakelse Lake) on Lakelse River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the CNR (railway) bridge on the Lakelse River near Terrace; railway bridge, map-only.. Reach = 'between Lakelse Lake and CNR Bridge'. Railway bridge -> not in FWA; map/OSM-confirmable. [structural-split 2026-08-05 from “between Lakelse Lake and CNR Bridge”] boundary=CNR Bridge [osm-candidate 2026-08-05] [-128.64308, 54.39856] (OSM Overpass ∩ MU-clipped FWA river; VERIFY).",
       "entry_id": "dd7048cb"
     },
     {
@@ -4406,7 +4406,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal L] power line at 'Bore Hole' & Boulder Creek mouth signs on Nanaimo River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the 'Bore Hole' power-line crossing and the Boulder Creek confluence signs on the Nanaimo River; map.. Reach between a power-line landmark ('Bore Hole') and boundary signs at the Boulder Creek mouth. Not in FWA. Map/OSM-confirmable. [structural-split 2026-08-05 from “from power line crossing at \"Bore Hole\" upstream to fishing boundary signs at the mouth of Boulder Creek”] boundary=power line crossing at \"Bore Hole\"",
+      "notes": "[auto-proposal L] power line at 'Bore Hole' & Boulder Creek mouth signs on Nanaimo River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the 'Bore Hole' power-line crossing and the Boulder Creek confluence signs on the Nanaimo River; map.. Reach between a power-line landmark ('Bore Hole') and boundary signs at the Boulder Creek mouth. Not in FWA. Map/OSM-confirmable. [structural-split 2026-08-05 from “from power line crossing at \"Bore Hole\" upstream to fishing boundary signs at the mouth of Boulder Creek”] boundary=power line crossing at \"Bore Hole\" [osm-candidate 2026-08-05] [-123.88853, 49.12661]; [-123.90653, 49.07297]; [-123.90723, 49.07376]; [-124.07008, 49.07638]; [-124.06895, 49.07614] (OSM Overpass ∩ MU-clipped FWA river; VERIFY).",
       "entry_id": "046b8cc3"
     },
     {
@@ -4444,7 +4444,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal L] Cedar Road Bridge & Hwy 19 bridge over Nanaimo River on Nanaimo River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the Cedar Road bridge and Hwy 19 bridge over the Nanaimo River (near Cedar/Nanaimo); map.. Reach between two road bridges on the lower Nanaimo River. Public bridges -> map/OSM-confirmable. [structural-split 2026-08-05 from “from the Cedar Road Bridge upstream to the Hwy 19 bridge”] boundary=Cedar Road Bridge",
+      "notes": "[auto-proposal L] Cedar Road Bridge & Hwy 19 bridge over Nanaimo River on Nanaimo River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the Cedar Road bridge and Hwy 19 bridge over the Nanaimo River (near Cedar/Nanaimo); map.. Reach between two road bridges on the lower Nanaimo River. Public bridges -> map/OSM-confirmable. [structural-split 2026-08-05 from “from the Cedar Road Bridge upstream to the Hwy 19 bridge”] boundary=Cedar Road Bridge [osm-candidate 2026-08-05] [-123.88045, 49.11625] (OSM Overpass ∩ MU-clipped FWA river; VERIFY).",
       "entry_id": "046b8cc3"
     },
     {
@@ -4463,7 +4463,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal L] Cedar Road Bridge & Hwy 19 bridge over Nanaimo River on Nanaimo River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the Cedar Road bridge and Hwy 19 bridge over the Nanaimo River (near Cedar/Nanaimo); map.. Reach between two road bridges on the lower Nanaimo River. Public bridges -> map/OSM-confirmable. [structural-split 2026-08-05 from “from the Cedar Road Bridge upstream to the Hwy 19 bridge”] boundary=Hwy 19 bridge",
+      "notes": "[auto-proposal L] Cedar Road Bridge & Hwy 19 bridge over Nanaimo River on Nanaimo River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the Cedar Road bridge and Hwy 19 bridge over the Nanaimo River (near Cedar/Nanaimo); map.. Reach between two road bridges on the lower Nanaimo River. Public bridges -> map/OSM-confirmable. [structural-split 2026-08-05 from “from the Cedar Road Bridge upstream to the Hwy 19 bridge”] boundary=Hwy 19 bridge [osm-candidate 2026-08-05] [-123.87943, 49.11422] (OSM Overpass ∩ MU-clipped FWA river; VERIFY).",
       "entry_id": "046b8cc3"
     },
     {
@@ -4482,7 +4482,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal L] Hwy 1 bridge over Nanaimo River on Nanaimo River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the Hwy 1 (Trans-Canada) bridge over the Nanaimo River, S of Nanaimo; single crossing -> review.. Public highway bridge -> map/OSM-confirmable; not in FWA.",
+      "notes": "[auto-proposal L] Hwy 1 bridge over Nanaimo River on Nanaimo River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the Hwy 1 (Trans-Canada) bridge over the Nanaimo River, S of Nanaimo; single crossing -> review.. Public highway bridge -> map/OSM-confirmable; not in FWA. [osm-candidate 2026-08-05] [-123.8806, 49.07089] (OSM Overpass ∩ MU-clipped FWA river; VERIFY).",
       "entry_id": "046b8cc3"
     },
     {
@@ -4748,7 +4748,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal L] railway bridge over Noons Creek, Port Moody on Noons Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the railway bridge over Noons Creek at Port Moody; railway bridge, map-only.. Small urban creek at Port Moody; landmark is a railway bridge near the mouth. FSR hits are upstream (Cypress Lake). Map/OSM-confirmable.",
+      "notes": "[auto-proposal L] railway bridge over Noons Creek, Port Moody on Noons Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the railway bridge over Noons Creek at Port Moody; railway bridge, map-only.. Small urban creek at Port Moody; landmark is a railway bridge near the mouth. FSR hits are upstream (Cypress Lake). Map/OSM-confirmable. [osm-candidate 2026-08-05] [-122.83407, 49.28408] (OSM Overpass ∩ MU-clipped FWA river; VERIFY).",
       "entry_id": "91c6d218"
     },
     {
@@ -4900,7 +4900,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal L] Likely Bridge over Quesnel River (+/- 50 m) on Quesnel River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the Likely Bridge over the Quesnel River at Likely townsite (reach = 50 m either side); review.. Road bridge at Likely (upper Quesnel River, near Quesnel Lake outlet). Not name-matched in FSR; well-defined public bridge -> map/OSM-confirmable. NOTE the FWA mouth (Quesnel city) is the wrong end; Likely is upstream. [structural-split 2026-08-05 from “from 50 m upstream of Likely Bridge to 50 m downstream of Likely Bridge”] boundary=50 m upstream of Likely Bridge",
+      "notes": "[auto-proposal L] Likely Bridge over Quesnel River (+/- 50 m) on Quesnel River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the Likely Bridge over the Quesnel River at Likely townsite (reach = 50 m either side); review.. Road bridge at Likely (upper Quesnel River, near Quesnel Lake outlet). Not name-matched in FSR; well-defined public bridge -> map/OSM-confirmable. NOTE the FWA mouth (Quesnel city) is the wrong end; Likely is upstream. [structural-split 2026-08-05 from “from 50 m upstream of Likely Bridge to 50 m downstream of Likely Bridge”] boundary=50 m upstream of Likely Bridge [osm-candidate 2026-08-05] [-121.57279, 52.61534] (OSM Overpass ∩ MU-clipped FWA river; VERIFY).",
       "entry_id": "cae5d13e"
     },
     {
@@ -4919,7 +4919,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal L] Likely Bridge over Quesnel River (+/- 50 m) on Quesnel River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the Likely Bridge over the Quesnel River at Likely townsite (reach = 50 m either side); review.. Road bridge at Likely (upper Quesnel River, near Quesnel Lake outlet). Not name-matched in FSR; well-defined public bridge -> map/OSM-confirmable. NOTE the FWA mouth (Quesnel city) is the wrong end; Likely is upstream. [structural-split 2026-08-05 from “from 50 m upstream of Likely Bridge to 50 m downstream of Likely Bridge”] boundary=50 m downstream of Likely Bridge",
+      "notes": "[auto-proposal L] Likely Bridge over Quesnel River (+/- 50 m) on Quesnel River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the Likely Bridge over the Quesnel River at Likely townsite (reach = 50 m either side); review.. Road bridge at Likely (upper Quesnel River, near Quesnel Lake outlet). Not name-matched in FSR; well-defined public bridge -> map/OSM-confirmable. NOTE the FWA mouth (Quesnel city) is the wrong end; Likely is upstream. [structural-split 2026-08-05 from “from 50 m upstream of Likely Bridge to 50 m downstream of Likely Bridge”] boundary=50 m downstream of Likely Bridge [osm-candidate 2026-08-05] [-121.57279, 52.61534] (OSM Overpass ∩ MU-clipped FWA river; VERIFY).",
       "entry_id": "cae5d13e"
     },
     {
@@ -4938,7 +4938,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal L] boundary signs ~1.8 km E of Likely Bridge (to Morehead Creek) on Quesnel River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the signs ~1.8 km east of the Likely Bridge and the Morehead Creek confluence; map.. Reach = signs ~1.8 km E of Likely Bridge down to Morehead Creek. Sign + confluence landmarks near Likely -> map/OSM-confirmable. [structural-split 2026-08-05 from “from the boundary signs approximately 1.8 km east of the Likely Bridge downstream to Morehead Creek”] boundary=boundary signs approximately 1.8 km east of the Likely Bridge",
+      "notes": "[auto-proposal L] boundary signs ~1.8 km E of Likely Bridge (to Morehead Creek) on Quesnel River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the signs ~1.8 km east of the Likely Bridge and the Morehead Creek confluence; map.. Reach = signs ~1.8 km E of Likely Bridge down to Morehead Creek. Sign + confluence landmarks near Likely -> map/OSM-confirmable. [structural-split 2026-08-05 from “from the boundary signs approximately 1.8 km east of the Likely Bridge downstream to Morehead Creek”] boundary=boundary signs approximately 1.8 km east of the Likely Bridge [osm-candidate 2026-08-05] [-121.57279, 52.61534] (OSM Overpass ∩ MU-clipped FWA river; VERIFY).",
       "entry_id": "cae5d13e"
     },
     {
@@ -5109,7 +5109,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal L] Westside Road Bridge over Shorts Creek (to Okanagan Lake) on Shorts Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the Westside Road bridge over Shorts Creek (Fintry area); single crossing -> review.. Reach = 'Westside Road Bridge to Okanagan Lake'. Westside Rd crosses Shorts Creek near Fintry, close to the Okanagan Lake mouth. Map/OSM-confirmable (FSR hits are far upstream). [structural-split 2026-08-05 from “from Westside Road Bridge to Okanagan Lake”] boundary=Westside Road Bridge",
+      "notes": "[auto-proposal L] Westside Road Bridge over Shorts Creek (to Okanagan Lake) on Shorts Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the Westside Road bridge over Shorts Creek (Fintry area); single crossing -> review.. Reach = 'Westside Road Bridge to Okanagan Lake'. Westside Rd crosses Shorts Creek near Fintry, close to the Okanagan Lake mouth. Map/OSM-confirmable (FSR hits are far upstream). [structural-split 2026-08-05 from “from Westside Road Bridge to Okanagan Lake”] boundary=Westside Road Bridge [osm-candidate 2026-08-05] [-119.51429, 50.13391] (OSM Overpass ∩ MU-clipped FWA river; VERIFY).",
       "entry_id": "94472177"
     },
     {
@@ -5512,7 +5512,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal L] CNR Bridge below Deadman R. to CNR Bridge above Bonaparte R. on Thompson River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the two CNR bridges (one below the Deadman confluence near Savona, one above the Bonaparte confluence at Ashcroft); map.. Reach between two railway bridges on the Thompson, bracketed by the Deadman (Savona) and Bonaparte (Ashcroft) confluences. Railway bridges -> map/OSM-confirmable. [structural-split 2026-08-05 from “from the CNR Bridge downstream of Deadman River to CNR Bridge upstream of Bonaparte River”] boundary=CNR Bridge downstream of Deadman River",
+      "notes": "[auto-proposal L] CNR Bridge below Deadman R. to CNR Bridge above Bonaparte R. on Thompson River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the two CNR bridges (one below the Deadman confluence near Savona, one above the Bonaparte confluence at Ashcroft); map.. Reach between two railway bridges on the Thompson, bracketed by the Deadman (Savona) and Bonaparte (Ashcroft) confluences. Railway bridges -> map/OSM-confirmable. [structural-split 2026-08-05 from “from the CNR Bridge downstream of Deadman River to CNR Bridge upstream of Bonaparte River”] boundary=CNR Bridge downstream of Deadman River [osm-candidate 2026-08-05] [-121.22093, 50.74391]; [-121.25233, 50.74564]; [-121.01344, 50.7644]; [-120.92443, 50.7468]; [-121.31176, 50.66541]; [-121.31304, 50.60546]; [-121.58073, 50.23661] (OSM Overpass ∩ MU-clipped FWA river; VERIFY).",
       "entry_id": "bea6153a"
     },
     {
@@ -5533,7 +5533,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal L] CNR Bridge below Deadman R. to CNR Bridge above Bonaparte R. on Thompson River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the two CNR bridges (one below the Deadman confluence near Savona, one above the Bonaparte confluence at Ashcroft); map.. Reach between two railway bridges on the Thompson, bracketed by the Deadman (Savona) and Bonaparte (Ashcroft) confluences. Railway bridges -> map/OSM-confirmable. [structural-split 2026-08-05 from “from the CNR Bridge downstream of Deadman River to CNR Bridge upstream of Bonaparte River”] boundary=CNR Bridge upstream of Bonaparte River",
+      "notes": "[auto-proposal L] CNR Bridge below Deadman R. to CNR Bridge above Bonaparte R. on Thompson River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the two CNR bridges (one below the Deadman confluence near Savona, one above the Bonaparte confluence at Ashcroft); map.. Reach between two railway bridges on the Thompson, bracketed by the Deadman (Savona) and Bonaparte (Ashcroft) confluences. Railway bridges -> map/OSM-confirmable. [structural-split 2026-08-05 from “from the CNR Bridge downstream of Deadman River to CNR Bridge upstream of Bonaparte River”] boundary=CNR Bridge upstream of Bonaparte River [osm-candidate 2026-08-05] [-121.22093, 50.74391]; [-121.25233, 50.74564]; [-121.01344, 50.7644]; [-120.92443, 50.7468]; [-121.31176, 50.66541]; [-121.31304, 50.60546]; [-121.58073, 50.23661] (OSM Overpass ∩ MU-clipped FWA river; VERIFY).",
       "entry_id": "bea6153a"
     },
     {
@@ -5628,7 +5628,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal L] Trout Creek trestle (KVR) at Summerland on Trout Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the Kettle Valley Railway Trout Creek trestle at Summerland; single well-known trestle -> review.. Reg = 'upstream of the trestle'. The Trout Creek (KVR) trestle at Summerland is a famous, unambiguous landmark. Map/OSM-confirmable; not in FWA.",
+      "notes": "[auto-proposal L] Trout Creek trestle (KVR) at Summerland on Trout Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the Kettle Valley Railway Trout Creek trestle at Summerland; single well-known trestle -> review.. Reg = 'upstream of the trestle'. The Trout Creek (KVR) trestle at Summerland is a famous, unambiguous landmark. Map/OSM-confirmable; not in FWA. [osm-candidate 2026-08-05] [-119.65443, 49.56589] (OSM Overpass ∩ MU-clipped FWA river; VERIFY).",
       "entry_id": "f24bd72f"
     },
     {
@@ -5686,7 +5686,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal L] Sayward Road Bridge over White River on White River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the 'Sayward Road' bridge over the White River (Kootenay, near Whiteswan); map. Not name-matched in FSR.. Reg = 'upstream of the Sayward Road Bridge crossing'. Road bridge on the White River (Region 4, near Whiteswan/Height of the Rockies); not name-matched among the White-Swan FSR crossings. Map/OSM-confirmable.",
+      "notes": "[auto-proposal L] Sayward Road Bridge over White River on White River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the 'Sayward Road' bridge over the White River (Kootenay, near Whiteswan); map. Not name-matched in FSR.. Reg = 'upstream of the Sayward Road Bridge crossing'. Road bridge on the White River (Region 4, near Whiteswan/Height of the Rockies); not name-matched among the White-Swan FSR crossings. Map/OSM-confirmable. [osm-candidate 2026-08-05] [-125.91741, 50.30805] (OSM Overpass ∩ MU-clipped FWA river; VERIFY).",
       "entry_id": "4cf440b0"
     },
     {
