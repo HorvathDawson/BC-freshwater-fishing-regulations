@@ -112,17 +112,34 @@ Every prior `curated`/`manual`/`not_applicable`/`deferred` decision is untouched
 reads them and backfills. `entry_id` is additive. See `docs/17-manual-review-runbook.md` for per-row
 writing rules and `docs/15` for lake-internal (deferred) splits.
 
-## Cutover cleanup checklist (when `14-locators-to-curate.json` is retired)
+## Cutover plan — the grouped file BECOMES `14` (end state)
 
-`waterbody-splits.json` currently derives FROM `14`; to retire `14` we must first invert the flow
-(make the grouped file source-of-truth by giving it a writer, or freeze it). Audit as of 2026-08-05:
+**Direction (decided 2026-08-05):** `14-locators-to-curate.json` is a flat list that is hard to
+review; the grouped, de-duped structure in `waterbody-splits.json` is the better shape. The plan is
+to **finish cleaning up curation, then make the grouped file the source-of-truth and rename it into
+`14`'s role** (this doc, `18`, becomes the canonical spec; the old `14-locators-to-curate.md` folds
+in).
 
-- **Keep** — `waterbody_splits.py` (becomes reader/writer); independent oneoffs
-  `resolve_lake_offsets.py`, `review_comments.py`, `complex_regs_report.py`,
-  `name_variants_compile.py` (0 refs to `14`).
-- **Delete (dead one-shots, already applied, effects baked into rows + git history)** —
-  `migrate_curation_schema.py`, `classify_lakes.py`, `mark_auto_lakes.py`.
-- **Rewire → grouped file, or retire** — `curation_status.py` (the cockpit: progress / annotate /
-  label / apply) and `build_review_html.py` (offline labeller). Both read/write `14` today.
-- **Docs to re-point / fold** — `14-locators-to-curate.md` folds into this file; update mentions in
-  `00-README`, `15`, `16`, `17`, `oneoff/README.md`.
+**Why it can't happen yet — the "writer" blocker.** Today the flow is one-way:
+`14` (hand-edited) → `waterbody_splits.py` reads it → `waterbody-splits.json` (generated, read-only).
+The grouped file is a *projection*; every editing tool writes to `14`. To retire `14` the grouped
+file must gain a **writer** (edit-in-place tooling that persists status/coord/target changes back
+into it), so it is both source AND writable. Then `14` is redundant.
+
+**Sequence:**
+1. **Writer for the grouped file** — persist a per-locator edit (status, coord, target, note) back
+   into `waterbody-splits.json`, so it stops being regenerated-from-`14` and becomes source-of-truth.
+2. **Rewire `curation_status.py`** onto the grouped file (progress / work-queue / annotate / label /
+   apply), plus a **new `regs-md` view**: render ALL reg entries as a markdown table (like the
+   original synopsis), with each entry's **locator phrases highlighted inline** in the reg text —
+   an `not_applicable` locator is rendered **un-highlighted**, so live splits vs n/a are visible at
+   a glance.
+3. **Delete** the dead one-shots `migrate_curation_schema.py`, `classify_lakes.py`,
+   `mark_auto_lakes.py` (already applied; effects baked into rows + git history) **and**
+   `build_review_html.py` (offline labeller — retire, do not rewire).
+4. **Rename/replace** — grouped file takes `14`'s role; re-point mentions in `00-README`, `15`,
+   `16`, `17`, `oneoff/README.md`; fold `14-locators-to-curate.md` into this doc.
+
+**Keep** — `waterbody_splits.py` (becomes the reader/writer core) and the independent oneoffs
+`resolve_lake_offsets.py`, `review_comments.py`, `complex_regs_report.py`,
+`name_variants_compile.py` (0 refs to `14`).
