@@ -8,6 +8,8 @@ Run-once and hand-curation tooling, kept for reproducibility but NOT part of the
 |--------|--------------|--------|
 | `name_variants_compile.py` | Bootstrap the unified name-variations file (feature_display_names + overrides + anglerinfo). | `stream_sections/name_variants.json` |
 | `complex_regs_report.py` | Scan overrides + parsed synopsis for section-language / tributary / multi-rule complexity. | `output/v2/complex_regulations.md` |
+| `bridge_structural.py` | Structural pass on `bridge_road_km` locators: split `from A to B` into `-a`/`-b` (per-endpoint kind), reclass, note shared anchors. `apply` mutates. | writes `14-locators-to-curate.json` |
+| `osm_bridges.py` | Candidate coords for man-made crossings (highway/road/rail/**power line**/**dam**) via OSM Overpass ∩ MU-clipped FWA river. `report`→`output/osm_candidates.md`; `apply`→`[osm-candidate]` notes. FWA is used for the river; OSM ONLY for features not in the gpkg (see `../docs/18`). | `output/osm_candidates.{md,json}` |
 
 ---
 
