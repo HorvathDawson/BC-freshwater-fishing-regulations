@@ -2221,11 +2221,14 @@
       "full_regulation": "Trout/Char daily quota = 1 (no cutthroat under 30 cm, no bull trout under 75 cm) and bait ban, June 15-Oct 31\nElectric motor only - max 7.5 kW\nClass II water when open, including tributaries",
       "anchor_kind": "point",
       "resolver_hint": "dam_weir_fence",
-      "status": "todo",
+      "status": "curated",
       "target": "",
-      "coord": null,
-      "label": "",
-      "notes": "[auto-proposal M] Elko Dam (run-of-river, Elk River) on Elk River (downstream of Elko Dam). Candidate coord [-115.10633, 49.29954]. OSM: https://www.openstreetmap.org/?mlat=49.29954&mlon=-115.10633#map=15/49.29954/-115.10633. Verify: Confirm the Elko Dam / diversion location on the Elk River in the canyon just above the town of Elko; candidate is the nearest Elk River blue-line point.. Elko Dam is a small run-of-river diversion dam on the Elk River near the town of Elko - no large named reservoir in FWA. Candidate is the Elk River blue-line point nearest the town of Elko; refine against BC Hydro/map. Pairs with the 'upstream of Elko Dam' entries. [osm-candidate 2026-08-05] [-115.10453, 49.29006] (OSM Overpass ∩ MU-clipped FWA river; VERIFY).",
+      "coord": [
+        -115.10453,
+        49.29006
+      ],
+      "label": "Elko Dam",
+      "notes": "[auto-proposal M] Elko Dam (run-of-river, Elk River) on Elk River (downstream of Elko Dam). Candidate coord [-115.10633, 49.29954]. OSM: https://www.openstreetmap.org/?mlat=49.29954&mlon=-115.10633#map=15/49.29954/-115.10633. Verify: Confirm the Elko Dam / diversion location on the Elk River in the canyon just above the town of Elko; candidate is the nearest Elk River blue-line point.. Elko Dam is a small run-of-river diversion dam on the Elk River near the town of Elko - no large named reservoir in FWA. Candidate is the Elk River blue-line point nearest the town of Elko; refine against BC Hydro/map. Pairs with the 'upstream of Elko Dam' entries. [osm-candidate 2026-08-05] [-115.10453, 49.29006] (OSM Overpass ∩ MU-clipped FWA river; VERIFY). [human-review 2026-08-05 OSM-confirmed]",
       "entry_id": "6bfbbcb3"
     },
     {
@@ -2241,11 +2244,14 @@
       "full_regulation": "Bait ban, June 15-Oct 31\nTrout/char catch and release June 15-Oct 31: from Lower Elk Lake to Forsyth Cr, from Line Creek Bridge to CPR Bridge at Sparwood, from\nHwy 3 bridge at Hosmer to the northern Hwy 3 bridge at Fernie, and from the bridge at Morrissey to Elko Dam\nAll other parts: trout/char daily quota = 1 (none under 30 cm), June 15-Oct 31\nBull trout catch and release\nElectric motor only - max 7.5 kW\nClass II water when open, including tributaries",
       "anchor_kind": "point",
       "resolver_hint": "dam_weir_fence",
-      "status": "todo",
+      "status": "curated",
       "target": "",
-      "coord": null,
-      "label": "",
-      "notes": "[auto-proposal M] Elko Dam (run-of-river, Elk River) on Elk River (upstream of Elko Dam). Candidate coord [-115.10633, 49.29954]. OSM: https://www.openstreetmap.org/?mlat=49.29954&mlon=-115.10633#map=15/49.29954/-115.10633. Verify: Same Elko Dam point as the downstream entry; confirm on map.. Same Elko Dam structure as elk-river-downstream-of-elko-dam; this is the upstream side (MU 4-2/4-23). One cut at the dam yields both the up- and downstream reaches. [osm-candidate 2026-08-05] [-115.10453, 49.29006] (OSM Overpass ∩ MU-clipped FWA river; VERIFY).",
+      "coord": [
+        -115.10453,
+        49.29006
+      ],
+      "label": "Elko Dam",
+      "notes": "[auto-proposal M] Elko Dam (run-of-river, Elk River) on Elk River (upstream of Elko Dam). Candidate coord [-115.10633, 49.29954]. OSM: https://www.openstreetmap.org/?mlat=49.29954&mlon=-115.10633#map=15/49.29954/-115.10633. Verify: Same Elko Dam point as the downstream entry; confirm on map.. Same Elko Dam structure as elk-river-downstream-of-elko-dam; this is the upstream side (MU 4-2/4-23). One cut at the dam yields both the up- and downstream reaches. [osm-candidate 2026-08-05] [-115.10453, 49.29006] (OSM Overpass ∩ MU-clipped FWA river; VERIFY). [human-review 2026-08-05 OSM-confirmed]",
       "entry_id": "e8ba6b4f"
     },
     {
@@ -2821,11 +2827,14 @@
       "full_regulation": "Artificial fly only upstream of Eve River, to Hwy 19 bridge",
       "anchor_kind": "point",
       "resolver_hint": "bridge_road_km",
-      "status": "todo",
+      "status": "curated",
       "target": "",
-      "coord": null,
-      "label": "",
-      "notes": "[auto-proposal L] Hwy 19 bridge over Adam River on Adam River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the Hwy 19 bridge over Adam River (Sayward area) on a map; single obvious crossing -> review.. Reach is 'upstream of Eve River (confluence) to the Hwy 19 bridge'. Adam River drains to Johnstone Strait near Sayward; Hwy 19 crosses it in the lower river. Public-highway bridge, not in FWA/FSR data -> map/OSM-confirmable. The Eve River endpoint is a separate confluence locator. — [review: two-boundary] 'upstream of Eve River, to Hwy 19 bridge' = TWO boundaries (Eve River confluence + Hwy 19 bridge); may need -a/-b rows per the two-boundary writing rule. [structural-split 2026-08-05 from “upstream of Eve River, to Hwy 19 bridge”] boundary=Hwy 19 bridge [osm-candidate 2026-08-05] [-126.13643, 50.36229] (OSM Overpass ∩ MU-clipped FWA river; VERIFY).",
+      "coord": [
+        -126.13643,
+        50.36229
+      ],
+      "label": "Hwy 19 bridge",
+      "notes": "[auto-proposal L] Hwy 19 bridge over Adam River on Adam River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the Hwy 19 bridge over Adam River (Sayward area) on a map; single obvious crossing -> review.. Reach is 'upstream of Eve River (confluence) to the Hwy 19 bridge'. Adam River drains to Johnstone Strait near Sayward; Hwy 19 crosses it in the lower river. Public-highway bridge, not in FWA/FSR data -> map/OSM-confirmable. The Eve River endpoint is a separate confluence locator. — [review: two-boundary] 'upstream of Eve River, to Hwy 19 bridge' = TWO boundaries (Eve River confluence + Hwy 19 bridge); may need -a/-b rows per the two-boundary writing rule. [structural-split 2026-08-05 from “upstream of Eve River, to Hwy 19 bridge”] boundary=Hwy 19 bridge [osm-candidate 2026-08-05] [-126.13643, 50.36229] (OSM Overpass ∩ MU-clipped FWA river; VERIFY). [human-review 2026-08-05 OSM-confirmed]",
       "entry_id": "ce41432a"
     },
     {
@@ -3220,11 +3229,14 @@
       "full_regulation": "No Fishing Nov 1-June 10\nTrout/char catch and release; bait ban\nFly fishing only upstream of Brittany Creek\nNo angling from powered boats upstream of bridge at Henry's Crossing, Sept 11-Sept 30; speed restriction (5 km/h) on part\nClass II water upstream of Brittany Creek[Includes Tributaries], June 11-Oct 31 (Steelhead Stamp not required)",
       "anchor_kind": "point",
       "resolver_hint": "bridge_road_km",
-      "status": "todo",
+      "status": "curated",
       "target": "",
-      "coord": null,
-      "label": "",
-      "notes": "[auto-proposal L] bridge at Henry's Crossing on Chilko River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate Henry's Crossing bridge on the Chilko River (Chilcotin); map. (FSR match found is far upstream at Chilko Lake.). Henry's Crossing is a named road bridge on the Chilko River. The only FWA FSR intersection is the Chilko Lake outlet (74 km up), not this bridge -> map/OSM-confirmable. [osm-candidate 2026-08-05] [-124.1069, 51.71516] (OSM Overpass ∩ MU-clipped FWA river; VERIFY).",
+      "coord": [
+        -124.1069,
+        51.71516
+      ],
+      "label": "Henry Crossing bridge",
+      "notes": "[auto-proposal L] bridge at Henry's Crossing on Chilko River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate Henry's Crossing bridge on the Chilko River (Chilcotin); map. (FSR match found is far upstream at Chilko Lake.). Henry's Crossing is a named road bridge on the Chilko River. The only FWA FSR intersection is the Chilko Lake outlet (74 km up), not this bridge -> map/OSM-confirmable. [osm-candidate 2026-08-05] [-124.1069, 51.71516] (OSM Overpass ∩ MU-clipped FWA river; VERIFY). [human-review 2026-08-05 OSM-confirmed]",
       "entry_id": "a42e90ca"
     },
     {
@@ -3335,11 +3347,14 @@
       "full_regulation": "No Fishing upstream of the West Main logging road bridge (approximately 7.5 km upstream of the Hwy 19 bridge), Dec 1-May 31",
       "anchor_kind": "point",
       "resolver_hint": "bridge_road_km",
-      "status": "todo",
+      "status": "curated",
       "target": "",
-      "coord": null,
-      "label": "",
-      "notes": "[auto-proposal M] West Main logging road bridge (~7.5 km above Hwy 19 bridge) on Cluxewe River. Candidate coord [-127.14618, 50.55097]. OSM: https://www.openstreetmap.org/?mlat=50.55097&mlon=-127.14618#map=15/50.55097/-127.14618. Verify: WM6 ('West Main') FSR crosses at ~9.8 km; reg says ~7.5 km above the Hwy 19 bridge (near the mouth). Confirm West Main bridge.. Reg = 'West Main logging road bridge ~7.5 km upstream of the Hwy 19 bridge'. FWA has a 'WM6' (West Main branch 6) crossing at ~9.8 km and other Cluxewe mainline crossings; WM6 is the best name match. Verify chainage/bridge on map. [osm-candidate 2026-08-05] [-127.17028, 50.60447] (OSM Overpass ∩ MU-clipped FWA river; VERIFY).",
+      "coord": [
+        -127.14544,
+        50.55067
+      ],
+      "label": "West Mainline logging road bridge",
+      "notes": "[auto-proposal M] West Main logging road bridge (~7.5 km above Hwy 19 bridge) on Cluxewe River. Candidate coord [-127.14618, 50.55097]. OSM: https://www.openstreetmap.org/?mlat=50.55097&mlon=-127.14618#map=15/50.55097/-127.14618. Verify: WM6 ('West Main') FSR crosses at ~9.8 km; reg says ~7.5 km above the Hwy 19 bridge (near the mouth). Confirm West Main bridge.. Reg = 'West Main logging road bridge ~7.5 km upstream of the Hwy 19 bridge'. FWA has a 'WM6' (West Main branch 6) crossing at ~9.8 km and other Cluxewe mainline crossings; WM6 is the best name match. Verify chainage/bridge on map. [human-review 2026-08-05] West Mainline x Cluxewe River (OSM road name \"West Mainline\", user-located) = [-127.14544, 50.55067].",
       "entry_id": "ed6790c7"
     },
     {

@@ -7,8 +7,8 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 |---|--:|
 | NO_CURATION | 0 |
 | MISSING_SPLITS | 2 |
-| INCOMPLETE | 208 |
-| COMPLETE | 102 |
+| INCOMPLETE | 205 |
+| COMPLETE | 105 |
 | NO_SPLIT | 75 |
 
 **Drift** (curated rows matching no source locator): 1
@@ -253,10 +253,10 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 - • [except] “EXCEPT Duck Lake (see separate entry)” → creston-valley-wildlife-management-area-cvwma-cdf441[not_applicable]
 
 ## ELK RIVER (upstream of Elko Dam) · MU ['4-2', '4-23'] · p38 · [INCOMPLETE] (e8ba6b4f)
-- • [water] “upstream of Elko Dam” → elk-river-upstream-of-elko-dam-8bedc5[todo]
+- • [water] “upstream of Elko Dam” → elk-river-upstream-of-elko-dam-8bedc5[curated]
 - • [rule] “from Lower Elk Lake to Forsyth Cr, from Line Creek Bridge to CPR B” → elk-river-upstream-of-elko-dam-e38cd2[todo]
 - • [rule] “All other parts” → elk-river-upstream-of-elko-dam-91575c[todo]
-- • [entry] “upstream of Elko Dam” → elk-river-upstream-of-elko-dam-8bedc5[todo]
+- • [entry] “upstream of Elko Dam” → elk-river-upstream-of-elko-dam-8bedc5[curated]
 
 ## JORDAN RIVER · MU ['4-39'] · p39 · [INCOMPLETE] (13b0444c)
 - • [rule] “upstream of Kirkup Creek” → jordan-river-bc6d34[curated], jordan-river-390f59[curated]
@@ -290,7 +290,7 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 
 ## ADAM RIVER (except Eve River) · MU ['1-10'] · p16 · [INCOMPLETE] (ce41432a)
 - • [water] “except Eve River” → adam-river-except-eve-river-ca05b3[not_applicable]
-- • [rule] “upstream of Eve River, to Hwy 19 bridge” → adam-river-except-eve-river-939f98-a[todo], adam-river-except-eve-river-939f98-b[todo]
+- • [rule] “upstream of Eve River, to Hwy 19 bridge” → adam-river-except-eve-river-939f98-a[todo], adam-river-except-eve-river-939f98-b[curated]
 - • [entry] “except Eve River” → adam-river-except-eve-river-ca05b3[not_applicable]
 
 ## HEBER RIVER · MU ['1-9'] · p18 · [INCOMPLETE] (8b5f3143)
@@ -358,11 +358,6 @@ approximately 35 m downstream” → little-qualicum-river-4dbb9b[todo]
 - • [rule] “upstream of Pinnacles Provincial Park” → baker-creek-b9b499[todo]
 - • [rule] “downstream of Park” → baker-creek-aaf7ac[todo]
 - • [rule] “downstream of Pinnacles Provincial Park” → baker-creek-b57f9e[todo]
-
-## CHILKO RIVER · MU ['5-5'] · p50 · [INCOMPLETE] (a42e90ca)
-- • [rule] “upstream of Brittany Creek” → chilko-river-210be6[curated]
-- • [rule] “upstream of bridge at Henry's Crossing” → chilko-river-285dd1[todo]
-- • [rule] “upstream of Brittany Creek” → chilko-river-210be6[curated]
 
 ## HORSEFLY RIVER (from Quesnel Lake to Horsefly River Falls) · MU ['5-2'] · p51 · [INCOMPLETE] (9538df76)
 - • [water] “from Quesnel Lake to Horsefly River Falls” → horsefly-river-from-quesnel-lake-to-horsefly--bfe6d5[todo]
@@ -494,10 +489,6 @@ approximately 35 m downstream” → little-qualicum-river-4dbb9b[todo]
 - • [water] “downstream of Old MF&M Railway bridge 7 km upstream of Elk River” → coal-creek-downstream-of-old-mf-m-railway-bri-347452[todo]
 - • [entry] “downstream of Old MF&M Railway bridge 7 km upstream of Elk River” → coal-creek-downstream-of-old-mf-m-railway-bri-347452[todo]
 
-## ELK RIVER (downstream of Elko Dam) · MU ['4-2'] · p38 · [INCOMPLETE] (6bfbbcb3)
-- • [water] “downstream of Elko Dam” → elk-river-downstream-of-elko-dam-4c9207[todo]
-- • [entry] “downstream of Elko Dam” → elk-river-downstream-of-elko-dam-4c9207[todo]
-
 ## FORDING RIVER (downstream of Josephine Falls) · MU ['4-23'] · p38 · [INCOMPLETE] (049f5da5)
 - • [water] “downstream of Josephine Falls” → fording-river-downstream-of-josephine-falls-97d67a[todo]
 - • [entry] “downstream of Josephine Falls” → fording-river-downstream-of-josephine-falls-97d67a[todo]
@@ -589,9 +580,6 @@ approximately 35 m downstream” → little-qualicum-river-4dbb9b[todo]
 ## ARTLISH RIVER · MU ['1-12'] · p16 · [INCOMPLETE] (0505ec23)
 - • [rule] “upstream of the boundary signs at the bridge crossing approximatel” → artlish-river-9e60a3[todo]
 
-## CLUXEWE RIVER · MU ['1-13'] · p16 · [INCOMPLETE] (ed6790c7)
-- • [rule] “upstream of the West Main logging road bridge (approximately 7.5 k” → cluxewe-river-b911f6[todo]
-
 ## COPPER CREEK · MU ['6-12'] · p17 · [INCOMPLETE] (5fde172a)
 - • [rule] “from Skidegate Lake to signs at second bridge 6 km upstream of tid” → copper-creek-538967-a[todo], copper-creek-538967-b[todo]
 
@@ -599,7 +587,7 @@ approximately 35 m downstream” → little-qualicum-river-4dbb9b[todo]
 - • [rule] “upstream of fishing boundary signs at second bridge approximately ” → deena-creek-af3d2f[todo]
 
 ## EVE RIVER · MU ['1-10'] · p17 · [INCOMPLETE] (167048d4)
-- • [rule] “upstream of the fishing boundary signs (near the South Main Bridge” → adam-river-except-eve-river-939f98-b[todo], eve-river-41b1eb[todo]
+- • [rule] “upstream of the fishing boundary signs (near the South Main Bridge” → adam-river-except-eve-river-939f98-b[curated], eve-river-41b1eb[todo]
 
 ## GREAT CENTRAL LAKE · MU ['1-7'] · p18 · [INCOMPLETE] (ac438ab8)
 - • [rule] “from the dam to fishing boundary signs approximately 50 m upstream” → great-central-lake-4ff0ab[todo]
