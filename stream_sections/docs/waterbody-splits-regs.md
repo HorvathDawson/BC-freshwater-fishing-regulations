@@ -3,7 +3,7 @@
 Every reg entry (source-first), booklet order. **Bold** = a live split boundary; plain text
 = whole-water / tributary-set / `not_applicable`. Regenerate; do not hand-edit.
 
-387 entries · 419 highlighted boundary phrases.
+387 entries · 420 highlighted boundary phrases.
 
 | Water | MU | p | Regulation |
 |---|---|--:|---|
@@ -386,7 +386,7 @@ Every reg entry (source-first), booklet order. **Bold** = a live split boundary;
 | ROSEMOND LAKE | 8-26 | 76 | No powered boats **south of the CPR Bridge** |
 | SHANNON LAKE (netted off portion on the south end of the lake) | 8-11 | 77 | Trout daily quota = 1 Youth/Disabled Accompanied Water May 1-Jun 15 (see page 4) |
 | SHORTS CREEK | 8-11 | 77 | No Fishing **from Westside Road Bridge to Okanagan Lake** |
-| SHUSWAP RIVER | 8-26 | 77 | No Fishing **from Mara Lake upstream to Mara Bridge** No Fishing **50 m upstream and 50 m downstream of Trinity Bridge**, Jun 15-Nov 15 Rainbow trout/char catch and release; exempt from spring closure **from Mara Bridge upstream to Sugar Lake** Upstream of Sugar Lake: No fishing Sept 1-Oct 31; bait ban |
+| SHUSWAP RIVER | 8-26 | 77 | No Fishing **from Mara Lake upstream to Mara Bridge** No Fishing **50 m upstream and 50 m downstream of Trinity Bridge**, Jun 15-Nov 15 Rainbow trout/char catch and release; exempt from spring closure **from Mara Bridge upstream to Sugar Lake** **Upstream of Sugar Lake**: No fishing Sept 1-Oct 31; bait ban |
 | TREPANIER RIVER | 8-8 | 77 | No Fishing **from Hwy 97C to Okanagan Lake** |
 | TROUT CREEK | 8-8 | 77 | No Fishing **from the trestle in Trout Creek Canyon to Okanagan Lake** **Upstream of the trestle** exempt from spring closure |
 | UNNAMED LAKES (located immediately north and south of Bluey Lake) | 8-6 | 77 | No Fishing Known by Ministry of Forests designations as lakes 711, 712, 713, 364 and 309 on Map 92H-088 |

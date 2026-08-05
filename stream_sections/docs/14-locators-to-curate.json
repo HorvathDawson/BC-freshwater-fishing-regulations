@@ -2791,14 +2791,33 @@
       "entry_id": "65b4675c"
     },
     {
-      "id": "adam-river-except-eve-river-939f98",
+      "id": "adam-river-except-eve-river-939f98-a",
       "name_verbatim": "ADAM RIVER (except Eve River)",
       "region": "REGION 1",
       "mus": [
         "1-10"
       ],
       "src": "rule",
-      "locator_text": "upstream of Eve River, to Hwy 19 bridge",
+      "locator_text": "upstream of Eve River",
+      "full_regulation": "Artificial fly only upstream of Eve River, to Hwy 19 bridge",
+      "anchor_kind": "confluence",
+      "resolver_hint": "tributary",
+      "status": "todo",
+      "target": "",
+      "coord": null,
+      "label": "",
+      "notes": "[auto-proposal L] Hwy 19 bridge over Adam River on Adam River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the Hwy 19 bridge over Adam River (Sayward area) on a map; single obvious crossing -> review.. Reach is 'upstream of Eve River (confluence) to the Hwy 19 bridge'. Adam River drains to Johnstone Strait near Sayward; Hwy 19 crosses it in the lower river. Public-highway bridge, not in FWA/FSR data -> map/OSM-confirmable. The Eve River endpoint is a separate confluence locator. — [review: two-boundary] 'upstream of Eve River, to Hwy 19 bridge' = TWO boundaries (Eve River confluence + Hwy 19 bridge); may need -a/-b rows per the two-boundary writing rule. [structural-split 2026-08-05 from “upstream of Eve River, to Hwy 19 bridge”] boundary=upstream of Eve River",
+      "entry_id": "ce41432a"
+    },
+    {
+      "id": "adam-river-except-eve-river-939f98-b",
+      "name_verbatim": "ADAM RIVER (except Eve River)",
+      "region": "REGION 1",
+      "mus": [
+        "1-10"
+      ],
+      "src": "rule",
+      "locator_text": "Hwy 19 bridge",
       "full_regulation": "Artificial fly only upstream of Eve River, to Hwy 19 bridge",
       "anchor_kind": "point",
       "resolver_hint": "bridge_road_km",
@@ -2806,7 +2825,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal L] Hwy 19 bridge over Adam River on Adam River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the Hwy 19 bridge over Adam River (Sayward area) on a map; single obvious crossing -> review.. Reach is 'upstream of Eve River (confluence) to the Hwy 19 bridge'. Adam River drains to Johnstone Strait near Sayward; Hwy 19 crosses it in the lower river. Public-highway bridge, not in FWA/FSR data -> map/OSM-confirmable. The Eve River endpoint is a separate confluence locator. — [review: two-boundary] 'upstream of Eve River, to Hwy 19 bridge' = TWO boundaries (Eve River confluence + Hwy 19 bridge); may need -a/-b rows per the two-boundary writing rule.",
+      "notes": "[auto-proposal L] Hwy 19 bridge over Adam River on Adam River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the Hwy 19 bridge over Adam River (Sayward area) on a map; single obvious crossing -> review.. Reach is 'upstream of Eve River (confluence) to the Hwy 19 bridge'. Adam River drains to Johnstone Strait near Sayward; Hwy 19 crosses it in the lower river. Public-highway bridge, not in FWA/FSR data -> map/OSM-confirmable. The Eve River endpoint is a separate confluence locator. — [review: two-boundary] 'upstream of Eve River, to Hwy 19 bridge' = TWO boundaries (Eve River confluence + Hwy 19 bridge); may need -a/-b rows per the two-boundary writing rule. [structural-split 2026-08-05 from “upstream of Eve River, to Hwy 19 bridge”] boundary=Hwy 19 bridge",
       "entry_id": "ce41432a"
     },
     {
@@ -2924,14 +2943,33 @@
       "entry_id": "58790669"
     },
     {
-      "id": "bulkley-river-6f8ca4",
+      "id": "bulkley-river-6f8ca4-a",
       "name_verbatim": "BULKLEY RIVER",
       "region": "REGION 6",
       "mus": [
         "6-9"
       ],
       "src": "rule",
-      "locator_text": "from Morice River to CNR Bridge at Barrett",
+      "locator_text": "Morice River",
+      "full_regulation": "Angling prohibited for non-guided non-resident aliens on Saturdays and Sundays, Sept 1-Oct 31\nSee Suskwa River and Telkwa River\nNo Fishing upstream of Morice/Bulkley River confluence\nBait ban\nNo angling from boats from Morice River to CNR Bridge at Barrett, Aug 15-Dec 31, and in Moricetown Canyon or within 100 m downstream,\nall year\nClass II water Sept 1-Oct 31 and Steelhead Stamp mandatory Sept 1-Oct 31",
+      "anchor_kind": "confluence",
+      "resolver_hint": "tributary",
+      "status": "todo",
+      "target": "",
+      "coord": null,
+      "label": "",
+      "notes": "[auto-proposal L] CNR (railway) Bridge at Barrett on Bulkley River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the CNR bridge over the Bulkley at Barrett (near Houston/Telkwa); railway bridge, map-only.. Reach = 'from Morice River (confluence) to CNR Bridge at Barrett'. Barrett is a locality near Houston; the Morice confluence is at Houston. Railway bridge -> not in FWA; map/OSM-confirmable. [structural-split 2026-08-05 from “from Morice River to CNR Bridge at Barrett”] boundary=Morice River",
+      "entry_id": "d850b295"
+    },
+    {
+      "id": "bulkley-river-6f8ca4-b",
+      "name_verbatim": "BULKLEY RIVER",
+      "region": "REGION 6",
+      "mus": [
+        "6-9"
+      ],
+      "src": "rule",
+      "locator_text": "CNR Bridge at Barrett",
       "full_regulation": "Angling prohibited for non-guided non-resident aliens on Saturdays and Sundays, Sept 1-Oct 31\nSee Suskwa River and Telkwa River\nNo Fishing upstream of Morice/Bulkley River confluence\nBait ban\nNo angling from boats from Morice River to CNR Bridge at Barrett, Aug 15-Dec 31, and in Moricetown Canyon or within 100 m downstream,\nall year\nClass II water Sept 1-Oct 31 and Steelhead Stamp mandatory Sept 1-Oct 31",
       "anchor_kind": "point",
       "resolver_hint": "bridge_road_km",
@@ -2939,18 +2977,37 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal L] CNR (railway) Bridge at Barrett on Bulkley River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the CNR bridge over the Bulkley at Barrett (near Houston/Telkwa); railway bridge, map-only.. Reach = 'from Morice River (confluence) to CNR Bridge at Barrett'. Barrett is a locality near Houston; the Morice confluence is at Houston. Railway bridge -> not in FWA; map/OSM-confirmable.",
+      "notes": "[auto-proposal L] CNR (railway) Bridge at Barrett on Bulkley River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the CNR bridge over the Bulkley at Barrett (near Houston/Telkwa); railway bridge, map-only.. Reach = 'from Morice River (confluence) to CNR Bridge at Barrett'. Barrett is a locality near Houston; the Morice confluence is at Houston. Railway bridge -> not in FWA; map/OSM-confirmable. [structural-split 2026-08-05 from “from Morice River to CNR Bridge at Barrett”] boundary=CNR Bridge at Barrett",
       "entry_id": "d850b295"
     },
     {
-      "id": "burton-creek-b25ef3",
+      "id": "burton-creek-b25ef3-a",
       "name_verbatim": "BURTON CREEK",
       "region": "REGION 4",
       "mus": [
         "4-15"
       ],
       "src": "rule",
-      "locator_text": "from Woden Creek to Hwy 6 bridge",
+      "locator_text": "Woden Creek",
+      "full_regulation": "No Fishing from Woden Creek to Hwy 6 bridge, June 15-Oct 31",
+      "anchor_kind": "confluence",
+      "resolver_hint": "tributary",
+      "status": "todo",
+      "target": "",
+      "coord": null,
+      "label": "",
+      "notes": "[auto-proposal L] Hwy 6 bridge over Burton Creek on Burton Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm Hwy 6 bridge over Burton Creek; VERIFY correct Burton Creek (FWA name collision).. Reach = 'from Woden Creek to Hwy 6 bridge'. The FWA 'Burton Creek' match (51.48N,-119.46, Adams Lake area) is likely the wrong creek; the reg creek is on Hwy 6 (Arrow Lakes / Nakusp corridor). Public highway -> map-only. [structural-split 2026-08-05 from “from Woden Creek to Hwy 6 bridge”] boundary=Woden Creek",
+      "entry_id": "72f67e46"
+    },
+    {
+      "id": "burton-creek-b25ef3-b",
+      "name_verbatim": "BURTON CREEK",
+      "region": "REGION 4",
+      "mus": [
+        "4-15"
+      ],
+      "src": "rule",
+      "locator_text": "Hwy 6 bridge",
       "full_regulation": "No Fishing from Woden Creek to Hwy 6 bridge, June 15-Oct 31",
       "anchor_kind": "point",
       "resolver_hint": "bridge_road_km",
@@ -2958,18 +3015,18 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal L] Hwy 6 bridge over Burton Creek on Burton Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm Hwy 6 bridge over Burton Creek; VERIFY correct Burton Creek (FWA name collision).. Reach = 'from Woden Creek to Hwy 6 bridge'. The FWA 'Burton Creek' match (51.48N,-119.46, Adams Lake area) is likely the wrong creek; the reg creek is on Hwy 6 (Arrow Lakes / Nakusp corridor). Public highway -> map-only.",
+      "notes": "[auto-proposal L] Hwy 6 bridge over Burton Creek on Burton Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm Hwy 6 bridge over Burton Creek; VERIFY correct Burton Creek (FWA name collision).. Reach = 'from Woden Creek to Hwy 6 bridge'. The FWA 'Burton Creek' match (51.48N,-119.46, Adams Lake area) is likely the wrong creek; the reg creek is on Hwy 6 (Arrow Lakes / Nakusp corridor). Public highway -> map-only. [structural-split 2026-08-05 from “from Woden Creek to Hwy 6 bridge”] boundary=Hwy 6 bridge",
       "entry_id": "72f67e46"
     },
     {
-      "id": "campbell-river-947382",
+      "id": "campbell-river-947382-a",
       "name_verbatim": "CAMPBELL RIVER",
       "region": "REGION 1",
       "mus": [
         "1-10"
       ],
       "src": "rule",
-      "locator_text": "from the boundary sign at the end of Maple Street downstream to the boundary sign at the cement block",
+      "locator_text": "boundary sign at the end of Maple Street",
       "full_regulation": "No Fishing between Elk Falls and John Hart Dam Power Station\nNo Fishing from Strathcona Dam downstream 100 m\nNo Fishing from the boundary sign at the end of Maple Street downstream to the boundary sign at the cement block, Aug 1-Oct 31\nNo Fishing in any tributaries (except Quinsam River), Dec 1-May 31\nFrom John Hart Dam Power Station to power line crossing approximately 200 m upstream of Quinsam River confluence: fly fishing only\nyear-round\nArtificial fly only downstream of power line crossing approximately 200 m upstream of Quinsam River: Dec 1-May 31\nNo vessels between Elk Falls and John Hart Dam Power Station",
       "anchor_kind": "point",
       "resolver_hint": "bridge_road_km",
@@ -2977,7 +3034,26 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal L] boundary sign at end of Maple Street & 'cement block' sign on Campbell River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Maple Street boundary sign and the downstream 'cement block' sign in Campbell River city; map.. In-town boundary-sign reach on the lower Campbell River (MU 1-?); both landmarks are signs, not bridges. Map-only. The FSR 'BRIDGE OVER CAMPBELL' (3.8 km up) is a logging bridge, not these signs.",
+      "notes": "[auto-proposal L] boundary sign at end of Maple Street & 'cement block' sign on Campbell River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Maple Street boundary sign and the downstream 'cement block' sign in Campbell River city; map.. In-town boundary-sign reach on the lower Campbell River (MU 1-?); both landmarks are signs, not bridges. Map-only. The FSR 'BRIDGE OVER CAMPBELL' (3.8 km up) is a logging bridge, not these signs. [structural-split 2026-08-05 from “from the boundary sign at the end of Maple Street downstream to the boundary sign at the cement block”] boundary=boundary sign at the end of Maple Street",
+      "entry_id": "2d6a28ef"
+    },
+    {
+      "id": "campbell-river-947382-b",
+      "name_verbatim": "CAMPBELL RIVER",
+      "region": "REGION 1",
+      "mus": [
+        "1-10"
+      ],
+      "src": "rule",
+      "locator_text": "boundary sign at the cement block",
+      "full_regulation": "No Fishing between Elk Falls and John Hart Dam Power Station\nNo Fishing from Strathcona Dam downstream 100 m\nNo Fishing from the boundary sign at the end of Maple Street downstream to the boundary sign at the cement block, Aug 1-Oct 31\nNo Fishing in any tributaries (except Quinsam River), Dec 1-May 31\nFrom John Hart Dam Power Station to power line crossing approximately 200 m upstream of Quinsam River confluence: fly fishing only\nyear-round\nArtificial fly only downstream of power line crossing approximately 200 m upstream of Quinsam River: Dec 1-May 31\nNo vessels between Elk Falls and John Hart Dam Power Station",
+      "anchor_kind": "point",
+      "resolver_hint": "bridge_road_km",
+      "status": "todo",
+      "target": "",
+      "coord": null,
+      "label": "",
+      "notes": "[auto-proposal L] boundary sign at end of Maple Street & 'cement block' sign on Campbell River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Maple Street boundary sign and the downstream 'cement block' sign in Campbell River city; map.. In-town boundary-sign reach on the lower Campbell River (MU 1-?); both landmarks are signs, not bridges. Map-only. The FSR 'BRIDGE OVER CAMPBELL' (3.8 km up) is a logging bridge, not these signs. [structural-split 2026-08-05 from “from the boundary sign at the end of Maple Street downstream to the boundary sign at the cement block”] boundary=boundary sign at the cement block",
       "entry_id": "2d6a28ef"
     },
     {
@@ -3000,14 +3076,14 @@
       "entry_id": "2d6a28ef"
     },
     {
-      "id": "campbell-river-914375",
+      "id": "campbell-river-914375-a",
       "name_verbatim": "CAMPBELL RIVER",
       "region": "REGION 2",
       "mus": [
         "2-4"
       ],
       "src": "rule",
-      "locator_text": "between two white triangular fishing boundary signs downstream to pedestrian bridge at the foot of Stayte Road",
+      "locator_text": "between two white triangular fishing boundary signs",
       "full_regulation": "No Fishing upstream of 12th Avenue\nNo Fishing downstream of 12th Avenue Apr 1-June 30\nNo Fishing between two white triangular fishing boundary signs downstream to pedestrian bridge at the foot of Stayte Road, Aug 15-Sept 30\nNo Fishing from 21:00 hours to 05:00 hours each day, Aug 1-Dec 31",
       "anchor_kind": "point",
       "resolver_hint": "bridge_road_km",
@@ -3015,18 +3091,56 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal L] pedestrian bridge at foot of Stayte Road (+ boundary signs) on Campbell River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the pedestrian bridge at the foot of Stayte Road, Campbell River city; map.. In-town landmark reach (two white triangular signs down to the Stayte Road pedestrian bridge). Map-only; not in FWA.",
+      "notes": "[auto-proposal L] pedestrian bridge at foot of Stayte Road (+ boundary signs) on Campbell River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the pedestrian bridge at the foot of Stayte Road, Campbell River city; map.. In-town landmark reach (two white triangular signs down to the Stayte Road pedestrian bridge). Map-only; not in FWA. [structural-split 2026-08-05 from “between two white triangular fishing boundary signs downstream to pedestrian bridge at the foot of Stayte Road”] boundary=between two white triangular fishing boundary signs",
       "entry_id": "a2178070"
     },
     {
-      "id": "caribou-creek-101e68",
+      "id": "campbell-river-914375-b",
+      "name_verbatim": "CAMPBELL RIVER",
+      "region": "REGION 2",
+      "mus": [
+        "2-4"
+      ],
+      "src": "rule",
+      "locator_text": "pedestrian bridge at the foot of Stayte Road",
+      "full_regulation": "No Fishing upstream of 12th Avenue\nNo Fishing downstream of 12th Avenue Apr 1-June 30\nNo Fishing between two white triangular fishing boundary signs downstream to pedestrian bridge at the foot of Stayte Road, Aug 15-Sept 30\nNo Fishing from 21:00 hours to 05:00 hours each day, Aug 1-Dec 31",
+      "anchor_kind": "point",
+      "resolver_hint": "bridge_road_km",
+      "status": "todo",
+      "target": "",
+      "coord": null,
+      "label": "",
+      "notes": "[auto-proposal L] pedestrian bridge at foot of Stayte Road (+ boundary signs) on Campbell River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the pedestrian bridge at the foot of Stayte Road, Campbell River city; map.. In-town landmark reach (two white triangular signs down to the Stayte Road pedestrian bridge). Map-only; not in FWA. [structural-split 2026-08-05 from “between two white triangular fishing boundary signs downstream to pedestrian bridge at the foot of Stayte Road”] boundary=pedestrian bridge at the foot of Stayte Road",
+      "entry_id": "a2178070"
+    },
+    {
+      "id": "caribou-creek-101e68-a",
       "name_verbatim": "CARIBOU CREEK",
       "region": "REGION 4",
       "mus": [
         "4-15"
       ],
       "src": "rule",
-      "locator_text": "from Rodd Creek to Hwy 6 bridge",
+      "locator_text": "Rodd Creek",
+      "full_regulation": "No Fishing from Rodd Creek to Hwy 6 bridge, June 15-Oct 31",
+      "anchor_kind": "confluence",
+      "resolver_hint": "tributary",
+      "status": "todo",
+      "target": "",
+      "coord": null,
+      "label": "",
+      "notes": "[auto-proposal L] Hwy 6 bridge over Caribou Creek on Caribou Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm Hwy 6 bridge over Caribou Creek (Arrow Lakes, near Burton); map.. Reach = 'from Rodd Creek to Hwy 6 bridge'. Caribou Creek enters Lower Arrow Lake near Burton where Hwy 6 crosses it. Public highway -> not in FWA; map/OSM-confirmable. [structural-split 2026-08-05 from “from Rodd Creek to Hwy 6 bridge”] boundary=Rodd Creek",
+      "entry_id": "00d8df6e"
+    },
+    {
+      "id": "caribou-creek-101e68-b",
+      "name_verbatim": "CARIBOU CREEK",
+      "region": "REGION 4",
+      "mus": [
+        "4-15"
+      ],
+      "src": "rule",
+      "locator_text": "Hwy 6 bridge",
       "full_regulation": "No Fishing from Rodd Creek to Hwy 6 bridge, June 15-Oct 31",
       "anchor_kind": "point",
       "resolver_hint": "bridge_road_km",
@@ -3034,18 +3148,37 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal L] Hwy 6 bridge over Caribou Creek on Caribou Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm Hwy 6 bridge over Caribou Creek (Arrow Lakes, near Burton); map.. Reach = 'from Rodd Creek to Hwy 6 bridge'. Caribou Creek enters Lower Arrow Lake near Burton where Hwy 6 crosses it. Public highway -> not in FWA; map/OSM-confirmable.",
+      "notes": "[auto-proposal L] Hwy 6 bridge over Caribou Creek on Caribou Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm Hwy 6 bridge over Caribou Creek (Arrow Lakes, near Burton); map.. Reach = 'from Rodd Creek to Hwy 6 bridge'. Caribou Creek enters Lower Arrow Lake near Burton where Hwy 6 crosses it. Public highway -> not in FWA; map/OSM-confirmable. [structural-split 2026-08-05 from “from Rodd Creek to Hwy 6 bridge”] boundary=Hwy 6 bridge",
       "entry_id": "00d8df6e"
     },
     {
-      "id": "chehalis-river-6a99b5",
+      "id": "chehalis-river-6a99b5-a",
       "name_verbatim": "CHEHALIS RIVER",
       "region": "REGION 2",
       "mus": [
         "2-19"
       ],
       "src": "rule",
-      "locator_text": "from boundary signs at outlet of Chehalis Lake to main logging road bridge approximately 2.4 km downstream of Chehalis L",
+      "locator_text": "boundary signs at outlet of Chehalis Lake",
+      "full_regulation": "No Fishing from boundary signs at outlet of Chehalis Lake to main logging road bridge approximately 2.4 km downstream of Chehalis Lake\nNo Fishing downstream of the main logging road bridge situated approximately 2.4 km downstream of Chehalis Lake, May 1-31",
+      "anchor_kind": "lake",
+      "resolver_hint": "lake_reach",
+      "status": "todo",
+      "target": "",
+      "coord": null,
+      "label": "",
+      "notes": "[auto-proposal M] main logging road bridge ~2.4 km below Chehalis Lake outlet on Chehalis River. Candidate coord [-122.03017, 50.50767]. OSM: https://www.openstreetmap.org/?mlat=50.50767&mlon=-122.03017#map=15/50.50767/-122.03017. Verify: MYSTERY 8100 is the uppermost FSR crossing found (nearest the lake); confirm it is the bridge ~2.4 km below Chehalis Lake outlet.. Reach = 'boundary signs at Chehalis Lake outlet to the main logging road bridge ~2.4 km downstream'. Of the FWA FSR crossings, MYSTERY 8100 (6314 19) is the uppermost, closest to the lake outlet; candidate for the ~2.4 km bridge. Verify on map. [structural-split 2026-08-05 from “from boundary signs at outlet of Chehalis Lake to main logging road bridge approximately 2.4 km downstream of Chehalis L”] boundary=boundary signs at outlet of Chehalis Lake",
+      "entry_id": "bb6d5fe5"
+    },
+    {
+      "id": "chehalis-river-6a99b5-b",
+      "name_verbatim": "CHEHALIS RIVER",
+      "region": "REGION 2",
+      "mus": [
+        "2-19"
+      ],
+      "src": "rule",
+      "locator_text": "main logging road bridge approximately 2.4 km downstream of Chehalis L",
       "full_regulation": "No Fishing from boundary signs at outlet of Chehalis Lake to main logging road bridge approximately 2.4 km downstream of Chehalis Lake\nNo Fishing downstream of the main logging road bridge situated approximately 2.4 km downstream of Chehalis Lake, May 1-31",
       "anchor_kind": "point",
       "resolver_hint": "bridge_road_km",
@@ -3053,7 +3186,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal M] main logging road bridge ~2.4 km below Chehalis Lake outlet on Chehalis River. Candidate coord [-122.03017, 50.50767]. OSM: https://www.openstreetmap.org/?mlat=50.50767&mlon=-122.03017#map=15/50.50767/-122.03017. Verify: MYSTERY 8100 is the uppermost FSR crossing found (nearest the lake); confirm it is the bridge ~2.4 km below Chehalis Lake outlet.. Reach = 'boundary signs at Chehalis Lake outlet to the main logging road bridge ~2.4 km downstream'. Of the FWA FSR crossings, MYSTERY 8100 (6314 19) is the uppermost, closest to the lake outlet; candidate for the ~2.4 km bridge. Verify on map.",
+      "notes": "[auto-proposal M] main logging road bridge ~2.4 km below Chehalis Lake outlet on Chehalis River. Candidate coord [-122.03017, 50.50767]. OSM: https://www.openstreetmap.org/?mlat=50.50767&mlon=-122.03017#map=15/50.50767/-122.03017. Verify: MYSTERY 8100 is the uppermost FSR crossing found (nearest the lake); confirm it is the bridge ~2.4 km below Chehalis Lake outlet.. Reach = 'boundary signs at Chehalis Lake outlet to the main logging road bridge ~2.4 km downstream'. Of the FWA FSR crossings, MYSTERY 8100 (6314 19) is the uppermost, closest to the lake outlet; candidate for the ~2.4 km bridge. Verify on map. [structural-split 2026-08-05 from “from boundary signs at outlet of Chehalis Lake to main logging road bridge approximately 2.4 km downstream of Chehalis L”] boundary=main logging road bridge approximately 2.4 km downstream of Chehalis L",
       "entry_id": "bb6d5fe5"
     },
     {
@@ -3066,13 +3199,13 @@
       "src": "rule",
       "locator_text": "downstream of the main logging road bridge situated approximately 2.4 km downstream of Chehalis Lake",
       "full_regulation": "No Fishing from boundary signs at outlet of Chehalis Lake to main logging road bridge approximately 2.4 km downstream of Chehalis Lake\nNo Fishing downstream of the main logging road bridge situated approximately 2.4 km downstream of Chehalis Lake, May 1-31",
-      "anchor_kind": "point",
-      "resolver_hint": "bridge_road_km",
+      "anchor_kind": "lake",
+      "resolver_hint": "lake_reach",
       "status": "todo",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal M] main logging road bridge ~2.4 km below Chehalis Lake on Chehalis River. Candidate coord [-122.03017, 50.50767]. OSM: https://www.openstreetmap.org/?mlat=50.50767&mlon=-122.03017#map=15/50.50767/-122.03017. Verify: Same bridge as the paired Chehalis entry; downstream reach. Confirm MYSTERY 8100 is the ~2.4 km bridge.. Downstream-of side of the same 'main logging road bridge ~2.4 km below Chehalis Lake'. Candidate MYSTERY 8100 (uppermost FSR crossing). Verify.",
+      "notes": "[auto-proposal M] main logging road bridge ~2.4 km below Chehalis Lake on Chehalis River. Candidate coord [-122.03017, 50.50767]. OSM: https://www.openstreetmap.org/?mlat=50.50767&mlon=-122.03017#map=15/50.50767/-122.03017. Verify: Same bridge as the paired Chehalis entry; downstream reach. Confirm MYSTERY 8100 is the ~2.4 km bridge.. Downstream-of side of the same 'main logging road bridge ~2.4 km below Chehalis Lake'. Candidate MYSTERY 8100 (uppermost FSR crossing). Verify. [structural-reclass 2026-08-05 → lake]",
       "entry_id": "bb6d5fe5"
     },
     {
@@ -3095,14 +3228,14 @@
       "entry_id": "a42e90ca"
     },
     {
-      "id": "chilliwack-vedder-rivers-does-not-include-sum-f59392",
+      "id": "chilliwack-vedder-rivers-does-not-include-sum-f59392-a",
       "name_verbatim": "CHILLIWACK / VEDDER RIVERS (does not include Sumas Riv",
       "region": "REGION 2",
       "mus": [
         "2-4"
       ],
       "src": "rule",
-      "locator_text": "downstream of Tamihi Rapids Bridge to Vedder Crossing Bridge",
+      "locator_text": "downstream of Tamihi Rapids Bridge",
       "full_regulation": "No Fishing upstream from a line between two fishing boundary signs on either side of the Chilliwack River 100 m downstream of the\nconfluence of the Chilliwack River and Slesse Creek\nNo Fishing downstream of a line between two fishing boundary signs on either side of the Chilliwack River 100m downstream of the\nconfluence of the Chilliwack River and Slesse Creek to Tamihi Rapids Bridge, Apr 1-June 30\nNo Fishing downstream of Tamihi Rapids Bridge to Vedder Crossing Bridge, May 1-June 30\nDownstream of Vedder Crossing Bridge: (a) fly fishing only, bait ban, hatchery rainbow trout catch and release (50 cm or less), and hatch-\nery cutthroat catch and release, May 1-31; (b) No Fishing June 1-30; (c) hatchery rainbow trout of any length 50 cm or less: daily quota =\n4, July 1-Apr 30",
       "anchor_kind": "point",
       "resolver_hint": "bridge_road_km",
@@ -3110,7 +3243,26 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal L] Tamihi Rapids Bridge & Vedder Crossing Bridge on Chilliwack/Vedder River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm Tamihi (Rapids) Bridge and Vedder Crossing Bridge on the Chilliwack/Vedder; both well-known -> review.. Reach between two named road bridges near Chilliwack (MU 2-?). Both are public bridges (not FWA). The FSR crossings found (CENTRE/RADIUM at 37-47 km) are far upstream in the Chilliwack valley, not these lower bridges.",
+      "notes": "[auto-proposal L] Tamihi Rapids Bridge & Vedder Crossing Bridge on Chilliwack/Vedder River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm Tamihi (Rapids) Bridge and Vedder Crossing Bridge on the Chilliwack/Vedder; both well-known -> review.. Reach between two named road bridges near Chilliwack (MU 2-?). Both are public bridges (not FWA). The FSR crossings found (CENTRE/RADIUM at 37-47 km) are far upstream in the Chilliwack valley, not these lower bridges. [structural-split 2026-08-05 from “downstream of Tamihi Rapids Bridge to Vedder Crossing Bridge”] boundary=downstream of Tamihi Rapids Bridge",
+      "entry_id": "2f3fea39"
+    },
+    {
+      "id": "chilliwack-vedder-rivers-does-not-include-sum-f59392-b",
+      "name_verbatim": "CHILLIWACK / VEDDER RIVERS (does not include Sumas Riv",
+      "region": "REGION 2",
+      "mus": [
+        "2-4"
+      ],
+      "src": "rule",
+      "locator_text": "Vedder Crossing Bridge",
+      "full_regulation": "No Fishing upstream from a line between two fishing boundary signs on either side of the Chilliwack River 100 m downstream of the\nconfluence of the Chilliwack River and Slesse Creek\nNo Fishing downstream of a line between two fishing boundary signs on either side of the Chilliwack River 100m downstream of the\nconfluence of the Chilliwack River and Slesse Creek to Tamihi Rapids Bridge, Apr 1-June 30\nNo Fishing downstream of Tamihi Rapids Bridge to Vedder Crossing Bridge, May 1-June 30\nDownstream of Vedder Crossing Bridge: (a) fly fishing only, bait ban, hatchery rainbow trout catch and release (50 cm or less), and hatch-\nery cutthroat catch and release, May 1-31; (b) No Fishing June 1-30; (c) hatchery rainbow trout of any length 50 cm or less: daily quota =\n4, July 1-Apr 30",
+      "anchor_kind": "point",
+      "resolver_hint": "bridge_road_km",
+      "status": "todo",
+      "target": "",
+      "coord": null,
+      "label": "",
+      "notes": "[auto-proposal L] Tamihi Rapids Bridge & Vedder Crossing Bridge on Chilliwack/Vedder River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm Tamihi (Rapids) Bridge and Vedder Crossing Bridge on the Chilliwack/Vedder; both well-known -> review.. Reach between two named road bridges near Chilliwack (MU 2-?). Both are public bridges (not FWA). The FSR crossings found (CENTRE/RADIUM at 37-47 km) are far upstream in the Chilliwack valley, not these lower bridges. [structural-split 2026-08-05 from “downstream of Tamihi Rapids Bridge to Vedder Crossing Bridge”] boundary=Vedder Crossing Bridge",
       "entry_id": "2f3fea39"
     },
     {
@@ -3210,14 +3362,33 @@
       "entry_id": "47d4ca5e"
     },
     {
-      "id": "copper-creek-538967",
+      "id": "copper-creek-538967-a",
       "name_verbatim": "COPPER CREEK",
       "region": "REGION 1",
       "mus": [
         "6-12"
       ],
       "src": "rule",
-      "locator_text": "from Skidegate Lake to signs at second bridge 6 km upstream of tidal boundary",
+      "locator_text": "Skidegate Lake",
+      "full_regulation": "No Fishing from Skidegate Lake to signs at second bridge 6 km upstream of tidal boundary, Feb 1-Apr 30\nBait ban Nov 1-Apr 30[Includes Tributaries]; cutthroat trout catch and release\nClass II water Sept 1-Apr 30[Includes Tributaries]; Steelhead Stamp mandatory Dec 1-Apr 30[Includes Tributaries]",
+      "anchor_kind": "lake",
+      "resolver_hint": "lake_reach",
+      "status": "todo",
+      "target": "",
+      "coord": null,
+      "label": "",
+      "notes": "[auto-proposal M] signed 'second bridge' ~6 km above tidal boundary on Copper Creek. Candidate coord [-131.80771, 53.11437]. OSM: https://www.openstreetmap.org/?mlat=53.11437&mlon=-131.80771#map=15/53.11437/-131.80771. Verify: Two logging crossings found (Copper Bay M/L 3.9 km, South Bay Main 7.7 km); confirm which is the signed 'second bridge' ~6 km above the tidal boundary.. Reach = 'Skidegate Lake to signs at second bridge 6 km above tidal boundary' (Haida Gwaii). Candidate = South Bay Main (7.7 km, nearest 6 km); Copper Bay M/L (3.9 km) is the alternative first bridge. [structural-split 2026-08-05 from “from Skidegate Lake to signs at second bridge 6 km upstream of tidal boundary”] boundary=Skidegate Lake",
+      "entry_id": "5fde172a"
+    },
+    {
+      "id": "copper-creek-538967-b",
+      "name_verbatim": "COPPER CREEK",
+      "region": "REGION 1",
+      "mus": [
+        "6-12"
+      ],
+      "src": "rule",
+      "locator_text": "signs at second bridge 6 km upstream of tidal boundary",
       "full_regulation": "No Fishing from Skidegate Lake to signs at second bridge 6 km upstream of tidal boundary, Feb 1-Apr 30\nBait ban Nov 1-Apr 30[Includes Tributaries]; cutthroat trout catch and release\nClass II water Sept 1-Apr 30[Includes Tributaries]; Steelhead Stamp mandatory Dec 1-Apr 30[Includes Tributaries]",
       "anchor_kind": "point",
       "resolver_hint": "bridge_road_km",
@@ -3225,7 +3396,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal M] signed 'second bridge' ~6 km above tidal boundary on Copper Creek. Candidate coord [-131.80771, 53.11437]. OSM: https://www.openstreetmap.org/?mlat=53.11437&mlon=-131.80771#map=15/53.11437/-131.80771. Verify: Two logging crossings found (Copper Bay M/L 3.9 km, South Bay Main 7.7 km); confirm which is the signed 'second bridge' ~6 km above the tidal boundary.. Reach = 'Skidegate Lake to signs at second bridge 6 km above tidal boundary' (Haida Gwaii). Candidate = South Bay Main (7.7 km, nearest 6 km); Copper Bay M/L (3.9 km) is the alternative first bridge.",
+      "notes": "[auto-proposal M] signed 'second bridge' ~6 km above tidal boundary on Copper Creek. Candidate coord [-131.80771, 53.11437]. OSM: https://www.openstreetmap.org/?mlat=53.11437&mlon=-131.80771#map=15/53.11437/-131.80771. Verify: Two logging crossings found (Copper Bay M/L 3.9 km, South Bay Main 7.7 km); confirm which is the signed 'second bridge' ~6 km above the tidal boundary.. Reach = 'Skidegate Lake to signs at second bridge 6 km above tidal boundary' (Haida Gwaii). Candidate = South Bay Main (7.7 km, nearest 6 km); Copper Bay M/L (3.9 km) is the alternative first bridge. [structural-split 2026-08-05 from “from Skidegate Lake to signs at second bridge 6 km upstream of tidal boundary”] boundary=signs at second bridge 6 km upstream of tidal boundary",
       "entry_id": "5fde172a"
     },
     {
@@ -3305,14 +3476,14 @@
       "entry_id": "f538c53d"
     },
     {
-      "id": "coquitlam-river-d7c017",
+      "id": "coquitlam-river-d7c017-a",
       "name_verbatim": "COQUITLAM RIVER",
       "region": "REGION 2",
       "mus": [
         "2-8"
       ],
       "src": "rule",
-      "locator_text": "from Lougheed Highway Bridge to Mary Hill Bypass Bridge",
+      "locator_text": "Lougheed Highway Bridge",
       "full_regulation": "No Fishing upstream of Mary Hill Bypass Bridge, May 1-June 30; No powered boats on parts\nHatchery trout daily quota = 2 (20-30 cm only), from Lougheed Highway Bridge to Mary Hill Bypass Bridge, July 1-Oct 15",
       "anchor_kind": "point",
       "resolver_hint": "bridge_road_km",
@@ -3320,7 +3491,26 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal L] Lougheed Highway Bridge & Mary Hill Bypass Bridge on Coquitlam River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm Lougheed Hwy bridge and Mary Hill Bypass bridge over the lower Coquitlam River; review.. Reach between two lower-river road bridges at Port Coquitlam. Both public bridges -> map/OSM-confirmable.",
+      "notes": "[auto-proposal L] Lougheed Highway Bridge & Mary Hill Bypass Bridge on Coquitlam River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm Lougheed Hwy bridge and Mary Hill Bypass bridge over the lower Coquitlam River; review.. Reach between two lower-river road bridges at Port Coquitlam. Both public bridges -> map/OSM-confirmable. [structural-split 2026-08-05 from “from Lougheed Highway Bridge to Mary Hill Bypass Bridge”] boundary=Lougheed Highway Bridge",
+      "entry_id": "f538c53d"
+    },
+    {
+      "id": "coquitlam-river-d7c017-b",
+      "name_verbatim": "COQUITLAM RIVER",
+      "region": "REGION 2",
+      "mus": [
+        "2-8"
+      ],
+      "src": "rule",
+      "locator_text": "Mary Hill Bypass Bridge",
+      "full_regulation": "No Fishing upstream of Mary Hill Bypass Bridge, May 1-June 30; No powered boats on parts\nHatchery trout daily quota = 2 (20-30 cm only), from Lougheed Highway Bridge to Mary Hill Bypass Bridge, July 1-Oct 15",
+      "anchor_kind": "point",
+      "resolver_hint": "bridge_road_km",
+      "status": "todo",
+      "target": "",
+      "coord": null,
+      "label": "",
+      "notes": "[auto-proposal L] Lougheed Highway Bridge & Mary Hill Bypass Bridge on Coquitlam River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm Lougheed Hwy bridge and Mary Hill Bypass bridge over the lower Coquitlam River; review.. Reach between two lower-river road bridges at Port Coquitlam. Both public bridges -> map/OSM-confirmable. [structural-split 2026-08-05 from “from Lougheed Highway Bridge to Mary Hill Bypass Bridge”] boundary=Mary Hill Bypass Bridge",
       "entry_id": "f538c53d"
     },
     {
@@ -3362,14 +3552,14 @@
       "entry_id": "ce689454"
     },
     {
-      "id": "cowichan-river-see-map-below-bb9987",
+      "id": "cowichan-river-see-map-below-bb9987-a",
       "name_verbatim": "COWICHAN RIVER (see map below)",
       "region": "REGION 1",
       "mus": [
         "1-4"
       ],
       "src": "rule",
-      "locator_text": "from signs at Greendale Trestle to CNR Bridge (mile 70.2)",
+      "locator_text": "signs at Greendale Trestle",
       "full_regulation": "No Fishing July 4-July 14\nNo Fishing July 15-Aug 31[Includes Tributaries], No Fishing from weir (dam) at Cowichan Lake's outlet to Greendale Trestle, Nov 15-Apr 15\nNo Fishing in tributaries upstream of and including Holt Creek\nFly fishing only upstream of CNR Trestle (Mile 66) Sept 1-Nov 15\nNo Fishing downstream of the CNR Mile 66 Trestle between Sept 1-Nov 15\nFly fishing only from signs at Greendale Trestle to CNR Bridge (mile 70.2)\nSpeed restriction (8 km/h) and engine power restriction - 7.5 kW (10 hp) on parts",
       "anchor_kind": "point",
       "resolver_hint": "bridge_road_km",
@@ -3377,7 +3567,26 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal L] Greendale Trestle & CNR Bridge (mile 70.2) on Cowichan River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Greendale Trestle and the CNR mile-70.2 bridge on the Cowichan River (see reg map); map-only.. Reach between two railway landmarks (Greendale Trestle to CNR mile 70.2). Not in FWA; see reg map / OSM.",
+      "notes": "[auto-proposal L] Greendale Trestle & CNR Bridge (mile 70.2) on Cowichan River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Greendale Trestle and the CNR mile-70.2 bridge on the Cowichan River (see reg map); map-only.. Reach between two railway landmarks (Greendale Trestle to CNR mile 70.2). Not in FWA; see reg map / OSM. [structural-split 2026-08-05 from “from signs at Greendale Trestle to CNR Bridge (mile 70.2)”] boundary=signs at Greendale Trestle",
+      "entry_id": "ce689454"
+    },
+    {
+      "id": "cowichan-river-see-map-below-bb9987-b",
+      "name_verbatim": "COWICHAN RIVER (see map below)",
+      "region": "REGION 1",
+      "mus": [
+        "1-4"
+      ],
+      "src": "rule",
+      "locator_text": "CNR Bridge (mile 70.2)",
+      "full_regulation": "No Fishing July 4-July 14\nNo Fishing July 15-Aug 31[Includes Tributaries], No Fishing from weir (dam) at Cowichan Lake's outlet to Greendale Trestle, Nov 15-Apr 15\nNo Fishing in tributaries upstream of and including Holt Creek\nFly fishing only upstream of CNR Trestle (Mile 66) Sept 1-Nov 15\nNo Fishing downstream of the CNR Mile 66 Trestle between Sept 1-Nov 15\nFly fishing only from signs at Greendale Trestle to CNR Bridge (mile 70.2)\nSpeed restriction (8 km/h) and engine power restriction - 7.5 kW (10 hp) on parts",
+      "anchor_kind": "point",
+      "resolver_hint": "bridge_road_km",
+      "status": "todo",
+      "target": "",
+      "coord": null,
+      "label": "",
+      "notes": "[auto-proposal L] Greendale Trestle & CNR Bridge (mile 70.2) on Cowichan River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Greendale Trestle and the CNR mile-70.2 bridge on the Cowichan River (see reg map); map-only.. Reach between two railway landmarks (Greendale Trestle to CNR mile 70.2). Not in FWA; see reg map / OSM. [structural-split 2026-08-05 from “from signs at Greendale Trestle to CNR Bridge (mile 70.2)”] boundary=CNR Bridge (mile 70.2)",
       "entry_id": "ce689454"
     },
     {
@@ -3477,14 +3686,14 @@
       "entry_id": "167048d4"
     },
     {
-      "id": "findlay-creek-6df88c",
+      "id": "findlay-creek-6df88c-a",
       "name_verbatim": "FINDLAY CREEK",
       "region": "REGION 4",
       "mus": [
         "4-26"
       ],
       "src": "rule",
-      "locator_text": "from Doctor Creek Bridge to Lavington Creek Bridge",
+      "locator_text": "Doctor Creek Bridge",
       "full_regulation": "Trout/char catch and release (mainstem only) from Doctor Creek Bridge to Lavington Creek Bridge, June 15-Oct 31; other parts (including\ntributaries, except Lavington Creek) trout/char daily quota = 2 (none under 30 cm and only 1 bull trout), June 15-Oct 31; bait ban, June 15-Oct 31\nSee Lavington Creek, a tributary",
       "anchor_kind": "point",
       "resolver_hint": "bridge_road_km",
@@ -3492,18 +3701,37 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal M] Lavington Creek Bridge (& Doctor Creek Bridge) on Findlay Creek. Candidate coord [-115.96801, 50.13214]. OSM: https://www.openstreetmap.org/?mlat=50.13214&mlon=-115.96801#map=15/50.13214/-115.96801. Verify: FINDLAY-LAVINGTON FSR crossing = Lavington Creek Bridge (name-confirmed) at ~18.5 km; Doctor Creek Bridge is the upstream endpoint.. Reach = 'Doctor Creek Bridge to Lavington Creek Bridge'. FWA FSR 'FINDLAY-LAVINGTON' crossing firmly matches the Lavington bridge; the nearby 'Skookumchuck Creek' road crossing at ~10.4 km may be the Doctor Creek bridge. Candidate is the Lavington endpoint.",
+      "notes": "[auto-proposal M] Lavington Creek Bridge (& Doctor Creek Bridge) on Findlay Creek. Candidate coord [-115.96801, 50.13214]. OSM: https://www.openstreetmap.org/?mlat=50.13214&mlon=-115.96801#map=15/50.13214/-115.96801. Verify: FINDLAY-LAVINGTON FSR crossing = Lavington Creek Bridge (name-confirmed) at ~18.5 km; Doctor Creek Bridge is the upstream endpoint.. Reach = 'Doctor Creek Bridge to Lavington Creek Bridge'. FWA FSR 'FINDLAY-LAVINGTON' crossing firmly matches the Lavington bridge; the nearby 'Skookumchuck Creek' road crossing at ~10.4 km may be the Doctor Creek bridge. Candidate is the Lavington endpoint. [structural-split 2026-08-05 from “from Doctor Creek Bridge to Lavington Creek Bridge”] boundary=Doctor Creek Bridge",
       "entry_id": "10cce399"
     },
     {
-      "id": "fraser-river-7f0b9b",
+      "id": "findlay-creek-6df88c-b",
+      "name_verbatim": "FINDLAY CREEK",
+      "region": "REGION 4",
+      "mus": [
+        "4-26"
+      ],
+      "src": "rule",
+      "locator_text": "Lavington Creek Bridge",
+      "full_regulation": "Trout/char catch and release (mainstem only) from Doctor Creek Bridge to Lavington Creek Bridge, June 15-Oct 31; other parts (including\ntributaries, except Lavington Creek) trout/char daily quota = 2 (none under 30 cm and only 1 bull trout), June 15-Oct 31; bait ban, June 15-Oct 31\nSee Lavington Creek, a tributary",
+      "anchor_kind": "point",
+      "resolver_hint": "bridge_road_km",
+      "status": "todo",
+      "target": "",
+      "coord": null,
+      "label": "",
+      "notes": "[auto-proposal M] Lavington Creek Bridge (& Doctor Creek Bridge) on Findlay Creek. Candidate coord [-115.96801, 50.13214]. OSM: https://www.openstreetmap.org/?mlat=50.13214&mlon=-115.96801#map=15/50.13214/-115.96801. Verify: FINDLAY-LAVINGTON FSR crossing = Lavington Creek Bridge (name-confirmed) at ~18.5 km; Doctor Creek Bridge is the upstream endpoint.. Reach = 'Doctor Creek Bridge to Lavington Creek Bridge'. FWA FSR 'FINDLAY-LAVINGTON' crossing firmly matches the Lavington bridge; the nearby 'Skookumchuck Creek' road crossing at ~10.4 km may be the Doctor Creek bridge. Candidate is the Lavington endpoint. [structural-split 2026-08-05 from “from Doctor Creek Bridge to Lavington Creek Bridge”] boundary=Lavington Creek Bridge",
+      "entry_id": "10cce399"
+    },
+    {
+      "id": "fraser-river-7f0b9b-a",
       "name_verbatim": "FRASER RIVER",
       "region": "REGION 3",
       "mus": [
         "3-14"
       ],
       "src": "rule",
-      "locator_text": "from the lower entrance of the fish ladder at Bridge River Rapids to the BC Railway Bridge approximately 2 km north of L",
+      "locator_text": "lower entrance of the fish ladder at Bridge River Rapids",
       "full_regulation": "Exempt from spring closure upstream of Thompson River, except as noted below\nNo Fishing for trout in Fraser River mainstem: downstream of Hell's Gate Sept 1-Nov 15, from Hell's Gate to the confluence with the\nThompson River from Oct 1-Nov 30, and upstream of the confluence with the Thompson River Oct 1-Oct 31\nNo Fishing between fishing boundary signs approximately 6.5 km downstream of Boston Bar to signs 2.8 km downstream of\nHell's Gate\nNo Fishing from the lower entrance of the fish ladder at Bridge River Rapids to the BC Railway Bridge approximately 2 km north of\nLillooet, Mar 31-June 20\nFrom Hwy 99 bridge at Lillooet downstream approximately 1.2 km to BC Hydro's tail race outflow channel: No Fishing Oct 1-May 31;\nFrom the confluence with Thompson River to the CNR Bridge approximately 1 km downstream: No Fishing, Oct 1-May 31; bait ban and no\nhooks greater than 15 mm from point to shank, Oct 1-Dec 31\nNo Fishing for steelhead from the confluence with Spuzzum Creek (Region 3 boundary) to Hells Gate Aug 15-Dec 31\nNo Fishing for steelhead from Hells Gate upstream to the Region 3 boundary Jan 1-Dec 31",
       "anchor_kind": "point",
       "resolver_hint": "bridge_road_km",
@@ -3511,18 +3739,18 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal L] BC Railway Bridge ~2 km N of Lillooet (from Bridge River Rapids fish ladder) on Fraser River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the BC Rail bridge ~2 km N of Lillooet and the fish ladder at Bridge River Rapids; map.. Lower-entrance-of-fish-ladder-at-Bridge-River-Rapids to BC Rail bridge, near Lillooet. Both railway/infrastructure landmarks -> map/OSM-confirmable; not in FWA (FSR hits are 900+ km up the Fraser).",
+      "notes": "[auto-proposal L] BC Railway Bridge ~2 km N of Lillooet (from Bridge River Rapids fish ladder) on Fraser River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the BC Rail bridge ~2 km N of Lillooet and the fish ladder at Bridge River Rapids; map.. Lower-entrance-of-fish-ladder-at-Bridge-River-Rapids to BC Rail bridge, near Lillooet. Both railway/infrastructure landmarks -> map/OSM-confirmable; not in FWA (FSR hits are 900+ km up the Fraser). [structural-split 2026-08-05 from “from the lower entrance of the fish ladder at Bridge River Rapids to the BC Railway Bridge approximately 2 km north of L”] boundary=lower entrance of the fish ladder at Bridge River Rapids",
       "entry_id": "d32909fa"
     },
     {
-      "id": "fraser-river-b67b87",
+      "id": "fraser-river-7f0b9b-b",
       "name_verbatim": "FRASER RIVER",
       "region": "REGION 3",
       "mus": [
         "3-14"
       ],
       "src": "rule",
-      "locator_text": "From Hwy 99 bridge at Lillooet downstream approximately 1.2 km to BC Hydro's tail race outflow channel",
+      "locator_text": "BC Railway Bridge approximately 2 km north of L",
       "full_regulation": "Exempt from spring closure upstream of Thompson River, except as noted below\nNo Fishing for trout in Fraser River mainstem: downstream of Hell's Gate Sept 1-Nov 15, from Hell's Gate to the confluence with the\nThompson River from Oct 1-Nov 30, and upstream of the confluence with the Thompson River Oct 1-Oct 31\nNo Fishing between fishing boundary signs approximately 6.5 km downstream of Boston Bar to signs 2.8 km downstream of\nHell's Gate\nNo Fishing from the lower entrance of the fish ladder at Bridge River Rapids to the BC Railway Bridge approximately 2 km north of\nLillooet, Mar 31-June 20\nFrom Hwy 99 bridge at Lillooet downstream approximately 1.2 km to BC Hydro's tail race outflow channel: No Fishing Oct 1-May 31;\nFrom the confluence with Thompson River to the CNR Bridge approximately 1 km downstream: No Fishing, Oct 1-May 31; bait ban and no\nhooks greater than 15 mm from point to shank, Oct 1-Dec 31\nNo Fishing for steelhead from the confluence with Spuzzum Creek (Region 3 boundary) to Hells Gate Aug 15-Dec 31\nNo Fishing for steelhead from Hells Gate upstream to the Region 3 boundary Jan 1-Dec 31",
       "anchor_kind": "point",
       "resolver_hint": "bridge_road_km",
@@ -3530,18 +3758,18 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal L] Hwy 99 bridge at Lillooet on Fraser River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the Hwy 99 bridge over the Fraser at Lillooet, and BC Hydro tailrace ~1.2 km downstream; review.. Reach = Hwy 99 bridge at Lillooet downstream ~1.2 km to BC Hydro's tailrace outflow. Public highway bridge -> map/OSM-confirmable.",
+      "notes": "[auto-proposal L] BC Railway Bridge ~2 km N of Lillooet (from Bridge River Rapids fish ladder) on Fraser River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the BC Rail bridge ~2 km N of Lillooet and the fish ladder at Bridge River Rapids; map.. Lower-entrance-of-fish-ladder-at-Bridge-River-Rapids to BC Rail bridge, near Lillooet. Both railway/infrastructure landmarks -> map/OSM-confirmable; not in FWA (FSR hits are 900+ km up the Fraser). [structural-split 2026-08-05 from “from the lower entrance of the fish ladder at Bridge River Rapids to the BC Railway Bridge approximately 2 km north of L”] boundary=BC Railway Bridge approximately 2 km north of L",
       "entry_id": "d32909fa"
     },
     {
-      "id": "fraser-river-74a44b",
+      "id": "fraser-river-b67b87-a",
       "name_verbatim": "FRASER RIVER",
       "region": "REGION 3",
       "mus": [
         "3-14"
       ],
       "src": "rule",
-      "locator_text": "From the confluence with Thompson River to the CNR Bridge approximately 1 km downstream",
+      "locator_text": "Hwy 99 bridge at Lillooet downstream approximately 1.2 km",
       "full_regulation": "Exempt from spring closure upstream of Thompson River, except as noted below\nNo Fishing for trout in Fraser River mainstem: downstream of Hell's Gate Sept 1-Nov 15, from Hell's Gate to the confluence with the\nThompson River from Oct 1-Nov 30, and upstream of the confluence with the Thompson River Oct 1-Oct 31\nNo Fishing between fishing boundary signs approximately 6.5 km downstream of Boston Bar to signs 2.8 km downstream of\nHell's Gate\nNo Fishing from the lower entrance of the fish ladder at Bridge River Rapids to the BC Railway Bridge approximately 2 km north of\nLillooet, Mar 31-June 20\nFrom Hwy 99 bridge at Lillooet downstream approximately 1.2 km to BC Hydro's tail race outflow channel: No Fishing Oct 1-May 31;\nFrom the confluence with Thompson River to the CNR Bridge approximately 1 km downstream: No Fishing, Oct 1-May 31; bait ban and no\nhooks greater than 15 mm from point to shank, Oct 1-Dec 31\nNo Fishing for steelhead from the confluence with Spuzzum Creek (Region 3 boundary) to Hells Gate Aug 15-Dec 31\nNo Fishing for steelhead from Hells Gate upstream to the Region 3 boundary Jan 1-Dec 31",
       "anchor_kind": "point",
       "resolver_hint": "bridge_road_km",
@@ -3549,7 +3777,64 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal L] CNR Bridge ~1 km below Thompson confluence (Lytton) on Fraser River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the CNR bridge ~1 km below the Thompson-Fraser confluence at Lytton; railway bridge, map.. Reach = Thompson River confluence (Lytton) to the CNR bridge ~1 km downstream. Confluence + railway bridge -> map/OSM-confirmable.",
+      "notes": "[auto-proposal L] Hwy 99 bridge at Lillooet on Fraser River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the Hwy 99 bridge over the Fraser at Lillooet, and BC Hydro tailrace ~1.2 km downstream; review.. Reach = Hwy 99 bridge at Lillooet downstream ~1.2 km to BC Hydro's tailrace outflow. Public highway bridge -> map/OSM-confirmable. [structural-split 2026-08-05 from “From Hwy 99 bridge at Lillooet downstream approximately 1.2 km to BC Hydro's tail race outflow channel”] boundary=Hwy 99 bridge at Lillooet downstream approximately 1.2 km",
+      "entry_id": "d32909fa"
+    },
+    {
+      "id": "fraser-river-b67b87-b",
+      "name_verbatim": "FRASER RIVER",
+      "region": "REGION 3",
+      "mus": [
+        "3-14"
+      ],
+      "src": "rule",
+      "locator_text": "BC Hydro's tail race outflow channel",
+      "full_regulation": "Exempt from spring closure upstream of Thompson River, except as noted below\nNo Fishing for trout in Fraser River mainstem: downstream of Hell's Gate Sept 1-Nov 15, from Hell's Gate to the confluence with the\nThompson River from Oct 1-Nov 30, and upstream of the confluence with the Thompson River Oct 1-Oct 31\nNo Fishing between fishing boundary signs approximately 6.5 km downstream of Boston Bar to signs 2.8 km downstream of\nHell's Gate\nNo Fishing from the lower entrance of the fish ladder at Bridge River Rapids to the BC Railway Bridge approximately 2 km north of\nLillooet, Mar 31-June 20\nFrom Hwy 99 bridge at Lillooet downstream approximately 1.2 km to BC Hydro's tail race outflow channel: No Fishing Oct 1-May 31;\nFrom the confluence with Thompson River to the CNR Bridge approximately 1 km downstream: No Fishing, Oct 1-May 31; bait ban and no\nhooks greater than 15 mm from point to shank, Oct 1-Dec 31\nNo Fishing for steelhead from the confluence with Spuzzum Creek (Region 3 boundary) to Hells Gate Aug 15-Dec 31\nNo Fishing for steelhead from Hells Gate upstream to the Region 3 boundary Jan 1-Dec 31",
+      "anchor_kind": "point",
+      "resolver_hint": "bridge_road_km",
+      "status": "todo",
+      "target": "",
+      "coord": null,
+      "label": "",
+      "notes": "[auto-proposal L] Hwy 99 bridge at Lillooet on Fraser River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the Hwy 99 bridge over the Fraser at Lillooet, and BC Hydro tailrace ~1.2 km downstream; review.. Reach = Hwy 99 bridge at Lillooet downstream ~1.2 km to BC Hydro's tailrace outflow. Public highway bridge -> map/OSM-confirmable. [structural-split 2026-08-05 from “From Hwy 99 bridge at Lillooet downstream approximately 1.2 km to BC Hydro's tail race outflow channel”] boundary=BC Hydro's tail race outflow channel",
+      "entry_id": "d32909fa"
+    },
+    {
+      "id": "fraser-river-74a44b-a",
+      "name_verbatim": "FRASER RIVER",
+      "region": "REGION 3",
+      "mus": [
+        "3-14"
+      ],
+      "src": "rule",
+      "locator_text": "confluence with Thompson River",
+      "full_regulation": "Exempt from spring closure upstream of Thompson River, except as noted below\nNo Fishing for trout in Fraser River mainstem: downstream of Hell's Gate Sept 1-Nov 15, from Hell's Gate to the confluence with the\nThompson River from Oct 1-Nov 30, and upstream of the confluence with the Thompson River Oct 1-Oct 31\nNo Fishing between fishing boundary signs approximately 6.5 km downstream of Boston Bar to signs 2.8 km downstream of\nHell's Gate\nNo Fishing from the lower entrance of the fish ladder at Bridge River Rapids to the BC Railway Bridge approximately 2 km north of\nLillooet, Mar 31-June 20\nFrom Hwy 99 bridge at Lillooet downstream approximately 1.2 km to BC Hydro's tail race outflow channel: No Fishing Oct 1-May 31;\nFrom the confluence with Thompson River to the CNR Bridge approximately 1 km downstream: No Fishing, Oct 1-May 31; bait ban and no\nhooks greater than 15 mm from point to shank, Oct 1-Dec 31\nNo Fishing for steelhead from the confluence with Spuzzum Creek (Region 3 boundary) to Hells Gate Aug 15-Dec 31\nNo Fishing for steelhead from Hells Gate upstream to the Region 3 boundary Jan 1-Dec 31",
+      "anchor_kind": "confluence",
+      "resolver_hint": "tributary",
+      "status": "todo",
+      "target": "",
+      "coord": null,
+      "label": "",
+      "notes": "[auto-proposal L] CNR Bridge ~1 km below Thompson confluence (Lytton) on Fraser River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the CNR bridge ~1 km below the Thompson-Fraser confluence at Lytton; railway bridge, map.. Reach = Thompson River confluence (Lytton) to the CNR bridge ~1 km downstream. Confluence + railway bridge -> map/OSM-confirmable. [structural-split 2026-08-05 from “From the confluence with Thompson River to the CNR Bridge approximately 1 km downstream”] boundary=confluence with Thompson River",
+      "entry_id": "d32909fa"
+    },
+    {
+      "id": "fraser-river-74a44b-b",
+      "name_verbatim": "FRASER RIVER",
+      "region": "REGION 3",
+      "mus": [
+        "3-14"
+      ],
+      "src": "rule",
+      "locator_text": "CNR Bridge approximately 1 km downstream",
+      "full_regulation": "Exempt from spring closure upstream of Thompson River, except as noted below\nNo Fishing for trout in Fraser River mainstem: downstream of Hell's Gate Sept 1-Nov 15, from Hell's Gate to the confluence with the\nThompson River from Oct 1-Nov 30, and upstream of the confluence with the Thompson River Oct 1-Oct 31\nNo Fishing between fishing boundary signs approximately 6.5 km downstream of Boston Bar to signs 2.8 km downstream of\nHell's Gate\nNo Fishing from the lower entrance of the fish ladder at Bridge River Rapids to the BC Railway Bridge approximately 2 km north of\nLillooet, Mar 31-June 20\nFrom Hwy 99 bridge at Lillooet downstream approximately 1.2 km to BC Hydro's tail race outflow channel: No Fishing Oct 1-May 31;\nFrom the confluence with Thompson River to the CNR Bridge approximately 1 km downstream: No Fishing, Oct 1-May 31; bait ban and no\nhooks greater than 15 mm from point to shank, Oct 1-Dec 31\nNo Fishing for steelhead from the confluence with Spuzzum Creek (Region 3 boundary) to Hells Gate Aug 15-Dec 31\nNo Fishing for steelhead from Hells Gate upstream to the Region 3 boundary Jan 1-Dec 31",
+      "anchor_kind": "point",
+      "resolver_hint": "bridge_road_km",
+      "status": "todo",
+      "target": "",
+      "coord": null,
+      "label": "",
+      "notes": "[auto-proposal L] CNR Bridge ~1 km below Thompson confluence (Lytton) on Fraser River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the CNR bridge ~1 km below the Thompson-Fraser confluence at Lytton; railway bridge, map.. Reach = Thompson River confluence (Lytton) to the CNR bridge ~1 km downstream. Confluence + railway bridge -> map/OSM-confirmable. [structural-split 2026-08-05 from “From the confluence with Thompson River to the CNR Bridge approximately 1 km downstream”] boundary=CNR Bridge approximately 1 km downstream",
       "entry_id": "d32909fa"
     },
     {
@@ -3591,14 +3876,14 @@
       "entry_id": "3f88988a"
     },
     {
-      "id": "horsefly-river-from-quesnel-lake-to-horsefly--28a7cd",
+      "id": "horsefly-river-from-quesnel-lake-to-horsefly--28a7cd-a",
       "name_verbatim": "HORSEFLY RIVER (from Quesnel Lake to Horsefly River Fa",
       "region": "REGION 5",
       "mus": [
         "5-2"
       ],
       "src": "rule",
-      "locator_text": "from Woodjam Bridge to Quesnel Lake",
+      "locator_text": "Woodjam Bridge",
       "full_regulation": "No Fishing Nov 1-May 31\nTrout/char catch and release; artificial fly only, bait ban\nNo angling from powered boats from Woodjam Bridge to Quesnel Lake\nClass II water[Includes Tributaries] June 1-Oct 31; Steelhead Stamp not required",
       "anchor_kind": "point",
       "resolver_hint": "bridge_road_km",
@@ -3606,7 +3891,26 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal L] Woodjam Bridge over Horsefly River on Horsefly River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Woodjam (Road) bridge over the Horsefly River near Horsefly townsite; map. (Reach runs down to Quesnel Lake.). Reach = 'Woodjam Bridge to Quesnel Lake'. Woodjam is a road bridge near Horsefly town; not name-matched among the FWA Horsefly FSR crossings (which are further upstream). Map/OSM-confirmable; Quesnel Lake is the other endpoint.",
+      "notes": "[auto-proposal L] Woodjam Bridge over Horsefly River on Horsefly River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Woodjam (Road) bridge over the Horsefly River near Horsefly townsite; map. (Reach runs down to Quesnel Lake.). Reach = 'Woodjam Bridge to Quesnel Lake'. Woodjam is a road bridge near Horsefly town; not name-matched among the FWA Horsefly FSR crossings (which are further upstream). Map/OSM-confirmable; Quesnel Lake is the other endpoint. [structural-split 2026-08-05 from “from Woodjam Bridge to Quesnel Lake”] boundary=Woodjam Bridge",
+      "entry_id": "9538df76"
+    },
+    {
+      "id": "horsefly-river-from-quesnel-lake-to-horsefly--28a7cd-b",
+      "name_verbatim": "HORSEFLY RIVER (from Quesnel Lake to Horsefly River Fa",
+      "region": "REGION 5",
+      "mus": [
+        "5-2"
+      ],
+      "src": "rule",
+      "locator_text": "Quesnel Lake",
+      "full_regulation": "No Fishing Nov 1-May 31\nTrout/char catch and release; artificial fly only, bait ban\nNo angling from powered boats from Woodjam Bridge to Quesnel Lake\nClass II water[Includes Tributaries] June 1-Oct 31; Steelhead Stamp not required",
+      "anchor_kind": "lake",
+      "resolver_hint": "lake_reach",
+      "status": "todo",
+      "target": "",
+      "coord": null,
+      "label": "",
+      "notes": "[auto-proposal L] Woodjam Bridge over Horsefly River on Horsefly River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Woodjam (Road) bridge over the Horsefly River near Horsefly townsite; map. (Reach runs down to Quesnel Lake.). Reach = 'Woodjam Bridge to Quesnel Lake'. Woodjam is a road bridge near Horsefly town; not name-matched among the FWA Horsefly FSR crossings (which are further upstream). Map/OSM-confirmable; Quesnel Lake is the other endpoint. [structural-split 2026-08-05 from “from Woodjam Bridge to Quesnel Lake”] boundary=Quesnel Lake",
       "entry_id": "9538df76"
     },
     {
@@ -3648,7 +3952,7 @@
       "entry_id": "c0718831"
     },
     {
-      "id": "kootenay-river-downstream-of-idaho-border-60f171",
+      "id": "kootenay-river-downstream-of-idaho-border-60f171-a",
       "name_verbatim": "KOOTENAY RIVER (downstream of Idaho border)",
       "region": "REGION 4",
       "mus": [
@@ -3656,7 +3960,7 @@
         "4-8"
       ],
       "src": "rule",
-      "locator_text": "from CPR Bridge near Creston downstream 2 km to navigation dolphin",
+      "locator_text": "CPR Bridge near Creston downstream 2 km",
       "full_regulation": "No Fishing from CPR Bridge near Creston downstream 2 km to navigation dolphin\nDownstream from the Idaho border to CPR Bridge near Creston and from Corra Linn Dam to the Columbia River: EXEMPT from Apr 1-June 14 closure AND from Nov 1-Mar 31 trout/char catch and release\nBurbot catch and release from Idaho border near Creston to Kootenay Lake, including tributaries to that part\nWalleye daily quota = 16 from the Brilliant Dam to the confluence with the Columbia River\nFrom the Brilliant Dam to the confluence with the Columbia River: northern pike and bass daily quota = unlimited",
       "anchor_kind": "point",
       "resolver_hint": "bridge_road_km",
@@ -3664,7 +3968,27 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal L] CPR Bridge near Creston (to navigation dolphin ~2 km downstream) on Kootenay River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the CPR bridge over the Kootenay near Creston; distinct from the authored Idaho-border split.. Reach = 'CPR Bridge near Creston downstream 2 km to navigation dolphin'. This is a railway bridge near Creston, NOT the 49th-parallel crossing (which is the separate authored split kootenay_idaho_border). Map/OSM-confirmable.",
+      "notes": "[auto-proposal L] CPR Bridge near Creston (to navigation dolphin ~2 km downstream) on Kootenay River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the CPR bridge over the Kootenay near Creston; distinct from the authored Idaho-border split.. Reach = 'CPR Bridge near Creston downstream 2 km to navigation dolphin'. This is a railway bridge near Creston, NOT the 49th-parallel crossing (which is the separate authored split kootenay_idaho_border). Map/OSM-confirmable. [structural-split 2026-08-05 from “from CPR Bridge near Creston downstream 2 km to navigation dolphin”] boundary=CPR Bridge near Creston downstream 2 km",
+      "entry_id": "32b0f4bc"
+    },
+    {
+      "id": "kootenay-river-downstream-of-idaho-border-60f171-b",
+      "name_verbatim": "KOOTENAY RIVER (downstream of Idaho border)",
+      "region": "REGION 4",
+      "mus": [
+        "4-7",
+        "4-8"
+      ],
+      "src": "rule",
+      "locator_text": "navigation dolphin",
+      "full_regulation": "No Fishing from CPR Bridge near Creston downstream 2 km to navigation dolphin\nDownstream from the Idaho border to CPR Bridge near Creston and from Corra Linn Dam to the Columbia River: EXEMPT from Apr 1-June 14 closure AND from Nov 1-Mar 31 trout/char catch and release\nBurbot catch and release from Idaho border near Creston to Kootenay Lake, including tributaries to that part\nWalleye daily quota = 16 from the Brilliant Dam to the confluence with the Columbia River\nFrom the Brilliant Dam to the confluence with the Columbia River: northern pike and bass daily quota = unlimited",
+      "anchor_kind": "point",
+      "resolver_hint": "bridge_road_km",
+      "status": "todo",
+      "target": "",
+      "coord": null,
+      "label": "",
+      "notes": "[auto-proposal L] CPR Bridge near Creston (to navigation dolphin ~2 km downstream) on Kootenay River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the CPR bridge over the Kootenay near Creston; distinct from the authored Idaho-border split.. Reach = 'CPR Bridge near Creston downstream 2 km to navigation dolphin'. This is a railway bridge near Creston, NOT the 49th-parallel crossing (which is the separate authored split kootenay_idaho_border). Map/OSM-confirmable. [structural-split 2026-08-05 from “from CPR Bridge near Creston downstream 2 km to navigation dolphin”] boundary=navigation dolphin",
       "entry_id": "32b0f4bc"
     },
     {
@@ -3706,33 +4030,33 @@
       "entry_id": "ea7be38a"
     },
     {
-      "id": "lakelse-river-e03417",
+      "id": "lakelse-river-e03417-a",
       "name_verbatim": "LAKELSE RIVER",
       "region": "REGION 6",
       "mus": [
         "6-10"
       ],
       "src": "rule",
-      "locator_text": "from the outlet of Lakelse Lake to the power line crossing, located 3.5 km upstream of the Lakelse River mouth",
+      "locator_text": "outlet of Lakelse Lake",
       "full_regulation": "Angling prohibited for non-guided non-resident aliens from the outlet of Lakelse Lake to the power line crossing, located 3.5 km\nupstream of the Lakelse River mouth, all year (See map page 55)\nFly fishing only between Lakelse Lake and CNR Bridge, Mar 1-May 31\nBait ban, no powered boats\nNote: The mouth of the river is designated by signs 1.7 km downstream of Lakelse River logging road bridge\nClass I water all year; Steelhead Stamp mandatory Sept 1-May 31",
-      "anchor_kind": "point",
-      "resolver_hint": "bridge_road_km",
+      "anchor_kind": "lake",
+      "resolver_hint": "lake_reach",
       "status": "todo",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal L] power line crossing 3.5 km above Lakelse River mouth on Lakelse River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the power line 3.5 km above the Lakelse mouth (from Lakelse Lake outlet); power line, map-only.. Reach = 'Lakelse Lake outlet to power line 3.5 km above the mouth'. Transmission-line landmark near Terrace; not in FWA. Map/OSM.",
+      "notes": "[auto-proposal L] power line crossing 3.5 km above Lakelse River mouth on Lakelse River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the power line 3.5 km above the Lakelse mouth (from Lakelse Lake outlet); power line, map-only.. Reach = 'Lakelse Lake outlet to power line 3.5 km above the mouth'. Transmission-line landmark near Terrace; not in FWA. Map/OSM. [structural-split 2026-08-05 from “from the outlet of Lakelse Lake to the power line crossing, located 3.5 km upstream of the Lakelse River mouth”] boundary=outlet of Lakelse Lake",
       "entry_id": "dd7048cb"
     },
     {
-      "id": "lakelse-river-1a8e36",
+      "id": "lakelse-river-e03417-b",
       "name_verbatim": "LAKELSE RIVER",
       "region": "REGION 6",
       "mus": [
         "6-10"
       ],
       "src": "rule",
-      "locator_text": "between Lakelse Lake and CNR Bridge",
+      "locator_text": "power line crossing, located 3.5 km upstream of the Lakelse River mouth",
       "full_regulation": "Angling prohibited for non-guided non-resident aliens from the outlet of Lakelse Lake to the power line crossing, located 3.5 km\nupstream of the Lakelse River mouth, all year (See map page 55)\nFly fishing only between Lakelse Lake and CNR Bridge, Mar 1-May 31\nBait ban, no powered boats\nNote: The mouth of the river is designated by signs 1.7 km downstream of Lakelse River logging road bridge\nClass I water all year; Steelhead Stamp mandatory Sept 1-May 31",
       "anchor_kind": "point",
       "resolver_hint": "bridge_road_km",
@@ -3740,7 +4064,45 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal L] CNR Bridge over Lakelse River (from Lakelse Lake) on Lakelse River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the CNR (railway) bridge on the Lakelse River near Terrace; railway bridge, map-only.. Reach = 'between Lakelse Lake and CNR Bridge'. Railway bridge -> not in FWA; map/OSM-confirmable.",
+      "notes": "[auto-proposal L] power line crossing 3.5 km above Lakelse River mouth on Lakelse River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the power line 3.5 km above the Lakelse mouth (from Lakelse Lake outlet); power line, map-only.. Reach = 'Lakelse Lake outlet to power line 3.5 km above the mouth'. Transmission-line landmark near Terrace; not in FWA. Map/OSM. [structural-split 2026-08-05 from “from the outlet of Lakelse Lake to the power line crossing, located 3.5 km upstream of the Lakelse River mouth”] boundary=power line crossing, located 3.5 km upstream of the Lakelse River mouth",
+      "entry_id": "dd7048cb"
+    },
+    {
+      "id": "lakelse-river-1a8e36-a",
+      "name_verbatim": "LAKELSE RIVER",
+      "region": "REGION 6",
+      "mus": [
+        "6-10"
+      ],
+      "src": "rule",
+      "locator_text": "Lakelse Lake",
+      "full_regulation": "Angling prohibited for non-guided non-resident aliens from the outlet of Lakelse Lake to the power line crossing, located 3.5 km\nupstream of the Lakelse River mouth, all year (See map page 55)\nFly fishing only between Lakelse Lake and CNR Bridge, Mar 1-May 31\nBait ban, no powered boats\nNote: The mouth of the river is designated by signs 1.7 km downstream of Lakelse River logging road bridge\nClass I water all year; Steelhead Stamp mandatory Sept 1-May 31",
+      "anchor_kind": "lake",
+      "resolver_hint": "lake_reach",
+      "status": "todo",
+      "target": "",
+      "coord": null,
+      "label": "",
+      "notes": "[auto-proposal L] CNR Bridge over Lakelse River (from Lakelse Lake) on Lakelse River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the CNR (railway) bridge on the Lakelse River near Terrace; railway bridge, map-only.. Reach = 'between Lakelse Lake and CNR Bridge'. Railway bridge -> not in FWA; map/OSM-confirmable. [structural-split 2026-08-05 from “between Lakelse Lake and CNR Bridge”] boundary=Lakelse Lake",
+      "entry_id": "dd7048cb"
+    },
+    {
+      "id": "lakelse-river-1a8e36-b",
+      "name_verbatim": "LAKELSE RIVER",
+      "region": "REGION 6",
+      "mus": [
+        "6-10"
+      ],
+      "src": "rule",
+      "locator_text": "CNR Bridge",
+      "full_regulation": "Angling prohibited for non-guided non-resident aliens from the outlet of Lakelse Lake to the power line crossing, located 3.5 km\nupstream of the Lakelse River mouth, all year (See map page 55)\nFly fishing only between Lakelse Lake and CNR Bridge, Mar 1-May 31\nBait ban, no powered boats\nNote: The mouth of the river is designated by signs 1.7 km downstream of Lakelse River logging road bridge\nClass I water all year; Steelhead Stamp mandatory Sept 1-May 31",
+      "anchor_kind": "point",
+      "resolver_hint": "bridge_road_km",
+      "status": "todo",
+      "target": "",
+      "coord": null,
+      "label": "",
+      "notes": "[auto-proposal L] CNR Bridge over Lakelse River (from Lakelse Lake) on Lakelse River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the CNR (railway) bridge on the Lakelse River near Terrace; railway bridge, map-only.. Reach = 'between Lakelse Lake and CNR Bridge'. Railway bridge -> not in FWA; map/OSM-confirmable. [structural-split 2026-08-05 from “between Lakelse Lake and CNR Bridge”] boundary=CNR Bridge",
       "entry_id": "dd7048cb"
     },
     {
@@ -3753,32 +4115,51 @@
       "src": "rule",
       "locator_text": "downstream of Premier Lake Bridge crossing",
       "full_regulation": "Trout/char catch and release downstream of Premier Lake Bridge crossing, June 15- Oct 31\nTrout/char daily quota = 2 (none under 30 cm) between Premier Lake Bridge crossing and Mutton Creek, June 15-Oct 31\nBait ban downstream of Mutton Creek, June 15-Mar 31",
-      "anchor_kind": "point",
-      "resolver_hint": "bridge_road_km",
+      "anchor_kind": "lake",
+      "resolver_hint": "lake_reach",
       "status": "todo",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal L] Premier Lake Bridge crossing over Lussier River on Lussier River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Premier Lake (road) bridge over the Lussier River (near Premier Lake PP); map.. Reg = 'downstream of Premier Lake Bridge crossing'. Road bridge near the Premier Lake turnoff on the lower Lussier; the FWA FSR hits are all high upstream (White-Lussier etc). Map/OSM-confirmable.",
+      "notes": "[auto-proposal L] Premier Lake Bridge crossing over Lussier River on Lussier River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Premier Lake (road) bridge over the Lussier River (near Premier Lake PP); map.. Reg = 'downstream of Premier Lake Bridge crossing'. Road bridge near the Premier Lake turnoff on the lower Lussier; the FWA FSR hits are all high upstream (White-Lussier etc). Map/OSM-confirmable. [structural-reclass 2026-08-05 → lake]",
       "entry_id": "6cee42e9"
     },
     {
-      "id": "lussier-river-ccddb4",
+      "id": "lussier-river-ccddb4-a",
       "name_verbatim": "LUSSIER RIVER",
       "region": "REGION 4",
       "mus": [
         "4-21"
       ],
       "src": "rule",
-      "locator_text": "between Premier Lake Bridge crossing and Mutton Creek",
+      "locator_text": "Premier Lake Bridge crossing",
       "full_regulation": "Trout/char catch and release downstream of Premier Lake Bridge crossing, June 15- Oct 31\nTrout/char daily quota = 2 (none under 30 cm) between Premier Lake Bridge crossing and Mutton Creek, June 15-Oct 31\nBait ban downstream of Mutton Creek, June 15-Mar 31",
-      "anchor_kind": "point",
-      "resolver_hint": "bridge_road_km",
+      "anchor_kind": "lake",
+      "resolver_hint": "lake_reach",
       "status": "todo",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal L] Premier Lake Bridge crossing & Mutton Creek on Lussier River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Premier Lake Bridge and the Mutton Creek confluence on the Lussier; map.. Reach = 'Premier Lake Bridge crossing to Mutton Creek'. Road bridge + tributary confluence; the bridge is not name-matched in FSR. Map/OSM-confirmable.",
+      "notes": "[auto-proposal L] Premier Lake Bridge crossing & Mutton Creek on Lussier River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Premier Lake Bridge and the Mutton Creek confluence on the Lussier; map.. Reach = 'Premier Lake Bridge crossing to Mutton Creek'. Road bridge + tributary confluence; the bridge is not name-matched in FSR. Map/OSM-confirmable. [structural-split 2026-08-05 from “between Premier Lake Bridge crossing and Mutton Creek”] boundary=Premier Lake Bridge crossing",
+      "entry_id": "6cee42e9"
+    },
+    {
+      "id": "lussier-river-ccddb4-b",
+      "name_verbatim": "LUSSIER RIVER",
+      "region": "REGION 4",
+      "mus": [
+        "4-21"
+      ],
+      "src": "rule",
+      "locator_text": "Mutton Creek",
+      "full_regulation": "Trout/char catch and release downstream of Premier Lake Bridge crossing, June 15- Oct 31\nTrout/char daily quota = 2 (none under 30 cm) between Premier Lake Bridge crossing and Mutton Creek, June 15-Oct 31\nBait ban downstream of Mutton Creek, June 15-Mar 31",
+      "anchor_kind": "confluence",
+      "resolver_hint": "tributary",
+      "status": "todo",
+      "target": "",
+      "coord": null,
+      "label": "",
+      "notes": "[auto-proposal L] Premier Lake Bridge crossing & Mutton Creek on Lussier River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Premier Lake Bridge and the Mutton Creek confluence on the Lussier; map.. Reach = 'Premier Lake Bridge crossing to Mutton Creek'. Road bridge + tributary confluence; the bridge is not name-matched in FSR. Map/OSM-confirmable. [structural-split 2026-08-05 from “between Premier Lake Bridge crossing and Mutton Creek”] boundary=Mutton Creek",
       "entry_id": "6cee42e9"
     },
     {
@@ -3820,14 +4201,14 @@
       "entry_id": "00c98bd8"
     },
     {
-      "id": "mcarthur-island-slough-cd2507",
+      "id": "mcarthur-island-slough-cd2507-a",
       "name_verbatim": "MCARTHUR ISLAND SLOUGH",
       "region": "REGION 3",
       "mus": [
         "3-28"
       ],
       "src": "rule",
-      "locator_text": "from westerly entrance to 12th Street entrance to Park",
+      "locator_text": "westerly entrance",
       "full_regulation": "No powered boats from westerly entrance to 12th Street entrance to Park",
       "anchor_kind": "point",
       "resolver_hint": "bridge_road_km",
@@ -3835,7 +4216,26 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal L] westerly entrance & 12th Street park entrance, McArthur Island on McArthur Island Slough. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate McArthur Island Slough (Kamloops), westerly entrance to the 12th St park entrance; map.. Urban slough at McArthur Island Park, Kamloops. Not in FWA. Landmarks are park entrances -> map/OSM-confirmable.",
+      "notes": "[auto-proposal L] westerly entrance & 12th Street park entrance, McArthur Island on McArthur Island Slough. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate McArthur Island Slough (Kamloops), westerly entrance to the 12th St park entrance; map.. Urban slough at McArthur Island Park, Kamloops. Not in FWA. Landmarks are park entrances -> map/OSM-confirmable. [structural-split 2026-08-05 from “from westerly entrance to 12th Street entrance to Park”] boundary=westerly entrance",
+      "entry_id": "a3b02171"
+    },
+    {
+      "id": "mcarthur-island-slough-cd2507-b",
+      "name_verbatim": "MCARTHUR ISLAND SLOUGH",
+      "region": "REGION 3",
+      "mus": [
+        "3-28"
+      ],
+      "src": "rule",
+      "locator_text": "12th Street entrance to Park",
+      "full_regulation": "No powered boats from westerly entrance to 12th Street entrance to Park",
+      "anchor_kind": "point",
+      "resolver_hint": "bridge_road_km",
+      "status": "todo",
+      "target": "",
+      "coord": null,
+      "label": "",
+      "notes": "[auto-proposal L] westerly entrance & 12th Street park entrance, McArthur Island on McArthur Island Slough. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate McArthur Island Slough (Kamloops), westerly entrance to the 12th St park entrance; map.. Urban slough at McArthur Island Park, Kamloops. Not in FWA. Landmarks are park entrances -> map/OSM-confirmable. [structural-split 2026-08-05 from “from westerly entrance to 12th Street entrance to Park”] boundary=12th Street entrance to Park",
       "entry_id": "a3b02171"
     },
     {
@@ -3877,14 +4277,14 @@
       "entry_id": "cb7374a9"
     },
     {
-      "id": "mohun-creek-1fa4a0",
+      "id": "mohun-creek-1fa4a0-a",
       "name_verbatim": "MOHUN CREEK",
       "region": "REGION 1",
       "mus": [
         "1-10"
       ],
       "src": "rule",
-      "locator_text": "from Menzies Bay logging mainline bridge crossing to Morton Lake",
+      "locator_text": "Menzies Bay logging mainline bridge crossing",
       "full_regulation": "No Fishing Dec 1-May 31, No Fishing from Menzies Bay logging mainline bridge crossing to Morton Lake",
       "anchor_kind": "point",
       "resolver_hint": "bridge_road_km",
@@ -3892,18 +4292,56 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal M] Menzies Bay logging mainline bridge over Mohun Creek on Mohun Creek. Candidate coord [-125.42449, 50.09625]. OSM: https://www.openstreetmap.org/?mlat=50.09625&mlon=-125.42449#map=15/50.09625/-125.42449. Verify: MENZMN.2 (Menzies Bay mainline) crosses Mohun Creek at ~7.4 km -> strong match; confirm as the reach start to Morton Lake.. Reach = 'Menzies Bay logging mainline bridge crossing to Morton Lake'. FWA FSR 'MENZMN.2' (Menzies mainline) crossing is a strong name/location match. Verify against the bridge on map.",
+      "notes": "[auto-proposal M] Menzies Bay logging mainline bridge over Mohun Creek on Mohun Creek. Candidate coord [-125.42449, 50.09625]. OSM: https://www.openstreetmap.org/?mlat=50.09625&mlon=-125.42449#map=15/50.09625/-125.42449. Verify: MENZMN.2 (Menzies Bay mainline) crosses Mohun Creek at ~7.4 km -> strong match; confirm as the reach start to Morton Lake.. Reach = 'Menzies Bay logging mainline bridge crossing to Morton Lake'. FWA FSR 'MENZMN.2' (Menzies mainline) crossing is a strong name/location match. Verify against the bridge on map. [structural-split 2026-08-05 from “from Menzies Bay logging mainline bridge crossing to Morton Lake”] boundary=Menzies Bay logging mainline bridge crossing",
       "entry_id": "5e563b26"
     },
     {
-      "id": "moyie-river-53143e",
+      "id": "mohun-creek-1fa4a0-b",
+      "name_verbatim": "MOHUN CREEK",
+      "region": "REGION 1",
+      "mus": [
+        "1-10"
+      ],
+      "src": "rule",
+      "locator_text": "Morton Lake",
+      "full_regulation": "No Fishing Dec 1-May 31, No Fishing from Menzies Bay logging mainline bridge crossing to Morton Lake",
+      "anchor_kind": "lake",
+      "resolver_hint": "lake_reach",
+      "status": "todo",
+      "target": "",
+      "coord": null,
+      "label": "",
+      "notes": "[auto-proposal M] Menzies Bay logging mainline bridge over Mohun Creek on Mohun Creek. Candidate coord [-125.42449, 50.09625]. OSM: https://www.openstreetmap.org/?mlat=50.09625&mlon=-125.42449#map=15/50.09625/-125.42449. Verify: MENZMN.2 (Menzies Bay mainline) crosses Mohun Creek at ~7.4 km -> strong match; confirm as the reach start to Morton Lake.. Reach = 'Menzies Bay logging mainline bridge crossing to Morton Lake'. FWA FSR 'MENZMN.2' (Menzies mainline) crossing is a strong name/location match. Verify against the bridge on map. [structural-split 2026-08-05 from “from Menzies Bay logging mainline bridge crossing to Morton Lake”] boundary=Morton Lake",
+      "entry_id": "5e563b26"
+    },
+    {
+      "id": "moyie-river-53143e-a",
       "name_verbatim": "MOYIE RIVER",
       "region": "REGION 4",
       "mus": [
         "4-5"
       ],
       "src": "rule",
-      "locator_text": "from bridge at south end of Moyie Lake to U.S. border",
+      "locator_text": "bridge at south end of Moyie Lake",
+      "full_regulation": "Irishman Creek (Moyie River tributary) closed all year; no powered boats from bridge at south end of Moyie Lake to U.S. border\nBull trout and cutthroat trout catch and release",
+      "anchor_kind": "lake",
+      "resolver_hint": "lake_reach",
+      "status": "todo",
+      "target": "",
+      "coord": null,
+      "label": "",
+      "notes": "[auto-proposal L] bridge at south end of Moyie Lake (to U.S. border) on Moyie River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the road bridge at the south end of Moyie Lake (Hwy 3/95 corridor); map.. Reach = 'bridge at south end of Moyie Lake to U.S. border'. Road bridge at the Moyie Lake outlet near Moyie townsite; not name-matched in FSR. Map/OSM-confirmable. [structural-split 2026-08-05 from “from bridge at south end of Moyie Lake to U.S. border”] boundary=bridge at south end of Moyie Lake",
+      "entry_id": "7772faef"
+    },
+    {
+      "id": "moyie-river-53143e-b",
+      "name_verbatim": "MOYIE RIVER",
+      "region": "REGION 4",
+      "mus": [
+        "4-5"
+      ],
+      "src": "rule",
+      "locator_text": "U.S. border",
       "full_regulation": "Irishman Creek (Moyie River tributary) closed all year; no powered boats from bridge at south end of Moyie Lake to U.S. border\nBull trout and cutthroat trout catch and release",
       "anchor_kind": "point",
       "resolver_hint": "bridge_road_km",
@@ -3911,18 +4349,37 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal L] bridge at south end of Moyie Lake (to U.S. border) on Moyie River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the road bridge at the south end of Moyie Lake (Hwy 3/95 corridor); map.. Reach = 'bridge at south end of Moyie Lake to U.S. border'. Road bridge at the Moyie Lake outlet near Moyie townsite; not name-matched in FSR. Map/OSM-confirmable.",
+      "notes": "[auto-proposal L] bridge at south end of Moyie Lake (to U.S. border) on Moyie River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the road bridge at the south end of Moyie Lake (Hwy 3/95 corridor); map.. Reach = 'bridge at south end of Moyie Lake to U.S. border'. Road bridge at the Moyie Lake outlet near Moyie townsite; not name-matched in FSR. Map/OSM-confirmable. [structural-split 2026-08-05 from “from bridge at south end of Moyie Lake to U.S. border”] boundary=U.S. border",
       "entry_id": "7772faef"
     },
     {
-      "id": "nahatlatch-river-285a59",
+      "id": "nahatlatch-river-285a59-a",
       "name_verbatim": "NAHATLATCH RIVER",
       "region": "REGION 3",
       "mus": [
         "3-15"
       ],
       "src": "rule",
-      "locator_text": "from Frances Lake downstream approximately 400 m to fishing boundary signs at the logging bridge",
+      "locator_text": "Frances Lake downstream approximately 400 m",
+      "full_regulation": "No Fishing from Frances Lake downstream approximately 400 m to fishing boundary signs at the logging bridge\nDownstream of Nahatlatch Lake (including Hannah and Frances lakes; except as noted upstream of ), open until Dec 31; No Fishing\nJan 1-May 31\nNo Fishing downstream of Nahatlatch Lake, Jan 1-May 31\nTrout daily quota = 2 (none under 30 cm)",
+      "anchor_kind": "lake",
+      "resolver_hint": "lake_reach",
+      "status": "todo",
+      "target": "",
+      "coord": null,
+      "label": "",
+      "notes": "[auto-proposal L] logging bridge ~400 m below Frances Lake outlet on Nahatlatch River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate Frances Lake on the Nahatlatch, then the logging bridge ~400 m downstream with fishing boundary signs; map.. Reach = 'Frances Lake downstream ~400 m to signs at the logging bridge'. Needs the Frances Lake outlet located first (upstream chain of lakes on the Nahatlatch); the bridge is just below it. Map/OSM-confirmable. [structural-split 2026-08-05 from “from Frances Lake downstream approximately 400 m to fishing boundary signs at the logging bridge”] boundary=Frances Lake downstream approximately 400 m",
+      "entry_id": "921224bf"
+    },
+    {
+      "id": "nahatlatch-river-285a59-b",
+      "name_verbatim": "NAHATLATCH RIVER",
+      "region": "REGION 3",
+      "mus": [
+        "3-15"
+      ],
+      "src": "rule",
+      "locator_text": "fishing boundary signs at the logging bridge",
       "full_regulation": "No Fishing from Frances Lake downstream approximately 400 m to fishing boundary signs at the logging bridge\nDownstream of Nahatlatch Lake (including Hannah and Frances lakes; except as noted upstream of ), open until Dec 31; No Fishing\nJan 1-May 31\nNo Fishing downstream of Nahatlatch Lake, Jan 1-May 31\nTrout daily quota = 2 (none under 30 cm)",
       "anchor_kind": "point",
       "resolver_hint": "bridge_road_km",
@@ -3930,18 +4387,18 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal L] logging bridge ~400 m below Frances Lake outlet on Nahatlatch River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate Frances Lake on the Nahatlatch, then the logging bridge ~400 m downstream with fishing boundary signs; map.. Reach = 'Frances Lake downstream ~400 m to signs at the logging bridge'. Needs the Frances Lake outlet located first (upstream chain of lakes on the Nahatlatch); the bridge is just below it. Map/OSM-confirmable.",
+      "notes": "[auto-proposal L] logging bridge ~400 m below Frances Lake outlet on Nahatlatch River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate Frances Lake on the Nahatlatch, then the logging bridge ~400 m downstream with fishing boundary signs; map.. Reach = 'Frances Lake downstream ~400 m to signs at the logging bridge'. Needs the Frances Lake outlet located first (upstream chain of lakes on the Nahatlatch); the bridge is just below it. Map/OSM-confirmable. [structural-split 2026-08-05 from “from Frances Lake downstream approximately 400 m to fishing boundary signs at the logging bridge”] boundary=fishing boundary signs at the logging bridge",
       "entry_id": "921224bf"
     },
     {
-      "id": "nanaimo-river-633e28",
+      "id": "nanaimo-river-633e28-a",
       "name_verbatim": "NANAIMO RIVER",
       "region": "REGION 1",
       "mus": [
         "1-5"
       ],
       "src": "rule",
-      "locator_text": "from power line crossing at \"Bore Hole\" upstream to fishing boundary signs at the mouth of Boulder Creek",
+      "locator_text": "power line crossing at \"Bore Hole\"",
       "full_regulation": "No Fishing July 15-Aug 31\nNo Fishing from power line crossing at \"Bore Hole\" upstream to fishing boundary signs at the mouth of Boulder Creek\nNo Fishing from the Cedar Road Bridge upstream to the Hwy 19 bridge, Sept 1-Oct 15\nNo Fishing upstream of the Hwy 1 bridge[Includes Tributaries], Dec 1-May 31\nArtificial fly only upstream of the westernmost of the two Nanaimo Lakes, known locally as \"Second\" Lake, including tributaries\nEngine power restriction on parts - 7.5 kW (10 hp)",
       "anchor_kind": "point",
       "resolver_hint": "bridge_road_km",
@@ -3949,18 +4406,18 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal L] power line at 'Bore Hole' & Boulder Creek mouth signs on Nanaimo River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the 'Bore Hole' power-line crossing and the Boulder Creek confluence signs on the Nanaimo River; map.. Reach between a power-line landmark ('Bore Hole') and boundary signs at the Boulder Creek mouth. Not in FWA. Map/OSM-confirmable.",
+      "notes": "[auto-proposal L] power line at 'Bore Hole' & Boulder Creek mouth signs on Nanaimo River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the 'Bore Hole' power-line crossing and the Boulder Creek confluence signs on the Nanaimo River; map.. Reach between a power-line landmark ('Bore Hole') and boundary signs at the Boulder Creek mouth. Not in FWA. Map/OSM-confirmable. [structural-split 2026-08-05 from “from power line crossing at \"Bore Hole\" upstream to fishing boundary signs at the mouth of Boulder Creek”] boundary=power line crossing at \"Bore Hole\"",
       "entry_id": "046b8cc3"
     },
     {
-      "id": "nanaimo-river-e9ebfc",
+      "id": "nanaimo-river-633e28-b",
       "name_verbatim": "NANAIMO RIVER",
       "region": "REGION 1",
       "mus": [
         "1-5"
       ],
       "src": "rule",
-      "locator_text": "from the Cedar Road Bridge upstream to the Hwy 19 bridge",
+      "locator_text": "fishing boundary signs at the mouth of Boulder Creek",
       "full_regulation": "No Fishing July 15-Aug 31\nNo Fishing from power line crossing at \"Bore Hole\" upstream to fishing boundary signs at the mouth of Boulder Creek\nNo Fishing from the Cedar Road Bridge upstream to the Hwy 19 bridge, Sept 1-Oct 15\nNo Fishing upstream of the Hwy 1 bridge[Includes Tributaries], Dec 1-May 31\nArtificial fly only upstream of the westernmost of the two Nanaimo Lakes, known locally as \"Second\" Lake, including tributaries\nEngine power restriction on parts - 7.5 kW (10 hp)",
       "anchor_kind": "point",
       "resolver_hint": "bridge_road_km",
@@ -3968,7 +4425,45 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal L] Cedar Road Bridge & Hwy 19 bridge over Nanaimo River on Nanaimo River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the Cedar Road bridge and Hwy 19 bridge over the Nanaimo River (near Cedar/Nanaimo); map.. Reach between two road bridges on the lower Nanaimo River. Public bridges -> map/OSM-confirmable.",
+      "notes": "[auto-proposal L] power line at 'Bore Hole' & Boulder Creek mouth signs on Nanaimo River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the 'Bore Hole' power-line crossing and the Boulder Creek confluence signs on the Nanaimo River; map.. Reach between a power-line landmark ('Bore Hole') and boundary signs at the Boulder Creek mouth. Not in FWA. Map/OSM-confirmable. [structural-split 2026-08-05 from “from power line crossing at \"Bore Hole\" upstream to fishing boundary signs at the mouth of Boulder Creek”] boundary=fishing boundary signs at the mouth of Boulder Creek",
+      "entry_id": "046b8cc3"
+    },
+    {
+      "id": "nanaimo-river-e9ebfc-a",
+      "name_verbatim": "NANAIMO RIVER",
+      "region": "REGION 1",
+      "mus": [
+        "1-5"
+      ],
+      "src": "rule",
+      "locator_text": "Cedar Road Bridge",
+      "full_regulation": "No Fishing July 15-Aug 31\nNo Fishing from power line crossing at \"Bore Hole\" upstream to fishing boundary signs at the mouth of Boulder Creek\nNo Fishing from the Cedar Road Bridge upstream to the Hwy 19 bridge, Sept 1-Oct 15\nNo Fishing upstream of the Hwy 1 bridge[Includes Tributaries], Dec 1-May 31\nArtificial fly only upstream of the westernmost of the two Nanaimo Lakes, known locally as \"Second\" Lake, including tributaries\nEngine power restriction on parts - 7.5 kW (10 hp)",
+      "anchor_kind": "point",
+      "resolver_hint": "bridge_road_km",
+      "status": "todo",
+      "target": "",
+      "coord": null,
+      "label": "",
+      "notes": "[auto-proposal L] Cedar Road Bridge & Hwy 19 bridge over Nanaimo River on Nanaimo River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the Cedar Road bridge and Hwy 19 bridge over the Nanaimo River (near Cedar/Nanaimo); map.. Reach between two road bridges on the lower Nanaimo River. Public bridges -> map/OSM-confirmable. [structural-split 2026-08-05 from “from the Cedar Road Bridge upstream to the Hwy 19 bridge”] boundary=Cedar Road Bridge",
+      "entry_id": "046b8cc3"
+    },
+    {
+      "id": "nanaimo-river-e9ebfc-b",
+      "name_verbatim": "NANAIMO RIVER",
+      "region": "REGION 1",
+      "mus": [
+        "1-5"
+      ],
+      "src": "rule",
+      "locator_text": "Hwy 19 bridge",
+      "full_regulation": "No Fishing July 15-Aug 31\nNo Fishing from power line crossing at \"Bore Hole\" upstream to fishing boundary signs at the mouth of Boulder Creek\nNo Fishing from the Cedar Road Bridge upstream to the Hwy 19 bridge, Sept 1-Oct 15\nNo Fishing upstream of the Hwy 1 bridge[Includes Tributaries], Dec 1-May 31\nArtificial fly only upstream of the westernmost of the two Nanaimo Lakes, known locally as \"Second\" Lake, including tributaries\nEngine power restriction on parts - 7.5 kW (10 hp)",
+      "anchor_kind": "point",
+      "resolver_hint": "bridge_road_km",
+      "status": "todo",
+      "target": "",
+      "coord": null,
+      "label": "",
+      "notes": "[auto-proposal L] Cedar Road Bridge & Hwy 19 bridge over Nanaimo River on Nanaimo River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the Cedar Road bridge and Hwy 19 bridge over the Nanaimo River (near Cedar/Nanaimo); map.. Reach between two road bridges on the lower Nanaimo River. Public bridges -> map/OSM-confirmable. [structural-split 2026-08-05 from “from the Cedar Road Bridge upstream to the Hwy 19 bridge”] boundary=Hwy 19 bridge",
       "entry_id": "046b8cc3"
     },
     {
@@ -3991,14 +4486,14 @@
       "entry_id": "046b8cc3"
     },
     {
-      "id": "nass-river-707159",
+      "id": "nass-river-707159-a",
       "name_verbatim": "NASS RIVER",
       "region": "REGION 6",
       "mus": [
         "6-30"
       ],
       "src": "rule",
-      "locator_text": "from white triangular fishing boundary signs located downstream of the Meziadin River confluence, and upstream to the Hw",
+      "locator_text": "white triangular fishing boundary signs located downstream of the Meziadin River confluence, and",
       "full_regulation": "Bait ban\nNo Fishing from white triangular fishing boundary signs located downstream of the Meziadin River confluence, and upstream to the Hwy\n37 bridge, Aug 8-Sept 15",
       "anchor_kind": "point",
       "resolver_hint": "bridge_road_km",
@@ -4006,7 +4501,26 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal L] white signs below Meziadin confluence, up to a Hwy bridge on Nass River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Meziadin River confluence on the Nass and the Hwy bridge (Hwy 37 / Nass) at the upstream end; map.. Reach = 'signs downstream of the Meziadin River confluence, up to the Hwy [37] bridge' (truncated). Confluence + highway bridge -> map/OSM-confirmable; anchor at the Meziadin confluence.",
+      "notes": "[auto-proposal L] white signs below Meziadin confluence, up to a Hwy bridge on Nass River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Meziadin River confluence on the Nass and the Hwy bridge (Hwy 37 / Nass) at the upstream end; map.. Reach = 'signs downstream of the Meziadin River confluence, up to the Hwy [37] bridge' (truncated). Confluence + highway bridge -> map/OSM-confirmable; anchor at the Meziadin confluence. [structural-split 2026-08-05 from “from white triangular fishing boundary signs located downstream of the Meziadin River confluence, and upstream to the Hw”] boundary=white triangular fishing boundary signs located downstream of the Meziadin River confluence, and",
+      "entry_id": "68fa941e"
+    },
+    {
+      "id": "nass-river-707159-b",
+      "name_verbatim": "NASS RIVER",
+      "region": "REGION 6",
+      "mus": [
+        "6-30"
+      ],
+      "src": "rule",
+      "locator_text": "Hw",
+      "full_regulation": "Bait ban\nNo Fishing from white triangular fishing boundary signs located downstream of the Meziadin River confluence, and upstream to the Hwy\n37 bridge, Aug 8-Sept 15",
+      "anchor_kind": "point",
+      "resolver_hint": "bridge_road_km",
+      "status": "todo",
+      "target": "",
+      "coord": null,
+      "label": "",
+      "notes": "[auto-proposal L] white signs below Meziadin confluence, up to a Hwy bridge on Nass River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Meziadin River confluence on the Nass and the Hwy bridge (Hwy 37 / Nass) at the upstream end; map.. Reach = 'signs downstream of the Meziadin River confluence, up to the Hwy [37] bridge' (truncated). Confluence + highway bridge -> map/OSM-confirmable; anchor at the Meziadin confluence. [structural-split 2026-08-05 from “from white triangular fishing boundary signs located downstream of the Meziadin River confluence, and upstream to the Hw”] boundary=Hw",
       "entry_id": "68fa941e"
     },
     {
@@ -4025,7 +4539,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal L] 272nd Street (Jackman Road) bridge over Nathan/Beaver Creek on Nathan (Beaver) Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm 272nd St (Jackman Rd) crossing of Nathan Creek (Langley/Aldergrove); street grid -> review.. FWA 'Nathan Creek' match (49.17N,-122.49) is in the Fraser Valley (plausibly correct). City street bridge at 272 St -> map-only but well-defined. Upstream reach.",
+      "notes": "[auto-proposal L] 272nd Street (Jackman Road) bridge over Nathan/Beaver Creek on Nathan (Beaver) Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm 272nd St (Jackman Rd) crossing of Nathan Creek (Langley/Aldergrove); street grid -> review.. FWA 'Nathan Creek' match (49.17N,-122.49) is in the Fraser Valley (plausibly correct). City street bridge at 272 St -> map-only but well-defined. Upstream reach. [shared-anchor ‘272nd street (jackman road)’ — author ONE split]",
       "entry_id": "8bba2d84"
     },
     {
@@ -4044,18 +4558,18 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal L] 272nd Street (Jackman Road) bridge over Nathan/Beaver Creek on Nathan (Beaver) Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm 272nd St (Jackman Rd) crossing of Nathan Creek (Langley/Aldergrove); downstream reach; review.. Same 272 St bridge; downstream reach. Street bridge -> map/OSM-confirmable.",
+      "notes": "[auto-proposal L] 272nd Street (Jackman Road) bridge over Nathan/Beaver Creek on Nathan (Beaver) Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm 272nd St (Jackman Rd) crossing of Nathan Creek (Langley/Aldergrove); downstream reach; review.. Same 272 St bridge; downstream reach. Street bridge -> map/OSM-confirmable. [shared-anchor ‘272nd street (jackman road)’ — author ONE split]",
       "entry_id": "8bba2d84"
     },
     {
-      "id": "nechako-river-735a30",
+      "id": "nechako-river-735a30-a",
       "name_verbatim": "NECHAKO RIVER",
       "region": "REGION 7A",
       "mus": [
         "7-12"
       ],
       "src": "rule",
-      "locator_text": "from said sign downstream to Hwy 27 bridge",
+      "locator_text": "said sign",
       "full_regulation": "Exempt from spring closure.\nRainbow trout catch and release from Cheslatta River to a boundary sign 5 km downstream and no rainbow trout under 35 cm from said\nsign downstream to Hwy 27 bridge\nExempt from bait ban downstream of Foothills Boulevard Bridge in Prince George",
       "anchor_kind": "point",
       "resolver_hint": "bridge_road_km",
@@ -4063,7 +4577,26 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal L] Hwy 27 bridge over Nechako River on Nechako River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Hwy 27 bridge over the Nechako (from a boundary sign upstream); map. Hwy 27 = Fort St James road.. Reach = 'from said sign downstream to Hwy 27 bridge'. Public highway bridge -> map/OSM-confirmable; not in FWA.",
+      "notes": "[auto-proposal L] Hwy 27 bridge over Nechako River on Nechako River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Hwy 27 bridge over the Nechako (from a boundary sign upstream); map. Hwy 27 = Fort St James road.. Reach = 'from said sign downstream to Hwy 27 bridge'. Public highway bridge -> map/OSM-confirmable; not in FWA. [structural-split 2026-08-05 from “from said sign downstream to Hwy 27 bridge”] boundary=said sign",
+      "entry_id": "eee9bebb"
+    },
+    {
+      "id": "nechako-river-735a30-b",
+      "name_verbatim": "NECHAKO RIVER",
+      "region": "REGION 7A",
+      "mus": [
+        "7-12"
+      ],
+      "src": "rule",
+      "locator_text": "Hwy 27 bridge",
+      "full_regulation": "Exempt from spring closure.\nRainbow trout catch and release from Cheslatta River to a boundary sign 5 km downstream and no rainbow trout under 35 cm from said\nsign downstream to Hwy 27 bridge\nExempt from bait ban downstream of Foothills Boulevard Bridge in Prince George",
+      "anchor_kind": "point",
+      "resolver_hint": "bridge_road_km",
+      "status": "todo",
+      "target": "",
+      "coord": null,
+      "label": "",
+      "notes": "[auto-proposal L] Hwy 27 bridge over Nechako River on Nechako River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Hwy 27 bridge over the Nechako (from a boundary sign upstream); map. Hwy 27 = Fort St James road.. Reach = 'from said sign downstream to Hwy 27 bridge'. Public highway bridge -> map/OSM-confirmable; not in FWA. [structural-split 2026-08-05 from “from said sign downstream to Hwy 27 bridge”] boundary=Hwy 27 bridge",
       "entry_id": "eee9bebb"
     },
     {
@@ -4124,14 +4657,14 @@
       "entry_id": "abb7b842"
     },
     {
-      "id": "nitinat-river-53706e",
+      "id": "nitinat-river-53706e-a",
       "name_verbatim": "NITINAT RIVER",
       "region": "REGION 1",
       "mus": [
         "1-4"
       ],
       "src": "rule",
-      "locator_text": "between fishing boundary signs approximately 100 m upstream of and downstream of \"Red Rock Pool,\" approximately 2 km (by",
+      "locator_text": "fishing boundary signs approximately 100 m upstream of",
       "full_regulation": "Exempt from July 15-Aug 31 summer closure\nNo Fishing upstream of Parker Creek\nNo Fishing between fishing boundary signs approximately 100 m upstream of and downstream of \"Red Rock Pool,\" approximately 2 km\n(by road) south of the Nitinat River Bridge, Aug 25-Dec 31\nNo Fishing between boundary signs approximately 50 m upstream of and downstream of the Nitinat River Bridge, Aug 25-Oct 15",
       "anchor_kind": "point",
       "resolver_hint": "bridge_road_km",
@@ -4139,18 +4672,18 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal L] 'Red Rock Pool' boundary signs (~2 km up) on Nitinat River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate 'Red Rock Pool' on the Nitinat River (~2 km by road up) with signs ~100 m up/down; map.. Landmark is a named pool with boundary signs, not a bridge. Not in FWA. Map/OSM-confirmable.",
+      "notes": "[auto-proposal L] 'Red Rock Pool' boundary signs (~2 km up) on Nitinat River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate 'Red Rock Pool' on the Nitinat River (~2 km by road up) with signs ~100 m up/down; map.. Landmark is a named pool with boundary signs, not a bridge. Not in FWA. Map/OSM-confirmable. [structural-split 2026-08-05 from “between fishing boundary signs approximately 100 m upstream of and downstream of \"Red Rock Pool,\" approximately 2 km (by”] boundary=fishing boundary signs approximately 100 m upstream of",
       "entry_id": "6e49648b"
     },
     {
-      "id": "nitinat-river-d47404",
+      "id": "nitinat-river-53706e-b",
       "name_verbatim": "NITINAT RIVER",
       "region": "REGION 1",
       "mus": [
         "1-4"
       ],
       "src": "rule",
-      "locator_text": "between boundary signs approximately 50 m upstream of and downstream of the Nitinat River Bridge",
+      "locator_text": "downstream of \"Red Rock Pool,\" approximately 2 km (by",
       "full_regulation": "Exempt from July 15-Aug 31 summer closure\nNo Fishing upstream of Parker Creek\nNo Fishing between fishing boundary signs approximately 100 m upstream of and downstream of \"Red Rock Pool,\" approximately 2 km\n(by road) south of the Nitinat River Bridge, Aug 25-Dec 31\nNo Fishing between boundary signs approximately 50 m upstream of and downstream of the Nitinat River Bridge, Aug 25-Oct 15",
       "anchor_kind": "point",
       "resolver_hint": "bridge_road_km",
@@ -4158,7 +4691,45 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal L] Nitinat River Bridge boundary signs (~50 m up/down) on Nitinat River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Nitinat River Bridge with signs ~50 m up/down; map.. Road bridge over the Nitinat with boundary-sign reach ~50 m either side. Bridge not name-matched in FSR (only a Carmanah-area crossing far up). Map/OSM-confirmable.",
+      "notes": "[auto-proposal L] 'Red Rock Pool' boundary signs (~2 km up) on Nitinat River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate 'Red Rock Pool' on the Nitinat River (~2 km by road up) with signs ~100 m up/down; map.. Landmark is a named pool with boundary signs, not a bridge. Not in FWA. Map/OSM-confirmable. [structural-split 2026-08-05 from “between fishing boundary signs approximately 100 m upstream of and downstream of \"Red Rock Pool,\" approximately 2 km (by”] boundary=downstream of \"Red Rock Pool,\" approximately 2 km (by",
+      "entry_id": "6e49648b"
+    },
+    {
+      "id": "nitinat-river-d47404-a",
+      "name_verbatim": "NITINAT RIVER",
+      "region": "REGION 1",
+      "mus": [
+        "1-4"
+      ],
+      "src": "rule",
+      "locator_text": "boundary signs approximately 50 m upstream of",
+      "full_regulation": "Exempt from July 15-Aug 31 summer closure\nNo Fishing upstream of Parker Creek\nNo Fishing between fishing boundary signs approximately 100 m upstream of and downstream of \"Red Rock Pool,\" approximately 2 km\n(by road) south of the Nitinat River Bridge, Aug 25-Dec 31\nNo Fishing between boundary signs approximately 50 m upstream of and downstream of the Nitinat River Bridge, Aug 25-Oct 15",
+      "anchor_kind": "point",
+      "resolver_hint": "bridge_road_km",
+      "status": "todo",
+      "target": "",
+      "coord": null,
+      "label": "",
+      "notes": "[auto-proposal L] Nitinat River Bridge boundary signs (~50 m up/down) on Nitinat River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Nitinat River Bridge with signs ~50 m up/down; map.. Road bridge over the Nitinat with boundary-sign reach ~50 m either side. Bridge not name-matched in FSR (only a Carmanah-area crossing far up). Map/OSM-confirmable. [structural-split 2026-08-05 from “between boundary signs approximately 50 m upstream of and downstream of the Nitinat River Bridge”] boundary=boundary signs approximately 50 m upstream of",
+      "entry_id": "6e49648b"
+    },
+    {
+      "id": "nitinat-river-d47404-b",
+      "name_verbatim": "NITINAT RIVER",
+      "region": "REGION 1",
+      "mus": [
+        "1-4"
+      ],
+      "src": "rule",
+      "locator_text": "downstream of the Nitinat River Bridge",
+      "full_regulation": "Exempt from July 15-Aug 31 summer closure\nNo Fishing upstream of Parker Creek\nNo Fishing between fishing boundary signs approximately 100 m upstream of and downstream of \"Red Rock Pool,\" approximately 2 km\n(by road) south of the Nitinat River Bridge, Aug 25-Dec 31\nNo Fishing between boundary signs approximately 50 m upstream of and downstream of the Nitinat River Bridge, Aug 25-Oct 15",
+      "anchor_kind": "point",
+      "resolver_hint": "bridge_road_km",
+      "status": "todo",
+      "target": "",
+      "coord": null,
+      "label": "",
+      "notes": "[auto-proposal L] Nitinat River Bridge boundary signs (~50 m up/down) on Nitinat River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Nitinat River Bridge with signs ~50 m up/down; map.. Road bridge over the Nitinat with boundary-sign reach ~50 m either side. Bridge not name-matched in FSR (only a Carmanah-area crossing far up). Map/OSM-confirmable. [structural-split 2026-08-05 from “between boundary signs approximately 50 m upstream of and downstream of the Nitinat River Bridge”] boundary=downstream of the Nitinat River Bridge",
       "entry_id": "6e49648b"
     },
     {
@@ -4219,14 +4790,14 @@
       "entry_id": "e2986e43"
     },
     {
-      "id": "pitt-river-4dae69",
+      "id": "pitt-river-4dae69-a",
       "name_verbatim": "PITT RIVER",
       "region": "REGION 2",
       "mus": [
         "2-8"
       ],
       "src": "rule",
-      "locator_text": "in the Lower Pitt River (CPR Bridge upstream to Pitt Lake)",
+      "locator_text": "in the Lower Pitt River (CPR Bridge",
       "full_regulation": "No Fishing within Garibaldi Park; speed restriction at Grant Narrows (10 km/h)\nBait ban upstream of Pitt Lake\nNo Fishing in the Lower Pitt River (CPR Bridge upstream to Pitt Lake) from one hour after sunset to one hour before sunrise (tributaries not\nincluded)",
       "anchor_kind": "point",
       "resolver_hint": "bridge_road_km",
@@ -4234,18 +4805,37 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal L] CPR Bridge on Lower Pitt River (to Pitt Lake) on Pitt River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the CPR (railway) bridge over the lower Pitt River (Pitt Meadows); railway bridge, map-only.. Reach = 'Lower Pitt River: CPR Bridge upstream to Pitt Lake'. Railway bridge near the Pitt mouth; distinct from the Garibaldi Park split (garibaldi_pitt) which is far up the Pitt. Map/OSM-confirmable.",
+      "notes": "[auto-proposal L] CPR Bridge on Lower Pitt River (to Pitt Lake) on Pitt River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the CPR (railway) bridge over the lower Pitt River (Pitt Meadows); railway bridge, map-only.. Reach = 'Lower Pitt River: CPR Bridge upstream to Pitt Lake'. Railway bridge near the Pitt mouth; distinct from the Garibaldi Park split (garibaldi_pitt) which is far up the Pitt. Map/OSM-confirmable. [structural-split 2026-08-05 from “in the Lower Pitt River (CPR Bridge upstream to Pitt Lake)”] boundary=in the Lower Pitt River (CPR Bridge",
       "entry_id": "773ca353"
     },
     {
-      "id": "powers-creek-28dc38",
+      "id": "pitt-river-4dae69-b",
+      "name_verbatim": "PITT RIVER",
+      "region": "REGION 2",
+      "mus": [
+        "2-8"
+      ],
+      "src": "rule",
+      "locator_text": "Pitt Lake)",
+      "full_regulation": "No Fishing within Garibaldi Park; speed restriction at Grant Narrows (10 km/h)\nBait ban upstream of Pitt Lake\nNo Fishing in the Lower Pitt River (CPR Bridge upstream to Pitt Lake) from one hour after sunset to one hour before sunrise (tributaries not\nincluded)",
+      "anchor_kind": "lake",
+      "resolver_hint": "lake_reach",
+      "status": "todo",
+      "target": "",
+      "coord": null,
+      "label": "",
+      "notes": "[auto-proposal L] CPR Bridge on Lower Pitt River (to Pitt Lake) on Pitt River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the CPR (railway) bridge over the lower Pitt River (Pitt Meadows); railway bridge, map-only.. Reach = 'Lower Pitt River: CPR Bridge upstream to Pitt Lake'. Railway bridge near the Pitt mouth; distinct from the Garibaldi Park split (garibaldi_pitt) which is far up the Pitt. Map/OSM-confirmable. [structural-split 2026-08-05 from “in the Lower Pitt River (CPR Bridge upstream to Pitt Lake)”] boundary=Pitt Lake)",
+      "entry_id": "773ca353"
+    },
+    {
+      "id": "powers-creek-28dc38-a",
       "name_verbatim": "POWERS CREEK",
       "region": "REGION 8",
       "mus": [
         "8-11"
       ],
       "src": "rule",
-      "locator_text": "downstream of Hwy 97 bridge to Okanagan Lake",
+      "locator_text": "downstream of Hwy 97 bridge",
       "full_regulation": "No Fishing downstream of Hwy 97 bridge to Okanagan Lake",
       "anchor_kind": "point",
       "resolver_hint": "bridge_road_km",
@@ -4253,7 +4843,26 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal L] Hwy 97 bridge over Powers Creek (to Okanagan Lake) on Powers Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the Hwy 97 bridge over Powers Creek in West Kelowna (down to Okanagan Lake); single crossing -> review.. Public highway bridge in West Kelowna -> map/OSM-confirmable; FSR hits are far upstream.",
+      "notes": "[auto-proposal L] Hwy 97 bridge over Powers Creek (to Okanagan Lake) on Powers Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the Hwy 97 bridge over Powers Creek in West Kelowna (down to Okanagan Lake); single crossing -> review.. Public highway bridge in West Kelowna -> map/OSM-confirmable; FSR hits are far upstream. [structural-split 2026-08-05 from “downstream of Hwy 97 bridge to Okanagan Lake”] boundary=downstream of Hwy 97 bridge",
+      "entry_id": "af3ee657"
+    },
+    {
+      "id": "powers-creek-28dc38-b",
+      "name_verbatim": "POWERS CREEK",
+      "region": "REGION 8",
+      "mus": [
+        "8-11"
+      ],
+      "src": "rule",
+      "locator_text": "Okanagan Lake",
+      "full_regulation": "No Fishing downstream of Hwy 97 bridge to Okanagan Lake",
+      "anchor_kind": "lake",
+      "resolver_hint": "lake_reach",
+      "status": "todo",
+      "target": "",
+      "coord": null,
+      "label": "",
+      "notes": "[auto-proposal L] Hwy 97 bridge over Powers Creek (to Okanagan Lake) on Powers Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the Hwy 97 bridge over Powers Creek in West Kelowna (down to Okanagan Lake); single crossing -> review.. Public highway bridge in West Kelowna -> map/OSM-confirmable; FSR hits are far upstream. [structural-split 2026-08-05 from “downstream of Hwy 97 bridge to Okanagan Lake”] boundary=Okanagan Lake",
       "entry_id": "af3ee657"
     },
     {
@@ -4276,14 +4885,14 @@
       "entry_id": "e63f8c99"
     },
     {
-      "id": "quesnel-river-cf8577",
+      "id": "quesnel-river-cf8577-a",
       "name_verbatim": "QUESNEL RIVER",
       "region": "REGION 5",
       "mus": [
         "5-2"
       ],
       "src": "rule",
-      "locator_text": "from 50 m upstream of Likely Bridge to 50 m downstream of Likely Bridge",
+      "locator_text": "50 m upstream of Likely Bridge",
       "full_regulation": "No Fishing from 50 m upstream of Likely Bridge to 50 m downstream of Likely Bridge\nNo Fishing upstream of Cariboo River, Mar 1-June 15\nTrout/char catch and release from the boundary signs approximately 1.8 km east of the Likely Bridge downstream to Morehead Creek\nTrout/char daily quota = 1 (none under 40 cm) downstream of Morehead Creek\nBait ban",
       "anchor_kind": "point",
       "resolver_hint": "bridge_road_km",
@@ -4291,18 +4900,18 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal L] Likely Bridge over Quesnel River (+/- 50 m) on Quesnel River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the Likely Bridge over the Quesnel River at Likely townsite (reach = 50 m either side); review.. Road bridge at Likely (upper Quesnel River, near Quesnel Lake outlet). Not name-matched in FSR; well-defined public bridge -> map/OSM-confirmable. NOTE the FWA mouth (Quesnel city) is the wrong end; Likely is upstream.",
+      "notes": "[auto-proposal L] Likely Bridge over Quesnel River (+/- 50 m) on Quesnel River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the Likely Bridge over the Quesnel River at Likely townsite (reach = 50 m either side); review.. Road bridge at Likely (upper Quesnel River, near Quesnel Lake outlet). Not name-matched in FSR; well-defined public bridge -> map/OSM-confirmable. NOTE the FWA mouth (Quesnel city) is the wrong end; Likely is upstream. [structural-split 2026-08-05 from “from 50 m upstream of Likely Bridge to 50 m downstream of Likely Bridge”] boundary=50 m upstream of Likely Bridge",
       "entry_id": "cae5d13e"
     },
     {
-      "id": "quesnel-river-2ce5e8",
+      "id": "quesnel-river-cf8577-b",
       "name_verbatim": "QUESNEL RIVER",
       "region": "REGION 5",
       "mus": [
         "5-2"
       ],
       "src": "rule",
-      "locator_text": "from the boundary signs approximately 1.8 km east of the Likely Bridge downstream to Morehead Creek",
+      "locator_text": "50 m downstream of Likely Bridge",
       "full_regulation": "No Fishing from 50 m upstream of Likely Bridge to 50 m downstream of Likely Bridge\nNo Fishing upstream of Cariboo River, Mar 1-June 15\nTrout/char catch and release from the boundary signs approximately 1.8 km east of the Likely Bridge downstream to Morehead Creek\nTrout/char daily quota = 1 (none under 40 cm) downstream of Morehead Creek\nBait ban",
       "anchor_kind": "point",
       "resolver_hint": "bridge_road_km",
@@ -4310,7 +4919,45 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal L] boundary signs ~1.8 km E of Likely Bridge (to Morehead Creek) on Quesnel River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the signs ~1.8 km east of the Likely Bridge and the Morehead Creek confluence; map.. Reach = signs ~1.8 km E of Likely Bridge down to Morehead Creek. Sign + confluence landmarks near Likely -> map/OSM-confirmable.",
+      "notes": "[auto-proposal L] Likely Bridge over Quesnel River (+/- 50 m) on Quesnel River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the Likely Bridge over the Quesnel River at Likely townsite (reach = 50 m either side); review.. Road bridge at Likely (upper Quesnel River, near Quesnel Lake outlet). Not name-matched in FSR; well-defined public bridge -> map/OSM-confirmable. NOTE the FWA mouth (Quesnel city) is the wrong end; Likely is upstream. [structural-split 2026-08-05 from “from 50 m upstream of Likely Bridge to 50 m downstream of Likely Bridge”] boundary=50 m downstream of Likely Bridge",
+      "entry_id": "cae5d13e"
+    },
+    {
+      "id": "quesnel-river-2ce5e8-a",
+      "name_verbatim": "QUESNEL RIVER",
+      "region": "REGION 5",
+      "mus": [
+        "5-2"
+      ],
+      "src": "rule",
+      "locator_text": "boundary signs approximately 1.8 km east of the Likely Bridge",
+      "full_regulation": "No Fishing from 50 m upstream of Likely Bridge to 50 m downstream of Likely Bridge\nNo Fishing upstream of Cariboo River, Mar 1-June 15\nTrout/char catch and release from the boundary signs approximately 1.8 km east of the Likely Bridge downstream to Morehead Creek\nTrout/char daily quota = 1 (none under 40 cm) downstream of Morehead Creek\nBait ban",
+      "anchor_kind": "point",
+      "resolver_hint": "bridge_road_km",
+      "status": "todo",
+      "target": "",
+      "coord": null,
+      "label": "",
+      "notes": "[auto-proposal L] boundary signs ~1.8 km E of Likely Bridge (to Morehead Creek) on Quesnel River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the signs ~1.8 km east of the Likely Bridge and the Morehead Creek confluence; map.. Reach = signs ~1.8 km E of Likely Bridge down to Morehead Creek. Sign + confluence landmarks near Likely -> map/OSM-confirmable. [structural-split 2026-08-05 from “from the boundary signs approximately 1.8 km east of the Likely Bridge downstream to Morehead Creek”] boundary=boundary signs approximately 1.8 km east of the Likely Bridge",
+      "entry_id": "cae5d13e"
+    },
+    {
+      "id": "quesnel-river-2ce5e8-b",
+      "name_verbatim": "QUESNEL RIVER",
+      "region": "REGION 5",
+      "mus": [
+        "5-2"
+      ],
+      "src": "rule",
+      "locator_text": "Morehead Creek",
+      "full_regulation": "No Fishing from 50 m upstream of Likely Bridge to 50 m downstream of Likely Bridge\nNo Fishing upstream of Cariboo River, Mar 1-June 15\nTrout/char catch and release from the boundary signs approximately 1.8 km east of the Likely Bridge downstream to Morehead Creek\nTrout/char daily quota = 1 (none under 40 cm) downstream of Morehead Creek\nBait ban",
+      "anchor_kind": "confluence",
+      "resolver_hint": "tributary",
+      "status": "todo",
+      "target": "",
+      "coord": null,
+      "label": "",
+      "notes": "[auto-proposal L] boundary signs ~1.8 km E of Likely Bridge (to Morehead Creek) on Quesnel River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the signs ~1.8 km east of the Likely Bridge and the Morehead Creek confluence; map.. Reach = signs ~1.8 km E of Likely Bridge down to Morehead Creek. Sign + confluence landmarks near Likely -> map/OSM-confirmable. [structural-split 2026-08-05 from “from the boundary signs approximately 1.8 km east of the Likely Bridge downstream to Morehead Creek”] boundary=Morehead Creek",
       "entry_id": "cae5d13e"
     },
     {
@@ -4348,7 +4995,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal L] 232nd Street (Livingstone Road) bridge over Salmon River (Langley) on Salmon River (Langley). No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm 232nd St (Livingstone Rd) crossing of the Langley Salmon River; VERIFY river (3-way FWA name collision).. There are three 'Salmon Rivers' here: this one is the LANGLEY Salmon River (232 St = MU 2 Fraser Valley). The FWA match (54.06N, Prince George area) is the WRONG Salmon River. City street bridge -> map-only. Upstream reach.",
+      "notes": "[auto-proposal L] 232nd Street (Livingstone Road) bridge over Salmon River (Langley) on Salmon River (Langley). No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm 232nd St (Livingstone Rd) crossing of the Langley Salmon River; VERIFY river (3-way FWA name collision).. There are three 'Salmon Rivers' here: this one is the LANGLEY Salmon River (232 St = MU 2 Fraser Valley). The FWA match (54.06N, Prince George area) is the WRONG Salmon River. City street bridge -> map-only. Upstream reach. [shared-anchor ‘232nd street (livingstone road)’ — author ONE split]",
       "entry_id": "98c1c934"
     },
     {
@@ -4367,7 +5014,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal L] 232nd Street (Livingstone Road) bridge over Salmon River (Langley) on Salmon River (Langley). No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm 232nd St crossing of the Langley Salmon River; downstream reach; VERIFY river (FWA collision).. Same Langley Salmon River 232 St bridge; downstream reach. FWA name collision as above. Map-only.",
+      "notes": "[auto-proposal L] 232nd Street (Livingstone Road) bridge over Salmon River (Langley) on Salmon River (Langley). No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm 232nd St crossing of the Langley Salmon River; downstream reach; VERIFY river (FWA collision).. Same Langley Salmon River 232 St bridge; downstream reach. FWA name collision as above. Map-only. [shared-anchor ‘232nd street (livingstone road)’ — author ONE split]",
       "entry_id": "98c1c934"
     },
     {
@@ -4424,7 +5071,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal L] 168th Street bridge at Bothwell Park over Serpentine River on Serpentine River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm 168th St crossing at Bothwell Park on the Serpentine (Surrey); street grid -> review.. FWA Serpentine mouth (49.08N,-122.85) is correct (Surrey). City street bridge at 168 St / Bothwell Park -> map-only but well-defined. Upstream reach.",
+      "notes": "[auto-proposal L] 168th Street bridge at Bothwell Park over Serpentine River on Serpentine River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm 168th St crossing at Bothwell Park on the Serpentine (Surrey); street grid -> review.. FWA Serpentine mouth (49.08N,-122.85) is correct (Surrey). City street bridge at 168 St / Bothwell Park -> map-only but well-defined. Upstream reach. [shared-anchor ‘168th street at bothwell park’ — author ONE split]",
       "entry_id": "5494c7fa"
     },
     {
@@ -4443,18 +5090,18 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal L] 168th Street bridge at Bothwell Park over Serpentine River on Serpentine River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm 168th St crossing at Bothwell Park on the Serpentine; downstream reach; review.. Same 168 St / Bothwell Park bridge; downstream reach. Street bridge -> map/OSM-confirmable.",
+      "notes": "[auto-proposal L] 168th Street bridge at Bothwell Park over Serpentine River on Serpentine River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm 168th St crossing at Bothwell Park on the Serpentine; downstream reach; review.. Same 168 St / Bothwell Park bridge; downstream reach. Street bridge -> map/OSM-confirmable. [shared-anchor ‘168th street at bothwell park’ — author ONE split]",
       "entry_id": "5494c7fa"
     },
     {
-      "id": "shorts-creek-2878e5",
+      "id": "shorts-creek-2878e5-a",
       "name_verbatim": "SHORTS CREEK",
       "region": "REGION 8",
       "mus": [
         "8-11"
       ],
       "src": "rule",
-      "locator_text": "from Westside Road Bridge to Okanagan Lake",
+      "locator_text": "Westside Road Bridge",
       "full_regulation": "No Fishing from Westside Road Bridge to Okanagan Lake",
       "anchor_kind": "point",
       "resolver_hint": "bridge_road_km",
@@ -4462,18 +5109,56 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal L] Westside Road Bridge over Shorts Creek (to Okanagan Lake) on Shorts Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the Westside Road bridge over Shorts Creek (Fintry area); single crossing -> review.. Reach = 'Westside Road Bridge to Okanagan Lake'. Westside Rd crosses Shorts Creek near Fintry, close to the Okanagan Lake mouth. Map/OSM-confirmable (FSR hits are far upstream).",
+      "notes": "[auto-proposal L] Westside Road Bridge over Shorts Creek (to Okanagan Lake) on Shorts Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the Westside Road bridge over Shorts Creek (Fintry area); single crossing -> review.. Reach = 'Westside Road Bridge to Okanagan Lake'. Westside Rd crosses Shorts Creek near Fintry, close to the Okanagan Lake mouth. Map/OSM-confirmable (FSR hits are far upstream). [structural-split 2026-08-05 from “from Westside Road Bridge to Okanagan Lake”] boundary=Westside Road Bridge",
       "entry_id": "94472177"
     },
     {
-      "id": "shuswap-river-dab160",
+      "id": "shorts-creek-2878e5-b",
+      "name_verbatim": "SHORTS CREEK",
+      "region": "REGION 8",
+      "mus": [
+        "8-11"
+      ],
+      "src": "rule",
+      "locator_text": "Okanagan Lake",
+      "full_regulation": "No Fishing from Westside Road Bridge to Okanagan Lake",
+      "anchor_kind": "lake",
+      "resolver_hint": "lake_reach",
+      "status": "todo",
+      "target": "",
+      "coord": null,
+      "label": "",
+      "notes": "[auto-proposal L] Westside Road Bridge over Shorts Creek (to Okanagan Lake) on Shorts Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the Westside Road bridge over Shorts Creek (Fintry area); single crossing -> review.. Reach = 'Westside Road Bridge to Okanagan Lake'. Westside Rd crosses Shorts Creek near Fintry, close to the Okanagan Lake mouth. Map/OSM-confirmable (FSR hits are far upstream). [structural-split 2026-08-05 from “from Westside Road Bridge to Okanagan Lake”] boundary=Okanagan Lake",
+      "entry_id": "94472177"
+    },
+    {
+      "id": "shuswap-river-dab160-a",
       "name_verbatim": "SHUSWAP RIVER",
       "region": "REGION 8",
       "mus": [
         "8-26"
       ],
       "src": "rule",
-      "locator_text": "from Mara Lake upstream to Mara Bridge",
+      "locator_text": "Mara Lake",
+      "full_regulation": "No Fishing from Mara Lake upstream to Mara Bridge\nNo Fishing 50 m upstream and 50 m downstream of Trinity Bridge, Jun 15-Nov 15\nRainbow trout/char catch and release; exempt from spring closure from Mara Bridge upstream to Sugar Lake\nUpstream of Sugar Lake: No fishing Sept 1-Oct 31; bait ban",
+      "anchor_kind": "lake",
+      "resolver_hint": "lake_reach",
+      "status": "todo",
+      "target": "",
+      "coord": null,
+      "label": "",
+      "notes": "[auto-proposal L] Mara Bridge over Shuswap River (from Mara Lake) on Shuswap River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Mara Bridge over the Shuswap River (near Grindrod/Mara); map.. Reach = 'Mara Lake upstream to Mara Bridge'. Road bridge on the lower Shuswap near Mara; not name-matched in FSR (hits are far up toward Sugar Lake). Map/OSM-confirmable. [structural-split 2026-08-05 from “from Mara Lake upstream to Mara Bridge”] boundary=Mara Lake",
+      "entry_id": "dd32b777"
+    },
+    {
+      "id": "shuswap-river-dab160-b",
+      "name_verbatim": "SHUSWAP RIVER",
+      "region": "REGION 8",
+      "mus": [
+        "8-26"
+      ],
+      "src": "rule",
+      "locator_text": "Mara Bridge",
       "full_regulation": "No Fishing from Mara Lake upstream to Mara Bridge\nNo Fishing 50 m upstream and 50 m downstream of Trinity Bridge, Jun 15-Nov 15\nRainbow trout/char catch and release; exempt from spring closure from Mara Bridge upstream to Sugar Lake\nUpstream of Sugar Lake: No fishing Sept 1-Oct 31; bait ban",
       "anchor_kind": "point",
       "resolver_hint": "bridge_road_km",
@@ -4481,7 +5166,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal L] Mara Bridge over Shuswap River (from Mara Lake) on Shuswap River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Mara Bridge over the Shuswap River (near Grindrod/Mara); map.. Reach = 'Mara Lake upstream to Mara Bridge'. Road bridge on the lower Shuswap near Mara; not name-matched in FSR (hits are far up toward Sugar Lake). Map/OSM-confirmable.",
+      "notes": "[auto-proposal L] Mara Bridge over Shuswap River (from Mara Lake) on Shuswap River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Mara Bridge over the Shuswap River (near Grindrod/Mara); map.. Reach = 'Mara Lake upstream to Mara Bridge'. Road bridge on the lower Shuswap near Mara; not name-matched in FSR (hits are far up toward Sugar Lake). Map/OSM-confirmable. [structural-split 2026-08-05 from “from Mara Lake upstream to Mara Bridge”] boundary=Mara Bridge",
       "entry_id": "dd32b777"
     },
     {
@@ -4504,14 +5189,14 @@
       "entry_id": "dd32b777"
     },
     {
-      "id": "shuswap-river-b96b5f",
+      "id": "shuswap-river-b96b5f-a",
       "name_verbatim": "SHUSWAP RIVER",
       "region": "REGION 8",
       "mus": [
         "8-26"
       ],
       "src": "rule",
-      "locator_text": "from Mara Bridge upstream to Sugar Lake",
+      "locator_text": "Mara Bridge",
       "full_regulation": "No Fishing from Mara Lake upstream to Mara Bridge\nNo Fishing 50 m upstream and 50 m downstream of Trinity Bridge, Jun 15-Nov 15\nRainbow trout/char catch and release; exempt from spring closure from Mara Bridge upstream to Sugar Lake\nUpstream of Sugar Lake: No fishing Sept 1-Oct 31; bait ban",
       "anchor_kind": "point",
       "resolver_hint": "bridge_road_km",
@@ -4519,18 +5204,56 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal L] Mara Bridge over Shuswap River (to Sugar Lake) on Shuswap River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Mara Bridge (upstream reach to Sugar Lake); map.. Reach = 'Mara Bridge upstream to Sugar Lake'. Same Mara Bridge as the paired entry; Sugar Lake is the upstream endpoint. Map/OSM-confirmable.",
+      "notes": "[auto-proposal L] Mara Bridge over Shuswap River (to Sugar Lake) on Shuswap River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Mara Bridge (upstream reach to Sugar Lake); map.. Reach = 'Mara Bridge upstream to Sugar Lake'. Same Mara Bridge as the paired entry; Sugar Lake is the upstream endpoint. Map/OSM-confirmable. [structural-split 2026-08-05 from “from Mara Bridge upstream to Sugar Lake”] boundary=Mara Bridge",
       "entry_id": "dd32b777"
     },
     {
-      "id": "silverhope-silver-creek-13e1ec",
+      "id": "shuswap-river-b96b5f-b",
+      "name_verbatim": "SHUSWAP RIVER",
+      "region": "REGION 8",
+      "mus": [
+        "8-26"
+      ],
+      "src": "rule",
+      "locator_text": "Sugar Lake",
+      "full_regulation": "No Fishing from Mara Lake upstream to Mara Bridge\nNo Fishing 50 m upstream and 50 m downstream of Trinity Bridge, Jun 15-Nov 15\nRainbow trout/char catch and release; exempt from spring closure from Mara Bridge upstream to Sugar Lake\nUpstream of Sugar Lake: No fishing Sept 1-Oct 31; bait ban",
+      "anchor_kind": "lake",
+      "resolver_hint": "lake_reach",
+      "status": "todo",
+      "target": "",
+      "coord": null,
+      "label": "",
+      "notes": "[auto-proposal L] Mara Bridge over Shuswap River (to Sugar Lake) on Shuswap River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Mara Bridge (upstream reach to Sugar Lake); map.. Reach = 'Mara Bridge upstream to Sugar Lake'. Same Mara Bridge as the paired entry; Sugar Lake is the upstream endpoint. Map/OSM-confirmable. [structural-split 2026-08-05 from “from Mara Bridge upstream to Sugar Lake”] boundary=Sugar Lake",
+      "entry_id": "dd32b777"
+    },
+    {
+      "id": "silverhope-silver-creek-13e1ec-a",
       "name_verbatim": "SILVERHOPE (Silver) CREEK",
       "region": "REGION 2",
       "mus": [
         "2-2"
       ],
       "src": "rule",
-      "locator_text": "from Silver Lake down to the Bailey Bridge situated approximately 8 km upstream of Hwy 1",
+      "locator_text": "Silver Lake down",
+      "full_regulation": "No Fishing upstream of Silver Lake, Nov 1-June 30\nFly fishing only and bait ban upstream of Silver Lake, July 1-Oct 31\nNo Fishing from Silver Lake down to the Bailey Bridge situated approximately 8 km upstream of Hwy 1\nBait ban downstream of Bailey Bridge situated approximately 8 km upstream of Hwy 1",
+      "anchor_kind": "lake",
+      "resolver_hint": "lake_reach",
+      "status": "todo",
+      "target": "",
+      "coord": null,
+      "label": "",
+      "notes": "[auto-proposal L] Bailey Bridge over Silverhope Creek (~8 km above Hwy 1) on Silverhope (Silver) Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Bailey Bridge ~8 km up Silverhope Creek from Hwy 1 (Hope); map. FSR crossings found are 30+ km up (too far).. Reach = 'Silver Lake down to the Bailey Bridge ~8 km above Hwy 1'. Silverhope Creek enters the Fraser at Hope; the Bailey Bridge is ~8 km up. FWA FSR hits are 30+ km upstream (not this bridge). Map/OSM-confirmable. [structural-split 2026-08-05 from “from Silver Lake down to the Bailey Bridge situated approximately 8 km upstream of Hwy 1”] boundary=Silver Lake down",
+      "entry_id": "2b2d5a92"
+    },
+    {
+      "id": "silverhope-silver-creek-13e1ec-b",
+      "name_verbatim": "SILVERHOPE (Silver) CREEK",
+      "region": "REGION 2",
+      "mus": [
+        "2-2"
+      ],
+      "src": "rule",
+      "locator_text": "Bailey Bridge situated approximately 8 km upstream of Hwy 1",
       "full_regulation": "No Fishing upstream of Silver Lake, Nov 1-June 30\nFly fishing only and bait ban upstream of Silver Lake, July 1-Oct 31\nNo Fishing from Silver Lake down to the Bailey Bridge situated approximately 8 km upstream of Hwy 1\nBait ban downstream of Bailey Bridge situated approximately 8 km upstream of Hwy 1",
       "anchor_kind": "point",
       "resolver_hint": "bridge_road_km",
@@ -4538,7 +5261,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal L] Bailey Bridge over Silverhope Creek (~8 km above Hwy 1) on Silverhope (Silver) Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Bailey Bridge ~8 km up Silverhope Creek from Hwy 1 (Hope); map. FSR crossings found are 30+ km up (too far).. Reach = 'Silver Lake down to the Bailey Bridge ~8 km above Hwy 1'. Silverhope Creek enters the Fraser at Hope; the Bailey Bridge is ~8 km up. FWA FSR hits are 30+ km upstream (not this bridge). Map/OSM-confirmable.",
+      "notes": "[auto-proposal L] Bailey Bridge over Silverhope Creek (~8 km above Hwy 1) on Silverhope (Silver) Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Bailey Bridge ~8 km up Silverhope Creek from Hwy 1 (Hope); map. FSR crossings found are 30+ km up (too far).. Reach = 'Silver Lake down to the Bailey Bridge ~8 km above Hwy 1'. Silverhope Creek enters the Fraser at Hope; the Bailey Bridge is ~8 km up. FWA FSR hits are 30+ km upstream (not this bridge). Map/OSM-confirmable. [structural-split 2026-08-05 from “from Silver Lake down to the Bailey Bridge situated approximately 8 km upstream of Hwy 1”] boundary=Bailey Bridge situated approximately 8 km upstream of Hwy 1",
       "entry_id": "2b2d5a92"
     },
     {
@@ -4561,14 +5284,33 @@
       "entry_id": "2b2d5a92"
     },
     {
-      "id": "skookumchuck-creek-37fdd8",
+      "id": "skookumchuck-creek-37fdd8-a",
       "name_verbatim": "SKOOKUMCHUCK CREEK",
       "region": "REGION 4",
       "mus": [
         "4-20"
       ],
       "src": "rule",
-      "locator_text": "from a point on the creek closest to km 38 on the Skookumchuck Forest Service Road to Buhl Creek",
+      "locator_text": "point on the creek closest",
+      "full_regulation": "No Fishing from a point on the creek closest to km 38 on the Skookumchuck Forest Service Road to Buhl Creek, Sept 1-Oct 31\n(mainstem only)\nTrout/char catch and release; bait ban\nClass II water when/where open, including tributaries",
+      "anchor_kind": "confluence",
+      "resolver_hint": "tributary",
+      "status": "todo",
+      "target": "",
+      "coord": null,
+      "label": "",
+      "notes": "[auto-proposal L] point closest to km 38 on Skookumchuck FSR (to Buhl Creek) on Skookumchuck Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: km-38 chainage on the Skookumchuck FSR is not in FWA; two FSR/creek crossings bracket it (MAIN ROAD 26.4 km, Skookumchuck-Buhl 36.6 km). Needs map for exact km.. Reach = 'point on the creek closest to km 38 on the Skookumchuck FSR to Buhl Creek'. FSR chainage isn't stored, but two crossings exist: MAIN ROAD (R03141) at m=26.4k [-115.92281,49.97387] and SKOOKUMCHUCK-BUHL (0268 03) at m=36.6k [-116.02831,49.96387] (near the Buhl Creek endpoint). Map-confirm the km-38 point. [structural-split 2026-08-05 from “from a point on the creek closest to km 38 on the Skookumchuck Forest Service Road to Buhl Creek”] boundary=point on the creek closest",
+      "entry_id": "6dad8cc8"
+    },
+    {
+      "id": "skookumchuck-creek-37fdd8-b",
+      "name_verbatim": "SKOOKUMCHUCK CREEK",
+      "region": "REGION 4",
+      "mus": [
+        "4-20"
+      ],
+      "src": "rule",
+      "locator_text": "km 38 on the Skookumchuck Forest Service Road to Buhl Creek",
       "full_regulation": "No Fishing from a point on the creek closest to km 38 on the Skookumchuck Forest Service Road to Buhl Creek, Sept 1-Oct 31\n(mainstem only)\nTrout/char catch and release; bait ban\nClass II water when/where open, including tributaries",
       "anchor_kind": "point",
       "resolver_hint": "bridge_road_km",
@@ -4576,18 +5318,37 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal L] point closest to km 38 on Skookumchuck FSR (to Buhl Creek) on Skookumchuck Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: km-38 chainage on the Skookumchuck FSR is not in FWA; two FSR/creek crossings bracket it (MAIN ROAD 26.4 km, Skookumchuck-Buhl 36.6 km). Needs map for exact km.. Reach = 'point on the creek closest to km 38 on the Skookumchuck FSR to Buhl Creek'. FSR chainage isn't stored, but two crossings exist: MAIN ROAD (R03141) at m=26.4k [-115.92281,49.97387] and SKOOKUMCHUCK-BUHL (0268 03) at m=36.6k [-116.02831,49.96387] (near the Buhl Creek endpoint). Map-confirm the km-38 point.",
+      "notes": "[auto-proposal L] point closest to km 38 on Skookumchuck FSR (to Buhl Creek) on Skookumchuck Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: km-38 chainage on the Skookumchuck FSR is not in FWA; two FSR/creek crossings bracket it (MAIN ROAD 26.4 km, Skookumchuck-Buhl 36.6 km). Needs map for exact km.. Reach = 'point on the creek closest to km 38 on the Skookumchuck FSR to Buhl Creek'. FSR chainage isn't stored, but two crossings exist: MAIN ROAD (R03141) at m=26.4k [-115.92281,49.97387] and SKOOKUMCHUCK-BUHL (0268 03) at m=36.6k [-116.02831,49.96387] (near the Buhl Creek endpoint). Map-confirm the km-38 point. [structural-split 2026-08-05 from “from a point on the creek closest to km 38 on the Skookumchuck Forest Service Road to Buhl Creek”] boundary=km 38 on the Skookumchuck Forest Service Road to Buhl Creek",
       "entry_id": "6dad8cc8"
     },
     {
-      "id": "sproat-river-27e42b",
+      "id": "sproat-river-27e42b-a",
       "name_verbatim": "SPROAT RIVER",
       "region": "REGION 1",
       "mus": [
         "1-7"
       ],
       "src": "rule",
-      "locator_text": "from Sproat Lake to fishing boundary signs approximately 300 m downstream of Hwy 4",
+      "locator_text": "Sproat Lake",
+      "full_regulation": "No Fishing from Sproat Lake to fishing boundary signs approximately 300 m downstream of Hwy 4, June 15-Nov 15\nBait ban, May 1-Oct 31",
+      "anchor_kind": "lake",
+      "resolver_hint": "lake_reach",
+      "status": "todo",
+      "target": "",
+      "coord": null,
+      "label": "",
+      "notes": "[auto-proposal L] signs ~300 m below Hwy 4 over Sproat River (from Sproat Lake) on Sproat River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Hwy 4 crossing of the Sproat River and the signs ~300 m downstream; map.. Reach = 'Sproat Lake to signs ~300 m downstream of Hwy 4' (Port Alberni). Public highway landmark -> map/OSM-confirmable; not in FWA. [structural-split 2026-08-05 from “from Sproat Lake to fishing boundary signs approximately 300 m downstream of Hwy 4”] boundary=Sproat Lake",
+      "entry_id": "29465d04"
+    },
+    {
+      "id": "sproat-river-27e42b-b",
+      "name_verbatim": "SPROAT RIVER",
+      "region": "REGION 1",
+      "mus": [
+        "1-7"
+      ],
+      "src": "rule",
+      "locator_text": "fishing boundary signs approximately 300 m downstream of Hwy 4",
       "full_regulation": "No Fishing from Sproat Lake to fishing boundary signs approximately 300 m downstream of Hwy 4, June 15-Nov 15\nBait ban, May 1-Oct 31",
       "anchor_kind": "point",
       "resolver_hint": "bridge_road_km",
@@ -4595,7 +5356,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal L] signs ~300 m below Hwy 4 over Sproat River (from Sproat Lake) on Sproat River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Hwy 4 crossing of the Sproat River and the signs ~300 m downstream; map.. Reach = 'Sproat Lake to signs ~300 m downstream of Hwy 4' (Port Alberni). Public highway landmark -> map/OSM-confirmable; not in FWA.",
+      "notes": "[auto-proposal L] signs ~300 m below Hwy 4 over Sproat River (from Sproat Lake) on Sproat River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Hwy 4 crossing of the Sproat River and the signs ~300 m downstream; map.. Reach = 'Sproat Lake to signs ~300 m downstream of Hwy 4' (Port Alberni). Public highway landmark -> map/OSM-confirmable; not in FWA. [structural-split 2026-08-05 from “from Sproat Lake to fishing boundary signs approximately 300 m downstream of Hwy 4”] boundary=fishing boundary signs approximately 300 m downstream of Hwy 4",
       "entry_id": "29465d04"
     },
     {
@@ -4618,7 +5379,7 @@
       "entry_id": "15f8ea45"
     },
     {
-      "id": "stellako-river-76c305",
+      "id": "stellako-river-76c305-a",
       "name_verbatim": "STELLAKO RIVER",
       "region": "REGION 6",
       "mus": [
@@ -4626,7 +5387,7 @@
         "7-12"
       ],
       "src": "rule",
-      "locator_text": "between fishing boundary signs approximately 250 m and 4 km downstream of the bridge near the François Lake outlet",
+      "locator_text": "fishing boundary signs approximately 250 m",
       "full_regulation": "No Fishing Nov 15-May 14; Class II water[Includes Tributaries] when open (Steelhead Stamp not required)\nRainbow trout catch and release\nFly fishing only between fishing boundary signs approximately 250 m and 4 km downstream of the bridge near the François Lake outlet\nNo powered boats from François Lake to the falls\nSee restrictions for François Lake's outlet area",
       "anchor_kind": "point",
       "resolver_hint": "bridge_road_km",
@@ -4634,7 +5395,27 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal L] bridge near Francois Lake outlet (signs 250 m & 4 km below) on Stellako River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the bridge near the Francois Lake outlet on the Stellako, then signs 250 m & 4 km downstream; map.. Reg = 'signs ~250 m and 4 km downstream of the bridge near the Francois Lake outlet'. Road bridge at the Francois Lake outlet (Stellako flows Francois -> Fraser Lake); not in FWA/FSR. Map/OSM-confirmable.",
+      "notes": "[auto-proposal L] bridge near Francois Lake outlet (signs 250 m & 4 km below) on Stellako River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the bridge near the Francois Lake outlet on the Stellako, then signs 250 m & 4 km downstream; map.. Reg = 'signs ~250 m and 4 km downstream of the bridge near the Francois Lake outlet'. Road bridge at the Francois Lake outlet (Stellako flows Francois -> Fraser Lake); not in FWA/FSR. Map/OSM-confirmable. [structural-split 2026-08-05 from “between fishing boundary signs approximately 250 m and 4 km downstream of the bridge near the François Lake outlet”] boundary=fishing boundary signs approximately 250 m",
+      "entry_id": "c23b554d"
+    },
+    {
+      "id": "stellako-river-76c305-b",
+      "name_verbatim": "STELLAKO RIVER",
+      "region": "REGION 6",
+      "mus": [
+        "6-4",
+        "7-12"
+      ],
+      "src": "rule",
+      "locator_text": "4 km downstream of the bridge near the François Lake outlet",
+      "full_regulation": "No Fishing Nov 15-May 14; Class II water[Includes Tributaries] when open (Steelhead Stamp not required)\nRainbow trout catch and release\nFly fishing only between fishing boundary signs approximately 250 m and 4 km downstream of the bridge near the François Lake outlet\nNo powered boats from François Lake to the falls\nSee restrictions for François Lake's outlet area",
+      "anchor_kind": "lake",
+      "resolver_hint": "lake_reach",
+      "status": "todo",
+      "target": "",
+      "coord": null,
+      "label": "",
+      "notes": "[auto-proposal L] bridge near Francois Lake outlet (signs 250 m & 4 km below) on Stellako River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the bridge near the Francois Lake outlet on the Stellako, then signs 250 m & 4 km downstream; map.. Reg = 'signs ~250 m and 4 km downstream of the bridge near the Francois Lake outlet'. Road bridge at the Francois Lake outlet (Stellako flows Francois -> Fraser Lake); not in FWA/FSR. Map/OSM-confirmable. [structural-split 2026-08-05 from “between fishing boundary signs approximately 250 m and 4 km downstream of the bridge near the François Lake outlet”] boundary=4 km downstream of the bridge near the François Lake outlet",
       "entry_id": "c23b554d"
     },
     {
@@ -4657,14 +5438,14 @@
       "entry_id": "99b982b7"
     },
     {
-      "id": "tahltan-river-e8ade6",
+      "id": "tahltan-river-e8ade6-a",
       "name_verbatim": "TAHLTAN RIVER",
       "region": "REGION 6",
       "mus": [
         "6-22"
       ],
       "src": "rule",
-      "locator_text": "from boundary signs located approximately 400 m upstream from the Tahltan RIver Bridge on the Telegraph Creek Road to th",
+      "locator_text": "boundary signs located approximately 400 m upstream from the Tahltan RIver Bridge on the Telegraph Creek Road",
       "full_regulation": "No Fishing all year from boundary signs located approximately 400 m upstream from the Tahltan RIver Bridge on the Telegraph Creek\nRoad to the landslide located approximately 750 m upstream from the Tahltan River Bridge.\nNo Fishing Dec 1-June 30",
       "anchor_kind": "point",
       "resolver_hint": "bridge_road_km",
@@ -4672,7 +5453,26 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal L] Tahltan River Bridge on Telegraph Creek Road (signs ~400 m up) on Tahltan River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Tahltan River Bridge on the Telegraph Creek Road and signs ~400 m upstream; map.. Road bridge on the Telegraph Creek Road; landmark = boundary signs ~400 m upstream of it. Not in FWA/FSR. Map/OSM-confirmable.",
+      "notes": "[auto-proposal L] Tahltan River Bridge on Telegraph Creek Road (signs ~400 m up) on Tahltan River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Tahltan River Bridge on the Telegraph Creek Road and signs ~400 m upstream; map.. Road bridge on the Telegraph Creek Road; landmark = boundary signs ~400 m upstream of it. Not in FWA/FSR. Map/OSM-confirmable. [structural-split 2026-08-05 from “from boundary signs located approximately 400 m upstream from the Tahltan RIver Bridge on the Telegraph Creek Road to th”] boundary=boundary signs located approximately 400 m upstream from the Tahltan RIver Bridge on the Telegraph Creek Road",
+      "entry_id": "037258e5"
+    },
+    {
+      "id": "tahltan-river-e8ade6-b",
+      "name_verbatim": "TAHLTAN RIVER",
+      "region": "REGION 6",
+      "mus": [
+        "6-22"
+      ],
+      "src": "rule",
+      "locator_text": "th",
+      "full_regulation": "No Fishing all year from boundary signs located approximately 400 m upstream from the Tahltan RIver Bridge on the Telegraph Creek\nRoad to the landslide located approximately 750 m upstream from the Tahltan River Bridge.\nNo Fishing Dec 1-June 30",
+      "anchor_kind": "point",
+      "resolver_hint": "bridge_road_km",
+      "status": "todo",
+      "target": "",
+      "coord": null,
+      "label": "",
+      "notes": "[auto-proposal L] Tahltan River Bridge on Telegraph Creek Road (signs ~400 m up) on Tahltan River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Tahltan River Bridge on the Telegraph Creek Road and signs ~400 m upstream; map.. Road bridge on the Telegraph Creek Road; landmark = boundary signs ~400 m upstream of it. Not in FWA/FSR. Map/OSM-confirmable. [structural-split 2026-08-05 from “from boundary signs located approximately 400 m upstream from the Tahltan RIver Bridge on the Telegraph Creek Road to th”] boundary=th",
       "entry_id": "037258e5"
     },
     {
@@ -4695,7 +5495,7 @@
       "entry_id": "b6b56aff"
     },
     {
-      "id": "thompson-river-downstream-of-signs-at-kamloop-1db152",
+      "id": "thompson-river-downstream-of-signs-at-kamloop-1db152-a",
       "name_verbatim": "THOMPSON RIVER (downstream of signs at Kamloops Lake o",
       "region": "REGION 3",
       "mus": [
@@ -4704,7 +5504,7 @@
         "3-18"
       ],
       "src": "rule",
-      "locator_text": "from the CNR Bridge downstream of Deadman River to CNR Bridge upstream of Bonaparte River",
+      "locator_text": "CNR Bridge downstream of Deadman River",
       "full_regulation": "No Fishing Oct 1-May 31\nTrout/char daily quota = 2 (none under 35 cm)\nAdditional opening from the CNR Bridge downstream of Deadman River to CNR Bridge upstream of Bonaparte River, May 1-31; trout/char\ncatch and release and artificial fly only, May 1-31\nUpstream of boundary signs 1 km downstream of Martel: bait ban\nNo angling from boats\nDownstream of signs at Kamloops Lake: Class II water Oct 1-Dec 31 and Steelhead Stamp mandatory Oct 1-Dec 31 (when open)",
       "anchor_kind": "point",
       "resolver_hint": "bridge_road_km",
@@ -4712,7 +5512,28 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal L] CNR Bridge below Deadman R. to CNR Bridge above Bonaparte R. on Thompson River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the two CNR bridges (one below the Deadman confluence near Savona, one above the Bonaparte confluence at Ashcroft); map.. Reach between two railway bridges on the Thompson, bracketed by the Deadman (Savona) and Bonaparte (Ashcroft) confluences. Railway bridges -> map/OSM-confirmable.",
+      "notes": "[auto-proposal L] CNR Bridge below Deadman R. to CNR Bridge above Bonaparte R. on Thompson River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the two CNR bridges (one below the Deadman confluence near Savona, one above the Bonaparte confluence at Ashcroft); map.. Reach between two railway bridges on the Thompson, bracketed by the Deadman (Savona) and Bonaparte (Ashcroft) confluences. Railway bridges -> map/OSM-confirmable. [structural-split 2026-08-05 from “from the CNR Bridge downstream of Deadman River to CNR Bridge upstream of Bonaparte River”] boundary=CNR Bridge downstream of Deadman River",
+      "entry_id": "bea6153a"
+    },
+    {
+      "id": "thompson-river-downstream-of-signs-at-kamloop-1db152-b",
+      "name_verbatim": "THOMPSON RIVER (downstream of signs at Kamloops Lake o",
+      "region": "REGION 3",
+      "mus": [
+        "3-13",
+        "3-14",
+        "3-18"
+      ],
+      "src": "rule",
+      "locator_text": "CNR Bridge upstream of Bonaparte River",
+      "full_regulation": "No Fishing Oct 1-May 31\nTrout/char daily quota = 2 (none under 35 cm)\nAdditional opening from the CNR Bridge downstream of Deadman River to CNR Bridge upstream of Bonaparte River, May 1-31; trout/char\ncatch and release and artificial fly only, May 1-31\nUpstream of boundary signs 1 km downstream of Martel: bait ban\nNo angling from boats\nDownstream of signs at Kamloops Lake: Class II water Oct 1-Dec 31 and Steelhead Stamp mandatory Oct 1-Dec 31 (when open)",
+      "anchor_kind": "point",
+      "resolver_hint": "bridge_road_km",
+      "status": "todo",
+      "target": "",
+      "coord": null,
+      "label": "",
+      "notes": "[auto-proposal L] CNR Bridge below Deadman R. to CNR Bridge above Bonaparte R. on Thompson River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the two CNR bridges (one below the Deadman confluence near Savona, one above the Bonaparte confluence at Ashcroft); map.. Reach between two railway bridges on the Thompson, bracketed by the Deadman (Savona) and Bonaparte (Ashcroft) confluences. Railway bridges -> map/OSM-confirmable. [structural-split 2026-08-05 from “from the CNR Bridge downstream of Deadman River to CNR Bridge upstream of Bonaparte River”] boundary=CNR Bridge upstream of Bonaparte River",
       "entry_id": "bea6153a"
     },
     {
@@ -4754,14 +5575,14 @@
       "entry_id": "492dbcc9"
     },
     {
-      "id": "trepanier-river-a999b0",
+      "id": "trepanier-river-a999b0-a",
       "name_verbatim": "TREPANIER RIVER",
       "region": "REGION 8",
       "mus": [
         "8-8"
       ],
       "src": "rule",
-      "locator_text": "from Hwy 97C to Okanagan Lake",
+      "locator_text": "Hwy 97C",
       "full_regulation": "No Fishing from Hwy 97C to Okanagan Lake",
       "anchor_kind": "point",
       "resolver_hint": "bridge_road_km",
@@ -4769,7 +5590,26 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal L] Hwy 97C crossing of Trepanier Creek (to Okanagan Lake) on Trepanier Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the Hwy 97C crossing of Trepanier Creek at Peachland (down to Okanagan Lake); FWA lookup used 'Trepanier River' (not found) -> try 'Trepanier Creek'; map.. Reach = 'Hwy 97C to Okanagan Lake' at Peachland. FWA didn't return 'Trepanier River' (the GNIS name is likely 'Trepanier Creek'). Public highway -> map/OSM-confirmable.",
+      "notes": "[auto-proposal L] Hwy 97C crossing of Trepanier Creek (to Okanagan Lake) on Trepanier Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the Hwy 97C crossing of Trepanier Creek at Peachland (down to Okanagan Lake); FWA lookup used 'Trepanier River' (not found) -> try 'Trepanier Creek'; map.. Reach = 'Hwy 97C to Okanagan Lake' at Peachland. FWA didn't return 'Trepanier River' (the GNIS name is likely 'Trepanier Creek'). Public highway -> map/OSM-confirmable. [structural-split 2026-08-05 from “from Hwy 97C to Okanagan Lake”] boundary=Hwy 97C",
+      "entry_id": "426962cd"
+    },
+    {
+      "id": "trepanier-river-a999b0-b",
+      "name_verbatim": "TREPANIER RIVER",
+      "region": "REGION 8",
+      "mus": [
+        "8-8"
+      ],
+      "src": "rule",
+      "locator_text": "Okanagan Lake",
+      "full_regulation": "No Fishing from Hwy 97C to Okanagan Lake",
+      "anchor_kind": "lake",
+      "resolver_hint": "lake_reach",
+      "status": "todo",
+      "target": "",
+      "coord": null,
+      "label": "",
+      "notes": "[auto-proposal L] Hwy 97C crossing of Trepanier Creek (to Okanagan Lake) on Trepanier Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the Hwy 97C crossing of Trepanier Creek at Peachland (down to Okanagan Lake); FWA lookup used 'Trepanier River' (not found) -> try 'Trepanier Creek'; map.. Reach = 'Hwy 97C to Okanagan Lake' at Peachland. FWA didn't return 'Trepanier River' (the GNIS name is likely 'Trepanier Creek'). Public highway -> map/OSM-confirmable. [structural-split 2026-08-05 from “from Hwy 97C to Okanagan Lake”] boundary=Okanagan Lake",
       "entry_id": "426962cd"
     },
     {

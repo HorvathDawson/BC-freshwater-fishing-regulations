@@ -67,13 +67,7 @@ deliberately on return.
 ```
 (Reading the coord via a prompt avoids the argparse `--coord=-118..` negative-number gotcha.)
 
-**B. Offline HTML labeller** (nice on a plane; no terminal). Generate a single self-contained page,
-open it `file://`, filter/search, click map links, pick a verdict per card; decisions persist in the
-browser and **⬇ Export** to `decisions.json`.
-```bash
-.venv/bin/python -m stream_sections.oneoff.build_review_html      # -> output/locator_review.html
-```
-**On return**, feed the HTML export back into the doc:
+**On return**, feed the decisions back into the doc:
 ```bash
 .venv/bin/python -m stream_sections.oneoff.curation_status apply decisions.json
 #   correct->curated(+coord) · wrong+coord->curated · not_a_split->not_applicable · defer->deferred

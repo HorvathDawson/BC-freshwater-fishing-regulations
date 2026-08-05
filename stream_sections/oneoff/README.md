@@ -50,8 +50,8 @@ Full model & workflow: **`../docs/18-waterbody-split-curation.md`**.
 # NOTE: use --coord=-LON,LAT (equals form) so argparse doesn't read the leading '-' as a flag.
 ```
 
-### Offline labelling (no service / no API) — two front-ends, one apply
-Both produce a **decisions file** the doc consumes later; neither needs the network to label.
+### Offline labelling (no service / no API) — CLI label loop
+Produces a **decisions file** the doc consumes later; needs no network to label.
 
 **Review order — assume nothing.** Only `curated` and `manual` are trusted. Every other
 auto-decided row (was `not_applicable` / `deferred` / `auto`, plus the `not_a_split` rows) sits in
@@ -71,12 +71,6 @@ OSM/Google/Satellite links + `target` (blk/wsc/wbk to locate in QGIS/FWA). Decis
 #              t wbk=..|blk=..|wsc=.. = set target      n <note>      a <text> = flag for an agent
 #              u = undo this row             enter/s = skip            q = quit
 #   --easy hides rows without a candidate; --out <path> overrides output/review_decisions.json
-```
-
-**B. Offline HTML labeller (nice on a plane, no terminal).** One self-contained page; filter/search,
-click map links, pick a verdict per card; persists in-browser; **⬇ Export** to `decisions.json`.
-```bash
-.venv/bin/python -m stream_sections.oneoff.build_review_html          # -> output/locator_review.html  (open file://)
 ```
 
 **Back in service — apply the decisions into the doc:**
@@ -115,6 +109,6 @@ Tags: `@REVIEW` (note), `@Q` (question), `@BLOCKER` (must-fix-first), `@TODO`, `
 For the locators JSON specifically, prefer the `label` loop's `n <note>` / `a <for-agent>` instead.
 
 ## Typical away-from-service loop
-1. `curation_status label --hint <bucket> --easy` (or open `output/locator_review.html`) → label offline.
-2. Decisions accumulate in `output/review_decisions.json` (safe to copy around; regenerable HTML is gitignored).
+1. `curation_status label --hint <bucket> --easy` → label offline.
+2. Decisions accumulate in `output/review_decisions.json` (safe to copy around).
 3. On return: `curation_status apply` → then hand-finish any `NEEDS AGENT` rows → commit.

@@ -135,9 +135,9 @@ into it), so it is both source AND writable. Then `14` is redundant.
    `docs/waterbody-splits-regs.md`): ALL reg entries as a synopsis-style markdown table with each
    entry's **live locator phrases bolded inline** in the reg text and `not_applicable` locators left
    **un-highlighted**, so live splits vs n/a are visible at a glance.
-3. **Delete** the dead one-shots `migrate_curation_schema.py`, `classify_lakes.py`,
-   `mark_auto_lakes.py` (already applied; effects baked into rows + git history) **and**
-   `build_review_html.py` (offline labeller — retire, do not rewire).
+3. **Deleted (2026-08-05)** — the dead one-shots `migrate_curation_schema.py`, `classify_lakes.py`,
+   `mark_auto_lakes.py` (already applied; effects baked into rows + git history) and
+   `build_review_html.py` (offline HTML labeller). Recoverable from git if ever needed.
 4. **Rename/replace** — grouped file takes `14`'s role; re-point mentions in `00-README`, `15`,
    `16`, `17`, `oneoff/README.md`; fold `14-locators-to-curate.md` into this doc.
 
