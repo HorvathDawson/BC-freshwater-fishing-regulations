@@ -4709,11 +4709,11 @@
       "full_regulation": "No rainbow trout under 30 cm\nBait ban 500 m upstream and downstream of Causeway Road July 1-Oct 30\nSee Nation Arm\nREMINDER: Arctic grayling catch and release from tributaries\nSee mercury warning on page 75 and definition of \"stream mouth\" on page 80 in the Provincial Regulations",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "likely_na",
+      "status": "deferred",
       "target": "",
       "coord": null,
-      "label": "",
-      "notes": "[reclassified bridge_road_km -> lake_reach: reservoir_zone] RESERVOIR zone reg (Williston Lake Zone A): bait ban \u00b1500 m of the Causeway Road within the reservoir \u2014 lake/reservoir zone, not a stream bridge. \u2014 [lake-class: reservoir] reservoir zone (Williston Zone A) \u2014 complex. \u2014 [review \u00b7 was:deferred] assume nothing \u2014 re-decide."
+      "label": "within 500 m of Causeway Road crossing (Williston Lake, Zone A)",
+      "notes": "[reclassified bridge_road_km -> lake_reach: reservoir_zone] RESERVOIR zone reg (Williston Lake Zone A): bait ban \u00b1500 m of the Causeway Road within the reservoir \u2014 lake/reservoir zone, not a stream bridge. \u2014 [lake-class: reservoir] reservoir zone (Williston Zone A) \u2014 complex. \u2014 [review \u00b7 was:deferred] assume nothing \u2014 re-decide. \u2014 [human-review 2026-08-04 lake-internal defer | docs/15 method=buffer] within 500 m of Causeway Road crossing (Williston Lake, Zone A)"
     },
     {
       "id": "young-creek-upstream-of-hwy-20-f08b82",
@@ -8173,11 +8173,11 @@
       "full_regulation": "Trout/char daily quota = 2 (no rainbow trout over 70 cm; only 1 bull trout and it may not be under 60 cm)\nBait ban, single barbless hook\nNo powered boats on Big Lagoon (west side of lake)",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "likely_na",
+      "status": "deferred",
       "target": "",
       "coord": null,
-      "label": "",
-      "notes": "[lake-class: lake_internal] lake-internal (Big Lagoon, west side of Chilko Lake) \u2014 unsupported. \u2014 [review \u00b7 was:deferred] assume nothing \u2014 re-decide."
+      "label": "Big Lagoon (west side of Chilko Lake)",
+      "notes": "[lake-class: lake_internal] lake-internal (Big Lagoon, west side of Chilko Lake) \u2014 unsupported. \u2014 [review \u00b7 was:deferred] assume nothing \u2014 re-decide. \u2014 [human-review 2026-08-04 lake-internal defer | docs/15 method=polygon] Big Lagoon (west side of Chilko Lake)"
     },
     {
       "id": "chimney-creek-04b2dc",
@@ -8339,11 +8339,11 @@
       "full_regulation": "For the area at the outlet of Fran\u00e7ois Lake described on map 1, (see below): No Fishing Nov 15-May 31; char daily quota = 2, no more than\n1 over 50 cm; rainbow trout catch and release; bait ban; single barbless hook; no set lining",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "likely_na",
+      "status": "deferred",
       "target": "",
       "coord": null,
-      "label": "",
-      "notes": "[lake-class: lake_split] at the outlet of Francois Lake (map-described) \u2014 lake outlet edge. \u2014 [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 \u2014 NO authored split needed. \u2014 [review \u00b7 was:auto] assume nothing \u2014 re-decide."
+      "label": "outlet area of Fran\u00e7ois Lake (map 1)",
+      "notes": "[lake-class: lake_split] at the outlet of Francois Lake (map-described) \u2014 lake outlet edge. \u2014 [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 \u2014 NO authored split needed. \u2014 [review \u00b7 was:auto] assume nothing \u2014 re-decide. \u2014 [human-review 2026-08-04 lake-internal defer | docs/15 method=polygon] outlet area of Fran\u00e7ois Lake (map 1) \u2014 NEEDS-CONFIRM (vague/map-only or agents disagreed; verify when docs/15 built)"
     },
     {
       "id": "guichon-creek-9a81b6",
@@ -8748,11 +8748,11 @@
       "full_regulation": "No Fishing south of fishing boundary signs on the lake shore, May 15-June 20\nRainbow trout daily quota = 2, brook trout daily quota = 20\nNo towing, speed restriction (15 km/h), south half only",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "likely_na",
+      "status": "deferred",
       "target": "",
       "coord": null,
-      "label": "",
-      "notes": "[lake-class: lake_internal] lake-internal line at boundary signs (docs/15) \u2014 unsupported. \u2014 [review \u00b7 was:deferred] assume nothing \u2014 re-decide."
+      "label": "south portion of Premier Lake (south of fishing boundary signs)",
+      "notes": "[lake-class: lake_internal] lake-internal line at boundary signs (docs/15) \u2014 unsupported. \u2014 [review \u00b7 was:deferred] assume nothing \u2014 re-decide. \u2014 [human-review 2026-08-04 lake-internal defer | docs/15 method=line] south portion of Premier Lake (south of fishing boundary signs)"
     },
     {
       "id": "ruby-creek-ad1f2c",
@@ -8843,11 +8843,11 @@
       "full_regulation": "Trout daily quota = 1 Youth/Disabled Accompanied Water May 1-Jun 15 (see page 4)",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "likely_na",
+      "status": "deferred",
       "target": "",
       "coord": null,
-      "label": "",
-      "notes": "[lake-class: lake_internal] netted-off lake portion (docs/15 lake-internal) \u2014 unsupported. \u2014 [review \u00b7 was:deferred] assume nothing \u2014 re-decide."
+      "label": "netted-off portion, south end of Shannon Lake",
+      "notes": "[lake-class: lake_internal] netted-off lake portion (docs/15 lake-internal) \u2014 unsupported. \u2014 [review \u00b7 was:deferred] assume nothing \u2014 re-decide. \u2014 [human-review 2026-08-04 lake-internal defer | docs/15 method=polygon] netted-off portion, south end of Shannon Lake"
     },
     {
       "id": "shumway-lake-02ae86",
@@ -11012,11 +11012,11 @@
       "full_regulation": "Bull trout (char) release\nNo vessels in swimming areas, as buoyed and signed; speed restriction (8 km/h) at S. end of lake, S. of a line drawn from the BC Parks boat ramp\nto signs on the E. side of the lake",
       "anchor_kind": "not_a_split",
       "resolver_hint": "map_or_vague",
-      "status": "likely_na",
+      "status": "deferred",
       "target": "",
       "coord": null,
-      "label": "",
-      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'."
+      "label": "swimming areas (buoyed/signed), Alouette Lake",
+      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'. \u2014 [human-review 2026-08-04 lake-internal defer | docs/15 method=polygon] swimming areas (buoyed/signed), Alouette Lake"
     },
     {
       "id": "alouette-river-b5a707",
@@ -11068,11 +11068,11 @@
       "full_regulation": "Smallmouth bass daily quota = 4; engine power restriction - 7.5 kW (10 hp), no towing on parts",
       "anchor_kind": "not_a_split",
       "resolver_hint": "map_or_vague",
-      "status": "likely_na",
+      "status": "deferred",
       "target": "",
       "coord": null,
-      "label": "",
-      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'."
+      "label": "parts of Beaver Lake \u2014 unspecified, map-only",
+      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'. \u2014 [human-review 2026-08-04 lake-internal defer | docs/15 method=polygon] parts of Beaver Lake \u2014 unspecified, map-only \u2014 NEEDS-CONFIRM (vague/map-only or agents disagreed; verify when docs/15 built)"
     },
     {
       "id": "brannen-lake-1539e6",
@@ -11086,11 +11086,11 @@
       "full_regulation": "Speed restriction on parts (60 km/h)",
       "anchor_kind": "not_a_split",
       "resolver_hint": "map_or_vague",
-      "status": "likely_na",
+      "status": "deferred",
       "target": "",
       "coord": null,
-      "label": "",
-      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'."
+      "label": "parts of Brannen Lake \u2014 unspecified, map-only",
+      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'. \u2014 [human-review 2026-08-04 lake-internal defer | docs/15 method=polygon] parts of Brannen Lake \u2014 unspecified, map-only \u2014 NEEDS-CONFIRM (vague/map-only or agents disagreed; verify when docs/15 built)"
     },
     {
       "id": "canim-lake-see-map-on-page-42-de63b0",
@@ -11104,11 +11104,11 @@
       "full_regulation": "No Fishing within the waters of the small bay at the mouth of Eagle Creek northerly of a line drawn between two boundary signs located\non opposite shores of the bay, Sept 1-Sept 30",
       "anchor_kind": "not_a_split",
       "resolver_hint": "map_or_vague",
-      "status": "likely_na",
+      "status": "deferred",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'."
+      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'. \u2014 [human-review 2026-08-04 deferred] map-only Eagle Creek bay closure (north of a line between boundary signs); lake-internal (docs/15), no derivable geometry yet."
     },
     {
       "id": "chilliwack-vedder-rivers-does-not-include-sum-3ab919",
@@ -11158,11 +11158,11 @@
       "full_regulation": "No Fishing Dec 1-Sept 30; speed restriction on part (8 km/h),",
       "anchor_kind": "not_a_split",
       "resolver_hint": "map_or_vague",
-      "status": "likely_na",
+      "status": "deferred",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'."
+      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'. \u2014 [human-review 2026-08-04 deferred] vague 'on part' \u2014 no derivable boundary/feature; deferred (map-only/manual later)."
     },
     {
       "id": "cowichan-lake-including-bear-lake-5a1513",
@@ -11176,11 +11176,11 @@
       "full_regulation": "Cutthroat trout daily quota = 2 (none over 50 cm); bait ban and single barbless hook, Nov 15-Apr 15\nSpeed restriction on parts (8 km/h), plus overall 10 km/h speed restriction within 60 m of shore",
       "anchor_kind": "not_a_split",
       "resolver_hint": "map_or_vague",
-      "status": "likely_na",
+      "status": "deferred",
       "target": "",
       "coord": null,
-      "label": "",
-      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'."
+      "label": "parts of Cowichan Lake \u2014 unspecified, map-only",
+      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'. \u2014 [human-review 2026-08-04 lake-internal defer | docs/15 method=polygon] parts of Cowichan Lake \u2014 unspecified, map-only \u2014 NEEDS-CONFIRM (vague/map-only or agents disagreed; verify when docs/15 built)"
     },
     {
       "id": "cowichan-river-see-map-below-337c0e",
@@ -11284,11 +11284,11 @@
       "full_regulation": "Rainbow trout catch and release, Jan 1-May 31; trout/char daily quota = 2 (only 1 bull trout)\nKokanee catch and release, EXCEPT Apr 1-Apr 3 and July 1-July 2 only, when daily quota = 5; NOTE: The combined daily quota for kokanee\nfrom the Upper West Arm (when open to kokanee harvest) and the Lower West Arm (when open to kokanee harvest) cannot exceed 5",
       "anchor_kind": "not_a_split",
       "resolver_hint": "map_or_vague",
-      "status": "likely_na",
+      "status": "deferred",
       "target": "",
       "coord": null,
-      "label": "",
-      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'."
+      "label": "Kootenay Lake Lower West Arm (named arm)",
+      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'. \u2014 [human-review 2026-08-04 lake-internal defer | docs/15 method=polygon] Kootenay Lake Lower West Arm (named arm)"
     },
     {
       "id": "kootenay-lake-main-body-for-location-see-map--ba2e51",
@@ -11320,11 +11320,11 @@
       "full_regulation": "Rainbow trout catch and release, Jan 1-May 31; trout/char daily quota = 2 (only 1 bull trout)\nKokanee catch and release, EXCEPT Apr 1-Apr 3 and July 1-July 2 only, when daily quota = 5; NOTE: The combined daily quota for kokanee\nfrom the Upper West Arm (when open to kokanee harvest) and the Lower West Arm (when open to kokanee harvest) cannot exceed 5",
       "anchor_kind": "not_a_split",
       "resolver_hint": "map_or_vague",
-      "status": "likely_na",
+      "status": "deferred",
       "target": "",
       "coord": null,
-      "label": "",
-      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'."
+      "label": "Kootenay Lake Upper West Arm (named arm)",
+      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'. \u2014 [human-review 2026-08-04 lake-internal defer | docs/15 method=polygon] Kootenay Lake Upper West Arm (named arm)"
     },
     {
       "id": "liard-river-watershed-see-map-on-page-63-5f8021",
@@ -11356,11 +11356,11 @@
       "full_regulation": "Speed restriction on parts (60 km/h); wheelchair accessible fishing platform is located in Loudon Park",
       "anchor_kind": "not_a_split",
       "resolver_hint": "map_or_vague",
-      "status": "likely_na",
+      "status": "deferred",
       "target": "",
       "coord": null,
-      "label": "",
-      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'."
+      "label": "parts of Long Lake (Nanaimo) \u2014 unspecified, map-only",
+      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'. \u2014 [human-review 2026-08-04 lake-internal defer | docs/15 method=polygon] parts of Long Lake (Nanaimo) \u2014 unspecified, map-only \u2014 NEEDS-CONFIRM (vague/map-only or agents disagreed; verify when docs/15 built)"
     },
     {
       "id": "mahood-lake-see-map-on-page-28-for-area-closu-a93848",
@@ -11410,11 +11410,11 @@
       "full_regulation": "Kokanee daily quota = 5 (none over 30cm from July 1-Oct 31), bass daily quota = 8, yellow perch daily quota = 20\nBarbless hook July 1-Oct 31\nSpeed restriction on parts, no vessels (see definition on page 4) in 5 signed swimming areas",
       "anchor_kind": "not_a_split",
       "resolver_hint": "map_or_vague",
-      "status": "likely_na",
+      "status": "deferred",
       "target": "",
       "coord": null,
-      "label": "",
-      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'."
+      "label": "5 signed swimming areas, Osoyoos Lake",
+      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'. \u2014 [human-review 2026-08-04 lake-internal defer | docs/15 method=polygon] 5 signed swimming areas, Osoyoos Lake"
     },
     {
       "id": "salmo-river-57c52d",
@@ -11870,11 +11870,11 @@
       "full_regulation": "Trout/char catch and release (mainstem only) Leadville Creek Cameron Creek\nBait ban, June 15-Oct 31 (EXCEPT Kitchener Creek, see Kitchener Creek, a tributary)",
       "anchor_kind": "unclassified",
       "resolver_hint": "other_reach",
-      "status": "todo",
+      "status": "deferred",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": ""
+      "notes": "\u2014 [human-review 2026-08-04 deferred] OCR/parse GARBLE: real synopsis text reads 'Trout/char catch and release (mainstem only) Leadville Creek Cameron Creek' which does not parse into a boundary. [review: OCR parse-error \u2014 ADD TO CORRECTIONS MEMO / GOTCHAS] Deferred pending source-text fix."
     },
     {
       "id": "gold-river-7c1879",
