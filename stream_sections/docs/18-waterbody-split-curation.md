@@ -1,83 +1,84 @@
-# Waterbody-grouped split curation — model + handoff
+# Waterbody-grouped split curation (source-first) — model + handoff
 
-**Status: active workflow (2026-08-04).** This supersedes the row-at-a-time review of
-`14-locators-to-curate.json` for the *completeness* pass. It does **not** discard any prior
-curation — it is a grouping + reconciliation VIEW over the same rows.
+**Status: active workflow (2026-08-05).** Completeness pass over the split curation in
+`14-locators-to-curate.json`. It does **not** discard any prior curation — it regenerates the split
+structure from the original regs source, **backfills** the curation we've already done, and **warns**
+about anything that no longer maps.
 
-## Why we changed
+## Why
 
-`14-locators-to-curate.json` is a flat list of 651 locator rows. A single waterbody's regulation
-usually contains **several** splits, and they land in **separate** rows. Reviewing rows in
-isolation made it easy to:
+`14-locators-to-curate.json` is a flat list of 651 locator rows. A waterbody's regulation usually
+contains **several** splits, landing in **separate** rows, so reviewing rows in isolation made it easy
+to **miss a split** the reg text contains — either a boundary with no row (e.g. DEAN RIVER's canyon
+reaches) or a whole reg never started. The fix: rebuild **from source**, waterbody-by-waterbody,
+checked against the reg text, so nothing is half-finished before we author `splits.json`.
 
-- **miss a split** the reg text contains but the parser never turned into a row (e.g. DEAN RIVER's
-  Crag-Creek→canyon reaches), and
-- **mistake a real split for a duplicate** (e.g. `great-central-4ff0ab`, actually its own Stamp
-  River reach).
+## Sources & join
 
-The fix: **group every reg entry that has splits, and solve all of its splits together, checked
-against the reg text**, so nothing is half-finished before we emit `splits.json`.
+- **SPINE — `output/pipeline/extraction/synopsis_raw_data.json`.** The raw synopsis rows (the
+  original regs): `water`, `mu`, `region`, `raw_regs`, `symbols`, `page`, `image`. 1395 entries.
+  This is the authoritative "what regs exist / what waterbodies have splits" list.
+- **PARSE — `output/pipeline/parsing/synopsis_parsed.json`.** Per-reg `rules`; a rule with a
+  non-empty `location_text` is a **boundary** = a split. Joined to the spine by `normalize(raw_regs)
+  == normalize(regs_verbatim)`.
+- **CURATION — `14-locators-to-curate.json`.** Our work; **backfilled** into the structure, never
+  mutated by the tool (except the optional `entry_id` stamp).
 
-## The model
+**Locators per entry** come from four places (matching the original `src` field):
+`water` (a boundary encoded in the water NAME, e.g. `ALEXANDER CREEK (downstream of the Hwy 3 bridge)`)
+· `rule` (a rule's `location_text`) · `except` (a rule's `exception`) · `entry` (`entry_location_text`).
+Plus a non-boundary `name` membership for whole-water / tributary-set rows.
 
-- **Unit = one reg entry** = `(waterbody name_verbatim, MU set, reg text)`. One synopsis listing.
-  Each locator row now carries a stable **`entry_id`** (sha1 of that triple) so rows group durably.
-- **Ground truth of "what splits exist" = the parsed synopsis.** `output/pipeline/parsing/
-  synopsis_parsed.json` holds one entry per listing, each with a `rules` list; every rule with a
-  non-empty `location_text` is a **boundary** (a split). The 651 locator rows were derived from
-  these rules.
-- **Link key:** `normalize(locator.full_regulation) == normalize(synopsis.regs_verbatim)` where
-  `normalize` strips markdown `*` and collapses whitespace. This joins **343/343** locator regs
-  (all 651 rows). Within an entry, a boundary links to a row by normalized equality/containment of
-  `locator_text`.
+**Curation ↔ source join = WATER NAME + MU, not reg text.** Reg text is unreliable (near-identical
+entries differ by a comma; curated `full_regulation` sometimes differs entirely). The join matches a
+curated row to a source entry when `mus` overlap and the curated `name_verbatim` (truncated) is a
+prefix of / contained in the source `water`, after dropping **alias** parentheticals (`(McNaughton)`,
+`("Blackwater")`) while KEEPING **boundary** ones (`(downstream of falls)`).
 
 ## The tool — `oneoff/waterbody_splits.py`
 
-Regenerable view; never hand-edit its outputs. The curated data in `14-locators-to-curate.json`
-stays the source of truth.
+Regenerable; never hand-edit its outputs. Curation stays the source of truth.
 
 ```bash
 .venv/bin/python -m stream_sections.oneoff.waterbody_splits              # write JSON+MD, print summary
-.venv/bin/python -m stream_sections.oneoff.waterbody_splits show "DEAN RIVER"    # one waterbody's card (JSON)
-.venv/bin/python -m stream_sections.oneoff.waterbody_splits missing      # every reg boundary with NO row
+.venv/bin/python -m stream_sections.oneoff.waterbody_splits show "DEAN RIVER"    # one waterbody's card
+.venv/bin/python -m stream_sections.oneoff.waterbody_splits missing      # reg boundaries with NO row
 .venv/bin/python -m stream_sections.oneoff.waterbody_splits incomplete   # entries not fully resolved
+.venv/bin/python -m stream_sections.oneoff.waterbody_splits drift        # curated rows not found in source
+.venv/bin/python -m stream_sections.oneoff.waterbody_splits stamp        # write entry_id onto rows (row<->card link)
 ```
 
-Outputs: **`docs/waterbody-splits.json`** (machine) and **`docs/waterbody-splits.md`** (human,
-worst-first). Per entry it links **each reg boundary → the curated row(s) that resolve it**, with a
-flag:
+Outputs **`docs/waterbody-splits.json`** (`{cards, drift}`) and **`docs/waterbody-splits.md`**
+(human, worst-first). Each card links **every reg boundary → the curated row(s) that resolve it**,
+with the split info block (src, restriction_type, dates, includes_tributaries, page/image) an author
+needs. Each curated row carries a stamped **`entry_id`** pointing back to its card.
 
-| flag | meaning | action |
-|---|---|---|
-| `OK` | boundary linked to ≥1 row | curate that row if still `todo` |
-| `MISSING` | reg boundary with **no** row | a split we never captured — add/curate a row (or confirm it's covered by another boundary's row / a name-variant) |
-| `DUP` | >1 row, same boundary | keep one, mark the rest duplicate → reference (see runbook) |
-| orphan | a row matching no boundary | usually a `name`/`except` row (expected); investigate `rule`/`entry` src |
+Per-locator flag: `MISSING` (boundary with no curated row) · else the backfilled row status.
+Per-entry **completeness**: `COMPLETE` (every boundary resolved) · `INCOMPLETE` (todo remains) ·
+`MISSING_SPLITS` (≥1 boundary with no row) · `NO_CURATION` (split-bearing reg with zero curated rows).
+Global **DRIFT**: curated rows matching no source locator (real anomalies / manual additions / naming).
 
-Per-entry **completeness**: `NO_SPLITS` · `COMPLETE` (every boundary resolved: curated/manual/
-not_applicable/deferred, no todo) · `INCOMPLETE` (todo/unresolved) · `MISSING_SPLITS` (≥1 MISSING).
+The name+MU matcher is prefix/containment based — treat `MISSING`/`DRIFT` as **review candidates**,
+not gospel: a `MISSING` may be a matcher-miss or a non-spatial `except`; a `DRIFT` may be a trib-set
+row with no standalone source entry.
 
-## Current state (2026-08-04, first run)
+## Current state (2026-08-05, first source-first run)
 
-`372 entries → MISSING_SPLITS 13 · INCOMPLETE 183 · COMPLETE 79 · NO_SPLITS 97`; **22 MISSING
-boundaries**. The `MISSING`/orphan matcher is a first-pass (substring) — **verify each MISSING by
-hand**: some are true gaps, some are matcher misses (a row exists with slightly different wording),
-some are covered by an `[Includes Tributaries]` A→B whose row is the reach itself.
+`312 split-bearing entries → COMPLETE 99 · INCOMPLETE 210 · MISSING_SPLITS 3 · NO_CURATION 0`;
+**8 MISSING boundaries** (Dean River canyon reaches ×6, Nation Arm line, one Shuswap non-spatial
+except) and **5 DRIFT** rows (trib-set / alias-name cases). Rows: 590/651 linked to a card.
 
 ## Workflow (per entry, worst-first)
 
-1. `waterbody_splits incomplete` → pick a `MISSING_SPLITS` / high-boundary `INCOMPLETE` entry.
-2. `waterbody_splits show "<NAME>"` → read the reg text + every boundary and its linked row/status.
-3. For each boundary: `OK`+`todo` → curate the row (resolve coord/target per `docs/17`); `MISSING`
-   → confirm it's a real split and add/curate a row, else annotate why it's covered; `DUP` → dedup
-   to one canonical + reference.
-4. When all boundaries are resolved the entry flips to `COMPLETE`; its splits are ready to author
-   into `splits.json`.
-5. Commit; re-run the tool to refresh the cards.
+1. `waterbody_splits incomplete` → pick a `NO_CURATION` / `MISSING_SPLITS` / high-boundary entry.
+2. `waterbody_splits show "<NAME>"` → read the reg text + every boundary + its linked row/status.
+3. Resolve each boundary: `todo` → curate the row (coord/target per `docs/17`); `MISSING` → confirm
+   it's a real split and add/curate a row, else annotate why it's covered; then re-run.
+4. When every boundary is resolved the entry flips to `COMPLETE`; its splits are ready for `splits.json`.
+5. Commit; re-run `waterbody_splits` (and `stamp` if row membership changed) to refresh.
 
-## Preservation guarantee
+## Preservation
 
-Every `curated`/`manual`/`not_applicable`/`deferred` decision already made is untouched — the tool
-only reads them. `entry_id` is an additive field. `14-locators-to-curate.json` remains the editable
-source of truth; `waterbody-splits.*` are regenerated from it. See `docs/17-manual-review-runbook.md`
-for per-row writing rules and `docs/15` for lake-internal (deferred) splits.
+Every prior `curated`/`manual`/`not_applicable`/`deferred` decision is untouched — the tool only
+reads them and backfills. `entry_id` is additive. See `docs/17-manual-review-runbook.md` for per-row
+writing rules and `docs/15` for lake-internal (deferred) splits.

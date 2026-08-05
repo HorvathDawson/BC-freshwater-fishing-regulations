@@ -1,29 +1,34 @@
-"""Waterbody-grouped split curation — pivot locator rows by their SOURCE REG ENTRY and
-reconcile against the parsed synopsis so every split in a reg is accounted for.
+"""Waterbody-grouped split curation — SOURCE-FIRST.
 
-WHY: `14-locators-to-curate.json` is a flat list of 651 locator rows. A single waterbody's
-splits are scattered across many rows and were curated in isolation, so it was easy to miss one
-(e.g. DEAN RIVER's canyon reaches) or to mistake one row for a duplicate. This tool groups rows
-by reg entry (waterbody + MU + reg text) and links each BOUNDARY in the reg text to the curated
-row(s) that resolve it, flagging:
-  - MISSING  : a reg boundary with NO locator row  (a split we never captured)
-  - DUP      : more than one row for the same boundary
-  - ORPHAN   : a locator row that matches no reg boundary (name/except rows are expected orphans)
-so a waterbody can be marked COMPLETE only when every boundary is resolved.
+Build the split-curation structure FROM THE ORIGINAL REGS SOURCE (not from the curated file), so
+nothing is missed: enumerate every regulation entry that contains a split, expand it into all its
+locators (with the info block an author needs), then BACKFILL the curation we've already done, and
+WARN about any curated row that no longer maps to a source locator (drift).
 
-LINK KEY: normalize(locator.full_regulation) == normalize(synopsis.regs_verbatim). Verified to
-join 343/343 locator regs (all 651 rows). Within an entry, a reg boundary (`rules[].location_text`)
-links to a locator row by normalized equality / containment of `locator_text`.
+Sources
+  - SPINE   output/pipeline/extraction/synopsis_raw_data.json  (the raw synopsis rows: water, mu,
+            region, raw_regs, symbols, page, image — the authoritative entry list, 1395 entries)
+  - PARSE   output/pipeline/parsing/synopsis_parsed.json       (per-reg `rules`; a rule with a
+            non-empty `location_text` is a boundary = a split)   join: normalize(raw_regs)==regs_verbatim
+  - CURATE  stream_sections/docs/14-locators-to-curate.json     (our curation; backfilled in, never mutated)
 
-The curated data in `14-locators-to-curate.json` stays the SOURCE OF TRUTH — this tool is a
-regenerable VIEW + completeness check over it. Nothing here mutates curation.
+An entry is SPLIT-BEARING if it has ≥1 boundary rule. Each such entry becomes a card with all its
+locators (src = rule|except|entry|name) and, per locator, the curated row(s) that resolve it.
+
+Flags per locator: `MISSING` (no curated row) · `todo`/resolved status from the backfilled row(s).
+Per entry: NO_CURATION (split-bearing but zero curated rows — a whole reg never started) ·
+MISSING_SPLITS (≥1 boundary with no row) · INCOMPLETE (todo remains) · COMPLETE.
+Plus a global DRIFT list: curated rows that matched no source locator.
+
+The matcher is normalized substring — treat MISSING/DRIFT as review candidates, not gospel.
 
 Run from repo root:
-    .venv/bin/python -m stream_sections.oneoff.waterbody_splits            # write JSON+MD, print summary
-    .venv/bin/python -m stream_sections.oneoff.waterbody_splits show "DEAN RIVER"   # one waterbody's card
-    .venv/bin/python -m stream_sections.oneoff.waterbody_splits missing     # every MISSING boundary
-    .venv/bin/python -m stream_sections.oneoff.waterbody_splits incomplete  # entries not yet fully resolved
-See docs/18-waterbody-split-curation.md for the workflow.
+    .venv/bin/python -m stream_sections.oneoff.waterbody_splits              # write JSON+MD, summary
+    .venv/bin/python -m stream_sections.oneoff.waterbody_splits show "DEAN RIVER"
+    .venv/bin/python -m stream_sections.oneoff.waterbody_splits missing      # boundaries with no row
+    .venv/bin/python -m stream_sections.oneoff.waterbody_splits incomplete   # entries not fully resolved
+    .venv/bin/python -m stream_sections.oneoff.waterbody_splits drift        # curated rows not in source
+See docs/18-waterbody-split-curation.md.
 """
 from __future__ import annotations
 
@@ -31,167 +36,245 @@ import hashlib
 import json
 import re
 import sys
-from collections import defaultdict
+from collections import Counter, defaultdict
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-LOCATORS = ROOT / "stream_sections/docs/14-locators-to-curate.json"
-SYNOPSIS = ROOT / "output/pipeline/parsing/synopsis_parsed.json"
+RAW = ROOT / "output/pipeline/extraction/synopsis_raw_data.json"
+PARSE = ROOT / "output/pipeline/parsing/synopsis_parsed.json"
+CURATED = ROOT / "stream_sections/docs/14-locators-to-curate.json"
 OUT_JSON = ROOT / "stream_sections/docs/waterbody-splits.json"
 OUT_MD = ROOT / "stream_sections/docs/waterbody-splits.md"
 
-RESOLVED = {"curated", "manual", "not_applicable", "deferred"}  # not `todo`/`likely_na`
+RESOLVED = {"curated", "manual", "not_applicable", "deferred"}
 
 
 def norm(s: str | None) -> str:
     return re.sub(r"\s+", " ", (s or "").replace("*", "")).strip().lower()
 
 
-def entry_id(name: str, mus: tuple[str, ...], reg: str) -> str:
-    h = hashlib.sha1(f"{name}|{','.join(mus)}|{reg}".encode()).hexdigest()[:8]
-    return h
+def entry_id(water: str, mu, reg: str) -> str:
+    return hashlib.sha1(f"{water}|{','.join(mu or [])}|{norm(reg)}".encode()).hexdigest()[:8]
 
 
-def _matches(loc_text: str, rule_text: str) -> bool:
-    a, b = norm(loc_text), norm(rule_text)
-    if not a or not b:
-        return False
-    return a == b or a in b or b in a
+def _match(a: str, b: str) -> bool:
+    a, b = norm(a), norm(b)
+    return bool(a) and bool(b) and (a == b or a in b or b in a)
+
+
+# a water-name parenthetical is a BOUNDARY (not just a note) when it carries reach language
+_BOUNDARY_RE = re.compile(
+    r"\b(downstream of|upstream of|from |between |below |above |within |to the |downstream to|"
+    r"downstream|upstream|except )", re.I)
+
+
+def water_parts(water: str):
+    """(base_name, parenthetical, paren_is_boundary). 'ALEXANDER CREEK (downstream of X)' ->
+    ('ALEXANDER CREEK', 'downstream of X', True); 'NAHATLATCH LAKE (east and west)' -> (..., False)."""
+    m = re.search(r"\(([^)]*)\)", water)
+    paren = m.group(1).strip() if m else ""
+    base = re.sub(r"\s*\([^)]*\)", "", water).strip()
+    return base, paren, bool(paren and _BOUNDARY_RE.search(paren))
+
+
+def name_key(water: str) -> str:
+    """Normalized name for the curation<->source join: drop ALIAS parentheticals (e.g. (McNaughton),
+    ("Blackwater")) but KEEP boundary ones (e.g. (downstream of falls)) so up/down entries stay
+    distinct. Tolerant of the truncated curated name via prefix match at the call site."""
+    def repl(m):
+        return m.group(0) if _BOUNDARY_RE.search(m.group(1)) else ""
+    return norm(re.sub(r"\s*\(([^)]*)\)", repl, water))
 
 
 def build():
-    locators = json.loads(LOCATORS.read_text())["locators"]
-    synopsis = json.loads(SYNOPSIS.read_text())
+    raw = json.loads(RAW.read_text())
+    rows = [r for pg in raw for r in pg["rows"]]
+    parsed = json.loads(PARSE.read_text())
+    curated = json.loads(CURATED.read_text())["locators"]
 
-    # synopsis boundary-rules keyed by normalized reg (dedup, non-empty location_text only)
-    syn_rules: dict[str, list[str]] = defaultdict(list)
-    for e in synopsis:
-        nr = norm(e.get("regs_verbatim"))
-        for rule in e.get("rules", []):
-            lt = (rule.get("location_text") or "").strip()
-            if lt and lt not in syn_rules[nr]:
-                syn_rules[nr].append(lt)
+    parse_by_reg = defaultdict(list)
+    for e in parsed:
+        parse_by_reg[norm(e.get("regs_verbatim"))].append(e)
 
-    # group locator rows by reg entry (name, mus, reg)
-    entries: dict[tuple, list[dict]] = defaultdict(list)
-    for r in locators:
-        key = (r["name_verbatim"], tuple(r.get("mus") or []), norm(r.get("full_regulation")))
-        entries[key].append(r)
+    # Join curation<->source by WATER NAME + MU (reg text is unreliable: near-identical entries
+    # differ by punctuation, and curated name_verbatim is truncated). cur_norm caches (row, norm
+    # name, mus) once; candidates() finds the curated rows belonging to a source entry.
+    cur_norm = [(r, name_key(r.get("name_verbatim")), set(r.get("mus") or [])) for r in curated]
+    consumed: set[str] = set()
+    BOUNDARY_SRC = ("water", "rule", "except", "entry")
+
+    def candidates(water: str, mu):
+        nw, mus = name_key(water), set(mu or [])
+        out = []
+        for r, nn, rmus in cur_norm:
+            if nn and (mus & rmus or not mus) and (nw.startswith(nn) or nn in nw or nw in nn):
+                out.append(r)
+        return out
+
+    def backfill(cands: list, loc: dict, water: str):
+        """Match curated row(s) (already scoped to this source entry by name+MU) to a source locator:
+        name/water locators match `src=name` rows against the water name/parenthetical; boundary
+        locators match by locator_text."""
+        hits = []
+        for r in cands:
+            lt = r.get("locator_text", "")
+            if loc["src"] in ("name", "water"):
+                if r.get("src") == "name" and (_match(lt, loc["text"]) or _match(lt, water)):
+                    hits.append(r)
+            elif _match(lt, loc["text"]):
+                hits.append(r)
+        for r in hits:
+            consumed.add(r["id"])
+        return hits
 
     cards = {}
-    for (name, mus, reg), rows in entries.items():
-        eid = entry_id(name, mus, reg)
-        boundaries = []
-        linked_row_ids: set[str] = set()
-        for rule in syn_rules.get(reg, []):
-            hits = [r for r in rows if _matches(r.get("locator_text", ""), rule)]
-            for r in hits:
-                linked_row_ids.add(r["id"])
-            statuses = [r["status"] for r in hits]
-            if not hits:
-                flag = "MISSING"
-            elif len(hits) > 1 and len({norm(r.get("locator_text", "")) for r in hits}) == 1:
-                flag = "DUP"
-            else:
-                flag = "OK"
-            boundaries.append({
-                "location_text": rule,
-                "row_ids": [r["id"] for r in hits],
-                "statuses": statuses,
-                "resolved": all(s in RESOLVED for s in statuses) if statuses else False,
-                "flag": flag,
-            })
-        orphans = [
-            {"id": r["id"], "locator_text": r.get("locator_text", ""), "src": r.get("src"),
-             "status": r["status"]}
-            for r in rows
-            if r["id"] not in linked_row_ids and norm(r.get("locator_text", ""))
-        ]
-        n_missing = sum(1 for b in boundaries if b["flag"] == "MISSING")
-        n_unresolved = sum(1 for b in boundaries if b["flag"] != "MISSING" and not b["resolved"])
-        todo_rows = [r["id"] for r in rows if r["status"] in ("todo", "likely_na")]
-        if not boundaries:
-            completeness = "NO_SPLITS"
+    for row in rows:
+        reg = row["raw_regs"]
+        reg_key = norm(reg)
+        water = row["water"]
+        pe = parse_by_reg.get(reg_key, [{}])[0]
+        rules = pe.get("rules", []) if pe else []
+        _, paren, paren_is_boundary = water_parts(water)
+
+        locators = []
+        if paren_is_boundary:  # boundary encoded in the water name, e.g. "X (downstream of falls)"
+            locators.append({"src": "water", "text": paren})
+        for rule in rules:
+            lt = (rule.get("location_text") or "").strip()
+            if lt:
+                locators.append({"src": "rule", "text": lt,
+                                 "restriction_type": rule.get("restriction_type"),
+                                 "dates": rule.get("dates") or [],
+                                 "includes_tributaries": rule.get("includes_tributaries")})
+            ex = (rule.get("exception") or "").strip()
+            if ex:
+                locators.append({"src": "except", "text": ex,
+                                 "restriction_type": rule.get("restriction_type")})
+        elt = (pe.get("entry_location_text") or "").strip() if pe else ""
+        if elt:
+            locators.append({"src": "entry", "text": elt})
+        # whole-water / tributary-set membership (matches full-name `src=name` rows; consumes them)
+        locators.append({"src": "name", "text": water})
+
+        # backfill EVERY entry (so name/whole-water rows are consumed -> real drift only)
+        cands = candidates(water, row.get("mu"))
+        for l in locators:
+            hits = backfill(cands, l, water)
+            l["row_ids"] = [r["id"] for r in hits]
+            l["statuses"] = [r["status"] for r in hits]
+            l["anchor_kinds"] = sorted({r["anchor_kind"] for r in hits})
+            l["resolved"] = bool(hits) and all(r["status"] in RESOLVED for r in hits)
+            l["flag"] = "MISSING" if (l["src"] in BOUNDARY_SRC and not hits) else "OK"
+
+        boundary_locs = [l for l in locators if l["src"] in BOUNDARY_SRC]
+        if not boundary_locs:
+            continue  # not split-bearing (no card), but its name rows were consumed above
+
+        eid = entry_id(water, row.get("mu"), reg)
+        n_curated_rows = len({rid for l in locators for rid in l["row_ids"]})
+        n_missing = sum(1 for l in boundary_locs if l["flag"] == "MISSING")
+        n_unresolved = sum(1 for l in boundary_locs if l["flag"] != "MISSING" and not l["resolved"])
+        if n_curated_rows == 0:
+            completeness = "NO_CURATION"
         elif n_missing:
             completeness = "MISSING_SPLITS"
-        elif n_unresolved or todo_rows:
+        elif n_unresolved:
             completeness = "INCOMPLETE"
         else:
             completeness = "COMPLETE"
         cards[eid] = {
-            "entry_id": eid,
-            "name": name,
-            "mus": list(mus),
-            "reg_text": reg,
-            "n_boundaries": len(boundaries),
-            "boundaries": boundaries,
-            "orphan_rows": orphans,
-            "todo_row_ids": todo_rows,
-            "completeness": completeness,
+            "entry_id": eid, "water": water, "mu": row.get("mu"),
+            "region": row.get("region") or (pe.get("region") if pe else None),
+            "page": row.get("page"), "image": row.get("image"), "symbols": row.get("symbols"),
+            "reg_text": reg, "completeness": completeness,
+            "n_boundaries": len(boundary_locs), "locators": locators,
         }
-    return cards
+
+    # drift: curated rows never matched to any source locator (real anomalies / manual additions)
+    drift = [{"id": r["id"], "water": r["name_verbatim"], "mu": r.get("mus"),
+              "src": r.get("src"), "locator_text": r.get("locator_text", ""), "status": r["status"]}
+             for r in curated if r["id"] not in consumed and norm(r.get("locator_text"))]
+    return cards, drift
 
 
-def _rank(card):
-    order = {"MISSING_SPLITS": 0, "INCOMPLETE": 1, "COMPLETE": 2, "NO_SPLITS": 3}
-    return (order[card["completeness"]], -card["n_boundaries"])
+def _rank(c):
+    order = {"NO_CURATION": 0, "MISSING_SPLITS": 1, "INCOMPLETE": 2, "COMPLETE": 3}
+    return (order[c["completeness"]], -c["n_boundaries"])
 
 
-def write_outputs(cards):
-    OUT_JSON.write_text(json.dumps(cards, indent=2, ensure_ascii=False) + "\n")
-    lines = ["# Waterbody split-curation cards (generated by oneoff/waterbody_splits.py)\n",
-             "One card per reg entry (waterbody + MU + reg text). `MISSING` = a reg boundary with no",
-             "curated row. Sorted worst-first. Regenerate; do not hand-edit.\n"]
-    from collections import Counter
+def write_outputs(cards, drift):
+    OUT_JSON.write_text(json.dumps({"cards": cards, "drift": drift}, indent=2, ensure_ascii=False) + "\n")
     tally = Counter(c["completeness"] for c in cards.values())
-    lines.append("| completeness | entries |")
-    lines.append("|---|--:|")
-    for k in ["MISSING_SPLITS", "INCOMPLETE", "COMPLETE", "NO_SPLITS"]:
-        lines.append(f"| {k} | {tally.get(k, 0)} |")
-    lines.append("")
+    L = ["# Waterbody split cards — SOURCE-FIRST (generated by oneoff/waterbody_splits.py)\n",
+         "One card per split-bearing reg entry from `synopsis_raw_data.json`; each reg boundary is",
+         "linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.\n",
+         "| completeness | entries |", "|---|--:|"]
+    for k in ["NO_CURATION", "MISSING_SPLITS", "INCOMPLETE", "COMPLETE"]:
+        L.append(f"| {k} | {tally.get(k, 0)} |")
+    L.append(f"\n**Drift** (curated rows matching no source locator): {len(drift)}\n")
     for c in sorted(cards.values(), key=_rank):
-        if c["completeness"] in ("COMPLETE", "NO_SPLITS"):
+        if c["completeness"] == "COMPLETE":
             continue
-        lines.append(f"## {c['name']}  ·  MU {c['mus']}  ·  [{c['completeness']}]  ({c['entry_id']})")
-        for b in c["boundaries"]:
-            mark = {"MISSING": "❌ MISSING", "DUP": "⚠️ DUP", "OK": "•"}[b["flag"]]
-            rows = ", ".join(f"{i}[{s}]" for i, s in zip(b["row_ids"], b["statuses"])) or "—"
-            lines.append(f"- {mark} “{b['location_text'][:70]}” → {rows}")
-        if c["orphan_rows"]:
-            lines.append(f"  - orphan rows: " + ", ".join(f"{o['id']}({o['src']})" for o in c["orphan_rows"]))
-        lines.append("")
-    OUT_MD.write_text("\n".join(lines) + "\n")
+        L.append(f"## {c['water']} · MU {c['mu']} · p{c['page']} · [{c['completeness']}] ({c['entry_id']})")
+        for l in c["locators"]:
+            if l["src"] == "name":
+                continue
+            mark = "❌ MISSING" if l["flag"] == "MISSING" else "•"
+            rows = ", ".join(f"{i}[{s}]" for i, s in zip(l["row_ids"], l["statuses"])) or "—"
+            L.append(f"- {mark} [{l['src']}] “{l['text'][:66]}” → {rows}")
+        L.append("")
+    if drift:
+        L.append("## ⚠️ DRIFT — curated rows not found in the source (review)\n")
+        for d in drift:
+            L.append(f"- `{d['id']}` [{d['status']}] {d['water']} — src={d['src']} “{d['locator_text'][:50]}”")
+    OUT_MD.write_text("\n".join(L) + "\n")
 
 
 def main():
     args = sys.argv[1:]
-    cards = build()
+    cards, drift = build()
     if args and args[0] == "show":
         q = " ".join(args[1:]).lower()
         for c in sorted(cards.values(), key=_rank):
-            if q in c["name"].lower():
+            if q in c["water"].lower():
                 print(json.dumps(c, indent=2, ensure_ascii=False))
         return
     if args and args[0] == "missing":
         for c in sorted(cards.values(), key=_rank):
-            for b in c["boundaries"]:
-                if b["flag"] == "MISSING":
-                    print(f"{c['name']:38.38s} MU{c['mus']} | {b['location_text']}")
+            for l in c["locators"]:
+                if l["flag"] == "MISSING":
+                    print(f"{c['water']:34.34s} MU{c['mu']} p{c['page']} | [{l['src']}] {l['text']}")
         return
     if args and args[0] == "incomplete":
         for c in sorted(cards.values(), key=_rank):
-            if c["completeness"] in ("MISSING_SPLITS", "INCOMPLETE"):
-                miss = sum(1 for b in c["boundaries"] if b["flag"] == "MISSING")
-                print(f"[{c['completeness']:14s}] {c['name']:36.36s} MU{c['mus']} "
-                      f"boundaries={c['n_boundaries']} missing={miss} todo={len(c['todo_row_ids'])}")
+            if c["completeness"] != "COMPLETE":
+                miss = sum(1 for l in c["locators"] if l["flag"] == "MISSING")
+                print(f"[{c['completeness']:14s}] {c['water']:32.32s} MU{c['mu']} "
+                      f"bounds={c['n_boundaries']} missing={miss}")
         return
-    # default: write + summary
-    write_outputs(cards)
-    from collections import Counter
+    if args and args[0] == "drift":
+        for d in drift:
+            print(f"{d['id']:46s} [{d['status']:14s}] src={d['src']:6s} “{d['locator_text'][:45]}”")
+        return
+    if args and args[0] == "stamp":
+        # write each curated row's entry_id = the card it belongs to (reliable name+MU join),
+        # so row <-> card is a durable bidirectional link. Rows in no card get a self-id.
+        r2e = {rid: c["entry_id"] for c in cards.values() for l in c["locators"] for rid in l["row_ids"]}
+        doc = json.loads(CURATED.read_text())
+        linked = 0
+        for r in doc["locators"]:
+            eid = r2e.get(r["id"])
+            if eid:
+                linked += 1
+            r["entry_id"] = eid or entry_id(r["name_verbatim"], r.get("mus"), r.get("full_regulation"))
+        CURATED.write_text(json.dumps(doc, indent=2, ensure_ascii=False) + "\n")
+        print(f"stamped entry_id on {len(doc['locators'])} rows ({linked} linked to a card)")
+        return
+    write_outputs(cards, drift)
     tally = Counter(c["completeness"] for c in cards.values())
-    n_missing = sum(1 for c in cards.values() for b in c["boundaries"] if b["flag"] == "MISSING")
-    print(f"entries: {len(cards)}  | {dict(tally)}")
-    print(f"MISSING boundaries (splits with no row): {n_missing}")
+    n_missing = sum(1 for c in cards.values() for l in c["locators"] if l["flag"] == "MISSING")
+    print(f"split-bearing entries: {len(cards)} | {dict(tally)}")
+    print(f"MISSING boundaries: {n_missing} | DRIFT rows: {len(drift)}")
     print(f"wrote {OUT_JSON.relative_to(ROOT)} and {OUT_MD.relative_to(ROOT)}")
 
 

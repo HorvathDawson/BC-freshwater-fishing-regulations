@@ -348,7 +348,7 @@
       "coord": null,
       "label": "",
       "notes": "already in split",
-      "entry_id": "c34e5c7b"
+      "entry_id": "72172723"
     },
     {
       "id": "atnarko-bella-coola-rivers-includes-tributari-a7bbc2",
@@ -369,7 +369,7 @@
       "coord": null,
       "label": "",
       "notes": "already in split",
-      "entry_id": "c34e5c7b"
+      "entry_id": "72172723"
     },
     {
       "id": "blue-lead-creek-182cfe",
@@ -940,7 +940,7 @@
       "coord": null,
       "label": "Dinosaur Lake reservoir reach (W.A.C. Bennett Dam <-> Peace Canyon Dam)",
       "notes": "[human-review 2026-08-04 lake-verify] LAKE-INTERNAL (deferred, COMPLEX): reservoir sub-region bounded by internal landmarks (Bennett Dam, ~100 m S of Gething Cr, anti-vortex dyke, Peace Canyon Dam). Needs docs/15 lake_region overlay AND, per Dawson, sub-region tributary membership (which the current model-B overlay only partly addresses via §3.4 containment). Confirms Dawson's 'wrong' - NOT handled by the auto lake split.",
-      "entry_id": "9a55f902"
+      "entry_id": "4177904c"
     },
     {
       "id": "fording-river-downstream-of-josephine-falls-97d67a",
@@ -978,7 +978,7 @@
       "coord": null,
       "label": "",
       "notes": "",
-      "entry_id": "17504fa6"
+      "entry_id": "56b0696e"
     },
     {
       "id": "halfway-river-4edd1a",
@@ -1073,7 +1073,7 @@
       "coord": null,
       "label": "",
       "notes": "",
-      "entry_id": "1edcaa17"
+      "entry_id": "9538df76"
     },
     {
       "id": "hunlen-creek-upstream-of-hunlen-falls-b24b41",
@@ -1263,7 +1263,7 @@
       "coord": null,
       "label": "",
       "notes": "",
-      "entry_id": "f3e5efab"
+      "entry_id": "4050199b"
     },
     {
       "id": "lodgepole-creek-upstream-of-falls-615359",
@@ -1758,7 +1758,7 @@
       "coord": null,
       "label": "",
       "notes": "",
-      "entry_id": "aed39f94"
+      "entry_id": "c23b554d"
     },
     {
       "id": "tamihi-creek-62bcd1",
@@ -2188,7 +2188,7 @@
       "coord": null,
       "label": "",
       "notes": "[auto-proposal H] Dinosaur Reservoir (between W.A.C. Bennett Dam and Peace Canyon Dam) on Peace River / Dinosaur Lake. Candidate coord [-122.19419, 56.01573]. OSM: https://www.openstreetmap.org/?mlat=56.01573&mlon=-122.19419#map=15/56.01573/-122.19419. Verify: This is a lake_reach (Dinosaur Lake wbk 329657308), not a single point. Upper bound = W.A.C. Bennett Dam (coord given); lower bound = Peace Canyon Dam at the outlet ~[-121.994,55.982].. 'Reservoir Downstream of W.A.C. Bennett Dam' = Dinosaur Lake, impounded between the W.A.C. Bennett Dam (upstream, coord given, = Williston Lake outlet) and Peace Canyon Dam (downstream, = Dinosaur Lake outlet [-121.994,55.982]). Better modelled as a lake polygon (Dinosaur Lake, lakes layer) than a point. — [human-review 2026-08-04 not_applicable] DUPLICATE of dinosaur-lake-reservoir-downstream-of-w-a-c-b-4fc5f6 (same regulation, parser emitted multiple locator rows). → see dinosaur-lake-reservoir-downstream-of-w-a-c-b-4fc5f6; dedup collapses.",
-      "entry_id": "9a55f902"
+      "entry_id": "4177904c"
     },
     {
       "id": "duncan-river-402ead",
@@ -2347,7 +2347,7 @@
       "coord": null,
       "label": "",
       "notes": "[auto-proposal L] Boundary signs near Kitimat Hatchery outfall (west half of river) on Kitimat River (near hatchery). Candidate coord [-128.66227, 54.01089]. OSM: https://www.openstreetmap.org/?mlat=54.01089&mlon=-128.66227#map=15/54.01089/-128.66227. Verify: Locate the Kitimat Hatchery outfall and its boundary signs; note this is a west-half-of-river (partial-width) closure - not a clean cross-channel cut.. Partial-width closure on the west half of the Kitimat River between signs near the Kitimat Hatchery outfall. Candidate = FWA Kitimat River mouth as a reference; the hatchery is on the lower river. Partial-width geometry may not fit the split model - flag for map review.",
-      "entry_id": "b32d3f98"
+      "entry_id": "c0718831"
     },
     {
       "id": "kootenay-river-downstream-of-idaho-border-358bba",
@@ -2503,7 +2503,7 @@
       "coord": null,
       "label": "",
       "notes": "[auto-proposal L] Boundary signs 1,200 m downstream of Site C Dam on Peace River (below Site C). No FWA coord (needs map / external source). Verify: Locate Site C Dam (BC Hydro, ~7 km SW of Fort St John) then place a point 1,200 m downstream along the Peace - Site C reservoir is too new to be in FWA.. Site C Dam is a recent BC Hydro facility likely absent from the FWA dataset. This entry is the reach downstream of signs 1,200 m below the dam. Recommend manual: get the Site C dam coord from BC Hydro, then offset 1,200 m downstream on the Peace River blue line.",
-      "entry_id": "d2aa8079"
+      "entry_id": "4068efd2"
     },
     {
       "id": "peace-river-from-hwy-29-bridge-to-the-site-c--c17e9f",
@@ -2541,7 +2541,7 @@
       "coord": null,
       "label": "",
       "notes": "[auto-proposal L] Site C Dam (upstream) -> signs 1,200 m downstream on Peace River (Site C Dam -> signs 1,200 m below). No FWA coord (needs map / external source). Verify: Locate Site C Dam; downstream end = signs 1,200 m below. External to FWA.. Short reach from the Site C Dam to boundary signs 1,200 m downstream (pairs with peace-river-downstream-of-boundary-signs). Site C absent from FWA - manual/BC Hydro coord needed.",
-      "entry_id": "4f6e7d46"
+      "entry_id": "789839ce"
     },
     {
       "id": "pend-d-oreille-river-includes-the-reservoirs--57ffbb",
@@ -2560,7 +2560,7 @@
       "coord": null,
       "label": "",
       "notes": "[auto-proposal L] Reservoirs behind Waneta Dam and Seven Mile Dam on Pend d'Oreille River (SE BC). Candidate coord [-117.345, 49.055]. OSM: https://www.openstreetmap.org/?mlat=49.05500&mlon=-117.34500#map=15/49.05500/-117.34500. Verify: This is a reservoir reach (two impoundments). Confirm Seven Mile Dam (~[-117.345,49.055]) as the upstream bound and Waneta Dam (~[-117.617,49.007], at the Columbia confluence) as the downstream bound.. The Pend d'Oreille entry includes the reservoirs behind Waneta Dam and Seven Mile Dam in extreme SE BC. Neither reservoir is clearly named in FWA. Candidate = approximate Seven Mile Dam (upstream); Waneta Dam sits at the Pend d'Oreille-Columbia confluence. Better modelled as a reach between the two dams - verify both on a map.",
-      "entry_id": "852be8ae"
+      "entry_id": "57ddd9ce"
     },
     {
       "id": "pinkut-creek-03a36e",
@@ -2693,7 +2693,7 @@
       "coord": null,
       "label": "",
       "notes": "[auto-proposal H] Seton Dam (Seton Lake outlet) + BC Hydro Power Canal on Seton River / Seton Lake outlet. Candidate coord [-121.97777, 50.66951]. OSM: https://www.openstreetmap.org/?mlat=50.66951&mlon=-121.97777#map=15/50.66951/-121.97777. Verify: Confirm Seton Dam at the Seton Lake outlet; the reg also includes the parallel BC Hydro Power Canal up to signs on Seton Lake.. Seton Dam controls the Seton River at the Seton Lake outlet. Coord = FWA Seton River exit from the Seton Lake polygon. The entry also includes the BC Hydro Power Canal upstream of the dam up to signs on Seton Lake (a parallel man-made channel - may need separate geometry).",
-      "entry_id": "a41fc0a3"
+      "entry_id": "5a3609ce"
     },
     {
       "id": "stamp-river-853100",
@@ -2769,7 +2769,7 @@
       "coord": null,
       "label": "",
       "notes": "[auto-proposal L] McIntyre Dam (upstream bound) + two west-side lagoons on Vaseux Lake + Okanagan River lagoons. Candidate coord [-119.57386, 49.35652]. OSM: https://www.openstreetmap.org/?mlat=49.35652&mlon=-119.57386#map=15/49.35652/-119.57386. Verify: This is a lake+lagoons entry, not a single dam. Confirm McIntyre Dam as the upstream bound (~[-119.574,49.357]) and the two lagoons on the west side of the Okanagan River.. Vaseux Lake entry including two lagoons on the west side of the Okanagan River, upstream of McIntyre Dam. Better modelled as the Vaseux Lake polygon (wbk 329459123) plus lagoon geometry; candidate coord = McIntyre Dam (the named upstream structure). Manual review for the lagoons.",
-      "entry_id": "0672f114"
+      "entry_id": "bf3a7f24"
     },
     {
       "id": "high-lake-unnamed-lake-approx-4-km-north-of-b-0ec39d",
@@ -2826,7 +2826,7 @@
       "coord": null,
       "label": "",
       "notes": "[auto-proposal L] easternmost Hwy 3 bridge over Alexander Creek on Alexander Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm which Hwy 3 bridge is the 'easternmost' over Alexander Creek (Crowsnest/Sparwood, MU 4-23); map.. Hwy 3 (Crowsnest) runs alongside Alexander Creek near the Alberta border; 'easternmost Hwy 3 bridge' implies several crossings. Public highway -> not in FWA; map/OSM-confirmable. Downstream reach.",
-      "entry_id": "e0cf5d42"
+      "entry_id": "a2098ab8"
     },
     {
       "id": "alexander-creek-upstream-of-the-easternmost-h-40487b",
@@ -2845,7 +2845,7 @@
       "coord": null,
       "label": "",
       "notes": "[auto-proposal L] easternmost Hwy 3 bridge over Alexander Creek on Alexander Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm which Hwy 3 bridge is the 'easternmost' over Alexander Creek (Crowsnest/Sparwood, MU 4-23); map.. Same landmark as the downstream Alexander Creek entry; this is the upstream reach. Public highway bridge -> map/OSM-confirmable, not in FWA.",
-      "entry_id": "4a10adca"
+      "entry_id": "e9670588"
     },
     {
       "id": "alouette-river-daecfd",
@@ -2864,7 +2864,7 @@
       "coord": null,
       "label": "",
       "notes": "[auto-proposal L] 216th Street bridge over Alouette River on Alouette River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm 216th Street crossing of Alouette River (Maple Ridge) on the street grid; review.. City-street bridge in Maple Ridge (MU 2-8). The same reg also carries a boundary-sign coordinate (49 14.790'N 122 32.080'W) for a different rule. Street bridge -> map-only, not in FWA.",
-      "entry_id": "dadcd21c"
+      "entry_id": "7ef10bf8"
     },
     {
       "id": "artlish-river-9e60a3",
@@ -3111,7 +3111,7 @@
       "coord": null,
       "label": "",
       "notes": "[auto-proposal L] Tamihi Rapids Bridge & Vedder Crossing Bridge on Chilliwack/Vedder River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm Tamihi (Rapids) Bridge and Vedder Crossing Bridge on the Chilliwack/Vedder; both well-known -> review.. Reach between two named road bridges near Chilliwack (MU 2-?). Both are public bridges (not FWA). The FSR crossings found (CENTRE/RADIUM at 37-47 km) are far upstream in the Chilliwack valley, not these lower bridges.",
-      "entry_id": "29dbc5c2"
+      "entry_id": "2f3fea39"
     },
     {
       "id": "chilliwack-vedder-rivers-does-not-include-sum-96c294",
@@ -3130,7 +3130,7 @@
       "coord": null,
       "label": "",
       "notes": "[auto-proposal L] Vedder Crossing Bridge on Chilliwack/Vedder River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm Vedder Crossing Bridge on the Vedder River (Chilliwack); well-known -> review.. Downstream-of-Vedder-Crossing reach. Public bridge, not in FWA; map/OSM-confirmable.",
-      "entry_id": "29dbc5c2"
+      "entry_id": "2f3fea39"
     },
     {
       "id": "chowade-river-42a570",
@@ -3207,7 +3207,7 @@
       "coord": null,
       "label": "",
       "notes": "[auto-proposal L] old MF&M Railway bridge (~7 km up Elk River), Fernie on Coal Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the old MF&M (Morrissey-Fernie-Michel) Railway bridge on Coal Creek at Fernie; VERIFY creek (FWA collision).. The FWA 'Coal Creek' match (57.47N) is the wrong creek far in NE BC; the reg creek is Coal Creek at Fernie (Elk valley, Region 4). Old railway bridge ~7 km above the Elk River confluence -> railway/map-only.",
-      "entry_id": "d2c546d3"
+      "entry_id": "47d4ca5e"
     },
     {
       "id": "copper-creek-538967",
@@ -3607,7 +3607,7 @@
       "coord": null,
       "label": "",
       "notes": "[auto-proposal L] Woodjam Bridge over Horsefly River on Horsefly River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Woodjam (Road) bridge over the Horsefly River near Horsefly townsite; map. (Reach runs down to Quesnel Lake.). Reach = 'Woodjam Bridge to Quesnel Lake'. Woodjam is a road bridge near Horsefly town; not name-matched among the FWA Horsefly FSR crossings (which are further upstream). Map/OSM-confirmable; Quesnel Lake is the other endpoint.",
-      "entry_id": "1edcaa17"
+      "entry_id": "9538df76"
     },
     {
       "id": "hyland-creek-f98bc6",
@@ -3645,7 +3645,7 @@
       "coord": null,
       "label": "",
       "notes": "[auto-proposal L] Hwy 37 bridge over Kitimat River on Kitimat River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the Hwy 37 bridge over the Kitimat River (near Kitimat); single crossing -> review.. Reg = 'in tributaries and upstream of Hwy 37 bridge'. Public highway bridge in the lower Kitimat valley -> map/OSM-confirmable (FSR hits are far up the mainline).",
-      "entry_id": "b32d3f98"
+      "entry_id": "c0718831"
     },
     {
       "id": "kootenay-river-downstream-of-idaho-border-60f171",
@@ -3855,7 +3855,7 @@
       "coord": null,
       "label": "",
       "notes": "[auto-proposal L] easternmost Hwy 3 bridge over Michel Creek on Michel Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the 'easternmost' Hwy 3 bridge over Michel Creek (Sparwood/Elk valley, MU 4-23); map.. Hwy 3 crosses Michel Creek multiple times near Sparwood; 'easternmost' picks one. Public highway -> map-only (FSR hits are far up the creek). Downstream reach.",
-      "entry_id": "ffe02422"
+      "entry_id": "8328cecb"
     },
     {
       "id": "michel-creek-upstream-of-the-easternmost-hwy--b614f4",
@@ -3874,7 +3874,7 @@
       "coord": null,
       "label": "",
       "notes": "[auto-proposal L] easternmost Hwy 3 bridge over Michel Creek on Michel Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the 'easternmost' Hwy 3 bridge over Michel Creek; upstream reach; map.. Same landmark as the paired Michel Creek entry; upstream reach. Public highway bridge -> map/OSM-confirmable.",
-      "entry_id": "51e3c912"
+      "entry_id": "cb7374a9"
     },
     {
       "id": "mohun-creek-1fa4a0",
@@ -4635,7 +4635,7 @@
       "coord": null,
       "label": "",
       "notes": "[auto-proposal L] bridge near Francois Lake outlet (signs 250 m & 4 km below) on Stellako River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the bridge near the Francois Lake outlet on the Stellako, then signs 250 m & 4 km downstream; map.. Reg = 'signs ~250 m and 4 km downstream of the bridge near the Francois Lake outlet'. Road bridge at the Francois Lake outlet (Stellako flows Francois -> Fraser Lake); not in FWA/FSR. Map/OSM-confirmable.",
-      "entry_id": "aed39f94"
+      "entry_id": "c23b554d"
     },
     {
       "id": "sustut-river-9d2852",
@@ -4713,7 +4713,7 @@
       "coord": null,
       "label": "",
       "notes": "[auto-proposal L] CNR Bridge below Deadman R. to CNR Bridge above Bonaparte R. on Thompson River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the two CNR bridges (one below the Deadman confluence near Savona, one above the Bonaparte confluence at Ashcroft); map.. Reach between two railway bridges on the Thompson, bracketed by the Deadman (Savona) and Bonaparte (Ashcroft) confluences. Railway bridges -> map/OSM-confirmable.",
-      "entry_id": "b4f3f657"
+      "entry_id": "bea6153a"
     },
     {
       "id": "tlell-river-574c56",
@@ -4866,7 +4866,7 @@
       "coord": null,
       "label": "",
       "notes": "Split authored in splits.json: 'wigwam_km42_ram_fsr' (point). — authored split: wigwam_km42_ram_fsr",
-      "entry_id": "258103c9"
+      "entry_id": "29f0007b"
     },
     {
       "id": "wigwam-river-downstream-of-the-access-road-ad-ff41b7",
@@ -4885,7 +4885,7 @@
       "coord": null,
       "label": "",
       "notes": "Split authored in splits.json: 'wigwam_km42_ram_fsr' (point). — authored split: wigwam_km42_ram_fsr",
-      "entry_id": "258103c9"
+      "entry_id": "29f0007b"
     },
     {
       "id": "wigwam-river-upstream-of-the-forest-service-r-b0dd87",
@@ -4904,7 +4904,7 @@
       "coord": null,
       "label": "",
       "notes": "Split authored in splits.json: 'wigwam_km42_ram_fsr' (point). — authored split: wigwam_km42_ram_fsr",
-      "entry_id": "e81ab437"
+      "entry_id": "1770fb7f"
     },
     {
       "id": "williston-lake-in-zone-a-includes-waters-500--456568",
@@ -4925,7 +4925,7 @@
       "coord": null,
       "label": "",
       "notes": "[reclassified bridge_road_km -> lake_reach: reservoir_zone] RESERVOIR zone reg (Williston Lake Zone A): bait ban ±500 m of the Causeway Road within the reservoir — lake/reservoir zone, not a stream bridge. — [lake-class: reservoir] reservoir zone (Williston Zone A, ±500 m Causeway Rd) — complex. — [review · was:deferred] assume nothing — re-decide. — [human-review 2026-08-04 not_applicable] DUPLICATE of williston-lake-in-zone-a-includes-waters-500--3be97e (same regulation, parser emitted multiple locator rows). → see williston-lake-in-zone-a-includes-waters-500--3be97e; dedup collapses.",
-      "entry_id": "10ea4472"
+      "entry_id": "dd9534c9"
     },
     {
       "id": "williston-lake-in-zone-a-includes-waters-500--7972e6",
@@ -4946,7 +4946,7 @@
       "coord": null,
       "label": "",
       "notes": "[reclassified bridge_road_km -> lake_reach: reservoir_zone] RESERVOIR zone reg (Williston Lake Zone A): bait ban ±500 m of the Causeway Road within the reservoir — lake/reservoir zone, not a stream bridge. — [lake-class: reservoir] reservoir zone (Williston Zone A) — complex. — [review · was:deferred] assume nothing — re-decide. — [human-review 2026-08-04 not_applicable] DUPLICATE of williston-lake-in-zone-a-includes-waters-500--3be97e (same regulation, parser emitted multiple locator rows). → see williston-lake-in-zone-a-includes-waters-500--3be97e; dedup collapses.",
-      "entry_id": "10ea4472"
+      "entry_id": "dd9534c9"
     },
     {
       "id": "williston-lake-in-zone-a-includes-waters-500--3be97e",
@@ -4967,7 +4967,7 @@
       "coord": null,
       "label": "within 500 m of Causeway Road crossing (Williston Lake, Zone A)",
       "notes": "[reclassified bridge_road_km -> lake_reach: reservoir_zone] RESERVOIR zone reg (Williston Lake Zone A): bait ban ±500 m of the Causeway Road within the reservoir — lake/reservoir zone, not a stream bridge. — [lake-class: reservoir] reservoir zone (Williston Zone A) — complex. — [review · was:deferred] assume nothing — re-decide. — [human-review 2026-08-04 lake-internal defer | docs/15 method=buffer] within 500 m of Causeway Road crossing (Williston Lake, Zone A)",
-      "entry_id": "10ea4472"
+      "entry_id": "dd9534c9"
     },
     {
       "id": "young-creek-upstream-of-hwy-20-f08b82",
@@ -5074,7 +5074,7 @@
       ],
       "label": "Goat Creek confluence",
       "notes": "Confluence = mouth of Goat Creek (blk 360869566); parent = Atnarko River. Author as confluence anchor tributary_wsc=910-275583-999439-337822-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000. OSM: https://www.openstreetmap.org/?mlat=52.34176&mlon=-125.77161#map=15/52.34176/-125.77161",
-      "entry_id": "c34e5c7b"
+      "entry_id": "72172723"
     },
     {
       "id": "atnarko-bella-coola-rivers-includes-tributari-f69d72-b",
@@ -5101,7 +5101,7 @@
       ],
       "label": "Talchako confluence",
       "notes": "Confluence = mouth of Talchako River (blk 360887426); parent = Bella Coola River, Atnarko River. Author as confluence anchor tributary_wsc=910-275583-999074-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000. OSM: https://www.openstreetmap.org/?mlat=52.37676&mlon=-126.09508#map=15/52.37676/-126.09508",
-      "entry_id": "c34e5c7b"
+      "entry_id": "72172723"
     },
     {
       "id": "atnarko-bella-coola-rivers-includes-tributari-a8b6c2",
@@ -5128,7 +5128,7 @@
       ],
       "label": "Young Creek confluence",
       "notes": "Confluence = mouth of Young Creek (blk 360862631). Auto-resolved from FWA; parent stream at the mouth = Atnarko River. OSM: https://www.openstreetmap.org/?mlat=52.40871&mlon=-125.87929#map=15/52.40871/-125.87929",
-      "entry_id": "c34e5c7b"
+      "entry_id": "72172723"
     },
     {
       "id": "attichika-creek-880292-a",
@@ -5247,7 +5247,7 @@
       "coord": null,
       "label": "",
       "notes": "tributary-SET reg (all tributaries of the named lake/river): a whole-WSC-subtree membership, NOT a curated point split. Handle via tributary inheritance / wsc_descendants, not a confluence point. — [review · was:not_applicable] assume nothing — re-decide. — [human-review 2026-08-04 not_applicable] tributaries-SET row; mainstem split is separate (brunette-river-3c4590, todo).",
-      "entry_id": "05967680"
+      "entry_id": "e7274b4e"
     },
     {
       "id": "bulkley-river-e30268",
@@ -5573,7 +5573,7 @@
       "coord": null,
       "label": "",
       "notes": "tributary-SET reg (all tributaries of the named lake/river): a whole-WSC-subtree membership, NOT a curated point split. Handle via tributary inheritance / wsc_descendants, not a confluence point. — [review · was:not_applicable] assume nothing — re-decide. — [human-review 2026-08-04 not_a_split] this is tributaries of.",
-      "entry_id": "dbfb27a9"
+      "entry_id": "0227c6c7"
     },
     {
       "id": "chilko-river-210be6",
@@ -5688,7 +5688,7 @@
       "coord": null,
       "label": "",
       "notes": "tributary-SET reg (all tributaries of the named lake/river): a whole-WSC-subtree membership, NOT a curated point split. Handle via tributary inheritance / wsc_descendants, not a confluence point. — [review · was:not_applicable] assume nothing — re-decide. — [human-review 2026-08-04 not_a_split] confirmed not a split",
-      "entry_id": "4218c4ff"
+      "entry_id": "7b2ba48e"
     },
     {
       "id": "connor-lake-s-tributaries-e24408",
@@ -6348,7 +6348,7 @@
       "coord": null,
       "label": "",
       "notes": "tributary-SET reg (all tributaries of the named lake/river): a whole-WSC-subtree membership, NOT a curated point split. Handle via tributary inheritance / wsc_descendants, not a confluence point. — [review · was:not_applicable] assume nothing — re-decide. — [human-review 2026-08-04 not_applicable] tributaries-SET row; Burrell Creek mainstem split is separate (granby-river-967165/-328008, curated). No point split here.",
-      "entry_id": "aa44120a"
+      "entry_id": "286427f8"
     },
     {
       "id": "halfway-river-f25bbc-a",
@@ -6574,7 +6574,7 @@
       "coord": null,
       "label": "",
       "notes": "[deferred] 1_nonconfluence_boundary — [review · was:deferred] assume nothing — re-decide. — [human-review 2026-08-04 not_applicable] locator_text is the 'currently under review' NOTE, not a boundary; the reg's two real splits are in -664c72 (west-half signs) + -b3b21f (tributaries + Hwy 37 bridge). NB whole Kitimat reg flagged 'under review' at source.",
-      "entry_id": "b32d3f98"
+      "entry_id": "c0718831"
     },
     {
       "id": "kitsumkalum-kalum-river-b6b706-a",
@@ -6736,7 +6736,7 @@
       "coord": null,
       "label": "",
       "notes": "tributary-SET reg (all tributaries of the named lake/river): a whole-WSC-subtree membership, NOT a curated point split. Handle via tributary inheritance / wsc_descendants, not a confluence point. — [review · was:not_applicable] assume nothing — re-decide. — [human-review 2026-08-04 not_applicable] tributaries-SET row carrying the mainstem reg text; the real 'Mica Dam -> signs below Bigmouth Ck' reach split lives in lake-revelstoke-62de4f (todo).",
-      "entry_id": "d554301a"
+      "entry_id": "010a278a"
     },
     {
       "id": "lardeau-river-e666ed-a",
@@ -7221,7 +7221,7 @@
       "coord": null,
       "label": "",
       "notes": "tributary-SET reg (all tributaries of the named lake/river): a whole-WSC-subtree membership, NOT a curated point split. Handle via tributary inheritance / wsc_descendants, not a confluence point. — [review · was:not_applicable] assume nothing — re-decide. — [human-review 2026-08-04 not_a_split] has exceptions tho",
-      "entry_id": "2f9be67b"
+      "entry_id": "d7d845f7"
     },
     {
       "id": "pend-d-oreille-river-s-tributaries-except-sal-da7c79",
@@ -7240,7 +7240,7 @@
       "coord": null,
       "label": "",
       "notes": "tributary-SET reg (all tributaries of the named lake/river): a whole-WSC-subtree membership, NOT a curated point split. Handle via tributary inheritance / wsc_descendants, not a confluence point. — [review · was:not_applicable] assume nothing — re-decide. — [human-review 2026-08-04 not_a_split] confirmed not a split",
-      "entry_id": "2f9be67b"
+      "entry_id": "c55051c8"
     },
     {
       "id": "premier-lake-s-tributaries-99ac9d",
@@ -7259,7 +7259,7 @@
       "coord": null,
       "label": "",
       "notes": "tributary-SET reg (all tributaries of the named lake/river): a whole-WSC-subtree membership, NOT a curated point split. Handle via tributary inheritance / wsc_descendants, not a confluence point. — [review · was:not_applicable] assume nothing — re-decide. — [human-review 2026-08-04 not_applicable] it's a LAKE reg (No Fishing south of signs on the lake shore / south half only), mis-attached to the trib-set name; the lake-internal line split is premier-lake-895b0d.",
-      "entry_id": "831c1bef"
+      "entry_id": "1ec727fd"
     },
     {
       "id": "puntledge-river-3d202d-a",
@@ -7466,7 +7466,7 @@
       "coord": null,
       "label": "",
       "notes": "tributary-SET reg (all tributaries of the named lake/river): a whole-WSC-subtree membership, NOT a curated point split. Handle via tributary inheritance / wsc_descendants, not a confluence point. — [review · was:not_applicable] assume nothing — re-decide. — [human-review 2026-08-04 not_applicable] tributaries-SET row; Sheep Ck→S.Salmo mainstem split is separate (salmo-river-2f831e-a/-b, curated).",
-      "entry_id": "7fd11c8f"
+      "entry_id": "f2779aed"
     },
     {
       "id": "salmon-river-1c1fc3",
@@ -7995,7 +7995,7 @@
       "coord": null,
       "label": "Kamloops Lake outlet",
       "notes": "non-confluence: lake outlet boundary — [review · was:deferred] assume nothing — re-decide. — [human-review 2026-08-04 not_applicable] reach endpoint A = signs at Kamloops Lake outlet (≈ auto lake edge; signs sit at the outlet); point endpoint B (Thompson/Fraser confluence) curated in ...bc221e-b. → see -b.",
-      "entry_id": "b4f3f657"
+      "entry_id": "bea6153a"
     },
     {
       "id": "thompson-river-downstream-of-signs-at-kamloop-bc221e-b",
@@ -8022,7 +8022,7 @@
       ],
       "label": "Thompson/Fraser confluence",
       "notes": "Confluence = mouth of Thompson River (blk 356364690); parent = Fraser River. Author as confluence anchor tributary_wsc=100-190442-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000. OSM: https://www.openstreetmap.org/?mlat=50.23551&mlon=-121.58488#map=15/50.23551/-121.58488 — Shares the Thompson/Fraser confluence split with fraser-river-65211d et al. (one split).",
-      "entry_id": "b4f3f657"
+      "entry_id": "bea6153a"
     },
     {
       "id": "trout-lake-s-tributaries-d2d6c5",
@@ -8041,7 +8041,7 @@
       "coord": null,
       "label": "",
       "notes": "tributary-SET reg (all tributaries of the named lake/river): a whole-WSC-subtree membership, NOT a curated point split. Handle via tributary inheritance / wsc_descendants, not a confluence point. — [review · was:not_applicable] assume nothing — re-decide. — [human-review 2026-08-04 not_applicable] trib-set row; the lake-internal LINE split (NW of a line between signs SE of Trout Lake) is trout-lake-154027 (todo).",
-      "entry_id": "7c65cdcb"
+      "entry_id": "0c91a897"
     },
     {
       "id": "tsitika-river-0cc8b7",
@@ -8282,7 +8282,7 @@
       "coord": null,
       "label": "",
       "notes": "[reclassified bridge_road_km -> lake_reach: reservoir_zone] RESERVOIR zone reg (Williston Lake Zone A): bait ban ±500 m of the Causeway Road within the reservoir — lake/reservoir zone, not a stream bridge. — [review · was:not_applicable] assume nothing — re-decide. — [human-review 2026-08-04 defer] confirmed defer",
-      "entry_id": "10ea4472"
+      "entry_id": "dd9534c9"
     },
     {
       "id": "wilson-creek-3a55c3",
@@ -8395,7 +8395,7 @@
       "coord": null,
       "label": "",
       "notes": "[lake-class: whole_lake] whole (unnamed) lake — matched by description, no cut. — [review · was:not_applicable] assume nothing — re-decide. — [human-review 2026-08-04 not_a_split] confirmed not a split",
-      "entry_id": "0e12567e"
+      "entry_id": "9bdf97d6"
     },
     {
       "id": "seeley-creek-outlet-of-seeley-lake-b14442",
@@ -8515,7 +8515,7 @@
       "coord": null,
       "label": "",
       "notes": "[lake-class: lake_split] Tenas Lake edge (up) + boundary signs (down) — lake anchor + point. — [lake-bound-auto] MIXED: Tenas Lake edge is auto; the downstream boundary-signs point needs authoring. — [manual] boundary signs near Atnarko Park campsite (no distance given) — locate the campsite by map.",
-      "entry_id": "c34e5c7b"
+      "entry_id": "72172723"
     },
     {
       "id": "big-bar-creek-ce0182",
@@ -8804,7 +8804,7 @@
       "coord": null,
       "label": "",
       "notes": "[lake-class: lake_split] Harrison Lake edge (up) + Fraser confluence (down) — lake anchor + confluence. — [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 — NO authored split needed. — [review · was:auto] assume nothing — re-decide. — [human-review 2026-08-04 lake-verify] VERIFIED auto_lake_edge: Harrison Lake bound handled for free (docs/04); Fraser bound is the natural mouth. n/a.",
-      "entry_id": "8a62cf40"
+      "entry_id": "9c44131f"
     },
     {
       "id": "idlewild-lake-old-cranbrook-reservoir-85e69f",
@@ -9240,7 +9240,7 @@
       "coord": null,
       "label": "",
       "notes": "[lake-class: lake_split] outlet of Seton Lake. — [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 — NO authored split needed. — [review · was:auto] assume nothing — re-decide. — [human-review 2026-08-04 lake-verify] VERIFIED auto_lake_edge: 'downstream of Seton Lake' = lake-outlet edge, handled for free. n/a. (Shared boundary with -8eb4d1.)",
-      "entry_id": "a41fc0a3"
+      "entry_id": "5a3609ce"
     },
     {
       "id": "seton-river-includes-bc-hydro-power-canal-ups-8eb4d1",
@@ -9259,7 +9259,7 @@
       "coord": null,
       "label": "",
       "notes": "[lake-class: lake_split] outlet of Seton Lake. — [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 — NO authored split needed. — [review · was:auto] assume nothing — re-decide. — [human-review 2026-08-04 lake-verify] VERIFIED auto_lake_edge: 'Downstream of Seton Lake' = lake-outlet edge, handled for free. n/a. Duplicate/shared split with -5f4cbe.",
-      "entry_id": "a41fc0a3"
+      "entry_id": "5a3609ce"
     },
     {
       "id": "seymour-river-db4eb4",
@@ -9297,7 +9297,7 @@
       "coord": null,
       "label": "netted-off portion, south end of Shannon Lake",
       "notes": "[lake-class: lake_internal] netted-off lake portion (docs/15 lake-internal) — unsupported. — [review · was:deferred] assume nothing — re-decide. — [human-review 2026-08-04 lake-internal defer | docs/15 method=polygon] netted-off portion, south end of Shannon Lake",
-      "entry_id": "97b159b6"
+      "entry_id": "1c5ab31c"
     },
     {
       "id": "shumway-lake-02ae86",
@@ -9335,7 +9335,7 @@
       "coord": null,
       "label": "",
       "notes": "[lake-class: multi_lake] multi-basin (Shuswap + Little Shuswap + arms, see maps) — needs map-driven splits. — [review · was:deferred] assume nothing — re-decide. — [human-review 2026-08-04 not_applicable] scope-descriptor row (includes Little Shuswap + the S.Thompson reach + named arms); the real closures are sibling Shuswap Lake rows.",
-      "entry_id": "3241a200"
+      "entry_id": "268902d7"
     },
     {
       "id": "shuswap-river-521556",
@@ -9394,7 +9394,7 @@
       "coord": null,
       "label": "",
       "notes": "[lake-class: mis_bucket] NOT a lake cut: boundary signs at Kamloops Lake outlet on the Thompson — a point.",
-      "entry_id": "b4f3f657"
+      "entry_id": "bea6153a"
     },
     {
       "id": "thompson-river-upstream-of-kamloops-lake-e0c70b",
@@ -9432,7 +9432,7 @@
       "coord": null,
       "label": "",
       "notes": "[lake-class: multi_lake] set of unnamed lakes N/S of Bluey Lake — area membership, no cut. — [review · was:not_applicable] assume nothing — re-decide. — [human-review 2026-08-04 not_a_split] confirmed not a split",
-      "entry_id": "c020e4e7"
+      "entry_id": "0f6d271e"
     },
     {
       "id": "whatshan-river-bcc368",
@@ -10221,7 +10221,7 @@
       "coord": null,
       "label": "",
       "notes": "",
-      "entry_id": "29dbc5c2"
+      "entry_id": "2f3fea39"
     },
     {
       "id": "chilliwack-vedder-rivers-does-not-include-sum-805915",
@@ -10240,7 +10240,7 @@
       "coord": null,
       "label": "",
       "notes": "",
-      "entry_id": "29dbc5c2"
+      "entry_id": "2f3fea39"
     },
     {
       "id": "christina-lake-ecd122",
@@ -10533,7 +10533,7 @@
       "coord": null,
       "label": "",
       "notes": "",
-      "entry_id": "3241a200"
+      "entry_id": "268902d7"
     },
     {
       "id": "shuswap-lake-see-maps-on-page-28-includes-lit-260979",
@@ -10552,7 +10552,7 @@
       "coord": null,
       "label": "",
       "notes": "",
-      "entry_id": "3241a200"
+      "entry_id": "268902d7"
     },
     {
       "id": "shuswap-lake-see-maps-on-page-28-includes-lit-be76ba",
@@ -10571,7 +10571,7 @@
       "coord": null,
       "label": "",
       "notes": "",
-      "entry_id": "3241a200"
+      "entry_id": "268902d7"
     },
     {
       "id": "takysie-lake-6b2e09",
@@ -10687,7 +10687,7 @@
       "coord": null,
       "label": "",
       "notes": "",
-      "entry_id": "c34e5c7b"
+      "entry_id": "72172723"
     },
     {
       "id": "atnarko-bella-coola-rivers-includes-tributari-01c9b0",
@@ -10708,7 +10708,7 @@
       "coord": null,
       "label": "",
       "notes": "",
-      "entry_id": "c34e5c7b"
+      "entry_id": "72172723"
     },
     {
       "id": "baker-creek-b9b499",
@@ -11126,7 +11126,7 @@
       "coord": null,
       "label": "",
       "notes": "",
-      "entry_id": "710521d1"
+      "entry_id": "0da7eb44"
     },
     {
       "id": "skagit-river-boundary-between-skagit-river-an-4340a7",
@@ -11145,7 +11145,7 @@
       "coord": null,
       "label": "",
       "notes": "",
-      "entry_id": "8c878c95"
+      "entry_id": "e29aedc0"
     },
     {
       "id": "thompson-river-downstream-of-signs-at-kamloop-1c9ce3",
@@ -11166,7 +11166,7 @@
       "coord": null,
       "label": "",
       "notes": "",
-      "entry_id": "b4f3f657"
+      "entry_id": "bea6153a"
     },
     {
       "id": "weston-creek-68b838",
@@ -11242,7 +11242,7 @@
       "coord": null,
       "label": "",
       "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'. — [human-review 2026-08-04 not_applicable] 'except Eve River' exclusion (Eve R tributary excluded); the real reach 'upstream of Eve River -> Hwy 19 bridge' is adam-river-except-eve-river-939f98 (todo). The adams-river/adams-lake rows are the different Adams River (Shuswap) — no conflict.",
-      "entry_id": "ce41432a"
+      "entry_id": "167048d4"
     },
     {
       "id": "campbell-river-38d85c",
@@ -11280,7 +11280,7 @@
       "coord": null,
       "label": "",
       "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'. — [human-review 2026-08-04 not_a_split] just an exception to sumas river... other splits in other regs in it tho.",
-      "entry_id": "29dbc5c2"
+      "entry_id": "2f3fea39"
     },
     {
       "id": "columbia-lake-s-tributaries-9e4087",
@@ -11395,7 +11395,7 @@
       "coord": null,
       "label": "",
       "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'. — [human-review 2026-08-04 na-with-siblings] confirmed — EXCEPT clause on kokanee quota dates, not a split. USER_NOTE flags no other split ('exception is not a split' only); full_regulation confirms no boundary text present.",
-      "entry_id": "bc592acd"
+      "entry_id": "c2868a28"
     },
     {
       "id": "mcleod-river-c29823",
@@ -11585,7 +11585,7 @@
       "coord": null,
       "label": "swimming areas (buoyed/signed), Alouette Lake",
       "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'. — [human-review 2026-08-04 lake-internal defer | docs/15 method=polygon] swimming areas (buoyed/signed), Alouette Lake",
-      "entry_id": "df2e9fcb"
+      "entry_id": "11e89b7b"
     },
     {
       "id": "alouette-river-b5a707",
@@ -11625,7 +11625,7 @@
       "coord": null,
       "label": "",
       "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'. — [human-review 2026-08-04 na-with-siblings] confirmed — 'on mainstems' whole-water descriptor, not a split. All boundary clauses in full_regulation (Tweedsmuir Park boundaries, Tenas Lake to campsite signs, Goat Creek–Talchako confluence, downstream of Young Creek) already have DEDICATED rows, several already curated/manual. Matches runbook's prior SOUND audit finding for this waterbody.",
-      "entry_id": "c34e5c7b"
+      "entry_id": "72172723"
     },
     {
       "id": "beaver-lake-6e12af",
@@ -11701,7 +11701,7 @@
       "coord": null,
       "label": "",
       "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'. — [human-review 2026-08-04 na-with-siblings] confirmed — 'see map on page 24' pointer, not a split. All boundary clauses in full_regulation (Slesse Creek confluence signs, Tamihi Rapids Bridge, Vedder Crossing Bridge) already have DEDICATED rows.",
-      "entry_id": "29dbc5c2"
+      "entry_id": "2f3fea39"
     },
     {
       "id": "chuckwalla-river-a0316a",
@@ -11910,7 +11910,7 @@
       "coord": null,
       "label": "Kootenay Lake Upper West Arm (named arm)",
       "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'. — [human-review 2026-08-04 lake-internal defer | docs/15 method=polygon] Kootenay Lake Upper West Arm (named arm)",
-      "entry_id": "bc592acd"
+      "entry_id": "c2868a28"
     },
     {
       "id": "liard-river-watershed-see-map-on-page-63-5f8021",
@@ -12043,7 +12043,7 @@
       "coord": null,
       "label": "",
       "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'. — [human-review 2026-08-04 defer] note is not a split. but there are other splits in the regs...",
-      "entry_id": "3241a200"
+      "entry_id": "268902d7"
     },
     {
       "id": "west-road-blackwater-river-fbb33d",
@@ -12528,7 +12528,7 @@
       "coord": null,
       "label": "",
       "notes": "",
-      "entry_id": "8a62cf40"
+      "entry_id": "9c44131f"
     },
     {
       "id": "hatzic-lake-and-slough-c04f32",
@@ -12819,7 +12819,7 @@
       "coord": null,
       "label": "",
       "notes": "",
-      "entry_id": "487a60ab"
+      "entry_id": "f5adc0ad"
     },
     {
       "id": "nicomekl-river-e12680",
@@ -13009,7 +13009,7 @@
       "coord": null,
       "label": "",
       "notes": "",
-      "entry_id": "3241a200"
+      "entry_id": "268902d7"
     },
     {
       "id": "shuswap-lake-see-maps-on-page-28-includes-lit-2f64a9",
@@ -13028,7 +13028,7 @@
       "coord": null,
       "label": "",
       "notes": "",
-      "entry_id": "3241a200"
+      "entry_id": "268902d7"
     },
     {
       "id": "skeena-river-mainstem-only-c2e0df",
@@ -13066,7 +13066,7 @@
       "coord": null,
       "label": "",
       "notes": "",
-      "entry_id": "ecef9bf6"
+      "entry_id": "411336a9"
     },
     {
       "id": "thorn-creek-b2b2c7",
