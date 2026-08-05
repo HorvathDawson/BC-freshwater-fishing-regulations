@@ -111,3 +111,18 @@ link via a `name_key` whole-water match; `arrow-park` + `lost-lake` were marked 
 Every prior `curated`/`manual`/`not_applicable`/`deferred` decision is untouched — the tool only
 reads them and backfills. `entry_id` is additive. See `docs/17-manual-review-runbook.md` for per-row
 writing rules and `docs/15` for lake-internal (deferred) splits.
+
+## Cutover cleanup checklist (when `14-locators-to-curate.json` is retired)
+
+`waterbody-splits.json` currently derives FROM `14`; to retire `14` we must first invert the flow
+(make the grouped file source-of-truth by giving it a writer, or freeze it). Audit as of 2026-08-05:
+
+- **Keep** — `waterbody_splits.py` (becomes reader/writer); independent oneoffs
+  `resolve_lake_offsets.py`, `review_comments.py`, `complex_regs_report.py`,
+  `name_variants_compile.py` (0 refs to `14`).
+- **Delete (dead one-shots, already applied, effects baked into rows + git history)** —
+  `migrate_curation_schema.py`, `classify_lakes.py`, `mark_auto_lakes.py`.
+- **Rewire → grouped file, or retire** — `curation_status.py` (the cockpit: progress / annotate /
+  label / apply) and `build_review_html.py` (offline labeller). Both read/write `14` today.
+- **Docs to re-point / fold** — `14-locators-to-curate.md` folds into this file; update mentions in
+  `00-README`, `15`, `16`, `17`, `oneoff/README.md`.
