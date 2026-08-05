@@ -2306,7 +2306,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal H] Mica Dam (Kinbasket Lake outlet) on Lake Revelstoke reach (Mica Dam -> Bigmouth Creek narrows). Candidate coord [-118.56656, 52.07772]. OSM: https://www.openstreetmap.org/?mlat=52.07772&mlon=-118.56656#map=15/52.07772/-118.56656. Verify: Confirm Mica Dam at the Kinbasket Lake outlet; downstream end = signs at narrows just below the Bigmouth Creek mouth.. Mica Dam impounds Kinbasket Lake; below it lies Lake Revelstoke. Coord = FWA Columbia exit from the Kinbasket Lake polygon (wbk 328961767), matching the known Mica Dam. Reach runs to fishing signs at the narrows below Bigmouth Creek."
+      "notes": "[auto-proposal H] Mica Dam (Kinbasket Lake outlet) on Lake Revelstoke reach (Mica Dam -> Bigmouth Creek narrows). Candidate coord [-118.56656, 52.07772]. OSM: https://www.openstreetmap.org/?mlat=52.07772&mlon=-118.56656#map=15/52.07772/-118.56656. Verify: Confirm Mica Dam at the Kinbasket Lake outlet; downstream end = signs at narrows just below the Bigmouth Creek mouth.. Mica Dam impounds Kinbasket Lake; below it lies Lake Revelstoke. Coord = FWA Columbia exit from the Kinbasket Lake polygon (wbk 328961767), matching the known Mica Dam. Reach runs to fishing signs at the narrows below Bigmouth Creek. \u2014 [review: reservoir-internal] Mica Dam -> signs below Bigmouth Ck sits WITHIN Lake Revelstoke reservoir; a lake-internal/reservoir reach (docs/15), may need re-modeling not a plain point split."
     },
     {
       "id": "little-qualicum-river-4dbb9b",
@@ -2666,7 +2666,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal L] Hwy 19 bridge over Adam River on Adam River. No FWA coord (public road/rail bridge \u2014 map/OSM-confirmable). Verify: Confirm the Hwy 19 bridge over Adam River (Sayward area) on a map; single obvious crossing -> review.. Reach is 'upstream of Eve River (confluence) to the Hwy 19 bridge'. Adam River drains to Johnstone Strait near Sayward; Hwy 19 crosses it in the lower river. Public-highway bridge, not in FWA/FSR data -> map/OSM-confirmable. The Eve River endpoint is a separate confluence locator."
+      "notes": "[auto-proposal L] Hwy 19 bridge over Adam River on Adam River. No FWA coord (public road/rail bridge \u2014 map/OSM-confirmable). Verify: Confirm the Hwy 19 bridge over Adam River (Sayward area) on a map; single obvious crossing -> review.. Reach is 'upstream of Eve River (confluence) to the Hwy 19 bridge'. Adam River drains to Johnstone Strait near Sayward; Hwy 19 crosses it in the lower river. Public-highway bridge, not in FWA/FSR data -> map/OSM-confirmable. The Eve River endpoint is a separate confluence locator. \u2014 [review: two-boundary] 'upstream of Eve River, to Hwy 19 bridge' = TWO boundaries (Eve River confluence + Hwy 19 bridge); may need -a/-b rows per the two-boundary writing rule."
     },
     {
       "id": "alexander-creek-downstream-of-the-easternmost-323602",
@@ -5604,11 +5604,11 @@
       "full_regulation": "No Fishing Sept 1-Oct 31\nTrout/char daily quota = 1 (none under 30 cm) and bait ban, June 15-Aug 31\nBull trout catch and release\nEXCEPTIONS - SEE SEPARATE LISTINGS FOR: Abruzzi Cr., Alexander Cr.[Includes Tributaries] upstream of the easternmost Hwy 3 bridge, Bighorn\n(Ram) Cr., Cadorna Cr., Fording R. downstream of Josephine Falls, Forsyth Cr. from Connor Lk. downstream 3 km, Line Cr.[Includes Tributaries], Grave\nCreek[Includes Tributaries], Michel Cr.[Includes Tributaries], Morrissey Cr.[Includes Tributaries], Wigwam River\nALL tributaries (EXCEPT Coal Creek downstream of old MF&M Railway Bridge 7 km upstream of Elk River) are Class II waters when open",
       "anchor_kind": "confluence",
       "resolver_hint": "tributary",
-      "status": "likely_na",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "tributary-SET reg (all tributaries of the named lake/river): a whole-WSC-subtree membership, NOT a curated point split. Handle via tributary inheritance / wsc_descendants, not a confluence point. \u2014 [review \u00b7 was:not_applicable] assume nothing \u2014 re-decide."
+      "notes": "tributary-SET reg (all tributaries of the named lake/river): a whole-WSC-subtree membership, NOT a curated point split. Handle via tributary inheritance / wsc_descendants, not a confluence point. \u2014 [review \u00b7 was:not_applicable] assume nothing \u2014 re-decide. \u2014 [human-review 2026-08-04 not_applicable] tributaries-SET row; audited 2026-08-04 \u2014 every boundary-exception has its split row (Alexander/Fording/Michel/Wigwam/Forsyth/Coal); the whole-creek exceptions (Abruzzi/Bighorn/Cadorna/Line/Grave/Morrissey) need no split."
     },
     {
       "id": "flathead-river-s-tributaries-a034c1",
@@ -6144,11 +6144,11 @@
       "full_regulation": "No Fishing Apr 15-July 15 (includes channel downstream of Ladore Dam)",
       "anchor_kind": "confluence",
       "resolver_hint": "tributary",
-      "status": "likely_na",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "tributary-SET reg (all tributaries of the named lake/river): a whole-WSC-subtree membership, NOT a curated point split. Handle via tributary inheritance / wsc_descendants, not a confluence point. \u2014 [review \u00b7 was:not_applicable] assume nothing \u2014 re-decide."
+      "notes": "tributary-SET reg (all tributaries of the named lake/river): a whole-WSC-subtree membership, NOT a curated point split. Handle via tributary inheritance / wsc_descendants, not a confluence point. \u2014 [review \u00b7 was:not_applicable] assume nothing \u2014 re-decide. \u2014 [human-review 2026-08-04 not_applicable] tributaries-SET half of the same reg; the one split (channel downstream of Ladore Dam) is curated in john-hart-lake-s-tributaries-36c501."
     },
     {
       "id": "jordan-river-bc6d34",
@@ -6246,11 +6246,11 @@
       "full_regulation": "No Fishing on the west half of river between fishing boundary signs near Kitimat Hatchery outfall\nNo Fishing in tributaries and upstream of Hwy 37 bridge, Mar 16-May 31\nBait ban\nHatchery rainbow trout (adipose clipped, <50 cm) daily quota = 5, no minimum size, all year\nHatchery steelhead (adipose clipped, >50 cm) daily quota = 2; province-wide hatchery steelhead annual quota = 10. When you have\ncaught and retained your daily steelhead quota from the Kitimat, you must stop fishing the Kitimat for the remainder of that day\nNo powered boats",
       "anchor_kind": "confluence",
       "resolver_hint": "tributary",
-      "status": "likely_na",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[deferred] 1_nonconfluence_boundary \u2014 [review \u00b7 was:deferred] assume nothing \u2014 re-decide."
+      "notes": "[deferred] 1_nonconfluence_boundary \u2014 [review \u00b7 was:deferred] assume nothing \u2014 re-decide. \u2014 [human-review 2026-08-04 not_applicable] locator_text is the 'currently under review' NOTE, not a boundary; the reg's two real splits are in -664c72 (west-half signs) + -b3b21f (tributaries + Hwy 37 bridge). NB whole Kitimat reg flagged 'under review' at source."
     },
     {
       "id": "kitsumkalum-kalum-river-b6b706-a",
@@ -6401,11 +6401,11 @@
       "full_regulation": "No Fishing from Mica Dam to fishing boundary signs at the narrows immediately downstream of the mouth of Bigmouth Creek",
       "anchor_kind": "confluence",
       "resolver_hint": "tributary",
-      "status": "likely_na",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "tributary-SET reg (all tributaries of the named lake/river): a whole-WSC-subtree membership, NOT a curated point split. Handle via tributary inheritance / wsc_descendants, not a confluence point. \u2014 [review \u00b7 was:not_applicable] assume nothing \u2014 re-decide."
+      "notes": "tributary-SET reg (all tributaries of the named lake/river): a whole-WSC-subtree membership, NOT a curated point split. Handle via tributary inheritance / wsc_descendants, not a confluence point. \u2014 [review \u00b7 was:not_applicable] assume nothing \u2014 re-decide. \u2014 [human-review 2026-08-04 not_applicable] tributaries-SET row carrying the mainstem reg text; the real 'Mica Dam -> signs below Bigmouth Ck' reach split lives in lake-revelstoke-62de4f (todo)."
     },
     {
       "id": "lardeau-river-e666ed-a",
@@ -6901,11 +6901,11 @@
       "full_regulation": "No Fishing south of fishing boundary signs on the lake shore, May 15-June 20\nRainbow trout daily quota = 2, brook trout daily quota = 20\nNo towing, speed restriction (15 km/h), south half only",
       "anchor_kind": "confluence",
       "resolver_hint": "tributary",
-      "status": "likely_na",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "tributary-SET reg (all tributaries of the named lake/river): a whole-WSC-subtree membership, NOT a curated point split. Handle via tributary inheritance / wsc_descendants, not a confluence point. \u2014 [review \u00b7 was:not_applicable] assume nothing \u2014 re-decide."
+      "notes": "tributary-SET reg (all tributaries of the named lake/river): a whole-WSC-subtree membership, NOT a curated point split. Handle via tributary inheritance / wsc_descendants, not a confluence point. \u2014 [review \u00b7 was:not_applicable] assume nothing \u2014 re-decide. \u2014 [human-review 2026-08-04 not_applicable] it's a LAKE reg (No Fishing south of signs on the lake shore / south half only), mis-attached to the trib-set name; the lake-internal line split is premier-lake-895b0d."
     },
     {
       "id": "puntledge-river-3d202d-a",
@@ -7649,11 +7649,11 @@
       "full_regulation": "No Fishing northwest of a line between fishing boundary signs on opposite shores approximately 1.5 km southeast the city of Trout Lake,\nFeb 1-May 31",
       "anchor_kind": "confluence",
       "resolver_hint": "tributary",
-      "status": "likely_na",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "tributary-SET reg (all tributaries of the named lake/river): a whole-WSC-subtree membership, NOT a curated point split. Handle via tributary inheritance / wsc_descendants, not a confluence point. \u2014 [review \u00b7 was:not_applicable] assume nothing \u2014 re-decide."
+      "notes": "tributary-SET reg (all tributaries of the named lake/river): a whole-WSC-subtree membership, NOT a curated point split. Handle via tributary inheritance / wsc_descendants, not a confluence point. \u2014 [review \u00b7 was:not_applicable] assume nothing \u2014 re-decide. \u2014 [human-review 2026-08-04 not_applicable] trib-set row; the lake-internal LINE split (NW of a line between signs SE of Trout Lake) is trout-lake-154027 (todo)."
     },
     {
       "id": "tsitika-river-0cc8b7",
@@ -7715,11 +7715,11 @@
       "full_regulation": "\"The drawdown area\", that water known as either Upper Arrow Lake or Columbia River (depending on the reservoir's level), located\nbetween Hwy 1 bridge in Revelstoke and the power line crossing at Akolkolex Narrows (approximately 1.5 km downstream of the\nAkolkolex River confluence): trout/char daily quota = 2 (no bull trout under 60 cm and only 1 bull trout over 60 cm); single barbless hook\nEXEMPT from the regional kokanee \"none from streams\" daily quota (the combined daily quota for kokanee in Lower Arrow Lake, Upper\nArrow Lake and the drawdown area is the regional daily quota on page 34)\nEXEMPT from the regional Nov 1-Mar 31 trout/char catch and release from streams\nEXEMPT from the regional Apr 1-June 14 stream closure",
       "anchor_kind": "confluence",
       "resolver_hint": "tributary",
-      "status": "likely_na",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "tributary-SET reg (all tributaries of the named lake/river): a whole-WSC-subtree membership, NOT a curated point split. Handle via tributary inheritance / wsc_descendants, not a confluence point. \u2014 [review \u00b7 was:not_applicable] assume nothing \u2014 re-decide."
+      "notes": "tributary-SET reg (all tributaries of the named lake/river): a whole-WSC-subtree membership, NOT a curated point split. Handle via tributary inheritance / wsc_descendants, not a confluence point. \u2014 [review \u00b7 was:not_applicable] assume nothing \u2014 re-decide. \u2014 [human-review 2026-08-04 not_applicable] trib-set for Upper Arrow Lake; the Upper-vs-Lower Arrow Lake split is already handled (separate waterbodies), and the drawdown-area reach is upper-arrow-lake-drawdown-area-f15974 (deferred). No split on this trib-set row."
     },
     {
       "id": "wahleach-jones-lake-s-tributaries-44df7a",
@@ -10687,11 +10687,11 @@
       "full_regulation": "Artificial fly only upstream of Eve River, to Hwy 19 bridge",
       "anchor_kind": "not_a_split",
       "resolver_hint": "except_negative",
-      "status": "likely_na",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'."
+      "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'. \u2014 [human-review 2026-08-04 not_applicable] 'except Eve River' exclusion (Eve R tributary excluded); the real reach 'upstream of Eve River -> Hwy 19 bridge' is adam-river-except-eve-river-939f98 (todo). The adams-river/adams-lake rows are the different Adams River (Shuswap) \u2014 no conflict."
     },
     {
       "id": "campbell-river-38d85c",
