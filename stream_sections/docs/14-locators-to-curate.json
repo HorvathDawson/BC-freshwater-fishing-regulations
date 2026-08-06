@@ -738,11 +738,14 @@
       "full_regulation": "No Fishing downstream of the falls, open all year upstream of the falls",
       "anchor_kind": "point",
       "resolver_hint": "falls_obstacle",
-      "status": "todo",
+      "status": "curated",
       "target": "",
-      "coord": null,
-      "label": "",
-      "notes": "",
+      "coord": [
+        -118.64242,
+        50.99688
+      ],
+      "label": "the falls",
+      "notes": " [human-review 2026-08-05 FWA-waterfall] the falls.",
       "entry_id": "f5eeaeef"
     },
     {
@@ -757,11 +760,14 @@
       "full_regulation": "No Fishing downstream of the falls, open all year upstream of the falls",
       "anchor_kind": "point",
       "resolver_hint": "falls_obstacle",
-      "status": "todo",
+      "status": "curated",
       "target": "",
-      "coord": null,
-      "label": "",
-      "notes": "",
+      "coord": [
+        -118.64242,
+        50.99688
+      ],
+      "label": "the falls",
+      "notes": " [human-review 2026-08-05 FWA-waterfall] the falls.",
       "entry_id": "f5eeaeef"
     },
     {
@@ -954,11 +960,14 @@
       "full_regulation": "Trout/char catch and release, June 15-Mar 31 and bait ban, June 15-Oct 31\nClass II water when open, including tributaries - Elk River classified licence required for non-resident anglers",
       "anchor_kind": "point",
       "resolver_hint": "falls_obstacle",
-      "status": "todo",
+      "status": "curated",
       "target": "",
-      "coord": null,
-      "label": "",
-      "notes": "",
+      "coord": [
+        -114.87661,
+        50.02261
+      ],
+      "label": "Josephine Falls",
+      "notes": " [human-review 2026-08-05 FWA-waterfall] Josephine Falls.",
       "entry_id": "049f5da5"
     },
     {
@@ -973,11 +982,14 @@
       "full_regulation": "Trout/char catch and release, June 15-Mar 31 and bait ban, June 15-Oct 31\nClass II water when open, including tributaries - Elk River classified licence required for non-resident anglers",
       "anchor_kind": "point",
       "resolver_hint": "falls_obstacle",
-      "status": "todo",
+      "status": "curated",
       "target": "",
-      "coord": null,
-      "label": "",
-      "notes": "",
+      "coord": [
+        -114.87661,
+        50.02261
+      ],
+      "label": "Josephine Falls",
+      "notes": " [human-review 2026-08-05 FWA-waterfall] Josephine Falls.",
       "entry_id": "56b0696e"
     },
     {
@@ -1239,11 +1251,14 @@
       "full_regulation": "No Fishing downstream of the lower falls",
       "anchor_kind": "point",
       "resolver_hint": "falls_obstacle",
-      "status": "todo",
+      "status": "curated",
       "target": "",
-      "coord": null,
-      "label": "",
-      "notes": "",
+      "coord": [
+        -121.91761,
+        49.07421
+      ],
+      "label": "lower falls",
+      "notes": " [human-review 2026-08-05 FWA-waterfall] lower falls.",
       "entry_id": "63f561e1"
     },
     {
@@ -1343,11 +1358,14 @@
       "full_regulation": "No Fishing Jan 1-June 30\nDownstream of Goodwin Falls: Rainbow trout daily quota = 2 (none over 35 cm), char catch and release; bait ban\nUpstream of Goodwin Falls: Trout/char catch and release; bait ban",
       "anchor_kind": "point",
       "resolver_hint": "falls_obstacle",
-      "status": "todo",
+      "status": "curated",
       "target": "",
-      "coord": null,
-      "label": "",
-      "notes": "",
+      "coord": [
+        -120.22228,
+        51.92652
+      ],
+      "label": "Goodwin Falls",
+      "notes": " [human-review 2026-08-05 FWA-waterfall] Goodwin Falls.",
       "entry_id": "00d137b2"
     },
     {
@@ -1362,11 +1380,14 @@
       "full_regulation": "No Fishing Jan 1-June 30\nDownstream of Goodwin Falls: Rainbow trout daily quota = 2 (none over 35 cm), char catch and release; bait ban\nUpstream of Goodwin Falls: Trout/char catch and release; bait ban",
       "anchor_kind": "point",
       "resolver_hint": "falls_obstacle",
-      "status": "todo",
+      "status": "curated",
       "target": "",
-      "coord": null,
-      "label": "",
-      "notes": "",
+      "coord": [
+        -120.22228,
+        51.92652
+      ],
+      "label": "Goodwin Falls",
+      "notes": " [human-review 2026-08-05 FWA-waterfall] Goodwin Falls.",
       "entry_id": "00d137b2"
     },
     {

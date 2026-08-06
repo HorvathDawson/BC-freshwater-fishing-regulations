@@ -7,8 +7,8 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 |---|--:|
 | NO_CURATION | 1 |
 | MISSING_SPLITS | 2 |
-| INCOMPLETE | 199 |
-| COMPLETE | 110 |
+| INCOMPLETE | 194 |
+| COMPLETE | 115 |
 | NO_SPLIT | 75 |
 
 **Drift** (curated rows matching no source locator): 3
@@ -179,13 +179,6 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 - • [rule] “from Falls Creek to Mahood River” → clearwater-river-4ba0c8[todo]
 - • [rule] “from Mahood River to North Thompson River” → clearwater-river-dddc3f-a[curated], clearwater-river-dddc3f-b[curated]
 - • [rule] “downstream of Falls Creek” → clearwater-river-1335bb[todo]
-
-## MAHOOD RIVER · MU ['3-46'] · p33 · [INCOMPLETE] (00d137b2)
-- • [rule] “Downstream of Goodwin Falls” → mahood-river-400d10[todo]
-- • [rule] “Downstream of Goodwin Falls” → mahood-river-400d10[todo]
-- • [rule] “Downstream of Goodwin Falls” → mahood-river-400d10[todo]
-- • [rule] “Upstream of Goodwin Falls” → mahood-river-73d670[todo]
-- • [rule] “Upstream of Goodwin Falls” → mahood-river-73d670[todo]
 
 ## SKEENA RIVER (mainstem only) · MU ['6-10'] · p59 · [INCOMPLETE] (2fc0d1b9)
 - • [rule] “from Exchamsiks River to 1.5 km upstream of Kitsumkalum River (kno” → skeena-river-mainstem-only-b079a0-a[curated], skeena-river-mainstem-only-b079a0-b[curated]
@@ -453,10 +446,6 @@ approximately 35 m downstream” → little-qualicum-river-4dbb9b[todo]
 - • [rule] “from fishing boundary signs at log booms on Weaver Lake downstream” → weaver-lake-and-weaver-creek-47d5a0-a[not_applicable], weaver-lake-and-weaver-creek-47d5a0-b[curated], weaver-lake-and-weaver-creek-d90200[todo]
 - • [rule] “on Weaver Lake” → weaver-lake-and-weaver-creek-47d5a0-a[not_applicable], weaver-lake-and-weaver-creek-47d5a0-b[curated], weaver-lake-and-weaver-creek-d90200[todo]
 
-## CRAZY CREEK · MU ['3-35'] · p31 · [INCOMPLETE] (f5eeaeef)
-- • [rule] “downstream of the falls” → crazy-creek-8067a0[todo]
-- • [rule] “upstream of the falls” → crazy-creek-1fe512[todo]
-
 ## LEIGHTON LAKE · MU ['3-18'] · p32 · [INCOMPLETE] (61620d69)
 - • [rule] “within 100 m of the mouth of the inlet stream” → leighton-lake-158268[todo]
 - • [rule] “within 100 m of the Tunkwa Creek outlet” → leighton-lake-37110f[todo]
@@ -480,10 +469,6 @@ approximately 35 m downstream” → little-qualicum-river-4dbb9b[todo]
 ## COAL CREEK (downstream of Old MF&M Railway bridge 7 km upstream of Elk River) · MU ['4-23'] · p37 · [INCOMPLETE] (47d4ca5e)
 - • [water] “downstream of Old MF&M Railway bridge 7 km upstream of Elk River” → coal-creek-downstream-of-old-mf-m-railway-bri-347452[todo]
 - • [entry] “downstream of Old MF&M Railway bridge 7 km upstream of Elk River” → coal-creek-downstream-of-old-mf-m-railway-bri-347452[todo]
-
-## FORDING RIVER (downstream of Josephine Falls) · MU ['4-23'] · p38 · [INCOMPLETE] (049f5da5)
-- • [water] “downstream of Josephine Falls” → fording-river-downstream-of-josephine-falls-97d67a[todo]
-- • [entry] “downstream of Josephine Falls” → fording-river-downstream-of-josephine-falls-97d67a[todo]
 
 ## LODGEPOLE CREEK (upstream of falls) · MU ['4-2'] · p40 · [INCOMPLETE] (4dbdd58a)
 - • [water] “upstream of falls” → lodgepole-creek-upstream-of-falls-615359[todo]
@@ -627,9 +612,6 @@ approximately 35 m downstream” → little-qualicum-river-4dbb9b[todo]
 ## KANAKA CREEK · MU ['2-8'] · p25 · [INCOMPLETE] (5cfc51fc)
 - • [rule] “from Cliff Park Falls to 112th Avenue” → kanaka-creek-9ba9e6[todo]
 
-## LIUMCHEN CREEK · MU ['2-3'] · p26 · [INCOMPLETE] (63f561e1)
-- • [rule] “downstream of the lower falls” → liumchen-creek-62ef49[todo]
-
 ## NORTH ALOUETTE RIVER · MU ['2-8'] · p27 · [INCOMPLETE] (7ef10bf8)
 - • [rule] “upstream of 216th Street (Fifth Ave)” → alouette-river-daecfd[todo], north-alouette-river-e3810a[todo]
 
@@ -692,9 +674,6 @@ approximately 35 m downstream” → little-qualicum-river-4dbb9b[todo]
 
 ## ELK RIVER'S TRIBUTARIES (see exceptions) · MU ['4-2', '4-23'] · p38 · [INCOMPLETE] (e4b7a409)
 - • [except] “EXCEPT Coal Creek downstream of old MF&M Railway Bridge 7 km upstr” → elk-river-s-tributaries-see-exceptions-e09244[todo]
-
-## FORDING RIVER (upstream of Josephine Falls) · MU ['4-23'] · p38 · [INCOMPLETE] (56b0696e)
-- • [water] “upstream of Josephine Falls” → fording-river-upstream-of-josephine-falls-fbe818[todo]
 
 ## HALFWAY RIVER · MU ['4-31'] · p39 · [INCOMPLETE] (1a72e9f7)
 - • [rule] “downstream of falls approximately 11 km from Arrow Lake” → halfway-river-4edd1a[todo]

@@ -5982,7 +5982,7 @@
       "image": "page_026_row_011.png",
       "symbols": [],
       "reg_text": "**No Fishing** downstream of the lower falls",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 1,
       "locators": [
         {
@@ -5991,14 +5991,20 @@
           "info": {
             "restriction_type": "closure"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "liumchen-creek-62ef49",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
-              "resolver_hint": "falls_obstacle"
+              "resolver_hint": "falls_obstacle",
+              "label": "lower falls",
+              "notes": " [human-review 2026-08-05 FWA-waterfall] lower falls.",
+              "coord": [
+                -121.91761,
+                49.07421
+              ]
             }
           ]
         },
@@ -8334,7 +8340,7 @@
       "image": "page_031_row_036.png",
       "symbols": [],
       "reg_text": "**No Fishing** downstream of the falls, open all year upstream of the falls",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 2,
       "locators": [
         {
@@ -8343,14 +8349,20 @@
           "info": {
             "restriction_type": "closure"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "crazy-creek-8067a0",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
-              "resolver_hint": "falls_obstacle"
+              "resolver_hint": "falls_obstacle",
+              "label": "the falls",
+              "notes": " [human-review 2026-08-05 FWA-waterfall] the falls.",
+              "coord": [
+                -118.64242,
+                50.99688
+              ]
             }
           ]
         },
@@ -8360,14 +8372,20 @@
           "info": {
             "restriction_type": "note"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "crazy-creek-1fe512",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
-              "resolver_hint": "falls_obstacle"
+              "resolver_hint": "falls_obstacle",
+              "label": "the falls",
+              "notes": " [human-review 2026-08-05 FWA-waterfall] the falls.",
+              "coord": [
+                -118.64242,
+                50.99688
+              ]
             }
           ]
         },
@@ -9353,7 +9371,7 @@
       "image": "page_033_row_006.png",
       "symbols": [],
       "reg_text": "**No Fishing** Jan 1-June 30\nDownstream of Goodwin Falls: Rainbow trout daily quota = 2 (none over 35 cm), char catch and release; bait ban\nUpstream of Goodwin Falls: Trout/char catch and release; bait ban",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 5,
       "locators": [
         {
@@ -9362,14 +9380,20 @@
           "info": {
             "restriction_type": "harvest"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "mahood-river-400d10",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
-              "resolver_hint": "falls_obstacle"
+              "resolver_hint": "falls_obstacle",
+              "label": "Goodwin Falls",
+              "notes": " [human-review 2026-08-05 FWA-waterfall] Goodwin Falls.",
+              "coord": [
+                -120.22228,
+                51.92652
+              ]
             }
           ]
         },
@@ -9379,14 +9403,20 @@
           "info": {
             "restriction_type": "harvest"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "mahood-river-400d10",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
-              "resolver_hint": "falls_obstacle"
+              "resolver_hint": "falls_obstacle",
+              "label": "Goodwin Falls",
+              "notes": " [human-review 2026-08-05 FWA-waterfall] Goodwin Falls.",
+              "coord": [
+                -120.22228,
+                51.92652
+              ]
             }
           ]
         },
@@ -9396,14 +9426,20 @@
           "info": {
             "restriction_type": "gear_restriction"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "mahood-river-400d10",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
-              "resolver_hint": "falls_obstacle"
+              "resolver_hint": "falls_obstacle",
+              "label": "Goodwin Falls",
+              "notes": " [human-review 2026-08-05 FWA-waterfall] Goodwin Falls.",
+              "coord": [
+                -120.22228,
+                51.92652
+              ]
             }
           ]
         },
@@ -9413,14 +9449,20 @@
           "info": {
             "restriction_type": "harvest"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "mahood-river-73d670",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
-              "resolver_hint": "falls_obstacle"
+              "resolver_hint": "falls_obstacle",
+              "label": "Goodwin Falls",
+              "notes": " [human-review 2026-08-05 FWA-waterfall] Goodwin Falls.",
+              "coord": [
+                -120.22228,
+                51.92652
+              ]
             }
           ]
         },
@@ -9430,14 +9472,20 @@
           "info": {
             "restriction_type": "gear_restriction"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "mahood-river-73d670",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
-              "resolver_hint": "falls_obstacle"
+              "resolver_hint": "falls_obstacle",
+              "label": "Goodwin Falls",
+              "notes": " [human-review 2026-08-05 FWA-waterfall] Goodwin Falls.",
+              "coord": [
+                -120.22228,
+                51.92652
+              ]
             }
           ]
         },
@@ -12486,48 +12534,66 @@
         "Classified"
       ],
       "reg_text": "Trout/char catch and release, June 15-Mar 31 and bait ban, June 15-Oct 31\n**Class II water when open, including tributaries - Elk River classified licence required for non-resident anglers**",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 2,
       "locators": [
         {
           "src": "water",
           "text": "downstream of Josephine Falls",
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "fording-river-downstream-of-josephine-falls-97d67a",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "name",
-              "resolver_hint": "falls_obstacle"
+              "resolver_hint": "falls_obstacle",
+              "label": "Josephine Falls",
+              "notes": " [human-review 2026-08-05 FWA-waterfall] Josephine Falls.",
+              "coord": [
+                -114.87661,
+                50.02261
+              ]
             }
           ]
         },
         {
           "src": "entry",
           "text": "downstream of Josephine Falls",
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "fording-river-downstream-of-josephine-falls-97d67a",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "name",
-              "resolver_hint": "falls_obstacle"
+              "resolver_hint": "falls_obstacle",
+              "label": "Josephine Falls",
+              "notes": " [human-review 2026-08-05 FWA-waterfall] Josephine Falls.",
+              "coord": [
+                -114.87661,
+                50.02261
+              ]
             }
           ]
         },
         {
           "src": "name",
           "text": "FORDING RIVER (downstream of Josephine Falls)",
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "fording-river-downstream-of-josephine-falls-97d67a",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "name",
               "resolver_hint": "falls_obstacle",
+              "label": "Josephine Falls",
+              "notes": " [human-review 2026-08-05 FWA-waterfall] Josephine Falls.",
+              "coord": [
+                -114.87661,
+                50.02261
+              ],
               "locator_text": "downstream of Josephine Falls"
             }
           ]
@@ -12548,34 +12614,46 @@
         "Classified"
       ],
       "reg_text": "**No Fishing**",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 1,
       "locators": [
         {
           "src": "water",
           "text": "upstream of Josephine Falls",
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "fording-river-upstream-of-josephine-falls-fbe818",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "name",
-              "resolver_hint": "falls_obstacle"
+              "resolver_hint": "falls_obstacle",
+              "label": "Josephine Falls",
+              "notes": " [human-review 2026-08-05 FWA-waterfall] Josephine Falls.",
+              "coord": [
+                -114.87661,
+                50.02261
+              ]
             }
           ]
         },
         {
           "src": "name",
           "text": "FORDING RIVER (upstream of Josephine Falls)",
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "fording-river-upstream-of-josephine-falls-fbe818",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "name",
               "resolver_hint": "falls_obstacle",
+              "label": "Josephine Falls",
+              "notes": " [human-review 2026-08-05 FWA-waterfall] Josephine Falls.",
+              "coord": [
+                -114.87661,
+                50.02261
+              ],
               "locator_text": "upstream of Josephine Falls"
             }
           ]
