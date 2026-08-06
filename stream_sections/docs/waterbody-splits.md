@@ -7,8 +7,8 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 |---|--:|
 | NO_CURATION | 1 |
 | MISSING_SPLITS | 2 |
-| INCOMPLETE | 191 |
-| COMPLETE | 118 |
+| INCOMPLETE | 190 |
+| COMPLETE | 119 |
 | NO_SPLIT | 75 |
 
 **Drift** (curated rows matching no source locator): 3
@@ -680,9 +680,6 @@ approximately 35 m downstream” → little-qualicum-river-4dbb9b-a[todo], littl
 ## KINBASKET (McNaughton) LAKE · MU ['4-36'] · p39 · [INCOMPLETE] (a58e3be6)
 - • [rule] “within 200 m of Bush-Sullivan Road Bridge in Bush Arm” → kinbasket-mcnaughton-lake-4535e6[todo]
 
-## KUSKANAX CREEK · MU ['4-31'] · p39 · [INCOMPLETE] (1469690a)
-- • [rule] “downstream of falls 1 km upstream of Gardiner Creek” → kuskanax-creek-6b1498[todo]
-
 ## LAKE REVELSTOKE · MU ['4-38', '4-39'] · p40 · [INCOMPLETE] (010a278a)
 - • [rule] “from Mica Dam to fishing boundary signs at the narrows immediately” → lake-revelstoke-62de4f-a[todo], lake-revelstoke-62de4f-b[todo]
 
@@ -792,7 +789,7 @@ approximately 35 m downstream” → little-qualicum-river-4dbb9b-a[todo], littl
 - • [rule] “within 100 m of fishing boundary sign at outlet” → letain-lake-a43189[todo]
 
 ## MURRAY RIVER · MU ['7-21'] · p71 · [INCOMPLETE] (739c5405)
-- • [rule] “from Kinuseo Falls to signs about 2 km downstream” → murray-river-470730-a[todo], murray-river-470730-b[todo]
+- • [rule] “from Kinuseo Falls to signs about 2 km downstream” → murray-river-470730-a[curated], murray-river-470730-b[todo]
 
 ## PEACE RIVER (From Site C dam to boundary signs 1,200m downstream) · MU ['7-31'] · p72 · [INCOMPLETE] (789839ce)
 - • [water] “From Site C dam to boundary signs 1,200m downstream” → peace-river-from-site-c-dam-to-boundary-signs-a64881[todo]

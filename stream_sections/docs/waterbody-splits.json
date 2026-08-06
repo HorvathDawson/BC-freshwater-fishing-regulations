@@ -14647,7 +14647,7 @@
       "image": "page_039_row_033.png",
       "symbols": [],
       "reg_text": "**No Fishing** downstream of falls 1 km upstream of Gardiner Creek",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 1,
       "locators": [
         {
@@ -14656,14 +14656,20 @@
           "info": {
             "restriction_type": "closure"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "kuskanax-creek-6b1498",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
-              "resolver_hint": "falls_obstacle"
+              "resolver_hint": "falls_obstacle",
+              "label": "Kuskanax Creek Falls (FISS 25045)",
+              "notes": " [human-review 2026-08-05 FISS-obstacle] [-117.72557, 50.28633].",
+              "coord": [
+                -117.72557,
+                50.28633
+              ]
             }
           ]
         },
@@ -24536,11 +24542,16 @@
           "rows": [
             {
               "id": "murray-river-470730-a",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "falls_obstacle",
-              "notes": "[structural-split 2026-08-05 from \"from Kinuseo Falls to signs about 2 km downstream\"] boundary=Kinuseo Falls",
+              "label": "Kinuseo Falls",
+              "notes": "[structural-split 2026-08-05 from \"from Kinuseo Falls to signs about 2 km downstream\"] boundary=Kinuseo Falls [human-review 2026-08-05 FWA-waterfall].",
+              "coord": [
+                -121.19108,
+                54.78398
+              ],
               "locator_text": "Kinuseo Falls"
             },
             {
@@ -25635,7 +25646,7 @@
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "falls_obstacle",
-              "notes": "[structural-split 2026-08-05 from \"from falls at Gallagher Canyon to Okanagan Lake\"] boundary=falls at Gallagher Canyon",
+              "notes": "[structural-split 2026-08-05 from \"from falls at Gallagher Canyon to Okanagan Lake\"] boundary=falls at Gallagher Canyon [review] OSM falls candidate a bit upstream of Gallagher Canyon resort - low confidence, verify.",
               "locator_text": "falls at Gallagher Canyon"
             },
             {

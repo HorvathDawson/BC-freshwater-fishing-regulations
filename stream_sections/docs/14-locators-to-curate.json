@@ -1372,11 +1372,14 @@
       "full_regulation": "No Fishing downstream of falls 1 km upstream of Gardiner Creek",
       "anchor_kind": "point",
       "resolver_hint": "falls_obstacle",
-      "status": "todo",
+      "status": "curated",
       "target": "",
-      "coord": null,
-      "label": "",
-      "notes": "",
+      "coord": [
+        -117.72557,
+        50.28633
+      ],
+      "label": "Kuskanax Creek Falls (FISS 25045)",
+      "notes": " [human-review 2026-08-05 FISS-obstacle] [-117.72557, 50.28633].",
       "entry_id": "1469690a"
     },
     {
@@ -1603,7 +1606,7 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[structural-split 2026-08-05 from \"from falls at Gallagher Canyon to Okanagan Lake\"] boundary=falls at Gallagher Canyon",
+      "notes": "[structural-split 2026-08-05 from \"from falls at Gallagher Canyon to Okanagan Lake\"] boundary=falls at Gallagher Canyon [review] OSM falls candidate a bit upstream of Gallagher Canyon resort - low confidence, verify.",
       "entry_id": "155b494f"
     },
     {
@@ -1656,11 +1659,14 @@
       "full_regulation": "Arctic grayling catch and release from Kinuseo Falls to signs about 2 km downstream",
       "anchor_kind": "point",
       "resolver_hint": "falls_obstacle",
-      "status": "todo",
+      "status": "curated",
       "target": "",
-      "coord": null,
-      "label": "",
-      "notes": "[structural-split 2026-08-05 from \"from Kinuseo Falls to signs about 2 km downstream\"] boundary=Kinuseo Falls",
+      "coord": [
+        -121.19108,
+        54.78398
+      ],
+      "label": "Kinuseo Falls",
+      "notes": "[structural-split 2026-08-05 from \"from Kinuseo Falls to signs about 2 km downstream\"] boundary=Kinuseo Falls [human-review 2026-08-05 FWA-waterfall].",
       "entry_id": "739c5405"
     },
     {
