@@ -1697,11 +1697,16 @@
             },
             {
               "id": "englishman-river-46a674-b",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "park_polygon",
-              "notes": "[structural-split 2026-08-05 from \"downstream of the lower falls in Englishman River Falls Prov\"] boundary=Top Bridge crossing at the end of Allsbro",
+              "label": "Top Bridge",
+              "notes": "[structural-split 2026-08-05 from \"downstream of the lower falls in Englishman River Falls Prov\"] boundary=Top Bridge crossing at the end of Allsbro [human-review 2026-08-06 OSM-confirmed].",
+              "coord": [
+                -124.26729,
+                49.29789
+              ],
               "locator_text": "Top Bridge crossing at the end of Allsbro"
             }
           ]
@@ -4627,11 +4632,16 @@
           "rows": [
             {
               "id": "alouette-river-daecfd",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] 216th Street bridge over Alouette River on Alouette River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm 216th Street crossing of Alouette River (Maple Ridge) on the street grid; review.. City-street bridge in Maple Ridge (MU 2-8). The same reg also carries a boundary-sign coordinate (49 14.790'N 122 32.080'W) for a different rule. Street bridge -> map-only, not in FWA."
+              "label": "216 Street bridge",
+              "notes": "[auto-proposal L] 216th Street bridge over Alouette River on Alouette River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm 216th Street crossing of Alouette River (Maple Ridge) on the street grid; review.. City-street bridge in Maple Ridge (MU 2-8). The same reg also carries a boundary-sign coordinate (49 14.790'N 122 32.080'W) for a different rule. Street bridge -> map-only, not in FWA. [human-review 2026-08-06 OSM-confirmed] 216 St x Alouette.",
+              "coord": [
+                -122.62242,
+                49.2409
+              ]
             },
             {
               "id": "north-alouette-river-e3810a",
@@ -6612,11 +6622,16 @@
           "rows": [
             {
               "id": "alouette-river-daecfd",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] 216th Street bridge over Alouette River on Alouette River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm 216th Street crossing of Alouette River (Maple Ridge) on the street grid; review.. City-street bridge in Maple Ridge (MU 2-8). The same reg also carries a boundary-sign coordinate (49 14.790'N 122 32.080'W) for a different rule. Street bridge -> map-only, not in FWA.",
+              "label": "216 Street bridge",
+              "notes": "[auto-proposal L] 216th Street bridge over Alouette River on Alouette River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm 216th Street crossing of Alouette River (Maple Ridge) on the street grid; review.. City-street bridge in Maple Ridge (MU 2-8). The same reg also carries a boundary-sign coordinate (49 14.790'N 122 32.080'W) for a different rule. Street bridge -> map-only, not in FWA. [human-review 2026-08-06 OSM-confirmed] 216 St x Alouette.",
+              "coord": [
+                -122.62242,
+                49.2409
+              ],
               "name_verbatim": "ALOUETTE RIVER",
               "locator_text": "upstream of 216th Street"
             },
@@ -11832,21 +11847,26 @@
         "Stocked"
       ],
       "reg_text": "Youth/Disabled Accompanied Water year round (see page 4)\n**Part described is NOT a Classified Water**",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 2,
       "locators": [
         {
           "src": "water",
           "text": "downstream of Old MF&M Railway bridge 7 km upstream of Elk River",
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "coal-creek-downstream-of-old-mf-m-railway-bri-347452",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "name",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] old MF&M Railway bridge (~7 km up Elk River), Fernie on Coal Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the old MF&M (Morrissey-Fernie-Michel) Railway bridge on Coal Creek at Fernie; VERIFY creek (FWA collision).. The FWA 'Coal Creek' match (57.47N) is the wrong creek far in NE BC; the reg creek is Coal Creek at Fernie (Elk valley, Region 4). Old railway bridge ~7 km above the Elk River confluence -> railway/map-only.",
+              "label": "Old MF&M Railway bridge (Fernie)",
+              "notes": "[auto-proposal L] old MF&M Railway bridge (~7 km up Elk River), Fernie on Coal Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the old MF&M (Morrissey-Fernie-Michel) Railway bridge on Coal Creek at Fernie; VERIFY creek (FWA collision).. The FWA 'Coal Creek' match (57.47N) is the wrong creek far in NE BC; the reg creek is Coal Creek at Fernie (Elk valley, Region 4). Old railway bridge ~7 km above the Elk River confluence -> railway/map-only. [human-review 2026-08-06] MF&M railway bridge, user-located near Fernie, snapped to FWA Coal Creek. MF&M not in OSM (dismantled); verify exact bridge.",
+              "coord": [
+                -114.99378,
+                49.48818
+              ],
               "name_verbatim": "COAL CREEK (downstream of Old MF&M Railway bridge 7 km"
             }
           ]
@@ -11854,15 +11874,20 @@
         {
           "src": "entry",
           "text": "downstream of Old MF&M Railway bridge 7 km upstream of Elk River",
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "coal-creek-downstream-of-old-mf-m-railway-bri-347452",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "name",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] old MF&M Railway bridge (~7 km up Elk River), Fernie on Coal Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the old MF&M (Morrissey-Fernie-Michel) Railway bridge on Coal Creek at Fernie; VERIFY creek (FWA collision).. The FWA 'Coal Creek' match (57.47N) is the wrong creek far in NE BC; the reg creek is Coal Creek at Fernie (Elk valley, Region 4). Old railway bridge ~7 km above the Elk River confluence -> railway/map-only.",
+              "label": "Old MF&M Railway bridge (Fernie)",
+              "notes": "[auto-proposal L] old MF&M Railway bridge (~7 km up Elk River), Fernie on Coal Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the old MF&M (Morrissey-Fernie-Michel) Railway bridge on Coal Creek at Fernie; VERIFY creek (FWA collision).. The FWA 'Coal Creek' match (57.47N) is the wrong creek far in NE BC; the reg creek is Coal Creek at Fernie (Elk valley, Region 4). Old railway bridge ~7 km above the Elk River confluence -> railway/map-only. [human-review 2026-08-06] MF&M railway bridge, user-located near Fernie, snapped to FWA Coal Creek. MF&M not in OSM (dismantled); verify exact bridge.",
+              "coord": [
+                -114.99378,
+                49.48818
+              ],
               "name_verbatim": "COAL CREEK (downstream of Old MF&M Railway bridge 7 km"
             }
           ]
@@ -11870,15 +11895,20 @@
         {
           "src": "name",
           "text": "COAL CREEK (downstream of Old MF&M Railway bridge 7 km upstream of Elk River)",
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "coal-creek-downstream-of-old-mf-m-railway-bri-347452",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "name",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] old MF&M Railway bridge (~7 km up Elk River), Fernie on Coal Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the old MF&M (Morrissey-Fernie-Michel) Railway bridge on Coal Creek at Fernie; VERIFY creek (FWA collision).. The FWA 'Coal Creek' match (57.47N) is the wrong creek far in NE BC; the reg creek is Coal Creek at Fernie (Elk valley, Region 4). Old railway bridge ~7 km above the Elk River confluence -> railway/map-only.",
+              "label": "Old MF&M Railway bridge (Fernie)",
+              "notes": "[auto-proposal L] old MF&M Railway bridge (~7 km up Elk River), Fernie on Coal Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the old MF&M (Morrissey-Fernie-Michel) Railway bridge on Coal Creek at Fernie; VERIFY creek (FWA collision).. The FWA 'Coal Creek' match (57.47N) is the wrong creek far in NE BC; the reg creek is Coal Creek at Fernie (Elk valley, Region 4). Old railway bridge ~7 km above the Elk River confluence -> railway/map-only. [human-review 2026-08-06] MF&M railway bridge, user-located near Fernie, snapped to FWA Coal Creek. MF&M not in OSM (dismantled); verify exact bridge.",
+              "coord": [
+                -114.99378,
+                49.48818
+              ],
               "name_verbatim": "COAL CREEK (downstream of Old MF&M Railway bridge 7 km",
               "locator_text": "downstream of Old MF&M Railway bridge 7 km upstream of Elk River"
             }

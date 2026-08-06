@@ -7,8 +7,8 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 |---|--:|
 | NO_CURATION | 1 |
 | MISSING_SPLITS | 2 |
-| INCOMPLETE | 190 |
-| COMPLETE | 119 |
+| INCOMPLETE | 189 |
+| COMPLETE | 120 |
 | NO_SPLIT | 75 |
 
 **Drift** (curated rows matching no source locator): 3
@@ -301,7 +301,7 @@ approximately 35 m downstream” → little-qualicum-river-031042-b[todo], littl
 
 ## ALOUETTE RIVER · MU ['2-8'] · p24 · [INCOMPLETE] (dadcd21c)
 - • [rule] “upstream of the fishing boundary signs located at 49° 14.790'N and” → alouette-river-741304[curated]
-- • [rule] “upstream of 216th Street” → alouette-river-daecfd[todo], north-alouette-river-e3810a[todo]
+- • [rule] “upstream of 216th Street” → alouette-river-daecfd[curated], north-alouette-river-e3810a[todo]
 - • [rule] “on mainstem” → alouette-river-b5a707[not_applicable]
 
 ## CAMPBELL RIVER · MU ['2-4'] · p24 · [INCOMPLETE] (a2178070)
@@ -384,7 +384,7 @@ approximately 35 m downstream” → little-qualicum-river-031042-b[todo], littl
 
 ## ENGLISHMAN RIVER · MU ['1-5'] · p17 · [INCOMPLETE] (fbf29fb0)
 - • [rule] “from lower falls in Englishman River Park to signs approximately 1” → englishman-river-8660ed-a[todo], englishman-river-8660ed-b[todo]
-- • [rule] “downstream of the lower falls in Englishman River Falls Provincial” → englishman-river-46a674-a[todo], englishman-river-46a674-b[todo]
+- • [rule] “downstream of the lower falls in Englishman River Falls Provincial” → englishman-river-46a674-a[todo], englishman-river-46a674-b[curated]
 
 ## KEOGH RIVER · MU ['1-13'] · p18 · [INCOMPLETE] (f02f2954)
 - • [rule] “downstream of lower fish counting fence near tidewater” → keogh-river-bf1c5b[todo]
@@ -465,10 +465,6 @@ approximately 35 m downstream” → little-qualicum-river-031042-b[todo], littl
 ## ALEXANDER CREEK (downstream of the easternmost Hwy 3 bridge) · MU ['4-23'] · p37 · [INCOMPLETE] (a2098ab8)
 - • [water] “downstream of the easternmost Hwy 3 bridge” → alexander-creek-downstream-of-the-easternmost-323602[todo]
 - • [entry] “downstream of the easternmost Hwy 3 bridge” → alexander-creek-downstream-of-the-easternmost-323602[todo]
-
-## COAL CREEK (downstream of Old MF&M Railway bridge 7 km upstream of Elk River) · MU ['4-23'] · p37 · [INCOMPLETE] (47d4ca5e)
-- • [water] “downstream of Old MF&M Railway bridge 7 km upstream of Elk River” → coal-creek-downstream-of-old-mf-m-railway-bri-347452[todo]
-- • [entry] “downstream of Old MF&M Railway bridge 7 km upstream of Elk River” → coal-creek-downstream-of-old-mf-m-railway-bri-347452[todo]
 
 ## LODGEPOLE CREEK (upstream of falls) · MU ['4-2'] · p40 · [INCOMPLETE] (4dbdd58a)
 - • [water] “upstream of falls” → lodgepole-creek-upstream-of-falls-615359[todo]
@@ -609,7 +605,7 @@ approximately 35 m downstream” → little-qualicum-river-031042-b[todo], littl
 - • [rule] “from Cliff Park Falls to 112th Avenue” → kanaka-creek-9ba9e6-a[todo], kanaka-creek-9ba9e6-b[todo]
 
 ## NORTH ALOUETTE RIVER · MU ['2-8'] · p27 · [INCOMPLETE] (7ef10bf8)
-- • [rule] “upstream of 216th Street (Fifth Ave)” → alouette-river-daecfd[todo], north-alouette-river-e3810a[todo]
+- • [rule] “upstream of 216th Street (Fifth Ave)” → alouette-river-daecfd[curated], north-alouette-river-e3810a[todo]
 
 ## POWELL LAKE · MU ['2-12'] · p27 · [INCOMPLETE] (f7f53543)
 - • [rule] “in One Mile Bay” → powell-lake-e58550[todo]
