@@ -24962,11 +24962,16 @@
             },
             {
               "id": "peace-river-from-hwy-29-bridge-to-the-site-c--c17e9f-b",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "name",
               "resolver_hint": "dam_weir_fence",
-              "notes": "[auto-proposal L] Site C Dam (upstream bound) / Hwy 29 bridge (downstream) on Peace River (Hwy 29 bridge -> Site C Dam). No FWA coord (needs map / external source). Verify: Locate Site C Dam and the Hwy 29 bridge on the Peace; both external to FWA.. Reach from the Hwy 29 bridge upstream to the Site C Dam. Site C not in FWA (recent). Recommend manual with BC Hydro / map coords for both landmarks. [structural-split 2026-08-05 from \"From Hwy. 29 bridge to the Site C dam\"] boundary=Site C dam",
+              "label": "Site C dam (John Horgan Dam)",
+              "notes": "[auto-proposal L] Site C Dam (upstream bound) / Hwy 29 bridge (downstream) on Peace River (Hwy 29 bridge -> Site C Dam). No FWA coord (needs map / external source). Verify: Locate Site C Dam and the Hwy 29 bridge on the Peace; both external to FWA.. Reach from the Hwy 29 bridge upstream to the Site C Dam. Site C not in FWA (recent). Recommend manual with BC Hydro / map coords for both landmarks. [structural-split 2026-08-05 from \"From Hwy. 29 bridge to the Site C dam\"] boundary=Site C dam [human-review 2026-08-06] Site C/John Horgan Dam (OSM way 409910469, user-confirmed).",
+              "coord": [
+                -122.19422,
+                56.01571
+              ],
               "locator_text": "Site C dam"
             }
           ]
@@ -25062,11 +25067,16 @@
             },
             {
               "id": "peace-river-from-hwy-29-bridge-to-the-site-c--c17e9f-b",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "name",
               "resolver_hint": "dam_weir_fence",
-              "notes": "[auto-proposal L] Site C Dam (upstream bound) / Hwy 29 bridge (downstream) on Peace River (Hwy 29 bridge -> Site C Dam). No FWA coord (needs map / external source). Verify: Locate Site C Dam and the Hwy 29 bridge on the Peace; both external to FWA.. Reach from the Hwy 29 bridge upstream to the Site C Dam. Site C not in FWA (recent). Recommend manual with BC Hydro / map coords for both landmarks. [structural-split 2026-08-05 from \"From Hwy. 29 bridge to the Site C dam\"] boundary=Site C dam",
+              "label": "Site C dam (John Horgan Dam)",
+              "notes": "[auto-proposal L] Site C Dam (upstream bound) / Hwy 29 bridge (downstream) on Peace River (Hwy 29 bridge -> Site C Dam). No FWA coord (needs map / external source). Verify: Locate Site C Dam and the Hwy 29 bridge on the Peace; both external to FWA.. Reach from the Hwy 29 bridge upstream to the Site C Dam. Site C not in FWA (recent). Recommend manual with BC Hydro / map coords for both landmarks. [structural-split 2026-08-05 from \"From Hwy. 29 bridge to the Site C dam\"] boundary=Site C dam [human-review 2026-08-06] Site C/John Horgan Dam (OSM way 409910469, user-confirmed).",
+              "coord": [
+                -122.19422,
+                56.01571
+              ],
               "locator_text": "Site C dam"
             }
           ]
@@ -25087,11 +25097,16 @@
             },
             {
               "id": "peace-river-from-hwy-29-bridge-to-the-site-c--c17e9f-b",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "name",
               "resolver_hint": "dam_weir_fence",
-              "notes": "[auto-proposal L] Site C Dam (upstream bound) / Hwy 29 bridge (downstream) on Peace River (Hwy 29 bridge -> Site C Dam). No FWA coord (needs map / external source). Verify: Locate Site C Dam and the Hwy 29 bridge on the Peace; both external to FWA.. Reach from the Hwy 29 bridge upstream to the Site C Dam. Site C not in FWA (recent). Recommend manual with BC Hydro / map coords for both landmarks. [structural-split 2026-08-05 from \"From Hwy. 29 bridge to the Site C dam\"] boundary=Site C dam",
+              "label": "Site C dam (John Horgan Dam)",
+              "notes": "[auto-proposal L] Site C Dam (upstream bound) / Hwy 29 bridge (downstream) on Peace River (Hwy 29 bridge -> Site C Dam). No FWA coord (needs map / external source). Verify: Locate Site C Dam and the Hwy 29 bridge on the Peace; both external to FWA.. Reach from the Hwy 29 bridge upstream to the Site C Dam. Site C not in FWA (recent). Recommend manual with BC Hydro / map coords for both landmarks. [structural-split 2026-08-05 from \"From Hwy. 29 bridge to the Site C dam\"] boundary=Site C dam [human-review 2026-08-06] Site C/John Horgan Dam (OSM way 409910469, user-confirmed).",
+              "coord": [
+                -122.19422,
+                56.01571
+              ],
               "locator_text": "Site C dam"
             }
           ]
@@ -25158,21 +25173,26 @@
       "image": "page_072_row_002.png",
       "symbols": [],
       "reg_text": "Arctic grayling catch and release; Kokanee daily quota = 10",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 2,
       "locators": [
         {
           "src": "water",
           "text": "Downstream of boundary signs 1,200m downstream of the Site C dam",
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "peace-river-downstream-of-boundary-signs-1-20-2f9401",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "name",
               "resolver_hint": "dam_weir_fence",
-              "notes": "[auto-proposal L] Boundary signs 1,200 m downstream of Site C Dam on Peace River (below Site C). No FWA coord (needs map / external source). Verify: Locate Site C Dam (BC Hydro, ~7 km SW of Fort St John) then place a point 1,200 m downstream along the Peace - Site C reservoir is too new to be in FWA.. Site C Dam is a recent BC Hydro facility likely absent from the FWA dataset. This entry is the reach downstream of signs 1,200 m below the dam. Recommend manual: get the Site C dam coord from BC Hydro, then offset 1,200 m downstream on the Peace River blue line. [osm-candidate 2026-08-05] [-122.19498, 56.0152]; [-122.19422, 56.01571] (OSM Overpass ∩ MU-clipped FWA river; VERIFY).",
+              "label": "signs 1200 m below Site C dam",
+              "notes": "[auto-proposal L] Boundary signs 1,200 m downstream of Site C Dam on Peace River (below Site C). No FWA coord (needs map / external source). Verify: Locate Site C Dam (BC Hydro, ~7 km SW of Fort St John) then place a point 1,200 m downstream along the Peace - Site C reservoir is too new to be in FWA.. Site C Dam is a recent BC Hydro facility likely absent from the FWA dataset. This entry is the reach downstream of signs 1,200 m below the dam. Recommend manual: get the Site C dam coord from BC Hydro, then offset 1,200 m downstream on the Peace River blue line. [human-review 2026-08-06] anchor=Site C dam; offset_m=1200 offset_dir=downstream.",
+              "coord": [
+                -122.19419,
+                56.01573
+              ],
               "name_verbatim": "PEACE RIVER (Downstream of boundary signs 1,200m downs"
             }
           ]
@@ -25180,15 +25200,20 @@
         {
           "src": "entry",
           "text": "Downstream of boundary signs 1,200m downstream of the Site C dam",
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "peace-river-downstream-of-boundary-signs-1-20-2f9401",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "name",
               "resolver_hint": "dam_weir_fence",
-              "notes": "[auto-proposal L] Boundary signs 1,200 m downstream of Site C Dam on Peace River (below Site C). No FWA coord (needs map / external source). Verify: Locate Site C Dam (BC Hydro, ~7 km SW of Fort St John) then place a point 1,200 m downstream along the Peace - Site C reservoir is too new to be in FWA.. Site C Dam is a recent BC Hydro facility likely absent from the FWA dataset. This entry is the reach downstream of signs 1,200 m below the dam. Recommend manual: get the Site C dam coord from BC Hydro, then offset 1,200 m downstream on the Peace River blue line. [osm-candidate 2026-08-05] [-122.19498, 56.0152]; [-122.19422, 56.01571] (OSM Overpass ∩ MU-clipped FWA river; VERIFY).",
+              "label": "signs 1200 m below Site C dam",
+              "notes": "[auto-proposal L] Boundary signs 1,200 m downstream of Site C Dam on Peace River (below Site C). No FWA coord (needs map / external source). Verify: Locate Site C Dam (BC Hydro, ~7 km SW of Fort St John) then place a point 1,200 m downstream along the Peace - Site C reservoir is too new to be in FWA.. Site C Dam is a recent BC Hydro facility likely absent from the FWA dataset. This entry is the reach downstream of signs 1,200 m below the dam. Recommend manual: get the Site C dam coord from BC Hydro, then offset 1,200 m downstream on the Peace River blue line. [human-review 2026-08-06] anchor=Site C dam; offset_m=1200 offset_dir=downstream.",
+              "coord": [
+                -122.19419,
+                56.01573
+              ],
               "name_verbatim": "PEACE RIVER (Downstream of boundary signs 1,200m downs"
             }
           ]
@@ -25196,15 +25221,20 @@
         {
           "src": "name",
           "text": "PEACE RIVER (Downstream of boundary signs 1,200m downstream of the Site C dam)",
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "peace-river-downstream-of-boundary-signs-1-20-2f9401",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "name",
               "resolver_hint": "dam_weir_fence",
-              "notes": "[auto-proposal L] Boundary signs 1,200 m downstream of Site C Dam on Peace River (below Site C). No FWA coord (needs map / external source). Verify: Locate Site C Dam (BC Hydro, ~7 km SW of Fort St John) then place a point 1,200 m downstream along the Peace - Site C reservoir is too new to be in FWA.. Site C Dam is a recent BC Hydro facility likely absent from the FWA dataset. This entry is the reach downstream of signs 1,200 m below the dam. Recommend manual: get the Site C dam coord from BC Hydro, then offset 1,200 m downstream on the Peace River blue line. [osm-candidate 2026-08-05] [-122.19498, 56.0152]; [-122.19422, 56.01571] (OSM Overpass ∩ MU-clipped FWA river; VERIFY).",
+              "label": "signs 1200 m below Site C dam",
+              "notes": "[auto-proposal L] Boundary signs 1,200 m downstream of Site C Dam on Peace River (below Site C). No FWA coord (needs map / external source). Verify: Locate Site C Dam (BC Hydro, ~7 km SW of Fort St John) then place a point 1,200 m downstream along the Peace - Site C reservoir is too new to be in FWA.. Site C Dam is a recent BC Hydro facility likely absent from the FWA dataset. This entry is the reach downstream of signs 1,200 m below the dam. Recommend manual: get the Site C dam coord from BC Hydro, then offset 1,200 m downstream on the Peace River blue line. [human-review 2026-08-06] anchor=Site C dam; offset_m=1200 offset_dir=downstream.",
+              "coord": [
+                -122.19419,
+                56.01573
+              ],
               "name_verbatim": "PEACE RIVER (Downstream of boundary signs 1,200m downs",
               "locator_text": "Downstream of boundary signs 1,200m downstream of the Site C dam"
             }
@@ -26065,11 +26095,16 @@
             },
             {
               "id": "okanagan-river-53a1b3-b",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "dam_weir_fence",
-              "notes": "[auto-proposal M] Okanagan Lake Dam (Penticton) + McIntyre Dam + Drop Structure No.1 on Okanagan River (channelized, Penticton -> Vaseux). Candidate coord [-119.61346, 49.50123]. OSM: https://www.openstreetmap.org/?mlat=49.50123&mlon=-119.61346#map=15/49.50123/-119.61346. Verify: Multi-structure reg. Candidate = Okanagan Lake Dam (upper bound, Penticton). Also locate McIntyre Dam ~[-119.574,49.357] and Drop Structure No.1 (channelized river S of Oliver) on a map.. Okanagan Lake Dam controls the Okanagan River at Penticton (coord = FWA Okanagan River exit from Okanagan Lake polygon). The reg also references McIntyre Dam and Drop Structure No.1 further down the channelized river - those are separate small structures needing map confirmation. [structural-split 2026-08-05 from \"from Okanagan Lake Dam downstream to McIntyre Dam and downst\"] boundary=McIntyre Dam and downstream of Drop Structure No. 1",
+              "label": "McIntyre Dam",
+              "notes": "[auto-proposal M] Okanagan Lake Dam (Penticton) + McIntyre Dam + Drop Structure No.1 on Okanagan River (channelized, Penticton -> Vaseux). Candidate coord [-119.61346, 49.50123]. OSM: https://www.openstreetmap.org/?mlat=49.50123&mlon=-119.61346#map=15/49.50123/-119.61346. Verify: Multi-structure reg. Candidate = Okanagan Lake Dam (upper bound, Penticton). Also locate McIntyre Dam ~[-119.574,49.357] and Drop Structure No.1 (channelized river S of Oliver) on a map.. Okanagan Lake Dam controls the Okanagan River at Penticton (coord = FWA Okanagan River exit from Okanagan Lake polygon). The reg also references McIntyre Dam and Drop Structure No.1 further down the channelized river - those are separate small structures needing map confirmation. [structural-split 2026-08-05 from \"from Okanagan Lake Dam downstream to McIntyre Dam and downst\"] boundary=McIntyre Dam and downstream of Drop Structure No. 1 [human-review 2026-08-06] McIntyre Dam (user coord).",
+              "coord": [
+                -119.52842,
+                49.25681
+              ],
               "locator_text": "McIntyre Dam and downstream of Drop Structure No. 1"
             }
           ]
@@ -26093,7 +26128,7 @@
       "image": "page_076_row_025.png",
       "symbols": [],
       "reg_text": "These isolated oxbows adjacent to Okanagan River downstream of the McIntyre Dam and upstream of Vaseux Lake are EXEMPT from the\nspring closure",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 1,
       "locators": [
         {
@@ -26102,15 +26137,20 @@
           "info": {
             "restriction_type": "note"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "okanagan-river-oxbows-e2c2d7",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "dam_weir_fence",
-              "notes": "[auto-proposal L] McIntyre Dam (upper bound) / Vaseux Lake (lower bound) on Okanagan River oxbows (below McIntyre Dam, above Vaseux Lake). Candidate coord [-119.57386, 49.35652]. OSM: https://www.openstreetmap.org/?mlat=49.35652&mlon=-119.57386#map=15/49.35652/-119.57386. Verify: Confirm McIntyre Dam on the Okanagan River just above Vaseux Lake; candidate is nearest blue-line point (~1.6 km off a rough guess).. Oxbow reach downstream of McIntyre Dam and upstream of Vaseux Lake. Candidate = Okanagan River blue-line point nearest the known McIntyre Dam site above Vaseux Lake; refine on map. Vaseux Lake polygon (wbk 329459123) gives the lower bound. [osm-candidate 2026-08-05] [-119.58007, 49.34453]; [-119.52842, 49.25681] (OSM Overpass ∩ MU-clipped FWA river; VERIFY)."
+              "label": "McIntyre Dam",
+              "notes": "[auto-proposal L] McIntyre Dam (upper bound) / Vaseux Lake (lower bound) on Okanagan River oxbows (below McIntyre Dam, above Vaseux Lake). Candidate coord [-119.57386, 49.35652]. OSM: https://www.openstreetmap.org/?mlat=49.35652&mlon=-119.57386#map=15/49.35652/-119.57386. Verify: Confirm McIntyre Dam on the Okanagan River just above Vaseux Lake; candidate is nearest blue-line point (~1.6 km off a rough guess).. Oxbow reach downstream of McIntyre Dam and upstream of Vaseux Lake. Candidate = Okanagan River blue-line point nearest the known McIntyre Dam site above Vaseux Lake; refine on map. Vaseux Lake polygon (wbk 329459123) gives the lower bound. [human-review 2026-08-06] McIntyre Dam (user coord).",
+              "coord": [
+                -119.52842,
+                49.25681
+              ]
             }
           ]
         },
