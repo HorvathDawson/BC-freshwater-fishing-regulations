@@ -700,11 +700,17 @@
       "full_regulation": "Downstream of old Clearwater Bridge exempt from spring closure, except No Fishing May 1-June 30\nBait ban (a) from Falls Creek to Mahood River, all year, and (b) from Mahood River to North Thompson River, Sept 1-July 31\nNo angling from powered boats downstream of Falls Creek\nRainbow trout daily quota = 2 (none over 35 cm), char catch and release",
       "anchor_kind": "confluence",
       "resolver_hint": "tributary",
-      "status": "todo",
-      "target": "",
-      "coord": null,
-      "label": "",
-      "notes": "Mahood River blk: 356347721, watershed code: 100-190442-998192-349877-237590-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000, Falls creek blk: 356353929 and wsc: 100-190442-998192-349877-427140-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000 [structural-split 2026-08-05 from \"from Falls Creek to Mahood River\"] boundary=Mahood River",
+      "status": "curated",
+      "target": {
+        "blk": 356347721,
+        "wsc": "100-190442-998192-349877-237590-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      },
+      "coord": [
+        -120.19352,
+        51.91649
+      ],
+      "label": "Mahood River confluence",
+      "notes": "Mahood River blk: 356347721, watershed code: 100-190442-998192-349877-237590-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000, Falls creek blk: 356353929 and wsc: 100-190442-998192-349877-427140-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000 [structural-split 2026-08-05 from \"from Falls Creek to Mahood River\"] boundary=Mahood River [human-review 2026-08-05 FWA-confluence] mouth of Mahood River (0 m validated); target blk/wsc set.",
       "entry_id": "2e5c3843"
     },
     {
@@ -2361,11 +2367,17 @@
       "full_regulation": "Angling prohibited for non-guided non-resident aliens on Saturdays and Sundays from the juvenile fish counting weir located at\nthe outlet of Nilkitkwa Lake to the Nilkitkwa River confluence, Sept 1-Oct 31 (See map page 56)\nNo Fishing between fishing boundary signs approximately 100 m upstream of and 80 m downstream of the adult fish counting fence,\nlocated approximately 1.8 km downstream of Nilkitkwa Lake\nOpen all year in the stream channel known as \"Rainbow Alley\" located between Babine and Nilkitkwa lakes (see map 2 page 51)\nFly fishing only (a) from the Fort Babine Bridge downstream to signs 100 m upstream of the adult fish counting fence (including Nilkitkwa\nLake), during open times and (b) from signs about 80 m downstream of the adult fish counting fence to Nichyeskwa Creek, June 16-Sept 30; includes \"Rainbow Alley\"\nBait ban\nNo angling from boats from the adult fish counting fence (described above) downstream to the Babine River's confluence with the Skeena\nRiver\nClass 1 water Sept 1-Oct 31; Steelhead Stamp mandatory Sept 1-Oct 31 from the juvenile fish counting weir located at the outlet of\nNilkitkwa Lake downstream to the Babine River's confluence with the Skeena River (See map page 56)",
       "anchor_kind": "confluence",
       "resolver_hint": "tributary",
-      "status": "todo",
-      "target": "",
-      "coord": null,
-      "label": "",
-      "notes": "[auto-proposal M] Juvenile fish counting weir at Nilkitkwa Lake outlet on Babine River (Nilkitkwa Lake outlet). Candidate coord [-126.68407, 55.41439]. OSM: https://www.openstreetmap.org/?mlat=55.41439&mlon=-126.68407#map=15/55.41439/-126.68407. Verify: Confirm the juvenile weir sits exactly at the Nilkitkwa Lake outlet vs a few hundred m down the Babine River.. Reach starts at the DFO juvenile fish counting weir located at the outlet of Nilkitkwa Lake. Coord is the FWA-computed Babine River blue-line exit from the Nilkitkwa Lake polygon (blk 360886970). Reach runs down to the Nilkitkwa River confluence (~[-126.701,55.452]). [structural-split 2026-08-05 from \"from the juvenile fish counting weir located at the outlet o\"] boundary=Nilkitkwa River confluence",
+      "status": "curated",
+      "target": {
+        "blk": 360881049,
+        "wsc": "400-536025-357066-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      },
+      "coord": [
+        -126.70116,
+        55.45218
+      ],
+      "label": "Nilkitkwa River confluence",
+      "notes": "[auto-proposal M] Juvenile fish counting weir at Nilkitkwa Lake outlet on Babine River (Nilkitkwa Lake outlet). Candidate coord [-126.68407, 55.41439]. OSM: https://www.openstreetmap.org/?mlat=55.41439&mlon=-126.68407#map=15/55.41439/-126.68407. Verify: Confirm the juvenile weir sits exactly at the Nilkitkwa Lake outlet vs a few hundred m down the Babine River.. Reach starts at the DFO juvenile fish counting weir located at the outlet of Nilkitkwa Lake. Coord is the FWA-computed Babine River blue-line exit from the Nilkitkwa Lake polygon (blk 360886970). Reach runs down to the Nilkitkwa River confluence (~[-126.701,55.452]). [structural-split 2026-08-05 from \"from the juvenile fish counting weir located at the outlet o\"] boundary=Nilkitkwa River confluence [human-review 2026-08-05 FWA-confluence] mouth of Nilkitkwa River (0 m validated); target blk/wsc set.",
       "entry_id": "4dd3daf7"
     },
     {
@@ -2437,11 +2449,17 @@
       "full_regulation": "Angling prohibited for non-guided non-resident aliens on Saturdays and Sundays from the juvenile fish counting weir located at\nthe outlet of Nilkitkwa Lake to the Nilkitkwa River confluence, Sept 1-Oct 31 (See map page 56)\nNo Fishing between fishing boundary signs approximately 100 m upstream of and 80 m downstream of the adult fish counting fence,\nlocated approximately 1.8 km downstream of Nilkitkwa Lake\nOpen all year in the stream channel known as \"Rainbow Alley\" located between Babine and Nilkitkwa lakes (see map 2 page 51)\nFly fishing only (a) from the Fort Babine Bridge downstream to signs 100 m upstream of the adult fish counting fence (including Nilkitkwa\nLake), during open times and (b) from signs about 80 m downstream of the adult fish counting fence to Nichyeskwa Creek, June 16-Sept 30; includes \"Rainbow Alley\"\nBait ban\nNo angling from boats from the adult fish counting fence (described above) downstream to the Babine River's confluence with the Skeena\nRiver\nClass 1 water Sept 1-Oct 31; Steelhead Stamp mandatory Sept 1-Oct 31 from the juvenile fish counting weir located at the outlet of\nNilkitkwa Lake downstream to the Babine River's confluence with the Skeena River (See map page 56)",
       "anchor_kind": "confluence",
       "resolver_hint": "tributary",
-      "status": "todo",
-      "target": "",
-      "coord": null,
-      "label": "",
-      "notes": "[auto-proposal L] Adult fish counting fence (downstream bound = Skeena confluence) on Babine River (fence -> Skeena confluence). Candidate coord [-126.68407, 55.41439]. OSM: https://www.openstreetmap.org/?mlat=55.41439&mlon=-126.68407#map=15/55.41439/-126.68407. Verify: Pin the adult counting fence on a map; downstream end is the Babine-Skeena confluence (~[-127.695,55.698]).. Reach from the adult counting fence downstream to the Babine River's confluence with the Skeena. Fence point not in FWA; candidate is the Nilkitkwa outlet reference. Downstream terminus (Babine mouth) is well-defined in FWA. [structural-split 2026-08-05 from \"from the adult fish counting fence (described above) downstr\"] boundary=Babine River's confluence with the Skeena River",
+      "status": "curated",
+      "target": {
+        "blk": 360887278,
+        "wsc": "400-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      },
+      "coord": [
+        -127.69458,
+        55.69813
+      ],
+      "label": "Skeena River confluence",
+      "notes": "[auto-proposal L] Adult fish counting fence (downstream bound = Skeena confluence) on Babine River (fence -> Skeena confluence). Candidate coord [-126.68407, 55.41439]. OSM: https://www.openstreetmap.org/?mlat=55.41439&mlon=-126.68407#map=15/55.41439/-126.68407. Verify: Pin the adult counting fence on a map; downstream end is the Babine-Skeena confluence (~[-127.695,55.698]).. Reach from the adult counting fence downstream to the Babine River's confluence with the Skeena. Fence point not in FWA; candidate is the Nilkitkwa outlet reference. Downstream terminus (Babine mouth) is well-defined in FWA. [structural-split 2026-08-05 from \"from the adult fish counting fence (described above) downstr\"] boundary=Babine River's confluence with the Skeena River [human-review 2026-08-05 FWA-confluence] mouth of Skeena River (0 m validated); target blk/wsc set.",
       "entry_id": "4dd3daf7"
     },
     {
@@ -2513,11 +2531,17 @@
       "full_regulation": "No Fishing from Terzaghi Dam to Yalakom River\nNo Fishing downstream of Hwy 40 bridge (approximately 6 km north of Lillooet), Mar 31-June 20\nNo trout under 25 cm; bull trout catch and release upstream of Downton Lake (reservoir)",
       "anchor_kind": "confluence",
       "resolver_hint": "tributary",
-      "status": "todo",
-      "target": "",
-      "coord": null,
-      "label": "",
-      "notes": "[auto-proposal H] Terzaghi Dam (Carpenter Lake outlet) on Bridge River (Terzaghi Dam -> Yalakom River). Candidate coord [-122.22175, 50.78765]. OSM: https://www.openstreetmap.org/?mlat=50.78765&mlon=-122.22175#map=15/50.78765/-122.22175. Verify: Confirm cut at Carpenter Lake outlet (Terzaghi Dam); downstream end = Yalakom R mouth ~[-122.173,50.863].. Terzaghi Dam impounds Carpenter Lake on the Bridge River. Coord = FWA-computed Bridge River blue-line exit from the Carpenter Lake polygon; matches the known Terzaghi Dam location. Reach ends at the Yalakom River confluence. [structural-split 2026-08-05 from \"from Terzaghi Dam to Yalakom River\"] boundary=Yalakom River",
+      "status": "curated",
+      "target": {
+        "blk": 356359074,
+        "wsc": "100-239855-151124-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      },
+      "coord": [
+        -122.17255,
+        50.86342
+      ],
+      "label": "Yalakom River confluence",
+      "notes": "[auto-proposal H] Terzaghi Dam (Carpenter Lake outlet) on Bridge River (Terzaghi Dam -> Yalakom River). Candidate coord [-122.22175, 50.78765]. OSM: https://www.openstreetmap.org/?mlat=50.78765&mlon=-122.22175#map=15/50.78765/-122.22175. Verify: Confirm cut at Carpenter Lake outlet (Terzaghi Dam); downstream end = Yalakom R mouth ~[-122.173,50.863].. Terzaghi Dam impounds Carpenter Lake on the Bridge River. Coord = FWA-computed Bridge River blue-line exit from the Carpenter Lake polygon; matches the known Terzaghi Dam location. Reach ends at the Yalakom River confluence. [structural-split 2026-08-05 from \"from Terzaghi Dam to Yalakom River\"] boundary=Yalakom River [human-review 2026-08-05 FWA-confluence] mouth of Yalakom River (0 m validated); target blk/wsc set.",
       "entry_id": "58790669"
     },
     {
@@ -2727,11 +2751,17 @@
       "full_regulation": "No Fishing from Revelstoke Dam downstream to Hwy 1 bridge in Revelstoke\nNo Fishing from a line between the old Robson Ferry landing and a sign on the south river bank, downstream approximately 950 m to the\nCPR Bridge, Mar 1-June 30\nWhere angling is permitted: EXEMPT from the regional Nov 1-Mar 31 trout/char catch and release and the regional Apr 1-June 14 closure\nBass daily quota = unlimited\nKokanee daily quota = 15 from Keenleyside Dam to a line between the old Robson Ferry landing and a sign on the south river bank\nWalleye daily quota = 16 from Keenleyside Dam to the Washington state border\nFrom Keenleyside Dam downstream to the Washington state border and connected reaches: the Kootenay River (Columbia River\nconfluence to Brilliant Dam) and the Pend d'Oreille River (Columbia River confluence to Waneta Dam): Northern pike daily quota =\nunlimited and bass daily quota = unlimited\nBurbot catch and release\nSpeed restriction (10 km/h) from Mud Lake to Columbia Lake, no power boats in wetlands, no towing and engine power restriction -\n15 kW (20 hp), in main channel from Fairmont to Donald\nSee Upper Arrow Lake for the portion of the Columbia River which may be found downstream of the Hwy 1 bridge in Revelstoke\n(depending on reservoir level)",
       "anchor_kind": "confluence",
       "resolver_hint": "tributary",
-      "status": "todo",
-      "target": "",
-      "coord": null,
-      "label": "",
-      "notes": "[auto-proposal H] Hugh Keenleyside Dam (Lower Arrow Lake outlet) on Columbia River (Keenleyside Dam -> WA border, + Kootenay reach). Candidate coord [-117.77394, 49.34194]. OSM: https://www.openstreetmap.org/?mlat=49.34194&mlon=-117.77394#map=15/49.34194/-117.77394. Verify: Same dam as columbia-river-f4c5a3; entry also bundles a connected Kootenay River reach - handle separately.. Duplicate Keenleyside Dam structure; this entry additionally names a connected Kootenay River reach (see the Kootenay dam items 21-23). Coord = Keenleyside Dam at Lower Arrow Lake outlet. [structural-split 2026-08-05 from \"From Keenleyside Dam downstream to the Washington state bord\"] boundary=Washington state border and connected reaches: the Kootenay River (Columbia River",
+      "status": "curated",
+      "target": {
+        "blk": 356570348,
+        "wsc": "300-625474-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      },
+      "coord": [
+        -117.6533,
+        49.316
+      ],
+      "label": "Kootenay River confluence",
+      "notes": "[auto-proposal H] Hugh Keenleyside Dam (Lower Arrow Lake outlet) on Columbia River (Keenleyside Dam -> WA border, + Kootenay reach). Candidate coord [-117.77394, 49.34194]. OSM: https://www.openstreetmap.org/?mlat=49.34194&mlon=-117.77394#map=15/49.34194/-117.77394. Verify: Same dam as columbia-river-f4c5a3; entry also bundles a connected Kootenay River reach - handle separately.. Duplicate Keenleyside Dam structure; this entry additionally names a connected Kootenay River reach (see the Kootenay dam items 21-23). Coord = Keenleyside Dam at Lower Arrow Lake outlet. [structural-split 2026-08-05 from \"From Keenleyside Dam downstream to the Washington state bord\"] boundary=Washington state border and connected reaches: the Kootenay River (Columbia River [human-review 2026-08-05 FWA-confluence] mouth of Kootenay River (0 m validated); target blk/wsc set.",
       "entry_id": "1f199dad"
     },
     {
@@ -2822,11 +2852,17 @@
       "full_regulation": "Exempt from spring closure, exempt from regional Nov 1-Mar 31 bull trout catch and release, bait ban\nRainbow trout daily quota = 5 (any size), bull trout daily quota = 2 (any size)\nNo Fishing downstream of Duncan Dam to the confluence of the Duncan River and the Lardeau River",
       "anchor_kind": "confluence",
       "resolver_hint": "tributary",
-      "status": "todo",
-      "target": "",
-      "coord": null,
-      "label": "",
-      "notes": "[auto-proposal H] Duncan Dam (Duncan Lake outlet) on Duncan River (Duncan Dam -> Lardeau R confluence). Candidate coord [-116.94343, 50.2491]. OSM: https://www.openstreetmap.org/?mlat=50.24910&mlon=-116.94343#map=15/50.24910/-116.94343. Verify: Confirm cut at Duncan Dam (south end of Duncan Lake); downstream end = Duncan-Lardeau confluence.. Duncan Dam impounds Duncan Lake (Kootenay, MU 4-19); coord = FWA Duncan River exit from the large Duncan Lake polygon (wbk 329120714), matching the known dam. Reach runs to the Lardeau River confluence. [structural-split 2026-08-05 from \"downstream of Duncan Dam to the confluence of the Duncan Riv\"] boundary=confluence of the Duncan River and the Lardeau River",
+      "status": "curated",
+      "target": {
+        "blk": 356569776,
+        "wsc": "300-625474-096683-076865-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      },
+      "coord": [
+        -116.95175,
+        50.2432
+      ],
+      "label": "Lardeau River confluence",
+      "notes": "[auto-proposal H] Duncan Dam (Duncan Lake outlet) on Duncan River (Duncan Dam -> Lardeau R confluence). Candidate coord [-116.94343, 50.2491]. OSM: https://www.openstreetmap.org/?mlat=50.24910&mlon=-116.94343#map=15/50.24910/-116.94343. Verify: Confirm cut at Duncan Dam (south end of Duncan Lake); downstream end = Duncan-Lardeau confluence.. Duncan Dam impounds Duncan Lake (Kootenay, MU 4-19); coord = FWA Duncan River exit from the large Duncan Lake polygon (wbk 329120714), matching the known dam. Reach runs to the Lardeau River confluence. [structural-split 2026-08-05 from \"downstream of Duncan Dam to the confluence of the Duncan Riv\"] boundary=confluence of the Duncan River and the Lardeau River [human-review 2026-08-05 FWA-confluence] mouth of Lardeau River (0 m validated); target blk/wsc set.",
       "entry_id": "ad04e181"
     },
     {
@@ -3047,11 +3083,17 @@
       "full_regulation": "No Fishing from CPR Bridge near Creston downstream 2 km to navigation dolphin\nDownstream from the Idaho border to CPR Bridge near Creston and from Corra Linn Dam to the Columbia River: EXEMPT from Apr 1-June 14 closure AND from Nov 1-Mar 31 trout/char catch and release\nBurbot catch and release from Idaho border near Creston to Kootenay Lake, including tributaries to that part\nWalleye daily quota = 16 from the Brilliant Dam to the confluence with the Columbia River\nFrom the Brilliant Dam to the confluence with the Columbia River: northern pike and bass daily quota = unlimited",
       "anchor_kind": "confluence",
       "resolver_hint": "tributary",
-      "status": "todo",
-      "target": "",
-      "coord": null,
-      "label": "",
-      "notes": "[auto-proposal M] Brilliant Dam (run-of-river, lower Kootenay River) on Kootenay River (Brilliant Dam -> Columbia confluence). Candidate coord [-117.59864, 49.33662]. OSM: https://www.openstreetmap.org/?mlat=49.33662&mlon=-117.59864#map=15/49.33662/-117.59864. Verify: Confirm Brilliant Dam location on the lower Kootenay near Castlegar; candidate is the nearest Kootenay blue-line point.. Brilliant Dam is a run-of-river dam on the lower Kootenay River near its Columbia confluence (Castlegar). No named reservoir polygon; candidate = Kootenay River blue-line point nearest the known dam site. Reach runs to the Columbia confluence. [structural-split 2026-08-05 from \"from the Brilliant Dam to the confluence with the Columbia R\"] boundary=confluence with the Columbia River",
+      "status": "curated",
+      "target": {
+        "blk": 356570372,
+        "wsc": "300-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      },
+      "coord": [
+        -117.6533,
+        49.316
+      ],
+      "label": "Columbia River confluence",
+      "notes": "[auto-proposal M] Brilliant Dam (run-of-river, lower Kootenay River) on Kootenay River (Brilliant Dam -> Columbia confluence). Candidate coord [-117.59864, 49.33662]. OSM: https://www.openstreetmap.org/?mlat=49.33662&mlon=-117.59864#map=15/49.33662/-117.59864. Verify: Confirm Brilliant Dam location on the lower Kootenay near Castlegar; candidate is the nearest Kootenay blue-line point.. Brilliant Dam is a run-of-river dam on the lower Kootenay River near its Columbia confluence (Castlegar). No named reservoir polygon; candidate = Kootenay River blue-line point nearest the known dam site. Reach runs to the Columbia confluence. [structural-split 2026-08-05 from \"from the Brilliant Dam to the confluence with the Columbia R\"] boundary=confluence with the Columbia River [human-review 2026-08-05 FWA-confluence] mouth of Columbia River (0 m validated); target blk/wsc set.",
       "entry_id": "32b0f4bc"
     },
     {
@@ -3528,11 +3570,17 @@
       "full_regulation": "No Fishing between fishing boundary signs 200 m upstream of and 500 m downstream of Stamp Falls, June 15-Nov 15\nNo Fishing from the confluence with Ash River upstream to the Great Central Lake dam[Includes Tributaries], Jan 1-Apr 30\nBait ban all year upstream of signs at \"Girl Guide Falls\" (approximately 250 m upstream of the mouth of Beaver Creek)[Includes Tributaries]\nBait ban downstream of signs at \"Girl Guide Falls\" (approximately 250 m upstream of the mouth of Beaver Creek), June 1-Aug 24\nEngine power restriction 7.5 kW (10 hp), on parts",
       "anchor_kind": "confluence",
       "resolver_hint": "tributary",
-      "status": "todo",
-      "target": "",
-      "coord": null,
-      "label": "",
-      "notes": "[auto-proposal H] Great Central Lake dam (Stamp River head) on Stamp River (Ash R confluence -> Great Central Lake dam). Candidate coord [-124.99219, 49.32835]. OSM: https://www.openstreetmap.org/?mlat=49.32835&mlon=-124.99219#map=15/49.32835/-124.99219. Verify: Confirm the Great Central Lake dam (upstream bound); downstream end = Ash River confluence (~[-124.978,49.362]).. Same dam as great-central-lake-4ff0ab: the Great Central Lake outlet dam is the head of the Stamp River. Coord = FWA stream exit from Great Central Lake polygon. Reach runs from the Ash River confluence up to this dam. [structural-split 2026-08-05 from \"from the confluence with Ash River upstream to the Great Cen\"] boundary=confluence with Ash River",
+      "status": "curated",
+      "target": {
+        "blk": 354155176,
+        "wsc": "930-139262-993282-254537-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      },
+      "coord": [
+        -124.97784,
+        49.36214
+      ],
+      "label": "Ash River confluence",
+      "notes": "[auto-proposal H] Great Central Lake dam (Stamp River head) on Stamp River (Ash R confluence -> Great Central Lake dam). Candidate coord [-124.99219, 49.32835]. OSM: https://www.openstreetmap.org/?mlat=49.32835&mlon=-124.99219#map=15/49.32835/-124.99219. Verify: Confirm the Great Central Lake dam (upstream bound); downstream end = Ash River confluence (~[-124.978,49.362]).. Same dam as great-central-lake-4ff0ab: the Great Central Lake outlet dam is the head of the Stamp River. Coord = FWA stream exit from Great Central Lake polygon. Reach runs from the Ash River confluence up to this dam. [structural-split 2026-08-05 from \"from the confluence with Ash River upstream to the Great Cen\"] boundary=confluence with Ash River [human-review 2026-08-05 FWA-confluence] mouth of Ash River (0 m validated); target blk/wsc set.",
       "entry_id": "703b9db3"
     },
     {
@@ -13082,11 +13130,17 @@
       "full_regulation": "Exempt from spring closure.\nRainbow trout catch and release from Cheslatta River to a boundary sign 5 km downstream and no rainbow trout under 35 cm from said\nsign downstream to Hwy 27 bridge\nExempt from bait ban downstream of Foothills Boulevard Bridge in Prince George",
       "anchor_kind": "confluence",
       "resolver_hint": "tributary",
-      "status": "todo",
-      "target": "",
-      "coord": null,
-      "label": "",
-      "notes": "[structural-split 2026-08-05 from \"from Cheslatta River to a boundary sign 5 km downstream\"] boundary=Cheslatta River",
+      "status": "curated",
+      "target": {
+        "blk": 356358538,
+        "wsc": "100-567134-547905-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      },
+      "coord": [
+        -124.93582,
+        53.64476
+      ],
+      "label": "Cheslatta River confluence",
+      "notes": "[structural-split 2026-08-05 from \"from Cheslatta River to a boundary sign 5 km downstream\"] boundary=Cheslatta River [human-review 2026-08-05 FWA-confluence] mouth of Cheslatta River (0 m validated); target blk/wsc set.",
       "entry_id": "eee9bebb"
     },
     {
@@ -14712,11 +14766,17 @@
       "full_regulation": "No Fishing from Attichka Creek to a point 500 m upstream",
       "anchor_kind": "confluence",
       "resolver_hint": "tributary",
-      "status": "todo",
-      "target": "",
-      "coord": null,
-      "label": "",
-      "notes": "[structural-split 2026-08-05 from \"from Attichka Creek to a point 500 m upstream\"] boundary=Attichka Creek",
+      "status": "curated",
+      "target": {
+        "blk": 359569519,
+        "wsc": "200-948755-999851-889551-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      },
+      "coord": [
+        -126.78252,
+        56.97681
+      ],
+      "label": "Attichika Creek confluence",
+      "notes": "[structural-split 2026-08-05 from \"from Attichka Creek to a point 500 m upstream\"] boundary=Attichka Creek [human-review 2026-08-05 FWA-confluence] mouth of Attichika Creek (0 m validated); target blk/wsc set.",
       "entry_id": "d128b1fb"
     },
     {
