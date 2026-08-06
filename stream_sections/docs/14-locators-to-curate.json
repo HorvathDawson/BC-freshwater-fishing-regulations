@@ -1288,22 +1288,47 @@
       "entry_id": "4dbdd58a"
     },
     {
-      "id": "lynn-creek-d5e0fb",
+      "id": "lynn-creek-d5e0fb-a",
       "name_verbatim": "LYNN CREEK",
       "region": "REGION 2",
       "mus": [
         "2-8"
       ],
       "src": "rule",
-      "locator_text": "between fishing boundary signs situated approximately 200 m upstream of and 150 m downstream of Twin Falls Bridge",
+      "locator_text": "sign approximately 200 m upstream of Twin Falls Bridge",
       "full_regulation": "No Fishing between fishing boundary signs situated approximately 200 m upstream of and 150 m downstream of Twin Falls Bridge[Includes Tributaries]\nBait ban (mainstem only)",
       "anchor_kind": "point",
       "resolver_hint": "falls_obstacle",
-      "status": "todo",
+      "status": "curated",
       "target": "",
-      "coord": null,
-      "label": "",
-      "notes": "[osm-candidate 2026-08-05] [-123.01604, 49.34148] (OSM Overpass ∩ MU-clipped FWA river; VERIFY).",
+      "coord": [
+        -123.01604,
+        49.34148
+      ],
+      "label": "200 m upstream of Twin Falls Bridge",
+      "notes": "[osm-candidate 2026-08-05] [-123.01604, 49.34148] (OSM Overpass ∩ MU-clipped FWA river; VERIFY). [human-review 2026-08-05] anchor=Twin Falls Bridge [-123.01604, 49.34148]; offset_m=200 offset_dir=upstream (sectionizer auto-calcs the along-channel point).",
+      "entry_id": "362df0a9"
+    },
+    {
+      "id": "lynn-creek-d5e0fb-b",
+      "name_verbatim": "LYNN CREEK",
+      "region": "REGION 2",
+      "mus": [
+        "2-8"
+      ],
+      "src": "rule",
+      "locator_text": "sign approximately 150 m downstream of Twin Falls Bridge",
+      "full_regulation": "No Fishing between fishing boundary signs situated approximately 200 m upstream of and 150 m downstream of Twin Falls Bridge[Includes Tributaries]\nBait ban (mainstem only)",
+      "anchor_kind": "point",
+      "resolver_hint": "falls_obstacle",
+      "status": "curated",
+      "target": "",
+      "coord": [
+        -123.01604,
+        49.34148
+      ],
+      "label": "150 m downstream of Twin Falls Bridge",
+      "notes": "[osm-candidate 2026-08-05] [-123.01604, 49.34148] (OSM Overpass ∩ MU-clipped FWA river; VERIFY). [human-review 2026-08-05] anchor=Twin Falls Bridge [-123.01604, 49.34148]; offset_m=150 offset_dir=downstream (sectionizer auto-calcs the along-channel point).",
       "entry_id": "362df0a9"
     },
     {

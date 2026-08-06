@@ -6007,7 +6007,7 @@
       "image": "page_026_row_016.png",
       "symbols": [],
       "reg_text": "**No Fishing** between fishing boundary signs situated approximately 200 m upstream of and 150 m downstream of Twin Falls Bridge[Includes Tributaries]\nBait ban (mainstem only)",
-      "completeness": "INCOMPLETE",
+      "completeness": "NO_CURATION",
       "n_boundaries": 1,
       "locators": [
         {
@@ -6017,17 +6017,9 @@
             "restriction_type": "closure",
             "includes_tributaries": true
           },
+          "flag": "MISSING",
           "resolved": false,
-          "rows": [
-            {
-              "id": "lynn-creek-d5e0fb",
-              "status": "todo",
-              "anchor_kind": "point",
-              "src": "rule",
-              "resolver_hint": "falls_obstacle",
-              "notes": "[osm-candidate 2026-08-05] [-123.01604, 49.34148] (OSM Overpass ∩ MU-clipped FWA river; VERIFY)."
-            }
-          ]
+          "rows": []
         },
         {
           "src": "name",
@@ -25177,6 +25169,70 @@
     }
   },
   "drift": [
+    {
+      "id": "lynn-creek-d5e0fb-a",
+      "water": "LYNN CREEK",
+      "mu": [
+        "2-8"
+      ],
+      "src": "rule",
+      "locator_text": "sign approximately 200 m upstream of Twin Falls Bridge",
+      "status": "curated",
+      "row": {
+        "id": "lynn-creek-d5e0fb-a",
+        "name_verbatim": "LYNN CREEK",
+        "region": "REGION 2",
+        "mus": [
+          "2-8"
+        ],
+        "src": "rule",
+        "locator_text": "sign approximately 200 m upstream of Twin Falls Bridge",
+        "full_regulation": "No Fishing between fishing boundary signs situated approximately 200 m upstream of and 150 m downstream of Twin Falls Bridge[Includes Tributaries]\nBait ban (mainstem only)",
+        "anchor_kind": "point",
+        "resolver_hint": "falls_obstacle",
+        "status": "curated",
+        "target": "",
+        "coord": [
+          -123.01604,
+          49.34148
+        ],
+        "label": "200 m upstream of Twin Falls Bridge",
+        "notes": "[osm-candidate 2026-08-05] [-123.01604, 49.34148] (OSM Overpass ∩ MU-clipped FWA river; VERIFY). [human-review 2026-08-05] anchor=Twin Falls Bridge [-123.01604, 49.34148]; offset_m=200 offset_dir=upstream (sectionizer auto-calcs the along-channel point).",
+        "entry_id": "362df0a9"
+      }
+    },
+    {
+      "id": "lynn-creek-d5e0fb-b",
+      "water": "LYNN CREEK",
+      "mu": [
+        "2-8"
+      ],
+      "src": "rule",
+      "locator_text": "sign approximately 150 m downstream of Twin Falls Bridge",
+      "status": "curated",
+      "row": {
+        "id": "lynn-creek-d5e0fb-b",
+        "name_verbatim": "LYNN CREEK",
+        "region": "REGION 2",
+        "mus": [
+          "2-8"
+        ],
+        "src": "rule",
+        "locator_text": "sign approximately 150 m downstream of Twin Falls Bridge",
+        "full_regulation": "No Fishing between fishing boundary signs situated approximately 200 m upstream of and 150 m downstream of Twin Falls Bridge[Includes Tributaries]\nBait ban (mainstem only)",
+        "anchor_kind": "point",
+        "resolver_hint": "falls_obstacle",
+        "status": "curated",
+        "target": "",
+        "coord": [
+          -123.01604,
+          49.34148
+        ],
+        "label": "150 m downstream of Twin Falls Bridge",
+        "notes": "[osm-candidate 2026-08-05] [-123.01604, 49.34148] (OSM Overpass ∩ MU-clipped FWA river; VERIFY). [human-review 2026-08-05] anchor=Twin Falls Bridge [-123.01604, 49.34148]; offset_m=150 offset_dir=downstream (sectionizer auto-calcs the along-channel point).",
+        "entry_id": "362df0a9"
+      }
+    },
     {
       "id": "lost-lake-near-taweel-lake-e49a1f",
       "water": "LOST LAKE (near Taweel Lake)",

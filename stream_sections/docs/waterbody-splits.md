@@ -5,13 +5,16 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 
 | completeness | entries |
 |---|--:|
-| NO_CURATION | 0 |
+| NO_CURATION | 1 |
 | MISSING_SPLITS | 2 |
-| INCOMPLETE | 204 |
+| INCOMPLETE | 203 |
 | COMPLETE | 106 |
 | NO_SPLIT | 75 |
 
-**Drift** (curated rows matching no source locator): 1
+**Drift** (curated rows matching no source locator): 3
+
+## LYNN CREEK · MU ['2-8'] · p26 · [NO_CURATION] (362df0a9)
+- ❌ MISSING [rule] “between fishing boundary signs situated approximately 200 m upstre” → —
 
 ## SHUSWAP LAKE (see maps on page 28) (includes Little Shuswap Lake, that part of South Thompson River between Shuswap Lake and Little Shuswap Lake, Seymour, Anstey and Salmon arms and Mara Lake unless stated otherwise) · MU ['3-26'] · p34 · [MISSING_SPLITS] (268902d7)
 - • [rule] “in the waters lying west of a line between signs at Henstridge Roa” → shuswap-lake-see-maps-on-page-28-includes-lit-a72a63[todo]
@@ -642,9 +645,6 @@ approximately 35 m downstream” → little-qualicum-river-4dbb9b[todo]
 ## LIUMCHEN CREEK · MU ['2-3'] · p26 · [INCOMPLETE] (63f561e1)
 - • [rule] “downstream of the lower falls” → liumchen-creek-62ef49[todo]
 
-## LYNN CREEK · MU ['2-8'] · p26 · [INCOMPLETE] (362df0a9)
-- • [rule] “between fishing boundary signs situated approximately 200 m upstre” → lynn-creek-d5e0fb[todo]
-
 ## NOONS CREEK · MU ['2-8'] · p27 · [INCOMPLETE] (91c6d218)
 - • [rule] “upstream of railway bridge” → noons-creek-e22d57[todo]
 
@@ -887,4 +887,6 @@ approximately 35 m downstream” → little-qualicum-river-4dbb9b[todo]
 
 ## ⚠️ DRIFT — curated rows not found in the source (review)
 
+- `lynn-creek-d5e0fb-a` [curated] LYNN CREEK — src=rule “sign approximately 200 m upstream of Twin Falls Br”
+- `lynn-creek-d5e0fb-b` [curated] LYNN CREEK — src=rule “sign approximately 150 m downstream of Twin Falls ”
 - `lost-lake-near-taweel-lake-e49a1f` [not_applicable] LOST LAKE (near Taweel Lake) — src=entry “near Taweel Lake”
