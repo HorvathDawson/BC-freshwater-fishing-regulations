@@ -7,8 +7,8 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 |---|--:|
 | NO_CURATION | 1 |
 | MISSING_SPLITS | 2 |
-| INCOMPLETE | 189 |
-| COMPLETE | 120 |
+| INCOMPLETE | 187 |
+| COMPLETE | 122 |
 | NO_SPLIT | 75 |
 
 **Drift** (curated rows matching no source locator): 3
@@ -290,7 +290,7 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 
 ## LITTLE QUALICUM RIVER · MU ['1-6'] · p19 · [INCOMPLETE] (9e77f8d9)
 - • [rule] “All tributaries” → little-qualicum-river-496f12[not_applicable]
-- • [rule] “from the falls in Little Qualicum Falls Provincial Park downstream” → little-qualicum-river-031042-a[todo], little-qualicum-river-031042-b[todo], little-qualicum-river-4dbb9b-a[todo]
+- • [rule] “from the falls in Little Qualicum Falls Provincial Park downstream” → little-qualicum-river-031042-a[curated], little-qualicum-river-031042-b[todo], little-qualicum-river-4dbb9b-a[todo]
 - • [rule] “from the hatchery fence to signs
 approximately 35 m downstream” → little-qualicum-river-031042-b[todo], little-qualicum-river-4dbb9b-a[todo], little-qualicum-river-4dbb9b-b[todo]
 
@@ -363,11 +363,6 @@ approximately 35 m downstream” → little-qualicum-river-031042-b[todo], littl
 - • [rule] “from Cheslatta River to a boundary sign 5 km downstream” → nechako-river-73a17c-a[curated], nechako-river-73a17c-b[todo]
 - • [rule] “from said sign downstream to Hwy 27 bridge” → nechako-river-735a30-a[todo], nechako-river-735a30-b[todo]
 - • [rule] “downstream of Foothills Boulevard Bridge in Prince George” → nechako-river-d52bc5[todo]
-
-## WAP CREEK · MU ['8-24'] · p77 · [INCOMPLETE] (89526222)
-- • [rule] “downstream of Frog Falls” → wap-creek-15b721[todo]
-- • [except] “excluding Wap Lake” → wap-creek-7d3df8[not_applicable]
-- • [rule] “upstream of Frog Falls” → wap-creek-4333d3[todo]
 
 ## ALOUETTE LAKE · MU ['2-8'] · p6 · [INCOMPLETE] (df2e9fcb)
 - • [rule] “in swimming areas” → alouette-lake-396262[deferred]
@@ -521,10 +516,6 @@ approximately 35 m downstream” → little-qualicum-river-031042-b[todo], littl
 ## ANZAC RIVER · MU ['7-23'] · p65 · [INCOMPLETE] (669f5ba9)
 - • [rule] “within 500 m radius of the Upper Anzac bridge” → anzac-river-13eb8b[todo]
 - • [rule] “upstream of the North Anzac River confluence” → anzac-river-ae3f1c[curated]
-
-## MCLEOD RIVER · MU ['7-24'] · p66 · [INCOMPLETE] (a9ca82b7)
-- • [rule] “from Carp Lake to War Falls” → mcleod-river-362e9a-a[not_applicable], mcleod-river-362e9a-b[todo]
-- • [except] “excluding War Lake” → mcleod-river-c29823[not_applicable]
 
 ## STELLAKO RIVER · MU ['7-12'] · p67 · [INCOMPLETE] (c23b554d)
 - • [rule] “between fishing boundary signs approximately 250 m and 4 km downst” → stellako-river-4769e9-a[todo], stellako-river-76c305-a[todo], stellako-river-76c305-b[todo]

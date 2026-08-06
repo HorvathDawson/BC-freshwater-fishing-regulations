@@ -2511,11 +2511,16 @@
           "rows": [
             {
               "id": "little-qualicum-river-031042-a",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "park_polygon",
-              "notes": "[structural-split 2026-08-05 from \"from the falls in Little Qualicum Falls Provincial Park down\"] boundary=falls in Little Qualicum Falls Provincial Park",
+              "label": "lowest falls (Little Qualicum Falls Park)",
+              "notes": "[structural-split 2026-08-05 from \"from the falls in Little Qualicum Falls Provincial Park down\"] boundary=falls in Little Qualicum Falls Provincial Park [human-review 2026-08-06] LOWEST falls (reg = falls downstream to hatchery).",
+              "coord": [
+                -124.55564,
+                49.3177
+              ],
               "locator_text": "falls in Little Qualicum Falls Provincial Park"
             },
             {
@@ -23492,7 +23497,7 @@
       "image": "page_066_row_021.png",
       "symbols": [],
       "reg_text": "Artificial fly only from Carp Lake to War Falls (excluding War Lake)",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 2,
       "locators": [
         {
@@ -23501,7 +23506,7 @@
           "info": {
             "restriction_type": "gear_restriction"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "mcleod-river-362e9a-a",
@@ -23514,11 +23519,16 @@
             },
             {
               "id": "mcleod-river-362e9a-b",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "falls_obstacle",
-              "notes": "[structural-split 2026-08-05 from \"from Carp Lake to War Falls\"] boundary=War Falls",
+              "label": "War Falls",
+              "notes": "[structural-split 2026-08-05 from \"from Carp Lake to War Falls\"] boundary=War Falls [human-review 2026-08-06] War Falls (chose candidate further from Carp Lake to maximize the Carp Lake->War Falls reach).",
+              "coord": [
+                -123.26099,
+                54.86872
+              ],
               "locator_text": "War Falls"
             }
           ]
@@ -26472,7 +26482,7 @@
       "image": "page_077_row_026.png",
       "symbols": [],
       "reg_text": "**No Fishing** downstream of Frog Falls (excluding Wap Lake) Sept 1-June 30\nExempt from spring closure upstream of Frog Falls",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 3,
       "locators": [
         {
@@ -26484,14 +26494,20 @@
               "Sept 1-June 30"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "wap-creek-15b721",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
-              "resolver_hint": "falls_obstacle"
+              "resolver_hint": "falls_obstacle",
+              "label": "Frog Falls",
+              "notes": " [human-review 2026-08-06 FWA-waterfall].",
+              "coord": [
+                -118.47947,
+                50.89504
+              ]
             }
           ]
         },
@@ -26519,14 +26535,20 @@
           "info": {
             "restriction_type": "note"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "wap-creek-4333d3",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
-              "resolver_hint": "falls_obstacle"
+              "resolver_hint": "falls_obstacle",
+              "label": "Frog Falls",
+              "notes": " [human-review 2026-08-06 FWA-waterfall].",
+              "coord": [
+                -118.47947,
+                50.89504
+              ]
             }
           ]
         },
