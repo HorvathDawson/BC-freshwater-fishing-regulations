@@ -28,7 +28,7 @@ Run from repo root:
     .venv/bin/python -m stream_sections.oneoff.waterbody_splits missing      # boundaries with no row
     .venv/bin/python -m stream_sections.oneoff.waterbody_splits incomplete   # entries not fully resolved
     .venv/bin/python -m stream_sections.oneoff.waterbody_splits drift        # curated rows not in source
-See docs/18-waterbody-split-curation.md.
+See docs/14-waterbody-split-curation.md.
 """
 from __future__ import annotations
 
@@ -388,7 +388,7 @@ def render_reg(reg_text: str, live_phrases: list[str]) -> tuple[str, int]:
 def write_regs_md(cards):
     """Original-synopsis-style table of ALL reg entries, with live split locators highlighted inline
     in the reg text (n/a locators left plain). A read-only review aid; prototype of the future
-    curation_status `regs-md` view. See docs/18."""
+    curation_status `regs-md` view. See docs/14."""
     rows_out, n_hi = [], 0
     for c in sorted(cards.values(), key=lambda c: (c.get("region") or "", c.get("page") or 0,
                                                     c["water"])):

@@ -50,11 +50,10 @@ matching → testing), then reference material, then the forward plan (`16`).
 | `11-implementation-plan.md` | De-risk-first build order + concrete first steps |
 | `12-testing.md` | **Testing (everything up to matching)** — test-as-you-build tiers, the visual anchor/section/tributary catalogue, and the status dashboard |
 | `13-corrections-memo.md` | Regulation weirdness & corrections catalog (480 overrides classified) (+ `13-corrections-classified.json`) |
-| `14-locators-to-curate.md` | Locator-curation guide + row schema; the editable data is `14-locators-to-curate.json` (651 locator rows, each with `entry_id`) |
+| `14-waterbody-split-curation.md` | **Curation source of truth** — the grouped, source-first split-curation model + workflow; canonical data is `waterbody-splits.json` (grouped by reg entry, self-sufficient). The old flat `14-locators-to-curate.{json,md}` is archived in `archive/` (superseded, round-trip-lossless). |
 | `15-lake-splitting-design.md` | **Future option** — how lake subdivision would work (NOT built) |
 | `16-phase5-match-plan.md` | **Forward plan** — Phase 5 (match): TDD review of the 4 selectors + blockers; the Garibaldi area-closure is shipped, matching is what's left |
 | `17-manual-review-runbook.md` | Per-row writing rules + gotchas for resolving a locator (how to curate one row) |
-| `18-waterbody-split-curation.md` | **Active workflow** — source-first split completeness: group each reg's splits, backfill curation, flag MISSING/DRIFT (`oneoff/waterbody_splits.py` → `waterbody-splits.{json,md}`) |
 
 ## Implemented so far (branch `redesign/stream-sections`)
 

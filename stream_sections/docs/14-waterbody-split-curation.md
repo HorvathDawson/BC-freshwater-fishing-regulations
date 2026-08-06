@@ -1,9 +1,12 @@
-# Waterbody-grouped split curation (source-first) — model + handoff
+# Waterbody-grouped split curation (source-first) — the curation source of truth (doc 14)
 
-**Status: active workflow (2026-08-05).** Completeness pass over the split curation in
-`14-locators-to-curate.json`. It does **not** discard any prior curation — it regenerates the split
-structure from the original regs source, **backfills** the curation we've already done, and **warns**
-about anything that no longer maps.
+**Status: CANONICAL as of 2026-08-05.** This is now the curation source of truth. The old flat
+`14-locators-to-curate.json` has been **archived** (`archive/14-locators-to-curate.{json,md}`); the
+canonical, self-sufficient data is **`waterbody-splits.json`** (grouped by reg entry). The build
+sources curation via `load_curation()` (flatten of the grouped file), and the rebuild is
+**idempotent** and **round-trip-lossless** (proven by `verify-flatten` before archiving). It
+regenerates the split structure from the original regs source, **backfills** the curation, and
+**warns** about anything that no longer maps.
 
 ## Why
 
@@ -118,7 +121,7 @@ writing rules and `docs/15` for lake-internal (deferred) splits.
 **Direction (decided 2026-08-05):** `14-locators-to-curate.json` is a flat list that is hard to
 review; the grouped, de-duped structure in `waterbody-splits.json` is the better shape. The plan is
 to **finish cleaning up curation, then make the grouped file the source-of-truth and rename it into
-`14`'s role** (this doc, `18`, becomes the canonical spec; the old `14-locators-to-curate.md` folds
+`14`'s role** (this doc, `14`, becomes the canonical spec; the old `14-locators-to-curate.md` folds
 in).
 
 **Why it can't happen yet — the "writer" blocker.** Today the flow is one-way:
