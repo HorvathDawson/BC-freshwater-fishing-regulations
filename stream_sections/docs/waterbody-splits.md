@@ -7,8 +7,8 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 |---|--:|
 | NO_CURATION | 1 |
 | MISSING_SPLITS | 2 |
-| INCOMPLETE | 203 |
-| COMPLETE | 106 |
+| INCOMPLETE | 202 |
+| COMPLETE | 107 |
 | NO_SPLIT | 75 |
 
 **Drift** (curated rows matching no source locator): 3
@@ -274,9 +274,9 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 - • [rule] “on all parts” → white-river-see-also-east-white-north-white-r-955fb4[todo]
 
 ## QUESNEL RIVER · MU ['5-2'] · p52 · [INCOMPLETE] (cae5d13e)
-- • [rule] “from 50 m upstream of Likely Bridge to 50 m downstream of Likely B” → quesnel-river-cf8577-a[todo], quesnel-river-cf8577-b[todo]
+- • [rule] “from 50 m upstream of Likely Bridge to 50 m downstream of Likely B” → quesnel-river-cf8577-a[curated], quesnel-river-cf8577-b[curated]
 - • [rule] “upstream of Cariboo River” → quesnel-river-befb92[curated]
-- • [rule] “from the boundary signs approximately 1.8 km east of the Likely Br” → quesnel-river-2ce5e8-a[todo], quesnel-river-2ce5e8-b[todo]
+- • [rule] “from the boundary signs approximately 1.8 km east of the Likely Br” → quesnel-river-2ce5e8-a[curated], quesnel-river-2ce5e8-b[todo]
 - • [rule] “downstream of Morehead Creek” → quesnel-river-2ce5e8-b[todo], quesnel-river-583bb9[curated]
 
 ## BABINE RIVER · MU ['6-8'] · p56 · [INCOMPLETE] (4dd3daf7)
@@ -644,9 +644,6 @@ approximately 35 m downstream” → little-qualicum-river-4dbb9b[todo]
 
 ## LIUMCHEN CREEK · MU ['2-3'] · p26 · [INCOMPLETE] (63f561e1)
 - • [rule] “downstream of the lower falls” → liumchen-creek-62ef49[todo]
-
-## NOONS CREEK · MU ['2-8'] · p27 · [INCOMPLETE] (91c6d218)
-- • [rule] “upstream of railway bridge” → noons-creek-e22d57[todo]
 
 ## NORTH ALOUETTE RIVER · MU ['2-8'] · p27 · [INCOMPLETE] (7ef10bf8)
 - • [rule] “upstream of 216th Street (Fifth Ave)” → alouette-river-daecfd[todo], north-alouette-river-e3810a[todo]

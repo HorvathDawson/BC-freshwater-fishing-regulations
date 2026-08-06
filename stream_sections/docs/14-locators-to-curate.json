@@ -4805,11 +4805,14 @@
       "full_regulation": "No Fishing upstream of railway bridge",
       "anchor_kind": "point",
       "resolver_hint": "bridge_road_km",
-      "status": "todo",
+      "status": "curated",
       "target": "",
-      "coord": null,
-      "label": "",
-      "notes": "[auto-proposal L] railway bridge over Noons Creek, Port Moody on Noons Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the railway bridge over Noons Creek at Port Moody; railway bridge, map-only.. Small urban creek at Port Moody; landmark is a railway bridge near the mouth. FSR hits are upstream (Cypress Lake). Map/OSM-confirmable. [osm-candidate 2026-08-05] [-122.83407, 49.28408] (OSM Overpass ∩ MU-clipped FWA river; VERIFY).",
+      "coord": [
+        -122.83407,
+        49.28408
+      ],
+      "label": "railway bridge",
+      "notes": "[auto-proposal L] railway bridge over Noons Creek, Port Moody on Noons Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the railway bridge over Noons Creek at Port Moody; railway bridge, map-only.. Small urban creek at Port Moody; landmark is a railway bridge near the mouth. FSR hits are upstream (Cypress Lake). Map/OSM-confirmable. [human-review 2026-08-05 OSM-confirmed] [-122.83407, 49.28408].",
       "entry_id": "91c6d218"
     },
     {
@@ -4957,11 +4960,14 @@
       "full_regulation": "No Fishing from 50 m upstream of Likely Bridge to 50 m downstream of Likely Bridge\nNo Fishing upstream of Cariboo River, Mar 1-June 15\nTrout/char catch and release from the boundary signs approximately 1.8 km east of the Likely Bridge downstream to Morehead Creek\nTrout/char daily quota = 1 (none under 40 cm) downstream of Morehead Creek\nBait ban",
       "anchor_kind": "point",
       "resolver_hint": "bridge_road_km",
-      "status": "todo",
+      "status": "curated",
       "target": "",
-      "coord": null,
-      "label": "",
-      "notes": "[auto-proposal L] Likely Bridge over Quesnel River (+/- 50 m) on Quesnel River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the Likely Bridge over the Quesnel River at Likely townsite (reach = 50 m either side); review.. Road bridge at Likely (upper Quesnel River, near Quesnel Lake outlet). Not name-matched in FSR; well-defined public bridge -> map/OSM-confirmable. NOTE the FWA mouth (Quesnel city) is the wrong end; Likely is upstream. [structural-split 2026-08-05 from “from 50 m upstream of Likely Bridge to 50 m downstream of Likely Bridge”] boundary=50 m upstream of Likely Bridge [osm-candidate 2026-08-05] [-121.57279, 52.61534] (OSM Overpass ∩ MU-clipped FWA river; VERIFY).",
+      "coord": [
+        -121.57279,
+        52.61534
+      ],
+      "label": "50 m upstream of Likely Bridge",
+      "notes": "[auto-proposal L] Likely Bridge over Quesnel River (+/- 50 m) on Quesnel River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the Likely Bridge over the Quesnel River at Likely townsite (reach = 50 m either side); review.. Road bridge at Likely (upper Quesnel River, near Quesnel Lake outlet). Not name-matched in FSR; well-defined public bridge -> map/OSM-confirmable. NOTE the FWA mouth (Quesnel city) is the wrong end; Likely is upstream. [structural-split 2026-08-05 from “from 50 m upstream of Likely Bridge to 50 m downstream of Likely Bridge”] boundary=50 m upstream of Likely Bridge [human-review 2026-08-05] anchor=Likely Bridge [-121.57279, 52.61534]; offset_m=50 offset_dir=upstream (sectionizer auto-calcs).",
       "entry_id": "cae5d13e"
     },
     {
@@ -4976,11 +4982,14 @@
       "full_regulation": "No Fishing from 50 m upstream of Likely Bridge to 50 m downstream of Likely Bridge\nNo Fishing upstream of Cariboo River, Mar 1-June 15\nTrout/char catch and release from the boundary signs approximately 1.8 km east of the Likely Bridge downstream to Morehead Creek\nTrout/char daily quota = 1 (none under 40 cm) downstream of Morehead Creek\nBait ban",
       "anchor_kind": "point",
       "resolver_hint": "bridge_road_km",
-      "status": "todo",
+      "status": "curated",
       "target": "",
-      "coord": null,
-      "label": "",
-      "notes": "[auto-proposal L] Likely Bridge over Quesnel River (+/- 50 m) on Quesnel River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the Likely Bridge over the Quesnel River at Likely townsite (reach = 50 m either side); review.. Road bridge at Likely (upper Quesnel River, near Quesnel Lake outlet). Not name-matched in FSR; well-defined public bridge -> map/OSM-confirmable. NOTE the FWA mouth (Quesnel city) is the wrong end; Likely is upstream. [structural-split 2026-08-05 from “from 50 m upstream of Likely Bridge to 50 m downstream of Likely Bridge”] boundary=50 m downstream of Likely Bridge [osm-candidate 2026-08-05] [-121.57279, 52.61534] (OSM Overpass ∩ MU-clipped FWA river; VERIFY).",
+      "coord": [
+        -121.57279,
+        52.61534
+      ],
+      "label": "50 m downstream of Likely Bridge",
+      "notes": "[auto-proposal L] Likely Bridge over Quesnel River (+/- 50 m) on Quesnel River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the Likely Bridge over the Quesnel River at Likely townsite (reach = 50 m either side); review.. Road bridge at Likely (upper Quesnel River, near Quesnel Lake outlet). Not name-matched in FSR; well-defined public bridge -> map/OSM-confirmable. NOTE the FWA mouth (Quesnel city) is the wrong end; Likely is upstream. [structural-split 2026-08-05 from “from 50 m upstream of Likely Bridge to 50 m downstream of Likely Bridge”] boundary=50 m downstream of Likely Bridge [human-review 2026-08-05] anchor=Likely Bridge [-121.57279, 52.61534]; offset_m=50 offset_dir=downstream (sectionizer auto-calcs).",
       "entry_id": "cae5d13e"
     },
     {
@@ -4995,11 +5004,14 @@
       "full_regulation": "No Fishing from 50 m upstream of Likely Bridge to 50 m downstream of Likely Bridge\nNo Fishing upstream of Cariboo River, Mar 1-June 15\nTrout/char catch and release from the boundary signs approximately 1.8 km east of the Likely Bridge downstream to Morehead Creek\nTrout/char daily quota = 1 (none under 40 cm) downstream of Morehead Creek\nBait ban",
       "anchor_kind": "point",
       "resolver_hint": "bridge_road_km",
-      "status": "todo",
+      "status": "curated",
       "target": "",
-      "coord": null,
-      "label": "",
-      "notes": "[auto-proposal L] boundary signs ~1.8 km E of Likely Bridge (to Morehead Creek) on Quesnel River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the signs ~1.8 km east of the Likely Bridge and the Morehead Creek confluence; map.. Reach = signs ~1.8 km E of Likely Bridge down to Morehead Creek. Sign + confluence landmarks near Likely -> map/OSM-confirmable. [structural-split 2026-08-05 from “from the boundary signs approximately 1.8 km east of the Likely Bridge downstream to Morehead Creek”] boundary=boundary signs approximately 1.8 km east of the Likely Bridge [osm-candidate 2026-08-05] [-121.57279, 52.61534] (OSM Overpass ∩ MU-clipped FWA river; VERIFY).",
+      "coord": [
+        -121.57279,
+        52.61534
+      ],
+      "label": "signs 1.8 km upstream (E) of Likely Bridge",
+      "notes": "[auto-proposal L] boundary signs ~1.8 km E of Likely Bridge (to Morehead Creek) on Quesnel River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the signs ~1.8 km east of the Likely Bridge and the Morehead Creek confluence; map.. Reach = signs ~1.8 km E of Likely Bridge down to Morehead Creek. Sign + confluence landmarks near Likely -> map/OSM-confirmable. [structural-split 2026-08-05 from “from the boundary signs approximately 1.8 km east of the Likely Bridge downstream to Morehead Creek”] boundary=boundary signs approximately 1.8 km east of the Likely Bridge [human-review 2026-08-05] anchor=Likely Bridge [-121.57279, 52.61534]; offset_m=1800 offset_dir=upstream (sectionizer auto-calcs).",
       "entry_id": "cae5d13e"
     },
     {
