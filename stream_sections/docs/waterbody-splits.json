@@ -1656,11 +1656,16 @@
           "rows": [
             {
               "id": "englishman-river-8660ed-a",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "park_polygon",
-              "notes": "[structural-split 2026-08-05 from \"from lower falls in Englishman River Park to signs approxima\"] boundary=lower falls in Englishman River Park",
+              "label": "lower falls, Englishman River Park",
+              "notes": "[structural-split 2026-08-05 from \"from lower falls in Englishman River Park to signs approxima\"] boundary=lower falls in Englishman River Park [human-review 2026-08-06] lower falls (#7).",
+              "coord": [
+                -124.34885,
+                49.24654
+              ],
               "locator_text": "lower falls in Englishman River Park"
             },
             {
@@ -3872,7 +3877,7 @@
         "Incl. Tribs"
       ],
       "reg_text": "Fly fishing only downstream of Sooke River Falls, Sept 1-Nov 30\n**No Fishing** July 15-Aug 31[Includes Tributaries], **No Fishing** from the base of the lower \"potholes\" falls to signs approximately 100 m downstream",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 2,
       "locators": [
         {
@@ -3907,24 +3912,34 @@
           "info": {
             "restriction_type": "closure"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "sooke-river-5f3547-a",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "falls_obstacle",
-              "notes": "[structural-split 2026-08-05 from \"from the base of the lower \"potholes\" falls to signs approxi\"] boundary=base of the lower \"potholes\" falls",
+              "label": "lower potholes falls",
+              "notes": "[structural-split 2026-08-05 from \"from the base of the lower \"potholes\" falls to signs approxi\"] boundary=base of the lower \"potholes\" falls [human-review 2026-08-06] lower Sooke Potholes falls (between candidates 1&2, user-located, snapped).",
+              "coord": [
+                -123.7156,
+                48.43361
+              ],
               "locator_text": "base of the lower \"potholes\" falls"
             },
             {
               "id": "sooke-river-5f3547-b",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "falls_obstacle",
-              "notes": "[structural-split 2026-08-05 from \"from the base of the lower \"potholes\" falls to signs approxi\"] boundary=signs approximately 100 m downstream",
+              "label": "signs 100 m below potholes falls",
+              "notes": "[structural-split 2026-08-05 from \"from the base of the lower \"potholes\" falls to signs approxi\"] boundary=signs approximately 100 m downstream [human-review 2026-08-06] 100 m downstream of the lower potholes falls.",
+              "coord": [
+                -123.71538,
+                48.43272
+              ],
               "locator_text": "signs approximately 100 m downstream"
             }
           ]
@@ -6277,7 +6292,7 @@
       "image": "page_025_row_043.png",
       "symbols": [],
       "reg_text": "**No Fishing** May 1-June 30\n**No Fishing** from Cliff Park Falls to 112th Avenue",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 1,
       "locators": [
         {
@@ -6286,24 +6301,34 @@
           "info": {
             "restriction_type": "closure"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "kanaka-creek-9ba9e6-a",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "falls_obstacle",
-              "notes": "[structural-split 2026-08-05 from \"from Cliff Park Falls to 112th Avenue\"] boundary=Cliff Park Falls",
+              "label": "Cliff Park Falls",
+              "notes": "[structural-split 2026-08-05 from \"from Cliff Park Falls to 112th Avenue\"] boundary=Cliff Park Falls [human-review 2026-08-06] Cliff Falls (#1).",
+              "coord": [
+                -122.52451,
+                49.21002
+              ],
               "locator_text": "Cliff Park Falls"
             },
             {
               "id": "kanaka-creek-9ba9e6-b",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
-              "resolver_hint": "falls_obstacle",
-              "notes": "[structural-split 2026-08-05 from \"from Cliff Park Falls to 112th Avenue\"] boundary=112th Avenue",
+              "resolver_hint": "bridge_road_km",
+              "label": "112 Avenue bridge",
+              "notes": "[structural-split 2026-08-05 from \"from Cliff Park Falls to 112th Avenue\"] boundary=112th Avenue [human-review 2026-08-06] 112 Avenue x Kanaka Creek (OSM). Re-typed from inherited falls_obstacle -> bridge_road_km.",
+              "coord": [
+                -122.53622,
+                49.20714
+              ],
               "locator_text": "112th Avenue"
             }
           ]

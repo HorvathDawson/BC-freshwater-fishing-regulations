@@ -7,8 +7,8 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 |---|--:|
 | NO_CURATION | 1 |
 | MISSING_SPLITS | 2 |
-| INCOMPLETE | 184 |
-| COMPLETE | 125 |
+| INCOMPLETE | 182 |
+| COMPLETE | 127 |
 | NO_SPLIT | 75 |
 
 **Drift** (curated rows matching no source locator): 3
@@ -372,7 +372,7 @@ approximately 35 m downstream” → little-qualicum-river-031042-b[todo], littl
 - • [rule] “within 60 m of shore” → cowichan-lake-including-bear-lake-8afef8[todo]
 
 ## ENGLISHMAN RIVER · MU ['1-5'] · p17 · [INCOMPLETE] (fbf29fb0)
-- • [rule] “from lower falls in Englishman River Park to signs approximately 1” → englishman-river-8660ed-a[todo], englishman-river-8660ed-b[todo]
+- • [rule] “from lower falls in Englishman River Park to signs approximately 1” → englishman-river-8660ed-a[curated], englishman-river-8660ed-b[todo]
 - • [rule] “downstream of the lower falls in Englishman River Falls Provincial” → englishman-river-46a674-a[todo], englishman-river-46a674-b[curated]
 
 ## KEOGH RIVER · MU ['1-13'] · p18 · [INCOMPLETE] (f02f2954)
@@ -386,10 +386,6 @@ approximately 35 m downstream” → little-qualicum-river-031042-b[todo], littl
 ## QUINSAM RIVER · MU ['1-6'] · p20 · [INCOMPLETE] (04a9a77c)
 - • [rule] “from the fishing boundary signs at power line crossing (approximat” → quinsam-river-014fa9-b[todo], quinsam-river-c440f0-a[todo], quinsam-river-c440f0-b[todo]
 - • [rule] “from the falls situated downstream of Middle Quinsam Lake to the f” → quinsam-river-014fa9-a[todo], quinsam-river-014fa9-b[todo], quinsam-river-c440f0-b[todo]
-
-## SOOKE RIVER · MU ['1-2'] · p20 · [INCOMPLETE] (5551826e)
-- • [rule] “downstream of Sooke River Falls” → sooke-river-6c92c5[curated]
-- • [rule] “from the base of the lower "potholes" falls to signs approximately” → sooke-river-5f3547-a[todo], sooke-river-5f3547-b[todo]
 
 ## TOQUART RIVER · MU ['1-8'] · p21 · [INCOMPLETE] (492dbcc9)
 - • [rule] “upstream of the Toquart mainline logging bridge when open” → toquart-river-ef1ea4[todo]
@@ -581,9 +577,6 @@ approximately 35 m downstream” → little-qualicum-river-031042-b[todo], littl
 
 ## HYLAND CREEK · MU ['2-4'] · p25 · [INCOMPLETE] (67bf57fc)
 - • [rule] “upstream of 152nd Street (Johnson Road)” → hyland-creek-f98bc6[todo]
-
-## KANAKA CREEK · MU ['2-8'] · p25 · [INCOMPLETE] (5cfc51fc)
-- • [rule] “from Cliff Park Falls to 112th Avenue” → kanaka-creek-9ba9e6-a[todo], kanaka-creek-9ba9e6-b[todo]
 
 ## NORTH ALOUETTE RIVER · MU ['2-8'] · p27 · [INCOMPLETE] (7ef10bf8)
 - • [rule] “upstream of 216th Street (Fifth Ave)” → alouette-river-daecfd[curated], north-alouette-river-e3810a[todo]
