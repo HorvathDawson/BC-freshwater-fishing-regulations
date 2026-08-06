@@ -158,8 +158,8 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 
 ## NANAIMO RIVER · MU ['1-5'] · p19 · [INCOMPLETE] (046b8cc3)
 - • [rule] “from power line crossing at "Bore Hole" upstream to fishing bounda” → nanaimo-river-633e28-a[todo], nanaimo-river-633e28-b[todo]
-- • [rule] “from the Cedar Road Bridge upstream to the Hwy 19 bridge” → nanaimo-river-e9ebfc-a[todo], nanaimo-river-e9ebfc-b[todo]
-- • [rule] “upstream of the Hwy 1 bridge” → nanaimo-river-41353f[todo]
+- • [rule] “from the Cedar Road Bridge upstream to the Hwy 19 bridge” → nanaimo-river-e9ebfc-a[curated], nanaimo-river-e9ebfc-b[curated]
+- • [rule] “upstream of the Hwy 1 bridge” → nanaimo-river-41353f[curated]
 - • [rule] “upstream of the westernmost of the two Nanaimo Lakes, known locall” → nanaimo-river-76bf11[not_applicable]
 - • [rule] “on parts” → nanaimo-river-bd9e20[not_applicable]
 

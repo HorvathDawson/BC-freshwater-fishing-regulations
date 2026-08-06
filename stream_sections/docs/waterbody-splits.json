@@ -2694,24 +2694,34 @@
               "Sept 1-Oct 15"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "nanaimo-river-e9ebfc-a",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] Cedar Road Bridge & Hwy 19 bridge over Nanaimo River on Nanaimo River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the Cedar Road bridge and Hwy 19 bridge over the Nanaimo River (near Cedar/Nanaimo); map.. Reach between two road bridges on the lower Nanaimo River. Public bridges -> map/OSM-confirmable. [structural-split 2026-08-05 from “from the Cedar Road Bridge upstream to the Hwy 19 bridge”] boundary=Cedar Road Bridge [osm-candidate 2026-08-05] [-123.88045, 49.11625] (OSM Overpass ∩ MU-clipped FWA river; VERIFY).",
+              "label": "Cedar Road bridge",
+              "notes": "[auto-proposal L] Cedar Road Bridge & Hwy 19 bridge over Nanaimo River on Nanaimo River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the Cedar Road bridge and Hwy 19 bridge over the Nanaimo River (near Cedar/Nanaimo); map.. Reach between two road bridges on the lower Nanaimo River. Public bridges -> map/OSM-confirmable. [structural-split 2026-08-05 from “from the Cedar Road Bridge upstream to the Hwy 19 bridge”] boundary=Cedar Road Bridge [human-review 2026-08-05 OSM-confirmed] [-123.88045, 49.11625].",
+              "coord": [
+                -123.88045,
+                49.11625
+              ],
               "locator_text": "Cedar Road Bridge"
             },
             {
               "id": "nanaimo-river-e9ebfc-b",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] Cedar Road Bridge & Hwy 19 bridge over Nanaimo River on Nanaimo River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the Cedar Road bridge and Hwy 19 bridge over the Nanaimo River (near Cedar/Nanaimo); map.. Reach between two road bridges on the lower Nanaimo River. Public bridges -> map/OSM-confirmable. [structural-split 2026-08-05 from “from the Cedar Road Bridge upstream to the Hwy 19 bridge”] boundary=Hwy 19 bridge [osm-candidate 2026-08-05] [-123.87943, 49.11422] (OSM Overpass ∩ MU-clipped FWA river; VERIFY).",
+              "label": "Hwy 19 bridge",
+              "notes": "[auto-proposal L] Cedar Road Bridge & Hwy 19 bridge over Nanaimo River on Nanaimo River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the Cedar Road bridge and Hwy 19 bridge over the Nanaimo River (near Cedar/Nanaimo); map.. Reach between two road bridges on the lower Nanaimo River. Public bridges -> map/OSM-confirmable. [structural-split 2026-08-05 from “from the Cedar Road Bridge upstream to the Hwy 19 bridge”] boundary=Hwy 19 bridge [human-review 2026-08-05 OSM-confirmed] [-123.87943, 49.11422].",
+              "coord": [
+                -123.87943,
+                49.11422
+              ],
               "locator_text": "Hwy 19 bridge"
             }
           ]
@@ -2726,15 +2736,20 @@
             ],
             "includes_tributaries": true
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "nanaimo-river-41353f",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] Hwy 1 bridge over Nanaimo River on Nanaimo River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the Hwy 1 (Trans-Canada) bridge over the Nanaimo River, S of Nanaimo; single crossing -> review.. Public highway bridge -> map/OSM-confirmable; not in FWA. [osm-candidate 2026-08-05] [-123.8806, 49.07089] (OSM Overpass ∩ MU-clipped FWA river; VERIFY)."
+              "label": "Hwy 1 bridge",
+              "notes": "[auto-proposal L] Hwy 1 bridge over Nanaimo River on Nanaimo River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the Hwy 1 (Trans-Canada) bridge over the Nanaimo River, S of Nanaimo; single crossing -> review.. Public highway bridge -> map/OSM-confirmable; not in FWA. [human-review 2026-08-05 OSM-confirmed] [-123.8806, 49.07089].",
+              "coord": [
+                -123.8806,
+                49.07089
+              ]
             }
           ]
         },
