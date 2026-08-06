@@ -72,7 +72,7 @@
         "Incl. Tribs"
       ],
       "reg_text": "Artificial fly only upstream of Eve River, to Hwy 19 bridge",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 3,
       "locators": [
         {
@@ -96,15 +96,24 @@
           "info": {
             "restriction_type": "gear_restriction"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "adam-river-except-eve-river-939f98-a",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "confluence",
               "src": "rule",
               "resolver_hint": "tributary",
-              "notes": "[auto-proposal L] Hwy 19 bridge over Adam River on Adam River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the Hwy 19 bridge over Adam River (Sayward area) on a map; single obvious crossing -> review.. Reach is 'upstream of Eve River (confluence) to the Hwy 19 bridge'. Adam River drains to Johnstone Strait near Sayward; Hwy 19 crosses it in the lower river. Public-highway bridge, not in FWA/FSR data -> map/OSM-confirmable. The Eve River endpoint is a separate confluence locator. — [review: two-boundary] 'upstream of Eve River, to Hwy 19 bridge' = TWO boundaries (Eve River confluence + Hwy 19 bridge); may need -a/-b rows per the two-boundary writing rule. [structural-split 2026-08-05 from “upstream of Eve River, to Hwy 19 bridge”] boundary=upstream of Eve River",
+              "label": "Eve River confluence",
+              "notes": "[auto-proposal L] Hwy 19 bridge over Adam River on Adam River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the Hwy 19 bridge over Adam River (Sayward area) on a map; single obvious crossing -> review.. Reach is 'upstream of Eve River (confluence) to the Hwy 19 bridge'. Adam River drains to Johnstone Strait near Sayward; Hwy 19 crosses it in the lower river. Public-highway bridge, not in FWA/FSR data -> map/OSM-confirmable. The Eve River endpoint is a separate confluence locator. — [review: two-boundary] 'upstream of Eve River, to Hwy 19 bridge' = TWO boundaries (Eve River confluence + Hwy 19 bridge); may need -a/-b rows per the two-boundary writing rule. [structural-split 2026-08-05 from “upstream of Eve River, to Hwy 19 bridge”] boundary=upstream of Eve River [human-review 2026-08-05 FWA-confluence] mouth of Eve River on mainstem (0 m validated); target blk/wsc set.",
+              "coord": [
+                -126.24626,
+                50.43788
+              ],
+              "target": {
+                "blk": 354154954,
+                "wsc": "920-757566-086842-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+              },
               "locator_text": "upstream of Eve River"
             },
             {
@@ -8729,11 +8738,20 @@
           "rows": [
             {
               "id": "fraser-river-74a44b-a",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "confluence",
               "src": "rule",
               "resolver_hint": "tributary",
-              "notes": "[auto-proposal L] CNR Bridge ~1 km below Thompson confluence (Lytton) on Fraser River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the CNR bridge ~1 km below the Thompson-Fraser confluence at Lytton; railway bridge, map.. Reach = Thompson River confluence (Lytton) to the CNR bridge ~1 km downstream. Confluence + railway bridge -> map/OSM-confirmable. [structural-split 2026-08-05 from “From the confluence with Thompson River to the CNR Bridge approximately 1 km downstream”] boundary=confluence with Thompson River",
+              "label": "Thompson River confluence",
+              "notes": "[auto-proposal L] CNR Bridge ~1 km below Thompson confluence (Lytton) on Fraser River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the CNR bridge ~1 km below the Thompson-Fraser confluence at Lytton; railway bridge, map.. Reach = Thompson River confluence (Lytton) to the CNR bridge ~1 km downstream. Confluence + railway bridge -> map/OSM-confirmable. [structural-split 2026-08-05 from “From the confluence with Thompson River to the CNR Bridge approximately 1 km downstream”] boundary=confluence with Thompson River [human-review 2026-08-05 FWA-confluence] mouth of Thompson River on mainstem (0 m validated); target blk/wsc set.",
+              "coord": [
+                -121.58488,
+                50.23551
+              ],
+              "target": {
+                "blk": 356364690,
+                "wsc": "100-190442-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+              },
               "locator_text": "confluence with Thompson River"
             },
             {
@@ -8760,11 +8778,20 @@
           "rows": [
             {
               "id": "fraser-river-74a44b-a",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "confluence",
               "src": "rule",
               "resolver_hint": "tributary",
-              "notes": "[auto-proposal L] CNR Bridge ~1 km below Thompson confluence (Lytton) on Fraser River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the CNR bridge ~1 km below the Thompson-Fraser confluence at Lytton; railway bridge, map.. Reach = Thompson River confluence (Lytton) to the CNR bridge ~1 km downstream. Confluence + railway bridge -> map/OSM-confirmable. [structural-split 2026-08-05 from “From the confluence with Thompson River to the CNR Bridge approximately 1 km downstream”] boundary=confluence with Thompson River",
+              "label": "Thompson River confluence",
+              "notes": "[auto-proposal L] CNR Bridge ~1 km below Thompson confluence (Lytton) on Fraser River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the CNR bridge ~1 km below the Thompson-Fraser confluence at Lytton; railway bridge, map.. Reach = Thompson River confluence (Lytton) to the CNR bridge ~1 km downstream. Confluence + railway bridge -> map/OSM-confirmable. [structural-split 2026-08-05 from “From the confluence with Thompson River to the CNR Bridge approximately 1 km downstream”] boundary=confluence with Thompson River [human-review 2026-08-05 FWA-confluence] mouth of Thompson River on mainstem (0 m validated); target blk/wsc set.",
+              "coord": [
+                -121.58488,
+                50.23551
+              ],
+              "target": {
+                "blk": 356364690,
+                "wsc": "100-190442-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+              },
               "locator_text": "confluence with Thompson River"
             },
             {
@@ -8791,11 +8818,20 @@
           "rows": [
             {
               "id": "fraser-river-74a44b-a",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "confluence",
               "src": "rule",
               "resolver_hint": "tributary",
-              "notes": "[auto-proposal L] CNR Bridge ~1 km below Thompson confluence (Lytton) on Fraser River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the CNR bridge ~1 km below the Thompson-Fraser confluence at Lytton; railway bridge, map.. Reach = Thompson River confluence (Lytton) to the CNR bridge ~1 km downstream. Confluence + railway bridge -> map/OSM-confirmable. [structural-split 2026-08-05 from “From the confluence with Thompson River to the CNR Bridge approximately 1 km downstream”] boundary=confluence with Thompson River",
+              "label": "Thompson River confluence",
+              "notes": "[auto-proposal L] CNR Bridge ~1 km below Thompson confluence (Lytton) on Fraser River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the CNR bridge ~1 km below the Thompson-Fraser confluence at Lytton; railway bridge, map.. Reach = Thompson River confluence (Lytton) to the CNR bridge ~1 km downstream. Confluence + railway bridge -> map/OSM-confirmable. [structural-split 2026-08-05 from “From the confluence with Thompson River to the CNR Bridge approximately 1 km downstream”] boundary=confluence with Thompson River [human-review 2026-08-05 FWA-confluence] mouth of Thompson River on mainstem (0 m validated); target blk/wsc set.",
+              "coord": [
+                -121.58488,
+                50.23551
+              ],
+              "target": {
+                "blk": 356364690,
+                "wsc": "100-190442-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+              },
               "locator_text": "confluence with Thompson River"
             },
             {
@@ -11111,11 +11147,20 @@
           "rows": [
             {
               "id": "burton-creek-b25ef3-a",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "confluence",
               "src": "rule",
               "resolver_hint": "tributary",
-              "notes": "[auto-proposal L] Hwy 6 bridge over Burton Creek on Burton Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm Hwy 6 bridge over Burton Creek; VERIFY correct Burton Creek (FWA name collision).. Reach = 'from Woden Creek to Hwy 6 bridge'. The FWA 'Burton Creek' match (51.48N,-119.46, Adams Lake area) is likely the wrong creek; the reg creek is on Hwy 6 (Arrow Lakes / Nakusp corridor). Public highway -> map-only. [structural-split 2026-08-05 from “from Woden Creek to Hwy 6 bridge”] boundary=Woden Creek",
+              "label": "Woden Creek confluence",
+              "notes": "[auto-proposal L] Hwy 6 bridge over Burton Creek on Burton Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm Hwy 6 bridge over Burton Creek; VERIFY correct Burton Creek (FWA name collision).. Reach = 'from Woden Creek to Hwy 6 bridge'. The FWA 'Burton Creek' match (51.48N,-119.46, Adams Lake area) is likely the wrong creek; the reg creek is on Hwy 6 (Arrow Lakes / Nakusp corridor). Public highway -> map-only. [structural-split 2026-08-05 from “from Woden Creek to Hwy 6 bridge”] boundary=Woden Creek [human-review 2026-08-05 FWA-confluence] mouth of Woden Creek on mainstem (0 m validated); target blk/wsc set.",
+              "coord": [
+                -117.88365,
+                49.92206
+              ],
+              "target": {
+                "blk": 356569012,
+                "wsc": "300-680822-030247-333167-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+              },
               "locator_text": "Woden Creek"
             },
             {
@@ -11164,11 +11209,20 @@
           "rows": [
             {
               "id": "caribou-creek-101e68-a",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "confluence",
               "src": "rule",
               "resolver_hint": "tributary",
-              "notes": "[auto-proposal L] Hwy 6 bridge over Caribou Creek on Caribou Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm Hwy 6 bridge over Caribou Creek (Arrow Lakes, near Burton); map.. Reach = 'from Rodd Creek to Hwy 6 bridge'. Caribou Creek enters Lower Arrow Lake near Burton where Hwy 6 crosses it. Public highway -> not in FWA; map/OSM-confirmable. [structural-split 2026-08-05 from “from Rodd Creek to Hwy 6 bridge”] boundary=Rodd Creek",
+              "label": "Rodd Creek confluence",
+              "notes": "[auto-proposal L] Hwy 6 bridge over Caribou Creek on Caribou Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm Hwy 6 bridge over Caribou Creek (Arrow Lakes, near Burton); map.. Reach = 'from Rodd Creek to Hwy 6 bridge'. Caribou Creek enters Lower Arrow Lake near Burton where Hwy 6 crosses it. Public highway -> not in FWA; map/OSM-confirmable. [structural-split 2026-08-05 from “from Rodd Creek to Hwy 6 bridge”] boundary=Rodd Creek [human-review 2026-08-05 FWA-confluence] mouth of Rodd Creek on mainstem (0 m validated); target blk/wsc set.",
+              "coord": [
+                -117.8174,
+                50.02068
+              ],
+              "target": {
+                "blk": 356563619,
+                "wsc": "300-680822-286243-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+              },
               "locator_text": "Rodd Creek"
             },
             {
@@ -14214,11 +14268,20 @@
             },
             {
               "id": "lussier-river-ccddb4-b",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "confluence",
               "src": "rule",
               "resolver_hint": "tributary",
-              "notes": "[auto-proposal L] Premier Lake Bridge crossing & Mutton Creek on Lussier River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Premier Lake Bridge and the Mutton Creek confluence on the Lussier; map.. Reach = 'Premier Lake Bridge crossing to Mutton Creek'. Road bridge + tributary confluence; the bridge is not name-matched in FSR. Map/OSM-confirmable. [structural-split 2026-08-05 from “between Premier Lake Bridge crossing and Mutton Creek”] boundary=Mutton Creek",
+              "label": "Mutton Creek confluence",
+              "notes": "[auto-proposal L] Premier Lake Bridge crossing & Mutton Creek on Lussier River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Premier Lake Bridge and the Mutton Creek confluence on the Lussier; map.. Reach = 'Premier Lake Bridge crossing to Mutton Creek'. Road bridge + tributary confluence; the bridge is not name-matched in FSR. Map/OSM-confirmable. [structural-split 2026-08-05 from “between Premier Lake Bridge crossing and Mutton Creek”] boundary=Mutton Creek [human-review 2026-08-05 FWA-confluence] mouth of Mutton Creek on mainstem (0 m validated); target blk/wsc set.",
+              "coord": [
+                -115.55727,
+                50.11902
+              ],
+              "target": {
+                "blk": 356552506,
+                "wsc": "300-625474-731003-529325-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+              },
               "locator_text": "Mutton Creek"
             }
           ]
@@ -14232,15 +14295,24 @@
               "June 15-Mar 31"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "lussier-river-ccddb4-b",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "confluence",
               "src": "rule",
               "resolver_hint": "tributary",
-              "notes": "[auto-proposal L] Premier Lake Bridge crossing & Mutton Creek on Lussier River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Premier Lake Bridge and the Mutton Creek confluence on the Lussier; map.. Reach = 'Premier Lake Bridge crossing to Mutton Creek'. Road bridge + tributary confluence; the bridge is not name-matched in FSR. Map/OSM-confirmable. [structural-split 2026-08-05 from “between Premier Lake Bridge crossing and Mutton Creek”] boundary=Mutton Creek",
+              "label": "Mutton Creek confluence",
+              "notes": "[auto-proposal L] Premier Lake Bridge crossing & Mutton Creek on Lussier River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Premier Lake Bridge and the Mutton Creek confluence on the Lussier; map.. Reach = 'Premier Lake Bridge crossing to Mutton Creek'. Road bridge + tributary confluence; the bridge is not name-matched in FSR. Map/OSM-confirmable. [structural-split 2026-08-05 from “between Premier Lake Bridge crossing and Mutton Creek”] boundary=Mutton Creek [human-review 2026-08-05 FWA-confluence] mouth of Mutton Creek on mainstem (0 m validated); target blk/wsc set.",
+              "coord": [
+                -115.55727,
+                50.11902
+              ],
+              "target": {
+                "blk": 356552506,
+                "wsc": "300-625474-731003-529325-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+              },
               "locator_text": "Mutton Creek"
             },
             {
@@ -18928,7 +19000,7 @@
       "image": "page_052_row_035.png",
       "symbols": [],
       "reg_text": "**No Fishing** from 50 m upstream of Likely Bridge to 50 m downstream of Likely Bridge\n**No Fishing** upstream of Cariboo River, Mar 1-June 15\nTrout/char catch and release from the boundary signs approximately 1.8 km east of the Likely Bridge downstream to Morehead Creek\nTrout/char daily quota = 1 (none under 40 cm) downstream of Morehead Creek\nBait ban",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 4,
       "locators": [
         {
@@ -19005,7 +19077,7 @@
           "info": {
             "restriction_type": "harvest"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "quesnel-river-2ce5e8-a",
@@ -19023,11 +19095,20 @@
             },
             {
               "id": "quesnel-river-2ce5e8-b",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "confluence",
               "src": "rule",
               "resolver_hint": "tributary",
-              "notes": "[auto-proposal L] boundary signs ~1.8 km E of Likely Bridge (to Morehead Creek) on Quesnel River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the signs ~1.8 km east of the Likely Bridge and the Morehead Creek confluence; map.. Reach = signs ~1.8 km E of Likely Bridge down to Morehead Creek. Sign + confluence landmarks near Likely -> map/OSM-confirmable. [structural-split 2026-08-05 from “from the boundary signs approximately 1.8 km east of the Likely Bridge downstream to Morehead Creek”] boundary=Morehead Creek",
+              "label": "Morehead Creek confluence",
+              "notes": "[auto-proposal L] boundary signs ~1.8 km E of Likely Bridge (to Morehead Creek) on Quesnel River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the signs ~1.8 km east of the Likely Bridge and the Morehead Creek confluence; map.. Reach = signs ~1.8 km E of Likely Bridge down to Morehead Creek. Sign + confluence landmarks near Likely -> map/OSM-confirmable. [structural-split 2026-08-05 from “from the boundary signs approximately 1.8 km east of the Likely Bridge downstream to Morehead Creek”] boundary=Morehead Creek [human-review 2026-08-05 FWA-confluence] mouth of Morehead Creek on mainstem (0 m validated); target blk/wsc set.",
+              "coord": [
+                -121.80864,
+                52.65493
+              ],
+              "target": {
+                "blk": 356307263,
+                "wsc": "100-458399-413693-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+              },
               "locator_text": "Morehead Creek"
             }
           ]
@@ -19038,15 +19119,24 @@
           "info": {
             "restriction_type": "harvest"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "quesnel-river-2ce5e8-b",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "confluence",
               "src": "rule",
               "resolver_hint": "tributary",
-              "notes": "[auto-proposal L] boundary signs ~1.8 km E of Likely Bridge (to Morehead Creek) on Quesnel River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the signs ~1.8 km east of the Likely Bridge and the Morehead Creek confluence; map.. Reach = signs ~1.8 km E of Likely Bridge down to Morehead Creek. Sign + confluence landmarks near Likely -> map/OSM-confirmable. [structural-split 2026-08-05 from “from the boundary signs approximately 1.8 km east of the Likely Bridge downstream to Morehead Creek”] boundary=Morehead Creek",
+              "label": "Morehead Creek confluence",
+              "notes": "[auto-proposal L] boundary signs ~1.8 km E of Likely Bridge (to Morehead Creek) on Quesnel River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the signs ~1.8 km east of the Likely Bridge and the Morehead Creek confluence; map.. Reach = signs ~1.8 km E of Likely Bridge down to Morehead Creek. Sign + confluence landmarks near Likely -> map/OSM-confirmable. [structural-split 2026-08-05 from “from the boundary signs approximately 1.8 km east of the Likely Bridge downstream to Morehead Creek”] boundary=Morehead Creek [human-review 2026-08-05 FWA-confluence] mouth of Morehead Creek on mainstem (0 m validated); target blk/wsc set.",
+              "coord": [
+                -121.80864,
+                52.65493
+              ],
+              "target": {
+                "blk": 356307263,
+                "wsc": "100-458399-413693-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+              },
               "locator_text": "Morehead Creek"
             },
             {
@@ -19541,11 +19631,20 @@
           "rows": [
             {
               "id": "bulkley-river-6f8ca4-a",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "confluence",
               "src": "rule",
               "resolver_hint": "tributary",
-              "notes": "[auto-proposal L] CNR (railway) Bridge at Barrett on Bulkley River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the CNR bridge over the Bulkley at Barrett (near Houston/Telkwa); railway bridge, map-only.. Reach = 'from Morice River (confluence) to CNR Bridge at Barrett'. Barrett is a locality near Houston; the Morice confluence is at Houston. Railway bridge -> not in FWA; map/OSM-confirmable. [structural-split 2026-08-05 from “from Morice River to CNR Bridge at Barrett”] boundary=Morice River",
+              "label": "Morice River confluence",
+              "notes": "[auto-proposal L] CNR (railway) Bridge at Barrett on Bulkley River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the CNR bridge over the Bulkley at Barrett (near Houston/Telkwa); railway bridge, map-only.. Reach = 'from Morice River (confluence) to CNR Bridge at Barrett'. Barrett is a locality near Houston; the Morice confluence is at Houston. Railway bridge -> not in FWA; map/OSM-confirmable. [structural-split 2026-08-05 from “from Morice River to CNR Bridge at Barrett”] boundary=Morice River [human-review 2026-08-05 FWA-confluence] mouth of Morice River on mainstem (0 m validated); target blk/wsc set.",
+              "coord": [
+                -126.74602,
+                54.41127
+              ],
+              "target": {
+                "blk": 360885316,
+                "wsc": "400-431358-585806-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+              },
               "locator_text": "Morice River"
             },
             {

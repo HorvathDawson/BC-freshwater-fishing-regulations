@@ -7,8 +7,8 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 |---|--:|
 | NO_CURATION | 1 |
 | MISSING_SPLITS | 2 |
-| INCOMPLETE | 201 |
-| COMPLETE | 108 |
+| INCOMPLETE | 199 |
+| COMPLETE | 110 |
 | NO_SPLIT | 75 |
 
 **Drift** (curated rows matching no source locator): 3
@@ -39,9 +39,9 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 - • [rule] “between fishing boundary signs approximately 6.5 km downstream of ” → fraser-river-8409b9[todo], fraser-river-498f12[todo]
 - • [rule] “from the lower entrance of the fish ladder at Bridge River Rapids ” → fraser-river-7f0b9b-a[todo], fraser-river-7f0b9b-b[todo]
 - • [rule] “From Hwy 99 bridge at Lillooet downstream approximately 1.2 km to ” → fraser-river-b67b87-a[todo], fraser-river-b67b87-b[todo]
-- • [rule] “From the confluence with Thompson River to the CNR Bridge approxim” → fraser-river-74a44b-a[todo], fraser-river-74a44b-b[todo]
-- • [rule] “From the confluence with Thompson River to the CNR Bridge approxim” → fraser-river-74a44b-a[todo], fraser-river-74a44b-b[todo]
-- • [rule] “From the confluence with Thompson River to the CNR Bridge approxim” → fraser-river-74a44b-a[todo], fraser-river-74a44b-b[todo]
+- • [rule] “From the confluence with Thompson River to the CNR Bridge approxim” → fraser-river-74a44b-a[curated], fraser-river-74a44b-b[todo]
+- • [rule] “From the confluence with Thompson River to the CNR Bridge approxim” → fraser-river-74a44b-a[curated], fraser-river-74a44b-b[todo]
+- • [rule] “From the confluence with Thompson River to the CNR Bridge approxim” → fraser-river-74a44b-a[curated], fraser-river-74a44b-b[todo]
 - • [rule] “from the confluence with Spuzzum Creek (Region 3 boundary) to Hell” → fraser-river-135734[curated]
 - • [rule] “from Hells Gate upstream to the Region 3 boundary” → fraser-river-aa3425[todo]
 
@@ -273,12 +273,6 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 - • [rule] “downstream of North White River” → white-river-see-also-east-white-north-white-r-54f271[curated]
 - • [rule] “on all parts” → white-river-see-also-east-white-north-white-r-955fb4[todo]
 
-## QUESNEL RIVER · MU ['5-2'] · p52 · [INCOMPLETE] (cae5d13e)
-- • [rule] “from 50 m upstream of Likely Bridge to 50 m downstream of Likely B” → quesnel-river-cf8577-a[curated], quesnel-river-cf8577-b[curated]
-- • [rule] “upstream of Cariboo River” → quesnel-river-befb92[curated]
-- • [rule] “from the boundary signs approximately 1.8 km east of the Likely Br” → quesnel-river-2ce5e8-a[curated], quesnel-river-2ce5e8-b[todo]
-- • [rule] “downstream of Morehead Creek” → quesnel-river-2ce5e8-b[todo], quesnel-river-583bb9[curated]
-
 ## BABINE RIVER · MU ['6-8'] · p56 · [INCOMPLETE] (4dd3daf7)
 - • [rule] “from the juvenile fish counting weir located at the outlet of Nilk” → babine-river-8f73d2[todo]
 - • [rule] “between fishing boundary signs approximately 100 m upstream of and” → babine-river-fec60e[todo]
@@ -290,11 +284,6 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 - • [rule] “from mouth of Halfway River to fishing boundary signs approximatel” → peace-river-from-hwy-29-bridge-to-the-site-c--9d576a-a[curated], peace-river-from-hwy-29-bridge-to-the-site-c--9d576a-b[curated]
 - • [rule] “between Peace Canyon Dam and Hwy 29 Bridge” → peace-river-from-hwy-29-bridge-to-the-site-c--81bc00[todo]
 - • [entry] “From Hwy. 29 bridge to the Site C dam” → peace-river-from-hwy-29-bridge-to-the-site-c--c17e9f[todo]
-
-## ADAM RIVER (except Eve River) · MU ['1-10'] · p16 · [INCOMPLETE] (ce41432a)
-- • [water] “except Eve River” → adam-river-except-eve-river-ca05b3[not_applicable]
-- • [rule] “upstream of Eve River, to Hwy 19 bridge” → adam-river-except-eve-river-939f98-a[todo], adam-river-except-eve-river-939f98-b[curated]
-- • [entry] “except Eve River” → adam-river-except-eve-river-ca05b3[not_applicable]
 
 ## HEBER RIVER · MU ['1-9'] · p18 · [INCOMPLETE] (8b5f3143)
 - • [rule] “upstream of top of lower canyon, located 1.3km upstream of the Gol” → heber-river-53fedd[todo]
@@ -349,8 +338,8 @@ approximately 35 m downstream” → little-qualicum-river-4dbb9b[todo]
 
 ## LUSSIER RIVER · MU ['4-21'] · p40 · [INCOMPLETE] (6cee42e9)
 - • [rule] “downstream of Premier Lake Bridge crossing” → lussier-river-6b768f[todo], lussier-river-ccddb4-a[todo]
-- • [rule] “between Premier Lake Bridge crossing and Mutton Creek” → lussier-river-ccddb4-a[todo], lussier-river-ccddb4-b[todo]
-- • [rule] “downstream of Mutton Creek” → lussier-river-ccddb4-b[todo], lussier-river-3bb9f4[curated]
+- • [rule] “between Premier Lake Bridge crossing and Mutton Creek” → lussier-river-ccddb4-a[todo], lussier-river-ccddb4-b[curated]
+- • [rule] “downstream of Mutton Creek” → lussier-river-ccddb4-b[curated], lussier-river-3bb9f4[curated]
 
 ## PREMIER LAKE · MU ['4-21'] · p41 · [INCOMPLETE] (1ec727fd)
 - • [rule] “south of fishing boundary signs on the lake shore” → premier-lake-895b0d[deferred]
@@ -369,7 +358,7 @@ approximately 35 m downstream” → little-qualicum-river-4dbb9b[todo]
 
 ## BULKLEY RIVER · MU ['6-9'] · p56 · [INCOMPLETE] (d850b295)
 - • [rule] “upstream of Morice/Bulkley River confluence” → bulkley-river-e30268[curated]
-- • [rule] “from Morice River to CNR Bridge at Barrett” → bulkley-river-6f8ca4-a[todo], bulkley-river-6f8ca4-b[todo]
+- • [rule] “from Morice River to CNR Bridge at Barrett” → bulkley-river-6f8ca4-a[curated], bulkley-river-6f8ca4-b[todo]
 - • [rule] “in Moricetown Canyon or within 100 m downstream” → bulkley-river-fae480[todo]
 
 ## CROOKED RIVER · MU ['7-24'] · p65 · [INCOMPLETE] (823d2b21)
@@ -687,10 +676,10 @@ approximately 35 m downstream” → little-qualicum-river-4dbb9b[todo]
 - • [rule] “Other parts” → bull-river-d701ae[todo]
 
 ## BURTON CREEK · MU ['4-15'] · p37 · [INCOMPLETE] (72f67e46)
-- • [rule] “from Woden Creek to Hwy 6 bridge” → burton-creek-b25ef3-a[todo], burton-creek-b25ef3-b[todo]
+- • [rule] “from Woden Creek to Hwy 6 bridge” → burton-creek-b25ef3-a[curated], burton-creek-b25ef3-b[todo]
 
 ## CARIBOU CREEK · MU ['4-15'] · p37 · [INCOMPLETE] (00d8df6e)
-- • [rule] “from Rodd Creek to Hwy 6 bridge” → caribou-creek-101e68-a[todo], caribou-creek-101e68-b[todo]
+- • [rule] “from Rodd Creek to Hwy 6 bridge” → caribou-creek-101e68-a[curated], caribou-creek-101e68-b[todo]
 
 ## COFFEE CREEK · MU ['4-18'] · p37 · [INCOMPLETE] (55a54cfd)
 - • [rule] “downstream of fishing boundary signs at falls approximately 10 km ” → coffee-creek-ce1bee[todo]
