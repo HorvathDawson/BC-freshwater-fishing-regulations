@@ -7,8 +7,8 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 |---|--:|
 | NO_CURATION | 1 |
 | MISSING_SPLITS | 2 |
-| INCOMPLETE | 181 |
-| COMPLETE | 128 |
+| INCOMPLETE | 179 |
+| COMPLETE | 130 |
 | NO_SPLIT | 75 |
 
 **Drift** (curated rows matching no source locator): 3
@@ -108,7 +108,7 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 - • [entry] “downstream of Idaho border” → kootenay-river-downstream-of-idaho-border-6189d1[curated]
 
 ## COWICHAN RIVER (see map below) · MU ['1-4'] · p17 · [INCOMPLETE] (ce689454)
-- • [rule] “from weir (dam) at Cowichan Lake's outlet to Greendale Trestle” → cowichan-river-see-map-below-794a2f-a[todo], cowichan-river-see-map-below-794a2f-b[todo]
+- • [rule] “from weir (dam) at Cowichan Lake's outlet to Greendale Trestle” → cowichan-river-see-map-below-794a2f-a[curated], cowichan-river-see-map-below-794a2f-b[todo]
 - • [rule] “in tributaries upstream of and including Holt Creek” → cowichan-river-see-map-below-0374fa[curated]
 - • [rule] “upstream of CNR Trestle (Mile 66)” → cowichan-river-see-map-below-5abb4d[todo]
 - • [rule] “downstream of the CNR Mile 66 Trestle” → cowichan-river-see-map-below-85312e[todo]
@@ -150,14 +150,6 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 - • [rule] “in the Jesperson's Side Channel, Herrling Side Channel, and Seabir” → fraser-river-upstream-of-the-cpr-bridge-at-mi-c3e4d2[todo]
 - • [rule] “Fraser River Mainstem” → fraser-river-upstream-of-the-cpr-bridge-at-mi-4460d2[not_applicable]
 - • [entry] “upstream of the CPR Bridge at Mission” → fraser-river-upstream-of-the-cpr-bridge-at-mi-73e755[todo]
-
-## MITCHELL RIVER · MU ['5-15'] · p52 · [INCOMPLETE] (519e7133)
-- • [rule] “within 100 m radius of the weir at the outlet of Michell Lake” → mitchell-river-feda29[todo]
-- • [rule] “from Michell Lake to Cameron Creek” → mitchell-river-5bc0ff[curated]
-- • [rule] “downstream of Cameron Creek” → mitchell-river-62dd66[curated], mitchell-river-a7b6fe[curated]
-- • [rule] “downstream of Cameron Creek (including Cameron Creek)” → mitchell-river-62dd66[curated], mitchell-river-a7b6fe[curated]
-- • [rule] “downstream of Cameron Creek (including Cameron Creek)” → mitchell-river-62dd66[curated], mitchell-river-a7b6fe[curated]
-- • [rule] “downstream of Cameron Creek (including Cameron Creek)” → mitchell-river-62dd66[curated], mitchell-river-a7b6fe[curated]
 
 ## NANAIMO RIVER · MU ['1-5'] · p19 · [INCOMPLETE] (046b8cc3)
 - • [rule] “from power line crossing at "Bore Hole" upstream to fishing bounda” → nanaimo-river-633e28-a[todo], nanaimo-river-633e28-b[todo]
@@ -261,10 +253,10 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 - • [rule] “on all parts” → white-river-see-also-east-white-north-white-r-955fb4[todo]
 
 ## BABINE RIVER · MU ['6-8'] · p56 · [INCOMPLETE] (4dd3daf7)
-- • [rule] “from the juvenile fish counting weir located at the outlet of Nilk” → babine-river-8f73d2-a[todo], babine-river-8f73d2-b[curated], babine-river-912f94-a[todo]
-- • [rule] “between fishing boundary signs approximately 100 m upstream of and” → babine-river-fec60e-a[todo], babine-river-fec60e-b[todo]
-- • [rule] “from the adult fish counting fence (described above) downstream to” → babine-river-912f94-b[todo], babine-river-fdcd21-a[todo], babine-river-fdcd21-b[curated]
-- • [rule] “from the juvenile fish counting weir located at the outlet of Nilk” → babine-river-8f73d2-a[todo], babine-river-912f94-a[todo], babine-river-912f94-b[todo], babine-river-fdcd21-b[curated]
+- • [rule] “from the juvenile fish counting weir located at the outlet of Nilk” → babine-river-8f73d2-a[curated], babine-river-8f73d2-b[curated], babine-river-912f94-a[curated]
+- • [rule] “between fishing boundary signs approximately 100 m upstream of and” → babine-river-fec60e-a[todo], babine-river-fec60e-b[curated]
+- • [rule] “from the adult fish counting fence (described above) downstream to” → babine-river-912f94-b[todo], babine-river-fdcd21-a[curated], babine-river-fdcd21-b[curated]
+- • [rule] “from the juvenile fish counting weir located at the outlet of Nilk” → babine-river-8f73d2-a[curated], babine-river-912f94-a[curated], babine-river-912f94-b[todo], babine-river-fdcd21-b[curated]
 
 ## PEACE RIVER (From Hwy. 29 bridge to the Site C dam) · MU ['7-31'] · p72 · [INCOMPLETE] (03e3acbe)
 - • [water] “From Hwy. 29 bridge to the Site C dam” → peace-river-from-hwy-29-bridge-to-the-site-c--c17e9f-a[todo], peace-river-from-hwy-29-bridge-to-the-site-c--c17e9f-b[todo]
@@ -679,9 +671,6 @@ approximately 35 m downstream” → little-qualicum-river-031042-b[todo], littl
 
 ## GREEN LAKE · MU ['5-1'] · p51 · [INCOMPLETE] (a6054318)
 - • [rule] “northeast of line between boundary signs on opposite shores of the” → green-lake-be66e8[todo]
-
-## MITCHELL LAKE · MU ['5-15'] · p52 · [INCOMPLETE] (af5c7b6d)
-- • [rule] “within 100 m radius of the weir at the lake's outlet” → mitchell-lake-3bd8d1[todo]
 
 ## BUCKINGHORSE LAKE · MU ['6-20'] · p56 · [INCOMPLETE] (23900091)
 - • [rule] “within 100 m of outlet” → buckinghorse-lake-d64773[todo]

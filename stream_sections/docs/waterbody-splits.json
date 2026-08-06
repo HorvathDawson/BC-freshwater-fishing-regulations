@@ -1265,11 +1265,16 @@
           "rows": [
             {
               "id": "cowichan-river-see-map-below-794a2f-a",
-              "status": "todo",
-              "anchor_kind": "lake",
+              "status": "curated",
+              "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "dam_weir_fence",
-              "notes": "[auto-proposal H] Weir (dam) at Cowichan Lake outlet on Cowichan River (lake weir -> Greendale Trestle). Candidate coord [-124.06119, 48.82418]. OSM: https://www.openstreetmap.org/?mlat=48.82418&mlon=-124.06119#map=15/48.82418/-124.06119. Verify: Confirm the control weir at the Cowichan Lake outlet (town of Lake Cowichan); downstream end = Greendale Trestle.. A control weir/dam sits at the Cowichan Lake outlet in the town of Lake Cowichan. Coord = FWA Cowichan River exit from Cowichan Lake polygon. Reach runs to the Greendale Trestle downstream. [structural-split 2026-08-05 from \"from weir (dam) at Cowichan Lake's outlet to Greendale Trest\"] boundary=weir (dam) at Cowichan Lake's outlet [hint-fix 2026-08-06 lake_reach->dam_weir_fence]",
+              "label": "weir at Cowichan Lake outlet",
+              "notes": "[auto-proposal H] Weir (dam) at Cowichan Lake outlet on Cowichan River (lake weir -> Greendale Trestle). Candidate coord [-124.06119, 48.82418]. OSM: https://www.openstreetmap.org/?mlat=48.82418&mlon=-124.06119#map=15/48.82418/-124.06119. Verify: Confirm the control weir at the Cowichan Lake outlet (town of Lake Cowichan); downstream end = Greendale Trestle.. A control weir/dam sits at the Cowichan Lake outlet in the town of Lake Cowichan. Coord = FWA Cowichan River exit from Cowichan Lake polygon. Reach runs to the Greendale Trestle downstream. [structural-split 2026-08-05 from \"from weir (dam) at Cowichan Lake's outlet to Greendale Trest\"] boundary=weir (dam) at Cowichan Lake's outlet [hint-fix 2026-08-06 lake_reach->dam_weir_fence] [human-review 2026-08-06] Cowichan Lake outlet weir.",
+              "coord": [
+                -124.06119,
+                48.82418
+              ],
               "locator_text": "weir (dam) at Cowichan Lake's outlet"
             },
             {
@@ -19611,7 +19616,7 @@
       "image": "page_052_row_015.png",
       "symbols": [],
       "reg_text": "**No Fishing** within 100 m radius of the weir at the lake's outlet",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 1,
       "locators": [
         {
@@ -19620,14 +19625,20 @@
           "info": {
             "restriction_type": "closure"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "mitchell-lake-3bd8d1",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "buffer",
               "src": "rule",
-              "resolver_hint": "radius"
+              "resolver_hint": "radius",
+              "label": "weir at Mitchell Lake outlet",
+              "notes": " [human-review 2026-08-06] weir at Mitchell Lk outlet (user-located); 100 m radius.",
+              "coord": [
+                -120.74099,
+                52.84625
+              ]
             }
           ]
         },
@@ -19652,7 +19663,7 @@
         "Incl. Tribs"
       ],
       "reg_text": "**No Fishing** within 100 m radius of the weir at the outlet of Michell Lake\n**No Fishing** from Michell Lake to Cameron Creek\n**No Fishing** downstream of Cameron Creek (including Cameron Cr.), Oct 1-June 30\nTrout/char catch and release, bait ban, artificial fly only downstream of Cameron Creek (including Cameron Creek)",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 6,
       "locators": [
         {
@@ -19661,14 +19672,20 @@
           "info": {
             "restriction_type": "closure"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "mitchell-river-feda29",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "buffer",
               "src": "rule",
-              "resolver_hint": "radius"
+              "resolver_hint": "radius",
+              "label": "weir at Mitchell Lake outlet",
+              "notes": " [human-review 2026-08-06] weir at Mitchell Lk outlet (user-located); 100 m radius.",
+              "coord": [
+                -120.74099,
+                52.84625
+              ]
             }
           ]
         },
@@ -20484,15 +20501,20 @@
               "Sept 1-Oct 31"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "babine-river-8f73d2-a",
-              "status": "todo",
-              "anchor_kind": "lake",
+              "status": "curated",
+              "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "dam_weir_fence",
-              "notes": "[auto-proposal M] Juvenile fish counting weir at Nilkitkwa Lake outlet on Babine River (Nilkitkwa Lake outlet). Candidate coord [-126.68407, 55.41439]. OSM: https://www.openstreetmap.org/?mlat=55.41439&mlon=-126.68407#map=15/55.41439/-126.68407. Verify: Confirm the juvenile weir sits exactly at the Nilkitkwa Lake outlet vs a few hundred m down the Babine River.. Reach starts at the DFO juvenile fish counting weir located at the outlet of Nilkitkwa Lake. Coord is the FWA-computed Babine River blue-line exit from the Nilkitkwa Lake polygon (blk 360886970). Reach runs down to the Nilkitkwa River confluence (~[-126.701,55.452]). [structural-split 2026-08-05 from \"from the juvenile fish counting weir located at the outlet o\"] boundary=juvenile fish counting weir located at the outlet of Nilkitkwa Lake [hint-fix 2026-08-06 lake_reach->dam_weir_fence]",
+              "label": "juvenile counting weir (Nilkitkwa outlet)",
+              "notes": "[auto-proposal M] Juvenile fish counting weir at Nilkitkwa Lake outlet on Babine River (Nilkitkwa Lake outlet). Candidate coord [-126.68407, 55.41439]. OSM: https://www.openstreetmap.org/?mlat=55.41439&mlon=-126.68407#map=15/55.41439/-126.68407. Verify: Confirm the juvenile weir sits exactly at the Nilkitkwa Lake outlet vs a few hundred m down the Babine River.. Reach starts at the DFO juvenile fish counting weir located at the outlet of Nilkitkwa Lake. Coord is the FWA-computed Babine River blue-line exit from the Nilkitkwa Lake polygon (blk 360886970). Reach runs down to the Nilkitkwa River confluence (~[-126.701,55.452]). [structural-split 2026-08-05 from \"from the juvenile fish counting weir located at the outlet o\"] boundary=juvenile fish counting weir located at the outlet of Nilkitkwa Lake [hint-fix 2026-08-06 lake_reach->dam_weir_fence] [human-review 2026-08-06] user-located.",
+              "coord": [
+                -126.68277,
+                55.41337
+              ],
               "locator_text": "juvenile fish counting weir located at the outlet of Nilkitkwa Lake"
             },
             {
@@ -20515,11 +20537,16 @@
             },
             {
               "id": "babine-river-912f94-a",
-              "status": "todo",
-              "anchor_kind": "lake",
+              "status": "curated",
+              "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "dam_weir_fence",
-              "notes": "[auto-proposal M] Juvenile fish counting weir at Nilkitkwa Lake outlet on Babine River (Nilkitkwa outlet -> Nilkitkwa R confluence). Candidate coord [-126.68407, 55.41439]. OSM: https://www.openstreetmap.org/?mlat=55.41439&mlon=-126.68407#map=15/55.41439/-126.68407. Verify: Same weir as babine-river-8f73d2; confirm weir at lake outlet.. Duplicate structure of babine-river-8f73d2 (juvenile weir at Nilkitkwa Lake outlet); reach runs down to the Babine's confluence with the Nilkitkwa River. Coord = FWA Nilkitkwa Lake outlet. [structural-split 2026-08-05 from \"from the juvenile fish counting weir located at the outlet o\"] boundary=juvenile fish counting weir located at the outlet of Nilkitkwa Lake [hint-fix 2026-08-06 lake_reach->dam_weir_fence]",
+              "label": "juvenile counting weir (Nilkitkwa outlet)",
+              "notes": "[auto-proposal M] Juvenile fish counting weir at Nilkitkwa Lake outlet on Babine River (Nilkitkwa outlet -> Nilkitkwa R confluence). Candidate coord [-126.68407, 55.41439]. OSM: https://www.openstreetmap.org/?mlat=55.41439&mlon=-126.68407#map=15/55.41439/-126.68407. Verify: Same weir as babine-river-8f73d2; confirm weir at lake outlet.. Duplicate structure of babine-river-8f73d2 (juvenile weir at Nilkitkwa Lake outlet); reach runs down to the Babine's confluence with the Nilkitkwa River. Coord = FWA Nilkitkwa Lake outlet. [structural-split 2026-08-05 from \"from the juvenile fish counting weir located at the outlet o\"] boundary=juvenile fish counting weir located at the outlet of Nilkitkwa Lake [hint-fix 2026-08-06 lake_reach->dam_weir_fence] [human-review 2026-08-06] user-located.",
+              "coord": [
+                -126.68277,
+                55.41337
+              ],
               "locator_text": "juvenile fish counting weir located at the outlet of Nilkitkwa Lake"
             }
           ]
@@ -20543,11 +20570,16 @@
             },
             {
               "id": "babine-river-fec60e-b",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "dam_weir_fence",
-              "notes": "[auto-proposal L] Adult fish counting fence + boundary signs (~100 m up / 80 m down) on Babine River (lower, near Nilkitkwa Lake outlet). Candidate coord [-126.68407, 55.41439]. OSM: https://www.openstreetmap.org/?mlat=55.41439&mlon=-126.68407#map=15/55.41439/-126.68407. Verify: Locate the DFO Babine adult counting fence precisely on a map (near Nilkitkwa Lake outlet) then set the two sign points ~100 m up / ~80 m down of it.. This is a line_between_signs closure bracketing the DFO adult fish counting fence on the lower Babine River. The Babine River counting fence is a DFO facility in the vicinity of the Nilkitkwa Lake outlet; exact fence point is not in FWA. Candidate coord is the Nilkitkwa outlet as a starting reference only. [structural-split 2026-08-05 from \"between fishing boundary signs approximately 100 m upstream \"] boundary=80 m downstream of the adult fish counting fence",
+              "label": "80 m below adult counting fence",
+              "notes": "[auto-proposal L] Adult fish counting fence + boundary signs (~100 m up / 80 m down) on Babine River (lower, near Nilkitkwa Lake outlet). Candidate coord [-126.68407, 55.41439]. OSM: https://www.openstreetmap.org/?mlat=55.41439&mlon=-126.68407#map=15/55.41439/-126.68407. Verify: Locate the DFO Babine adult counting fence precisely on a map (near Nilkitkwa Lake outlet) then set the two sign points ~100 m up / ~80 m down of it.. This is a line_between_signs closure bracketing the DFO adult fish counting fence on the lower Babine River. The Babine River counting fence is a DFO facility in the vicinity of the Nilkitkwa Lake outlet; exact fence point is not in FWA. Candidate coord is the Nilkitkwa outlet as a starting reference only. [structural-split 2026-08-05 from \"between fishing boundary signs approximately 100 m upstream \"] boundary=80 m downstream of the adult fish counting fence [human-review 2026-08-06] adult fence +80 m down.",
+              "coord": [
+                -126.69701,
+                55.42673
+              ],
               "locator_text": "80 m downstream of the adult fish counting fence"
             }
           ]
@@ -20571,11 +20603,16 @@
             },
             {
               "id": "babine-river-fdcd21-a",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "dam_weir_fence",
-              "notes": "[auto-proposal L] Adult fish counting fence (downstream bound = Skeena confluence) on Babine River (fence -> Skeena confluence). Candidate coord [-126.68407, 55.41439]. OSM: https://www.openstreetmap.org/?mlat=55.41439&mlon=-126.68407#map=15/55.41439/-126.68407. Verify: Pin the adult counting fence on a map; downstream end is the Babine-Skeena confluence (~[-127.695,55.698]).. Reach from the adult counting fence downstream to the Babine River's confluence with the Skeena. Fence point not in FWA; candidate is the Nilkitkwa outlet reference. Downstream terminus (Babine mouth) is well-defined in FWA. [structural-split 2026-08-05 from \"from the adult fish counting fence (described above) downstr\"] boundary=adult fish counting fence (described above)",
+              "label": "adult counting fence",
+              "notes": "[auto-proposal L] Adult fish counting fence (downstream bound = Skeena confluence) on Babine River (fence -> Skeena confluence). Candidate coord [-126.68407, 55.41439]. OSM: https://www.openstreetmap.org/?mlat=55.41439&mlon=-126.68407#map=15/55.41439/-126.68407. Verify: Pin the adult counting fence on a map; downstream end is the Babine-Skeena confluence (~[-127.695,55.698]).. Reach from the adult counting fence downstream to the Babine River's confluence with the Skeena. Fence point not in FWA; candidate is the Nilkitkwa outlet reference. Downstream terminus (Babine mouth) is well-defined in FWA. [structural-split 2026-08-05 from \"from the adult fish counting fence (described above) downstr\"] boundary=adult fish counting fence (described above) [human-review 2026-08-06] OSM way 423233281.",
+              "coord": [
+                -126.69674,
+                55.42603
+              ],
               "locator_text": "adult fish counting fence (described above)"
             },
             {
@@ -20611,20 +20648,30 @@
           "rows": [
             {
               "id": "babine-river-8f73d2-a",
-              "status": "todo",
-              "anchor_kind": "lake",
+              "status": "curated",
+              "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "dam_weir_fence",
-              "notes": "[auto-proposal M] Juvenile fish counting weir at Nilkitkwa Lake outlet on Babine River (Nilkitkwa Lake outlet). Candidate coord [-126.68407, 55.41439]. OSM: https://www.openstreetmap.org/?mlat=55.41439&mlon=-126.68407#map=15/55.41439/-126.68407. Verify: Confirm the juvenile weir sits exactly at the Nilkitkwa Lake outlet vs a few hundred m down the Babine River.. Reach starts at the DFO juvenile fish counting weir located at the outlet of Nilkitkwa Lake. Coord is the FWA-computed Babine River blue-line exit from the Nilkitkwa Lake polygon (blk 360886970). Reach runs down to the Nilkitkwa River confluence (~[-126.701,55.452]). [structural-split 2026-08-05 from \"from the juvenile fish counting weir located at the outlet o\"] boundary=juvenile fish counting weir located at the outlet of Nilkitkwa Lake [hint-fix 2026-08-06 lake_reach->dam_weir_fence]",
+              "label": "juvenile counting weir (Nilkitkwa outlet)",
+              "notes": "[auto-proposal M] Juvenile fish counting weir at Nilkitkwa Lake outlet on Babine River (Nilkitkwa Lake outlet). Candidate coord [-126.68407, 55.41439]. OSM: https://www.openstreetmap.org/?mlat=55.41439&mlon=-126.68407#map=15/55.41439/-126.68407. Verify: Confirm the juvenile weir sits exactly at the Nilkitkwa Lake outlet vs a few hundred m down the Babine River.. Reach starts at the DFO juvenile fish counting weir located at the outlet of Nilkitkwa Lake. Coord is the FWA-computed Babine River blue-line exit from the Nilkitkwa Lake polygon (blk 360886970). Reach runs down to the Nilkitkwa River confluence (~[-126.701,55.452]). [structural-split 2026-08-05 from \"from the juvenile fish counting weir located at the outlet o\"] boundary=juvenile fish counting weir located at the outlet of Nilkitkwa Lake [hint-fix 2026-08-06 lake_reach->dam_weir_fence] [human-review 2026-08-06] user-located.",
+              "coord": [
+                -126.68277,
+                55.41337
+              ],
               "locator_text": "juvenile fish counting weir located at the outlet of Nilkitkwa Lake"
             },
             {
               "id": "babine-river-912f94-a",
-              "status": "todo",
-              "anchor_kind": "lake",
+              "status": "curated",
+              "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "dam_weir_fence",
-              "notes": "[auto-proposal M] Juvenile fish counting weir at Nilkitkwa Lake outlet on Babine River (Nilkitkwa outlet -> Nilkitkwa R confluence). Candidate coord [-126.68407, 55.41439]. OSM: https://www.openstreetmap.org/?mlat=55.41439&mlon=-126.68407#map=15/55.41439/-126.68407. Verify: Same weir as babine-river-8f73d2; confirm weir at lake outlet.. Duplicate structure of babine-river-8f73d2 (juvenile weir at Nilkitkwa Lake outlet); reach runs down to the Babine's confluence with the Nilkitkwa River. Coord = FWA Nilkitkwa Lake outlet. [structural-split 2026-08-05 from \"from the juvenile fish counting weir located at the outlet o\"] boundary=juvenile fish counting weir located at the outlet of Nilkitkwa Lake [hint-fix 2026-08-06 lake_reach->dam_weir_fence]",
+              "label": "juvenile counting weir (Nilkitkwa outlet)",
+              "notes": "[auto-proposal M] Juvenile fish counting weir at Nilkitkwa Lake outlet on Babine River (Nilkitkwa outlet -> Nilkitkwa R confluence). Candidate coord [-126.68407, 55.41439]. OSM: https://www.openstreetmap.org/?mlat=55.41439&mlon=-126.68407#map=15/55.41439/-126.68407. Verify: Same weir as babine-river-8f73d2; confirm weir at lake outlet.. Duplicate structure of babine-river-8f73d2 (juvenile weir at Nilkitkwa Lake outlet); reach runs down to the Babine's confluence with the Nilkitkwa River. Coord = FWA Nilkitkwa Lake outlet. [structural-split 2026-08-05 from \"from the juvenile fish counting weir located at the outlet o\"] boundary=juvenile fish counting weir located at the outlet of Nilkitkwa Lake [hint-fix 2026-08-06 lake_reach->dam_weir_fence] [human-review 2026-08-06] user-located.",
+              "coord": [
+                -126.68277,
+                55.41337
+              ],
               "locator_text": "juvenile fish counting weir located at the outlet of Nilkitkwa Lake"
             },
             {
