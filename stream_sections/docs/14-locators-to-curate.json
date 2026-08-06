@@ -1138,11 +1138,11 @@
       "full_regulation": "No Fishing Nov 1-May 31\nTrout/char catch and release; artificial fly only, bait ban\nNo angling from powered boats from Woodjam Bridge to Quesnel Lake\nClass II water[Includes Tributaries] June 1-Oct 31; Steelhead Stamp not required",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "todo",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[structural-split 2026-08-05 from \"from Quesnel Lake to Horsefly River Falls\"] boundary=Quesnel Lake",
+      "notes": "[structural-split 2026-08-05 from \"from Quesnel Lake to Horsefly River Falls\"] boundary=Quesnel Lake [auto-lake-split 2026-08-05] pure lake-edge; lake polygon splits the BLK for free (docs/04) -> no authored split.",
       "entry_id": "9538df76"
     },
     {
@@ -1309,11 +1309,11 @@
       "full_regulation": "No Fishing from boundary signs in Kokish canyon to Ida Lake, Nov 1-Apr 30;\nNo Fishing from the log boom located approximately 100 m upstream of the IPP intake to signs at the tail of the canyon pool located\napproximately 250 m downstream\nNo Fishing between signs at the IPP tail race confluence downstream approximately 500 m to signs",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "todo",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[structural-split 2026-08-05 from \"from boundary signs in Kokish canyon to Ida Lake\"] boundary=Ida Lake",
+      "notes": "[structural-split 2026-08-05 from \"from boundary signs in Kokish canyon to Ida Lake\"] boundary=Ida Lake [auto-lake-split 2026-08-05] pure lake-edge; lake polygon splits the BLK for free (docs/04) -> no authored split.",
       "entry_id": "20715cbc"
     },
     {
@@ -1536,11 +1536,11 @@
       "full_regulation": "Artificial fly only from Carp Lake to War Falls (excluding War Lake)",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "todo",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[structural-split 2026-08-05 from \"from Carp Lake to War Falls\"] boundary=Carp Lake",
+      "notes": "[structural-split 2026-08-05 from \"from Carp Lake to War Falls\"] boundary=Carp Lake [auto-lake-split 2026-08-05] pure lake-edge; lake polygon splits the BLK for free (docs/04) -> no authored split.",
       "entry_id": "a9ca82b7"
     },
     {
@@ -1612,11 +1612,11 @@
       "full_regulation": "No Fishing from falls at Gallagher Canyon to Okanagan Lake",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "todo",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[structural-split 2026-08-05 from \"from falls at Gallagher Canyon to Okanagan Lake\"] boundary=Okanagan Lake",
+      "notes": "[structural-split 2026-08-05 from \"from falls at Gallagher Canyon to Okanagan Lake\"] boundary=Okanagan Lake [auto-lake-split 2026-08-05] pure lake-edge; lake polygon splits the BLK for free (docs/04) -> no authored split.",
       "entry_id": "155b494f"
     },
     {
@@ -1764,11 +1764,11 @@
       "full_regulation": "No Fishing from Hardy Falls to Okanagan Lake",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "todo",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[structural-split 2026-08-05 from \"from Hardy Falls to Okanagan Lake\"] boundary=Okanagan Lake",
+      "notes": "[structural-split 2026-08-05 from \"from Hardy Falls to Okanagan Lake\"] boundary=Okanagan Lake [auto-lake-split 2026-08-05] pure lake-edge; lake polygon splits the BLK for free (docs/04) -> no authored split.",
       "entry_id": "13c2dbeb"
     },
     {
@@ -4046,11 +4046,11 @@
       "full_regulation": "No Fishing from boundary signs at outlet of Chehalis Lake to main logging road bridge approximately 2.4 km downstream of Chehalis Lake\nNo Fishing downstream of the main logging road bridge situated approximately 2.4 km downstream of Chehalis Lake, May 1-31",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "todo",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal M] main logging road bridge ~2.4 km below Chehalis Lake outlet on Chehalis River. Candidate coord [-122.03017, 50.50767]. OSM: https://www.openstreetmap.org/?mlat=50.50767&mlon=-122.03017#map=15/50.50767/-122.03017. Verify: MYSTERY 8100 is the uppermost FSR crossing found (nearest the lake); confirm it is the bridge ~2.4 km below Chehalis Lake outlet.. Reach = 'boundary signs at Chehalis Lake outlet to the main logging road bridge ~2.4 km downstream'. Of the FWA FSR crossings, MYSTERY 8100 (6314 19) is the uppermost, closest to the lake outlet; candidate for the ~2.4 km bridge. Verify on map. [structural-split 2026-08-05 from “from boundary signs at outlet of Chehalis Lake to main logging road bridge approximately 2.4 km downstream of Chehalis L”] boundary=boundary signs at outlet of Chehalis Lake",
+      "notes": "[auto-proposal M] main logging road bridge ~2.4 km below Chehalis Lake outlet on Chehalis River. Candidate coord [-122.03017, 50.50767]. OSM: https://www.openstreetmap.org/?mlat=50.50767&mlon=-122.03017#map=15/50.50767/-122.03017. Verify: MYSTERY 8100 is the uppermost FSR crossing found (nearest the lake); confirm it is the bridge ~2.4 km below Chehalis Lake outlet.. Reach = 'boundary signs at Chehalis Lake outlet to the main logging road bridge ~2.4 km downstream'. Of the FWA FSR crossings, MYSTERY 8100 (6314 19) is the uppermost, closest to the lake outlet; candidate for the ~2.4 km bridge. Verify on map. [structural-split 2026-08-05 from “from boundary signs at outlet of Chehalis Lake to main logging road bridge approximately 2.4 km downstream of Chehalis L”] boundary=boundary signs at outlet of Chehalis Lake [auto-lake-split 2026-08-05] pure lake-edge; lake polygon splits the BLK for free (docs/04) -> no authored split.",
       "entry_id": "bb6d5fe5"
     },
     {
@@ -4262,11 +4262,11 @@
       "full_regulation": "No Fishing from Skidegate Lake to signs at second bridge 6 km upstream of tidal boundary, Feb 1-Apr 30\nBait ban Nov 1-Apr 30[Includes Tributaries]; cutthroat trout catch and release\nClass II water Sept 1-Apr 30[Includes Tributaries]; Steelhead Stamp mandatory Dec 1-Apr 30[Includes Tributaries]",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "todo",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal M] signed 'second bridge' ~6 km above tidal boundary on Copper Creek. Candidate coord [-131.80771, 53.11437]. OSM: https://www.openstreetmap.org/?mlat=53.11437&mlon=-131.80771#map=15/53.11437/-131.80771. Verify: Two logging crossings found (Copper Bay M/L 3.9 km, South Bay Main 7.7 km); confirm which is the signed 'second bridge' ~6 km above the tidal boundary.. Reach = 'Skidegate Lake to signs at second bridge 6 km above tidal boundary' (Haida Gwaii). Candidate = South Bay Main (7.7 km, nearest 6 km); Copper Bay M/L (3.9 km) is the alternative first bridge. [structural-split 2026-08-05 from “from Skidegate Lake to signs at second bridge 6 km upstream of tidal boundary”] boundary=Skidegate Lake",
+      "notes": "[auto-proposal M] signed 'second bridge' ~6 km above tidal boundary on Copper Creek. Candidate coord [-131.80771, 53.11437]. OSM: https://www.openstreetmap.org/?mlat=53.11437&mlon=-131.80771#map=15/53.11437/-131.80771. Verify: Two logging crossings found (Copper Bay M/L 3.9 km, South Bay Main 7.7 km); confirm which is the signed 'second bridge' ~6 km above the tidal boundary.. Reach = 'Skidegate Lake to signs at second bridge 6 km above tidal boundary' (Haida Gwaii). Candidate = South Bay Main (7.7 km, nearest 6 km); Copper Bay M/L (3.9 km) is the alternative first bridge. [structural-split 2026-08-05 from “from Skidegate Lake to signs at second bridge 6 km upstream of tidal boundary”] boundary=Skidegate Lake [auto-lake-split 2026-08-05] pure lake-edge; lake polygon splits the BLK for free (docs/04) -> no authored split.",
       "entry_id": "5fde172a"
     },
     {
@@ -4804,11 +4804,11 @@
       "full_regulation": "No Fishing Nov 1-May 31\nTrout/char catch and release; artificial fly only, bait ban\nNo angling from powered boats from Woodjam Bridge to Quesnel Lake\nClass II water[Includes Tributaries] June 1-Oct 31; Steelhead Stamp not required",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "todo",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal L] Woodjam Bridge over Horsefly River on Horsefly River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Woodjam (Road) bridge over the Horsefly River near Horsefly townsite; map. (Reach runs down to Quesnel Lake.). Reach = 'Woodjam Bridge to Quesnel Lake'. Woodjam is a road bridge near Horsefly town; not name-matched among the FWA Horsefly FSR crossings (which are further upstream). Map/OSM-confirmable; Quesnel Lake is the other endpoint. [structural-split 2026-08-05 from “from Woodjam Bridge to Quesnel Lake”] boundary=Quesnel Lake",
+      "notes": "[auto-proposal L] Woodjam Bridge over Horsefly River on Horsefly River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Woodjam (Road) bridge over the Horsefly River near Horsefly townsite; map. (Reach runs down to Quesnel Lake.). Reach = 'Woodjam Bridge to Quesnel Lake'. Woodjam is a road bridge near Horsefly town; not name-matched among the FWA Horsefly FSR crossings (which are further upstream). Map/OSM-confirmable; Quesnel Lake is the other endpoint. [structural-split 2026-08-05 from “from Woodjam Bridge to Quesnel Lake”] boundary=Quesnel Lake [auto-lake-split 2026-08-05] pure lake-edge; lake polygon splits the BLK for free (docs/04) -> no authored split.",
       "entry_id": "9538df76"
     },
     {
@@ -4939,11 +4939,11 @@
       "full_regulation": "Angling prohibited for non-guided non-resident aliens from the outlet of Lakelse Lake to the power line crossing, located 3.5 km\nupstream of the Lakelse River mouth, all year (See map page 55)\nFly fishing only between Lakelse Lake and CNR Bridge, Mar 1-May 31\nBait ban, no powered boats\nNote: The mouth of the river is designated by signs 1.7 km downstream of Lakelse River logging road bridge\nClass I water all year; Steelhead Stamp mandatory Sept 1-May 31",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "todo",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal L] power line crossing 3.5 km above Lakelse River mouth on Lakelse River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the power line 3.5 km above the Lakelse mouth (from Lakelse Lake outlet); power line, map-only.. Reach = 'Lakelse Lake outlet to power line 3.5 km above the mouth'. Transmission-line landmark near Terrace; not in FWA. Map/OSM. [structural-split 2026-08-05 from “from the outlet of Lakelse Lake to the power line crossing, located 3.5 km upstream of the Lakelse River mouth”] boundary=outlet of Lakelse Lake",
+      "notes": "[auto-proposal L] power line crossing 3.5 km above Lakelse River mouth on Lakelse River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the power line 3.5 km above the Lakelse mouth (from Lakelse Lake outlet); power line, map-only.. Reach = 'Lakelse Lake outlet to power line 3.5 km above the mouth'. Transmission-line landmark near Terrace; not in FWA. Map/OSM. [structural-split 2026-08-05 from “from the outlet of Lakelse Lake to the power line crossing, located 3.5 km upstream of the Lakelse River mouth”] boundary=outlet of Lakelse Lake [auto-lake-split 2026-08-05] pure lake-edge; lake polygon splits the BLK for free (docs/04) -> no authored split.",
       "entry_id": "dd7048cb"
     },
     {
@@ -4980,11 +4980,11 @@
       "full_regulation": "Angling prohibited for non-guided non-resident aliens from the outlet of Lakelse Lake to the power line crossing, located 3.5 km\nupstream of the Lakelse River mouth, all year (See map page 55)\nFly fishing only between Lakelse Lake and CNR Bridge, Mar 1-May 31\nBait ban, no powered boats\nNote: The mouth of the river is designated by signs 1.7 km downstream of Lakelse River logging road bridge\nClass I water all year; Steelhead Stamp mandatory Sept 1-May 31",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "todo",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal L] CNR Bridge over Lakelse River (from Lakelse Lake) on Lakelse River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the CNR (railway) bridge on the Lakelse River near Terrace; railway bridge, map-only.. Reach = 'between Lakelse Lake and CNR Bridge'. Railway bridge -> not in FWA; map/OSM-confirmable. [structural-split 2026-08-05 from “between Lakelse Lake and CNR Bridge”] boundary=Lakelse Lake",
+      "notes": "[auto-proposal L] CNR Bridge over Lakelse River (from Lakelse Lake) on Lakelse River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the CNR (railway) bridge on the Lakelse River near Terrace; railway bridge, map-only.. Reach = 'between Lakelse Lake and CNR Bridge'. Railway bridge -> not in FWA; map/OSM-confirmable. [structural-split 2026-08-05 from “between Lakelse Lake and CNR Bridge”] boundary=Lakelse Lake [auto-lake-split 2026-08-05] pure lake-edge; lake polygon splits the BLK for free (docs/04) -> no authored split.",
       "entry_id": "dd7048cb"
     },
     {
@@ -5217,11 +5217,11 @@
       "full_regulation": "No Fishing Dec 1-May 31, No Fishing from Menzies Bay logging mainline bridge crossing to Morton Lake",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "todo",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal M] Menzies Bay logging mainline bridge over Mohun Creek on Mohun Creek. Candidate coord [-125.42449, 50.09625]. OSM: https://www.openstreetmap.org/?mlat=50.09625&mlon=-125.42449#map=15/50.09625/-125.42449. Verify: MENZMN.2 (Menzies Bay mainline) crosses Mohun Creek at ~7.4 km -> strong match; confirm as the reach start to Morton Lake.. Reach = 'Menzies Bay logging mainline bridge crossing to Morton Lake'. FWA FSR 'MENZMN.2' (Menzies mainline) crossing is a strong name/location match. Verify against the bridge on map. [structural-split 2026-08-05 from “from Menzies Bay logging mainline bridge crossing to Morton Lake”] boundary=Morton Lake",
+      "notes": "[auto-proposal M] Menzies Bay logging mainline bridge over Mohun Creek on Mohun Creek. Candidate coord [-125.42449, 50.09625]. OSM: https://www.openstreetmap.org/?mlat=50.09625&mlon=-125.42449#map=15/50.09625/-125.42449. Verify: MENZMN.2 (Menzies Bay mainline) crosses Mohun Creek at ~7.4 km -> strong match; confirm as the reach start to Morton Lake.. Reach = 'Menzies Bay logging mainline bridge crossing to Morton Lake'. FWA FSR 'MENZMN.2' (Menzies mainline) crossing is a strong name/location match. Verify against the bridge on map. [structural-split 2026-08-05 from “from Menzies Bay logging mainline bridge crossing to Morton Lake”] boundary=Morton Lake [auto-lake-split 2026-08-05] pure lake-edge; lake polygon splits the BLK for free (docs/04) -> no authored split.",
       "entry_id": "5e563b26"
     },
     {
@@ -5742,11 +5742,11 @@
       "full_regulation": "No Fishing within Garibaldi Park; speed restriction at Grant Narrows (10 km/h)\nBait ban upstream of Pitt Lake\nNo Fishing in the Lower Pitt River (CPR Bridge upstream to Pitt Lake) from one hour after sunset to one hour before sunrise (tributaries not\nincluded)",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "todo",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal L] CPR Bridge on Lower Pitt River (to Pitt Lake) on Pitt River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the CPR (railway) bridge over the lower Pitt River (Pitt Meadows); railway bridge, map-only.. Reach = 'Lower Pitt River: CPR Bridge upstream to Pitt Lake'. Railway bridge near the Pitt mouth; distinct from the Garibaldi Park split (garibaldi_pitt) which is far up the Pitt. Map/OSM-confirmable. [structural-split 2026-08-05 from “in the Lower Pitt River (CPR Bridge upstream to Pitt Lake)”] boundary=Pitt Lake)",
+      "notes": "[auto-proposal L] CPR Bridge on Lower Pitt River (to Pitt Lake) on Pitt River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the CPR (railway) bridge over the lower Pitt River (Pitt Meadows); railway bridge, map-only.. Reach = 'Lower Pitt River: CPR Bridge upstream to Pitt Lake'. Railway bridge near the Pitt mouth; distinct from the Garibaldi Park split (garibaldi_pitt) which is far up the Pitt. Map/OSM-confirmable. [structural-split 2026-08-05 from “in the Lower Pitt River (CPR Bridge upstream to Pitt Lake)”] boundary=Pitt Lake) [auto-lake-split 2026-08-05] pure lake-edge; lake polygon splits the BLK for free (docs/04) -> no authored split.",
       "entry_id": "773ca353"
     },
     {
@@ -5780,11 +5780,11 @@
       "full_regulation": "No Fishing downstream of Hwy 97 bridge to Okanagan Lake",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "todo",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal L] Hwy 97 bridge over Powers Creek (to Okanagan Lake) on Powers Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the Hwy 97 bridge over Powers Creek in West Kelowna (down to Okanagan Lake); single crossing -> review.. Public highway bridge in West Kelowna -> map/OSM-confirmable; FSR hits are far upstream. [structural-split 2026-08-05 from “downstream of Hwy 97 bridge to Okanagan Lake”] boundary=Okanagan Lake",
+      "notes": "[auto-proposal L] Hwy 97 bridge over Powers Creek (to Okanagan Lake) on Powers Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the Hwy 97 bridge over Powers Creek in West Kelowna (down to Okanagan Lake); single crossing -> review.. Public highway bridge in West Kelowna -> map/OSM-confirmable; FSR hits are far upstream. [structural-split 2026-08-05 from “downstream of Hwy 97 bridge to Okanagan Lake”] boundary=Okanagan Lake [auto-lake-split 2026-08-05] pure lake-edge; lake polygon splits the BLK for free (docs/04) -> no authored split.",
       "entry_id": "af3ee657"
     },
     {
@@ -6064,11 +6064,11 @@
       "full_regulation": "No Fishing from Westside Road Bridge to Okanagan Lake",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "todo",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal L] Westside Road Bridge over Shorts Creek (to Okanagan Lake) on Shorts Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the Westside Road bridge over Shorts Creek (Fintry area); single crossing -> review.. Reach = 'Westside Road Bridge to Okanagan Lake'. Westside Rd crosses Shorts Creek near Fintry, close to the Okanagan Lake mouth. Map/OSM-confirmable (FSR hits are far upstream). [structural-split 2026-08-05 from “from Westside Road Bridge to Okanagan Lake”] boundary=Okanagan Lake",
+      "notes": "[auto-proposal L] Westside Road Bridge over Shorts Creek (to Okanagan Lake) on Shorts Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the Westside Road bridge over Shorts Creek (Fintry area); single crossing -> review.. Reach = 'Westside Road Bridge to Okanagan Lake'. Westside Rd crosses Shorts Creek near Fintry, close to the Okanagan Lake mouth. Map/OSM-confirmable (FSR hits are far upstream). [structural-split 2026-08-05 from “from Westside Road Bridge to Okanagan Lake”] boundary=Okanagan Lake [auto-lake-split 2026-08-05] pure lake-edge; lake polygon splits the BLK for free (docs/04) -> no authored split.",
       "entry_id": "94472177"
     },
     {
@@ -6083,11 +6083,11 @@
       "full_regulation": "No Fishing from Mara Lake upstream to Mara Bridge\nNo Fishing 50 m upstream and 50 m downstream of Trinity Bridge, Jun 15-Nov 15\nRainbow trout/char catch and release; exempt from spring closure from Mara Bridge upstream to Sugar Lake\nUpstream of Sugar Lake: No fishing Sept 1-Oct 31; bait ban",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "todo",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal L] Mara Bridge over Shuswap River (from Mara Lake) on Shuswap River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Mara Bridge over the Shuswap River (near Grindrod/Mara); map.. Reach = 'Mara Lake upstream to Mara Bridge'. Road bridge on the lower Shuswap near Mara; not name-matched in FSR (hits are far up toward Sugar Lake). Map/OSM-confirmable. [structural-split 2026-08-05 from “from Mara Lake upstream to Mara Bridge”] boundary=Mara Lake",
+      "notes": "[auto-proposal L] Mara Bridge over Shuswap River (from Mara Lake) on Shuswap River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Mara Bridge over the Shuswap River (near Grindrod/Mara); map.. Reach = 'Mara Lake upstream to Mara Bridge'. Road bridge on the lower Shuswap near Mara; not name-matched in FSR (hits are far up toward Sugar Lake). Map/OSM-confirmable. [structural-split 2026-08-05 from “from Mara Lake upstream to Mara Bridge”] boundary=Mara Lake [auto-lake-split 2026-08-05] pure lake-edge; lake polygon splits the BLK for free (docs/04) -> no authored split.",
       "entry_id": "dd32b777"
     },
     {
@@ -6159,11 +6159,11 @@
       "full_regulation": "No Fishing from Mara Lake upstream to Mara Bridge\nNo Fishing 50 m upstream and 50 m downstream of Trinity Bridge, Jun 15-Nov 15\nRainbow trout/char catch and release; exempt from spring closure from Mara Bridge upstream to Sugar Lake\nUpstream of Sugar Lake: No fishing Sept 1-Oct 31; bait ban",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "todo",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal L] Mara Bridge over Shuswap River (to Sugar Lake) on Shuswap River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Mara Bridge (upstream reach to Sugar Lake); map.. Reach = 'Mara Bridge upstream to Sugar Lake'. Same Mara Bridge as the paired entry; Sugar Lake is the upstream endpoint. Map/OSM-confirmable. [structural-split 2026-08-05 from “from Mara Bridge upstream to Sugar Lake”] boundary=Sugar Lake",
+      "notes": "[auto-proposal L] Mara Bridge over Shuswap River (to Sugar Lake) on Shuswap River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Mara Bridge (upstream reach to Sugar Lake); map.. Reach = 'Mara Bridge upstream to Sugar Lake'. Same Mara Bridge as the paired entry; Sugar Lake is the upstream endpoint. Map/OSM-confirmable. [structural-split 2026-08-05 from “from Mara Bridge upstream to Sugar Lake”] boundary=Sugar Lake [auto-lake-split 2026-08-05] pure lake-edge; lake polygon splits the BLK for free (docs/04) -> no authored split.",
       "entry_id": "dd32b777"
     },
     {
@@ -6273,11 +6273,11 @@
       "full_regulation": "No Fishing from Sproat Lake to fishing boundary signs approximately 300 m downstream of Hwy 4, June 15-Nov 15\nBait ban, May 1-Oct 31",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "todo",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal L] signs ~300 m below Hwy 4 over Sproat River (from Sproat Lake) on Sproat River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Hwy 4 crossing of the Sproat River and the signs ~300 m downstream; map.. Reach = 'Sproat Lake to signs ~300 m downstream of Hwy 4' (Port Alberni). Public highway landmark -> map/OSM-confirmable; not in FWA. [structural-split 2026-08-05 from “from Sproat Lake to fishing boundary signs approximately 300 m downstream of Hwy 4”] boundary=Sproat Lake",
+      "notes": "[auto-proposal L] signs ~300 m below Hwy 4 over Sproat River (from Sproat Lake) on Sproat River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Hwy 4 crossing of the Sproat River and the signs ~300 m downstream; map.. Reach = 'Sproat Lake to signs ~300 m downstream of Hwy 4' (Port Alberni). Public highway landmark -> map/OSM-confirmable; not in FWA. [structural-split 2026-08-05 from “from Sproat Lake to fishing boundary signs approximately 300 m downstream of Hwy 4”] boundary=Sproat Lake [auto-lake-split 2026-08-05] pure lake-edge; lake polygon splits the BLK for free (docs/04) -> no authored split.",
       "entry_id": "29465d04"
     },
     {
@@ -6545,11 +6545,11 @@
       "full_regulation": "No Fishing from Hwy 97C to Okanagan Lake",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "todo",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal L] Hwy 97C crossing of Trepanier Creek (to Okanagan Lake) on Trepanier Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the Hwy 97C crossing of Trepanier Creek at Peachland (down to Okanagan Lake); FWA lookup used 'Trepanier River' (not found) -> try 'Trepanier Creek'; map.. Reach = 'Hwy 97C to Okanagan Lake' at Peachland. FWA didn't return 'Trepanier River' (the GNIS name is likely 'Trepanier Creek'). Public highway -> map/OSM-confirmable. [structural-split 2026-08-05 from “from Hwy 97C to Okanagan Lake”] boundary=Okanagan Lake",
+      "notes": "[auto-proposal L] Hwy 97C crossing of Trepanier Creek (to Okanagan Lake) on Trepanier Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the Hwy 97C crossing of Trepanier Creek at Peachland (down to Okanagan Lake); FWA lookup used 'Trepanier River' (not found) -> try 'Trepanier Creek'; map.. Reach = 'Hwy 97C to Okanagan Lake' at Peachland. FWA didn't return 'Trepanier River' (the GNIS name is likely 'Trepanier Creek'). Public highway -> map/OSM-confirmable. [structural-split 2026-08-05 from “from Hwy 97C to Okanagan Lake”] boundary=Okanagan Lake [auto-lake-split 2026-08-05] pure lake-edge; lake polygon splits the BLK for free (docs/04) -> no authored split.",
       "entry_id": "426962cd"
     },
     {
@@ -14620,11 +14620,11 @@
       "full_regulation": "No Fishing downstream of Forest Kerr Canyon[Includes Tributaries], Apr 1-Apr 30; no powered boats between Natadesleen Lake and Kinaskan Lake",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "todo",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[structural-split 2026-08-05 from \"between Natadesleen Lake and Kinaskan Lake\"] boundary=Natadesleen Lake",
+      "notes": "[structural-split 2026-08-05 from \"between Natadesleen Lake and Kinaskan Lake\"] boundary=Natadesleen Lake [auto-lake-split 2026-08-05] pure lake-edge; lake polygon splits the BLK for free (docs/04) -> no authored split.",
       "entry_id": "8fb53ca7"
     },
     {
@@ -14639,11 +14639,11 @@
       "full_regulation": "No Fishing downstream of Forest Kerr Canyon[Includes Tributaries], Apr 1-Apr 30; no powered boats between Natadesleen Lake and Kinaskan Lake",
       "anchor_kind": "lake",
       "resolver_hint": "lake_reach",
-      "status": "todo",
+      "status": "not_applicable",
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[structural-split 2026-08-05 from \"between Natadesleen Lake and Kinaskan Lake\"] boundary=Kinaskan Lake",
+      "notes": "[structural-split 2026-08-05 from \"between Natadesleen Lake and Kinaskan Lake\"] boundary=Kinaskan Lake [auto-lake-split 2026-08-05] pure lake-edge; lake polygon splits the BLK for free (docs/04) -> no authored split.",
       "entry_id": "8fb53ca7"
     },
     {
