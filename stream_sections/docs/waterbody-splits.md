@@ -7,8 +7,8 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 |---|--:|
 | NO_CURATION | 1 |
 | MISSING_SPLITS | 2 |
-| INCOMPLETE | 179 |
-| COMPLETE | 130 |
+| INCOMPLETE | 177 |
+| COMPLETE | 132 |
 | NO_SPLIT | 75 |
 
 **Drift** (curated rows matching no source locator): 3
@@ -365,7 +365,7 @@ approximately 35 m downstream” → little-qualicum-river-031042-b[todo], littl
 
 ## ENGLISHMAN RIVER · MU ['1-5'] · p17 · [INCOMPLETE] (fbf29fb0)
 - • [rule] “from lower falls in Englishman River Park to signs approximately 1” → englishman-river-8660ed-a[curated], englishman-river-8660ed-b[todo]
-- • [rule] “downstream of the lower falls in Englishman River Falls Provincial” → englishman-river-46a674-a[todo], englishman-river-46a674-b[curated]
+- • [rule] “downstream of the lower falls in Englishman River Falls Provincial” → englishman-river-46a674-a[curated], englishman-river-46a674-b[curated]
 
 ## KEOGH RIVER · MU ['1-13'] · p18 · [INCOMPLETE] (f02f2954)
 - • [rule] “downstream of lower fish counting fence near tidewater” → keogh-river-bf1c5b[todo]
@@ -429,7 +429,7 @@ approximately 35 m downstream” → little-qualicum-river-031042-b[todo], littl
 
 ## LOON LAKE · MU ['3-30'] · p32 · [INCOMPLETE] (d37dc894)
 - • [rule] “northeast of fishing boundary signs near the mouth of Thunder Cree” → loon-lake-97f382[todo]
-- • [rule] “within 500 m of outlet stream at southwest end of lake as marked b” → loon-lake-058d50[todo]
+- • [rule] “within 500 m of outlet stream at southwest end of lake as marked b” → loon-lake-058d50[deferred]
 
 ## SALMON RIVER · MU ['3-26'] · p34 · [INCOMPLETE] (499c7d53)
 - • [rule] “downstream of Hwy 97 bridge at Falkland” → salmon-river-f59a4d[todo]
@@ -470,10 +470,6 @@ approximately 35 m downstream” → little-qualicum-river-031042-b[todo], littl
 ## CHUCKWALLA RIVER · MU ['5-7'] · p50 · [INCOMPLETE] (38c3c0c0)
 - • [rule] “entire river” → chuckwalla-river-a0316a[not_applicable]
 - • [rule] “between fishing boundary signs at Ten Mile Pool” → chuckwalla-river-eec2f0[todo]
-
-## MOFFAT CREEK · MU ['5-2'] · p52 · [INCOMPLETE] (ff6102cf)
-- • [rule] “downstream of falls 8 km from Horsefly River” → moffat-creek-4db05d[todo]
-- • [rule] “downstream of falls 8 km from Horsefly River” → moffat-creek-4db05d[todo]
 
 ## QUESNEL LAKE · MU ['5-15'] · p52 · [INCOMPLETE] (b97489f1)
 - • [rule] “southwest of a line between fishing boundary signs on opposite sho” → quesnel-lake-d2d352[todo]
@@ -767,9 +763,6 @@ approximately 35 m downstream” → little-qualicum-river-031042-b[todo], littl
 
 ## MCRAE CREEK · MU ['8-15'] · p76 · [INCOMPLETE] (ead85d0e)
 - • [rule] “downstream of falls situated approximately 4 km upstream of Christ” → mcrae-creek-515a81[todo]
-
-## MISSION CREEK · MU ['8-10'] · p76 · [INCOMPLETE] (155b494f)
-- • [rule] “from falls at Gallagher Canyon to Okanagan Lake” → mission-creek-80df8d-a[todo], mission-creek-80df8d-b[not_applicable]
 
 ## OKANAGAN RIVER · MU ['8-1'] · p76 · [INCOMPLETE] (52c291bb)
 - • [rule] “from Okanagan Lake Dam downstream to McIntyre Dam and downstream o” → okanagan-river-53a1b3-a[todo], okanagan-river-53a1b3-b[todo]

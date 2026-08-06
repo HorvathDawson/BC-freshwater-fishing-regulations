@@ -1694,15 +1694,20 @@
             ],
             "includes_tributaries": true
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "englishman-river-46a674-a",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "falls_obstacle",
-              "notes": "[structural-split 2026-08-05 from \"downstream of the lower falls in Englishman River Falls Prov\"] boundary=downstream of the lower falls in Englishman River Falls Provincial Park [hint-fix 2026-08-06 park_polygon->falls_obstacle]",
+              "label": "lower falls, Englishman River Park",
+              "notes": "[structural-split 2026-08-05 from \"downstream of the lower falls in Englishman River Falls Prov\"] boundary=downstream of the lower falls in Englishman River Falls Provincial Park [hint-fix 2026-08-06 park_polygon->falls_obstacle] [human-review 2026-08-06] lower falls (same as sibling englishman lower-falls row).",
+              "coord": [
+                -124.34885,
+                49.24654
+              ],
               "locator_text": "downstream of the lower falls in Englishman River Falls Provincial Park"
             },
             {
@@ -9726,14 +9731,15 @@
           "info": {
             "restriction_type": "closure"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "loon-lake-058d50",
-              "status": "todo",
+              "status": "deferred",
               "anchor_kind": "buffer",
               "src": "rule",
-              "resolver_hint": "radius"
+              "resolver_hint": "radius",
+              "notes": " [deferred 2026-08-06] lake-internal split (regulation within a lake); see docs/15."
             }
           ]
         },
@@ -19918,7 +19924,7 @@
       "image": "page_052_row_017.png",
       "symbols": [],
       "reg_text": "Trout/char catch and release and bait ban downstream of falls 8 km from Horsefly River",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 2,
       "locators": [
         {
@@ -19927,14 +19933,20 @@
           "info": {
             "restriction_type": "harvest"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "moffat-creek-4db05d",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
-              "resolver_hint": "falls_obstacle"
+              "resolver_hint": "falls_obstacle",
+              "label": "falls ~8-10 km above Horsefly confluence",
+              "notes": " [human-review 2026-08-06] falls (measures ~9.95 km along-channel; reg says ~8 km, approximate).",
+              "coord": [
+                -121.46247,
+                52.2807
+              ]
             }
           ]
         },
@@ -19944,14 +19956,20 @@
           "info": {
             "restriction_type": "gear_restriction"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "moffat-creek-4db05d",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
-              "resolver_hint": "falls_obstacle"
+              "resolver_hint": "falls_obstacle",
+              "label": "falls ~8-10 km above Horsefly confluence",
+              "notes": " [human-review 2026-08-06] falls (measures ~9.95 km along-channel; reg says ~8 km, approximate).",
+              "coord": [
+                -121.46247,
+                52.2807
+              ]
             }
           ]
         },
@@ -25823,7 +25841,7 @@
       "image": "page_076_row_022.png",
       "symbols": [],
       "reg_text": "**No Fishing** from falls at Gallagher Canyon to Okanagan Lake",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 1,
       "locators": [
         {
@@ -25832,15 +25850,20 @@
           "info": {
             "restriction_type": "closure"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "mission-creek-80df8d-a",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "falls_obstacle",
-              "notes": "[structural-split 2026-08-05 from \"from falls at Gallagher Canyon to Okanagan Lake\"] boundary=falls at Gallagher Canyon [review] OSM falls candidate a bit upstream of Gallagher Canyon resort - low confidence, verify.",
+              "label": "falls at Gallagher Canyon",
+              "notes": "[structural-split 2026-08-05 from \"from falls at Gallagher Canyon to Okanagan Lake\"] boundary=falls at Gallagher Canyon [review] OSM falls candidate a bit upstream of Gallagher Canyon resort - low confidence, verify. [human-review 2026-08-06 LOW-CONF] OSM falls a bit upstream of Gallagher Canyon resort; verify exact falls if precision matters.",
+              "coord": [
+                -119.30599,
+                49.85287
+              ],
               "locator_text": "falls at Gallagher Canyon"
             },
             {
