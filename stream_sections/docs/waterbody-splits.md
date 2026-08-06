@@ -7,8 +7,8 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 |---|--:|
 | NO_CURATION | 1 |
 | MISSING_SPLITS | 2 |
-| INCOMPLETE | 177 |
-| COMPLETE | 132 |
+| INCOMPLETE | 176 |
+| COMPLETE | 133 |
 | NO_SPLIT | 75 |
 
 **Drift** (curated rows matching no source locator): 3
@@ -46,7 +46,7 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 - • [rule] “from Hells Gate upstream to the Region 3 boundary” → fraser-river-aa3425-a[todo], fraser-river-aa3425-b[todo]
 
 ## COLUMBIA RIVER · MU ['4-8', '4-15', '4-26', '4-34', '4-38'] · p37 · [INCOMPLETE] (1f199dad)
-- • [rule] “from Revelstoke Dam downstream to Hwy 1 bridge in Revelstoke” → columbia-river-67df30-a[todo], columbia-river-67df30-b[todo]
+- • [rule] “from Revelstoke Dam downstream to Hwy 1 bridge in Revelstoke” → columbia-river-67df30-a[curated], columbia-river-67df30-b[todo]
 - • [rule] “from a line between the old Robson Ferry landing and a sign on the” → columbia-river-e8b414[todo], columbia-river-f33298-a[todo], columbia-river-f33298-b[todo]
 - • [rule] “from Keenleyside Dam to a line between the old Robson Ferry landin” → columbia-river-3914af-a[todo], columbia-river-f33298-a[todo], columbia-river-f33298-b[todo], columbia-river-f4c5a3-a[todo]
 - • [rule] “from Keenleyside Dam to the Washington state border” → columbia-river-3914af-a[todo], columbia-river-f4c5a3-a[todo], columbia-river-f4c5a3-b[todo]
@@ -58,14 +58,14 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 - • [rule] “in main channel from Fairmont to Donald” → columbia-river-275f56[todo]
 
 ## CAMPBELL RIVER · MU ['1-10'] · p16 · [INCOMPLETE] (2d6a28ef)
-- • [rule] “between Elk Falls and John Hart Dam Power Station” → campbell-river-584665-a[curated], campbell-river-584665-b[curated], campbell-river-96d7aa-a[todo]
+- • [rule] “between Elk Falls and John Hart Dam Power Station” → campbell-river-584665-a[curated], campbell-river-584665-b[curated], campbell-river-96d7aa-a[curated]
 - • [rule] “from Strathcona Dam downstream 100 m” → campbell-river-657d6e[todo]
 - • [rule] “from the boundary sign at the end of Maple Street downstream to th” → campbell-river-947382-a[todo], campbell-river-947382-b[todo]
 - • [rule] “in any tributaries” → campbell-river-caa7ef[not_applicable]
 - • [except] “except Quinsam River” → campbell-river-38d85c[not_applicable]
-- • [rule] “From John Hart Dam Power Station to power line crossing approximat” → campbell-river-96d7aa-a[todo], campbell-river-96d7aa-b[todo]
+- • [rule] “From John Hart Dam Power Station to power line crossing approximat” → campbell-river-96d7aa-a[curated], campbell-river-96d7aa-b[todo]
 - • [rule] “downstream of power line crossing approximately 200 m upstream of ” → campbell-river-7bcc85[todo]
-- • [rule] “between Elk Falls and John Hart Dam Power Station” → campbell-river-584665-a[curated], campbell-river-584665-b[curated], campbell-river-96d7aa-a[todo]
+- • [rule] “between Elk Falls and John Hart Dam Power Station” → campbell-river-584665-a[curated], campbell-river-584665-b[curated], campbell-river-96d7aa-a[curated]
 
 ## CHILLIWACK / VEDDER RIVERS (does not include Sumas River) (see map on page 24) · MU ['2-4'] · p24 · [INCOMPLETE] (2f3fea39)
 - • [rule] “upstream from a line between two fishing boundary signs on either ” → chilliwack-vedder-rivers-does-not-include-sum-94aff2[todo]
@@ -306,7 +306,7 @@ approximately 35 m downstream” → little-qualicum-river-031042-b[todo], littl
 - • [entry] “downstream of Adams Lake” → adams-river-downstream-of-adams-lake-037302[curated]
 
 ## BRIDGE RIVER · MU ['3-33'] · p31 · [INCOMPLETE] (58790669)
-- • [rule] “from Terzaghi Dam to Yalakom River” → bridge-river-2ee523-a[todo], bridge-river-2ee523-b[curated]
+- • [rule] “from Terzaghi Dam to Yalakom River” → bridge-river-2ee523-a[curated], bridge-river-2ee523-b[curated]
 - • [rule] “downstream of Hwy 40 bridge (approximately 6 km north of Lillooet)” → bridge-river-e2a502[todo]
 - • [rule] “upstream of Downton Lake (reservoir)” → bridge-river-3fa485[not_applicable]
 
@@ -547,9 +547,6 @@ approximately 35 m downstream” → little-qualicum-river-031042-b[todo], littl
 
 ## BEAR (Mahood) CREEK · MU ['2-4'] · p24 · [INCOMPLETE] (e8095112)
 - • [rule] “upstream of 152nd Street (Johnson Road)” → bear-mahood-creek-55c67c[todo]
-
-## BRUNETTE RIVER · MU ['2-8'] · p24 · [INCOMPLETE] (e7274b4e)
-- • [rule] “upstream of Burnaby Lake or from Cariboo Dam to Salamander Creek” → brunette-river-3c4590[todo]
 
 ## CAPILANO RIVER · MU ['2-8'] · p24 · [INCOMPLETE] (b2441cc9)
 - • [rule] “upstream of fishing boundary signs at footbridge situated approxim” → capilano-river-496399[todo]
