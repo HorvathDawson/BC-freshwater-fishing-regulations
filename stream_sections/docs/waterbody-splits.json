@@ -8651,15 +8651,24 @@
           "info": {
             "restriction_type": "gear_restriction"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "clearwater-river-4ba0c8-a",
-              "status": "todo",
-              "anchor_kind": "point",
+              "status": "curated",
+              "anchor_kind": "confluence",
               "src": "rule",
-              "resolver_hint": "falls_obstacle",
-              "notes": "Mahood River blk: 356347721, watershed code: 100-190442-998192-349877-237590-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000, Falls creek blk: 356353929 and wsc: 100-190442-998192-349877-427140-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000 [structural-split 2026-08-05 from \"from Falls Creek to Mahood River\"] boundary=Falls Creek",
+              "resolver_hint": "tributary",
+              "label": "Falls Creek confluence",
+              "notes": "Mahood River blk: 356347721, watershed code: 100-190442-998192-349877-237590-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000, Falls creek blk: 356353929 and wsc: 100-190442-998192-349877-427140-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000 [structural-split 2026-08-05 from \"from Falls Creek to Mahood River\"] boundary=Falls Creek [human-review 2026-08-06] Falls Creek (a CREEK) confluence on Clearwater (0 m); re-typed falls->confluence.",
+              "coord": [
+                -120.19158,
+                52.13729
+              ],
+              "target": {
+                "blk": 356353929,
+                "wsc": "100-190442-998192-349877-427140-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+              },
               "locator_text": "Falls Creek"
             },
             {
@@ -8753,23 +8762,41 @@
           "info": {
             "restriction_type": "vessel_restriction"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "clearwater-river-1335bb",
-              "status": "todo",
-              "anchor_kind": "point",
+              "status": "curated",
+              "anchor_kind": "confluence",
               "src": "rule",
-              "resolver_hint": "falls_obstacle",
-              "notes": "Falls creek blk: 356353929 and wsc: 100-190442-998192-349877-427140-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+              "resolver_hint": "tributary",
+              "label": "Falls Creek confluence",
+              "notes": "Falls creek blk: 356353929 and wsc: 100-190442-998192-349877-427140-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000 [human-review 2026-08-06] Falls Creek (a CREEK) confluence on Clearwater (0 m); re-typed falls->confluence.",
+              "coord": [
+                -120.19158,
+                52.13729
+              ],
+              "target": {
+                "blk": 356353929,
+                "wsc": "100-190442-998192-349877-427140-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+              }
             },
             {
               "id": "clearwater-river-4ba0c8-a",
-              "status": "todo",
-              "anchor_kind": "point",
+              "status": "curated",
+              "anchor_kind": "confluence",
               "src": "rule",
-              "resolver_hint": "falls_obstacle",
-              "notes": "Mahood River blk: 356347721, watershed code: 100-190442-998192-349877-237590-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000, Falls creek blk: 356353929 and wsc: 100-190442-998192-349877-427140-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000 [structural-split 2026-08-05 from \"from Falls Creek to Mahood River\"] boundary=Falls Creek",
+              "resolver_hint": "tributary",
+              "label": "Falls Creek confluence",
+              "notes": "Mahood River blk: 356347721, watershed code: 100-190442-998192-349877-237590-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000, Falls creek blk: 356353929 and wsc: 100-190442-998192-349877-427140-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000 [structural-split 2026-08-05 from \"from Falls Creek to Mahood River\"] boundary=Falls Creek [human-review 2026-08-06] Falls Creek (a CREEK) confluence on Clearwater (0 m); re-typed falls->confluence.",
+              "coord": [
+                -120.19158,
+                52.13729
+              ],
+              "target": {
+                "blk": 356353929,
+                "wsc": "100-190442-998192-349877-427140-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+              },
               "locator_text": "Falls Creek"
             }
           ]
@@ -24644,7 +24671,7 @@
       "image": "page_071_row_038.png",
       "symbols": [],
       "reg_text": "Arctic grayling catch and release from Kinuseo Falls to signs about 2 km downstream",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 1,
       "locators": [
         {
@@ -24653,7 +24680,7 @@
           "info": {
             "restriction_type": "harvest"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "murray-river-470730-a",
@@ -24671,11 +24698,16 @@
             },
             {
               "id": "murray-river-470730-b",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "boundary_signs",
-              "notes": "[structural-split 2026-08-05 from \"from Kinuseo Falls to signs about 2 km downstream\"] boundary=signs about 2 km downstream [hint-fix 2026-08-06 falls_obstacle->boundary_signs]",
+              "label": "signs ~2 km below Kinuseo Falls",
+              "notes": "[structural-split 2026-08-05 from \"from Kinuseo Falls to signs about 2 km downstream\"] boundary=signs about 2 km downstream [hint-fix 2026-08-06 falls_obstacle->boundary_signs] [human-review 2026-08-06] anchor=Kinuseo Falls; offset_m=2000 offset_dir=downstream.",
+              "coord": [
+                -121.20313,
+                54.79829
+              ],
               "locator_text": "signs about 2 km downstream"
             }
           ]

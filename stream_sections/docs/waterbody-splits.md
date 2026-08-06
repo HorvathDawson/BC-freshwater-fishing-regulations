@@ -7,8 +7,8 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 |---|--:|
 | NO_CURATION | 1 |
 | MISSING_SPLITS | 2 |
-| INCOMPLETE | 182 |
-| COMPLETE | 127 |
+| INCOMPLETE | 181 |
+| COMPLETE | 128 |
 | NO_SPLIT | 75 |
 
 **Drift** (curated rows matching no source locator): 3
@@ -176,9 +176,9 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 ## CLEARWATER RIVER · MU ['3-40', '3-46'] · p31 · [INCOMPLETE] (2e5c3843)
 - • [rule] “Downstream of old Clearwater Bridge” → clearwater-river-9cb106[todo]
 - • [rule] “Downstream of old Clearwater Bridge” → clearwater-river-9cb106[todo]
-- • [rule] “from Falls Creek to Mahood River” → clearwater-river-4ba0c8-a[todo], clearwater-river-4ba0c8-b[curated]
+- • [rule] “from Falls Creek to Mahood River” → clearwater-river-4ba0c8-a[curated], clearwater-river-4ba0c8-b[curated]
 - • [rule] “from Mahood River to North Thompson River” → clearwater-river-4ba0c8-b[curated], clearwater-river-dddc3f-a[curated], clearwater-river-dddc3f-b[curated]
-- • [rule] “downstream of Falls Creek” → clearwater-river-1335bb[todo], clearwater-river-4ba0c8-a[todo]
+- • [rule] “downstream of Falls Creek” → clearwater-river-1335bb[curated], clearwater-river-4ba0c8-a[curated]
 
 ## SKEENA RIVER (mainstem only) · MU ['6-10'] · p59 · [INCOMPLETE] (2fc0d1b9)
 - • [rule] “from Exchamsiks River to 1.5 km upstream of Kitsumkalum River (kno” → skeena-river-mainstem-only-b079a0-a[curated], skeena-river-mainstem-only-b079a0-b[curated]
@@ -754,9 +754,6 @@ approximately 35 m downstream” → little-qualicum-river-031042-b[todo], littl
 
 ## LETAIN LAKE · MU ['7-52'] · p71 · [INCOMPLETE] (e0e710a0)
 - • [rule] “within 100 m of fishing boundary sign at outlet” → letain-lake-a43189[todo]
-
-## MURRAY RIVER · MU ['7-21'] · p71 · [INCOMPLETE] (739c5405)
-- • [rule] “from Kinuseo Falls to signs about 2 km downstream” → murray-river-470730-a[curated], murray-river-470730-b[todo]
 
 ## PEACE RIVER (From Site C dam to boundary signs 1,200m downstream) · MU ['7-31'] · p72 · [INCOMPLETE] (789839ce)
 - • [water] “From Site C dam to boundary signs 1,200m downstream” → peace-river-from-site-c-dam-to-boundary-signs-a64881[todo]
