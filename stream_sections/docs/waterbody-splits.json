@@ -227,12 +227,22 @@
           "resolved": false,
           "rows": [
             {
-              "id": "amor-de-cosmos-creek-056457",
+              "id": "amor-de-cosmos-creek-056457-a",
+              "status": "todo",
+              "anchor_kind": "confluence",
+              "src": "rule",
+              "resolver_hint": "tributary",
+              "notes": "the way it is worded it seems like this is the same as \"upper falls\"? since 3km from tidewater is the bridge + 1km to falls = 4km from tide water [structural-split 2026-08-05 from \"from mouth to falls about 4 km upstream\"] boundary=mouth",
+              "locator_text": "mouth"
+            },
+            {
+              "id": "amor-de-cosmos-creek-056457-b",
               "status": "todo",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "falls_obstacle",
-              "notes": "the way it is worded it seems like this is the same as \"upper falls\"? since 3km from tidewater is the bridge + 1km to falls = 4km from tide water"
+              "notes": "the way it is worded it seems like this is the same as \"upper falls\"? since 3km from tidewater is the bridge + 1km to falls = 4km from tide water [structural-split 2026-08-05 from \"from mouth to falls about 4 km upstream\"] boundary=falls about 4 km upstream",
+              "locator_text": "falls about 4 km upstream"
             }
           ]
         },
@@ -637,7 +647,7 @@
           "info": {
             "restriction_type": "closure"
           },
-          "resolved": true,
+          "resolved": false,
           "rows": [
             {
               "id": "campbell-river-584665-a",
@@ -664,6 +674,15 @@
                 -125.33989,
                 50.04179
               ]
+            },
+            {
+              "id": "campbell-river-96d7aa-a",
+              "status": "todo",
+              "anchor_kind": "point",
+              "src": "rule",
+              "resolver_hint": "dam_weir_fence",
+              "notes": "[auto-proposal H] John Hart Dam / Power Station (John Hart Lake outlet) on Campbell River (John Hart Dam -> power line ~200 m above Quinsam confl). Candidate coord [-125.33978, 50.04171]. OSM: https://www.openstreetmap.org/?mlat=50.04171&mlon=-125.33978#map=15/50.04171/-125.33978. Verify: Confirm point at John Hart Lake outlet; the reg means the generating-station tailrace which is ~1 km below the dam - decide dam-face vs tailrace.. John Hart Dam impounds John Hart Lake; the Campbell River flows out to the John Hart generating station. Coord = FWA Campbell River exit from John Hart Lake polygon (dam face). Downstream terminus is a power-line crossing ~200 m above the Quinsam confluence (~[-125.294,50.038]). [structural-split 2026-08-05 from \"From John Hart Dam Power Station to power line crossing appr\"] boundary=John Hart Dam Power Station",
+              "locator_text": "John Hart Dam Power Station"
             }
           ]
         },
@@ -765,12 +784,22 @@
           "resolved": false,
           "rows": [
             {
-              "id": "campbell-river-96d7aa",
+              "id": "campbell-river-96d7aa-a",
               "status": "todo",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "dam_weir_fence",
-              "notes": "[auto-proposal H] John Hart Dam / Power Station (John Hart Lake outlet) on Campbell River (John Hart Dam -> power line ~200 m above Quinsam confl). Candidate coord [-125.33978, 50.04171]. OSM: https://www.openstreetmap.org/?mlat=50.04171&mlon=-125.33978#map=15/50.04171/-125.33978. Verify: Confirm point at John Hart Lake outlet; the reg means the generating-station tailrace which is ~1 km below the dam - decide dam-face vs tailrace.. John Hart Dam impounds John Hart Lake; the Campbell River flows out to the John Hart generating station. Coord = FWA Campbell River exit from John Hart Lake polygon (dam face). Downstream terminus is a power-line crossing ~200 m above the Quinsam confluence (~[-125.294,50.038]). [osm-candidate 2026-08-05] [-125.58293, 49.99517]; [-125.38945, 50.01214]; [-125.33964, 50.04192]; [-125.40137, 50.0066]; [-125.39229, 50.01552]; [-125.57243, 50.00379]; [-125.30918, 50.04401] (OSM Overpass ∩ MU-clipped FWA river; VERIFY)."
+              "notes": "[auto-proposal H] John Hart Dam / Power Station (John Hart Lake outlet) on Campbell River (John Hart Dam -> power line ~200 m above Quinsam confl). Candidate coord [-125.33978, 50.04171]. OSM: https://www.openstreetmap.org/?mlat=50.04171&mlon=-125.33978#map=15/50.04171/-125.33978. Verify: Confirm point at John Hart Lake outlet; the reg means the generating-station tailrace which is ~1 km below the dam - decide dam-face vs tailrace.. John Hart Dam impounds John Hart Lake; the Campbell River flows out to the John Hart generating station. Coord = FWA Campbell River exit from John Hart Lake polygon (dam face). Downstream terminus is a power-line crossing ~200 m above the Quinsam confluence (~[-125.294,50.038]). [structural-split 2026-08-05 from \"From John Hart Dam Power Station to power line crossing appr\"] boundary=John Hart Dam Power Station",
+              "locator_text": "John Hart Dam Power Station"
+            },
+            {
+              "id": "campbell-river-96d7aa-b",
+              "status": "todo",
+              "anchor_kind": "point",
+              "src": "rule",
+              "resolver_hint": "dam_weir_fence",
+              "notes": "[auto-proposal H] John Hart Dam / Power Station (John Hart Lake outlet) on Campbell River (John Hart Dam -> power line ~200 m above Quinsam confl). Candidate coord [-125.33978, 50.04171]. OSM: https://www.openstreetmap.org/?mlat=50.04171&mlon=-125.33978#map=15/50.04171/-125.33978. Verify: Confirm point at John Hart Lake outlet; the reg means the generating-station tailrace which is ~1 km below the dam - decide dam-face vs tailrace.. John Hart Dam impounds John Hart Lake; the Campbell River flows out to the John Hart generating station. Coord = FWA Campbell River exit from John Hart Lake polygon (dam face). Downstream terminus is a power-line crossing ~200 m above the Quinsam confluence (~[-125.294,50.038]). [structural-split 2026-08-05 from \"From John Hart Dam Power Station to power line crossing appr\"] boundary=power line crossing approximately 200 m upstream of Quinsam River confluence",
+              "locator_text": "power line crossing approximately 200 m upstream of Quinsam River confluence"
             }
           ]
         },
@@ -801,7 +830,7 @@
           "info": {
             "restriction_type": "vessel_restriction"
           },
-          "resolved": true,
+          "resolved": false,
           "rows": [
             {
               "id": "campbell-river-584665-a",
@@ -828,6 +857,15 @@
                 -125.33989,
                 50.04179
               ]
+            },
+            {
+              "id": "campbell-river-96d7aa-a",
+              "status": "todo",
+              "anchor_kind": "point",
+              "src": "rule",
+              "resolver_hint": "dam_weir_fence",
+              "notes": "[auto-proposal H] John Hart Dam / Power Station (John Hart Lake outlet) on Campbell River (John Hart Dam -> power line ~200 m above Quinsam confl). Candidate coord [-125.33978, 50.04171]. OSM: https://www.openstreetmap.org/?mlat=50.04171&mlon=-125.33978#map=15/50.04171/-125.33978. Verify: Confirm point at John Hart Lake outlet; the reg means the generating-station tailrace which is ~1 km below the dam - decide dam-face vs tailrace.. John Hart Dam impounds John Hart Lake; the Campbell River flows out to the John Hart generating station. Coord = FWA Campbell River exit from John Hart Lake polygon (dam face). Downstream terminus is a power-line crossing ~200 m above the Quinsam confluence (~[-125.294,50.038]). [structural-split 2026-08-05 from \"From John Hart Dam Power Station to power line crossing appr\"] boundary=John Hart Dam Power Station",
+              "locator_text": "John Hart Dam Power Station"
             }
           ]
         },
@@ -1226,12 +1264,22 @@
           "resolved": false,
           "rows": [
             {
-              "id": "cowichan-river-see-map-below-794a2f",
+              "id": "cowichan-river-see-map-below-794a2f-a",
+              "status": "todo",
+              "anchor_kind": "lake",
+              "src": "rule",
+              "resolver_hint": "lake_reach",
+              "notes": "[auto-proposal H] Weir (dam) at Cowichan Lake outlet on Cowichan River (lake weir -> Greendale Trestle). Candidate coord [-124.06119, 48.82418]. OSM: https://www.openstreetmap.org/?mlat=48.82418&mlon=-124.06119#map=15/48.82418/-124.06119. Verify: Confirm the control weir at the Cowichan Lake outlet (town of Lake Cowichan); downstream end = Greendale Trestle.. A control weir/dam sits at the Cowichan Lake outlet in the town of Lake Cowichan. Coord = FWA Cowichan River exit from Cowichan Lake polygon. Reach runs to the Greendale Trestle downstream. [structural-split 2026-08-05 from \"from weir (dam) at Cowichan Lake's outlet to Greendale Trest\"] boundary=weir (dam) at Cowichan Lake's outlet",
+              "locator_text": "weir (dam) at Cowichan Lake's outlet"
+            },
+            {
+              "id": "cowichan-river-see-map-below-794a2f-b",
               "status": "todo",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "dam_weir_fence",
-              "notes": "[auto-proposal H] Weir (dam) at Cowichan Lake outlet on Cowichan River (lake weir -> Greendale Trestle). Candidate coord [-124.06119, 48.82418]. OSM: https://www.openstreetmap.org/?mlat=48.82418&mlon=-124.06119#map=15/48.82418/-124.06119. Verify: Confirm the control weir at the Cowichan Lake outlet (town of Lake Cowichan); downstream end = Greendale Trestle.. A control weir/dam sits at the Cowichan Lake outlet in the town of Lake Cowichan. Coord = FWA Cowichan River exit from Cowichan Lake polygon. Reach runs to the Greendale Trestle downstream."
+              "notes": "[auto-proposal H] Weir (dam) at Cowichan Lake outlet on Cowichan River (lake weir -> Greendale Trestle). Candidate coord [-124.06119, 48.82418]. OSM: https://www.openstreetmap.org/?mlat=48.82418&mlon=-124.06119#map=15/48.82418/-124.06119. Verify: Confirm the control weir at the Cowichan Lake outlet (town of Lake Cowichan); downstream end = Greendale Trestle.. A control weir/dam sits at the Cowichan Lake outlet in the town of Lake Cowichan. Coord = FWA Cowichan River exit from Cowichan Lake polygon. Reach runs to the Greendale Trestle downstream. [structural-split 2026-08-05 from \"from weir (dam) at Cowichan Lake's outlet to Greendale Trest\"] boundary=Greendale Trestle",
+              "locator_text": "Greendale Trestle"
             }
           ]
         },
@@ -1313,6 +1361,15 @@
           },
           "resolved": false,
           "rows": [
+            {
+              "id": "cowichan-river-see-map-below-794a2f-b",
+              "status": "todo",
+              "anchor_kind": "point",
+              "src": "rule",
+              "resolver_hint": "dam_weir_fence",
+              "notes": "[auto-proposal H] Weir (dam) at Cowichan Lake outlet on Cowichan River (lake weir -> Greendale Trestle). Candidate coord [-124.06119, 48.82418]. OSM: https://www.openstreetmap.org/?mlat=48.82418&mlon=-124.06119#map=15/48.82418/-124.06119. Verify: Confirm the control weir at the Cowichan Lake outlet (town of Lake Cowichan); downstream end = Greendale Trestle.. A control weir/dam sits at the Cowichan Lake outlet in the town of Lake Cowichan. Coord = FWA Cowichan River exit from Cowichan Lake polygon. Reach runs to the Greendale Trestle downstream. [structural-split 2026-08-05 from \"from weir (dam) at Cowichan Lake's outlet to Greendale Trest\"] boundary=Greendale Trestle",
+              "locator_text": "Greendale Trestle"
+            },
             {
               "id": "cowichan-river-see-map-below-bb9987-a",
               "status": "todo",
@@ -1598,11 +1655,22 @@
           "resolved": false,
           "rows": [
             {
-              "id": "englishman-river-8660ed",
+              "id": "englishman-river-8660ed-a",
               "status": "todo",
-              "anchor_kind": "area_boundary",
+              "anchor_kind": "point",
               "src": "rule",
-              "resolver_hint": "park_polygon"
+              "resolver_hint": "park_polygon",
+              "notes": "[structural-split 2026-08-05 from \"from lower falls in Englishman River Park to signs approxima\"] boundary=lower falls in Englishman River Park",
+              "locator_text": "lower falls in Englishman River Park"
+            },
+            {
+              "id": "englishman-river-8660ed-b",
+              "status": "todo",
+              "anchor_kind": "point",
+              "src": "rule",
+              "resolver_hint": "park_polygon",
+              "notes": "[structural-split 2026-08-05 from \"from lower falls in Englishman River Park to signs approxima\"] boundary=signs approximately 100 m downstream",
+              "locator_text": "signs approximately 100 m downstream"
             }
           ]
         },
@@ -1619,12 +1687,22 @@
           "resolved": false,
           "rows": [
             {
-              "id": "englishman-river-46a674",
+              "id": "englishman-river-46a674-a",
               "status": "todo",
-              "anchor_kind": "area_boundary",
+              "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "park_polygon",
-              "locator_text": "downstream of the lower falls in Englishman River Falls Provincial Park to the Top Bridge crossing at the end of Allsbro"
+              "notes": "[structural-split 2026-08-05 from \"downstream of the lower falls in Englishman River Falls Prov\"] boundary=downstream of the lower falls in Englishman River Falls Provincial Park",
+              "locator_text": "downstream of the lower falls in Englishman River Falls Provincial Park"
+            },
+            {
+              "id": "englishman-river-46a674-b",
+              "status": "todo",
+              "anchor_kind": "point",
+              "src": "rule",
+              "resolver_hint": "park_polygon",
+              "notes": "[structural-split 2026-08-05 from \"downstream of the lower falls in Englishman River Falls Prov\"] boundary=Top Bridge crossing at the end of Allsbro",
+              "locator_text": "Top Bridge crossing at the end of Allsbro"
             }
           ]
         },
@@ -1947,12 +2025,22 @@
           "resolved": false,
           "rows": [
             {
-              "id": "great-central-lake-4ff0ab",
+              "id": "great-central-lake-4ff0ab-a",
               "status": "todo",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "dam_weir_fence",
-              "notes": "[auto-proposal H] Dam at Great Central Lake outlet on Stamp River / Great Central Lake outlet (dam -> signs near Ash Main Bridge). Candidate coord [-124.99219, 49.32835]. OSM: https://www.openstreetmap.org/?mlat=49.32835&mlon=-124.99219#map=15/49.32835/-124.99219. Verify: Confirm the dam at the Great Central Lake outlet; downstream end = signs ~50 m SW of the Ash Main Bridge.. A dam controls the Great Central Lake outlet, source of the Stamp River. Coord = FWA stream exit from the Great Central Lake polygon. Reach runs to boundary signs ~50 m upstream (SW) of the Ash Main Bridge. Same dam as the Stamp River item (stamp-river-853100). — [human-review 2026-08-04 reclassified: Stamp River reach] NOT a lake split nor a duplicate. Distinct Stamp River closure 'from the Great Central Lake dam downstream to signs ~50m upstream of Ash Main Bridge, Jan1-Apr30'. Two-boundary: A = the dam (= Great Central Lake outlet), B = signs ~50m above Ash Main Bridge. Author on Stamp River blk (related to but distinct from stamp-river-853100 = Ash R confluence→dam)."
+              "notes": "[auto-proposal H] Dam at Great Central Lake outlet on Stamp River / Great Central Lake outlet (dam -> signs near Ash Main Bridge). Candidate coord [-124.99219, 49.32835]. OSM: https://www.openstreetmap.org/?mlat=49.32835&mlon=-124.99219#map=15/49.32835/-124.99219. Verify: Confirm the dam at the Great Central Lake outlet; downstream end = signs ~50 m SW of the Ash Main Bridge.. A dam controls the Great Central Lake outlet, source of the Stamp River. Coord = FWA stream exit from the Great Central Lake polygon. Reach runs to boundary signs ~50 m upstream (SW) of the Ash Main Bridge. Same dam as the Stamp River item (stamp-river-853100). — [human-review 2026-08-04 reclassified: Stamp River reach] NOT a lake split nor a duplicate. Distinct Stamp River closure 'from the Great Central Lake dam downstream to signs ~50m upstream of Ash Main Bridge, Jan1-Apr30'. Two-boundary: A = the dam (= Great Central Lake outlet), B = signs ~50m above Ash Main Bridge. Author on Stamp River blk (related to but distinct from stamp-river-853100 = Ash R confluence→dam). [structural-split 2026-08-05 from \"from the dam to fishing boundary signs approximately 50 m up\"] boundary=dam",
+              "locator_text": "dam"
+            },
+            {
+              "id": "great-central-lake-4ff0ab-b",
+              "status": "todo",
+              "anchor_kind": "point",
+              "src": "rule",
+              "resolver_hint": "dam_weir_fence",
+              "notes": "[auto-proposal H] Dam at Great Central Lake outlet on Stamp River / Great Central Lake outlet (dam -> signs near Ash Main Bridge). Candidate coord [-124.99219, 49.32835]. OSM: https://www.openstreetmap.org/?mlat=49.32835&mlon=-124.99219#map=15/49.32835/-124.99219. Verify: Confirm the dam at the Great Central Lake outlet; downstream end = signs ~50 m SW of the Ash Main Bridge.. A dam controls the Great Central Lake outlet, source of the Stamp River. Coord = FWA stream exit from the Great Central Lake polygon. Reach runs to boundary signs ~50 m upstream (SW) of the Ash Main Bridge. Same dam as the Stamp River item (stamp-river-853100). — [human-review 2026-08-04 reclassified: Stamp River reach] NOT a lake split nor a duplicate. Distinct Stamp River closure 'from the Great Central Lake dam downstream to signs ~50m upstream of Ash Main Bridge, Jan1-Apr30'. Two-boundary: A = the dam (= Great Central Lake outlet), B = signs ~50m above Ash Main Bridge. Author on Stamp River blk (related to but distinct from stamp-river-853100 = Ash R confluence→dam). [structural-split 2026-08-05 from \"from the dam to fishing boundary signs approximately 50 m up\"] boundary=fishing boundary signs approximately 50 m upstream (southwest) of the Ash Main Bridge",
+              "locator_text": "fishing boundary signs approximately 50 m upstream (southwest) of the Ash Main Bridge"
             }
           ]
         },
@@ -2271,11 +2359,31 @@
           "resolved": false,
           "rows": [
             {
-              "id": "kokish-river-10fdef",
+              "id": "kokish-river-10fdef-a",
               "status": "todo",
               "anchor_kind": "point",
               "src": "rule",
-              "resolver_hint": "falls_obstacle"
+              "resolver_hint": "falls_obstacle",
+              "notes": "[structural-split 2026-08-05 from \"from boundary signs in Kokish canyon to Ida Lake\"] boundary=boundary signs in Kokish canyon",
+              "locator_text": "boundary signs in Kokish canyon"
+            },
+            {
+              "id": "kokish-river-10fdef-b",
+              "status": "todo",
+              "anchor_kind": "lake",
+              "src": "rule",
+              "resolver_hint": "lake_reach",
+              "notes": "[structural-split 2026-08-05 from \"from boundary signs in Kokish canyon to Ida Lake\"] boundary=Ida Lake",
+              "locator_text": "Ida Lake"
+            },
+            {
+              "id": "kokish-river-02cef0-b",
+              "status": "todo",
+              "anchor_kind": "point",
+              "src": "rule",
+              "resolver_hint": "tributary",
+              "notes": "[deferred] 1_nonconfluence_boundary — [review · was:deferred] assume nothing — re-decide. — [human-review 2026-08-04 manual-find | Dawson to locate] BETWEEN-SIGNS reach (Kokish, MU 1-11): upper sign at the IPP tail-race confluence, lower sign ~500 m downstream. Tailrace = man-made powerhouse outfall (not in FWA). Locate both signs on satellite. [structural-split 2026-08-05 from \"between signs at the IPP tail race confluence downstream app\"] boundary=signs",
+              "locator_text": "signs"
             }
           ]
         },
@@ -2288,12 +2396,31 @@
           "resolved": false,
           "rows": [
             {
-              "id": "kokish-river-a6e1d0",
+              "id": "kokish-river-a6e1d0-a",
               "status": "todo",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "falls_obstacle",
-              "locator_text": "from the log boom located approximately 100 m upstream of the IPP intake to signs at the tail of the canyon pool located"
+              "notes": "[structural-split 2026-08-05 from \"from the log boom located approximately 100 m upstream of th\"] boundary=log boom located approximately 100 m upstream of the IPP intake",
+              "locator_text": "log boom located approximately 100 m upstream of the IPP intake"
+            },
+            {
+              "id": "kokish-river-a6e1d0-b",
+              "status": "todo",
+              "anchor_kind": "point",
+              "src": "rule",
+              "resolver_hint": "falls_obstacle",
+              "notes": "[structural-split 2026-08-05 from \"from the log boom located approximately 100 m upstream of th\"] boundary=signs at the tail of the canyon pool located",
+              "locator_text": "signs at the tail of the canyon pool located"
+            },
+            {
+              "id": "kokish-river-02cef0-b",
+              "status": "todo",
+              "anchor_kind": "point",
+              "src": "rule",
+              "resolver_hint": "tributary",
+              "notes": "[deferred] 1_nonconfluence_boundary — [review · was:deferred] assume nothing — re-decide. — [human-review 2026-08-04 manual-find | Dawson to locate] BETWEEN-SIGNS reach (Kokish, MU 1-11): upper sign at the IPP tail-race confluence, lower sign ~500 m downstream. Tailrace = man-made powerhouse outfall (not in FWA). Locate both signs on satellite. [structural-split 2026-08-05 from \"between signs at the IPP tail race confluence downstream app\"] boundary=signs",
+              "locator_text": "signs"
             }
           ]
         },
@@ -2306,12 +2433,22 @@
           "resolved": false,
           "rows": [
             {
-              "id": "kokish-river-02cef0",
+              "id": "kokish-river-02cef0-a",
               "status": "todo",
-              "anchor_kind": "confluence",
+              "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "tributary",
-              "notes": "[deferred] 1_nonconfluence_boundary — [review · was:deferred] assume nothing — re-decide. — [human-review 2026-08-04 manual-find | Dawson to locate] BETWEEN-SIGNS reach (Kokish, MU 1-11): upper sign at the IPP tail-race confluence, lower sign ~500 m downstream. Tailrace = man-made powerhouse outfall (not in FWA). Locate both signs on satellite."
+              "notes": "[deferred] 1_nonconfluence_boundary — [review · was:deferred] assume nothing — re-decide. — [human-review 2026-08-04 manual-find | Dawson to locate] BETWEEN-SIGNS reach (Kokish, MU 1-11): upper sign at the IPP tail-race confluence, lower sign ~500 m downstream. Tailrace = man-made powerhouse outfall (not in FWA). Locate both signs on satellite. [structural-split 2026-08-05 from \"between signs at the IPP tail race confluence downstream app\"] boundary=between signs at the IPP tail race confluence downstream approximately 500 m",
+              "locator_text": "between signs at the IPP tail race confluence downstream approximately 500 m"
+            },
+            {
+              "id": "kokish-river-02cef0-b",
+              "status": "todo",
+              "anchor_kind": "point",
+              "src": "rule",
+              "resolver_hint": "tributary",
+              "notes": "[deferred] 1_nonconfluence_boundary — [review · was:deferred] assume nothing — re-decide. — [human-review 2026-08-04 manual-find | Dawson to locate] BETWEEN-SIGNS reach (Kokish, MU 1-11): upper sign at the IPP tail-race confluence, lower sign ~500 m downstream. Tailrace = man-made powerhouse outfall (not in FWA). Locate both signs on satellite. [structural-split 2026-08-05 from \"between signs at the IPP tail race confluence downstream app\"] boundary=signs",
+              "locator_text": "signs"
             }
           ]
         },
@@ -2368,11 +2505,31 @@
           "resolved": false,
           "rows": [
             {
-              "id": "little-qualicum-river-031042",
+              "id": "little-qualicum-river-4dbb9b-a",
               "status": "todo",
-              "anchor_kind": "area_boundary",
+              "anchor_kind": "point",
               "src": "rule",
-              "resolver_hint": "park_polygon"
+              "resolver_hint": "dam_weir_fence",
+              "notes": "[auto-proposal L] Hatchery fence + signs ~35 m downstream on Little Qualicum River (lower, near hatchery). Candidate coord [-124.49481, 49.3651]. OSM: https://www.openstreetmap.org/?mlat=49.36510&mlon=-124.49481#map=15/49.36510/-124.49481. Verify: Locate the Little Qualicum hatchery fence and signs ~35 m downstream on a map; candidate is the FWA mouth reference.. Closure from the hatchery fence to signs ~35 m downstream on the Little Qualicum River. Fence not in FWA; candidate = FWA Little Qualicum mouth [-124.495,49.365] as a lower-river reference - refine to the hatchery on a map. [structural-split 2026-08-05 from \"from the hatchery fence to signs approximately 35 m downstre\"] boundary=hatchery fence",
+              "locator_text": "hatchery fence"
+            },
+            {
+              "id": "little-qualicum-river-031042-a",
+              "status": "todo",
+              "anchor_kind": "point",
+              "src": "rule",
+              "resolver_hint": "park_polygon",
+              "notes": "[structural-split 2026-08-05 from \"from the falls in Little Qualicum Falls Provincial Park down\"] boundary=falls in Little Qualicum Falls Provincial Park",
+              "locator_text": "falls in Little Qualicum Falls Provincial Park"
+            },
+            {
+              "id": "little-qualicum-river-031042-b",
+              "status": "todo",
+              "anchor_kind": "point",
+              "src": "rule",
+              "resolver_hint": "park_polygon",
+              "notes": "[structural-split 2026-08-05 from \"from the falls in Little Qualicum Falls Provincial Park down\"] boundary=hatchery fence",
+              "locator_text": "hatchery fence"
             }
           ]
         },
@@ -2385,13 +2542,31 @@
           "resolved": false,
           "rows": [
             {
-              "id": "little-qualicum-river-4dbb9b",
+              "id": "little-qualicum-river-4dbb9b-a",
               "status": "todo",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "dam_weir_fence",
-              "notes": "[auto-proposal L] Hatchery fence + signs ~35 m downstream on Little Qualicum River (lower, near hatchery). Candidate coord [-124.49481, 49.3651]. OSM: https://www.openstreetmap.org/?mlat=49.36510&mlon=-124.49481#map=15/49.36510/-124.49481. Verify: Locate the Little Qualicum hatchery fence and signs ~35 m downstream on a map; candidate is the FWA mouth reference.. Closure from the hatchery fence to signs ~35 m downstream on the Little Qualicum River. Fence not in FWA; candidate = FWA Little Qualicum mouth [-124.495,49.365] as a lower-river reference - refine to the hatchery on a map.",
-              "locator_text": "from the hatchery fence to signs approximately 35 m downstream"
+              "notes": "[auto-proposal L] Hatchery fence + signs ~35 m downstream on Little Qualicum River (lower, near hatchery). Candidate coord [-124.49481, 49.3651]. OSM: https://www.openstreetmap.org/?mlat=49.36510&mlon=-124.49481#map=15/49.36510/-124.49481. Verify: Locate the Little Qualicum hatchery fence and signs ~35 m downstream on a map; candidate is the FWA mouth reference.. Closure from the hatchery fence to signs ~35 m downstream on the Little Qualicum River. Fence not in FWA; candidate = FWA Little Qualicum mouth [-124.495,49.365] as a lower-river reference - refine to the hatchery on a map. [structural-split 2026-08-05 from \"from the hatchery fence to signs approximately 35 m downstre\"] boundary=hatchery fence",
+              "locator_text": "hatchery fence"
+            },
+            {
+              "id": "little-qualicum-river-4dbb9b-b",
+              "status": "todo",
+              "anchor_kind": "point",
+              "src": "rule",
+              "resolver_hint": "dam_weir_fence",
+              "notes": "[auto-proposal L] Hatchery fence + signs ~35 m downstream on Little Qualicum River (lower, near hatchery). Candidate coord [-124.49481, 49.3651]. OSM: https://www.openstreetmap.org/?mlat=49.36510&mlon=-124.49481#map=15/49.36510/-124.49481. Verify: Locate the Little Qualicum hatchery fence and signs ~35 m downstream on a map; candidate is the FWA mouth reference.. Closure from the hatchery fence to signs ~35 m downstream on the Little Qualicum River. Fence not in FWA; candidate = FWA Little Qualicum mouth [-124.495,49.365] as a lower-river reference - refine to the hatchery on a map. [structural-split 2026-08-05 from \"from the hatchery fence to signs approximately 35 m downstre\"] boundary=signs approximately 35 m downstream",
+              "locator_text": "signs approximately 35 m downstream"
+            },
+            {
+              "id": "little-qualicum-river-031042-b",
+              "status": "todo",
+              "anchor_kind": "point",
+              "src": "rule",
+              "resolver_hint": "park_polygon",
+              "notes": "[structural-split 2026-08-05 from \"from the falls in Little Qualicum Falls Provincial Park down\"] boundary=hatchery fence",
+              "locator_text": "hatchery fence"
             }
           ]
         },
@@ -2512,12 +2687,24 @@
           "resolved": false,
           "rows": [
             {
-              "id": "marble-link-river-only-between-victoria-and-a-28a44e",
+              "id": "marble-link-river-only-between-victoria-and-a-28a44e-a",
               "status": "todo",
-              "anchor_kind": "unclassified",
+              "anchor_kind": "point",
               "src": "name",
               "resolver_hint": "other_reach",
-              "name_verbatim": "MARBLE (\"Link\") RIVER (only between Victoria and Alice"
+              "notes": "[structural-split 2026-08-05 from \"only between Victoria and Alice lakes\"] boundary=Victoria",
+              "name_verbatim": "MARBLE (\"Link\") RIVER (only between Victoria and Alice",
+              "locator_text": "Victoria"
+            },
+            {
+              "id": "marble-link-river-only-between-victoria-and-a-28a44e-b",
+              "status": "todo",
+              "anchor_kind": "point",
+              "src": "name",
+              "resolver_hint": "other_reach",
+              "notes": "[structural-split 2026-08-05 from \"only between Victoria and Alice lakes\"] boundary=Alice lakes",
+              "name_verbatim": "MARBLE (\"Link\") RIVER (only between Victoria and Alice",
+              "locator_text": "Alice lakes"
             }
           ]
         },
@@ -2527,13 +2714,24 @@
           "resolved": false,
           "rows": [
             {
-              "id": "marble-link-river-only-between-victoria-and-a-28a44e",
+              "id": "marble-link-river-only-between-victoria-and-a-28a44e-a",
               "status": "todo",
-              "anchor_kind": "unclassified",
+              "anchor_kind": "point",
               "src": "name",
               "resolver_hint": "other_reach",
+              "notes": "[structural-split 2026-08-05 from \"only between Victoria and Alice lakes\"] boundary=Victoria",
               "name_verbatim": "MARBLE (\"Link\") RIVER (only between Victoria and Alice",
-              "locator_text": "only between Victoria and Alice lakes"
+              "locator_text": "Victoria"
+            },
+            {
+              "id": "marble-link-river-only-between-victoria-and-a-28a44e-b",
+              "status": "todo",
+              "anchor_kind": "point",
+              "src": "name",
+              "resolver_hint": "other_reach",
+              "notes": "[structural-split 2026-08-05 from \"only between Victoria and Alice lakes\"] boundary=Alice lakes",
+              "name_verbatim": "MARBLE (\"Link\") RIVER (only between Victoria and Alice",
+              "locator_text": "Alice lakes"
             }
           ]
         }
@@ -3052,13 +3250,22 @@
           "resolved": false,
           "rows": [
             {
-              "id": "puntledge-river-f50f20",
+              "id": "puntledge-river-f50f20-a",
+              "status": "todo",
+              "anchor_kind": "lake",
+              "src": "rule",
+              "resolver_hint": "lake_reach",
+              "notes": "[osm-candidate 2026-08-05] [-125.09409, 49.66409]; [-125.09621, 49.64361] (OSM Overpass ∩ MU-clipped FWA river; VERIFY). [structural-split 2026-08-05 from \"downstream of the BC Hydro diversion dam (approximately 3.5 \"] boundary=downstream of the BC Hydro diversion dam (approximately 3.5 km downstream of Comox Lake)",
+              "locator_text": "downstream of the BC Hydro diversion dam (approximately 3.5 km downstream of Comox Lake)"
+            },
+            {
+              "id": "puntledge-river-f50f20-b",
               "status": "todo",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "falls_obstacle",
-              "notes": "[osm-candidate 2026-08-05] [-125.09409, 49.66409]; [-125.09621, 49.64361] (OSM Overpass ∩ MU-clipped FWA river; VERIFY).",
-              "locator_text": "downstream of the BC Hydro diversion dam (approximately 3.5 km downstream of Comox Lake) to the base of Stotan Falls (ap"
+              "notes": "[osm-candidate 2026-08-05] [-125.09409, 49.66409]; [-125.09621, 49.64361] (OSM Overpass ∩ MU-clipped FWA river; VERIFY). [structural-split 2026-08-05 from \"downstream of the BC Hydro diversion dam (approximately 3.5 \"] boundary=base of Stotan Falls (ap",
+              "locator_text": "base of Stotan Falls (ap"
             }
           ]
         },
@@ -3115,13 +3322,22 @@
           "resolved": false,
           "rows": [
             {
-              "id": "puntledge-river-6e9625",
+              "id": "puntledge-river-6e9625-a",
               "status": "todo",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "dam_weir_fence",
-              "notes": "[auto-proposal L] BC Hydro Puntledge generating-station tailrace + signs (50 m up / 75 m down) on Puntledge River (Courtenay, at powerhouse tailrace). Candidate coord [-125.0, 49.686]. OSM: https://www.openstreetmap.org/?mlat=49.68600&mlon=-125.00000#map=15/49.68600/-125.00000. Verify: Locate the Puntledge generating-station tailrace in Courtenay; set signs 50 m upstream and 75 m downstream of it.. Closure between signs 50 m above and 75 m below the BC Hydro Puntledge generating-station tailrace on the lower Puntledge River (Courtenay). Powerhouse not in FWA; candidate is an approximate lower-Puntledge location - verify on map.",
-              "locator_text": "from fishing boundary signs located 50 m upstream of the BC Hydro generating station tailrace to signs located 75 m down"
+              "notes": "[auto-proposal L] BC Hydro Puntledge generating-station tailrace + signs (50 m up / 75 m down) on Puntledge River (Courtenay, at powerhouse tailrace). Candidate coord [-125.0, 49.686]. OSM: https://www.openstreetmap.org/?mlat=49.68600&mlon=-125.00000#map=15/49.68600/-125.00000. Verify: Locate the Puntledge generating-station tailrace in Courtenay; set signs 50 m upstream and 75 m downstream of it.. Closure between signs 50 m above and 75 m below the BC Hydro Puntledge generating-station tailrace on the lower Puntledge River (Courtenay). Powerhouse not in FWA; candidate is an approximate lower-Puntledge location - verify on map. [structural-split 2026-08-05 from \"from fishing boundary signs located 50 m upstream of the BC \"] boundary=fishing boundary signs located 50 m upstream of the BC Hydro generating station tailrace",
+              "locator_text": "fishing boundary signs located 50 m upstream of the BC Hydro generating station tailrace"
+            },
+            {
+              "id": "puntledge-river-6e9625-b",
+              "status": "todo",
+              "anchor_kind": "point",
+              "src": "rule",
+              "resolver_hint": "dam_weir_fence",
+              "notes": "[auto-proposal L] BC Hydro Puntledge generating-station tailrace + signs (50 m up / 75 m down) on Puntledge River (Courtenay, at powerhouse tailrace). Candidate coord [-125.0, 49.686]. OSM: https://www.openstreetmap.org/?mlat=49.68600&mlon=-125.00000#map=15/49.68600/-125.00000. Verify: Locate the Puntledge generating-station tailrace in Courtenay; set signs 50 m upstream and 75 m downstream of it.. Closure between signs 50 m above and 75 m below the BC Hydro Puntledge generating-station tailrace on the lower Puntledge River (Courtenay). Powerhouse not in FWA; candidate is an approximate lower-Puntledge location - verify on map. [structural-split 2026-08-05 from \"from fishing boundary signs located 50 m upstream of the BC \"] boundary=signs located 75 m down",
+              "locator_text": "signs located 75 m down"
             }
           ]
         },
@@ -3196,13 +3412,22 @@
           "resolved": false,
           "rows": [
             {
-              "id": "qualicum-river-3b22d1",
+              "id": "qualicum-river-3b22d1-a",
               "status": "todo",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "dam_weir_fence",
-              "notes": "[auto-proposal L] Upper hatchery weir (125 m below E&N Trestle) + signs on Qualicum (Big Qualicum) River (upper hatchery weir). Candidate coord [-124.61053, 49.39818]. OSM: https://www.openstreetmap.org/?mlat=49.39818&mlon=-124.61053#map=15/49.39818/-124.61053. Verify: Locate the upper hatchery weir 125 m below the E&N Trestle on the Big Qualicum; candidate is the FWA mouth reference only.. Reach from the upper hatchery weir (125 m below the E&N Trestle) to boundary signs ~100 m [downstream]. Weir/trestle not in FWA; candidate = FWA Qualicum mouth as a reference. Needs map placement of the E&N Trestle and weir.",
-              "locator_text": "from the upper hatchery weir (located 125 m downstream of the E&N Trestle) to boundary sign: located approximately 100 m"
+              "notes": "[auto-proposal L] Upper hatchery weir (125 m below E&N Trestle) + signs on Qualicum (Big Qualicum) River (upper hatchery weir). Candidate coord [-124.61053, 49.39818]. OSM: https://www.openstreetmap.org/?mlat=49.39818&mlon=-124.61053#map=15/49.39818/-124.61053. Verify: Locate the upper hatchery weir 125 m below the E&N Trestle on the Big Qualicum; candidate is the FWA mouth reference only.. Reach from the upper hatchery weir (125 m below the E&N Trestle) to boundary signs ~100 m [downstream]. Weir/trestle not in FWA; candidate = FWA Qualicum mouth as a reference. Needs map placement of the E&N Trestle and weir. [structural-split 2026-08-05 from \"from the upper hatchery weir (located 125 m downstream of th\"] boundary=upper hatchery weir (located 125 m downstream of the E&N Trestle)",
+              "locator_text": "upper hatchery weir (located 125 m downstream of the E&N Trestle)"
+            },
+            {
+              "id": "qualicum-river-3b22d1-b",
+              "status": "todo",
+              "anchor_kind": "point",
+              "src": "rule",
+              "resolver_hint": "dam_weir_fence",
+              "notes": "[auto-proposal L] Upper hatchery weir (125 m below E&N Trestle) + signs on Qualicum (Big Qualicum) River (upper hatchery weir). Candidate coord [-124.61053, 49.39818]. OSM: https://www.openstreetmap.org/?mlat=49.39818&mlon=-124.61053#map=15/49.39818/-124.61053. Verify: Locate the upper hatchery weir 125 m below the E&N Trestle on the Big Qualicum; candidate is the FWA mouth reference only.. Reach from the upper hatchery weir (125 m below the E&N Trestle) to boundary signs ~100 m [downstream]. Weir/trestle not in FWA; candidate = FWA Qualicum mouth as a reference. Needs map placement of the E&N Trestle and weir. [structural-split 2026-08-05 from \"from the upper hatchery weir (located 125 m downstream of th\"] boundary=boundary sign: located approximately 100 m",
+              "locator_text": "boundary sign: located approximately 100 m"
             }
           ]
         },
@@ -3284,13 +3509,31 @@
           "resolved": false,
           "rows": [
             {
-              "id": "quinsam-river-c440f0",
+              "id": "quinsam-river-014fa9-b",
+              "status": "todo",
+              "anchor_kind": "point",
+              "src": "rule",
+              "resolver_hint": "falls_obstacle",
+              "notes": "[osm-candidate 2026-08-05] [-125.32212, 49.97615]; [-125.31588, 49.98038]; [-125.30282, 50.01388]; [-125.31202, 49.96781]; [-125.31142, 49.96712] (OSM Overpass ∩ MU-clipped FWA river; VERIFY). [structural-split 2026-08-05 from \"from the falls situated downstream of Middle Quinsam Lake to\"] boundary=fishing boundary signs at power line crossing (approxim",
+              "locator_text": "fishing boundary signs at power line crossing (approxim"
+            },
+            {
+              "id": "quinsam-river-c440f0-a",
               "status": "todo",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "dam_weir_fence",
-              "notes": "[auto-proposal L] Power-line crossing ~25 m above Quinsam Hatchery weir on Quinsam River (at hatchery). Candidate coord [-125.2941, 50.0379]. OSM: https://www.openstreetmap.org/?mlat=50.03790&mlon=-125.29410#map=15/50.03790/-125.29410. Verify: Locate the Quinsam Hatchery weir and the power-line crossing ~25 m upstream; candidate is the FWA mouth reference.. Closure from signs at a power-line crossing (~25 m above the Quinsam Hatchery weir) to further fishing signs. Hatchery/weir not in FWA; candidate = FWA Quinsam River mouth [-125.294,50.038] - the hatchery is a short way up. Verify on map. [osm-candidate 2026-08-05] [-125.32212, 49.97615]; [-125.31588, 49.98038]; [-125.30282, 50.01388]; [-125.31202, 49.96781]; [-125.31142, 49.96712] (OSM Overpass ∩ MU-clipped FWA river; VERIFY).",
-              "locator_text": "from the fishing boundary signs at power line crossing (approximately 25 m upstream of Quinsam Hatchery weir) to fishing"
+              "notes": "[auto-proposal L] Power-line crossing ~25 m above Quinsam Hatchery weir on Quinsam River (at hatchery). Candidate coord [-125.2941, 50.0379]. OSM: https://www.openstreetmap.org/?mlat=50.03790&mlon=-125.29410#map=15/50.03790/-125.29410. Verify: Locate the Quinsam Hatchery weir and the power-line crossing ~25 m upstream; candidate is the FWA mouth reference.. Closure from signs at a power-line crossing (~25 m above the Quinsam Hatchery weir) to further fishing signs. Hatchery/weir not in FWA; candidate = FWA Quinsam River mouth [-125.294,50.038] - the hatchery is a short way up. Verify on map. [structural-split 2026-08-05 from \"from the fishing boundary signs at power line crossing (appr\"] boundary=fishing boundary signs at power line crossing (approximately 25 m upstream of Quinsam Hatchery weir)",
+              "locator_text": "fishing boundary signs at power line crossing (approximately 25 m upstream of Quinsam Hatchery weir)"
+            },
+            {
+              "id": "quinsam-river-c440f0-b",
+              "status": "todo",
+              "anchor_kind": "point",
+              "src": "rule",
+              "resolver_hint": "dam_weir_fence",
+              "notes": "[auto-proposal L] Power-line crossing ~25 m above Quinsam Hatchery weir on Quinsam River (at hatchery). Candidate coord [-125.2941, 50.0379]. OSM: https://www.openstreetmap.org/?mlat=50.03790&mlon=-125.29410#map=15/50.03790/-125.29410. Verify: Locate the Quinsam Hatchery weir and the power-line crossing ~25 m upstream; candidate is the FWA mouth reference.. Closure from signs at a power-line crossing (~25 m above the Quinsam Hatchery weir) to further fishing signs. Hatchery/weir not in FWA; candidate = FWA Quinsam River mouth [-125.294,50.038] - the hatchery is a short way up. Verify on map. [structural-split 2026-08-05 from \"from the fishing boundary signs at power line crossing (appr\"] boundary=fishing",
+              "locator_text": "fishing"
             }
           ]
         },
@@ -3306,13 +3549,31 @@
           "resolved": false,
           "rows": [
             {
-              "id": "quinsam-river-014fa9",
+              "id": "quinsam-river-014fa9-a",
+              "status": "todo",
+              "anchor_kind": "lake",
+              "src": "rule",
+              "resolver_hint": "lake_reach",
+              "notes": "[osm-candidate 2026-08-05] [-125.32212, 49.97615]; [-125.31588, 49.98038]; [-125.30282, 50.01388]; [-125.31202, 49.96781]; [-125.31142, 49.96712] (OSM Overpass ∩ MU-clipped FWA river; VERIFY). [structural-split 2026-08-05 from \"from the falls situated downstream of Middle Quinsam Lake to\"] boundary=falls situated downstream of Middle Quinsam Lake",
+              "locator_text": "falls situated downstream of Middle Quinsam Lake"
+            },
+            {
+              "id": "quinsam-river-014fa9-b",
               "status": "todo",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "falls_obstacle",
-              "notes": "[osm-candidate 2026-08-05] [-125.32212, 49.97615]; [-125.31588, 49.98038]; [-125.30282, 50.01388]; [-125.31202, 49.96781]; [-125.31142, 49.96712] (OSM Overpass ∩ MU-clipped FWA river; VERIFY).",
-              "locator_text": "from the falls situated downstream of Middle Quinsam Lake to the fishing boundary signs at power line crossing (approxim"
+              "notes": "[osm-candidate 2026-08-05] [-125.32212, 49.97615]; [-125.31588, 49.98038]; [-125.30282, 50.01388]; [-125.31202, 49.96781]; [-125.31142, 49.96712] (OSM Overpass ∩ MU-clipped FWA river; VERIFY). [structural-split 2026-08-05 from \"from the falls situated downstream of Middle Quinsam Lake to\"] boundary=fishing boundary signs at power line crossing (approxim",
+              "locator_text": "fishing boundary signs at power line crossing (approxim"
+            },
+            {
+              "id": "quinsam-river-c440f0-b",
+              "status": "todo",
+              "anchor_kind": "point",
+              "src": "rule",
+              "resolver_hint": "dam_weir_fence",
+              "notes": "[auto-proposal L] Power-line crossing ~25 m above Quinsam Hatchery weir on Quinsam River (at hatchery). Candidate coord [-125.2941, 50.0379]. OSM: https://www.openstreetmap.org/?mlat=50.03790&mlon=-125.29410#map=15/50.03790/-125.29410. Verify: Locate the Quinsam Hatchery weir and the power-line crossing ~25 m upstream; candidate is the FWA mouth reference.. Closure from signs at a power-line crossing (~25 m above the Quinsam Hatchery weir) to further fishing signs. Hatchery/weir not in FWA; candidate = FWA Quinsam River mouth [-125.294,50.038] - the hatchery is a short way up. Verify on map. [structural-split 2026-08-05 from \"from the fishing boundary signs at power line crossing (appr\"] boundary=fishing",
+              "locator_text": "fishing"
             }
           ]
         },
@@ -3618,11 +3879,22 @@
           "resolved": false,
           "rows": [
             {
-              "id": "sooke-river-5f3547",
+              "id": "sooke-river-5f3547-a",
               "status": "todo",
               "anchor_kind": "point",
               "src": "rule",
-              "resolver_hint": "falls_obstacle"
+              "resolver_hint": "falls_obstacle",
+              "notes": "[structural-split 2026-08-05 from \"from the base of the lower \"potholes\" falls to signs approxi\"] boundary=base of the lower \"potholes\" falls",
+              "locator_text": "base of the lower \"potholes\" falls"
+            },
+            {
+              "id": "sooke-river-5f3547-b",
+              "status": "todo",
+              "anchor_kind": "point",
+              "src": "rule",
+              "resolver_hint": "falls_obstacle",
+              "notes": "[structural-split 2026-08-05 from \"from the base of the lower \"potholes\" falls to signs approxi\"] boundary=signs approximately 100 m downstream",
+              "locator_text": "signs approximately 100 m downstream"
             }
           ]
         },
@@ -3715,11 +3987,22 @@
           "resolved": false,
           "rows": [
             {
-              "id": "stamp-river-55ba1e",
+              "id": "stamp-river-55ba1e-a",
               "status": "todo",
               "anchor_kind": "point",
               "src": "rule",
-              "resolver_hint": "falls_obstacle"
+              "resolver_hint": "falls_obstacle",
+              "notes": "[structural-split 2026-08-05 from \"between fishing boundary signs 200 m upstream of and 500 m d\"] boundary=fishing boundary signs 200 m upstream of",
+              "locator_text": "fishing boundary signs 200 m upstream of"
+            },
+            {
+              "id": "stamp-river-55ba1e-b",
+              "status": "todo",
+              "anchor_kind": "point",
+              "src": "rule",
+              "resolver_hint": "falls_obstacle",
+              "notes": "[structural-split 2026-08-05 from \"between fishing boundary signs 200 m upstream of and 500 m d\"] boundary=500 m downstream of Stamp Falls",
+              "locator_text": "500 m downstream of Stamp Falls"
             }
           ]
         },
@@ -3736,12 +4019,22 @@
           "resolved": false,
           "rows": [
             {
-              "id": "stamp-river-853100",
+              "id": "stamp-river-853100-a",
               "status": "todo",
-              "anchor_kind": "point",
+              "anchor_kind": "confluence",
               "src": "rule",
-              "resolver_hint": "dam_weir_fence",
-              "notes": "[auto-proposal H] Great Central Lake dam (Stamp River head) on Stamp River (Ash R confluence -> Great Central Lake dam). Candidate coord [-124.99219, 49.32835]. OSM: https://www.openstreetmap.org/?mlat=49.32835&mlon=-124.99219#map=15/49.32835/-124.99219. Verify: Confirm the Great Central Lake dam (upstream bound); downstream end = Ash River confluence (~[-124.978,49.362]).. Same dam as great-central-lake-4ff0ab: the Great Central Lake outlet dam is the head of the Stamp River. Coord = FWA stream exit from Great Central Lake polygon. Reach runs from the Ash River confluence up to this dam. [osm-candidate 2026-08-05] [-124.99216, 49.3284] (OSM Overpass ∩ MU-clipped FWA river; VERIFY)."
+              "resolver_hint": "tributary",
+              "notes": "[auto-proposal H] Great Central Lake dam (Stamp River head) on Stamp River (Ash R confluence -> Great Central Lake dam). Candidate coord [-124.99219, 49.32835]. OSM: https://www.openstreetmap.org/?mlat=49.32835&mlon=-124.99219#map=15/49.32835/-124.99219. Verify: Confirm the Great Central Lake dam (upstream bound); downstream end = Ash River confluence (~[-124.978,49.362]).. Same dam as great-central-lake-4ff0ab: the Great Central Lake outlet dam is the head of the Stamp River. Coord = FWA stream exit from Great Central Lake polygon. Reach runs from the Ash River confluence up to this dam. [structural-split 2026-08-05 from \"from the confluence with Ash River upstream to the Great Cen\"] boundary=confluence with Ash River",
+              "locator_text": "confluence with Ash River"
+            },
+            {
+              "id": "stamp-river-853100-b",
+              "status": "todo",
+              "anchor_kind": "lake",
+              "src": "rule",
+              "resolver_hint": "lake_reach",
+              "notes": "[auto-proposal H] Great Central Lake dam (Stamp River head) on Stamp River (Ash R confluence -> Great Central Lake dam). Candidate coord [-124.99219, 49.32835]. OSM: https://www.openstreetmap.org/?mlat=49.32835&mlon=-124.99219#map=15/49.32835/-124.99219. Verify: Confirm the Great Central Lake dam (upstream bound); downstream end = Ash River confluence (~[-124.978,49.362]).. Same dam as great-central-lake-4ff0ab: the Great Central Lake outlet dam is the head of the Stamp River. Coord = FWA stream exit from Great Central Lake polygon. Reach runs from the Ash River confluence up to this dam. [structural-split 2026-08-05 from \"from the confluence with Ash River upstream to the Great Cen\"] boundary=Great Central Lake dam",
+              "locator_text": "Great Central Lake dam"
             }
           ]
         },
@@ -5924,11 +6217,22 @@
           "resolved": false,
           "rows": [
             {
-              "id": "kanaka-creek-9ba9e6",
+              "id": "kanaka-creek-9ba9e6-a",
               "status": "todo",
               "anchor_kind": "point",
               "src": "rule",
-              "resolver_hint": "falls_obstacle"
+              "resolver_hint": "falls_obstacle",
+              "notes": "[structural-split 2026-08-05 from \"from Cliff Park Falls to 112th Avenue\"] boundary=Cliff Park Falls",
+              "locator_text": "Cliff Park Falls"
+            },
+            {
+              "id": "kanaka-creek-9ba9e6-b",
+              "status": "todo",
+              "anchor_kind": "point",
+              "src": "rule",
+              "resolver_hint": "falls_obstacle",
+              "notes": "[structural-split 2026-08-05 from \"from Cliff Park Falls to 112th Avenue\"] boundary=112th Avenue",
+              "locator_text": "112th Avenue"
             }
           ]
         },
@@ -6542,12 +6846,24 @@
           "resolved": false,
           "rows": [
             {
-              "id": "ross-lake-boundary-between-ross-lake-and-skag-ae0e6d",
+              "id": "ross-lake-boundary-between-ross-lake-and-skag-ae0e6d-a",
+              "status": "todo",
+              "anchor_kind": "lake",
+              "src": "name",
+              "resolver_hint": "lake_reach",
+              "notes": "[structural-split 2026-08-05 from \"Boundary between Ross Lake and Skagit River is market by sig\"] boundary=Ross Lake",
+              "name_verbatim": "ROSS LAKE (Boundary between Ross Lake and Skagit River",
+              "locator_text": "Ross Lake"
+            },
+            {
+              "id": "ross-lake-boundary-between-ross-lake-and-skag-ae0e6d-b",
               "status": "todo",
               "anchor_kind": "point",
               "src": "name",
               "resolver_hint": "boundary_signs",
-              "name_verbatim": "ROSS LAKE (Boundary between Ross Lake and Skagit River"
+              "notes": "[structural-split 2026-08-05 from \"Boundary between Ross Lake and Skagit River is market by sig\"] boundary=Skagit River is market by signs",
+              "name_verbatim": "ROSS LAKE (Boundary between Ross Lake and Skagit River",
+              "locator_text": "Skagit River is market by signs"
             }
           ]
         },
@@ -6557,13 +6873,24 @@
           "resolved": false,
           "rows": [
             {
-              "id": "ross-lake-boundary-between-ross-lake-and-skag-ae0e6d",
+              "id": "ross-lake-boundary-between-ross-lake-and-skag-ae0e6d-a",
+              "status": "todo",
+              "anchor_kind": "lake",
+              "src": "name",
+              "resolver_hint": "lake_reach",
+              "notes": "[structural-split 2026-08-05 from \"Boundary between Ross Lake and Skagit River is market by sig\"] boundary=Ross Lake",
+              "name_verbatim": "ROSS LAKE (Boundary between Ross Lake and Skagit River",
+              "locator_text": "Ross Lake"
+            },
+            {
+              "id": "ross-lake-boundary-between-ross-lake-and-skag-ae0e6d-b",
               "status": "todo",
               "anchor_kind": "point",
               "src": "name",
               "resolver_hint": "boundary_signs",
+              "notes": "[structural-split 2026-08-05 from \"Boundary between Ross Lake and Skagit River is market by sig\"] boundary=Skagit River is market by signs",
               "name_verbatim": "ROSS LAKE (Boundary between Ross Lake and Skagit River",
-              "locator_text": "Boundary between Ross Lake and Skagit River is market by signs"
+              "locator_text": "Skagit River is market by signs"
             }
           ]
         }
@@ -7123,12 +7450,24 @@
           "resolved": false,
           "rows": [
             {
-              "id": "skagit-river-boundary-between-skagit-river-an-4340a7",
+              "id": "skagit-river-boundary-between-skagit-river-an-4340a7-a",
               "status": "todo",
-              "anchor_kind": "point",
+              "anchor_kind": "confluence",
               "src": "name",
-              "resolver_hint": "boundary_signs",
-              "name_verbatim": "SKAGIT RIVER (boundary between Skagit River and Ross L"
+              "resolver_hint": "tributary",
+              "notes": "[structural-split 2026-08-05 from \"boundary between Skagit River and Ross Lake is marked by sig\"] boundary=Skagit River",
+              "name_verbatim": "SKAGIT RIVER (boundary between Skagit River and Ross L",
+              "locator_text": "Skagit River"
+            },
+            {
+              "id": "skagit-river-boundary-between-skagit-river-an-4340a7-b",
+              "status": "todo",
+              "anchor_kind": "lake",
+              "src": "name",
+              "resolver_hint": "lake_reach",
+              "notes": "[structural-split 2026-08-05 from \"boundary between Skagit River and Ross Lake is marked by sig\"] boundary=Ross Lake is marked by signs",
+              "name_verbatim": "SKAGIT RIVER (boundary between Skagit River and Ross L",
+              "locator_text": "Ross Lake is marked by signs"
             }
           ]
         },
@@ -7138,13 +7477,24 @@
           "resolved": false,
           "rows": [
             {
-              "id": "skagit-river-boundary-between-skagit-river-an-4340a7",
+              "id": "skagit-river-boundary-between-skagit-river-an-4340a7-a",
               "status": "todo",
-              "anchor_kind": "point",
+              "anchor_kind": "confluence",
               "src": "name",
-              "resolver_hint": "boundary_signs",
+              "resolver_hint": "tributary",
+              "notes": "[structural-split 2026-08-05 from \"boundary between Skagit River and Ross Lake is marked by sig\"] boundary=Skagit River",
               "name_verbatim": "SKAGIT RIVER (boundary between Skagit River and Ross L",
-              "locator_text": "boundary between Skagit River and Ross Lake is marked by signs"
+              "locator_text": "Skagit River"
+            },
+            {
+              "id": "skagit-river-boundary-between-skagit-river-an-4340a7-b",
+              "status": "todo",
+              "anchor_kind": "lake",
+              "src": "name",
+              "resolver_hint": "lake_reach",
+              "notes": "[structural-split 2026-08-05 from \"boundary between Skagit River and Ross Lake is marked by sig\"] boundary=Ross Lake is marked by signs",
+              "name_verbatim": "SKAGIT RIVER (boundary between Skagit River and Ross L",
+              "locator_text": "Ross Lake is marked by signs"
             }
           ]
         }
@@ -7974,12 +8324,22 @@
           "resolved": false,
           "rows": [
             {
-              "id": "bridge-river-2ee523",
+              "id": "bridge-river-2ee523-a",
               "status": "todo",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "dam_weir_fence",
-              "notes": "[auto-proposal H] Terzaghi Dam (Carpenter Lake outlet) on Bridge River (Terzaghi Dam -> Yalakom River). Candidate coord [-122.22175, 50.78765]. OSM: https://www.openstreetmap.org/?mlat=50.78765&mlon=-122.22175#map=15/50.78765/-122.22175. Verify: Confirm cut at Carpenter Lake outlet (Terzaghi Dam); downstream end = Yalakom R mouth ~[-122.173,50.863].. Terzaghi Dam impounds Carpenter Lake on the Bridge River. Coord = FWA-computed Bridge River blue-line exit from the Carpenter Lake polygon; matches the known Terzaghi Dam location. Reach ends at the Yalakom River confluence. [osm-candidate 2026-08-05] [-122.22183, 50.78767]; [-122.85774, 50.83877]; [-122.8565, 50.83942] (OSM Overpass ∩ MU-clipped FWA river; VERIFY)."
+              "notes": "[auto-proposal H] Terzaghi Dam (Carpenter Lake outlet) on Bridge River (Terzaghi Dam -> Yalakom River). Candidate coord [-122.22175, 50.78765]. OSM: https://www.openstreetmap.org/?mlat=50.78765&mlon=-122.22175#map=15/50.78765/-122.22175. Verify: Confirm cut at Carpenter Lake outlet (Terzaghi Dam); downstream end = Yalakom R mouth ~[-122.173,50.863].. Terzaghi Dam impounds Carpenter Lake on the Bridge River. Coord = FWA-computed Bridge River blue-line exit from the Carpenter Lake polygon; matches the known Terzaghi Dam location. Reach ends at the Yalakom River confluence. [structural-split 2026-08-05 from \"from Terzaghi Dam to Yalakom River\"] boundary=Terzaghi Dam",
+              "locator_text": "Terzaghi Dam"
+            },
+            {
+              "id": "bridge-river-2ee523-b",
+              "status": "todo",
+              "anchor_kind": "confluence",
+              "src": "rule",
+              "resolver_hint": "tributary",
+              "notes": "[auto-proposal H] Terzaghi Dam (Carpenter Lake outlet) on Bridge River (Terzaghi Dam -> Yalakom River). Candidate coord [-122.22175, 50.78765]. OSM: https://www.openstreetmap.org/?mlat=50.78765&mlon=-122.22175#map=15/50.78765/-122.22175. Verify: Confirm cut at Carpenter Lake outlet (Terzaghi Dam); downstream end = Yalakom R mouth ~[-122.173,50.863].. Terzaghi Dam impounds Carpenter Lake on the Bridge River. Coord = FWA-computed Bridge River blue-line exit from the Carpenter Lake polygon; matches the known Terzaghi Dam location. Reach ends at the Yalakom River confluence. [structural-split 2026-08-05 from \"from Terzaghi Dam to Yalakom River\"] boundary=Yalakom River",
+              "locator_text": "Yalakom River"
             }
           ]
         },
@@ -8183,12 +8543,22 @@
           "resolved": false,
           "rows": [
             {
-              "id": "clearwater-river-4ba0c8",
+              "id": "clearwater-river-4ba0c8-a",
               "status": "todo",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "falls_obstacle",
-              "notes": "Mahood River blk: 356347721, watershed code: 100-190442-998192-349877-237590-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000, Falls creek blk: 356353929 and wsc: 100-190442-998192-349877-427140-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+              "notes": "Mahood River blk: 356347721, watershed code: 100-190442-998192-349877-237590-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000, Falls creek blk: 356353929 and wsc: 100-190442-998192-349877-427140-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000 [structural-split 2026-08-05 from \"from Falls Creek to Mahood River\"] boundary=Falls Creek",
+              "locator_text": "Falls Creek"
+            },
+            {
+              "id": "clearwater-river-4ba0c8-b",
+              "status": "todo",
+              "anchor_kind": "confluence",
+              "src": "rule",
+              "resolver_hint": "tributary",
+              "notes": "Mahood River blk: 356347721, watershed code: 100-190442-998192-349877-237590-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000, Falls creek blk: 356353929 and wsc: 100-190442-998192-349877-427140-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000 [structural-split 2026-08-05 from \"from Falls Creek to Mahood River\"] boundary=Mahood River",
+              "locator_text": "Mahood River"
             }
           ]
         },
@@ -8201,8 +8571,17 @@
               "Sept 1-July 31"
             ]
           },
-          "resolved": true,
+          "resolved": false,
           "rows": [
+            {
+              "id": "clearwater-river-4ba0c8-b",
+              "status": "todo",
+              "anchor_kind": "confluence",
+              "src": "rule",
+              "resolver_hint": "tributary",
+              "notes": "Mahood River blk: 356347721, watershed code: 100-190442-998192-349877-237590-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000, Falls creek blk: 356353929 and wsc: 100-190442-998192-349877-427140-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000 [structural-split 2026-08-05 from \"from Falls Creek to Mahood River\"] boundary=Mahood River",
+              "locator_text": "Mahood River"
+            },
             {
               "id": "clearwater-river-dddc3f-a",
               "status": "curated",
@@ -8247,6 +8626,15 @@
           },
           "resolved": false,
           "rows": [
+            {
+              "id": "clearwater-river-4ba0c8-a",
+              "status": "todo",
+              "anchor_kind": "point",
+              "src": "rule",
+              "resolver_hint": "falls_obstacle",
+              "notes": "Mahood River blk: 356347721, watershed code: 100-190442-998192-349877-237590-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000, Falls creek blk: 356353929 and wsc: 100-190442-998192-349877-427140-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000 [structural-split 2026-08-05 from \"from Falls Creek to Mahood River\"] boundary=Falls Creek",
+              "locator_text": "Falls Creek"
+            },
             {
               "id": "clearwater-river-1335bb",
               "status": "todo",
@@ -8580,12 +8968,13 @@
           "resolved": false,
           "rows": [
             {
-              "id": "fraser-river-8409b9",
+              "id": "fraser-river-8409b9-b",
               "status": "todo",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "boundary_signs",
-              "locator_text": "between fishing boundary signs approximately 6.5 km downstream of Boston Bar to signs 2.8 km downstream of Hell's Gate"
+              "notes": "[structural-split 2026-08-05 from \"between fishing boundary signs approximately 6.5 km downstre\"] boundary=signs 2.8 km downstream of Hell's Gate",
+              "locator_text": "signs 2.8 km downstream of Hell's Gate"
             },
             {
               "id": "fraser-river-498f12",
@@ -8665,11 +9054,22 @@
           "resolved": false,
           "rows": [
             {
-              "id": "fraser-river-8409b9",
+              "id": "fraser-river-8409b9-a",
               "status": "todo",
               "anchor_kind": "point",
               "src": "rule",
-              "resolver_hint": "boundary_signs"
+              "resolver_hint": "boundary_signs",
+              "notes": "[structural-split 2026-08-05 from \"between fishing boundary signs approximately 6.5 km downstre\"] boundary=between fishing boundary signs approximately 6.5 km downstream of Boston Bar",
+              "locator_text": "between fishing boundary signs approximately 6.5 km downstream of Boston Bar"
+            },
+            {
+              "id": "fraser-river-8409b9-b",
+              "status": "todo",
+              "anchor_kind": "point",
+              "src": "rule",
+              "resolver_hint": "boundary_signs",
+              "notes": "[structural-split 2026-08-05 from \"between fishing boundary signs approximately 6.5 km downstre\"] boundary=signs 2.8 km downstream of Hell's Gate",
+              "locator_text": "signs 2.8 km downstream of Hell's Gate"
             },
             {
               "id": "fraser-river-498f12",
@@ -8872,7 +9272,7 @@
               "Aug 15-Dec 31"
             ]
           },
-          "resolved": true,
+          "resolved": false,
           "rows": [
             {
               "id": "fraser-river-135734",
@@ -8890,6 +9290,24 @@
                 "blk": "356359494",
                 "wsc": "100-139969-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
               }
+            },
+            {
+              "id": "fraser-river-aa3425-a",
+              "status": "todo",
+              "anchor_kind": "point",
+              "src": "rule",
+              "resolver_hint": "other_reach",
+              "notes": "[structural-split 2026-08-05 from \"from Hells Gate upstream to the Region 3 boundary\"] boundary=Hells Gate",
+              "locator_text": "Hells Gate"
+            },
+            {
+              "id": "fraser-river-aa3425-b",
+              "status": "todo",
+              "anchor_kind": "point",
+              "src": "rule",
+              "resolver_hint": "other_reach",
+              "notes": "[structural-split 2026-08-05 from \"from Hells Gate upstream to the Region 3 boundary\"] boundary=Region 3 boundary",
+              "locator_text": "Region 3 boundary"
             }
           ]
         },
@@ -8905,11 +9323,22 @@
           "resolved": false,
           "rows": [
             {
-              "id": "fraser-river-aa3425",
+              "id": "fraser-river-aa3425-a",
               "status": "todo",
-              "anchor_kind": "unclassified",
+              "anchor_kind": "point",
               "src": "rule",
-              "resolver_hint": "other_reach"
+              "resolver_hint": "other_reach",
+              "notes": "[structural-split 2026-08-05 from \"from Hells Gate upstream to the Region 3 boundary\"] boundary=Hells Gate",
+              "locator_text": "Hells Gate"
+            },
+            {
+              "id": "fraser-river-aa3425-b",
+              "status": "todo",
+              "anchor_kind": "point",
+              "src": "rule",
+              "resolver_hint": "other_reach",
+              "notes": "[structural-split 2026-08-05 from \"from Hells Gate upstream to the Region 3 boundary\"] boundary=Region 3 boundary",
+              "locator_text": "Region 3 boundary"
             }
           ]
         },
@@ -10020,13 +10449,24 @@
           "resolved": false,
           "rows": [
             {
-              "id": "seton-river-includes-bc-hydro-power-canal-ups-95a44d",
+              "id": "seton-river-includes-bc-hydro-power-canal-ups-95a44d-a",
               "status": "todo",
               "anchor_kind": "point",
               "src": "name",
               "resolver_hint": "dam_weir_fence",
-              "notes": "[auto-proposal H] Seton Dam (Seton Lake outlet) + BC Hydro Power Canal on Seton River / Seton Lake outlet. Candidate coord [-121.97777, 50.66951]. OSM: https://www.openstreetmap.org/?mlat=50.66951&mlon=-121.97777#map=15/50.66951/-121.97777. Verify: Confirm Seton Dam at the Seton Lake outlet; the reg also includes the parallel BC Hydro Power Canal up to signs on Seton Lake.. Seton Dam controls the Seton River at the Seton Lake outlet. Coord = FWA Seton River exit from the Seton Lake polygon. The entry also includes the BC Hydro Power Canal upstream of the dam up to signs on Seton Lake (a parallel man-made channel - may need separate geometry). [osm-candidate 2026-08-05] [-121.97778, 50.6695] (OSM Overpass ∩ MU-clipped FWA river; VERIFY).",
-              "name_verbatim": "SETON RIVER (includes BC Hydro Power Canal upstream of"
+              "notes": "[auto-proposal H] Seton Dam (Seton Lake outlet) + BC Hydro Power Canal on Seton River / Seton Lake outlet. Candidate coord [-121.97777, 50.66951]. OSM: https://www.openstreetmap.org/?mlat=50.66951&mlon=-121.97777#map=15/50.66951/-121.97777. Verify: Confirm Seton Dam at the Seton Lake outlet; the reg also includes the parallel BC Hydro Power Canal up to signs on Seton Lake.. Seton Dam controls the Seton River at the Seton Lake outlet. Coord = FWA Seton River exit from the Seton Lake polygon. The entry also includes the BC Hydro Power Canal upstream of the dam up to signs on Seton Lake (a parallel man-made channel - may need separate geometry). [structural-split 2026-08-05 from \"includes BC Hydro Power Canal upstream of the dam up to sign\"] boundary=includes BC Hydro Power Canal upstream of the dam",
+              "name_verbatim": "SETON RIVER (includes BC Hydro Power Canal upstream of",
+              "locator_text": "includes BC Hydro Power Canal upstream of the dam"
+            },
+            {
+              "id": "seton-river-includes-bc-hydro-power-canal-ups-95a44d-b",
+              "status": "todo",
+              "anchor_kind": "lake",
+              "src": "name",
+              "resolver_hint": "lake_reach",
+              "notes": "[auto-proposal H] Seton Dam (Seton Lake outlet) + BC Hydro Power Canal on Seton River / Seton Lake outlet. Candidate coord [-121.97777, 50.66951]. OSM: https://www.openstreetmap.org/?mlat=50.66951&mlon=-121.97777#map=15/50.66951/-121.97777. Verify: Confirm Seton Dam at the Seton Lake outlet; the reg also includes the parallel BC Hydro Power Canal up to signs on Seton Lake.. Seton Dam controls the Seton River at the Seton Lake outlet. Coord = FWA Seton River exit from the Seton Lake polygon. The entry also includes the BC Hydro Power Canal upstream of the dam up to signs on Seton Lake (a parallel man-made channel - may need separate geometry). [structural-split 2026-08-05 from \"includes BC Hydro Power Canal upstream of the dam up to sign\"] boundary=signs located on Seton Lake",
+              "name_verbatim": "SETON RIVER (includes BC Hydro Power Canal upstream of",
+              "locator_text": "signs located on Seton Lake"
             }
           ]
         },
@@ -10097,13 +10537,24 @@
           "resolved": false,
           "rows": [
             {
-              "id": "seton-river-includes-bc-hydro-power-canal-ups-95a44d",
+              "id": "seton-river-includes-bc-hydro-power-canal-ups-95a44d-a",
               "status": "todo",
               "anchor_kind": "point",
               "src": "name",
               "resolver_hint": "dam_weir_fence",
-              "notes": "[auto-proposal H] Seton Dam (Seton Lake outlet) + BC Hydro Power Canal on Seton River / Seton Lake outlet. Candidate coord [-121.97777, 50.66951]. OSM: https://www.openstreetmap.org/?mlat=50.66951&mlon=-121.97777#map=15/50.66951/-121.97777. Verify: Confirm Seton Dam at the Seton Lake outlet; the reg also includes the parallel BC Hydro Power Canal up to signs on Seton Lake.. Seton Dam controls the Seton River at the Seton Lake outlet. Coord = FWA Seton River exit from the Seton Lake polygon. The entry also includes the BC Hydro Power Canal upstream of the dam up to signs on Seton Lake (a parallel man-made channel - may need separate geometry). [osm-candidate 2026-08-05] [-121.97778, 50.6695] (OSM Overpass ∩ MU-clipped FWA river; VERIFY).",
-              "name_verbatim": "SETON RIVER (includes BC Hydro Power Canal upstream of"
+              "notes": "[auto-proposal H] Seton Dam (Seton Lake outlet) + BC Hydro Power Canal on Seton River / Seton Lake outlet. Candidate coord [-121.97777, 50.66951]. OSM: https://www.openstreetmap.org/?mlat=50.66951&mlon=-121.97777#map=15/50.66951/-121.97777. Verify: Confirm Seton Dam at the Seton Lake outlet; the reg also includes the parallel BC Hydro Power Canal up to signs on Seton Lake.. Seton Dam controls the Seton River at the Seton Lake outlet. Coord = FWA Seton River exit from the Seton Lake polygon. The entry also includes the BC Hydro Power Canal upstream of the dam up to signs on Seton Lake (a parallel man-made channel - may need separate geometry). [structural-split 2026-08-05 from \"includes BC Hydro Power Canal upstream of the dam up to sign\"] boundary=includes BC Hydro Power Canal upstream of the dam",
+              "name_verbatim": "SETON RIVER (includes BC Hydro Power Canal upstream of",
+              "locator_text": "includes BC Hydro Power Canal upstream of the dam"
+            },
+            {
+              "id": "seton-river-includes-bc-hydro-power-canal-ups-95a44d-b",
+              "status": "todo",
+              "anchor_kind": "lake",
+              "src": "name",
+              "resolver_hint": "lake_reach",
+              "notes": "[auto-proposal H] Seton Dam (Seton Lake outlet) + BC Hydro Power Canal on Seton River / Seton Lake outlet. Candidate coord [-121.97777, 50.66951]. OSM: https://www.openstreetmap.org/?mlat=50.66951&mlon=-121.97777#map=15/50.66951/-121.97777. Verify: Confirm Seton Dam at the Seton Lake outlet; the reg also includes the parallel BC Hydro Power Canal up to signs on Seton Lake.. Seton Dam controls the Seton River at the Seton Lake outlet. Coord = FWA Seton River exit from the Seton Lake polygon. The entry also includes the BC Hydro Power Canal upstream of the dam up to signs on Seton Lake (a parallel man-made channel - may need separate geometry). [structural-split 2026-08-05 from \"includes BC Hydro Power Canal upstream of the dam up to sign\"] boundary=signs located on Seton Lake",
+              "name_verbatim": "SETON RIVER (includes BC Hydro Power Canal upstream of",
+              "locator_text": "signs located on Seton Lake"
             }
           ]
         },
@@ -10113,14 +10564,24 @@
           "resolved": false,
           "rows": [
             {
-              "id": "seton-river-includes-bc-hydro-power-canal-ups-95a44d",
+              "id": "seton-river-includes-bc-hydro-power-canal-ups-95a44d-a",
               "status": "todo",
               "anchor_kind": "point",
               "src": "name",
               "resolver_hint": "dam_weir_fence",
-              "notes": "[auto-proposal H] Seton Dam (Seton Lake outlet) + BC Hydro Power Canal on Seton River / Seton Lake outlet. Candidate coord [-121.97777, 50.66951]. OSM: https://www.openstreetmap.org/?mlat=50.66951&mlon=-121.97777#map=15/50.66951/-121.97777. Verify: Confirm Seton Dam at the Seton Lake outlet; the reg also includes the parallel BC Hydro Power Canal up to signs on Seton Lake.. Seton Dam controls the Seton River at the Seton Lake outlet. Coord = FWA Seton River exit from the Seton Lake polygon. The entry also includes the BC Hydro Power Canal upstream of the dam up to signs on Seton Lake (a parallel man-made channel - may need separate geometry). [osm-candidate 2026-08-05] [-121.97778, 50.6695] (OSM Overpass ∩ MU-clipped FWA river; VERIFY).",
+              "notes": "[auto-proposal H] Seton Dam (Seton Lake outlet) + BC Hydro Power Canal on Seton River / Seton Lake outlet. Candidate coord [-121.97777, 50.66951]. OSM: https://www.openstreetmap.org/?mlat=50.66951&mlon=-121.97777#map=15/50.66951/-121.97777. Verify: Confirm Seton Dam at the Seton Lake outlet; the reg also includes the parallel BC Hydro Power Canal up to signs on Seton Lake.. Seton Dam controls the Seton River at the Seton Lake outlet. Coord = FWA Seton River exit from the Seton Lake polygon. The entry also includes the BC Hydro Power Canal upstream of the dam up to signs on Seton Lake (a parallel man-made channel - may need separate geometry). [structural-split 2026-08-05 from \"includes BC Hydro Power Canal upstream of the dam up to sign\"] boundary=includes BC Hydro Power Canal upstream of the dam",
               "name_verbatim": "SETON RIVER (includes BC Hydro Power Canal upstream of",
-              "locator_text": "includes BC Hydro Power Canal upstream of the dam up to signs located on Seton Lake"
+              "locator_text": "includes BC Hydro Power Canal upstream of the dam"
+            },
+            {
+              "id": "seton-river-includes-bc-hydro-power-canal-ups-95a44d-b",
+              "status": "todo",
+              "anchor_kind": "lake",
+              "src": "name",
+              "resolver_hint": "lake_reach",
+              "notes": "[auto-proposal H] Seton Dam (Seton Lake outlet) + BC Hydro Power Canal on Seton River / Seton Lake outlet. Candidate coord [-121.97777, 50.66951]. OSM: https://www.openstreetmap.org/?mlat=50.66951&mlon=-121.97777#map=15/50.66951/-121.97777. Verify: Confirm Seton Dam at the Seton Lake outlet; the reg also includes the parallel BC Hydro Power Canal up to signs on Seton Lake.. Seton Dam controls the Seton River at the Seton Lake outlet. Coord = FWA Seton River exit from the Seton Lake polygon. The entry also includes the BC Hydro Power Canal upstream of the dam up to signs on Seton Lake (a parallel man-made channel - may need separate geometry). [structural-split 2026-08-05 from \"includes BC Hydro Power Canal upstream of the dam up to sign\"] boundary=signs located on Seton Lake",
+              "name_verbatim": "SETON RIVER (includes BC Hydro Power Canal upstream of",
+              "locator_text": "signs located on Seton Lake"
             }
           ]
         }
@@ -10321,12 +10782,24 @@
           "resolved": false,
           "rows": [
             {
-              "id": "shuswap-lake-see-maps-on-page-28-includes-lit-be76ba",
+              "id": "shuswap-lake-see-maps-on-page-28-includes-lit-be76ba-a",
               "status": "todo",
-              "anchor_kind": "line",
+              "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "between_signs",
-              "name_verbatim": "SHUSWAP LAKE (see maps on page 28) (includes Little Sh"
+              "notes": "[structural-split 2026-08-05 from \"in Salmon Arm Bay, west of line between Engineer's Point and\"] boundary=Engineer's Point",
+              "name_verbatim": "SHUSWAP LAKE (see maps on page 28) (includes Little Sh",
+              "locator_text": "Engineer's Point"
+            },
+            {
+              "id": "shuswap-lake-see-maps-on-page-28-includes-lit-be76ba-b",
+              "status": "todo",
+              "anchor_kind": "point",
+              "src": "rule",
+              "resolver_hint": "between_signs",
+              "notes": "[structural-split 2026-08-05 from \"in Salmon Arm Bay, west of line between Engineer's Point and\"] boundary=Sunnybrae Point",
+              "name_verbatim": "SHUSWAP LAKE (see maps on page 28) (includes Little Sh",
+              "locator_text": "Sunnybrae Point"
             }
           ]
         },
@@ -11524,12 +11997,22 @@
           "resolved": false,
           "rows": [
             {
-              "id": "columbia-river-67df30",
+              "id": "columbia-river-67df30-a",
               "status": "todo",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "dam_weir_fence",
-              "notes": "[auto-proposal H] Revelstoke Dam (Revelstoke Lake outlet) on Columbia River (Revelstoke Dam -> Hwy 1 bridge). Candidate coord [-118.19266, 51.04957]. OSM: https://www.openstreetmap.org/?mlat=51.04957&mlon=-118.19266#map=15/51.04957/-118.19266. Verify: Confirm cut at Revelstoke Dam (Revelstoke Lake outlet); downstream end = Hwy 1 bridge in Revelstoke.. Revelstoke Dam impounds Revelstoke Lake on the Columbia. Coord = FWA Columbia exit from Revelstoke Lake polygon; matches known Revelstoke Dam. Reach ends at the Hwy 1 bridge in Revelstoke. [osm-candidate 2026-08-05] [-117.77353, 49.34196]; [-118.5659, 52.07445]; [-118.56661, 52.0779]; [-118.19268, 51.04956]; [-118.19358, 51.04874] (OSM Overpass ∩ MU-clipped FWA river; VERIFY)."
+              "notes": "[auto-proposal H] Revelstoke Dam (Revelstoke Lake outlet) on Columbia River (Revelstoke Dam -> Hwy 1 bridge). Candidate coord [-118.19266, 51.04957]. OSM: https://www.openstreetmap.org/?mlat=51.04957&mlon=-118.19266#map=15/51.04957/-118.19266. Verify: Confirm cut at Revelstoke Dam (Revelstoke Lake outlet); downstream end = Hwy 1 bridge in Revelstoke.. Revelstoke Dam impounds Revelstoke Lake on the Columbia. Coord = FWA Columbia exit from Revelstoke Lake polygon; matches known Revelstoke Dam. Reach ends at the Hwy 1 bridge in Revelstoke. [structural-split 2026-08-05 from \"from Revelstoke Dam downstream to Hwy 1 bridge in Revelstoke\"] boundary=Revelstoke Dam",
+              "locator_text": "Revelstoke Dam"
+            },
+            {
+              "id": "columbia-river-67df30-b",
+              "status": "todo",
+              "anchor_kind": "point",
+              "src": "rule",
+              "resolver_hint": "dam_weir_fence",
+              "notes": "[auto-proposal H] Revelstoke Dam (Revelstoke Lake outlet) on Columbia River (Revelstoke Dam -> Hwy 1 bridge). Candidate coord [-118.19266, 51.04957]. OSM: https://www.openstreetmap.org/?mlat=51.04957&mlon=-118.19266#map=15/51.04957/-118.19266. Verify: Confirm cut at Revelstoke Dam (Revelstoke Lake outlet); downstream end = Hwy 1 bridge in Revelstoke.. Revelstoke Dam impounds Revelstoke Lake on the Columbia. Coord = FWA Columbia exit from Revelstoke Lake polygon; matches known Revelstoke Dam. Reach ends at the Hwy 1 bridge in Revelstoke. [structural-split 2026-08-05 from \"from Revelstoke Dam downstream to Hwy 1 bridge in Revelstoke\"] boundary=Hwy 1 bridge in Revelstoke",
+              "locator_text": "Hwy 1 bridge in Revelstoke"
             }
           ]
         },
@@ -11551,6 +12034,24 @@
               "src": "rule",
               "resolver_hint": "between_signs",
               "locator_text": "from a line between the old Robson Ferry landing and a sign on the south river bank, downstream approximately 950 m to t"
+            },
+            {
+              "id": "columbia-river-f33298-a",
+              "status": "todo",
+              "anchor_kind": "point",
+              "src": "rule",
+              "resolver_hint": "between_signs",
+              "notes": "[structural-split 2026-08-05 from \"from Keenleyside Dam to a line between the old Robson Ferry \"] boundary=old Robson Ferry landing",
+              "locator_text": "old Robson Ferry landing"
+            },
+            {
+              "id": "columbia-river-f33298-b",
+              "status": "todo",
+              "anchor_kind": "point",
+              "src": "rule",
+              "resolver_hint": "between_signs",
+              "notes": "[structural-split 2026-08-05 from \"from Keenleyside Dam to a line between the old Robson Ferry \"] boundary=sign on the south river bank",
+              "locator_text": "sign on the south river bank"
             }
           ]
         },
@@ -11563,11 +12064,40 @@
           "resolved": false,
           "rows": [
             {
-              "id": "columbia-river-f33298",
+              "id": "columbia-river-f4c5a3-a",
               "status": "todo",
-              "anchor_kind": "line",
+              "anchor_kind": "point",
               "src": "rule",
-              "resolver_hint": "between_signs"
+              "resolver_hint": "dam_weir_fence",
+              "notes": "[auto-proposal H] Hugh Keenleyside Dam (Lower Arrow Lake outlet) on Columbia River (Keenleyside Dam -> WA border). Candidate coord [-117.77394, 49.34194]. OSM: https://www.openstreetmap.org/?mlat=49.34194&mlon=-117.77394#map=15/49.34194/-117.77394. Verify: Confirm cut at Keenleyside Dam (Lower Arrow Lake outlet); downstream end = Washington state border (auto border split).. Hugh Keenleyside Dam impounds the Arrow Lakes; coord = FWA Columbia exit from the Lower Arrow Lake polygon, matching the known dam near Castlegar. Reach runs to the US border. [structural-split 2026-08-05 from \"from Keenleyside Dam to the Washington state border\"] boundary=Keenleyside Dam",
+              "locator_text": "Keenleyside Dam"
+            },
+            {
+              "id": "columbia-river-3914af-a",
+              "status": "todo",
+              "anchor_kind": "point",
+              "src": "rule",
+              "resolver_hint": "dam_weir_fence",
+              "notes": "[auto-proposal H] Hugh Keenleyside Dam (Lower Arrow Lake outlet) on Columbia River (Keenleyside Dam -> WA border, + Kootenay reach). Candidate coord [-117.77394, 49.34194]. OSM: https://www.openstreetmap.org/?mlat=49.34194&mlon=-117.77394#map=15/49.34194/-117.77394. Verify: Same dam as columbia-river-f4c5a3; entry also bundles a connected Kootenay River reach - handle separately.. Duplicate Keenleyside Dam structure; this entry additionally names a connected Kootenay River reach (see the Kootenay dam items 21-23). Coord = Keenleyside Dam at Lower Arrow Lake outlet. [structural-split 2026-08-05 from \"From Keenleyside Dam downstream to the Washington state bord\"] boundary=Keenleyside Dam",
+              "locator_text": "Keenleyside Dam"
+            },
+            {
+              "id": "columbia-river-f33298-a",
+              "status": "todo",
+              "anchor_kind": "point",
+              "src": "rule",
+              "resolver_hint": "between_signs",
+              "notes": "[structural-split 2026-08-05 from \"from Keenleyside Dam to a line between the old Robson Ferry \"] boundary=old Robson Ferry landing",
+              "locator_text": "old Robson Ferry landing"
+            },
+            {
+              "id": "columbia-river-f33298-b",
+              "status": "todo",
+              "anchor_kind": "point",
+              "src": "rule",
+              "resolver_hint": "between_signs",
+              "notes": "[structural-split 2026-08-05 from \"from Keenleyside Dam to a line between the old Robson Ferry \"] boundary=sign on the south river bank",
+              "locator_text": "sign on the south river bank"
             }
           ]
         },
@@ -11580,12 +12110,31 @@
           "resolved": false,
           "rows": [
             {
-              "id": "columbia-river-f4c5a3",
+              "id": "columbia-river-f4c5a3-a",
               "status": "todo",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "dam_weir_fence",
-              "notes": "[auto-proposal H] Hugh Keenleyside Dam (Lower Arrow Lake outlet) on Columbia River (Keenleyside Dam -> WA border). Candidate coord [-117.77394, 49.34194]. OSM: https://www.openstreetmap.org/?mlat=49.34194&mlon=-117.77394#map=15/49.34194/-117.77394. Verify: Confirm cut at Keenleyside Dam (Lower Arrow Lake outlet); downstream end = Washington state border (auto border split).. Hugh Keenleyside Dam impounds the Arrow Lakes; coord = FWA Columbia exit from the Lower Arrow Lake polygon, matching the known dam near Castlegar. Reach runs to the US border. [osm-candidate 2026-08-05] [-117.77353, 49.34196]; [-118.5659, 52.07445]; [-118.56661, 52.0779]; [-118.19268, 51.04956]; [-118.19358, 51.04874] (OSM Overpass ∩ MU-clipped FWA river; VERIFY)."
+              "notes": "[auto-proposal H] Hugh Keenleyside Dam (Lower Arrow Lake outlet) on Columbia River (Keenleyside Dam -> WA border). Candidate coord [-117.77394, 49.34194]. OSM: https://www.openstreetmap.org/?mlat=49.34194&mlon=-117.77394#map=15/49.34194/-117.77394. Verify: Confirm cut at Keenleyside Dam (Lower Arrow Lake outlet); downstream end = Washington state border (auto border split).. Hugh Keenleyside Dam impounds the Arrow Lakes; coord = FWA Columbia exit from the Lower Arrow Lake polygon, matching the known dam near Castlegar. Reach runs to the US border. [structural-split 2026-08-05 from \"from Keenleyside Dam to the Washington state border\"] boundary=Keenleyside Dam",
+              "locator_text": "Keenleyside Dam"
+            },
+            {
+              "id": "columbia-river-f4c5a3-b",
+              "status": "todo",
+              "anchor_kind": "point",
+              "src": "rule",
+              "resolver_hint": "dam_weir_fence",
+              "notes": "[auto-proposal H] Hugh Keenleyside Dam (Lower Arrow Lake outlet) on Columbia River (Keenleyside Dam -> WA border). Candidate coord [-117.77394, 49.34194]. OSM: https://www.openstreetmap.org/?mlat=49.34194&mlon=-117.77394#map=15/49.34194/-117.77394. Verify: Confirm cut at Keenleyside Dam (Lower Arrow Lake outlet); downstream end = Washington state border (auto border split).. Hugh Keenleyside Dam impounds the Arrow Lakes; coord = FWA Columbia exit from the Lower Arrow Lake polygon, matching the known dam near Castlegar. Reach runs to the US border. [structural-split 2026-08-05 from \"from Keenleyside Dam to the Washington state border\"] boundary=Washington state border",
+              "locator_text": "Washington state border"
+            },
+            {
+              "id": "columbia-river-3914af-a",
+              "status": "todo",
+              "anchor_kind": "point",
+              "src": "rule",
+              "resolver_hint": "dam_weir_fence",
+              "notes": "[auto-proposal H] Hugh Keenleyside Dam (Lower Arrow Lake outlet) on Columbia River (Keenleyside Dam -> WA border, + Kootenay reach). Candidate coord [-117.77394, 49.34194]. OSM: https://www.openstreetmap.org/?mlat=49.34194&mlon=-117.77394#map=15/49.34194/-117.77394. Verify: Same dam as columbia-river-f4c5a3; entry also bundles a connected Kootenay River reach - handle separately.. Duplicate Keenleyside Dam structure; this entry additionally names a connected Kootenay River reach (see the Kootenay dam items 21-23). Coord = Keenleyside Dam at Lower Arrow Lake outlet. [structural-split 2026-08-05 from \"From Keenleyside Dam downstream to the Washington state bord\"] boundary=Keenleyside Dam",
+              "locator_text": "Keenleyside Dam"
             }
           ]
         },
@@ -11598,13 +12147,40 @@
           "resolved": false,
           "rows": [
             {
-              "id": "columbia-river-3914af",
+              "id": "columbia-river-f4c5a3-a",
               "status": "todo",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "dam_weir_fence",
-              "notes": "[auto-proposal H] Hugh Keenleyside Dam (Lower Arrow Lake outlet) on Columbia River (Keenleyside Dam -> WA border, + Kootenay reach). Candidate coord [-117.77394, 49.34194]. OSM: https://www.openstreetmap.org/?mlat=49.34194&mlon=-117.77394#map=15/49.34194/-117.77394. Verify: Same dam as columbia-river-f4c5a3; entry also bundles a connected Kootenay River reach - handle separately.. Duplicate Keenleyside Dam structure; this entry additionally names a connected Kootenay River reach (see the Kootenay dam items 21-23). Coord = Keenleyside Dam at Lower Arrow Lake outlet. [osm-candidate 2026-08-05] [-117.77353, 49.34196]; [-118.5659, 52.07445]; [-118.56661, 52.0779]; [-118.19268, 51.04956]; [-118.19358, 51.04874] (OSM Overpass ∩ MU-clipped FWA river; VERIFY).",
-              "locator_text": "From Keenleyside Dam downstream to the Washington state border and connected reaches: the Kootenay River (Columbia River"
+              "notes": "[auto-proposal H] Hugh Keenleyside Dam (Lower Arrow Lake outlet) on Columbia River (Keenleyside Dam -> WA border). Candidate coord [-117.77394, 49.34194]. OSM: https://www.openstreetmap.org/?mlat=49.34194&mlon=-117.77394#map=15/49.34194/-117.77394. Verify: Confirm cut at Keenleyside Dam (Lower Arrow Lake outlet); downstream end = Washington state border (auto border split).. Hugh Keenleyside Dam impounds the Arrow Lakes; coord = FWA Columbia exit from the Lower Arrow Lake polygon, matching the known dam near Castlegar. Reach runs to the US border. [structural-split 2026-08-05 from \"from Keenleyside Dam to the Washington state border\"] boundary=Keenleyside Dam",
+              "locator_text": "Keenleyside Dam"
+            },
+            {
+              "id": "columbia-river-f4c5a3-b",
+              "status": "todo",
+              "anchor_kind": "point",
+              "src": "rule",
+              "resolver_hint": "dam_weir_fence",
+              "notes": "[auto-proposal H] Hugh Keenleyside Dam (Lower Arrow Lake outlet) on Columbia River (Keenleyside Dam -> WA border). Candidate coord [-117.77394, 49.34194]. OSM: https://www.openstreetmap.org/?mlat=49.34194&mlon=-117.77394#map=15/49.34194/-117.77394. Verify: Confirm cut at Keenleyside Dam (Lower Arrow Lake outlet); downstream end = Washington state border (auto border split).. Hugh Keenleyside Dam impounds the Arrow Lakes; coord = FWA Columbia exit from the Lower Arrow Lake polygon, matching the known dam near Castlegar. Reach runs to the US border. [structural-split 2026-08-05 from \"from Keenleyside Dam to the Washington state border\"] boundary=Washington state border",
+              "locator_text": "Washington state border"
+            },
+            {
+              "id": "columbia-river-3914af-a",
+              "status": "todo",
+              "anchor_kind": "point",
+              "src": "rule",
+              "resolver_hint": "dam_weir_fence",
+              "notes": "[auto-proposal H] Hugh Keenleyside Dam (Lower Arrow Lake outlet) on Columbia River (Keenleyside Dam -> WA border, + Kootenay reach). Candidate coord [-117.77394, 49.34194]. OSM: https://www.openstreetmap.org/?mlat=49.34194&mlon=-117.77394#map=15/49.34194/-117.77394. Verify: Same dam as columbia-river-f4c5a3; entry also bundles a connected Kootenay River reach - handle separately.. Duplicate Keenleyside Dam structure; this entry additionally names a connected Kootenay River reach (see the Kootenay dam items 21-23). Coord = Keenleyside Dam at Lower Arrow Lake outlet. [structural-split 2026-08-05 from \"From Keenleyside Dam downstream to the Washington state bord\"] boundary=Keenleyside Dam",
+              "locator_text": "Keenleyside Dam"
+            },
+            {
+              "id": "columbia-river-3914af-b",
+              "status": "todo",
+              "anchor_kind": "confluence",
+              "src": "rule",
+              "resolver_hint": "tributary",
+              "notes": "[auto-proposal H] Hugh Keenleyside Dam (Lower Arrow Lake outlet) on Columbia River (Keenleyside Dam -> WA border, + Kootenay reach). Candidate coord [-117.77394, 49.34194]. OSM: https://www.openstreetmap.org/?mlat=49.34194&mlon=-117.77394#map=15/49.34194/-117.77394. Verify: Same dam as columbia-river-f4c5a3; entry also bundles a connected Kootenay River reach - handle separately.. Duplicate Keenleyside Dam structure; this entry additionally names a connected Kootenay River reach (see the Kootenay dam items 21-23). Coord = Keenleyside Dam at Lower Arrow Lake outlet. [structural-split 2026-08-05 from \"From Keenleyside Dam downstream to the Washington state bord\"] boundary=Washington state border and connected reaches: the Kootenay River (Columbia River",
+              "locator_text": "Washington state border and connected reaches: the Kootenay River (Columbia River"
             }
           ]
         },
@@ -11617,13 +12193,40 @@
           "resolved": false,
           "rows": [
             {
-              "id": "columbia-river-3914af",
+              "id": "columbia-river-f4c5a3-a",
               "status": "todo",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "dam_weir_fence",
-              "notes": "[auto-proposal H] Hugh Keenleyside Dam (Lower Arrow Lake outlet) on Columbia River (Keenleyside Dam -> WA border, + Kootenay reach). Candidate coord [-117.77394, 49.34194]. OSM: https://www.openstreetmap.org/?mlat=49.34194&mlon=-117.77394#map=15/49.34194/-117.77394. Verify: Same dam as columbia-river-f4c5a3; entry also bundles a connected Kootenay River reach - handle separately.. Duplicate Keenleyside Dam structure; this entry additionally names a connected Kootenay River reach (see the Kootenay dam items 21-23). Coord = Keenleyside Dam at Lower Arrow Lake outlet. [osm-candidate 2026-08-05] [-117.77353, 49.34196]; [-118.5659, 52.07445]; [-118.56661, 52.0779]; [-118.19268, 51.04956]; [-118.19358, 51.04874] (OSM Overpass ∩ MU-clipped FWA river; VERIFY).",
-              "locator_text": "From Keenleyside Dam downstream to the Washington state border and connected reaches: the Kootenay River (Columbia River"
+              "notes": "[auto-proposal H] Hugh Keenleyside Dam (Lower Arrow Lake outlet) on Columbia River (Keenleyside Dam -> WA border). Candidate coord [-117.77394, 49.34194]. OSM: https://www.openstreetmap.org/?mlat=49.34194&mlon=-117.77394#map=15/49.34194/-117.77394. Verify: Confirm cut at Keenleyside Dam (Lower Arrow Lake outlet); downstream end = Washington state border (auto border split).. Hugh Keenleyside Dam impounds the Arrow Lakes; coord = FWA Columbia exit from the Lower Arrow Lake polygon, matching the known dam near Castlegar. Reach runs to the US border. [structural-split 2026-08-05 from \"from Keenleyside Dam to the Washington state border\"] boundary=Keenleyside Dam",
+              "locator_text": "Keenleyside Dam"
+            },
+            {
+              "id": "columbia-river-f4c5a3-b",
+              "status": "todo",
+              "anchor_kind": "point",
+              "src": "rule",
+              "resolver_hint": "dam_weir_fence",
+              "notes": "[auto-proposal H] Hugh Keenleyside Dam (Lower Arrow Lake outlet) on Columbia River (Keenleyside Dam -> WA border). Candidate coord [-117.77394, 49.34194]. OSM: https://www.openstreetmap.org/?mlat=49.34194&mlon=-117.77394#map=15/49.34194/-117.77394. Verify: Confirm cut at Keenleyside Dam (Lower Arrow Lake outlet); downstream end = Washington state border (auto border split).. Hugh Keenleyside Dam impounds the Arrow Lakes; coord = FWA Columbia exit from the Lower Arrow Lake polygon, matching the known dam near Castlegar. Reach runs to the US border. [structural-split 2026-08-05 from \"from Keenleyside Dam to the Washington state border\"] boundary=Washington state border",
+              "locator_text": "Washington state border"
+            },
+            {
+              "id": "columbia-river-3914af-a",
+              "status": "todo",
+              "anchor_kind": "point",
+              "src": "rule",
+              "resolver_hint": "dam_weir_fence",
+              "notes": "[auto-proposal H] Hugh Keenleyside Dam (Lower Arrow Lake outlet) on Columbia River (Keenleyside Dam -> WA border, + Kootenay reach). Candidate coord [-117.77394, 49.34194]. OSM: https://www.openstreetmap.org/?mlat=49.34194&mlon=-117.77394#map=15/49.34194/-117.77394. Verify: Same dam as columbia-river-f4c5a3; entry also bundles a connected Kootenay River reach - handle separately.. Duplicate Keenleyside Dam structure; this entry additionally names a connected Kootenay River reach (see the Kootenay dam items 21-23). Coord = Keenleyside Dam at Lower Arrow Lake outlet. [structural-split 2026-08-05 from \"From Keenleyside Dam downstream to the Washington state bord\"] boundary=Keenleyside Dam",
+              "locator_text": "Keenleyside Dam"
+            },
+            {
+              "id": "columbia-river-3914af-b",
+              "status": "todo",
+              "anchor_kind": "confluence",
+              "src": "rule",
+              "resolver_hint": "tributary",
+              "notes": "[auto-proposal H] Hugh Keenleyside Dam (Lower Arrow Lake outlet) on Columbia River (Keenleyside Dam -> WA border, + Kootenay reach). Candidate coord [-117.77394, 49.34194]. OSM: https://www.openstreetmap.org/?mlat=49.34194&mlon=-117.77394#map=15/49.34194/-117.77394. Verify: Same dam as columbia-river-f4c5a3; entry also bundles a connected Kootenay River reach - handle separately.. Duplicate Keenleyside Dam structure; this entry additionally names a connected Kootenay River reach (see the Kootenay dam items 21-23). Coord = Keenleyside Dam at Lower Arrow Lake outlet. [structural-split 2026-08-05 from \"From Keenleyside Dam downstream to the Washington state bord\"] boundary=Washington state border and connected reaches: the Kootenay River (Columbia River",
+              "locator_text": "Washington state border and connected reaches: the Kootenay River (Columbia River"
             }
           ]
         },
@@ -11967,12 +12570,22 @@
           "resolved": false,
           "rows": [
             {
-              "id": "duncan-river-402ead",
+              "id": "duncan-river-402ead-a",
               "status": "todo",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "dam_weir_fence",
-              "notes": "[auto-proposal H] Duncan Dam (Duncan Lake outlet) on Duncan River (Duncan Dam -> Lardeau R confluence). Candidate coord [-116.94343, 50.2491]. OSM: https://www.openstreetmap.org/?mlat=50.24910&mlon=-116.94343#map=15/50.24910/-116.94343. Verify: Confirm cut at Duncan Dam (south end of Duncan Lake); downstream end = Duncan-Lardeau confluence.. Duncan Dam impounds Duncan Lake (Kootenay, MU 4-19); coord = FWA Duncan River exit from the large Duncan Lake polygon (wbk 329120714), matching the known dam. Reach runs to the Lardeau River confluence."
+              "notes": "[auto-proposal H] Duncan Dam (Duncan Lake outlet) on Duncan River (Duncan Dam -> Lardeau R confluence). Candidate coord [-116.94343, 50.2491]. OSM: https://www.openstreetmap.org/?mlat=50.24910&mlon=-116.94343#map=15/50.24910/-116.94343. Verify: Confirm cut at Duncan Dam (south end of Duncan Lake); downstream end = Duncan-Lardeau confluence.. Duncan Dam impounds Duncan Lake (Kootenay, MU 4-19); coord = FWA Duncan River exit from the large Duncan Lake polygon (wbk 329120714), matching the known dam. Reach runs to the Lardeau River confluence. [structural-split 2026-08-05 from \"downstream of Duncan Dam to the confluence of the Duncan Riv\"] boundary=downstream of Duncan Dam",
+              "locator_text": "downstream of Duncan Dam"
+            },
+            {
+              "id": "duncan-river-402ead-b",
+              "status": "todo",
+              "anchor_kind": "confluence",
+              "src": "rule",
+              "resolver_hint": "tributary",
+              "notes": "[auto-proposal H] Duncan Dam (Duncan Lake outlet) on Duncan River (Duncan Dam -> Lardeau R confluence). Candidate coord [-116.94343, 50.2491]. OSM: https://www.openstreetmap.org/?mlat=50.24910&mlon=-116.94343#map=15/50.24910/-116.94343. Verify: Confirm cut at Duncan Dam (south end of Duncan Lake); downstream end = Duncan-Lardeau confluence.. Duncan Dam impounds Duncan Lake (Kootenay, MU 4-19); coord = FWA Duncan River exit from the large Duncan Lake polygon (wbk 329120714), matching the known dam. Reach runs to the Lardeau River confluence. [structural-split 2026-08-05 from \"downstream of Duncan Dam to the confluence of the Duncan Riv\"] boundary=confluence of the Duncan River and the Lardeau River",
+              "locator_text": "confluence of the Duncan River and the Lardeau River"
             }
           ]
         },
@@ -13527,12 +14140,22 @@
           "resolved": false,
           "rows": [
             {
-              "id": "kootenay-river-downstream-of-idaho-border-1e5f9d",
+              "id": "kootenay-river-downstream-of-idaho-border-1e5f9d-a",
               "status": "todo",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "dam_weir_fence",
-              "notes": "[auto-proposal M] Brilliant Dam (run-of-river, lower Kootenay River) on Kootenay River (Brilliant Dam -> Columbia confluence). Candidate coord [-117.59864, 49.33662]. OSM: https://www.openstreetmap.org/?mlat=49.33662&mlon=-117.59864#map=15/49.33662/-117.59864. Verify: Confirm Brilliant Dam location on the lower Kootenay near Castlegar; candidate is the nearest Kootenay blue-line point.. Brilliant Dam is a run-of-river dam on the lower Kootenay River near its Columbia confluence (Castlegar). No named reservoir polygon; candidate = Kootenay River blue-line point nearest the known dam site. Reach runs to the Columbia confluence. [osm-candidate 2026-08-05] [-117.62009, 49.32481]; [-117.49994, 49.46163]; [-117.51961, 49.45584]; [-117.48406, 49.45978]; [-115.31472, 48.40988]; [-115.31426, 48.41049]; [-115.31522, 48.40922] (OSM Overpass ∩ MU-clipped FWA river; VERIFY)."
+              "notes": "[auto-proposal M] Brilliant Dam (run-of-river, lower Kootenay River) on Kootenay River (Brilliant Dam -> Columbia confluence). Candidate coord [-117.59864, 49.33662]. OSM: https://www.openstreetmap.org/?mlat=49.33662&mlon=-117.59864#map=15/49.33662/-117.59864. Verify: Confirm Brilliant Dam location on the lower Kootenay near Castlegar; candidate is the nearest Kootenay blue-line point.. Brilliant Dam is a run-of-river dam on the lower Kootenay River near its Columbia confluence (Castlegar). No named reservoir polygon; candidate = Kootenay River blue-line point nearest the known dam site. Reach runs to the Columbia confluence. [structural-split 2026-08-05 from \"from the Brilliant Dam to the confluence with the Columbia R\"] boundary=Brilliant Dam",
+              "locator_text": "Brilliant Dam"
+            },
+            {
+              "id": "kootenay-river-downstream-of-idaho-border-1e5f9d-b",
+              "status": "todo",
+              "anchor_kind": "confluence",
+              "src": "rule",
+              "resolver_hint": "tributary",
+              "notes": "[auto-proposal M] Brilliant Dam (run-of-river, lower Kootenay River) on Kootenay River (Brilliant Dam -> Columbia confluence). Candidate coord [-117.59864, 49.33662]. OSM: https://www.openstreetmap.org/?mlat=49.33662&mlon=-117.59864#map=15/49.33662/-117.59864. Verify: Confirm Brilliant Dam location on the lower Kootenay near Castlegar; candidate is the nearest Kootenay blue-line point.. Brilliant Dam is a run-of-river dam on the lower Kootenay River near its Columbia confluence (Castlegar). No named reservoir polygon; candidate = Kootenay River blue-line point nearest the known dam site. Reach runs to the Columbia confluence. [structural-split 2026-08-05 from \"from the Brilliant Dam to the confluence with the Columbia R\"] boundary=confluence with the Columbia River",
+              "locator_text": "confluence with the Columbia River"
             },
             {
               "id": "kootenay-river-downstream-of-idaho-border-50d010",
@@ -13554,13 +14177,22 @@
           "resolved": false,
           "rows": [
             {
-              "id": "kootenay-river-downstream-of-idaho-border-1e5f9d",
+              "id": "kootenay-river-downstream-of-idaho-border-1e5f9d-a",
               "status": "todo",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "dam_weir_fence",
-              "notes": "[auto-proposal M] Brilliant Dam (run-of-river, lower Kootenay River) on Kootenay River (Brilliant Dam -> Columbia confluence). Candidate coord [-117.59864, 49.33662]. OSM: https://www.openstreetmap.org/?mlat=49.33662&mlon=-117.59864#map=15/49.33662/-117.59864. Verify: Confirm Brilliant Dam location on the lower Kootenay near Castlegar; candidate is the nearest Kootenay blue-line point.. Brilliant Dam is a run-of-river dam on the lower Kootenay River near its Columbia confluence (Castlegar). No named reservoir polygon; candidate = Kootenay River blue-line point nearest the known dam site. Reach runs to the Columbia confluence. [osm-candidate 2026-08-05] [-117.62009, 49.32481]; [-117.49994, 49.46163]; [-117.51961, 49.45584]; [-117.48406, 49.45978]; [-115.31472, 48.40988]; [-115.31426, 48.41049]; [-115.31522, 48.40922] (OSM Overpass ∩ MU-clipped FWA river; VERIFY).",
-              "locator_text": "from the Brilliant Dam to the confluence with the Columbia River"
+              "notes": "[auto-proposal M] Brilliant Dam (run-of-river, lower Kootenay River) on Kootenay River (Brilliant Dam -> Columbia confluence). Candidate coord [-117.59864, 49.33662]. OSM: https://www.openstreetmap.org/?mlat=49.33662&mlon=-117.59864#map=15/49.33662/-117.59864. Verify: Confirm Brilliant Dam location on the lower Kootenay near Castlegar; candidate is the nearest Kootenay blue-line point.. Brilliant Dam is a run-of-river dam on the lower Kootenay River near its Columbia confluence (Castlegar). No named reservoir polygon; candidate = Kootenay River blue-line point nearest the known dam site. Reach runs to the Columbia confluence. [structural-split 2026-08-05 from \"from the Brilliant Dam to the confluence with the Columbia R\"] boundary=Brilliant Dam",
+              "locator_text": "Brilliant Dam"
+            },
+            {
+              "id": "kootenay-river-downstream-of-idaho-border-1e5f9d-b",
+              "status": "todo",
+              "anchor_kind": "confluence",
+              "src": "rule",
+              "resolver_hint": "tributary",
+              "notes": "[auto-proposal M] Brilliant Dam (run-of-river, lower Kootenay River) on Kootenay River (Brilliant Dam -> Columbia confluence). Candidate coord [-117.59864, 49.33662]. OSM: https://www.openstreetmap.org/?mlat=49.33662&mlon=-117.59864#map=15/49.33662/-117.59864. Verify: Confirm Brilliant Dam location on the lower Kootenay near Castlegar; candidate is the nearest Kootenay blue-line point.. Brilliant Dam is a run-of-river dam on the lower Kootenay River near its Columbia confluence (Castlegar). No named reservoir polygon; candidate = Kootenay River blue-line point nearest the known dam site. Reach runs to the Columbia confluence. [structural-split 2026-08-05 from \"from the Brilliant Dam to the confluence with the Columbia R\"] boundary=confluence with the Columbia River",
+              "locator_text": "confluence with the Columbia River"
             },
             {
               "id": "kootenay-river-downstream-of-idaho-border-50d010",
@@ -13581,13 +14213,22 @@
           "resolved": false,
           "rows": [
             {
-              "id": "kootenay-river-downstream-of-idaho-border-1e5f9d",
+              "id": "kootenay-river-downstream-of-idaho-border-1e5f9d-a",
               "status": "todo",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "dam_weir_fence",
-              "notes": "[auto-proposal M] Brilliant Dam (run-of-river, lower Kootenay River) on Kootenay River (Brilliant Dam -> Columbia confluence). Candidate coord [-117.59864, 49.33662]. OSM: https://www.openstreetmap.org/?mlat=49.33662&mlon=-117.59864#map=15/49.33662/-117.59864. Verify: Confirm Brilliant Dam location on the lower Kootenay near Castlegar; candidate is the nearest Kootenay blue-line point.. Brilliant Dam is a run-of-river dam on the lower Kootenay River near its Columbia confluence (Castlegar). No named reservoir polygon; candidate = Kootenay River blue-line point nearest the known dam site. Reach runs to the Columbia confluence. [osm-candidate 2026-08-05] [-117.62009, 49.32481]; [-117.49994, 49.46163]; [-117.51961, 49.45584]; [-117.48406, 49.45978]; [-115.31472, 48.40988]; [-115.31426, 48.41049]; [-115.31522, 48.40922] (OSM Overpass ∩ MU-clipped FWA river; VERIFY).",
-              "locator_text": "from the Brilliant Dam to the confluence with the Columbia River"
+              "notes": "[auto-proposal M] Brilliant Dam (run-of-river, lower Kootenay River) on Kootenay River (Brilliant Dam -> Columbia confluence). Candidate coord [-117.59864, 49.33662]. OSM: https://www.openstreetmap.org/?mlat=49.33662&mlon=-117.59864#map=15/49.33662/-117.59864. Verify: Confirm Brilliant Dam location on the lower Kootenay near Castlegar; candidate is the nearest Kootenay blue-line point.. Brilliant Dam is a run-of-river dam on the lower Kootenay River near its Columbia confluence (Castlegar). No named reservoir polygon; candidate = Kootenay River blue-line point nearest the known dam site. Reach runs to the Columbia confluence. [structural-split 2026-08-05 from \"from the Brilliant Dam to the confluence with the Columbia R\"] boundary=Brilliant Dam",
+              "locator_text": "Brilliant Dam"
+            },
+            {
+              "id": "kootenay-river-downstream-of-idaho-border-1e5f9d-b",
+              "status": "todo",
+              "anchor_kind": "confluence",
+              "src": "rule",
+              "resolver_hint": "tributary",
+              "notes": "[auto-proposal M] Brilliant Dam (run-of-river, lower Kootenay River) on Kootenay River (Brilliant Dam -> Columbia confluence). Candidate coord [-117.59864, 49.33662]. OSM: https://www.openstreetmap.org/?mlat=49.33662&mlon=-117.59864#map=15/49.33662/-117.59864. Verify: Confirm Brilliant Dam location on the lower Kootenay near Castlegar; candidate is the nearest Kootenay blue-line point.. Brilliant Dam is a run-of-river dam on the lower Kootenay River near its Columbia confluence (Castlegar). No named reservoir polygon; candidate = Kootenay River blue-line point nearest the known dam site. Reach runs to the Columbia confluence. [structural-split 2026-08-05 from \"from the Brilliant Dam to the confluence with the Columbia R\"] boundary=confluence with the Columbia River",
+              "locator_text": "confluence with the Columbia River"
             },
             {
               "id": "kootenay-river-downstream-of-idaho-border-50d010",
@@ -13950,12 +14591,22 @@
           "resolved": false,
           "rows": [
             {
-              "id": "lake-revelstoke-62de4f",
+              "id": "lake-revelstoke-62de4f-a",
               "status": "todo",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "dam_weir_fence",
-              "notes": "[auto-proposal H] Mica Dam (Kinbasket Lake outlet) on Lake Revelstoke reach (Mica Dam -> Bigmouth Creek narrows). Candidate coord [-118.56656, 52.07772]. OSM: https://www.openstreetmap.org/?mlat=52.07772&mlon=-118.56656#map=15/52.07772/-118.56656. Verify: Confirm Mica Dam at the Kinbasket Lake outlet; downstream end = signs at narrows just below the Bigmouth Creek mouth.. Mica Dam impounds Kinbasket Lake; below it lies Lake Revelstoke. Coord = FWA Columbia exit from the Kinbasket Lake polygon (wbk 328961767), matching the known Mica Dam. Reach runs to fishing signs at the narrows below Bigmouth Creek. — [review: reservoir-internal] Mica Dam -> signs below Bigmouth Ck sits WITHIN Lake Revelstoke reservoir; a lake-internal/reservoir reach (docs/15), may need re-modeling not a plain point split."
+              "notes": "[auto-proposal H] Mica Dam (Kinbasket Lake outlet) on Lake Revelstoke reach (Mica Dam -> Bigmouth Creek narrows). Candidate coord [-118.56656, 52.07772]. OSM: https://www.openstreetmap.org/?mlat=52.07772&mlon=-118.56656#map=15/52.07772/-118.56656. Verify: Confirm Mica Dam at the Kinbasket Lake outlet; downstream end = signs at narrows just below the Bigmouth Creek mouth.. Mica Dam impounds Kinbasket Lake; below it lies Lake Revelstoke. Coord = FWA Columbia exit from the Kinbasket Lake polygon (wbk 328961767), matching the known Mica Dam. Reach runs to fishing signs at the narrows below Bigmouth Creek. — [review: reservoir-internal] Mica Dam -> signs below Bigmouth Ck sits WITHIN Lake Revelstoke reservoir; a lake-internal/reservoir reach (docs/15), may need re-modeling not a plain point split. [structural-split 2026-08-05 from \"from Mica Dam to fishing boundary signs at the narrows immed\"] boundary=Mica Dam",
+              "locator_text": "Mica Dam"
+            },
+            {
+              "id": "lake-revelstoke-62de4f-b",
+              "status": "todo",
+              "anchor_kind": "point",
+              "src": "rule",
+              "resolver_hint": "dam_weir_fence",
+              "notes": "[auto-proposal H] Mica Dam (Kinbasket Lake outlet) on Lake Revelstoke reach (Mica Dam -> Bigmouth Creek narrows). Candidate coord [-118.56656, 52.07772]. OSM: https://www.openstreetmap.org/?mlat=52.07772&mlon=-118.56656#map=15/52.07772/-118.56656. Verify: Confirm Mica Dam at the Kinbasket Lake outlet; downstream end = signs at narrows just below the Bigmouth Creek mouth.. Mica Dam impounds Kinbasket Lake; below it lies Lake Revelstoke. Coord = FWA Columbia exit from the Kinbasket Lake polygon (wbk 328961767), matching the known Mica Dam. Reach runs to fishing signs at the narrows below Bigmouth Creek. — [review: reservoir-internal] Mica Dam -> signs below Bigmouth Ck sits WITHIN Lake Revelstoke reservoir; a lake-internal/reservoir reach (docs/15), may need re-modeling not a plain point split. [structural-split 2026-08-05 from \"from Mica Dam to fishing boundary signs at the narrows immed\"] boundary=fishing boundary signs at the narrows immediately downstream of the mouth of Bigmouth Creek",
+              "locator_text": "fishing boundary signs at the narrows immediately downstream of the mouth of Bigmouth Creek"
             }
           ]
         },
@@ -18422,12 +19073,24 @@
           "resolved": false,
           "rows": [
             {
-              "id": "horsefly-river-from-quesnel-lake-to-horsefly--bfe6d5",
+              "id": "horsefly-river-from-quesnel-lake-to-horsefly--bfe6d5-a",
+              "status": "todo",
+              "anchor_kind": "lake",
+              "src": "name",
+              "resolver_hint": "lake_reach",
+              "notes": "[structural-split 2026-08-05 from \"from Quesnel Lake to Horsefly River Falls\"] boundary=Quesnel Lake",
+              "name_verbatim": "HORSEFLY RIVER (from Quesnel Lake to Horsefly River Fa",
+              "locator_text": "Quesnel Lake"
+            },
+            {
+              "id": "horsefly-river-from-quesnel-lake-to-horsefly--bfe6d5-b",
               "status": "todo",
               "anchor_kind": "point",
               "src": "name",
               "resolver_hint": "falls_obstacle",
-              "name_verbatim": "HORSEFLY RIVER (from Quesnel Lake to Horsefly River Fa"
+              "notes": "[structural-split 2026-08-05 from \"from Quesnel Lake to Horsefly River Falls\"] boundary=Horsefly River Falls",
+              "name_verbatim": "HORSEFLY RIVER (from Quesnel Lake to Horsefly River Fa",
+              "locator_text": "Horsefly River Falls"
             }
           ]
         },
@@ -18439,6 +19102,16 @@
           },
           "resolved": false,
           "rows": [
+            {
+              "id": "horsefly-river-from-quesnel-lake-to-horsefly--bfe6d5-a",
+              "status": "todo",
+              "anchor_kind": "lake",
+              "src": "name",
+              "resolver_hint": "lake_reach",
+              "notes": "[structural-split 2026-08-05 from \"from Quesnel Lake to Horsefly River Falls\"] boundary=Quesnel Lake",
+              "name_verbatim": "HORSEFLY RIVER (from Quesnel Lake to Horsefly River Fa",
+              "locator_text": "Quesnel Lake"
+            },
             {
               "id": "horsefly-river-from-quesnel-lake-to-horsefly--28a7cd-a",
               "status": "todo",
@@ -18467,12 +19140,24 @@
           "resolved": false,
           "rows": [
             {
-              "id": "horsefly-river-from-quesnel-lake-to-horsefly--bfe6d5",
+              "id": "horsefly-river-from-quesnel-lake-to-horsefly--bfe6d5-a",
+              "status": "todo",
+              "anchor_kind": "lake",
+              "src": "name",
+              "resolver_hint": "lake_reach",
+              "notes": "[structural-split 2026-08-05 from \"from Quesnel Lake to Horsefly River Falls\"] boundary=Quesnel Lake",
+              "name_verbatim": "HORSEFLY RIVER (from Quesnel Lake to Horsefly River Fa",
+              "locator_text": "Quesnel Lake"
+            },
+            {
+              "id": "horsefly-river-from-quesnel-lake-to-horsefly--bfe6d5-b",
               "status": "todo",
               "anchor_kind": "point",
               "src": "name",
               "resolver_hint": "falls_obstacle",
-              "name_verbatim": "HORSEFLY RIVER (from Quesnel Lake to Horsefly River Fa"
+              "notes": "[structural-split 2026-08-05 from \"from Quesnel Lake to Horsefly River Falls\"] boundary=Horsefly River Falls",
+              "name_verbatim": "HORSEFLY RIVER (from Quesnel Lake to Horsefly River Fa",
+              "locator_text": "Horsefly River Falls"
             },
             {
               "id": "horsefly-river-from-quesnel-lake-to-horsefly--28a7cd-b",
@@ -18492,13 +19177,24 @@
           "resolved": false,
           "rows": [
             {
-              "id": "horsefly-river-from-quesnel-lake-to-horsefly--bfe6d5",
+              "id": "horsefly-river-from-quesnel-lake-to-horsefly--bfe6d5-a",
+              "status": "todo",
+              "anchor_kind": "lake",
+              "src": "name",
+              "resolver_hint": "lake_reach",
+              "notes": "[structural-split 2026-08-05 from \"from Quesnel Lake to Horsefly River Falls\"] boundary=Quesnel Lake",
+              "name_verbatim": "HORSEFLY RIVER (from Quesnel Lake to Horsefly River Fa",
+              "locator_text": "Quesnel Lake"
+            },
+            {
+              "id": "horsefly-river-from-quesnel-lake-to-horsefly--bfe6d5-b",
               "status": "todo",
               "anchor_kind": "point",
               "src": "name",
               "resolver_hint": "falls_obstacle",
+              "notes": "[structural-split 2026-08-05 from \"from Quesnel Lake to Horsefly River Falls\"] boundary=Horsefly River Falls",
               "name_verbatim": "HORSEFLY RIVER (from Quesnel Lake to Horsefly River Fa",
-              "locator_text": "from Quesnel Lake to Horsefly River Falls"
+              "locator_text": "Horsefly River Falls"
             }
           ]
         }
@@ -19051,11 +19747,22 @@
           "resolved": false,
           "rows": [
             {
-              "id": "quesnel-lake-484d5b",
+              "id": "quesnel-lake-484d5b-a",
               "status": "todo",
-              "anchor_kind": "line",
+              "anchor_kind": "point",
               "src": "rule",
-              "resolver_hint": "between_signs"
+              "resolver_hint": "between_signs",
+              "notes": "[structural-split 2026-08-05 from \"in North Arm, north of a line between Watt and Service Creek\"] boundary=Watt",
+              "locator_text": "Watt"
+            },
+            {
+              "id": "quesnel-lake-484d5b-b",
+              "status": "todo",
+              "anchor_kind": "point",
+              "src": "rule",
+              "resolver_hint": "between_signs",
+              "notes": "[structural-split 2026-08-05 from \"in North Arm, north of a line between Watt and Service Creek\"] boundary=Service Creeks",
+              "locator_text": "Service Creeks"
             }
           ]
         },
@@ -19535,12 +20242,31 @@
           "resolved": false,
           "rows": [
             {
-              "id": "babine-river-8f73d2",
+              "id": "babine-river-8f73d2-a",
               "status": "todo",
-              "anchor_kind": "point",
+              "anchor_kind": "lake",
               "src": "rule",
-              "resolver_hint": "dam_weir_fence",
-              "notes": "[auto-proposal M] Juvenile fish counting weir at Nilkitkwa Lake outlet on Babine River (Nilkitkwa Lake outlet). Candidate coord [-126.68407, 55.41439]. OSM: https://www.openstreetmap.org/?mlat=55.41439&mlon=-126.68407#map=15/55.41439/-126.68407. Verify: Confirm the juvenile weir sits exactly at the Nilkitkwa Lake outlet vs a few hundred m down the Babine River.. Reach starts at the DFO juvenile fish counting weir located at the outlet of Nilkitkwa Lake. Coord is the FWA-computed Babine River blue-line exit from the Nilkitkwa Lake polygon (blk 360886970). Reach runs down to the Nilkitkwa River confluence (~[-126.701,55.452])."
+              "resolver_hint": "lake_reach",
+              "notes": "[auto-proposal M] Juvenile fish counting weir at Nilkitkwa Lake outlet on Babine River (Nilkitkwa Lake outlet). Candidate coord [-126.68407, 55.41439]. OSM: https://www.openstreetmap.org/?mlat=55.41439&mlon=-126.68407#map=15/55.41439/-126.68407. Verify: Confirm the juvenile weir sits exactly at the Nilkitkwa Lake outlet vs a few hundred m down the Babine River.. Reach starts at the DFO juvenile fish counting weir located at the outlet of Nilkitkwa Lake. Coord is the FWA-computed Babine River blue-line exit from the Nilkitkwa Lake polygon (blk 360886970). Reach runs down to the Nilkitkwa River confluence (~[-126.701,55.452]). [structural-split 2026-08-05 from \"from the juvenile fish counting weir located at the outlet o\"] boundary=juvenile fish counting weir located at the outlet of Nilkitkwa Lake",
+              "locator_text": "juvenile fish counting weir located at the outlet of Nilkitkwa Lake"
+            },
+            {
+              "id": "babine-river-8f73d2-b",
+              "status": "todo",
+              "anchor_kind": "confluence",
+              "src": "rule",
+              "resolver_hint": "tributary",
+              "notes": "[auto-proposal M] Juvenile fish counting weir at Nilkitkwa Lake outlet on Babine River (Nilkitkwa Lake outlet). Candidate coord [-126.68407, 55.41439]. OSM: https://www.openstreetmap.org/?mlat=55.41439&mlon=-126.68407#map=15/55.41439/-126.68407. Verify: Confirm the juvenile weir sits exactly at the Nilkitkwa Lake outlet vs a few hundred m down the Babine River.. Reach starts at the DFO juvenile fish counting weir located at the outlet of Nilkitkwa Lake. Coord is the FWA-computed Babine River blue-line exit from the Nilkitkwa Lake polygon (blk 360886970). Reach runs down to the Nilkitkwa River confluence (~[-126.701,55.452]). [structural-split 2026-08-05 from \"from the juvenile fish counting weir located at the outlet o\"] boundary=Nilkitkwa River confluence",
+              "locator_text": "Nilkitkwa River confluence"
+            },
+            {
+              "id": "babine-river-912f94-a",
+              "status": "todo",
+              "anchor_kind": "lake",
+              "src": "rule",
+              "resolver_hint": "lake_reach",
+              "notes": "[auto-proposal M] Juvenile fish counting weir at Nilkitkwa Lake outlet on Babine River (Nilkitkwa outlet -> Nilkitkwa R confluence). Candidate coord [-126.68407, 55.41439]. OSM: https://www.openstreetmap.org/?mlat=55.41439&mlon=-126.68407#map=15/55.41439/-126.68407. Verify: Same weir as babine-river-8f73d2; confirm weir at lake outlet.. Duplicate structure of babine-river-8f73d2 (juvenile weir at Nilkitkwa Lake outlet); reach runs down to the Babine's confluence with the Nilkitkwa River. Coord = FWA Nilkitkwa Lake outlet. [structural-split 2026-08-05 from \"from the juvenile fish counting weir located at the outlet o\"] boundary=juvenile fish counting weir located at the outlet of Nilkitkwa Lake",
+              "locator_text": "juvenile fish counting weir located at the outlet of Nilkitkwa Lake"
             }
           ]
         },
@@ -19553,12 +20279,22 @@
           "resolved": false,
           "rows": [
             {
-              "id": "babine-river-fec60e",
+              "id": "babine-river-fec60e-a",
               "status": "todo",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "dam_weir_fence",
-              "notes": "[auto-proposal L] Adult fish counting fence + boundary signs (~100 m up / 80 m down) on Babine River (lower, near Nilkitkwa Lake outlet). Candidate coord [-126.68407, 55.41439]. OSM: https://www.openstreetmap.org/?mlat=55.41439&mlon=-126.68407#map=15/55.41439/-126.68407. Verify: Locate the DFO Babine adult counting fence precisely on a map (near Nilkitkwa Lake outlet) then set the two sign points ~100 m up / ~80 m down of it.. This is a line_between_signs closure bracketing the DFO adult fish counting fence on the lower Babine River. The Babine River counting fence is a DFO facility in the vicinity of the Nilkitkwa Lake outlet; exact fence point is not in FWA. Candidate coord is the Nilkitkwa outlet as a starting reference only."
+              "notes": "[auto-proposal L] Adult fish counting fence + boundary signs (~100 m up / 80 m down) on Babine River (lower, near Nilkitkwa Lake outlet). Candidate coord [-126.68407, 55.41439]. OSM: https://www.openstreetmap.org/?mlat=55.41439&mlon=-126.68407#map=15/55.41439/-126.68407. Verify: Locate the DFO Babine adult counting fence precisely on a map (near Nilkitkwa Lake outlet) then set the two sign points ~100 m up / ~80 m down of it.. This is a line_between_signs closure bracketing the DFO adult fish counting fence on the lower Babine River. The Babine River counting fence is a DFO facility in the vicinity of the Nilkitkwa Lake outlet; exact fence point is not in FWA. Candidate coord is the Nilkitkwa outlet as a starting reference only. [structural-split 2026-08-05 from \"between fishing boundary signs approximately 100 m upstream \"] boundary=fishing boundary signs approximately 100 m upstream of",
+              "locator_text": "fishing boundary signs approximately 100 m upstream of"
+            },
+            {
+              "id": "babine-river-fec60e-b",
+              "status": "todo",
+              "anchor_kind": "point",
+              "src": "rule",
+              "resolver_hint": "dam_weir_fence",
+              "notes": "[auto-proposal L] Adult fish counting fence + boundary signs (~100 m up / 80 m down) on Babine River (lower, near Nilkitkwa Lake outlet). Candidate coord [-126.68407, 55.41439]. OSM: https://www.openstreetmap.org/?mlat=55.41439&mlon=-126.68407#map=15/55.41439/-126.68407. Verify: Locate the DFO Babine adult counting fence precisely on a map (near Nilkitkwa Lake outlet) then set the two sign points ~100 m up / ~80 m down of it.. This is a line_between_signs closure bracketing the DFO adult fish counting fence on the lower Babine River. The Babine River counting fence is a DFO facility in the vicinity of the Nilkitkwa Lake outlet; exact fence point is not in FWA. Candidate coord is the Nilkitkwa outlet as a starting reference only. [structural-split 2026-08-05 from \"between fishing boundary signs approximately 100 m upstream \"] boundary=80 m downstream of the adult fish counting fence",
+              "locator_text": "80 m downstream of the adult fish counting fence"
             }
           ]
         },
@@ -19571,12 +20307,31 @@
           "resolved": false,
           "rows": [
             {
-              "id": "babine-river-fdcd21",
+              "id": "babine-river-fdcd21-a",
               "status": "todo",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "dam_weir_fence",
-              "notes": "[auto-proposal L] Adult fish counting fence (downstream bound = Skeena confluence) on Babine River (fence -> Skeena confluence). Candidate coord [-126.68407, 55.41439]. OSM: https://www.openstreetmap.org/?mlat=55.41439&mlon=-126.68407#map=15/55.41439/-126.68407. Verify: Pin the adult counting fence on a map; downstream end is the Babine-Skeena confluence (~[-127.695,55.698]).. Reach from the adult counting fence downstream to the Babine River's confluence with the Skeena. Fence point not in FWA; candidate is the Nilkitkwa outlet reference. Downstream terminus (Babine mouth) is well-defined in FWA."
+              "notes": "[auto-proposal L] Adult fish counting fence (downstream bound = Skeena confluence) on Babine River (fence -> Skeena confluence). Candidate coord [-126.68407, 55.41439]. OSM: https://www.openstreetmap.org/?mlat=55.41439&mlon=-126.68407#map=15/55.41439/-126.68407. Verify: Pin the adult counting fence on a map; downstream end is the Babine-Skeena confluence (~[-127.695,55.698]).. Reach from the adult counting fence downstream to the Babine River's confluence with the Skeena. Fence point not in FWA; candidate is the Nilkitkwa outlet reference. Downstream terminus (Babine mouth) is well-defined in FWA. [structural-split 2026-08-05 from \"from the adult fish counting fence (described above) downstr\"] boundary=adult fish counting fence (described above)",
+              "locator_text": "adult fish counting fence (described above)"
+            },
+            {
+              "id": "babine-river-fdcd21-b",
+              "status": "todo",
+              "anchor_kind": "confluence",
+              "src": "rule",
+              "resolver_hint": "tributary",
+              "notes": "[auto-proposal L] Adult fish counting fence (downstream bound = Skeena confluence) on Babine River (fence -> Skeena confluence). Candidate coord [-126.68407, 55.41439]. OSM: https://www.openstreetmap.org/?mlat=55.41439&mlon=-126.68407#map=15/55.41439/-126.68407. Verify: Pin the adult counting fence on a map; downstream end is the Babine-Skeena confluence (~[-127.695,55.698]).. Reach from the adult counting fence downstream to the Babine River's confluence with the Skeena. Fence point not in FWA; candidate is the Nilkitkwa outlet reference. Downstream terminus (Babine mouth) is well-defined in FWA. [structural-split 2026-08-05 from \"from the adult fish counting fence (described above) downstr\"] boundary=Babine River's confluence with the Skeena River",
+              "locator_text": "Babine River's confluence with the Skeena River"
+            },
+            {
+              "id": "babine-river-912f94-b",
+              "status": "todo",
+              "anchor_kind": "confluence",
+              "src": "rule",
+              "resolver_hint": "tributary",
+              "notes": "[auto-proposal M] Juvenile fish counting weir at Nilkitkwa Lake outlet on Babine River (Nilkitkwa outlet -> Nilkitkwa R confluence). Candidate coord [-126.68407, 55.41439]. OSM: https://www.openstreetmap.org/?mlat=55.41439&mlon=-126.68407#map=15/55.41439/-126.68407. Verify: Same weir as babine-river-8f73d2; confirm weir at lake outlet.. Duplicate structure of babine-river-8f73d2 (juvenile weir at Nilkitkwa Lake outlet); reach runs down to the Babine's confluence with the Nilkitkwa River. Coord = FWA Nilkitkwa Lake outlet. [structural-split 2026-08-05 from \"from the juvenile fish counting weir located at the outlet o\"] boundary=Babine River's confluence",
+              "locator_text": "Babine River's confluence"
             }
           ]
         },
@@ -19592,13 +20347,40 @@
           "resolved": false,
           "rows": [
             {
-              "id": "babine-river-912f94",
+              "id": "babine-river-8f73d2-a",
               "status": "todo",
-              "anchor_kind": "point",
+              "anchor_kind": "lake",
               "src": "rule",
-              "resolver_hint": "dam_weir_fence",
-              "notes": "[auto-proposal M] Juvenile fish counting weir at Nilkitkwa Lake outlet on Babine River (Nilkitkwa outlet -> Nilkitkwa R confluence). Candidate coord [-126.68407, 55.41439]. OSM: https://www.openstreetmap.org/?mlat=55.41439&mlon=-126.68407#map=15/55.41439/-126.68407. Verify: Same weir as babine-river-8f73d2; confirm weir at lake outlet.. Duplicate structure of babine-river-8f73d2 (juvenile weir at Nilkitkwa Lake outlet); reach runs down to the Babine's confluence with the Nilkitkwa River. Coord = FWA Nilkitkwa Lake outlet.",
-              "locator_text": "from the juvenile fish counting weir located at the outlet of Nilkitkwa Lake downstream to the Babine River's confluence"
+              "resolver_hint": "lake_reach",
+              "notes": "[auto-proposal M] Juvenile fish counting weir at Nilkitkwa Lake outlet on Babine River (Nilkitkwa Lake outlet). Candidate coord [-126.68407, 55.41439]. OSM: https://www.openstreetmap.org/?mlat=55.41439&mlon=-126.68407#map=15/55.41439/-126.68407. Verify: Confirm the juvenile weir sits exactly at the Nilkitkwa Lake outlet vs a few hundred m down the Babine River.. Reach starts at the DFO juvenile fish counting weir located at the outlet of Nilkitkwa Lake. Coord is the FWA-computed Babine River blue-line exit from the Nilkitkwa Lake polygon (blk 360886970). Reach runs down to the Nilkitkwa River confluence (~[-126.701,55.452]). [structural-split 2026-08-05 from \"from the juvenile fish counting weir located at the outlet o\"] boundary=juvenile fish counting weir located at the outlet of Nilkitkwa Lake",
+              "locator_text": "juvenile fish counting weir located at the outlet of Nilkitkwa Lake"
+            },
+            {
+              "id": "babine-river-fdcd21-b",
+              "status": "todo",
+              "anchor_kind": "confluence",
+              "src": "rule",
+              "resolver_hint": "tributary",
+              "notes": "[auto-proposal L] Adult fish counting fence (downstream bound = Skeena confluence) on Babine River (fence -> Skeena confluence). Candidate coord [-126.68407, 55.41439]. OSM: https://www.openstreetmap.org/?mlat=55.41439&mlon=-126.68407#map=15/55.41439/-126.68407. Verify: Pin the adult counting fence on a map; downstream end is the Babine-Skeena confluence (~[-127.695,55.698]).. Reach from the adult counting fence downstream to the Babine River's confluence with the Skeena. Fence point not in FWA; candidate is the Nilkitkwa outlet reference. Downstream terminus (Babine mouth) is well-defined in FWA. [structural-split 2026-08-05 from \"from the adult fish counting fence (described above) downstr\"] boundary=Babine River's confluence with the Skeena River",
+              "locator_text": "Babine River's confluence with the Skeena River"
+            },
+            {
+              "id": "babine-river-912f94-a",
+              "status": "todo",
+              "anchor_kind": "lake",
+              "src": "rule",
+              "resolver_hint": "lake_reach",
+              "notes": "[auto-proposal M] Juvenile fish counting weir at Nilkitkwa Lake outlet on Babine River (Nilkitkwa outlet -> Nilkitkwa R confluence). Candidate coord [-126.68407, 55.41439]. OSM: https://www.openstreetmap.org/?mlat=55.41439&mlon=-126.68407#map=15/55.41439/-126.68407. Verify: Same weir as babine-river-8f73d2; confirm weir at lake outlet.. Duplicate structure of babine-river-8f73d2 (juvenile weir at Nilkitkwa Lake outlet); reach runs down to the Babine's confluence with the Nilkitkwa River. Coord = FWA Nilkitkwa Lake outlet. [structural-split 2026-08-05 from \"from the juvenile fish counting weir located at the outlet o\"] boundary=juvenile fish counting weir located at the outlet of Nilkitkwa Lake",
+              "locator_text": "juvenile fish counting weir located at the outlet of Nilkitkwa Lake"
+            },
+            {
+              "id": "babine-river-912f94-b",
+              "status": "todo",
+              "anchor_kind": "confluence",
+              "src": "rule",
+              "resolver_hint": "tributary",
+              "notes": "[auto-proposal M] Juvenile fish counting weir at Nilkitkwa Lake outlet on Babine River (Nilkitkwa outlet -> Nilkitkwa R confluence). Candidate coord [-126.68407, 55.41439]. OSM: https://www.openstreetmap.org/?mlat=55.41439&mlon=-126.68407#map=15/55.41439/-126.68407. Verify: Same weir as babine-river-8f73d2; confirm weir at lake outlet.. Duplicate structure of babine-river-8f73d2 (juvenile weir at Nilkitkwa Lake outlet); reach runs down to the Babine's confluence with the Nilkitkwa River. Coord = FWA Nilkitkwa Lake outlet. [structural-split 2026-08-05 from \"from the juvenile fish counting weir located at the outlet o\"] boundary=Babine River's confluence",
+              "locator_text": "Babine River's confluence"
             }
           ]
         },
@@ -19871,11 +20653,22 @@
           "resolved": false,
           "rows": [
             {
-              "id": "cranberry-river-699352",
+              "id": "cranberry-river-699352-a",
               "status": "todo",
               "anchor_kind": "point",
               "src": "rule",
-              "resolver_hint": "falls_obstacle"
+              "resolver_hint": "falls_obstacle",
+              "notes": "[structural-split 2026-08-05 from \"between fishing boundary signs upstream of and downstream of\"] boundary=fishing boundary signs upstream of",
+              "locator_text": "fishing boundary signs upstream of"
+            },
+            {
+              "id": "cranberry-river-699352-b",
+              "status": "todo",
+              "anchor_kind": "confluence",
+              "src": "rule",
+              "resolver_hint": "tributary",
+              "notes": "[structural-split 2026-08-05 from \"between fishing boundary signs upstream of and downstream of\"] boundary=downstream of Cranberry River Canyon",
+              "locator_text": "downstream of Cranberry River Canyon"
             }
           ]
         },
@@ -20086,11 +20879,22 @@
           "resolved": false,
           "rows": [
             {
-              "id": "iskut-river-76da04",
+              "id": "iskut-river-76da04-a",
               "status": "todo",
-              "anchor_kind": "unclassified",
+              "anchor_kind": "lake",
               "src": "rule",
-              "resolver_hint": "other_reach"
+              "resolver_hint": "lake_reach",
+              "notes": "[structural-split 2026-08-05 from \"between Natadesleen Lake and Kinaskan Lake\"] boundary=Natadesleen Lake",
+              "locator_text": "Natadesleen Lake"
+            },
+            {
+              "id": "iskut-river-76da04-b",
+              "status": "todo",
+              "anchor_kind": "lake",
+              "src": "rule",
+              "resolver_hint": "lake_reach",
+              "notes": "[structural-split 2026-08-05 from \"between Natadesleen Lake and Kinaskan Lake\"] boundary=Kinaskan Lake",
+              "locator_text": "Kinaskan Lake"
             }
           ]
         },
@@ -21390,6 +22194,15 @@
           "resolved": false,
           "rows": [
             {
+              "id": "stellako-river-4769e9-a",
+              "status": "todo",
+              "anchor_kind": "lake",
+              "src": "rule",
+              "resolver_hint": "lake_reach",
+              "notes": "[structural-split 2026-08-05 from \"from François Lake to the falls\"] boundary=François Lake",
+              "locator_text": "François Lake"
+            },
+            {
               "id": "stellako-river-76c305-a",
               "status": "todo",
               "anchor_kind": "point",
@@ -21418,11 +22231,22 @@
           "resolved": false,
           "rows": [
             {
-              "id": "stellako-river-4769e9",
+              "id": "stellako-river-4769e9-a",
+              "status": "todo",
+              "anchor_kind": "lake",
+              "src": "rule",
+              "resolver_hint": "lake_reach",
+              "notes": "[structural-split 2026-08-05 from \"from François Lake to the falls\"] boundary=François Lake",
+              "locator_text": "François Lake"
+            },
+            {
+              "id": "stellako-river-4769e9-b",
               "status": "todo",
               "anchor_kind": "point",
               "src": "rule",
-              "resolver_hint": "falls_obstacle"
+              "resolver_hint": "falls_obstacle",
+              "notes": "[structural-split 2026-08-05 from \"from François Lake to the falls\"] boundary=falls",
+              "locator_text": "falls"
             }
           ]
         },
@@ -22450,11 +23274,22 @@
           "resolved": false,
           "rows": [
             {
-              "id": "kemess-creek-e5aa68",
+              "id": "kemess-creek-e5aa68-a",
               "status": "todo",
-              "anchor_kind": "unclassified",
+              "anchor_kind": "confluence",
               "src": "rule",
-              "resolver_hint": "other_reach"
+              "resolver_hint": "tributary",
+              "notes": "[structural-split 2026-08-05 from \"from Attichka Creek to a point 500 m upstream\"] boundary=Attichka Creek",
+              "locator_text": "Attichka Creek"
+            },
+            {
+              "id": "kemess-creek-e5aa68-b",
+              "status": "todo",
+              "anchor_kind": "point",
+              "src": "rule",
+              "resolver_hint": "other_reach",
+              "notes": "[structural-split 2026-08-05 from \"from Attichka Creek to a point 500 m upstream\"] boundary=point 500 m upstream",
+              "locator_text": "point 500 m upstream"
             }
           ]
         },
@@ -22489,11 +23324,22 @@
           "resolved": false,
           "rows": [
             {
-              "id": "mcleod-river-362e9a",
+              "id": "mcleod-river-362e9a-a",
+              "status": "todo",
+              "anchor_kind": "lake",
+              "src": "rule",
+              "resolver_hint": "lake_reach",
+              "notes": "[structural-split 2026-08-05 from \"from Carp Lake to War Falls\"] boundary=Carp Lake",
+              "locator_text": "Carp Lake"
+            },
+            {
+              "id": "mcleod-river-362e9a-b",
               "status": "todo",
               "anchor_kind": "point",
               "src": "rule",
-              "resolver_hint": "falls_obstacle"
+              "resolver_hint": "falls_obstacle",
+              "notes": "[structural-split 2026-08-05 from \"from Carp Lake to War Falls\"] boundary=War Falls",
+              "locator_text": "War Falls"
             }
           ]
         },
@@ -22599,11 +23445,22 @@
           "resolved": false,
           "rows": [
             {
-              "id": "nechako-river-73a17c",
+              "id": "nechako-river-73a17c-a",
+              "status": "todo",
+              "anchor_kind": "confluence",
+              "src": "rule",
+              "resolver_hint": "tributary",
+              "notes": "[structural-split 2026-08-05 from \"from Cheslatta River to a boundary sign 5 km downstream\"] boundary=Cheslatta River",
+              "locator_text": "Cheslatta River"
+            },
+            {
+              "id": "nechako-river-73a17c-b",
               "status": "todo",
               "anchor_kind": "point",
               "src": "rule",
-              "resolver_hint": "boundary_signs"
+              "resolver_hint": "boundary_signs",
+              "notes": "[structural-split 2026-08-05 from \"from Cheslatta River to a boundary sign 5 km downstream\"] boundary=boundary sign 5 km downstream",
+              "locator_text": "boundary sign 5 km downstream"
             }
           ]
         },
@@ -22728,11 +23585,22 @@
           "resolved": false,
           "rows": [
             {
-              "id": "ptarmigan-creek-dd88fc",
+              "id": "ptarmigan-creek-dd88fc-a",
               "status": "todo",
               "anchor_kind": "point",
               "src": "rule",
-              "resolver_hint": "falls_obstacle"
+              "resolver_hint": "falls_obstacle",
+              "notes": "[structural-split 2026-08-05 from \"from falls to Quarry Bridge\"] boundary=falls",
+              "locator_text": "falls"
+            },
+            {
+              "id": "ptarmigan-creek-dd88fc-b",
+              "status": "todo",
+              "anchor_kind": "point",
+              "src": "rule",
+              "resolver_hint": "falls_obstacle",
+              "notes": "[structural-split 2026-08-05 from \"from falls to Quarry Bridge\"] boundary=Quarry Bridge",
+              "locator_text": "Quarry Bridge"
             }
           ]
         },
@@ -22802,6 +23670,19 @@
           "resolved": false,
           "rows": [
             {
+              "id": "stellako-river-4769e9-a",
+              "status": "todo",
+              "anchor_kind": "lake",
+              "src": "rule",
+              "resolver_hint": "lake_reach",
+              "notes": "[structural-split 2026-08-05 from \"from François Lake to the falls\"] boundary=François Lake",
+              "mus": [
+                "6-4",
+                "7-12"
+              ],
+              "locator_text": "François Lake"
+            },
+            {
               "id": "stellako-river-76c305-a",
               "status": "todo",
               "anchor_kind": "point",
@@ -22838,15 +23719,30 @@
           "resolved": false,
           "rows": [
             {
-              "id": "stellako-river-4769e9",
+              "id": "stellako-river-4769e9-a",
+              "status": "todo",
+              "anchor_kind": "lake",
+              "src": "rule",
+              "resolver_hint": "lake_reach",
+              "notes": "[structural-split 2026-08-05 from \"from François Lake to the falls\"] boundary=François Lake",
+              "mus": [
+                "6-4",
+                "7-12"
+              ],
+              "locator_text": "François Lake"
+            },
+            {
+              "id": "stellako-river-4769e9-b",
               "status": "todo",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "falls_obstacle",
+              "notes": "[structural-split 2026-08-05 from \"from François Lake to the falls\"] boundary=falls",
               "mus": [
                 "6-4",
                 "7-12"
-              ]
+              ],
+              "locator_text": "falls"
             }
           ]
         },
@@ -22936,11 +23832,22 @@
           "resolved": false,
           "rows": [
             {
-              "id": "thorn-creek-b2b2c7",
+              "id": "thorn-creek-b2b2c7-a",
               "status": "todo",
-              "anchor_kind": "unclassified",
+              "anchor_kind": "confluence",
               "src": "rule",
-              "resolver_hint": "other_reach"
+              "resolver_hint": "tributary",
+              "notes": "[structural-split 2026-08-05 from \"from Attichika Creek to a point 500 m upstream\"] boundary=Attichika Creek",
+              "locator_text": "Attichika Creek"
+            },
+            {
+              "id": "thorn-creek-b2b2c7-b",
+              "status": "todo",
+              "anchor_kind": "point",
+              "src": "rule",
+              "resolver_hint": "other_reach",
+              "notes": "[structural-split 2026-08-05 from \"from Attichika Creek to a point 500 m upstream\"] boundary=point 500 m upstream",
+              "locator_text": "point 500 m upstream"
             }
           ]
         },
@@ -23475,11 +24382,22 @@
           "resolved": false,
           "rows": [
             {
-              "id": "murray-river-470730",
+              "id": "murray-river-470730-a",
               "status": "todo",
               "anchor_kind": "point",
               "src": "rule",
-              "resolver_hint": "falls_obstacle"
+              "resolver_hint": "falls_obstacle",
+              "notes": "[structural-split 2026-08-05 from \"from Kinuseo Falls to signs about 2 km downstream\"] boundary=Kinuseo Falls",
+              "locator_text": "Kinuseo Falls"
+            },
+            {
+              "id": "murray-river-470730-b",
+              "status": "todo",
+              "anchor_kind": "point",
+              "src": "rule",
+              "resolver_hint": "falls_obstacle",
+              "notes": "[structural-split 2026-08-05 from \"from Kinuseo Falls to signs about 2 km downstream\"] boundary=signs about 2 km downstream",
+              "locator_text": "signs about 2 km downstream"
             }
           ]
         },
@@ -23511,12 +24429,22 @@
           "resolved": false,
           "rows": [
             {
-              "id": "peace-river-from-hwy-29-bridge-to-the-site-c--c17e9f",
+              "id": "peace-river-from-hwy-29-bridge-to-the-site-c--c17e9f-a",
               "status": "todo",
               "anchor_kind": "point",
               "src": "name",
               "resolver_hint": "dam_weir_fence",
-              "notes": "[auto-proposal L] Site C Dam (upstream bound) / Hwy 29 bridge (downstream) on Peace River (Hwy 29 bridge -> Site C Dam). No FWA coord (needs map / external source). Verify: Locate Site C Dam and the Hwy 29 bridge on the Peace; both external to FWA.. Reach from the Hwy 29 bridge upstream to the Site C Dam. Site C not in FWA (recent). Recommend manual with BC Hydro / map coords for both landmarks. [osm-candidate 2026-08-05] [-122.19498, 56.0152]; [-122.19422, 56.01571] (OSM Overpass ∩ MU-clipped FWA river; VERIFY)."
+              "notes": "[auto-proposal L] Site C Dam (upstream bound) / Hwy 29 bridge (downstream) on Peace River (Hwy 29 bridge -> Site C Dam). No FWA coord (needs map / external source). Verify: Locate Site C Dam and the Hwy 29 bridge on the Peace; both external to FWA.. Reach from the Hwy 29 bridge upstream to the Site C Dam. Site C not in FWA (recent). Recommend manual with BC Hydro / map coords for both landmarks. [structural-split 2026-08-05 from \"From Hwy. 29 bridge to the Site C dam\"] boundary=Hwy. 29 bridge",
+              "locator_text": "Hwy. 29 bridge"
+            },
+            {
+              "id": "peace-river-from-hwy-29-bridge-to-the-site-c--c17e9f-b",
+              "status": "todo",
+              "anchor_kind": "point",
+              "src": "name",
+              "resolver_hint": "dam_weir_fence",
+              "notes": "[auto-proposal L] Site C Dam (upstream bound) / Hwy 29 bridge (downstream) on Peace River (Hwy 29 bridge -> Site C Dam). No FWA coord (needs map / external source). Verify: Locate Site C Dam and the Hwy 29 bridge on the Peace; both external to FWA.. Reach from the Hwy 29 bridge upstream to the Site C Dam. Site C not in FWA (recent). Recommend manual with BC Hydro / map coords for both landmarks. [structural-split 2026-08-05 from \"From Hwy. 29 bridge to the Site C dam\"] boundary=Site C dam",
+              "locator_text": "Site C dam"
             }
           ]
         },
@@ -23576,12 +24504,22 @@
           "resolved": false,
           "rows": [
             {
-              "id": "peace-river-from-hwy-29-bridge-to-the-site-c--81bc00",
+              "id": "peace-river-from-hwy-29-bridge-to-the-site-c--81bc00-a",
               "status": "todo",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "falls_obstacle",
-              "notes": "[osm-candidate 2026-08-05] [-122.19498, 56.0152]; [-122.19422, 56.01571] (OSM Overpass ∩ MU-clipped FWA river; VERIFY)."
+              "notes": "[osm-candidate 2026-08-05] [-122.19498, 56.0152]; [-122.19422, 56.01571] (OSM Overpass ∩ MU-clipped FWA river; VERIFY). [structural-split 2026-08-05 from \"between Peace Canyon Dam and Hwy 29 Bridge\"] boundary=Peace Canyon Dam",
+              "locator_text": "Peace Canyon Dam"
+            },
+            {
+              "id": "peace-river-from-hwy-29-bridge-to-the-site-c--81bc00-b",
+              "status": "todo",
+              "anchor_kind": "point",
+              "src": "rule",
+              "resolver_hint": "falls_obstacle",
+              "notes": "[osm-candidate 2026-08-05] [-122.19498, 56.0152]; [-122.19422, 56.01571] (OSM Overpass ∩ MU-clipped FWA river; VERIFY). [structural-split 2026-08-05 from \"between Peace Canyon Dam and Hwy 29 Bridge\"] boundary=Hwy 29 Bridge",
+              "locator_text": "Hwy 29 Bridge"
             }
           ]
         },
@@ -23591,12 +24529,22 @@
           "resolved": false,
           "rows": [
             {
-              "id": "peace-river-from-hwy-29-bridge-to-the-site-c--c17e9f",
+              "id": "peace-river-from-hwy-29-bridge-to-the-site-c--c17e9f-a",
               "status": "todo",
               "anchor_kind": "point",
               "src": "name",
               "resolver_hint": "dam_weir_fence",
-              "notes": "[auto-proposal L] Site C Dam (upstream bound) / Hwy 29 bridge (downstream) on Peace River (Hwy 29 bridge -> Site C Dam). No FWA coord (needs map / external source). Verify: Locate Site C Dam and the Hwy 29 bridge on the Peace; both external to FWA.. Reach from the Hwy 29 bridge upstream to the Site C Dam. Site C not in FWA (recent). Recommend manual with BC Hydro / map coords for both landmarks. [osm-candidate 2026-08-05] [-122.19498, 56.0152]; [-122.19422, 56.01571] (OSM Overpass ∩ MU-clipped FWA river; VERIFY)."
+              "notes": "[auto-proposal L] Site C Dam (upstream bound) / Hwy 29 bridge (downstream) on Peace River (Hwy 29 bridge -> Site C Dam). No FWA coord (needs map / external source). Verify: Locate Site C Dam and the Hwy 29 bridge on the Peace; both external to FWA.. Reach from the Hwy 29 bridge upstream to the Site C Dam. Site C not in FWA (recent). Recommend manual with BC Hydro / map coords for both landmarks. [structural-split 2026-08-05 from \"From Hwy. 29 bridge to the Site C dam\"] boundary=Hwy. 29 bridge",
+              "locator_text": "Hwy. 29 bridge"
+            },
+            {
+              "id": "peace-river-from-hwy-29-bridge-to-the-site-c--c17e9f-b",
+              "status": "todo",
+              "anchor_kind": "point",
+              "src": "name",
+              "resolver_hint": "dam_weir_fence",
+              "notes": "[auto-proposal L] Site C Dam (upstream bound) / Hwy 29 bridge (downstream) on Peace River (Hwy 29 bridge -> Site C Dam). No FWA coord (needs map / external source). Verify: Locate Site C Dam and the Hwy 29 bridge on the Peace; both external to FWA.. Reach from the Hwy 29 bridge upstream to the Site C Dam. Site C not in FWA (recent). Recommend manual with BC Hydro / map coords for both landmarks. [structural-split 2026-08-05 from \"From Hwy. 29 bridge to the Site C dam\"] boundary=Site C dam",
+              "locator_text": "Site C dam"
             }
           ]
         },
@@ -23606,13 +24554,22 @@
           "resolved": false,
           "rows": [
             {
-              "id": "peace-river-from-hwy-29-bridge-to-the-site-c--c17e9f",
+              "id": "peace-river-from-hwy-29-bridge-to-the-site-c--c17e9f-a",
               "status": "todo",
               "anchor_kind": "point",
               "src": "name",
               "resolver_hint": "dam_weir_fence",
-              "notes": "[auto-proposal L] Site C Dam (upstream bound) / Hwy 29 bridge (downstream) on Peace River (Hwy 29 bridge -> Site C Dam). No FWA coord (needs map / external source). Verify: Locate Site C Dam and the Hwy 29 bridge on the Peace; both external to FWA.. Reach from the Hwy 29 bridge upstream to the Site C Dam. Site C not in FWA (recent). Recommend manual with BC Hydro / map coords for both landmarks. [osm-candidate 2026-08-05] [-122.19498, 56.0152]; [-122.19422, 56.01571] (OSM Overpass ∩ MU-clipped FWA river; VERIFY).",
-              "locator_text": "From Hwy. 29 bridge to the Site C dam"
+              "notes": "[auto-proposal L] Site C Dam (upstream bound) / Hwy 29 bridge (downstream) on Peace River (Hwy 29 bridge -> Site C Dam). No FWA coord (needs map / external source). Verify: Locate Site C Dam and the Hwy 29 bridge on the Peace; both external to FWA.. Reach from the Hwy 29 bridge upstream to the Site C Dam. Site C not in FWA (recent). Recommend manual with BC Hydro / map coords for both landmarks. [structural-split 2026-08-05 from \"From Hwy. 29 bridge to the Site C dam\"] boundary=Hwy. 29 bridge",
+              "locator_text": "Hwy. 29 bridge"
+            },
+            {
+              "id": "peace-river-from-hwy-29-bridge-to-the-site-c--c17e9f-b",
+              "status": "todo",
+              "anchor_kind": "point",
+              "src": "name",
+              "resolver_hint": "dam_weir_fence",
+              "notes": "[auto-proposal L] Site C Dam (upstream bound) / Hwy 29 bridge (downstream) on Peace River (Hwy 29 bridge -> Site C Dam). No FWA coord (needs map / external source). Verify: Locate Site C Dam and the Hwy 29 bridge on the Peace; both external to FWA.. Reach from the Hwy 29 bridge upstream to the Site C Dam. Site C not in FWA (recent). Recommend manual with BC Hydro / map coords for both landmarks. [structural-split 2026-08-05 from \"From Hwy. 29 bridge to the Site C dam\"] boundary=Site C dam",
+              "locator_text": "Site C dam"
             }
           ]
         }
@@ -24018,11 +24975,22 @@
           "resolved": false,
           "rows": [
             {
-              "id": "christina-lake-ecd122",
+              "id": "christina-lake-ecd122-a",
               "status": "todo",
-              "anchor_kind": "line",
+              "anchor_kind": "point",
               "src": "rule",
-              "resolver_hint": "between_signs"
+              "resolver_hint": "between_signs",
+              "notes": "[structural-split 2026-08-05 from \"north of a line between Bald and Knob Points\"] boundary=Bald",
+              "locator_text": "Bald"
+            },
+            {
+              "id": "christina-lake-ecd122-b",
+              "status": "todo",
+              "anchor_kind": "point",
+              "src": "rule",
+              "resolver_hint": "between_signs",
+              "notes": "[structural-split 2026-08-05 from \"north of a line between Bald and Knob Points\"] boundary=Knob Points",
+              "locator_text": "Knob Points"
             }
           ]
         },
@@ -24500,11 +25468,22 @@
           "resolved": false,
           "rows": [
             {
-              "id": "mission-creek-80df8d",
+              "id": "mission-creek-80df8d-a",
               "status": "todo",
               "anchor_kind": "point",
               "src": "rule",
-              "resolver_hint": "falls_obstacle"
+              "resolver_hint": "falls_obstacle",
+              "notes": "[structural-split 2026-08-05 from \"from falls at Gallagher Canyon to Okanagan Lake\"] boundary=falls at Gallagher Canyon",
+              "locator_text": "falls at Gallagher Canyon"
+            },
+            {
+              "id": "mission-creek-80df8d-b",
+              "status": "todo",
+              "anchor_kind": "lake",
+              "src": "rule",
+              "resolver_hint": "lake_reach",
+              "notes": "[structural-split 2026-08-05 from \"from falls at Gallagher Canyon to Okanagan Lake\"] boundary=Okanagan Lake",
+              "locator_text": "Okanagan Lake"
             }
           ]
         },
@@ -24539,12 +25518,22 @@
           "resolved": false,
           "rows": [
             {
-              "id": "okanagan-river-53a1b3",
+              "id": "okanagan-river-53a1b3-a",
+              "status": "todo",
+              "anchor_kind": "lake",
+              "src": "rule",
+              "resolver_hint": "lake_reach",
+              "notes": "[auto-proposal M] Okanagan Lake Dam (Penticton) + McIntyre Dam + Drop Structure No.1 on Okanagan River (channelized, Penticton -> Vaseux). Candidate coord [-119.61346, 49.50123]. OSM: https://www.openstreetmap.org/?mlat=49.50123&mlon=-119.61346#map=15/49.50123/-119.61346. Verify: Multi-structure reg. Candidate = Okanagan Lake Dam (upper bound, Penticton). Also locate McIntyre Dam ~[-119.574,49.357] and Drop Structure No.1 (channelized river S of Oliver) on a map.. Okanagan Lake Dam controls the Okanagan River at Penticton (coord = FWA Okanagan River exit from Okanagan Lake polygon). The reg also references McIntyre Dam and Drop Structure No.1 further down the channelized river - those are separate small structures needing map confirmation. [structural-split 2026-08-05 from \"from Okanagan Lake Dam downstream to McIntyre Dam and downst\"] boundary=Okanagan Lake Dam",
+              "locator_text": "Okanagan Lake Dam"
+            },
+            {
+              "id": "okanagan-river-53a1b3-b",
               "status": "todo",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "dam_weir_fence",
-              "notes": "[auto-proposal M] Okanagan Lake Dam (Penticton) + McIntyre Dam + Drop Structure No.1 on Okanagan River (channelized, Penticton -> Vaseux). Candidate coord [-119.61346, 49.50123]. OSM: https://www.openstreetmap.org/?mlat=49.50123&mlon=-119.61346#map=15/49.50123/-119.61346. Verify: Multi-structure reg. Candidate = Okanagan Lake Dam (upper bound, Penticton). Also locate McIntyre Dam ~[-119.574,49.357] and Drop Structure No.1 (channelized river S of Oliver) on a map.. Okanagan Lake Dam controls the Okanagan River at Penticton (coord = FWA Okanagan River exit from Okanagan Lake polygon). The reg also references McIntyre Dam and Drop Structure No.1 further down the channelized river - those are separate small structures needing map confirmation. [osm-candidate 2026-08-05] [-119.58007, 49.34453]; [-119.52842, 49.25681] (OSM Overpass ∩ MU-clipped FWA river; VERIFY)."
+              "notes": "[auto-proposal M] Okanagan Lake Dam (Penticton) + McIntyre Dam + Drop Structure No.1 on Okanagan River (channelized, Penticton -> Vaseux). Candidate coord [-119.61346, 49.50123]. OSM: https://www.openstreetmap.org/?mlat=49.50123&mlon=-119.61346#map=15/49.50123/-119.61346. Verify: Multi-structure reg. Candidate = Okanagan Lake Dam (upper bound, Penticton). Also locate McIntyre Dam ~[-119.574,49.357] and Drop Structure No.1 (channelized river S of Oliver) on a map.. Okanagan Lake Dam controls the Okanagan River at Penticton (coord = FWA Okanagan River exit from Okanagan Lake polygon). The reg also references McIntyre Dam and Drop Structure No.1 further down the channelized river - those are separate small structures needing map confirmation. [structural-split 2026-08-05 from \"from Okanagan Lake Dam downstream to McIntyre Dam and downst\"] boundary=McIntyre Dam and downstream of Drop Structure No. 1",
+              "locator_text": "McIntyre Dam and downstream of Drop Structure No. 1"
             }
           ]
         },
@@ -24660,11 +25649,22 @@
           "resolved": false,
           "rows": [
             {
-              "id": "peachland-creek-200082",
+              "id": "peachland-creek-200082-a",
               "status": "todo",
               "anchor_kind": "point",
               "src": "rule",
-              "resolver_hint": "falls_obstacle"
+              "resolver_hint": "falls_obstacle",
+              "notes": "[structural-split 2026-08-05 from \"from Hardy Falls to Okanagan Lake\"] boundary=Hardy Falls",
+              "locator_text": "Hardy Falls"
+            },
+            {
+              "id": "peachland-creek-200082-b",
+              "status": "todo",
+              "anchor_kind": "lake",
+              "src": "rule",
+              "resolver_hint": "lake_reach",
+              "notes": "[structural-split 2026-08-05 from \"from Hardy Falls to Okanagan Lake\"] boundary=Okanagan Lake",
+              "locator_text": "Okanagan Lake"
             }
           ]
         },
