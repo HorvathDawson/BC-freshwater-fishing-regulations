@@ -7,8 +7,8 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 |---|--:|
 | NO_CURATION | 1 |
 | MISSING_SPLITS | 2 |
-| INCOMPLETE | 186 |
-| COMPLETE | 123 |
+| INCOMPLETE | 184 |
+| COMPLETE | 125 |
 | NO_SPLIT | 75 |
 
 **Drift** (curated rows matching no source locator): 3
@@ -201,7 +201,7 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 - • [rule] “between the cascade falls (located approximately 6.5 km upstream o” → gold-river-74b889-a[curated], gold-river-74b889-b[curated]
 
 ## PUNTLEDGE RIVER · MU ['1-6'] · p20 · [INCOMPLETE] (3952f2fb)
-- • [rule] “downstream of the BC Hydro diversion dam (approximately 3.5 km dow” → puntledge-river-f50f20-a[curated], puntledge-river-f50f20-b[todo]
+- • [rule] “downstream of the BC Hydro diversion dam (approximately 3.5 km dow” → puntledge-river-f50f20-a[curated], puntledge-river-f50f20-b[curated]
 - • [rule] “between fishing boundary signs approximately 100 m upstream and do” → puntledge-river-3d202d-a[curated], puntledge-river-3d202d-b[curated]
 - • [rule] “from fishing boundary signs located 50 m upstream of the BC Hydro ” → puntledge-river-6e9625-a[todo], puntledge-river-6e9625-b[todo]
 - • [rule] “upstream of the BC Hydro diversion dam (approximately 3.5 km downs” → puntledge-river-bef57e[curated]
@@ -388,7 +388,7 @@ approximately 35 m downstream” → little-qualicum-river-031042-b[todo], littl
 - • [rule] “from the falls situated downstream of Middle Quinsam Lake to the f” → quinsam-river-014fa9-a[todo], quinsam-river-014fa9-b[todo], quinsam-river-c440f0-b[todo]
 
 ## SOOKE RIVER · MU ['1-2'] · p20 · [INCOMPLETE] (5551826e)
-- • [rule] “downstream of Sooke River Falls” → sooke-river-6c92c5[todo]
+- • [rule] “downstream of Sooke River Falls” → sooke-river-6c92c5[curated]
 - • [rule] “from the base of the lower "potholes" falls to signs approximately” → sooke-river-5f3547-a[todo], sooke-river-5f3547-b[todo]
 
 ## TOQUART RIVER · MU ['1-8'] · p21 · [INCOMPLETE] (492dbcc9)
@@ -494,10 +494,6 @@ approximately 35 m downstream” → little-qualicum-river-031042-b[todo], littl
 ## BABINE LAKE · MU ['6-6'] · p56 · [INCOMPLETE] (5bed475b)
 - • [rule] “east of a line from Gullwing Creek to the south shore of Babine La” → babine-lake-d6b843[todo]
 - • [rule] “within a 400 m radius of the mouth of Pinkut Creek” → babine-lake-0f9dda[todo]
-
-## ISKUT RIVER · MU ['6-21'] · p57 · [INCOMPLETE] (8fb53ca7)
-- • [rule] “downstream of Forest Kerr Canyon” → iskut-river-2984d4[todo]
-- • [rule] “between Natadesleen Lake and Kinaskan Lake” → iskut-river-76da04-a[not_applicable], iskut-river-76da04-b[not_applicable]
 
 ## KITIMAT RIVER (Angling regulations for the Kitimat River are currently under review. Please check the in-season regulation change website prior to fishing on the Kitimat River) · MU ['6-3'] · p57 · [INCOMPLETE] (c0718831)
 - • [rule] “on the west half of river between fishing boundary signs near Kiti” → kitimat-river-angling-regulations-for-the-kit-664c72[todo]
@@ -621,9 +617,6 @@ approximately 35 m downstream” → little-qualicum-river-031042-b[todo], littl
 
 ## ROCHE LAKE · MU ['3-20'] · p34 · [INCOMPLETE] (4a9ee814)
 - • [rule] “south of a line bearing true 244° from a point on the southern tip” → roche-lake-6c9c77[todo]
-
-## SEYMOUR RIVER · MU ['3-36'] · p34 · [INCOMPLETE] (344ca048)
-- • [rule] “downstream of the falls” → seymour-river-c94a6c[todo]
 
 ## WHITE LAKE · MU ['3-26'] · p34 · [INCOMPLETE] (ed43e5bf)
 - • [rule] “within 400 m of the mouth of Cedar Creek as designated by signs” → white-lake-51bb13[todo]

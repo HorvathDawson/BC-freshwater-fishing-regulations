@@ -3257,7 +3257,7 @@
           "info": {
             "restriction_type": "closure"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "puntledge-river-f50f20-a",
@@ -3275,11 +3275,16 @@
             },
             {
               "id": "puntledge-river-f50f20-b",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "falls_obstacle",
-              "notes": "[osm-candidate 2026-08-05] [-125.09409, 49.66409]; [-125.09621, 49.64361] (OSM Overpass ∩ MU-clipped FWA river; VERIFY). [structural-split 2026-08-05 from \"downstream of the BC Hydro diversion dam (approximately 3.5 \"] boundary=base of Stotan Falls (ap",
+              "label": "base of Stotan Falls",
+              "notes": "[osm-candidate 2026-08-05] [-125.09409, 49.66409]; [-125.09621, 49.64361] (OSM Overpass ∩ MU-clipped FWA river; VERIFY). [structural-split 2026-08-05 from \"downstream of the BC Hydro diversion dam (approximately 3.5 \"] boundary=base of Stotan Falls (ap [human-review 2026-08-06] Stotan Falls base (#2).",
+              "coord": [
+                -125.05426,
+                49.68178
+              ],
               "locator_text": "base of Stotan Falls (ap"
             }
           ]
@@ -3879,14 +3884,20 @@
               "Sept 1-Nov 30"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "sooke-river-6c92c5",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
-              "resolver_hint": "falls_obstacle"
+              "resolver_hint": "falls_obstacle",
+              "label": "Sooke River Falls",
+              "notes": " [human-review 2026-08-06] Sooke River Falls (#2).",
+              "coord": [
+                -123.72485,
+                48.44486
+              ]
             }
           ]
         },
@@ -10699,7 +10710,7 @@
       "image": "page_034_row_008.png",
       "symbols": [],
       "reg_text": "Rainbow trout and char catch and release downstream of the falls; bait ban",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 1,
       "locators": [
         {
@@ -10708,14 +10719,20 @@
           "info": {
             "restriction_type": "harvest"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "seymour-river-c94a6c",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
-              "resolver_hint": "falls_obstacle"
+              "resolver_hint": "falls_obstacle",
+              "label": "falls",
+              "notes": " [human-review 2026-08-06] falls (more-downstream candidate).",
+              "coord": [
+                -118.89801,
+                51.28434
+              ]
             }
           ]
         },
@@ -21049,7 +21066,7 @@
       "image": "page_057_row_015.png",
       "symbols": [],
       "reg_text": "**No Fishing** downstream of Forest Kerr Canyon[Includes Tributaries], Apr 1-Apr 30; no powered boats between Natadesleen Lake and Kinaskan Lake",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 2,
       "locators": [
         {
@@ -21062,14 +21079,20 @@
             ],
             "includes_tributaries": true
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "iskut-river-2984d4",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
-              "resolver_hint": "falls_obstacle"
+              "resolver_hint": "falls_obstacle",
+              "label": "downstream end of Forrest Kerr Canyon",
+              "notes": " [human-review 2026-08-06] downstream end of Forrest Kerr/Iskut Canyon (user-located, snapped to FWA).",
+              "coord": [
+                -130.70018,
+                56.70499
+              ]
             }
           ]
         },
