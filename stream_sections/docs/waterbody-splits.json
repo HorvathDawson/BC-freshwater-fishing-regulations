@@ -3992,7 +3992,7 @@
         "Stocked"
       ],
       "reg_text": "**No Fishing** between fishing boundary signs 200 m upstream of and 500 m downstream of Stamp Falls, June 15-Nov 15\n**No Fishing** from the confluence with Ash River upstream to the Great Central Lake dam[Includes Tributaries], Jan 1-Apr 30\nBait ban all year upstream of signs at \"Girl Guide Falls\" (approximately 250 m upstream of the mouth of Beaver Creek)[Includes Tributaries]\nBait ban downstream of signs at \"Girl Guide Falls\" (approximately 250 m upstream of the mouth of Beaver Creek), June 1-Aug 24\nEngine power restriction 7.5 kW (10 hp), on parts",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 4,
       "locators": [
         {
@@ -4004,24 +4004,34 @@
               "June 15-Nov 15"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "stamp-river-55ba1e-a",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "falls_obstacle",
-              "notes": "[structural-split 2026-08-05 from \"between fishing boundary signs 200 m upstream of and 500 m d\"] boundary=fishing boundary signs 200 m upstream of",
+              "label": "200 m upstream of Stamp Falls",
+              "notes": "[structural-split 2026-08-05 from \"between fishing boundary signs 200 m upstream of and 500 m d\"] boundary=fishing boundary signs 200 m upstream of [human-review 2026-08-06] anchor=Stamp Falls [-124.91864, 49.33224]; offset_m=200 offset_dir=upstream.",
+              "coord": [
+                -124.91864,
+                49.33224
+              ],
               "locator_text": "fishing boundary signs 200 m upstream of"
             },
             {
               "id": "stamp-river-55ba1e-b",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "falls_obstacle",
-              "notes": "[structural-split 2026-08-05 from \"between fishing boundary signs 200 m upstream of and 500 m d\"] boundary=500 m downstream of Stamp Falls",
+              "label": "500 m downstream of Stamp Falls",
+              "notes": "[structural-split 2026-08-05 from \"between fishing boundary signs 200 m upstream of and 500 m d\"] boundary=500 m downstream of Stamp Falls [human-review 2026-08-06] anchor=Stamp Falls [-124.91864, 49.33224]; offset_m=500 offset_dir=downstream.",
+              "coord": [
+                -124.91864,
+                49.33224
+              ],
               "locator_text": "500 m downstream of Stamp Falls"
             }
           ]
@@ -4036,7 +4046,7 @@
             ],
             "includes_tributaries": true
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "stamp-river-853100-a",
@@ -4058,11 +4068,16 @@
             },
             {
               "id": "stamp-river-853100-b",
-              "status": "todo",
-              "anchor_kind": "lake",
+              "status": "curated",
+              "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "lake_reach",
-              "notes": "[auto-proposal H] Great Central Lake dam (Stamp River head) on Stamp River (Ash R confluence -> Great Central Lake dam). Candidate coord [-124.99219, 49.32835]. OSM: https://www.openstreetmap.org/?mlat=49.32835&mlon=-124.99219#map=15/49.32835/-124.99219. Verify: Confirm the Great Central Lake dam (upstream bound); downstream end = Ash River confluence (~[-124.978,49.362]).. Same dam as great-central-lake-4ff0ab: the Great Central Lake outlet dam is the head of the Stamp River. Coord = FWA stream exit from Great Central Lake polygon. Reach runs from the Ash River confluence up to this dam. [structural-split 2026-08-05 from \"from the confluence with Ash River upstream to the Great Cen\"] boundary=Great Central Lake dam",
+              "label": "Great Central Lake dam",
+              "notes": "[auto-proposal H] Great Central Lake dam (Stamp River head) on Stamp River (Ash R confluence -> Great Central Lake dam). Candidate coord [-124.99219, 49.32835]. OSM: https://www.openstreetmap.org/?mlat=49.32835&mlon=-124.99219#map=15/49.32835/-124.99219. Verify: Confirm the Great Central Lake dam (upstream bound); downstream end = Ash River confluence (~[-124.978,49.362]).. Same dam as great-central-lake-4ff0ab: the Great Central Lake outlet dam is the head of the Stamp River. Coord = FWA stream exit from Great Central Lake polygon. Reach runs from the Ash River confluence up to this dam. [structural-split 2026-08-05 from \"from the confluence with Ash River upstream to the Great Cen\"] boundary=Great Central Lake dam [human-review 2026-08-06] Great Central Lake outlet dam [-124.99219, 49.32835].",
+              "coord": [
+                -124.99219,
+                49.32835
+              ],
               "locator_text": "Great Central Lake dam"
             }
           ]
@@ -4074,14 +4089,20 @@
             "restriction_type": "gear_restriction",
             "includes_tributaries": true
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "stamp-river-7a01f4",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
-              "resolver_hint": "falls_obstacle"
+              "resolver_hint": "falls_obstacle",
+              "label": "Girl Guide Falls signs",
+              "notes": " [human-review 2026-08-06] Girl Guide Falls signs (iMapBC falls/dams layer) [-124.89979, 49.31691].",
+              "coord": [
+                -124.89979,
+                49.31691
+              ]
             }
           ]
         },
@@ -4094,14 +4115,20 @@
               "June 1-Aug 24"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "stamp-river-33f7cb",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
-              "resolver_hint": "falls_obstacle"
+              "resolver_hint": "falls_obstacle",
+              "label": "Girl Guide Falls signs",
+              "notes": " [human-review 2026-08-06] Girl Guide Falls signs (iMapBC falls/dams layer) [-124.89979, 49.31691].",
+              "coord": [
+                -124.89979,
+                49.31691
+              ]
             }
           ]
         },

@@ -7,8 +7,8 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 |---|--:|
 | NO_CURATION | 1 |
 | MISSING_SPLITS | 2 |
-| INCOMPLETE | 187 |
-| COMPLETE | 122 |
+| INCOMPLETE | 186 |
+| COMPLETE | 123 |
 | NO_SPLIT | 75 |
 
 **Drift** (curated rows matching no source locator): 3
@@ -205,12 +205,6 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 - • [rule] “between fishing boundary signs approximately 100 m upstream and do” → puntledge-river-3d202d-a[curated], puntledge-river-3d202d-b[curated]
 - • [rule] “from fishing boundary signs located 50 m upstream of the BC Hydro ” → puntledge-river-6e9625-a[todo], puntledge-river-6e9625-b[todo]
 - • [rule] “upstream of the BC Hydro diversion dam (approximately 3.5 km downs” → puntledge-river-bef57e[curated]
-
-## STAMP RIVER · MU ['1-7'] · p20 · [INCOMPLETE] (703b9db3)
-- • [rule] “between fishing boundary signs 200 m upstream of and 500 m downstr” → stamp-river-55ba1e-a[todo], stamp-river-55ba1e-b[todo]
-- • [rule] “from the confluence with Ash River upstream to the Great Central L” → stamp-river-853100-a[curated], stamp-river-853100-b[todo]
-- • [rule] “upstream of signs at "Girl Guide Falls" (approximately 250 m upstr” → stamp-river-7a01f4[todo]
-- • [rule] “downstream of signs at "Girl Guide Falls" (approximately 250 m ups” → stamp-river-33f7cb[todo]
 
 ## NICOMEKL RIVER · MU ['2-4'] · p27 · [INCOMPLETE] (abb7b842)
 - • [rule] “upstream of 208th Street (Berry Road)” → nicomekl-river-6862af[todo]
