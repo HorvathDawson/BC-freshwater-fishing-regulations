@@ -2768,14 +2768,14 @@
       "entry_id": "50faaf74"
     },
     {
-      "id": "swift-creek-a32fd8",
+      "id": "swift-creek-a32fd8-a",
       "name_verbatim": "SWIFT CREEK",
       "region": "REGION 7A",
       "mus": [
         "7-2"
       ],
       "src": "rule",
-      "locator_text": "from upstream side of weir to CNR Bridge in Valemount",
+      "locator_text": "upstream side of weir",
       "full_regulation": "No Fishing Apr 1-Aug 31\nNo Fishing from upstream side of weir to CNR Bridge in Valemount",
       "anchor_kind": "point",
       "resolver_hint": "dam_weir_fence",
@@ -2783,7 +2783,29 @@
       "target": "",
       "coord": null,
       "label": "",
-      "notes": "[auto-proposal L] Weir on Swift Creek (upstream side) -> CNR Bridge Valemount on Swift Creek (Valemount). Candidate coord [-119.29953, 52.84848]. OSM: https://www.openstreetmap.org/?mlat=52.84848&mlon=-119.29953#map=15/52.84848/-119.29953. Verify: Locate the weir on Swift Creek and the CNR Bridge in Valemount; candidate is the FWA mouth reference.. Reach from the upstream side of a weir on Swift Creek to the CNR Bridge in Valemount (MU 7-2). Weir/bridge not in FWA; candidate = FWA Swift Creek mouth [-119.300,52.848] near Valemount - refine on map. [osm-candidate 2026-08-05] [-119.26786, 52.83822] (OSM Overpass ∩ MU-clipped FWA river; VERIFY).",
+      "notes": "[auto-proposal L] Weir on Swift Creek (upstream side) -> CNR Bridge Valemount on Swift Creek (Valemount). Candidate coord [-119.29953, 52.84848]. OSM: https://www.openstreetmap.org/?mlat=52.84848&mlon=-119.29953#map=15/52.84848/-119.29953. Verify: Locate the weir on Swift Creek and the CNR Bridge in Valemount; candidate is the FWA mouth reference.. Reach from the upstream side of a weir on Swift Creek to the CNR Bridge in Valemount (MU 7-2). Weir/bridge not in FWA; candidate = FWA Swift Creek mouth [-119.300,52.848] near Valemount - refine on map. [structural-split 2026-08-05] weir end (todo).",
+      "entry_id": "07d64663"
+    },
+    {
+      "id": "swift-creek-a32fd8-b",
+      "name_verbatim": "SWIFT CREEK",
+      "region": "REGION 7A",
+      "mus": [
+        "7-2"
+      ],
+      "src": "rule",
+      "locator_text": "CNR Bridge in Valemount",
+      "full_regulation": "No Fishing Apr 1-Aug 31\nNo Fishing from upstream side of weir to CNR Bridge in Valemount",
+      "anchor_kind": "point",
+      "resolver_hint": "dam_weir_fence",
+      "status": "curated",
+      "target": "",
+      "coord": [
+        -119.26786,
+        52.83822
+      ],
+      "label": "CNR bridge, Valemount",
+      "notes": "[auto-proposal L] Weir on Swift Creek (upstream side) -> CNR Bridge Valemount on Swift Creek (Valemount). Candidate coord [-119.29953, 52.84848]. OSM: https://www.openstreetmap.org/?mlat=52.84848&mlon=-119.29953#map=15/52.84848/-119.29953. Verify: Locate the weir on Swift Creek and the CNR Bridge in Valemount; candidate is the FWA mouth reference.. Reach from the upstream side of a weir on Swift Creek to the CNR Bridge in Valemount (MU 7-2). Weir/bridge not in FWA; candidate = FWA Swift Creek mouth [-119.300,52.848] near Valemount - refine on map. [human-review 2026-08-05 OSM-confirmed] CNR bridge = [-119.26786, 52.83822].",
       "entry_id": "07d64663"
     },
     {
@@ -5178,11 +5200,14 @@
       "full_regulation": "No Fishing from Westside Road Bridge to Okanagan Lake",
       "anchor_kind": "point",
       "resolver_hint": "bridge_road_km",
-      "status": "todo",
+      "status": "curated",
       "target": "",
-      "coord": null,
-      "label": "",
-      "notes": "[auto-proposal L] Westside Road Bridge over Shorts Creek (to Okanagan Lake) on Shorts Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the Westside Road bridge over Shorts Creek (Fintry area); single crossing -> review.. Reach = 'Westside Road Bridge to Okanagan Lake'. Westside Rd crosses Shorts Creek near Fintry, close to the Okanagan Lake mouth. Map/OSM-confirmable (FSR hits are far upstream). [structural-split 2026-08-05 from “from Westside Road Bridge to Okanagan Lake”] boundary=Westside Road Bridge [osm-candidate 2026-08-05] [-119.51429, 50.13391] (OSM Overpass ∩ MU-clipped FWA river; VERIFY).",
+      "coord": [
+        -119.51429,
+        50.13391
+      ],
+      "label": "Westside Road bridge",
+      "notes": "[auto-proposal L] Westside Road Bridge over Shorts Creek (to Okanagan Lake) on Shorts Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the Westside Road bridge over Shorts Creek (Fintry area); single crossing -> review.. Reach = 'Westside Road Bridge to Okanagan Lake'. Westside Rd crosses Shorts Creek near Fintry, close to the Okanagan Lake mouth. Map/OSM-confirmable (FSR hits are far upstream). [structural-split 2026-08-05 from “from Westside Road Bridge to Okanagan Lake”] boundary=Westside Road Bridge [human-review 2026-08-05 OSM-confirmed].",
       "entry_id": "94472177"
     },
     {
@@ -5755,11 +5780,14 @@
       "full_regulation": "No Fishing between fishing boundary signs at the salmon viewing pool\nNo Fishing upstream of the Sayward Road Bridge crossing, Nov 1-Apr 30",
       "anchor_kind": "point",
       "resolver_hint": "bridge_road_km",
-      "status": "todo",
+      "status": "curated",
       "target": "",
-      "coord": null,
-      "label": "",
-      "notes": "[auto-proposal L] Sayward Road Bridge over White River on White River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the 'Sayward Road' bridge over the White River (Kootenay, near Whiteswan); map. Not name-matched in FSR.. Reg = 'upstream of the Sayward Road Bridge crossing'. Road bridge on the White River (Region 4, near Whiteswan/Height of the Rockies); not name-matched among the White-Swan FSR crossings. Map/OSM-confirmable. [osm-candidate 2026-08-05] [-125.91741, 50.30805] (OSM Overpass ∩ MU-clipped FWA river; VERIFY).",
+      "coord": [
+        -125.91741,
+        50.30805
+      ],
+      "label": "Sayward Road bridge",
+      "notes": "[auto-proposal L] Sayward Road Bridge over White River on White River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the 'Sayward Road' bridge over the White River (Kootenay, near Whiteswan); map. Not name-matched in FSR.. Reg = 'upstream of the Sayward Road Bridge crossing'. Road bridge on the White River (Region 4, near Whiteswan/Height of the Rockies); not name-matched among the White-Swan FSR crossings. Map/OSM-confirmable. [human-review 2026-08-05 OSM-confirmed].",
       "entry_id": "4cf440b0"
     },
     {

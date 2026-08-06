@@ -426,7 +426,7 @@ approximately 35 m downstream” → little-qualicum-river-4dbb9b[todo]
 
 ## WHITE RIVER · MU ['1-10'] · p21 · [INCOMPLETE] (4cf440b0)
 - • [rule] “between fishing boundary signs at the salmon viewing pool” → white-river-da5ee3[todo]
-- • [rule] “upstream of the Sayward Road Bridge crossing” → white-river-90c274[todo]
+- • [rule] “upstream of the Sayward Road Bridge crossing” → white-river-90c274[curated]
 
 ## ALOUETTE LAKE · MU ['2-8'] · p24 · [INCOMPLETE] (11e89b7b)
 - • [rule] “in swimming areas” → alouette-lake-396262[deferred]
@@ -817,7 +817,7 @@ approximately 35 m downstream” → little-qualicum-river-4dbb9b[todo]
 - • [rule] “from falls to Quarry Bridge” → ptarmigan-creek-dd88fc[todo]
 
 ## SWIFT CREEK · MU ['7-2'] · p67 · [INCOMPLETE] (07d64663)
-- • [rule] “from upstream side of weir to CNR Bridge in Valemount” → swift-creek-a32fd8[todo]
+- • [rule] “from upstream side of weir to CNR Bridge in Valemount” → swift-creek-a32fd8-a[todo], swift-creek-a32fd8-b[curated]
 
 ## THORN CREEK · MU ['7-39'] · p67 · [INCOMPLETE] (15e07584)
 - • [rule] “from Attichika Creek to a point 500 m upstream” → thorn-creek-b2b2c7[todo]
@@ -877,7 +877,7 @@ approximately 35 m downstream” → little-qualicum-river-4dbb9b[todo]
 - • [rule] “downstream of Hwy 97 bridge to Okanagan Lake” → powers-creek-28dc38-a[todo], powers-creek-28dc38-b[todo]
 
 ## SHORTS CREEK · MU ['8-11'] · p77 · [INCOMPLETE] (94472177)
-- • [rule] “from Westside Road Bridge to Okanagan Lake” → shorts-creek-2878e5-a[todo], shorts-creek-2878e5-b[todo]
+- • [rule] “from Westside Road Bridge to Okanagan Lake” → shorts-creek-2878e5-a[curated], shorts-creek-2878e5-b[todo]
 
 ## TREPANIER RIVER · MU ['8-8'] · p77 · [INCOMPLETE] (426962cd)
 - • [rule] “from Hwy 97C to Okanagan Lake” → trepanier-river-a999b0-a[todo], trepanier-river-a999b0-b[todo]
