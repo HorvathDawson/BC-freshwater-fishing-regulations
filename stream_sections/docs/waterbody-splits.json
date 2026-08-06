@@ -19633,11 +19633,11 @@
               "anchor_kind": "buffer",
               "src": "rule",
               "resolver_hint": "radius",
-              "label": "weir at Mitchell Lake outlet",
-              "notes": " [human-review 2026-08-06] weir at Mitchell Lk outlet (user-located); 100 m radius.",
+              "label": "Mitchell Lake Dam (BC dam layer D810486-00)",
+              "notes": " [human-review 2026-08-06] Mitchell Lake Dam, BC dam layer D810486-00 [-120.74136, 52.84601]; 100 m radius.",
               "coord": [
-                -120.74099,
-                52.84625
+                -120.74136,
+                52.84601
               ]
             }
           ]
@@ -19680,11 +19680,11 @@
               "anchor_kind": "buffer",
               "src": "rule",
               "resolver_hint": "radius",
-              "label": "weir at Mitchell Lake outlet",
-              "notes": " [human-review 2026-08-06] weir at Mitchell Lk outlet (user-located); 100 m radius.",
+              "label": "Mitchell Lake Dam (BC dam layer D810486-00)",
+              "notes": " [human-review 2026-08-06] Mitchell Lake Dam, BC dam layer D810486-00 [-120.74136, 52.84601]; 100 m radius.",
               "coord": [
-                -120.74099,
-                52.84625
+                -120.74136,
+                52.84601
               ]
             }
           ]
