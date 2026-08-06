@@ -3251,11 +3251,16 @@
           "rows": [
             {
               "id": "puntledge-river-f50f20-a",
-              "status": "todo",
-              "anchor_kind": "lake",
+              "status": "curated",
+              "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "lake_reach",
-              "notes": "[osm-candidate 2026-08-05] [-125.09409, 49.66409]; [-125.09621, 49.64361] (OSM Overpass ∩ MU-clipped FWA river; VERIFY). [structural-split 2026-08-05 from \"downstream of the BC Hydro diversion dam (approximately 3.5 \"] boundary=downstream of the BC Hydro diversion dam (approximately 3.5 km downstream of Comox Lake)",
+              "label": "BC Hydro diversion dam",
+              "notes": "[osm-candidate 2026-08-05] [-125.09409, 49.66409]; [-125.09621, 49.64361] (OSM Overpass ∩ MU-clipped FWA river; VERIFY). [structural-split 2026-08-05 from \"downstream of the BC Hydro diversion dam (approximately 3.5 \"] boundary=downstream of the BC Hydro diversion dam (approximately 3.5 km downstream of Comox Lake) [human-review 2026-08-05 OSM] diversion dam [-125.094039, 49.664078].",
+              "coord": [
+                -125.094039,
+                49.664078
+              ],
               "locator_text": "downstream of the BC Hydro diversion dam (approximately 3.5 km downstream of Comox Lake)"
             },
             {
@@ -3348,15 +3353,20 @@
             "restriction_type": "gear_restriction",
             "includes_tributaries": true
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "puntledge-river-bef57e",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "dam_weir_fence",
-              "notes": "[auto-proposal M] BC Hydro diversion dam (~3.5 km below Comox Lake) on Puntledge River (diversion dam). Candidate coord [-125.09333, 49.66258]. OSM: https://www.openstreetmap.org/?mlat=49.66258&mlon=-125.09333#map=15/49.66258/-125.09333. Verify: Confirm the diversion dam ~3.5 km downstream of Comox Lake; candidate computed by walking 3.5 km down the Puntledge blue line from the Comox Lake outlet.. Closure upstream of the BC Hydro diversion dam, described as ~3.5 km downstream of Comox Lake. Candidate = point 3,500 m down the Puntledge River blue line from the FWA Comox Lake outlet [-125.096,49.644]. Reasonable but confirm the exact dam on a map. [osm-candidate 2026-08-05] [-125.09409, 49.66409]; [-125.09621, 49.64361] (OSM Overpass ∩ MU-clipped FWA river; VERIFY)."
+              "label": "BC Hydro diversion dam",
+              "notes": "[auto-proposal M] BC Hydro diversion dam (~3.5 km below Comox Lake) on Puntledge River (diversion dam). Candidate coord [-125.09333, 49.66258]. OSM: https://www.openstreetmap.org/?mlat=49.66258&mlon=-125.09333#map=15/49.66258/-125.09333. Verify: Confirm the diversion dam ~3.5 km downstream of Comox Lake; candidate computed by walking 3.5 km down the Puntledge blue line from the Comox Lake outlet.. Closure upstream of the BC Hydro diversion dam, described as ~3.5 km downstream of Comox Lake. Candidate = point 3,500 m down the Puntledge River blue line from the FWA Comox Lake outlet [-125.096,49.644]. Reasonable but confirm the exact dam on a map. [human-review 2026-08-05 OSM] diversion dam [-125.094039, 49.664078].",
+              "coord": [
+                -125.094039,
+                49.664078
+              ]
             }
           ]
         },
@@ -10000,11 +10010,19 @@
           "rows": [
             {
               "id": "nahatlatch-river-285a59-a",
-              "status": "todo",
-              "anchor_kind": "lake",
+              "status": "curated",
+              "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "lake_reach",
-              "notes": "[auto-proposal L] logging bridge ~400 m below Frances Lake outlet on Nahatlatch River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate Frances Lake on the Nahatlatch, then the logging bridge ~400 m downstream with fishing boundary signs; map.. Reach = 'Frances Lake downstream ~400 m to signs at the logging bridge'. Needs the Frances Lake outlet located first (upstream chain of lakes on the Nahatlatch); the bridge is just below it. Map/OSM-confirmable. [structural-split 2026-08-05 from “from Frances Lake downstream approximately 400 m to fishing boundary signs at the logging bridge”] boundary=Frances Lake downstream approximately 400 m",
+              "label": "400 m below Frances Lake",
+              "notes": "[auto-proposal L] logging bridge ~400 m below Frances Lake outlet on Nahatlatch River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate Frances Lake on the Nahatlatch, then the logging bridge ~400 m downstream with fishing boundary signs; map.. Reach = 'Frances Lake downstream ~400 m to signs at the logging bridge'. Needs the Frances Lake outlet located first (upstream chain of lakes on the Nahatlatch); the bridge is just below it. Map/OSM-confirmable. [structural-split 2026-08-05 from “from Frances Lake downstream approximately 400 m to fishing boundary signs at the logging bridge”] boundary=Frances Lake downstream approximately 400 m [human-review 2026-08-05] anchor=Frances Lake (wbk 329154768); offset_m=400 offset_dir=downstream (sectionizer auto-calcs).",
+              "coord": [
+                -121.64288,
+                50.00703
+              ],
+              "target": {
+                "wbk": 329154768
+              },
               "locator_text": "Frances Lake downstream approximately 400 m"
             },
             {
@@ -22217,7 +22235,7 @@
               "anchor_kind": "lake",
               "src": "rule",
               "resolver_hint": "lake_reach",
-              "notes": "[auto-proposal L] bridge near Francois Lake outlet (signs 250 m & 4 km below) on Stellako River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the bridge near the Francois Lake outlet on the Stellako, then signs 250 m & 4 km downstream; map.. Reg = 'signs ~250 m and 4 km downstream of the bridge near the Francois Lake outlet'. Road bridge at the Francois Lake outlet (Stellako flows Francois -> Fraser Lake); not in FWA/FSR. Map/OSM-confirmable. [structural-split 2026-08-05 from “between fishing boundary signs approximately 250 m and 4 km downstream of the bridge near the François Lake outlet”] boundary=4 km downstream of the bridge near the François Lake outlet",
+              "notes": "[auto-proposal L] bridge near Francois Lake outlet (signs 250 m & 4 km below) on Stellako River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the bridge near the Francois Lake outlet on the Stellako, then signs 250 m & 4 km downstream; map.. Reg = 'signs ~250 m and 4 km downstream of the bridge near the Francois Lake outlet'. Road bridge at the Francois Lake outlet (Stellako flows Francois -> Fraser Lake); not in FWA/FSR. Map/OSM-confirmable. [structural-split 2026-08-05 from “between fishing boundary signs approximately 250 m and 4 km downstream of the bridge near the François Lake outlet”] boundary=4 km downstream of the bridge near the François Lake outlet [for-agent] anchor=bridge near Francois Lake outlet on Stellako River + offset_m=4000 downstream; OSM bridge lookup pending.",
               "locator_text": "4 km downstream of the bridge near the François Lake outlet"
             }
           ]
@@ -23701,7 +23719,7 @@
               "anchor_kind": "lake",
               "src": "rule",
               "resolver_hint": "lake_reach",
-              "notes": "[auto-proposal L] bridge near Francois Lake outlet (signs 250 m & 4 km below) on Stellako River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the bridge near the Francois Lake outlet on the Stellako, then signs 250 m & 4 km downstream; map.. Reg = 'signs ~250 m and 4 km downstream of the bridge near the Francois Lake outlet'. Road bridge at the Francois Lake outlet (Stellako flows Francois -> Fraser Lake); not in FWA/FSR. Map/OSM-confirmable. [structural-split 2026-08-05 from “between fishing boundary signs approximately 250 m and 4 km downstream of the bridge near the François Lake outlet”] boundary=4 km downstream of the bridge near the François Lake outlet",
+              "notes": "[auto-proposal L] bridge near Francois Lake outlet (signs 250 m & 4 km below) on Stellako River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the bridge near the Francois Lake outlet on the Stellako, then signs 250 m & 4 km downstream; map.. Reg = 'signs ~250 m and 4 km downstream of the bridge near the Francois Lake outlet'. Road bridge at the Francois Lake outlet (Stellako flows Francois -> Fraser Lake); not in FWA/FSR. Map/OSM-confirmable. [structural-split 2026-08-05 from “between fishing boundary signs approximately 250 m and 4 km downstream of the bridge near the François Lake outlet”] boundary=4 km downstream of the bridge near the François Lake outlet [for-agent] anchor=bridge near Francois Lake outlet on Stellako River + offset_m=4000 downstream; OSM bridge lookup pending.",
               "mus": [
                 "6-4",
                 "7-12"
@@ -24784,7 +24802,7 @@
       "image": "page_072_row_013.png",
       "symbols": [],
       "reg_text": "**No Fishing** within 100 m downstream of outlet weir at Swan Lake\nWalleye catch and release",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 1,
       "locators": [
         {
@@ -24793,14 +24811,23 @@
           "info": {
             "restriction_type": "closure"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "tupper-river-abad48",
-              "status": "todo",
-              "anchor_kind": "buffer",
+              "status": "curated",
+              "anchor_kind": "point",
               "src": "rule",
-              "resolver_hint": "radius"
+              "resolver_hint": "radius",
+              "label": "100 m below Swan Lake outlet weir",
+              "notes": " [human-review 2026-08-05] SINGLE split (lake edge auto-splits upstream end); anchor=Swan Lake (wbk 329328382); offset_m=100 offset_dir=downstream. Prior coord was Tupper CREEK; now Tupper RIVER.",
+              "coord": [
+                -120.0339,
+                55.52592
+              ],
+              "target": {
+                "wbk": 329328382
+              }
             }
           ]
         },

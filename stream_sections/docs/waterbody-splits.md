@@ -7,8 +7,8 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 |---|--:|
 | NO_CURATION | 1 |
 | MISSING_SPLITS | 2 |
-| INCOMPLETE | 192 |
-| COMPLETE | 117 |
+| INCOMPLETE | 191 |
+| COMPLETE | 118 |
 | NO_SPLIT | 75 |
 
 **Drift** (curated rows matching no source locator): 3
@@ -201,10 +201,10 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 - • [rule] “between the cascade falls (located approximately 6.5 km upstream o” → gold-river-74b889-a[curated], gold-river-74b889-b[curated]
 
 ## PUNTLEDGE RIVER · MU ['1-6'] · p20 · [INCOMPLETE] (3952f2fb)
-- • [rule] “downstream of the BC Hydro diversion dam (approximately 3.5 km dow” → puntledge-river-f50f20-a[todo], puntledge-river-f50f20-b[todo]
+- • [rule] “downstream of the BC Hydro diversion dam (approximately 3.5 km dow” → puntledge-river-f50f20-a[curated], puntledge-river-f50f20-b[todo]
 - • [rule] “between fishing boundary signs approximately 100 m upstream and do” → puntledge-river-3d202d-a[curated], puntledge-river-3d202d-b[curated]
 - • [rule] “from fishing boundary signs located 50 m upstream of the BC Hydro ” → puntledge-river-6e9625-a[todo], puntledge-river-6e9625-b[todo]
-- • [rule] “upstream of the BC Hydro diversion dam (approximately 3.5 km downs” → puntledge-river-bef57e[todo]
+- • [rule] “upstream of the BC Hydro diversion dam (approximately 3.5 km downs” → puntledge-river-bef57e[curated]
 
 ## STAMP RIVER · MU ['1-7'] · p20 · [INCOMPLETE] (703b9db3)
 - • [rule] “between fishing boundary signs 200 m upstream of and 500 m downstr” → stamp-river-55ba1e-a[todo], stamp-river-55ba1e-b[todo]
@@ -231,7 +231,7 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 - • [rule] “upstream of dyke gates” → serpentine-river-411c35[todo]
 
 ## NAHATLATCH RIVER · MU ['3-15'] · p33 · [INCOMPLETE] (921224bf)
-- • [rule] “from Frances Lake downstream approximately 400 m to fishing bounda” → nahatlatch-river-285a59-a[todo], nahatlatch-river-285a59-b[todo]
+- • [rule] “from Frances Lake downstream approximately 400 m to fishing bounda” → nahatlatch-river-285a59-a[curated], nahatlatch-river-285a59-b[todo]
 - • [rule] “Downstream of Nahatlatch Lake (including Hannah and Frances lakes;” → nahatlatch-river-1d1eaf[not_applicable], nahatlatch-river-0bb710[not_applicable], nahatlatch-river-a0ebb8[not_applicable]
 - • [except] “except as noted upstream of” → nahatlatch-river-1d1eaf[not_applicable], nahatlatch-river-a0ebb8[not_applicable]
 - • [rule] “downstream of Nahatlatch Lake” → nahatlatch-river-1d1eaf[not_applicable], nahatlatch-river-0bb710[not_applicable]
@@ -802,9 +802,6 @@ approximately 35 m downstream” → little-qualicum-river-4dbb9b-a[todo], littl
 
 ## RAINBOW LAKES · MU ['7-52'] · p72 · [INCOMPLETE] (82b147e1)
 - • [rule] “within 100 m of fishing boundary sign at outlet” → rainbow-lakes-226e29[todo]
-
-## TUPPER RIVER · MU ['7-20'] · p72 · [INCOMPLETE] (9b995db1)
-- • [rule] “within 100 m downstream of outlet weir at Swan Lake” → tupper-river-abad48[todo]
 
 ## WILLISTON LAKE (in Zone B) · MU ['7-31', '7-36'] · p72 · [INCOMPLETE] (78e4ec05)
 - • [entry] “in Zone B” → williston-lake-in-zone-b-c4ac9b[todo]
