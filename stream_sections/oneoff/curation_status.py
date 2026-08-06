@@ -60,11 +60,14 @@ _QUEUE_RANK = {"likely_na": -1, "todo": 0, "deferred": 1}
 
 
 def _load() -> dict:
-    return json.loads(_DOC.read_text())
+    # source of truth is the grouped file once 14 is archived; load_curation handles both.
+    from stream_sections.oneoff.waterbody_splits import load_curation
+    return {"locators": load_curation()}
 
 
 def _save(doc: dict) -> None:
-    _DOC.write_text(json.dumps(doc, indent=2, ensure_ascii=False) + "\n")
+    from stream_sections.oneoff.waterbody_splits import save_curation
+    save_curation(doc["locators"])
 
 
 def _find(doc: dict, locator_id: str) -> dict:

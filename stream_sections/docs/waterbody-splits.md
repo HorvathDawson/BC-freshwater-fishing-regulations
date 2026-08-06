@@ -33,10 +33,10 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 ## FRASER RIVER · MU ['3-14'] · p32 · [INCOMPLETE] (d32909fa)
 - • [rule] “upstream of Thompson River” → fraser-river-65211d[curated]
 - • [except] “except as noted below” → fraser-river-7c032d[not_applicable]
-- • [rule] “downstream of Hell's Gate” → fraser-river-8409b9-b[todo], fraser-river-498f12[todo]
+- • [rule] “downstream of Hell's Gate” → fraser-river-498f12[todo], fraser-river-8409b9-b[todo]
 - • [rule] “from Hell's Gate to the confluence with the Thompson River” → fraser-river-158a53[curated]
 - • [rule] “upstream of the confluence with the Thompson River” → fraser-river-8e7fe6[curated]
-- • [rule] “between fishing boundary signs approximately 6.5 km downstream of ” → fraser-river-8409b9-a[todo], fraser-river-8409b9-b[todo], fraser-river-498f12[todo]
+- • [rule] “between fishing boundary signs approximately 6.5 km downstream of ” → fraser-river-498f12[todo], fraser-river-8409b9-a[todo], fraser-river-8409b9-b[todo]
 - • [rule] “from the lower entrance of the fish ladder at Bridge River Rapids ” → fraser-river-7f0b9b-a[todo], fraser-river-7f0b9b-b[todo]
 - • [rule] “From Hwy 99 bridge at Lillooet downstream approximately 1.2 km to ” → fraser-river-b67b87-a[todo], fraser-river-b67b87-b[todo]
 - • [rule] “From the confluence with Thompson River to the CNR Bridge approxim” → fraser-river-74a44b-a[curated], fraser-river-74a44b-b[todo]
@@ -48,10 +48,10 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 ## COLUMBIA RIVER · MU ['4-8', '4-15', '4-26', '4-34', '4-38'] · p37 · [INCOMPLETE] (1f199dad)
 - • [rule] “from Revelstoke Dam downstream to Hwy 1 bridge in Revelstoke” → columbia-river-67df30-a[todo], columbia-river-67df30-b[todo]
 - • [rule] “from a line between the old Robson Ferry landing and a sign on the” → columbia-river-e8b414[todo], columbia-river-f33298-a[todo], columbia-river-f33298-b[todo]
-- • [rule] “from Keenleyside Dam to a line between the old Robson Ferry landin” → columbia-river-f4c5a3-a[todo], columbia-river-3914af-a[todo], columbia-river-f33298-a[todo], columbia-river-f33298-b[todo]
-- • [rule] “from Keenleyside Dam to the Washington state border” → columbia-river-f4c5a3-a[todo], columbia-river-f4c5a3-b[todo], columbia-river-3914af-a[todo]
-- • [rule] “From Keenleyside Dam downstream to the Washington state border and” → columbia-river-f4c5a3-a[todo], columbia-river-f4c5a3-b[todo], columbia-river-3914af-a[todo], columbia-river-3914af-b[curated]
-- • [rule] “From Keenleyside Dam downstream to the Washington state border and” → columbia-river-f4c5a3-a[todo], columbia-river-f4c5a3-b[todo], columbia-river-3914af-a[todo], columbia-river-3914af-b[curated]
+- • [rule] “from Keenleyside Dam to a line between the old Robson Ferry landin” → columbia-river-3914af-a[todo], columbia-river-f33298-a[todo], columbia-river-f33298-b[todo], columbia-river-f4c5a3-a[todo]
+- • [rule] “from Keenleyside Dam to the Washington state border” → columbia-river-3914af-a[todo], columbia-river-f4c5a3-a[todo], columbia-river-f4c5a3-b[todo]
+- • [rule] “From Keenleyside Dam downstream to the Washington state border and” → columbia-river-3914af-a[todo], columbia-river-3914af-b[curated], columbia-river-f4c5a3-a[todo], columbia-river-f4c5a3-b[todo]
+- • [rule] “From Keenleyside Dam downstream to the Washington state border and” → columbia-river-3914af-a[todo], columbia-river-3914af-b[curated], columbia-river-f4c5a3-a[todo], columbia-river-f4c5a3-b[todo]
 - • [rule] “from Mud Lake to Columbia Lake” → columbia-river-73fe32[not_applicable]
 - • [rule] “in wetlands” → columbia-river-b4045c[todo]
 - • [rule] “in main channel from Fairmont to Donald” → columbia-river-275f56[todo]
@@ -71,10 +71,10 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 - • [rule] “upstream from a line between two fishing boundary signs on either ” → chilliwack-vedder-rivers-does-not-include-sum-94aff2[todo]
 - • [rule] “downstream of a line between two fishing boundary signs on either ” → chilliwack-vedder-rivers-does-not-include-sum-805915[todo]
 - • [rule] “downstream of Tamihi Rapids Bridge to Vedder Crossing Bridge” → chilliwack-vedder-rivers-does-not-include-sum-f59392-a[todo], chilliwack-vedder-rivers-does-not-include-sum-f59392-b[todo]
-- • [rule] “Downstream of Vedder Crossing Bridge” → chilliwack-vedder-rivers-does-not-include-sum-f59392-b[todo], chilliwack-vedder-rivers-does-not-include-sum-96c294[todo]
-- • [rule] “Downstream of Vedder Crossing Bridge” → chilliwack-vedder-rivers-does-not-include-sum-f59392-b[todo], chilliwack-vedder-rivers-does-not-include-sum-96c294[todo]
-- • [rule] “Downstream of Vedder Crossing Bridge” → chilliwack-vedder-rivers-does-not-include-sum-f59392-b[todo], chilliwack-vedder-rivers-does-not-include-sum-96c294[todo]
-- • [rule] “Downstream of Vedder Crossing Bridge” → chilliwack-vedder-rivers-does-not-include-sum-f59392-b[todo], chilliwack-vedder-rivers-does-not-include-sum-96c294[todo]
+- • [rule] “Downstream of Vedder Crossing Bridge” → chilliwack-vedder-rivers-does-not-include-sum-96c294[todo], chilliwack-vedder-rivers-does-not-include-sum-f59392-b[todo]
+- • [rule] “Downstream of Vedder Crossing Bridge” → chilliwack-vedder-rivers-does-not-include-sum-96c294[todo], chilliwack-vedder-rivers-does-not-include-sum-f59392-b[todo]
+- • [rule] “Downstream of Vedder Crossing Bridge” → chilliwack-vedder-rivers-does-not-include-sum-96c294[todo], chilliwack-vedder-rivers-does-not-include-sum-f59392-b[todo]
+- • [rule] “Downstream of Vedder Crossing Bridge” → chilliwack-vedder-rivers-does-not-include-sum-96c294[todo], chilliwack-vedder-rivers-does-not-include-sum-f59392-b[todo]
 - • [entry] “does not include Sumas River” → chilliwack-vedder-rivers-does-not-include-sum-7f8826[not_applicable]
 
 ## MAHOOD LAKE (see map on page 28 for area closure) · MU ['3-46'] · p33 · [INCOMPLETE] (9f01ccad)
@@ -93,9 +93,9 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 - • [rule] “from the CNR Bridge downstream of Deadman River to CNR Bridge upst” → thompson-river-downstream-of-signs-at-kamloop-1db152-a[todo], thompson-river-downstream-of-signs-at-kamloop-1db152-b[todo]
 - • [rule] “from the CNR Bridge downstream of Deadman River to CNR Bridge upst” → thompson-river-downstream-of-signs-at-kamloop-1db152-a[todo], thompson-river-downstream-of-signs-at-kamloop-1db152-b[todo]
 - • [rule] “Upstream of boundary signs 1 km downstream of Martel” → thompson-river-downstream-of-signs-at-kamloop-1c9ce3[todo]
-- • [rule] “Downstream of signs at Kamloops Lake” → thompson-river-downstream-of-signs-at-kamloop-bc221e-a[not_applicable], thompson-river-downstream-of-signs-at-kamloop-bc221e-b[curated], thompson-river-downstream-of-signs-at-kamloop-38fc02[todo]
-- • [rule] “Downstream of signs at Kamloops Lake” → thompson-river-downstream-of-signs-at-kamloop-bc221e-a[not_applicable], thompson-river-downstream-of-signs-at-kamloop-bc221e-b[curated], thompson-river-downstream-of-signs-at-kamloop-38fc02[todo]
-- • [entry] “downstream of signs at Kamloops Lake outlet to the confluence with” → thompson-river-downstream-of-signs-at-kamloop-bc221e-a[not_applicable], thompson-river-downstream-of-signs-at-kamloop-bc221e-b[curated], thompson-river-downstream-of-signs-at-kamloop-38fc02[todo]
+- • [rule] “Downstream of signs at Kamloops Lake” → thompson-river-downstream-of-signs-at-kamloop-38fc02[todo], thompson-river-downstream-of-signs-at-kamloop-bc221e-a[not_applicable], thompson-river-downstream-of-signs-at-kamloop-bc221e-b[curated]
+- • [rule] “Downstream of signs at Kamloops Lake” → thompson-river-downstream-of-signs-at-kamloop-38fc02[todo], thompson-river-downstream-of-signs-at-kamloop-bc221e-a[not_applicable], thompson-river-downstream-of-signs-at-kamloop-bc221e-b[curated]
+- • [entry] “downstream of signs at Kamloops Lake outlet to the confluence with” → thompson-river-downstream-of-signs-at-kamloop-38fc02[todo], thompson-river-downstream-of-signs-at-kamloop-bc221e-a[not_applicable], thompson-river-downstream-of-signs-at-kamloop-bc221e-b[curated]
 
 ## KOOTENAY RIVER (downstream of Idaho border) · MU ['4-7', '4-8'] · p39 · [INCOMPLETE] (32b0f4bc)
 - • [water] “downstream of Idaho border” → kootenay-river-downstream-of-idaho-border-6189d1[curated]
@@ -119,11 +119,11 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 ## KOOTENAY RIVER (upstream of Koocanusa Reservoir) · MU ['4-2', '4-21', '4-22', '4-24', '4-25', '4-35'] · p39 · [INCOMPLETE] (a808131e)
 - • [water] “upstream of Koocanusa Reservoir” → kootenay-river-upstream-of-koocanusa-reservoi-3bb758[curated]
 - • [rule] “upstream of the Montana border” → kootenay-river-upstream-of-koocanusa-reservoi-f89737[todo]
-- • [rule] “Upstream of Koocanusa Reservoir to White River” → kootenay-river-upstream-of-koocanusa-reservoi-6f3c82[curated], kootenay-river-upstream-of-koocanusa-reservoi-3bb758[curated]
-- • [rule] “Upstream of Koocanusa Reservoir to White River” → kootenay-river-upstream-of-koocanusa-reservoi-6f3c82[curated], kootenay-river-upstream-of-koocanusa-reservoi-3bb758[curated]
+- • [rule] “Upstream of Koocanusa Reservoir to White River” → kootenay-river-upstream-of-koocanusa-reservoi-3bb758[curated], kootenay-river-upstream-of-koocanusa-reservoi-6f3c82[curated]
+- • [rule] “Upstream of Koocanusa Reservoir to White River” → kootenay-river-upstream-of-koocanusa-reservoi-3bb758[curated], kootenay-river-upstream-of-koocanusa-reservoi-6f3c82[curated]
 - • [rule] “Upstream of White River” → kootenay-river-upstream-of-koocanusa-reservoi-82bacc[curated]
 - • [rule] “Upstream of White River” → kootenay-river-upstream-of-koocanusa-reservoi-82bacc[curated]
-- • [entry] “upstream of Koocanusa Reservoir” → kootenay-river-upstream-of-koocanusa-reservoi-6f3c82[curated], kootenay-river-upstream-of-koocanusa-reservoi-3bb758[curated]
+- • [entry] “upstream of Koocanusa Reservoir” → kootenay-river-upstream-of-koocanusa-reservoi-3bb758[curated], kootenay-river-upstream-of-koocanusa-reservoi-6f3c82[curated]
 
 ## ATNARKO/BELLA COOLA RIVERS [Includes Tributaries] EXCEPT: Burnt Bridge Creek upstream of Sitkatapa Creek, Hunlen Creek upstream of Hunlen Falls, and Young Creek upstream of Hwy 20 (see separate entries for these three waters) · MU ['5-6', '5-8', '5-11'] · p49 · [INCOMPLETE] (72172723)
 - • [rule] “upstream of Tweedsmuir Provincial Park plus Tenas Lake” → atnarko-bella-coola-rivers-includes-tributari-8142a5[todo]
@@ -154,10 +154,10 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 ## MITCHELL RIVER · MU ['5-15'] · p52 · [INCOMPLETE] (519e7133)
 - • [rule] “within 100 m radius of the weir at the outlet of Michell Lake” → mitchell-river-feda29[todo]
 - • [rule] “from Michell Lake to Cameron Creek” → mitchell-river-5bc0ff[curated]
-- • [rule] “downstream of Cameron Creek” → mitchell-river-a7b6fe[curated], mitchell-river-62dd66[curated]
-- • [rule] “downstream of Cameron Creek (including Cameron Creek)” → mitchell-river-a7b6fe[curated], mitchell-river-62dd66[curated]
-- • [rule] “downstream of Cameron Creek (including Cameron Creek)” → mitchell-river-a7b6fe[curated], mitchell-river-62dd66[curated]
-- • [rule] “downstream of Cameron Creek (including Cameron Creek)” → mitchell-river-a7b6fe[curated], mitchell-river-62dd66[curated]
+- • [rule] “downstream of Cameron Creek” → mitchell-river-62dd66[curated], mitchell-river-a7b6fe[curated]
+- • [rule] “downstream of Cameron Creek (including Cameron Creek)” → mitchell-river-62dd66[curated], mitchell-river-a7b6fe[curated]
+- • [rule] “downstream of Cameron Creek (including Cameron Creek)” → mitchell-river-62dd66[curated], mitchell-river-a7b6fe[curated]
+- • [rule] “downstream of Cameron Creek (including Cameron Creek)” → mitchell-river-62dd66[curated], mitchell-river-a7b6fe[curated]
 
 ## NANAIMO RIVER · MU ['1-5'] · p19 · [INCOMPLETE] (046b8cc3)
 - • [rule] “from power line crossing at "Bore Hole" upstream to fishing bounda” → nanaimo-river-633e28-a[todo], nanaimo-river-633e28-b[todo]
@@ -178,7 +178,7 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 - • [rule] “Downstream of old Clearwater Bridge” → clearwater-river-9cb106[todo]
 - • [rule] “from Falls Creek to Mahood River” → clearwater-river-4ba0c8-a[todo], clearwater-river-4ba0c8-b[curated]
 - • [rule] “from Mahood River to North Thompson River” → clearwater-river-4ba0c8-b[curated], clearwater-river-dddc3f-a[curated], clearwater-river-dddc3f-b[curated]
-- • [rule] “downstream of Falls Creek” → clearwater-river-4ba0c8-a[todo], clearwater-river-1335bb[todo]
+- • [rule] “downstream of Falls Creek” → clearwater-river-1335bb[todo], clearwater-river-4ba0c8-a[todo]
 
 ## SKEENA RIVER (mainstem only) · MU ['6-10'] · p59 · [INCOMPLETE] (2fc0d1b9)
 - • [rule] “from Exchamsiks River to 1.5 km upstream of Kitsumkalum River (kno” → skeena-river-mainstem-only-b079a0-a[curated], skeena-river-mainstem-only-b079a0-b[curated]
@@ -188,11 +188,11 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 - • [rule] “Chimdemash Creek confluence to 1.5 km upstream of Zymoetz River co” → skeena-river-mainstem-only-bd494f-a[curated], skeena-river-mainstem-only-bd494f-b[curated]
 
 ## SHUSWAP RIVER · MU ['8-26'] · p77 · [INCOMPLETE] (dd32b777)
-- • [rule] “from Mara Lake upstream to Mara Bridge” → shuswap-river-dab160-a[not_applicable], shuswap-river-dab160-b[todo], shuswap-river-b96b5f-a[todo]
+- • [rule] “from Mara Lake upstream to Mara Bridge” → shuswap-river-b96b5f-a[todo], shuswap-river-dab160-a[not_applicable], shuswap-river-dab160-b[todo]
 - • [rule] “50 m upstream and 50 m downstream of Trinity Bridge” → shuswap-river-a1af1b[todo]
-- • [rule] “from Mara Bridge upstream to Sugar Lake” → shuswap-river-dab160-b[todo], shuswap-river-b96b5f-a[todo], shuswap-river-b96b5f-b[not_applicable]
-- • [rule] “Upstream of Sugar Lake” → shuswap-river-b96b5f-b[not_applicable], shuswap-river-521556[not_applicable]
-- • [rule] “Upstream of Sugar Lake” → shuswap-river-b96b5f-b[not_applicable], shuswap-river-521556[not_applicable]
+- • [rule] “from Mara Bridge upstream to Sugar Lake” → shuswap-river-b96b5f-a[todo], shuswap-river-b96b5f-b[not_applicable], shuswap-river-dab160-b[todo]
+- • [rule] “Upstream of Sugar Lake” → shuswap-river-521556[not_applicable], shuswap-river-b96b5f-b[not_applicable]
+- • [rule] “Upstream of Sugar Lake” → shuswap-river-521556[not_applicable], shuswap-river-b96b5f-b[not_applicable]
 
 ## GOLD RIVER · MU ['1-9'] · p18 · [INCOMPLETE] (60f3c8c1)
 - • [rule] “upstream of the Muchalat River” → gold-river-c18915[curated]
@@ -232,9 +232,9 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 
 ## NAHATLATCH RIVER · MU ['3-15'] · p33 · [INCOMPLETE] (921224bf)
 - • [rule] “from Frances Lake downstream approximately 400 m to fishing bounda” → nahatlatch-river-285a59-a[curated], nahatlatch-river-285a59-b[todo]
-- • [rule] “Downstream of Nahatlatch Lake (including Hannah and Frances lakes;” → nahatlatch-river-1d1eaf[not_applicable], nahatlatch-river-0bb710[not_applicable], nahatlatch-river-a0ebb8[not_applicable]
+- • [rule] “Downstream of Nahatlatch Lake (including Hannah and Frances lakes;” → nahatlatch-river-0bb710[not_applicable], nahatlatch-river-1d1eaf[not_applicable], nahatlatch-river-a0ebb8[not_applicable]
 - • [except] “except as noted upstream of” → nahatlatch-river-1d1eaf[not_applicable], nahatlatch-river-a0ebb8[not_applicable]
-- • [rule] “downstream of Nahatlatch Lake” → nahatlatch-river-1d1eaf[not_applicable], nahatlatch-river-0bb710[not_applicable]
+- • [rule] “downstream of Nahatlatch Lake” → nahatlatch-river-0bb710[not_applicable], nahatlatch-river-1d1eaf[not_applicable]
 
 ## SETON RIVER (includes BC Hydro Power Canal upstream of the dam up to signs located on Seton Lake) · MU ['3-16'] · p34 · [INCOMPLETE] (5a3609ce)
 - • [water] “includes BC Hydro Power Canal upstream of the dam up to signs loca” → seton-river-includes-bc-hydro-power-canal-ups-95a44d-a[todo], seton-river-includes-bc-hydro-power-canal-ups-95a44d-b[todo]
@@ -255,9 +255,9 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 - • [entry] “upstream of Elko Dam” → elk-river-upstream-of-elko-dam-8bedc5[curated]
 
 ## JORDAN RIVER · MU ['4-39'] · p39 · [INCOMPLETE] (13b0444c)
-- • [rule] “upstream of Kirkup Creek” → jordan-river-bc6d34[curated], jordan-river-390f59[curated]
-- • [rule] “Upstream of Kirkup Creek” → jordan-river-bc6d34[curated], jordan-river-390f59[curated]
-- • [rule] “Upstream of Kirkup Creek” → jordan-river-bc6d34[curated], jordan-river-390f59[curated]
+- • [rule] “upstream of Kirkup Creek” → jordan-river-390f59[curated], jordan-river-bc6d34[curated]
+- • [rule] “Upstream of Kirkup Creek” → jordan-river-390f59[curated], jordan-river-bc6d34[curated]
+- • [rule] “Upstream of Kirkup Creek” → jordan-river-390f59[curated], jordan-river-bc6d34[curated]
 - • [rule] “from Kirkup Creek downstream, including Kirkup Creek” → jordan-river-76a505[todo]
 
 ## WHITE RIVER (see also east White & North White Rivers) · MU ['4-24'] · p42 · [INCOMPLETE] (119ed5c6)
@@ -269,8 +269,8 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 ## BABINE RIVER · MU ['6-8'] · p56 · [INCOMPLETE] (4dd3daf7)
 - • [rule] “from the juvenile fish counting weir located at the outlet of Nilk” → babine-river-8f73d2-a[todo], babine-river-8f73d2-b[curated], babine-river-912f94-a[todo]
 - • [rule] “between fishing boundary signs approximately 100 m upstream of and” → babine-river-fec60e-a[todo], babine-river-fec60e-b[todo]
-- • [rule] “from the adult fish counting fence (described above) downstream to” → babine-river-fdcd21-a[todo], babine-river-fdcd21-b[curated], babine-river-912f94-b[todo]
-- • [rule] “from the juvenile fish counting weir located at the outlet of Nilk” → babine-river-8f73d2-a[todo], babine-river-fdcd21-b[curated], babine-river-912f94-a[todo], babine-river-912f94-b[todo]
+- • [rule] “from the adult fish counting fence (described above) downstream to” → babine-river-912f94-b[todo], babine-river-fdcd21-a[todo], babine-river-fdcd21-b[curated]
+- • [rule] “from the juvenile fish counting weir located at the outlet of Nilk” → babine-river-8f73d2-a[todo], babine-river-912f94-a[todo], babine-river-912f94-b[todo], babine-river-fdcd21-b[curated]
 
 ## PEACE RIVER (From Hwy. 29 bridge to the Site C dam) · MU ['7-31'] · p72 · [INCOMPLETE] (03e3acbe)
 - • [water] “From Hwy. 29 bridge to the Site C dam” → peace-river-from-hwy-29-bridge-to-the-site-c--c17e9f-a[todo], peace-river-from-hwy-29-bridge-to-the-site-c--c17e9f-b[todo]
@@ -284,15 +284,15 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 - • [rule] “downstream of Saunders Creek to the top of the lower canyon, locat” → heber-river-ddafd5[todo]
 
 ## KOKISH RIVER · MU ['1-11'] · p18 · [INCOMPLETE] (20715cbc)
-- • [rule] “from boundary signs in Kokish canyon to Ida Lake” → kokish-river-10fdef-a[todo], kokish-river-10fdef-b[not_applicable], kokish-river-02cef0-b[todo]
-- • [rule] “from the log boom located approximately 100 m upstream of the IPP ” → kokish-river-a6e1d0-a[todo], kokish-river-a6e1d0-b[todo], kokish-river-02cef0-b[todo]
+- • [rule] “from boundary signs in Kokish canyon to Ida Lake” → kokish-river-02cef0-b[todo], kokish-river-10fdef-a[todo], kokish-river-10fdef-b[not_applicable]
+- • [rule] “from the log boom located approximately 100 m upstream of the IPP ” → kokish-river-02cef0-b[todo], kokish-river-a6e1d0-a[todo], kokish-river-a6e1d0-b[todo]
 - • [rule] “between signs at the IPP tail race confluence downstream approxima” → kokish-river-02cef0-a[todo], kokish-river-02cef0-b[todo]
 
 ## LITTLE QUALICUM RIVER · MU ['1-6'] · p19 · [INCOMPLETE] (9e77f8d9)
 - • [rule] “All tributaries” → little-qualicum-river-496f12[not_applicable]
-- • [rule] “from the falls in Little Qualicum Falls Provincial Park downstream” → little-qualicum-river-4dbb9b-a[todo], little-qualicum-river-031042-a[todo], little-qualicum-river-031042-b[todo]
+- • [rule] “from the falls in Little Qualicum Falls Provincial Park downstream” → little-qualicum-river-031042-a[todo], little-qualicum-river-031042-b[todo], little-qualicum-river-4dbb9b-a[todo]
 - • [rule] “from the hatchery fence to signs
-approximately 35 m downstream” → little-qualicum-river-4dbb9b-a[todo], little-qualicum-river-4dbb9b-b[todo], little-qualicum-river-031042-b[todo]
+approximately 35 m downstream” → little-qualicum-river-031042-b[todo], little-qualicum-river-4dbb9b-a[todo], little-qualicum-river-4dbb9b-b[todo]
 
 ## NITINAT RIVER · MU ['1-4'] · p19 · [INCOMPLETE] (6e49648b)
 - • [rule] “upstream of Parker Creek” → nitinat-river-91a90a[curated]
@@ -332,7 +332,7 @@ approximately 35 m downstream” → little-qualicum-river-4dbb9b-a[todo], littl
 ## LUSSIER RIVER · MU ['4-21'] · p40 · [INCOMPLETE] (6cee42e9)
 - • [rule] “downstream of Premier Lake Bridge crossing” → lussier-river-6b768f[todo], lussier-river-ccddb4-a[todo]
 - • [rule] “between Premier Lake Bridge crossing and Mutton Creek” → lussier-river-ccddb4-a[todo], lussier-river-ccddb4-b[curated]
-- • [rule] “downstream of Mutton Creek” → lussier-river-ccddb4-b[curated], lussier-river-3bb9f4[curated]
+- • [rule] “downstream of Mutton Creek” → lussier-river-3bb9f4[curated], lussier-river-ccddb4-b[curated]
 
 ## PREMIER LAKE · MU ['4-21'] · p41 · [INCOMPLETE] (1ec727fd)
 - • [rule] “south of fishing boundary signs on the lake shore” → premier-lake-895b0d[deferred]
@@ -346,8 +346,8 @@ approximately 35 m downstream” → little-qualicum-river-4dbb9b-a[todo], littl
 
 ## HORSEFLY RIVER (from Quesnel Lake to Horsefly River Falls) · MU ['5-2'] · p51 · [INCOMPLETE] (9538df76)
 - • [water] “from Quesnel Lake to Horsefly River Falls” → horsefly-river-from-quesnel-lake-to-horsefly--bfe6d5-a[not_applicable], horsefly-river-from-quesnel-lake-to-horsefly--bfe6d5-b[todo]
-- • [rule] “from Woodjam Bridge to Quesnel Lake” → horsefly-river-from-quesnel-lake-to-horsefly--bfe6d5-a[not_applicable], horsefly-river-from-quesnel-lake-to-horsefly--28a7cd-a[todo], horsefly-river-from-quesnel-lake-to-horsefly--28a7cd-b[not_applicable]
-- • [entry] “from Quesnel Lake to Horsefly River Falls” → horsefly-river-from-quesnel-lake-to-horsefly--bfe6d5-a[not_applicable], horsefly-river-from-quesnel-lake-to-horsefly--bfe6d5-b[todo], horsefly-river-from-quesnel-lake-to-horsefly--28a7cd-b[not_applicable]
+- • [rule] “from Woodjam Bridge to Quesnel Lake” → horsefly-river-from-quesnel-lake-to-horsefly--28a7cd-a[todo], horsefly-river-from-quesnel-lake-to-horsefly--28a7cd-b[not_applicable], horsefly-river-from-quesnel-lake-to-horsefly--bfe6d5-a[not_applicable]
+- • [entry] “from Quesnel Lake to Horsefly River Falls” → horsefly-river-from-quesnel-lake-to-horsefly--28a7cd-b[not_applicable], horsefly-river-from-quesnel-lake-to-horsefly--bfe6d5-a[not_applicable], horsefly-river-from-quesnel-lake-to-horsefly--bfe6d5-b[todo]
 
 ## BULKLEY RIVER · MU ['6-9'] · p56 · [INCOMPLETE] (d850b295)
 - • [rule] “upstream of Morice/Bulkley River confluence” → bulkley-river-e30268[curated]
@@ -419,7 +419,7 @@ approximately 35 m downstream” → little-qualicum-river-4dbb9b-a[todo], littl
 - • [rule] “downstream of the main logging road bridge situated approximately ” → chehalis-river-8cfa74[todo]
 
 ## COQUITLAM RIVER · MU ['2-8'] · p25 · [INCOMPLETE] (f538c53d)
-- • [rule] “upstream of Mary Hill Bypass Bridge” → coquitlam-river-ef1688[todo], coquitlam-river-d7c017-b[todo]
+- • [rule] “upstream of Mary Hill Bypass Bridge” → coquitlam-river-d7c017-b[todo], coquitlam-river-ef1688[todo]
 - • [rule] “from Lougheed Highway Bridge to Mary Hill Bypass Bridge” → coquitlam-river-d7c017-a[todo], coquitlam-river-d7c017-b[todo]
 
 ## NATHAN (Beaver) CREEK · MU ['2-4'] · p27 · [INCOMPLETE] (8bba2d84)
@@ -835,6 +835,6 @@ approximately 35 m downstream” → little-qualicum-river-4dbb9b-a[todo], littl
 
 ## ⚠️ DRIFT — curated rows not found in the source (review)
 
+- `lost-lake-near-taweel-lake-e49a1f` [not_applicable] LOST LAKE (near Taweel Lake) — src=entry “near Taweel Lake”
 - `lynn-creek-d5e0fb-a` [curated] LYNN CREEK — src=rule “sign approximately 200 m upstream of Twin Falls Br”
 - `lynn-creek-d5e0fb-b` [curated] LYNN CREEK — src=rule “sign approximately 150 m downstream of Twin Falls ”
-- `lost-lake-near-taweel-lake-e49a1f` [not_applicable] LOST LAKE (near Taweel Lake) — src=entry “near Taweel Lake”

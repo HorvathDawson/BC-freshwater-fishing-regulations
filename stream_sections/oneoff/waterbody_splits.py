@@ -151,11 +151,13 @@ def tidy_locator(l: dict) -> dict:
     return out
 
 
-def build():
+def build(curated=None):
     raw = json.loads(RAW.read_text())
     rows = [r for pg in raw for r in pg["rows"]]
     parsed = json.loads(PARSE.read_text())
-    curated = json.loads(CURATED.read_text())["locators"]
+    if curated is None:
+        curated = load_curation()
+    curated = sorted(curated, key=lambda r: r["id"])  # stable order -> deterministic backfill (idempotent rebuild)
 
     parse_by_reg = defaultdict(list)
     for e in parsed:
@@ -308,6 +310,26 @@ def _eq(a, b):
     return a == b
 
 
+def load_curation():
+    """Curation rows: from the flat file if it still exists, else reconstructed (losslessly) from the
+    grouped file — so the grouped file is self-sufficient once 14-locators-to-curate.json is archived."""
+    if CURATED.exists():
+        return json.loads(CURATED.read_text())["locators"]
+    grouped = json.loads(OUT_JSON.read_text())
+    return flatten_curation(grouped["cards"], grouped.get("drift", []))
+
+
+def save_curation(rows):
+    """Persist edited curation rows. While the flat file exists, write it (legacy behaviour). After
+    it's archived, rebuild the grouped file from the rows — the grouped file is the source of truth."""
+    if CURATED.exists():
+        CURATED.write_text(json.dumps({"locators": rows}, indent=2, ensure_ascii=False) + "\n")
+    else:
+        cards, drift = build(rows)
+        write_outputs(cards, drift)
+        write_regs_md(cards)
+
+
 def _rank(c):
     order = {"NO_CURATION": 0, "MISSING_SPLITS": 1, "INCOMPLETE": 2, "COMPLETE": 3, "NO_SPLIT": 4}
     return (order[c["completeness"]], -c["n_boundaries"])
@@ -440,6 +462,9 @@ def main():
             print(f"{d['id']:46s} [{d['status']:14s}] src={d['src']:6s} “{d['locator_text'][:45]}”")
         return
     if args and args[0] == "verify-flatten":
+        if not CURATED.exists():
+            print("14-locators-to-curate.json is archived; grouped file is now the source (nothing to compare).")
+            return
         flat = flatten_curation(cards, drift)
         orig = json.loads(CURATED.read_text())["locators"]
         fi = {r["id"]: r for r in flat}
@@ -463,6 +488,9 @@ def main():
     if args and args[0] == "stamp":
         # write each curated row's entry_id = the card it belongs to (reliable name+MU join),
         # so row <-> card is a durable bidirectional link. Rows in no card get a self-id.
+        if not CURATED.exists():
+            print("14-locators-to-curate.json is archived; entry_id is derived in the grouped file (no-op).")
+            return
         r2e = {r["id"]: c["entry_id"] for c in cards.values() for l in c["locators"] for r in l["rows"]}
         doc = json.loads(CURATED.read_text())
         linked = 0
