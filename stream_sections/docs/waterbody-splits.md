@@ -48,10 +48,10 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 ## COLUMBIA RIVER · MU ['4-8', '4-15', '4-26', '4-34', '4-38'] · p37 · [INCOMPLETE] (1f199dad)
 - • [rule] “from Revelstoke Dam downstream to Hwy 1 bridge in Revelstoke” → columbia-river-67df30-a[curated], columbia-river-67df30-b[todo]
 - • [rule] “from a line between the old Robson Ferry landing and a sign on the” → columbia-river-e8b414[todo], columbia-river-f33298-a[todo], columbia-river-f33298-b[todo]
-- • [rule] “from Keenleyside Dam to a line between the old Robson Ferry landin” → columbia-river-3914af-a[todo], columbia-river-f33298-a[todo], columbia-river-f33298-b[todo], columbia-river-f4c5a3-a[todo]
-- • [rule] “from Keenleyside Dam to the Washington state border” → columbia-river-3914af-a[todo], columbia-river-f4c5a3-a[todo], columbia-river-f4c5a3-b[todo]
-- • [rule] “From Keenleyside Dam downstream to the Washington state border and” → columbia-river-3914af-a[todo], columbia-river-3914af-b[curated], columbia-river-f4c5a3-a[todo], columbia-river-f4c5a3-b[todo]
-- • [rule] “From Keenleyside Dam downstream to the Washington state border and” → columbia-river-3914af-a[todo], columbia-river-3914af-b[curated], columbia-river-f4c5a3-a[todo], columbia-river-f4c5a3-b[todo]
+- • [rule] “from Keenleyside Dam to a line between the old Robson Ferry landin” → columbia-river-3914af-a[curated], columbia-river-f33298-a[todo], columbia-river-f33298-b[todo], columbia-river-f4c5a3-a[curated]
+- • [rule] “from Keenleyside Dam to the Washington state border” → columbia-river-3914af-a[curated], columbia-river-f4c5a3-a[curated], columbia-river-f4c5a3-b[todo]
+- • [rule] “From Keenleyside Dam downstream to the Washington state border and” → columbia-river-3914af-a[curated], columbia-river-3914af-b[curated], columbia-river-f4c5a3-a[curated], columbia-river-f4c5a3-b[todo]
+- • [rule] “From Keenleyside Dam downstream to the Washington state border and” → columbia-river-3914af-a[curated], columbia-river-3914af-b[curated], columbia-river-f4c5a3-a[curated], columbia-river-f4c5a3-b[todo]
 - • [rule] “from Mud Lake to Columbia Lake” → columbia-river-73fe32[not_applicable]
 - • [rule] “in wetlands” → columbia-river-b4045c[todo]
 - • [rule] “in main channel from Fairmont to Donald” → columbia-river-275f56[todo]
@@ -99,13 +99,13 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 
 ## KOOTENAY RIVER (downstream of Idaho border) · MU ['4-7', '4-8'] · p39 · [INCOMPLETE] (32b0f4bc)
 - • [water] “downstream of Idaho border” → kootenay-river-downstream-of-idaho-border-6189d1[curated]
-- • [rule] “from CPR Bridge near Creston downstream 2 km to navigation dolphin” → kootenay-river-downstream-of-idaho-border-60f171-a[todo], kootenay-river-downstream-of-idaho-border-60f171-b[todo]
-- • [rule] “Downstream from the Idaho border to CPR Bridge near Creston and fr” → kootenay-river-downstream-of-idaho-border-358bba[todo]
-- • [rule] “from Idaho border near Creston to Kootenay Lake” → kootenay-river-downstream-of-idaho-border-c2529b[not_applicable]
-- • [rule] “from the Brilliant Dam to the confluence with the Columbia River” → kootenay-river-downstream-of-idaho-border-1e5f9d-a[todo], kootenay-river-downstream-of-idaho-border-1e5f9d-b[curated], kootenay-river-downstream-of-idaho-border-50d010[not_applicable]
-- • [rule] “From the Brilliant Dam to the confluence with the Columbia River” → kootenay-river-downstream-of-idaho-border-1e5f9d-a[todo], kootenay-river-downstream-of-idaho-border-1e5f9d-b[curated], kootenay-river-downstream-of-idaho-border-50d010[not_applicable]
-- • [rule] “From the Brilliant Dam to the confluence with the Columbia River” → kootenay-river-downstream-of-idaho-border-1e5f9d-a[todo], kootenay-river-downstream-of-idaho-border-1e5f9d-b[curated], kootenay-river-downstream-of-idaho-border-50d010[not_applicable]
-- • [entry] “downstream of Idaho border” → kootenay-river-downstream-of-idaho-border-6189d1[curated]
+- • [rule] “from CPR Bridge near Creston downstream 2 km to navigation dolphin” → kootenay-river-downstream-of-idaho-border-358bba-b[curated], kootenay-river-downstream-of-idaho-border-60f171-a[todo], kootenay-river-downstream-of-idaho-border-60f171-b[todo]
+- • [rule] “Downstream from the Idaho border to CPR Bridge near Creston and fr” → kootenay-river-downstream-of-idaho-border-358bba-a[curated], kootenay-river-downstream-of-idaho-border-358bba-b[curated]
+- • [rule] “from Idaho border near Creston to Kootenay Lake” → kootenay-river-downstream-of-idaho-border-358bba-a[curated], kootenay-river-downstream-of-idaho-border-c2529b[not_applicable]
+- • [rule] “from the Brilliant Dam to the confluence with the Columbia River” → kootenay-river-downstream-of-idaho-border-1e5f9d-a[curated], kootenay-river-downstream-of-idaho-border-1e5f9d-b[curated], kootenay-river-downstream-of-idaho-border-50d010[not_applicable]
+- • [rule] “From the Brilliant Dam to the confluence with the Columbia River” → kootenay-river-downstream-of-idaho-border-1e5f9d-a[curated], kootenay-river-downstream-of-idaho-border-1e5f9d-b[curated], kootenay-river-downstream-of-idaho-border-50d010[not_applicable]
+- • [rule] “From the Brilliant Dam to the confluence with the Columbia River” → kootenay-river-downstream-of-idaho-border-1e5f9d-a[curated], kootenay-river-downstream-of-idaho-border-1e5f9d-b[curated], kootenay-river-downstream-of-idaho-border-50d010[not_applicable]
+- • [entry] “downstream of Idaho border” → kootenay-river-downstream-of-idaho-border-358bba-a[curated], kootenay-river-downstream-of-idaho-border-6189d1[curated]
 
 ## COWICHAN RIVER (see map below) · MU ['1-4'] · p17 · [INCOMPLETE] (ce689454)
 - • [rule] “from weir (dam) at Cowichan Lake's outlet to Greendale Trestle” → cowichan-river-see-map-below-794a2f-a[curated], cowichan-river-see-map-below-794a2f-b[todo]

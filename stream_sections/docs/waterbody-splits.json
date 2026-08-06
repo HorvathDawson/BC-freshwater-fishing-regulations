@@ -12291,11 +12291,16 @@
           "rows": [
             {
               "id": "columbia-river-3914af-a",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "dam_weir_fence",
-              "notes": "[auto-proposal H] Hugh Keenleyside Dam (Lower Arrow Lake outlet) on Columbia River (Keenleyside Dam -> WA border, + Kootenay reach). Candidate coord [-117.77394, 49.34194]. OSM: https://www.openstreetmap.org/?mlat=49.34194&mlon=-117.77394#map=15/49.34194/-117.77394. Verify: Same dam as columbia-river-f4c5a3; entry also bundles a connected Kootenay River reach - handle separately.. Duplicate Keenleyside Dam structure; this entry additionally names a connected Kootenay River reach (see the Kootenay dam items 21-23). Coord = Keenleyside Dam at Lower Arrow Lake outlet. [structural-split 2026-08-05 from \"From Keenleyside Dam downstream to the Washington state bord\"] boundary=Keenleyside Dam",
+              "label": "Keenleyside Dam",
+              "notes": "[auto-proposal H] Hugh Keenleyside Dam (Lower Arrow Lake outlet) on Columbia River (Keenleyside Dam -> WA border, + Kootenay reach). Candidate coord [-117.77394, 49.34194]. OSM: https://www.openstreetmap.org/?mlat=49.34194&mlon=-117.77394#map=15/49.34194/-117.77394. Verify: Same dam as columbia-river-f4c5a3; entry also bundles a connected Kootenay River reach - handle separately.. Duplicate Keenleyside Dam structure; this entry additionally names a connected Kootenay River reach (see the Kootenay dam items 21-23). Coord = Keenleyside Dam at Lower Arrow Lake outlet. [structural-split 2026-08-05 from \"From Keenleyside Dam downstream to the Washington state bord\"] boundary=Keenleyside Dam [human-review 2026-08-06 OSM dam] Keenleyside Dam.",
+              "coord": [
+                -117.77353,
+                49.34196
+              ],
               "locator_text": "Keenleyside Dam"
             },
             {
@@ -12318,11 +12323,16 @@
             },
             {
               "id": "columbia-river-f4c5a3-a",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "dam_weir_fence",
-              "notes": "[auto-proposal H] Hugh Keenleyside Dam (Lower Arrow Lake outlet) on Columbia River (Keenleyside Dam -> WA border). Candidate coord [-117.77394, 49.34194]. OSM: https://www.openstreetmap.org/?mlat=49.34194&mlon=-117.77394#map=15/49.34194/-117.77394. Verify: Confirm cut at Keenleyside Dam (Lower Arrow Lake outlet); downstream end = Washington state border (auto border split).. Hugh Keenleyside Dam impounds the Arrow Lakes; coord = FWA Columbia exit from the Lower Arrow Lake polygon, matching the known dam near Castlegar. Reach runs to the US border. [structural-split 2026-08-05 from \"from Keenleyside Dam to the Washington state border\"] boundary=Keenleyside Dam",
+              "label": "Keenleyside Dam",
+              "notes": "[auto-proposal H] Hugh Keenleyside Dam (Lower Arrow Lake outlet) on Columbia River (Keenleyside Dam -> WA border). Candidate coord [-117.77394, 49.34194]. OSM: https://www.openstreetmap.org/?mlat=49.34194&mlon=-117.77394#map=15/49.34194/-117.77394. Verify: Confirm cut at Keenleyside Dam (Lower Arrow Lake outlet); downstream end = Washington state border (auto border split).. Hugh Keenleyside Dam impounds the Arrow Lakes; coord = FWA Columbia exit from the Lower Arrow Lake polygon, matching the known dam near Castlegar. Reach runs to the US border. [structural-split 2026-08-05 from \"from Keenleyside Dam to the Washington state border\"] boundary=Keenleyside Dam [human-review 2026-08-06 OSM dam] Keenleyside Dam.",
+              "coord": [
+                -117.77353,
+                49.34196
+              ],
               "locator_text": "Keenleyside Dam"
             }
           ]
@@ -12337,20 +12347,30 @@
           "rows": [
             {
               "id": "columbia-river-3914af-a",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "dam_weir_fence",
-              "notes": "[auto-proposal H] Hugh Keenleyside Dam (Lower Arrow Lake outlet) on Columbia River (Keenleyside Dam -> WA border, + Kootenay reach). Candidate coord [-117.77394, 49.34194]. OSM: https://www.openstreetmap.org/?mlat=49.34194&mlon=-117.77394#map=15/49.34194/-117.77394. Verify: Same dam as columbia-river-f4c5a3; entry also bundles a connected Kootenay River reach - handle separately.. Duplicate Keenleyside Dam structure; this entry additionally names a connected Kootenay River reach (see the Kootenay dam items 21-23). Coord = Keenleyside Dam at Lower Arrow Lake outlet. [structural-split 2026-08-05 from \"From Keenleyside Dam downstream to the Washington state bord\"] boundary=Keenleyside Dam",
+              "label": "Keenleyside Dam",
+              "notes": "[auto-proposal H] Hugh Keenleyside Dam (Lower Arrow Lake outlet) on Columbia River (Keenleyside Dam -> WA border, + Kootenay reach). Candidate coord [-117.77394, 49.34194]. OSM: https://www.openstreetmap.org/?mlat=49.34194&mlon=-117.77394#map=15/49.34194/-117.77394. Verify: Same dam as columbia-river-f4c5a3; entry also bundles a connected Kootenay River reach - handle separately.. Duplicate Keenleyside Dam structure; this entry additionally names a connected Kootenay River reach (see the Kootenay dam items 21-23). Coord = Keenleyside Dam at Lower Arrow Lake outlet. [structural-split 2026-08-05 from \"From Keenleyside Dam downstream to the Washington state bord\"] boundary=Keenleyside Dam [human-review 2026-08-06 OSM dam] Keenleyside Dam.",
+              "coord": [
+                -117.77353,
+                49.34196
+              ],
               "locator_text": "Keenleyside Dam"
             },
             {
               "id": "columbia-river-f4c5a3-a",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "dam_weir_fence",
-              "notes": "[auto-proposal H] Hugh Keenleyside Dam (Lower Arrow Lake outlet) on Columbia River (Keenleyside Dam -> WA border). Candidate coord [-117.77394, 49.34194]. OSM: https://www.openstreetmap.org/?mlat=49.34194&mlon=-117.77394#map=15/49.34194/-117.77394. Verify: Confirm cut at Keenleyside Dam (Lower Arrow Lake outlet); downstream end = Washington state border (auto border split).. Hugh Keenleyside Dam impounds the Arrow Lakes; coord = FWA Columbia exit from the Lower Arrow Lake polygon, matching the known dam near Castlegar. Reach runs to the US border. [structural-split 2026-08-05 from \"from Keenleyside Dam to the Washington state border\"] boundary=Keenleyside Dam",
+              "label": "Keenleyside Dam",
+              "notes": "[auto-proposal H] Hugh Keenleyside Dam (Lower Arrow Lake outlet) on Columbia River (Keenleyside Dam -> WA border). Candidate coord [-117.77394, 49.34194]. OSM: https://www.openstreetmap.org/?mlat=49.34194&mlon=-117.77394#map=15/49.34194/-117.77394. Verify: Confirm cut at Keenleyside Dam (Lower Arrow Lake outlet); downstream end = Washington state border (auto border split).. Hugh Keenleyside Dam impounds the Arrow Lakes; coord = FWA Columbia exit from the Lower Arrow Lake polygon, matching the known dam near Castlegar. Reach runs to the US border. [structural-split 2026-08-05 from \"from Keenleyside Dam to the Washington state border\"] boundary=Keenleyside Dam [human-review 2026-08-06 OSM dam] Keenleyside Dam.",
+              "coord": [
+                -117.77353,
+                49.34196
+              ],
               "locator_text": "Keenleyside Dam"
             },
             {
@@ -12374,11 +12394,16 @@
           "rows": [
             {
               "id": "columbia-river-3914af-a",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "dam_weir_fence",
-              "notes": "[auto-proposal H] Hugh Keenleyside Dam (Lower Arrow Lake outlet) on Columbia River (Keenleyside Dam -> WA border, + Kootenay reach). Candidate coord [-117.77394, 49.34194]. OSM: https://www.openstreetmap.org/?mlat=49.34194&mlon=-117.77394#map=15/49.34194/-117.77394. Verify: Same dam as columbia-river-f4c5a3; entry also bundles a connected Kootenay River reach - handle separately.. Duplicate Keenleyside Dam structure; this entry additionally names a connected Kootenay River reach (see the Kootenay dam items 21-23). Coord = Keenleyside Dam at Lower Arrow Lake outlet. [structural-split 2026-08-05 from \"From Keenleyside Dam downstream to the Washington state bord\"] boundary=Keenleyside Dam",
+              "label": "Keenleyside Dam",
+              "notes": "[auto-proposal H] Hugh Keenleyside Dam (Lower Arrow Lake outlet) on Columbia River (Keenleyside Dam -> WA border, + Kootenay reach). Candidate coord [-117.77394, 49.34194]. OSM: https://www.openstreetmap.org/?mlat=49.34194&mlon=-117.77394#map=15/49.34194/-117.77394. Verify: Same dam as columbia-river-f4c5a3; entry also bundles a connected Kootenay River reach - handle separately.. Duplicate Keenleyside Dam structure; this entry additionally names a connected Kootenay River reach (see the Kootenay dam items 21-23). Coord = Keenleyside Dam at Lower Arrow Lake outlet. [structural-split 2026-08-05 from \"From Keenleyside Dam downstream to the Washington state bord\"] boundary=Keenleyside Dam [human-review 2026-08-06 OSM dam] Keenleyside Dam.",
+              "coord": [
+                -117.77353,
+                49.34196
+              ],
               "locator_text": "Keenleyside Dam"
             },
             {
@@ -12401,11 +12426,16 @@
             },
             {
               "id": "columbia-river-f4c5a3-a",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "dam_weir_fence",
-              "notes": "[auto-proposal H] Hugh Keenleyside Dam (Lower Arrow Lake outlet) on Columbia River (Keenleyside Dam -> WA border). Candidate coord [-117.77394, 49.34194]. OSM: https://www.openstreetmap.org/?mlat=49.34194&mlon=-117.77394#map=15/49.34194/-117.77394. Verify: Confirm cut at Keenleyside Dam (Lower Arrow Lake outlet); downstream end = Washington state border (auto border split).. Hugh Keenleyside Dam impounds the Arrow Lakes; coord = FWA Columbia exit from the Lower Arrow Lake polygon, matching the known dam near Castlegar. Reach runs to the US border. [structural-split 2026-08-05 from \"from Keenleyside Dam to the Washington state border\"] boundary=Keenleyside Dam",
+              "label": "Keenleyside Dam",
+              "notes": "[auto-proposal H] Hugh Keenleyside Dam (Lower Arrow Lake outlet) on Columbia River (Keenleyside Dam -> WA border). Candidate coord [-117.77394, 49.34194]. OSM: https://www.openstreetmap.org/?mlat=49.34194&mlon=-117.77394#map=15/49.34194/-117.77394. Verify: Confirm cut at Keenleyside Dam (Lower Arrow Lake outlet); downstream end = Washington state border (auto border split).. Hugh Keenleyside Dam impounds the Arrow Lakes; coord = FWA Columbia exit from the Lower Arrow Lake polygon, matching the known dam near Castlegar. Reach runs to the US border. [structural-split 2026-08-05 from \"from Keenleyside Dam to the Washington state border\"] boundary=Keenleyside Dam [human-review 2026-08-06 OSM dam] Keenleyside Dam.",
+              "coord": [
+                -117.77353,
+                49.34196
+              ],
               "locator_text": "Keenleyside Dam"
             },
             {
@@ -12429,11 +12459,16 @@
           "rows": [
             {
               "id": "columbia-river-3914af-a",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "dam_weir_fence",
-              "notes": "[auto-proposal H] Hugh Keenleyside Dam (Lower Arrow Lake outlet) on Columbia River (Keenleyside Dam -> WA border, + Kootenay reach). Candidate coord [-117.77394, 49.34194]. OSM: https://www.openstreetmap.org/?mlat=49.34194&mlon=-117.77394#map=15/49.34194/-117.77394. Verify: Same dam as columbia-river-f4c5a3; entry also bundles a connected Kootenay River reach - handle separately.. Duplicate Keenleyside Dam structure; this entry additionally names a connected Kootenay River reach (see the Kootenay dam items 21-23). Coord = Keenleyside Dam at Lower Arrow Lake outlet. [structural-split 2026-08-05 from \"From Keenleyside Dam downstream to the Washington state bord\"] boundary=Keenleyside Dam",
+              "label": "Keenleyside Dam",
+              "notes": "[auto-proposal H] Hugh Keenleyside Dam (Lower Arrow Lake outlet) on Columbia River (Keenleyside Dam -> WA border, + Kootenay reach). Candidate coord [-117.77394, 49.34194]. OSM: https://www.openstreetmap.org/?mlat=49.34194&mlon=-117.77394#map=15/49.34194/-117.77394. Verify: Same dam as columbia-river-f4c5a3; entry also bundles a connected Kootenay River reach - handle separately.. Duplicate Keenleyside Dam structure; this entry additionally names a connected Kootenay River reach (see the Kootenay dam items 21-23). Coord = Keenleyside Dam at Lower Arrow Lake outlet. [structural-split 2026-08-05 from \"From Keenleyside Dam downstream to the Washington state bord\"] boundary=Keenleyside Dam [human-review 2026-08-06 OSM dam] Keenleyside Dam.",
+              "coord": [
+                -117.77353,
+                49.34196
+              ],
               "locator_text": "Keenleyside Dam"
             },
             {
@@ -12456,11 +12491,16 @@
             },
             {
               "id": "columbia-river-f4c5a3-a",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "dam_weir_fence",
-              "notes": "[auto-proposal H] Hugh Keenleyside Dam (Lower Arrow Lake outlet) on Columbia River (Keenleyside Dam -> WA border). Candidate coord [-117.77394, 49.34194]. OSM: https://www.openstreetmap.org/?mlat=49.34194&mlon=-117.77394#map=15/49.34194/-117.77394. Verify: Confirm cut at Keenleyside Dam (Lower Arrow Lake outlet); downstream end = Washington state border (auto border split).. Hugh Keenleyside Dam impounds the Arrow Lakes; coord = FWA Columbia exit from the Lower Arrow Lake polygon, matching the known dam near Castlegar. Reach runs to the US border. [structural-split 2026-08-05 from \"from Keenleyside Dam to the Washington state border\"] boundary=Keenleyside Dam",
+              "label": "Keenleyside Dam",
+              "notes": "[auto-proposal H] Hugh Keenleyside Dam (Lower Arrow Lake outlet) on Columbia River (Keenleyside Dam -> WA border). Candidate coord [-117.77394, 49.34194]. OSM: https://www.openstreetmap.org/?mlat=49.34194&mlon=-117.77394#map=15/49.34194/-117.77394. Verify: Confirm cut at Keenleyside Dam (Lower Arrow Lake outlet); downstream end = Washington state border (auto border split).. Hugh Keenleyside Dam impounds the Arrow Lakes; coord = FWA Columbia exit from the Lower Arrow Lake polygon, matching the known dam near Castlegar. Reach runs to the US border. [structural-split 2026-08-05 from \"from Keenleyside Dam to the Washington state border\"] boundary=Keenleyside Dam [human-review 2026-08-06 OSM dam] Keenleyside Dam.",
+              "coord": [
+                -117.77353,
+                49.34196
+              ],
               "locator_text": "Keenleyside Dam"
             },
             {
@@ -14324,6 +14364,20 @@
           "resolved": false,
           "rows": [
             {
+              "id": "kootenay-river-downstream-of-idaho-border-358bba-b",
+              "status": "curated",
+              "anchor_kind": "point",
+              "src": "rule",
+              "resolver_hint": "dam_weir_fence",
+              "label": "CPR (CPKC) bridge near Creston",
+              "notes": "[auto-proposal H] Corra Linn Dam (Kootenay Lake West Arm outlet) + CPR Bridge near Creston on Kootenay River (Idaho border->CPR Bridge Creston; Corra Linn Dam->Columbia). Candidate coord [-117.46818, 49.46895]. OSM: https://www.openstreetmap.org/?mlat=49.46895&mlon=-117.46818#map=15/49.46895/-117.46818. Verify: Confirm Corra Linn Dam at the West Arm outlet of Kootenay Lake; the 'Idaho border' and 'CPR Bridge near Creston' bounds relate to existing kootenay splits.. Two Kootenay reaches: (1) Idaho border -> CPR Bridge near Creston, (2) Corra Linn Dam -> Columbia confluence. Coord = Corra Linn Dam = FWA Kootenay River exit from Kootenay Lake polygon (West Arm outlet). See existing splits kootenay_idaho_border / kootenay_koocanusa in splits.json for the border end. [human-review 2026-08-06] CPKC railway bridge x Kootenay R (OSM).",
+              "coord": [
+                -116.68511,
+                49.25176
+              ],
+              "locator_text": "CPR Bridge near Creston"
+            },
+            {
               "id": "kootenay-river-downstream-of-idaho-border-60f171-a",
               "status": "todo",
               "anchor_kind": "point",
@@ -14353,15 +14407,35 @@
               "Nov 1-Mar 31"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
-              "id": "kootenay-river-downstream-of-idaho-border-358bba",
-              "status": "todo",
+              "id": "kootenay-river-downstream-of-idaho-border-358bba-a",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "dam_weir_fence",
-              "notes": "[auto-proposal H] Corra Linn Dam (Kootenay Lake West Arm outlet) + CPR Bridge near Creston on Kootenay River (Idaho border->CPR Bridge Creston; Corra Linn Dam->Columbia). Candidate coord [-117.46818, 49.46895]. OSM: https://www.openstreetmap.org/?mlat=49.46895&mlon=-117.46818#map=15/49.46895/-117.46818. Verify: Confirm Corra Linn Dam at the West Arm outlet of Kootenay Lake; the 'Idaho border' and 'CPR Bridge near Creston' bounds relate to existing kootenay splits.. Two Kootenay reaches: (1) Idaho border -> CPR Bridge near Creston, (2) Corra Linn Dam -> Columbia confluence. Coord = Corra Linn Dam = FWA Kootenay River exit from Kootenay Lake polygon (West Arm outlet). See existing splits kootenay_idaho_border / kootenay_koocanusa in splits.json for the border end. [osm-candidate 2026-08-05] [-117.62009, 49.32481]; [-117.49994, 49.46163]; [-117.51961, 49.45584]; [-117.48406, 49.45978]; [-115.31472, 48.40988]; [-115.31426, 48.41049]; [-115.31522, 48.40922] (OSM Overpass ∩ MU-clipped FWA river; VERIFY)."
+              "label": "Idaho border",
+              "notes": "[auto-proposal H] Corra Linn Dam (Kootenay Lake West Arm outlet) + CPR Bridge near Creston on Kootenay River (Idaho border->CPR Bridge Creston; Corra Linn Dam->Columbia). Candidate coord [-117.46818, 49.46895]. OSM: https://www.openstreetmap.org/?mlat=49.46895&mlon=-117.46818#map=15/49.46895/-117.46818. Verify: Confirm Corra Linn Dam at the West Arm outlet of Kootenay Lake; the 'Idaho border' and 'CPR Bridge near Creston' bounds relate to existing kootenay splits.. Two Kootenay reaches: (1) Idaho border -> CPR Bridge near Creston, (2) Corra Linn Dam -> Columbia confluence. Coord = Corra Linn Dam = FWA Kootenay River exit from Kootenay Lake polygon (West Arm outlet). See existing splits kootenay_idaho_border / kootenay_koocanusa in splits.json for the border end. [human-review 2026-08-06] authored split: kootenay_idaho_border (splits.json); US border auto-split picks it up.",
+              "coord": [
+                -116.5036,
+                48.9999
+              ],
+              "locator_text": "Idaho border"
+            },
+            {
+              "id": "kootenay-river-downstream-of-idaho-border-358bba-b",
+              "status": "curated",
+              "anchor_kind": "point",
+              "src": "rule",
+              "resolver_hint": "dam_weir_fence",
+              "label": "CPR (CPKC) bridge near Creston",
+              "notes": "[auto-proposal H] Corra Linn Dam (Kootenay Lake West Arm outlet) + CPR Bridge near Creston on Kootenay River (Idaho border->CPR Bridge Creston; Corra Linn Dam->Columbia). Candidate coord [-117.46818, 49.46895]. OSM: https://www.openstreetmap.org/?mlat=49.46895&mlon=-117.46818#map=15/49.46895/-117.46818. Verify: Confirm Corra Linn Dam at the West Arm outlet of Kootenay Lake; the 'Idaho border' and 'CPR Bridge near Creston' bounds relate to existing kootenay splits.. Two Kootenay reaches: (1) Idaho border -> CPR Bridge near Creston, (2) Corra Linn Dam -> Columbia confluence. Coord = Corra Linn Dam = FWA Kootenay River exit from Kootenay Lake polygon (West Arm outlet). See existing splits kootenay_idaho_border / kootenay_koocanusa in splits.json for the border end. [human-review 2026-08-06] CPKC railway bridge x Kootenay R (OSM).",
+              "coord": [
+                -116.68511,
+                49.25176
+              ],
+              "locator_text": "CPR Bridge near Creston"
             }
           ]
         },
@@ -14374,6 +14448,20 @@
           },
           "resolved": true,
           "rows": [
+            {
+              "id": "kootenay-river-downstream-of-idaho-border-358bba-a",
+              "status": "curated",
+              "anchor_kind": "point",
+              "src": "rule",
+              "resolver_hint": "dam_weir_fence",
+              "label": "Idaho border",
+              "notes": "[auto-proposal H] Corra Linn Dam (Kootenay Lake West Arm outlet) + CPR Bridge near Creston on Kootenay River (Idaho border->CPR Bridge Creston; Corra Linn Dam->Columbia). Candidate coord [-117.46818, 49.46895]. OSM: https://www.openstreetmap.org/?mlat=49.46895&mlon=-117.46818#map=15/49.46895/-117.46818. Verify: Confirm Corra Linn Dam at the West Arm outlet of Kootenay Lake; the 'Idaho border' and 'CPR Bridge near Creston' bounds relate to existing kootenay splits.. Two Kootenay reaches: (1) Idaho border -> CPR Bridge near Creston, (2) Corra Linn Dam -> Columbia confluence. Coord = Corra Linn Dam = FWA Kootenay River exit from Kootenay Lake polygon (West Arm outlet). See existing splits kootenay_idaho_border / kootenay_koocanusa in splits.json for the border end. [human-review 2026-08-06] authored split: kootenay_idaho_border (splits.json); US border auto-split picks it up.",
+              "coord": [
+                -116.5036,
+                48.9999
+              ],
+              "locator_text": "Idaho border"
+            },
             {
               "id": "kootenay-river-downstream-of-idaho-border-c2529b",
               "status": "not_applicable",
@@ -14390,15 +14478,20 @@
           "info": {
             "restriction_type": "harvest"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "kootenay-river-downstream-of-idaho-border-1e5f9d-a",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "dam_weir_fence",
-              "notes": "[auto-proposal M] Brilliant Dam (run-of-river, lower Kootenay River) on Kootenay River (Brilliant Dam -> Columbia confluence). Candidate coord [-117.59864, 49.33662]. OSM: https://www.openstreetmap.org/?mlat=49.33662&mlon=-117.59864#map=15/49.33662/-117.59864. Verify: Confirm Brilliant Dam location on the lower Kootenay near Castlegar; candidate is the nearest Kootenay blue-line point.. Brilliant Dam is a run-of-river dam on the lower Kootenay River near its Columbia confluence (Castlegar). No named reservoir polygon; candidate = Kootenay River blue-line point nearest the known dam site. Reach runs to the Columbia confluence. [structural-split 2026-08-05 from \"from the Brilliant Dam to the confluence with the Columbia R\"] boundary=Brilliant Dam",
+              "label": "Brilliant Dam",
+              "notes": "[auto-proposal M] Brilliant Dam (run-of-river, lower Kootenay River) on Kootenay River (Brilliant Dam -> Columbia confluence). Candidate coord [-117.59864, 49.33662]. OSM: https://www.openstreetmap.org/?mlat=49.33662&mlon=-117.59864#map=15/49.33662/-117.59864. Verify: Confirm Brilliant Dam location on the lower Kootenay near Castlegar; candidate is the nearest Kootenay blue-line point.. Brilliant Dam is a run-of-river dam on the lower Kootenay River near its Columbia confluence (Castlegar). No named reservoir polygon; candidate = Kootenay River blue-line point nearest the known dam site. Reach runs to the Columbia confluence. [structural-split 2026-08-05 from \"from the Brilliant Dam to the confluence with the Columbia R\"] boundary=Brilliant Dam [human-review 2026-08-06 OSM dam] Brilliant Dam.",
+              "coord": [
+                -117.62009,
+                49.32481
+              ],
               "locator_text": "Brilliant Dam"
             },
             {
@@ -14436,15 +14529,20 @@
           "info": {
             "restriction_type": "harvest"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "kootenay-river-downstream-of-idaho-border-1e5f9d-a",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "dam_weir_fence",
-              "notes": "[auto-proposal M] Brilliant Dam (run-of-river, lower Kootenay River) on Kootenay River (Brilliant Dam -> Columbia confluence). Candidate coord [-117.59864, 49.33662]. OSM: https://www.openstreetmap.org/?mlat=49.33662&mlon=-117.59864#map=15/49.33662/-117.59864. Verify: Confirm Brilliant Dam location on the lower Kootenay near Castlegar; candidate is the nearest Kootenay blue-line point.. Brilliant Dam is a run-of-river dam on the lower Kootenay River near its Columbia confluence (Castlegar). No named reservoir polygon; candidate = Kootenay River blue-line point nearest the known dam site. Reach runs to the Columbia confluence. [structural-split 2026-08-05 from \"from the Brilliant Dam to the confluence with the Columbia R\"] boundary=Brilliant Dam",
+              "label": "Brilliant Dam",
+              "notes": "[auto-proposal M] Brilliant Dam (run-of-river, lower Kootenay River) on Kootenay River (Brilliant Dam -> Columbia confluence). Candidate coord [-117.59864, 49.33662]. OSM: https://www.openstreetmap.org/?mlat=49.33662&mlon=-117.59864#map=15/49.33662/-117.59864. Verify: Confirm Brilliant Dam location on the lower Kootenay near Castlegar; candidate is the nearest Kootenay blue-line point.. Brilliant Dam is a run-of-river dam on the lower Kootenay River near its Columbia confluence (Castlegar). No named reservoir polygon; candidate = Kootenay River blue-line point nearest the known dam site. Reach runs to the Columbia confluence. [structural-split 2026-08-05 from \"from the Brilliant Dam to the confluence with the Columbia R\"] boundary=Brilliant Dam [human-review 2026-08-06 OSM dam] Brilliant Dam.",
+              "coord": [
+                -117.62009,
+                49.32481
+              ],
               "locator_text": "Brilliant Dam"
             },
             {
@@ -14481,15 +14579,20 @@
           "info": {
             "restriction_type": "harvest"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "kootenay-river-downstream-of-idaho-border-1e5f9d-a",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "dam_weir_fence",
-              "notes": "[auto-proposal M] Brilliant Dam (run-of-river, lower Kootenay River) on Kootenay River (Brilliant Dam -> Columbia confluence). Candidate coord [-117.59864, 49.33662]. OSM: https://www.openstreetmap.org/?mlat=49.33662&mlon=-117.59864#map=15/49.33662/-117.59864. Verify: Confirm Brilliant Dam location on the lower Kootenay near Castlegar; candidate is the nearest Kootenay blue-line point.. Brilliant Dam is a run-of-river dam on the lower Kootenay River near its Columbia confluence (Castlegar). No named reservoir polygon; candidate = Kootenay River blue-line point nearest the known dam site. Reach runs to the Columbia confluence. [structural-split 2026-08-05 from \"from the Brilliant Dam to the confluence with the Columbia R\"] boundary=Brilliant Dam",
+              "label": "Brilliant Dam",
+              "notes": "[auto-proposal M] Brilliant Dam (run-of-river, lower Kootenay River) on Kootenay River (Brilliant Dam -> Columbia confluence). Candidate coord [-117.59864, 49.33662]. OSM: https://www.openstreetmap.org/?mlat=49.33662&mlon=-117.59864#map=15/49.33662/-117.59864. Verify: Confirm Brilliant Dam location on the lower Kootenay near Castlegar; candidate is the nearest Kootenay blue-line point.. Brilliant Dam is a run-of-river dam on the lower Kootenay River near its Columbia confluence (Castlegar). No named reservoir polygon; candidate = Kootenay River blue-line point nearest the known dam site. Reach runs to the Columbia confluence. [structural-split 2026-08-05 from \"from the Brilliant Dam to the confluence with the Columbia R\"] boundary=Brilliant Dam [human-review 2026-08-06 OSM dam] Brilliant Dam.",
+              "coord": [
+                -117.62009,
+                49.32481
+              ],
               "locator_text": "Brilliant Dam"
             },
             {
@@ -14525,6 +14628,20 @@
           "text": "downstream of Idaho border",
           "resolved": true,
           "rows": [
+            {
+              "id": "kootenay-river-downstream-of-idaho-border-358bba-a",
+              "status": "curated",
+              "anchor_kind": "point",
+              "src": "rule",
+              "resolver_hint": "dam_weir_fence",
+              "label": "Idaho border",
+              "notes": "[auto-proposal H] Corra Linn Dam (Kootenay Lake West Arm outlet) + CPR Bridge near Creston on Kootenay River (Idaho border->CPR Bridge Creston; Corra Linn Dam->Columbia). Candidate coord [-117.46818, 49.46895]. OSM: https://www.openstreetmap.org/?mlat=49.46895&mlon=-117.46818#map=15/49.46895/-117.46818. Verify: Confirm Corra Linn Dam at the West Arm outlet of Kootenay Lake; the 'Idaho border' and 'CPR Bridge near Creston' bounds relate to existing kootenay splits.. Two Kootenay reaches: (1) Idaho border -> CPR Bridge near Creston, (2) Corra Linn Dam -> Columbia confluence. Coord = Corra Linn Dam = FWA Kootenay River exit from Kootenay Lake polygon (West Arm outlet). See existing splits kootenay_idaho_border / kootenay_koocanusa in splits.json for the border end. [human-review 2026-08-06] authored split: kootenay_idaho_border (splits.json); US border auto-split picks it up.",
+              "coord": [
+                -116.5036,
+                48.9999
+              ],
+              "locator_text": "Idaho border"
+            },
             {
               "id": "kootenay-river-downstream-of-idaho-border-6189d1",
               "status": "curated",

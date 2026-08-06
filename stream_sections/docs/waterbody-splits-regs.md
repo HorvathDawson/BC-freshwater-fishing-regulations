@@ -3,7 +3,7 @@
 Every reg entry (source-first), booklet order. **Bold** = a live split boundary; plain text
 = whole-water / tributary-set / `not_applicable`. Regenerate; do not hand-edit.
 
-387 entries · 418 highlighted boundary phrases.
+387 entries · 419 highlighted boundary phrases.
 
 | Water | MU | p | Regulation |
 |---|---|--:|---|
@@ -204,7 +204,7 @@ Every reg entry (source-first), booklet order. **Bold** = a live split boundary;
 | KOOTENAY LAKE - MAIN BODY (for location see map on page 34) | 4-19 | 39 | A person in a boat may angle with an unlimited number of rods. Kokanee daily quota = 0 Bull trout daily quota = 1; rainbow trout daily quota = 10 (any size) Conservation Surcharge Stamp required to keep rainbow trout over 50 cm, annual quota = 20 |
 | KOOTENAY LAKE - UPPER WEST ARM (for location see map on page 34) | 4-7 | 39 | Rainbow trout catch and release, Jan 1-May 31; trout/char daily quota = 2 (only 1 bull trout) Kokanee catch and release, EXCEPT Apr 1-Apr 3 and July 1-July 2 only, when daily quota = 5; NOTE: The combined daily quota for kokanee from the Upper West Arm (when open to kokanee harvest) and the Lower West Arm (when open to kokanee harvest) cannot exceed 5 |
 | KOOTENAY LAKE'S TRIBUTARIES | 4-7, 4-19 | 39 | Bull trout catch and release Does not include the Kootenay River upstream from Kootenay Lake to the U.S. border near Creston |
-| KOOTENAY RIVER (downstream of Idaho border) | 4-7, 4-8 | 39 | No Fishing **from CPR Bridge near Creston downstream 2 km to navigation dolphin** **Downstream from the Idaho border to CPR Bridge near Creston and from Corra Linn Dam to the Columbia River**: EXEMPT from Apr 1-June 14 closure AND from Nov 1-Mar 31 trout/char catch and release Burbot catch and release from Idaho border near Creston to Kootenay Lake, including tributaries to that part Walleye daily quota = 16 **from the Brilliant Dam to the confluence with the Columbia River** From the Brilliant Dam to the confluence with the Columbia River: northern pike and bass daily quota = unlimited |
+| KOOTENAY RIVER (downstream of Idaho border) | 4-7, 4-8 | 39 | No Fishing **from CPR Bridge near Creston downstream 2 km to navigation dolphin** **Downstream from the Idaho border to CPR Bridge near Creston and from Corra Linn Dam to the Columbia River**: EXEMPT from Apr 1-June 14 closure AND from Nov 1-Mar 31 trout/char catch and release Burbot catch and release **from Idaho border near Creston to Kootenay Lake**, including tributaries to that part Walleye daily quota = 16 **from the Brilliant Dam to the confluence with the Columbia River** From the Brilliant Dam to the confluence with the Columbia River: northern pike and bass daily quota = unlimited |
 | KOOTENAY RIVER (upstream of Koocanusa Reservoir) | 4-2, 4-21, 4-22, 4-24, 4-25, 4-35 | 39 | Bait ban all year Trout/char catch and release, Nov 1-Mar 31 Burbot catch and release **upstream of the Montana border** **Upstream of Koocanusa Reservoir to White River**: EXEMPT from Apr 1-June 14 closure; trout/char daily quota = 1 (no trout under 30 cm and no bull trout under 75 cm), Apr 1-Oct 31 **Upstream of White River**: trout/char daily quota = 1 (no trout under 30 cm and no bull trout under 75 cm), Jun 15-Oct 31 Upstream of White River, including tributaries: Class II water when open |
 | KUSKANAX CREEK | 4-31 | 39 | No Fishing **downstream of falls 1 km upstream of Gardiner Creek** |
 | LAKE REVELSTOKE | 4-38, 4-39 | 40 | No Fishing **from Mica Dam to fishing boundary signs at the narrows immediately downstream of the mouth of Bigmouth Creek** |
