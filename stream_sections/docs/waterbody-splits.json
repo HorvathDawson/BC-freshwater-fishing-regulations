@@ -24921,7 +24921,7 @@
       "image": "page_077_row_019.png",
       "symbols": [],
       "reg_text": "**No Fishing** from the trestle in Trout Creek Canyon to Okanagan Lake\nUpstream of the trestle exempt from spring closure",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 2,
       "locators": [
         {
@@ -24930,15 +24930,20 @@
           "info": {
             "restriction_type": "closure"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "trout-creek-0c89df",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "falls_obstacle",
-              "notes": "[osm-candidate 2026-08-05] [-119.65443, 49.56589] (OSM Overpass ∩ MU-clipped FWA river; VERIFY)."
+              "label": "rail trestle, Trout Creek Canyon",
+              "notes": "[osm-candidate 2026-08-05] [-119.65443, 49.56589] (OSM Overpass ∩ MU-clipped FWA river; VERIFY). [human-review 2026-08-05 OSM-confirmed] trestle; Okanagan Lake end auto.",
+              "coord": [
+                -119.65443,
+                49.56589
+              ]
             }
           ]
         },
@@ -24948,15 +24953,20 @@
           "info": {
             "restriction_type": "note"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "trout-creek-7e7f1c",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] Trout Creek trestle (KVR) at Summerland on Trout Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the Kettle Valley Railway Trout Creek trestle at Summerland; single well-known trestle -> review.. Reg = 'upstream of the trestle'. The Trout Creek (KVR) trestle at Summerland is a famous, unambiguous landmark. Map/OSM-confirmable; not in FWA. [osm-candidate 2026-08-05] [-119.65443, 49.56589] (OSM Overpass ∩ MU-clipped FWA river; VERIFY)."
+              "label": "rail trestle, Trout Creek Canyon",
+              "notes": "[auto-proposal L] Trout Creek trestle (KVR) at Summerland on Trout Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the Kettle Valley Railway Trout Creek trestle at Summerland; single well-known trestle -> review.. Reg = 'upstream of the trestle'. The Trout Creek (KVR) trestle at Summerland is a famous, unambiguous landmark. Map/OSM-confirmable; not in FWA. [human-review 2026-08-05 OSM-confirmed] trestle; Okanagan Lake end auto.",
+              "coord": [
+                -119.65443,
+                49.56589
+              ]
             }
           ]
         },

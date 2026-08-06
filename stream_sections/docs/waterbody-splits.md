@@ -7,8 +7,8 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 |---|--:|
 | NO_CURATION | 1 |
 | MISSING_SPLITS | 2 |
-| INCOMPLETE | 202 |
-| COMPLETE | 107 |
+| INCOMPLETE | 201 |
+| COMPLETE | 108 |
 | NO_SPLIT | 75 |
 
 **Drift** (curated rows matching no source locator): 3
@@ -567,10 +567,6 @@ approximately 35 m downstream” → little-qualicum-river-4dbb9b[todo]
 ## PEACE RIVER (Downstream of boundary signs 1,200m downstream of the Site C dam) · MU ['7-31'] · p72 · [INCOMPLETE] (4068efd2)
 - • [water] “Downstream of boundary signs 1,200m downstream of the Site C dam” → peace-river-downstream-of-boundary-signs-1-20-2f9401[todo]
 - • [entry] “Downstream of boundary signs 1,200m downstream of the Site C dam” → peace-river-downstream-of-boundary-signs-1-20-2f9401[todo]
-
-## TROUT CREEK · MU ['8-8'] · p77 · [INCOMPLETE] (f24bd72f)
-- • [rule] “from the trestle in Trout Creek Canyon to Okanagan Lake” → trout-creek-0c89df[todo]
-- • [rule] “Upstream of the trestle” → trout-creek-7e7f1c[todo]
 
 ## VASEUX LAKE (including two lagoons on the west side of Okanagan River upstream of McIntyre Dam) · MU ['8-1'] · p77 · [INCOMPLETE] (bf3a7f24)
 - • [water] “including two lagoons on the west side of Okanagan River upstream ” → vaseux-lake-including-two-lagoons-on-the-west-f208f2[todo]
