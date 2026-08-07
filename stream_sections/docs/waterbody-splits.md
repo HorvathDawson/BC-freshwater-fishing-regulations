@@ -11,7 +11,7 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 | COMPLETE | 136 |
 | NO_SPLIT | 75 |
 
-**Drift** (curated rows matching no source locator): 4
+**Drift** (curated rows matching no source locator): 5
 
 ## LYNN CREEK · MU ['2-8'] · p26 · [NO_CURATION] (362df0a9)
 - ❌ MISSING [rule] “between fishing boundary signs situated approximately 200 m upstre” → —
@@ -37,7 +37,7 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 - • [rule] “from Hell's Gate to the confluence with the Thompson River” → fraser-river-158a53[curated]
 - • [rule] “upstream of the confluence with the Thompson River” → fraser-river-8e7fe6[curated]
 - • [rule] “between fishing boundary signs approximately 6.5 km downstream of ” → fraser-river-498f12[todo], fraser-river-8409b9-a[todo], fraser-river-8409b9-b[todo]
-- • [rule] “from the lower entrance of the fish ladder at Bridge River Rapids ” → fraser-river-7f0b9b-a[todo], fraser-river-7f0b9b-b[todo]
+- • [rule] “from the lower entrance of the fish ladder at Bridge River Rapids ” → fraser-river-7f0b9b-a[todo], fraser-river-7f0b9b-b[curated]
 - • [rule] “From Hwy 99 bridge at Lillooet downstream approximately 1.2 km to ” → fraser-river-b67b87-a[todo], fraser-river-b67b87-b[todo]
 - • [rule] “From the confluence with Thompson River to the CNR Bridge approxim” → fraser-river-74a44b-a[curated], fraser-river-74a44b-b[todo]
 - • [rule] “From the confluence with Thompson River to the CNR Bridge approxim” → fraser-river-74a44b-a[curated], fraser-river-74a44b-b[todo]
@@ -236,9 +236,9 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 
 ## ELK RIVER (upstream of Elko Dam) · MU ['4-2', '4-23'] · p38 · [INCOMPLETE] (e8ba6b4f)
 - • [water] “upstream of Elko Dam” → elk-river-upstream-of-elko-dam-8bedc5[curated]
-- • [rule] “from Lower Elk Lake to Forsyth Cr, from Line Creek Bridge to CPR B” → elk-river-upstream-of-elko-dam-e38cd2[todo]
+- • [rule] “from Lower Elk Lake to Forsyth Cr, from Line Creek Bridge to CPR B” → elk-river-upstream-of-elko-dam-e38cd2-cpr-bridge-sparwood[todo], elk-river-upstream-of-elko-dam-e38cd2-elko-dam[curated], elk-river-upstream-of-elko-dam-e38cd2-hwy3-bridge-fernie-n[todo], elk-river-upstream-of-elko-dam-e38cd2-hwy3-bridge-hosmer[todo], elk-river-upstream-of-elko-dam-e38cd2-line-creek-bridge[todo], elk-river-upstream-of-elko-dam-e38cd2-lower-elk-lake[not_applicable], elk-river-upstream-of-elko-dam-e38cd2-morrissey-bridge[todo]
 - • [rule] “All other parts” → elk-river-upstream-of-elko-dam-91575c[todo]
-- • [entry] “upstream of Elko Dam” → elk-river-upstream-of-elko-dam-8bedc5[curated]
+- • [entry] “upstream of Elko Dam” → elk-river-upstream-of-elko-dam-8bedc5[curated], elk-river-upstream-of-elko-dam-e38cd2-elko-dam[curated]
 
 ## JORDAN RIVER · MU ['4-39'] · p39 · [INCOMPLETE] (13b0444c)
 - • [rule] “upstream of Kirkup Creek” → jordan-river-390f59[curated], jordan-river-bc6d34[curated]
@@ -337,7 +337,7 @@ approximately 35 m downstream” → little-qualicum-river-031042-b[todo], littl
 
 ## BULKLEY RIVER · MU ['6-9'] · p56 · [INCOMPLETE] (d850b295)
 - • [rule] “upstream of Morice/Bulkley River confluence” → bulkley-river-e30268[curated]
-- • [rule] “from Morice River to CNR Bridge at Barrett” → bulkley-river-6f8ca4-a[curated], bulkley-river-6f8ca4-b[todo]
+- • [rule] “from Morice River to CNR Bridge at Barrett” → bulkley-river-6f8ca4-a[curated], bulkley-river-6f8ca4-b[curated]
 - • [rule] “in Moricetown Canyon or within 100 m downstream” → bulkley-river-fae480[todo]
 
 ## CROOKED RIVER · MU ['7-24'] · p65 · [INCOMPLETE] (823d2b21)
@@ -393,7 +393,7 @@ approximately 35 m downstream” → little-qualicum-river-031042-b[todo], littl
 
 ## CHEHALIS RIVER · MU ['2-19'] · p24 · [INCOMPLETE] (bb6d5fe5)
 - • [rule] “from boundary signs at outlet of Chehalis Lake to main logging roa” → chehalis-river-6a99b5-a[not_applicable], chehalis-river-6a99b5-b[todo]
-- • [rule] “downstream of the main logging road bridge situated approximately ” → chehalis-river-8cfa74[todo]
+- • [rule] “downstream of the main logging road bridge situated approximately ” → chehalis-river-8cfa74[curated]
 
 ## COQUITLAM RIVER · MU ['2-8'] · p25 · [INCOMPLETE] (f538c53d)
 - • [rule] “upstream of Mary Hill Bypass Bridge” → coquitlam-river-d7c017-b[todo], coquitlam-river-ef1688[todo]
@@ -768,6 +768,7 @@ approximately 35 m downstream” → little-qualicum-river-031042-b[todo], littl
 
 ## ⚠️ DRIFT — curated rows not found in the source (review)
 
+- `elk-river-upstream-of-elko-dam-e38cd2-forsyth-cr` [todo] ELK RIVER (upstream of Elko Dam) — src=rule “Forsyth Creek”
 - `lost-lake-near-taweel-lake-e49a1f` [not_applicable] LOST LAKE (near Taweel Lake) — src=entry “near Taweel Lake”
 - `lynn-creek-d5e0fb-a` [curated] LYNN CREEK — src=rule “sign approximately 200 m upstream of Twin Falls Br”
 - `lynn-creek-d5e0fb-b` [curated] LYNN CREEK — src=rule “sign approximately 150 m downstream of Twin Falls ”
