@@ -123,6 +123,8 @@ def trim_row(r: dict, water: str, mus, loc_text: str) -> dict:
             out[k] = r[k]
     if r.get("coord"):
         out["coord"] = r["coord"]
+    if r.get("offset"):  # {anchor:[lon,lat], anchor_label, m, dir} — preserves distance context for splits.json
+        out["offset"] = r["offset"]
     if r.get("target"):
         out["target"] = r["target"]
     if name_key(r.get("name_verbatim")) != name_key(water):
@@ -274,7 +276,7 @@ def build(curated=None):
 
 # fields that MUST round-trip grouped->flat (curation + identity); region/full_regulation are
 # metadata regenerated from source, so excluded from the verify.
-CUR_FIELDS = ("status", "anchor_kind", "resolver_hint", "coord", "target", "label", "notes",
+CUR_FIELDS = ("status", "anchor_kind", "resolver_hint", "coord", "offset", "target", "label", "notes",
               "name_verbatim", "mus", "src", "locator_text")
 
 
@@ -297,6 +299,8 @@ def flatten_curation(cards, drift):
                     "status": r["status"], "target": r.get("target", ""), "coord": r.get("coord"),
                     "label": r.get("label", ""), "notes": r.get("notes", ""), "entry_id": c["entry_id"],
                 }
+                if r.get("offset"):
+                    seen[r["id"]]["offset"] = r["offset"]
     for d in drift:
         if d["id"] not in seen and d.get("row"):
             seen[d["id"]] = d["row"]

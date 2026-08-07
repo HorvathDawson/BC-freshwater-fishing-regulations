@@ -9151,7 +9151,7 @@
       "image": "page_032_row_007.png",
       "symbols": [],
       "reg_text": "Exempt from spring closure upstream of Thompson River, except as noted below\n**No Fishing **for trout in Fraser River mainstem: downstream of Hell's Gate Sept 1-Nov 15, from Hell's Gate to the confluence with the\nThompson River from Oct 1-Nov 30, and upstream of the confluence with the Thompson River Oct 1-Oct 31\n**No Fishing** between fishing boundary signs approximately 6.5 km downstream of Boston Bar to signs 2.8 km downstream of\nHell's Gate\n**No Fishing** from the lower entrance of the fish ladder at Bridge River Rapids to the BC Railway Bridge approximately 2 km north of\nLillooet, Mar 31-June 20\nFrom Hwy 99 bridge at Lillooet downstream approximately 1.2 km to BC Hydro's tail race outflow channel: **No Fishing** Oct 1-May 31;\nFrom the confluence with Thompson River to the CNR Bridge approximately 1 km downstream: **No Fishing**, Oct 1-May 31; bait ban and no\nhooks greater than 15 mm from point to shank, Oct 1-Dec 31\n**No Fishing** for steelhead from the confluence with Spuzzum Creek (Region 3 boundary) to Hells Gate Aug 15-Dec 31\n**No Fishing** for steelhead from Hells Gate upstream to the Region 3 boundary Jan 1-Dec 31",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 13,
       "locators": [
         {
@@ -9208,22 +9208,40 @@
               "Sept 1-Nov 15"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "fraser-river-498f12",
-              "status": "todo",
-              "anchor_kind": "unclassified",
+              "status": "curated",
+              "anchor_kind": "point",
               "src": "rule",
-              "resolver_hint": "other_reach"
+              "resolver_hint": "other_reach",
+              "notes": "[curated 2026-08-07 manual-review batch=fraser/columbia]",
+              "coord": [
+                -121.44959,
+                49.77999
+              ]
             },
             {
               "id": "fraser-river-8409b9-b",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "boundary_signs",
-              "notes": "[structural-split 2026-08-05 from \"between fishing boundary signs approximately 6.5 km downstre\"] boundary=signs 2.8 km downstream of Hell's Gate",
+              "notes": "[structural-split 2026-08-05 from \"between fishing boundary signs approximately 6.5 km downstre\"] boundary=signs 2.8 km downstream of Hell's Gate [curated 2026-08-07 manual-review batch=fraser/columbia]",
+              "coord": [
+                -121.43329,
+                49.75922
+              ],
+              "offset": {
+                "anchor": [
+                  -121.44959,
+                  49.77999
+                ],
+                "anchor_label": "Hell's Gate",
+                "m": 2800,
+                "dir": "downstream"
+              },
               "locator_text": "signs 2.8 km downstream of Hell's Gate"
             }
           ]
@@ -9240,13 +9258,27 @@
           "resolved": true,
           "rows": [
             {
-              "id": "fraser-river-158a53",
+              "id": "fraser-river-158a53-a",
+              "status": "curated",
+              "anchor_kind": "point",
+              "src": "rule",
+              "resolver_hint": "tributary",
+              "label": "Hell's Gate",
+              "notes": "Confluence = mouth of Thompson River (blk 356364690); parent = Fraser River. Same confluence as fraser-river-65211d (already confirmed); different reg rule. OSM: https://www.openstreetmap.org/?mlat=50.23551&mlon=-121.58488#map=15/50.23551/-121.58488 [curated 2026-08-07 manual-review batch=fraser/columbia] [structural -a/-b split]",
+              "coord": [
+                -121.44959,
+                49.77999
+              ],
+              "locator_text": "from Hell's Gate"
+            },
+            {
+              "id": "fraser-river-158a53-b",
               "status": "curated",
               "anchor_kind": "confluence",
               "src": "rule",
               "resolver_hint": "tributary",
               "label": "Thompson River confluence",
-              "notes": "Confluence = mouth of Thompson River (blk 356364690); parent = Fraser River. Same confluence as fraser-river-65211d (already confirmed); different reg rule. OSM: https://www.openstreetmap.org/?mlat=50.23551&mlon=-121.58488#map=15/50.23551/-121.58488",
+              "notes": "Confluence = mouth of Thompson River (blk 356364690); parent = Fraser River. Same confluence as fraser-river-65211d (already confirmed); different reg rule. OSM: https://www.openstreetmap.org/?mlat=50.23551&mlon=-121.58488#map=15/50.23551/-121.58488 [curated 2026-08-07 manual-review batch=fraser/columbia] [structural -a/-b split]",
               "coord": [
                 -121.58488,
                 50.23551
@@ -9254,7 +9286,8 @@
               "target": {
                 "blk": "356364690",
                 "wsc": "100-190442-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
-              }
+              },
+              "locator_text": "the confluence with the Thompson River"
             }
           ]
         },
@@ -9269,6 +9302,24 @@
           },
           "resolved": true,
           "rows": [
+            {
+              "id": "fraser-river-158a53-b",
+              "status": "curated",
+              "anchor_kind": "confluence",
+              "src": "rule",
+              "resolver_hint": "tributary",
+              "label": "Thompson River confluence",
+              "notes": "Confluence = mouth of Thompson River (blk 356364690); parent = Fraser River. Same confluence as fraser-river-65211d (already confirmed); different reg rule. OSM: https://www.openstreetmap.org/?mlat=50.23551&mlon=-121.58488#map=15/50.23551/-121.58488 [curated 2026-08-07 manual-review batch=fraser/columbia] [structural -a/-b split]",
+              "coord": [
+                -121.58488,
+                50.23551
+              ],
+              "target": {
+                "blk": "356364690",
+                "wsc": "100-190442-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+              },
+              "locator_text": "the confluence with the Thompson River"
+            },
             {
               "id": "fraser-river-8e7fe6",
               "status": "curated",
@@ -9294,32 +9345,63 @@
           "info": {
             "restriction_type": "closure"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "fraser-river-498f12",
-              "status": "todo",
-              "anchor_kind": "unclassified",
+              "status": "curated",
+              "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "other_reach",
+              "notes": "[curated 2026-08-07 manual-review batch=fraser/columbia]",
+              "coord": [
+                -121.44959,
+                49.77999
+              ],
               "locator_text": "downstream of Hell's Gate"
             },
             {
               "id": "fraser-river-8409b9-a",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "boundary_signs",
-              "notes": "[structural-split 2026-08-05 from \"between fishing boundary signs approximately 6.5 km downstre\"] boundary=between fishing boundary signs approximately 6.5 km downstream of Boston Bar",
+              "notes": "[structural-split 2026-08-05 from \"between fishing boundary signs approximately 6.5 km downstre\"] boundary=between fishing boundary signs approximately 6.5 km downstream of Boston Bar [curated 2026-08-07 manual-review batch=fraser/columbia]",
+              "coord": [
+                -121.442,
+                49.81777
+              ],
+              "offset": {
+                "anchor": [
+                  -121.44775,
+                  49.86904
+                ],
+                "anchor_label": "Boston Bar",
+                "m": 6500,
+                "dir": "downstream"
+              },
               "locator_text": "between fishing boundary signs approximately 6.5 km downstream of Boston Bar"
             },
             {
               "id": "fraser-river-8409b9-b",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "boundary_signs",
-              "notes": "[structural-split 2026-08-05 from \"between fishing boundary signs approximately 6.5 km downstre\"] boundary=signs 2.8 km downstream of Hell's Gate",
+              "notes": "[structural-split 2026-08-05 from \"between fishing boundary signs approximately 6.5 km downstre\"] boundary=signs 2.8 km downstream of Hell's Gate [curated 2026-08-07 manual-review batch=fraser/columbia]",
+              "coord": [
+                -121.43329,
+                49.75922
+              ],
+              "offset": {
+                "anchor": [
+                  -121.44959,
+                  49.77999
+                ],
+                "anchor_label": "Hell's Gate",
+                "m": 2800,
+                "dir": "downstream"
+              },
               "locator_text": "signs 2.8 km downstream of Hell's Gate"
             }
           ]
@@ -9333,15 +9415,19 @@
               "Mar 31-June 20"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "fraser-river-7f0b9b-a",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] BC Railway Bridge ~2 km N of Lillooet (from Bridge River Rapids fish ladder) on Fraser River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the BC Rail bridge ~2 km N of Lillooet and the fish ladder at Bridge River Rapids; map.. Lower-entrance-of-fish-ladder-at-Bridge-River-Rapids to BC Rail bridge, near Lillooet. Both railway/infrastructure landmarks -> map/OSM-confirmable; not in FWA (FSR hits are 900+ km up the Fraser). [structural-split 2026-08-05 from “from the lower entrance of the fish ladder at Bridge River Rapids to the BC Railway Bridge approximately 2 km north of L”] boundary=lower entrance of the fish ladder at Bridge River Rapids",
+              "notes": "[auto-proposal L] BC Railway Bridge ~2 km N of Lillooet (from Bridge River Rapids fish ladder) on Fraser River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the BC Rail bridge ~2 km N of Lillooet and the fish ladder at Bridge River Rapids; map.. Lower-entrance-of-fish-ladder-at-Bridge-River-Rapids to BC Rail bridge, near Lillooet. Both railway/infrastructure landmarks -> map/OSM-confirmable; not in FWA (FSR hits are 900+ km up the Fraser). [structural-split 2026-08-05 from “from the lower entrance of the fish ladder at Bridge River Rapids to the BC Railway Bridge approximately 2 km north of L”] boundary=lower entrance of the fish ladder at Bridge River Rapids [curated 2026-08-07 manual-review batch=fraser/columbia]",
+              "coord": [
+                -121.93153,
+                50.75702
+              ],
               "locator_text": "lower entrance of the fish ladder at Bridge River Rapids"
             },
             {
@@ -9369,24 +9455,32 @@
               "Oct 1-May 31"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "fraser-river-b67b87-a",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] Hwy 99 bridge at Lillooet on Fraser River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the Hwy 99 bridge over the Fraser at Lillooet, and BC Hydro tailrace ~1.2 km downstream; review.. Reach = Hwy 99 bridge at Lillooet downstream ~1.2 km to BC Hydro's tailrace outflow. Public highway bridge -> map/OSM-confirmable. [structural-split 2026-08-05 from “From Hwy 99 bridge at Lillooet downstream approximately 1.2 km to BC Hydro's tail race outflow channel”] boundary=Hwy 99 bridge at Lillooet downstream approximately 1.2 km",
+              "notes": "[auto-proposal L] Hwy 99 bridge at Lillooet on Fraser River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the Hwy 99 bridge over the Fraser at Lillooet, and BC Hydro tailrace ~1.2 km downstream; review.. Reach = Hwy 99 bridge at Lillooet downstream ~1.2 km to BC Hydro's tailrace outflow. Public highway bridge -> map/OSM-confirmable. [structural-split 2026-08-05 from “From Hwy 99 bridge at Lillooet downstream approximately 1.2 km to BC Hydro's tail race outflow channel”] boundary=Hwy 99 bridge at Lillooet downstream approximately 1.2 km [curated 2026-08-07 manual-review batch=fraser/columbia]",
+              "coord": [
+                -121.92917,
+                50.68356
+              ],
               "locator_text": "Hwy 99 bridge at Lillooet downstream approximately 1.2 km"
             },
             {
               "id": "fraser-river-b67b87-b",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] Hwy 99 bridge at Lillooet on Fraser River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the Hwy 99 bridge over the Fraser at Lillooet, and BC Hydro tailrace ~1.2 km downstream; review.. Reach = Hwy 99 bridge at Lillooet downstream ~1.2 km to BC Hydro's tailrace outflow. Public highway bridge -> map/OSM-confirmable. [structural-split 2026-08-05 from “From Hwy 99 bridge at Lillooet downstream approximately 1.2 km to BC Hydro's tail race outflow channel”] boundary=BC Hydro's tail race outflow channel",
+              "notes": "[auto-proposal L] Hwy 99 bridge at Lillooet on Fraser River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the Hwy 99 bridge over the Fraser at Lillooet, and BC Hydro tailrace ~1.2 km downstream; review.. Reach = Hwy 99 bridge at Lillooet downstream ~1.2 km to BC Hydro's tailrace outflow. Public highway bridge -> map/OSM-confirmable. [structural-split 2026-08-05 from “From Hwy 99 bridge at Lillooet downstream approximately 1.2 km to BC Hydro's tail race outflow channel”] boundary=BC Hydro's tail race outflow channel [curated 2026-08-07 manual-review batch=fraser/columbia]",
+              "coord": [
+                -121.92047,
+                50.67235
+              ],
               "locator_text": "BC Hydro's tail race outflow channel"
             }
           ]
@@ -9535,7 +9629,7 @@
               "Aug 15-Dec 31"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "fraser-river-135734",
@@ -9556,20 +9650,24 @@
             },
             {
               "id": "fraser-river-aa3425-a",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "other_reach",
-              "notes": "[structural-split 2026-08-05 from \"from Hells Gate upstream to the Region 3 boundary\"] boundary=Hells Gate",
+              "notes": "[structural-split 2026-08-05 from \"from Hells Gate upstream to the Region 3 boundary\"] boundary=Hells Gate [curated 2026-08-07 manual-review batch=fraser/columbia]",
+              "coord": [
+                -121.44959,
+                49.77999
+              ],
               "locator_text": "Hells Gate"
             },
             {
               "id": "fraser-river-aa3425-b",
-              "status": "todo",
+              "status": "not_applicable",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "other_reach",
-              "notes": "[structural-split 2026-08-05 from \"from Hells Gate upstream to the Region 3 boundary\"] boundary=Region 3 boundary",
+              "notes": "[structural-split 2026-08-05 from \"from Hells Gate upstream to the Region 3 boundary\"] boundary=Region 3 boundary [n/a 2026-08-07 Region 3 boundary already handled by Fraser zone/section split]",
               "locator_text": "Region 3 boundary"
             }
           ]
@@ -9583,24 +9681,28 @@
               "Jan 1-Dec 31"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "fraser-river-aa3425-a",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "other_reach",
-              "notes": "[structural-split 2026-08-05 from \"from Hells Gate upstream to the Region 3 boundary\"] boundary=Hells Gate",
+              "notes": "[structural-split 2026-08-05 from \"from Hells Gate upstream to the Region 3 boundary\"] boundary=Hells Gate [curated 2026-08-07 manual-review batch=fraser/columbia]",
+              "coord": [
+                -121.44959,
+                49.77999
+              ],
               "locator_text": "Hells Gate"
             },
             {
               "id": "fraser-river-aa3425-b",
-              "status": "todo",
+              "status": "not_applicable",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "other_reach",
-              "notes": "[structural-split 2026-08-05 from \"from Hells Gate upstream to the Region 3 boundary\"] boundary=Region 3 boundary",
+              "notes": "[structural-split 2026-08-05 from \"from Hells Gate upstream to the Region 3 boundary\"] boundary=Region 3 boundary [n/a 2026-08-07 Region 3 boundary already handled by Fraser zone/section split]",
               "locator_text": "Region 3 boundary"
             }
           ]
@@ -12309,7 +12411,7 @@
       "image": "page_037_row_037.png",
       "symbols": [],
       "reg_text": "**No Fishing** from Revelstoke Dam downstream to Hwy 1 bridge in Revelstoke\n**No Fishing** from a line between the old Robson Ferry landing and a sign on the south river bank, downstream approximately 950 m to the\nCPR Bridge, Mar 1-June 30\nWhere angling is permitted: EXEMPT from the regional Nov 1-Mar 31 trout/char catch and release and the regional Apr 1-June 14 closure\nBass daily quota = unlimited\nKokanee daily quota = 15 from Keenleyside Dam to a line between the old Robson Ferry landing and a sign on the south river bank\nWalleye daily quota = 16 from Keenleyside Dam to the Washington state border\nFrom Keenleyside Dam downstream to the Washington state border and connected reaches: the Kootenay River (Columbia River\nconfluence to Brilliant Dam) and the Pend d'Oreille River (Columbia River confluence to Waneta Dam): Northern pike daily quota =\nunlimited and bass daily quota = unlimited\nBurbot catch and release\nSpeed restriction (10 km/h) from Mud Lake to Columbia Lake, no power boats in wetlands, no towing and engine power restriction -\n15 kW (20 hp), in main channel from Fairmont to Donald\nSee Upper Arrow Lake for the portion of the Columbia River which may be found downstream of the Hwy 1 bridge in Revelstoke\n(depending on reservoir level)",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 10,
       "locators": [
         {
@@ -12318,7 +12420,7 @@
           "info": {
             "restriction_type": "closure"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "columbia-river-67df30-a",
@@ -12336,11 +12438,15 @@
             },
             {
               "id": "columbia-river-67df30-b",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal H] Revelstoke Dam (Revelstoke Lake outlet) on Columbia River (Revelstoke Dam -> Hwy 1 bridge). Candidate coord [-118.19266, 51.04957]. OSM: https://www.openstreetmap.org/?mlat=51.04957&mlon=-118.19266#map=15/51.04957/-118.19266. Verify: Confirm cut at Revelstoke Dam (Revelstoke Lake outlet); downstream end = Hwy 1 bridge in Revelstoke.. Revelstoke Dam impounds Revelstoke Lake on the Columbia. Coord = FWA Columbia exit from Revelstoke Lake polygon; matches known Revelstoke Dam. Reach ends at the Hwy 1 bridge in Revelstoke. [structural-split 2026-08-05 from \"from Revelstoke Dam downstream to Hwy 1 bridge in Revelstoke\"] boundary=Hwy 1 bridge in Revelstoke [hint-fix 2026-08-06 dam_weir_fence->bridge_road_km]",
+              "notes": "[auto-proposal H] Revelstoke Dam (Revelstoke Lake outlet) on Columbia River (Revelstoke Dam -> Hwy 1 bridge). Candidate coord [-118.19266, 51.04957]. OSM: https://www.openstreetmap.org/?mlat=51.04957&mlon=-118.19266#map=15/51.04957/-118.19266. Verify: Confirm cut at Revelstoke Dam (Revelstoke Lake outlet); downstream end = Hwy 1 bridge in Revelstoke.. Revelstoke Dam impounds Revelstoke Lake on the Columbia. Coord = FWA Columbia exit from Revelstoke Lake polygon; matches known Revelstoke Dam. Reach ends at the Hwy 1 bridge in Revelstoke. [structural-split 2026-08-05 from \"from Revelstoke Dam downstream to Hwy 1 bridge in Revelstoke\"] boundary=Hwy 1 bridge in Revelstoke [hint-fix 2026-08-06 dam_weir_fence->bridge_road_km] [curated 2026-08-07 manual-review batch=fraser/columbia]",
+              "coord": [
+                -118.22037,
+                51.00615
+              ],
               "locator_text": "Hwy 1 bridge in Revelstoke"
             }
           ]
@@ -12354,32 +12460,43 @@
               "Mar 1-June 30"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "columbia-river-e8b414",
-              "status": "todo",
-              "anchor_kind": "line",
+              "status": "curated",
+              "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "between_signs",
+              "label": "CPR Bridge, Robson (OSM way 107497457)",
+              "notes": "[curated 2026-08-07 manual-review batch=fraser/columbia]",
+              "coord": [
+                -117.66309,
+                49.33045
+              ],
               "locator_text": "from a line between the old Robson Ferry landing and a sign on the south river bank, downstream approximately 950 m to t"
             },
             {
               "id": "columbia-river-f33298-a",
-              "status": "todo",
-              "anchor_kind": "point",
+              "status": "curated",
+              "anchor_kind": "line",
               "src": "rule",
               "resolver_hint": "between_signs",
-              "notes": "[structural-split 2026-08-05 from \"from Keenleyside Dam to a line between the old Robson Ferry \"] boundary=old Robson Ferry landing",
+              "label": "old Robson Ferry landing ↔ south-bank sign (cross-river line)",
+              "notes": "[structural-split 2026-08-05 from \"from Keenleyside Dam to a line between the old Robson Ferry \"] boundary=old Robson Ferry landing [curated 2026-08-07 manual-review batch=fraser/columbia]",
+              "coord": [
+                -117.67578,
+                49.33091
+              ],
               "locator_text": "old Robson Ferry landing"
             },
             {
               "id": "columbia-river-f33298-b",
-              "status": "todo",
+              "status": "not_applicable",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "boundary_signs",
-              "notes": "[structural-split 2026-08-05 from \"from Keenleyside Dam to a line between the old Robson Ferry \"] boundary=sign on the south river bank [hint-fix 2026-08-06 between_signs->boundary_signs]",
+              "notes": "[structural-split 2026-08-05 from \"from Keenleyside Dam to a line between the old Robson Ferry \"] boundary=sign on the south river bank [hint-fix 2026-08-06 between_signs->boundary_signs] [n/a 2026-08-07 part of the ferry-landing/sign line (f33298-a); not a separate boundary]",
               "locator_text": "sign on the south river bank"
             }
           ]
@@ -12390,7 +12507,7 @@
           "info": {
             "restriction_type": "harvest"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "columbia-river-3914af-a",
@@ -12408,20 +12525,25 @@
             },
             {
               "id": "columbia-river-f33298-a",
-              "status": "todo",
-              "anchor_kind": "point",
+              "status": "curated",
+              "anchor_kind": "line",
               "src": "rule",
               "resolver_hint": "between_signs",
-              "notes": "[structural-split 2026-08-05 from \"from Keenleyside Dam to a line between the old Robson Ferry \"] boundary=old Robson Ferry landing",
+              "label": "old Robson Ferry landing ↔ south-bank sign (cross-river line)",
+              "notes": "[structural-split 2026-08-05 from \"from Keenleyside Dam to a line between the old Robson Ferry \"] boundary=old Robson Ferry landing [curated 2026-08-07 manual-review batch=fraser/columbia]",
+              "coord": [
+                -117.67578,
+                49.33091
+              ],
               "locator_text": "old Robson Ferry landing"
             },
             {
               "id": "columbia-river-f33298-b",
-              "status": "todo",
+              "status": "not_applicable",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "boundary_signs",
-              "notes": "[structural-split 2026-08-05 from \"from Keenleyside Dam to a line between the old Robson Ferry \"] boundary=sign on the south river bank [hint-fix 2026-08-06 between_signs->boundary_signs]",
+              "notes": "[structural-split 2026-08-05 from \"from Keenleyside Dam to a line between the old Robson Ferry \"] boundary=sign on the south river bank [hint-fix 2026-08-06 between_signs->boundary_signs] [n/a 2026-08-07 part of the ferry-landing/sign line (f33298-a); not a separate boundary]",
               "locator_text": "sign on the south river bank"
             },
             {
@@ -12446,7 +12568,7 @@
           "info": {
             "restriction_type": "harvest"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "columbia-river-3914af-a",
@@ -12478,11 +12600,15 @@
             },
             {
               "id": "columbia-river-f4c5a3-b",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "dam_weir_fence",
-              "notes": "[auto-proposal H] Hugh Keenleyside Dam (Lower Arrow Lake outlet) on Columbia River (Keenleyside Dam -> WA border). Candidate coord [-117.77394, 49.34194]. OSM: https://www.openstreetmap.org/?mlat=49.34194&mlon=-117.77394#map=15/49.34194/-117.77394. Verify: Confirm cut at Keenleyside Dam (Lower Arrow Lake outlet); downstream end = Washington state border (auto border split).. Hugh Keenleyside Dam impounds the Arrow Lakes; coord = FWA Columbia exit from the Lower Arrow Lake polygon, matching the known dam near Castlegar. Reach runs to the US border. [structural-split 2026-08-05 from \"from Keenleyside Dam to the Washington state border\"] boundary=Washington state border",
+              "notes": "[auto-proposal H] Hugh Keenleyside Dam (Lower Arrow Lake outlet) on Columbia River (Keenleyside Dam -> WA border). Candidate coord [-117.77394, 49.34194]. OSM: https://www.openstreetmap.org/?mlat=49.34194&mlon=-117.77394#map=15/49.34194/-117.77394. Verify: Confirm cut at Keenleyside Dam (Lower Arrow Lake outlet); downstream end = Washington state border (auto border split).. Hugh Keenleyside Dam impounds the Arrow Lakes; coord = FWA Columbia exit from the Lower Arrow Lake polygon, matching the known dam near Castlegar. Reach runs to the US border. [structural-split 2026-08-05 from \"from Keenleyside Dam to the Washington state border\"] boundary=Washington state border [curated 2026-08-07 manual-review batch=fraser/columbia]",
+              "coord": [
+                -117.63219,
+                49.0004
+              ],
               "locator_text": "Washington state border"
             }
           ]
@@ -12493,7 +12619,7 @@
           "info": {
             "restriction_type": "harvest"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "columbia-river-3914af-a",
@@ -12543,11 +12669,15 @@
             },
             {
               "id": "columbia-river-f4c5a3-b",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "dam_weir_fence",
-              "notes": "[auto-proposal H] Hugh Keenleyside Dam (Lower Arrow Lake outlet) on Columbia River (Keenleyside Dam -> WA border). Candidate coord [-117.77394, 49.34194]. OSM: https://www.openstreetmap.org/?mlat=49.34194&mlon=-117.77394#map=15/49.34194/-117.77394. Verify: Confirm cut at Keenleyside Dam (Lower Arrow Lake outlet); downstream end = Washington state border (auto border split).. Hugh Keenleyside Dam impounds the Arrow Lakes; coord = FWA Columbia exit from the Lower Arrow Lake polygon, matching the known dam near Castlegar. Reach runs to the US border. [structural-split 2026-08-05 from \"from Keenleyside Dam to the Washington state border\"] boundary=Washington state border",
+              "notes": "[auto-proposal H] Hugh Keenleyside Dam (Lower Arrow Lake outlet) on Columbia River (Keenleyside Dam -> WA border). Candidate coord [-117.77394, 49.34194]. OSM: https://www.openstreetmap.org/?mlat=49.34194&mlon=-117.77394#map=15/49.34194/-117.77394. Verify: Confirm cut at Keenleyside Dam (Lower Arrow Lake outlet); downstream end = Washington state border (auto border split).. Hugh Keenleyside Dam impounds the Arrow Lakes; coord = FWA Columbia exit from the Lower Arrow Lake polygon, matching the known dam near Castlegar. Reach runs to the US border. [structural-split 2026-08-05 from \"from Keenleyside Dam to the Washington state border\"] boundary=Washington state border [curated 2026-08-07 manual-review batch=fraser/columbia]",
+              "coord": [
+                -117.63219,
+                49.0004
+              ],
               "locator_text": "Washington state border"
             }
           ]
@@ -12558,7 +12688,7 @@
           "info": {
             "restriction_type": "harvest"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "columbia-river-3914af-a",
@@ -12608,11 +12738,15 @@
             },
             {
               "id": "columbia-river-f4c5a3-b",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "dam_weir_fence",
-              "notes": "[auto-proposal H] Hugh Keenleyside Dam (Lower Arrow Lake outlet) on Columbia River (Keenleyside Dam -> WA border). Candidate coord [-117.77394, 49.34194]. OSM: https://www.openstreetmap.org/?mlat=49.34194&mlon=-117.77394#map=15/49.34194/-117.77394. Verify: Confirm cut at Keenleyside Dam (Lower Arrow Lake outlet); downstream end = Washington state border (auto border split).. Hugh Keenleyside Dam impounds the Arrow Lakes; coord = FWA Columbia exit from the Lower Arrow Lake polygon, matching the known dam near Castlegar. Reach runs to the US border. [structural-split 2026-08-05 from \"from Keenleyside Dam to the Washington state border\"] boundary=Washington state border",
+              "notes": "[auto-proposal H] Hugh Keenleyside Dam (Lower Arrow Lake outlet) on Columbia River (Keenleyside Dam -> WA border). Candidate coord [-117.77394, 49.34194]. OSM: https://www.openstreetmap.org/?mlat=49.34194&mlon=-117.77394#map=15/49.34194/-117.77394. Verify: Confirm cut at Keenleyside Dam (Lower Arrow Lake outlet); downstream end = Washington state border (auto border split).. Hugh Keenleyside Dam impounds the Arrow Lakes; coord = FWA Columbia exit from the Lower Arrow Lake polygon, matching the known dam near Castlegar. Reach runs to the US border. [structural-split 2026-08-05 from \"from Keenleyside Dam to the Washington state border\"] boundary=Washington state border [curated 2026-08-07 manual-review batch=fraser/columbia]",
+              "coord": [
+                -117.63219,
+                49.0004
+              ],
               "locator_text": "Washington state border"
             }
           ]
@@ -12641,14 +12775,15 @@
           "info": {
             "restriction_type": "vessel_restriction"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "columbia-river-b4045c",
-              "status": "todo",
+              "status": "not_applicable",
               "anchor_kind": "unclassified",
               "src": "rule",
-              "resolver_hint": "other_reach"
+              "resolver_hint": "other_reach",
+              "notes": "[n/a 2026-08-07 no-power-boat vessel restriction in wetlands; not a fishing boundary]"
             }
           ]
         },
@@ -12658,14 +12793,35 @@
           "info": {
             "restriction_type": "vessel_restriction"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
-              "id": "columbia-river-275f56",
-              "status": "todo",
-              "anchor_kind": "unclassified",
+              "id": "columbia-river-275f56-a",
+              "status": "curated",
+              "anchor_kind": "point",
               "src": "rule",
-              "resolver_hint": "other_reach"
+              "resolver_hint": "other_reach",
+              "label": "Fairmont (main channel)",
+              "notes": "[curated 2026-08-07 manual-review batch=fraser/columbia] [structural -a/-b split]",
+              "coord": [
+                -115.86442,
+                50.32402
+              ],
+              "locator_text": "from Fairmont"
+            },
+            {
+              "id": "columbia-river-275f56-b",
+              "status": "curated",
+              "anchor_kind": "point",
+              "src": "rule",
+              "resolver_hint": "other_reach",
+              "label": "Donald (main channel)",
+              "notes": "[curated 2026-08-07 manual-review batch=fraser/columbia] [structural -a/-b split]",
+              "coord": [
+                -117.1804,
+                51.48411
+              ],
+              "locator_text": "to Donald"
             }
           ]
         },
@@ -12675,14 +12831,35 @@
           "info": {
             "restriction_type": "vessel_restriction"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
-              "id": "columbia-river-275f56",
-              "status": "todo",
-              "anchor_kind": "unclassified",
+              "id": "columbia-river-275f56-a",
+              "status": "curated",
+              "anchor_kind": "point",
               "src": "rule",
-              "resolver_hint": "other_reach"
+              "resolver_hint": "other_reach",
+              "label": "Fairmont (main channel)",
+              "notes": "[curated 2026-08-07 manual-review batch=fraser/columbia] [structural -a/-b split]",
+              "coord": [
+                -115.86442,
+                50.32402
+              ],
+              "locator_text": "from Fairmont"
+            },
+            {
+              "id": "columbia-river-275f56-b",
+              "status": "curated",
+              "anchor_kind": "point",
+              "src": "rule",
+              "resolver_hint": "other_reach",
+              "label": "Donald (main channel)",
+              "notes": "[curated 2026-08-07 manual-review batch=fraser/columbia] [structural -a/-b split]",
+              "coord": [
+                -117.1804,
+                51.48411
+              ],
+              "locator_text": "to Donald"
             }
           ]
         },

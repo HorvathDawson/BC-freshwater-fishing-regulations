@@ -7,8 +7,8 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 |---|--:|
 | NO_CURATION | 1 |
 | MISSING_SPLITS | 2 |
-| INCOMPLETE | 171 |
-| COMPLETE | 138 |
+| INCOMPLETE | 169 |
+| COMPLETE | 140 |
 | NO_SPLIT | 75 |
 
 **Drift** (curated rows matching no source locator): 5
@@ -29,33 +29,6 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 ## NATION ARM (Williston Lake) · MU ['7-30'] · p66 · [MISSING_SPLITS] (afba43e9)
 - • [rule] “west of a line between two fishing boundary signs approximately 50” → nation-arm-williston-lake-d2e637[todo]
 - ❌ MISSING [rule] “west of a line between two fishing boundary signs approximately 50” → —
-
-## FRASER RIVER · MU ['3-14'] · p32 · [INCOMPLETE] (d32909fa)
-- • [rule] “upstream of Thompson River” → fraser-river-65211d[curated]
-- • [except] “except as noted below” → fraser-river-7c032d[not_applicable]
-- • [rule] “downstream of Hell's Gate” → fraser-river-498f12[todo], fraser-river-8409b9-b[todo]
-- • [rule] “from Hell's Gate to the confluence with the Thompson River” → fraser-river-158a53[curated]
-- • [rule] “upstream of the confluence with the Thompson River” → fraser-river-8e7fe6[curated]
-- • [rule] “between fishing boundary signs approximately 6.5 km downstream of ” → fraser-river-498f12[todo], fraser-river-8409b9-a[todo], fraser-river-8409b9-b[todo]
-- • [rule] “from the lower entrance of the fish ladder at Bridge River Rapids ” → fraser-river-7f0b9b-a[todo], fraser-river-7f0b9b-b[curated]
-- • [rule] “From Hwy 99 bridge at Lillooet downstream approximately 1.2 km to ” → fraser-river-b67b87-a[todo], fraser-river-b67b87-b[todo]
-- • [rule] “From the confluence with Thompson River to the CNR Bridge approxim” → fraser-river-74a44b-a[curated], fraser-river-74a44b-b[curated]
-- • [rule] “From the confluence with Thompson River to the CNR Bridge approxim” → fraser-river-74a44b-a[curated], fraser-river-74a44b-b[curated]
-- • [rule] “From the confluence with Thompson River to the CNR Bridge approxim” → fraser-river-74a44b-a[curated], fraser-river-74a44b-b[curated]
-- • [rule] “from the confluence with Spuzzum Creek (Region 3 boundary) to Hell” → fraser-river-135734[curated], fraser-river-aa3425-a[todo], fraser-river-aa3425-b[todo]
-- • [rule] “from Hells Gate upstream to the Region 3 boundary” → fraser-river-aa3425-a[todo], fraser-river-aa3425-b[todo]
-
-## COLUMBIA RIVER · MU ['4-8', '4-15', '4-26', '4-34', '4-38'] · p37 · [INCOMPLETE] (1f199dad)
-- • [rule] “from Revelstoke Dam downstream to Hwy 1 bridge in Revelstoke” → columbia-river-67df30-a[curated], columbia-river-67df30-b[todo]
-- • [rule] “from a line between the old Robson Ferry landing and a sign on the” → columbia-river-e8b414[todo], columbia-river-f33298-a[todo], columbia-river-f33298-b[todo]
-- • [rule] “from Keenleyside Dam to a line between the old Robson Ferry landin” → columbia-river-3914af-a[curated], columbia-river-f33298-a[todo], columbia-river-f33298-b[todo], columbia-river-f4c5a3-a[curated]
-- • [rule] “from Keenleyside Dam to the Washington state border” → columbia-river-3914af-a[curated], columbia-river-f4c5a3-a[curated], columbia-river-f4c5a3-b[todo]
-- • [rule] “From Keenleyside Dam downstream to the Washington state border and” → columbia-river-3914af-a[curated], columbia-river-3914af-b[curated], columbia-river-f4c5a3-a[curated], columbia-river-f4c5a3-b[todo]
-- • [rule] “From Keenleyside Dam downstream to the Washington state border and” → columbia-river-3914af-a[curated], columbia-river-3914af-b[curated], columbia-river-f4c5a3-a[curated], columbia-river-f4c5a3-b[todo]
-- • [rule] “from Mud Lake to Columbia Lake” → columbia-river-73fe32[not_applicable]
-- • [rule] “in wetlands” → columbia-river-b4045c[todo]
-- • [rule] “in main channel from Fairmont to Donald” → columbia-river-275f56[todo]
-- • [rule] “in main channel from Fairmont to Donald” → columbia-river-275f56[todo]
 
 ## CAMPBELL RIVER · MU ['1-10'] · p16 · [INCOMPLETE] (2d6a28ef)
 - • [rule] “between Elk Falls and John Hart Dam Power Station” → campbell-river-584665-a[curated], campbell-river-584665-b[curated], campbell-river-96d7aa-a[curated]
