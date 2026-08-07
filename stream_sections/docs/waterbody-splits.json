@@ -2156,14 +2156,15 @@
         {
           "src": "name",
           "text": "HEALY LAKE'S OUTLET STREAM",
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "healy-lake-s-outlet-stream-afd7d5",
-              "status": "todo",
+              "status": "not_applicable",
               "anchor_kind": "lake_io",
               "src": "name",
-              "resolver_hint": "inlet_outlet"
+              "resolver_hint": "inlet_outlet",
+              "notes": " [human-review 2026-08-06 n/a] whole outlet stream, no split."
             }
           ]
         }
@@ -7507,11 +7508,11 @@
           "rows": [
             {
               "id": "silverhope-silver-creek-13e1ec-a",
-              "status": "todo",
+              "status": "not_applicable",
               "anchor_kind": "lake",
               "src": "rule",
               "resolver_hint": "lake_reach",
-              "notes": "[auto-proposal L] Bailey Bridge over Silverhope Creek (~8 km above Hwy 1) on Silverhope (Silver) Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Bailey Bridge ~8 km up Silverhope Creek from Hwy 1 (Hope); map. FSR crossings found are 30+ km up (too far).. Reach = 'Silver Lake down to the Bailey Bridge ~8 km above Hwy 1'. Silverhope Creek enters the Fraser at Hope; the Bailey Bridge is ~8 km up. FWA FSR hits are 30+ km upstream (not this bridge). Map/OSM-confirmable. [structural-split 2026-08-05 from “from Silver Lake down to the Bailey Bridge situated approximately 8 km upstream of Hwy 1”] boundary=Silver Lake down",
+              "notes": "[auto-proposal L] Bailey Bridge over Silverhope Creek (~8 km above Hwy 1) on Silverhope (Silver) Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Bailey Bridge ~8 km up Silverhope Creek from Hwy 1 (Hope); map. FSR crossings found are 30+ km up (too far).. Reach = 'Silver Lake down to the Bailey Bridge ~8 km above Hwy 1'. Silverhope Creek enters the Fraser at Hope; the Bailey Bridge is ~8 km up. FWA FSR hits are 30+ km upstream (not this bridge). Map/OSM-confirmable. [structural-split 2026-08-05 from “from Silver Lake down to the Bailey Bridge situated approximately 8 km upstream of Hwy 1”] boundary=Silver Lake down [human-review 2026-08-06 n/a] auto lake-split (Silver Lake edge) handles it.",
               "locator_text": "Silver Lake down"
             },
             {
@@ -11313,15 +11314,15 @@
               "Oct 1-Dec 31"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "thompson-river-downstream-of-signs-at-kamloop-38fc02",
-              "status": "todo",
+              "status": "not_applicable",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "boundary_signs",
-              "notes": "[lake-class: mis_bucket] NOT a lake cut: boundary signs at Kamloops Lake outlet on the Thompson — a point.",
+              "notes": "[lake-class: mis_bucket] NOT a lake cut: boundary signs at Kamloops Lake outlet on the Thompson — a point. [human-review 2026-08-06 n/a] auto lake-split (Kamloops Lake edge) handles it.",
               "name_verbatim": "THOMPSON RIVER (downstream of signs at Kamloops Lake o"
             },
             {
@@ -11365,15 +11366,15 @@
               "Oct 1-Dec 31"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "thompson-river-downstream-of-signs-at-kamloop-38fc02",
-              "status": "todo",
+              "status": "not_applicable",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "boundary_signs",
-              "notes": "[lake-class: mis_bucket] NOT a lake cut: boundary signs at Kamloops Lake outlet on the Thompson — a point.",
+              "notes": "[lake-class: mis_bucket] NOT a lake cut: boundary signs at Kamloops Lake outlet on the Thompson — a point. [human-review 2026-08-06 n/a] auto lake-split (Kamloops Lake edge) handles it.",
               "name_verbatim": "THOMPSON RIVER (downstream of signs at Kamloops Lake o"
             },
             {
@@ -11411,15 +11412,15 @@
         {
           "src": "entry",
           "text": "downstream of signs at Kamloops Lake outlet to the confluence with Fraser River",
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "thompson-river-downstream-of-signs-at-kamloop-38fc02",
-              "status": "todo",
+              "status": "not_applicable",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "boundary_signs",
-              "notes": "[lake-class: mis_bucket] NOT a lake cut: boundary signs at Kamloops Lake outlet on the Thompson — a point.",
+              "notes": "[lake-class: mis_bucket] NOT a lake cut: boundary signs at Kamloops Lake outlet on the Thompson — a point. [human-review 2026-08-06 n/a] auto lake-split (Kamloops Lake edge) handles it.",
               "name_verbatim": "THOMPSON RIVER (downstream of signs at Kamloops Lake o",
               "locator_text": "Downstream of signs at Kamloops Lake"
             },
@@ -22908,14 +22909,15 @@
         {
           "src": "name",
           "text": "TATSATUA CREEK (formerly known as Tatsamenie Lake's outlet streams)",
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "tatsatua-creek-formerly-known-as-tatsamenie-l-0e9bf6",
-              "status": "todo",
+              "status": "not_applicable",
               "anchor_kind": "lake_io",
               "src": "name",
               "resolver_hint": "inlet_outlet",
+              "notes": " [human-review 2026-08-06 n/a] name variation, not a split.",
               "name_verbatim": "TATSATUA CREEK (formerly known as Tatsamenie Lake's ou",
               "locator_text": "formerly known as Tatsamenie Lake's outlet streams"
             }

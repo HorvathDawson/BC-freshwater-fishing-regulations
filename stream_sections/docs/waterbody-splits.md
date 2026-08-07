@@ -93,9 +93,9 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 - • [rule] “from the CNR Bridge downstream of Deadman River to CNR Bridge upst” → thompson-river-downstream-of-signs-at-kamloop-1db152-a[todo], thompson-river-downstream-of-signs-at-kamloop-1db152-b[todo]
 - • [rule] “from the CNR Bridge downstream of Deadman River to CNR Bridge upst” → thompson-river-downstream-of-signs-at-kamloop-1db152-a[todo], thompson-river-downstream-of-signs-at-kamloop-1db152-b[todo]
 - • [rule] “Upstream of boundary signs 1 km downstream of Martel” → thompson-river-downstream-of-signs-at-kamloop-1c9ce3[todo]
-- • [rule] “Downstream of signs at Kamloops Lake” → thompson-river-downstream-of-signs-at-kamloop-38fc02[todo], thompson-river-downstream-of-signs-at-kamloop-bc221e-a[not_applicable], thompson-river-downstream-of-signs-at-kamloop-bc221e-b[curated]
-- • [rule] “Downstream of signs at Kamloops Lake” → thompson-river-downstream-of-signs-at-kamloop-38fc02[todo], thompson-river-downstream-of-signs-at-kamloop-bc221e-a[not_applicable], thompson-river-downstream-of-signs-at-kamloop-bc221e-b[curated]
-- • [entry] “downstream of signs at Kamloops Lake outlet to the confluence with” → thompson-river-downstream-of-signs-at-kamloop-38fc02[todo], thompson-river-downstream-of-signs-at-kamloop-bc221e-a[not_applicable], thompson-river-downstream-of-signs-at-kamloop-bc221e-b[curated]
+- • [rule] “Downstream of signs at Kamloops Lake” → thompson-river-downstream-of-signs-at-kamloop-38fc02[not_applicable], thompson-river-downstream-of-signs-at-kamloop-bc221e-a[not_applicable], thompson-river-downstream-of-signs-at-kamloop-bc221e-b[curated]
+- • [rule] “Downstream of signs at Kamloops Lake” → thompson-river-downstream-of-signs-at-kamloop-38fc02[not_applicable], thompson-river-downstream-of-signs-at-kamloop-bc221e-a[not_applicable], thompson-river-downstream-of-signs-at-kamloop-bc221e-b[curated]
+- • [entry] “downstream of signs at Kamloops Lake outlet to the confluence with” → thompson-river-downstream-of-signs-at-kamloop-38fc02[not_applicable], thompson-river-downstream-of-signs-at-kamloop-bc221e-a[not_applicable], thompson-river-downstream-of-signs-at-kamloop-bc221e-b[curated]
 
 ## KOOTENAY RIVER (downstream of Idaho border) · MU ['4-7', '4-8'] · p39 · [INCOMPLETE] (32b0f4bc)
 - • [water] “downstream of Idaho border” → kootenay-river-downstream-of-idaho-border-6189d1[curated]
@@ -162,7 +162,7 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 - • [rule] “upstream of Silver Lake” → silverhope-silver-creek-015132[not_applicable]
 - • [rule] “upstream of Silver Lake” → silverhope-silver-creek-015132[not_applicable]
 - • [rule] “upstream of Silver Lake” → silverhope-silver-creek-015132[not_applicable]
-- • [rule] “from Silver Lake down to the Bailey Bridge situated approximately ” → silverhope-silver-creek-13e1ec-a[todo], silverhope-silver-creek-13e1ec-b[todo]
+- • [rule] “from Silver Lake down to the Bailey Bridge situated approximately ” → silverhope-silver-creek-13e1ec-a[not_applicable], silverhope-silver-creek-13e1ec-b[todo]
 - • [rule] “downstream of Bailey Bridge situated approximately 8 km upstream o” → silverhope-silver-creek-13e1ec-b[todo], silverhope-silver-creek-65b21a[todo]
 
 ## CLEARWATER RIVER · MU ['3-40', '3-46'] · p31 · [INCOMPLETE] (2e5c3843)
