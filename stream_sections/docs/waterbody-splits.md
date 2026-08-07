@@ -371,7 +371,7 @@ approximately 35 m downstream” → little-qualicum-river-031042-b[todo], littl
 - • [rule] “from the upper hatchery weir (located 125 m downstream of the E&N ” → qualicum-river-3b22d1-a[todo], qualicum-river-3b22d1-b[todo]
 
 ## QUINSAM RIVER · MU ['1-6'] · p20 · [INCOMPLETE] (04a9a77c)
-- • [rule] “from the fishing boundary signs at power line crossing (approximat” → quinsam-river-014fa9-b[curated], quinsam-river-c440f0-a[todo], quinsam-river-c440f0-b[todo]
+- • [rule] “from the fishing boundary signs at power line crossing (approximat” → quinsam-river-014fa9-b[curated], quinsam-river-c440f0-a[curated], quinsam-river-c440f0-b[todo]
 - • [rule] “from the falls situated downstream of Middle Quinsam Lake to the f” → quinsam-river-014fa9-a[todo], quinsam-river-014fa9-b[curated], quinsam-river-c440f0-b[todo]
 
 ## TOQUART RIVER · MU ['1-8'] · p21 · [INCOMPLETE] (492dbcc9)

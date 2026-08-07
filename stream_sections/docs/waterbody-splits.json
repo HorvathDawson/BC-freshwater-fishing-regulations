@@ -3595,11 +3595,16 @@
             },
             {
               "id": "quinsam-river-c440f0-a",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "dam_weir_fence",
-              "notes": "[auto-proposal L] Power-line crossing ~25 m above Quinsam Hatchery weir on Quinsam River (at hatchery). Candidate coord [-125.2941, 50.0379]. OSM: https://www.openstreetmap.org/?mlat=50.03790&mlon=-125.29410#map=15/50.03790/-125.29410. Verify: Locate the Quinsam Hatchery weir and the power-line crossing ~25 m upstream; candidate is the FWA mouth reference.. Closure from signs at a power-line crossing (~25 m above the Quinsam Hatchery weir) to further fishing signs. Hatchery/weir not in FWA; candidate = FWA Quinsam River mouth [-125.294,50.038] - the hatchery is a short way up. Verify on map. [structural-split 2026-08-05 from \"from the fishing boundary signs at power line crossing (appr\"] boundary=fishing boundary signs at power line crossing (approximately 25 m upstream of Quinsam Hatchery weir)",
+              "label": "signs at power line / hatchery weir",
+              "notes": "[auto-proposal L] Power-line crossing ~25 m above Quinsam Hatchery weir on Quinsam River (at hatchery). Candidate coord [-125.2941, 50.0379]. OSM: https://www.openstreetmap.org/?mlat=50.03790&mlon=-125.29410#map=15/50.03790/-125.29410. Verify: Locate the Quinsam Hatchery weir and the power-line crossing ~25 m upstream; candidate is the FWA mouth reference.. Closure from signs at a power-line crossing (~25 m above the Quinsam Hatchery weir) to further fishing signs. Hatchery/weir not in FWA; candidate = FWA Quinsam River mouth [-125.294,50.038] - the hatchery is a short way up. Verify on map. [structural-split 2026-08-05 from \"from the fishing boundary signs at power line crossing (appr\"] boundary=fishing boundary signs at power line crossing (approximately 25 m upstream of Quinsam Hatchery weir) [human-review 2026-08-06] #3 (same boundary as sibling).",
+              "coord": [
+                -125.30282,
+                50.01388
+              ],
               "locator_text": "fishing boundary signs at power line crossing (approximately 25 m upstream of Quinsam Hatchery weir)"
             },
             {
@@ -11602,14 +11607,15 @@
         {
           "src": "name",
           "text": "TROUT CREEK (Wells Gray Park)",
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "trout-creek-wells-gray-park-bac1f0",
-              "status": "todo",
+              "status": "not_applicable",
               "anchor_kind": "unclassified",
               "src": "name",
               "resolver_hint": "other_reach",
+              "notes": " [human-review 2026-08-06 n/a] (Wells Gray Park) disambiguates which Trout Creek; not a split.",
               "locator_text": "Wells Gray Park"
             }
           ]
@@ -17338,14 +17344,15 @@
         {
           "src": "name",
           "text": "WHITETAIL LAKE",
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "whitetail-lake-s-inlet-outlet-streams-e361cc",
-              "status": "todo",
+              "status": "not_applicable",
               "anchor_kind": "lake_io",
               "src": "name",
               "resolver_hint": "inlet_outlet",
+              "notes": " [human-review 2026-08-06 n/a] whole inlet/outlet streams, no split.",
               "name_verbatim": "WHITETAIL LAKE'S INLET & OUTLET STREAMS",
               "locator_text": "WHITETAIL LAKE'S INLET & OUTLET STREAMS"
             }
@@ -17370,14 +17377,15 @@
         {
           "src": "name",
           "text": "WHITETAIL LAKE'S INLET & OUTLET STREAMS",
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "whitetail-lake-s-inlet-outlet-streams-e361cc",
-              "status": "todo",
+              "status": "not_applicable",
               "anchor_kind": "lake_io",
               "src": "name",
-              "resolver_hint": "inlet_outlet"
+              "resolver_hint": "inlet_outlet",
+              "notes": " [human-review 2026-08-06 n/a] whole inlet/outlet streams, no split."
             }
           ]
         }
