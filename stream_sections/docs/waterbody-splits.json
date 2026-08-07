@@ -9383,7 +9383,7 @@
               "Oct 1-May 31"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "fraser-river-74a44b-a",
@@ -9405,11 +9405,16 @@
             },
             {
               "id": "fraser-river-74a44b-b",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] CNR Bridge ~1 km below Thompson confluence (Lytton) on Fraser River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the CNR bridge ~1 km below the Thompson-Fraser confluence at Lytton; railway bridge, map.. Reach = Thompson River confluence (Lytton) to the CNR bridge ~1 km downstream. Confluence + railway bridge -> map/OSM-confirmable. [structural-split 2026-08-05 from “From the confluence with Thompson River to the CNR Bridge approximately 1 km downstream”] boundary=CNR Bridge approximately 1 km downstream [osm-candidate 2026-08-05] [-121.58507, 50.22424]; [-121.58101, 50.15131] (OSM Overpass ∩ MU-clipped FWA river; VERIFY).",
+              "label": "CNR bridge ~1km below Thompson confluence",
+              "notes": "[auto-proposal L] CNR Bridge ~1 km below Thompson confluence (Lytton) on Fraser River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the CNR bridge ~1 km below the Thompson-Fraser confluence at Lytton; railway bridge, map.. Reach = Thompson River confluence (Lytton) to the CNR bridge ~1 km downstream. Confluence + railway bridge -> map/OSM-confirmable. [structural-split 2026-08-05 from “From the confluence with Thompson River to the CNR Bridge approximately 1 km downstream”] boundary=CNR Bridge approximately 1 km downstream [human-review 2026-08-06] CNR bridge ~1km below Thompson confluence (user-located).",
+              "coord": [
+                -121.58507,
+                50.22424
+              ],
               "locator_text": "CNR Bridge approximately 1 km downstream"
             }
           ]
@@ -9423,7 +9428,7 @@
               "Oct 1-Dec 31"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "fraser-river-74a44b-a",
@@ -9445,11 +9450,16 @@
             },
             {
               "id": "fraser-river-74a44b-b",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] CNR Bridge ~1 km below Thompson confluence (Lytton) on Fraser River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the CNR bridge ~1 km below the Thompson-Fraser confluence at Lytton; railway bridge, map.. Reach = Thompson River confluence (Lytton) to the CNR bridge ~1 km downstream. Confluence + railway bridge -> map/OSM-confirmable. [structural-split 2026-08-05 from “From the confluence with Thompson River to the CNR Bridge approximately 1 km downstream”] boundary=CNR Bridge approximately 1 km downstream [osm-candidate 2026-08-05] [-121.58507, 50.22424]; [-121.58101, 50.15131] (OSM Overpass ∩ MU-clipped FWA river; VERIFY).",
+              "label": "CNR bridge ~1km below Thompson confluence",
+              "notes": "[auto-proposal L] CNR Bridge ~1 km below Thompson confluence (Lytton) on Fraser River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the CNR bridge ~1 km below the Thompson-Fraser confluence at Lytton; railway bridge, map.. Reach = Thompson River confluence (Lytton) to the CNR bridge ~1 km downstream. Confluence + railway bridge -> map/OSM-confirmable. [structural-split 2026-08-05 from “From the confluence with Thompson River to the CNR Bridge approximately 1 km downstream”] boundary=CNR Bridge approximately 1 km downstream [human-review 2026-08-06] CNR bridge ~1km below Thompson confluence (user-located).",
+              "coord": [
+                -121.58507,
+                50.22424
+              ],
               "locator_text": "CNR Bridge approximately 1 km downstream"
             }
           ]
@@ -9463,7 +9473,7 @@
               "Oct 1-Dec 31"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "fraser-river-74a44b-a",
@@ -9485,11 +9495,16 @@
             },
             {
               "id": "fraser-river-74a44b-b",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] CNR Bridge ~1 km below Thompson confluence (Lytton) on Fraser River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the CNR bridge ~1 km below the Thompson-Fraser confluence at Lytton; railway bridge, map.. Reach = Thompson River confluence (Lytton) to the CNR bridge ~1 km downstream. Confluence + railway bridge -> map/OSM-confirmable. [structural-split 2026-08-05 from “From the confluence with Thompson River to the CNR Bridge approximately 1 km downstream”] boundary=CNR Bridge approximately 1 km downstream [osm-candidate 2026-08-05] [-121.58507, 50.22424]; [-121.58101, 50.15131] (OSM Overpass ∩ MU-clipped FWA river; VERIFY).",
+              "label": "CNR bridge ~1km below Thompson confluence",
+              "notes": "[auto-proposal L] CNR Bridge ~1 km below Thompson confluence (Lytton) on Fraser River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the CNR bridge ~1 km below the Thompson-Fraser confluence at Lytton; railway bridge, map.. Reach = Thompson River confluence (Lytton) to the CNR bridge ~1 km downstream. Confluence + railway bridge -> map/OSM-confirmable. [structural-split 2026-08-05 from “From the confluence with Thompson River to the CNR Bridge approximately 1 km downstream”] boundary=CNR Bridge approximately 1 km downstream [human-review 2026-08-06] CNR bridge ~1km below Thompson confluence (user-located).",
+              "coord": [
+                -121.58507,
+                50.22424
+              ],
               "locator_text": "CNR Bridge approximately 1 km downstream"
             }
           ]
@@ -15463,7 +15478,7 @@
       "image": "page_040_row_024.png",
       "symbols": [],
       "reg_text": "Trout/char catch and release downstream of Premier Lake Bridge crossing, June 15- Oct 31\nTrout/char daily quota = 2 (none under 30 cm) between Premier Lake Bridge crossing and Mutton Creek, June 15-Oct 31\nBait ban downstream of Mutton Creek, June 15-Mar 31",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 3,
       "locators": [
         {
@@ -15475,23 +15490,33 @@
               "June 15- Oct 31"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "lussier-river-6b768f",
-              "status": "todo",
-              "anchor_kind": "lake",
+              "status": "curated",
+              "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "lake_reach",
-              "notes": "[auto-proposal L] Premier Lake Bridge crossing over Lussier River on Lussier River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Premier Lake (road) bridge over the Lussier River (near Premier Lake PP); map.. Reg = 'downstream of Premier Lake Bridge crossing'. Road bridge near the Premier Lake turnoff on the lower Lussier; the FWA FSR hits are all high upstream (White-Lussier etc). Map/OSM-confirmable. [structural-reclass 2026-08-05 → lake]"
+              "label": "Premier Lake road bridge",
+              "notes": "[auto-proposal L] Premier Lake Bridge crossing over Lussier River on Lussier River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Premier Lake (road) bridge over the Lussier River (near Premier Lake PP); map.. Reg = 'downstream of Premier Lake Bridge crossing'. Road bridge near the Premier Lake turnoff on the lower Lussier; the FWA FSR hits are all high upstream (White-Lussier etc). Map/OSM-confirmable. [structural-reclass 2026-08-05 → lake] [human-review 2026-08-06] Premier Lake road bridge (user-located).",
+              "coord": [
+                -115.671023,
+                49.960111
+              ]
             },
             {
               "id": "lussier-river-ccddb4-a",
-              "status": "todo",
-              "anchor_kind": "lake",
+              "status": "curated",
+              "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] Premier Lake Bridge crossing & Mutton Creek on Lussier River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Premier Lake Bridge and the Mutton Creek confluence on the Lussier; map.. Reach = 'Premier Lake Bridge crossing to Mutton Creek'. Road bridge + tributary confluence; the bridge is not name-matched in FSR. Map/OSM-confirmable. [structural-split 2026-08-05 from “between Premier Lake Bridge crossing and Mutton Creek”] boundary=Premier Lake Bridge crossing [hint-fix 2026-08-06 lake_reach->bridge_road_km]",
+              "label": "Premier Lake road bridge",
+              "notes": "[auto-proposal L] Premier Lake Bridge crossing & Mutton Creek on Lussier River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Premier Lake Bridge and the Mutton Creek confluence on the Lussier; map.. Reach = 'Premier Lake Bridge crossing to Mutton Creek'. Road bridge + tributary confluence; the bridge is not name-matched in FSR. Map/OSM-confirmable. [structural-split 2026-08-05 from “between Premier Lake Bridge crossing and Mutton Creek”] boundary=Premier Lake Bridge crossing [hint-fix 2026-08-06 lake_reach->bridge_road_km] [human-review 2026-08-06] Premier Lake road bridge (user-located).",
+              "coord": [
+                -115.671023,
+                49.960111
+              ],
               "locator_text": "Premier Lake Bridge crossing"
             }
           ]
@@ -15505,15 +15530,20 @@
               "June 15-Oct 31"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "lussier-river-ccddb4-a",
-              "status": "todo",
-              "anchor_kind": "lake",
+              "status": "curated",
+              "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] Premier Lake Bridge crossing & Mutton Creek on Lussier River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Premier Lake Bridge and the Mutton Creek confluence on the Lussier; map.. Reach = 'Premier Lake Bridge crossing to Mutton Creek'. Road bridge + tributary confluence; the bridge is not name-matched in FSR. Map/OSM-confirmable. [structural-split 2026-08-05 from “between Premier Lake Bridge crossing and Mutton Creek”] boundary=Premier Lake Bridge crossing [hint-fix 2026-08-06 lake_reach->bridge_road_km]",
+              "label": "Premier Lake road bridge",
+              "notes": "[auto-proposal L] Premier Lake Bridge crossing & Mutton Creek on Lussier River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Premier Lake Bridge and the Mutton Creek confluence on the Lussier; map.. Reach = 'Premier Lake Bridge crossing to Mutton Creek'. Road bridge + tributary confluence; the bridge is not name-matched in FSR. Map/OSM-confirmable. [structural-split 2026-08-05 from “between Premier Lake Bridge crossing and Mutton Creek”] boundary=Premier Lake Bridge crossing [hint-fix 2026-08-06 lake_reach->bridge_road_km] [human-review 2026-08-06] Premier Lake road bridge (user-located).",
+              "coord": [
+                -115.671023,
+                49.960111
+              ],
               "locator_text": "Premier Lake Bridge crossing"
             },
             {
@@ -15771,11 +15801,16 @@
           "rows": [
             {
               "id": "moyie-river-53143e-a",
-              "status": "todo",
-              "anchor_kind": "lake",
+              "status": "curated",
+              "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] bridge at south end of Moyie Lake (to U.S. border) on Moyie River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the road bridge at the south end of Moyie Lake (Hwy 3/95 corridor); map.. Reach = 'bridge at south end of Moyie Lake to U.S. border'. Road bridge at the Moyie Lake outlet near Moyie townsite; not name-matched in FSR. Map/OSM-confirmable. [structural-split 2026-08-05 from “from bridge at south end of Moyie Lake to U.S. border”] boundary=bridge at south end of Moyie Lake [hint-fix 2026-08-06 lake_reach->bridge_road_km]",
+              "label": "bridge at south end of Moyie Lake",
+              "notes": "[auto-proposal L] bridge at south end of Moyie Lake (to U.S. border) on Moyie River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the road bridge at the south end of Moyie Lake (Hwy 3/95 corridor); map.. Reach = 'bridge at south end of Moyie Lake to U.S. border'. Road bridge at the Moyie Lake outlet near Moyie townsite; not name-matched in FSR. Map/OSM-confirmable. [structural-split 2026-08-05 from “from bridge at south end of Moyie Lake to U.S. border”] boundary=bridge at south end of Moyie Lake [hint-fix 2026-08-06 lake_reach->bridge_road_km] [human-review 2026-08-06] bridge at south end of Moyie Lake (user-located).",
+              "coord": [
+                -115.83959,
+                49.31193
+              ],
               "locator_text": "bridge at south end of Moyie Lake"
             },
             {

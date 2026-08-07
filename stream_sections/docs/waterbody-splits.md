@@ -7,8 +7,8 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 |---|--:|
 | NO_CURATION | 1 |
 | MISSING_SPLITS | 2 |
-| INCOMPLETE | 173 |
-| COMPLETE | 136 |
+| INCOMPLETE | 172 |
+| COMPLETE | 137 |
 | NO_SPLIT | 75 |
 
 **Drift** (curated rows matching no source locator): 5
@@ -39,9 +39,9 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 - • [rule] “between fishing boundary signs approximately 6.5 km downstream of ” → fraser-river-498f12[todo], fraser-river-8409b9-a[todo], fraser-river-8409b9-b[todo]
 - • [rule] “from the lower entrance of the fish ladder at Bridge River Rapids ” → fraser-river-7f0b9b-a[todo], fraser-river-7f0b9b-b[curated]
 - • [rule] “From Hwy 99 bridge at Lillooet downstream approximately 1.2 km to ” → fraser-river-b67b87-a[todo], fraser-river-b67b87-b[todo]
-- • [rule] “From the confluence with Thompson River to the CNR Bridge approxim” → fraser-river-74a44b-a[curated], fraser-river-74a44b-b[todo]
-- • [rule] “From the confluence with Thompson River to the CNR Bridge approxim” → fraser-river-74a44b-a[curated], fraser-river-74a44b-b[todo]
-- • [rule] “From the confluence with Thompson River to the CNR Bridge approxim” → fraser-river-74a44b-a[curated], fraser-river-74a44b-b[todo]
+- • [rule] “From the confluence with Thompson River to the CNR Bridge approxim” → fraser-river-74a44b-a[curated], fraser-river-74a44b-b[curated]
+- • [rule] “From the confluence with Thompson River to the CNR Bridge approxim” → fraser-river-74a44b-a[curated], fraser-river-74a44b-b[curated]
+- • [rule] “From the confluence with Thompson River to the CNR Bridge approxim” → fraser-river-74a44b-a[curated], fraser-river-74a44b-b[curated]
 - • [rule] “from the confluence with Spuzzum Creek (Region 3 boundary) to Hell” → fraser-river-135734[curated], fraser-river-aa3425-a[todo], fraser-river-aa3425-b[todo]
 - • [rule] “from Hells Gate upstream to the Region 3 boundary” → fraser-river-aa3425-a[todo], fraser-river-aa3425-b[todo]
 
@@ -315,11 +315,6 @@ approximately 35 m downstream” → little-qualicum-river-031042-b[todo], littl
 - • [rule] “other parts” → findlay-creek-405247[not_applicable]
 - • [except] “except Lavington Creek” → findlay-creek-1b3bee[not_applicable]
 
-## LUSSIER RIVER · MU ['4-21'] · p40 · [INCOMPLETE] (6cee42e9)
-- • [rule] “downstream of Premier Lake Bridge crossing” → lussier-river-6b768f[todo], lussier-river-ccddb4-a[todo]
-- • [rule] “between Premier Lake Bridge crossing and Mutton Creek” → lussier-river-ccddb4-a[todo], lussier-river-ccddb4-b[curated]
-- • [rule] “downstream of Mutton Creek” → lussier-river-3bb9f4[curated], lussier-river-ccddb4-b[curated]
-
 ## PREMIER LAKE · MU ['4-21'] · p41 · [INCOMPLETE] (1ec727fd)
 - • [rule] “south of fishing boundary signs on the lake shore” → premier-lake-895b0d[deferred]
 - • [rule] “south half only” → premier-lake-d21697[todo]
@@ -457,7 +452,7 @@ approximately 35 m downstream” → little-qualicum-river-031042-b[todo], littl
 
 ## MOYIE RIVER · MU ['4-5'] · p40 · [INCOMPLETE] (7772faef)
 - • [rule] “Irishman Creek (Moyie River tributary)” → moyie-river-a098eb[not_applicable]
-- • [rule] “from bridge at south end of Moyie Lake to U.S. border” → moyie-river-53143e-a[todo], moyie-river-53143e-b[todo]
+- • [rule] “from bridge at south end of Moyie Lake to U.S. border” → moyie-river-53143e-a[curated], moyie-river-53143e-b[todo]
 
 ## SAND CREEK (downstream of Hwy 3) · MU ['4-22'] · p41 · [INCOMPLETE] (bb1b228a)
 - • [water] “downstream of Hwy 3” → sand-creek-downstream-of-hwy-3-6962b3[todo]
