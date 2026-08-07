@@ -7,8 +7,8 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 |---|--:|
 | NO_CURATION | 1 |
 | MISSING_SPLITS | 2 |
-| INCOMPLETE | 172 |
-| COMPLETE | 137 |
+| INCOMPLETE | 171 |
+| COMPLETE | 138 |
 | NO_SPLIT | 75 |
 
 **Drift** (curated rows matching no source locator): 5
@@ -89,9 +89,9 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 
 ## THOMPSON RIVER (downstream of signs at Kamloops Lake outlet to the confluence with Fraser River) · MU ['3-13', '3-14', '3-18'] · p34 · [INCOMPLETE] (bea6153a)
 - • [water] “downstream of signs at Kamloops Lake outlet to the confluence with” → thompson-river-downstream-of-signs-at-kamloop-bc221e-a[not_applicable], thompson-river-downstream-of-signs-at-kamloop-bc221e-b[curated]
-- • [rule] “from the CNR Bridge downstream of Deadman River to CNR Bridge upst” → thompson-river-downstream-of-signs-at-kamloop-1db152-a[todo], thompson-river-downstream-of-signs-at-kamloop-1db152-b[todo]
-- • [rule] “from the CNR Bridge downstream of Deadman River to CNR Bridge upst” → thompson-river-downstream-of-signs-at-kamloop-1db152-a[todo], thompson-river-downstream-of-signs-at-kamloop-1db152-b[todo]
-- • [rule] “from the CNR Bridge downstream of Deadman River to CNR Bridge upst” → thompson-river-downstream-of-signs-at-kamloop-1db152-a[todo], thompson-river-downstream-of-signs-at-kamloop-1db152-b[todo]
+- • [rule] “from the CNR Bridge downstream of Deadman River to CNR Bridge upst” → thompson-river-downstream-of-signs-at-kamloop-1db152-a[curated], thompson-river-downstream-of-signs-at-kamloop-1db152-b[curated]
+- • [rule] “from the CNR Bridge downstream of Deadman River to CNR Bridge upst” → thompson-river-downstream-of-signs-at-kamloop-1db152-a[curated], thompson-river-downstream-of-signs-at-kamloop-1db152-b[curated]
+- • [rule] “from the CNR Bridge downstream of Deadman River to CNR Bridge upst” → thompson-river-downstream-of-signs-at-kamloop-1db152-a[curated], thompson-river-downstream-of-signs-at-kamloop-1db152-b[curated]
 - • [rule] “Upstream of boundary signs 1 km downstream of Martel” → thompson-river-downstream-of-signs-at-kamloop-1c9ce3[todo]
 - • [rule] “Downstream of signs at Kamloops Lake” → thompson-river-downstream-of-signs-at-kamloop-38fc02[not_applicable], thompson-river-downstream-of-signs-at-kamloop-bc221e-a[not_applicable], thompson-river-downstream-of-signs-at-kamloop-bc221e-b[curated]
 - • [rule] “Downstream of signs at Kamloops Lake” → thompson-river-downstream-of-signs-at-kamloop-38fc02[not_applicable], thompson-river-downstream-of-signs-at-kamloop-bc221e-a[not_applicable], thompson-river-downstream-of-signs-at-kamloop-bc221e-b[curated]
@@ -410,10 +410,6 @@ approximately 35 m downstream” → little-qualicum-river-031042-b[todo], littl
 - • [rule] “in the Ruskin spawning channel, from the inlet near the dam downst” → stave-river-15d929[deferred]
 - • [rule] “in the Northrop Spawning Channel, from the intake downstream to wh” → stave-river-c74d9d[todo]
 
-## TAMIHI CREEK · MU ['2-3'] · p28 · [INCOMPLETE] (054085f5)
-- • [rule] “downstream of the falls situated approximately 200 m upstream of C” → tamihi-creek-62bcd1[todo]
-- • [rule] “upstream of the falls situated approximately 200 m upstream of Chi” → tamihi-creek-26a193[todo]
-
 ## WEAVER LAKE and WEAVER CREEK · MU ['2-19'] · p28 · [INCOMPLETE] (c6b28d59)
 - • [rule] “from fishing boundary signs at log booms on Weaver Lake downstream” → weaver-lake-and-weaver-creek-47d5a0-a[not_applicable], weaver-lake-and-weaver-creek-47d5a0-b[curated], weaver-lake-and-weaver-creek-d90200[todo]
 - • [rule] “on Weaver Lake” → weaver-lake-and-weaver-creek-47d5a0-a[not_applicable], weaver-lake-and-weaver-creek-47d5a0-b[curated], weaver-lake-and-weaver-creek-d90200[todo]
@@ -479,7 +475,7 @@ approximately 35 m downstream” → little-qualicum-river-031042-b[todo], littl
 - • [rule] “in tributaries and upstream of Hwy 37 bridge” → kitimat-river-angling-regulations-for-the-kit-b3b21f[todo]
 
 ## STELLAKO RIVER · MU ['6-4', '7-12'] · p59 · [INCOMPLETE] (aed39f94)
-- • [rule] “between fishing boundary signs approximately 250 m and 4 km downst” → stellako-river-4769e9-a[todo], stellako-river-76c305-a[todo], stellako-river-76c305-b[todo]
+- • [rule] “between fishing boundary signs approximately 250 m and 4 km downst” → stellako-river-4769e9-a[todo], stellako-river-76c305-a[curated], stellako-river-76c305-b[curated]
 - • [rule] “from François Lake to the falls” → stellako-river-4769e9-a[todo], stellako-river-4769e9-b[todo]
 
 ## ANZAC RIVER · MU ['7-23'] · p65 · [INCOMPLETE] (669f5ba9)
@@ -487,7 +483,7 @@ approximately 35 m downstream” → little-qualicum-river-031042-b[todo], littl
 - • [rule] “upstream of the North Anzac River confluence” → anzac-river-ae3f1c[curated]
 
 ## STELLAKO RIVER · MU ['7-12'] · p67 · [INCOMPLETE] (c23b554d)
-- • [rule] “between fishing boundary signs approximately 250 m and 4 km downst” → stellako-river-4769e9-a[todo], stellako-river-76c305-a[todo], stellako-river-76c305-b[todo]
+- • [rule] “between fishing boundary signs approximately 250 m and 4 km downst” → stellako-river-4769e9-a[todo], stellako-river-76c305-a[curated], stellako-river-76c305-b[curated]
 - • [rule] “from François Lake to the falls” → stellako-river-4769e9-a[todo], stellako-river-4769e9-b[todo]
 
 ## VASEUX LAKE (including two lagoons on the west side of Okanagan River upstream of McIntyre Dam) · MU ['8-1'] · p77 · [INCOMPLETE] (bf3a7f24)

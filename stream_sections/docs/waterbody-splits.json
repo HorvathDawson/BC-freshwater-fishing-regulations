@@ -7909,7 +7909,7 @@
       "image": "page_028_row_010.png",
       "symbols": [],
       "reg_text": "**No Fishing** downstream of the falls situated approximately 200 m upstream of Chilliwack River\n**No Fishing** upstream of the falls situated approximately 200 m upstream of Chilliwack River, May 1-June 30",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 2,
       "locators": [
         {
@@ -7918,14 +7918,20 @@
           "info": {
             "restriction_type": "closure"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "tamihi-creek-62bcd1",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
-              "resolver_hint": "falls_obstacle"
+              "resolver_hint": "falls_obstacle",
+              "label": "Tamihi Creek Falls (FISS 19573)",
+              "notes": " [human-review 2026-08-06 FISS] Falls [-121.84202, 49.06669].",
+              "coord": [
+                -121.84202,
+                49.06669
+              ]
             }
           ]
         },
@@ -7938,14 +7944,20 @@
               "May 1-June 30"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "tamihi-creek-26a193",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
-              "resolver_hint": "falls_obstacle"
+              "resolver_hint": "falls_obstacle",
+              "label": "Tamihi Creek Falls (FISS 19573)",
+              "notes": " [human-review 2026-08-06 FISS] Falls [-121.84202, 49.06669].",
+              "coord": [
+                -121.84202,
+                49.06669
+              ]
             }
           ]
         },
@@ -11247,25 +11259,35 @@
               "May 1-31"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "thompson-river-downstream-of-signs-at-kamloop-1db152-a",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] CNR Bridge below Deadman R. to CNR Bridge above Bonaparte R. on Thompson River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the two CNR bridges (one below the Deadman confluence near Savona, one above the Bonaparte confluence at Ashcroft); map.. Reach between two railway bridges on the Thompson, bracketed by the Deadman (Savona) and Bonaparte (Ashcroft) confluences. Railway bridges -> map/OSM-confirmable. [structural-split 2026-08-05 from “from the CNR Bridge downstream of Deadman River to CNR Bridge upstream of Bonaparte River”] boundary=CNR Bridge downstream of Deadman River [osm-candidate 2026-08-05] [-121.22093, 50.74391]; [-121.25233, 50.74564]; [-121.01344, 50.7644]; [-120.92443, 50.7468]; [-121.31176, 50.66541]; [-121.31304, 50.60546]; [-121.58073, 50.23661] (OSM Overpass ∩ MU-clipped FWA river; VERIFY).",
+              "label": "CNR bridge downstream of Deadman R",
+              "notes": "[auto-proposal L] CNR Bridge below Deadman R. to CNR Bridge above Bonaparte R. on Thompson River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the two CNR bridges (one below the Deadman confluence near Savona, one above the Bonaparte confluence at Ashcroft); map.. Reach between two railway bridges on the Thompson, bracketed by the Deadman (Savona) and Bonaparte (Ashcroft) confluences. Railway bridges -> map/OSM-confirmable. [structural-split 2026-08-05 from “from the CNR Bridge downstream of Deadman River to CNR Bridge upstream of Bonaparte River”] boundary=CNR Bridge downstream of Deadman River [human-review 2026-08-06] #4 (user).",
+              "coord": [
+                -120.92443,
+                50.7468
+              ],
               "name_verbatim": "THOMPSON RIVER (downstream of signs at Kamloops Lake o",
               "locator_text": "CNR Bridge downstream of Deadman River"
             },
             {
               "id": "thompson-river-downstream-of-signs-at-kamloop-1db152-b",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] CNR Bridge below Deadman R. to CNR Bridge above Bonaparte R. on Thompson River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the two CNR bridges (one below the Deadman confluence near Savona, one above the Bonaparte confluence at Ashcroft); map.. Reach between two railway bridges on the Thompson, bracketed by the Deadman (Savona) and Bonaparte (Ashcroft) confluences. Railway bridges -> map/OSM-confirmable. [structural-split 2026-08-05 from “from the CNR Bridge downstream of Deadman River to CNR Bridge upstream of Bonaparte River”] boundary=CNR Bridge upstream of Bonaparte River [osm-candidate 2026-08-05] [-121.22093, 50.74391]; [-121.25233, 50.74564]; [-121.01344, 50.7644]; [-120.92443, 50.7468]; [-121.31176, 50.66541]; [-121.31304, 50.60546]; [-121.58073, 50.23661] (OSM Overpass ∩ MU-clipped FWA river; VERIFY).",
+              "label": "CNR bridge upstream of Bonaparte R",
+              "notes": "[auto-proposal L] CNR Bridge below Deadman R. to CNR Bridge above Bonaparte R. on Thompson River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the two CNR bridges (one below the Deadman confluence near Savona, one above the Bonaparte confluence at Ashcroft); map.. Reach between two railway bridges on the Thompson, bracketed by the Deadman (Savona) and Bonaparte (Ashcroft) confluences. Railway bridges -> map/OSM-confirmable. [structural-split 2026-08-05 from “from the CNR Bridge downstream of Deadman River to CNR Bridge upstream of Bonaparte River”] boundary=CNR Bridge upstream of Bonaparte River [human-review 2026-08-06] #2 (user).",
+              "coord": [
+                -121.25233,
+                50.74564
+              ],
               "name_verbatim": "THOMPSON RIVER (downstream of signs at Kamloops Lake o",
               "locator_text": "CNR Bridge upstream of Bonaparte River"
             }
@@ -11280,25 +11302,35 @@
               "May 1-31"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "thompson-river-downstream-of-signs-at-kamloop-1db152-a",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] CNR Bridge below Deadman R. to CNR Bridge above Bonaparte R. on Thompson River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the two CNR bridges (one below the Deadman confluence near Savona, one above the Bonaparte confluence at Ashcroft); map.. Reach between two railway bridges on the Thompson, bracketed by the Deadman (Savona) and Bonaparte (Ashcroft) confluences. Railway bridges -> map/OSM-confirmable. [structural-split 2026-08-05 from “from the CNR Bridge downstream of Deadman River to CNR Bridge upstream of Bonaparte River”] boundary=CNR Bridge downstream of Deadman River [osm-candidate 2026-08-05] [-121.22093, 50.74391]; [-121.25233, 50.74564]; [-121.01344, 50.7644]; [-120.92443, 50.7468]; [-121.31176, 50.66541]; [-121.31304, 50.60546]; [-121.58073, 50.23661] (OSM Overpass ∩ MU-clipped FWA river; VERIFY).",
+              "label": "CNR bridge downstream of Deadman R",
+              "notes": "[auto-proposal L] CNR Bridge below Deadman R. to CNR Bridge above Bonaparte R. on Thompson River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the two CNR bridges (one below the Deadman confluence near Savona, one above the Bonaparte confluence at Ashcroft); map.. Reach between two railway bridges on the Thompson, bracketed by the Deadman (Savona) and Bonaparte (Ashcroft) confluences. Railway bridges -> map/OSM-confirmable. [structural-split 2026-08-05 from “from the CNR Bridge downstream of Deadman River to CNR Bridge upstream of Bonaparte River”] boundary=CNR Bridge downstream of Deadman River [human-review 2026-08-06] #4 (user).",
+              "coord": [
+                -120.92443,
+                50.7468
+              ],
               "name_verbatim": "THOMPSON RIVER (downstream of signs at Kamloops Lake o",
               "locator_text": "CNR Bridge downstream of Deadman River"
             },
             {
               "id": "thompson-river-downstream-of-signs-at-kamloop-1db152-b",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] CNR Bridge below Deadman R. to CNR Bridge above Bonaparte R. on Thompson River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the two CNR bridges (one below the Deadman confluence near Savona, one above the Bonaparte confluence at Ashcroft); map.. Reach between two railway bridges on the Thompson, bracketed by the Deadman (Savona) and Bonaparte (Ashcroft) confluences. Railway bridges -> map/OSM-confirmable. [structural-split 2026-08-05 from “from the CNR Bridge downstream of Deadman River to CNR Bridge upstream of Bonaparte River”] boundary=CNR Bridge upstream of Bonaparte River [osm-candidate 2026-08-05] [-121.22093, 50.74391]; [-121.25233, 50.74564]; [-121.01344, 50.7644]; [-120.92443, 50.7468]; [-121.31176, 50.66541]; [-121.31304, 50.60546]; [-121.58073, 50.23661] (OSM Overpass ∩ MU-clipped FWA river; VERIFY).",
+              "label": "CNR bridge upstream of Bonaparte R",
+              "notes": "[auto-proposal L] CNR Bridge below Deadman R. to CNR Bridge above Bonaparte R. on Thompson River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the two CNR bridges (one below the Deadman confluence near Savona, one above the Bonaparte confluence at Ashcroft); map.. Reach between two railway bridges on the Thompson, bracketed by the Deadman (Savona) and Bonaparte (Ashcroft) confluences. Railway bridges -> map/OSM-confirmable. [structural-split 2026-08-05 from “from the CNR Bridge downstream of Deadman River to CNR Bridge upstream of Bonaparte River”] boundary=CNR Bridge upstream of Bonaparte River [human-review 2026-08-06] #2 (user).",
+              "coord": [
+                -121.25233,
+                50.74564
+              ],
               "name_verbatim": "THOMPSON RIVER (downstream of signs at Kamloops Lake o",
               "locator_text": "CNR Bridge upstream of Bonaparte River"
             }
@@ -11313,25 +11345,35 @@
               "May 1-31"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "thompson-river-downstream-of-signs-at-kamloop-1db152-a",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] CNR Bridge below Deadman R. to CNR Bridge above Bonaparte R. on Thompson River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the two CNR bridges (one below the Deadman confluence near Savona, one above the Bonaparte confluence at Ashcroft); map.. Reach between two railway bridges on the Thompson, bracketed by the Deadman (Savona) and Bonaparte (Ashcroft) confluences. Railway bridges -> map/OSM-confirmable. [structural-split 2026-08-05 from “from the CNR Bridge downstream of Deadman River to CNR Bridge upstream of Bonaparte River”] boundary=CNR Bridge downstream of Deadman River [osm-candidate 2026-08-05] [-121.22093, 50.74391]; [-121.25233, 50.74564]; [-121.01344, 50.7644]; [-120.92443, 50.7468]; [-121.31176, 50.66541]; [-121.31304, 50.60546]; [-121.58073, 50.23661] (OSM Overpass ∩ MU-clipped FWA river; VERIFY).",
+              "label": "CNR bridge downstream of Deadman R",
+              "notes": "[auto-proposal L] CNR Bridge below Deadman R. to CNR Bridge above Bonaparte R. on Thompson River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the two CNR bridges (one below the Deadman confluence near Savona, one above the Bonaparte confluence at Ashcroft); map.. Reach between two railway bridges on the Thompson, bracketed by the Deadman (Savona) and Bonaparte (Ashcroft) confluences. Railway bridges -> map/OSM-confirmable. [structural-split 2026-08-05 from “from the CNR Bridge downstream of Deadman River to CNR Bridge upstream of Bonaparte River”] boundary=CNR Bridge downstream of Deadman River [human-review 2026-08-06] #4 (user).",
+              "coord": [
+                -120.92443,
+                50.7468
+              ],
               "name_verbatim": "THOMPSON RIVER (downstream of signs at Kamloops Lake o",
               "locator_text": "CNR Bridge downstream of Deadman River"
             },
             {
               "id": "thompson-river-downstream-of-signs-at-kamloop-1db152-b",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] CNR Bridge below Deadman R. to CNR Bridge above Bonaparte R. on Thompson River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the two CNR bridges (one below the Deadman confluence near Savona, one above the Bonaparte confluence at Ashcroft); map.. Reach between two railway bridges on the Thompson, bracketed by the Deadman (Savona) and Bonaparte (Ashcroft) confluences. Railway bridges -> map/OSM-confirmable. [structural-split 2026-08-05 from “from the CNR Bridge downstream of Deadman River to CNR Bridge upstream of Bonaparte River”] boundary=CNR Bridge upstream of Bonaparte River [osm-candidate 2026-08-05] [-121.22093, 50.74391]; [-121.25233, 50.74564]; [-121.01344, 50.7644]; [-120.92443, 50.7468]; [-121.31176, 50.66541]; [-121.31304, 50.60546]; [-121.58073, 50.23661] (OSM Overpass ∩ MU-clipped FWA river; VERIFY).",
+              "label": "CNR bridge upstream of Bonaparte R",
+              "notes": "[auto-proposal L] CNR Bridge below Deadman R. to CNR Bridge above Bonaparte R. on Thompson River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the two CNR bridges (one below the Deadman confluence near Savona, one above the Bonaparte confluence at Ashcroft); map.. Reach between two railway bridges on the Thompson, bracketed by the Deadman (Savona) and Bonaparte (Ashcroft) confluences. Railway bridges -> map/OSM-confirmable. [structural-split 2026-08-05 from “from the CNR Bridge downstream of Deadman River to CNR Bridge upstream of Bonaparte River”] boundary=CNR Bridge upstream of Bonaparte River [human-review 2026-08-06] #2 (user).",
+              "coord": [
+                -121.25233,
+                50.74564
+              ],
               "name_verbatim": "THOMPSON RIVER (downstream of signs at Kamloops Lake o",
               "locator_text": "CNR Bridge upstream of Bonaparte River"
             }
@@ -22852,20 +22894,30 @@
             },
             {
               "id": "stellako-river-76c305-a",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "boundary_signs",
-              "notes": "[auto-proposal L] bridge near Francois Lake outlet (signs 250 m & 4 km below) on Stellako River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the bridge near the Francois Lake outlet on the Stellako, then signs 250 m & 4 km downstream; map.. Reg = 'signs ~250 m and 4 km downstream of the bridge near the Francois Lake outlet'. Road bridge at the Francois Lake outlet (Stellako flows Francois -> Fraser Lake); not in FWA/FSR. Map/OSM-confirmable. [structural-split 2026-08-05 from “between fishing boundary signs approximately 250 m and 4 km downstream of the bridge near the François Lake outlet”] boundary=fishing boundary signs approximately 250 m [hint-fix 2026-08-06 bridge_road_km->boundary_signs]",
+              "label": "signs 250 m below Francois Lake bridge",
+              "notes": "[auto-proposal L] bridge near Francois Lake outlet (signs 250 m & 4 km below) on Stellako River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the bridge near the Francois Lake outlet on the Stellako, then signs 250 m & 4 km downstream; map.. Reg = 'signs ~250 m and 4 km downstream of the bridge near the Francois Lake outlet'. Road bridge at the Francois Lake outlet (Stellako flows Francois -> Fraser Lake); not in FWA/FSR. Map/OSM-confirmable. [structural-split 2026-08-05 from “between fishing boundary signs approximately 250 m and 4 km downstream of the bridge near the François Lake outlet”] boundary=fishing boundary signs approximately 250 m [hint-fix 2026-08-06 bridge_road_km->boundary_signs] [human-review 2026-08-06] anchor=bridge; offset_m=250 downstream.",
+              "coord": [
+                -124.98962,
+                54.01273
+              ],
               "locator_text": "fishing boundary signs approximately 250 m"
             },
             {
               "id": "stellako-river-76c305-b",
-              "status": "todo",
-              "anchor_kind": "lake",
+              "status": "curated",
+              "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] bridge near Francois Lake outlet (signs 250 m & 4 km below) on Stellako River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the bridge near the Francois Lake outlet on the Stellako, then signs 250 m & 4 km downstream; map.. Reg = 'signs ~250 m and 4 km downstream of the bridge near the Francois Lake outlet'. Road bridge at the Francois Lake outlet (Stellako flows Francois -> Fraser Lake); not in FWA/FSR. Map/OSM-confirmable. [structural-split 2026-08-05 from “between fishing boundary signs approximately 250 m and 4 km downstream of the bridge near the François Lake outlet”] boundary=4 km downstream of the bridge near the François Lake outlet [for-agent] anchor=bridge near Francois Lake outlet on Stellako River + offset_m=4000 downstream; OSM bridge lookup pending. [hint-fix 2026-08-06 lake_reach->bridge_road_km]",
+              "label": "4 km below Francois Lake bridge",
+              "notes": "[auto-proposal L] bridge near Francois Lake outlet (signs 250 m & 4 km below) on Stellako River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the bridge near the Francois Lake outlet on the Stellako, then signs 250 m & 4 km downstream; map.. Reg = 'signs ~250 m and 4 km downstream of the bridge near the Francois Lake outlet'. Road bridge at the Francois Lake outlet (Stellako flows Francois -> Fraser Lake); not in FWA/FSR. Map/OSM-confirmable. [structural-split 2026-08-05 from “between fishing boundary signs approximately 250 m and 4 km downstream of the bridge near the François Lake outlet”] boundary=4 km downstream of the bridge near the François Lake outlet [for-agent] anchor=bridge near Francois Lake outlet on Stellako River + offset_m=4000 downstream; OSM bridge lookup pending. [hint-fix 2026-08-06 lake_reach->bridge_road_km] [human-review 2026-08-06] anchor=bridge [-125.00613,54.00935]; offset_m=4000 downstream.",
+              "coord": [
+                -124.96836,
+                54.03109
+              ],
               "locator_text": "4 km downstream of the bridge near the François Lake outlet"
             }
           ]
@@ -24356,11 +24408,16 @@
             },
             {
               "id": "stellako-river-76c305-a",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "boundary_signs",
-              "notes": "[auto-proposal L] bridge near Francois Lake outlet (signs 250 m & 4 km below) on Stellako River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the bridge near the Francois Lake outlet on the Stellako, then signs 250 m & 4 km downstream; map.. Reg = 'signs ~250 m and 4 km downstream of the bridge near the Francois Lake outlet'. Road bridge at the Francois Lake outlet (Stellako flows Francois -> Fraser Lake); not in FWA/FSR. Map/OSM-confirmable. [structural-split 2026-08-05 from “between fishing boundary signs approximately 250 m and 4 km downstream of the bridge near the François Lake outlet”] boundary=fishing boundary signs approximately 250 m [hint-fix 2026-08-06 bridge_road_km->boundary_signs]",
+              "label": "signs 250 m below Francois Lake bridge",
+              "notes": "[auto-proposal L] bridge near Francois Lake outlet (signs 250 m & 4 km below) on Stellako River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the bridge near the Francois Lake outlet on the Stellako, then signs 250 m & 4 km downstream; map.. Reg = 'signs ~250 m and 4 km downstream of the bridge near the Francois Lake outlet'. Road bridge at the Francois Lake outlet (Stellako flows Francois -> Fraser Lake); not in FWA/FSR. Map/OSM-confirmable. [structural-split 2026-08-05 from “between fishing boundary signs approximately 250 m and 4 km downstream of the bridge near the François Lake outlet”] boundary=fishing boundary signs approximately 250 m [hint-fix 2026-08-06 bridge_road_km->boundary_signs] [human-review 2026-08-06] anchor=bridge; offset_m=250 downstream.",
+              "coord": [
+                -124.98962,
+                54.01273
+              ],
               "mus": [
                 "6-4",
                 "7-12"
@@ -24369,11 +24426,16 @@
             },
             {
               "id": "stellako-river-76c305-b",
-              "status": "todo",
-              "anchor_kind": "lake",
+              "status": "curated",
+              "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] bridge near Francois Lake outlet (signs 250 m & 4 km below) on Stellako River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the bridge near the Francois Lake outlet on the Stellako, then signs 250 m & 4 km downstream; map.. Reg = 'signs ~250 m and 4 km downstream of the bridge near the Francois Lake outlet'. Road bridge at the Francois Lake outlet (Stellako flows Francois -> Fraser Lake); not in FWA/FSR. Map/OSM-confirmable. [structural-split 2026-08-05 from “between fishing boundary signs approximately 250 m and 4 km downstream of the bridge near the François Lake outlet”] boundary=4 km downstream of the bridge near the François Lake outlet [for-agent] anchor=bridge near Francois Lake outlet on Stellako River + offset_m=4000 downstream; OSM bridge lookup pending. [hint-fix 2026-08-06 lake_reach->bridge_road_km]",
+              "label": "4 km below Francois Lake bridge",
+              "notes": "[auto-proposal L] bridge near Francois Lake outlet (signs 250 m & 4 km below) on Stellako River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the bridge near the Francois Lake outlet on the Stellako, then signs 250 m & 4 km downstream; map.. Reg = 'signs ~250 m and 4 km downstream of the bridge near the Francois Lake outlet'. Road bridge at the Francois Lake outlet (Stellako flows Francois -> Fraser Lake); not in FWA/FSR. Map/OSM-confirmable. [structural-split 2026-08-05 from “between fishing boundary signs approximately 250 m and 4 km downstream of the bridge near the François Lake outlet”] boundary=4 km downstream of the bridge near the François Lake outlet [for-agent] anchor=bridge near Francois Lake outlet on Stellako River + offset_m=4000 downstream; OSM bridge lookup pending. [hint-fix 2026-08-06 lake_reach->bridge_road_km] [human-review 2026-08-06] anchor=bridge [-125.00613,54.00935]; offset_m=4000 downstream.",
+              "coord": [
+                -124.96836,
+                54.03109
+              ],
               "mus": [
                 "6-4",
                 "7-12"
