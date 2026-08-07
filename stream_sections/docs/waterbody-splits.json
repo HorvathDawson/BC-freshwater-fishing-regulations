@@ -5490,7 +5490,7 @@
         "Incl. Tribs"
       ],
       "reg_text": "**No Fishing **upstream from a line between two fishing boundary signs on either side of the Chilliwack River 100 m downstream of the\nconfluence of the Chilliwack River and Slesse Creek\n**No Fishing** downstream of a line between two fishing boundary signs on either side of the Chilliwack River 100m downstream of the\nconfluence of the Chilliwack River and Slesse Creek to Tamihi Rapids Bridge, Apr 1-June 30\n**No Fishing **downstream of Tamihi Rapids Bridge to Vedder Crossing Bridge, May 1-June 30\nDownstream of Vedder Crossing Bridge: **(a)** fly fishing only, bait ban, hatchery rainbow trout catch and release (50 cm or less), and hatch-\nery cutthroat catch and release, May 1-31; **(b) No Fishing** June 1-30; **(c)** hatchery rainbow trout of any length 50 cm or less: daily quota =\n4, July 1-Apr 30",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 8,
       "locators": [
         {
@@ -5499,14 +5499,32 @@
           "info": {
             "restriction_type": "closure"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "chilliwack-vedder-rivers-does-not-include-sum-94aff2",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "line",
               "src": "rule",
               "resolver_hint": "between_signs",
+              "notes": "[curated 2026-08-07 manual-review batch=chilliwack] [line 100m d/s Slesse confluence]",
+              "coord": [
+                -121.70928,
+                49.0785
+              ],
+              "offset": {
+                "anchor": [
+                  -121.70928,
+                  49.0785
+                ],
+                "anchor_label": "Chilliwack/Slesse Creek confluence",
+                "m": 100,
+                "dir": "downstream"
+              },
+              "target": {
+                "blk": 356363805,
+                "wsc": "100-064535-057628-998041-282809-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+              },
               "name_verbatim": "CHILLIWACK / VEDDER RIVERS (does not include Sumas Riv",
               "locator_text": "upstream from a line between two fishing boundary signs on either side of the Chilliwack River 100 m downstream of the c"
             }
@@ -5521,14 +5539,32 @@
               "Apr 1-June 30"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "chilliwack-vedder-rivers-does-not-include-sum-805915",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "line",
               "src": "rule",
               "resolver_hint": "between_signs",
+              "notes": "[curated 2026-08-07 manual-review batch=chilliwack] [line 100m d/s Slesse confluence]",
+              "coord": [
+                -121.70928,
+                49.0785
+              ],
+              "offset": {
+                "anchor": [
+                  -121.70928,
+                  49.0785
+                ],
+                "anchor_label": "Chilliwack/Slesse Creek confluence",
+                "m": 100,
+                "dir": "downstream"
+              },
+              "target": {
+                "blk": 356363805,
+                "wsc": "100-064535-057628-998041-282809-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+              },
               "name_verbatim": "CHILLIWACK / VEDDER RIVERS (does not include Sumas Riv",
               "locator_text": "downstream of a line between two fishing boundary signs on either side of the Chilliwack River 100m downstream of the co"
             }
@@ -5543,25 +5579,33 @@
               "May 1-June 30"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "chilliwack-vedder-rivers-does-not-include-sum-f59392-a",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] Tamihi Rapids Bridge & Vedder Crossing Bridge on Chilliwack/Vedder River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm Tamihi (Rapids) Bridge and Vedder Crossing Bridge on the Chilliwack/Vedder; both well-known -> review.. Reach between two named road bridges near Chilliwack (MU 2-?). Both are public bridges (not FWA). The FSR crossings found (CENTRE/RADIUM at 37-47 km) are far upstream in the Chilliwack valley, not these lower bridges. [structural-split 2026-08-05 from “downstream of Tamihi Rapids Bridge to Vedder Crossing Bridge”] boundary=downstream of Tamihi Rapids Bridge",
+              "notes": "[auto-proposal L] Tamihi Rapids Bridge & Vedder Crossing Bridge on Chilliwack/Vedder River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm Tamihi (Rapids) Bridge and Vedder Crossing Bridge on the Chilliwack/Vedder; both well-known -> review.. Reach between two named road bridges near Chilliwack (MU 2-?). Both are public bridges (not FWA). The FSR crossings found (CENTRE/RADIUM at 37-47 km) are far upstream in the Chilliwack valley, not these lower bridges. [structural-split 2026-08-05 from “downstream of Tamihi Rapids Bridge to Vedder Crossing Bridge”] boundary=downstream of Tamihi Rapids Bridge [curated 2026-08-07 manual-review batch=chilliwack] [Tamihi Rapids Bridge / Chilliwack Lk Rd]",
+              "coord": [
+                -121.83788,
+                49.07184
+              ],
               "name_verbatim": "CHILLIWACK / VEDDER RIVERS (does not include Sumas Riv",
               "locator_text": "downstream of Tamihi Rapids Bridge"
             },
             {
               "id": "chilliwack-vedder-rivers-does-not-include-sum-f59392-b",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] Tamihi Rapids Bridge & Vedder Crossing Bridge on Chilliwack/Vedder River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm Tamihi (Rapids) Bridge and Vedder Crossing Bridge on the Chilliwack/Vedder; both well-known -> review.. Reach between two named road bridges near Chilliwack (MU 2-?). Both are public bridges (not FWA). The FSR crossings found (CENTRE/RADIUM at 37-47 km) are far upstream in the Chilliwack valley, not these lower bridges. [structural-split 2026-08-05 from “downstream of Tamihi Rapids Bridge to Vedder Crossing Bridge”] boundary=Vedder Crossing Bridge",
+              "notes": "[auto-proposal L] Tamihi Rapids Bridge & Vedder Crossing Bridge on Chilliwack/Vedder River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm Tamihi (Rapids) Bridge and Vedder Crossing Bridge on the Chilliwack/Vedder; both well-known -> review.. Reach between two named road bridges near Chilliwack (MU 2-?). Both are public bridges (not FWA). The FSR crossings found (CENTRE/RADIUM at 37-47 km) are far upstream in the Chilliwack valley, not these lower bridges. [structural-split 2026-08-05 from “downstream of Tamihi Rapids Bridge to Vedder Crossing Bridge”] boundary=Vedder Crossing Bridge [curated 2026-08-07 manual-review batch=chilliwack] [Vedder Crossing Bridge]",
+              "coord": [
+                -121.9646,
+                49.09739
+              ],
               "name_verbatim": "CHILLIWACK / VEDDER RIVERS (does not include Sumas Riv",
               "locator_text": "Vedder Crossing Bridge"
             }
@@ -5576,24 +5620,32 @@
               "May 1-31"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "chilliwack-vedder-rivers-does-not-include-sum-96c294",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] Vedder Crossing Bridge on Chilliwack/Vedder River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm Vedder Crossing Bridge on the Vedder River (Chilliwack); well-known -> review.. Downstream-of-Vedder-Crossing reach. Public bridge, not in FWA; map/OSM-confirmable.",
+              "notes": "[auto-proposal L] Vedder Crossing Bridge on Chilliwack/Vedder River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm Vedder Crossing Bridge on the Vedder River (Chilliwack); well-known -> review.. Downstream-of-Vedder-Crossing reach. Public bridge, not in FWA; map/OSM-confirmable. [curated 2026-08-07 manual-review batch=chilliwack] [Vedder Crossing Bridge]",
+              "coord": [
+                -121.9646,
+                49.09739
+              ],
               "name_verbatim": "CHILLIWACK / VEDDER RIVERS (does not include Sumas Riv"
             },
             {
               "id": "chilliwack-vedder-rivers-does-not-include-sum-f59392-b",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] Tamihi Rapids Bridge & Vedder Crossing Bridge on Chilliwack/Vedder River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm Tamihi (Rapids) Bridge and Vedder Crossing Bridge on the Chilliwack/Vedder; both well-known -> review.. Reach between two named road bridges near Chilliwack (MU 2-?). Both are public bridges (not FWA). The FSR crossings found (CENTRE/RADIUM at 37-47 km) are far upstream in the Chilliwack valley, not these lower bridges. [structural-split 2026-08-05 from “downstream of Tamihi Rapids Bridge to Vedder Crossing Bridge”] boundary=Vedder Crossing Bridge",
+              "notes": "[auto-proposal L] Tamihi Rapids Bridge & Vedder Crossing Bridge on Chilliwack/Vedder River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm Tamihi (Rapids) Bridge and Vedder Crossing Bridge on the Chilliwack/Vedder; both well-known -> review.. Reach between two named road bridges near Chilliwack (MU 2-?). Both are public bridges (not FWA). The FSR crossings found (CENTRE/RADIUM at 37-47 km) are far upstream in the Chilliwack valley, not these lower bridges. [structural-split 2026-08-05 from “downstream of Tamihi Rapids Bridge to Vedder Crossing Bridge”] boundary=Vedder Crossing Bridge [curated 2026-08-07 manual-review batch=chilliwack] [Vedder Crossing Bridge]",
+              "coord": [
+                -121.9646,
+                49.09739
+              ],
               "name_verbatim": "CHILLIWACK / VEDDER RIVERS (does not include Sumas Riv",
               "locator_text": "Vedder Crossing Bridge"
             }
@@ -5608,24 +5660,32 @@
               "May 1-31"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "chilliwack-vedder-rivers-does-not-include-sum-96c294",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] Vedder Crossing Bridge on Chilliwack/Vedder River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm Vedder Crossing Bridge on the Vedder River (Chilliwack); well-known -> review.. Downstream-of-Vedder-Crossing reach. Public bridge, not in FWA; map/OSM-confirmable.",
+              "notes": "[auto-proposal L] Vedder Crossing Bridge on Chilliwack/Vedder River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm Vedder Crossing Bridge on the Vedder River (Chilliwack); well-known -> review.. Downstream-of-Vedder-Crossing reach. Public bridge, not in FWA; map/OSM-confirmable. [curated 2026-08-07 manual-review batch=chilliwack] [Vedder Crossing Bridge]",
+              "coord": [
+                -121.9646,
+                49.09739
+              ],
               "name_verbatim": "CHILLIWACK / VEDDER RIVERS (does not include Sumas Riv"
             },
             {
               "id": "chilliwack-vedder-rivers-does-not-include-sum-f59392-b",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] Tamihi Rapids Bridge & Vedder Crossing Bridge on Chilliwack/Vedder River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm Tamihi (Rapids) Bridge and Vedder Crossing Bridge on the Chilliwack/Vedder; both well-known -> review.. Reach between two named road bridges near Chilliwack (MU 2-?). Both are public bridges (not FWA). The FSR crossings found (CENTRE/RADIUM at 37-47 km) are far upstream in the Chilliwack valley, not these lower bridges. [structural-split 2026-08-05 from “downstream of Tamihi Rapids Bridge to Vedder Crossing Bridge”] boundary=Vedder Crossing Bridge",
+              "notes": "[auto-proposal L] Tamihi Rapids Bridge & Vedder Crossing Bridge on Chilliwack/Vedder River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm Tamihi (Rapids) Bridge and Vedder Crossing Bridge on the Chilliwack/Vedder; both well-known -> review.. Reach between two named road bridges near Chilliwack (MU 2-?). Both are public bridges (not FWA). The FSR crossings found (CENTRE/RADIUM at 37-47 km) are far upstream in the Chilliwack valley, not these lower bridges. [structural-split 2026-08-05 from “downstream of Tamihi Rapids Bridge to Vedder Crossing Bridge”] boundary=Vedder Crossing Bridge [curated 2026-08-07 manual-review batch=chilliwack] [Vedder Crossing Bridge]",
+              "coord": [
+                -121.9646,
+                49.09739
+              ],
               "name_verbatim": "CHILLIWACK / VEDDER RIVERS (does not include Sumas Riv",
               "locator_text": "Vedder Crossing Bridge"
             }
@@ -5640,24 +5700,32 @@
               "May 1-31"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "chilliwack-vedder-rivers-does-not-include-sum-96c294",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] Vedder Crossing Bridge on Chilliwack/Vedder River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm Vedder Crossing Bridge on the Vedder River (Chilliwack); well-known -> review.. Downstream-of-Vedder-Crossing reach. Public bridge, not in FWA; map/OSM-confirmable.",
+              "notes": "[auto-proposal L] Vedder Crossing Bridge on Chilliwack/Vedder River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm Vedder Crossing Bridge on the Vedder River (Chilliwack); well-known -> review.. Downstream-of-Vedder-Crossing reach. Public bridge, not in FWA; map/OSM-confirmable. [curated 2026-08-07 manual-review batch=chilliwack] [Vedder Crossing Bridge]",
+              "coord": [
+                -121.9646,
+                49.09739
+              ],
               "name_verbatim": "CHILLIWACK / VEDDER RIVERS (does not include Sumas Riv"
             },
             {
               "id": "chilliwack-vedder-rivers-does-not-include-sum-f59392-b",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] Tamihi Rapids Bridge & Vedder Crossing Bridge on Chilliwack/Vedder River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm Tamihi (Rapids) Bridge and Vedder Crossing Bridge on the Chilliwack/Vedder; both well-known -> review.. Reach between two named road bridges near Chilliwack (MU 2-?). Both are public bridges (not FWA). The FSR crossings found (CENTRE/RADIUM at 37-47 km) are far upstream in the Chilliwack valley, not these lower bridges. [structural-split 2026-08-05 from “downstream of Tamihi Rapids Bridge to Vedder Crossing Bridge”] boundary=Vedder Crossing Bridge",
+              "notes": "[auto-proposal L] Tamihi Rapids Bridge & Vedder Crossing Bridge on Chilliwack/Vedder River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm Tamihi (Rapids) Bridge and Vedder Crossing Bridge on the Chilliwack/Vedder; both well-known -> review.. Reach between two named road bridges near Chilliwack (MU 2-?). Both are public bridges (not FWA). The FSR crossings found (CENTRE/RADIUM at 37-47 km) are far upstream in the Chilliwack valley, not these lower bridges. [structural-split 2026-08-05 from “downstream of Tamihi Rapids Bridge to Vedder Crossing Bridge”] boundary=Vedder Crossing Bridge [curated 2026-08-07 manual-review batch=chilliwack] [Vedder Crossing Bridge]",
+              "coord": [
+                -121.9646,
+                49.09739
+              ],
               "name_verbatim": "CHILLIWACK / VEDDER RIVERS (does not include Sumas Riv",
               "locator_text": "Vedder Crossing Bridge"
             }
@@ -5672,24 +5740,32 @@
               "May 1-31"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "chilliwack-vedder-rivers-does-not-include-sum-96c294",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] Vedder Crossing Bridge on Chilliwack/Vedder River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm Vedder Crossing Bridge on the Vedder River (Chilliwack); well-known -> review.. Downstream-of-Vedder-Crossing reach. Public bridge, not in FWA; map/OSM-confirmable.",
+              "notes": "[auto-proposal L] Vedder Crossing Bridge on Chilliwack/Vedder River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm Vedder Crossing Bridge on the Vedder River (Chilliwack); well-known -> review.. Downstream-of-Vedder-Crossing reach. Public bridge, not in FWA; map/OSM-confirmable. [curated 2026-08-07 manual-review batch=chilliwack] [Vedder Crossing Bridge]",
+              "coord": [
+                -121.9646,
+                49.09739
+              ],
               "name_verbatim": "CHILLIWACK / VEDDER RIVERS (does not include Sumas Riv"
             },
             {
               "id": "chilliwack-vedder-rivers-does-not-include-sum-f59392-b",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] Tamihi Rapids Bridge & Vedder Crossing Bridge on Chilliwack/Vedder River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm Tamihi (Rapids) Bridge and Vedder Crossing Bridge on the Chilliwack/Vedder; both well-known -> review.. Reach between two named road bridges near Chilliwack (MU 2-?). Both are public bridges (not FWA). The FSR crossings found (CENTRE/RADIUM at 37-47 km) are far upstream in the Chilliwack valley, not these lower bridges. [structural-split 2026-08-05 from “downstream of Tamihi Rapids Bridge to Vedder Crossing Bridge”] boundary=Vedder Crossing Bridge",
+              "notes": "[auto-proposal L] Tamihi Rapids Bridge & Vedder Crossing Bridge on Chilliwack/Vedder River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm Tamihi (Rapids) Bridge and Vedder Crossing Bridge on the Chilliwack/Vedder; both well-known -> review.. Reach between two named road bridges near Chilliwack (MU 2-?). Both are public bridges (not FWA). The FSR crossings found (CENTRE/RADIUM at 37-47 km) are far upstream in the Chilliwack valley, not these lower bridges. [structural-split 2026-08-05 from “downstream of Tamihi Rapids Bridge to Vedder Crossing Bridge”] boundary=Vedder Crossing Bridge [curated 2026-08-07 manual-review batch=chilliwack] [Vedder Crossing Bridge]",
+              "coord": [
+                -121.9646,
+                49.09739
+              ],
               "name_verbatim": "CHILLIWACK / VEDDER RIVERS (does not include Sumas Riv",
               "locator_text": "Vedder Crossing Bridge"
             }
@@ -5728,7 +5804,8 @@
             }
           ]
         }
-      ]
+      ],
+      "reviewed": "2026-08-07"
     },
     "c1cead5e": {
       "entry_id": "c1cead5e",

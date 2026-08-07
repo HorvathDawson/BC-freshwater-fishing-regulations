@@ -7,8 +7,8 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 |---|--:|
 | NO_CURATION | 1 |
 | MISSING_SPLITS | 2 |
-| INCOMPLETE | 168 |
-| COMPLETE | 141 |
+| INCOMPLETE | 167 |
+| COMPLETE | 142 |
 | NO_SPLIT | 75 |
 
 **Drift** (curated rows matching no source locator): 5
@@ -39,16 +39,6 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 - • [rule] “From John Hart Dam Power Station to power line crossing approximat” → campbell-river-96d7aa-a[curated], campbell-river-96d7aa-b[curated]
 - • [rule] “downstream of power line crossing approximately 200 m upstream of ” → campbell-river-7bcc85[curated]
 - • [rule] “between Elk Falls and John Hart Dam Power Station” → campbell-river-584665-a[curated], campbell-river-584665-b[curated], campbell-river-96d7aa-a[curated]
-
-## CHILLIWACK / VEDDER RIVERS (does not include Sumas River) (see map on page 24) · MU ['2-4'] · p24 · [INCOMPLETE] (2f3fea39)
-- • [rule] “upstream from a line between two fishing boundary signs on either ” → chilliwack-vedder-rivers-does-not-include-sum-94aff2[todo]
-- • [rule] “downstream of a line between two fishing boundary signs on either ” → chilliwack-vedder-rivers-does-not-include-sum-805915[todo]
-- • [rule] “downstream of Tamihi Rapids Bridge to Vedder Crossing Bridge” → chilliwack-vedder-rivers-does-not-include-sum-f59392-a[todo], chilliwack-vedder-rivers-does-not-include-sum-f59392-b[todo]
-- • [rule] “Downstream of Vedder Crossing Bridge” → chilliwack-vedder-rivers-does-not-include-sum-96c294[todo], chilliwack-vedder-rivers-does-not-include-sum-f59392-b[todo]
-- • [rule] “Downstream of Vedder Crossing Bridge” → chilliwack-vedder-rivers-does-not-include-sum-96c294[todo], chilliwack-vedder-rivers-does-not-include-sum-f59392-b[todo]
-- • [rule] “Downstream of Vedder Crossing Bridge” → chilliwack-vedder-rivers-does-not-include-sum-96c294[todo], chilliwack-vedder-rivers-does-not-include-sum-f59392-b[todo]
-- • [rule] “Downstream of Vedder Crossing Bridge” → chilliwack-vedder-rivers-does-not-include-sum-96c294[todo], chilliwack-vedder-rivers-does-not-include-sum-f59392-b[todo]
-- • [entry] “does not include Sumas River” → chilliwack-vedder-rivers-does-not-include-sum-7f8826[not_applicable]
 
 ## MAHOOD LAKE (see map on page 28 for area closure) · MU ['3-46'] · p33 · [INCOMPLETE] (9f01ccad)
 - • [rule] “within the fishing boundary signs at the western tip of the lake n” → mahood-lake-see-map-on-page-28-for-area-closu-42f4bc[curated]
