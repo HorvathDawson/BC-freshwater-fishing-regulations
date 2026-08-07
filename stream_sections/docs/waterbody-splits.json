@@ -3357,13 +3357,17 @@
               "label": "Morrison Creek confluence 100m upstream",
               "notes": "100 m upstream of the Morrison Creek confluence. Author as confluence anchor tributary_wsc=920-559826-984406-044942-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000 + offset_m 100, offset_dir upstream. OSM: https://www.openstreetmap.org/?mlat=49.68943&mlon=-125.01502#map=15/49.68943/-125.01502",
               "coord": [
-                -125.01502,
-                49.68943
+                -125.01377,
+                49.68915
               ],
               "offset": {
                 "anchor_label": "Morrison Creek confluence",
                 "m": 100,
-                "dir": "upstream"
+                "dir": "upstream",
+                "anchor": [
+                  -125.01377,
+                  49.68915
+                ]
               },
               "target": {
                 "blk": "354146703",
@@ -3379,13 +3383,17 @@
               "label": "Morrison Creek confluence 100m downstream",
               "notes": "100 m downstream of the Morrison Creek confluence. Author as confluence anchor tributary_wsc=920-559826-984406-044942-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000 + offset_m 100, offset_dir downstream. OSM: https://www.openstreetmap.org/?mlat=49.68965&mlon=-125.01262#map=15/49.68965/-125.01262",
               "coord": [
-                -125.01262,
-                49.68965
+                -125.01377,
+                49.68915
               ],
               "offset": {
                 "anchor_label": "Morrison Creek confluence",
                 "m": 100,
-                "dir": "downstream"
+                "dir": "downstream",
+                "anchor": [
+                  -125.01377,
+                  49.68915
+                ]
               },
               "target": {
                 "blk": "354146703",
@@ -4653,18 +4661,24 @@
               "src": "rule",
               "resolver_hint": "lake_reach",
               "label": "fishing boundary signs (~13 km below Yakoun Lake)",
-              "notes": "[lake-class: lake_split] Yakoun Lake outlet + offset downstream. — [lake-bound-auto] OFFSET: Yakoun Lake outlet is auto; the downstream offset point needs authoring.",
+              "notes": "[lake-class: lake_split] Yakoun Lake outlet + offset downstream. — [lake-bound-auto] OFFSET: Yakoun Lake outlet is auto; the downstream offset point needs authoring. [coord=temp reference; split via FWA target lake WBK]",
               "coord": [
-                -132.2658,
-                53.42556
+                -132.25451,
+                53.34094
               ],
               "offset": {
                 "anchor_label": "Yakoun Lake outlet",
                 "m": 13000,
-                "dir": "downstream"
+                "dir": "downstream",
+                "anchor": [
+                  -132.25451,
+                  53.34094
+                ]
               },
               "target": {
-                "blk": "360881586"
+                "type": "lake_outlet",
+                "wbk": 329163190,
+                "lake": "Yakoun Lake"
               }
             }
           ]
@@ -7138,18 +7152,24 @@
               "src": "rule",
               "resolver_hint": "lake_reach",
               "label": "fishing boundary signs (~100 m below Ruby Lake)",
-              "notes": "[lake-class: lake_split] Ruby Lake outlet (up) + boundary signs (down) — lake anchor + point. — [lake-bound-auto] MIXED: Ruby Lake outlet is auto; the downstream boundary-signs point needs authoring.",
+              "notes": "[lake-class: lake_split] Ruby Lake outlet (up) + boundary signs (down) — lake anchor + point. — [lake-bound-auto] MIXED: Ruby Lake outlet is auto; the downstream boundary-signs point needs authoring. [coord=temp reference; split via FWA target lake WBK]",
               "coord": [
-                -123.97519,
-                49.70954
+                -123.97475,
+                49.71037
               ],
               "offset": {
                 "anchor_label": "Ruby Lake outlet",
                 "m": 100,
-                "dir": "downstream"
+                "dir": "downstream",
+                "anchor": [
+                  -123.97475,
+                  49.71037
+                ]
               },
               "target": {
-                "blk": "360878295"
+                "type": "lake_outlet",
+                "wbk": 329197064,
+                "lake": "Ruby Lake"
               }
             }
           ]
@@ -9278,8 +9298,8 @@
               "resolver_hint": "boundary_signs",
               "notes": "[structural-split 2026-08-05 from \"between fishing boundary signs approximately 6.5 km downstre\"] boundary=signs 2.8 km downstream of Hell's Gate [curated 2026-08-07 manual-review batch=fraser/columbia]",
               "coord": [
-                -121.43329,
-                49.75922
+                -121.44959,
+                49.77999
               ],
               "offset": {
                 "anchor": [
@@ -9416,8 +9436,8 @@
               "resolver_hint": "boundary_signs",
               "notes": "[structural-split 2026-08-05 from \"between fishing boundary signs approximately 6.5 km downstre\"] boundary=between fishing boundary signs approximately 6.5 km downstream of Boston Bar [curated 2026-08-07 manual-review batch=fraser/columbia]",
               "coord": [
-                -121.442,
-                49.81777
+                -121.44775,
+                49.86904
               ],
               "offset": {
                 "anchor": [
@@ -9438,8 +9458,8 @@
               "resolver_hint": "boundary_signs",
               "notes": "[structural-split 2026-08-05 from \"between fishing boundary signs approximately 6.5 km downstre\"] boundary=signs 2.8 km downstream of Hell's Gate [curated 2026-08-07 manual-review batch=fraser/columbia]",
               "coord": [
-                -121.43329,
-                49.75922
+                -121.44959,
+                49.77999
               ],
               "offset": {
                 "anchor": [
@@ -10419,18 +10439,24 @@
               "src": "rule",
               "resolver_hint": "lake_reach",
               "label": "400 m below Frances Lake",
-              "notes": "[auto-proposal L] logging bridge ~400 m below Frances Lake outlet on Nahatlatch River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate Frances Lake on the Nahatlatch, then the logging bridge ~400 m downstream with fishing boundary signs; map.. Reach = 'Frances Lake downstream ~400 m to signs at the logging bridge'. Needs the Frances Lake outlet located first (upstream chain of lakes on the Nahatlatch); the bridge is just below it. Map/OSM-confirmable. [structural-split 2026-08-05 from “from Frances Lake downstream approximately 400 m to fishing boundary signs at the logging bridge”] boundary=Frances Lake downstream approximately 400 m [human-review 2026-08-05] anchor=Frances Lake (wbk 329154768); offset_m=400 offset_dir=downstream (sectionizer auto-calcs).",
+              "notes": "[auto-proposal L] logging bridge ~400 m below Frances Lake outlet on Nahatlatch River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate Frances Lake on the Nahatlatch, then the logging bridge ~400 m downstream with fishing boundary signs; map.. Reach = 'Frances Lake downstream ~400 m to signs at the logging bridge'. Needs the Frances Lake outlet located first (upstream chain of lakes on the Nahatlatch); the bridge is just below it. Map/OSM-confirmable. [structural-split 2026-08-05 from “from Frances Lake downstream approximately 400 m to fishing boundary signs at the logging bridge”] boundary=Frances Lake downstream approximately 400 m [human-review 2026-08-05] anchor=Frances Lake (wbk 329154768); offset_m=400 offset_dir=downstream (sectionizer auto-calcs). [coord=temp reference; split via FWA target lake WBK]",
               "coord": [
-                -121.64288,
-                50.00703
+                -121.66081,
+                50.00975
               ],
               "offset": {
                 "anchor_label": "Frances Lake outlet",
                 "m": 400,
-                "dir": "downstream"
+                "dir": "downstream",
+                "anchor": [
+                  -121.66081,
+                  50.00975
+                ]
               },
               "target": {
-                "wbk": 329154768
+                "type": "lake_outlet",
+                "wbk": 329154768,
+                "lake": "Frances Lake"
               },
               "locator_text": "Frances Lake downstream approximately 400 m"
             },
@@ -15515,23 +15541,28 @@
             {
               "id": "lardeau-river-e666ed-b",
               "status": "curated",
-              "anchor_kind": "confluence",
+              "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "tributary",
               "label": "signs ~600 m below Trout Lake outlet (near Mobbs Ck)",
-              "notes": "600 m downstream of the Mobbs Creek confluence. Author as confluence anchor tributary_wsc=300-625474-096683-076865-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000 + offset_m 600, offset_dir downstream. OSM: https://www.openstreetmap.org/?mlat=50.50518&mlon=-117.26344#map=15/50.50518/-117.26344 (signs ~600 m downstream, near Mobbs Ck)",
+              "notes": "600 m downstream of the Mobbs Creek confluence. Author as confluence anchor tributary_wsc=300-625474-096683-076865-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000 + offset_m 600, offset_dir downstream. OSM: https://www.openstreetmap.org/?mlat=50.50518&mlon=-117.26344#map=15/50.50518/-117.26344 (signs ~600 m downstream, near Mobbs Ck) [coord=temp reference; split via FWA target lake WBK]",
               "coord": [
-                -117.26344,
-                50.50518
+                -117.27693,
+                50.50998
               ],
               "offset": {
                 "anchor_label": "Trout Lake outlet",
                 "m": 600,
-                "dir": "downstream"
+                "dir": "downstream",
+                "anchor": [
+                  -117.27693,
+                  50.50998
+                ]
               },
               "target": {
-                "blk": "356569420",
-                "wsc": "300-625474-096683-076865-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+                "type": "lake_outlet",
+                "wbk": 329120715,
+                "lake": "Trout Lake"
               },
               "locator_text": "downstream of fishing boundary signs at Trout Lake outlet, to fishing boundary signs approximately 600m downstream near"
             }
@@ -19223,13 +19254,17 @@
               "label": "signs ~0.5 km above the canyon",
               "notes": "500 m upstream (along channel) of the canyon TOP [-126.92376,52.81853]. Author as point offset: anchor = canyon top, offset_m 500, offset_dir upstream. OSM: https://www.openstreetmap.org/?mlat=52.81755&mlon=-126.91658#map=15/52.81755/-126.91658",
               "coord": [
-                -126.91658,
-                52.81755
+                -126.923,
+                52.8186
               ],
               "offset": {
-                "anchor_label": "the canyon",
+                "anchor_label": "Dean River lower canyon (upstream end)",
                 "m": 500,
-                "dir": "upstream"
+                "dir": "upstream",
+                "anchor": [
+                  -126.923,
+                  52.8186
+                ]
               },
               "locator_text": ""
             }
@@ -19252,13 +19287,17 @@
               "label": "signs ~100 m below the canyon",
               "notes": "100 m downstream (along channel) of the canyon BOTTOM [-126.93595,52.81878]. Author as point offset: anchor = canyon bottom, offset_m 100, offset_dir downstream. OSM: https://www.openstreetmap.org/?mlat=52.81863&mlon=-126.93741#map=15/52.81863/-126.93741",
               "coord": [
-                -126.93741,
-                52.81863
+                -126.93579,
+                52.81886
               ],
               "offset": {
-                "anchor_label": "the canyon",
+                "anchor_label": "Dean River lower canyon (downstream end)",
                 "m": 100,
-                "dir": "downstream"
+                "dir": "downstream",
+                "anchor": [
+                  -126.93579,
+                  52.81886
+                ]
               },
               "locator_text": ""
             },
@@ -19271,13 +19310,17 @@
               "label": "signs ~0.5 km above the canyon",
               "notes": "500 m upstream (along channel) of the canyon TOP [-126.92376,52.81853]. Author as point offset: anchor = canyon top, offset_m 500, offset_dir upstream. OSM: https://www.openstreetmap.org/?mlat=52.81755&mlon=-126.91658#map=15/52.81755/-126.91658",
               "coord": [
-                -126.91658,
-                52.81755
+                -126.923,
+                52.8186
               ],
               "offset": {
-                "anchor_label": "the canyon",
+                "anchor_label": "Dean River lower canyon (upstream end)",
                 "m": 500,
-                "dir": "upstream"
+                "dir": "upstream",
+                "anchor": [
+                  -126.923,
+                  52.8186
+                ]
               },
               "locator_text": ""
             }
@@ -19303,13 +19346,17 @@
               "label": "signs ~100 m below the canyon",
               "notes": "100 m downstream (along channel) of the canyon BOTTOM [-126.93595,52.81878]. Author as point offset: anchor = canyon bottom, offset_m 100, offset_dir downstream. OSM: https://www.openstreetmap.org/?mlat=52.81863&mlon=-126.93741#map=15/52.81863/-126.93741",
               "coord": [
-                -126.93741,
-                52.81863
+                -126.93579,
+                52.81886
               ],
               "offset": {
-                "anchor_label": "the canyon",
+                "anchor_label": "Dean River lower canyon (downstream end)",
                 "m": 100,
-                "dir": "downstream"
+                "dir": "downstream",
+                "anchor": [
+                  -126.93579,
+                  52.81886
+                ]
               },
               "locator_text": ""
             },
@@ -19368,13 +19415,17 @@
               "label": "signs ~3.5 km above the canyon",
               "notes": "3.5 km upstream (along channel) of the canyon TOP [-126.92376,52.81853]. Author as point offset: anchor = canyon top, offset_m 3500, offset_dir upstream. OSM: https://www.openstreetmap.org/?mlat=52.81548&mlon=-126.87557#map=15/52.81548/-126.87557",
               "coord": [
-                -126.87557,
-                52.81548
+                -126.923,
+                52.8186
               ],
               "offset": {
-                "anchor_label": "the canyon",
+                "anchor_label": "Dean River lower canyon (upstream end)",
                 "m": 3500,
-                "dir": "upstream"
+                "dir": "upstream",
+                "anchor": [
+                  -126.923,
+                  52.8186
+                ]
               },
               "locator_text": ""
             },
@@ -19387,13 +19438,17 @@
               "label": "signs ~0.5 km above the canyon",
               "notes": "500 m upstream (along channel) of the canyon TOP [-126.92376,52.81853]. Author as point offset: anchor = canyon top, offset_m 500, offset_dir upstream. OSM: https://www.openstreetmap.org/?mlat=52.81755&mlon=-126.91658#map=15/52.81755/-126.91658",
               "coord": [
-                -126.91658,
-                52.81755
+                -126.923,
+                52.8186
               ],
               "offset": {
-                "anchor_label": "the canyon",
+                "anchor_label": "Dean River lower canyon (upstream end)",
                 "m": 500,
-                "dir": "upstream"
+                "dir": "upstream",
+                "anchor": [
+                  -126.923,
+                  52.8186
+                ]
               },
               "locator_text": ""
             }
@@ -19438,13 +19493,17 @@
               "label": "signs ~0.5 km above the canyon",
               "notes": "500 m upstream (along channel) of the canyon TOP [-126.92376,52.81853]. Author as point offset: anchor = canyon top, offset_m 500, offset_dir upstream. OSM: https://www.openstreetmap.org/?mlat=52.81755&mlon=-126.91658#map=15/52.81755/-126.91658",
               "coord": [
-                -126.91658,
-                52.81755
+                -126.923,
+                52.8186
               ],
               "offset": {
-                "anchor_label": "the canyon",
+                "anchor_label": "Dean River lower canyon (upstream end)",
                 "m": 500,
-                "dir": "upstream"
+                "dir": "upstream",
+                "anchor": [
+                  -126.923,
+                  52.8186
+                ]
               },
               "locator_text": ""
             }
@@ -19471,13 +19530,17 @@
               "label": "signs ~100 m below the canyon",
               "notes": "100 m downstream (along channel) of the canyon BOTTOM [-126.93595,52.81878]. Author as point offset: anchor = canyon bottom, offset_m 100, offset_dir downstream. OSM: https://www.openstreetmap.org/?mlat=52.81863&mlon=-126.93741#map=15/52.81863/-126.93741",
               "coord": [
-                -126.93741,
-                52.81863
+                -126.93579,
+                52.81886
               ],
               "offset": {
-                "anchor_label": "the canyon",
+                "anchor_label": "Dean River lower canyon (downstream end)",
                 "m": 100,
-                "dir": "downstream"
+                "dir": "downstream",
+                "anchor": [
+                  -126.93579,
+                  52.81886
+                ]
               },
               "locator_text": ""
             },
@@ -21247,13 +21310,17 @@
               "label": "80 m below adult counting fence",
               "notes": "[auto-proposal L] Adult fish counting fence + boundary signs (~100 m up / 80 m down) on Babine River (lower, near Nilkitkwa Lake outlet). Candidate coord [-126.68407, 55.41439]. OSM: https://www.openstreetmap.org/?mlat=55.41439&mlon=-126.68407#map=15/55.41439/-126.68407. Verify: Locate the DFO Babine adult counting fence precisely on a map (near Nilkitkwa Lake outlet) then set the two sign points ~100 m up / ~80 m down of it.. This is a line_between_signs closure bracketing the DFO adult fish counting fence on the lower Babine River. The Babine River counting fence is a DFO facility in the vicinity of the Nilkitkwa Lake outlet; exact fence point is not in FWA. Candidate coord is the Nilkitkwa outlet as a starting reference only. [structural-split 2026-08-05 from \"between fishing boundary signs approximately 100 m upstream \"] boundary=80 m downstream of the adult fish counting fence [human-review 2026-08-06] adult fence +80 m down.",
               "coord": [
-                -126.69701,
-                55.42673
+                -126.69688,
+                55.42602
               ],
               "offset": {
-                "anchor_label": "adult fish counting fence",
+                "anchor_label": "adult fish counting fence (Babine)",
                 "m": 80,
-                "dir": "downstream"
+                "dir": "downstream",
+                "anchor": [
+                  -126.69688,
+                  55.42602
+                ]
               },
               "locator_text": "80 m downstream of the adult fish counting fence"
             }
@@ -22410,15 +22477,24 @@
               "src": "rule",
               "resolver_hint": "coordinate",
               "label": "signs at the Dunes (~2 km below outlet)",
-              "notes": "UTM zone 9 603741.00E/5998628.00N (the \"Dunes\").",
+              "notes": "UTM zone 9 603741.00E/5998628.00N (the \"Dunes\"). [coord=temp reference; split via FWA target lake WBK]",
               "coord": [
-                -127.41253,
-                54.12531
+                -127.42966,
+                54.11275
               ],
               "offset": {
                 "anchor_label": "Morice Lake outlet",
                 "m": 2000,
-                "dir": "downstream"
+                "dir": "downstream",
+                "anchor": [
+                  -127.42966,
+                  54.11275
+                ]
+              },
+              "target": {
+                "type": "lake_outlet",
+                "wbk": 329385412,
+                "lake": "Morice Lake"
               },
               "locator_text": "from fishing boundary signs near outlet of Morice Lake (UTM: 602539.02E, 5997165.96N) to the fishing boundary signs appr"
             }
@@ -22442,15 +22518,24 @@
               "src": "rule",
               "resolver_hint": "coordinate",
               "label": "signs at the Dunes (~2 km below outlet)",
-              "notes": "UTM zone 9 603741.00E/5998628.00N (the \"Dunes\").",
+              "notes": "UTM zone 9 603741.00E/5998628.00N (the \"Dunes\"). [coord=temp reference; split via FWA target lake WBK]",
               "coord": [
-                -127.41253,
-                54.12531
+                -127.42966,
+                54.11275
               ],
               "offset": {
                 "anchor_label": "Morice Lake outlet",
                 "m": 2000,
-                "dir": "downstream"
+                "dir": "downstream",
+                "anchor": [
+                  -127.42966,
+                  54.11275
+                ]
+              },
+              "target": {
+                "type": "lake_outlet",
+                "wbk": 329385412,
+                "lake": "Morice Lake"
               },
               "locator_text": "from fishing boundary signs approximately 2 km downstream (the \"Dunes\", UTM: 603741.00E, 5998628.00N) of Morice Lake to"
             },
@@ -23021,13 +23106,17 @@
               "label": "Kitsumkalum confluence (+1.5km u/s) 1500m upstream",
               "notes": "1500 m upstream of the Kitsumkalum River confluence. Author as confluence anchor tributary_wsc=400-195432-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000 + offset_m 1500, offset_dir upstream. OSM: https://www.openstreetmap.org/?mlat=54.51296&mlon=-128.64193#map=15/54.51296/-128.64193",
               "coord": [
-                -128.64193,
-                54.51296
+                -128.65979,
+                54.51768
               ],
               "offset": {
                 "anchor_label": "Kitsumkalum River confluence",
                 "m": 1500,
-                "dir": "upstream"
+                "dir": "upstream",
+                "anchor": [
+                  -128.65979,
+                  54.51768
+                ]
               },
               "target": {
                 "blk": "360883243",
@@ -23056,13 +23145,17 @@
               "label": "Zymoetz confluence (+1.5km u/s) 1500m upstream",
               "notes": "1500 m upstream of the Zymoetz River confluence. Author as confluence anchor tributary_wsc=400-221484-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000 + offset_m 1500, offset_dir upstream. OSM: https://www.openstreetmap.org/?mlat=54.55705&mlon=-128.47415#map=15/54.55705/-128.47415",
               "coord": [
-                -128.47415,
-                54.55705
+                -128.48769,
+                54.54646
               ],
               "offset": {
                 "anchor_label": "Zymoetz River confluence",
                 "m": 1500,
-                "dir": "upstream"
+                "dir": "upstream",
+                "anchor": [
+                  -128.48769,
+                  54.54646
+                ]
               },
               "target": {
                 "blk": "360881231",
@@ -23175,13 +23268,17 @@
               "label": "Zymoetz confluence (+1.5km u/s) 1500m upstream",
               "notes": "1500 m upstream of the Zymoetz River confluence. Author as confluence anchor tributary_wsc=400-221484-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000 + offset_m 1500, offset_dir upstream. OSM: https://www.openstreetmap.org/?mlat=54.55705&mlon=-128.47415#map=15/54.55705/-128.47415",
               "coord": [
-                -128.47415,
-                54.55705
+                -128.48769,
+                54.54646
               ],
               "offset": {
                 "anchor_label": "Zymoetz River confluence",
                 "m": 1500,
-                "dir": "upstream"
+                "dir": "upstream",
+                "anchor": [
+                  -128.48769,
+                  54.54646
+                ]
               },
               "target": {
                 "blk": "360881231",
@@ -23241,13 +23338,17 @@
               "label": "signs 250 m below Francois Lake bridge",
               "notes": "[auto-proposal L] bridge near Francois Lake outlet (signs 250 m & 4 km below) on Stellako River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the bridge near the Francois Lake outlet on the Stellako, then signs 250 m & 4 km downstream; map.. Reg = 'signs ~250 m and 4 km downstream of the bridge near the Francois Lake outlet'. Road bridge at the Francois Lake outlet (Stellako flows Francois -> Fraser Lake); not in FWA/FSR. Map/OSM-confirmable. [structural-split 2026-08-05 from “between fishing boundary signs approximately 250 m and 4 km downstream of the bridge near the François Lake outlet”] boundary=fishing boundary signs approximately 250 m [hint-fix 2026-08-06 bridge_road_km->boundary_signs] [human-review 2026-08-06] anchor=bridge; offset_m=250 downstream.",
               "coord": [
-                -124.98962,
-                54.01273
+                -125.00614,
+                54.00949
               ],
               "offset": {
-                "anchor_label": "Francois Lake bridge",
+                "anchor_label": "Francois Lake Road bridge (Stellako outlet)",
                 "m": 250,
-                "dir": "downstream"
+                "dir": "downstream",
+                "anchor": [
+                  -125.00614,
+                  54.00949
+                ]
               },
               "locator_text": "fishing boundary signs approximately 250 m"
             },
@@ -23260,13 +23361,17 @@
               "label": "4 km below Francois Lake bridge",
               "notes": "[auto-proposal L] bridge near Francois Lake outlet (signs 250 m & 4 km below) on Stellako River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the bridge near the Francois Lake outlet on the Stellako, then signs 250 m & 4 km downstream; map.. Reg = 'signs ~250 m and 4 km downstream of the bridge near the Francois Lake outlet'. Road bridge at the Francois Lake outlet (Stellako flows Francois -> Fraser Lake); not in FWA/FSR. Map/OSM-confirmable. [structural-split 2026-08-05 from “between fishing boundary signs approximately 250 m and 4 km downstream of the bridge near the François Lake outlet”] boundary=4 km downstream of the bridge near the François Lake outlet [for-agent] anchor=bridge near Francois Lake outlet on Stellako River + offset_m=4000 downstream; OSM bridge lookup pending. [hint-fix 2026-08-06 lake_reach->bridge_road_km] [human-review 2026-08-06] anchor=bridge [-125.00613,54.00935]; offset_m=4000 downstream.",
               "coord": [
-                -124.96836,
-                54.03109
+                -125.00614,
+                54.00949
               ],
               "offset": {
-                "anchor_label": "Francois Lake bridge",
+                "anchor_label": "Francois Lake Road bridge (Stellako outlet)",
                 "m": 4000,
-                "dir": "downstream"
+                "dir": "downstream",
+                "anchor": [
+                  -125.00614,
+                  54.00949
+                ]
               },
               "locator_text": "4 km downstream of the bridge near the François Lake outlet"
             }
@@ -23584,18 +23689,24 @@
               "src": "rule",
               "resolver_hint": "lake_reach",
               "label": "fishing boundary signs (~3 km below McDonell Lake)",
-              "notes": "[lake-class: lake_split] McDonell Lake outlet + ~3 km offset downstream (lake anchor + offset). — [lake-bound-auto] OFFSET: McDonell Lake outlet is auto; the ~3 km downstream point needs authoring.",
+              "notes": "[lake-class: lake_split] McDonell Lake outlet + ~3 km offset downstream (lake anchor + offset). — [lake-bound-auto] OFFSET: McDonell Lake outlet is auto; the ~3 km downstream point needs authoring. [coord=temp reference; split via FWA target lake WBK]",
               "coord": [
-                -127.67629,
-                54.78351
+                -127.63541,
+                54.78145
               ],
               "offset": {
                 "anchor_label": "McDonell Lake outlet",
                 "m": 3000,
-                "dir": "downstream"
+                "dir": "downstream",
+                "anchor": [
+                  -127.63541,
+                  54.78145
+                ]
               },
               "target": {
-                "blk": "360881231"
+                "type": "lake_outlet",
+                "wbk": 329682393,
+                "lake": "McDonell Lake"
               }
             }
           ]
@@ -23871,13 +23982,17 @@
               "label": "Thorn(e) Creek confluence 500m upstream",
               "notes": "500 m upstream of the Thorne Creek confluence. Author as confluence anchor tributary_wsc=200-948755-999851-889551-445636-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000 + offset_m 500, offset_dir upstream. OSM: https://www.openstreetmap.org/?mlat=56.92522&mlon=-126.67873#map=15/56.92522/-126.67873",
               "coord": [
-                -126.67873,
-                56.92522
+                -126.68256,
+                56.92636
               ],
               "offset": {
                 "anchor_label": "Thorn Creek confluence",
                 "m": 500,
-                "dir": "upstream"
+                "dir": "upstream",
+                "anchor": [
+                  -126.68256,
+                  56.92636
+                ]
               },
               "target": {
                 "blk": "359557375",
@@ -23893,13 +24008,17 @@
               "label": "Thorn(e) Creek confluence 500m downstream",
               "notes": "500 m downstream of the Thorne Creek confluence. Author as confluence anchor tributary_wsc=200-948755-999851-889551-445636-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000 + offset_m 500, offset_dir downstream. OSM: https://www.openstreetmap.org/?mlat=56.92831&mlon=-126.68707#map=15/56.92831/-126.68707",
               "coord": [
-                -126.68707,
-                56.92831
+                -126.68256,
+                56.92636
               ],
               "offset": {
                 "anchor_label": "Thorn Creek confluence",
                 "m": 500,
-                "dir": "downstream"
+                "dir": "downstream",
+                "anchor": [
+                  -126.68256,
+                  56.92636
+                ]
               },
               "target": {
                 "blk": "359557375",
@@ -23915,13 +24034,17 @@
               "label": "Kemess Creek confluence 500m upstream",
               "notes": "500 m upstream of the Kemess Creek confluence. Author as confluence anchor tributary_wsc=200-948755-999851-889551-178842-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000 + offset_m 500, offset_dir upstream. OSM: https://www.openstreetmap.org/?mlat=56.97490&mlon=-126.77549#map=15/56.97490/-126.77549",
               "coord": [
-                -126.77549,
-                56.9749
+                -126.78252,
+                56.97681
               ],
               "offset": {
                 "anchor_label": "Kemess Creek confluence",
                 "m": 500,
-                "dir": "upstream"
+                "dir": "upstream",
+                "anchor": [
+                  -126.78252,
+                  56.97681
+                ]
               },
               "target": {
                 "blk": "359567528",
@@ -23937,13 +24060,17 @@
               "label": "Kemess Creek confluence 500m downstream",
               "notes": "500 m downstream of the Kemess Creek confluence. Author as confluence anchor tributary_wsc=200-948755-999851-889551-178842-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000 + offset_m 500, offset_dir downstream. OSM: https://www.openstreetmap.org/?mlat=56.97879&mlon=-126.78904#map=15/56.97879/-126.78904",
               "coord": [
-                -126.78904,
-                56.97879
+                -126.78252,
+                56.97681
               ],
               "offset": {
                 "anchor_label": "Kemess Creek confluence",
                 "m": 500,
-                "dir": "downstream"
+                "dir": "downstream",
+                "anchor": [
+                  -126.78252,
+                  56.97681
+                ]
               },
               "target": {
                 "blk": "359567528",
@@ -24790,13 +24917,17 @@
               "label": "signs 250 m below Francois Lake bridge",
               "notes": "[auto-proposal L] bridge near Francois Lake outlet (signs 250 m & 4 km below) on Stellako River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the bridge near the Francois Lake outlet on the Stellako, then signs 250 m & 4 km downstream; map.. Reg = 'signs ~250 m and 4 km downstream of the bridge near the Francois Lake outlet'. Road bridge at the Francois Lake outlet (Stellako flows Francois -> Fraser Lake); not in FWA/FSR. Map/OSM-confirmable. [structural-split 2026-08-05 from “between fishing boundary signs approximately 250 m and 4 km downstream of the bridge near the François Lake outlet”] boundary=fishing boundary signs approximately 250 m [hint-fix 2026-08-06 bridge_road_km->boundary_signs] [human-review 2026-08-06] anchor=bridge; offset_m=250 downstream.",
               "coord": [
-                -124.98962,
-                54.01273
+                -125.00614,
+                54.00949
               ],
               "offset": {
-                "anchor_label": "Francois Lake bridge",
+                "anchor_label": "Francois Lake Road bridge (Stellako outlet)",
                 "m": 250,
-                "dir": "downstream"
+                "dir": "downstream",
+                "anchor": [
+                  -125.00614,
+                  54.00949
+                ]
               },
               "mus": [
                 "6-4",
@@ -24813,13 +24944,17 @@
               "label": "4 km below Francois Lake bridge",
               "notes": "[auto-proposal L] bridge near Francois Lake outlet (signs 250 m & 4 km below) on Stellako River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the bridge near the Francois Lake outlet on the Stellako, then signs 250 m & 4 km downstream; map.. Reg = 'signs ~250 m and 4 km downstream of the bridge near the Francois Lake outlet'. Road bridge at the Francois Lake outlet (Stellako flows Francois -> Fraser Lake); not in FWA/FSR. Map/OSM-confirmable. [structural-split 2026-08-05 from “between fishing boundary signs approximately 250 m and 4 km downstream of the bridge near the François Lake outlet”] boundary=4 km downstream of the bridge near the François Lake outlet [for-agent] anchor=bridge near Francois Lake outlet on Stellako River + offset_m=4000 downstream; OSM bridge lookup pending. [hint-fix 2026-08-06 lake_reach->bridge_road_km] [human-review 2026-08-06] anchor=bridge [-125.00613,54.00935]; offset_m=4000 downstream.",
               "coord": [
-                -124.96836,
-                54.03109
+                -125.00614,
+                54.00949
               ],
               "offset": {
-                "anchor_label": "Francois Lake bridge",
+                "anchor_label": "Francois Lake Road bridge (Stellako outlet)",
                 "m": 4000,
-                "dir": "downstream"
+                "dir": "downstream",
+                "anchor": [
+                  -125.00614,
+                  54.00949
+                ]
               },
               "mus": [
                 "6-4",
@@ -25286,13 +25421,17 @@
               "label": "signs ~5 km up Halfway (from Peace confluence)",
               "notes": "5000 m upstream of the Halfway River confluence. Author as confluence anchor tributary_wsc=200-948755-837217-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000 + offset_m 5000, offset_dir upstream. OSM: https://www.openstreetmap.org/?mlat=56.22651&mlon=-121.48495#map=15/56.22651/-121.48495",
               "coord": [
-                -121.48495,
-                56.22651
+                -121.44457,
+                56.21055
               ],
               "offset": {
                 "anchor_label": "Peace River confluence",
                 "m": 5000,
-                "dir": "upstream"
+                "dir": "upstream",
+                "anchor": [
+                  -121.44457,
+                  56.21055
+                ]
               },
               "target": {
                 "blk": "359570578",
@@ -25528,13 +25667,17 @@
               "label": "signs ~2 km below Kinuseo Falls",
               "notes": "[structural-split 2026-08-05 from \"from Kinuseo Falls to signs about 2 km downstream\"] boundary=signs about 2 km downstream [hint-fix 2026-08-06 falls_obstacle->boundary_signs] [human-review 2026-08-06] anchor=Kinuseo Falls; offset_m=2000 offset_dir=downstream.",
               "coord": [
-                -121.20313,
-                54.79829
+                -121.19108,
+                54.78398
               ],
               "offset": {
                 "anchor_label": "Kinuseo Falls",
                 "m": 2000,
-                "dir": "downstream"
+                "dir": "downstream",
+                "anchor": [
+                  -121.19108,
+                  54.78398
+                ]
               },
               "locator_text": "signs about 2 km downstream"
             }
@@ -25585,8 +25728,8 @@
               "label": "Site C dam (John Horgan Dam)",
               "notes": "[auto-proposal L] Site C Dam (upstream bound) / Hwy 29 bridge (downstream) on Peace River (Hwy 29 bridge -> Site C Dam). No FWA coord (needs map / external source). Verify: Locate Site C Dam and the Hwy 29 bridge on the Peace; both external to FWA.. Reach from the Hwy 29 bridge upstream to the Site C Dam. Site C not in FWA (recent). Recommend manual with BC Hydro / map coords for both landmarks. [structural-split 2026-08-05 from \"From Hwy. 29 bridge to the Site C dam\"] boundary=Site C dam [human-review 2026-08-06] Site C/John Horgan Dam (OSM way 409910469, user-confirmed).",
               "coord": [
-                -122.19422,
-                56.01571
+                -120.91289,
+                56.193
               ],
               "locator_text": "Site C dam"
             }
@@ -25612,13 +25755,17 @@
               "label": "5 km upstream of Halfway mouth (on Peace)",
               "notes": "5000 m upstream of the Halfway River confluence. Author as confluence anchor tributary_wsc=200-948755-837217-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000 + offset_m 5000, offset_dir upstream. OSM: https://www.openstreetmap.org/?mlat=56.18908&mlon=-121.50767#map=15/56.18908/-121.50767 (offset along the Peace mainstem)",
               "coord": [
-                -121.50767,
-                56.18908
+                -121.44457,
+                56.21055
               ],
               "offset": {
                 "anchor_label": "Halfway River mouth",
                 "m": 5000,
-                "dir": "upstream"
+                "dir": "upstream",
+                "anchor": [
+                  -121.44457,
+                  56.21055
+                ]
               },
               "target": {
                 "blk": "359570578",
@@ -25634,13 +25781,17 @@
               "label": "5 km downstream of Halfway mouth (on Peace)",
               "notes": "5000 m downstream of the Halfway River confluence. Author as confluence anchor tributary_wsc=200-948755-837217-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000 + offset_m 5000, offset_dir downstream. OSM: https://www.openstreetmap.org/?mlat=56.22989&mlon=-121.38217#map=15/56.22989/-121.38217 (offset along the Peace mainstem)",
               "coord": [
-                -121.38217,
-                56.22989
+                -121.44457,
+                56.21055
               ],
               "offset": {
                 "anchor_label": "Halfway River mouth",
                 "m": 5000,
-                "dir": "downstream"
+                "dir": "downstream",
+                "anchor": [
+                  -121.44457,
+                  56.21055
+                ]
               },
               "target": {
                 "blk": "359570578",
@@ -25705,8 +25856,8 @@
               "label": "Site C dam (John Horgan Dam)",
               "notes": "[auto-proposal L] Site C Dam (upstream bound) / Hwy 29 bridge (downstream) on Peace River (Hwy 29 bridge -> Site C Dam). No FWA coord (needs map / external source). Verify: Locate Site C Dam and the Hwy 29 bridge on the Peace; both external to FWA.. Reach from the Hwy 29 bridge upstream to the Site C Dam. Site C not in FWA (recent). Recommend manual with BC Hydro / map coords for both landmarks. [structural-split 2026-08-05 from \"From Hwy. 29 bridge to the Site C dam\"] boundary=Site C dam [human-review 2026-08-06] Site C/John Horgan Dam (OSM way 409910469, user-confirmed).",
               "coord": [
-                -122.19422,
-                56.01571
+                -120.91289,
+                56.193
               ],
               "locator_text": "Site C dam"
             }
@@ -25735,8 +25886,8 @@
               "label": "Site C dam (John Horgan Dam)",
               "notes": "[auto-proposal L] Site C Dam (upstream bound) / Hwy 29 bridge (downstream) on Peace River (Hwy 29 bridge -> Site C Dam). No FWA coord (needs map / external source). Verify: Locate Site C Dam and the Hwy 29 bridge on the Peace; both external to FWA.. Reach from the Hwy 29 bridge upstream to the Site C Dam. Site C not in FWA (recent). Recommend manual with BC Hydro / map coords for both landmarks. [structural-split 2026-08-05 from \"From Hwy. 29 bridge to the Site C dam\"] boundary=Site C dam [human-review 2026-08-06] Site C/John Horgan Dam (OSM way 409910469, user-confirmed).",
               "coord": [
-                -122.19422,
-                56.01571
+                -120.91289,
+                56.193
               ],
               "locator_text": "Site C dam"
             }
@@ -25772,8 +25923,8 @@
               "label": "Site C dam (John Horgan Dam)",
               "notes": "[auto-proposal L] Site C Dam (upstream) -> signs 1,200 m downstream on Peace River (Site C Dam -> signs 1,200 m below). No FWA coord (needs map / external source). Verify: Locate Site C Dam; downstream end = signs 1,200 m below. External to FWA.. Short reach from the Site C Dam to boundary signs 1,200 m downstream (pairs with peace-river-downstream-of-boundary-signs). Site C absent from FWA - manual/BC Hydro coord needed. [human-review 2026-08-06] Site C/John Horgan Dam (user).",
               "coord": [
-                -122.19422,
-                56.01571
+                -120.91289,
+                56.193
               ],
               "name_verbatim": "PEACE RIVER (From Site C dam to boundary signs 1,200m",
               "locator_text": "Site C dam"
@@ -25794,8 +25945,8 @@
               "label": "Site C dam (John Horgan Dam)",
               "notes": "[auto-proposal L] Site C Dam (upstream) -> signs 1,200 m downstream on Peace River (Site C Dam -> signs 1,200 m below). No FWA coord (needs map / external source). Verify: Locate Site C Dam; downstream end = signs 1,200 m below. External to FWA.. Short reach from the Site C Dam to boundary signs 1,200 m downstream (pairs with peace-river-downstream-of-boundary-signs). Site C absent from FWA - manual/BC Hydro coord needed. [human-review 2026-08-06] Site C/John Horgan Dam (user).",
               "coord": [
-                -122.19422,
-                56.01571
+                -120.91289,
+                56.193
               ],
               "name_verbatim": "PEACE RIVER (From Site C dam to boundary signs 1,200m",
               "locator_text": "Site C dam"
@@ -25832,13 +25983,17 @@
               "label": "signs 1200 m below Site C dam",
               "notes": "[auto-proposal L] Boundary signs 1,200 m downstream of Site C Dam on Peace River (below Site C). No FWA coord (needs map / external source). Verify: Locate Site C Dam (BC Hydro, ~7 km SW of Fort St John) then place a point 1,200 m downstream along the Peace - Site C reservoir is too new to be in FWA.. Site C Dam is a recent BC Hydro facility likely absent from the FWA dataset. This entry is the reach downstream of signs 1,200 m below the dam. Recommend manual: get the Site C dam coord from BC Hydro, then offset 1,200 m downstream on the Peace River blue line. [human-review 2026-08-06] anchor=Site C dam; offset_m=1200 offset_dir=downstream.",
               "coord": [
-                -122.19419,
-                56.01573
+                -120.91289,
+                56.193
               ],
               "offset": {
-                "anchor_label": "Site C dam",
+                "anchor_label": "Site C dam (John Horgan Dam), OSM way 409910469",
                 "m": 1200,
-                "dir": "downstream"
+                "dir": "downstream",
+                "anchor": [
+                  -120.91289,
+                  56.193
+                ]
               },
               "name_verbatim": "PEACE RIVER (Downstream of boundary signs 1,200m downs"
             }
@@ -25858,13 +26013,17 @@
               "label": "signs 1200 m below Site C dam",
               "notes": "[auto-proposal L] Boundary signs 1,200 m downstream of Site C Dam on Peace River (below Site C). No FWA coord (needs map / external source). Verify: Locate Site C Dam (BC Hydro, ~7 km SW of Fort St John) then place a point 1,200 m downstream along the Peace - Site C reservoir is too new to be in FWA.. Site C Dam is a recent BC Hydro facility likely absent from the FWA dataset. This entry is the reach downstream of signs 1,200 m below the dam. Recommend manual: get the Site C dam coord from BC Hydro, then offset 1,200 m downstream on the Peace River blue line. [human-review 2026-08-06] anchor=Site C dam; offset_m=1200 offset_dir=downstream.",
               "coord": [
-                -122.19419,
-                56.01573
+                -120.91289,
+                56.193
               ],
               "offset": {
-                "anchor_label": "Site C dam",
+                "anchor_label": "Site C dam (John Horgan Dam), OSM way 409910469",
                 "m": 1200,
-                "dir": "downstream"
+                "dir": "downstream",
+                "anchor": [
+                  -120.91289,
+                  56.193
+                ]
               },
               "name_verbatim": "PEACE RIVER (Downstream of boundary signs 1,200m downs"
             }
@@ -25884,13 +26043,17 @@
               "label": "signs 1200 m below Site C dam",
               "notes": "[auto-proposal L] Boundary signs 1,200 m downstream of Site C Dam on Peace River (below Site C). No FWA coord (needs map / external source). Verify: Locate Site C Dam (BC Hydro, ~7 km SW of Fort St John) then place a point 1,200 m downstream along the Peace - Site C reservoir is too new to be in FWA.. Site C Dam is a recent BC Hydro facility likely absent from the FWA dataset. This entry is the reach downstream of signs 1,200 m below the dam. Recommend manual: get the Site C dam coord from BC Hydro, then offset 1,200 m downstream on the Peace River blue line. [human-review 2026-08-06] anchor=Site C dam; offset_m=1200 offset_dir=downstream.",
               "coord": [
-                -122.19419,
-                56.01573
+                -120.91289,
+                56.193
               ],
               "offset": {
-                "anchor_label": "Site C dam",
+                "anchor_label": "Site C dam (John Horgan Dam), OSM way 409910469",
                 "m": 1200,
-                "dir": "downstream"
+                "dir": "downstream",
+                "anchor": [
+                  -120.91289,
+                  56.193
+                ]
               },
               "name_verbatim": "PEACE RIVER (Downstream of boundary signs 1,200m downs",
               "locator_text": "Downstream of boundary signs 1,200m downstream of the Site C dam"
@@ -26014,13 +26177,17 @@
               "label": "100 m below Swan Lake outlet weir",
               "notes": " [human-review 2026-08-05] SINGLE split (lake edge auto-splits upstream end); anchor=Swan Lake (wbk 329328382); offset_m=100 offset_dir=downstream. Prior coord was Tupper CREEK; now Tupper RIVER.",
               "coord": [
-                -120.0339,
-                55.52592
+                -120.02747,
+                55.52696
               ],
               "offset": {
                 "anchor_label": "Swan Lake outlet weir",
                 "m": 100,
-                "dir": "downstream"
+                "dir": "downstream",
+                "anchor": [
+                  -120.02747,
+                  55.52696
+                ]
               },
               "target": {
                 "wbk": 329328382
@@ -26460,18 +26627,24 @@
               "src": "rule",
               "resolver_hint": "lake_reach",
               "label": "fishing boundary signs (~1.5 km below Jewel Lake)",
-              "notes": "[lake-class: lake_split] Jewel Lake outlet + ~1.5 km offset downstream. — [lake-bound-auto] OFFSET: Jewel Lake outlet is auto; the ~1.5 km downstream point needs authoring.",
+              "notes": "[lake-class: lake_split] Jewel Lake outlet + ~1.5 km offset downstream. — [lake-bound-auto] OFFSET: Jewel Lake outlet is auto; the ~1.5 km downstream point needs authoring. [coord=temp reference; split via FWA target lake WBK]",
               "coord": [
-                -118.63427,
-                49.14846
+                -118.62266,
+                49.16284
               ],
               "offset": {
                 "anchor_label": "Jewel Lake outlet",
                 "m": 1500,
-                "dir": "downstream"
+                "dir": "downstream",
+                "anchor": [
+                  -118.62266,
+                  49.16284
+                ]
               },
               "target": {
-                "blk": "356526465"
+                "type": "lake_outlet",
+                "wbk": 329216614,
+                "lake": "Jewel Lake"
               }
             }
           ]
@@ -27823,16 +27996,20 @@
         "status": "curated",
         "target": "",
         "coord": [
-          -122.19422,
-          56.01571
+          -120.91289,
+          56.193
         ],
         "label": "signs 1200 m below Site C",
         "notes": "[auto-proposal L] Site C Dam (upstream) -> signs 1,200 m downstream on Peace River (Site C Dam -> signs 1,200 m below). No FWA coord (needs map / external source). Verify: Locate Site C Dam; downstream end = signs 1,200 m below. External to FWA.. Short reach from the Site C Dam to boundary signs 1,200 m downstream (pairs with peace-river-downstream-of-boundary-signs). Site C absent from FWA - manual/BC Hydro coord needed. [human-review 2026-08-06] anchor=Site C dam; offset_m=1200 offset_dir=downstream (sectionizer auto-calcs).",
         "entry_id": "789839ce",
         "offset": {
-          "anchor_label": "Site C dam",
+          "anchor_label": "Site C dam (John Horgan Dam), OSM way 409910469",
           "m": 1200,
-          "dir": "downstream"
+          "dir": "downstream",
+          "anchor": [
+            -120.91289,
+            56.193
+          ]
         }
       }
     }
