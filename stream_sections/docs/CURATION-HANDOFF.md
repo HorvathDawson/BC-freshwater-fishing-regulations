@@ -80,18 +80,11 @@ Columbia, the `offset` field + 39-row offset retrofit, coord=base migration, Sit
 lake/confluence targets. `scratchpad/` has the reusable resolvers: `resolve_bases.py`,
 `lake_targets.py`, `audit_features.py`, `elk_bridges.py`.
 
-### NEXT UP: Elk River (upstream of Elko Dam) · MU 4-2, 4-23 — candidates already computed
+### Reviewed-in-totality so far: Fraser 3-14, Columbia, Elk River (upstream of Elko Dam)
 
-Reg C&R reaches: Lower Elk Lake→Forsyth Cr, Line Creek Br→CPR Br (Sparwood), Hwy 3 Br (Hosmer)→
-N. Hwy 3 Br (Fernie), Morrissey Br→Elko Dam. Bridges from OSM ∩ Elk (lat, lon):
+### NEXT UP
 
-- Line Creek Bridge `49.88184, -114.87645` (`e38cd2-line-creek-bridge`)
-- CPR Bridge at Sparwood `49.75340, -114.88343` (`-cpr-bridge-sparwood`; alt 2.5 km N `49.81155, -114.87247`)
-- Hwy 3 bridge at Hosmer `49.58600, -114.96975` (`-hwy3-bridge-hosmer`)
-- northern Hwy 3 bridge at Fernie `49.51907, -115.06154` (`-hwy3-bridge-fernie-n`)
-- bridge at Morrissey `49.39186, -115.01668` (`-morrissey-bridge`)
-- "All other parts" (`91575c`) → **n/a** (residual zone)
-- Forsyth Cr end of the "Lower Elk Lake→Forsyth Cr" reach has **no row** (Lower Elk Lake is auto-n/a);
-  FWA confluence ≈ `50.22491, -114.96080` — confirm the correct Forsyth Creek, then add a row if wanted.
-
-Awaiting human confirmation of the 5 bridges + the "All other parts" n/a + whether to add Forsyth Cr.
+Run `wb_present.py --todo` and take the top incomplete entry. Note there are separate ELK RIVER
+entries still open — "ELK RIVER'S TRIBUTARIES" is INCOMPLETE (unresolved `EXCEPT Coal Creek d/s of
+old MF&M Railway` exception). Follow the per-waterbody workflow above; confirm every candidate with
+the human (OSM links preferred) before writing; mark the entry `reviewed` when the whole reg is walked.
