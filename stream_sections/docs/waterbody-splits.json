@@ -390,7 +390,12 @@
               "coord": [
                 -125.00873,
                 49.38739
-              ]
+              ],
+              "offset": {
+                "anchor_label": "Lanterman Falls",
+                "m": 200,
+                "dir": "downstream"
+              }
             }
           ]
         },
@@ -3355,6 +3360,11 @@
                 -125.01502,
                 49.68943
               ],
+              "offset": {
+                "anchor_label": "Morrison Creek confluence",
+                "m": 100,
+                "dir": "upstream"
+              },
               "target": {
                 "blk": "354146703",
                 "wsc": "920-559826-984406-044942-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
@@ -3372,6 +3382,11 @@
                 -125.01262,
                 49.68965
               ],
+              "offset": {
+                "anchor_label": "Morrison Creek confluence",
+                "m": 100,
+                "dir": "downstream"
+              },
               "target": {
                 "blk": "354146703",
                 "wsc": "920-559826-984406-044942-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
@@ -3996,6 +4011,11 @@
                 -123.71538,
                 48.43272
               ],
+              "offset": {
+                "anchor_label": "Potholes Falls",
+                "m": 100,
+                "dir": "downstream"
+              },
               "locator_text": "signs approximately 100 m downstream"
             }
           ]
@@ -4100,6 +4120,15 @@
                 -124.91864,
                 49.33224
               ],
+              "offset": {
+                "anchor_label": "Stamp Falls",
+                "m": 200,
+                "dir": "upstream",
+                "anchor": [
+                  -124.91864,
+                  49.33224
+                ]
+              },
               "locator_text": "fishing boundary signs 200 m upstream of"
             },
             {
@@ -4114,6 +4143,15 @@
                 -124.91864,
                 49.33224
               ],
+              "offset": {
+                "anchor_label": "Stamp Falls",
+                "m": 500,
+                "dir": "downstream",
+                "anchor": [
+                  -124.91864,
+                  49.33224
+                ]
+              },
               "locator_text": "500 m downstream of Stamp Falls"
             }
           ]
@@ -4620,6 +4658,11 @@
                 -132.2658,
                 53.42556
               ],
+              "offset": {
+                "anchor_label": "Yakoun Lake outlet",
+                "m": 13000,
+                "dir": "downstream"
+              },
               "target": {
                 "blk": "360881586"
               }
@@ -7100,6 +7143,11 @@
                 -123.97519,
                 49.70954
               ],
+              "offset": {
+                "anchor_label": "Ruby Lake outlet",
+                "m": 100,
+                "dir": "downstream"
+              },
               "target": {
                 "blk": "360878295"
               }
@@ -10376,6 +10424,11 @@
                 -121.64288,
                 50.00703
               ],
+              "offset": {
+                "anchor_label": "Frances Lake outlet",
+                "m": 400,
+                "dir": "downstream"
+              },
               "target": {
                 "wbk": 329154768
               },
@@ -15471,6 +15524,11 @@
                 -117.26344,
                 50.50518
               ],
+              "offset": {
+                "anchor_label": "Trout Lake outlet",
+                "m": 600,
+                "dir": "downstream"
+              },
               "target": {
                 "blk": "356569420",
                 "wsc": "300-625474-096683-076865-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
@@ -19168,6 +19226,11 @@
                 -126.91658,
                 52.81755
               ],
+              "offset": {
+                "anchor_label": "the canyon",
+                "m": 500,
+                "dir": "upstream"
+              },
               "locator_text": ""
             }
           ]
@@ -19192,6 +19255,11 @@
                 -126.93741,
                 52.81863
               ],
+              "offset": {
+                "anchor_label": "the canyon",
+                "m": 100,
+                "dir": "downstream"
+              },
               "locator_text": ""
             },
             {
@@ -19206,6 +19274,11 @@
                 -126.91658,
                 52.81755
               ],
+              "offset": {
+                "anchor_label": "the canyon",
+                "m": 500,
+                "dir": "upstream"
+              },
               "locator_text": ""
             }
           ]
@@ -19233,6 +19306,11 @@
                 -126.93741,
                 52.81863
               ],
+              "offset": {
+                "anchor_label": "the canyon",
+                "m": 100,
+                "dir": "downstream"
+              },
               "locator_text": ""
             },
             {
@@ -19293,6 +19371,11 @@
                 -126.87557,
                 52.81548
               ],
+              "offset": {
+                "anchor_label": "the canyon",
+                "m": 3500,
+                "dir": "upstream"
+              },
               "locator_text": ""
             },
             {
@@ -19307,6 +19390,11 @@
                 -126.91658,
                 52.81755
               ],
+              "offset": {
+                "anchor_label": "the canyon",
+                "m": 500,
+                "dir": "upstream"
+              },
               "locator_text": ""
             }
           ]
@@ -19353,6 +19441,11 @@
                 -126.91658,
                 52.81755
               ],
+              "offset": {
+                "anchor_label": "the canyon",
+                "m": 500,
+                "dir": "upstream"
+              },
               "locator_text": ""
             }
           ]
@@ -19381,6 +19474,11 @@
                 -126.93741,
                 52.81863
               ],
+              "offset": {
+                "anchor_label": "the canyon",
+                "m": 100,
+                "dir": "downstream"
+              },
               "locator_text": ""
             },
             {
@@ -20615,6 +20713,15 @@
                 -121.57279,
                 52.61534
               ],
+              "offset": {
+                "anchor_label": "Likely Bridge",
+                "m": 50,
+                "dir": "upstream",
+                "anchor": [
+                  -121.57279,
+                  52.61534
+                ]
+              },
               "locator_text": "50 m upstream of Likely Bridge"
             },
             {
@@ -20629,6 +20736,15 @@
                 -121.57279,
                 52.61534
               ],
+              "offset": {
+                "anchor_label": "Likely Bridge",
+                "m": 50,
+                "dir": "downstream",
+                "anchor": [
+                  -121.57279,
+                  52.61534
+                ]
+              },
               "locator_text": "50 m downstream of Likely Bridge"
             }
           ]
@@ -20683,6 +20799,15 @@
                 -121.57279,
                 52.61534
               ],
+              "offset": {
+                "anchor_label": "Likely Bridge",
+                "m": 1800,
+                "dir": "upstream",
+                "anchor": [
+                  -121.57279,
+                  52.61534
+                ]
+              },
               "locator_text": "boundary signs approximately 1.8 km east of the Likely Bridge"
             },
             {
@@ -21125,6 +21250,11 @@
                 -126.69701,
                 55.42673
               ],
+              "offset": {
+                "anchor_label": "adult fish counting fence",
+                "m": 80,
+                "dir": "downstream"
+              },
               "locator_text": "80 m downstream of the adult fish counting fence"
             }
           ]
@@ -22285,6 +22415,11 @@
                 -127.41253,
                 54.12531
               ],
+              "offset": {
+                "anchor_label": "Morice Lake outlet",
+                "m": 2000,
+                "dir": "downstream"
+              },
               "locator_text": "from fishing boundary signs near outlet of Morice Lake (UTM: 602539.02E, 5997165.96N) to the fishing boundary signs appr"
             }
           ]
@@ -22312,6 +22447,11 @@
                 -127.41253,
                 54.12531
               ],
+              "offset": {
+                "anchor_label": "Morice Lake outlet",
+                "m": 2000,
+                "dir": "downstream"
+              },
               "locator_text": "from fishing boundary signs approximately 2 km downstream (the \"Dunes\", UTM: 603741.00E, 5998628.00N) of Morice Lake to"
             },
             {
@@ -22884,6 +23024,11 @@
                 -128.64193,
                 54.51296
               ],
+              "offset": {
+                "anchor_label": "Kitsumkalum River confluence",
+                "m": 1500,
+                "dir": "upstream"
+              },
               "target": {
                 "blk": "360883243",
                 "wsc": "400-195432-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
@@ -22914,6 +23059,11 @@
                 -128.47415,
                 54.55705
               ],
+              "offset": {
+                "anchor_label": "Zymoetz River confluence",
+                "m": 1500,
+                "dir": "upstream"
+              },
               "target": {
                 "blk": "360881231",
                 "wsc": "400-221484-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
@@ -23028,6 +23178,11 @@
                 -128.47415,
                 54.55705
               ],
+              "offset": {
+                "anchor_label": "Zymoetz River confluence",
+                "m": 1500,
+                "dir": "upstream"
+              },
               "target": {
                 "blk": "360881231",
                 "wsc": "400-221484-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
@@ -23089,6 +23244,11 @@
                 -124.98962,
                 54.01273
               ],
+              "offset": {
+                "anchor_label": "Francois Lake bridge",
+                "m": 250,
+                "dir": "downstream"
+              },
               "locator_text": "fishing boundary signs approximately 250 m"
             },
             {
@@ -23103,6 +23263,11 @@
                 -124.96836,
                 54.03109
               ],
+              "offset": {
+                "anchor_label": "Francois Lake bridge",
+                "m": 4000,
+                "dir": "downstream"
+              },
               "locator_text": "4 km downstream of the bridge near the François Lake outlet"
             }
           ]
@@ -23424,6 +23589,11 @@
                 -127.67629,
                 54.78351
               ],
+              "offset": {
+                "anchor_label": "McDonell Lake outlet",
+                "m": 3000,
+                "dir": "downstream"
+              },
               "target": {
                 "blk": "360881231"
               }
@@ -23704,6 +23874,11 @@
                 -126.67873,
                 56.92522
               ],
+              "offset": {
+                "anchor_label": "Thorn Creek confluence",
+                "m": 500,
+                "dir": "upstream"
+              },
               "target": {
                 "blk": "359557375",
                 "wsc": "200-948755-999851-889551-445636-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
@@ -23721,6 +23896,11 @@
                 -126.68707,
                 56.92831
               ],
+              "offset": {
+                "anchor_label": "Thorn Creek confluence",
+                "m": 500,
+                "dir": "downstream"
+              },
               "target": {
                 "blk": "359557375",
                 "wsc": "200-948755-999851-889551-445636-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
@@ -23738,6 +23918,11 @@
                 -126.77549,
                 56.9749
               ],
+              "offset": {
+                "anchor_label": "Kemess Creek confluence",
+                "m": 500,
+                "dir": "upstream"
+              },
               "target": {
                 "blk": "359567528",
                 "wsc": "200-948755-999851-889551-178842-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
@@ -23755,6 +23940,11 @@
                 -126.78904,
                 56.97879
               ],
+              "offset": {
+                "anchor_label": "Kemess Creek confluence",
+                "m": 500,
+                "dir": "downstream"
+              },
               "target": {
                 "blk": "359567528",
                 "wsc": "200-948755-999851-889551-178842-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
@@ -24603,6 +24793,11 @@
                 -124.98962,
                 54.01273
               ],
+              "offset": {
+                "anchor_label": "Francois Lake bridge",
+                "m": 250,
+                "dir": "downstream"
+              },
               "mus": [
                 "6-4",
                 "7-12"
@@ -24621,6 +24816,11 @@
                 -124.96836,
                 54.03109
               ],
+              "offset": {
+                "anchor_label": "Francois Lake bridge",
+                "m": 4000,
+                "dir": "downstream"
+              },
               "mus": [
                 "6-4",
                 "7-12"
@@ -25089,6 +25289,11 @@
                 -121.48495,
                 56.22651
               ],
+              "offset": {
+                "anchor_label": "Peace River confluence",
+                "m": 5000,
+                "dir": "upstream"
+              },
               "target": {
                 "blk": "359570578",
                 "wsc": "200-948755-837217-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
@@ -25326,6 +25531,11 @@
                 -121.20313,
                 54.79829
               ],
+              "offset": {
+                "anchor_label": "Kinuseo Falls",
+                "m": 2000,
+                "dir": "downstream"
+              },
               "locator_text": "signs about 2 km downstream"
             }
           ]
@@ -25405,6 +25615,11 @@
                 -121.50767,
                 56.18908
               ],
+              "offset": {
+                "anchor_label": "Halfway River mouth",
+                "m": 5000,
+                "dir": "upstream"
+              },
               "target": {
                 "blk": "359570578",
                 "wsc": "200-948755-837217-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
@@ -25422,6 +25637,11 @@
                 -121.38217,
                 56.22989
               ],
+              "offset": {
+                "anchor_label": "Halfway River mouth",
+                "m": 5000,
+                "dir": "downstream"
+              },
               "target": {
                 "blk": "359570578",
                 "wsc": "200-948755-837217-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
@@ -25615,6 +25835,11 @@
                 -122.19419,
                 56.01573
               ],
+              "offset": {
+                "anchor_label": "Site C dam",
+                "m": 1200,
+                "dir": "downstream"
+              },
               "name_verbatim": "PEACE RIVER (Downstream of boundary signs 1,200m downs"
             }
           ]
@@ -25636,6 +25861,11 @@
                 -122.19419,
                 56.01573
               ],
+              "offset": {
+                "anchor_label": "Site C dam",
+                "m": 1200,
+                "dir": "downstream"
+              },
               "name_verbatim": "PEACE RIVER (Downstream of boundary signs 1,200m downs"
             }
           ]
@@ -25657,6 +25887,11 @@
                 -122.19419,
                 56.01573
               ],
+              "offset": {
+                "anchor_label": "Site C dam",
+                "m": 1200,
+                "dir": "downstream"
+              },
               "name_verbatim": "PEACE RIVER (Downstream of boundary signs 1,200m downs",
               "locator_text": "Downstream of boundary signs 1,200m downstream of the Site C dam"
             }
@@ -25782,6 +26017,11 @@
                 -120.0339,
                 55.52592
               ],
+              "offset": {
+                "anchor_label": "Swan Lake outlet weir",
+                "m": 100,
+                "dir": "downstream"
+              },
               "target": {
                 "wbk": 329328382
               }
@@ -26225,6 +26465,11 @@
                 -118.63427,
                 49.14846
               ],
+              "offset": {
+                "anchor_label": "Jewel Lake outlet",
+                "m": 1500,
+                "dir": "downstream"
+              },
               "target": {
                 "blk": "356526465"
               }
@@ -27501,7 +27746,16 @@
         ],
         "label": "200 m upstream of Twin Falls Bridge",
         "notes": "[osm-candidate 2026-08-05] [-123.01604, 49.34148] (OSM Overpass ∩ MU-clipped FWA river; VERIFY). [human-review 2026-08-05] anchor=Twin Falls Bridge [-123.01604, 49.34148]; offset_m=200 offset_dir=upstream (sectionizer auto-calcs the along-channel point).",
-        "entry_id": "362df0a9"
+        "entry_id": "362df0a9",
+        "offset": {
+          "anchor_label": "Twin Falls Bridge",
+          "m": 200,
+          "dir": "upstream",
+          "anchor": [
+            -123.01604,
+            49.34148
+          ]
+        }
       }
     },
     {
@@ -27533,7 +27787,16 @@
         ],
         "label": "150 m downstream of Twin Falls Bridge",
         "notes": "[osm-candidate 2026-08-05] [-123.01604, 49.34148] (OSM Overpass ∩ MU-clipped FWA river; VERIFY). [human-review 2026-08-05] anchor=Twin Falls Bridge [-123.01604, 49.34148]; offset_m=150 offset_dir=downstream (sectionizer auto-calcs the along-channel point).",
-        "entry_id": "362df0a9"
+        "entry_id": "362df0a9",
+        "offset": {
+          "anchor_label": "Twin Falls Bridge",
+          "m": 150,
+          "dir": "downstream",
+          "anchor": [
+            -123.01604,
+            49.34148
+          ]
+        }
       }
     },
     {
@@ -27565,7 +27828,12 @@
         ],
         "label": "signs 1200 m below Site C",
         "notes": "[auto-proposal L] Site C Dam (upstream) -> signs 1,200 m downstream on Peace River (Site C Dam -> signs 1,200 m below). No FWA coord (needs map / external source). Verify: Locate Site C Dam; downstream end = signs 1,200 m below. External to FWA.. Short reach from the Site C Dam to boundary signs 1,200 m downstream (pairs with peace-river-downstream-of-boundary-signs). Site C absent from FWA - manual/BC Hydro coord needed. [human-review 2026-08-06] anchor=Site C dam; offset_m=1200 offset_dir=downstream (sectionizer auto-calcs).",
-        "entry_id": "789839ce"
+        "entry_id": "789839ce",
+        "offset": {
+          "anchor_label": "Site C dam",
+          "m": 1200,
+          "dir": "downstream"
+        }
       }
     }
   ]
