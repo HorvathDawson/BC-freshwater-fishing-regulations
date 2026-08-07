@@ -7785,15 +7785,19 @@
           "info": {
             "restriction_type": "closure"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "stave-river-15d929",
-              "status": "todo",
+              "status": "deferred",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "dam_weir_fence",
-              "notes": "[auto-proposal M] Ruskin Dam (Hayward Lake outlet) + Ruskin spawning channel on Stave River (Ruskin spawning channel, near dam). Candidate coord [-122.4074, 49.19594]. OSM: https://www.openstreetmap.org/?mlat=49.19594&mlon=-122.40740#map=15/49.19594/-122.40740. Verify: Confirm Ruskin Dam at the Hayward Lake outlet; the closure is within the Ruskin spawning channel from the inlet near the dam to the boat-ramp crossing.. Ruskin Dam impounds Hayward Lake on the Stave River; coord = FWA Stave River exit from the Hayward Lake polygon, matching the known Ruskin Dam. The closure is inside the adjacent Ruskin spawning channel (a side channel), from its inlet near the dam to the boat-ramp crossing - side-channel geometry, verify. [osm-candidate 2026-08-05] [-122.35618, 49.22952]; [-122.40739, 49.19594]; [-122.46227, 49.6276]; [-122.36772, 49.573] (OSM Overpass ∩ MU-clipped FWA river; VERIFY)."
+              "notes": "[auto-proposal M] Ruskin Dam (Hayward Lake outlet) + Ruskin spawning channel on Stave River (Ruskin spawning channel, near dam). Candidate coord [-122.4074, 49.19594]. OSM: https://www.openstreetmap.org/?mlat=49.19594&mlon=-122.40740#map=15/49.19594/-122.40740. Verify: Confirm Ruskin Dam at the Hayward Lake outlet; the closure is within the Ruskin spawning channel from the inlet near the dam to the boat-ramp crossing.. Ruskin Dam impounds Hayward Lake on the Stave River; coord = FWA Stave River exit from the Hayward Lake polygon, matching the known Ruskin Dam. The closure is inside the adjacent Ruskin spawning channel (a side channel), from its inlet near the dam to the boat-ramp crossing - side-channel geometry, verify. [deferred 2026-08-06] Ruskin spawning channel is a MATCH not a split (blk 355993384 / wsc 100-046202...); Northrop channel not in FWA; not really gazetted. Per review.",
+              "target": {
+                "blk": 355993384,
+                "wsc": "100-046202-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+              }
             }
           ]
         },
@@ -10650,11 +10654,11 @@
           "rows": [
             {
               "id": "seton-river-includes-bc-hydro-power-canal-ups-95a44d-a",
-              "status": "todo",
+              "status": "deferred",
               "anchor_kind": "point",
               "src": "name",
               "resolver_hint": "dam_weir_fence",
-              "notes": "[auto-proposal H] Seton Dam (Seton Lake outlet) + BC Hydro Power Canal on Seton River / Seton Lake outlet. Candidate coord [-121.97777, 50.66951]. OSM: https://www.openstreetmap.org/?mlat=50.66951&mlon=-121.97777#map=15/50.66951/-121.97777. Verify: Confirm Seton Dam at the Seton Lake outlet; the reg also includes the parallel BC Hydro Power Canal up to signs on Seton Lake.. Seton Dam controls the Seton River at the Seton Lake outlet. Coord = FWA Seton River exit from the Seton Lake polygon. The entry also includes the BC Hydro Power Canal upstream of the dam up to signs on Seton Lake (a parallel man-made channel - may need separate geometry). [structural-split 2026-08-05 from \"includes BC Hydro Power Canal upstream of the dam up to sign\"] boundary=includes BC Hydro Power Canal upstream of the dam",
+              "notes": "[auto-proposal H] Seton Dam (Seton Lake outlet) + BC Hydro Power Canal on Seton River / Seton Lake outlet. Candidate coord [-121.97777, 50.66951]. OSM: https://www.openstreetmap.org/?mlat=50.66951&mlon=-121.97777#map=15/50.66951/-121.97777. Verify: Confirm Seton Dam at the Seton Lake outlet; the reg also includes the parallel BC Hydro Power Canal up to signs on Seton Lake.. Seton Dam controls the Seton River at the Seton Lake outlet. Coord = FWA Seton River exit from the Seton Lake polygon. The entry also includes the BC Hydro Power Canal upstream of the dam up to signs on Seton Lake (a parallel man-made channel - may need separate geometry). [structural-split 2026-08-05 from \"includes BC Hydro Power Canal upstream of the dam up to sign\"] boundary=includes BC Hydro Power Canal upstream of the dam [deferred 2026-08-06] BC Hydro Power Canal is labelled as a river in FWA (no separate split); dam ~[-121.9246, 50.6727]. Per review.",
               "name_verbatim": "SETON RIVER (includes BC Hydro Power Canal upstream of",
               "locator_text": "includes BC Hydro Power Canal upstream of the dam"
             },
@@ -10738,11 +10742,11 @@
           "rows": [
             {
               "id": "seton-river-includes-bc-hydro-power-canal-ups-95a44d-a",
-              "status": "todo",
+              "status": "deferred",
               "anchor_kind": "point",
               "src": "name",
               "resolver_hint": "dam_weir_fence",
-              "notes": "[auto-proposal H] Seton Dam (Seton Lake outlet) + BC Hydro Power Canal on Seton River / Seton Lake outlet. Candidate coord [-121.97777, 50.66951]. OSM: https://www.openstreetmap.org/?mlat=50.66951&mlon=-121.97777#map=15/50.66951/-121.97777. Verify: Confirm Seton Dam at the Seton Lake outlet; the reg also includes the parallel BC Hydro Power Canal up to signs on Seton Lake.. Seton Dam controls the Seton River at the Seton Lake outlet. Coord = FWA Seton River exit from the Seton Lake polygon. The entry also includes the BC Hydro Power Canal upstream of the dam up to signs on Seton Lake (a parallel man-made channel - may need separate geometry). [structural-split 2026-08-05 from \"includes BC Hydro Power Canal upstream of the dam up to sign\"] boundary=includes BC Hydro Power Canal upstream of the dam",
+              "notes": "[auto-proposal H] Seton Dam (Seton Lake outlet) + BC Hydro Power Canal on Seton River / Seton Lake outlet. Candidate coord [-121.97777, 50.66951]. OSM: https://www.openstreetmap.org/?mlat=50.66951&mlon=-121.97777#map=15/50.66951/-121.97777. Verify: Confirm Seton Dam at the Seton Lake outlet; the reg also includes the parallel BC Hydro Power Canal up to signs on Seton Lake.. Seton Dam controls the Seton River at the Seton Lake outlet. Coord = FWA Seton River exit from the Seton Lake polygon. The entry also includes the BC Hydro Power Canal upstream of the dam up to signs on Seton Lake (a parallel man-made channel - may need separate geometry). [structural-split 2026-08-05 from \"includes BC Hydro Power Canal upstream of the dam up to sign\"] boundary=includes BC Hydro Power Canal upstream of the dam [deferred 2026-08-06] BC Hydro Power Canal is labelled as a river in FWA (no separate split); dam ~[-121.9246, 50.6727]. Per review.",
               "name_verbatim": "SETON RIVER (includes BC Hydro Power Canal upstream of",
               "locator_text": "includes BC Hydro Power Canal upstream of the dam"
             },
@@ -10765,11 +10769,11 @@
           "rows": [
             {
               "id": "seton-river-includes-bc-hydro-power-canal-ups-95a44d-a",
-              "status": "todo",
+              "status": "deferred",
               "anchor_kind": "point",
               "src": "name",
               "resolver_hint": "dam_weir_fence",
-              "notes": "[auto-proposal H] Seton Dam (Seton Lake outlet) + BC Hydro Power Canal on Seton River / Seton Lake outlet. Candidate coord [-121.97777, 50.66951]. OSM: https://www.openstreetmap.org/?mlat=50.66951&mlon=-121.97777#map=15/50.66951/-121.97777. Verify: Confirm Seton Dam at the Seton Lake outlet; the reg also includes the parallel BC Hydro Power Canal up to signs on Seton Lake.. Seton Dam controls the Seton River at the Seton Lake outlet. Coord = FWA Seton River exit from the Seton Lake polygon. The entry also includes the BC Hydro Power Canal upstream of the dam up to signs on Seton Lake (a parallel man-made channel - may need separate geometry). [structural-split 2026-08-05 from \"includes BC Hydro Power Canal upstream of the dam up to sign\"] boundary=includes BC Hydro Power Canal upstream of the dam",
+              "notes": "[auto-proposal H] Seton Dam (Seton Lake outlet) + BC Hydro Power Canal on Seton River / Seton Lake outlet. Candidate coord [-121.97777, 50.66951]. OSM: https://www.openstreetmap.org/?mlat=50.66951&mlon=-121.97777#map=15/50.66951/-121.97777. Verify: Confirm Seton Dam at the Seton Lake outlet; the reg also includes the parallel BC Hydro Power Canal up to signs on Seton Lake.. Seton Dam controls the Seton River at the Seton Lake outlet. Coord = FWA Seton River exit from the Seton Lake polygon. The entry also includes the BC Hydro Power Canal upstream of the dam up to signs on Seton Lake (a parallel man-made channel - may need separate geometry). [structural-split 2026-08-05 from \"includes BC Hydro Power Canal upstream of the dam up to sign\"] boundary=includes BC Hydro Power Canal upstream of the dam [deferred 2026-08-06] BC Hydro Power Canal is labelled as a river in FWA (no separate split); dam ~[-121.9246, 50.6727]. Per review.",
               "name_verbatim": "SETON RIVER (includes BC Hydro Power Canal upstream of",
               "locator_text": "includes BC Hydro Power Canal upstream of the dam"
             },
@@ -25033,11 +25037,16 @@
           "rows": [
             {
               "id": "peace-river-from-hwy-29-bridge-to-the-site-c--81bc00-a",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "falls_obstacle",
-              "notes": "[osm-candidate 2026-08-05] [-122.19498, 56.0152]; [-122.19422, 56.01571] (OSM Overpass ∩ MU-clipped FWA river; VERIFY). [structural-split 2026-08-05 from \"between Peace Canyon Dam and Hwy 29 Bridge\"] boundary=Peace Canyon Dam",
+              "label": "Peace Canyon Dam",
+              "notes": "[osm-candidate 2026-08-05] [-122.19498, 56.0152]; [-122.19422, 56.01571] (OSM Overpass ∩ MU-clipped FWA river; VERIFY). [structural-split 2026-08-05 from \"between Peace Canyon Dam and Hwy 29 Bridge\"] boundary=Peace Canyon Dam [human-review 2026-08-06] Peace Canyon Dam (user coord).",
+              "coord": [
+                -121.99444,
+                55.98194
+              ],
               "locator_text": "Peace Canyon Dam"
             },
             {
@@ -25124,39 +25133,50 @@
       "image": "page_072_row_001.png",
       "symbols": [],
       "reg_text": "**No Fishing**",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 1,
       "locators": [
         {
           "src": "water",
           "text": "From Site C dam to boundary signs 1,200m downstream",
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
-              "id": "peace-river-from-site-c-dam-to-boundary-signs-a64881",
-              "status": "todo",
+              "id": "peace-river-from-site-c-dam-to-boundary-signs-a64881-a",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "name",
               "resolver_hint": "dam_weir_fence",
-              "notes": "[auto-proposal L] Site C Dam (upstream) -> signs 1,200 m downstream on Peace River (Site C Dam -> signs 1,200 m below). No FWA coord (needs map / external source). Verify: Locate Site C Dam; downstream end = signs 1,200 m below. External to FWA.. Short reach from the Site C Dam to boundary signs 1,200 m downstream (pairs with peace-river-downstream-of-boundary-signs). Site C absent from FWA - manual/BC Hydro coord needed. [osm-candidate 2026-08-05] [-122.19498, 56.0152]; [-122.19422, 56.01571] (OSM Overpass ∩ MU-clipped FWA river; VERIFY).",
-              "name_verbatim": "PEACE RIVER (From Site C dam to boundary signs 1,200m"
+              "label": "Site C dam (John Horgan Dam)",
+              "notes": "[auto-proposal L] Site C Dam (upstream) -> signs 1,200 m downstream on Peace River (Site C Dam -> signs 1,200 m below). No FWA coord (needs map / external source). Verify: Locate Site C Dam; downstream end = signs 1,200 m below. External to FWA.. Short reach from the Site C Dam to boundary signs 1,200 m downstream (pairs with peace-river-downstream-of-boundary-signs). Site C absent from FWA - manual/BC Hydro coord needed. [human-review 2026-08-06] Site C/John Horgan Dam (user).",
+              "coord": [
+                -122.19422,
+                56.01571
+              ],
+              "name_verbatim": "PEACE RIVER (From Site C dam to boundary signs 1,200m",
+              "locator_text": "Site C dam"
             }
           ]
         },
         {
           "src": "name",
           "text": "PEACE RIVER (From Site C dam to boundary signs 1,200m downstream)",
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
-              "id": "peace-river-from-site-c-dam-to-boundary-signs-a64881",
-              "status": "todo",
+              "id": "peace-river-from-site-c-dam-to-boundary-signs-a64881-a",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "name",
               "resolver_hint": "dam_weir_fence",
-              "notes": "[auto-proposal L] Site C Dam (upstream) -> signs 1,200 m downstream on Peace River (Site C Dam -> signs 1,200 m below). No FWA coord (needs map / external source). Verify: Locate Site C Dam; downstream end = signs 1,200 m below. External to FWA.. Short reach from the Site C Dam to boundary signs 1,200 m downstream (pairs with peace-river-downstream-of-boundary-signs). Site C absent from FWA - manual/BC Hydro coord needed. [osm-candidate 2026-08-05] [-122.19498, 56.0152]; [-122.19422, 56.01571] (OSM Overpass ∩ MU-clipped FWA river; VERIFY).",
+              "label": "Site C dam (John Horgan Dam)",
+              "notes": "[auto-proposal L] Site C Dam (upstream) -> signs 1,200 m downstream on Peace River (Site C Dam -> signs 1,200 m below). No FWA coord (needs map / external source). Verify: Locate Site C Dam; downstream end = signs 1,200 m below. External to FWA.. Short reach from the Site C Dam to boundary signs 1,200 m downstream (pairs with peace-river-downstream-of-boundary-signs). Site C absent from FWA - manual/BC Hydro coord needed. [human-review 2026-08-06] Site C/John Horgan Dam (user).",
+              "coord": [
+                -122.19422,
+                56.01571
+              ],
               "name_verbatim": "PEACE RIVER (From Site C dam to boundary signs 1,200m",
-              "locator_text": "From Site C dam to boundary signs 1,200m downstream"
+              "locator_text": "Site C dam"
             }
           ]
         }
@@ -27081,6 +27101,38 @@
         "label": "150 m downstream of Twin Falls Bridge",
         "notes": "[osm-candidate 2026-08-05] [-123.01604, 49.34148] (OSM Overpass ∩ MU-clipped FWA river; VERIFY). [human-review 2026-08-05] anchor=Twin Falls Bridge [-123.01604, 49.34148]; offset_m=150 offset_dir=downstream (sectionizer auto-calcs the along-channel point).",
         "entry_id": "362df0a9"
+      }
+    },
+    {
+      "id": "peace-river-from-site-c-dam-to-boundary-signs-a64881-b",
+      "water": "PEACE RIVER (From Site C dam to boundary signs 1,200m",
+      "mu": [
+        "7-31"
+      ],
+      "src": "name",
+      "locator_text": "boundary signs 1200 m downstream of Site C dam",
+      "status": "curated",
+      "row": {
+        "id": "peace-river-from-site-c-dam-to-boundary-signs-a64881-b",
+        "name_verbatim": "PEACE RIVER (From Site C dam to boundary signs 1,200m",
+        "region": "REGION 7B - Peace",
+        "mus": [
+          "7-31"
+        ],
+        "src": "name",
+        "locator_text": "boundary signs 1200 m downstream of Site C dam",
+        "full_regulation": "**No Fishing**",
+        "anchor_kind": "point",
+        "resolver_hint": "dam_weir_fence",
+        "status": "curated",
+        "target": "",
+        "coord": [
+          -122.19422,
+          56.01571
+        ],
+        "label": "signs 1200 m below Site C",
+        "notes": "[auto-proposal L] Site C Dam (upstream) -> signs 1,200 m downstream on Peace River (Site C Dam -> signs 1,200 m below). No FWA coord (needs map / external source). Verify: Locate Site C Dam; downstream end = signs 1,200 m below. External to FWA.. Short reach from the Site C Dam to boundary signs 1,200 m downstream (pairs with peace-river-downstream-of-boundary-signs). Site C absent from FWA - manual/BC Hydro coord needed. [human-review 2026-08-06] anchor=Site C dam; offset_m=1200 offset_dir=downstream (sectionizer auto-calcs).",
+        "entry_id": "789839ce"
       }
     }
   ]

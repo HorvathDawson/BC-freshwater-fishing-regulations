@@ -7,11 +7,11 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 |---|--:|
 | NO_CURATION | 1 |
 | MISSING_SPLITS | 2 |
-| INCOMPLETE | 174 |
-| COMPLETE | 135 |
+| INCOMPLETE | 173 |
+| COMPLETE | 136 |
 | NO_SPLIT | 75 |
 
-**Drift** (curated rows matching no source locator): 3
+**Drift** (curated rows matching no source locator): 4
 
 ## LYNN CREEK · MU ['2-8'] · p26 · [NO_CURATION] (362df0a9)
 - ❌ MISSING [rule] “between fishing boundary signs situated approximately 200 m upstre” → —
@@ -223,10 +223,10 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 - • [rule] “downstream of Nahatlatch Lake” → nahatlatch-river-0bb710[not_applicable], nahatlatch-river-1d1eaf[not_applicable]
 
 ## SETON RIVER (includes BC Hydro Power Canal upstream of the dam up to signs located on Seton Lake) · MU ['3-16'] · p34 · [INCOMPLETE] (5a3609ce)
-- • [water] “includes BC Hydro Power Canal upstream of the dam up to signs loca” → seton-river-includes-bc-hydro-power-canal-ups-95a44d-a[todo], seton-river-includes-bc-hydro-power-canal-ups-95a44d-b[todo]
+- • [water] “includes BC Hydro Power Canal upstream of the dam up to signs loca” → seton-river-includes-bc-hydro-power-canal-ups-95a44d-a[deferred], seton-river-includes-bc-hydro-power-canal-ups-95a44d-b[todo]
 - • [rule] “downstream of Seton Lake” → seton-river-includes-bc-hydro-power-canal-ups-5f4cbe[not_applicable], seton-river-includes-bc-hydro-power-canal-ups-8eb4d1[not_applicable]
 - • [rule] “Downstream of Seton Lake” → seton-river-includes-bc-hydro-power-canal-ups-5f4cbe[not_applicable], seton-river-includes-bc-hydro-power-canal-ups-8eb4d1[not_applicable]
-- • [entry] “includes BC Hydro Power Canal upstream of the dam up to signs loca” → seton-river-includes-bc-hydro-power-canal-ups-95a44d-a[todo], seton-river-includes-bc-hydro-power-canal-ups-95a44d-b[todo]
+- • [entry] “includes BC Hydro Power Canal upstream of the dam up to signs loca” → seton-river-includes-bc-hydro-power-canal-ups-95a44d-a[deferred], seton-river-includes-bc-hydro-power-canal-ups-95a44d-b[todo]
 
 ## CRESTON VALLEY WILDLIFE MANAGEMENT AREA (CVWMA) WATERS · MU ['4-6'] · p38 · [INCOMPLETE] (7e0b104a)
 - • [rule] “within the CVWMA, including Six Mile Lake, Leach Lake, Kootenay Ri” → creston-valley-wildlife-management-area-cvwma-911082[todo]
@@ -261,7 +261,7 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 ## PEACE RIVER (From Hwy. 29 bridge to the Site C dam) · MU ['7-31'] · p72 · [INCOMPLETE] (03e3acbe)
 - • [water] “From Hwy. 29 bridge to the Site C dam” → peace-river-from-hwy-29-bridge-to-the-site-c--c17e9f-a[todo], peace-river-from-hwy-29-bridge-to-the-site-c--c17e9f-b[curated]
 - • [rule] “from mouth of Halfway River to fishing boundary signs approximatel” → peace-river-from-hwy-29-bridge-to-the-site-c--9d576a-a[curated], peace-river-from-hwy-29-bridge-to-the-site-c--9d576a-b[curated]
-- • [rule] “between Peace Canyon Dam and Hwy 29 Bridge” → peace-river-from-hwy-29-bridge-to-the-site-c--81bc00-a[todo], peace-river-from-hwy-29-bridge-to-the-site-c--81bc00-b[todo]
+- • [rule] “between Peace Canyon Dam and Hwy 29 Bridge” → peace-river-from-hwy-29-bridge-to-the-site-c--81bc00-a[curated], peace-river-from-hwy-29-bridge-to-the-site-c--81bc00-b[todo]
 - • [entry] “From Hwy. 29 bridge to the Site C dam” → peace-river-from-hwy-29-bridge-to-the-site-c--c17e9f-a[todo], peace-river-from-hwy-29-bridge-to-the-site-c--c17e9f-b[curated]
 
 ## HEBER RIVER · MU ['1-9'] · p18 · [INCOMPLETE] (8b5f3143)
@@ -412,7 +412,7 @@ approximately 35 m downstream” → little-qualicum-river-031042-b[todo], littl
 - • [rule] “downstream of 232nd Street (Livingstone Road)” → salmon-river-ace934[todo]
 
 ## STAVE RIVER · MU ['2-8'] · p28 · [INCOMPLETE] (50faaf74)
-- • [rule] “in the Ruskin spawning channel, from the inlet near the dam downst” → stave-river-15d929[todo]
+- • [rule] “in the Ruskin spawning channel, from the inlet near the dam downst” → stave-river-15d929[deferred]
 - • [rule] “in the Northrop Spawning Channel, from the intake downstream to wh” → stave-river-c74d9d[todo]
 
 ## TAMIHI CREEK · MU ['2-3'] · p28 · [INCOMPLETE] (054085f5)
@@ -733,9 +733,6 @@ approximately 35 m downstream” → little-qualicum-river-031042-b[todo], littl
 ## LETAIN LAKE · MU ['7-52'] · p71 · [INCOMPLETE] (e0e710a0)
 - • [rule] “within 100 m of fishing boundary sign at outlet” → letain-lake-a43189[todo]
 
-## PEACE RIVER (From Site C dam to boundary signs 1,200m downstream) · MU ['7-31'] · p72 · [INCOMPLETE] (789839ce)
-- • [water] “From Site C dam to boundary signs 1,200m downstream” → peace-river-from-site-c-dam-to-boundary-signs-a64881[todo]
-
 ## PINE RIVER · MU ['7-32'] · p72 · [INCOMPLETE] (e2986e43)
 - • [rule] “upstream of the Hasler Road Bridge” → pine-river-1d956e[todo]
 
@@ -774,3 +771,4 @@ approximately 35 m downstream” → little-qualicum-river-031042-b[todo], littl
 - `lost-lake-near-taweel-lake-e49a1f` [not_applicable] LOST LAKE (near Taweel Lake) — src=entry “near Taweel Lake”
 - `lynn-creek-d5e0fb-a` [curated] LYNN CREEK — src=rule “sign approximately 200 m upstream of Twin Falls Br”
 - `lynn-creek-d5e0fb-b` [curated] LYNN CREEK — src=rule “sign approximately 150 m downstream of Twin Falls ”
+- `peace-river-from-site-c-dam-to-boundary-signs-a64881-b` [curated] PEACE RIVER (From Site C dam to boundary signs 1,200m — src=name “boundary signs 1200 m downstream of Site C dam”
