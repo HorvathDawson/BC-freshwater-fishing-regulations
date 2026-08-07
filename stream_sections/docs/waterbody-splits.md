@@ -7,8 +7,8 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 |---|--:|
 | NO_CURATION | 1 |
 | MISSING_SPLITS | 2 |
-| INCOMPLETE | 169 |
-| COMPLETE | 140 |
+| INCOMPLETE | 168 |
+| COMPLETE | 141 |
 | NO_SPLIT | 75 |
 
 **Drift** (curated rows matching no source locator): 5
@@ -206,12 +206,6 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 - • [except] “EXCEPT Duck Lake (see separate entry)” → creston-valley-wildlife-management-area-cvwma-cdf441[not_applicable]
 - • [rule] “within the CVWMA, including Six Mile Lake, Leach Lake, Kootenay Ri” → creston-valley-wildlife-management-area-cvwma-911082[todo]
 - • [except] “EXCEPT Duck Lake (see separate entry)” → creston-valley-wildlife-management-area-cvwma-cdf441[not_applicable]
-
-## ELK RIVER (upstream of Elko Dam) · MU ['4-2', '4-23'] · p38 · [INCOMPLETE] (e8ba6b4f)
-- • [water] “upstream of Elko Dam” → elk-river-upstream-of-elko-dam-8bedc5[curated]
-- • [rule] “from Lower Elk Lake to Forsyth Cr, from Line Creek Bridge to CPR B” → elk-river-upstream-of-elko-dam-e38cd2-cpr-bridge-sparwood[todo], elk-river-upstream-of-elko-dam-e38cd2-elko-dam[curated], elk-river-upstream-of-elko-dam-e38cd2-hwy3-bridge-fernie-n[todo], elk-river-upstream-of-elko-dam-e38cd2-hwy3-bridge-hosmer[todo], elk-river-upstream-of-elko-dam-e38cd2-line-creek-bridge[todo], elk-river-upstream-of-elko-dam-e38cd2-lower-elk-lake[not_applicable], elk-river-upstream-of-elko-dam-e38cd2-morrissey-bridge[todo]
-- • [rule] “All other parts” → elk-river-upstream-of-elko-dam-91575c[todo]
-- • [entry] “upstream of Elko Dam” → elk-river-upstream-of-elko-dam-8bedc5[curated], elk-river-upstream-of-elko-dam-e38cd2-elko-dam[curated]
 
 ## JORDAN RIVER · MU ['4-39'] · p39 · [INCOMPLETE] (13b0444c)
 - • [rule] “upstream of Kirkup Creek” → jordan-river-390f59[curated], jordan-river-bc6d34[curated]
@@ -732,7 +726,7 @@ approximately 35 m downstream” → little-qualicum-river-031042-b[todo], littl
 
 ## ⚠️ DRIFT — curated rows not found in the source (review)
 
-- `elk-river-upstream-of-elko-dam-e38cd2-forsyth-cr` [todo] ELK RIVER (upstream of Elko Dam) — src=rule “Forsyth Creek”
+- `elk-river-upstream-of-elko-dam-e38cd2-forsyth-cr` [curated] ELK RIVER (upstream of Elko Dam) — src=rule “Forsyth Creek”
 - `lost-lake-near-taweel-lake-e49a1f` [not_applicable] LOST LAKE (near Taweel Lake) — src=entry “near Taweel Lake”
 - `lynn-creek-d5e0fb-a` [curated] LYNN CREEK — src=rule “sign approximately 200 m upstream of Twin Falls Br”
 - `lynn-creek-d5e0fb-b` [curated] LYNN CREEK — src=rule “sign approximately 150 m downstream of Twin Falls ”

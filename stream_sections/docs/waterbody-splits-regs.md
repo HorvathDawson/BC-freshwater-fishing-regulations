@@ -3,7 +3,7 @@
 Every reg entry (source-first), booklet order. **Bold** = a live split boundary; plain text
 = whole-water / tributary-set / `not_applicable`. Regenerate; do not hand-edit.
 
-387 entries · 418 highlighted boundary phrases.
+387 entries · 417 highlighted boundary phrases.
 
 | Water | MU | p | Regulation |
 |---|---|--:|---|
@@ -182,7 +182,7 @@ Every reg entry (source-first), booklet order. **Bold** = a live split boundary;
 | DUTCH CREEK | 4-26 | 38 | Trout/char catch and release **from Ben Able Creek to Columbia Lake and/or River** Bait ban, June 15-Oct 31 Burbot catch and release EXEMPT from Columbia Lake's tributaries closure |
 | ECHOES LAKE (near Kimberley) | 4-20 | 38 | No Ice Fishing; trout/char daily quota = 1 in the aggregate from both lakes (none under 50 cm); bait ban, single barbless hook |
 | ELK RIVER (downstream of Elko Dam) | 4-2 | 38 | Trout/Char daily quota = 1 (no cutthroat under 30 cm, no bull trout under 75 cm) and bait ban, June 15-Oct 31 Electric motor only - max 7.5 kW Class II water when open, including tributaries |
-| ELK RIVER (upstream of Elko Dam) | 4-2, 4-23 | 38 | Bait ban, June 15-Oct 31 Trout/char catch and release June 15-Oct 31: **from Lower Elk Lake to Forsyth Cr, from Line Creek Bridge to CPR Bridge at Sparwood, from Hwy 3 bridge at Hosmer to the northern Hwy 3 bridge at Fernie, and from the bridge at Morrissey to Elko Dam** **All other parts**: trout/char daily quota = 1 (none under 30 cm), June 15-Oct 31 Bull trout catch and release Electric motor only - max 7.5 kW Class II water when open, including tributaries |
+| ELK RIVER (upstream of Elko Dam) | 4-2, 4-23 | 38 | Bait ban, June 15-Oct 31 Trout/char catch and release June 15-Oct 31: **from Lower Elk Lake to Forsyth Cr, from Line Creek Bridge to CPR Bridge at Sparwood, from Hwy 3 bridge at Hosmer to the northern Hwy 3 bridge at Fernie, and from the bridge at Morrissey to Elko Dam** All other parts: trout/char daily quota = 1 (none under 30 cm), June 15-Oct 31 Bull trout catch and release Electric motor only - max 7.5 kW Class II water when open, including tributaries |
 | ELK RIVER'S TRIBUTARIES (see exceptions) | 4-2, 4-23 | 38 | No Fishing Sept 1-Oct 31 Trout/char daily quota = 1 (none under 30 cm) and bait ban, June 15-Aug 31 Bull trout catch and release EXCEPTIONS - SEE SEPARATE LISTINGS FOR: Abruzzi Cr., Alexander Cr.[Includes Tributaries] upstream of the easternmost Hwy 3 bridge, Bighorn (Ram) Cr., Cadorna Cr., Fording R. downstream of Josephine Falls, Forsyth Cr. from Connor Lk. downstream 3 km, Line Cr.[Includes Tributaries], Grave Creek[Includes Tributaries], Michel Cr.[Includes Tributaries], Morrissey Cr.[Includes Tributaries], Wigwam River ALL tributaries (**EXCEPT Coal Creek downstream of old MF&M Railway Bridge 7 km upstream of Elk River**) are Class II waters when open |
 | FINDLAY CREEK | 4-26 | 38 | Trout/char catch and release (mainstem only) **from Doctor Creek Bridge to Lavington Creek Bridge**, June 15-Oct 31; other parts (including tributaries, except Lavington Creek) trout/char daily quota = 2 (none under 30 cm and only 1 bull trout), June 15-Oct 31; bait ban, June 15-Oct 31 See Lavington Creek, a tributary |
 | FLATHEAD RIVER | 4-1 | 38 | Bull trout catch and release Trout daily quota = 1 (none under 30 cm) and bait ban, June 15-Oct 31 |

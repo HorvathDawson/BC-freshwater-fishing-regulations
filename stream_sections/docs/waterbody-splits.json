@@ -13375,7 +13375,7 @@
         "Classified"
       ],
       "reg_text": "Bait ban, June 15-Oct 31\nTrout/char catch and release June 15-Oct 31: from Lower Elk Lake to Forsyth Cr, from Line Creek Bridge to CPR Bridge at Sparwood, from\nHwy 3 bridge at Hosmer to the northern Hwy 3 bridge at Fernie, and from the bridge at Morrissey to Elko Dam\nAll other parts: trout/char daily quota = 1 (none under 30 cm), June 15-Oct 31\nBull trout catch and release\nElectric motor only - max 7.5 kW\n**Class II water when open, including tributaries**",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 4,
       "locators": [
         {
@@ -13407,16 +13407,19 @@
               "June 15-Oct 31"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "elk-river-upstream-of-elko-dam-e38cd2-cpr-bridge-sparwood",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] Multiple bridge/lake segments (NOT a single dam) on Elk River (Lower Elk Lake, Line Creek Bridge, CPR Bridge Sparwood, Hwy 3 Hosmer...). No FWA coord (needs map / external source). Verify: This rule is a chain of bridge/lake landmarks, not the Elko Dam - needs manual map work per landmark.. Mis-bucketed under dam_weir_fence: the locator lists several bridge and lake segments (Lower Elk Lake -> Forsyth Cr [outlet ref ~[-115.084,50.550]], Line Creek Bridge -> CPR Bridge at Sparwood, Hwy 3 bridge at Hosmer...). Recommend manual: resolve each bridge/lake landmark individually. [structural-split 2026-08-06 8-way] bridge.",
-              "coord": "bridge_road_km",
+              "notes": "[auto-proposal L] Multiple bridge/lake segments (NOT a single dam) on Elk River (Lower Elk Lake, Line Creek Bridge, CPR Bridge Sparwood, Hwy 3 Hosmer...). No FWA coord (needs map / external source). Verify: This rule is a chain of bridge/lake landmarks, not the Elko Dam - needs manual map work per landmark.. Mis-bucketed under dam_weir_fence: the locator lists several bridge and lake segments (Lower Elk Lake -> Forsyth Cr [outlet ref ~[-115.084,50.550]], Line Creek Bridge -> CPR Bridge at Sparwood, Hwy 3 bridge at Hosmer...). Recommend manual: resolve each bridge/lake landmark individually. [structural-split 2026-08-06 8-way] bridge. [curated 2026-08-07 manual-review batch=elk]",
+              "coord": [
+                -114.88343,
+                49.7534
+              ],
               "locator_text": "CPR Bridge at Sparwood"
             },
             {
@@ -13435,32 +13438,41 @@
             },
             {
               "id": "elk-river-upstream-of-elko-dam-e38cd2-hwy3-bridge-fernie-n",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] Multiple bridge/lake segments (NOT a single dam) on Elk River (Lower Elk Lake, Line Creek Bridge, CPR Bridge Sparwood, Hwy 3 Hosmer...). No FWA coord (needs map / external source). Verify: This rule is a chain of bridge/lake landmarks, not the Elko Dam - needs manual map work per landmark.. Mis-bucketed under dam_weir_fence: the locator lists several bridge and lake segments (Lower Elk Lake -> Forsyth Cr [outlet ref ~[-115.084,50.550]], Line Creek Bridge -> CPR Bridge at Sparwood, Hwy 3 bridge at Hosmer...). Recommend manual: resolve each bridge/lake landmark individually. [structural-split 2026-08-06 8-way] bridge.",
-              "coord": "bridge_road_km",
+              "notes": "[auto-proposal L] Multiple bridge/lake segments (NOT a single dam) on Elk River (Lower Elk Lake, Line Creek Bridge, CPR Bridge Sparwood, Hwy 3 Hosmer...). No FWA coord (needs map / external source). Verify: This rule is a chain of bridge/lake landmarks, not the Elko Dam - needs manual map work per landmark.. Mis-bucketed under dam_weir_fence: the locator lists several bridge and lake segments (Lower Elk Lake -> Forsyth Cr [outlet ref ~[-115.084,50.550]], Line Creek Bridge -> CPR Bridge at Sparwood, Hwy 3 bridge at Hosmer...). Recommend manual: resolve each bridge/lake landmark individually. [structural-split 2026-08-06 8-way] bridge. [curated 2026-08-07 manual-review batch=elk]",
+              "coord": [
+                -115.06154,
+                49.51907
+              ],
               "locator_text": "northern Hwy 3 bridge at Fernie"
             },
             {
               "id": "elk-river-upstream-of-elko-dam-e38cd2-hwy3-bridge-hosmer",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] Multiple bridge/lake segments (NOT a single dam) on Elk River (Lower Elk Lake, Line Creek Bridge, CPR Bridge Sparwood, Hwy 3 Hosmer...). No FWA coord (needs map / external source). Verify: This rule is a chain of bridge/lake landmarks, not the Elko Dam - needs manual map work per landmark.. Mis-bucketed under dam_weir_fence: the locator lists several bridge and lake segments (Lower Elk Lake -> Forsyth Cr [outlet ref ~[-115.084,50.550]], Line Creek Bridge -> CPR Bridge at Sparwood, Hwy 3 bridge at Hosmer...). Recommend manual: resolve each bridge/lake landmark individually. [structural-split 2026-08-06 8-way] bridge.",
-              "coord": "bridge_road_km",
+              "notes": "[auto-proposal L] Multiple bridge/lake segments (NOT a single dam) on Elk River (Lower Elk Lake, Line Creek Bridge, CPR Bridge Sparwood, Hwy 3 Hosmer...). No FWA coord (needs map / external source). Verify: This rule is a chain of bridge/lake landmarks, not the Elko Dam - needs manual map work per landmark.. Mis-bucketed under dam_weir_fence: the locator lists several bridge and lake segments (Lower Elk Lake -> Forsyth Cr [outlet ref ~[-115.084,50.550]], Line Creek Bridge -> CPR Bridge at Sparwood, Hwy 3 bridge at Hosmer...). Recommend manual: resolve each bridge/lake landmark individually. [structural-split 2026-08-06 8-way] bridge. [curated 2026-08-07 manual-review batch=elk]",
+              "coord": [
+                -114.96975,
+                49.586
+              ],
               "locator_text": "Hwy 3 bridge at Hosmer"
             },
             {
               "id": "elk-river-upstream-of-elko-dam-e38cd2-line-creek-bridge",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] Multiple bridge/lake segments (NOT a single dam) on Elk River (Lower Elk Lake, Line Creek Bridge, CPR Bridge Sparwood, Hwy 3 Hosmer...). No FWA coord (needs map / external source). Verify: This rule is a chain of bridge/lake landmarks, not the Elko Dam - needs manual map work per landmark.. Mis-bucketed under dam_weir_fence: the locator lists several bridge and lake segments (Lower Elk Lake -> Forsyth Cr [outlet ref ~[-115.084,50.550]], Line Creek Bridge -> CPR Bridge at Sparwood, Hwy 3 bridge at Hosmer...). Recommend manual: resolve each bridge/lake landmark individually. [structural-split 2026-08-06 8-way] bridge (to resolve).",
-              "coord": "bridge_road_km",
+              "notes": "[auto-proposal L] Multiple bridge/lake segments (NOT a single dam) on Elk River (Lower Elk Lake, Line Creek Bridge, CPR Bridge Sparwood, Hwy 3 Hosmer...). No FWA coord (needs map / external source). Verify: This rule is a chain of bridge/lake landmarks, not the Elko Dam - needs manual map work per landmark.. Mis-bucketed under dam_weir_fence: the locator lists several bridge and lake segments (Lower Elk Lake -> Forsyth Cr [outlet ref ~[-115.084,50.550]], Line Creek Bridge -> CPR Bridge at Sparwood, Hwy 3 bridge at Hosmer...). Recommend manual: resolve each bridge/lake landmark individually. [structural-split 2026-08-06 8-way] bridge (to resolve). [curated 2026-08-07 manual-review batch=elk]",
+              "coord": [
+                -114.87645,
+                49.88184
+              ],
               "locator_text": "Line Creek Bridge"
             },
             {
@@ -13474,12 +13486,15 @@
             },
             {
               "id": "elk-river-upstream-of-elko-dam-e38cd2-morrissey-bridge",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] Multiple bridge/lake segments (NOT a single dam) on Elk River (Lower Elk Lake, Line Creek Bridge, CPR Bridge Sparwood, Hwy 3 Hosmer...). No FWA coord (needs map / external source). Verify: This rule is a chain of bridge/lake landmarks, not the Elko Dam - needs manual map work per landmark.. Mis-bucketed under dam_weir_fence: the locator lists several bridge and lake segments (Lower Elk Lake -> Forsyth Cr [outlet ref ~[-115.084,50.550]], Line Creek Bridge -> CPR Bridge at Sparwood, Hwy 3 bridge at Hosmer...). Recommend manual: resolve each bridge/lake landmark individually. [structural-split 2026-08-06 8-way] bridge.",
-              "coord": "bridge_road_km",
+              "notes": "[auto-proposal L] Multiple bridge/lake segments (NOT a single dam) on Elk River (Lower Elk Lake, Line Creek Bridge, CPR Bridge Sparwood, Hwy 3 Hosmer...). No FWA coord (needs map / external source). Verify: This rule is a chain of bridge/lake landmarks, not the Elko Dam - needs manual map work per landmark.. Mis-bucketed under dam_weir_fence: the locator lists several bridge and lake segments (Lower Elk Lake -> Forsyth Cr [outlet ref ~[-115.084,50.550]], Line Creek Bridge -> CPR Bridge at Sparwood, Hwy 3 bridge at Hosmer...). Recommend manual: resolve each bridge/lake landmark individually. [structural-split 2026-08-06 8-way] bridge. [curated 2026-08-07 manual-review batch=elk]",
+              "coord": [
+                -115.01668,
+                49.39186
+              ],
               "locator_text": "bridge at Morrissey"
             }
           ]
@@ -13493,14 +13508,15 @@
               "June 15-Oct 31"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "elk-river-upstream-of-elko-dam-91575c",
-              "status": "todo",
+              "status": "not_applicable",
               "anchor_kind": "unclassified",
               "src": "rule",
-              "resolver_hint": "other_reach"
+              "resolver_hint": "other_reach",
+              "notes": "[n/a 2026-08-07 residual-zone \"All other parts\", not a boundary]"
             }
           ]
         },
@@ -13559,7 +13575,8 @@
             }
           ]
         }
-      ]
+      ],
+      "reviewed": "2026-08-07"
     },
     "6bfbbcb3": {
       "entry_id": "6bfbbcb3",
@@ -27841,7 +27858,7 @@
       ],
       "src": "rule",
       "locator_text": "Forsyth Creek",
-      "status": "todo",
+      "status": "curated",
       "row": {
         "id": "elk-river-upstream-of-elko-dam-e38cd2-forsyth-cr",
         "name_verbatim": "ELK RIVER (upstream of Elko Dam)",
@@ -27855,12 +27872,19 @@
         "full_regulation": "Bait ban, June 15-Oct 31\nTrout/char catch and release June 15-Oct 31: from Lower Elk Lake to Forsyth Cr, from Line Creek Bridge to CPR Bridge at Sparwood, from\nHwy 3 bridge at Hosmer to the northern Hwy 3 bridge at Fernie, and from the bridge at Morrissey to Elko Dam\nAll other parts: trout/char daily quota = 1 (none under 30 cm), June 15-Oct 31\nBull trout catch and release\nElectric motor only - max 7.5 kW\n**Class II water when open, including tributaries**",
         "anchor_kind": "confluence",
         "resolver_hint": "dam_weir_fence",
-        "status": "todo",
-        "target": "",
-        "coord": null,
+        "status": "curated",
+        "target": {
+          "blk": 356570469,
+          "wsc": "300-625474-584724-745570-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+        },
+        "coord": [
+          -114.9608,
+          50.22491
+        ],
         "label": "",
-        "notes": "[auto-proposal L] Multiple bridge/lake segments (NOT a single dam) on Elk River (Lower Elk Lake, Line Creek Bridge, CPR Bridge Sparwood, Hwy 3 Hosmer...). No FWA coord (needs map / external source). Verify: This rule is a chain of bridge/lake landmarks, not the Elko Dam - needs manual map work per landmark.. Mis-bucketed under dam_weir_fence: the locator lists several bridge and lake segments (Lower Elk Lake -> Forsyth Cr [outlet ref ~[-115.084,50.550]], Line Creek Bridge -> CPR Bridge at Sparwood, Hwy 3 bridge at Hosmer...). Recommend manual: resolve each bridge/lake landmark individually. [structural-split 2026-08-06 8-way] confluence (to resolve).",
-        "entry_id": "e8ba6b4f"
+        "notes": "[auto-proposal L] Multiple bridge/lake segments (NOT a single dam) on Elk River (Lower Elk Lake, Line Creek Bridge, CPR Bridge Sparwood, Hwy 3 Hosmer...). No FWA coord (needs map / external source). Verify: This rule is a chain of bridge/lake landmarks, not the Elko Dam - needs manual map work per landmark.. Mis-bucketed under dam_weir_fence: the locator lists several bridge and lake segments (Lower Elk Lake -> Forsyth Cr [outlet ref ~[-115.084,50.550]], Line Creek Bridge -> CPR Bridge at Sparwood, Hwy 3 bridge at Hosmer...). Recommend manual: resolve each bridge/lake landmark individually. [structural-split 2026-08-06 8-way] confluence (to resolve). [curated 2026-08-07 manual-review batch=elk] [Forsyth Ck confluence, FWA blk/wsc]",
+        "entry_id": "e8ba6b4f",
+        "reviewed": "2026-08-07"
       }
     },
     {
