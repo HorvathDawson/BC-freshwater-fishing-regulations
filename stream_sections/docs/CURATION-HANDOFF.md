@@ -49,6 +49,9 @@ differently-regulated reaches) to a coordinate, one reg entry ("waterbody") at a
    Put descriptive names in `offset.anchor_label`, not in a linking `label`.
 7. **n/a** the non-splits: boat/vessel/engine restrictions ("no power boats in wetlands"), residual
    zones ("All other parts"), and pure lake-edge boundaries (auto lake-split handles those).
+8. **Whole-waterbody review flag.** When the *entire* reg entry has been walked with the human (not
+   just individual locators), set `reviewed = "<date>"` on every row of the entry; `build()` surfaces
+   it as card-level `reviewed`. Offset is valid on **any** `anchor_kind`, including `point`.
 
 ## The workflow per waterbody
 

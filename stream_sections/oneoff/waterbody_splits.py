@@ -160,6 +160,8 @@ def build(curated=None):
     if curated is None:
         curated = load_curation()
     curated = sorted(curated, key=lambda r: r["id"])  # stable order -> deterministic backfill (idempotent rebuild)
+    # whole-waterbody human review flag: an entry reviewed in totality carries `reviewed` on its rows
+    reviewed_by_entry = {r["entry_id"]: r["reviewed"] for r in curated if r.get("reviewed") and r.get("entry_id")}
 
     parse_by_reg = defaultdict(list)
     for e in parsed:
@@ -265,6 +267,8 @@ def build(curated=None):
             "n_boundaries": len(boundary_locs),
             "locators": [tidy_locator(l) for l in locators],
         }
+        if reviewed_by_entry.get(eid):
+            cards[eid]["reviewed"] = reviewed_by_entry[eid]  # whole-entry human review (see docs)
 
     # drift: curated rows never matched to any source locator (real anomalies / manual additions)
     drift = [{"id": r["id"], "water": r["name_verbatim"], "mu": r.get("mus"),
@@ -277,7 +281,7 @@ def build(curated=None):
 # fields that MUST round-trip grouped->flat (curation + identity); region/full_regulation are
 # metadata regenerated from source, so excluded from the verify.
 CUR_FIELDS = ("status", "anchor_kind", "resolver_hint", "coord", "offset", "target", "label", "notes",
-              "name_verbatim", "mus", "src", "locator_text")
+              "name_verbatim", "mus", "src", "locator_text", "reviewed")
 
 
 def flatten_curation(cards, drift):
@@ -286,6 +290,7 @@ def flatten_curation(cards, drift):
     deduped by id. Drift rows are recovered from their stored full row. Lossless on CUR_FIELDS."""
     seen = {}
     for c in cards.values():
+        rev = c.get("reviewed")  # whole-entry review flag lives on the card; push back onto its rows
         for l in c["locators"]:
             for r in l["rows"]:
                 if r["id"] in seen:
@@ -301,6 +306,8 @@ def flatten_curation(cards, drift):
                 }
                 if r.get("offset"):
                     seen[r["id"]]["offset"] = r["offset"]
+                if rev:
+                    seen[r["id"]]["reviewed"] = rev
     for d in drift:
         if d["id"] not in seen and d.get("row"):
             seen[d["id"]] = d["row"]
