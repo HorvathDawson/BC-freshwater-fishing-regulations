@@ -63,8 +63,8 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 - • [rule] “from the boundary sign at the end of Maple Street downstream to th” → campbell-river-947382-a[todo], campbell-river-947382-b[todo]
 - • [rule] “in any tributaries” → campbell-river-caa7ef[not_applicable]
 - • [except] “except Quinsam River” → campbell-river-38d85c[not_applicable]
-- • [rule] “From John Hart Dam Power Station to power line crossing approximat” → campbell-river-96d7aa-a[curated], campbell-river-96d7aa-b[todo]
-- • [rule] “downstream of power line crossing approximately 200 m upstream of ” → campbell-river-7bcc85[todo]
+- • [rule] “From John Hart Dam Power Station to power line crossing approximat” → campbell-river-96d7aa-a[curated], campbell-river-96d7aa-b[curated]
+- • [rule] “downstream of power line crossing approximately 200 m upstream of ” → campbell-river-7bcc85[curated]
 - • [rule] “between Elk Falls and John Hart Dam Power Station” → campbell-river-584665-a[curated], campbell-river-584665-b[curated], campbell-river-96d7aa-a[curated]
 
 ## CHILLIWACK / VEDDER RIVERS (does not include Sumas River) (see map on page 24) · MU ['2-4'] · p24 · [INCOMPLETE] (2f3fea39)
@@ -152,7 +152,7 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 - • [entry] “upstream of the CPR Bridge at Mission” → fraser-river-upstream-of-the-cpr-bridge-at-mi-73e755[todo]
 
 ## NANAIMO RIVER · MU ['1-5'] · p19 · [INCOMPLETE] (046b8cc3)
-- • [rule] “from power line crossing at "Bore Hole" upstream to fishing bounda” → nanaimo-river-633e28-a[todo], nanaimo-river-633e28-b[todo]
+- • [rule] “from power line crossing at "Bore Hole" upstream to fishing bounda” → nanaimo-river-633e28-a[curated], nanaimo-river-633e28-b[todo]
 - • [rule] “from the Cedar Road Bridge upstream to the Hwy 19 bridge” → nanaimo-river-e9ebfc-a[curated], nanaimo-river-e9ebfc-b[curated]
 - • [rule] “upstream of the Hwy 1 bridge” → nanaimo-river-41353f[curated]
 - • [rule] “upstream of the westernmost of the two Nanaimo Lakes, known locall” → nanaimo-river-76bf11[not_applicable]
@@ -376,8 +376,8 @@ approximately 35 m downstream” → little-qualicum-river-031042-b[todo], littl
 - • [rule] “from the upper hatchery weir (located 125 m downstream of the E&N ” → qualicum-river-3b22d1-a[todo], qualicum-river-3b22d1-b[todo]
 
 ## QUINSAM RIVER · MU ['1-6'] · p20 · [INCOMPLETE] (04a9a77c)
-- • [rule] “from the fishing boundary signs at power line crossing (approximat” → quinsam-river-014fa9-b[todo], quinsam-river-c440f0-a[todo], quinsam-river-c440f0-b[todo]
-- • [rule] “from the falls situated downstream of Middle Quinsam Lake to the f” → quinsam-river-014fa9-a[todo], quinsam-river-014fa9-b[todo], quinsam-river-c440f0-b[todo]
+- • [rule] “from the fishing boundary signs at power line crossing (approximat” → quinsam-river-014fa9-b[curated], quinsam-river-c440f0-a[todo], quinsam-river-c440f0-b[todo]
+- • [rule] “from the falls situated downstream of Middle Quinsam Lake to the f” → quinsam-river-014fa9-a[todo], quinsam-river-014fa9-b[curated], quinsam-river-c440f0-b[todo]
 
 ## TOQUART RIVER · MU ['1-8'] · p21 · [INCOMPLETE] (492dbcc9)
 - • [rule] “upstream of the Toquart mainline logging bridge when open” → toquart-river-ef1ea4[todo]

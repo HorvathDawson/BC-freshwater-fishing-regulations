@@ -786,7 +786,7 @@
           "info": {
             "restriction_type": "gear_restriction"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "campbell-river-96d7aa-a",
@@ -804,11 +804,16 @@
             },
             {
               "id": "campbell-river-96d7aa-b",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "dam_weir_fence",
-              "notes": "[auto-proposal H] John Hart Dam / Power Station (John Hart Lake outlet) on Campbell River (John Hart Dam -> power line ~200 m above Quinsam confl). Candidate coord [-125.33978, 50.04171]. OSM: https://www.openstreetmap.org/?mlat=50.04171&mlon=-125.33978#map=15/50.04171/-125.33978. Verify: Confirm point at John Hart Lake outlet; the reg means the generating-station tailrace which is ~1 km below the dam - decide dam-face vs tailrace.. John Hart Dam impounds John Hart Lake; the Campbell River flows out to the John Hart generating station. Coord = FWA Campbell River exit from John Hart Lake polygon (dam face). Downstream terminus is a power-line crossing ~200 m above the Quinsam confluence (~[-125.294,50.038]). [structural-split 2026-08-05 from \"From John Hart Dam Power Station to power line crossing appr\"] boundary=power line crossing approximately 200 m upstream of Quinsam River confluence",
+              "label": "power line ~200m up of Quinsam confluence",
+              "notes": "[auto-proposal H] John Hart Dam / Power Station (John Hart Lake outlet) on Campbell River (John Hart Dam -> power line ~200 m above Quinsam confl). Candidate coord [-125.33978, 50.04171]. OSM: https://www.openstreetmap.org/?mlat=50.04171&mlon=-125.33978#map=15/50.04171/-125.33978. Verify: Confirm point at John Hart Lake outlet; the reg means the generating-station tailrace which is ~1 km below the dam - decide dam-face vs tailrace.. John Hart Dam impounds John Hart Lake; the Campbell River flows out to the John Hart generating station. Coord = FWA Campbell River exit from John Hart Lake polygon (dam face). Downstream terminus is a power-line crossing ~200 m above the Quinsam confluence (~[-125.294,50.038]). [structural-split 2026-08-05 from \"From John Hart Dam Power Station to power line crossing appr\"] boundary=power line crossing approximately 200 m upstream of Quinsam River confluence [human-review 2026-08-06] power line ~200m up of Quinsam confluence.",
+              "coord": [
+                -125.30918,
+                50.04401
+              ],
               "locator_text": "power line crossing approximately 200 m upstream of Quinsam River confluence"
             }
           ]
@@ -822,15 +827,20 @@
               "Dec 1-May 31"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "campbell-river-7bcc85",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] power line crossing ~200 m upstream of Quinsam River confluence on Campbell River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Quinsam River confluence on the Campbell, then the power line ~200 m upstream; map.. This is a power-line landmark tied to the Quinsam confluence (a confluence+offset, not a bridge). Map/OSM to place the transmission line; the Quinsam mouth on the Campbell anchors it. [osm-candidate 2026-08-05] [-125.40137, 50.0066]; [-125.39229, 50.01552]; [-125.57243, 50.00379]; [-125.30918, 50.04401] (OSM Overpass ∩ MU-clipped FWA river; VERIFY)."
+              "label": "power line ~200m up of Quinsam confluence",
+              "notes": "[auto-proposal L] power line crossing ~200 m upstream of Quinsam River confluence on Campbell River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Quinsam River confluence on the Campbell, then the power line ~200 m upstream; map.. This is a power-line landmark tied to the Quinsam confluence (a confluence+offset, not a bridge). Map/OSM to place the transmission line; the Quinsam mouth on the Campbell anchors it. [human-review 2026-08-06] power line ~200m up of Quinsam confluence.",
+              "coord": [
+                -125.30918,
+                50.04401
+              ]
             }
           ]
         },
@@ -2915,11 +2925,16 @@
           "rows": [
             {
               "id": "nanaimo-river-633e28-a",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "powerline",
-              "notes": "[auto-proposal L] power line at 'Bore Hole' & Boulder Creek mouth signs on Nanaimo River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the 'Bore Hole' power-line crossing and the Boulder Creek confluence signs on the Nanaimo River; map.. Reach between a power-line landmark ('Bore Hole') and boundary signs at the Boulder Creek mouth. Not in FWA. Map/OSM-confirmable. [structural-split 2026-08-05 from “from power line crossing at \"Bore Hole\" upstream to fishing boundary signs at the mouth of Boulder Creek”] boundary=power line crossing at \"Bore Hole\" [osm-candidate 2026-08-05] [-123.88853, 49.12661]; [-123.90653, 49.07297]; [-123.90723, 49.07376]; [-124.07008, 49.07638]; [-124.06895, 49.07614] (OSM Overpass ∩ MU-clipped FWA river; VERIFY). [hint-fix 2026-08-06 bridge_road_km->powerline]",
+              "label": "power line at Bore Hole",
+              "notes": "[auto-proposal L] power line at 'Bore Hole' & Boulder Creek mouth signs on Nanaimo River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the 'Bore Hole' power-line crossing and the Boulder Creek confluence signs on the Nanaimo River; map.. Reach between a power-line landmark ('Bore Hole') and boundary signs at the Boulder Creek mouth. Not in FWA. Map/OSM-confirmable. [structural-split 2026-08-05 from “from power line crossing at \"Bore Hole\" upstream to fishing boundary signs at the mouth of Boulder Creek”] boundary=power line crossing at \"Bore Hole\" [human-review 2026-08-06] power line at Bore Hole.",
+              "coord": [
+                -123.90653,
+                49.07297
+              ],
               "locator_text": "power line crossing at \"Bore Hole\""
             },
             {
@@ -3566,11 +3581,16 @@
           "rows": [
             {
               "id": "quinsam-river-014fa9-b",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "powerline",
-              "notes": "[osm-candidate 2026-08-05] [-125.32212, 49.97615]; [-125.31588, 49.98038]; [-125.30282, 50.01388]; [-125.31202, 49.96781]; [-125.31142, 49.96712] (OSM Overpass ∩ MU-clipped FWA river; VERIFY). [structural-split 2026-08-05 from \"from the falls situated downstream of Middle Quinsam Lake to\"] boundary=fishing boundary signs at power line crossing (approxim [hint-fix 2026-08-06 falls_obstacle->powerline]",
+              "label": "signs at hatchery weir / power line",
+              "notes": "[osm-candidate 2026-08-05] [-125.32212, 49.97615]; [-125.31588, 49.98038]; [-125.30282, 50.01388]; [-125.31202, 49.96781]; [-125.31142, 49.96712] (OSM Overpass ∩ MU-clipped FWA river; VERIFY). [structural-split 2026-08-05 from \"from the falls situated downstream of Middle Quinsam Lake to\"] boundary=fishing boundary signs at power line crossing (approxim [hint-fix 2026-08-06 falls_obstacle->powerline] [human-review 2026-08-06] signs at hatchery weir / power line.",
+              "coord": [
+                -125.30282,
+                50.01388
+              ],
               "locator_text": "fishing boundary signs at power line crossing (approxim"
             },
             {
@@ -3615,11 +3635,16 @@
             },
             {
               "id": "quinsam-river-014fa9-b",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "powerline",
-              "notes": "[osm-candidate 2026-08-05] [-125.32212, 49.97615]; [-125.31588, 49.98038]; [-125.30282, 50.01388]; [-125.31202, 49.96781]; [-125.31142, 49.96712] (OSM Overpass ∩ MU-clipped FWA river; VERIFY). [structural-split 2026-08-05 from \"from the falls situated downstream of Middle Quinsam Lake to\"] boundary=fishing boundary signs at power line crossing (approxim [hint-fix 2026-08-06 falls_obstacle->powerline]",
+              "label": "signs at hatchery weir / power line",
+              "notes": "[osm-candidate 2026-08-05] [-125.32212, 49.97615]; [-125.31588, 49.98038]; [-125.30282, 50.01388]; [-125.31202, 49.96781]; [-125.31142, 49.96712] (OSM Overpass ∩ MU-clipped FWA river; VERIFY). [structural-split 2026-08-05 from \"from the falls situated downstream of Middle Quinsam Lake to\"] boundary=fishing boundary signs at power line crossing (approxim [hint-fix 2026-08-06 falls_obstacle->powerline] [human-review 2026-08-06] signs at hatchery weir / power line.",
+              "coord": [
+                -125.30282,
+                50.01388
+              ],
               "locator_text": "fishing boundary signs at power line crossing (approxim"
             },
             {
