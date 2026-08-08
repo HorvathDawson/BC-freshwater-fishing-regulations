@@ -7,8 +7,8 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 |---|--:|
 | NO_CURATION | 1 |
 | MISSING_SPLITS | 2 |
-| INCOMPLETE | 150 |
-| COMPLETE | 159 |
+| INCOMPLETE | 149 |
+| COMPLETE | 160 |
 | NO_SPLIT | 75 |
 
 **Drift** (curated rows matching no source locator): 5
@@ -29,16 +29,6 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 ## NATION ARM (Williston Lake) · MU ['7-30'] · p66 · [MISSING_SPLITS] (afba43e9)
 - • [rule] “west of a line between two fishing boundary signs approximately 50” → nation-arm-williston-lake-d2e637[todo]
 - ❌ MISSING [rule] “west of a line between two fishing boundary signs approximately 50” → —
-
-## CAMPBELL RIVER · MU ['1-10'] · p16 · [INCOMPLETE] (2d6a28ef)
-- • [rule] “between Elk Falls and John Hart Dam Power Station” → campbell-river-584665-a[curated], campbell-river-584665-b[curated], campbell-river-96d7aa-a[curated]
-- • [rule] “from Strathcona Dam downstream 100 m” → campbell-river-657d6e[todo]
-- • [rule] “from the boundary sign at the end of Maple Street downstream to th” → campbell-river-947382-a[todo], campbell-river-947382-b[todo]
-- • [rule] “in any tributaries” → campbell-river-caa7ef[not_applicable]
-- • [except] “except Quinsam River” → campbell-river-38d85c[not_applicable]
-- • [rule] “From John Hart Dam Power Station to power line crossing approximat” → campbell-river-96d7aa-a[curated], campbell-river-96d7aa-b[curated]
-- • [rule] “downstream of power line crossing approximately 200 m upstream of ” → campbell-river-7bcc85[curated]
-- • [rule] “between Elk Falls and John Hart Dam Power Station” → campbell-river-584665-a[curated], campbell-river-584665-b[curated], campbell-river-96d7aa-a[curated]
 
 ## THOMPSON RIVER (downstream of signs at Kamloops Lake outlet to the confluence with Fraser River) · MU ['3-13', '3-14', '3-18'] · p34 · [INCOMPLETE] (bea6153a)
 - • [water] “downstream of signs at Kamloops Lake outlet to the confluence with” → thompson-river-downstream-of-signs-at-kamloop-bc221e-a[not_applicable], thompson-river-downstream-of-signs-at-kamloop-bc221e-b[curated]

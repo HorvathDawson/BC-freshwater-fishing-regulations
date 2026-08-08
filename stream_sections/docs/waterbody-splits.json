@@ -643,7 +643,7 @@
       "image": "page_016_row_024.png",
       "symbols": [],
       "reg_text": "**No Fishing** between Elk Falls and John Hart Dam Power Station\n**No Fishing** from Strathcona Dam downstream 100 m\n**No Fishing** from the boundary sign at the end of Maple Street downstream to the boundary sign at the cement block, Aug 1-Oct 31\n**No Fishing** in any tributaries (except Quinsam River), Dec 1-May 31\nFrom John Hart Dam Power Station to power line crossing approximately 200 m upstream of Quinsam River confluence: fly fishing only\nyear-round\nArtificial fly only downstream of power line crossing approximately 200 m upstream of Quinsam River: Dec 1-May 31\nNo vessels between Elk Falls and John Hart Dam Power Station",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 8,
       "locators": [
         {
@@ -702,15 +702,29 @@
           "info": {
             "restriction_type": "closure"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "campbell-river-657d6e",
-              "status": "todo",
-              "anchor_kind": "area_boundary",
+              "status": "curated",
+              "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "park_polygon",
-              "notes": "[shared-anchor] Strathcona Dam = [-125.58778, 49.99836] (see lower-campbell-lake-s-tributaries-190ad5); this reg is Strathcona Dam +100 m downstream -> needs the along-channel offset."
+              "label": "Strathcona Dam +100m d/s",
+              "notes": "[shared-anchor] Strathcona Dam = [-125.58778, 49.99836] (see lower-campbell-lake-s-tributaries-190ad5); this reg is Strathcona Dam +100 m downstream -> needs the along-channel offset. [curated 2026-08-08 manual-review batch=campbell-1-10] [base=Strathcona Dam shared-anchor, +100m downstream]",
+              "coord": [
+                -125.58778,
+                49.99836
+              ],
+              "offset": {
+                "anchor": [
+                  -125.58778,
+                  49.99836
+                ],
+                "anchor_label": "Strathcona Dam",
+                "m": 100,
+                "dir": "downstream"
+              }
             }
           ]
         },
@@ -723,24 +737,34 @@
               "Aug 1-Oct 31"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "campbell-river-947382-a",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] boundary sign at end of Maple Street & 'cement block' sign on Campbell River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Maple Street boundary sign and the downstream 'cement block' sign in Campbell River city; map.. In-town boundary-sign reach on the lower Campbell River (MU 1-?); both landmarks are signs, not bridges. Map-only. The FSR 'BRIDGE OVER CAMPBELL' (3.8 km up) is a logging bridge, not these signs. [structural-split 2026-08-05 from “from the boundary sign at the end of Maple Street downstream to the boundary sign at the cement block”] boundary=boundary sign at the end of Maple Street",
+              "label": "Maple Street boundary sign",
+              "notes": "[auto-proposal L] boundary sign at end of Maple Street & 'cement block' sign on Campbell River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Maple Street boundary sign and the downstream 'cement block' sign in Campbell River city; map.. In-town boundary-sign reach on the lower Campbell River (MU 1-?); both landmarks are signs, not bridges. Map-only. The FSR 'BRIDGE OVER CAMPBELL' (3.8 km up) is a logging bridge, not these signs. [structural-split 2026-08-05 from “from the boundary sign at the end of Maple Street downstream to the boundary sign at the cement block”] boundary=boundary sign at the end of Maple Street [curated 2026-08-08 manual-review batch=campbell-1-10] [north end of Maple St meets Campbell R ~55m, OSM way 40559938]",
+              "coord": [
+                -125.26397,
+                50.03536
+              ],
               "locator_text": "boundary sign at the end of Maple Street"
             },
             {
               "id": "campbell-river-947382-b",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "boundary_signs",
-              "notes": "[auto-proposal L] boundary sign at end of Maple Street & 'cement block' sign on Campbell River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Maple Street boundary sign and the downstream 'cement block' sign in Campbell River city; map.. In-town boundary-sign reach on the lower Campbell River (MU 1-?); both landmarks are signs, not bridges. Map-only. The FSR 'BRIDGE OVER CAMPBELL' (3.8 km up) is a logging bridge, not these signs. [structural-split 2026-08-05 from “from the boundary sign at the end of Maple Street downstream to the boundary sign at the cement block”] boundary=boundary sign at the cement block [hint-fix 2026-08-06 bridge_road_km->boundary_signs]",
+              "label": "cement block boundary sign",
+              "notes": "[auto-proposal L] boundary sign at end of Maple Street & 'cement block' sign on Campbell River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Maple Street boundary sign and the downstream 'cement block' sign in Campbell River city; map.. In-town boundary-sign reach on the lower Campbell River (MU 1-?); both landmarks are signs, not bridges. Map-only. The FSR 'BRIDGE OVER CAMPBELL' (3.8 km up) is a logging bridge, not these signs. [structural-split 2026-08-05 from “from the boundary sign at the end of Maple Street downstream to the boundary sign at the cement block”] boundary=boundary sign at the cement block [hint-fix 2026-08-06 bridge_road_km->boundary_signs] [curated 2026-08-08 manual-review batch=campbell-1-10] [LOW CONFIDENCE ~300m d/s of Maple St estimate; verify pin later] [name-variants: cement block sign | tidal boundary — this is where the Campbell R enters the tidal zone; collapse with tidal-boundary anchor later]",
+              "coord": [
+                -125.26205,
+                50.03759
+              ],
               "locator_text": "boundary sign at the cement block"
             }
           ]
@@ -905,7 +929,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-08"
     },
     "3a50b4c9": {
       "entry_id": "3a50b4c9",
