@@ -17,12 +17,12 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 - ❌ MISSING [rule] “between fishing boundary signs situated approximately 200 m upstre” → —
 
 ## SHUSWAP LAKE (see maps on page 28) (includes Little Shuswap Lake, that part of South Thompson River between Shuswap Lake and Little Shuswap Lake, Seymour, Anstey and Salmon arms and Mara Lake unless stated otherwise) · MU ['3-26'] · p34 · [MISSING_SPLITS] (268902d7)
-- • [rule] “in the waters lying west of a line between signs at Henstridge Roa” → shuswap-lake-see-maps-on-page-28-includes-lit-a72a63[todo]
-- • [rule] “in the waters lying west of a line between signs at Henstridge Roa” → shuswap-lake-see-maps-on-page-28-includes-lit-a72a63[todo]
-- • [rule] “in the entire area north of Albas” → shuswap-lake-see-maps-on-page-28-includes-lit-5744af[todo]
-- • [rule] “east of a line between fishing boundary signs on Murdock and Semap” → shuswap-lake-see-maps-on-page-28-includes-lit-260979[todo]
-- • [rule] “in Salmon Arm Bay, west of line between Engineer's Point and Sunny” → shuswap-lake-see-maps-on-page-28-includes-lit-be76ba-a[todo], shuswap-lake-see-maps-on-page-28-includes-lit-be76ba-b[todo]
-- • [except] “anglers fishing from the community pier in the city of Salmon Arm ” → shuswap-lake-see-maps-on-page-28-includes-lit-2f64a9[todo]
+- • [rule] “in the waters lying west of a line between signs at Henstridge Roa” → shuswap-lake-see-maps-on-page-28-includes-lit-a72a63[deferred]
+- • [rule] “in the waters lying west of a line between signs at Henstridge Roa” → shuswap-lake-see-maps-on-page-28-includes-lit-a72a63[deferred]
+- • [rule] “in the entire area north of Albas” → shuswap-lake-see-maps-on-page-28-includes-lit-5744af[deferred]
+- • [rule] “east of a line between fishing boundary signs on Murdock and Semap” → shuswap-lake-see-maps-on-page-28-includes-lit-260979[deferred]
+- • [rule] “in Salmon Arm Bay, west of line between Engineer's Point and Sunny” → shuswap-lake-see-maps-on-page-28-includes-lit-be76ba-a[deferred], shuswap-lake-see-maps-on-page-28-includes-lit-be76ba-b[deferred]
+- • [except] “anglers fishing from the community pier in the city of Salmon Arm ” → shuswap-lake-see-maps-on-page-28-includes-lit-2f64a9[deferred]
 - ❌ MISSING [except] “anglers fishing from the community pier in the city of Salmon Arm ” → —
 - • [entry] “includes Little Shuswap Lake, that part of South Thompson River be” → shuswap-lake-see-maps-on-page-28-includes-lit-80ee82[not_applicable]
 

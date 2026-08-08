@@ -11260,14 +11260,15 @@
               "Mar 15-May 14"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "shuswap-lake-see-maps-on-page-28-includes-lit-a72a63",
-              "status": "todo",
+              "status": "deferred",
               "anchor_kind": "line",
               "src": "rule",
               "resolver_hint": "between_signs",
+              "notes": "[deferred 2026-08-07 lake-split (lake divided into map-defined closure areas); not a stream split]",
               "name_verbatim": "SHUSWAP LAKE (see maps on page 28) (includes Little Sh",
               "locator_text": "in the waters lying west of a line between signs at Henstridge Road and Wharf Road to a line between signs on the south"
             }
@@ -11282,14 +11283,15 @@
               "May 15-Mar 14"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "shuswap-lake-see-maps-on-page-28-includes-lit-a72a63",
-              "status": "todo",
+              "status": "deferred",
               "anchor_kind": "line",
               "src": "rule",
               "resolver_hint": "between_signs",
+              "notes": "[deferred 2026-08-07 lake-split (lake divided into map-defined closure areas); not a stream split]",
               "name_verbatim": "SHUSWAP LAKE (see maps on page 28) (includes Little Sh",
               "locator_text": "in the waters lying west of a line between signs at Henstridge Road and Wharf Road to a line between signs on the south"
             }
@@ -11304,14 +11306,15 @@
               "Mar 15-May 14"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "shuswap-lake-see-maps-on-page-28-includes-lit-5744af",
-              "status": "todo",
+              "status": "deferred",
               "anchor_kind": "unclassified",
               "src": "rule",
               "resolver_hint": "other_reach",
+              "notes": "[deferred 2026-08-07 lake-split (lake divided into map-defined closure areas); not a stream split]",
               "name_verbatim": "SHUSWAP LAKE (see maps on page 28) (includes Little Sh"
             }
           ]
@@ -11325,14 +11328,15 @@
               "Mar 15-May 14"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "shuswap-lake-see-maps-on-page-28-includes-lit-260979",
-              "status": "todo",
+              "status": "deferred",
               "anchor_kind": "line",
               "src": "rule",
               "resolver_hint": "between_signs",
+              "notes": "[deferred 2026-08-07 lake-split (lake divided into map-defined closure areas); not a stream split]",
               "name_verbatim": "SHUSWAP LAKE (see maps on page 28) (includes Little Sh"
             }
           ]
@@ -11346,25 +11350,25 @@
               "Sept 1-Dec 31"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "shuswap-lake-see-maps-on-page-28-includes-lit-be76ba-a",
-              "status": "todo",
+              "status": "deferred",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "between_signs",
-              "notes": "[structural-split 2026-08-05 from \"in Salmon Arm Bay, west of line between Engineer's Point and\"] boundary=Engineer's Point",
+              "notes": "[structural-split 2026-08-05 from \"in Salmon Arm Bay, west of line between Engineer's Point and\"] boundary=Engineer's Point [deferred 2026-08-07 lake-split (lake divided into map-defined closure areas); not a stream split]",
               "name_verbatim": "SHUSWAP LAKE (see maps on page 28) (includes Little Sh",
               "locator_text": "Engineer's Point"
             },
             {
               "id": "shuswap-lake-see-maps-on-page-28-includes-lit-be76ba-b",
-              "status": "todo",
+              "status": "deferred",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "between_signs",
-              "notes": "[structural-split 2026-08-05 from \"in Salmon Arm Bay, west of line between Engineer's Point and\"] boundary=Sunnybrae Point",
+              "notes": "[structural-split 2026-08-05 from \"in Salmon Arm Bay, west of line between Engineer's Point and\"] boundary=Sunnybrae Point [deferred 2026-08-07 lake-split (lake divided into map-defined closure areas); not a stream split]",
               "name_verbatim": "SHUSWAP LAKE (see maps on page 28) (includes Little Sh",
               "locator_text": "Sunnybrae Point"
             }
@@ -11376,14 +11380,15 @@
           "info": {
             "restriction_type": "closure"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "shuswap-lake-see-maps-on-page-28-includes-lit-2f64a9",
-              "status": "todo",
+              "status": "deferred",
               "anchor_kind": "unclassified",
               "src": "except",
               "resolver_hint": "other_reach",
+              "notes": "[deferred 2026-08-07 lake-split (lake divided into map-defined closure areas); not a stream split]",
               "name_verbatim": "SHUSWAP LAKE (see maps on page 28) (includes Little Sh"
             }
           ]
