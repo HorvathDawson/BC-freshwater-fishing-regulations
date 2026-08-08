@@ -6170,21 +6170,25 @@
       "image": "page_025_row_019.png",
       "symbols": [],
       "reg_text": "Dead fin fish may be used for bait only when fishing for sturgeon (see page 8 in the Provincial Regulations)\n**No Fishing** in the area bounded by a line commencing at a fishing boundary sign located at the eastern end of Landstrom Bar (Scale Bar)\nto a fishing boundary sign on the opposite bank of the river, thence to a fishing boundary sign at the southern end of Croft Island, thence\nto a fishing boundary sign on the nearest bank of the river in a westerly direction, thence following the bank of the river in a westerly\ndirection to the Point of Commencement, May 1-Oct 31\n**No Fishing** in the non-tidal portion of the Fraser River in Region 2 from one hour after sunset to one hour before sunrise\n**No Fishing** in the Jesperson's Side Channel, Herrling Side Channel, and Seabird Island north Side Channel May 15-July 31. See page 26\nfor a map of the No Fishing areas\n**No Fishing** for steelhead Fraser River Mainstem Aug 15-Dec 31\nBoats less than 20 m in length, under power or anchored, must not impede the passage of commercial vessels",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 6,
       "locators": [
         {
           "src": "water",
           "text": "upstream of the CPR Bridge at Mission",
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "fraser-river-upstream-of-the-cpr-bridge-at-mi-73e755",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "name",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] CPR Bridge at Mission on Fraser River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the CPR (Mission railway) bridge over the Fraser at Mission; well-known -> review.. Public/railway bridge at Mission (the tidal-boundary landmark on the lower Fraser). Map/OSM-confirmable."
+              "notes": "[auto-proposal L] CPR Bridge at Mission on Fraser River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the CPR (Mission railway) bridge over the Fraser at Mission; well-known -> review.. Public/railway bridge at Mission (the tidal-boundary landmark on the lower Fraser). Map/OSM-confirmable. [curated 2026-08-07 manual-review batch=fraser-mission] [Mission Railway Bridge]",
+              "coord": [
+                -122.30047,
+                49.12606
+              ]
             }
           ]
         },
@@ -6197,16 +6201,71 @@
               "May 1-Oct 31"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
-              "id": "fraser-river-upstream-of-the-cpr-bridge-at-mi-af0798",
-              "status": "todo",
-              "anchor_kind": "confluence",
+              "id": "fraser-river-upstream-of-the-cpr-bridge-at-mi-af0798-a",
+              "status": "curated",
+              "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "tributary",
-              "notes": "[deferred] 1_nonconfluence_boundary — [review · was:deferred] assume nothing — re-decide. — [human-review 2026-08-04 manual-find | Dawson to locate] IN-RIVER POLYGON: Landstrom Bar closure (Fraser, MU 2-4, near Mission) — 4 fishing-boundary signs: (1) E end of Landstrom Bar (Scale Bar), (2) opposite bank, (3) S end of Croft Island, (4) nearest bank westerly, back to start. Digitize the polygon by hand (like a lake sub-region, docs/15).",
-              "locator_text": "in the area bounded by a line commencing at a fishing boundary sign located at the eastern end of Landstrom Bar (Scale B"
+              "label": "Landstrom Bar (Scale Bar) eastern edge",
+              "notes": "[deferred] 1_nonconfluence_boundary — [review · was:deferred] assume nothing — re-decide. — [human-review 2026-08-04 manual-find | Dawson to locate] IN-RIVER POLYGON: Landstrom Bar closure (Fraser, MU 2-4, near Mission) — 4 fishing-boundary signs: (1) E end of Landstrom Bar (Scale Bar), (2) opposite bank, (3) S end of Croft Island, (4) nearest bank westerly, back to start. Digitize the polygon by hand (like a lake sub-region, docs/15). [curated 2026-08-07 manual-review batch=fraser-mission] [bounded-area split] [polygon P1/P3=signs; P2/P4=estimated bank signs, verify for display]",
+              "coord": [
+                -121.4646,
+                49.37448
+              ],
+              "polygon": [
+                [
+                  -121.4646,
+                  49.37448
+                ],
+                [
+                  -121.4646,
+                  49.3763
+                ],
+                [
+                  -121.45819,
+                  49.3766
+                ],
+                [
+                  -121.4607,
+                  49.3758
+                ]
+              ],
+              "locator_text": "eastern end of Landstrom Bar"
+            },
+            {
+              "id": "fraser-river-upstream-of-the-cpr-bridge-at-mi-af0798-b",
+              "status": "curated",
+              "anchor_kind": "point",
+              "src": "rule",
+              "resolver_hint": "tributary",
+              "label": "Croft Island southern end",
+              "notes": "[deferred] 1_nonconfluence_boundary — [review · was:deferred] assume nothing — re-decide. — [human-review 2026-08-04 manual-find | Dawson to locate] IN-RIVER POLYGON: Landstrom Bar closure (Fraser, MU 2-4, near Mission) — 4 fishing-boundary signs: (1) E end of Landstrom Bar (Scale Bar), (2) opposite bank, (3) S end of Croft Island, (4) nearest bank westerly, back to start. Digitize the polygon by hand (like a lake sub-region, docs/15). [curated 2026-08-07 manual-review batch=fraser-mission] [bounded-area split] [polygon P1/P3=signs; P2/P4=estimated bank signs, verify for display]",
+              "coord": [
+                -121.45819,
+                49.3766
+              ],
+              "polygon": [
+                [
+                  -121.4646,
+                  49.37448
+                ],
+                [
+                  -121.4646,
+                  49.3763
+                ],
+                [
+                  -121.45819,
+                  49.3766
+                ],
+                [
+                  -121.4607,
+                  49.3758
+                ]
+              ],
+              "locator_text": "southern end of Croft Island"
             }
           ]
         },
@@ -6216,14 +6275,15 @@
           "info": {
             "restriction_type": "closure"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "fraser-river-upstream-of-the-cpr-bridge-at-mi-fe3020",
-              "status": "todo",
+              "status": "not_applicable",
               "anchor_kind": "unclassified",
               "src": "rule",
-              "resolver_hint": "other_reach"
+              "resolver_hint": "other_reach",
+              "notes": "[n/a 2026-08-07 night closure on the entire non-tidal Region 2 Fraser; time rule, no geographic split]"
             }
           ]
         },
@@ -6236,14 +6296,15 @@
               "May 15-July 31"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "fraser-river-upstream-of-the-cpr-bridge-at-mi-c3e4d2",
-              "status": "todo",
+              "status": "not_applicable",
               "anchor_kind": "unclassified",
               "src": "rule",
-              "resolver_hint": "other_reach"
+              "resolver_hint": "other_reach",
+              "notes": "[n/a 2026-08-07 side channels name-variation match, not a split]"
             }
           ]
         },
@@ -6271,35 +6332,44 @@
         {
           "src": "entry",
           "text": "upstream of the CPR Bridge at Mission",
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "fraser-river-upstream-of-the-cpr-bridge-at-mi-73e755",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "name",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] CPR Bridge at Mission on Fraser River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the CPR (Mission railway) bridge over the Fraser at Mission; well-known -> review.. Public/railway bridge at Mission (the tidal-boundary landmark on the lower Fraser). Map/OSM-confirmable."
+              "notes": "[auto-proposal L] CPR Bridge at Mission on Fraser River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the CPR (Mission railway) bridge over the Fraser at Mission; well-known -> review.. Public/railway bridge at Mission (the tidal-boundary landmark on the lower Fraser). Map/OSM-confirmable. [curated 2026-08-07 manual-review batch=fraser-mission] [Mission Railway Bridge]",
+              "coord": [
+                -122.30047,
+                49.12606
+              ]
             }
           ]
         },
         {
           "src": "name",
           "text": "FRASER RIVER (upstream of the CPR Bridge at Mission)",
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "fraser-river-upstream-of-the-cpr-bridge-at-mi-73e755",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "name",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] CPR Bridge at Mission on Fraser River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the CPR (Mission railway) bridge over the Fraser at Mission; well-known -> review.. Public/railway bridge at Mission (the tidal-boundary landmark on the lower Fraser). Map/OSM-confirmable.",
+              "notes": "[auto-proposal L] CPR Bridge at Mission on Fraser River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the CPR (Mission railway) bridge over the Fraser at Mission; well-known -> review.. Public/railway bridge at Mission (the tidal-boundary landmark on the lower Fraser). Map/OSM-confirmable. [curated 2026-08-07 manual-review batch=fraser-mission] [Mission Railway Bridge]",
+              "coord": [
+                -122.30047,
+                49.12606
+              ],
               "locator_text": "upstream of the CPR Bridge at Mission"
             }
           ]
         }
-      ]
+      ],
+      "reviewed": "2026-08-07"
     },
     "86bbd654": {
       "entry_id": "86bbd654",

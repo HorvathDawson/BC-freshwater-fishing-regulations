@@ -125,6 +125,8 @@ def trim_row(r: dict, water: str, mus, loc_text: str) -> dict:
         out["coord"] = r["coord"]
     if r.get("offset"):  # {anchor:[lon,lat], anchor_label, m, dir} — preserves distance context for splits.json
         out["offset"] = r["offset"]
+    if r.get("polygon"):  # ordered [[lon,lat],...] closure-area corners (e.g. sign-bounded No-Fishing area)
+        out["polygon"] = r["polygon"]
     if r.get("target"):
         out["target"] = r["target"]
     if name_key(r.get("name_verbatim")) != name_key(water):
@@ -280,8 +282,8 @@ def build(curated=None):
 
 # fields that MUST round-trip grouped->flat (curation + identity); region/full_regulation are
 # metadata regenerated from source, so excluded from the verify.
-CUR_FIELDS = ("status", "anchor_kind", "resolver_hint", "coord", "offset", "target", "label", "notes",
-              "name_verbatim", "mus", "src", "locator_text", "reviewed")
+CUR_FIELDS = ("status", "anchor_kind", "resolver_hint", "coord", "offset", "polygon", "target", "label",
+              "notes", "name_verbatim", "mus", "src", "locator_text", "reviewed")
 
 
 def flatten_curation(cards, drift):
@@ -306,6 +308,8 @@ def flatten_curation(cards, drift):
                 }
                 if r.get("offset"):
                     seen[r["id"]]["offset"] = r["offset"]
+                if r.get("polygon"):
+                    seen[r["id"]]["polygon"] = r["polygon"]
                 if rev:
                     seen[r["id"]]["reviewed"] = rev
     for d in drift:

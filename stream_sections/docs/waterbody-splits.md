@@ -7,8 +7,8 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 |---|--:|
 | NO_CURATION | 1 |
 | MISSING_SPLITS | 2 |
-| INCOMPLETE | 165 |
-| COMPLETE | 144 |
+| INCOMPLETE | 164 |
+| COMPLETE | 145 |
 | NO_SPLIT | 75 |
 
 **Drift** (curated rows matching no source locator): 5
@@ -96,14 +96,6 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 - • [rule] “Upstream of Limonite Creek (Zymoetz River A)” → zymoetz-copper-river-7cbab6[curated]
 - • [rule] “Downstream of Limonite Creek (Zymoetz River B)” → zymoetz-copper-river-bb27a9[curated]
 - • [rule] “Downstream of Limonite Creek (Zymoetz River B)” → zymoetz-copper-river-bb27a9[curated]
-
-## FRASER RIVER (upstream of the CPR Bridge at Mission) · MU ['2-4'] · p25 · [INCOMPLETE] (b613729b)
-- • [water] “upstream of the CPR Bridge at Mission” → fraser-river-upstream-of-the-cpr-bridge-at-mi-73e755[todo]
-- • [rule] “in the area bounded by a line commencing at a fishing boundary sig” → fraser-river-upstream-of-the-cpr-bridge-at-mi-af0798[todo]
-- • [rule] “in the non-tidal portion of the Fraser River in Region 2” → fraser-river-upstream-of-the-cpr-bridge-at-mi-fe3020[todo]
-- • [rule] “in the Jesperson's Side Channel, Herrling Side Channel, and Seabir” → fraser-river-upstream-of-the-cpr-bridge-at-mi-c3e4d2[todo]
-- • [rule] “Fraser River Mainstem” → fraser-river-upstream-of-the-cpr-bridge-at-mi-4460d2[not_applicable]
-- • [entry] “upstream of the CPR Bridge at Mission” → fraser-river-upstream-of-the-cpr-bridge-at-mi-73e755[todo]
 
 ## NANAIMO RIVER · MU ['1-5'] · p19 · [INCOMPLETE] (046b8cc3)
 - • [rule] “from power line crossing at "Bore Hole" upstream to fishing bounda” → nanaimo-river-633e28-a[curated], nanaimo-river-633e28-b[todo]

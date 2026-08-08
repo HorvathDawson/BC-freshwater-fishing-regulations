@@ -52,6 +52,22 @@ differently-regulated reaches) to a coordinate, one reg entry ("waterbody") at a
 8. **Whole-waterbody review flag.** When the *entire* reg entry has been walked with the human (not
    just individual locators), set `reviewed = "<date>"` on every row of the entry; `build()` surfaces
    it as card-level `reviewed`. Offset is valid on **any** `anchor_kind`, including `point`.
+9. **Closure-area polygon.** A sign-bounded No-Fishing *area* (not a reach cut) is split at its real
+   boundary points (e.g. `-a`/`-b` at the two shore signs) AND records `polygon = [[lon,lat],...]`
+   (ordered corners per the reg) on the row(s) so the area can be drawn later. Round-trips like offset.
+10. **Lake-split = defer, but VERIFY don't assume.** A *lake* divided into closure areas → defer (see
+    [[lake-splits-deferred]] equivalent note). But confirm it really is a lake-area split before
+    deferring; a river with a bounded-area closure (e.g. Fraser Landstrom/Croft) is still curated as
+    split points + polygon.
+
+## Presenting an entry (per the human's ask)
+
+Show **every** item in the entry — including already-curated (green) rows — each with its status,
+coord, and an **OSM link** (`openstreetmap.org/?mlat=LAT&mlon=LON#map=16/LAT/LON`; the human verifies
+on OSM, not Google). Try to resolve every todo first (FWA/OSM). Watch for **duplicate splits within a
+waterbody** (parser makes multiple rows for one physical boundary, e.g. a shared bridge/line, or a
+bare word like "signs" over-matching several reaches) — give true duplicates the **same coord**, or
+un-link an over-matched row by making its `locator_text` specific to its reach.
 
 ## The workflow per waterbody
 
