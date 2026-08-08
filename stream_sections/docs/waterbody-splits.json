@@ -5303,7 +5303,7 @@
         "Incl. Tribs"
       ],
       "reg_text": "**No Fishing **upstream of 12th Avenue\n**No Fishing **downstream of 12th Avenue Apr 1-June 30\n**No Fishing** between two white triangular fishing boundary signs downstream to pedestrian bridge at the foot of Stayte Road, Aug 15-Sept 30\n**No Fishing **from 21:00 hours to 05:00 hours each day, Aug 1-Dec 31",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 3,
       "locators": [
         {
@@ -5312,14 +5312,19 @@
           "info": {
             "restriction_type": "closure"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "campbell-river-b6bb5f",
-              "status": "todo",
-              "anchor_kind": "unclassified",
+              "status": "curated",
+              "anchor_kind": "point",
               "src": "rule",
-              "resolver_hint": "other_reach"
+              "resolver_hint": "other_reach",
+              "notes": "[curated 2026-08-08 manual-review batch=campbell-2-4] [12th Avenue crossing]",
+              "coord": [
+                -122.71943,
+                49.02392
+              ]
             }
           ]
         },
@@ -5332,14 +5337,19 @@
               "Apr 1-June 30"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "campbell-river-716bb4",
-              "status": "todo",
-              "anchor_kind": "unclassified",
+              "status": "curated",
+              "anchor_kind": "point",
               "src": "rule",
-              "resolver_hint": "other_reach"
+              "resolver_hint": "other_reach",
+              "notes": "[curated 2026-08-08 manual-review batch=campbell-2-4] [12th Avenue crossing]",
+              "coord": [
+                -122.71943,
+                49.02392
+              ]
             }
           ]
         },
@@ -5352,24 +5362,41 @@
               "Aug 15-Sept 30"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "campbell-river-914375-a",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "boundary_signs",
-              "notes": "[auto-proposal L] pedestrian bridge at foot of Stayte Road (+ boundary signs) on Campbell River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the pedestrian bridge at the foot of Stayte Road, Campbell River city; map.. In-town landmark reach (two white triangular signs down to the Stayte Road pedestrian bridge). Map-only; not in FWA. [structural-split 2026-08-05 from “between two white triangular fishing boundary signs downstream to pedestrian bridge at the foot of Stayte Road”] boundary=between two white triangular fishing boundary signs [hint-fix 2026-08-06 bridge_road_km->boundary_signs]",
+              "notes": "[auto-proposal L] pedestrian bridge at foot of Stayte Road (+ boundary signs) on Campbell River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the pedestrian bridge at the foot of Stayte Road, Campbell River city; map.. In-town landmark reach (two white triangular signs down to the Stayte Road pedestrian bridge). Map-only; not in FWA. [structural-split 2026-08-05 from “between two white triangular fishing boundary signs downstream to pedestrian bridge at the foot of Stayte Road”] boundary=between two white triangular fishing boundary signs [hint-fix 2026-08-06 bridge_road_km->boundary_signs] [curated 2026-08-08 manual-review batch=campbell-2-4] [LOW CONFIDENCE: white triangular signs location unknown; placeholder = bridge +200m u/s; fix later]",
+              "coord": [
+                -122.7794,
+                49.01609
+              ],
+              "offset": {
+                "anchor": [
+                  -122.7794,
+                  49.01609
+                ],
+                "anchor_label": "Stayte Rd pedestrian bridge",
+                "m": 200,
+                "dir": "upstream"
+              },
               "locator_text": "between two white triangular fishing boundary signs"
             },
             {
               "id": "campbell-river-914375-b",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] pedestrian bridge at foot of Stayte Road (+ boundary signs) on Campbell River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the pedestrian bridge at the foot of Stayte Road, Campbell River city; map.. In-town landmark reach (two white triangular signs down to the Stayte Road pedestrian bridge). Map-only; not in FWA. [structural-split 2026-08-05 from “between two white triangular fishing boundary signs downstream to pedestrian bridge at the foot of Stayte Road”] boundary=pedestrian bridge at the foot of Stayte Road",
+              "notes": "[auto-proposal L] pedestrian bridge at foot of Stayte Road (+ boundary signs) on Campbell River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the pedestrian bridge at the foot of Stayte Road, Campbell River city; map.. In-town landmark reach (two white triangular signs down to the Stayte Road pedestrian bridge). Map-only; not in FWA. [structural-split 2026-08-05 from “between two white triangular fishing boundary signs downstream to pedestrian bridge at the foot of Stayte Road”] boundary=pedestrian bridge at the foot of Stayte Road [curated 2026-08-08 manual-review batch=campbell-2-4] [Stayte Rd pedestrian bridge OSM way 141728165]",
+              "coord": [
+                -122.7794,
+                49.01609
+              ],
               "locator_text": "pedestrian bridge at the foot of Stayte Road"
             }
           ]
@@ -5380,7 +5407,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-08"
     },
     "b2441cc9": {
       "entry_id": "b2441cc9",

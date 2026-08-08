@@ -7,8 +7,8 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 |---|--:|
 | NO_CURATION | 1 |
 | MISSING_SPLITS | 2 |
-| INCOMPLETE | 160 |
-| COMPLETE | 149 |
+| INCOMPLETE | 159 |
+| COMPLETE | 150 |
 | NO_SPLIT | 75 |
 
 **Drift** (curated rows matching no source locator): 5
@@ -206,11 +206,6 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 - • [rule] “upstream of the fishing boundary signs located at 49° 14.790'N and” → alouette-river-741304[curated]
 - • [rule] “upstream of 216th Street” → alouette-river-daecfd[curated], north-alouette-river-e3810a[todo]
 - • [rule] “on mainstem” → alouette-river-b5a707[not_applicable]
-
-## CAMPBELL RIVER · MU ['2-4'] · p24 · [INCOMPLETE] (a2178070)
-- • [rule] “upstream of 12th Avenue” → campbell-river-b6bb5f[todo]
-- • [rule] “downstream of 12th Avenue” → campbell-river-716bb4[todo]
-- • [rule] “between two white triangular fishing boundary signs downstream to ” → campbell-river-914375-a[todo], campbell-river-914375-b[todo]
 
 ## HARRISON RIVER (from the Fraser River upstream to Harrison Lake) · MU ['2-18'] · p25 · [INCOMPLETE] (9c44131f)
 - • [water] “from the Fraser River upstream to Harrison Lake” → harrison-river-from-the-fraser-river-upstream-f8ecc6[not_applicable]
