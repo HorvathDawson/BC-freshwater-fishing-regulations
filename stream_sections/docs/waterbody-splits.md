@@ -7,8 +7,8 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 |---|--:|
 | NO_CURATION | 1 |
 | MISSING_SPLITS | 2 |
-| INCOMPLETE | 159 |
-| COMPLETE | 150 |
+| INCOMPLETE | 158 |
+| COMPLETE | 151 |
 | NO_SPLIT | 75 |
 
 **Drift** (curated rows matching no source locator): 5
@@ -301,10 +301,6 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 ## CHEHALIS RIVER · MU ['2-19'] · p24 · [INCOMPLETE] (bb6d5fe5)
 - • [rule] “from boundary signs at outlet of Chehalis Lake to main logging roa” → chehalis-river-6a99b5-a[not_applicable], chehalis-river-6a99b5-b[todo]
 - • [rule] “downstream of the main logging road bridge situated approximately ” → chehalis-river-8cfa74[curated]
-
-## COQUITLAM RIVER · MU ['2-8'] · p25 · [INCOMPLETE] (f538c53d)
-- • [rule] “upstream of Mary Hill Bypass Bridge” → coquitlam-river-d7c017-b[todo], coquitlam-river-ef1688[todo]
-- • [rule] “from Lougheed Highway Bridge to Mary Hill Bypass Bridge” → coquitlam-river-d7c017-a[todo], coquitlam-river-d7c017-b[todo]
 
 ## NATHAN (Beaver) CREEK · MU ['2-4'] · p27 · [INCOMPLETE] (8bba2d84)
 - • [rule] “upstream of 272nd Street (Jackman Road)” → nathan-beaver-creek-c062cd[todo]

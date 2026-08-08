@@ -6127,7 +6127,7 @@
       "image": "page_025_row_000.png",
       "symbols": [],
       "reg_text": "**No Fishing** upstream of Mary Hill Bypass Bridge, May 1-June 30; No powered boats on parts\nHatchery trout daily quota = 2 (20-30 cm only), from Lougheed Highway Bridge to Mary Hill Bypass Bridge, July 1-Oct 15",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 2,
       "locators": [
         {
@@ -6139,24 +6139,32 @@
               "May 1-June 30"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "coquitlam-river-d7c017-b",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] Lougheed Highway Bridge & Mary Hill Bypass Bridge on Coquitlam River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm Lougheed Hwy bridge and Mary Hill Bypass bridge over the lower Coquitlam River; review.. Reach between two lower-river road bridges at Port Coquitlam. Both public bridges -> map/OSM-confirmable. [structural-split 2026-08-05 from “from Lougheed Highway Bridge to Mary Hill Bypass Bridge”] boundary=Mary Hill Bypass Bridge",
+              "notes": "[auto-proposal L] Lougheed Highway Bridge & Mary Hill Bypass Bridge on Coquitlam River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm Lougheed Hwy bridge and Mary Hill Bypass bridge over the lower Coquitlam River; review.. Reach between two lower-river road bridges at Port Coquitlam. Both public bridges -> map/OSM-confirmable. [structural-split 2026-08-05 from “from Lougheed Highway Bridge to Mary Hill Bypass Bridge”] boundary=Mary Hill Bypass Bridge [curated 2026-08-08 manual-review batch=coquitlam] [Mary Hill Bypass Bridge]",
+              "coord": [
+                -122.80636,
+                49.22692
+              ],
               "locator_text": "Mary Hill Bypass Bridge"
             },
             {
               "id": "coquitlam-river-ef1688",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] Mary Hill Bypass Bridge over Coquitlam River on Coquitlam River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm Mary Hill Bypass bridge over the lower Coquitlam River (Port Coquitlam); review.. City/highway bridge near the Coquitlam mouth (MU 2-?). Not in FWA; map/OSM-confirmable (the four FSR hits are far upstream on the mainstem)."
+              "notes": "[auto-proposal L] Mary Hill Bypass Bridge over Coquitlam River on Coquitlam River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm Mary Hill Bypass bridge over the lower Coquitlam River (Port Coquitlam); review.. City/highway bridge near the Coquitlam mouth (MU 2-?). Not in FWA; map/OSM-confirmable (the four FSR hits are far upstream on the mainstem). [curated 2026-08-08 manual-review batch=coquitlam] [Mary Hill Bypass Bridge]",
+              "coord": [
+                -122.80636,
+                49.22692
+              ]
             }
           ]
         },
@@ -6169,24 +6177,32 @@
               "July 1-Oct 15"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "coquitlam-river-d7c017-a",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] Lougheed Highway Bridge & Mary Hill Bypass Bridge on Coquitlam River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm Lougheed Hwy bridge and Mary Hill Bypass bridge over the lower Coquitlam River; review.. Reach between two lower-river road bridges at Port Coquitlam. Both public bridges -> map/OSM-confirmable. [structural-split 2026-08-05 from “from Lougheed Highway Bridge to Mary Hill Bypass Bridge”] boundary=Lougheed Highway Bridge",
+              "notes": "[auto-proposal L] Lougheed Highway Bridge & Mary Hill Bypass Bridge on Coquitlam River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm Lougheed Hwy bridge and Mary Hill Bypass bridge over the lower Coquitlam River; review.. Reach between two lower-river road bridges at Port Coquitlam. Both public bridges -> map/OSM-confirmable. [structural-split 2026-08-05 from “from Lougheed Highway Bridge to Mary Hill Bypass Bridge”] boundary=Lougheed Highway Bridge [curated 2026-08-08 manual-review batch=coquitlam] [Lougheed Highway Bridge]",
+              "coord": [
+                -122.78,
+                49.26905
+              ],
               "locator_text": "Lougheed Highway Bridge"
             },
             {
               "id": "coquitlam-river-d7c017-b",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] Lougheed Highway Bridge & Mary Hill Bypass Bridge on Coquitlam River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm Lougheed Hwy bridge and Mary Hill Bypass bridge over the lower Coquitlam River; review.. Reach between two lower-river road bridges at Port Coquitlam. Both public bridges -> map/OSM-confirmable. [structural-split 2026-08-05 from “from Lougheed Highway Bridge to Mary Hill Bypass Bridge”] boundary=Mary Hill Bypass Bridge",
+              "notes": "[auto-proposal L] Lougheed Highway Bridge & Mary Hill Bypass Bridge on Coquitlam River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm Lougheed Hwy bridge and Mary Hill Bypass bridge over the lower Coquitlam River; review.. Reach between two lower-river road bridges at Port Coquitlam. Both public bridges -> map/OSM-confirmable. [structural-split 2026-08-05 from “from Lougheed Highway Bridge to Mary Hill Bypass Bridge”] boundary=Mary Hill Bypass Bridge [curated 2026-08-08 manual-review batch=coquitlam] [Mary Hill Bypass Bridge]",
+              "coord": [
+                -122.80636,
+                49.22692
+              ],
               "locator_text": "Mary Hill Bypass Bridge"
             }
           ]
@@ -6197,7 +6213,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-08"
     },
     "528fb0cf": {
       "entry_id": "528fb0cf",
