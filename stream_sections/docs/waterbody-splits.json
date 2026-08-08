@@ -25064,7 +25064,7 @@
       "image": "page_066_row_033.png",
       "symbols": [],
       "reg_text": "Exempt from spring closure.\nRainbow trout catch and release from Cheslatta River to a boundary sign 5 km downstream and no rainbow trout under 35 cm from said\nsign downstream to Hwy 27 bridge\nExempt from bait ban downstream of Foothills Boulevard Bridge in Prince George",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 3,
       "locators": [
         {
@@ -25073,7 +25073,7 @@
           "info": {
             "restriction_type": "harvest"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "nechako-river-73a17c-a",
@@ -25095,11 +25095,24 @@
             },
             {
               "id": "nechako-river-73a17c-b",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "boundary_signs",
-              "notes": "[structural-split 2026-08-05 from \"from Cheslatta River to a boundary sign 5 km downstream\"] boundary=boundary sign 5 km downstream",
+              "notes": "[structural-split 2026-08-05 from \"from Cheslatta River to a boundary sign 5 km downstream\"] boundary=boundary sign 5 km downstream [curated 2026-08-08 manual-review batch=nechako] [boundary sign 5km d/s of Cheslatta confl; exact sign unknown, use distance]",
+              "coord": [
+                -124.93582,
+                53.64476
+              ],
+              "offset": {
+                "anchor": [
+                  -124.93582,
+                  53.64476
+                ],
+                "anchor_label": "Cheslatta River confluence",
+                "m": 5000,
+                "dir": "downstream"
+              },
               "locator_text": "boundary sign 5 km downstream"
             }
           ]
@@ -25110,24 +25123,41 @@
           "info": {
             "restriction_type": "harvest"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "nechako-river-735a30-a",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "boundary_signs",
-              "notes": "[auto-proposal L] Hwy 27 bridge over Nechako River on Nechako River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Hwy 27 bridge over the Nechako (from a boundary sign upstream); map. Hwy 27 = Fort St James road.. Reach = 'from said sign downstream to Hwy 27 bridge'. Public highway bridge -> map/OSM-confirmable; not in FWA. [structural-split 2026-08-05 from “from said sign downstream to Hwy 27 bridge”] boundary=said sign [hint-fix 2026-08-06 bridge_road_km->boundary_signs]",
+              "notes": "[auto-proposal L] Hwy 27 bridge over Nechako River on Nechako River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Hwy 27 bridge over the Nechako (from a boundary sign upstream); map. Hwy 27 = Fort St James road.. Reach = 'from said sign downstream to Hwy 27 bridge'. Public highway bridge -> map/OSM-confirmable; not in FWA. [structural-split 2026-08-05 from “from said sign downstream to Hwy 27 bridge”] boundary=said sign [hint-fix 2026-08-06 bridge_road_km->boundary_signs] [curated 2026-08-08 manual-review batch=nechako] [boundary sign 5km d/s of Cheslatta confl; exact sign unknown, use distance]",
+              "coord": [
+                -124.93582,
+                53.64476
+              ],
+              "offset": {
+                "anchor": [
+                  -124.93582,
+                  53.64476
+                ],
+                "anchor_label": "Cheslatta River confluence",
+                "m": 5000,
+                "dir": "downstream"
+              },
               "locator_text": "said sign"
             },
             {
               "id": "nechako-river-735a30-b",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] Hwy 27 bridge over Nechako River on Nechako River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Hwy 27 bridge over the Nechako (from a boundary sign upstream); map. Hwy 27 = Fort St James road.. Reach = 'from said sign downstream to Hwy 27 bridge'. Public highway bridge -> map/OSM-confirmable; not in FWA. [structural-split 2026-08-05 from “from said sign downstream to Hwy 27 bridge”] boundary=Hwy 27 bridge",
+              "notes": "[auto-proposal L] Hwy 27 bridge over Nechako River on Nechako River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Hwy 27 bridge over the Nechako (from a boundary sign upstream); map. Hwy 27 = Fort St James road.. Reach = 'from said sign downstream to Hwy 27 bridge'. Public highway bridge -> map/OSM-confirmable; not in FWA. [structural-split 2026-08-05 from “from said sign downstream to Hwy 27 bridge”] boundary=Hwy 27 bridge [curated 2026-08-08 manual-review batch=nechako] [Hwy 27 bridge = Stuart Lake Hwy, OSM way 43007816]",
+              "coord": [
+                -124.12005,
+                54.04644
+              ],
               "locator_text": "Hwy 27 bridge"
             }
           ]
@@ -25138,15 +25168,19 @@
           "info": {
             "restriction_type": "note"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "nechako-river-d52bc5",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] Foothills Boulevard Bridge in Prince George on Nechako River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the Foothills Blvd bridge over the Nechako in Prince George; single crossing -> review.. City bridge in Prince George -> map/OSM-confirmable; not in FWA."
+              "notes": "[auto-proposal L] Foothills Boulevard Bridge in Prince George on Nechako River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the Foothills Blvd bridge over the Nechako in Prince George; single crossing -> review.. City bridge in Prince George -> map/OSM-confirmable; not in FWA. [curated 2026-08-08 manual-review batch=nechako] [Foothills Boulevard Bridge, Prince George]",
+              "coord": [
+                -122.81704,
+                53.94641
+              ]
             }
           ]
         },
@@ -25156,7 +25190,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-08"
     },
     "1b5060c7": {
       "entry_id": "1b5060c7",

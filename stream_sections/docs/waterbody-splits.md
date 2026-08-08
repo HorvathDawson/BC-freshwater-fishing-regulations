@@ -7,8 +7,8 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 |---|--:|
 | NO_CURATION | 1 |
 | MISSING_SPLITS | 2 |
-| INCOMPLETE | 152 |
-| COMPLETE | 157 |
+| INCOMPLETE | 151 |
+| COMPLETE | 158 |
 | NO_SPLIT | 75 |
 
 **Drift** (curated rows matching no source locator): 5
@@ -224,11 +224,6 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 - • [rule] “downstream (north) of the 200 Road Bridge” → crooked-river-63c960[todo]
 - • [rule] “upstream (south) of the 200 Road Bridge” → crooked-river-cf0fa8[todo]
 - • [rule] “upstream (south) of the 200 Road Bridge” → crooked-river-cf0fa8[todo]
-
-## NECHAKO RIVER · MU ['7-12'] · p66 · [INCOMPLETE] (eee9bebb)
-- • [rule] “from Cheslatta River to a boundary sign 5 km downstream” → nechako-river-73a17c-a[curated], nechako-river-73a17c-b[todo]
-- • [rule] “from said sign downstream to Hwy 27 bridge” → nechako-river-735a30-a[todo], nechako-river-735a30-b[todo]
-- • [rule] “downstream of Foothills Boulevard Bridge in Prince George” → nechako-river-d52bc5[todo]
 
 ## ALOUETTE LAKE · MU ['2-8'] · p6 · [INCOMPLETE] (df2e9fcb)
 - • [rule] “in swimming areas” → alouette-lake-396262[deferred]
