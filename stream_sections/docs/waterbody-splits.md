@@ -7,8 +7,8 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 |---|--:|
 | NO_CURATION | 1 |
 | MISSING_SPLITS | 2 |
-| INCOMPLETE | 153 |
-| COMPLETE | 156 |
+| INCOMPLETE | 152 |
+| COMPLETE | 157 |
 | NO_SPLIT | 75 |
 
 **Drift** (curated rows matching no source locator): 5
@@ -214,11 +214,6 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 - • [rule] “upstream of Pinnacles Provincial Park” → baker-creek-b9b499[todo]
 - • [rule] “downstream of Park” → baker-creek-aaf7ac[todo]
 - • [rule] “downstream of Pinnacles Provincial Park” → baker-creek-b57f9e[todo]
-
-## HORSEFLY RIVER (from Quesnel Lake to Horsefly River Falls) · MU ['5-2'] · p51 · [INCOMPLETE] (9538df76)
-- • [water] “from Quesnel Lake to Horsefly River Falls” → horsefly-river-from-quesnel-lake-to-horsefly--bfe6d5-a[not_applicable], horsefly-river-from-quesnel-lake-to-horsefly--bfe6d5-b[todo]
-- • [rule] “from Woodjam Bridge to Quesnel Lake” → horsefly-river-from-quesnel-lake-to-horsefly--28a7cd-a[todo], horsefly-river-from-quesnel-lake-to-horsefly--28a7cd-b[not_applicable], horsefly-river-from-quesnel-lake-to-horsefly--bfe6d5-a[not_applicable]
-- • [entry] “from Quesnel Lake to Horsefly River Falls” → horsefly-river-from-quesnel-lake-to-horsefly--28a7cd-b[not_applicable], horsefly-river-from-quesnel-lake-to-horsefly--bfe6d5-a[not_applicable], horsefly-river-from-quesnel-lake-to-horsefly--bfe6d5-b[todo]
 
 ## BULKLEY RIVER · MU ['6-9'] · p56 · [INCOMPLETE] (d850b295)
 - • [rule] “upstream of Morice/Bulkley River confluence” → bulkley-river-e30268[curated]

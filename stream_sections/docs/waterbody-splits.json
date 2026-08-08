@@ -20405,13 +20405,13 @@
         "Classified"
       ],
       "reg_text": "**No Fishing** Nov 1-May 31\nTrout/char catch and release; artificial fly only, bait ban\nNo angling from powered boats from Woodjam Bridge to Quesnel Lake\n**Class II water**[Includes Tributaries]** June 1-Oct 31; Steelhead Stamp not required**",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 3,
       "locators": [
         {
           "src": "water",
           "text": "from Quesnel Lake to Horsefly River Falls",
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "horsefly-river-from-quesnel-lake-to-horsefly--bfe6d5-a",
@@ -20425,11 +20425,15 @@
             },
             {
               "id": "horsefly-river-from-quesnel-lake-to-horsefly--bfe6d5-b",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "name",
               "resolver_hint": "falls_obstacle",
-              "notes": "[structural-split 2026-08-05 from \"from Quesnel Lake to Horsefly River Falls\"] boundary=Horsefly River Falls",
+              "notes": "[structural-split 2026-08-05 from \"from Quesnel Lake to Horsefly River Falls\"] boundary=Horsefly River Falls [curated 2026-08-08 manual-review batch=horsefly] [Horsefly River Falls = lowest signed falls, FISS obstacle 27704 (migration barrier), WSC 160-635400]",
+              "coord": [
+                -121.02477,
+                52.2968
+              ],
               "name_verbatim": "HORSEFLY RIVER (from Quesnel Lake to Horsefly River Fa",
               "locator_text": "Horsefly River Falls"
             }
@@ -20441,15 +20445,19 @@
           "info": {
             "restriction_type": "vessel_restriction"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "horsefly-river-from-quesnel-lake-to-horsefly--28a7cd-a",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] Woodjam Bridge over Horsefly River on Horsefly River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Woodjam (Road) bridge over the Horsefly River near Horsefly townsite; map. (Reach runs down to Quesnel Lake.). Reach = 'Woodjam Bridge to Quesnel Lake'. Woodjam is a road bridge near Horsefly town; not name-matched among the FWA Horsefly FSR crossings (which are further upstream). Map/OSM-confirmable; Quesnel Lake is the other endpoint. [structural-split 2026-08-05 from “from Woodjam Bridge to Quesnel Lake”] boundary=Woodjam Bridge",
+              "notes": "[auto-proposal L] Woodjam Bridge over Horsefly River on Horsefly River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Woodjam (Road) bridge over the Horsefly River near Horsefly townsite; map. (Reach runs down to Quesnel Lake.). Reach = 'Woodjam Bridge to Quesnel Lake'. Woodjam is a road bridge near Horsefly town; not name-matched among the FWA Horsefly FSR crossings (which are further upstream). Map/OSM-confirmable; Quesnel Lake is the other endpoint. [structural-split 2026-08-05 from “from Woodjam Bridge to Quesnel Lake”] boundary=Woodjam Bridge [curated 2026-08-08 manual-review batch=horsefly] [Woodjam Bridge = Kroener Road crossing]",
+              "coord": [
+                -121.27753,
+                52.28361
+              ],
               "name_verbatim": "HORSEFLY RIVER (from Quesnel Lake to Horsefly River Fa",
               "locator_text": "Woodjam Bridge"
             },
@@ -20478,7 +20486,7 @@
         {
           "src": "entry",
           "text": "from Quesnel Lake to Horsefly River Falls",
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "horsefly-river-from-quesnel-lake-to-horsefly--28a7cd-b",
@@ -20502,11 +20510,15 @@
             },
             {
               "id": "horsefly-river-from-quesnel-lake-to-horsefly--bfe6d5-b",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "name",
               "resolver_hint": "falls_obstacle",
-              "notes": "[structural-split 2026-08-05 from \"from Quesnel Lake to Horsefly River Falls\"] boundary=Horsefly River Falls",
+              "notes": "[structural-split 2026-08-05 from \"from Quesnel Lake to Horsefly River Falls\"] boundary=Horsefly River Falls [curated 2026-08-08 manual-review batch=horsefly] [Horsefly River Falls = lowest signed falls, FISS obstacle 27704 (migration barrier), WSC 160-635400]",
+              "coord": [
+                -121.02477,
+                52.2968
+              ],
               "name_verbatim": "HORSEFLY RIVER (from Quesnel Lake to Horsefly River Fa",
               "locator_text": "Horsefly River Falls"
             }
@@ -20515,7 +20527,7 @@
         {
           "src": "name",
           "text": "HORSEFLY RIVER (from Quesnel Lake to Horsefly River Falls)",
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "horsefly-river-from-quesnel-lake-to-horsefly--bfe6d5-a",
@@ -20529,17 +20541,22 @@
             },
             {
               "id": "horsefly-river-from-quesnel-lake-to-horsefly--bfe6d5-b",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "name",
               "resolver_hint": "falls_obstacle",
-              "notes": "[structural-split 2026-08-05 from \"from Quesnel Lake to Horsefly River Falls\"] boundary=Horsefly River Falls",
+              "notes": "[structural-split 2026-08-05 from \"from Quesnel Lake to Horsefly River Falls\"] boundary=Horsefly River Falls [curated 2026-08-08 manual-review batch=horsefly] [Horsefly River Falls = lowest signed falls, FISS obstacle 27704 (migration barrier), WSC 160-635400]",
+              "coord": [
+                -121.02477,
+                52.2968
+              ],
               "name_verbatim": "HORSEFLY RIVER (from Quesnel Lake to Horsefly River Fa",
               "locator_text": "Horsefly River Falls"
             }
           ]
         }
-      ]
+      ],
+      "reviewed": "2026-08-08"
     },
     "011e4d9f": {
       "entry_id": "011e4d9f",
