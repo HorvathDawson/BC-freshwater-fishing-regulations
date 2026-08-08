@@ -7,8 +7,8 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 |---|--:|
 | NO_CURATION | 1 |
 | MISSING_SPLITS | 2 |
-| INCOMPLETE | 158 |
-| COMPLETE | 151 |
+| INCOMPLETE | 157 |
+| COMPLETE | 152 |
 | NO_SPLIT | 75 |
 
 **Drift** (curated rows matching no source locator): 5
@@ -136,12 +136,6 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 - • [rule] “between fishing boundary signs approximately 100 m upstream and do” → puntledge-river-3d202d-a[curated], puntledge-river-3d202d-b[curated]
 - • [rule] “from fishing boundary signs located 50 m upstream of the BC Hydro ” → puntledge-river-6e9625-a[todo], puntledge-river-6e9625-b[todo]
 - • [rule] “upstream of the BC Hydro diversion dam (approximately 3.5 km downs” → puntledge-river-bef57e[curated]
-
-## NICOMEKL RIVER · MU ['2-4'] · p27 · [INCOMPLETE] (abb7b842)
-- • [rule] “upstream of 208th Street (Berry Road)” → nicomekl-river-6862af[todo]
-- • [rule] “downstream of 208th Street” → nicomekl-river-8c81ef[todo]
-- • [rule] “downstream of 208th Street” → nicomekl-river-8c81ef[todo]
-- • [rule] “upstream of dyke gates” → nicomekl-river-e12680[todo]
 
 ## PITT RIVER · MU ['2-8'] · p27 · [INCOMPLETE] (773ca353)
 - • [rule] “within Garibaldi Park” → pitt-river-16d11f[curated]

@@ -6980,7 +6980,7 @@
         "Incl. Tribs"
       ],
       "reg_text": "**No Fishing** upstream of 208th Street (Berry Road); **No Fishing** downstream of 208th Street, Apr 1-June 30\n**No Fishing** downstream of 208th Street, from 21:00 hours to 05:00 hours each day, Aug 1-Dec 31\nNo angling from powered boats upstream of dyke gates, no towing on parts, speed restriction (16 km/h)",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 4,
       "locators": [
         {
@@ -6989,15 +6989,19 @@
           "info": {
             "restriction_type": "closure"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "nicomekl-river-6862af",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] 208th Street (Berry Road) bridge over Nicomekl River on Nicomekl River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm 208th St (Berry Rd) crossing of the Nicomekl (Langley/Surrey); street grid -> review.. FWA Nicomekl mouth (49.06N,-122.87, Surrey) is correct. City street bridge at 208 St -> map-only but well-defined. Upstream reach."
+              "notes": "[auto-proposal L] 208th Street (Berry Road) bridge over Nicomekl River on Nicomekl River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm 208th St (Berry Rd) crossing of the Nicomekl (Langley/Surrey); street grid -> review.. FWA Nicomekl mouth (49.06N,-122.87, Surrey) is correct. City street bridge at 208 St -> map-only but well-defined. Upstream reach. [curated 2026-08-08 manual-review batch=nicomekl] [208th St / Berry Rd bridge]",
+              "coord": [
+                -122.64403,
+                49.10053
+              ]
             }
           ]
         },
@@ -7010,15 +7014,19 @@
               "Apr 1-June 30"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "nicomekl-river-8c81ef",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] 208th Street bridge over Nicomekl River on Nicomekl River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm 208th St crossing of the Nicomekl; downstream reach; review.. Same 208 St bridge; downstream reach. Street bridge -> map/OSM-confirmable."
+              "notes": "[auto-proposal L] 208th Street bridge over Nicomekl River on Nicomekl River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm 208th St crossing of the Nicomekl; downstream reach; review.. Same 208 St bridge; downstream reach. Street bridge -> map/OSM-confirmable. [curated 2026-08-08 manual-review batch=nicomekl] [208th St / Berry Rd bridge]",
+              "coord": [
+                -122.64403,
+                49.10053
+              ]
             }
           ]
         },
@@ -7031,15 +7039,19 @@
               "Aug 1-Dec 31"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "nicomekl-river-8c81ef",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] 208th Street bridge over Nicomekl River on Nicomekl River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm 208th St crossing of the Nicomekl; downstream reach; review.. Same 208 St bridge; downstream reach. Street bridge -> map/OSM-confirmable."
+              "notes": "[auto-proposal L] 208th Street bridge over Nicomekl River on Nicomekl River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm 208th St crossing of the Nicomekl; downstream reach; review.. Same 208 St bridge; downstream reach. Street bridge -> map/OSM-confirmable. [curated 2026-08-08 manual-review batch=nicomekl] [208th St / Berry Rd bridge]",
+              "coord": [
+                -122.64403,
+                49.10053
+              ]
             }
           ]
         },
@@ -7049,14 +7061,19 @@
           "info": {
             "restriction_type": "vessel_restriction"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "nicomekl-river-e12680",
-              "status": "todo",
-              "anchor_kind": "unclassified",
+              "status": "curated",
+              "anchor_kind": "point",
               "src": "rule",
-              "resolver_hint": "other_reach"
+              "resolver_hint": "other_reach",
+              "notes": "[curated 2026-08-08 manual-review batch=nicomekl] [dyke gates = Nicomekl River Sea Dam]",
+              "coord": [
+                -122.82521,
+                49.06944
+              ]
             }
           ]
         },
@@ -7066,7 +7083,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-08"
     },
     "91c6d218": {
       "entry_id": "91c6d218",
