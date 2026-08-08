@@ -1279,7 +1279,7 @@
         "Stocked"
       ],
       "reg_text": "**No Fishing July 4-July 14\nNo Fishing** July 15-Aug 31[Includes Tributaries], **No Fishing** from weir (dam) at Cowichan Lake's outlet to Greendale Trestle, Nov 15-Apr 15\n**No Fishing** in tributaries upstream of and including Holt Creek\nFly fishing only upstream of CNR Trestle (Mile 66) Sept 1-Nov 15\n**No Fishing** downstream of the CNR Mile 66 Trestle between Sept 1-Nov 15\nFly fishing only from signs at Greendale Trestle to CNR Bridge (mile 70.2)\nSpeed restriction (8 km/h) and engine power restriction - 7.5 kW (10 hp) on parts",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 7,
       "locators": [
         {
@@ -1291,7 +1291,7 @@
               "Nov 15-Apr 15"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "cowichan-river-see-map-below-794a2f-a",
@@ -1309,11 +1309,15 @@
             },
             {
               "id": "cowichan-river-see-map-below-794a2f-b",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal H] Weir (dam) at Cowichan Lake outlet on Cowichan River (lake weir -> Greendale Trestle). Candidate coord [-124.06119, 48.82418]. OSM: https://www.openstreetmap.org/?mlat=48.82418&mlon=-124.06119#map=15/48.82418/-124.06119. Verify: Confirm the control weir at the Cowichan Lake outlet (town of Lake Cowichan); downstream end = Greendale Trestle.. A control weir/dam sits at the Cowichan Lake outlet in the town of Lake Cowichan. Coord = FWA Cowichan River exit from Cowichan Lake polygon. Reach runs to the Greendale Trestle downstream. [structural-split 2026-08-05 from \"from weir (dam) at Cowichan Lake's outlet to Greendale Trest\"] boundary=Greendale Trestle [hint-fix 2026-08-06 dam_weir_fence->bridge_road_km]",
+              "notes": "[auto-proposal H] Weir (dam) at Cowichan Lake outlet on Cowichan River (lake weir -> Greendale Trestle). Candidate coord [-124.06119, 48.82418]. OSM: https://www.openstreetmap.org/?mlat=48.82418&mlon=-124.06119#map=15/48.82418/-124.06119. Verify: Confirm the control weir at the Cowichan Lake outlet (town of Lake Cowichan); downstream end = Greendale Trestle.. A control weir/dam sits at the Cowichan Lake outlet in the town of Lake Cowichan. Coord = FWA Cowichan River exit from Cowichan Lake polygon. Reach runs to the Greendale Trestle downstream. [structural-split 2026-08-05 from \"from weir (dam) at Cowichan Lake's outlet to Greendale Trest\"] boundary=Greendale Trestle [hint-fix 2026-08-06 dam_weir_fence->bridge_road_km] [curated 2026-08-07 manual-review batch=cowichan]",
+              "coord": [
+                -124.04675,
+                48.82827
+              ],
               "locator_text": "Greendale Trestle"
             }
           ]
@@ -1355,15 +1359,19 @@
               "Sept 1-Nov 15"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "cowichan-river-see-map-below-5abb4d",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] CNR Trestle (Mile 66) over Cowichan River on Cowichan River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the CNR Mile 66 trestle on the Cowichan River (see reg map); railway trestle, map-only.. Reg explicitly says 'see map below'. Railway trestle landmark; not in FWA. Map/OSM-confirmable."
+              "notes": "[auto-proposal L] CNR Trestle (Mile 66) over Cowichan River on Cowichan River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the CNR Mile 66 trestle on the Cowichan River (see reg map); railway trestle, map-only.. Reg explicitly says 'see map below'. Railway trestle landmark; not in FWA. Map/OSM-confirmable. [curated 2026-08-07 manual-review batch=cowichan]",
+              "coord": [
+                -123.92833,
+                48.77634
+              ]
             }
           ]
         },
@@ -1376,15 +1384,19 @@
               "Sept 1-Nov 15"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "cowichan-river-see-map-below-85312e",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] CNR Mile 66 Trestle over Cowichan River on Cowichan River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the CNR Mile 66 trestle (downstream reach); railway trestle, map-only.. Same Mile 66 trestle; downstream reach. See reg map. Map/OSM-confirmable."
+              "notes": "[auto-proposal L] CNR Mile 66 Trestle over Cowichan River on Cowichan River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the CNR Mile 66 trestle (downstream reach); railway trestle, map-only.. Same Mile 66 trestle; downstream reach. See reg map. Map/OSM-confirmable. [curated 2026-08-07 manual-review batch=cowichan]",
+              "coord": [
+                -123.92833,
+                48.77634
+              ]
             }
           ]
         },
@@ -1394,33 +1406,45 @@
           "info": {
             "restriction_type": "gear_restriction"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "cowichan-river-see-map-below-794a2f-b",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal H] Weir (dam) at Cowichan Lake outlet on Cowichan River (lake weir -> Greendale Trestle). Candidate coord [-124.06119, 48.82418]. OSM: https://www.openstreetmap.org/?mlat=48.82418&mlon=-124.06119#map=15/48.82418/-124.06119. Verify: Confirm the control weir at the Cowichan Lake outlet (town of Lake Cowichan); downstream end = Greendale Trestle.. A control weir/dam sits at the Cowichan Lake outlet in the town of Lake Cowichan. Coord = FWA Cowichan River exit from Cowichan Lake polygon. Reach runs to the Greendale Trestle downstream. [structural-split 2026-08-05 from \"from weir (dam) at Cowichan Lake's outlet to Greendale Trest\"] boundary=Greendale Trestle [hint-fix 2026-08-06 dam_weir_fence->bridge_road_km]",
+              "notes": "[auto-proposal H] Weir (dam) at Cowichan Lake outlet on Cowichan River (lake weir -> Greendale Trestle). Candidate coord [-124.06119, 48.82418]. OSM: https://www.openstreetmap.org/?mlat=48.82418&mlon=-124.06119#map=15/48.82418/-124.06119. Verify: Confirm the control weir at the Cowichan Lake outlet (town of Lake Cowichan); downstream end = Greendale Trestle.. A control weir/dam sits at the Cowichan Lake outlet in the town of Lake Cowichan. Coord = FWA Cowichan River exit from Cowichan Lake polygon. Reach runs to the Greendale Trestle downstream. [structural-split 2026-08-05 from \"from weir (dam) at Cowichan Lake's outlet to Greendale Trest\"] boundary=Greendale Trestle [hint-fix 2026-08-06 dam_weir_fence->bridge_road_km] [curated 2026-08-07 manual-review batch=cowichan]",
+              "coord": [
+                -124.04675,
+                48.82827
+              ],
               "locator_text": "Greendale Trestle"
             },
             {
               "id": "cowichan-river-see-map-below-bb9987-a",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] Greendale Trestle & CNR Bridge (mile 70.2) on Cowichan River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Greendale Trestle and the CNR mile-70.2 bridge on the Cowichan River (see reg map); map-only.. Reach between two railway landmarks (Greendale Trestle to CNR mile 70.2). Not in FWA; see reg map / OSM. [structural-split 2026-08-05 from “from signs at Greendale Trestle to CNR Bridge (mile 70.2)”] boundary=signs at Greendale Trestle",
+              "notes": "[auto-proposal L] Greendale Trestle & CNR Bridge (mile 70.2) on Cowichan River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Greendale Trestle and the CNR mile-70.2 bridge on the Cowichan River (see reg map); map-only.. Reach between two railway landmarks (Greendale Trestle to CNR mile 70.2). Not in FWA; see reg map / OSM. [structural-split 2026-08-05 from “from signs at Greendale Trestle to CNR Bridge (mile 70.2)”] boundary=signs at Greendale Trestle [curated 2026-08-07 manual-review batch=cowichan]",
+              "coord": [
+                -124.04675,
+                48.82827
+              ],
               "locator_text": "signs at Greendale Trestle"
             },
             {
               "id": "cowichan-river-see-map-below-bb9987-b",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] Greendale Trestle & CNR Bridge (mile 70.2) on Cowichan River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Greendale Trestle and the CNR mile-70.2 bridge on the Cowichan River (see reg map); map-only.. Reach between two railway landmarks (Greendale Trestle to CNR mile 70.2). Not in FWA; see reg map / OSM. [structural-split 2026-08-05 from “from signs at Greendale Trestle to CNR Bridge (mile 70.2)”] boundary=CNR Bridge (mile 70.2)",
+              "notes": "[auto-proposal L] Greendale Trestle & CNR Bridge (mile 70.2) on Cowichan River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Greendale Trestle and the CNR mile-70.2 bridge on the Cowichan River (see reg map); map-only.. Reach between two railway landmarks (Greendale Trestle to CNR mile 70.2). Not in FWA; see reg map / OSM. [structural-split 2026-08-05 from “from signs at Greendale Trestle to CNR Bridge (mile 70.2)”] boundary=CNR Bridge (mile 70.2) [curated 2026-08-07 manual-review batch=cowichan]",
+              "coord": [
+                -124.0035,
+                48.80376
+              ],
               "locator_text": "CNR Bridge (mile 70.2)"
             }
           ]
@@ -1477,7 +1501,8 @@
             }
           ]
         }
-      ]
+      ],
+      "reviewed": "2026-08-07"
     },
     "27d928ea": {
       "entry_id": "27d928ea",

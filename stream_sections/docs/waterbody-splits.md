@@ -7,8 +7,8 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 |---|--:|
 | NO_CURATION | 1 |
 | MISSING_SPLITS | 2 |
-| INCOMPLETE | 166 |
-| COMPLETE | 143 |
+| INCOMPLETE | 165 |
+| COMPLETE | 144 |
 | NO_SPLIT | 75 |
 
 **Drift** (curated rows matching no source locator): 5
@@ -69,15 +69,6 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 - • [rule] “From the Brilliant Dam to the confluence with the Columbia River” → kootenay-river-downstream-of-idaho-border-1e5f9d-a[curated], kootenay-river-downstream-of-idaho-border-1e5f9d-b[curated], kootenay-river-downstream-of-idaho-border-50d010[not_applicable]
 - • [rule] “From the Brilliant Dam to the confluence with the Columbia River” → kootenay-river-downstream-of-idaho-border-1e5f9d-a[curated], kootenay-river-downstream-of-idaho-border-1e5f9d-b[curated], kootenay-river-downstream-of-idaho-border-50d010[not_applicable]
 - • [entry] “downstream of Idaho border” → kootenay-river-downstream-of-idaho-border-358bba-a[curated], kootenay-river-downstream-of-idaho-border-6189d1[curated]
-
-## COWICHAN RIVER (see map below) · MU ['1-4'] · p17 · [INCOMPLETE] (ce689454)
-- • [rule] “from weir (dam) at Cowichan Lake's outlet to Greendale Trestle” → cowichan-river-see-map-below-794a2f-a[curated], cowichan-river-see-map-below-794a2f-b[todo]
-- • [rule] “in tributaries upstream of and including Holt Creek” → cowichan-river-see-map-below-0374fa[curated]
-- • [rule] “upstream of CNR Trestle (Mile 66)” → cowichan-river-see-map-below-5abb4d[todo]
-- • [rule] “downstream of the CNR Mile 66 Trestle” → cowichan-river-see-map-below-85312e[todo]
-- • [rule] “from signs at Greendale Trestle to CNR Bridge (mile 70.2)” → cowichan-river-see-map-below-794a2f-b[todo], cowichan-river-see-map-below-bb9987-a[todo], cowichan-river-see-map-below-bb9987-b[todo]
-- • [rule] “on parts” → cowichan-river-see-map-below-bc238a[not_applicable]
-- • [rule] “on parts” → cowichan-river-see-map-below-bc238a[not_applicable]
 
 ## KOOTENAY RIVER (upstream of Koocanusa Reservoir) · MU ['4-2', '4-21', '4-22', '4-24', '4-25', '4-35'] · p39 · [INCOMPLETE] (a808131e)
 - • [water] “upstream of Koocanusa Reservoir” → kootenay-river-upstream-of-koocanusa-reservoi-3bb758[curated]
