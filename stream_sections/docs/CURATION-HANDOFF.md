@@ -69,38 +69,69 @@ waterbody** (parser makes multiple rows for one physical boundary, e.g. a shared
 bare word like "signs" over-matching several reaches) — give true duplicates the **same coord**, or
 un-link an over-matched row by making its `locator_text` specific to its reach.
 
-## The workflow per waterbody
+## The interactive curation loop (how to run it WITH the human)
 
-1. Pick an incomplete entry: `PYTHONPATH=. .venv/bin/python stream_sections/oneoff/wb_present.py --todo`
-   (most-todo first). **Do one whole waterbody at a time** — never leave a reg entry half-done.
-2. Render it: `wb_present.py "NAME" [mu]` → full verbatim reg with boundaries **bold + numbered**,
-   then each locator's rows with coord + `[🛰]`/`[🗺]` links.
-3. **Best-effort resolve every todo boundary first**, and flag likely n/a:
-   - Rivers/lakes/confluences/falls/outlets → **FWA** (gpkg). Confluence = nearest point of main
-     river to the named tributary; lake outlet = river ∩ lake boundary.
-   - Man-made crossings (highway/road/rail/bridge/dam/powerline) → **OSM Overpass**. Use a temp
-     script with `HDR={'User-Agent': '...'}` + retry/backoff + ≥2.5 s pacing; intersect the OSM way
-     with the FWA river (MU-clip via `wmu` to beat name collisions). See
-     `stream_sections/oneoff/osm_bridges.py`.
-4. Present candidates to the human with **both 🛰 (`maps.google.com/?q=LAT,LON&t=k`) and 🗺 OSM
-   (`openstreetmap.org/?mlat=LAT&mlon=LON#map=15/LAT/LON`) links** — the human prefers OSM to verify.
-   Show existing/curated coords too so completeness is scannable. **Apply only on confirmation.**
-5. Write via a small scratchpad script → `save_curation`. **Always re-check the row count** after
-   save (a broken `label` link on an empty-`locator_text` row will silently drop it).
-6. Commit (`rtk git ...`, co-author trailer), then `graphify update .`.
+This is a **human-in-the-loop** loop. Each iteration = one waterbody. The human confirms every
+entry before it's written, but you do NOT wait to be told to start the next one ("after one is done
+auto do next").
 
-## Current state (2026-08-07)
+1. **Pick** the next incomplete entry — `wb_present.py --todo` (most-todo first). Do ONE whole
+   waterbody at a time; never leave a reg entry half-done. If it's a lake-split, defer (rule 10).
+2. **Resolve** every todo boundary best-effort BEFORE presenting. Flag likely n/a. Detect duplicate
+   splits (same physical boundary → same coord; un-link a bare-word over-match by making its
+   `locator_text` reach-specific). **Do this in a subagent** (see below) to keep tool output out of
+   the main context.
+   - FWA (gpkg) for rivers/lakes/confluences/falls/outlets: confluence = nearest point of main river
+     to the named tributary (+ tributary `blk/wsc` target); lake outlet = river ∩ lake boundary
+     (+ lake `WATERBODY_KEY` target).
+   - OSM Overpass for man-made crossings (hwy/road/rail/bridge/dam/powerline/weir): `HDR` User-Agent
+     + retry/backoff + ≥2.5 s pacing; intersect the OSM way with the FWA river (MU-clip via `wmu`).
+     See `stream_sections/oneoff/osm_bridges.py`. Falls not in FWA → try FISS/OSM or ask for a pin.
+3. **Present ALL items** in the entry — including already-curated (green) rows — each with status,
+   coord, and an **OSM link** (`openstreetmap.org/?mlat=LAT&mlon=LON#map=16/LAT/LON`; the human
+   verifies on OSM, not Google). Show the verbatim reg with boundaries **bold + numbered**. Give a
+   best-guess candidate for every todo, flagged by confidence; say which need a human pin.
+4. **Wait** for the human: `all good`, or corrections (they paste coords / OSM way ids / pins /
+   "n/a" / "defer"). **Apply only on confirmation — never assume.**
+5. **Apply** via a small scratchpad script → `save_curation`. Set `reviewed = "<today>"` on every
+   row of the entry. **Re-check the row count** after save (a broken empty-`locator_text` `label`
+   link silently drops a row — restore from HEAD and fix if the count moves unexpectedly).
+6. **Commit** (`rtk git add …`, co-author trailer) + `graphify update .`.
+7. **Auto-advance** to the next entry.
 
-765 rows · ~283 curated · ~172 n/a · ~32 deferred · ~278 todo. Done recently: Fraser 3-14,
-Columbia, the `offset` field + 39-row offset retrofit, coord=base migration, Site C dam fix,
-lake/confluence targets. `scratchpad/` has the reusable resolvers: `resolve_bases.py`,
-`lake_targets.py`, `audit_features.py`, `elk_bridges.py`.
+### Use subagents to keep the main context lean (important)
 
-### Reviewed-in-totality so far: Fraser 3-14, Columbia, Elk River (upstream of Elko Dam)
+The geodata resolution (loading the EPSG:3005 gpkg, Overpass queries with retry, computing
+confluences/outlets/offsets) emits a LOT of tool output. To minimize main-context tokens, **spawn a
+subagent to do step 2** and return only the compact result:
+
+- Give it: entry name + MU, the todo rows (`id, locator_text, anchor_kind`), and the recipe (FWA
+  layers + OSM Overpass patterns). Tell it to return **only** a table
+  `{row_id → candidate [lat,lon], method, confidence}` (+ blk/wsc or lake WBK targets) — NOT the raw
+  query dumps.
+- Subagents start cold, so include essentials in the prompt: gpkg path + CRS, venv
+  (`PYTHONPATH=. .venv/bin/python`), `HDR` User-Agent + retry/backoff + pacing, the `[lon,lat]`
+  convention, and the graphify rule for any code reading.
+- Keep **apply** (`save_curation`) + **commit** in the main agent — they're cheap and need the
+  human-confirmed coords.
+
+A graphify PreToolUse hook fires on every Bash/Read — it targets **source-code** exploration, so it
+does not apply to FWA/OSM geometry scripts or data reads; run those normally.
+
+## Current state (2026-08-08)
+
+766 rows · **327 curated · 178 n/a · 40 deferred · 214 todo** · 7 manual. **18 entries carry
+`reviewed`.** New fields this run: `offset`, `polygon`, `reviewed`. Site C dam fixed; 39-row offset
+retrofit; lake/confluence targets; named-feature audit clean (0 m spread). `scratchpad/` reusable
+resolvers: `resolve_bases.py`, `lake_targets.py`, `audit_features.py`, `elk_bridges.py`.
+
+Reviewed/handled this run: Fraser 3-14, Columbia, Elk (u/s Elko), Chilliwack/Vedder, Kokish,
+Cowichan, Fraser (u/s CPR Mission), Little Qualicum, Shuswap River, Nitinat, Campbell 2-4, Coquitlam,
+Nicomekl, Serpentine, Horsefly — plus Ross/Skagit & Marble/Link n/a'd (natural lake splits), and
+Shuswap Lake & Mahood Lake deferred (lake-area splits).
 
 ### NEXT UP
 
-Run `wb_present.py --todo` and take the top incomplete entry. Note there are separate ELK RIVER
-entries still open — "ELK RIVER'S TRIBUTARIES" is INCOMPLETE (unresolved `EXCEPT Coal Creek d/s of
-old MF&M Railway` exception). Follow the per-waterbody workflow above; confirm every candidate with
-the human (OSM links preferred) before writing; mark the entry `reviewed` when the whole reg is walked.
+`wb_present.py --todo` → top entry (currently **Nechako 7-12, Peace 7-31, Campbell 1-10, …**). Still
+open: **"ELK RIVER'S TRIBUTARIES"** (unresolved `EXCEPT Coal Creek d/s of old MF&M Railway`). Follow
+the loop above; defer lake-splits (verify first); confirm every candidate before writing.
