@@ -7,8 +7,8 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 |---|--:|
 | NO_CURATION | 1 |
 | MISSING_SPLITS | 2 |
-| INCOMPLETE | 162 |
-| COMPLETE | 147 |
+| INCOMPLETE | 161 |
+| COMPLETE | 148 |
 | NO_SPLIT | 75 |
 
 **Drift** (curated rows matching no source locator): 5
@@ -429,9 +429,6 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 
 ## MAMIN RIVER · MU ['6-13'] · p19 · [INCOMPLETE] (7b4287e4)
 - • [rule] “upstream of fishing boundary signs on third bridge approximately 1” → mamin-river-608d92[todo]
-
-## MARBLE ("Link") RIVER (only between Victoria and Alice lakes) · MU ['1-13'] · p19 · [INCOMPLETE] (f5adc0ad)
-- • [entry] “only between Victoria and Alice lakes” → marble-link-river-only-between-victoria-and-a-28a44e-a[todo], marble-link-river-only-between-victoria-and-a-28a44e-b[todo]
 
 ## MOHUN CREEK · MU ['1-10'] · p19 · [INCOMPLETE] (5e563b26)
 - • [rule] “from Menzies Bay logging mainline bridge crossing to Morton Lake” → mohun-creek-1fa4a0-a[todo], mohun-creek-1fa4a0-b[not_applicable]

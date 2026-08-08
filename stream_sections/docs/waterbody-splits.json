@@ -2819,31 +2819,31 @@
       "image": "page_019_row_012.png",
       "symbols": [],
       "reg_text": "Fly fishing only[Includes Tributaries]",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 1,
       "locators": [
         {
           "src": "entry",
           "text": "only between Victoria and Alice lakes",
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "marble-link-river-only-between-victoria-and-a-28a44e-a",
-              "status": "todo",
-              "anchor_kind": "point",
+              "status": "not_applicable",
+              "anchor_kind": "lake_io",
               "src": "name",
               "resolver_hint": "other_reach",
-              "notes": "[structural-split 2026-08-05 from \"only between Victoria and Alice lakes\"] boundary=Victoria",
+              "notes": "[structural-split 2026-08-05 from \"only between Victoria and Alice lakes\"] boundary=Victoria [n/a 2026-08-07 lake edge on stream (river between Victoria & Alice lakes); auto lake-split handles it]",
               "name_verbatim": "MARBLE (\"Link\") RIVER (only between Victoria and Alice",
               "locator_text": "Victoria"
             },
             {
               "id": "marble-link-river-only-between-victoria-and-a-28a44e-b",
-              "status": "todo",
-              "anchor_kind": "point",
+              "status": "not_applicable",
+              "anchor_kind": "lake_io",
               "src": "name",
               "resolver_hint": "other_reach",
-              "notes": "[structural-split 2026-08-05 from \"only between Victoria and Alice lakes\"] boundary=Alice lakes",
+              "notes": "[structural-split 2026-08-05 from \"only between Victoria and Alice lakes\"] boundary=Alice lakes [n/a 2026-08-07 lake edge on stream (river between Victoria & Alice lakes); auto lake-split handles it]",
               "name_verbatim": "MARBLE (\"Link\") RIVER (only between Victoria and Alice",
               "locator_text": "Alice lakes"
             }
@@ -2852,31 +2852,32 @@
         {
           "src": "name",
           "text": "MARBLE (\"Link\") RIVER (only between Victoria and Alice lakes)",
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "marble-link-river-only-between-victoria-and-a-28a44e-a",
-              "status": "todo",
-              "anchor_kind": "point",
+              "status": "not_applicable",
+              "anchor_kind": "lake_io",
               "src": "name",
               "resolver_hint": "other_reach",
-              "notes": "[structural-split 2026-08-05 from \"only between Victoria and Alice lakes\"] boundary=Victoria",
+              "notes": "[structural-split 2026-08-05 from \"only between Victoria and Alice lakes\"] boundary=Victoria [n/a 2026-08-07 lake edge on stream (river between Victoria & Alice lakes); auto lake-split handles it]",
               "name_verbatim": "MARBLE (\"Link\") RIVER (only between Victoria and Alice",
               "locator_text": "Victoria"
             },
             {
               "id": "marble-link-river-only-between-victoria-and-a-28a44e-b",
-              "status": "todo",
-              "anchor_kind": "point",
+              "status": "not_applicable",
+              "anchor_kind": "lake_io",
               "src": "name",
               "resolver_hint": "other_reach",
-              "notes": "[structural-split 2026-08-05 from \"only between Victoria and Alice lakes\"] boundary=Alice lakes",
+              "notes": "[structural-split 2026-08-05 from \"only between Victoria and Alice lakes\"] boundary=Alice lakes [n/a 2026-08-07 lake edge on stream (river between Victoria & Alice lakes); auto lake-split handles it]",
               "name_verbatim": "MARBLE (\"Link\") RIVER (only between Victoria and Alice",
               "locator_text": "Alice lakes"
             }
           ]
         }
-      ]
+      ],
+      "reviewed": "2026-08-07"
     },
     "5e563b26": {
       "entry_id": "5e563b26",
