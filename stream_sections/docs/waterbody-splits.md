@@ -7,8 +7,8 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 |---|--:|
 | NO_CURATION | 1 |
 | MISSING_SPLITS | 2 |
-| INCOMPLETE | 167 |
-| COMPLETE | 142 |
+| INCOMPLETE | 166 |
+| COMPLETE | 143 |
 | NO_SPLIT | 75 |
 
 **Drift** (curated rows matching no source locator): 5
@@ -225,11 +225,6 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 - • [rule] “upstream of top of lower canyon, located 1.3km upstream of the Gol” → heber-river-53fedd[todo]
 - • [rule] “downstream of top of lower canyon, located 1.3km upstream of the G” → heber-river-731cca[todo]
 - • [rule] “downstream of Saunders Creek to the top of the lower canyon, locat” → heber-river-ddafd5[todo]
-
-## KOKISH RIVER · MU ['1-11'] · p18 · [INCOMPLETE] (20715cbc)
-- • [rule] “from boundary signs in Kokish canyon to Ida Lake” → kokish-river-02cef0-b[todo], kokish-river-10fdef-a[todo], kokish-river-10fdef-b[not_applicable]
-- • [rule] “from the log boom located approximately 100 m upstream of the IPP ” → kokish-river-02cef0-b[todo], kokish-river-a6e1d0-a[todo], kokish-river-a6e1d0-b[todo]
-- • [rule] “between signs at the IPP tail race confluence downstream approxima” → kokish-river-02cef0-a[todo], kokish-river-02cef0-b[todo]
 
 ## LITTLE QUALICUM RIVER · MU ['1-6'] · p19 · [INCOMPLETE] (9e77f8d9)
 - • [rule] “All tributaries” → little-qualicum-river-496f12[not_applicable]

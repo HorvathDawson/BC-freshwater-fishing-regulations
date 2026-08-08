@@ -2395,7 +2395,7 @@
       "image": "page_018_row_037.png",
       "symbols": [],
       "reg_text": "**No Fishing** from boundary signs in Kokish canyon to Ida Lake, Nov 1-Apr 30;\n**No Fishing** from the log boom located approximately 100 m upstream of the IPP intake to signs at the tail of the canyon pool located\napproximately 250 m downstream\n**No Fishing** between signs at the IPP tail race confluence downstream approximately 500 m to signs",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 3,
       "locators": [
         {
@@ -2407,24 +2407,19 @@
               "Nov 1-Apr 30"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
-              "id": "kokish-river-02cef0-b",
-              "status": "todo",
-              "anchor_kind": "point",
-              "src": "rule",
-              "resolver_hint": "boundary_signs",
-              "notes": "[deferred] 1_nonconfluence_boundary — [review · was:deferred] assume nothing — re-decide. — [human-review 2026-08-04 manual-find | Dawson to locate] BETWEEN-SIGNS reach (Kokish, MU 1-11): upper sign at the IPP tail-race confluence, lower sign ~500 m downstream. Tailrace = man-made powerhouse outfall (not in FWA). Locate both signs on satellite. [structural-split 2026-08-05 from \"between signs at the IPP tail race confluence downstream app\"] boundary=signs [hint-fix 2026-08-06 tributary->boundary_signs]",
-              "locator_text": "signs"
-            },
-            {
               "id": "kokish-river-10fdef-a",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "falls_obstacle",
-              "notes": "[structural-split 2026-08-05 from \"from boundary signs in Kokish canyon to Ida Lake\"] boundary=boundary signs in Kokish canyon",
+              "notes": "[structural-split 2026-08-05 from \"from boundary signs in Kokish canyon to Ida Lake\"] boundary=boundary signs in Kokish canyon [curated 2026-08-07 manual-review batch=kokish] [bottom of canyon, user topo]",
+              "coord": [
+                -126.87455,
+                50.51825
+              ],
               "locator_text": "boundary signs in Kokish canyon"
             },
             {
@@ -2444,33 +2439,50 @@
           "info": {
             "restriction_type": "closure"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
-              "id": "kokish-river-02cef0-b",
-              "status": "todo",
-              "anchor_kind": "point",
-              "src": "rule",
-              "resolver_hint": "boundary_signs",
-              "notes": "[deferred] 1_nonconfluence_boundary — [review · was:deferred] assume nothing — re-decide. — [human-review 2026-08-04 manual-find | Dawson to locate] BETWEEN-SIGNS reach (Kokish, MU 1-11): upper sign at the IPP tail-race confluence, lower sign ~500 m downstream. Tailrace = man-made powerhouse outfall (not in FWA). Locate both signs on satellite. [structural-split 2026-08-05 from \"between signs at the IPP tail race confluence downstream app\"] boundary=signs [hint-fix 2026-08-06 tributary->boundary_signs]",
-              "locator_text": "signs"
-            },
-            {
               "id": "kokish-river-a6e1d0-a",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "falls_obstacle",
-              "notes": "[structural-split 2026-08-05 from \"from the log boom located approximately 100 m upstream of th\"] boundary=log boom located approximately 100 m upstream of the IPP intake",
+              "notes": "[structural-split 2026-08-05 from \"from the log boom located approximately 100 m upstream of th\"] boundary=log boom located approximately 100 m upstream of the IPP intake [curated 2026-08-07 manual-review batch=kokish] [log boom]",
+              "coord": [
+                -126.81277,
+                50.46393
+              ],
+              "offset": {
+                "anchor": [
+                  -126.81277,
+                  50.46393
+                ],
+                "anchor_label": "IPP dam",
+                "m": 90,
+                "dir": "upstream"
+              },
               "locator_text": "log boom located approximately 100 m upstream of the IPP intake"
             },
             {
               "id": "kokish-river-a6e1d0-b",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "falls_obstacle",
-              "notes": "[structural-split 2026-08-05 from \"from the log boom located approximately 100 m upstream of th\"] boundary=signs at the tail of the canyon pool located",
+              "notes": "[structural-split 2026-08-05 from \"from the log boom located approximately 100 m upstream of th\"] boundary=signs at the tail of the canyon pool located [curated 2026-08-07 manual-review batch=kokish] [canyon pool tail signs]",
+              "coord": [
+                -126.81277,
+                50.46393
+              ],
+              "offset": {
+                "anchor": [
+                  -126.81277,
+                  50.46393
+                ],
+                "anchor_label": "IPP dam",
+                "m": 300,
+                "dir": "downstream"
+              },
               "locator_text": "signs at the tail of the canyon pool located"
             }
           ]
@@ -2481,25 +2493,42 @@
           "info": {
             "restriction_type": "closure"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "kokish-river-02cef0-a",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "boundary_signs",
-              "notes": "[deferred] 1_nonconfluence_boundary — [review · was:deferred] assume nothing — re-decide. — [human-review 2026-08-04 manual-find | Dawson to locate] BETWEEN-SIGNS reach (Kokish, MU 1-11): upper sign at the IPP tail-race confluence, lower sign ~500 m downstream. Tailrace = man-made powerhouse outfall (not in FWA). Locate both signs on satellite. [structural-split 2026-08-05 from \"between signs at the IPP tail race confluence downstream app\"] boundary=between signs at the IPP tail race confluence downstream approximately 500 m [hint-fix 2026-08-06 tributary->boundary_signs]",
+              "notes": "[deferred] 1_nonconfluence_boundary — [review · was:deferred] assume nothing — re-decide. — [human-review 2026-08-04 manual-find | Dawson to locate] BETWEEN-SIGNS reach (Kokish, MU 1-11): upper sign at the IPP tail-race confluence, lower sign ~500 m downstream. Tailrace = man-made powerhouse outfall (not in FWA). Locate both signs on satellite. [structural-split 2026-08-05 from \"between signs at the IPP tail race confluence downstream app\"] boundary=between signs at the IPP tail race confluence downstream approximately 500 m [hint-fix 2026-08-06 tributary->boundary_signs] [curated 2026-08-07 manual-review batch=kokish] [IPP tail race confluence]",
+              "coord": [
+                -126.87632,
+                50.51996
+              ],
               "locator_text": "between signs at the IPP tail race confluence downstream approximately 500 m"
             },
             {
               "id": "kokish-river-02cef0-b",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "boundary_signs",
-              "notes": "[deferred] 1_nonconfluence_boundary — [review · was:deferred] assume nothing — re-decide. — [human-review 2026-08-04 manual-find | Dawson to locate] BETWEEN-SIGNS reach (Kokish, MU 1-11): upper sign at the IPP tail-race confluence, lower sign ~500 m downstream. Tailrace = man-made powerhouse outfall (not in FWA). Locate both signs on satellite. [structural-split 2026-08-05 from \"between signs at the IPP tail race confluence downstream app\"] boundary=signs [hint-fix 2026-08-06 tributary->boundary_signs]",
-              "locator_text": "signs"
+              "notes": "[deferred] 1_nonconfluence_boundary — [review · was:deferred] assume nothing — re-decide. — [human-review 2026-08-04 manual-find | Dawson to locate] BETWEEN-SIGNS reach (Kokish, MU 1-11): upper sign at the IPP tail-race confluence, lower sign ~500 m downstream. Tailrace = man-made powerhouse outfall (not in FWA). Locate both signs on satellite. [structural-split 2026-08-05 from \"between signs at the IPP tail race confluence downstream app\"] boundary=signs [hint-fix 2026-08-06 tributary->boundary_signs] [curated 2026-08-07 manual-review batch=kokish] [signs ~500m d/s of tail race]",
+              "coord": [
+                -126.87632,
+                50.51996
+              ],
+              "offset": {
+                "anchor": [
+                  -126.87632,
+                  50.51996
+                ],
+                "anchor_label": "IPP tail race confluence",
+                "m": 500,
+                "dir": "downstream"
+              },
+              "locator_text": "downstream approximately 500 m to signs"
             }
           ]
         },
@@ -2509,7 +2538,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-07"
     },
     "9e77f8d9": {
       "entry_id": "9e77f8d9",
