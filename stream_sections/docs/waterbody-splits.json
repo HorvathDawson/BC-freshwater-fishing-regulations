@@ -2248,7 +2248,7 @@
         "Incl. Tribs"
       ],
       "reg_text": "**No Fishing** upstream of top of lower canyon, located 1.3km upstream of the Gold River confluence Nov 1-Sept 14\n**No Fishing **downstream of top of lower canyon, located 1.3km upstream of the Gold River confluence\nFolpye fnishing only downstream of Saunders Creek to the top of the lower canyon, located 1.3km upstream of the Gold River confluence when",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 3,
       "locators": [
         {
@@ -2260,14 +2260,33 @@
               "Nov 1-Sept 14"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "heber-river-53fedd",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
-              "resolver_hint": "falls_obstacle"
+              "resolver_hint": "falls_obstacle",
+              "label": "top of lower canyon (1.3km u/s Gold confl)",
+              "notes": "[curated 2026-08-08 manual-review batch=heber-1-9] [base=Heber-Gold confluence, +1300m up the Heber; canyon not cleanly mappable, use distance ref]",
+              "coord": [
+                -126.04194,
+                49.78249
+              ],
+              "offset": {
+                "anchor": [
+                  -126.05226,
+                  49.77371
+                ],
+                "anchor_label": "Gold River confluence",
+                "m": 1300,
+                "dir": "upstream"
+              },
+              "target": {
+                "blk": 354153065,
+                "wsc": "930-508366-243451-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+              }
             }
           ]
         },
@@ -2277,14 +2296,33 @@
           "info": {
             "restriction_type": "closure"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "heber-river-731cca",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
-              "resolver_hint": "falls_obstacle"
+              "resolver_hint": "falls_obstacle",
+              "label": "top of lower canyon (1.3km u/s Gold confl)",
+              "notes": "[curated 2026-08-08 manual-review batch=heber-1-9] [base=Heber-Gold confluence, +1300m up the Heber; canyon not cleanly mappable, use distance ref]",
+              "coord": [
+                -126.04194,
+                49.78249
+              ],
+              "offset": {
+                "anchor": [
+                  -126.05226,
+                  49.77371
+                ],
+                "anchor_label": "Gold River confluence",
+                "m": 1300,
+                "dir": "upstream"
+              },
+              "target": {
+                "blk": 354153065,
+                "wsc": "930-508366-243451-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+              }
             }
           ]
         },
@@ -2294,14 +2332,24 @@
           "info": {
             "restriction_type": "gear_restriction"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "heber-river-ddafd5",
-              "status": "todo",
-              "anchor_kind": "point",
+              "status": "curated",
+              "anchor_kind": "confluence",
               "src": "rule",
-              "resolver_hint": "falls_obstacle"
+              "resolver_hint": "falls_obstacle",
+              "label": "Saunders Creek confluence",
+              "notes": "[curated 2026-08-08 manual-review batch=heber-1-9] [FWA confluence gap 0m; fly-reach upper bound; canyon end reuses 53fedd/731cca point]",
+              "coord": [
+                -125.99434,
+                49.81107
+              ],
+              "target": {
+                "blk": 359564305,
+                "wsc": "200-948755-999851-662349-525760-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+              }
             }
           ]
         },
@@ -2311,7 +2359,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-08"
     },
     "8d123f74": {
       "entry_id": "8d123f74",

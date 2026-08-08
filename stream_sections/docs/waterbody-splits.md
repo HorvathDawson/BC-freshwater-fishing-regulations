@@ -7,8 +7,8 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 |---|--:|
 | NO_CURATION | 1 |
 | MISSING_SPLITS | 2 |
-| INCOMPLETE | 149 |
-| COMPLETE | 160 |
+| INCOMPLETE | 148 |
+| COMPLETE | 161 |
 | NO_SPLIT | 75 |
 
 **Drift** (curated rows matching no source locator): 5
@@ -158,11 +158,6 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 - • [rule] “between fishing boundary signs approximately 100 m upstream of and” → babine-river-fec60e-a[todo], babine-river-fec60e-b[curated]
 - • [rule] “from the adult fish counting fence (described above) downstream to” → babine-river-912f94-b[todo], babine-river-fdcd21-a[curated], babine-river-fdcd21-b[curated]
 - • [rule] “from the juvenile fish counting weir located at the outlet of Nilk” → babine-river-8f73d2-a[curated], babine-river-912f94-a[curated], babine-river-912f94-b[todo], babine-river-fdcd21-b[curated]
-
-## HEBER RIVER · MU ['1-9'] · p18 · [INCOMPLETE] (8b5f3143)
-- • [rule] “upstream of top of lower canyon, located 1.3km upstream of the Gol” → heber-river-53fedd[todo]
-- • [rule] “downstream of top of lower canyon, located 1.3km upstream of the G” → heber-river-731cca[todo]
-- • [rule] “downstream of Saunders Creek to the top of the lower canyon, locat” → heber-river-ddafd5[todo]
 
 ## ALOUETTE RIVER · MU ['2-8'] · p24 · [INCOMPLETE] (dadcd21c)
 - • [rule] “upstream of the fishing boundary signs located at 49° 14.790'N and” → alouette-river-741304[curated]
