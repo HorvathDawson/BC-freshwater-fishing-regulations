@@ -7411,31 +7411,31 @@
       "image": "page_027_row_020.png",
       "symbols": [],
       "reg_text": "**No Fishing** Nov 1-June 30\nNative char catch and release (bull trout and Dolly Varden), trout daily quota = 1 (none under 40 cm), brook trout daily quota = 5\nBait ban; single barbless hook",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 1,
       "locators": [
         {
           "src": "water",
           "text": "Boundary between Ross Lake and Skagit River is market by signs",
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "ross-lake-boundary-between-ross-lake-and-skag-ae0e6d-a",
-              "status": "todo",
+              "status": "not_applicable",
               "anchor_kind": "lake",
               "src": "name",
               "resolver_hint": "lake_reach",
-              "notes": "[structural-split 2026-08-05 from \"Boundary between Ross Lake and Skagit River is market by sig\"] boundary=Ross Lake",
+              "notes": "[structural-split 2026-08-05 from \"Boundary between Ross Lake and Skagit River is market by sig\"] boundary=Ross Lake [n/a 2026-08-08 natural lake split (Ross Lake <-> Skagit River edge); auto-handled]",
               "name_verbatim": "ROSS LAKE (Boundary between Ross Lake and Skagit River",
               "locator_text": "Ross Lake"
             },
             {
               "id": "ross-lake-boundary-between-ross-lake-and-skag-ae0e6d-b",
-              "status": "todo",
+              "status": "not_applicable",
               "anchor_kind": "point",
               "src": "name",
               "resolver_hint": "boundary_signs",
-              "notes": "[structural-split 2026-08-05 from \"Boundary between Ross Lake and Skagit River is market by sig\"] boundary=Skagit River is market by signs",
+              "notes": "[structural-split 2026-08-05 from \"Boundary between Ross Lake and Skagit River is market by sig\"] boundary=Skagit River is market by signs [n/a 2026-08-08 natural lake split (Ross Lake <-> Skagit River edge); auto-handled]",
               "name_verbatim": "ROSS LAKE (Boundary between Ross Lake and Skagit River",
               "locator_text": "Skagit River is market by signs"
             }
@@ -7444,31 +7444,32 @@
         {
           "src": "name",
           "text": "ROSS LAKE (Boundary between Ross Lake and Skagit River is market by signs)",
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "ross-lake-boundary-between-ross-lake-and-skag-ae0e6d-a",
-              "status": "todo",
+              "status": "not_applicable",
               "anchor_kind": "lake",
               "src": "name",
               "resolver_hint": "lake_reach",
-              "notes": "[structural-split 2026-08-05 from \"Boundary between Ross Lake and Skagit River is market by sig\"] boundary=Ross Lake",
+              "notes": "[structural-split 2026-08-05 from \"Boundary between Ross Lake and Skagit River is market by sig\"] boundary=Ross Lake [n/a 2026-08-08 natural lake split (Ross Lake <-> Skagit River edge); auto-handled]",
               "name_verbatim": "ROSS LAKE (Boundary between Ross Lake and Skagit River",
               "locator_text": "Ross Lake"
             },
             {
               "id": "ross-lake-boundary-between-ross-lake-and-skag-ae0e6d-b",
-              "status": "todo",
+              "status": "not_applicable",
               "anchor_kind": "point",
               "src": "name",
               "resolver_hint": "boundary_signs",
-              "notes": "[structural-split 2026-08-05 from \"Boundary between Ross Lake and Skagit River is market by sig\"] boundary=Skagit River is market by signs",
+              "notes": "[structural-split 2026-08-05 from \"Boundary between Ross Lake and Skagit River is market by sig\"] boundary=Skagit River is market by signs [n/a 2026-08-08 natural lake split (Ross Lake <-> Skagit River edge); auto-handled]",
               "name_verbatim": "ROSS LAKE (Boundary between Ross Lake and Skagit River",
               "locator_text": "Skagit River is market by signs"
             }
           ]
         }
-      ]
+      ],
+      "reviewed": "2026-08-08"
     },
     "bfb759b1": {
       "entry_id": "bfb759b1",
@@ -8026,31 +8027,31 @@
         "Incl. Tribs"
       ],
       "reg_text": "**No Fishing** Nov 1-June 30\nKokanee, trout and char catch and release; bait ban",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 1,
       "locators": [
         {
           "src": "water",
           "text": "boundary between Skagit River and Ross Lake is marked by signs",
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "skagit-river-boundary-between-skagit-river-an-4340a7-a",
-              "status": "todo",
+              "status": "not_applicable",
               "anchor_kind": "confluence",
               "src": "name",
               "resolver_hint": "tributary",
-              "notes": "[structural-split 2026-08-05 from \"boundary between Skagit River and Ross Lake is marked by sig\"] boundary=Skagit River",
+              "notes": "[structural-split 2026-08-05 from \"boundary between Skagit River and Ross Lake is marked by sig\"] boundary=Skagit River [n/a 2026-08-08 natural lake split (Ross Lake <-> Skagit River edge); auto-handled]",
               "name_verbatim": "SKAGIT RIVER (boundary between Skagit River and Ross L",
               "locator_text": "Skagit River"
             },
             {
               "id": "skagit-river-boundary-between-skagit-river-an-4340a7-b",
-              "status": "todo",
+              "status": "not_applicable",
               "anchor_kind": "lake",
               "src": "name",
               "resolver_hint": "boundary_signs",
-              "notes": "[structural-split 2026-08-05 from \"boundary between Skagit River and Ross Lake is marked by sig\"] boundary=Ross Lake is marked by signs [hint-fix 2026-08-06 lake_reach->boundary_signs]",
+              "notes": "[structural-split 2026-08-05 from \"boundary between Skagit River and Ross Lake is marked by sig\"] boundary=Ross Lake is marked by signs [hint-fix 2026-08-06 lake_reach->boundary_signs] [n/a 2026-08-08 natural lake split (Ross Lake <-> Skagit River edge); auto-handled]",
               "name_verbatim": "SKAGIT RIVER (boundary between Skagit River and Ross L",
               "locator_text": "Ross Lake is marked by signs"
             }
@@ -8059,31 +8060,32 @@
         {
           "src": "name",
           "text": "SKAGIT RIVER (boundary between Skagit River and Ross Lake is marked by signs)",
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "skagit-river-boundary-between-skagit-river-an-4340a7-a",
-              "status": "todo",
+              "status": "not_applicable",
               "anchor_kind": "confluence",
               "src": "name",
               "resolver_hint": "tributary",
-              "notes": "[structural-split 2026-08-05 from \"boundary between Skagit River and Ross Lake is marked by sig\"] boundary=Skagit River",
+              "notes": "[structural-split 2026-08-05 from \"boundary between Skagit River and Ross Lake is marked by sig\"] boundary=Skagit River [n/a 2026-08-08 natural lake split (Ross Lake <-> Skagit River edge); auto-handled]",
               "name_verbatim": "SKAGIT RIVER (boundary between Skagit River and Ross L",
               "locator_text": "Skagit River"
             },
             {
               "id": "skagit-river-boundary-between-skagit-river-an-4340a7-b",
-              "status": "todo",
+              "status": "not_applicable",
               "anchor_kind": "lake",
               "src": "name",
               "resolver_hint": "boundary_signs",
-              "notes": "[structural-split 2026-08-05 from \"boundary between Skagit River and Ross Lake is marked by sig\"] boundary=Ross Lake is marked by signs [hint-fix 2026-08-06 lake_reach->boundary_signs]",
+              "notes": "[structural-split 2026-08-05 from \"boundary between Skagit River and Ross Lake is marked by sig\"] boundary=Ross Lake is marked by signs [hint-fix 2026-08-06 lake_reach->boundary_signs] [n/a 2026-08-08 natural lake split (Ross Lake <-> Skagit River edge); auto-handled]",
               "name_verbatim": "SKAGIT RIVER (boundary between Skagit River and Ross L",
               "locator_text": "Ross Lake is marked by signs"
             }
           ]
         }
-      ]
+      ],
+      "reviewed": "2026-08-08"
     },
     "25531ceb": {
       "entry_id": "25531ceb",

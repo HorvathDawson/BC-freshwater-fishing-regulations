@@ -7,8 +7,8 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 |---|--:|
 | NO_CURATION | 1 |
 | MISSING_SPLITS | 2 |
-| INCOMPLETE | 157 |
-| COMPLETE | 152 |
+| INCOMPLETE | 155 |
+| COMPLETE | 154 |
 | NO_SPLIT | 75 |
 
 **Drift** (curated rows matching no source locator): 5
@@ -455,14 +455,8 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 ## POWELL LAKE · MU ['2-12'] · p27 · [INCOMPLETE] (f7f53543)
 - • [rule] “in One Mile Bay” → powell-lake-e58550[todo]
 
-## ROSS LAKE (Boundary between Ross Lake and Skagit River is market by signs) · MU ['2-2'] · p27 · [INCOMPLETE] (0da7eb44)
-- • [water] “Boundary between Ross Lake and Skagit River is market by signs” → ross-lake-boundary-between-ross-lake-and-skag-ae0e6d-a[todo], ross-lake-boundary-between-ross-lake-and-skag-ae0e6d-b[todo]
-
 ## RUBY LAKE · MU ['2-5'] · p27 · [INCOMPLETE] (8847dda0)
 - • [rule] “in the outlet bay within 100 m of the head of Ruby Creek” → ruby-lake-45ddd7[todo]
-
-## SKAGIT RIVER (boundary between Skagit River and Ross Lake is marked by signs) · MU ['2-2'] · p27 · [INCOMPLETE] (e29aedc0)
-- • [water] “boundary between Skagit River and Ross Lake is marked by signs” → skagit-river-boundary-between-skagit-river-an-4340a7-a[todo], skagit-river-boundary-between-skagit-river-an-4340a7-b[todo]
 
 ## SUMALLO RIVER (includes "Cedar" Lake, at Sunshine Valley) · MU ['2-2'] · p28 · [INCOMPLETE] (411336a9)
 - • [entry] “includes "Cedar" Lake, at Sunshine Valley” → sumallo-river-includes-cedar-lake-at-sunshine-b68cb2[todo]
