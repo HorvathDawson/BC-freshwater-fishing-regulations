@@ -7742,7 +7742,7 @@
         "Incl. Tribs"
       ],
       "reg_text": "**No Fishing** upstream of 168th Street at Bothwell Park\n**No Fishing** downstream of 168th Street at Bothwell Park, Apr 1-June 30\n**No Fishing** downstream of 168th Street at Bothwell Park from 21:00 hours to 05:00 hours each day, Aug 1-Dec 31\nNo angling from powered boats upstream of dyke gates",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 4,
       "locators": [
         {
@@ -7751,15 +7751,19 @@
           "info": {
             "restriction_type": "closure"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "serpentine-river-2a2f1f",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] 168th Street bridge at Bothwell Park over Serpentine River on Serpentine River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm 168th St crossing at Bothwell Park on the Serpentine (Surrey); street grid -> review.. FWA Serpentine mouth (49.08N,-122.85) is correct (Surrey). City street bridge at 168 St / Bothwell Park -> map-only but well-defined. Upstream reach. [shared-anchor ‘168th street at bothwell park’ — author ONE split]"
+              "notes": "[auto-proposal L] 168th Street bridge at Bothwell Park over Serpentine River on Serpentine River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm 168th St crossing at Bothwell Park on the Serpentine (Surrey); street grid -> review.. FWA Serpentine mouth (49.08N,-122.85) is correct (Surrey). City street bridge at 168 St / Bothwell Park -> map-only but well-defined. Upstream reach. [shared-anchor ‘168th street at bothwell park’ — author ONE split] [curated 2026-08-08 manual-review batch=serpentine] [168th St at Bothwell Park]",
+              "coord": [
+                -122.75648,
+                49.13221
+              ]
             }
           ]
         },
@@ -7772,15 +7776,19 @@
               "Apr 1-June 30"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "serpentine-river-11ce48",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] 168th Street bridge at Bothwell Park over Serpentine River on Serpentine River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm 168th St crossing at Bothwell Park on the Serpentine; downstream reach; review.. Same 168 St / Bothwell Park bridge; downstream reach. Street bridge -> map/OSM-confirmable. [shared-anchor ‘168th street at bothwell park’ — author ONE split]"
+              "notes": "[auto-proposal L] 168th Street bridge at Bothwell Park over Serpentine River on Serpentine River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm 168th St crossing at Bothwell Park on the Serpentine; downstream reach; review.. Same 168 St / Bothwell Park bridge; downstream reach. Street bridge -> map/OSM-confirmable. [shared-anchor ‘168th street at bothwell park’ — author ONE split] [curated 2026-08-08 manual-review batch=serpentine] [168th St at Bothwell Park]",
+              "coord": [
+                -122.75648,
+                49.13221
+              ]
             }
           ]
         },
@@ -7793,15 +7801,19 @@
               "Aug 1-Dec 31"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "serpentine-river-11ce48",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] 168th Street bridge at Bothwell Park over Serpentine River on Serpentine River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm 168th St crossing at Bothwell Park on the Serpentine; downstream reach; review.. Same 168 St / Bothwell Park bridge; downstream reach. Street bridge -> map/OSM-confirmable. [shared-anchor ‘168th street at bothwell park’ — author ONE split]"
+              "notes": "[auto-proposal L] 168th Street bridge at Bothwell Park over Serpentine River on Serpentine River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm 168th St crossing at Bothwell Park on the Serpentine; downstream reach; review.. Same 168 St / Bothwell Park bridge; downstream reach. Street bridge -> map/OSM-confirmable. [shared-anchor ‘168th street at bothwell park’ — author ONE split] [curated 2026-08-08 manual-review batch=serpentine] [168th St at Bothwell Park]",
+              "coord": [
+                -122.75648,
+                49.13221
+              ]
             }
           ]
         },
@@ -7811,14 +7823,19 @@
           "info": {
             "restriction_type": "vessel_restriction"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "serpentine-river-411c35",
-              "status": "todo",
-              "anchor_kind": "unclassified",
+              "status": "curated",
+              "anchor_kind": "point",
               "src": "rule",
-              "resolver_hint": "other_reach"
+              "resolver_hint": "other_reach",
+              "notes": "[curated 2026-08-08 manual-review batch=serpentine] [dyke gates = Serpentine Sea Dam]",
+              "coord": [
+                -122.81892,
+                49.08678
+              ]
             }
           ]
         },
@@ -7828,7 +7845,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-08"
     },
     "cbc0430b": {
       "entry_id": "cbc0430b",

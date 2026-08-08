@@ -7,8 +7,8 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 |---|--:|
 | NO_CURATION | 1 |
 | MISSING_SPLITS | 2 |
-| INCOMPLETE | 155 |
-| COMPLETE | 154 |
+| INCOMPLETE | 154 |
+| COMPLETE | 155 |
 | NO_SPLIT | 75 |
 
 **Drift** (curated rows matching no source locator): 5
@@ -142,12 +142,6 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 - • [rule] “at Grant Narrows” → pitt-river-14096c[todo]
 - • [rule] “upstream of Pitt Lake” → pitt-river-564cfe[not_applicable]
 - • [rule] “in the Lower Pitt River (CPR Bridge upstream to Pitt Lake)” → pitt-river-4dae69-a[todo], pitt-river-4dae69-b[not_applicable]
-
-## SERPENTINE RIVER · MU ['2-4'] · p27 · [INCOMPLETE] (5494c7fa)
-- • [rule] “upstream of 168th Street at Bothwell Park” → serpentine-river-2a2f1f[todo]
-- • [rule] “downstream of 168th Street at Bothwell Park” → serpentine-river-11ce48[todo]
-- • [rule] “downstream of 168th Street at Bothwell Park” → serpentine-river-11ce48[todo]
-- • [rule] “upstream of dyke gates” → serpentine-river-411c35[todo]
 
 ## NAHATLATCH RIVER · MU ['3-15'] · p33 · [INCOMPLETE] (921224bf)
 - • [rule] “from Frances Lake downstream approximately 400 m to fishing bounda” → nahatlatch-river-285a59-a[curated], nahatlatch-river-285a59-b[todo]
