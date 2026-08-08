@@ -7,8 +7,8 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 |---|--:|
 | NO_CURATION | 1 |
 | MISSING_SPLITS | 2 |
-| INCOMPLETE | 147 |
-| COMPLETE | 162 |
+| INCOMPLETE | 146 |
+| COMPLETE | 163 |
 | NO_SPLIT | 75 |
 
 **Drift** (curated rows matching no source locator): 6
@@ -224,10 +224,6 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 ## KEOGH RIVER · MU ['1-13'] · p18 · [INCOMPLETE] (f02f2954)
 - • [rule] “downstream of lower fish counting fence near tidewater” → keogh-river-bf1c5b[todo]
 - • [rule] “in all parts” → keogh-river-8903e4[todo]
-
-## QUINSAM RIVER · MU ['1-6'] · p20 · [INCOMPLETE] (04a9a77c)
-- • [rule] “from the fishing boundary signs at power line crossing (approximat” → quinsam-river-014fa9-b[curated], quinsam-river-c440f0-a[curated], quinsam-river-c440f0-b[todo]
-- • [rule] “from the falls situated downstream of Middle Quinsam Lake to the f” → quinsam-river-014fa9-a[todo], quinsam-river-014fa9-b[curated], quinsam-river-c440f0-b[todo]
 
 ## TOQUART RIVER · MU ['1-8'] · p21 · [INCOMPLETE] (492dbcc9)
 - • [rule] “upstream of the Toquart mainline logging bridge when open” → toquart-river-ef1ea4[todo]

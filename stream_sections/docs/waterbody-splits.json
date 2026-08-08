@@ -3829,7 +3829,7 @@
         "Incl. Tribs"
       ],
       "reg_text": "**No Fishing** from the fishing boundary signs at power line crossing (approximately 25 m upstream of Quinsam Hatchery weir) to fishing\nboundary signs approximately 300 m downstream of weir\n**No Fishing** from the falls situated downstream of Middle Quinsam Lake to the fishing boundary signs at power line crossing\n(approximately 25 m upstream of the Quinsam hatchery weir), Dec 1-June 30\nExempt from July 15-Aug 31 summer closure; wheelchair accessible fishing platform is located near the Hwy 28 Bridge",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 2,
       "locators": [
         {
@@ -3838,7 +3838,7 @@
           "info": {
             "restriction_type": "closure"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "quinsam-river-014fa9-b",
@@ -3846,8 +3846,8 @@
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "powerline",
-              "label": "signs at hatchery weir / power line",
-              "notes": "[osm-candidate 2026-08-05] [-125.32212, 49.97615]; [-125.31588, 49.98038]; [-125.30282, 50.01388]; [-125.31202, 49.96781]; [-125.31142, 49.96712] (OSM Overpass ∩ MU-clipped FWA river; VERIFY). [structural-split 2026-08-05 from \"from the falls situated downstream of Middle Quinsam Lake to\"] boundary=fishing boundary signs at power line crossing (approxim [hint-fix 2026-08-06 falls_obstacle->powerline] [human-review 2026-08-06] signs at hatchery weir / power line.",
+              "label": "signs at power line crossing (~u/s of Quinsam Hatchery weir)",
+              "notes": "[osm-candidate 2026-08-05] [-125.32212, 49.97615]; [-125.31588, 49.98038]; [-125.30282, 50.01388]; [-125.31202, 49.96781]; [-125.31142, 49.96712] (OSM Overpass ∩ MU-clipped FWA river; VERIFY). [structural-split 2026-08-05 from \"from the falls situated downstream of Middle Quinsam Lake to\"] boundary=fishing boundary signs at power line crossing (approxim [hint-fix 2026-08-06 falls_obstacle->powerline] [human-review 2026-08-06] signs at hatchery weir / power line. [curated 2026-08-08 manual-review batch=quinsam-1-6] [VERIFIED = OSM power line way 156992406 x Quinsam River]",
               "coord": [
                 -125.30282,
                 50.01388
@@ -3860,8 +3860,8 @@
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "dam_weir_fence",
-              "label": "signs at power line / hatchery weir",
-              "notes": "[auto-proposal L] Power-line crossing ~25 m above Quinsam Hatchery weir on Quinsam River (at hatchery). Candidate coord [-125.2941, 50.0379]. OSM: https://www.openstreetmap.org/?mlat=50.03790&mlon=-125.29410#map=15/50.03790/-125.29410. Verify: Locate the Quinsam Hatchery weir and the power-line crossing ~25 m upstream; candidate is the FWA mouth reference.. Closure from signs at a power-line crossing (~25 m above the Quinsam Hatchery weir) to further fishing signs. Hatchery/weir not in FWA; candidate = FWA Quinsam River mouth [-125.294,50.038] - the hatchery is a short way up. Verify on map. [structural-split 2026-08-05 from \"from the fishing boundary signs at power line crossing (appr\"] boundary=fishing boundary signs at power line crossing (approximately 25 m upstream of Quinsam Hatchery weir) [human-review 2026-08-06] #3 (same boundary as sibling).",
+              "label": "signs at power line crossing (~u/s of Quinsam Hatchery weir)",
+              "notes": "[auto-proposal L] Power-line crossing ~25 m above Quinsam Hatchery weir on Quinsam River (at hatchery). Candidate coord [-125.2941, 50.0379]. OSM: https://www.openstreetmap.org/?mlat=50.03790&mlon=-125.29410#map=15/50.03790/-125.29410. Verify: Locate the Quinsam Hatchery weir and the power-line crossing ~25 m upstream; candidate is the FWA mouth reference.. Closure from signs at a power-line crossing (~25 m above the Quinsam Hatchery weir) to further fishing signs. Hatchery/weir not in FWA; candidate = FWA Quinsam River mouth [-125.294,50.038] - the hatchery is a short way up. Verify on map. [structural-split 2026-08-05 from \"from the fishing boundary signs at power line crossing (appr\"] boundary=fishing boundary signs at power line crossing (approximately 25 m upstream of Quinsam Hatchery weir) [human-review 2026-08-06] #3 (same boundary as sibling). [curated 2026-08-08 manual-review batch=quinsam-1-6] [VERIFIED = OSM power line way 156992406 x Quinsam River]",
               "coord": [
                 -125.30282,
                 50.01388
@@ -3870,12 +3870,26 @@
             },
             {
               "id": "quinsam-river-c440f0-b",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "dam_weir_fence",
-              "notes": "[auto-proposal L] Power-line crossing ~25 m above Quinsam Hatchery weir on Quinsam River (at hatchery). Candidate coord [-125.2941, 50.0379]. OSM: https://www.openstreetmap.org/?mlat=50.03790&mlon=-125.29410#map=15/50.03790/-125.29410. Verify: Locate the Quinsam Hatchery weir and the power-line crossing ~25 m upstream; candidate is the FWA mouth reference.. Closure from signs at a power-line crossing (~25 m above the Quinsam Hatchery weir) to further fishing signs. Hatchery/weir not in FWA; candidate = FWA Quinsam River mouth [-125.294,50.038] - the hatchery is a short way up. Verify on map. [structural-split 2026-08-05 from \"from the fishing boundary signs at power line crossing (appr\"] boundary=fishing",
-              "locator_text": "fishing"
+              "label": "signs ~300m d/s of Quinsam Hatchery weir",
+              "notes": "[auto-proposal L] Power-line crossing ~25 m above Quinsam Hatchery weir on Quinsam River (at hatchery). Candidate coord [-125.2941, 50.0379]. OSM: https://www.openstreetmap.org/?mlat=50.03790&mlon=-125.29410#map=15/50.03790/-125.29410. Verify: Locate the Quinsam Hatchery weir and the power-line crossing ~25 m upstream; candidate is the FWA mouth reference.. Closure from signs at a power-line crossing (~25 m above the Quinsam Hatchery weir) to further fishing signs. Hatchery/weir not in FWA; candidate = FWA Quinsam River mouth [-125.294,50.038] - the hatchery is a short way up. Verify on map. [structural-split 2026-08-05 from \"from the fishing boundary signs at power line crossing (appr\"] boundary=fishing [curated 2026-08-08 manual-review batch=quinsam-1-6] [base=weir OSM way 1111661998; +300m d/s = [-125.30174, 50.01713]]",
+              "coord": [
+                -125.30343,
+                50.0152
+              ],
+              "offset": {
+                "anchor": [
+                  -125.30343,
+                  50.0152
+                ],
+                "anchor_label": "Quinsam Hatchery weir (OSM way 1111661998)",
+                "m": 300,
+                "dir": "downstream"
+              },
+              "locator_text": "fishing boundary signs approximately 300 m downstream of weir"
             }
           ]
         },
@@ -3888,15 +3902,20 @@
               "Dec 1-June 30"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "quinsam-river-014fa9-a",
-              "status": "todo",
-              "anchor_kind": "lake",
+              "status": "curated",
+              "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "falls_obstacle",
-              "notes": "[osm-candidate 2026-08-05] [-125.32212, 49.97615]; [-125.31588, 49.98038]; [-125.30282, 50.01388]; [-125.31202, 49.96781]; [-125.31142, 49.96712] (OSM Overpass ∩ MU-clipped FWA river; VERIFY). [structural-split 2026-08-05 from \"from the falls situated downstream of Middle Quinsam Lake to\"] boundary=falls situated downstream of Middle Quinsam Lake [hint-fix 2026-08-06 lake_reach->falls_obstacle]",
+              "label": "Falls d/s of Middle Quinsam Lake (FISS obstacle 26660)",
+              "notes": "[osm-candidate 2026-08-05] [-125.32212, 49.97615]; [-125.31588, 49.98038]; [-125.30282, 50.01388]; [-125.31202, 49.96781]; [-125.31142, 49.96712] (OSM Overpass ∩ MU-clipped FWA river; VERIFY). [structural-split 2026-08-05 from \"from the falls situated downstream of Middle Quinsam Lake to\"] boundary=falls situated downstream of Middle Quinsam Lake [hint-fix 2026-08-06 lake_reach->falls_obstacle] [curated 2026-08-08 manual-review batch=quinsam-1-6] [FISS obstacle 26660 / obj 71962932, Gazetted QUINSAM RIVER, WSC 920-627900-03600, height 15m; ~1km d/s of Middle Quinsam Lake outlet (m42513)]",
+              "coord": [
+                -125.46664,
+                49.93239
+              ],
               "locator_text": "falls situated downstream of Middle Quinsam Lake"
             },
             {
@@ -3905,22 +3924,13 @@
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "powerline",
-              "label": "signs at hatchery weir / power line",
-              "notes": "[osm-candidate 2026-08-05] [-125.32212, 49.97615]; [-125.31588, 49.98038]; [-125.30282, 50.01388]; [-125.31202, 49.96781]; [-125.31142, 49.96712] (OSM Overpass ∩ MU-clipped FWA river; VERIFY). [structural-split 2026-08-05 from \"from the falls situated downstream of Middle Quinsam Lake to\"] boundary=fishing boundary signs at power line crossing (approxim [hint-fix 2026-08-06 falls_obstacle->powerline] [human-review 2026-08-06] signs at hatchery weir / power line.",
+              "label": "signs at power line crossing (~u/s of Quinsam Hatchery weir)",
+              "notes": "[osm-candidate 2026-08-05] [-125.32212, 49.97615]; [-125.31588, 49.98038]; [-125.30282, 50.01388]; [-125.31202, 49.96781]; [-125.31142, 49.96712] (OSM Overpass ∩ MU-clipped FWA river; VERIFY). [structural-split 2026-08-05 from \"from the falls situated downstream of Middle Quinsam Lake to\"] boundary=fishing boundary signs at power line crossing (approxim [hint-fix 2026-08-06 falls_obstacle->powerline] [human-review 2026-08-06] signs at hatchery weir / power line. [curated 2026-08-08 manual-review batch=quinsam-1-6] [VERIFIED = OSM power line way 156992406 x Quinsam River]",
               "coord": [
                 -125.30282,
                 50.01388
               ],
               "locator_text": "fishing boundary signs at power line crossing (approxim"
-            },
-            {
-              "id": "quinsam-river-c440f0-b",
-              "status": "todo",
-              "anchor_kind": "point",
-              "src": "rule",
-              "resolver_hint": "dam_weir_fence",
-              "notes": "[auto-proposal L] Power-line crossing ~25 m above Quinsam Hatchery weir on Quinsam River (at hatchery). Candidate coord [-125.2941, 50.0379]. OSM: https://www.openstreetmap.org/?mlat=50.03790&mlon=-125.29410#map=15/50.03790/-125.29410. Verify: Locate the Quinsam Hatchery weir and the power-line crossing ~25 m upstream; candidate is the FWA mouth reference.. Closure from signs at a power-line crossing (~25 m above the Quinsam Hatchery weir) to further fishing signs. Hatchery/weir not in FWA; candidate = FWA Quinsam River mouth [-125.294,50.038] - the hatchery is a short way up. Verify on map. [structural-split 2026-08-05 from \"from the fishing boundary signs at power line crossing (appr\"] boundary=fishing",
-              "locator_text": "fishing"
             }
           ]
         },
@@ -3930,7 +3940,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-08"
     },
     "4a53497f": {
       "entry_id": "4a53497f",
