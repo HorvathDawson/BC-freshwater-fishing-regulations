@@ -7,8 +7,8 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 |---|--:|
 | NO_CURATION | 1 |
 | MISSING_SPLITS | 2 |
-| INCOMPLETE | 161 |
-| COMPLETE | 148 |
+| INCOMPLETE | 160 |
+| COMPLETE | 149 |
 | NO_SPLIT | 75 |
 
 **Drift** (curated rows matching no source locator): 5
@@ -201,11 +201,6 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 - • [rule] “upstream of top of lower canyon, located 1.3km upstream of the Gol” → heber-river-53fedd[todo]
 - • [rule] “downstream of top of lower canyon, located 1.3km upstream of the G” → heber-river-731cca[todo]
 - • [rule] “downstream of Saunders Creek to the top of the lower canyon, locat” → heber-river-ddafd5[todo]
-
-## NITINAT RIVER · MU ['1-4'] · p19 · [INCOMPLETE] (6e49648b)
-- • [rule] “upstream of Parker Creek” → nitinat-river-91a90a[curated]
-- • [rule] “between fishing boundary signs approximately 100 m upstream of and” → nitinat-river-53706e-a[todo], nitinat-river-53706e-b[todo]
-- • [rule] “between boundary signs approximately 50 m upstream of and downstre” → nitinat-river-d47404-a[todo], nitinat-river-d47404-b[todo]
 
 ## ALOUETTE RIVER · MU ['2-8'] · p24 · [INCOMPLETE] (dadcd21c)
 - • [rule] “upstream of the fishing boundary signs located at 49° 14.790'N and” → alouette-river-741304[curated]

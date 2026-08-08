@@ -3219,7 +3219,7 @@
         "Incl. Tribs"
       ],
       "reg_text": "Exempt from July 15-Aug 31 summer closure\n**No Fishing** upstream of Parker Creek\n**No Fishing** between fishing boundary signs approximately 100 m upstream of and downstream of \"Red Rock Pool,\" approximately 2 km\n(by road) south of the Nitinat River Bridge, Aug 25-Dec 31\n**No Fishing** between boundary signs approximately 50 m upstream of and downstream of the Nitinat River Bridge, Aug 25-Oct 15",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 3,
       "locators": [
         {
@@ -3258,24 +3258,50 @@
               "Aug 25-Dec 31"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "nitinat-river-53706e-a",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "boundary_signs",
-              "notes": "[auto-proposal L] 'Red Rock Pool' boundary signs (~2 km up) on Nitinat River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate 'Red Rock Pool' on the Nitinat River (~2 km by road up) with signs ~100 m up/down; map.. Landmark is a named pool with boundary signs, not a bridge. Not in FWA. Map/OSM-confirmable. [structural-split 2026-08-05 from “between fishing boundary signs approximately 100 m upstream of and downstream of \"Red Rock Pool,\" approximately 2 km (by”] boundary=fishing boundary signs approximately 100 m upstream of [hint-fix 2026-08-06 bridge_road_km->boundary_signs]",
+              "notes": "[auto-proposal L] 'Red Rock Pool' boundary signs (~2 km up) on Nitinat River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate 'Red Rock Pool' on the Nitinat River (~2 km by road up) with signs ~100 m up/down; map.. Landmark is a named pool with boundary signs, not a bridge. Not in FWA. Map/OSM-confirmable. [structural-split 2026-08-05 from “between fishing boundary signs approximately 100 m upstream of and downstream of \"Red Rock Pool,\" approximately 2 km (by”] boundary=fishing boundary signs approximately 100 m upstream of [hint-fix 2026-08-06 bridge_road_km->boundary_signs] [curated 2026-08-07 manual-review batch=nitinat] [signs 100m u/s Red Rock Pool]",
+              "coord": [
+                -124.649243,
+                48.846569
+              ],
+              "offset": {
+                "anchor": [
+                  -124.649243,
+                  48.846569
+                ],
+                "anchor_label": "Red Rock Pool",
+                "m": 100,
+                "dir": "upstream"
+              },
               "locator_text": "fishing boundary signs approximately 100 m upstream of"
             },
             {
               "id": "nitinat-river-53706e-b",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] 'Red Rock Pool' boundary signs (~2 km up) on Nitinat River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate 'Red Rock Pool' on the Nitinat River (~2 km by road up) with signs ~100 m up/down; map.. Landmark is a named pool with boundary signs, not a bridge. Not in FWA. Map/OSM-confirmable. [structural-split 2026-08-05 from “between fishing boundary signs approximately 100 m upstream of and downstream of \"Red Rock Pool,\" approximately 2 km (by”] boundary=downstream of \"Red Rock Pool,\" approximately 2 km (by",
+              "notes": "[auto-proposal L] 'Red Rock Pool' boundary signs (~2 km up) on Nitinat River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate 'Red Rock Pool' on the Nitinat River (~2 km by road up) with signs ~100 m up/down; map.. Landmark is a named pool with boundary signs, not a bridge. Not in FWA. Map/OSM-confirmable. [structural-split 2026-08-05 from “between fishing boundary signs approximately 100 m upstream of and downstream of \"Red Rock Pool,\" approximately 2 km (by”] boundary=downstream of \"Red Rock Pool,\" approximately 2 km (by [curated 2026-08-07 manual-review batch=nitinat] [signs 100m d/s Red Rock Pool]",
+              "coord": [
+                -124.649243,
+                48.846569
+              ],
+              "offset": {
+                "anchor": [
+                  -124.649243,
+                  48.846569
+                ],
+                "anchor_label": "Red Rock Pool",
+                "m": 100,
+                "dir": "downstream"
+              },
               "locator_text": "downstream of \"Red Rock Pool,\" approximately 2 km (by"
             }
           ]
@@ -3289,24 +3315,50 @@
               "Aug 25-Oct 15"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "nitinat-river-d47404-a",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "boundary_signs",
-              "notes": "[auto-proposal L] Nitinat River Bridge boundary signs (~50 m up/down) on Nitinat River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Nitinat River Bridge with signs ~50 m up/down; map.. Road bridge over the Nitinat with boundary-sign reach ~50 m either side. Bridge not name-matched in FSR (only a Carmanah-area crossing far up). Map/OSM-confirmable. [structural-split 2026-08-05 from “between boundary signs approximately 50 m upstream of and downstream of the Nitinat River Bridge”] boundary=boundary signs approximately 50 m upstream of [hint-fix 2026-08-06 bridge_road_km->boundary_signs]",
+              "notes": "[auto-proposal L] Nitinat River Bridge boundary signs (~50 m up/down) on Nitinat River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Nitinat River Bridge with signs ~50 m up/down; map.. Road bridge over the Nitinat with boundary-sign reach ~50 m either side. Bridge not name-matched in FSR (only a Carmanah-area crossing far up). Map/OSM-confirmable. [structural-split 2026-08-05 from “between boundary signs approximately 50 m upstream of and downstream of the Nitinat River Bridge”] boundary=boundary signs approximately 50 m upstream of [hint-fix 2026-08-06 bridge_road_km->boundary_signs] [curated 2026-08-07 manual-review batch=nitinat] [signs 50m u/s bridge]",
+              "coord": [
+                -124.64132,
+                48.86585
+              ],
+              "offset": {
+                "anchor": [
+                  -124.64132,
+                  48.86585
+                ],
+                "anchor_label": "Nitinat River Bridge (Carmanah Main)",
+                "m": 50,
+                "dir": "upstream"
+              },
               "locator_text": "boundary signs approximately 50 m upstream of"
             },
             {
               "id": "nitinat-river-d47404-b",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] Nitinat River Bridge boundary signs (~50 m up/down) on Nitinat River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Nitinat River Bridge with signs ~50 m up/down; map.. Road bridge over the Nitinat with boundary-sign reach ~50 m either side. Bridge not name-matched in FSR (only a Carmanah-area crossing far up). Map/OSM-confirmable. [structural-split 2026-08-05 from “between boundary signs approximately 50 m upstream of and downstream of the Nitinat River Bridge”] boundary=downstream of the Nitinat River Bridge",
+              "notes": "[auto-proposal L] Nitinat River Bridge boundary signs (~50 m up/down) on Nitinat River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Nitinat River Bridge with signs ~50 m up/down; map.. Road bridge over the Nitinat with boundary-sign reach ~50 m either side. Bridge not name-matched in FSR (only a Carmanah-area crossing far up). Map/OSM-confirmable. [structural-split 2026-08-05 from “between boundary signs approximately 50 m upstream of and downstream of the Nitinat River Bridge”] boundary=downstream of the Nitinat River Bridge [curated 2026-08-07 manual-review batch=nitinat] [signs 50m d/s bridge]",
+              "coord": [
+                -124.64132,
+                48.86585
+              ],
+              "offset": {
+                "anchor": [
+                  -124.64132,
+                  48.86585
+                ],
+                "anchor_label": "Nitinat River Bridge (Carmanah Main)",
+                "m": 50,
+                "dir": "downstream"
+              },
               "locator_text": "downstream of the Nitinat River Bridge"
             }
           ]
@@ -3317,7 +3369,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-07"
     },
     "06f55b14": {
       "entry_id": "06f55b14",
