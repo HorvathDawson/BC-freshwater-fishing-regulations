@@ -7,8 +7,8 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 |---|--:|
 | NO_CURATION | 1 |
 | MISSING_SPLITS | 2 |
-| INCOMPLETE | 164 |
-| COMPLETE | 145 |
+| INCOMPLETE | 163 |
+| COMPLETE | 146 |
 | NO_SPLIT | 75 |
 
 **Drift** (curated rows matching no source locator): 5
@@ -208,12 +208,6 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 - • [rule] “upstream of top of lower canyon, located 1.3km upstream of the Gol” → heber-river-53fedd[todo]
 - • [rule] “downstream of top of lower canyon, located 1.3km upstream of the G” → heber-river-731cca[todo]
 - • [rule] “downstream of Saunders Creek to the top of the lower canyon, locat” → heber-river-ddafd5[todo]
-
-## LITTLE QUALICUM RIVER · MU ['1-6'] · p19 · [INCOMPLETE] (9e77f8d9)
-- • [rule] “All tributaries” → little-qualicum-river-496f12[not_applicable]
-- • [rule] “from the falls in Little Qualicum Falls Provincial Park downstream” → little-qualicum-river-031042-a[curated], little-qualicum-river-031042-b[todo], little-qualicum-river-4dbb9b-a[todo]
-- • [rule] “from the hatchery fence to signs
-approximately 35 m downstream” → little-qualicum-river-031042-b[todo], little-qualicum-river-4dbb9b-a[todo], little-qualicum-river-4dbb9b-b[todo]
 
 ## NITINAT RIVER · MU ['1-4'] · p19 · [INCOMPLETE] (6e49648b)
 - • [rule] “upstream of Parker Creek” → nitinat-river-91a90a[curated]

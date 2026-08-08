@@ -2577,7 +2577,7 @@
       "image": "page_019_row_000.png",
       "symbols": [],
       "reg_text": "**No Fishing** July 15-Aug 31[Includes Tributaries], **No Fishing** - All tributaries\n**No Fishing** from the falls in Little Qualicum Falls Provincial Park downstream to the hatchery fence, Dec 1-May 31\nThe standard 100 m closure around a fish rearing facility has been reduced to a no fishing area from the hatchery fence to signs\napproximately 35 m downstream\nFly fishing only, Sept 1-Nov 30 (where open)",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 3,
       "locators": [
         {
@@ -2608,7 +2608,7 @@
               "Dec 1-May 31"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "little-qualicum-river-031042-a",
@@ -2616,30 +2616,38 @@
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "falls_obstacle",
-              "label": "lowest falls (Little Qualicum Falls Park)",
-              "notes": "[structural-split 2026-08-05 from \"from the falls in Little Qualicum Falls Provincial Park down\"] boundary=falls in Little Qualicum Falls Provincial Park [human-review 2026-08-06] LOWEST falls (reg = falls downstream to hatchery). [hint-fix 2026-08-06 park_polygon->falls_obstacle]",
+              "label": "Upper Waterfall (Little Qualicum Falls Park)",
+              "notes": "[structural-split 2026-08-05 from \"from the falls in Little Qualicum Falls Provincial Park down\"] boundary=falls in Little Qualicum Falls Provincial Park [human-review 2026-08-06] LOWEST falls (reg = falls downstream to hatchery). [hint-fix 2026-08-06 park_polygon->falls_obstacle] [curated 2026-08-07 manual-review batch=little-qualicum] [upper falls OSM node 1652458403 — largest range]",
               "coord": [
-                -124.55564,
-                49.3177
+                -124.5555,
+                49.31362
               ],
               "locator_text": "falls in Little Qualicum Falls Provincial Park"
             },
             {
               "id": "little-qualicum-river-031042-b",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "dam_weir_fence",
-              "notes": "[structural-split 2026-08-05 from \"from the falls in Little Qualicum Falls Provincial Park down\"] boundary=hatchery fence [hint-fix 2026-08-06 park_polygon->dam_weir_fence]",
+              "notes": "[structural-split 2026-08-05 from \"from the falls in Little Qualicum Falls Provincial Park down\"] boundary=hatchery fence [hint-fix 2026-08-06 park_polygon->dam_weir_fence] [curated 2026-08-07 manual-review batch=little-qualicum] [hatchery counting fence]",
+              "coord": [
+                -124.49517,
+                49.35039
+              ],
               "locator_text": "hatchery fence"
             },
             {
               "id": "little-qualicum-river-4dbb9b-a",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "dam_weir_fence",
-              "notes": "[auto-proposal L] Hatchery fence + signs ~35 m downstream on Little Qualicum River (lower, near hatchery). Candidate coord [-124.49481, 49.3651]. OSM: https://www.openstreetmap.org/?mlat=49.36510&mlon=-124.49481#map=15/49.36510/-124.49481. Verify: Locate the Little Qualicum hatchery fence and signs ~35 m downstream on a map; candidate is the FWA mouth reference.. Closure from the hatchery fence to signs ~35 m downstream on the Little Qualicum River. Fence not in FWA; candidate = FWA Little Qualicum mouth [-124.495,49.365] as a lower-river reference - refine to the hatchery on a map. [structural-split 2026-08-05 from \"from the hatchery fence to signs approximately 35 m downstre\"] boundary=hatchery fence",
+              "notes": "[auto-proposal L] Hatchery fence + signs ~35 m downstream on Little Qualicum River (lower, near hatchery). Candidate coord [-124.49481, 49.3651]. OSM: https://www.openstreetmap.org/?mlat=49.36510&mlon=-124.49481#map=15/49.36510/-124.49481. Verify: Locate the Little Qualicum hatchery fence and signs ~35 m downstream on a map; candidate is the FWA mouth reference.. Closure from the hatchery fence to signs ~35 m downstream on the Little Qualicum River. Fence not in FWA; candidate = FWA Little Qualicum mouth [-124.495,49.365] as a lower-river reference - refine to the hatchery on a map. [structural-split 2026-08-05 from \"from the hatchery fence to signs approximately 35 m downstre\"] boundary=hatchery fence [curated 2026-08-07 manual-review batch=little-qualicum] [hatchery counting fence]",
+              "coord": [
+                -124.49517,
+                49.35039
+              ],
               "locator_text": "hatchery fence"
             }
           ]
@@ -2650,33 +2658,54 @@
           "info": {
             "restriction_type": "closure"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "little-qualicum-river-031042-b",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "dam_weir_fence",
-              "notes": "[structural-split 2026-08-05 from \"from the falls in Little Qualicum Falls Provincial Park down\"] boundary=hatchery fence [hint-fix 2026-08-06 park_polygon->dam_weir_fence]",
+              "notes": "[structural-split 2026-08-05 from \"from the falls in Little Qualicum Falls Provincial Park down\"] boundary=hatchery fence [hint-fix 2026-08-06 park_polygon->dam_weir_fence] [curated 2026-08-07 manual-review batch=little-qualicum] [hatchery counting fence]",
+              "coord": [
+                -124.49517,
+                49.35039
+              ],
               "locator_text": "hatchery fence"
             },
             {
               "id": "little-qualicum-river-4dbb9b-a",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "dam_weir_fence",
-              "notes": "[auto-proposal L] Hatchery fence + signs ~35 m downstream on Little Qualicum River (lower, near hatchery). Candidate coord [-124.49481, 49.3651]. OSM: https://www.openstreetmap.org/?mlat=49.36510&mlon=-124.49481#map=15/49.36510/-124.49481. Verify: Locate the Little Qualicum hatchery fence and signs ~35 m downstream on a map; candidate is the FWA mouth reference.. Closure from the hatchery fence to signs ~35 m downstream on the Little Qualicum River. Fence not in FWA; candidate = FWA Little Qualicum mouth [-124.495,49.365] as a lower-river reference - refine to the hatchery on a map. [structural-split 2026-08-05 from \"from the hatchery fence to signs approximately 35 m downstre\"] boundary=hatchery fence",
+              "notes": "[auto-proposal L] Hatchery fence + signs ~35 m downstream on Little Qualicum River (lower, near hatchery). Candidate coord [-124.49481, 49.3651]. OSM: https://www.openstreetmap.org/?mlat=49.36510&mlon=-124.49481#map=15/49.36510/-124.49481. Verify: Locate the Little Qualicum hatchery fence and signs ~35 m downstream on a map; candidate is the FWA mouth reference.. Closure from the hatchery fence to signs ~35 m downstream on the Little Qualicum River. Fence not in FWA; candidate = FWA Little Qualicum mouth [-124.495,49.365] as a lower-river reference - refine to the hatchery on a map. [structural-split 2026-08-05 from \"from the hatchery fence to signs approximately 35 m downstre\"] boundary=hatchery fence [curated 2026-08-07 manual-review batch=little-qualicum] [hatchery counting fence]",
+              "coord": [
+                -124.49517,
+                49.35039
+              ],
               "locator_text": "hatchery fence"
             },
             {
               "id": "little-qualicum-river-4dbb9b-b",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "boundary_signs",
-              "notes": "[auto-proposal L] Hatchery fence + signs ~35 m downstream on Little Qualicum River (lower, near hatchery). Candidate coord [-124.49481, 49.3651]. OSM: https://www.openstreetmap.org/?mlat=49.36510&mlon=-124.49481#map=15/49.36510/-124.49481. Verify: Locate the Little Qualicum hatchery fence and signs ~35 m downstream on a map; candidate is the FWA mouth reference.. Closure from the hatchery fence to signs ~35 m downstream on the Little Qualicum River. Fence not in FWA; candidate = FWA Little Qualicum mouth [-124.495,49.365] as a lower-river reference - refine to the hatchery on a map. [structural-split 2026-08-05 from \"from the hatchery fence to signs approximately 35 m downstre\"] boundary=signs approximately 35 m downstream [hint-fix 2026-08-06 dam_weir_fence->boundary_signs]",
+              "notes": "[auto-proposal L] Hatchery fence + signs ~35 m downstream on Little Qualicum River (lower, near hatchery). Candidate coord [-124.49481, 49.3651]. OSM: https://www.openstreetmap.org/?mlat=49.36510&mlon=-124.49481#map=15/49.36510/-124.49481. Verify: Locate the Little Qualicum hatchery fence and signs ~35 m downstream on a map; candidate is the FWA mouth reference.. Closure from the hatchery fence to signs ~35 m downstream on the Little Qualicum River. Fence not in FWA; candidate = FWA Little Qualicum mouth [-124.495,49.365] as a lower-river reference - refine to the hatchery on a map. [structural-split 2026-08-05 from \"from the hatchery fence to signs approximately 35 m downstre\"] boundary=signs approximately 35 m downstream [hint-fix 2026-08-06 dam_weir_fence->boundary_signs] [curated 2026-08-07 manual-review batch=little-qualicum] [signs 35m d/s hatchery fence]",
+              "coord": [
+                -124.49517,
+                49.35039
+              ],
+              "offset": {
+                "anchor": [
+                  -124.49517,
+                  49.35039
+                ],
+                "anchor_label": "hatchery fence",
+                "m": 35,
+                "dir": "downstream"
+              },
               "locator_text": "signs approximately 35 m downstream"
             }
           ]
@@ -2687,7 +2716,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-07"
     },
     "d7db684f": {
       "entry_id": "d7db684f",
