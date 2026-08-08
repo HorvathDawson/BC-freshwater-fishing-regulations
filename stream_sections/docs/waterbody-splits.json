@@ -26151,21 +26151,25 @@
       "image": "page_072_row_000.png",
       "symbols": [],
       "reg_text": "Kokanee daily quota = 10\nArctic grayling catch and release, including tributaries; Mountain whitefish catch and release, including tributaries\nLake trout daily quota = 3\n**No Fishing** from mouth of Halfway River to fishing boundary signs approximately 5 km upstream and 5 km downstream, Mar 1-June 30\n**No Fishing between Peace Canyon Dam and Hwy 29 Bridge**",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 4,
       "locators": [
         {
           "src": "water",
           "text": "From Hwy. 29 bridge to the Site C dam",
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "peace-river-from-hwy-29-bridge-to-the-site-c--c17e9f-a",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "name",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] Site C Dam (upstream bound) / Hwy 29 bridge (downstream) on Peace River (Hwy 29 bridge -> Site C Dam). No FWA coord (needs map / external source). Verify: Locate Site C Dam and the Hwy 29 bridge on the Peace; both external to FWA.. Reach from the Hwy 29 bridge upstream to the Site C Dam. Site C not in FWA (recent). Recommend manual with BC Hydro / map coords for both landmarks. [structural-split 2026-08-05 from \"From Hwy. 29 bridge to the Site C dam\"] boundary=Hwy. 29 bridge [hint-fix 2026-08-06 dam_weir_fence->bridge_road_km]",
+              "notes": "[auto-proposal L] Site C Dam (upstream bound) / Hwy 29 bridge (downstream) on Peace River (Hwy 29 bridge -> Site C Dam). No FWA coord (needs map / external source). Verify: Locate Site C Dam and the Hwy 29 bridge on the Peace; both external to FWA.. Reach from the Hwy 29 bridge upstream to the Site C Dam. Site C not in FWA (recent). Recommend manual with BC Hydro / map coords for both landmarks. [structural-split 2026-08-05 from \"From Hwy. 29 bridge to the Site C dam\"] boundary=Hwy. 29 bridge [hint-fix 2026-08-06 dam_weir_fence->bridge_road_km] [curated 2026-08-08 manual-review batch=peace-7-31] [Hudson's Hope Suspension Bridge ref BC 29]",
+              "coord": [
+                -121.98563,
+                55.98852
+              ],
               "locator_text": "Hwy. 29 bridge"
             },
             {
@@ -26255,7 +26259,7 @@
           "info": {
             "restriction_type": "closure"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "peace-river-from-hwy-29-bridge-to-the-site-c--81bc00-a",
@@ -26273,11 +26277,15 @@
             },
             {
               "id": "peace-river-from-hwy-29-bridge-to-the-site-c--81bc00-b",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[osm-candidate 2026-08-05] [-122.19498, 56.0152]; [-122.19422, 56.01571] (OSM Overpass ∩ MU-clipped FWA river; VERIFY). [structural-split 2026-08-05 from \"between Peace Canyon Dam and Hwy 29 Bridge\"] boundary=Hwy 29 Bridge [hint-fix 2026-08-06 falls_obstacle->bridge_road_km]",
+              "notes": "[osm-candidate 2026-08-05] [-122.19498, 56.0152]; [-122.19422, 56.01571] (OSM Overpass ∩ MU-clipped FWA river; VERIFY). [structural-split 2026-08-05 from \"between Peace Canyon Dam and Hwy 29 Bridge\"] boundary=Hwy 29 Bridge [hint-fix 2026-08-06 falls_obstacle->bridge_road_km] [curated 2026-08-08 manual-review batch=peace-7-31] [Hudson's Hope Suspension Bridge ref BC 29]",
+              "coord": [
+                -121.98563,
+                55.98852
+              ],
               "locator_text": "Hwy 29 Bridge"
             }
           ]
@@ -26285,15 +26293,19 @@
         {
           "src": "entry",
           "text": "From Hwy. 29 bridge to the Site C dam",
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "peace-river-from-hwy-29-bridge-to-the-site-c--c17e9f-a",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "name",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] Site C Dam (upstream bound) / Hwy 29 bridge (downstream) on Peace River (Hwy 29 bridge -> Site C Dam). No FWA coord (needs map / external source). Verify: Locate Site C Dam and the Hwy 29 bridge on the Peace; both external to FWA.. Reach from the Hwy 29 bridge upstream to the Site C Dam. Site C not in FWA (recent). Recommend manual with BC Hydro / map coords for both landmarks. [structural-split 2026-08-05 from \"From Hwy. 29 bridge to the Site C dam\"] boundary=Hwy. 29 bridge [hint-fix 2026-08-06 dam_weir_fence->bridge_road_km]",
+              "notes": "[auto-proposal L] Site C Dam (upstream bound) / Hwy 29 bridge (downstream) on Peace River (Hwy 29 bridge -> Site C Dam). No FWA coord (needs map / external source). Verify: Locate Site C Dam and the Hwy 29 bridge on the Peace; both external to FWA.. Reach from the Hwy 29 bridge upstream to the Site C Dam. Site C not in FWA (recent). Recommend manual with BC Hydro / map coords for both landmarks. [structural-split 2026-08-05 from \"From Hwy. 29 bridge to the Site C dam\"] boundary=Hwy. 29 bridge [hint-fix 2026-08-06 dam_weir_fence->bridge_road_km] [curated 2026-08-08 manual-review batch=peace-7-31] [Hudson's Hope Suspension Bridge ref BC 29]",
+              "coord": [
+                -121.98563,
+                55.98852
+              ],
               "locator_text": "Hwy. 29 bridge"
             },
             {
@@ -26315,15 +26327,19 @@
         {
           "src": "name",
           "text": "PEACE RIVER (From Hwy. 29 bridge to the Site C dam)",
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "peace-river-from-hwy-29-bridge-to-the-site-c--c17e9f-a",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "name",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] Site C Dam (upstream bound) / Hwy 29 bridge (downstream) on Peace River (Hwy 29 bridge -> Site C Dam). No FWA coord (needs map / external source). Verify: Locate Site C Dam and the Hwy 29 bridge on the Peace; both external to FWA.. Reach from the Hwy 29 bridge upstream to the Site C Dam. Site C not in FWA (recent). Recommend manual with BC Hydro / map coords for both landmarks. [structural-split 2026-08-05 from \"From Hwy. 29 bridge to the Site C dam\"] boundary=Hwy. 29 bridge [hint-fix 2026-08-06 dam_weir_fence->bridge_road_km]",
+              "notes": "[auto-proposal L] Site C Dam (upstream bound) / Hwy 29 bridge (downstream) on Peace River (Hwy 29 bridge -> Site C Dam). No FWA coord (needs map / external source). Verify: Locate Site C Dam and the Hwy 29 bridge on the Peace; both external to FWA.. Reach from the Hwy 29 bridge upstream to the Site C Dam. Site C not in FWA (recent). Recommend manual with BC Hydro / map coords for both landmarks. [structural-split 2026-08-05 from \"From Hwy. 29 bridge to the Site C dam\"] boundary=Hwy. 29 bridge [hint-fix 2026-08-06 dam_weir_fence->bridge_road_km] [curated 2026-08-08 manual-review batch=peace-7-31] [Hudson's Hope Suspension Bridge ref BC 29]",
+              "coord": [
+                -121.98563,
+                55.98852
+              ],
               "locator_text": "Hwy. 29 bridge"
             },
             {
@@ -26342,7 +26358,8 @@
             }
           ]
         }
-      ]
+      ],
+      "reviewed": "2026-08-08"
     },
     "789839ce": {
       "entry_id": "789839ce",

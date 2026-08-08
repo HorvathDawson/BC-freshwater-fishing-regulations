@@ -7,8 +7,8 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 |---|--:|
 | NO_CURATION | 1 |
 | MISSING_SPLITS | 2 |
-| INCOMPLETE | 151 |
-| COMPLETE | 158 |
+| INCOMPLETE | 150 |
+| COMPLETE | 159 |
 | NO_SPLIT | 75 |
 
 **Drift** (curated rows matching no source locator): 5
@@ -168,12 +168,6 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 - • [rule] “between fishing boundary signs approximately 100 m upstream of and” → babine-river-fec60e-a[todo], babine-river-fec60e-b[curated]
 - • [rule] “from the adult fish counting fence (described above) downstream to” → babine-river-912f94-b[todo], babine-river-fdcd21-a[curated], babine-river-fdcd21-b[curated]
 - • [rule] “from the juvenile fish counting weir located at the outlet of Nilk” → babine-river-8f73d2-a[curated], babine-river-912f94-a[curated], babine-river-912f94-b[todo], babine-river-fdcd21-b[curated]
-
-## PEACE RIVER (From Hwy. 29 bridge to the Site C dam) · MU ['7-31'] · p72 · [INCOMPLETE] (03e3acbe)
-- • [water] “From Hwy. 29 bridge to the Site C dam” → peace-river-from-hwy-29-bridge-to-the-site-c--c17e9f-a[todo], peace-river-from-hwy-29-bridge-to-the-site-c--c17e9f-b[curated]
-- • [rule] “from mouth of Halfway River to fishing boundary signs approximatel” → peace-river-from-hwy-29-bridge-to-the-site-c--9d576a-a[curated], peace-river-from-hwy-29-bridge-to-the-site-c--9d576a-b[curated]
-- • [rule] “between Peace Canyon Dam and Hwy 29 Bridge” → peace-river-from-hwy-29-bridge-to-the-site-c--81bc00-a[curated], peace-river-from-hwy-29-bridge-to-the-site-c--81bc00-b[todo]
-- • [entry] “From Hwy. 29 bridge to the Site C dam” → peace-river-from-hwy-29-bridge-to-the-site-c--c17e9f-a[todo], peace-river-from-hwy-29-bridge-to-the-site-c--c17e9f-b[curated]
 
 ## HEBER RIVER · MU ['1-9'] · p18 · [INCOMPLETE] (8b5f3143)
 - • [rule] “upstream of top of lower canyon, located 1.3km upstream of the Gol” → heber-river-53fedd[todo]
