@@ -7,8 +7,8 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 |---|--:|
 | NO_CURATION | 1 |
 | MISSING_SPLITS | 2 |
-| INCOMPLETE | 154 |
-| COMPLETE | 155 |
+| INCOMPLETE | 153 |
+| COMPLETE | 156 |
 | NO_SPLIT | 75 |
 
 **Drift** (curated rows matching no source locator): 5
@@ -39,16 +39,6 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 - • [rule] “From John Hart Dam Power Station to power line crossing approximat” → campbell-river-96d7aa-a[curated], campbell-river-96d7aa-b[curated]
 - • [rule] “downstream of power line crossing approximately 200 m upstream of ” → campbell-river-7bcc85[curated]
 - • [rule] “between Elk Falls and John Hart Dam Power Station” → campbell-river-584665-a[curated], campbell-river-584665-b[curated], campbell-river-96d7aa-a[curated]
-
-## MAHOOD LAKE (see map on page 28 for area closure) · MU ['3-46'] · p33 · [INCOMPLETE] (9f01ccad)
-- • [rule] “within the fishing boundary signs at the western tip of the lake n” → mahood-lake-see-map-on-page-28-for-area-closu-42f4bc[curated]
-- • [rule] “within fishing boundary signs at the western tip of the lake” → mahood-lake-see-map-on-page-28-for-area-closu-79ec2d[not_applicable]
-- • [rule] “within fishing boundary signs at the western tip of the lake” → mahood-lake-see-map-on-page-28-for-area-closu-79ec2d[not_applicable]
-- • [rule] “within fishing boundary signs at the western tip of the lake” → mahood-lake-see-map-on-page-28-for-area-closu-79ec2d[not_applicable]
-- • [rule] “within 200 m of the Mahood River outlet” → mahood-lake-see-map-on-page-28-for-area-closu-cea53b[todo]
-- • [rule] “within 200 m of the mouth of the Mahood River outlet” → mahood-lake-see-map-on-page-28-for-area-closu-4b1332[todo]
-- • [rule] “within 200 m of the mouth of the Mahood River outlet” → mahood-lake-see-map-on-page-28-for-area-closu-4b1332[todo]
-- • [rule] “within 200 m of the mouth of the Mahood River outlet” → mahood-lake-see-map-on-page-28-for-area-closu-4b1332[todo]
 
 ## THOMPSON RIVER (downstream of signs at Kamloops Lake outlet to the confluence with Fraser River) · MU ['3-13', '3-14', '3-18'] · p34 · [INCOMPLETE] (bea6153a)
 - • [water] “downstream of signs at Kamloops Lake outlet to the confluence with” → thompson-river-downstream-of-signs-at-kamloop-bc221e-a[not_applicable], thompson-river-downstream-of-signs-at-kamloop-bc221e-b[curated]

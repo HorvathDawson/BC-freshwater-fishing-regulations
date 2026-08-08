@@ -10399,7 +10399,7 @@
       "image": "page_033_row_005.png",
       "symbols": [],
       "reg_text": "**No Fishing** within the fishing boundary signs at the western tip of the lake near the mouth of Canim River, Jan 1-June 30\nTrout/char catch and release, bait ban and single barbless hook: within fishing boundary signs at the western tip of the lake, July 1-Dec 31\n**No Fishing** within 200 m of the Mahood River outlet, Jan 1-June 30\nTrout/char catch and release, bait ban and single barbless hook: within 200 m of the mouth of the Mahood River outlet, July 1-Dec 31",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 8,
       "locators": [
         {
@@ -10504,14 +10504,15 @@
               "Jan 1-June 30"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "mahood-lake-see-map-on-page-28-for-area-closu-cea53b",
-              "status": "todo",
+              "status": "deferred",
               "anchor_kind": "buffer",
               "src": "rule",
-              "resolver_hint": "radius"
+              "resolver_hint": "radius",
+              "notes": "[deferred 2026-08-08 lake-split (Mahood Lake area closures); Mahood River outlet buffer]"
             }
           ]
         },
@@ -10524,14 +10525,15 @@
               "July 1-Dec 31"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "mahood-lake-see-map-on-page-28-for-area-closu-4b1332",
-              "status": "todo",
+              "status": "deferred",
               "anchor_kind": "buffer",
               "src": "rule",
-              "resolver_hint": "radius"
+              "resolver_hint": "radius",
+              "notes": "[deferred 2026-08-08 lake-split (Mahood Lake area closures); Mahood River outlet buffer]"
             }
           ]
         },
@@ -10544,14 +10546,15 @@
               "July 1-Dec 31"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "mahood-lake-see-map-on-page-28-for-area-closu-4b1332",
-              "status": "todo",
+              "status": "deferred",
               "anchor_kind": "buffer",
               "src": "rule",
-              "resolver_hint": "radius"
+              "resolver_hint": "radius",
+              "notes": "[deferred 2026-08-08 lake-split (Mahood Lake area closures); Mahood River outlet buffer]"
             }
           ]
         },
@@ -10564,14 +10567,15 @@
               "July 1-Dec 31"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "mahood-lake-see-map-on-page-28-for-area-closu-4b1332",
-              "status": "todo",
+              "status": "deferred",
               "anchor_kind": "buffer",
               "src": "rule",
-              "resolver_hint": "radius"
+              "resolver_hint": "radius",
+              "notes": "[deferred 2026-08-08 lake-split (Mahood Lake area closures); Mahood River outlet buffer]"
             }
           ]
         },
