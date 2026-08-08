@@ -7,11 +7,11 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 |---|--:|
 | NO_CURATION | 1 |
 | MISSING_SPLITS | 2 |
-| INCOMPLETE | 148 |
-| COMPLETE | 161 |
+| INCOMPLETE | 147 |
+| COMPLETE | 162 |
 | NO_SPLIT | 75 |
 
-**Drift** (curated rows matching no source locator): 5
+**Drift** (curated rows matching no source locator): 6
 
 ## LYNN CREEK · MU ['2-8'] · p26 · [NO_CURATION] (362df0a9)
 - ❌ MISSING [rule] “between fishing boundary signs situated approximately 200 m upstre” → —
@@ -224,10 +224,6 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 ## KEOGH RIVER · MU ['1-13'] · p18 · [INCOMPLETE] (f02f2954)
 - • [rule] “downstream of lower fish counting fence near tidewater” → keogh-river-bf1c5b[todo]
 - • [rule] “in all parts” → keogh-river-8903e4[todo]
-
-## QUALICUM RIVER · MU ['1-6'] · p20 · [INCOMPLETE] (107e2e8b)
-- • [rule] “downstream of boundary signs located approximately 100 m downstrea” → qualicum-river-2e4c66[todo]
-- • [rule] “from the upper hatchery weir (located 125 m downstream of the E&N ” → qualicum-river-3b22d1-a[todo], qualicum-river-3b22d1-b[todo]
 
 ## QUINSAM RIVER · MU ['1-6'] · p20 · [INCOMPLETE] (04a9a77c)
 - • [rule] “from the fishing boundary signs at power line crossing (approximat” → quinsam-river-014fa9-b[curated], quinsam-river-c440f0-a[curated], quinsam-river-c440f0-b[todo]
@@ -610,3 +606,4 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 - `lynn-creek-d5e0fb-a` [curated] LYNN CREEK — src=rule “sign approximately 200 m upstream of Twin Falls Br”
 - `lynn-creek-d5e0fb-b` [curated] LYNN CREEK — src=rule “sign approximately 150 m downstream of Twin Falls ”
 - `peace-river-from-site-c-dam-to-boundary-signs-a64881-b` [curated] PEACE RIVER (From Site C dam to boundary signs 1,200m — src=name “boundary signs 1200 m downstream of Site C dam”
+- `qualicum-river-hwy19a-tidal` [manual] QUALICUM RIVER — src=rule “Highway 19A bridge (tidal boundary)”

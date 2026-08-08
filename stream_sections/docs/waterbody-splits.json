@@ -3686,7 +3686,7 @@
       "image": "page_020_row_001.png",
       "symbols": [],
       "reg_text": "**No Fishing** downstream of boundary signs located approximately 100 m downstream of the hatchery counting fence\n**No Fishing **from the upper hatchery weir (located 125 m downstream of the E&N Trestle) to boundary sign: located approximately 100 m\ndownstream of the hatchery counting fence, Aug 15-Oct 15. Refer to page 6 for updated regulations related to non-tidal salmon\n**No Fishing** tributaries\nSingle barbless hook, no hooks greater than 15 mm from point to shank\nExempt from July 15-Aug 31 summer closure, wheelchair accessible fishing platform is located at the hatchery",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 2,
       "locators": [
         {
@@ -3695,15 +3695,20 @@
           "info": {
             "restriction_type": "closure"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "qualicum-river-2e4c66",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "dam_weir_fence",
-              "notes": "[auto-proposal L] Hatchery counting fence + signs ~100 m downstream on Qualicum (Big Qualicum) River (near hatchery). Candidate coord [-124.61053, 49.39818]. OSM: https://www.openstreetmap.org/?mlat=49.39818&mlon=-124.61053#map=15/49.39818/-124.61053. Verify: Locate the Big Qualicum hatchery counting fence and signs ~100 m downstream; confirm FWA 'Qualicum River' is the Big Qualicum.. Closure downstream of signs ~100 m below the hatchery counting fence on the (Big) Qualicum River. Fence not in FWA; candidate = FWA 'Qualicum River' mouth [-124.611,49.398]. Confirm this FWA feature is the Big Qualicum (the hatchery river), not the Little Qualicum."
+              "label": "boundary signs = QFN (Qualicum First Nation) boundary fence",
+              "notes": "[auto-proposal L] Hatchery counting fence + signs ~100 m downstream on Qualicum (Big Qualicum) River (near hatchery). Candidate coord [-124.61053, 49.39818]. OSM: https://www.openstreetmap.org/?mlat=49.39818&mlon=-124.61053#map=15/49.39818/-124.61053. Verify: Locate the Big Qualicum hatchery counting fence and signs ~100 m downstream; confirm FWA 'Qualicum River' is the Big Qualicum.. Closure downstream of signs ~100 m below the hatchery counting fence on the (Big) Qualicum River. Fence not in FWA; candidate = FWA 'Qualicum River' mouth [-124.611,49.398]. Confirm this FWA feature is the Big Qualicum (the hatchery river), not the Little Qualicum. [curated 2026-08-08 manual-review batch=qualicum-1-6] [boundary signs are AT the QFN (Qualicum First Nation) boundary fence — salmon non-tidal regs key off this locator; ~100m (FWA 116m) downstream of the hatchery counting fence at [-124.6184, 49.3934]] [name-variants: boundary signs | QFN boundary fence]",
+              "coord": [
+                -124.617609,
+                49.39428
+              ]
             }
           ]
         },
@@ -3716,24 +3721,43 @@
               "Aug 15-Oct 15"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "qualicum-river-3b22d1-a",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] Upper hatchery weir (125 m below E&N Trestle) + signs on Qualicum (Big Qualicum) River (upper hatchery weir). Candidate coord [-124.61053, 49.39818]. OSM: https://www.openstreetmap.org/?mlat=49.39818&mlon=-124.61053#map=15/49.39818/-124.61053. Verify: Locate the upper hatchery weir 125 m below the E&N Trestle on the Big Qualicum; candidate is the FWA mouth reference only.. Reach from the upper hatchery weir (125 m below the E&N Trestle) to boundary signs ~100 m [downstream]. Weir/trestle not in FWA; candidate = FWA Qualicum mouth as a reference. Needs map placement of the E&N Trestle and weir. [structural-split 2026-08-05 from \"from the upper hatchery weir (located 125 m downstream of th\"] boundary=upper hatchery weir (located 125 m downstream of the E&N Trestle) [hint-fix 2026-08-06 dam_weir_fence->bridge_road_km]",
+              "label": "upper hatchery weir (125m d/s E&N Trestle)",
+              "notes": "[auto-proposal L] Upper hatchery weir (125 m below E&N Trestle) + signs on Qualicum (Big Qualicum) River (upper hatchery weir). Candidate coord [-124.61053, 49.39818]. OSM: https://www.openstreetmap.org/?mlat=49.39818&mlon=-124.61053#map=15/49.39818/-124.61053. Verify: Locate the upper hatchery weir 125 m below the E&N Trestle on the Big Qualicum; candidate is the FWA mouth reference only.. Reach from the upper hatchery weir (125 m below the E&N Trestle) to boundary signs ~100 m [downstream]. Weir/trestle not in FWA; candidate = FWA Qualicum mouth as a reference. Needs map placement of the E&N Trestle and weir. [structural-split 2026-08-05 from \"from the upper hatchery weir (located 125 m downstream of th\"] boundary=upper hatchery weir (located 125 m downstream of the E&N Trestle) [hint-fix 2026-08-06 dam_weir_fence->bridge_road_km] [curated 2026-08-08 manual-review batch=qualicum-1-6] [base=E&N Trestle OSM way 151509025 (former E&N rail); +125m d/s = weir at Qualicum River Hatchery OSM rel 9502889]",
+              "coord": [
+                -124.6201,
+                49.39222
+              ],
+              "offset": {
+                "anchor": [
+                  -124.6201,
+                  49.39222
+                ],
+                "anchor_label": "E&N Trestle",
+                "m": 125,
+                "dir": "downstream"
+              },
               "locator_text": "upper hatchery weir (located 125 m downstream of the E&N Trestle)"
             },
             {
               "id": "qualicum-river-3b22d1-b",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "boundary_signs",
-              "notes": "[auto-proposal L] Upper hatchery weir (125 m below E&N Trestle) + signs on Qualicum (Big Qualicum) River (upper hatchery weir). Candidate coord [-124.61053, 49.39818]. OSM: https://www.openstreetmap.org/?mlat=49.39818&mlon=-124.61053#map=15/49.39818/-124.61053. Verify: Locate the upper hatchery weir 125 m below the E&N Trestle on the Big Qualicum; candidate is the FWA mouth reference only.. Reach from the upper hatchery weir (125 m below the E&N Trestle) to boundary signs ~100 m [downstream]. Weir/trestle not in FWA; candidate = FWA Qualicum mouth as a reference. Needs map placement of the E&N Trestle and weir. [structural-split 2026-08-05 from \"from the upper hatchery weir (located 125 m downstream of th\"] boundary=boundary sign: located approximately 100 m [hint-fix 2026-08-06 dam_weir_fence->boundary_signs]",
+              "label": "boundary signs = QFN (Qualicum First Nation) boundary fence",
+              "notes": "[auto-proposal L] Upper hatchery weir (125 m below E&N Trestle) + signs on Qualicum (Big Qualicum) River (upper hatchery weir). Candidate coord [-124.61053, 49.39818]. OSM: https://www.openstreetmap.org/?mlat=49.39818&mlon=-124.61053#map=15/49.39818/-124.61053. Verify: Locate the upper hatchery weir 125 m below the E&N Trestle on the Big Qualicum; candidate is the FWA mouth reference only.. Reach from the upper hatchery weir (125 m below the E&N Trestle) to boundary signs ~100 m [downstream]. Weir/trestle not in FWA; candidate = FWA Qualicum mouth as a reference. Needs map placement of the E&N Trestle and weir. [structural-split 2026-08-05 from \"from the upper hatchery weir (located 125 m downstream of th\"] boundary=boundary sign: located approximately 100 m [hint-fix 2026-08-06 dam_weir_fence->boundary_signs] [curated 2026-08-08 manual-review batch=qualicum-1-6] [boundary signs are AT the QFN (Qualicum First Nation) boundary fence — salmon non-tidal regs key off this locator; ~100m (FWA 116m) downstream of the hatchery counting fence at [-124.6184, 49.3934]] [name-variants: boundary signs | QFN boundary fence]",
+              "coord": [
+                -124.617609,
+                49.39428
+              ],
               "locator_text": "boundary sign: located approximately 100 m"
             }
           ]
@@ -3744,7 +3768,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-08"
     },
     "6e6acefb": {
       "entry_id": "6e6acefb",
@@ -28579,6 +28604,41 @@
             56.193
           ]
         }
+      }
+    },
+    {
+      "id": "qualicum-river-hwy19a-tidal",
+      "water": "QUALICUM RIVER",
+      "mu": [
+        "1-6"
+      ],
+      "src": "rule",
+      "locator_text": "Highway 19A bridge (tidal boundary)",
+      "status": "manual",
+      "row": {
+        "id": "qualicum-river-hwy19a-tidal",
+        "name_verbatim": "QUALICUM RIVER",
+        "region": "REGION 1 - Vancouver Island",
+        "mus": [
+          "1-6"
+        ],
+        "src": "rule",
+        "locator_text": "Highway 19A bridge (tidal boundary)",
+        "full_regulation": "**No Fishing** downstream of boundary signs located approximately 100 m downstream of the hatchery counting fence\n**No Fishing **from the upper hatchery weir (located 125 m downstream of the E&N Trestle) to boundary sign: located approximately 100 m\ndownstream of the hatchery counting fence, Aug 15-Oct 15. Refer to page 6 for updated regulations related to non-tidal salmon\n**No Fishing** tributaries\nSingle barbless hook, no hooks greater than 15 mm from point to shank\nExempt from July 15-Aug 31 summer closure, wheelchair accessible fishing platform is located at the hatchery",
+        "anchor_kind": "point",
+        "resolver_hint": "dam_weir_fence",
+        "status": "manual",
+        "target": "",
+        "coord": [
+          -124.6118,
+          49.39774
+        ],
+        "label": "Hwy 19A bridge (West Island Hwy) = tidal boundary",
+        "notes": "[manual anchor 2026-08-08] Hwy 19A (West Island Highway) bridge over the Big Qualicum, OSM way 914045163, at the tidal boundary (m~108 above mouth). Added as a reference locator for the salmon non-tidal regs and future variant-collapse. [name-variants: Hwy 19A bridge | tidal boundary]",
+        "entry_id": "107e2e8b",
+        "offset": null,
+        "polygon": null,
+        "reviewed": "2026-08-08"
       }
     }
   ]
