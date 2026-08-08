@@ -7,8 +7,8 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 |---|--:|
 | NO_CURATION | 1 |
 | MISSING_SPLITS | 2 |
-| INCOMPLETE | 163 |
-| COMPLETE | 146 |
+| INCOMPLETE | 162 |
+| COMPLETE | 147 |
 | NO_SPLIT | 75 |
 
 **Drift** (curated rows matching no source locator): 5
@@ -124,13 +124,6 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 - • [rule] “in Skeena River Section 4” → skeena-river-mainstem-only-c2e0df[todo]
 - • [rule] “Shegunia River confluence to Sedan Creek confluence” → skeena-river-mainstem-only-24b357-a[curated], skeena-river-mainstem-only-24b357-b[curated]
 - • [rule] “Chimdemash Creek confluence to 1.5 km upstream of Zymoetz River co” → skeena-river-mainstem-only-bd494f-a[curated], skeena-river-mainstem-only-bd494f-b[curated]
-
-## SHUSWAP RIVER · MU ['8-26'] · p77 · [INCOMPLETE] (dd32b777)
-- • [rule] “from Mara Lake upstream to Mara Bridge” → shuswap-river-b96b5f-a[todo], shuswap-river-dab160-a[not_applicable], shuswap-river-dab160-b[todo]
-- • [rule] “50 m upstream and 50 m downstream of Trinity Bridge” → shuswap-river-a1af1b[todo]
-- • [rule] “from Mara Bridge upstream to Sugar Lake” → shuswap-river-b96b5f-a[todo], shuswap-river-b96b5f-b[not_applicable], shuswap-river-dab160-b[todo]
-- • [rule] “Upstream of Sugar Lake” → shuswap-river-521556[not_applicable], shuswap-river-b96b5f-b[not_applicable]
-- • [rule] “Upstream of Sugar Lake” → shuswap-river-521556[not_applicable], shuswap-river-b96b5f-b[not_applicable]
 
 ## GOLD RIVER · MU ['1-9'] · p18 · [INCOMPLETE] (60f3c8c1)
 - • [rule] “upstream of the Muchalat River” → gold-river-c18915[curated]

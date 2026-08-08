@@ -27547,7 +27547,7 @@
       "image": "page_077_row_004.png",
       "symbols": [],
       "reg_text": "**No Fishing** from Mara Lake upstream to Mara Bridge\n**No Fishing** 50 m upstream and 50 m downstream of Trinity Bridge, Jun 15-Nov 15\nRainbow trout/char catch and release; exempt from spring closure from Mara Bridge upstream to Sugar Lake\nUpstream of Sugar Lake: **No fishing** Sept 1-Oct 31; bait ban",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 5,
       "locators": [
         {
@@ -27556,15 +27556,19 @@
           "info": {
             "restriction_type": "closure"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "shuswap-river-b96b5f-a",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] Mara Bridge over Shuswap River (to Sugar Lake) on Shuswap River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Mara Bridge (upstream reach to Sugar Lake); map.. Reach = 'Mara Bridge upstream to Sugar Lake'. Same Mara Bridge as the paired entry; Sugar Lake is the upstream endpoint. Map/OSM-confirmable. [structural-split 2026-08-05 from “from Mara Bridge upstream to Sugar Lake”] boundary=Mara Bridge",
+              "notes": "[auto-proposal L] Mara Bridge over Shuswap River (to Sugar Lake) on Shuswap River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Mara Bridge (upstream reach to Sugar Lake); map.. Reach = 'Mara Bridge upstream to Sugar Lake'. Same Mara Bridge as the paired entry; Sugar Lake is the upstream endpoint. Map/OSM-confirmable. [structural-split 2026-08-05 from “from Mara Bridge upstream to Sugar Lake”] boundary=Mara Bridge [curated 2026-08-07 manual-review batch=shuswap-river] [Mara Bridge / Rosemond Lake Rd]",
+              "coord": [
+                -119.06995,
+                50.6848
+              ],
               "locator_text": "Mara Bridge"
             },
             {
@@ -27578,11 +27582,15 @@
             },
             {
               "id": "shuswap-river-dab160-b",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] Mara Bridge over Shuswap River (from Mara Lake) on Shuswap River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Mara Bridge over the Shuswap River (near Grindrod/Mara); map.. Reach = 'Mara Lake upstream to Mara Bridge'. Road bridge on the lower Shuswap near Mara; not name-matched in FSR (hits are far up toward Sugar Lake). Map/OSM-confirmable. [structural-split 2026-08-05 from “from Mara Lake upstream to Mara Bridge”] boundary=Mara Bridge",
+              "notes": "[auto-proposal L] Mara Bridge over Shuswap River (from Mara Lake) on Shuswap River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Mara Bridge over the Shuswap River (near Grindrod/Mara); map.. Reach = 'Mara Lake upstream to Mara Bridge'. Road bridge on the lower Shuswap near Mara; not name-matched in FSR (hits are far up toward Sugar Lake). Map/OSM-confirmable. [structural-split 2026-08-05 from “from Mara Lake upstream to Mara Bridge”] boundary=Mara Bridge [curated 2026-08-07 manual-review batch=shuswap-river] [Mara Bridge / Rosemond Lake Rd]",
+              "coord": [
+                -119.06995,
+                50.6848
+              ],
               "locator_text": "Mara Bridge"
             }
           ]
@@ -27596,15 +27604,19 @@
               "Jun 15-Nov 15"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "shuswap-river-a1af1b",
-              "status": "todo",
-              "anchor_kind": "point",
+              "status": "curated",
+              "anchor_kind": "buffer",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] Trinity Bridge over Shuswap River (+/- 50 m) on Shuswap River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Trinity (Valley) Bridge over the Shuswap River (reach = 50 m either side); map.. Road bridge (Trinity Valley) on the middle Shuswap; not name-matched in FSR. Map/OSM-confirmable."
+              "notes": "[auto-proposal L] Trinity Bridge over Shuswap River (+/- 50 m) on Shuswap River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Trinity (Valley) Bridge over the Shuswap River (reach = 50 m either side); map.. Road bridge (Trinity Valley) on the middle Shuswap; not name-matched in FSR. Map/OSM-confirmable. [curated 2026-08-07 manual-review batch=shuswap-river] [Trinity Bridge (Trinity Valley Rd); closure = bridge +/-50m]",
+              "coord": [
+                -119.01217,
+                50.54386
+              ]
             }
           ]
         },
@@ -27614,15 +27626,19 @@
           "info": {
             "restriction_type": "note"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "shuswap-river-b96b5f-a",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] Mara Bridge over Shuswap River (to Sugar Lake) on Shuswap River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Mara Bridge (upstream reach to Sugar Lake); map.. Reach = 'Mara Bridge upstream to Sugar Lake'. Same Mara Bridge as the paired entry; Sugar Lake is the upstream endpoint. Map/OSM-confirmable. [structural-split 2026-08-05 from “from Mara Bridge upstream to Sugar Lake”] boundary=Mara Bridge",
+              "notes": "[auto-proposal L] Mara Bridge over Shuswap River (to Sugar Lake) on Shuswap River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Mara Bridge (upstream reach to Sugar Lake); map.. Reach = 'Mara Bridge upstream to Sugar Lake'. Same Mara Bridge as the paired entry; Sugar Lake is the upstream endpoint. Map/OSM-confirmable. [structural-split 2026-08-05 from “from Mara Bridge upstream to Sugar Lake”] boundary=Mara Bridge [curated 2026-08-07 manual-review batch=shuswap-river] [Mara Bridge / Rosemond Lake Rd]",
+              "coord": [
+                -119.06995,
+                50.6848
+              ],
               "locator_text": "Mara Bridge"
             },
             {
@@ -27636,11 +27652,15 @@
             },
             {
               "id": "shuswap-river-dab160-b",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] Mara Bridge over Shuswap River (from Mara Lake) on Shuswap River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Mara Bridge over the Shuswap River (near Grindrod/Mara); map.. Reach = 'Mara Lake upstream to Mara Bridge'. Road bridge on the lower Shuswap near Mara; not name-matched in FSR (hits are far up toward Sugar Lake). Map/OSM-confirmable. [structural-split 2026-08-05 from “from Mara Lake upstream to Mara Bridge”] boundary=Mara Bridge",
+              "notes": "[auto-proposal L] Mara Bridge over Shuswap River (from Mara Lake) on Shuswap River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Mara Bridge over the Shuswap River (near Grindrod/Mara); map.. Reach = 'Mara Lake upstream to Mara Bridge'. Road bridge on the lower Shuswap near Mara; not name-matched in FSR (hits are far up toward Sugar Lake). Map/OSM-confirmable. [structural-split 2026-08-05 from “from Mara Lake upstream to Mara Bridge”] boundary=Mara Bridge [curated 2026-08-07 manual-review batch=shuswap-river] [Mara Bridge / Rosemond Lake Rd]",
+              "coord": [
+                -119.06995,
+                50.6848
+              ],
               "locator_text": "Mara Bridge"
             }
           ]
@@ -27708,7 +27728,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-07"
     },
     "426962cd": {
       "entry_id": "426962cd",
