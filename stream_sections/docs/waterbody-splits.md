@@ -7,8 +7,8 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 |---|--:|
 | NO_CURATION | 1 |
 | MISSING_SPLITS | 2 |
-| INCOMPLETE | 133 |
-| COMPLETE | 176 |
+| INCOMPLETE | 132 |
+| COMPLETE | 177 |
 | NO_SPLIT | 75 |
 
 **Drift** (curated rows matching no source locator): 6
@@ -174,11 +174,6 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 - • [rule] “upstream of Morice/Bulkley River confluence” → bulkley-river-e30268[curated]
 - • [rule] “from Morice River to CNR Bridge at Barrett” → bulkley-river-6f8ca4-a[curated], bulkley-river-6f8ca4-b[curated]
 - • [rule] “in Moricetown Canyon or within 100 m downstream” → bulkley-river-fae480[todo]
-
-## CROOKED RIVER · MU ['7-24'] · p65 · [INCOMPLETE] (823d2b21)
-- • [rule] “downstream (north) of the 200 Road Bridge” → crooked-river-63c960[todo]
-- • [rule] “upstream (south) of the 200 Road Bridge” → crooked-river-cf0fa8[todo]
-- • [rule] “upstream (south) of the 200 Road Bridge” → crooked-river-cf0fa8[todo]
 
 ## ALOUETTE LAKE · MU ['2-8'] · p6 · [INCOMPLETE] (df2e9fcb)
 - • [rule] “in swimming areas” → alouette-lake-396262[deferred]

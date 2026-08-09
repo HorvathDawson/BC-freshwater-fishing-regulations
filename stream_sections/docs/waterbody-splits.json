@@ -24887,7 +24887,7 @@
       "image": "page_065_row_021.png",
       "symbols": [],
       "reg_text": "**No Fishing** downstream (north) of the 200 Road Bridge, Apr 1-June 30 (see map on page 62)\nRainbow trout catch and release and exempt from spring closure upstream (south) of the 200 Road Bridge, Apr 1-June 30 (see map on\npage 62)",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 3,
       "locators": [
         {
@@ -24899,15 +24899,20 @@
               "Apr 1-June 30"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "crooked-river-63c960",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] 200 Road Bridge over Crooked River on Crooked River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the '200 Road' bridge over the Crooked River (Hwy 97 corridor N of Prince George); road numbered, not name-matched.. Reg = 'downstream (north) of the 200 Road Bridge'. '200 Road' is a numbered forestry road not name-matched in the FSR layer (nearby hits are Carp Lake / Kerry FSR). Map/OSM-confirmable; the river parallels Hwy 97."
+              "label": "200 Road Bridge (RR-05)",
+              "notes": "[auto-proposal L] 200 Road Bridge over Crooked River on Crooked River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the '200 Road' bridge over the Crooked River (Hwy 97 corridor N of Prince George); road numbered, not name-matched.. Reg = 'downstream (north) of the 200 Road Bridge'. '200 Road' is a numbered forestry road not name-matched in the FSR layer (nearby hits are Carp Lake / Kerry FSR). Map/OSM-confirmable; the river parallels Hwy 97. [curated 2026-08-08 manual-review batch=crooked-7-24] [200 Rd (RR-05) bridge over Crooked River, OSM way 760637458]",
+              "coord": [
+                -122.71751,
+                54.48548
+              ]
             }
           ]
         },
@@ -24920,15 +24925,20 @@
               "Apr 1-June 30"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "crooked-river-cf0fa8",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] 200 Road Bridge over Crooked River on Crooked River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the '200 Road' bridge over the Crooked River; upstream (south) reach; map.. Upstream (south) side of the same 200 Road Bridge. Numbered road, not name-matched in FSR -> map/OSM-confirmable."
+              "label": "200 Road Bridge (RR-05)",
+              "notes": "[auto-proposal L] 200 Road Bridge over Crooked River on Crooked River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the '200 Road' bridge over the Crooked River; upstream (south) reach; map.. Upstream (south) side of the same 200 Road Bridge. Numbered road, not name-matched in FSR -> map/OSM-confirmable. [curated 2026-08-08 manual-review batch=crooked-7-24] [200 Rd (RR-05) bridge over Crooked River, OSM way 760637458]",
+              "coord": [
+                -122.71751,
+                54.48548
+              ]
             }
           ]
         },
@@ -24938,15 +24948,20 @@
           "info": {
             "restriction_type": "note"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "crooked-river-cf0fa8",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] 200 Road Bridge over Crooked River on Crooked River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the '200 Road' bridge over the Crooked River; upstream (south) reach; map.. Upstream (south) side of the same 200 Road Bridge. Numbered road, not name-matched in FSR -> map/OSM-confirmable."
+              "label": "200 Road Bridge (RR-05)",
+              "notes": "[auto-proposal L] 200 Road Bridge over Crooked River on Crooked River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the '200 Road' bridge over the Crooked River; upstream (south) reach; map.. Upstream (south) side of the same 200 Road Bridge. Numbered road, not name-matched in FSR -> map/OSM-confirmable. [curated 2026-08-08 manual-review batch=crooked-7-24] [200 Rd (RR-05) bridge over Crooked River, OSM way 760637458]",
+              "coord": [
+                -122.71751,
+                54.48548
+              ]
             }
           ]
         },
@@ -24956,7 +24971,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-08"
     },
     "3a9d0c96": {
       "entry_id": "3a9d0c96",
