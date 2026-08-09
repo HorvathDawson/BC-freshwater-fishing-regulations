@@ -7,8 +7,8 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 |---|--:|
 | NO_CURATION | 1 |
 | MISSING_SPLITS | 2 |
-| INCOMPLETE | 116 |
-| COMPLETE | 193 |
+| INCOMPLETE | 115 |
+| COMPLETE | 194 |
 | NO_SPLIT | 75 |
 
 **Drift** (curated rows matching no source locator): 6
@@ -39,16 +39,6 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 - • [rule] “Downstream of signs at Kamloops Lake” → thompson-river-downstream-of-signs-at-kamloop-38fc02[not_applicable], thompson-river-downstream-of-signs-at-kamloop-bc221e-a[not_applicable], thompson-river-downstream-of-signs-at-kamloop-bc221e-b[curated]
 - • [rule] “Downstream of signs at Kamloops Lake” → thompson-river-downstream-of-signs-at-kamloop-38fc02[not_applicable], thompson-river-downstream-of-signs-at-kamloop-bc221e-a[not_applicable], thompson-river-downstream-of-signs-at-kamloop-bc221e-b[curated]
 - • [entry] “downstream of signs at Kamloops Lake outlet to the confluence with” → thompson-river-downstream-of-signs-at-kamloop-38fc02[not_applicable], thompson-river-downstream-of-signs-at-kamloop-bc221e-a[not_applicable], thompson-river-downstream-of-signs-at-kamloop-bc221e-b[curated]
-
-## KOOTENAY RIVER (downstream of Idaho border) · MU ['4-7', '4-8'] · p39 · [INCOMPLETE] (32b0f4bc)
-- • [water] “downstream of Idaho border” → kootenay-river-downstream-of-idaho-border-6189d1[curated]
-- • [rule] “from CPR Bridge near Creston downstream 2 km to navigation dolphin” → kootenay-river-downstream-of-idaho-border-358bba-b[curated], kootenay-river-downstream-of-idaho-border-60f171-a[todo], kootenay-river-downstream-of-idaho-border-60f171-b[todo]
-- • [rule] “Downstream from the Idaho border to CPR Bridge near Creston and fr” → kootenay-river-downstream-of-idaho-border-358bba-a[curated], kootenay-river-downstream-of-idaho-border-358bba-b[curated]
-- • [rule] “from Idaho border near Creston to Kootenay Lake” → kootenay-river-downstream-of-idaho-border-358bba-a[curated], kootenay-river-downstream-of-idaho-border-c2529b[not_applicable]
-- • [rule] “from the Brilliant Dam to the confluence with the Columbia River” → kootenay-river-downstream-of-idaho-border-1e5f9d-a[curated], kootenay-river-downstream-of-idaho-border-1e5f9d-b[curated], kootenay-river-downstream-of-idaho-border-50d010[not_applicable]
-- • [rule] “From the Brilliant Dam to the confluence with the Columbia River” → kootenay-river-downstream-of-idaho-border-1e5f9d-a[curated], kootenay-river-downstream-of-idaho-border-1e5f9d-b[curated], kootenay-river-downstream-of-idaho-border-50d010[not_applicable]
-- • [rule] “From the Brilliant Dam to the confluence with the Columbia River” → kootenay-river-downstream-of-idaho-border-1e5f9d-a[curated], kootenay-river-downstream-of-idaho-border-1e5f9d-b[curated], kootenay-river-downstream-of-idaho-border-50d010[not_applicable]
-- • [entry] “downstream of Idaho border” → kootenay-river-downstream-of-idaho-border-358bba-a[curated], kootenay-river-downstream-of-idaho-border-6189d1[curated]
 
 ## KOOTENAY RIVER (upstream of Koocanusa Reservoir) · MU ['4-2', '4-21', '4-22', '4-24', '4-25', '4-35'] · p39 · [INCOMPLETE] (a808131e)
 - • [water] “upstream of Koocanusa Reservoir” → kootenay-river-upstream-of-koocanusa-reservoi-3bb758[curated]

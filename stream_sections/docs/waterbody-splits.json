@@ -15454,7 +15454,7 @@
       "image": "page_039_row_031.png",
       "symbols": [],
       "reg_text": "**No Fishing** from CPR Bridge near Creston downstream 2 km to navigation dolphin\nDownstream from the Idaho border to CPR Bridge near Creston and from Corra Linn Dam to the Columbia River: EXEMPT from Apr 1-June 14 closure AND from Nov 1-Mar 31 trout/char catch and release\nBurbot catch and release from Idaho border near Creston to Kootenay Lake, including tributaries to that part\nWalleye daily quota = 16 from the Brilliant Dam to the confluence with the Columbia River\nFrom the Brilliant Dam to the confluence with the Columbia River: northern pike and bass daily quota = unlimited",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 8,
       "locators": [
         {
@@ -15478,7 +15478,7 @@
           "info": {
             "restriction_type": "closure"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "kootenay-river-downstream-of-idaho-border-358bba-b",
@@ -15496,20 +15496,39 @@
             },
             {
               "id": "kootenay-river-downstream-of-idaho-border-60f171-a",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] CPR Bridge near Creston (to navigation dolphin ~2 km downstream) on Kootenay River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the CPR bridge over the Kootenay near Creston; distinct from the authored Idaho-border split.. Reach = 'CPR Bridge near Creston downstream 2 km to navigation dolphin'. This is a railway bridge near Creston, NOT the 49th-parallel crossing (which is the separate authored split kootenay_idaho_border). Map/OSM-confirmable. [structural-split 2026-08-05 from “from CPR Bridge near Creston downstream 2 km to navigation dolphin”] boundary=CPR Bridge near Creston downstream 2 km",
+              "label": "CPR Bridge near Creston",
+              "notes": "[auto-proposal L] CPR Bridge near Creston (to navigation dolphin ~2 km downstream) on Kootenay River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the CPR bridge over the Kootenay near Creston; distinct from the authored Idaho-border split.. Reach = 'CPR Bridge near Creston downstream 2 km to navigation dolphin'. This is a railway bridge near Creston, NOT the 49th-parallel crossing (which is the separate authored split kootenay_idaho_border). Map/OSM-confirmable. [structural-split 2026-08-05 from “from CPR Bridge near Creston downstream 2 km to navigation dolphin”] boundary=CPR Bridge near Creston downstream 2 km [curated 2026-08-08 manual-review batch=kootenay-4-7-8] [= CPR Bridge near Creston, same as 358bba-b]",
+              "coord": [
+                -116.68511,
+                49.25176
+              ],
               "locator_text": "CPR Bridge near Creston downstream 2 km"
             },
             {
               "id": "kootenay-river-downstream-of-idaho-border-60f171-b",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] CPR Bridge near Creston (to navigation dolphin ~2 km downstream) on Kootenay River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the CPR bridge over the Kootenay near Creston; distinct from the authored Idaho-border split.. Reach = 'CPR Bridge near Creston downstream 2 km to navigation dolphin'. This is a railway bridge near Creston, NOT the 49th-parallel crossing (which is the separate authored split kootenay_idaho_border). Map/OSM-confirmable. [structural-split 2026-08-05 from “from CPR Bridge near Creston downstream 2 km to navigation dolphin”] boundary=navigation dolphin",
+              "label": "navigation dolphin (~2km d/s CPR Bridge)",
+              "notes": "[auto-proposal L] CPR Bridge near Creston (to navigation dolphin ~2 km downstream) on Kootenay River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the CPR bridge over the Kootenay near Creston; distinct from the authored Idaho-border split.. Reach = 'CPR Bridge near Creston downstream 2 km to navigation dolphin'. This is a railway bridge near Creston, NOT the 49th-parallel crossing (which is the separate authored split kootenay_idaho_border). Map/OSM-confirmable. [structural-split 2026-08-05 from “from CPR Bridge near Creston downstream 2 km to navigation dolphin”] boundary=navigation dolphin [curated 2026-08-08 manual-review batch=kootenay-4-7-8] [navigation dolphin = in-water piling structure, not in OSM; =2km d/s of CPR bridge -> 49.26919,-116.68844. NOTE: dolphin may lie in Kootenay Lake (Creston flats) -> at split-time it could get cut by auto-lake-split; consider a closure POLYGON (Fraser-style) or take the lake up to the dolphin line. revisit for polygon treatment]",
+              "coord": [
+                -116.68511,
+                49.25176
+              ],
+              "offset": {
+                "anchor": [
+                  -116.68511,
+                  49.25176
+                ],
+                "anchor_label": "CPR Bridge near Creston",
+                "m": 2000,
+                "dir": "downstream"
+              },
               "locator_text": "navigation dolphin"
             }
           ]
@@ -15526,6 +15545,20 @@
           },
           "resolved": true,
           "rows": [
+            {
+              "id": "kootenay-river-corra-linn-dam-manual",
+              "status": "manual",
+              "anchor_kind": "point",
+              "src": "rule",
+              "resolver_hint": "dam_weir_fence",
+              "label": "Corra Linn Dam",
+              "notes": "[manual anchor 2026-08-08] Corra Linn Dam (Kootenay Lake West Arm outlet), OSM rel 11344964 waterway=dam. Reg exempt reach \"from Corra Linn Dam to the Columbia River\" had no parsed row (parser folded it into a note); Columbia end = 1e5f9d-b. Added so the exempt reach can be built.",
+              "coord": [
+                -117.46642,
+                49.4676
+              ],
+              "locator_text": "Corra Linn Dam"
+            },
             {
               "id": "kootenay-river-downstream-of-idaho-border-358bba-a",
               "status": "curated",
@@ -15785,7 +15818,8 @@
             }
           ]
         }
-      ]
+      ],
+      "reviewed": "2026-08-08"
     },
     "a808131e": {
       "entry_id": "a808131e",
