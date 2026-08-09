@@ -7,8 +7,8 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 |---|--:|
 | NO_CURATION | 1 |
 | MISSING_SPLITS | 2 |
-| INCOMPLETE | 140 |
-| COMPLETE | 169 |
+| INCOMPLETE | 138 |
+| COMPLETE | 171 |
 | NO_SPLIT | 75 |
 
 **Drift** (curated rows matching no source locator): 6
@@ -260,17 +260,9 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 - • [rule] “downstream of Hwy 97 bridge at Falkland” → salmon-river-f59a4d[todo]
 - • [rule] “downstream of Hwy 97 bridge at Falkland” → salmon-river-f59a4d[todo]
 
-## LODGEPOLE CREEK (upstream of falls) · MU ['4-2'] · p40 · [INCOMPLETE] (4dbdd58a)
-- • [water] “upstream of falls” → lodgepole-creek-upstream-of-falls-615359[todo]
-- • [entry] “upstream of falls” → lodgepole-creek-upstream-of-falls-615359[todo]
-
 ## MOYIE RIVER · MU ['4-5'] · p40 · [INCOMPLETE] (7772faef)
 - • [rule] “Irishman Creek (Moyie River tributary)” → moyie-river-a098eb[not_applicable]
 - • [rule] “from bridge at south end of Moyie Lake to U.S. border” → moyie-river-53143e-a[curated], moyie-river-53143e-b[todo]
-
-## SAND CREEK (downstream of Hwy 3) · MU ['4-22'] · p41 · [INCOMPLETE] (bb1b228a)
-- • [water] “downstream of Hwy 3” → sand-creek-downstream-of-hwy-3-6962b3[todo]
-- • [entry] “downstream of Hwy 3” → sand-creek-downstream-of-hwy-3-6962b3[todo]
 
 ## SLOCAN RIVER · MU ['4-17'] · p41 · [INCOMPLETE] (d409b6f7)
 - • [except] “EXCEPT Koch Creek[Includes Tributaries] upstream of falls located ” → slocan-river-a0da42[todo]
