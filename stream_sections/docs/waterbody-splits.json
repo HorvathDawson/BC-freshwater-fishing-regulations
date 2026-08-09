@@ -25021,11 +25021,11 @@
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "falls_obstacle",
-              "label": "Zymoetz Canyon lower entrance (d/s sign)",
-              "notes": "[curated 2026-08-09 canyon split; user pins] Zymoetz Canyon a-end sign; pair = zymoetz-copper-river-a60c30-b. Canyon info ACAT https://a100.gov.bc.ca/pub/acat/documents/r1615/sk22_1097772513201_6573e4d093a1465b96bae1d77ec9120f.pdf",
+              "label": "Zymoetz Canyon lower entrance = transmission-line sign",
+              "notes": "[curated 2026-08-09 canyon split; user pins] Zymoetz Canyon a-end sign; pair = zymoetz-copper-river-a60c30-b. Canyon info ACAT https://a100.gov.bc.ca/pub/acat/documents/r1615/sk22_1097772513201_6573e4d093a1465b96bae1d77ec9120f.pdf [FIX 2026-08-09: lower canyon entrance == transmission-line sign (same signs, user); paired w/ the other]",
               "coord": [
-                -128.29079,
-                54.47784
+                -128.26032,
+                54.47744
               ]
             },
             {
@@ -25060,8 +25060,8 @@
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "falls_obstacle",
-              "label": "transmission-line crossing sign (d/s of Zymoetz Canyon)",
-              "notes": "[osm-candidate 2026-08-05] [-128.40927, 54.524]; [-127.9424, 54.49921]; [-128.26025, 54.4776]; [-128.22762, 54.47419] (OSM Overpass ∩ MU-clipped FWA river; VERIFY). [curated 2026-08-09 bridge+confl batch] [FIX 2026-08-09: transmission-line sign = 54.47744,-128.26032 (Skeena-Telkwa 500KV area, user pin); canyon info ACAT https://a100.gov.bc.ca/pub/acat/documents/r1615/sk22_1097772513201_6573e4d093a1465b96bae1d77ec9120f.pdf]",
+              "label": "transmission-line sign = Zymoetz Canyon lower entrance",
+              "notes": "[osm-candidate 2026-08-05] [-128.40927, 54.524]; [-127.9424, 54.49921]; [-128.26025, 54.4776]; [-128.22762, 54.47419] (OSM Overpass ∩ MU-clipped FWA river; VERIFY). [curated 2026-08-09 bridge+confl batch] [FIX 2026-08-09: transmission-line sign = 54.47744,-128.26032 (Skeena-Telkwa 500KV area, user pin); canyon info ACAT https://a100.gov.bc.ca/pub/acat/documents/r1615/sk22_1097772513201_6573e4d093a1465b96bae1d77ec9120f.pdf] [FIX 2026-08-09: lower canyon entrance == transmission-line sign (same signs, user); paired w/ the other]",
               "coord": [
                 -128.26032,
                 54.47744
