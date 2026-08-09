@@ -7,8 +7,8 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 |---|--:|
 | NO_CURATION | 1 |
 | MISSING_SPLITS | 2 |
-| INCOMPLETE | 107 |
-| COMPLETE | 202 |
+| INCOMPLETE | 98 |
+| COMPLETE | 211 |
 | NO_SPLIT | 75 |
 
 **Drift** (curated rows matching no source locator): 9
@@ -129,15 +129,6 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 - • [rule] “from Morice River to CNR Bridge at Barrett” → bulkley-river-6f8ca4-a[curated], bulkley-river-6f8ca4-b[curated]
 - • [rule] “in Moricetown Canyon or within 100 m downstream” → bulkley-river-fae480[todo]
 
-## ALOUETTE LAKE · MU ['2-8'] · p6 · [INCOMPLETE] (df2e9fcb)
-- • [rule] “in swimming areas” → alouette-lake-396262[deferred]
-- • [rule] “at S. end of lake, S. of a line drawn from the BC Parks boat ramp
-” → alouette-lake-8d2080[todo]
-
-## COWICHAN LAKE (including Bear Lake) · MU ['1-4'] · p17 · [INCOMPLETE] (ed39adc0)
-- • [rule] “on parts” → cowichan-lake-including-bear-lake-5a1513[deferred]
-- • [rule] “within 60 m of shore” → cowichan-lake-including-bear-lake-8afef8[todo]
-
 ## ENGLISHMAN RIVER · MU ['1-5'] · p17 · [INCOMPLETE] (fbf29fb0)
 - • [rule] “from lower falls in Englishman River Park to signs approximately 1” → englishman-river-8660ed-a[curated], englishman-river-8660ed-b[todo]
 - • [rule] “downstream of the lower falls in Englishman River Falls Provincial” → englishman-river-46a674-a[curated], englishman-river-46a674-b[curated]
@@ -145,10 +136,6 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 ## WHITE RIVER · MU ['1-10'] · p21 · [INCOMPLETE] (4cf440b0)
 - • [rule] “between fishing boundary signs at the salmon viewing pool” → white-river-da5ee3[todo]
 - • [rule] “upstream of the Sayward Road Bridge crossing” → white-river-90c274[curated]
-
-## ALOUETTE LAKE · MU ['2-8'] · p24 · [INCOMPLETE] (11e89b7b)
-- • [rule] “in swimming areas” → alouette-lake-396262[deferred]
-- • [rule] “at south end of lake, south of a line drawn from the BC Parks boat” → alouette-lake-3aaa04[todo]
 
 ## CHEHALIS RIVER · MU ['2-19'] · p24 · [INCOMPLETE] (bb6d5fe5)
 - • [rule] “from boundary signs at outlet of Chehalis Lake to main logging roa” → chehalis-river-6a99b5-a[not_applicable], chehalis-river-6a99b5-b[todo]
@@ -169,10 +156,6 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 ## CHUCKWALLA RIVER · MU ['5-7'] · p50 · [INCOMPLETE] (38c3c0c0)
 - • [rule] “entire river” → chuckwalla-river-a0316a[not_applicable]
 - • [rule] “between fishing boundary signs at Ten Mile Pool” → chuckwalla-river-eec2f0[todo]
-
-## BABINE LAKE · MU ['6-6'] · p56 · [INCOMPLETE] (5bed475b)
-- • [rule] “east of a line from Gullwing Creek to the south shore of Babine La” → babine-lake-d6b843[todo]
-- • [rule] “within a 400 m radius of the mouth of Pinkut Creek” → babine-lake-0f9dda[todo]
 
 ## KITIMAT RIVER (Angling regulations for the Kitimat River are currently under review. Please check the in-season regulation change website prior to fishing on the Kitimat River) · MU ['6-3'] · p57 · [INCOMPLETE] (c0718831)
 - • [rule] “on the west half of river between fishing boundary signs near Kiti” → kitimat-river-angling-regulations-for-the-kit-664c72[todo]
@@ -248,9 +231,6 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 ## SUMALLO RIVER (includes "Cedar" Lake, at Sunshine Valley) · MU ['2-2'] · p28 · [INCOMPLETE] (411336a9)
 - • [entry] “includes "Cedar" Lake, at Sunshine Valley” → sumallo-river-includes-cedar-lake-at-sunshine-b68cb2[todo]
 
-## ADAMS LAKE · MU ['3-37'] · p31 · [INCOMPLETE] (ebb373ee)
-- • [rule] “north of a line drawn due west from mouth of Momich River” → adams-lake-375027[todo]
-
 ## HEFFLEY LAKE (parts of ) · MU ['3-27'] · p32 · [INCOMPLETE] (ad307676)
 - • [entry] “parts of” → heffley-lake-parts-of-dabd72[todo]
 
@@ -277,9 +257,6 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 
 ## COFFEE CREEK · MU ['4-18'] · p37 · [INCOMPLETE] (55a54cfd)
 - • [rule] “downstream of fishing boundary signs at falls approximately 10 km ” → coffee-creek-ce1bee[todo]
-
-## COLUMBIA LAKE · MU ['4-25'] · p37 · [INCOMPLETE] (02614a0e)
-- • [rule] “near eastern shore and at south end” → columbia-lake-90a988[todo]
 
 ## DUNCAN RIVER · MU ['4-19'] · p38 · [INCOMPLETE] (ad04e181)
 - • [rule] “downstream of Duncan Dam to the confluence of the Duncan River and” → duncan-river-402ead-a[todo], duncan-river-402ead-b[curated]
@@ -311,17 +288,11 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 ## WOODBURY CREEK · MU ['4-18'] · p42 · [INCOMPLETE] (b4222b6f)
 - • [rule] “downstream of falls at small hydro structure approximately 800 m u” → woodbury-creek-24b31f[todo]
 
-## CANIM LAKE (see map on page 42) · MU ['5-1'] · p49 · [INCOMPLETE] (60d56590)
-- • [rule] “within the waters of the small bay at the mouth of Eagle Creek nor” → canim-lake-see-map-on-page-42-187bf9[todo]
-
 ## DRAGON LAKE · MU ['5-2'] · p50 · [INCOMPLETE] (080f1b77)
 - • [rule] “southeast of a line between fishing boundary signs on opposite sho” → dragon-lake-446fe9[todo]
 
 ## GREEN LAKE · MU ['5-1'] · p51 · [INCOMPLETE] (a6054318)
 - • [rule] “northeast of line between boundary signs on opposite shores of the” → green-lake-be66e8[todo]
-
-## BUCKINGHORSE LAKE · MU ['6-20'] · p56 · [INCOMPLETE] (23900091)
-- • [rule] “within 100 m of outlet” → buckinghorse-lake-d64773[todo]
 
 ## CRANBERRY RIVER · MU ['6-15'] · p56 · [INCOMPLETE] (107fa559)
 - • [rule] “between fishing boundary signs upstream of and downstream of Cranb” → cranberry-river-699352-a[todo], cranberry-river-699352-b[todo]
@@ -397,9 +368,6 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 
 ## WOLVERINE LAKE · MU ['7-52'] · p72 · [INCOMPLETE] (cf103119)
 - • [rule] “within 100 m of fishing boundary sign at outlet” → wolverine-lake-73cc18[todo]
-
-## CHRISTINA LAKE · MU ['8-15'] · p75 · [INCOMPLETE] (ccfb7b1d)
-- • [rule] “north of a line between Bald and Knob Points” → christina-lake-ecd122-a[todo], christina-lake-ecd122-b[todo]
 
 ## MABEL LAKE · MU ['8-24'] · p76 · [INCOMPLETE] (39c538fb)
 - • [rule] “south of a line between fishing boundary signs on the lakeshore ap” → mabel-lake-ea133c[todo]

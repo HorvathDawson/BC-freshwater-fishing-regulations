@@ -11,7 +11,7 @@
       "image": "page_006_row_001.png",
       "symbols": [],
       "reg_text": "Bull trout (char) release\nNo vessels in swimming areas, as buoyed and signed; speed restriction (8 km/h) at S. end of lake, S. of a line drawn from the BC Parks boat ramp\nto signs on the E. side of the lake",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 2,
       "locators": [
         {
@@ -39,14 +39,15 @@
           "info": {
             "restriction_type": "vessel_restriction"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "alouette-lake-8d2080",
-              "status": "todo",
+              "status": "deferred",
               "anchor_kind": "line",
               "src": "rule",
               "resolver_hint": "between_signs",
+              "notes": "[deferred 2026-08-09 lake-split batch: lake-area closure]",
               "locator_text": "at S. end of lake, S. of a line drawn from the BC Parks boat ramp to signs on the E. side of the lake"
             }
           ]
@@ -57,7 +58,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-09"
     },
     "ce41432a": {
       "entry_id": "ce41432a",
@@ -1255,7 +1257,7 @@
       "image": "page_017_row_005.png",
       "symbols": [],
       "reg_text": "Cutthroat trout daily quota = 2 (none over 50 cm); bait ban and single barbless hook, Nov 15-Apr 15\nSpeed restriction on parts (8 km/h), plus overall 10 km/h speed restriction within 60 m of shore",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 2,
       "locators": [
         {
@@ -1283,14 +1285,15 @@
           "info": {
             "restriction_type": "vessel_restriction"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "cowichan-lake-including-bear-lake-8afef8",
-              "status": "todo",
+              "status": "deferred",
               "anchor_kind": "buffer",
               "src": "rule",
-              "resolver_hint": "radius"
+              "resolver_hint": "radius",
+              "notes": "[deferred 2026-08-09 lake-split batch: lake-area closure]"
             }
           ]
         },
@@ -1300,7 +1303,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-09"
     },
     "ce689454": {
       "entry_id": "ce689454",
@@ -5010,7 +5014,7 @@
       "image": "page_024_row_001.png",
       "symbols": [],
       "reg_text": "Bull trout (char) catch and release\nNo vessels in swimming areas, as buoyed and signed; speed restriction (8 km/h) at south end of lake, south of a line drawn from the BC Parks\nboat ramp to signs on the east side of the lake",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 2,
       "locators": [
         {
@@ -5038,14 +5042,15 @@
           "info": {
             "restriction_type": "vessel_restriction"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "alouette-lake-3aaa04",
-              "status": "todo",
+              "status": "deferred",
               "anchor_kind": "line",
               "src": "rule",
-              "resolver_hint": "between_signs"
+              "resolver_hint": "between_signs",
+              "notes": "[deferred 2026-08-09 lake-split batch: lake-area closure]"
             }
           ]
         },
@@ -5055,7 +5060,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-09"
     },
     "dadcd21c": {
       "entry_id": "dadcd21c",
@@ -8818,7 +8824,7 @@
       "image": "page_031_row_001.png",
       "symbols": [],
       "reg_text": "**No Fishing** north of a line drawn due west from mouth of Momich River, Mar 15-June 30\nLake trout catch and release, Oct 15-Jan 31\nDaily quota = 1 bull trout or lake trout (no bull trout under 80 cm or lake trout under 60 cm)\nSingle barbless hook",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 1,
       "locators": [
         {
@@ -8830,14 +8836,15 @@
               "Mar 15-June 30"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "adams-lake-375027",
-              "status": "todo",
+              "status": "deferred",
               "anchor_kind": "line",
               "src": "rule",
-              "resolver_hint": "between_signs"
+              "resolver_hint": "between_signs",
+              "notes": "[deferred 2026-08-09 lake-split batch: lake-area closure]"
             }
           ]
         },
@@ -8874,7 +8881,8 @@
             }
           ]
         }
-      ]
+      ],
+      "reviewed": "2026-08-09"
     },
     "b1185000": {
       "entry_id": "b1185000",
@@ -13043,7 +13051,7 @@
       "image": "page_037_row_035.png",
       "symbols": [],
       "reg_text": "Burbot catch and release; bass daily quota = unlimited; speed restriction (10 km/h) near eastern shore and at south end, as buoyed and\nsigned",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 1,
       "locators": [
         {
@@ -13052,14 +13060,15 @@
           "info": {
             "restriction_type": "vessel_restriction"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "columbia-lake-90a988",
-              "status": "todo",
+              "status": "deferred",
               "anchor_kind": "unclassified",
               "src": "rule",
-              "resolver_hint": "other_reach"
+              "resolver_hint": "other_reach",
+              "notes": "[deferred 2026-08-09 lake-split batch: lake-area closure]"
             }
           ]
         },
@@ -13080,7 +13089,8 @@
             }
           ]
         }
-      ]
+      ],
+      "reviewed": "2026-08-09"
     },
     "7b2ba48e": {
       "entry_id": "7b2ba48e",
@@ -19182,19 +19192,21 @@
         {
           "src": "name",
           "text": "BIG LAKE (approx. 10 km west of 100 Mile House)",
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "big-lake-approx-10-km-west-of-100-mile-house-eefbed",
-              "status": "todo",
-              "anchor_kind": "unclassified",
+              "status": "not_applicable",
+              "anchor_kind": "not_a_split",
               "src": "name",
               "resolver_hint": "other_reach",
+              "notes": "[n/a 2026-08-09 lake batch: whole-lake identified by location/name-variant, no split]",
               "locator_text": "approx. 10 km west of 100 Mile House"
             }
           ]
         }
-      ]
+      ],
+      "reviewed": "2026-08-09"
     },
     "82fd0330": {
       "entry_id": "82fd0330",
@@ -19213,19 +19225,21 @@
         {
           "src": "name",
           "text": "BIG LAKE (approx. 30 km west of Likely)",
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "big-lake-approx-30-km-west-of-likely-fe4d04",
-              "status": "todo",
-              "anchor_kind": "unclassified",
+              "status": "not_applicable",
+              "anchor_kind": "not_a_split",
               "src": "name",
               "resolver_hint": "other_reach",
+              "notes": "[n/a 2026-08-09 lake batch: whole-lake identified by location/name-variant, no split]",
               "locator_text": "approx. 30 km west of Likely"
             }
           ]
         }
-      ]
+      ],
+      "reviewed": "2026-08-09"
     },
     "b3a70962": {
       "entry_id": "b3a70962",
@@ -19292,20 +19306,22 @@
         {
           "src": "name",
           "text": "BOWRON LAKE",
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "bowron-lake-park-waters-other-than-bowron-lak-e7fc42",
-              "status": "todo",
-              "anchor_kind": "unclassified",
+              "status": "not_applicable",
+              "anchor_kind": "not_a_split",
               "src": "name",
               "resolver_hint": "other_reach",
+              "notes": "[n/a 2026-08-09 lake batch: whole-lake identified by location/name-variant, no split] [WATCH: admin-boundary park-waters set, see 10-matching-and-invariants.md]",
               "name_verbatim": "BOWRON LAKE Park waters other than Bowron Lake",
               "locator_text": "BOWRON LAKE Park waters other than Bowron Lake"
             }
           ]
         }
-      ]
+      ],
+      "reviewed": "2026-08-09"
     },
     "af6ea19e": {
       "entry_id": "af6ea19e",
@@ -19324,14 +19340,15 @@
         {
           "src": "name",
           "text": "BOWRON LAKE Park waters other than Bowron Lake",
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "bowron-lake-park-waters-other-than-bowron-lak-e7fc42",
-              "status": "todo",
-              "anchor_kind": "unclassified",
+              "status": "not_applicable",
+              "anchor_kind": "not_a_split",
               "src": "name",
-              "resolver_hint": "other_reach"
+              "resolver_hint": "other_reach",
+              "notes": "[n/a 2026-08-09 lake batch: whole-lake identified by location/name-variant, no split] [WATCH: admin-boundary park-waters set, see 10-matching-and-invariants.md]"
             }
           ]
         }
@@ -19468,7 +19485,7 @@
       "image": "page_049_row_031.png",
       "symbols": [],
       "reg_text": "**No Fishing** within the waters of the small bay at the mouth of Eagle Creek northerly of a line drawn between two boundary signs located\non opposite shores of the bay, Sept 1-Sept 30",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 1,
       "locators": [
         {
@@ -19480,14 +19497,15 @@
               "Sept 1-Sept 30"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "canim-lake-see-map-on-page-42-187bf9",
-              "status": "todo",
+              "status": "deferred",
               "anchor_kind": "line",
               "src": "rule",
               "resolver_hint": "between_signs",
+              "notes": "[deferred 2026-08-09 lake-split batch: lake-area closure]",
               "locator_text": "within the waters of the small bay at the mouth of Eagle Creek northerly of a line drawn between two boundary signs loca"
             }
           ]
@@ -19508,7 +19526,8 @@
             }
           ]
         }
-      ]
+      ],
+      "reviewed": "2026-08-09"
     },
     "98236bbf": {
       "entry_id": "98236bbf",
@@ -20720,19 +20739,21 @@
         {
           "src": "name",
           "text": "\"GEESE\" LAKE (2 km northeast of Eliguk Lake)",
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "geese-lake-2-km-northeast-of-eliguk-lake-5a75ee",
-              "status": "todo",
-              "anchor_kind": "line",
+              "status": "not_applicable",
+              "anchor_kind": "not_a_split",
               "src": "name",
               "resolver_hint": "between_signs",
+              "notes": "[n/a 2026-08-09 lake batch: whole-lake identified by location/name-variant, no split]",
               "locator_text": "2 km northeast of Eliguk Lake"
             }
           ]
         }
-      ]
+      ],
+      "reviewed": "2026-08-09"
     },
     "587bf89d": {
       "entry_id": "587bf89d",
@@ -20751,20 +20772,22 @@
         {
           "src": "name",
           "text": "\"GRASSY\" LAKE (unnamed lake approx. 1 km southwest of West King Lake)",
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "grassy-lake-unnamed-lake-approx-1-km-southwes-bcf05f",
-              "status": "todo",
-              "anchor_kind": "line",
+              "status": "not_applicable",
+              "anchor_kind": "not_a_split",
               "src": "name",
               "resolver_hint": "between_signs",
+              "notes": "[n/a 2026-08-09 lake batch: whole-lake identified by location/name-variant, no split]",
               "name_verbatim": "\"GRASSY\" LAKE (unnamed lake approx. 1 km southwest of",
               "locator_text": "unnamed lake approx. 1 km southwest of West King Lake"
             }
           ]
         }
-      ]
+      ],
+      "reviewed": "2026-08-09"
     },
     "a6054318": {
       "entry_id": "a6054318",
@@ -21158,20 +21181,22 @@
         {
           "src": "name",
           "text": "\"LITTLE BISHOP\" LAKE (approx. 1.7 km northeast of Bishop Lake)",
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "little-bishop-lake-approx-1-7-km-northeast-of-5f58d4",
-              "status": "todo",
-              "anchor_kind": "line",
+              "status": "not_applicable",
+              "anchor_kind": "not_a_split",
               "src": "name",
               "resolver_hint": "between_signs",
+              "notes": "[n/a 2026-08-09 lake batch: whole-lake identified by location/name-variant, no split]",
               "name_verbatim": "\"LITTLE BISHOP\" LAKE (approx. 1.7 km northeast of Bish",
               "locator_text": "approx. 1.7 km northeast of Bishop Lake"
             }
           ]
         }
-      ]
+      ],
+      "reviewed": "2026-08-09"
     },
     "1d57cd66": {
       "entry_id": "1d57cd66",
@@ -22075,7 +22100,7 @@
       "image": "page_056_row_002.png",
       "symbols": [],
       "reg_text": "**No Fishing** east of a line from Gullwing Creek to the south shore of Babine Lake\n**No Fishing** within a 400 m radius of the mouth of Pinkut Creek, Aug 15-Sept 15\nThat section of flowing water between Babine and Nilkitkwa lakes, known as \"Rainbow Alley\", is designated Babine River (see map 2 page\n51); see Babine River regulations below (paragraphs 3 and 4)",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 2,
       "locators": [
         {
@@ -22084,14 +22109,15 @@
           "info": {
             "restriction_type": "closure"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "babine-lake-d6b843",
-              "status": "todo",
+              "status": "deferred",
               "anchor_kind": "line",
               "src": "rule",
-              "resolver_hint": "between_signs"
+              "resolver_hint": "between_signs",
+              "notes": "[deferred 2026-08-09 lake-split batch: lake-area closure]"
             }
           ]
         },
@@ -22104,14 +22130,15 @@
               "Aug 15-Sept 15"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "babine-lake-0f9dda",
-              "status": "todo",
+              "status": "deferred",
               "anchor_kind": "buffer",
               "src": "rule",
-              "resolver_hint": "radius"
+              "resolver_hint": "radius",
+              "notes": "[deferred 2026-08-09 lake-split batch: lake-area closure]"
             }
           ]
         },
@@ -22121,7 +22148,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-09"
     },
     "4dd3daf7": {
       "entry_id": "4dd3daf7",
@@ -22412,7 +22440,7 @@
       "image": "page_056_row_009.png",
       "symbols": [],
       "reg_text": "**No Fishing** within 100 m of outlet, May 15-July 31\nTrout/char daily and possession quotas = 2 (none over 50 cm); bait ban, single hook",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 1,
       "locators": [
         {
@@ -22424,14 +22452,15 @@
               "May 15-July 31"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "buckinghorse-lake-d64773",
-              "status": "todo",
+              "status": "deferred",
               "anchor_kind": "buffer",
               "src": "rule",
-              "resolver_hint": "radius"
+              "resolver_hint": "radius",
+              "notes": "[deferred 2026-08-09 lake-split batch: lake-area closure]"
             }
           ]
         },
@@ -22441,7 +22470,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-09"
     },
     "d850b295": {
       "entry_id": "d850b295",
@@ -25121,19 +25151,21 @@
         {
           "src": "name",
           "text": "BEAR LAKE (Crooked River Provincial Park)",
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "bear-lake-crooked-river-provincial-park-883c27",
-              "status": "todo",
-              "anchor_kind": "area_boundary",
+              "status": "not_applicable",
+              "anchor_kind": "not_a_split",
               "src": "name",
               "resolver_hint": "park_polygon",
+              "notes": "[n/a 2026-08-09 lake batch: whole-lake identified by location/name-variant, no split]",
               "locator_text": "Crooked River Provincial Park"
             }
           ]
         }
-      ]
+      ],
+      "reviewed": "2026-08-09"
     },
     "9fd933ca": {
       "entry_id": "9fd933ca",
@@ -27461,7 +27493,7 @@
       "image": "page_075_row_012.png",
       "symbols": [],
       "reg_text": "**No Fishing** north of a line between Bald and Knob Points, Mar 1-May 31\nRainbow trout daily quota = 2, bass daily quota = 8, yellow perch daily quota = 20",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 1,
       "locators": [
         {
@@ -27473,24 +27505,24 @@
               "Mar 1-May 31"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "christina-lake-ecd122-a",
-              "status": "todo",
+              "status": "deferred",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "between_signs",
-              "notes": "[structural-split 2026-08-05 from \"north of a line between Bald and Knob Points\"] boundary=Bald",
+              "notes": "[structural-split 2026-08-05 from \"north of a line between Bald and Knob Points\"] boundary=Bald [deferred 2026-08-09 lake-split batch: lake-area closure]",
               "locator_text": "Bald"
             },
             {
               "id": "christina-lake-ecd122-b",
-              "status": "todo",
+              "status": "deferred",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "between_signs",
-              "notes": "[structural-split 2026-08-05 from \"north of a line between Bald and Knob Points\"] boundary=Knob Points",
+              "notes": "[structural-split 2026-08-05 from \"north of a line between Bald and Knob Points\"] boundary=Knob Points [deferred 2026-08-09 lake-split batch: lake-area closure]",
               "locator_text": "Knob Points"
             }
           ]
@@ -27501,7 +27533,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-09"
     },
     "286427f8": {
       "entry_id": "286427f8",

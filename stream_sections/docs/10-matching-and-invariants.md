@@ -91,6 +91,16 @@ old shape" — they are the things that would silently corrupt data or break use
   bypass lake polygons); required to stop the Kootenay↔Columbia leak. Keep the strict
   missing-edge_type guard.
 
+## Watch-list — ambiguous matching cases (flag during curation)
+
+- **Bowron Lake 5-16 — "Park waters other than Bowron Lake"** (flagged 2026-08-09): resolves by an
+  **admin boundary** (Bowron Lake Provincial Park polygon) **minus** the named lake, not a clean
+  gnis/name match. Curated `n/a` as a *split* (no reach cut), but the reg still has to attach to the
+  *park-waters set* via `admin_targets`/park-polygon → sub-extent. **Look out for this:** verify it
+  lands on the park's other waters and does NOT accidentally match Bowron Lake itself (the named
+  lake is excluded). This is the "admin bound but not clearly one" pattern — watch for similar
+  "Park waters other than X" / "all lakes in the park except Y" entries.
+
 ## Tests to port / add
 
 Port: `test_tributary_logic`, `test_tributary_override`, `test_feature_resolver_dispatch`
