@@ -7,8 +7,8 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 |---|--:|
 | NO_CURATION | 1 |
 | MISSING_SPLITS | 2 |
-| INCOMPLETE | 108 |
-| COMPLETE | 201 |
+| INCOMPLETE | 107 |
+| COMPLETE | 202 |
 | NO_SPLIT | 75 |
 
 **Drift** (curated rows matching no source locator): 9
@@ -301,9 +301,6 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 
 ## ST. LEON CREEK · MU ['4-31'] · p41 · [INCOMPLETE] (15f8ea45)
 - • [rule] “downstream of barrier approximately 1 km upstream of the Hwy 23 br” → st-leon-creek-8e9134[todo]
-
-## SKOOKUMCHUCK CREEK · MU ['4-20'] · p41 · [INCOMPLETE] (6dad8cc8)
-- • [rule] “from a point on the creek closest to km 38 on the Skookumchuck For” → skookumchuck-creek-37fdd8-a[todo], skookumchuck-creek-37fdd8-b[curated]
 
 ## TROUT LAKE · MU ['4-30'] · p42 · [INCOMPLETE] (0c91a897)
 - • [rule] “northwest of a line between fishing boundary signs on opposite sho” → trout-lake-154027[todo]
