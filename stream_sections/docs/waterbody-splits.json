@@ -11393,31 +11393,31 @@
       "image": "page_034_row_007.png",
       "symbols": [],
       "reg_text": "Exempt from spring closure\nNo trout under 25 cm downstream of Seton Lake\nDownstream of Seton Lake, **No Fishing** Apr 1-May 31",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 4,
       "locators": [
         {
           "src": "water",
           "text": "includes BC Hydro Power Canal upstream of the dam up to signs located on Seton Lake",
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "seton-river-includes-bc-hydro-power-canal-ups-95a44d-a",
-              "status": "deferred",
-              "anchor_kind": "point",
+              "status": "not_applicable",
+              "anchor_kind": "not_a_split",
               "src": "name",
               "resolver_hint": "dam_weir_fence",
-              "notes": "[auto-proposal H] Seton Dam (Seton Lake outlet) + BC Hydro Power Canal on Seton River / Seton Lake outlet. Candidate coord [-121.97777, 50.66951]. OSM: https://www.openstreetmap.org/?mlat=50.66951&mlon=-121.97777#map=15/50.66951/-121.97777. Verify: Confirm Seton Dam at the Seton Lake outlet; the reg also includes the parallel BC Hydro Power Canal up to signs on Seton Lake.. Seton Dam controls the Seton River at the Seton Lake outlet. Coord = FWA Seton River exit from the Seton Lake polygon. The entry also includes the BC Hydro Power Canal upstream of the dam up to signs on Seton Lake (a parallel man-made channel - may need separate geometry). [structural-split 2026-08-05 from \"includes BC Hydro Power Canal upstream of the dam up to sign\"] boundary=includes BC Hydro Power Canal upstream of the dam [deferred 2026-08-06] BC Hydro Power Canal is labelled as a river in FWA (no separate split); dam ~[-121.9246, 50.6727]. Per review.",
+              "notes": "[auto-proposal H] Seton Dam (Seton Lake outlet) + BC Hydro Power Canal on Seton River / Seton Lake outlet. Candidate coord [-121.97777, 50.66951]. OSM: https://www.openstreetmap.org/?mlat=50.66951&mlon=-121.97777#map=15/50.66951/-121.97777. Verify: Confirm Seton Dam at the Seton Lake outlet; the reg also includes the parallel BC Hydro Power Canal up to signs on Seton Lake.. Seton Dam controls the Seton River at the Seton Lake outlet. Coord = FWA Seton River exit from the Seton Lake polygon. The entry also includes the BC Hydro Power Canal upstream of the dam up to signs on Seton Lake (a parallel man-made channel - may need separate geometry). [structural-split 2026-08-05 from \"includes BC Hydro Power Canal upstream of the dam up to sign\"] boundary=includes BC Hydro Power Canal upstream of the dam [deferred 2026-08-06] BC Hydro Power Canal is labelled as a river in FWA (no separate split); dam ~[-121.9246, 50.6727]. Per review. [reviewed 2026-08-08 manual-review batch=seton-3-16] [n/a: water-extent clause (fishable water includes the BC Hydro Power Canal upstream of the dam), not an internal reach split] [NOTE: the Seton reach should INCLUDE the man-made canal feature \"Seton River (canal)\" (BC Hydro Power Canal, Seton Dam intake -> Seton Powerhouse) as part of the fishable water]",
               "name_verbatim": "SETON RIVER (includes BC Hydro Power Canal upstream of",
               "locator_text": "includes BC Hydro Power Canal upstream of the dam"
             },
             {
               "id": "seton-river-includes-bc-hydro-power-canal-ups-95a44d-b",
-              "status": "todo",
-              "anchor_kind": "lake",
+              "status": "not_applicable",
+              "anchor_kind": "not_a_split",
               "src": "name",
               "resolver_hint": "boundary_signs",
-              "notes": "[auto-proposal H] Seton Dam (Seton Lake outlet) + BC Hydro Power Canal on Seton River / Seton Lake outlet. Candidate coord [-121.97777, 50.66951]. OSM: https://www.openstreetmap.org/?mlat=50.66951&mlon=-121.97777#map=15/50.66951/-121.97777. Verify: Confirm Seton Dam at the Seton Lake outlet; the reg also includes the parallel BC Hydro Power Canal up to signs on Seton Lake.. Seton Dam controls the Seton River at the Seton Lake outlet. Coord = FWA Seton River exit from the Seton Lake polygon. The entry also includes the BC Hydro Power Canal upstream of the dam up to signs on Seton Lake (a parallel man-made channel - may need separate geometry). [structural-split 2026-08-05 from \"includes BC Hydro Power Canal upstream of the dam up to sign\"] boundary=signs located on Seton Lake [hint-fix 2026-08-06 lake_reach->boundary_signs]",
+              "notes": "[auto-proposal H] Seton Dam (Seton Lake outlet) + BC Hydro Power Canal on Seton River / Seton Lake outlet. Candidate coord [-121.97777, 50.66951]. OSM: https://www.openstreetmap.org/?mlat=50.66951&mlon=-121.97777#map=15/50.66951/-121.97777. Verify: Confirm Seton Dam at the Seton Lake outlet; the reg also includes the parallel BC Hydro Power Canal up to signs on Seton Lake.. Seton Dam controls the Seton River at the Seton Lake outlet. Coord = FWA Seton River exit from the Seton Lake polygon. The entry also includes the BC Hydro Power Canal upstream of the dam up to signs on Seton Lake (a parallel man-made channel - may need separate geometry). [structural-split 2026-08-05 from \"includes BC Hydro Power Canal upstream of the dam up to sign\"] boundary=signs located on Seton Lake [hint-fix 2026-08-06 lake_reach->boundary_signs] [reviewed 2026-08-08 manual-review batch=seton-3-16] [n/a: upstream extent limit = signs out on Seton Lake; not a reach boundary and not a mappable feature] [NOTE: the Seton reach should INCLUDE the man-made canal feature \"Seton River (canal)\" (BC Hydro Power Canal, Seton Dam intake -> Seton Powerhouse) as part of the fishable water]",
               "name_verbatim": "SETON RIVER (includes BC Hydro Power Canal upstream of",
               "locator_text": "signs located on Seton Lake"
             }
@@ -11437,7 +11437,7 @@
               "anchor_kind": "lake",
               "src": "rule",
               "resolver_hint": "lake_reach",
-              "notes": "[lake-class: lake_split] outlet of Seton Lake. — [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 — NO authored split needed. — [review · was:auto] assume nothing — re-decide. — [human-review 2026-08-04 lake-verify] VERIFIED auto_lake_edge: 'downstream of Seton Lake' = lake-outlet edge, handled for free. n/a. (Shared boundary with -8eb4d1.)",
+              "notes": "[lake-class: lake_split] outlet of Seton Lake. — [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 — NO authored split needed. — [review · was:auto] assume nothing — re-decide. — [human-review 2026-08-04 lake-verify] VERIFIED auto_lake_edge: 'downstream of Seton Lake' = lake-outlet edge, handled for free. n/a. (Shared boundary with -8eb4d1.) [reviewed 2026-08-08 manual-review batch=seton-3-16] [NOTE: the Seton reach should INCLUDE the man-made canal feature \"Seton River (canal)\" (BC Hydro Power Canal, Seton Dam intake -> Seton Powerhouse) as part of the fishable water]",
               "name_verbatim": "SETON RIVER (includes BC Hydro Power Canal upstream of"
             },
             {
@@ -11446,7 +11446,7 @@
               "anchor_kind": "lake",
               "src": "rule",
               "resolver_hint": "lake_reach",
-              "notes": "[lake-class: lake_split] outlet of Seton Lake. — [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 — NO authored split needed. — [review · was:auto] assume nothing — re-decide. — [human-review 2026-08-04 lake-verify] VERIFIED auto_lake_edge: 'Downstream of Seton Lake' = lake-outlet edge, handled for free. n/a. Duplicate/shared split with -5f4cbe.",
+              "notes": "[lake-class: lake_split] outlet of Seton Lake. — [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 — NO authored split needed. — [review · was:auto] assume nothing — re-decide. — [human-review 2026-08-04 lake-verify] VERIFIED auto_lake_edge: 'Downstream of Seton Lake' = lake-outlet edge, handled for free. n/a. Duplicate/shared split with -5f4cbe. [reviewed 2026-08-08 manual-review batch=seton-3-16] [NOTE: the Seton reach should INCLUDE the man-made canal feature \"Seton River (canal)\" (BC Hydro Power Canal, Seton Dam intake -> Seton Powerhouse) as part of the fishable water]",
               "name_verbatim": "SETON RIVER (includes BC Hydro Power Canal upstream of",
               "locator_text": "Downstream of Seton Lake"
             }
@@ -11469,7 +11469,7 @@
               "anchor_kind": "lake",
               "src": "rule",
               "resolver_hint": "lake_reach",
-              "notes": "[lake-class: lake_split] outlet of Seton Lake. — [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 — NO authored split needed. — [review · was:auto] assume nothing — re-decide. — [human-review 2026-08-04 lake-verify] VERIFIED auto_lake_edge: 'downstream of Seton Lake' = lake-outlet edge, handled for free. n/a. (Shared boundary with -8eb4d1.)",
+              "notes": "[lake-class: lake_split] outlet of Seton Lake. — [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 — NO authored split needed. — [review · was:auto] assume nothing — re-decide. — [human-review 2026-08-04 lake-verify] VERIFIED auto_lake_edge: 'downstream of Seton Lake' = lake-outlet edge, handled for free. n/a. (Shared boundary with -8eb4d1.) [reviewed 2026-08-08 manual-review batch=seton-3-16] [NOTE: the Seton reach should INCLUDE the man-made canal feature \"Seton River (canal)\" (BC Hydro Power Canal, Seton Dam intake -> Seton Powerhouse) as part of the fishable water]",
               "name_verbatim": "SETON RIVER (includes BC Hydro Power Canal upstream of",
               "locator_text": "downstream of Seton Lake"
             },
@@ -11479,7 +11479,7 @@
               "anchor_kind": "lake",
               "src": "rule",
               "resolver_hint": "lake_reach",
-              "notes": "[lake-class: lake_split] outlet of Seton Lake. — [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 — NO authored split needed. — [review · was:auto] assume nothing — re-decide. — [human-review 2026-08-04 lake-verify] VERIFIED auto_lake_edge: 'Downstream of Seton Lake' = lake-outlet edge, handled for free. n/a. Duplicate/shared split with -5f4cbe.",
+              "notes": "[lake-class: lake_split] outlet of Seton Lake. — [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 — NO authored split needed. — [review · was:auto] assume nothing — re-decide. — [human-review 2026-08-04 lake-verify] VERIFIED auto_lake_edge: 'Downstream of Seton Lake' = lake-outlet edge, handled for free. n/a. Duplicate/shared split with -5f4cbe. [reviewed 2026-08-08 manual-review batch=seton-3-16] [NOTE: the Seton reach should INCLUDE the man-made canal feature \"Seton River (canal)\" (BC Hydro Power Canal, Seton Dam intake -> Seton Powerhouse) as part of the fishable water]",
               "name_verbatim": "SETON RIVER (includes BC Hydro Power Canal upstream of"
             }
           ]
@@ -11487,25 +11487,25 @@
         {
           "src": "entry",
           "text": "includes BC Hydro Power Canal upstream of the dam up to signs located on Seton Lake",
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "seton-river-includes-bc-hydro-power-canal-ups-95a44d-a",
-              "status": "deferred",
-              "anchor_kind": "point",
+              "status": "not_applicable",
+              "anchor_kind": "not_a_split",
               "src": "name",
               "resolver_hint": "dam_weir_fence",
-              "notes": "[auto-proposal H] Seton Dam (Seton Lake outlet) + BC Hydro Power Canal on Seton River / Seton Lake outlet. Candidate coord [-121.97777, 50.66951]. OSM: https://www.openstreetmap.org/?mlat=50.66951&mlon=-121.97777#map=15/50.66951/-121.97777. Verify: Confirm Seton Dam at the Seton Lake outlet; the reg also includes the parallel BC Hydro Power Canal up to signs on Seton Lake.. Seton Dam controls the Seton River at the Seton Lake outlet. Coord = FWA Seton River exit from the Seton Lake polygon. The entry also includes the BC Hydro Power Canal upstream of the dam up to signs on Seton Lake (a parallel man-made channel - may need separate geometry). [structural-split 2026-08-05 from \"includes BC Hydro Power Canal upstream of the dam up to sign\"] boundary=includes BC Hydro Power Canal upstream of the dam [deferred 2026-08-06] BC Hydro Power Canal is labelled as a river in FWA (no separate split); dam ~[-121.9246, 50.6727]. Per review.",
+              "notes": "[auto-proposal H] Seton Dam (Seton Lake outlet) + BC Hydro Power Canal on Seton River / Seton Lake outlet. Candidate coord [-121.97777, 50.66951]. OSM: https://www.openstreetmap.org/?mlat=50.66951&mlon=-121.97777#map=15/50.66951/-121.97777. Verify: Confirm Seton Dam at the Seton Lake outlet; the reg also includes the parallel BC Hydro Power Canal up to signs on Seton Lake.. Seton Dam controls the Seton River at the Seton Lake outlet. Coord = FWA Seton River exit from the Seton Lake polygon. The entry also includes the BC Hydro Power Canal upstream of the dam up to signs on Seton Lake (a parallel man-made channel - may need separate geometry). [structural-split 2026-08-05 from \"includes BC Hydro Power Canal upstream of the dam up to sign\"] boundary=includes BC Hydro Power Canal upstream of the dam [deferred 2026-08-06] BC Hydro Power Canal is labelled as a river in FWA (no separate split); dam ~[-121.9246, 50.6727]. Per review. [reviewed 2026-08-08 manual-review batch=seton-3-16] [n/a: water-extent clause (fishable water includes the BC Hydro Power Canal upstream of the dam), not an internal reach split] [NOTE: the Seton reach should INCLUDE the man-made canal feature \"Seton River (canal)\" (BC Hydro Power Canal, Seton Dam intake -> Seton Powerhouse) as part of the fishable water]",
               "name_verbatim": "SETON RIVER (includes BC Hydro Power Canal upstream of",
               "locator_text": "includes BC Hydro Power Canal upstream of the dam"
             },
             {
               "id": "seton-river-includes-bc-hydro-power-canal-ups-95a44d-b",
-              "status": "todo",
-              "anchor_kind": "lake",
+              "status": "not_applicable",
+              "anchor_kind": "not_a_split",
               "src": "name",
               "resolver_hint": "boundary_signs",
-              "notes": "[auto-proposal H] Seton Dam (Seton Lake outlet) + BC Hydro Power Canal on Seton River / Seton Lake outlet. Candidate coord [-121.97777, 50.66951]. OSM: https://www.openstreetmap.org/?mlat=50.66951&mlon=-121.97777#map=15/50.66951/-121.97777. Verify: Confirm Seton Dam at the Seton Lake outlet; the reg also includes the parallel BC Hydro Power Canal up to signs on Seton Lake.. Seton Dam controls the Seton River at the Seton Lake outlet. Coord = FWA Seton River exit from the Seton Lake polygon. The entry also includes the BC Hydro Power Canal upstream of the dam up to signs on Seton Lake (a parallel man-made channel - may need separate geometry). [structural-split 2026-08-05 from \"includes BC Hydro Power Canal upstream of the dam up to sign\"] boundary=signs located on Seton Lake [hint-fix 2026-08-06 lake_reach->boundary_signs]",
+              "notes": "[auto-proposal H] Seton Dam (Seton Lake outlet) + BC Hydro Power Canal on Seton River / Seton Lake outlet. Candidate coord [-121.97777, 50.66951]. OSM: https://www.openstreetmap.org/?mlat=50.66951&mlon=-121.97777#map=15/50.66951/-121.97777. Verify: Confirm Seton Dam at the Seton Lake outlet; the reg also includes the parallel BC Hydro Power Canal up to signs on Seton Lake.. Seton Dam controls the Seton River at the Seton Lake outlet. Coord = FWA Seton River exit from the Seton Lake polygon. The entry also includes the BC Hydro Power Canal upstream of the dam up to signs on Seton Lake (a parallel man-made channel - may need separate geometry). [structural-split 2026-08-05 from \"includes BC Hydro Power Canal upstream of the dam up to sign\"] boundary=signs located on Seton Lake [hint-fix 2026-08-06 lake_reach->boundary_signs] [reviewed 2026-08-08 manual-review batch=seton-3-16] [n/a: upstream extent limit = signs out on Seton Lake; not a reach boundary and not a mappable feature] [NOTE: the Seton reach should INCLUDE the man-made canal feature \"Seton River (canal)\" (BC Hydro Power Canal, Seton Dam intake -> Seton Powerhouse) as part of the fishable water]",
               "name_verbatim": "SETON RIVER (includes BC Hydro Power Canal upstream of",
               "locator_text": "signs located on Seton Lake"
             }
@@ -11514,31 +11514,32 @@
         {
           "src": "name",
           "text": "SETON RIVER (includes BC Hydro Power Canal upstream of the dam up to signs located on Seton Lake)",
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "seton-river-includes-bc-hydro-power-canal-ups-95a44d-a",
-              "status": "deferred",
-              "anchor_kind": "point",
+              "status": "not_applicable",
+              "anchor_kind": "not_a_split",
               "src": "name",
               "resolver_hint": "dam_weir_fence",
-              "notes": "[auto-proposal H] Seton Dam (Seton Lake outlet) + BC Hydro Power Canal on Seton River / Seton Lake outlet. Candidate coord [-121.97777, 50.66951]. OSM: https://www.openstreetmap.org/?mlat=50.66951&mlon=-121.97777#map=15/50.66951/-121.97777. Verify: Confirm Seton Dam at the Seton Lake outlet; the reg also includes the parallel BC Hydro Power Canal up to signs on Seton Lake.. Seton Dam controls the Seton River at the Seton Lake outlet. Coord = FWA Seton River exit from the Seton Lake polygon. The entry also includes the BC Hydro Power Canal upstream of the dam up to signs on Seton Lake (a parallel man-made channel - may need separate geometry). [structural-split 2026-08-05 from \"includes BC Hydro Power Canal upstream of the dam up to sign\"] boundary=includes BC Hydro Power Canal upstream of the dam [deferred 2026-08-06] BC Hydro Power Canal is labelled as a river in FWA (no separate split); dam ~[-121.9246, 50.6727]. Per review.",
+              "notes": "[auto-proposal H] Seton Dam (Seton Lake outlet) + BC Hydro Power Canal on Seton River / Seton Lake outlet. Candidate coord [-121.97777, 50.66951]. OSM: https://www.openstreetmap.org/?mlat=50.66951&mlon=-121.97777#map=15/50.66951/-121.97777. Verify: Confirm Seton Dam at the Seton Lake outlet; the reg also includes the parallel BC Hydro Power Canal up to signs on Seton Lake.. Seton Dam controls the Seton River at the Seton Lake outlet. Coord = FWA Seton River exit from the Seton Lake polygon. The entry also includes the BC Hydro Power Canal upstream of the dam up to signs on Seton Lake (a parallel man-made channel - may need separate geometry). [structural-split 2026-08-05 from \"includes BC Hydro Power Canal upstream of the dam up to sign\"] boundary=includes BC Hydro Power Canal upstream of the dam [deferred 2026-08-06] BC Hydro Power Canal is labelled as a river in FWA (no separate split); dam ~[-121.9246, 50.6727]. Per review. [reviewed 2026-08-08 manual-review batch=seton-3-16] [n/a: water-extent clause (fishable water includes the BC Hydro Power Canal upstream of the dam), not an internal reach split] [NOTE: the Seton reach should INCLUDE the man-made canal feature \"Seton River (canal)\" (BC Hydro Power Canal, Seton Dam intake -> Seton Powerhouse) as part of the fishable water]",
               "name_verbatim": "SETON RIVER (includes BC Hydro Power Canal upstream of",
               "locator_text": "includes BC Hydro Power Canal upstream of the dam"
             },
             {
               "id": "seton-river-includes-bc-hydro-power-canal-ups-95a44d-b",
-              "status": "todo",
-              "anchor_kind": "lake",
+              "status": "not_applicable",
+              "anchor_kind": "not_a_split",
               "src": "name",
               "resolver_hint": "boundary_signs",
-              "notes": "[auto-proposal H] Seton Dam (Seton Lake outlet) + BC Hydro Power Canal on Seton River / Seton Lake outlet. Candidate coord [-121.97777, 50.66951]. OSM: https://www.openstreetmap.org/?mlat=50.66951&mlon=-121.97777#map=15/50.66951/-121.97777. Verify: Confirm Seton Dam at the Seton Lake outlet; the reg also includes the parallel BC Hydro Power Canal up to signs on Seton Lake.. Seton Dam controls the Seton River at the Seton Lake outlet. Coord = FWA Seton River exit from the Seton Lake polygon. The entry also includes the BC Hydro Power Canal upstream of the dam up to signs on Seton Lake (a parallel man-made channel - may need separate geometry). [structural-split 2026-08-05 from \"includes BC Hydro Power Canal upstream of the dam up to sign\"] boundary=signs located on Seton Lake [hint-fix 2026-08-06 lake_reach->boundary_signs]",
+              "notes": "[auto-proposal H] Seton Dam (Seton Lake outlet) + BC Hydro Power Canal on Seton River / Seton Lake outlet. Candidate coord [-121.97777, 50.66951]. OSM: https://www.openstreetmap.org/?mlat=50.66951&mlon=-121.97777#map=15/50.66951/-121.97777. Verify: Confirm Seton Dam at the Seton Lake outlet; the reg also includes the parallel BC Hydro Power Canal up to signs on Seton Lake.. Seton Dam controls the Seton River at the Seton Lake outlet. Coord = FWA Seton River exit from the Seton Lake polygon. The entry also includes the BC Hydro Power Canal upstream of the dam up to signs on Seton Lake (a parallel man-made channel - may need separate geometry). [structural-split 2026-08-05 from \"includes BC Hydro Power Canal upstream of the dam up to sign\"] boundary=signs located on Seton Lake [hint-fix 2026-08-06 lake_reach->boundary_signs] [reviewed 2026-08-08 manual-review batch=seton-3-16] [n/a: upstream extent limit = signs out on Seton Lake; not a reach boundary and not a mappable feature] [NOTE: the Seton reach should INCLUDE the man-made canal feature \"Seton River (canal)\" (BC Hydro Power Canal, Seton Dam intake -> Seton Powerhouse) as part of the fishable water]",
               "name_verbatim": "SETON RIVER (includes BC Hydro Power Canal upstream of",
               "locator_text": "signs located on Seton Lake"
             }
           ]
         }
-      ]
+      ],
+      "reviewed": "2026-08-08"
     },
     "344ca048": {
       "entry_id": "344ca048",

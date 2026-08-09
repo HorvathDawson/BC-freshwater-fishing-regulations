@@ -7,8 +7,8 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 |---|--:|
 | NO_CURATION | 1 |
 | MISSING_SPLITS | 2 |
-| INCOMPLETE | 145 |
-| COMPLETE | 164 |
+| INCOMPLETE | 144 |
+| COMPLETE | 165 |
 | NO_SPLIT | 75 |
 
 **Drift** (curated rows matching no source locator): 6
@@ -121,12 +121,6 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 - • [rule] “Downstream of Nahatlatch Lake (including Hannah and Frances lakes;” → nahatlatch-river-0bb710[not_applicable], nahatlatch-river-1d1eaf[not_applicable], nahatlatch-river-a0ebb8[not_applicable]
 - • [except] “except as noted upstream of” → nahatlatch-river-1d1eaf[not_applicable], nahatlatch-river-a0ebb8[not_applicable]
 - • [rule] “downstream of Nahatlatch Lake” → nahatlatch-river-0bb710[not_applicable], nahatlatch-river-1d1eaf[not_applicable]
-
-## SETON RIVER (includes BC Hydro Power Canal upstream of the dam up to signs located on Seton Lake) · MU ['3-16'] · p34 · [INCOMPLETE] (5a3609ce)
-- • [water] “includes BC Hydro Power Canal upstream of the dam up to signs loca” → seton-river-includes-bc-hydro-power-canal-ups-95a44d-a[deferred], seton-river-includes-bc-hydro-power-canal-ups-95a44d-b[todo]
-- • [rule] “downstream of Seton Lake” → seton-river-includes-bc-hydro-power-canal-ups-5f4cbe[not_applicable], seton-river-includes-bc-hydro-power-canal-ups-8eb4d1[not_applicable]
-- • [rule] “Downstream of Seton Lake” → seton-river-includes-bc-hydro-power-canal-ups-5f4cbe[not_applicable], seton-river-includes-bc-hydro-power-canal-ups-8eb4d1[not_applicable]
-- • [entry] “includes BC Hydro Power Canal upstream of the dam up to signs loca” → seton-river-includes-bc-hydro-power-canal-ups-95a44d-a[deferred], seton-river-includes-bc-hydro-power-canal-ups-95a44d-b[todo]
 
 ## CRESTON VALLEY WILDLIFE MANAGEMENT AREA (CVWMA) WATERS · MU ['4-6'] · p38 · [INCOMPLETE] (7e0b104a)
 - • [rule] “within the CVWMA, including Six Mile Lake, Leach Lake, Kootenay Ri” → creston-valley-wildlife-management-area-cvwma-911082[todo]
