@@ -7,8 +7,8 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 |---|--:|
 | NO_CURATION | 1 |
 | MISSING_SPLITS | 2 |
-| INCOMPLETE | 121 |
-| COMPLETE | 188 |
+| INCOMPLETE | 120 |
+| COMPLETE | 189 |
 | NO_SPLIT | 75 |
 
 **Drift** (curated rows matching no source locator): 6
@@ -83,13 +83,6 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 - • [rule] “upstream of the Hwy 1 bridge” → nanaimo-river-41353f[curated]
 - • [rule] “upstream of the westernmost of the two Nanaimo Lakes, known locall” → nanaimo-river-76bf11[not_applicable]
 - • [rule] “on parts” → nanaimo-river-bd9e20[not_applicable]
-
-## CLEARWATER RIVER · MU ['3-40', '3-46'] · p31 · [INCOMPLETE] (2e5c3843)
-- • [rule] “Downstream of old Clearwater Bridge” → clearwater-river-9cb106[todo]
-- • [rule] “Downstream of old Clearwater Bridge” → clearwater-river-9cb106[todo]
-- • [rule] “from Falls Creek to Mahood River” → clearwater-river-4ba0c8-a[curated], clearwater-river-4ba0c8-b[curated]
-- • [rule] “from Mahood River to North Thompson River” → clearwater-river-4ba0c8-b[curated], clearwater-river-dddc3f-a[curated], clearwater-river-dddc3f-b[curated]
-- • [rule] “downstream of Falls Creek” → clearwater-river-1335bb[curated], clearwater-river-4ba0c8-a[curated]
 
 ## SKEENA RIVER (mainstem only) · MU ['6-10'] · p59 · [INCOMPLETE] (2fc0d1b9)
 - • [rule] “from Exchamsiks River to 1.5 km upstream of Kitsumkalum River (kno” → skeena-river-mainstem-only-b079a0-a[curated], skeena-river-mainstem-only-b079a0-b[curated]

@@ -9346,7 +9346,7 @@
       "image": "page_031_row_030.png",
       "symbols": [],
       "reg_text": "Downstream of old Clearwater Bridge exempt from spring closure, except **No Fishing **May 1-June 30\nBait ban **(a)** from Falls Creek to Mahood River, all year, and **(b)** from Mahood River to North Thompson River, Sept 1-July 31\nNo angling from powered boats downstream of Falls Creek\nRainbow trout daily quota = 2 (none over 35 cm), char catch and release",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 5,
       "locators": [
         {
@@ -9355,15 +9355,20 @@
           "info": {
             "restriction_type": "note"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "clearwater-river-9cb106",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal M] old Clearwater Bridge (Clearwater townsite) on Clearwater River. Candidate coord [-120.07673, 51.64191]. OSM: https://www.openstreetmap.org/?mlat=51.64191&mlon=-120.07673#map=15/51.64191/-120.07673. Verify: ROAD 2A crosses the Clearwater ~1.1 km up, at the Clearwater townsite; confirm it is the 'old Clearwater Bridge'.. Reg = 'downstream of old Clearwater Bridge'. A road crossing (ROAD 2A) intersects the river near the mouth at the Clearwater townsite -> strong candidate for the old bridge. Verify old vs new bridge on map."
+              "label": "old North Thompson Highway bridge",
+              "notes": "[auto-proposal M] old Clearwater Bridge (Clearwater townsite) on Clearwater River. Candidate coord [-120.07673, 51.64191]. OSM: https://www.openstreetmap.org/?mlat=51.64191&mlon=-120.07673#map=15/51.64191/-120.07673. Verify: ROAD 2A crosses the Clearwater ~1.1 km up, at the Clearwater townsite; confirm it is the 'old Clearwater Bridge'.. Reg = 'downstream of old Clearwater Bridge'. A road crossing (ROAD 2A) intersects the river near the mouth at the Clearwater townsite -> strong candidate for the old bridge. Verify old vs new bridge on map. [curated 2026-08-08 manual-review batch=clearwater-3-40-46] [old Clearwater Bridge = Old North Thompson Highway bridge, OSM way 41836189]",
+              "coord": [
+                -120.06695,
+                51.64926
+              ]
             }
           ]
         },
@@ -9376,15 +9381,20 @@
               "May 1-June 30"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "clearwater-river-9cb106",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal M] old Clearwater Bridge (Clearwater townsite) on Clearwater River. Candidate coord [-120.07673, 51.64191]. OSM: https://www.openstreetmap.org/?mlat=51.64191&mlon=-120.07673#map=15/51.64191/-120.07673. Verify: ROAD 2A crosses the Clearwater ~1.1 km up, at the Clearwater townsite; confirm it is the 'old Clearwater Bridge'.. Reg = 'downstream of old Clearwater Bridge'. A road crossing (ROAD 2A) intersects the river near the mouth at the Clearwater townsite -> strong candidate for the old bridge. Verify old vs new bridge on map."
+              "label": "old North Thompson Highway bridge",
+              "notes": "[auto-proposal M] old Clearwater Bridge (Clearwater townsite) on Clearwater River. Candidate coord [-120.07673, 51.64191]. OSM: https://www.openstreetmap.org/?mlat=51.64191&mlon=-120.07673#map=15/51.64191/-120.07673. Verify: ROAD 2A crosses the Clearwater ~1.1 km up, at the Clearwater townsite; confirm it is the 'old Clearwater Bridge'.. Reg = 'downstream of old Clearwater Bridge'. A road crossing (ROAD 2A) intersects the river near the mouth at the Clearwater townsite -> strong candidate for the old bridge. Verify old vs new bridge on map. [curated 2026-08-08 manual-review batch=clearwater-3-40-46] [old Clearwater Bridge = Old North Thompson Highway bridge, OSM way 41836189]",
+              "coord": [
+                -120.06695,
+                51.64926
+              ]
             }
           ]
         },
@@ -9550,7 +9560,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-08"
     },
     "ee010baf": {
       "entry_id": "ee010baf",
