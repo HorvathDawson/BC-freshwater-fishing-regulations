@@ -18781,7 +18781,7 @@
         "Stocked"
       ],
       "reg_text": "**No Fishing** upstream of Pinnacles Provincial Park, Apr 1-June 30 and downstream of Park, May 1-May 31\nYouth/Disabled Accompanied Water year round (see page 4) downstream of Pinnacles Provincial Park",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 3,
       "locators": [
         {
@@ -18793,14 +18793,20 @@
               "Apr 1-June 30"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "baker-creek-b9b499",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "area_boundary",
               "src": "rule",
-              "resolver_hint": "park_polygon"
+              "resolver_hint": "park_polygon",
+              "label": "Pinnacles Park upstream boundary",
+              "notes": "[curated 2026-08-08 manual-review batch=baker-5-13] [FWA PINNACLES PARK polygon u/s-most x Baker Creek]",
+              "coord": [
+                -122.56171,
+                52.97322
+              ]
             }
           ]
         },
@@ -18813,14 +18819,20 @@
               "May 1-May 31"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "baker-creek-aaf7ac",
-              "status": "todo",
-              "anchor_kind": "unclassified",
+              "status": "curated",
+              "anchor_kind": "area_boundary",
               "src": "rule",
-              "resolver_hint": "other_reach"
+              "resolver_hint": "other_reach",
+              "label": "Pinnacles Park downstream boundary",
+              "notes": "[curated 2026-08-08 manual-review batch=baker-5-13] [downstream park boundary, user pin 52.977704,-122.55127]",
+              "coord": [
+                -122.55127,
+                52.977704
+              ]
             }
           ]
         },
@@ -18830,14 +18842,20 @@
           "info": {
             "restriction_type": "note"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "baker-creek-b57f9e",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "area_boundary",
               "src": "rule",
-              "resolver_hint": "park_polygon"
+              "resolver_hint": "park_polygon",
+              "label": "Pinnacles Park downstream boundary",
+              "notes": "[curated 2026-08-08 manual-review batch=baker-5-13] [downstream park boundary, user pin 52.977704,-122.55127]",
+              "coord": [
+                -122.55127,
+                52.977704
+              ]
             }
           ]
         },
@@ -18847,7 +18865,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-08"
     },
     "e85446da": {
       "entry_id": "e85446da",

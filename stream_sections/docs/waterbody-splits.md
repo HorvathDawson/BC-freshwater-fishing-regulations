@@ -7,8 +7,8 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 |---|--:|
 | NO_CURATION | 1 |
 | MISSING_SPLITS | 2 |
-| INCOMPLETE | 138 |
-| COMPLETE | 171 |
+| INCOMPLETE | 137 |
+| COMPLETE | 172 |
 | NO_SPLIT | 75 |
 
 **Drift** (curated rows matching no source locator): 6
@@ -175,11 +175,6 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 - • [rule] “south of fishing boundary signs on the lake shore” → premier-lake-895b0d[deferred]
 - • [rule] “south half only” → premier-lake-d21697[todo]
 - • [rule] “south half only” → premier-lake-d21697[todo]
-
-## BAKER CREEK · MU ['5-13'] · p49 · [INCOMPLETE] (bb0964e3)
-- • [rule] “upstream of Pinnacles Provincial Park” → baker-creek-b9b499[todo]
-- • [rule] “downstream of Park” → baker-creek-aaf7ac[todo]
-- • [rule] “downstream of Pinnacles Provincial Park” → baker-creek-b57f9e[todo]
 
 ## BULKLEY RIVER · MU ['6-9'] · p56 · [INCOMPLETE] (d850b295)
 - • [rule] “upstream of Morice/Bulkley River confluence” → bulkley-river-e30268[curated]
