@@ -7,8 +7,8 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 |---|--:|
 | NO_CURATION | 1 |
 | MISSING_SPLITS | 2 |
-| INCOMPLETE | 60 |
-| COMPLETE | 249 |
+| INCOMPLETE | 59 |
+| COMPLETE | 250 |
 | NO_SPLIT | 75 |
 
 **Drift** (curated rows matching no source locator): 11
@@ -207,9 +207,6 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 
 ## ILLECILLEWAET RIVER · MU ['4-33'] · p39 · [INCOMPLETE] (b8f4c927)
 - • [rule] “downstream of Albert Canyon” → illecillewaet-river-43349c[todo]
-
-## WOOD RIVER · MU ['4-40'] · p42 · [INCOMPLETE] (934182b3)
-- • [rule] “within Hamber Provincial Park” → wood-river-495c0d[todo]
 
 ## CRANBERRY RIVER · MU ['6-15'] · p56 · [INCOMPLETE] (107fa559)
 - • [rule] “between fishing boundary signs upstream of and downstream of Cranb” → cranberry-river-699352-a[todo], cranberry-river-699352-b[todo]

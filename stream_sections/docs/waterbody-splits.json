@@ -4680,7 +4680,7 @@
               "src": "rule",
               "resolver_hint": "bridge_road_km",
               "label": "tidal boundary sign (1.5km u/s Hwy 16 br)",
-              "notes": "[auto-proposal L] Hwy 16 Bridge over Tlell River (tidal sign 1.5 km up) on Tlell River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the Hwy 16 bridge over the Tlell River (Haida Gwaii) and the tidal-boundary sign 1.5 km upstream; review.. Reg = 'tidal boundary sign 1.5 km above the Hwy 16 Bridge'. Public highway bridge on Graham Island -> map/OSM-confirmable; not in FWA. [curated 2026-08-09 verify-batch] [base=Hwy 16 bridge; +1.5km u/s -> tidal sign 53.56925,-131.93788; VERIFY upstream dir]",
+              "notes": "[auto-proposal L] Hwy 16 Bridge over Tlell River (tidal sign 1.5 km up) on Tlell River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the Hwy 16 bridge over the Tlell River (Haida Gwaii) and the tidal-boundary sign 1.5 km upstream; review.. Reg = 'tidal boundary sign 1.5 km above the Hwy 16 Bridge'. Public highway bridge on Graham Island -> map/OSM-confirmable; not in FWA. [curated 2026-08-09 verify-batch] [base=Hwy 16 bridge; +1.5km u/s -> tidal sign 53.56925,-131.93788; VERIFY upstream dir] [direction CONFIRMED: mouth is north, upstream=south, +1.5km sign correct]",
               "coord": [
                 -131.94296,
                 53.58185
@@ -6935,18 +6935,20 @@
         {
           "src": "name",
           "text": "JERRY SULINA PARK POND",
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "jerry-sulina-park-pond-629c3b",
-              "status": "todo",
-              "anchor_kind": "unclassified",
+              "status": "not_applicable",
+              "anchor_kind": "not_a_split",
               "src": "name",
-              "resolver_hint": "other_reach"
+              "resolver_hint": "other_reach",
+              "notes": "[reviewed 2026-08-09 park+warnings batch] [n/a: whole park pond, no split]"
             }
           ]
         }
-      ]
+      ],
+      "reviewed": "2026-08-09"
     },
     "5cfc51fc": {
       "entry_id": "5cfc51fc",
@@ -7966,18 +7968,20 @@
         {
           "src": "name",
           "text": "SARDIS PARK POND",
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "sardis-park-pond-61106f",
-              "status": "todo",
-              "anchor_kind": "unclassified",
+              "status": "not_applicable",
+              "anchor_kind": "not_a_split",
               "src": "name",
-              "resolver_hint": "other_reach"
+              "resolver_hint": "other_reach",
+              "notes": "[reviewed 2026-08-09 park+warnings batch] [n/a: whole park pond, no split]"
             }
           ]
         }
-      ]
+      ],
+      "reviewed": "2026-08-09"
     },
     "5494c7fa": {
       "entry_id": "5494c7fa",
@@ -18841,7 +18845,7 @@
       "image": "page_042_row_035.png",
       "symbols": [],
       "reg_text": "**No Fishing** within Hamber Provincial Park, Sept 1-Nov 30",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 1,
       "locators": [
         {
@@ -18853,14 +18857,20 @@
               "Sept 1-Nov 30"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "wood-river-495c0d",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "area_boundary",
               "src": "rule",
-              "resolver_hint": "park_polygon"
+              "resolver_hint": "park_polygon",
+              "label": "Hamber Prov. Park boundary (Wood R exit)",
+              "notes": "[reviewed 2026-08-09 park+warnings batch] [Wood R exits Hamber Prov Park; No-Fishing = reach inside park]",
+              "coord": [
+                -117.93263,
+                52.36414
+              ]
             }
           ]
         },
@@ -18870,7 +18880,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-09"
     },
     "b4222b6f": {
       "entry_id": "b4222b6f",
@@ -22775,18 +22786,20 @@
         {
           "src": "name",
           "text": "CHILKOOT TRAIL NATIONAL HISTORIC PARK WATERS",
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "chilkoot-trail-national-historic-park-waters-f74308",
-              "status": "todo",
-              "anchor_kind": "unclassified",
+              "status": "not_applicable",
+              "anchor_kind": "not_a_split",
               "src": "name",
-              "resolver_hint": "other_reach"
+              "resolver_hint": "other_reach",
+              "notes": "[reviewed 2026-08-09 park+warnings batch] [n/a: whole-park water set, no split]"
             }
           ]
         }
-      ]
+      ],
+      "reviewed": "2026-08-09"
     },
     "107fa559": {
       "entry_id": "107fa559",
@@ -24579,14 +24592,14 @@
             {
               "id": "sustut-river-9d2852",
               "status": "curated",
-              "anchor_kind": "confluence",
+              "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "label": "BCR Bridge at Bear River mouth",
-              "notes": "[auto-proposal L] BCR (railway) Bridge at Bear River mouth on Sustut River. Candidate coord [-127.10278, 56.31778]. OSM: https://www.openstreetmap.org/?mlat=56.31778&mlon=-127.10278#map=15/56.31778/-127.10278. Verify: A rail-grade crossing (R07747 AI) intersects the Sustut ~19 km up, near the Bear River confluence; confirm it is the BCR bridge at Bear River mouth.. Reg = 'upstream of BCR Bridge at Bear River mouth'. The single linear-feature crossing found (R07747, a rail grade) sits near where Bear River joins the Sustut -> plausible BCR bridge. Verify railway bridge vs the Bear confluence on map. [curated 2026-08-09 verify-batch] [Bear R confl as proxy for BCR bridge; VERIFY]",
+              "label": "BCR Bridge at Bear River mouth (CN rail)",
+              "notes": "[auto-proposal L] BCR (railway) Bridge at Bear River mouth on Sustut River. Candidate coord [-127.10278, 56.31778]. OSM: https://www.openstreetmap.org/?mlat=56.31778&mlon=-127.10278#map=15/56.31778/-127.10278. Verify: A rail-grade crossing (R07747 AI) intersects the Sustut ~19 km up, near the Bear River confluence; confirm it is the BCR bridge at Bear River mouth.. Reg = 'upstream of BCR Bridge at Bear River mouth'. The single linear-feature crossing found (R07747, a rail grade) sits near where Bear River joins the Sustut -> plausible BCR bridge. Verify railway bridge vs the Bear confluence on map. [curated 2026-08-09 verify-batch] [Bear R confl as proxy for BCR bridge; VERIFY] [updated: actual CN rail bridge OSM way 225863164]",
               "coord": [
-                -126.97089,
-                56.28012
+                -126.97058,
+                56.2802
               ]
             }
           ]
@@ -29457,11 +29470,11 @@
         "status": "manual",
         "target": "",
         "coord": [
-          -119.4425,
-          49.0865
+          -119.53052,
+          49.08564
         ],
         "label": "Drop Structure No. 1 (~1km u/s Osoyoos Lake)",
-        "notes": "[manual anchor 2026-08-09 ESTIMATE - needs pin] 3rd exempt-reach boundary the parser folded into the McIntyre row; ~1km u/s of Osoyoos Lake north end (~49.077); no OSM/FISS feature for the channel drop structures - VERIFY/repin.",
+        "notes": "[manual anchor 2026-08-09 ESTIMATE - needs pin] 3rd exempt-reach boundary the parser folded into the McIntyre row; ~1km u/s of Osoyoos Lake north end (~49.077); no OSM/FISS feature for the channel drop structures - VERIFY/repin. [manual anchor 2026-08-09 user pin] Drop Structure No.1 ~1km u/s of Osoyoos Lake, user-provided coord",
         "entry_id": "52c291bb",
         "offset": null,
         "polygon": null,
