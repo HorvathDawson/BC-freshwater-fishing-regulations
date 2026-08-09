@@ -7086,7 +7086,7 @@
         "Incl. Tribs"
       ],
       "reg_text": "**No Fishing **upstream of 272nd Street (Jackman Road)\n**No Fishing **downstream of 272nd Street (Jackman Road), Apr 1-June 30",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 2,
       "locators": [
         {
@@ -7095,15 +7095,20 @@
           "info": {
             "restriction_type": "closure"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "nathan-beaver-creek-c062cd",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] 272nd Street (Jackman Road) bridge over Nathan/Beaver Creek on Nathan (Beaver) Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm 272nd St (Jackman Rd) crossing of Nathan Creek (Langley/Aldergrove); street grid -> review.. FWA 'Nathan Creek' match (49.17N,-122.49) is in the Fraser Valley (plausibly correct). City street bridge at 272 St -> map-only but well-defined. Upstream reach. [shared-anchor ‘272nd street (jackman road)’ — author ONE split]"
+              "label": "272 Street (Jackman Road) bridge",
+              "notes": "[auto-proposal L] 272nd Street (Jackman Road) bridge over Nathan/Beaver Creek on Nathan (Beaver) Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm 272nd St (Jackman Rd) crossing of Nathan Creek (Langley/Aldergrove); street grid -> review.. FWA 'Nathan Creek' match (49.17N,-122.49) is in the Fraser Valley (plausibly correct). City street bridge at 272 St -> map-only but well-defined. Upstream reach. [shared-anchor ‘272nd street (jackman road)’ — author ONE split] [curated 2026-08-08 manual-review batch=nathan-2-4] [272 Street x Nathan Creek, OSM way 500144309]",
+              "coord": [
+                -122.47204,
+                49.134
+              ]
             }
           ]
         },
@@ -7116,15 +7121,20 @@
               "Apr 1-June 30"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "nathan-beaver-creek-0f429c",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] 272nd Street (Jackman Road) bridge over Nathan/Beaver Creek on Nathan (Beaver) Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm 272nd St (Jackman Rd) crossing of Nathan Creek (Langley/Aldergrove); downstream reach; review.. Same 272 St bridge; downstream reach. Street bridge -> map/OSM-confirmable. [shared-anchor ‘272nd street (jackman road)’ — author ONE split]"
+              "label": "272 Street (Jackman Road) bridge",
+              "notes": "[auto-proposal L] 272nd Street (Jackman Road) bridge over Nathan/Beaver Creek on Nathan (Beaver) Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm 272nd St (Jackman Rd) crossing of Nathan Creek (Langley/Aldergrove); downstream reach; review.. Same 272 St bridge; downstream reach. Street bridge -> map/OSM-confirmable. [shared-anchor ‘272nd street (jackman road)’ — author ONE split] [curated 2026-08-08 manual-review batch=nathan-2-4] [272 Street x Nathan Creek, OSM way 500144309]",
+              "coord": [
+                -122.47204,
+                49.134
+              ]
             }
           ]
         },
@@ -7134,7 +7144,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-08"
     },
     "abb7b842": {
       "entry_id": "abb7b842",

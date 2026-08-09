@@ -7,8 +7,8 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 |---|--:|
 | NO_CURATION | 1 |
 | MISSING_SPLITS | 2 |
-| INCOMPLETE | 126 |
-| COMPLETE | 183 |
+| INCOMPLETE | 125 |
+| COMPLETE | 184 |
 | NO_SPLIT | 75 |
 
 **Drift** (curated rows matching no source locator): 6
@@ -193,10 +193,6 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 ## CHEHALIS RIVER · MU ['2-19'] · p24 · [INCOMPLETE] (bb6d5fe5)
 - • [rule] “from boundary signs at outlet of Chehalis Lake to main logging roa” → chehalis-river-6a99b5-a[not_applicable], chehalis-river-6a99b5-b[todo]
 - • [rule] “downstream of the main logging road bridge situated approximately ” → chehalis-river-8cfa74[curated]
-
-## NATHAN (Beaver) CREEK · MU ['2-4'] · p27 · [INCOMPLETE] (8bba2d84)
-- • [rule] “upstream of 272nd Street (Jackman Road)” → nathan-beaver-creek-c062cd[todo]
-- • [rule] “downstream of 272nd Street (Jackman Road)” → nathan-beaver-creek-0f429c[todo]
 
 ## SAKINAW LAKE · MU ['2-5'] · p27 · [INCOMPLETE] (e9eaff25)
 - • [rule] “easterly of a line drawn from a boundary sign located at the north” → sakinaw-lake-df4750[todo]
