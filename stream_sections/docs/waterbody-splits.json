@@ -2121,7 +2121,7 @@
       "image": "page_018_row_010.png",
       "symbols": [],
       "reg_text": "**No Fishing** Jan 1-Apr 30, from the dam to fishing boundary signs approximately 50 m upstream (southwest) of the Ash Main Bridge\nSingle barbless hook, no wild rainbow trout over 50 cm",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 1,
       "locators": [
         {
@@ -2133,24 +2133,24 @@
               "Jan 1-Apr 30"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "great-central-lake-4ff0ab-a",
-              "status": "todo",
+              "status": "deferred",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "dam_weir_fence",
-              "notes": "[auto-proposal H] Dam at Great Central Lake outlet on Stamp River / Great Central Lake outlet (dam -> signs near Ash Main Bridge). Candidate coord [-124.99219, 49.32835]. OSM: https://www.openstreetmap.org/?mlat=49.32835&mlon=-124.99219#map=15/49.32835/-124.99219. Verify: Confirm the dam at the Great Central Lake outlet; downstream end = signs ~50 m SW of the Ash Main Bridge.. A dam controls the Great Central Lake outlet, source of the Stamp River. Coord = FWA stream exit from the Great Central Lake polygon. Reach runs to boundary signs ~50 m upstream (SW) of the Ash Main Bridge. Same dam as the Stamp River item (stamp-river-853100). — [human-review 2026-08-04 reclassified: Stamp River reach] NOT a lake split nor a duplicate. Distinct Stamp River closure 'from the Great Central Lake dam downstream to signs ~50m upstream of Ash Main Bridge, Jan1-Apr30'. Two-boundary: A = the dam (= Great Central Lake outlet), B = signs ~50m above Ash Main Bridge. Author on Stamp River blk (related to but distinct from stamp-river-853100 = Ash R confluence→dam). [structural-split 2026-08-05 from \"from the dam to fishing boundary signs approximately 50 m up\"] boundary=dam",
+              "notes": "[auto-proposal H] Dam at Great Central Lake outlet on Stamp River / Great Central Lake outlet (dam -> signs near Ash Main Bridge). Candidate coord [-124.99219, 49.32835]. OSM: https://www.openstreetmap.org/?mlat=49.32835&mlon=-124.99219#map=15/49.32835/-124.99219. Verify: Confirm the dam at the Great Central Lake outlet; downstream end = signs ~50 m SW of the Ash Main Bridge.. A dam controls the Great Central Lake outlet, source of the Stamp River. Coord = FWA stream exit from the Great Central Lake polygon. Reach runs to boundary signs ~50 m upstream (SW) of the Ash Main Bridge. Same dam as the Stamp River item (stamp-river-853100). — [human-review 2026-08-04 reclassified: Stamp River reach] NOT a lake split nor a duplicate. Distinct Stamp River closure 'from the Great Central Lake dam downstream to signs ~50m upstream of Ash Main Bridge, Jan1-Apr30'. Two-boundary: A = the dam (= Great Central Lake outlet), B = signs ~50m above Ash Main Bridge. Author on Stamp River blk (related to but distinct from stamp-river-853100 = Ash R confluence→dam). [structural-split 2026-08-05 from \"from the dam to fishing boundary signs approximately 50 m up\"] boundary=dam [deferred 2026-08-08 lake-split: Great Central Lake dam -> signs near Ash Main Bridge reach; defer per lake-split rule]",
               "locator_text": "dam"
             },
             {
               "id": "great-central-lake-4ff0ab-b",
-              "status": "todo",
+              "status": "deferred",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal H] Dam at Great Central Lake outlet on Stamp River / Great Central Lake outlet (dam -> signs near Ash Main Bridge). Candidate coord [-124.99219, 49.32835]. OSM: https://www.openstreetmap.org/?mlat=49.32835&mlon=-124.99219#map=15/49.32835/-124.99219. Verify: Confirm the dam at the Great Central Lake outlet; downstream end = signs ~50 m SW of the Ash Main Bridge.. A dam controls the Great Central Lake outlet, source of the Stamp River. Coord = FWA stream exit from the Great Central Lake polygon. Reach runs to boundary signs ~50 m upstream (SW) of the Ash Main Bridge. Same dam as the Stamp River item (stamp-river-853100). — [human-review 2026-08-04 reclassified: Stamp River reach] NOT a lake split nor a duplicate. Distinct Stamp River closure 'from the Great Central Lake dam downstream to signs ~50m upstream of Ash Main Bridge, Jan1-Apr30'. Two-boundary: A = the dam (= Great Central Lake outlet), B = signs ~50m above Ash Main Bridge. Author on Stamp River blk (related to but distinct from stamp-river-853100 = Ash R confluence→dam). [structural-split 2026-08-05 from \"from the dam to fishing boundary signs approximately 50 m up\"] boundary=fishing boundary signs approximately 50 m upstream (southwest) of the Ash Main Bridge [hint-fix 2026-08-06 dam_weir_fence->bridge_road_km]",
+              "notes": "[auto-proposal H] Dam at Great Central Lake outlet on Stamp River / Great Central Lake outlet (dam -> signs near Ash Main Bridge). Candidate coord [-124.99219, 49.32835]. OSM: https://www.openstreetmap.org/?mlat=49.32835&mlon=-124.99219#map=15/49.32835/-124.99219. Verify: Confirm the dam at the Great Central Lake outlet; downstream end = signs ~50 m SW of the Ash Main Bridge.. A dam controls the Great Central Lake outlet, source of the Stamp River. Coord = FWA stream exit from the Great Central Lake polygon. Reach runs to boundary signs ~50 m upstream (SW) of the Ash Main Bridge. Same dam as the Stamp River item (stamp-river-853100). — [human-review 2026-08-04 reclassified: Stamp River reach] NOT a lake split nor a duplicate. Distinct Stamp River closure 'from the Great Central Lake dam downstream to signs ~50m upstream of Ash Main Bridge, Jan1-Apr30'. Two-boundary: A = the dam (= Great Central Lake outlet), B = signs ~50m above Ash Main Bridge. Author on Stamp River blk (related to but distinct from stamp-river-853100 = Ash R confluence→dam). [structural-split 2026-08-05 from \"from the dam to fishing boundary signs approximately 50 m up\"] boundary=fishing boundary signs approximately 50 m upstream (southwest) of the Ash Main Bridge [hint-fix 2026-08-06 dam_weir_fence->bridge_road_km] [deferred 2026-08-08 lake-split: Great Central Lake dam -> signs near Ash Main Bridge reach; defer per lake-split rule]",
               "locator_text": "fishing boundary signs approximately 50 m upstream (southwest) of the Ash Main Bridge"
             }
           ]

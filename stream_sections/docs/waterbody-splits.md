@@ -7,8 +7,8 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 |---|--:|
 | NO_CURATION | 1 |
 | MISSING_SPLITS | 2 |
-| INCOMPLETE | 130 |
-| COMPLETE | 179 |
+| INCOMPLETE | 129 |
+| COMPLETE | 180 |
 | NO_SPLIT | 75 |
 
 **Drift** (curated rows matching no source locator): 6
@@ -275,9 +275,6 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 
 ## EVE RIVER · MU ['1-10'] · p17 · [INCOMPLETE] (167048d4)
 - • [rule] “upstream of the fishing boundary signs (near the South Main Bridge” → adam-river-except-eve-river-939f98-b[curated], eve-river-41b1eb[todo]
-
-## GREAT CENTRAL LAKE · MU ['1-7'] · p18 · [INCOMPLETE] (ac438ab8)
-- • [rule] “from the dam to fishing boundary signs approximately 50 m upstream” → great-central-lake-4ff0ab-a[todo], great-central-lake-4ff0ab-b[todo]
 
 ## MAMIN RIVER · MU ['6-13'] · p19 · [INCOMPLETE] (7b4287e4)
 - • [rule] “upstream of fishing boundary signs on third bridge approximately 1” → mamin-river-608d92[todo]
