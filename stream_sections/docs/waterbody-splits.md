@@ -7,8 +7,8 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 |---|--:|
 | NO_CURATION | 1 |
 | MISSING_SPLITS | 2 |
-| INCOMPLETE | 129 |
-| COMPLETE | 180 |
+| INCOMPLETE | 128 |
+| COMPLETE | 181 |
 | NO_SPLIT | 75 |
 
 **Drift** (curated rows matching no source locator): 6
@@ -187,10 +187,6 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 ## ENGLISHMAN RIVER · MU ['1-5'] · p17 · [INCOMPLETE] (fbf29fb0)
 - • [rule] “from lower falls in Englishman River Park to signs approximately 1” → englishman-river-8660ed-a[curated], englishman-river-8660ed-b[todo]
 - • [rule] “downstream of the lower falls in Englishman River Falls Provincial” → englishman-river-46a674-a[curated], englishman-river-46a674-b[curated]
-
-## KEOGH RIVER · MU ['1-13'] · p18 · [INCOMPLETE] (f02f2954)
-- • [rule] “downstream of lower fish counting fence near tidewater” → keogh-river-bf1c5b[todo]
-- • [rule] “in all parts” → keogh-river-8903e4[todo]
 
 ## TOQUART RIVER · MU ['1-8'] · p21 · [INCOMPLETE] (492dbcc9)
 - • [rule] “upstream of the Toquart mainline logging bridge when open” → toquart-river-ef1ea4[todo]

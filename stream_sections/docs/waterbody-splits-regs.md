@@ -3,7 +3,7 @@
 Every reg entry (source-first), booklet order. **Bold** = a live split boundary; plain text
 = whole-water / tributary-set / `not_applicable`. Regenerate; do not hand-edit.
 
-387 entries · 415 highlighted boundary phrases.
+387 entries · 414 highlighted boundary phrases.
 
 | Water | MU | p | Regulation |
 |---|---|--:|---|
@@ -37,7 +37,7 @@ Every reg entry (source-first), booklet order. **Bold** = a live split boundary;
 | HEALY LAKE'S OUTLET STREAM | 1-5 | 18 | No Fishing |
 | HEBER RIVER | 1-9 | 18 | No Fishing **upstream of top of lower canyon, located 1.3km upstream of the Gold River confluence** Nov 1-Sept 14 No Fishing **downstream of top of lower canyon, located 1.3km upstream of the Gold River confluence** Folpye fnishing only **downstream of Saunders Creek to the top of the lower canyon, located 1.3km upstream of the Gold River confluence** when |
 | JOHN HART LAKE'S TRIBUTARIES | 1-10 | 18 | No Fishing Apr 15-July 15 (includes **channel downstream of Ladore Dam**) |
-| KEOGH RIVER | 1-13 | 18 | No Fishing **downstream of lower fish counting fence near tidewater** No Fishing **in all parts**[Includes Tributaries], Dec 1-May 31 |
+| KEOGH RIVER | 1-13 | 18 | No Fishing **downstream of lower fish counting fence near tidewater** No Fishing in all parts[Includes Tributaries], Dec 1-May 31 |
 | KOKISH RIVER | 1-11 | 18 | No Fishing **from boundary signs in Kokish canyon to Ida Lake**, Nov 1-Apr 30; No Fishing **from the log boom located approximately 100 m upstream of the IPP intake to signs at the tail of the canyon pool located approximately 250 m downstream** No Fishing **between signs at the IPP tail race confluence downstream approximately 500 m to signs** |
 | LITTLE QUALICUM RIVER | 1-6 | 19 | No Fishing July 15-Aug 31[Includes Tributaries], No Fishing - All tributaries No Fishing **from the falls in Little Qualicum Falls Provincial Park downstream to the hatchery fence**, Dec 1-May 31 The standard 100 m closure around a fish rearing facility has been reduced to a no fishing area **from the hatchery fence to signs approximately 35 m downstream** Fly fishing only, Sept 1-Nov 30 (where open) |
 | LONG LAKE (Nanaimo) | 1-5 | 19 | Speed restriction **on parts** (60 km/h); wheelchair accessible fishing platform is located in Loudon Park |

@@ -2444,7 +2444,7 @@
       "image": "page_018_row_035.png",
       "symbols": [],
       "reg_text": "**No Fishing** downstream of lower fish counting fence near tidewater\n**No Fishing** in all parts[Includes Tributaries], Dec 1-May 31",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 2,
       "locators": [
         {
@@ -2453,15 +2453,20 @@
           "info": {
             "restriction_type": "closure"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "keogh-river-bf1c5b",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "dam_weir_fence",
-              "notes": "[auto-proposal L] Lower fish counting fence near tidewater on Keogh River (near mouth). Candidate coord [-127.34841, 50.67776]. OSM: https://www.openstreetmap.org/?mlat=50.67776&mlon=-127.34841#map=15/50.67776/-127.34841. Verify: Locate the lower counting fence on the Keogh River near tidewater; candidate is the FWA mouth as a reference.. Closure downstream of the lower fish counting fence near tidewater on the Keogh River. Fence point not in FWA; candidate = FWA Keogh River mouth [-127.348,50.678] as the tidewater reference. Refine upstream to the actual fence on a map."
+              "label": "lower fish counting fence (near tidewater)",
+              "notes": "[auto-proposal L] Lower fish counting fence near tidewater on Keogh River (near mouth). Candidate coord [-127.34841, 50.67776]. OSM: https://www.openstreetmap.org/?mlat=50.67776&mlon=-127.34841#map=15/50.67776/-127.34841. Verify: Locate the lower counting fence on the Keogh River near tidewater; candidate is the FWA mouth as a reference.. Closure downstream of the lower fish counting fence near tidewater on the Keogh River. Fence point not in FWA; candidate = FWA Keogh River mouth [-127.348,50.678] as the tidewater reference. Refine upstream to the actual fence on a map. [curated 2026-08-08 manual-review batch=keogh-1-13] [Keogh counting fence = OSM way 175756126 (waterway=dam), snapped to river m346, gap 7m]",
+              "coord": [
+                -127.35055,
+                50.67501
+              ]
             }
           ]
         },
@@ -2475,14 +2480,15 @@
             ],
             "includes_tributaries": true
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "keogh-river-8903e4",
-              "status": "todo",
-              "anchor_kind": "unclassified",
+              "status": "not_applicable",
+              "anchor_kind": "not_a_split",
               "src": "rule",
-              "resolver_hint": "other_reach"
+              "resolver_hint": "other_reach",
+              "notes": "[curated 2026-08-08 manual-review batch=keogh-1-13] [n/a: whole-water Dec-May closure (in all parts), no geographic split]"
             }
           ]
         },
@@ -2492,7 +2498,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-08"
     },
     "20715cbc": {
       "entry_id": "20715cbc",
