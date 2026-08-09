@@ -15148,27 +15148,30 @@
         {
           "src": "name",
           "text": "KIKOMUN CREEK PARK (all lakes in the park)",
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "kikomun-creek-park-all-lakes-in-the-park-b0c7b8",
-              "status": "todo",
-              "anchor_kind": "unclassified",
+              "status": "not_applicable",
+              "anchor_kind": "not_a_split",
               "src": "name",
               "resolver_hint": "other_reach",
+              "notes": "[reviewed 2026-08-08 manual-review batch=kikomun-4-22] [n/a: whole-park set membership (bass unlimited + no powered boats apply to all lakes in Kikomun Creek Park), not a split]",
               "locator_text": "KIKOMUN CREEK PARK"
             },
             {
               "id": "kikomun-creek-park-all-lakes-in-the-park-da478d",
-              "status": "todo",
-              "anchor_kind": "unclassified",
+              "status": "not_applicable",
+              "anchor_kind": "not_a_split",
               "src": "name",
               "resolver_hint": "other_reach",
+              "notes": "[reviewed 2026-08-08 manual-review batch=kikomun-4-22] [n/a: whole-park set membership (bass unlimited + no powered boats apply to all lakes in Kikomun Creek Park), not a split]",
               "locator_text": "all lakes in the park"
             }
           ]
         }
-      ]
+      ],
+      "reviewed": "2026-08-08"
     },
     "a58e3be6": {
       "entry_id": "a58e3be6",
