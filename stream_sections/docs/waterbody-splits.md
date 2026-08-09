@@ -7,8 +7,8 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 |---|--:|
 | NO_CURATION | 1 |
 | MISSING_SPLITS | 2 |
-| INCOMPLETE | 122 |
-| COMPLETE | 187 |
+| INCOMPLETE | 121 |
+| COMPLETE | 188 |
 | NO_SPLIT | 75 |
 
 **Drift** (curated rows matching no source locator): 6
@@ -191,10 +191,6 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 ## STAVE RIVER · MU ['2-8'] · p28 · [INCOMPLETE] (50faaf74)
 - • [rule] “in the Ruskin spawning channel, from the inlet near the dam downst” → stave-river-15d929[deferred]
 - • [rule] “in the Northrop Spawning Channel, from the intake downstream to wh” → stave-river-c74d9d[todo]
-
-## WEAVER LAKE and WEAVER CREEK · MU ['2-19'] · p28 · [INCOMPLETE] (c6b28d59)
-- • [rule] “from fishing boundary signs at log booms on Weaver Lake downstream” → weaver-lake-and-weaver-creek-47d5a0-a[not_applicable], weaver-lake-and-weaver-creek-47d5a0-b[curated], weaver-lake-and-weaver-creek-d90200[todo]
-- • [rule] “on Weaver Lake” → weaver-lake-and-weaver-creek-47d5a0-a[not_applicable], weaver-lake-and-weaver-creek-47d5a0-b[curated], weaver-lake-and-weaver-creek-d90200[todo]
 
 ## LEIGHTON LAKE · MU ['3-18'] · p32 · [INCOMPLETE] (61620d69)
 - • [rule] “within 100 m of the mouth of the inlet stream” → leighton-lake-158268[todo]

@@ -8704,7 +8704,7 @@
         "Stocked"
       ],
       "reg_text": "**No Fishing** from fishing boundary signs at log booms on Weaver Lake downstream to where Sakwi Creek enters Weaver Creek\nEngine power restriction on Weaver Lake - 7.5 kW (10 hp)",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 2,
       "locators": [
         {
@@ -8713,7 +8713,7 @@
           "info": {
             "restriction_type": "closure"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "weaver-lake-and-weaver-creek-47d5a0-a",
@@ -8743,10 +8743,11 @@
             },
             {
               "id": "weaver-lake-and-weaver-creek-d90200",
-              "status": "todo",
-              "anchor_kind": "unclassified",
+              "status": "not_applicable",
+              "anchor_kind": "not_a_split",
               "src": "rule",
               "resolver_hint": "other_reach",
+              "notes": "[reviewed 2026-08-08 manual-review batch=weaver-2-19] [n/a: 7.5kW (10hp) engine power restriction on Weaver Lake, not a fishing split]",
               "locator_text": "on Weaver Lake"
             }
           ]
@@ -8757,7 +8758,7 @@
           "info": {
             "restriction_type": "vessel_restriction"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "weaver-lake-and-weaver-creek-47d5a0-a",
@@ -8789,10 +8790,11 @@
             },
             {
               "id": "weaver-lake-and-weaver-creek-d90200",
-              "status": "todo",
-              "anchor_kind": "unclassified",
+              "status": "not_applicable",
+              "anchor_kind": "not_a_split",
               "src": "rule",
-              "resolver_hint": "other_reach"
+              "resolver_hint": "other_reach",
+              "notes": "[reviewed 2026-08-08 manual-review batch=weaver-2-19] [n/a: 7.5kW (10hp) engine power restriction on Weaver Lake, not a fishing split]"
             }
           ]
         },
@@ -8802,7 +8804,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-08"
     },
     "ebb373ee": {
       "entry_id": "ebb373ee",
