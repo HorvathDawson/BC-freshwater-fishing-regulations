@@ -156,6 +156,18 @@ Toquart 1-8. Deferred (lake-splits): Quesnel Lake 5-15, Vaseux Lake 8-1, Great C
   the human pastes obstacle id + lat/lon; store `[FISS obstacle NNNNN, WSC …]` in notes.
 - **FWA gaps**: some West-Coast VI rivers (Toquart) aren't in the gpkg at all → resolve from OSM only.
 
+### Review queue (staged candidates — NOT yet applied)
+
+`stream_sections/docs/curation-queue.md` holds **auto-resolved candidate coords pending human
+review**. They are NOT in `waterbody-splits.json` yet — the resolver stages them so a human can
+review a batch, then they get applied via `save_curation`. Workflow: resolve many single-anchor
+todos (bridge/dam/confluence) in bulk with `scratchpad/queue_resolver.py` (writes a dated batch to
+the queue doc, one line per row: entry, row_id, candidate coord, method, OSM link, or 🔴 UNRESOLVED →
+needs pin). To finalize: the human reviews a batch in the queue; then apply the confirmed coords to
+the rows (`load_curation`→set coord/status/label→`save_curation`), set `reviewed`, and delete that
+batch from the queue. `queue_resolver.py`'s `BATCH` list is the recipe format (entry, mu, row_id,
+kind, fwa_river, box, road/dam filter, note) — extend it to stage more.
+
 ### NEXT UP
 
 `wb_present.py --todo` → next tier: **Nathan (Beaver) Ck 2-4, Pitt R 2-8, Sakinaw Lake 2-5, Salmon R
