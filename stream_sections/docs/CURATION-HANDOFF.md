@@ -120,18 +120,45 @@ does not apply to FWA/OSM geometry scripts or data reads; run those normally.
 
 ## Current state (2026-08-08)
 
-766 rows · **327 curated · 178 n/a · 40 deferred · 214 todo** · 7 manual. **18 entries carry
-`reviewed`.** New fields this run: `offset`, `polygon`, `reviewed`. Site C dam fixed; 39-row offset
-retrofit; lake/confluence targets; named-feature audit clean (0 m spread). `scratchpad/` reusable
-resolvers: `resolve_bases.py`, `lake_targets.py`, `audit_features.py`, `elk_bridges.py`.
+767 rows · **368 curated · 181 n/a · 45 deferred · 165 todo** · 8 manual. **40 entries carry
+`reviewed`.** Fields: `offset`, `polygon`, `reviewed`. Site C dam fixed; 39-row offset retrofit;
+lake/confluence targets; named-feature audit clean (0 m spread). `scratchpad/` reusable resolvers:
+`resolve_bases.py`, `lake_targets.py`, `audit_features.py`, `elk_bridges.py`, plus per-entry
+`apply_*.py` scripts (one per waterbody — copy the pattern).
 
-Reviewed/handled this run: Fraser 3-14, Columbia, Elk (u/s Elko), Chilliwack/Vedder, Kokish,
-Cowichan, Fraser (u/s CPR Mission), Little Qualicum, Shuswap River, Nitinat, Campbell 2-4, Coquitlam,
-Nicomekl, Serpentine, Horsefly — plus Ross/Skagit & Marble/Link n/a'd (natural lake splits), and
-Shuswap Lake & Mahood Lake deferred (lake-area splits).
+Reviewed/handled earlier: Fraser 3-14, Columbia, Elk (u/s Elko), Chilliwack/Vedder, Kokish, Cowichan,
+Fraser (u/s CPR Mission), Little Qualicum, Shuswap River, Nitinat, Campbell 2-4, Coquitlam, Nicomekl,
+Serpentine, Horsefly, Nechako 7-12.
+Handled 2026-08-08 batch: Peace 7-31, Campbell 1-10, Heber 1-9, Qualicum 1-6, Quinsam 1-6,
+Silverhope 2-2, Seton 3-16 (extent n/a), Alexander 4-23, Michel 4-23, Sand 4-22, Lodgepole 4-2,
+Baker 5-13, Babine 6-8, Stellako, Crooked 7-24, Amor De Cosmos 1-10, Keogh 1-13, Puntledge 1-6,
+Toquart 1-8. Deferred (lake-splits): Quesnel Lake 5-15, Vaseux Lake 8-1, Great Central Lake 1-7
+(ref points for the dam + Ash Main Bridge saved on the deferred rows).
+
+### Patterns learned this batch (apply going forward)
+
+- **Tidal-boundary / variant anchors** (user ask): where a boundary sits at the tidal limit, ALSO add
+  the highway/rail bridge at that limit as a **`manual`** anchor (e.g. Qualicum Hwy 19A). It lives as
+  recoverable `drift` (its `locator_text` matches no source locator → `build()` stores the full row,
+  `flatten` restores it). Record `[name-variants: X | tidal boundary]` in `notes`; a later pass will
+  collapse co-located anchors (e.g. cement block / tidal boundary; power station / lake outlet).
+- **Extent-clause rows** (name parenthetical like "(includes BC Hydro Power Canal…)" or
+  "(including two lagoons…)") are NOT internal splits. Default = n/a with a note to include the
+  man-made/extra feature — BUT the human may prefer `defer` as a lake-split (Vaseux). Ask.
+- **"upstream/downstream of easternmost Hwy N bridge"** split into two separate reg entries → same
+  bridge coord for both entries (Alexander, Michel). Easternmost = largest longitude of the multiple
+  Hwy∩creek crossings.
+- **Multiple same-name creeks/rivers in BC** → clip the FWA layer to a region box before merging
+  (Alexander/Michel/Sand each had province-wide duplicates).
+- **Boat/vessel reach ≠ auto-n/a if the human wants it mapped** (Stellako "no powered boats François
+  Lake→falls" — they wanted the reach). Confirm before n/a-ing a boat restriction.
+- **FISS obstacle** is the falls fallback when FWA `waterfalls` + OSM both miss (Quinsam, Toquart):
+  the human pastes obstacle id + lat/lon; store `[FISS obstacle NNNNN, WSC …]` in notes.
+- **FWA gaps**: some West-Coast VI rivers (Toquart) aren't in the gpkg at all → resolve from OSM only.
 
 ### NEXT UP
 
-`wb_present.py --todo` → top entry (currently **Nechako 7-12, Peace 7-31, Campbell 1-10, …**). Still
-open: **"ELK RIVER'S TRIBUTARIES"** (unresolved `EXCEPT Coal Creek d/s of old MF&M Railway`). Follow
-the loop above; defer lake-splits (verify first); confirm every candidate before writing.
+`wb_present.py --todo` → next tier: **Nathan (Beaver) Ck 2-4, Pitt R 2-8, Sakinaw Lake 2-5, Salmon R
+2-4, Weaver Lake & Ck 2-19, Clearwater R 3-40/3-46, …** Still open: **"ELK RIVER'S TRIBUTARIES"**
+(unresolved `EXCEPT Coal Creek d/s of old MF&M Railway`). Follow the loop; defer lake-splits (verify
+first); confirm every candidate before writing.
