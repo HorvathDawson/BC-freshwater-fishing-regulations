@@ -7769,7 +7769,7 @@
       "image": "page_027_row_023.png",
       "symbols": [],
       "reg_text": "**No Fishing** easterly of a line drawn from a boundary sign located at the north side of the Sakinaw Lake boat launch southwesterly to a\nboundary sign located at 49o 41.50'N and 123o 58.45'W, Nov 1-Dec 31\n**No Fishing** in \"Bear Bay\", easterly of a line drawn from a boundary sign located at 49o 40.05'N and 124o 02.13'W due south to a boundary\nsign on the opposite shore, Nov 1-Dec 31\nKokanee catch and release",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 2,
       "locators": [
         {
@@ -7781,14 +7781,15 @@
               "Nov 1-Dec 31"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "sakinaw-lake-df4750",
-              "status": "todo",
+              "status": "deferred",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "coordinate",
+              "notes": "[deferred 2026-08-08 lake-split: Sakinaw Lake divided into 2D closure areas (easterly-of-line + Bear Bay); defer per lake-split rule]",
               "locator_text": "easterly of a line drawn from a boundary sign located at the north side of the Sakinaw Lake boat launch southwesterly to"
             }
           ]
@@ -7802,14 +7803,15 @@
               "Nov 1-Dec 31"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "sakinaw-lake-b04d10",
-              "status": "todo",
+              "status": "deferred",
               "anchor_kind": "unclassified",
               "src": "rule",
-              "resolver_hint": "other_reach"
+              "resolver_hint": "other_reach",
+              "notes": "[deferred 2026-08-08 lake-split: Sakinaw Lake divided into 2D closure areas (easterly-of-line + Bear Bay); defer per lake-split rule]"
             }
           ]
         },
