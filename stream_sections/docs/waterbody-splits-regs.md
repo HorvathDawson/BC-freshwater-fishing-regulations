@@ -3,7 +3,7 @@
 Every reg entry (source-first), booklet order. **Bold** = a live split boundary; plain text
 = whole-water / tributary-set / `not_applicable`. Regenerate; do not hand-edit.
 
-387 entries · 412 highlighted boundary phrases.
+387 entries · 411 highlighted boundary phrases.
 
 | Water | MU | p | Regulation |
 |---|---|--:|---|
@@ -175,7 +175,7 @@ Every reg entry (source-first), booklet order. **Bold** = a live split boundary;
 | COLUMBIA RIVER | 4-8, 4-15, 4-26, 4-34, 4-38 | 37 | No Fishing **from Revelstoke Dam downstream to Hwy 1 bridge in Revelstoke** No Fishing **from a line between the old Robson Ferry landing and a sign on the south river bank, downstream approximately 950 m to the CPR Bridge**, Mar 1-June 30 Where angling is permitted: EXEMPT from the regional Nov 1-Mar 31 trout/char catch and release and the regional Apr 1-June 14 closure Bass daily quota = unlimited Kokanee daily quota = 15 **from Keenleyside Dam to a line between the old Robson Ferry landing and a sign on the south river bank** Walleye daily quota = 16 **from Keenleyside Dam to the Washington state border** **From Keenleyside Dam downstream to the Washington state border and connected reaches: the Kootenay River (Columbia River confluence to Brilliant Dam) and the Pend d'Oreille River (Columbia River confluence to Waneta Dam)**: Northern pike daily quota = unlimited and bass daily quota = unlimited Burbot catch and release Speed restriction (10 km/h) from Mud Lake to Columbia Lake, no power boats in wetlands, no towing and engine power restriction - 15 kW (20 hp), **in main channel from Fairmont to Donald** See Upper Arrow Lake for the portion of the Columbia River which may be found downstream of the Hwy 1 bridge in Revelstoke (depending on reservoir level) |
 | CONNOR LAKE | 4-23 | 38 | No Fishing May 1-June 30 |
 | CONNOR LAKE'S TRIBUTARIES | 4-23 | 38 | No Fishing Apr 1-June 30 |
-| CRESTON VALLEY WILDLIFE MANAGEMENT AREA (CVWMA) WATERS | 4-6 | 38 | Bass daily quota = unlimited; yellow perch daily quota = unlimited - applies to all waters **within the CVWMA, including Six Mile Lake, Leach Lake, Kootenay River and Canal**, EXCEPT Duck Lake (see separate entry) Permit required see note on page 34 |
+| CRESTON VALLEY WILDLIFE MANAGEMENT AREA (CVWMA) WATERS | 4-6 | 38 | Bass daily quota = unlimited; yellow perch daily quota = unlimited - applies to all waters within the CVWMA, including Six Mile Lake, Leach Lake, Kootenay River and Canal, EXCEPT Duck Lake (see separate entry) Permit required see note on page 34 |
 | CULTUS CREEK | 4-7 | 38 | No Fishing **downstream of Laib Creek** |
 | DUNCAN LAKE'S TRIBUTARIES | 4-27 | 38 | Bull trout catch and release (includes Upper Duncan River and tributaries) |
 | DUNCAN RIVER | 4-19 | 38 | Exempt from spring closure, exempt from regional Nov 1-Mar 31 bull trout catch and release, bait ban Rainbow trout daily quota = 5 (any size), bull trout daily quota = 2 (any size) No Fishing **downstream of Duncan Dam to the confluence of the Duncan River and the Lardeau River** |

@@ -7,8 +7,8 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 |---|--:|
 | NO_CURATION | 1 |
 | MISSING_SPLITS | 2 |
-| INCOMPLETE | 117 |
-| COMPLETE | 192 |
+| INCOMPLETE | 116 |
+| COMPLETE | 193 |
 | NO_SPLIT | 75 |
 
 **Drift** (curated rows matching no source locator): 6
@@ -102,12 +102,6 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 - • [rule] “Downstream of Nahatlatch Lake (including Hannah and Frances lakes;” → nahatlatch-river-0bb710[not_applicable], nahatlatch-river-1d1eaf[not_applicable], nahatlatch-river-a0ebb8[not_applicable]
 - • [except] “except as noted upstream of” → nahatlatch-river-1d1eaf[not_applicable], nahatlatch-river-a0ebb8[not_applicable]
 - • [rule] “downstream of Nahatlatch Lake” → nahatlatch-river-0bb710[not_applicable], nahatlatch-river-1d1eaf[not_applicable]
-
-## CRESTON VALLEY WILDLIFE MANAGEMENT AREA (CVWMA) WATERS · MU ['4-6'] · p38 · [INCOMPLETE] (7e0b104a)
-- • [rule] “within the CVWMA, including Six Mile Lake, Leach Lake, Kootenay Ri” → creston-valley-wildlife-management-area-cvwma-911082[todo]
-- • [except] “EXCEPT Duck Lake (see separate entry)” → creston-valley-wildlife-management-area-cvwma-cdf441[not_applicable]
-- • [rule] “within the CVWMA, including Six Mile Lake, Leach Lake, Kootenay Ri” → creston-valley-wildlife-management-area-cvwma-911082[todo]
-- • [except] “EXCEPT Duck Lake (see separate entry)” → creston-valley-wildlife-management-area-cvwma-cdf441[not_applicable]
 
 ## JORDAN RIVER · MU ['4-39'] · p39 · [INCOMPLETE] (13b0444c)
 - • [rule] “upstream of Kirkup Creek” → jordan-river-390f59[curated], jordan-river-bc6d34[curated]

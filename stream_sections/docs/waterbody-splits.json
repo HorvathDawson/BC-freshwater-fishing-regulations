@@ -13682,7 +13682,7 @@
       "image": "page_038_row_005.png",
       "symbols": [],
       "reg_text": "Bass daily quota = unlimited; yellow perch daily quota = unlimited - applies to all waters within the CVWMA, including Six Mile Lake, Leach\nLake, Kootenay River and Canal, EXCEPT Duck Lake (see separate entry)\nPermit required see note on page 34",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 4,
       "locators": [
         {
@@ -13691,14 +13691,15 @@
           "info": {
             "restriction_type": "harvest"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "creston-valley-wildlife-management-area-cvwma-911082",
-              "status": "todo",
-              "anchor_kind": "area_boundary",
+              "status": "not_applicable",
+              "anchor_kind": "not_a_split",
               "src": "rule",
-              "resolver_hint": "park_polygon"
+              "resolver_hint": "park_polygon",
+              "notes": "[reviewed 2026-08-08 manual-review batch=cvwma-4-6] [n/a: whole-CVWMA set membership (bass/perch quota applies to all waters within the WMA area), not an internal split]"
             }
           ]
         },
@@ -13726,14 +13727,15 @@
           "info": {
             "restriction_type": "harvest"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "creston-valley-wildlife-management-area-cvwma-911082",
-              "status": "todo",
-              "anchor_kind": "area_boundary",
+              "status": "not_applicable",
+              "anchor_kind": "not_a_split",
               "src": "rule",
-              "resolver_hint": "park_polygon"
+              "resolver_hint": "park_polygon",
+              "notes": "[reviewed 2026-08-08 manual-review batch=cvwma-4-6] [n/a: whole-CVWMA set membership (bass/perch quota applies to all waters within the WMA area), not an internal split]"
             }
           ]
         },
@@ -13761,7 +13763,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-08"
     },
     "c8e8536d": {
       "entry_id": "c8e8536d",
