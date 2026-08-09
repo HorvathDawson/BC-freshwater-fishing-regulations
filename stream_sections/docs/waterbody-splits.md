@@ -7,8 +7,8 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 |---|--:|
 | NO_CURATION | 1 |
 | MISSING_SPLITS | 2 |
-| INCOMPLETE | 131 |
-| COMPLETE | 178 |
+| INCOMPLETE | 130 |
+| COMPLETE | 179 |
 | NO_SPLIT | 75 |
 
 **Drift** (curated rows matching no source locator): 6
@@ -179,10 +179,6 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 - • [rule] “in swimming areas” → alouette-lake-396262[deferred]
 - • [rule] “at S. end of lake, S. of a line drawn from the BC Parks boat ramp
 ” → alouette-lake-8d2080[todo]
-
-## AMOR DE COSMOS CREEK · MU ['1-10'] · p16 · [INCOMPLETE] (8f24dc86)
-- • [rule] “from upper falls downstream 1 km to (Bear River) logging road brid” → amor-de-cosmos-creek-9bd02b-a[curated], amor-de-cosmos-creek-9bd02b-b[curated]
-- • [rule] “from mouth to falls about 4 km upstream” → amor-de-cosmos-creek-056457-a[todo], amor-de-cosmos-creek-056457-b[todo]
 
 ## COWICHAN LAKE (including Bear Lake) · MU ['1-4'] · p17 · [INCOMPLETE] (ed39adc0)
 - • [rule] “on parts” → cowichan-lake-including-bear-lake-5a1513[deferred]

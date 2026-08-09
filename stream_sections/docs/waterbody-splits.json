@@ -176,7 +176,7 @@
       "image": "page_016_row_004.png",
       "symbols": [],
       "reg_text": "**No Fishing** from upper falls downstream 1 km to (Bear River) logging road bridge 3 km from tidewater\n**No Fishing** from mouth to falls about 4 km upstream, Dec 1-May 31",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 2,
       "locators": [
         {
@@ -224,24 +224,34 @@
               "Dec 1-May 31"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "amor-de-cosmos-creek-056457-a",
-              "status": "todo",
-              "anchor_kind": "confluence",
+              "status": "curated",
+              "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "tributary",
-              "notes": "the way it is worded it seems like this is the same as \"upper falls\"? since 3km from tidewater is the bridge + 1km to falls = 4km from tide water [structural-split 2026-08-05 from \"from mouth to falls about 4 km upstream\"] boundary=mouth",
+              "label": "mouth (tidewater)",
+              "notes": "the way it is worded it seems like this is the same as \"upper falls\"? since 3km from tidewater is the bridge + 1km to falls = 4km from tide water [structural-split 2026-08-05 from \"from mouth to falls about 4 km upstream\"] boundary=mouth [curated 2026-08-08 manual-review batch=amor-1-10] [FWA creek mouth at tidewater]",
+              "coord": [
+                -125.68532,
+                50.35706
+              ],
               "locator_text": "mouth"
             },
             {
               "id": "amor-de-cosmos-creek-056457-b",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "falls_obstacle",
-              "notes": "the way it is worded it seems like this is the same as \"upper falls\"? since 3km from tidewater is the bridge + 1km to falls = 4km from tide water [structural-split 2026-08-05 from \"from mouth to falls about 4 km upstream\"] boundary=falls about 4 km upstream",
+              "label": "upper falls (~4km u/s of tidewater)",
+              "notes": "the way it is worded it seems like this is the same as \"upper falls\"? since 3km from tidewater is the bridge + 1km to falls = 4km from tide water [structural-split 2026-08-05 from \"from mouth to falls about 4 km upstream\"] boundary=falls about 4 km upstream [curated 2026-08-08 manual-review batch=amor-1-10] [= upper falls (9bd02b-a); bridge 3km + 1km = 4km from tidewater]",
+              "coord": [
+                -125.66021,
+                50.33685
+              ],
               "locator_text": "falls about 4 km upstream"
             }
           ]
@@ -252,7 +262,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-08"
     },
     "adeedcf7": {
       "entry_id": "adeedcf7",
