@@ -7836,7 +7836,7 @@
         "Incl. Tribs"
       ],
       "reg_text": "**No Fishing** upstream of 232nd Street (Livingstone Road)\n**No Fishing **downstream of 232nd Street (Livingstone Road) Apr 1-June 30",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 2,
       "locators": [
         {
@@ -7845,15 +7845,20 @@
           "info": {
             "restriction_type": "closure"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "salmon-river-8e66cb",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] 232nd Street (Livingstone Road) bridge over Salmon River (Langley) on Salmon River (Langley). No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm 232nd St (Livingstone Rd) crossing of the Langley Salmon River; VERIFY river (3-way FWA name collision).. There are three 'Salmon Rivers' here: this one is the LANGLEY Salmon River (232 St = MU 2 Fraser Valley). The FWA match (54.06N, Prince George area) is the WRONG Salmon River. City street bridge -> map-only. Upstream reach. [shared-anchor ‘232nd street (livingstone road)’ — author ONE split]"
+              "label": "232 Street (Livingstone Road) bridge",
+              "notes": "[auto-proposal L] 232nd Street (Livingstone Road) bridge over Salmon River (Langley) on Salmon River (Langley). No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm 232nd St (Livingstone Rd) crossing of the Langley Salmon River; VERIFY river (3-way FWA name collision).. There are three 'Salmon Rivers' here: this one is the LANGLEY Salmon River (232 St = MU 2 Fraser Valley). The FWA match (54.06N, Prince George area) is the WRONG Salmon River. City street bridge -> map-only. Upstream reach. [shared-anchor ‘232nd street (livingstone road)’ — author ONE split] [curated 2026-08-08 manual-review batch=salmon-2-4] [232 Street x Salmon River (Langley), OSM way 410321087]",
+              "coord": [
+                -122.58151,
+                49.12733
+              ]
             }
           ]
         },
@@ -7866,15 +7871,20 @@
               "Apr 1-June 30"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "salmon-river-ace934",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] 232nd Street (Livingstone Road) bridge over Salmon River (Langley) on Salmon River (Langley). No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm 232nd St crossing of the Langley Salmon River; downstream reach; VERIFY river (FWA collision).. Same Langley Salmon River 232 St bridge; downstream reach. FWA name collision as above. Map-only. [shared-anchor ‘232nd street (livingstone road)’ — author ONE split]"
+              "label": "232 Street (Livingstone Road) bridge",
+              "notes": "[auto-proposal L] 232nd Street (Livingstone Road) bridge over Salmon River (Langley) on Salmon River (Langley). No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm 232nd St crossing of the Langley Salmon River; downstream reach; VERIFY river (FWA collision).. Same Langley Salmon River 232 St bridge; downstream reach. FWA name collision as above. Map-only. [shared-anchor ‘232nd street (livingstone road)’ — author ONE split] [curated 2026-08-08 manual-review batch=salmon-2-4] [232 Street x Salmon River (Langley), OSM way 410321087]",
+              "coord": [
+                -122.58151,
+                49.12733
+              ]
             }
           ]
         },
@@ -7884,7 +7894,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-08"
     },
     "e84bdfe8": {
       "entry_id": "e84bdfe8",

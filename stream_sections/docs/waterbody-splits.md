@@ -7,8 +7,8 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 |---|--:|
 | NO_CURATION | 1 |
 | MISSING_SPLITS | 2 |
-| INCOMPLETE | 123 |
-| COMPLETE | 186 |
+| INCOMPLETE | 122 |
+| COMPLETE | 187 |
 | NO_SPLIT | 75 |
 
 **Drift** (curated rows matching no source locator): 6
@@ -187,10 +187,6 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 ## CHEHALIS RIVER · MU ['2-19'] · p24 · [INCOMPLETE] (bb6d5fe5)
 - • [rule] “from boundary signs at outlet of Chehalis Lake to main logging roa” → chehalis-river-6a99b5-a[not_applicable], chehalis-river-6a99b5-b[todo]
 - • [rule] “downstream of the main logging road bridge situated approximately ” → chehalis-river-8cfa74[curated]
-
-## SALMON RIVER · MU ['2-4'] · p27 · [INCOMPLETE] (98c1c934)
-- • [rule] “upstream of 232nd Street (Livingstone Road)” → salmon-river-8e66cb[todo]
-- • [rule] “downstream of 232nd Street (Livingstone Road)” → salmon-river-ace934[todo]
 
 ## STAVE RIVER · MU ['2-8'] · p28 · [INCOMPLETE] (50faaf74)
 - • [rule] “in the Ruskin spawning channel, from the inlet near the dam downst” → stave-river-15d929[deferred]
