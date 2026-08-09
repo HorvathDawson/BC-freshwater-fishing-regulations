@@ -7,8 +7,8 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 |---|--:|
 | NO_CURATION | 1 |
 | MISSING_SPLITS | 2 |
-| INCOMPLETE | 118 |
-| COMPLETE | 191 |
+| INCOMPLETE | 117 |
+| COMPLETE | 192 |
 | NO_SPLIT | 75 |
 
 **Drift** (curated rows matching no source locator): 6
@@ -188,10 +188,6 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 ## LOON LAKE · MU ['3-30'] · p32 · [INCOMPLETE] (d37dc894)
 - • [rule] “northeast of fishing boundary signs near the mouth of Thunder Cree” → loon-lake-97f382[todo]
 - • [rule] “within 500 m of outlet stream at southwest end of lake as marked b” → loon-lake-058d50[deferred]
-
-## SALMON RIVER · MU ['3-26'] · p34 · [INCOMPLETE] (499c7d53)
-- • [rule] “downstream of Hwy 97 bridge at Falkland” → salmon-river-f59a4d[todo]
-- • [rule] “downstream of Hwy 97 bridge at Falkland” → salmon-river-f59a4d[todo]
 
 ## MOYIE RIVER · MU ['4-5'] · p40 · [INCOMPLETE] (7772faef)
 - • [rule] “Irishman Creek (Moyie River tributary)” → moyie-river-a098eb[not_applicable]

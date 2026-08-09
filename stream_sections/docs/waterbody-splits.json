@@ -11442,7 +11442,7 @@
       "image": "page_034_row_005.png",
       "symbols": [],
       "reg_text": "Rainbow trout and char catch and release, bait ban downstream of Hwy 97 bridge at Falkland",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 2,
       "locators": [
         {
@@ -11451,15 +11451,20 @@
           "info": {
             "restriction_type": "harvest"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "salmon-river-f59a4d",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] Hwy 97 bridge at Falkland over Salmon River (Salmon Arm) on Salmon River (Falkland/Salmon Arm). No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the Hwy 97 bridge at Falkland over the Salmon River; VERIFY river (yet another Salmon R.).. This is the Falkland / Salmon Arm Salmon River (Region 3/8), a THIRD distinct Salmon River from the Langley one and the FWA PG match. Hwy 97 bridge at Falkland -> map/OSM-confirmable."
+              "label": "Hwy 97 bridge at Falkland",
+              "notes": "[auto-proposal L] Hwy 97 bridge at Falkland over Salmon River (Salmon Arm) on Salmon River (Falkland/Salmon Arm). No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the Hwy 97 bridge at Falkland over the Salmon River; VERIFY river (yet another Salmon R.).. This is the Falkland / Salmon Arm Salmon River (Region 3/8), a THIRD distinct Salmon River from the Langley one and the FWA PG match. Hwy 97 bridge at Falkland -> map/OSM-confirmable. [curated 2026-08-08 manual-review batch=salmon-3-26] [Hwy 97 x Salmon River at Falkland, OSM way 120584764, blk 356361699]",
+              "coord": [
+                -119.60044,
+                50.48935
+              ]
             }
           ]
         },
@@ -11469,15 +11474,20 @@
           "info": {
             "restriction_type": "gear_restriction"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "salmon-river-f59a4d",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] Hwy 97 bridge at Falkland over Salmon River (Salmon Arm) on Salmon River (Falkland/Salmon Arm). No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the Hwy 97 bridge at Falkland over the Salmon River; VERIFY river (yet another Salmon R.).. This is the Falkland / Salmon Arm Salmon River (Region 3/8), a THIRD distinct Salmon River from the Langley one and the FWA PG match. Hwy 97 bridge at Falkland -> map/OSM-confirmable."
+              "label": "Hwy 97 bridge at Falkland",
+              "notes": "[auto-proposal L] Hwy 97 bridge at Falkland over Salmon River (Salmon Arm) on Salmon River (Falkland/Salmon Arm). No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the Hwy 97 bridge at Falkland over the Salmon River; VERIFY river (yet another Salmon R.).. This is the Falkland / Salmon Arm Salmon River (Region 3/8), a THIRD distinct Salmon River from the Langley one and the FWA PG match. Hwy 97 bridge at Falkland -> map/OSM-confirmable. [curated 2026-08-08 manual-review batch=salmon-3-26] [Hwy 97 x Salmon River at Falkland, OSM way 120584764, blk 356361699]",
+              "coord": [
+                -119.60044,
+                50.48935
+              ]
             }
           ]
         },
@@ -11487,7 +11497,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-08"
     },
     "5a3609ce": {
       "entry_id": "5a3609ce",
