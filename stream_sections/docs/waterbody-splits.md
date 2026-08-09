@@ -7,8 +7,8 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 |---|--:|
 | NO_CURATION | 1 |
 | MISSING_SPLITS | 2 |
-| INCOMPLETE | 144 |
-| COMPLETE | 165 |
+| INCOMPLETE | 142 |
+| COMPLETE | 167 |
 | NO_SPLIT | 75 |
 
 **Drift** (curated rows matching no source locator): 6
@@ -259,14 +259,6 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 ## SALMON RIVER · MU ['3-26'] · p34 · [INCOMPLETE] (499c7d53)
 - • [rule] “downstream of Hwy 97 bridge at Falkland” → salmon-river-f59a4d[todo]
 - • [rule] “downstream of Hwy 97 bridge at Falkland” → salmon-river-f59a4d[todo]
-
-## ALEXANDER CREEK (upstream of the easternmost Hwy 3 bridge) · MU ['4-23'] · p37 · [INCOMPLETE] (e9670588)
-- • [water] “upstream of the easternmost Hwy 3 bridge” → alexander-creek-upstream-of-the-easternmost-h-40487b[todo]
-- • [entry] “upstream of the easternmost Hwy 3 bridge” → alexander-creek-upstream-of-the-easternmost-h-40487b[todo]
-
-## ALEXANDER CREEK (downstream of the easternmost Hwy 3 bridge) · MU ['4-23'] · p37 · [INCOMPLETE] (a2098ab8)
-- • [water] “downstream of the easternmost Hwy 3 bridge” → alexander-creek-downstream-of-the-easternmost-323602[todo]
-- • [entry] “downstream of the easternmost Hwy 3 bridge” → alexander-creek-downstream-of-the-easternmost-323602[todo]
 
 ## LODGEPOLE CREEK (upstream of falls) · MU ['4-2'] · p40 · [INCOMPLETE] (4dbdd58a)
 - • [water] “upstream of falls” → lodgepole-creek-upstream-of-falls-615359[todo]

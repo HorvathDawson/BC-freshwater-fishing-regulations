@@ -12367,21 +12367,26 @@
         "Classified"
       ],
       "reg_text": "**No Fishing** Sept 1-Oct 31\nTrout/char catch and release and bait ban, June 15-Aug 31\n**Class II water when open, including tributaries - Michel Creek classified licence required for non-resident anglers**",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 2,
       "locators": [
         {
           "src": "water",
           "text": "upstream of the easternmost Hwy 3 bridge",
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "alexander-creek-upstream-of-the-easternmost-h-40487b",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "name",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] easternmost Hwy 3 bridge over Alexander Creek on Alexander Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm which Hwy 3 bridge is the 'easternmost' over Alexander Creek (Crowsnest/Sparwood, MU 4-23); map.. Same landmark as the downstream Alexander Creek entry; this is the upstream reach. Public highway bridge -> map/OSM-confirmable, not in FWA.",
+              "label": "easternmost Hwy 3 (Crowsnest) bridge",
+              "notes": "[auto-proposal L] easternmost Hwy 3 bridge over Alexander Creek on Alexander Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm which Hwy 3 bridge is the 'easternmost' over Alexander Creek (Crowsnest/Sparwood, MU 4-23); map.. Same landmark as the downstream Alexander Creek entry; this is the upstream reach. Public highway bridge -> map/OSM-confirmable, not in FWA. [curated 2026-08-08 manual-review batch=alexander-4-23] [easternmost of 4 Hwy 3 crossings of Alexander Creek, OSM way 100217536, East Kootenay blk 356566667]",
+              "coord": [
+                -114.73324,
+                49.65497
+              ],
               "name_verbatim": "ALEXANDER CREEK (upstream of the easternmost Hwy 3 bri"
             }
           ]
@@ -12389,15 +12394,20 @@
         {
           "src": "entry",
           "text": "upstream of the easternmost Hwy 3 bridge",
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "alexander-creek-upstream-of-the-easternmost-h-40487b",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "name",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] easternmost Hwy 3 bridge over Alexander Creek on Alexander Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm which Hwy 3 bridge is the 'easternmost' over Alexander Creek (Crowsnest/Sparwood, MU 4-23); map.. Same landmark as the downstream Alexander Creek entry; this is the upstream reach. Public highway bridge -> map/OSM-confirmable, not in FWA.",
+              "label": "easternmost Hwy 3 (Crowsnest) bridge",
+              "notes": "[auto-proposal L] easternmost Hwy 3 bridge over Alexander Creek on Alexander Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm which Hwy 3 bridge is the 'easternmost' over Alexander Creek (Crowsnest/Sparwood, MU 4-23); map.. Same landmark as the downstream Alexander Creek entry; this is the upstream reach. Public highway bridge -> map/OSM-confirmable, not in FWA. [curated 2026-08-08 manual-review batch=alexander-4-23] [easternmost of 4 Hwy 3 crossings of Alexander Creek, OSM way 100217536, East Kootenay blk 356566667]",
+              "coord": [
+                -114.73324,
+                49.65497
+              ],
               "name_verbatim": "ALEXANDER CREEK (upstream of the easternmost Hwy 3 bri"
             }
           ]
@@ -12405,21 +12415,27 @@
         {
           "src": "name",
           "text": "ALEXANDER CREEK (upstream of the easternmost Hwy 3 bridge)",
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "alexander-creek-upstream-of-the-easternmost-h-40487b",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "name",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] easternmost Hwy 3 bridge over Alexander Creek on Alexander Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm which Hwy 3 bridge is the 'easternmost' over Alexander Creek (Crowsnest/Sparwood, MU 4-23); map.. Same landmark as the downstream Alexander Creek entry; this is the upstream reach. Public highway bridge -> map/OSM-confirmable, not in FWA.",
+              "label": "easternmost Hwy 3 (Crowsnest) bridge",
+              "notes": "[auto-proposal L] easternmost Hwy 3 bridge over Alexander Creek on Alexander Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm which Hwy 3 bridge is the 'easternmost' over Alexander Creek (Crowsnest/Sparwood, MU 4-23); map.. Same landmark as the downstream Alexander Creek entry; this is the upstream reach. Public highway bridge -> map/OSM-confirmable, not in FWA. [curated 2026-08-08 manual-review batch=alexander-4-23] [easternmost of 4 Hwy 3 crossings of Alexander Creek, OSM way 100217536, East Kootenay blk 356566667]",
+              "coord": [
+                -114.73324,
+                49.65497
+              ],
               "name_verbatim": "ALEXANDER CREEK (upstream of the easternmost Hwy 3 bri",
               "locator_text": "upstream of the easternmost Hwy 3 bridge"
             }
           ]
         }
-      ]
+      ],
+      "reviewed": "2026-08-08"
     },
     "a2098ab8": {
       "entry_id": "a2098ab8",
@@ -12434,21 +12450,26 @@
         "Classified"
       ],
       "reg_text": "**No Fishing Sept 1-Oct 31\nTrout/char catch and release and bait ban June 15-Aug 31\nClass II water when open, including tributaries - Michel Creek classified licence required for non-resident anglers**",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 2,
       "locators": [
         {
           "src": "water",
           "text": "downstream of the easternmost Hwy 3 bridge",
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "alexander-creek-downstream-of-the-easternmost-323602",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "name",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] easternmost Hwy 3 bridge over Alexander Creek on Alexander Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm which Hwy 3 bridge is the 'easternmost' over Alexander Creek (Crowsnest/Sparwood, MU 4-23); map.. Hwy 3 (Crowsnest) runs alongside Alexander Creek near the Alberta border; 'easternmost Hwy 3 bridge' implies several crossings. Public highway -> not in FWA; map/OSM-confirmable. Downstream reach.",
+              "label": "easternmost Hwy 3 (Crowsnest) bridge",
+              "notes": "[auto-proposal L] easternmost Hwy 3 bridge over Alexander Creek on Alexander Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm which Hwy 3 bridge is the 'easternmost' over Alexander Creek (Crowsnest/Sparwood, MU 4-23); map.. Hwy 3 (Crowsnest) runs alongside Alexander Creek near the Alberta border; 'easternmost Hwy 3 bridge' implies several crossings. Public highway -> not in FWA; map/OSM-confirmable. Downstream reach. [curated 2026-08-08 manual-review batch=alexander-4-23] [easternmost of 4 Hwy 3 crossings of Alexander Creek, OSM way 100217536, East Kootenay blk 356566667]",
+              "coord": [
+                -114.73324,
+                49.65497
+              ],
               "name_verbatim": "ALEXANDER CREEK (downstream of the easternmost Hwy 3 b"
             }
           ]
@@ -12456,15 +12477,20 @@
         {
           "src": "entry",
           "text": "downstream of the easternmost Hwy 3 bridge",
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "alexander-creek-downstream-of-the-easternmost-323602",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "name",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] easternmost Hwy 3 bridge over Alexander Creek on Alexander Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm which Hwy 3 bridge is the 'easternmost' over Alexander Creek (Crowsnest/Sparwood, MU 4-23); map.. Hwy 3 (Crowsnest) runs alongside Alexander Creek near the Alberta border; 'easternmost Hwy 3 bridge' implies several crossings. Public highway -> not in FWA; map/OSM-confirmable. Downstream reach.",
+              "label": "easternmost Hwy 3 (Crowsnest) bridge",
+              "notes": "[auto-proposal L] easternmost Hwy 3 bridge over Alexander Creek on Alexander Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm which Hwy 3 bridge is the 'easternmost' over Alexander Creek (Crowsnest/Sparwood, MU 4-23); map.. Hwy 3 (Crowsnest) runs alongside Alexander Creek near the Alberta border; 'easternmost Hwy 3 bridge' implies several crossings. Public highway -> not in FWA; map/OSM-confirmable. Downstream reach. [curated 2026-08-08 manual-review batch=alexander-4-23] [easternmost of 4 Hwy 3 crossings of Alexander Creek, OSM way 100217536, East Kootenay blk 356566667]",
+              "coord": [
+                -114.73324,
+                49.65497
+              ],
               "name_verbatim": "ALEXANDER CREEK (downstream of the easternmost Hwy 3 b"
             }
           ]
@@ -12472,21 +12498,27 @@
         {
           "src": "name",
           "text": "ALEXANDER CREEK (downstream of the easternmost Hwy 3 bridge)",
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "alexander-creek-downstream-of-the-easternmost-323602",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "name",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] easternmost Hwy 3 bridge over Alexander Creek on Alexander Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm which Hwy 3 bridge is the 'easternmost' over Alexander Creek (Crowsnest/Sparwood, MU 4-23); map.. Hwy 3 (Crowsnest) runs alongside Alexander Creek near the Alberta border; 'easternmost Hwy 3 bridge' implies several crossings. Public highway -> not in FWA; map/OSM-confirmable. Downstream reach.",
+              "label": "easternmost Hwy 3 (Crowsnest) bridge",
+              "notes": "[auto-proposal L] easternmost Hwy 3 bridge over Alexander Creek on Alexander Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm which Hwy 3 bridge is the 'easternmost' over Alexander Creek (Crowsnest/Sparwood, MU 4-23); map.. Hwy 3 (Crowsnest) runs alongside Alexander Creek near the Alberta border; 'easternmost Hwy 3 bridge' implies several crossings. Public highway -> not in FWA; map/OSM-confirmable. Downstream reach. [curated 2026-08-08 manual-review batch=alexander-4-23] [easternmost of 4 Hwy 3 crossings of Alexander Creek, OSM way 100217536, East Kootenay blk 356566667]",
+              "coord": [
+                -114.73324,
+                49.65497
+              ],
               "name_verbatim": "ALEXANDER CREEK (downstream of the easternmost Hwy 3 b",
               "locator_text": "downstream of the easternmost Hwy 3 bridge"
             }
           ]
         }
-      ]
+      ],
+      "reviewed": "2026-08-08"
     },
     "60e57034": {
       "entry_id": "60e57034",
