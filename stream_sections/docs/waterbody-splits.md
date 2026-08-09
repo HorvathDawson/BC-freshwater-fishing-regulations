@@ -7,8 +7,8 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 |---|--:|
 | NO_CURATION | 1 |
 | MISSING_SPLITS | 2 |
-| INCOMPLETE | 146 |
-| COMPLETE | 163 |
+| INCOMPLETE | 145 |
+| COMPLETE | 164 |
 | NO_SPLIT | 75 |
 
 **Drift** (curated rows matching no source locator): 6
@@ -83,13 +83,6 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 - • [rule] “upstream of the Hwy 1 bridge” → nanaimo-river-41353f[curated]
 - • [rule] “upstream of the westernmost of the two Nanaimo Lakes, known locall” → nanaimo-river-76bf11[not_applicable]
 - • [rule] “on parts” → nanaimo-river-bd9e20[not_applicable]
-
-## SILVERHOPE (Silver) CREEK · MU ['2-2'] · p27 · [INCOMPLETE] (2b2d5a92)
-- • [rule] “upstream of Silver Lake” → silverhope-silver-creek-015132[not_applicable]
-- • [rule] “upstream of Silver Lake” → silverhope-silver-creek-015132[not_applicable]
-- • [rule] “upstream of Silver Lake” → silverhope-silver-creek-015132[not_applicable]
-- • [rule] “from Silver Lake down to the Bailey Bridge situated approximately ” → silverhope-silver-creek-13e1ec-a[not_applicable], silverhope-silver-creek-13e1ec-b[todo]
-- • [rule] “downstream of Bailey Bridge situated approximately 8 km upstream o” → silverhope-silver-creek-13e1ec-b[todo], silverhope-silver-creek-65b21a[todo]
 
 ## CLEARWATER RIVER · MU ['3-40', '3-46'] · p31 · [INCOMPLETE] (2e5c3843)
 - • [rule] “Downstream of old Clearwater Bridge” → clearwater-river-9cb106[todo]

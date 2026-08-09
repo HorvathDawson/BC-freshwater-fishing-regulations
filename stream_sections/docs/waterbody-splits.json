@@ -8013,7 +8013,7 @@
         "Incl. Tribs"
       ],
       "reg_text": "**No Fishing** upstream of Silver Lake, Nov 1-June 30\nFly fishing only and bait ban upstream of Silver Lake, July 1-Oct 31\n**No Fishing** from Silver Lake down to the Bailey Bridge situated approximately 8 km upstream of Hwy 1\nBait ban downstream of Bailey Bridge situated approximately 8 km upstream of Hwy 1",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 5,
       "locators": [
         {
@@ -8085,7 +8085,7 @@
           "info": {
             "restriction_type": "closure"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "silverhope-silver-creek-13e1ec-a",
@@ -8098,11 +8098,16 @@
             },
             {
               "id": "silverhope-silver-creek-13e1ec-b",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] Bailey Bridge over Silverhope Creek (~8 km above Hwy 1) on Silverhope (Silver) Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Bailey Bridge ~8 km up Silverhope Creek from Hwy 1 (Hope); map. FSR crossings found are 30+ km up (too far).. Reach = 'Silver Lake down to the Bailey Bridge ~8 km above Hwy 1'. Silverhope Creek enters the Fraser at Hope; the Bailey Bridge is ~8 km up. FWA FSR hits are 30+ km upstream (not this bridge). Map/OSM-confirmable. [structural-split 2026-08-05 from “from Silver Lake down to the Bailey Bridge situated approximately 8 km upstream of Hwy 1”] boundary=Bailey Bridge situated approximately 8 km upstream of Hwy 1",
+              "label": "Bailey Bridge (~8km u/s Hwy 1)",
+              "notes": "[auto-proposal L] Bailey Bridge over Silverhope Creek (~8 km above Hwy 1) on Silverhope (Silver) Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Bailey Bridge ~8 km up Silverhope Creek from Hwy 1 (Hope); map. FSR crossings found are 30+ km up (too far).. Reach = 'Silver Lake down to the Bailey Bridge ~8 km above Hwy 1'. Silverhope Creek enters the Fraser at Hope; the Bailey Bridge is ~8 km up. FWA FSR hits are 30+ km upstream (not this bridge). Map/OSM-confirmable. [structural-split 2026-08-05 from “from Silver Lake down to the Bailey Bridge situated approximately 8 km upstream of Hwy 1”] boundary=Bailey Bridge situated approximately 8 km upstream of Hwy 1 [curated 2026-08-08 manual-review batch=silverhope-2-2] [Bailey Bridge = OSM way 248091751 (unnamed FSR bridge, ~6.6km u/s Hwy1); confirmed Waymark WMNYKC N49 19.647 W121 25.842 = 49.32745,-121.43070; logging access + Silver Lake Prov Park]",
+              "coord": [
+                -121.431,
+                49.32756
+              ],
               "locator_text": "Bailey Bridge situated approximately 8 km upstream of Hwy 1"
             }
           ]
@@ -8113,24 +8118,34 @@
           "info": {
             "restriction_type": "gear_restriction"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "silverhope-silver-creek-13e1ec-b",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] Bailey Bridge over Silverhope Creek (~8 km above Hwy 1) on Silverhope (Silver) Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Bailey Bridge ~8 km up Silverhope Creek from Hwy 1 (Hope); map. FSR crossings found are 30+ km up (too far).. Reach = 'Silver Lake down to the Bailey Bridge ~8 km above Hwy 1'. Silverhope Creek enters the Fraser at Hope; the Bailey Bridge is ~8 km up. FWA FSR hits are 30+ km upstream (not this bridge). Map/OSM-confirmable. [structural-split 2026-08-05 from “from Silver Lake down to the Bailey Bridge situated approximately 8 km upstream of Hwy 1”] boundary=Bailey Bridge situated approximately 8 km upstream of Hwy 1",
+              "label": "Bailey Bridge (~8km u/s Hwy 1)",
+              "notes": "[auto-proposal L] Bailey Bridge over Silverhope Creek (~8 km above Hwy 1) on Silverhope (Silver) Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Bailey Bridge ~8 km up Silverhope Creek from Hwy 1 (Hope); map. FSR crossings found are 30+ km up (too far).. Reach = 'Silver Lake down to the Bailey Bridge ~8 km above Hwy 1'. Silverhope Creek enters the Fraser at Hope; the Bailey Bridge is ~8 km up. FWA FSR hits are 30+ km upstream (not this bridge). Map/OSM-confirmable. [structural-split 2026-08-05 from “from Silver Lake down to the Bailey Bridge situated approximately 8 km upstream of Hwy 1”] boundary=Bailey Bridge situated approximately 8 km upstream of Hwy 1 [curated 2026-08-08 manual-review batch=silverhope-2-2] [Bailey Bridge = OSM way 248091751 (unnamed FSR bridge, ~6.6km u/s Hwy1); confirmed Waymark WMNYKC N49 19.647 W121 25.842 = 49.32745,-121.43070; logging access + Silver Lake Prov Park]",
+              "coord": [
+                -121.431,
+                49.32756
+              ],
               "locator_text": "Bailey Bridge situated approximately 8 km upstream of Hwy 1"
             },
             {
               "id": "silverhope-silver-creek-65b21a",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] Bailey Bridge over Silverhope Creek (~8 km above Hwy 1) on Silverhope (Silver) Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Bailey Bridge ~8 km up Silverhope Creek; downstream reach; map.. Downstream-of side of the same Bailey Bridge (~8 km above Hwy 1). Map/OSM-confirmable."
+              "label": "Bailey Bridge (~8km u/s Hwy 1)",
+              "notes": "[auto-proposal L] Bailey Bridge over Silverhope Creek (~8 km above Hwy 1) on Silverhope (Silver) Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Bailey Bridge ~8 km up Silverhope Creek; downstream reach; map.. Downstream-of side of the same Bailey Bridge (~8 km above Hwy 1). Map/OSM-confirmable. [curated 2026-08-08 manual-review batch=silverhope-2-2] [Bailey Bridge = OSM way 248091751 (unnamed FSR bridge, ~6.6km u/s Hwy1); confirmed Waymark WMNYKC N49 19.647 W121 25.842 = 49.32745,-121.43070; logging access + Silver Lake Prov Park]",
+              "coord": [
+                -121.431,
+                49.32756
+              ]
             }
           ]
         },
@@ -8140,7 +8155,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-08"
     },
     "e29aedc0": {
       "entry_id": "e29aedc0",
