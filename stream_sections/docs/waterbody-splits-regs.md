@@ -3,7 +3,7 @@
 Every reg entry (source-first), booklet order. **Bold** = a live split boundary; plain text
 = whole-water / tributary-set / `not_applicable`. Regenerate; do not hand-edit.
 
-387 entries · 411 highlighted boundary phrases.
+387 entries · 410 highlighted boundary phrases.
 
 | Water | MU | p | Regulation |
 |---|---|--:|---|
@@ -244,7 +244,7 @@ Every reg entry (source-first), booklet order. **Bold** = a live split boundary;
 | WANETA RESERVOIR | 4-8 | 42 | See Pend d'Oreille River |
 | WANETA RESERVOIR'S TRIBUTARIES | 4-8 | 42 | See Pend d'Oreille River's tributaries |
 | WHATSHAN RIVER | 4-32 | 42 | No Fishing upstream of Whatshan Lake |
-| WHITE RIVER (see also east White & North White Rivers) | 4-24 | 42 | **Upstream of and including North White River**; trout/char catch and release Bull trout catch and release **on all parts**, Sept 1-Oct 31 Trout/char daily quota = 1 (none under 30 cm) **downstream of North White River**, June 15-Oct 31 Bait ban on all parts, June 15-Oct 31 Class II water when open, including tributaries |
+| WHITE RIVER (see also east White & North White Rivers) | 4-24 | 42 | **Upstream of and including North White River**; trout/char catch and release Bull trout catch and release on all parts, Sept 1-Oct 31 Trout/char daily quota = 1 (none under 30 cm) **downstream of North White River**, June 15-Oct 31 Bait ban on all parts, June 15-Oct 31 Class II water when open, including tributaries |
 | WHITESWAN LAKE | 4-24 | 42 | Single hook; no towing |
 | WHITESWAN LAKE'S INLET & OUTLET STREAMS | 4-24 | 42 | No Fishing **EXCEPT the outlet stream downstream of the falls 2.4 km downstream of Whiteswan Lake**, No Fishing Aug 1-Mar 31, rainbow trout daily quota = 5 (catch and release all other species) when open |
 | WHITETAIL LAKE | 4-26 | 42 | No Ice Fishing; rainbow trout daily quota = 1 (none under 50 cm); brook trout daily quota = 20 Bait ban, single barbless hook No towing |

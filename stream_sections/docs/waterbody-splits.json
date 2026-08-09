@@ -16189,7 +16189,7 @@
       "image": "page_040_row_000.png",
       "symbols": [],
       "reg_text": "**No Fishing** from Mica Dam to fishing boundary signs at the narrows immediately downstream of the mouth of Bigmouth Creek",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 1,
       "locators": [
         {
@@ -16198,24 +16198,24 @@
           "info": {
             "restriction_type": "closure"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "lake-revelstoke-62de4f-a",
-              "status": "todo",
+              "status": "deferred",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "dam_weir_fence",
-              "notes": "[auto-proposal H] Mica Dam (Kinbasket Lake outlet) on Lake Revelstoke reach (Mica Dam -> Bigmouth Creek narrows). Candidate coord [-118.56656, 52.07772]. OSM: https://www.openstreetmap.org/?mlat=52.07772&mlon=-118.56656#map=15/52.07772/-118.56656. Verify: Confirm Mica Dam at the Kinbasket Lake outlet; downstream end = signs at narrows just below the Bigmouth Creek mouth.. Mica Dam impounds Kinbasket Lake; below it lies Lake Revelstoke. Coord = FWA Columbia exit from the Kinbasket Lake polygon (wbk 328961767), matching the known Mica Dam. Reach runs to fishing signs at the narrows below Bigmouth Creek. — [review: reservoir-internal] Mica Dam -> signs below Bigmouth Ck sits WITHIN Lake Revelstoke reservoir; a lake-internal/reservoir reach (docs/15), may need re-modeling not a plain point split. [structural-split 2026-08-05 from \"from Mica Dam to fishing boundary signs at the narrows immed\"] boundary=Mica Dam",
+              "notes": "[auto-proposal H] Mica Dam (Kinbasket Lake outlet) on Lake Revelstoke reach (Mica Dam -> Bigmouth Creek narrows). Candidate coord [-118.56656, 52.07772]. OSM: https://www.openstreetmap.org/?mlat=52.07772&mlon=-118.56656#map=15/52.07772/-118.56656. Verify: Confirm Mica Dam at the Kinbasket Lake outlet; downstream end = signs at narrows just below the Bigmouth Creek mouth.. Mica Dam impounds Kinbasket Lake; below it lies Lake Revelstoke. Coord = FWA Columbia exit from the Kinbasket Lake polygon (wbk 328961767), matching the known Mica Dam. Reach runs to fishing signs at the narrows below Bigmouth Creek. — [review: reservoir-internal] Mica Dam -> signs below Bigmouth Ck sits WITHIN Lake Revelstoke reservoir; a lake-internal/reservoir reach (docs/15), may need re-modeling not a plain point split. [structural-split 2026-08-05 from \"from Mica Dam to fishing boundary signs at the narrows immed\"] boundary=Mica Dam [deferred 2026-08-09 lake-split (reservoir treated as lake): REF Mica Dam 52.07657,-118.56618 (OSM way 142323046); signs at narrows d/s Bigmouth Ck mouth 51.84339,-118.63346 (user pin); Bigmouth Ck mouth FWA blk 356568714]",
               "locator_text": "Mica Dam"
             },
             {
               "id": "lake-revelstoke-62de4f-b",
-              "status": "todo",
+              "status": "deferred",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "boundary_signs",
-              "notes": "[auto-proposal H] Mica Dam (Kinbasket Lake outlet) on Lake Revelstoke reach (Mica Dam -> Bigmouth Creek narrows). Candidate coord [-118.56656, 52.07772]. OSM: https://www.openstreetmap.org/?mlat=52.07772&mlon=-118.56656#map=15/52.07772/-118.56656. Verify: Confirm Mica Dam at the Kinbasket Lake outlet; downstream end = signs at narrows just below the Bigmouth Creek mouth.. Mica Dam impounds Kinbasket Lake; below it lies Lake Revelstoke. Coord = FWA Columbia exit from the Kinbasket Lake polygon (wbk 328961767), matching the known Mica Dam. Reach runs to fishing signs at the narrows below Bigmouth Creek. — [review: reservoir-internal] Mica Dam -> signs below Bigmouth Ck sits WITHIN Lake Revelstoke reservoir; a lake-internal/reservoir reach (docs/15), may need re-modeling not a plain point split. [structural-split 2026-08-05 from \"from Mica Dam to fishing boundary signs at the narrows immed\"] boundary=fishing boundary signs at the narrows immediately downstream of the mouth of Bigmouth Creek [hint-fix 2026-08-06 dam_weir_fence->boundary_signs]",
+              "notes": "[auto-proposal H] Mica Dam (Kinbasket Lake outlet) on Lake Revelstoke reach (Mica Dam -> Bigmouth Creek narrows). Candidate coord [-118.56656, 52.07772]. OSM: https://www.openstreetmap.org/?mlat=52.07772&mlon=-118.56656#map=15/52.07772/-118.56656. Verify: Confirm Mica Dam at the Kinbasket Lake outlet; downstream end = signs at narrows just below the Bigmouth Creek mouth.. Mica Dam impounds Kinbasket Lake; below it lies Lake Revelstoke. Coord = FWA Columbia exit from the Kinbasket Lake polygon (wbk 328961767), matching the known Mica Dam. Reach runs to fishing signs at the narrows below Bigmouth Creek. — [review: reservoir-internal] Mica Dam -> signs below Bigmouth Ck sits WITHIN Lake Revelstoke reservoir; a lake-internal/reservoir reach (docs/15), may need re-modeling not a plain point split. [structural-split 2026-08-05 from \"from Mica Dam to fishing boundary signs at the narrows immed\"] boundary=fishing boundary signs at the narrows immediately downstream of the mouth of Bigmouth Creek [hint-fix 2026-08-06 dam_weir_fence->boundary_signs] [deferred 2026-08-09 lake-split (reservoir treated as lake): REF Mica Dam 52.07657,-118.56618 (OSM way 142323046); signs at narrows d/s Bigmouth Ck mouth 51.84339,-118.63346 (user pin); Bigmouth Ck mouth FWA blk 356568714]",
               "locator_text": "fishing boundary signs at the narrows immediately downstream of the mouth of Bigmouth Creek"
             }
           ]
@@ -16240,7 +16240,8 @@
             }
           ]
         }
-      ]
+      ],
+      "reviewed": "2026-08-09"
     },
     "5b6722ba": {
       "entry_id": "5b6722ba",
@@ -17017,21 +17018,21 @@
       "image": "page_041_row_004.png",
       "symbols": [],
       "reg_text": "EXEMPT from single barbless hooks\nEXEMPT from the Apr 1-June 14 closure\nBull trout catch and release, walleye daily quota = unlimited\nNorthern pike daily quota = unlimited, yellow perch daily quota = unlimited, bass daily quota = unlimited",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 1,
       "locators": [
         {
           "src": "entry",
           "text": "Includes the reservoirs behind Waneta Dam and Seven Mile Dam",
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "pend-d-oreille-river-includes-the-reservoirs--57ffbb",
-              "status": "todo",
-              "anchor_kind": "point",
+              "status": "not_applicable",
+              "anchor_kind": "not_a_split",
               "src": "name",
               "resolver_hint": "dam_weir_fence",
-              "notes": "[auto-proposal L] Reservoirs behind Waneta Dam and Seven Mile Dam on Pend d'Oreille River (SE BC). Candidate coord [-117.345, 49.055]. OSM: https://www.openstreetmap.org/?mlat=49.05500&mlon=-117.34500#map=15/49.05500/-117.34500. Verify: This is a reservoir reach (two impoundments). Confirm Seven Mile Dam (~[-117.345,49.055]) as the upstream bound and Waneta Dam (~[-117.617,49.007], at the Columbia confluence) as the downstream bound.. The Pend d'Oreille entry includes the reservoirs behind Waneta Dam and Seven Mile Dam in extreme SE BC. Neither reservoir is clearly named in FWA. Candidate = approximate Seven Mile Dam (upstream); Waneta Dam sits at the Pend d'Oreille-Columbia confluence. Better modelled as a reach between the two dams - verify both on a map.",
+              "notes": "[auto-proposal L] Reservoirs behind Waneta Dam and Seven Mile Dam on Pend d'Oreille River (SE BC). Candidate coord [-117.345, 49.055]. OSM: https://www.openstreetmap.org/?mlat=49.05500&mlon=-117.34500#map=15/49.05500/-117.34500. Verify: This is a reservoir reach (two impoundments). Confirm Seven Mile Dam (~[-117.345,49.055]) as the upstream bound and Waneta Dam (~[-117.617,49.007], at the Columbia confluence) as the downstream bound.. The Pend d'Oreille entry includes the reservoirs behind Waneta Dam and Seven Mile Dam in extreme SE BC. Neither reservoir is clearly named in FWA. Candidate = approximate Seven Mile Dam (upstream); Waneta Dam sits at the Pend d'Oreille-Columbia confluence. Better modelled as a reach between the two dams - verify both on a map. [n/a 2026-08-09: water-extent clause; reg body is whole-water quotas/exemptions. NOTE: the Pend d'Oreille water should INCLUDE the reservoirs behind Waneta Dam and Seven Mile Dam]",
               "name_verbatim": "PEND D'OREILLE RIVER (Includes the reservoirs behind W"
             }
           ]
@@ -17039,21 +17040,22 @@
         {
           "src": "name",
           "text": "PEND D'OREILLE RIVER (Includes the reservoirs behind Waneta Dam and Seven Mile Dam)",
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "pend-d-oreille-river-includes-the-reservoirs--57ffbb",
-              "status": "todo",
-              "anchor_kind": "point",
+              "status": "not_applicable",
+              "anchor_kind": "not_a_split",
               "src": "name",
               "resolver_hint": "dam_weir_fence",
-              "notes": "[auto-proposal L] Reservoirs behind Waneta Dam and Seven Mile Dam on Pend d'Oreille River (SE BC). Candidate coord [-117.345, 49.055]. OSM: https://www.openstreetmap.org/?mlat=49.05500&mlon=-117.34500#map=15/49.05500/-117.34500. Verify: This is a reservoir reach (two impoundments). Confirm Seven Mile Dam (~[-117.345,49.055]) as the upstream bound and Waneta Dam (~[-117.617,49.007], at the Columbia confluence) as the downstream bound.. The Pend d'Oreille entry includes the reservoirs behind Waneta Dam and Seven Mile Dam in extreme SE BC. Neither reservoir is clearly named in FWA. Candidate = approximate Seven Mile Dam (upstream); Waneta Dam sits at the Pend d'Oreille-Columbia confluence. Better modelled as a reach between the two dams - verify both on a map.",
+              "notes": "[auto-proposal L] Reservoirs behind Waneta Dam and Seven Mile Dam on Pend d'Oreille River (SE BC). Candidate coord [-117.345, 49.055]. OSM: https://www.openstreetmap.org/?mlat=49.05500&mlon=-117.34500#map=15/49.05500/-117.34500. Verify: This is a reservoir reach (two impoundments). Confirm Seven Mile Dam (~[-117.345,49.055]) as the upstream bound and Waneta Dam (~[-117.617,49.007], at the Columbia confluence) as the downstream bound.. The Pend d'Oreille entry includes the reservoirs behind Waneta Dam and Seven Mile Dam in extreme SE BC. Neither reservoir is clearly named in FWA. Candidate = approximate Seven Mile Dam (upstream); Waneta Dam sits at the Pend d'Oreille-Columbia confluence. Better modelled as a reach between the two dams - verify both on a map. [n/a 2026-08-09: water-extent clause; reg body is whole-water quotas/exemptions. NOTE: the Pend d'Oreille water should INCLUDE the reservoirs behind Waneta Dam and Seven Mile Dam]",
               "name_verbatim": "PEND D'OREILLE RIVER (Includes the reservoirs behind W",
               "locator_text": "Includes the reservoirs behind Waneta Dam and Seven Mile Dam"
             }
           ]
         }
-      ]
+      ],
+      "reviewed": "2026-08-09"
     },
     "c55051c8": {
       "entry_id": "c55051c8",
@@ -17137,7 +17139,7 @@
         "Stocked"
       ],
       "reg_text": "**No Fishing** south of fishing boundary signs on the lake shore, May 15-June 20\nRainbow trout daily quota = 2, brook trout daily quota = 20\nNo towing, speed restriction (15 km/h), south half only",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 3,
       "locators": [
         {
@@ -17168,14 +17170,15 @@
           "info": {
             "restriction_type": "vessel_restriction"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "premier-lake-d21697",
-              "status": "todo",
+              "status": "deferred",
               "anchor_kind": "unclassified",
               "src": "rule",
-              "resolver_hint": "other_reach"
+              "resolver_hint": "other_reach",
+              "notes": "[deferred 2026-08-09: 'south half only' closure area on Premier Lake — lake-area, defer per lake-split rule]"
             }
           ]
         },
@@ -17185,14 +17188,15 @@
           "info": {
             "restriction_type": "vessel_restriction"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "premier-lake-d21697",
-              "status": "todo",
+              "status": "deferred",
               "anchor_kind": "unclassified",
               "src": "rule",
-              "resolver_hint": "other_reach"
+              "resolver_hint": "other_reach",
+              "notes": "[deferred 2026-08-09: 'south half only' closure area on Premier Lake — lake-area, defer per lake-split rule]"
             }
           ]
         },
@@ -17213,7 +17217,8 @@
             }
           ]
         }
-      ]
+      ],
+      "reviewed": "2026-08-09"
     },
     "fbd12c91": {
       "entry_id": "fbd12c91",
@@ -17865,7 +17870,7 @@
         "Incl. Tribs"
       ],
       "reg_text": "**No Fishing** July 15-Aug 31 from 12 pm to midnight (EXCEPT Koch Creek[Includes Tributaries] upstream of falls located approximately 700 m downstream of\nthe Little Slocan Forest Service Road Koch Creek bridge crossing and Little Slocan Lake's tributaries; see Lemon Creek)\nBait ban (where open), June 15-Oct 31\nTrout/char catch and release (EXCEPT Koch Creek[Includes Tributaries] upstream of falls and Little Slocan Lake's tributaries)",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 2,
       "locators": [
         {
@@ -17874,14 +17879,23 @@
           "info": {
             "restriction_type": "closure"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "slocan-river-a0da42",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "except",
               "resolver_hint": "falls_obstacle",
+              "label": "Koch Creek falls (~700m d/s Little Slocan FSR bridge)",
+              "notes": "[curated 2026-08-09: Koch Ck falls ~700m d/s of the Little Slocan FSR Koch Ck bridge (lowest OSM crossing); user-confirmed spot; no separate Koch Ck entry so the EXCEPT boundary lives here; the \"Little Slocan Lake tributaries\" part is whole-water]",
+              "coord": [
+                -117.75563,
+                49.60009
+              ],
+              "target": {
+                "blk": 356568948
+              },
               "locator_text": "EXCEPT Koch Creek[Includes Tributaries] upstream of falls located approximately 700 m downstream of the Little Slocan Fo"
             }
           ]
@@ -17892,14 +17906,23 @@
           "info": {
             "restriction_type": "harvest"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "slocan-river-dcf839",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "except",
-              "resolver_hint": "falls_obstacle"
+              "resolver_hint": "falls_obstacle",
+              "label": "Koch Creek falls (~700m d/s Little Slocan FSR bridge)",
+              "notes": "[curated 2026-08-09: Koch Ck falls ~700m d/s of the Little Slocan FSR Koch Ck bridge (lowest OSM crossing); user-confirmed spot; no separate Koch Ck entry so the EXCEPT boundary lives here; the \"Little Slocan Lake tributaries\" part is whole-water]",
+              "coord": [
+                -117.75563,
+                49.60009
+              ],
+              "target": {
+                "blk": 356568948
+              }
             }
           ]
         },
@@ -17909,7 +17932,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-09"
     },
     "46dbf481": {
       "entry_id": "46dbf481",
@@ -18238,7 +18262,7 @@
         "Classified"
       ],
       "reg_text": "Upstream of and including North White River; trout/char catch and release\nBull trout catch and release on all parts, Sept 1-Oct 31\nTrout/char daily quota = 1 (none under 30 cm) downstream of North White River, June 15-Oct 31\nBait ban on all parts, June 15-Oct 31\n**Class II water when open, including tributaries**",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 4,
       "locators": [
         {
@@ -18277,14 +18301,15 @@
               "Sept 1-Oct 31"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "white-river-see-also-east-white-north-white-r-955fb4",
-              "status": "todo",
-              "anchor_kind": "unclassified",
+              "status": "not_applicable",
+              "anchor_kind": "not_a_split",
               "src": "rule",
-              "resolver_hint": "other_reach"
+              "resolver_hint": "other_reach",
+              "notes": "[n/a 2026-08-09: whole-water (bull trout C&R + bait ban on all parts); the North White River confluence split is already curated]"
             }
           ]
         },
@@ -18327,14 +18352,15 @@
               "June 15-Oct 31"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "white-river-see-also-east-white-north-white-r-955fb4",
-              "status": "todo",
-              "anchor_kind": "unclassified",
+              "status": "not_applicable",
+              "anchor_kind": "not_a_split",
               "src": "rule",
-              "resolver_hint": "other_reach"
+              "resolver_hint": "other_reach",
+              "notes": "[n/a 2026-08-09: whole-water (bull trout C&R + bait ban on all parts); the North White River confluence split is already curated]"
             }
           ]
         },
@@ -18344,7 +18370,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-09"
     },
     "b9a07687": {
       "entry_id": "b9a07687",

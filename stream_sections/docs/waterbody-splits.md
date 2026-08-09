@@ -7,8 +7,8 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 |---|--:|
 | NO_CURATION | 1 |
 | MISSING_SPLITS | 2 |
-| INCOMPLETE | 115 |
-| COMPLETE | 194 |
+| INCOMPLETE | 110 |
+| COMPLETE | 199 |
 | NO_SPLIT | 75 |
 
 **Drift** (curated rows matching no source locator): 9
@@ -99,12 +99,6 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 - • [rule] “Upstream of Kirkup Creek” → jordan-river-390f59[curated], jordan-river-bc6d34[curated]
 - • [rule] “from Kirkup Creek downstream, including Kirkup Creek” → jordan-river-76a505[todo]
 
-## WHITE RIVER (see also east White & North White Rivers) · MU ['4-24'] · p42 · [INCOMPLETE] (119ed5c6)
-- • [rule] “Upstream of and including North White River” → white-river-see-also-east-white-north-white-r-18e31c[curated]
-- • [rule] “on all parts” → white-river-see-also-east-white-north-white-r-955fb4[todo]
-- • [rule] “downstream of North White River” → white-river-see-also-east-white-north-white-r-54f271[curated]
-- • [rule] “on all parts” → white-river-see-also-east-white-north-white-r-955fb4[todo]
-
 ## ALOUETTE RIVER · MU ['2-8'] · p24 · [INCOMPLETE] (dadcd21c)
 - • [rule] “upstream of the fishing boundary signs located at 49° 14.790'N and” → alouette-river-741304[curated]
 - • [rule] “upstream of 216th Street” → alouette-river-daecfd[curated], north-alouette-river-e3810a[todo]
@@ -129,11 +123,6 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 - • [rule] “from Doctor Creek Bridge to Lavington Creek Bridge” → findlay-creek-6df88c-a[curated], findlay-creek-6df88c-b[todo]
 - • [rule] “other parts” → findlay-creek-405247[not_applicable]
 - • [except] “except Lavington Creek” → findlay-creek-1b3bee[not_applicable]
-
-## PREMIER LAKE · MU ['4-21'] · p41 · [INCOMPLETE] (1ec727fd)
-- • [rule] “south of fishing boundary signs on the lake shore” → premier-lake-895b0d[deferred]
-- • [rule] “south half only” → premier-lake-d21697[todo]
-- • [rule] “south half only” → premier-lake-d21697[todo]
 
 ## BULKLEY RIVER · MU ['6-9'] · p56 · [INCOMPLETE] (d850b295)
 - • [rule] “upstream of Morice/Bulkley River confluence” → bulkley-river-e30268[curated]
@@ -176,10 +165,6 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 ## MOYIE RIVER · MU ['4-5'] · p40 · [INCOMPLETE] (7772faef)
 - • [rule] “Irishman Creek (Moyie River tributary)” → moyie-river-a098eb[not_applicable]
 - • [rule] “from bridge at south end of Moyie Lake to U.S. border” → moyie-river-53143e-a[curated], moyie-river-53143e-b[todo]
-
-## SLOCAN RIVER · MU ['4-17'] · p41 · [INCOMPLETE] (d409b6f7)
-- • [except] “EXCEPT Koch Creek[Includes Tributaries] upstream of falls located ” → slocan-river-a0da42[todo]
-- • [except] “EXCEPT Koch Creek[Includes Tributaries] upstream of falls and Litt” → slocan-river-dcf839[todo]
 
 ## CHUCKWALLA RIVER · MU ['5-7'] · p50 · [INCOMPLETE] (38c3c0c0)
 - • [rule] “entire river” → chuckwalla-river-a0316a[not_applicable]
@@ -311,14 +296,8 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 ## KINBASKET (McNaughton) LAKE · MU ['4-36'] · p39 · [INCOMPLETE] (a58e3be6)
 - • [rule] “within 200 m of Bush-Sullivan Road Bridge in Bush Arm” → kinbasket-mcnaughton-lake-4535e6[todo]
 
-## LAKE REVELSTOKE · MU ['4-38', '4-39'] · p40 · [INCOMPLETE] (010a278a)
-- • [rule] “from Mica Dam to fishing boundary signs at the narrows immediately” → lake-revelstoke-62de4f-a[todo], lake-revelstoke-62de4f-b[todo]
-
 ## NORNS (Pass) CREEK · MU ['4-15'] · p41 · [INCOMPLETE] (51aea709)
 - • [rule] “downstream of falls approximately 2 km from Columbia River” → norns-pass-creek-9ac243[todo]
-
-## PEND D'OREILLE RIVER (Includes the reservoirs behind Waneta Dam and Seven Mile Dam) · MU ['4-8'] · p41 · [INCOMPLETE] (57ddd9ce)
-- • [entry] “Includes the reservoirs behind Waneta Dam and Seven Mile Dam” → pend-d-oreille-river-includes-the-reservoirs--57ffbb[todo]
 
 ## ST. LEON CREEK · MU ['4-31'] · p41 · [INCOMPLETE] (15f8ea45)
 - • [rule] “downstream of barrier approximately 1 km upstream of the Hwy 23 br” → st-leon-creek-8e9134[todo]
