@@ -155,6 +155,18 @@ Toquart 1-8. Deferred (lake-splits): Quesnel Lake 5-15, Vaseux Lake 8-1, Great C
 - **FISS obstacle** is the falls fallback when FWA `waterfalls` + OSM both miss (Quinsam, Toquart):
   the human pastes obstacle id + lat/lon; store `[FISS obstacle NNNNN, WSC …]` in notes.
 - **FWA gaps**: some West-Coast VI rivers (Toquart) aren't in the gpkg at all → resolve from OSM only.
+- **Park-boundary ∩ river (Baker/Pinnacles style) — use inside↔outside transitions, NOT raw
+  `intersection()`.** A river often runs *along* a park boundary for a stretch, so
+  `river.intersection(park.boundary)` returns a LineString/MultiLineString (the overlap), and naive
+  Point-extraction yields **0 crossings** (this bit the Atnarko/Tweedsmuir pass). Robust method:
+  sample the river by measure, test `park_polygon.contains(pt)`, and take the measures where it flips
+  inside↔outside — those are the real entry/exit boundaries. Also confirm the boundary is on the
+  *named* river: an "upstream of X Park" edge can be 9+ km off the mainstem (on a tributary/next
+  river), in which case only a human pin resolves it.
+- **Park closures include tributaries** (Garibaldi/Pitt, Atnarko/Tweedsmuir): the reg's park-boundary
+  No-Fishing also applies to tributaries inside the park — record a TRIB-SPLIT note so each tributary
+  gets split at the park boundary (tributary inheritance / authored `area_boundary`), not just the
+  mainstem.
 
 ### Review queue (staged candidates — NOT yet applied)
 
