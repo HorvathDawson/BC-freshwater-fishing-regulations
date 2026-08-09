@@ -16506,21 +16506,26 @@
         "Incl. Tribs"
       ],
       "reg_text": "**Class II water when open, including tributaries**\nTrout/char catch and release, June 15-Mar 31 and bait ban, June 15-Oct 31.",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 2,
       "locators": [
         {
           "src": "water",
           "text": "upstream of the easternmost Hwy 3 bridge",
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "michel-creek-upstream-of-the-easternmost-hwy--b614f4",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "name",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] easternmost Hwy 3 bridge over Michel Creek on Michel Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the 'easternmost' Hwy 3 bridge over Michel Creek; upstream reach; map.. Same landmark as the paired Michel Creek entry; upstream reach. Public highway bridge -> map/OSM-confirmable.",
+              "label": "easternmost Hwy 3 (Crowsnest) bridge",
+              "notes": "[auto-proposal L] easternmost Hwy 3 bridge over Michel Creek on Michel Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the 'easternmost' Hwy 3 bridge over Michel Creek; upstream reach; map.. Same landmark as the paired Michel Creek entry; upstream reach. Public highway bridge -> map/OSM-confirmable. [curated 2026-08-08 manual-review batch=michel-4-23] [easternmost of 4 Hwy 3 crossings of Michel Creek, OSM way 100217550, blk 356565783]",
+              "coord": [
+                -114.78167,
+                49.67264
+              ],
               "name_verbatim": "MICHEL CREEK (upstream of the easternmost Hwy 3 bridge"
             }
           ]
@@ -16528,15 +16533,20 @@
         {
           "src": "entry",
           "text": "upstream of the easternmost Hwy 3 bridge",
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "michel-creek-upstream-of-the-easternmost-hwy--b614f4",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "name",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] easternmost Hwy 3 bridge over Michel Creek on Michel Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the 'easternmost' Hwy 3 bridge over Michel Creek; upstream reach; map.. Same landmark as the paired Michel Creek entry; upstream reach. Public highway bridge -> map/OSM-confirmable.",
+              "label": "easternmost Hwy 3 (Crowsnest) bridge",
+              "notes": "[auto-proposal L] easternmost Hwy 3 bridge over Michel Creek on Michel Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the 'easternmost' Hwy 3 bridge over Michel Creek; upstream reach; map.. Same landmark as the paired Michel Creek entry; upstream reach. Public highway bridge -> map/OSM-confirmable. [curated 2026-08-08 manual-review batch=michel-4-23] [easternmost of 4 Hwy 3 crossings of Michel Creek, OSM way 100217550, blk 356565783]",
+              "coord": [
+                -114.78167,
+                49.67264
+              ],
               "name_verbatim": "MICHEL CREEK (upstream of the easternmost Hwy 3 bridge"
             }
           ]
@@ -16544,21 +16554,27 @@
         {
           "src": "name",
           "text": "MICHEL CREEK (upstream of the easternmost Hwy 3 bridge)",
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "michel-creek-upstream-of-the-easternmost-hwy--b614f4",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "name",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] easternmost Hwy 3 bridge over Michel Creek on Michel Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the 'easternmost' Hwy 3 bridge over Michel Creek; upstream reach; map.. Same landmark as the paired Michel Creek entry; upstream reach. Public highway bridge -> map/OSM-confirmable.",
+              "label": "easternmost Hwy 3 (Crowsnest) bridge",
+              "notes": "[auto-proposal L] easternmost Hwy 3 bridge over Michel Creek on Michel Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the 'easternmost' Hwy 3 bridge over Michel Creek; upstream reach; map.. Same landmark as the paired Michel Creek entry; upstream reach. Public highway bridge -> map/OSM-confirmable. [curated 2026-08-08 manual-review batch=michel-4-23] [easternmost of 4 Hwy 3 crossings of Michel Creek, OSM way 100217550, blk 356565783]",
+              "coord": [
+                -114.78167,
+                49.67264
+              ],
               "name_verbatim": "MICHEL CREEK (upstream of the easternmost Hwy 3 bridge",
               "locator_text": "upstream of the easternmost Hwy 3 bridge"
             }
           ]
         }
-      ]
+      ],
+      "reviewed": "2026-08-08"
     },
     "8328cecb": {
       "entry_id": "8328cecb",
@@ -16573,21 +16589,26 @@
         "Classified"
       ],
       "reg_text": "**Class II water when open, including tributaries**\nTrout/char daily quota = 1 (none under 30 cm) and bait ban, June 15-Oct 31.",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 2,
       "locators": [
         {
           "src": "water",
           "text": "downstream of the easternmost Hwy 3 bridge",
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "michel-creek-downstream-of-the-easternmost-hw-92f1d6",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "name",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] easternmost Hwy 3 bridge over Michel Creek on Michel Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the 'easternmost' Hwy 3 bridge over Michel Creek (Sparwood/Elk valley, MU 4-23); map.. Hwy 3 crosses Michel Creek multiple times near Sparwood; 'easternmost' picks one. Public highway -> map-only (FSR hits are far up the creek). Downstream reach.",
+              "label": "easternmost Hwy 3 (Crowsnest) bridge",
+              "notes": "[auto-proposal L] easternmost Hwy 3 bridge over Michel Creek on Michel Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the 'easternmost' Hwy 3 bridge over Michel Creek (Sparwood/Elk valley, MU 4-23); map.. Hwy 3 crosses Michel Creek multiple times near Sparwood; 'easternmost' picks one. Public highway -> map-only (FSR hits are far up the creek). Downstream reach. [curated 2026-08-08 manual-review batch=michel-4-23] [easternmost of 4 Hwy 3 crossings of Michel Creek, OSM way 100217550, blk 356565783]",
+              "coord": [
+                -114.78167,
+                49.67264
+              ],
               "name_verbatim": "MICHEL CREEK (downstream of the easternmost Hwy 3 brid"
             }
           ]
@@ -16595,15 +16616,20 @@
         {
           "src": "entry",
           "text": "downstream of the easternmost Hwy 3 bridge",
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "michel-creek-downstream-of-the-easternmost-hw-92f1d6",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "name",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] easternmost Hwy 3 bridge over Michel Creek on Michel Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the 'easternmost' Hwy 3 bridge over Michel Creek (Sparwood/Elk valley, MU 4-23); map.. Hwy 3 crosses Michel Creek multiple times near Sparwood; 'easternmost' picks one. Public highway -> map-only (FSR hits are far up the creek). Downstream reach.",
+              "label": "easternmost Hwy 3 (Crowsnest) bridge",
+              "notes": "[auto-proposal L] easternmost Hwy 3 bridge over Michel Creek on Michel Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the 'easternmost' Hwy 3 bridge over Michel Creek (Sparwood/Elk valley, MU 4-23); map.. Hwy 3 crosses Michel Creek multiple times near Sparwood; 'easternmost' picks one. Public highway -> map-only (FSR hits are far up the creek). Downstream reach. [curated 2026-08-08 manual-review batch=michel-4-23] [easternmost of 4 Hwy 3 crossings of Michel Creek, OSM way 100217550, blk 356565783]",
+              "coord": [
+                -114.78167,
+                49.67264
+              ],
               "name_verbatim": "MICHEL CREEK (downstream of the easternmost Hwy 3 brid"
             }
           ]
@@ -16611,21 +16637,27 @@
         {
           "src": "name",
           "text": "MICHEL CREEK (downstream of the easternmost Hwy 3 bridge)",
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "michel-creek-downstream-of-the-easternmost-hw-92f1d6",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "name",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] easternmost Hwy 3 bridge over Michel Creek on Michel Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the 'easternmost' Hwy 3 bridge over Michel Creek (Sparwood/Elk valley, MU 4-23); map.. Hwy 3 crosses Michel Creek multiple times near Sparwood; 'easternmost' picks one. Public highway -> map-only (FSR hits are far up the creek). Downstream reach.",
+              "label": "easternmost Hwy 3 (Crowsnest) bridge",
+              "notes": "[auto-proposal L] easternmost Hwy 3 bridge over Michel Creek on Michel Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the 'easternmost' Hwy 3 bridge over Michel Creek (Sparwood/Elk valley, MU 4-23); map.. Hwy 3 crosses Michel Creek multiple times near Sparwood; 'easternmost' picks one. Public highway -> map-only (FSR hits are far up the creek). Downstream reach. [curated 2026-08-08 manual-review batch=michel-4-23] [easternmost of 4 Hwy 3 crossings of Michel Creek, OSM way 100217550, blk 356565783]",
+              "coord": [
+                -114.78167,
+                49.67264
+              ],
               "name_verbatim": "MICHEL CREEK (downstream of the easternmost Hwy 3 brid",
               "locator_text": "downstream of the easternmost Hwy 3 bridge"
             }
           ]
         }
-      ]
+      ],
+      "reviewed": "2026-08-08"
     },
     "7772faef": {
       "entry_id": "7772faef",

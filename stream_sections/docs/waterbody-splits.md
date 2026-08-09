@@ -7,8 +7,8 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 |---|--:|
 | NO_CURATION | 1 |
 | MISSING_SPLITS | 2 |
-| INCOMPLETE | 142 |
-| COMPLETE | 167 |
+| INCOMPLETE | 140 |
+| COMPLETE | 169 |
 | NO_SPLIT | 75 |
 
 **Drift** (curated rows matching no source locator): 6
@@ -263,14 +263,6 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 ## LODGEPOLE CREEK (upstream of falls) · MU ['4-2'] · p40 · [INCOMPLETE] (4dbdd58a)
 - • [water] “upstream of falls” → lodgepole-creek-upstream-of-falls-615359[todo]
 - • [entry] “upstream of falls” → lodgepole-creek-upstream-of-falls-615359[todo]
-
-## MICHEL CREEK (upstream of the easternmost Hwy 3 bridge) · MU ['4-23'] · p40 · [INCOMPLETE] (cb7374a9)
-- • [water] “upstream of the easternmost Hwy 3 bridge” → michel-creek-upstream-of-the-easternmost-hwy--b614f4[todo]
-- • [entry] “upstream of the easternmost Hwy 3 bridge” → michel-creek-upstream-of-the-easternmost-hwy--b614f4[todo]
-
-## MICHEL CREEK (downstream of the easternmost Hwy 3 bridge) · MU ['4-23'] · p40 · [INCOMPLETE] (8328cecb)
-- • [water] “downstream of the easternmost Hwy 3 bridge” → michel-creek-downstream-of-the-easternmost-hw-92f1d6[todo]
-- • [entry] “downstream of the easternmost Hwy 3 bridge” → michel-creek-downstream-of-the-easternmost-hw-92f1d6[todo]
 
 ## MOYIE RIVER · MU ['4-5'] · p40 · [INCOMPLETE] (7772faef)
 - • [rule] “Irishman Creek (Moyie River tributary)” → moyie-river-a098eb[not_applicable]
