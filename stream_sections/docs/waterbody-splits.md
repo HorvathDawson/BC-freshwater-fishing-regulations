@@ -7,8 +7,8 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 |---|--:|
 | NO_CURATION | 1 |
 | MISSING_SPLITS | 2 |
-| INCOMPLETE | 59 |
-| COMPLETE | 250 |
+| INCOMPLETE | 57 |
+| COMPLETE | 252 |
 | NO_SPLIT | 75 |
 
 **Drift** (curated rows matching no source locator): 11
@@ -49,15 +49,6 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 - • [rule] “Upstream of White River” → kootenay-river-upstream-of-koocanusa-reservoi-82bacc[curated]
 - • [entry] “upstream of Koocanusa Reservoir” → kootenay-river-upstream-of-koocanusa-reservoi-3bb758[curated], kootenay-river-upstream-of-koocanusa-reservoi-6f3c82[curated]
 
-## ATNARKO/BELLA COOLA RIVERS [Includes Tributaries] EXCEPT: Burnt Bridge Creek upstream of Sitkatapa Creek, Hunlen Creek upstream of Hunlen Falls, and Young Creek upstream of Hwy 20 (see separate entries for these three waters) · MU ['5-6', '5-8', '5-11'] · p49 · [INCOMPLETE] (72172723)
-- • [rule] “upstream of Tweedsmuir Provincial Park plus Tenas Lake” → atnarko-bella-coola-rivers-includes-tributari-8142a5[todo]
-- • [rule] “from Tenas Lake to fishing boundary signs near Atnarko Park campsi” → atnarko-bella-coola-rivers-includes-tributari-985001[manual]
-- • [rule] “downstream of eastern boundary of Tweedsmuir Provincial Park” → atnarko-bella-coola-rivers-includes-tributari-01c9b0[todo]
-- • [rule] “on mainstems of Atnarko River and Bella Coola River” → atnarko-bella-coola-rivers-includes-tributari-250ae0[not_applicable]
-- • [rule] “on Atnarko River, from Goat Creek to the confluence with Talchako ” → atnarko-bella-coola-rivers-includes-tributari-f69d72-a[curated], atnarko-bella-coola-rivers-includes-tributari-f69d72-b[curated]
-- • [rule] “downstream of Young Creek” → atnarko-bella-coola-rivers-includes-tributari-a8b6c2[curated]
-- • [entry] “EXCEPT: Burnt Bridge Creek upstream of Sitkatapa Creek, Hunlen Cre” → atnarko-bella-coola-rivers-includes-tributari-a7bbc2[manual]
-
 ## ZYMOETZ (Copper) RIVER · MU ['6-9'] · p60 · [INCOMPLETE] (883f7f02)
 - • [rule] “from McDonell Lake downstream approximately 3 km to fishing bounda” → zymoetz-copper-river-f226e7[curated]
 - • [rule] “between fishing boundary signs in Zymoetz Canyon” → zymoetz-copper-river-a60c30[todo]
@@ -90,11 +81,6 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 - • [rule] “upstream of the fishing boundary signs located at 49° 14.790'N and” → alouette-river-741304[curated]
 - • [rule] “upstream of 216th Street” → alouette-river-daecfd[curated], north-alouette-river-e3810a[todo]
 - • [rule] “on mainstem” → alouette-river-b5a707[not_applicable]
-
-## ADAMS RIVER (downstream of Adams Lake) · MU ['3-37'] · p31 · [INCOMPLETE] (a86d90f9)
-- • [water] “downstream of Adams Lake” → adams-river-downstream-of-adams-lake-037302[curated]
-- • [rule] “between fishing boundary signs in the vicinity of the public salmo” → adams-river-downstream-of-adams-lake-61c126[todo]
-- • [entry] “downstream of Adams Lake” → adams-river-downstream-of-adams-lake-037302[curated]
 
 ## BRIDGE RIVER · MU ['3-33'] · p31 · [INCOMPLETE] (58790669)
 - • [rule] “from Terzaghi Dam to Yalakom River” → bridge-river-2ee523-a[curated], bridge-river-2ee523-b[curated]

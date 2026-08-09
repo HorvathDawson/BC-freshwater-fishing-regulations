@@ -9016,7 +9016,7 @@
       "image": "page_031_row_003.png",
       "symbols": [],
       "reg_text": "**No Fishing** from Sept 1-Oct 31 between fishing boundary signs in the vicinity of the public salmon viewing platforms in Tsutswecew\nProvincial Park\nRainbow trout and char catch and release; bait ban; no powered boats",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 3,
       "locators": [
         {
@@ -9046,14 +9046,20 @@
               "Sept 1-Oct 31"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "adams-river-downstream-of-adams-lake-61c126",
-              "status": "todo",
-              "anchor_kind": "area_boundary",
+              "status": "curated",
+              "anchor_kind": "point",
               "src": "rule",
-              "resolver_hint": "park_polygon"
+              "resolver_hint": "park_polygon",
+              "label": "signs near salmon-viewing platforms (Tsutswecw Park)",
+              "notes": "[curated 2026-08-09 park-pins] [user pin; public salmon-viewing platforms, Tsutswecw Prov Park]",
+              "coord": [
+                -119.57374,
+                50.90038
+              ]
             }
           ]
         },
@@ -9094,7 +9100,8 @@
             }
           ]
         }
-      ]
+      ],
+      "reviewed": "2026-08-09"
     },
     "3ff41d3f": {
       "entry_id": "3ff41d3f",
@@ -18954,7 +18961,7 @@
         "Incl. Tribs"
       ],
       "reg_text": "**No Fishing** upstream of Tweedsmuir Provincial Park plus Tenas Lake, Apr 1-June 30\n**No Fishing** from Tenas Lake to fishing boundary signs near Atnarko Park campsite\nTrout/char daily quota = 1 (none under 25 cm and all cutthroat trout catch and release) EXCEPT: on Bella Coola R. MAINSTEM ONLY, trout/\nchar daily quota = 2, of which only one may be a trout (cutthroat or rainbow) and none may be under 25 cm, no cutthroat may be over 33\ncm, and no rainbow may be over 50 cm), Apr 1-May 31 ONLY, EXCEPT: char catch and release (on TRIBUTARIES ONLY), Sept 1-May 31\nBait ban downstream of eastern boundary of Tweedsmuir Provincial Park, Sept 1- May 15\nNo angling from powered boats on mainstems of Atnarko River and Bella Coola River\nNo powered boats on Atnarko River, from Goat Creek to the confluence with Talchako River\n**No Fishing** for steelhead\n**Class II water downstream of Young Creek, Mar 1-May 31. NOTE: Classified Waters Licence or Steelhead Stamp not required until\nreopened to steelhead fishing**",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 7,
       "locators": [
         {
@@ -18966,14 +18973,20 @@
               "Apr 1-June 30"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "atnarko-bella-coola-rivers-includes-tributari-8142a5",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "area_boundary",
               "src": "rule",
               "resolver_hint": "park_polygon",
+              "label": "Tweedsmuir Park upstream boundary (Atnarko)",
+              "notes": "[curated 2026-08-09 park-pins] [user pin; closure ALSO includes Tenas Lake WBK 329021804 @52.16039,-125.71141] [TRIB-SPLIT NOTE: like Garibaldi/Pitt — the park-boundary closure also applies to tributaries within the park; each tributary must be split at the Tweedsmuir boundary (tributary inheritance / authored area_boundary split), not just the mainstem]",
+              "coord": [
+                -126.21191,
+                52.42673
+              ],
               "name_verbatim": "ATNARKO/BELLA COOLA RIVERS [Includes Tributaries] EXCE"
             }
           ]
@@ -18988,11 +19001,16 @@
           "rows": [
             {
               "id": "atnarko-bella-coola-rivers-includes-tributari-985001",
-              "status": "manual",
-              "anchor_kind": "lake",
+              "status": "curated",
+              "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "lake_reach",
-              "notes": "[lake-class: lake_split] Tenas Lake edge (up) + boundary signs (down) — lake anchor + point. — [lake-bound-auto] MIXED: Tenas Lake edge is auto; the downstream boundary-signs point needs authoring. — [manual] boundary signs near Atnarko Park campsite (no distance given) — locate the campsite by map.",
+              "label": "Atnarko Park campsite boundary signs",
+              "notes": "[lake-class: lake_split] Tenas Lake edge (up) + boundary signs (down) — lake anchor + point. — [lake-bound-auto] MIXED: Tenas Lake edge is auto; the downstream boundary-signs point needs authoring. — [manual] boundary signs near Atnarko Park campsite (no distance given) — locate the campsite by map. [curated 2026-08-09 park-pins] [user pin; reach = Tenas Lake (52.16039,-125.71141) -> these campsite signs]",
+              "coord": [
+                -125.91077,
+                52.40597
+              ],
               "name_verbatim": "ATNARKO/BELLA COOLA RIVERS [Includes Tributaries] EXCE"
             }
           ]
@@ -19006,14 +19024,20 @@
               "Sept 1- May 15"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "atnarko-bella-coola-rivers-includes-tributari-01c9b0",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "area_boundary",
               "src": "rule",
               "resolver_hint": "park_polygon",
+              "label": "Tweedsmuir Park eastern boundary (Atnarko)",
+              "notes": "[curated 2026-08-09 park-pins] [user pin] [TRIB-SPLIT NOTE: like Garibaldi/Pitt — the park-boundary closure also applies to tributaries within the park; each tributary must be split at the Tweedsmuir boundary (tributary inheritance / authored area_boundary split), not just the mainstem]",
+              "coord": [
+                -125.6474,
+                52.1786
+              ],
               "name_verbatim": "ATNARKO/BELLA COOLA RIVERS [Includes Tributaries] EXCE"
             }
           ]
@@ -19121,11 +19145,11 @@
           "rows": [
             {
               "id": "atnarko-bella-coola-rivers-includes-tributari-a7bbc2",
-              "status": "manual",
-              "anchor_kind": "point",
+              "status": "not_applicable",
+              "anchor_kind": "not_a_split",
               "src": "entry",
               "resolver_hint": "falls_obstacle",
-              "notes": "already in split",
+              "notes": "already in split [curated 2026-08-09 park-pins] [n/a: EXCEPT name-clause (Burnt Bridge/Hunlen/Young) — handled by their separate entries]",
               "name_verbatim": "ATNARKO/BELLA COOLA RIVERS [Includes Tributaries] EXCE",
               "locator_text": "EXCEPT: Burnt Bridge Creek upstream of Sitkatapa Creek, Hunlen Creek upstream of Hunlen Falls, and Young Creek upstream"
             }
@@ -19138,17 +19162,18 @@
           "rows": [
             {
               "id": "atnarko-bella-coola-rivers-includes-tributari-9a9b65",
-              "status": "manual",
-              "anchor_kind": "point",
+              "status": "not_applicable",
+              "anchor_kind": "not_a_split",
               "src": "name",
               "resolver_hint": "falls_obstacle",
-              "notes": "already in split",
+              "notes": "already in split [curated 2026-08-09 park-pins] [n/a: EXCEPT name-clause (Burnt Bridge/Hunlen/Young) — handled by their separate entries]",
               "name_verbatim": "ATNARKO/BELLA COOLA RIVERS [Includes Tributaries] EXCE",
               "locator_text": "ATNARKO/BELLA COOLA RIVERS [Includes Tributaries] EXCEPT: Burnt Bridge Creek upstream of Sitkatapa Creek, Hunlen Creek u"
             }
           ]
         }
-      ]
+      ],
+      "reviewed": "2026-08-09"
     },
     "bb0964e3": {
       "entry_id": "bb0964e3",
@@ -19273,11 +19298,11 @@
           "rows": [
             {
               "id": "atnarko-bella-coola-rivers-includes-tributari-9a9b65",
-              "status": "manual",
-              "anchor_kind": "point",
+              "status": "not_applicable",
+              "anchor_kind": "not_a_split",
               "src": "name",
               "resolver_hint": "falls_obstacle",
-              "notes": "already in split",
+              "notes": "already in split [curated 2026-08-09 park-pins] [n/a: EXCEPT name-clause (Burnt Bridge/Hunlen/Young) — handled by their separate entries]",
               "name_verbatim": "ATNARKO/BELLA COOLA RIVERS [Includes Tributaries] EXCE",
               "mus": [
                 "5-6",
