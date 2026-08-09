@@ -7,11 +7,11 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 |---|--:|
 | NO_CURATION | 1 |
 | MISSING_SPLITS | 2 |
-| INCOMPLETE | 73 |
-| COMPLETE | 236 |
+| INCOMPLETE | 60 |
+| COMPLETE | 249 |
 | NO_SPLIT | 75 |
 
-**Drift** (curated rows matching no source locator): 9
+**Drift** (curated rows matching no source locator): 11
 
 ## LYNN CREEK · MU ['2-8'] · p26 · [NO_CURATION] (362df0a9)
 - ❌ MISSING [rule] “between fishing boundary signs situated approximately 200 m upstre” → —
@@ -67,13 +67,6 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 - • [rule] “Downstream of Limonite Creek (Zymoetz River B)” → zymoetz-copper-river-bb27a9[curated]
 - • [rule] “Downstream of Limonite Creek (Zymoetz River B)” → zymoetz-copper-river-bb27a9[curated]
 
-## NANAIMO RIVER · MU ['1-5'] · p19 · [INCOMPLETE] (046b8cc3)
-- • [rule] “from power line crossing at "Bore Hole" upstream to fishing bounda” → nanaimo-river-633e28-a[curated], nanaimo-river-633e28-b[todo]
-- • [rule] “from the Cedar Road Bridge upstream to the Hwy 19 bridge” → nanaimo-river-e9ebfc-a[curated], nanaimo-river-e9ebfc-b[curated]
-- • [rule] “upstream of the Hwy 1 bridge” → nanaimo-river-41353f[curated]
-- • [rule] “upstream of the westernmost of the two Nanaimo Lakes, known locall” → nanaimo-river-76bf11[not_applicable]
-- • [rule] “on parts” → nanaimo-river-bd9e20[not_applicable]
-
 ## SKEENA RIVER (mainstem only) · MU ['6-10'] · p59 · [INCOMPLETE] (2fc0d1b9)
 - • [rule] “from Exchamsiks River to 1.5 km upstream of Kitsumkalum River (kno” → skeena-river-mainstem-only-b079a0-a[curated], skeena-river-mainstem-only-b079a0-b[curated]
 - • [rule] “1.5 km upstream of Zymoetz River (known as "Skeena River Section 4” → skeena-river-mainstem-only-3f082d[curated]
@@ -92,12 +85,6 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 - • [rule] “Downstream of Nahatlatch Lake (including Hannah and Frances lakes;” → nahatlatch-river-0bb710[not_applicable], nahatlatch-river-1d1eaf[not_applicable], nahatlatch-river-a0ebb8[not_applicable]
 - • [except] “except as noted upstream of” → nahatlatch-river-1d1eaf[not_applicable], nahatlatch-river-a0ebb8[not_applicable]
 - • [rule] “downstream of Nahatlatch Lake” → nahatlatch-river-0bb710[not_applicable], nahatlatch-river-1d1eaf[not_applicable]
-
-## JORDAN RIVER · MU ['4-39'] · p39 · [INCOMPLETE] (13b0444c)
-- • [rule] “upstream of Kirkup Creek” → jordan-river-390f59[curated], jordan-river-bc6d34[curated]
-- • [rule] “Upstream of Kirkup Creek” → jordan-river-390f59[curated], jordan-river-bc6d34[curated]
-- • [rule] “Upstream of Kirkup Creek” → jordan-river-390f59[curated], jordan-river-bc6d34[curated]
-- • [rule] “from Kirkup Creek downstream, including Kirkup Creek” → jordan-river-76a505[todo]
 
 ## ALOUETTE RIVER · MU ['2-8'] · p24 · [INCOMPLETE] (dadcd21c)
 - • [rule] “upstream of the fishing boundary signs located at 49° 14.790'N and” → alouette-river-741304[curated]
@@ -176,14 +163,8 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 ## SEYMOUR RIVER · MU ['1-14'] · p20 · [INCOMPLETE] (15146bbc)
 - • [except] “unless fishing for steelhead” → seymour-river-5860bf[todo]
 
-## SOMASS RIVER · MU ['1-7'] · p20 · [INCOMPLETE] (9a3806bd)
-- • [rule] “between the tidal boundary at Papermill Dam to boundary signs appr” → somass-river-cc8176[todo]
-
 ## SPROAT RIVER · MU ['1-7'] · p20 · [INCOMPLETE] (29465d04)
 - • [rule] “from Sproat Lake to fishing boundary signs approximately 300 m dow” → sproat-river-27e42b-a[not_applicable], sproat-river-27e42b-b[todo]
-
-## TLELL RIVER · MU ['6-13'] · p20 · [INCOMPLETE] (951c4af2)
-- • [rule] “downstream of tidal boundary sign located 1.5 km upstream of Hwy 1” → tlell-river-574c56[todo]
 
 ## WAHPEETO CREEK · MU ['1-14'] · p21 · [INCOMPLETE] (2f8e871c)
 - • [rule] “within 100 m downstream of the falls situated approximately 4.5 km” → wahpeeto-creek-b61060[todo]
@@ -215,14 +196,8 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 ## BURTON CREEK · MU ['4-15'] · p37 · [INCOMPLETE] (72f67e46)
 - • [rule] “from Woden Creek to Hwy 6 bridge” → burton-creek-b25ef3-a[curated], burton-creek-b25ef3-b[todo]
 
-## CARIBOU CREEK · MU ['4-15'] · p37 · [INCOMPLETE] (00d8df6e)
-- • [rule] “from Rodd Creek to Hwy 6 bridge” → caribou-creek-101e68-a[curated], caribou-creek-101e68-b[todo]
-
 ## COFFEE CREEK · MU ['4-18'] · p37 · [INCOMPLETE] (55a54cfd)
 - • [rule] “downstream of fishing boundary signs at falls approximately 10 km ” → coffee-creek-ce1bee[todo]
-
-## DUNCAN RIVER · MU ['4-19'] · p38 · [INCOMPLETE] (ad04e181)
-- • [rule] “downstream of Duncan Dam to the confluence of the Duncan River and” → duncan-river-402ead-a[todo], duncan-river-402ead-b[curated]
 
 ## ELK RIVER'S TRIBUTARIES (see exceptions) · MU ['4-2', '4-23'] · p38 · [INCOMPLETE] (e4b7a409)
 - • [except] “EXCEPT Coal Creek downstream of old MF&M Railway Bridge 7 km upstr” → elk-river-s-tributaries-see-exceptions-e09244[todo]
@@ -233,17 +208,8 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 ## ILLECILLEWAET RIVER · MU ['4-33'] · p39 · [INCOMPLETE] (b8f4c927)
 - • [rule] “downstream of Albert Canyon” → illecillewaet-river-43349c[todo]
 
-## NORNS (Pass) CREEK · MU ['4-15'] · p41 · [INCOMPLETE] (51aea709)
-- • [rule] “downstream of falls approximately 2 km from Columbia River” → norns-pass-creek-9ac243[todo]
-
-## ST. LEON CREEK · MU ['4-31'] · p41 · [INCOMPLETE] (15f8ea45)
-- • [rule] “downstream of barrier approximately 1 km upstream of the Hwy 23 br” → st-leon-creek-8e9134[todo]
-
 ## WOOD RIVER · MU ['4-40'] · p42 · [INCOMPLETE] (934182b3)
 - • [rule] “within Hamber Provincial Park” → wood-river-495c0d[todo]
-
-## WOODBURY CREEK · MU ['4-18'] · p42 · [INCOMPLETE] (b4222b6f)
-- • [rule] “downstream of falls at small hydro structure approximately 800 m u” → woodbury-creek-24b31f[todo]
 
 ## CRANBERRY RIVER · MU ['6-15'] · p56 · [INCOMPLETE] (107fa559)
 - • [rule] “between fishing boundary signs upstream of and downstream of Cranb” → cranberry-river-699352-a[todo], cranberry-river-699352-b[todo]
@@ -259,9 +225,6 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 
 ## PINKUT CREEK · MU ['6-6'] · p59 · [INCOMPLETE] (2fe40ed5)
 - • [rule] “downstream of the fish fence” → pinkut-creek-03a36e[todo]
-
-## SUSTUT RIVER · MU ['6-18'] · p59 · [INCOMPLETE] (99b982b7)
-- • [rule] “upstream of BCR Bridge at Bear River mouth” → sustut-river-9d2852[todo]
 
 ## CHICHOUYENILY CREEK · MU ['7-30'] · p65 · [INCOMPLETE] (9fd933ca)
 - • [rule] “downstream of fishing boundary signs near its mouth” → chichouyenily-creek-212afe[todo]
@@ -287,23 +250,14 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 ## CHOWADE RIVER · MU ['7-43'] · p71 · [INCOMPLETE] (5887eab0)
 - • [rule] “upstream of the Horseshoe Road Bridge” → chowade-river-42a570[todo]
 
-## PINE RIVER · MU ['7-32'] · p72 · [INCOMPLETE] (e2986e43)
-- • [rule] “upstream of the Hasler Road Bridge” → pine-river-1d956e[todo]
-
 ## RAINBOW LAKES · MU ['7-52'] · p72 · [INCOMPLETE] (82b147e1)
 - • [rule] “within 100 m of fishing boundary sign at outlet” → rainbow-lakes-226e29[todo]
 
 ## MCRAE CREEK · MU ['8-15'] · p76 · [INCOMPLETE] (ead85d0e)
 - • [rule] “downstream of falls situated approximately 4 km upstream of Christ” → mcrae-creek-515a81[todo]
 
-## OKANAGAN RIVER · MU ['8-1'] · p76 · [INCOMPLETE] (52c291bb)
-- • [rule] “from Okanagan Lake Dam downstream to McIntyre Dam and downstream o” → okanagan-river-53a1b3-a[todo], okanagan-river-53a1b3-b[curated]
-
 ## PEACHLAND CREEK · MU ['8-8'] · p76 · [INCOMPLETE] (13c2dbeb)
 - • [rule] “from Hardy Falls to Okanagan Lake” → peachland-creek-200082-a[todo], peachland-creek-200082-b[not_applicable]
-
-## POWERS CREEK · MU ['8-11'] · p76 · [INCOMPLETE] (af3ee657)
-- • [rule] “downstream of Hwy 97 bridge to Okanagan Lake” → powers-creek-28dc38-a[todo], powers-creek-28dc38-b[not_applicable]
 
 ## TREPANIER RIVER · MU ['8-8'] · p77 · [INCOMPLETE] (426962cd)
 - • [rule] “from Hwy 97C to Okanagan Lake” → trepanier-river-a999b0-a[todo], trepanier-river-a999b0-b[not_applicable]
@@ -317,5 +271,7 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 - `lost-lake-near-taweel-lake-e49a1f` [not_applicable] LOST LAKE (near Taweel Lake) — src=entry “near Taweel Lake”
 - `lynn-creek-d5e0fb-a` [curated] LYNN CREEK — src=rule “sign approximately 200 m upstream of Twin Falls Br”
 - `lynn-creek-d5e0fb-b` [curated] LYNN CREEK — src=rule “sign approximately 150 m downstream of Twin Falls ”
+- `okanagan-river-drop-structure-1-manual` [manual] OKANAGAN RIVER — src=rule “Drop Structure No. 1 (located about 1 km upstream ”
 - `peace-river-from-site-c-dam-to-boundary-signs-a64881-b` [curated] PEACE RIVER (From Site C dam to boundary signs 1,200m — src=name “boundary signs 1200 m downstream of Site C dam”
 - `qualicum-river-hwy19a-tidal` [manual] QUALICUM RIVER — src=rule “Highway 19A bridge (tidal boundary)”
+- `somass-river-campground-sign-manual` [manual] SOMASS RIVER — src=rule “boundary signs approximately 1.0 km upstream (Coll”

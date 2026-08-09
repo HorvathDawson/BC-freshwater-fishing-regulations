@@ -3099,7 +3099,7 @@
       "image": "page_019_row_030.png",
       "symbols": [],
       "reg_text": "**No Fishing** July 15-Aug 31\n**No Fishing** from power line crossing at \"Bore Hole\" upstream to fishing boundary signs at the mouth of Boulder Creek\n**No Fishing** from the Cedar Road Bridge upstream to the Hwy 19 bridge, Sept 1-Oct 15\n**No Fishing** upstream of the Hwy 1 bridge[Includes Tributaries], Dec 1-May 31\nArtificial fly only upstream of the westernmost of the two Nanaimo Lakes, known locally as \"Second\" Lake, including tributaries\nEngine power restriction on parts - 7.5 kW (10 hp)",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 5,
       "locators": [
         {
@@ -3108,7 +3108,7 @@
           "info": {
             "restriction_type": "closure"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "nanaimo-river-633e28-a",
@@ -3126,11 +3126,16 @@
             },
             {
               "id": "nanaimo-river-633e28-b",
-              "status": "todo",
-              "anchor_kind": "point",
+              "status": "curated",
+              "anchor_kind": "confluence",
               "src": "rule",
               "resolver_hint": "boundary_signs",
-              "notes": "[auto-proposal L] power line at 'Bore Hole' & Boulder Creek mouth signs on Nanaimo River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the 'Bore Hole' power-line crossing and the Boulder Creek confluence signs on the Nanaimo River; map.. Reach between a power-line landmark ('Bore Hole') and boundary signs at the Boulder Creek mouth. Not in FWA. Map/OSM-confirmable. [structural-split 2026-08-05 from “from power line crossing at \"Bore Hole\" upstream to fishing boundary signs at the mouth of Boulder Creek”] boundary=fishing boundary signs at the mouth of Boulder Creek [hint-fix 2026-08-06 bridge_road_km->boundary_signs]",
+              "label": "signs at mouth of Boulder Creek (confluence)",
+              "notes": "[auto-proposal L] power line at 'Bore Hole' & Boulder Creek mouth signs on Nanaimo River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the 'Bore Hole' power-line crossing and the Boulder Creek confluence signs on the Nanaimo River; map.. Reach between a power-line landmark ('Bore Hole') and boundary signs at the Boulder Creek mouth. Not in FWA. Map/OSM-confirmable. [structural-split 2026-08-05 from “from power line crossing at \"Bore Hole\" upstream to fishing boundary signs at the mouth of Boulder Creek”] boundary=fishing boundary signs at the mouth of Boulder Creek [hint-fix 2026-08-06 bridge_road_km->boundary_signs] [curated 2026-08-09 verify-batch] [Boulder Ck confl]",
+              "coord": [
+                -124.01126,
+                49.0734
+              ],
               "locator_text": "fishing boundary signs at the mouth of Boulder Creek"
             }
           ]
@@ -3246,7 +3251,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-09"
     },
     "757ea107": {
       "entry_id": "757ea107",
@@ -4211,7 +4217,7 @@
       "image": "page_020_row_016.png",
       "symbols": [],
       "reg_text": "**No Fishing** between the tidal boundary at Papermill Dam to boundary signs approximately 1.0 km upstream (Falls Road Gravel Pit and the\nsouthern most end of Collins Farm/Arrow Vale Campground on Hector Road), Aug 25-Nov 15\nBait ban, June 1-Aug 24\nEngine power restriction 7.5 kW (10 hp)",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 1,
       "locators": [
         {
@@ -4223,14 +4229,20 @@
               "Aug 25-Nov 15"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "somass-river-cc8176",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "falls_obstacle",
+              "label": "tidal boundary at Papermill Dam",
+              "notes": "[curated 2026-08-09 verify-batch] [Paper Mill Dam Park OSM rel 8247580; tidal/downstream end of reach]",
+              "coord": [
+                -124.8538,
+                49.27476
+              ],
               "locator_text": "between the tidal boundary at Papermill Dam to boundary signs approximately 1.0 km upstream (Falls Road Gravel Pit and t"
             }
           ]
@@ -4241,7 +4253,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-09"
     },
     "5551826e": {
       "entry_id": "5551826e",
@@ -4649,7 +4662,7 @@
         "Incl. Tribs"
       ],
       "reg_text": "Bait ban Nov 1-Apr 30; Cutthroat trout catch and release\n**Class II water Sept 1-Apr 30; Steelhead Stamp mandatory Dec 1-Apr 30**\nTidal waters regulations apply to waters downstream of tidal boundary sign located 1.5 km upstream of Hwy 16 Bridge",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 1,
       "locators": [
         {
@@ -4658,15 +4671,29 @@
           "info": {
             "restriction_type": "note"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "tlell-river-574c56",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] Hwy 16 Bridge over Tlell River (tidal sign 1.5 km up) on Tlell River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the Hwy 16 bridge over the Tlell River (Haida Gwaii) and the tidal-boundary sign 1.5 km upstream; review.. Reg = 'tidal boundary sign 1.5 km above the Hwy 16 Bridge'. Public highway bridge on Graham Island -> map/OSM-confirmable; not in FWA."
+              "label": "tidal boundary sign (1.5km u/s Hwy 16 br)",
+              "notes": "[auto-proposal L] Hwy 16 Bridge over Tlell River (tidal sign 1.5 km up) on Tlell River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the Hwy 16 bridge over the Tlell River (Haida Gwaii) and the tidal-boundary sign 1.5 km upstream; review.. Reg = 'tidal boundary sign 1.5 km above the Hwy 16 Bridge'. Public highway bridge on Graham Island -> map/OSM-confirmable; not in FWA. [curated 2026-08-09 verify-batch] [base=Hwy 16 bridge; +1.5km u/s -> tidal sign 53.56925,-131.93788; VERIFY upstream dir]",
+              "coord": [
+                -131.94296,
+                53.58185
+              ],
+              "offset": {
+                "anchor": [
+                  -131.94296,
+                  53.58185
+                ],
+                "anchor_label": "Hwy 16 bridge",
+                "m": 1500,
+                "dir": "upstream"
+              }
             }
           ]
         },
@@ -4676,7 +4703,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-09"
     },
     "492dbcc9": {
       "entry_id": "492dbcc9",
@@ -12894,7 +12922,7 @@
       "image": "page_037_row_024.png",
       "symbols": [],
       "reg_text": "**No Fishing** from Rodd Creek to Hwy 6 bridge, June 15-Oct 31",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 1,
       "locators": [
         {
@@ -12906,7 +12934,7 @@
               "June 15-Oct 31"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "caribou-creek-101e68-a",
@@ -12928,11 +12956,16 @@
             },
             {
               "id": "caribou-creek-101e68-b",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] Hwy 6 bridge over Caribou Creek on Caribou Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm Hwy 6 bridge over Caribou Creek (Arrow Lakes, near Burton); map.. Reach = 'from Rodd Creek to Hwy 6 bridge'. Caribou Creek enters Lower Arrow Lake near Burton where Hwy 6 crosses it. Public highway -> not in FWA; map/OSM-confirmable. [structural-split 2026-08-05 from “from Rodd Creek to Hwy 6 bridge”] boundary=Hwy 6 bridge",
+              "label": "Hwy 6 bridge",
+              "notes": "[auto-proposal L] Hwy 6 bridge over Caribou Creek on Caribou Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm Hwy 6 bridge over Caribou Creek (Arrow Lakes, near Burton); map.. Reach = 'from Rodd Creek to Hwy 6 bridge'. Caribou Creek enters Lower Arrow Lake near Burton where Hwy 6 crosses it. Public highway -> not in FWA; map/OSM-confirmable. [structural-split 2026-08-05 from “from Rodd Creek to Hwy 6 bridge”] boundary=Hwy 6 bridge [curated 2026-08-09 verify-batch] [Hwy 6 x Caribou Ck]",
+              "coord": [
+                -117.88906,
+                49.98134
+              ],
               "locator_text": "Hwy 6 bridge"
             }
           ]
@@ -12943,7 +12976,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-09"
     },
     "47d4ca5e": {
       "entry_id": "47d4ca5e",
@@ -13953,7 +13987,7 @@
         "Incl. Tribs"
       ],
       "reg_text": "**Exempt from spring closure, exempt from regional Nov 1-Mar 31 bull trout catch and release, bait ban\nRainbow trout daily quota = 5 (any size), bull trout daily quota = 2 (any size)\nNo Fishing downstream of Duncan Dam to the confluence of the Duncan River and the Lardeau River**",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 1,
       "locators": [
         {
@@ -13962,15 +13996,20 @@
           "info": {
             "restriction_type": "closure"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "duncan-river-402ead-a",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "dam_weir_fence",
-              "notes": "[auto-proposal H] Duncan Dam (Duncan Lake outlet) on Duncan River (Duncan Dam -> Lardeau R confluence). Candidate coord [-116.94343, 50.2491]. OSM: https://www.openstreetmap.org/?mlat=50.24910&mlon=-116.94343#map=15/50.24910/-116.94343. Verify: Confirm cut at Duncan Dam (south end of Duncan Lake); downstream end = Duncan-Lardeau confluence.. Duncan Dam impounds Duncan Lake (Kootenay, MU 4-19); coord = FWA Duncan River exit from the large Duncan Lake polygon (wbk 329120714), matching the known dam. Reach runs to the Lardeau River confluence. [structural-split 2026-08-05 from \"downstream of Duncan Dam to the confluence of the Duncan Riv\"] boundary=downstream of Duncan Dam",
+              "label": "Duncan Dam",
+              "notes": "[auto-proposal H] Duncan Dam (Duncan Lake outlet) on Duncan River (Duncan Dam -> Lardeau R confluence). Candidate coord [-116.94343, 50.2491]. OSM: https://www.openstreetmap.org/?mlat=50.24910&mlon=-116.94343#map=15/50.24910/-116.94343. Verify: Confirm cut at Duncan Dam (south end of Duncan Lake); downstream end = Duncan-Lardeau confluence.. Duncan Dam impounds Duncan Lake (Kootenay, MU 4-19); coord = FWA Duncan River exit from the large Duncan Lake polygon (wbk 329120714), matching the known dam. Reach runs to the Lardeau River confluence. [structural-split 2026-08-05 from \"downstream of Duncan Dam to the confluence of the Duncan Riv\"] boundary=downstream of Duncan Dam [curated 2026-08-09 verify-batch] [OSM dam 220188876]",
+              "coord": [
+                -116.94624,
+                50.25099
+              ],
               "locator_text": "downstream of Duncan Dam"
             },
             {
@@ -13999,7 +14038,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-09"
     },
     "dfe2665a": {
       "entry_id": "dfe2665a",
@@ -15051,7 +15091,7 @@
         "Incl. Tribs"
       ],
       "reg_text": "**No Fishing** upstream of Kirkup Creek, Nov 1-June 14\nUpstream of Kirkup Creek: both bait ban and trout/char catch and release, June 15-Oct 31\n**No Fishing** from Kirkup Creek downstream, including Kirkup Creek",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 4,
       "locators": [
         {
@@ -15204,14 +15244,20 @@
           "info": {
             "restriction_type": "closure"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "jordan-river-76a505",
-              "status": "todo",
-              "anchor_kind": "unclassified",
+              "status": "curated",
+              "anchor_kind": "confluence",
               "src": "rule",
-              "resolver_hint": "other_reach"
+              "resolver_hint": "other_reach",
+              "label": "Kirkup Creek confluence",
+              "notes": "[curated 2026-08-09 verify-batch] [= u/s-of-Kirkup anchor; shared confluence]",
+              "coord": [
+                -118.25994,
+                51.03333
+              ]
             }
           ]
         },
@@ -15221,7 +15267,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-09"
     },
     "944019e1": {
       "entry_id": "944019e1",
@@ -17017,7 +17064,7 @@
       "image": "page_041_row_000.png",
       "symbols": [],
       "reg_text": "**No Fishing** downstream of falls approximately 2 km from Columbia River",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 1,
       "locators": [
         {
@@ -17026,14 +17073,20 @@
           "info": {
             "restriction_type": "closure"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "norns-pass-creek-9ac243",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
-              "resolver_hint": "falls_obstacle"
+              "resolver_hint": "falls_obstacle",
+              "label": "Norns Creek falls (~2km from Columbia)",
+              "notes": "[curated 2026-08-09 verify-batch] [falls = FISS obstacle 21211, WSC 300-639200; user pin]",
+              "coord": [
+                -117.66594,
+                49.34873
+              ]
             }
           ]
         },
@@ -17043,7 +17096,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-09"
     },
     "57ddd9ce": {
       "entry_id": "57ddd9ce",
@@ -17364,7 +17418,7 @@
       "image": "page_041_row_017.png",
       "symbols": [],
       "reg_text": "**No Fishing** downstream of barrier approximately 1 km upstream of the Hwy 23 bridge",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 1,
       "locators": [
         {
@@ -17373,15 +17427,20 @@
           "info": {
             "restriction_type": "closure"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "st-leon-creek-8e9134",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] barrier ~1 km above Hwy 23 bridge over St. Leon Creek on St. Leon Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Hwy 23 bridge over St. Leon Creek and the barrier ~1 km upstream; map.. Reg = 'downstream of barrier ~1 km above the Hwy 23 bridge' (Arrow Lakes). Highway bridge + upstream barrier; map/OSM-confirmable (FSR hits are far up the creek)."
+              "label": "St. Leon Falls (barrier ~1km u/s Hwy 23 br)",
+              "notes": "[auto-proposal L] barrier ~1 km above Hwy 23 bridge over St. Leon Creek on St. Leon Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Hwy 23 bridge over St. Leon Creek and the barrier ~1 km upstream; map.. Reg = 'downstream of barrier ~1 km above the Hwy 23 bridge' (Arrow Lakes). Highway bridge + upstream barrier; map/OSM-confirmable (FSR hits are far up the creek). [curated 2026-08-09 verify-batch] [barrier = St. Leon Falls, OSM node 10708487445 waterway=waterfall; user pin]",
+              "coord": [
+                -117.8794,
+                50.44158
+              ]
             }
           ]
         },
@@ -17391,7 +17450,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-09"
     },
     "053c1afb": {
       "entry_id": "053c1afb",
@@ -18823,7 +18883,7 @@
       "image": "page_042_row_036.png",
       "symbols": [],
       "reg_text": "**No Fishing** downstream of falls at small hydro structure approximately 800 m upstream of Hwy 31 bridge",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 1,
       "locators": [
         {
@@ -18832,14 +18892,29 @@
           "info": {
             "restriction_type": "closure"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "woodbury-creek-24b31f",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
-              "resolver_hint": "falls_obstacle"
+              "resolver_hint": "falls_obstacle",
+              "label": "falls at small hydro (800m u/s Hwy 31 br)",
+              "notes": "[curated 2026-08-09 verify-batch] [base=Hwy 31 bridge; +800m u/s -> falls 49.78085,-116.91037]",
+              "coord": [
+                -116.90699,
+                49.77499
+              ],
+              "offset": {
+                "anchor": [
+                  -116.90699,
+                  49.77499
+                ],
+                "anchor_label": "Hwy 31 bridge",
+                "m": 800,
+                "dir": "upstream"
+              }
             }
           ]
         },
@@ -18849,7 +18924,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-09"
     },
     "72172723": {
       "entry_id": "72172723",
@@ -24489,7 +24565,7 @@
         "Classified"
       ],
       "reg_text": "**No Fishing** upstream of BCR Bridge at Bear River mouth\nBait ban\n**Class I water Sept 1-Oct 31; Steelhead Stamp mandatory Sept 1-Oct 31**",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 1,
       "locators": [
         {
@@ -24498,15 +24574,20 @@
           "info": {
             "restriction_type": "closure"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "sustut-river-9d2852",
-              "status": "todo",
-              "anchor_kind": "point",
+              "status": "curated",
+              "anchor_kind": "confluence",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] BCR (railway) Bridge at Bear River mouth on Sustut River. Candidate coord [-127.10278, 56.31778]. OSM: https://www.openstreetmap.org/?mlat=56.31778&mlon=-127.10278#map=15/56.31778/-127.10278. Verify: A rail-grade crossing (R07747 AI) intersects the Sustut ~19 km up, near the Bear River confluence; confirm it is the BCR bridge at Bear River mouth.. Reg = 'upstream of BCR Bridge at Bear River mouth'. The single linear-feature crossing found (R07747, a rail grade) sits near where Bear River joins the Sustut -> plausible BCR bridge. Verify railway bridge vs the Bear confluence on map."
+              "label": "BCR Bridge at Bear River mouth",
+              "notes": "[auto-proposal L] BCR (railway) Bridge at Bear River mouth on Sustut River. Candidate coord [-127.10278, 56.31778]. OSM: https://www.openstreetmap.org/?mlat=56.31778&mlon=-127.10278#map=15/56.31778/-127.10278. Verify: A rail-grade crossing (R07747 AI) intersects the Sustut ~19 km up, near the Bear River confluence; confirm it is the BCR bridge at Bear River mouth.. Reg = 'upstream of BCR Bridge at Bear River mouth'. The single linear-feature crossing found (R07747, a rail grade) sits near where Bear River joins the Sustut -> plausible BCR bridge. Verify railway bridge vs the Bear confluence on map. [curated 2026-08-09 verify-batch] [Bear R confl as proxy for BCR bridge; VERIFY]",
+              "coord": [
+                -126.97089,
+                56.28012
+              ]
             }
           ]
         },
@@ -24516,7 +24597,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-09"
     },
     "037258e5": {
       "entry_id": "037258e5",
@@ -27282,7 +27364,7 @@
         "Incl. Tribs"
       ],
       "reg_text": "Catch and release all fish upstream of the Hasler Road Bridge",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 1,
       "locators": [
         {
@@ -27291,15 +27373,20 @@
           "info": {
             "restriction_type": "harvest"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "pine-river-1d956e",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] Hasler Road Bridge over Pine River on Pine River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Hasler Road bridge over the Pine River (near Chetwynd); map.. Reg = 'upstream of the Hasler Road Bridge'. Road bridge in the lower Pine near Chetwynd; not name-matched in FSR (hits are 200 km up). Map/OSM-confirmable."
+              "label": "Hasler Road Bridge",
+              "notes": "[auto-proposal L] Hasler Road Bridge over Pine River on Pine River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Hasler Road bridge over the Pine River (near Chetwynd); map.. Reg = 'upstream of the Hasler Road Bridge'. Road bridge in the lower Pine near Chetwynd; not name-matched in FSR (hits are 200 km up). Map/OSM-confirmable. [curated 2026-08-09 verify-batch] [Hasler Rd x Pine R]",
+              "coord": [
+                -121.96947,
+                55.60847
+              ]
             }
           ]
         },
@@ -27309,7 +27396,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-09"
     },
     "82b147e1": {
       "entry_id": "82b147e1",
@@ -28127,7 +28215,7 @@
       "image": "page_076_row_024.png",
       "symbols": [],
       "reg_text": "**No Fishing** Oct 1-Nov 15; bass daily quota = 8, yellow perch daily quota = 20\nExempt from spring closure from Okanagan Lake Dam downstream to McIntyre Dam and downstream of Drop Structure No. 1 (located\nabout 1 km upstream of Osoyoos Lake)\nRainbow trout catch and release; no powered boats",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 1,
       "locators": [
         {
@@ -28136,15 +28224,20 @@
           "info": {
             "restriction_type": "note"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "okanagan-river-53a1b3-a",
-              "status": "todo",
-              "anchor_kind": "lake",
+              "status": "curated",
+              "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "dam_weir_fence",
-              "notes": "[auto-proposal M] Okanagan Lake Dam (Penticton) + McIntyre Dam + Drop Structure No.1 on Okanagan River (channelized, Penticton -> Vaseux). Candidate coord [-119.61346, 49.50123]. OSM: https://www.openstreetmap.org/?mlat=49.50123&mlon=-119.61346#map=15/49.50123/-119.61346. Verify: Multi-structure reg. Candidate = Okanagan Lake Dam (upper bound, Penticton). Also locate McIntyre Dam ~[-119.574,49.357] and Drop Structure No.1 (channelized river S of Oliver) on a map.. Okanagan Lake Dam controls the Okanagan River at Penticton (coord = FWA Okanagan River exit from Okanagan Lake polygon). The reg also references McIntyre Dam and Drop Structure No.1 further down the channelized river - those are separate small structures needing map confirmation. [structural-split 2026-08-05 from \"from Okanagan Lake Dam downstream to McIntyre Dam and downst\"] boundary=Okanagan Lake Dam [hint-fix 2026-08-06 lake_reach->dam_weir_fence]",
+              "label": "Okanagan Lake Dam (Penticton)",
+              "notes": "[auto-proposal M] Okanagan Lake Dam (Penticton) + McIntyre Dam + Drop Structure No.1 on Okanagan River (channelized, Penticton -> Vaseux). Candidate coord [-119.61346, 49.50123]. OSM: https://www.openstreetmap.org/?mlat=49.50123&mlon=-119.61346#map=15/49.50123/-119.61346. Verify: Multi-structure reg. Candidate = Okanagan Lake Dam (upper bound, Penticton). Also locate McIntyre Dam ~[-119.574,49.357] and Drop Structure No.1 (channelized river S of Oliver) on a map.. Okanagan Lake Dam controls the Okanagan River at Penticton (coord = FWA Okanagan River exit from Okanagan Lake polygon). The reg also references McIntyre Dam and Drop Structure No.1 further down the channelized river - those are separate small structures needing map confirmation. [structural-split 2026-08-05 from \"from Okanagan Lake Dam downstream to McIntyre Dam and downst\"] boundary=Okanagan Lake Dam [hint-fix 2026-08-06 lake_reach->dam_weir_fence] [curated 2026-08-09 verify-batch] [lake outlet dam]",
+              "coord": [
+                -119.61343,
+                49.50127
+              ],
               "locator_text": "Okanagan Lake Dam"
             },
             {
@@ -28169,7 +28262,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-09"
     },
     "586d0cc0": {
       "entry_id": "586d0cc0",
@@ -28318,7 +28412,7 @@
       "image": "page_076_row_030.png",
       "symbols": [],
       "reg_text": "**No Fishing** downstream of Hwy 97 bridge to Okanagan Lake",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 1,
       "locators": [
         {
@@ -28327,15 +28421,20 @@
           "info": {
             "restriction_type": "closure"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "powers-creek-28dc38-a",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] Hwy 97 bridge over Powers Creek (to Okanagan Lake) on Powers Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the Hwy 97 bridge over Powers Creek in West Kelowna (down to Okanagan Lake); single crossing -> review.. Public highway bridge in West Kelowna -> map/OSM-confirmable; FSR hits are far upstream. [structural-split 2026-08-05 from “downstream of Hwy 97 bridge to Okanagan Lake”] boundary=downstream of Hwy 97 bridge",
+              "label": "Hwy 97 bridge",
+              "notes": "[auto-proposal L] Hwy 97 bridge over Powers Creek (to Okanagan Lake) on Powers Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the Hwy 97 bridge over Powers Creek in West Kelowna (down to Okanagan Lake); single crossing -> review.. Public highway bridge in West Kelowna -> map/OSM-confirmable; FSR hits are far upstream. [structural-split 2026-08-05 from “downstream of Hwy 97 bridge to Okanagan Lake”] boundary=downstream of Hwy 97 bridge [curated 2026-08-09 verify-batch] [Hwy 97 x Powers Ck]",
+              "coord": [
+                -119.64332,
+                49.82827
+              ],
               "locator_text": "downstream of Hwy 97 bridge"
             },
             {
@@ -28355,7 +28454,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-09"
     },
     "3c2406a8": {
       "entry_id": "3c2406a8",
@@ -29334,6 +29434,41 @@
       }
     },
     {
+      "id": "okanagan-river-drop-structure-1-manual",
+      "water": "OKANAGAN RIVER",
+      "mu": [
+        "8-1"
+      ],
+      "src": "rule",
+      "locator_text": "Drop Structure No. 1 (located about 1 km upstream of Osoyoos Lake)",
+      "status": "manual",
+      "row": {
+        "id": "okanagan-river-drop-structure-1-manual",
+        "name_verbatim": "OKANAGAN RIVER",
+        "region": "REGION 8 - Okanagan",
+        "mus": [
+          "8-1"
+        ],
+        "src": "rule",
+        "locator_text": "Drop Structure No. 1 (located about 1 km upstream of Osoyoos Lake)",
+        "full_regulation": "**No Fishing** Oct 1-Nov 15; bass daily quota = 8, yellow perch daily quota = 20\nExempt from spring closure from Okanagan Lake Dam downstream to McIntyre Dam and downstream of Drop Structure No. 1 (located\nabout 1 km upstream of Osoyoos Lake)\nRainbow trout catch and release; no powered boats",
+        "anchor_kind": "point",
+        "resolver_hint": "dam_weir_fence",
+        "status": "manual",
+        "target": "",
+        "coord": [
+          -119.4425,
+          49.0865
+        ],
+        "label": "Drop Structure No. 1 (~1km u/s Osoyoos Lake)",
+        "notes": "[manual anchor 2026-08-09 ESTIMATE - needs pin] 3rd exempt-reach boundary the parser folded into the McIntyre row; ~1km u/s of Osoyoos Lake north end (~49.077); no OSM/FISS feature for the channel drop structures - VERIFY/repin.",
+        "entry_id": "52c291bb",
+        "offset": null,
+        "polygon": null,
+        "reviewed": "2026-08-09"
+      }
+    },
+    {
       "id": "peace-river-from-site-c-dam-to-boundary-signs-a64881-b",
       "water": "PEACE RIVER (From Site C dam to boundary signs 1,200m",
       "mu": [
@@ -29407,6 +29542,41 @@
         "offset": null,
         "polygon": null,
         "reviewed": "2026-08-08"
+      }
+    },
+    {
+      "id": "somass-river-campground-sign-manual",
+      "water": "SOMASS RIVER",
+      "mu": [
+        "1-7"
+      ],
+      "src": "rule",
+      "locator_text": "boundary signs approximately 1.0 km upstream (Collins Farm/Arrow Vale Campground S end)",
+      "status": "manual",
+      "row": {
+        "id": "somass-river-campground-sign-manual",
+        "name_verbatim": "SOMASS RIVER",
+        "region": "REGION 1 - Vancouver Island",
+        "mus": [
+          "1-7"
+        ],
+        "src": "rule",
+        "locator_text": "boundary signs approximately 1.0 km upstream (Collins Farm/Arrow Vale Campground S end)",
+        "full_regulation": "**No Fishing** between the tidal boundary at Papermill Dam to boundary signs approximately 1.0 km upstream (Falls Road Gravel Pit and the\nsouthern most end of Collins Farm/Arrow Vale Campground on Hector Road), Aug 25-Nov 15\nBait ban, June 1-Aug 24\nEngine power restriction 7.5 kW (10 hp)",
+        "anchor_kind": "point",
+        "resolver_hint": "falls_obstacle",
+        "status": "manual",
+        "target": "",
+        "coord": [
+          -124.86386,
+          49.28193
+        ],
+        "label": "boundary signs ~1km u/s (Falls Rd Gravel Pit / Collins Farm campground S end)",
+        "notes": "[manual anchor 2026-08-09] upstream end of the Somass No-Fishing reach; southern end of Collins Farm/Arrow Vale Campground on Hector Rd (user pin); ~1km u/s of Paper Mill Dam.",
+        "entry_id": "9a3806bd",
+        "offset": null,
+        "polygon": null,
+        "reviewed": "2026-08-09"
       }
     }
   ]
