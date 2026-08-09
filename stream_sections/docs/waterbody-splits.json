@@ -21339,7 +21339,7 @@
       "image": "page_052_row_034.png",
       "symbols": [],
       "reg_text": "**No Fishing** southwest of a line between fishing boundary signs on opposite shores of Horsefly Bay, Mar 1-May 31\n**No Fishing** in North Arm, north of a line between Watt and Service Creeks, Mar 1-May 31\nLake trout daily quota = 5 (any size); rainbow trout daily quota = 2 (none over 50 cm); bull trout catch and release\nBait ban, barbless hook",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 2,
       "locators": [
         {
@@ -21351,14 +21351,15 @@
               "Mar 1-May 31"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "quesnel-lake-d2d352",
-              "status": "todo",
+              "status": "deferred",
               "anchor_kind": "line",
               "src": "rule",
-              "resolver_hint": "between_signs"
+              "resolver_hint": "between_signs",
+              "notes": "[deferred 2026-08-08 lake-split: Quesnel Lake divided into closure areas (SW of line in Horsefly Bay; N of line Watt-Service in North Arm) — 2D lake-area, defer per lake-split rule]"
             }
           ]
         },
@@ -21371,24 +21372,24 @@
               "Mar 1-May 31"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "quesnel-lake-484d5b-a",
-              "status": "todo",
+              "status": "deferred",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "between_signs",
-              "notes": "[structural-split 2026-08-05 from \"in North Arm, north of a line between Watt and Service Creek\"] boundary=Watt",
+              "notes": "[structural-split 2026-08-05 from \"in North Arm, north of a line between Watt and Service Creek\"] boundary=Watt [deferred 2026-08-08 lake-split: Quesnel Lake divided into closure areas (SW of line in Horsefly Bay; N of line Watt-Service in North Arm) — 2D lake-area, defer per lake-split rule]",
               "locator_text": "Watt"
             },
             {
               "id": "quesnel-lake-484d5b-b",
-              "status": "todo",
+              "status": "deferred",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "between_signs",
-              "notes": "[structural-split 2026-08-05 from \"in North Arm, north of a line between Watt and Service Creek\"] boundary=Service Creeks",
+              "notes": "[structural-split 2026-08-05 from \"in North Arm, north of a line between Watt and Service Creek\"] boundary=Service Creeks [deferred 2026-08-08 lake-split: Quesnel Lake divided into closure areas (SW of line in Horsefly Bay; N of line Watt-Service in North Arm) — 2D lake-area, defer per lake-split rule]",
               "locator_text": "Service Creeks"
             }
           ]

@@ -7,8 +7,8 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 |---|--:|
 | NO_CURATION | 1 |
 | MISSING_SPLITS | 2 |
-| INCOMPLETE | 137 |
-| COMPLETE | 172 |
+| INCOMPLETE | 136 |
+| COMPLETE | 173 |
 | NO_SPLIT | 75 |
 
 **Drift** (curated rows matching no source locator): 6
@@ -266,10 +266,6 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 ## CHUCKWALLA RIVER · MU ['5-7'] · p50 · [INCOMPLETE] (38c3c0c0)
 - • [rule] “entire river” → chuckwalla-river-a0316a[not_applicable]
 - • [rule] “between fishing boundary signs at Ten Mile Pool” → chuckwalla-river-eec2f0[todo]
-
-## QUESNEL LAKE · MU ['5-15'] · p52 · [INCOMPLETE] (b97489f1)
-- • [rule] “southwest of a line between fishing boundary signs on opposite sho” → quesnel-lake-d2d352[todo]
-- • [rule] “in North Arm, north of a line between Watt and Service Creeks” → quesnel-lake-484d5b-a[todo], quesnel-lake-484d5b-b[todo]
 
 ## BABINE LAKE · MU ['6-6'] · p56 · [INCOMPLETE] (5bed475b)
 - • [rule] “east of a line from Gullwing Creek to the south shore of Babine La” → babine-lake-d6b843[todo]
