@@ -17776,11 +17776,19 @@
             },
             {
               "id": "skookumchuck-creek-37fdd8-b",
-              "status": "todo",
-              "anchor_kind": "point",
+              "status": "curated",
+              "anchor_kind": "confluence",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] point closest to km 38 on Skookumchuck FSR (to Buhl Creek) on Skookumchuck Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: km-38 chainage on the Skookumchuck FSR is not in FWA; two FSR/creek crossings bracket it (MAIN ROAD 26.4 km, Skookumchuck-Buhl 36.6 km). Needs map for exact km.. Reach = 'point on the creek closest to km 38 on the Skookumchuck FSR to Buhl Creek'. FSR chainage isn't stored, but two crossings exist: MAIN ROAD (R03141) at m=26.4k [-115.92281,49.97387] and SKOOKUMCHUCK-BUHL (0268 03) at m=36.6k [-116.02831,49.96387] (near the Buhl Creek endpoint). Map-confirm the km-38 point. [structural-split 2026-08-05 from “from a point on the creek closest to km 38 on the Skookumchuck Forest Service Road to Buhl Creek”] boundary=km 38 on the Skookumchuck Forest Service Road to Buhl Creek",
+              "label": "Buhl Creek confluence",
+              "notes": "[auto-proposal L] point closest to km 38 on Skookumchuck FSR (to Buhl Creek) on Skookumchuck Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: km-38 chainage on the Skookumchuck FSR is not in FWA; two FSR/creek crossings bracket it (MAIN ROAD 26.4 km, Skookumchuck-Buhl 36.6 km). Needs map for exact km.. Reach = 'point on the creek closest to km 38 on the Skookumchuck FSR to Buhl Creek'. FSR chainage isn't stored, but two crossings exist: MAIN ROAD (R03141) at m=26.4k [-115.92281,49.97387] and SKOOKUMCHUCK-BUHL (0268 03) at m=36.6k [-116.02831,49.96387] (near the Buhl Creek endpoint). Map-confirm the km-38 point. [structural-split 2026-08-05 from “from a point on the creek closest to km 38 on the Skookumchuck Forest Service Road to Buhl Creek”] boundary=km 38 on the Skookumchuck Forest Service Road to Buhl Creek [curated 2026-08-09 manual-review batch=tahltan-nass-skook] [Buhl Creek confluence on Skookumchuck Ck (FWA, gap 0)]",
+              "coord": [
+                -116.02496,
+                49.96398
+              ],
+              "target": {
+                "blk": 356566012
+              },
               "locator_text": "km 38 on the Skookumchuck Forest Service Road to Buhl Creek"
             }
           ]
@@ -23608,7 +23616,7 @@
         "Incl. Tribs"
       ],
       "reg_text": "Bait ban\n**No Fishing** from white triangular fishing boundary signs located downstream of the Meziadin River confluence, and upstream to the Hwy\n37 bridge, Aug 8-Sept 15",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 1,
       "locators": [
         {
@@ -23620,24 +23628,37 @@
               "Aug 8-Sept 15"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "nass-river-707159-a",
-              "status": "todo",
-              "anchor_kind": "point",
+              "status": "curated",
+              "anchor_kind": "confluence",
               "src": "rule",
               "resolver_hint": "boundary_signs",
-              "notes": "[auto-proposal L] white signs below Meziadin confluence, up to a Hwy bridge on Nass River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Meziadin River confluence on the Nass and the Hwy bridge (Hwy 37 / Nass) at the upstream end; map.. Reach = 'signs downstream of the Meziadin River confluence, up to the Hwy [37] bridge' (truncated). Confluence + highway bridge -> map/OSM-confirmable; anchor at the Meziadin confluence. [structural-split 2026-08-05 from “from white triangular fishing boundary signs located downstream of the Meziadin River confluence, and upstream to the Hw”] boundary=white triangular fishing boundary signs located downstream of the Meziadin River confluence, and [hint-fix 2026-08-06 bridge_road_km->boundary_signs]",
+              "label": "white triangular signs (d/s of Meziadin River confluence)",
+              "notes": "[auto-proposal L] white signs below Meziadin confluence, up to a Hwy bridge on Nass River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Meziadin River confluence on the Nass and the Hwy bridge (Hwy 37 / Nass) at the upstream end; map.. Reach = 'signs downstream of the Meziadin River confluence, up to the Hwy [37] bridge' (truncated). Confluence + highway bridge -> map/OSM-confirmable; anchor at the Meziadin confluence. [structural-split 2026-08-05 from “from white triangular fishing boundary signs located downstream of the Meziadin River confluence, and upstream to the Hw”] boundary=white triangular fishing boundary signs located downstream of the Meziadin River confluence, and [hint-fix 2026-08-06 bridge_road_km->boundary_signs] [curated 2026-08-09 manual-review batch=tahltan-nass-skook] [Meziadin River confluence (FWA blk 360882420); signs located just downstream of it]",
+              "coord": [
+                -129.14764,
+                56.02451
+              ],
+              "target": {
+                "blk": 360882420
+              },
               "locator_text": "white triangular fishing boundary signs located downstream of the Meziadin River confluence, and"
             },
             {
               "id": "nass-river-707159-b",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] white signs below Meziadin confluence, up to a Hwy bridge on Nass River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Meziadin River confluence on the Nass and the Hwy bridge (Hwy 37 / Nass) at the upstream end; map.. Reach = 'signs downstream of the Meziadin River confluence, up to the Hwy [37] bridge' (truncated). Confluence + highway bridge -> map/OSM-confirmable; anchor at the Meziadin confluence. [structural-split 2026-08-05 from “from white triangular fishing boundary signs located downstream of the Meziadin River confluence, and upstream to the Hw”] boundary=Hw",
+              "label": "Hwy 37 bridge",
+              "notes": "[auto-proposal L] white signs below Meziadin confluence, up to a Hwy bridge on Nass River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Meziadin River confluence on the Nass and the Hwy bridge (Hwy 37 / Nass) at the upstream end; map.. Reach = 'signs downstream of the Meziadin River confluence, up to the Hwy [37] bridge' (truncated). Confluence + highway bridge -> map/OSM-confirmable; anchor at the Meziadin confluence. [structural-split 2026-08-05 from “from white triangular fishing boundary signs located downstream of the Meziadin River confluence, and upstream to the Hw”] boundary=Hw [curated 2026-08-09 manual-review batch=tahltan-nass-skook] [Hwy 37 (BC 37) bridge over Nass R, OSM way 50945046]",
+              "coord": [
+                -129.15347,
+                56.03386
+              ],
               "locator_text": "Hw"
             }
           ]
@@ -23648,7 +23669,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-09"
     },
     "54de42b7": {
       "entry_id": "54de42b7",
@@ -24429,7 +24451,7 @@
         "Incl. Tribs"
       ],
       "reg_text": "**No Fishing** all year from boundary signs located approximately 400 m upstream from the Tahltan RIver Bridge on the Telegraph Creek\nRoad to the landslide located approximately 750 m upstream from the Tahltan River Bridge.\n**No Fishing** Dec 1-June 30",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 1,
       "locators": [
         {
@@ -24438,24 +24460,52 @@
           "info": {
             "restriction_type": "closure"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "tahltan-river-e8ade6-a",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] Tahltan River Bridge on Telegraph Creek Road (signs ~400 m up) on Tahltan River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Tahltan River Bridge on the Telegraph Creek Road and signs ~400 m upstream; map.. Road bridge on the Telegraph Creek Road; landmark = boundary signs ~400 m upstream of it. Not in FWA/FSR. Map/OSM-confirmable. [structural-split 2026-08-05 from “from boundary signs located approximately 400 m upstream from the Tahltan RIver Bridge on the Telegraph Creek Road to th”] boundary=boundary signs located approximately 400 m upstream from the Tahltan RIver Bridge on the Telegraph Creek Road",
+              "label": "signs ~400m u/s of Tahltan River Bridge",
+              "notes": "[auto-proposal L] Tahltan River Bridge on Telegraph Creek Road (signs ~400 m up) on Tahltan River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Tahltan River Bridge on the Telegraph Creek Road and signs ~400 m upstream; map.. Road bridge on the Telegraph Creek Road; landmark = boundary signs ~400 m upstream of it. Not in FWA/FSR. Map/OSM-confirmable. [structural-split 2026-08-05 from “from boundary signs located approximately 400 m upstream from the Tahltan RIver Bridge on the Telegraph Creek Road to th”] boundary=boundary signs located approximately 400 m upstream from the Tahltan RIver Bridge on the Telegraph Creek Road [curated 2026-08-09 manual-review batch=tahltan-nass-skook] [base=Tahltan River Bridge OSM way 50979574; +400m u/s -> 58.0144,-130.97194]",
+              "coord": [
+                -130.97779,
+                58.01341
+              ],
+              "offset": {
+                "anchor": [
+                  -130.97779,
+                  58.01341
+                ],
+                "anchor_label": "Tahltan River Bridge (Telegraph Creek Rd)",
+                "m": 400,
+                "dir": "upstream"
+              },
               "locator_text": "boundary signs located approximately 400 m upstream from the Tahltan RIver Bridge on the Telegraph Creek Road"
             },
             {
               "id": "tahltan-river-e8ade6-b",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] Tahltan River Bridge on Telegraph Creek Road (signs ~400 m up) on Tahltan River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Tahltan River Bridge on the Telegraph Creek Road and signs ~400 m upstream; map.. Road bridge on the Telegraph Creek Road; landmark = boundary signs ~400 m upstream of it. Not in FWA/FSR. Map/OSM-confirmable. [structural-split 2026-08-05 from “from boundary signs located approximately 400 m upstream from the Tahltan RIver Bridge on the Telegraph Creek Road to th”] boundary=th",
+              "label": "landslide ~750m u/s of Tahltan River Bridge",
+              "notes": "[auto-proposal L] Tahltan River Bridge on Telegraph Creek Road (signs ~400 m up) on Tahltan River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Tahltan River Bridge on the Telegraph Creek Road and signs ~400 m upstream; map.. Road bridge on the Telegraph Creek Road; landmark = boundary signs ~400 m upstream of it. Not in FWA/FSR. Map/OSM-confirmable. [structural-split 2026-08-05 from “from boundary signs located approximately 400 m upstream from the Tahltan RIver Bridge on the Telegraph Creek Road to th”] boundary=th [curated 2026-08-09 manual-review batch=tahltan-nass-skook] [base=Tahltan River Bridge; +750m u/s -> 58.01745,-130.97143]",
+              "coord": [
+                -130.97779,
+                58.01341
+              ],
+              "offset": {
+                "anchor": [
+                  -130.97779,
+                  58.01341
+                ],
+                "anchor_label": "Tahltan River Bridge (Telegraph Creek Rd)",
+                "m": 750,
+                "dir": "upstream"
+              },
               "locator_text": "th"
             }
           ]
@@ -24466,7 +24516,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-09"
     },
     "d7e1beae": {
       "entry_id": "d7e1beae",

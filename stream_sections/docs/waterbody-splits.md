@@ -7,8 +7,8 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 |---|--:|
 | NO_CURATION | 1 |
 | MISSING_SPLITS | 2 |
-| INCOMPLETE | 110 |
-| COMPLETE | 199 |
+| INCOMPLETE | 108 |
+| COMPLETE | 201 |
 | NO_SPLIT | 75 |
 
 **Drift** (curated rows matching no source locator): 9
@@ -303,7 +303,7 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 - • [rule] “downstream of barrier approximately 1 km upstream of the Hwy 23 br” → st-leon-creek-8e9134[todo]
 
 ## SKOOKUMCHUCK CREEK · MU ['4-20'] · p41 · [INCOMPLETE] (6dad8cc8)
-- • [rule] “from a point on the creek closest to km 38 on the Skookumchuck For” → skookumchuck-creek-37fdd8-a[todo], skookumchuck-creek-37fdd8-b[todo]
+- • [rule] “from a point on the creek closest to km 38 on the Skookumchuck For” → skookumchuck-creek-37fdd8-a[todo], skookumchuck-creek-37fdd8-b[curated]
 
 ## TROUT LAKE · MU ['4-30'] · p42 · [INCOMPLETE] (0c91a897)
 - • [rule] “northwest of a line between fishing boundary signs on opposite sho” → trout-lake-154027[todo]
@@ -344,9 +344,6 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 ## KSI X'ANMAS RIVER (formerly Kwinamass River) · MU ['6-14'] · p58 · [INCOMPLETE] (ea7be38a)
 - • [rule] “upstream from the lower bridge abutments” → ksi-x-anmas-river-formerly-kwinamass-river-fe2f0b[todo]
 
-## NASS RIVER · MU ['6-30'] · p59 · [INCOMPLETE] (68fa941e)
-- • [rule] “from white triangular fishing boundary signs located downstream of” → nass-river-707159-a[todo], nass-river-707159-b[todo]
-
 ## PINKUT CREEK · MU ['6-6'] · p59 · [INCOMPLETE] (2fe40ed5)
 - • [rule] “downstream of the fish fence” → pinkut-creek-03a36e[todo]
 
@@ -355,9 +352,6 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 
 ## SUSTUT RIVER · MU ['6-18'] · p59 · [INCOMPLETE] (99b982b7)
 - • [rule] “upstream of BCR Bridge at Bear River mouth” → sustut-river-9d2852[todo]
-
-## TAHLTAN RIVER · MU ['6-22'] · p59 · [INCOMPLETE] (037258e5)
-- • [rule] “from boundary signs located approximately 400 m upstream from the ” → tahltan-river-e8ade6-a[todo], tahltan-river-e8ade6-b[todo]
 
 ## TAKYSIE LAKE · MU ['6-4'] · p59 · [INCOMPLETE] (d7e1beae)
 - • [rule] “northwest of a line between fishing boundary signs on opposite sho” → takysie-lake-6b2e09[todo]
