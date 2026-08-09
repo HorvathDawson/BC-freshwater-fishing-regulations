@@ -11,7 +11,7 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 | COMPLETE | 194 |
 | NO_SPLIT | 75 |
 
-**Drift** (curated rows matching no source locator): 6
+**Drift** (curated rows matching no source locator): 9
 
 ## LYNN CREEK · MU ['2-8'] · p26 · [NO_CURATION] (362df0a9)
 - ❌ MISSING [rule] “between fishing boundary signs situated approximately 200 m upstre” → —
@@ -451,6 +451,9 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 
 ## ⚠️ DRIFT — curated rows not found in the source (review)
 
+- `babine-river-fort-babine-bridge-manual` [manual] BABINE RIVER — src=rule “Fort Babine Bridge”
+- `babine-river-nichyeskwa-creek-manual` [manual] BABINE RIVER — src=rule “Nichyeskwa Creek confluence”
+- `columbia-river-pend-doreille-confl-manual` [manual] COLUMBIA RIVER — src=rule “Pend d'Oreille River confluence”
 - `elk-river-upstream-of-elko-dam-e38cd2-forsyth-cr` [curated] ELK RIVER (upstream of Elko Dam) — src=rule “Forsyth Creek”
 - `lost-lake-near-taweel-lake-e49a1f` [not_applicable] LOST LAKE (near Taweel Lake) — src=entry “near Taweel Lake”
 - `lynn-creek-d5e0fb-a` [curated] LYNN CREEK — src=rule “sign approximately 200 m upstream of Twin Falls Br”

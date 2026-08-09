@@ -13389,6 +13389,20 @@
               "locator_text": "Washington state border and connected reaches: the Kootenay River (Columbia River"
             },
             {
+              "id": "columbia-river-brilliant-dam-manual",
+              "status": "manual",
+              "anchor_kind": "point",
+              "src": "rule",
+              "resolver_hint": "dam_weir_fence",
+              "label": "Brilliant Dam",
+              "notes": "[manual anchor 2026-08-08 audit-fix] Brilliant Dam on lower Kootenay R; d/s endpoint of connected reach \"Kootenay R (Columbia confl -> Brilliant Dam)\"; same coord as kootenay-river ...1e5f9d-a",
+              "coord": [
+                -117.62009,
+                49.32481
+              ],
+              "locator_text": "Brilliant Dam"
+            },
+            {
               "id": "columbia-river-f4c5a3-a",
               "status": "curated",
               "anchor_kind": "point",
@@ -13414,6 +13428,20 @@
                 49.0004
               ],
               "locator_text": "Washington state border"
+            },
+            {
+              "id": "columbia-river-waneta-dam-manual",
+              "status": "manual",
+              "anchor_kind": "point",
+              "src": "rule",
+              "resolver_hint": "dam_weir_fence",
+              "label": "Waneta Dam",
+              "notes": "[manual anchor 2026-08-08 audit-fix] Waneta Dam on Pend d'Oreille R (OSM way 614612375 waterway=dam); u/s endpoint of connected reach \"Pend d'Oreille R (Columbia confl -> Waneta Dam)\"",
+              "coord": [
+                -117.61186,
+                49.0039
+              ],
+              "locator_text": "Waneta Dam"
             }
           ]
         },
@@ -13458,6 +13486,20 @@
               "locator_text": "Washington state border and connected reaches: the Kootenay River (Columbia River"
             },
             {
+              "id": "columbia-river-brilliant-dam-manual",
+              "status": "manual",
+              "anchor_kind": "point",
+              "src": "rule",
+              "resolver_hint": "dam_weir_fence",
+              "label": "Brilliant Dam",
+              "notes": "[manual anchor 2026-08-08 audit-fix] Brilliant Dam on lower Kootenay R; d/s endpoint of connected reach \"Kootenay R (Columbia confl -> Brilliant Dam)\"; same coord as kootenay-river ...1e5f9d-a",
+              "coord": [
+                -117.62009,
+                49.32481
+              ],
+              "locator_text": "Brilliant Dam"
+            },
+            {
               "id": "columbia-river-f4c5a3-a",
               "status": "curated",
               "anchor_kind": "point",
@@ -13483,6 +13525,20 @@
                 49.0004
               ],
               "locator_text": "Washington state border"
+            },
+            {
+              "id": "columbia-river-waneta-dam-manual",
+              "status": "manual",
+              "anchor_kind": "point",
+              "src": "rule",
+              "resolver_hint": "dam_weir_fence",
+              "label": "Waneta Dam",
+              "notes": "[manual anchor 2026-08-08 audit-fix] Waneta Dam on Pend d'Oreille R (OSM way 614612375 waterway=dam); u/s endpoint of connected reach \"Pend d'Oreille R (Columbia confl -> Waneta Dam)\"",
+              "coord": [
+                -117.61186,
+                49.0039
+              ],
+              "locator_text": "Waneta Dam"
             }
           ]
         },
@@ -13605,7 +13661,7 @@
           "rows": []
         }
       ],
-      "reviewed": "2026-08-07"
+      "reviewed": "2026-08-08"
     },
     "c137efb3": {
       "entry_id": "c137efb3",
@@ -28821,6 +28877,125 @@
     }
   },
   "drift": [
+    {
+      "id": "babine-river-fort-babine-bridge-manual",
+      "water": "BABINE RIVER",
+      "mu": [
+        "6-8"
+      ],
+      "src": "rule",
+      "locator_text": "Fort Babine Bridge",
+      "status": "manual",
+      "row": {
+        "id": "babine-river-fort-babine-bridge-manual",
+        "name_verbatim": "BABINE RIVER",
+        "region": "REGION 6 - Skeena",
+        "mus": [
+          "6-8"
+        ],
+        "src": "rule",
+        "locator_text": "Fort Babine Bridge",
+        "full_regulation": "**Angling prohibited for non-guided non-resident aliens on Saturdays and Sundays from the juvenile fish counting weir located at\nthe outlet of Nilkitkwa Lake to the Nilkitkwa River confluence, Sept 1-Oct 31 (See map **page 56**)\nNo Fishing** between fishing boundary signs approximately 100 m upstream of and 80 m downstream of the adult fish counting fence,\nlocated approximately 1.8 km downstream of Nilkitkwa Lake\nOpen all year in the stream channel known as \"Rainbow Alley\" located between Babine and Nilkitkwa lakes (see map 2 page 51)\nFly fishing only (a) from the Fort Babine Bridge downstream to signs 100 m upstream of the adult fish counting fence (including Nilkitkwa\nLake), during open times and (b) from signs about 80 m downstream of the adult fish counting fence to Nichyeskwa Creek, June 16-Sept 30; includes \"Rainbow Alley\"\nBait ban\nNo angling from boats from the adult fish counting fence (described above) downstream to the Babine River's confluence with the Skeena\nRiver\n**Class 1 water Sept 1-Oct 31; Steelhead Stamp mandatory Sept 1-Oct 31 from the juvenile fish counting weir located at the outlet of\nNilkitkwa Lake downstream to the Babine River's confluence with the Skeena River (See map **page 56**)**",
+        "anchor_kind": "point",
+        "resolver_hint": "dam_weir_fence",
+        "status": "manual",
+        "target": "",
+        "coord": [
+          -126.62866,
+          55.32201
+        ],
+        "label": "Fort Babine Bridge",
+        "notes": "[manual anchor 2026-08-08 audit-fix] Fort Babine Road bridge over Babine R (OSM way 43285457, m110733); u/s endpoint of fly-fishing reach (a) \"from Fort Babine Bridge d/s to signs 100m u/s of adult fence, incl. Nilkitkwa Lake\"",
+        "entry_id": "4dd3daf7",
+        "reviewed": "2026-08-08",
+        "offset": null,
+        "polygon": null
+      }
+    },
+    {
+      "id": "babine-river-nichyeskwa-creek-manual",
+      "water": "BABINE RIVER",
+      "mu": [
+        "6-8"
+      ],
+      "src": "rule",
+      "locator_text": "Nichyeskwa Creek confluence",
+      "status": "manual",
+      "row": {
+        "id": "babine-river-nichyeskwa-creek-manual",
+        "name_verbatim": "BABINE RIVER",
+        "region": "REGION 6 - Skeena",
+        "mus": [
+          "6-8"
+        ],
+        "src": "rule",
+        "locator_text": "Nichyeskwa Creek confluence",
+        "full_regulation": "**Angling prohibited for non-guided non-resident aliens on Saturdays and Sundays from the juvenile fish counting weir located at\nthe outlet of Nilkitkwa Lake to the Nilkitkwa River confluence, Sept 1-Oct 31 (See map **page 56**)\nNo Fishing** between fishing boundary signs approximately 100 m upstream of and 80 m downstream of the adult fish counting fence,\nlocated approximately 1.8 km downstream of Nilkitkwa Lake\nOpen all year in the stream channel known as \"Rainbow Alley\" located between Babine and Nilkitkwa lakes (see map 2 page 51)\nFly fishing only (a) from the Fort Babine Bridge downstream to signs 100 m upstream of the adult fish counting fence (including Nilkitkwa\nLake), during open times and (b) from signs about 80 m downstream of the adult fish counting fence to Nichyeskwa Creek, June 16-Sept 30; includes \"Rainbow Alley\"\nBait ban\nNo angling from boats from the adult fish counting fence (described above) downstream to the Babine River's confluence with the Skeena\nRiver\n**Class 1 water Sept 1-Oct 31; Steelhead Stamp mandatory Sept 1-Oct 31 from the juvenile fish counting weir located at the outlet of\nNilkitkwa Lake downstream to the Babine River's confluence with the Skeena River (See map **page 56**)**",
+        "anchor_kind": "confluence",
+        "resolver_hint": "dam_weir_fence",
+        "status": "manual",
+        "target": {
+          "blk": 360873189,
+          "wsc": "400-536025-367117-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+        },
+        "coord": [
+          -126.69805,
+          55.43167
+        ],
+        "label": "Nichyeskwa Creek confluence",
+        "notes": "[manual anchor 2026-08-08 audit-fix] Nichyeskwa Ck mouth on Babine R (FWA, m96825); d/s endpoint of fly-fishing reach (b) \"from signs 80m d/s of adult fence to Nichyeskwa Creek\"",
+        "entry_id": "4dd3daf7",
+        "reviewed": "2026-08-08",
+        "offset": null,
+        "polygon": null
+      }
+    },
+    {
+      "id": "columbia-river-pend-doreille-confl-manual",
+      "water": "COLUMBIA RIVER",
+      "mu": [
+        "4-8",
+        "4-15",
+        "4-26",
+        "4-34",
+        "4-38"
+      ],
+      "src": "rule",
+      "locator_text": "Pend d'Oreille River confluence",
+      "status": "manual",
+      "row": {
+        "id": "columbia-river-pend-doreille-confl-manual",
+        "name_verbatim": "COLUMBIA RIVER",
+        "region": "REGION 4 - Kootenay",
+        "mus": [
+          "4-8",
+          "4-15",
+          "4-26",
+          "4-34",
+          "4-38"
+        ],
+        "src": "rule",
+        "locator_text": "Pend d'Oreille River confluence",
+        "full_regulation": "**No Fishing** from Revelstoke Dam downstream to Hwy 1 bridge in Revelstoke\n**No Fishing** from a line between the old Robson Ferry landing and a sign on the south river bank, downstream approximately 950 m to the\nCPR Bridge, Mar 1-June 30\nWhere angling is permitted: EXEMPT from the regional Nov 1-Mar 31 trout/char catch and release and the regional Apr 1-June 14 closure\nBass daily quota = unlimited\nKokanee daily quota = 15 from Keenleyside Dam to a line between the old Robson Ferry landing and a sign on the south river bank\nWalleye daily quota = 16 from Keenleyside Dam to the Washington state border\nFrom Keenleyside Dam downstream to the Washington state border and connected reaches: the Kootenay River (Columbia River\nconfluence to Brilliant Dam) and the Pend d'Oreille River (Columbia River confluence to Waneta Dam): Northern pike daily quota =\nunlimited and bass daily quota = unlimited\nBurbot catch and release\nSpeed restriction (10 km/h) from Mud Lake to Columbia Lake, no power boats in wetlands, no towing and engine power restriction -\n15 kW (20 hp), in main channel from Fairmont to Donald\nSee Upper Arrow Lake for the portion of the Columbia River which may be found downstream of the Hwy 1 bridge in Revelstoke\n(depending on reservoir level)",
+        "anchor_kind": "confluence",
+        "resolver_hint": "dam_weir_fence",
+        "status": "manual",
+        "target": {
+          "blk": 360886454,
+          "wsc": "300-602565-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+        },
+        "coord": [
+          -117.62186,
+          49.00482
+        ],
+        "label": "Pend d'Oreille River confluence",
+        "notes": "[manual anchor 2026-08-08 audit-fix] Pend d'Oreille R mouth on Columbia (FWA); Columbia-confluence endpoint of connected reach \"Pend d'Oreille R (Columbia confl -> Waneta Dam)\"",
+        "entry_id": "1f199dad",
+        "reviewed": "2026-08-08",
+        "offset": null,
+        "polygon": null
+      }
+    },
     {
       "id": "elk-river-upstream-of-elko-dam-e38cd2-forsyth-cr",
       "water": "ELK RIVER (upstream of Elko Dam)",
