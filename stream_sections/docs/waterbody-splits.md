@@ -7,8 +7,8 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 |---|--:|
 | NO_CURATION | 1 |
 | MISSING_SPLITS | 2 |
-| INCOMPLETE | 132 |
-| COMPLETE | 177 |
+| INCOMPLETE | 131 |
+| COMPLETE | 178 |
 | NO_SPLIT | 75 |
 
 **Drift** (curated rows matching no source locator): 6
@@ -267,10 +267,6 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 ## ANZAC RIVER · MU ['7-23'] · p65 · [INCOMPLETE] (669f5ba9)
 - • [rule] “within 500 m radius of the Upper Anzac bridge” → anzac-river-13eb8b[todo]
 - • [rule] “upstream of the North Anzac River confluence” → anzac-river-ae3f1c[curated]
-
-## VASEUX LAKE (including two lagoons on the west side of Okanagan River upstream of McIntyre Dam) · MU ['8-1'] · p77 · [INCOMPLETE] (bf3a7f24)
-- • [water] “including two lagoons on the west side of Okanagan River upstream ” → vaseux-lake-including-two-lagoons-on-the-west-f208f2[todo]
-- • [entry] “including two lagoons on the west side of Okanagan River upstream ” → vaseux-lake-including-two-lagoons-on-the-west-f208f2[todo]
 
 ## ARTLISH RIVER · MU ['1-12'] · p16 · [INCOMPLETE] (0505ec23)
 - • [rule] “upstream of the boundary signs at the bridge crossing approximatel” → artlish-river-9e60a3[todo]

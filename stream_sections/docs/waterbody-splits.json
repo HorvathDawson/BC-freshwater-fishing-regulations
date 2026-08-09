@@ -28454,21 +28454,21 @@
       "image": "page_077_row_025.png",
       "symbols": [],
       "reg_text": "No powered boats (Migratory Bird Sanctuary Regulations)\nBass daily quota = 8, yellow perch daily quota = 20",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 2,
       "locators": [
         {
           "src": "water",
           "text": "including two lagoons on the west side of Okanagan River upstream of McIntyre Dam",
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "vaseux-lake-including-two-lagoons-on-the-west-f208f2",
-              "status": "todo",
+              "status": "deferred",
               "anchor_kind": "point",
               "src": "name",
               "resolver_hint": "dam_weir_fence",
-              "notes": "[auto-proposal L] McIntyre Dam (upstream bound) + two west-side lagoons on Vaseux Lake + Okanagan River lagoons. Candidate coord [-119.57386, 49.35652]. OSM: https://www.openstreetmap.org/?mlat=49.35652&mlon=-119.57386#map=15/49.35652/-119.57386. Verify: This is a lake+lagoons entry, not a single dam. Confirm McIntyre Dam as the upstream bound (~[-119.574,49.357]) and the two lagoons on the west side of the Okanagan River.. Vaseux Lake entry including two lagoons on the west side of the Okanagan River, upstream of McIntyre Dam. Better modelled as the Vaseux Lake polygon (wbk 329459123) plus lagoon geometry; candidate coord = McIntyre Dam (the named upstream structure). Manual review for the lagoons.",
+              "notes": "[auto-proposal L] McIntyre Dam (upstream bound) + two west-side lagoons on Vaseux Lake + Okanagan River lagoons. Candidate coord [-119.57386, 49.35652]. OSM: https://www.openstreetmap.org/?mlat=49.35652&mlon=-119.57386#map=15/49.35652/-119.57386. Verify: This is a lake+lagoons entry, not a single dam. Confirm McIntyre Dam as the upstream bound (~[-119.574,49.357]) and the two lagoons on the west side of the Okanagan River.. Vaseux Lake entry including two lagoons on the west side of the Okanagan River, upstream of McIntyre Dam. Better modelled as the Vaseux Lake polygon (wbk 329459123) plus lagoon geometry; candidate coord = McIntyre Dam (the named upstream structure). Manual review for the lagoons. [deferred 2026-08-08 lake-split: Vaseux Lake incl. two west-side Okanagan River lagoons u/s of McIntyre Dam — lake-area extent, defer per lake-split rule]",
               "name_verbatim": "VASEUX LAKE (including two lagoons on the west side of"
             }
           ]
@@ -28476,15 +28476,15 @@
         {
           "src": "entry",
           "text": "including two lagoons on the west side of Okanagan River upstream of McIntyre Dam",
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "vaseux-lake-including-two-lagoons-on-the-west-f208f2",
-              "status": "todo",
+              "status": "deferred",
               "anchor_kind": "point",
               "src": "name",
               "resolver_hint": "dam_weir_fence",
-              "notes": "[auto-proposal L] McIntyre Dam (upstream bound) + two west-side lagoons on Vaseux Lake + Okanagan River lagoons. Candidate coord [-119.57386, 49.35652]. OSM: https://www.openstreetmap.org/?mlat=49.35652&mlon=-119.57386#map=15/49.35652/-119.57386. Verify: This is a lake+lagoons entry, not a single dam. Confirm McIntyre Dam as the upstream bound (~[-119.574,49.357]) and the two lagoons on the west side of the Okanagan River.. Vaseux Lake entry including two lagoons on the west side of the Okanagan River, upstream of McIntyre Dam. Better modelled as the Vaseux Lake polygon (wbk 329459123) plus lagoon geometry; candidate coord = McIntyre Dam (the named upstream structure). Manual review for the lagoons.",
+              "notes": "[auto-proposal L] McIntyre Dam (upstream bound) + two west-side lagoons on Vaseux Lake + Okanagan River lagoons. Candidate coord [-119.57386, 49.35652]. OSM: https://www.openstreetmap.org/?mlat=49.35652&mlon=-119.57386#map=15/49.35652/-119.57386. Verify: This is a lake+lagoons entry, not a single dam. Confirm McIntyre Dam as the upstream bound (~[-119.574,49.357]) and the two lagoons on the west side of the Okanagan River.. Vaseux Lake entry including two lagoons on the west side of the Okanagan River, upstream of McIntyre Dam. Better modelled as the Vaseux Lake polygon (wbk 329459123) plus lagoon geometry; candidate coord = McIntyre Dam (the named upstream structure). Manual review for the lagoons. [deferred 2026-08-08 lake-split: Vaseux Lake incl. two west-side Okanagan River lagoons u/s of McIntyre Dam — lake-area extent, defer per lake-split rule]",
               "name_verbatim": "VASEUX LAKE (including two lagoons on the west side of"
             }
           ]
@@ -28492,15 +28492,15 @@
         {
           "src": "name",
           "text": "VASEUX LAKE (including two lagoons on the west side of Okanagan River upstream of McIntyre Dam)",
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "vaseux-lake-including-two-lagoons-on-the-west-f208f2",
-              "status": "todo",
+              "status": "deferred",
               "anchor_kind": "point",
               "src": "name",
               "resolver_hint": "dam_weir_fence",
-              "notes": "[auto-proposal L] McIntyre Dam (upstream bound) + two west-side lagoons on Vaseux Lake + Okanagan River lagoons. Candidate coord [-119.57386, 49.35652]. OSM: https://www.openstreetmap.org/?mlat=49.35652&mlon=-119.57386#map=15/49.35652/-119.57386. Verify: This is a lake+lagoons entry, not a single dam. Confirm McIntyre Dam as the upstream bound (~[-119.574,49.357]) and the two lagoons on the west side of the Okanagan River.. Vaseux Lake entry including two lagoons on the west side of the Okanagan River, upstream of McIntyre Dam. Better modelled as the Vaseux Lake polygon (wbk 329459123) plus lagoon geometry; candidate coord = McIntyre Dam (the named upstream structure). Manual review for the lagoons.",
+              "notes": "[auto-proposal L] McIntyre Dam (upstream bound) + two west-side lagoons on Vaseux Lake + Okanagan River lagoons. Candidate coord [-119.57386, 49.35652]. OSM: https://www.openstreetmap.org/?mlat=49.35652&mlon=-119.57386#map=15/49.35652/-119.57386. Verify: This is a lake+lagoons entry, not a single dam. Confirm McIntyre Dam as the upstream bound (~[-119.574,49.357]) and the two lagoons on the west side of the Okanagan River.. Vaseux Lake entry including two lagoons on the west side of the Okanagan River, upstream of McIntyre Dam. Better modelled as the Vaseux Lake polygon (wbk 329459123) plus lagoon geometry; candidate coord = McIntyre Dam (the named upstream structure). Manual review for the lagoons. [deferred 2026-08-08 lake-split: Vaseux Lake incl. two west-side Okanagan River lagoons u/s of McIntyre Dam — lake-area extent, defer per lake-split rule]",
               "name_verbatim": "VASEUX LAKE (including two lagoons on the west side of",
               "locator_text": "including two lagoons on the west side of Okanagan River upstream of McIntyre Dam"
             }
