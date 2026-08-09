@@ -10474,7 +10474,7 @@
         "Stocked"
       ],
       "reg_text": "**No Fishing** within 100 m of the mouth of the inlet stream, May 1-Nov 30\n**No Fishing** within 100 m of the Tunkwa Creek outlet, May 1-Nov 30",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 2,
       "locators": [
         {
@@ -10486,14 +10486,15 @@
               "May 1-Nov 30"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "leighton-lake-158268",
-              "status": "todo",
+              "status": "deferred",
               "anchor_kind": "buffer",
               "src": "rule",
-              "resolver_hint": "radius"
+              "resolver_hint": "radius",
+              "notes": "[deferred 2026-08-08 lake-split: Leighton Lake 100m-buffer closures (inlet stream mouth + Tunkwa Creek outlet); defer per lake-split rule. REF: Tunkwa Ck outlet FWA 50.6165,-120.85128 blk 356363394; WBK 329563844]"
             }
           ]
         },
@@ -10506,14 +10507,15 @@
               "May 1-Nov 30"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "leighton-lake-37110f",
-              "status": "todo",
+              "status": "deferred",
               "anchor_kind": "buffer",
               "src": "rule",
-              "resolver_hint": "radius"
+              "resolver_hint": "radius",
+              "notes": "[deferred 2026-08-08 lake-split: Leighton Lake 100m-buffer closures (inlet stream mouth + Tunkwa Creek outlet); defer per lake-split rule. REF: Tunkwa Ck outlet FWA 50.6165,-120.85128 blk 356363394; WBK 329563844]"
             }
           ]
         },

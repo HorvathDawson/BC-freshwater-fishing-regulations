@@ -7,8 +7,8 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 |---|--:|
 | NO_CURATION | 1 |
 | MISSING_SPLITS | 2 |
-| INCOMPLETE | 120 |
-| COMPLETE | 189 |
+| INCOMPLETE | 119 |
+| COMPLETE | 190 |
 | NO_SPLIT | 75 |
 
 **Drift** (curated rows matching no source locator): 6
@@ -184,10 +184,6 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 ## STAVE RIVER · MU ['2-8'] · p28 · [INCOMPLETE] (50faaf74)
 - • [rule] “in the Ruskin spawning channel, from the inlet near the dam downst” → stave-river-15d929[deferred]
 - • [rule] “in the Northrop Spawning Channel, from the intake downstream to wh” → stave-river-c74d9d[todo]
-
-## LEIGHTON LAKE · MU ['3-18'] · p32 · [INCOMPLETE] (61620d69)
-- • [rule] “within 100 m of the mouth of the inlet stream” → leighton-lake-158268[todo]
-- • [rule] “within 100 m of the Tunkwa Creek outlet” → leighton-lake-37110f[todo]
 
 ## LOON LAKE · MU ['3-30'] · p32 · [INCOMPLETE] (d37dc894)
 - • [rule] “northeast of fishing boundary signs near the mouth of Thunder Cree” → loon-lake-97f382[todo]
