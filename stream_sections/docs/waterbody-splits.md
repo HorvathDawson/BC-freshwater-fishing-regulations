@@ -7,8 +7,8 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 |---|--:|
 | NO_CURATION | 1 |
 | MISSING_SPLITS | 2 |
-| INCOMPLETE | 85 |
-| COMPLETE | 224 |
+| INCOMPLETE | 73 |
+| COMPLETE | 236 |
 | NO_SPLIT | 75 |
 
 **Drift** (curated rows matching no source locator): 9
@@ -27,7 +27,7 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 - • [entry] “includes Little Shuswap Lake, that part of South Thompson River be” → shuswap-lake-see-maps-on-page-28-includes-lit-80ee82[not_applicable]
 
 ## NATION ARM (Williston Lake) · MU ['7-30'] · p66 · [MISSING_SPLITS] (afba43e9)
-- • [rule] “west of a line between two fishing boundary signs approximately 50” → nation-arm-williston-lake-d2e637[todo]
+- • [rule] “west of a line between two fishing boundary signs approximately 50” → nation-arm-williston-lake-d2e637[deferred]
 - ❌ MISSING [rule] “west of a line between two fishing boundary signs approximately 50” → —
 
 ## THOMPSON RIVER (downstream of signs at Kamloops Lake outlet to the confluence with Fraser River) · MU ['3-13', '3-14', '3-18'] · p34 · [INCOMPLETE] (bea6153a)
@@ -140,10 +140,6 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 - • [rule] “in the Ruskin spawning channel, from the inlet near the dam downst” → stave-river-15d929[deferred]
 - • [rule] “in the Northrop Spawning Channel, from the intake downstream to wh” → stave-river-c74d9d[todo]
 
-## LOON LAKE · MU ['3-30'] · p32 · [INCOMPLETE] (d37dc894)
-- • [rule] “northeast of fishing boundary signs near the mouth of Thunder Cree” → loon-lake-97f382[todo]
-- • [rule] “within 500 m of outlet stream at southwest end of lake as marked b” → loon-lake-058d50[deferred]
-
 ## MOYIE RIVER · MU ['4-5'] · p40 · [INCOMPLETE] (7772faef)
 - • [rule] “Irishman Creek (Moyie River tributary)” → moyie-river-a098eb[not_applicable]
 - • [rule] “from bridge at south end of Moyie Lake to U.S. border” → moyie-river-53143e-a[curated], moyie-river-53143e-b[todo]
@@ -204,23 +200,11 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 ## NORTH ALOUETTE RIVER · MU ['2-8'] · p27 · [INCOMPLETE] (7ef10bf8)
 - • [rule] “upstream of 216th Street (Fifth Ave)” → alouette-river-daecfd[curated], north-alouette-river-e3810a[todo]
 
-## POWELL LAKE · MU ['2-12'] · p27 · [INCOMPLETE] (f7f53543)
-- • [rule] “in One Mile Bay” → powell-lake-e58550[todo]
-
-## RUBY LAKE · MU ['2-5'] · p27 · [INCOMPLETE] (8847dda0)
-- • [rule] “in the outlet bay within 100 m of the head of Ruby Creek” → ruby-lake-45ddd7[todo]
-
 ## SUMALLO RIVER (includes "Cedar" Lake, at Sunshine Valley) · MU ['2-2'] · p28 · [INCOMPLETE] (411336a9)
 - • [entry] “includes "Cedar" Lake, at Sunshine Valley” → sumallo-river-includes-cedar-lake-at-sunshine-b68cb2[todo]
 
 ## LITTLE LAC DES ROCHES (at west end of Lac Des Roches) · MU ['3-30'] · p32 · [INCOMPLETE] (5ab0483e)
 - • [entry] “at west end of Lac Des Roches” → little-lac-des-roches-at-west-end-of-lac-des--bb8a9a[todo]
-
-## ROCHE LAKE · MU ['3-20'] · p34 · [INCOMPLETE] (4a9ee814)
-- • [rule] “south of a line bearing true 244° from a point on the southern tip” → roche-lake-6c9c77[todo]
-
-## WHITE LAKE · MU ['3-26'] · p34 · [INCOMPLETE] (ed43e5bf)
-- • [rule] “within 400 m of the mouth of Cedar Creek as designated by signs” → white-lake-51bb13[todo]
 
 ## ASHER CREEK · MU ['4-30'] · p37 · [INCOMPLETE] (1a3ec8b9)
 - • [rule] “downstream of South Fork (approximately 5 km from Trout Lake)” → asher-creek-4b601a[todo]
@@ -255,9 +239,6 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 ## ST. LEON CREEK · MU ['4-31'] · p41 · [INCOMPLETE] (15f8ea45)
 - • [rule] “downstream of barrier approximately 1 km upstream of the Hwy 23 br” → st-leon-creek-8e9134[todo]
 
-## TROUT LAKE · MU ['4-30'] · p42 · [INCOMPLETE] (0c91a897)
-- • [rule] “northwest of a line between fishing boundary signs on opposite sho” → trout-lake-154027[todo]
-
 ## WOOD RIVER · MU ['4-40'] · p42 · [INCOMPLETE] (934182b3)
 - • [rule] “within Hamber Provincial Park” → wood-river-495c0d[todo]
 
@@ -279,14 +260,8 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 ## PINKUT CREEK · MU ['6-6'] · p59 · [INCOMPLETE] (2fe40ed5)
 - • [rule] “downstream of the fish fence” → pinkut-creek-03a36e[todo]
 
-## SILVERTHORNE (Erickson) LAKE · MU ['6-9'] · p59 · [INCOMPLETE] (23594a69)
-- • [rule] “within 50 m of the outlet” → silverthorne-erickson-lake-ccd6cd[todo]
-
 ## SUSTUT RIVER · MU ['6-18'] · p59 · [INCOMPLETE] (99b982b7)
 - • [rule] “upstream of BCR Bridge at Bear River mouth” → sustut-river-9d2852[todo]
-
-## TAKYSIE LAKE · MU ['6-4'] · p59 · [INCOMPLETE] (d7e1beae)
-- • [rule] “northwest of a line between fishing boundary signs on opposite sho” → takysie-lake-6b2e09[todo]
 
 ## CHICHOUYENILY CREEK · MU ['7-30'] · p65 · [INCOMPLETE] (9fd933ca)
 - • [rule] “downstream of fishing boundary signs near its mouth” → chichouyenily-creek-212afe[todo]
@@ -296,9 +271,6 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 
 ## KEMESS CREEK · MU ['7-39'] · p66 · [INCOMPLETE] (d128b1fb)
 - • [rule] “from Attichka Creek to a point 500 m upstream” → kemess-creek-e5aa68-a[curated], kemess-creek-e5aa68-b[todo]
-
-## NULKI LAKE · MU ['7-12'] · p66 · [INCOMPLETE] (1b5060c7)
-- • [rule] “west of a line between fishing boundary signs on lakeshore near mo” → nulki-lake-cd775a[todo]
 
 ## PTARMIGAN CREEK · MU ['7-5'] · p67 · [INCOMPLETE] (0b6d5fb7)
 - • [rule] “from falls to Quarry Bridge” → ptarmigan-creek-dd88fc-a[todo], ptarmigan-creek-dd88fc-b[todo]
@@ -320,15 +292,6 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 
 ## RAINBOW LAKES · MU ['7-52'] · p72 · [INCOMPLETE] (82b147e1)
 - • [rule] “within 100 m of fishing boundary sign at outlet” → rainbow-lakes-226e29[todo]
-
-## WILLISTON LAKE (in Zone B) · MU ['7-31', '7-36'] · p72 · [INCOMPLETE] (78e4ec05)
-- • [entry] “in Zone B” → williston-lake-in-zone-b-c4ac9b[todo]
-
-## WOLVERINE LAKE · MU ['7-52'] · p72 · [INCOMPLETE] (cf103119)
-- • [rule] “within 100 m of fishing boundary sign at outlet” → wolverine-lake-73cc18[todo]
-
-## MABEL LAKE · MU ['8-24'] · p76 · [INCOMPLETE] (39c538fb)
-- • [rule] “south of a line between fishing boundary signs on the lakeshore ap” → mabel-lake-ea133c[todo]
 
 ## MCRAE CREEK · MU ['8-15'] · p76 · [INCOMPLETE] (ead85d0e)
 - • [rule] “downstream of falls situated approximately 4 km upstream of Christ” → mcrae-creek-515a81[todo]

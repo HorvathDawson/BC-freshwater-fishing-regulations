@@ -6997,19 +6997,21 @@
         {
           "src": "name",
           "text": "LIGHTNING LAKE (Manning Park)",
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "lightning-lake-manning-park-6f3522",
-              "status": "todo",
-              "anchor_kind": "unclassified",
+              "status": "not_applicable",
+              "anchor_kind": "not_a_split",
               "src": "name",
               "resolver_hint": "other_reach",
+              "notes": "[n/a 2026-08-09 lake batch3: whole-lake/park/location, no split]",
               "locator_text": "Manning Park"
             }
           ]
         }
-      ]
+      ],
+      "reviewed": "2026-08-09"
     },
     "63f561e1": {
       "entry_id": "63f561e1",
@@ -7575,7 +7577,7 @@
         "Incl. Tribs"
       ],
       "reg_text": "**No Fishing** Nov 1-Mar 31; no powered boats in One Mile Bay",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 1,
       "locators": [
         {
@@ -7584,14 +7586,15 @@
           "info": {
             "restriction_type": "vessel_restriction"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "powell-lake-e58550",
-              "status": "todo",
+              "status": "deferred",
               "anchor_kind": "unclassified",
               "src": "rule",
-              "resolver_hint": "other_reach"
+              "resolver_hint": "other_reach",
+              "notes": "[deferred 2026-08-09 lake-split batch3: lake-area closure]"
             }
           ]
         },
@@ -7601,7 +7604,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-09"
     },
     "0da7eb44": {
       "entry_id": "0da7eb44",
@@ -7746,7 +7750,7 @@
       "image": "page_027_row_022.png",
       "symbols": [],
       "reg_text": "**No Fishing** in the outlet bay within 100 m of the head of Ruby Creek\nWild cutthroat trout daily quota = 2 (none 40 cm or more); single barbless hook",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 1,
       "locators": [
         {
@@ -7755,14 +7759,15 @@
           "info": {
             "restriction_type": "closure"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "ruby-lake-45ddd7",
-              "status": "todo",
+              "status": "deferred",
               "anchor_kind": "buffer",
               "src": "rule",
-              "resolver_hint": "radius"
+              "resolver_hint": "radius",
+              "notes": "[deferred 2026-08-09 lake-split batch3: lake-area closure]"
             }
           ]
         },
@@ -7772,7 +7777,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-09"
     },
     "e9eaff25": {
       "entry_id": "e9eaff25",
@@ -8660,19 +8666,21 @@
         {
           "src": "name",
           "text": "TROUT LAKE (Sasquatch Park)",
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "trout-lake-sasquatch-park-a6ce18",
-              "status": "todo",
-              "anchor_kind": "unclassified",
+              "status": "not_applicable",
+              "anchor_kind": "not_a_split",
               "src": "name",
               "resolver_hint": "other_reach",
+              "notes": "[n/a 2026-08-09 lake batch3: whole-lake/park/location, no split]",
               "locator_text": "Sasquatch Park"
             }
           ]
         }
-      ]
+      ],
+      "reviewed": "2026-08-09"
     },
     "af93a9ad": {
       "entry_id": "af93a9ad",
@@ -10594,7 +10602,7 @@
       "image": "page_032_row_043.png",
       "symbols": [],
       "reg_text": "**No Fishing** northeast of fishing boundary signs near the mouth of Thunder Creek and the public access site\n**No Ice Fishing** within 500 m of outlet stream at southwest end of lake as marked by fishing boundary signs",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 2,
       "locators": [
         {
@@ -10603,14 +10611,15 @@
           "info": {
             "restriction_type": "closure"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "loon-lake-97f382",
-              "status": "todo",
+              "status": "deferred",
               "anchor_kind": "line",
               "src": "rule",
-              "resolver_hint": "between_signs"
+              "resolver_hint": "between_signs",
+              "notes": "[deferred 2026-08-09 lake-split batch3: lake-area closure]"
             }
           ]
         },
@@ -10638,7 +10647,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-09"
     },
     "9f01ccad": {
       "entry_id": "9f01ccad",
@@ -11422,7 +11432,7 @@
         "Stocked"
       ],
       "reg_text": "**No Ice Fishing;** rainbow trout daily quota = 2; single hook\nElectric motor only - max 7.5 kW, south of a line bearing true 244° from a point on the southern tip of the largest island in the south arm of\nRoche Lake to the westerly shoreline and conversely 64° to the easterly shoreline",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 1,
       "locators": [
         {
@@ -11431,14 +11441,15 @@
           "info": {
             "restriction_type": "vessel_restriction"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "roche-lake-6c9c77",
-              "status": "todo",
+              "status": "deferred",
               "anchor_kind": "line",
               "src": "rule",
               "resolver_hint": "between_signs",
+              "notes": "[deferred 2026-08-09 lake-split batch3: lake-area closure]",
               "locator_text": "south of a line bearing true 244° from a point on the southern tip of the largest island in the south arm of Roche Lake"
             }
           ]
@@ -11449,7 +11460,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-09"
     },
     "499c7d53": {
       "entry_id": "499c7d53",
@@ -12460,7 +12472,7 @@
         "Stocked"
       ],
       "reg_text": "**No Fishing** within 400 m of the mouth of Cedar Creek as designated by signs, Dec 1-June 30\nRainbow trout daily quota = 2",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 1,
       "locators": [
         {
@@ -12472,14 +12484,15 @@
               "Dec 1-June 30"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "white-lake-51bb13",
-              "status": "todo",
+              "status": "deferred",
               "anchor_kind": "buffer",
               "src": "rule",
-              "resolver_hint": "radius"
+              "resolver_hint": "radius",
+              "notes": "[deferred 2026-08-09 lake-split batch3: lake-area closure]"
             }
           ]
         },
@@ -12489,7 +12502,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-09"
     },
     "e9670588": {
       "entry_id": "e9670588",
@@ -18033,7 +18047,7 @@
       "image": "page_042_row_008.png",
       "symbols": [],
       "reg_text": "**No Fishing** northwest of a line between fishing boundary signs on opposite shores approximately 1.5 km southeast the city of Trout Lake,\nFeb 1-May 31",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 1,
       "locators": [
         {
@@ -18045,14 +18059,15 @@
               "Feb 1-May 31"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "trout-lake-154027",
-              "status": "todo",
+              "status": "deferred",
               "anchor_kind": "line",
               "src": "rule",
               "resolver_hint": "between_signs",
+              "notes": "[deferred 2026-08-09 lake-split batch3: lake-area closure]",
               "locator_text": "northwest of a line between fishing boundary signs on opposite shores approximately 1.5 km southeast the city of Trout L"
             }
           ]
@@ -18074,7 +18089,8 @@
             }
           ]
         }
-      ]
+      ],
+      "reviewed": "2026-08-09"
     },
     "a0ffcc4d": {
       "entry_id": "a0ffcc4d",
@@ -22030,20 +22046,22 @@
         {
           "src": "name",
           "text": "WOLF LAKE (situated approx. 2.3 km northeast of Lorin Lake)",
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "wolf-lake-situated-approx-2-3-km-northeast-of-59e92d",
-              "status": "todo",
-              "anchor_kind": "line",
+              "status": "not_applicable",
+              "anchor_kind": "not_a_split",
               "src": "name",
               "resolver_hint": "between_signs",
+              "notes": "[n/a 2026-08-09 lake batch3: whole-lake/park/location, no split]",
               "name_verbatim": "WOLF LAKE (situated approx. 2.3 km northeast of Lorin",
               "locator_text": "situated approx. 2.3 km northeast of Lorin Lake"
             }
           ]
         }
-      ]
+      ],
+      "reviewed": "2026-08-09"
     },
     "15fdd545": {
       "entry_id": "15fdd545",
@@ -23971,7 +23989,7 @@
       "image": "page_059_row_018.png",
       "symbols": [],
       "reg_text": "**No Fishing** within 50 m of the outlet, May 1-June 30",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 1,
       "locators": [
         {
@@ -23983,14 +24001,15 @@
               "May 1-June 30"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "silverthorne-erickson-lake-ccd6cd",
-              "status": "todo",
+              "status": "deferred",
               "anchor_kind": "buffer",
               "src": "rule",
-              "resolver_hint": "radius"
+              "resolver_hint": "radius",
+              "notes": "[deferred 2026-08-09 lake-split batch3: lake-area closure]"
             }
           ]
         },
@@ -24000,7 +24019,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-09"
     },
     "e793b857": {
       "entry_id": "e793b857",
@@ -24590,7 +24610,7 @@
       "image": "page_059_row_031.png",
       "symbols": [],
       "reg_text": "**No Fishing** northwest of a line between fishing boundary signs on opposite shores immediately north of Takysie Lake Settlement, Mar 1-May 31",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 1,
       "locators": [
         {
@@ -24602,14 +24622,15 @@
               "Mar 1-May 31"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "takysie-lake-6b2e09",
-              "status": "todo",
+              "status": "deferred",
               "anchor_kind": "line",
               "src": "rule",
-              "resolver_hint": "between_signs"
+              "resolver_hint": "between_signs",
+              "notes": "[deferred 2026-08-09 lake-split batch3: lake-area closure]"
             }
           ]
         },
@@ -24619,7 +24640,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-09"
     },
     "233955c2": {
       "entry_id": "233955c2",
@@ -25709,14 +25731,15 @@
               "Apr 1-June 30"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "nation-arm-williston-lake-d2e637",
-              "status": "todo",
+              "status": "deferred",
               "anchor_kind": "line",
               "src": "rule",
               "resolver_hint": "between_signs",
+              "notes": "[deferred 2026-08-09 lake-split batch3: lake-area closure]",
               "locator_text": "west of a line between two fishing boundary signs approximately 500 m downstream (east) of the Nation River Bridge on th"
             }
           ]
@@ -25737,7 +25760,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-09"
     },
     "eee9bebb": {
       "entry_id": "eee9bebb",
@@ -25892,7 +25916,7 @@
         "Stocked"
       ],
       "reg_text": "**No Fishing** west of a line between fishing boundary signs on lakeshore near mouth of Corkscrew Creek, Apr 1-May 31",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 1,
       "locators": [
         {
@@ -25904,14 +25928,15 @@
               "Apr 1-May 31"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "nulki-lake-cd775a",
-              "status": "todo",
+              "status": "deferred",
               "anchor_kind": "line",
               "src": "rule",
-              "resolver_hint": "between_signs"
+              "resolver_hint": "between_signs",
+              "notes": "[deferred 2026-08-09 lake-split batch3: lake-area closure]"
             }
           ]
         },
@@ -25921,7 +25946,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-09"
     },
     "0b6d5fb7": {
       "entry_id": "0b6d5fb7",
@@ -25992,19 +26018,21 @@
         {
           "src": "name",
           "text": "SQUARE LAKE (located in Crooked River Provincial Park)",
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "square-lake-located-in-crooked-river-provinci-87f47f",
-              "status": "todo",
-              "anchor_kind": "area_boundary",
+              "status": "not_applicable",
+              "anchor_kind": "not_a_split",
               "src": "name",
               "resolver_hint": "park_polygon",
+              "notes": "[n/a 2026-08-09 lake batch3: whole-lake/park/location, no split]",
               "locator_text": "located in Crooked River Provincial Park"
             }
           ]
         }
-      ]
+      ],
+      "reviewed": "2026-08-09"
     },
     "c23b554d": {
       "entry_id": "c23b554d",
@@ -27394,20 +27422,21 @@
       "image": "page_072_row_015.png",
       "symbols": [],
       "reg_text": "No rainbow trout under 30 cm\n**See mercury warning page 57 in Region 7A**, and definition of \"stream mouth\" on page 80\nArctic grayling catch and release[Includes Tributaries]\nBull trout daily quota =1 (none under 30 cm or over 50 cm), Oct 16-Aug 14\nLake trout daily quota =3 (none under 30 cm, 1 over 50 cm), Nov 1-Sept 14",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 1,
       "locators": [
         {
           "src": "entry",
           "text": "in Zone B",
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "williston-lake-in-zone-b-c4ac9b",
-              "status": "todo",
+              "status": "deferred",
               "anchor_kind": "unclassified",
               "src": "entry",
-              "resolver_hint": "other_reach"
+              "resolver_hint": "other_reach",
+              "notes": "[deferred 2026-08-09 lake-split batch3: lake-area closure]"
             }
           ]
         },
@@ -27417,7 +27446,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-09"
     },
     "cf103119": {
       "entry_id": "cf103119",
@@ -27430,7 +27460,7 @@
       "image": "page_072_row_016.png",
       "symbols": [],
       "reg_text": "**No Fishing** within 100 m of fishing boundary sign at outlet, May 15-July 31\nRainbow trout daily and possession quotas = 2 (none over 50 cm); bait ban, single hook",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 1,
       "locators": [
         {
@@ -27442,14 +27472,15 @@
               "May 15-July 31"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "wolverine-lake-73cc18",
-              "status": "todo",
+              "status": "deferred",
               "anchor_kind": "buffer",
               "src": "rule",
-              "resolver_hint": "radius"
+              "resolver_hint": "radius",
+              "notes": "[deferred 2026-08-09 lake-split batch3: lake-area closure]"
             }
           ]
         },
@@ -27459,7 +27490,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-09"
     },
     "3f8a1418": {
       "entry_id": "3f8a1418",
@@ -27916,7 +27948,7 @@
       "image": "page_076_row_015.png",
       "symbols": [],
       "reg_text": "**No Fishing** south of a line between fishing boundary signs on the lakeshore approximately 800 m north of Shuswap River inlet, Jan 1-May 31\nBull trout (Dolly Varden) daily quota = 1 (none under 50 cm)\nSingle barbless hook",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 1,
       "locators": [
         {
@@ -27928,14 +27960,15 @@
               "Jan 1-May 31"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "mabel-lake-ea133c",
-              "status": "todo",
+              "status": "deferred",
               "anchor_kind": "line",
               "src": "rule",
-              "resolver_hint": "between_signs"
+              "resolver_hint": "between_signs",
+              "notes": "[deferred 2026-08-09 lake-split batch3: lake-area closure]"
             }
           ]
         },
@@ -27945,7 +27978,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-09"
     },
     "00c98bd8": {
       "entry_id": "00c98bd8",
