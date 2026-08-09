@@ -3,7 +3,7 @@
 Every reg entry (source-first), booklet order. **Bold** = a live split boundary; plain text
 = whole-water / tributary-set / `not_applicable`. Regenerate; do not hand-edit.
 
-387 entries · 410 highlighted boundary phrases.
+387 entries · 409 highlighted boundary phrases.
 
 | Water | MU | p | Regulation |
 |---|---|--:|---|
@@ -30,7 +30,7 @@ Every reg entry (source-first), booklet order. **Bold** = a live split boundary;
 | ELK LAKE | 1-1 | 17 | Smallmouth bass daily quota = 4 Engine power restriction on parts - 7.5 kW (10 hp); no vessels on parts, no powered boats on parts, no towing on parts A wheelchair accessible fishing pier is located on the lake's northwest shore via Brookleigh Road |
 | ENGLISHMAN RIVER | 1-5 | 17 | No Fishing July 15-Aug 31[Includes Tributaries] No Fishing **from lower falls in Englishman River Park to signs approximately 100 m downstream** No Fishing **downstream of the lower falls in Englishman River Falls Provincial Park to the Top Bridge crossing at the end of Allsbrook Road**[Includes Tributaries], Dec 1-May 31 |
 | EVE RIVER | 1-10 | 17 | No Fishing **upstream of the fishing boundary signs (near the South Main Bridge crossing) located approximately 5.4 km downstream of the Hwy 19 bridge**, Dec 1-May 31 |
-| GOLD RIVER | 1-9 | 18 | No Fishing **upstream of the Muchalat River**[Includes Tributaries] (see river specific regulations for Muchalat River) No Fishing **downstream of the Muchalat River**[Includes Tributaries], Dec 1-Aug 15, **but not including the Muchalat or Heber Rivers** (see river specific regulations for those waters) No Fishing **between the cascade falls (located approximately 6.5 km upstream of Muchalat Inlet, UTM 709137E, 5512420N) and fishing boundary signs approximately 80 m downstream** No powered boats |
+| GOLD RIVER | 1-9 | 18 | No Fishing **upstream of the Muchalat River**[Includes Tributaries] (see river specific regulations for Muchalat River) No Fishing **downstream of the Muchalat River**[Includes Tributaries], Dec 1-Aug 15, but not including the Muchalat or Heber Rivers (see river specific regulations for those waters) No Fishing **between the cascade falls (located approximately 6.5 km upstream of Muchalat Inlet, UTM 709137E, 5512420N) and fishing boundary signs approximately 80 m downstream** No powered boats |
 | GORDON RIVER | 1-3 | 18 | No Fishing July 15-Aug 31 No Fishing **upstream of Bugaboo Creek**, Nov 1-Apr 30; artificial fly only upstream of Bugaboo Creek when open |
 | GREAT CENTRAL LAKE | 1-7 | 18 | No Fishing Jan 1-Apr 30, **from the dam to fishing boundary signs approximately 50 m upstream (southwest) of the Ash Main Bridge** Single barbless hook, no wild rainbow trout over 50 cm |
 | HARRIS CREEK | 1-3 | 18 | No Fishing July 15-Aug 31[Includes Tributaries], No Fishing **upstream of and including Hemmingsen Creek**[Includes Tributaries], |

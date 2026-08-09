@@ -1912,7 +1912,7 @@
       "image": "page_018_row_005.png",
       "symbols": [],
       "reg_text": "**No Fishing** upstream of the Muchalat River[Includes Tributaries] (see river specific regulations for Muchalat River)\n**No Fishing** downstream of the Muchalat River[Includes Tributaries], Dec 1-**Aug 15**, but not including the Muchalat or Heber Rivers (see river specific\nregulations for those waters)\n**No Fishing** between the cascade falls (located approximately 6.5 km upstream of Muchalat Inlet, UTM 709137E, 5512420N) and fishing\nboundary signs approximately 80 m downstream\nNo powered boats",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 4,
       "locators": [
         {
@@ -1980,14 +1980,15 @@
           "info": {
             "restriction_type": "closure"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "gold-river-7c1879",
-              "status": "todo",
-              "anchor_kind": "unclassified",
+              "status": "not_applicable",
+              "anchor_kind": "not_a_split",
               "src": "except",
-              "resolver_hint": "other_reach"
+              "resolver_hint": "other_reach",
+              "notes": "[curated 2026-08-09 bridge+confl batch] [n/a: name-exclusion: Muchalat/Heber Rivers have own entries, not a split]"
             }
           ]
         },
@@ -2031,7 +2032,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-09"
     },
     "fd0d2caa": {
       "entry_id": "fd0d2caa",
@@ -3842,7 +3844,7 @@
         "Incl. Tribs"
       ],
       "reg_text": "**No Fishing** May 1-June 15\nHatchery steelhead daily quota = 1\n**No Fishing **upstream of the Quatse River fishway (approximately 1.4 km upstream of Dick Booth Creek), Dec 1-June 15\nBait ban, May 1-Nov 30",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 1,
       "locators": [
         {
@@ -3854,14 +3856,20 @@
               "Dec 1-June 15"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "quatse-river-b4a9b6",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
-              "resolver_hint": "falls_obstacle"
+              "resolver_hint": "falls_obstacle",
+              "label": "Quatse River fishway (~1.4km u/s Dick Booth Ck)",
+              "notes": "[curated 2026-08-09 bridge+confl batch] [Dick Booth Ck confl +1.4km u/s]",
+              "coord": [
+                -127.50633,
+                50.67421
+              ]
             }
           ]
         },
@@ -3871,7 +3879,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-09"
     },
     "04a9a77c": {
       "entry_id": "04a9a77c",
@@ -4360,7 +4369,7 @@
       "image": "page_020_row_020.png",
       "symbols": [],
       "reg_text": "**No Fishing** from Sproat Lake to fishing boundary signs approximately 300 m downstream of Hwy 4, June 15-Nov 15\nBait ban, May 1-Oct 31",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 1,
       "locators": [
         {
@@ -4372,7 +4381,7 @@
               "June 15-Nov 15"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "sproat-river-27e42b-a",
@@ -4385,11 +4394,25 @@
             },
             {
               "id": "sproat-river-27e42b-b",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] signs ~300 m below Hwy 4 over Sproat River (from Sproat Lake) on Sproat River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Hwy 4 crossing of the Sproat River and the signs ~300 m downstream; map.. Reach = 'Sproat Lake to signs ~300 m downstream of Hwy 4' (Port Alberni). Public highway landmark -> map/OSM-confirmable; not in FWA. [structural-split 2026-08-05 from “from Sproat Lake to fishing boundary signs approximately 300 m downstream of Hwy 4”] boundary=fishing boundary signs approximately 300 m downstream of Hwy 4",
+              "label": "signs ~300m d/s of Hwy 4",
+              "notes": "[auto-proposal L] signs ~300 m below Hwy 4 over Sproat River (from Sproat Lake) on Sproat River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Hwy 4 crossing of the Sproat River and the signs ~300 m downstream; map.. Reach = 'Sproat Lake to signs ~300 m downstream of Hwy 4' (Port Alberni). Public highway landmark -> map/OSM-confirmable; not in FWA. [structural-split 2026-08-05 from “from Sproat Lake to fishing boundary signs approximately 300 m downstream of Hwy 4”] boundary=fishing boundary signs approximately 300 m downstream of Hwy 4 [curated 2026-08-09 bridge+confl batch] [base=Hwy4 (Pacific Rim Hwy) bridge; +300m DOWNSTREAM. NOTE: FWA downstream = toward Somass mouth (49.28978,-124.90065); user flagged direction — verify at split time]",
+              "coord": [
+                -124.90442,
+                49.29012
+              ],
+              "offset": {
+                "anchor": [
+                  -124.90442,
+                  49.29012
+                ],
+                "anchor_label": "Hwy 4 (Pacific Rim Hwy) bridge",
+                "m": 300,
+                "dir": "downstream"
+              },
               "locator_text": "fishing boundary signs approximately 300 m downstream of Hwy 4"
             }
           ]
@@ -4400,7 +4423,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-09"
     },
     "703b9db3": {
       "entry_id": "703b9db3",
@@ -4871,7 +4895,7 @@
       "image": "page_021_row_018.png",
       "symbols": [],
       "reg_text": "No Fishing within 100 m downstream of the falls situated approximately 4.5 km upstream of Wakeman River",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 1,
       "locators": [
         {
@@ -4880,14 +4904,20 @@
           "info": {
             "restriction_type": "closure"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "wahpeeto-creek-b61060",
-              "status": "todo",
-              "anchor_kind": "buffer",
+              "status": "curated",
+              "anchor_kind": "point",
               "src": "rule",
-              "resolver_hint": "radius"
+              "resolver_hint": "radius",
+              "label": "100m d/s of Wahpeeto falls",
+              "notes": "[curated 2026-08-09 bridge+confl batch] [falls=FISS 29119 51.16963,-126.46897; boundary 100m d/s]",
+              "coord": [
+                -126.47032,
+                51.16944
+              ]
             }
           ]
         },
@@ -4897,7 +4927,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-09"
     },
     "4cf440b0": {
       "entry_id": "4cf440b0",
@@ -5208,7 +5239,7 @@
         "Incl. Tribs"
       ],
       "reg_text": "**No Fishing** upstream of 152nd Street (Johnson Road)",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 1,
       "locators": [
         {
@@ -5217,15 +5248,20 @@
           "info": {
             "restriction_type": "closure"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "bear-mahood-creek-55c67c",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] 152nd Street (Johnson Road) bridge over Bear/Mahood Creek on Bear (Mahood) Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate 152nd St (Johnson Rd) crossing of Bear/Mahood Creek in Surrey (MU 2-4). NOTE FWA name collision.. Region 2 / MU 2-4 = Surrey. The FWA 'Mahood Creek' match (49.34N,-121.63) is a DIFFERENT creek near Hope; the reg creek is the Surrey Bear/Mahood Creek on the street grid at 152 St. City street -> map-only."
+              "label": "152nd Street (Johnson Road) bridge",
+              "notes": "[auto-proposal L] 152nd Street (Johnson Road) bridge over Bear/Mahood Creek on Bear (Mahood) Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate 152nd St (Johnson Rd) crossing of Bear/Mahood Creek in Surrey (MU 2-4). NOTE FWA name collision.. Region 2 / MU 2-4 = Surrey. The FWA 'Mahood Creek' match (49.34N,-121.63) is a DIFFERENT creek near Hope; the reg creek is the Surrey Bear/Mahood Creek on the street grid at 152 St. City street -> map-only. [curated 2026-08-09 bridge+confl batch] [OSM 152 St x Bear Ck]",
+              "coord": [
+                -122.80121,
+                49.14481
+              ]
             }
           ]
         },
@@ -5235,7 +5271,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-09"
     },
     "465aae17": {
       "entry_id": "465aae17",
@@ -5782,7 +5819,7 @@
         "Incl. Tribs"
       ],
       "reg_text": "**No Fishing** from boundary signs at outlet of Chehalis Lake to main logging road bridge approximately 2.4 km downstream of Chehalis Lake\n**No Fishing** downstream of the main logging road bridge situated approximately 2.4 km downstream of Chehalis Lake, May 1-31",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 2,
       "locators": [
         {
@@ -5791,7 +5828,7 @@
           "info": {
             "restriction_type": "closure"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "chehalis-river-6a99b5-a",
@@ -5804,11 +5841,16 @@
             },
             {
               "id": "chehalis-river-6a99b5-b",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal M] main logging road bridge ~2.4 km below Chehalis Lake outlet on Chehalis River. Candidate coord [-122.03017, 50.50767]. OSM: https://www.openstreetmap.org/?mlat=50.50767&mlon=-122.03017#map=15/50.50767/-122.03017. Verify: MYSTERY 8100 is the uppermost FSR crossing found (nearest the lake); confirm it is the bridge ~2.4 km below Chehalis Lake outlet.. Reach = 'boundary signs at Chehalis Lake outlet to the main logging road bridge ~2.4 km downstream'. Of the FWA FSR crossings, MYSTERY 8100 (6314 19) is the uppermost, closest to the lake outlet; candidate for the ~2.4 km bridge. Verify on map. [structural-split 2026-08-05 from “from boundary signs at outlet of Chehalis Lake to main logging road bridge approximately 2.4 km downstream of Chehalis L”] boundary=main logging road bridge approximately 2.4 km downstream of Chehalis L",
+              "label": "main logging road bridge ~2.4km d/s Chehalis Lk",
+              "notes": "[auto-proposal M] main logging road bridge ~2.4 km below Chehalis Lake outlet on Chehalis River. Candidate coord [-122.03017, 50.50767]. OSM: https://www.openstreetmap.org/?mlat=50.50767&mlon=-122.03017#map=15/50.50767/-122.03017. Verify: MYSTERY 8100 is the uppermost FSR crossing found (nearest the lake); confirm it is the bridge ~2.4 km below Chehalis Lake outlet.. Reach = 'boundary signs at Chehalis Lake outlet to the main logging road bridge ~2.4 km downstream'. Of the FWA FSR crossings, MYSTERY 8100 (6314 19) is the uppermost, closest to the lake outlet; candidate for the ~2.4 km bridge. Verify on map. [structural-split 2026-08-05 from “from boundary signs at outlet of Chehalis Lake to main logging road bridge approximately 2.4 km downstream of Chehalis L”] boundary=main logging road bridge approximately 2.4 km downstream of Chehalis L [curated 2026-08-09 bridge+confl batch] [same as curated pair]",
+              "coord": [
+                -122.02688,
+                49.38732
+              ],
               "locator_text": "main logging road bridge approximately 2.4 km downstream of Chehalis L"
             }
           ]
@@ -5845,7 +5887,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-09"
     },
     "2f3fea39": {
       "entry_id": "2f3fea39",
@@ -6889,7 +6932,7 @@
         "Incl. Tribs"
       ],
       "reg_text": "**No Fishing** upstream of 152nd Street (Johnson Road)",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 1,
       "locators": [
         {
@@ -6898,15 +6941,20 @@
           "info": {
             "restriction_type": "closure"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "hyland-creek-f98bc6",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] 152nd Street (Johnson Road) bridge over Hyland Creek on Hyland Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate 152nd St (Johnson Rd) crossing of Hyland Creek in Surrey (MU 2-?); VERIFY creek (FWA collision).. The FWA 'Hyland Creek' match (57.9N) is a northern-BC creek (wrong); the reg creek is the Surrey Hyland Creek on the street grid at 152 St. City street -> map-only."
+              "label": "152nd Street (Johnson Road) bridge",
+              "notes": "[auto-proposal L] 152nd Street (Johnson Road) bridge over Hyland Creek on Hyland Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate 152nd St (Johnson Rd) crossing of Hyland Creek in Surrey (MU 2-?); VERIFY creek (FWA collision).. The FWA 'Hyland Creek' match (57.9N) is a northern-BC creek (wrong); the reg creek is the Surrey Hyland Creek on the street grid at 152 St. City street -> map-only. [curated 2026-08-09 bridge+confl batch] [OSM 152 St x Hyland Ck]",
+              "coord": [
+                -122.80108,
+                49.11926
+              ]
             }
           ]
         },
@@ -6916,7 +6964,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-09"
     },
     "e2a1c1a8": {
       "entry_id": "e2a1c1a8",
@@ -8519,7 +8568,7 @@
       "image": "page_028_row_003.png",
       "symbols": [],
       "reg_text": "**No Fishing** in the Ruskin spawning channel, from the inlet near the dam downstream to the boat ramp crossing\n**No Fishing** in the Northrop Spawning Channel, from the intake downstream to where the channel joins the Stave River main, including its\ntributaries containg the fishway",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 2,
       "locators": [
         {
@@ -8551,15 +8600,15 @@
             "restriction_type": "closure",
             "includes_tributaries": true
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "stave-river-c74d9d",
-              "status": "todo",
+              "status": "deferred",
               "anchor_kind": "confluence",
               "src": "rule",
               "resolver_hint": "tributary",
-              "notes": "[deferred] 1_nonconfluence_boundary — [review · was:deferred] assume nothing — re-decide. — [human-review 2026-08-04 manual-find | Dawson to locate] Northrop Spawning Channel (Stave, MU 2-8): from the channel intake downstream to where it joins the Stave main, incl. the fishway tributary. Man-made channel, likely FWA-unnamed. Digitize/locate by hand."
+              "notes": "[deferred] 1_nonconfluence_boundary — [review · was:deferred] assume nothing — re-decide. — [human-review 2026-08-04 manual-find | Dawson to locate] Northrop Spawning Channel (Stave, MU 2-8): from the channel intake downstream to where it joins the Stave main, incl. the fishway tributary. Man-made channel, likely FWA-unnamed. Digitize/locate by hand. [curated 2026-08-09 bridge+confl batch] [defer: Northrop man-made spawning channel closure (sibling Ruskin channel deferred)]"
             }
           ]
         },
@@ -8569,7 +8618,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-09"
     },
     "411336a9": {
       "entry_id": "411336a9",
@@ -9217,7 +9267,7 @@
       "image": "page_031_row_019.png",
       "symbols": [],
       "reg_text": "**No Fishing** from Terzaghi Dam to Yalakom River\n**No Fishing** downstream of Hwy 40 bridge (approximately 6 km north of Lillooet), Mar 31-June 20\nNo trout under 25 cm; bull trout catch and release upstream of Downton Lake (reservoir)",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 3,
       "locators": [
         {
@@ -9271,15 +9321,20 @@
               "Mar 31-June 20"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "bridge-river-e2a502",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] Hwy 40 bridge over Bridge River (~6 km N of Lillooet) on Bridge River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm Hwy 40 bridge over Bridge River ~6 km N of Lillooet; single crossing -> review.. Public highway bridge near Lillooet (MU 3-33); not in FWA. Map/OSM-confirmable; the river's FWA mouth (near Lillooet) is a good map anchor."
+              "label": "Hwy 40 bridge (Bridge River Rd, ~6km N Lillooet)",
+              "notes": "[auto-proposal L] Hwy 40 bridge over Bridge River (~6 km N of Lillooet) on Bridge River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm Hwy 40 bridge over Bridge River ~6 km N of Lillooet; single crossing -> review.. Public highway bridge near Lillooet (MU 3-33); not in FWA. Map/OSM-confirmable; the river's FWA mouth (near Lillooet) is a good map anchor. [curated 2026-08-09 bridge+confl batch] [OSM Bridge River Rd bridge]",
+              "coord": [
+                -121.93555,
+                50.75273
+              ]
             }
           ]
         },
@@ -9307,7 +9362,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-09"
     },
     "c05e08cf": {
       "entry_id": "c05e08cf",
@@ -11097,7 +11153,7 @@
       "image": "page_033_row_021.png",
       "symbols": [],
       "reg_text": "**No Fishing** from Frances Lake downstream approximately 400 m to fishing boundary signs at the logging bridge\nDownstream of Nahatlatch Lake (including Hannah and Frances lakes; except as noted upstream of ), open until Dec 31; **No Fishing**\nJan 1-May 31\n**No Fishing** downstream of Nahatlatch Lake, Jan 1-May 31\nTrout daily quota = 2 (none under 30 cm)",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 4,
       "locators": [
         {
@@ -11106,7 +11162,7 @@
           "info": {
             "restriction_type": "closure"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "nahatlatch-river-285a59-a",
@@ -11114,11 +11170,11 @@
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "lake_reach",
-              "label": "400 m below Frances Lake",
-              "notes": "[auto-proposal L] logging bridge ~400 m below Frances Lake outlet on Nahatlatch River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate Frances Lake on the Nahatlatch, then the logging bridge ~400 m downstream with fishing boundary signs; map.. Reach = 'Frances Lake downstream ~400 m to signs at the logging bridge'. Needs the Frances Lake outlet located first (upstream chain of lakes on the Nahatlatch); the bridge is just below it. Map/OSM-confirmable. [structural-split 2026-08-05 from “from Frances Lake downstream approximately 400 m to fishing boundary signs at the logging bridge”] boundary=Frances Lake downstream approximately 400 m [human-review 2026-08-05] anchor=Frances Lake (wbk 329154768); offset_m=400 offset_dir=downstream (sectionizer auto-calcs). [coord=temp reference; split via FWA target lake WBK]",
+              "label": "logging bridge (Kookipi Creek FSR)",
+              "notes": "[auto-proposal L] logging bridge ~400 m below Frances Lake outlet on Nahatlatch River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate Frances Lake on the Nahatlatch, then the logging bridge ~400 m downstream with fishing boundary signs; map.. Reach = 'Frances Lake downstream ~400 m to signs at the logging bridge'. Needs the Frances Lake outlet located first (upstream chain of lakes on the Nahatlatch); the bridge is just below it. Map/OSM-confirmable. [structural-split 2026-08-05 from “from Frances Lake downstream approximately 400 m to fishing boundary signs at the logging bridge”] boundary=Frances Lake downstream approximately 400 m [human-review 2026-08-05] anchor=Frances Lake (wbk 329154768); offset_m=400 offset_dir=downstream (sectionizer auto-calcs). [coord=temp reference; split via FWA target lake WBK] [curated 2026-08-09 bridge+confl batch] [OSM way 416740411; = signs ~400m below Frances Lk]",
               "coord": [
-                -121.66081,
-                50.00975
+                -121.64208,
+                50.00715
               ],
               "offset": {
                 "anchor_label": "Frances Lake outlet",
@@ -11138,11 +11194,16 @@
             },
             {
               "id": "nahatlatch-river-285a59-b",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] logging bridge ~400 m below Frances Lake outlet on Nahatlatch River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate Frances Lake on the Nahatlatch, then the logging bridge ~400 m downstream with fishing boundary signs; map.. Reach = 'Frances Lake downstream ~400 m to signs at the logging bridge'. Needs the Frances Lake outlet located first (upstream chain of lakes on the Nahatlatch); the bridge is just below it. Map/OSM-confirmable. [structural-split 2026-08-05 from “from Frances Lake downstream approximately 400 m to fishing boundary signs at the logging bridge”] boundary=fishing boundary signs at the logging bridge",
+              "label": "signs at logging bridge (Kookipi Creek FSR)",
+              "notes": "[auto-proposal L] logging bridge ~400 m below Frances Lake outlet on Nahatlatch River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate Frances Lake on the Nahatlatch, then the logging bridge ~400 m downstream with fishing boundary signs; map.. Reach = 'Frances Lake downstream ~400 m to signs at the logging bridge'. Needs the Frances Lake outlet located first (upstream chain of lakes on the Nahatlatch); the bridge is just below it. Map/OSM-confirmable. [structural-split 2026-08-05 from “from Frances Lake downstream approximately 400 m to fishing boundary signs at the logging bridge”] boundary=fishing boundary signs at the logging bridge [curated 2026-08-09 bridge+confl batch] [OSM way 416740411; same as 285a59-a]",
+              "coord": [
+                -121.64208,
+                50.00715
+              ],
               "locator_text": "fishing boundary signs at the logging bridge"
             }
           ]
@@ -11249,7 +11310,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-09"
     },
     "5bc31ec5": {
       "entry_id": "5bc31ec5",
@@ -14533,7 +14595,7 @@
         "Incl. Tribs"
       ],
       "reg_text": "Trout/char catch and release (mainstem only) from Doctor Creek Bridge to Lavington Creek Bridge, June 15-Oct 31; other parts (including\ntributaries, except Lavington Creek) trout/char daily quota = 2 (none under 30 cm and only 1 bull trout), June 15-Oct 31; bait ban, June 15-Oct 31\nSee Lavington Creek, a tributary",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 3,
       "locators": [
         {
@@ -14546,7 +14608,7 @@
             ],
             "includes_tributaries": false
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "findlay-creek-6df88c-a",
@@ -14564,11 +14626,16 @@
             },
             {
               "id": "findlay-creek-6df88c-b",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal M] Lavington Creek Bridge (& Doctor Creek Bridge) on Findlay Creek. Candidate coord [-115.96801, 50.13214]. OSM: https://www.openstreetmap.org/?mlat=50.13214&mlon=-115.96801#map=15/50.13214/-115.96801. Verify: FINDLAY-LAVINGTON FSR crossing = Lavington Creek Bridge (name-confirmed) at ~18.5 km; Doctor Creek Bridge is the upstream endpoint.. Reach = 'Doctor Creek Bridge to Lavington Creek Bridge'. FWA FSR 'FINDLAY-LAVINGTON' crossing firmly matches the Lavington bridge; the nearby 'Skookumchuck Creek' road crossing at ~10.4 km may be the Doctor Creek bridge. Candidate is the Lavington endpoint. [structural-split 2026-08-05 from “from Doctor Creek Bridge to Lavington Creek Bridge”] boundary=Lavington Creek Bridge",
+              "label": "Lavington Creek Bridge",
+              "notes": "[auto-proposal M] Lavington Creek Bridge (& Doctor Creek Bridge) on Findlay Creek. Candidate coord [-115.96801, 50.13214]. OSM: https://www.openstreetmap.org/?mlat=50.13214&mlon=-115.96801#map=15/50.13214/-115.96801. Verify: FINDLAY-LAVINGTON FSR crossing = Lavington Creek Bridge (name-confirmed) at ~18.5 km; Doctor Creek Bridge is the upstream endpoint.. Reach = 'Doctor Creek Bridge to Lavington Creek Bridge'. FWA FSR 'FINDLAY-LAVINGTON' crossing firmly matches the Lavington bridge; the nearby 'Skookumchuck Creek' road crossing at ~10.4 km may be the Doctor Creek bridge. Candidate is the Lavington endpoint. [structural-split 2026-08-05 from “from Doctor Creek Bridge to Lavington Creek Bridge”] boundary=Lavington Creek Bridge [curated 2026-08-09 bridge+confl batch] [OSM way 1018406087, user pin]",
+              "coord": [
+                -115.96798,
+                50.13211
+              ],
               "locator_text": "Lavington Creek Bridge"
             }
           ]
@@ -14618,7 +14685,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-09"
     },
     "86073f61": {
       "entry_id": "86073f61",
@@ -23320,7 +23388,7 @@
       "image": "page_058_row_009.png",
       "symbols": [],
       "reg_text": "**No Fishing** upstream of Nass Road Bridge, Aug 1-Dec 31; bait ban",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 1,
       "locators": [
         {
@@ -23332,15 +23400,20 @@
               "Aug 1-Dec 31"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "ksi-sii-aks-river-formerly-tseax-river-30f771",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] Nass Road Bridge over Ksi Sii Aks (Tseax) River on Ksi Sii Aks R. (formerly Tseax R.). No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Nass Road bridge over the Tseax/Ksi Sii Aks River (Nass valley); NOT FOUND in FWA under Tseax -> map.. The renamed river ('Tseax River') is not found in FWA under that GNIS name (check for a renamed/updated GNIS entry). Nass Road public bridge -> map/OSM-confirmable."
+              "label": "Nass Road Bridge (Cranberry Connector)",
+              "notes": "[auto-proposal L] Nass Road Bridge over Ksi Sii Aks (Tseax) River on Ksi Sii Aks R. (formerly Tseax R.). No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Nass Road bridge over the Tseax/Ksi Sii Aks River (Nass valley); NOT FOUND in FWA under Tseax -> map.. The renamed river ('Tseax River') is not found in FWA under that GNIS name (check for a renamed/updated GNIS entry). Nass Road public bridge -> map/OSM-confirmable. [curated 2026-08-09 bridge+confl batch] [OSM way 50839404 bridge=yes, user pin]",
+              "coord": [
+                -129.10202,
+                55.211
+              ]
             }
           ]
         },
@@ -23350,7 +23423,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-09"
     },
     "ea7be38a": {
       "entry_id": "ea7be38a",
@@ -24884,7 +24958,7 @@
         "Classified"
       ],
       "reg_text": "No Fishing from McDonell Lake downstream approximately 3 km to fishing boundary signs\nNo Fishing between fishing boundary signs in Zymoetz Canyon\nNo Fishing upstream of fishing boundary sign at the transmission line crossing (located downstream of Zymoetz Canyon), Jan 1-June 15\nBait ban\nUpstream of Limonite Creek (Zymoetz River A): Class I water Jul 24 - Dec 31; Steelhead Stamp mandatory Jul 24 - Dec 31;\n**Angling prohibited for non-guided non-resident aliens on Fridays, Saturdays, and Sundays Jul 24 - Dec 31**\nDownstream of Limonite Creek (Zymoetz River B): Class II water Jul 24 - May 31; Steelhead Stamp mandatory Jul 24 - May 31;\n**Angling prohibited for non-guided non-resident aliens on Fridays, Saturdays, and Sundays Jul 24 - May 31**",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 7,
       "locators": [
         {
@@ -24930,14 +25004,20 @@
           "info": {
             "restriction_type": "closure"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "zymoetz-copper-river-a60c30",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
-              "resolver_hint": "falls_obstacle"
+              "resolver_hint": "falls_obstacle",
+              "label": "Zymoetz Canyon (bottom = transmission-line sign)",
+              "notes": "[curated 2026-08-09 bridge+confl batch] [user: power-line No-Fishing sign = bottom-of-canyon line, so a60c30 & 73d534 set to the SAME point (canyon lower entrance ~54.47784,-128.29079). Canyon upper bound ~54.47853,-128.24869; actual Skeena-Telkwa 500KV (OSM way 293843041) x Zymoetz = 54.47419,-128.22762 (upstream of canyon per topo — ambiguity noted). Canyon location info: ACAT PDF https://a100.gov.bc.ca/pub/acat/documents/r1615/sk22_1097772513201_6573e4d093a1465b96bae1d77ec9120f.pdf]",
+              "coord": [
+                -128.29079,
+                54.47784
+              ]
             }
           ]
         },
@@ -24950,15 +25030,20 @@
               "Jan 1-June 15"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "zymoetz-copper-river-73d534",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "falls_obstacle",
-              "notes": "[osm-candidate 2026-08-05] [-128.40927, 54.524]; [-127.9424, 54.49921]; [-128.26025, 54.4776]; [-128.22762, 54.47419] (OSM Overpass ∩ MU-clipped FWA river; VERIFY)."
+              "label": "transmission-line sign = bottom of Zymoetz Canyon",
+              "notes": "[osm-candidate 2026-08-05] [-128.40927, 54.524]; [-127.9424, 54.49921]; [-128.26025, 54.4776]; [-128.22762, 54.47419] (OSM Overpass ∩ MU-clipped FWA river; VERIFY). [curated 2026-08-09 bridge+confl batch] [user: power-line No-Fishing sign = bottom-of-canyon line, so a60c30 & 73d534 set to the SAME point (canyon lower entrance ~54.47784,-128.29079). Canyon upper bound ~54.47853,-128.24869; actual Skeena-Telkwa 500KV (OSM way 293843041) x Zymoetz = 54.47419,-128.22762 (upstream of canyon per topo — ambiguity noted). Canyon location info: ACAT PDF https://a100.gov.bc.ca/pub/acat/documents/r1615/sk22_1097772513201_6573e4d093a1465b96bae1d77ec9120f.pdf]",
+              "coord": [
+                -128.29079,
+                54.47784
+              ]
             }
           ]
         },
@@ -25088,7 +25173,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-09"
     },
     "669f5ba9": {
       "entry_id": "669f5ba9",

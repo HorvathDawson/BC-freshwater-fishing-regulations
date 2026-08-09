@@ -7,8 +7,8 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 |---|--:|
 | NO_CURATION | 1 |
 | MISSING_SPLITS | 2 |
-| INCOMPLETE | 57 |
-| COMPLETE | 252 |
+| INCOMPLETE | 44 |
+| COMPLETE | 265 |
 | NO_SPLIT | 75 |
 
 **Drift** (curated rows matching no source locator): 11
@@ -49,15 +49,6 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 - • [rule] “Upstream of White River” → kootenay-river-upstream-of-koocanusa-reservoi-82bacc[curated]
 - • [entry] “upstream of Koocanusa Reservoir” → kootenay-river-upstream-of-koocanusa-reservoi-3bb758[curated], kootenay-river-upstream-of-koocanusa-reservoi-6f3c82[curated]
 
-## ZYMOETZ (Copper) RIVER · MU ['6-9'] · p60 · [INCOMPLETE] (883f7f02)
-- • [rule] “from McDonell Lake downstream approximately 3 km to fishing bounda” → zymoetz-copper-river-f226e7[curated]
-- • [rule] “between fishing boundary signs in Zymoetz Canyon” → zymoetz-copper-river-a60c30[todo]
-- • [rule] “upstream of fishing boundary sign at the transmission line crossin” → zymoetz-copper-river-73d534[todo]
-- • [rule] “Upstream of Limonite Creek (Zymoetz River A)” → zymoetz-copper-river-7cbab6[curated]
-- • [rule] “Upstream of Limonite Creek (Zymoetz River A)” → zymoetz-copper-river-7cbab6[curated]
-- • [rule] “Downstream of Limonite Creek (Zymoetz River B)” → zymoetz-copper-river-bb27a9[curated]
-- • [rule] “Downstream of Limonite Creek (Zymoetz River B)” → zymoetz-copper-river-bb27a9[curated]
-
 ## SKEENA RIVER (mainstem only) · MU ['6-10'] · p59 · [INCOMPLETE] (2fc0d1b9)
 - • [rule] “from Exchamsiks River to 1.5 km upstream of Kitsumkalum River (kno” → skeena-river-mainstem-only-b079a0-a[curated], skeena-river-mainstem-only-b079a0-b[curated]
 - • [rule] “1.5 km upstream of Zymoetz River (known as "Skeena River Section 4” → skeena-river-mainstem-only-3f082d[curated]
@@ -65,32 +56,10 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 - • [rule] “Shegunia River confluence to Sedan Creek confluence” → skeena-river-mainstem-only-24b357-a[curated], skeena-river-mainstem-only-24b357-b[curated]
 - • [rule] “Chimdemash Creek confluence to 1.5 km upstream of Zymoetz River co” → skeena-river-mainstem-only-bd494f-a[curated], skeena-river-mainstem-only-bd494f-b[curated]
 
-## GOLD RIVER · MU ['1-9'] · p18 · [INCOMPLETE] (60f3c8c1)
-- • [rule] “upstream of the Muchalat River” → gold-river-c18915[curated]
-- • [rule] “downstream of the Muchalat River” → gold-river-65a8d8[curated]
-- • [except] “but not including the Muchalat or Heber Rivers” → gold-river-7c1879[todo]
-- • [rule] “between the cascade falls (located approximately 6.5 km upstream o” → gold-river-74b889-a[curated], gold-river-74b889-b[curated]
-
-## NAHATLATCH RIVER · MU ['3-15'] · p33 · [INCOMPLETE] (921224bf)
-- • [rule] “from Frances Lake downstream approximately 400 m to fishing bounda” → nahatlatch-river-285a59-a[curated], nahatlatch-river-285a59-b[todo]
-- • [rule] “Downstream of Nahatlatch Lake (including Hannah and Frances lakes;” → nahatlatch-river-0bb710[not_applicable], nahatlatch-river-1d1eaf[not_applicable], nahatlatch-river-a0ebb8[not_applicable]
-- • [except] “except as noted upstream of” → nahatlatch-river-1d1eaf[not_applicable], nahatlatch-river-a0ebb8[not_applicable]
-- • [rule] “downstream of Nahatlatch Lake” → nahatlatch-river-0bb710[not_applicable], nahatlatch-river-1d1eaf[not_applicable]
-
 ## ALOUETTE RIVER · MU ['2-8'] · p24 · [INCOMPLETE] (dadcd21c)
 - • [rule] “upstream of the fishing boundary signs located at 49° 14.790'N and” → alouette-river-741304[curated]
 - • [rule] “upstream of 216th Street” → alouette-river-daecfd[curated], north-alouette-river-e3810a[todo]
 - • [rule] “on mainstem” → alouette-river-b5a707[not_applicable]
-
-## BRIDGE RIVER · MU ['3-33'] · p31 · [INCOMPLETE] (58790669)
-- • [rule] “from Terzaghi Dam to Yalakom River” → bridge-river-2ee523-a[curated], bridge-river-2ee523-b[curated]
-- • [rule] “downstream of Hwy 40 bridge (approximately 6 km north of Lillooet)” → bridge-river-e2a502[todo]
-- • [rule] “upstream of Downton Lake (reservoir)” → bridge-river-3fa485[not_applicable]
-
-## FINDLAY CREEK · MU ['4-26'] · p38 · [INCOMPLETE] (10cce399)
-- • [rule] “from Doctor Creek Bridge to Lavington Creek Bridge” → findlay-creek-6df88c-a[curated], findlay-creek-6df88c-b[todo]
-- • [rule] “other parts” → findlay-creek-405247[not_applicable]
-- • [except] “except Lavington Creek” → findlay-creek-1b3bee[not_applicable]
 
 ## BULKLEY RIVER · MU ['6-9'] · p56 · [INCOMPLETE] (d850b295)
 - • [rule] “upstream of Morice/Bulkley River confluence” → bulkley-river-e30268[curated]
@@ -104,14 +73,6 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 ## WHITE RIVER · MU ['1-10'] · p21 · [INCOMPLETE] (4cf440b0)
 - • [rule] “between fishing boundary signs at the salmon viewing pool” → white-river-da5ee3[todo]
 - • [rule] “upstream of the Sayward Road Bridge crossing” → white-river-90c274[curated]
-
-## CHEHALIS RIVER · MU ['2-19'] · p24 · [INCOMPLETE] (bb6d5fe5)
-- • [rule] “from boundary signs at outlet of Chehalis Lake to main logging roa” → chehalis-river-6a99b5-a[not_applicable], chehalis-river-6a99b5-b[todo]
-- • [rule] “downstream of the main logging road bridge situated approximately ” → chehalis-river-8cfa74[curated]
-
-## STAVE RIVER · MU ['2-8'] · p28 · [INCOMPLETE] (50faaf74)
-- • [rule] “in the Ruskin spawning channel, from the inlet near the dam downst” → stave-river-15d929[deferred]
-- • [rule] “in the Northrop Spawning Channel, from the intake downstream to wh” → stave-river-c74d9d[todo]
 
 ## MOYIE RIVER · MU ['4-5'] · p40 · [INCOMPLETE] (7772faef)
 - • [rule] “Irishman Creek (Moyie River tributary)” → moyie-river-a098eb[not_applicable]
@@ -143,26 +104,11 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 ## MOHUN CREEK · MU ['1-10'] · p19 · [INCOMPLETE] (5e563b26)
 - • [rule] “from Menzies Bay logging mainline bridge crossing to Morton Lake” → mohun-creek-1fa4a0-a[todo], mohun-creek-1fa4a0-b[not_applicable]
 
-## QUATSE RIVER · MU ['1-13'] · p20 · [INCOMPLETE] (6e6acefb)
-- • [rule] “upstream of the Quatse River fishway (approximately 1.4 km upstrea” → quatse-river-b4a9b6[todo]
-
 ## SEYMOUR RIVER · MU ['1-14'] · p20 · [INCOMPLETE] (15146bbc)
 - • [except] “unless fishing for steelhead” → seymour-river-5860bf[todo]
 
-## SPROAT RIVER · MU ['1-7'] · p20 · [INCOMPLETE] (29465d04)
-- • [rule] “from Sproat Lake to fishing boundary signs approximately 300 m dow” → sproat-river-27e42b-a[not_applicable], sproat-river-27e42b-b[todo]
-
-## WAHPEETO CREEK · MU ['1-14'] · p21 · [INCOMPLETE] (2f8e871c)
-- • [rule] “within 100 m downstream of the falls situated approximately 4.5 km” → wahpeeto-creek-b61060[todo]
-
-## BEAR (Mahood) CREEK · MU ['2-4'] · p24 · [INCOMPLETE] (e8095112)
-- • [rule] “upstream of 152nd Street (Johnson Road)” → bear-mahood-creek-55c67c[todo]
-
 ## CAPILANO RIVER · MU ['2-8'] · p24 · [INCOMPLETE] (b2441cc9)
 - • [rule] “upstream of fishing boundary signs at footbridge situated approxim” → capilano-river-496399[todo]
-
-## HYLAND CREEK · MU ['2-4'] · p25 · [INCOMPLETE] (67bf57fc)
-- • [rule] “upstream of 152nd Street (Johnson Road)” → hyland-creek-f98bc6[todo]
 
 ## NORTH ALOUETTE RIVER · MU ['2-8'] · p27 · [INCOMPLETE] (7ef10bf8)
 - • [rule] “upstream of 216th Street (Fifth Ave)” → alouette-river-daecfd[curated], north-alouette-river-e3810a[todo]
@@ -199,9 +145,6 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 
 ## HAYS CREEK (in Prince Rupert) · MU ['6-14'] · p57 · [INCOMPLETE] (3f88988a)
 - • [rule] “upstream of fishing boundary signs downstream of lower culvert nea” → hays-creek-in-prince-rupert-6e14c4[todo]
-
-## KSI SII AKS RIVER (formerly Tseax River) · MU ['6-14'] · p58 · [INCOMPLETE] (14585c7b)
-- • [rule] “upstream of Nass Road Bridge” → ksi-sii-aks-river-formerly-tseax-river-30f771[todo]
 
 ## KSI X'ANMAS RIVER (formerly Kwinamass River) · MU ['6-14'] · p58 · [INCOMPLETE] (ea7be38a)
 - • [rule] “upstream from the lower bridge abutments” → ksi-x-anmas-river-formerly-kwinamass-river-fe2f0b[todo]
