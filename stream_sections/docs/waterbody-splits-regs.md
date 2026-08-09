@@ -3,7 +3,7 @@
 Every reg entry (source-first), booklet order. **Bold** = a live split boundary; plain text
 = whole-water / tributary-set / `not_applicable`. Regenerate; do not hand-edit.
 
-387 entries · 414 highlighted boundary phrases.
+387 entries · 413 highlighted boundary phrases.
 
 | Water | MU | p | Regulation |
 |---|---|--:|---|
@@ -101,7 +101,7 @@ Every reg entry (source-first), booklet order. **Bold** = a live split boundary;
 | NOONS CREEK | 2-8 | 27 | No Fishing **upstream of railway bridge** |
 | NORTH ALOUETTE RIVER | 2-8 | 27 | No Fishing **upstream of 216th Street (Fifth Ave)**, May 1-June 30 No powered boats |
 | PITT LAKE | 2-8 | 27 | No wild trout over 50 cm, 1 bull trout over 60 cm Wild trout/char catch and release, single barbless hook **north of fishing boundary signs (east and west shores) near the head of the lake** |
-| PITT RIVER | 2-8 | 27 | No Fishing **within Garibaldi Park**; speed restriction **at Grant Narrows** (10 km/h) Bait ban upstream of Pitt Lake No Fishing **in the Lower Pitt River (CPR Bridge upstream to Pitt Lake)** from one hour after sunset to one hour before sunrise (tributaries not included) |
+| PITT RIVER | 2-8 | 27 | No Fishing **within Garibaldi Park**; speed restriction at Grant Narrows (10 km/h) Bait ban upstream of Pitt Lake No Fishing **in the Lower Pitt River (CPR Bridge upstream to Pitt Lake)** from one hour after sunset to one hour before sunrise (tributaries not included) |
 | POWELL LAKE | 2-12 | 27 | No Fishing Nov 1-Mar 31; no powered boats **in One Mile Bay** |
 | ROSS LAKE (Boundary between Ross Lake and Skagit River is market by signs) | 2-2 | 27 | No Fishing Nov 1-June 30 Native char catch and release (bull trout and Dolly Varden), trout daily quota = 1 (none under 40 cm), brook trout daily quota = 5 Bait ban; single barbless hook |
 | RUBY CREEK | 2-5 | 27 | No Fishing **from Ruby Lake to fishing boundary signs approximately 100 m downstream** |

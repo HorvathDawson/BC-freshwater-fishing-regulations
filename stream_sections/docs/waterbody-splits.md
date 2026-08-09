@@ -7,8 +7,8 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 |---|--:|
 | NO_CURATION | 1 |
 | MISSING_SPLITS | 2 |
-| INCOMPLETE | 125 |
-| COMPLETE | 184 |
+| INCOMPLETE | 124 |
+| COMPLETE | 185 |
 | NO_SPLIT | 75 |
 
 **Drift** (curated rows matching no source locator): 6
@@ -103,12 +103,6 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 - • [rule] “downstream of the Muchalat River” → gold-river-65a8d8[curated]
 - • [except] “but not including the Muchalat or Heber Rivers” → gold-river-7c1879[todo]
 - • [rule] “between the cascade falls (located approximately 6.5 km upstream o” → gold-river-74b889-a[curated], gold-river-74b889-b[curated]
-
-## PITT RIVER · MU ['2-8'] · p27 · [INCOMPLETE] (773ca353)
-- • [rule] “within Garibaldi Park” → pitt-river-16d11f[curated]
-- • [rule] “at Grant Narrows” → pitt-river-14096c[todo]
-- • [rule] “upstream of Pitt Lake” → pitt-river-564cfe[not_applicable]
-- • [rule] “in the Lower Pitt River (CPR Bridge upstream to Pitt Lake)” → pitt-river-4dae69-a[todo], pitt-river-4dae69-b[not_applicable]
 
 ## NAHATLATCH RIVER · MU ['3-15'] · p33 · [INCOMPLETE] (921224bf)
 - • [rule] “from Frances Lake downstream approximately 400 m to fishing bounda” → nahatlatch-river-285a59-a[curated], nahatlatch-river-285a59-b[todo]

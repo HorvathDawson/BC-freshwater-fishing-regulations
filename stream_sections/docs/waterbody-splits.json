@@ -7446,7 +7446,7 @@
         "Incl. Tribs"
       ],
       "reg_text": "**No Fishing** within Garibaldi Park; speed restriction at Grant Narrows (10 km/h)\nBait ban upstream of Pitt Lake\n**No Fishing** in the Lower Pitt River (CPR Bridge upstream to Pitt Lake) from one hour after sunset to one hour before sunrise (tributaries not\nincluded)",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 4,
       "locators": [
         {
@@ -7473,14 +7473,15 @@
           "info": {
             "restriction_type": "vessel_restriction"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "pitt-river-14096c",
-              "status": "todo",
-              "anchor_kind": "unclassified",
+              "status": "not_applicable",
+              "anchor_kind": "not_a_split",
               "src": "rule",
-              "resolver_hint": "other_reach"
+              "resolver_hint": "other_reach",
+              "notes": "[curated 2026-08-08 manual-review batch=pitt-2-8] [n/a: Grant Narrows 10km/h boat SPEED restriction, not a fishing split. NOTE: speed restriction applies to all the Lower Pitt River — handle later]"
             }
           ]
         },
@@ -7509,15 +7510,20 @@
             "restriction_type": "closure",
             "includes_tributaries": false
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "pitt-river-4dae69-a",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] CPR Bridge on Lower Pitt River (to Pitt Lake) on Pitt River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the CPR (railway) bridge over the lower Pitt River (Pitt Meadows); railway bridge, map-only.. Reach = 'Lower Pitt River: CPR Bridge upstream to Pitt Lake'. Railway bridge near the Pitt mouth; distinct from the Garibaldi Park split (garibaldi_pitt) which is far up the Pitt. Map/OSM-confirmable. [structural-split 2026-08-05 from “in the Lower Pitt River (CPR Bridge upstream to Pitt Lake)”] boundary=in the Lower Pitt River (CPR Bridge",
+              "label": "CPR Bridge (CP Rail movable bridge, Lower Pitt)",
+              "notes": "[auto-proposal L] CPR Bridge on Lower Pitt River (to Pitt Lake) on Pitt River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the CPR (railway) bridge over the lower Pitt River (Pitt Meadows); railway bridge, map-only.. Reach = 'Lower Pitt River: CPR Bridge upstream to Pitt Lake'. Railway bridge near the Pitt mouth; distinct from the Garibaldi Park split (garibaldi_pitt) which is far up the Pitt. Map/OSM-confirmable. [structural-split 2026-08-05 from “in the Lower Pitt River (CPR Bridge upstream to Pitt Lake)”] boundary=in the Lower Pitt River (CPR Bridge [curated 2026-08-08 manual-review batch=pitt-2-8] [CP Rail (CPKC) Cascade Subdivision movable bridge, OSM way 182629905; night-closure lower bound]",
+              "coord": [
+                -122.73382,
+                49.24521
+              ],
               "locator_text": "in the Lower Pitt River (CPR Bridge"
             },
             {
@@ -7537,7 +7543,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-08"
     },
     "f7f53543": {
       "entry_id": "f7f53543",
