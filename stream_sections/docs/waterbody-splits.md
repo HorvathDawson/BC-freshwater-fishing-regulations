@@ -7,8 +7,8 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 |---|--:|
 | NO_CURATION | 1 |
 | MISSING_SPLITS | 2 |
-| INCOMPLETE | 136 |
-| COMPLETE | 173 |
+| INCOMPLETE | 135 |
+| COMPLETE | 174 |
 | NO_SPLIT | 75 |
 
 **Drift** (curated rows matching no source locator): 6
@@ -139,12 +139,6 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 - • [rule] “on all parts” → white-river-see-also-east-white-north-white-r-955fb4[todo]
 - • [rule] “downstream of North White River” → white-river-see-also-east-white-north-white-r-54f271[curated]
 - • [rule] “on all parts” → white-river-see-also-east-white-north-white-r-955fb4[todo]
-
-## BABINE RIVER · MU ['6-8'] · p56 · [INCOMPLETE] (4dd3daf7)
-- • [rule] “from the juvenile fish counting weir located at the outlet of Nilk” → babine-river-8f73d2-a[curated], babine-river-8f73d2-b[curated], babine-river-912f94-a[curated]
-- • [rule] “between fishing boundary signs approximately 100 m upstream of and” → babine-river-fec60e-a[todo], babine-river-fec60e-b[curated]
-- • [rule] “from the adult fish counting fence (described above) downstream to” → babine-river-912f94-b[todo], babine-river-fdcd21-a[curated], babine-river-fdcd21-b[curated]
-- • [rule] “from the juvenile fish counting weir located at the outlet of Nilk” → babine-river-8f73d2-a[curated], babine-river-912f94-a[curated], babine-river-912f94-b[todo], babine-river-fdcd21-b[curated]
 
 ## ALOUETTE RIVER · MU ['2-8'] · p24 · [INCOMPLETE] (dadcd21c)
 - • [rule] “upstream of the fishing boundary signs located at 49° 14.790'N and” → alouette-river-741304[curated]

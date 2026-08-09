@@ -21882,7 +21882,7 @@
         "Classified"
       ],
       "reg_text": "**Angling prohibited for non-guided non-resident aliens on Saturdays and Sundays from the juvenile fish counting weir located at\nthe outlet of Nilkitkwa Lake to the Nilkitkwa River confluence, Sept 1-Oct 31 (See map **page 56**)\nNo Fishing** between fishing boundary signs approximately 100 m upstream of and 80 m downstream of the adult fish counting fence,\nlocated approximately 1.8 km downstream of Nilkitkwa Lake\nOpen all year in the stream channel known as \"Rainbow Alley\" located between Babine and Nilkitkwa lakes (see map 2 page 51)\nFly fishing only (a) from the Fort Babine Bridge downstream to signs 100 m upstream of the adult fish counting fence (including Nilkitkwa\nLake), during open times and (b) from signs about 80 m downstream of the adult fish counting fence to Nichyeskwa Creek, June 16-Sept 30; includes \"Rainbow Alley\"\nBait ban\nNo angling from boats from the adult fish counting fence (described above) downstream to the Babine River's confluence with the Skeena\nRiver\n**Class 1 water Sept 1-Oct 31; Steelhead Stamp mandatory Sept 1-Oct 31 from the juvenile fish counting weir located at the outlet of\nNilkitkwa Lake downstream to the Babine River's confluence with the Skeena River (See map **page 56**)**",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 4,
       "locators": [
         {
@@ -21950,15 +21950,29 @@
           "info": {
             "restriction_type": "closure"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "babine-river-fec60e-a",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "boundary_signs",
-              "notes": "[auto-proposal L] Adult fish counting fence + boundary signs (~100 m up / 80 m down) on Babine River (lower, near Nilkitkwa Lake outlet). Candidate coord [-126.68407, 55.41439]. OSM: https://www.openstreetmap.org/?mlat=55.41439&mlon=-126.68407#map=15/55.41439/-126.68407. Verify: Locate the DFO Babine adult counting fence precisely on a map (near Nilkitkwa Lake outlet) then set the two sign points ~100 m up / ~80 m down of it.. This is a line_between_signs closure bracketing the DFO adult fish counting fence on the lower Babine River. The Babine River counting fence is a DFO facility in the vicinity of the Nilkitkwa Lake outlet; exact fence point is not in FWA. Candidate coord is the Nilkitkwa outlet as a starting reference only. [structural-split 2026-08-05 from \"between fishing boundary signs approximately 100 m upstream \"] boundary=fishing boundary signs approximately 100 m upstream of [hint-fix 2026-08-06 dam_weir_fence->boundary_signs]",
+              "label": "signs ~100m u/s of adult fish counting fence",
+              "notes": "[auto-proposal L] Adult fish counting fence + boundary signs (~100 m up / 80 m down) on Babine River (lower, near Nilkitkwa Lake outlet). Candidate coord [-126.68407, 55.41439]. OSM: https://www.openstreetmap.org/?mlat=55.41439&mlon=-126.68407#map=15/55.41439/-126.68407. Verify: Locate the DFO Babine adult counting fence precisely on a map (near Nilkitkwa Lake outlet) then set the two sign points ~100 m up / ~80 m down of it.. This is a line_between_signs closure bracketing the DFO adult fish counting fence on the lower Babine River. The Babine River counting fence is a DFO facility in the vicinity of the Nilkitkwa Lake outlet; exact fence point is not in FWA. Candidate coord is the Nilkitkwa outlet as a starting reference only. [structural-split 2026-08-05 from \"between fishing boundary signs approximately 100 m upstream \"] boundary=fishing boundary signs approximately 100 m upstream of [hint-fix 2026-08-06 dam_weir_fence->boundary_signs] [curated 2026-08-08 manual-review batch=babine-6-8] [base=adult fence; +100m u/s = 55.42519,-126.69622]",
+              "coord": [
+                -126.69674,
+                55.42603
+              ],
+              "offset": {
+                "anchor": [
+                  -126.69674,
+                  55.42603
+                ],
+                "anchor_label": "adult fish counting fence (Babine)",
+                "m": 100,
+                "dir": "upstream"
+              },
               "locator_text": "fishing boundary signs approximately 100 m upstream of"
             },
             {
@@ -21968,18 +21982,18 @@
               "src": "rule",
               "resolver_hint": "dam_weir_fence",
               "label": "80 m below adult counting fence",
-              "notes": "[auto-proposal L] Adult fish counting fence + boundary signs (~100 m up / 80 m down) on Babine River (lower, near Nilkitkwa Lake outlet). Candidate coord [-126.68407, 55.41439]. OSM: https://www.openstreetmap.org/?mlat=55.41439&mlon=-126.68407#map=15/55.41439/-126.68407. Verify: Locate the DFO Babine adult counting fence precisely on a map (near Nilkitkwa Lake outlet) then set the two sign points ~100 m up / ~80 m down of it.. This is a line_between_signs closure bracketing the DFO adult fish counting fence on the lower Babine River. The Babine River counting fence is a DFO facility in the vicinity of the Nilkitkwa Lake outlet; exact fence point is not in FWA. Candidate coord is the Nilkitkwa outlet as a starting reference only. [structural-split 2026-08-05 from \"between fishing boundary signs approximately 100 m upstream \"] boundary=80 m downstream of the adult fish counting fence [human-review 2026-08-06] adult fence +80 m down.",
+              "notes": "[auto-proposal L] Adult fish counting fence + boundary signs (~100 m up / 80 m down) on Babine River (lower, near Nilkitkwa Lake outlet). Candidate coord [-126.68407, 55.41439]. OSM: https://www.openstreetmap.org/?mlat=55.41439&mlon=-126.68407#map=15/55.41439/-126.68407. Verify: Locate the DFO Babine adult counting fence precisely on a map (near Nilkitkwa Lake outlet) then set the two sign points ~100 m up / ~80 m down of it.. This is a line_between_signs closure bracketing the DFO adult fish counting fence on the lower Babine River. The Babine River counting fence is a DFO facility in the vicinity of the Nilkitkwa Lake outlet; exact fence point is not in FWA. Candidate coord is the Nilkitkwa outlet as a starting reference only. [structural-split 2026-08-05 from \"between fishing boundary signs approximately 100 m upstream \"] boundary=80 m downstream of the adult fish counting fence [human-review 2026-08-06] adult fence +80 m down. [curated 2026-08-08 manual-review batch=babine-6-8] [fence anchor aligned to fdcd21-a]",
               "coord": [
-                -126.69688,
-                55.42602
+                -126.69674,
+                55.42603
               ],
               "offset": {
                 "anchor_label": "adult fish counting fence (Babine)",
                 "m": 80,
                 "dir": "downstream",
                 "anchor": [
-                  -126.69688,
-                  55.42602
+                  -126.69674,
+                  55.42603
                 ]
               },
               "locator_text": "80 m downstream of the adult fish counting fence"
@@ -21992,15 +22006,24 @@
           "info": {
             "restriction_type": "vessel_restriction"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "babine-river-912f94-b",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "confluence",
               "src": "rule",
               "resolver_hint": "tributary",
-              "notes": "[auto-proposal M] Juvenile fish counting weir at Nilkitkwa Lake outlet on Babine River (Nilkitkwa outlet -> Nilkitkwa R confluence). Candidate coord [-126.68407, 55.41439]. OSM: https://www.openstreetmap.org/?mlat=55.41439&mlon=-126.68407#map=15/55.41439/-126.68407. Verify: Same weir as babine-river-8f73d2; confirm weir at lake outlet.. Duplicate structure of babine-river-8f73d2 (juvenile weir at Nilkitkwa Lake outlet); reach runs down to the Babine's confluence with the Nilkitkwa River. Coord = FWA Nilkitkwa Lake outlet. [structural-split 2026-08-05 from \"from the juvenile fish counting weir located at the outlet o\"] boundary=Babine River's confluence",
+              "label": "Babine-Skeena confluence",
+              "notes": "[auto-proposal M] Juvenile fish counting weir at Nilkitkwa Lake outlet on Babine River (Nilkitkwa outlet -> Nilkitkwa R confluence). Candidate coord [-126.68407, 55.41439]. OSM: https://www.openstreetmap.org/?mlat=55.41439&mlon=-126.68407#map=15/55.41439/-126.68407. Verify: Same weir as babine-river-8f73d2; confirm weir at lake outlet.. Duplicate structure of babine-river-8f73d2 (juvenile weir at Nilkitkwa Lake outlet); reach runs down to the Babine's confluence with the Nilkitkwa River. Coord = FWA Nilkitkwa Lake outlet. [structural-split 2026-08-05 from \"from the juvenile fish counting weir located at the outlet o\"] boundary=Babine River's confluence [curated 2026-08-08 manual-review batch=babine-6-8] [= Skeena confluence, same as fdcd21-b]",
+              "coord": [
+                -127.69458,
+                55.69813
+              ],
+              "target": {
+                "blk": 360887278,
+                "wsc": "400-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+              },
               "locator_text": "Babine River's confluence"
             },
             {
@@ -22046,7 +22069,7 @@
               "Sept 1-Oct 31"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "babine-river-8f73d2-a",
@@ -22078,11 +22101,20 @@
             },
             {
               "id": "babine-river-912f94-b",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "confluence",
               "src": "rule",
               "resolver_hint": "tributary",
-              "notes": "[auto-proposal M] Juvenile fish counting weir at Nilkitkwa Lake outlet on Babine River (Nilkitkwa outlet -> Nilkitkwa R confluence). Candidate coord [-126.68407, 55.41439]. OSM: https://www.openstreetmap.org/?mlat=55.41439&mlon=-126.68407#map=15/55.41439/-126.68407. Verify: Same weir as babine-river-8f73d2; confirm weir at lake outlet.. Duplicate structure of babine-river-8f73d2 (juvenile weir at Nilkitkwa Lake outlet); reach runs down to the Babine's confluence with the Nilkitkwa River. Coord = FWA Nilkitkwa Lake outlet. [structural-split 2026-08-05 from \"from the juvenile fish counting weir located at the outlet o\"] boundary=Babine River's confluence",
+              "label": "Babine-Skeena confluence",
+              "notes": "[auto-proposal M] Juvenile fish counting weir at Nilkitkwa Lake outlet on Babine River (Nilkitkwa outlet -> Nilkitkwa R confluence). Candidate coord [-126.68407, 55.41439]. OSM: https://www.openstreetmap.org/?mlat=55.41439&mlon=-126.68407#map=15/55.41439/-126.68407. Verify: Same weir as babine-river-8f73d2; confirm weir at lake outlet.. Duplicate structure of babine-river-8f73d2 (juvenile weir at Nilkitkwa Lake outlet); reach runs down to the Babine's confluence with the Nilkitkwa River. Coord = FWA Nilkitkwa Lake outlet. [structural-split 2026-08-05 from \"from the juvenile fish counting weir located at the outlet o\"] boundary=Babine River's confluence [curated 2026-08-08 manual-review batch=babine-6-8] [= Skeena confluence, same as fdcd21-b]",
+              "coord": [
+                -127.69458,
+                55.69813
+              ],
+              "target": {
+                "blk": 360887278,
+                "wsc": "400-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+              },
               "locator_text": "Babine River's confluence"
             },
             {
@@ -22111,7 +22143,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-08"
     },
     "23900091": {
       "entry_id": "23900091",
