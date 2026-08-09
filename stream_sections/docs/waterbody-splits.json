@@ -24002,7 +24002,7 @@
         "Classified"
       ],
       "reg_text": "**No Fishing** Nov 15-May 14; **Class II water**[Includes Tributaries] **when open (Steelhead Stamp not required)**\nRainbow trout catch and release\nFly fishing only between fishing boundary signs approximately 250 m and 4 km downstream of the bridge near the François Lake outlet\nNo powered boats from François Lake to the falls\nSee restrictions for François Lake's outlet area",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 2,
       "locators": [
         {
@@ -24011,15 +24011,25 @@
           "info": {
             "restriction_type": "gear_restriction"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "stellako-river-4769e9-a",
-              "status": "todo",
-              "anchor_kind": "lake",
+              "status": "curated",
+              "anchor_kind": "lake_io",
               "src": "rule",
               "resolver_hint": "lake_reach",
-              "notes": "[structural-split 2026-08-05 from \"from François Lake to the falls\"] boundary=François Lake",
+              "label": "François Lake outlet",
+              "notes": "[structural-split 2026-08-05 from \"from François Lake to the falls\"] boundary=François Lake [curated 2026-08-08 manual-review batch=stellako] [FWA François Lake outlet on Stellako; powered-boat reach upper bound]",
+              "coord": [
+                -124.99263,
+                54.01164
+              ],
+              "target": {
+                "type": "lake_outlet",
+                "wbk": 329148307,
+                "lake": "François Lake"
+              },
               "locator_text": "François Lake"
             },
             {
@@ -24076,24 +24086,39 @@
           "info": {
             "restriction_type": "vessel_restriction"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "stellako-river-4769e9-a",
-              "status": "todo",
-              "anchor_kind": "lake",
+              "status": "curated",
+              "anchor_kind": "lake_io",
               "src": "rule",
               "resolver_hint": "lake_reach",
-              "notes": "[structural-split 2026-08-05 from \"from François Lake to the falls\"] boundary=François Lake",
+              "label": "François Lake outlet",
+              "notes": "[structural-split 2026-08-05 from \"from François Lake to the falls\"] boundary=François Lake [curated 2026-08-08 manual-review batch=stellako] [FWA François Lake outlet on Stellako; powered-boat reach upper bound]",
+              "coord": [
+                -124.99263,
+                54.01164
+              ],
+              "target": {
+                "type": "lake_outlet",
+                "wbk": 329148307,
+                "lake": "François Lake"
+              },
               "locator_text": "François Lake"
             },
             {
               "id": "stellako-river-4769e9-b",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "falls_obstacle",
-              "notes": "[structural-split 2026-08-05 from \"from François Lake to the falls\"] boundary=falls",
+              "label": "Stellako falls (Class IV)",
+              "notes": "[structural-split 2026-08-05 from \"from François Lake to the falls\"] boundary=falls [curated 2026-08-08 manual-review batch=stellako] [falls = 150m d/s of the power line crossing (m8100); Class IV step-falls; powered-boat reach lower bound; candidate A]",
+              "coord": [
+                -124.95856,
+                54.04646
+              ],
               "locator_text": "falls"
             }
           ]
@@ -24104,7 +24129,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-08"
     },
     "99b982b7": {
       "entry_id": "99b982b7",
@@ -25612,7 +25638,7 @@
         "Classified"
       ],
       "reg_text": "**No Fishing** Nov 15-May 14; **Class II water**[Includes Tributaries]** when open (Steelhead Stamp not required)**\nRainbow trout catch and release\nFly fishing only between fishing boundary signs approximately 250 m and 4 km downstream of the bridge near the François Lake outlet\nNo powered boats from François Lake to the falls\nSee Region 6 tables for restrictions applying to François Lake's outlet area",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 2,
       "locators": [
         {
@@ -25621,15 +25647,25 @@
           "info": {
             "restriction_type": "gear_restriction"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "stellako-river-4769e9-a",
-              "status": "todo",
-              "anchor_kind": "lake",
+              "status": "curated",
+              "anchor_kind": "lake_io",
               "src": "rule",
               "resolver_hint": "lake_reach",
-              "notes": "[structural-split 2026-08-05 from \"from François Lake to the falls\"] boundary=François Lake",
+              "label": "François Lake outlet",
+              "notes": "[structural-split 2026-08-05 from \"from François Lake to the falls\"] boundary=François Lake [curated 2026-08-08 manual-review batch=stellako] [FWA François Lake outlet on Stellako; powered-boat reach upper bound]",
+              "coord": [
+                -124.99263,
+                54.01164
+              ],
+              "target": {
+                "type": "lake_outlet",
+                "wbk": 329148307,
+                "lake": "François Lake"
+              },
               "mus": [
                 "6-4",
                 "7-12"
@@ -25698,15 +25734,25 @@
           "info": {
             "restriction_type": "vessel_restriction"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "stellako-river-4769e9-a",
-              "status": "todo",
-              "anchor_kind": "lake",
+              "status": "curated",
+              "anchor_kind": "lake_io",
               "src": "rule",
               "resolver_hint": "lake_reach",
-              "notes": "[structural-split 2026-08-05 from \"from François Lake to the falls\"] boundary=François Lake",
+              "label": "François Lake outlet",
+              "notes": "[structural-split 2026-08-05 from \"from François Lake to the falls\"] boundary=François Lake [curated 2026-08-08 manual-review batch=stellako] [FWA François Lake outlet on Stellako; powered-boat reach upper bound]",
+              "coord": [
+                -124.99263,
+                54.01164
+              ],
+              "target": {
+                "type": "lake_outlet",
+                "wbk": 329148307,
+                "lake": "François Lake"
+              },
               "mus": [
                 "6-4",
                 "7-12"
@@ -25715,11 +25761,16 @@
             },
             {
               "id": "stellako-river-4769e9-b",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "falls_obstacle",
-              "notes": "[structural-split 2026-08-05 from \"from François Lake to the falls\"] boundary=falls",
+              "label": "Stellako falls (Class IV)",
+              "notes": "[structural-split 2026-08-05 from \"from François Lake to the falls\"] boundary=falls [curated 2026-08-08 manual-review batch=stellako] [falls = 150m d/s of the power line crossing (m8100); Class IV step-falls; powered-boat reach lower bound; candidate A]",
+              "coord": [
+                -124.95856,
+                54.04646
+              ],
               "mus": [
                 "6-4",
                 "7-12"

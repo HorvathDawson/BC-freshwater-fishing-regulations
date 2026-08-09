@@ -7,8 +7,8 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 |---|--:|
 | NO_CURATION | 1 |
 | MISSING_SPLITS | 2 |
-| INCOMPLETE | 135 |
-| COMPLETE | 174 |
+| INCOMPLETE | 133 |
+| COMPLETE | 176 |
 | NO_SPLIT | 75 |
 
 **Drift** (curated rows matching no source locator): 6
@@ -269,17 +269,9 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 - • [rule] “on the west half of river between fishing boundary signs near Kiti” → kitimat-river-angling-regulations-for-the-kit-664c72[todo]
 - • [rule] “in tributaries and upstream of Hwy 37 bridge” → kitimat-river-angling-regulations-for-the-kit-b3b21f[todo]
 
-## STELLAKO RIVER · MU ['6-4', '7-12'] · p59 · [INCOMPLETE] (aed39f94)
-- • [rule] “between fishing boundary signs approximately 250 m and 4 km downst” → stellako-river-4769e9-a[todo], stellako-river-76c305-a[curated], stellako-river-76c305-b[curated]
-- • [rule] “from François Lake to the falls” → stellako-river-4769e9-a[todo], stellako-river-4769e9-b[todo]
-
 ## ANZAC RIVER · MU ['7-23'] · p65 · [INCOMPLETE] (669f5ba9)
 - • [rule] “within 500 m radius of the Upper Anzac bridge” → anzac-river-13eb8b[todo]
 - • [rule] “upstream of the North Anzac River confluence” → anzac-river-ae3f1c[curated]
-
-## STELLAKO RIVER · MU ['7-12'] · p67 · [INCOMPLETE] (c23b554d)
-- • [rule] “between fishing boundary signs approximately 250 m and 4 km downst” → stellako-river-4769e9-a[todo], stellako-river-76c305-a[curated], stellako-river-76c305-b[curated]
-- • [rule] “from François Lake to the falls” → stellako-river-4769e9-a[todo], stellako-river-4769e9-b[todo]
 
 ## VASEUX LAKE (including two lagoons on the west side of Okanagan River upstream of McIntyre Dam) · MU ['8-1'] · p77 · [INCOMPLETE] (bf3a7f24)
 - • [water] “including two lagoons on the west side of Okanagan River upstream ” → vaseux-lake-including-two-lagoons-on-the-west-f208f2[todo]
