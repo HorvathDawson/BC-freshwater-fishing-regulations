@@ -6402,7 +6402,7 @@
       "image": "page_025_row_005.png",
       "symbols": [],
       "reg_text": "No wild trout over 50 cm, 1 bull trout over 60 cm; no vessels on parts; speed restriction (5 km/h) at north end, as buoyed and signed\nKokanee catch and release",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 1,
       "locators": [
         {
@@ -6411,14 +6411,15 @@
           "info": {
             "restriction_type": "vessel_restriction"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "cultus-lake-e6894c",
-              "status": "todo",
+              "status": "deferred",
               "anchor_kind": "point",
               "src": "rule",
-              "resolver_hint": "boundary_signs"
+              "resolver_hint": "boundary_signs",
+              "notes": "[deferred 2026-08-09 lake-split batch2: lake-area closure]"
             }
           ]
         },
@@ -6428,7 +6429,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-09"
     },
     "4538152a": {
       "entry_id": "4538152a",
@@ -6449,19 +6451,21 @@
         {
           "src": "name",
           "text": "DEER LAKE (Sasquatch Park)",
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "deer-lake-sasquatch-park-9c2360",
-              "status": "todo",
-              "anchor_kind": "unclassified",
+              "status": "not_applicable",
+              "anchor_kind": "not_a_split",
               "src": "name",
               "resolver_hint": "other_reach",
+              "notes": "[n/a 2026-08-09 lake batch2: whole-lake/park, no split]",
               "locator_text": "Sasquatch Park"
             }
           ]
         }
-      ]
+      ],
+      "reviewed": "2026-08-09"
     },
     "b613729b": {
       "entry_id": "b613729b",
@@ -6686,7 +6690,7 @@
       "image": "page_025_row_026.png",
       "symbols": [],
       "reg_text": "No wild trout over 50 cm, 1 bull trout over 60 cm; speed restriction (10 km/h) at south end, as buoyed and signed",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 1,
       "locators": [
         {
@@ -6695,14 +6699,15 @@
           "info": {
             "restriction_type": "vessel_restriction"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "harrison-lake-b05322",
-              "status": "todo",
+              "status": "deferred",
               "anchor_kind": "point",
               "src": "rule",
-              "resolver_hint": "boundary_signs"
+              "resolver_hint": "boundary_signs",
+              "notes": "[deferred 2026-08-09 lake-split batch2: lake-area closure]"
             }
           ]
         },
@@ -6712,7 +6717,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-09"
     },
     "9c44131f": {
       "entry_id": "9c44131f",
@@ -6725,7 +6731,7 @@
       "image": "page_025_row_027.png",
       "symbols": [],
       "reg_text": "**No Fishing** from one hour after sunset to one hour before sunrise, tributaries not included\nDead fin fish may be used for bait only when fishing for sturgeon (see page 8 in the Provincial Regulations)\nSpeed restriction or no powered boats in small bays along the river as signed",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 3,
       "locators": [
         {
@@ -6750,14 +6756,15 @@
           "info": {
             "restriction_type": "vessel_restriction"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "harrison-river-from-the-fraser-river-upstream-130442",
-              "status": "todo",
+              "status": "deferred",
               "anchor_kind": "unclassified",
               "src": "rule",
               "resolver_hint": "other_reach",
+              "notes": "[deferred 2026-08-09 lake-split batch2: lake-area closure]",
               "name_verbatim": "HARRISON RIVER (from the Fraser River upstream to Harr"
             }
           ]
@@ -6795,7 +6802,8 @@
             }
           ]
         }
-      ]
+      ],
+      "reviewed": "2026-08-09"
     },
     "64d750e5": {
       "entry_id": "64d750e5",
@@ -6810,7 +6818,7 @@
         "Incl. Tribs"
       ],
       "reg_text": "**No Fishing** for Sturgeon in Hatzic Lake; speed restriction on parts (8 and 50 km/h)",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 1,
       "locators": [
         {
@@ -6819,14 +6827,15 @@
           "info": {
             "restriction_type": "closure"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "hatzic-lake-and-slough-c04f32",
-              "status": "todo",
+              "status": "deferred",
               "anchor_kind": "unclassified",
               "src": "rule",
-              "resolver_hint": "other_reach"
+              "resolver_hint": "other_reach",
+              "notes": "[deferred 2026-08-09 lake-split batch2: lake-area closure]"
             }
           ]
         },
@@ -6836,7 +6845,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-09"
     },
     "67bf57fc": {
       "entry_id": "67bf57fc",
@@ -10444,20 +10454,21 @@
         "Stocked"
       ],
       "reg_text": "No towing, speed restriction (15 km/h)",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 1,
       "locators": [
         {
           "src": "entry",
           "text": "parts of",
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "heffley-lake-parts-of-dabd72",
-              "status": "todo",
+              "status": "deferred",
               "anchor_kind": "unclassified",
               "src": "entry",
-              "resolver_hint": "other_reach"
+              "resolver_hint": "other_reach",
+              "notes": "[deferred 2026-08-09 lake-split batch2: lake-area closure]"
             }
           ]
         },
@@ -10467,7 +10478,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-09"
     },
     "61620d69": {
       "entry_id": "61620d69",
@@ -15250,7 +15262,7 @@
       "image": "page_039_row_021.png",
       "symbols": [],
       "reg_text": "**No Fishing** within 200 m of Bush-Sullivan Road Bridge in Bush Arm",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 1,
       "locators": [
         {
@@ -15259,14 +15271,15 @@
           "info": {
             "restriction_type": "closure"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "kinbasket-mcnaughton-lake-4535e6",
-              "status": "todo",
+              "status": "deferred",
               "anchor_kind": "buffer",
               "src": "rule",
-              "resolver_hint": "radius"
+              "resolver_hint": "radius",
+              "notes": "[deferred 2026-08-09 lake-split batch2: lake-area closure]"
             }
           ]
         },
@@ -15276,7 +15289,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-09"
     },
     "f678bc78": {
       "entry_id": "f678bc78",
@@ -20550,7 +20564,7 @@
         "Stocked"
       ],
       "reg_text": "**No Fishing** southeast of a line between fishing boundary signs on opposite shores of the bay at the mouth of Hallis Creek, Apr 1-May 31\nTrout daily quota = 1",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 1,
       "locators": [
         {
@@ -20562,14 +20576,15 @@
               "Apr 1-May 31"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "dragon-lake-446fe9",
-              "status": "todo",
+              "status": "deferred",
               "anchor_kind": "line",
               "src": "rule",
-              "resolver_hint": "between_signs"
+              "resolver_hint": "between_signs",
+              "notes": "[deferred 2026-08-09 lake-split batch2: lake-area closure]"
             }
           ]
         },
@@ -20579,7 +20594,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-09"
     },
     "7448e5dc": {
       "entry_id": "7448e5dc",
@@ -20598,20 +20614,22 @@
         {
           "src": "name",
           "text": "FISH LAKE (unnamed lake approx. 2 km northwest of McClinchy Lake)",
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "fish-lake-unnamed-lake-approx-2-km-northwest--35e634",
-              "status": "todo",
-              "anchor_kind": "line",
+              "status": "not_applicable",
+              "anchor_kind": "not_a_split",
               "src": "name",
               "resolver_hint": "between_signs",
+              "notes": "[n/a 2026-08-09 lake batch2: whole-lake/park, no split]",
               "name_verbatim": "FISH LAKE (unnamed lake approx. 2 km northwest of McCl",
               "locator_text": "unnamed lake approx. 2 km northwest of McClinchy Lake"
             }
           ]
         }
-      ]
+      ],
+      "reviewed": "2026-08-09"
     },
     "13862f1c": {
       "entry_id": "13862f1c",
@@ -20802,7 +20820,7 @@
         "Stocked"
       ],
       "reg_text": "**No Fishing **northeast of line between boundary signs on opposite shores of the bay at the mouth of Watch Creek, Mar 1-May 31",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 1,
       "locators": [
         {
@@ -20814,14 +20832,15 @@
               "Mar 1-May 31"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "green-lake-be66e8",
-              "status": "todo",
+              "status": "deferred",
               "anchor_kind": "line",
               "src": "rule",
-              "resolver_hint": "between_signs"
+              "resolver_hint": "between_signs",
+              "notes": "[deferred 2026-08-09 lake-split batch2: lake-area closure]"
             }
           ]
         },
@@ -20831,7 +20850,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-09"
     },
     "9bdf97d6": {
       "entry_id": "9bdf97d6",
@@ -22848,7 +22868,7 @@
       "image": "page_057_row_010.png",
       "symbols": [],
       "reg_text": "**No Fishing** northwest of a line between fishing boundary signs on opposite shores of the outlet bay, Apr 1-June 30",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 1,
       "locators": [
         {
@@ -22860,14 +22880,15 @@
               "Apr 1-June 30"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "helene-lake-51b447",
-              "status": "todo",
+              "status": "deferred",
               "anchor_kind": "line",
               "src": "rule",
-              "resolver_hint": "between_signs"
+              "resolver_hint": "between_signs",
+              "notes": "[deferred 2026-08-09 lake-split batch2: lake-area closure]"
             }
           ]
         },
@@ -22877,7 +22898,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-09"
     },
     "8fb53ca7": {
       "entry_id": "8fb53ca7",
@@ -23122,7 +23144,7 @@
       "image": "page_058_row_003.png",
       "symbols": [],
       "reg_text": "**No Fishing** within 100 m of outlet, May 15-July 31\nTrout/char daily and possession quotas = 2 (none over 50 cm); bait ban, single hook",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 1,
       "locators": [
         {
@@ -23134,14 +23156,15 @@
               "May 15-July 31"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "klahowya-lake-df227a",
-              "status": "todo",
+              "status": "deferred",
               "anchor_kind": "buffer",
               "src": "rule",
-              "resolver_hint": "radius"
+              "resolver_hint": "radius",
+              "notes": "[deferred 2026-08-09 lake-split batch2: lake-area closure]"
             }
           ]
         },
@@ -23151,7 +23174,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-09"
     },
     "14585c7b": {
       "entry_id": "14585c7b",
@@ -24937,7 +24961,7 @@
         "Incl. Tribs"
       ],
       "reg_text": "No Fishing within 500 m radius of the Upper Anzac bridge Aug 15-Mar 31, located at approximately UTM 10 552426, 6093011 (see map on\npage 62)\nFly fishing only Jul 1-Mar 31 upstream of the North Anzac River confluence (see map on page 62)",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 2,
       "locators": [
         {
@@ -24949,14 +24973,20 @@
               "Aug 15-Mar 31"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "anzac-river-13eb8b",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "buffer",
               "src": "rule",
-              "resolver_hint": "radius"
+              "resolver_hint": "radius",
+              "label": "Upper Anzac bridge (500m radius closure)",
+              "notes": "[curated 2026-08-09: Upper Anzac bridge, UTM 10 552426/6093011; No-Fishing 500m radius buffer around this point]",
+              "coord": [
+                -122.18081,
+                54.98124
+              ]
             }
           ]
         },
@@ -24996,7 +25026,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-09"
     },
     "1200c05b": {
       "entry_id": "1200c05b",
@@ -25315,7 +25346,7 @@
       "image": "page_065_row_024.png",
       "symbols": [],
       "reg_text": "**No Fishing** within a 500 m radius of the Davis Forest Service Road Bridge. See Davis River",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 1,
       "locators": [
         {
@@ -25324,14 +25355,15 @@
           "info": {
             "restriction_type": "closure"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "davis-bay-in-finlay-reach-of-williston-lake-32c22d",
-              "status": "todo",
+              "status": "deferred",
               "anchor_kind": "buffer",
               "src": "rule",
-              "resolver_hint": "radius"
+              "resolver_hint": "radius",
+              "notes": "[deferred 2026-08-09 lake-split batch2: lake-area closure]"
             }
           ]
         },
@@ -25341,7 +25373,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-09"
     },
     "90a35dad": {
       "entry_id": "90a35dad",
@@ -25505,19 +25538,21 @@
         {
           "src": "name",
           "text": "HART LAKE (Crooked River Provincial Park)",
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "hart-lake-crooked-river-provincial-park-7562df",
-              "status": "todo",
-              "anchor_kind": "area_boundary",
+              "status": "not_applicable",
+              "anchor_kind": "not_a_split",
               "src": "name",
               "resolver_hint": "park_polygon",
+              "notes": "[n/a 2026-08-09 lake batch2: whole-lake/park, no split]",
               "locator_text": "Crooked River Provincial Park"
             }
           ]
         }
-      ]
+      ],
+      "reviewed": "2026-08-09"
     },
     "d128b1fb": {
       "entry_id": "d128b1fb",
@@ -26584,7 +26619,7 @@
       "image": "page_071_row_031.png",
       "symbols": [],
       "reg_text": "**No Fishing** within 100 m of fishing boundary sign at outlet, May 15-July 31\nRainbow trout daily and possession quotas = 2 (none over 50 cm); bait ban, single hook",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 1,
       "locators": [
         {
@@ -26596,14 +26631,15 @@
               "May 15-July 31"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "letain-lake-a43189",
-              "status": "todo",
+              "status": "deferred",
               "anchor_kind": "buffer",
               "src": "rule",
-              "resolver_hint": "radius"
+              "resolver_hint": "radius",
+              "notes": "[deferred 2026-08-09 lake-split batch2: lake-area closure]"
             }
           ]
         },
@@ -26613,7 +26649,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-09"
     },
     "7ffa0659": {
       "entry_id": "7ffa0659",

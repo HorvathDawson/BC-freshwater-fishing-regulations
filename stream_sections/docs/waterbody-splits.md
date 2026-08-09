@@ -7,8 +7,8 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 |---|--:|
 | NO_CURATION | 1 |
 | MISSING_SPLITS | 2 |
-| INCOMPLETE | 98 |
-| COMPLETE | 211 |
+| INCOMPLETE | 85 |
+| COMPLETE | 224 |
 | NO_SPLIT | 75 |
 
 **Drift** (curated rows matching no source locator): 9
@@ -104,11 +104,6 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 - • [rule] “upstream of 216th Street” → alouette-river-daecfd[curated], north-alouette-river-e3810a[todo]
 - • [rule] “on mainstem” → alouette-river-b5a707[not_applicable]
 
-## HARRISON RIVER (from the Fraser River upstream to Harrison Lake) · MU ['2-18'] · p25 · [INCOMPLETE] (9c44131f)
-- • [water] “from the Fraser River upstream to Harrison Lake” → harrison-river-from-the-fraser-river-upstream-f8ecc6[not_applicable]
-- • [rule] “in small bays along the river as signed” → harrison-river-from-the-fraser-river-upstream-130442[todo]
-- • [entry] “from the Fraser River upstream to Harrison Lake” → harrison-river-from-the-fraser-river-upstream-f8ecc6[not_applicable]
-
 ## ADAMS RIVER (downstream of Adams Lake) · MU ['3-37'] · p31 · [INCOMPLETE] (a86d90f9)
 - • [water] “downstream of Adams Lake” → adams-river-downstream-of-adams-lake-037302[curated]
 - • [rule] “between fishing boundary signs in the vicinity of the public salmo” → adams-river-downstream-of-adams-lake-61c126[todo]
@@ -161,10 +156,6 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 - • [rule] “on the west half of river between fishing boundary signs near Kiti” → kitimat-river-angling-regulations-for-the-kit-664c72[todo]
 - • [rule] “in tributaries and upstream of Hwy 37 bridge” → kitimat-river-angling-regulations-for-the-kit-b3b21f[todo]
 
-## ANZAC RIVER · MU ['7-23'] · p65 · [INCOMPLETE] (669f5ba9)
-- • [rule] “within 500 m radius of the Upper Anzac bridge” → anzac-river-13eb8b[todo]
-- • [rule] “upstream of the North Anzac River confluence” → anzac-river-ae3f1c[curated]
-
 ## ARTLISH RIVER · MU ['1-12'] · p16 · [INCOMPLETE] (0505ec23)
 - • [rule] “upstream of the boundary signs at the bridge crossing approximatel” → artlish-river-9e60a3[todo]
 
@@ -207,15 +198,6 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 ## CAPILANO RIVER · MU ['2-8'] · p24 · [INCOMPLETE] (b2441cc9)
 - • [rule] “upstream of fishing boundary signs at footbridge situated approxim” → capilano-river-496399[todo]
 
-## CULTUS LAKE · MU ['2-3'] · p25 · [INCOMPLETE] (528fb0cf)
-- • [rule] “at north end, as buoyed and signed” → cultus-lake-e6894c[todo]
-
-## HARRISON LAKE · MU ['2-18'] · p25 · [INCOMPLETE] (86bbd654)
-- • [rule] “at south end, as buoyed and signed” → harrison-lake-b05322[todo]
-
-## HATZIC LAKE AND SLOUGH · MU ['2-8'] · p25 · [INCOMPLETE] (64d750e5)
-- • [rule] “in Hatzic Lake” → hatzic-lake-and-slough-c04f32[todo]
-
 ## HYLAND CREEK · MU ['2-4'] · p25 · [INCOMPLETE] (67bf57fc)
 - • [rule] “upstream of 152nd Street (Johnson Road)” → hyland-creek-f98bc6[todo]
 
@@ -230,9 +212,6 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 
 ## SUMALLO RIVER (includes "Cedar" Lake, at Sunshine Valley) · MU ['2-2'] · p28 · [INCOMPLETE] (411336a9)
 - • [entry] “includes "Cedar" Lake, at Sunshine Valley” → sumallo-river-includes-cedar-lake-at-sunshine-b68cb2[todo]
-
-## HEFFLEY LAKE (parts of ) · MU ['3-27'] · p32 · [INCOMPLETE] (ad307676)
-- • [entry] “parts of” → heffley-lake-parts-of-dabd72[todo]
 
 ## LITTLE LAC DES ROCHES (at west end of Lac Des Roches) · MU ['3-30'] · p32 · [INCOMPLETE] (5ab0483e)
 - • [entry] “at west end of Lac Des Roches” → little-lac-des-roches-at-west-end-of-lac-des--bb8a9a[todo]
@@ -270,9 +249,6 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 ## ILLECILLEWAET RIVER · MU ['4-33'] · p39 · [INCOMPLETE] (b8f4c927)
 - • [rule] “downstream of Albert Canyon” → illecillewaet-river-43349c[todo]
 
-## KINBASKET (McNaughton) LAKE · MU ['4-36'] · p39 · [INCOMPLETE] (a58e3be6)
-- • [rule] “within 200 m of Bush-Sullivan Road Bridge in Bush Arm” → kinbasket-mcnaughton-lake-4535e6[todo]
-
 ## NORNS (Pass) CREEK · MU ['4-15'] · p41 · [INCOMPLETE] (51aea709)
 - • [rule] “downstream of falls approximately 2 km from Columbia River” → norns-pass-creek-9ac243[todo]
 
@@ -288,23 +264,11 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 ## WOODBURY CREEK · MU ['4-18'] · p42 · [INCOMPLETE] (b4222b6f)
 - • [rule] “downstream of falls at small hydro structure approximately 800 m u” → woodbury-creek-24b31f[todo]
 
-## DRAGON LAKE · MU ['5-2'] · p50 · [INCOMPLETE] (080f1b77)
-- • [rule] “southeast of a line between fishing boundary signs on opposite sho” → dragon-lake-446fe9[todo]
-
-## GREEN LAKE · MU ['5-1'] · p51 · [INCOMPLETE] (a6054318)
-- • [rule] “northeast of line between boundary signs on opposite shores of the” → green-lake-be66e8[todo]
-
 ## CRANBERRY RIVER · MU ['6-15'] · p56 · [INCOMPLETE] (107fa559)
 - • [rule] “between fishing boundary signs upstream of and downstream of Cranb” → cranberry-river-699352-a[todo], cranberry-river-699352-b[todo]
 
 ## HAYS CREEK (in Prince Rupert) · MU ['6-14'] · p57 · [INCOMPLETE] (3f88988a)
 - • [rule] “upstream of fishing boundary signs downstream of lower culvert nea” → hays-creek-in-prince-rupert-6e14c4[todo]
-
-## HELENE LAKE · MU ['6-6'] · p57 · [INCOMPLETE] (ff4444b4)
-- • [rule] “northwest of a line between fishing boundary signs on opposite sho” → helene-lake-51b447[todo]
-
-## KLAHOWYA LAKE · MU ['6-20'] · p58 · [INCOMPLETE] (28cf4125)
-- • [rule] “within 100 m of outlet” → klahowya-lake-df227a[todo]
 
 ## KSI SII AKS RIVER (formerly Tseax River) · MU ['6-14'] · p58 · [INCOMPLETE] (14585c7b)
 - • [rule] “upstream of Nass Road Bridge” → ksi-sii-aks-river-formerly-tseax-river-30f771[todo]
@@ -326,9 +290,6 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 
 ## CHICHOUYENILY CREEK · MU ['7-30'] · p65 · [INCOMPLETE] (9fd933ca)
 - • [rule] “downstream of fishing boundary signs near its mouth” → chichouyenily-creek-212afe[todo]
-
-## DAVIS BAY (in Finlay Reach of Williston Lake) · MU ['7-37'] · p65 · [INCOMPLETE] (3a9d0c96)
-- • [rule] “within a 500 m radius of the Davis Forest Service Road Bridge” → davis-bay-in-finlay-reach-of-williston-lake-32c22d[todo]
 
 ## GAGNON CREEK · MU ['7-30'] · p65 · [INCOMPLETE] (3cf96e99)
 - • [rule] “downstream of fishing boundary signs near its mouth” → gagnon-creek-8e35ce[todo]
@@ -353,9 +314,6 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 
 ## CHOWADE RIVER · MU ['7-43'] · p71 · [INCOMPLETE] (5887eab0)
 - • [rule] “upstream of the Horseshoe Road Bridge” → chowade-river-42a570[todo]
-
-## LETAIN LAKE · MU ['7-52'] · p71 · [INCOMPLETE] (e0e710a0)
-- • [rule] “within 100 m of fishing boundary sign at outlet” → letain-lake-a43189[todo]
 
 ## PINE RIVER · MU ['7-32'] · p72 · [INCOMPLETE] (e2986e43)
 - • [rule] “upstream of the Hasler Road Bridge” → pine-river-1d956e[todo]
