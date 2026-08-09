@@ -7,8 +7,8 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 |---|--:|
 | NO_CURATION | 1 |
 | MISSING_SPLITS | 2 |
-| INCOMPLETE | 128 |
-| COMPLETE | 181 |
+| INCOMPLETE | 127 |
+| COMPLETE | 182 |
 | NO_SPLIT | 75 |
 
 **Drift** (curated rows matching no source locator): 6
@@ -103,12 +103,6 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 - • [rule] “downstream of the Muchalat River” → gold-river-65a8d8[curated]
 - • [except] “but not including the Muchalat or Heber Rivers” → gold-river-7c1879[todo]
 - • [rule] “between the cascade falls (located approximately 6.5 km upstream o” → gold-river-74b889-a[curated], gold-river-74b889-b[curated]
-
-## PUNTLEDGE RIVER · MU ['1-6'] · p20 · [INCOMPLETE] (3952f2fb)
-- • [rule] “downstream of the BC Hydro diversion dam (approximately 3.5 km dow” → puntledge-river-f50f20-a[curated], puntledge-river-f50f20-b[curated]
-- • [rule] “between fishing boundary signs approximately 100 m upstream and do” → puntledge-river-3d202d-a[curated], puntledge-river-3d202d-b[curated]
-- • [rule] “from fishing boundary signs located 50 m upstream of the BC Hydro ” → puntledge-river-6e9625-a[todo], puntledge-river-6e9625-b[todo]
-- • [rule] “upstream of the BC Hydro diversion dam (approximately 3.5 km downs” → puntledge-river-bef57e[curated]
 
 ## PITT RIVER · MU ['2-8'] · p27 · [INCOMPLETE] (773ca353)
 - • [rule] “within Garibaldi Park” → pitt-river-16d11f[curated]

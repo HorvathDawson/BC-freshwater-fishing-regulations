@@ -3530,7 +3530,7 @@
       "image": "page_020_row_000.png",
       "symbols": [],
       "reg_text": "Exempt from July 15-August 31 summer closure\n**No Fishing** downstream of the BC Hydro diversion dam (approximately 3.5 km downstream of Comox Lake) to the base of Stotan Falls\n(approximately 450 m downstream of the Duncan Bay Mainline logging road)\n**No Fishing **between fishing boundary signs approximately 100 m upstream and downstream of the confluence with Morrison Creek\n**No Fishing** from fishing boundary signs located 50 m upstream of the BC Hydro generating station tailrace to signs located 75 m\ndownstream of the Puntledge River hatchery fence (total distance approximately 500 m)\n**No Fishing **tributaries\nFly fishing only upstream of the BC Hydro diversion dam (approximately 3.5 km downstream of Comox Lake), including tributaries",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 4,
       "locators": [
         {
@@ -3639,24 +3639,52 @@
           "info": {
             "restriction_type": "closure"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "puntledge-river-6e9625-a",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "boundary_signs",
-              "notes": "[auto-proposal L] BC Hydro Puntledge generating-station tailrace + signs (50 m up / 75 m down) on Puntledge River (Courtenay, at powerhouse tailrace). Candidate coord [-125.0, 49.686]. OSM: https://www.openstreetmap.org/?mlat=49.68600&mlon=-125.00000#map=15/49.68600/-125.00000. Verify: Locate the Puntledge generating-station tailrace in Courtenay; set signs 50 m upstream and 75 m downstream of it.. Closure between signs 50 m above and 75 m below the BC Hydro Puntledge generating-station tailrace on the lower Puntledge River (Courtenay). Powerhouse not in FWA; candidate is an approximate lower-Puntledge location - verify on map. [structural-split 2026-08-05 from \"from fishing boundary signs located 50 m upstream of the BC \"] boundary=fishing boundary signs located 50 m upstream of the BC Hydro generating station tailrace [hint-fix 2026-08-06 dam_weir_fence->boundary_signs]",
+              "label": "signs 50m u/s of generating-station tailrace",
+              "notes": "[auto-proposal L] BC Hydro Puntledge generating-station tailrace + signs (50 m up / 75 m down) on Puntledge River (Courtenay, at powerhouse tailrace). Candidate coord [-125.0, 49.686]. OSM: https://www.openstreetmap.org/?mlat=49.68600&mlon=-125.00000#map=15/49.68600/-125.00000. Verify: Locate the Puntledge generating-station tailrace in Courtenay; set signs 50 m upstream and 75 m downstream of it.. Closure between signs 50 m above and 75 m below the BC Hydro Puntledge generating-station tailrace on the lower Puntledge River (Courtenay). Powerhouse not in FWA; candidate is an approximate lower-Puntledge location - verify on map. [structural-split 2026-08-05 from \"from fishing boundary signs located 50 m upstream of the BC \"] boundary=fishing boundary signs located 50 m upstream of the BC Hydro generating station tailrace [hint-fix 2026-08-06 dam_weir_fence->boundary_signs] [curated 2026-08-08 manual-review batch=puntledge-1-6] [base=Puntledge Generating Station OSM rel 15937988; +50m u/s -> 49.68871,-125.03442]",
+              "coord": [
+                -125.03397,
+                49.68837
+              ],
+              "offset": {
+                "anchor": [
+                  -125.03397,
+                  49.68837
+                ],
+                "anchor_label": "BC Hydro Puntledge generating-station tailrace",
+                "m": 50,
+                "dir": "upstream"
+              },
               "locator_text": "fishing boundary signs located 50 m upstream of the BC Hydro generating station tailrace"
             },
             {
               "id": "puntledge-river-6e9625-b",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "boundary_signs",
-              "notes": "[auto-proposal L] BC Hydro Puntledge generating-station tailrace + signs (50 m up / 75 m down) on Puntledge River (Courtenay, at powerhouse tailrace). Candidate coord [-125.0, 49.686]. OSM: https://www.openstreetmap.org/?mlat=49.68600&mlon=-125.00000#map=15/49.68600/-125.00000. Verify: Locate the Puntledge generating-station tailrace in Courtenay; set signs 50 m upstream and 75 m downstream of it.. Closure between signs 50 m above and 75 m below the BC Hydro Puntledge generating-station tailrace on the lower Puntledge River (Courtenay). Powerhouse not in FWA; candidate is an approximate lower-Puntledge location - verify on map. [structural-split 2026-08-05 from \"from fishing boundary signs located 50 m upstream of the BC \"] boundary=signs located 75 m down [hint-fix 2026-08-06 dam_weir_fence->boundary_signs]",
+              "label": "signs 75m d/s of Puntledge hatchery fence",
+              "notes": "[auto-proposal L] BC Hydro Puntledge generating-station tailrace + signs (50 m up / 75 m down) on Puntledge River (Courtenay, at powerhouse tailrace). Candidate coord [-125.0, 49.686]. OSM: https://www.openstreetmap.org/?mlat=49.68600&mlon=-125.00000#map=15/49.68600/-125.00000. Verify: Locate the Puntledge generating-station tailrace in Courtenay; set signs 50 m upstream and 75 m downstream of it.. Closure between signs 50 m above and 75 m below the BC Hydro Puntledge generating-station tailrace on the lower Puntledge River (Courtenay). Powerhouse not in FWA; candidate is an approximate lower-Puntledge location - verify on map. [structural-split 2026-08-05 from \"from fishing boundary signs located 50 m upstream of the BC \"] boundary=signs located 75 m down [hint-fix 2026-08-06 dam_weir_fence->boundary_signs] [curated 2026-08-08 manual-review batch=puntledge-1-6] [base=Puntledge River Hatchery OSM rel 9443986; +75m d/s -> 49.68512,-125.0323; reach ~451m matches ~500m]",
+              "coord": [
+                -125.03217,
+                49.68578
+              ],
+              "offset": {
+                "anchor": [
+                  -125.03217,
+                  49.68578
+                ],
+                "anchor_label": "Puntledge River hatchery fence",
+                "m": 75,
+                "dir": "downstream"
+              },
               "locator_text": "signs located 75 m down"
             }
           ]
@@ -3691,7 +3719,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-08"
     },
     "107e2e8b": {
       "entry_id": "107e2e8b",
