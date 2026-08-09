@@ -4687,7 +4687,7 @@
         "Incl. Tribs"
       ],
       "reg_text": "Fly fishing only upstream of the Toquart mainline logging bridge when open; **No Fishing** upstream of the boundary sign located near the\nfalls approximately 800 m downstream of Toquart Lake (including the Upper Toquart River) between Nov 1-May 31. Note: this includes the\nriver upstream of the lake",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 2,
       "locators": [
         {
@@ -4696,15 +4696,20 @@
           "info": {
             "restriction_type": "gear_restriction"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "toquart-river-ef1ea4",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] Toquart mainline logging bridge over Toquart River on Toquart River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Toquart mainline logging bridge (Barkley Sound area); Toquart R. NOT FOUND in FWA -> map.. 'Toquart River' not returned by FWA under that GNIS name. Logging mainline bridge -> map/OSM-confirmable."
+              "label": "Toquart mainline (FSR) logging bridge",
+              "notes": "[auto-proposal L] Toquart mainline logging bridge over Toquart River on Toquart River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Toquart mainline logging bridge (Barkley Sound area); Toquart R. NOT FOUND in FWA -> map.. 'Toquart River' not returned by FWA under that GNIS name. Logging mainline bridge -> map/OSM-confirmable. [curated 2026-08-08 manual-review batch=toquart-1-8] [Toquart Forest Service Road bridge, OSM way 651270323 bridge=yes]",
+              "coord": [
+                -125.34214,
+                49.05958
+              ]
             }
           ]
         },
@@ -4717,14 +4722,20 @@
               "Nov 1-May 31"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "toquart-river-050a14",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "falls_obstacle",
+              "label": "boundary sign near falls (~800m d/s Toquart Lake)",
+              "notes": "[curated 2026-08-08 manual-review batch=toquart-1-8] [falls = FISS obstacle 31206 / obj 71965100, Gazetted TOQUART RIVER, WSC 930-230500, height 3.5m]",
+              "coord": [
+                -125.34172,
+                49.07043
+              ],
               "locator_text": "upstream of the boundary sign located near the falls approximately 800 m downstream of Toquart Lake (including the Upper"
             }
           ]
@@ -4735,7 +4746,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-08"
     },
     "abf3bba4": {
       "entry_id": "abf3bba4",
