@@ -10977,7 +10977,7 @@
       "image": "page_033_row_011.png",
       "symbols": [],
       "reg_text": "No powered boats from westerly entrance to 12th Street entrance to Park",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 1,
       "locators": [
         {
@@ -10986,24 +10986,24 @@
           "info": {
             "restriction_type": "vessel_restriction"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "mcarthur-island-slough-cd2507-a",
-              "status": "todo",
-              "anchor_kind": "point",
+              "status": "not_applicable",
+              "anchor_kind": "not_a_split",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] westerly entrance & 12th Street park entrance, McArthur Island on McArthur Island Slough. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate McArthur Island Slough (Kamloops), westerly entrance to the 12th St park entrance; map.. Urban slough at McArthur Island Park, Kamloops. Not in FWA. Landmarks are park entrances -> map/OSM-confirmable. [structural-split 2026-08-05 from “from westerly entrance to 12th Street entrance to Park”] boundary=westerly entrance",
+              "notes": "[auto-proposal L] westerly entrance & 12th Street park entrance, McArthur Island on McArthur Island Slough. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate McArthur Island Slough (Kamloops), westerly entrance to the 12th St park entrance; map.. Urban slough at McArthur Island Park, Kamloops. Not in FWA. Landmarks are park entrances -> map/OSM-confirmable. [structural-split 2026-08-05 from “from westerly entrance to 12th Street entrance to Park”] boundary=westerly entrance [reviewed 2026-08-08 manual-review batch=mcarthur-3-28] [n/a: whole McArthur Island Slough matched by name variant; powered-boat restriction applies to the whole named slough, no split needed]",
               "locator_text": "westerly entrance"
             },
             {
               "id": "mcarthur-island-slough-cd2507-b",
-              "status": "todo",
-              "anchor_kind": "point",
+              "status": "not_applicable",
+              "anchor_kind": "not_a_split",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] westerly entrance & 12th Street park entrance, McArthur Island on McArthur Island Slough. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate McArthur Island Slough (Kamloops), westerly entrance to the 12th St park entrance; map.. Urban slough at McArthur Island Park, Kamloops. Not in FWA. Landmarks are park entrances -> map/OSM-confirmable. [structural-split 2026-08-05 from “from westerly entrance to 12th Street entrance to Park”] boundary=12th Street entrance to Park",
+              "notes": "[auto-proposal L] westerly entrance & 12th Street park entrance, McArthur Island on McArthur Island Slough. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate McArthur Island Slough (Kamloops), westerly entrance to the 12th St park entrance; map.. Urban slough at McArthur Island Park, Kamloops. Not in FWA. Landmarks are park entrances -> map/OSM-confirmable. [structural-split 2026-08-05 from “from westerly entrance to 12th Street entrance to Park”] boundary=12th Street entrance to Park [reviewed 2026-08-08 manual-review batch=mcarthur-3-28] [n/a: whole McArthur Island Slough matched by name variant; powered-boat restriction applies to the whole named slough, no split needed]",
               "locator_text": "12th Street entrance to Park"
             }
           ]
@@ -11014,7 +11014,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-08"
     },
     "921224bf": {
       "entry_id": "921224bf",

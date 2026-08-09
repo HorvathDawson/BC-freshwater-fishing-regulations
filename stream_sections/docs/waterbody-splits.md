@@ -7,8 +7,8 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 |---|--:|
 | NO_CURATION | 1 |
 | MISSING_SPLITS | 2 |
-| INCOMPLETE | 119 |
-| COMPLETE | 190 |
+| INCOMPLETE | 118 |
+| COMPLETE | 191 |
 | NO_SPLIT | 75 |
 
 **Drift** (curated rows matching no source locator): 6
@@ -291,9 +291,6 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 
 ## LITTLE LAC DES ROCHES (at west end of Lac Des Roches) · MU ['3-30'] · p32 · [INCOMPLETE] (5ab0483e)
 - • [entry] “at west end of Lac Des Roches” → little-lac-des-roches-at-west-end-of-lac-des--bb8a9a[todo]
-
-## MCARTHUR ISLAND SLOUGH · MU ['3-28'] · p33 · [INCOMPLETE] (a3b02171)
-- • [rule] “from westerly entrance to 12th Street entrance to Park” → mcarthur-island-slough-cd2507-a[todo], mcarthur-island-slough-cd2507-b[todo]
 
 ## ROCHE LAKE · MU ['3-20'] · p34 · [INCOMPLETE] (4a9ee814)
 - • [rule] “south of a line bearing true 244° from a point on the southern tip” → roche-lake-6c9c77[todo]

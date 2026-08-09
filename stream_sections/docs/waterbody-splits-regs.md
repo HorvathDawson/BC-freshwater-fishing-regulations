@@ -3,7 +3,7 @@
 Every reg entry (source-first), booklet order. **Bold** = a live split boundary; plain text
 = whole-water / tributary-set / `not_applicable`. Regenerate; do not hand-edit.
 
-387 entries · 413 highlighted boundary phrases.
+387 entries · 412 highlighted boundary phrases.
 
 | Water | MU | p | Regulation |
 |---|---|--:|---|
@@ -145,7 +145,7 @@ Every reg entry (source-first), booklet order. **Bold** = a live split boundary;
 | LOON LAKE | 3-30 | 32 | No Fishing **northeast of fishing boundary signs near the mouth of Thunder Creek and the public access site** No Ice Fishing **within 500 m of outlet stream at southwest end of lake as marked by fishing boundary signs** |
 | MAHOOD LAKE (see map on page 28 for area closure) | 3-46 | 33 | No Fishing **within the fishing boundary signs at the western tip of the lake near the mouth of Canim River**, Jan 1-June 30 Trout/char catch and release, bait ban and single barbless hook: within fishing boundary signs at the western tip of the lake, July 1-Dec 31 No Fishing **within 200 m of the Mahood River outlet**, Jan 1-June 30 Trout/char catch and release, bait ban and single barbless hook: **within 200 m of the mouth of the Mahood River outlet**, July 1-Dec 31 |
 | MAHOOD RIVER | 3-46 | 33 | No Fishing Jan 1-June 30 **Downstream of Goodwin Falls**: Rainbow trout daily quota = 2 (none over 35 cm), char catch and release; bait ban **Upstream of Goodwin Falls**: Trout/char catch and release; bait ban |
-| MCARTHUR ISLAND SLOUGH | 3-28 | 33 | No powered boats **from westerly entrance to 12th Street entrance to Park** |
+| MCARTHUR ISLAND SLOUGH | 3-28 | 33 | No powered boats from westerly entrance to 12th Street entrance to Park |
 | NAHATLATCH RIVER | 3-15 | 33 | No Fishing **from Frances Lake downstream approximately 400 m to fishing boundary signs at the logging bridge** Downstream of Nahatlatch Lake (including Hannah and Frances lakes; except as noted upstream of ), open until Dec 31; No Fishing Jan 1-May 31 No Fishing downstream of Nahatlatch Lake, Jan 1-May 31 Trout daily quota = 2 (none under 30 cm) |
 | NICOLA RIVER | 3-13 | 33 | No Fishing upstream of Nicola Lake, Jan 1-June 30 No Fishing downstream of Nicola Lake, Mar 1-Sept 30 Trout catch and release downstream of Nicola Lake, Jan 1-Feb 28 No trout under 25 cm downstream of Nicola Lake Bull trout catch and release |
 | PAUL CREEK (downstream of Paul Lake) | 3-27 | 33 | Exempt from spring closure, Youth/Disabled Accompanied Water year round (see page 4) |
