@@ -127,8 +127,8 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 - `babine-river-nichyeskwa-creek-manual` [manual] BABINE RIVER — src=rule “Nichyeskwa Creek confluence”
 - `bull-river-aberfeldie-dam-manual` [curated] BULL RIVER — src=rule “Aberfeldie Dam”
 - `bull-river-galbraith-manual` [curated] BULL RIVER — src=rule “Galbraith Creek confl”
-- `bull-river-quinn-creek-manual` [todo] BULL RIVER — src=rule “Quinn Creek”
-- `bull-river-tie-mill-dam-manual` [todo] BULL RIVER — src=rule “Tie Mill Dam”
+- `bull-river-quinn-creek-manual` [not_applicable] BULL RIVER — src=rule “Quinn Creek”
+- `bull-river-tie-mill-dam-manual` [curated] BULL RIVER — src=rule “Tie Mill Dam”
 - `bull-river-van-creek-manual` [curated] BULL RIVER — src=rule “Van Creek confl”
 - `columbia-river-pend-doreille-confl-manual` [manual] COLUMBIA RIVER — src=rule “Pend d'Oreille River confluence”
 - `elk-river-upstream-of-elko-dam-e38cd2-forsyth-cr` [curated] ELK RIVER (upstream of Elko Dam) — src=rule “Forsyth Creek”

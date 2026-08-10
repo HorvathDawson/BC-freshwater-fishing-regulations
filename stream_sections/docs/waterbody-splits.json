@@ -12957,7 +12957,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-10"
     },
     "72f67e46": {
       "entry_id": "72f67e46",
@@ -29628,7 +29629,8 @@
         "notes": "[manual anchor 2026-08-10] Bull River C&R reach boundary (reg: Galbraith->Van, Aberfeldie Dam->Tie Mill Dam, Quinn Ck); resolved FWA/OSM",
         "entry_id": "11c7347e",
         "offset": null,
-        "polygon": null
+        "polygon": null,
+        "reviewed": "2026-08-10"
       }
     },
     {
@@ -29662,7 +29664,8 @@
         "notes": "[manual anchor 2026-08-10] Bull River C&R reach boundary (reg: Galbraith->Van, Aberfeldie Dam->Tie Mill Dam, Quinn Ck); resolved FWA/OSM",
         "entry_id": "11c7347e",
         "offset": null,
-        "polygon": null
+        "polygon": null,
+        "reviewed": "2026-08-10"
       }
     },
     {
@@ -29673,7 +29676,7 @@
       ],
       "src": "rule",
       "locator_text": "Quinn Creek",
-      "status": "todo",
+      "status": "not_applicable",
       "row": {
         "id": "bull-river-quinn-creek-manual",
         "name_verbatim": "BULL RIVER",
@@ -29684,16 +29687,20 @@
         "src": "rule",
         "locator_text": "Quinn Creek",
         "full_regulation": "Trout/char catch and release from Galbraith Creek to Van Creek[Includes Tributaries], Aberfeldie Dam to Tie Mill Dam[Includes Tributaries] and Quinn Creek[Includes Tributaries]\nOther parts: trout/char daily quota = 1 (none under 30 cm), June 15-Oct 31\nBait ban, June 15-Oct 31\n**Class II water when open, including tributaries**",
-        "anchor_kind": "confluence",
+        "anchor_kind": "not_a_split",
         "resolver_hint": "other_reach",
-        "status": "todo",
-        "target": "",
+        "status": "not_applicable",
+        "target": {
+          "wsc": "300-625474-636250-492930",
+          "name": "Quinn (Queen) Creek"
+        },
         "coord": null,
-        "label": "Quinn Creek (C&R tributary) - NEEDS PIN",
-        "notes": "[manual anchor 2026-08-10] Bull River C&R reach boundary (reg: Galbraith->Van, Aberfeldie Dam->Tie Mill Dam, Quinn Ck); needs pin",
+        "label": "Quinn (Queen) Creek (C&R tributary INCLUDE)",
+        "notes": "[manual anchor 2026-08-10] Bull River C&R reach boundary (reg: Galbraith->Van, Aberfeldie Dam->Tie Mill Dam, Quinn Ck); needs pin [n/a 2026-08-10: Quinn (Queen) Creek is an INCLUDE (whole tributary + its tributaries get C&R), not a point split -> handled by tributary inheritance. FWA GNIS Quinn (Queen) Creek, WSC 300-625474-636250-492930 recorded for matching]",
         "entry_id": "11c7347e",
         "offset": null,
-        "polygon": null
+        "polygon": null,
+        "reviewed": "2026-08-10"
       }
     },
     {
@@ -29704,7 +29711,7 @@
       ],
       "src": "rule",
       "locator_text": "Tie Mill Dam",
-      "status": "todo",
+      "status": "curated",
       "row": {
         "id": "bull-river-tie-mill-dam-manual",
         "name_verbatim": "BULL RIVER",
@@ -29715,16 +29722,20 @@
         "src": "rule",
         "locator_text": "Tie Mill Dam",
         "full_regulation": "Trout/char catch and release from Galbraith Creek to Van Creek[Includes Tributaries], Aberfeldie Dam to Tie Mill Dam[Includes Tributaries] and Quinn Creek[Includes Tributaries]\nOther parts: trout/char daily quota = 1 (none under 30 cm), June 15-Oct 31\nBait ban, June 15-Oct 31\n**Class II water when open, including tributaries**",
-        "anchor_kind": "confluence",
+        "anchor_kind": "point",
         "resolver_hint": "other_reach",
-        "status": "todo",
+        "status": "curated",
         "target": "",
-        "coord": null,
-        "label": "Tie Mill Dam (C&R reach end) - NEEDS PIN",
-        "notes": "[manual anchor 2026-08-10] Bull River C&R reach boundary (reg: Galbraith->Van, Aberfeldie Dam->Tie Mill Dam, Quinn Ck); needs pin",
+        "coord": [
+          -115.44299,
+          49.47331
+        ],
+        "label": "Tie Mill Dam (old dam)",
+        "notes": "[manual anchor 2026-08-10] Bull River C&R reach boundary (reg: Galbraith->Van, Aberfeldie Dam->Tie Mill Dam, Quinn Ck); needs pin [curated 2026-08-10 user pin; old dam]",
         "entry_id": "11c7347e",
         "offset": null,
-        "polygon": null
+        "polygon": null,
+        "reviewed": "2026-08-10"
       }
     },
     {
@@ -29758,7 +29769,8 @@
         "notes": "[manual anchor 2026-08-10] Bull River C&R reach boundary (reg: Galbraith->Van, Aberfeldie Dam->Tie Mill Dam, Quinn Ck); resolved FWA/OSM",
         "entry_id": "11c7347e",
         "offset": null,
-        "polygon": null
+        "polygon": null,
+        "reviewed": "2026-08-10"
       }
     },
     {
