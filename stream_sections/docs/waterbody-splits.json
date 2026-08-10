@@ -1743,7 +1743,7 @@
       "image": "page_017_row_024.png",
       "symbols": [],
       "reg_text": "**No Fishing** July 15-Aug 31[Includes Tributaries]\n**No Fishing** from lower falls in Englishman River Park to signs approximately 100 m downstream\n**No Fishing** downstream of the lower falls in Englishman River Falls Provincial Park to the Top Bridge crossing at the end of\nAllsbrook Road[Includes Tributaries], Dec 1-May 31",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 2,
       "locators": [
         {
@@ -1752,7 +1752,7 @@
           "info": {
             "restriction_type": "closure"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "englishman-river-8660ed-a",
@@ -1770,11 +1770,25 @@
             },
             {
               "id": "englishman-river-8660ed-b",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "boundary_signs",
-              "notes": "[structural-split 2026-08-05 from \"from lower falls in Englishman River Park to signs approxima\"] boundary=signs approximately 100 m downstream [hint-fix 2026-08-06 park_polygon->boundary_signs]",
+              "label": "signs ~100m d/s of lower falls",
+              "notes": "[structural-split 2026-08-05 from \"from lower falls in Englishman River Park to signs approxima\"] boundary=signs approximately 100 m downstream [hint-fix 2026-08-06 park_polygon->boundary_signs] [curated 2026-08-09 falls/offset/canyon batch] [base=lower falls (same pt); +100m d/s -> 49.24741,-124.34879]",
+              "coord": [
+                -124.34885,
+                49.24654
+              ],
+              "offset": {
+                "anchor": [
+                  -124.34885,
+                  49.24654
+                ],
+                "anchor_label": "lower falls, Englishman River Park",
+                "m": 100,
+                "dir": "downstream"
+              },
               "locator_text": "signs approximately 100 m downstream"
             }
           ]
@@ -1827,7 +1841,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-09"
     },
     "167048d4": {
       "entry_id": "167048d4",
@@ -13154,7 +13169,7 @@
       "image": "page_037_row_034.png",
       "symbols": [],
       "reg_text": "**No Fishing** downstream of fishing boundary signs at falls approximately 10 km from Kootenay Lake",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 1,
       "locators": [
         {
@@ -13163,14 +13178,20 @@
           "info": {
             "restriction_type": "closure"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "coffee-creek-ce1bee",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
-              "resolver_hint": "falls_obstacle"
+              "resolver_hint": "falls_obstacle",
+              "label": "falls (~10km from Kootenay Lk)",
+              "notes": "[curated 2026-08-09 falls/offset/canyon batch] [FISS 18621, WSC 340-213100]",
+              "coord": [
+                -117.02688,
+                49.71418
+              ]
             }
           ]
         },
@@ -13180,7 +13201,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-09"
     },
     "02614a0e": {
       "entry_id": "02614a0e",
@@ -15014,7 +15036,7 @@
       "image": "page_039_row_005.png",
       "symbols": [],
       "reg_text": "**No Fishing** downstream of falls approximately 11 km from Arrow Lake",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 1,
       "locators": [
         {
@@ -15023,14 +15045,20 @@
           "info": {
             "restriction_type": "closure"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "halfway-river-4edd1a",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
-              "resolver_hint": "falls_obstacle"
+              "resolver_hint": "falls_obstacle",
+              "label": "falls (~11km from Arrow Lk)",
+              "notes": "[curated 2026-08-09 falls/offset/canyon batch] [FISS 28003, WSC 300-719100]",
+              "coord": [
+                -117.80323,
+                50.50204
+              ]
             }
           ]
         },
@@ -15040,7 +15068,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-09"
     },
     "2ace2dc1": {
       "entry_id": "2ace2dc1",
@@ -15138,7 +15167,7 @@
       "image": "page_039_row_012.png",
       "symbols": [],
       "reg_text": "**No Fishing** downstream of Albert Canyon",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 1,
       "locators": [
         {
@@ -15147,14 +15176,20 @@
           "info": {
             "restriction_type": "closure"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "illecillewaet-river-43349c",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
-              "resolver_hint": "falls_obstacle"
+              "resolver_hint": "falls_obstacle",
+              "label": "Albert Canyon (u/s point near bridge, maximizes d/s reach)",
+              "notes": "[curated 2026-08-09 falls/offset/canyon batch] [user pin]",
+              "coord": [
+                -117.85021,
+                51.14263
+              ]
             }
           ]
         },
@@ -15164,7 +15199,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-09"
     },
     "13b0444c": {
       "entry_id": "13b0444c",
@@ -22714,7 +22750,7 @@
         "Classified"
       ],
       "reg_text": "**Angling prohibited for non-guided non-resident aliens on Saturdays and Sundays, Sept 1-Oct 31\nSee Suskwa River and Telkwa River\nNo Fishing** upstream of Morice/Bulkley River confluence\nBait ban\nNo angling from boats from Morice River to CNR Bridge at Barrett, Aug 15-Dec 31, and in Moricetown Canyon or within 100 m downstream,\nall year\n**Class II water Sept 1-Oct 31 and Steelhead Stamp mandatory Sept 1-Oct 31**",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 3,
       "locators": [
         {
@@ -22795,14 +22831,55 @@
           "info": {
             "restriction_type": "vessel_restriction"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
-              "id": "bulkley-river-fae480",
-              "status": "todo",
-              "anchor_kind": "buffer",
+              "id": "bulkley-river-fae480-a",
+              "status": "curated",
+              "anchor_kind": "point",
               "src": "rule",
-              "resolver_hint": "radius"
+              "resolver_hint": "radius",
+              "label": "Moricetown/Witset Canyon top (u/s)",
+              "notes": "[curated 2026-08-09 Moricetown/Witset Canyon split; user pins; offset landing [-127.32429, 55.0164]]",
+              "coord": [
+                -127.32914,
+                55.01383
+              ]
+            },
+            {
+              "id": "bulkley-river-fae480-b",
+              "status": "curated",
+              "anchor_kind": "point",
+              "src": "rule",
+              "resolver_hint": "radius",
+              "label": "Moricetown/Witset Canyon bottom (d/s)",
+              "notes": "[curated 2026-08-09 Moricetown/Witset Canyon split; user pins; offset landing [-127.32429, 55.0164]]",
+              "coord": [
+                -127.3256,
+                55.01592
+              ]
+            },
+            {
+              "id": "bulkley-river-fae480-c",
+              "status": "curated",
+              "anchor_kind": "point",
+              "src": "rule",
+              "resolver_hint": "radius",
+              "label": "100m d/s of canyon bottom (closure extension)",
+              "notes": "[curated 2026-08-09 Moricetown/Witset Canyon split; user pins; offset landing [-127.32429, 55.0164]]",
+              "coord": [
+                -127.3256,
+                55.01592
+              ],
+              "offset": {
+                "anchor": [
+                  -127.3256,
+                  55.01592
+                ],
+                "anchor_label": "Moricetown Canyon bottom",
+                "m": 100,
+                "dir": "downstream"
+              }
             }
           ]
         },
@@ -22812,7 +22889,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-09"
     },
     "4b68e157": {
       "entry_id": "4b68e157",
@@ -25815,7 +25893,7 @@
       "image": "page_066_row_010.png",
       "symbols": [],
       "reg_text": "**No Fishing** from Attichka Creek to a point 500 m upstream",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 1,
       "locators": [
         {
@@ -25824,7 +25902,7 @@
           "info": {
             "restriction_type": "closure"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "kemess-creek-e5aa68-a",
@@ -25846,11 +25924,25 @@
             },
             {
               "id": "kemess-creek-e5aa68-b",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "other_reach",
-              "notes": "[structural-split 2026-08-05 from \"from Attichka Creek to a point 500 m upstream\"] boundary=point 500 m upstream",
+              "label": "point 500m u/s of Attichka Ck confl",
+              "notes": "[structural-split 2026-08-05 from \"from Attichka Creek to a point 500 m upstream\"] boundary=point 500 m upstream [curated 2026-08-09 falls/offset/canyon batch] [base=Attichka confl; +500m u/s -> 56.97953,-126.77831]",
+              "coord": [
+                -126.78252,
+                56.97681
+              ],
+              "offset": {
+                "anchor": [
+                  -126.78252,
+                  56.97681
+                ],
+                "anchor_label": "Attichka Creek confluence",
+                "m": 500,
+                "dir": "upstream"
+              },
               "locator_text": "point 500 m upstream"
             }
           ]
@@ -25861,7 +25953,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-09"
     },
     "a9ca82b7": {
       "entry_id": "a9ca82b7",
@@ -28267,7 +28360,7 @@
       "image": "page_076_row_019.png",
       "symbols": [],
       "reg_text": "**No Fishing** downstream of falls situated approximately 4 km upstream of Christina Lake",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 1,
       "locators": [
         {
@@ -28276,14 +28369,20 @@
           "info": {
             "restriction_type": "closure"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "mcrae-creek-515a81",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
-              "resolver_hint": "falls_obstacle"
+              "resolver_hint": "falls_obstacle",
+              "label": "falls/potholes (~4km u/s Christina Lk)",
+              "notes": "[curated 2026-08-09 falls/offset/canyon batch] [FISS 24828, WSC 320-160600-46500]",
+              "coord": [
+                -118.22375,
+                49.10917
+              ]
             }
           ]
         },
@@ -28293,7 +28392,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-09"
     },
     "155b494f": {
       "entry_id": "155b494f",
@@ -28508,7 +28608,7 @@
       "image": "page_076_row_028.png",
       "symbols": [],
       "reg_text": "**No Fishing** from Hardy Falls to Okanagan Lake",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 1,
       "locators": [
         {
@@ -28517,15 +28617,20 @@
           "info": {
             "restriction_type": "closure"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "peachland-creek-200082-a",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "falls_obstacle",
-              "notes": "[structural-split 2026-08-05 from \"from Hardy Falls to Okanagan Lake\"] boundary=Hardy Falls",
+              "label": "Hardy Falls",
+              "notes": "[structural-split 2026-08-05 from \"from Hardy Falls to Okanagan Lake\"] boundary=Hardy Falls [curated 2026-08-09 falls/offset/canyon batch] [OSM named waterfall]",
+              "coord": [
+                -119.76731,
+                49.7449
+              ],
               "locator_text": "Hardy Falls"
             },
             {
@@ -28545,7 +28650,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-09"
     },
     "af3ee657": {
       "entry_id": "af3ee657",

@@ -7,8 +7,8 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 |---|--:|
 | NO_CURATION | 1 |
 | MISSING_SPLITS | 2 |
-| INCOMPLETE | 44 |
-| COMPLETE | 265 |
+| INCOMPLETE | 36 |
+| COMPLETE | 273 |
 | NO_SPLIT | 75 |
 
 **Drift** (curated rows matching no source locator): 11
@@ -60,15 +60,6 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 - • [rule] “upstream of the fishing boundary signs located at 49° 14.790'N and” → alouette-river-741304[curated]
 - • [rule] “upstream of 216th Street” → alouette-river-daecfd[curated], north-alouette-river-e3810a[todo]
 - • [rule] “on mainstem” → alouette-river-b5a707[not_applicable]
-
-## BULKLEY RIVER · MU ['6-9'] · p56 · [INCOMPLETE] (d850b295)
-- • [rule] “upstream of Morice/Bulkley River confluence” → bulkley-river-e30268[curated]
-- • [rule] “from Morice River to CNR Bridge at Barrett” → bulkley-river-6f8ca4-a[curated], bulkley-river-6f8ca4-b[curated]
-- • [rule] “in Moricetown Canyon or within 100 m downstream” → bulkley-river-fae480[todo]
-
-## ENGLISHMAN RIVER · MU ['1-5'] · p17 · [INCOMPLETE] (fbf29fb0)
-- • [rule] “from lower falls in Englishman River Park to signs approximately 1” → englishman-river-8660ed-a[curated], englishman-river-8660ed-b[todo]
-- • [rule] “downstream of the lower falls in Englishman River Falls Provincial” → englishman-river-46a674-a[curated], englishman-river-46a674-b[curated]
 
 ## WHITE RIVER · MU ['1-10'] · p21 · [INCOMPLETE] (4cf440b0)
 - • [rule] “between fishing boundary signs at the salmon viewing pool” → white-river-da5ee3[todo]
@@ -128,17 +119,8 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 ## BURTON CREEK · MU ['4-15'] · p37 · [INCOMPLETE] (72f67e46)
 - • [rule] “from Woden Creek to Hwy 6 bridge” → burton-creek-b25ef3-a[curated], burton-creek-b25ef3-b[todo]
 
-## COFFEE CREEK · MU ['4-18'] · p37 · [INCOMPLETE] (55a54cfd)
-- • [rule] “downstream of fishing boundary signs at falls approximately 10 km ” → coffee-creek-ce1bee[todo]
-
 ## ELK RIVER'S TRIBUTARIES (see exceptions) · MU ['4-2', '4-23'] · p38 · [INCOMPLETE] (e4b7a409)
 - • [except] “EXCEPT Coal Creek downstream of old MF&M Railway Bridge 7 km upstr” → elk-river-s-tributaries-see-exceptions-e09244[todo]
-
-## HALFWAY RIVER · MU ['4-31'] · p39 · [INCOMPLETE] (1a72e9f7)
-- • [rule] “downstream of falls approximately 11 km from Arrow Lake” → halfway-river-4edd1a[todo]
-
-## ILLECILLEWAET RIVER · MU ['4-33'] · p39 · [INCOMPLETE] (b8f4c927)
-- • [rule] “downstream of Albert Canyon” → illecillewaet-river-43349c[todo]
 
 ## CRANBERRY RIVER · MU ['6-15'] · p56 · [INCOMPLETE] (107fa559)
 - • [rule] “between fishing boundary signs upstream of and downstream of Cranb” → cranberry-river-699352-a[todo], cranberry-river-699352-b[todo]
@@ -158,9 +140,6 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 ## GAGNON CREEK · MU ['7-30'] · p65 · [INCOMPLETE] (3cf96e99)
 - • [rule] “downstream of fishing boundary signs near its mouth” → gagnon-creek-8e35ce[todo]
 
-## KEMESS CREEK · MU ['7-39'] · p66 · [INCOMPLETE] (d128b1fb)
-- • [rule] “from Attichka Creek to a point 500 m upstream” → kemess-creek-e5aa68-a[curated], kemess-creek-e5aa68-b[todo]
-
 ## PTARMIGAN CREEK · MU ['7-5'] · p67 · [INCOMPLETE] (0b6d5fb7)
 - • [rule] “from falls to Quarry Bridge” → ptarmigan-creek-dd88fc-a[todo], ptarmigan-creek-dd88fc-b[todo]
 
@@ -178,12 +157,6 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 
 ## RAINBOW LAKES · MU ['7-52'] · p72 · [INCOMPLETE] (82b147e1)
 - • [rule] “within 100 m of fishing boundary sign at outlet” → rainbow-lakes-226e29[todo]
-
-## MCRAE CREEK · MU ['8-15'] · p76 · [INCOMPLETE] (ead85d0e)
-- • [rule] “downstream of falls situated approximately 4 km upstream of Christ” → mcrae-creek-515a81[todo]
-
-## PEACHLAND CREEK · MU ['8-8'] · p76 · [INCOMPLETE] (13c2dbeb)
-- • [rule] “from Hardy Falls to Okanagan Lake” → peachland-creek-200082-a[todo], peachland-creek-200082-b[not_applicable]
 
 ## TREPANIER RIVER · MU ['8-8'] · p77 · [INCOMPLETE] (426962cd)
 - • [rule] “from Hwy 97C to Okanagan Lake” → trepanier-river-a999b0-a[todo], trepanier-river-a999b0-b[not_applicable]
