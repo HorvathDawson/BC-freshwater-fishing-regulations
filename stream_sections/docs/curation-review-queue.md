@@ -8,51 +8,6 @@ Each pin has an OSM springboard link. Method = how the pin was derived + what to
 
 ## A. STRONG (named FWA/FSR match)
 
-### ARTLISH RIVER  ·  MU 1-12  ·  `0505ec23`
-
-**Raw reg (verbatim):**
-> **No Fishing** upstream of the boundary signs at the bridge crossing approximately 10 km from the mouth, Nov 1-Apr 30
-
-**All locators in this entry:**
-- 🔴 TODO: *upstream of the boundary signs at the bridge crossing approximately 10 km from the mouth*
-
-**Candidate pin(s) for the TODO row(s):**
-- `artlish-river-9e60a3`  — Reg="bridge ~10 km from mouth". Two FSR bridges bracket 10km; walk-10km pin between them. Eyeball which is signed.
-    - **~10 km walk pin (between the two)**: `50.11658,-126.96451`  →  [OSM](https://www.openstreetmap.org/?mlat=50.11658&mlon=-126.96451#map=15/50.11658/-126.96451)
-    - **FSR (9217) bridge @8.8km**: `50.11567,-126.97894`  →  [OSM](https://www.openstreetmap.org/?mlat=50.11567&mlon=-126.97894#map=15/50.11567/-126.97894)
-    - **FSR LA1000 bridge @11.5km**: `50.12006,-126.94515`  →  [OSM](https://www.openstreetmap.org/?mlat=50.12006&mlon=-126.94515#map=15/50.12006/-126.94515)
-
----
-### COPPER CREEK  ·  MU 6-12  ·  `5fde172a`
-
-**Raw reg (verbatim):**
-> **No Fishing** from Skidegate Lake to signs at second bridge 6 km upstream of tidal boundary, Feb 1-Apr 30
-> Bait ban Nov 1-Apr 30[Includes Tributaries]; cutthroat trout catch and release
-> **Class II water Sept 1-Apr 30**[Includes Tributaries]**; Steelhead Stamp mandatory Dec 1-Apr 30**[Includes Tributaries]
-
-**All locators in this entry:**
-- ⬜ n/a: *Skidegate Lake*
-- 🔴 TODO: *signs at second bridge 6 km upstream of tidal boundary*
-
-**Candidate pin(s) for the TODO row(s):**
-- `copper-creek-538967-b`  — FWA river x FSR: 2 logging bridges above mouth. Reg="second bridge 6 km above tidal" -> the 2nd = South Bay Main. (mouth=tidal ref)
-    - **South Bay Main bridge (2nd, ~7.7km up) — PICK**: `53.11437,-131.80771`  →  [OSM](https://www.openstreetmap.org/?mlat=53.11437&mlon=-131.80771#map=15/53.11437/-131.80771)
-    - **Copper Bay M/L (1st, ~3.9km up)**: `53.134,-131.80497`  →  [OSM](https://www.openstreetmap.org/?mlat=53.134&mlon=-131.80497#map=15/53.134/-131.80497)
-
----
-### EVE RIVER  ·  MU 1-10  ·  `167048d4`
-
-**Raw reg (verbatim):**
-> Artificial fly only upstream of Eve River, to Hwy 19 bridge
-
-**All locators in this entry:**
-- 🔴 TODO: *upstream of the fishing boundary signs (near the South Main Bridge crossing) located approximately 5.4 km downstream of*
-
-**Candidate pin(s) for the TODO row(s):**
-- `eve-river-41b1eb`  — FWA river x FSR "JOINT SOUTHMAIN" @1.8km = the South Main Bridge crossing named in reg.
-    - **South Main Bridge (JOINT SOUTHMAIN FSR)**: `50.4247,-126.24777`  →  [OSM](https://www.openstreetmap.org/?mlat=50.4247&mlon=-126.24777#map=15/50.4247/-126.24777)
-
----
 ### MAMIN RIVER  ·  MU 6-13  ·  `7b4287e4`
 
 **Raw reg (verbatim):**

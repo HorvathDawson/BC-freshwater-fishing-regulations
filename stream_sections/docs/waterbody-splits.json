@@ -317,7 +317,7 @@
         "Incl. Tribs"
       ],
       "reg_text": "**No Fishing** upstream of the boundary signs at the bridge crossing approximately 10 km from the mouth, Nov 1-Apr 30",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 1,
       "locators": [
         {
@@ -329,15 +329,20 @@
               "Nov 1-Apr 30"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "artlish-river-9e60a3",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal M] signed bridge ~10 km from mouth (Artlish mainline area) on Artlish River. Candidate coord [-126.94515, 50.12006]. OSM: https://www.openstreetmap.org/?mlat=50.12006&mlon=-126.94515#map=15/50.12006/-126.94515. Verify: LA1000 FSR crosses Artlish R at ~11.5 km (also AR-15 at ~8.8 km); confirm which is the signed bridge ~10 km from the mouth.. Reg = 'boundary signs at the bridge crossing ~10 km from the mouth'. FWA FSR intersections bracket 10 km: AR-15 at 8.8 km and LA1000 at 11.5 km. Candidate is LA1000 (closest to 10 km); verify against the signed bridge on a map."
+              "label": "LA1000 FSR bridge (~10 km from mouth)",
+              "notes": "[auto-proposal M] signed bridge ~10 km from mouth (Artlish mainline area) on Artlish River. Candidate coord [-126.94515, 50.12006]. OSM: https://www.openstreetmap.org/?mlat=50.12006&mlon=-126.94515#map=15/50.12006/-126.94515. Verify: LA1000 FSR crosses Artlish R at ~11.5 km (also AR-15 at ~8.8 km); confirm which is the signed bridge ~10 km from the mouth.. Reg = 'boundary signs at the bridge crossing ~10 km from the mouth'. FWA FSR intersections bracket 10 km: AR-15 at 8.8 km and LA1000 at 11.5 km. Candidate is LA1000 (closest to 10 km); verify against the signed bridge on a map. [curated 2026-08-10 needs-pin batch1] [user pick: LA1000 @11.5km over the 9217 @8.8km]",
+              "coord": [
+                -126.94515,
+                50.12006
+              ]
             }
           ]
         },
@@ -347,7 +352,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-10"
     },
     "43c59654": {
       "entry_id": "43c59654",
@@ -1164,7 +1170,7 @@
         "Classified"
       ],
       "reg_text": "**No Fishing** from Skidegate Lake to signs at second bridge 6 km upstream of tidal boundary, Feb 1-Apr 30\nBait ban Nov 1-Apr 30[Includes Tributaries]; cutthroat trout catch and release\n**Class II water Sept 1-Apr 30**[Includes Tributaries]**; Steelhead Stamp mandatory Dec 1-Apr 30**[Includes Tributaries]",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 1,
       "locators": [
         {
@@ -1176,7 +1182,7 @@
               "Feb 1-Apr 30"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "copper-creek-538967-a",
@@ -1189,11 +1195,16 @@
             },
             {
               "id": "copper-creek-538967-b",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal M] signed 'second bridge' ~6 km above tidal boundary on Copper Creek. Candidate coord [-131.80771, 53.11437]. OSM: https://www.openstreetmap.org/?mlat=53.11437&mlon=-131.80771#map=15/53.11437/-131.80771. Verify: Two logging crossings found (Copper Bay M/L 3.9 km, South Bay Main 7.7 km); confirm which is the signed 'second bridge' ~6 km above the tidal boundary.. Reach = 'Skidegate Lake to signs at second bridge 6 km above tidal boundary' (Haida Gwaii). Candidate = South Bay Main (7.7 km, nearest 6 km); Copper Bay M/L (3.9 km) is the alternative first bridge. [structural-split 2026-08-05 from “from Skidegate Lake to signs at second bridge 6 km upstream of tidal boundary”] boundary=signs at second bridge 6 km upstream of tidal boundary",
+              "label": "South Bay Main bridge (2nd bridge, 6 km above tidal)",
+              "notes": "[auto-proposal M] signed 'second bridge' ~6 km above tidal boundary on Copper Creek. Candidate coord [-131.80771, 53.11437]. OSM: https://www.openstreetmap.org/?mlat=53.11437&mlon=-131.80771#map=15/53.11437/-131.80771. Verify: Two logging crossings found (Copper Bay M/L 3.9 km, South Bay Main 7.7 km); confirm which is the signed 'second bridge' ~6 km above the tidal boundary.. Reach = 'Skidegate Lake to signs at second bridge 6 km above tidal boundary' (Haida Gwaii). Candidate = South Bay Main (7.7 km, nearest 6 km); Copper Bay M/L (3.9 km) is the alternative first bridge. [structural-split 2026-08-05 from “from Skidegate Lake to signs at second bridge 6 km upstream of tidal boundary”] boundary=signs at second bridge 6 km upstream of tidal boundary [curated 2026-08-10 needs-pin batch1] [user confirmed; 2nd of 2 FSR crossings above mouth]",
+              "coord": [
+                -131.80771,
+                53.11437
+              ],
               "locator_text": "signs at second bridge 6 km upstream of tidal boundary"
             }
           ]
@@ -1204,7 +1215,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-10"
     },
     "734ff48d": {
       "entry_id": "734ff48d",
@@ -1857,7 +1869,7 @@
         "Incl. Tribs"
       ],
       "reg_text": "**No Fishing** upstream of the fishing boundary signs (near the South Main Bridge crossing) located approximately 5.4 km downstream of\nthe Hwy 19 bridge, Dec 1-May 31",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 1,
       "locators": [
         {
@@ -1869,7 +1881,7 @@
               "Dec 1-May 31"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "adam-river-except-eve-river-939f98-b",
@@ -1888,11 +1900,16 @@
             },
             {
               "id": "eve-river-41b1eb",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal M] South Main Bridge crossing over Eve River on Eve River. Candidate coord [-126.24777, 50.4247]. OSM: https://www.openstreetmap.org/?mlat=50.42470&mlon=-126.24777#map=15/50.42470/-126.24777. Verify: JOINT SOUTHMAIN FSR crosses Eve River ~1.8 km up (name matches 'South Main'); confirm the boundary-sign point near it.. Reg = 'boundary signs near the South Main Bridge crossing'. FWA has a 'JOINT SOUTHMAIN' (EASTMAIN) crossing at 1.8 km -> strong name match for the South Main bridge. Verify the signed point (~5.4 km downstream of the referenced feature, truncated).",
+              "label": "signs near South Main Bridge (~5.4 km d/s of Hwy 19 bridge)",
+              "notes": "[auto-proposal M] South Main Bridge crossing over Eve River on Eve River. Candidate coord [-126.24777, 50.4247]. OSM: https://www.openstreetmap.org/?mlat=50.42470&mlon=-126.24777#map=15/50.42470/-126.24777. Verify: JOINT SOUTHMAIN FSR crosses Eve River ~1.8 km up (name matches 'South Main'); confirm the boundary-sign point near it.. Reg = 'boundary signs near the South Main Bridge crossing'. FWA has a 'JOINT SOUTHMAIN' (EASTMAIN) crossing at 1.8 km -> strong name match for the South Main bridge. Verify the signed point (~5.4 km downstream of the referenced feature, truncated). [curated 2026-08-10 needs-pin batch1] [user pin 50.34886,-126.20174; = FSR \"Eve River Main\" crossing @12.4km up]",
+              "coord": [
+                -126.20174,
+                50.34886
+              ],
               "locator_text": "upstream of the fishing boundary signs (near the South Main Bridge crossing) located approximately 5.4 km downstream of"
             }
           ]
@@ -1914,7 +1931,8 @@
             }
           ]
         }
-      ]
+      ],
+      "reviewed": "2026-08-10"
     },
     "60f3c8c1": {
       "entry_id": "60f3c8c1",
