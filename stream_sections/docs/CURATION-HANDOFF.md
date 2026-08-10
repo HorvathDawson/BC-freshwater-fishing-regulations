@@ -130,31 +130,41 @@ candidates, then present per-type batches (Lakes / Bridges / Confl / Falls / Sig
 with full raw reg + ALL locators + OSM pins for human review.
 
 ### The true needs-pin residual (28 rows / 24 entries) — candidate pins staged for human review
-**All 28 todo rows now have candidate pins staged in `stream_sections/docs/curation-review-queue.md`**
-(generated 2026-08-10, NOT applied). That doc has, per entry: full verbatim raw reg, ALL locators,
-and candidate pin(s) with OSM springboard links + a method note saying what to eyeball. Grouped by
-confidence: **A. STRONG** named FWA/FSR matches (Copper=SOUTH BAY MAIN, Mamin=MAMIN MAIN,
-Eve=JOINT SOUTHMAIN, Artlish=LA1000, Mohun=MENZMN.2, Thorn=Attichika confl); **B. SPRINGBOARD on the
-correct FWA channel** (Deena, N.Alouette 216St, Elk-Coal, Chowade, Kitimat Hwy37, Ptarmigan Quarry,
-Chuckwalla, Pinkut, Swift, Cranberry canyon, Thompson-Martel); **C. townsite/landmark springboard**
-where FWA name/MU misses (Burton→Burton BC on Hwy6, Trepanier→Peachland 97C, Capilano hatchery,
-Hays PR cannery, Ksi X'anmas lower river); **D. needs FISS/topo** (Ptarmigan falls, White salmon
-pool); **E. likely n/a** (Skeena §4 = reach label, endpoints already curated).
+**All 28 todo rows have candidate pins staged in `stream_sections/docs/curation-review-queue.md`**
+(generated 2026-08-10, NOT applied). Per entry: full verbatim raw reg, ALL locators, and candidate
+pin(s) with OSM springboard links + a method note saying what to eyeball. Durable resolver +
+`offline_pins.json` live in **`stream_sections/oneoff/needspin/`** (see its README to reproduce).
+Grouped by confidence:
+- **A. STRONG** named FWA/FSR matches — Copper=**SOUTH BAY MAIN** (2nd of 2 FSR bridges), Eve=**JOINT
+  SOUTHMAIN**=South Main Br, Mohun=**MENZMN.2**, Mamin=**walk-10 km** (Mamin Main is 28 km up — too far),
+  Artlish=**9217 (8.8 km) vs LA1000 (11.5 km)** bracket the "~10 km" point.
+- **B. SPRINGBOARD on the correct FWA channel** — Deena (walk-5 km), N.Alouette@216St, Elk-Coal
+  (Coal Ck walk-7 km), Chowade (sole FSR crossing), Kitimat Hwy37, Ptarmigan Quarry, Chuckwalla
+  (walk-10 mi), Pinkut, Swift, Thorn (Attichika confl), Cranberry (Kiteen-jct ref), Thompson-Martel.
+- **C. townsite/landmark springboard** where FWA name/MU misses — Burton→Burton BC on Hwy 6 (@ Woden
+  confl), Trepanier→Peachland 97C, Capilano hatchery footbridge (OSM way 60608394), Hays PR cannery
+  (OSM Hays Cove Circle), Ksi X'anmas lower river.
+- **D. needs FISS/topo** — Ptarmigan falls, White River salmon-viewing pool.
+- **E. likely n/a** — Skeena §4 bait-ban = whole reach label, endpoints already curated → propose n/a.
 
-**New offline resolution techniques used this pass (reusable — see `scratchpad/fwa_helper.py`):**
-- **`tidal_boundary` gpkg layer** (MultiPolygon of salt water) resolves "N km upstream of tidal
-  boundary": intersect the FWA river with the tidal polygon edge → tidal point, then walk N km up the
-  ordered channel. `river_road_crossings()` lists every `forest_service_roads` bridge that actually
-  crosses the river, ordered by km-from-mouth → directly nails "second/third bridge N km up tidal".
+**Offline resolution techniques used this pass (reusable — `stream_sections/oneoff/needspin/fwa_helpers.py`):**
+- **FWA mouth = tidal reference** (per user: "use last node of stream as default tidal — don't use the
+  tidal layer"). `mainstem(name, mus)` orders the river **mouth→source** by `DOWNSTREAM_ROUTE_MEASURE`;
+  `walk_from(line, 0, km)` gives the point `km` upstream of the mouth → resolves "N km above tidal / from
+  mouth". `fsr_crossings(line)` lists every `forest_service_roads` bridge crossing the river ordered by
+  km-from-mouth → directly nails "second/third bridge N km up" (Copper, Eve, Mohun, Chowade).
 - **`forest_service_roads` layer** has `ROAD_SECTION_NAME` — named-bridge matches offline (no OSM):
-  MAMIN MAIN, SOUTH BAY MAIN, JOINT SOUTHMAIN, MENZMN.2, ARTLISHMAINLINE all matched by name+distance.
+  SOUTH BAY MAIN, JOINT SOUTHMAIN, MENZMN.2, ARTLISHMAINLINE/LA1000 matched by name+distance.
 - **`wmu`-bbox clip** (`mu_bbox`) disambiguates dup river names — BUT when a creek isn't in FWA under
-  that GNIS in that MU at all (Burton@4-15→resolves to Adams Lake; Trepanier@8-8→N BC), the clip finds
-  nothing and the dominant-blk fallback returns the WRONG watershed → fall back to townsite springboard.
-- **Overpass was down/overloaded this session** (both overpass-api.de and kumi timed out) — the
-  road/street/urban-landmark crossings (216 St, Hwy 6, 97C, Hwy 37, PR cannery, MF&M rail) could NOT
-  be resolved live; they're staged as FWA-channel or townsite springboards for the human to confirm on
-  the OSM link. Retry `scratchpad/osm_batch.py` when Overpass is healthy to upgrade these to exact ways.
+  that GNIS in that MU at all (Burton@4-15→resolves to Adams Lake; Trepanier@8-8 name miss), the clip
+  finds nothing and the dominant-blk fallback returns the WRONG watershed → fall back to townsite
+  springboard (use a sibling curated confl / known town coord).
+- **Overpass was flaky this session** — 13/15 road/urban crossings timed out; only Capilano footbridge
+  and Hays Cove Circle came back. The rest are staged as FWA-channel or townsite springboards. Retry
+  `needspin` OSM helpers (`osm_road_cross`) when Overpass is healthy to upgrade these to exact ways.
+- **5 rows still have NO coord** (need topo/gazetteer): `thorn-…-b` (500 m u/s of Attichika),
+  `cranberry-…-b` (canyon d/s sign), `thompson-…-1c9ce3` (Martel locality), `ksi-x-anmas` (remote
+  coastal), `skeena-…-c2e0df` (→ n/a).
 
 Reviewed/handled earlier: Fraser 3-14, Columbia, Elk (u/s Elko), Chilliwack/Vedder, Kokish, Cowichan,
 Fraser (u/s CPR Mission), Little Qualicum, Shuswap River, Nitinat, Campbell 2-4, Coquitlam, Nicomekl,
@@ -212,7 +222,10 @@ kind, fwa_river, box, road/dam filter, note) — extend it to stage more.
 
 ### NEXT UP
 
-`wb_present.py --todo` → next tier: **Nathan (Beaver) Ck 2-4, Pitt R 2-8, Sakinaw Lake 2-5, Salmon R
-2-4, Weaver Lake & Ck 2-19, Clearwater R 3-40/3-46, …** Still open: **"ELK RIVER'S TRIBUTARIES"**
-(unresolved `EXCEPT Coal Creek d/s of old MF&M Railway`). Follow the loop; defer lake-splits (verify
-first); confirm every candidate before writing.
+**The 28 needs-pin rows are the only `todo` left.** They are all staged in
+`stream_sections/docs/curation-review-queue.md` (A–E buckets). The human reviews a bucket, picks/adjusts
+pins off the OSM links, then a follow-up `apply_*.py` writes coords via `load_curation`/`save_curation`
+and sets `reviewed` on entries with no remaining `todo` (Elk River's Tributaries / Coal Ck MF&M is now
+staged in bucket B, no longer open). Confirm every candidate before writing; the 5 no-coord rows above
+need topo/FISS/gazetteer input from the human. After that, `wb_present.py --todo` is empty and the next
+tier is name-tuple/matching work (see `10-matching-and-invariants.md` watch-list).

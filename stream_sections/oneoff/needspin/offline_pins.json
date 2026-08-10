@@ -1,0 +1,351 @@
+{
+ "copper-creek-538967-b": {
+  "method": "FWA river x FSR: 2 logging bridges above mouth. Reg=\"second bridge 6 km above tidal\" -> the 2nd = South Bay Main. (mouth=tidal ref)",
+  "pins": [
+   [
+    "South Bay Main bridge (2nd, ~7.7km up) \u2014 PICK",
+    [
+     53.11437,
+     -131.80771
+    ]
+   ],
+   [
+    "Copper Bay M/L (1st, ~3.9km up)",
+    [
+     53.134,
+     -131.80497
+    ]
+   ]
+  ]
+ },
+ "eve-river-41b1eb": {
+  "method": "FWA river x FSR \"JOINT SOUTHMAIN\" @1.8km = the South Main Bridge crossing named in reg.",
+  "pins": [
+   [
+    "South Main Bridge (JOINT SOUTHMAIN FSR)",
+    [
+     50.4247,
+     -126.24777
+    ]
+   ]
+  ]
+ },
+ "artlish-river-9e60a3": {
+  "method": "Reg=\"bridge ~10 km from mouth\". Two FSR bridges bracket 10km; walk-10km pin between them. Eyeball which is signed.",
+  "pins": [
+   [
+    "~10 km walk pin (between the two)",
+    [
+     50.11658,
+     -126.96451
+    ]
+   ],
+   [
+    "FSR (9217) bridge @8.8km",
+    [
+     50.11567,
+     -126.97894
+    ]
+   ],
+   [
+    "FSR LA1000 bridge @11.5km",
+    [
+     50.12006,
+     -126.94515
+    ]
+   ]
+  ]
+ },
+ "mamin-river-608d92": {
+  "method": "Reg=\"third bridge ~10 km above tidal\". Only Datlamen(4.6km)/Mamin Main(28km) in FSR data; walk-10km pin is the springboard for the 3rd bridge.",
+  "pins": [
+   [
+    "~10 km upstream walk pin (third-bridge area)",
+    [
+     53.57421,
+     -132.32237
+    ]
+   ]
+  ]
+ },
+ "mohun-creek-1fa4a0-a": {
+  "method": "FWA river x FSR \"MENZMN.2\" (Menzies Bay mainline) @7.4km = reach start to Morton Lake.",
+  "pins": [
+   [
+    "Menzies Bay mainline bridge (MENZMN.2)",
+    [
+     50.09625,
+     -125.42449
+    ]
+   ]
+  ]
+ },
+ "thorn-creek-b2b2c7-a": {
+  "method": "Thorn Ck NOT in FWA. Anchor = Attichika Creek confluence; using Attichika mouth (where it meets Thorn).",
+  "pins": [
+   [
+    "Attichika Creek confluence (Attichika mouth)",
+    [
+     56.96833,
+     -126.87528
+    ]
+   ]
+  ]
+ },
+ "deena-creek-af3d2f": {
+  "method": "Reg=\"second bridge ~5 km above tidal\"; no FSR near 5km in data. Walk-5km pin on FWA Deena -> eyeball the bridge.",
+  "pins": [
+   [
+    "~5 km upstream walk pin",
+    [
+     53.12351,
+     -132.1628
+    ]
+   ]
+  ]
+ },
+ "north-alouette-river-e3810a": {
+  "method": "FWA North Alouette sampled at 216th St longitude (mainstem 216 St curated 49.2409,-122.62242 just S).",
+  "pins": [
+   [
+    "N. Alouette @ 216th St (Fifth Ave)",
+    [
+     49.25991,
+     -122.62223
+    ]
+   ]
+  ]
+ },
+ "elk-river-s-tributaries-see-exceptions-e09244": {
+  "method": "Reg=\"Coal Ck d/s of old MF&M Railway Br 7 km up from Elk R\". FWA Coal Ck walked 7km from mouth -> eyeball the rail bridge.",
+  "pins": [
+   [
+    "Coal Ck ~7 km up (MF&M rail br area)",
+    [
+     49.48831,
+     -114.99223
+    ]
+   ],
+   [
+    "Coal Ck mouth at Elk R (ref)",
+    [
+     49.49786,
+     -115.07037
+    ]
+   ]
+  ]
+ },
+ "chowade-river-42a570": {
+  "method": "FWA river x FSR: exactly one road crossing @21.6km = Horseshoe Road Bridge.",
+  "pins": [
+   [
+    "Horseshoe Road Bridge (sole crossing)",
+    [
+     56.70291,
+     -122.7821
+    ]
+   ]
+  ]
+ },
+ "kitimat-river-angling-regulations-for-the-kit-b3b21f": {
+  "method": "Reg=\"tributaries and upstream of Hwy 37 bridge\". FWA Kitimat near Kitimat townsite; Hwy 37 crosses lower valley -> eyeball.",
+  "pins": [
+   [
+    "Kitimat R ~ Hwy37 area (lower valley springboard)",
+    [
+     54.0446,
+     -128.68101
+    ]
+   ]
+  ]
+ },
+ "kitimat-river-angling-regulations-for-the-kit-664c72": {
+  "method": "WEST-HALF partial-width closure near Kitimat Hatchery outfall (NOT clean cross-channel). FWA mouth ref.",
+  "pins": [
+   [
+    "Kitimat R mouth (hatchery outfall reach ref)",
+    [
+     54.01089,
+     -128.66227
+    ]
+   ]
+  ]
+ },
+ "ptarmigan-creek-dd88fc-b": {
+  "method": "Quarry Bridge on Ptarmigan Ck (Robson valley). No FSR/OSM hit offline; FWA channel + mouth as springboard.",
+  "pins": [
+   [
+    "Ptarmigan Ck mouth (Quarry Br upstream) \u2014 eyeball",
+    [
+     53.70477,
+     -120.89037
+    ]
+   ]
+  ]
+ },
+ "chuckwalla-river-eec2f0": {
+  "method": "Reg=\"Ten Mile Pool\" (named pool ~10 mi up). Walk 10 mi (16 km) on FWA Chuckwalla -> eyeball the pool.",
+  "pins": [
+   [
+    "~10 mi (16 km) upstream walk pin",
+    [
+     51.77912,
+     -127.16267
+    ]
+   ]
+  ]
+ },
+ "pinkut-creek-03a36e": {
+  "method": "DFO Pinkut Ck fish fence / spawning channel. FWA mouth (Babine) as springboard; fence is near mouth reach.",
+  "pins": [
+   [
+    "Pinkut Ck mouth @ Babine (fish fence nearby)",
+    [
+     54.45879,
+     -125.46404
+    ]
+   ]
+  ]
+ },
+ "swift-creek-a32fd8-a": {
+  "method": "Weir (u/s side) d/s of CNR Br in Valemount (CNR br curated 52.83822,-119.26786). FWA mouth as springboard.",
+  "pins": [
+   [
+    "Swift Ck mouth @ Valemount (weir just u/s)",
+    [
+     52.84848,
+     -119.29953
+    ]
+   ]
+  ]
+ },
+ "thorn-creek-b2b2c7-b": {
+  "method": "Point 500 m upstream of Attichika confl. Thorn not in FWA -> approximate 500m up from the Attichika-mouth anchor (needs Thorn channel to finalize).",
+  "pins": [
+   [
+    "~500 m u/s of Attichika confl (approx)",
+    null
+   ]
+  ]
+ },
+ "cranberry-river-699352-a": {
+  "method": "Signs bracket \"Cranberry River Canyon\"; canyon not in FWA falls layer. Cranberry-Kiteen jct as locator ref. Needs topo/map canyon pin (u/s sign).",
+  "pins": [
+   [
+    "Cranberry-Kiteen junction (ref only)",
+    [
+     55.51394,
+     -128.8105
+    ]
+   ]
+  ]
+ },
+ "cranberry-river-699352-b": {
+  "method": "Downstream-of-canyon sign; pairs with -a once the canyon is located on topo.",
+  "pins": [
+   [
+    "(pair with -a canyon)",
+    null
+   ]
+  ]
+ },
+ "thompson-river-downstream-of-signs-at-kamloop-1c9ce3": {
+  "method": "Reg=\"1 km d/s of Martel\" (rail locality on the Thompson, Ashcroft-Spences Bridge). Needs Martel gazetteer/topo -> then 1 km downstream.",
+  "pins": [
+   [
+    "1 km d/s of Martel (needs Martel locality)",
+    null
+   ]
+  ]
+ },
+ "burton-creek-b25ef3-b": {
+  "method": "Hwy 6 bridge over Burton Ck at Burton (Arrow Lakes). FWA \"Burton Creek\" collides w/ Adams-Lk creek; correct creek is by Woden confl (49.92206,-117.88365). Eyeball Hwy 6 crossing near there.",
+  "pins": [
+   [
+    "Burton Ck @ Woden confl (Hwy 6 br just u/s) \u2014 eyeball",
+    [
+     49.92206,
+     -117.88365
+    ]
+   ]
+  ]
+ },
+ "trepanier-river-a999b0-a": {
+  "method": "Hwy 97C (Okanagan Connector) over Trepanier Ck at Peachland. FWA \"Trepanier River\" name miss. Eyeball 97C crossing above Okanagan Lk.",
+  "pins": [
+   [
+    "Trepanier Ck @ Peachland / Hwy 97C \u2014 eyeball",
+    [
+     49.7735,
+     -119.7365
+    ]
+   ]
+  ]
+ },
+ "capilano-river-496399": {
+  "method": "Footbridge ~100m d/s of hatchery fish fence (below Cleveland Dam). OSM Capilano Pacific Trail footbridge.",
+  "pins": [
+   [
+    "Capilano Pacific Trail footbridge (OSM way 60608394)",
+    [
+     49.35037,
+     -123.11759
+    ]
+   ]
+  ]
+ },
+ "hays-creek-in-prince-rupert-6e14c4": {
+  "method": "Lower culvert near fish cannery, Prince Rupert (urban; incl \"Oldfield\" Ck). OSM Hays Cove Circle @ 6th Ave as springboard.",
+  "pins": [
+   [
+    "Hays Ck area, Prince Rupert (OSM Hays Cove Circle)",
+    [
+     54.31886,
+     -130.30971
+    ]
+   ]
+  ]
+ },
+ "ksi-x-anmas-river-formerly-kwinamass-river-fe2f0b": {
+  "method": "Lower bridge abutments on Ksi X'anmas (Kwinamass) R. Remote coastal river N of Prince Rupert; not in FWA under either name -> needs topo/map.",
+  "pins": [
+   [
+    "(remote coastal \u2014 needs topo)",
+    null
+   ]
+  ]
+ },
+ "ptarmigan-creek-dd88fc-a": {
+  "method": "Falls on Ptarmigan Ck (reach start). Not in FWA waterfalls layer -> needs FISS/topo. FWA mouth as area springboard.",
+  "pins": [
+   [
+    "Ptarmigan Ck mouth (falls upstream) \u2014 needs FISS",
+    [
+     53.70477,
+     -120.89037
+    ]
+   ]
+  ]
+ },
+ "white-river-da5ee3": {
+  "method": "Salmon viewing pool near Sayward; sibling Sayward Road Bridge curated 50.30805,-125.91741. Viewing pool is a signed reach nearby -> needs FISS/local map.",
+  "pins": [
+   [
+    "Near Sayward Road Bridge (viewing pool nearby)",
+    [
+     50.30805,
+     -125.91741
+    ]
+   ]
+  ]
+ },
+ "skeena-river-mainstem-only-c2e0df": {
+  "method": "Bait-ban applies to WHOLE \"Skeena River Section 4\" (already defined by sibling boundary rows). No new point split -> PROPOSE n/a.",
+  "pins": [
+   [
+    "(no split \u2014 propose n/a)",
+    null
+   ]
+  ]
+ }
+}

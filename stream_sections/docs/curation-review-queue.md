@@ -17,9 +17,10 @@ Each pin has an OSM springboard link. Method = how the pin was derived + what to
 - 🔴 TODO: *upstream of the boundary signs at the bridge crossing approximately 10 km from the mouth*
 
 **Candidate pin(s) for the TODO row(s):**
-- `artlish-river-9e60a3`  — FWA tidal boundary (50.12,-127.08) + ordered FSR crossings: ARTLISHMAINLINE @0.4km, spur @8.4km, LA1000 @11.1km. Reg "bridge ~10km from mouth" -> between the 8.4km spur and LA1000 @11.1km. LA1000 is the classic boundary.
-    - **LA1000 bridge (@11.1km, ~10km from mouth)**: `50.12006,-126.94515`  →  [OSM](https://www.openstreetmap.org/?mlat=50.12006&mlon=-126.94515#map=15/50.12006/-126.94515)
-    - **Artlish spur bridge (@8.4km)**: `50.11567,-126.97894`  →  [OSM](https://www.openstreetmap.org/?mlat=50.11567&mlon=-126.97894#map=15/50.11567/-126.97894)
+- `artlish-river-9e60a3`  — Reg="bridge ~10 km from mouth". Two FSR bridges bracket 10km; walk-10km pin between them. Eyeball which is signed.
+    - **~10 km walk pin (between the two)**: `50.11658,-126.96451`  →  [OSM](https://www.openstreetmap.org/?mlat=50.11658&mlon=-126.96451#map=15/50.11658/-126.96451)
+    - **FSR (9217) bridge @8.8km**: `50.11567,-126.97894`  →  [OSM](https://www.openstreetmap.org/?mlat=50.11567&mlon=-126.97894#map=15/50.11567/-126.97894)
+    - **FSR LA1000 bridge @11.5km**: `50.12006,-126.94515`  →  [OSM](https://www.openstreetmap.org/?mlat=50.12006&mlon=-126.94515#map=15/50.12006/-126.94515)
 
 ---
 ### COPPER CREEK  ·  MU 6-12  ·  `5fde172a`
@@ -34,8 +35,9 @@ Each pin has an OSM springboard link. Method = how the pin was derived + what to
 - 🔴 TODO: *signs at second bridge 6 km upstream of tidal boundary*
 
 **Candidate pin(s) for the TODO row(s):**
-- `copper-creek-538967-b`  — FWA tidal boundary (53.16,-131.80) + ordered FSR crossings: COPPER BAY M/L @3.9km=1st, SOUTH BAY MAIN @7.7km=2nd. Reg says "second bridge 6km u/s tidal" -> SOUTH BAY MAIN.
-    - **SOUTH BAY MAIN bridge (2nd bridge @7.7km u/s tidal)**: `53.11437,-131.80771`  →  [OSM](https://www.openstreetmap.org/?mlat=53.11437&mlon=-131.80771#map=15/53.11437/-131.80771)
+- `copper-creek-538967-b`  — FWA river x FSR: 2 logging bridges above mouth. Reg="second bridge 6 km above tidal" -> the 2nd = South Bay Main. (mouth=tidal ref)
+    - **South Bay Main bridge (2nd, ~7.7km up) — PICK**: `53.11437,-131.80771`  →  [OSM](https://www.openstreetmap.org/?mlat=53.11437&mlon=-131.80771#map=15/53.11437/-131.80771)
+    - **Copper Bay M/L (1st, ~3.9km up)**: `53.134,-131.80497`  →  [OSM](https://www.openstreetmap.org/?mlat=53.134&mlon=-131.80497#map=15/53.134/-131.80497)
 
 ---
 ### EVE RIVER  ·  MU 1-10  ·  `167048d4`
@@ -47,8 +49,8 @@ Each pin has an OSM springboard link. Method = how the pin was derived + what to
 - 🔴 TODO: *upstream of the fishing boundary signs (near the South Main Bridge crossing) located approximately 5.4 km downstream of*
 
 **Candidate pin(s) for the TODO row(s):**
-- `eve-river-41b1eb`  — Reg: signs ~5.4km DOWNSTREAM of Hwy19 bridge, near South Main Bridge. FSR crossing JOINT SOUTHMAIN @1.8km from mouth matches the South Main Bridge name; Hwy19 crossing is ~7km up, 7-5.4=1.6km ~ consistent.
-    - **JOINT SOUTHMAIN bridge (@1.8km from tidal = ~5.4km d/s of Hwy19)**: `50.4247,-126.24777`  →  [OSM](https://www.openstreetmap.org/?mlat=50.4247&mlon=-126.24777#map=15/50.4247/-126.24777)
+- `eve-river-41b1eb`  — FWA river x FSR "JOINT SOUTHMAIN" @1.8km = the South Main Bridge crossing named in reg.
+    - **South Main Bridge (JOINT SOUTHMAIN FSR)**: `50.4247,-126.24777`  →  [OSM](https://www.openstreetmap.org/?mlat=50.4247&mlon=-126.24777#map=15/50.4247/-126.24777)
 
 ---
 ### MAMIN RIVER  ·  MU 6-13  ·  `7b4287e4`
@@ -62,8 +64,8 @@ Each pin has an OSM springboard link. Method = how the pin was derived + what to
 - 🔴 TODO: *upstream of fishing boundary signs on third bridge approximately 10 km upstream of the tidal boundary*
 
 **Candidate pin(s) for the TODO row(s):**
-- `mamin-river-608d92`  — FWA tidal boundary (53.62,-132.30) + ordered FSR crossings: DATLAMEN @2.5km, MAMIN MAIN @9.1km. Reg "third bridge ~10km u/s tidal" + name Mamin Main -> MAMIN MAIN (some small bridges missing from FSR data).
-    - **MAMIN MAIN bridge (@9.1km u/s tidal, named match)**: `53.56814,-132.32625`  →  [OSM](https://www.openstreetmap.org/?mlat=53.56814&mlon=-132.32625#map=15/53.56814/-132.32625)
+- `mamin-river-608d92`  — Reg="third bridge ~10 km above tidal". Only Datlamen(4.6km)/Mamin Main(28km) in FSR data; walk-10km pin is the springboard for the 3rd bridge.
+    - **~10 km upstream walk pin (third-bridge area)**: `53.57421,-132.32237`  →  [OSM](https://www.openstreetmap.org/?mlat=53.57421&mlon=-132.32237#map=15/53.57421/-132.32237)
 
 ---
 ### MOHUN CREEK  ·  MU 1-10  ·  `5e563b26`
@@ -76,8 +78,8 @@ Each pin has an OSM springboard link. Method = how the pin was derived + what to
 - ⬜ n/a: *Morton Lake*
 
 **Candidate pin(s) for the TODO row(s):**
-- `mohun-creek-1fa4a0-a`  — FWA FSR crossing MENZMN.2 (Menzies Bay mainline) @7.4km on Mohun Ck. Named match. Reach = this bridge -> Morton Lake.
-    - **MENZMN.2 = Menzies Bay mainline bridge (@7.4km)**: `50.09625,-125.42449`  →  [OSM](https://www.openstreetmap.org/?mlat=50.09625&mlon=-125.42449#map=15/50.09625/-125.42449)
+- `mohun-creek-1fa4a0-a`  — FWA river x FSR "MENZMN.2" (Menzies Bay mainline) @7.4km = reach start to Morton Lake.
+    - **Menzies Bay mainline bridge (MENZMN.2)**: `50.09625,-125.42449`  →  [OSM](https://www.openstreetmap.org/?mlat=50.09625&mlon=-125.42449#map=15/50.09625/-125.42449)
 
 ---
 
@@ -94,8 +96,8 @@ Each pin has an OSM springboard link. Method = how the pin was derived + what to
 - 🔴 TODO: *upstream of fishing boundary signs at second bridge approximately 5 km upstream of the tidal boundary*
 
 **Candidate pin(s) for the TODO row(s):**
-- `deena-creek-af3d2f`  — FWA tidal boundary (53.14,-132.14) + walk 5km upstream. No FSR crossing in data near here; nearest named roads DEENA WEST MAIN (70m) / DEENA MAIN (177m) parallel the creek. VISUAL: which bridge sits ~5km above tidal.
-    - **+5km-from-tidal pin (springboard; DEENA WEST MAIN ~70m, DEENA MAIN ~180m)**: `53.12165,-132.16333`  →  [OSM](https://www.openstreetmap.org/?mlat=53.12165&mlon=-132.16333#map=15/53.12165/-132.16333)
+- `deena-creek-af3d2f`  — Reg="second bridge ~5 km above tidal"; no FSR near 5km in data. Walk-5km pin on FWA Deena -> eyeball the bridge.
+    - **~5 km upstream walk pin**: `53.12351,-132.1628`  →  [OSM](https://www.openstreetmap.org/?mlat=53.12351&mlon=-132.1628#map=15/53.12351/-132.1628)
 
 ---
 ### ALOUETTE RIVER  ·  MU 2-8  ·  `dadcd21c`
@@ -112,8 +114,8 @@ Each pin has an OSM springboard link. Method = how the pin was derived + what to
 - ⬜ n/a: *on mainstem*
 
 **Candidate pin(s) for the TODO row(s):**
-- `north-alouette-river-e3810a`  — FWA N.Alouette channel; nearest pt to 216 St (Fifth Ave) meridian in Maple Ridge. VISUAL-confirm 216 St bridge. [20 FWA segs MU-clip[2-8]]
-    - **N.Alouette channel @ ~216 St longitude (springboard)**: `49.27663,-122.55975`  →  [OSM](https://www.openstreetmap.org/?mlat=49.27663&mlon=-122.55975#map=15/49.27663/-122.55975)
+- `north-alouette-river-e3810a`  — FWA North Alouette sampled at 216th St longitude (mainstem 216 St curated 49.2409,-122.62242 just S).
+    - **N. Alouette @ 216th St (Fifth Ave)**: `49.25991,-122.62223`  →  [OSM](https://www.openstreetmap.org/?mlat=49.25991&mlon=-122.62223#map=15/49.25991/-122.62223)
 
 ---
 ### THOMPSON RIVER (downstream of signs at Kamloops Lake o  ·  MU 3-13, 3-14, 3-18  ·  `bea6153a`
@@ -136,8 +138,8 @@ Each pin has an OSM springboard link. Method = how the pin was derived + what to
 - ⬜ n/a: *Downstream of signs at Kamloops Lake*
 
 **Candidate pin(s) for the TODO row(s):**
-- `thompson-river-downstream-of-signs-at-kamloop-1c9ce3`  — Reg: bait ban u/s of signs 1km d/s of Martel. Martel = rail siding on the Thompson W of Kamloops (Savona-Walhachin reach). Approx channel pt near -120.90; VERIFY Martel location then walk 1km d/s. [682 FWA segs MU-clip[3-13,3-14,3-18]]
-    - **Thompson channel near Martel rail point (springboard; verify Martel)**: `50.74217,-120.90394`  →  [OSM](https://www.openstreetmap.org/?mlat=50.74217&mlon=-120.90394#map=15/50.74217/-120.90394)
+- `thompson-river-downstream-of-signs-at-kamloop-1c9ce3`  — Reg="1 km d/s of Martel" (rail locality on the Thompson, Ashcroft-Spences Bridge). Needs Martel gazetteer/topo -> then 1 km downstream.
+    - **1 km d/s of Martel (needs Martel locality)**: _(no coord — springboard is the river/area above)_
 
 ---
 ### ELK RIVER'S TRIBUTARIES (see exceptions)  ·  MU 4-2, 4-23  ·  `e4b7a409`
@@ -157,8 +159,9 @@ Each pin has an OSM springboard link. Method = how the pin was derived + what to
 - ⬜ n/a: *ELK RIVER'S TRIBUTARIES*
 
 **Candidate pin(s) for the TODO row(s):**
-- `elk-river-s-tributaries-see-exceptions-e09244`  — EXCEPT member: Coal Ck d/s of old MF&M Railway Br (~7km up Elk R), Fernie. FWA Coal Ck channel pt nearest Fernie rail crossing. VISUAL-confirm the historic MF&M (Morrissey/Fernie/Michel) bridge. [292 FWA segs MU-clip[4-23]]
-    - **Coal Ck channel nearest old MF&M rail br, Fernie (springboard)**: `49.49673,-115.05889`  →  [OSM](https://www.openstreetmap.org/?mlat=49.49673&mlon=-115.05889#map=15/49.49673/-115.05889)
+- `elk-river-s-tributaries-see-exceptions-e09244`  — Reg="Coal Ck d/s of old MF&M Railway Br 7 km up from Elk R". FWA Coal Ck walked 7km from mouth -> eyeball the rail bridge.
+    - **Coal Ck ~7 km up (MF&M rail br area)**: `49.48831,-114.99223`  →  [OSM](https://www.openstreetmap.org/?mlat=49.48831&mlon=-114.99223#map=15/49.48831/-114.99223)
+    - **Coal Ck mouth at Elk R (ref)**: `49.49786,-115.07037`  →  [OSM](https://www.openstreetmap.org/?mlat=49.49786&mlon=-115.07037#map=15/49.49786/-115.07037)
 
 ---
 ### CHUCKWALLA RIVER  ·  MU 5-7  ·  `38c3c0c0`
@@ -172,8 +175,8 @@ Each pin has an OSM springboard link. Method = how the pin was derived + what to
 - 🔴 TODO: *between fishing boundary signs at Ten Mile Pool*
 
 **Candidate pin(s) for the TODO row(s):**
-- `chuckwalla-river-eec2f0`  — FWA Chuckwalla channel (mouth ~51.73,-127.34; head ~51.87,-126.88; 45.7km). "Ten Mile Pool" = named pool ~10 miles up; no offline feature. VISUAL: pool ~16km up from mouth.
-    - **Chuckwalla mouth (springboard; Ten Mile Pool ~10mi/16km up-channel)**: `51.72807,-127.34178`  →  [OSM](https://www.openstreetmap.org/?mlat=51.72807&mlon=-127.34178#map=15/51.72807/-127.34178)
+- `chuckwalla-river-eec2f0`  — Reg="Ten Mile Pool" (named pool ~10 mi up). Walk 10 mi (16 km) on FWA Chuckwalla -> eyeball the pool.
+    - **~10 mi (16 km) upstream walk pin**: `51.77912,-127.16267`  →  [OSM](https://www.openstreetmap.org/?mlat=51.77912&mlon=-127.16267#map=15/51.77912/-127.16267)
 
 ---
 ### CRANBERRY RIVER  ·  MU 6-15  ·  `107fa559`
@@ -188,10 +191,10 @@ Each pin has an OSM springboard link. Method = how the pin was derived + what to
 - 🔴 TODO: *downstream of Cranberry River Canyon*
 
 **Candidate pin(s) for the TODO row(s):**
-- `cranberry-river-699352-a`  — Upstream sign of the same canyon reach; pair with -b. Set u/s sign just above the canyon. VISUAL/FISS.
-    - **Cranberry channel (canyon u/s bound; springboard = same canyon area)**: `55.54525,-128.34889`  →  [OSM](https://www.openstreetmap.org/?mlat=55.54525&mlon=-128.34889#map=15/55.54525/-128.34889)
-- `cranberry-river-699352-b`  — Reg: No Fishing between signs u/s of AND d/s of Cranberry River Canyon (a 2-sign reach bracketing the canyon). FWA Cranberry channel ends (55.5363, -128.84227)..(55.293, -128.40086). Canyon not in waterfalls layer. VISUAL/FISS: locate the canyon, set d/s sign here. [296 FWA segs MU-clip[6-15]]
-    - **Cranberry channel (canyon d/s bound; springboard mid-channel)**: `55.54525,-128.34889`  →  [OSM](https://www.openstreetmap.org/?mlat=55.54525&mlon=-128.34889#map=15/55.54525/-128.34889)
+- `cranberry-river-699352-a`  — Signs bracket "Cranberry River Canyon"; canyon not in FWA falls layer. Cranberry-Kiteen jct as locator ref. Needs topo/map canyon pin (u/s sign).
+    - **Cranberry-Kiteen junction (ref only)**: `55.51394,-128.8105`  →  [OSM](https://www.openstreetmap.org/?mlat=55.51394&mlon=-128.8105#map=15/55.51394/-128.8105)
+- `cranberry-river-699352-b`  — Downstream-of-canyon sign; pairs with -a once the canyon is located on topo.
+    - **(pair with -a canyon)**: _(no coord — springboard is the river/area above)_
 
 ---
 ### KITIMAT RIVER (Angling regulations for the Kitimat Riv  ·  MU 6-3  ·  `c0718831`
@@ -211,10 +214,10 @@ Each pin has an OSM springboard link. Method = how the pin was derived + what to
 - ⬜ n/a: *Angling regulations for the Kitimat River are currently under review. Please check the in-season regulation change websi*
 
 **Candidate pin(s) for the TODO row(s):**
-- `kitimat-river-angling-regulations-for-the-kit-664c72`  — Reg: No Fishing on the WEST HALF of river between signs near Kitimat Hatchery outfall. Partial-width (not a clean cross-channel split). Prior candidate at hatchery outfall. VISUAL.
-    - **Kitimat Hatchery outfall area (prior candidate; WEST-HALF partial-width closure)**: `54.01089,-128.66227`  →  [OSM](https://www.openstreetmap.org/?mlat=54.01089&mlon=-128.66227#map=15/54.01089/-128.66227)
-- `kitimat-river-angling-regulations-for-the-kit-b3b21f`  — FWA Kitimat channel mouth/lower valley; Hwy 37 crosses near town. Reg: closure in tributaries + u/s of Hwy 37 bridge. VISUAL-confirm the Hwy37 crossing. [358 FWA segs MU-clip[6-3]]
-    - **Kitimat R channel near Hwy 37 bridge, lower valley (springboard)**: `54.01096,-128.6623`  →  [OSM](https://www.openstreetmap.org/?mlat=54.01096&mlon=-128.6623#map=15/54.01096/-128.6623)
+- `kitimat-river-angling-regulations-for-the-kit-664c72`  — WEST-HALF partial-width closure near Kitimat Hatchery outfall (NOT clean cross-channel). FWA mouth ref.
+    - **Kitimat R mouth (hatchery outfall reach ref)**: `54.01089,-128.66227`  →  [OSM](https://www.openstreetmap.org/?mlat=54.01089&mlon=-128.66227#map=15/54.01089/-128.66227)
+- `kitimat-river-angling-regulations-for-the-kit-b3b21f`  — Reg="tributaries and upstream of Hwy 37 bridge". FWA Kitimat near Kitimat townsite; Hwy 37 crosses lower valley -> eyeball.
+    - **Kitimat R ~ Hwy37 area (lower valley springboard)**: `54.0446,-128.68101`  →  [OSM](https://www.openstreetmap.org/?mlat=54.0446&mlon=-128.68101#map=15/54.0446/-128.68101)
 
 ---
 ### PINKUT CREEK  ·  MU 6-6  ·  `2fe40ed5`
@@ -226,8 +229,8 @@ Each pin has an OSM springboard link. Method = how the pin was derived + what to
 - 🔴 TODO: *downstream of the fish fence*
 
 **Candidate pin(s) for the TODO row(s):**
-- `pinkut-creek-03a36e`  — FWA Pinkut Ck mouth end (Babine Lake side). DFO Pinkut Creek fish fence + spawning channel sits near the mouth; NOT in FSR/waterfalls layers. VISUAL: locate the fish fence just up from mouth.
-    - **Pinkut Ck mouth / DFO spawning-channel area (springboard)**: `54.45879,-125.46404`  →  [OSM](https://www.openstreetmap.org/?mlat=54.45879&mlon=-125.46404#map=15/54.45879/-125.46404)
+- `pinkut-creek-03a36e`  — DFO Pinkut Ck fish fence / spawning channel. FWA mouth (Babine) as springboard; fence is near mouth reach.
+    - **Pinkut Ck mouth @ Babine (fish fence nearby)**: `54.45879,-125.46404`  →  [OSM](https://www.openstreetmap.org/?mlat=54.45879&mlon=-125.46404#map=15/54.45879/-125.46404)
 
 ---
 ### PTARMIGAN CREEK  ·  MU 7-5  ·  `0b6d5fb7`
@@ -240,10 +243,10 @@ Each pin has an OSM springboard link. Method = how the pin was derived + what to
 - 🔴 TODO: *Quarry Bridge*
 
 **Candidate pin(s) for the TODO row(s):**
-- `ptarmigan-creek-dd88fc-a`  — Falls = upstream boundary of the reach (falls -> Quarry Bridge). Not in offline waterfalls layer; FISS/topo needed. Reach runs from these falls DOWN to Quarry Bridge.
-    - **Ptarmigan falls upstream of Quarry Br (springboard; not in waterfalls layer)**: _(no coord — springboard is the river/area above)_
-- `ptarmigan-creek-dd88fc-b`  — FWA Ptarmigan channel lower end (~McBride, Fraser confl side). Quarry Bridge = road bridge near the mouth. VISUAL-confirm. [254 FWA segs MU-clip[7-5]]
-    - **Ptarmigan lower channel near McBride (Quarry Bridge; springboard)**: `53.46264,-120.84002`  →  [OSM](https://www.openstreetmap.org/?mlat=53.46264&mlon=-120.84002#map=15/53.46264/-120.84002)
+- `ptarmigan-creek-dd88fc-a`  — Falls on Ptarmigan Ck (reach start). Not in FWA waterfalls layer -> needs FISS/topo. FWA mouth as area springboard.
+    - **Ptarmigan Ck mouth (falls upstream) — needs FISS**: `53.70477,-120.89037`  →  [OSM](https://www.openstreetmap.org/?mlat=53.70477&mlon=-120.89037#map=15/53.70477/-120.89037)
+- `ptarmigan-creek-dd88fc-b`  — Quarry Bridge on Ptarmigan Ck (Robson valley). No FSR/OSM hit offline; FWA channel + mouth as springboard.
+    - **Ptarmigan Ck mouth (Quarry Br upstream) — eyeball**: `53.70477,-120.89037`  →  [OSM](https://www.openstreetmap.org/?mlat=53.70477&mlon=-120.89037#map=15/53.70477/-120.89037)
 
 ---
 ### SWIFT CREEK  ·  MU 7-2  ·  `07d64663`
@@ -257,8 +260,8 @@ Each pin has an OSM springboard link. Method = how the pin was derived + what to
 - ✅ curated: *CNR Bridge in Valemount* — curated 52.83822,-119.26786
 
 **Candidate pin(s) for the TODO row(s):**
-- `swift-creek-a32fd8-a`  — FWA Swift Ck mouth end (Valemount). Reach = upstream side of weir -> CNR Bridge (CNR bridge already curated at -b). Weir is a short reach just u/s of mouth; not in offline layers.
-    - **Swift Ck mouth in Valemount (weir just upstream; springboard)**: `52.84848,-119.29953`  →  [OSM](https://www.openstreetmap.org/?mlat=52.84848&mlon=-119.29953#map=15/52.84848/-119.29953)
+- `swift-creek-a32fd8-a`  — Weir (u/s side) d/s of CNR Br in Valemount (CNR br curated 52.83822,-119.26786). FWA mouth as springboard.
+    - **Swift Ck mouth @ Valemount (weir just u/s)**: `52.84848,-119.29953`  →  [OSM](https://www.openstreetmap.org/?mlat=52.84848&mlon=-119.29953#map=15/52.84848/-119.29953)
 
 ---
 ### THORN CREEK  ·  MU 7-39  ·  `15e07584`
@@ -271,10 +274,10 @@ Each pin has an OSM springboard link. Method = how the pin was derived + what to
 - 🔴 TODO: *point 500 m upstream*
 
 **Candidate pin(s) for the TODO row(s):**
-- `thorn-creek-b2b2c7-a`  — Thorn Ck NOT in FWA. Attichika Creek IS in FWA; its downstream endpoint (confluence) = 56.96833,-126.87528. Reg reach = Attichika confl -> 500m upstream on Thorn.
-    - **Attichika Ck confluence w/ Thorn Ck (reach start)**: `56.96833,-126.87528`  →  [OSM](https://www.openstreetmap.org/?mlat=56.96833&mlon=-126.87528#map=15/56.96833/-126.87528)
-- `thorn-creek-b2b2c7-b`  — Same confluence pin; walk 500m upstream along Thorn Ck (not in FWA, so pin=confluence; offset 500m u/s to be set on Thorn channel visually).
-    - **~500m upstream of Attichika confl (reach end; springboard, needs Thorn channel)**: `56.96833,-126.87528`  →  [OSM](https://www.openstreetmap.org/?mlat=56.96833&mlon=-126.87528#map=15/56.96833/-126.87528)
+- `thorn-creek-b2b2c7-a`  — Thorn Ck NOT in FWA. Anchor = Attichika Creek confluence; using Attichika mouth (where it meets Thorn).
+    - **Attichika Creek confluence (Attichika mouth)**: `56.96833,-126.87528`  →  [OSM](https://www.openstreetmap.org/?mlat=56.96833&mlon=-126.87528#map=15/56.96833/-126.87528)
+- `thorn-creek-b2b2c7-b`  — Point 500 m upstream of Attichika confl. Thorn not in FWA -> approximate 500m up from the Attichika-mouth anchor (needs Thorn channel to finalize).
+    - **~500 m u/s of Attichika confl (approx)**: _(no coord — springboard is the river/area above)_
 
 ---
 ### CHOWADE RIVER  ·  MU 7-43  ·  `5887eab0`
@@ -286,8 +289,8 @@ Each pin has an OSM springboard link. Method = how the pin was derived + what to
 - 🔴 TODO: *upstream of the Horseshoe Road Bridge*
 
 **Candidate pin(s) for the TODO row(s):**
-- `chowade-river-42a570`  — FWA Chowade channel pt nearest prior auto-candidate for Horseshoe Road Bridge (56.70291,-122.7821). Only ~1 road crossing on the Chowade (~21km up). VISUAL-confirm. [346 FWA segs MU-clip[7-43]]
-    - **Chowade channel nearest prior Horseshoe-Rd candidate (springboard)**: `56.70291,-122.7821`  →  [OSM](https://www.openstreetmap.org/?mlat=56.70291&mlon=-122.7821#map=15/56.70291/-122.7821)
+- `chowade-river-42a570`  — FWA river x FSR: exactly one road crossing @21.6km = Horseshoe Road Bridge.
+    - **Horseshoe Road Bridge (sole crossing)**: `56.70291,-122.7821`  →  [OSM](https://www.openstreetmap.org/?mlat=56.70291&mlon=-122.7821#map=15/56.70291/-122.7821)
 
 ---
 
@@ -303,8 +306,8 @@ Each pin has an OSM springboard link. Method = how the pin was derived + what to
 - 🔴 TODO: *upstream of fishing boundary signs at footbridge situated approximately 100 m downstream of the fish fence*
 
 **Candidate pin(s) for the TODO row(s):**
-- `capilano-river-496399`  — Reg: signs at footbridge ~100m d/s of the fish fence, below Cleveland Dam. Capilano Salmon Hatchery site. Not in offline layers. VISUAL: hatchery footbridge just below Cleveland Dam.
-    - **Capilano Hatchery fish fence / footbridge, below Cleveland Dam (springboard)**: `49.3465,-123.1118`  →  [OSM](https://www.openstreetmap.org/?mlat=49.3465&mlon=-123.1118#map=15/49.3465/-123.1118)
+- `capilano-river-496399`  — Footbridge ~100m d/s of hatchery fish fence (below Cleveland Dam). OSM Capilano Pacific Trail footbridge.
+    - **Capilano Pacific Trail footbridge (OSM way 60608394)**: `49.35037,-123.11759`  →  [OSM](https://www.openstreetmap.org/?mlat=49.35037&mlon=-123.11759#map=15/49.35037/-123.11759)
 
 ---
 ### BURTON CREEK  ·  MU 4-15  ·  `72f67e46`
@@ -317,8 +320,8 @@ Each pin has an OSM springboard link. Method = how the pin was derived + what to
 - 🔴 TODO: *Hwy 6 bridge*
 
 **Candidate pin(s) for the TODO row(s):**
-- `burton-creek-b25ef3-b`  — FWA "Burton Creek" GNIS resolves to Adams Lake (wrong creek); Arrow-Lakes Burton Ck not under that GNIS. Burton, BC is on Hwy 6 at Lower Arrow Lake. Reg reach = Woden Ck -> Hwy 6 bridge (Woden Ck curated at -a). VISUAL: Hwy6 bridge at Burton.
-    - **Hwy 6 x Burton Ck, Burton townsite (springboard)**: `49.9883,-118.0281`  →  [OSM](https://www.openstreetmap.org/?mlat=49.9883&mlon=-118.0281#map=15/49.9883/-118.0281)
+- `burton-creek-b25ef3-b`  — Hwy 6 bridge over Burton Ck at Burton (Arrow Lakes). FWA "Burton Creek" collides w/ Adams-Lk creek; correct creek is by Woden confl (49.92206,-117.88365). Eyeball Hwy 6 crossing near there.
+    - **Burton Ck @ Woden confl (Hwy 6 br just u/s) — eyeball**: `49.92206,-117.88365`  →  [OSM](https://www.openstreetmap.org/?mlat=49.92206&mlon=-117.88365#map=15/49.92206/-117.88365)
 
 ---
 ### HAYS CREEK (in Prince Rupert)  ·  MU 6-14  ·  `3f88988a`
@@ -331,8 +334,8 @@ Each pin has an OSM springboard link. Method = how the pin was derived + what to
 - 🔴 TODO: *upstream of fishing boundary signs downstream of lower culvert near fish cannery in Prince Rupert*
 
 **Candidate pin(s) for the TODO row(s):**
-- `hays-creek-in-prince-rupert-6e14c4`  — Reg: signs u/s of lower culvert near fish cannery, Prince Rupert (incl "Oldfield" Ck). Small urban creek, not in FWA/FSR. VISUAL: PR waterfront cannery + culvert.
-    - **Hays Ck lower culvert near cannery, Prince Rupert (springboard)**: `54.3122,-130.311`  →  [OSM](https://www.openstreetmap.org/?mlat=54.3122&mlon=-130.311#map=15/54.3122/-130.311)
+- `hays-creek-in-prince-rupert-6e14c4`  — Lower culvert near fish cannery, Prince Rupert (urban; incl "Oldfield" Ck). OSM Hays Cove Circle @ 6th Ave as springboard.
+    - **Hays Ck area, Prince Rupert (OSM Hays Cove Circle)**: `54.31886,-130.30971`  →  [OSM](https://www.openstreetmap.org/?mlat=54.31886&mlon=-130.30971#map=15/54.31886/-130.30971)
 
 ---
 ### KSI X'ANMAS RIVER (formerly Kwinamass River)  ·  MU 6-14  ·  `ea7be38a`
@@ -345,8 +348,8 @@ Each pin has an OSM springboard link. Method = how the pin was derived + what to
 - 🔴 TODO: *upstream from the lower bridge abutments*
 
 **Candidate pin(s) for the TODO row(s):**
-- `ksi-x-anmas-river-formerly-kwinamass-river-fe2f0b`  — Reg: closure u/s from the lower bridge abutments. "Kwinamass" not in FWA under that GNIS. River enters Work Channel NW of Prince Rupert; old logging bridge abutments in the lower river. VISUAL/FISS.
-    - **Ksi X'anmas (Kwinamass) R lower valley / bridge abutments (springboard)**: `54.662,-130.047`  →  [OSM](https://www.openstreetmap.org/?mlat=54.662&mlon=-130.047#map=15/54.662/-130.047)
+- `ksi-x-anmas-river-formerly-kwinamass-river-fe2f0b`  — Lower bridge abutments on Ksi X'anmas (Kwinamass) R. Remote coastal river N of Prince Rupert; not in FWA under either name -> needs topo/map.
+    - **(remote coastal — needs topo)**: _(no coord — springboard is the river/area above)_
 
 ---
 ### TREPANIER RIVER  ·  MU 8-8  ·  `426962cd`
@@ -359,8 +362,8 @@ Each pin has an OSM springboard link. Method = how the pin was derived + what to
 - ⬜ n/a: *Okanagan Lake*
 
 **Candidate pin(s) for the TODO row(s):**
-- `trepanier-river-a999b0-a`  — FWA has no "Trepanier River/Creek" in MU 8-8 (name miss). Trepanier Ck at Peachland; Hwy 97C (Okanagan Connector) crosses it above town. Reach = Hwy 97C -> Okanagan Lake (Okanagan Lake curated at -b). VISUAL: 97C crossing.
-    - **Hwy 97C x Trepanier Ck, Peachland (springboard)**: `49.7752,-119.7607`  →  [OSM](https://www.openstreetmap.org/?mlat=49.7752&mlon=-119.7607#map=15/49.7752/-119.7607)
+- `trepanier-river-a999b0-a`  — Hwy 97C (Okanagan Connector) over Trepanier Ck at Peachland. FWA "Trepanier River" name miss. Eyeball 97C crossing above Okanagan Lk.
+    - **Trepanier Ck @ Peachland / Hwy 97C — eyeball**: `49.7735,-119.7365`  →  [OSM](https://www.openstreetmap.org/?mlat=49.7735&mlon=-119.7365#map=15/49.7735/-119.7365)
 
 ---
 
@@ -377,8 +380,8 @@ Each pin has an OSM springboard link. Method = how the pin was derived + what to
 - ✅ curated: *upstream of the Sayward Road Bridge crossing* — curated 50.30805,-125.91741
 
 **Candidate pin(s) for the TODO row(s):**
-- `white-river-da5ee3`  — White R (1-10) channel mouth ~50.31,-125.90. "salmon viewing pool" is a named pool; sibling row (Sayward Road Bridge) already curated. Pool is a short reach near the viewing platform; VISUAL.
-    - **White R salmon-viewing pool (springboard; near Sayward Rd Br which is curated on sibling row)**: _(no coord — springboard is the river/area above)_
+- `white-river-da5ee3`  — Salmon viewing pool near Sayward; sibling Sayward Road Bridge curated 50.30805,-125.91741. Viewing pool is a signed reach nearby -> needs FISS/local map.
+    - **Near Sayward Road Bridge (viewing pool nearby)**: `50.30805,-125.91741`  →  [OSM](https://www.openstreetmap.org/?mlat=50.30805&mlon=-125.91741#map=15/50.30805/-125.91741)
 
 ---
 
@@ -400,7 +403,7 @@ Each pin has an OSM springboard link. Method = how the pin was derived + what to
 - ✅ curated: *Chimdemash Creek confluence to 1.5 km upstream of Zymoetz River confluence* — curated 54.54646,-128.48769
 
 **Candidate pin(s) for the TODO row(s):**
-- `skeena-river-mainstem-only-c2e0df`  — Row locator "in Skeena River Section 4" = a NAMED REACH identifier, not a point split. Section-4 endpoints already curated (3f082d = 1.5km u/s Zymoetz; bd494f = Chimdemash->1.5km u/s Zymoetz). This row is likely n/a (reach label, bait-ban applies to whole Section 4).
-    - **Skeena River Section 4 = reach label, endpoints already curated**: _(no coord — springboard is the river/area above)_
+- `skeena-river-mainstem-only-c2e0df`  — Bait-ban applies to WHOLE "Skeena River Section 4" (already defined by sibling boundary rows). No new point split -> PROPOSE n/a.
+    - **(no split — propose n/a)**: _(no coord — springboard is the river/area above)_
 
 ---
