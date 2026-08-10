@@ -1,0 +1,349 @@
+{
+ "copper-creek-538967-b": {
+  "pins": [
+   [
+    "SOUTH BAY MAIN bridge (2nd bridge @7.7km u/s tidal)",
+    [
+     53.11437,
+     -131.80771
+    ]
+   ]
+  ],
+  "method": "FWA tidal boundary (53.16,-131.80) + ordered FSR crossings: COPPER BAY M/L @3.9km=1st, SOUTH BAY MAIN @7.7km=2nd. Reg says \"second bridge 6km u/s tidal\" -> SOUTH BAY MAIN.",
+  "springboard": null
+ },
+ "deena-creek-af3d2f": {
+  "pins": [
+   [
+    "+5km-from-tidal pin (springboard; DEENA WEST MAIN ~70m, DEENA MAIN ~180m)",
+    [
+     53.12165,
+     -132.16333
+    ]
+   ]
+  ],
+  "method": "FWA tidal boundary (53.14,-132.14) + walk 5km upstream. No FSR crossing in data near here; nearest named roads DEENA WEST MAIN (70m) / DEENA MAIN (177m) parallel the creek. VISUAL: which bridge sits ~5km above tidal.",
+  "springboard": null
+ },
+ "mamin-river-608d92": {
+  "pins": [
+   [
+    "MAMIN MAIN bridge (@9.1km u/s tidal, named match)",
+    [
+     53.56814,
+     -132.32625
+    ]
+   ]
+  ],
+  "method": "FWA tidal boundary (53.62,-132.30) + ordered FSR crossings: DATLAMEN @2.5km, MAMIN MAIN @9.1km. Reg \"third bridge ~10km u/s tidal\" + name Mamin Main -> MAMIN MAIN (some small bridges missing from FSR data).",
+  "springboard": null
+ },
+ "eve-river-41b1eb": {
+  "pins": [
+   [
+    "JOINT SOUTHMAIN bridge (@1.8km from tidal = ~5.4km d/s of Hwy19)",
+    [
+     50.4247,
+     -126.24777
+    ]
+   ]
+  ],
+  "method": "Reg: signs ~5.4km DOWNSTREAM of Hwy19 bridge, near South Main Bridge. FSR crossing JOINT SOUTHMAIN @1.8km from mouth matches the South Main Bridge name; Hwy19 crossing is ~7km up, 7-5.4=1.6km ~ consistent.",
+  "springboard": null
+ },
+ "artlish-river-9e60a3": {
+  "pins": [
+   [
+    "LA1000 bridge (@11.1km, ~10km from mouth)",
+    [
+     50.12006,
+     -126.94515
+    ]
+   ],
+   [
+    "Artlish spur bridge (@8.4km)",
+    [
+     50.11567,
+     -126.97894
+    ]
+   ]
+  ],
+  "method": "FWA tidal boundary (50.12,-127.08) + ordered FSR crossings: ARTLISHMAINLINE @0.4km, spur @8.4km, LA1000 @11.1km. Reg \"bridge ~10km from mouth\" -> between the 8.4km spur and LA1000 @11.1km. LA1000 is the classic boundary.",
+  "springboard": null
+ },
+ "mohun-creek-1fa4a0-a": {
+  "pins": [
+   [
+    "MENZMN.2 = Menzies Bay mainline bridge (@7.4km)",
+    [
+     50.09625,
+     -125.42449
+    ]
+   ]
+  ],
+  "method": "FWA FSR crossing MENZMN.2 (Menzies Bay mainline) @7.4km on Mohun Ck. Named match. Reach = this bridge -> Morton Lake.",
+  "springboard": null
+ },
+ "pinkut-creek-03a36e": {
+  "pins": [
+   [
+    "Pinkut Ck mouth / DFO spawning-channel area (springboard)",
+    [
+     54.45879,
+     -125.46404
+    ]
+   ]
+  ],
+  "method": "FWA Pinkut Ck mouth end (Babine Lake side). DFO Pinkut Creek fish fence + spawning channel sits near the mouth; NOT in FSR/waterfalls layers. VISUAL: locate the fish fence just up from mouth.",
+  "springboard": null
+ },
+ "swift-creek-a32fd8-a": {
+  "pins": [
+   [
+    "Swift Ck mouth in Valemount (weir just upstream; springboard)",
+    [
+     52.84848,
+     -119.29953
+    ]
+   ]
+  ],
+  "method": "FWA Swift Ck mouth end (Valemount). Reach = upstream side of weir -> CNR Bridge (CNR bridge already curated at -b). Weir is a short reach just u/s of mouth; not in offline layers.",
+  "springboard": null
+ },
+ "chuckwalla-river-eec2f0": {
+  "pins": [
+   [
+    "Chuckwalla mouth (springboard; Ten Mile Pool ~10mi/16km up-channel)",
+    [
+     51.72807,
+     -127.34178
+    ]
+   ]
+  ],
+  "method": "FWA Chuckwalla channel (mouth ~51.73,-127.34; head ~51.87,-126.88; 45.7km). \"Ten Mile Pool\" = named pool ~10 miles up; no offline feature. VISUAL: pool ~16km up from mouth.",
+  "springboard": null
+ },
+ "thorn-creek-b2b2c7-a": {
+  "pins": [
+   [
+    "Attichika Ck confluence w/ Thorn Ck (reach start)",
+    [
+     56.96833,
+     -126.87528
+    ]
+   ]
+  ],
+  "method": "Thorn Ck NOT in FWA. Attichika Creek IS in FWA; its downstream endpoint (confluence) = 56.96833,-126.87528. Reg reach = Attichika confl -> 500m upstream on Thorn.",
+  "springboard": null
+ },
+ "thorn-creek-b2b2c7-b": {
+  "pins": [
+   [
+    "~500m upstream of Attichika confl (reach end; springboard, needs Thorn channel)",
+    [
+     56.96833,
+     -126.87528
+    ]
+   ]
+  ],
+  "method": "Same confluence pin; walk 500m upstream along Thorn Ck (not in FWA, so pin=confluence; offset 500m u/s to be set on Thorn channel visually).",
+  "springboard": null
+ },
+ "white-river-da5ee3": {
+  "pins": [
+   [
+    "White R salmon-viewing pool (springboard; near Sayward Rd Br which is curated on sibling row)",
+    null
+   ]
+  ],
+  "method": "White R (1-10) channel mouth ~50.31,-125.90. \"salmon viewing pool\" is a named pool; sibling row (Sayward Road Bridge) already curated. Pool is a short reach near the viewing platform; VISUAL.",
+  "springboard": null
+ },
+ "skeena-river-mainstem-only-c2e0df": {
+  "pins": [
+   [
+    "Skeena River Section 4 = reach label, endpoints already curated",
+    null
+   ]
+  ],
+  "method": "Row locator \"in Skeena River Section 4\" = a NAMED REACH identifier, not a point split. Section-4 endpoints already curated (3f082d = 1.5km u/s Zymoetz; bd494f = Chimdemash->1.5km u/s Zymoetz). This row is likely n/a (reach label, bait-ban applies to whole Section 4).",
+  "springboard": null
+ },
+ "north-alouette-river-e3810a": {
+  "pins": [
+   [
+    "N.Alouette channel @ ~216 St longitude (springboard)",
+    [
+     49.27663,
+     -122.55975
+    ]
+   ]
+  ],
+  "method": "FWA N.Alouette channel; nearest pt to 216 St (Fifth Ave) meridian in Maple Ridge. VISUAL-confirm 216 St bridge. [20 FWA segs MU-clip[2-8]]"
+ },
+ "elk-river-s-tributaries-see-exceptions-e09244": {
+  "pins": [
+   [
+    "Coal Ck channel nearest old MF&M rail br, Fernie (springboard)",
+    [
+     49.49673,
+     -115.05889
+    ]
+   ]
+  ],
+  "method": "EXCEPT member: Coal Ck d/s of old MF&M Railway Br (~7km up Elk R), Fernie. FWA Coal Ck channel pt nearest Fernie rail crossing. VISUAL-confirm the historic MF&M (Morrissey/Fernie/Michel) bridge. [292 FWA segs MU-clip[4-23]]"
+ },
+ "chowade-river-42a570": {
+  "pins": [
+   [
+    "Chowade channel nearest prior Horseshoe-Rd candidate (springboard)",
+    [
+     56.70291,
+     -122.7821
+    ]
+   ]
+  ],
+  "method": "FWA Chowade channel pt nearest prior auto-candidate for Horseshoe Road Bridge (56.70291,-122.7821). Only ~1 road crossing on the Chowade (~21km up). VISUAL-confirm. [346 FWA segs MU-clip[7-43]]"
+ },
+ "kitimat-river-angling-regulations-for-the-kit-b3b21f": {
+  "pins": [
+   [
+    "Kitimat R channel near Hwy 37 bridge, lower valley (springboard)",
+    [
+     54.01096,
+     -128.6623
+    ]
+   ]
+  ],
+  "method": "FWA Kitimat channel mouth/lower valley; Hwy 37 crosses near town. Reg: closure in tributaries + u/s of Hwy 37 bridge. VISUAL-confirm the Hwy37 crossing. [358 FWA segs MU-clip[6-3]]"
+ },
+ "kitimat-river-angling-regulations-for-the-kit-664c72": {
+  "pins": [
+   [
+    "Kitimat Hatchery outfall area (prior candidate; WEST-HALF partial-width closure)",
+    [
+     54.01089,
+     -128.66227
+    ]
+   ]
+  ],
+  "method": "Reg: No Fishing on the WEST HALF of river between signs near Kitimat Hatchery outfall. Partial-width (not a clean cross-channel split). Prior candidate at hatchery outfall. VISUAL."
+ },
+ "ptarmigan-creek-dd88fc-b": {
+  "pins": [
+   [
+    "Ptarmigan lower channel near McBride (Quarry Bridge; springboard)",
+    [
+     53.46264,
+     -120.84002
+    ]
+   ]
+  ],
+  "method": "FWA Ptarmigan channel lower end (~McBride, Fraser confl side). Quarry Bridge = road bridge near the mouth. VISUAL-confirm. [254 FWA segs MU-clip[7-5]]"
+ },
+ "ptarmigan-creek-dd88fc-a": {
+  "pins": [
+   [
+    "Ptarmigan falls upstream of Quarry Br (springboard; not in waterfalls layer)",
+    null
+   ]
+  ],
+  "method": "Falls = upstream boundary of the reach (falls -> Quarry Bridge). Not in offline waterfalls layer; FISS/topo needed. Reach runs from these falls DOWN to Quarry Bridge."
+ },
+ "burton-creek-b25ef3-b": {
+  "pins": [
+   [
+    "Hwy 6 x Burton Ck, Burton townsite (springboard)",
+    [
+     49.9883,
+     -118.0281
+    ]
+   ]
+  ],
+  "method": "FWA \"Burton Creek\" GNIS resolves to Adams Lake (wrong creek); Arrow-Lakes Burton Ck not under that GNIS. Burton, BC is on Hwy 6 at Lower Arrow Lake. Reg reach = Woden Ck -> Hwy 6 bridge (Woden Ck curated at -a). VISUAL: Hwy6 bridge at Burton."
+ },
+ "trepanier-river-a999b0-a": {
+  "pins": [
+   [
+    "Hwy 97C x Trepanier Ck, Peachland (springboard)",
+    [
+     49.7752,
+     -119.7607
+    ]
+   ]
+  ],
+  "method": "FWA has no \"Trepanier River/Creek\" in MU 8-8 (name miss). Trepanier Ck at Peachland; Hwy 97C (Okanagan Connector) crosses it above town. Reach = Hwy 97C -> Okanagan Lake (Okanagan Lake curated at -b). VISUAL: 97C crossing."
+ },
+ "capilano-river-496399": {
+  "pins": [
+   [
+    "Capilano Hatchery fish fence / footbridge, below Cleveland Dam (springboard)",
+    [
+     49.3465,
+     -123.1118
+    ]
+   ]
+  ],
+  "method": "Reg: signs at footbridge ~100m d/s of the fish fence, below Cleveland Dam. Capilano Salmon Hatchery site. Not in offline layers. VISUAL: hatchery footbridge just below Cleveland Dam."
+ },
+ "hays-creek-in-prince-rupert-6e14c4": {
+  "pins": [
+   [
+    "Hays Ck lower culvert near cannery, Prince Rupert (springboard)",
+    [
+     54.3122,
+     -130.311
+    ]
+   ]
+  ],
+  "method": "Reg: signs u/s of lower culvert near fish cannery, Prince Rupert (incl \"Oldfield\" Ck). Small urban creek, not in FWA/FSR. VISUAL: PR waterfront cannery + culvert."
+ },
+ "ksi-x-anmas-river-formerly-kwinamass-river-fe2f0b": {
+  "pins": [
+   [
+    "Ksi X'anmas (Kwinamass) R lower valley / bridge abutments (springboard)",
+    [
+     54.662,
+     -130.047
+    ]
+   ]
+  ],
+  "method": "Reg: closure u/s from the lower bridge abutments. \"Kwinamass\" not in FWA under that GNIS. River enters Work Channel NW of Prince Rupert; old logging bridge abutments in the lower river. VISUAL/FISS."
+ },
+ "cranberry-river-699352-b": {
+  "pins": [
+   [
+    "Cranberry channel (canyon d/s bound; springboard mid-channel)",
+    [
+     55.54525,
+     -128.34889
+    ]
+   ]
+  ],
+  "method": "Reg: No Fishing between signs u/s of AND d/s of Cranberry River Canyon (a 2-sign reach bracketing the canyon). FWA Cranberry channel ends (55.5363, -128.84227)..(55.293, -128.40086). Canyon not in waterfalls layer. VISUAL/FISS: locate the canyon, set d/s sign here. [296 FWA segs MU-clip[6-15]]"
+ },
+ "cranberry-river-699352-a": {
+  "pins": [
+   [
+    "Cranberry channel (canyon u/s bound; springboard = same canyon area)",
+    [
+     55.54525,
+     -128.34889
+    ]
+   ]
+  ],
+  "method": "Upstream sign of the same canyon reach; pair with -b. Set u/s sign just above the canyon. VISUAL/FISS."
+ },
+ "thompson-river-downstream-of-signs-at-kamloop-1c9ce3": {
+  "pins": [
+   [
+    "Thompson channel near Martel rail point (springboard; verify Martel)",
+    [
+     50.74217,
+     -120.90394
+    ]
+   ]
+  ],
+  "method": "Reg: bait ban u/s of signs 1km d/s of Martel. Martel = rail siding on the Thompson W of Kamloops (Savona-Walhachin reach). Approx channel pt near -120.90; VERIFY Martel location then walk 1km d/s. [682 FWA segs MU-clip[3-13,3-14,3-18]]"
+ }
+}
