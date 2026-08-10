@@ -7,11 +7,11 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 |---|--:|
 | NO_CURATION | 1 |
 | MISSING_SPLITS | 2 |
-| INCOMPLETE | 36 |
-| COMPLETE | 273 |
+| INCOMPLETE | 25 |
+| COMPLETE | 284 |
 | NO_SPLIT | 75 |
 
-**Drift** (curated rows matching no source locator): 11
+**Drift** (curated rows matching no source locator): 16
 
 ## LYNN CREEK · MU ['2-8'] · p26 · [NO_CURATION] (362df0a9)
 - ❌ MISSING [rule] “between fishing boundary signs situated approximately 200 m upstre” → —
@@ -40,15 +40,6 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 - • [rule] “Downstream of signs at Kamloops Lake” → thompson-river-downstream-of-signs-at-kamloop-38fc02[not_applicable], thompson-river-downstream-of-signs-at-kamloop-bc221e-a[not_applicable], thompson-river-downstream-of-signs-at-kamloop-bc221e-b[curated]
 - • [entry] “downstream of signs at Kamloops Lake outlet to the confluence with” → thompson-river-downstream-of-signs-at-kamloop-38fc02[not_applicable], thompson-river-downstream-of-signs-at-kamloop-bc221e-a[not_applicable], thompson-river-downstream-of-signs-at-kamloop-bc221e-b[curated]
 
-## KOOTENAY RIVER (upstream of Koocanusa Reservoir) · MU ['4-2', '4-21', '4-22', '4-24', '4-25', '4-35'] · p39 · [INCOMPLETE] (a808131e)
-- • [water] “upstream of Koocanusa Reservoir” → kootenay-river-upstream-of-koocanusa-reservoi-3bb758[curated]
-- • [rule] “upstream of the Montana border” → kootenay-river-upstream-of-koocanusa-reservoi-f89737[todo]
-- • [rule] “Upstream of Koocanusa Reservoir to White River” → kootenay-river-upstream-of-koocanusa-reservoi-3bb758[curated], kootenay-river-upstream-of-koocanusa-reservoi-6f3c82[curated]
-- • [rule] “Upstream of Koocanusa Reservoir to White River” → kootenay-river-upstream-of-koocanusa-reservoi-3bb758[curated], kootenay-river-upstream-of-koocanusa-reservoi-6f3c82[curated]
-- • [rule] “Upstream of White River” → kootenay-river-upstream-of-koocanusa-reservoi-82bacc[curated]
-- • [rule] “Upstream of White River” → kootenay-river-upstream-of-koocanusa-reservoi-82bacc[curated]
-- • [entry] “upstream of Koocanusa Reservoir” → kootenay-river-upstream-of-koocanusa-reservoi-3bb758[curated], kootenay-river-upstream-of-koocanusa-reservoi-6f3c82[curated]
-
 ## SKEENA RIVER (mainstem only) · MU ['6-10'] · p59 · [INCOMPLETE] (2fc0d1b9)
 - • [rule] “from Exchamsiks River to 1.5 km upstream of Kitsumkalum River (kno” → skeena-river-mainstem-only-b079a0-a[curated], skeena-river-mainstem-only-b079a0-b[curated]
 - • [rule] “1.5 km upstream of Zymoetz River (known as "Skeena River Section 4” → skeena-river-mainstem-only-3f082d[curated]
@@ -64,10 +55,6 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 ## WHITE RIVER · MU ['1-10'] · p21 · [INCOMPLETE] (4cf440b0)
 - • [rule] “between fishing boundary signs at the salmon viewing pool” → white-river-da5ee3[todo]
 - • [rule] “upstream of the Sayward Road Bridge crossing” → white-river-90c274[curated]
-
-## MOYIE RIVER · MU ['4-5'] · p40 · [INCOMPLETE] (7772faef)
-- • [rule] “Irishman Creek (Moyie River tributary)” → moyie-river-a098eb[not_applicable]
-- • [rule] “from bridge at south end of Moyie Lake to U.S. border” → moyie-river-53143e-a[curated], moyie-river-53143e-b[todo]
 
 ## CHUCKWALLA RIVER · MU ['5-7'] · p50 · [INCOMPLETE] (38c3c0c0)
 - • [rule] “entire river” → chuckwalla-river-a0316a[not_applicable]
@@ -95,26 +82,11 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 ## MOHUN CREEK · MU ['1-10'] · p19 · [INCOMPLETE] (5e563b26)
 - • [rule] “from Menzies Bay logging mainline bridge crossing to Morton Lake” → mohun-creek-1fa4a0-a[todo], mohun-creek-1fa4a0-b[not_applicable]
 
-## SEYMOUR RIVER · MU ['1-14'] · p20 · [INCOMPLETE] (15146bbc)
-- • [except] “unless fishing for steelhead” → seymour-river-5860bf[todo]
-
 ## CAPILANO RIVER · MU ['2-8'] · p24 · [INCOMPLETE] (b2441cc9)
 - • [rule] “upstream of fishing boundary signs at footbridge situated approxim” → capilano-river-496399[todo]
 
 ## NORTH ALOUETTE RIVER · MU ['2-8'] · p27 · [INCOMPLETE] (7ef10bf8)
 - • [rule] “upstream of 216th Street (Fifth Ave)” → alouette-river-daecfd[curated], north-alouette-river-e3810a[todo]
-
-## SUMALLO RIVER (includes "Cedar" Lake, at Sunshine Valley) · MU ['2-2'] · p28 · [INCOMPLETE] (411336a9)
-- • [entry] “includes "Cedar" Lake, at Sunshine Valley” → sumallo-river-includes-cedar-lake-at-sunshine-b68cb2[todo]
-
-## LITTLE LAC DES ROCHES (at west end of Lac Des Roches) · MU ['3-30'] · p32 · [INCOMPLETE] (5ab0483e)
-- • [entry] “at west end of Lac Des Roches” → little-lac-des-roches-at-west-end-of-lac-des--bb8a9a[todo]
-
-## ASHER CREEK · MU ['4-30'] · p37 · [INCOMPLETE] (1a3ec8b9)
-- • [rule] “downstream of South Fork (approximately 5 km from Trout Lake)” → asher-creek-4b601a[todo]
-
-## BULL RIVER · MU ['4-22'] · p37 · [INCOMPLETE] (11c7347e)
-- • [rule] “Other parts” → bull-river-d701ae[todo]
 
 ## BURTON CREEK · MU ['4-15'] · p37 · [INCOMPLETE] (72f67e46)
 - • [rule] “from Woden Creek to Hwy 6 bridge” → burton-creek-b25ef3-a[curated], burton-creek-b25ef3-b[todo]
@@ -134,12 +106,6 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 ## PINKUT CREEK · MU ['6-6'] · p59 · [INCOMPLETE] (2fe40ed5)
 - • [rule] “downstream of the fish fence” → pinkut-creek-03a36e[todo]
 
-## CHICHOUYENILY CREEK · MU ['7-30'] · p65 · [INCOMPLETE] (9fd933ca)
-- • [rule] “downstream of fishing boundary signs near its mouth” → chichouyenily-creek-212afe[todo]
-
-## GAGNON CREEK · MU ['7-30'] · p65 · [INCOMPLETE] (3cf96e99)
-- • [rule] “downstream of fishing boundary signs near its mouth” → gagnon-creek-8e35ce[todo]
-
 ## PTARMIGAN CREEK · MU ['7-5'] · p67 · [INCOMPLETE] (0b6d5fb7)
 - • [rule] “from falls to Quarry Bridge” → ptarmigan-creek-dd88fc-a[todo], ptarmigan-creek-dd88fc-b[todo]
 
@@ -149,14 +115,8 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 ## THORN CREEK · MU ['7-39'] · p67 · [INCOMPLETE] (15e07584)
 - • [rule] “from Attichika Creek to a point 500 m upstream” → thorn-creek-b2b2c7-a[todo], thorn-creek-b2b2c7-b[todo]
 
-## WESTON CREEK · MU ['7-30'] · p67 · [INCOMPLETE] (b34e2ffb)
-- • [rule] “downstream of signs near its mouth” → weston-creek-68b838[todo]
-
 ## CHOWADE RIVER · MU ['7-43'] · p71 · [INCOMPLETE] (5887eab0)
 - • [rule] “upstream of the Horseshoe Road Bridge” → chowade-river-42a570[todo]
-
-## RAINBOW LAKES · MU ['7-52'] · p72 · [INCOMPLETE] (82b147e1)
-- • [rule] “within 100 m of fishing boundary sign at outlet” → rainbow-lakes-226e29[todo]
 
 ## TREPANIER RIVER · MU ['8-8'] · p77 · [INCOMPLETE] (426962cd)
 - • [rule] “from Hwy 97C to Okanagan Lake” → trepanier-river-a999b0-a[todo], trepanier-river-a999b0-b[not_applicable]
@@ -165,6 +125,11 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 
 - `babine-river-fort-babine-bridge-manual` [manual] BABINE RIVER — src=rule “Fort Babine Bridge”
 - `babine-river-nichyeskwa-creek-manual` [manual] BABINE RIVER — src=rule “Nichyeskwa Creek confluence”
+- `bull-river-aberfeldie-dam-manual` [curated] BULL RIVER — src=rule “Aberfeldie Dam”
+- `bull-river-galbraith-manual` [curated] BULL RIVER — src=rule “Galbraith Creek confl”
+- `bull-river-quinn-creek-manual` [todo] BULL RIVER — src=rule “Quinn Creek”
+- `bull-river-tie-mill-dam-manual` [todo] BULL RIVER — src=rule “Tie Mill Dam”
+- `bull-river-van-creek-manual` [curated] BULL RIVER — src=rule “Van Creek confl”
 - `columbia-river-pend-doreille-confl-manual` [manual] COLUMBIA RIVER — src=rule “Pend d'Oreille River confluence”
 - `elk-river-upstream-of-elko-dam-e38cd2-forsyth-cr` [curated] ELK RIVER (upstream of Elko Dam) — src=rule “Forsyth Creek”
 - `lost-lake-near-taweel-lake-e49a1f` [not_applicable] LOST LAKE (near Taweel Lake) — src=entry “near Taweel Lake”

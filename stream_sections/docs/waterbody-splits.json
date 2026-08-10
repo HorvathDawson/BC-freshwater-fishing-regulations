@@ -4202,7 +4202,7 @@
         "Classified"
       ],
       "reg_text": "**Class II water Aug 15-Oct 31**[Includes Tributaries]**; Steelhead Stamp not required unless fishing for steelhead**",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 1,
       "locators": [
         {
@@ -4211,14 +4211,15 @@
           "info": {
             "restriction_type": "licensing"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "seymour-river-5860bf",
-              "status": "todo",
-              "anchor_kind": "unclassified",
+              "status": "not_applicable",
+              "anchor_kind": "not_a_split",
               "src": "except",
-              "resolver_hint": "other_reach"
+              "resolver_hint": "other_reach",
+              "notes": "[curated 2026-08-10 signs/other batch] [n/a: licence-condition clause (unless fishing for steelhead), no geography]"
             }
           ]
         },
@@ -4228,7 +4229,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-10"
     },
     "9a3806bd": {
       "entry_id": "9a3806bd",
@@ -8658,20 +8660,21 @@
         "Incl. Tribs"
       ],
       "reg_text": "**No Fishing** Nov 1-June 30\nBait ban",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 1,
       "locators": [
         {
           "src": "entry",
           "text": "includes \"Cedar\" Lake, at Sunshine Valley",
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "sumallo-river-includes-cedar-lake-at-sunshine-b68cb2",
-              "status": "todo",
-              "anchor_kind": "unclassified",
+              "status": "not_applicable",
+              "anchor_kind": "not_a_split",
               "src": "entry",
               "resolver_hint": "other_reach",
+              "notes": "[curated 2026-08-10 signs/other batch] [n/a: include/exclude extent clause (Sumallo water includes \"Cedar\" Lake) - NOT a split, but NEEDED in matching (see 10-matching-and-invariants.md)]",
               "name_verbatim": "SUMALLO RIVER (includes \"Cedar\" Lake, at Sunshine Vall"
             }
           ]
@@ -8682,7 +8685,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-10"
     },
     "054085f5": {
       "entry_id": "054085f5",
@@ -10685,20 +10689,21 @@
       "image": "page_032_row_037.png",
       "symbols": [],
       "reg_text": "Speed restriction (20 km/h)",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 1,
       "locators": [
         {
           "src": "entry",
           "text": "at west end of Lac Des Roches",
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "little-lac-des-roches-at-west-end-of-lac-des--bb8a9a",
-              "status": "todo",
-              "anchor_kind": "unclassified",
+              "status": "not_applicable",
+              "anchor_kind": "not_a_split",
               "src": "entry",
-              "resolver_hint": "other_reach"
+              "resolver_hint": "other_reach",
+              "notes": "[curated 2026-08-10 signs/other batch] [n/a: speed restriction, whole-lake, no split]"
             }
           ]
         },
@@ -10708,7 +10713,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-10"
     },
     "d37dc894": {
       "entry_id": "d37dc894",
@@ -12869,7 +12875,7 @@
       "image": "page_037_row_009.png",
       "symbols": [],
       "reg_text": "**No Fishing** downstream of South Fork (approximately 5 km from Trout Lake), June 15-Oct 31",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 1,
       "locators": [
         {
@@ -12881,15 +12887,20 @@
               "June 15-Oct 31"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "asher-creek-4b601a",
-              "status": "todo",
-              "anchor_kind": "confluence",
+              "status": "curated",
+              "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "tributary",
-              "notes": "[lake-class: mis_bucket] NOT a lake: 'downstream of South Fork' is a fork confluence, not a lake reach."
+              "label": "South Fork confluence (~5km from Trout Lake)",
+              "notes": "[lake-class: mis_bucket] NOT a lake: 'downstream of South Fork' is a fork confluence, not a lake reach. [curated 2026-08-10 signs/other batch] [user pin]",
+              "coord": [
+                -117.52022,
+                50.59406
+              ]
             }
           ]
         },
@@ -12899,7 +12910,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-10"
     },
     "11c7347e": {
       "entry_id": "11c7347e",
@@ -12915,7 +12927,7 @@
         "Classified"
       ],
       "reg_text": "Trout/char catch and release from Galbraith Creek to Van Creek[Includes Tributaries], Aberfeldie Dam to Tie Mill Dam[Includes Tributaries] and Quinn Creek[Includes Tributaries]\nOther parts: trout/char daily quota = 1 (none under 30 cm), June 15-Oct 31\nBait ban, June 15-Oct 31\n**Class II water when open, including tributaries**",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 1,
       "locators": [
         {
@@ -12927,14 +12939,15 @@
               "June 15-Oct 31"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "bull-river-d701ae",
-              "status": "todo",
-              "anchor_kind": "unclassified",
+              "status": "not_applicable",
+              "anchor_kind": "not_a_split",
               "src": "rule",
-              "resolver_hint": "other_reach"
+              "resolver_hint": "other_reach",
+              "notes": "[curated 2026-08-10 signs/other batch] [n/a: residual \"Other parts\" zone]"
             }
           ]
         },
@@ -15533,10 +15546,15 @@
             {
               "id": "kootenay-river-upstream-of-koocanusa-reservoi-3bb758",
               "status": "curated",
-              "anchor_kind": "lake",
+              "anchor_kind": "point",
               "src": "name",
               "resolver_hint": "lake_reach",
-              "notes": "Split authored in splits.json: 'kootenay_koocanusa' (lake). — authored split: kootenay_koocanusa",
+              "label": "Koocanusa Reservoir u/s end",
+              "notes": "Split authored in splits.json: 'kootenay_koocanusa' (lake). — authored split: kootenay_koocanusa [curated 2026-08-10 signs/other batch] [reservoir u/s end = Montana border ~49.0,-115.18; matches burbot-boundary]",
+              "coord": [
+                -115.18181,
+                49.00001
+              ],
               "target": {
                 "wbk": "328961702"
               },
@@ -15553,7 +15571,8 @@
             }
           ]
         }
-      ]
+      ],
+      "reviewed": "2026-08-10"
     },
     "98884ad7": {
       "entry_id": "98884ad7",
@@ -16104,7 +16123,7 @@
         "Classified"
       ],
       "reg_text": "Bait ban all year\nTrout/char catch and release, Nov 1-Mar 31\nBurbot catch and release upstream of the Montana border\nUpstream of Koocanusa Reservoir to White River: EXEMPT from Apr 1-June 14 closure; trout/char daily quota = 1 (no trout under 30 cm and\nno bull trout under 75 cm), Apr 1-Oct 31\nUpstream of White River: trout/char daily quota = 1 (no trout under 30 cm and no bull trout under 75 cm), Jun 15-Oct 31\n**Upstream of White River, including tributaries: Class II water when open**",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 7,
       "locators": [
         {
@@ -16115,10 +16134,15 @@
             {
               "id": "kootenay-river-upstream-of-koocanusa-reservoi-3bb758",
               "status": "curated",
-              "anchor_kind": "lake",
+              "anchor_kind": "point",
               "src": "name",
               "resolver_hint": "lake_reach",
-              "notes": "Split authored in splits.json: 'kootenay_koocanusa' (lake). — authored split: kootenay_koocanusa",
+              "label": "Koocanusa Reservoir u/s end",
+              "notes": "Split authored in splits.json: 'kootenay_koocanusa' (lake). — authored split: kootenay_koocanusa [curated 2026-08-10 signs/other batch] [reservoir u/s end = Montana border ~49.0,-115.18; matches burbot-boundary]",
+              "coord": [
+                -115.18181,
+                49.00001
+              ],
               "target": {
                 "wbk": "328961702"
               }
@@ -16131,14 +16155,20 @@
           "info": {
             "restriction_type": "harvest"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "kootenay-river-upstream-of-koocanusa-reservoi-f89737",
-              "status": "todo",
-              "anchor_kind": "unclassified",
+              "status": "curated",
+              "anchor_kind": "point",
               "src": "rule",
-              "resolver_hint": "other_reach"
+              "resolver_hint": "other_reach",
+              "label": "Montana border (Kootenay)",
+              "notes": "[curated 2026-08-10 signs/other batch] [49th parallel x Kootenay; COINCIDES with Koocanusa Reservoir u/s end (user)]",
+              "coord": [
+                -115.18167,
+                49.00095
+              ]
             }
           ]
         },
@@ -16156,10 +16186,15 @@
             {
               "id": "kootenay-river-upstream-of-koocanusa-reservoi-3bb758",
               "status": "curated",
-              "anchor_kind": "lake",
+              "anchor_kind": "point",
               "src": "name",
               "resolver_hint": "lake_reach",
-              "notes": "Split authored in splits.json: 'kootenay_koocanusa' (lake). — authored split: kootenay_koocanusa",
+              "label": "Koocanusa Reservoir u/s end",
+              "notes": "Split authored in splits.json: 'kootenay_koocanusa' (lake). — authored split: kootenay_koocanusa [curated 2026-08-10 signs/other batch] [reservoir u/s end = Montana border ~49.0,-115.18; matches burbot-boundary]",
+              "coord": [
+                -115.18181,
+                49.00001
+              ],
               "target": {
                 "wbk": "328961702"
               },
@@ -16198,10 +16233,15 @@
             {
               "id": "kootenay-river-upstream-of-koocanusa-reservoi-3bb758",
               "status": "curated",
-              "anchor_kind": "lake",
+              "anchor_kind": "point",
               "src": "name",
               "resolver_hint": "lake_reach",
-              "notes": "Split authored in splits.json: 'kootenay_koocanusa' (lake). — authored split: kootenay_koocanusa",
+              "label": "Koocanusa Reservoir u/s end",
+              "notes": "Split authored in splits.json: 'kootenay_koocanusa' (lake). — authored split: kootenay_koocanusa [curated 2026-08-10 signs/other batch] [reservoir u/s end = Montana border ~49.0,-115.18; matches burbot-boundary]",
+              "coord": [
+                -115.18181,
+                49.00001
+              ],
               "target": {
                 "wbk": "328961702"
               },
@@ -16292,10 +16332,15 @@
             {
               "id": "kootenay-river-upstream-of-koocanusa-reservoi-3bb758",
               "status": "curated",
-              "anchor_kind": "lake",
+              "anchor_kind": "point",
               "src": "name",
               "resolver_hint": "lake_reach",
-              "notes": "Split authored in splits.json: 'kootenay_koocanusa' (lake). — authored split: kootenay_koocanusa",
+              "label": "Koocanusa Reservoir u/s end",
+              "notes": "Split authored in splits.json: 'kootenay_koocanusa' (lake). — authored split: kootenay_koocanusa [curated 2026-08-10 signs/other batch] [reservoir u/s end = Montana border ~49.0,-115.18; matches burbot-boundary]",
+              "coord": [
+                -115.18181,
+                49.00001
+              ],
               "target": {
                 "wbk": "328961702"
               }
@@ -16328,10 +16373,15 @@
             {
               "id": "kootenay-river-upstream-of-koocanusa-reservoi-3bb758",
               "status": "curated",
-              "anchor_kind": "lake",
+              "anchor_kind": "point",
               "src": "name",
               "resolver_hint": "lake_reach",
-              "notes": "Split authored in splits.json: 'kootenay_koocanusa' (lake). — authored split: kootenay_koocanusa",
+              "label": "Koocanusa Reservoir u/s end",
+              "notes": "Split authored in splits.json: 'kootenay_koocanusa' (lake). — authored split: kootenay_koocanusa [curated 2026-08-10 signs/other batch] [reservoir u/s end = Montana border ~49.0,-115.18; matches burbot-boundary]",
+              "coord": [
+                -115.18181,
+                49.00001
+              ],
               "target": {
                 "wbk": "328961702"
               },
@@ -16339,7 +16389,8 @@
             }
           ]
         }
-      ]
+      ],
+      "reviewed": "2026-08-10"
     },
     "1469690a": {
       "entry_id": "1469690a",
@@ -17115,7 +17166,7 @@
         "Incl. Tribs"
       ],
       "reg_text": "Irishman Creek (Moyie River tributary) closed all year; no powered boats from bridge at south end of Moyie Lake to U.S. border\nBull trout and cutthroat trout catch and release",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 2,
       "locators": [
         {
@@ -17142,7 +17193,7 @@
           "info": {
             "restriction_type": "vessel_restriction"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "moyie-river-53143e-a",
@@ -17150,21 +17201,26 @@
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "label": "bridge at south end of Moyie Lake",
-              "notes": "[auto-proposal L] bridge at south end of Moyie Lake (to U.S. border) on Moyie River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the road bridge at the south end of Moyie Lake (Hwy 3/95 corridor); map.. Reach = 'bridge at south end of Moyie Lake to U.S. border'. Road bridge at the Moyie Lake outlet near Moyie townsite; not name-matched in FSR. Map/OSM-confirmable. [structural-split 2026-08-05 from “from bridge at south end of Moyie Lake to U.S. border”] boundary=bridge at south end of Moyie Lake [hint-fix 2026-08-06 lake_reach->bridge_road_km] [human-review 2026-08-06] bridge at south end of Moyie Lake (user-located).",
+              "label": "bridge at south end of Moyie Lake (Crowsnest Hwy)",
+              "notes": "[auto-proposal L] bridge at south end of Moyie Lake (to U.S. border) on Moyie River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the road bridge at the south end of Moyie Lake (Hwy 3/95 corridor); map.. Reach = 'bridge at south end of Moyie Lake to U.S. border'. Road bridge at the Moyie Lake outlet near Moyie townsite; not name-matched in FSR. Map/OSM-confirmable. [structural-split 2026-08-05 from “from bridge at south end of Moyie Lake to U.S. border”] boundary=bridge at south end of Moyie Lake [hint-fix 2026-08-06 lake_reach->bridge_road_km] [human-review 2026-08-06] bridge at south end of Moyie Lake (user-located). [curated 2026-08-10 signs/other batch] [OSM way 88607402, user; corrected from wrong N coord]",
               "coord": [
-                -115.83959,
-                49.31193
+                -115.85177,
+                49.25874
               ],
               "locator_text": "bridge at south end of Moyie Lake"
             },
             {
               "id": "moyie-river-53143e-b",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] bridge at south end of Moyie Lake (to U.S. border) on Moyie River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the road bridge at the south end of Moyie Lake (Hwy 3/95 corridor); map.. Reach = 'bridge at south end of Moyie Lake to U.S. border'. Road bridge at the Moyie Lake outlet near Moyie townsite; not name-matched in FSR. Map/OSM-confirmable. [structural-split 2026-08-05 from “from bridge at south end of Moyie Lake to U.S. border”] boundary=U.S. border",
+              "label": "U.S. border (Moyie R)",
+              "notes": "[auto-proposal L] bridge at south end of Moyie Lake (to U.S. border) on Moyie River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the road bridge at the south end of Moyie Lake (Hwy 3/95 corridor); map.. Reach = 'bridge at south end of Moyie Lake to U.S. border'. Road bridge at the Moyie Lake outlet near Moyie townsite; not name-matched in FSR. Map/OSM-confirmable. [structural-split 2026-08-05 from “from bridge at south end of Moyie Lake to U.S. border”] boundary=U.S. border [curated 2026-08-10 signs/other batch] [49th parallel x Moyie; no-powered-boats reach endpoint]",
+              "coord": [
+                -116.17899,
+                49.00046
+              ],
               "locator_text": "U.S. border"
             }
           ]
@@ -17175,7 +17231,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-10"
     },
     "51aea709": {
       "entry_id": "51aea709",
@@ -25537,7 +25594,7 @@
       "image": "page_065_row_016.png",
       "symbols": [],
       "reg_text": "Exempt from spring closure; also EXEMPT from bait ban downstream of fishing boundary signs near its mouth",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 1,
       "locators": [
         {
@@ -25546,14 +25603,29 @@
           "info": {
             "restriction_type": "note"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "chichouyenily-creek-212afe",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
-              "resolver_hint": "boundary_signs"
+              "resolver_hint": "boundary_signs",
+              "label": "signs ~400m u/s of mouth",
+              "notes": "[curated 2026-08-10 signs/other batch] [base=mouth +400m u/s -> 55.34138,-123.20916; closure d/s to mouth]",
+              "coord": [
+                -123.21401,
+                55.33908
+              ],
+              "offset": {
+                "anchor": [
+                  -123.21401,
+                  55.33908
+                ],
+                "anchor_label": "creek mouth",
+                "m": 400,
+                "dir": "upstream"
+              }
             }
           ]
         },
@@ -25563,7 +25635,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-10"
     },
     "823d2b21": {
       "entry_id": "823d2b21",
@@ -25764,7 +25837,7 @@
       "image": "page_065_row_042.png",
       "symbols": [],
       "reg_text": "Exempt from spring closure downstream of fishing boundary signs near its mouth",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 1,
       "locators": [
         {
@@ -25773,14 +25846,29 @@
           "info": {
             "restriction_type": "note"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "gagnon-creek-8e35ce",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
-              "resolver_hint": "boundary_signs"
+              "resolver_hint": "boundary_signs",
+              "label": "signs ~400m u/s of mouth",
+              "notes": "[curated 2026-08-10 signs/other batch] [base=mouth +400m u/s -> 55.27125,-123.15816; closure d/s to mouth]",
+              "coord": [
+                -123.16404,
+                55.26994
+              ],
+              "offset": {
+                "anchor": [
+                  -123.16404,
+                  55.26994
+                ],
+                "anchor_label": "creek mouth",
+                "m": 400,
+                "dir": "upstream"
+              }
             }
           ]
         },
@@ -25790,7 +25878,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-10"
     },
     "9c953e5d": {
       "entry_id": "9c953e5d",
@@ -26633,7 +26722,7 @@
       "image": "page_067_row_029.png",
       "symbols": [],
       "reg_text": "Exempt from spring closure downstream of signs near its mouth",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 1,
       "locators": [
         {
@@ -26642,14 +26731,29 @@
           "info": {
             "restriction_type": "note"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "weston-creek-68b838",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
-              "resolver_hint": "boundary_signs"
+              "resolver_hint": "boundary_signs",
+              "label": "signs ~400m u/s of mouth",
+              "notes": "[curated 2026-08-10 signs/other batch] [base=mouth +400m u/s -> 55.80973,-123.75827; closure d/s to mouth]",
+              "coord": [
+                -123.76351,
+                55.80768
+              ],
+              "offset": {
+                "anchor": [
+                  -123.76351,
+                  55.80768
+                ],
+                "anchor_label": "creek mouth",
+                "m": 400,
+                "dir": "upstream"
+              }
             }
           ]
         },
@@ -26659,7 +26763,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-10"
     },
     "dd9534c9": {
       "entry_id": "dd9534c9",
@@ -27649,7 +27754,7 @@
       "image": "page_072_row_005.png",
       "symbols": [],
       "reg_text": "**No Fishing** within 100 m of fishing boundary sign at outlet, May 15-July 31\nRainbow trout daily and possession quotas = 2 (none over 50 cm); bait ban, single hook",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 1,
       "locators": [
         {
@@ -27661,14 +27766,15 @@
               "May 15-July 31"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "rainbow-lakes-226e29",
-              "status": "todo",
+              "status": "deferred",
               "anchor_kind": "buffer",
               "src": "rule",
-              "resolver_hint": "radius"
+              "resolver_hint": "radius",
+              "notes": "[curated 2026-08-10 signs/other batch] [defer: lake-outlet 100m buffer, lake-split rule]"
             }
           ]
         },
@@ -27678,7 +27784,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-10"
     },
     "9b995db1": {
       "entry_id": "9b995db1",
@@ -29486,6 +29593,170 @@
         "notes": "[manual anchor 2026-08-08 audit-fix] Nichyeskwa Ck mouth on Babine R (FWA, m96825); d/s endpoint of fly-fishing reach (b) \"from signs 80m d/s of adult fence to Nichyeskwa Creek\"",
         "entry_id": "4dd3daf7",
         "reviewed": "2026-08-08",
+        "offset": null,
+        "polygon": null
+      }
+    },
+    {
+      "id": "bull-river-aberfeldie-dam-manual",
+      "water": "BULL RIVER",
+      "mu": [
+        "4-22"
+      ],
+      "src": "rule",
+      "locator_text": "Aberfeldie Dam",
+      "status": "curated",
+      "row": {
+        "id": "bull-river-aberfeldie-dam-manual",
+        "name_verbatim": "BULL RIVER",
+        "region": "REGION 4 - Kootenay",
+        "mus": [
+          "4-22"
+        ],
+        "src": "rule",
+        "locator_text": "Aberfeldie Dam",
+        "full_regulation": "Trout/char catch and release from Galbraith Creek to Van Creek[Includes Tributaries], Aberfeldie Dam to Tie Mill Dam[Includes Tributaries] and Quinn Creek[Includes Tributaries]\nOther parts: trout/char daily quota = 1 (none under 30 cm), June 15-Oct 31\nBait ban, June 15-Oct 31\n**Class II water when open, including tributaries**",
+        "anchor_kind": "point",
+        "resolver_hint": "other_reach",
+        "status": "curated",
+        "target": "",
+        "coord": [
+          -115.35084,
+          49.49944
+        ],
+        "label": "Aberfeldie Dam (C&R reach start)",
+        "notes": "[manual anchor 2026-08-10] Bull River C&R reach boundary (reg: Galbraith->Van, Aberfeldie Dam->Tie Mill Dam, Quinn Ck); resolved FWA/OSM",
+        "entry_id": "11c7347e",
+        "offset": null,
+        "polygon": null
+      }
+    },
+    {
+      "id": "bull-river-galbraith-manual",
+      "water": "BULL RIVER",
+      "mu": [
+        "4-22"
+      ],
+      "src": "rule",
+      "locator_text": "Galbraith Creek confl",
+      "status": "curated",
+      "row": {
+        "id": "bull-river-galbraith-manual",
+        "name_verbatim": "BULL RIVER",
+        "region": "REGION 4 - Kootenay",
+        "mus": [
+          "4-22"
+        ],
+        "src": "rule",
+        "locator_text": "Galbraith Creek confl",
+        "full_regulation": "Trout/char catch and release from Galbraith Creek to Van Creek[Includes Tributaries], Aberfeldie Dam to Tie Mill Dam[Includes Tributaries] and Quinn Creek[Includes Tributaries]\nOther parts: trout/char daily quota = 1 (none under 30 cm), June 15-Oct 31\nBait ban, June 15-Oct 31\n**Class II water when open, including tributaries**",
+        "anchor_kind": "point",
+        "resolver_hint": "other_reach",
+        "status": "curated",
+        "target": "",
+        "coord": [
+          -115.22499,
+          49.65577
+        ],
+        "label": "Galbraith Creek confl (C&R reach start)",
+        "notes": "[manual anchor 2026-08-10] Bull River C&R reach boundary (reg: Galbraith->Van, Aberfeldie Dam->Tie Mill Dam, Quinn Ck); resolved FWA/OSM",
+        "entry_id": "11c7347e",
+        "offset": null,
+        "polygon": null
+      }
+    },
+    {
+      "id": "bull-river-quinn-creek-manual",
+      "water": "BULL RIVER",
+      "mu": [
+        "4-22"
+      ],
+      "src": "rule",
+      "locator_text": "Quinn Creek",
+      "status": "todo",
+      "row": {
+        "id": "bull-river-quinn-creek-manual",
+        "name_verbatim": "BULL RIVER",
+        "region": "REGION 4 - Kootenay",
+        "mus": [
+          "4-22"
+        ],
+        "src": "rule",
+        "locator_text": "Quinn Creek",
+        "full_regulation": "Trout/char catch and release from Galbraith Creek to Van Creek[Includes Tributaries], Aberfeldie Dam to Tie Mill Dam[Includes Tributaries] and Quinn Creek[Includes Tributaries]\nOther parts: trout/char daily quota = 1 (none under 30 cm), June 15-Oct 31\nBait ban, June 15-Oct 31\n**Class II water when open, including tributaries**",
+        "anchor_kind": "confluence",
+        "resolver_hint": "other_reach",
+        "status": "todo",
+        "target": "",
+        "coord": null,
+        "label": "Quinn Creek (C&R tributary) - NEEDS PIN",
+        "notes": "[manual anchor 2026-08-10] Bull River C&R reach boundary (reg: Galbraith->Van, Aberfeldie Dam->Tie Mill Dam, Quinn Ck); needs pin",
+        "entry_id": "11c7347e",
+        "offset": null,
+        "polygon": null
+      }
+    },
+    {
+      "id": "bull-river-tie-mill-dam-manual",
+      "water": "BULL RIVER",
+      "mu": [
+        "4-22"
+      ],
+      "src": "rule",
+      "locator_text": "Tie Mill Dam",
+      "status": "todo",
+      "row": {
+        "id": "bull-river-tie-mill-dam-manual",
+        "name_verbatim": "BULL RIVER",
+        "region": "REGION 4 - Kootenay",
+        "mus": [
+          "4-22"
+        ],
+        "src": "rule",
+        "locator_text": "Tie Mill Dam",
+        "full_regulation": "Trout/char catch and release from Galbraith Creek to Van Creek[Includes Tributaries], Aberfeldie Dam to Tie Mill Dam[Includes Tributaries] and Quinn Creek[Includes Tributaries]\nOther parts: trout/char daily quota = 1 (none under 30 cm), June 15-Oct 31\nBait ban, June 15-Oct 31\n**Class II water when open, including tributaries**",
+        "anchor_kind": "confluence",
+        "resolver_hint": "other_reach",
+        "status": "todo",
+        "target": "",
+        "coord": null,
+        "label": "Tie Mill Dam (C&R reach end) - NEEDS PIN",
+        "notes": "[manual anchor 2026-08-10] Bull River C&R reach boundary (reg: Galbraith->Van, Aberfeldie Dam->Tie Mill Dam, Quinn Ck); needs pin",
+        "entry_id": "11c7347e",
+        "offset": null,
+        "polygon": null
+      }
+    },
+    {
+      "id": "bull-river-van-creek-manual",
+      "water": "BULL RIVER",
+      "mu": [
+        "4-22"
+      ],
+      "src": "rule",
+      "locator_text": "Van Creek confl",
+      "status": "curated",
+      "row": {
+        "id": "bull-river-van-creek-manual",
+        "name_verbatim": "BULL RIVER",
+        "region": "REGION 4 - Kootenay",
+        "mus": [
+          "4-22"
+        ],
+        "src": "rule",
+        "locator_text": "Van Creek confl",
+        "full_regulation": "Trout/char catch and release from Galbraith Creek to Van Creek[Includes Tributaries], Aberfeldie Dam to Tie Mill Dam[Includes Tributaries] and Quinn Creek[Includes Tributaries]\nOther parts: trout/char daily quota = 1 (none under 30 cm), June 15-Oct 31\nBait ban, June 15-Oct 31\n**Class II water when open, including tributaries**",
+        "anchor_kind": "point",
+        "resolver_hint": "other_reach",
+        "status": "curated",
+        "target": "",
+        "coord": [
+          -115.32129,
+          49.58783
+        ],
+        "label": "Van Creek confl (C&R reach end)",
+        "notes": "[manual anchor 2026-08-10] Bull River C&R reach boundary (reg: Galbraith->Van, Aberfeldie Dam->Tie Mill Dam, Quinn Ck); resolved FWA/OSM",
+        "entry_id": "11c7347e",
         "offset": null,
         "polygon": null
       }

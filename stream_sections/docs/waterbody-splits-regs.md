@@ -3,7 +3,7 @@
 Every reg entry (source-first), booklet order. **Bold** = a live split boundary; plain text
 = whole-water / tributary-set / `not_applicable`. Regenerate; do not hand-edit.
 
-387 entries · 409 highlighted boundary phrases.
+387 entries · 407 highlighted boundary phrases.
 
 | Water | MU | p | Regulation |
 |---|---|--:|---|
@@ -55,7 +55,7 @@ Every reg entry (source-first), booklet order. **Bold** = a live split boundary;
 | QUINSAM RIVER | 1-6 | 20 | No Fishing **from the fishing boundary signs at power line crossing (approximately 25 m upstream of Quinsam Hatchery weir) to fishing boundary signs approximately 300 m downstream of weir** No Fishing **from the falls situated downstream of Middle Quinsam Lake to the fishing boundary signs at power line crossing (approximately 25 m upstream of the Quinsam hatchery weir)**, Dec 1-June 30 Exempt from July 15-Aug 31 summer closure; wheelchair accessible fishing platform is located near the Hwy 28 Bridge |
 | SALMON RIVER | 1-10 | 20 | No Fishing **upstream of Kay Creek** No powered boats **upstream of confluence with White River**; speed restriction (10 km/h) **from estuary to confluence with White River** |
 | SAN JUAN RIVER | 1-3 | 20 | No Fishing **upstream of Fleet River**, No Fishing July 15-Aug 31[Includes Tributaries] |
-| SEYMOUR RIVER | 1-14 | 20 | Class II water Aug 15-Oct 31[Includes Tributaries]; Steelhead Stamp not required **unless fishing for steelhead** |
+| SEYMOUR RIVER | 1-14 | 20 | Class II water Aug 15-Oct 31[Includes Tributaries]; Steelhead Stamp not required unless fishing for steelhead |
 | SOMASS RIVER | 1-7 | 20 | No Fishing **between the tidal boundary at Papermill Dam to boundary signs approximately 1.0 km upstream (Falls Road Gravel Pit and the southern most end of Collins Farm/Arrow Vale Campground on Hector Road)**, Aug 25-Nov 15 Bait ban, June 1-Aug 24 Engine power restriction 7.5 kW (10 hp) |
 | SOOKE RIVER | 1-2 | 20 | Fly fishing only **downstream of Sooke River Falls**, Sept 1-Nov 30 No Fishing July 15-Aug 31[Includes Tributaries], No Fishing **from the base of the lower "potholes" falls to signs approximately 100 m downstream** |
 | SPROAT RIVER | 1-7 | 20 | No Fishing **from Sproat Lake to fishing boundary signs approximately 300 m downstream of Hwy 4**, June 15-Nov 15 Bait ban, May 1-Oct 31 |
@@ -165,7 +165,7 @@ Every reg entry (source-first), booklet order. **Bold** = a live split boundary;
 | ARROW LAKES' TRIBUTARIES |  | 37 | See Lower Arrow Lake's tributaries and Upper Arrow Lake's tributaries |
 | ARROW PARK (Mosquito) CREEK | 4-32 | 37 | No Fishing |
 | ASHER CREEK | 4-30 | 37 | No Fishing **downstream of South Fork (approximately 5 km from Trout Lake)**, June 15-Oct 31 |
-| BULL RIVER | 4-22 | 37 | Trout/char catch and release from Galbraith Creek to Van Creek[Includes Tributaries], Aberfeldie Dam to Tie Mill Dam[Includes Tributaries] and Quinn Creek[Includes Tributaries] **Other parts**: trout/char daily quota = 1 (none under 30 cm), June 15-Oct 31 Bait ban, June 15-Oct 31 Class II water when open, including tributaries |
+| BULL RIVER | 4-22 | 37 | Trout/char catch and release from Galbraith Creek to Van Creek[Includes Tributaries], Aberfeldie Dam to Tie Mill Dam[Includes Tributaries] and Quinn Creek[Includes Tributaries] Other parts: trout/char daily quota = 1 (none under 30 cm), June 15-Oct 31 Bait ban, June 15-Oct 31 Class II water when open, including tributaries |
 | BURTON CREEK | 4-15 | 37 | No Fishing **from Woden Creek to Hwy 6 bridge**, June 15-Oct 31 |
 | CARIBOU CREEK | 4-15 | 37 | No Fishing **from Rodd Creek to Hwy 6 bridge**, June 15-Oct 31 |
 | COAL CREEK (downstream of Old MF&M Railway bridge 7 km upstream of Elk River) | 4-23 | 37 | Youth/Disabled Accompanied Water year round (see page 4) Part described is NOT a Classified Water |

@@ -100,6 +100,11 @@ old shape" — they are the things that would silently corrupt data or break use
   lands on the park's other waters and does NOT accidentally match Bowron Lake itself (the named
   lake is excluded). This is the "admin bound but not clearly one" pattern — watch for similar
   "Park waters other than X" / "all lakes in the park except Y" entries.
+- **Sumallo River 2-2 — "includes 'Cedar' Lake, at Sunshine Valley"** (flagged 2026-08-10): NOT a split
+  (curated n/a), but an **include** clause — the Sumallo River water must ALSO match/attach to "Cedar"
+  Lake (a name-variant / co-located waterbody at Sunshine Valley). Ensure the matcher pulls Cedar Lake
+  in under the Sumallo entry (name-tuple / co-membership), don't drop it. Same class as other
+  "includes X Lake/Creek" extent clauses (Seton canal, Vaseux lagoons, McArthur slough).
 
 ## Tests to port / add
 
