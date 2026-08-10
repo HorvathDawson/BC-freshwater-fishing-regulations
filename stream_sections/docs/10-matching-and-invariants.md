@@ -105,6 +105,13 @@ old shape" — they are the things that would silently corrupt data or break use
   Lake (a name-variant / co-located waterbody at Sunshine Valley). Ensure the matcher pulls Cedar Lake
   in under the Sumallo entry (name-tuple / co-membership), don't drop it. Same class as other
   "includes X Lake/Creek" extent clauses (Seton canal, Vaseux lagoons, McArthur slough).
+- **Bull River 4-22 — "Quinn Creek [Includes Tributaries]"** (flagged 2026-08-10): the trout/char C&R
+  applies to Quinn Creek AND its tributaries as a whole set — an **include**, NOT a point split
+  (curated n/a). The matcher must assign that reg to Quinn Creek's whole WSC subtree via tributary
+  inheritance. FWA GNIS name is **"Quinn (Queen) Creek"**, WSC `300-625474-636250-492930` (a name
+  variant — the reg says "Quinn", FWA says "Quinn (Queen)"). Ensure the name-tuple match resolves
+  "Quinn Creek" → this WSC. (The Galbraith→Van and Aberfeldie Dam→Tie Mill Dam reaches ARE curated
+  point splits; only Quinn Creek is a tributary include.)
 
 ## Tests to port / add
 

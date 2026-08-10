@@ -118,13 +118,24 @@ subagent to do step 2** and return only the compact result:
 A graphify PreToolUse hook fires on every Bash/Read — it targets **source-code** exploration, so it
 does not apply to FWA/OSM geometry scripts or data reads; run those normally.
 
-## Current state (2026-08-08)
+## Current state (2026-08-10)
 
-767 rows · **368 curated · 181 n/a · 45 deferred · 165 todo** · 8 manual. **40 entries carry
-`reviewed`.** Fields: `offset`, `polygon`, `reviewed`. Site C dam fixed; 39-row offset retrofit;
-lake/confluence targets; named-feature audit clean (0 m spread). `scratchpad/` reusable resolvers:
-`resolve_bases.py`, `lake_targets.py`, `audit_features.py`, `elk_bridges.py`, plus per-entry
-`apply_*.py` scripts (one per waterbody — copy the pattern).
+783 rows · **437 curated · 215 n/a · 90 deferred · 28 todo** · 13 manual. **159 entries carry
+`reviewed`.** Only **24 incomplete entries (28 todo rows)** remain — all genuine needs-pin (below).
+Fields: `offset`, `polygon`, `reviewed`. `scratchpad/` reusable resolvers + `apply_*.py`/`*_resolver*.py`
+per-batch scripts (copy the pattern). Bulk workflow proven this run: dump entries→JSON, run a paced
+Overpass resolver (MU-clip via `wmu` to disambiguate dup river names; named-highway match since BC
+hwys are often `name` not `ref` — "Pacific Rim Highway"=Hwy 4, "Nisga'a Highway"=Nass Rd), stage
+candidates, then present per-type batches (Lakes / Bridges / Confl / Falls / Signs / Canyon / Other)
+with full raw reg + ALL locators + OSM pins for human review.
+
+### The true needs-pin residual (28 rows / 24 entries) — human pins or FISS/topo required
+Small creeks/bridges absent from FWA & OSM: **Burton (=`Burton (Trout) Creek` in FWA), Trepanier,
+Chowade, Mohun, Ksi X'anmas, Alouette (216th St), Thorn (Attichika, not in FWA)**. Tidal-boundary
+"signs at Nth bridge N km from tidal": **Copper, Deena, Mamin, Eve, Capilano, Artlish**. Canyon/pool/
+section/fence: **Cranberry canyon, Chuckwalla (Ten Mile Pool), Skeena §4, Kitimat (hatchery+Hwy 37),
+Pinkut (fish fence), Swift (Valemount weir), White R (salmon-viewing pool), Thompson (Martel),
+Elk-Coal (old MF&M Railway Br)**. Each has full reg + a partial candidate/notes in the data.
 
 Reviewed/handled earlier: Fraser 3-14, Columbia, Elk (u/s Elko), Chilliwack/Vedder, Kokish, Cowichan,
 Fraser (u/s CPR Mission), Little Qualicum, Shuswap River, Nitinat, Campbell 2-4, Coquitlam, Nicomekl,
