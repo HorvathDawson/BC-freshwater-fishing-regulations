@@ -3023,7 +3023,7 @@
         "Incl. Tribs"
       ],
       "reg_text": "**No Fishing** Dec 1-May 31, **No Fishing** from Menzies Bay logging mainline bridge crossing to Morton Lake",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 1,
       "locators": [
         {
@@ -3032,15 +3032,20 @@
           "info": {
             "restriction_type": "closure"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "mohun-creek-1fa4a0-a",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal M] Menzies Bay logging mainline bridge over Mohun Creek on Mohun Creek. Candidate coord [-125.42449, 50.09625]. OSM: https://www.openstreetmap.org/?mlat=50.09625&mlon=-125.42449#map=15/50.09625/-125.42449. Verify: MENZMN.2 (Menzies Bay mainline) crosses Mohun Creek at ~7.4 km -> strong match; confirm as the reach start to Morton Lake.. Reach = 'Menzies Bay logging mainline bridge crossing to Morton Lake'. FWA FSR 'MENZMN.2' (Menzies mainline) crossing is a strong name/location match. Verify against the bridge on map. [structural-split 2026-08-05 from “from Menzies Bay logging mainline bridge crossing to Morton Lake”] boundary=Menzies Bay logging mainline bridge crossing",
+              "label": "Menzies Bay logging mainline bridge (MENZMN.2)",
+              "notes": "[auto-proposal M] Menzies Bay logging mainline bridge over Mohun Creek on Mohun Creek. Candidate coord [-125.42449, 50.09625]. OSM: https://www.openstreetmap.org/?mlat=50.09625&mlon=-125.42449#map=15/50.09625/-125.42449. Verify: MENZMN.2 (Menzies Bay mainline) crosses Mohun Creek at ~7.4 km -> strong match; confirm as the reach start to Morton Lake.. Reach = 'Menzies Bay logging mainline bridge crossing to Morton Lake'. FWA FSR 'MENZMN.2' (Menzies mainline) crossing is a strong name/location match. Verify against the bridge on map. [structural-split 2026-08-05 from “from Menzies Bay logging mainline bridge crossing to Morton Lake”] boundary=Menzies Bay logging mainline bridge crossing [curated 2026-08-10 needs-pin batch2] [FSR MENZMN.2 @7.4km; reach start to Morton Lake]",
+              "coord": [
+                -125.42449,
+                50.09625
+              ],
               "locator_text": "Menzies Bay logging mainline bridge crossing"
             },
             {
@@ -3060,7 +3065,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-10"
     },
     "6e46dfed": {
       "entry_id": "6e46dfed",
@@ -5179,7 +5185,7 @@
         "Incl. Tribs"
       ],
       "reg_text": "**No Fishing** upstream of the fishing boundary signs located at 49° 14.790'N and 122° 32.080'W, near the southern boundary (chain-link\nfence) of the Alouette River Management Society\n**No Fishing** upstream of 216th Street (including North Alouette River[Includes Tributaries]), May 1-June 30; no powered boats on mainstem",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 3,
       "locators": [
         {
@@ -5216,7 +5222,7 @@
             ],
             "includes_tributaries": true
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "alouette-river-daecfd",
@@ -5233,11 +5239,16 @@
             },
             {
               "id": "north-alouette-river-e3810a",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] 216th Street (Fifth Ave) bridge over North Alouette River on North Alouette River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm 216th St (Fifth Ave) crossing of the North Alouette (Maple Ridge); street grid -> review.. FWA North Alouette mouth (49.27N,-122.67) is correct (Maple Ridge). City street bridge at 216 St -> map-only but well-defined.",
+              "label": "216th Street (Fifth Ave) bridge, North Alouette",
+              "notes": "[auto-proposal L] 216th Street (Fifth Ave) bridge over North Alouette River on North Alouette River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm 216th St (Fifth Ave) crossing of the North Alouette (Maple Ridge); street grid -> review.. FWA North Alouette mouth (49.27N,-122.67) is correct (Maple Ridge). City street bridge at 216 St -> map-only but well-defined. [curated 2026-08-10 needs-pin batch2] [FWA N.Alouette x 216 St; just N of mainstem 216 crossing 49.2409,-122.62242]",
+              "coord": [
+                -122.62223,
+                49.25991
+              ],
               "name_verbatim": "NORTH ALOUETTE RIVER",
               "locator_text": "upstream of 216th Street (Fifth Ave)"
             }
@@ -5268,7 +5279,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-10"
     },
     "e8095112": {
       "entry_id": "e8095112",
@@ -7467,7 +7479,7 @@
         "Incl. Tribs"
       ],
       "reg_text": "**No Fishing** upstream of 216th Street (Fifth Ave), May 1-June 30\nNo powered boats",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 1,
       "locators": [
         {
@@ -7479,7 +7491,7 @@
               "May 1-June 30"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "alouette-river-daecfd",
@@ -7498,11 +7510,16 @@
             },
             {
               "id": "north-alouette-river-e3810a",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] 216th Street (Fifth Ave) bridge over North Alouette River on North Alouette River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm 216th St (Fifth Ave) crossing of the North Alouette (Maple Ridge); street grid -> review.. FWA North Alouette mouth (49.27N,-122.67) is correct (Maple Ridge). City street bridge at 216 St -> map-only but well-defined."
+              "label": "216th Street (Fifth Ave) bridge, North Alouette",
+              "notes": "[auto-proposal L] 216th Street (Fifth Ave) bridge over North Alouette River on North Alouette River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm 216th St (Fifth Ave) crossing of the North Alouette (Maple Ridge); street grid -> review.. FWA North Alouette mouth (49.27N,-122.67) is correct (Maple Ridge). City street bridge at 216 St -> map-only but well-defined. [curated 2026-08-10 needs-pin batch2] [FWA N.Alouette x 216 St; just N of mainstem 216 crossing 49.2409,-122.62242]",
+              "coord": [
+                -122.62223,
+                49.25991
+              ]
             }
           ]
         },
@@ -26691,7 +26708,7 @@
       "image": "page_067_row_018.png",
       "symbols": [],
       "reg_text": "**No Fishing** from Attichika Creek to a point 500 m upstream",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 1,
       "locators": [
         {
@@ -26700,24 +26717,34 @@
           "info": {
             "restriction_type": "closure"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "thorn-creek-b2b2c7-a",
-              "status": "todo",
-              "anchor_kind": "confluence",
+              "status": "curated",
+              "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "tributary",
-              "notes": "[structural-split 2026-08-05 from \"from Attichika Creek to a point 500 m upstream\"] boundary=Attichika Creek",
+              "label": "Attichika Creek confluence (= Thorne Ck mouth)",
+              "notes": "[structural-split 2026-08-05 from \"from Attichika Creek to a point 500 m upstream\"] boundary=Attichika Creek [curated 2026-08-10 needs-pin batch2] [FWA GNIS \"Thorne Creek\" blk 359557375; mouth=Attichika confl, matches user 56.92634,-126.68255]",
+              "coord": [
+                -126.68256,
+                56.92636
+              ],
               "locator_text": "Attichika Creek"
             },
             {
               "id": "thorn-creek-b2b2c7-b",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "other_reach",
-              "notes": "[structural-split 2026-08-05 from \"from Attichika Creek to a point 500 m upstream\"] boundary=point 500 m upstream",
+              "label": "point 500 m upstream (up Thorne Ck from Attichika confl)",
+              "notes": "[structural-split 2026-08-05 from \"from Attichika Creek to a point 500 m upstream\"] boundary=point 500 m upstream [curated 2026-08-10 needs-pin batch2] [+500m along FWA Thorne Ck blk 359557375]",
+              "coord": [
+                -126.68522,
+                56.92409
+              ],
               "locator_text": "point 500 m upstream"
             }
           ]
@@ -26728,7 +26755,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-10"
     },
     "b34e2ffb": {
       "entry_id": "b34e2ffb",

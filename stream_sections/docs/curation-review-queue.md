@@ -23,20 +23,6 @@ Each pin has an OSM springboard link. Method = how the pin was derived + what to
     - **~10 km upstream walk pin (third-bridge area)**: `53.57421,-132.32237`  →  [OSM](https://www.openstreetmap.org/?mlat=53.57421&mlon=-132.32237#map=15/53.57421/-132.32237)
 
 ---
-### MOHUN CREEK  ·  MU 1-10  ·  `5e563b26`
-
-**Raw reg (verbatim):**
-> **No Fishing** Dec 1-May 31, **No Fishing** from Menzies Bay logging mainline bridge crossing to Morton Lake
-
-**All locators in this entry:**
-- 🔴 TODO: *Menzies Bay logging mainline bridge crossing*
-- ⬜ n/a: *Morton Lake*
-
-**Candidate pin(s) for the TODO row(s):**
-- `mohun-creek-1fa4a0-a`  — FWA river x FSR "MENZMN.2" (Menzies Bay mainline) @7.4km = reach start to Morton Lake.
-    - **Menzies Bay mainline bridge (MENZMN.2)**: `50.09625,-125.42449`  →  [OSM](https://www.openstreetmap.org/?mlat=50.09625&mlon=-125.42449#map=15/50.09625/-125.42449)
-
----
 
 ## B. SPRINGBOARD — correct FWA channel
 
@@ -53,24 +39,6 @@ Each pin has an OSM springboard link. Method = how the pin was derived + what to
 **Candidate pin(s) for the TODO row(s):**
 - `deena-creek-af3d2f`  — Reg="second bridge ~5 km above tidal"; no FSR near 5km in data. Walk-5km pin on FWA Deena -> eyeball the bridge.
     - **~5 km upstream walk pin**: `53.12351,-132.1628`  →  [OSM](https://www.openstreetmap.org/?mlat=53.12351&mlon=-132.1628#map=15/53.12351/-132.1628)
-
----
-### ALOUETTE RIVER  ·  MU 2-8  ·  `dadcd21c`
-
-**Raw reg (verbatim):**
-> **No Fishing** upstream of the fishing boundary signs located at 49° 14.790'N and 122° 32.080'W, near the southern boundary (chain-link
-> fence) of the Alouette River Management Society
-> **No Fishing** upstream of 216th Street (including North Alouette River[Includes Tributaries]), May 1-June 30; no powered boats on mainstem
-
-**All locators in this entry:**
-- ✅ curated: *upstream of the fishing boundary signs located at 49° 14.790'N and 122° 32.080'W, near the southern boundary (chain-link* — curated 49.24650,-122.53467
-- ✅ curated: *upstream of 216th Street* — curated 49.24090,-122.62242
-- 🔴 TODO: *upstream of 216th Street (Fifth Ave)*
-- ⬜ n/a: *on mainstem*
-
-**Candidate pin(s) for the TODO row(s):**
-- `north-alouette-river-e3810a`  — FWA North Alouette sampled at 216th St longitude (mainstem 216 St curated 49.2409,-122.62242 just S).
-    - **N. Alouette @ 216th St (Fifth Ave)**: `49.25991,-122.62223`  →  [OSM](https://www.openstreetmap.org/?mlat=49.25991&mlon=-122.62223#map=15/49.25991/-122.62223)
 
 ---
 ### THOMPSON RIVER (downstream of signs at Kamloops Lake o  ·  MU 3-13, 3-14, 3-18  ·  `bea6153a`
@@ -217,22 +185,6 @@ Each pin has an OSM springboard link. Method = how the pin was derived + what to
 **Candidate pin(s) for the TODO row(s):**
 - `swift-creek-a32fd8-a`  — Weir (u/s side) d/s of CNR Br in Valemount (CNR br curated 52.83822,-119.26786). FWA mouth as springboard.
     - **Swift Ck mouth @ Valemount (weir just u/s)**: `52.84848,-119.29953`  →  [OSM](https://www.openstreetmap.org/?mlat=52.84848&mlon=-119.29953#map=15/52.84848/-119.29953)
-
----
-### THORN CREEK  ·  MU 7-39  ·  `15e07584`
-
-**Raw reg (verbatim):**
-> **No Fishing** from Attichika Creek to a point 500 m upstream
-
-**All locators in this entry:**
-- 🔴 TODO: *Attichika Creek*
-- 🔴 TODO: *point 500 m upstream*
-
-**Candidate pin(s) for the TODO row(s):**
-- `thorn-creek-b2b2c7-a`  — Thorn Ck NOT in FWA. Anchor = Attichika Creek confluence; using Attichika mouth (where it meets Thorn).
-    - **Attichika Creek confluence (Attichika mouth)**: `56.96833,-126.87528`  →  [OSM](https://www.openstreetmap.org/?mlat=56.96833&mlon=-126.87528#map=15/56.96833/-126.87528)
-- `thorn-creek-b2b2c7-b`  — Point 500 m upstream of Attichika confl. Thorn not in FWA -> approximate 500m up from the Attichika-mouth anchor (needs Thorn channel to finalize).
-    - **~500 m u/s of Attichika confl (approx)**: _(no coord — springboard is the river/area above)_
 
 ---
 ### CHOWADE RIVER  ·  MU 7-43  ·  `5887eab0`

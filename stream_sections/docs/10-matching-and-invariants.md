@@ -112,6 +112,12 @@ old shape" — they are the things that would silently corrupt data or break use
   variant — the reg says "Quinn", FWA says "Quinn (Queen)"). Ensure the name-tuple match resolves
   "Quinn Creek" → this WSC. (The Galbraith→Van and Aberfeldie Dam→Tie Mill Dam reaches ARE curated
   point splits; only Quinn Creek is a tributary include.)
+- **Thorn Creek 7-39 → FWA "Thorne Creek"** (flagged 2026-08-10): the reg/gazette spells it **"Thorn
+  Creek"** but FWA GNIS is **"Thorne Creek"**, `BLUE_LINE_KEY 359557375`, WSC
+  `200-948755-999851-889551-445636-…`. Ensure the name-tuple match resolves "Thorn Creek" → this blk.
+  The split ("from Attichika Creek to a point 500 m upstream") is the lowermost 500 m of Thorne Creek:
+  the confluence with Attichika **is Thorne's mouth** (56.92636,-126.68256), split end 500 m up
+  (56.92409,-126.68522).
 
 ## Tests to port / add
 
