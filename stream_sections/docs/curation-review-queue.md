@@ -143,19 +143,6 @@ Each pin has an OSM springboard link. Method = how the pin was derived + what to
     - **Kitimat R ~ Hwy37 area (lower valley springboard)**: `54.0446,-128.68101`  →  [OSM](https://www.openstreetmap.org/?mlat=54.0446&mlon=-128.68101#map=15/54.0446/-128.68101)
 
 ---
-### PINKUT CREEK  ·  MU 6-6  ·  `2fe40ed5`
-
-**Raw reg (verbatim):**
-> **No Fishing** downstream of the fish fence, Aug 15-Sept 15; bait ban
-
-**All locators in this entry:**
-- 🔴 TODO: *downstream of the fish fence*
-
-**Candidate pin(s) for the TODO row(s):**
-- `pinkut-creek-03a36e`  — DFO Pinkut Ck fish fence / spawning channel. FWA mouth (Babine) as springboard; fence is near mouth reach.
-    - **Pinkut Ck mouth @ Babine (fish fence nearby)**: `54.45879,-125.46404`  →  [OSM](https://www.openstreetmap.org/?mlat=54.45879&mlon=-125.46404#map=15/54.45879/-125.46404)
-
----
 ### PTARMIGAN CREEK  ·  MU 7-5  ·  `0b6d5fb7`
 
 **Raw reg (verbatim):**

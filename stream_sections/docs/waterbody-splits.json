@@ -24187,7 +24187,7 @@
       "image": "page_059_row_010.png",
       "symbols": [],
       "reg_text": "**No Fishing** downstream of the fish fence, Aug 15-Sept 15; bait ban",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 1,
       "locators": [
         {
@@ -24199,15 +24199,20 @@
               "Aug 15-Sept 15"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "pinkut-creek-03a36e",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "dam_weir_fence",
-              "notes": "[auto-proposal L] Fish fence (spawning channel) on Pinkut Creek on Pinkut Creek (near Babine Lake). Candidate coord [-125.46404, 54.45879]. OSM: https://www.openstreetmap.org/?mlat=54.45879&mlon=-125.46404#map=15/54.45879/-125.46404. Verify: Locate the Pinkut Creek fish fence / DFO spawning channel; candidate is the FWA mouth reference.. Closure downstream of the fish fence on Pinkut Creek (DFO Pinkut spawning-channel facility, MU 6-6, near Babine Lake). Fence not in FWA; candidate = FWA Pinkut Creek mouth [-125.464,54.459] - refine to the fence on a map."
+              "label": "fish fence (DFO Pinkut Ck spawning channel)",
+              "notes": "[auto-proposal L] Fish fence (spawning channel) on Pinkut Creek on Pinkut Creek (near Babine Lake). Candidate coord [-125.46404, 54.45879]. OSM: https://www.openstreetmap.org/?mlat=54.45879&mlon=-125.46404#map=15/54.45879/-125.46404. Verify: Locate the Pinkut Creek fish fence / DFO spawning channel; candidate is the FWA mouth reference.. Closure downstream of the fish fence on Pinkut Creek (DFO Pinkut spawning-channel facility, MU 6-6, near Babine Lake). Fence not in FWA; candidate = FWA Pinkut Creek mouth [-125.464,54.459] - refine to the fence on a map. [curated 2026-08-10 needs-pin batch3: user pin 54.44574,-125.45955; closure d/s of fence]",
+              "coord": [
+                -125.45955,
+                54.44574
+              ]
             }
           ]
         },
@@ -24217,7 +24222,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-10"
     },
     "e63f8c99": {
       "entry_id": "e63f8c99",
