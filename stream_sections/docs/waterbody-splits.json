@@ -23737,11 +23737,11 @@
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "powerline",
-              "label": "power line crossing",
-              "notes": "[auto-proposal L] power line crossing 3.5 km above Lakelse River mouth on Lakelse River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the power line 3.5 km above the Lakelse mouth (from Lakelse Lake outlet); power line, map-only.. Reach = 'Lakelse Lake outlet to power line 3.5 km above the mouth'. Transmission-line landmark near Terrace; not in FWA. Map/OSM. [structural-split 2026-08-05 from “from the outlet of Lakelse Lake to the power line crossing, located 3.5 km upstream of the Lakelse River mouth”] boundary=power line crossing, located 3.5 km upstream of the Lakelse River mouth [human-review 2026-08-05 OSM-confirmed] [-128.75105, 54.43999]. [hint-fix 2026-08-06 bridge_road_km->powerline] [curated 2026-08-11 needs-pin batch5] [snapped to user UTM 9N 516147,6032426 = 54.43928,-128.75104; was 54.43999,-128.75105]",
+              "label": "power line crossing (287kV)",
+              "notes": "[auto-proposal L] power line crossing 3.5 km above Lakelse River mouth on Lakelse River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the power line 3.5 km above the Lakelse mouth (from Lakelse Lake outlet); power line, map-only.. Reach = 'Lakelse Lake outlet to power line 3.5 km above the mouth'. Transmission-line landmark near Terrace; not in FWA. Map/OSM. [structural-split 2026-08-05 from “from the outlet of Lakelse Lake to the power line crossing, located 3.5 km upstream of the Lakelse River mouth”] boundary=power line crossing, located 3.5 km upstream of the Lakelse River mouth [human-review 2026-08-05 OSM-confirmed] [-128.75105, 54.43999]. [hint-fix 2026-08-06 bridge_road_km->powerline] [curated 2026-08-11 needs-pin batch5] [snapped to user UTM 9N 516147,6032426 = 54.43928,-128.75104; was 54.43999,-128.75105] [corrected 2026-08-11: actual power-line x Lakelse R crossing = OSM way 130625073 (287kV) 54.43999,-128.75105 @3.75km up; user UTM 516147,6032426 was a nearby cross-check ~80m off]",
               "coord": [
-                -128.75104,
-                54.43928
+                -128.75105,
+                54.43999
               ],
               "locator_text": "power line crossing, located 3.5 km upstream of the Lakelse River mouth"
             }
