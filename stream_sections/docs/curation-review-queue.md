@@ -75,37 +75,6 @@ Each pin has an OSM springboard link. Method = how the pin was derived + what to
 
 ---
 
-## C. SPRINGBOARD — townsite/landmark (FWA name/MU miss)
-
-### HAYS CREEK (in Prince Rupert)  ·  MU 6-14  ·  `3f88988a`
-
-**Raw reg (verbatim):**
-> **No Fishing** upstream of fishing boundary signs downstream of lower culvert near fish cannery in Prince Rupert
-> Includes "Oldfield" Creek
-
-**All locators in this entry:**
-- 🔴 TODO: *upstream of fishing boundary signs downstream of lower culvert near fish cannery in Prince Rupert*
-
-**Candidate pin(s) for the TODO row(s):**
-- `hays-creek-in-prince-rupert-6e14c4`  — Lower culvert near fish cannery, Prince Rupert (urban; incl "Oldfield" Ck). OSM Hays Cove Circle @ 6th Ave as springboard.
-    - **Hays Ck area, Prince Rupert (OSM Hays Cove Circle)**: `54.31886,-130.30971`  →  [OSM](https://www.openstreetmap.org/?mlat=54.31886&mlon=-130.30971#map=15/54.31886/-130.30971)
-
----
-### KSI X'ANMAS RIVER (formerly Kwinamass River)  ·  MU 6-14  ·  `ea7be38a`
-
-**Raw reg (verbatim):**
-> **No Fishing** upstream from the lower bridge abutments, July 1-Aug 20
-> **Class II water Apr 1-Sept 30; Steelhead Stamp mandatory Apr 1-May 31**
-
-**All locators in this entry:**
-- 🔴 TODO: *upstream from the lower bridge abutments*
-
-**Candidate pin(s) for the TODO row(s):**
-- `ksi-x-anmas-river-formerly-kwinamass-river-fe2f0b`  — Lower bridge abutments on Ksi X'anmas (Kwinamass) R. Remote coastal river N of Prince Rupert; not in FWA under either name -> needs topo/map.
-    - **(remote coastal — needs topo)**: _(no coord — springboard is the river/area above)_
-
----
-
 ## D. NEEDS FISS/topo (no offline feature)
 
 ### WHITE RIVER  ·  MU 1-10  ·  `4cf440b0`
