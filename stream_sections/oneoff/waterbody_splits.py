@@ -412,7 +412,17 @@ def write_regs_md(cards):
         if not live:  # all-n/a / whole-water entry — hide it, keep this doc to split-bearing regs
             n_hidden += 1
             continue
-        cell, k = render_reg(c["reg_text"], [l["text"] for l in live])
+        # number per BOUNDARY row (a "from X to Y" reach with -a/-b rows gets a number for each
+        # endpoint via the row's own locator_text); fall back to the locator phrase when a row
+        # has no sub-text or the boundary isn't curated yet (MISSING).
+        phrases = []
+        for l in live:
+            live_rows = [r for r in l["rows"] if r["status"] != "not_applicable"]
+            if not live_rows:
+                phrases.append(l["text"])
+            else:
+                phrases.extend(r.get("locator_text") or l["text"] for r in live_rows)
+        cell, k = render_reg(c["reg_text"], phrases)
         n_hi += k
         mu = ", ".join(c["mu"] or [])
         row = f"| {_esc_cell(c['water'])} | {mu} | {c.get('page') or ''} | {cell} |"
