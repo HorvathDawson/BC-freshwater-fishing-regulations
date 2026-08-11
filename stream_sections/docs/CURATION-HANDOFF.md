@@ -118,10 +118,21 @@ subagent to do step 2** and return only the compact result:
 A graphify PreToolUse hook fires on every Bash/Read — it targets **source-code** exploration, so it
 does not apply to FWA/OSM geometry scripts or data reads; run those normally.
 
-## Current state (2026-08-10)
+## Current state (2026-08-11)
 
-783 rows · **437 curated · 215 n/a · 90 deferred · 28 todo** · 13 manual. **159 entries carry
-`reviewed`.** Only **24 incomplete entries (28 todo rows)** remain — all genuine needs-pin (below).
+783 rows · **456 curated · 216 n/a · 90 deferred · 8 todo** · 13 manual. Needs-pin batches 1–5 applied
+(Artlish, Copper, Eve, Mohun, Thorne, N.Alouette, Pinkut, Swift, Kitimat×2, Ptarmigan×2, Capilano,
+Burton, Trepanier, Chowade, Thompson-Martel, Elk/Coal, Skeena §4 n/a; Lakelse power-line snapped to
+user UTM). **Only 8 todo rows remain — all PARKED awaiting external info** (not resolvable from FWA/OSM):
+- **Mamin (6-13)** 3rd bridge ~10 km & **Deena (6-12)** 2nd bridge ~5 km — **emailed CO officer Brock**
+  (Haida Gwaii, via FrontCounter) for the exact bridges.
+- **Cranberry (6-15) ×2** canyon u/s & d/s signs — DFO doc Fs97-6-2129 falls at **55.56407,-128.68426**
+  (≈ top of canyon / u/s sign per huntingBC thread: fish above falls past triangle signs); d/s canyon
+  sign still needs pin.
+- **Chuckwalla (5-7)** Ten Mile Pool · **Hays (6-14)** lower culvert near cannery · **White (1-10)**
+  salmon viewing pool · **Ksi X'anmas (6-14)** lower bridge abutments (remote coastal, not in FWA).
+Name-variant notes added this run (see `10-matching-and-invariants.md`): Thorn→**Thorne Ck** (blk
+359557375), Trepanier→**Trépanier**. Historical (pre-batch) needs-pin detail retained below.
 Fields: `offset`, `polygon`, `reviewed`. `scratchpad/` reusable resolvers + `apply_*.py`/`*_resolver*.py`
 per-batch scripts (copy the pattern). Bulk workflow proven this run: dump entries→JSON, run a paced
 Overpass resolver (MU-clip via `wmu` to disambiguate dup river names; named-highway match since BC
