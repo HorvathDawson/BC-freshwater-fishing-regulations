@@ -12226,7 +12226,7 @@
         "Classified"
       ],
       "reg_text": "**No Fishing** Oct 1-May 31\nTrout/char daily quota = 2 (none under 35 cm)\nAdditional opening from the CNR Bridge downstream of Deadman River to CNR Bridge upstream of Bonaparte River, May 1-31; trout/char\ncatch and release and artificial fly only, May 1-31\nUpstream of boundary signs 1 km downstream of Martel: bait ban\nNo angling from boats\n**Downstream of signs at Kamloops Lake: Class II water Oct 1-Dec 31 and Steelhead Stamp mandatory Oct 1-Dec 31 (when open)**",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 8,
       "locators": [
         {
@@ -12399,14 +12399,20 @@
           "info": {
             "restriction_type": "gear_restriction"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "thompson-river-downstream-of-signs-at-kamloop-1c9ce3",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "boundary_signs",
+              "label": "signs 1 km downstream of Martel",
+              "notes": "[curated 2026-08-11 needs-pin batch5] [user Martel 50.49303,-121.29045 (on-river 50.49324,-121.29058); walked 1km downstream on FWA Thompson]",
+              "coord": [
+                -121.29808,
+                50.48643
+              ],
               "name_verbatim": "THOMPSON RIVER (downstream of signs at Kamloops Lake o"
             }
           ]
@@ -12597,7 +12603,8 @@
             }
           ]
         }
-      ]
+      ],
+      "reviewed": "2026-08-11"
     },
     "91819cb4": {
       "entry_id": "91819cb4",
@@ -13012,7 +13019,7 @@
       "image": "page_037_row_021.png",
       "symbols": [],
       "reg_text": "**No Fishing** from Woden Creek to Hwy 6 bridge, June 15-Oct 31",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 1,
       "locators": [
         {
@@ -13024,7 +13031,7 @@
               "June 15-Oct 31"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "burton-creek-b25ef3-a",
@@ -13046,11 +13053,16 @@
             },
             {
               "id": "burton-creek-b25ef3-b",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] Hwy 6 bridge over Burton Creek on Burton Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm Hwy 6 bridge over Burton Creek; VERIFY correct Burton Creek (FWA name collision).. Reach = 'from Woden Creek to Hwy 6 bridge'. The FWA 'Burton Creek' match (51.48N,-119.46, Adams Lake area) is likely the wrong creek; the reg creek is on Hwy 6 (Arrow Lakes / Nakusp corridor). Public highway -> map-only. [structural-split 2026-08-05 from “from Woden Creek to Hwy 6 bridge”] boundary=Hwy 6 bridge",
+              "label": "Hwy 6 bridge (Vernon-Slocan Hwy)",
+              "notes": "[auto-proposal L] Hwy 6 bridge over Burton Creek on Burton Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm Hwy 6 bridge over Burton Creek; VERIFY correct Burton Creek (FWA name collision).. Reach = 'from Woden Creek to Hwy 6 bridge'. The FWA 'Burton Creek' match (51.48N,-119.46, Adams Lake area) is likely the wrong creek; the reg creek is on Hwy 6 (Arrow Lakes / Nakusp corridor). Public highway -> map-only. [structural-split 2026-08-05 from “from Woden Creek to Hwy 6 bridge”] boundary=Hwy 6 bridge [curated 2026-08-11 needs-pin batch5] [OSM way 66745479; downstream of Burton->Caribou confl; = reg terminus. Reach from Woden Ck ~6.6km]",
+              "coord": [
+                -117.88905,
+                49.98135
+              ],
               "locator_text": "Hwy 6 bridge"
             }
           ]
@@ -13061,7 +13073,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-11"
     },
     "00d8df6e": {
       "entry_id": "00d8df6e",
@@ -14620,7 +14633,7 @@
         "Classified"
       ],
       "reg_text": "**No Fishing** Sept 1-Oct 31\nTrout/char daily quota = 1 (none under 30 cm) and bait ban, June 15-Aug 31\nBull trout catch and release\n**EXCEPTIONS - SEE SEPARATE LISTINGS FOR: Abruzzi Cr., Alexander Cr.**[Includes Tributaries]** upstream of the easternmost Hwy 3 bridge, Bighorn\n(Ram) Cr., Cadorna Cr., Fording R. downstream of Josephine Falls, Forsyth Cr. from Connor Lk. downstream 3 km, Line Cr.**[Includes Tributaries]**, Grave\nCreek**[Includes Tributaries]**, Michel Cr.**[Includes Tributaries]**, Morrissey Cr.**[Includes Tributaries]**, Wigwam River\nALL tributaries** (EXCEPT Coal Creek downstream of old MF&M Railway Bridge 7 km upstream of Elk River) **are Class II waters when open**",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 1,
       "locators": [
         {
@@ -14629,15 +14642,20 @@
           "info": {
             "restriction_type": "licensing"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "elk-river-s-tributaries-see-exceptions-e09244",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "except",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] old MF&M Railway bridge on Coal Creek (~7 km up Elk R), Fernie on Coal Creek (Elk R tributary). No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Same landmark as the Coal Creek entry: old MF&M Railway bridge on Coal Creek at Fernie; VERIFY creek (FWA collision).. This is the EXCEPT member of 'Elk River's tributaries': Coal Creek downstream of the old MF&M Railway bridge. Same bridge/creek as coal-creek-...-347452 (Fernie). FWA 'Coal Creek' name collision applies."
+              "label": "old MF&M Railway bridge, Coal Ck (Fernie)",
+              "notes": "[auto-proposal L] old MF&M Railway bridge on Coal Creek (~7 km up Elk R), Fernie on Coal Creek (Elk R tributary). No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Same landmark as the Coal Creek entry: old MF&M Railway bridge on Coal Creek at Fernie; VERIFY creek (FWA collision).. This is the EXCEPT member of 'Elk River's tributaries': Coal Creek downstream of the old MF&M Railway bridge. Same bridge/creek as coal-creek-...-347452 (Fernie). FWA 'Coal Creek' name collision applies. [curated 2026-08-11 needs-pin batch5] [= existing coal-creek-...-347452 (49.48818,-114.99378); same landmark: EXCEPT Coal Ck d/s of MF&M bridge]",
+              "coord": [
+                -114.99378,
+                49.48818
+              ]
             }
           ]
         },
@@ -14666,7 +14684,8 @@
             }
           ]
         }
-      ]
+      ],
+      "reviewed": "2026-08-11"
     },
     "10cce399": {
       "entry_id": "10cce399",
@@ -23719,10 +23738,10 @@
               "src": "rule",
               "resolver_hint": "powerline",
               "label": "power line crossing",
-              "notes": "[auto-proposal L] power line crossing 3.5 km above Lakelse River mouth on Lakelse River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the power line 3.5 km above the Lakelse mouth (from Lakelse Lake outlet); power line, map-only.. Reach = 'Lakelse Lake outlet to power line 3.5 km above the mouth'. Transmission-line landmark near Terrace; not in FWA. Map/OSM. [structural-split 2026-08-05 from “from the outlet of Lakelse Lake to the power line crossing, located 3.5 km upstream of the Lakelse River mouth”] boundary=power line crossing, located 3.5 km upstream of the Lakelse River mouth [human-review 2026-08-05 OSM-confirmed] [-128.75105, 54.43999]. [hint-fix 2026-08-06 bridge_road_km->powerline]",
+              "notes": "[auto-proposal L] power line crossing 3.5 km above Lakelse River mouth on Lakelse River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the power line 3.5 km above the Lakelse mouth (from Lakelse Lake outlet); power line, map-only.. Reach = 'Lakelse Lake outlet to power line 3.5 km above the mouth'. Transmission-line landmark near Terrace; not in FWA. Map/OSM. [structural-split 2026-08-05 from “from the outlet of Lakelse Lake to the power line crossing, located 3.5 km upstream of the Lakelse River mouth”] boundary=power line crossing, located 3.5 km upstream of the Lakelse River mouth [human-review 2026-08-05 OSM-confirmed] [-128.75105, 54.43999]. [hint-fix 2026-08-06 bridge_road_km->powerline] [curated 2026-08-11 needs-pin batch5] [snapped to user UTM 9N 516147,6032426 = 54.43928,-128.75104; was 54.43999,-128.75105]",
               "coord": [
-                -128.75105,
-                54.43999
+                -128.75104,
+                54.43928
               ],
               "locator_text": "power line crossing, located 3.5 km upstream of the Lakelse River mouth"
             }
@@ -24493,7 +24512,7 @@
         "Classified"
       ],
       "reg_text": "**There are two separate Class II waters on the Skeena River** (non-residents and non-resident aliens require separate licences describing\nwhich section they are fishing): **(a)** from Exchamsiks River to 1.5 km upstream of Kitsumkalum River (known as \"Skeena River 2\"), July 1-Sept 30; and **(b)** 1.5 km upstream of Zymoetz River (known as \"Skeena River Section 4\"), July 1-Dec 31; **Steelhead Stamp** not mandatory for\nSkeena River 2 unless fishing for steelhead. **Steelhead Stamp** is mandatory in Skeena River Section 4 during the Classified Waters period\nfrom July 1-Dec 31\n**Angling prohibited for non-guided non-resident aliens** in Skeena River Section 4 on Saturdays and Sundays in two zones: **(a)** Shegunia\nRiver confluence to Sedan Creek confluence July 1-Dec 31 (See map page 54), and **(b)** Chimdemash Creek confluence to 1.5 km upstream of\nZymoetz River confluence, July 1 - Dec 31, (See map page 55)",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 5,
       "locators": [
         {
@@ -24600,14 +24619,15 @@
               "July 1-Dec 31"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "skeena-river-mainstem-only-c2e0df",
-              "status": "todo",
-              "anchor_kind": "unclassified",
+              "status": "not_applicable",
+              "anchor_kind": "not_a_split",
               "src": "rule",
-              "resolver_hint": "other_reach"
+              "resolver_hint": "other_reach",
+              "notes": "[curated 2026-08-11 needs-pin batch5] [whole-reach bait ban for \"Skeena River Section 4\"; the section endpoints (1.5km u/s Zymoetz, etc.) are already curated on sibling rows. No new point split.]"
             }
           ]
         },
@@ -24720,7 +24740,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-11"
     },
     "aed39f94": {
       "entry_id": "aed39f94",
@@ -26970,7 +26991,7 @@
         "Incl. Tribs"
       ],
       "reg_text": "**No Fishing** upstream of the Horseshoe Road Bridge, Aug 15-Oct 15",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 1,
       "locators": [
         {
@@ -26982,15 +27003,20 @@
               "Aug 15-Oct 15"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "chowade-river-42a570",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal M] Horseshoe Road Bridge over Chowade River on Chowade River. Candidate coord [-122.7821, 56.70291]. OSM: https://www.openstreetmap.org/?mlat=56.70291&mlon=-122.78210#map=15/56.70291/-122.78210. Verify: One road crossing found (R01833 A) on the Chowade at ~21.6 km; confirm it is the Horseshoe Road Bridge.. Reg = 'upstream of the Horseshoe Road Bridge'. Exactly one FSR/road crossing intersects the Chowade in FWA (linear-feature R01833 A). Likely the Horseshoe Road Bridge; verify the road name on a map."
+              "label": "Horseshoe Road Bridge",
+              "notes": "[auto-proposal M] Horseshoe Road Bridge over Chowade River on Chowade River. Candidate coord [-122.7821, 56.70291]. OSM: https://www.openstreetmap.org/?mlat=56.70291&mlon=-122.78210#map=15/56.70291/-122.78210. Verify: One road crossing found (R01833 A) on the Chowade at ~21.6 km; confirm it is the Horseshoe Road Bridge.. Reg = 'upstream of the Horseshoe Road Bridge'. Exactly one FSR/road crossing intersects the Chowade in FWA (linear-feature R01833 A). Likely the Horseshoe Road Bridge; verify the road name on a map. [curated 2026-08-11 needs-pin batch5] [user pin 56.70694,-122.77994; ~0.5km from the FSR-derived candidate]",
+              "coord": [
+                -122.77994,
+                56.70694
+              ]
             }
           ]
         },
@@ -27000,7 +27026,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-11"
     },
     "4177904c": {
       "entry_id": "4177904c",
@@ -29246,7 +29273,7 @@
       "image": "page_077_row_018.png",
       "symbols": [],
       "reg_text": "**No Fishing** from Hwy 97C to Okanagan Lake",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 1,
       "locators": [
         {
@@ -29255,15 +29282,20 @@
           "info": {
             "restriction_type": "closure"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "trepanier-river-a999b0-a",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] Hwy 97C crossing of Trepanier Creek (to Okanagan Lake) on Trepanier Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the Hwy 97C crossing of Trepanier Creek at Peachland (down to Okanagan Lake); FWA lookup used 'Trepanier River' (not found) -> try 'Trepanier Creek'; map.. Reach = 'Hwy 97C to Okanagan Lake' at Peachland. FWA didn't return 'Trepanier River' (the GNIS name is likely 'Trepanier Creek'). Public highway -> map/OSM-confirmable. [structural-split 2026-08-05 from “from Hwy 97C to Okanagan Lake”] boundary=Hwy 97C",
+              "label": "Hwy 97C bridge (Okanagan Connector)",
+              "notes": "[auto-proposal L] Hwy 97C crossing of Trepanier Creek (to Okanagan Lake) on Trepanier Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the Hwy 97C crossing of Trepanier Creek at Peachland (down to Okanagan Lake); FWA lookup used 'Trepanier River' (not found) -> try 'Trepanier Creek'; map.. Reach = 'Hwy 97C to Okanagan Lake' at Peachland. FWA didn't return 'Trepanier River' (the GNIS name is likely 'Trepanier Creek'). Public highway -> map/OSM-confirmable. [structural-split 2026-08-05 from “from Hwy 97C to Okanagan Lake”] boundary=Hwy 97C [curated 2026-08-11 needs-pin batch5] [OSM way 155232470; FWA name variant \"Trepanier\"/\"Trepanier (Trepanier)\" -> gazette \"Trepanier Creek\", accented Trepanier]",
+              "coord": [
+                -119.7447,
+                49.80873
+              ],
               "locator_text": "Hwy 97C"
             },
             {
@@ -29283,7 +29315,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-11"
     },
     "f24bd72f": {
       "entry_id": "f24bd72f",

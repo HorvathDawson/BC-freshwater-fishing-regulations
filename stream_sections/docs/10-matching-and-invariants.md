@@ -118,6 +118,10 @@ old shape" — they are the things that would silently corrupt data or break use
   The split ("from Attichika Creek to a point 500 m upstream") is the lowermost 500 m of Thorne Creek:
   the confluence with Attichika **is Thorne's mouth** (56.92636,-126.68256), split end 500 m up
   (56.92409,-126.68522).
+- **Trepanier Creek 8-8 → "Trépanier Creek"** (flagged 2026-08-11): reg says "Trepanier", the gazette/FWA
+  spelling carries the accent **"Trépanier Creek"** (Peachland). Ensure the name-tuple match is
+  accent-insensitive. Split = Hwy 97C (Okanagan Connector, OSM way 155232470, 49.80873,-119.7447) down
+  to Okanagan Lake.
 
 ## Tests to port / add
 
