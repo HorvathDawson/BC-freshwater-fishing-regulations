@@ -120,60 +120,6 @@ Each pin has an OSM springboard link. Method = how the pin was derived + what to
     - **(pair with -a canyon)**: _(no coord — springboard is the river/area above)_
 
 ---
-### KITIMAT RIVER (Angling regulations for the Kitimat Riv  ·  MU 6-3  ·  `c0718831`
-
-**Raw reg (verbatim):**
-> **No Fishing** on the west half of river between fishing boundary signs near Kitimat Hatchery outfall
-> **No Fishing** in tributaries and upstream of Hwy 37 bridge, Mar 16-May 31
-> Bait ban
-> Hatchery rainbow trout (adipose clipped, <50 cm) daily quota = 5, no minimum size, all year
-> Hatchery steelhead (adipose clipped, >50 cm) daily quota = 2; province-wide hatchery steelhead annual quota = 10. When you have
-> caught and retained your daily steelhead quota from the Kitimat, you must stop fishing the Kitimat for the remainder of that day
-> No powered boats
-
-**All locators in this entry:**
-- 🔴 TODO: *on the west half of river between fishing boundary signs near Kitimat Hatchery outfall*
-- 🔴 TODO: *in tributaries and upstream of Hwy 37 bridge*
-- ⬜ n/a: *Angling regulations for the Kitimat River are currently under review. Please check the in-season regulation change websi*
-
-**Candidate pin(s) for the TODO row(s):**
-- `kitimat-river-angling-regulations-for-the-kit-664c72`  — WEST-HALF partial-width closure near Kitimat Hatchery outfall (NOT clean cross-channel). FWA mouth ref.
-    - **Kitimat R mouth (hatchery outfall reach ref)**: `54.01089,-128.66227`  →  [OSM](https://www.openstreetmap.org/?mlat=54.01089&mlon=-128.66227#map=15/54.01089/-128.66227)
-- `kitimat-river-angling-regulations-for-the-kit-b3b21f`  — Reg="tributaries and upstream of Hwy 37 bridge". FWA Kitimat near Kitimat townsite; Hwy 37 crosses lower valley -> eyeball.
-    - **Kitimat R ~ Hwy37 area (lower valley springboard)**: `54.0446,-128.68101`  →  [OSM](https://www.openstreetmap.org/?mlat=54.0446&mlon=-128.68101#map=15/54.0446/-128.68101)
-
----
-### PTARMIGAN CREEK  ·  MU 7-5  ·  `0b6d5fb7`
-
-**Raw reg (verbatim):**
-> **No Fishing** from falls to Quarry Bridge
-
-**All locators in this entry:**
-- 🔴 TODO: *falls*
-- 🔴 TODO: *Quarry Bridge*
-
-**Candidate pin(s) for the TODO row(s):**
-- `ptarmigan-creek-dd88fc-a`  — Falls on Ptarmigan Ck (reach start). Not in FWA waterfalls layer -> needs FISS/topo. FWA mouth as area springboard.
-    - **Ptarmigan Ck mouth (falls upstream) — needs FISS**: `53.70477,-120.89037`  →  [OSM](https://www.openstreetmap.org/?mlat=53.70477&mlon=-120.89037#map=15/53.70477/-120.89037)
-- `ptarmigan-creek-dd88fc-b`  — Quarry Bridge on Ptarmigan Ck (Robson valley). No FSR/OSM hit offline; FWA channel + mouth as springboard.
-    - **Ptarmigan Ck mouth (Quarry Br upstream) — eyeball**: `53.70477,-120.89037`  →  [OSM](https://www.openstreetmap.org/?mlat=53.70477&mlon=-120.89037#map=15/53.70477/-120.89037)
-
----
-### SWIFT CREEK  ·  MU 7-2  ·  `07d64663`
-
-**Raw reg (verbatim):**
-> **No Fishing** Apr 1-Aug 31
-> **No Fishing** from upstream side of weir to CNR Bridge in Valemount
-
-**All locators in this entry:**
-- 🔴 TODO: *upstream side of weir*
-- ✅ curated: *CNR Bridge in Valemount* — curated 52.83822,-119.26786
-
-**Candidate pin(s) for the TODO row(s):**
-- `swift-creek-a32fd8-a`  — Weir (u/s side) d/s of CNR Br in Valemount (CNR br curated 52.83822,-119.26786). FWA mouth as springboard.
-    - **Swift Ck mouth @ Valemount (weir just u/s)**: `52.84848,-119.29953`  →  [OSM](https://www.openstreetmap.org/?mlat=52.84848&mlon=-119.29953#map=15/52.84848/-119.29953)
-
----
 ### CHOWADE RIVER  ·  MU 7-43  ·  `5887eab0`
 
 **Raw reg (verbatim):**
@@ -190,20 +136,6 @@ Each pin has an OSM springboard link. Method = how the pin was derived + what to
 
 ## C. SPRINGBOARD — townsite/landmark (FWA name/MU miss)
 
-### CAPILANO RIVER  ·  MU 2-8  ·  `b2441cc9`
-
-**Raw reg (verbatim):**
-> **No Fishing** upstream of fishing boundary signs at footbridge situated approximately 100 m downstream of the fish fence
-> Bait ban, Aug 1-Oct 31; steelhead catch and release
-
-**All locators in this entry:**
-- 🔴 TODO: *upstream of fishing boundary signs at footbridge situated approximately 100 m downstream of the fish fence*
-
-**Candidate pin(s) for the TODO row(s):**
-- `capilano-river-496399`  — Footbridge ~100m d/s of hatchery fish fence (below Cleveland Dam). OSM Capilano Pacific Trail footbridge.
-    - **Capilano Pacific Trail footbridge (OSM way 60608394)**: `49.35037,-123.11759`  →  [OSM](https://www.openstreetmap.org/?mlat=49.35037&mlon=-123.11759#map=15/49.35037/-123.11759)
-
----
 ### BURTON CREEK  ·  MU 4-15  ·  `72f67e46`
 
 **Raw reg (verbatim):**

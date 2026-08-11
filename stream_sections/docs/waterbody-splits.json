@@ -5719,7 +5719,7 @@
         "Incl. Tribs"
       ],
       "reg_text": "**No Fishing** upstream of fishing boundary signs at footbridge situated approximately 100 m downstream of the fish fence\nBait ban, Aug 1-Oct 31; steelhead catch and release",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 1,
       "locators": [
         {
@@ -5728,15 +5728,20 @@
           "info": {
             "restriction_type": "closure"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "capilano-river-496399",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "dam_weir_fence",
-              "notes": "[auto-proposal L] Capilano Hatchery fish fence + footbridge (~100 m below fence) on Capilano River (below Cleveland Dam). Candidate coord [-123.11, 49.351]. OSM: https://www.openstreetmap.org/?mlat=49.35100&mlon=-123.11000#map=15/49.35100/-123.11000. Verify: Locate the Capilano Hatchery fish fence and the footbridge ~100 m downstream on a map; set sign point at footbridge.. Closure upstream of boundary signs at a footbridge ~100 m below the hatchery fish fence, on the Capilano River below Cleveland Dam. Exact fence/footbridge not in FWA; candidate is the approximate Capilano Hatchery location - verify on map."
+              "label": "Cable Pool Bridge footbridge (below hatchery counting weir)",
+              "notes": "[auto-proposal L] Capilano Hatchery fish fence + footbridge (~100 m below fence) on Capilano River (below Cleveland Dam). Candidate coord [-123.11, 49.351]. OSM: https://www.openstreetmap.org/?mlat=49.35100&mlon=-123.11000#map=15/49.35100/-123.11000. Verify: Locate the Capilano Hatchery fish fence and the footbridge ~100 m downstream on a map; set sign point at footbridge.. Closure upstream of boundary signs at a footbridge ~100 m below the hatchery fish fence, on the Capilano River below Cleveland Dam. Exact fence/footbridge not in FWA; candidate is the approximate Capilano Hatchery location - verify on map. [curated 2026-08-10 needs-pin batch4] [OSM way 160190966 \"Cable Pool Bridge\"; ~100m d/s of the fish fence]",
+              "coord": [
+                -123.11085,
+                49.35533
+              ]
             }
           ]
         },
@@ -5746,7 +5751,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-10"
     },
     "267c0dc4": {
       "entry_id": "267c0dc4",
@@ -23102,7 +23108,7 @@
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "boundary_signs",
-              "notes": "[structural-split 2026-08-05 from \"between fishing boundary signs upstream of and downstream of\"] boundary=fishing boundary signs upstream of [hint-fix 2026-08-06 falls_obstacle->boundary_signs]",
+              "notes": "[structural-split 2026-08-05 from \"between fishing boundary signs upstream of and downstream of\"] boundary=fishing boundary signs upstream of [hint-fix 2026-08-06 falls_obstacle->boundary_signs] [research 2026-08-10 - BACKLOGGED: DFO doc Fs97-6-2129 gives Cranberry falls at 55.56407,-128.68426. huntingBC thread: falls at ~5km up, good spring viewing BELOW falls (closed), can fish ABOVE falls past triangle signs -> falls ~= TOP of canyon / upstream sign. Downstream canyon sign still needs pin. Confirm canyon extent before curating.]",
               "locator_text": "fishing boundary signs upstream of"
             },
             {
@@ -23111,7 +23117,7 @@
               "anchor_kind": "confluence",
               "src": "rule",
               "resolver_hint": "falls_obstacle",
-              "notes": "[structural-split 2026-08-05 from \"between fishing boundary signs upstream of and downstream of\"] boundary=downstream of Cranberry River Canyon [hint-fix 2026-08-06 tributary->falls_obstacle]",
+              "notes": "[structural-split 2026-08-05 from \"between fishing boundary signs upstream of and downstream of\"] boundary=downstream of Cranberry River Canyon [hint-fix 2026-08-06 tributary->falls_obstacle] [research 2026-08-10 - BACKLOGGED: DFO doc Fs97-6-2129 gives Cranberry falls at 55.56407,-128.68426. huntingBC thread: falls at ~5km up, good spring viewing BELOW falls (closed), can fish ABOVE falls past triangle signs -> falls ~= TOP of canyon / upstream sign. Downstream canyon sign still needs pin. Confirm canyon extent before curating.]",
               "locator_text": "downstream of Cranberry River Canyon"
             }
           ]
@@ -23371,7 +23377,7 @@
         "Incl. Tribs"
       ],
       "reg_text": "**No Fishing** on the west half of river between fishing boundary signs near Kitimat Hatchery outfall\n**No Fishing** in tributaries and upstream of Hwy 37 bridge, Mar 16-May 31\nBait ban\nHatchery rainbow trout (adipose clipped, <50 cm) daily quota = 5, no minimum size, all year\nHatchery steelhead (adipose clipped, >50 cm) daily quota = 2; province-wide hatchery steelhead annual quota = 10. When you have\ncaught and retained your daily steelhead quota from the Kitimat, you must stop fishing the Kitimat for the remainder of that day\nNo powered boats",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 2,
       "locators": [
         {
@@ -23380,15 +23386,20 @@
           "info": {
             "restriction_type": "closure"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "kitimat-river-angling-regulations-for-the-kit-664c72",
-              "status": "todo",
-              "anchor_kind": "point",
+              "status": "curated",
+              "anchor_kind": "partial_width",
               "src": "rule",
               "resolver_hint": "dam_weir_fence",
-              "notes": "[auto-proposal L] Boundary signs near Kitimat Hatchery outfall (west half of river) on Kitimat River (near hatchery). Candidate coord [-128.66227, 54.01089]. OSM: https://www.openstreetmap.org/?mlat=54.01089&mlon=-128.66227#map=15/54.01089/-128.66227. Verify: Locate the Kitimat Hatchery outfall and its boundary signs; note this is a west-half-of-river (partial-width) closure - not a clean cross-channel cut.. Partial-width closure on the west half of the Kitimat River between signs near the Kitimat Hatchery outfall. Candidate = FWA Kitimat River mouth as a reference; the hatchery is on the lower river. Partial-width geometry may not fit the split model - flag for map review.",
+              "label": "Kitimat Hatchery outfall — WEST HALF closure (signs ~250m d/s to ~500m u/s)",
+              "notes": "[auto-proposal L] Boundary signs near Kitimat Hatchery outfall (west half of river) on Kitimat River (near hatchery). Candidate coord [-128.66227, 54.01089]. OSM: https://www.openstreetmap.org/?mlat=54.01089&mlon=-128.66227#map=15/54.01089/-128.66227. Verify: Locate the Kitimat Hatchery outfall and its boundary signs; note this is a west-half-of-river (partial-width) closure - not a clean cross-channel cut.. Partial-width closure on the west half of the Kitimat River between signs near the Kitimat Hatchery outfall. Candidate = FWA Kitimat River mouth as a reference; the hatchery is on the lower river. Partial-width geometry may not fit the split model - flag for map review. [curated 2026-08-10 needs-pin batch4] [user outfall 54.03470,-128.68244; on-river 54.03377,-128.68147; d/s sign 54.03179,-128.68209; u/s sign 54.03727,-128.67679; PARTIAL-WIDTH (west half only) - not a clean cross-channel split]",
+              "coord": [
+                -128.68147,
+                54.03377
+              ],
               "name_verbatim": "KITIMAT RIVER (Angling regulations for the Kitimat Riv"
             }
           ]
@@ -23402,15 +23413,20 @@
               "Mar 16-May 31"
             ]
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "kitimat-river-angling-regulations-for-the-kit-b3b21f",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] Hwy 37 bridge over Kitimat River on Kitimat River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the Hwy 37 bridge over the Kitimat River (near Kitimat); single crossing -> review.. Reg = 'in tributaries and upstream of Hwy 37 bridge'. Public highway bridge in the lower Kitimat valley -> map/OSM-confirmable (FSR hits are far up the mainline).",
+              "label": "Hwy 37 bridge (OSM way 50874449)",
+              "notes": "[auto-proposal L] Hwy 37 bridge over Kitimat River on Kitimat River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the Hwy 37 bridge over the Kitimat River (near Kitimat); single crossing -> review.. Reg = 'in tributaries and upstream of Hwy 37 bridge'. Public highway bridge in the lower Kitimat valley -> map/OSM-confirmable (FSR hits are far up the mainline). [curated 2026-08-10 needs-pin batch4] [Hwy37 x Kitimat R ~27km up; closure = tributaries + upstream of this bridge]",
+              "coord": [
+                -128.52317,
+                54.26031
+              ],
               "name_verbatim": "KITIMAT RIVER (Angling regulations for the Kitimat Riv"
             }
           ]
@@ -23432,7 +23448,8 @@
             }
           ]
         }
-      ]
+      ],
+      "reviewed": "2026-08-10"
     },
     "bef5f670": {
       "entry_id": "bef5f670",
@@ -26412,7 +26429,7 @@
       "image": "page_067_row_001.png",
       "symbols": [],
       "reg_text": "**No Fishing** from falls to Quarry Bridge",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 1,
       "locators": [
         {
@@ -26421,24 +26438,34 @@
           "info": {
             "restriction_type": "closure"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "ptarmigan-creek-dd88fc-a",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "falls_obstacle",
-              "notes": "[structural-split 2026-08-05 from \"from falls to Quarry Bridge\"] boundary=falls",
+              "label": "falls (reach start)",
+              "notes": "[structural-split 2026-08-05 from \"from falls to Quarry Bridge\"] boundary=falls [curated 2026-08-10 needs-pin batch4] [user pin 53.67605,-120.90975]",
+              "coord": [
+                -120.90975,
+                53.67605
+              ],
               "locator_text": "falls"
             },
             {
               "id": "ptarmigan-creek-dd88fc-b",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "[structural-split 2026-08-05 from \"from falls to Quarry Bridge\"] boundary=Quarry Bridge [hint-fix 2026-08-06 falls_obstacle->bridge_road_km]",
+              "label": "Quarry Bridge (bridge to a quarry)",
+              "notes": "[structural-split 2026-08-05 from \"from falls to Quarry Bridge\"] boundary=Quarry Bridge [hint-fix 2026-08-06 falls_obstacle->bridge_road_km] [curated 2026-08-10 needs-pin batch4] [user pin 53.68121,-120.91016]",
+              "coord": [
+                -120.91016,
+                53.68121
+              ],
               "locator_text": "Quarry Bridge"
             }
           ]
@@ -26449,7 +26476,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-10"
     },
     "e03748aa": {
       "entry_id": "e03748aa",
@@ -26659,7 +26687,7 @@
       "image": "page_067_row_013.png",
       "symbols": [],
       "reg_text": "**No Fishing** Apr 1-Aug 31\n**No Fishing** from upstream side of weir to CNR Bridge in Valemount",
-      "completeness": "INCOMPLETE",
+      "completeness": "COMPLETE",
       "n_boundaries": 1,
       "locators": [
         {
@@ -26668,15 +26696,20 @@
           "info": {
             "restriction_type": "closure"
           },
-          "resolved": false,
+          "resolved": true,
           "rows": [
             {
               "id": "swift-creek-a32fd8-a",
-              "status": "todo",
+              "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "dam_weir_fence",
-              "notes": "[auto-proposal L] Weir on Swift Creek (upstream side) -> CNR Bridge Valemount on Swift Creek (Valemount). Candidate coord [-119.29953, 52.84848]. OSM: https://www.openstreetmap.org/?mlat=52.84848&mlon=-119.29953#map=15/52.84848/-119.29953. Verify: Locate the weir on Swift Creek and the CNR Bridge in Valemount; candidate is the FWA mouth reference.. Reach from the upstream side of a weir on Swift Creek to the CNR Bridge in Valemount (MU 7-2). Weir/bridge not in FWA; candidate = FWA Swift Creek mouth [-119.300,52.848] near Valemount - refine on map. [structural-split 2026-08-05] weir end (todo).",
+              "label": "weir (upstream side), Valemount",
+              "notes": "[auto-proposal L] Weir on Swift Creek (upstream side) -> CNR Bridge Valemount on Swift Creek (Valemount). Candidate coord [-119.29953, 52.84848]. OSM: https://www.openstreetmap.org/?mlat=52.84848&mlon=-119.29953#map=15/52.84848/-119.29953. Verify: Locate the weir on Swift Creek and the CNR Bridge in Valemount; candidate is the FWA mouth reference.. Reach from the upstream side of a weir on Swift Creek to the CNR Bridge in Valemount (MU 7-2). Weir/bridge not in FWA; candidate = FWA Swift Creek mouth [-119.300,52.848] near Valemount - refine on map. [structural-split 2026-08-05] weir end (todo). [curated 2026-08-10 needs-pin batch4] [user pin 52.83932,-119.26667; upstream endpoint of reach to CNR bridge]",
+              "coord": [
+                -119.26667,
+                52.83932
+              ],
               "locator_text": "upstream side of weir"
             },
             {
@@ -26701,7 +26734,8 @@
           "resolved": false,
           "rows": []
         }
-      ]
+      ],
+      "reviewed": "2026-08-10"
     },
     "15e07584": {
       "entry_id": "15e07584",
