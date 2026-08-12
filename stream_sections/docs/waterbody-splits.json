@@ -5879,7 +5879,7 @@
       "image": "page_024_row_025.png",
       "symbols": [],
       "reg_text": "**No Fishing** May 1-June 30\n**No Fishing **from the falls to 100 m downstream (falls are located approximately 550 m upstream of the power line crossing)",
-      "completeness": "COMPLETE",
+      "completeness": "INCOMPLETE",
       "n_boundaries": 1,
       "deferred": false,
       "locators": [
@@ -5889,42 +5889,25 @@
           "info": {
             "restriction_type": "closure"
           },
-          "resolved": true,
+          "resolved": false,
           "rows": [
             {
               "id": "chapman-creek-6d4cfd-a",
-              "status": "curated",
+              "status": "todo",
               "anchor_kind": "falls_obstacle",
               "src": "rule",
               "resolver_hint": "falls_obstacle",
-              "label": "falls (~550 m u/s of power line crossing)",
-              "notes": "power line crossing (Lat: 49.46869° N, Lon: 123.72722° W) -- falls not in obstacles and cant find info online. here is a survey https://scrd.ca/wp-content/uploads/2437014-Appendix-F-Maps-of-the-Study-area-and-Lower-Reaches.pdffound one around 2km up from crossing at (Lat: 49.48175° N, Lon: 123.71477° W) or here (Lat: 49.46446° N, Lon: 123.72651° W) approximately 550m downstream of powerlines.. in the link above it says the lower falls is spawning grounds. — UNRESOLVED. Powerline crossing @ -123.72722,49.46869. Reg: falls ~550 m UPSTREAM of it. Candidates from research: ~2 km up @ -123.71477,49.48175; or ~550 m down @ -123.72651,49.46446 (lower falls / spawning grounds). Neither cleanly matches '550 m upstream' — verify. — [deferred] falls point unresolved; reg says ~550m above powerline but candidates conflict — [review · was:deferred] assume nothing — re-decide. — [human-review 2026-08-04 defer] confirmed defer [reclassified 2026-08-11: river/creek not deferred] [genuine Chapman falls split, unresolved — needs falls pin] [curated 2026-08-11 chapman falls] [ESTIMATE: falls not in FISS/obstacles; located 550m u/s of power-line crossing 49.46869,-123.72721 (snapped 1.1m to FWA Chapman Ck). Verify actual falls on map/satellite.]",
-              "coord": [
-                -123.72546,
-                49.47228
-              ]
+              "label": "falls (reach start) — UNRESOLVED, needs contact",
+              "notes": "Chapman Ck falls — UNRESOLVED, NEEDS CONTACT (SCRD / local fisheries). Reg: \"from the falls to 100 m downstream; falls ~550 m UPSTREAM of the power-line crossing (49.46869,-123.72722)\". TWO CANDIDATE FALLS (conflict with reg wording): (1) ~2 km upstream @ 49.48175,-123.71477 (falls in SCRD survey); (2) ~550 m DOWNSTREAM of the powerline @ 49.46446,-123.72651 (lower falls / spawning grounds, SCRD survey). Neither matches \"550 m upstream\" literally; the geometric 550 m-u/s point is 49.47228,-123.72546 but no known falls there. SCRD survey: scrd.ca/wp-content/uploads/2437014-Appendix-F-Maps-of-the-Study-area-and-Lower-Reaches.pdf. Contact to confirm which falls."
             },
             {
               "id": "chapman-creek-6d4cfd-b",
-              "status": "curated",
+              "status": "todo",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "falls_obstacle",
-              "label": "signs 100 m d/s of falls",
-              "notes": "100 m downstream of the falls in chapman-creek-6d4cfd-a (UNRESOLVED). Author as a point offset once the falls point is fixed: offset_m 100, offset_dir downstream. — [deferred] depends on -a falls point — [review · was:deferred] assume nothing — re-decide. — [human-review 2026-08-04 defer] confirmed defer [reclassified 2026-08-11: river/creek not deferred] [100m d/s of Chapman falls, unresolved — needs pin then offset] [curated 2026-08-11 chapman falls] [offset: 100m downstream of the falls anchor (-a); reach = falls -> 100m d/s]",
-              "coord": [
-                -123.72546,
-                49.47228
-              ],
-              "offset": {
-                "anchor": [
-                  -123.72546,
-                  49.47228
-                ],
-                "anchor_label": "Chapman falls",
-                "m": 100,
-                "dir": "downstream"
-              }
+              "label": "signs 100 m d/s of falls (depends on -a)",
+              "notes": "100 m downstream of the Chapman falls (-a). Author as offset once -a falls point is confirmed. Depends on -a (2 candidates, needs contact)."
             }
           ]
         },
@@ -5934,8 +5917,7 @@
           "resolved": false,
           "rows": []
         }
-      ],
-      "reviewed": "2026-08-11"
+      ]
     },
     "f49c0c85": {
       "entry_id": "f49c0c85",
