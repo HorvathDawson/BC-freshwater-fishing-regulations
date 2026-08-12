@@ -446,7 +446,20 @@
               "src": "rule",
               "resolver_hint": "falls_obstacle",
               "label": "signs 30 m below Dickson Falls",
-              "notes": "30 m downstream of the falls point in ash-river-aa19e5-a (-125.06052,49.39535). Author in splits.json as a point offset: anchor = that falls point, offset_m 30, offset_dir downstream."
+              "notes": "30 m downstream of the falls point in ash-river-aa19e5-a (-125.06052,49.39535). Author in splits.json as a point offset: anchor = that falls point, offset_m 30, offset_dir downstream. [audit-fix 2026-08-11 (2-reviewer agreement)] [offset authored: anchor=Dickson Falls (sibling ash-river-aa19e5-a), 30m downstream]",
+              "coord": [
+                -125.06052,
+                49.39535
+              ],
+              "offset": {
+                "anchor": [
+                  -125.06052,
+                  49.39535
+                ],
+                "anchor_label": "Dickson Falls",
+                "m": 30,
+                "dir": "downstream"
+              }
             }
           ]
         },
@@ -2054,7 +2067,20 @@
               "src": "rule",
               "resolver_hint": "coordinate",
               "label": "fishing boundary signs (~80 m below cascade falls)",
-              "notes": "~80 m downstream of the cascade falls. Author in splits.json as a point offset: anchor point = cascade falls, offset_m 80, offset_dir downstream.",
+              "notes": "~80 m downstream of the cascade falls. Author in splits.json as a point offset: anchor point = cascade falls, offset_m 80, offset_dir downstream. [audit-fix 2026-08-11 (2-reviewer agreement)] [offset authored: anchor=cascade falls (sibling gold-river-74b889-a), 80m downstream]",
+              "coord": [
+                -126.09797,
+                49.72789
+              ],
+              "offset": {
+                "anchor": [
+                  -126.09797,
+                  49.72789
+                ],
+                "anchor_label": "cascade falls",
+                "m": 80,
+                "dir": "downstream"
+              },
               "locator_text": "between the cascade falls (located approximately 6.5 km upstream of Muchalat Inlet, UTM 709137E, 5512420N) and fishing b"
             }
           ]
@@ -3172,11 +3198,15 @@
               "src": "rule",
               "resolver_hint": "boundary_signs",
               "label": "signs at mouth of Boulder Creek (confluence)",
-              "notes": "[auto-proposal L] power line at 'Bore Hole' & Boulder Creek mouth signs on Nanaimo River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the 'Bore Hole' power-line crossing and the Boulder Creek confluence signs on the Nanaimo River; map.. Reach between a power-line landmark ('Bore Hole') and boundary signs at the Boulder Creek mouth. Not in FWA. Map/OSM-confirmable. [structural-split 2026-08-05 from “from power line crossing at \"Bore Hole\" upstream to fishing boundary signs at the mouth of Boulder Creek”] boundary=fishing boundary signs at the mouth of Boulder Creek [hint-fix 2026-08-06 bridge_road_km->boundary_signs] [curated 2026-08-09 verify-batch] [Boulder Ck confl]",
+              "notes": "[auto-proposal L] power line at 'Bore Hole' & Boulder Creek mouth signs on Nanaimo River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the 'Bore Hole' power-line crossing and the Boulder Creek confluence signs on the Nanaimo River; map.. Reach between a power-line landmark ('Bore Hole') and boundary signs at the Boulder Creek mouth. Not in FWA. Map/OSM-confirmable. [structural-split 2026-08-05 from “from power line crossing at \"Bore Hole\" upstream to fishing boundary signs at the mouth of Boulder Creek”] boundary=fishing boundary signs at the mouth of Boulder Creek [hint-fix 2026-08-06 bridge_road_km->boundary_signs] [curated 2026-08-09 verify-batch] [Boulder Ck confl] [audit-fix 2026-08-11 (2-reviewer agreement)] [target Boulder Ck confl via FWA]",
               "coord": [
                 -124.01126,
                 49.0734
               ],
+              "target": {
+                "blk": "354146587",
+                "wsc": "920-388982-325920-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+              },
               "locator_text": "fishing boundary signs at the mouth of Boulder Creek"
             }
           ]
@@ -5375,7 +5405,20 @@
               "src": "rule",
               "resolver_hint": "falls_obstacle",
               "label": "point 100 m below 1st falls",
-              "notes": "100 m downstream of the falls point in brem-river-cbd540-a (-124.67551,50.44991). Author in splits.json as a point offset: anchor = that falls point, offset_m 100, offset_dir downstream."
+              "notes": "100 m downstream of the falls point in brem-river-cbd540-a (-124.67551,50.44991). Author in splits.json as a point offset: anchor = that falls point, offset_m 100, offset_dir downstream. [audit-fix 2026-08-11 (2-reviewer agreement)] [offset authored: anchor=1st falls (sibling brem-river-cbd540-a), 100m downstream]",
+              "coord": [
+                -124.67551,
+                50.44991
+              ],
+              "offset": {
+                "anchor": [
+                  -124.67551,
+                  50.44991
+                ],
+                "anchor_label": "1st falls",
+                "m": 100,
+                "dir": "downstream"
+              }
             }
           ]
         },
@@ -6316,7 +6359,11 @@
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "Split authored in splits.json: 'coquihalla_othello_upper_tunnel' (point). — authored split: coquihalla_othello_upper_tunnel"
+              "notes": "Split authored in splits.json: 'coquihalla_othello_upper_tunnel' (point). — authored split: coquihalla_othello_upper_tunnel [audit-fix 2026-08-11 (2-reviewer agreement)] [splits-inline from splits.json coquihalla_othello_upper_tunnel]",
+              "coord": [
+                -121.36979,
+                49.37443
+              ]
             }
           ]
         },
@@ -6337,7 +6384,11 @@
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "Split authored in splits.json: 'coquihalla_othello_upper_tunnel' (point). — authored split: coquihalla_othello_upper_tunnel"
+              "notes": "Split authored in splits.json: 'coquihalla_othello_upper_tunnel' (point). — authored split: coquihalla_othello_upper_tunnel [audit-fix 2026-08-11 (2-reviewer agreement)] [splits-inline from splits.json coquihalla_othello_upper_tunnel]",
+              "coord": [
+                -121.36979,
+                49.37443
+              ]
             }
           ]
         },
@@ -6358,7 +6409,11 @@
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "Split authored in splits.json: 'coquihalla_othello_lower_tunnel' (point). — authored split: coquihalla_othello_lower_tunnel"
+              "notes": "Split authored in splits.json: 'coquihalla_othello_lower_tunnel' (point). — authored split: coquihalla_othello_lower_tunnel [audit-fix 2026-08-11 (2-reviewer agreement)] [splits-inline from splits.json coquihalla_othello_lower_tunnel]",
+              "coord": [
+                -121.36458,
+                49.36894
+              ]
             }
           ]
         },
@@ -6376,7 +6431,11 @@
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "Split authored in splits.json: 'coquihalla_othello_upper_tunnel + coquihalla_othello_lower_tunnel' (point x2). — authored split: coquihalla_othello_upper_tunnel — authored split: coquihalla_othello_lower_tunnel",
+              "notes": "Split authored in splits.json: 'coquihalla_othello_upper_tunnel + coquihalla_othello_lower_tunnel' (point x2). — authored split: coquihalla_othello_upper_tunnel — authored split: coquihalla_othello_lower_tunnel [audit-fix 2026-08-11 (2-reviewer agreement)] [splits-inline: Othello reach upper tunnel [-121.36979,49.37443] -> lower tunnel [-121.36458,49.36894]; single row, endpoints from splits.json]",
+              "coord": [
+                -121.36979,
+                49.37443
+              ],
               "locator_text": "at Othello Tunnels from the northern entrance to the upper most railway tunnel to the southern entrance of the lower mos"
             }
           ]
@@ -6395,7 +6454,11 @@
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "Split authored in splits.json: 'coquihalla_othello_lower_tunnel' (point). — authored split: coquihalla_othello_lower_tunnel"
+              "notes": "Split authored in splits.json: 'coquihalla_othello_lower_tunnel' (point). — authored split: coquihalla_othello_lower_tunnel [audit-fix 2026-08-11 (2-reviewer agreement)] [splits-inline from splits.json coquihalla_othello_lower_tunnel]",
+              "coord": [
+                -121.36458,
+                49.36894
+              ]
             }
           ]
         },
@@ -6413,7 +6476,11 @@
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "bridge_road_km",
-              "notes": "Split authored in splits.json: 'coquihalla_othello_lower_tunnel' (point). — authored split: coquihalla_othello_lower_tunnel"
+              "notes": "Split authored in splits.json: 'coquihalla_othello_lower_tunnel' (point). — authored split: coquihalla_othello_lower_tunnel [audit-fix 2026-08-11 (2-reviewer agreement)] [splits-inline from splits.json coquihalla_othello_lower_tunnel]",
+              "coord": [
+                -121.36458,
+                49.36894
+              ]
             }
           ]
         },
@@ -7628,7 +7695,13 @@
               "anchor_kind": "area_boundary",
               "src": "rule",
               "resolver_hint": "park_polygon",
-              "notes": "Split authored in splits.json: 'garibaldi_pitt' (area_boundary). — authored split: garibaldi_pitt"
+              "notes": "Split authored in splits.json: 'garibaldi_pitt' (area_boundary). — authored split: garibaldi_pitt [audit-fix 2026-08-11 (2-reviewer agreement)] [splits-inline from splits.json garibaldi_pitt (Garibaldi Park boundary)]",
+              "target": {
+                "type": "area_boundary",
+                "area_layer": "parks_bc",
+                "area_name": "GARIBALDI PARK",
+                "wsc_descendants": true
+              }
             }
           ]
         },
@@ -15024,10 +15097,28 @@
             {
               "id": "forsyth-creek-3adc4a",
               "status": "manual",
-              "anchor_kind": "lake",
+              "anchor_kind": "lake_outlet",
               "src": "rule",
               "resolver_hint": "lake_reach",
-              "notes": "[lake-class: lake_split] Connor Lake outlet + 3 km offset downstream (lake anchor + offset). — [lake-bound-auto] OFFSET: lake bound (Connor Lake outlet) is auto, but the +3 km downstream point needs an authored point (lake anchor + offset, or a point). — [manual] Connor Lake not in FWA by GNIS name; locate the signs ~3 km below the Connor Lake outlet on Forsyth Creek by map."
+              "notes": "[lake-class: lake_split] Connor Lake outlet + 3 km offset downstream (lake anchor + offset). — [lake-bound-auto] OFFSET: lake bound (Connor Lake outlet) is auto, but the +3 km downstream point needs an authored point (lake anchor + offset, or a point). — [manual] Connor Lake not in FWA by GNIS name; locate the signs ~3 km below the Connor Lake outlet on Forsyth Creek by map. [audit-fix 2026-08-11 (2-reviewer agreement)] [broken-fix: Connor Lakes (dnstream-most, wbk 329123411) outlet 50.29795,-115.07534 +3km d/s -> boundary ~50.27493,-115.06478]",
+              "coord": [
+                -115.07534,
+                50.29795
+              ],
+              "offset": {
+                "anchor": [
+                  -115.07534,
+                  50.29795
+                ],
+                "anchor_label": "Connor Lakes outlet",
+                "m": 3000,
+                "dir": "downstream"
+              },
+              "target": {
+                "type": "lake_outlet",
+                "lake": "Connor Lakes",
+                "wbk": "329123411"
+              }
             }
           ]
         },
@@ -15452,11 +15543,15 @@
               "src": "rule",
               "resolver_hint": "other_reach",
               "label": "Kirkup Creek confluence",
-              "notes": "[curated 2026-08-09 verify-batch] [= u/s-of-Kirkup anchor; shared confluence]",
+              "notes": "[curated 2026-08-09 verify-batch] [= u/s-of-Kirkup anchor; shared confluence] [audit-fix 2026-08-11 (2-reviewer agreement)] [target from sibling jordan-river-390f59]",
               "coord": [
                 -118.25994,
                 51.03333
-              ]
+              ],
+              "target": {
+                "blk": "356567290",
+                "wsc": "300-748782-101704-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+              }
             }
           ]
         },
@@ -15814,7 +15909,11 @@
               "anchor_kind": "unclassified",
               "src": "name",
               "resolver_hint": "other_reach",
-              "notes": "Split authored in splits.json: 'kootenay_idaho_border' (point(border-pickup)). — authored split: kootenay_idaho_border"
+              "notes": "Split authored in splits.json: 'kootenay_idaho_border' (point(border-pickup)). — authored split: kootenay_idaho_border [audit-fix 2026-08-11 (2-reviewer agreement)] [splits-inline from splits.json kootenay_idaho_border]",
+              "coord": [
+                -116.5036,
+                48.9999
+              ]
             }
           ]
         },
@@ -16144,7 +16243,11 @@
               "anchor_kind": "unclassified",
               "src": "name",
               "resolver_hint": "other_reach",
-              "notes": "Split authored in splits.json: 'kootenay_idaho_border' (point(border-pickup)). — authored split: kootenay_idaho_border"
+              "notes": "Split authored in splits.json: 'kootenay_idaho_border' (point(border-pickup)). — authored split: kootenay_idaho_border [audit-fix 2026-08-11 (2-reviewer agreement)] [splits-inline from splits.json kootenay_idaho_border]",
+              "coord": [
+                -116.5036,
+                48.9999
+              ]
             }
           ]
         },
@@ -16159,7 +16262,11 @@
               "anchor_kind": "unclassified",
               "src": "name",
               "resolver_hint": "other_reach",
-              "notes": "Split authored in splits.json: 'kootenay_idaho_border' (point(border-pickup)). — authored split: kootenay_idaho_border",
+              "notes": "Split authored in splits.json: 'kootenay_idaho_border' (point(border-pickup)). — authored split: kootenay_idaho_border [audit-fix 2026-08-11 (2-reviewer agreement)] [splits-inline from splits.json kootenay_idaho_border]",
+              "coord": [
+                -116.5036,
+                48.9999
+              ],
               "locator_text": "downstream of Idaho border"
             }
           ]
@@ -18127,13 +18234,14 @@
               "src": "rule",
               "resolver_hint": "bridge_road_km",
               "label": "Buhl Creek confluence",
-              "notes": "[auto-proposal L] point closest to km 38 on Skookumchuck FSR (to Buhl Creek) on Skookumchuck Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: km-38 chainage on the Skookumchuck FSR is not in FWA; two FSR/creek crossings bracket it (MAIN ROAD 26.4 km, Skookumchuck-Buhl 36.6 km). Needs map for exact km.. Reach = 'point on the creek closest to km 38 on the Skookumchuck FSR to Buhl Creek'. FSR chainage isn't stored, but two crossings exist: MAIN ROAD (R03141) at m=26.4k [-115.92281,49.97387] and SKOOKUMCHUCK-BUHL (0268 03) at m=36.6k [-116.02831,49.96387] (near the Buhl Creek endpoint). Map-confirm the km-38 point. [structural-split 2026-08-05 from “from a point on the creek closest to km 38 on the Skookumchuck Forest Service Road to Buhl Creek”] boundary=km 38 on the Skookumchuck Forest Service Road to Buhl Creek [curated 2026-08-09 manual-review batch=tahltan-nass-skook] [Buhl Creek confluence on Skookumchuck Ck (FWA, gap 0)]",
+              "notes": "[auto-proposal L] point closest to km 38 on Skookumchuck FSR (to Buhl Creek) on Skookumchuck Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: km-38 chainage on the Skookumchuck FSR is not in FWA; two FSR/creek crossings bracket it (MAIN ROAD 26.4 km, Skookumchuck-Buhl 36.6 km). Needs map for exact km.. Reach = 'point on the creek closest to km 38 on the Skookumchuck FSR to Buhl Creek'. FSR chainage isn't stored, but two crossings exist: MAIN ROAD (R03141) at m=26.4k [-115.92281,49.97387] and SKOOKUMCHUCK-BUHL (0268 03) at m=36.6k [-116.02831,49.96387] (near the Buhl Creek endpoint). Map-confirm the km-38 point. [structural-split 2026-08-05 from “from a point on the creek closest to km 38 on the Skookumchuck Forest Service Road to Buhl Creek”] boundary=km 38 on the Skookumchuck Forest Service Road to Buhl Creek [curated 2026-08-09 manual-review batch=tahltan-nass-skook] [Buhl Creek confluence on Skookumchuck Ck (FWA, gap 0)] [audit-fix 2026-08-11 (2-reviewer agreement)] [target Buhl Ck confl via FWA (added wsc)]",
               "coord": [
                 -116.02496,
                 49.96398
               ],
               "target": {
-                "blk": 356566012
+                "blk": "356566012",
+                "wsc": "300-625474-736706-559186-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
               },
               "locator_text": "km 38 on the Skookumchuck Forest Service Road to Buhl Creek"
             }
@@ -18791,7 +18899,11 @@
               "anchor_kind": "lake_io",
               "src": "except",
               "resolver_hint": "inlet_outlet",
-              "notes": "Split authored in splits.json: 'whiteswan_outlet_falls' (point(obstacle)). — authored split: whiteswan_outlet_falls"
+              "notes": "Split authored in splits.json: 'whiteswan_outlet_falls' (point(obstacle)). — authored split: whiteswan_outlet_falls [audit-fix 2026-08-11 (2-reviewer agreement)] [splits-inline from splits.json whiteswan_outlet_falls]",
+              "coord": [
+                -115.4619,
+                50.173
+              ]
             }
           ]
         },
@@ -18905,7 +19017,11 @@
               "anchor_kind": "point",
               "src": "name",
               "resolver_hint": "bridge_road_km",
-              "notes": "Split authored in splits.json: 'wigwam_km42_ram_fsr' (point). — authored split: wigwam_km42_ram_fsr",
+              "notes": "Split authored in splits.json: 'wigwam_km42_ram_fsr' (point). — authored split: wigwam_km42_ram_fsr [audit-fix 2026-08-11 (2-reviewer agreement)] [splits-inline from splits.json wigwam_km42_ram_fsr]",
+              "coord": [
+                -114.95794,
+                49.1822
+              ],
               "name_verbatim": "WIGWAM RIVER (downstream of the access road adjacent t"
             }
           ]
@@ -18921,7 +19037,11 @@
               "anchor_kind": "point",
               "src": "name",
               "resolver_hint": "bridge_road_km",
-              "notes": "Split authored in splits.json: 'wigwam_km42_ram_fsr' (point). — authored split: wigwam_km42_ram_fsr",
+              "notes": "Split authored in splits.json: 'wigwam_km42_ram_fsr' (point). — authored split: wigwam_km42_ram_fsr [audit-fix 2026-08-11 (2-reviewer agreement)] [splits-inline from splits.json wigwam_km42_ram_fsr]",
+              "coord": [
+                -114.95794,
+                49.1822
+              ],
               "name_verbatim": "WIGWAM RIVER (downstream of the access road adjacent t",
               "locator_text": "downstream of the access road adjacent to km 42 on the Bighorn (Ram"
             },
@@ -18931,7 +19051,11 @@
               "anchor_kind": "point",
               "src": "entry",
               "resolver_hint": "bridge_road_km",
-              "notes": "Split authored in splits.json: 'wigwam_km42_ram_fsr' (point). — authored split: wigwam_km42_ram_fsr",
+              "notes": "Split authored in splits.json: 'wigwam_km42_ram_fsr' (point). — authored split: wigwam_km42_ram_fsr [audit-fix 2026-08-11 (2-reviewer agreement)] [splits-inline from splits.json wigwam_km42_ram_fsr]",
+              "coord": [
+                -114.95794,
+                49.1822
+              ],
               "name_verbatim": "WIGWAM RIVER (downstream of the access road adjacent t"
             }
           ]
@@ -18947,7 +19071,11 @@
               "anchor_kind": "point",
               "src": "name",
               "resolver_hint": "bridge_road_km",
-              "notes": "Split authored in splits.json: 'wigwam_km42_ram_fsr' (point). — authored split: wigwam_km42_ram_fsr",
+              "notes": "Split authored in splits.json: 'wigwam_km42_ram_fsr' (point). — authored split: wigwam_km42_ram_fsr [audit-fix 2026-08-11 (2-reviewer agreement)] [splits-inline from splits.json wigwam_km42_ram_fsr]",
+              "coord": [
+                -114.95794,
+                49.1822
+              ],
               "name_verbatim": "WIGWAM RIVER (downstream of the access road adjacent t",
               "locator_text": "downstream of the access road adjacent to km 42 on the Bighorn (Ram"
             }
@@ -18983,7 +19111,11 @@
               "anchor_kind": "point",
               "src": "name",
               "resolver_hint": "bridge_road_km",
-              "notes": "Split authored in splits.json: 'wigwam_km42_ram_fsr' (point). — authored split: wigwam_km42_ram_fsr",
+              "notes": "Split authored in splits.json: 'wigwam_km42_ram_fsr' (point). — authored split: wigwam_km42_ram_fsr [audit-fix 2026-08-11 (2-reviewer agreement)] [splits-inline from splits.json wigwam_km42_ram_fsr]",
+              "coord": [
+                -114.95794,
+                49.1822
+              ],
               "name_verbatim": "WIGWAM RIVER (upstream of the Forest Service recreatio"
             }
           ]
@@ -18999,7 +19131,11 @@
               "anchor_kind": "point",
               "src": "name",
               "resolver_hint": "bridge_road_km",
-              "notes": "Split authored in splits.json: 'wigwam_km42_ram_fsr' (point). — authored split: wigwam_km42_ram_fsr",
+              "notes": "Split authored in splits.json: 'wigwam_km42_ram_fsr' (point). — authored split: wigwam_km42_ram_fsr [audit-fix 2026-08-11 (2-reviewer agreement)] [splits-inline from splits.json wigwam_km42_ram_fsr]",
+              "coord": [
+                -114.95794,
+                49.1822
+              ],
               "name_verbatim": "WIGWAM RIVER (upstream of the Forest Service recreatio",
               "locator_text": "upstream of the Forest Service recreation site adjacent to km 42 on the Bighorn (Ram"
             }
@@ -19016,7 +19152,11 @@
               "anchor_kind": "point",
               "src": "name",
               "resolver_hint": "bridge_road_km",
-              "notes": "Split authored in splits.json: 'wigwam_km42_ram_fsr' (point). — authored split: wigwam_km42_ram_fsr",
+              "notes": "Split authored in splits.json: 'wigwam_km42_ram_fsr' (point). — authored split: wigwam_km42_ram_fsr [audit-fix 2026-08-11 (2-reviewer agreement)] [splits-inline from splits.json wigwam_km42_ram_fsr]",
+              "coord": [
+                -114.95794,
+                49.1822
+              ],
               "name_verbatim": "WIGWAM RIVER (upstream of the Forest Service recreatio",
               "locator_text": "upstream of the Forest Service recreation site adjacent to km 42 on the Bighorn (Ram"
             }
@@ -21488,7 +21628,11 @@
               "anchor_kind": "point",
               "src": "name",
               "resolver_hint": "falls_obstacle",
-              "notes": "Split authored in splits.json: 'hunlen_falls' (point(obstacle)). — authored split: hunlen_falls"
+              "notes": "Split authored in splits.json: 'hunlen_falls' (point(obstacle)). — authored split: hunlen_falls [audit-fix 2026-08-11 (2-reviewer agreement)] [splits-inline from splits.json hunlen_falls]",
+              "coord": [
+                -125.77085,
+                52.27612
+              ]
             }
           ]
         },
@@ -21507,7 +21651,11 @@
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "falls_obstacle",
-              "notes": "Split authored in splits.json: 'hunlen_falls' (point(obstacle)). — authored split: hunlen_falls"
+              "notes": "Split authored in splits.json: 'hunlen_falls' (point(obstacle)). — authored split: hunlen_falls [audit-fix 2026-08-11 (2-reviewer agreement)] [splits-inline from splits.json hunlen_falls]",
+              "coord": [
+                -125.77085,
+                52.27612
+              ]
             }
           ]
         },
@@ -21522,7 +21670,11 @@
               "anchor_kind": "point",
               "src": "name",
               "resolver_hint": "falls_obstacle",
-              "notes": "Split authored in splits.json: 'hunlen_falls' (point(obstacle)). — authored split: hunlen_falls"
+              "notes": "Split authored in splits.json: 'hunlen_falls' (point(obstacle)). — authored split: hunlen_falls [audit-fix 2026-08-11 (2-reviewer agreement)] [splits-inline from splits.json hunlen_falls]",
+              "coord": [
+                -125.77085,
+                52.27612
+              ]
             }
           ]
         },
@@ -21537,7 +21689,11 @@
               "anchor_kind": "point",
               "src": "name",
               "resolver_hint": "falls_obstacle",
-              "notes": "Split authored in splits.json: 'hunlen_falls' (point(obstacle)). — authored split: hunlen_falls",
+              "notes": "Split authored in splits.json: 'hunlen_falls' (point(obstacle)). — authored split: hunlen_falls [audit-fix 2026-08-11 (2-reviewer agreement)] [splits-inline from splits.json hunlen_falls]",
+              "coord": [
+                -125.77085,
+                52.27612
+              ],
               "locator_text": "upstream of Hunlen Falls"
             }
           ]
@@ -22434,7 +22590,11 @@
               "anchor_kind": "point",
               "src": "name",
               "resolver_hint": "bridge_road_km",
-              "notes": "Split authored in splits.json: 'young_hwy20' (point). — authored split: young_hwy20"
+              "notes": "Split authored in splits.json: 'young_hwy20' (point). — authored split: young_hwy20 [audit-fix 2026-08-11 (2-reviewer agreement)] [splits-inline from splits.json young_hwy20]",
+              "coord": [
+                -125.84592,
+                52.49158
+              ]
             }
           ]
         },
@@ -22449,7 +22609,11 @@
               "anchor_kind": "point",
               "src": "name",
               "resolver_hint": "bridge_road_km",
-              "notes": "Split authored in splits.json: 'young_hwy20' (point). — authored split: young_hwy20"
+              "notes": "Split authored in splits.json: 'young_hwy20' (point). — authored split: young_hwy20 [audit-fix 2026-08-11 (2-reviewer agreement)] [splits-inline from splits.json young_hwy20]",
+              "coord": [
+                -125.84592,
+                52.49158
+              ]
             }
           ]
         },
@@ -22464,7 +22628,11 @@
               "anchor_kind": "point",
               "src": "name",
               "resolver_hint": "bridge_road_km",
-              "notes": "Split authored in splits.json: 'young_hwy20' (point). — authored split: young_hwy20",
+              "notes": "Split authored in splits.json: 'young_hwy20' (point). — authored split: young_hwy20 [audit-fix 2026-08-11 (2-reviewer agreement)] [splits-inline from splits.json young_hwy20]",
+              "coord": [
+                -125.84592,
+                52.49158
+              ],
               "locator_text": "upstream of Hwy 20"
             }
           ]
@@ -24132,13 +24300,14 @@
               "src": "rule",
               "resolver_hint": "boundary_signs",
               "label": "white triangular signs (d/s of Meziadin River confluence)",
-              "notes": "[auto-proposal L] white signs below Meziadin confluence, up to a Hwy bridge on Nass River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Meziadin River confluence on the Nass and the Hwy bridge (Hwy 37 / Nass) at the upstream end; map.. Reach = 'signs downstream of the Meziadin River confluence, up to the Hwy [37] bridge' (truncated). Confluence + highway bridge -> map/OSM-confirmable; anchor at the Meziadin confluence. [structural-split 2026-08-05 from “from white triangular fishing boundary signs located downstream of the Meziadin River confluence, and upstream to the Hw”] boundary=white triangular fishing boundary signs located downstream of the Meziadin River confluence, and [hint-fix 2026-08-06 bridge_road_km->boundary_signs] [curated 2026-08-09 manual-review batch=tahltan-nass-skook] [Meziadin River confluence (FWA blk 360882420); signs located just downstream of it]",
+              "notes": "[auto-proposal L] white signs below Meziadin confluence, up to a Hwy bridge on Nass River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Meziadin River confluence on the Nass and the Hwy bridge (Hwy 37 / Nass) at the upstream end; map.. Reach = 'signs downstream of the Meziadin River confluence, up to the Hwy [37] bridge' (truncated). Confluence + highway bridge -> map/OSM-confirmable; anchor at the Meziadin confluence. [structural-split 2026-08-05 from “from white triangular fishing boundary signs located downstream of the Meziadin River confluence, and upstream to the Hw”] boundary=white triangular fishing boundary signs located downstream of the Meziadin River confluence, and [hint-fix 2026-08-06 bridge_road_km->boundary_signs] [curated 2026-08-09 manual-review batch=tahltan-nass-skook] [Meziadin River confluence (FWA blk 360882420); signs located just downstream of it] [audit-fix 2026-08-11 (2-reviewer agreement)] [target wsc from meziadin-river-09af13-b (Meziadin confl)]",
               "coord": [
                 -129.14764,
                 56.02451
               ],
               "target": {
-                "blk": 360882420
+                "blk": "360882420",
+                "wsc": "500-462445-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
               },
               "locator_text": "white triangular fishing boundary signs located downstream of the Meziadin River confluence, and"
             },
@@ -26800,11 +26969,15 @@
               "src": "rule",
               "resolver_hint": "tributary",
               "label": "Attichika Creek confluence (= Thorne Ck mouth)",
-              "notes": "[structural-split 2026-08-05 from \"from Attichika Creek to a point 500 m upstream\"] boundary=Attichika Creek [curated 2026-08-10 needs-pin batch2] [FWA GNIS \"Thorne Creek\" blk 359557375; mouth=Attichika confl, matches user 56.92634,-126.68255]",
+              "notes": "[structural-split 2026-08-05 from \"from Attichika Creek to a point 500 m upstream\"] boundary=Attichika Creek [curated 2026-08-10 needs-pin batch2] [FWA GNIS \"Thorne Creek\" blk 359557375; mouth=Attichika confl, matches user 56.92634,-126.68255] [audit-fix 2026-08-11 (2-reviewer agreement)] [target: Thorne Ck mouth into Attichika, blk 359557375]",
               "coord": [
                 -126.68256,
                 56.92636
               ],
+              "target": {
+                "blk": "359557375",
+                "wsc": "200-948755-999851-889551-445636-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+              },
               "locator_text": "Attichika Creek"
             },
             {
