@@ -7,8 +7,8 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 |---|--:|
 | NO_CURATION | 1 |
 | MISSING_SPLITS | 2 |
-| INCOMPLETE | 25 |
-| COMPLETE | 284 |
+| INCOMPLETE | 5 |
+| COMPLETE | 304 |
 | NO_SPLIT | 75 |
 
 **Drift** (curated rows matching no source locator): 16
@@ -30,28 +30,6 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 - • [rule] “west of a line between two fishing boundary signs approximately 50” → nation-arm-williston-lake-d2e637[deferred]
 - ❌ MISSING [rule] “west of a line between two fishing boundary signs approximately 50” → —
 
-## THOMPSON RIVER (downstream of signs at Kamloops Lake outlet to the confluence with Fraser River) · MU ['3-13', '3-14', '3-18'] · p34 · [INCOMPLETE] (bea6153a)
-- • [water] “downstream of signs at Kamloops Lake outlet to the confluence with” → thompson-river-downstream-of-signs-at-kamloop-bc221e-a[not_applicable], thompson-river-downstream-of-signs-at-kamloop-bc221e-b[curated]
-- • [rule] “from the CNR Bridge downstream of Deadman River to CNR Bridge upst” → thompson-river-downstream-of-signs-at-kamloop-1db152-a[curated], thompson-river-downstream-of-signs-at-kamloop-1db152-b[curated]
-- • [rule] “from the CNR Bridge downstream of Deadman River to CNR Bridge upst” → thompson-river-downstream-of-signs-at-kamloop-1db152-a[curated], thompson-river-downstream-of-signs-at-kamloop-1db152-b[curated]
-- • [rule] “from the CNR Bridge downstream of Deadman River to CNR Bridge upst” → thompson-river-downstream-of-signs-at-kamloop-1db152-a[curated], thompson-river-downstream-of-signs-at-kamloop-1db152-b[curated]
-- • [rule] “Upstream of boundary signs 1 km downstream of Martel” → thompson-river-downstream-of-signs-at-kamloop-1c9ce3[todo]
-- • [rule] “Downstream of signs at Kamloops Lake” → thompson-river-downstream-of-signs-at-kamloop-38fc02[not_applicable], thompson-river-downstream-of-signs-at-kamloop-bc221e-a[not_applicable], thompson-river-downstream-of-signs-at-kamloop-bc221e-b[curated]
-- • [rule] “Downstream of signs at Kamloops Lake” → thompson-river-downstream-of-signs-at-kamloop-38fc02[not_applicable], thompson-river-downstream-of-signs-at-kamloop-bc221e-a[not_applicable], thompson-river-downstream-of-signs-at-kamloop-bc221e-b[curated]
-- • [entry] “downstream of signs at Kamloops Lake outlet to the confluence with” → thompson-river-downstream-of-signs-at-kamloop-38fc02[not_applicable], thompson-river-downstream-of-signs-at-kamloop-bc221e-a[not_applicable], thompson-river-downstream-of-signs-at-kamloop-bc221e-b[curated]
-
-## SKEENA RIVER (mainstem only) · MU ['6-10'] · p59 · [INCOMPLETE] (2fc0d1b9)
-- • [rule] “from Exchamsiks River to 1.5 km upstream of Kitsumkalum River (kno” → skeena-river-mainstem-only-b079a0-a[curated], skeena-river-mainstem-only-b079a0-b[curated]
-- • [rule] “1.5 km upstream of Zymoetz River (known as "Skeena River Section 4” → skeena-river-mainstem-only-3f082d[curated]
-- • [rule] “in Skeena River Section 4” → skeena-river-mainstem-only-c2e0df[todo]
-- • [rule] “Shegunia River confluence to Sedan Creek confluence” → skeena-river-mainstem-only-24b357-a[curated], skeena-river-mainstem-only-24b357-b[curated]
-- • [rule] “Chimdemash Creek confluence to 1.5 km upstream of Zymoetz River co” → skeena-river-mainstem-only-bd494f-a[curated], skeena-river-mainstem-only-bd494f-b[curated]
-
-## ALOUETTE RIVER · MU ['2-8'] · p24 · [INCOMPLETE] (dadcd21c)
-- • [rule] “upstream of the fishing boundary signs located at 49° 14.790'N and” → alouette-river-741304[curated]
-- • [rule] “upstream of 216th Street” → alouette-river-daecfd[curated], north-alouette-river-e3810a[todo]
-- • [rule] “on mainstem” → alouette-river-b5a707[not_applicable]
-
 ## WHITE RIVER · MU ['1-10'] · p21 · [INCOMPLETE] (4cf440b0)
 - • [rule] “between fishing boundary signs at the salmon viewing pool” → white-river-da5ee3[todo]
 - • [rule] “upstream of the Sayward Road Bridge crossing” → white-river-90c274[curated]
@@ -60,66 +38,14 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 - • [rule] “entire river” → chuckwalla-river-a0316a[not_applicable]
 - • [rule] “between fishing boundary signs at Ten Mile Pool” → chuckwalla-river-eec2f0[todo]
 
-## KITIMAT RIVER (Angling regulations for the Kitimat River are currently under review. Please check the in-season regulation change website prior to fishing on the Kitimat River) · MU ['6-3'] · p57 · [INCOMPLETE] (c0718831)
-- • [rule] “on the west half of river between fishing boundary signs near Kiti” → kitimat-river-angling-regulations-for-the-kit-664c72[todo]
-- • [rule] “in tributaries and upstream of Hwy 37 bridge” → kitimat-river-angling-regulations-for-the-kit-b3b21f[todo]
-
-## ARTLISH RIVER · MU ['1-12'] · p16 · [INCOMPLETE] (0505ec23)
-- • [rule] “upstream of the boundary signs at the bridge crossing approximatel” → artlish-river-9e60a3[todo]
-
-## COPPER CREEK · MU ['6-12'] · p17 · [INCOMPLETE] (5fde172a)
-- • [rule] “from Skidegate Lake to signs at second bridge 6 km upstream of tid” → copper-creek-538967-a[not_applicable], copper-creek-538967-b[todo]
-
 ## DEENA CREEK · MU ['6-12'] · p17 · [INCOMPLETE] (e722f258)
 - • [rule] “upstream of fishing boundary signs at second bridge approximately ” → deena-creek-af3d2f[todo]
-
-## EVE RIVER · MU ['1-10'] · p17 · [INCOMPLETE] (167048d4)
-- • [rule] “upstream of the fishing boundary signs (near the South Main Bridge” → adam-river-except-eve-river-939f98-b[curated], eve-river-41b1eb[todo]
 
 ## MAMIN RIVER · MU ['6-13'] · p19 · [INCOMPLETE] (7b4287e4)
 - • [rule] “upstream of fishing boundary signs on third bridge approximately 1” → mamin-river-608d92[todo]
 
-## MOHUN CREEK · MU ['1-10'] · p19 · [INCOMPLETE] (5e563b26)
-- • [rule] “from Menzies Bay logging mainline bridge crossing to Morton Lake” → mohun-creek-1fa4a0-a[todo], mohun-creek-1fa4a0-b[not_applicable]
-
-## CAPILANO RIVER · MU ['2-8'] · p24 · [INCOMPLETE] (b2441cc9)
-- • [rule] “upstream of fishing boundary signs at footbridge situated approxim” → capilano-river-496399[todo]
-
-## NORTH ALOUETTE RIVER · MU ['2-8'] · p27 · [INCOMPLETE] (7ef10bf8)
-- • [rule] “upstream of 216th Street (Fifth Ave)” → alouette-river-daecfd[curated], north-alouette-river-e3810a[todo]
-
-## BURTON CREEK · MU ['4-15'] · p37 · [INCOMPLETE] (72f67e46)
-- • [rule] “from Woden Creek to Hwy 6 bridge” → burton-creek-b25ef3-a[curated], burton-creek-b25ef3-b[todo]
-
-## ELK RIVER'S TRIBUTARIES (see exceptions) · MU ['4-2', '4-23'] · p38 · [INCOMPLETE] (e4b7a409)
-- • [except] “EXCEPT Coal Creek downstream of old MF&M Railway Bridge 7 km upstr” → elk-river-s-tributaries-see-exceptions-e09244[todo]
-
 ## CRANBERRY RIVER · MU ['6-15'] · p56 · [INCOMPLETE] (107fa559)
 - • [rule] “between fishing boundary signs upstream of and downstream of Cranb” → cranberry-river-699352-a[todo], cranberry-river-699352-b[todo]
-
-## HAYS CREEK (in Prince Rupert) · MU ['6-14'] · p57 · [INCOMPLETE] (3f88988a)
-- • [rule] “upstream of fishing boundary signs downstream of lower culvert nea” → hays-creek-in-prince-rupert-6e14c4[todo]
-
-## KSI X'ANMAS RIVER (formerly Kwinamass River) · MU ['6-14'] · p58 · [INCOMPLETE] (ea7be38a)
-- • [rule] “upstream from the lower bridge abutments” → ksi-x-anmas-river-formerly-kwinamass-river-fe2f0b[todo]
-
-## PINKUT CREEK · MU ['6-6'] · p59 · [INCOMPLETE] (2fe40ed5)
-- • [rule] “downstream of the fish fence” → pinkut-creek-03a36e[todo]
-
-## PTARMIGAN CREEK · MU ['7-5'] · p67 · [INCOMPLETE] (0b6d5fb7)
-- • [rule] “from falls to Quarry Bridge” → ptarmigan-creek-dd88fc-a[todo], ptarmigan-creek-dd88fc-b[todo]
-
-## SWIFT CREEK · MU ['7-2'] · p67 · [INCOMPLETE] (07d64663)
-- • [rule] “from upstream side of weir to CNR Bridge in Valemount” → swift-creek-a32fd8-a[todo], swift-creek-a32fd8-b[curated]
-
-## THORN CREEK · MU ['7-39'] · p67 · [INCOMPLETE] (15e07584)
-- • [rule] “from Attichika Creek to a point 500 m upstream” → thorn-creek-b2b2c7-a[todo], thorn-creek-b2b2c7-b[todo]
-
-## CHOWADE RIVER · MU ['7-43'] · p71 · [INCOMPLETE] (5887eab0)
-- • [rule] “upstream of the Horseshoe Road Bridge” → chowade-river-42a570[todo]
-
-## TREPANIER RIVER · MU ['8-8'] · p77 · [INCOMPLETE] (426962cd)
-- • [rule] “from Hwy 97C to Okanagan Lake” → trepanier-river-a999b0-a[todo], trepanier-river-a999b0-b[not_applicable]
 
 ## ⚠️ DRIFT — curated rows not found in the source (review)
 

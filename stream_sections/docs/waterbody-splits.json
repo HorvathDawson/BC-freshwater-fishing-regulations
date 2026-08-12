@@ -13,6 +13,7 @@
       "reg_text": "Bull trout (char) release\nNo vessels in swimming areas, as buoyed and signed; speed restriction (8 km/h) at S. end of lake, S. of a line drawn from the BC Parks boat ramp\nto signs on the E. side of the lake",
       "completeness": "COMPLETE",
       "n_boundaries": 2,
+      "deferred": true,
       "locators": [
         {
           "src": "rule",
@@ -76,6 +77,7 @@
       "reg_text": "Artificial fly only upstream of Eve River, to Hwy 19 bridge",
       "completeness": "COMPLETE",
       "n_boundaries": 3,
+      "deferred": false,
       "locators": [
         {
           "src": "water",
@@ -180,6 +182,7 @@
       "reg_text": "**No Fishing** from upper falls downstream 1 km to (Bear River) logging road bridge 3 km from tidewater\n**No Fishing** from mouth to falls about 4 km upstream, Dec 1-May 31",
       "completeness": "COMPLETE",
       "n_boundaries": 2,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -280,6 +283,7 @@
       "reg_text": "Artificial fly only, bait ban, single barbless hook\nTrout and kokanee catch and release[Includes Tributaries] **Unnamed lake in the Walbran Creek Watershed approximately** 7 km west/southwest of Mt.\nWalbran",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "entry",
@@ -319,6 +323,7 @@
       "reg_text": "**No Fishing** upstream of the boundary signs at the bridge crossing approximately 10 km from the mouth, Nov 1-Apr 30",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -368,6 +373,7 @@
       "reg_text": "**No Fishing** from Elsie Lake to Dickson Lake\n**No Fishing** from Dickson Lake to signs 200 m downstream of Lanternman Falls, Dec 1-Apr 30\n**No Fishing** from Dickson Falls downstream 30 m to signs",
       "completeness": "COMPLETE",
       "n_boundaries": 3,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -486,6 +492,7 @@
       "reg_text": "Smallmouth bass daily quota = 4; engine power restriction - 7.5 kW (10 hp), no towing on parts",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": true,
       "locators": [
         {
           "src": "rule",
@@ -529,6 +536,7 @@
       "reg_text": "Speed restriction on parts (60 km/h)",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": true,
       "locators": [
         {
           "src": "rule",
@@ -570,6 +578,7 @@
       "reg_text": "Fly fishing only; except Thelwood Creek is closed all year",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -619,6 +628,7 @@
       "reg_text": "**No Fishing** Feb 1-July 15 including Campbell River between Strathcona Dam and (Lower) Campbell Lake",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -677,6 +687,7 @@
       "reg_text": "**No Fishing** between Elk Falls and John Hart Dam Power Station\n**No Fishing** from Strathcona Dam downstream 100 m\n**No Fishing** from the boundary sign at the end of Maple Street downstream to the boundary sign at the cement block, Aug 1-Oct 31\n**No Fishing** in any tributaries (except Quinsam River), Dec 1-May 31\nFrom John Hart Dam Power Station to power line crossing approximately 200 m upstream of Quinsam River confluence: fly fishing only\nyear-round\nArtificial fly only downstream of power line crossing approximately 200 m upstream of Quinsam River: Dec 1-May 31\nNo vessels between Elk Falls and John Hart Dam Power Station",
       "completeness": "COMPLETE",
       "n_boundaries": 8,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -977,6 +988,7 @@
       "reg_text": "**No Fishing** July 15-Aug 31, fly fishing only upstream of and including Hatton Creek",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -1026,6 +1038,7 @@
       "reg_text": "**No Fishing** downstream of Bannon Creek[Includes Tributaries] July 1-Sept 30, **No Fishing** upstream of Bannon Creek[Includes Tributaries] Dec 1-Sept 30\n**No Fishing** from Copper Canyon Falls downstream 100 m to the fishing boundary signs",
       "completeness": "COMPLETE",
       "n_boundaries": 3,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -1135,6 +1148,7 @@
       "reg_text": "**No Fishing** upstream of the West Main logging road bridge (approximately 7.5 km upstream of the Hwy 19 bridge), Dec 1-May 31",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -1185,6 +1199,7 @@
       "reg_text": "**No Fishing** from Skidegate Lake to signs at second bridge 6 km upstream of tidal boundary, Feb 1-Apr 30\nBait ban Nov 1-Apr 30[Includes Tributaries]; cutthroat trout catch and release\n**Class II water Sept 1-Apr 30**[Includes Tributaries]**; Steelhead Stamp mandatory Dec 1-Apr 30**[Includes Tributaries]",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -1244,6 +1259,7 @@
       "reg_text": "**No Fishing** Dec 1-Sept 30; speed restriction on part (8 km/h),",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": true,
       "locators": [
         {
           "src": "rule",
@@ -1284,6 +1300,7 @@
       "reg_text": "Cutthroat trout daily quota = 2 (none over 50 cm); bait ban and single barbless hook, Nov 15-Apr 15\nSpeed restriction on parts (8 km/h), plus overall 10 km/h speed restriction within 60 m of shore",
       "completeness": "COMPLETE",
       "n_boundaries": 2,
+      "deferred": true,
       "locators": [
         {
           "src": "rule",
@@ -1346,6 +1363,7 @@
       "reg_text": "**No Fishing July 4-July 14\nNo Fishing** July 15-Aug 31[Includes Tributaries], **No Fishing** from weir (dam) at Cowichan Lake's outlet to Greendale Trestle, Nov 15-Apr 15\n**No Fishing** in tributaries upstream of and including Holt Creek\nFly fishing only upstream of CNR Trestle (Mile 66) Sept 1-Nov 15\n**No Fishing** downstream of the CNR Mile 66 Trestle between Sept 1-Nov 15\nFly fishing only from signs at Greendale Trestle to CNR Bridge (mile 70.2)\nSpeed restriction (8 km/h) and engine power restriction - 7.5 kW (10 hp) on parts",
       "completeness": "COMPLETE",
       "n_boundaries": 7,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -1584,6 +1602,7 @@
       "reg_text": "**No Fishing** downstream of Schoen Lake, Dec 1-May 31",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -1630,6 +1649,7 @@
       "reg_text": "**No Fishing** upstream of fishing boundary signs at second bridge approximately 5 km upstream of the tidal boundary[Includes Tributaries], Feb 1-May 31;\nCutthroat catch and release;\nBait ban Nov 1-Apr 30[Includes Tributaries]; C**lass II water Sept 1-Apr 30; Steelhead Stamp mandatory Dec 1-Apr 30**",
       "completeness": "INCOMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -1676,6 +1696,7 @@
       "reg_text": "Smallmouth bass daily quota = 4\nEngine power restriction on parts - 7.5 kW (10 hp); no vessels on parts, no powered boats on parts, no towing on parts\nA wheelchair accessible fishing pier is located on the lake's northwest shore via Brookleigh Road",
       "completeness": "COMPLETE",
       "n_boundaries": 4,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -1770,6 +1791,7 @@
       "reg_text": "**No Fishing** July 15-Aug 31[Includes Tributaries]\n**No Fishing** from lower falls in Englishman River Park to signs approximately 100 m downstream\n**No Fishing** downstream of the lower falls in Englishman River Falls Provincial Park to the Top Bridge crossing at the end of\nAllsbrook Road[Includes Tributaries], Dec 1-May 31",
       "completeness": "COMPLETE",
       "n_boundaries": 2,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -1884,6 +1906,7 @@
       "reg_text": "**No Fishing** upstream of the fishing boundary signs (near the South Main Bridge crossing) located approximately 5.4 km downstream of\nthe Hwy 19 bridge, Dec 1-May 31",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -1960,6 +1983,7 @@
       "reg_text": "**No Fishing** upstream of the Muchalat River[Includes Tributaries] (see river specific regulations for Muchalat River)\n**No Fishing** downstream of the Muchalat River[Includes Tributaries], Dec 1-**Aug 15**, but not including the Muchalat or Heber Rivers (see river specific\nregulations for those waters)\n**No Fishing** between the cascade falls (located approximately 6.5 km upstream of Muchalat Inlet, UTM 709137E, 5512420N) and fishing\nboundary signs approximately 80 m downstream\nNo powered boats",
       "completeness": "COMPLETE",
       "n_boundaries": 4,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -2109,6 +2133,7 @@
       "reg_text": "**No Fishing** July 15-Aug 31\n**No Fishing** upstream of Bugaboo Creek, Nov 1-Apr 30; artificial fly only upstream of Bugaboo Creek when open",
       "completeness": "COMPLETE",
       "n_boundaries": 2,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -2188,6 +2213,7 @@
       "reg_text": "**No Fishing** Jan 1-Apr 30, from the dam to fishing boundary signs approximately 50 m upstream (southwest) of the Ash Main Bridge\nSingle barbless hook, no wild rainbow trout over 50 cm",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": true,
       "locators": [
         {
           "src": "rule",
@@ -2243,6 +2269,7 @@
       "reg_text": "**No Fishing** July 15-Aug 31[Includes Tributaries], **No Fishing** upstream of and including Hemmingsen Creek[Includes Tributaries],",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -2293,6 +2320,7 @@
       "reg_text": "**No Fishing**",
       "completeness": "NO_SPLIT",
       "n_boundaries": 0,
+      "deferred": false,
       "locators": [
         {
           "src": "name",
@@ -2326,6 +2354,7 @@
       "reg_text": "**No Fishing** upstream of top of lower canyon, located 1.3km upstream of the Gold River confluence Nov 1-Sept 14\n**No Fishing **downstream of top of lower canyon, located 1.3km upstream of the Gold River confluence\nFolpye fnishing only downstream of Saunders Creek to the top of the lower canyon, located 1.3km upstream of the Gold River confluence when",
       "completeness": "COMPLETE",
       "n_boundaries": 3,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -2451,6 +2480,7 @@
       "reg_text": "**No Fishing** Apr 15-July 15 (includes channel downstream of Ladore Dam)",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -2511,6 +2541,7 @@
       "reg_text": "**No Fishing** downstream of lower fish counting fence near tidewater\n**No Fishing** in all parts[Includes Tributaries], Dec 1-May 31",
       "completeness": "COMPLETE",
       "n_boundaries": 2,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -2579,6 +2610,7 @@
       "reg_text": "**No Fishing** from boundary signs in Kokish canyon to Ida Lake, Nov 1-Apr 30;\n**No Fishing** from the log boom located approximately 100 m upstream of the IPP intake to signs at the tail of the canyon pool located\napproximately 250 m downstream\n**No Fishing** between signs at the IPP tail race confluence downstream approximately 500 m to signs",
       "completeness": "COMPLETE",
       "n_boundaries": 3,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -2736,6 +2768,7 @@
       "reg_text": "**No Fishing** July 15-Aug 31[Includes Tributaries], **No Fishing** - All tributaries\n**No Fishing** from the falls in Little Qualicum Falls Provincial Park downstream to the hatchery fence, Dec 1-May 31\nThe standard 100 m closure around a fish rearing facility has been reduced to a no fishing area from the hatchery fence to signs\napproximately 35 m downstream\nFly fishing only, Sept 1-Nov 30 (where open)",
       "completeness": "COMPLETE",
       "n_boundaries": 3,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -2891,6 +2924,7 @@
       "reg_text": "Speed restriction on parts (60 km/h); wheelchair accessible fishing platform is located in Loudon Park",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": true,
       "locators": [
         {
           "src": "rule",
@@ -2935,6 +2969,7 @@
       "reg_text": "**Class II water Sept 1-Apr 30; Steelhead Stamp mandatory Dec 1-Apr 30\nNo Fishing** upstream of fishing boundary signs on third bridge approximately 10 km upstream of the tidal boundary, Feb 1-Apr 30\nBait ban Nov 1-Apr 30",
       "completeness": "INCOMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -2978,6 +3013,7 @@
       "reg_text": "Fly fishing only[Includes Tributaries]",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "entry",
@@ -3051,6 +3087,7 @@
       "reg_text": "**No Fishing** Dec 1-May 31, **No Fishing** from Menzies Bay logging mainline bridge crossing to Morton Lake",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -3107,6 +3144,7 @@
       "reg_text": "**No Fishing** Nahmint River (upstream and downstream of the lake), Nov 1-Apr 30; fly fishing only upstream of Nahmint Lake when open",
       "completeness": "COMPLETE",
       "n_boundaries": 2,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -3168,6 +3206,7 @@
       "reg_text": "**No Fishing** July 15-Aug 31\n**No Fishing** from power line crossing at \"Bore Hole\" upstream to fishing boundary signs at the mouth of Boulder Creek\n**No Fishing** from the Cedar Road Bridge upstream to the Hwy 19 bridge, Sept 1-Oct 15\n**No Fishing** upstream of the Hwy 1 bridge[Includes Tributaries], Dec 1-May 31\nArtificial fly only upstream of the westernmost of the two Nanaimo Lakes, known locally as \"Second\" Lake, including tributaries\nEngine power restriction on parts - 7.5 kW (10 hp)",
       "completeness": "COMPLETE",
       "n_boundaries": 5,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -3340,6 +3379,7 @@
       "reg_text": "**No Fishing** upstream of Davie River, Dec 1-May 15",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -3394,6 +3434,7 @@
       "reg_text": "Exempt from July 15-Aug 31 summer closure\n**No Fishing** upstream of Parker Creek\n**No Fishing** between fishing boundary signs approximately 100 m upstream of and downstream of \"Red Rock Pool,\" approximately 2 km\n(by road) south of the Nitinat River Bridge, Aug 25-Dec 31\n**No Fishing** between boundary signs approximately 50 m upstream of and downstream of the Nitinat River Bridge, Aug 25-Oct 15",
       "completeness": "COMPLETE",
       "n_boundaries": 3,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -3560,6 +3601,7 @@
       "reg_text": "Exempt from July 15-Aug 31 summer closure; **No Fishing** upstream of the confluence with Little Oyster River[Includes Tributaries], Dec 1-June 30",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -3613,6 +3655,7 @@
       "reg_text": "Exempt from July 15-August 31 summer closure\n**No Fishing** downstream of the BC Hydro diversion dam (approximately 3.5 km downstream of Comox Lake) to the base of Stotan Falls\n(approximately 450 m downstream of the Duncan Bay Mainline logging road)\n**No Fishing **between fishing boundary signs approximately 100 m upstream and downstream of the confluence with Morrison Creek\n**No Fishing** from fishing boundary signs located 50 m upstream of the BC Hydro generating station tailrace to signs located 75 m\ndownstream of the Puntledge River hatchery fence (total distance approximately 500 m)\n**No Fishing **tributaries\nFly fishing only upstream of the BC Hydro diversion dam (approximately 3.5 km downstream of Comox Lake), including tributaries",
       "completeness": "COMPLETE",
       "n_boundaries": 4,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -3816,6 +3859,7 @@
       "reg_text": "**No Fishing** downstream of boundary signs located approximately 100 m downstream of the hatchery counting fence\n**No Fishing **from the upper hatchery weir (located 125 m downstream of the E&N Trestle) to boundary sign: located approximately 100 m\ndownstream of the hatchery counting fence, Aug 15-Oct 15. Refer to page 6 for updated regulations related to non-tidal salmon\n**No Fishing** tributaries\nSingle barbless hook, no hooks greater than 15 mm from point to shank\nExempt from July 15-Aug 31 summer closure, wheelchair accessible fishing platform is located at the hatchery",
       "completeness": "COMPLETE",
       "n_boundaries": 2,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -3915,6 +3959,7 @@
       "reg_text": "**No Fishing** May 1-June 15\nHatchery steelhead daily quota = 1\n**No Fishing **upstream of the Quatse River fishway (approximately 1.4 km upstream of Dick Booth Creek), Dec 1-June 15\nBait ban, May 1-Nov 30",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -3966,6 +4011,7 @@
       "reg_text": "**No Fishing** from the fishing boundary signs at power line crossing (approximately 25 m upstream of Quinsam Hatchery weir) to fishing\nboundary signs approximately 300 m downstream of weir\n**No Fishing** from the falls situated downstream of Middle Quinsam Lake to the fishing boundary signs at power line crossing\n(approximately 25 m upstream of the Quinsam hatchery weir), Dec 1-June 30\nExempt from July 15-Aug 31 summer closure; wheelchair accessible fishing platform is located near the Hwy 28 Bridge",
       "completeness": "COMPLETE",
       "n_boundaries": 2,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -4093,6 +4139,7 @@
       "reg_text": "**No Fishing** upstream of Kay Creek\nNo powered boats upstream of confluence with White River; speed restriction (10 km/h) from estuary to confluence with White River",
       "completeness": "COMPLETE",
       "n_boundaries": 3,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -4207,6 +4254,7 @@
       "reg_text": "**No Fishing** upstream of Fleet River, **No Fishing** July 15-Aug 31[Includes Tributaries]",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -4258,6 +4306,7 @@
       "reg_text": "**Class II water Aug 15-Oct 31**[Includes Tributaries]**; Steelhead Stamp not required unless fishing for steelhead**",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "except",
@@ -4299,6 +4348,7 @@
       "reg_text": "**No Fishing** between the tidal boundary at Papermill Dam to boundary signs approximately 1.0 km upstream (Falls Road Gravel Pit and the\nsouthern most end of Collins Farm/Arrow Vale Campground on Hector Road), Aug 25-Nov 15\nBait ban, June 1-Aug 24\nEngine power restriction 7.5 kW (10 hp)",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -4351,6 +4401,7 @@
       "reg_text": "Fly fishing only downstream of Sooke River Falls, Sept 1-Nov 30\n**No Fishing** July 15-Aug 31[Includes Tributaries], **No Fishing** from the base of the lower \"potholes\" falls to signs approximately 100 m downstream",
       "completeness": "COMPLETE",
       "n_boundaries": 2,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -4442,6 +4493,7 @@
       "reg_text": "**No Fishing** from Sproat Lake to fishing boundary signs approximately 300 m downstream of Hwy 4, June 15-Nov 15\nBait ban, May 1-Oct 31",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -4512,6 +4564,7 @@
       "reg_text": "**No Fishing** between fishing boundary signs 200 m upstream of and 500 m downstream of Stamp Falls, June 15-Nov 15\n**No Fishing** from the confluence with Ash River upstream to the Great Central Lake dam[Includes Tributaries], Jan 1-Apr 30\nBait ban all year upstream of signs at \"Girl Guide Falls\" (approximately 250 m upstream of the mouth of Beaver Creek)[Includes Tributaries]\nBait ban downstream of signs at \"Girl Guide Falls\" (approximately 250 m upstream of the mouth of Beaver Creek), June 1-Aug 24\nEngine power restriction 7.5 kW (10 hp), on parts",
       "completeness": "COMPLETE",
       "n_boundaries": 4,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -4689,6 +4742,7 @@
       "reg_text": "No powered boats on any water within Strathcona Park except Gold, Upper Campbell and Buttle lakes",
       "completeness": "COMPLETE",
       "n_boundaries": 2,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -4759,6 +4813,7 @@
       "reg_text": "Bait ban Nov 1-Apr 30; Cutthroat trout catch and release\n**Class II water Sept 1-Apr 30; Steelhead Stamp mandatory Dec 1-Apr 30**\nTidal waters regulations apply to waters downstream of tidal boundary sign located 1.5 km upstream of Hwy 16 Bridge",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -4816,6 +4871,7 @@
       "reg_text": "Fly fishing only upstream of the Toquart mainline logging bridge when open; **No Fishing** upstream of the boundary sign located near the\nfalls approximately 800 m downstream of Toquart Lake (including the Upper Toquart River) between Nov 1-May 31. Note: this includes the\nriver upstream of the lake",
       "completeness": "COMPLETE",
       "n_boundaries": 2,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -4889,6 +4945,7 @@
       "reg_text": "**No Fishing **upstream of Catherine Creek, Nov 1-Apr 30, fly fishing only downstream of Catherine Creek.",
       "completeness": "COMPLETE",
       "n_boundaries": 2,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -4968,6 +5025,7 @@
       "reg_text": "No Fishing within 100 m downstream of the falls situated approximately 4.5 km upstream of Wakeman River",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -5025,6 +5083,7 @@
       "reg_text": "**No Fishing** between fishing boundary signs at the salmon viewing pool\n**No Fishing** upstream of the Sayward Road Bridge crossing, Nov 1-Apr 30",
       "completeness": "INCOMPLETE",
       "n_boundaries": 2,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -5094,6 +5153,7 @@
       "reg_text": "**No Fishing** from Yakoun Lake downstream approximately 13 km to fishing boundary signs, Oct 1-Apr 30\nBait ban Nov 1-Apr 30\nCutthroat trout catch and release\nNo powered boats\n**Class II water Sept 1-Apr 30; Steelhead Stamp mandatory Dec 1-Apr 30**",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -5156,6 +5216,7 @@
       "reg_text": "Bull trout (char) catch and release\nNo vessels in swimming areas, as buoyed and signed; speed restriction (8 km/h) at south end of lake, south of a line drawn from the BC Parks\nboat ramp to signs on the east side of the lake",
       "completeness": "COMPLETE",
       "n_boundaries": 2,
+      "deferred": true,
       "locators": [
         {
           "src": "rule",
@@ -5218,6 +5279,7 @@
       "reg_text": "**No Fishing** upstream of the fishing boundary signs located at 49° 14.790'N and 122° 32.080'W, near the southern boundary (chain-link\nfence) of the Alouette River Management Society\n**No Fishing** upstream of 216th Street (including North Alouette River[Includes Tributaries]), May 1-June 30; no powered boats on mainstem",
       "completeness": "COMPLETE",
       "n_boundaries": 3,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -5328,6 +5390,7 @@
       "reg_text": "**No Fishing** upstream of 152nd Street (Johnson Road)",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -5376,6 +5439,7 @@
       "reg_text": "**No Fishing** from the upstream edge of 1st falls (situated approximately 1.5 km from the river's mouth) to a point 100 m downstream\n**No Fishing **upstream of 2nd set of falls (situated approximately 2.5 km upstream of Hillis Creek confluence) Nov 1-June 30\nArtificial fly only upstream of 2nd set of falls (situated approximately 2.5 km upstream of Hillis Creek confluence)\nBait ban",
       "completeness": "COMPLETE",
       "n_boundaries": 3,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -5492,6 +5556,7 @@
       "reg_text": "**No Fishing** upstream of Burnaby Lake or from Cariboo Dam to Salamander Creek; steelhead catch and release",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -5548,6 +5613,7 @@
       "reg_text": "**No Fishing**",
       "completeness": "NO_SPLIT",
       "n_boundaries": 0,
+      "deferred": false,
       "locators": [
         {
           "src": "name",
@@ -5579,6 +5645,7 @@
       "reg_text": "Single barbless hook; No powered boats",
       "completeness": "NO_SPLIT",
       "n_boundaries": 0,
+      "deferred": false,
       "locators": [
         {
           "src": "name",
@@ -5612,6 +5679,7 @@
       "reg_text": "**No Fishing**",
       "completeness": "NO_SPLIT",
       "n_boundaries": 0,
+      "deferred": false,
       "locators": [
         {
           "src": "name",
@@ -5645,6 +5713,7 @@
       "reg_text": "**No Fishing **upstream of 12th Avenue\n**No Fishing **downstream of 12th Avenue Apr 1-June 30\n**No Fishing** between two white triangular fishing boundary signs downstream to pedestrian bridge at the foot of Stayte Road, Aug 15-Sept 30\n**No Fishing **from 21:00 hours to 05:00 hours each day, Aug 1-Dec 31",
       "completeness": "COMPLETE",
       "n_boundaries": 3,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -5765,6 +5834,7 @@
       "reg_text": "**No Fishing** upstream of fishing boundary signs at footbridge situated approximately 100 m downstream of the fish fence\nBait ban, Aug 1-Oct 31; steelhead catch and release",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -5811,6 +5881,7 @@
       "reg_text": "**No Fishing** May 1-June 30\n**No Fishing **from the falls to 100 m downstream (falls are located approximately 550 m upstream of the power line crossing)",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": true,
       "locators": [
         {
           "src": "rule",
@@ -5861,6 +5932,7 @@
       "reg_text": "No wild trout over 50 cm, 1 bull trout over 60 cm",
       "completeness": "NO_SPLIT",
       "n_boundaries": 0,
+      "deferred": false,
       "locators": [
         {
           "src": "name",
@@ -5894,6 +5966,7 @@
       "reg_text": "**No Fishing**",
       "completeness": "NO_SPLIT",
       "n_boundaries": 0,
+      "deferred": false,
       "locators": [
         {
           "src": "name",
@@ -5927,6 +6000,7 @@
       "reg_text": "**No Fishing** from boundary signs at outlet of Chehalis Lake to main logging road bridge approximately 2.4 km downstream of Chehalis Lake\n**No Fishing** downstream of the main logging road bridge situated approximately 2.4 km downstream of Chehalis Lake, May 1-31",
       "completeness": "COMPLETE",
       "n_boundaries": 2,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -6011,6 +6085,7 @@
       "reg_text": "**No Fishing **upstream from a line between two fishing boundary signs on either side of the Chilliwack River 100 m downstream of the\nconfluence of the Chilliwack River and Slesse Creek\n**No Fishing** downstream of a line between two fishing boundary signs on either side of the Chilliwack River 100m downstream of the\nconfluence of the Chilliwack River and Slesse Creek to Tamihi Rapids Bridge, Apr 1-June 30\n**No Fishing **downstream of Tamihi Rapids Bridge to Vedder Crossing Bridge, May 1-June 30\nDownstream of Vedder Crossing Bridge: **(a)** fly fishing only, bait ban, hatchery rainbow trout catch and release (50 cm or less), and hatch-\nery cutthroat catch and release, May 1-31; **(b) No Fishing** June 1-30; **(c)** hatchery rainbow trout of any length 50 cm or less: daily quota =\n4, July 1-Apr 30",
       "completeness": "COMPLETE",
       "n_boundaries": 8,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -6341,6 +6416,7 @@
       "reg_text": "**No Fishing **upstream of the northern entrance to the upper most railway tunnel, Nov 1-June 30 (see map on page 24)\nFly fishing only; bait ban upstream of the northern entrance to the upper most railway tunnel, Jul 1-Oct 31\n**No Fishing **downstream of the southern entrance to the lower most railway tunnel, Apr 1-Oct 31\n**No Fishing** at Othello Tunnels from the northern entrance to the upper most railway tunnel to the southern entrance of the lower most tunnel;\napproximately 700 m length\nTrout/char (including steelhead) catch and release, bait ban, downstream of the southern entrance to the lower most railway tunnel, Nov",
       "completeness": "COMPLETE",
       "n_boundaries": 6,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -6505,6 +6581,7 @@
       "reg_text": "**No Fishing** upstream of Mary Hill Bypass Bridge, May 1-June 30; No powered boats on parts\nHatchery trout daily quota = 2 (20-30 cm only), from Lougheed Highway Bridge to Mary Hill Bypass Bridge, July 1-Oct 15",
       "completeness": "COMPLETE",
       "n_boundaries": 2,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -6605,6 +6682,7 @@
       "reg_text": "No wild trout over 50 cm, 1 bull trout over 60 cm; no vessels on parts; speed restriction (5 km/h) at north end, as buoyed and signed\nKokanee catch and release",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": true,
       "locators": [
         {
           "src": "rule",
@@ -6648,6 +6726,7 @@
       "reg_text": "Electric motor only - max 7.5 kW",
       "completeness": "NO_SPLIT",
       "n_boundaries": 0,
+      "deferred": false,
       "locators": [
         {
           "src": "name",
@@ -6681,6 +6760,7 @@
       "reg_text": "Dead fin fish may be used for bait only when fishing for sturgeon (see page 8 in the Provincial Regulations)\n**No Fishing** in the area bounded by a line commencing at a fishing boundary sign located at the eastern end of Landstrom Bar (Scale Bar)\nto a fishing boundary sign on the opposite bank of the river, thence to a fishing boundary sign at the southern end of Croft Island, thence\nto a fishing boundary sign on the nearest bank of the river in a westerly direction, thence following the bank of the river in a westerly\ndirection to the Point of Commencement, May 1-Oct 31\n**No Fishing** in the non-tidal portion of the Fraser River in Region 2 from one hour after sunset to one hour before sunrise\n**No Fishing** in the Jesperson's Side Channel, Herrling Side Channel, and Seabird Island north Side Channel May 15-July 31. See page 26\nfor a map of the No Fishing areas\n**No Fishing** for steelhead Fraser River Mainstem Aug 15-Dec 31\nBoats less than 20 m in length, under power or anchored, must not impede the passage of commercial vessels",
       "completeness": "COMPLETE",
       "n_boundaries": 6,
+      "deferred": false,
       "locators": [
         {
           "src": "water",
@@ -6893,6 +6973,7 @@
       "reg_text": "No wild trout over 50 cm, 1 bull trout over 60 cm; speed restriction (10 km/h) at south end, as buoyed and signed",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": true,
       "locators": [
         {
           "src": "rule",
@@ -6934,6 +7015,7 @@
       "reg_text": "**No Fishing** from one hour after sunset to one hour before sunrise, tributaries not included\nDead fin fish may be used for bait only when fishing for sturgeon (see page 8 in the Provincial Regulations)\nSpeed restriction or no powered boats in small bays along the river as signed",
       "completeness": "COMPLETE",
       "n_boundaries": 3,
+      "deferred": true,
       "locators": [
         {
           "src": "water",
@@ -7021,6 +7103,7 @@
       "reg_text": "**No Fishing** for Sturgeon in Hatzic Lake; speed restriction on parts (8 and 50 km/h)",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": true,
       "locators": [
         {
           "src": "rule",
@@ -7064,6 +7147,7 @@
       "reg_text": "**No Fishing** upstream of 152nd Street (Johnson Road)",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -7110,6 +7194,7 @@
       "reg_text": "Single barbless hook",
       "completeness": "NO_SPLIT",
       "n_boundaries": 0,
+      "deferred": false,
       "locators": [
         {
           "src": "name",
@@ -7142,6 +7227,7 @@
       "reg_text": "**No Fishing** May 1-June 30\n**No Fishing** from Cliff Park Falls to 112th Avenue",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -7202,6 +7288,7 @@
       "reg_text": "No powered boats",
       "completeness": "NO_SPLIT",
       "n_boundaries": 0,
+      "deferred": false,
       "locators": [
         {
           "src": "name",
@@ -7235,6 +7322,7 @@
       "reg_text": "**No Fishing** downstream of the lower falls",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -7280,6 +7368,7 @@
       "reg_text": "**No Fishing** between fishing boundary signs situated approximately 200 m upstream of and 150 m downstream of Twin Falls Bridge[Includes Tributaries]\nBait ban (mainstem only)",
       "completeness": "NO_CURATION",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -7315,6 +7404,7 @@
       "reg_text": "**No Fishing **upstream of 272nd Street (Jackman Road)\n**No Fishing **downstream of 272nd Street (Jackman Road), Apr 1-June 30",
       "completeness": "COMPLETE",
       "n_boundaries": 2,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -7389,6 +7479,7 @@
       "reg_text": "**No Fishing** upstream of 208th Street (Berry Road); **No Fishing** downstream of 208th Street, Apr 1-June 30\n**No Fishing** downstream of 208th Street, from 21:00 hours to 05:00 hours each day, Aug 1-Dec 31\nNo angling from powered boats upstream of dyke gates, no towing on parts, speed restriction (16 km/h)",
       "completeness": "COMPLETE",
       "n_boundaries": 4,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -7508,6 +7599,7 @@
       "reg_text": "**No Fishing** upstream of railway bridge",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -7555,6 +7647,7 @@
       "reg_text": "**No Fishing** upstream of 216th Street (Fifth Ave), May 1-June 30\nNo powered boats",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -7618,6 +7711,7 @@
       "reg_text": "No wild trout over 50 cm, 1 bull trout over 60 cm\nWild trout/char catch and release, single barbless hook north of fishing boundary signs (east and west shores) near the head of the lake",
       "completeness": "COMPLETE",
       "n_boundaries": 2,
+      "deferred": true,
       "locators": [
         {
           "src": "rule",
@@ -7680,6 +7774,7 @@
       "reg_text": "**No Fishing** within Garibaldi Park; speed restriction at Grant Narrows (10 km/h)\nBait ban upstream of Pitt Lake\n**No Fishing** in the Lower Pitt River (CPR Bridge upstream to Pitt Lake) from one hour after sunset to one hour before sunrise (tributaries not\nincluded)",
       "completeness": "COMPLETE",
       "n_boundaries": 4,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -7799,6 +7894,7 @@
       "reg_text": "**No Fishing** Nov 1-Mar 31; no powered boats in One Mile Bay",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": true,
       "locators": [
         {
           "src": "rule",
@@ -7840,6 +7936,7 @@
       "reg_text": "**No Fishing** Nov 1-June 30\nNative char catch and release (bull trout and Dolly Varden), trout daily quota = 1 (none under 40 cm), brook trout daily quota = 5\nBait ban; single barbless hook",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "water",
@@ -7913,6 +8010,7 @@
       "reg_text": "**No Fishing** from Ruby Lake to fishing boundary signs approximately 100 m downstream",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -7972,6 +8070,7 @@
       "reg_text": "**No Fishing** in the outlet bay within 100 m of the head of Ruby Creek\nWild cutthroat trout daily quota = 2 (none 40 cm or more); single barbless hook",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": true,
       "locators": [
         {
           "src": "rule",
@@ -8013,6 +8112,7 @@
       "reg_text": "**No Fishing** easterly of a line drawn from a boundary sign located at the north side of the Sakinaw Lake boat launch southwesterly to a\nboundary sign located at 49o 41.50'N and 123o 58.45'W, Nov 1-Dec 31\n**No Fishing** in \"Bear Bay\", easterly of a line drawn from a boundary sign located at 49o 40.05'N and 124o 02.13'W due south to a boundary\nsign on the opposite shore, Nov 1-Dec 31\nKokanee catch and release",
       "completeness": "COMPLETE",
       "n_boundaries": 2,
+      "deferred": true,
       "locators": [
         {
           "src": "rule",
@@ -8080,6 +8180,7 @@
       "reg_text": "**No Fishing** upstream of 232nd Street (Livingstone Road)\n**No Fishing **downstream of 232nd Street (Livingstone Road) Apr 1-June 30",
       "completeness": "COMPLETE",
       "n_boundaries": 2,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -8154,6 +8255,7 @@
       "reg_text": "Single barbless hook; Youth/Disabled Accompanied Water year round (see page 4)",
       "completeness": "NO_SPLIT",
       "n_boundaries": 0,
+      "deferred": false,
       "locators": [
         {
           "src": "name",
@@ -8188,6 +8290,7 @@
       "reg_text": "**No Fishing** upstream of 168th Street at Bothwell Park\n**No Fishing** downstream of 168th Street at Bothwell Park, Apr 1-June 30\n**No Fishing** downstream of 168th Street at Bothwell Park from 21:00 hours to 05:00 hours each day, Aug 1-Dec 31\nNo angling from powered boats upstream of dyke gates",
       "completeness": "COMPLETE",
       "n_boundaries": 4,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -8307,6 +8410,7 @@
       "reg_text": "**No Fishing** downstream of Seymour Lake",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -8349,6 +8453,7 @@
       "reg_text": "**No Fishing** upstream of Silver Lake, Nov 1-June 30\nFly fishing only and bait ban upstream of Silver Lake, July 1-Oct 31\n**No Fishing** from Silver Lake down to the Bailey Bridge situated approximately 8 km upstream of Hwy 1\nBait ban downstream of Bailey Bridge situated approximately 8 km upstream of Hwy 1",
       "completeness": "COMPLETE",
       "n_boundaries": 5,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -8507,6 +8612,7 @@
       "reg_text": "**No Fishing** Nov 1-June 30\nKokanee, trout and char catch and release; bait ban",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "water",
@@ -8578,6 +8684,7 @@
       "reg_text": "Bait ban; Squamish River tributary located upstream of Ashlu Creek",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -8629,6 +8736,7 @@
       "reg_text": "Bait ban",
       "completeness": "NO_SPLIT",
       "n_boundaries": 0,
+      "deferred": false,
       "locators": [
         {
           "src": "name",
@@ -8662,6 +8770,7 @@
       "reg_text": "**No Fishing** tributaries EXCEPT: Ashlu Creek, Cheakamus, Elaho and Mamquam Rivers, and the Squamish Powerhouse Channel",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "except",
@@ -8711,6 +8820,7 @@
       "reg_text": "**No Fishing** in the Ruskin spawning channel, from the inlet near the dam downstream to the boat ramp crossing\n**No Fishing** in the Northrop Spawning Channel, from the intake downstream to where the channel joins the Stave River main, including its\ntributaries containg the fishway",
       "completeness": "COMPLETE",
       "n_boundaries": 2,
+      "deferred": true,
       "locators": [
         {
           "src": "rule",
@@ -8777,6 +8887,7 @@
       "reg_text": "**No Fishing** Nov 1-June 30\nBait ban",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "entry",
@@ -8816,6 +8927,7 @@
       "reg_text": "**No Fishing** downstream of the falls situated approximately 200 m upstream of Chilliwack River\n**No Fishing** upstream of the falls situated approximately 200 m upstream of Chilliwack River, May 1-June 30",
       "completeness": "COMPLETE",
       "n_boundaries": 2,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -8887,6 +8999,7 @@
       "reg_text": "No powered boats",
       "completeness": "NO_SPLIT",
       "n_boundaries": 0,
+      "deferred": false,
       "locators": [
         {
           "src": "name",
@@ -8920,6 +9033,7 @@
       "reg_text": "**No Fishing**",
       "completeness": "NO_SPLIT",
       "n_boundaries": 0,
+      "deferred": false,
       "locators": [
         {
           "src": "name",
@@ -8955,6 +9069,7 @@
       "reg_text": "**No Fishing** from fishing boundary signs at log booms on Weaver Lake downstream to where Sakwi Creek enters Weaver Creek\nEngine power restriction on Weaver Lake - 7.5 kW (10 hp)",
       "completeness": "COMPLETE",
       "n_boundaries": 2,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -9069,6 +9184,7 @@
       "reg_text": "**No Fishing** north of a line drawn due west from mouth of Momich River, Mar 15-June 30\nLake trout catch and release, Oct 15-Jan 31\nDaily quota = 1 bull trout or lake trout (no bull trout under 80 cm or lake trout under 60 cm)\nSingle barbless hook",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": true,
       "locators": [
         {
           "src": "rule",
@@ -9140,6 +9256,7 @@
       "reg_text": "Rainbow trout daily quota = 2 (none under 30 cm); bait ban\nBull trout (Dolly Varden) daily quota = 1 (none under 80 cm), July 1-30 and Nov 1-Dec 31",
       "completeness": "COMPLETE",
       "n_boundaries": 2,
+      "deferred": false,
       "locators": [
         {
           "src": "water",
@@ -9211,6 +9328,7 @@
       "reg_text": "**No Fishing** from Sept 1-Oct 31 between fishing boundary signs in the vicinity of the public salmon viewing platforms in Tsutswecew\nProvincial Park\nRainbow trout and char catch and release; bait ban; no powered boats",
       "completeness": "COMPLETE",
       "n_boundaries": 3,
+      "deferred": false,
       "locators": [
         {
           "src": "water",
@@ -9309,6 +9427,7 @@
       "reg_text": "Exempt from spring closure downstream of Big Bar Lake",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -9349,6 +9468,7 @@
       "reg_text": "**No Fishing** downstream of falls at Bonaparte fishway; no trout under 25 cm downstream of Bonaparte Lake",
       "completeness": "COMPLETE",
       "n_boundaries": 2,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -9412,6 +9532,7 @@
       "reg_text": "**No Fishing** from Terzaghi Dam to Yalakom River\n**No Fishing** downstream of Hwy 40 bridge (approximately 6 km north of Lillooet), Mar 31-June 20\nNo trout under 25 cm; bull trout catch and release upstream of Downton Lake (reservoir)",
       "completeness": "COMPLETE",
       "n_boundaries": 3,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -9521,6 +9642,7 @@
       "reg_text": "Exempt from spring closure; no trout under 25 cm downstream of falls",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -9566,6 +9688,7 @@
       "reg_text": "Rainbow trout and char catch and release; bait ban downstream of the falls",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -9612,6 +9735,7 @@
       "reg_text": "Downstream of old Clearwater Bridge exempt from spring closure, except **No Fishing **May 1-June 30\nBait ban **(a)** from Falls Creek to Mahood River, all year, and **(b)** from Mahood River to North Thompson River, Sept 1-July 31\nNo angling from powered boats downstream of Falls Creek\nRainbow trout daily quota = 2 (none over 35 cm), char catch and release",
       "completeness": "COMPLETE",
       "n_boundaries": 5,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -9840,6 +9964,7 @@
       "reg_text": "**No Fishing** Jan 1-Sept 30; no trout under 25 cm; bull trout catch and release",
       "completeness": "NO_SPLIT",
       "n_boundaries": 0,
+      "deferred": false,
       "locators": [
         {
           "src": "name",
@@ -9873,6 +9998,7 @@
       "reg_text": "See Juliet, July, and Mine Creeks",
       "completeness": "NO_SPLIT",
       "n_boundaries": 0,
+      "deferred": false,
       "locators": [
         {
           "src": "name",
@@ -9904,6 +10030,7 @@
       "reg_text": "**No Fishing** downstream of the falls, open all year upstream of the falls",
       "completeness": "COMPLETE",
       "n_boundaries": 2,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -9972,6 +10099,7 @@
       "reg_text": "No trout under 25 cm downstream of Mowich Lake",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -10012,6 +10140,7 @@
       "reg_text": "Bull trout catch and release",
       "completeness": "NO_SPLIT",
       "n_boundaries": 0,
+      "deferred": false,
       "locators": [
         {
           "src": "name",
@@ -10044,6 +10173,7 @@
       "reg_text": "Rainbow trout and char catch and release; speed restriction (5 km/h)\nBait ban downstream of Griffin Lake",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -10084,6 +10214,7 @@
       "reg_text": "Exempt from spring closure upstream of Thompson River, except as noted below\n**No Fishing **for trout in Fraser River mainstem: downstream of Hell's Gate Sept 1-Nov 15, from Hell's Gate to the confluence with the\nThompson River from Oct 1-Nov 30, and upstream of the confluence with the Thompson River Oct 1-Oct 31\n**No Fishing** between fishing boundary signs approximately 6.5 km downstream of Boston Bar to signs 2.8 km downstream of\nHell's Gate\n**No Fishing** from the lower entrance of the fish ladder at Bridge River Rapids to the BC Railway Bridge approximately 2 km north of\nLillooet, Mar 31-June 20\nFrom Hwy 99 bridge at Lillooet downstream approximately 1.2 km to BC Hydro's tail race outflow channel: **No Fishing** Oct 1-May 31;\nFrom the confluence with Thompson River to the CNR Bridge approximately 1 km downstream: **No Fishing**, Oct 1-May 31; bait ban and no\nhooks greater than 15 mm from point to shank, Oct 1-Dec 31\n**No Fishing** for steelhead from the confluence with Spuzzum Creek (Region 3 boundary) to Hells Gate Aug 15-Dec 31\n**No Fishing** for steelhead from Hells Gate upstream to the Region 3 boundary Jan 1-Dec 31",
       "completeness": "COMPLETE",
       "n_boundaries": 13,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -10660,6 +10791,7 @@
       "reg_text": "**No Fishing** Jan 1-May 31\nNo trout under 25 cm downstream of Mamit Lake",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -10702,6 +10834,7 @@
       "reg_text": "No towing, speed restriction (15 km/h)",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": true,
       "locators": [
         {
           "src": "entry",
@@ -10742,6 +10875,7 @@
       "reg_text": "**No Fishing** within 100 m of the mouth of the inlet stream, May 1-Nov 30\n**No Fishing** within 100 m of the Tunkwa Creek outlet, May 1-Nov 30",
       "completeness": "COMPLETE",
       "n_boundaries": 2,
+      "deferred": true,
       "locators": [
         {
           "src": "rule",
@@ -10806,6 +10940,7 @@
       "reg_text": "Speed restriction (20 km/h)",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "entry",
@@ -10844,6 +10979,7 @@
       "reg_text": "**No Fishing** northeast of fishing boundary signs near the mouth of Thunder Creek and the public access site\n**No Ice Fishing** within 500 m of outlet stream at southwest end of lake as marked by fishing boundary signs",
       "completeness": "COMPLETE",
       "n_boundaries": 2,
+      "deferred": true,
       "locators": [
         {
           "src": "rule",
@@ -10903,6 +11039,7 @@
       "reg_text": "**No Fishing** within the fishing boundary signs at the western tip of the lake near the mouth of Canim River, Jan 1-June 30\nTrout/char catch and release, bait ban and single barbless hook: within fishing boundary signs at the western tip of the lake, July 1-Dec 31\n**No Fishing** within 200 m of the Mahood River outlet, Jan 1-June 30\nTrout/char catch and release, bait ban and single barbless hook: within 200 m of the mouth of the Mahood River outlet, July 1-Dec 31",
       "completeness": "COMPLETE",
       "n_boundaries": 8,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -11112,6 +11249,7 @@
       "reg_text": "**No Fishing** Jan 1-June 30\nDownstream of Goodwin Falls: Rainbow trout daily quota = 2 (none over 35 cm), char catch and release; bait ban\nUpstream of Goodwin Falls: Trout/char catch and release; bait ban",
       "completeness": "COMPLETE",
       "n_boundaries": 5,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -11249,6 +11387,7 @@
       "reg_text": "No powered boats from westerly entrance to 12th Street entrance to Park",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -11300,6 +11439,7 @@
       "reg_text": "**No Fishing** from Frances Lake downstream approximately 400 m to fishing boundary signs at the logging bridge\nDownstream of Nahatlatch Lake (including Hannah and Frances lakes; except as noted upstream of ), open until Dec 31; **No Fishing**\nJan 1-May 31\n**No Fishing** downstream of Nahatlatch Lake, Jan 1-May 31\nTrout daily quota = 2 (none under 30 cm)",
       "completeness": "COMPLETE",
       "n_boundaries": 4,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -11471,6 +11611,7 @@
       "reg_text": "**No Fishing** upstream of Nicola Lake, Jan 1-June 30\n**No Fishing** downstream of Nicola Lake, Mar 1-Sept 30\nTrout catch and release downstream of Nicola Lake, Jan 1-Feb 28\nNo trout under 25 cm downstream of Nicola Lake\nBull trout catch and release",
       "completeness": "COMPLETE",
       "n_boundaries": 4,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -11576,6 +11717,7 @@
       "reg_text": "Exempt from spring closure, Youth/Disabled Accompanied Water year round (see page 4)",
       "completeness": "COMPLETE",
       "n_boundaries": 2,
+      "deferred": false,
       "locators": [
         {
           "src": "water",
@@ -11638,6 +11780,7 @@
       "reg_text": "**No Fishing** upstream of Pennask Lake",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -11680,6 +11823,7 @@
       "reg_text": "**No Ice Fishing;** rainbow trout daily quota = 2; single hook\nElectric motor only - max 7.5 kW, south of a line bearing true 244° from a point on the southern tip of the largest island in the south arm of\nRoche Lake to the westerly shoreline and conversely 64° to the easterly shoreline",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": true,
       "locators": [
         {
           "src": "rule",
@@ -11722,6 +11866,7 @@
       "reg_text": "Rainbow trout and char catch and release, bait ban downstream of Hwy 97 bridge at Falkland",
       "completeness": "COMPLETE",
       "n_boundaries": 2,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -11791,6 +11936,7 @@
       "reg_text": "Exempt from spring closure\nNo trout under 25 cm downstream of Seton Lake\nDownstream of Seton Lake, **No Fishing** Apr 1-May 31",
       "completeness": "COMPLETE",
       "n_boundaries": 4,
+      "deferred": false,
       "locators": [
         {
           "src": "water",
@@ -11950,6 +12096,7 @@
       "reg_text": "Rainbow trout and char catch and release downstream of the falls; bait ban",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -11995,6 +12142,7 @@
       "reg_text": "**No Fishing** north of fishing boundary signs located at south end of lake, Apr 1-Oct 31",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": true,
       "locators": [
         {
           "src": "rule",
@@ -12039,6 +12187,7 @@
       "reg_text": "**No Fishing** Mar 15-May 14, and **rainbow trout and char catch and release**, May 15-Mar 14, in the waters lying west of a line between\nsigns at Henstridge Road and Wharf Road to a line between signs on the south and north shores of Little Shuswap Lake (see map A on\npage 28)\n**No Fishing** in the entire area north of Albas, Mar 15-May 14 (see map B on page 28)\n**No Fishing** east of a line between fishing boundary signs on Murdock and Semaphore points, to Hwy 1 bridge, Mar 15-May 14 (see map C\non page 28)\n**No fishing** in Salmon Arm Bay, west of line between Engineer's Point and Sunnybrae Point (see map on page 28), for the conservation\nof chinook and coho salmon stocks, Sept 1-Dec 31 (anglers fishing from the community pier in the city of Salmon Arm are exempt from\nthe closure)\n**No Ice Fishing**\nRainbow trout daily quota = 1 (none under 50 cm), annual quota = 5\nChar daily quota = 1 (none under 60 cm), annual quota = 5\nBait ban, single barbless hook (anglers fishing from the community pier in the city of Salmon Arm are exempt from the bait ban)\nConservation Surcharge Stamp required to catch and keep rainbow trout over 50 cm or char over 60 cm",
       "completeness": "MISSING_SPLITS",
       "n_boundaries": 8,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -12251,6 +12400,7 @@
       "reg_text": "Exempt from spring closure\nRainbow trout daily quota = 2 (none over 50 cm)",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "water",
@@ -12302,6 +12452,7 @@
       "reg_text": "**No Fishing** Oct 1-May 31\nTrout/char daily quota = 2 (none under 35 cm)\nAdditional opening from the CNR Bridge downstream of Deadman River to CNR Bridge upstream of Bonaparte River, May 1-31; trout/char\ncatch and release and artificial fly only, May 1-31\nUpstream of boundary signs 1 km downstream of Martel: bait ban\nNo angling from boats\n**Downstream of signs at Kamloops Lake: Class II water Oct 1-Dec 31 and Steelhead Stamp mandatory Oct 1-Dec 31 (when open)**",
       "completeness": "COMPLETE",
       "n_boundaries": 8,
+      "deferred": false,
       "locators": [
         {
           "src": "water",
@@ -12693,6 +12844,7 @@
       "reg_text": "**No Fishing** July 1-Sept 30",
       "completeness": "NO_SPLIT",
       "n_boundaries": 0,
+      "deferred": false,
       "locators": [
         {
           "src": "name",
@@ -12727,6 +12879,7 @@
       "reg_text": "**No Fishing** within 400 m of the mouth of Cedar Creek as designated by signs, Dec 1-June 30\nRainbow trout daily quota = 2",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": true,
       "locators": [
         {
           "src": "rule",
@@ -12774,6 +12927,7 @@
       "reg_text": "**No Fishing** Sept 1-Oct 31\nTrout/char catch and release and bait ban, June 15-Aug 31\n**Class II water when open, including tributaries - Michel Creek classified licence required for non-resident anglers**",
       "completeness": "COMPLETE",
       "n_boundaries": 2,
+      "deferred": false,
       "locators": [
         {
           "src": "water",
@@ -12857,6 +13011,7 @@
       "reg_text": "**No Fishing Sept 1-Oct 31\nTrout/char catch and release and bait ban June 15-Aug 31\nClass II water when open, including tributaries - Michel Creek classified licence required for non-resident anglers**",
       "completeness": "COMPLETE",
       "n_boundaries": 2,
+      "deferred": false,
       "locators": [
         {
           "src": "water",
@@ -12936,6 +13091,7 @@
       "reg_text": "See Lower Arrow Lake's tributaries and Upper Arrow Lake's tributaries",
       "completeness": "NO_SPLIT",
       "n_boundaries": 0,
+      "deferred": false,
       "locators": [
         {
           "src": "name",
@@ -12967,6 +13123,7 @@
       "reg_text": "**No Fishing**",
       "completeness": "NO_SPLIT",
       "n_boundaries": 0,
+      "deferred": false,
       "locators": [
         {
           "src": "name",
@@ -12999,6 +13156,7 @@
       "reg_text": "**No Fishing** downstream of South Fork (approximately 5 km from Trout Lake), June 15-Oct 31",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -13051,6 +13209,7 @@
       "reg_text": "Trout/char catch and release from Galbraith Creek to Van Creek[Includes Tributaries], Aberfeldie Dam to Tie Mill Dam[Includes Tributaries] and Quinn Creek[Includes Tributaries]\nOther parts: trout/char daily quota = 1 (none under 30 cm), June 15-Oct 31\nBait ban, June 15-Oct 31\n**Class II water when open, including tributaries**",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -13095,6 +13254,7 @@
       "reg_text": "**No Fishing** from Woden Creek to Hwy 6 bridge, June 15-Oct 31",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -13163,6 +13323,7 @@
       "reg_text": "**No Fishing** from Rodd Creek to Hwy 6 bridge, June 15-Oct 31",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -13233,6 +13394,7 @@
       "reg_text": "Youth/Disabled Accompanied Water year round (see page 4)\n**Part described is NOT a Classified Water**",
       "completeness": "COMPLETE",
       "n_boundaries": 2,
+      "deferred": false,
       "locators": [
         {
           "src": "water",
@@ -13313,6 +13475,7 @@
       "reg_text": "**No Fishing** downstream of fishing boundary signs at falls approximately 10 km from Kootenay Lake",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -13359,6 +13522,7 @@
       "reg_text": "Burbot catch and release; bass daily quota = unlimited; speed restriction (10 km/h) near eastern shore and at south end, as buoyed and\nsigned",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": true,
       "locators": [
         {
           "src": "rule",
@@ -13411,6 +13575,7 @@
       "reg_text": "**No Fishing** (except Dutch Creek)",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "except",
@@ -13464,6 +13629,7 @@
       "reg_text": "**No Fishing** from Revelstoke Dam downstream to Hwy 1 bridge in Revelstoke\n**No Fishing** from a line between the old Robson Ferry landing and a sign on the south river bank, downstream approximately 950 m to the\nCPR Bridge, Mar 1-June 30\nWhere angling is permitted: EXEMPT from the regional Nov 1-Mar 31 trout/char catch and release and the regional Apr 1-June 14 closure\nBass daily quota = unlimited\nKokanee daily quota = 15 from Keenleyside Dam to a line between the old Robson Ferry landing and a sign on the south river bank\nWalleye daily quota = 16 from Keenleyside Dam to the Washington state border\nFrom Keenleyside Dam downstream to the Washington state border and connected reaches: the Kootenay River (Columbia River\nconfluence to Brilliant Dam) and the Pend d'Oreille River (Columbia River confluence to Waneta Dam): Northern pike daily quota =\nunlimited and bass daily quota = unlimited\nBurbot catch and release\nSpeed restriction (10 km/h) from Mud Lake to Columbia Lake, no power boats in wetlands, no towing and engine power restriction -\n15 kW (20 hp), in main channel from Fairmont to Donald\nSee Upper Arrow Lake for the portion of the Columbia River which may be found downstream of the Hwy 1 bridge in Revelstoke\n(depending on reservoir level)",
       "completeness": "COMPLETE",
       "n_boundaries": 10,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -13992,6 +14158,7 @@
       "reg_text": "**No Fishing** May 1-June 30",
       "completeness": "NO_SPLIT",
       "n_boundaries": 0,
+      "deferred": false,
       "locators": [
         {
           "src": "name",
@@ -14025,6 +14192,7 @@
       "reg_text": "**No Fishing** Apr 1-June 30",
       "completeness": "NO_SPLIT",
       "n_boundaries": 0,
+      "deferred": false,
       "locators": [
         {
           "src": "name",
@@ -14056,6 +14224,7 @@
       "reg_text": "Bass daily quota = unlimited; yellow perch daily quota = unlimited - applies to all waters within the CVWMA, including Six Mile Lake, Leach\nLake, Kootenay River and Canal, EXCEPT Duck Lake (see separate entry)\nPermit required see note on page 34",
       "completeness": "COMPLETE",
       "n_boundaries": 4,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -14153,6 +14322,7 @@
       "reg_text": "**No Fishing** downstream of Laib Creek",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -14202,6 +14372,7 @@
       "reg_text": "Bull trout catch and release (includes Upper Duncan River and tributaries)",
       "completeness": "NO_SPLIT",
       "n_boundaries": 0,
+      "deferred": false,
       "locators": [
         {
           "src": "name",
@@ -14235,6 +14406,7 @@
       "reg_text": "**Exempt from spring closure, exempt from regional Nov 1-Mar 31 bull trout catch and release, bait ban\nRainbow trout daily quota = 5 (any size), bull trout daily quota = 2 (any size)\nNo Fishing downstream of Duncan Dam to the confluence of the Duncan River and the Lardeau River**",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -14302,6 +14474,7 @@
       "reg_text": "Trout/char catch and release from Ben Able Creek to Columbia Lake and/or River\nBait ban, June 15-Oct 31\nBurbot catch and release\nEXEMPT from Columbia Lake's tributaries closure",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -14370,6 +14543,7 @@
       "reg_text": "**No Ice Fishing;** trout/char daily quota = 1 in the aggregate from both lakes (none under 50 cm); bait ban, single barbless hook",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -14413,6 +14587,7 @@
       "reg_text": "Bait ban, June 15-Oct 31\nTrout/char catch and release June 15-Oct 31: from Lower Elk Lake to Forsyth Cr, from Line Creek Bridge to CPR Bridge at Sparwood, from\nHwy 3 bridge at Hosmer to the northern Hwy 3 bridge at Fernie, and from the bridge at Morrissey to Elko Dam\nAll other parts: trout/char daily quota = 1 (none under 30 cm), June 15-Oct 31\nBull trout catch and release\nElectric motor only - max 7.5 kW\n**Class II water when open, including tributaries**",
       "completeness": "COMPLETE",
       "n_boundaries": 4,
+      "deferred": false,
       "locators": [
         {
           "src": "water",
@@ -14629,6 +14804,7 @@
       "reg_text": "Trout/Char daily quota = 1 (no cutthroat under 30 cm, no bull trout under 75 cm) and bait ban, June 15-Oct 31\nElectric motor only - max 7.5 kW\n**Class II water when open, including tributaries**",
       "completeness": "COMPLETE",
       "n_boundaries": 2,
+      "deferred": false,
       "locators": [
         {
           "src": "water",
@@ -14709,6 +14885,7 @@
       "reg_text": "**No Fishing** Sept 1-Oct 31\nTrout/char daily quota = 1 (none under 30 cm) and bait ban, June 15-Aug 31\nBull trout catch and release\n**EXCEPTIONS - SEE SEPARATE LISTINGS FOR: Abruzzi Cr., Alexander Cr.**[Includes Tributaries]** upstream of the easternmost Hwy 3 bridge, Bighorn\n(Ram) Cr., Cadorna Cr., Fording R. downstream of Josephine Falls, Forsyth Cr. from Connor Lk. downstream 3 km, Line Cr.**[Includes Tributaries]**, Grave\nCreek**[Includes Tributaries]**, Michel Cr.**[Includes Tributaries]**, Morrissey Cr.**[Includes Tributaries]**, Wigwam River\nALL tributaries** (EXCEPT Coal Creek downstream of old MF&M Railway Bridge 7 km upstream of Elk River) **are Class II waters when open**",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "except",
@@ -14776,6 +14953,7 @@
       "reg_text": "Trout/char catch and release (mainstem only) from Doctor Creek Bridge to Lavington Creek Bridge, June 15-Oct 31; other parts (including\ntributaries, except Lavington Creek) trout/char daily quota = 2 (none under 30 cm and only 1 bull trout), June 15-Oct 31; bait ban, June 15-Oct 31\nSee Lavington Creek, a tributary",
       "completeness": "COMPLETE",
       "n_boundaries": 3,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -14880,6 +15058,7 @@
       "reg_text": "Bull trout catch and release\nTrout daily quota = 1 (none under 30 cm) and bait ban, June 15-Oct 31",
       "completeness": "NO_SPLIT",
       "n_boundaries": 0,
+      "deferred": false,
       "locators": [
         {
           "src": "name",
@@ -14913,6 +15092,7 @@
       "reg_text": "**No Fishing** Sept 1-Oct 31\nBull trout catch and release\nTrout daily quota = 1 (none under 30 cm) and bait ban, June 15-Aug 31",
       "completeness": "NO_SPLIT",
       "n_boundaries": 0,
+      "deferred": false,
       "locators": [
         {
           "src": "name",
@@ -14946,6 +15126,7 @@
       "reg_text": "Trout/char catch and release, June 15-Mar 31 and bait ban, June 15-Oct 31\n**Class II water when open, including tributaries - Elk River classified licence required for non-resident anglers**",
       "completeness": "COMPLETE",
       "n_boundaries": 2,
+      "deferred": false,
       "locators": [
         {
           "src": "water",
@@ -15026,6 +15207,7 @@
       "reg_text": "**No Fishing**",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "water",
@@ -15085,6 +15267,7 @@
       "reg_text": "**No Fishing** from Connor Lake downstream 3 km\nFor remainder, see Elk River's tributaries\n**Class II water when/where open, including tributaries**",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -15145,6 +15328,7 @@
       "reg_text": "Trout/char catch and release (mainstem only) Leadville Creek Cameron Creek\nBait ban, June 15-Oct 31 (EXCEPT Kitchener Creek, see Kitchener Creek, a tributary)",
       "completeness": "COMPLETE",
       "n_boundaries": 2,
+      "deferred": true,
       "locators": [
         {
           "src": "rule",
@@ -15204,6 +15388,7 @@
       "reg_text": "**No Fishing** downstream of falls approximately 11 km from Arrow Lake",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -15252,6 +15437,7 @@
       "reg_text": "**No Fishing** downstream of Angus Creek\n**Class II water when/where open, including tributaries - St. Mary River classified licence required for non-resident anglers**",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -15303,6 +15489,7 @@
       "reg_text": "**No Ice Fishing**\nYouth/Disabled Accompanied Water year round (see page 4)",
       "completeness": "NO_SPLIT",
       "n_boundaries": 0,
+      "deferred": false,
       "locators": [
         {
           "src": "name",
@@ -15335,6 +15522,7 @@
       "reg_text": "**No Fishing** downstream of Albert Canyon",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -15383,6 +15571,7 @@
       "reg_text": "**No Fishing** upstream of Kirkup Creek, Nov 1-June 14\nUpstream of Kirkup Creek: both bait ban and trout/char catch and release, June 15-Oct 31\n**No Fishing** from Kirkup Creek downstream, including Kirkup Creek",
       "completeness": "COMPLETE",
       "n_boundaries": 4,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -15577,6 +15766,7 @@
       "reg_text": "Bass daily quota = unlimited\nNo powered boats",
       "completeness": "NO_SPLIT",
       "n_boundaries": 0,
+      "deferred": false,
       "locators": [
         {
           "src": "name",
@@ -15619,6 +15809,7 @@
       "reg_text": "**No Fishing** within 200 m of Bush-Sullivan Road Bridge in Bush Arm",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": true,
       "locators": [
         {
           "src": "rule",
@@ -15660,6 +15851,7 @@
       "reg_text": "Bull trout catch and release\nDoes not include Columbia River upstream of Kinbasket Reservoir",
       "completeness": "NO_SPLIT",
       "n_boundaries": 0,
+      "deferred": false,
       "locators": [
         {
           "src": "name",
@@ -15694,6 +15886,7 @@
       "reg_text": "Bull trout catch and release Nov 1-Mar 31; no bull trout under 75 cm when open; bait ban Sept 15-June 30; burbot catch and release\nSee page 75 - Fluctuating Reservoir Levels",
       "completeness": "NO_SPLIT",
       "n_boundaries": 0,
+      "deferred": false,
       "locators": [
         {
           "src": "name",
@@ -15744,6 +15937,7 @@
       "reg_text": "**A person in a boat may angle with an unlimited number of rods.**\nKokanee daily quota = 0\nBull trout daily quota = 1; rainbow trout daily quota = 10 (any size)\nConservation Surcharge Stamp required to keep rainbow trout over 50 cm, annual quota = 20",
       "completeness": "NO_SPLIT",
       "n_boundaries": 0,
+      "deferred": false,
       "locators": [
         {
           "src": "name",
@@ -15777,6 +15971,7 @@
       "reg_text": "Rainbow trout catch and release, Jan 1-May 31; trout/char daily quota = 2 (only 1 bull trout)\nKokanee catch and release, EXCEPT Apr 1-Apr 3 and July 1-July 2 only, when daily quota = 5; NOTE: The combined daily quota for kokanee\nfrom the Upper West Arm (when open to kokanee harvest) and the Lower West Arm (when open to kokanee harvest) cannot exceed 5",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "except",
@@ -15830,6 +16025,7 @@
       "reg_text": "Trout/char daily quota = 2 (only 1 bull trout); kokanee daily quota = 5, **but only on Saturday and Sunday of each week.** Kokanee catch\nand release Monday through Friday of each week. NOTE: the combined daily quota for kokanee from the Upper West Arm (when open to\nkokanee harvest) and the Lower West Arm (when open to kokanee harvest) cannot exceed 5",
       "completeness": "NO_SPLIT",
       "n_boundaries": 0,
+      "deferred": false,
       "locators": [
         {
           "src": "name",
@@ -15865,6 +16061,7 @@
       "reg_text": "Bull trout catch and release\nDoes not include the Kootenay River upstream from Kootenay Lake to the U.S. border near Creston",
       "completeness": "NO_SPLIT",
       "n_boundaries": 0,
+      "deferred": false,
       "locators": [
         {
           "src": "name",
@@ -15897,6 +16094,7 @@
       "reg_text": "**No Fishing** from CPR Bridge near Creston downstream 2 km to navigation dolphin\nDownstream from the Idaho border to CPR Bridge near Creston and from Corra Linn Dam to the Columbia River: EXEMPT from Apr 1-June 14 closure AND from Nov 1-Mar 31 trout/char catch and release\nBurbot catch and release from Idaho border near Creston to Kootenay Lake, including tributaries to that part\nWalleye daily quota = 16 from the Brilliant Dam to the confluence with the Columbia River\nFrom the Brilliant Dam to the confluence with the Columbia River: northern pike and bass daily quota = unlimited",
       "completeness": "COMPLETE",
       "n_boundaries": 8,
+      "deferred": false,
       "locators": [
         {
           "src": "water",
@@ -16294,6 +16492,7 @@
       "reg_text": "Bait ban all year\nTrout/char catch and release, Nov 1-Mar 31\nBurbot catch and release upstream of the Montana border\nUpstream of Koocanusa Reservoir to White River: EXEMPT from Apr 1-June 14 closure; trout/char daily quota = 1 (no trout under 30 cm and\nno bull trout under 75 cm), Apr 1-Oct 31\nUpstream of White River: trout/char daily quota = 1 (no trout under 30 cm and no bull trout under 75 cm), Jun 15-Oct 31\n**Upstream of White River, including tributaries: Class II water when open**",
       "completeness": "COMPLETE",
       "n_boundaries": 7,
+      "deferred": false,
       "locators": [
         {
           "src": "water",
@@ -16574,6 +16773,7 @@
       "reg_text": "**No Fishing** downstream of falls 1 km upstream of Gardiner Creek",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -16620,6 +16820,7 @@
       "reg_text": "**No Fishing** from Mica Dam to fishing boundary signs at the narrows immediately downstream of the mouth of Bigmouth Creek",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": true,
       "locators": [
         {
           "src": "rule",
@@ -16685,6 +16886,7 @@
       "reg_text": "Bull trout catch and release",
       "completeness": "NO_SPLIT",
       "n_boundaries": 0,
+      "deferred": false,
       "locators": [
         {
           "src": "name",
@@ -16719,6 +16921,7 @@
       "reg_text": "**No Fishing** downstream of fishing boundary signs at Trout Lake outlet,** to fishing boundary signs approximately 600m downstream\nnear the confluence of Mobbs Creek\nExempt from spring closure (Apr 1-Jun 14), exempt from trout/char release (Nov 1-Mar 31)\nRainbow trout daily quota = 5 (any size), bull trout daily quota = 2 (any size)**",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -16789,6 +16992,7 @@
       "reg_text": "EXEMPT from Slocan River's[Includes Tributaries] closure and Slocan River's[Includes Tributaries] trout/char catch and release: bait ban, June 15-Oct 31",
       "completeness": "NO_SPLIT",
       "n_boundaries": 0,
+      "deferred": false,
       "locators": [
         {
           "src": "name",
@@ -16822,6 +17026,7 @@
       "reg_text": "**No Fishing** Sept 1-Oct 31\nTrout/char catch and release, June 15-Aug 31\nBait ban\n**Class II water when open, including tributaries - Wigwam River classified licence required for non-resident anglers**",
       "completeness": "COMPLETE",
       "n_boundaries": 2,
+      "deferred": false,
       "locators": [
         {
           "src": "water",
@@ -16904,6 +17109,7 @@
       "reg_text": "**No Fishing** Sept 1-Oct 31\nTrout/char daily quota = 1 (none under 30 cm) and bait ban, June 15-Aug 31\n**Class II water when open, including tributaries - Wigwam River classified licence required for non-resident anglers**",
       "completeness": "COMPLETE",
       "n_boundaries": 2,
+      "deferred": false,
       "locators": [
         {
           "src": "water",
@@ -16982,6 +17188,7 @@
       "reg_text": "Bull trout catch and release",
       "completeness": "NO_SPLIT",
       "n_boundaries": 0,
+      "deferred": false,
       "locators": [
         {
           "src": "name",
@@ -17013,6 +17220,7 @@
       "reg_text": "Trout/char catch and release downstream of Premier Lake Bridge crossing, June 15- Oct 31\nTrout/char daily quota = 2 (none under 30 cm) between Premier Lake Bridge crossing and Mutton Creek, June 15-Oct 31\nBait ban downstream of Mutton Creek, June 15-Mar 31",
       "completeness": "COMPLETE",
       "n_boundaries": 3,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -17171,6 +17379,7 @@
       "reg_text": "**Class II water when open, including tributaries**\nTrout/char catch and release, June 15-Mar 31 and bait ban, June 15-Oct 31.",
       "completeness": "COMPLETE",
       "n_boundaries": 2,
+      "deferred": false,
       "locators": [
         {
           "src": "water",
@@ -17254,6 +17463,7 @@
       "reg_text": "**Class II water when open, including tributaries**\nTrout/char daily quota = 1 (none under 30 cm) and bait ban, June 15-Oct 31.",
       "completeness": "COMPLETE",
       "n_boundaries": 2,
+      "deferred": false,
       "locators": [
         {
           "src": "water",
@@ -17337,6 +17547,7 @@
       "reg_text": "Irishman Creek (Moyie River tributary) closed all year; no powered boats from bridge at south end of Moyie Lake to U.S. border\nBull trout and cutthroat trout catch and release",
       "completeness": "COMPLETE",
       "n_boundaries": 2,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -17416,6 +17627,7 @@
       "reg_text": "**No Fishing** downstream of falls approximately 2 km from Columbia River",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -17462,6 +17674,7 @@
       "reg_text": "EXEMPT from single barbless hooks\nEXEMPT from the Apr 1-June 14 closure\nBull trout catch and release, walleye daily quota = unlimited\nNorthern pike daily quota = unlimited, yellow perch daily quota = unlimited, bass daily quota = unlimited",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "entry",
@@ -17512,6 +17725,7 @@
       "reg_text": "INCLUDES tributaries of the reservoirs behind Waneta Dam and Seven Mile Dam\nBull trout catch and release\nBait ban, June 15-Oct 31",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "water",
@@ -17583,6 +17797,7 @@
       "reg_text": "**No Fishing** south of fishing boundary signs on the lake shore, May 15-June 20\nRainbow trout daily quota = 2, brook trout daily quota = 20\nNo towing, speed restriction (15 km/h), south half only",
       "completeness": "COMPLETE",
       "n_boundaries": 3,
+      "deferred": true,
       "locators": [
         {
           "src": "rule",
@@ -17675,6 +17890,7 @@
       "reg_text": "**No Fishing**",
       "completeness": "NO_SPLIT",
       "n_boundaries": 0,
+      "deferred": false,
       "locators": [
         {
           "src": "name",
@@ -17706,6 +17922,7 @@
       "reg_text": "See Lake Revelstoke",
       "completeness": "NO_SPLIT",
       "n_boundaries": 0,
+      "deferred": false,
       "locators": [
         {
           "src": "name",
@@ -17739,6 +17956,7 @@
       "reg_text": "See Lake Revelstoke's tributaries",
       "completeness": "NO_SPLIT",
       "n_boundaries": 0,
+      "deferred": false,
       "locators": [
         {
           "src": "name",
@@ -17770,6 +17988,7 @@
       "reg_text": "**No Fishing** downstream of barrier approximately 1 km upstream of the Hwy 23 bridge",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -17818,6 +18037,7 @@
       "reg_text": "Trout/char catch and release\nTrout/char daily quota = 1 (none under 30 cm) on all tributaries, June 15-Oct 31, see tables for exceptions\nBait ban[Includes Tributaries]\n**Class II water when open, including tributaries (except Joseph Creek)**",
       "completeness": "COMPLETE",
       "n_boundaries": 2,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -17880,6 +18100,7 @@
       "reg_text": "Sheep Creek to South Salmo River: catch and release rainbow and bull trout\nRemainder of mainstem: rainbow trout daily quota = 1 (none under 30 cm), June 15-Oct 31, and bull trout catch and release year-round\nBait ban",
       "completeness": "COMPLETE",
       "n_boundaries": 3,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -18006,6 +18227,7 @@
       "reg_text": "Regional quotas apply, EXCEPT bull trout catch and release; bait ban",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "except",
@@ -18055,6 +18277,7 @@
       "reg_text": "Trout/char catch and release; bait ban, June 15-Oct 31",
       "completeness": "COMPLETE",
       "n_boundaries": 2,
+      "deferred": false,
       "locators": [
         {
           "src": "water",
@@ -18133,6 +18356,7 @@
       "reg_text": "See Pend d'Oreille River's tributaries",
       "completeness": "NO_SPLIT",
       "n_boundaries": 0,
+      "deferred": false,
       "locators": [
         {
           "src": "name",
@@ -18164,6 +18388,7 @@
       "reg_text": "See Pend d'Oreille River",
       "completeness": "NO_SPLIT",
       "n_boundaries": 0,
+      "deferred": false,
       "locators": [
         {
           "src": "name",
@@ -18200,6 +18425,7 @@
       "reg_text": "**No Fishing** from a point on the creek closest to km 38 on the Skookumchuck Forest Service Road to Buhl Creek, Sept 1-Oct 31\n(mainstem only)\nTrout/char catch and release; bait ban\n**Class II water when/where open, including tributaries**",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -18269,6 +18495,7 @@
       "reg_text": "No bull trout under 60 cm",
       "completeness": "NO_SPLIT",
       "n_boundaries": 0,
+      "deferred": false,
       "locators": [
         {
           "src": "name",
@@ -18302,6 +18529,7 @@
       "reg_text": "Bull trout catch and release",
       "completeness": "NO_SPLIT",
       "n_boundaries": 0,
+      "deferred": false,
       "locators": [
         {
           "src": "name",
@@ -18335,6 +18563,7 @@
       "reg_text": "**No Fishing** July 15-Aug 31 from 12 pm to midnight (EXCEPT Koch Creek[Includes Tributaries] upstream of falls located approximately 700 m downstream of\nthe Little Slocan Forest Service Road Koch Creek bridge crossing and Little Slocan Lake's tributaries; see Lemon Creek)\nBait ban (where open), June 15-Oct 31\nTrout/char catch and release (EXCEPT Koch Creek[Includes Tributaries] upstream of falls and Little Slocan Lake's tributaries)",
       "completeness": "COMPLETE",
       "n_boundaries": 2,
+      "deferred": false,
       "locators": [
         {
           "src": "except",
@@ -18411,6 +18640,7 @@
       "reg_text": "**No Fishing** downstream of Hail Creek",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -18460,6 +18690,7 @@
       "reg_text": "**No Fishing** northwest of a line between fishing boundary signs on opposite shores approximately 1.5 km southeast the city of Trout Lake,\nFeb 1-May 31",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": true,
       "locators": [
         {
           "src": "rule",
@@ -18516,6 +18747,7 @@
       "reg_text": "Bull trout catch and release",
       "completeness": "NO_SPLIT",
       "n_boundaries": 0,
+      "deferred": false,
       "locators": [
         {
           "src": "name",
@@ -18548,6 +18780,7 @@
       "reg_text": "\"The drawdown area\", that water known as either Upper Arrow Lake or Columbia River (depending on the reservoir's level), located\nbetween Hwy 1 bridge in Revelstoke and the power line crossing at Akolkolex Narrows (approximately 1.5 km downstream of the\nAkolkolex River confluence): trout/char daily quota = 2 (no bull trout under 60 cm and only 1 bull trout over 60 cm); single barbless hook\nEXEMPT from the regional kokanee \"none from streams\" daily quota (the combined daily quota for kokanee in Lower Arrow Lake, Upper\nArrow Lake and the drawdown area is the regional daily quota on page 34)\nEXEMPT from the regional Nov 1-Mar 31 trout/char catch and release from streams\nEXEMPT from the regional Apr 1-June 14 stream closure",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": true,
       "locators": [
         {
           "src": "rule",
@@ -18589,6 +18822,7 @@
       "reg_text": "Bull trout catch and release",
       "completeness": "NO_SPLIT",
       "n_boundaries": 0,
+      "deferred": false,
       "locators": [
         {
           "src": "name",
@@ -18620,6 +18854,7 @@
       "reg_text": "See Pend d'Oreille River",
       "completeness": "NO_SPLIT",
       "n_boundaries": 0,
+      "deferred": false,
       "locators": [
         {
           "src": "name",
@@ -18653,6 +18888,7 @@
       "reg_text": "See Pend d'Oreille River's tributaries",
       "completeness": "NO_SPLIT",
       "n_boundaries": 0,
+      "deferred": false,
       "locators": [
         {
           "src": "name",
@@ -18686,6 +18922,7 @@
       "reg_text": "**No Fishing** upstream of Whatshan Lake",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -18729,6 +18966,7 @@
       "reg_text": "Upstream of and including North White River; trout/char catch and release\nBull trout catch and release on all parts, Sept 1-Oct 31\nTrout/char daily quota = 1 (none under 30 cm) downstream of North White River, June 15-Oct 31\nBait ban on all parts, June 15-Oct 31\n**Class II water when open, including tributaries**",
       "completeness": "COMPLETE",
       "n_boundaries": 4,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -18851,6 +19089,7 @@
       "reg_text": "Single hook; no towing",
       "completeness": "NO_SPLIT",
       "n_boundaries": 0,
+      "deferred": false,
       "locators": [
         {
           "src": "name",
@@ -18884,6 +19123,7 @@
       "reg_text": "**No Fishing** EXCEPT the outlet stream downstream of the falls 2.4 km downstream of Whiteswan Lake, **No Fishing** Aug 1-Mar 31, rainbow\ntrout daily quota = 5 (catch and release all other species) when open",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "except",
@@ -18939,6 +19179,7 @@
       "reg_text": "**No Ice Fishing;** rainbow trout daily quota = 1 (none under 50 cm); brook trout daily quota = 20\nBait ban, single barbless hook\nNo towing",
       "completeness": "NO_SPLIT",
       "n_boundaries": 0,
+      "deferred": false,
       "locators": [
         {
           "src": "name",
@@ -18972,6 +19213,7 @@
       "reg_text": "**No Fishing**",
       "completeness": "NO_SPLIT",
       "n_boundaries": 0,
+      "deferred": false,
       "locators": [
         {
           "src": "name",
@@ -19005,6 +19247,7 @@
       "reg_text": "Trout/char catch and release\nBait ban\n**Class II water when open, including tributaries**",
       "completeness": "COMPLETE",
       "n_boundaries": 2,
+      "deferred": false,
       "locators": [
         {
           "src": "water",
@@ -19099,6 +19342,7 @@
       "reg_text": "**No Fishing** Sept 1-Oct 31\nTrout/char catch and release; bait ban\n**Class II water when open, including tributaries**",
       "completeness": "COMPLETE",
       "n_boundaries": 2,
+      "deferred": false,
       "locators": [
         {
           "src": "water",
@@ -19177,6 +19421,7 @@
       "reg_text": "**No Fishing** downstream of Burkitt Creek",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -19226,6 +19471,7 @@
       "reg_text": "**No Fishing** within Hamber Provincial Park, Sept 1-Nov 30",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -19275,6 +19521,7 @@
       "reg_text": "**No Fishing** downstream of falls at small hydro structure approximately 800 m upstream of Hwy 31 bridge",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -19335,6 +19582,7 @@
       "reg_text": "**No Fishing** upstream of Tweedsmuir Provincial Park plus Tenas Lake, Apr 1-June 30\n**No Fishing** from Tenas Lake to fishing boundary signs near Atnarko Park campsite\nTrout/char daily quota = 1 (none under 25 cm and all cutthroat trout catch and release) EXCEPT: on Bella Coola R. MAINSTEM ONLY, trout/\nchar daily quota = 2, of which only one may be a trout (cutthroat or rainbow) and none may be under 25 cm, no cutthroat may be over 33\ncm, and no rainbow may be over 50 cm), Apr 1-May 31 ONLY, EXCEPT: char catch and release (on TRIBUTARIES ONLY), Sept 1-May 31\nBait ban downstream of eastern boundary of Tweedsmuir Provincial Park, Sept 1- May 15\nNo angling from powered boats on mainstems of Atnarko River and Bella Coola River\nNo powered boats on Atnarko River, from Goat Creek to the confluence with Talchako River\n**No Fishing** for steelhead\n**Class II water downstream of Young Creek, Mar 1-May 31. NOTE: Classified Waters Licence or Steelhead Stamp not required until\nreopened to steelhead fishing**",
       "completeness": "COMPLETE",
       "n_boundaries": 7,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -19562,6 +19810,7 @@
       "reg_text": "**No Fishing** upstream of Pinnacles Provincial Park, Apr 1-June 30 and downstream of Park, May 1-May 31\nYouth/Disabled Accompanied Water year round (see page 4) downstream of Pinnacles Provincial Park",
       "completeness": "COMPLETE",
       "n_boundaries": 3,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -19662,6 +19911,7 @@
       "reg_text": "See Atnarko/Bella Coola Rivers[Includes Tributaries]",
       "completeness": "NO_SPLIT",
       "n_boundaries": 0,
+      "deferred": false,
       "locators": [
         {
           "src": "name",
@@ -19702,6 +19952,7 @@
       "reg_text": "Trout daily quota = 2; bait ban, single barbless hook",
       "completeness": "NO_SPLIT",
       "n_boundaries": 0,
+      "deferred": false,
       "locators": [
         {
           "src": "name",
@@ -19735,6 +19986,7 @@
       "reg_text": "Lake trout daily quota = 1, none over 50 cm; lake trout catch and release Oct 1-Nov 30",
       "completeness": "NO_SPLIT",
       "n_boundaries": 0,
+      "deferred": false,
       "locators": [
         {
           "src": "name",
@@ -19768,6 +20020,7 @@
       "reg_text": "**No Fishing** downstream of falls situated approximately 2 km from Quesnel Lake, Aug 15-Oct 31",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -19816,6 +20069,7 @@
       "reg_text": "Trout/char daily and possession quotas = 2",
       "completeness": "NO_SPLIT",
       "n_boundaries": 0,
+      "deferred": false,
       "locators": [
         {
           "src": "name",
@@ -19850,6 +20104,7 @@
       "reg_text": "Trout/char daily and possession quotas = 1 (none under 30 cm or over 50 cm)\nBait ban, single barbless hook; no powered boats",
       "completeness": "NO_SPLIT",
       "n_boundaries": 0,
+      "deferred": false,
       "locators": [
         {
           "src": "name",
@@ -19884,6 +20139,7 @@
       "reg_text": "Bait ban; **No Fishing** for steelhead\n**Class II water Mar 1-May 31. NOTE: Classified Waters Licence or Steelhead Stamp not required until reopened to steelhead fishing**\nDownstream of Sitkatapa Creek: see Atnarko/Bella Coola Rivers[Includes Tributaries]",
       "completeness": "COMPLETE",
       "n_boundaries": 3,
+      "deferred": false,
       "locators": [
         {
           "src": "water",
@@ -20001,6 +20257,7 @@
       "reg_text": "**No Fishing** within the waters of the small bay at the mouth of Eagle Creek northerly of a line drawn between two boundary signs located\non opposite shores of the bay, Sept 1-Sept 30",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": true,
       "locators": [
         {
           "src": "rule",
@@ -20060,6 +20317,7 @@
       "reg_text": "**No Fishing** upstream of Chilko River, Apr 1-June 30\n**No Fishing** downstream of Chilko River, Oct 1-June 10\nNo trout/char under 30 cm downstream of Chilko River\nNo hooks greater than 15 mm from point to shank, Oct 1-May 31; bait ban\nNo angling from powered boats\n**Downstream of Chilko River**[Includes Tributaries]**: Class II water Oct 1-May 31 and Steelhead Stamp mandatory Oct 1-May 31** (if opened for fall or spring\nfishing; see Notice on page 42)",
       "completeness": "COMPLETE",
       "n_boundaries": 4,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -20254,6 +20512,7 @@
       "reg_text": "Trout/char daily quota = 2 (no rainbow trout over 70 cm; only 1 bull trout and it may not be under 60 cm)\nBait ban, single barbless hook\nNo powered boats on Big Lagoon (west side of lake)",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": true,
       "locators": [
         {
           "src": "rule",
@@ -20306,6 +20565,7 @@
       "reg_text": "**No Fishing** Aug 1-June 30\nDolly Varden (bull trout) catch and release",
       "completeness": "NO_SPLIT",
       "n_boundaries": 0,
+      "deferred": false,
       "locators": [
         {
           "src": "name",
@@ -20339,6 +20599,7 @@
       "reg_text": "**No Fishing** Nov 1-June 10\nTrout/char catch and release; bait ban\nFly fishing only upstream of Brittany Creek\nNo angling from powered boats upstream of bridge at Henry's Crossing, Sept 11-Sept 30; speed restriction (5 km/h) on part\n**Class II water upstream of Brittany Creek**[Includes Tributaries]**, June 11-Oct 31 (Steelhead Stamp not required)**",
       "completeness": "COMPLETE",
       "n_boundaries": 3,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -20445,6 +20706,7 @@
       "reg_text": "Open all year downstream of Brunson Lake",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -20487,6 +20749,7 @@
       "reg_text": "**No Fishing** entire river, June 1-Aug 31; **No Fishing** between fishing boundary signs at Ten Mile Pool\n**Class II water**[Includes Tributaries]** Apr 1-May 31 and Steelhead Stamp mandatory Apr 1-May 31**",
       "completeness": "INCOMPLETE",
       "n_boundaries": 2,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -20549,6 +20812,7 @@
       "reg_text": "**No Fishing** upstream of Iltasyuko River[Includes Tributaries], including upstream of Anahim Lake[Includes Tributaries], Apr 1-June 14\n**No Fishing** from Iltasyuko River to Crag Creek[Includes Tributaries]\n**No Fishing** from Crag Creek to fishing boundary signs approximately 500 m upstream of canyon[Includes Tributaries], Oct 1-May 31\n**No Fishing** from fishing boundary signs approximately 500 m upstream of canyon to signs 100 m downstream of canyon\n**No Fishing** from fishing boundary signs approximately 100 m downstream of canyon to tidal boundary, Oct 1 - May 31\nTrout/char daily quota = 1 (none under 35 cm)\nBait ban all parts[Includes Tributaries]\nFly fishing only from** (a)** Anahim Lake to Iltasyuko River, June 15- Mar 31, and** (b)** Crag Creek to fishing boundary signs approximately 500 m\nupstream of canyon, July 15-Sept 30\nNo powered boats between signs 0.5 km and 3.5 km upstream of canyon, Aug 1-Aug 31\n**From Crag Creek to signs 500 m upstream of the canyon**[Includes Tributaries]**: Class I water June 1-Sept 30 and Steelhead Stamp mandatory June 1-Sept 30; see map below (Non-residents see notice on **page 42**)\nFrom signs 100 m downstream of canyon to tidal boundary**[Includes Tributaries]**: Class I water June 1-Sept 30 and Steelhead Stamp mandatory June 1-Sept 30: see map below\nFrom Anahim Lake to Iltasyuko River**[Includes Tributaries]**: Class II water June 16-Oct 31 (see map below); Steelhead Stamp not required**\nNOTE: \"canyon\" means lower canyon 3-5 km from river's mouth",
       "completeness": "COMPLETE",
       "n_boundaries": 10,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -21066,6 +21330,7 @@
       "reg_text": "**No Fishing** southeast of a line between fishing boundary signs on opposite shores of the bay at the mouth of Hallis Creek, Apr 1-May 31\nTrout daily quota = 1",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": true,
       "locators": [
         {
           "src": "rule",
@@ -21110,6 +21375,7 @@
       "reg_text": "Trout daily quota = 2; bait ban, single barbless hook",
       "completeness": "NO_SPLIT",
       "n_boundaries": 0,
+      "deferred": false,
       "locators": [
         {
           "src": "name",
@@ -21144,6 +21410,7 @@
       "reg_text": "**No Fishing **for trout in the Fraser River mainstem downstream of the confluence with the Chilcoltin River from Oct 1-Oct 31\nMainstem open all year; bait ban Sept 15-July 15\n**No Fishing** for sturgeon Sept 15-July 15\n**No Fishing** for sturgeon in the Fraser River Watershed upstream of Williams Lake River (sturgeon catch and release)\n**No Fishing** for steelhead from the confluence with the Chilcotin River downstream to the Region 5 boundary Jan 1-Dec 31",
       "completeness": "COMPLETE",
       "n_boundaries": 3,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -21253,6 +21520,7 @@
       "reg_text": "**No Ice Fishing;** trout catch and release; bait ban, single barbless hook",
       "completeness": "NO_SPLIT",
       "n_boundaries": 0,
+      "deferred": false,
       "locators": [
         {
           "src": "name",
@@ -21286,6 +21554,7 @@
       "reg_text": "Trout daily quota = 2\nNo powered boats",
       "completeness": "NO_SPLIT",
       "n_boundaries": 0,
+      "deferred": false,
       "locators": [
         {
           "src": "name",
@@ -21322,6 +21591,7 @@
       "reg_text": "**No Fishing **northeast of line between boundary signs on opposite shores of the bay at the mouth of Watch Creek, Mar 1-May 31",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": true,
       "locators": [
         {
           "src": "rule",
@@ -21366,6 +21636,7 @@
       "reg_text": "**No Ice Fishing**\nTrout/char catch and release; bait ban, single barbless hook",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "water",
@@ -21415,6 +21686,7 @@
       "reg_text": "Trout daily quota = 2\nBait ban, single barbless hook",
       "completeness": "NO_SPLIT",
       "n_boundaries": 0,
+      "deferred": false,
       "locators": [
         {
           "src": "name",
@@ -21450,6 +21722,7 @@
       "reg_text": "**No Fishing** Nov 1-May 31\nTrout/char catch and release; artificial fly only, bait ban\nNo angling from powered boats from Woodjam Bridge to Quesnel Lake\n**Class II water**[Includes Tributaries]** June 1-Oct 31; Steelhead Stamp not required**",
       "completeness": "COMPLETE",
       "n_boundaries": 3,
+      "deferred": false,
       "locators": [
         {
           "src": "water",
@@ -21616,6 +21889,7 @@
       "reg_text": "**No Fishing** Apr 1-June 30\nBait ban\nDownstream of Hunlen Falls: see Atnarko/Bella Coola Rivers[Includes Tributaries]",
       "completeness": "COMPLETE",
       "n_boundaries": 3,
+      "deferred": false,
       "locators": [
         {
           "src": "water",
@@ -21713,6 +21987,7 @@
       "reg_text": "Trout daily quota = 2\nBait ban, single barbless hook",
       "completeness": "NO_SPLIT",
       "n_boundaries": 0,
+      "deferred": false,
       "locators": [
         {
           "src": "name",
@@ -21747,6 +22022,7 @@
       "reg_text": "Trout/char catch and release downstream of McKinley Lake; bait ban",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -21787,6 +22063,7 @@
       "reg_text": "**No Fishing** within 100 m radius of the weir at the lake's outlet",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -21834,6 +22111,7 @@
       "reg_text": "**No Fishing** within 100 m radius of the weir at the outlet of Michell Lake\n**No Fishing** from Michell Lake to Cameron Creek\n**No Fishing** downstream of Cameron Creek (including Cameron Cr.), Oct 1-June 30\nTrout/char catch and release, bait ban, artificial fly only downstream of Cameron Creek (including Cameron Creek)",
       "completeness": "COMPLETE",
       "n_boundaries": 6,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -22089,6 +22367,7 @@
       "reg_text": "Trout/char catch and release and bait ban downstream of falls 8 km from Horsefly River",
       "completeness": "COMPLETE",
       "n_boundaries": 2,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -22157,6 +22436,7 @@
       "reg_text": "**No Fishing** southwest of a line between fishing boundary signs on opposite shores of Horsefly Bay, Mar 1-May 31\n**No Fishing** in North Arm, north of a line between Watt and Service Creeks, Mar 1-May 31\nLake trout daily quota = 5 (any size); rainbow trout daily quota = 2 (none over 50 cm); bull trout catch and release\nBait ban, barbless hook",
       "completeness": "COMPLETE",
       "n_boundaries": 2,
+      "deferred": true,
       "locators": [
         {
           "src": "rule",
@@ -22231,6 +22511,7 @@
       "reg_text": "**No Fishing** from 50 m upstream of Likely Bridge to 50 m downstream of Likely Bridge\n**No Fishing** upstream of Cariboo River, Mar 1-June 15\nTrout/char catch and release from the boundary signs approximately 1.8 km east of the Likely Bridge downstream to Morehead Creek\nTrout/char daily quota = 1 (none under 40 cm) downstream of Morehead Creek\nBait ban",
       "completeness": "COMPLETE",
       "n_boundaries": 4,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -22435,6 +22716,7 @@
       "reg_text": "**No Fishing**",
       "completeness": "NO_SPLIT",
       "n_boundaries": 0,
+      "deferred": false,
       "locators": [
         {
           "src": "name",
@@ -22466,6 +22748,7 @@
       "reg_text": "**No Fishing** Nov 1-June 14\nTrout daily quota = 1 (none under 30 cm)\nArtificial fly only, bait ban, barbless hook",
       "completeness": "NO_SPLIT",
       "n_boundaries": 0,
+      "deferred": false,
       "locators": [
         {
           "src": "name",
@@ -22499,6 +22782,7 @@
       "reg_text": "**No Fishing** in mainstem (only) Nov 1-June 14; tributaries subject to spring closure\nTrout daily quota = 1 (none under 30 cm)\nArtificial fly only, bait ban\nElectric motor only - max 7.5 kW\n**Mainstem only: Class II water June 15-Oct 31; Steelhead Stamp not required**",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -22542,6 +22826,7 @@
       "reg_text": "**No Ice Fishing;** trout/char catch and release\nBait ban, single barbless hook",
       "completeness": "NO_SPLIT",
       "n_boundaries": 0,
+      "deferred": false,
       "locators": [
         {
           "src": "name",
@@ -22578,6 +22863,7 @@
       "reg_text": "**No Fishing** for steelhead\nBait ban\nDownstream of Hwy 20: see Atnarko/Bella Coola Rivers[Includes Tributaries]",
       "completeness": "COMPLETE",
       "n_boundaries": 2,
+      "deferred": false,
       "locators": [
         {
           "src": "water",
@@ -22652,6 +22938,7 @@
       "reg_text": "**No Fishing** east of a line from Gullwing Creek to the south shore of Babine Lake\n**No Fishing** within a 400 m radius of the mouth of Pinkut Creek, Aug 15-Sept 15\nThat section of flowing water between Babine and Nilkitkwa lakes, known as \"Rainbow Alley\", is designated Babine River (see map 2 page\n51); see Babine River regulations below (paragraphs 3 and 4)",
       "completeness": "COMPLETE",
       "n_boundaries": 2,
+      "deferred": true,
       "locators": [
         {
           "src": "rule",
@@ -22717,6 +23004,7 @@
       "reg_text": "**Angling prohibited for non-guided non-resident aliens on Saturdays and Sundays from the juvenile fish counting weir located at\nthe outlet of Nilkitkwa Lake to the Nilkitkwa River confluence, Sept 1-Oct 31 (See map **page 56**)\nNo Fishing** between fishing boundary signs approximately 100 m upstream of and 80 m downstream of the adult fish counting fence,\nlocated approximately 1.8 km downstream of Nilkitkwa Lake\nOpen all year in the stream channel known as \"Rainbow Alley\" located between Babine and Nilkitkwa lakes (see map 2 page 51)\nFly fishing only (a) from the Fort Babine Bridge downstream to signs 100 m upstream of the adult fish counting fence (including Nilkitkwa\nLake), during open times and (b) from signs about 80 m downstream of the adult fish counting fence to Nichyeskwa Creek, June 16-Sept 30; includes \"Rainbow Alley\"\nBait ban\nNo angling from boats from the adult fish counting fence (described above) downstream to the Babine River's confluence with the Skeena\nRiver\n**Class 1 water Sept 1-Oct 31; Steelhead Stamp mandatory Sept 1-Oct 31 from the juvenile fish counting weir located at the outlet of\nNilkitkwa Lake downstream to the Babine River's confluence with the Skeena River (See map **page 56**)**",
       "completeness": "COMPLETE",
       "n_boundaries": 4,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -22992,6 +23280,7 @@
       "reg_text": "**No Fishing** within 100 m of outlet, May 15-July 31\nTrout/char daily and possession quotas = 2 (none over 50 cm); bait ban, single hook",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": true,
       "locators": [
         {
           "src": "rule",
@@ -23039,6 +23328,7 @@
       "reg_text": "**Angling prohibited for non-guided non-resident aliens on Saturdays and Sundays, Sept 1-Oct 31\nSee Suskwa River and Telkwa River\nNo Fishing** upstream of Morice/Bulkley River confluence\nBait ban\nNo angling from boats from Morice River to CNR Bridge at Barrett, Aug 15-Dec 31, and in Moricetown Canyon or within 100 m downstream,\nall year\n**Class II water Sept 1-Oct 31 and Steelhead Stamp mandatory Sept 1-Oct 31**",
       "completeness": "COMPLETE",
       "n_boundaries": 3,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -23192,6 +23482,7 @@
       "reg_text": "Trout catch and release; bait ban",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "water",
@@ -23249,6 +23540,7 @@
       "reg_text": "**No Fishing (please contact Parks Canada for details, see **page 9** in the Provincial Regulations)**",
       "completeness": "NO_SPLIT",
       "n_boundaries": 0,
+      "deferred": false,
       "locators": [
         {
           "src": "name",
@@ -23281,6 +23573,7 @@
       "reg_text": "**No Fishing** between fishing boundary signs upstream of and downstream of Cranberry River Canyon\nNote: the section of river from Cranberry-Kiteen junction to Nass River is the Cranberry River\nBait ban",
       "completeness": "INCOMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -23331,6 +23624,7 @@
       "reg_text": "For the area at the outlet of François Lake described on map 1, (see below): **No Fishing** Nov 15-May 31; char daily quota = 2, no more than\n1 over 50 cm; rainbow trout catch and release; bait ban; single barbless hook; no set lining",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": true,
       "locators": [
         {
           "src": "entry",
@@ -23369,6 +23663,7 @@
       "reg_text": "**No Fishing** Aug 1-Sept 30; bait ban",
       "completeness": "NO_SPLIT",
       "n_boundaries": 0,
+      "deferred": false,
       "locators": [
         {
           "src": "name",
@@ -23404,6 +23699,7 @@
       "reg_text": "**No Fishing** upstream of fishing boundary signs downstream of lower culvert near fish cannery in Prince Rupert\nIncludes \"Oldfield\" Creek",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -23450,6 +23746,7 @@
       "reg_text": "**No Fishing** northwest of a line between fishing boundary signs on opposite shores of the outlet bay, Apr 1-June 30",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": true,
       "locators": [
         {
           "src": "rule",
@@ -23494,6 +23791,7 @@
       "reg_text": "**No Fishing** downstream of Forest Kerr Canyon[Includes Tributaries], Apr 1-Apr 30; no powered boats between Natadesleen Lake and Kinaskan Lake",
       "completeness": "COMPLETE",
       "n_boundaries": 2,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -23573,6 +23871,7 @@
       "reg_text": "**No Fishing** on the west half of river between fishing boundary signs near Kitimat Hatchery outfall\n**No Fishing** in tributaries and upstream of Hwy 37 bridge, Mar 16-May 31\nBait ban\nHatchery rainbow trout (adipose clipped, <50 cm) daily quota = 5, no minimum size, all year\nHatchery steelhead (adipose clipped, >50 cm) daily quota = 2; province-wide hatchery steelhead annual quota = 10. When you have\ncaught and retained your daily steelhead quota from the Kitimat, you must stop fishing the Kitimat for the remainder of that day\nNo powered boats",
       "completeness": "COMPLETE",
       "n_boundaries": 2,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -23661,6 +23960,7 @@
       "reg_text": "**Angling prohibited for non-guided non-resident aliens on Saturdays from the outlet of Kitsumkalum Lake to Glacier Creek confluence\nall year (See map page 56)\nAngling prohibited for non-guided non-resident aliens on Sundays for the entire river all year\nClass II water all year**[Includes Tributaries]** ; Steelhead Stamp mandatory Aug 7 - May 31**\nBait ban",
       "completeness": "COMPLETE",
       "n_boundaries": 2,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -23737,6 +24037,7 @@
       "reg_text": "**No Fishing** within 100 m of outlet, May 15-July 31\nTrout/char daily and possession quotas = 2 (none over 50 cm); bait ban, single hook",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": true,
       "locators": [
         {
           "src": "rule",
@@ -23781,6 +24082,7 @@
       "reg_text": "**No Fishing** upstream of Nass Road Bridge, Aug 1-Dec 31; bait ban",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -23833,6 +24135,7 @@
       "reg_text": "**No Fishing** upstream from the lower bridge abutments, July 1-Aug 20\n**Class II water Apr 1-Sept 30; Steelhead Stamp mandatory Apr 1-May 31**",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -23885,6 +24188,7 @@
       "reg_text": "**Angling prohibited for non-guided non-resident aliens from the outlet of Lakelse Lake to the power line crossing, located 3.5 km\nupstream of the Lakelse River mouth, all year (See map **page 55**)**\nFly fishing only between Lakelse Lake and CNR Bridge, Mar 1-May 31\nBait ban, no powered boats\nNote: The mouth of the river is designated by signs 1.7 km downstream of Lakelse River logging road bridge\n**Class I water all year; Steelhead Stamp mandatory Sept 1-May 31**",
       "completeness": "COMPLETE",
       "n_boundaries": 2,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -23987,6 +24291,7 @@
       "reg_text": "Bait ban\n**No fishing **from fishing boundary signs at outlet of Meziadin Lake to Nass River, including tributaries, Jan 1-June 15",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -24052,6 +24357,7 @@
       "reg_text": "**Angling prohibited for non-guided non-resident aliens on Saturdays and Sundays, Sept 1-Oct 31\nNo Fishing** from fishing boundary signs near outlet of Morice Lake (UTM: 602539.02E, 5997165.96N) to the fishing boundary signs\napproximately 2 km downstream (the \"Dunes\", UTM: 603741.00E, 5998628.00N)\n**No Fishing** Jan 1-Sept 30 from fishing boundary signs approximately 2 km downstream (the \"Dunes\", UTM: 603741.00E, 5998628.00N) of\nMorice Lake to Gosnell Creek\n**No Fishing** from Gosnell Creek to Lamprey Creek, Jan 1-Aug 31; Fly fishing only from Gosnell Creek to Lamprey Creek, Sept 1-Sept 30\nBait ban\nNo angling from boats, Aug 15-Dec 31 (all parts)\n**Class II water Sept 1-Oct 31; Steelhead Stamp mandatory Sept 1-Oct 31**",
       "completeness": "COMPLETE",
       "n_boundaries": 4,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -24281,6 +24587,7 @@
       "reg_text": "Bait ban\n**No Fishing** from white triangular fishing boundary signs located downstream of the Meziadin River confluence, and upstream to the Hwy\n37 bridge, Aug 8-Sept 15",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -24349,6 +24656,7 @@
       "reg_text": "Fly fishing only, bait ban (EXCEPT dead fin fish may be used as bait when set lining; see page 8 in the Provincial Regulations)\nThat section of flowing water between Babine and Nilkitkwa Lakes known as \"Rainbow Alley\" is open for fishing all year (see also Babine\nRiver) (See map 2 page 51)",
       "completeness": "COMPLETE",
       "n_boundaries": 2,
+      "deferred": false,
       "locators": [
         {
           "src": "except",
@@ -24407,6 +24715,7 @@
       "reg_text": "**No Fishing** downstream of the fish fence, Aug 15-Sept 15; bait ban",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -24456,6 +24765,7 @@
       "reg_text": "**No Fishing** Aug 1-Oct 31\nTrout/char daily quota = 2 (none under 30 cm); bait ban, single barbless hook",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": true,
       "locators": [
         {
           "src": "entry",
@@ -24505,6 +24815,7 @@
       "reg_text": "Arctic grayling daily quota = 3 (only 1 over 35 cm); whitefish daily quota = 5. **B.C. and Yukon angling licences are valid on all parts of the\nRancheria River including tributary streams but not lakes, but only one daily quota may be retained regardless of which side of the\nborder the fish were angled, and anglers must follow tackle restrictions and other regulations for the jurisdiction where angling**",
       "completeness": "NO_SPLIT",
       "n_boundaries": 0,
+      "deferred": false,
       "locators": [
         {
           "src": "name",
@@ -24536,6 +24847,7 @@
       "reg_text": "Bait ban; open all year, no minimum size for trout",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "entry",
@@ -24583,6 +24895,7 @@
       "reg_text": "**No Fishing** within 50 m of the outlet, May 1-June 30",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": true,
       "locators": [
         {
           "src": "rule",
@@ -24627,6 +24940,7 @@
       "reg_text": "Waters within 3 white fishing boundary signs located at the confluence of the Skeena and Kispiox rivers: no angling from boats",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -24696,6 +25010,7 @@
       "reg_text": "**There are two separate Class II waters on the Skeena River** (non-residents and non-resident aliens require separate licences describing\nwhich section they are fishing): **(a)** from Exchamsiks River to 1.5 km upstream of Kitsumkalum River (known as \"Skeena River 2\"), July 1-Sept 30; and **(b)** 1.5 km upstream of Zymoetz River (known as \"Skeena River Section 4\"), July 1-Dec 31; **Steelhead Stamp** not mandatory for\nSkeena River 2 unless fishing for steelhead. **Steelhead Stamp** is mandatory in Skeena River Section 4 during the Classified Waters period\nfrom July 1-Dec 31\n**Angling prohibited for non-guided non-resident aliens** in Skeena River Section 4 on Saturdays and Sundays in two zones: **(a)** Shegunia\nRiver confluence to Sedan Creek confluence July 1-Dec 31 (See map page 54), and **(b)** Chimdemash Creek confluence to 1.5 km upstream of\nZymoetz River confluence, July 1 - Dec 31, (See map page 55)",
       "completeness": "COMPLETE",
       "n_boundaries": 5,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -24941,6 +25256,7 @@
       "reg_text": "**No Fishing** Nov 15-May 14; **Class II water**[Includes Tributaries] **when open (Steelhead Stamp not required)**\nRainbow trout catch and release\nFly fishing only between fishing boundary signs approximately 250 m and 4 km downstream of the bridge near the François Lake outlet\nNo powered boats from François Lake to the falls\nSee restrictions for François Lake's outlet area",
       "completeness": "COMPLETE",
       "n_boundaries": 2,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -25085,6 +25401,7 @@
       "reg_text": "**No Fishing** upstream of BCR Bridge at Bear River mouth\nBait ban\n**Class I water Sept 1-Oct 31; Steelhead Stamp mandatory Sept 1-Oct 31**",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -25133,6 +25450,7 @@
       "reg_text": "**No Fishing** all year from boundary signs located approximately 400 m upstream from the Tahltan RIver Bridge on the Telegraph Creek\nRoad to the landslide located approximately 750 m upstream from the Tahltan River Bridge.\n**No Fishing** Dec 1-June 30",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -25212,6 +25530,7 @@
       "reg_text": "**No Fishing** northwest of a line between fishing boundary signs on opposite shores immediately north of Takysie Lake Settlement, Mar 1-May 31",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": true,
       "locators": [
         {
           "src": "rule",
@@ -25258,6 +25577,7 @@
       "reg_text": "**No Fishing** from Dec 1-June 30 and Aug 20-Sept 15",
       "completeness": "NO_SPLIT",
       "n_boundaries": 0,
+      "deferred": false,
       "locators": [
         {
           "src": "name",
@@ -25291,6 +25611,7 @@
       "reg_text": "Lake trout catch and release EXCEPT during months of February and July (when regional quotas apply)\nSingle barbless hook",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "except",
@@ -25331,6 +25652,7 @@
       "reg_text": "Trout daily quota = 1; artificial fly only, bait ban\nFor regulations on the mainstem of the West Road River, see Region 5",
       "completeness": "NO_SPLIT",
       "n_boundaries": 0,
+      "deferred": false,
       "locators": [
         {
           "src": "name",
@@ -25366,6 +25688,7 @@
       "reg_text": "No Fishing from McDonell Lake downstream approximately 3 km to fishing boundary signs\nNo Fishing between fishing boundary signs in Zymoetz Canyon\nNo Fishing upstream of fishing boundary sign at the transmission line crossing (located downstream of Zymoetz Canyon), Jan 1-June 15\nBait ban\nUpstream of Limonite Creek (Zymoetz River A): Class I water Jul 24 - Dec 31; Steelhead Stamp mandatory Jul 24 - Dec 31;\n**Angling prohibited for non-guided non-resident aliens on Fridays, Saturdays, and Sundays Jul 24 - Dec 31**\nDownstream of Limonite Creek (Zymoetz River B): Class II water Jul 24 - May 31; Steelhead Stamp mandatory Jul 24 - May 31;\n**Angling prohibited for non-guided non-resident aliens on Fridays, Saturdays, and Sundays Jul 24 - May 31**",
       "completeness": "COMPLETE",
       "n_boundaries": 7,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -25610,6 +25933,7 @@
       "reg_text": "No Fishing within 500 m radius of the Upper Anzac bridge Aug 15-Mar 31, located at approximately UTM 10 552426, 6093011 (see map on\npage 62)\nFly fishing only Jul 1-Mar 31 upstream of the North Anzac River confluence (see map on page 62)",
       "completeness": "COMPLETE",
       "n_boundaries": 2,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -25689,6 +26013,7 @@
       "reg_text": "**No Fishing** 500 m upstream and downstream of the Thorn Creek confluence or the Kemess Creek confluence",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -25825,6 +26150,7 @@
       "reg_text": "No powered boats",
       "completeness": "NO_SPLIT",
       "n_boundaries": 0,
+      "deferred": false,
       "locators": [
         {
           "src": "name",
@@ -25858,6 +26184,7 @@
       "reg_text": "Exempt from spring closure; also EXEMPT from bait ban downstream of fishing boundary signs near its mouth",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -25913,6 +26240,7 @@
       "reg_text": "**No Fishing** downstream (north) of the 200 Road Bridge, Apr 1-June 30 (see map on page 62)\nRainbow trout catch and release and exempt from spring closure upstream (south) of the 200 Road Bridge, Apr 1-June 30 (see map on\npage 62)",
       "completeness": "COMPLETE",
       "n_boundaries": 3,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -26011,6 +26339,7 @@
       "reg_text": "**No Fishing** within a 500 m radius of the Davis Forest Service Road Bridge. See Davis River",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": true,
       "locators": [
         {
           "src": "rule",
@@ -26052,6 +26381,7 @@
       "reg_text": "Exempt from spring closure; also EXEMPT from bait ban upstream of Cottonwood River",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -26101,6 +26431,7 @@
       "reg_text": "Exempt from spring closure downstream of fishing boundary signs near its mouth",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -26158,6 +26489,7 @@
       "reg_text": "**No Fishing** upstream of the Macleod Creek confluence, including Macleod Creek[Includes Tributaries], Sept 1-June 30",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -26213,6 +26545,7 @@
       "reg_text": "**No Fishing** Nov 1-Apr 30\nRainbow trout daily quota = 1 (none over 40 cm); bait ban, single barbless hook; electric motor only - max 7.5 kW",
       "completeness": "NO_SPLIT",
       "n_boundaries": 0,
+      "deferred": false,
       "locators": [
         {
           "src": "name",
@@ -26246,6 +26579,7 @@
       "reg_text": "**No Fishing** from Attichka Creek to a point 500 m upstream",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -26320,6 +26654,7 @@
       "reg_text": "Artificial fly only from Carp Lake to War Falls (excluding War Lake)",
       "completeness": "COMPLETE",
       "n_boundaries": 2,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -26393,6 +26728,7 @@
       "reg_text": "**No Fishing** west of a line between two fishing boundary signs approximately 500 m downstream (east) of the Nation River Bridge on the\nFinlay Forest Service Road, Apr 1-June 30\nBull trout catch and release west of a line between two fishing boundary signs approximately 500 m downstream of the Nation River\nBridge on the Finlay Forest Service Road (when open)",
       "completeness": "MISSING_SPLITS",
       "n_boundaries": 2,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -26448,6 +26784,7 @@
       "reg_text": "Exempt from spring closure.\nRainbow trout catch and release from Cheslatta River to a boundary sign 5 km downstream and no rainbow trout under 35 cm from said\nsign downstream to Hwy 27 bridge\nExempt from bait ban downstream of Foothills Boulevard Bridge in Prince George",
       "completeness": "COMPLETE",
       "n_boundaries": 3,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -26590,6 +26927,7 @@
       "reg_text": "**No Fishing** west of a line between fishing boundary signs on lakeshore near mouth of Corkscrew Creek, Apr 1-May 31",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": true,
       "locators": [
         {
           "src": "rule",
@@ -26634,6 +26972,7 @@
       "reg_text": "**No Fishing** from falls to Quarry Bridge",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -26697,6 +27036,7 @@
       "reg_text": "No powered boats",
       "completeness": "NO_SPLIT",
       "n_boundaries": 0,
+      "deferred": false,
       "locators": [
         {
           "src": "name",
@@ -26732,6 +27072,7 @@
       "reg_text": "**No Fishing** Nov 15-May 14; **Class II water**[Includes Tributaries]** when open (Steelhead Stamp not required)**\nRainbow trout catch and release\nFly fishing only between fishing boundary signs approximately 250 m and 4 km downstream of the bridge near the François Lake outlet\nNo powered boats from François Lake to the falls\nSee Region 6 tables for restrictions applying to François Lake's outlet area",
       "completeness": "COMPLETE",
       "n_boundaries": 2,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -26892,6 +27233,7 @@
       "reg_text": "**No Fishing** Apr 1-Aug 31\n**No Fishing** from upstream side of weir to CNR Bridge in Valemount",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -26953,6 +27295,7 @@
       "reg_text": "**No Fishing** from Attichika Creek to a point 500 m upstream",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -27018,6 +27361,7 @@
       "reg_text": "Exempt from spring closure downstream of signs near its mouth",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -27075,6 +27419,7 @@
       "reg_text": "No rainbow trout under 30 cm\nBait ban 500 m upstream and downstream of Causeway Road July 1-Oct 30\nSee Nation Arm\nREMINDER: Arctic grayling catch and release from tributaries\n**See mercury warning on **page 75 and definition of \"stream mouth\" on page 80 in the Provincial Regulations",
       "completeness": "COMPLETE",
       "n_boundaries": 3,
+      "deferred": true,
       "locators": [
         {
           "src": "rule",
@@ -27179,6 +27524,7 @@
       "reg_text": "**No Fishing** upstream of the Horseshoe Road Bridge, Aug 15-Oct 15",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -27228,6 +27574,7 @@
       "reg_text": "**No Fishing** from W.A.C. Bennett Dam to 100 m south of Gething Creek and between the anti-vortex dyke and Peace Canyon Dam[Includes Tributaries]\nNo trout/char under 25 cm (bull trout catch and release); single barbless hook",
       "completeness": "COMPLETE",
       "n_boundaries": 2,
+      "deferred": true,
       "locators": [
         {
           "src": "water",
@@ -27297,6 +27644,7 @@
       "reg_text": "**No Fishing** from confluence with Peace River to fishing boundary signs approximately 5 km upstream, Mar 1-June 30\nArctic grayling catch and release, Mountain whitefish catch and release",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -27375,6 +27723,7 @@
       "reg_text": "**No Fishing** within 100 m of fishing boundary sign at outlet, May 15-July 31\nRainbow trout daily and possession quotas = 2 (none over 50 cm); bait ban, single hook",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": true,
       "locators": [
         {
           "src": "rule",
@@ -27419,6 +27768,7 @@
       "reg_text": "Bull trout catch and release from all lakes and streams, Aug 15-Oct 15\nBull trout daily and possession quotas = 1 (none under 30 cm or over 50 cm) from all lakes and streams, Oct 16-Aug 14",
       "completeness": "COMPLETE",
       "n_boundaries": 2,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -27493,6 +27843,7 @@
       "reg_text": "Arctic grayling catch and release downstream of Moberly Lake, Mountain whitefish catch and release downstream of Moberly Lake",
       "completeness": "COMPLETE",
       "n_boundaries": 2,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -27551,6 +27902,7 @@
       "reg_text": "Arctic grayling catch and release from Kinuseo Falls to signs about 2 km downstream",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -27620,6 +27972,7 @@
       "reg_text": "Kokanee daily quota = 10\nArctic grayling catch and release, including tributaries; Mountain whitefish catch and release, including tributaries\nLake trout daily quota = 3\n**No Fishing** from mouth of Halfway River to fishing boundary signs approximately 5 km upstream and 5 km downstream, Mar 1-June 30\n**No Fishing between Peace Canyon Dam and Hwy 29 Bridge**",
       "completeness": "COMPLETE",
       "n_boundaries": 4,
+      "deferred": false,
       "locators": [
         {
           "src": "water",
@@ -27841,6 +28194,7 @@
       "reg_text": "**No Fishing**",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "water",
@@ -27901,6 +28255,7 @@
       "reg_text": "Arctic grayling catch and release; Kokanee daily quota = 10",
       "completeness": "COMPLETE",
       "n_boundaries": 2,
+      "deferred": false,
       "locators": [
         {
           "src": "water",
@@ -28010,6 +28365,7 @@
       "reg_text": "Catch and release all fish upstream of the Hasler Road Bridge",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -28056,6 +28412,7 @@
       "reg_text": "**No Fishing** within 100 m of fishing boundary sign at outlet, May 15-July 31\nRainbow trout daily and possession quotas = 2 (none over 50 cm); bait ban, single hook",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": true,
       "locators": [
         {
           "src": "rule",
@@ -28100,6 +28457,7 @@
       "reg_text": "**No Fishing** within 100 m downstream of outlet weir at Swan Lake\nWalleye catch and release",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -28158,6 +28516,7 @@
       "reg_text": "No rainbow trout under 30 cm\n**See mercury warning page 57 in Region 7A**, and definition of \"stream mouth\" on page 80\nArctic grayling catch and release[Includes Tributaries]\nBull trout daily quota =1 (none under 30 cm or over 50 cm), Oct 16-Aug 14\nLake trout daily quota =3 (none under 30 cm, 1 over 50 cm), Nov 1-Sept 14",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": true,
       "locators": [
         {
           "src": "entry",
@@ -28196,6 +28555,7 @@
       "reg_text": "**No Fishing** within 100 m of fishing boundary sign at outlet, May 15-July 31\nRainbow trout daily and possession quotas = 2 (none over 50 cm); bait ban, single hook",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": true,
       "locators": [
         {
           "src": "rule",
@@ -28240,6 +28600,7 @@
       "reg_text": "**No Fishing**\nIncludes all unnamed lakes within 2 km of Bluey Lake (except Bluey Lake itself and Kentucky Lake)",
       "completeness": "COMPLETE",
       "n_boundaries": 2,
+      "deferred": true,
       "locators": [
         {
           "src": "rule",
@@ -28298,6 +28659,7 @@
       "reg_text": "**No Fishing** north of a line between Bald and Knob Points, Mar 1-May 31\nRainbow trout daily quota = 2, bass daily quota = 8, yellow perch daily quota = 20",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": true,
       "locators": [
         {
           "src": "rule",
@@ -28352,6 +28714,7 @@
       "reg_text": "Upstream of Burrell Creek: exempt from spring closure; bait ban Apr 1-Oct 31; trout/char daily quota = 1\nDownstream of Burrell Creek: bait ban July 1-Oct 31; rainbow trout catch and release",
       "completeness": "COMPLETE",
       "n_boundaries": 5,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -28526,6 +28889,7 @@
       "reg_text": "Bait ban",
       "completeness": "NO_SPLIT",
       "n_boundaries": 0,
+      "deferred": false,
       "locators": [
         {
           "src": "name",
@@ -28557,6 +28921,7 @@
       "reg_text": "**No Fishing** from Jewel Lake downstream approximately 1.5 km to fishing boundary signs",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -28617,6 +28982,7 @@
       "reg_text": "Exempt from spring closure\n**No Fishing** July 25-Sept 15; bait ban Apr 1-Oct 31\nRainbow trout catch and release",
       "completeness": "NO_SPLIT",
       "n_boundaries": 0,
+      "deferred": false,
       "locators": [
         {
           "src": "name",
@@ -28653,6 +29019,7 @@
       "reg_text": "**No Fishing** Jul 25-Sept 15\nRainbow trout catch and release; bait ban",
       "completeness": "NO_SPLIT",
       "n_boundaries": 0,
+      "deferred": false,
       "locators": [
         {
           "src": "name",
@@ -28684,6 +29051,7 @@
       "reg_text": "**No Fishing** south of a line between fishing boundary signs on the lakeshore approximately 800 m north of Shuswap River inlet, Jan 1-May 31\nBull trout (Dolly Varden) daily quota = 1 (none under 50 cm)\nSingle barbless hook",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": true,
       "locators": [
         {
           "src": "rule",
@@ -28728,6 +29096,7 @@
       "reg_text": "See Shuswap Lake in Region 3\nNo powered boats south of the CPR bridge",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": true,
       "locators": [
         {
           "src": "rule",
@@ -28769,6 +29138,7 @@
       "reg_text": "**No Fishing** downstream of falls situated approximately 4 km upstream of Christina Lake",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -28815,6 +29185,7 @@
       "reg_text": "**No Fishing** from falls at Gallagher Canyon to Okanagan Lake",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -28870,6 +29241,7 @@
       "reg_text": "**No Fishing** Oct 1-Nov 15; bass daily quota = 8, yellow perch daily quota = 20\nExempt from spring closure from Okanagan Lake Dam downstream to McIntyre Dam and downstream of Drop Structure No. 1 (located\nabout 1 km upstream of Osoyoos Lake)\nRainbow trout catch and release; no powered boats",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -28931,6 +29303,7 @@
       "reg_text": "These isolated oxbows adjacent to Okanagan River downstream of the McIntyre Dam and upstream of Vaseux Lake are EXEMPT from the\nspring closure",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -28976,6 +29349,7 @@
       "reg_text": "Kokanee daily quota = 5 (none over 30cm from July 1-Oct 31), bass daily quota = 8, yellow perch daily quota = 20\nBarbless hook July 1-Oct 31\nSpeed restriction on parts, no vessels (see definition on page 4) in 5 signed swimming areas",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": true,
       "locators": [
         {
           "src": "rule",
@@ -29017,6 +29391,7 @@
       "reg_text": "**No Fishing** from Hardy Falls to Okanagan Lake",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -29073,6 +29448,7 @@
       "reg_text": "**No Fishing** downstream of Hwy 97 bridge to Okanagan Lake",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -29129,6 +29505,7 @@
       "reg_text": "No powered boats south of the CPR Bridge",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": true,
       "locators": [
         {
           "src": "rule",
@@ -29172,6 +29549,7 @@
       "reg_text": "Trout daily quota = 1 Youth/Disabled Accompanied Water May 1-Jun 15 (see page 4)",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": true,
       "locators": [
         {
           "src": "entry",
@@ -29211,6 +29589,7 @@
       "reg_text": "**No Fishing** from Westside Road Bridge to Okanagan Lake",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -29266,6 +29645,7 @@
       "reg_text": "**No Fishing** from Mara Lake upstream to Mara Bridge\n**No Fishing** 50 m upstream and 50 m downstream of Trinity Bridge, Jun 15-Nov 15\nRainbow trout/char catch and release; exempt from spring closure from Mara Bridge upstream to Sugar Lake\nUpstream of Sugar Lake: **No fishing** Sept 1-Oct 31; bait ban",
       "completeness": "COMPLETE",
       "n_boundaries": 5,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -29461,6 +29841,7 @@
       "reg_text": "**No Fishing** from Hwy 97C to Okanagan Lake",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -29517,6 +29898,7 @@
       "reg_text": "**No Fishing** from the trestle in Trout Creek Canyon to Okanagan Lake\nUpstream of the trestle exempt from spring closure",
       "completeness": "COMPLETE",
       "n_boundaries": 2,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -29585,6 +29967,7 @@
       "reg_text": "**No Fishing**\nKnown by Ministry of Forests designations as lakes 711, 712, 713, 364 and 309 on Map 92H-088",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
+      "deferred": false,
       "locators": [
         {
           "src": "entry",
@@ -29623,6 +30006,7 @@
       "reg_text": "No powered boats (Migratory Bird Sanctuary Regulations)\nBass daily quota = 8, yellow perch daily quota = 20",
       "completeness": "COMPLETE",
       "n_boundaries": 2,
+      "deferred": true,
       "locators": [
         {
           "src": "water",
@@ -29688,6 +30072,7 @@
       "reg_text": "**No Fishing** downstream of Frog Falls (excluding Wap Lake) Sept 1-June 30\nExempt from spring closure upstream of Frog Falls",
       "completeness": "COMPLETE",
       "n_boundaries": 3,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -29777,6 +30162,7 @@
       "reg_text": "**No Fishing** July 25-Sept 15\nRainbow trout catch and release; bait ban Apr 1-Oct 31\nExempt from spring closure",
       "completeness": "NO_SPLIT",
       "n_boundaries": 0,
+      "deferred": false,
       "locators": [
         {
           "src": "name",
@@ -29810,6 +30196,7 @@
       "reg_text": "**No Fishing **Jul 25-Sept 15\nRainbow trout catch and release; bait ban",
       "completeness": "NO_SPLIT",
       "n_boundaries": 0,
+      "deferred": false,
       "locators": [
         {
           "src": "name",
