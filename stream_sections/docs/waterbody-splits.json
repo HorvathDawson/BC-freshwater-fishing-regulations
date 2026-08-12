@@ -9721,22 +9721,6 @@
               "notes": "[deferred 2026-08-08 lake-split (Mahood Lake area closures); Mahood River outlet buffer]"
             }
           ]
-        },
-        {
-          "src": "name",
-          "text": "MAHOOD LAKE (see map on page 28 for area closure)",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "mahood-lake-see-map-on-page-28-for-area-closu-a93848",
-              "status": "deferred",
-              "anchor_kind": "not_a_split",
-              "src": "name",
-              "resolver_hint": "map_or_vague",
-              "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'. — [human-review 2026-08-04 defer] note is not a split. the map does give the proper area closures for split",
-              "locator_text": "see map on page 28 for area closure"
-            }
-          ]
         }
       ]
     },
@@ -10762,33 +10746,6 @@
               "notes": "[lake-class: multi_lake] multi-basin (Shuswap + Little Shuswap + arms, see maps) — needs map-driven splits. — [review · was:deferred] assume nothing — re-decide. — [human-review 2026-08-04 not_applicable] scope-descriptor row (includes Little Shuswap + the S.Thompson reach + named arms); the real closures are sibling Shuswap Lake rows.",
               "name_verbatim": "SHUSWAP LAKE (see maps on page 28) (includes Little Sh",
               "locator_text": "includes Little Shuswap Lake, that part of South Thompson River between Shuswap Lake and Little Shuswap Lake, Seymour, A"
-            }
-          ]
-        },
-        {
-          "src": "name",
-          "text": "SHUSWAP LAKE (see maps on page 28) (includes Little Shuswap Lake, that part of South Thompson River between Shuswap Lake and Little Shuswap Lake, Seymour, Anstey and Salmon arms and Mara Lake unless stated otherwise)",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "shuswap-lake-see-maps-on-page-28-includes-lit-80ee82",
-              "status": "not_applicable",
-              "anchor_kind": "lake",
-              "src": "name",
-              "resolver_hint": "lake_reach",
-              "notes": "[lake-class: multi_lake] multi-basin (Shuswap + Little Shuswap + arms, see maps) — needs map-driven splits. — [review · was:deferred] assume nothing — re-decide. — [human-review 2026-08-04 not_applicable] scope-descriptor row (includes Little Shuswap + the S.Thompson reach + named arms); the real closures are sibling Shuswap Lake rows.",
-              "name_verbatim": "SHUSWAP LAKE (see maps on page 28) (includes Little Sh",
-              "locator_text": "includes Little Shuswap Lake, that part of South Thompson River between Shuswap Lake and Little Shuswap Lake, Seymour, A"
-            },
-            {
-              "id": "shuswap-lake-see-maps-on-page-28-includes-lit-db54cd",
-              "status": "deferred",
-              "anchor_kind": "not_a_split",
-              "src": "name",
-              "resolver_hint": "map_or_vague",
-              "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'. — [human-review 2026-08-04 defer] note is not a split. but there are other splits in the regs...",
-              "name_verbatim": "SHUSWAP LAKE (see maps on page 28) (includes Little Sh",
-              "locator_text": "see maps on page 28"
             }
           ]
         }
@@ -13558,59 +13515,6 @@
               "resolver_hint": "except_negative",
               "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'. — [human-review 2026-08-04 na-with-siblings] confirmed — EXCEPT clause on kokanee quota dates, not a split. USER_NOTE flags no other split ('exception is not a split' only); full_regulation confirms no boundary text present.",
               "name_verbatim": "KOOTENAY LAKE - UPPER WEST ARM (for location see map o"
-            }
-          ]
-        },
-        {
-          "src": "name",
-          "text": "KOOTENAY LAKE - UPPER WEST ARM (for location see map on page 34)",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "kootenay-lake-upper-west-arm-for-location-see-f589c1",
-              "status": "deferred",
-              "anchor_kind": "not_a_split",
-              "src": "name",
-              "resolver_hint": "map_or_vague",
-              "label": "Kootenay Lake Upper West Arm (named arm)",
-              "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'. — [human-review 2026-08-04 lake-internal defer | docs/15 method=polygon] Kootenay Lake Upper West Arm (named arm)",
-              "name_verbatim": "KOOTENAY LAKE - UPPER WEST ARM (for location see map o",
-              "locator_text": "for location see map on page 34"
-            }
-          ]
-        }
-      ]
-    },
-    "45fee6db": {
-      "entry_id": "45fee6db",
-      "water": "KOOTENAY LAKE - LOWER WEST ARM (for location see map on page 34)",
-      "mu": [
-        "4-7"
-      ],
-      "region": "REGION 4 - Kootenay",
-      "page": 39,
-      "image": "page_039_row_029.png",
-      "symbols": [],
-      "reg_text": "Trout/char daily quota = 2 (only 1 bull trout); kokanee daily quota = 5, **but only on Saturday and Sunday of each week.** Kokanee catch\nand release Monday through Friday of each week. NOTE: the combined daily quota for kokanee from the Upper West Arm (when open to\nkokanee harvest) and the Lower West Arm (when open to kokanee harvest) cannot exceed 5",
-      "completeness": "NO_SPLIT",
-      "n_boundaries": 0,
-      "deferred": true,
-      "locators": [
-        {
-          "src": "name",
-          "text": "KOOTENAY LAKE - LOWER WEST ARM (for location see map on page 34)",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "kootenay-lake-lower-west-arm-for-location-see-3def30",
-              "status": "deferred",
-              "anchor_kind": "not_a_split",
-              "src": "name",
-              "resolver_hint": "map_or_vague",
-              "label": "Kootenay Lake Lower West Arm (named arm)",
-              "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'. — [human-review 2026-08-04 lake-internal defer | docs/15 method=polygon] Kootenay Lake Lower West Arm (named arm)",
-              "name_verbatim": "KOOTENAY LAKE - LOWER WEST ARM (for location see map o",
-              "locator_text": "for location see map on page 34"
             }
           ]
         }
@@ -16579,22 +16483,6 @@
               "resolver_hint": "between_signs",
               "notes": "[deferred 2026-08-09 lake-split batch: lake-area closure]",
               "locator_text": "within the waters of the small bay at the mouth of Eagle Creek northerly of a line drawn between two boundary signs loca"
-            }
-          ]
-        },
-        {
-          "src": "name",
-          "text": "CANIM LAKE (see map on page 42)",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "canim-lake-see-map-on-page-42-de63b0",
-              "status": "deferred",
-              "anchor_kind": "not_a_split",
-              "src": "name",
-              "resolver_hint": "map_or_vague",
-              "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'. — [human-review 2026-08-04 deferred] map-only Eagle Creek bay closure (north of a line between boundary signs); lake-internal (docs/15), no derivable geometry yet.",
-              "locator_text": "see map on page 42"
             }
           ]
         }
@@ -20469,30 +20357,6 @@
               "resolver_hint": "tributary",
               "label": "Skeena/Kispiox confluence",
               "notes": "Confluence = mouth of Kispiox River (blk 360885864); parent = Skeena River. Author as confluence anchor tributary_wsc=400-454855-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000. OSM: https://www.openstreetmap.org/?mlat=55.34260&mlon=-127.69129#map=15/55.34260/-127.69129 — Shares the Skeena/Kispiox confluence split with skeena-river-kispiox-river-confluence-94452c (one split; this rule is a signs-closure AT that confluence, not a separate split).",
-              "coord": [
-                -127.69129,
-                55.3426
-              ],
-              "target": {
-                "blk": "360885864",
-                "wsc": "400-454855-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
-              }
-            }
-          ]
-        },
-        {
-          "src": "name",
-          "text": "SKEENA RIVER/KISPIOX RIVER CONFLUENCE",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "skeena-river-kispiox-river-confluence-94452c",
-              "status": "curated",
-              "anchor_kind": "confluence",
-              "src": "name",
-              "resolver_hint": "tributary",
-              "label": "Skeena/Kispiox confluence",
-              "notes": "Confluence = mouth of Kispiox River (blk 360885864); parent = Skeena River. Author as confluence anchor tributary_wsc=400-454855-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000. OSM: https://www.openstreetmap.org/?mlat=55.34260&mlon=-127.69129#map=15/55.34260/-127.69129",
               "coord": [
                 -127.69129,
                 55.3426

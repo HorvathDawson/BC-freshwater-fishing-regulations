@@ -281,17 +281,13 @@ def build(curated=None):
         if reviewed_by_entry.get(eid):
             cards[eid]["reviewed"] = reviewed_by_entry[eid]  # whole-entry human review (see docs)
 
-    # --- remove redundant `name` locators globally (they duplicate a real boundary via water/entry/
-    # rule, or hold only a whole-water n/a record). Keep a name locator ONLY when it is the SOLE
-    # carrier of a non-n/a row (nothing non-name, anywhere, holds it) — dropping it otherwise is
-    # lossless for real boundaries; whole-water n/a rows that live only on a name locator are
-    # intentionally dropped. Cards left with no locators (whole-water n/a-only entries) are removed.
-    _global_nonname = {r["id"] for c in cards.values() for l in c["locators"]
-                       if l["src"] != "name" for r in l["rows"]}
+    # --- remove ALL `name` locators. A name-encoded boundary already lives on the `water` locator
+    # (the name parenthetical) or a `rule`/`entry` locator, so the name copy is redundant. Rows that
+    # lived ONLY on a name locator are whole-water n/a markers or redundant whole-entry deferred
+    # markers — intentionally dropped (no unique boundary geometry is lost; verified). Cards left
+    # with no locators (whole-water n/a-only entries) are removed.
     for c in cards.values():
-        c["locators"] = [l for l in c["locators"] if l["src"] != "name"
-                         or any(r["status"] != "not_applicable" and r["id"] not in _global_nonname
-                                for r in l["rows"])]
+        c["locators"] = [l for l in c["locators"] if l["src"] != "name"]
     cards = {eid: c for eid, c in cards.items() if c["locators"]}
 
     # drift: curated rows never matched to any source locator (real anomalies / manual additions)

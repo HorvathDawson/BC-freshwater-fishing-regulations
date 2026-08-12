@@ -5,7 +5,7 @@ numbered per entry.
 Entries whose locators are ALL `not_applicable` (whole-water / tributary-set / lake-outlet /
 exemption clauses) are omitted — see `waterbody-splits.json` for the full set. Regenerate; do not hand-edit.
 
-204 active split-bearing entries · 470 highlighted boundary phrases (52 all-n/a hidden, 57 deferred — see table at end).
+204 active split-bearing entries · 470 highlighted boundary phrases (51 all-n/a hidden, 57 deferred — see table at end).
 
 | Water | MU | p | Regulation |
 |---|---|--:|---|
