@@ -7,8 +7,8 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 |---|--:|
 | NO_CURATION | 1 |
 | MISSING_SPLITS | 2 |
-| INCOMPLETE | 6 |
-| COMPLETE | 303 |
+| INCOMPLETE | 5 |
+| COMPLETE | 304 |
 | NO_SPLIT | 75 |
 
 **Drift** (curated rows matching no source locator): 16
@@ -43,9 +43,6 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 
 ## MAMIN RIVER · MU ['6-13'] · p19 · [INCOMPLETE] (7b4287e4)
 - • [rule] “upstream of fishing boundary signs on third bridge approximately 1” → mamin-river-608d92[todo]
-
-## CHAPMAN CREEK · MU ['2-5'] · p24 · [INCOMPLETE] (267c0dc4)
-- • [rule] “from the falls to 100 m downstream (falls are located approximatel” → chapman-creek-6d4cfd-a[todo], chapman-creek-6d4cfd-b[todo]
 
 ## CRANBERRY RIVER · MU ['6-15'] · p56 · [INCOMPLETE] (107fa559)
 - • [rule] “between fishing boundary signs upstream of and downstream of Cranb” → cranberry-river-699352-a[todo], cranberry-river-699352-b[todo]
