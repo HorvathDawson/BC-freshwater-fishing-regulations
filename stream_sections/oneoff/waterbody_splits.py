@@ -296,6 +296,20 @@ def build(curated=None):
         _wtexts = {_nt(l["text"]) for l in c["locators"] if l["src"] == "water"}
         c["locators"] = [l for l in c["locators"]
                          if not (l["src"] == "entry" and _nt(l["text"]) in _wtexts)]
+        # collapse EXACT-duplicate `rule` locators (same normalized text AND same info AND same
+        # rows) — pure repeated reg-row ingestion (e.g. Elk Lake "on parts" x4). The same text
+        # under a DIFFERENT rule (restriction_type/dates) is a distinct trigger and is kept.
+        _seen, _dedup = set(), []
+        for l in c["locators"]:
+            if l["src"] == "rule":
+                _i = l.get("info") or {}
+                _k = (_nt(l["text"]), _i.get("restriction_type"), tuple(_i.get("dates") or []),
+                      _i.get("includes_tributaries"), tuple(sorted(r["id"] for r in l["rows"])))
+                if _k in _seen:
+                    continue
+                _seen.add(_k)
+            _dedup.append(l)
+        c["locators"] = _dedup
     cards = {eid: c for eid, c in cards.items() if c["locators"]}
 
     # drift: curated rows never matched to any source locator (real anomalies / manual additions)

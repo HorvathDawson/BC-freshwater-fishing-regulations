@@ -1403,24 +1403,6 @@
               "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'. — [human-review 2026-08-04 na-with-siblings] confirmed — 'on parts' (same reg block as cowichan-river-see-map-below-337c0e), not a split. Same DEDICATED sibling rows already cover the boundaries."
             }
           ]
-        },
-        {
-          "src": "rule",
-          "text": "on parts",
-          "info": {
-            "restriction_type": "vessel_restriction"
-          },
-          "resolved": true,
-          "rows": [
-            {
-              "id": "cowichan-river-see-map-below-bc238a",
-              "status": "not_applicable",
-              "anchor_kind": "not_a_split",
-              "src": "rule",
-              "resolver_hint": "map_or_vague",
-              "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'. — [human-review 2026-08-04 na-with-siblings] confirmed — 'on parts' (same reg block as cowichan-river-see-map-below-337c0e), not a split. Same DEDICATED sibling rows already cover the boundaries."
-            }
-          ]
         }
       ],
       "reviewed": "2026-08-07"
@@ -1524,60 +1506,6 @@
       "n_boundaries": 4,
       "deferred": false,
       "locators": [
-        {
-          "src": "rule",
-          "text": "on parts",
-          "info": {
-            "restriction_type": "vessel_restriction"
-          },
-          "resolved": true,
-          "rows": [
-            {
-              "id": "elk-lake-fdc47b",
-              "status": "not_applicable",
-              "anchor_kind": "not_a_split",
-              "src": "rule",
-              "resolver_hint": "map_or_vague",
-              "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'. — [human-review 2026-08-04 not_applicable] 'on parts' = engine-power/vessel restrictions, not a fishing boundary; any fishing splits are separate rows."
-            }
-          ]
-        },
-        {
-          "src": "rule",
-          "text": "on parts",
-          "info": {
-            "restriction_type": "vessel_restriction"
-          },
-          "resolved": true,
-          "rows": [
-            {
-              "id": "elk-lake-fdc47b",
-              "status": "not_applicable",
-              "anchor_kind": "not_a_split",
-              "src": "rule",
-              "resolver_hint": "map_or_vague",
-              "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'. — [human-review 2026-08-04 not_applicable] 'on parts' = engine-power/vessel restrictions, not a fishing boundary; any fishing splits are separate rows."
-            }
-          ]
-        },
-        {
-          "src": "rule",
-          "text": "on parts",
-          "info": {
-            "restriction_type": "vessel_restriction"
-          },
-          "resolved": true,
-          "rows": [
-            {
-              "id": "elk-lake-fdc47b",
-              "status": "not_applicable",
-              "anchor_kind": "not_a_split",
-              "src": "rule",
-              "resolver_hint": "map_or_vague",
-              "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'. — [human-review 2026-08-04 not_applicable] 'on parts' = engine-power/vessel restrictions, not a fishing boundary; any fishing splits are separate rows."
-            }
-          ]
-        },
         {
           "src": "rule",
           "text": "on parts",
@@ -5530,86 +5458,6 @@
           "src": "rule",
           "text": "Downstream of Vedder Crossing Bridge",
           "info": {
-            "restriction_type": "gear_restriction",
-            "dates": [
-              "May 1-31"
-            ]
-          },
-          "resolved": true,
-          "rows": [
-            {
-              "id": "chilliwack-vedder-rivers-does-not-include-sum-96c294",
-              "status": "curated",
-              "anchor_kind": "point",
-              "src": "rule",
-              "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] Vedder Crossing Bridge on Chilliwack/Vedder River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm Vedder Crossing Bridge on the Vedder River (Chilliwack); well-known -> review.. Downstream-of-Vedder-Crossing reach. Public bridge, not in FWA; map/OSM-confirmable. [curated 2026-08-07 manual-review batch=chilliwack] [Vedder Crossing Bridge]",
-              "coord": [
-                -121.9646,
-                49.09739
-              ],
-              "name_verbatim": "CHILLIWACK / VEDDER RIVERS (does not include Sumas Riv"
-            },
-            {
-              "id": "chilliwack-vedder-rivers-does-not-include-sum-f59392-b",
-              "status": "curated",
-              "anchor_kind": "point",
-              "src": "rule",
-              "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] Tamihi Rapids Bridge & Vedder Crossing Bridge on Chilliwack/Vedder River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm Tamihi (Rapids) Bridge and Vedder Crossing Bridge on the Chilliwack/Vedder; both well-known -> review.. Reach between two named road bridges near Chilliwack (MU 2-?). Both are public bridges (not FWA). The FSR crossings found (CENTRE/RADIUM at 37-47 km) are far upstream in the Chilliwack valley, not these lower bridges. [structural-split 2026-08-05 from “downstream of Tamihi Rapids Bridge to Vedder Crossing Bridge”] boundary=Vedder Crossing Bridge [curated 2026-08-07 manual-review batch=chilliwack] [Vedder Crossing Bridge]",
-              "coord": [
-                -121.9646,
-                49.09739
-              ],
-              "name_verbatim": "CHILLIWACK / VEDDER RIVERS (does not include Sumas Riv",
-              "locator_text": "Vedder Crossing Bridge"
-            }
-          ]
-        },
-        {
-          "src": "rule",
-          "text": "Downstream of Vedder Crossing Bridge",
-          "info": {
-            "restriction_type": "harvest",
-            "dates": [
-              "May 1-31"
-            ]
-          },
-          "resolved": true,
-          "rows": [
-            {
-              "id": "chilliwack-vedder-rivers-does-not-include-sum-96c294",
-              "status": "curated",
-              "anchor_kind": "point",
-              "src": "rule",
-              "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] Vedder Crossing Bridge on Chilliwack/Vedder River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm Vedder Crossing Bridge on the Vedder River (Chilliwack); well-known -> review.. Downstream-of-Vedder-Crossing reach. Public bridge, not in FWA; map/OSM-confirmable. [curated 2026-08-07 manual-review batch=chilliwack] [Vedder Crossing Bridge]",
-              "coord": [
-                -121.9646,
-                49.09739
-              ],
-              "name_verbatim": "CHILLIWACK / VEDDER RIVERS (does not include Sumas Riv"
-            },
-            {
-              "id": "chilliwack-vedder-rivers-does-not-include-sum-f59392-b",
-              "status": "curated",
-              "anchor_kind": "point",
-              "src": "rule",
-              "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] Tamihi Rapids Bridge & Vedder Crossing Bridge on Chilliwack/Vedder River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm Tamihi (Rapids) Bridge and Vedder Crossing Bridge on the Chilliwack/Vedder; both well-known -> review.. Reach between two named road bridges near Chilliwack (MU 2-?). Both are public bridges (not FWA). The FSR crossings found (CENTRE/RADIUM at 37-47 km) are far upstream in the Chilliwack valley, not these lower bridges. [structural-split 2026-08-05 from “downstream of Tamihi Rapids Bridge to Vedder Crossing Bridge”] boundary=Vedder Crossing Bridge [curated 2026-08-07 manual-review batch=chilliwack] [Vedder Crossing Bridge]",
-              "coord": [
-                -121.9646,
-                49.09739
-              ],
-              "name_verbatim": "CHILLIWACK / VEDDER RIVERS (does not include Sumas Riv",
-              "locator_text": "Vedder Crossing Bridge"
-            }
-          ]
-        },
-        {
-          "src": "rule",
-          "text": "Downstream of Vedder Crossing Bridge",
-          "info": {
             "restriction_type": "harvest",
             "dates": [
               "May 1-31"
@@ -7394,27 +7242,6 @@
         },
         {
           "src": "rule",
-          "text": "upstream of Silver Lake",
-          "info": {
-            "restriction_type": "gear_restriction",
-            "dates": [
-              "July 1-Oct 31"
-            ]
-          },
-          "resolved": true,
-          "rows": [
-            {
-              "id": "silverhope-silver-creek-015132",
-              "status": "not_applicable",
-              "anchor_kind": "lake",
-              "src": "rule",
-              "resolver_hint": "lake_reach",
-              "notes": "[lake-class: lake_split] head/inlet of Silver Lake. — [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 — NO authored split needed. — [review · was:auto] assume nothing — re-decide. — [human-review 2026-08-04 lake-verify] VERIFIED auto_lake_edge: 'upstream of Silver Lake' = lake head edge, handled for free. n/a."
-            }
-          ]
-        },
-        {
-          "src": "rule",
           "text": "from Silver Lake down to the Bailey Bridge situated approximately 8 km upstream of Hwy 1",
           "info": {
             "restriction_type": "closure"
@@ -9093,51 +8920,6 @@
         },
         {
           "src": "rule",
-          "text": "From the confluence with Thompson River to the CNR Bridge approximately 1 km downstream",
-          "info": {
-            "restriction_type": "gear_restriction",
-            "dates": [
-              "Oct 1-Dec 31"
-            ]
-          },
-          "resolved": true,
-          "rows": [
-            {
-              "id": "fraser-river-74a44b-a",
-              "status": "curated",
-              "anchor_kind": "confluence",
-              "src": "rule",
-              "resolver_hint": "tributary",
-              "label": "Thompson River confluence",
-              "notes": "[auto-proposal L] CNR Bridge ~1 km below Thompson confluence (Lytton) on Fraser River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the CNR bridge ~1 km below the Thompson-Fraser confluence at Lytton; railway bridge, map.. Reach = Thompson River confluence (Lytton) to the CNR bridge ~1 km downstream. Confluence + railway bridge -> map/OSM-confirmable. [structural-split 2026-08-05 from “From the confluence with Thompson River to the CNR Bridge approximately 1 km downstream”] boundary=confluence with Thompson River [human-review 2026-08-05 FWA-confluence] mouth of Thompson River on mainstem (0 m validated); target blk/wsc set.",
-              "coord": [
-                -121.58488,
-                50.23551
-              ],
-              "target": {
-                "blk": 356364690,
-                "wsc": "100-190442-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
-              },
-              "locator_text": "confluence with Thompson River"
-            },
-            {
-              "id": "fraser-river-74a44b-b",
-              "status": "curated",
-              "anchor_kind": "point",
-              "src": "rule",
-              "resolver_hint": "bridge_road_km",
-              "label": "CNR bridge ~1km below Thompson confluence",
-              "notes": "[auto-proposal L] CNR Bridge ~1 km below Thompson confluence (Lytton) on Fraser River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the CNR bridge ~1 km below the Thompson-Fraser confluence at Lytton; railway bridge, map.. Reach = Thompson River confluence (Lytton) to the CNR bridge ~1 km downstream. Confluence + railway bridge -> map/OSM-confirmable. [structural-split 2026-08-05 from “From the confluence with Thompson River to the CNR Bridge approximately 1 km downstream”] boundary=CNR Bridge approximately 1 km downstream [human-review 2026-08-06] CNR bridge ~1km below Thompson confluence (user-located).",
-              "coord": [
-                -121.58507,
-                50.22424
-              ],
-              "locator_text": "CNR Bridge approximately 1 km downstream"
-            }
-          ]
-        },
-        {
-          "src": "rule",
           "text": "from the confluence with Spuzzum Creek (Region 3 boundary) to Hells Gate",
           "info": {
             "restriction_type": "closure",
@@ -9533,27 +9315,6 @@
         },
         {
           "src": "rule",
-          "text": "within fishing boundary signs at the western tip of the lake",
-          "info": {
-            "restriction_type": "gear_restriction",
-            "dates": [
-              "July 1-Dec 31"
-            ]
-          },
-          "resolved": true,
-          "rows": [
-            {
-              "id": "mahood-lake-see-map-on-page-28-for-area-closu-79ec2d",
-              "status": "not_applicable",
-              "anchor_kind": "lake",
-              "src": "rule",
-              "resolver_hint": "lake_reach",
-              "notes": "[lake-class: lake_internal] lake-internal area closure within boundary signs (see map, docs/15) — unsupported. — [review · was:deferred] assume nothing — re-decide. — [human-review 2026-08-04 not_applicable] DUPLICATE of mahood-lake-see-map-on-page-28-for-area-closu-42f4bc (same regulation, parser emitted multiple locator rows). → see mahood-lake-see-map-on-page-28-for-area-closu-42f4bc; dedup collapses."
-            }
-          ]
-        },
-        {
-          "src": "rule",
           "text": "within 200 m of the Mahood River outlet",
           "info": {
             "restriction_type": "closure",
@@ -9614,27 +9375,6 @@
               "notes": "[deferred 2026-08-08 lake-split (Mahood Lake area closures); Mahood River outlet buffer]"
             }
           ]
-        },
-        {
-          "src": "rule",
-          "text": "within 200 m of the mouth of the Mahood River outlet",
-          "info": {
-            "restriction_type": "gear_restriction",
-            "dates": [
-              "July 1-Dec 31"
-            ]
-          },
-          "resolved": true,
-          "rows": [
-            {
-              "id": "mahood-lake-see-map-on-page-28-for-area-closu-4b1332",
-              "status": "deferred",
-              "anchor_kind": "buffer",
-              "src": "rule",
-              "resolver_hint": "radius",
-              "notes": "[deferred 2026-08-08 lake-split (Mahood Lake area closures); Mahood River outlet buffer]"
-            }
-          ]
         }
       ]
     },
@@ -9653,29 +9393,6 @@
       "n_boundaries": 5,
       "deferred": false,
       "locators": [
-        {
-          "src": "rule",
-          "text": "Downstream of Goodwin Falls",
-          "info": {
-            "restriction_type": "harvest"
-          },
-          "resolved": true,
-          "rows": [
-            {
-              "id": "mahood-river-400d10",
-              "status": "curated",
-              "anchor_kind": "point",
-              "src": "rule",
-              "resolver_hint": "falls_obstacle",
-              "label": "Goodwin Falls",
-              "notes": " [human-review 2026-08-05 FWA-waterfall] Goodwin Falls.",
-              "coord": [
-                -120.22228,
-                51.92652
-              ]
-            }
-          ]
-        },
         {
           "src": "rule",
           "text": "Downstream of Goodwin Falls",
@@ -10913,58 +10630,6 @@
               "locator_text": "downstream of signs at Kamloops Lake outlet to the confluence with Fraser River"
             }
           ]
-        },
-        {
-          "src": "rule",
-          "text": "Downstream of signs at Kamloops Lake",
-          "info": {
-            "restriction_type": "licensing",
-            "dates": [
-              "Oct 1-Dec 31"
-            ]
-          },
-          "resolved": true,
-          "rows": [
-            {
-              "id": "thompson-river-downstream-of-signs-at-kamloop-38fc02",
-              "status": "not_applicable",
-              "anchor_kind": "point",
-              "src": "rule",
-              "resolver_hint": "boundary_signs",
-              "notes": "[lake-class: mis_bucket] NOT a lake cut: boundary signs at Kamloops Lake outlet on the Thompson — a point. [human-review 2026-08-06 n/a] auto lake-split (Kamloops Lake edge) handles it.",
-              "name_verbatim": "THOMPSON RIVER (downstream of signs at Kamloops Lake o"
-            },
-            {
-              "id": "thompson-river-downstream-of-signs-at-kamloop-bc221e-a",
-              "status": "not_applicable",
-              "anchor_kind": "confluence",
-              "src": "name",
-              "resolver_hint": "tributary",
-              "label": "Kamloops Lake outlet",
-              "notes": "non-confluence: lake outlet boundary — [review · was:deferred] assume nothing — re-decide. — [human-review 2026-08-04 not_applicable] reach endpoint A = signs at Kamloops Lake outlet (≈ auto lake edge; signs sit at the outlet); point endpoint B (Thompson/Fraser confluence) curated in ...bc221e-b. → see -b.",
-              "name_verbatim": "THOMPSON RIVER (downstream of signs at Kamloops Lake o",
-              "locator_text": "downstream of signs at Kamloops Lake outlet to the confluence with Fraser River"
-            },
-            {
-              "id": "thompson-river-downstream-of-signs-at-kamloop-bc221e-b",
-              "status": "curated",
-              "anchor_kind": "confluence",
-              "src": "name",
-              "resolver_hint": "tributary",
-              "label": "Thompson/Fraser confluence",
-              "notes": "Confluence = mouth of Thompson River (blk 356364690); parent = Fraser River. Author as confluence anchor tributary_wsc=100-190442-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000. OSM: https://www.openstreetmap.org/?mlat=50.23551&mlon=-121.58488#map=15/50.23551/-121.58488 — Shares the Thompson/Fraser confluence split with fraser-river-65211d et al. (one split).",
-              "coord": [
-                -121.58488,
-                50.23551
-              ],
-              "target": {
-                "blk": "356364690",
-                "wsc": "100-190442-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
-              },
-              "name_verbatim": "THOMPSON RIVER (downstream of signs at Kamloops Lake o",
-              "locator_text": "downstream of signs at Kamloops Lake outlet to the confluence with Fraser River"
-            }
-          ]
         }
       ],
       "reviewed": "2026-08-11"
@@ -11774,103 +11439,6 @@
         },
         {
           "src": "rule",
-          "text": "From Keenleyside Dam downstream to the Washington state border and connected reaches: the Kootenay River (Columbia River confluence to Brilliant Dam) and the Pend d'Oreille River (Columbia River confluence to Waneta Dam)",
-          "info": {
-            "restriction_type": "harvest"
-          },
-          "resolved": true,
-          "rows": [
-            {
-              "id": "columbia-river-3914af-a",
-              "status": "curated",
-              "anchor_kind": "point",
-              "src": "rule",
-              "resolver_hint": "dam_weir_fence",
-              "label": "Keenleyside Dam",
-              "notes": "[auto-proposal H] Hugh Keenleyside Dam (Lower Arrow Lake outlet) on Columbia River (Keenleyside Dam -> WA border, + Kootenay reach). Candidate coord [-117.77394, 49.34194]. OSM: https://www.openstreetmap.org/?mlat=49.34194&mlon=-117.77394#map=15/49.34194/-117.77394. Verify: Same dam as columbia-river-f4c5a3; entry also bundles a connected Kootenay River reach - handle separately.. Duplicate Keenleyside Dam structure; this entry additionally names a connected Kootenay River reach (see the Kootenay dam items 21-23). Coord = Keenleyside Dam at Lower Arrow Lake outlet. [structural-split 2026-08-05 from \"From Keenleyside Dam downstream to the Washington state bord\"] boundary=Keenleyside Dam [human-review 2026-08-06 OSM dam] Keenleyside Dam.",
-              "coord": [
-                -117.77353,
-                49.34196
-              ],
-              "locator_text": "Keenleyside Dam"
-            },
-            {
-              "id": "columbia-river-3914af-b",
-              "status": "curated",
-              "anchor_kind": "confluence",
-              "src": "rule",
-              "resolver_hint": "tributary",
-              "label": "Kootenay River confluence",
-              "notes": "[auto-proposal H] Hugh Keenleyside Dam (Lower Arrow Lake outlet) on Columbia River (Keenleyside Dam -> WA border, + Kootenay reach). Candidate coord [-117.77394, 49.34194]. OSM: https://www.openstreetmap.org/?mlat=49.34194&mlon=-117.77394#map=15/49.34194/-117.77394. Verify: Same dam as columbia-river-f4c5a3; entry also bundles a connected Kootenay River reach - handle separately.. Duplicate Keenleyside Dam structure; this entry additionally names a connected Kootenay River reach (see the Kootenay dam items 21-23). Coord = Keenleyside Dam at Lower Arrow Lake outlet. [structural-split 2026-08-05 from \"From Keenleyside Dam downstream to the Washington state bord\"] boundary=Washington state border and connected reaches: the Kootenay River (Columbia River [human-review 2026-08-05 FWA-confluence] mouth of Kootenay River (0 m validated); target blk/wsc set.",
-              "coord": [
-                -117.6533,
-                49.316
-              ],
-              "target": {
-                "blk": 356570348,
-                "wsc": "300-625474-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
-              },
-              "locator_text": "Washington state border and connected reaches: the Kootenay River (Columbia River"
-            },
-            {
-              "id": "columbia-river-brilliant-dam-manual",
-              "status": "manual",
-              "anchor_kind": "point",
-              "src": "rule",
-              "resolver_hint": "dam_weir_fence",
-              "label": "Brilliant Dam",
-              "notes": "[manual anchor 2026-08-08 audit-fix] Brilliant Dam on lower Kootenay R; d/s endpoint of connected reach \"Kootenay R (Columbia confl -> Brilliant Dam)\"; same coord as kootenay-river ...1e5f9d-a",
-              "coord": [
-                -117.62009,
-                49.32481
-              ],
-              "locator_text": "Brilliant Dam"
-            },
-            {
-              "id": "columbia-river-f4c5a3-a",
-              "status": "curated",
-              "anchor_kind": "point",
-              "src": "rule",
-              "resolver_hint": "dam_weir_fence",
-              "label": "Keenleyside Dam",
-              "notes": "[auto-proposal H] Hugh Keenleyside Dam (Lower Arrow Lake outlet) on Columbia River (Keenleyside Dam -> WA border). Candidate coord [-117.77394, 49.34194]. OSM: https://www.openstreetmap.org/?mlat=49.34194&mlon=-117.77394#map=15/49.34194/-117.77394. Verify: Confirm cut at Keenleyside Dam (Lower Arrow Lake outlet); downstream end = Washington state border (auto border split).. Hugh Keenleyside Dam impounds the Arrow Lakes; coord = FWA Columbia exit from the Lower Arrow Lake polygon, matching the known dam near Castlegar. Reach runs to the US border. [structural-split 2026-08-05 from \"from Keenleyside Dam to the Washington state border\"] boundary=Keenleyside Dam [human-review 2026-08-06 OSM dam] Keenleyside Dam.",
-              "coord": [
-                -117.77353,
-                49.34196
-              ],
-              "locator_text": "Keenleyside Dam"
-            },
-            {
-              "id": "columbia-river-f4c5a3-b",
-              "status": "curated",
-              "anchor_kind": "point",
-              "src": "rule",
-              "resolver_hint": "dam_weir_fence",
-              "notes": "[auto-proposal H] Hugh Keenleyside Dam (Lower Arrow Lake outlet) on Columbia River (Keenleyside Dam -> WA border). Candidate coord [-117.77394, 49.34194]. OSM: https://www.openstreetmap.org/?mlat=49.34194&mlon=-117.77394#map=15/49.34194/-117.77394. Verify: Confirm cut at Keenleyside Dam (Lower Arrow Lake outlet); downstream end = Washington state border (auto border split).. Hugh Keenleyside Dam impounds the Arrow Lakes; coord = FWA Columbia exit from the Lower Arrow Lake polygon, matching the known dam near Castlegar. Reach runs to the US border. [structural-split 2026-08-05 from \"from Keenleyside Dam to the Washington state border\"] boundary=Washington state border [curated 2026-08-07 manual-review batch=fraser/columbia]",
-              "coord": [
-                -117.63219,
-                49.0004
-              ],
-              "locator_text": "Washington state border"
-            },
-            {
-              "id": "columbia-river-waneta-dam-manual",
-              "status": "manual",
-              "anchor_kind": "point",
-              "src": "rule",
-              "resolver_hint": "dam_weir_fence",
-              "label": "Waneta Dam",
-              "notes": "[manual anchor 2026-08-08 audit-fix] Waneta Dam on Pend d'Oreille R (OSM way 614612375 waterway=dam); u/s endpoint of connected reach \"Pend d'Oreille R (Columbia confl -> Waneta Dam)\"",
-              "coord": [
-                -117.61186,
-                49.0039
-              ],
-              "locator_text": "Waneta Dam"
-            }
-          ]
-        },
-        {
-          "src": "rule",
           "text": "from Mud Lake to Columbia Lake",
           "info": {
             "restriction_type": "vessel_restriction"
@@ -11902,44 +11470,6 @@
               "src": "rule",
               "resolver_hint": "other_reach",
               "notes": "[n/a 2026-08-07 no-power-boat vessel restriction in wetlands; not a fishing boundary]"
-            }
-          ]
-        },
-        {
-          "src": "rule",
-          "text": "in main channel from Fairmont to Donald",
-          "info": {
-            "restriction_type": "vessel_restriction"
-          },
-          "resolved": true,
-          "rows": [
-            {
-              "id": "columbia-river-275f56-a",
-              "status": "curated",
-              "anchor_kind": "point",
-              "src": "rule",
-              "resolver_hint": "other_reach",
-              "label": "Fairmont (main channel)",
-              "notes": "[curated 2026-08-07 manual-review batch=fraser/columbia] [structural -a/-b split]",
-              "coord": [
-                -115.86442,
-                50.32402
-              ],
-              "locator_text": "from Fairmont"
-            },
-            {
-              "id": "columbia-river-275f56-b",
-              "status": "curated",
-              "anchor_kind": "point",
-              "src": "rule",
-              "resolver_hint": "other_reach",
-              "label": "Donald (main channel)",
-              "notes": "[curated 2026-08-07 manual-review batch=fraser/columbia] [structural -a/-b split]",
-              "coord": [
-                -117.1804,
-                51.48411
-              ],
-              "locator_text": "to Donald"
             }
           ]
         },
@@ -12032,24 +11562,6 @@
               "src": "except",
               "resolver_hint": "except_negative",
               "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'. — [human-review 2026-08-04 not_a_split] except duck lake. is just an exception."
-            }
-          ]
-        },
-        {
-          "src": "rule",
-          "text": "within the CVWMA, including Six Mile Lake, Leach Lake, Kootenay River and Canal",
-          "info": {
-            "restriction_type": "harvest"
-          },
-          "resolved": true,
-          "rows": [
-            {
-              "id": "creston-valley-wildlife-management-area-cvwma-911082",
-              "status": "not_applicable",
-              "anchor_kind": "not_a_split",
-              "src": "rule",
-              "resolver_hint": "park_polygon",
-              "notes": "[reviewed 2026-08-08 manual-review batch=cvwma-4-6] [n/a: whole-CVWMA set membership (bass/perch quota applies to all waters within the WMA area), not an internal split]"
             }
           ]
         },
@@ -13445,106 +12957,6 @@
               "locator_text": "From the Brilliant Dam to the confluence with the Columbia River"
             }
           ]
-        },
-        {
-          "src": "rule",
-          "text": "From the Brilliant Dam to the confluence with the Columbia River",
-          "info": {
-            "restriction_type": "harvest"
-          },
-          "resolved": true,
-          "rows": [
-            {
-              "id": "kootenay-river-downstream-of-idaho-border-1e5f9d-a",
-              "status": "curated",
-              "anchor_kind": "point",
-              "src": "rule",
-              "resolver_hint": "dam_weir_fence",
-              "label": "Brilliant Dam",
-              "notes": "[auto-proposal M] Brilliant Dam (run-of-river, lower Kootenay River) on Kootenay River (Brilliant Dam -> Columbia confluence). Candidate coord [-117.59864, 49.33662]. OSM: https://www.openstreetmap.org/?mlat=49.33662&mlon=-117.59864#map=15/49.33662/-117.59864. Verify: Confirm Brilliant Dam location on the lower Kootenay near Castlegar; candidate is the nearest Kootenay blue-line point.. Brilliant Dam is a run-of-river dam on the lower Kootenay River near its Columbia confluence (Castlegar). No named reservoir polygon; candidate = Kootenay River blue-line point nearest the known dam site. Reach runs to the Columbia confluence. [structural-split 2026-08-05 from \"from the Brilliant Dam to the confluence with the Columbia R\"] boundary=Brilliant Dam [human-review 2026-08-06 OSM dam] Brilliant Dam.",
-              "coord": [
-                -117.62009,
-                49.32481
-              ],
-              "locator_text": "Brilliant Dam"
-            },
-            {
-              "id": "kootenay-river-downstream-of-idaho-border-1e5f9d-b",
-              "status": "curated",
-              "anchor_kind": "confluence",
-              "src": "rule",
-              "resolver_hint": "tributary",
-              "label": "Columbia River confluence",
-              "notes": "[auto-proposal M] Brilliant Dam (run-of-river, lower Kootenay River) on Kootenay River (Brilliant Dam -> Columbia confluence). Candidate coord [-117.59864, 49.33662]. OSM: https://www.openstreetmap.org/?mlat=49.33662&mlon=-117.59864#map=15/49.33662/-117.59864. Verify: Confirm Brilliant Dam location on the lower Kootenay near Castlegar; candidate is the nearest Kootenay blue-line point.. Brilliant Dam is a run-of-river dam on the lower Kootenay River near its Columbia confluence (Castlegar). No named reservoir polygon; candidate = Kootenay River blue-line point nearest the known dam site. Reach runs to the Columbia confluence. [structural-split 2026-08-05 from \"from the Brilliant Dam to the confluence with the Columbia R\"] boundary=confluence with the Columbia River [human-review 2026-08-05 FWA-confluence] mouth of Columbia River (0 m validated); target blk/wsc set.",
-              "coord": [
-                -117.6533,
-                49.316
-              ],
-              "target": {
-                "blk": 356570372,
-                "wsc": "300-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
-              },
-              "locator_text": "confluence with the Columbia River"
-            },
-            {
-              "id": "kootenay-river-downstream-of-idaho-border-50d010",
-              "status": "not_applicable",
-              "anchor_kind": "point",
-              "src": "rule",
-              "resolver_hint": "dam_weir_fence",
-              "notes": "[auto-proposal M] Brilliant Dam (run-of-river, lower Kootenay River) on Kootenay River (Brilliant Dam -> Columbia confluence). Candidate coord [-117.59864, 49.33662]. OSM: https://www.openstreetmap.org/?mlat=49.33662&mlon=-117.59864#map=15/49.33662/-117.59864. Verify: Duplicate of kootenay-river-...-1e5f9d; same Brilliant Dam point.. Duplicate wording ('From the Brilliant Dam to the confluence with the Columbia River'). Same Brilliant Dam candidate. — [human-review 2026-08-04 not_applicable] DUPLICATE of kootenay-river-downstream-of-idaho-border-1e5f9d (same regulation, parser emitted multiple locator rows). → see kootenay-river-downstream-of-idaho-border-1e5f9d; dedup collapses."
-            }
-          ]
-        },
-        {
-          "src": "rule",
-          "text": "From the Brilliant Dam to the confluence with the Columbia River",
-          "info": {
-            "restriction_type": "harvest"
-          },
-          "resolved": true,
-          "rows": [
-            {
-              "id": "kootenay-river-downstream-of-idaho-border-1e5f9d-a",
-              "status": "curated",
-              "anchor_kind": "point",
-              "src": "rule",
-              "resolver_hint": "dam_weir_fence",
-              "label": "Brilliant Dam",
-              "notes": "[auto-proposal M] Brilliant Dam (run-of-river, lower Kootenay River) on Kootenay River (Brilliant Dam -> Columbia confluence). Candidate coord [-117.59864, 49.33662]. OSM: https://www.openstreetmap.org/?mlat=49.33662&mlon=-117.59864#map=15/49.33662/-117.59864. Verify: Confirm Brilliant Dam location on the lower Kootenay near Castlegar; candidate is the nearest Kootenay blue-line point.. Brilliant Dam is a run-of-river dam on the lower Kootenay River near its Columbia confluence (Castlegar). No named reservoir polygon; candidate = Kootenay River blue-line point nearest the known dam site. Reach runs to the Columbia confluence. [structural-split 2026-08-05 from \"from the Brilliant Dam to the confluence with the Columbia R\"] boundary=Brilliant Dam [human-review 2026-08-06 OSM dam] Brilliant Dam.",
-              "coord": [
-                -117.62009,
-                49.32481
-              ],
-              "locator_text": "Brilliant Dam"
-            },
-            {
-              "id": "kootenay-river-downstream-of-idaho-border-1e5f9d-b",
-              "status": "curated",
-              "anchor_kind": "confluence",
-              "src": "rule",
-              "resolver_hint": "tributary",
-              "label": "Columbia River confluence",
-              "notes": "[auto-proposal M] Brilliant Dam (run-of-river, lower Kootenay River) on Kootenay River (Brilliant Dam -> Columbia confluence). Candidate coord [-117.59864, 49.33662]. OSM: https://www.openstreetmap.org/?mlat=49.33662&mlon=-117.59864#map=15/49.33662/-117.59864. Verify: Confirm Brilliant Dam location on the lower Kootenay near Castlegar; candidate is the nearest Kootenay blue-line point.. Brilliant Dam is a run-of-river dam on the lower Kootenay River near its Columbia confluence (Castlegar). No named reservoir polygon; candidate = Kootenay River blue-line point nearest the known dam site. Reach runs to the Columbia confluence. [structural-split 2026-08-05 from \"from the Brilliant Dam to the confluence with the Columbia R\"] boundary=confluence with the Columbia River [human-review 2026-08-05 FWA-confluence] mouth of Columbia River (0 m validated); target blk/wsc set.",
-              "coord": [
-                -117.6533,
-                49.316
-              ],
-              "target": {
-                "blk": 356570372,
-                "wsc": "300-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
-              },
-              "locator_text": "confluence with the Columbia River"
-            },
-            {
-              "id": "kootenay-river-downstream-of-idaho-border-50d010",
-              "status": "not_applicable",
-              "anchor_kind": "point",
-              "src": "rule",
-              "resolver_hint": "dam_weir_fence",
-              "notes": "[auto-proposal M] Brilliant Dam (run-of-river, lower Kootenay River) on Kootenay River (Brilliant Dam -> Columbia confluence). Candidate coord [-117.59864, 49.33662]. OSM: https://www.openstreetmap.org/?mlat=49.33662&mlon=-117.59864#map=15/49.33662/-117.59864. Verify: Duplicate of kootenay-river-...-1e5f9d; same Brilliant Dam point.. Duplicate wording ('From the Brilliant Dam to the confluence with the Columbia River'). Same Brilliant Dam candidate. — [human-review 2026-08-04 not_applicable] DUPLICATE of kootenay-river-downstream-of-idaho-border-1e5f9d (same regulation, parser emitted multiple locator rows). → see kootenay-river-downstream-of-idaho-border-1e5f9d; dedup collapses."
-            }
-          ]
         }
       ],
       "reviewed": "2026-08-08"
@@ -14470,24 +13882,6 @@
               "resolver_hint": "lake_reach",
               "label": "south portion of Premier Lake (south of fishing boundary signs)",
               "notes": "[lake-class: lake_internal] lake-internal line at boundary signs (docs/15) — unsupported. — [review · was:deferred] assume nothing — re-decide. — [human-review 2026-08-04 lake-internal defer | docs/15 method=line] south portion of Premier Lake (south of fishing boundary signs)"
-            }
-          ]
-        },
-        {
-          "src": "rule",
-          "text": "south half only",
-          "info": {
-            "restriction_type": "vessel_restriction"
-          },
-          "resolved": true,
-          "rows": [
-            {
-              "id": "premier-lake-d21697",
-              "status": "deferred",
-              "anchor_kind": "unclassified",
-              "src": "rule",
-              "resolver_hint": "other_reach",
-              "notes": "[deferred 2026-08-09: 'south half only' closure area on Premier Lake — lake-area, defer per lake-split rule]"
             }
           ]
         },
@@ -17568,51 +16962,6 @@
               "locator_text": "downstream of Cameron Creek"
             }
           ]
-        },
-        {
-          "src": "rule",
-          "text": "downstream of Cameron Creek (including Cameron Creek)",
-          "info": {
-            "restriction_type": "gear_restriction"
-          },
-          "resolved": true,
-          "rows": [
-            {
-              "id": "mitchell-river-62dd66",
-              "status": "curated",
-              "anchor_kind": "confluence",
-              "src": "rule",
-              "resolver_hint": "tributary",
-              "label": "Cameron Creek confluence",
-              "notes": "Confluence = mouth of Cameron Creek (blk 356347114); parent = Mitchell River. Same confluence as mitchell-river-5bc0ff (already confirmed); different reg rule. OSM: https://www.openstreetmap.org/?mlat=52.82627&mlon=-120.80844#map=15/52.82627/-120.80844",
-              "coord": [
-                -120.80844,
-                52.82627
-              ],
-              "target": {
-                "blk": "356347114",
-                "wsc": "100-458399-740856-516642-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
-              }
-            },
-            {
-              "id": "mitchell-river-a7b6fe",
-              "status": "curated",
-              "anchor_kind": "confluence",
-              "src": "rule",
-              "resolver_hint": "tributary",
-              "label": "Cameron Creek confluence",
-              "notes": "Confluence = mouth of Cameron Creek (blk 356347114); parent = Mitchell River. Same confluence as mitchell-river-5bc0ff (already confirmed); different reg rule. OSM: https://www.openstreetmap.org/?mlat=52.82627&mlon=-120.80844#map=15/52.82627/-120.80844",
-              "coord": [
-                -120.80844,
-                52.82627
-              ],
-              "target": {
-                "blk": "356347114",
-                "wsc": "100-458399-740856-516642-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
-              },
-              "locator_text": "downstream of Cameron Creek"
-            }
-          ]
         }
       ]
     },
@@ -20501,66 +19850,6 @@
         },
         {
           "src": "rule",
-          "text": "Upstream of Limonite Creek (Zymoetz River A)",
-          "info": {
-            "restriction_type": "licensing",
-            "dates": [
-              "Jul 24 - Dec 31"
-            ]
-          },
-          "resolved": true,
-          "rows": [
-            {
-              "id": "zymoetz-copper-river-7cbab6",
-              "status": "curated",
-              "anchor_kind": "confluence",
-              "src": "rule",
-              "resolver_hint": "tributary",
-              "label": "Limonite Creek confluence",
-              "notes": "Confluence = mouth of Limonite Creek (blk 360886895); parent = Zymoetz River. Auto-resolved from FWA. OSM: https://www.openstreetmap.org/?mlat=54.49942&mlon=-127.94278#map=15/54.49942/-127.94278",
-              "coord": [
-                -127.94278,
-                54.49942
-              ],
-              "target": {
-                "blk": "360886895",
-                "wsc": "400-221484-327081-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
-              }
-            }
-          ]
-        },
-        {
-          "src": "rule",
-          "text": "Downstream of Limonite Creek (Zymoetz River B)",
-          "info": {
-            "restriction_type": "licensing",
-            "dates": [
-              "Jul 24 - May 31"
-            ]
-          },
-          "resolved": true,
-          "rows": [
-            {
-              "id": "zymoetz-copper-river-bb27a9",
-              "status": "curated",
-              "anchor_kind": "confluence",
-              "src": "rule",
-              "resolver_hint": "tributary",
-              "label": "Limonite Creek confluence",
-              "notes": "Confluence = mouth of Limonite Creek (blk 360886895); parent = Zymoetz River. Auto-resolved from FWA. OSM: https://www.openstreetmap.org/?mlat=54.49942&mlon=-127.94278#map=15/54.49942/-127.94278",
-              "coord": [
-                -127.94278,
-                54.49942
-              ],
-              "target": {
-                "blk": "360886895",
-                "wsc": "400-221484-327081-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
-              }
-            }
-          ]
-        },
-        {
-          "src": "rule",
           "text": "Downstream of Limonite Creek (Zymoetz River B)",
           "info": {
             "restriction_type": "licensing",
@@ -22237,24 +21526,6 @@
       "n_boundaries": 2,
       "deferred": false,
       "locators": [
-        {
-          "src": "rule",
-          "text": "downstream of Moberly Lake",
-          "info": {
-            "restriction_type": "harvest"
-          },
-          "resolved": true,
-          "rows": [
-            {
-              "id": "moberly-river-b2a8ec",
-              "status": "not_applicable",
-              "anchor_kind": "lake",
-              "src": "rule",
-              "resolver_hint": "lake_reach",
-              "notes": "[lake-class: lake_split] outlet of Moberly Lake. — [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 — NO authored split needed. — [review · was:auto] assume nothing — re-decide. — [human-review 2026-08-04 lake-verify] VERIFIED auto_lake_edge: 'downstream of Moberly Lake' = lake-outlet edge, handled for free. n/a."
-            }
-          ]
-        },
         {
           "src": "rule",
           "text": "downstream of Moberly Lake",
