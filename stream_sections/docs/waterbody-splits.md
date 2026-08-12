@@ -9,7 +9,7 @@ linked to the curated row(s) that resolve it. Regenerate; do not hand-edit.
 | MISSING_SPLITS | 2 |
 | INCOMPLETE | 6 |
 | COMPLETE | 303 |
-| NO_SPLIT | 75 |
+| NO_SPLIT | 1 |
 
 **Drift** (curated rows matching no source locator): 16
 

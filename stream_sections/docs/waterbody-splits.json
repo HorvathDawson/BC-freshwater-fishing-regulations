@@ -539,21 +539,6 @@
               "notes": "— [human-review 2026-08-04 not_applicable] tributaries-SET ('fly only; except Thelwood Creek closed') — set membership + exclusion, no point split."
             }
           ]
-        },
-        {
-          "src": "name",
-          "text": "BUTTLE LAKE'S TRIBUTARIES",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "buttle-lake-s-tributaries-2ff8d6",
-              "status": "not_applicable",
-              "anchor_kind": "confluence",
-              "src": "name",
-              "resolver_hint": "tributary",
-              "notes": "tributary-SET reg (all tributaries of the named lake/river): a whole-WSC-subtree membership, NOT a curated point split. Handle via tributary inheritance / wsc_descendants, not a confluence point. — [review · was:not_applicable] assume nothing — re-decide. — [human-review 2026-08-04 not_a_split] not a split but it does have an except."
-            }
-          ]
         }
       ]
     },
@@ -595,22 +580,6 @@
                 -125.58778,
                 49.99836
               ]
-            }
-          ]
-        },
-        {
-          "src": "name",
-          "text": "(Lower) CAMPBELL LAKE'S TRIBUTARIES",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "lower-campbell-lake-s-tributaries-a724e1",
-              "status": "not_applicable",
-              "anchor_kind": "confluence",
-              "src": "name",
-              "resolver_hint": "tributary",
-              "notes": "tributary-SET reg (all tributaries of the named lake/river): a whole-WSC-subtree membership, NOT a curated point split. Handle via tributary inheritance / wsc_descendants, not a confluence point. — [review · was:not_applicable] assume nothing — re-decide. — [human-review 2026-08-04 not_applicable] tributaries-SET row; the 'Campbell R between Strathcona Dam and Campbell Lake' mainstem reach is separate (Strathcona Dam = campbell-river-657d6e, todo).",
-              "locator_text": "CAMPBELL LAKE'S TRIBUTARIES"
             }
           ]
         }
@@ -1467,22 +1436,6 @@
               "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'. — [human-review 2026-08-04 na-with-siblings] confirmed — 'on parts' (same reg block as cowichan-river-see-map-below-337c0e), not a split. Same DEDICATED sibling rows already cover the boundaries."
             }
           ]
-        },
-        {
-          "src": "name",
-          "text": "COWICHAN RIVER (see map below)",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "cowichan-river-see-map-below-337c0e",
-              "status": "not_applicable",
-              "anchor_kind": "not_a_split",
-              "src": "name",
-              "resolver_hint": "map_or_vague",
-              "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'. — [human-review 2026-08-04 na-with-siblings] confirmed — 'see map below' pointer, not a split. All boundary clauses in full_regulation (weir at Cowichan Lake outlet–Greendale Trestle, Holt Creek tributaries, CNR Trestle Mile 66, Greendale Trestle–CNR Bridge Mile 70.2) already have DEDICATED rows.",
-              "locator_text": "see map below"
-            }
-          ]
         }
       ],
       "reviewed": "2026-08-07"
@@ -1825,23 +1778,6 @@
               "locator_text": "upstream of the fishing boundary signs (near the South Main Bridge crossing) located approximately 5.4 km downstream of"
             }
           ]
-        },
-        {
-          "src": "name",
-          "text": "EVE RIVER",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "adam-river-except-eve-river-ca05b3",
-              "status": "not_applicable",
-              "anchor_kind": "not_a_split",
-              "src": "name",
-              "resolver_hint": "except_negative",
-              "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'. — [human-review 2026-08-04 not_applicable] 'except Eve River' exclusion (Eve R tributary excluded); the real reach 'upstream of Eve River -> Hwy 19 bridge' is adam-river-except-eve-river-939f98 (todo). The adams-river/adams-lake rows are the different Adams River (Shuswap) — no conflict.",
-              "name_verbatim": "ADAM RIVER (except Eve River)",
-              "locator_text": "except Eve River"
-            }
-          ]
         }
       ],
       "reviewed": "2026-08-10"
@@ -2159,38 +2095,6 @@
         }
       ]
     },
-    "17077645": {
-      "entry_id": "17077645",
-      "water": "HEALY LAKE'S OUTLET STREAM",
-      "mu": [
-        "1-5"
-      ],
-      "region": "REGION 1 - Vancouver Island",
-      "page": 18,
-      "image": "page_018_row_020.png",
-      "symbols": [],
-      "reg_text": "**No Fishing**",
-      "completeness": "NO_SPLIT",
-      "n_boundaries": 0,
-      "deferred": false,
-      "locators": [
-        {
-          "src": "name",
-          "text": "HEALY LAKE'S OUTLET STREAM",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "healy-lake-s-outlet-stream-afd7d5",
-              "status": "not_applicable",
-              "anchor_kind": "lake_io",
-              "src": "name",
-              "resolver_hint": "inlet_outlet",
-              "notes": " [human-review 2026-08-06 n/a] whole outlet stream, no split."
-            }
-          ]
-        }
-      ]
-    },
     "8b5f3143": {
       "entry_id": "8b5f3143",
       "water": "HEBER RIVER",
@@ -2354,21 +2258,6 @@
               "target": {
                 "blk": "354154635"
               }
-            }
-          ]
-        },
-        {
-          "src": "name",
-          "text": "JOHN HART LAKE'S TRIBUTARIES",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "john-hart-lake-s-tributaries-4e8025",
-              "status": "not_applicable",
-              "anchor_kind": "confluence",
-              "src": "name",
-              "resolver_hint": "tributary",
-              "notes": "tributary-SET reg (all tributaries of the named lake/river): a whole-WSC-subtree membership, NOT a curated point split. Handle via tributary inheritance / wsc_descendants, not a confluence point. — [review · was:not_applicable] assume nothing — re-decide. — [human-review 2026-08-04 not_applicable] tributaries-SET half of the same reg; the one split (channel downstream of Ladore Dam) is curated in john-hart-lake-s-tributaries-36c501."
             }
           ]
         }
@@ -4466,21 +4355,6 @@
               "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'. — [human-review 2026-08-04 not_a_split] just exceptions to the admin region"
             }
           ]
-        },
-        {
-          "src": "name",
-          "text": "STRATHCONA PARK WATERS",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "strathcona-park-waters-6ad989",
-              "status": "not_applicable",
-              "anchor_kind": "area_boundary",
-              "src": "name",
-              "resolver_hint": "park_polygon",
-              "notes": "— [human-review 2026-08-04 not_applicable] park-wide 'No powered boats within Strathcona Park' area rule, not a stream split."
-            }
-          ]
         }
       ]
     },
@@ -5207,121 +5081,6 @@
               ]
             }
           ]
-        },
-        {
-          "src": "name",
-          "text": "BRUNETTE RIVER",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "brunette-river-s-tributaries-aa1996",
-              "status": "not_applicable",
-              "anchor_kind": "confluence",
-              "src": "name",
-              "resolver_hint": "tributary",
-              "notes": "tributary-SET reg (all tributaries of the named lake/river): a whole-WSC-subtree membership, NOT a curated point split. Handle via tributary inheritance / wsc_descendants, not a confluence point. — [review · was:not_applicable] assume nothing — re-decide. — [human-review 2026-08-04 not_applicable] tributaries-SET row; mainstem split is separate (brunette-river-3c4590, todo).",
-              "name_verbatim": "BRUNETTE RIVER'S TRIBUTARIES",
-              "locator_text": "BRUNETTE RIVER'S TRIBUTARIES"
-            }
-          ]
-        }
-      ]
-    },
-    "680aebf7": {
-      "entry_id": "680aebf7",
-      "water": "BRUNETTE RIVER'S TRIBUTARIES",
-      "mu": [
-        "2-8"
-      ],
-      "region": "REGION 2 - Lower Mainland",
-      "page": 24,
-      "image": "page_024_row_017.png",
-      "symbols": [],
-      "reg_text": "**No Fishing**",
-      "completeness": "NO_SPLIT",
-      "n_boundaries": 0,
-      "deferred": false,
-      "locators": [
-        {
-          "src": "name",
-          "text": "BRUNETTE RIVER'S TRIBUTARIES",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "brunette-river-s-tributaries-aa1996",
-              "status": "not_applicable",
-              "anchor_kind": "confluence",
-              "src": "name",
-              "resolver_hint": "tributary",
-              "notes": "tributary-SET reg (all tributaries of the named lake/river): a whole-WSC-subtree membership, NOT a curated point split. Handle via tributary inheritance / wsc_descendants, not a confluence point. — [review · was:not_applicable] assume nothing — re-decide. — [human-review 2026-08-04 not_applicable] tributaries-SET row; mainstem split is separate (brunette-river-3c4590, todo)."
-            }
-          ]
-        }
-      ]
-    },
-    "6555d7e7": {
-      "entry_id": "6555d7e7",
-      "water": "BURNABY LAKE",
-      "mu": [
-        "2-8"
-      ],
-      "region": "REGION 2 - Lower Mainland",
-      "page": 24,
-      "image": "page_024_row_018.png",
-      "symbols": [],
-      "reg_text": "Single barbless hook; No powered boats",
-      "completeness": "NO_SPLIT",
-      "n_boundaries": 0,
-      "deferred": false,
-      "locators": [
-        {
-          "src": "name",
-          "text": "BURNABY LAKE",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "burnaby-lake-s-tributaries-fbc31b",
-              "status": "not_applicable",
-              "anchor_kind": "confluence",
-              "src": "name",
-              "resolver_hint": "tributary",
-              "notes": "tributary-SET reg (all tributaries of the named lake/river): a whole-WSC-subtree membership, NOT a curated point split. Handle via tributary inheritance / wsc_descendants, not a confluence point. — [review · was:not_applicable] assume nothing — re-decide. — [human-review 2026-08-04 not_a_split] confirmed not a split",
-              "name_verbatim": "BURNABY LAKE'S TRIBUTARIES",
-              "locator_text": "BURNABY LAKE'S TRIBUTARIES"
-            }
-          ]
-        }
-      ]
-    },
-    "fcfe4f6f": {
-      "entry_id": "fcfe4f6f",
-      "water": "BURNABY LAKE'S TRIBUTARIES",
-      "mu": [
-        "2-8"
-      ],
-      "region": "REGION 2 - Lower Mainland",
-      "page": 24,
-      "image": "page_024_row_019.png",
-      "symbols": [],
-      "reg_text": "**No Fishing**",
-      "completeness": "NO_SPLIT",
-      "n_boundaries": 0,
-      "deferred": false,
-      "locators": [
-        {
-          "src": "name",
-          "text": "BURNABY LAKE'S TRIBUTARIES",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "burnaby-lake-s-tributaries-fbc31b",
-              "status": "not_applicable",
-              "anchor_kind": "confluence",
-              "src": "name",
-              "resolver_hint": "tributary",
-              "notes": "tributary-SET reg (all tributaries of the named lake/river): a whole-WSC-subtree membership, NOT a curated point split. Handle via tributary inheritance / wsc_descendants, not a confluence point. — [review · was:not_applicable] assume nothing — re-decide. — [human-review 2026-08-04 not_a_split] confirmed not a split"
-            }
-          ]
         }
       ]
     },
@@ -5523,72 +5282,6 @@
               "resolver_hint": "falls_obstacle",
               "label": "signs 100 m d/s of falls (depends on -a)",
               "notes": "100 m downstream of the Chapman falls (-a). Author as offset once -a falls point is confirmed. Depends on -a (2 candidates, needs contact)."
-            }
-          ]
-        }
-      ]
-    },
-    "f49c0c85": {
-      "entry_id": "f49c0c85",
-      "water": "CHEHALIS LAKE",
-      "mu": [
-        "2-19"
-      ],
-      "region": "REGION 2 - Lower Mainland",
-      "page": 24,
-      "image": "page_024_row_029.png",
-      "symbols": [],
-      "reg_text": "No wild trout over 50 cm, 1 bull trout over 60 cm",
-      "completeness": "NO_SPLIT",
-      "n_boundaries": 0,
-      "deferred": false,
-      "locators": [
-        {
-          "src": "name",
-          "text": "CHEHALIS LAKE",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "chehalis-lake-s-tributaries-493a00",
-              "status": "not_applicable",
-              "anchor_kind": "confluence",
-              "src": "name",
-              "resolver_hint": "tributary",
-              "notes": "tributary-SET reg (all tributaries of the named lake/river): a whole-WSC-subtree membership, NOT a curated point split. Handle via tributary inheritance / wsc_descendants, not a confluence point. — [review · was:not_applicable] assume nothing — re-decide. — [human-review 2026-08-04 not_a_split] confirmed not a split",
-              "name_verbatim": "CHEHALIS LAKE'S TRIBUTARIES",
-              "locator_text": "CHEHALIS LAKE'S TRIBUTARIES"
-            }
-          ]
-        }
-      ]
-    },
-    "b6f02626": {
-      "entry_id": "b6f02626",
-      "water": "CHEHALIS LAKE'S TRIBUTARIES",
-      "mu": [
-        "2-19"
-      ],
-      "region": "REGION 2 - Lower Mainland",
-      "page": 24,
-      "image": "page_024_row_030.png",
-      "symbols": [],
-      "reg_text": "**No Fishing**",
-      "completeness": "NO_SPLIT",
-      "n_boundaries": 0,
-      "deferred": false,
-      "locators": [
-        {
-          "src": "name",
-          "text": "CHEHALIS LAKE'S TRIBUTARIES",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "chehalis-lake-s-tributaries-493a00",
-              "status": "not_applicable",
-              "anchor_kind": "confluence",
-              "src": "name",
-              "resolver_hint": "tributary",
-              "notes": "tributary-SET reg (all tributaries of the named lake/river): a whole-WSC-subtree membership, NOT a curated point split. Handle via tributary inheritance / wsc_descendants, not a confluence point. — [review · was:not_applicable] assume nothing — re-decide. — [human-review 2026-08-04 not_a_split] confirmed not a split"
             }
           ]
         }
@@ -5983,23 +5676,6 @@
               "name_verbatim": "CHILLIWACK / VEDDER RIVERS (does not include Sumas Riv"
             }
           ]
-        },
-        {
-          "src": "name",
-          "text": "CHILLIWACK / VEDDER RIVERS (does not include Sumas River) (see map on page 24)",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "chilliwack-vedder-rivers-does-not-include-sum-3ab919",
-              "status": "not_applicable",
-              "anchor_kind": "not_a_split",
-              "src": "name",
-              "resolver_hint": "map_or_vague",
-              "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'. — [human-review 2026-08-04 na-with-siblings] confirmed — 'see map on page 24' pointer, not a split. All boundary clauses in full_regulation (Slesse Creek confluence signs, Tamihi Rapids Bridge, Vedder Crossing Bridge) already have DEDICATED rows.",
-              "name_verbatim": "CHILLIWACK / VEDDER RIVERS (does not include Sumas Riv",
-              "locator_text": "see map on page 24"
-            }
-          ]
         }
       ],
       "reviewed": "2026-08-07"
@@ -6296,42 +5972,6 @@
       ],
       "reviewed": "2026-08-09"
     },
-    "4538152a": {
-      "entry_id": "4538152a",
-      "water": "DEER LAKE (Sasquatch Park)",
-      "mu": [
-        "2-18"
-      ],
-      "region": "REGION 2 - Lower Mainland",
-      "page": 25,
-      "image": "page_025_row_008.png",
-      "symbols": [
-        "Stocked"
-      ],
-      "reg_text": "Electric motor only - max 7.5 kW",
-      "completeness": "NO_SPLIT",
-      "n_boundaries": 0,
-      "deferred": false,
-      "locators": [
-        {
-          "src": "name",
-          "text": "DEER LAKE (Sasquatch Park)",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "deer-lake-sasquatch-park-9c2360",
-              "status": "not_applicable",
-              "anchor_kind": "not_a_split",
-              "src": "name",
-              "resolver_hint": "other_reach",
-              "notes": "[n/a 2026-08-09 lake batch2: whole-lake/park, no split]",
-              "locator_text": "Sasquatch Park"
-            }
-          ]
-        }
-      ],
-      "reviewed": "2026-08-09"
-    },
     "b613729b": {
       "entry_id": "b613729b",
       "water": "FRASER RIVER (upstream of the CPR Bridge at Mission)",
@@ -6519,26 +6159,6 @@
                 -122.30047,
                 49.12606
               ]
-            }
-          ]
-        },
-        {
-          "src": "name",
-          "text": "FRASER RIVER (upstream of the CPR Bridge at Mission)",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "fraser-river-upstream-of-the-cpr-bridge-at-mi-73e755",
-              "status": "curated",
-              "anchor_kind": "point",
-              "src": "name",
-              "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] CPR Bridge at Mission on Fraser River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the CPR (Mission railway) bridge over the Fraser at Mission; well-known -> review.. Public/railway bridge at Mission (the tidal-boundary landmark on the lower Fraser). Map/OSM-confirmable. [curated 2026-08-07 manual-review batch=fraser-mission] [Mission Railway Bridge]",
-              "coord": [
-                -122.30047,
-                49.12606
-              ],
-              "locator_text": "upstream of the CPR Bridge at Mission"
             }
           ]
         }
@@ -6731,39 +6351,6 @@
       ],
       "reviewed": "2026-08-09"
     },
-    "e2a1c1a8": {
-      "entry_id": "e2a1c1a8",
-      "water": "JERRY SULINA PARK POND",
-      "mu": [
-        "2-8"
-      ],
-      "region": "REGION 2 - Lower Mainland",
-      "page": 25,
-      "image": "page_025_row_041.png",
-      "symbols": [],
-      "reg_text": "Single barbless hook",
-      "completeness": "NO_SPLIT",
-      "n_boundaries": 0,
-      "deferred": false,
-      "locators": [
-        {
-          "src": "name",
-          "text": "JERRY SULINA PARK POND",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "jerry-sulina-park-pond-629c3b",
-              "status": "not_applicable",
-              "anchor_kind": "not_a_split",
-              "src": "name",
-              "resolver_hint": "other_reach",
-              "notes": "[reviewed 2026-08-09 park+warnings batch] [n/a: whole park pond, no split]"
-            }
-          ]
-        }
-      ],
-      "reviewed": "2026-08-09"
-    },
     "5cfc51fc": {
       "entry_id": "5cfc51fc",
       "water": "KANAKA CREEK",
@@ -6818,40 +6405,6 @@
           ]
         }
       ]
-    },
-    "eddfa223": {
-      "entry_id": "eddfa223",
-      "water": "LIGHTNING LAKE (Manning Park)",
-      "mu": [
-        "2-1"
-      ],
-      "region": "REGION 2 - Lower Mainland",
-      "page": 26,
-      "image": "page_026_row_003.png",
-      "symbols": [],
-      "reg_text": "No powered boats",
-      "completeness": "NO_SPLIT",
-      "n_boundaries": 0,
-      "deferred": false,
-      "locators": [
-        {
-          "src": "name",
-          "text": "LIGHTNING LAKE (Manning Park)",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "lightning-lake-manning-park-6f3522",
-              "status": "not_applicable",
-              "anchor_kind": "not_a_split",
-              "src": "name",
-              "resolver_hint": "other_reach",
-              "notes": "[n/a 2026-08-09 lake batch3: whole-lake/park/location, no split]",
-              "locator_text": "Manning Park"
-            }
-          ]
-        }
-      ],
-      "reviewed": "2026-08-09"
     },
     "63f561e1": {
       "entry_id": "63f561e1",
@@ -7679,41 +7232,6 @@
       ],
       "reviewed": "2026-08-08"
     },
-    "e84bdfe8": {
-      "entry_id": "e84bdfe8",
-      "water": "SARDIS PARK POND",
-      "mu": [
-        "2-4"
-      ],
-      "region": "REGION 2 - Lower Mainland",
-      "page": 27,
-      "image": "page_027_row_025.png",
-      "symbols": [
-        "Stocked"
-      ],
-      "reg_text": "Single barbless hook; Youth/Disabled Accompanied Water year round (see page 4)",
-      "completeness": "NO_SPLIT",
-      "n_boundaries": 0,
-      "deferred": false,
-      "locators": [
-        {
-          "src": "name",
-          "text": "SARDIS PARK POND",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "sardis-park-pond-61106f",
-              "status": "not_applicable",
-              "anchor_kind": "not_a_split",
-              "src": "name",
-              "resolver_hint": "other_reach",
-              "notes": "[reviewed 2026-08-09 park+warnings batch] [n/a: whole park pond, no split]"
-            }
-          ]
-        }
-      ],
-      "reviewed": "2026-08-09"
-    },
     "5494c7fa": {
       "entry_id": "5494c7fa",
       "water": "SERPENTINE RIVER",
@@ -8109,42 +7627,6 @@
         }
       ]
     },
-    "210ac5d0": {
-      "entry_id": "210ac5d0",
-      "water": "SQUAMISH RIVER",
-      "mu": [
-        "2-6"
-      ],
-      "region": "REGION 2 - Lower Mainland",
-      "page": 28,
-      "image": "page_028_row_000.png",
-      "symbols": [
-        "Incl. Tribs"
-      ],
-      "reg_text": "Bait ban",
-      "completeness": "NO_SPLIT",
-      "n_boundaries": 0,
-      "deferred": false,
-      "locators": [
-        {
-          "src": "name",
-          "text": "SQUAMISH RIVER",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "squamish-river-s-tributaries-07f930",
-              "status": "not_applicable",
-              "anchor_kind": "confluence",
-              "src": "name",
-              "resolver_hint": "tributary",
-              "notes": "tributary-SET reg (all tributaries of the named lake/river): a whole-WSC-subtree membership, NOT a curated point split. Handle via tributary inheritance / wsc_descendants, not a confluence point. — [review · was:not_applicable] assume nothing — re-decide. — [human-review 2026-08-04 not_a_split] has exception no split",
-              "name_verbatim": "SQUAMISH RIVER'S TRIBUTARIES",
-              "locator_text": "SQUAMISH RIVER'S TRIBUTARIES"
-            }
-          ]
-        }
-      ]
-    },
     "c3ae5a0c": {
       "entry_id": "c3ae5a0c",
       "water": "SQUAMISH RIVER'S TRIBUTARIES",
@@ -8175,21 +7657,6 @@
               "src": "except",
               "resolver_hint": "except_negative",
               "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'. — [human-review 2026-08-04 not_a_split] just exceptions to tribs"
-            }
-          ]
-        },
-        {
-          "src": "name",
-          "text": "SQUAMISH RIVER'S TRIBUTARIES",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "squamish-river-s-tributaries-07f930",
-              "status": "not_applicable",
-              "anchor_kind": "confluence",
-              "src": "name",
-              "resolver_hint": "tributary",
-              "notes": "tributary-SET reg (all tributaries of the named lake/river): a whole-WSC-subtree membership, NOT a curated point split. Handle via tributary inheritance / wsc_descendants, not a confluence point. — [review · was:not_applicable] assume nothing — re-decide. — [human-review 2026-08-04 not_a_split] has exception no split"
             }
           ]
         }
@@ -8356,73 +7823,6 @@
         }
       ]
     },
-    "9e158f64": {
-      "entry_id": "9e158f64",
-      "water": "TROUT LAKE (Sasquatch Park)",
-      "mu": [
-        "2-18"
-      ],
-      "region": "REGION 2 - Lower Mainland",
-      "page": 28,
-      "image": "page_028_row_011.png",
-      "symbols": [],
-      "reg_text": "No powered boats",
-      "completeness": "NO_SPLIT",
-      "n_boundaries": 0,
-      "deferred": false,
-      "locators": [
-        {
-          "src": "name",
-          "text": "TROUT LAKE (Sasquatch Park)",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "trout-lake-sasquatch-park-a6ce18",
-              "status": "not_applicable",
-              "anchor_kind": "not_a_split",
-              "src": "name",
-              "resolver_hint": "other_reach",
-              "notes": "[n/a 2026-08-09 lake batch3: whole-lake/park/location, no split]",
-              "locator_text": "Sasquatch Park"
-            }
-          ]
-        }
-      ],
-      "reviewed": "2026-08-09"
-    },
-    "af93a9ad": {
-      "entry_id": "af93a9ad",
-      "water": "WAHLEACH (\"Jones\") LAKE'S TRIBUTARIES",
-      "mu": [
-        "2-3"
-      ],
-      "region": "REGION 2 - Lower Mainland",
-      "page": 28,
-      "image": "page_028_row_017.png",
-      "symbols": [],
-      "reg_text": "**No Fishing**",
-      "completeness": "NO_SPLIT",
-      "n_boundaries": 0,
-      "deferred": false,
-      "locators": [
-        {
-          "src": "name",
-          "text": "WAHLEACH (\"Jones\") LAKE'S TRIBUTARIES",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "wahleach-jones-lake-s-tributaries-44df7a",
-              "status": "not_applicable",
-              "anchor_kind": "confluence",
-              "src": "name",
-              "resolver_hint": "tributary",
-              "notes": "tributary-SET reg (all tributaries of the named lake/river): a whole-WSC-subtree membership, NOT a curated point split. Handle via tributary inheritance / wsc_descendants, not a confluence point. — [review · was:not_applicable] assume nothing — re-decide. — [human-review 2026-08-04 not_a_split] confirmed not a split",
-              "locator_text": "WAHLEACH LAKE'S TRIBUTARIES"
-            }
-          ]
-        }
-      ]
-    },
     "c6b28d59": {
       "entry_id": "c6b28d59",
       "water": "WEAVER LAKE and WEAVER CREEK",
@@ -8570,39 +7970,6 @@
               "notes": "[deferred 2026-08-09 lake-split batch: lake-area closure]"
             }
           ]
-        },
-        {
-          "src": "name",
-          "text": "ADAMS LAKE",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "adams-river-downstream-of-adams-lake-037302",
-              "status": "curated",
-              "anchor_kind": "lake",
-              "src": "name",
-              "resolver_hint": "lake_reach",
-              "notes": "Split authored in splits.json: 'adams_lake' (lake). — authored split: adams_lake",
-              "target": {
-                "wbk": "329014384"
-              },
-              "name_verbatim": "ADAMS RIVER (downstream of Adams Lake)",
-              "locator_text": "downstream of Adams Lake"
-            },
-            {
-              "id": "adams-river-upstream-of-adams-lake-54ec4b",
-              "status": "curated",
-              "anchor_kind": "lake",
-              "src": "name",
-              "resolver_hint": "lake_reach",
-              "notes": "Split authored in splits.json: 'adams_lake' (lake). — authored split: adams_lake",
-              "target": {
-                "wbk": "329014384"
-              },
-              "name_verbatim": "ADAMS RIVER (upstream of Adams Lake)",
-              "locator_text": "upstream of Adams Lake"
-            }
-          ]
         }
       ],
       "reviewed": "2026-08-09"
@@ -8655,25 +8022,6 @@
               "target": {
                 "wbk": "329014384"
               }
-            }
-          ]
-        },
-        {
-          "src": "name",
-          "text": "ADAMS RIVER (upstream of Adams Lake)",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "adams-river-upstream-of-adams-lake-54ec4b",
-              "status": "curated",
-              "anchor_kind": "lake",
-              "src": "name",
-              "resolver_hint": "lake_reach",
-              "notes": "Split authored in splits.json: 'adams_lake' (lake). — authored split: adams_lake",
-              "target": {
-                "wbk": "329014384"
-              },
-              "locator_text": "upstream of Adams Lake"
             }
           ]
         }
@@ -8753,25 +8101,6 @@
               "target": {
                 "wbk": "329014384"
               }
-            }
-          ]
-        },
-        {
-          "src": "name",
-          "text": "ADAMS RIVER (downstream of Adams Lake)",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "adams-river-downstream-of-adams-lake-037302",
-              "status": "curated",
-              "anchor_kind": "lake",
-              "src": "name",
-              "resolver_hint": "lake_reach",
-              "notes": "Split authored in splits.json: 'adams_lake' (lake). — authored split: adams_lake",
-              "target": {
-                "wbk": "329014384"
-              },
-              "locator_text": "downstream of Adams Lake"
             }
           ]
         }
@@ -9279,72 +8608,6 @@
       ],
       "reviewed": "2026-08-08"
     },
-    "ee010baf": {
-      "entry_id": "ee010baf",
-      "water": "COLDWATER RIVER",
-      "mu": [
-        "3-13"
-      ],
-      "region": "REGION 3 - Thompson-Nicola",
-      "page": 31,
-      "image": "page_031_row_032.png",
-      "symbols": [],
-      "reg_text": "**No Fishing** Jan 1-Sept 30; no trout under 25 cm; bull trout catch and release",
-      "completeness": "NO_SPLIT",
-      "n_boundaries": 0,
-      "deferred": false,
-      "locators": [
-        {
-          "src": "name",
-          "text": "COLDWATER RIVER",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "coldwater-river-s-tributaries-cd6684",
-              "status": "not_applicable",
-              "anchor_kind": "confluence",
-              "src": "name",
-              "resolver_hint": "tributary",
-              "notes": "tributary-SET reg (all tributaries of the named lake/river): a whole-WSC-subtree membership, NOT a curated point split. Handle via tributary inheritance / wsc_descendants, not a confluence point. — [review · was:not_applicable] assume nothing — re-decide. — [human-review 2026-08-04 not_a_split] confirmed not a split",
-              "name_verbatim": "COLDWATER RIVER'S TRIBUTARIES",
-              "locator_text": "COLDWATER RIVER'S TRIBUTARIES"
-            }
-          ]
-        }
-      ]
-    },
-    "e18578da": {
-      "entry_id": "e18578da",
-      "water": "COLDWATER RIVER'S TRIBUTARIES",
-      "mu": [
-        "3-13"
-      ],
-      "region": "REGION 3 - Thompson-Nicola",
-      "page": 31,
-      "image": "page_031_row_033.png",
-      "symbols": [],
-      "reg_text": "See Juliet, July, and Mine Creeks",
-      "completeness": "NO_SPLIT",
-      "n_boundaries": 0,
-      "deferred": false,
-      "locators": [
-        {
-          "src": "name",
-          "text": "COLDWATER RIVER'S TRIBUTARIES",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "coldwater-river-s-tributaries-cd6684",
-              "status": "not_applicable",
-              "anchor_kind": "confluence",
-              "src": "name",
-              "resolver_hint": "tributary",
-              "notes": "tributary-SET reg (all tributaries of the named lake/river): a whole-WSC-subtree membership, NOT a curated point split. Handle via tributary inheritance / wsc_descendants, not a confluence point. — [review · was:not_applicable] assume nothing — re-decide. — [human-review 2026-08-04 not_a_split] confirmed not a split"
-            }
-          ]
-        }
-      ]
-    },
     "f5eeaeef": {
       "entry_id": "f5eeaeef",
       "water": "CRAZY CREEK",
@@ -9438,39 +8701,6 @@
               "src": "rule",
               "resolver_hint": "lake_reach",
               "notes": "[lake-class: lake_split] outlet of Mowich Lake. — [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 — NO authored split needed. — [review · was:auto] assume nothing — re-decide. — [human-review 2026-08-04 lake-verify] VERIFIED auto_lake_edge: 'downstream of Mowich Lake' = lake-outlet edge, handled for free. n/a."
-            }
-          ]
-        }
-      ]
-    },
-    "6b9af852": {
-      "entry_id": "6b9af852",
-      "water": "DOWNTON LAKE (Reservoir)",
-      "mu": [
-        "3-33"
-      ],
-      "region": "REGION 3 - Thompson-Nicola",
-      "page": 31,
-      "image": "page_031_row_042.png",
-      "symbols": [],
-      "reg_text": "Bull trout catch and release",
-      "completeness": "NO_SPLIT",
-      "n_boundaries": 0,
-      "deferred": false,
-      "locators": [
-        {
-          "src": "name",
-          "text": "DOWNTON LAKE (Reservoir)",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "downton-lake-reservoir-73beda",
-              "status": "not_applicable",
-              "anchor_kind": "lake",
-              "src": "name",
-              "resolver_hint": "lake_reach",
-              "notes": "[lake-class: whole_lake] whole reservoir (Downton Lake) — matched by name, no cut. — [review · was:not_applicable] assume nothing — re-decide. — [human-review 2026-08-04 not_a_split] confirmed not a split",
-              "locator_text": "Reservoir"
             }
           ]
         }
@@ -11951,79 +11181,9 @@
               "name_verbatim": "THOMPSON RIVER (downstream of signs at Kamloops Lake o"
             }
           ]
-        },
-        {
-          "src": "name",
-          "text": "THOMPSON RIVER (downstream of signs at Kamloops Lake outlet to the confluence with Fraser River)",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "thompson-river-downstream-of-signs-at-kamloop-bc221e-a",
-              "status": "not_applicable",
-              "anchor_kind": "confluence",
-              "src": "name",
-              "resolver_hint": "tributary",
-              "label": "Kamloops Lake outlet",
-              "notes": "non-confluence: lake outlet boundary — [review · was:deferred] assume nothing — re-decide. — [human-review 2026-08-04 not_applicable] reach endpoint A = signs at Kamloops Lake outlet (≈ auto lake edge; signs sit at the outlet); point endpoint B (Thompson/Fraser confluence) curated in ...bc221e-b. → see -b.",
-              "name_verbatim": "THOMPSON RIVER (downstream of signs at Kamloops Lake o",
-              "locator_text": "downstream of signs at Kamloops Lake outlet to the confluence with Fraser River"
-            },
-            {
-              "id": "thompson-river-downstream-of-signs-at-kamloop-bc221e-b",
-              "status": "curated",
-              "anchor_kind": "confluence",
-              "src": "name",
-              "resolver_hint": "tributary",
-              "label": "Thompson/Fraser confluence",
-              "notes": "Confluence = mouth of Thompson River (blk 356364690); parent = Fraser River. Author as confluence anchor tributary_wsc=100-190442-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000. OSM: https://www.openstreetmap.org/?mlat=50.23551&mlon=-121.58488#map=15/50.23551/-121.58488 — Shares the Thompson/Fraser confluence split with fraser-river-65211d et al. (one split).",
-              "coord": [
-                -121.58488,
-                50.23551
-              ],
-              "target": {
-                "blk": "356364690",
-                "wsc": "100-190442-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
-              },
-              "name_verbatim": "THOMPSON RIVER (downstream of signs at Kamloops Lake o",
-              "locator_text": "downstream of signs at Kamloops Lake outlet to the confluence with Fraser River"
-            }
-          ]
         }
       ],
       "reviewed": "2026-08-11"
-    },
-    "91819cb4": {
-      "entry_id": "91819cb4",
-      "water": "TROUT CREEK (Wells Gray Park)",
-      "mu": [
-        "3-46"
-      ],
-      "region": "REGION 3 - Thompson-Nicola",
-      "page": 34,
-      "image": "page_034_row_025.png",
-      "symbols": [],
-      "reg_text": "**No Fishing** July 1-Sept 30",
-      "completeness": "NO_SPLIT",
-      "n_boundaries": 0,
-      "deferred": false,
-      "locators": [
-        {
-          "src": "name",
-          "text": "TROUT CREEK (Wells Gray Park)",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "trout-creek-wells-gray-park-bac1f0",
-              "status": "not_applicable",
-              "anchor_kind": "unclassified",
-              "src": "name",
-              "resolver_hint": "other_reach",
-              "notes": " [human-review 2026-08-06 n/a] (Wells Gray Park) disambiguates which Trout Creek; not a split.",
-              "locator_text": "Wells Gray Park"
-            }
-          ]
-        }
-      ]
     },
     "ed43e5bf": {
       "entry_id": "ed43e5bf",
@@ -12125,28 +11285,6 @@
               "name_verbatim": "ALEXANDER CREEK (upstream of the easternmost Hwy 3 bri"
             }
           ]
-        },
-        {
-          "src": "name",
-          "text": "ALEXANDER CREEK (upstream of the easternmost Hwy 3 bridge)",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "alexander-creek-upstream-of-the-easternmost-h-40487b",
-              "status": "curated",
-              "anchor_kind": "point",
-              "src": "name",
-              "resolver_hint": "bridge_road_km",
-              "label": "easternmost Hwy 3 (Crowsnest) bridge",
-              "notes": "[auto-proposal L] easternmost Hwy 3 bridge over Alexander Creek on Alexander Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm which Hwy 3 bridge is the 'easternmost' over Alexander Creek (Crowsnest/Sparwood, MU 4-23); map.. Same landmark as the downstream Alexander Creek entry; this is the upstream reach. Public highway bridge -> map/OSM-confirmable, not in FWA. [curated 2026-08-08 manual-review batch=alexander-4-23] [easternmost of 4 Hwy 3 crossings of Alexander Creek, OSM way 100217536, East Kootenay blk 356566667]",
-              "coord": [
-                -114.73324,
-                49.65497
-              ],
-              "name_verbatim": "ALEXANDER CREEK (upstream of the easternmost Hwy 3 bri",
-              "locator_text": "upstream of the easternmost Hwy 3 bridge"
-            }
-          ]
         }
       ],
       "reviewed": "2026-08-08"
@@ -12209,94 +11347,9 @@
               "name_verbatim": "ALEXANDER CREEK (downstream of the easternmost Hwy 3 b"
             }
           ]
-        },
-        {
-          "src": "name",
-          "text": "ALEXANDER CREEK (downstream of the easternmost Hwy 3 bridge)",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "alexander-creek-downstream-of-the-easternmost-323602",
-              "status": "curated",
-              "anchor_kind": "point",
-              "src": "name",
-              "resolver_hint": "bridge_road_km",
-              "label": "easternmost Hwy 3 (Crowsnest) bridge",
-              "notes": "[auto-proposal L] easternmost Hwy 3 bridge over Alexander Creek on Alexander Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm which Hwy 3 bridge is the 'easternmost' over Alexander Creek (Crowsnest/Sparwood, MU 4-23); map.. Hwy 3 (Crowsnest) runs alongside Alexander Creek near the Alberta border; 'easternmost Hwy 3 bridge' implies several crossings. Public highway -> not in FWA; map/OSM-confirmable. Downstream reach. [curated 2026-08-08 manual-review batch=alexander-4-23] [easternmost of 4 Hwy 3 crossings of Alexander Creek, OSM way 100217536, East Kootenay blk 356566667]",
-              "coord": [
-                -114.73324,
-                49.65497
-              ],
-              "name_verbatim": "ALEXANDER CREEK (downstream of the easternmost Hwy 3 b",
-              "locator_text": "downstream of the easternmost Hwy 3 bridge"
-            }
-          ]
         }
       ],
       "reviewed": "2026-08-08"
-    },
-    "60e57034": {
-      "entry_id": "60e57034",
-      "water": "ARROW LAKES' TRIBUTARIES",
-      "mu": [],
-      "region": "REGION 4 - Kootenay",
-      "page": 37,
-      "image": "page_037_row_007.png",
-      "symbols": [],
-      "reg_text": "See Lower Arrow Lake's tributaries and Upper Arrow Lake's tributaries",
-      "completeness": "NO_SPLIT",
-      "n_boundaries": 0,
-      "deferred": false,
-      "locators": [
-        {
-          "src": "name",
-          "text": "ARROW LAKES' TRIBUTARIES",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "arrow-lakes-tributaries-ba5f05",
-              "status": "not_applicable",
-              "anchor_kind": "confluence",
-              "src": "name",
-              "resolver_hint": "tributary",
-              "notes": "tributary-SET reg (all tributaries of the named lake/river): a whole-WSC-subtree membership, NOT a curated point split. Handle via tributary inheritance / wsc_descendants, not a confluence point. — [review · was:not_applicable] assume nothing — re-decide. — [human-review 2026-08-04 not_a_split] confirmed not a split"
-            }
-          ]
-        }
-      ]
-    },
-    "2b4d03f6": {
-      "entry_id": "2b4d03f6",
-      "water": "ARROW PARK (Mosquito) CREEK",
-      "mu": [
-        "4-32"
-      ],
-      "region": "REGION 4 - Kootenay",
-      "page": 37,
-      "image": "page_037_row_008.png",
-      "symbols": [],
-      "reg_text": "**No Fishing**",
-      "completeness": "NO_SPLIT",
-      "n_boundaries": 0,
-      "deferred": false,
-      "locators": [
-        {
-          "src": "name",
-          "text": "ARROW PARK (Mosquito) CREEK",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "arrow-park-mosquito-creek-bc2bd8",
-              "status": "not_applicable",
-              "anchor_kind": "unclassified",
-              "src": "name",
-              "resolver_hint": "other_reach",
-              "notes": "[human-review 2026-08-05] whole-creek 'No Fishing' reg; '(Mosquito)' is an alias, not a boundary -> not a split.",
-              "locator_text": "ARROW PARK CREEK"
-            }
-          ]
-        }
-      ]
     },
     "1a3ec8b9": {
       "entry_id": "1a3ec8b9",
@@ -12568,28 +11621,6 @@
               "name_verbatim": "COAL CREEK (downstream of Old MF&M Railway bridge 7 km"
             }
           ]
-        },
-        {
-          "src": "name",
-          "text": "COAL CREEK (downstream of Old MF&M Railway bridge 7 km upstream of Elk River)",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "coal-creek-downstream-of-old-mf-m-railway-bri-347452",
-              "status": "curated",
-              "anchor_kind": "point",
-              "src": "name",
-              "resolver_hint": "bridge_road_km",
-              "label": "Old MF&M Railway bridge (Fernie)",
-              "notes": "[auto-proposal L] old MF&M Railway bridge (~7 km up Elk River), Fernie on Coal Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the old MF&M (Morrissey-Fernie-Michel) Railway bridge on Coal Creek at Fernie; VERIFY creek (FWA collision).. The FWA 'Coal Creek' match (57.47N) is the wrong creek far in NE BC; the reg creek is Coal Creek at Fernie (Elk valley, Region 4). Old railway bridge ~7 km above the Elk River confluence -> railway/map-only. [human-review 2026-08-06] MF&M railway bridge, user-located near Fernie, snapped to FWA Coal Creek. MF&M not in OSM (dismantled); verify exact bridge.",
-              "coord": [
-                -114.99378,
-                49.48818
-              ],
-              "name_verbatim": "COAL CREEK (downstream of Old MF&M Railway bridge 7 km",
-              "locator_text": "downstream of Old MF&M Railway bridge 7 km upstream of Elk River"
-            }
-          ]
         }
       ]
     },
@@ -12666,23 +11697,6 @@
               "notes": "[deferred 2026-08-09 lake-split batch: lake-area closure]"
             }
           ]
-        },
-        {
-          "src": "name",
-          "text": "COLUMBIA LAKE",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "columbia-lake-s-tributaries-6bcd2c",
-              "status": "not_applicable",
-              "anchor_kind": "confluence",
-              "src": "name",
-              "resolver_hint": "tributary",
-              "notes": "tributary-SET reg (all tributaries of the named lake/river): a whole-WSC-subtree membership, NOT a curated point split. Handle via tributary inheritance / wsc_descendants, not a confluence point. — [review · was:not_applicable] assume nothing — re-decide. — [human-review 2026-08-04 not_a_split] confirmed not a split",
-              "name_verbatim": "COLUMBIA LAKE'S TRIBUTARIES",
-              "locator_text": "COLUMBIA LAKE'S TRIBUTARIES"
-            }
-          ]
         }
       ],
       "reviewed": "2026-08-09"
@@ -12717,21 +11731,6 @@
               "src": "except",
               "resolver_hint": "except_negative",
               "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'. — [human-review 2026-08-04 not_a_split] just an exception to ditch creek on a tributaries."
-            }
-          ]
-        },
-        {
-          "src": "name",
-          "text": "COLUMBIA LAKE'S TRIBUTARIES",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "columbia-lake-s-tributaries-6bcd2c",
-              "status": "not_applicable",
-              "anchor_kind": "confluence",
-              "src": "name",
-              "resolver_hint": "tributary",
-              "notes": "tributary-SET reg (all tributaries of the named lake/river): a whole-WSC-subtree membership, NOT a curated point split. Handle via tributary inheritance / wsc_descendants, not a confluence point. — [review · was:not_applicable] assume nothing — re-decide. — [human-review 2026-08-04 not_a_split] confirmed not a split"
             }
           ]
         }
@@ -13264,72 +12263,6 @@
       ],
       "reviewed": "2026-08-08"
     },
-    "c137efb3": {
-      "entry_id": "c137efb3",
-      "water": "CONNOR LAKE",
-      "mu": [
-        "4-23"
-      ],
-      "region": "REGION 4 - Kootenay",
-      "page": 38,
-      "image": "page_038_row_000.png",
-      "symbols": [],
-      "reg_text": "**No Fishing** May 1-June 30",
-      "completeness": "NO_SPLIT",
-      "n_boundaries": 0,
-      "deferred": false,
-      "locators": [
-        {
-          "src": "name",
-          "text": "CONNOR LAKE",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "connor-lake-s-tributaries-e24408",
-              "status": "not_applicable",
-              "anchor_kind": "confluence",
-              "src": "name",
-              "resolver_hint": "tributary",
-              "notes": "tributary-SET reg (all tributaries of the named lake/river): a whole-WSC-subtree membership, NOT a curated point split. Handle via tributary inheritance / wsc_descendants, not a confluence point. — [review · was:not_applicable] assume nothing — re-decide. — [human-review 2026-08-04 not_a_split] confirmed not a split",
-              "name_verbatim": "CONNOR LAKE'S TRIBUTARIES",
-              "locator_text": "CONNOR LAKE'S TRIBUTARIES"
-            }
-          ]
-        }
-      ]
-    },
-    "5ec69a22": {
-      "entry_id": "5ec69a22",
-      "water": "CONNOR LAKE'S TRIBUTARIES",
-      "mu": [
-        "4-23"
-      ],
-      "region": "REGION 4 - Kootenay",
-      "page": 38,
-      "image": "page_038_row_001.png",
-      "symbols": [],
-      "reg_text": "**No Fishing** Apr 1-June 30",
-      "completeness": "NO_SPLIT",
-      "n_boundaries": 0,
-      "deferred": false,
-      "locators": [
-        {
-          "src": "name",
-          "text": "CONNOR LAKE'S TRIBUTARIES",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "connor-lake-s-tributaries-e24408",
-              "status": "not_applicable",
-              "anchor_kind": "confluence",
-              "src": "name",
-              "resolver_hint": "tributary",
-              "notes": "tributary-SET reg (all tributaries of the named lake/river): a whole-WSC-subtree membership, NOT a curated point split. Handle via tributary inheritance / wsc_descendants, not a confluence point. — [review · was:not_applicable] assume nothing — re-decide. — [human-review 2026-08-04 not_a_split] confirmed not a split"
-            }
-          ]
-        }
-      ]
-    },
     "7e0b104a": {
       "entry_id": "7e0b104a",
       "water": "CRESTON VALLEY WILDLIFE MANAGEMENT AREA (CVWMA) WATERS",
@@ -13461,38 +12394,6 @@
                 "blk": "356558594",
                 "wsc": "300-625474-145018-284688-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
               }
-            }
-          ]
-        }
-      ]
-    },
-    "68e106cb": {
-      "entry_id": "68e106cb",
-      "water": "DUNCAN LAKE'S TRIBUTARIES",
-      "mu": [
-        "4-27"
-      ],
-      "region": "REGION 4 - Kootenay",
-      "page": 38,
-      "image": "page_038_row_011.png",
-      "symbols": [],
-      "reg_text": "Bull trout catch and release (includes Upper Duncan River and tributaries)",
-      "completeness": "NO_SPLIT",
-      "n_boundaries": 0,
-      "deferred": false,
-      "locators": [
-        {
-          "src": "name",
-          "text": "DUNCAN LAKE'S TRIBUTARIES",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "duncan-lake-s-tributaries-ab7d0c",
-              "status": "not_applicable",
-              "anchor_kind": "confluence",
-              "src": "name",
-              "resolver_hint": "tributary",
-              "notes": "tributary-SET reg (all tributaries of the named lake/river): a whole-WSC-subtree membership, NOT a curated point split. Handle via tributary inheritance / wsc_descendants, not a confluence point. — [review · was:not_applicable] assume nothing — re-decide. — [human-review 2026-08-04 not_a_split] confirmed not a split"
             }
           ]
         }
@@ -13853,27 +12754,6 @@
               "locator_text": "Elko Dam"
             }
           ]
-        },
-        {
-          "src": "name",
-          "text": "ELK RIVER (upstream of Elko Dam)",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "elk-river-upstream-of-elko-dam-8bedc5",
-              "status": "curated",
-              "anchor_kind": "point",
-              "src": "name",
-              "resolver_hint": "dam_weir_fence",
-              "label": "Elko Dam",
-              "notes": "[auto-proposal M] Elko Dam (run-of-river, Elk River) on Elk River (upstream of Elko Dam). Candidate coord [-115.10633, 49.29954]. OSM: https://www.openstreetmap.org/?mlat=49.29954&mlon=-115.10633#map=15/49.29954/-115.10633. Verify: Same Elko Dam point as the downstream entry; confirm on map.. Same Elko Dam structure as elk-river-downstream-of-elko-dam; this is the upstream side (MU 4-2/4-23). One cut at the dam yields both the up- and downstream reaches. [osm-candidate 2026-08-05] [-115.10453, 49.29006] (OSM Overpass ∩ MU-clipped FWA river; VERIFY). [human-review 2026-08-05 OSM-confirmed]",
-              "coord": [
-                -115.10453,
-                49.29006
-              ],
-              "locator_text": "upstream of Elko Dam"
-            }
-          ]
         }
       ],
       "reviewed": "2026-08-07"
@@ -13934,27 +12814,6 @@
               ]
             }
           ]
-        },
-        {
-          "src": "name",
-          "text": "ELK RIVER (downstream of Elko Dam)",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "elk-river-downstream-of-elko-dam-4c9207",
-              "status": "curated",
-              "anchor_kind": "point",
-              "src": "name",
-              "resolver_hint": "dam_weir_fence",
-              "label": "Elko Dam",
-              "notes": "[auto-proposal M] Elko Dam (run-of-river, Elk River) on Elk River (downstream of Elko Dam). Candidate coord [-115.10633, 49.29954]. OSM: https://www.openstreetmap.org/?mlat=49.29954&mlon=-115.10633#map=15/49.29954/-115.10633. Verify: Confirm the Elko Dam / diversion location on the Elk River in the canyon just above the town of Elko; candidate is the nearest Elk River blue-line point.. Elko Dam is a small run-of-river diversion dam on the Elk River near the town of Elko - no large named reservoir in FWA. Candidate is the Elk River blue-line point nearest the town of Elko; refine against BC Hydro/map. Pairs with the 'upstream of Elko Dam' entries. [osm-candidate 2026-08-05] [-115.10453, 49.29006] (OSM Overpass ∩ MU-clipped FWA river; VERIFY). [human-review 2026-08-05 OSM-confirmed]",
-              "coord": [
-                -115.10453,
-                49.29006
-              ],
-              "locator_text": "downstream of Elko Dam"
-            }
-          ]
         }
       ]
     },
@@ -13996,31 +12855,6 @@
                 -114.99378,
                 49.48818
               ]
-            }
-          ]
-        },
-        {
-          "src": "name",
-          "text": "ELK RIVER'S TRIBUTARIES (see exceptions)",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "elk-river-s-tributaries-see-exceptions-6bd27b",
-              "status": "not_applicable",
-              "anchor_kind": "not_a_split",
-              "src": "name",
-              "resolver_hint": "except_negative",
-              "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'. — [human-review 2026-08-04 not_applicable] 'see exceptions' descriptor; twin of elk-...-9149a8 (already n/a). Exceptions are separate listings.",
-              "locator_text": "see exceptions"
-            },
-            {
-              "id": "elk-river-s-tributaries-see-exceptions-9149a8",
-              "status": "not_applicable",
-              "anchor_kind": "confluence",
-              "src": "name",
-              "resolver_hint": "tributary",
-              "notes": "tributary-SET reg (all tributaries of the named lake/river): a whole-WSC-subtree membership, NOT a curated point split. Handle via tributary inheritance / wsc_descendants, not a confluence point. — [review · was:not_applicable] assume nothing — re-decide. — [human-review 2026-08-04 not_applicable] tributaries-SET row; audited 2026-08-04 — every boundary-exception has its split row (Alexander/Fording/Michel/Wigwam/Forsyth/Coal); the whole-creek exceptions (Abruzzi/Bighorn/Cadorna/Line/Grave/Morrissey) need no split.",
-              "locator_text": "ELK RIVER'S TRIBUTARIES"
             }
           ]
         }
@@ -14128,72 +12962,6 @@
       ],
       "reviewed": "2026-08-09"
     },
-    "86073f61": {
-      "entry_id": "86073f61",
-      "water": "FLATHEAD RIVER",
-      "mu": [
-        "4-1"
-      ],
-      "region": "REGION 4 - Kootenay",
-      "page": 38,
-      "image": "page_038_row_023.png",
-      "symbols": [],
-      "reg_text": "Bull trout catch and release\nTrout daily quota = 1 (none under 30 cm) and bait ban, June 15-Oct 31",
-      "completeness": "NO_SPLIT",
-      "n_boundaries": 0,
-      "deferred": false,
-      "locators": [
-        {
-          "src": "name",
-          "text": "FLATHEAD RIVER",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "flathead-river-s-tributaries-a034c1",
-              "status": "not_applicable",
-              "anchor_kind": "confluence",
-              "src": "name",
-              "resolver_hint": "tributary",
-              "notes": "tributary-SET reg (all tributaries of the named lake/river): a whole-WSC-subtree membership, NOT a curated point split. Handle via tributary inheritance / wsc_descendants, not a confluence point. — [review · was:not_applicable] assume nothing — re-decide. — [human-review 2026-08-04 not_a_split] confirmed not a split",
-              "name_verbatim": "FLATHEAD RIVER'S TRIBUTARIES",
-              "locator_text": "FLATHEAD RIVER'S TRIBUTARIES"
-            }
-          ]
-        }
-      ]
-    },
-    "8d509cdd": {
-      "entry_id": "8d509cdd",
-      "water": "FLATHEAD RIVER'S TRIBUTARIES",
-      "mu": [
-        "4-1"
-      ],
-      "region": "REGION 4 - Kootenay",
-      "page": 38,
-      "image": "page_038_row_024.png",
-      "symbols": [],
-      "reg_text": "**No Fishing** Sept 1-Oct 31\nBull trout catch and release\nTrout daily quota = 1 (none under 30 cm) and bait ban, June 15-Aug 31",
-      "completeness": "NO_SPLIT",
-      "n_boundaries": 0,
-      "deferred": false,
-      "locators": [
-        {
-          "src": "name",
-          "text": "FLATHEAD RIVER'S TRIBUTARIES",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "flathead-river-s-tributaries-a034c1",
-              "status": "not_applicable",
-              "anchor_kind": "confluence",
-              "src": "name",
-              "resolver_hint": "tributary",
-              "notes": "tributary-SET reg (all tributaries of the named lake/river): a whole-WSC-subtree membership, NOT a curated point split. Handle via tributary inheritance / wsc_descendants, not a confluence point. — [review · was:not_applicable] assume nothing — re-decide. — [human-review 2026-08-04 not_a_split] confirmed not a split"
-            }
-          ]
-        }
-      ]
-    },
     "049f5da5": {
       "entry_id": "049f5da5",
       "water": "FORDING RIVER (downstream of Josephine Falls)",
@@ -14250,27 +13018,6 @@
               ]
             }
           ]
-        },
-        {
-          "src": "name",
-          "text": "FORDING RIVER (downstream of Josephine Falls)",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "fording-river-downstream-of-josephine-falls-97d67a",
-              "status": "curated",
-              "anchor_kind": "point",
-              "src": "name",
-              "resolver_hint": "falls_obstacle",
-              "label": "Josephine Falls",
-              "notes": " [human-review 2026-08-05 FWA-waterfall] Josephine Falls.",
-              "coord": [
-                -114.87661,
-                50.02261
-              ],
-              "locator_text": "downstream of Josephine Falls"
-            }
-          ]
         }
       ]
     },
@@ -14309,27 +13056,6 @@
                 -114.87661,
                 50.02261
               ]
-            }
-          ]
-        },
-        {
-          "src": "name",
-          "text": "FORDING RIVER (upstream of Josephine Falls)",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "fording-river-upstream-of-josephine-falls-fbe818",
-              "status": "curated",
-              "anchor_kind": "point",
-              "src": "name",
-              "resolver_hint": "falls_obstacle",
-              "label": "Josephine Falls",
-              "notes": " [human-review 2026-08-05 FWA-waterfall] Josephine Falls.",
-              "coord": [
-                -114.87661,
-                50.02261
-              ],
-              "locator_text": "upstream of Josephine Falls"
             }
           ]
         }
@@ -14528,41 +13254,6 @@
                 "blk": "356514348",
                 "wsc": "300-625474-674798-404304-164842-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
               }
-            }
-          ]
-        }
-      ]
-    },
-    "90f48a37": {
-      "entry_id": "90f48a37",
-      "water": "IDLEWILD LAKE (old Cranbrook Reservoir)",
-      "mu": [
-        "4-3"
-      ],
-      "region": "REGION 4 - Kootenay",
-      "page": 39,
-      "image": "page_039_row_011.png",
-      "symbols": [
-        "Stocked"
-      ],
-      "reg_text": "**No Ice Fishing**\nYouth/Disabled Accompanied Water year round (see page 4)",
-      "completeness": "NO_SPLIT",
-      "n_boundaries": 0,
-      "deferred": false,
-      "locators": [
-        {
-          "src": "name",
-          "text": "IDLEWILD LAKE (old Cranbrook Reservoir)",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "idlewild-lake-old-cranbrook-reservoir-85e69f",
-              "status": "not_applicable",
-              "anchor_kind": "lake",
-              "src": "name",
-              "resolver_hint": "lake_reach",
-              "notes": "[lake-class: whole_lake] whole lake (Idlewild / old Cranbrook Reservoir) — no cut. — [review · was:not_applicable] assume nothing — re-decide. — [human-review 2026-08-04 not_a_split] confirmed not a split",
-              "locator_text": "old Cranbrook Reservoir"
             }
           ]
         }
@@ -14800,49 +13491,6 @@
       ],
       "reviewed": "2026-08-09"
     },
-    "944019e1": {
-      "entry_id": "944019e1",
-      "water": "KIKOMUN CREEK PARK (all lakes in the park)",
-      "mu": [
-        "4-22"
-      ],
-      "region": "REGION 4 - Kootenay",
-      "page": 39,
-      "image": "page_039_row_020.png",
-      "symbols": [],
-      "reg_text": "Bass daily quota = unlimited\nNo powered boats",
-      "completeness": "NO_SPLIT",
-      "n_boundaries": 0,
-      "deferred": false,
-      "locators": [
-        {
-          "src": "name",
-          "text": "KIKOMUN CREEK PARK (all lakes in the park)",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "kikomun-creek-park-all-lakes-in-the-park-b0c7b8",
-              "status": "not_applicable",
-              "anchor_kind": "not_a_split",
-              "src": "name",
-              "resolver_hint": "other_reach",
-              "notes": "[reviewed 2026-08-08 manual-review batch=kikomun-4-22] [n/a: whole-park set membership (bass unlimited + no powered boats apply to all lakes in Kikomun Creek Park), not a split]",
-              "locator_text": "KIKOMUN CREEK PARK"
-            },
-            {
-              "id": "kikomun-creek-park-all-lakes-in-the-park-da478d",
-              "status": "not_applicable",
-              "anchor_kind": "not_a_split",
-              "src": "name",
-              "resolver_hint": "other_reach",
-              "notes": "[reviewed 2026-08-08 manual-review batch=kikomun-4-22] [n/a: whole-park set membership (bass unlimited + no powered boats apply to all lakes in Kikomun Creek Park), not a split]",
-              "locator_text": "all lakes in the park"
-            }
-          ]
-        }
-      ],
-      "reviewed": "2026-08-08"
-    },
     "a58e3be6": {
       "entry_id": "a58e3be6",
       "water": "KINBASKET (McNaughton) LAKE",
@@ -14878,126 +13526,6 @@
         }
       ],
       "reviewed": "2026-08-09"
-    },
-    "f678bc78": {
-      "entry_id": "f678bc78",
-      "water": "KINBASKET (McNaughton) LAKE'S TRIBUTARIES",
-      "mu": [
-        "4-36"
-      ],
-      "region": "REGION 4 - Kootenay",
-      "page": 39,
-      "image": "page_039_row_022.png",
-      "symbols": [],
-      "reg_text": "Bull trout catch and release\nDoes not include Columbia River upstream of Kinbasket Reservoir",
-      "completeness": "NO_SPLIT",
-      "n_boundaries": 0,
-      "deferred": false,
-      "locators": [
-        {
-          "src": "name",
-          "text": "KINBASKET (McNaughton) LAKE'S TRIBUTARIES",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "kinbasket-mcnaughton-lake-s-tributaries-f98c5c",
-              "status": "not_applicable",
-              "anchor_kind": "confluence",
-              "src": "name",
-              "resolver_hint": "tributary",
-              "notes": "tributary-SET reg (all tributaries of the named lake/river): a whole-WSC-subtree membership, NOT a curated point split. Handle via tributary inheritance / wsc_descendants, not a confluence point. — [review · was:not_applicable] assume nothing — re-decide. — [human-review 2026-08-04 not_applicable] tributaries-SET row; 'Does not include Columbia R upstream of Kinbasket' is an exclusion.",
-              "locator_text": "KINBASKET LAKE'S TRIBUTARIES"
-            }
-          ]
-        }
-      ]
-    },
-    "faf06e09": {
-      "entry_id": "faf06e09",
-      "water": "KOOCANUSA RESERVOIR",
-      "mu": [
-        "4-2",
-        "4-3",
-        "4-22"
-      ],
-      "region": "REGION 4 - Kootenay",
-      "page": 39,
-      "image": "page_039_row_025.png",
-      "symbols": [],
-      "reg_text": "Bull trout catch and release Nov 1-Mar 31; no bull trout under 75 cm when open; bait ban Sept 15-June 30; burbot catch and release\nSee page 75 - Fluctuating Reservoir Levels",
-      "completeness": "NO_SPLIT",
-      "n_boundaries": 0,
-      "deferred": false,
-      "locators": [
-        {
-          "src": "name",
-          "text": "KOOCANUSA RESERVOIR",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "kootenay-river-upstream-of-koocanusa-reservoi-3bb758",
-              "status": "curated",
-              "anchor_kind": "point",
-              "src": "name",
-              "resolver_hint": "lake_reach",
-              "label": "Koocanusa Reservoir u/s end",
-              "notes": "Split authored in splits.json: 'kootenay_koocanusa' (lake). — authored split: kootenay_koocanusa [curated 2026-08-10 signs/other batch] [reservoir u/s end = Montana border ~49.0,-115.18; matches burbot-boundary]",
-              "coord": [
-                -115.18181,
-                49.00001
-              ],
-              "target": {
-                "wbk": "328961702"
-              },
-              "name_verbatim": "KOOTENAY RIVER (upstream of Koocanusa Reservoir)",
-              "mus": [
-                "4-2",
-                "4-21",
-                "4-22",
-                "4-24",
-                "4-25",
-                "4-35"
-              ],
-              "locator_text": "upstream of Koocanusa Reservoir"
-            }
-          ]
-        }
-      ],
-      "reviewed": "2026-08-10"
-    },
-    "98884ad7": {
-      "entry_id": "98884ad7",
-      "water": "KOOTENAY LAKE - MAIN BODY (for location see map on page 34)",
-      "mu": [
-        "4-19"
-      ],
-      "region": "REGION 4 - Kootenay",
-      "page": 39,
-      "image": "page_039_row_027.png",
-      "symbols": [],
-      "reg_text": "**A person in a boat may angle with an unlimited number of rods.**\nKokanee daily quota = 0\nBull trout daily quota = 1; rainbow trout daily quota = 10 (any size)\nConservation Surcharge Stamp required to keep rainbow trout over 50 cm, annual quota = 20",
-      "completeness": "NO_SPLIT",
-      "n_boundaries": 0,
-      "deferred": false,
-      "locators": [
-        {
-          "src": "name",
-          "text": "KOOTENAY LAKE - MAIN BODY (for location see map on page 34)",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "kootenay-lake-main-body-for-location-see-map--ba2e51",
-              "status": "not_applicable",
-              "anchor_kind": "not_a_split",
-              "src": "name",
-              "resolver_hint": "map_or_vague",
-              "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'. — [human-review 2026-08-04 na-with-siblings] confirmed — 'for location see map on page 34' pointer, not a split. USER_NOTE flags no other split; full_regulation confirms no boundary text present (quota rules only).",
-              "name_verbatim": "KOOTENAY LAKE - MAIN BODY (for location see map on pag",
-              "locator_text": "for location see map on page 34"
-            }
-          ]
-        }
-      ]
     },
     "c2868a28": {
       "entry_id": "c2868a28",
@@ -15083,39 +13611,6 @@
               "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'. — [human-review 2026-08-04 lake-internal defer | docs/15 method=polygon] Kootenay Lake Lower West Arm (named arm)",
               "name_verbatim": "KOOTENAY LAKE - LOWER WEST ARM (for location see map o",
               "locator_text": "for location see map on page 34"
-            }
-          ]
-        }
-      ]
-    },
-    "06b70183": {
-      "entry_id": "06b70183",
-      "water": "KOOTENAY LAKE'S TRIBUTARIES",
-      "mu": [
-        "4-7",
-        "4-19"
-      ],
-      "region": "REGION 4 - Kootenay",
-      "page": 39,
-      "image": "page_039_row_030.png",
-      "symbols": [],
-      "reg_text": "Bull trout catch and release\nDoes not include the Kootenay River upstream from Kootenay Lake to the U.S. border near Creston",
-      "completeness": "NO_SPLIT",
-      "n_boundaries": 0,
-      "deferred": false,
-      "locators": [
-        {
-          "src": "name",
-          "text": "KOOTENAY LAKE'S TRIBUTARIES",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "kootenay-lake-s-tributaries-6b7979",
-              "status": "not_applicable",
-              "anchor_kind": "confluence",
-              "src": "name",
-              "resolver_hint": "tributary",
-              "notes": "tributary-SET reg (all tributaries of the named lake/river): a whole-WSC-subtree membership, NOT a curated point split. Handle via tributary inheritance / wsc_descendants, not a confluence point. — [review · was:not_applicable] assume nothing — re-decide. — [human-review 2026-08-04 not_applicable] tributaries-SET row; 'does not include the Kootenay River...' is an exclusion pointing at the separate Kootenay River rows."
             }
           ]
         }
@@ -15489,26 +13984,6 @@
               ]
             }
           ]
-        },
-        {
-          "src": "name",
-          "text": "KOOTENAY RIVER (downstream of Idaho border)",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "kootenay-river-downstream-of-idaho-border-6189d1",
-              "status": "curated",
-              "anchor_kind": "unclassified",
-              "src": "name",
-              "resolver_hint": "other_reach",
-              "notes": "Split authored in splits.json: 'kootenay_idaho_border' (point(border-pickup)). — authored split: kootenay_idaho_border [audit-fix 2026-08-11 (2-reviewer agreement)] [splits-inline from splits.json kootenay_idaho_border]",
-              "coord": [
-                -116.5036,
-                48.9999
-              ],
-              "locator_text": "downstream of Idaho border"
-            }
-          ]
         }
       ],
       "reviewed": "2026-08-08"
@@ -15773,30 +14248,6 @@
               "locator_text": "Upstream of Koocanusa Reservoir to White River"
             }
           ]
-        },
-        {
-          "src": "name",
-          "text": "KOOTENAY RIVER (upstream of Koocanusa Reservoir)",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "kootenay-river-upstream-of-koocanusa-reservoi-3bb758",
-              "status": "curated",
-              "anchor_kind": "point",
-              "src": "name",
-              "resolver_hint": "lake_reach",
-              "label": "Koocanusa Reservoir u/s end",
-              "notes": "Split authored in splits.json: 'kootenay_koocanusa' (lake). — authored split: kootenay_koocanusa [curated 2026-08-10 signs/other batch] [reservoir u/s end = Montana border ~49.0,-115.18; matches burbot-boundary]",
-              "coord": [
-                -115.18181,
-                49.00001
-              ],
-              "target": {
-                "wbk": "328961702"
-              },
-              "locator_text": "upstream of Koocanusa Reservoir"
-            }
-          ]
         }
       ],
       "reviewed": "2026-08-10"
@@ -15884,61 +14335,9 @@
               "locator_text": "fishing boundary signs at the narrows immediately downstream of the mouth of Bigmouth Creek"
             }
           ]
-        },
-        {
-          "src": "name",
-          "text": "LAKE REVELSTOKE",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "lake-revelstoke-s-tributaries-96d2a3",
-              "status": "not_applicable",
-              "anchor_kind": "confluence",
-              "src": "name",
-              "resolver_hint": "tributary",
-              "notes": "tributary-SET reg (all tributaries of the named lake/river): a whole-WSC-subtree membership, NOT a curated point split. Handle via tributary inheritance / wsc_descendants, not a confluence point. — [review · was:not_applicable] assume nothing — re-decide. — [human-review 2026-08-04 not_applicable] tributaries-SET row carrying the mainstem reg text; the real 'Mica Dam -> signs below Bigmouth Ck' reach split lives in lake-revelstoke-62de4f (todo).",
-              "name_verbatim": "LAKE REVELSTOKE'S TRIBUTARIES",
-              "mus": [
-                "4-38"
-              ],
-              "locator_text": "LAKE REVELSTOKE'S TRIBUTARIES"
-            }
-          ]
         }
       ],
       "reviewed": "2026-08-09"
-    },
-    "5b6722ba": {
-      "entry_id": "5b6722ba",
-      "water": "LAKE REVELSTOKE'S TRIBUTARIES",
-      "mu": [
-        "4-38"
-      ],
-      "region": "REGION 4 - Kootenay",
-      "page": 40,
-      "image": "page_040_row_001.png",
-      "symbols": [],
-      "reg_text": "Bull trout catch and release",
-      "completeness": "NO_SPLIT",
-      "n_boundaries": 0,
-      "deferred": false,
-      "locators": [
-        {
-          "src": "name",
-          "text": "LAKE REVELSTOKE'S TRIBUTARIES",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "lake-revelstoke-s-tributaries-96d2a3",
-              "status": "not_applicable",
-              "anchor_kind": "confluence",
-              "src": "name",
-              "resolver_hint": "tributary",
-              "notes": "tributary-SET reg (all tributaries of the named lake/river): a whole-WSC-subtree membership, NOT a curated point split. Handle via tributary inheritance / wsc_descendants, not a confluence point. — [review · was:not_applicable] assume nothing — re-decide. — [human-review 2026-08-04 not_applicable] tributaries-SET row carrying the mainstem reg text; the real 'Mica Dam -> signs below Bigmouth Ck' reach split lives in lake-revelstoke-62de4f (todo)."
-            }
-          ]
-        }
-      ]
     },
     "57a2bb4f": {
       "entry_id": "57a2bb4f",
@@ -16008,38 +14407,6 @@
         }
       ]
     },
-    "3b1bb63d": {
-      "entry_id": "3b1bb63d",
-      "water": "LITTLE SLOCAN LAKE'S TRIBUTARIES",
-      "mu": [
-        "4-16"
-      ],
-      "region": "REGION 4 - Kootenay",
-      "page": 40,
-      "image": "page_040_row_013.png",
-      "symbols": [],
-      "reg_text": "EXEMPT from Slocan River's[Includes Tributaries] closure and Slocan River's[Includes Tributaries] trout/char catch and release: bait ban, June 15-Oct 31",
-      "completeness": "NO_SPLIT",
-      "n_boundaries": 0,
-      "deferred": false,
-      "locators": [
-        {
-          "src": "name",
-          "text": "LITTLE SLOCAN LAKE'S TRIBUTARIES",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "little-slocan-lake-s-tributaries-957a0b",
-              "status": "not_applicable",
-              "anchor_kind": "confluence",
-              "src": "name",
-              "resolver_hint": "tributary",
-              "notes": "tributary-SET reg (all tributaries of the named lake/river): a whole-WSC-subtree membership, NOT a curated point split. Handle via tributary inheritance / wsc_descendants, not a confluence point. — [review · was:not_applicable] assume nothing — re-decide. — [human-review 2026-08-04 not_a_split] has exceptions"
-            }
-          ]
-        }
-      ]
-    },
     "4050199b": {
       "entry_id": "4050199b",
       "water": "LODGEPOLE CREEK (downstream of falls near the km 26 post on Lodgepole Road)",
@@ -16096,28 +14463,6 @@
                 49.28952
               ],
               "name_verbatim": "LODGEPOLE CREEK (downstream of falls near the km 26 po"
-            }
-          ]
-        },
-        {
-          "src": "name",
-          "text": "LODGEPOLE CREEK (downstream of falls near the km 26 post on Lodgepole Road)",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "lodgepole-creek-downstream-of-falls-near-the--f54873",
-              "status": "curated",
-              "anchor_kind": "point",
-              "src": "name",
-              "resolver_hint": "falls_obstacle",
-              "label": "Falls (FISS obstacle 27756)",
-              "notes": "[osm-candidate 2026-08-05] [-114.73204, 49.29352] (OSM Overpass ∩ MU-clipped FWA river; VERIFY). [human-review 2026-08-05 FISS-obstacle user-provided] [-114.76147, 49.28952].",
-              "coord": [
-                -114.76147,
-                49.28952
-              ],
-              "name_verbatim": "LODGEPOLE CREEK (downstream of falls near the km 26 po",
-              "locator_text": "downstream of falls near the km 26 post on Lodgepole Road"
             }
           ]
         }
@@ -16179,62 +14524,9 @@
               ]
             }
           ]
-        },
-        {
-          "src": "name",
-          "text": "LODGEPOLE CREEK (upstream of falls)",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "lodgepole-creek-upstream-of-falls-615359",
-              "status": "curated",
-              "anchor_kind": "point",
-              "src": "name",
-              "resolver_hint": "falls_obstacle",
-              "label": "falls near km 26 post, Lodgepole Road",
-              "notes": "[curated 2026-08-08 manual-review batch=sand-lodgepole] [same falls as curated downstream row lodgepole-creek-downstream-of-falls-...-f54873]",
-              "coord": [
-                -114.76147,
-                49.28952
-              ],
-              "locator_text": "upstream of falls"
-            }
-          ]
         }
       ],
       "reviewed": "2026-08-08"
-    },
-    "89ddcc45": {
-      "entry_id": "89ddcc45",
-      "water": "LOWER ARROW LAKE'S TRIBUTARIES",
-      "mu": [
-        "4-14"
-      ],
-      "region": "REGION 4 - Kootenay",
-      "page": 40,
-      "image": "page_040_row_020.png",
-      "symbols": [],
-      "reg_text": "Bull trout catch and release",
-      "completeness": "NO_SPLIT",
-      "n_boundaries": 0,
-      "deferred": false,
-      "locators": [
-        {
-          "src": "name",
-          "text": "LOWER ARROW LAKE'S TRIBUTARIES",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "lower-arrow-lake-s-tributaries-8e4c21",
-              "status": "not_applicable",
-              "anchor_kind": "confluence",
-              "src": "name",
-              "resolver_hint": "tributary",
-              "notes": "tributary-SET reg (all tributaries of the named lake/river): a whole-WSC-subtree membership, NOT a curated point split. Handle via tributary inheritance / wsc_descendants, not a confluence point. — [review · was:not_applicable] assume nothing — re-decide. — [human-review 2026-08-04 not_a_split] confirmed not a split"
-            }
-          ]
-        }
-      ]
     },
     "6cee42e9": {
       "entry_id": "6cee42e9",
@@ -16445,28 +14737,6 @@
               "name_verbatim": "MICHEL CREEK (upstream of the easternmost Hwy 3 bridge"
             }
           ]
-        },
-        {
-          "src": "name",
-          "text": "MICHEL CREEK (upstream of the easternmost Hwy 3 bridge)",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "michel-creek-upstream-of-the-easternmost-hwy--b614f4",
-              "status": "curated",
-              "anchor_kind": "point",
-              "src": "name",
-              "resolver_hint": "bridge_road_km",
-              "label": "easternmost Hwy 3 (Crowsnest) bridge",
-              "notes": "[auto-proposal L] easternmost Hwy 3 bridge over Michel Creek on Michel Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the 'easternmost' Hwy 3 bridge over Michel Creek; upstream reach; map.. Same landmark as the paired Michel Creek entry; upstream reach. Public highway bridge -> map/OSM-confirmable. [curated 2026-08-08 manual-review batch=michel-4-23] [easternmost of 4 Hwy 3 crossings of Michel Creek, OSM way 100217550, blk 356565783]",
-              "coord": [
-                -114.78167,
-                49.67264
-              ],
-              "name_verbatim": "MICHEL CREEK (upstream of the easternmost Hwy 3 bridge",
-              "locator_text": "upstream of the easternmost Hwy 3 bridge"
-            }
-          ]
         }
       ],
       "reviewed": "2026-08-08"
@@ -16527,28 +14797,6 @@
                 49.67264
               ],
               "name_verbatim": "MICHEL CREEK (downstream of the easternmost Hwy 3 brid"
-            }
-          ]
-        },
-        {
-          "src": "name",
-          "text": "MICHEL CREEK (downstream of the easternmost Hwy 3 bridge)",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "michel-creek-downstream-of-the-easternmost-hw-92f1d6",
-              "status": "curated",
-              "anchor_kind": "point",
-              "src": "name",
-              "resolver_hint": "bridge_road_km",
-              "label": "easternmost Hwy 3 (Crowsnest) bridge",
-              "notes": "[auto-proposal L] easternmost Hwy 3 bridge over Michel Creek on Michel Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the 'easternmost' Hwy 3 bridge over Michel Creek (Sparwood/Elk valley, MU 4-23); map.. Hwy 3 crosses Michel Creek multiple times near Sparwood; 'easternmost' picks one. Public highway -> map-only (FSR hits are far up the creek). Downstream reach. [curated 2026-08-08 manual-review batch=michel-4-23] [easternmost of 4 Hwy 3 crossings of Michel Creek, OSM way 100217550, blk 356565783]",
-              "coord": [
-                -114.78167,
-                49.67264
-              ],
-              "name_verbatim": "MICHEL CREEK (downstream of the easternmost Hwy 3 brid",
-              "locator_text": "downstream of the easternmost Hwy 3 bridge"
             }
           ]
         }
@@ -16823,124 +15071,9 @@
               "notes": "[deferred 2026-08-09: 'south half only' closure area on Premier Lake — lake-area, defer per lake-split rule]"
             }
           ]
-        },
-        {
-          "src": "name",
-          "text": "PREMIER LAKE",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "premier-lake-s-tributaries-99ac9d",
-              "status": "not_applicable",
-              "anchor_kind": "confluence",
-              "src": "name",
-              "resolver_hint": "tributary",
-              "notes": "tributary-SET reg (all tributaries of the named lake/river): a whole-WSC-subtree membership, NOT a curated point split. Handle via tributary inheritance / wsc_descendants, not a confluence point. — [review · was:not_applicable] assume nothing — re-decide. — [human-review 2026-08-04 not_applicable] it's a LAKE reg (No Fishing south of signs on the lake shore / south half only), mis-attached to the trib-set name; the lake-internal line split is premier-lake-895b0d.",
-              "name_verbatim": "PREMIER LAKE'S TRIBUTARIES",
-              "locator_text": "PREMIER LAKE'S TRIBUTARIES"
-            }
-          ]
         }
       ],
       "reviewed": "2026-08-09"
-    },
-    "fbd12c91": {
-      "entry_id": "fbd12c91",
-      "water": "PREMIER LAKE'S TRIBUTARIES",
-      "mu": [
-        "4-21"
-      ],
-      "region": "REGION 4 - Kootenay",
-      "page": 41,
-      "image": "page_041_row_010.png",
-      "symbols": [],
-      "reg_text": "**No Fishing**",
-      "completeness": "NO_SPLIT",
-      "n_boundaries": 0,
-      "deferred": false,
-      "locators": [
-        {
-          "src": "name",
-          "text": "PREMIER LAKE'S TRIBUTARIES",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "premier-lake-s-tributaries-99ac9d",
-              "status": "not_applicable",
-              "anchor_kind": "confluence",
-              "src": "name",
-              "resolver_hint": "tributary",
-              "notes": "tributary-SET reg (all tributaries of the named lake/river): a whole-WSC-subtree membership, NOT a curated point split. Handle via tributary inheritance / wsc_descendants, not a confluence point. — [review · was:not_applicable] assume nothing — re-decide. — [human-review 2026-08-04 not_applicable] it's a LAKE reg (No Fishing south of signs on the lake shore / south half only), mis-attached to the trib-set name; the lake-internal line split is premier-lake-895b0d."
-            }
-          ]
-        }
-      ]
-    },
-    "e9eaa372": {
-      "entry_id": "e9eaa372",
-      "water": "REVELSTOKE LAKE",
-      "mu": [
-        "4-38"
-      ],
-      "region": "REGION 4 - Kootenay",
-      "page": 41,
-      "image": "page_041_row_012.png",
-      "symbols": [],
-      "reg_text": "See Lake Revelstoke",
-      "completeness": "NO_SPLIT",
-      "n_boundaries": 0,
-      "deferred": false,
-      "locators": [
-        {
-          "src": "name",
-          "text": "REVELSTOKE LAKE",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "revelstoke-lake-s-tributaries-065f03",
-              "status": "not_applicable",
-              "anchor_kind": "confluence",
-              "src": "name",
-              "resolver_hint": "tributary",
-              "notes": "tributary-SET reg (all tributaries of the named lake/river): a whole-WSC-subtree membership, NOT a curated point split. Handle via tributary inheritance / wsc_descendants, not a confluence point. — [review · was:not_applicable] assume nothing — re-decide. — [human-review 2026-08-04 not_a_split] confirmed not a split",
-              "name_verbatim": "REVELSTOKE LAKE'S TRIBUTARIES",
-              "locator_text": "REVELSTOKE LAKE'S TRIBUTARIES"
-            }
-          ]
-        }
-      ]
-    },
-    "aa52be62": {
-      "entry_id": "aa52be62",
-      "water": "REVELSTOKE LAKE'S TRIBUTARIES",
-      "mu": [
-        "4-38"
-      ],
-      "region": "REGION 4 - Kootenay",
-      "page": 41,
-      "image": "page_041_row_013.png",
-      "symbols": [],
-      "reg_text": "See Lake Revelstoke's tributaries",
-      "completeness": "NO_SPLIT",
-      "n_boundaries": 0,
-      "deferred": false,
-      "locators": [
-        {
-          "src": "name",
-          "text": "REVELSTOKE LAKE'S TRIBUTARIES",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "revelstoke-lake-s-tributaries-065f03",
-              "status": "not_applicable",
-              "anchor_kind": "confluence",
-              "src": "name",
-              "resolver_hint": "tributary",
-              "notes": "tributary-SET reg (all tributaries of the named lake/river): a whole-WSC-subtree membership, NOT a curated point split. Handle via tributary inheritance / wsc_descendants, not a confluence point. — [review · was:not_applicable] assume nothing — re-decide. — [human-review 2026-08-04 not_a_split] confirmed not a split"
-            }
-          ]
-        }
-      ]
     },
     "15f8ea45": {
       "entry_id": "15f8ea45",
@@ -17139,33 +15272,6 @@
               "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'. — [human-review 2026-08-04 not_applicable] 'Remainder of mainstem' = complement reach left by the curated Sheep Ck->S.Salmo split; no boundary of its own."
             }
           ]
-        },
-        {
-          "src": "name",
-          "text": "SALMO RIVER",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "pend-d-oreille-river-s-tributaries-except-sal-5ae680",
-              "status": "not_applicable",
-              "anchor_kind": "confluence",
-              "src": "name",
-              "resolver_hint": "tributary",
-              "notes": "tributary-SET reg (all tributaries of the named lake/river): a whole-WSC-subtree membership, NOT a curated point split. Handle via tributary inheritance / wsc_descendants, not a confluence point. — [review · was:not_applicable] assume nothing — re-decide. — [human-review 2026-08-04 not_a_split] has exceptions tho",
-              "name_verbatim": "PEND D'OREILLE RIVER'S TRIBUTARIES (except Salmo River",
-              "locator_text": "except Salmo River[Includes Tributaries]"
-            },
-            {
-              "id": "salmo-river-s-tributaries-d8cd97",
-              "status": "not_applicable",
-              "anchor_kind": "confluence",
-              "src": "name",
-              "resolver_hint": "tributary",
-              "notes": "tributary-SET reg (all tributaries of the named lake/river): a whole-WSC-subtree membership, NOT a curated point split. Handle via tributary inheritance / wsc_descendants, not a confluence point. — [review · was:not_applicable] assume nothing — re-decide. — [human-review 2026-08-04 not_applicable] tributaries-SET row; Sheep Ck→S.Salmo mainstem split is separate (salmo-river-2f831e-a/-b, curated).",
-              "name_verbatim": "SALMO RIVER'S TRIBUTARIES",
-              "locator_text": "SALMO RIVER'S TRIBUTARIES"
-            }
-          ]
         }
       ]
     },
@@ -17199,21 +15305,6 @@
               "src": "except",
               "resolver_hint": "except_negative",
               "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'. — [human-review 2026-08-04 not_a_split] confirmed not a split"
-            }
-          ]
-        },
-        {
-          "src": "name",
-          "text": "SALMO RIVER'S TRIBUTARIES",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "salmo-river-s-tributaries-d8cd97",
-              "status": "not_applicable",
-              "anchor_kind": "confluence",
-              "src": "name",
-              "resolver_hint": "tributary",
-              "notes": "tributary-SET reg (all tributaries of the named lake/river): a whole-WSC-subtree membership, NOT a curated point split. Handle via tributary inheritance / wsc_descendants, not a confluence point. — [review · was:not_applicable] assume nothing — re-decide. — [human-review 2026-08-04 not_applicable] tributaries-SET row; Sheep Ck→S.Salmo mainstem split is separate (salmo-river-2f831e-a/-b, curated)."
             }
           ]
         }
@@ -17273,96 +15364,9 @@
               ]
             }
           ]
-        },
-        {
-          "src": "name",
-          "text": "SAND CREEK (downstream of Hwy 3)",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "sand-creek-downstream-of-hwy-3-6962b3",
-              "status": "curated",
-              "anchor_kind": "point",
-              "src": "name",
-              "resolver_hint": "bridge_road_km",
-              "label": "Hwy 3 (Crowsnest) bridge",
-              "notes": "[auto-proposal L] Hwy 3 bridge over Sand Creek on Sand Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the Hwy 3 crossing of Sand Creek (Jaffray/Elko area, Region 4); single crossing -> review.. Reg = 'downstream of Hwy 3'. Public highway crosses Sand Creek in the lower reach; FSR hits (Galloway-Bull River, Sand Creek) are upstream. Map/OSM-confirmable. [curated 2026-08-08 manual-review batch=sand-lodgepole] [single Hwy 3 crossing of Sand Creek, OSM way 88740986, blk 356569599]",
-              "coord": [
-                -115.23953,
-                49.37211
-              ],
-              "locator_text": "downstream of Hwy 3"
-            }
-          ]
         }
       ],
       "reviewed": "2026-08-08"
-    },
-    "c032ae54": {
-      "entry_id": "c032ae54",
-      "water": "SEVEN MILE RESERVOIR'S TRIBUTARIES",
-      "mu": [
-        "4-8"
-      ],
-      "region": "REGION 4 - Kootenay",
-      "page": 41,
-      "image": "page_041_row_026.png",
-      "symbols": [],
-      "reg_text": "See Pend d'Oreille River's tributaries",
-      "completeness": "NO_SPLIT",
-      "n_boundaries": 0,
-      "deferred": false,
-      "locators": [
-        {
-          "src": "name",
-          "text": "SEVEN MILE RESERVOIR'S TRIBUTARIES",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "seven-mile-reservoir-s-tributaries-f25c92",
-              "status": "not_applicable",
-              "anchor_kind": "confluence",
-              "src": "name",
-              "resolver_hint": "tributary",
-              "notes": "tributary-SET reg (all tributaries of the named lake/river): a whole-WSC-subtree membership, NOT a curated point split. Handle via tributary inheritance / wsc_descendants, not a confluence point. — [review · was:not_applicable] assume nothing — re-decide. — [human-review 2026-08-04 not_a_split] confirmed not a split"
-            }
-          ]
-        }
-      ]
-    },
-    "597eb482": {
-      "entry_id": "597eb482",
-      "water": "SEVEN MILE RESERVOIR",
-      "mu": [
-        "4-8"
-      ],
-      "region": "REGION 4 - Kootenay",
-      "page": 41,
-      "image": "page_041_row_028.png",
-      "symbols": [],
-      "reg_text": "See Pend d'Oreille River",
-      "completeness": "NO_SPLIT",
-      "n_boundaries": 0,
-      "deferred": false,
-      "locators": [
-        {
-          "src": "name",
-          "text": "SEVEN MILE RESERVOIR",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "seven-mile-reservoir-s-tributaries-f25c92",
-              "status": "not_applicable",
-              "anchor_kind": "confluence",
-              "src": "name",
-              "resolver_hint": "tributary",
-              "notes": "tributary-SET reg (all tributaries of the named lake/river): a whole-WSC-subtree membership, NOT a curated point split. Handle via tributary inheritance / wsc_descendants, not a confluence point. — [review · was:not_applicable] assume nothing — re-decide. — [human-review 2026-08-04 not_a_split] confirmed not a split",
-              "name_verbatim": "SEVEN MILE RESERVOIR'S TRIBUTARIES",
-              "locator_text": "SEVEN MILE RESERVOIR'S TRIBUTARIES"
-            }
-          ]
-        }
-      ]
     },
     "6dad8cc8": {
       "entry_id": "6dad8cc8",
@@ -17430,72 +15434,6 @@
         }
       ],
       "reviewed": "2026-08-09"
-    },
-    "2c7db5cb": {
-      "entry_id": "2c7db5cb",
-      "water": "SLOCAN LAKE",
-      "mu": [
-        "4-17"
-      ],
-      "region": "REGION 4 - Kootenay",
-      "page": 41,
-      "image": "page_041_row_032.png",
-      "symbols": [],
-      "reg_text": "No bull trout under 60 cm",
-      "completeness": "NO_SPLIT",
-      "n_boundaries": 0,
-      "deferred": false,
-      "locators": [
-        {
-          "src": "name",
-          "text": "SLOCAN LAKE",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "slocan-lake-s-tributaries-37bf91",
-              "status": "not_applicable",
-              "anchor_kind": "confluence",
-              "src": "name",
-              "resolver_hint": "tributary",
-              "notes": "tributary-SET reg (all tributaries of the named lake/river): a whole-WSC-subtree membership, NOT a curated point split. Handle via tributary inheritance / wsc_descendants, not a confluence point. — [review · was:not_applicable] assume nothing — re-decide. — [human-review 2026-08-04 not_a_split] confirmed not a split",
-              "name_verbatim": "SLOCAN LAKE'S TRIBUTARIES",
-              "locator_text": "SLOCAN LAKE'S TRIBUTARIES"
-            }
-          ]
-        }
-      ]
-    },
-    "1d64e5da": {
-      "entry_id": "1d64e5da",
-      "water": "SLOCAN LAKE'S TRIBUTARIES",
-      "mu": [
-        "4-17"
-      ],
-      "region": "REGION 4 - Kootenay",
-      "page": 41,
-      "image": "page_041_row_033.png",
-      "symbols": [],
-      "reg_text": "Bull trout catch and release",
-      "completeness": "NO_SPLIT",
-      "n_boundaries": 0,
-      "deferred": false,
-      "locators": [
-        {
-          "src": "name",
-          "text": "SLOCAN LAKE'S TRIBUTARIES",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "slocan-lake-s-tributaries-37bf91",
-              "status": "not_applicable",
-              "anchor_kind": "confluence",
-              "src": "name",
-              "resolver_hint": "tributary",
-              "notes": "tributary-SET reg (all tributaries of the named lake/river): a whole-WSC-subtree membership, NOT a curated point split. Handle via tributary inheritance / wsc_descendants, not a confluence point. — [review · was:not_applicable] assume nothing — re-decide. — [human-review 2026-08-04 not_a_split] confirmed not a split"
-            }
-          ]
-        }
-      ]
     },
     "d409b6f7": {
       "entry_id": "d409b6f7",
@@ -17650,58 +15588,9 @@
               "locator_text": "northwest of a line between fishing boundary signs on opposite shores approximately 1.5 km southeast the city of Trout L"
             }
           ]
-        },
-        {
-          "src": "name",
-          "text": "TROUT LAKE",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "trout-lake-s-tributaries-d2d6c5",
-              "status": "not_applicable",
-              "anchor_kind": "confluence",
-              "src": "name",
-              "resolver_hint": "tributary",
-              "notes": "tributary-SET reg (all tributaries of the named lake/river): a whole-WSC-subtree membership, NOT a curated point split. Handle via tributary inheritance / wsc_descendants, not a confluence point. — [review · was:not_applicable] assume nothing — re-decide. — [human-review 2026-08-04 not_applicable] trib-set row; the lake-internal LINE split (NW of a line between signs SE of Trout Lake) is trout-lake-154027 (todo).",
-              "name_verbatim": "TROUT LAKE'S TRIBUTARIES",
-              "locator_text": "TROUT LAKE'S TRIBUTARIES"
-            }
-          ]
         }
       ],
       "reviewed": "2026-08-09"
-    },
-    "a0ffcc4d": {
-      "entry_id": "a0ffcc4d",
-      "water": "TROUT LAKE'S TRIBUTARIES",
-      "mu": [
-        "4-30"
-      ],
-      "region": "REGION 4 - Kootenay",
-      "page": 42,
-      "image": "page_042_row_009.png",
-      "symbols": [],
-      "reg_text": "Bull trout catch and release",
-      "completeness": "NO_SPLIT",
-      "n_boundaries": 0,
-      "deferred": false,
-      "locators": [
-        {
-          "src": "name",
-          "text": "TROUT LAKE'S TRIBUTARIES",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "trout-lake-s-tributaries-d2d6c5",
-              "status": "not_applicable",
-              "anchor_kind": "confluence",
-              "src": "name",
-              "resolver_hint": "tributary",
-              "notes": "tributary-SET reg (all tributaries of the named lake/river): a whole-WSC-subtree membership, NOT a curated point split. Handle via tributary inheritance / wsc_descendants, not a confluence point. — [review · was:not_applicable] assume nothing — re-decide. — [human-review 2026-08-04 not_applicable] trib-set row; the lake-internal LINE split (NW of a line between signs SE of Trout Lake) is trout-lake-154027 (todo)."
-            }
-          ]
-        }
-      ]
     },
     "db1622c9": {
       "entry_id": "db1622c9",
@@ -17735,104 +15624,6 @@
               "resolver_hint": "lake_reach",
               "label": "Upper Arrow Lake - drawdown area (Hwy 1 bridge <-> Akolkolex Narrows power line)",
               "notes": "[reclassified bridge_road_km -> lake_reach: reservoir_reach] RESERVOIR reach: Upper Arrow Lake drawdown area between the Hwy 1 bridge (Revelstoke) and the power line crossing — a reservoir/lake reach, not a stream bridge (docs/15). — [lake-class: reservoir] reservoir drawdown reach (Hwy 1 bridge <-> Akolkolex Narrows power line) — complex. — [review · was:deferred] assume nothing — re-decide. — [human-review 2026-08-04 lake-verify] DECISION (c) LAKE/RESERVOIR-INTERNAL, not not_applicable: the drawdown area is a portion of Upper Arrow reservoir bounded by two internal landmarks (Hwy 1 bridge, Akolkolex Narrows power line). A within-reservoir reach, so NOT handled for free by docs/04 - deferred + label. Needs docs/15 lake_region overlay (unbuilt)."
-            }
-          ]
-        }
-      ]
-    },
-    "482342e9": {
-      "entry_id": "482342e9",
-      "water": "UPPER ARROW LAKE'S TRIBUTARIES",
-      "mu": [
-        "4-31"
-      ],
-      "region": "REGION 4 - Kootenay",
-      "page": 42,
-      "image": "page_042_row_012.png",
-      "symbols": [],
-      "reg_text": "Bull trout catch and release",
-      "completeness": "NO_SPLIT",
-      "n_boundaries": 0,
-      "deferred": false,
-      "locators": [
-        {
-          "src": "name",
-          "text": "UPPER ARROW LAKE'S TRIBUTARIES",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "upper-arrow-lake-s-tributaries-330f07",
-              "status": "not_applicable",
-              "anchor_kind": "confluence",
-              "src": "name",
-              "resolver_hint": "tributary",
-              "notes": "tributary-SET reg (all tributaries of the named lake/river): a whole-WSC-subtree membership, NOT a curated point split. Handle via tributary inheritance / wsc_descendants, not a confluence point. — [review · was:not_applicable] assume nothing — re-decide. — [human-review 2026-08-04 not_applicable] trib-set for Upper Arrow Lake; the Upper-vs-Lower Arrow Lake split is already handled (separate waterbodies), and the drawdown-area reach is upper-arrow-lake-drawdown-area-f15974 (deferred). No split on this trib-set row."
-            }
-          ]
-        }
-      ]
-    },
-    "29b70378": {
-      "entry_id": "29b70378",
-      "water": "WANETA RESERVOIR",
-      "mu": [
-        "4-8"
-      ],
-      "region": "REGION 4 - Kootenay",
-      "page": 42,
-      "image": "page_042_row_016.png",
-      "symbols": [],
-      "reg_text": "See Pend d'Oreille River",
-      "completeness": "NO_SPLIT",
-      "n_boundaries": 0,
-      "deferred": false,
-      "locators": [
-        {
-          "src": "name",
-          "text": "WANETA RESERVOIR",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "waneta-reservoir-s-tributaries-5f1ab5",
-              "status": "not_applicable",
-              "anchor_kind": "confluence",
-              "src": "name",
-              "resolver_hint": "tributary",
-              "notes": "tributary-SET reg (all tributaries of the named lake/river): a whole-WSC-subtree membership, NOT a curated point split. Handle via tributary inheritance / wsc_descendants, not a confluence point. — [review · was:not_applicable] assume nothing — re-decide. — [human-review 2026-08-04 not_a_split] confirmed not a split",
-              "name_verbatim": "WANETA RESERVOIR'S TRIBUTARIES",
-              "locator_text": "WANETA RESERVOIR'S TRIBUTARIES"
-            }
-          ]
-        }
-      ]
-    },
-    "f0600a5f": {
-      "entry_id": "f0600a5f",
-      "water": "WANETA RESERVOIR'S TRIBUTARIES",
-      "mu": [
-        "4-8"
-      ],
-      "region": "REGION 4 - Kootenay",
-      "page": 42,
-      "image": "page_042_row_017.png",
-      "symbols": [],
-      "reg_text": "See Pend d'Oreille River's tributaries",
-      "completeness": "NO_SPLIT",
-      "n_boundaries": 0,
-      "deferred": false,
-      "locators": [
-        {
-          "src": "name",
-          "text": "WANETA RESERVOIR'S TRIBUTARIES",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "waneta-reservoir-s-tributaries-5f1ab5",
-              "status": "not_applicable",
-              "anchor_kind": "confluence",
-              "src": "name",
-              "resolver_hint": "tributary",
-              "notes": "tributary-SET reg (all tributaries of the named lake/river): a whole-WSC-subtree membership, NOT a curated point split. Handle via tributary inheritance / wsc_descendants, not a confluence point. — [review · was:not_applicable] assume nothing — re-decide. — [human-review 2026-08-04 not_a_split] confirmed not a split"
             }
           ]
         }
@@ -17995,40 +15786,6 @@
       ],
       "reviewed": "2026-08-09"
     },
-    "b9a07687": {
-      "entry_id": "b9a07687",
-      "water": "WHITESWAN LAKE",
-      "mu": [
-        "4-24"
-      ],
-      "region": "REGION 4 - Kootenay",
-      "page": 42,
-      "image": "page_042_row_022.png",
-      "symbols": [],
-      "reg_text": "Single hook; no towing",
-      "completeness": "NO_SPLIT",
-      "n_boundaries": 0,
-      "deferred": false,
-      "locators": [
-        {
-          "src": "name",
-          "text": "WHITESWAN LAKE",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "whiteswan-lake-s-inlet-outlet-streams-7477ef",
-              "status": "not_applicable",
-              "anchor_kind": "lake_io",
-              "src": "name",
-              "resolver_hint": "inlet_outlet",
-              "notes": "— [human-review 2026-08-04 not_applicable] inlet+outlet stream SET (whole-stream membership); the outlet-falls carve-out is authored separately (splits.json whiteswan_outlet_falls).",
-              "name_verbatim": "WHITESWAN LAKE'S INLET & OUTLET STREAMS",
-              "locator_text": "WHITESWAN LAKE'S INLET & OUTLET STREAMS"
-            }
-          ]
-        }
-      ]
-    },
     "3a243888": {
       "entry_id": "3a243888",
       "water": "WHITESWAN LAKE'S INLET & OUTLET STREAMS",
@@ -18063,89 +15820,6 @@
                 -115.4619,
                 50.173
               ]
-            }
-          ]
-        },
-        {
-          "src": "name",
-          "text": "WHITESWAN LAKE'S INLET & OUTLET STREAMS",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "whiteswan-lake-s-inlet-outlet-streams-7477ef",
-              "status": "not_applicable",
-              "anchor_kind": "lake_io",
-              "src": "name",
-              "resolver_hint": "inlet_outlet",
-              "notes": "— [human-review 2026-08-04 not_applicable] inlet+outlet stream SET (whole-stream membership); the outlet-falls carve-out is authored separately (splits.json whiteswan_outlet_falls)."
-            }
-          ]
-        }
-      ]
-    },
-    "fbcb1590": {
-      "entry_id": "fbcb1590",
-      "water": "WHITETAIL LAKE",
-      "mu": [
-        "4-26"
-      ],
-      "region": "REGION 4 - Kootenay",
-      "page": 42,
-      "image": "page_042_row_024.png",
-      "symbols": [
-        "Stocked"
-      ],
-      "reg_text": "**No Ice Fishing;** rainbow trout daily quota = 1 (none under 50 cm); brook trout daily quota = 20\nBait ban, single barbless hook\nNo towing",
-      "completeness": "NO_SPLIT",
-      "n_boundaries": 0,
-      "deferred": false,
-      "locators": [
-        {
-          "src": "name",
-          "text": "WHITETAIL LAKE",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "whitetail-lake-s-inlet-outlet-streams-e361cc",
-              "status": "not_applicable",
-              "anchor_kind": "lake_io",
-              "src": "name",
-              "resolver_hint": "inlet_outlet",
-              "notes": " [human-review 2026-08-06 n/a] whole inlet/outlet streams, no split.",
-              "name_verbatim": "WHITETAIL LAKE'S INLET & OUTLET STREAMS",
-              "locator_text": "WHITETAIL LAKE'S INLET & OUTLET STREAMS"
-            }
-          ]
-        }
-      ]
-    },
-    "06bfb66e": {
-      "entry_id": "06bfb66e",
-      "water": "WHITETAIL LAKE'S INLET & OUTLET STREAMS",
-      "mu": [
-        "4-26"
-      ],
-      "region": "REGION 4 - Kootenay",
-      "page": 42,
-      "image": "page_042_row_025.png",
-      "symbols": [],
-      "reg_text": "**No Fishing**",
-      "completeness": "NO_SPLIT",
-      "n_boundaries": 0,
-      "deferred": false,
-      "locators": [
-        {
-          "src": "name",
-          "text": "WHITETAIL LAKE'S INLET & OUTLET STREAMS",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "whitetail-lake-s-inlet-outlet-streams-e361cc",
-              "status": "not_applicable",
-              "anchor_kind": "lake_io",
-              "src": "name",
-              "resolver_hint": "inlet_outlet",
-              "notes": " [human-review 2026-08-06 n/a] whole inlet/outlet streams, no split."
             }
           ]
         }
@@ -18221,27 +15895,6 @@
               "name_verbatim": "WIGWAM RIVER (downstream of the access road adjacent t"
             }
           ]
-        },
-        {
-          "src": "name",
-          "text": "WIGWAM RIVER (downstream of the access road adjacent to km 42 on the Bighorn (Ram) Forest Service Road)",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "wigwam-river-downstream-of-the-access-road-ad-273a94",
-              "status": "curated",
-              "anchor_kind": "point",
-              "src": "name",
-              "resolver_hint": "bridge_road_km",
-              "notes": "Split authored in splits.json: 'wigwam_km42_ram_fsr' (point). — authored split: wigwam_km42_ram_fsr [audit-fix 2026-08-11 (2-reviewer agreement)] [splits-inline from splits.json wigwam_km42_ram_fsr]",
-              "coord": [
-                -114.95794,
-                49.1822
-              ],
-              "name_verbatim": "WIGWAM RIVER (downstream of the access road adjacent t",
-              "locator_text": "downstream of the access road adjacent to km 42 on the Bighorn (Ram"
-            }
-          ]
         }
       ]
     },
@@ -18286,27 +15939,6 @@
         {
           "src": "entry",
           "text": "upstream of the Forest Service recreation site adjacent to km 42 on the Bighorn (Ram) Forest Service Road",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "wigwam-river-upstream-of-the-forest-service-r-b0dd87",
-              "status": "curated",
-              "anchor_kind": "point",
-              "src": "name",
-              "resolver_hint": "bridge_road_km",
-              "notes": "Split authored in splits.json: 'wigwam_km42_ram_fsr' (point). — authored split: wigwam_km42_ram_fsr [audit-fix 2026-08-11 (2-reviewer agreement)] [splits-inline from splits.json wigwam_km42_ram_fsr]",
-              "coord": [
-                -114.95794,
-                49.1822
-              ],
-              "name_verbatim": "WIGWAM RIVER (upstream of the Forest Service recreatio",
-              "locator_text": "upstream of the Forest Service recreation site adjacent to km 42 on the Bighorn (Ram"
-            }
-          ]
-        },
-        {
-          "src": "name",
-          "text": "WIGWAM RIVER (upstream of the Forest Service recreation site adjacent to km 42 on the Bighorn (Ram) Forest Service Road)",
           "resolved": true,
           "rows": [
             {
@@ -18675,23 +16307,6 @@
               "locator_text": "EXCEPT: Burnt Bridge Creek upstream of Sitkatapa Creek, Hunlen Creek upstream of Hunlen Falls, and Young Creek upstream"
             }
           ]
-        },
-        {
-          "src": "name",
-          "text": "ATNARKO/BELLA COOLA RIVERS [Includes Tributaries] EXCEPT: Burnt Bridge Creek upstream of Sitkatapa Creek, Hunlen Creek upstream of Hunlen Falls, and Young Creek upstream of Hwy 20 (see separate entries for these three waters)",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "atnarko-bella-coola-rivers-includes-tributari-9a9b65",
-              "status": "not_applicable",
-              "anchor_kind": "not_a_split",
-              "src": "name",
-              "resolver_hint": "falls_obstacle",
-              "notes": "already in split [curated 2026-08-09 park-pins] [n/a: EXCEPT name-clause (Burnt Bridge/Hunlen/Young) — handled by their separate entries]",
-              "name_verbatim": "ATNARKO/BELLA COOLA RIVERS [Includes Tributaries] EXCE",
-              "locator_text": "ATNARKO/BELLA COOLA RIVERS [Includes Tributaries] EXCEPT: Burnt Bridge Creek upstream of Sitkatapa Creek, Hunlen Creek u"
-            }
-          ]
         }
       ],
       "reviewed": "2026-08-09"
@@ -18791,117 +16406,6 @@
       ],
       "reviewed": "2026-08-08"
     },
-    "e85446da": {
-      "entry_id": "e85446da",
-      "water": "BELLA COOLA RIVER",
-      "mu": [
-        "5-8"
-      ],
-      "region": "REGION 5 - Cariboo",
-      "page": 49,
-      "image": "page_049_row_013.png",
-      "symbols": [
-        "Incl. Tribs"
-      ],
-      "reg_text": "See Atnarko/Bella Coola Rivers[Includes Tributaries]",
-      "completeness": "NO_SPLIT",
-      "n_boundaries": 0,
-      "deferred": false,
-      "locators": [
-        {
-          "src": "name",
-          "text": "BELLA COOLA RIVER",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "atnarko-bella-coola-rivers-includes-tributari-9a9b65",
-              "status": "not_applicable",
-              "anchor_kind": "not_a_split",
-              "src": "name",
-              "resolver_hint": "falls_obstacle",
-              "notes": "already in split [curated 2026-08-09 park-pins] [n/a: EXCEPT name-clause (Burnt Bridge/Hunlen/Young) — handled by their separate entries]",
-              "name_verbatim": "ATNARKO/BELLA COOLA RIVERS [Includes Tributaries] EXCE",
-              "mus": [
-                "5-6",
-                "5-8",
-                "5-11"
-              ],
-              "locator_text": "ATNARKO/BELLA COOLA RIVERS [Includes Tributaries] EXCEPT: Burnt Bridge Creek upstream of Sitkatapa Creek, Hunlen Creek u"
-            }
-          ]
-        }
-      ]
-    },
-    "089a1ec8": {
-      "entry_id": "089a1ec8",
-      "water": "BIG LAKE (approx. 10 km west of 100 Mile House)",
-      "mu": [
-        "5-2"
-      ],
-      "region": "REGION 5 - Cariboo",
-      "page": 49,
-      "image": "page_049_row_014.png",
-      "symbols": [
-        "Stocked"
-      ],
-      "reg_text": "Trout daily quota = 2; bait ban, single barbless hook",
-      "completeness": "NO_SPLIT",
-      "n_boundaries": 0,
-      "deferred": false,
-      "locators": [
-        {
-          "src": "name",
-          "text": "BIG LAKE (approx. 10 km west of 100 Mile House)",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "big-lake-approx-10-km-west-of-100-mile-house-eefbed",
-              "status": "not_applicable",
-              "anchor_kind": "not_a_split",
-              "src": "name",
-              "resolver_hint": "other_reach",
-              "notes": "[n/a 2026-08-09 lake batch: whole-lake identified by location/name-variant, no split]",
-              "locator_text": "approx. 10 km west of 100 Mile House"
-            }
-          ]
-        }
-      ],
-      "reviewed": "2026-08-09"
-    },
-    "82fd0330": {
-      "entry_id": "82fd0330",
-      "water": "BIG LAKE (approx. 30 km west of Likely)",
-      "mu": [
-        "5-2"
-      ],
-      "region": "REGION 5 - Cariboo",
-      "page": 49,
-      "image": "page_049_row_015.png",
-      "symbols": [],
-      "reg_text": "Lake trout daily quota = 1, none over 50 cm; lake trout catch and release Oct 1-Nov 30",
-      "completeness": "NO_SPLIT",
-      "n_boundaries": 0,
-      "deferred": false,
-      "locators": [
-        {
-          "src": "name",
-          "text": "BIG LAKE (approx. 30 km west of Likely)",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "big-lake-approx-30-km-west-of-likely-fe4d04",
-              "status": "not_applicable",
-              "anchor_kind": "not_a_split",
-              "src": "name",
-              "resolver_hint": "other_reach",
-              "notes": "[n/a 2026-08-09 lake batch: whole-lake identified by location/name-variant, no split]",
-              "locator_text": "approx. 30 km west of Likely"
-            }
-          ]
-        }
-      ],
-      "reviewed": "2026-08-09"
-    },
     "b3a70962": {
       "entry_id": "b3a70962",
       "water": "BLUE LEAD CREEK",
@@ -18940,73 +16444,6 @@
                 -120.38212,
                 52.62151
               ]
-            }
-          ]
-        }
-      ]
-    },
-    "f2cde686": {
-      "entry_id": "f2cde686",
-      "water": "BOWRON LAKE",
-      "mu": [
-        "5-16"
-      ],
-      "region": "REGION 5 - Cariboo",
-      "page": 49,
-      "image": "page_049_row_024.png",
-      "symbols": [],
-      "reg_text": "Trout/char daily and possession quotas = 2",
-      "completeness": "NO_SPLIT",
-      "n_boundaries": 0,
-      "deferred": false,
-      "locators": [
-        {
-          "src": "name",
-          "text": "BOWRON LAKE",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "bowron-lake-park-waters-other-than-bowron-lak-e7fc42",
-              "status": "not_applicable",
-              "anchor_kind": "not_a_split",
-              "src": "name",
-              "resolver_hint": "other_reach",
-              "notes": "[n/a 2026-08-09 lake batch: whole-lake identified by location/name-variant, no split] [WATCH: admin-boundary park-waters set, see 10-matching-and-invariants.md]",
-              "name_verbatim": "BOWRON LAKE Park waters other than Bowron Lake",
-              "locator_text": "BOWRON LAKE Park waters other than Bowron Lake"
-            }
-          ]
-        }
-      ],
-      "reviewed": "2026-08-09"
-    },
-    "af6ea19e": {
-      "entry_id": "af6ea19e",
-      "water": "BOWRON LAKE Park waters other than Bowron Lake",
-      "mu": [
-        "5-16"
-      ],
-      "region": "REGION 5 - Cariboo",
-      "page": 49,
-      "image": "page_049_row_025.png",
-      "symbols": [],
-      "reg_text": "Trout/char daily and possession quotas = 1 (none under 30 cm or over 50 cm)\nBait ban, single barbless hook; no powered boats",
-      "completeness": "NO_SPLIT",
-      "n_boundaries": 0,
-      "deferred": false,
-      "locators": [
-        {
-          "src": "name",
-          "text": "BOWRON LAKE Park waters other than Bowron Lake",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "bowron-lake-park-waters-other-than-bowron-lak-e7fc42",
-              "status": "not_applicable",
-              "anchor_kind": "not_a_split",
-              "src": "name",
-              "resolver_hint": "other_reach",
-              "notes": "[n/a 2026-08-09 lake batch: whole-lake identified by location/name-variant, no split] [WATCH: admin-boundary park-waters set, see 10-matching-and-invariants.md]"
             }
           ]
         }
@@ -19103,31 +16540,6 @@
                 "blk": "360844922",
                 "wsc": "910-275583-777225-504013-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
               }
-            }
-          ]
-        },
-        {
-          "src": "name",
-          "text": "BURNT BRIDGE CREEK (upstream of Sitkatapa Creek)",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "burnt-bridge-creek-upstream-of-sitkatapa-cree-22aca4",
-              "status": "curated",
-              "anchor_kind": "confluence",
-              "src": "name",
-              "resolver_hint": "tributary",
-              "label": "Sitkatapa confluence",
-              "notes": "Confluence = mouth of Sitkatapa Creek (blk 360844922); parent = Burnt Bridge Creek. Author as confluence anchor tributary_wsc=910-275583-777225-504013-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000. OSM: https://www.openstreetmap.org/?mlat=52.50792&mlon=-126.14958#map=15/52.50792/-126.14958 — Split authored in splits.json: 'burnt_bridge_at_sitkatapa' (confluence). — authored split: burnt_bridge_at_sitkatapa",
-              "coord": [
-                -126.14958,
-                52.50792
-              ],
-              "target": {
-                "blk": "360844922",
-                "wsc": "910-275583-777225-504013-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
-              },
-              "locator_text": "upstream of Sitkatapa Creek"
             }
           ]
         }
@@ -19413,55 +16825,6 @@
               "resolver_hint": "lake_reach",
               "label": "Big Lagoon (west side of Chilko Lake)",
               "notes": "[lake-class: lake_internal] lake-internal (Big Lagoon, west side of Chilko Lake) — unsupported. — [review · was:deferred] assume nothing — re-decide. — [human-review 2026-08-04 lake-internal defer | docs/15 method=polygon] Big Lagoon (west side of Chilko Lake)"
-            }
-          ]
-        },
-        {
-          "src": "name",
-          "text": "CHILKO LAKE",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "chilko-lake-s-tributary-streams-3e8be6",
-              "status": "not_applicable",
-              "anchor_kind": "confluence",
-              "src": "name",
-              "resolver_hint": "tributary",
-              "notes": "tributary-SET reg (all tributaries of the named lake/river): a whole-WSC-subtree membership, NOT a curated point split. Handle via tributary inheritance / wsc_descendants, not a confluence point. — [review · was:not_applicable] assume nothing — re-decide. — [human-review 2026-08-04 not_a_split] this is tributaries of.",
-              "name_verbatim": "CHILKO LAKE'S tributary streams",
-              "locator_text": "CHILKO LAKE'S tributary streams"
-            }
-          ]
-        }
-      ]
-    },
-    "3babba3c": {
-      "entry_id": "3babba3c",
-      "water": "CHILKO LAKE'S tributary streams",
-      "mu": [
-        "5-4"
-      ],
-      "region": "REGION 5 - Cariboo",
-      "page": 50,
-      "image": "page_050_row_000.png",
-      "symbols": [],
-      "reg_text": "**No Fishing** Aug 1-June 30\nDolly Varden (bull trout) catch and release",
-      "completeness": "NO_SPLIT",
-      "n_boundaries": 0,
-      "deferred": false,
-      "locators": [
-        {
-          "src": "name",
-          "text": "CHILKO LAKE'S tributary streams",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "chilko-lake-s-tributary-streams-3e8be6",
-              "status": "not_applicable",
-              "anchor_kind": "confluence",
-              "src": "name",
-              "resolver_hint": "tributary",
-              "notes": "tributary-SET reg (all tributaries of the named lake/river): a whole-WSC-subtree membership, NOT a curated point split. Handle via tributary inheritance / wsc_descendants, not a confluence point. — [review · was:not_applicable] assume nothing — re-decide. — [human-review 2026-08-04 not_a_split] this is tributaries of."
             }
           ]
         }
@@ -20215,41 +17578,6 @@
       ],
       "reviewed": "2026-08-09"
     },
-    "7448e5dc": {
-      "entry_id": "7448e5dc",
-      "water": "FISH LAKE (unnamed lake approx. 2 km northwest of McClinchy Lake)",
-      "mu": [
-        "5-6"
-      ],
-      "region": "REGION 5 - Cariboo",
-      "page": 51,
-      "image": "page_051_row_007.png",
-      "symbols": [],
-      "reg_text": "Trout daily quota = 2; bait ban, single barbless hook",
-      "completeness": "NO_SPLIT",
-      "n_boundaries": 0,
-      "deferred": false,
-      "locators": [
-        {
-          "src": "name",
-          "text": "FISH LAKE (unnamed lake approx. 2 km northwest of McClinchy Lake)",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "fish-lake-unnamed-lake-approx-2-km-northwest--35e634",
-              "status": "not_applicable",
-              "anchor_kind": "not_a_split",
-              "src": "name",
-              "resolver_hint": "between_signs",
-              "notes": "[n/a 2026-08-09 lake batch2: whole-lake/park, no split]",
-              "name_verbatim": "FISH LAKE (unnamed lake approx. 2 km northwest of McCl",
-              "locator_text": "unnamed lake approx. 2 km northwest of McClinchy Lake"
-            }
-          ]
-        }
-      ],
-      "reviewed": "2026-08-09"
-    },
     "13862f1c": {
       "entry_id": "13862f1c",
       "water": "FRASER RIVER",
@@ -20354,75 +17682,6 @@
         }
       ]
     },
-    "d16e3292": {
-      "entry_id": "d16e3292",
-      "water": "\"GEESE\" LAKE (2 km northeast of Eliguk Lake)",
-      "mu": [
-        "5-12"
-      ],
-      "region": "REGION 5 - Cariboo",
-      "page": 51,
-      "image": "page_051_row_014.png",
-      "symbols": [],
-      "reg_text": "**No Ice Fishing;** trout catch and release; bait ban, single barbless hook",
-      "completeness": "NO_SPLIT",
-      "n_boundaries": 0,
-      "deferred": false,
-      "locators": [
-        {
-          "src": "name",
-          "text": "\"GEESE\" LAKE (2 km northeast of Eliguk Lake)",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "geese-lake-2-km-northeast-of-eliguk-lake-5a75ee",
-              "status": "not_applicable",
-              "anchor_kind": "not_a_split",
-              "src": "name",
-              "resolver_hint": "between_signs",
-              "notes": "[n/a 2026-08-09 lake batch: whole-lake identified by location/name-variant, no split]",
-              "locator_text": "2 km northeast of Eliguk Lake"
-            }
-          ]
-        }
-      ],
-      "reviewed": "2026-08-09"
-    },
-    "587bf89d": {
-      "entry_id": "587bf89d",
-      "water": "\"GRASSY\" LAKE (unnamed lake approx. 1 km southwest of West King Lake)",
-      "mu": [
-        "5-1"
-      ],
-      "region": "REGION 5 - Cariboo",
-      "page": 51,
-      "image": "page_051_row_016.png",
-      "symbols": [],
-      "reg_text": "Trout daily quota = 2\nNo powered boats",
-      "completeness": "NO_SPLIT",
-      "n_boundaries": 0,
-      "deferred": false,
-      "locators": [
-        {
-          "src": "name",
-          "text": "\"GRASSY\" LAKE (unnamed lake approx. 1 km southwest of West King Lake)",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "grassy-lake-unnamed-lake-approx-1-km-southwes-bcf05f",
-              "status": "not_applicable",
-              "anchor_kind": "not_a_split",
-              "src": "name",
-              "resolver_hint": "between_signs",
-              "notes": "[n/a 2026-08-09 lake batch: whole-lake identified by location/name-variant, no split]",
-              "name_verbatim": "\"GRASSY\" LAKE (unnamed lake approx. 1 km southwest of",
-              "locator_text": "unnamed lake approx. 1 km southwest of West King Lake"
-            }
-          ]
-        }
-      ],
-      "reviewed": "2026-08-09"
-    },
     "a6054318": {
       "entry_id": "a6054318",
       "water": "GREEN LAKE",
@@ -20492,40 +17751,6 @@
               "resolver_hint": "lake_reach",
               "notes": "[lake-class: whole_lake] whole (unnamed) lake — matched by description, no cut. — [review · was:not_applicable] assume nothing — re-decide. — [human-review 2026-08-04 not_a_split] confirmed not a split",
               "name_verbatim": "\"GRIZZLY\" LAKE (unnamed lake approx. 4.5 km upstream o"
-            }
-          ]
-        }
-      ]
-    },
-    "49ade50d": {
-      "entry_id": "49ade50d",
-      "water": "\"HIGH\" LAKE (unnamed lake approx. 4 km north of Bridge Lake)",
-      "mu": [
-        "5-1"
-      ],
-      "region": "REGION 5 - Cariboo",
-      "page": 51,
-      "image": "page_051_row_025.png",
-      "symbols": [],
-      "reg_text": "Trout daily quota = 2\nBait ban, single barbless hook",
-      "completeness": "NO_SPLIT",
-      "n_boundaries": 0,
-      "deferred": false,
-      "locators": [
-        {
-          "src": "name",
-          "text": "\"HIGH\" LAKE (unnamed lake approx. 4 km north of Bridge Lake)",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "high-lake-unnamed-lake-approx-4-km-north-of-b-0ec39d",
-              "status": "not_applicable",
-              "anchor_kind": "lake",
-              "src": "name",
-              "resolver_hint": "lake_reach",
-              "notes": "[reclassified bridge_road_km -> lake_reach: whole_lake] Whole-lake reg (trout quota, bait ban) on an unnamed lake ~4 km N of Bridge Lake. 'Bridge Lake' is a LANDMARK, not a road bridge. Target the lake wbk; no split. — [lake-class: whole_lake] whole-lake quota/bait reg, matched by (unnamed) lake — no cut. — [review · was:not_applicable] assume nothing — re-decide. — [human-review 2026-08-04 not_a_split] confirmed not a split",
-              "name_verbatim": "\"HIGH\" LAKE (unnamed lake approx. 4 km north of Bridge",
-              "locator_text": "unnamed lake approx. 4 km north of Bridge Lake"
             }
           ]
         }
@@ -20663,37 +17888,6 @@
               "locator_text": "Horsefly River Falls"
             }
           ]
-        },
-        {
-          "src": "name",
-          "text": "HORSEFLY RIVER (from Quesnel Lake to Horsefly River Falls)",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "horsefly-river-from-quesnel-lake-to-horsefly--bfe6d5-a",
-              "status": "not_applicable",
-              "anchor_kind": "lake",
-              "src": "name",
-              "resolver_hint": "lake_reach",
-              "notes": "[structural-split 2026-08-05 from \"from Quesnel Lake to Horsefly River Falls\"] boundary=Quesnel Lake [auto-lake-split 2026-08-05] pure lake-edge; lake polygon splits the BLK for free (docs/04) -> no authored split.",
-              "name_verbatim": "HORSEFLY RIVER (from Quesnel Lake to Horsefly River Fa",
-              "locator_text": "Quesnel Lake"
-            },
-            {
-              "id": "horsefly-river-from-quesnel-lake-to-horsefly--bfe6d5-b",
-              "status": "curated",
-              "anchor_kind": "point",
-              "src": "name",
-              "resolver_hint": "falls_obstacle",
-              "notes": "[structural-split 2026-08-05 from \"from Quesnel Lake to Horsefly River Falls\"] boundary=Horsefly River Falls [curated 2026-08-08 manual-review batch=horsefly] [Horsefly River Falls = lowest signed falls, FISS obstacle 27704 (migration barrier), WSC 160-635400]",
-              "coord": [
-                -121.02477,
-                52.2968
-              ],
-              "name_verbatim": "HORSEFLY RIVER (from Quesnel Lake to Horsefly River Fa",
-              "locator_text": "Horsefly River Falls"
-            }
-          ]
         }
       ],
       "reviewed": "2026-08-08"
@@ -20775,63 +17969,8 @@
               ]
             }
           ]
-        },
-        {
-          "src": "name",
-          "text": "HUNLEN CREEK (upstream of Hunlen Falls)",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "hunlen-creek-upstream-of-hunlen-falls-b24b41",
-              "status": "curated",
-              "anchor_kind": "point",
-              "src": "name",
-              "resolver_hint": "falls_obstacle",
-              "notes": "Split authored in splits.json: 'hunlen_falls' (point(obstacle)). — authored split: hunlen_falls [audit-fix 2026-08-11 (2-reviewer agreement)] [splits-inline from splits.json hunlen_falls]",
-              "coord": [
-                -125.77085,
-                52.27612
-              ],
-              "locator_text": "upstream of Hunlen Falls"
-            }
-          ]
         }
       ]
-    },
-    "4a76a4b9": {
-      "entry_id": "4a76a4b9",
-      "water": "\"LITTLE BISHOP\" LAKE (approx. 1.7 km northeast of Bishop Lake)",
-      "mu": [
-        "5-13"
-      ],
-      "region": "REGION 5 - Cariboo",
-      "page": 52,
-      "image": "page_052_row_003.png",
-      "symbols": [],
-      "reg_text": "Trout daily quota = 2\nBait ban, single barbless hook",
-      "completeness": "NO_SPLIT",
-      "n_boundaries": 0,
-      "deferred": false,
-      "locators": [
-        {
-          "src": "name",
-          "text": "\"LITTLE BISHOP\" LAKE (approx. 1.7 km northeast of Bishop Lake)",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "little-bishop-lake-approx-1-7-km-northeast-of-5f58d4",
-              "status": "not_applicable",
-              "anchor_kind": "not_a_split",
-              "src": "name",
-              "resolver_hint": "between_signs",
-              "notes": "[n/a 2026-08-09 lake batch: whole-lake identified by location/name-variant, no split]",
-              "name_verbatim": "\"LITTLE BISHOP\" LAKE (approx. 1.7 km northeast of Bish",
-              "locator_text": "approx. 1.7 km northeast of Bishop Lake"
-            }
-          ]
-        }
-      ],
-      "reviewed": "2026-08-09"
     },
     "1d57cd66": {
       "entry_id": "1d57cd66",
@@ -21491,71 +18630,6 @@
         }
       ]
     },
-    "3ddd80d4": {
-      "entry_id": "3ddd80d4",
-      "water": "TANYA LAKE'S TRIBUTARIES",
-      "mu": [
-        "5-10"
-      ],
-      "region": "REGION 5 - Cariboo",
-      "page": 53,
-      "image": "page_053_row_012.png",
-      "symbols": [],
-      "reg_text": "**No Fishing**",
-      "completeness": "NO_SPLIT",
-      "n_boundaries": 0,
-      "deferred": false,
-      "locators": [
-        {
-          "src": "name",
-          "text": "TANYA LAKE'S TRIBUTARIES",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "tanya-lake-s-tributaries-52749a",
-              "status": "not_applicable",
-              "anchor_kind": "confluence",
-              "src": "name",
-              "resolver_hint": "tributary",
-              "notes": "tributary-SET reg (all tributaries of the named lake/river): a whole-WSC-subtree membership, NOT a curated point split. Handle via tributary inheritance / wsc_descendants, not a confluence point. — [review · was:not_applicable] assume nothing — re-decide. — [human-review 2026-08-04 not_a_split] confirmed not a split"
-            }
-          ]
-        }
-      ]
-    },
-    "b6b56aff": {
-      "entry_id": "b6b56aff",
-      "water": "TEEPEE LAKE (adjacent to West Road River)",
-      "mu": [
-        "5-13"
-      ],
-      "region": "REGION 5 - Cariboo",
-      "page": 53,
-      "image": "page_053_row_014.png",
-      "symbols": [],
-      "reg_text": "**No Fishing** Nov 1-June 14\nTrout daily quota = 1 (none under 30 cm)\nArtificial fly only, bait ban, barbless hook",
-      "completeness": "NO_SPLIT",
-      "n_boundaries": 0,
-      "deferred": false,
-      "locators": [
-        {
-          "src": "name",
-          "text": "TEEPEE LAKE (adjacent to West Road River)",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "teepee-lake-adjacent-to-west-road-river-a62e7b",
-              "status": "not_applicable",
-              "anchor_kind": "lake",
-              "src": "name",
-              "resolver_hint": "lake_reach",
-              "notes": "[reclassified bridge_road_km -> lake_reach: whole_lake] Whole-lake reg on Teepee Lake (adjacent to West Road River). Target the lake wbk; no split. — [lake-class: whole_lake] whole-lake reg on Teepee Lake — no cut. — [review · was:not_applicable] assume nothing — re-decide. — [human-review 2026-08-04 not_a_split] confirmed not a split",
-              "locator_text": "adjacent to West Road River"
-            }
-          ]
-        }
-      ]
-    },
     "5e47697a": {
       "entry_id": "5e47697a",
       "water": "WEST ROAD (\"Blackwater\") RIVER",
@@ -21594,41 +18668,6 @@
           ]
         }
       ]
-    },
-    "dbb07ec9": {
-      "entry_id": "dbb07ec9",
-      "water": "WOLF LAKE (situated approx. 2.3 km northeast of Lorin Lake)",
-      "mu": [
-        "5-1"
-      ],
-      "region": "REGION 5 - Cariboo",
-      "page": 53,
-      "image": "page_053_row_034.png",
-      "symbols": [],
-      "reg_text": "**No Ice Fishing;** trout/char catch and release\nBait ban, single barbless hook",
-      "completeness": "NO_SPLIT",
-      "n_boundaries": 0,
-      "deferred": false,
-      "locators": [
-        {
-          "src": "name",
-          "text": "WOLF LAKE (situated approx. 2.3 km northeast of Lorin Lake)",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "wolf-lake-situated-approx-2-3-km-northeast-of-59e92d",
-              "status": "not_applicable",
-              "anchor_kind": "not_a_split",
-              "src": "name",
-              "resolver_hint": "between_signs",
-              "notes": "[n/a 2026-08-09 lake batch3: whole-lake/park/location, no split]",
-              "name_verbatim": "WOLF LAKE (situated approx. 2.3 km northeast of Lorin",
-              "locator_text": "situated approx. 2.3 km northeast of Lorin Lake"
-            }
-          ]
-        }
-      ],
-      "reviewed": "2026-08-09"
     },
     "15fdd545": {
       "entry_id": "15fdd545",
@@ -21682,26 +18721,6 @@
                 -125.84592,
                 52.49158
               ]
-            }
-          ]
-        },
-        {
-          "src": "name",
-          "text": "YOUNG CREEK (upstream of Hwy 20)",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "young-creek-upstream-of-hwy-20-f08b82",
-              "status": "curated",
-              "anchor_kind": "point",
-              "src": "name",
-              "resolver_hint": "bridge_road_km",
-              "notes": "Split authored in splits.json: 'young_hwy20' (point). — authored split: young_hwy20 [audit-fix 2026-08-11 (2-reviewer agreement)] [splits-inline from splits.json young_hwy20]",
-              "coord": [
-                -125.84592,
-                52.49158
-              ],
-              "locator_text": "upstream of Hwy 20"
             }
           ]
         }
@@ -22261,62 +19280,8 @@
               ]
             }
           ]
-        },
-        {
-          "src": "name",
-          "text": "CHESLATTA RIVER (downstream of falls)",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "cheslatta-river-downstream-of-falls-e515c9",
-              "status": "curated",
-              "anchor_kind": "point",
-              "src": "name",
-              "resolver_hint": "falls_obstacle",
-              "label": "Cheslatta falls",
-              "notes": "falls are here (Lat: 53.64549° N, Lon: 124.93749° W)",
-              "coord": [
-                -124.93749,
-                53.64549
-              ],
-              "locator_text": "downstream of falls"
-            }
-          ]
         }
       ]
-    },
-    "a42fe7f0": {
-      "entry_id": "a42fe7f0",
-      "water": "CHILKOOT TRAIL NATIONAL HISTORIC PARK WATERS",
-      "mu": [
-        "6-28"
-      ],
-      "region": "REGION 6 - Skeena",
-      "page": 56,
-      "image": "page_056_row_016.png",
-      "symbols": [],
-      "reg_text": "**No Fishing (please contact Parks Canada for details, see **page 9** in the Provincial Regulations)**",
-      "completeness": "NO_SPLIT",
-      "n_boundaries": 0,
-      "deferred": false,
-      "locators": [
-        {
-          "src": "name",
-          "text": "CHILKOOT TRAIL NATIONAL HISTORIC PARK WATERS",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "chilkoot-trail-national-historic-park-waters-f74308",
-              "status": "not_applicable",
-              "anchor_kind": "not_a_split",
-              "src": "name",
-              "resolver_hint": "other_reach",
-              "notes": "[reviewed 2026-08-09 park+warnings batch] [n/a: whole-park water set, no split]"
-            }
-          ]
-        }
-      ],
-      "reviewed": "2026-08-09"
     },
     "107fa559": {
       "entry_id": "107fa559",
@@ -22391,40 +19356,6 @@
               "resolver_hint": "lake_reach",
               "label": "outlet area of François Lake (map 1)",
               "notes": "[lake-class: lake_split] at the outlet of Francois Lake (map-described) — lake outlet edge. — [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 — NO authored split needed. — [review · was:auto] assume nothing — re-decide. — [human-review 2026-08-04 lake-internal defer | docs/15 method=polygon] outlet area of François Lake (map 1) — NEEDS-CONFIRM (vague/map-only or agents disagreed; verify when docs/15 built)"
-            }
-          ]
-        }
-      ]
-    },
-    "24ac1715": {
-      "entry_id": "24ac1715",
-      "water": "GLACIER (Redslide) CREEK (unnamed tributary to Nanika River)",
-      "mu": [
-        "6-9"
-      ],
-      "region": "REGION 6 - Skeena",
-      "page": 57,
-      "image": "page_057_row_007.png",
-      "symbols": [],
-      "reg_text": "**No Fishing** Aug 1-Sept 30; bait ban",
-      "completeness": "NO_SPLIT",
-      "n_boundaries": 0,
-      "deferred": false,
-      "locators": [
-        {
-          "src": "name",
-          "text": "GLACIER (Redslide) CREEK (unnamed tributary to Nanika River)",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "glacier-redslide-creek-unnamed-tributary-to-n-b7d777",
-              "status": "not_applicable",
-              "anchor_kind": "confluence",
-              "src": "name",
-              "resolver_hint": "tributary",
-              "notes": "[deferred] 1_nonconfluence_boundary — [review · was:deferred] assume nothing — re-decide. — [human-review 2026-08-04 not_a_split] confirmed not a split",
-              "name_verbatim": "GLACIER (Redslide) CREEK (unnamed tributary to Nanika",
-              "locator_text": "unnamed tributary to Nanika River"
             }
           ]
         }
@@ -22649,23 +19580,6 @@
                 54.26031
               ],
               "name_verbatim": "KITIMAT RIVER (Angling regulations for the Kitimat Riv"
-            }
-          ]
-        },
-        {
-          "src": "name",
-          "text": "KITIMAT RIVER (Angling regulations for the Kitimat River are currently under review. Please check the in-season regulation change website prior to fishing on the Kitimat River)",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "kitimat-river-angling-regulations-for-the-kit-eb7a2e",
-              "status": "not_applicable",
-              "anchor_kind": "confluence",
-              "src": "name",
-              "resolver_hint": "tributary",
-              "notes": "[deferred] 1_nonconfluence_boundary — [review · was:deferred] assume nothing — re-decide. — [human-review 2026-08-04 not_applicable] locator_text is the 'currently under review' NOTE, not a boundary; the reg's two real splits are in -664c72 (west-half signs) + -b3b21f (tributaries + Hwy 37 bridge). NB whole Kitimat reg flagged 'under review' at source.",
-              "name_verbatim": "KITIMAT RIVER (Angling regulations for the Kitimat Riv",
-              "locator_text": "Angling regulations for the Kitimat River are currently under review. Please check the in-season regulation change websi"
             }
           ]
         }
@@ -23450,55 +20364,6 @@
               "notes": "[reclassified bridge_road_km -> lake_reach: lake_internal] LAKE reg (Prudhomme Lake) 'south of the Hwy 16 bridge' — lake-internal split at the bridge (docs/15). — [lake-class: lake_internal] lake-internal divide at the Hwy 16 bridge (docs/15) — unsupported. — [review · was:deferred] assume nothing — re-decide. — [human-review 2026-08-04 lake-verify] DECISION (c) LAKE-INTERNAL, not not_applicable: the reg cuts the lake body at the Hwy 16 bridge line (docs/15 line-across-lake, 5a), leaving a real south sub-region. Unbuilt (lake_region overlay). This is a genuine within-lake cut, so it is NOT 'handled for free' by docs/04 - deferred + label rather than n/a."
             }
           ]
-        },
-        {
-          "src": "name",
-          "text": "PRUDHOMME LAKE (south of the Hwy 16 bridge)",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "prudhomme-lake-south-of-the-hwy-16-bridge-eccc4b",
-              "status": "deferred",
-              "anchor_kind": "lake",
-              "src": "name",
-              "resolver_hint": "lake_reach",
-              "label": "Prudhomme Lake - south of the Hwy 16 bridge",
-              "notes": "[reclassified bridge_road_km -> lake_reach: lake_internal] LAKE reg (Prudhomme Lake) 'south of the Hwy 16 bridge' — lake-internal split at the bridge (docs/15). — [lake-class: lake_internal] lake-internal divide at the Hwy 16 bridge (docs/15) — unsupported. — [review · was:deferred] assume nothing — re-decide. — [human-review 2026-08-04 lake-verify] DECISION (c) LAKE-INTERNAL, not not_applicable: the reg cuts the lake body at the Hwy 16 bridge line (docs/15 line-across-lake, 5a), leaving a real south sub-region. Unbuilt (lake_region overlay). This is a genuine within-lake cut, so it is NOT 'handled for free' by docs/04 - deferred + label rather than n/a.",
-              "locator_text": "south of the Hwy 16 bridge"
-            }
-          ]
-        }
-      ]
-    },
-    "b9142d80": {
-      "entry_id": "b9142d80",
-      "water": "RANCHERIA RIVER'S TRIBUTARIES",
-      "mu": [
-        "6-25"
-      ],
-      "region": "REGION 6 - Skeena",
-      "page": 59,
-      "image": "page_059_row_012.png",
-      "symbols": [],
-      "reg_text": "Arctic grayling daily quota = 3 (only 1 over 35 cm); whitefish daily quota = 5. **B.C. and Yukon angling licences are valid on all parts of the\nRancheria River including tributary streams but not lakes, but only one daily quota may be retained regardless of which side of the\nborder the fish were angled, and anglers must follow tackle restrictions and other regulations for the jurisdiction where angling**",
-      "completeness": "NO_SPLIT",
-      "n_boundaries": 0,
-      "deferred": false,
-      "locators": [
-        {
-          "src": "name",
-          "text": "RANCHERIA RIVER'S TRIBUTARIES",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "rancheria-river-s-tributaries-adddde",
-              "status": "not_applicable",
-              "anchor_kind": "confluence",
-              "src": "name",
-              "resolver_hint": "tributary",
-              "notes": "tributary-SET reg (all tributaries of the named lake/river): a whole-WSC-subtree membership, NOT a curated point split. Handle via tributary inheritance / wsc_descendants, not a confluence point. — [review · was:not_applicable] assume nothing — re-decide. — [human-review 2026-08-04 not_a_split] confirmed not a split"
-            }
-          ]
         }
       ]
     },
@@ -24178,42 +21043,6 @@
       ],
       "reviewed": "2026-08-09"
     },
-    "233955c2": {
-      "entry_id": "233955c2",
-      "water": "TATSATUA CREEK (formerly known as Tatsamenie Lake's outlet streams)",
-      "mu": [
-        "6-26"
-      ],
-      "region": "REGION 6 - Skeena",
-      "page": 60,
-      "image": "page_060_row_000.png",
-      "symbols": [
-        "Incl. Tribs"
-      ],
-      "reg_text": "**No Fishing** from Dec 1-June 30 and Aug 20-Sept 15",
-      "completeness": "NO_SPLIT",
-      "n_boundaries": 0,
-      "deferred": false,
-      "locators": [
-        {
-          "src": "name",
-          "text": "TATSATUA CREEK (formerly known as Tatsamenie Lake's outlet streams)",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "tatsatua-creek-formerly-known-as-tatsamenie-l-0e9bf6",
-              "status": "not_applicable",
-              "anchor_kind": "lake_io",
-              "src": "name",
-              "resolver_hint": "inlet_outlet",
-              "notes": " [human-review 2026-08-06 n/a] name variation, not a split.",
-              "name_verbatim": "TATSATUA CREEK (formerly known as Tatsamenie Lake's ou",
-              "locator_text": "formerly known as Tatsamenie Lake's outlet streams"
-            }
-          ]
-        }
-      ]
-    },
     "00b334b6": {
       "entry_id": "00b334b6",
       "water": "TCHESINKUT LAKE",
@@ -24244,39 +21073,6 @@
               "src": "except",
               "resolver_hint": "except_negative",
               "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'. — [human-review 2026-08-04 not_a_split] just date exceptions."
-            }
-          ]
-        }
-      ]
-    },
-    "8d5c10d7": {
-      "entry_id": "8d5c10d7",
-      "water": "WEST ROAD (\"Blackwater\") RIVER'S TRIBUTARIES",
-      "mu": [
-        "6-1"
-      ],
-      "region": "REGION 6 - Skeena",
-      "page": 60,
-      "image": "page_060_row_011.png",
-      "symbols": [],
-      "reg_text": "Trout daily quota = 1; artificial fly only, bait ban\nFor regulations on the mainstem of the West Road River, see Region 5",
-      "completeness": "NO_SPLIT",
-      "n_boundaries": 0,
-      "deferred": false,
-      "locators": [
-        {
-          "src": "name",
-          "text": "WEST ROAD (\"Blackwater\") RIVER'S TRIBUTARIES",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "west-road-blackwater-river-s-tributaries-aec300",
-              "status": "not_applicable",
-              "anchor_kind": "confluence",
-              "src": "name",
-              "resolver_hint": "tributary",
-              "notes": "[reclassified bridge_road_km -> confluence_tributary] tributary-SET reg (West Road/Blackwater River's tributaries) — whole-subtree membership, not a split. not_applicable. — [review · was:not_applicable] assume nothing — re-decide. — [human-review 2026-08-04 not_a_split] confirmed not a split",
-              "locator_text": "WEST ROAD RIVER'S TRIBUTARIES"
             }
           ]
         }
@@ -24729,40 +21525,6 @@
         }
       ]
     },
-    "1a7c7799": {
-      "entry_id": "1a7c7799",
-      "water": "BEAR LAKE (Crooked River Provincial Park)",
-      "mu": [
-        "7-16"
-      ],
-      "region": "REGION 7A - Omineca",
-      "page": 65,
-      "image": "page_065_row_005.png",
-      "symbols": [],
-      "reg_text": "No powered boats",
-      "completeness": "NO_SPLIT",
-      "n_boundaries": 0,
-      "deferred": false,
-      "locators": [
-        {
-          "src": "name",
-          "text": "BEAR LAKE (Crooked River Provincial Park)",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "bear-lake-crooked-river-provincial-park-883c27",
-              "status": "not_applicable",
-              "anchor_kind": "not_a_split",
-              "src": "name",
-              "resolver_hint": "park_polygon",
-              "notes": "[n/a 2026-08-09 lake batch: whole-lake identified by location/name-variant, no split]",
-              "locator_text": "Crooked River Provincial Park"
-            }
-          ]
-        }
-      ],
-      "reviewed": "2026-08-09"
-    },
     "9fd933ca": {
       "entry_id": "9fd933ca",
       "water": "CHICHOUYENILY CREEK",
@@ -25085,42 +21847,6 @@
           ]
         }
       ]
-    },
-    "7ef16bc6": {
-      "entry_id": "7ef16bc6",
-      "water": "HART LAKE (Crooked River Provincial Park)",
-      "mu": [
-        "7-16"
-      ],
-      "region": "REGION 7A - Omineca",
-      "page": 65,
-      "image": "page_065_row_045.png",
-      "symbols": [
-        "Stocked"
-      ],
-      "reg_text": "**No Fishing** Nov 1-Apr 30\nRainbow trout daily quota = 1 (none over 40 cm); bait ban, single barbless hook; electric motor only - max 7.5 kW",
-      "completeness": "NO_SPLIT",
-      "n_boundaries": 0,
-      "deferred": false,
-      "locators": [
-        {
-          "src": "name",
-          "text": "HART LAKE (Crooked River Provincial Park)",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "hart-lake-crooked-river-provincial-park-7562df",
-              "status": "not_applicable",
-              "anchor_kind": "not_a_split",
-              "src": "name",
-              "resolver_hint": "park_polygon",
-              "notes": "[n/a 2026-08-09 lake batch2: whole-lake/park, no split]",
-              "locator_text": "Crooked River Provincial Park"
-            }
-          ]
-        }
-      ],
-      "reviewed": "2026-08-09"
     },
     "d128b1fb": {
       "entry_id": "d128b1fb",
@@ -25540,42 +22266,6 @@
         }
       ],
       "reviewed": "2026-08-10"
-    },
-    "e03748aa": {
-      "entry_id": "e03748aa",
-      "water": "SQUARE LAKE (located in Crooked River Provincial Park)",
-      "mu": [
-        "7-16"
-      ],
-      "region": "REGION 7A - Omineca",
-      "page": 67,
-      "image": "page_067_row_008.png",
-      "symbols": [
-        "Stocked"
-      ],
-      "reg_text": "No powered boats",
-      "completeness": "NO_SPLIT",
-      "n_boundaries": 0,
-      "deferred": false,
-      "locators": [
-        {
-          "src": "name",
-          "text": "SQUARE LAKE (located in Crooked River Provincial Park)",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "square-lake-located-in-crooked-river-provinci-87f47f",
-              "status": "not_applicable",
-              "anchor_kind": "not_a_split",
-              "src": "name",
-              "resolver_hint": "park_polygon",
-              "notes": "[n/a 2026-08-09 lake batch3: whole-lake/park/location, no split]",
-              "locator_text": "located in Crooked River Provincial Park"
-            }
-          ]
-        }
-      ],
-      "reviewed": "2026-08-09"
     },
     "c23b554d": {
       "entry_id": "c23b554d",
@@ -26255,22 +22945,6 @@
               "notes": "[lake-class: multi_lake] whole Liard watershed (all lakes & streams, see map) — no single cut. — [review · was:not_applicable] assume nothing — re-decide. — [human-review 2026-08-04 not_a_split] confirmed not a split"
             }
           ]
-        },
-        {
-          "src": "name",
-          "text": "LIARD RIVER WATERSHED (see map on page 63)",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "liard-river-watershed-see-map-on-page-63-5f8021",
-              "status": "not_applicable",
-              "anchor_kind": "not_a_split",
-              "src": "name",
-              "resolver_hint": "map_or_vague",
-              "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'. — [human-review 2026-08-04 na-with-siblings] confirmed — 'see map on page 63' pointer, not a split. USER_NOTE flags no other split; full_regulation confirms no boundary text present ('from all lakes and streams' bull-trout quota rules only).",
-              "locator_text": "see map on page 63"
-            }
-          ]
         }
       ]
     },
@@ -26575,40 +23249,6 @@
               "locator_text": "Site C dam"
             }
           ]
-        },
-        {
-          "src": "name",
-          "text": "PEACE RIVER (From Hwy. 29 bridge to the Site C dam)",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "peace-river-from-hwy-29-bridge-to-the-site-c--c17e9f-a",
-              "status": "curated",
-              "anchor_kind": "point",
-              "src": "name",
-              "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] Site C Dam (upstream bound) / Hwy 29 bridge (downstream) on Peace River (Hwy 29 bridge -> Site C Dam). No FWA coord (needs map / external source). Verify: Locate Site C Dam and the Hwy 29 bridge on the Peace; both external to FWA.. Reach from the Hwy 29 bridge upstream to the Site C Dam. Site C not in FWA (recent). Recommend manual with BC Hydro / map coords for both landmarks. [structural-split 2026-08-05 from \"From Hwy. 29 bridge to the Site C dam\"] boundary=Hwy. 29 bridge [hint-fix 2026-08-06 dam_weir_fence->bridge_road_km] [curated 2026-08-08 manual-review batch=peace-7-31] [Hudson's Hope Suspension Bridge ref BC 29]",
-              "coord": [
-                -121.98563,
-                55.98852
-              ],
-              "locator_text": "Hwy. 29 bridge"
-            },
-            {
-              "id": "peace-river-from-hwy-29-bridge-to-the-site-c--c17e9f-b",
-              "status": "curated",
-              "anchor_kind": "point",
-              "src": "name",
-              "resolver_hint": "dam_weir_fence",
-              "label": "Site C dam (John Horgan Dam)",
-              "notes": "[auto-proposal L] Site C Dam (upstream bound) / Hwy 29 bridge (downstream) on Peace River (Hwy 29 bridge -> Site C Dam). No FWA coord (needs map / external source). Verify: Locate Site C Dam and the Hwy 29 bridge on the Peace; both external to FWA.. Reach from the Hwy 29 bridge upstream to the Site C Dam. Site C not in FWA (recent). Recommend manual with BC Hydro / map coords for both landmarks. [structural-split 2026-08-05 from \"From Hwy. 29 bridge to the Site C dam\"] boundary=Site C dam [human-review 2026-08-06] Site C/John Horgan Dam (OSM way 409910469, user-confirmed).",
-              "coord": [
-                -120.91289,
-                56.193
-              ],
-              "locator_text": "Site C dam"
-            }
-          ]
         }
       ],
       "reviewed": "2026-08-08"
@@ -26631,28 +23271,6 @@
         {
           "src": "water",
           "text": "From Site C dam to boundary signs 1,200m downstream",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "peace-river-from-site-c-dam-to-boundary-signs-a64881-a",
-              "status": "curated",
-              "anchor_kind": "point",
-              "src": "name",
-              "resolver_hint": "dam_weir_fence",
-              "label": "Site C dam (John Horgan Dam)",
-              "notes": "[auto-proposal L] Site C Dam (upstream) -> signs 1,200 m downstream on Peace River (Site C Dam -> signs 1,200 m below). No FWA coord (needs map / external source). Verify: Locate Site C Dam; downstream end = signs 1,200 m below. External to FWA.. Short reach from the Site C Dam to boundary signs 1,200 m downstream (pairs with peace-river-downstream-of-boundary-signs). Site C absent from FWA - manual/BC Hydro coord needed. [human-review 2026-08-06] Site C/John Horgan Dam (user).",
-              "coord": [
-                -120.91289,
-                56.193
-              ],
-              "name_verbatim": "PEACE RIVER (From Site C dam to boundary signs 1,200m",
-              "locator_text": "Site C dam"
-            }
-          ]
-        },
-        {
-          "src": "name",
-          "text": "PEACE RIVER (From Site C dam to boundary signs 1,200m downstream)",
           "resolved": true,
           "rows": [
             {
@@ -26746,37 +23364,6 @@
                 ]
               },
               "name_verbatim": "PEACE RIVER (Downstream of boundary signs 1,200m downs"
-            }
-          ]
-        },
-        {
-          "src": "name",
-          "text": "PEACE RIVER (Downstream of boundary signs 1,200m downstream of the Site C dam)",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "peace-river-downstream-of-boundary-signs-1-20-2f9401",
-              "status": "curated",
-              "anchor_kind": "point",
-              "src": "name",
-              "resolver_hint": "dam_weir_fence",
-              "label": "signs 1200 m below Site C dam",
-              "notes": "[auto-proposal L] Boundary signs 1,200 m downstream of Site C Dam on Peace River (below Site C). No FWA coord (needs map / external source). Verify: Locate Site C Dam (BC Hydro, ~7 km SW of Fort St John) then place a point 1,200 m downstream along the Peace - Site C reservoir is too new to be in FWA.. Site C Dam is a recent BC Hydro facility likely absent from the FWA dataset. This entry is the reach downstream of signs 1,200 m below the dam. Recommend manual: get the Site C dam coord from BC Hydro, then offset 1,200 m downstream on the Peace River blue line. [human-review 2026-08-06] anchor=Site C dam; offset_m=1200 offset_dir=downstream.",
-              "coord": [
-                -120.91289,
-                56.193
-              ],
-              "offset": {
-                "anchor_label": "Site C dam (John Horgan Dam), OSM way 409910469",
-                "m": 1200,
-                "dir": "downstream",
-                "anchor": [
-                  -120.91289,
-                  56.193
-                ]
-              },
-              "name_verbatim": "PEACE RIVER (Downstream of boundary signs 1,200m downs",
-              "locator_text": "Downstream of boundary signs 1,200m downstream of the Site C dam"
             }
           ]
         }
@@ -27246,55 +23833,6 @@
               }
             }
           ]
-        },
-        {
-          "src": "name",
-          "text": "GRANBY RIVER",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "granby-river-s-tributaries-465204",
-              "status": "not_applicable",
-              "anchor_kind": "confluence",
-              "src": "name",
-              "resolver_hint": "tributary",
-              "notes": "tributary-SET reg (all tributaries of the named lake/river): a whole-WSC-subtree membership, NOT a curated point split. Handle via tributary inheritance / wsc_descendants, not a confluence point. — [review · was:not_applicable] assume nothing — re-decide. — [human-review 2026-08-04 not_applicable] tributaries-SET row; Burrell Creek mainstem split is separate (granby-river-967165/-328008, curated). No point split here.",
-              "name_verbatim": "GRANBY RIVER'S TRIBUTARIES",
-              "locator_text": "GRANBY RIVER'S TRIBUTARIES"
-            }
-          ]
-        }
-      ]
-    },
-    "bfa8e5ed": {
-      "entry_id": "bfa8e5ed",
-      "water": "GRANBY RIVER'S TRIBUTARIES",
-      "mu": [
-        "8-15"
-      ],
-      "region": "REGION 8 - Okanagan",
-      "page": 75,
-      "image": "page_075_row_030.png",
-      "symbols": [],
-      "reg_text": "Bait ban",
-      "completeness": "NO_SPLIT",
-      "n_boundaries": 0,
-      "deferred": false,
-      "locators": [
-        {
-          "src": "name",
-          "text": "GRANBY RIVER'S TRIBUTARIES",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "granby-river-s-tributaries-465204",
-              "status": "not_applicable",
-              "anchor_kind": "confluence",
-              "src": "name",
-              "resolver_hint": "tributary",
-              "notes": "tributary-SET reg (all tributaries of the named lake/river): a whole-WSC-subtree membership, NOT a curated point split. Handle via tributary inheritance / wsc_descendants, not a confluence point. — [review · was:not_applicable] assume nothing — re-decide. — [human-review 2026-08-04 not_applicable] tributaries-SET row; Burrell Creek mainstem split is separate (granby-river-967165/-328008, curated). No point split here."
-            }
-          ]
         }
       ]
     },
@@ -27347,76 +23885,6 @@
                 "wbk": 329216614,
                 "lake": "Jewel Lake"
               }
-            }
-          ]
-        }
-      ]
-    },
-    "2fc9bef8": {
-      "entry_id": "2fc9bef8",
-      "water": "KETTLE RIVER",
-      "mu": [
-        "8-14",
-        "8-15"
-      ],
-      "region": "REGION 8 - Okanagan",
-      "page": 76,
-      "image": "page_076_row_004.png",
-      "symbols": [],
-      "reg_text": "Exempt from spring closure\n**No Fishing** July 25-Sept 15; bait ban Apr 1-Oct 31\nRainbow trout catch and release",
-      "completeness": "NO_SPLIT",
-      "n_boundaries": 0,
-      "deferred": false,
-      "locators": [
-        {
-          "src": "name",
-          "text": "KETTLE RIVER",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "kettle-river-s-tributaries-4ac815",
-              "status": "not_applicable",
-              "anchor_kind": "confluence",
-              "src": "name",
-              "resolver_hint": "tributary",
-              "notes": "tributary-SET reg (all tributaries of the named lake/river): a whole-WSC-subtree membership, NOT a curated point split. Handle via tributary inheritance / wsc_descendants, not a confluence point. — [review · was:not_applicable] assume nothing — re-decide. — [human-review 2026-08-04 not_a_split] confirmed not a split",
-              "name_verbatim": "KETTLE RIVER'S TRIBUTARIES",
-              "mus": [
-                "8-14"
-              ],
-              "locator_text": "KETTLE RIVER'S TRIBUTARIES"
-            }
-          ]
-        }
-      ]
-    },
-    "eb4bf3e0": {
-      "entry_id": "eb4bf3e0",
-      "water": "KETTLE RIVER'S TRIBUTARIES",
-      "mu": [
-        "8-14"
-      ],
-      "region": "REGION 8 - Okanagan",
-      "page": 76,
-      "image": "page_076_row_005.png",
-      "symbols": [],
-      "reg_text": "**No Fishing** Jul 25-Sept 15\nRainbow trout catch and release; bait ban",
-      "completeness": "NO_SPLIT",
-      "n_boundaries": 0,
-      "deferred": false,
-      "locators": [
-        {
-          "src": "name",
-          "text": "KETTLE RIVER'S TRIBUTARIES",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "kettle-river-s-tributaries-4ac815",
-              "status": "not_applicable",
-              "anchor_kind": "confluence",
-              "src": "name",
-              "resolver_hint": "tributary",
-              "notes": "tributary-SET reg (all tributaries of the named lake/river): a whole-WSC-subtree membership, NOT a curated point split. Handle via tributary inheritance / wsc_descendants, not a confluence point. — [review · was:not_applicable] assume nothing — re-decide. — [human-review 2026-08-04 not_a_split] confirmed not a split"
             }
           ]
         }
@@ -28327,23 +24795,6 @@
               "name_verbatim": "VASEUX LAKE (including two lagoons on the west side of"
             }
           ]
-        },
-        {
-          "src": "name",
-          "text": "VASEUX LAKE (including two lagoons on the west side of Okanagan River upstream of McIntyre Dam)",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "vaseux-lake-including-two-lagoons-on-the-west-f208f2",
-              "status": "deferred",
-              "anchor_kind": "point",
-              "src": "name",
-              "resolver_hint": "dam_weir_fence",
-              "notes": "[auto-proposal L] McIntyre Dam (upstream bound) + two west-side lagoons on Vaseux Lake + Okanagan River lagoons. Candidate coord [-119.57386, 49.35652]. OSM: https://www.openstreetmap.org/?mlat=49.35652&mlon=-119.57386#map=15/49.35652/-119.57386. Verify: This is a lake+lagoons entry, not a single dam. Confirm McIntyre Dam as the upstream bound (~[-119.574,49.357]) and the two lagoons on the west side of the Okanagan River.. Vaseux Lake entry including two lagoons on the west side of the Okanagan River, upstream of McIntyre Dam. Better modelled as the Vaseux Lake polygon (wbk 329459123) plus lagoon geometry; candidate coord = McIntyre Dam (the named upstream structure). Manual review for the lagoons. [deferred 2026-08-08 lake-split: Vaseux Lake incl. two west-side Okanagan River lagoons u/s of McIntyre Dam — lake-area extent, defer per lake-split rule]",
-              "name_verbatim": "VASEUX LAKE (including two lagoons on the west side of",
-              "locator_text": "including two lagoons on the west side of Okanagan River upstream of McIntyre Dam"
-            }
-          ]
         }
       ]
     },
@@ -28426,72 +24877,6 @@
                 -118.47947,
                 50.89504
               ]
-            }
-          ]
-        }
-      ]
-    },
-    "86ce488f": {
-      "entry_id": "86ce488f",
-      "water": "WEST KETTLE RIVER",
-      "mu": [
-        "8-12"
-      ],
-      "region": "REGION 8 - Okanagan",
-      "page": 77,
-      "image": "page_077_row_027.png",
-      "symbols": [],
-      "reg_text": "**No Fishing** July 25-Sept 15\nRainbow trout catch and release; bait ban Apr 1-Oct 31\nExempt from spring closure",
-      "completeness": "NO_SPLIT",
-      "n_boundaries": 0,
-      "deferred": false,
-      "locators": [
-        {
-          "src": "name",
-          "text": "WEST KETTLE RIVER",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "west-kettle-river-s-tributaries-c892a9",
-              "status": "not_applicable",
-              "anchor_kind": "confluence",
-              "src": "name",
-              "resolver_hint": "tributary",
-              "notes": "tributary-SET reg (all tributaries of the named lake/river): a whole-WSC-subtree membership, NOT a curated point split. Handle via tributary inheritance / wsc_descendants, not a confluence point. — [review · was:not_applicable] assume nothing — re-decide. — [human-review 2026-08-04 not_a_split] confirmed not a split",
-              "name_verbatim": "WEST KETTLE RIVER'S tributaries",
-              "locator_text": "WEST KETTLE RIVER'S tributaries"
-            }
-          ]
-        }
-      ]
-    },
-    "95ac5837": {
-      "entry_id": "95ac5837",
-      "water": "WEST KETTLE RIVER'S tributaries",
-      "mu": [
-        "8-12"
-      ],
-      "region": "REGION 8 - Okanagan",
-      "page": 77,
-      "image": "page_077_row_028.png",
-      "symbols": [],
-      "reg_text": "**No Fishing **Jul 25-Sept 15\nRainbow trout catch and release; bait ban",
-      "completeness": "NO_SPLIT",
-      "n_boundaries": 0,
-      "deferred": false,
-      "locators": [
-        {
-          "src": "name",
-          "text": "WEST KETTLE RIVER'S tributaries",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "west-kettle-river-s-tributaries-c892a9",
-              "status": "not_applicable",
-              "anchor_kind": "confluence",
-              "src": "name",
-              "resolver_hint": "tributary",
-              "notes": "tributary-SET reg (all tributaries of the named lake/river): a whole-WSC-subtree membership, NOT a curated point split. Handle via tributary inheritance / wsc_descendants, not a confluence point. — [review · was:not_applicable] assume nothing — re-decide. — [human-review 2026-08-04 not_a_split] confirmed not a split"
             }
           ]
         }

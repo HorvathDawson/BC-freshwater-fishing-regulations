@@ -270,15 +270,6 @@ def build(curated=None):
         # curated/manual/todo row makes it active.
         _live_st = {r["status"] for l in locators for r in l["rows"]} - set(NON_LIVE_STATUSES)
         is_deferred = bool(_live_st) and _live_st <= {"deferred"}
-        # prune redundant whole-water `name` locators (clutter): drop the name-src locator when it
-        # encodes no real boundary (no non-n/a row) AND every row it holds is already carried by
-        # another locator in this card (or it's empty). Keeps name locators that DO encode a
-        # boundary (e.g. "Adams River (upstream of Adams Lake)") and any whose whole-water/trib
-        # n/a row lives nowhere else (so no row is ever orphaned — losslessly round-trips).
-        _other_ids = {r["id"] for l in locators if l["src"] != "name" for r in l["rows"]}
-        locators = [l for l in locators if l["src"] != "name"
-                    or any(r["status"] != "not_applicable" for r in l["rows"])
-                    or not all(r["id"] in _other_ids for r in l["rows"])]
         cards[eid] = {
             "entry_id": eid, "water": water, "mu": mu,
             "region": row.get("region") or (pe.get("region") if pe else None),
@@ -289,6 +280,19 @@ def build(curated=None):
         }
         if reviewed_by_entry.get(eid):
             cards[eid]["reviewed"] = reviewed_by_entry[eid]  # whole-entry human review (see docs)
+
+    # --- remove redundant `name` locators globally (they duplicate a real boundary via water/entry/
+    # rule, or hold only a whole-water n/a record). Keep a name locator ONLY when it is the SOLE
+    # carrier of a non-n/a row (nothing non-name, anywhere, holds it) — dropping it otherwise is
+    # lossless for real boundaries; whole-water n/a rows that live only on a name locator are
+    # intentionally dropped. Cards left with no locators (whole-water n/a-only entries) are removed.
+    _global_nonname = {r["id"] for c in cards.values() for l in c["locators"]
+                       if l["src"] != "name" for r in l["rows"]}
+    for c in cards.values():
+        c["locators"] = [l for l in c["locators"] if l["src"] != "name"
+                         or any(r["status"] != "not_applicable" and r["id"] not in _global_nonname
+                                for r in l["rows"])]
+    cards = {eid: c for eid, c in cards.items() if c["locators"]}
 
     # drift: curated rows never matched to any source locator (real anomalies / manual additions)
     drift = [{"id": r["id"], "water": r["name_verbatim"], "mu": r.get("mus"),
