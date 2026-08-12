@@ -11406,20 +11406,6 @@
                 49.0004
               ],
               "locator_text": "Washington state border"
-            },
-            {
-              "id": "columbia-river-waneta-dam-manual",
-              "status": "manual",
-              "anchor_kind": "point",
-              "src": "rule",
-              "resolver_hint": "dam_weir_fence",
-              "label": "Waneta Dam",
-              "notes": "[manual anchor 2026-08-08 audit-fix] Waneta Dam on Pend d'Oreille R (OSM way 614612375 waterway=dam); u/s endpoint of connected reach \"Pend d'Oreille R (Columbia confl -> Waneta Dam)\"",
-              "coord": [
-                -117.61186,
-                49.0039
-              ],
-              "locator_text": "Waneta Dam"
             }
           ]
         },
@@ -13783,11 +13769,26 @@
               "resolver_hint": "dam_weir_fence",
               "notes": "[auto-proposal L] Reservoirs behind Waneta Dam and Seven Mile Dam on Pend d'Oreille River (SE BC). Candidate coord [-117.345, 49.055]. OSM: https://www.openstreetmap.org/?mlat=49.05500&mlon=-117.34500#map=15/49.05500/-117.34500. Verify: This is a reservoir reach (two impoundments). Confirm Seven Mile Dam (~[-117.345,49.055]) as the upstream bound and Waneta Dam (~[-117.617,49.007], at the Columbia confluence) as the downstream bound.. The Pend d'Oreille entry includes the reservoirs behind Waneta Dam and Seven Mile Dam in extreme SE BC. Neither reservoir is clearly named in FWA. Candidate = approximate Seven Mile Dam (upstream); Waneta Dam sits at the Pend d'Oreille-Columbia confluence. Better modelled as a reach between the two dams - verify both on a map. [n/a 2026-08-09: water-extent clause; reg body is whole-water quotas/exemptions. NOTE: the Pend d'Oreille water should INCLUDE the reservoirs behind Waneta Dam and Seven Mile Dam]",
               "name_verbatim": "PEND D'OREILLE RIVER (Includes the reservoirs behind W"
+            },
+            {
+              "id": "pend-d-oreille-river-waneta-dam-manual",
+              "status": "manual",
+              "anchor_kind": "point",
+              "src": "rule",
+              "resolver_hint": "dam_weir_fence",
+              "label": "Waneta Dam",
+              "notes": "[manual anchor 2026-08-12] Waneta Dam on Pend d'Oreille R (OSM way 614612375 waterway=dam); u/s endpoint of the connected reach \"Pend d'Oreille R (Columbia confluence -> Waneta Dam)\" that carries the Columbia R northern-pike/bass rule. Moved off COLUMBIA RIVER (Waneta Dam is a Pend d'Oreille split, not a Columbia cut).",
+              "coord": [
+                -117.61186,
+                49.0039
+              ],
+              "name_verbatim": "PEND D'OREILLE RIVER (Includes the reservoirs behind W",
+              "locator_text": "Waneta Dam"
             }
           ]
         }
       ],
-      "reviewed": "2026-08-09"
+      "reviewed": "2026-08-12"
     },
     "c55051c8": {
       "entry_id": "c55051c8",
