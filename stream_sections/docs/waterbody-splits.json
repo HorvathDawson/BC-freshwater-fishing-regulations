@@ -1259,7 +1259,7 @@
       "reg_text": "**No Fishing** Dec 1-Sept 30; speed restriction on part (8 km/h),",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
-      "deferred": true,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -1271,11 +1271,11 @@
           "rows": [
             {
               "id": "courtenay-river-78779a",
-              "status": "deferred",
+              "status": "not_applicable",
               "anchor_kind": "not_a_split",
               "src": "rule",
               "resolver_hint": "map_or_vague",
-              "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'. — [human-review 2026-08-04 deferred] vague 'on part' — no derivable boundary/feature; deferred (map-only/manual later)."
+              "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'. — [human-review 2026-08-04 deferred] vague 'on part' — no derivable boundary/feature; deferred (map-only/manual later). [reclassified 2026-08-11: river/creek not deferred] [\"on part\" vessel/speed restriction, whole-water]"
             }
           ]
         },
@@ -5879,9 +5879,9 @@
       "image": "page_024_row_025.png",
       "symbols": [],
       "reg_text": "**No Fishing** May 1-June 30\n**No Fishing **from the falls to 100 m downstream (falls are located approximately 550 m upstream of the power line crossing)",
-      "completeness": "COMPLETE",
+      "completeness": "INCOMPLETE",
       "n_boundaries": 1,
-      "deferred": true,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -5889,25 +5889,25 @@
           "info": {
             "restriction_type": "closure"
           },
-          "resolved": true,
+          "resolved": false,
           "rows": [
             {
               "id": "chapman-creek-6d4cfd-a",
-              "status": "deferred",
+              "status": "todo",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "falls_obstacle",
               "label": "falls (~550 m above powerline)",
-              "notes": "power line crossing (Lat: 49.46869° N, Lon: 123.72722° W) -- falls not in obstacles and cant find info online. here is a survey https://scrd.ca/wp-content/uploads/2437014-Appendix-F-Maps-of-the-Study-area-and-Lower-Reaches.pdffound one around 2km up from crossing at (Lat: 49.48175° N, Lon: 123.71477° W) or here (Lat: 49.46446° N, Lon: 123.72651° W) approximately 550m downstream of powerlines.. in the link above it says the lower falls is spawning grounds. — UNRESOLVED. Powerline crossing @ -123.72722,49.46869. Reg: falls ~550 m UPSTREAM of it. Candidates from research: ~2 km up @ -123.71477,49.48175; or ~550 m down @ -123.72651,49.46446 (lower falls / spawning grounds). Neither cleanly matches '550 m upstream' — verify. — [deferred] falls point unresolved; reg says ~550m above powerline but candidates conflict — [review · was:deferred] assume nothing — re-decide. — [human-review 2026-08-04 defer] confirmed defer"
+              "notes": "power line crossing (Lat: 49.46869° N, Lon: 123.72722° W) -- falls not in obstacles and cant find info online. here is a survey https://scrd.ca/wp-content/uploads/2437014-Appendix-F-Maps-of-the-Study-area-and-Lower-Reaches.pdffound one around 2km up from crossing at (Lat: 49.48175° N, Lon: 123.71477° W) or here (Lat: 49.46446° N, Lon: 123.72651° W) approximately 550m downstream of powerlines.. in the link above it says the lower falls is spawning grounds. — UNRESOLVED. Powerline crossing @ -123.72722,49.46869. Reg: falls ~550 m UPSTREAM of it. Candidates from research: ~2 km up @ -123.71477,49.48175; or ~550 m down @ -123.72651,49.46446 (lower falls / spawning grounds). Neither cleanly matches '550 m upstream' — verify. — [deferred] falls point unresolved; reg says ~550m above powerline but candidates conflict — [review · was:deferred] assume nothing — re-decide. — [human-review 2026-08-04 defer] confirmed defer [reclassified 2026-08-11: river/creek not deferred] [genuine Chapman falls split, unresolved — needs falls pin]"
             },
             {
               "id": "chapman-creek-6d4cfd-b",
-              "status": "deferred",
+              "status": "todo",
               "anchor_kind": "point",
               "src": "rule",
               "resolver_hint": "falls_obstacle",
               "label": "point 100 m below falls",
-              "notes": "100 m downstream of the falls in chapman-creek-6d4cfd-a (UNRESOLVED). Author as a point offset once the falls point is fixed: offset_m 100, offset_dir downstream. — [deferred] depends on -a falls point — [review · was:deferred] assume nothing — re-decide. — [human-review 2026-08-04 defer] confirmed defer"
+              "notes": "100 m downstream of the falls in chapman-creek-6d4cfd-a (UNRESOLVED). Author as a point offset once the falls point is fixed: offset_m 100, offset_dir downstream. — [deferred] depends on -a falls point — [review · was:deferred] assume nothing — re-decide. — [human-review 2026-08-04 defer] confirmed defer [reclassified 2026-08-11: river/creek not deferred] [100m d/s of Chapman falls, unresolved — needs pin then offset]"
             }
           ]
         },
@@ -7015,7 +7015,7 @@
       "reg_text": "**No Fishing** from one hour after sunset to one hour before sunrise, tributaries not included\nDead fin fish may be used for bait only when fishing for sturgeon (see page 8 in the Provincial Regulations)\nSpeed restriction or no powered boats in small bays along the river as signed",
       "completeness": "COMPLETE",
       "n_boundaries": 3,
-      "deferred": true,
+      "deferred": false,
       "locators": [
         {
           "src": "water",
@@ -7043,11 +7043,11 @@
           "rows": [
             {
               "id": "harrison-river-from-the-fraser-river-upstream-130442",
-              "status": "deferred",
-              "anchor_kind": "unclassified",
+              "status": "not_applicable",
+              "anchor_kind": "not_a_split",
               "src": "rule",
               "resolver_hint": "other_reach",
-              "notes": "[deferred 2026-08-09 lake-split batch2: lake-area closure]",
+              "notes": "[deferred 2026-08-09 lake-split batch2: lake-area closure] [reclassified 2026-08-11: river/creek not deferred] [\"in small bays as signed\" signed-area restriction, not a split]",
               "name_verbatim": "HARRISON RIVER (from the Fraser River upstream to Harr"
             }
           ]
@@ -8820,7 +8820,7 @@
       "reg_text": "**No Fishing** in the Ruskin spawning channel, from the inlet near the dam downstream to the boat ramp crossing\n**No Fishing** in the Northrop Spawning Channel, from the intake downstream to where the channel joins the Stave River main, including its\ntributaries containg the fishway",
       "completeness": "COMPLETE",
       "n_boundaries": 2,
-      "deferred": true,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -8832,11 +8832,11 @@
           "rows": [
             {
               "id": "stave-river-15d929",
-              "status": "deferred",
-              "anchor_kind": "point",
+              "status": "not_applicable",
+              "anchor_kind": "not_a_split",
               "src": "rule",
               "resolver_hint": "dam_weir_fence",
-              "notes": "[auto-proposal M] Ruskin Dam (Hayward Lake outlet) + Ruskin spawning channel on Stave River (Ruskin spawning channel, near dam). Candidate coord [-122.4074, 49.19594]. OSM: https://www.openstreetmap.org/?mlat=49.19594&mlon=-122.40740#map=15/49.19594/-122.40740. Verify: Confirm Ruskin Dam at the Hayward Lake outlet; the closure is within the Ruskin spawning channel from the inlet near the dam to the boat-ramp crossing.. Ruskin Dam impounds Hayward Lake on the Stave River; coord = FWA Stave River exit from the Hayward Lake polygon, matching the known Ruskin Dam. The closure is inside the adjacent Ruskin spawning channel (a side channel), from its inlet near the dam to the boat-ramp crossing - side-channel geometry, verify. [deferred 2026-08-06] Ruskin spawning channel is a MATCH not a split (blk 355993384 / wsc 100-046202...); Northrop channel not in FWA; not really gazetted. Per review.",
+              "notes": "[auto-proposal M] Ruskin Dam (Hayward Lake outlet) + Ruskin spawning channel on Stave River (Ruskin spawning channel, near dam). Candidate coord [-122.4074, 49.19594]. OSM: https://www.openstreetmap.org/?mlat=49.19594&mlon=-122.40740#map=15/49.19594/-122.40740. Verify: Confirm Ruskin Dam at the Hayward Lake outlet; the closure is within the Ruskin spawning channel from the inlet near the dam to the boat-ramp crossing.. Ruskin Dam impounds Hayward Lake on the Stave River; coord = FWA Stave River exit from the Hayward Lake polygon, matching the known Ruskin Dam. The closure is inside the adjacent Ruskin spawning channel (a side channel), from its inlet near the dam to the boat-ramp crossing - side-channel geometry, verify. [deferred 2026-08-06] Ruskin spawning channel is a MATCH not a split (blk 355993384 / wsc 100-046202...); Northrop channel not in FWA; not really gazetted. Per review. [reclassified 2026-08-11: river/creek not deferred] [Ruskin man-made spawning-channel closure, not a mainstem split]",
               "target": {
                 "blk": 355993384,
                 "wsc": "100-046202-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
@@ -8855,11 +8855,11 @@
           "rows": [
             {
               "id": "stave-river-c74d9d",
-              "status": "deferred",
-              "anchor_kind": "confluence",
+              "status": "not_applicable",
+              "anchor_kind": "not_a_split",
               "src": "rule",
               "resolver_hint": "tributary",
-              "notes": "[deferred] 1_nonconfluence_boundary — [review · was:deferred] assume nothing — re-decide. — [human-review 2026-08-04 manual-find | Dawson to locate] Northrop Spawning Channel (Stave, MU 2-8): from the channel intake downstream to where it joins the Stave main, incl. the fishway tributary. Man-made channel, likely FWA-unnamed. Digitize/locate by hand. [curated 2026-08-09 bridge+confl batch] [defer: Northrop man-made spawning channel closure (sibling Ruskin channel deferred)]"
+              "notes": "[deferred] 1_nonconfluence_boundary — [review · was:deferred] assume nothing — re-decide. — [human-review 2026-08-04 manual-find | Dawson to locate] Northrop Spawning Channel (Stave, MU 2-8): from the channel intake downstream to where it joins the Stave main, incl. the fishway tributary. Man-made channel, likely FWA-unnamed. Digitize/locate by hand. [curated 2026-08-09 bridge+confl batch] [defer: Northrop man-made spawning channel closure (sibling Ruskin channel deferred)] [reclassified 2026-08-11: river/creek not deferred] [Northrop man-made spawning-channel closure, not a mainstem split]"
             }
           ]
         },
@@ -15328,7 +15328,7 @@
       "reg_text": "Trout/char catch and release (mainstem only) Leadville Creek Cameron Creek\nBait ban, June 15-Oct 31 (EXCEPT Kitchener Creek, see Kitchener Creek, a tributary)",
       "completeness": "COMPLETE",
       "n_boundaries": 2,
-      "deferred": true,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -15341,11 +15341,11 @@
           "rows": [
             {
               "id": "goat-river-60428c",
-              "status": "deferred",
+              "status": "error",
               "anchor_kind": "unclassified",
               "src": "rule",
               "resolver_hint": "other_reach",
-              "notes": "— [human-review 2026-08-04 deferred] OCR/parse GARBLE: real synopsis text reads 'Trout/char catch and release (mainstem only) Leadville Creek Cameron Creek' which does not parse into a boundary. [review: OCR parse-error — ADD TO CORRECTIONS MEMO / GOTCHAS] Deferred pending source-text fix."
+              "notes": "— [human-review 2026-08-04 deferred] OCR/parse GARBLE: real synopsis text reads 'Trout/char catch and release (mainstem only) Leadville Creek Cameron Creek' which does not parse into a boundary. [review: OCR parse-error — ADD TO CORRECTIONS MEMO / GOTCHAS] Deferred pending source-text fix. [reclassified 2026-08-11: river/creek not deferred] [OCR/parse garble — real text: Trout/char C&R (mainstem only); not a split]"
             }
           ]
         },

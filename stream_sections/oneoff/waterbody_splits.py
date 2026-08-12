@@ -47,7 +47,10 @@ OUT_JSON = ROOT / "stream_sections/docs/waterbody-splits.json"
 OUT_MD = ROOT / "stream_sections/docs/waterbody-splits.md"
 OUT_REGS_MD = ROOT / "stream_sections/docs/waterbody-splits-regs.md"
 
-RESOLVED = {"curated", "manual", "not_applicable", "deferred"}
+RESOLVED = {"curated", "manual", "not_applicable", "deferred", "error"}
+# terminal non-boundary states: a locator resolving only to these is NOT a live split
+# (not_applicable = whole-water/exclusion; error = OCR/parse garble, not a real reg boundary).
+NON_LIVE_STATUSES = ("not_applicable", "error")
 
 
 def norm(s: str | None) -> str:
@@ -265,8 +268,8 @@ def build(curated=None):
         # (those never disqualify) — the entry is deferred when every remaining row is deferred
         # and there is at least one. So a mix of n/a + deferred still counts as deferred; any
         # curated/manual/todo row makes it active.
-        _nonna = {r["status"] for l in locators for r in l["rows"]} - {"not_applicable"}
-        is_deferred = bool(_nonna) and _nonna <= {"deferred"}
+        _live_st = {r["status"] for l in locators for r in l["rows"]} - set(NON_LIVE_STATUSES)
+        is_deferred = bool(_live_st) and _live_st <= {"deferred"}
         cards[eid] = {
             "entry_id": eid, "water": water, "mu": mu,
             "region": row.get("region") or (pe.get("region") if pe else None),
@@ -367,7 +370,7 @@ def _is_live(l: dict) -> bool:
     if l["src"] not in ("rule", "except", "entry"):
         return False
     rows = l["rows"]
-    return not rows or not all(r["status"] == "not_applicable" for r in rows)
+    return not rows or not all(r["status"] in NON_LIVE_STATUSES for r in rows)
 
 
 def render_reg(reg_text: str, live_phrases: list[str]) -> tuple[str, int]:
@@ -423,7 +426,7 @@ def write_regs_md(cards):
         # has no sub-text or the boundary isn't curated yet (MISSING).
         phrases = []
         for l in live:
-            live_rows = [r for r in l["rows"] if r["status"] != "not_applicable"]
+            live_rows = [r for r in l["rows"] if r["status"] not in NON_LIVE_STATUSES]
             if not live_rows:
                 phrases.append(l["text"])
             else:
