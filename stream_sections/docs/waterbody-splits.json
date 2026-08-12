@@ -11381,20 +11381,6 @@
               "locator_text": "Washington state border and connected reaches: the Kootenay River (Columbia River"
             },
             {
-              "id": "columbia-river-brilliant-dam-manual",
-              "status": "manual",
-              "anchor_kind": "point",
-              "src": "rule",
-              "resolver_hint": "dam_weir_fence",
-              "label": "Brilliant Dam",
-              "notes": "[manual anchor 2026-08-08 audit-fix] Brilliant Dam on lower Kootenay R; d/s endpoint of connected reach \"Kootenay R (Columbia confl -> Brilliant Dam)\"; same coord as kootenay-river ...1e5f9d-a",
-              "coord": [
-                -117.62009,
-                49.32481
-              ],
-              "locator_text": "Brilliant Dam"
-            },
-            {
               "id": "columbia-river-f4c5a3-a",
               "status": "curated",
               "anchor_kind": "point",
