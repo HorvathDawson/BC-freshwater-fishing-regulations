@@ -270,6 +270,15 @@ def build(curated=None):
         # curated/manual/todo row makes it active.
         _live_st = {r["status"] for l in locators for r in l["rows"]} - set(NON_LIVE_STATUSES)
         is_deferred = bool(_live_st) and _live_st <= {"deferred"}
+        # prune redundant whole-water `name` locators (clutter): drop the name-src locator when it
+        # encodes no real boundary (no non-n/a row) AND every row it holds is already carried by
+        # another locator in this card (or it's empty). Keeps name locators that DO encode a
+        # boundary (e.g. "Adams River (upstream of Adams Lake)") and any whose whole-water/trib
+        # n/a row lives nowhere else (so no row is ever orphaned — losslessly round-trips).
+        _other_ids = {r["id"] for l in locators if l["src"] != "name" for r in l["rows"]}
+        locators = [l for l in locators if l["src"] != "name"
+                    or any(r["status"] != "not_applicable" for r in l["rows"])
+                    or not all(r["id"] in _other_ids for r in l["rows"])]
         cards[eid] = {
             "entry_id": eid, "water": water, "mu": mu,
             "region": row.get("region") or (pe.get("region") if pe else None),
