@@ -261,11 +261,12 @@ def build(curated=None):
             completeness = "INCOMPLETE"
         else:
             completeness = "COMPLETE"
-        # entry-level deferred flag: the entry's live split boundaries all resolve only to
-        # deferred rows (lake-splits etc.) — a whole-entry boolean, mirrors write_regs_md.
-        live_locs = [l for l in locators if _is_live(l)]
-        is_deferred = bool(live_locs) and all(
-            l["rows"] and all(r["status"] == "deferred" for r in l["rows"]) for l in live_locs)
+        # entry-level deferred flag: among this entry's boundary rows, ignore not_applicable
+        # (those never disqualify) — the entry is deferred when every remaining row is deferred
+        # and there is at least one. So a mix of n/a + deferred still counts as deferred; any
+        # curated/manual/todo row makes it active.
+        _nonna = {r["status"] for l in locators for r in l["rows"]} - {"not_applicable"}
+        is_deferred = bool(_nonna) and _nonna <= {"deferred"}
         cards[eid] = {
             "entry_id": eid, "water": water, "mu": mu,
             "region": row.get("region") or (pe.get("region") if pe else None),

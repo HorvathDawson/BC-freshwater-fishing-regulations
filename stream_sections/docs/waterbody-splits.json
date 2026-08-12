@@ -9184,7 +9184,7 @@
       "reg_text": "**No Fishing** north of a line drawn due west from mouth of Momich River, Mar 15-June 30\nLake trout catch and release, Oct 15-Jan 31\nDaily quota = 1 bull trout or lake trout (no bull trout under 80 cm or lake trout under 60 cm)\nSingle barbless hook",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
-      "deferred": true,
+      "deferred": false,
       "locators": [
         {
           "src": "rule",
@@ -12187,7 +12187,7 @@
       "reg_text": "**No Fishing** Mar 15-May 14, and **rainbow trout and char catch and release**, May 15-Mar 14, in the waters lying west of a line between\nsigns at Henstridge Road and Wharf Road to a line between signs on the south and north shores of Little Shuswap Lake (see map A on\npage 28)\n**No Fishing** in the entire area north of Albas, Mar 15-May 14 (see map B on page 28)\n**No Fishing** east of a line between fishing boundary signs on Murdock and Semaphore points, to Hwy 1 bridge, Mar 15-May 14 (see map C\non page 28)\n**No fishing** in Salmon Arm Bay, west of line between Engineer's Point and Sunnybrae Point (see map on page 28), for the conservation\nof chinook and coho salmon stocks, Sept 1-Dec 31 (anglers fishing from the community pier in the city of Salmon Arm are exempt from\nthe closure)\n**No Ice Fishing**\nRainbow trout daily quota = 1 (none under 50 cm), annual quota = 5\nChar daily quota = 1 (none under 60 cm), annual quota = 5\nBait ban, single barbless hook (anglers fishing from the community pier in the city of Salmon Arm are exempt from the bait ban)\nConservation Surcharge Stamp required to catch and keep rainbow trout over 50 cm or char over 60 cm",
       "completeness": "MISSING_SPLITS",
       "n_boundaries": 8,
-      "deferred": false,
+      "deferred": true,
       "locators": [
         {
           "src": "rule",
@@ -15971,7 +15971,7 @@
       "reg_text": "Rainbow trout catch and release, Jan 1-May 31; trout/char daily quota = 2 (only 1 bull trout)\nKokanee catch and release, EXCEPT Apr 1-Apr 3 and July 1-July 2 only, when daily quota = 5; NOTE: The combined daily quota for kokanee\nfrom the Upper West Arm (when open to kokanee harvest) and the Lower West Arm (when open to kokanee harvest) cannot exceed 5",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
-      "deferred": false,
+      "deferred": true,
       "locators": [
         {
           "src": "except",
@@ -16025,7 +16025,7 @@
       "reg_text": "Trout/char daily quota = 2 (only 1 bull trout); kokanee daily quota = 5, **but only on Saturday and Sunday of each week.** Kokanee catch\nand release Monday through Friday of each week. NOTE: the combined daily quota for kokanee from the Upper West Arm (when open to\nkokanee harvest) and the Lower West Arm (when open to kokanee harvest) cannot exceed 5",
       "completeness": "NO_SPLIT",
       "n_boundaries": 0,
-      "deferred": false,
+      "deferred": true,
       "locators": [
         {
           "src": "name",
@@ -26728,7 +26728,7 @@
       "reg_text": "**No Fishing** west of a line between two fishing boundary signs approximately 500 m downstream (east) of the Nation River Bridge on the\nFinlay Forest Service Road, Apr 1-June 30\nBull trout catch and release west of a line between two fishing boundary signs approximately 500 m downstream of the Nation River\nBridge on the Finlay Forest Service Road (when open)",
       "completeness": "MISSING_SPLITS",
       "n_boundaries": 2,
-      "deferred": false,
+      "deferred": true,
       "locators": [
         {
           "src": "rule",
