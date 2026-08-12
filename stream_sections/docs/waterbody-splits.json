@@ -129,21 +129,6 @@
               "locator_text": "Hwy 19 bridge"
             }
           ]
-        },
-        {
-          "src": "entry",
-          "text": "except Eve River",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "adam-river-except-eve-river-ca05b3",
-              "status": "not_applicable",
-              "anchor_kind": "not_a_split",
-              "src": "name",
-              "resolver_hint": "except_negative",
-              "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'. — [human-review 2026-08-04 not_applicable] 'except Eve River' exclusion (Eve R tributary excluded); the real reach 'upstream of Eve River -> Hwy 19 bridge' is adam-river-except-eve-river-939f98 (todo). The adams-river/adams-lake rows are the different Adams River (Shuswap) — no conflict."
-            }
-          ]
         }
       ]
     },
@@ -6142,25 +6127,6 @@
               "notes": "[likely-not-applicable] auto-classified as not-a-split (whole-water / tributary-SET / EXCEPT / map-only). Confirm with 'x' or reclassify 'k'. — [human-review 2026-08-04 na-with-siblings] confirmed — 'Fraser River Mainstem' whole-water descriptor (Region 2 / MU 2-4), not a split. Region 2 Fraser River boundary clauses (CPR Bridge at Mission, non-tidal portion, side channels) already have DEDICATED rows, though still uncurated (todo)."
             }
           ]
-        },
-        {
-          "src": "entry",
-          "text": "upstream of the CPR Bridge at Mission",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "fraser-river-upstream-of-the-cpr-bridge-at-mi-73e755",
-              "status": "curated",
-              "anchor_kind": "point",
-              "src": "name",
-              "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] CPR Bridge at Mission on Fraser River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the CPR (Mission railway) bridge over the Fraser at Mission; well-known -> review.. Public/railway bridge at Mission (the tidal-boundary landmark on the lower Fraser). Map/OSM-confirmable. [curated 2026-08-07 manual-review batch=fraser-mission] [Mission Railway Bridge]",
-              "coord": [
-                -122.30047,
-                49.12606
-              ]
-            }
-          ]
         }
       ],
       "reviewed": "2026-08-07"
@@ -6247,22 +6213,6 @@
               "src": "rule",
               "resolver_hint": "other_reach",
               "notes": "[deferred 2026-08-09 lake-split batch2: lake-area closure] [reclassified 2026-08-11: river/creek not deferred] [\"in small bays as signed\" signed-area restriction, not a split]",
-              "name_verbatim": "HARRISON RIVER (from the Fraser River upstream to Harr"
-            }
-          ]
-        },
-        {
-          "src": "entry",
-          "text": "from the Fraser River upstream to Harrison Lake",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "harrison-river-from-the-fraser-river-upstream-f8ecc6",
-              "status": "not_applicable",
-              "anchor_kind": "lake",
-              "src": "name",
-              "resolver_hint": "lake_reach",
-              "notes": "[lake-class: lake_split] Harrison Lake edge (up) + Fraser confluence (down) — lake anchor + confluence. — [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 — NO authored split needed. — [review · was:auto] assume nothing — re-decide. — [human-review 2026-08-04 lake-verify] VERIFIED auto_lake_edge: Harrison Lake bound handled for free (docs/04); Fraser bound is the natural mouth. n/a.",
               "name_verbatim": "HARRISON RIVER (from the Fraser River upstream to Harr"
             }
           ]
@@ -8006,24 +7956,6 @@
               }
             }
           ]
-        },
-        {
-          "src": "entry",
-          "text": "upstream of Adams Lake",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "adams-river-upstream-of-adams-lake-54ec4b",
-              "status": "curated",
-              "anchor_kind": "lake",
-              "src": "name",
-              "resolver_hint": "lake_reach",
-              "notes": "Split authored in splits.json: 'adams_lake' (lake). — authored split: adams_lake",
-              "target": {
-                "wbk": "329014384"
-              }
-            }
-          ]
         }
       ]
     },
@@ -8083,24 +8015,6 @@
                 -119.57374,
                 50.90038
               ]
-            }
-          ]
-        },
-        {
-          "src": "entry",
-          "text": "downstream of Adams Lake",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "adams-river-downstream-of-adams-lake-037302",
-              "status": "curated",
-              "anchor_kind": "lake",
-              "src": "name",
-              "resolver_hint": "lake_reach",
-              "notes": "Split authored in splits.json: 'adams_lake' (lake). — authored split: adams_lake",
-              "target": {
-                "wbk": "329014384"
-              }
             }
           ]
         }
@@ -10197,21 +10111,6 @@
               "notes": "[lake-class: lake_split] outlet of Paul Lake. — [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 — NO authored split needed. — [review · was:auto] assume nothing — re-decide. — [human-review 2026-08-04 lake-verify] VERIFIED auto_lake_edge: 'downstream of Paul Lake' = lake-outlet edge, handled for free. n/a."
             }
           ]
-        },
-        {
-          "src": "entry",
-          "text": "downstream of Paul Lake",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "paul-creek-downstream-of-paul-lake-b809c0",
-              "status": "not_applicable",
-              "anchor_kind": "lake",
-              "src": "name",
-              "resolver_hint": "lake_reach",
-              "notes": "[lake-class: lake_split] outlet of Paul Lake. — [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 — NO authored split needed. — [review · was:auto] assume nothing — re-decide. — [human-review 2026-08-04 lake-verify] VERIFIED auto_lake_edge: 'downstream of Paul Lake' = lake-outlet edge, handled for free. n/a."
-            }
-          ]
         }
       ]
     },
@@ -10453,33 +10352,6 @@
               "resolver_hint": "lake_reach",
               "notes": "[lake-class: lake_split] outlet of Seton Lake. — [auto-lake-split] Bounded only by lake edge(s) (and/or natural mouth / the auto border split). The combine phase already cuts the BLK at the lake, so the reg attaches via location_identifier per docs/04 — NO authored split needed. — [review · was:auto] assume nothing — re-decide. — [human-review 2026-08-04 lake-verify] VERIFIED auto_lake_edge: 'Downstream of Seton Lake' = lake-outlet edge, handled for free. n/a. Duplicate/shared split with -5f4cbe. [reviewed 2026-08-08 manual-review batch=seton-3-16] [NOTE: the Seton reach should INCLUDE the man-made canal feature \"Seton River (canal)\" (BC Hydro Power Canal, Seton Dam intake -> Seton Powerhouse) as part of the fishable water]",
               "name_verbatim": "SETON RIVER (includes BC Hydro Power Canal upstream of"
-            }
-          ]
-        },
-        {
-          "src": "entry",
-          "text": "includes BC Hydro Power Canal upstream of the dam up to signs located on Seton Lake",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "seton-river-includes-bc-hydro-power-canal-ups-95a44d-a",
-              "status": "not_applicable",
-              "anchor_kind": "not_a_split",
-              "src": "name",
-              "resolver_hint": "dam_weir_fence",
-              "notes": "[auto-proposal H] Seton Dam (Seton Lake outlet) + BC Hydro Power Canal on Seton River / Seton Lake outlet. Candidate coord [-121.97777, 50.66951]. OSM: https://www.openstreetmap.org/?mlat=50.66951&mlon=-121.97777#map=15/50.66951/-121.97777. Verify: Confirm Seton Dam at the Seton Lake outlet; the reg also includes the parallel BC Hydro Power Canal up to signs on Seton Lake.. Seton Dam controls the Seton River at the Seton Lake outlet. Coord = FWA Seton River exit from the Seton Lake polygon. The entry also includes the BC Hydro Power Canal upstream of the dam up to signs on Seton Lake (a parallel man-made channel - may need separate geometry). [structural-split 2026-08-05 from \"includes BC Hydro Power Canal upstream of the dam up to sign\"] boundary=includes BC Hydro Power Canal upstream of the dam [deferred 2026-08-06] BC Hydro Power Canal is labelled as a river in FWA (no separate split); dam ~[-121.9246, 50.6727]. Per review. [reviewed 2026-08-08 manual-review batch=seton-3-16] [n/a: water-extent clause (fishable water includes the BC Hydro Power Canal upstream of the dam), not an internal reach split] [NOTE: the Seton reach should INCLUDE the man-made canal feature \"Seton River (canal)\" (BC Hydro Power Canal, Seton Dam intake -> Seton Powerhouse) as part of the fishable water]",
-              "name_verbatim": "SETON RIVER (includes BC Hydro Power Canal upstream of",
-              "locator_text": "includes BC Hydro Power Canal upstream of the dam"
-            },
-            {
-              "id": "seton-river-includes-bc-hydro-power-canal-ups-95a44d-b",
-              "status": "not_applicable",
-              "anchor_kind": "not_a_split",
-              "src": "name",
-              "resolver_hint": "boundary_signs",
-              "notes": "[auto-proposal H] Seton Dam (Seton Lake outlet) + BC Hydro Power Canal on Seton River / Seton Lake outlet. Candidate coord [-121.97777, 50.66951]. OSM: https://www.openstreetmap.org/?mlat=50.66951&mlon=-121.97777#map=15/50.66951/-121.97777. Verify: Confirm Seton Dam at the Seton Lake outlet; the reg also includes the parallel BC Hydro Power Canal up to signs on Seton Lake.. Seton Dam controls the Seton River at the Seton Lake outlet. Coord = FWA Seton River exit from the Seton Lake polygon. The entry also includes the BC Hydro Power Canal upstream of the dam up to signs on Seton Lake (a parallel man-made channel - may need separate geometry). [structural-split 2026-08-05 from \"includes BC Hydro Power Canal upstream of the dam up to sign\"] boundary=signs located on Seton Lake [hint-fix 2026-08-06 lake_reach->boundary_signs] [reviewed 2026-08-08 manual-review batch=seton-3-16] [n/a: upstream extent limit = signs out on Seton Lake; not a reach boundary and not a mappable feature] [NOTE: the Seton reach should INCLUDE the man-made canal feature \"Seton River (canal)\" (BC Hydro Power Canal, Seton Dam intake -> Seton Powerhouse) as part of the fishable water]",
-              "name_verbatim": "SETON RIVER (includes BC Hydro Power Canal upstream of",
-              "locator_text": "signs located on Seton Lake"
             }
           ]
         }
@@ -11093,51 +10965,6 @@
               "locator_text": "downstream of signs at Kamloops Lake outlet to the confluence with Fraser River"
             }
           ]
-        },
-        {
-          "src": "entry",
-          "text": "downstream of signs at Kamloops Lake outlet to the confluence with Fraser River",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "thompson-river-downstream-of-signs-at-kamloop-38fc02",
-              "status": "not_applicable",
-              "anchor_kind": "point",
-              "src": "rule",
-              "resolver_hint": "boundary_signs",
-              "notes": "[lake-class: mis_bucket] NOT a lake cut: boundary signs at Kamloops Lake outlet on the Thompson — a point. [human-review 2026-08-06 n/a] auto lake-split (Kamloops Lake edge) handles it.",
-              "name_verbatim": "THOMPSON RIVER (downstream of signs at Kamloops Lake o",
-              "locator_text": "Downstream of signs at Kamloops Lake"
-            },
-            {
-              "id": "thompson-river-downstream-of-signs-at-kamloop-bc221e-a",
-              "status": "not_applicable",
-              "anchor_kind": "confluence",
-              "src": "name",
-              "resolver_hint": "tributary",
-              "label": "Kamloops Lake outlet",
-              "notes": "non-confluence: lake outlet boundary — [review · was:deferred] assume nothing — re-decide. — [human-review 2026-08-04 not_applicable] reach endpoint A = signs at Kamloops Lake outlet (≈ auto lake edge; signs sit at the outlet); point endpoint B (Thompson/Fraser confluence) curated in ...bc221e-b. → see -b.",
-              "name_verbatim": "THOMPSON RIVER (downstream of signs at Kamloops Lake o"
-            },
-            {
-              "id": "thompson-river-downstream-of-signs-at-kamloop-bc221e-b",
-              "status": "curated",
-              "anchor_kind": "confluence",
-              "src": "name",
-              "resolver_hint": "tributary",
-              "label": "Thompson/Fraser confluence",
-              "notes": "Confluence = mouth of Thompson River (blk 356364690); parent = Fraser River. Author as confluence anchor tributary_wsc=100-190442-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000. OSM: https://www.openstreetmap.org/?mlat=50.23551&mlon=-121.58488#map=15/50.23551/-121.58488 — Shares the Thompson/Fraser confluence split with fraser-river-65211d et al. (one split).",
-              "coord": [
-                -121.58488,
-                50.23551
-              ],
-              "target": {
-                "blk": "356364690",
-                "wsc": "100-190442-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
-              },
-              "name_verbatim": "THOMPSON RIVER (downstream of signs at Kamloops Lake o"
-            }
-          ]
         }
       ],
       "reviewed": "2026-08-11"
@@ -11221,27 +11048,6 @@
               "name_verbatim": "ALEXANDER CREEK (upstream of the easternmost Hwy 3 bri"
             }
           ]
-        },
-        {
-          "src": "entry",
-          "text": "upstream of the easternmost Hwy 3 bridge",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "alexander-creek-upstream-of-the-easternmost-h-40487b",
-              "status": "curated",
-              "anchor_kind": "point",
-              "src": "name",
-              "resolver_hint": "bridge_road_km",
-              "label": "easternmost Hwy 3 (Crowsnest) bridge",
-              "notes": "[auto-proposal L] easternmost Hwy 3 bridge over Alexander Creek on Alexander Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm which Hwy 3 bridge is the 'easternmost' over Alexander Creek (Crowsnest/Sparwood, MU 4-23); map.. Same landmark as the downstream Alexander Creek entry; this is the upstream reach. Public highway bridge -> map/OSM-confirmable, not in FWA. [curated 2026-08-08 manual-review batch=alexander-4-23] [easternmost of 4 Hwy 3 crossings of Alexander Creek, OSM way 100217536, East Kootenay blk 356566667]",
-              "coord": [
-                -114.73324,
-                49.65497
-              ],
-              "name_verbatim": "ALEXANDER CREEK (upstream of the easternmost Hwy 3 bri"
-            }
-          ]
         }
       ],
       "reviewed": "2026-08-08"
@@ -11265,27 +11071,6 @@
       "locators": [
         {
           "src": "water",
-          "text": "downstream of the easternmost Hwy 3 bridge",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "alexander-creek-downstream-of-the-easternmost-323602",
-              "status": "curated",
-              "anchor_kind": "point",
-              "src": "name",
-              "resolver_hint": "bridge_road_km",
-              "label": "easternmost Hwy 3 (Crowsnest) bridge",
-              "notes": "[auto-proposal L] easternmost Hwy 3 bridge over Alexander Creek on Alexander Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm which Hwy 3 bridge is the 'easternmost' over Alexander Creek (Crowsnest/Sparwood, MU 4-23); map.. Hwy 3 (Crowsnest) runs alongside Alexander Creek near the Alberta border; 'easternmost Hwy 3 bridge' implies several crossings. Public highway -> not in FWA; map/OSM-confirmable. Downstream reach. [curated 2026-08-08 manual-review batch=alexander-4-23] [easternmost of 4 Hwy 3 crossings of Alexander Creek, OSM way 100217536, East Kootenay blk 356566667]",
-              "coord": [
-                -114.73324,
-                49.65497
-              ],
-              "name_verbatim": "ALEXANDER CREEK (downstream of the easternmost Hwy 3 b"
-            }
-          ]
-        },
-        {
-          "src": "entry",
           "text": "downstream of the easternmost Hwy 3 bridge",
           "resolved": true,
           "rows": [
@@ -11539,27 +11324,6 @@
       "locators": [
         {
           "src": "water",
-          "text": "downstream of Old MF&M Railway bridge 7 km upstream of Elk River",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "coal-creek-downstream-of-old-mf-m-railway-bri-347452",
-              "status": "curated",
-              "anchor_kind": "point",
-              "src": "name",
-              "resolver_hint": "bridge_road_km",
-              "label": "Old MF&M Railway bridge (Fernie)",
-              "notes": "[auto-proposal L] old MF&M Railway bridge (~7 km up Elk River), Fernie on Coal Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the old MF&M (Morrissey-Fernie-Michel) Railway bridge on Coal Creek at Fernie; VERIFY creek (FWA collision).. The FWA 'Coal Creek' match (57.47N) is the wrong creek far in NE BC; the reg creek is Coal Creek at Fernie (Elk valley, Region 4). Old railway bridge ~7 km above the Elk River confluence -> railway/map-only. [human-review 2026-08-06] MF&M railway bridge, user-located near Fernie, snapped to FWA Coal Creek. MF&M not in OSM (dismantled); verify exact bridge.",
-              "coord": [
-                -114.99378,
-                49.48818
-              ],
-              "name_verbatim": "COAL CREEK (downstream of Old MF&M Railway bridge 7 km"
-            }
-          ]
-        },
-        {
-          "src": "entry",
           "text": "downstream of Old MF&M Railway bridge 7 km upstream of Elk River",
           "resolved": true,
           "rows": [
@@ -12677,40 +12441,6 @@
               "notes": "[n/a 2026-08-07 residual-zone \"All other parts\", not a boundary]"
             }
           ]
-        },
-        {
-          "src": "entry",
-          "text": "upstream of Elko Dam",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "elk-river-upstream-of-elko-dam-8bedc5",
-              "status": "curated",
-              "anchor_kind": "point",
-              "src": "name",
-              "resolver_hint": "dam_weir_fence",
-              "label": "Elko Dam",
-              "notes": "[auto-proposal M] Elko Dam (run-of-river, Elk River) on Elk River (upstream of Elko Dam). Candidate coord [-115.10633, 49.29954]. OSM: https://www.openstreetmap.org/?mlat=49.29954&mlon=-115.10633#map=15/49.29954/-115.10633. Verify: Same Elko Dam point as the downstream entry; confirm on map.. Same Elko Dam structure as elk-river-downstream-of-elko-dam; this is the upstream side (MU 4-2/4-23). One cut at the dam yields both the up- and downstream reaches. [osm-candidate 2026-08-05] [-115.10453, 49.29006] (OSM Overpass ∩ MU-clipped FWA river; VERIFY). [human-review 2026-08-05 OSM-confirmed]",
-              "coord": [
-                -115.10453,
-                49.29006
-              ]
-            },
-            {
-              "id": "elk-river-upstream-of-elko-dam-e38cd2-elko-dam",
-              "status": "curated",
-              "anchor_kind": "point",
-              "src": "rule",
-              "resolver_hint": "dam_weir_fence",
-              "label": "Elko Dam",
-              "notes": "[auto-proposal L] Multiple bridge/lake segments (NOT a single dam) on Elk River (Lower Elk Lake, Line Creek Bridge, CPR Bridge Sparwood, Hwy 3 Hosmer...). No FWA coord (needs map / external source). Verify: This rule is a chain of bridge/lake landmarks, not the Elko Dam - needs manual map work per landmark.. Mis-bucketed under dam_weir_fence: the locator lists several bridge and lake segments (Lower Elk Lake -> Forsyth Cr [outlet ref ~[-115.084,50.550]], Line Creek Bridge -> CPR Bridge at Sparwood, Hwy 3 bridge at Hosmer...). Recommend manual: resolve each bridge/lake landmark individually. [structural-split 2026-08-06 8-way] Elko Dam.",
-              "coord": [
-                -115.10453,
-                49.29006
-              ],
-              "locator_text": "Elko Dam"
-            }
-          ]
         }
       ],
       "reviewed": "2026-08-07"
@@ -12734,26 +12464,6 @@
       "locators": [
         {
           "src": "water",
-          "text": "downstream of Elko Dam",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "elk-river-downstream-of-elko-dam-4c9207",
-              "status": "curated",
-              "anchor_kind": "point",
-              "src": "name",
-              "resolver_hint": "dam_weir_fence",
-              "label": "Elko Dam",
-              "notes": "[auto-proposal M] Elko Dam (run-of-river, Elk River) on Elk River (downstream of Elko Dam). Candidate coord [-115.10633, 49.29954]. OSM: https://www.openstreetmap.org/?mlat=49.29954&mlon=-115.10633#map=15/49.29954/-115.10633. Verify: Confirm the Elko Dam / diversion location on the Elk River in the canyon just above the town of Elko; candidate is the nearest Elk River blue-line point.. Elko Dam is a small run-of-river diversion dam on the Elk River near the town of Elko - no large named reservoir in FWA. Candidate is the Elk River blue-line point nearest the town of Elko; refine against BC Hydro/map. Pairs with the 'upstream of Elko Dam' entries. [osm-candidate 2026-08-05] [-115.10453, 49.29006] (OSM Overpass ∩ MU-clipped FWA river; VERIFY). [human-review 2026-08-05 OSM-confirmed]",
-              "coord": [
-                -115.10453,
-                49.29006
-              ]
-            }
-          ]
-        },
-        {
-          "src": "entry",
           "text": "downstream of Elko Dam",
           "resolved": true,
           "rows": [
@@ -12938,26 +12648,6 @@
       "locators": [
         {
           "src": "water",
-          "text": "downstream of Josephine Falls",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "fording-river-downstream-of-josephine-falls-97d67a",
-              "status": "curated",
-              "anchor_kind": "point",
-              "src": "name",
-              "resolver_hint": "falls_obstacle",
-              "label": "Josephine Falls",
-              "notes": " [human-review 2026-08-05 FWA-waterfall] Josephine Falls.",
-              "coord": [
-                -114.87661,
-                50.02261
-              ]
-            }
-          ]
-        },
-        {
-          "src": "entry",
           "text": "downstream of Josephine Falls",
           "resolved": true,
           "rows": [
@@ -13497,7 +13187,7 @@
       "reg_text": "Rainbow trout catch and release, Jan 1-May 31; trout/char daily quota = 2 (only 1 bull trout)\nKokanee catch and release, EXCEPT Apr 1-Apr 3 and July 1-July 2 only, when daily quota = 5; NOTE: The combined daily quota for kokanee\nfrom the Upper West Arm (when open to kokanee harvest) and the Lower West Arm (when open to kokanee harvest) cannot exceed 5",
       "completeness": "COMPLETE",
       "n_boundaries": 1,
-      "deferred": true,
+      "deferred": false,
       "locators": [
         {
           "src": "except",
@@ -13855,39 +13545,6 @@
               "notes": "[auto-proposal M] Brilliant Dam (run-of-river, lower Kootenay River) on Kootenay River (Brilliant Dam -> Columbia confluence). Candidate coord [-117.59864, 49.33662]. OSM: https://www.openstreetmap.org/?mlat=49.33662&mlon=-117.59864#map=15/49.33662/-117.59864. Verify: Duplicate of kootenay-river-...-1e5f9d; same Brilliant Dam point.. Duplicate wording ('From the Brilliant Dam to the confluence with the Columbia River'). Same Brilliant Dam candidate. — [human-review 2026-08-04 not_applicable] DUPLICATE of kootenay-river-downstream-of-idaho-border-1e5f9d (same regulation, parser emitted multiple locator rows). → see kootenay-river-downstream-of-idaho-border-1e5f9d; dedup collapses."
             }
           ]
-        },
-        {
-          "src": "entry",
-          "text": "downstream of Idaho border",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "kootenay-river-downstream-of-idaho-border-358bba-a",
-              "status": "curated",
-              "anchor_kind": "point",
-              "src": "rule",
-              "resolver_hint": "dam_weir_fence",
-              "label": "Idaho border",
-              "notes": "[auto-proposal H] Corra Linn Dam (Kootenay Lake West Arm outlet) + CPR Bridge near Creston on Kootenay River (Idaho border->CPR Bridge Creston; Corra Linn Dam->Columbia). Candidate coord [-117.46818, 49.46895]. OSM: https://www.openstreetmap.org/?mlat=49.46895&mlon=-117.46818#map=15/49.46895/-117.46818. Verify: Confirm Corra Linn Dam at the West Arm outlet of Kootenay Lake; the 'Idaho border' and 'CPR Bridge near Creston' bounds relate to existing kootenay splits.. Two Kootenay reaches: (1) Idaho border -> CPR Bridge near Creston, (2) Corra Linn Dam -> Columbia confluence. Coord = Corra Linn Dam = FWA Kootenay River exit from Kootenay Lake polygon (West Arm outlet). See existing splits kootenay_idaho_border / kootenay_koocanusa in splits.json for the border end. [human-review 2026-08-06] authored split: kootenay_idaho_border (splits.json); US border auto-split picks it up.",
-              "coord": [
-                -116.5036,
-                48.9999
-              ],
-              "locator_text": "Idaho border"
-            },
-            {
-              "id": "kootenay-river-downstream-of-idaho-border-6189d1",
-              "status": "curated",
-              "anchor_kind": "unclassified",
-              "src": "name",
-              "resolver_hint": "other_reach",
-              "notes": "Split authored in splits.json: 'kootenay_idaho_border' (point(border-pickup)). — authored split: kootenay_idaho_border [audit-fix 2026-08-11 (2-reviewer agreement)] [splits-inline from splits.json kootenay_idaho_border]",
-              "coord": [
-                -116.5036,
-                48.9999
-              ]
-            }
-          ]
         }
       ],
       "reviewed": "2026-08-08"
@@ -14111,47 +13768,6 @@
               }
             }
           ]
-        },
-        {
-          "src": "entry",
-          "text": "upstream of Koocanusa Reservoir",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "kootenay-river-upstream-of-koocanusa-reservoi-3bb758",
-              "status": "curated",
-              "anchor_kind": "point",
-              "src": "name",
-              "resolver_hint": "lake_reach",
-              "label": "Koocanusa Reservoir u/s end",
-              "notes": "Split authored in splits.json: 'kootenay_koocanusa' (lake). — authored split: kootenay_koocanusa [curated 2026-08-10 signs/other batch] [reservoir u/s end = Montana border ~49.0,-115.18; matches burbot-boundary]",
-              "coord": [
-                -115.18181,
-                49.00001
-              ],
-              "target": {
-                "wbk": "328961702"
-              }
-            },
-            {
-              "id": "kootenay-river-upstream-of-koocanusa-reservoi-6f3c82",
-              "status": "curated",
-              "anchor_kind": "confluence",
-              "src": "rule",
-              "resolver_hint": "tributary",
-              "label": "White River confluence",
-              "notes": "Confluence = mouth of White River (blk 356570381); parent = Kootenay River. Author as confluence anchor tributary_wsc=300-625474-814939-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000. OSM: https://www.openstreetmap.org/?mlat=50.35270&mlon=-115.62503#map=15/50.35270/-115.62503 — Downstream boundary = Koocanusa Reservoir (splits.json 'kootenay_koocanusa').",
-              "coord": [
-                -115.62503,
-                50.3527
-              ],
-              "target": {
-                "blk": "356570381",
-                "wsc": "300-625474-814939-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
-              },
-              "locator_text": "Upstream of Koocanusa Reservoir to White River"
-            }
-          ]
         }
       ],
       "reviewed": "2026-08-10"
@@ -14348,27 +13964,6 @@
               "name_verbatim": "LODGEPOLE CREEK (downstream of falls near the km 26 po"
             }
           ]
-        },
-        {
-          "src": "entry",
-          "text": "downstream of falls near the km 26 post on Lodgepole Road",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "lodgepole-creek-downstream-of-falls-near-the--f54873",
-              "status": "curated",
-              "anchor_kind": "point",
-              "src": "name",
-              "resolver_hint": "falls_obstacle",
-              "label": "Falls (FISS obstacle 27756)",
-              "notes": "[osm-candidate 2026-08-05] [-114.73204, 49.29352] (OSM Overpass ∩ MU-clipped FWA river; VERIFY). [human-review 2026-08-05 FISS-obstacle user-provided] [-114.76147, 49.28952].",
-              "coord": [
-                -114.76147,
-                49.28952
-              ],
-              "name_verbatim": "LODGEPOLE CREEK (downstream of falls near the km 26 po"
-            }
-          ]
         }
       ]
     },
@@ -14391,26 +13986,6 @@
       "locators": [
         {
           "src": "water",
-          "text": "upstream of falls",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "lodgepole-creek-upstream-of-falls-615359",
-              "status": "curated",
-              "anchor_kind": "point",
-              "src": "name",
-              "resolver_hint": "falls_obstacle",
-              "label": "falls near km 26 post, Lodgepole Road",
-              "notes": "[curated 2026-08-08 manual-review batch=sand-lodgepole] [same falls as curated downstream row lodgepole-creek-downstream-of-falls-...-f54873]",
-              "coord": [
-                -114.76147,
-                49.28952
-              ]
-            }
-          ]
-        },
-        {
-          "src": "entry",
           "text": "upstream of falls",
           "resolved": true,
           "rows": [
@@ -14620,27 +14195,6 @@
               "name_verbatim": "MICHEL CREEK (upstream of the easternmost Hwy 3 bridge"
             }
           ]
-        },
-        {
-          "src": "entry",
-          "text": "upstream of the easternmost Hwy 3 bridge",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "michel-creek-upstream-of-the-easternmost-hwy--b614f4",
-              "status": "curated",
-              "anchor_kind": "point",
-              "src": "name",
-              "resolver_hint": "bridge_road_km",
-              "label": "easternmost Hwy 3 (Crowsnest) bridge",
-              "notes": "[auto-proposal L] easternmost Hwy 3 bridge over Michel Creek on Michel Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the 'easternmost' Hwy 3 bridge over Michel Creek; upstream reach; map.. Same landmark as the paired Michel Creek entry; upstream reach. Public highway bridge -> map/OSM-confirmable. [curated 2026-08-08 manual-review batch=michel-4-23] [easternmost of 4 Hwy 3 crossings of Michel Creek, OSM way 100217550, blk 356565783]",
-              "coord": [
-                -114.78167,
-                49.67264
-              ],
-              "name_verbatim": "MICHEL CREEK (upstream of the easternmost Hwy 3 bridge"
-            }
-          ]
         }
       ],
       "reviewed": "2026-08-08"
@@ -14664,27 +14218,6 @@
       "locators": [
         {
           "src": "water",
-          "text": "downstream of the easternmost Hwy 3 bridge",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "michel-creek-downstream-of-the-easternmost-hw-92f1d6",
-              "status": "curated",
-              "anchor_kind": "point",
-              "src": "name",
-              "resolver_hint": "bridge_road_km",
-              "label": "easternmost Hwy 3 (Crowsnest) bridge",
-              "notes": "[auto-proposal L] easternmost Hwy 3 bridge over Michel Creek on Michel Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the 'easternmost' Hwy 3 bridge over Michel Creek (Sparwood/Elk valley, MU 4-23); map.. Hwy 3 crosses Michel Creek multiple times near Sparwood; 'easternmost' picks one. Public highway -> map-only (FSR hits are far up the creek). Downstream reach. [curated 2026-08-08 manual-review batch=michel-4-23] [easternmost of 4 Hwy 3 crossings of Michel Creek, OSM way 100217550, blk 356565783]",
-              "coord": [
-                -114.78167,
-                49.67264
-              ],
-              "name_verbatim": "MICHEL CREEK (downstream of the easternmost Hwy 3 brid"
-            }
-          ]
-        },
-        {
-          "src": "entry",
           "text": "downstream of the easternmost Hwy 3 bridge",
           "resolved": true,
           "rows": [
@@ -15231,26 +14764,6 @@
       "locators": [
         {
           "src": "water",
-          "text": "downstream of Hwy 3",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "sand-creek-downstream-of-hwy-3-6962b3",
-              "status": "curated",
-              "anchor_kind": "point",
-              "src": "name",
-              "resolver_hint": "bridge_road_km",
-              "label": "Hwy 3 (Crowsnest) bridge",
-              "notes": "[auto-proposal L] Hwy 3 bridge over Sand Creek on Sand Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the Hwy 3 crossing of Sand Creek (Jaffray/Elko area, Region 4); single crossing -> review.. Reg = 'downstream of Hwy 3'. Public highway crosses Sand Creek in the lower reach; FSR hits (Galloway-Bull River, Sand Creek) are upstream. Map/OSM-confirmable. [curated 2026-08-08 manual-review batch=sand-lodgepole] [single Hwy 3 crossing of Sand Creek, OSM way 88740986, blk 356569599]",
-              "coord": [
-                -115.23953,
-                49.37211
-              ]
-            }
-          ]
-        },
-        {
-          "src": "entry",
           "text": "downstream of Hwy 3",
           "resolved": true,
           "rows": [
@@ -16412,30 +15925,6 @@
               "resolver_hint": "tributary",
               "label": "Sitkatapa confluence",
               "notes": "Confluence = mouth of Sitkatapa Creek (blk 360844922); parent = Burnt Bridge Creek. Author as confluence anchor tributary_wsc=910-275583-777225-504013-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000. OSM: https://www.openstreetmap.org/?mlat=52.50792&mlon=-126.14958#map=15/52.50792/-126.14958 — Shares the Sitkatapa confluence split with burnt-bridge-creek-upstream-of-sitkatapa-cree-22aca4. — Split authored in splits.json: 'burnt_bridge_at_sitkatapa' (confluence). — authored split: burnt_bridge_at_sitkatapa",
-              "coord": [
-                -126.14958,
-                52.50792
-              ],
-              "target": {
-                "blk": "360844922",
-                "wsc": "910-275583-777225-504013-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
-              }
-            }
-          ]
-        },
-        {
-          "src": "entry",
-          "text": "upstream of Sitkatapa Creek",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "burnt-bridge-creek-upstream-of-sitkatapa-cree-22aca4",
-              "status": "curated",
-              "anchor_kind": "confluence",
-              "src": "name",
-              "resolver_hint": "tributary",
-              "label": "Sitkatapa confluence",
-              "notes": "Confluence = mouth of Sitkatapa Creek (blk 360844922); parent = Burnt Bridge Creek. Author as confluence anchor tributary_wsc=910-275583-777225-504013-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000. OSM: https://www.openstreetmap.org/?mlat=52.50792&mlon=-126.14958#map=15/52.50792/-126.14958 — Split authored in splits.json: 'burnt_bridge_at_sitkatapa' (confluence). — authored split: burnt_bridge_at_sitkatapa",
               "coord": [
                 -126.14958,
                 52.50792
@@ -17735,47 +17224,6 @@
               "locator_text": "Quesnel Lake"
             }
           ]
-        },
-        {
-          "src": "entry",
-          "text": "from Quesnel Lake to Horsefly River Falls",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "horsefly-river-from-quesnel-lake-to-horsefly--28a7cd-b",
-              "status": "not_applicable",
-              "anchor_kind": "lake",
-              "src": "rule",
-              "resolver_hint": "lake_reach",
-              "notes": "[auto-proposal L] Woodjam Bridge over Horsefly River on Horsefly River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate the Woodjam (Road) bridge over the Horsefly River near Horsefly townsite; map. (Reach runs down to Quesnel Lake.). Reach = 'Woodjam Bridge to Quesnel Lake'. Woodjam is a road bridge near Horsefly town; not name-matched among the FWA Horsefly FSR crossings (which are further upstream). Map/OSM-confirmable; Quesnel Lake is the other endpoint. [structural-split 2026-08-05 from “from Woodjam Bridge to Quesnel Lake”] boundary=Quesnel Lake [auto-lake-split 2026-08-05] pure lake-edge; lake polygon splits the BLK for free (docs/04) -> no authored split.",
-              "name_verbatim": "HORSEFLY RIVER (from Quesnel Lake to Horsefly River Fa",
-              "locator_text": "Quesnel Lake"
-            },
-            {
-              "id": "horsefly-river-from-quesnel-lake-to-horsefly--bfe6d5-a",
-              "status": "not_applicable",
-              "anchor_kind": "lake",
-              "src": "name",
-              "resolver_hint": "lake_reach",
-              "notes": "[structural-split 2026-08-05 from \"from Quesnel Lake to Horsefly River Falls\"] boundary=Quesnel Lake [auto-lake-split 2026-08-05] pure lake-edge; lake polygon splits the BLK for free (docs/04) -> no authored split.",
-              "name_verbatim": "HORSEFLY RIVER (from Quesnel Lake to Horsefly River Fa",
-              "locator_text": "Quesnel Lake"
-            },
-            {
-              "id": "horsefly-river-from-quesnel-lake-to-horsefly--bfe6d5-b",
-              "status": "curated",
-              "anchor_kind": "point",
-              "src": "name",
-              "resolver_hint": "falls_obstacle",
-              "notes": "[structural-split 2026-08-05 from \"from Quesnel Lake to Horsefly River Falls\"] boundary=Horsefly River Falls [curated 2026-08-08 manual-review batch=horsefly] [Horsefly River Falls = lowest signed falls, FISS obstacle 27704 (migration barrier), WSC 160-635400]",
-              "coord": [
-                -121.02477,
-                52.2968
-              ],
-              "name_verbatim": "HORSEFLY RIVER (from Quesnel Lake to Horsefly River Fa",
-              "locator_text": "Horsefly River Falls"
-            }
-          ]
         }
       ],
       "reviewed": "2026-08-08"
@@ -17830,25 +17278,6 @@
               "status": "curated",
               "anchor_kind": "point",
               "src": "rule",
-              "resolver_hint": "falls_obstacle",
-              "notes": "Split authored in splits.json: 'hunlen_falls' (point(obstacle)). — authored split: hunlen_falls [audit-fix 2026-08-11 (2-reviewer agreement)] [splits-inline from splits.json hunlen_falls]",
-              "coord": [
-                -125.77085,
-                52.27612
-              ]
-            }
-          ]
-        },
-        {
-          "src": "entry",
-          "text": "upstream of Hunlen Falls",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "hunlen-creek-upstream-of-hunlen-falls-b24b41",
-              "status": "curated",
-              "anchor_kind": "point",
-              "src": "name",
               "resolver_hint": "falls_obstacle",
               "notes": "Split authored in splits.json: 'hunlen_falls' (point(obstacle)). — authored split: hunlen_falls [audit-fix 2026-08-11 (2-reviewer agreement)] [splits-inline from splits.json hunlen_falls]",
               "coord": [
@@ -18576,25 +18005,6 @@
       "locators": [
         {
           "src": "water",
-          "text": "upstream of Hwy 20",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "young-creek-upstream-of-hwy-20-f08b82",
-              "status": "curated",
-              "anchor_kind": "point",
-              "src": "name",
-              "resolver_hint": "bridge_road_km",
-              "notes": "Split authored in splits.json: 'young_hwy20' (point). — authored split: young_hwy20 [audit-fix 2026-08-11 (2-reviewer agreement)] [splits-inline from splits.json young_hwy20]",
-              "coord": [
-                -125.84592,
-                52.49158
-              ]
-            }
-          ]
-        },
-        {
-          "src": "entry",
           "text": "upstream of Hwy 20",
           "resolved": true,
           "rows": [
@@ -23079,40 +22489,6 @@
               "locator_text": "Hwy 29 Bridge"
             }
           ]
-        },
-        {
-          "src": "entry",
-          "text": "From Hwy. 29 bridge to the Site C dam",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "peace-river-from-hwy-29-bridge-to-the-site-c--c17e9f-a",
-              "status": "curated",
-              "anchor_kind": "point",
-              "src": "name",
-              "resolver_hint": "bridge_road_km",
-              "notes": "[auto-proposal L] Site C Dam (upstream bound) / Hwy 29 bridge (downstream) on Peace River (Hwy 29 bridge -> Site C Dam). No FWA coord (needs map / external source). Verify: Locate Site C Dam and the Hwy 29 bridge on the Peace; both external to FWA.. Reach from the Hwy 29 bridge upstream to the Site C Dam. Site C not in FWA (recent). Recommend manual with BC Hydro / map coords for both landmarks. [structural-split 2026-08-05 from \"From Hwy. 29 bridge to the Site C dam\"] boundary=Hwy. 29 bridge [hint-fix 2026-08-06 dam_weir_fence->bridge_road_km] [curated 2026-08-08 manual-review batch=peace-7-31] [Hudson's Hope Suspension Bridge ref BC 29]",
-              "coord": [
-                -121.98563,
-                55.98852
-              ],
-              "locator_text": "Hwy. 29 bridge"
-            },
-            {
-              "id": "peace-river-from-hwy-29-bridge-to-the-site-c--c17e9f-b",
-              "status": "curated",
-              "anchor_kind": "point",
-              "src": "name",
-              "resolver_hint": "dam_weir_fence",
-              "label": "Site C dam (John Horgan Dam)",
-              "notes": "[auto-proposal L] Site C Dam (upstream bound) / Hwy 29 bridge (downstream) on Peace River (Hwy 29 bridge -> Site C Dam). No FWA coord (needs map / external source). Verify: Locate Site C Dam and the Hwy 29 bridge on the Peace; both external to FWA.. Reach from the Hwy 29 bridge upstream to the Site C Dam. Site C not in FWA (recent). Recommend manual with BC Hydro / map coords for both landmarks. [structural-split 2026-08-05 from \"From Hwy. 29 bridge to the Site C dam\"] boundary=Site C dam [human-review 2026-08-06] Site C/John Horgan Dam (OSM way 409910469, user-confirmed).",
-              "coord": [
-                -120.91289,
-                56.193
-              ],
-              "locator_text": "Site C dam"
-            }
-          ]
         }
       ],
       "reviewed": "2026-08-08"
@@ -23173,36 +22549,6 @@
       "locators": [
         {
           "src": "water",
-          "text": "Downstream of boundary signs 1,200m downstream of the Site C dam",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "peace-river-downstream-of-boundary-signs-1-20-2f9401",
-              "status": "curated",
-              "anchor_kind": "point",
-              "src": "name",
-              "resolver_hint": "dam_weir_fence",
-              "label": "signs 1200 m below Site C dam",
-              "notes": "[auto-proposal L] Boundary signs 1,200 m downstream of Site C Dam on Peace River (below Site C). No FWA coord (needs map / external source). Verify: Locate Site C Dam (BC Hydro, ~7 km SW of Fort St John) then place a point 1,200 m downstream along the Peace - Site C reservoir is too new to be in FWA.. Site C Dam is a recent BC Hydro facility likely absent from the FWA dataset. This entry is the reach downstream of signs 1,200 m below the dam. Recommend manual: get the Site C dam coord from BC Hydro, then offset 1,200 m downstream on the Peace River blue line. [human-review 2026-08-06] anchor=Site C dam; offset_m=1200 offset_dir=downstream.",
-              "coord": [
-                -120.91289,
-                56.193
-              ],
-              "offset": {
-                "anchor_label": "Site C dam (John Horgan Dam), OSM way 409910469",
-                "m": 1200,
-                "dir": "downstream",
-                "anchor": [
-                  -120.91289,
-                  56.193
-                ]
-              },
-              "name_verbatim": "PEACE RIVER (Downstream of boundary signs 1,200m downs"
-            }
-          ]
-        },
-        {
-          "src": "entry",
           "text": "Downstream of boundary signs 1,200m downstream of the Site C dam",
           "resolved": true,
           "rows": [
@@ -24630,22 +23976,6 @@
       "locators": [
         {
           "src": "water",
-          "text": "including two lagoons on the west side of Okanagan River upstream of McIntyre Dam",
-          "resolved": true,
-          "rows": [
-            {
-              "id": "vaseux-lake-including-two-lagoons-on-the-west-f208f2",
-              "status": "deferred",
-              "anchor_kind": "point",
-              "src": "name",
-              "resolver_hint": "dam_weir_fence",
-              "notes": "[auto-proposal L] McIntyre Dam (upstream bound) + two west-side lagoons on Vaseux Lake + Okanagan River lagoons. Candidate coord [-119.57386, 49.35652]. OSM: https://www.openstreetmap.org/?mlat=49.35652&mlon=-119.57386#map=15/49.35652/-119.57386. Verify: This is a lake+lagoons entry, not a single dam. Confirm McIntyre Dam as the upstream bound (~[-119.574,49.357]) and the two lagoons on the west side of the Okanagan River.. Vaseux Lake entry including two lagoons on the west side of the Okanagan River, upstream of McIntyre Dam. Better modelled as the Vaseux Lake polygon (wbk 329459123) plus lagoon geometry; candidate coord = McIntyre Dam (the named upstream structure). Manual review for the lagoons. [deferred 2026-08-08 lake-split: Vaseux Lake incl. two west-side Okanagan River lagoons u/s of McIntyre Dam — lake-area extent, defer per lake-split rule]",
-              "name_verbatim": "VASEUX LAKE (including two lagoons on the west side of"
-            }
-          ]
-        },
-        {
-          "src": "entry",
           "text": "including two lagoons on the west side of Okanagan River upstream of McIntyre Dam",
           "resolved": true,
           "rows": [

@@ -286,8 +286,16 @@ def build(curated=None):
     # lived ONLY on a name locator are whole-water n/a markers or redundant whole-entry deferred
     # markers — intentionally dropped (no unique boundary geometry is lost; verified). Cards left
     # with no locators (whole-water n/a-only entries) are removed.
+    # ...and collapse the `entry` locator when it merely duplicates the `water` locator: the same
+    # name-parenthetical boundary is recorded both as the water name and as entry_location_text, so
+    # (identical text -> identical backfilled rows) dropping the `entry` copy is lossless. Standalone
+    # entry locators (no matching water) carry a real entry-level boundary and are kept.
+    _nt = lambda s: re.sub(r"\s+", " ", (s or "").strip().lower())
     for c in cards.values():
         c["locators"] = [l for l in c["locators"] if l["src"] != "name"]
+        _wtexts = {_nt(l["text"]) for l in c["locators"] if l["src"] == "water"}
+        c["locators"] = [l for l in c["locators"]
+                         if not (l["src"] == "entry" and _nt(l["text"]) in _wtexts)]
     cards = {eid: c for eid, c in cards.items() if c["locators"]}
 
     # drift: curated rows never matched to any source locator (real anomalies / manual additions)
