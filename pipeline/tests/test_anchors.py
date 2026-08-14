@@ -180,6 +180,29 @@ def test_mu_boundary_non_adjacent_makes_no_split():
     assert resolve_split_defs([sd], chains, mu_polys=mu_polys) == []
 
 
+def test_area_boundary_cuts_first_enter_and_last_exit():
+    """Transition cutting: a stream crossing a park polygon is cut at its FIRST entry + LAST exit
+    only (<=2), never once per boundary touch."""
+    coords = [(0, 0), (100, 0), (150, 0), (200, 0), (300, 0)]      # X River along y=0, park spans x100..200
+    chains = build_blk_chains([_fid("X1", "X", "100", coords, 0, 300, gnis_name="X River")], {})
+    park = box(100, -50, 200, 50)
+    sd = SplitDef(id="pk", blk="X",
+                  anchor=SplitAnchor(type=AnchorType.area_boundary, area_layer="parks_bc", area_name="PARK"))
+    pts = resolve_split_defs([sd], chains, area_polys={"PARK": park})
+    assert sorted(round(p.route_measure) for p in pts) == [100, 200]   # enter + exit only
+
+
+def test_area_boundary_weaving_stream_still_two_cuts():
+    """A stream that weaves along the boundary (in/out/in/out) still yields just enter + exit."""
+    coords = [(0, 0), (110, 0), (120, 60), (130, 0), (140, 60), (150, 0), (300, 0)]  # dips out at x120,x140
+    chains = build_blk_chains([_fid("X1", "X", "100", coords, 0, 400, gnis_name="X River")], {})
+    park = box(100, -50, 200, 50)                                  # y>50 (the dips) is outside
+    sd = SplitDef(id="pk", blk="X",
+                  anchor=SplitAnchor(type=AnchorType.area_boundary, area_layer="parks_bc", area_name="PARK"))
+    pts = resolve_split_defs([sd], chains, area_polys={"PARK": park})
+    assert len(pts) == 2                                           # first enter + last exit, oscillation absorbed
+
+
 @_needs_data
 def test_real_splits_json_resolves_on_bella_coola_extract():
     """The authored splits.json resolves on real Bella Coola-system data:

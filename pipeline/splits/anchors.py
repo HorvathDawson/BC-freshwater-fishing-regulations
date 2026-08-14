@@ -89,6 +89,33 @@ def _points(geom) -> list[Point]:
     return []
 
 
+def _cross_measure(g, a, b, boundary) -> float:
+    """Along-``g`` measure where segment a->b crosses the polygon boundary (fallback: the b vertex)."""
+    pts = _points(LineString([a, b]).intersection(boundary))
+    return g.project(pts[0] if pts else Point(b))
+
+
+def _area_transition_measures(g, poly, boundary) -> list[float]:
+    """First-enter + last-exit cut measures for a stream crossing an area polygon. Absorbs
+    boundary-following oscillation (a stream weaving along the edge): cut once where it FIRST enters
+    the polygon and once where it LAST exits — everything between is treated as inside. <=2 cuts (1 if
+    it runs to its headwater inside or starts inside at the mouth; 0 if it never enters)."""
+    from shapely.prepared import prep
+    coords = list(g.coords)
+    pp = prep(poly)
+    inside = [pp.contains(Point(xy)) for xy in coords]
+    if not any(inside):
+        return []
+    first_in = inside.index(True)
+    last_in = len(inside) - 1 - inside[::-1].index(True)
+    out: list[float] = []
+    if first_in > 0:                                   # mouth outside -> cut where it enters
+        out.append(_cross_measure(g, coords[first_in - 1], coords[first_in], boundary))
+    if last_in < len(coords) - 1:                      # source outside -> cut where it exits
+        out.append(_cross_measure(g, coords[last_in], coords[last_in + 1], boundary))
+    return out
+
+
 def _apply_offset(d: float, length: float, anchor) -> tuple[float, str]:
     """Shift an along-channel distance ``d`` (metres from the mouth) by the anchor's authored
     offset, following the channel. +upstream / -downstream (geometry is mouth->source, so a larger
@@ -213,10 +240,10 @@ def resolve_split_defs(split_defs: list[SplitDef], chains: list[BlkChain],
                 _emit(sd, blk, c.mouth_measure + chosen, concern=concern)
 
         elif a.type == AnchorType.area_boundary:
-            # Cut the target water + (optionally) its WSC descendants wherever they cross the
-            # admin/park polygon boundary. Unlike mu_boundary we KEEP every crossing (a stream can
-            # enter/leave a park many times, and a tributary can leave then re-enter) — the
-            # inside/outside decision is made later, geometrically, by border.mark_inside_area.
+            # Cut the target water + (optionally) its WSC descendants where they cross the admin/park
+            # polygon — but only at the FIRST entry and LAST exit (transition cutting), so a stream
+            # weaving along the boundary yields <=2 cuts, not hundreds. The between-reach is flagged
+            # inside later by border.mark_inside_area.
             poly = (area_polys or {}).get(a.area_name)
             if poly is None:
                 continue
@@ -226,7 +253,7 @@ def resolve_split_defs(split_defs: list[SplitDef], chains: list[BlkChain],
                 c = by_blk.get(blk)
                 if c is None or c.geometry is None or c.geometry.is_empty:
                     continue
-                for p in _points(c.geometry.intersection(boundary)):
-                    _emit(sd, blk, c.mouth_measure + c.geometry.project(p))
+                for m in _area_transition_measures(c.geometry, poly, boundary):
+                    _emit(sd, blk, c.mouth_measure + m)
 
     return out
