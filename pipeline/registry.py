@@ -13,6 +13,7 @@ named only in name_variants, not FWA GNIS — is labelled correctly here.
 
 import re
 from collections import defaultdict
+from dataclasses import replace
 
 from pipeline.models import NodeKind, RegistryBoundary, RegistryItem, StreamGraph, StreamNode
 from pipeline.utils.wsc import trim_wsc
@@ -103,4 +104,42 @@ def build_registry(graph: StreamGraph) -> dict[str, RegistryItem]:
             section_ids=tuple(n.node_id for n in nodes),
             boundaries=tuple(bmap.values()),
         )
+
+    # area items (kind=area): every admin closure a node was flagged INSIDE (node.in_areas, set by
+    # the graph's area_boundary inside-pass). Layer-agnostic — parks_bc / parks_nat / wma / ecological
+    # reserves / the historical trail all land here. A `within(area)` rule resolves to these sections.
+    area_nodes: dict[str, list[StreamNode]] = defaultdict(list)
+    for n in graph.nodes.values():
+        for area in n.in_areas:
+            area_nodes[area].append(n)
+    for area, nodes in area_nodes.items():
+        aid = f"area:{_slug(area)}"
+        registry[aid] = RegistryItem(id=aid, name=area, kind="area", variants=(),
+                                     section_ids=tuple(n.node_id for n in nodes), boundaries=())
+    return registry
+
+
+def add_mu_sets(registry: dict[str, RegistryItem], geoms: dict,
+                mu_polys: dict) -> dict[str, RegistryItem]:
+    """Enrich NAMED stream/lake items with the SET of MUs their geometry passes through (line/area ×
+    WMU). Only the matcher needs this (to break same-name collisions), and only named items collide,
+    so unnamed streams are skipped. A river spanning several MUs carries all of them. Mutates + returns."""
+    if not mu_polys:
+        return registry
+    from shapely.ops import unary_union
+    from shapely.strtree import STRtree
+
+    mu_ids = list(mu_polys)
+    polys = [mu_polys[m] for m in mu_ids]
+    tree = STRtree(polys)
+    for iid, it in list(registry.items()):
+        if it.kind == "area" or not it.name:                 # named streams/lakes only
+            continue
+        parts = [geoms[nid] for nid in it.section_ids if geoms.get(nid) is not None]
+        if not parts:
+            continue
+        g = unary_union(parts)
+        hits = {mu_ids[i] for i in tree.query(g) if g.intersects(polys[i])}
+        if hits:
+            registry[iid] = replace(it, mus=tuple(sorted(hits)))
     return registry
